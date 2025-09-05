@@ -26,17 +26,7 @@ export async function handleRevertWithCustomError<
   try {
     await contractFn;
   } catch (error) {
-    const contractAbi = Array.isArray(contract.abi)
-      ? contract.abi
-      : Object.values(contract.abi);
-
-    const found = contractAbi.some(
-      (abiItem) => abiItem.type === "error" && abiItem.name === customErrorName,
-    );
-
-    if (found === false) {
-      assert.fail(`The error "${customErrorName}" does not exists in the abi.`);
-    }
+    throwIfErrorIsNotInContract(contract, customErrorName);
 
     const rawError = extractRevertError(error);
 
@@ -80,4 +70,21 @@ export async function handleRevertWithCustomError<
   assert.fail(
     `The function was expected to revert with "${customErrorName}", but it did not.`,
   );
+}
+
+function throwIfErrorIsNotInContract<ContractName extends keyof ContractAbis>(
+  contract: ContractReturnType<ContractName>,
+  customErrorName: string,
+) {
+  const contractAbi = Array.isArray(contract.abi)
+    ? contract.abi
+    : Object.values(contract.abi);
+
+  const found = contractAbi.some(
+    (abiItem) => abiItem.type === "error" && abiItem.name === customErrorName,
+  );
+
+  if (found === false) {
+    assert.fail(`The error "${customErrorName}" does not exists in the abi.`);
+  }
 }
