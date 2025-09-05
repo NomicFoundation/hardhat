@@ -11,10 +11,6 @@ import hardhatViem from "@nomicfoundation/hardhat-viem";
 import { createHardhatRuntimeEnvironment } from "hardhat/hre";
 
 import hardhatViemAssertions from "../../../../src/index.js";
-import {
-  ERROR_STRING_SELECTOR,
-  PANIC_SELECTOR,
-} from "../../../../src/internal/assertions/revert/error-string.js";
 import { isExpectedError } from "../../../helpers/is-expected-error.js";
 
 describe("revertWithCustomError", () => {
@@ -69,10 +65,25 @@ describe("revertWithCustomError", () => {
       (error) =>
         isExpectedError(
           error,
-          `Expected error name: "CustomErrorWithInt", but found "CustomError".`,
+          `The function was expected to revert with custom error "CustomErrorWithInt", but it reverted with custom error "CustomError"`,
           "CustomError",
           "CustomErrorWithInt",
         ),
+    );
+  });
+
+  it("should throw because the function revert without a reason", async () => {
+    const contract = await viem.deployContract("Revert");
+
+    await assertRejects(
+      viem.assertions.revertWithCustomError(
+        contract.read.alwaysRevertWithNoReason(),
+        contract,
+        "CustomError",
+      ),
+      (error) =>
+        error.message ===
+        `The function was expected to revert with custom error "CustomError", but it reverted without a reason`,
     );
   });
 
@@ -87,7 +98,7 @@ describe("revertWithCustomError", () => {
       ),
       (error) =>
         error.message ===
-        `The error "NonExistingCustomError" does not exists in the abi.`,
+        `The given contract doesn't have a custom error named "NonExistingCustomError"`,
     );
   });
 
@@ -102,7 +113,7 @@ describe("revertWithCustomError", () => {
       ),
       (error) =>
         error.message ===
-        `The function was expected to revert with "CustomError", but it did not.`,
+        `The function was expected to revert with custom error "CustomError", but it did not revert`,
     );
   });
 
@@ -117,7 +128,7 @@ describe("revertWithCustomError", () => {
       ),
       (error) =>
         error.message ===
-        `Expected a custom error with name "CustomError", but got a non custom error with error string "${ERROR_STRING_SELECTOR}"`,
+        `The function was expected to revert with custom error "CustomError", but it reverted with reason "Intentional revert for testing purposes"`,
     );
   });
 
@@ -134,7 +145,7 @@ describe("revertWithCustomError", () => {
       ),
       (error) =>
         error.message ===
-        `Expected a custom error with name "CustomError", but got a non custom error with error string "${PANIC_SELECTOR}"`,
+        `The function was expected to revert with custom error "CustomError", but it reverted with a panic error: VM Exception while processing transaction: reverted with panic code 0x11 (Arithmetic operation overflowed outside of an unchecked block)`,
     );
   });
 
@@ -149,7 +160,7 @@ describe("revertWithCustomError", () => {
       ),
       (error) =>
         error.message ===
-        `Expected a custom error with name "CustomError", but got a non custom error with error string "${PANIC_SELECTOR}"`,
+        `The function was expected to revert with custom error "CustomError", but it reverted with a panic error: VM Exception while processing transaction: reverted with panic code 0x12 (Division or modulo division by zero)`,
     );
   });
 
@@ -166,7 +177,7 @@ describe("revertWithCustomError", () => {
       ),
       (error) =>
         error.message ===
-        `Expected a custom error with name "CustomError", but got a non custom error with error string "${PANIC_SELECTOR}"`,
+        `The function was expected to revert with custom error "CustomError", but it reverted with a panic error: VM Exception while processing transaction: reverted with panic code 0x11 (Arithmetic operation overflowed outside of an unchecked block)`,
     );
   });
 });
