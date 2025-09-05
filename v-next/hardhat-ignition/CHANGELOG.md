@@ -1,5 +1,20 @@
 # Changelog
 
+## 3.0.3
+
+### Patch Changes
+
+- Updated dependencies [bebf87c]
+- Updated dependencies [0bfe6ac]
+- Updated dependencies [be469d6]
+- Updated dependencies [8d3b16c]
+- Updated dependencies [3996886]
+  - @nomicfoundation/ignition-core@3.0.3
+  - hardhat@3.0.5
+  - @nomicfoundation/hardhat-errors@3.0.2
+  - @nomicfoundation/hardhat-utils@3.0.1
+  - @nomicfoundation/ignition-ui@3.0.3
+
 ## 3.0.2
 
 ### Patch Changes

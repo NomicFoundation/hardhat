@@ -1,5 +1,15 @@
 # Changelog
 
+## 3.0.3
+
+### Patch Changes
+
+- bebf87c: Added support for Linea network verification, thanks @kyzooghost ([#7357](https://github.com/NomicFoundation/hardhat/issues/7357))
+- Updated dependencies [be469d6]
+- Updated dependencies [8d3b16c]
+  - @nomicfoundation/hardhat-errors@3.0.2
+  - @nomicfoundation/hardhat-utils@3.0.1
+
 ## 3.0.2
 
 ### Patch Changes
