@@ -112,7 +112,7 @@ const nodeAction: NewTaskActionFunction<NodeActionArguments> = async (
     }
   }
 
-  const server: JsonRpcServerImplementation = new JsonRpcServerImplementation({
+  const server = new JsonRpcServerImplementation({
     hostname,
     port: args.port,
     provider,
