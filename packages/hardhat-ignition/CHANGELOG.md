@@ -1,5 +1,17 @@
 # Changelog
 
+## 0.15.14
+
+### Patch Changes
+
+- 9d10226: Links in the code and READMEs updated to point to the Hardhat 2 documentation and resources
+- Updated dependencies [e5ff273]
+- Updated dependencies [9d10226]
+  - hardhat@2.26.4
+  - @nomicfoundation/ignition-core@0.15.14
+  - @nomicfoundation/ignition-ui@0.15.13
+  - @nomicfoundation/hardhat-verify@2.1.2
+
 ## 0.15.13
 
 ### Patch Changes
