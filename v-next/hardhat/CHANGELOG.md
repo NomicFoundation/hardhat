@@ -1,5 +1,20 @@
 # hardhat
 
+## 3.0.5
+
+### Patch Changes
+
+- bebf87c: Added support for Linea network verification, thanks @kyzooghost ([#7357](https://github.com/NomicFoundation/hardhat/issues/7357))
+- 0bfe6ac: Fixed coverage report when loading data from large test suites ([#7385](https://github.com/NomicFoundation/hardhat/issues/7385))
+- be469d6: Display an error message when attempting to use a global hardhat installation in a local repo ([#5362](https://github.com/NomicFoundation/hardhat/issues/5362))
+- 8d3b16c: Support for custom compilers ([#7130](https://github.com/NomicFoundation/hardhat/issues/7130))
+- 3996886: Fixed `getBuildInfoPath` and `getBuildInfoOutputPath` to correctly return undefined when build info files are missing [7052](https://github.com/NomicFoundation/hardhat/issues/7052)
+- Updated dependencies [be469d6]
+- Updated dependencies [8d3b16c]
+  - @nomicfoundation/hardhat-errors@3.0.2
+  - @nomicfoundation/hardhat-utils@3.0.1
+  - @nomicfoundation/hardhat-zod-utils@3.0.1
+
 ## 3.0.4
 
 ### Patch Changes
