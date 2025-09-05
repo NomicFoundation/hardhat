@@ -290,7 +290,7 @@ function checkEmptyConfig(
     // This 'learn more' section is also printed by the solidity config warning,
     // so we need to check to avoid printing it twice
     if (!showSolidityConfigWarnings) {
-      warning += `\nLearn more about configuring Hardhat at https://hardhat.org/config\n`;
+      warning += `\nLearn more about configuring Hardhat at https://v2.hardhat.org/config\n`;
     }
 
     console.warn(picocolors.yellow(warning));
@@ -303,7 +303,7 @@ function checkMissingSolidityConfig(userConfig: any) {
       picocolors.yellow(
         `Solidity compiler is not configured. Version ${DEFAULT_SOLC_VERSION} will be used by default. Add a 'solidity' entry to your configuration to suppress this warning.
 
-Learn more about compiler configuration at https://hardhat.org/config
+Learn more about compiler configuration at https://v2.hardhat.org/config
 `
       )
     );
@@ -331,7 +331,7 @@ function checkUnsupportedSolidityConfig(resolvedConfig: HardhatConfig) {
           unsupportedVersions.length === 1 ? "is" : "are"
         } not fully supported yet. You can still use Hardhat, but some features, like stack traces, might not work correctly.
 
-Learn more at https://hardhat.org/hardhat-runner/docs/reference/solidity-support
+Learn more at https://v2.hardhat.org/hardhat-runner/docs/reference/solidity-support
 `
       )
     );
@@ -352,7 +352,7 @@ function checkUnsupportedRemappings({ solidity }: HardhatConfig) {
       picocolors.yellow(
         `Solidity remappings are not currently supported; you may experience unexpected compilation results. Remove any 'remappings' fields from your configuration to suppress this warning.
 
-Learn more about compiler configuration at https://hardhat.org/config
+Learn more about compiler configuration at https://v2.hardhat.org/config
 `
       )
     );

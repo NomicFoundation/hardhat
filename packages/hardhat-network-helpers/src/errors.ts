@@ -33,7 +33,7 @@ You probably did something like this:
 
 Instead, define a fixture function and refer to that same function in each call to loadFixture.
 
-Learn more at https://hardhat.org/hardhat-network-helpers/docs/reference#fixtures`);
+Learn more at https://v2.hardhat.org/hardhat-network-helpers/docs/reference#fixtures`);
   }
 }
 

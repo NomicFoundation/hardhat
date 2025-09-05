@@ -84,12 +84,12 @@ async function suggestInstallingHardhatVscode() {
       console.log("Hardhat for Visual Studio Code was successfully installed");
     } else {
       console.log(
-        "Hardhat for Visual Studio Code couldn't be installed. To learn more about it, go to https://hardhat.org/hardhat-vscode"
+        "Hardhat for Visual Studio Code couldn't be installed. To learn more about it, go to https://v2.hardhat.org/hardhat-vscode"
       );
     }
   } else {
     console.log(
-      "To learn more about Hardhat for Visual Studio Code, go to https://hardhat.org/hardhat-vscode"
+      "To learn more about Hardhat for Visual Studio Code, go to https://v2.hardhat.org/hardhat-vscode"
     );
   }
 }
@@ -106,7 +106,7 @@ function showViaIRWarning(resolvedConfig: HardhatConfig) {
       picocolors.yellow(
         `Your solidity settings have viaIR enabled, which is not fully supported yet. You can still use Hardhat, but some features, like stack traces, might not work correctly.
 
-Learn more at https://hardhat.org/solc-viair`
+Learn more at https://v2.hardhat.org/solc-viair`
       )
     );
   }
@@ -427,12 +427,12 @@ async function main() {
     } else {
       if (!isHardhatError) {
         console.error(
-          `If you think this is a bug in Hardhat, please report it here: https://hardhat.org/report-bug`
+          `If you think this is a bug in Hardhat, please report it here: https://v2.hardhat.org/report-bug`
         );
       }
 
       if (HardhatError.isHardhatError(error)) {
-        const link = `https://hardhat.org/${getErrorCode(
+        const link = `https://v2.hardhat.org/${getErrorCode(
           error.errorDescriptor
         )}`;
 

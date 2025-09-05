@@ -1,4 +1,4 @@
-[![npm](https://img.shields.io/npm/v/@nomiclabs/hardhat-truffle5.svg)](https://www.npmjs.com/package/@nomiclabs/hardhat-truffle5) [![hardhat](https://hardhat.org/buidler-plugin-badge.svg?1)](https://hardhat.org)
+[![npm](https://img.shields.io/npm/v/@nomiclabs/hardhat-truffle5.svg)](https://www.npmjs.com/package/@nomiclabs/hardhat-truffle5) [![hardhat](https://v2.hardhat.org/buidler-plugin-badge.svg?1)](https://hardhat.org)
 
 # hardhat-truffle5
 
@@ -42,4 +42,4 @@ An instance of [`TruffleEnvironmentArtifacts`](https://github.com/nomiclabs/hard
 
 There are no additional steps you need to take for this plugin to work. Install it, run `npx hardhat test` and your Truffle tests should run with no need to make any modifications.
 
-Take a look at the [testing guide](https://hardhat.org/hardhat-runner/docs/other-guides/truffle-testing) for a tutorial using it.
+Take a look at the [testing guide](https://v2.hardhat.org/hardhat-runner/docs/other-guides/truffle-testing) for a tutorial using it.

@@ -1,4 +1,4 @@
-[![npm](https://img.shields.io/npm/v/@nomicfoundation/hardhat-ethers.svg)](https://www.npmjs.com/package/@nomicfoundation/hardhat-ethers) [![hardhat](https://hardhat.org/buidler-plugin-badge.svg?1)](https://hardhat.org)
+[![npm](https://img.shields.io/npm/v/@nomicfoundation/hardhat-ethers.svg)](https://www.npmjs.com/package/@nomicfoundation/hardhat-ethers) [![hardhat](https://v2.hardhat.org/buidler-plugin-badge.svg?1)](https://hardhat.org)
 
 # hardhat-ethers
 
@@ -105,7 +105,7 @@ module.exports = {};
 
 And then run `npx hardhat blockNumber` to try it.
 
-Read the documentation on the [Hardhat Runtime Environment](https://hardhat.org/hardhat-runner/docs/advanced/hardhat-runtime-environment) to learn how to access the HRE in different ways to use ethers.js from anywhere the HRE is accessible.
+Read the documentation on the [Hardhat Runtime Environment](https://v2.hardhat.org/hardhat-runner/docs/advanced/hardhat-runtime-environment) to learn how to access the HRE in different ways to use ethers.js from anywhere the HRE is accessible.
 
 ### Library linking
 

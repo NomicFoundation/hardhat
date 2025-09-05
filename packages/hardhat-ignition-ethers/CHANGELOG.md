@@ -107,7 +107,7 @@
 
 ### Added
 
-- Improved support for deploying via a Ledger Hardware wallet, [see our guide for details](https://hardhat.org/ignition/docs/guides/ledger) ([#720](https://github.com/NomicFoundation/hardhat-ignition/issues/720))
+- Improved support for deploying via a Ledger Hardware wallet, [see our guide for details](https://v2.hardhat.org/ignition/docs/guides/ledger) ([#720](https://github.com/NomicFoundation/hardhat-ignition/issues/720))
 - Support `maxPriorityFeePerGas` as a configuration parameter ([#728](https://github.com/NomicFoundation/hardhat-ignition/issues/728))
 - Use RPC call `eth_maxPriorityFeePerGas` in gas fee calculations when available ([#743](https://github.com/NomicFoundation/hardhat-ignition/issues/743))
 - Support zero gas fee chains (like private Besu chains), thanks @jimthematrix ([#730](https://github.com/NomicFoundation/hardhat-ignition/pull/730))
@@ -139,7 +139,7 @@
 
 ### Added
 
-- Support `create2` through strategies, for more details see [our `create2` guide](https://hardhat.org/ignition/docs/guides/create2). ([#629](https://github.com/NomicFoundation/hardhat-ignition/issues/629))
+- Support `create2` through strategies, for more details see [our `create2` guide](https://v2.hardhat.org/ignition/docs/guides/create2). ([#629](https://github.com/NomicFoundation/hardhat-ignition/issues/629))
 
 ## 0.13.2 - 2024-01-25
 

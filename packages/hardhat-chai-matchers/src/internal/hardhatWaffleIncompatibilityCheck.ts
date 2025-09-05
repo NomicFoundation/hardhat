@@ -3,7 +3,7 @@ export function hardhatWaffleIncompatibilityCheck() {
     throw new Error(
       `You are using both @nomicfoundation/hardhat-chai-matchers and @nomiclabs/hardhat-waffle. They don't work correctly together, so please make sure you only use one.
 
-We recommend you migrate to @nomicfoundation/hardhat-chai-matchers. Learn how to do it here: https://hardhat.org/migrate-from-waffle`
+We recommend you migrate to @nomicfoundation/hardhat-chai-matchers. Learn how to do it here: https://v2.hardhat.org/migrate-from-waffle`
     );
   }
 

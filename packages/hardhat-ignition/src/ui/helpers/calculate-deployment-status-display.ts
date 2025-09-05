@@ -74,7 +74,7 @@ function _calculateFailed(deploymentId: string, statusResult: StatusResult) {
       .join("\n");
 
     failedSection +=
-      "\n\nTo learn how to handle these errors: https://hardhat.org/ignition-errors";
+      "\n\nTo learn how to handle these errors: https://v2.hardhat.org/ignition-errors";
 
     sections.push(failedSection);
   }

@@ -93,7 +93,7 @@ describe("ui - calculate deployment status display", () => {
          - MyModule:MyContract3: Reverted with reason x
          - MyModule:AnotherContract3: Reverted with reason y
 
-        To learn how to handle these errors: https://hardhat.org/ignition-errors
+        To learn how to handle these errors: https://v2.hardhat.org/ignition-errors
 
         Futures where held by the strategy:
          - MyModule:MyContract2: Vote is not complete

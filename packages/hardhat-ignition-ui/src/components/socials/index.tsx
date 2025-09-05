@@ -9,7 +9,7 @@ export enum SocialsEnum {
 }
 
 const SOCIALS_LINKS = {
-  [SocialsEnum.GITHUB]: "https://hardhat.org/ignition",
+  [SocialsEnum.GITHUB]: "https://v2.hardhat.org/ignition",
   [SocialsEnum.TWITTER]: "https://twitter.com/HardhatHQ",
   [SocialsEnum.DISCORD]: "https://hardhat.org/ignition-discord",
 };

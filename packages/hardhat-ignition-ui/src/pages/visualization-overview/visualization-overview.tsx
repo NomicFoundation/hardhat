@@ -24,7 +24,7 @@ export const VisualizationOverview: React.FC<{
 
         <span style={{ display: "flex", alignItems: "center" }}>
           <DocLink>
-            <a href="https://hardhat.org/ignition/docs" target="_blank">
+            <a href="https://v2.hardhat.org/ignition/docs" target="_blank">
               DOCUMENTATION <ExternalLinkIcon />
             </a>
           </DocLink>

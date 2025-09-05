@@ -4,7 +4,7 @@
 
 # Hardhat Ignition Core
 
-The core logic of [Hardhat Ignition](https://hardhat.org/ignition). Read [this guide](https://hardhat.org/ignition/docs/getting-started) to learn how to use it.
+The core logic of [Hardhat Ignition](https://v2.hardhat.org/ignition). Read [this guide](https://v2.hardhat.org/ignition/docs/getting-started) to learn how to use it.
 
 ## Feedback, help and news
 
