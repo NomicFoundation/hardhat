@@ -465,6 +465,14 @@ A fully qualified name should look like file.sol:Contract`,
 
 Please resolve the errors before rerunning the command.`,
       },
+      NON_LOCAL_INSTALLATION: {
+        number: 22,
+        messageTemplate: `Trying to use a non-local installation of Hardhat, which is not supported.\n\nPlease install Hardhat locally using pnpm, npm or yarn, and try again.`,
+        websiteTitle: "Hardhat is not installed or installed globally",
+        websiteDescription: `You tried to run Hardhat from a global installation or not installing it at all. This is not supported.
+
+Please install Hardhat locally using pnpm, npm or yarn, and try again.`,
+      },
     },
     INTERNAL: {
       ASSERTION_ERROR: {
@@ -1133,6 +1141,18 @@ Please check Hardhat's output for more details.`,
         messageTemplate: `The build profile "{buildProfileName}" is not defined in your Hardhat config`,
         websiteTitle: "Build profile not defined",
         websiteDescription: `The build profile you are trying to use is not defined in your Hardhat config.`,
+      },
+      COMPILER_PATH_DOES_NOT_EXIST: {
+        number: 913,
+        messageTemplate: `The compiler path "{compilerPath}" specified in your config for version {version} does not exist.`,
+        websiteTitle: "Compiler path does not exist",
+        websiteDescription: `The compiler path you are trying to use does not exist. Ensure you specified the correct path in the config file and that the file exists.`,
+      },
+      PARSING_VERSION_STRING_FAILED: {
+        number: 914,
+        messageTemplate: `Could not parse the full compiler version from "{versionString}" using "{compilerPath}"`,
+        websiteTitle: "Could not parse a compiler version",
+        websiteDescription: `Hardhat failed to parse the full compiler version from the output of the compiler's 'version' command.`,
       },
     },
     ARTIFACTS: {
