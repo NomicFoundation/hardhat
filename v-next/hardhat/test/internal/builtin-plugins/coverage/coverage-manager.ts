@@ -148,6 +148,10 @@ describe("CoverageManagerImplementation", () => {
    * This test was introduced in response to:
    * https://github.com/NomicFoundation/hardhat/issues/7385
    *
+   * The underlying issue was that with enough coverage entries
+   * we were getting issues with conversion to function params,
+   * hence the large array size: `150_000`.
+   *
    * This test should be monitored for performance in our CI.
    */
   it("should load large save data files", async () => {
