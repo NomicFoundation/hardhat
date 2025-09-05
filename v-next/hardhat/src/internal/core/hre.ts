@@ -30,7 +30,6 @@ import { resolveConfigurationVariable } from "./configuration-variables.js";
 import {
   buildGlobalOptionDefinitions,
   resolveGlobalOptions,
-  setGlobalOptionsAsEnvVariables,
 } from "./global-options.js";
 import { HookManagerImplementation } from "./hook-manager.js";
 import { resolvePluginList } from "./plugins/resolve-plugin-list.js";
@@ -120,8 +119,6 @@ export class HardhatRuntimeEnvironmentImplementation
       userProvidedGlobalOptions,
       globalOptionDefinitions,
     );
-
-    setGlobalOptionsAsEnvVariables(globalOptions);
 
     // Set the HookContext in the hook manager so that non-config hooks can
     // use it

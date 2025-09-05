@@ -10,7 +10,7 @@ import type {
 import type { HardhatPlugin } from "../../types/plugins.js";
 
 import { HardhatError } from "@nomicfoundation/hardhat-errors";
-import { camelToSnakeCase } from "@nomicfoundation/hardhat-utils/string";
+import { getEnvVariableNameFromGlobalOption } from "@nomicfoundation/hardhat-utils/env";
 
 import { ArgumentType } from "../../types/arguments.js";
 
@@ -185,26 +185,4 @@ export function resolveGlobalOptions(
   }
 
   return globalOptions;
-}
-
-/**
- * Sets the resolved global options as environment variables.
- *
- * @param globalOptions An object containing the resolved global options,
- * with each option adhering to its definition in the globalOptionDefinitions.
- */
-export function setGlobalOptionsAsEnvVariables(
-  globalOptions: GlobalOptions,
-): void {
-  for (const [name, value] of Object.entries(globalOptions)) {
-    const envName = getEnvVariableNameFromGlobalOption(name);
-
-    if (value !== undefined) {
-      process.env[envName] = value;
-    }
-  }
-}
-
-function getEnvVariableNameFromGlobalOption(globalOptionName: string) {
-  return `HARDHAT_${camelToSnakeCase(globalOptionName).toUpperCase()}`;
 }
