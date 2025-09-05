@@ -1,4 +1,5 @@
 import type { HardhatEthers } from "../src/types.js";
+import type { EventFilter } from "ethers";
 import type { EthereumProvider } from "hardhat/types/providers";
 
 import assert from "node:assert/strict";
@@ -326,6 +327,30 @@ describe("provider events", () => {
 
       // remove subscription
       await ethers.provider.off("block", listener);
+    });
+
+    it("should be a no-op when removeAllListeners(unregistered event filter) is called", async () => {
+      const blockListener = mock.fn();
+      await ethers.provider.on("block", blockListener);
+
+      // event filter that was never registered
+      const unregisteredEventFilter: EventFilter = {
+        address: "0x0000000000000000000000000000000000000001",
+        topics: [],
+      };
+
+      // should not affect existing block listeners
+      await ethers.provider.removeAllListeners(unregisteredEventFilter);
+
+      // mine a block and ensure the block listener still fires
+      const [s] = await ethers.getSigners();
+      await s.sendTransaction({ to: s });
+
+      await tryUntil(() => {
+        assert.equal(blockListener.mock.callCount(), 1);
+      });
+
+      await ethers.provider.off("block", blockListener);
     });
   });
 

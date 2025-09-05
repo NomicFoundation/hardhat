@@ -1283,7 +1283,7 @@ export class HardhatEthersProvider implements HardhatEthersProviderI {
     } else {
       const index = await this.#findEventListenerIndex(event);
 
-      if (index === -1) {
+      if (index !== -1) {
         const { listenersMap } = this.#eventListeners[index];
         this.#eventListeners.splice(index, 1);
         for (const blockListener of listenersMap.values()) {
