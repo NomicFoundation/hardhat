@@ -11,6 +11,7 @@ import {
   HardhatError,
 } from "@nomicfoundation/hardhat-errors";
 import {
+  exists,
   getAllFilesMatching,
   readJsonFile,
 } from "@nomicfoundation/hardhat-utils/fs";
@@ -117,22 +118,30 @@ export class ArtifactManagerImplementation implements ArtifactManager {
     return new Set(paths.map((p) => path.basename(p, ".json")));
   }
 
-  public async getBuildInfoPath(buildInfoId: string): Promise<string> {
-    return path.join(
+  public async getBuildInfoPath(
+    buildInfoId: string,
+  ): Promise<string | undefined> {
+    const buildInfoPath = path.join(
       this.#artifactsPath,
       BUILD_INFO_DIR_NAME,
       buildInfoId + ".json",
     );
+
+    return (await exists(buildInfoPath)) ? buildInfoPath : undefined;
   }
 
   public async getBuildInfoOutputPath(
     buildInfoId: string,
   ): Promise<string | undefined> {
-    return path.join(
+    const buildInfoOutputPath = path.join(
       this.#artifactsPath,
       BUILD_INFO_DIR_NAME,
       buildInfoId + ".output.json",
     );
+
+    return (await exists(buildInfoOutputPath))
+      ? buildInfoOutputPath
+      : undefined;
   }
 
   public async clearCache(): Promise<void> {
