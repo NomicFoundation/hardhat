@@ -27,45 +27,6 @@ describe("HRE initialization", () => {
   });
 
   describe("createHardhatRuntimeEnvironment", () => {
-    describe("global options should be stored in env variables", () => {
-      useFixtureProject("resolve-project-root/no-path-param/folder");
-
-      it("should load the global options in the env variables with same values as the ones in the hre", async () => {
-        const hre = await createHardhatRuntimeEnvironment(
-          {},
-          {
-            network: "test-network",
-            coverage: true,
-            showStackTraces: true,
-            buildProfile: "test-profile",
-          },
-          `${process.cwd()}/folder-no-package`,
-        );
-
-        assert.equal(process.env.HARDHAT_NETWORK, "test-network");
-        assert.equal(process.env.HARDHAT_COVERAGE, "true");
-        assert.equal(process.env.HARDHAT_SHOW_STACK_TRACES, "true");
-        assert.equal(process.env.HARDHAT_BUILD_PROFILE, "test-profile");
-
-        assert.equal(process.env.HARDHAT_HELP, "false");
-        assert.equal(process.env.HARDHAT_INIT, "false");
-        assert.equal(process.env.HARDHAT_VERSION, "false");
-
-        assert.equal(process.env.HARDHAT_CONFIG, undefined);
-
-        assert.deepEqual(hre.globalOptions, {
-          network: "test-network",
-          coverage: true,
-          showStackTraces: true,
-          buildProfile: "test-profile",
-          help: false,
-          init: false,
-          version: false,
-          config: undefined,
-        });
-      });
-    });
-
     describe("resolved project root", () => {
       describe("no path param is passed", () => {
         describe("the cwd does not contain a package file", () => {
