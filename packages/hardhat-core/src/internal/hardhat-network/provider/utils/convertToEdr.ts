@@ -6,6 +6,27 @@ import type {
   TracingMessage,
   TracingMessageResult,
   TracingStep,
+  HttpHeader,
+} from "@nomicfoundation/edr";
+import {
+  FRONTIER,
+  HOMESTEAD,
+  DAO_FORK,
+  TANGERINE,
+  SPURIOUS_DRAGON,
+  BYZANTIUM,
+  CONSTANTINOPLE,
+  PETERSBURG,
+  ISTANBUL,
+  MUIR_GLACIER,
+  BERLIN,
+  LONDON,
+  ARROW_GLACIER,
+  GRAY_GLACIER,
+  MERGE,
+  SHANGHAI,
+  CANCUN,
+  PRAGUE,
 } from "@nomicfoundation/edr";
 import { Address } from "@ethereumjs/util";
 
@@ -21,48 +42,44 @@ import {
 
 /* eslint-disable @nomicfoundation/hardhat-internal-rules/only-hardhat-error */
 
-export function ethereumsjsHardforkToEdrSpecId(hardfork: HardforkName): SpecId {
-  const { SpecId } = requireNapiRsModule(
-    "@nomicfoundation/edr"
-  ) as typeof import("@nomicfoundation/edr");
-
+export function ethereumsjsHardforkToEdrSpecId(hardfork: HardforkName): string {
   switch (hardfork) {
     case HardforkName.FRONTIER:
-      return SpecId.Frontier;
+      return FRONTIER;
     case HardforkName.HOMESTEAD:
-      return SpecId.Homestead;
+      return HOMESTEAD;
     case HardforkName.DAO:
-      return SpecId.DaoFork;
+      return DAO_FORK;
     case HardforkName.TANGERINE_WHISTLE:
-      return SpecId.Tangerine;
+      return TANGERINE;
     case HardforkName.SPURIOUS_DRAGON:
-      return SpecId.SpuriousDragon;
+      return SPURIOUS_DRAGON;
     case HardforkName.BYZANTIUM:
-      return SpecId.Byzantium;
+      return BYZANTIUM;
     case HardforkName.CONSTANTINOPLE:
-      return SpecId.Constantinople;
+      return CONSTANTINOPLE;
     case HardforkName.PETERSBURG:
-      return SpecId.Petersburg;
+      return PETERSBURG;
     case HardforkName.ISTANBUL:
-      return SpecId.Istanbul;
+      return ISTANBUL;
     case HardforkName.MUIR_GLACIER:
-      return SpecId.MuirGlacier;
+      return MUIR_GLACIER;
     case HardforkName.BERLIN:
-      return SpecId.Berlin;
+      return BERLIN;
     case HardforkName.LONDON:
-      return SpecId.London;
+      return LONDON;
     case HardforkName.ARROW_GLACIER:
-      return SpecId.ArrowGlacier;
+      return ARROW_GLACIER;
     case HardforkName.GRAY_GLACIER:
-      return SpecId.GrayGlacier;
+      return GRAY_GLACIER;
     case HardforkName.MERGE:
-      return SpecId.Merge;
+      return MERGE;
     case HardforkName.SHANGHAI:
-      return SpecId.Shanghai;
+      return SHANGHAI;
     case HardforkName.CANCUN:
-      return SpecId.Cancun;
+      return CANCUN;
     case HardforkName.PRAGUE:
-      return SpecId.Prague;
+      return PRAGUE;
     default:
       const _exhaustiveCheck: never = hardfork;
       throw new Error(
@@ -195,7 +212,7 @@ export function edrRpcDebugTraceToHardhat(
     structLogs.shift();
   }
 
-  let returnValue = rpcDebugTrace.output?.toString("hex") ?? "";
+  let returnValue = rpcDebugTrace.output?.toString() ?? "";
   if (returnValue === "0x") {
     returnValue = "";
   }
@@ -248,10 +265,10 @@ export function edrTracingMessageResultToMinimalEVMResult(
   }
   if ("output" in result) {
     const { output } = result;
-    if (Buffer.isBuffer(output)) {
-      minimalEVMResult.execResult.output = output;
+    if (output instanceof Uint8Array) {
+      minimalEVMResult.execResult.output = Buffer.from(output);
     } else {
-      minimalEVMResult.execResult.output = output.returnValue;
+      minimalEVMResult.execResult.output = Buffer.from(output.returnValue);
     }
   }
 
@@ -277,4 +294,22 @@ export function edrTracingMessageToMinimalMessage(
     gasLimit: message.gasLimit,
     isStaticCall: message.isStaticCall,
   };
+}
+
+export function httpHeadersToEdr(input?: {
+  [name: string]: string;
+}): HttpHeader[] | undefined {
+  let httpHeaders: HttpHeader[] | undefined;
+  if (input !== undefined) {
+    httpHeaders = [];
+
+    for (const [name, value] of Object.entries(input)) {
+      httpHeaders.push({
+        name,
+        value,
+      });
+    }
+  }
+
+  return httpHeaders;
 }
