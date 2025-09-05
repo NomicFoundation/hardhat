@@ -1,4 +1,5 @@
 import type { HardhatEthers } from "../src/types.js";
+import type { EventFilter } from "ethers";
 import type { EthereumProvider } from "hardhat/types/providers";
 
 import assert from "node:assert/strict";
@@ -333,10 +334,10 @@ describe("provider events", () => {
       await ethers.provider.on("block", blockListener);
 
       // event filter that was never registered
-      const unregisteredEventFilter = {
+      const unregisteredEventFilter: EventFilter = {
         address: "0x0000000000000000000000000000000000000001",
         topics: [],
-      } as any;
+      };
 
       // should not affect existing block listeners
       await ethers.provider.removeAllListeners(unregisteredEventFilter);
