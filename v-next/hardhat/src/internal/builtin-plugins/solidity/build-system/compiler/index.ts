@@ -1,23 +1,30 @@
-import type { Compiler } from "./compiler.js";
-
+import { execFile } from "node:child_process";
 import path from "node:path";
+import { pathToFileURL } from "node:url";
+import { promisify } from "node:util";
 
 import {
   assertHardhatInvariant,
   HardhatError,
 } from "@nomicfoundation/hardhat-errors";
+import { exists, isBinaryFile } from "@nomicfoundation/hardhat-utils/fs";
 import { getCacheDir } from "@nomicfoundation/hardhat-utils/global-dir";
+import debug from "debug";
 
+import { NativeCompiler, SolcJsCompiler, type Compiler } from "./compiler.js";
 import {
   CompilerDownloaderImplementation,
   CompilerPlatform,
 } from "./downloader.js";
+import wrapper from "./solcjs-wrapper.js";
 
 async function getGlobalCompilersCacheDir(): Promise<string> {
   const globalCompilersCacheDir = await getCacheDir();
 
   return path.join(globalCompilersCacheDir, "compilers-v3");
 }
+
+const log = debug("hardhat:core:solidity:build-system:compiler");
 
 export async function downloadConfiguredCompilers(
   versions: Set<string>,
@@ -79,8 +86,71 @@ export async function downloadConfiguredCompilers(
 
 export async function getCompiler(
   version: string,
-  { preferWasm }: { preferWasm: boolean },
+  { preferWasm, compilerPath }: { preferWasm: boolean; compilerPath?: string },
 ): Promise<Compiler> {
+  if (compilerPath !== undefined) {
+    // If a compiler path is provided, it means the user is using a custom compiler
+    return getCompilerFromPath(version, compilerPath);
+  } else {
+    // Otherwise we get or download the compiler for the specific version
+    return getCompilerFromVersion(version, { preferWasm });
+  }
+}
+
+async function getCompilerFromPath(
+  compilerVersion: string,
+  compilerPath: string,
+): Promise<Compiler> {
+  log(`Using custom compiler ${compilerPath}`);
+  if (!(await exists(compilerPath))) {
+    throw new HardhatError(
+      HardhatError.ERRORS.CORE.SOLIDITY.COMPILER_PATH_DOES_NOT_EXIST,
+      { compilerPath, version: compilerVersion },
+    );
+  }
+
+  const isWasm = !(await isBinaryFile(compilerPath));
+
+  log(`Using ${isWasm ? "WASM" : "Native"} compiler`);
+
+  const execFileAsync = promisify(execFile);
+
+  let stdout: string;
+
+  if (isWasm) {
+    const solc = (await import(pathToFileURL(compilerPath).toString())).default;
+    const { version } = wrapper(solc);
+    stdout = version();
+  } else {
+    stdout = (await execFileAsync(compilerPath, ["--version"])).stdout;
+  }
+
+  log(`Version output: ${stdout}`);
+
+  const match = stdout.match(/(?<longVersion>\d+\.\d+\.\d+\+commit\.\w+)/);
+
+  if (match === null || match.groups === undefined) {
+    throw new HardhatError(
+      HardhatError.ERRORS.CORE.SOLIDITY.PARSING_VERSION_STRING_FAILED,
+      { versionString: stdout, compilerPath },
+    );
+  }
+
+  const { longVersion } = match.groups;
+
+  log(`Long version: ${longVersion}`);
+
+  if (isWasm) {
+    return new SolcJsCompiler(compilerVersion, longVersion, compilerPath);
+  } else {
+    return new NativeCompiler(compilerVersion, longVersion, compilerPath);
+  }
+}
+
+async function getCompilerFromVersion(
+  version: string,
+  { preferWasm }: { preferWasm: boolean },
+) {
   if (!preferWasm) {
     const platform = CompilerDownloaderImplementation.getCompilerPlatform();
     const compilerDownloader = new CompilerDownloaderImplementation(
