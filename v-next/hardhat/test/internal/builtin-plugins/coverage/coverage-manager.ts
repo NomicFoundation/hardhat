@@ -144,6 +144,43 @@ describe("CoverageManagerImplementation", () => {
     }
   });
 
+  /**
+   * This test was introduced in response to:
+   * https://github.com/NomicFoundation/hardhat/issues/7385
+   *
+   * This test should be monitored for performance in our CI.
+   */
+  it("should load large save data files", async () => {
+    const data1: CoverageData = Array.from({ length: 150_000 }, (_, i) =>
+      (i + 1).toString(),
+    );
+
+    const allMetadata: CoverageMetadata = [];
+
+    for (const item of [...data1]) {
+      allMetadata.push({
+        relativePath: "contracts/test.sol",
+        tag: item,
+        startLine: 1,
+        endLine: 1,
+      });
+    }
+
+    const coverageManager1 = new CoverageManagerImplementation(process.cwd());
+    await coverageManager1.addData(data1);
+    await coverageManager1.saveData(id);
+
+    await coverageManager.loadData(id);
+    const allData = coverageManager.data;
+
+    for (const item of [...data1]) {
+      assert.ok(
+        allData.includes(item),
+        `The loaded data should include ${item}`,
+      );
+    }
+  });
+
   it("should store all the metadata", async () => {
     const metadata1: CoverageMetadata = [
       {
