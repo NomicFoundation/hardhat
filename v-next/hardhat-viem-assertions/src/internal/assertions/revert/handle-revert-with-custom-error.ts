@@ -10,10 +10,7 @@ import { assertHardhatInvariant } from "@nomicfoundation/hardhat-errors";
 import { ensureError } from "@nomicfoundation/hardhat-utils/error";
 import { decodeErrorResult } from "viem";
 
-import {
-  getRevertErrorSelector,
-  isKnownErrorSelector,
-} from "./error-string.js";
+import { isKnownErrorSelector, isPanicErrorSelector } from "./error-string.js";
 import { extractRevertError } from "./extract-revert-error.js";
 
 export async function handleRevertWithCustomError<
@@ -31,9 +28,9 @@ export async function handleRevertWithCustomError<
     const rawError = extractRevertError(error);
 
     try {
-      if (isKnownErrorSelector(rawError.data)) {
+      if (rawError.data === "0x") {
         assert.fail(
-          `Expected a custom error with name "${customErrorName}", but got a non custom error with error string "${getRevertErrorSelector(rawError.data)}"`,
+          `The function was expected to revert with custom error "${customErrorName}", but it reverted without a reason`,
         );
       }
 
@@ -42,15 +39,33 @@ export async function handleRevertWithCustomError<
         abi: contract.abi,
       });
 
+      if (isKnownErrorSelector(rawError.data)) {
+        if (isPanicErrorSelector(rawError.data)) {
+          assert.fail(
+            `The function was expected to revert with custom error "${customErrorName}", but it reverted with a panic error: ${rawError.message}`,
+          );
+        }
+
+        // Not a panic error; handle as a error string
+        assertHardhatInvariant(
+          Array.isArray(args),
+          "Expected args to be an array",
+        );
+
+        assert.fail(
+          `The function was expected to revert with custom error "${customErrorName}", but it reverted with reason "${args[0]}"`,
+        );
+      }
+
       assertHardhatInvariant(
         abiItem.type === "error",
-        `Expected error, but the type is "${abiItem.type}".`,
+        `Expected a custom error, but the error type is "${abiItem.type}".`,
       );
 
       assert.equal(
         abiItem.name,
         customErrorName,
-        `Expected error name: "${customErrorName}", but found "${abiItem.name}".`,
+        `The function was expected to revert with custom error "${customErrorName}", but it reverted with custom error "${abiItem.name}"`,
       );
 
       return Array.isArray(args) ? args : [];
@@ -68,7 +83,7 @@ export async function handleRevertWithCustomError<
   }
 
   assert.fail(
-    `The function was expected to revert with "${customErrorName}", but it did not.`,
+    `The function was expected to revert with custom error "${customErrorName}", but it did not revert`,
   );
 }
 
@@ -85,6 +100,8 @@ function throwIfErrorIsNotInContract<ContractName extends keyof ContractAbis>(
   );
 
   if (found === false) {
-    assert.fail(`The error "${customErrorName}" does not exists in the abi.`);
+    assert.fail(
+      `The given contract doesn't have a custom error named "${customErrorName}"`,
+    );
   }
 }

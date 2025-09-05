@@ -21,6 +21,10 @@ contract Revert {
     revert("Intentional revert for testing purposes");
   }
 
+  function alwaysRevertWithNoReason() external pure {
+    revert();
+  }
+
   function doNotRevert() external pure {}
 
   function revertWithCustomError() external pure {

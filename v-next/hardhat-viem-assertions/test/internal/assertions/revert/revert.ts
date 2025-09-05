@@ -50,7 +50,7 @@ describe("revert", () => {
       viem.assertions.revert(contract.read.doNotRevert()),
       (error) =>
         error.message ===
-        "The function was expected to revert, but it did not.",
+        "The function was expected to revert, but it did not revert",
     );
   });
 
@@ -63,7 +63,7 @@ describe("revert", () => {
       ),
       (error) =>
         error.message ===
-        `Expected non custom error, but got a custom error selector "0x09caebf3" with data "0x09caebf3"`,
+        `The function was expected to revert with a non custom error, but it instead reverted with a custom error. VM Exception while processing transaction: reverted with custom error 'CustomError()'`,
     );
   });
 

@@ -12,6 +12,12 @@ export async function revertWith(
 ): Promise<void> {
   const reason = await handleRevert(contractFn);
 
+  if ("errorWithoutReason" in reason) {
+    assert.fail(
+      `The function was expected to revert with reason "${expectedRevertReason}", but it reverted without a reason`,
+    );
+  }
+
   let actualArg = "";
   let errMsg = "";
   if (reason.isPanicError) {
@@ -23,9 +29,7 @@ export async function revertWith(
     // Meaning: Arithmetic overflow or underflow
     actualArg = numberToHexString(parseInt(reason.args[0], 10));
 
-    errMsg =
-      `The function was expected to revert with reason "${expectedRevertReason}", but it reverted with reason: ${actualArg}. ` +
-      `This is the result of a panic error: ${reason.message}`;
+    errMsg = `The function was expected to revert with reason "${expectedRevertReason}", but it reverted with a panic error: ${reason.message}`;
   } else {
     actualArg = reason.args[0];
     errMsg = `The function was expected to revert with reason "${expectedRevertReason}", but it reverted with reason: ${actualArg}.`;
