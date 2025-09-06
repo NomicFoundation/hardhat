@@ -11,7 +11,10 @@ import type {
   OnchainInteractionTimeoutMessage,
   TransactionConfirmMessage,
 } from "../../types/messages.js";
-import type { OnchainInteraction } from "../../types/network-interaction.js";
+import type {
+  GetTransactionRetryConfig,
+  OnchainInteraction,
+} from "../../types/network-interaction.js";
 
 import { HardhatError } from "@nomicfoundation/hardhat-errors";
 import setupDebug from "debug";
@@ -21,11 +24,6 @@ import { JournalMessageType } from "../../types/messages.js";
 import { NetworkInteractionType } from "../../types/network-interaction.js";
 
 const debug = setupDebug("hardhat-ignition:onchain-interaction-monitor");
-
-export interface GetTransactionRetryConfig {
-  maxRetries: number;
-  retryInterval: number;
-}
 
 /**
  * Checks the transactions of the latest network interaction of the execution state,
@@ -50,7 +48,7 @@ export interface GetTransactionRetryConfig {
  *  of a transaction.
  * @param maxFeeBumps The maximum number of times we can bump the fees of a transaction
  *  before considering the onchain interaction timed out.
- * @param getTransactionRetryConfig This is really only a parameter to help with testing this function
+ * @param getTransactionRetryConfig Configuration for retrying getTransaction calls.
  * @param disableFeeBumping Disables fee bumping for all transactions.
  * @returns A message indicating the result of checking the transactions of the latest
  *  network interaction.
@@ -74,9 +72,10 @@ export async function monitorOnchainInteraction(
   | undefined
 > {
   const lastNetworkInteraction = exState.networkInteractions.at(-1);
-  const getTransactionRetryConfig = givenGetTransactionRetryConfig ?? {
+  const getTransactionRetryConfig: GetTransactionRetryConfig = {
     maxRetries: 10,
     retryInterval: 1000,
+    ...givenGetTransactionRetryConfig,
   };
 
   assertIgnitionInvariant(
