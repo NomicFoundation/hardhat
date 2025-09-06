@@ -9,6 +9,7 @@ import type {
 import type { HardhatRuntimeEnvironment } from "hardhat/types/hre";
 import type { EthereumProvider } from "hardhat/types/providers";
 
+import { getDispatcher, shouldUseProxy } from "@nomicfoundation/hardhat-utils/request";
 import { HardhatError } from "@nomicfoundation/hardhat-errors";
 import { isAddress } from "@nomicfoundation/hardhat-utils/eth";
 import { sleep } from "@nomicfoundation/hardhat-utils/lang";
@@ -362,10 +363,25 @@ async function createVerificationProviderInstance({
       },
     );
   }
+  
+  let finalDispatcher = dispatcher;
+  if (!finalDispatcher) {
+    const explorerConfig = chainDescriptor.blockExplorers[verificationProviderName];
+    const apiUrl = explorerConfig.apiUrl;
+
+    if (shouldUseProxy(apiUrl)) {
+      const proxyUrl = process.env.HTTPS_PROXY || process.env.https_proxy ||
+        process.env.HTTP_PROXY || process.env.http_proxy;
+
+      if (proxyUrl) {
+        finalDispatcher = await getDispatcher(apiUrl, { proxy: proxyUrl });
+      }
+    }
+  }
 
   const commonOptions = {
     ...chainDescriptor.blockExplorers[verificationProviderName],
-    dispatcher,
+    dispatcher: finalDispatcher,
   };
 
   if (verificationProviderName === "etherscan") {
