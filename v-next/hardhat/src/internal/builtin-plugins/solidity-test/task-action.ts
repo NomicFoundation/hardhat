@@ -30,6 +30,7 @@ import { throwIfSolidityBuildFailed } from "../solidity/build-results.js";
 import { getEdrArtifacts, getBuildInfos } from "./edr-artifacts.js";
 import {
   isTestSuiteArtifact,
+  isUsingDeprecatedTestFail,
   solidityTestConfigToRunOptions,
   solidityTestConfigToSolidityTestRunnerConfigArgs,
 } from "./helpers.js";
@@ -104,6 +105,13 @@ const runSolidityTests: NewTaskActionFunction<TestActionArguments> = async (
   const buildInfos = await getBuildInfos(hre.artifacts);
   const edrArtifacts = await getEdrArtifacts(hre.artifacts);
 
+  const sourceNameToUserSourceName = new Map(
+    edrArtifacts.map(({ userSourceName, edrAtifact }) => [
+      edrAtifact.id.source,
+      userSourceName,
+    ]),
+  );
+
   const testSuiteIds = edrArtifacts
     .filter(({ userSourceName }) =>
       rootFilePaths.includes(
@@ -111,6 +119,9 @@ const runSolidityTests: NewTaskActionFunction<TestActionArguments> = async (
       ),
     )
     .filter(({ edrAtifact }) => isTestSuiteArtifact(edrAtifact))
+    .filter(({ edrAtifact }) =>
+      isUsingDeprecatedTestFail(edrAtifact, sourceNameToUserSourceName),
+    )
     .map(({ edrAtifact }) => edrAtifact.id);
 
   console.log("Running Solidity tests");
@@ -155,13 +166,6 @@ const runSolidityTests: NewTaskActionFunction<TestActionArguments> = async (
   };
   const options: RunOptions =
     solidityTestConfigToRunOptions(solidityTestConfig);
-
-  const sourceNameToUserSourceName = new Map(
-    edrArtifacts.map(({ userSourceName, edrAtifact }) => [
-      edrAtifact.id.source,
-      userSourceName,
-    ]),
-  );
 
   await markTestRunStart("solidity");
 

@@ -18,8 +18,11 @@ import {
   FsAccessPermission,
 } from "@nomicfoundation/edr";
 import { hexStringToBytes } from "@nomicfoundation/hardhat-utils/hex";
+import chalk from "chalk";
 
 import { OPTIMISM_CHAIN_TYPE } from "../../constants.js";
+
+import { type Colorizer, formatArtifactId } from "./formatters.js";
 
 function hexStringToBuffer(hexString: string): Buffer {
   return Buffer.from(hexStringToBytes(hexString));
@@ -127,4 +130,31 @@ export function isTestSuiteArtifact(artifact: Artifact): boolean {
     }
     return false;
   });
+}
+
+export function isUsingDeprecatedTestFail(
+  artifact: Artifact,
+  sourceNameToUserSourceName: Map<string, string>,
+  colorizer: Colorizer = chalk,
+): boolean {
+  const abi: Abi = JSON.parse(artifact.contract.abi);
+  let hasDeprecatedTestFail = false;
+
+  abi.forEach(({ type, name }) => {
+    if (type === "function" && typeof name === "string") {
+      if (name.startsWith("testFail") || name.startsWith("testFail_")) {
+        hasDeprecatedTestFail = true;
+
+        const formattedLocation = formatArtifactId(
+          artifact.id,
+          sourceNameToUserSourceName,
+        );
+        const warningMessage = `${colorizer.yellow("Warning")}: ${name} Tests name \`testFail*\` has been removed. Consider changing to the \`vm.expectRevert()\` for testing reverts. at ${formattedLocation}\n`;
+
+        console.warn(warningMessage);
+      }
+    }
+  });
+
+  return !hasDeprecatedTestFail;
 }
