@@ -37,7 +37,7 @@ export interface HardhatPlugin {
   /**
    * An array of plugins that this plugin depends on.
    */
-  dependencies?: () => Array<Promise<{ default: HardhatPlugin }>>;
+  dependencies?: () => Array<Promise<{ default: HardhatPlugin } | undefined>>;
 
   /**
    * An object with the different hook handlers that this plugin defines.
