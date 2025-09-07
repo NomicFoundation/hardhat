@@ -339,7 +339,7 @@ export function formatStackLine({ line, reference }: StackLine): string {
 }
 
 /**
- * This functions normlizes a location string by:
+ * This functions normalizes a location string by:
  * - Turning file URLs into file paths
  * - Turning absolute paths into relative paths if they are inside the current
  *   working directory
