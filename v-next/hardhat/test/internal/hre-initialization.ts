@@ -139,7 +139,7 @@ describe("HRE initialization", () => {
           }
         });
 
-        it("should noramlize and return the provided path", async () => {
+        it("should normalize and return the provided path", async () => {
           assert.equal(
             await resolveHardhatConfigPath("other.config.js"),
             await getRealPath("other.config.js"),
