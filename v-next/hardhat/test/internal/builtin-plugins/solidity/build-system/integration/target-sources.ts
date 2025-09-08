@@ -78,11 +78,16 @@ describe("build system - build task - behavior on target sources", function () {
       );
       assert.equal(await exists(buildInfoPath), true);
 
-      // not even the test artifacts directory is created
-      const testsArtifactsPath =
-        await hre.solidity.getArtifactsDirectory("tests");
+      const buildInfo: any = await readJsonFile(buildInfoPath);
 
-      assert.equal(await exists(testsArtifactsPath), false);
+      // Foo.sol is in sources
+      assert.notEqual(
+        buildInfo.input.sources["project/contracts/Foo.sol"],
+        undefined,
+      );
+
+      // No tests are on sources
+      assert.equal(Object.keys(buildInfo.input.sources).length, 1);
     });
 
     it("performs cleanup on contract artifacts and build infos", async () => {
