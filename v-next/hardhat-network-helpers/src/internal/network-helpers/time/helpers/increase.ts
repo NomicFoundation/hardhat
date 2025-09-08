@@ -8,8 +8,8 @@ export async function increase(
   networkHelpers: NetworkHelpers,
   amountInSeconds: NumberLike,
 ): Promise<number> {
-  const normalizedAmount = await toBigInt(amountInSeconds);
-  const latestTimestamp = await toBigInt(await networkHelpers.time.latest());
+  const normalizedAmount = toBigInt(amountInSeconds);
+  const latestTimestamp = toBigInt(await networkHelpers.time.latest());
   const targetTimestamp = latestTimestamp + normalizedAmount;
 
   await provider.request({
