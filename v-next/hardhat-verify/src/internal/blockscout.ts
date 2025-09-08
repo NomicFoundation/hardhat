@@ -27,12 +27,11 @@ export const BLOCKSCOUT_PROVIDER_NAME: keyof VerificationProvidersConfig =
 const VERIFICATION_STATUS_POLLING_SECONDS = 3;
 
 export class Blockscout implements VerificationProvider {
-  public name: string;
-  public url: string;
-  public apiUrl: string;
-
-  readonly #dispatcher?: Dispatcher;
-  readonly #pollingIntervalMs: number;
+  public readonly name: string;
+  public readonly url: string;
+  public readonly apiUrl: string;
+  public readonly dispatcher?: Dispatcher;
+  public readonly pollingIntervalMs: number;
 
   constructor(blockscoutConfig: {
     name?: string;
@@ -43,8 +42,8 @@ export class Blockscout implements VerificationProvider {
     this.name = blockscoutConfig.name ?? "Blockscout";
     this.url = blockscoutConfig.url;
     this.apiUrl = blockscoutConfig.apiUrl;
-    this.#dispatcher = blockscoutConfig.dispatcher;
-    this.#pollingIntervalMs =
+    this.dispatcher = blockscoutConfig.dispatcher;
+    this.pollingIntervalMs =
       blockscoutConfig.dispatcher !== undefined
         ? 0
         : VERIFICATION_STATUS_POLLING_SECONDS;
@@ -67,7 +66,7 @@ export class Blockscout implements VerificationProvider {
             address,
           },
         },
-        this.#dispatcher,
+        this.dispatcher,
       );
       responseBody =
         /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions
@@ -138,7 +137,7 @@ export class Blockscout implements VerificationProvider {
             action: "verifysourcecode",
           },
         },
-        this.#dispatcher,
+        this.dispatcher,
       );
       responseBody =
         /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions
@@ -236,7 +235,7 @@ export class Blockscout implements VerificationProvider {
             guid,
           },
         },
-        this.#dispatcher,
+        this.dispatcher,
       );
       responseBody =
         /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions
@@ -277,7 +276,7 @@ export class Blockscout implements VerificationProvider {
     );
 
     if (blockscoutResponse.isPending()) {
-      await sleep(this.#pollingIntervalMs);
+      await sleep(this.pollingIntervalMs);
 
       return this.pollVerificationStatus(guid, contractAddress, contractName);
     }

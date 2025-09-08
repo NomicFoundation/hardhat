@@ -33,14 +33,13 @@ const VERIFICATION_STATUS_POLLING_SECONDS = 3;
 export const ETHERSCAN_API_URL = "https://api.etherscan.io/v2/api";
 
 export class Etherscan implements VerificationProvider {
-  public chainId: string;
-  public name: string;
-  public url: string;
-  public apiUrl: string;
-  public apiKey: string;
-
-  readonly #dispatcher?: Dispatcher;
-  readonly #pollingIntervalMs: number;
+  public readonly chainId: string;
+  public readonly name: string;
+  public readonly url: string;
+  public readonly apiUrl: string;
+  public readonly apiKey: string;
+  public readonly dispatcher?: Dispatcher;
+  public readonly pollingIntervalMs: number;
 
   constructor(etherscanConfig: {
     chainId: number;
@@ -53,8 +52,8 @@ export class Etherscan implements VerificationProvider {
     this.name = etherscanConfig.name ?? "Etherscan";
     this.url = etherscanConfig.url;
     this.apiUrl = ETHERSCAN_API_URL;
-    this.#dispatcher = etherscanConfig.dispatcher;
-    this.#pollingIntervalMs =
+    this.dispatcher = etherscanConfig.dispatcher;
+    this.pollingIntervalMs =
       etherscanConfig.dispatcher !== undefined
         ? 0
         : VERIFICATION_STATUS_POLLING_SECONDS;
@@ -89,7 +88,7 @@ export class Etherscan implements VerificationProvider {
             address,
           },
         },
-        this.#dispatcher,
+        this.dispatcher,
       );
       responseBody =
         /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions
@@ -162,7 +161,7 @@ export class Etherscan implements VerificationProvider {
             apikey: this.apiKey,
           },
         },
-        this.#dispatcher,
+        this.dispatcher,
       );
       responseBody =
         /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions
@@ -252,7 +251,7 @@ export class Etherscan implements VerificationProvider {
             guid,
           },
         },
-        this.#dispatcher,
+        this.dispatcher,
       );
       responseBody =
         /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions
@@ -293,7 +292,7 @@ export class Etherscan implements VerificationProvider {
     );
 
     if (etherscanResponse.isPending()) {
-      await sleep(this.#pollingIntervalMs);
+      await sleep(this.pollingIntervalMs);
 
       return this.pollVerificationStatus(guid, contractAddress, contractName);
     }
