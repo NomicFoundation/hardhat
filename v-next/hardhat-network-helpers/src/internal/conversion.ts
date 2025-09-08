@@ -7,7 +7,7 @@ export function toNumber(x: NumberLike): number {
   return Number(toRpcQuantity(x));
 }
 
-export async function toBigInt(x: NumberLike): Promise<bigint> {
+export function toBigInt(x: NumberLike): bigint {
   return toBigIntUtil(toRpcQuantity(x));
 }
 
