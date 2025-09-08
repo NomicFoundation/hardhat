@@ -62,7 +62,7 @@ describe("time - increaseTo", () => {
       const initialTimestamp = await time.latest();
       const newTimestamp = initialTimestamp + 3600;
 
-      await time.increaseTo(numberToHexString(await toBigInt(newTimestamp)));
+      await time.increaseTo(numberToHexString(toBigInt(newTimestamp)));
       const endTimestamp = await time.latest();
 
       assert.equal(newTimestamp, endTimestamp);
