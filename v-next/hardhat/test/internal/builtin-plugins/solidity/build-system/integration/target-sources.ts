@@ -60,7 +60,7 @@ describe("build system - build task - behavior on target sources", function () {
       await using project = await useTestProjectTemplate(basicProjectTemplate);
       const hre = await project.getHRE();
 
-      await hre.tasks.getTask("build").run(); // not specifying targetSources, testing it defaults to 'contracts'
+      await hre.tasks.getTask("build").run(); // not specifying scope, testing it defaults to 'contracts'
 
       const contractsArtifactsPath =
         await hre.solidity.getArtifactsDirectory("contracts");
@@ -116,7 +116,7 @@ describe("build system - build task - behavior on target sources", function () {
       assert.equal(await exists(testBuildInfoPath), true);
       assert.equal(await exists(testArtifactPath), true);
 
-      await hre.tasks.getTask("build").run(); // not specifying targetSources, testing it defaults to 'contracts'
+      await hre.tasks.getTask("build").run(); // not specifying scope, testing it defaults to 'contracts'
 
       // unused build info and artifact files should be removed
       assert.equal(await exists(testBuildInfoPath), false);
@@ -148,7 +148,7 @@ describe("build system - build task - behavior on target sources", function () {
       assert.equal(await exists(testBuildInfoPath), true);
       assert.equal(await exists(testArtifactPath), true);
 
-      await hre.tasks.getTask("build").run(); // not specifying targetSources, testing it defaults to 'contracts'
+      await hre.tasks.getTask("build").run(); // not specifying scope, testing it defaults to 'contracts'
 
       // test build info and artifact for tests shouldn't be removed
       assert.equal(await exists(testBuildInfoPath), true);
@@ -161,7 +161,7 @@ describe("build system - build task - behavior on target sources", function () {
       await using project = await useTestProjectTemplate(basicProjectTemplate);
       const hre = await project.getHRE();
 
-      await hre.tasks.getTask("build").run({ targetSources: "tests" });
+      await hre.tasks.getTask("build").run({ scope: "tests" });
 
       const testsArtifactsPath =
         await hre.solidity.getArtifactsDirectory("tests");
@@ -220,7 +220,7 @@ describe("build system - build task - behavior on target sources", function () {
       assert.equal(await exists(testBuildInfoPath), true);
       assert.equal(await exists(testArtifactPath), true);
 
-      await hre.tasks.getTask("build").run({ targetSources: "tests" });
+      await hre.tasks.getTask("build").run({ scope: "tests" });
 
       // unused build info and artifact files should be removed
       assert.equal(await exists(testBuildInfoPath), false);
@@ -253,7 +253,7 @@ describe("build system - build task - behavior on target sources", function () {
       assert.equal(await exists(testBuildInfoPath), true);
       assert.equal(await exists(testArtifactPath), true);
 
-      await hre.tasks.getTask("build").run({ targetSources: "tests" }); // not specifying targetSources, testing it defaults to 'contracts'
+      await hre.tasks.getTask("build").run({ scope: "tests" }); // not specifying scope, testing it defaults to 'contracts'
 
       // test build info and artifact for tests shouldn't be removed
       assert.equal(await exists(testBuildInfoPath), true);

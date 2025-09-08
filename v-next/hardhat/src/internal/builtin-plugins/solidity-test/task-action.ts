@@ -69,7 +69,7 @@ const runSolidityTests: NewTaskActionFunction<TestActionArguments> = async (
   const { rootPaths }: { rootPaths: string[] } = await hre.tasks
     .getTask("compile")
     .run({
-      targetSources: "tests",
+      scope: "tests",
       quiet: true,
       force: false,
       files: testFiles,

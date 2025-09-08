@@ -25,7 +25,7 @@ const buildTask = task("build", "Build project")
     defaultValue: [],
   })
   .addOption({
-    name: "targetSources",
+    name: "scope",
     description:
       "Target sources to compile. Valid options are 'contracts' and 'tests'",
     defaultValue: "contracts",

@@ -15,7 +15,7 @@ import type {
   GetCompilationJobsResult,
   EmitArtifactsResult,
   RunCompilationJobResult,
-  TargetSources,
+  BuildScope,
 } from "../../../../types/solidity/build-system.js";
 import type { CompilationJob } from "../../../../types/solidity/compilation-job.js";
 import type {
@@ -100,9 +100,9 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
   }
 
   public async getRootFilePaths(
-    targetSources: TargetSources = "contracts",
+    scope: BuildScope = "contracts",
   ): Promise<string[]> {
-    switch (targetSources) {
+    switch (scope) {
       case "contracts":
         const localFilesToCompile = (
           await Promise.all(
@@ -150,7 +150,7 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
       force: false,
       isolated: false,
       quiet: false,
-      targetSources: "contracts",
+      scope: "contracts",
       ..._options,
     };
 
@@ -229,7 +229,7 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
           const emitArtifactsResult = await this.emitArtifacts(
             compilationResult.compilationJob,
             compilationResult.compilerOutput,
-            options.targetSources,
+            options.scope,
           );
 
           const { artifactsPerFile } = emitArtifactsResult;
@@ -635,13 +635,13 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
   public async emitArtifacts(
     runnableCompilationJob: CompilationJob,
     compilerOutput: CompilerOutput,
-    targetSources: TargetSources,
+    scope: BuildScope,
   ): Promise<EmitArtifactsResult> {
     const artifactsPerFile = new Map<string, string[]>();
     const typeFilePaths = new Map<string, string>();
     const buildId = await runnableCompilationJob.getBuildId();
 
-    const artifactsDirectory = await this.getArtifactsDirectory(targetSources);
+    const artifactsDirectory = await this.getArtifactsDirectory(scope);
 
     // We emit the artifacts for each root file, first emitting one artifact
     // for each contract, and then one declaration file for the entire file,
@@ -751,21 +751,19 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
     };
   }
 
-  public async getArtifactsDirectory(
-    targetSources: TargetSources,
-  ): Promise<string> {
-    return targetSources === "contracts"
+  public async getArtifactsDirectory(scope: BuildScope): Promise<string> {
+    return scope === "contracts"
       ? this.#options.artifactsPath
       : path.join(this.#options.cachePath, "test-artifacts");
   }
 
   public async cleanupArtifacts(
     rootFilePaths: string[],
-    targetSources: TargetSources,
+    scope: BuildScope,
   ): Promise<void> {
     log(`Cleaning up artifacts`);
 
-    const artifactsDirectory = await this.getArtifactsDirectory(targetSources);
+    const artifactsDirectory = await this.getArtifactsDirectory(scope);
 
     const userSourceNames = rootFilePaths.map((rootFilePath) => {
       const parsed = parseRootPath(rootFilePath);
@@ -826,7 +824,7 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
     }
 
     // These steps only apply when compiling contracts
-    if (targetSources === "contracts") {
+    if (scope === "contracts") {
       // Get duplicated contract names and write a top-level artifacts.d.ts file
       const artifactNameCounts = new Map<string, number>();
       for (const artifactPath of artifactPaths) {

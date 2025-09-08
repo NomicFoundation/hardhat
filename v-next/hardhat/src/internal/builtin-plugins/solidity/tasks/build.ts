@@ -1,4 +1,4 @@
-import type { TargetSources } from "../../../../types/solidity.js";
+import type { BuildScope } from "../../../../types/solidity.js";
 import type { NewTaskActionFunction } from "../../../../types/tasks.js";
 
 import { HardhatError } from "@nomicfoundation/hardhat-errors";
@@ -12,14 +12,14 @@ interface BuildActionArguments {
   files: string[];
   quiet: boolean;
   defaultBuildProfile: string | undefined;
-  targetSources: string;
+  scope: string;
 }
 
 const buildAction: NewTaskActionFunction<BuildActionArguments> = async (
-  { force, files, quiet, defaultBuildProfile, targetSources },
+  { force, files, quiet, defaultBuildProfile, scope },
   { solidity, globalOptions },
 ) => {
-  validateTargetSources(targetSources);
+  validateScope(scope);
 
   // If no specific files are passed, it means a full compilation, i.e. all source files
   const isFullCompilation = files.length === 0;
@@ -27,7 +27,7 @@ const buildAction: NewTaskActionFunction<BuildActionArguments> = async (
   const rootPaths = [];
 
   if (isFullCompilation) {
-    rootPaths.push(...(await solidity.getRootFilePaths(targetSources)));
+    rootPaths.push(...(await solidity.getRootFilePaths(scope)));
   } else {
     rootPaths.push(
       ...files.map((file) => {
@@ -46,29 +46,27 @@ const buildAction: NewTaskActionFunction<BuildActionArguments> = async (
     force,
     buildProfile,
     quiet,
-    targetSources,
+    scope,
   });
 
   throwIfSolidityBuildFailed(results);
 
   // If we recompiled the entire project we cleanup the artifacts
   if (isFullCompilation) {
-    await solidity.cleanupArtifacts(rootPaths, targetSources);
+    await solidity.cleanupArtifacts(rootPaths, scope);
   }
 
   return { rootPaths };
 };
 
-function validateTargetSources(
-  targetSources: string,
-): asserts targetSources is TargetSources {
-  if (!["contracts", "tests"].includes(targetSources)) {
+function validateScope(scope: string): asserts scope is BuildScope {
+  if (!["contracts", "tests"].includes(scope)) {
     throw new HardhatError(
       HardhatError.ERRORS.CORE.ARGUMENTS.INVALID_VALUE_FOR_TYPE,
       {
-        value: targetSources,
+        value: scope,
         type: "contracts | tests",
-        name: "targetSources",
+        name: "scope",
       },
     );
   }

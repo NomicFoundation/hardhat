@@ -45,7 +45,7 @@ export interface BuildOptions {
   /**
    * Whether to compile contracts or tests. Defaults to contracts
    */
-  targetSources?: TargetSources;
+  scope?: BuildScope;
 }
 
 /**
@@ -196,7 +196,7 @@ export interface SolidityBuildSystem {
    *
    * @returns An array of root file paths.
    */
-  getRootFilePaths(targetSources?: TargetSources): Promise<string[]>;
+  getRootFilePaths(scope?: BuildScope): Promise<string[]>;
 
   /**
    * Builds the provided files, generating their compilation artifacts.
@@ -272,7 +272,7 @@ export interface SolidityBuildSystem {
   emitArtifacts(
     compilationJob: CompilationJob,
     compilerOutput: CompilerOutput,
-    targetSources: TargetSources,
+    scope: BuildScope,
   ): Promise<EmitArtifactsResult>;
 
   /**
@@ -288,10 +288,7 @@ export interface SolidityBuildSystem {
 
    * @param rootFilePaths All the root files of the project.
    */
-  cleanupArtifacts(
-    rootFilePaths: string[],
-    targetSources: TargetSources,
-  ): Promise<void>;
+  cleanupArtifacts(rootFilePaths: string[], scope: BuildScope): Promise<void>;
 
   /**
    * Compiles a build info, returning the output of the compilation, verbatim,
@@ -309,7 +306,7 @@ export interface SolidityBuildSystem {
   /**
    * Gets the artifacts directory for a given target (contracts/tests)
    */
-  getArtifactsDirectory(targetSources: TargetSources): Promise<string>;
+  getArtifactsDirectory(scope: BuildScope): Promise<string>;
 }
 
-export type TargetSources = "contracts" | "tests";
+export type BuildScope = "contracts" | "tests";

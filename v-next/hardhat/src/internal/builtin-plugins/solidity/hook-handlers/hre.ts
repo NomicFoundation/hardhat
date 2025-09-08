@@ -13,7 +13,7 @@ import type {
   RunCompilationJobOptions,
   RunCompilationJobResult,
   SolidityBuildSystem,
-  TargetSources,
+  BuildScope,
 } from "../../../../types/solidity/build-system.js";
 import type { CompilationJob } from "../../../../types/solidity/compilation-job.js";
 import type {
@@ -34,11 +34,9 @@ class LazySolidityBuildSystem implements SolidityBuildSystem {
     this.#options = options;
   }
 
-  public async getRootFilePaths(
-    targetSources?: TargetSources,
-  ): Promise<string[]> {
+  public async getRootFilePaths(scope?: BuildScope): Promise<string[]> {
     const buildSystem = await this.#getBuildSystem();
-    return buildSystem.getRootFilePaths(targetSources);
+    return buildSystem.getRootFilePaths(scope);
   }
 
   public async build(
@@ -81,22 +79,18 @@ class LazySolidityBuildSystem implements SolidityBuildSystem {
   public async emitArtifacts(
     compilationJob: CompilationJob,
     compilerOutput: CompilerOutput,
-    targetSources: TargetSources,
+    scope: BuildScope,
   ): Promise<EmitArtifactsResult> {
     const buildSystem = await this.#getBuildSystem();
-    return buildSystem.emitArtifacts(
-      compilationJob,
-      compilerOutput,
-      targetSources,
-    );
+    return buildSystem.emitArtifacts(compilationJob, compilerOutput, scope);
   }
 
   public async cleanupArtifacts(
     rootFilePaths: string[],
-    targetSources: TargetSources,
+    scope: BuildScope,
   ): Promise<void> {
     const buildSystem = await this.#getBuildSystem();
-    return buildSystem.cleanupArtifacts(rootFilePaths, targetSources);
+    return buildSystem.cleanupArtifacts(rootFilePaths, scope);
   }
 
   public async compileBuildInfo(
@@ -107,11 +101,9 @@ class LazySolidityBuildSystem implements SolidityBuildSystem {
     return buildSystem.compileBuildInfo(buildInfo, options);
   }
 
-  public async getArtifactsDirectory(
-    targetSources: TargetSources,
-  ): Promise<string> {
+  public async getArtifactsDirectory(scope: BuildScope): Promise<string> {
     const buildSystem = await this.#getBuildSystem();
-    return buildSystem.getArtifactsDirectory(targetSources);
+    return buildSystem.getArtifactsDirectory(scope);
   }
 
   async #getBuildSystem(): Promise<SolidityBuildSystem> {
