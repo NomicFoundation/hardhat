@@ -6,9 +6,9 @@ import { camelToSnakeCase } from "./string.js";
  * @param globalOptions An object containing the resolved global options,
  * with each option adhering to its definition in the globalOptionDefinitions.
  */
-export function setGlobalOptionsAsEnvVariables(
-  globalOptions: Record<string, string | boolean>,
-): void {
+export function setGlobalOptionsAsEnvVariables<
+  T extends Record<keyof T, string | boolean>,
+>(globalOptions: T): void {
   for (const [name, value] of Object.entries(globalOptions)) {
     const envName = getEnvVariableNameFromGlobalOption(name);
 
