@@ -13,7 +13,7 @@ export async function increaseTo(
   timestamp: NumberLike | Date,
   duration: Duration,
 ): Promise<void> {
-  const normalizedTimestamp = await toBigInt(
+  const normalizedTimestamp = toBigInt(
     timestamp instanceof Date
       ? duration.millis(timestamp.valueOf())
       : timestamp,
