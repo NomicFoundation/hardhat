@@ -25,6 +25,7 @@ import {
   getDispatcher,
   shouldUseProxy,
   isValidUrl,
+  getProxyUrl,
 } from "../src/request.js";
 
 import { useTmpDir } from "./helpers/fs.js";
@@ -610,6 +611,198 @@ describe("Requests util", () => {
       assert.equal(isValidUrl("example"), false);
       assert.equal(isValidUrl(""), false);
       assert.equal(isValidUrl("/relative/path"), false);
+    });
+  });
+
+  describe("getProxyUrl", () => {
+    afterEach(() => {
+      delete process.env.https_proxy;
+      delete process.env.HTTPS_PROXY;
+      delete process.env.http_proxy;
+      delete process.env.HTTP_PROXY;
+    });
+
+    describe("HTTPS URLs", () => {
+      it("Should return https_proxy for HTTPS URLs", () => {
+        process.env.https_proxy = "http://https-proxy:8080";
+        assert.equal(
+          getProxyUrl("https://example.com"),
+          "http://https-proxy:8080",
+        );
+      });
+
+      it("Should return HTTPS_PROXY for HTTPS URLs if https_proxy is not set", () => {
+        process.env.HTTPS_PROXY = "http://HTTPS-proxy:8080";
+        assert.equal(
+          getProxyUrl("https://example.com"),
+          "http://HTTPS-proxy:8080",
+        );
+      });
+
+      it("Should prefer https_proxy over HTTPS_PROXY for HTTPS URLs", () => {
+        process.env.https_proxy = "http://https-proxy:8080";
+        process.env.HTTPS_PROXY = "http://HTTPS-proxy:8080";
+        assert.equal(
+          getProxyUrl("https://example.com"),
+          "http://https-proxy:8080",
+        );
+      });
+
+      it("Should fallback to http_proxy for HTTPS URLs if https proxies are not set", () => {
+        process.env.http_proxy = "http://http-proxy:8080";
+        assert.equal(
+          getProxyUrl("https://example.com"),
+          "http://http-proxy:8080",
+        );
+      });
+
+      it("Should fallback to HTTP_PROXY for HTTPS URLs if other proxies are not set", () => {
+        process.env.HTTP_PROXY = "http://HTTP-proxy:8080";
+        assert.equal(
+          getProxyUrl("https://example.com"),
+          "http://HTTP-proxy:8080",
+        );
+      });
+    });
+
+    describe("HTTP URLs", () => {
+      it("Should return http_proxy for HTTP URLs", () => {
+        process.env.http_proxy = "http://http-proxy:8080";
+        assert.equal(
+          getProxyUrl("http://example.com"),
+          "http://http-proxy:8080",
+        );
+      });
+
+      it("Should return HTTP_PROXY for HTTP URLs if http_proxy is not set", () => {
+        process.env.HTTP_PROXY = "http://HTTP-proxy:8080";
+        assert.equal(
+          getProxyUrl("http://example.com"),
+          "http://HTTP-proxy:8080",
+        );
+      });
+
+      it("Should prefer http_proxy over HTTP_PROXY for HTTP URLs", () => {
+        process.env.http_proxy = "http://http-proxy:8080";
+        process.env.HTTP_PROXY = "http://HTTP-proxy:8080";
+        assert.equal(
+          getProxyUrl("http://example.com"),
+          "http://http-proxy:8080",
+        );
+      });
+
+      it("Should fallback to https_proxy for HTTP URLs if http proxies are not set", () => {
+        process.env.https_proxy = "http://https-proxy:8080";
+        assert.equal(
+          getProxyUrl("http://example.com"),
+          "http://https-proxy:8080",
+        );
+      });
+
+      it("Should fallback to HTTPS_PROXY for HTTP URLs if other proxies are not set", () => {
+        process.env.HTTPS_PROXY = "http://HTTPS-proxy:8080";
+        assert.equal(
+          getProxyUrl("http://example.com"),
+          "http://HTTPS-proxy:8080",
+        );
+      });
+    });
+
+    describe("Other protocols", () => {
+      it("Should return undefined for FTP URLs", () => {
+        process.env.http_proxy = "http://proxy:8080";
+        process.env.https_proxy = "http://proxy:8080";
+        assert.equal(getProxyUrl("ftp://example.com"), undefined);
+      });
+
+      it("Should return undefined for file URLs", () => {
+        process.env.http_proxy = "http://proxy:8080";
+        process.env.https_proxy = "http://proxy:8080";
+        assert.equal(getProxyUrl("file:///path/to/file"), undefined);
+      });
+
+      it("Should return undefined for custom protocols", () => {
+        process.env.http_proxy = "http://proxy:8080";
+        process.env.https_proxy = "http://proxy:8080";
+        assert.equal(getProxyUrl("custom://example.com"), undefined);
+      });
+    });
+
+    describe("No proxy environment variables", () => {
+      it("Should return undefined when no proxy environment variables are set", () => {
+        assert.equal(getProxyUrl("https://example.com"), undefined);
+        assert.equal(getProxyUrl("http://example.com"), undefined);
+      });
+    });
+
+    describe("Priority order", () => {
+      it("Should follow correct priority for HTTPS: https_proxy > HTTPS_PROXY > http_proxy > HTTP_PROXY", () => {
+        process.env.https_proxy = "http://1st:8080";
+        process.env.HTTPS_PROXY = "http://2nd:8080";
+        process.env.http_proxy = "http://3rd:8080";
+        process.env.HTTP_PROXY = "http://4th:8080";
+        assert.equal(getProxyUrl("https://example.com"), "http://1st:8080");
+
+        delete process.env.https_proxy;
+        assert.equal(getProxyUrl("https://example.com"), "http://2nd:8080");
+
+        delete process.env.HTTPS_PROXY;
+        assert.equal(getProxyUrl("https://example.com"), "http://3rd:8080");
+
+        delete process.env.http_proxy;
+        assert.equal(getProxyUrl("https://example.com"), "http://4th:8080");
+      });
+
+      it("Should follow correct priority for HTTP: http_proxy > HTTP_PROXY > https_proxy > HTTPS_PROXY", () => {
+        process.env.http_proxy = "http://1st:8080";
+        process.env.HTTP_PROXY = "http://2nd:8080";
+        process.env.https_proxy = "http://3rd:8080";
+        process.env.HTTPS_PROXY = "http://4th:8080";
+        assert.equal(getProxyUrl("http://example.com"), "http://1st:8080");
+
+        delete process.env.http_proxy;
+        assert.equal(getProxyUrl("http://example.com"), "http://2nd:8080");
+
+        delete process.env.HTTP_PROXY;
+        assert.equal(getProxyUrl("http://example.com"), "http://3rd:8080");
+
+        delete process.env.https_proxy;
+        assert.equal(getProxyUrl("http://example.com"), "http://4th:8080");
+      });
+    });
+
+    describe("URL parsing", () => {
+      it("Should handle URLs with ports", () => {
+        process.env.https_proxy = "http://proxy:8080";
+        assert.equal(
+          getProxyUrl("https://example.com:9000"),
+          "http://proxy:8080",
+        );
+      });
+
+      it("Should handle URLs with paths", () => {
+        process.env.https_proxy = "http://proxy:8080";
+        assert.equal(
+          getProxyUrl("https://example.com/path/to/resource"),
+          "http://proxy:8080",
+        );
+      });
+
+      it("Should handle URLs with query parameters", () => {
+        process.env.https_proxy = "http://proxy:8080";
+        assert.equal(
+          getProxyUrl("https://example.com?param=value"),
+          "http://proxy:8080",
+        );
+      });
+
+      it("Should handle URLs with fragments", () => {
+        process.env.https_proxy = "http://proxy:8080";
+        assert.equal(
+          getProxyUrl("https://example.com#fragment"),
+          "http://proxy:8080",
+        );
+      });
     });
   });
 });
