@@ -10,8 +10,8 @@ export async function mineUpTo(
   blockNumber: NumberLike,
   time: Time,
 ): Promise<void> {
-  const normalizedBlockNumber = await toBigInt(blockNumber);
-  const latestHeight = await toBigInt(await time.latestBlock());
+  const normalizedBlockNumber = toBigInt(blockNumber);
+  const latestHeight = toBigInt(await time.latestBlock());
 
   assertLargerThan(normalizedBlockNumber, latestHeight);
 
