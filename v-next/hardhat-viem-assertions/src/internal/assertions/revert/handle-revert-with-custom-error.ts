@@ -8,6 +8,7 @@ import assert from "node:assert/strict";
 
 import { assertHardhatInvariant } from "@nomicfoundation/hardhat-errors";
 import { ensureError } from "@nomicfoundation/hardhat-utils/error";
+import { panicErrorCodeToMessage } from "@nomicfoundation/hardhat-utils/panic-errors";
 import { decodeErrorResult } from "viem";
 
 import { isKnownErrorSelector, isPanicErrorSelector } from "./error-string.js";
@@ -40,17 +41,18 @@ export async function handleRevertWithCustomError<
       });
 
       if (isKnownErrorSelector(rawError.data)) {
-        if (isPanicErrorSelector(rawError.data)) {
-          assert.fail(
-            `The function was expected to revert with custom error "${customErrorName}", but it reverted with a panic error: ${rawError.message}`,
-          );
-        }
-
-        // Not a panic error; handle as a error string
         assertHardhatInvariant(
           Array.isArray(args),
           "Expected args to be an array",
         );
+
+        if (isPanicErrorSelector(rawError.data)) {
+          assert.fail(
+            `The function was expected to revert with custom error "${customErrorName}", but it ${panicErrorCodeToMessage(args[0])}`,
+          );
+        }
+
+        // Not a panic error; handle as a error string
 
         assert.fail(
           `The function was expected to revert with custom error "${customErrorName}", but it reverted with reason "${args[0]}"`,

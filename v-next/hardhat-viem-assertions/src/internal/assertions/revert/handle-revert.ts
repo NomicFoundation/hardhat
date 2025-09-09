@@ -16,7 +16,6 @@ export async function handleRevert(
   contractFn: Promise<ReadContractReturnType | WriteContractReturnType>,
 ): Promise<
   | {
-      message: string;
       args: string[];
       isPanicError: boolean;
       data: Hex;
@@ -50,7 +49,6 @@ export async function handleRevert(
     const decodedError = decodeErrorResult({ data: rawError.data });
 
     return {
-      message: rawError.message,
       args: decodedError.args.map((a) => String(a)),
       isPanicError: decodedError.errorName === "Panic",
       data: rawError.data,

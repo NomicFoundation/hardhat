@@ -87,7 +87,7 @@ describe("revertWith", () => {
       (error) =>
         isExpectedError(
           error,
-          `The function was expected to revert with reason "wrong reasons", but it reverted with a panic error: VM Exception while processing transaction: reverted with panic code 0x12 (Division or modulo division by zero)`,
+          `The function was expected to revert with reason "wrong reasons", but it reverted with panic code 0x12 (Division or modulo division by zero)`,
           "0x12",
           "wrong reasons",
         ),

@@ -145,7 +145,7 @@ describe("revertWithCustomError", () => {
       ),
       (error) =>
         error.message ===
-        `The function was expected to revert with custom error "CustomError", but it reverted with a panic error: VM Exception while processing transaction: reverted with panic code 0x11 (Arithmetic operation overflowed outside of an unchecked block)`,
+        `The function was expected to revert with custom error "CustomError", but it reverted with panic code 0x11 (Arithmetic operation overflowed outside of an unchecked block)`,
     );
   });
 
@@ -160,7 +160,7 @@ describe("revertWithCustomError", () => {
       ),
       (error) =>
         error.message ===
-        `The function was expected to revert with custom error "CustomError", but it reverted with a panic error: VM Exception while processing transaction: reverted with panic code 0x12 (Division or modulo division by zero)`,
+        `The function was expected to revert with custom error "CustomError", but it reverted with panic code 0x12 (Division or modulo division by zero)`,
     );
   });
 
@@ -177,7 +177,7 @@ describe("revertWithCustomError", () => {
       ),
       (error) =>
         error.message ===
-        `The function was expected to revert with custom error "CustomError", but it reverted with a panic error: VM Exception while processing transaction: reverted with panic code 0x11 (Arithmetic operation overflowed outside of an unchecked block)`,
+        `The function was expected to revert with custom error "CustomError", but it reverted with panic code 0x11 (Arithmetic operation overflowed outside of an unchecked block)`,
     );
   });
 });
