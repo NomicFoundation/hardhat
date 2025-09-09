@@ -28,6 +28,7 @@
     "./lang": "./dist/src/lang.js",
     "./number": "./dist/src/number.js",
     "./package": "./dist/src/package.js",
+    "./panic-errors": "./dist/src/panic-errors.js",
     "./path": "./dist/src/path.js",
     "./request": "./dist/src/request.js",
     "./string": "./dist/src/string.js",
