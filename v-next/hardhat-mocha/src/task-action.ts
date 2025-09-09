@@ -5,6 +5,7 @@ import type { MochaOptions } from "mocha";
 import { resolve as pathResolve } from "node:path";
 
 import { HardhatError } from "@nomicfoundation/hardhat-errors";
+import { setGlobalOptionsAsEnvVariables } from "@nomicfoundation/hardhat-utils/env";
 import { getAllFilesMatching } from "@nomicfoundation/hardhat-utils/fs";
 import {
   markTestRunDone,
@@ -53,6 +54,8 @@ const testWithHardhat: NewTaskActionFunction<TestActionArguments> = async (
   // Set an environment variable that plugins can use to detect when a process is running tests
   process.env.HH_TEST = "true";
 
+  setGlobalOptionsAsEnvVariables(hre.globalOptions);
+
   if (!noCompile) {
     await hre.tasks.getTask("compile").run({});
     console.log();
@@ -71,20 +74,12 @@ const testWithHardhat: NewTaskActionFunction<TestActionArguments> = async (
     imports.push(tsx.href);
 
     if (hre.globalOptions.coverage === true) {
-      // NOTE: We set the HARDHAT_COVERAGE environment variable here because, as of now,
-      // the global options are not automatically passed to the child processes.
-      process.env.HARDHAT_COVERAGE = "true";
-
       const coverage = new URL(
         import.meta.resolve("@nomicfoundation/hardhat-mocha/coverage"),
       );
 
       hre.config.test.mocha.require = hre.config.test.mocha.require ?? [];
       hre.config.test.mocha.require.push(coverage.href);
-    }
-
-    if (hre.globalOptions.network !== undefined) {
-      process.env.HARDHAT_NETWORK = hre.globalOptions.network;
     }
 
     process.env.NODE_OPTIONS = imports
