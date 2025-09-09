@@ -1,13 +1,15 @@
 import type { Fixture, NetworkHelpers, Snapshot } from "../../../types.js";
+import type { ChainType, NetworkConnection } from "hardhat/types/network";
 
 import { HardhatError } from "@nomicfoundation/hardhat-errors";
 
-export async function loadFixture<T>(
-  networkHelpers: NetworkHelpers,
-  fixture: Fixture<T>,
-  snapshots: Array<Snapshot<T>>,
+export async function loadFixture<T, ChainTypeT extends ChainType | string>(
+  networkHelpers: NetworkHelpers<ChainTypeT>,
+  fixture: Fixture<T, ChainTypeT>,
+  snapshots: Array<Snapshot<T, ChainTypeT>>,
+  connection: NetworkConnection<ChainTypeT>,
 ): Promise<{
-  snapshots: Array<Snapshot<T>>;
+  snapshots: Array<Snapshot<T, ChainTypeT>>;
   snapshotData: T;
 }> {
   if (fixture.name === "") {
@@ -45,7 +47,7 @@ export async function loadFixture<T>(
       snapshotData: snapshot.data,
     };
   } else {
-    const data = await fixture();
+    const data = await fixture(connection);
     const restorer = await networkHelpers.takeSnapshot();
 
     snapshots.push({

@@ -3,13 +3,14 @@ import type {
   NetworkHelpers,
   NumberLike,
 } from "../../../../types.js";
+import type { ChainType } from "hardhat/types/network";
 import type { EthereumProvider } from "hardhat/types/providers";
 
 import { toBigInt, toRpcQuantity } from "../../../conversion.js";
 
-export async function increaseTo(
+export async function increaseTo<ChainTypeT extends ChainType | string>(
   provider: EthereumProvider,
-  networkHelpers: NetworkHelpers,
+  networkHelpers: NetworkHelpers<ChainTypeT>,
   timestamp: NumberLike | Date,
   duration: Duration,
 ): Promise<void> {

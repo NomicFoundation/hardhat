@@ -1,5 +1,13 @@
-export interface NetworkHelpers {
-  readonly time: Time;
+import type {
+  ChainType,
+  DefaultChainType,
+  NetworkConnection,
+} from "hardhat/types/network";
+
+export interface NetworkHelpers<
+  ChainTypeT extends ChainType | string = DefaultChainType,
+> {
+  readonly time: Time<ChainTypeT>;
 
   /**
    * Clears every existing snapshot.
@@ -74,7 +82,7 @@ export interface NetworkHelpers {
    * async function setupContracts() { ... }
    * const fixtureData = await loadFixture(setupContracts);
    */
-  loadFixture<T>(fixture: Fixture<T>): Promise<T>;
+  loadFixture<T>(fixture: Fixture<T, ChainTypeT>): Promise<T>;
 
   /**
    * Mines a specified number of blocks with an optional time interval between them.
@@ -236,7 +244,10 @@ export interface NetworkHelpers {
   takeSnapshot(): Promise<SnapshotRestorer>;
 }
 
-export interface Time {
+export interface Time<
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars -- ChainTypeT is used in the class implementing the interface
+  ChainTypeT extends ChainType | string = DefaultChainType,
+> {
   readonly duration: Duration;
 
   /**
@@ -386,7 +397,9 @@ export type NumberLike = number | bigint | string;
 
 export type BlockTag = "latest" | "earliest" | "pending";
 
-export type Fixture<T> = () => Promise<T>;
+export type Fixture<T, ChainTypeT extends ChainType | string> = (
+  connection: NetworkConnection<ChainTypeT>,
+) => Promise<T>;
 
 export interface SnapshotRestorer {
   /**
@@ -397,8 +410,8 @@ export interface SnapshotRestorer {
   snapshotId: string;
 }
 
-export interface Snapshot<T> {
+export interface Snapshot<T, ChainTypeT extends ChainType | string> {
   restorer: SnapshotRestorer;
-  fixture: Fixture<T>;
+  fixture: Fixture<T, ChainTypeT>;
   data: T;
 }
