@@ -132,29 +132,26 @@ export function isTestSuiteArtifact(artifact: Artifact): boolean {
   });
 }
 
-export function isUsingDeprecatedTestFail(
+export function warnDeprecatedTestFail(
   artifact: Artifact,
   sourceNameToUserSourceName: Map<string, string>,
   colorizer: Colorizer = chalk,
-): boolean {
+): void {
   const abi: Abi = JSON.parse(artifact.contract.abi);
-  let hasDeprecatedTestFail = false;
 
   abi.forEach(({ type, name }) => {
-    if (type === "function" && typeof name === "string") {
-      if (name.startsWith("testFail") || name.startsWith("testFail_")) {
-        hasDeprecatedTestFail = true;
+    if (
+      type === "function" &&
+      typeof name === "string" &&
+      (name.startsWith("testFail") || name.startsWith("testFail_"))
+    ) {
+      const formattedLocation = formatArtifactId(
+        artifact.id,
+        sourceNameToUserSourceName,
+      );
+      const warningMessage = `${colorizer.yellow("Warning")}: ${name} Tests name \`testFail*\` has been removed. Consider changing to \`vm.expectRevert()\` for testing reverts in ${formattedLocation}\n`;
 
-        const formattedLocation = formatArtifactId(
-          artifact.id,
-          sourceNameToUserSourceName,
-        );
-        const warningMessage = `${colorizer.yellow("Warning")}: ${name} Tests name \`testFail*\` has been removed. Consider changing to the \`vm.expectRevert()\` for testing reverts. at ${formattedLocation}\n`;
-
-        console.warn(warningMessage);
-      }
+      console.warn(warningMessage);
     }
   });
-
-  return !hasDeprecatedTestFail;
 }

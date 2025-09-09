@@ -30,7 +30,7 @@ import { throwIfSolidityBuildFailed } from "../solidity/build-results.js";
 import { getEdrArtifacts, getBuildInfos } from "./edr-artifacts.js";
 import {
   isTestSuiteArtifact,
-  isUsingDeprecatedTestFail,
+  warnDeprecatedTestFail,
   solidityTestConfigToRunOptions,
   solidityTestConfigToSolidityTestRunnerConfigArgs,
 } from "./helpers.js";
@@ -112,17 +112,21 @@ const runSolidityTests: NewTaskActionFunction<TestActionArguments> = async (
     ]),
   );
 
-  const testSuiteIds = edrArtifacts
+  const testSuiteArtifacts = edrArtifacts
     .filter(({ userSourceName }) =>
       rootFilePaths.includes(
         resolveFromRoot(hre.config.paths.root, userSourceName),
       ),
     )
-    .filter(({ edrAtifact }) => isTestSuiteArtifact(edrAtifact))
-    .filter(({ edrAtifact }) =>
-      isUsingDeprecatedTestFail(edrAtifact, sourceNameToUserSourceName),
-    )
-    .map(({ edrAtifact }) => edrAtifact.id);
+    .filter(({ edrAtifact }) => isTestSuiteArtifact(edrAtifact));
+
+  testSuiteArtifacts.forEach(({ edrAtifact }) => {
+    warnDeprecatedTestFail(edrAtifact, sourceNameToUserSourceName);
+  });
+
+  const testSuiteIds = testSuiteArtifacts.map(
+    ({ edrAtifact }) => edrAtifact.id,
+  );
 
   console.log("Running Solidity tests");
   console.log();

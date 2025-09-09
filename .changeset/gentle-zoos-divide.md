@@ -2,4 +2,4 @@
 "hardhat": patch
 ---
 
-Add deprecation warning for testFail\* test functions
+Add deprecation warning for testFail_* test functions
