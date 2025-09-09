@@ -112,21 +112,25 @@ const runSolidityTests: NewTaskActionFunction<TestActionArguments> = async (
     ]),
   );
 
-  const testSuiteArtifacts = edrArtifacts
+  edrArtifacts.forEach(({ userSourceName, edrAtifact }) => {
+    if (
+      rootFilePaths.includes(
+        resolveFromRoot(hre.config.paths.root, userSourceName),
+      ) &&
+      isTestSuiteArtifact(edrAtifact)
+    ) {
+      warnDeprecatedTestFail(edrAtifact, sourceNameToUserSourceName);
+    }
+  });
+
+  const testSuiteIds = edrArtifacts
     .filter(({ userSourceName }) =>
       rootFilePaths.includes(
         resolveFromRoot(hre.config.paths.root, userSourceName),
       ),
     )
-    .filter(({ edrAtifact }) => isTestSuiteArtifact(edrAtifact));
-
-  testSuiteArtifacts.forEach(({ edrAtifact }) => {
-    warnDeprecatedTestFail(edrAtifact, sourceNameToUserSourceName);
-  });
-
-  const testSuiteIds = testSuiteArtifacts.map(
-    ({ edrAtifact }) => edrAtifact.id,
-  );
+    .filter(({ edrAtifact }) => isTestSuiteArtifact(edrAtifact))
+    .map(({ edrAtifact }) => edrAtifact.id);
 
   console.log("Running Solidity tests");
   console.log();

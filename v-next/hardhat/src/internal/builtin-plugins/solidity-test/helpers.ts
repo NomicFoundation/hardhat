@@ -149,7 +149,7 @@ export function warnDeprecatedTestFail(
         artifact.id,
         sourceNameToUserSourceName,
       );
-      const warningMessage = `${colorizer.yellow("Warning")}: ${name} Tests name \`testFail*\` has been removed. Consider changing to \`vm.expectRevert()\` for testing reverts in ${formattedLocation}\n`;
+      const warningMessage = `${colorizer.yellow("Warning")}: ${name} The support for the prefix \`testFail*\` has been removed. Consider using \`vm.expectRevert()\` for testing reverts in ${formattedLocation}\n`;
 
       console.warn(warningMessage);
     }
