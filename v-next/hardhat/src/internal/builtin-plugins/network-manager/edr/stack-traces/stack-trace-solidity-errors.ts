@@ -7,8 +7,8 @@ import type {
 import { ReturnData } from "@nomicfoundation/edr";
 import { assertHardhatInvariant } from "@nomicfoundation/hardhat-errors";
 import { bytesToHexString } from "@nomicfoundation/hardhat-utils/bytes";
+import { panicErrorCodeToMessage } from "@nomicfoundation/hardhat-utils/panic-errors";
 
-import { panicErrorCodeToMessage } from "./panic-errors.js";
 import {
   StackTraceEntryType,
   CONSTRUCTOR_FUNCTION_NAME,
