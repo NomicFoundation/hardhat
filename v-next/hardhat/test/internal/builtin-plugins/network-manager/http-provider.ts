@@ -518,23 +518,44 @@ describe("http-provider", () => {
   describe("getHttpDispatcher", () => {
     const { setEnvVar } = createTestEnvManager();
 
-    it("should return a pool dispatcher if process.env.http_proxy is not set", async () => {
+    it("should return a pool dispatcher when getProxyUrl returns undefined", async () => {
       const dispatcher = await getHttpDispatcher("http://example.com");
 
       assert.equal(dispatcher.constructor.name, "Pool");
     });
 
-    it("should return a pool dispatcher if shouldUseProxy is false", async () => {
+    it("should return a pool dispatcher when shouldUseProxy returns false", async () => {
       setEnvVar("http_proxy", "http://proxy.com");
-      // shouldUseProxy is false for localhost
+      // shouldUseProxy returns false for localhost, so getProxyUrl should return undefined
       const dispatcher = await getHttpDispatcher("http://localhost");
 
       assert.equal(dispatcher.constructor.name, "Pool");
     });
 
-    it("should return a proxy dispatcher if process.env.http_proxy is set and shouldUseProxy is true", async () => {
+    it("should return a proxy dispatcher when http_proxy env var is set", async () => {
       setEnvVar("http_proxy", "http://proxy.com");
       const dispatcher = await getHttpDispatcher("http://example.com");
+
+      assert.equal(dispatcher.constructor.name, "ProxyAgent");
+    });
+
+    it("should return a proxy dispatcher when HTTP_PROXY env var is set", async () => {
+      setEnvVar("HTTP_PROXY", "http://proxy.com");
+      const dispatcher = await getHttpDispatcher("http://example.com");
+
+      assert.equal(dispatcher.constructor.name, "ProxyAgent");
+    });
+
+    it("should return a proxy dispatcher when https_proxy env var is set", async () => {
+      setEnvVar("https_proxy", "http://proxy.com");
+      const dispatcher = await getHttpDispatcher("https://example.com");
+
+      assert.equal(dispatcher.constructor.name, "ProxyAgent");
+    });
+
+    it("should return a proxy dispatcher when HTTPS_PROXY env var is set", async () => {
+      setEnvVar("HTTPS_PROXY", "http://proxy.com");
+      const dispatcher = await getHttpDispatcher("https://example.com");
 
       assert.equal(dispatcher.constructor.name, "ProxyAgent");
     });

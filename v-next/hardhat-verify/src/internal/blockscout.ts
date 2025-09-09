@@ -9,6 +9,7 @@ import type {
 } from "./types.js";
 import type {
   Dispatcher,
+  DispatcherOptions,
   HttpResponse,
 } from "@nomicfoundation/hardhat-utils/request";
 import type { VerificationProvidersConfig } from "hardhat/types/config";
@@ -17,8 +18,10 @@ import { HardhatError } from "@nomicfoundation/hardhat-errors";
 import { ensureError } from "@nomicfoundation/hardhat-utils/error";
 import { sleep } from "@nomicfoundation/hardhat-utils/lang";
 import {
+  getProxyUrl,
   getRequest,
   postFormRequest,
+  shouldUseProxy,
 } from "@nomicfoundation/hardhat-utils/request";
 
 export const BLOCKSCOUT_PROVIDER_NAME: keyof VerificationProvidersConfig =
@@ -27,12 +30,13 @@ export const BLOCKSCOUT_PROVIDER_NAME: keyof VerificationProvidersConfig =
 const VERIFICATION_STATUS_POLLING_SECONDS = 3;
 
 export class Blockscout implements VerificationProvider {
-  public name: string;
-  public url: string;
-  public apiUrl: string;
-
-  readonly #dispatcher?: Dispatcher;
-  readonly #pollingIntervalMs: number;
+  public readonly name: string;
+  public readonly url: string;
+  public readonly apiUrl: string;
+  public readonly dispatcherOrDispatcherOptions?:
+    | Dispatcher
+    | DispatcherOptions;
+  public readonly pollingIntervalMs: number;
 
   constructor(blockscoutConfig: {
     name?: string;
@@ -43,8 +47,15 @@ export class Blockscout implements VerificationProvider {
     this.name = blockscoutConfig.name ?? "Blockscout";
     this.url = blockscoutConfig.url;
     this.apiUrl = blockscoutConfig.apiUrl;
-    this.#dispatcher = blockscoutConfig.dispatcher;
-    this.#pollingIntervalMs =
+
+    const proxyUrl = shouldUseProxy(this.apiUrl)
+      ? getProxyUrl(this.apiUrl)
+      : undefined;
+    this.dispatcherOrDispatcherOptions =
+      blockscoutConfig.dispatcher ??
+      (proxyUrl !== undefined ? { proxy: proxyUrl } : {});
+
+    this.pollingIntervalMs =
       blockscoutConfig.dispatcher !== undefined
         ? 0
         : VERIFICATION_STATUS_POLLING_SECONDS;
@@ -67,7 +78,7 @@ export class Blockscout implements VerificationProvider {
             address,
           },
         },
-        this.#dispatcher,
+        this.dispatcherOrDispatcherOptions,
       );
       responseBody =
         /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions
@@ -138,7 +149,7 @@ export class Blockscout implements VerificationProvider {
             action: "verifysourcecode",
           },
         },
-        this.#dispatcher,
+        this.dispatcherOrDispatcherOptions,
       );
       responseBody =
         /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions
@@ -236,7 +247,7 @@ export class Blockscout implements VerificationProvider {
             guid,
           },
         },
-        this.#dispatcher,
+        this.dispatcherOrDispatcherOptions,
       );
       responseBody =
         /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions
@@ -277,7 +288,7 @@ export class Blockscout implements VerificationProvider {
     );
 
     if (blockscoutResponse.isPending()) {
-      await sleep(this.#pollingIntervalMs);
+      await sleep(this.pollingIntervalMs);
 
       return this.pollVerificationStatus(guid, contractAddress, contractName);
     }
