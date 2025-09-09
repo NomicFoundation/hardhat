@@ -8,13 +8,14 @@ import type {
   NetworkConfig,
   NetworkUserConfig,
 } from "../../../../src/types/config.js";
-import type { NetworkHooks } from "../../../../src/types/hooks.js";
+import type { ConfigHooks, NetworkHooks } from "../../../../src/types/hooks.js";
 import type { HardhatRuntimeEnvironment } from "../../../../src/types/hre.js";
 import type {
   GenericChainType,
   NetworkConnection,
   NetworkManager,
 } from "../../../../src/types/network.js";
+import type { HardhatPlugin } from "../../../../src/types/plugins.js";
 import type { ExpectedValidationError } from "@nomicfoundation/hardhat-test-utils";
 
 import assert from "node:assert/strict";
@@ -49,6 +50,33 @@ import {
   resolveConfigurationVariable,
 } from "../../../../src/internal/core/configuration-variables.js";
 
+const networkConfigAddingPlugin: HardhatPlugin = {
+  id: "network-config-adding-plugin",
+  hookHandlers: {
+    config: async () => ({
+      default: async () => {
+        const handlers: Partial<ConfigHooks> = {
+          extendUserConfig: async (
+            config: HardhatUserConfig,
+            next: (nextConfig: HardhatUserConfig) => Promise<HardhatUserConfig>,
+          ) => {
+            const newConfig = await next(config);
+
+            for (const network of Object.values(newConfig.networks ?? {})) {
+              // @ts-expect-error -- asdf
+              network.pluginAddedProperties = ["added-by-plugin"];
+            }
+
+            return newConfig;
+          },
+        };
+
+        return handlers;
+      },
+    }),
+  },
+};
+
 describe("NetworkManagerImplementation", () => {
   let hre: HardhatRuntimeEnvironment;
   let networkManager: NetworkManager;
@@ -59,7 +87,9 @@ describe("NetworkManagerImplementation", () => {
   before(async () => {
     const initialDate = new Date();
 
-    hre = await createHardhatRuntimeEnvironment({});
+    hre = await createHardhatRuntimeEnvironment({
+      plugins: [networkConfigAddingPlugin],
+    });
 
     userNetworks = {
       localhost: {
@@ -136,7 +166,7 @@ describe("NetworkManagerImplementation", () => {
       networks,
       hre.hooks,
       hre.artifacts,
-      userNetworks,
+      { networks: userNetworks },
       chainDescriptors,
     );
   });
