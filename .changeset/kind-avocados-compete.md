@@ -5,4 +5,4 @@
 "hardhat": patch
 ---
 
-Load resolved global options into environment variables during tests
+Load resolved global options into environment variables during tests ([#7305](https://github.com/NomicFoundation/hardhat/pull/7305))
