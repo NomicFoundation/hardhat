@@ -1,0 +1,11 @@
+name: Task definition
+description: Define a new task
+type: "Task"
+body:
+  - type: textarea
+    id: task-description
+    attributes:
+      label: "Describe the task"
+      description: "A description of an actionable tasks with a single deliverable and a limited scope"
+    validations:
+      required: true
