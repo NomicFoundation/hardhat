@@ -1,11 +1,11 @@
-name: Task definition
-description: Define a new task
+name: Other issue
+description: Other kind of issue. Please don't use this to ask questions
 type: "Task"
 body:
   - type: textarea
-    id: task-description
+    id: issue-description
     attributes:
-      label: "Describe the task"
-      description: "A description of an actionable tasks with a single deliverable and a limited scope"
+      label: "Describe the issue"
+      description: "A description of the issue you are experiencing."
     validations:
       required: true
