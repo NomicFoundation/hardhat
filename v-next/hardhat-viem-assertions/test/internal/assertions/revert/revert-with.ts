@@ -65,6 +65,20 @@ describe("revertWith", () => {
     );
   });
 
+  it("should throw because the function reverts without a reason", async () => {
+    const contract = await viem.deployContract("Revert");
+
+    await assertRejects(
+      viem.assertions.revertWith(
+        contract.read.alwaysRevertWithNoReason(),
+        "wrong reasons",
+      ),
+      (error) =>
+        error.message ===
+        `The function was expected to revert with reason "wrong reasons", but it reverted without a reason`,
+    );
+  });
+
   it("should throw because the function reverts with a different reason (it panics)", async () => {
     const contract = await viem.deployContract("Counter");
 
@@ -73,7 +87,7 @@ describe("revertWith", () => {
       (error) =>
         isExpectedError(
           error,
-          `The function was expected to revert with reason "wrong reasons", but it reverted with reason: 0x12. This is the result of a panic error: VM Exception while processing transaction: reverted with panic code 0x12 (Division or modulo division by zero)`,
+          `The function was expected to revert with reason "wrong reasons", but it reverted with panic code 0x12 (Division or modulo division by zero)`,
           "0x12",
           "wrong reasons",
         ),
@@ -90,7 +104,7 @@ describe("revertWith", () => {
       ),
       (error) =>
         error.message ===
-        "The function was expected to revert, but it did not.",
+        "The function was expected to revert, but it did not revert",
     );
   });
 

@@ -1,4 +1,8 @@
-import type { ReadContractReturnType, WriteContractReturnType } from "viem";
+import type {
+  Hex,
+  ReadContractReturnType,
+  WriteContractReturnType,
+} from "viem";
 
 import assert from "node:assert/strict";
 
@@ -10,11 +14,16 @@ import { extractRevertError } from "./extract-revert-error.js";
 
 export async function handleRevert(
   contractFn: Promise<ReadContractReturnType | WriteContractReturnType>,
-): Promise<{
-  message: string;
-  args: string[];
-  isPanicError: boolean;
-}> {
+): Promise<
+  | {
+      args: string[];
+      isPanicError: boolean;
+      data: Hex;
+    }
+  | {
+      errorWithoutReason: true;
+    }
+> {
   try {
     await contractFn;
   } catch (error) {
@@ -22,20 +31,29 @@ export async function handleRevert(
 
     const rawError = extractRevertError(error);
 
-    if (isKnownErrorSelector(rawError.data) === false) {
+    if (
+      isKnownErrorSelector(rawError.data) === false &&
+      rawError.data !== "0x"
+    ) {
       assert.fail(
-        `Expected non custom error, but got a custom error selector "${rawError.data.slice(0, 10)}" with data "${rawError.data}"`,
+        `The function was expected to revert with a non custom error, but it instead reverted with a custom error. ${rawError.message}`,
       );
+    }
+
+    if (rawError.data === "0x") {
+      return {
+        errorWithoutReason: true,
+      };
     }
 
     const decodedError = decodeErrorResult({ data: rawError.data });
 
     return {
-      message: rawError.message,
       args: decodedError.args.map((a) => String(a)),
       isPanicError: decodedError.errorName === "Panic",
+      data: rawError.data,
     };
   }
 
-  assert.fail("The function was expected to revert, but it did not.");
+  assert.fail("The function was expected to revert, but it did not revert");
 }
