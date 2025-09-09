@@ -132,57 +132,10 @@ export class NetworkManagerImplementation implements NetworkManager {
       );
     }
 
-    let resolvedNetworkConfigOverride: NetworkConfig | undefined;
-    if (networkConfigOverride !== undefined) {
-      if (
-        "type" in networkConfigOverride &&
-        networkConfigOverride.type !==
-          this.#networkConfigs[resolvedNetworkName].type
-      ) {
-        throw new HardhatError(
-          HardhatError.ERRORS.CORE.NETWORK.INVALID_CONFIG_OVERRIDE,
-          {
-            errors: `\t* The type of the network cannot be changed.`,
-          },
-        );
-      }
-
-      const newConfig = deepMerge(
-        this.#userConfigNetworks[resolvedNetworkName],
-        networkConfigOverride,
-      );
-
-      // As normalizeNetworkConfigOverride is not type-safe, we validate the
-      // normalized network config override immediately after normalizing it.
-      const validationErrors = await validateNetworkConfigOverride(newConfig);
-      if (validationErrors.length > 0) {
-        throw new HardhatError(
-          HardhatError.ERRORS.CORE.NETWORK.INVALID_CONFIG_OVERRIDE,
-          {
-            errors: `\t${validationErrors
-              .map((error) =>
-                error.path.length > 0
-                  ? `* Error in ${error.path.join(".")}: ${error.message}`
-                  : `* ${error.message}`,
-              )
-              .join("\n\t")}`,
-          },
-        );
-      }
-
-      resolvedNetworkConfigOverride =
-        newConfig.type === "http"
-          ? resolveHttpNetwork(newConfig, (strOrConfigVar) =>
-              resolveConfigurationVariable(this.#hookManager, strOrConfigVar),
-            )
-          : resolveEdrNetwork(newConfig, "", (strOrConfigVar) =>
-              resolveConfigurationVariable(this.#hookManager, strOrConfigVar),
-            );
-    }
-
-    const resolvedNetworkConfig =
-      resolvedNetworkConfigOverride ??
-      this.#networkConfigs[resolvedNetworkName];
+    const resolvedNetworkConfig = await this.#resolveNetworkConfig(
+      resolvedNetworkName,
+      networkConfigOverride,
+    );
 
     /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions
     -- Cast to ChainTypeT because we know it's valid */
@@ -310,6 +263,75 @@ export class NetworkManagerImplementation implements NetworkManager {
       },
       createProvider,
     );
+  }
+
+  /**
+   * Resolve the network connection configuration settings for the network name
+   * and taking into account any configuration overrides.
+   *
+   * @param resolvedNetworkName the network name for selecting the appropriate network config
+   * @param networkConfigOverride any network config options to override the
+   *   defaults for the named network
+   * @returns a valid network configuration including any config additions from
+   *   plugins
+   */
+  async #resolveNetworkConfig(
+    resolvedNetworkName: string,
+    networkConfigOverride: NetworkConfigOverride | undefined,
+  ): Promise<NetworkConfig> {
+    let resolvedNetworkConfigOverride: NetworkConfig | undefined;
+    if (networkConfigOverride !== undefined) {
+      if (
+        "type" in networkConfigOverride &&
+        networkConfigOverride.type !==
+          this.#networkConfigs[resolvedNetworkName].type
+      ) {
+        throw new HardhatError(
+          HardhatError.ERRORS.CORE.NETWORK.INVALID_CONFIG_OVERRIDE,
+          {
+            errors: `\t* The type of the network cannot be changed.`,
+          },
+        );
+      }
+
+      const newConfig = deepMerge(
+        this.#userConfigNetworks[resolvedNetworkName],
+        networkConfigOverride,
+      );
+
+      // As normalizeNetworkConfigOverride is not type-safe, we validate the
+      // normalized network config override immediately after normalizing it.
+      const validationErrors = await validateNetworkConfigOverride(newConfig);
+      if (validationErrors.length > 0) {
+        throw new HardhatError(
+          HardhatError.ERRORS.CORE.NETWORK.INVALID_CONFIG_OVERRIDE,
+          {
+            errors: `\t${validationErrors
+              .map((error) =>
+                error.path.length > 0
+                  ? `* Error in ${error.path.join(".")}: ${error.message}`
+                  : `* ${error.message}`,
+              )
+              .join("\n\t")}`,
+          },
+        );
+      }
+
+      resolvedNetworkConfigOverride =
+        newConfig.type === "http"
+          ? resolveHttpNetwork(newConfig, (strOrConfigVar) =>
+              resolveConfigurationVariable(this.#hookManager, strOrConfigVar),
+            )
+          : resolveEdrNetwork(newConfig, "", (strOrConfigVar) =>
+              resolveConfigurationVariable(this.#hookManager, strOrConfigVar),
+            );
+    }
+
+    const resolvedNetworkConfig =
+      resolvedNetworkConfigOverride ??
+      this.#networkConfigs[resolvedNetworkName];
+
+    return resolvedNetworkConfig;
   }
 
   async #getBuildInfosAndOutputsAsBuffers(): Promise<
