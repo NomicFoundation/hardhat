@@ -1,5 +1,11 @@
 # @nomicfoundation/hardhat-verify
 
+## 3.0.2
+
+### Patch Changes
+
+- a475780: Added automatic proxy detection for `hardhat-verify` and fixed case-insensitive proxy environment variables for network requests ([#7407](https://github.com/NomicFoundation/hardhat/pull/7407))
+
 ## 3.0.1
 
 ### Patch Changes
