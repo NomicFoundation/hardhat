@@ -50,7 +50,7 @@ describe("revert", () => {
       viem.assertions.revert(contract.read.doNotRevert()),
       (error) =>
         error.message ===
-        "The function was expected to revert, but it did not.",
+        "The function was expected to revert, but it did not revert",
     );
   });
 
@@ -63,7 +63,29 @@ describe("revert", () => {
       ),
       (error) =>
         error.message ===
-        `Expected default error revert, but got a custom error selector "0x09caebf3" with data "0x09caebf3"`,
+        `The function was expected to revert with a non custom error, but it instead reverted with a custom error. VM Exception while processing transaction: reverted with custom error 'CustomError()'`,
     );
+  });
+
+  it("should handle when the thrown error is a panic error (overflow)", async function () {
+    const contract = await viem.deployContract("Counter");
+
+    await contract.write.incBy([200]);
+
+    await viem.assertions.revert(contract.write.incBy([200])); // Overflow - cause panic error
+  });
+
+  it("should handle when the thrown error is a panic error (divide by zero)", async function () {
+    const contract = await viem.deployContract("Counter");
+
+    await viem.assertions.revert(contract.write.divideBy([0])); // Division by 0 - cause panic error
+  });
+
+  it("should handle when the thrown error is a panic error within nested contracts", async () => {
+    const contract = await viem.deployContract("CounterNestedPanicError");
+
+    await contract.write.incBy([200]);
+
+    await viem.assertions.revert(contract.write.nestedRevert([200])); // Overflow - cause panic error
   });
 });
