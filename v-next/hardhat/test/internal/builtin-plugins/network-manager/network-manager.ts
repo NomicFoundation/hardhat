@@ -138,7 +138,7 @@ describe("NetworkManagerImplementation", () => {
       networks,
       hre.hooks,
       hre.artifacts,
-      userNetworks,
+      { networks: userNetworks },
       chainDescriptors,
     );
   });
@@ -476,7 +476,7 @@ describe("NetworkManagerImplementation", () => {
         networks,
         hre.hooks,
         hre.artifacts,
-        userNetworks,
+        { networks: userNetworks },
         chainDescriptors,
       );
     });
