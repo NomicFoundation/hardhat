@@ -1,5 +1,15 @@
 # @nomicfoundation/hardhat-ledger
 
+## 1.2.1
+
+### Patch Changes
+
+- 9d10226: Links in the code and READMEs updated to point to the Hardhat 2 documentation and resources
+- 4b63c37: Show underlying error when there is a connection error
+- Updated dependencies [e5ff273]
+- Updated dependencies [9d10226]
+  - hardhat@2.26.4
+
 ## 1.2.0
 
 ### Minor Changes
