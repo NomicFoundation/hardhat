@@ -1,6 +1,6 @@
 {
   "name": "@nomicfoundation/hardhat-utils",
-  "version": "3.0.0",
+  "version": "3.0.1",
   "description": "Utilities for Hardhat and its plugins",
   "homepage": "https://github.com/nomicfoundation/hardhat/tree/v-next/v-next/hardhat-utils",
   "repository": {
@@ -20,6 +20,7 @@
     "./crypto": "./dist/src/crypto.js",
     "./date": "./dist/src/date.js",
     "./debug": "./dist/src/debug.js",
+    "./env": "./dist/src/env.js",
     "./error": "./dist/src/error.js",
     "./eth": "./dist/src/eth.js",
     "./fs": "./dist/src/fs.js",
@@ -28,6 +29,7 @@
     "./lang": "./dist/src/lang.js",
     "./number": "./dist/src/number.js",
     "./package": "./dist/src/package.js",
+    "./panic-errors": "./dist/src/panic-errors.js",
     "./path": "./dist/src/path.js",
     "./request": "./dist/src/request.js",
     "./string": "./dist/src/string.js",

@@ -253,8 +253,6 @@ describe("clients", () => {
       assert.equal(client.type, "walletClient");
       assert.equal(client.chain.id, 10);
       assert.equal(client.account.address, "0x123");
-      assert.equal(client.pollingInterval, 4_000);
-      assert.equal(client.cacheTime, 4_000);
       expectTypeOf(client).toEqualTypeOf<OpWalletClient>();
       // L2 actions should be available
       expectTypeOf(client).toHaveProperty("initiateWithdrawal");

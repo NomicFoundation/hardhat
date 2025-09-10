@@ -29,14 +29,14 @@ jobs:
             if (statusLabel === undefined) {
               console.log("Author association:", issue.data.author_association);
               const isCollaborator = ["OWNER", "MEMBER", "COLLABORATOR"].includes(issue.data.author_association)
-              const label = isCollaborator ? "status:ready" : "status:triaging"
-
-              await github.rest.issues.addLabels({
-                owner: context.issue.owner,
-                repo: context.issue.repo,
-                issue_number: context.issue.number,
-                labels: [label]
-              });
+              if (!isCollaborator) {
+                await github.rest.issues.addLabels({
+                  owner: context.issue.owner,
+                  repo: context.issue.repo,
+                  issue_number: context.issue.number,
+                  labels: ["status:triaging"]
+                });
+              }
             } else {
               console.log(`Issue already has a status: ${statusLabel.name}`);
             }

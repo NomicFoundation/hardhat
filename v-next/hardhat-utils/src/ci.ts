@@ -1,4 +1,9 @@
 /**
+ * IMPORTANT: A copy of this function exists in `v-next/hardhat-node-test-reporter/src/ci.ts`.
+ * If you change this function, you must also change the copy.
+ */
+
+/**
  * Checks whether the current process is running in a CI environment.
  *
  * @returns True if the current process is running in a CI environment.

@@ -1,34 +1,59 @@
-import type { ReadContractReturnType, WriteContractReturnType } from "viem";
+import type {
+  Hex,
+  ReadContractReturnType,
+  WriteContractReturnType,
+} from "viem";
 
 import assert from "node:assert/strict";
 
 import { ensureError } from "@nomicfoundation/hardhat-utils/error";
 import { decodeErrorResult } from "viem";
 
-import { extractRevertData } from "./extract-revert-data.js";
-import { isDefaultRevert } from "./is-default-revert.js";
+import { isKnownErrorSelector } from "./error-string.js";
+import { extractRevertError } from "./extract-revert-error.js";
 
 export async function handleRevert(
   contractFn: Promise<ReadContractReturnType | WriteContractReturnType>,
-): Promise<string> {
+): Promise<
+  | {
+      args: string[];
+      isPanicError: boolean;
+      data: Hex;
+    }
+  | {
+      errorWithoutReason: true;
+    }
+> {
   try {
     await contractFn;
   } catch (error) {
     ensureError(error);
 
-    const data = extractRevertData(error);
+    const rawError = extractRevertError(error);
 
-    if (isDefaultRevert(data) === false) {
+    if (
+      isKnownErrorSelector(rawError.data) === false &&
+      rawError.data !== "0x"
+    ) {
       assert.fail(
-        `Expected default error revert, but got a custom error selector "${data.slice(0, 10)}" with data "${data}"`,
+        `The function was expected to revert with a non custom error, but it instead reverted with a custom error. ${rawError.message}`,
       );
     }
 
-    const { args } = decodeErrorResult({ data });
+    if (rawError.data === "0x") {
+      return {
+        errorWithoutReason: true,
+      };
+    }
 
-    // In the case of default ETH errors, the array contains only a single element
-    return String(args[0]);
+    const decodedError = decodeErrorResult({ data: rawError.data });
+
+    return {
+      args: decodedError.args.map((a) => String(a)),
+      isPanicError: decodedError.errorName === "Panic",
+      data: rawError.data,
+    };
   }
 
-  assert.fail("The function was expected to revert, but it did not.");
+  assert.fail("The function was expected to revert, but it did not revert");
 }

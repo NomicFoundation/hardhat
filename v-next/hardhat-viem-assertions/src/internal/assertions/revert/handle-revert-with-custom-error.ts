@@ -8,13 +8,11 @@ import assert from "node:assert/strict";
 
 import { assertHardhatInvariant } from "@nomicfoundation/hardhat-errors";
 import { ensureError } from "@nomicfoundation/hardhat-utils/error";
+import { panicErrorCodeToMessage } from "@nomicfoundation/hardhat-utils/panic-errors";
 import { decodeErrorResult } from "viem";
 
-import { extractRevertData } from "./extract-revert-data.js";
-import {
-  DEFAULT_REVERT_REASON_SELECTOR,
-  isDefaultRevert,
-} from "./is-default-revert.js";
+import { isKnownErrorSelector, isPanicErrorSelector } from "./error-string.js";
+import { extractRevertError } from "./extract-revert-error.js";
 
 export async function handleRevertWithCustomError<
   ContractName extends keyof ContractAbis,
@@ -26,40 +24,50 @@ export async function handleRevertWithCustomError<
   try {
     await contractFn;
   } catch (error) {
-    ensureError(error);
+    throwIfErrorIsNotInContract(contract, customErrorName);
 
-    const contractAbi = Array.isArray(contract.abi)
-      ? contract.abi
-      : Object.values(contract.abi);
-
-    const found = contractAbi.some(
-      (abiItem) => abiItem.type === "error" && abiItem.name === customErrorName,
-    );
-
-    if (found === false) {
-      assert.fail(`The error "${customErrorName}" does not exists in the abi.`);
-    }
-
-    const data = extractRevertData(error);
+    const rawError = extractRevertError(error);
 
     try {
-      if (isDefaultRevert(data)) {
+      if (rawError.data === "0x") {
         assert.fail(
-          `Expected a custom error with name "${customErrorName}", but got a non custom error with default revert selector ${DEFAULT_REVERT_REASON_SELECTOR}`,
+          `The function was expected to revert with custom error "${customErrorName}", but it reverted without a reason`,
         );
       }
 
-      const { abiItem, args } = decodeErrorResult({ data, abi: contract.abi });
+      const { abiItem, args } = decodeErrorResult({
+        data: rawError.data,
+        abi: contract.abi,
+      });
+
+      if (isKnownErrorSelector(rawError.data)) {
+        assertHardhatInvariant(
+          Array.isArray(args),
+          "Expected args to be an array",
+        );
+
+        if (isPanicErrorSelector(rawError.data)) {
+          assert.fail(
+            `The function was expected to revert with custom error "${customErrorName}", but it ${panicErrorCodeToMessage(args[0])}`,
+          );
+        }
+
+        // Not a panic error; handle as a error string
+
+        assert.fail(
+          `The function was expected to revert with custom error "${customErrorName}", but it reverted with reason "${args[0]}"`,
+        );
+      }
 
       assertHardhatInvariant(
         abiItem.type === "error",
-        `Expected error, but the type is "${abiItem.type}".`,
+        `Expected a custom error, but the error type is "${abiItem.type}".`,
       );
 
       assert.equal(
         abiItem.name,
         customErrorName,
-        `Expected error name: "${customErrorName}", but found "${abiItem.name}".`,
+        `The function was expected to revert with custom error "${customErrorName}", but it reverted with custom error "${abiItem.name}"`,
       );
 
       return Array.isArray(args) ? args : [];
@@ -71,12 +79,31 @@ export async function handleRevertWithCustomError<
       }
 
       assert.fail(
-        `The error "${customErrorName}" was not found in the contract ABI. Encoded error signature found: "${data}".`,
+        `The error "${customErrorName}" was not found in the contract ABI. Encoded error signature found: "${rawError.data}".`,
       );
     }
   }
 
   assert.fail(
-    `The function was expected to revert with "${customErrorName}", but it did not.`,
+    `The function was expected to revert with custom error "${customErrorName}", but it did not revert`,
   );
+}
+
+function throwIfErrorIsNotInContract<ContractName extends keyof ContractAbis>(
+  contract: ContractReturnType<ContractName>,
+  customErrorName: string,
+) {
+  const contractAbi = Array.isArray(contract.abi)
+    ? contract.abi
+    : Object.values(contract.abi);
+
+  const found = contractAbi.some(
+    (abiItem) => abiItem.type === "error" && abiItem.name === customErrorName,
+  );
+
+  if (found === false) {
+    assert.fail(
+      `The given contract doesn't have a custom error named "${customErrorName}"`,
+    );
+  }
 }

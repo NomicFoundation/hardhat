@@ -1,5 +1,7 @@
 name: Feature request
 description: Suggest a new feature
+type: "Feature"
+labels: ["status:needs-priority"]
 body:
   - type: textarea
     id: feature-description

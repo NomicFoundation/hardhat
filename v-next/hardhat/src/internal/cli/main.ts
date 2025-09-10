@@ -5,13 +5,20 @@ import type {
 import type { HardhatRuntimeEnvironment } from "../../types/hre.js";
 import type { Task, TaskArguments } from "../../types/tasks.js";
 
+import { fileURLToPath } from "node:url";
+
 import {
   HardhatError,
   assertHardhatInvariant,
 } from "@nomicfoundation/hardhat-errors";
 import { isCi } from "@nomicfoundation/hardhat-utils/ci";
 import { ensureError } from "@nomicfoundation/hardhat-utils/error";
-import { readClosestPackageJson } from "@nomicfoundation/hardhat-utils/package";
+import { getRealPath } from "@nomicfoundation/hardhat-utils/fs";
+import {
+  findClosestPackageJson,
+  findDependencyPackageJson,
+  readClosestPackageJson,
+} from "@nomicfoundation/hardhat-utils/package";
 import { kebabToCamelCase } from "@nomicfoundation/hardhat-utils/string";
 import debug from "debug";
 import { register } from "tsx/esm/api";
@@ -49,6 +56,7 @@ export interface MainOptions {
   print?: (message: string) => void;
   registerTsx?: boolean;
   rethrowErrors?: true;
+  allowNonlocalHardhatInstallation?: true;
 }
 
 export async function main(
@@ -91,6 +99,15 @@ export async function main(
     configPath = await resolveHardhatConfigPath(
       builtinGlobalOptions.configPath,
     );
+
+    if (
+      options.allowNonlocalHardhatInstallation !== true &&
+      !(await isHardhatInstalledLocallyOrLinked(configPath, log))
+    ) {
+      throw new HardhatError(
+        HardhatError.ERRORS.CORE.GENERAL.NON_LOCAL_INSTALLATION,
+      );
+    }
 
     setCliHardhatConfigPath(configPath);
 
@@ -681,4 +698,46 @@ npm pkg set type="module"
   }
 
   return false;
+}
+
+/**
+ * Returns true if Hardhat is installed locally or linked from its repository,
+ * by looking for it using the node module resolution logic.
+ *
+ * If a config file is provided, we start looking for it from there. Otherwise,
+ * we use the current working directory.
+ */
+async function isHardhatInstalledLocallyOrLinked(
+  configPath: string,
+  log: debug.Debugger,
+) {
+  try {
+    // Based on Node.js resolution algorithm find the real path
+    // of the project's version of Hardhat
+    const realPathToResolvedPackageJson = await findDependencyPackageJson(
+      configPath ?? process.cwd(),
+      "hardhat",
+    );
+
+    // Find the executing code's Hardhat Package.json
+    const thisPackageJson = await findClosestPackageJson(
+      fileURLToPath(import.meta.url),
+    );
+
+    // We need to get the realpaths here, as hardhat may be linked and
+    // running with `node --preserve-symlinks`
+    const isLocalOrLinked =
+      realPathToResolvedPackageJson === (await getRealPath(thisPackageJson));
+
+    if (!isLocalOrLinked) {
+      log("Determined that Hardhat is not installed locally/linked");
+      log(`  resolved package.json: ${realPathToResolvedPackageJson}`);
+      log(`  current package.json: ${thisPackageJson}`);
+    }
+
+    return isLocalOrLinked;
+  } catch (error) {
+    log("Error during installed locally/linked test", error);
+    return false;
+  }
 }

@@ -1,5 +1,23 @@
 # hardhat
 
+## 3.0.5
+
+### Patch Changes
+
+- bebf87c: Added support for Linea network verification, thanks @kyzooghost ([#7357](https://github.com/NomicFoundation/hardhat/issues/7357))
+- 0bfe6ac: Fixed coverage report when loading data from large test suites ([#7385](https://github.com/NomicFoundation/hardhat/issues/7385))
+- be469d6: Display an error message when attempting to use a global hardhat installation in a local repo ([#5362](https://github.com/NomicFoundation/hardhat/issues/5362))
+- 49cc9ba: Load resolved global options into environment variables during tests ([#7305](https://github.com/NomicFoundation/hardhat/pull/7305))
+- 8d3b16c: Support for custom compilers ([#7130](https://github.com/NomicFoundation/hardhat/issues/7130))
+- a475780: Added automatic proxy detection for `hardhat-verify` and fixed case-insensitive proxy environment variables for network requests ([#7407](https://github.com/NomicFoundation/hardhat/pull/7407))
+- 3996886: Fixed `getBuildInfoPath` and `getBuildInfoOutputPath` to correctly return undefined when build info files are missing [7052](https://github.com/NomicFoundation/hardhat/issues/7052)
+
+## 3.0.4
+
+### Patch Changes
+
+- af301a8: Update validation for solidity test config ([#7205](https://github.com/NomicFoundation/hardhat/pull/7205))
+
 ## 3.0.3
 
 ### Patch Changes
