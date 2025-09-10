@@ -48,7 +48,7 @@
     "svg-pan-zoom": "^3.6.1",
     "ts-node": "10.9.2",
     "typescript": "~5.8.0",
-    "vite": "^5.0.0",
+    "vite": "^5.4.20",
     "vite-plugin-singlefile": "^2.0.1"
   }
 }
