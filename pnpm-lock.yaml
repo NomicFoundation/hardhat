@@ -120,7 +120,7 @@ importers:
         specifier: foundry-rs/forge-std#v1.9.4
         version: https://codeload.github.com/foundry-rs/forge-std/tar.gz/1eea5bae12ae557d589f9f0f0edae2faa47cb262
       hardhat:
-        specifier: workspace:^3.0.0
+        specifier: workspace:^3.0.6
         version: link:../hardhat
       mocha:
         specifier: ^11.0.0
@@ -150,10 +150,10 @@ importers:
         specifier: workspace:^3.0.2
         version: link:../hardhat-errors
       '@nomicfoundation/hardhat-utils':
-        specifier: workspace:^3.0.1
+        specifier: workspace:^3.0.2
         version: link:../hardhat-utils
       '@nomicfoundation/hardhat-zod-utils':
-        specifier: workspace:^3.0.0
+        specifier: workspace:^3.0.1
         version: link:../hardhat-zod-utils
       '@nomicfoundation/solidity-analyzer':
         specifier: ^0.1.1
@@ -1545,7 +1545,7 @@ importers:
         specifier: workspace:^3.0.0
         version: link:../hardhat-errors
       '@nomicfoundation/hardhat-utils':
-        specifier: workspace:^3.0.0
+        specifier: workspace:^3.0.2
         version: link:../hardhat-utils
     devDependencies:
       '@nomicfoundation/hardhat-node-test-reporter':
@@ -1622,7 +1622,7 @@ importers:
         specifier: foundry-rs/forge-std#v1.9.4
         version: https://codeload.github.com/foundry-rs/forge-std/tar.gz/1eea5bae12ae557d589f9f0f0edae2faa47cb262
       hardhat:
-        specifier: workspace:^3.0.0
+        specifier: workspace:^3.0.6
         version: link:../../..
       typescript:
         specifier: ~5.8.0
@@ -1689,7 +1689,7 @@ importers:
         specifier: foundry-rs/forge-std#v1.9.4
         version: https://codeload.github.com/foundry-rs/forge-std/tar.gz/1eea5bae12ae557d589f9f0f0edae2faa47cb262
       hardhat:
-        specifier: workspace:^3.0.0
+        specifier: workspace:^3.0.6
         version: link:../../..
       mocha:
         specifier: ^11.0.0

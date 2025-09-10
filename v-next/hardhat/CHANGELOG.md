@@ -1,5 +1,12 @@
 # hardhat
 
+## 3.0.6
+
+### Patch Changes
+
+- 609d05c: Add deprecation warning for `testFail_*` test functions
+- 8c1cb1e: Fixed dependencies for Hardhat so `rpc` utils can be loaded ([#7415](https://github.com/NomicFoundation/hardhat/issues/7415))
+
 ## 3.0.5
 
 ### Patch Changes
