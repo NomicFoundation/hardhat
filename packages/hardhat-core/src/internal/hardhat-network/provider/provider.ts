@@ -19,7 +19,7 @@ import type {
   SubscriptionConfig,
 } from "@nomicfoundation/edr";
 import { privateToAddress } from "@ethereumjs/util";
-import { precompileP256Verify } from "@nomicfoundation/edr";
+import { ContractDecoder, precompileP256Verify } from "@nomicfoundation/edr";
 import picocolors from "picocolors";
 import debug from "debug";
 import { EventEmitter } from "events";
@@ -137,10 +137,6 @@ export class EdrProviderWrapper
   extends EventEmitter
   implements EIP1193Provider
 {
-  private _addedCompilationResults: Array<
-    [string, CompilerInput, CompilerOutput]
-  > = [];
-
   private _failedStackTraces = 0;
 
   // temporarily added to make smock work with HH+EDR
@@ -154,8 +150,7 @@ export class EdrProviderWrapper
     private _node: {
       _vm: MinimalEthereumJsVm;
     },
-    private readonly _subscriptionConfig: SubscriptionConfig,
-    private readonly _tracingConfig: TracingConfigWithBuffers
+    private readonly _subscriptionConfig: SubscriptionConfig
   ) {
     super();
   }
@@ -297,13 +292,15 @@ export class EdrProviderWrapper
 
     const edrTracingConfig = tracingConfig ?? {};
 
+    const contractDecoder = ContractDecoder.withContracts(edrTracingConfig);
+
     const context = await getGlobalEdrContext();
     const provider = await context.createProvider(
       GENERIC_CHAIN_TYPE,
       edrProviderConfig,
       edrLoggerConfig,
       edrSubscriptionConfig,
-      edrTracingConfig
+      contractDecoder
     );
 
     const minimalEthereumJsNode = {
@@ -315,8 +312,7 @@ export class EdrProviderWrapper
       edrProviderConfig,
       edrLoggerConfig,
       minimalEthereumJsNode,
-      edrSubscriptionConfig,
-      edrTracingConfig
+      edrSubscriptionConfig
     );
 
     // Pass through all events from the provider
@@ -479,17 +475,9 @@ export class EdrProviderWrapper
     output: CompilerOutput
   ): Promise<boolean> {
     try {
-      const success = await this._provider.addCompilationResult(
-        solcVersion,
-        input,
-        output
-      );
+      await this._provider.addCompilationResult(solcVersion, input, output);
 
-      if (success) {
-        this._addedCompilationResults.push([solcVersion, input, output]);
-      }
-
-      return success;
+      return true;
     } catch (error: any) {
       // eslint-disable-next-line @nomicfoundation/hardhat-internal-rules/only-hardhat-error
       throw new InternalError(error);
@@ -523,14 +511,8 @@ export class EdrProviderWrapper
       this._providerConfig,
       this._loggerConfig,
       this._subscriptionConfig,
-      this._tracingConfig
+      this._provider.contractDecoder()
     );
-
-    for (const [solcVersion, input, output] of this._addedCompilationResults) {
-      // This should succeed as only successful compilation results are added
-      // to the provider. Therefore, we don't need to handle errors here.
-      await provider.addCompilationResult(solcVersion, input, output);
-    }
 
     const minimalEthereumJsNode = {
       _vm: getMinimalEthereumJsVm(provider),

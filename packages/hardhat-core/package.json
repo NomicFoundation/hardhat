@@ -99,7 +99,7 @@
   "dependencies": {
     "@ethereumjs/util": "^9.1.0",
     "@ethersproject/abi": "^5.1.2",
-    "@nomicfoundation/edr": "^0.12.0-next.4",
+    "@nomicfoundation/edr": "^0.12.0-next.7",
     "@nomicfoundation/solidity-analyzer": "^0.1.0",
     "@sentry/node": "^5.18.1",
     "adm-zip": "^0.4.16",
