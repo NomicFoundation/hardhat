@@ -22,7 +22,7 @@ import type {
 } from "../../../types/providers.js";
 
 import { HardhatError } from "@nomicfoundation/hardhat-errors";
-import { readBinaryFile } from "@nomicfoundation/hardhat-utils/fs";
+import { exists, readBinaryFile } from "@nomicfoundation/hardhat-utils/fs";
 import { deepMerge } from "@nomicfoundation/hardhat-utils/lang";
 
 import { resolveConfigurationVariable } from "../../core/configuration-variables.js";
@@ -101,9 +101,12 @@ export class NetworkManagerImplementation implements NetworkManager {
 
   public async createServer(
     networkOrParams: NetworkConnectionParams | string = "default",
-    hostname: string = "127.0.0.1",
+    _hostname?: string,
     port?: number,
   ): Promise<JsonRpcServer> {
+    const insideDocker = await exists("/.dockerenv");
+    const hostname = _hostname ?? (insideDocker ? "0.0.0.0" : "127.0.0.1");
+
     const { provider } = await this.connect(networkOrParams);
 
     return new JsonRpcServerImplementation({

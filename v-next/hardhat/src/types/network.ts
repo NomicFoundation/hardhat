@@ -53,6 +53,13 @@ export interface NetworkManager {
     networkOrParams?: NetworkConnectionParams<ChainTypeT> | string,
   ): Promise<NetworkConnection<ChainTypeT>>;
 
+  /**
+   * Spawns an http/ws JsonRpc server
+   *
+   * @param networkOrParams The underlying network
+   * @param hostname Hostname to bind the server to. Defaults to localhost/0.0.0.0 on docker
+   * @param port Port to listen to. Defaults to a random available port
+   */
   createServer(
     networkOrParams?: NetworkConnectionParams | string,
     hostname?: string,
@@ -72,7 +79,22 @@ export interface NetworkConnection<
   close(): Promise<void>;
 }
 
+/**
+ * A json rpc server that can accept connections via http and websocket
+ */
 export interface JsonRpcServer {
+  /**
+   * Starts the http server. Returns the used address and port
+   */
   listen(): Promise<{ address: string; port: number }>;
+
+  /**
+   * Closes the http and ws sockets
+   */
   close(): Promise<void>;
+
+  /**
+   * Promise that resolves once the sockets have been closed
+   */
+  afterClosed(): Promise<void>;
 }

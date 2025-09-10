@@ -139,7 +139,7 @@ const nodeAction: NewTaskActionFunction<NodeActionArguments> = async (
 
   console.log(await formatEdrNetworkConfigAccounts(networkConfig.accounts));
 
-  await server.waitUntilClosed();
+  await server.afterClosed();
 };
 
 export default nodeAction;

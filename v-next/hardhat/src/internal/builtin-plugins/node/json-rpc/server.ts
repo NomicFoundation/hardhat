@@ -49,7 +49,7 @@ export class JsonRpcServerImplementation implements JsonRpcServer {
     });
   };
 
-  public waitUntilClosed = async (): Promise<void> => {
+  public afterClosed = async (): Promise<void> => {
     const httpServerClosed = new Promise((resolve) => {
       this.#httpServer.once("close", resolve);
     });
