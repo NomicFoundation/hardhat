@@ -143,7 +143,7 @@ export function warnDeprecatedTestFail(
     if (
       type === "function" &&
       typeof name === "string" &&
-      (name.startsWith("testFail") || name.startsWith("testFail_"))
+      name.startsWith("testFail")
     ) {
       const formattedLocation = formatArtifactId(
         artifact.id,
