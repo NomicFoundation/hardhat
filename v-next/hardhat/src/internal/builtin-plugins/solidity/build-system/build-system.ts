@@ -99,9 +99,28 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
     this.#options = options;
   }
 
+  public async getScope(fsPath: string): Promise<BuildScope> {
+    if (
+      fsPath.startsWith(this.#options.solidityTestsPath) &&
+      fsPath.endsWith(".sol")
+    ) {
+      return "tests";
+    }
+
+    for (const sourcesPath of this.#options.soliditySourcesPaths) {
+      if (fsPath.startsWith(sourcesPath) && fsPath.endsWith(".t.sol")) {
+        return "tests";
+      }
+    }
+
+    return "contracts";
+  }
+
   public async getRootFilePaths(
-    scope: BuildScope = "contracts",
+    options: { scope?: BuildScope } = {},
   ): Promise<string[]> {
+    const scope = options.scope ?? "contracts";
+
     switch (scope) {
       case "contracts":
         const localFilesToCompile = (
@@ -155,7 +174,7 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
     };
 
     if (!options.quiet) {
-      console.log("Compiling your Solidity contracts...");
+      console.log(`Compiling your Solidity ${options.scope}...`);
     }
 
     await this.#downloadConfiguredCompilers(options.quiet);
@@ -229,7 +248,7 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
           const emitArtifactsResult = await this.emitArtifacts(
             compilationResult.compilationJob,
             compilationResult.compilerOutput,
-            options.scope,
+            options,
           );
 
           const { artifactsPerFile } = emitArtifactsResult;
@@ -245,6 +264,7 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
             compilationResult,
             emitArtifactsResult,
             buildProfile.isolated,
+            options.scope,
           );
         }),
       );
@@ -458,6 +478,11 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
         buildInfoOutputPath,
         typeFilePath,
       ]) {
+        // Type declaration file can be undefined (e.g. for solidity tests)
+        if (outputFilePath === undefined) {
+          continue;
+        }
+
         if (!(await exists(outputFilePath))) {
           rootFilesToCompile.add(rootFile);
           break;
@@ -635,8 +660,10 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
   public async emitArtifacts(
     runnableCompilationJob: CompilationJob,
     compilerOutput: CompilerOutput,
-    scope: BuildScope,
+    options: { scope?: BuildScope } = {},
   ): Promise<EmitArtifactsResult> {
+    const scope = options.scope ?? "contracts";
+
     const artifactsPerFile = new Map<string, string[]>();
     const typeFilePaths = new Map<string, string>();
     const buildId = await runnableCompilationJob.getBuildId();
@@ -687,19 +714,21 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
 
       artifactsPerFile.set(userSourceName, paths);
 
-      // Write the type declaration file
-      const artifactsDeclarationFilePath = path.join(
-        fileFolder,
-        "artifacts.d.ts",
-      );
-      typeFilePaths.set(userSourceName, artifactsDeclarationFilePath);
+      // Write the type declaration file, only for contracts
+      if (scope === "contracts") {
+        const artifactsDeclarationFilePath = path.join(
+          fileFolder,
+          "artifacts.d.ts",
+        );
+        typeFilePaths.set(userSourceName, artifactsDeclarationFilePath);
 
-      const artifactsDeclarationFile = getArtifactsDeclarationFile(artifacts);
+        const artifactsDeclarationFile = getArtifactsDeclarationFile(artifacts);
 
-      await writeUtf8File(
-        artifactsDeclarationFilePath,
-        artifactsDeclarationFile,
-      );
+        await writeUtf8File(
+          artifactsDeclarationFilePath,
+          artifactsDeclarationFile,
+        );
+      }
     }
 
     // Once we have emitted all the contract artifacts and its declaration
@@ -759,10 +788,11 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
 
   public async cleanupArtifacts(
     rootFilePaths: string[],
-    scope: BuildScope,
+    options: { scope?: BuildScope } = {},
   ): Promise<void> {
     log(`Cleaning up artifacts`);
 
+    const scope = options.scope ?? "contracts";
     const artifactsDirectory = await this.getArtifactsDirectory(scope);
 
     const userSourceNames = rootFilePaths.map((rootFilePath) => {
@@ -931,6 +961,7 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
     result: CompilationResult,
     emitArtifactsResult: EmitArtifactsResult,
     isolated: boolean,
+    scope: BuildScope,
   ): Promise<void> {
     const rootFilePaths = result.compilationJob.dependencyGraph
       .getRoots()
@@ -954,9 +985,10 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
 
       const typeFilePath = emitArtifactsResult.typeFilePaths.get(rootFilePath);
 
+      // Type declaration file is not generated for solidity tests
       assertHardhatInvariant(
-        typeFilePath !== undefined,
-        `No type file found on map for ${rootFilePath}`,
+        scope === "tests" || typeFilePath !== undefined,
+        `No type file found on map for contract ${rootFilePath}`,
       );
 
       const jobHash = await individualJob.getBuildId();
@@ -1016,7 +1048,7 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
     >();
 
     if (runnableCompilationJobs.length === 0) {
-      console.log("\nNothing to compile");
+      console.log("Nothing to compile");
     }
 
     for (const job of runnableCompilationJobs) {

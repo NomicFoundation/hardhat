@@ -196,7 +196,12 @@ export interface SolidityBuildSystem {
    *
    * @returns An array of root file paths.
    */
-  getRootFilePaths(scope?: BuildScope): Promise<string[]>;
+  getRootFilePaths(options?: { scope?: BuildScope }): Promise<string[]>;
+
+  /**
+   * Given the filesystem path for a source file, returns the build scope
+   */
+  getScope(fsPath: string): Promise<BuildScope>;
 
   /**
    * Builds the provided files, generating their compilation artifacts.
@@ -272,7 +277,7 @@ export interface SolidityBuildSystem {
   emitArtifacts(
     compilationJob: CompilationJob,
     compilerOutput: CompilerOutput,
-    scope: BuildScope,
+    options?: { scope?: BuildScope },
   ): Promise<EmitArtifactsResult>;
 
   /**
@@ -288,7 +293,10 @@ export interface SolidityBuildSystem {
 
    * @param rootFilePaths All the root files of the project.
    */
-  cleanupArtifacts(rootFilePaths: string[], scope: BuildScope): Promise<void>;
+  cleanupArtifacts(
+    rootFilePaths: string[],
+    options?: { scope?: BuildScope },
+  ): Promise<void>;
 
   /**
    * Compiles a build info, returning the output of the compilation, verbatim,

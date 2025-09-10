@@ -24,12 +24,13 @@ const buildTask = task("build", "Build project")
     description: "An optional list of files to compile",
     defaultValue: [],
   })
-  .addOption({
-    name: "scope",
-    description:
-      "Target sources to compile. Valid options are 'contracts' and 'tests'",
-    defaultValue: "contracts",
-    type: ArgumentType.STRING,
+  .addFlag({
+    name: "noTests",
+    description: "Skip solidity tests compilation",
+  })
+  .addFlag({
+    name: "noContracts",
+    description: "Skip solidity contracts compilation",
   })
   .setAction(async () => import("./tasks/build.js"))
   .build();

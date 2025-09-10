@@ -34,9 +34,16 @@ class LazySolidityBuildSystem implements SolidityBuildSystem {
     this.#options = options;
   }
 
-  public async getRootFilePaths(scope?: BuildScope): Promise<string[]> {
+  public async getRootFilePaths(
+    options: { scope?: BuildScope } = {},
+  ): Promise<string[]> {
     const buildSystem = await this.#getBuildSystem();
-    return buildSystem.getRootFilePaths(scope);
+    return buildSystem.getRootFilePaths(options);
+  }
+
+  public async getScope(fsPath: string): Promise<BuildScope> {
+    const buildSystem = await this.#getBuildSystem();
+    return buildSystem.getScope(fsPath);
   }
 
   public async build(
@@ -79,18 +86,18 @@ class LazySolidityBuildSystem implements SolidityBuildSystem {
   public async emitArtifacts(
     compilationJob: CompilationJob,
     compilerOutput: CompilerOutput,
-    scope: BuildScope,
+    options: { scope?: BuildScope } = {},
   ): Promise<EmitArtifactsResult> {
     const buildSystem = await this.#getBuildSystem();
-    return buildSystem.emitArtifacts(compilationJob, compilerOutput, scope);
+    return buildSystem.emitArtifacts(compilationJob, compilerOutput, options);
   }
 
   public async cleanupArtifacts(
     rootFilePaths: string[],
-    scope: BuildScope,
+    options: { scope?: BuildScope } = {},
   ): Promise<void> {
     const buildSystem = await this.#getBuildSystem();
-    return buildSystem.cleanupArtifacts(rootFilePaths, scope);
+    return buildSystem.cleanupArtifacts(rootFilePaths, options);
   }
 
   public async compileBuildInfo(

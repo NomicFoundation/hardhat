@@ -58,21 +58,15 @@ const runSolidityTests: NewTaskActionFunction<TestActionArguments> = async (
     );
   }
 
-  // NOTE: We run the compile task first to ensure all the artifacts for them are generated
-  // Then, we compile just the test sources. We don't do it in one go because the user
-  // is likely to use different compilation options for the tests and the sources.
-  if (noCompile === false) {
-    await hre.tasks.getTask("compile").run();
-  }
-
   // Run the compile task for test files
-  const { rootPaths }: { rootPaths: string[] } = await hre.tasks
+
+  const { testRootPaths }: { testRootPaths: string[] } = await hre.tasks
     .getTask("compile")
     .run({
-      scope: "tests",
       quiet: true,
       force: false,
       files: testFiles,
+      noContracts: noCompile,
     });
 
   const artifactsDirectory = await hre.solidity.getArtifactsDirectory("tests");
@@ -93,7 +87,7 @@ const runSolidityTests: NewTaskActionFunction<TestActionArguments> = async (
 
   edrArtifacts.forEach(({ userSourceName, edrAtifact }) => {
     if (
-      rootFilePaths.includes(
+      testRootPaths.includes(
         resolveFromRoot(hre.config.paths.root, userSourceName),
       ) &&
       isTestSuiteArtifact(edrAtifact)
@@ -104,7 +98,7 @@ const runSolidityTests: NewTaskActionFunction<TestActionArguments> = async (
 
   const testSuiteIds = edrArtifacts
     .filter(({ userSourceName }) =>
-      rootPaths.includes(
+      testRootPaths.includes(
         resolveFromRoot(hre.config.paths.root, userSourceName),
       ),
     )

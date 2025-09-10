@@ -93,6 +93,8 @@ export async function useTestProjectTemplate(
   );
 
   let cleaned = false;
+  const oldCwd = process.cwd();
+
   const project: TestProject = {
     path: projectPath,
     clean: async () => {
@@ -100,6 +102,7 @@ export async function useTestProjectTemplate(
         return;
       }
 
+      process.chdir(oldCwd); // return to old cwd, otherwise windows doesn't allow deleting the directory
       await remove(projectPath);
       cleaned = true;
     },
