@@ -786,10 +786,7 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
       })(),
     ]);
 
-    const buildInfoDirPath = path.join(
-      this.#options.artifactsPath,
-      `build-info`,
-    );
+    const buildInfoDirPath = path.join(artifactsDirectory, `build-info`);
 
     await ensureDir(buildInfoDirPath);
 
