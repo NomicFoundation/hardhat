@@ -42,6 +42,9 @@
     },
     {
       "path": "../hardhat-ignition-viem"
+    },
+    {
+      "path": "../hardhat-ledger"
     }
   ]
 }
