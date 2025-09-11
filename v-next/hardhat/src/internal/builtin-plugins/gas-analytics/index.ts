@@ -14,7 +14,9 @@ const hardhatPlugin: HardhatPlugin = {
         "Collects and displays gas usage statistics for all function calls during tests",
     }),
   ],
-  hookHandlers: {},
+  hookHandlers: {
+    hre: () => import("./hook-handlers/hre.js"),
+  },
   npmPackage: "hardhat",
 };
 
