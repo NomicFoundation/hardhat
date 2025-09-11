@@ -2,23 +2,25 @@ import type {
   ChainDescriptorsConfig,
   EdrNetworkConfigOverride,
   EdrNetworkUserConfig,
+  HardhatConfig,
   HardhatUserConfig,
   HttpNetworkConfigOverride,
   HttpNetworkUserConfig,
   NetworkConfig,
   NetworkUserConfig,
 } from "../../../../src/types/config.js";
-import type { NetworkHooks } from "../../../../src/types/hooks.js";
+import type { ConfigHooks, NetworkHooks } from "../../../../src/types/hooks.js";
 import type { HardhatRuntimeEnvironment } from "../../../../src/types/hre.js";
 import type {
   GenericChainType,
   NetworkConnection,
   NetworkManager,
 } from "../../../../src/types/network.js";
+import type { HardhatPlugin } from "../../../../src/types/plugins.js";
 import type { ExpectedValidationError } from "@nomicfoundation/hardhat-test-utils";
 
 import assert from "node:assert/strict";
-import { before, describe, it } from "node:test";
+import { beforeEach, describe, it } from "node:test";
 
 import { HardhatError } from "@nomicfoundation/hardhat-errors";
 import {
@@ -56,7 +58,7 @@ describe("NetworkManagerImplementation", () => {
   let networks: Record<string, NetworkConfig>;
   let chainDescriptors: ChainDescriptorsConfig;
 
-  before(async () => {
+  beforeEach(async () => {
     const initialDate = new Date();
 
     hre = await createHardhatRuntimeEnvironment({});
@@ -355,6 +357,165 @@ describe("NetworkManagerImplementation", () => {
         expectTypeOf(networkConnection).toEqualTypeOf<
           NetworkConnection<"l1">
         >();
+      });
+    });
+  });
+
+  describe("connect when config has been extended by plugins", () => {
+    const networkConfigAddingPlugin: HardhatPlugin = {
+      id: "network-config-adding-plugin",
+      hookHandlers: {
+        config: async () => ({
+          default: async () => {
+            const handlers: Partial<ConfigHooks> = {
+              extendUserConfig: async (
+                config: HardhatUserConfig,
+                next: (
+                  nextConfig: HardhatUserConfig,
+                ) => Promise<HardhatUserConfig>,
+              ) => {
+                const newConfig = await next(config);
+
+                for (const network of Object.values(newConfig.networks ?? {})) {
+                  /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions
+                -- to enable the test */
+                  (network as any).pluginAddedProperties =
+                    /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions
+                  -- to enable the test */
+                    (network as any).pluginAddedProperties ?? [
+                      "default-added-by-plugin",
+                    ];
+                }
+
+                return newConfig;
+              },
+              resolveUserConfig: async (
+                userConfig,
+                _resolveConfigurationVariable,
+                next,
+              ): Promise<HardhatConfig> => {
+                const resolvedConfig = await next(
+                  userConfig,
+                  _resolveConfigurationVariable,
+                );
+
+                if (userConfig.networks === undefined) {
+                  return resolvedConfig;
+                }
+
+                const resolvedConfigCopy = { ...resolvedConfig };
+
+                for (const [networkName, network] of Object.entries(
+                  resolvedConfigCopy.networks,
+                )) {
+                  // eslint-disable-next-line @typescript-eslint/consistent-type-assertions -- to enable the test
+                  (network as any).pluginAddedProperties =
+                    // eslint-disable-next-line @typescript-eslint/consistent-type-assertions -- to enable the test
+                    (userConfig.networks[networkName] as any)
+                      .pluginAddedProperties ?? [];
+                }
+
+                return resolvedConfig;
+              },
+            };
+
+            return handlers;
+          },
+        }),
+      },
+    };
+
+    function assertPluginPropertiesCopied(
+      networkConfig: NetworkConfig,
+      expectedOverride: { pluginAddedProperties: string[] },
+    ) {
+      if (!("pluginAddedProperties" in networkConfig)) {
+        return assert.fail(
+          "pluginAddedProperties from the plugin should be available in the network config",
+        );
+      }
+
+      assert.deepEqual(
+        networkConfig.pluginAddedProperties,
+        expectedOverride.pluginAddedProperties,
+      );
+    }
+
+    beforeEach(async () => {
+      hre = await createHardhatRuntimeEnvironment({
+        plugins: [networkConfigAddingPlugin],
+      });
+
+      userNetworks = {
+        pluginExtendedNetwork: {
+          type: "http",
+          url: "http://node.pluginExtendedNetwork.com",
+        },
+      };
+
+      networks = {
+        /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions
+        -- to enable the test of plugin extension. */
+        pluginExtendedNetwork: {
+          ...resolveHttpNetwork(
+            {
+              type: "http",
+              url: "http://node.pluginExtendedNetwork.com",
+            },
+            (varOrStr) => resolveConfigurationVariable(hre.hooks, varOrStr),
+          ),
+          pluginAddedProperties: ["default-added-by-plugin"],
+        } as any,
+      };
+
+      chainDescriptors = await resolveChainDescriptors(undefined);
+
+      networkManager = new NetworkManagerImplementation(
+        "localhost",
+        GENERIC_CHAIN_TYPE,
+        networks,
+        hre.hooks,
+        hre.artifacts,
+        userNetworks,
+        chainDescriptors,
+      );
+    });
+
+    it("should keep extensions to network config that plugins have added", async () => {
+      const networkConnection = await networkManager.connect({
+        network: "pluginExtendedNetwork",
+      });
+
+      assertPluginPropertiesCopied(networkConnection.networkConfig, {
+        pluginAddedProperties: ["default-added-by-plugin"],
+      });
+    });
+
+    it("should re-extend config when a user override is provided", async () => {
+      const networkConnection = await networkManager.connect({
+        network: "pluginExtendedNetwork",
+        override: {
+          timeout: 12,
+        },
+      });
+
+      assertPluginPropertiesCopied(networkConnection.networkConfig, {
+        pluginAddedProperties: ["default-added-by-plugin"],
+      });
+    });
+
+    it("should re-extend config based on user provided values", async () => {
+      const networkConnection = await networkManager.connect({
+        network: "pluginExtendedNetwork",
+        /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions
+        -- to enable the test of plugin extension. */
+        override: {
+          pluginAddedProperties: ["my-value"],
+        } as any,
+      });
+
+      assertPluginPropertiesCopied(networkConnection.networkConfig, {
+        pluginAddedProperties: ["my-value"],
       });
     });
   });
