@@ -7,6 +7,7 @@ import type {
   JsonRpcResponse,
 } from "../../../../types/providers.js";
 import type { CoverageData } from "../../coverage/types.js";
+import type { GasMeasurement } from "../../gas-analytics/types.js";
 
 import "../../../../types/hooks.js";
 declare module "../../../../types/hooks.js" {
@@ -51,6 +52,17 @@ declare module "../../../../types/hooks.js" {
     onCoverageData(
       context: HookContext,
       coverageData: CoverageData,
+    ): Promise<void>;
+
+    /**
+     * Hook triggered when the gas data is received from EDR.
+     *
+     * @param context The hook context.
+     * @param gasMeasurement The gas measurement.
+     */
+    onGasMeasurement(
+      context: HookContext,
+      gasMeasurement: GasMeasurement,
     ): Promise<void>;
   }
 }
