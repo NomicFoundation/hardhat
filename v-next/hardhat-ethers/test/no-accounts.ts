@@ -21,22 +21,26 @@ describe("hardhat-ethers plugin", () => {
       ethers,
       provider: ethereumProvider,
       artifactManager: artifactManager,
-    } = await initializeTestEthers([
+    } = await initializeTestEthers(
+      [
+        {
+          artifactName: "Greeter",
+          fileName: "greeter",
+        },
+      ],
       {
-        artifactName: "Greeter",
-        fileName: "greeter",
+        networks: { default: { type: "edr-simulated", accounts: [] } },
       },
-    ]));
+    ));
   });
 
   describe("hardhat network with no accounts", () => {
-    // TODO: enable when V3 is ready: V3 node required - accounts must be set to '[]'
-    // describe("fixture setup", ()=>{
-    //   it("should not have accounts", async ()=>{
-    //     const signers = await ethers.getSigners();
-    //     assert.equal(signers, []);
-    //   });
-    // });
+    describe("fixture setup", () => {
+      it("should not have accounts", async () => {
+        const signers = await ethers.getSigners();
+        assert.deepEqual(signers, []);
+      });
+    });
 
     describe("getContractAt", () => {
       const signerAddress = "0x1010101010101010101010101010101010101010";
@@ -92,9 +96,8 @@ describe("hardhat-ethers plugin", () => {
             assert.fail("receipt.contractAddress shoudn't be null");
           }
 
-          // TODO: enable when V3 is ready: possibility to set accounts in the hh configuration
-          // const signers = await ethers.getSigners();
-          // assert.equal(signers.length, 0);
+          const signers = await ethers.getSigners();
+          assert.equal(signers.length, 0);
 
           const greeterArtifact = await artifactManager.readArtifact("Greeter");
 
