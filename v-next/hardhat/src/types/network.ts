@@ -54,11 +54,11 @@ export interface NetworkManager {
   ): Promise<NetworkConnection<ChainTypeT>>;
 
   /**
-   * Spawns an http/ws JsonRpc server
+   * Spawn an Ethereum JSON-RPC server listening on HTTP and Websocket.
    *
-   * @param networkOrParams The underlying network
-   * @param hostname Hostname to bind the server to. Defaults to localhost/0.0.0.0 on docker
-   * @param port Port to listen to. Defaults to a random available port
+   * @param networkOrParams The network name or connection parameters.
+   * @param hostname Hostname to bind the server to. Defaults to localhost or 0.0.0.0 on docker.
+   * @param port Port to listen on. Defaults to a random available port.
    */
   createServer(
     networkOrParams?: NetworkConnectionParams | string,
@@ -80,21 +80,31 @@ export interface NetworkConnection<
 }
 
 /**
- * A json rpc server that can accept connections via http and websocket
+ * An Ethereum JSON-RPC server that accepts connections via HTTP and websocket.
  */
 export interface JsonRpcServer {
   /**
-   * Starts the http server. Returns the used address and port
+   * Starts the Ethereum JSON-RPC server.
+   *
+   * @returns returns the address and port the server is listening on
    */
   listen(): Promise<{ address: string; port: number }>;
 
   /**
-   * Closes the http and ws sockets
+   * Closes the Ethereum JSON-RPC server.
+   *
+   * @returns A promise that resolves once shutdown is finished.
    */
   close(): Promise<void>;
 
   /**
-   * Promise that resolves once the sockets have been closed
+   * Resolves once the Ethereum JSON-RPC server has been
+   * closed, including its underlying HTTP and Websocket sockets.
+   *
+   * Useful for awaiting a shutdown that was initiated elsewhere.
+   *
+   * @returns A promise that resolves once the server and
+   *   its sockets have been closed.
    */
   afterClosed(): Promise<void>;
 }
