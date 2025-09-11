@@ -3,4 +3,4 @@
 "hardhat": patch
 ---
 
-Enable to spawn hardhat node programmatically and integrate with hardhat-ethers tests ([#6819](https://github.com/NomicFoundation/hardhat/issues/6819)) ([#6882](https://github.com/NomicFoundation/hardhat/issues/6882))
+Added `network.createServer(...)` to spawn a Hardhat node programmatically ([#6472](https://github.com/NomicFoundation/hardhat/issues/6472))
