@@ -54,11 +54,13 @@ export interface NetworkManager {
   ): Promise<NetworkConnection<ChainTypeT>>;
 
   /**
-   * Spawn an Ethereum JSON-RPC server listening on HTTP and Websocket.
+   * Spawns an Ethereum JSON-RPC server listening on HTTP and Websocket.
    *
    * @param networkOrParams The network name or connection parameters.
    * @param hostname Hostname to bind the server to. Defaults to localhost or 0.0.0.0 on docker.
    * @param port Port to listen on. Defaults to a random available port.
+   *
+   * @return A `JsonRpcServer` instance that can be started with {@link JsonRpcServer.listen}.
    */
   createServer(
     networkOrParams?: NetworkConnectionParams | string,
@@ -86,7 +88,7 @@ export interface JsonRpcServer {
   /**
    * Starts the Ethereum JSON-RPC server.
    *
-   * @returns returns the address and port the server is listening on
+   * @returns returns the address and port the server is listening on.
    */
   listen(): Promise<{ address: string; port: number }>;
 
