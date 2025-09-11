@@ -1,5 +1,13 @@
 # hardhat
 
+## 3.0.7
+
+### Patch Changes
+
+- 0cc5f75: Added `network.createServer(...)` to spawn a Hardhat node programmatically ([#6472](https://github.com/NomicFoundation/hardhat/issues/6472))
+- f39670a: Support for compiling solidity tests separately from contracts ([#6474](https://github.com/NomicFoundation/hardhat/issues/6474))
+- 12acbfa: Upgraded EDR dependency to 0.12.0-next.6. This new version includes a new `ProviderConfig.baseFeeConfig` field for configuring different values of eip-1559 `maxChangeDenominator` and `elasticityMultiplier` field.
+
 ## 3.0.6
 
 ### Patch Changes
