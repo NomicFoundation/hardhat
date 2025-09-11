@@ -22,6 +22,7 @@ import { sendErrorTelemetry } from "../../cli/telemetry/sentry/reporter.js";
 import { DEFAULT_NETWORK_NAME } from "../../constants.js";
 import { isSupportedChainType } from "../../edr/chain-type.js";
 import { BUILD_INFO_DIR_NAME } from "../artifacts/artifact-manager.js";
+import { EdrProvider } from "../network-manager/edr/edr-provider.js";
 
 import { watchBuildInfo } from "./artifacts/build-info-watcher.js";
 import { formatEdrNetworkConfigAccounts } from "./helpers.js";
@@ -109,6 +110,11 @@ const nodeAction: NewTaskActionFunction<NodeActionArguments> = async (
     override: networkConfigOverride,
   });
 
+  assertHardhatInvariant(
+    provider instanceof EdrProvider,
+    "Provider must be EdrProvider, since only edr networks are supported",
+  );
+
   // NOTE: We enable logging for the node
   await provider.request({
     method: "hardhat_setLoggingEnabled",
@@ -160,18 +166,25 @@ const nodeAction: NewTaskActionFunction<NodeActionArguments> = async (
           path.join(buildInfoDirPath, `${buildId}.output.json`),
         );
 
-      await provider.request({
-        method: "hardhat_addCompilationResult",
-        params: [
-          buildInfo.solcVersion,
-          buildInfo.input,
-          buildInfoOutput.output,
-        ],
-      });
+      const success = await provider.addCompilationResult(
+        buildInfo.solcVersion,
+        buildInfo.input,
+        buildInfoOutput.output,
+      );
+
+      if (success) {
+        log(`Added compiler result for ${buildId}`);
+      } else {
+        console.warn(
+          chalk.yellow(
+            "Last compilation result couldn't be added. Please report this to help us improve Hardhat.\n",
+          ),
+        );
+      }
     } catch (error) {
       console.warn(
         chalk.yellow(
-          `There was a problem adding the new compiler result for build ${buildId}. Run Hardhat with --verbose to learn more.`,
+          `There was a problem adding the new compiler result for build ${buildId}.`,
         ),
       );
 
