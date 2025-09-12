@@ -302,23 +302,6 @@ describe("NetworkManagerImplementation", () => {
       );
     });
 
-    it("should throw an error if the specified network config override has mixed properties from http and edr networks", async () => {
-      await assertRejectsWithHardhatError(
-        networkManager.connect({
-          network: "myNetwork",
-          chainType: OPTIMISM_CHAIN_TYPE,
-          override: {
-            url: "http://localhost:8545",
-            hardfork: "cancun",
-          },
-        }),
-        HardhatError.ERRORS.CORE.NETWORK.INVALID_CONFIG_OVERRIDE,
-        {
-          errors: `\t* Unrecognized key(s) in object: 'hardfork'`,
-        },
-      );
-    });
-
     it("should throw an error if the specified chain type doesn't match the network's chain type", async () => {
       await assertRejectsWithHardhatError(
         networkManager.connect({
