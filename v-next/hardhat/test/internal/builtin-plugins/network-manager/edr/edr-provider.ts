@@ -395,6 +395,7 @@ describe("edr-provider", () => {
       const providerConfig = await getProviderConfig(
         networkConfigStub,
         undefined,
+        undefined,
         new Map([
           [1n, { name: "mainnet", chainType: "l1", blockExplorers: {} }],
           [
