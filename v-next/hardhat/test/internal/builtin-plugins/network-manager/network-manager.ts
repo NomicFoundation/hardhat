@@ -302,7 +302,9 @@ describe("NetworkManagerImplementation", () => {
       );
     });
 
-    it("should throw an error if the specified network config override has mixed properties from http and edr networks", async () => {
+    // TODO: review whether we can support network config extension in plugins
+    // at the same time as providing this validation.
+    it.skip("should throw an error if the specified network config override has mixed properties from http and edr networks", async () => {
       await assertRejectsWithHardhatError(
         networkManager.connect({
           network: "myNetwork",
