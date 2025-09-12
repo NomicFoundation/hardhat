@@ -11,12 +11,9 @@ export default async (): Promise<Partial<NetworkHooks>> => {
         nextContext: HookContext,
       ) => Promise<NetworkConnection<ChainTypeT>>,
     ) {
-      const connection: NetworkConnection<ChainTypeT> = await next(context);
+      const connection = await next(context);
 
-      connection.networkHelpers = new NetworkHelpers(
-        connection.provider,
-        connection.networkName,
-      );
+      connection.networkHelpers = new NetworkHelpers(connection);
 
       return connection;
     },
