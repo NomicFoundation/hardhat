@@ -7,7 +7,7 @@ import type {
 export interface NetworkHelpers<
   ChainTypeT extends ChainType | string = DefaultChainType,
 > {
-  readonly time: Time<ChainTypeT>;
+  readonly time: Time;
 
   /**
    * Clears every existing snapshot.
@@ -244,10 +244,7 @@ export interface NetworkHelpers<
   takeSnapshot(): Promise<SnapshotRestorer>;
 }
 
-export interface Time<
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars -- ChainTypeT is used in the class implementing the interface
-  ChainTypeT extends ChainType | string = DefaultChainType,
-> {
+export interface Time {
   readonly duration: Duration;
 
   /**

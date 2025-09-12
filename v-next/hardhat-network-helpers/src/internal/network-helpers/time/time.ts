@@ -14,7 +14,7 @@ import { latest } from "./helpers/latest.js";
 import { setNextBlockTimestamp } from "./helpers/set-next-block-timestamp.js";
 
 export class Time<ChainTypeT extends ChainType | string>
-  implements TimeI<ChainTypeT>
+  implements TimeI
 {
   readonly #networkHelpers: NetworkHelpers<ChainTypeT>;
   readonly #provider: EthereumProvider;
