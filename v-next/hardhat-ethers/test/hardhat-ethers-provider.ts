@@ -132,13 +132,12 @@ describe("hardhat ethers provider", () => {
     assert.equal(latestBlockNumber, 0);
   });
 
-  // TODO: enable when V3 is ready: V3 node required
-  // it("should return the network", async ()=>{
-  //   const network = await ethers.provider.getNetwork();
+  it("should return the network", async () => {
+    const network = await ethers.provider.getNetwork();
 
-  //   assert.equal(network.name, "default");
-  //   assert.equal(network.chainId, 31337n);
-  // });
+    assert.equal(network.name, "default");
+    assert.equal(network.chainId, 31337n);
+  });
 
   describe("getFeeData", () => {
     it("should return fee data", async () => {

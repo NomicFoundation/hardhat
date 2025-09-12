@@ -10,6 +10,7 @@ import type { HookManager } from "../../../types/hooks.js";
 import type {
   ChainType,
   DefaultChainType,
+  JsonRpcServer,
   NetworkConnection,
   NetworkConnectionParams,
   NetworkManager,
@@ -21,11 +22,12 @@ import type {
 } from "../../../types/providers.js";
 
 import { HardhatError } from "@nomicfoundation/hardhat-errors";
-import { readBinaryFile } from "@nomicfoundation/hardhat-utils/fs";
+import { exists, readBinaryFile } from "@nomicfoundation/hardhat-utils/fs";
 import { deepMerge } from "@nomicfoundation/hardhat-utils/lang";
 
 import { resolveConfigurationVariable } from "../../core/configuration-variables.js";
 import { isSupportedChainType } from "../../edr/chain-type.js";
+import { JsonRpcServerImplementation } from "../node/json-rpc/server.js";
 
 import { resolveEdrNetwork, resolveHttpNetwork } from "./config-resolution.js";
 import { EdrProvider } from "./edr/edr-provider.js";
@@ -95,6 +97,23 @@ export class NetworkManagerImplementation implements NetworkManager {
     /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions
     -- Cast to NetworkConnection<ChainTypeT> because we know it's valid */
     return networkConnection as NetworkConnection<ChainTypeT>;
+  }
+
+  public async createServer(
+    networkOrParams: NetworkConnectionParams | string = "default",
+    _hostname?: string,
+    port?: number,
+  ): Promise<JsonRpcServer> {
+    const insideDocker = await exists("/.dockerenv");
+    const hostname = _hostname ?? (insideDocker ? "0.0.0.0" : "127.0.0.1");
+
+    const { provider } = await this.connect(networkOrParams);
+
+    return new JsonRpcServerImplementation({
+      hostname,
+      port,
+      provider,
+    });
   }
 
   async #initializeNetworkConnection<ChainTypeT extends ChainType | string>(
