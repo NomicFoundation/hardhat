@@ -7,7 +7,7 @@ import { GasAnalyticsManagerImplementation } from "../gas-analytics-manager.js";
 
 export default async (): Promise<Partial<HardhatRuntimeEnvironmentHooks>> => ({
   created: async (context, hre) => {
-    if (context.globalOptions.coverage) {
+    if (context.globalOptions.gasStats) {
       const gasAnalyticsManager = new GasAnalyticsManagerImplementation();
 
       assertHardhatInvariant(
