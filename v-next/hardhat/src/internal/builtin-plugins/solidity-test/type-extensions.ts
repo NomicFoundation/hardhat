@@ -1,4 +1,8 @@
 import "../../../types/config.js";
+import type {
+  SensitiveString,
+  ResolvedConfigurationVariable,
+} from "../../../types/config.js";
 
 declare module "../../../types/config.js" {
   export interface TestPathsUserConfig {
@@ -34,9 +38,9 @@ declare module "../../../types/test.js" {
     blockGasLimit?: bigint | false;
 
     forking?: {
-      url?: string;
+      url?: SensitiveString;
       blockNumber?: bigint;
-      rpcEndpoints?: Record<string, string>;
+      rpcEndpoints?: Record<string, SensitiveString>;
     };
 
     fuzz?: {
@@ -66,9 +70,16 @@ declare module "../../../types/test.js" {
     solidity?: SolidityTestUserConfig;
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-empty-interface -- This could be an extension point
-  export interface SolidityTestConfig extends SolidityTestUserConfig {}
+  export interface SolidityTestForkingConfig {
+    url?: ResolvedConfigurationVariable;
+    blockNumber?: bigint;
+    rpcEndpoints?: Record<string, ResolvedConfigurationVariable>;
+  }
 
+  export interface SolidityTestConfig
+    extends Omit<SolidityTestUserConfig, "forking"> {
+    forking?: SolidityTestForkingConfig;
+  }
   export interface HardhatTestConfig {
     solidity: SolidityTestConfig;
   }
