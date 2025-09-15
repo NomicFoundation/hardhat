@@ -45,10 +45,12 @@ export default async (): Promise<Partial<ConfigurationVariableHooks>> => {
 
       // Then, if the development keystore does not have the key and `fetchValue` is not called from a test,
       // attempt to retrieve the value from the production keystore.
-      value = await getValue(context, variable, false, onlyAllowDevKeystore);
+      if (!onlyAllowDevKeystore) {
+        value = await getValue(context, variable, false, onlyAllowDevKeystore);
 
-      if (value !== undefined) {
-        return value;
+        if (value !== undefined) {
+          return value;
+        }
       }
 
       return next(context, variable);
@@ -61,6 +63,11 @@ export default async (): Promise<Partial<ConfigurationVariableHooks>> => {
     isDevKeystore: boolean,
     onlyAllowDevKeystore: boolean,
   ): Promise<string | undefined> {
+    // In test mode, never access the production keystore
+    if (onlyAllowDevKeystore && !isDevKeystore) {
+      return undefined;
+    }
+
     let keystoreLoader = isDevKeystore ? keystoreLoaderDev : keystoreLoaderProd;
     let masterKey = isDevKeystore ? masterKeyDev : masterKeyProd;
 
