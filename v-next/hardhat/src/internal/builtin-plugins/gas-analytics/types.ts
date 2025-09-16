@@ -16,5 +16,9 @@ interface DeploymentGasMeasurement extends BaseGasMeasurement {
 export type GasMeasurement = FunctionGasMeasurement | DeploymentGasMeasurement;
 
 export interface GasAnalyticsManager {
-  addGasMeasurement(gasMeasurement: GasMeasurement): Promise<void>;
+  /* Gas Statistics */
+  addGasMeasurement(gasMeasurement: GasMeasurement): void;
+  clearGasStats(id: string): Promise<void>;
+  saveGasStats(id: string): Promise<void>;
+  reportGasStats(...ids: string[]): Promise<void>;
 }

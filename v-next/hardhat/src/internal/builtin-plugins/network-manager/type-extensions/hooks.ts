@@ -63,6 +63,6 @@ declare module "../../../../types/hooks.js" {
     onGasMeasurement(
       context: HookContext,
       gasMeasurement: GasMeasurement,
-    ): Promise<void>;
+    ): void;
   }
 }
