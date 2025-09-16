@@ -2,7 +2,6 @@ import type { CoverageConfig } from "./edr/types/coverage.js";
 import type { ArtifactManager } from "../../../types/artifacts.js";
 import type {
   ChainDescriptorsConfig,
-  HardhatConfig,
   HardhatUserConfig,
   NetworkConfig,
   NetworkConfigOverride,
@@ -22,7 +21,6 @@ import type {
   JsonRpcRequest,
   JsonRpcResponse,
 } from "../../../types/providers.js";
-import type { TaskDefinition } from "../../../types/tasks.js";
 
 import {
   HardhatError,
@@ -31,14 +29,13 @@ import {
 import { exists, readBinaryFile } from "@nomicfoundation/hardhat-utils/fs";
 import { deepMerge } from "@nomicfoundation/hardhat-utils/lang";
 
-import { resolveConfigurationVariable } from "../../core/configuration-variables.js";
+import { resolveUserConfigToHardhatConfig } from "../../core/hre.js";
 import { isSupportedChainType } from "../../edr/chain-type.js";
 import { JsonRpcServerImplementation } from "../node/json-rpc/server.js";
 
 import { EdrProvider } from "./edr/edr-provider.js";
 import { HttpProvider } from "./http-provider.js";
 import { NetworkConnectionImplementation } from "./network-connection.js";
-import { validateNetworkConfigOverride } from "./type-validation.js";
 
 export type JsonRpcRequestWrapperFunction = (
   request: JsonRpcRequest,
@@ -53,6 +50,8 @@ export class NetworkManagerImplementation implements NetworkManager {
   readonly #artifactsManager: Readonly<ArtifactManager>;
   readonly #userConfig: Readonly<HardhatUserConfig>;
   readonly #chainDescriptors: Readonly<ChainDescriptorsConfig>;
+  readonly #userProvidedConfigPath: Readonly<string | undefined>;
+  readonly #projectRoot: string;
 
   #nextConnectionId = 0;
 
@@ -64,6 +63,8 @@ export class NetworkManagerImplementation implements NetworkManager {
     artifactsManager: ArtifactManager,
     userConfig: HardhatUserConfig,
     chainDescriptors: ChainDescriptorsConfig,
+    userProvidedConfigPath: string | undefined,
+    projectRoot: string,
   ) {
     this.#defaultNetwork = defaultNetwork;
     this.#defaultChainType = defaultChainType;
@@ -72,6 +73,8 @@ export class NetworkManagerImplementation implements NetworkManager {
     this.#artifactsManager = artifactsManager;
     this.#userConfig = userConfig;
     this.#chainDescriptors = chainDescriptors;
+    this.#userProvidedConfigPath = userProvidedConfigPath;
+    this.#projectRoot = projectRoot;
   }
 
   public async connect<
@@ -307,61 +310,42 @@ export class NetworkManagerImplementation implements NetworkManager {
       },
     });
 
-    // As normalizeNetworkConfigOverride is not type-safe, we validate the
-    // normalized network config override immediately after normalizing it.
-    const validationErrors = await validateNetworkConfigOverride(
-      newConfig.networks?.[resolvedNetworkName],
+    // This is safe, the plugins used in resolution are registered
+    // with the hook handler, this property is only used for
+    // ensuring the original plugins are available at the end
+    // of resolution.
+    const resolvedPlugins: HardhatPlugin[] = [];
+
+    const configResolutionResult = await resolveUserConfigToHardhatConfig(
+      newConfig,
+      this.#hookManager,
+      this.#projectRoot,
+      this.#userProvidedConfigPath,
+      resolvedPlugins,
     );
-    if (validationErrors.length > 0) {
+
+    if (!configResolutionResult.success) {
       throw new HardhatError(
         HardhatError.ERRORS.CORE.NETWORK.INVALID_CONFIG_OVERRIDE,
         {
-          errors: `\t${validationErrors
-            .map((error) =>
-              error.path.length > 0
-                ? `* Error in ${error.path.join(".")}: ${error.message}`
-                : `* ${error.message}`,
-            )
+          errors: `\t${configResolutionResult.userConfigValidationErrors
+            .map((error) => {
+              const path = this.#normaliseErrorPathToNetworkConfig(
+                error.path,
+                resolvedNetworkName,
+              );
+
+              return path.length > 0
+                ? `* Error in ${path.join(".")}: ${error.message}`
+                : `* ${error.message}`;
+            })
             .join("\n\t")}`,
         },
       );
     }
 
-    const updatedConfig = await this.#hookManager.runHandlerChain(
-      "config",
-      "extendUserConfig",
-      [newConfig],
-      async (c) => {
-        return c;
-      },
-    );
-
-    /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions -- reasons */
-    const initialResolvedConfig = {
-      // eslint-disable-next-line @typescript-eslint/consistent-type-assertions -- kill me
-      plugins: [] as HardhatPlugin[],
-      // eslint-disable-next-line @typescript-eslint/consistent-type-assertions -- kill me
-      tasks: [] as TaskDefinition[],
-      paths: {
-        root: "",
-        cache: "",
-      },
-    } as HardhatConfig;
-
-    const resolvedConfig = await this.#hookManager.runHandlerChain(
-      "config",
-      "resolveUserConfig",
-      [
-        updatedConfig,
-        (variable) => resolveConfigurationVariable(this.#hookManager, variable),
-      ],
-      async (_, __) => {
-        return initialResolvedConfig;
-      },
-    );
-
     const resolvedNetworkConfigOverride =
-      resolvedConfig.networks[resolvedNetworkName];
+      configResolutionResult.config.networks[resolvedNetworkName];
 
     assertHardhatInvariant(
       resolvedNetworkConfigOverride !== undefined,
@@ -392,5 +376,20 @@ export class NetworkManagerImplementation implements NetworkManager {
     }
 
     return results;
+  }
+
+  #normaliseErrorPathToNetworkConfig(
+    path: Array<string | number>,
+    resolvedNetworkName: string,
+  ): Array<string | number> {
+    if (path[0] !== undefined && path[0] === "networks") {
+      path = path.slice(1);
+    }
+
+    if (path[0] !== undefined && path[0] === resolvedNetworkName) {
+      path = path.slice(1);
+    }
+
+    return path;
   }
 }

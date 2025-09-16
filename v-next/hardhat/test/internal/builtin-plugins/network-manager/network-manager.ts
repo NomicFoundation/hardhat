@@ -140,6 +140,8 @@ describe("NetworkManagerImplementation", () => {
       hre.artifacts,
       { networks: userNetworks },
       chainDescriptors,
+      hre.globalOptions.config,
+      hre.config.paths.root,
     );
   });
 
@@ -478,6 +480,8 @@ describe("NetworkManagerImplementation", () => {
         hre.artifacts,
         { networks: userNetworks },
         chainDescriptors,
+        hre.globalOptions.config,
+        hre.config.paths.root,
       );
     });
 

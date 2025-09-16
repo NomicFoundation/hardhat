@@ -48,5 +48,7 @@ async function createNetworkManager(
     context.artifacts,
     hre.userConfig,
     hre.config.chainDescriptors,
+    hre.globalOptions.config,
+    hre.config.paths.root,
   );
 }
