@@ -1,6 +1,6 @@
 interface BaseGasMeasurement {
   contractFqn: string;
-  gas: bigint;
+  gas: number;
 }
 
 interface FunctionGasMeasurement extends BaseGasMeasurement {
@@ -10,7 +10,7 @@ interface FunctionGasMeasurement extends BaseGasMeasurement {
 
 interface DeploymentGasMeasurement extends BaseGasMeasurement {
   type: "deployment";
-  size: bigint;
+  size: number;
 }
 
 export type GasMeasurement = FunctionGasMeasurement | DeploymentGasMeasurement;

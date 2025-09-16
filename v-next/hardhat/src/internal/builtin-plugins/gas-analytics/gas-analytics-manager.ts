@@ -27,11 +27,7 @@ export class GasAnalyticsManagerImplementation implements GasAnalyticsManager {
 
     gasStatsLog(
       "Added gas measurement",
-      JSON.stringify(
-        gasMeasurement,
-        (_, val) => (typeof val === "bigint" ? val.toString() : val),
-        2,
-      ),
+      JSON.stringify(gasMeasurement, null, 2),
     );
   }
 
