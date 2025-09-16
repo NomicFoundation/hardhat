@@ -5,8 +5,6 @@ import type {
   SolidityBuildSystem,
 } from "hardhat/types/solidity";
 
-import path from "node:path";
-
 import { assertHardhatInvariant } from "@nomicfoundation/hardhat-errors";
 import { readJsonFile } from "@nomicfoundation/hardhat-utils/fs";
 
@@ -72,18 +70,12 @@ export async function getBuildInfoAndOutput(
 // TODO: consider moving this to the solidity build system as a helper function
 export async function getCompilerInput(
   solidity: SolidityBuildSystem,
-  rootFilePath: string | undefined, // Undefined when the target source is in an npm package
+  rootFilePath: string,
   sourceName: string,
   buildProfileName: string,
 ): Promise<CompilerInput> {
-  const rootFilePaths = [
-    rootFilePath !== undefined
-      ? path.join(rootFilePath, sourceName)
-      : sourceName,
-  ];
-
   const getCompilationJobsResult = await solidity.getCompilationJobs(
-    rootFilePaths,
+    [rootFilePath],
     {
       buildProfile: buildProfileName,
       quiet: true,

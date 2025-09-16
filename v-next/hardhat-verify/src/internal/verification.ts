@@ -9,6 +9,8 @@ import type {
 import type { HardhatRuntimeEnvironment } from "hardhat/types/hre";
 import type { EthereumProvider } from "hardhat/types/providers";
 
+import path from "node:path";
+
 import { HardhatError } from "@nomicfoundation/hardhat-errors";
 import { isAddress } from "@nomicfoundation/hardhat-utils/eth";
 import { sleep } from "@nomicfoundation/hardhat-utils/lang";
@@ -193,13 +195,16 @@ Explorer: ${instance.getContractUrl(address)}`);
     contractInformation.userFqn,
   );
 
-  let root: string | undefined = config.paths.root;
-  let sourceName = contractInformation.sourceName;
+  let root: string;
+  let sourceName: string;
   if (contractInformation.inputFqn.startsWith("npm/")) {
-    // If the contract is in an npm package, add the "npm:" prefix
-    // so it can be correctly resolved by the solidity build system
-    root = undefined;
-    sourceName = "npm:" + contractInformation.sourceName;
+    // If the contract is part of a npm package, the root is set to "npm:"
+    // instead of a file path, allowing the solidity build system to resolve it correctly
+    root = `npm:${contractInformation.sourceName}`;
+    sourceName = `npm:${contractInformation.sourceName}`;
+  } else {
+    root = path.join(config.paths.root, contractInformation.sourceName);
+    sourceName = contractInformation.sourceName;
   }
 
   const minimalCompilerInput = await getCompilerInput(
