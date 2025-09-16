@@ -8,10 +8,15 @@ import { HardhatError } from "@nomicfoundation/hardhat-errors";
 import { setGlobalOptionsAsEnvVariables } from "@nomicfoundation/hardhat-utils/env";
 import { getAllFilesMatching } from "@nomicfoundation/hardhat-utils/fs";
 import {
-  markTestRunDone,
-  markTestRunStart,
-  markTestWorkerDone,
+  markTestRunStart as initCoverage,
+  markTestWorkerDone as saveCoverageData,
+  markTestRunDone as reportCoverage,
 } from "hardhat/internal/coverage";
+import {
+  markTestRunStart as initGasStats,
+  markTestWorkerDone as saveGasStats,
+  markTestRunDone as reportGasStats,
+} from "hardhat/internal/gas-analytics";
 
 interface TestActionArguments {
   testFiles: string[];
@@ -93,6 +98,15 @@ const testWithHardhat: NewTaskActionFunction<TestActionArguments> = async (
       hre.config.test.mocha.require.push(coverage.href);
     }
 
+    if (hre.globalOptions.gasStats === true) {
+      const gasStats = new URL(
+        import.meta.resolve("@nomicfoundation/hardhat-mocha/gas-stats"),
+      );
+
+      hre.config.test.mocha.require = hre.config.test.mocha.require ?? [];
+      hre.config.test.mocha.require.push(gasStats.href);
+    }
+
     process.env.NODE_OPTIONS = imports
       .map((href) => `--import "${href}"`)
       .join(" ");
@@ -134,7 +148,8 @@ const testWithHardhat: NewTaskActionFunction<TestActionArguments> = async (
   // which supports both ESM and CJS
   await mocha.loadFilesAsync();
 
-  await markTestRunStart("mocha");
+  await initCoverage("mocha");
+  await initGasStats("mocha");
 
   const testFailures = await new Promise<number>((resolve) => {
     mocha.run(resolve);
@@ -142,10 +157,12 @@ const testWithHardhat: NewTaskActionFunction<TestActionArguments> = async (
 
   if (hre.config.test.mocha.parallel !== true) {
     // NOTE: We execute mocha tests in the main process.
-    await markTestWorkerDone("mocha");
+    await saveCoverageData("mocha");
+    await saveGasStats("mocha");
   }
   // NOTE: This might print a coverage report.
-  await markTestRunDone("mocha");
+  await reportCoverage("mocha");
+  await reportGasStats("mocha");
 
   if (testFailures > 0) {
     process.exitCode = 1;
