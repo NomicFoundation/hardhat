@@ -29,6 +29,7 @@ export default async (): Promise<Partial<HardhatRuntimeEnvironmentHooks>> => ({
     };
   },
 });
+
 async function createNetworkManager(
   hre: HardhatRuntimeEnvironment,
   context: HookContext,
@@ -36,8 +37,6 @@ async function createNetworkManager(
   const { NetworkManagerImplementation } = await import(
     "../network-manager.js"
   );
-
-  const userConfigNetworks = hre.userConfig.networks;
 
   return new NetworkManagerImplementation(
     hre.globalOptions.network !== undefined
@@ -47,7 +46,9 @@ async function createNetworkManager(
     hre.config.networks,
     context.hooks,
     context.artifacts,
-    userConfigNetworks,
+    hre.userConfig,
     hre.config.chainDescriptors,
+    hre.globalOptions.config,
+    hre.config.paths.root,
   );
 }
