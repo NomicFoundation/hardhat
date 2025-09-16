@@ -193,10 +193,19 @@ Explorer: ${instance.getContractUrl(address)}`);
     contractInformation.userFqn,
   );
 
+  let root: string | undefined = config.paths.root;
+  let sourceName = contractInformation.sourceName;
+  if (contractInformation.inputFqn.startsWith("npm/")) {
+    // If the contract is in an npm package, add the "npm:" prefix
+    // so it can be correctly resolved by the solidity build system
+    root = undefined;
+    sourceName = "npm:" + contractInformation.sourceName;
+  }
+
   const minimalCompilerInput = await getCompilerInput(
     solidity,
-    config.paths.root,
-    contractInformation.sourceName,
+    root,
+    sourceName,
     buildProfileName,
   );
 

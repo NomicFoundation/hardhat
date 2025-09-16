@@ -72,12 +72,18 @@ export async function getBuildInfoAndOutput(
 // TODO: consider moving this to the solidity build system as a helper function
 export async function getCompilerInput(
   solidity: SolidityBuildSystem,
-  rootFilePath: string,
+  rootFilePath: string | undefined, // Undefined when the target source is in an npm package
   sourceName: string,
   buildProfileName: string,
 ): Promise<CompilerInput> {
+  const rootFilePaths = [
+    rootFilePath !== undefined
+      ? path.join(rootFilePath, sourceName)
+      : sourceName,
+  ];
+
   const getCompilationJobsResult = await solidity.getCompilationJobs(
-    [path.join(rootFilePath, sourceName)],
+    rootFilePaths,
     {
       buildProfile: buildProfileName,
       quiet: true,
