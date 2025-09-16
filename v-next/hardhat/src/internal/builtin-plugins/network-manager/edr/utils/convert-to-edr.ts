@@ -370,8 +370,8 @@ export function edrGasReportToHardhatGasMeasurements(
         gasMeasurements.push({
           contractFqn,
           type: "deployment",
-          gas: deployment.gas,
-          size: deployment.size,
+          gas: Number(deployment.gas),
+          size: Number(deployment.size),
         });
       }
     }
@@ -384,7 +384,7 @@ export function edrGasReportToHardhatGasMeasurements(
             contractFqn,
             type: "function",
             functionSig,
-            gas: call.gas,
+            gas: Number(call.gas),
           });
         }
       }
