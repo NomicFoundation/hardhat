@@ -4,11 +4,15 @@ import { assertHardhatInvariant } from "@nomicfoundation/hardhat-errors";
 
 import { HardhatRuntimeEnvironmentImplementation } from "../../../core/hre.js";
 import { GasAnalyticsManagerImplementation } from "../gas-analytics-manager.js";
+import { getGasStatsPath } from "../helpers.js";
 
 export default async (): Promise<Partial<HardhatRuntimeEnvironmentHooks>> => ({
   created: async (context, hre) => {
     if (context.globalOptions.gasStats) {
-      const gasAnalyticsManager = new GasAnalyticsManagerImplementation();
+      const gasStatsPath = getGasStatsPath(hre.config.paths.root);
+      const gasAnalyticsManager = new GasAnalyticsManagerImplementation(
+        gasStatsPath,
+      );
 
       assertHardhatInvariant(
         hre instanceof HardhatRuntimeEnvironmentImplementation,
@@ -22,8 +26,8 @@ export default async (): Promise<Partial<HardhatRuntimeEnvironmentHooks>> => ({
       // checks for the existence of onGasReported handlers to determine if gas
       // analytics is enabled, rather than directly checking the global option.
       hre.hooks.registerHandlers("network", {
-        onGasMeasurement: async (_context, gasMeasurement) => {
-          await gasAnalyticsManager.addGasMeasurement(gasMeasurement);
+        onGasMeasurement: (_context, gasMeasurement) => {
+          gasAnalyticsManager.addGasMeasurement(gasMeasurement);
         },
       });
     }
