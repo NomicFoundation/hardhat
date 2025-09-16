@@ -1,11 +1,12 @@
 import type { NetworkHelpers, NumberLike } from "../../../../types.js";
+import type { ChainType } from "hardhat/types/network";
 import type { EthereumProvider } from "hardhat/types/providers";
 
 import { toBigInt, toRpcQuantity } from "../../../conversion.js";
 
-export async function increase(
+export async function increase<ChainTypeT extends ChainType | string>(
   provider: EthereumProvider,
-  networkHelpers: NetworkHelpers,
+  networkHelpers: NetworkHelpers<ChainTypeT>,
   amountInSeconds: NumberLike,
 ): Promise<number> {
   const normalizedAmount = await toBigInt(amountInSeconds);

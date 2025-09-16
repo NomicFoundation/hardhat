@@ -6,6 +6,7 @@ import type {
   Snapshot,
   SnapshotRestorer,
 } from "../../types.js";
+import type { ChainType, NetworkConnection } from "hardhat/types/network";
 import type { EthereumProvider } from "hardhat/types/providers";
 
 import {
@@ -34,21 +35,26 @@ import { Time } from "./time/time.js";
 
 const SUPPORTED_TEST_NETWORKS = ["hardhat", "zksync", "anvil"];
 
-export class NetworkHelpers implements NetworkHelpersI {
+export class NetworkHelpers<ChainTypeT extends ChainType | string>
+  implements NetworkHelpersI<ChainTypeT>
+{
+  readonly #connection: NetworkConnection<ChainTypeT>;
   readonly #provider: EthereumProvider;
   readonly #networkName: string;
-  #snapshots: Array<Snapshot<any>> = [];
+  #snapshots: Array<Snapshot<any, ChainTypeT>> = [];
 
   #isDevelopmentNetwork: boolean | undefined;
   #version: string | undefined;
 
-  public time: Time;
+  public time: Time<ChainTypeT>;
 
-  constructor(provider: EthereumProvider, networkName: string) {
-    this.#provider = provider;
-    this.#networkName = networkName;
+  constructor(connection: NetworkConnection<ChainTypeT>) {
+    this.#connection = connection;
+    this.#provider = connection.provider;
+    this.#networkName = connection.networkName;
 
-    this.time = new Time(this, provider);
+    this.time = new Time(this, connection.provider);
+
     bindAllMethods(this);
   }
 
@@ -75,13 +81,14 @@ export class NetworkHelpers implements NetworkHelpersI {
     return impersonateAccount(this.#provider, address);
   }
 
-  public async loadFixture<T>(fixture: Fixture<T>): Promise<T> {
+  public async loadFixture<T>(fixture: Fixture<T, ChainTypeT>): Promise<T> {
     await this.throwIfNotDevelopmentNetwork();
 
     const { snapshots, snapshotData } = await loadFixture(
       this,
       fixture,
       this.#snapshots,
+      this.#connection,
     );
 
     this.#snapshots = snapshots;
