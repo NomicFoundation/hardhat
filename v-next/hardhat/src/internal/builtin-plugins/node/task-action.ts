@@ -164,8 +164,8 @@ const nodeAction: NewTaskActionFunction<NodeActionArguments> = async (
 
   console.log(await formatEdrNetworkConfigAccounts(networkConfig.accounts));
 
-  await server.afterClosed();
   await buildInfoWatcher.close();
+  await server.afterClosed();
 };
 
 export default nodeAction;
