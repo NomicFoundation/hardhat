@@ -2697,6 +2697,13 @@ submodule2/=lib/submodule2/src/`,
                 "src/dep.sol": `dep`,
               },
             },
+            [path.join("@test_dep", "contracts@1.2.4")]: {
+              name: "@test_dep/contracts",
+              version: "1.2.4",
+              files: {
+                "src/dep2.sol": `dep2`,
+              },
+            },
           },
         };
 
