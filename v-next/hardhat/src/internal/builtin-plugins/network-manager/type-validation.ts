@@ -404,8 +404,8 @@ const userConfigSchema = z.object({
 
 const networkConfigOverrideSchema = z
   .discriminatedUnion("type", [
-    httpNetworkUserConfigSchema.strict(),
-    edrNetworkUserConfigSchema.strict(),
+    httpNetworkUserConfigSchema.passthrough(),
+    edrNetworkUserConfigSchema.passthrough(),
   ])
   .superRefine(refineEdrNetworkUserConfig);
 

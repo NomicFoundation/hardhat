@@ -2,9 +2,9 @@ import type { CoverageConfig } from "./edr/types/coverage.js";
 import type { ArtifactManager } from "../../../types/artifacts.js";
 import type {
   ChainDescriptorsConfig,
+  HardhatUserConfig,
   NetworkConfig,
   NetworkConfigOverride,
-  NetworkUserConfig,
 } from "../../../types/config.js";
 import type { HookManager } from "../../../types/hooks.js";
 import type {
@@ -15,25 +15,27 @@ import type {
   NetworkConnectionParams,
   NetworkManager,
 } from "../../../types/network.js";
+import type { HardhatPlugin } from "../../../types/plugins.js";
 import type {
   EthereumProvider,
   JsonRpcRequest,
   JsonRpcResponse,
 } from "../../../types/providers.js";
 
-import { HardhatError } from "@nomicfoundation/hardhat-errors";
+import {
+  HardhatError,
+  assertHardhatInvariant,
+} from "@nomicfoundation/hardhat-errors";
 import { exists, readBinaryFile } from "@nomicfoundation/hardhat-utils/fs";
 import { deepMerge } from "@nomicfoundation/hardhat-utils/lang";
 
-import { resolveConfigurationVariable } from "../../core/configuration-variables.js";
+import { resolveUserConfigToHardhatConfig } from "../../core/hre.js";
 import { isSupportedChainType } from "../../edr/chain-type.js";
 import { JsonRpcServerImplementation } from "../node/json-rpc/server.js";
 
-import { resolveEdrNetwork, resolveHttpNetwork } from "./config-resolution.js";
 import { EdrProvider } from "./edr/edr-provider.js";
 import { HttpProvider } from "./http-provider.js";
 import { NetworkConnectionImplementation } from "./network-connection.js";
-import { validateNetworkConfigOverride } from "./type-validation.js";
 
 export type JsonRpcRequestWrapperFunction = (
   request: JsonRpcRequest,
@@ -46,8 +48,10 @@ export class NetworkManagerImplementation implements NetworkManager {
   readonly #networkConfigs: Readonly<Record<string, Readonly<NetworkConfig>>>;
   readonly #hookManager: Readonly<HookManager>;
   readonly #artifactsManager: Readonly<ArtifactManager>;
-  readonly #userConfigNetworks: Readonly<Record<string, NetworkUserConfig>>;
+  readonly #userConfig: Readonly<HardhatUserConfig>;
   readonly #chainDescriptors: Readonly<ChainDescriptorsConfig>;
+  readonly #userProvidedConfigPath: Readonly<string | undefined>;
+  readonly #projectRoot: string;
 
   #nextConnectionId = 0;
 
@@ -57,16 +61,20 @@ export class NetworkManagerImplementation implements NetworkManager {
     networkConfigs: Record<string, NetworkConfig>,
     hookManager: HookManager,
     artifactsManager: ArtifactManager,
-    userConfigNetworks: Record<string, NetworkUserConfig> | undefined,
+    userConfig: HardhatUserConfig,
     chainDescriptors: ChainDescriptorsConfig,
+    userProvidedConfigPath: string | undefined,
+    projectRoot: string,
   ) {
     this.#defaultNetwork = defaultNetwork;
     this.#defaultChainType = defaultChainType;
     this.#networkConfigs = networkConfigs;
     this.#hookManager = hookManager;
     this.#artifactsManager = artifactsManager;
-    this.#userConfigNetworks = userConfigNetworks ?? {};
+    this.#userConfig = userConfig;
     this.#chainDescriptors = chainDescriptors;
+    this.#userProvidedConfigPath = userProvidedConfigPath;
+    this.#projectRoot = projectRoot;
   }
 
   public async connect<
@@ -132,57 +140,10 @@ export class NetworkManagerImplementation implements NetworkManager {
       );
     }
 
-    let resolvedNetworkConfigOverride: NetworkConfig | undefined;
-    if (networkConfigOverride !== undefined) {
-      if (
-        "type" in networkConfigOverride &&
-        networkConfigOverride.type !==
-          this.#networkConfigs[resolvedNetworkName].type
-      ) {
-        throw new HardhatError(
-          HardhatError.ERRORS.CORE.NETWORK.INVALID_CONFIG_OVERRIDE,
-          {
-            errors: `\t* The type of the network cannot be changed.`,
-          },
-        );
-      }
-
-      const newConfig = deepMerge(
-        this.#userConfigNetworks[resolvedNetworkName],
-        networkConfigOverride,
-      );
-
-      // As normalizeNetworkConfigOverride is not type-safe, we validate the
-      // normalized network config override immediately after normalizing it.
-      const validationErrors = await validateNetworkConfigOverride(newConfig);
-      if (validationErrors.length > 0) {
-        throw new HardhatError(
-          HardhatError.ERRORS.CORE.NETWORK.INVALID_CONFIG_OVERRIDE,
-          {
-            errors: `\t${validationErrors
-              .map((error) =>
-                error.path.length > 0
-                  ? `* Error in ${error.path.join(".")}: ${error.message}`
-                  : `* ${error.message}`,
-              )
-              .join("\n\t")}`,
-          },
-        );
-      }
-
-      resolvedNetworkConfigOverride =
-        newConfig.type === "http"
-          ? resolveHttpNetwork(newConfig, (strOrConfigVar) =>
-              resolveConfigurationVariable(this.#hookManager, strOrConfigVar),
-            )
-          : resolveEdrNetwork(newConfig, "", (strOrConfigVar) =>
-              resolveConfigurationVariable(this.#hookManager, strOrConfigVar),
-            );
-    }
-
-    const resolvedNetworkConfig =
-      resolvedNetworkConfigOverride ??
-      this.#networkConfigs[resolvedNetworkName];
+    const resolvedNetworkConfig = await this.#resolveNetworkConfig(
+      resolvedNetworkName,
+      networkConfigOverride,
+    );
 
     /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions
     -- Cast to ChainTypeT because we know it's valid */
@@ -312,6 +273,88 @@ export class NetworkManagerImplementation implements NetworkManager {
     );
   }
 
+  /**
+   * Resolve the network connection configuration settings for the network name
+   * and taking into account any configuration overrides.
+   *
+   * @param resolvedNetworkName the network name for selecting the appropriate network config
+   * @param networkConfigOverride any network config options to override the
+   *   defaults for the named network
+   * @returns a valid network configuration including any config additions from
+   *   plugins
+   */
+  async #resolveNetworkConfig(
+    resolvedNetworkName: string,
+    networkConfigOverride: NetworkConfigOverride | undefined,
+  ): Promise<NetworkConfig> {
+    if (networkConfigOverride === undefined) {
+      return this.#networkConfigs[resolvedNetworkName];
+    }
+
+    if (
+      "type" in networkConfigOverride &&
+      networkConfigOverride.type !==
+        this.#networkConfigs[resolvedNetworkName].type
+    ) {
+      throw new HardhatError(
+        HardhatError.ERRORS.CORE.NETWORK.INVALID_CONFIG_OVERRIDE,
+        {
+          errors: `\t* The type of the network cannot be changed.`,
+        },
+      );
+    }
+
+    const newConfig = deepMerge(this.#userConfig, {
+      networks: {
+        [resolvedNetworkName]: networkConfigOverride,
+      },
+    });
+
+    // This is safe, the plugins used in resolution are registered
+    // with the hook handler, this property is only used for
+    // ensuring the original plugins are available at the end
+    // of resolution.
+    const resolvedPlugins: HardhatPlugin[] = [];
+
+    const configResolutionResult = await resolveUserConfigToHardhatConfig(
+      newConfig,
+      this.#hookManager,
+      this.#projectRoot,
+      this.#userProvidedConfigPath,
+      resolvedPlugins,
+    );
+
+    if (!configResolutionResult.success) {
+      throw new HardhatError(
+        HardhatError.ERRORS.CORE.NETWORK.INVALID_CONFIG_OVERRIDE,
+        {
+          errors: `\t${configResolutionResult.userConfigValidationErrors
+            .map((error) => {
+              const path = this.#normaliseErrorPathToNetworkConfig(
+                error.path,
+                resolvedNetworkName,
+              );
+
+              return path.length > 0
+                ? `* Error in ${path.join(".")}: ${error.message}`
+                : `* ${error.message}`;
+            })
+            .join("\n\t")}`,
+        },
+      );
+    }
+
+    const resolvedNetworkConfigOverride =
+      configResolutionResult.config.networks[resolvedNetworkName];
+
+    assertHardhatInvariant(
+      resolvedNetworkConfigOverride !== undefined,
+      "The overridden network config should translate through the hook resolution of user config",
+    );
+
+    return resolvedNetworkConfigOverride;
+  }
+
   async #getBuildInfosAndOutputsAsBuffers(): Promise<
     Array<{ buildInfo: Uint8Array; output: Uint8Array }>
   > {
@@ -333,5 +376,20 @@ export class NetworkManagerImplementation implements NetworkManager {
     }
 
     return results;
+  }
+
+  #normaliseErrorPathToNetworkConfig(
+    path: Array<string | number>,
+    resolvedNetworkName: string,
+  ): Array<string | number> {
+    if (path[0] !== undefined && path[0] === "networks") {
+      path = path.slice(1);
+    }
+
+    if (path[0] !== undefined && path[0] === resolvedNetworkName) {
+      path = path.slice(1);
+    }
+
+    return path;
   }
 }
