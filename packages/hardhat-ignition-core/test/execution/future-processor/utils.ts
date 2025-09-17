@@ -65,7 +65,9 @@ export async function setupFutureProcessor(
     exampleAccounts,
     {},
     getDefaultSender(exampleAccounts),
-    false // disableFeeBumping
+    false, // disableFeeBumping
+    10, // maxRetries
+    1000 // retryInterval
   );
 
   return { processor, storedDeployedAddresses };

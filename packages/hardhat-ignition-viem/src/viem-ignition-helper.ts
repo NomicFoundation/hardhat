@@ -159,6 +159,10 @@ export class ViemIgnitionHelper {
       maxPriorityFeePerGas:
         this._hre.config.networks[this._hre.network.name]?.ignition
           .maxPriorityFeePerGas,
+      maxRetries:
+        resolvedConfig.maxRetries ?? this._hre.config.ignition.maxRetries,
+      retryInterval:
+        resolvedConfig.retryInterval ?? this._hre.config.ignition.retryInterval,
     });
 
     if (result.type !== DeploymentResultType.SUCCESSFUL_DEPLOYMENT) {

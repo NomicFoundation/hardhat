@@ -47,7 +47,9 @@ export class ExecutionEngine {
     private readonly _millisecondBeforeBumpingFees: number,
     private readonly _maxFeeBumps: number,
     private readonly _blockPollingInterval: number,
-    private readonly _disableFeeBumping: boolean
+    private readonly _disableFeeBumping: boolean,
+    private readonly _maxRetries: number,
+    private readonly _retryInterval: number
   ) {}
 
   /**
@@ -106,7 +108,9 @@ export class ExecutionEngine {
       accounts,
       deploymentParameters,
       defaultSender,
-      this._disableFeeBumping
+      this._disableFeeBumping,
+      this._maxRetries,
+      this._retryInterval
     );
 
     const futures = getFuturesFromModule(module);
