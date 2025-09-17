@@ -15,7 +15,7 @@ declare module "../../../types/config.js" {
 }
 
 declare module "../../../types/test.js" {
-  export interface SolidityTestUserConfig {
+  export interface SolidityTestConfigBase {
     timeout?: number;
     fsPermissions?: {
       readWriteFile?: string[];
@@ -36,12 +36,6 @@ declare module "../../../types/test.js" {
     blockTimestamp?: bigint;
     prevRandao?: bigint;
     blockGasLimit?: bigint | false;
-
-    forking?: {
-      url?: SensitiveString;
-      blockNumber?: bigint;
-      rpcEndpoints?: Record<string, SensitiveString>;
-    };
 
     fuzz?: {
       failurePersistDir?: string;
@@ -66,6 +60,16 @@ declare module "../../../types/test.js" {
     };
   }
 
+  export interface SolidityTestForkingUserConfig {
+    url?: SensitiveString;
+    blockNumber?: bigint;
+    rpcEndpoints?: Record<string, SensitiveString>;
+  }
+
+  export interface SolidityTestUserConfig extends SolidityTestConfigBase {
+    forking?: SolidityTestForkingUserConfig;
+  }
+
   export interface HardhatTestUserConfig {
     solidity?: SolidityTestUserConfig;
   }
@@ -76,8 +80,7 @@ declare module "../../../types/test.js" {
     rpcEndpoints?: Record<string, ResolvedConfigurationVariable>;
   }
 
-  export interface SolidityTestConfig
-    extends Omit<SolidityTestUserConfig, "forking"> {
+  export interface SolidityTestConfig extends SolidityTestConfigBase {
     forking?: SolidityTestForkingConfig;
   }
   export interface HardhatTestConfig {
