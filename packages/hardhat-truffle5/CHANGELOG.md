@@ -1,5 +1,16 @@
 # @nomiclabs/hardhat-truffle5
 
+## 2.1.1
+
+### Patch Changes
+
+- 9d10226: Links in the code and READMEs updated to point to the Hardhat 2 documentation and resources
+- Updated dependencies [e5ff273]
+- Updated dependencies [5655ebb]
+- Updated dependencies [9d10226]
+  - hardhat@2.26.4
+  - @nomiclabs/hardhat-web3@2.1.1
+
 ## 2.1.0
 
 ### Minor Changes

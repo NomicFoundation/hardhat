@@ -1,5 +1,13 @@
 # hardhat
 
+## 2.26.4
+
+### Patch Changes
+
+- e5ff273: Fix to be explicit that execFile should pass stdout/stderr as strings ([#7333](https://github.com/NomicFoundation/hardhat/pull/7333))
+- 5655ebb: Update latest supported solc version to 0.8.30 ([#7365](https://github.com/NomicFoundation/hardhat/issues/7365))
+- 9d10226: Links in the code and READMEs updated to point to the Hardhat 2 documentation and resources
+
 ## 2.26.3
 
 ### Patch Changes
