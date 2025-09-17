@@ -1,3 +1,31 @@
+import type { DeploymentLoader } from "../../../../src/internal/deployment-loader/types.js";
+import type {
+  Block,
+  CallParams,
+  EstimateGasParams,
+  JsonRpcClient,
+  TransactionParams,
+} from "../../../../src/internal/execution/jsonrpc-client.js";
+import type { NonceManager } from "../../../../src/internal/execution/nonce-management/json-rpc-nonce-manager.js";
+import type { SimulationErrorExecutionResult } from "../../../../src/internal/execution/types/execution-result.js";
+import type {
+  CallExecutionState,
+  DeploymentExecutionState,
+} from "../../../../src/internal/execution/types/execution-state.js";
+import type { CallStrategyGenerator } from "../../../../src/internal/execution/types/execution-strategy.js";
+import type {
+  EIP1559NetworkFees,
+  NetworkFees,
+  RawStaticCallResult,
+  Transaction,
+  TransactionReceipt,
+} from "../../../../src/internal/execution/types/jsonrpc.js";
+import type { JournalMessage } from "../../../../src/internal/execution/types/messages.js";
+import type {
+  OnchainInteraction,
+  StaticCall,
+} from "../../../../src/internal/execution/types/network-interaction.js";
+
 import { HardhatError } from "@nomicfoundation/hardhat-errors";
 import { assertRejectsWithHardhatError } from "@nomicfoundation/hardhat-test-utils";
 import { assert } from "chai";
@@ -9,48 +37,18 @@ import {
   runStaticCall,
   sendTransactionForOnchainInteraction,
 } from "../../../../src/internal/execution/future-processor/helpers/network-interaction-execution.js";
-import {
-  Block,
-  CallParams,
-  EstimateGasParams,
-  JsonRpcClient,
-  TransactionParams,
-} from "../../../../src/internal/execution/jsonrpc-client.js";
-import { NonceManager } from "../../../../src/internal/execution/nonce-management/json-rpc-nonce-manager.js";
 import { TransactionTrackingTimer } from "../../../../src/internal/execution/transaction-tracking-timer.js";
 import { EvmExecutionResultTypes } from "../../../../src/internal/execution/types/evm-execution.js";
+import { ExecutionResultType } from "../../../../src/internal/execution/types/execution-result.js";
 import {
-  ExecutionResultType,
-  SimulationErrorExecutionResult,
-} from "../../../../src/internal/execution/types/execution-result.js";
-import {
-  CallExecutionState,
-  DeploymentExecutionState,
   ExecutionSateType,
   ExecutionStatus,
 } from "../../../../src/internal/execution/types/execution-state.js";
-import { CallStrategyGenerator } from "../../../../src/internal/execution/types/execution-strategy.js";
-import {
-  EIP1559NetworkFees,
-  NetworkFees,
-  RawStaticCallResult,
-  Transaction,
-  TransactionReceipt,
-  TransactionReceiptStatus,
-} from "../../../../src/internal/execution/types/jsonrpc.js";
-import {
-  JournalMessage,
-  JournalMessageType,
-} from "../../../../src/internal/execution/types/messages.js";
-import {
-  NetworkInteractionType,
-  OnchainInteraction,
-  StaticCall,
-  GetTransactionRetryConfig,
-} from "../../../../src/internal/execution/types/network-interaction.js";
+import { TransactionReceiptStatus } from "../../../../src/internal/execution/types/jsonrpc.js";
+import { JournalMessageType } from "../../../../src/internal/execution/types/messages.js";
+import { NetworkInteractionType } from "../../../../src/internal/execution/types/network-interaction.js";
 import { FutureType } from "../../../../src/types/module.js";
 import { exampleAccounts } from "../../../helpers.js";
-import { DeploymentLoader } from "../../../../src/internal/deployment-loader/types.js";
 
 class StubJsonRpcClient implements JsonRpcClient {
   public async getChainId(): Promise<number> {
@@ -219,11 +217,6 @@ describe("Network interactions", () => {
     const millisecondBeforeBumpingFees = 1;
     const maxFeeBumps = 1;
 
-    const testGetTransactionRetryConfig: GetTransactionRetryConfig = {
-      maxRetries: 10,
-      retryInterval: 1,
-    };
-
     let mockClient: MockGetTransactionJsonRpcClient;
     let fakeTransactionTrackingTimer: FakeTransactionTrackingTimer;
 
@@ -282,16 +275,17 @@ describe("Network interactions", () => {
         },
       };
 
-      const message = await monitorOnchainInteraction(
-        deploymentExecutionState,
-        mockClient,
-        fakeTransactionTrackingTimer,
+      const message = await monitorOnchainInteraction({
+        exState: deploymentExecutionState,
+        jsonRpcClient: mockClient,
+        transactionTrackingTimer: fakeTransactionTrackingTimer,
         requiredConfirmations,
         millisecondBeforeBumpingFees,
         maxFeeBumps,
-        testGetTransactionRetryConfig,
-        false,
-      );
+        disableFeeBumping: false,
+        maxRetries: 10,
+        retryInterval: 1,
+      });
 
       if (message === undefined) {
         return assert.fail("No message returned from monitoring");
@@ -327,16 +321,17 @@ describe("Network interactions", () => {
       };
 
       await assertRejectsWithHardhatError(
-        monitorOnchainInteraction(
-          deploymentExecutionState,
-          mockClient,
-          fakeTransactionTrackingTimer,
+        monitorOnchainInteraction({
+          exState: deploymentExecutionState,
+          jsonRpcClient: mockClient,
+          transactionTrackingTimer: fakeTransactionTrackingTimer,
           requiredConfirmations,
           millisecondBeforeBumpingFees,
           maxFeeBumps,
-          testGetTransactionRetryConfig,
-          false,
-        ),
+          disableFeeBumping: false,
+          maxRetries: 10,
+          retryInterval: 1,
+        }),
         HardhatError.ERRORS.IGNITION.EXECUTION.DROPPED_TRANSACTION,
         {
           futureId: "test",
@@ -408,6 +403,7 @@ describe("Network interactions", () => {
 
       it("Should use the recommended network fees", async () => {
         class LocalMockJsonRpcClient extends MockJsonRpcClient {
+          // eslint-disable-next-line @typescript-eslint/consistent-type-assertions -- just for mock
           public storedFees: EIP1559NetworkFees = {} as EIP1559NetworkFees;
 
           public override async getNetworkFees(): Promise<NetworkFees> {
@@ -420,6 +416,7 @@ describe("Network interactions", () => {
           public override async sendTransaction(
             _transactionParams: TransactionParams,
           ): Promise<string> {
+            // eslint-disable-next-line @typescript-eslint/consistent-type-assertions -- just for mock
             this.storedFees = _transactionParams.fees as EIP1559NetworkFees;
             return "0x1234";
           }
@@ -554,6 +551,7 @@ describe("Network interactions", () => {
               shouldBeResent: false,
             };
 
+            // eslint-disable-next-line @typescript-eslint/consistent-type-assertions -- just for mock
             const mockStrategyGenerator = {
               next(): { value: SimulationErrorExecutionResult } {
                 return {
@@ -568,6 +566,7 @@ describe("Network interactions", () => {
               },
             } as unknown as CallStrategyGenerator;
 
+            // eslint-disable-next-line @typescript-eslint/consistent-type-assertions -- just for mock
             const mockExecutionState = {
               id: "test",
             } as unknown as CallExecutionState;
@@ -678,6 +677,7 @@ describe("Network interactions", () => {
               shouldBeResent: false,
             };
 
+            // eslint-disable-next-line @typescript-eslint/consistent-type-assertions -- just for mock
             const mockStrategyGenerator = {
               next(): { value: SimulationErrorExecutionResult } {
                 return {
@@ -692,6 +692,7 @@ describe("Network interactions", () => {
               },
             } as unknown as CallStrategyGenerator;
 
+            // eslint-disable-next-line @typescript-eslint/consistent-type-assertions -- just for mock
             const mockExecutionState = {
               id: "test",
             } as unknown as CallExecutionState;
