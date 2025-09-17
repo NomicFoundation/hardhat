@@ -601,18 +601,12 @@ describe("File system utils", () => {
     });
 
     it("Should throw FileSystemAccessError if a different error is thrown", async () => {
-      const filePath = path.join(getTmpDir(), "protected-file.json");
-      await createFile(filePath);
+      // Use a path that will cause a file system error (invalid characters in filename)
+      const filePath = path.join(getTmpDir(), "invalid\0filename.json");
 
-      try {
-        await chmod(filePath, 0o444);
-
-        await assert.rejects(writeJsonFile(filePath, {}), {
-          name: "FileSystemAccessError",
-        });
-      } finally {
-        await chmod(filePath, 0o666);
-      }
+      await assert.rejects(writeJsonFile(filePath, {}), {
+        name: "FileSystemAccessError",
+      });
     });
   });
 
@@ -717,18 +711,12 @@ describe("File system utils", () => {
     });
 
     it("Should throw FileSystemAccessError if a different error is thrown", async () => {
-      const filePath = path.join(getTmpDir(), "protected-file.json");
-      await createFile(filePath);
+      // Use a path that will cause a file system error (invalid characters in filename)
+      const filePath = path.join(getTmpDir(), "invalid\0filename.json");
 
-      try {
-        await chmod(filePath, 0o444);
-
-        await assert.rejects(writeJsonFileAsStream(filePath, {}), {
-          name: "FileSystemAccessError",
-        });
-      } finally {
-        await chmod(filePath, 0o666);
-      }
+      await assert.rejects(writeJsonFileAsStream(filePath, {}), {
+        name: "FileSystemAccessError",
+      });
     });
 
     it("Should remove the part of the path that didn't exist before if an error is thrown", async () => {
@@ -835,19 +823,12 @@ describe("File system utils", () => {
     });
 
     it("Should throw FileSystemAccessError if a different error is thrown", async () => {
-      const filePath = path.join(getTmpDir(), "protected-file.txt");
+      // Use a path that will cause a file system error (invalid characters in filename)
+      const filePath = path.join(getTmpDir(), "invalid\0filename.txt");
 
-      try {
-        await writeUtf8File(filePath, "hello");
-
-        await chmod(filePath, 0o444);
-
-        await assert.rejects(writeUtf8File(filePath, "hello"), {
-          name: "FileSystemAccessError",
-        });
-      } finally {
-        await chmod(filePath, 0o666);
-      }
+      await assert.rejects(writeUtf8File(filePath, "hello"), {
+        name: "FileSystemAccessError",
+      });
     });
   });
 

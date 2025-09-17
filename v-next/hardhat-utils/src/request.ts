@@ -347,6 +347,37 @@ export function isValidUrl(url: string): boolean {
   }
 }
 
+/**
+ * Returns the proxy URL from environment variables based on the target URL.
+ * For HTTPS URLs, checks `https_proxy` then `HTTPS_PROXY`.
+ * For HTTP URLs, checks `http_proxy` then `HTTP_PROXY`.
+ * Falls back to the other protocol's proxy if none found.
+ *
+ * @param url The target URL to determine proxy for.
+ * @returns The proxy URL, or `undefined` if none are set.
+ */
+export function getProxyUrl(url: string): string | undefined {
+  const { protocol } = new URL(url);
+
+  if (protocol === "https:") {
+    return (
+      process.env.https_proxy ??
+      process.env.HTTPS_PROXY ??
+      process.env.http_proxy ??
+      process.env.HTTP_PROXY
+    );
+  } else if (protocol === "http:") {
+    return (
+      process.env.http_proxy ??
+      process.env.HTTP_PROXY ??
+      process.env.https_proxy ??
+      process.env.HTTPS_PROXY
+    );
+  }
+
+  return undefined;
+}
+
 export {
   ConnectionRefusedError,
   DispatcherError,
