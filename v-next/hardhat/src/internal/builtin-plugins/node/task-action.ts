@@ -1,6 +1,4 @@
-import type { BuildInfo } from "../../../types/artifacts.js";
 import type { EdrNetworkConfigOverride } from "../../../types/config.js";
-import type { SolidityBuildInfoOutput } from "../../../types/solidity.js";
 import type { NewTaskActionFunction } from "../../../types/tasks.js";
 
 import path from "node:path";
@@ -9,23 +7,20 @@ import {
   assertHardhatInvariant,
   HardhatError,
 } from "@nomicfoundation/hardhat-errors";
-import {
-  ensureDir,
-  exists,
-  readJsonFile,
-  readJsonFileAsStream,
-} from "@nomicfoundation/hardhat-utils/fs";
+import { ensureDir, exists } from "@nomicfoundation/hardhat-utils/fs";
 import chalk from "chalk";
 import debug from "debug";
 
-import { sendErrorTelemetry } from "../../cli/telemetry/sentry/reporter.js";
 import { DEFAULT_NETWORK_NAME } from "../../constants.js";
 import { isSupportedChainType } from "../../edr/chain-type.js";
 import { BUILD_INFO_DIR_NAME } from "../artifacts/artifact-manager.js";
 import { EdrProvider } from "../network-manager/edr/edr-provider.js";
 
 import { watchBuildInfo } from "./artifacts/build-info-watcher.js";
-import { formatEdrNetworkConfigAccounts } from "./helpers.js";
+import {
+  createBuildInfoUploadHandlerFrom,
+  formatEdrNetworkConfigAccounts,
+} from "./helpers.js";
 import { JsonRpcServerImplementation } from "./json-rpc/server.js";
 
 const log = debug("hardhat:core:tasks:node");
@@ -155,44 +150,9 @@ const nodeAction: NewTaskActionFunction<NodeActionArguments> = async (
   );
   await ensureDir(buildInfoDirPath);
 
-  const buildInfoHandler = async (buildId: string) => {
-    try {
-      log(`Adding new compilation result for build ${buildId} to the node`);
-      const buildInfo: BuildInfo = await readJsonFile(
-        path.join(buildInfoDirPath, `${buildId}.json`),
-      );
-      const buildInfoOutput: SolidityBuildInfoOutput =
-        await readJsonFileAsStream(
-          path.join(buildInfoDirPath, `${buildId}.output.json`),
-        );
-
-      await provider.addCompilationResult(
-        buildInfo.solcVersion,
-        buildInfo.input,
-        buildInfoOutput.output,
-      );
-
-      log(`Added compiler result for ${buildId}`);
-    } catch (error) {
-      console.warn(
-        chalk.yellow(
-          `There was a problem adding the new compiler result for build ${buildId}.`,
-        ),
-      );
-
-      log(
-        "Last compilation result couldn't be added. Please report this to help us improve Hardhat.\n",
-        error,
-      );
-
-      if (error instanceof Error) {
-        await sendErrorTelemetry(error);
-      }
-    }
-  };
   const buildInfoWatcher = await watchBuildInfo(
     buildInfoDirPath,
-    buildInfoHandler,
+    createBuildInfoUploadHandlerFrom(buildInfoDirPath, provider, log),
   );
 
   // NOTE: Before creating the node, we check if the input network config is of type edr.
