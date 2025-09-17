@@ -308,12 +308,12 @@ export class EdrProvider extends BaseProvider {
     solcVersion: string,
     compilerInput: any,
     compilerOutput: any,
-  ): Promise<boolean> {
+  ): Promise<void> {
     if (this.#provider === undefined) {
       throw new HardhatError(HardhatError.ERRORS.CORE.NETWORK.PROVIDER_CLOSED);
     }
 
-    return this.#provider.addCompilationResult(
+    await this.#provider.addCompilationResult(
       solcVersion,
       compilerInput,
       compilerOutput,

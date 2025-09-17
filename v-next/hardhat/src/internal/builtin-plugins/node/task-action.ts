@@ -166,21 +166,13 @@ const nodeAction: NewTaskActionFunction<NodeActionArguments> = async (
           path.join(buildInfoDirPath, `${buildId}.output.json`),
         );
 
-      const success = await provider.addCompilationResult(
+      await provider.addCompilationResult(
         buildInfo.solcVersion,
         buildInfo.input,
         buildInfoOutput.output,
       );
 
-      if (success) {
-        log(`Added compiler result for ${buildId}`);
-      } else {
-        console.warn(
-          chalk.yellow(
-            "Last compilation result couldn't be added. Please report this to help us improve Hardhat.\n",
-          ),
-        );
-      }
+      log(`Added compiler result for ${buildId}`);
     } catch (error) {
       console.warn(
         chalk.yellow(
