@@ -1,5 +1,20 @@
 # @nomicfoundation/hardhat-toolbox-viem
 
+## 4.1.1
+
+### Patch Changes
+
+- 9d10226: Links in the code and READMEs updated to point to the Hardhat 2 documentation and resources
+- dc7ff8c: Fix `REPORT_GAS` envvar in toolboxes (https://github.com/NomicFoundation/hardhat/pull/7367)
+- Updated dependencies [e5ff273]
+- Updated dependencies [5655ebb]
+- Updated dependencies [9d10226]
+  - hardhat@2.26.4
+  - @nomicfoundation/hardhat-network-helpers@1.1.1
+  - @nomicfoundation/hardhat-ignition-viem@0.15.14
+  - @nomicfoundation/hardhat-verify@2.1.2
+  - @nomicfoundation/hardhat-viem@2.1.2
+
 ## 4.1.0
 
 ### Minor Changes
