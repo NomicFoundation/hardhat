@@ -23,7 +23,7 @@ export async function markTestRunStart(id: string): Promise<void> {
       hre instanceof HardhatRuntimeEnvironmentImplementation,
       "Expected HRE to be an instance of HardhatRuntimeEnvironmentImplementation",
     );
-    await hre._gasAnalytics.clearGasStats(id);
+    await hre._gasAnalytics.clearGasMeasurements(id);
   }
 }
 
@@ -34,7 +34,7 @@ export async function markTestWorkerDone(id: string): Promise<void> {
       hre instanceof HardhatRuntimeEnvironmentImplementation,
       "Expected HRE to be an instance of HardhatRuntimeEnvironmentImplementation",
     );
-    await hre._gasAnalytics.saveGasStats(id);
+    await hre._gasAnalytics.saveGasMeasurements(id);
   }
 }
 
