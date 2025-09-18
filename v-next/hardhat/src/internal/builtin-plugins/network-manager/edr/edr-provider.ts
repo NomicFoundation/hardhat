@@ -304,6 +304,22 @@ export class EdrProvider extends BaseProvider {
     this.#provider = undefined;
   }
 
+  public async addCompilationResult(
+    solcVersion: string,
+    compilerInput: any,
+    compilerOutput: any,
+  ): Promise<void> {
+    if (this.#provider === undefined) {
+      throw new HardhatError(HardhatError.ERRORS.CORE.NETWORK.PROVIDER_CLOSED);
+    }
+
+    await this.#provider.addCompilationResult(
+      solcVersion,
+      compilerInput,
+      compilerOutput,
+    );
+  }
+
   async #handleEdrResponse(
     edrResponse: Response,
   ): Promise<SuccessfulJsonRpcResponse> {
