@@ -29,7 +29,7 @@ export async function markTestRunStart(id: string): Promise<void> {
 
 export async function markTestWorkerDone(id: string): Promise<void> {
   const { default: hre } = await import("../../../index.js");
-  if (hre.globalOptions.coverage === true) {
+  if (hre.globalOptions.gasStats === true) {
     assertHardhatInvariant(
       hre instanceof HardhatRuntimeEnvironmentImplementation,
       "Expected HRE to be an instance of HardhatRuntimeEnvironmentImplementation",
