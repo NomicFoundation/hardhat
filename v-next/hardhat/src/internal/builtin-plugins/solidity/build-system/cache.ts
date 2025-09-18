@@ -20,7 +20,7 @@ export interface CompileCacheEntry {
   buildInfoPath: string;
   buildInfoOutputPath: string;
   artifactPaths: string[];
-  typeFilePath: string;
+  typeFilePath?: string;
   wasm: boolean;
 }
 

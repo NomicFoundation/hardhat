@@ -18,8 +18,11 @@ import {
   FsAccessPermission,
 } from "@nomicfoundation/edr";
 import { hexStringToBytes } from "@nomicfoundation/hardhat-utils/hex";
+import chalk from "chalk";
 
 import { OPTIMISM_CHAIN_TYPE } from "../../constants.js";
+
+import { type Colorizer, formatArtifactId } from "./formatters.js";
 
 function hexStringToBuffer(hexString: string): Buffer {
   return Buffer.from(hexStringToBytes(hexString));
@@ -126,5 +129,29 @@ export function isTestSuiteArtifact(artifact: Artifact): boolean {
       return name.startsWith("test") || name.startsWith("invariant");
     }
     return false;
+  });
+}
+
+export function warnDeprecatedTestFail(
+  artifact: Artifact,
+  sourceNameToUserSourceName: Map<string, string>,
+  colorizer: Colorizer = chalk,
+): void {
+  const abi: Abi = JSON.parse(artifact.contract.abi);
+
+  abi.forEach(({ type, name }) => {
+    if (
+      type === "function" &&
+      typeof name === "string" &&
+      name.startsWith("testFail")
+    ) {
+      const formattedLocation = formatArtifactId(
+        artifact.id,
+        sourceNameToUserSourceName,
+      );
+      const warningMessage = `${colorizer.yellow("Warning")}: ${name} The support for the prefix \`testFail*\` has been removed. Consider using \`vm.expectRevert()\` for testing reverts in ${formattedLocation}\n`;
+
+      console.warn(warningMessage);
+    }
   });
 }

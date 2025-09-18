@@ -834,6 +834,39 @@ export async function findUp(
   }
 }
 
+/**
+ * This function uses some heuristics to check if a file is binary by reading the first bytesToCheck bytes from the file.
+ */
+export async function isBinaryFile(
+  filePath: string,
+  bytesToCheck = 8000,
+): Promise<boolean> {
+  const fd = await fsPromises.open(filePath, "r");
+
+  const buffer = Buffer.alloc(bytesToCheck);
+  const { bytesRead } = await fd.read(buffer, 0, bytesToCheck, 0);
+  await fd.close();
+
+  let nonPrintable = 0;
+  for (let i = 0; i < bytesRead; i++) {
+    const byte = buffer[i];
+
+    // Allow common text ranges: tab, newline, carriage return, and printable ASCII
+    if (
+      byte === 9 || // tab
+      byte === 10 || // newline
+      byte === 13 || // carriage return
+      (byte >= 32 && byte <= 126)
+    ) {
+      continue;
+    }
+    nonPrintable++;
+  }
+
+  // Heuristic: if more than ~30% of bytes are non-printable, assume binary
+  return nonPrintable / bytesRead > 0.3;
+}
+
 export {
   FileNotFoundError,
   FileSystemAccessError,

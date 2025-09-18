@@ -112,7 +112,7 @@ const nodeAction: NewTaskActionFunction<NodeActionArguments> = async (
     }
   }
 
-  const server: JsonRpcServerImplementation = new JsonRpcServerImplementation({
+  const server = new JsonRpcServerImplementation({
     hostname,
     port: args.port,
     provider,
@@ -139,7 +139,7 @@ const nodeAction: NewTaskActionFunction<NodeActionArguments> = async (
 
   console.log(await formatEdrNetworkConfigAccounts(networkConfig.accounts));
 
-  await server.waitUntilClosed();
+  await server.afterClosed();
 };
 
 export default nodeAction;

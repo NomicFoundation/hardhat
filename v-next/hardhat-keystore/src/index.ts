@@ -15,20 +15,20 @@ const hardhatKeystorePlugin: HardhatPlugin = {
       import("./internal/hook-handlers/configuration-variables.js"),
   },
   tasks: [
-    emptyTask("keystore", "Store your keys in a secure way").build(),
+    emptyTask("keystore", "Store keys in an encrypted storage").build(),
 
     task(
       ["keystore", "set"],
-      "Sets a new value in the keystore associated with the specified key",
+      "Set a new value in the keystore associated with the specified key",
     )
       .addPositionalArgument({
         name: "key",
         type: ArgumentType.STRING,
-        description: "Specifies the key to set in the keystore",
+        description: "Specify the key to set in the keystore",
       })
       .addFlag({
         name: "force",
-        description: "Forces overwrite if the key already exists.",
+        description: "Force overwrite if the key already exists.",
       })
       .addFlag({
         name: "dev",
@@ -47,7 +47,7 @@ const hardhatKeystorePlugin: HardhatPlugin = {
       .addPositionalArgument({
         name: "key",
         type: ArgumentType.STRING,
-        description: "Specifies the key to retrieve the value for",
+        description: "Specify the key to retrieve the value for",
       })
       .setAction(() => import("./internal/tasks/get.js"))
       .build(),
@@ -70,12 +70,12 @@ const hardhatKeystorePlugin: HardhatPlugin = {
       .addPositionalArgument({
         name: "key",
         type: ArgumentType.STRING,
-        description: "Specifies the key to delete from the keystore",
+        description: "Specify the key to delete from the keystore",
       })
       .addFlag({
         name: "force",
         description:
-          "Forces to not throw an error if the key does not exist during deletion.",
+          "Force to not throw an error if the key does not exist during deletion.",
       })
       .setAction(() => import("./internal/tasks/delete.js"))
       .build(),

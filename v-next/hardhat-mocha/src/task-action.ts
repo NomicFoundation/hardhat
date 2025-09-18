@@ -3,9 +3,9 @@ import type { NewTaskActionFunction } from "hardhat/types/tasks";
 import type { MochaOptions } from "mocha";
 
 import { resolve as pathResolve } from "node:path";
-import { fileURLToPath } from "node:url";
 
 import { HardhatError } from "@nomicfoundation/hardhat-errors";
+import { setGlobalOptionsAsEnvVariables } from "@nomicfoundation/hardhat-utils/env";
 import { getAllFilesMatching } from "@nomicfoundation/hardhat-utils/fs";
 import {
   markTestRunDone,
@@ -54,6 +54,8 @@ const testWithHardhat: NewTaskActionFunction<TestActionArguments> = async (
   // Set an environment variable that plugins can use to detect when a process is running tests
   process.env.HH_TEST = "true";
 
+  setGlobalOptionsAsEnvVariables(hre.globalOptions);
+
   if (!noCompile) {
     await hre.tasks.getTask("compile").run({});
     console.log();
@@ -65,8 +67,25 @@ const testWithHardhat: NewTaskActionFunction<TestActionArguments> = async (
     return;
   }
 
-  const tsx = fileURLToPath(import.meta.resolve("tsx/esm"));
-  process.env.NODE_OPTIONS = `--import ${tsx}`;
+  if (hre.config.test.mocha.parallel === true) {
+    const imports = [];
+
+    const tsx = new URL(import.meta.resolve("tsx/esm"));
+    imports.push(tsx.href);
+
+    if (hre.globalOptions.coverage === true) {
+      const coverage = new URL(
+        import.meta.resolve("@nomicfoundation/hardhat-mocha/coverage"),
+      );
+
+      hre.config.test.mocha.require = hre.config.test.mocha.require ?? [];
+      hre.config.test.mocha.require.push(coverage.href);
+    }
+
+    process.env.NODE_OPTIONS = imports
+      .map((href) => `--import "${href}"`)
+      .join(" ");
+  }
 
   const { default: Mocha } = await import("mocha");
 
@@ -107,8 +126,10 @@ const testWithHardhat: NewTaskActionFunction<TestActionArguments> = async (
     mocha.run(resolve);
   });
 
-  // NOTE: We execute mocha tests in the main process.
-  await markTestWorkerDone("mocha");
+  if (hre.config.test.mocha.parallel !== true) {
+    // NOTE: We execute mocha tests in the main process.
+    await markTestWorkerDone("mocha");
+  }
   // NOTE: This might print a coverage report.
   await markTestRunDone("mocha");
 

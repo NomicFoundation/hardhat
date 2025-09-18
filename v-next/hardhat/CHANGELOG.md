@@ -1,5 +1,55 @@
 # hardhat
 
+## 3.0.7
+
+### Patch Changes
+
+- f39670a: Support for compiling solidity tests separately from contracts ([#6474](https://github.com/NomicFoundation/hardhat/issues/6474))
+- 0cc5f75: Added `network.createServer(...)` to spawn a Hardhat node programmatically ([#6472](https://github.com/NomicFoundation/hardhat/issues/6472))
+- 1688f2c: EDR updated to version [`0.12.0-next.7`](https://www.npmjs.com/package/@nomicfoundation/edr/v/0.12.0-next.7)
+- 01f91b9: Fixed creation of network connections to include config extensions from plugins ([#7106](https://github.com/NomicFoundation/hardhat/pull/7106))
+
+## 3.0.6
+
+### Patch Changes
+
+- 609d05c: Add deprecation warning for `testFail_*` test functions
+- 8c1cb1e: Fixed dependencies for Hardhat so `rpc` utils can be loaded ([#7415](https://github.com/NomicFoundation/hardhat/issues/7415))
+
+## 3.0.5
+
+### Patch Changes
+
+- bebf87c: Added support for Linea network verification, thanks @kyzooghost ([#7357](https://github.com/NomicFoundation/hardhat/issues/7357))
+- 0bfe6ac: Fixed coverage report when loading data from large test suites ([#7385](https://github.com/NomicFoundation/hardhat/issues/7385))
+- be469d6: Display an error message when attempting to use a global hardhat installation in a local repo ([#5362](https://github.com/NomicFoundation/hardhat/issues/5362))
+- 49cc9ba: Load resolved global options into environment variables during tests ([#7305](https://github.com/NomicFoundation/hardhat/pull/7305))
+- 8d3b16c: Support for custom compilers ([#7130](https://github.com/NomicFoundation/hardhat/issues/7130))
+- a475780: Added automatic proxy detection for `hardhat-verify` and fixed case-insensitive proxy environment variables for network requests ([#7407](https://github.com/NomicFoundation/hardhat/pull/7407))
+- 3996886: Fixed `getBuildInfoPath` and `getBuildInfoOutputPath` to correctly return undefined when build info files are missing [7052](https://github.com/NomicFoundation/hardhat/issues/7052)
+
+## 3.0.4
+
+### Patch Changes
+
+- af301a8: Update validation for solidity test config ([#7205](https://github.com/NomicFoundation/hardhat/pull/7205))
+
+## 3.0.3
+
+### Patch Changes
+
+- 34a5bc9: Fixed an issue when making historical calls in a forked network ([#7271](https://github.com/NomicFoundation/hardhat/issues/7271))
+- e0e658a: Upgraded EDR to 0.12.0-next.5. This brings a fix for `expectEmit` cheatcode stack traces and performance improvements from upgrading to REVM 27 ([#1063](https://github.com/NomicFoundation/edr/issues/1063))
+
+## 3.0.2
+
+### Patch Changes
+
+- d45d544: Fixed passing global network options to node:test and mocha subprocesses ([#7248](https://github.com/NomicFoundation/hardhat/issues/7248))
+- 003e72c: Help message phrasing unified
+- 0120e67: Added warning when running with a non-LTS Node version ([#7167](https://github.com/NomicFoundation/hardhat/issues/7167))
+- 9261714: Update npm module regex to include versions in solidity imports ([#7308](https://github.com/NomicFoundation/hardhat/issues/7308))
+
 ## 3.0.1
 
 ### Patch Changes
