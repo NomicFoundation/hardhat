@@ -1,4 +1,4 @@
-import type { RpcTransactionRequest } from "hardhat/utils/rpc";
+import type { RpcTransactionRequest } from "@nomicfoundation/hardhat-zod-utils/rpc";
 
 import { assertHardhatInvariant } from "@nomicfoundation/hardhat-errors";
 import { toBigInt } from "@nomicfoundation/hardhat-utils/bigint";

@@ -3,13 +3,10 @@ import type { ChainType, NetworkConnection } from "hardhat/types/network";
 import type { JsonRpcRequest, JsonRpcResponse } from "hardhat/types/providers";
 
 import { assertHardhatInvariant } from "@nomicfoundation/hardhat-errors";
-import {
-  AsyncMutex,
-  isFailedJsonRpcResponse,
-  isJsonRpcResponse,
-} from "hardhat/utils/rpc";
+import { AsyncMutex } from "@nomicfoundation/hardhat-utils/synchronization";
 
 import { LedgerHandler } from "../handler.js";
+import { isFailedJsonRpcResponse, isJsonRpcResponse } from "../rpc-helpers.js";
 
 export default async (): Promise<Partial<NetworkHooks>> => {
   // This map is essential for managing multiple network connections in Hardhat V3.

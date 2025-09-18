@@ -24,13 +24,12 @@ import {
   normalizeHexString,
 } from "@nomicfoundation/hardhat-utils/hex";
 import {
-  getRequestParams,
   rpcAddress,
   rpcAny,
   rpcData,
   rpcTransactionRequest,
   validateParams,
-} from "hardhat/utils/rpc";
+} from "@nomicfoundation/hardhat-zod-utils/rpc";
 import { Transaction } from "micro-eth-signer";
 import * as typed from "micro-eth-signer/typed-data";
 import { add0x, initSig } from "micro-eth-signer/utils";
@@ -39,6 +38,7 @@ import * as cache from "./cache.js";
 import { createTx } from "./create-tx.js";
 import { getYParity } from "./get-y-parity.js";
 import { PLUGIN_NAME } from "./plugin-name.js";
+import { getRequestParams } from "./rpc-helpers.js";
 
 export class LedgerHandler {
   public static readonly MAX_DERIVATION_ACCOUNTS = 20;
