@@ -1,14 +1,5 @@
 # hardhat
 
-## 3.0.7
-
-### Patch Changes
-
-- f39670a: Support for compiling solidity tests separately from contracts ([#6474](https://github.com/NomicFoundation/hardhat/issues/6474))
-- 0cc5f75: Added `network.createServer(...)` to spawn a Hardhat node programmatically ([#6472](https://github.com/NomicFoundation/hardhat/issues/6472))
-- 1688f2c: EDR updated to version [`0.12.0-next.7`](https://www.npmjs.com/package/@nomicfoundation/edr/v/0.12.0-next.7)
-- 01f91b9: Fixed creation of network connections to include config extensions from plugins ([#7106](https://github.com/NomicFoundation/hardhat/pull/7106))
-
 ## 3.0.6
 
 ### Patch Changes

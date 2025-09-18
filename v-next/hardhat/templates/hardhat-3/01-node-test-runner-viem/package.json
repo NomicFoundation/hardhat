@@ -5,7 +5,7 @@
   "description": "A TypeScript Hardhat project using Node Test Runner and Viem",
   "type": "module",
   "devDependencies": {
-    "hardhat": "workspace:^3.0.7",
+    "hardhat": "workspace:^3.0.6",
     "@nomicfoundation/hardhat-toolbox-viem": "workspace:^5.0.0",
     "@nomicfoundation/hardhat-ignition": "workspace:^3.0.0",
     "@types/node": "^22.8.5",
