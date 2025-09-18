@@ -1,11 +1,5 @@
 # @nomicfoundation/hardhat-network-helpers
 
-## 3.0.1
-
-### Patch Changes
-
-- 1a8b135: Enable fixture sharing across files; fixtures now provide a `connection` parameter [7406](https://github.com/NomicFoundation/hardhat/pull/7406)
-
 ## 3.0.0
 
 ### Major Changes
