@@ -18,7 +18,7 @@ export type GasMeasurement = FunctionGasMeasurement | DeploymentGasMeasurement;
 export interface GasAnalyticsManager {
   /* Gas Statistics */
   addGasMeasurement(gasMeasurement: GasMeasurement): void;
-  clearGasStats(id: string): Promise<void>;
-  saveGasStats(id: string): Promise<void>;
+  clearGasMeasurements(id: string): Promise<void>;
+  saveGasMeasurements(id: string): Promise<void>;
   reportGasStats(...ids: string[]): Promise<void>;
 }

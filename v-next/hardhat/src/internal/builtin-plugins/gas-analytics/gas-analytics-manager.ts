@@ -31,25 +31,28 @@ export class GasAnalyticsManagerImplementation implements GasAnalyticsManager {
     );
   }
 
-  public async clearGasStats(id: string): Promise<void> {
-    const dataPath = await this.#getGasStatsPath(id);
-    await remove(dataPath);
+  public async clearGasMeasurements(id: string): Promise<void> {
+    const gasMeasurementsPath = await this.#getGasMeasurementsPath(id);
+    await remove(gasMeasurementsPath);
     this.gasMeasurements = [];
-    gasStatsLog("Cleared gas stats from disk and memory");
+    gasStatsLog("Cleared gas measurements from disk and memory");
   }
 
-  public async saveGasStats(id: string): Promise<void> {
-    const dataPath = await this.#getGasStatsPath(id);
-    const filePath = path.join(dataPath, `${crypto.randomUUID()}.json`);
+  public async saveGasMeasurements(id: string): Promise<void> {
+    const gasMeasurementsPath = await this.#getGasMeasurementsPath(id);
+    const filePath = path.join(
+      gasMeasurementsPath,
+      `${crypto.randomUUID()}.json`,
+    );
     await writeJsonFile(filePath, this.gasMeasurements);
-    gasStatsLog("Saved gas stats", id, filePath);
+    gasStatsLog("Saved gas measurements", id, filePath);
   }
 
   public async reportGasStats(..._ids: string[]): Promise<void> {
     // TODO
   }
 
-  async #getGasStatsPath(id: string): Promise<string> {
+  async #getGasMeasurementsPath(id: string): Promise<string> {
     const dataPath = path.join(this.#gasStatsPath, "gas-stats", id);
     await ensureDir(dataPath);
     return dataPath;
