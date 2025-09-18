@@ -1,11 +1,5 @@
 # @nomicfoundation/hardhat-ethers
 
-## 4.0.2
-
-### Patch Changes
-
-- 0cc5f75: Added `network.createServer(...)` to spawn a Hardhat node programmatically ([#6472](https://github.com/NomicFoundation/hardhat/issues/6472))
-
 ## 4.0.1
 
 ### Patch Changes
