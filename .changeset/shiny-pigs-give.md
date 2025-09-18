@@ -1,4 +1,5 @@
 ---
+"@nomicfoundation/hardhat-errors": patch
 "@nomicfoundation/hardhat-ledger": patch
 ---
 
