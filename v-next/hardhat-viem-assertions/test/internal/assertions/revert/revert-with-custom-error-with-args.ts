@@ -115,7 +115,7 @@ describe("revertWithCustomErrorWithArgs", () => {
       ),
       (error) =>
         error.message ===
-        `The function was expected to revert with "CustomErrorWithInt", but it did not.`,
+        `The function was expected to revert with custom error "CustomErrorWithInt", but it did not revert`,
     );
   });
 

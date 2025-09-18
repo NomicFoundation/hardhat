@@ -9,6 +9,7 @@ import type {
 } from "./types.js";
 import type {
   Dispatcher,
+  DispatcherOptions,
   HttpResponse,
 } from "@nomicfoundation/hardhat-utils/request";
 import type { VerificationProvidersConfig } from "hardhat/types/config";
@@ -17,8 +18,10 @@ import { HardhatError } from "@nomicfoundation/hardhat-errors";
 import { ensureError } from "@nomicfoundation/hardhat-utils/error";
 import { sleep } from "@nomicfoundation/hardhat-utils/lang";
 import {
+  getProxyUrl,
   getRequest,
   postFormRequest,
+  shouldUseProxy,
 } from "@nomicfoundation/hardhat-utils/request";
 
 export const ETHERSCAN_PROVIDER_NAME: keyof VerificationProvidersConfig =
@@ -33,14 +36,15 @@ const VERIFICATION_STATUS_POLLING_SECONDS = 3;
 export const ETHERSCAN_API_URL = "https://api.etherscan.io/v2/api";
 
 export class Etherscan implements VerificationProvider {
-  public chainId: string;
-  public name: string;
-  public url: string;
-  public apiUrl: string;
-  public apiKey: string;
-
-  readonly #dispatcher?: Dispatcher;
-  readonly #pollingIntervalMs: number;
+  public readonly chainId: string;
+  public readonly name: string;
+  public readonly url: string;
+  public readonly apiUrl: string;
+  public readonly apiKey: string;
+  public readonly dispatcherOrDispatcherOptions?:
+    | Dispatcher
+    | DispatcherOptions;
+  public readonly pollingIntervalMs: number;
 
   constructor(etherscanConfig: {
     chainId: number;
@@ -53,8 +57,15 @@ export class Etherscan implements VerificationProvider {
     this.name = etherscanConfig.name ?? "Etherscan";
     this.url = etherscanConfig.url;
     this.apiUrl = ETHERSCAN_API_URL;
-    this.#dispatcher = etherscanConfig.dispatcher;
-    this.#pollingIntervalMs =
+
+    const proxyUrl = shouldUseProxy(this.apiUrl)
+      ? getProxyUrl(this.apiUrl)
+      : undefined;
+    this.dispatcherOrDispatcherOptions =
+      etherscanConfig.dispatcher ??
+      (proxyUrl !== undefined ? { proxy: proxyUrl } : {});
+
+    this.pollingIntervalMs =
       etherscanConfig.dispatcher !== undefined
         ? 0
         : VERIFICATION_STATUS_POLLING_SECONDS;
@@ -89,7 +100,7 @@ export class Etherscan implements VerificationProvider {
             address,
           },
         },
-        this.#dispatcher,
+        this.dispatcherOrDispatcherOptions,
       );
       responseBody =
         /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions
@@ -162,7 +173,7 @@ export class Etherscan implements VerificationProvider {
             apikey: this.apiKey,
           },
         },
-        this.#dispatcher,
+        this.dispatcherOrDispatcherOptions,
       );
       responseBody =
         /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions
@@ -252,7 +263,7 @@ export class Etherscan implements VerificationProvider {
             guid,
           },
         },
-        this.#dispatcher,
+        this.dispatcherOrDispatcherOptions,
       );
       responseBody =
         /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions
@@ -293,7 +304,7 @@ export class Etherscan implements VerificationProvider {
     );
 
     if (etherscanResponse.isPending()) {
-      await sleep(this.#pollingIntervalMs);
+      await sleep(this.pollingIntervalMs);
 
       return this.pollVerificationStatus(guid, contractAddress, contractName);
     }

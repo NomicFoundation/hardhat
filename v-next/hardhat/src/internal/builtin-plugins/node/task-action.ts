@@ -1,18 +1,29 @@
 import type { EdrNetworkConfigOverride } from "../../../types/config.js";
 import type { NewTaskActionFunction } from "../../../types/tasks.js";
 
+import path from "node:path";
+
 import {
   assertHardhatInvariant,
   HardhatError,
 } from "@nomicfoundation/hardhat-errors";
-import { exists } from "@nomicfoundation/hardhat-utils/fs";
+import { ensureDir, exists } from "@nomicfoundation/hardhat-utils/fs";
 import chalk from "chalk";
+import debug from "debug";
 
 import { DEFAULT_NETWORK_NAME } from "../../constants.js";
 import { isSupportedChainType } from "../../edr/chain-type.js";
+import { BUILD_INFO_DIR_NAME } from "../artifacts/artifact-manager.js";
+import { EdrProvider } from "../network-manager/edr/edr-provider.js";
 
-import { formatEdrNetworkConfigAccounts } from "./helpers.js";
+import { watchBuildInfo } from "./artifacts/build-info-watcher.js";
+import {
+  createBuildInfoUploadHandlerFrom,
+  formatEdrNetworkConfigAccounts,
+} from "./helpers.js";
 import { JsonRpcServerImplementation } from "./json-rpc/server.js";
+
+const log = debug("hardhat:core:tasks:node");
 
 interface NodeActionArguments {
   hostname?: string;
@@ -94,6 +105,11 @@ const nodeAction: NewTaskActionFunction<NodeActionArguments> = async (
     override: networkConfigOverride,
   });
 
+  assertHardhatInvariant(
+    provider instanceof EdrProvider,
+    "Provider must be EdrProvider, since only edr networks are supported",
+  );
+
   // NOTE: We enable logging for the node
   await provider.request({
     method: "hardhat_setLoggingEnabled",
@@ -112,7 +128,7 @@ const nodeAction: NewTaskActionFunction<NodeActionArguments> = async (
     }
   }
 
-  const server: JsonRpcServerImplementation = new JsonRpcServerImplementation({
+  const server = new JsonRpcServerImplementation({
     hostname,
     port: args.port,
     provider,
@@ -128,7 +144,16 @@ const nodeAction: NewTaskActionFunction<NodeActionArguments> = async (
 
   console.log();
 
-  // TODO(https://github.com/NomicFoundation/hardhat/issues/6040): Add build info watcher here
+  const buildInfoDirPath = path.join(
+    hre.config.paths.artifacts,
+    BUILD_INFO_DIR_NAME,
+  );
+  await ensureDir(buildInfoDirPath);
+
+  const buildInfoWatcher = await watchBuildInfo(
+    buildInfoDirPath,
+    createBuildInfoUploadHandlerFrom(buildInfoDirPath, provider, log),
+  );
 
   // NOTE: Before creating the node, we check if the input network config is of type edr.
   // We only proceed if it is. Hence, we can assume that the output network config is of type edr as well.
@@ -139,7 +164,8 @@ const nodeAction: NewTaskActionFunction<NodeActionArguments> = async (
 
   console.log(await formatEdrNetworkConfigAccounts(networkConfig.accounts));
 
-  await server.waitUntilClosed();
+  await server.afterClosed();
+  await buildInfoWatcher.close();
 };
 
 export default nodeAction;

@@ -63,7 +63,7 @@ const exampleTaskOverride = task("example2")
   })
   .build();
 
-const greeting = task("hello", "Prints a greeting")
+const greeting = task("hello", "Print a greeting")
   .addOption({
     name: "greeting",
     description: "The greeting to print",
@@ -76,7 +76,7 @@ const greeting = task("hello", "Prints a greeting")
   }))
   .build();
 
-const printConfig = task("config", "Prints the config")
+const printConfig = task("config", "Print the config")
   .setAction(async () => ({
     default: async ({}, hre) => {
       console.log(util.inspect(hre.config, { colors: true, depth: null }));
@@ -84,7 +84,7 @@ const printConfig = task("config", "Prints the config")
   }))
   .build();
 
-const printAccounts = task("accounts", "Prints the accounts")
+const printAccounts = task("accounts", "Print the accounts")
   .setAction(async () => ({
     default: async ({}, hre) => {
       const { provider } = await hre.network.connect();
@@ -96,7 +96,7 @@ const printAccounts = task("accounts", "Prints the accounts")
 const pluginExample = {
   id: "community-plugin",
   tasks: [
-    task("plugin-hello", "Prints a greeting from community-plugin")
+    task("plugin-hello", "Print a greeting from community-plugin")
       .addOption({
         name: "greeting",
         description: "The greeting to print",

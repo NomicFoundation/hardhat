@@ -15,6 +15,7 @@ import debug from "debug";
 
 import { ensureNodeErrnoExceptionError } from "./error.js";
 import { FileSystemAccessError } from "./errors/fs.js";
+import { readUtf8File } from "./fs.js";
 import { sleep } from "./lang.js";
 
 const log = debug("hardhat:util:multi-process-mutex");
@@ -48,6 +49,13 @@ export class MultiProcessMutex {
         log(
           `Current mutex file is too old, removing it at path '${this.#mutexFilePath}'`,
         );
+
+        this.#deleteMutexFile();
+      } else if (await this.#isMutexProcessOwnerDead()) {
+        log(
+          `The process owning the mutex file no longer exists. Removing mutex file at '${this.#mutexFilePath}'.`,
+        );
+
         this.#deleteMutexFile();
       } else {
         // wait
@@ -59,7 +67,10 @@ export class MultiProcessMutex {
   async #tryToAcquireMutex() {
     try {
       // Create a file only if it does not exist
-      fs.writeFileSync(this.#mutexFilePath, "", { flag: "wx+" });
+      fs.writeFileSync(this.#mutexFilePath, process.pid.toString(), {
+        flag: "wx+",
+      });
+
       return true;
     } catch (e) {
       ensureNodeErrnoExceptionError(e);
@@ -80,6 +91,8 @@ export class MultiProcessMutex {
       return await f();
     } finally {
       // Release the mutex
+      // Note: if a process dies, its `finally` block never executes, and the process hangs indefinitely since no response is received.
+      // To handle this, we use the function `isMutexProcessOwnerDead`.
       log(`Mutex released at path '${this.#mutexFilePath}'`);
       this.#deleteMutexFile();
       log(`Mutex released at path '${this.#mutexFilePath}'`);
@@ -122,5 +135,81 @@ export class MultiProcessMutex {
 
       throw new FileSystemAccessError(e.message, e);
     }
+  }
+
+  async #isMutexProcessOwnerDead(): Promise<boolean> {
+    let mutexPid: string;
+
+    try {
+      // If the file doesn't exist, it means the owning process deleted it
+      mutexPid = await readUtf8File(this.#mutexFilePath);
+    } catch (_e) {
+      return false;
+    }
+
+    try {
+      process.kill(parseInt(mutexPid, 10), 0);
+    } catch (e) {
+      ensureNodeErrnoExceptionError(e);
+
+      if (e.code === "ESRCH") {
+        // The process owning the mutex no longer exists
+        return true;
+      }
+    }
+
+    return false;
+  }
+}
+
+/**
+ * A class that implements an asynchronous mutex (mutual exclusion) lock.
+ *
+ * The mutex ensures that only one asynchronous operation can be executed at a time,
+ * providing exclusive access to a shared resource.
+ */
+export class AsyncMutex {
+  #acquired = false;
+  readonly #queue: Array<() => void> = [];
+
+  /**
+   * Acquires the mutex, running the provided function exclusively,
+   * and releasing it afterwards.
+   *
+   * @param f The function to run.
+   * @returns The result of the function.
+   */
+  public async exclusiveRun<ReturnT>(
+    f: () => ReturnT,
+  ): Promise<Awaited<ReturnT>> {
+    const release = await this.#acquire();
+
+    try {
+      return await f();
+    } finally {
+      await release();
+    }
+  }
+
+  /**
+   * Acquires the mutex, returning a function that releases it.
+   */
+  async #acquire(): Promise<() => Promise<void>> {
+    if (!this.#acquired) {
+      this.#acquired = true;
+      return async () => {
+        this.#acquired = false;
+        const next = this.#queue.shift();
+        if (next !== undefined) {
+          next();
+        }
+      };
+    }
+
+    return new Promise<() => Promise<void>>((resolve) => {
+      this.#queue.push(() => {
+        resolve(this.#acquire());
+      });
+    });
   }
 }

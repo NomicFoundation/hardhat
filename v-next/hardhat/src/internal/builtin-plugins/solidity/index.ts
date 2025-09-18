@@ -5,14 +5,14 @@ import { globalOption, task } from "../../core/config.js";
 
 import "./type-extensions.js";
 
-const buildTask = task("build", "Builds your project")
+const buildTask = task("build", "Build project")
   .addFlag({
     name: "force",
     description: "Force compilation even if no files have changed",
   })
   .addFlag({
     name: "quiet",
-    description: "Makes the compilation process less verbose",
+    description: "Make the compilation process less verbose",
   })
   .addOption({
     name: "defaultBuildProfile",
@@ -23,6 +23,14 @@ const buildTask = task("build", "Builds your project")
     name: "files",
     description: "An optional list of files to compile",
     defaultValue: [],
+  })
+  .addFlag({
+    name: "noTests",
+    description: "Skip solidity tests compilation",
+  })
+  .addFlag({
+    name: "noContracts",
+    description: "Skip solidity contracts compilation",
   })
   .setAction(async () => import("./tasks/build.js"))
   .build();
@@ -38,12 +46,12 @@ const hardhatPlugin: HardhatPlugin = {
     {
       ...buildTask,
       id: ["build"],
-      description: "Builds your project",
+      description: "Build project",
     },
     {
       ...buildTask,
       id: ["compile"],
-      description: "Builds your project (alias for build)",
+      description: "Build project (alias for build)",
     },
   ],
   globalOptions: [

@@ -62,14 +62,20 @@ export class CoverageManagerImplementation implements CoverageManager {
   }
 
   public async addData(data: CoverageData): Promise<void> {
-    this.data.push(...data);
+    for (const entry of data) {
+      this.data.push(entry);
+    }
+
     log("Added data", JSON.stringify(data, null, 2));
   }
 
   public async addMetadata(metadata: CoverageMetadata): Promise<void> {
     // NOTE: The received metadata might contain duplicates. We deduplicate it
     // when we generate the report.
-    this.metadata.push(...metadata);
+    for (const entry of metadata) {
+      this.metadata.push(entry);
+    }
+
     log("Added metadata", JSON.stringify(metadata, null, 2));
   }
 
@@ -85,7 +91,7 @@ export class CoverageManagerImplementation implements CoverageManager {
     const filePath = path.join(dataPath, `${crypto.randomUUID()}.json`);
     const data = this.data;
     await writeJsonFile(filePath, data);
-    log("Saved data");
+    log("Saved data", id, filePath);
   }
 
   public async report(...ids: string[]): Promise<void> {
@@ -121,12 +127,13 @@ export class CoverageManagerImplementation implements CoverageManager {
     for (const id of ids) {
       const dataPath = await this.#getDataPath(id);
       const filePaths = await getAllFilesMatching(dataPath);
-      const data = [];
       for (const filePath of filePaths) {
-        const partialData = await readJsonFile<CoverageData>(filePath);
-        data.push(...partialData);
+        const entries = await readJsonFile<CoverageData>(filePath);
+        for (const entry of entries) {
+          this.data.push(entry);
+        }
+        log("Loaded data", id, filePath);
       }
-      this.data.push(...data);
     }
   }
 

@@ -7,6 +7,7 @@ import { run } from "node:test";
 import { URL } from "node:url";
 
 import { hardhatTestReporter } from "@nomicfoundation/hardhat-node-test-reporter";
+import { setGlobalOptionsAsEnvVariables } from "@nomicfoundation/hardhat-utils/env";
 import { getAllFilesMatching } from "@nomicfoundation/hardhat-utils/fs";
 import { createNonClosingWriter } from "@nomicfoundation/hardhat-utils/stream";
 import { markTestRunStart, markTestRunDone } from "hardhat/internal/coverage";
@@ -59,6 +60,8 @@ const testWithHardhat: NewTaskActionFunction<TestActionArguments> = async (
   // Set an environment variable that plugins can use to detect when a process is running tests
   process.env.HH_TEST = "true";
 
+  setGlobalOptionsAsEnvVariables(hre.globalOptions);
+
   if (!noCompile) {
     await hre.tasks.getTask("compile").run({});
     console.log();
@@ -76,10 +79,6 @@ const testWithHardhat: NewTaskActionFunction<TestActionArguments> = async (
   imports.push(tsx.href);
 
   if (hre.globalOptions.coverage === true) {
-    // NOTE: We set the HARDHAT_COVERAGE environment variable here because, as of now,
-    // the global options are not automatically passed to the child processes.
-    process.env.HARDHAT_COVERAGE = "true";
-
     const coverage = new URL(
       import.meta.resolve("@nomicfoundation/hardhat-node-test-runner/coverage"),
     );
@@ -93,7 +92,11 @@ const testWithHardhat: NewTaskActionFunction<TestActionArguments> = async (
   async function runTests(): Promise<number> {
     let failures = 0;
 
-    const nodeTestOptions: LastParameter<typeof run> = { files, only };
+    const nodeTestOptions: LastParameter<typeof run> = {
+      files,
+      only,
+      concurrency: true, // uses `os.availableParallelism() - 1`
+    };
 
     if (grep !== undefined && grep !== "") {
       nodeTestOptions.testNamePatterns = grep;

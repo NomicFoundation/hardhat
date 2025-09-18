@@ -5,4 +5,3 @@
 ### Major Changes
 
 - 29cc141: First release of Hardhat 3!
-

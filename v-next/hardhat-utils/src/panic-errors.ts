@@ -1,4 +1,4 @@
-import { numberToHexString } from "@nomicfoundation/hardhat-utils/hex";
+import { numberToHexString } from "./hex.js";
 
 export function panicErrorCodeToMessage(errorCode: bigint): string {
   const reason = panicErrorCodeToReason(errorCode);

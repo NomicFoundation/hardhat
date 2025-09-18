@@ -1,6 +1,7 @@
 import type { SolidityStackTraceEntry } from "../network-manager/edr/stack-traces/solidity-stack-trace.js";
 
-import { panicErrorCodeToMessage } from "../network-manager/edr/stack-traces/panic-errors.js";
+import { panicErrorCodeToMessage } from "@nomicfoundation/hardhat-utils/panic-errors";
+
 import { StackTraceEntryType } from "../network-manager/edr/stack-traces/solidity-stack-trace.js";
 
 export function getMessageFromLastStackTraceEntry(

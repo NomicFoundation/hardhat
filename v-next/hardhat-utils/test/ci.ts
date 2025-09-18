@@ -3,7 +3,7 @@ import { after, beforeEach, describe, it } from "node:test";
 
 import { isCi } from "../src/ci.js";
 
-// Get the original ENV variables so they can be restored at the end of teh tests
+// Get the original ENV variables so they can be restored at the end of the tests
 const ORIGINAL_ENV_VARS = process.env;
 
 describe("ci", () => {

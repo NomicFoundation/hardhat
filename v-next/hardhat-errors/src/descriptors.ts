@@ -483,6 +483,14 @@ A fully qualified name should look like file.sol:Contract`,
 
 Please resolve the errors before rerunning the command.`,
       },
+      NON_LOCAL_INSTALLATION: {
+        number: 22,
+        messageTemplate: `Trying to use a non-local installation of Hardhat, which is not supported.\n\nPlease install Hardhat locally using pnpm, npm or yarn, and try again.`,
+        websiteTitle: "Hardhat is not installed or installed globally",
+        websiteDescription: `You tried to run Hardhat from a global installation or not installing it at all. This is not supported.
+
+Please install Hardhat locally using pnpm, npm or yarn, and try again.`,
+      },
     },
     INTERNAL: {
       ASSERTION_ERROR: {
@@ -1152,6 +1160,18 @@ Please check Hardhat's output for more details.`,
         websiteTitle: "Build profile not defined",
         websiteDescription: `The build profile you are trying to use is not defined in your Hardhat config.`,
       },
+      COMPILER_PATH_DOES_NOT_EXIST: {
+        number: 913,
+        messageTemplate: `The compiler path "{compilerPath}" specified in your config for version {version} does not exist.`,
+        websiteTitle: "Compiler path does not exist",
+        websiteDescription: `The compiler path you are trying to use does not exist. Ensure you specified the correct path in the config file and that the file exists.`,
+      },
+      PARSING_VERSION_STRING_FAILED: {
+        number: 914,
+        messageTemplate: `Could not parse the full compiler version from "{versionString}" using "{compilerPath}"`,
+        websiteTitle: "Could not parse a compiler version",
+        websiteDescription: `Hardhat failed to parse the full compiler version from the output of the compiler's 'version' command.`,
+      },
     },
     ARTIFACTS: {
       NOT_FOUND: {
@@ -1760,6 +1780,14 @@ npx hardhat ignition track-tx <txHash> <deploymentId> --network <networkName>`,
         messageTemplate: `The deployment's chain cannot be changed between runs. The deployment was previously run against the chain {previousChainId}, but the current network is the chain {currentChainId}.`,
         websiteTitle: "Chain ID changed",
         websiteDescription: `The deployment's chain cannot be changed between runs.`,
+      },
+      ALREADY_IN_PROGRESS: {
+        number: 10901,
+        messageTemplate:
+          "Another instance of `IgnitionHelper.deploy()` is already in use. Please wait for the previous deployment to finish.",
+        websiteTitle: "Deployment already in progress",
+        websiteDescription:
+          "Another instance of `IgnitionHelper.deploy()` is already in use. Please wait for the previous deployment to finish.",
       },
     },
     VERIFY: {

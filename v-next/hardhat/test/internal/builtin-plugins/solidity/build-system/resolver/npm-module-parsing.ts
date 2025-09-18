@@ -29,6 +29,11 @@ describe("Npm module parsing", () => {
         "@openzeppelin/contracts",
       );
 
+      assert.equal(
+        getNpmPackageName("@openzeppelin/contracts@1.2.3/a/"),
+        "@openzeppelin/contracts@1.2.3",
+      );
+
       assert.equal(getNpmPackageName("foo"), "foo");
 
       assert.equal(getNpmPackageName("foo/contracts"), "foo");
@@ -61,6 +66,11 @@ describe("Npm module parsing", () => {
 
       assert.deepEqual(parseNpmDirectImport("@scope/package/a/b/c"), {
         package: "@scope/package",
+        subpath: "a/b/c",
+      });
+
+      assert.deepEqual(parseNpmDirectImport("@scope/package@1.2.3/a/b/c"), {
+        package: "@scope/package@1.2.3",
         subpath: "a/b/c",
       });
     });

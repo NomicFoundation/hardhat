@@ -1,5 +1,17 @@
 # @nomicfoundation/hardhat-verify
 
+## 3.0.2
+
+### Patch Changes
+
+- a475780: Added automatic proxy detection for `hardhat-verify` and fixed case-insensitive proxy environment variables for network requests ([#7407](https://github.com/NomicFoundation/hardhat/pull/7407))
+
+## 3.0.1
+
+### Patch Changes
+
+- 0016b57: Fix `ContractInformationResolver` to use optional chaining when accessing compiler output contracts to prevent potential `TypeError` ([#7291](https://github.com/NomicFoundation/hardhat/pull/7291))
+
 ## 3.0.0
 
 ### Major Changes
