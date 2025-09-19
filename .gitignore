@@ -101,6 +101,9 @@ Brewfile.lock.json
 # Performance profiling application
 .clinic
 
+# pnpm-store when running in a devcontainer
+.pnpm-store
+
 # Input to scripts/generate-filters.js; generated in CI
 pnpm-lock.json
 
