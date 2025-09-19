@@ -1,9 +1,10 @@
 import type { GasAnalyticsManager, GasMeasurement } from "./types.js";
+import type { TableItem } from "@nomicfoundation/hardhat-utils/format";
 
 import crypto from "node:crypto";
 import path from "node:path";
 
-import { formatMarkdownTable } from "@nomicfoundation/hardhat-utils/format";
+import { divider, formatTable } from "@nomicfoundation/hardhat-utils/format";
 import {
   ensureDir,
   getAllFilesMatching,
@@ -11,6 +12,7 @@ import {
   remove,
   writeJsonFile,
 } from "@nomicfoundation/hardhat-utils/fs";
+import chalk from "chalk";
 import debug from "debug";
 
 const gasStatsLog = debug(
@@ -181,17 +183,24 @@ export class GasAnalyticsManagerImplementation implements GasAnalyticsManager {
   public _formatGasStatsMarkdownReport(
     gasStatsReport: Map<string, Map<string, GasStats>>,
   ): string {
-    const rows: string[][] = [];
+    const rows: TableItem[] = [];
     for (const [contractFqn, contractGasStats] of gasStatsReport) {
-      rows.push([getUserFqn(contractFqn)]);
+      rows.push([chalk.cyan.bold(getUserFqn(contractFqn))]);
+      rows.push(divider);
 
       const deploymentGasStats = contractGasStats.get("deployment");
       if (deploymentGasStats !== undefined) {
-        rows.push(["Deployment Cost", "Deployment Size"]);
+        rows.push(
+          ["Deployment Cost", "Deployment Size"].map((s) => chalk.yellow(s)),
+        );
         rows.push([`${deploymentGasStats.avg}`, ""]);
       }
 
-      rows.push(["Function name", "Min", "Average", "Median", "Max", "#calls"]);
+      rows.push(
+        ["Function name", "Min", "Average", "Median", "Max", "#calls"].map(
+          (s) => chalk.yellow(s),
+        ),
+      );
 
       for (const [functionOrDeployment, gasStats] of contractGasStats) {
         if (functionOrDeployment !== "deployment") {
@@ -208,7 +217,7 @@ export class GasAnalyticsManagerImplementation implements GasAnalyticsManager {
       rows.push([]);
     }
 
-    return formatMarkdownTable(undefined, rows, undefined);
+    return formatTable(rows);
   }
 }
 
