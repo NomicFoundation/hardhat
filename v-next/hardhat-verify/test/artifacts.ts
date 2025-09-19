@@ -1,6 +1,7 @@
 import type { HardhatRuntimeEnvironment } from "hardhat/types/hre";
 
 import assert from "node:assert/strict";
+import path from "node:path";
 import { before, describe, it } from "node:test";
 
 import { useEphemeralFixtureProject } from "@nomicfoundation/hardhat-test-utils";
@@ -60,7 +61,7 @@ describe("artifacts", () => {
     it("should return the compiler input for a contract", async () => {
       const compilerInput = await getCompilerInput(
         hre.solidity,
-        hre.config.paths.root,
+        path.join(hre.config.paths.root, "contracts/Counter.sol"),
         "contracts/Counter.sol",
         "production",
       );
