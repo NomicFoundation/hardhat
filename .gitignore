@@ -93,13 +93,16 @@ docs/.env.example
 edr-cache/
 
 # Brew package manager.
-# Lock file is not recommended to be commited: https://github.com/Homebrew/homebrew-bundle#versions-and-lockfiles
+# Lock file is not recommended to be committed: https://github.com/Homebrew/homebrew-bundle#versions-and-lockfiles
 Brewfile.lock.json
 
 *.code-workspace
 
 # Performance profiling application
 .clinic
+
+# pnpm-store when running in a devcontainer
+.pnpm-store
 
 # Input to scripts/generate-filters.js; generated in CI
 pnpm-lock.json
