@@ -19,12 +19,32 @@ const gasStatsLog = debug(
   "hardhat:core:gas-analytics:gas-analytics-manager:gas-stats",
 );
 
+interface ContractGasStats {
+  deployment?: { gas: number; size: number };
+  functions: Map<
+    string, // function name or signature (if overloaded)
+    GasStats
+  >;
+}
+
+type GasStatsByContract = Map<string, ContractGasStats>;
+
 interface GasStats {
   min: number;
   max: number;
   avg: number;
   median: number;
   calls: number;
+}
+
+type GasMeasurementsByContract = Map<string, ContractGasMeasurements>;
+
+interface ContractGasMeasurements {
+  deployment?: { gas: number; size: number };
+  functions: Map<
+    string, // functionSig
+    number[]
+  >;
 }
 
 export class GasAnalyticsManagerImplementation implements GasAnalyticsManager {
@@ -69,12 +89,11 @@ export class GasAnalyticsManagerImplementation implements GasAnalyticsManager {
 
     await this._loadGasMeasurements(...ids);
 
-    const gasStatsReport = this._calculateGasStats();
+    const gasStatsByContract = this._calculateGasStats();
 
-    // TODO size: only for deployments
-    const markdownReport = this._formatGasStatsMarkdownReport(gasStatsReport);
+    const report = this._generateGasStatsReport(gasStatsByContract);
 
-    console.log(markdownReport);
+    console.log(report);
     gasStatsLog("Printed markdown report");
   }
 
@@ -113,65 +132,89 @@ export class GasAnalyticsManagerImplementation implements GasAnalyticsManager {
   /**
    * @private exposed for testing purposes only
    */
-  public _calculateGasStats(): Map<string, Map<string, GasStats>> {
-    const report: Map<string, Map<string, GasStats>> = new Map();
+  public _calculateGasStats(): GasStatsByContract {
+    const gasStatsByContract: GasStatsByContract = new Map();
     const measurementsByContract = this._aggregateGasMeasurements();
 
     for (const [contractFqn, measurements] of measurementsByContract) {
-      const contractGasStats = new Map<string, GasStats>();
+      const contractGasStats: ContractGasStats = {
+        functions: new Map(),
+      };
 
-      for (const [functionOrDeployment, gasValues] of measurements) {
+      if (measurements.deployment !== undefined) {
+        contractGasStats.deployment = {
+          gas: measurements.deployment.gas,
+          size: measurements.deployment.size,
+        };
+      }
+
+      const overloadedFnNames = new Set(
+        findDuplicates([...measurements.functions.keys()].map(getFunctionName)),
+      );
+
+      for (const [functionSig, gasValues] of measurements.functions) {
+        const functionName = getFunctionName(functionSig);
+
+        const isOverloaded = overloadedFnNames.has(functionName);
         const stats: GasStats = {
           min: Math.min(...gasValues),
           max: Math.max(...gasValues),
-          avg: avg(gasValues),
-          median: median(gasValues),
+          avg: roundTo(avg(gasValues), 2),
+          median: roundTo(median(gasValues), 2),
           calls: gasValues.length,
-          // TODO size: only for deployments
         };
 
-        contractGasStats.set(functionOrDeployment, stats);
+        contractGasStats.functions.set(
+          isOverloaded ? functionSig : functionName,
+          stats,
+        );
       }
 
-      report.set(contractFqn, contractGasStats);
+      gasStatsByContract.set(contractFqn, contractGasStats);
     }
 
-    return report;
+    return gasStatsByContract;
   }
 
   /**
    * @private exposed for testing purposes only
    */
-  public _aggregateGasMeasurements(): Map<string, Map<string, number[]>> {
-    const measurementsByContract = new Map<
-      string,
-      Map<string, number[]> // functionSig or "deployment"
-    >();
+  public _aggregateGasMeasurements(): GasMeasurementsByContract {
+    const measurementsByContract: GasMeasurementsByContract = new Map();
 
     for (const currentMeasurement of this.gasMeasurements) {
       let contractMeasurements = measurementsByContract.get(
         currentMeasurement.contractFqn,
       );
       if (contractMeasurements === undefined) {
-        contractMeasurements = new Map<string, number[]>();
+        contractMeasurements = {
+          functions: new Map(),
+        };
         measurementsByContract.set(
           currentMeasurement.contractFqn,
           contractMeasurements,
         );
       }
 
-      const key =
-        currentMeasurement.type === "deployment"
-          ? "deployment"
-          : currentMeasurement.functionSig;
+      if (currentMeasurement.type === "deployment") {
+        contractMeasurements.deployment = {
+          gas: currentMeasurement.gas,
+          size: currentMeasurement.size,
+        };
+      } else {
+        let measurements = contractMeasurements.functions.get(
+          currentMeasurement.functionSig,
+        );
+        if (measurements === undefined) {
+          measurements = [];
+          contractMeasurements.functions.set(
+            currentMeasurement.functionSig,
+            measurements,
+          );
+        }
 
-      let measurements = contractMeasurements.get(key);
-      if (measurements === undefined) {
-        measurements = [];
-        contractMeasurements.set(key, measurements);
+        measurements.push(currentMeasurement.gas);
       }
-
-      measurements.push(currentMeasurement.gas);
     }
 
     return measurementsByContract;
@@ -180,42 +223,50 @@ export class GasAnalyticsManagerImplementation implements GasAnalyticsManager {
   /**
    * @private exposed for testing purposes only
    */
-  public _formatGasStatsMarkdownReport(
-    gasStatsReport: Map<string, Map<string, GasStats>>,
+  public _generateGasStatsReport(
+    gasStatsByContract: GasStatsByContract,
   ): string {
     const rows: TableItem[] = [];
-    for (const [contractFqn, contractGasStats] of gasStatsReport) {
+    for (const [contractFqn, contractGasStats] of gasStatsByContract) {
       rows.push([chalk.cyan.bold(getUserFqn(contractFqn))]);
       rows.push(divider);
 
-      const deploymentGasStats = contractGasStats.get("deployment");
-      if (deploymentGasStats !== undefined) {
+      if (contractGasStats.deployment !== undefined) {
         rows.push(
           ["Deployment Cost", "Deployment Size"].map((s) => chalk.yellow(s)),
         );
-        rows.push([`${deploymentGasStats.avg}`, ""]);
+        rows.push([
+          `${contractGasStats.deployment.gas}`,
+          `${contractGasStats.deployment.size}`,
+        ]);
       }
 
-      rows.push(
-        ["Function name", "Min", "Average", "Median", "Max", "#calls"].map(
-          (s) => chalk.yellow(s),
-        ),
-      );
+      if (contractGasStats.functions.size > 0) {
+        rows.push(
+          ["Function name", "Min", "Average", "Median", "Max", "#calls"].map(
+            (s) => chalk.yellow(s),
+          ),
+        );
+      }
 
-      for (const [functionOrDeployment, gasStats] of contractGasStats) {
-        if (functionOrDeployment !== "deployment") {
-          rows.push([
-            functionOrDeployment,
-            `${gasStats.min}`,
-            `${gasStats.avg}`,
-            `${gasStats.median}`,
-            `${gasStats.max}`,
-            `${gasStats.calls}`,
-          ]);
-        }
+      for (const [
+        functionDisplayName,
+        gasStats,
+      ] of contractGasStats.functions) {
+        rows.push([
+          functionDisplayName,
+          `${gasStats.min}`,
+          `${gasStats.avg}`,
+          `${gasStats.median}`,
+          `${gasStats.max}`,
+          `${gasStats.calls}`,
+        ]);
       }
       rows.push([]);
     }
+
+    // Remove the last empty row for better formatting
+    rows.pop();
 
     return formatTable(rows);
   }
@@ -250,4 +301,28 @@ export function getUserFqn(inputFqn: string): string {
   }
 
   return inputFqn;
+}
+
+export function getFunctionName(signature: string): string {
+  return signature.split("(")[0];
+}
+
+export function findDuplicates<T>(arr: T[]): T[] {
+  const seen = new Set<T>();
+  const duplicates = new Set<T>();
+
+  for (const item of arr) {
+    if (seen.has(item)) {
+      duplicates.add(item);
+    } else {
+      seen.add(item);
+    }
+  }
+
+  return [...duplicates];
+}
+
+export function roundTo(value: number, decimals: number): number {
+  const factor = 10 ** decimals;
+  return Math.round(value * factor) / factor;
 }
