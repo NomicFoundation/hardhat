@@ -6,7 +6,9 @@
       "version": "24"
     }
   },
-  "postCreateCommand": "scripts/setup.sh",
+  "onCreateCommand": "scripts/setup.sh",
+  "postCreateCommand": "pnpm install --frozen-lockfile",
+  "waitFor": "postCreateCommand",
   "containerEnv": {
     "ALCHEMY_URL": "${localEnv:ALCHEMY_URL}",
     "INFURA_URL": "${localEnv:INFURA_URL}"
