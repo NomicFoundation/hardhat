@@ -1,5 +1,19 @@
 import { numberToHexString } from "./hex.js";
+import { panicErrorCodeToReason } from "./internal/panic-errors.js";
 
+/**
+ * Converts a Solidity panic error code into a human-readable revert message.
+ *
+ * Solidity defines a set of standardized panic codes (0x01, 0x11, etc.)
+ * that represent specific runtime errors (e.g. arithmetic overflow).
+ * This function looks up the corresponding reason string and formats it
+ * into a message similar to what clients like Hardhat or ethers.js display.
+ *
+ * @param errorCode The panic error code returned by the EVM as a bigint.
+ * @returns A formatted message string:
+ * - `"reverted with panic code <hex> (<reason>)"` if the code is recognized.
+ * - `"reverted with unknown panic code <hex>"` if the code is not recognized.
+ */
 export function panicErrorCodeToMessage(errorCode: bigint): string {
   const reason = panicErrorCodeToReason(errorCode);
 
@@ -8,28 +22,4 @@ export function panicErrorCodeToMessage(errorCode: bigint): string {
   }
 
   return `reverted with unknown panic code ${numberToHexString(errorCode)}`;
-}
-
-function panicErrorCodeToReason(errorCode: bigint): string | undefined {
-  // eslint-disable-next-line @typescript-eslint/switch-exhaustiveness-check -- we are only covering some of the integer range
-  switch (errorCode) {
-    case 0x1n:
-      return "Assertion error";
-    case 0x11n:
-      return "Arithmetic operation overflowed outside of an unchecked block";
-    case 0x12n:
-      return "Division or modulo division by zero";
-    case 0x21n:
-      return "Tried to convert a value into an enum, but the value was too big or negative";
-    case 0x22n:
-      return "Incorrectly encoded storage byte array";
-    case 0x31n:
-      return ".pop() was called on an empty array";
-    case 0x32n:
-      return "Array accessed at an out-of-bounds or negative index";
-    case 0x41n:
-      return "Too much memory was allocated, or an array was created that is too large";
-    case 0x51n:
-      return "Called a zero-initialized variable of internal function type";
-  }
 }
