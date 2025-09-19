@@ -183,20 +183,18 @@ export class GasAnalyticsManagerImplementation implements GasAnalyticsManager {
   ): string {
     const rows: string[][] = [];
     for (const [contractFqn, contractGasStats] of gasStatsReport) {
-      rows.push([contractFqn]);
+      rows.push([getUserFqn(contractFqn)]);
+
+      const deploymentGasStats = contractGasStats.get("deployment");
+      if (deploymentGasStats !== undefined) {
+        rows.push(["Deployment Cost", "Deployment Size"]);
+        rows.push([`${deploymentGasStats.avg}`, ""]);
+      }
+
+      rows.push(["Function name", "Min", "Average", "Median", "Max", "#calls"]);
+
       for (const [functionOrDeployment, gasStats] of contractGasStats) {
-        if (functionOrDeployment === "deployment") {
-          rows.push(["Deployment Cost", "Deployment Size"]);
-          rows.push([`${gasStats.avg}`, ""]);
-          rows.push([
-            "Function name",
-            "Min",
-            "Average",
-            "Median",
-            "Max",
-            "#calls",
-          ]);
-        } else {
+        if (functionOrDeployment !== "deployment") {
           rows.push([
             functionOrDeployment,
             `${gasStats.min}`,
@@ -225,4 +223,22 @@ export function median(values: number[]): number {
   return sorted.length % 2 === 1
     ? sorted[mid]
     : (sorted[mid - 1] + sorted[mid]) / 2;
+}
+
+export function getUserFqn(inputFqn: string): string {
+  if (inputFqn.startsWith("project/")) {
+    return inputFqn.slice("project/".length);
+  }
+
+  if (inputFqn.startsWith("npm/")) {
+    const withoutPrefix = inputFqn.slice("npm/".length);
+    // Match "<pkg>@<version>/<rest>", where <pkg> may be scoped (@scope/pkg)
+    const match = withoutPrefix.match(/^(@?[^@/]+(?:\/[^@/]+)*)@[^/]+\/(.*)$/);
+    if (match !== null) {
+      return `${match[1]}/${match[2]}`;
+    }
+    return withoutPrefix;
+  }
+
+  return inputFqn;
 }
