@@ -17,7 +17,10 @@ import type {
   HookContext,
   HookManager,
 } from "../../types/hooks.js";
-import type { HardhatRuntimeEnvironment } from "../../types/hre.js";
+import type {
+  HardhatRuntimeEnvironment,
+  HardhatRuntimeEnvironmentVersions,
+} from "../../types/hre.js";
 import type { NetworkManager } from "../../types/network.js";
 import type { HardhatPlugin } from "../../types/plugins.js";
 import type { SolidityBuildSystem } from "../../types/solidity/build-system.js";
@@ -28,6 +31,8 @@ import type { CoverageManager } from "../builtin-plugins/coverage/types.js";
 import { HardhatError } from "@nomicfoundation/hardhat-errors";
 import { findClosestPackageRoot } from "@nomicfoundation/hardhat-utils/package";
 import { resolveFromRoot } from "@nomicfoundation/hardhat-utils/path";
+
+import { getEdrVersion, getHardhatVersion } from "../utils/package.js";
 
 import { validateUserConfig } from "./config-validation.js";
 import { resolveConfigurationVariable } from "./configuration-variables.js";
@@ -66,6 +71,15 @@ export class HardhatRuntimeEnvironmentImplementation
       unsafeOptions?.resolvedPlugins ??
       (await resolvePluginList(resolvedProjectRoot, inputUserConfig.plugins));
 
+    const [hardhatVersion, edrVersion] = await Promise.all([
+      getHardhatVersion(),
+      getEdrVersion(),
+    ]);
+
+    const versions: HardhatRuntimeEnvironmentVersions = {
+      hardhat: hardhatVersion,
+      edr: edrVersion,
+    };
     const hooks = new HookManagerImplementation(
       resolvedProjectRoot,
       resolvedPlugins,
@@ -111,6 +125,7 @@ export class HardhatRuntimeEnvironmentImplementation
       hooks,
       interruptions,
       globalOptions,
+      versions,
       globalOptionDefinitions,
     );
 
@@ -140,6 +155,7 @@ export class HardhatRuntimeEnvironmentImplementation
     public readonly hooks: HookManager,
     public readonly interruptions: UserInterruptionManager,
     public readonly globalOptions: GlobalOptions,
+    public readonly versions: HardhatRuntimeEnvironmentVersions,
     globalOptionDefinitions: GlobalOptionDefinitions,
   ) {
     this.tasks = new TaskManagerImplementation(this, globalOptionDefinitions);
