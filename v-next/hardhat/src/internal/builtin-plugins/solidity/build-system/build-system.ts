@@ -23,6 +23,7 @@ import type {
   CompilerOutputError,
 } from "../../../../types/solidity/compiler-io.js";
 import type { SolidityBuildInfo } from "../../../../types/solidity.js";
+import type { ISpinner } from "../../../utils/spinner.js";
 
 import os from "node:os";
 import path from "node:path";
@@ -50,6 +51,7 @@ import debug from "debug";
 import pMap from "p-map";
 
 import { FileBuildResultType } from "../../../../types/solidity/build-system.js";
+import { createSpinner } from "../../../utils/spinner.js";
 import { DEFAULT_BUILD_PROFILE } from "../build-profiles.js";
 
 import {
@@ -175,11 +177,32 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
       ..._options,
     };
 
-    if (!options.quiet) {
-      console.log(`Compiling your Solidity ${options.scope}...`);
-    }
+    const spinner: ISpinner | undefined = options.quiet
+      ? undefined
+      : createSpinner({ text: `Compiling your Solidity ${options.scope}...` });
 
     await this.#downloadConfiguredCompilers(options.quiet);
+
+    spinner?.start();
+
+    let spinnerFinalized = false;
+
+    const finalizeSpinner = (
+      onSpinner: (active: ISpinner) => void,
+      onNoSpinner?: () => void,
+    ) => {
+      if (spinnerFinalized) {
+        return;
+      }
+
+      if (spinner !== undefined) {
+        onSpinner(spinner);
+      } else {
+        onNoSpinner?.();
+      }
+
+      spinnerFinalized = true;
+    };
 
     const { buildProfile } = this.#getBuildProfile(options.buildProfile);
 
@@ -189,6 +212,9 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
     );
 
     if ("reason" in compilationJobsResult) {
+      finalizeSpinner((s) =>
+        s.fail(`Failed to compile Solidity ${options.scope}`),
+      );
       return compilationJobsResult;
     }
 
@@ -199,6 +225,23 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
       ...new Set(compilationJobsPerFile.values()),
     ];
 
+    const totalJobs = runnableCompilationJobs.length;
+    let completedJobs = 0;
+
+    const updateProgress = () => {
+      if (spinner === undefined || spinnerFinalized) {
+        return;
+      }
+      if (totalJobs === 0) {
+        spinner.update(`Compiling your Solidity ${options.scope}...`);
+        return;
+      }
+      spinner.update(
+        `Compiling your Solidity ${options.scope} (${completedJobs}/${totalJobs})...`,
+      );
+    };
+
+    updateProgress();
     // NOTE: We precompute the build ids in parallel here, which are cached
     // internally in each compilation job
     await Promise.all(
@@ -214,7 +257,8 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
           runnableCompilationJob,
           options,
         );
-
+        completedJobs += 1;
+        updateProgress();
         return {
           compilationJob: runnableCompilationJob,
           compilerOutput: output,
@@ -238,6 +282,11 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
     const isSuccessfulBuild =
       uncachedResults.length === uncachedSuccessfulResults.length;
 
+    if (!isSuccessfulBuild) {
+      finalizeSpinner((s) =>
+        s.fail(`Failed to compile Solidity ${options.scope}`),
+      );
+    }
     const contractArtifactsGeneratedByCompilationJob: Map<
       CompilationJob,
       ReadonlyMap<string, string[]>
@@ -330,6 +379,12 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
             contractArtifactsGenerated.get(userSourceName) ?? [],
           warnings: errors,
         });
+      }
+    }
+    if (!spinnerFinalized) {
+      finalizeSpinner((s) => s.stop());
+      if (totalJobs === 0 && !options.quiet) {
+        console.log("Nothing to compile");
       }
     }
 
@@ -1074,10 +1129,6 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
       string,
       Map<string, CompilationJob[]>
     >();
-
-    if (runnableCompilationJobs.length === 0) {
-      console.log("Nothing to compile");
-    }
 
     for (const job of runnableCompilationJobs) {
       const solcVersion = job.solcConfig.version;
