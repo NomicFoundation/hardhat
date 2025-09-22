@@ -1,4 +1,8 @@
 import "../../../types/config.js";
+import type {
+  SensitiveString,
+  ResolvedConfigurationVariable,
+} from "../../../types/config.js";
 
 declare module "../../../types/config.js" {
   export interface TestPathsUserConfig {
@@ -11,7 +15,7 @@ declare module "../../../types/config.js" {
 }
 
 declare module "../../../types/test.js" {
-  export interface SolidityTestUserConfig {
+  export interface SolidityTestConfigBase {
     timeout?: number;
     fsPermissions?: {
       readWriteFile?: string[];
@@ -32,12 +36,6 @@ declare module "../../../types/test.js" {
     blockTimestamp?: bigint;
     prevRandao?: bigint;
     blockGasLimit?: bigint | false;
-
-    forking?: {
-      url?: string;
-      blockNumber?: bigint;
-      rpcEndpoints?: Record<string, string>;
-    };
 
     fuzz?: {
       failurePersistDir?: string;
@@ -62,13 +60,29 @@ declare module "../../../types/test.js" {
     };
   }
 
+  export interface SolidityTestForkingUserConfig {
+    url?: SensitiveString;
+    blockNumber?: bigint;
+    rpcEndpoints?: Record<string, SensitiveString>;
+  }
+
+  export interface SolidityTestUserConfig extends SolidityTestConfigBase {
+    forking?: SolidityTestForkingUserConfig;
+  }
+
   export interface HardhatTestUserConfig {
     solidity?: SolidityTestUserConfig;
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-empty-interface -- This could be an extension point
-  export interface SolidityTestConfig extends SolidityTestUserConfig {}
+  export interface SolidityTestForkingConfig {
+    url?: ResolvedConfigurationVariable;
+    blockNumber?: bigint;
+    rpcEndpoints?: Record<string, ResolvedConfigurationVariable>;
+  }
 
+  export interface SolidityTestConfig extends SolidityTestConfigBase {
+    forking?: SolidityTestForkingConfig;
+  }
   export interface HardhatTestConfig {
     solidity: SolidityTestConfig;
   }

@@ -1,15 +1,30 @@
+import type { ConfigurationVariableResolver } from "../../../../src/types/config.js";
+import type { HardhatRuntimeEnvironment } from "../../../../src/types/hre.js";
+
 import assert from "node:assert/strict";
-import { describe, it } from "node:test";
+import { before, describe, it } from "node:test";
 
 import { IncludeTraces } from "@nomicfoundation/edr";
 
+import { createHardhatRuntimeEnvironment } from "../../../../src/hre.js";
+import { resolveSolidityTestForkingConfig } from "../../../../src/internal/builtin-plugins/solidity-test/config.js";
 import { solidityTestConfigToSolidityTestRunnerConfigArgs } from "../../../../src/internal/builtin-plugins/solidity-test/helpers.js";
 import { GENERIC_CHAIN_TYPE } from "../../../../src/internal/constants.js";
+import { resolveConfigurationVariable } from "../../../../src/internal/core/configuration-variables.js";
 
 describe("solidityTestConfigToSolidityTestRunnerConfigArgs", () => {
+  let hre: HardhatRuntimeEnvironment;
+  let configVarResolver: ConfigurationVariableResolver;
+
+  before(async () => {
+    hre = await createHardhatRuntimeEnvironment({});
+    configVarResolver = (varOrStr) =>
+      resolveConfigurationVariable(hre.hooks, varOrStr);
+  });
+
   it("should not include traces for verbosity level 0 through 2", async () => {
     for (const verbosity of [0, 1, 2]) {
-      const args = solidityTestConfigToSolidityTestRunnerConfigArgs(
+      const args = await solidityTestConfigToSolidityTestRunnerConfigArgs(
         GENERIC_CHAIN_TYPE,
         process.cwd(),
         {},
@@ -22,7 +37,7 @@ describe("solidityTestConfigToSolidityTestRunnerConfigArgs", () => {
 
   it("should include failing traces for verbosity level 3 and 4", async () => {
     for (const verbosity of [3, 4]) {
-      const args = solidityTestConfigToSolidityTestRunnerConfigArgs(
+      const args = await solidityTestConfigToSolidityTestRunnerConfigArgs(
         GENERIC_CHAIN_TYPE,
         process.cwd(),
         {},
@@ -35,7 +50,7 @@ describe("solidityTestConfigToSolidityTestRunnerConfigArgs", () => {
 
   it("should include all traces for verbosity level 5 and above", async () => {
     for (const verbosity of [5, 6, 7]) {
-      const args = solidityTestConfigToSolidityTestRunnerConfigArgs(
+      const args = await solidityTestConfigToSolidityTestRunnerConfigArgs(
         GENERIC_CHAIN_TYPE,
         process.cwd(),
         {},
@@ -47,7 +62,7 @@ describe("solidityTestConfigToSolidityTestRunnerConfigArgs", () => {
   });
 
   it("sets blockGasLimit and disableBlockGasLimit when blockGasLimit is undefined", async () => {
-    const args = solidityTestConfigToSolidityTestRunnerConfigArgs(
+    const args = await solidityTestConfigToSolidityTestRunnerConfigArgs(
       GENERIC_CHAIN_TYPE,
       process.cwd(),
       { blockGasLimit: undefined },
@@ -59,7 +74,7 @@ describe("solidityTestConfigToSolidityTestRunnerConfigArgs", () => {
   });
 
   it("sets blockGasLimit and disableBlockGasLimit when blockGasLimit is false", async () => {
-    const args = solidityTestConfigToSolidityTestRunnerConfigArgs(
+    const args = await solidityTestConfigToSolidityTestRunnerConfigArgs(
       GENERIC_CHAIN_TYPE,
       process.cwd(),
       { blockGasLimit: false },
@@ -71,7 +86,7 @@ describe("solidityTestConfigToSolidityTestRunnerConfigArgs", () => {
   });
 
   it("sets blockGasLimit and disableBlockGasLimit when blockGasLimit is a number", async () => {
-    const args = solidityTestConfigToSolidityTestRunnerConfigArgs(
+    const args = await solidityTestConfigToSolidityTestRunnerConfigArgs(
       GENERIC_CHAIN_TYPE,
       process.cwd(),
       { blockGasLimit: 1n },
@@ -83,7 +98,7 @@ describe("solidityTestConfigToSolidityTestRunnerConfigArgs", () => {
   });
 
   it("sets blockDifficulty based on prevRandao", async () => {
-    const args = solidityTestConfigToSolidityTestRunnerConfigArgs(
+    const args = await solidityTestConfigToSolidityTestRunnerConfigArgs(
       GENERIC_CHAIN_TYPE,
       process.cwd(),
       { prevRandao: 123n },
@@ -94,16 +109,21 @@ describe("solidityTestConfigToSolidityTestRunnerConfigArgs", () => {
   });
 
   it("sets ethRpcUrl, forkBlockNumber and rpcEndpoints based on forking config", async () => {
-    const args = solidityTestConfigToSolidityTestRunnerConfigArgs(
+    const userForkingConfig = {
+      url: "an_url",
+      blockNumber: 123n,
+      rpcEndpoints: { a: "b" },
+    };
+
+    const resolvedForkingConfig = resolveSolidityTestForkingConfig(
+      userForkingConfig,
+      configVarResolver,
+    );
+
+    const args = await solidityTestConfigToSolidityTestRunnerConfigArgs(
       GENERIC_CHAIN_TYPE,
       process.cwd(),
-      {
-        forking: {
-          url: "an_url",
-          blockNumber: 123n,
-          rpcEndpoints: { a: "b" },
-        },
-      },
+      { forking: resolvedForkingConfig },
       1,
     );
 
