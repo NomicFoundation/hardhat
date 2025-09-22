@@ -3,8 +3,8 @@ import type { UserInterruptionManager } from "./user-interruptions.js";
 import type { HardhatConfig, HardhatUserConfig } from "../types/config.js";
 
 export interface HardhatRuntimeEnvironmentVersions {
-  readonly hardhat: string;
-  readonly edr: string;
+  readonly hardhatVersion: string;
+  readonly edrVersion: string;
 }
 
 /**

@@ -77,8 +77,8 @@ export class HardhatRuntimeEnvironmentImplementation
     ]);
 
     const versions: HardhatRuntimeEnvironmentVersions = {
-      hardhat: hardhatVersion,
-      edr: edrVersion,
+      hardhatVersion,
+      edrVersion,
     };
     const hooks = new HookManagerImplementation(
       resolvedProjectRoot,
