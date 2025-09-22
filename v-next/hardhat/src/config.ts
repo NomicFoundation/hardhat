@@ -11,7 +11,7 @@ import type { HardhatUserConfig } from "./types/config.js";
 /**
  * Defines a Hardhat user config.
  *
- * This function is normally expected to be use in your `hardhat.config.ts` file
+ * This function is normally expected to be used in your `hardhat.config.ts` file
  * like this:
  *
  * ```js
