@@ -306,7 +306,7 @@ export const ERROR_CATEGORIES: {
     min: 90000,
     max: 90999,
     pluginId: "hardhat-ledger",
-    websiteTitle: "Hardhat Ledger ",
+    websiteTitle: "Hardhat Ledger",
     CATEGORIES: {
       GENERAL: {
         min: 90000,
