@@ -9,7 +9,7 @@ import "./internal/builtin-plugins/index.js";
 import type { HardhatUserConfig } from "./types/config.js";
 
 /**
- * Defines a Hardhat use config.
+ * Defines a Hardhat user config.
  *
  * This function is normally expected to be use in your `hardhat.config.ts` file
  * like this:
