@@ -1,9 +1,7 @@
-import type { HardhatUserConfig } from "hardhat/config";
-
 import hardhatToolboxViemPlugin from "@nomicfoundation/hardhat-toolbox-viem";
-import { configVariable } from "hardhat/config";
+import { configVariable, defineConfig } from "hardhat/config";
 
-const config: HardhatUserConfig = {
+export default defineConfig({
   plugins: [hardhatToolboxViemPlugin],
   solidity: {
     profiles: {
@@ -37,6 +35,4 @@ const config: HardhatUserConfig = {
       accounts: [configVariable("SEPOLIA_PRIVATE_KEY")],
     },
   },
-};
-
-export default config;
+});
