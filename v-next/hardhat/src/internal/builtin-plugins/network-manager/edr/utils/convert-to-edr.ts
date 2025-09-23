@@ -377,7 +377,7 @@ export function edrGasReportToHardhatGasMeasurements(
     }
 
     // Process function calls
-    for (const [functionSig, { calls }] of Object.entries(data.functions)) {
+    for (const [functionSig, calls] of Object.entries(data.functions)) {
       for (const call of calls) {
         if (call.status === GasReportExecutionStatus.Success) {
           gasMeasurements.push({
