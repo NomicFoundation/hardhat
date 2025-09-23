@@ -17,10 +17,7 @@ import type {
   HookContext,
   HookManager,
 } from "../../types/hooks.js";
-import type {
-  HardhatRuntimeEnvironment,
-  HardhatRuntimeEnvironmentVersions,
-} from "../../types/hre.js";
+import type { HardhatRuntimeEnvironment } from "../../types/hre.js";
 import type { NetworkManager } from "../../types/network.js";
 import type { HardhatPlugin } from "../../types/plugins.js";
 import type { SolidityBuildSystem } from "../../types/solidity/build-system.js";
@@ -76,9 +73,9 @@ export class HardhatRuntimeEnvironmentImplementation
       getEdrVersion(),
     ]);
 
-    const versions: HardhatRuntimeEnvironmentVersions = {
-      hardhatVersion,
-      edrVersion,
+    const versions = {
+      hardhat: hardhatVersion,
+      edr: edrVersion,
     };
     const hooks = new HookManagerImplementation(
       resolvedProjectRoot,
@@ -155,7 +152,10 @@ export class HardhatRuntimeEnvironmentImplementation
     public readonly hooks: HookManager,
     public readonly interruptions: UserInterruptionManager,
     public readonly globalOptions: GlobalOptions,
-    public readonly versions: HardhatRuntimeEnvironmentVersions,
+    public readonly versions: {
+      readonly hardhat: string;
+      readonly edr: string;
+    },
     globalOptionDefinitions: GlobalOptionDefinitions,
   ) {
     this.tasks = new TaskManagerImplementation(this, globalOptionDefinitions);

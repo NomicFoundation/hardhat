@@ -10,7 +10,7 @@ import {
 describe("Hardhat runtime Environment versions", () => {
   it("Hardhat and EDR versions", async () => {
     const hre = await HardhatRuntimeEnvironmentImplementation.create({}, {});
-    assert.equal(hre.versions.hardhatVersion, await getHardhatVersion());
-    assert.equal(hre.versions.edrVersion, await getEdrVersion());
+    assert.equal(hre.versions.hardhat, await getHardhatVersion());
+    assert.equal(hre.versions.edr, await getEdrVersion());
   });
 });
