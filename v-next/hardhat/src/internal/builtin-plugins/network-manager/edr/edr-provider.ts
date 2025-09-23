@@ -31,6 +31,7 @@ import {
   opHardforkFromString,
   l1GenesisState,
   l1HardforkFromString,
+  ContractDecoder,
 } from "@nomicfoundation/edr";
 import {
   assertHardhatInvariant,
@@ -173,6 +174,8 @@ export class EdrProvider extends BaseProvider {
       chainDescriptors,
     );
 
+    const contractDecoder = ContractDecoder.withContracts(tracingConfig)
+
     let edrProvider: EdrProvider;
 
     // We need to catch errors here, as the provider creation can panic unexpectedly,
@@ -204,7 +207,7 @@ export class EdrProvider extends BaseProvider {
             edrProvider.onSubscriptionEvent(event);
           },
         },
-        tracingConfig,
+        contractDecoder,
       );
 
       edrProvider = new EdrProvider(provider, jsonRpcRequestWrapper);
