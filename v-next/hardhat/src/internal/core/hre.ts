@@ -29,6 +29,8 @@ import { HardhatError } from "@nomicfoundation/hardhat-errors";
 import { findClosestPackageRoot } from "@nomicfoundation/hardhat-utils/package";
 import { resolveFromRoot } from "@nomicfoundation/hardhat-utils/path";
 
+import { getEdrVersion, getHardhatVersion } from "../utils/package.js";
+
 import { validateUserConfig } from "./config-validation.js";
 import { resolveConfigurationVariable } from "./configuration-variables.js";
 import {
@@ -66,6 +68,15 @@ export class HardhatRuntimeEnvironmentImplementation
       unsafeOptions?.resolvedPlugins ??
       (await resolvePluginList(resolvedProjectRoot, inputUserConfig.plugins));
 
+    const [hardhatVersion, edrVersion] = await Promise.all([
+      getHardhatVersion(),
+      getEdrVersion(),
+    ]);
+
+    const versions = {
+      hardhat: hardhatVersion,
+      edr: edrVersion,
+    };
     const hooks = new HookManagerImplementation(
       resolvedProjectRoot,
       resolvedPlugins,
@@ -111,6 +122,7 @@ export class HardhatRuntimeEnvironmentImplementation
       hooks,
       interruptions,
       globalOptions,
+      versions,
       globalOptionDefinitions,
     );
 
@@ -140,6 +152,10 @@ export class HardhatRuntimeEnvironmentImplementation
     public readonly hooks: HookManager,
     public readonly interruptions: UserInterruptionManager,
     public readonly globalOptions: GlobalOptions,
+    public readonly versions: {
+      readonly hardhat: string;
+      readonly edr: string;
+    },
     globalOptionDefinitions: GlobalOptionDefinitions,
   ) {
     this.tasks = new TaskManagerImplementation(this, globalOptionDefinitions);
