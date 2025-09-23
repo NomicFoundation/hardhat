@@ -142,7 +142,7 @@ const config: HardhatUserConfig = {
       },
       ledgerAccounts: [
         // Set your ledger address here
-        "0x070Da0697e6B82F0ab3f5D0FD9210EAdF2Ba1516",
+        // "0x070Da0697e6B82F0ab3f5D0FD9210EAdF2Ba1516",
       ],
     },
     opSepolia: {
