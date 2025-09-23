@@ -4,9 +4,6 @@ settings:
   autoInstallPeers: true
   excludeLinksFromLockfile: false
 
-overrides:
-  '@ledgerhq/hw-transport-node-hid>node-hid': npm:node-hid@^3.2.0
-
 importers:
 
   .:
@@ -4867,11 +4864,6 @@ packages:
     engines: {node: '>=10'}
     hasBin: true
 
-  node-hid@3.2.0:
-    resolution: {integrity: sha512-DJZcRV2QYboBay7AYNrtIdsKBOwInblf7fU7fuDmbxLecfKkMNy0hNUDx0gXtkndUV0DXP6hYL09IDrfYbh5pw==}
-    engines: {node: '>=10.16'}
-    hasBin: true
-
   node-preload@0.2.1:
     resolution: {integrity: sha512-RM5oyBy45cLEoHqCeh+MNuFAxO0vTFBLskvQbOKnEE7YTTSN4tbN8QWDIPQ6L+WvKsB/qLEGpYe2ZZ9d4W9OIQ==}
     engines: {node: '>=8'}
@@ -5039,11 +5031,6 @@ packages:
   pkg-dir@4.2.0:
     resolution: {integrity: sha512-HRDzbaKjC+AOWVXxAU/x54COGeIv9eb+6CkDSQoNTt4XyWoIJvuPsXizxu/Fr23EiekbtZwmh1IcIG/l/a10GQ==}
     engines: {node: '>=8'}
-
-  pkg-prebuilds@1.0.0:
-    resolution: {integrity: sha512-D9wlkXZCmjxj2kBHTw3fGSyjoahr33breGBoJcoezpi7ouYS59DJVOHMZ+dgqacSrZiJo4qtkXxLQTE+BqXJmQ==}
-    engines: {node: '>= 14.15.0'}
-    hasBin: true
 
   possible-typed-array-names@1.1.0:
     resolution: {integrity: sha512-/+5VFTchJDoVj3bhoqi6UeymcD00DAwb1nJwamzPvHEszJ4FpF6SNNbUbOS8yI56qHzdV8eK0qEfOSiodkTdxg==}
@@ -6716,7 +6703,7 @@ snapshots:
       '@ledgerhq/hw-transport-node-hid-noevents': 6.30.8
       '@ledgerhq/logs': 6.13.0
       lodash: 4.17.21
-      node-hid: 3.2.0
+      node-hid: 2.1.2
       usb: 2.9.0
 
   '@ledgerhq/hw-transport@6.31.7':
@@ -9354,11 +9341,6 @@ snapshots:
       node-addon-api: 3.2.1
       prebuild-install: 7.1.3
 
-  node-hid@3.2.0:
-    dependencies:
-      node-addon-api: 3.2.1
-      pkg-prebuilds: 1.0.0
-
   node-preload@0.2.1:
     dependencies:
       process-on-spawn: 1.1.0
@@ -9546,10 +9528,6 @@ snapshots:
   pkg-dir@4.2.0:
     dependencies:
       find-up: 4.1.0
-
-  pkg-prebuilds@1.0.0:
-    dependencies:
-      yargs: 17.7.2
 
   possible-typed-array-names@1.1.0: {}
 
