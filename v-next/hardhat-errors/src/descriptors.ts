@@ -2826,7 +2826,7 @@ Make sure your Ledger is connected and unlocked, and that the Ethereum app is op
       },
       ERROR_WHILE_DERIVING_PATH: {
         number: 90003,
-        messageTemplate: `There was an error trying to derivate path "{path}": "{message}". The wallet might be connected but locked or in the wrong app.`,
+        messageTemplate: `There was an error trying to derive path "{path}": "{message}". The wallet might be connected but locked or in the wrong app.`,
         websiteTitle: "Error while deriving path",
         websiteDescription: `There was an error trying to derivate the path. The wallet might be connected but locked or in the wrong app.`,
       },
