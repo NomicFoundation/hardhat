@@ -32,7 +32,7 @@ export interface VerifyContractArgs {
   address: string;
   constructorArgs?: unknown[];
   libraries?: LibraryAddresses;
-  fullyQualifiedName?: string; // format: <source-name>:<contract-name>
+  contract?: string; // format: <source-name>:<contract-name>
   force?: boolean;
   provider?: keyof VerificationProvidersConfig;
 }
@@ -91,7 +91,7 @@ export async function verifyContract(
     address,
     constructorArgs = [],
     libraries = {},
-    fullyQualifiedName,
+    contract,
     force = false,
   } = verifyContractArgs;
 
@@ -178,7 +178,7 @@ Explorer: ${instance.getContractUrl(address)}`);
     networkName,
   );
   const contractInformation = await contractInformationResolver.resolve(
-    fullyQualifiedName,
+    contract,
     deployedBytecode,
   );
 
@@ -308,10 +308,7 @@ export function validateVerificationProviderName(provider: unknown): void {
   }
 }
 
-export function validateArgs({
-  address,
-  fullyQualifiedName,
-}: VerifyContractArgs): void {
+export function validateArgs({ address, contract }: VerifyContractArgs): void {
   if (!isAddress(address)) {
     throw new HardhatError(
       HardhatError.ERRORS.HARDHAT_VERIFY.VALIDATION.INVALID_ADDRESS,
@@ -325,14 +322,11 @@ export function validateArgs({
   // in #getFullyQualifiedName within the artifacts manager.
   // This would allow us to skip the validation in the
   // resolveContractInformation function.
-  if (
-    fullyQualifiedName !== undefined &&
-    !isFullyQualifiedName(fullyQualifiedName)
-  ) {
+  if (contract !== undefined && !isFullyQualifiedName(contract)) {
     throw new HardhatError(
       HardhatError.ERRORS.CORE.GENERAL.INVALID_FULLY_QUALIFIED_NAME,
       {
-        name: fullyQualifiedName,
+        name: contract,
       },
     );
   }
