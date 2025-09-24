@@ -9,8 +9,6 @@ import type {
 import type { HardhatRuntimeEnvironment } from "hardhat/types/hre";
 import type { EthereumProvider } from "hardhat/types/providers";
 
-import path from "node:path";
-
 import { HardhatError } from "@nomicfoundation/hardhat-errors";
 import { isAddress } from "@nomicfoundation/hardhat-utils/eth";
 import { sleep } from "@nomicfoundation/hardhat-utils/lang";
@@ -34,7 +32,7 @@ export interface VerifyContractArgs {
   address: string;
   constructorArgs?: unknown[];
   libraries?: LibraryAddresses;
-  contract?: string;
+  fullyQualifiedName?: string; // format: <source-name>:<contract-name>
   force?: boolean;
   provider?: keyof VerificationProvidersConfig;
 }
@@ -93,7 +91,7 @@ export async function verifyContract(
     address,
     constructorArgs = [],
     libraries = {},
-    contract,
+    fullyQualifiedName,
     force = false,
   } = verifyContractArgs;
 
@@ -180,7 +178,7 @@ Explorer: ${instance.getContractUrl(address)}`);
     networkName,
   );
   const contractInformation = await contractInformationResolver.resolve(
-    contract,
+    fullyQualifiedName,
     deployedBytecode,
   );
 
@@ -195,22 +193,11 @@ Explorer: ${instance.getContractUrl(address)}`);
     contractInformation.userFqn,
   );
 
-  let root: string;
-  let sourceName: string;
-  if (contractInformation.inputFqn.startsWith("npm/")) {
-    // If the contract is part of a npm package, the root is set to "npm:"
-    // instead of a file path, allowing the solidity build system to resolve it correctly
-    root = `npm:${contractInformation.sourceName}`;
-    sourceName = `npm:${contractInformation.sourceName}`;
-  } else {
-    root = path.join(config.paths.root, contractInformation.sourceName);
-    sourceName = contractInformation.sourceName;
-  }
-
   const minimalCompilerInput = await getCompilerInput(
     solidity,
-    root,
-    sourceName,
+    config.paths.root,
+    contractInformation.sourceName,
+    contractInformation.inputFqn.startsWith("npm/"),
     buildProfileName,
   );
 
@@ -321,7 +308,10 @@ export function validateVerificationProviderName(provider: unknown): void {
   }
 }
 
-export function validateArgs({ address, contract }: VerifyContractArgs): void {
+export function validateArgs({
+  address,
+  fullyQualifiedName,
+}: VerifyContractArgs): void {
   if (!isAddress(address)) {
     throw new HardhatError(
       HardhatError.ERRORS.HARDHAT_VERIFY.VALIDATION.INVALID_ADDRESS,
@@ -335,11 +325,14 @@ export function validateArgs({ address, contract }: VerifyContractArgs): void {
   // in #getFullyQualifiedName within the artifacts manager.
   // This would allow us to skip the validation in the
   // resolveContractInformation function.
-  if (contract !== undefined && !isFullyQualifiedName(contract)) {
+  if (
+    fullyQualifiedName !== undefined &&
+    !isFullyQualifiedName(fullyQualifiedName)
+  ) {
     throw new HardhatError(
       HardhatError.ERRORS.CORE.GENERAL.INVALID_FULLY_QUALIFIED_NAME,
       {
-        name: contract,
+        name: fullyQualifiedName,
       },
     );
   }

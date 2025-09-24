@@ -224,16 +224,20 @@ describe("verification", () => {
     const invalidFqn = "Token";
 
     it("should not throw for a valid address and no contract", () => {
-      validateArgs({ address: validAddress, contract: undefined });
+      validateArgs({ address: validAddress, fullyQualifiedName: undefined });
     });
 
     it("should not throw for a valid address and valid fqn", () => {
-      validateArgs({ address: validAddress, contract: validFqn });
+      validateArgs({ address: validAddress, fullyQualifiedName: validFqn });
     });
 
     it("should throw an error for an invalid address", () => {
       assertThrowsHardhatError(
-        () => validateArgs({ address: invalidAddress, contract: undefined }),
+        () =>
+          validateArgs({
+            address: invalidAddress,
+            fullyQualifiedName: undefined,
+          }),
         HardhatError.ERRORS.HARDHAT_VERIFY.VALIDATION.INVALID_ADDRESS,
         { value: invalidAddress },
       );
@@ -241,7 +245,11 @@ describe("verification", () => {
 
     it("should throw an error for an invalid contract name", () => {
       assertThrowsHardhatError(
-        () => validateArgs({ address: validAddress, contract: invalidFqn }),
+        () =>
+          validateArgs({
+            address: validAddress,
+            fullyQualifiedName: invalidFqn,
+          }),
         HardhatError.ERRORS.CORE.GENERAL.INVALID_FULLY_QUALIFIED_NAME,
         { name: invalidFqn },
       );
