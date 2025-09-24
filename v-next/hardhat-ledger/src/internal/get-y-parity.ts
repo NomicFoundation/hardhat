@@ -9,7 +9,7 @@ export function getYParity(v: number): number {
     return v;
   }
 
-  if (v >= 35n) {
+  if (v >= 35) {
     return (v - 35) % 2;
   }
 
