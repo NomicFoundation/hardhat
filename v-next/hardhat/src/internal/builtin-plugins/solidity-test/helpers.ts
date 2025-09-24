@@ -34,14 +34,14 @@ export function solidityTestConfigToRunOptions(
   return config;
 }
 
-export function solidityTestConfigToSolidityTestRunnerConfigArgs(
+export async function solidityTestConfigToSolidityTestRunnerConfigArgs(
   chainType: ChainType,
   projectRoot: string,
   config: SolidityTestConfig,
   verbosity: number,
   observability?: ObservabilityConfig,
   testPattern?: string,
-): SolidityTestRunnerConfigArgs {
+): Promise<SolidityTestRunnerConfigArgs> {
   const fsPermissions: PathPermission[] | undefined = [
     config.fsPermissions?.readWriteFile?.map((p) => ({
       access: FsAccessPermission.ReadWriteFile,
@@ -98,9 +98,22 @@ export function solidityTestConfigToSolidityTestRunnerConfigArgs(
 
   const blockDifficulty = config.prevRandao;
 
-  const ethRpcUrl = config.forking?.url;
+  let ethRpcUrl: string | undefined;
+  if (config.forking?.url !== undefined) {
+    ethRpcUrl = await config.forking.url.get();
+  }
+
   const forkBlockNumber = config.forking?.blockNumber;
-  const rpcEndpoints = config.forking?.rpcEndpoints;
+
+  let rpcEndpoints: Record<string, string> | undefined;
+  if (config.forking?.rpcEndpoints !== undefined) {
+    rpcEndpoints = {};
+    for (const [name, configValue] of Object.entries(
+      config.forking.rpcEndpoints,
+    )) {
+      rpcEndpoints[name] = await configValue.get();
+    }
+  }
 
   return {
     projectRoot,

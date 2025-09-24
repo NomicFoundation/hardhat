@@ -30,6 +30,7 @@ import {
   opHardforkFromString,
   l1GenesisState,
   l1HardforkFromString,
+  ContractDecoder,
 } from "@nomicfoundation/edr";
 import {
   assertHardhatInvariant,
@@ -174,6 +175,8 @@ export class EdrProvider extends BaseProvider {
     // We need to catch errors here, as the provider creation can panic unexpectedly,
     // and we want to make sure such a crash is propagated as a ProviderError.
     try {
+      const contractDecoder = ContractDecoder.withContracts(tracingConfig);
+
       const context = await getGlobalEdrContext();
       const provider = await context.createProvider(
         hardhatChainTypeToEdrChainType(networkConfig.chainType),
@@ -200,7 +203,7 @@ export class EdrProvider extends BaseProvider {
             edrProvider.onSubscriptionEvent(event);
           },
         },
-        tracingConfig,
+        contractDecoder,
       );
 
       edrProvider = new EdrProvider(provider, jsonRpcRequestWrapper);
@@ -299,6 +302,22 @@ export class EdrProvider extends BaseProvider {
   public async close(): Promise<void> {
     // Clear the provider reference to help with garbage collection
     this.#provider = undefined;
+  }
+
+  public async addCompilationResult(
+    solcVersion: string,
+    compilerInput: any,
+    compilerOutput: any,
+  ): Promise<void> {
+    if (this.#provider === undefined) {
+      throw new HardhatError(HardhatError.ERRORS.CORE.NETWORK.PROVIDER_CLOSED);
+    }
+
+    await this.#provider.addCompilationResult(
+      solcVersion,
+      compilerInput,
+      compilerOutput,
+    );
   }
 
   async #handleEdrResponse(

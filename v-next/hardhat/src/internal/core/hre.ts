@@ -12,7 +12,11 @@ import type {
   GlobalOptions,
   GlobalOptionDefinitions,
 } from "../../types/global-options.js";
-import type { HookContext, HookManager } from "../../types/hooks.js";
+import type {
+  HardhatUserConfigValidationError,
+  HookContext,
+  HookManager,
+} from "../../types/hooks.js";
 import type { HardhatRuntimeEnvironment } from "../../types/hre.js";
 import type { NetworkManager } from "../../types/network.js";
 import type { HardhatPlugin } from "../../types/plugins.js";
@@ -24,6 +28,8 @@ import type { CoverageManager } from "../builtin-plugins/coverage/types.js";
 import { HardhatError } from "@nomicfoundation/hardhat-errors";
 import { findClosestPackageRoot } from "@nomicfoundation/hardhat-utils/package";
 import { resolveFromRoot } from "@nomicfoundation/hardhat-utils/path";
+
+import { getEdrVersion, getHardhatVersion } from "../utils/package.js";
 
 import { validateUserConfig } from "./config-validation.js";
 import { resolveConfigurationVariable } from "./configuration-variables.js";
@@ -62,26 +68,31 @@ export class HardhatRuntimeEnvironmentImplementation
       unsafeOptions?.resolvedPlugins ??
       (await resolvePluginList(resolvedProjectRoot, inputUserConfig.plugins));
 
+    const [hardhatVersion, edrVersion] = await Promise.all([
+      getHardhatVersion(),
+      getEdrVersion(),
+    ]);
+
+    const versions = {
+      hardhat: hardhatVersion,
+      edr: edrVersion,
+    };
     const hooks = new HookManagerImplementation(
       resolvedProjectRoot,
       resolvedPlugins,
     );
 
-    // extend user config:
-    const extendedUserConfig = await runUserConfigExtensions(
-      hooks,
+    const configResolutionResult = await resolveUserConfigToHardhatConfig(
       inputUserConfig,
-    );
-
-    // validate config
-    const userConfigValidationErrors = await validateUserConfig(
       hooks,
-      extendedUserConfig,
+      resolvedProjectRoot,
+      userProvidedGlobalOptions.config,
+      resolvedPlugins,
     );
 
-    if (userConfigValidationErrors.length > 0) {
+    if (!configResolutionResult.success) {
       throw new HardhatError(HardhatError.ERRORS.CORE.GENERAL.INVALID_CONFIG, {
-        errors: `\t${userConfigValidationErrors
+        errors: `\t${configResolutionResult.userConfigValidationErrors
           .map(
             (error) =>
               `* Config error in config.${error.path.join(".")}: ${error.message}`,
@@ -90,26 +101,7 @@ export class HardhatRuntimeEnvironmentImplementation
       });
     }
 
-    // Resolve config
-
-    const resolvedConfig = await resolveUserConfig(
-      resolvedProjectRoot,
-      userProvidedGlobalOptions.config,
-      hooks,
-      resolvedPlugins,
-      extendedUserConfig,
-    );
-
-    // We override the plugins and the project root, as we want to prevent
-    // the plugins from changing them
-    const config: HardhatConfig = {
-      ...resolvedConfig,
-      paths: {
-        ...resolvedConfig.paths,
-        root: resolvedProjectRoot,
-      },
-      plugins: resolvedPlugins,
-    };
+    const { config, extendedUserConfig } = configResolutionResult;
 
     const globalOptionDefinitions =
       unsafeOptions?.globalOptionDefinitions ??
@@ -122,7 +114,6 @@ export class HardhatRuntimeEnvironmentImplementation
 
     // Set the HookContext in the hook manager so that non-config hooks can
     // use it
-
     const interruptions = new UserInterruptionManagerImplementation(hooks);
 
     const hre = new HardhatRuntimeEnvironmentImplementation(
@@ -131,6 +122,7 @@ export class HardhatRuntimeEnvironmentImplementation
       hooks,
       interruptions,
       globalOptions,
+      versions,
       globalOptionDefinitions,
     );
 
@@ -160,6 +152,10 @@ export class HardhatRuntimeEnvironmentImplementation
     public readonly hooks: HookManager,
     public readonly interruptions: UserInterruptionManager,
     public readonly globalOptions: GlobalOptions,
+    public readonly versions: {
+      readonly hardhat: string;
+      readonly edr: string;
+    },
     globalOptionDefinitions: GlobalOptionDefinitions,
   ) {
     this.tasks = new TaskManagerImplementation(this, globalOptionDefinitions);
@@ -178,6 +174,80 @@ export async function resolveProjectRoot(
   absolutePathWithinProject: string | undefined,
 ): Promise<string> {
   return findClosestPackageRoot(absolutePathWithinProject ?? process.cwd());
+}
+
+/**
+ * Runs the provided Hardhat user config through the resolution process,
+ * invoking relevant plugin hooks (both internal and external) to extend
+ * and transform the config into a full HardhatConfig.
+ *
+ * @param hooks - The HookManager used to run config extension and validation
+ * hooks.
+ * @param inputUserConfig - The initial user provided Hardhat config object.
+ * @param resolvedProjectRoot - The project root path.
+ * @param userProvidedConfigPath - The user provided Hardhat config file path.
+ * @param resolvedPlugins - The list of plugins, we do not want the plugins
+ * overwriting them so we re-add them to the final HardhatConfig.
+ * @returns Either an object containing the resolved HardhatConfig and the
+ * extended version of the user config, or a list of validation errors.
+ */
+export async function resolveUserConfigToHardhatConfig(
+  inputUserConfig: HardhatUserConfig,
+  hooks: HookManager,
+  resolvedProjectRoot: string,
+  userProvidedConfigPath: string | undefined,
+  resolvedPlugins: HardhatPlugin[],
+): Promise<
+  | {
+      success: true;
+      config: HardhatConfig;
+      extendedUserConfig: HardhatUserConfig;
+    }
+  | {
+      success: false;
+      userConfigValidationErrors: HardhatUserConfigValidationError[];
+    }
+> {
+  // extend user config:
+  const extendedUserConfig = await runUserConfigExtensions(
+    hooks,
+    inputUserConfig,
+  );
+
+  // validate config
+  const userConfigValidationErrors = await validateUserConfig(
+    hooks,
+    extendedUserConfig,
+  );
+
+  if (userConfigValidationErrors.length > 0) {
+    return {
+      success: false,
+      userConfigValidationErrors,
+    };
+  }
+
+  // Resolve config
+  const resolvedConfig = await resolveUserConfig(
+    resolvedProjectRoot,
+    userProvidedConfigPath,
+    hooks,
+    resolvedPlugins,
+    extendedUserConfig,
+  );
+
+  // We override the plugins and the project root, as we want to prevent
+  // the plugins from changing them
+  const config: HardhatConfig = {
+    ...resolvedConfig,
+    paths: {
+      ...resolvedConfig.paths,
+      root: resolvedProjectRoot,
+    },
+    plugins: resolvedPlugins,
+  };
+
+  return { success: true, config, extendedUserConfig };
 }
 
 async function runUserConfigExtensions(
