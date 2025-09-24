@@ -1,3 +1,4 @@
+/* eslint-disable prefer-const -- test*/
 import type { HardhatPlugin } from "../../../../src/types/plugins.js";
 
 import assert from "node:assert/strict";
@@ -242,5 +243,205 @@ describe("Plugins - resolve plugin list", () => {
         },
       );
     });
+  });
+});
+
+describe("Plugins - resolve plugin list - conditional dependencies", () => {
+  // Helper function that simulates loading a module that returns a plugin
+  async function mod(plugin: HardhatPlugin) {
+    return { default: plugin };
+  }
+
+  let A: HardhatPlugin;
+  let B: HardhatPlugin;
+  let C: HardhatPlugin;
+  let D: HardhatPlugin;
+  let E: HardhatPlugin;
+  let F: HardhatPlugin;
+  let G: HardhatPlugin;
+  let H: HardhatPlugin;
+  let I: HardhatPlugin;
+  let J: HardhatPlugin;
+  let K: HardhatPlugin;
+  let L: HardhatPlugin;
+  let M: HardhatPlugin;
+
+  A = {
+    id: "A",
+    conditionalDependencies: [
+      {
+        condition: () => [mod(B)],
+        plugin: () => mod(D),
+      },
+    ],
+  };
+
+  B = {
+    id: "B",
+    conditionalDependencies: [
+      {
+        condition: () => [mod(E), mod(G)],
+        plugin: () => mod(F),
+      },
+    ],
+  };
+
+  C = {
+    id: "C",
+    dependencies: () => {
+      return [mod(B)];
+      // return [];
+    },
+  };
+
+  D = {
+    id: "D",
+    dependencies: () => {
+      return [mod(E)];
+    },
+  };
+
+  E = {
+    id: "E",
+    dependencies: () => {
+      return [];
+    },
+    conditionalDependencies: [
+      {
+        condition: () => [mod(D)],
+        plugin: () => mod(G),
+      },
+    ],
+  };
+
+  F = {
+    id: "F",
+    conditionalDependencies: [
+      {
+        condition: () => [import(`${"nonexistant"}`)],
+        plugin: () => mod(G),
+      },
+    ],
+  };
+
+  G = {
+    id: "G",
+  };
+
+  H = {
+    id: "H",
+    conditionalDependencies: [
+      {
+        condition: () => [mod(G)],
+        plugin: () => mod(F),
+      },
+    ],
+  };
+
+  I = {
+    id: "I",
+    conditionalDependencies: [
+      {
+        condition: () => [mod(B)],
+        plugin: () => mod(G),
+      },
+    ],
+  };
+
+  J = {
+    id: "J",
+    conditionalDependencies: [
+      {
+        condition: () => [mod(G)],
+        plugin: () => mod(C),
+      },
+      {
+        condition: () => [mod(B)],
+        plugin: () => mod(F),
+      },
+    ],
+  };
+
+  K = {
+    id: "K",
+    conditionalDependencies: [
+      {
+        condition: () => [mod(G)],
+        plugin: () => mod(L),
+      },
+      {
+        condition: () => [mod(L)],
+        plugin: () => mod(M),
+      },
+      {
+        condition: () => [mod(M)],
+        plugin: () => mod(F),
+      },
+    ],
+  };
+
+  L = {
+    id: "L",
+    conditionalDependencies: [
+      {
+        condition: () => [mod(B)],
+        plugin: () => mod(G),
+      },
+    ],
+  };
+
+  M = {
+    id: "M",
+    conditionalDependencies: [
+      {
+        condition: () => [mod(B)],
+        plugin: () => mod(G),
+      },
+    ],
+  };
+
+  // Helper function to get plugin ids
+  function ids(plugins: HardhatPlugin[]) {
+    return plugins.map((p) => p.id);
+  }
+
+  it("doesn't load a conditional dependency if the conditions are not met", async () => {
+    const resolvedPlugins = await resolvePluginList(process.cwd(), [A]);
+    assert.deepEqual(resolvedPlugins, [A]);
+  });
+
+  it("doesn't load a conditional dependency if only one of the conditions are not met", async () => {
+    const resolvedPlugins = await resolvePluginList(process.cwd(), [B, G]);
+    assert.deepEqual(resolvedPlugins, [B, G]);
+  });
+
+  it("doesn't load a conditional dependency if one of the conditions is not installed", async () => {
+    const resolvedPlugins = await resolvePluginList(process.cwd(), [F]);
+    assert.deepEqual(resolvedPlugins, [F]);
+  });
+
+  it("loads a conditional dependency if the condition is met, on the initial plugin list", async () => {
+    const resolvedPlugins = await resolvePluginList(process.cwd(), [D, E]);
+    assert.deepEqual(ids(resolvedPlugins), ["E", "D", "G"]); // D is loaded initially, E conditionally loads G
+  });
+
+  it("loads a conditional dependency if the condition is met, from a dependency from the initial list", async () => {
+    const resolvedPlugins = await resolvePluginList(process.cwd(), [C, I]);
+    assert.deepEqual(ids(resolvedPlugins), ["B", "C", "I", "G"]); // C loads B, I conditionally loads G because of B
+  });
+
+  it("loads a conditional dependency if the condition is met, from a conditional dependency of a plugin on the initial list", async () => {
+    const resolvedPlugins = await resolvePluginList(process.cwd(), [B, I, H]);
+    assert.deepEqual(ids(resolvedPlugins), ["B", "I", "H", "G", "F"]); // I conditionally loads G because of B, then H conditionally loads F because of G
+  });
+
+  it("loads a conditional dependency if the condition is met, from a dependency of a conditional dependency", async () => {
+    const resolvedPlugins = await resolvePluginList(process.cwd(), [J, G]);
+    assert.deepEqual(ids(resolvedPlugins), ["J", "G", "B", "C", "F"]); // J conditionally loads C because of G. C loads B, J loads F because of B
+  });
+
+  it("loads a conditional dependency if the condition is met, from a conditional dependency of a conditional dependency", async () => {
+    const resolvedPlugins = await resolvePluginList(process.cwd(), [K, G]);
+    assert.deepEqual(ids(resolvedPlugins), ["K", "G", "L", "M", "F"]); // K loads L because of G, then M because of L, then F because of M
   });
 });
