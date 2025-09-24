@@ -174,7 +174,7 @@ export class EdrProvider extends BaseProvider {
       chainDescriptors,
     );
 
-    const contractDecoder = ContractDecoder.withContracts(tracingConfig)
+    const contractDecoder = ContractDecoder.withContracts(tracingConfig);
 
     let edrProvider: EdrProvider;
 
