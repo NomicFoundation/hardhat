@@ -44,7 +44,7 @@ import {
   writeUtf8File,
 } from "@nomicfoundation/hardhat-utils/fs";
 import { shortenPath } from "@nomicfoundation/hardhat-utils/path";
-import { createSpinnerController } from "@nomicfoundation/hardhat-utils/spinner";
+import { createSpinner } from "@nomicfoundation/hardhat-utils/spinner";
 import { pluralize } from "@nomicfoundation/hardhat-utils/string";
 import chalk from "chalk";
 import debug from "debug";
@@ -177,15 +177,15 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
     };
 
     const spinnerLabel = `Compiling your Solidity ${options.scope}...`;
-
-    const spinner = createSpinnerController({
+    const spinner = createSpinner({
       text: spinnerLabel,
       enabled: !options.quiet,
+      silent: options.quiet,
     });
 
     await this.#downloadConfiguredCompilers(options.quiet);
 
-    spinner.instance.start(spinnerLabel);
+    spinner.start(spinnerLabel);
 
     const { buildProfile } = this.#getBuildProfile(options.buildProfile);
 
@@ -304,7 +304,7 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
         ),
       );
 
-      spinner.pause(() => this.#printSolcErrorsAndWarnings(errors));
+      spinner.runWithPause(() => this.#printSolcErrorsAndWarnings(errors));
 
       const successfulResult = !this.#hasCompilationErrors(
         result.compilerOutput,
@@ -345,29 +345,14 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
       }
     }
 
-    let finalLine: string | undefined;
-    const extraLines: string[] = [];
-
     if (totalJobs === 0 && !options.quiet) {
-      finalLine = "Nothing to compile";
-    } else if (isSuccessfulBuild && !options.quiet) {
-      await this.#printCompilationResult(runnableCompilationJobs, (line) => {
-        if (finalLine === undefined) {
-          finalLine = line;
-        } else {
-          extraLines.push(line);
-        }
-      });
-    }
-
-    if (finalLine !== undefined) {
-      spinner.stopAndPersist(finalLine);
+      spinner.stopAndPersist("Nothing to compile");
     } else {
       spinner.stop();
-    }
 
-    for (const line of extraLines) {
-      console.log(line);
+      if (!options.quiet && isSuccessfulBuild) {
+        await this.#printCompilationResult(runnableCompilationJobs);
+      }
     }
 
     return resultsMap;
@@ -1102,7 +1087,6 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
 
   async #printCompilationResult(
     runnableCompilationJobs: CompilationJob[],
-    writeLine: (line: string) => void = console.log,
   ): Promise<void> {
     const jobsPerVersionAndEvmVersion = new Map<
       string,
@@ -1146,7 +1130,7 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
           0,
         );
 
-        writeLine(
+        console.log(
           `Compiled ${rootFiles} Solidity ${pluralize(
             "file",
             rootFiles,

@@ -28,16 +28,19 @@ class Spinner implements ISpinner {
   #isSpinning = false;
   #loggedFallback = false;
   readonly #stream: NodeJS.WriteStream;
+  readonly #silent: boolean;
 
   constructor(
     stream: NodeJS.WriteStream,
     enabled: boolean,
     initialText: string,
+    silent: boolean = false,
   ) {
     this.isEnabled = enabled;
     this.#stream = stream;
 
     this.#text = initialText;
+    this.#silent = silent;
   }
 
   public get isSpinning(): boolean {
@@ -68,7 +71,7 @@ class Spinner implements ISpinner {
     }
 
     if (!this.isEnabled) {
-      if (this.#text !== "" && !this.#loggedFallback) {
+      if (this.#text !== "" && !this.#loggedFallback && !this.#silent) {
         console.log(this.#text);
         this.#loggedFallback = true;
       }
@@ -91,7 +94,7 @@ class Spinner implements ISpinner {
 
     if (this.isEnabled && this.#isSpinning) {
       this.#render(false);
-    } else if (!this.isEnabled && this.#loggedFallback) {
+    } else if (!this.isEnabled && this.#loggedFallback && !this.#silent) {
       console.log(nextText);
     }
   }
@@ -190,8 +193,10 @@ class Spinner implements ISpinner {
     const prefix = symbol !== undefined ? `${symbol} ` : "";
 
     if (!this.isEnabled) {
-      console.log(`${prefix}${output}`);
-      this.#loggedFallback = true;
+      if (!this.#silent) {
+        console.log(`${prefix}${output}`);
+        this.#loggedFallback = true;
+      }
       return;
     }
 
@@ -219,99 +224,49 @@ export interface SpinnerOptions {
    * Whether the spinner is enabled.
    */
   enabled?: boolean;
+
+  /**
+   * Suppress console fallbacks when the spinner is disabled.
+   */
+  silent?: boolean;
 }
+
+/**
+ * Create a spinner instance.
+ *
+ * @example
+ * ```typescript
+ * const spinner = createSpinner({ text: "Compiling…" });
+ * spinner.start();
+ *
+ * try {
+ *   spinner.update("Compiling contracts…");
+ *   await compileContracts();
+ *
+ *   spinner.runWithPause(() => {
+ *     console.log("Verification step starting");
+ *   });
+ *
+ *   await verifyContracts();
+ *   spinner.succeed("Compilation finished");
+ * } catch (error) {
+ *   spinner.fail("Compilation failed");
+ * }
+ * ```
+ *
+ * @param options  Optional spinner configuration.
+ * @returns {Spinner} A spinner instance.
+ */
 export function createSpinner(options: SpinnerOptions = {}): ISpinner {
   const stream = options.stream ?? process.stdout;
 
   const enable =
     options.enabled ?? (stream.isTTY === true && process.env.TERM !== "dumb");
 
-  return new Spinner(stream, enable, options.text ?? "");
-}
-
-/**
- * Helper that wraps a spinner with pause/finish helpers.
- */
-export interface SpinnerController {
-  /**
-   * spinner instance.
-   */
-  readonly instance: ISpinner;
-  /**
-   * True while the spinner is enabled, spinning, and not finished.
-   */
-  readonly isActive: boolean;
-  /**
-   * Pause the spinner to execute an action, then resume it.
-   */
-  pause(action: () => void): void;
-  /**
-   * Stop the spinner without printing a final line.
-   */
-  stop(text?: string): void;
-  /**
-   * Stop the spinner and leave the final line on screen.
-   */
-  stopAndPersist(text: string, symbol?: string): void;
-  /**
-   * Finish the spinner with a success message.
-   */
-  succeed(text?: string, symbol?: string): void;
-  /**
-   * Finish the spinner with a failure message.
-   */
-  fail(text?: string, symbol?: string): void;
-}
-
-/**
- * Create a spinner controller that manages pause/finish.
- */
-export function createSpinnerController(
-  options: SpinnerOptions = {},
-): SpinnerController {
-  const instance = createSpinner(options);
-
-  let finished = false;
-  const guard = (
-    action: (spinner: ISpinner) => void,
-    fallback?: () => void,
-  ) => {
-    if (finished) {
-      fallback?.();
-      return;
-    }
-
-    finished = !instance.isEnabled;
-    action(instance);
-  };
-
-  return {
-    instance,
-    get isActive() {
-      return instance.isEnabled && instance.isSpinning && !finished;
-    },
-
-    pause(action: () => void) {
-      instance.runWithPause(action);
-    },
-
-    stop(text?: string) {
-      guard((spinner) => spinner.stop(text));
-    },
-
-    stopAndPersist(text: string, symbol?: string) {
-      guard(
-        (spinner) => spinner.stopAndPersist(text, symbol),
-        () => {
-          console.log(symbol !== undefined ? `${symbol} ${text}` : text);
-        },
-      );
-    },
-    succeed(text?: string, symbol?: string) {
-      guard((spinner) => spinner.succeed(text, symbol));
-    },
-    fail(text?: string, symbol?: string) {
-      guard((spinner) => spinner.fail(text, symbol));
-    },
-  };
+  return new Spinner(
+    stream,
+    enable,
+    options.text ?? "",
+    options.silent ?? false,
+  );
 }
