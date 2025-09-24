@@ -93,9 +93,9 @@ export class GasAnalyticsManagerImplementation implements GasAnalyticsManager {
   }
 
   async #getGasMeasurementsPath(id: string): Promise<string> {
-    const dataPath = path.join(this.#gasStatsPath, "gas-stats", id);
-    await ensureDir(dataPath);
-    return dataPath;
+    const gasMeasurementsPath = path.join(this.#gasStatsPath, "gas-stats", id);
+    await ensureDir(gasMeasurementsPath);
+    return gasMeasurementsPath;
   }
 
   /**
@@ -104,8 +104,8 @@ export class GasAnalyticsManagerImplementation implements GasAnalyticsManager {
   public async _loadGasMeasurements(...ids: string[]): Promise<void> {
     this.gasMeasurements = [];
     for (const id of ids) {
-      const gasStatsPath = await this.#getGasMeasurementsPath(id);
-      const filePaths = await getAllFilesMatching(gasStatsPath);
+      const gasMeasurementsPath = await this.#getGasMeasurementsPath(id);
+      const filePaths = await getAllFilesMatching(gasMeasurementsPath);
       for (const filePath of filePaths) {
         const entries = await readJsonFile<GasMeasurement[]>(filePath);
         for (const entry of entries) {
