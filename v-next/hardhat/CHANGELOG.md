@@ -1,5 +1,18 @@
 # hardhat
 
+## 3.0.7
+
+### Patch Changes
+
+- e17972f: Expose `hre.versions` with Hardhat and EDR package versions.
+- 138d673: EDR updated to version [`0.12.0-next.7`](https://www.npmjs.com/package/@nomicfoundation/edr/v/0.12.0-next.7)
+- 138d673: Added `network.createServer(...)` to spawn a Hardhat node programmatically ([#6472](https://github.com/NomicFoundation/hardhat/issues/6472))
+- 138d673: Fixed creation of network connections to include config extensions from plugins ([#7106](https://github.com/NomicFoundation/hardhat/pull/7106))
+- 138d673: Support for compiling solidity tests separately from contracts ([#6474](https://github.com/NomicFoundation/hardhat/issues/6474))
+- 4c65d3e: Automatically add compilation results to a running `npx hardhat node` on recompilation ([#6040](https://github.com/NomicFoundation/hardhat/issues/6040))
+- 34add2d: Add configVariable support for test.solidity.forking config
+- 138d673: Upgraded EDR dependency to 0.12.0-next.6. This new version includes a new `ProviderConfig.baseFeeConfig` field for configuring different values of eip-1559 `maxChangeDenominator` and `elasticityMultiplier` field.
+
 ## 3.0.6
 
 ### Patch Changes
