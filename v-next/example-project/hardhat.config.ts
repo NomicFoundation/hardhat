@@ -15,6 +15,7 @@ import hardhatChaiMatchersPlugin from "@nomicfoundation/hardhat-ethers-chai-matc
 import hardhatTypechain from "@nomicfoundation/hardhat-typechain";
 import hardhatIgnitionViem from "@nomicfoundation/hardhat-ignition-viem";
 import hardhatVerify from "@nomicfoundation/hardhat-verify";
+import hardhatLedger from "@nomicfoundation/hardhat-ledger";
 import { ArgumentType } from "hardhat/types/arguments";
 
 util.inspect.defaultOptions.depth = null;
@@ -139,6 +140,10 @@ const config: HardhatUserConfig = {
       forking: {
         url: "https://mainnet.optimism.io",
       },
+      ledgerAccounts: [
+        // Set your ledger address here
+        // "0x070Da0697e6B82F0ab3f5D0FD9210EAdF2Ba1516",
+      ],
     },
     opSepolia: {
       type: "http",
@@ -175,6 +180,7 @@ const config: HardhatUserConfig = {
     hardhatChaiMatchersPlugin,
     hardhatTypechain,
     hardhatIgnitionViem,
+    hardhatLedger,
   ],
   paths: {
     tests: {

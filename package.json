@@ -17,5 +17,16 @@
     "prelint:fix": "pnpm build",
     "lint:fix": "pnpm run --recursive --if-present lint:fix",
     "version-for-release": "pnpm changeset version && pnpm -w install --lockfile-only"
+  },
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "node-hid"
+    ],
+    "ignoredBuiltDependencies": [
+      "esbuild",
+      "keccak",
+      "unrs-resolver",
+      "usb"
+    ]
   }
 }
