@@ -1,6 +1,6 @@
 {
   "name": "@nomicfoundation/hardhat-network-helpers",
-  "version": "3.0.0",
+  "version": "3.0.1",
   "description": "Hardhat utils for testing",
   "homepage": "https://github.com/nomicfoundation/hardhat/tree/v-next/v-next/hardhat-network-helpers",
   "repository": {
@@ -61,6 +61,6 @@
     "@nomicfoundation/hardhat-utils": "workspace:^3.0.0"
   },
   "peerDependencies": {
-    "hardhat": "workspace:^3.0.0"
+    "hardhat": "workspace:^3.0.7"
   }
 }
