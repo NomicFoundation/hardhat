@@ -32,7 +32,8 @@ export interface VerifyContractArgs {
   address: string;
   constructorArgs?: unknown[];
   libraries?: LibraryAddresses;
-  contract?: string; // format: <source-name>:<contract-name>
+  /** The fully qualified name of the contract, in the format: `<source-name>:<contract-name>` */
+  contract?: string;
   force?: boolean;
   provider?: keyof VerificationProvidersConfig;
 }
