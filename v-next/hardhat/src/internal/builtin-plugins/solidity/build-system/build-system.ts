@@ -43,7 +43,10 @@ import {
   writeJsonFileAsStream,
   writeUtf8File,
 } from "@nomicfoundation/hardhat-utils/fs";
-import { shortenPath } from "@nomicfoundation/hardhat-utils/path";
+import {
+  shortenPath,
+  toPosixRelativePath,
+} from "@nomicfoundation/hardhat-utils/path";
 import { pluralize } from "@nomicfoundation/hardhat-utils/string";
 import chalk from "chalk";
 import debug from "debug";
@@ -827,7 +830,9 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
       const parsed = parseRootPath(rootFilePath);
       return isNpmParsedRootPath(parsed)
         ? parsed.npmPath
-        : path.relative(this.#options.projectRoot, parsed.fsPath);
+        : toPosixRelativePath(
+            path.relative(this.#options.projectRoot, parsed.fsPath),
+          );
     });
 
     const userSourceNamesSet = new Set(userSourceNames);
@@ -836,7 +841,9 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
       artifactsDirectory,
       (d) => d.endsWith(".sol"),
     )) {
-      const relativePath = path.relative(artifactsDirectory, file);
+      const relativePath = toPosixRelativePath(
+        path.relative(artifactsDirectory, file),
+      );
 
       if (!userSourceNamesSet.has(relativePath)) {
         await remove(file);

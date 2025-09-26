@@ -53,3 +53,19 @@ export function shortenPath(absolutePath: string): string {
 
   return absolutePath;
 }
+
+/**
+ *  Ensures the given relative path is in posix format
+ *  Throws if the string argument is not a relative path
+ */
+export function toPosixRelativePath(thePath: string): string {
+  if (path.isAbsolute(thePath)) {
+    throw new Error(`Expected a relative path, got absolute: "${thePath}"`);
+  }
+
+  // Normalize first so things like "foo/../bar" collapse consistently
+  const normalized = path.normalize(thePath);
+
+  // Convert backslashes (Windows) to forward slashes
+  return normalized.split(/[\\\/]/).join(path.posix.sep);
+}

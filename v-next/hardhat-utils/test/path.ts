@@ -3,7 +3,11 @@ import path from "node:path";
 import { after, before, describe, it } from "node:test";
 
 import { ensureDir } from "../src/fs.js";
-import { resolveFromRoot, shortenPath } from "../src/path.js";
+import {
+  resolveFromRoot,
+  shortenPath,
+  toPosixRelativePath,
+} from "../src/path.js";
 
 describe("path", () => {
   describe("resolveFromRoot", () => {
@@ -95,6 +99,20 @@ describe("path", () => {
       process.chdir(cwd);
 
       assert.equal(shortenPath(import.meta.dirname), import.meta.dirname);
+    });
+  });
+
+  describe("toPosixRelativePath", function () {
+    it("turns a non-posix relative path into a posix relative path", async () => {
+      assert.equal(toPosixRelativePath("a\\b\\c"), "a/b/c");
+    });
+
+    it("turns a posix relative path into a posix relative path", async () => {
+      assert.equal(toPosixRelativePath("a/b/c"), "a/b/c");
+    });
+
+    it("throws if the path is not relative", async () => {
+      assert.throws(() => toPosixRelativePath("/a/b/c"));
     });
   });
 });
