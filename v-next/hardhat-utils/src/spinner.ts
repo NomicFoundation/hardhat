@@ -3,14 +3,8 @@ const FRAME_INTERVAL_MS = 80;
 
 export interface ISpinner {
   readonly isEnabled: boolean;
-  readonly isSpinning: boolean;
-  runWithPause(action: () => void): void;
-  start(text?: string): void;
-  update(text: string): void;
-  stop(text?: string): void;
-  stopAndPersist(text: string, symbol?: string): void;
-  succeed(text?: string, symbol?: string): void;
-  fail(text?: string, symbol?: string): void;
+  start(): void;
+  stop(): void;
 }
 
 /**
@@ -20,12 +14,8 @@ export interface ISpinner {
  */
 class Spinner implements ISpinner {
   public readonly isEnabled: boolean;
-
-  #text: string;
-  #frameIndex = 0;
-
-  #interval: NodeJS.Timeout | undefined;
-  #isSpinning = false;
+  readonly #text: string;
+  #interval: NodeJS.Timeout | null = null;
   #loggedFallback = false;
   readonly #stream: NodeJS.WriteStream;
   readonly #silent: boolean;
@@ -42,34 +32,10 @@ class Spinner implements ISpinner {
     this.#text = initialText;
     this.#silent = silent;
   }
-
-  public get isSpinning(): boolean {
-    return this.#isSpinning;
-  }
-
-  public runWithPause(action: () => void): void {
-    if (!this.isEnabled || !this.isSpinning) {
-      action();
-      return;
-    }
-
-    this.stop();
-    action();
-    if (!this.#isSpinning) {
-      this.start(this.#text);
-    }
-  }
-
   /**
    * Begin rendering frames or log the first message when disabled.
-   *
-   * @param nextText Optional text to show while running.
    */
-  public start(nextText?: string): void {
-    if (nextText !== undefined) {
-      this.#text = nextText;
-    }
-
+  public start(): void {
     if (!this.isEnabled) {
       if (this.#text !== "" && !this.#loggedFallback && !this.#silent) {
         console.log(this.#text);
@@ -78,66 +44,23 @@ class Spinner implements ISpinner {
       return;
     }
 
-    this.#stopInternal();
-    this.#isSpinning = true;
-    this.#render(false);
-    this.#interval = setInterval(() => this.#render(true), FRAME_INTERVAL_MS);
-  }
+    this.#stopAnimation();
+    let frameIndex = 0;
 
-  /**
-   * Replace the current message while the spinner is running.
-   *
-   * @param nextText New message to display.
-   */
-  public update(nextText: string): void {
-    this.#text = nextText;
+    const tick = () => {
+      this.#render(FRAMES[frameIndex]);
+      frameIndex = (frameIndex + 1) % FRAMES.length;
+    };
 
-    if (this.isEnabled && this.#isSpinning) {
-      this.#render(false);
-    } else if (!this.isEnabled && this.#loggedFallback && !this.#silent) {
-      console.log(nextText);
-    }
+    this.#interval = setInterval(tick, FRAME_INTERVAL_MS);
+    tick();
   }
 
   /**
    * Stop the spinner without printing a final line.
    */
-  public stop(nextText?: string): void {
-    if (nextText !== undefined) {
-      this.#text = nextText;
-    }
-
-    this.#stopInternal();
-  }
-
-  /**
-   * Stop the spinner and leave the last line in the terminal.
-   *
-   * @param text Text to print on the final line.
-   * @param symbol Optional prefix placed before the text.
-   */
-  public stopAndPersist(text: string, symbol?: string): void {
-    this.#text = text;
-    this.#finalize(text, symbol);
-  }
-
-  /**
-   * Finish the spinner with a success message.
-   *
-   * @param text Optional message to show instead of the stored text.
-   * @param symbol Optional prefix placed before the text. Defaults to "✔".
-   */
-  public succeed(text?: string, symbol: string = "✔"): void {
-    this.#finalize(text ?? this.#text, symbol);
-  }
-  /**
-   * Finish the spinner with a failure message.
-   *
-   * @param text Optional message to show instead of the stored text.
-   * @param symbol Optional prefix placed before the text. Defaults to "✖".
-   */
-  public fail(text?: string, symbol: string = "✖"): void {
-    this.#finalize(text ?? this.#text, symbol);
+  public stop(): void {
+    this.#stopAnimation();
   }
 
   #clearLine(): void {
@@ -152,42 +75,19 @@ class Spinner implements ISpinner {
     }
   }
 
-  #render(advanceFrame: boolean): void {
-    if (!this.isEnabled || !this.#isSpinning) {
+  #render(frame: string): void {
+    if (!this.isEnabled || this.#interval === null) {
       return;
     }
-
-    if (advanceFrame) {
-      this.#frameIndex = (this.#frameIndex + 1) % FRAMES.length;
-    }
-
-    const frame = FRAMES[this.#frameIndex];
     this.#clearLine();
     this.#stream.write(`${frame} ${this.#text}`);
-  }
-
-  #stopInternal(): void {
-    if (!this.#isSpinning) {
-      return;
-    }
-
-    if (this.#interval !== undefined) {
-      clearInterval(this.#interval);
-      this.#interval = undefined;
-    }
-
-    this.#isSpinning = false;
-
-    if (this.isEnabled) {
-      this.#clearLine();
-    }
   }
 
   #finalize(message: string | undefined, symbol?: string): void {
     const output = message ?? this.#text;
 
     if (output === "") {
-      this.#stopInternal();
+      this.#stopAnimation();
       return;
     }
     const prefix = symbol !== undefined ? `${symbol} ` : "";
@@ -200,9 +100,22 @@ class Spinner implements ISpinner {
       return;
     }
 
-    this.#stopInternal();
+    this.#stopAnimation();
 
     this.#stream.write(`${prefix}${output}\n`);
+  }
+
+  #stopAnimation(): void {
+    if (this.#interval === null) {
+      return;
+    }
+
+    clearInterval(this.#interval);
+    this.#interval = null;
+
+    if (this.isEnabled) {
+      this.#clearLine();
+    }
   }
 }
 
@@ -240,17 +153,12 @@ export interface SpinnerOptions {
  * spinner.start();
  *
  * try {
- *   spinner.update("Compiling contracts…");
  *   await compileContracts();
- *
- *   spinner.runWithPause(() => {
- *     console.log("Verification step starting");
- *   });
- *
- *   await verifyContracts();
- *   spinner.succeed("Compilation finished");
+ *   spinner.stop();
+ *   console.log("Compiled 12 contracts");
  * } catch (error) {
- *   spinner.fail("Compilation failed");
+ *   spinner.stop();
+ *   console.error("Compilation failed");
  * }
  * ```
  *

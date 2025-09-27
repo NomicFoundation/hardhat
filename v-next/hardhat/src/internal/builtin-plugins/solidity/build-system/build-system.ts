@@ -176,16 +176,15 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
       ..._options,
     };
 
-    const spinnerLabel = `Compiling your Solidity ${options.scope}...`;
     const spinner = createSpinner({
-      text: spinnerLabel,
+      text: `Compiling your Solidity ${options.scope}...`,
       enabled: !options.quiet,
       silent: options.quiet,
     });
 
     await this.#downloadConfiguredCompilers(options.quiet);
 
-    spinner.start(spinnerLabel);
+    spinner.start();
 
     const { buildProfile } = this.#getBuildProfile(options.buildProfile);
 
@@ -195,7 +194,7 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
     );
 
     if ("reason" in compilationJobsResult) {
-      spinner.fail(`Failed to compile Solidity ${options.scope}`);
+      spinner.stop();
       return compilationJobsResult;
     }
 
@@ -205,8 +204,6 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
     const runnableCompilationJobs = [
       ...new Set(compilationJobsPerFile.values()),
     ];
-
-    const totalJobs = runnableCompilationJobs.length;
 
     // NOTE: We precompute the build ids in parallel here, which are cached
     // internally in each compilation job
@@ -247,9 +244,6 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
     const isSuccessfulBuild =
       uncachedResults.length === uncachedSuccessfulResults.length;
 
-    if (!isSuccessfulBuild) {
-      spinner.fail(`Failed to compile Solidity ${options.scope}`);
-    }
     const contractArtifactsGeneratedByCompilationJob: Map<
       CompilationJob,
       ReadonlyMap<string, string[]>
@@ -304,11 +298,18 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
         ),
       );
 
-      spinner.runWithPause(() => this.#printSolcErrorsAndWarnings(errors));
+      if (!options.quiet) {
+        spinner.stop();
+      }
 
+      this.#printSolcErrorsAndWarnings(errors);
       const successfulResult = !this.#hasCompilationErrors(
         result.compilerOutput,
       );
+
+      if (!options.quiet) {
+        spinner.start();
+      }
 
       for (const [userSourceName, root] of result.compilationJob.dependencyGraph
         .getRoots()
@@ -345,14 +346,14 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
       }
     }
 
-    if (totalJobs === 0 && !options.quiet) {
-      spinner.stopAndPersist("Nothing to compile");
-    } else {
+    if (isSuccessfulBuild) {
       spinner.stop();
 
-      if (!options.quiet && isSuccessfulBuild) {
+      if (!options.quiet) {
         await this.#printCompilationResult(runnableCompilationJobs);
       }
+    } else {
+      spinner.stop();
     }
 
     return resultsMap;
@@ -1085,13 +1086,15 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
     }
   }
 
-  async #printCompilationResult(
-    runnableCompilationJobs: CompilationJob[],
-  ): Promise<void> {
+  async #printCompilationResult(runnableCompilationJobs: CompilationJob[]) {
     const jobsPerVersionAndEvmVersion = new Map<
       string,
       Map<string, CompilationJob[]>
     >();
+
+    if (runnableCompilationJobs.length === 0) {
+      console.log("Nothing to compile");
+    }
 
     for (const job of runnableCompilationJobs) {
       const solcVersion = job.solcConfig.version;

@@ -93,37 +93,15 @@ describe("spinner", { concurrency: false }, () => {
   });
 
   afterEach(() => {
-    if (spinner.isSpinning) {
-      spinner.stop();
-    }
+    spinner.stop();
   });
 
   describe("start", () => {
     it("should render first frame", async () => {
       spinner.start();
-      assert.equal(spinner.isSpinning, true);
-
       assert.ok(
         captured.writes[0]?.startsWith("⠋ initial"),
         `expected first write to start with spinner frame, got: ${captured.writes[0]}`,
-      );
-
-      assert.equal(captured.clearCount, 1);
-      assert.equal(captured.cursorCount, 1);
-    });
-  });
-
-  describe("update", () => {
-    it("should rewrite text while running", async () => {
-      spinner.start();
-      resetCapturedState();
-      spinner.update("next");
-
-      assert.equal(spinner.isSpinning, true);
-
-      assert.ok(
-        captured.writes[0]?.startsWith("⠋ next"),
-        `expected write to start with spinner frame, got: ${captured.writes[0]}`,
       );
 
       assert.equal(captured.clearCount, 1);
@@ -137,41 +115,7 @@ describe("spinner", { concurrency: false }, () => {
       resetCapturedState();
       spinner.stop();
 
-      assert.equal(spinner.isSpinning, false);
       assert.equal(captured.writes.length, 0);
-      assert.equal(captured.clearCount, 1);
-      assert.equal(captured.cursorCount, 1);
-    });
-
-    it("stopAndPersist keeps final output", () => {
-      spinner.start();
-      resetCapturedState();
-      spinner.stopAndPersist("done");
-
-      assert.equal(spinner.isSpinning, false);
-      assert.equal(captured.writes[0], "done\n");
-      assert.equal(captured.clearCount, 1);
-      assert.equal(captured.cursorCount, 1);
-    });
-
-    it("succeed uses success symbol", () => {
-      spinner.start();
-      resetCapturedState();
-      spinner.succeed("ok", "YES");
-
-      assert.equal(spinner.isSpinning, false);
-      assert.equal(captured.writes[0], "YES ok\n");
-      assert.equal(captured.clearCount, 1);
-      assert.equal(captured.cursorCount, 1);
-    });
-
-    it("fail uses failure symbol", () => {
-      spinner.start();
-      resetCapturedState();
-      spinner.fail("not ok");
-
-      assert.equal(spinner.isSpinning, false);
-      assert.equal(captured.writes[0], "✖ not ok\n");
       assert.equal(captured.clearCount, 1);
       assert.equal(captured.cursorCount, 1);
     });
@@ -188,11 +132,9 @@ describe("spinner", { concurrency: false }, () => {
         });
 
         disabled.start();
-        disabled.update("second");
 
-        assert.equal(log.mock.calls.length, 2);
+        assert.equal(log.mock.calls.length, 1);
         assert.deepEqual(log.mock.calls[0]?.arguments, ["first"]);
-        assert.deepEqual(log.mock.calls[1]?.arguments, ["second"]);
       } finally {
         log.mock.restore();
       }
@@ -200,7 +142,6 @@ describe("spinner", { concurrency: false }, () => {
 
     it("silent spinner does not log fallback", () => {
       const log = mock.method(console, "log");
-
       try {
         const silentDisabled = createSpinner({
           stream: captured.stream,
@@ -210,32 +151,10 @@ describe("spinner", { concurrency: false }, () => {
         });
 
         silentDisabled.start();
-        silentDisabled.update("next");
-        silentDisabled.fail("failed");
         assert.equal(log.mock.calls.length, 0);
       } finally {
         log.mock.restore();
       }
-    });
-  });
-
-  describe("runWithPause", () => {
-    it("pauses spinner, runs action, then resumes", () => {
-      spinner.start();
-
-      resetCapturedState();
-
-      spinner.runWithPause(() => {
-        captured.stream.write("paused\n");
-      });
-
-      assert.equal(spinner.isSpinning, true);
-      assert.equal(captured.writes[0], "paused\n");
-
-      assert.ok(
-        captured.writes.some((entry) => entry?.startsWith("⠋ initial")),
-        `expected writes to include spinner frame, got: ${captured.writes.join(",")}`,
-      );
     });
   });
 });
