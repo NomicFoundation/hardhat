@@ -72,12 +72,17 @@ export async function getBuildInfoAndOutput(
 // TODO: consider moving this to the solidity build system as a helper function
 export async function getCompilerInput(
   solidity: SolidityBuildSystem,
-  rootFilePath: string,
+  root: string,
   sourceName: string,
+  isNpmModule: boolean,
   buildProfileName: string,
 ): Promise<CompilerInput> {
+  const rootFilePath = isNpmModule
+    ? `npm:${sourceName}`
+    : path.join(root, sourceName);
+
   const getCompilationJobsResult = await solidity.getCompilationJobs(
-    [path.join(rootFilePath, sourceName)],
+    [rootFilePath],
     {
       buildProfile: buildProfileName,
       quiet: true,
@@ -98,7 +103,11 @@ export async function getCompilerInput(
     "The compilation job for the contract source was not found.",
   );
 
-  const compilerInput = await compilationJob.get(sourceName)?.getSolcInput();
+  const compilationJobKey = isNpmModule ? `npm:${sourceName}` : sourceName;
+
+  const compilerInput = await compilationJob
+    .get(compilationJobKey)
+    ?.getSolcInput();
 
   // TODO: should this be an error instead?
   assertHardhatInvariant(
