@@ -14,7 +14,7 @@ We use a [GitHub project](https://github.com/orgs/NomicFoundation/projects/4/vie
 
 This repository is a monorepo handled with [pnpm](https://pnpm.io/) and [pnpm workspaces](https://pnpm.io/workspaces).
 
-There's a folder for each subproject in `packages/`. All of them are plugins, except for `/packages/hardhat-core` which is the main project (i.e. the one that's published as [hardhat](https://npmjs.com/package/hardhat) in npm).
+There's a folder for each subproject in `v-next/`. All of them are plugins, except for `v-next/hardhat/` which is the main project (i.e. the one that's published as [hardhat](https://npmjs.com/package/hardhat) in npm).
 
 ## Installing
 
@@ -64,7 +64,7 @@ Note that the `main` branch is automatically deployed, so take care when merging
 
 We keep our dependencies versions in sync between the different projects.
 
-Running `node scripts/check-dependencies.js` from the root folder checks that every project specifies the same versions of each dependency. It will print an error if the versions get out of sync.
+Running `node scripts/check-v-next-dependencies.js` from the root folder checks that every project specifies the same versions of each dependency. It will print an error if the versions get out of sync.
 
 ## Performance and dependencies loading
 
@@ -101,7 +101,7 @@ The project can be built by `pnpm build` from the root directory.
 
 You can [link](https://docs.npmjs.com/cli/v9/commands/npm-link/) any package to test it locally. While the rest of the commands we run use `pnpm`, we recommend you use `npm` for linking. For example, if you are working on `hardhat`, you can follow these steps:
 
-1. Go to `packages/hardhat-core` and run `npm link`
+1. Go to `v-next/hardhat` and run `npm link`
 2. Go to some hardhat project and run `npm link hardhat`
 
 Now any change you make in the code will be reflected in that project.
@@ -110,7 +110,7 @@ Now any change you make in the code will be reflected in that project.
 
 If for any reason linking doesn't work for you, you can use [`yalc`](https://github.com/whitecolor/yalc):
 
-1. Go to `packages/hardhat-core` and run `yalc publish`
+1. Go to `v-next/hardhat` and run `yalc publish`
 2. Go to some hardhat project and run `yalc add hardhat`
 
 Unlike linking, if you make a change in the code, you'll need to repeat the process.
@@ -119,8 +119,8 @@ Unlike linking, if you make a change in the code, you'll need to repeat the proc
 
 An even more realistic way of using your local changes in a project is to use [`pnpm pack`](https://pnpm.io/cli/pack):
 
-1. Go to `packages/hardhat-core` and run `pnpm pack`. This will create a `hardhat-x.y.z.tgz` file in that directory.
-2. Go to some hardhat project and run `npm install /path/to/hardhat/packages/hardhat-core/hardhat-x.y.z.tgz`.
+1. Go to `v-next/hardhat` and run `pnpm pack`. This will create a `hardhat-x.y.z.tgz` file in that directory.
+2. Go to some hardhat project and run `npm install /path/to/hardhat/v-next/hardhat/hardhat-x.y.z.tgz`.
 
 Unlike linking, if you make a change in the code, you'll need to repeat the process.
 
