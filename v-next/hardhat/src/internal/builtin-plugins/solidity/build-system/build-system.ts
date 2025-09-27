@@ -44,6 +44,7 @@ import {
   writeUtf8File,
 } from "@nomicfoundation/hardhat-utils/fs";
 import { shortenPath } from "@nomicfoundation/hardhat-utils/path";
+import { createSpinner } from "@nomicfoundation/hardhat-utils/spinner";
 import { pluralize } from "@nomicfoundation/hardhat-utils/string";
 import chalk from "chalk";
 import debug from "debug";
@@ -175,11 +176,15 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
       ..._options,
     };
 
-    if (!options.quiet) {
-      console.log(`Compiling your Solidity ${options.scope}...`);
-    }
+    const spinner = createSpinner({
+      text: `Compiling your Solidity ${options.scope}...`,
+      enabled: !options.quiet,
+      silent: options.quiet,
+    });
 
     await this.#downloadConfiguredCompilers(options.quiet);
+
+    spinner.start();
 
     const { buildProfile } = this.#getBuildProfile(options.buildProfile);
 
@@ -189,6 +194,7 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
     );
 
     if ("reason" in compilationJobsResult) {
+      spinner.stop();
       return compilationJobsResult;
     }
 
@@ -292,11 +298,18 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
         ),
       );
 
-      this.#printSolcErrorsAndWarnings(errors);
+      if (!options.quiet) {
+        spinner.stop();
+      }
 
+      this.#printSolcErrorsAndWarnings(errors);
       const successfulResult = !this.#hasCompilationErrors(
         result.compilerOutput,
       );
+
+      if (!options.quiet) {
+        spinner.start();
+      }
 
       for (const [userSourceName, root] of result.compilationJob.dependencyGraph
         .getRoots()
@@ -333,10 +346,14 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
       }
     }
 
-    if (!options.quiet) {
-      if (isSuccessfulBuild) {
+    if (isSuccessfulBuild) {
+      spinner.stop();
+
+      if (!options.quiet) {
         await this.#printCompilationResult(runnableCompilationJobs);
       }
+    } else {
+      spinner.stop();
     }
 
     return resultsMap;
