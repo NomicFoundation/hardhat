@@ -659,10 +659,9 @@ export class EIP1193JsonRpcClient implements JsonRpcClient {
     ]);
 
     // Get environment variable BSC_LIKE_CHAIN_IDS and split by commas
-    let bscLikeChainIds = [];
-    if (typeof process !== "undefined" && process.env && process.env.BSC_LIKE_CHAIN_IDS) {
-      bscLikeChainIds = process.env.BSC_LIKE_CHAIN_IDS.split(",").map(id => Number(id.trim())).filter(id => !isNaN(id));
-    }
+    const bscLikeChainIds = process.env.BSC_LIKE_CHAIN_IDS
+      ? process.env.BSC_LIKE_CHAIN_IDS.split(",").map(id => Number(id.trim())).filter(id => !isNaN(id))
+      : [];
     // We prioritize EIP-1559 fees over legacy gasPrice fees, however,
     // polygon (chainId 137) and polygon's amoy testnet (chainId 80002)
     // both require legacy gasPrice fees so we skip EIP-1559 logic in those cases
