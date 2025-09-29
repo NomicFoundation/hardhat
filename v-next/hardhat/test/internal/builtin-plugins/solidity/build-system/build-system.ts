@@ -54,7 +54,9 @@ async function emitArtifacts(solidity: SolidityBuildSystem): Promise<void> {
       const buildInfoOutput = await readJsonFile<SolidityBuildInfoOutput>(
         path.join(artifactsPath, "build-info", `${buildId}.output.json`),
       );
-      await solidity.emitArtifacts(compilationJob, buildInfoOutput.output);
+      await solidity.emitArtifacts(compilationJob, buildInfoOutput.output, {
+        scope: "contracts",
+      });
     }
   }
 }
@@ -184,7 +186,9 @@ describe(
       });
 
       it("should clean up no artifacts when given all root file paths", async () => {
-        await solidity.cleanupArtifacts(await solidity.getRootFilePaths());
+        await solidity.cleanupArtifacts(await solidity.getRootFilePaths(), {
+          scope: "contracts",
+        });
 
         const actualArtifactPathsAfter = await getAllFilesMatching(
           actualArtifactsPath,
@@ -205,7 +209,9 @@ describe(
           rootFilePaths.length - 1,
         );
 
-        await solidity.cleanupArtifacts(rootFilePathsToCleanUp);
+        await solidity.cleanupArtifacts(rootFilePathsToCleanUp, {
+          scope: "contracts",
+        });
 
         const actualArtifactPathsAfter = await getAllFilesMatching(
           actualArtifactsPath,
@@ -219,7 +225,7 @@ describe(
       });
 
       it("should clean up all the artifacts when given no root file paths", async () => {
-        await solidity.cleanupArtifacts([]);
+        await solidity.cleanupArtifacts([], { scope: "contracts" });
 
         const actualArtifactPathsAfter = await getAllFilesMatching(
           actualArtifactsPath,

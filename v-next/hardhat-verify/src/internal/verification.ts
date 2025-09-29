@@ -32,6 +32,7 @@ export interface VerifyContractArgs {
   address: string;
   constructorArgs?: unknown[];
   libraries?: LibraryAddresses;
+  /** The fully qualified name of the contract, in the format: `<source-name>:<contract-name>` */
   contract?: string;
   force?: boolean;
   provider?: keyof VerificationProvidersConfig;
@@ -197,6 +198,7 @@ Explorer: ${instance.getContractUrl(address)}`);
     solidity,
     config.paths.root,
     contractInformation.sourceName,
+    contractInformation.inputFqn.startsWith("npm/"),
     buildProfileName,
   );
 

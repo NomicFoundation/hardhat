@@ -19,7 +19,11 @@ export default async (): Promise<Partial<ConfigHooks>> => {
         resolveConfigurationVariable,
       );
 
-      return resolveSolidityTestUserConfig(userConfig, resolvedConfig);
+      return resolveSolidityTestUserConfig(
+        userConfig,
+        resolvedConfig,
+        resolveConfigurationVariable,
+      );
     },
   };
 

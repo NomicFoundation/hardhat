@@ -22,21 +22,13 @@ jobs:
               issue_number: context.issue.number
             });
 
-            const statusLabel = issue.data.labels.find(({ name }) =>
-              name.startsWith("status:")
-            );
-
-            if (statusLabel === undefined) {
-              console.log("Author association:", issue.data.author_association);
-              const isCollaborator = ["OWNER", "MEMBER", "COLLABORATOR"].includes(issue.data.author_association)
-              if (!isCollaborator) {
-                await github.rest.issues.addLabels({
-                  owner: context.issue.owner,
-                  repo: context.issue.repo,
-                  issue_number: context.issue.number,
-                  labels: ["status:triaging"]
-                });
-              }
-            } else {
-              console.log(`Issue already has a status: ${statusLabel.name}`);
+            console.log("Author association:", issue.data.author_association);
+            const isCollaborator = ["OWNER", "MEMBER", "COLLABORATOR"].includes(issue.data.author_association)
+            if (!isCollaborator) {
+              await github.rest.issues.addLabels({
+                owner: context.issue.owner,
+                repo: context.issue.repo,
+                issue_number: context.issue.number,
+                labels: ["status:triaging"]
+              });
             }

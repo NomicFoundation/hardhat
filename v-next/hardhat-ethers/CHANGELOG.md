@@ -1,5 +1,11 @@
 # @nomicfoundation/hardhat-ethers
 
+## 4.0.1
+
+### Patch Changes
+
+- 27d52b7: Fixed index resolution in clearEventListeners ([#7359](https://github.com/NomicFoundation/hardhat/pull/7359))
+
 ## 4.0.0
 
 ### Major Changes

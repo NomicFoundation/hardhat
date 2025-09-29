@@ -1,3 +1,6 @@
+import type { HardhatUserConfig } from "../../../../../../src/config.js";
+import type { GlobalOptions } from "../../../../../../src/types/global-options.js";
+import type { HardhatRuntimeEnvironment } from "../../../../../../src/types/hre.js";
 import type { PackageJson } from "@nomicfoundation/hardhat-utils/package";
 
 import path from "node:path";
@@ -9,6 +12,8 @@ import {
   writeJsonFile,
   writeUtf8File,
 } from "@nomicfoundation/hardhat-utils/fs";
+
+import { createHardhatRuntimeEnvironment } from "../../../../../../src/hre.js";
 
 /**
  * A description of a test project that will be used in a test of the resolver
@@ -55,6 +60,7 @@ export interface TestProjectTemplate {
 export interface TestProject {
   path: string;
   clean: () => Promise<void>;
+  getHRE: () => Promise<HardhatRuntimeEnvironment>;
   [Symbol.asyncDispose]: () => Promise<void>;
 }
 
@@ -87,6 +93,8 @@ export async function useTestProjectTemplate(
   );
 
   let cleaned = false;
+  const oldCwd = process.cwd();
+
   const project: TestProject = {
     path: projectPath,
     clean: async () => {
@@ -94,8 +102,21 @@ export async function useTestProjectTemplate(
         return;
       }
 
+      process.chdir(oldCwd); // return to old cwd, otherwise windows doesn't allow deleting the directory
       await remove(projectPath);
       cleaned = true;
+    },
+    getHRE: async (
+      config: HardhatUserConfig = {},
+      globalOptions: Partial<GlobalOptions> = {},
+    ) => {
+      const hre = await createHardhatRuntimeEnvironment(
+        config,
+        globalOptions,
+        projectPath,
+      );
+
+      return hre;
     },
     [Symbol.asyncDispose]: async () => {
       return project.clean();

@@ -16,6 +16,7 @@ import { ensureError } from "@nomicfoundation/hardhat-utils/error";
 import { sleep, isObject } from "@nomicfoundation/hardhat-utils/lang";
 import {
   getDispatcher,
+  getProxyUrl,
   isValidUrl,
   postJsonRequest,
   shouldUseProxy,
@@ -273,7 +274,7 @@ export class HttpProvider extends BaseProvider {
 
 /**
  * Gets either a pool or proxy dispatcher depending on the URL and the
- * environment variable `http_proxy`. This function is used internally by
+ * proxy configuration. This function is used internally by
  * `HttpProvider.create` and should not be used directly.
  */
 export async function getHttpDispatcher(
@@ -282,9 +283,11 @@ export async function getHttpDispatcher(
 ): Promise<Dispatcher> {
   let dispatcher: Dispatcher;
 
-  if (process.env.http_proxy !== undefined && shouldUseProxy(url)) {
+  const proxyUrl = shouldUseProxy(url) ? getProxyUrl(url) : undefined;
+
+  if (proxyUrl !== undefined) {
     dispatcher = await getDispatcher(url, {
-      proxy: process.env.http_proxy,
+      proxy: proxyUrl,
       timeout,
     });
   } else {

@@ -1,29 +1,52 @@
 import type { HardhatEthers } from "../src/types.js";
+import type { JsonRpcServer } from "hardhat/types/network";
 import type { EthereumProvider } from "hardhat/types/providers";
 
 import assert from "node:assert/strict";
-import { describe, it } from "node:test";
+import { after, before, beforeEach, describe, it } from "node:test";
 
 import { numberToHexString } from "@nomicfoundation/hardhat-utils/hex";
 
-import { initializeTestEthers } from "./helpers/helpers.js";
+import { initializeTestEthers, spawnTestRpcServer } from "./helpers/helpers.js";
+
+let ethers: HardhatEthers;
+let provider: EthereumProvider;
 
 describe("gas price overrides", () => {
-  // // TODO: enable when V3 is ready: V3 node required
-  // describe("in-process hardhat network", async ()=>{
-  //   const { ethers, provider: ethereumProvider } = await initializeTestEthers();
+  describe("local http node", async () => {
+    let server: JsonRpcServer;
+    let port: number;
+    let address: string;
 
-  //   runTests(ethers, ethereumProvider);
-  // });
+    before(async () => {
+      ({ server, port, address } = await spawnTestRpcServer());
+    });
 
-  describe("hardhat node", async () => {
-    const { ethers, provider: ethereumProvider } = await initializeTestEthers();
+    after(async () => {
+      await server.close();
+    });
 
-    runTests(ethers, ethereumProvider);
+    beforeEach(async () => {
+      ({ ethers, provider } = await initializeTestEthers([], {
+        networks: {
+          localhost: { type: "http", url: `http://${address}:${port}` },
+        },
+      }));
+    });
+
+    defineTests();
+  });
+
+  describe("in-process hardhat network", async () => {
+    beforeEach(async () => {
+      ({ ethers, provider } = await initializeTestEthers());
+    });
+
+    defineTests();
   });
 });
 
-function runTests(ethers: HardhatEthers, ethereumProvider: EthereumProvider) {
+function defineTests() {
   describe("plain transactions", () => {
     it("should use the given gas price if specified", async () => {
       const [signer] = await ethers.getSigners();
@@ -46,7 +69,7 @@ function runTests(ethers: HardhatEthers, ethereumProvider: EthereumProvider) {
       const maxFeePerGas = baseFeePerGas;
       const maxPriorityFeePerGas = ethers.parseUnits("1", "gwei");
 
-      await ethereumProvider.request({
+      await provider.request({
         method: "hardhat_setNextBlockBaseFeePerGas",
         params: [numberToHexString(baseFeePerGas)],
       });
@@ -71,7 +94,7 @@ function runTests(ethers: HardhatEthers, ethereumProvider: EthereumProvider) {
       const maxFeePerGas = ethers.parseUnits("10", "gwei");
       const maxPriorityFeePerGas = ethers.parseUnits("1", "gwei");
 
-      await ethereumProvider.request({
+      await provider.request({
         method: "hardhat_setNextBlockBaseFeePerGas",
         params: [numberToHexString(baseFeePerGas)],
       });
@@ -109,7 +132,7 @@ function runTests(ethers: HardhatEthers, ethereumProvider: EthereumProvider) {
       const maxFeePerGas = ethers.parseUnits("10", "gwei");
 
       // make sure that the max fee is enough
-      await ethereumProvider.request({
+      await provider.request({
         method: "hardhat_setNextBlockBaseFeePerGas",
         params: [numberToHexString(baseFeePerGas)],
       });

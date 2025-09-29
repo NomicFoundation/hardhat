@@ -30,9 +30,8 @@ export default async (): Promise<Partial<SolidityHooks>> => ({
   ) => {
     // NOTE: We do not want to instrument the test project files as we don't
     // want to report coverage for them.
-    const isTestSource =
-      fsPath.startsWith(context.config.paths.tests.solidity) ||
-      fsPath.endsWith(".t.sol");
+
+    const isTestSource = (await context.solidity.getScope(fsPath)) === "tests";
 
     if (context.globalOptions.coverage && !isTestSource) {
       try {

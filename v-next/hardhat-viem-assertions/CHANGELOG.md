@@ -1,5 +1,11 @@
 # @nomicfoundation/hardhat-viem-assertions
 
+## 3.0.2
+
+### Patch Changes
+
+- 5521f25: Support panic errors in `hardhat-viem-assetions` and improve error messages ([#7288](https://github.com/NomicFoundation/hardhat/issues/7288))
+
 ## 3.0.1
 
 ### Patch Changes

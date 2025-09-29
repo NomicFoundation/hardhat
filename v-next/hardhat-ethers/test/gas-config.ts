@@ -34,8 +34,7 @@ function generateCombinations(): Combination[] {
     1_000_000n,
   ];
 
-  // TODO: enable when V3 is ready: V3 node required - add hardhat network -> ["default", "localhost"];
-  const connectedNetworkValues: ConnectedNetwork[] = ["localhost"];
+  const connectedNetworkValues: ConnectedNetwork[] = ["default", "localhost"];
 
   for (const hardhatGasLimit of hardhatGasLimitValues) {
     for (const localhostGasLimit of localhostGasLimitValues) {

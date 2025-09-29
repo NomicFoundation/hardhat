@@ -233,7 +233,11 @@ describe("verification", () => {
 
     it("should throw an error for an invalid address", () => {
       assertThrowsHardhatError(
-        () => validateArgs({ address: invalidAddress, contract: undefined }),
+        () =>
+          validateArgs({
+            address: invalidAddress,
+            contract: undefined,
+          }),
         HardhatError.ERRORS.HARDHAT_VERIFY.VALIDATION.INVALID_ADDRESS,
         { value: invalidAddress },
       );
@@ -241,7 +245,11 @@ describe("verification", () => {
 
     it("should throw an error for an invalid contract name", () => {
       assertThrowsHardhatError(
-        () => validateArgs({ address: validAddress, contract: invalidFqn }),
+        () =>
+          validateArgs({
+            address: validAddress,
+            contract: invalidFqn,
+          }),
         HardhatError.ERRORS.CORE.GENERAL.INVALID_FULLY_QUALIFIED_NAME,
         { name: invalidFqn },
       );

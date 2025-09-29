@@ -38,18 +38,18 @@ export interface BuildOptions {
   concurrency?: number;
 
   /**
-   * An array of remappings provided by the user.
-   */
-  userProvidedRemappings?: string[];
-
-  /**
    * If `true`, the build process doesn't print any output.
    */
   quiet?: boolean;
+
+  /**
+   * Whether to compile contracts or tests. Defaults to contracts
+   */
+  scope?: BuildScope;
 }
 
 /**
- * The options of the `getBuildInfos` method.
+ * The options of the `getCompilationJobs` method.
  *
  * Note that this option object includes a `quiet` property, as this process
  * may require downloading compilers, and potentially printing some output.
@@ -196,7 +196,12 @@ export interface SolidityBuildSystem {
    *
    * @returns An array of root file paths.
    */
-  getRootFilePaths(): Promise<string[]>;
+  getRootFilePaths(options?: { scope?: BuildScope }): Promise<string[]>;
+
+  /**
+   * Given the filesystem path for a source file, returns the build scope
+   */
+  getScope(fsPath: string): Promise<BuildScope>;
 
   /**
    * Builds the provided files, generating their compilation artifacts.
@@ -272,6 +277,7 @@ export interface SolidityBuildSystem {
   emitArtifacts(
     compilationJob: CompilationJob,
     compilerOutput: CompilerOutput,
+    options?: { scope?: BuildScope },
   ): Promise<EmitArtifactsResult>;
 
   /**
@@ -287,7 +293,10 @@ export interface SolidityBuildSystem {
 
    * @param rootFilePaths All the root files of the project.
    */
-  cleanupArtifacts(rootFilePaths: string[]): Promise<void>;
+  cleanupArtifacts(
+    rootFilePaths: string[],
+    options?: { scope?: BuildScope },
+  ): Promise<void>;
 
   /**
    * Compiles a build info, returning the output of the compilation, verbatim,
@@ -301,4 +310,11 @@ export interface SolidityBuildSystem {
     buildInfo: SolidityBuildInfo,
     options?: CompileBuildInfoOptions,
   ): Promise<CompilerOutput>;
+
+  /**
+   * Gets the artifacts directory for a given target (contracts/tests)
+   */
+  getArtifactsDirectory(scope: BuildScope): Promise<string>;
 }
+
+export type BuildScope = "contracts" | "tests";

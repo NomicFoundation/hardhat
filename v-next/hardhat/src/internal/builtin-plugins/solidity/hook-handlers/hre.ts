@@ -13,6 +13,7 @@ import type {
   RunCompilationJobOptions,
   RunCompilationJobResult,
   SolidityBuildSystem,
+  BuildScope,
 } from "../../../../types/solidity/build-system.js";
 import type { CompilationJob } from "../../../../types/solidity/compilation-job.js";
 import type {
@@ -33,9 +34,16 @@ class LazySolidityBuildSystem implements SolidityBuildSystem {
     this.#options = options;
   }
 
-  public async getRootFilePaths(): Promise<string[]> {
+  public async getRootFilePaths(
+    options: { scope?: BuildScope } = {},
+  ): Promise<string[]> {
     const buildSystem = await this.#getBuildSystem();
-    return buildSystem.getRootFilePaths();
+    return buildSystem.getRootFilePaths(options);
+  }
+
+  public async getScope(fsPath: string): Promise<BuildScope> {
+    const buildSystem = await this.#getBuildSystem();
+    return buildSystem.getScope(fsPath);
   }
 
   public async build(
@@ -78,14 +86,18 @@ class LazySolidityBuildSystem implements SolidityBuildSystem {
   public async emitArtifacts(
     compilationJob: CompilationJob,
     compilerOutput: CompilerOutput,
+    options: { scope?: BuildScope } = {},
   ): Promise<EmitArtifactsResult> {
     const buildSystem = await this.#getBuildSystem();
-    return buildSystem.emitArtifacts(compilationJob, compilerOutput);
+    return buildSystem.emitArtifacts(compilationJob, compilerOutput, options);
   }
 
-  public async cleanupArtifacts(rootFilePaths: string[]): Promise<void> {
+  public async cleanupArtifacts(
+    rootFilePaths: string[],
+    options: { scope?: BuildScope } = {},
+  ): Promise<void> {
     const buildSystem = await this.#getBuildSystem();
-    return buildSystem.cleanupArtifacts(rootFilePaths);
+    return buildSystem.cleanupArtifacts(rootFilePaths, options);
   }
 
   public async compileBuildInfo(
@@ -94,6 +106,11 @@ class LazySolidityBuildSystem implements SolidityBuildSystem {
   ): Promise<CompilerOutput> {
     const buildSystem = await this.#getBuildSystem();
     return buildSystem.compileBuildInfo(buildInfo, options);
+  }
+
+  public async getArtifactsDirectory(scope: BuildScope): Promise<string> {
+    const buildSystem = await this.#getBuildSystem();
+    return buildSystem.getArtifactsDirectory(scope);
   }
 
   async #getBuildSystem(): Promise<SolidityBuildSystem> {

@@ -1,4 +1,5 @@
 import type { NetworkHelpers } from "../../src/types.js";
+import type { NetworkConnection } from "hardhat/types/network";
 
 import assert from "node:assert/strict";
 import { before, beforeEach, describe, it } from "node:test";
@@ -34,6 +35,27 @@ describe("network-helpers - loadFixture", () => {
 
     assert.equal(calledCount, 1);
     assert.equal(blockNumberAfter, blockNumberBefore + 1);
+  });
+
+  it("should have the connection object", async function () {
+    async function checkConnectionFixture(
+      connection: NetworkConnection<"generic">,
+    ) {
+      assert.ok(
+        connection.networkName !== undefined,
+        "networkName should be defined",
+      );
+      assert.ok(
+        connection.networkConfig !== undefined,
+        "networkConfig should be defined",
+      );
+      assert.ok(
+        connection.provider !== undefined,
+        "provider should be defined",
+      );
+    }
+
+    await networkHelpers.loadFixture(checkConnectionFixture);
   });
 
   it("doesn't call the fixture the second time it's used", async function () {

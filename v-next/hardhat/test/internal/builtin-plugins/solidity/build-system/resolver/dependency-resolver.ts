@@ -2682,6 +2682,81 @@ submodule2/=lib/submodule2/src/`,
         });
       });
 
+      it("works with aliased npm packages that include @", async () => {
+        const templateWithAlias: TestProjectTemplate = {
+          name: "import-resolution",
+          version: "1.0.0",
+          files: {
+            "contracts/A.sol": `A`,
+          },
+          dependencies: {
+            [path.join("@test_dep", "contracts@1.2.3")]: {
+              name: "@test_dep/contracts",
+              version: "1.2.3",
+              files: {
+                "src/dep.sol": `dep`,
+              },
+            },
+            [path.join("@test_dep", "contracts@1.2.4")]: {
+              name: "@test_dep/contracts",
+              version: "1.2.4",
+              files: {
+                "src/dep2.sol": `dep2`,
+              },
+            },
+          },
+        };
+
+        await using project = await useTestProjectTemplate(templateWithAlias);
+
+        const resolver = await ResolverImplementation.create(
+          project.path,
+          readUtf8File,
+        );
+        const absoluteFilePath = path.join(project.path, "contracts/A.sol");
+        const result = await resolver.resolveProjectFile(absoluteFilePath);
+        assert.ok(result.success, "Result should be successful");
+
+        const depSrcDResult = await resolver.resolveImport(
+          result.value,
+          "@test_dep/contracts@1.2.3/src/dep.sol",
+        );
+
+        assert.deepEqual(depSrcDResult, {
+          success: true,
+          value: {
+            file: {
+              type: ResolvedFileType.NPM_PACKAGE_FILE,
+              fsPath: path.join(
+                project.path,
+                "node_modules/@test_dep/contracts@1.2.3/src/dep.sol",
+              ),
+              content: {
+                text: `dep`,
+                importPaths: [],
+                versionPragmas: [],
+              },
+              inputSourceName: "npm/@test_dep/contracts@1.2.3/src/dep.sol",
+              package: {
+                name: "@test_dep/contracts",
+                version: "1.2.3",
+                rootFsPath: path.join(
+                  project.path,
+                  "node_modules/@test_dep/contracts@1.2.3",
+                ),
+                inputSourceNameRoot: "npm/@test_dep/contracts@1.2.3",
+                exports: undefined,
+              },
+            },
+            remapping: {
+              context: "project/",
+              prefix: "@test_dep/contracts@1.2.3/",
+              target: "npm/@test_dep/contracts@1.2.3/",
+            },
+          },
+        });
+      });
+
       it("Resolving roots and imports should return the same instance of each file, even when importing in different ways", async () => {
         await using project = await useTestProjectTemplate(template);
         const resolver = await ResolverImplementation.create(
