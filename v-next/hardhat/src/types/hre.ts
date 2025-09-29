@@ -11,6 +11,10 @@ export interface HardhatRuntimeEnvironment {
   readonly userConfig: HardhatUserConfig;
   readonly globalOptions: GlobalOptions;
   readonly interruptions: UserInterruptionManager;
+  readonly versions: {
+    readonly hardhat: string;
+    readonly edr: string;
+  };
   // These fields are defined using module agumentation despite being part of
   // Hardhat's core:
   // readonly hooks: HookManager;
