@@ -52,7 +52,7 @@ export async function handleRevertWithCustomError<
           );
         }
 
-        // Not a panic error; handle as a error string
+        // Not a panic error; handle as an error string
 
         assert.fail(
           `The function was expected to revert with custom error "${customErrorName}", but it reverted with reason "${args[0]}"`,

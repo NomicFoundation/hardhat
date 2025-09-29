@@ -6,7 +6,7 @@ Built by the [Nomic Foundation](https://nomic.foundation/) for the Ethereum comm
 
 ## Getting started
 
-To install Hardhat and initialize a new project, run the following commands in an empty directory:
+To install Hardhat and initialize a new project, run the following command in an empty directory:
 
 ```bash
 npx hardhat --init
