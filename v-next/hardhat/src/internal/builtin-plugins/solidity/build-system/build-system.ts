@@ -298,18 +298,14 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
         ),
       );
 
-      if (!options.quiet) {
-        spinner.stop();
-      }
+      spinner.stop();
 
       this.#printSolcErrorsAndWarnings(errors);
       const successfulResult = !this.#hasCompilationErrors(
         result.compilerOutput,
       );
 
-      if (!options.quiet) {
-        spinner.start();
-      }
+      spinner.start();
 
       for (const [userSourceName, root] of result.compilationJob.dependencyGraph
         .getRoots()
@@ -346,14 +342,12 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
       }
     }
 
-    if (isSuccessfulBuild) {
-      spinner.stop();
+    spinner.stop();
 
-      if (!options.quiet) {
+    if (!options.quiet) {
+      if (isSuccessfulBuild) {
         await this.#printCompilationResult(runnableCompilationJobs);
       }
-    } else {
-      spinner.stop();
     }
 
     return resultsMap;
