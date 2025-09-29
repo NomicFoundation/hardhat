@@ -289,5 +289,26 @@ export const builtinChains: ChainConfig[] = [
       apiURL: "https://ctrver.t.hmny.io/verify?network=testnet",
       browserURL: "https://explorer.pops.one",
     },
+   },
+
+  // Xone Mainnet
+  {
+    network: "xone",
+    chainId: 3721,
+    urls: {
+      apiURL: "https://api.etherscan.io/v2/api?chainid=3721",
+      browserURL: "https://xonescan.com",
+    },
   },
-];
+
+  // Xone Testnet
+  {
+    network: "xoneTestnet",
+    chainId: 33772211,
+    urls: {
+      apiURL: "https://api.etherscan.io/v2/api?chainid=33772211",
+      browserURL: "https://testnet.xonescan.com",
+    },
+  },
+
+ ];
