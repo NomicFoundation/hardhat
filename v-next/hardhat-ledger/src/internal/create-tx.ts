@@ -20,9 +20,14 @@ export function createTx(
     true,
   );
 
+  assertHardhatInvariant(
+    txRequest.nonce !== undefined,
+    "nonce should be defined",
+  );
+
   const baseTxParams = {
     to: checksummedAddress,
-    nonce: txRequest.nonce !== undefined ? toBigInt(txRequest.nonce) : 0n,
+    nonce: toBigInt(txRequest.nonce),
     chainId,
     value: txRequest.value ?? 0n,
     data: bytesToHexString(txRequest.data ?? new Uint8Array()),
