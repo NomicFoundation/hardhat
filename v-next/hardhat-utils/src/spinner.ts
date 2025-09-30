@@ -1,5 +1,5 @@
 const FRAMES = ["⠋", "⠙", "⠹", "⠸", "⠼", "⠴", "⠦", "⠧", "⠇", "⠏"];
-const FRAME_INTERVAL_MS = 80;
+export const FRAME_INTERVAL_MS = 80;
 
 export interface ISpinner {
   readonly isEnabled: boolean;
@@ -8,52 +8,55 @@ export interface ISpinner {
 }
 
 /**
+ * Optional settings when creating a spinner.
+ */
+export interface SpinnerOptions {
+  /**
+   * Text shown next to the spinner.
+   */
+  text?: string;
+
+  /**
+   * Stream used to write frames.
+   */
+  stream?: NodeJS.WriteStream;
+
+  /**
+   * Whether the spinner is enabled.
+   */
+  enabled?: boolean;
+}
+
+/**
  * Spinner that writes frames to a stream.
- *
- * Falls back to console logs when output is disabled.
  */
 class Spinner implements ISpinner {
   public readonly isEnabled: boolean;
   readonly #text: string;
   #interval: NodeJS.Timeout | null = null;
-  #loggedFallback = false;
   readonly #stream: NodeJS.WriteStream;
-  readonly #silent: boolean;
 
-  constructor(
-    stream: NodeJS.WriteStream,
-    enabled: boolean,
-    initialText: string,
-    silent: boolean = false,
-  ) {
-    this.isEnabled = enabled;
-    this.#stream = stream;
+  constructor(options: SpinnerOptions) {
+    this.isEnabled = options.enabled ?? true;
+    this.#stream = options.stream ?? process.stdout;
 
-    this.#text = initialText;
-    this.#silent = silent;
+    this.#text = options.text ?? "";
   }
   /**
-   * Begin rendering frames or log the first message when disabled.
+   * Begin rendering frames when enabled.
    */
   public start(): void {
     if (!this.isEnabled) {
-      if (this.#text !== "" && !this.#loggedFallback && !this.#silent) {
-        console.log(this.#text);
-        this.#loggedFallback = true;
-      }
       return;
     }
 
     this.#stopAnimation();
     let frameIndex = 0;
 
-    const tick = () => {
+    this.#interval = setInterval(() => {
       this.#render(FRAMES[frameIndex]);
       frameIndex = (frameIndex + 1) % FRAMES.length;
-    };
-
-    this.#interval = setInterval(tick, FRAME_INTERVAL_MS);
-    tick();
+    }, FRAME_INTERVAL_MS);
   }
 
   /**
@@ -76,33 +79,11 @@ class Spinner implements ISpinner {
   }
 
   #render(frame: string): void {
-    if (!this.isEnabled || this.#interval === null) {
+    if (!this.isEnabled) {
       return;
     }
     this.#clearLine();
     this.#stream.write(`${frame} ${this.#text}`);
-  }
-
-  #finalize(message: string | undefined, symbol?: string): void {
-    const output = message ?? this.#text;
-
-    if (output === "") {
-      this.#stopAnimation();
-      return;
-    }
-    const prefix = symbol !== undefined ? `${symbol} ` : "";
-
-    if (!this.isEnabled) {
-      if (!this.#silent) {
-        console.log(`${prefix}${output}`);
-        this.#loggedFallback = true;
-      }
-      return;
-    }
-
-    this.#stopAnimation();
-
-    this.#stream.write(`${prefix}${output}\n`);
   }
 
   #stopAnimation(): void {
@@ -117,31 +98,6 @@ class Spinner implements ISpinner {
       this.#clearLine();
     }
   }
-}
-
-/**
- * Optional settings when creating a spinner.
- */
-export interface SpinnerOptions {
-  /**
-   * Text shown next to the spinner.
-   */
-  text?: string;
-
-  /**
-   * Stream used to write frames.
-   */
-  stream?: NodeJS.WriteStream;
-
-  /**
-   * Whether the spinner is enabled.
-   */
-  enabled?: boolean;
-
-  /**
-   * Suppress console fallbacks when the spinner is disabled.
-   */
-  silent?: boolean;
 }
 
 /**
@@ -171,10 +127,9 @@ export function createSpinner(options: SpinnerOptions = {}): ISpinner {
   const enable =
     options.enabled ?? (stream.isTTY === true && process.env.TERM !== "dumb");
 
-  return new Spinner(
+  return new Spinner({
+    enabled: enable,
     stream,
-    enable,
-    options.text ?? "",
-    options.silent ?? false,
-  );
+    text: options.text,
+  });
 }

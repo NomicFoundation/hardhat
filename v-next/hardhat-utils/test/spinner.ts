@@ -3,7 +3,7 @@ import type { ISpinner } from "../src/spinner.js";
 import assert from "node:assert/strict";
 import { afterEach, beforeEach, describe, it, mock } from "node:test";
 
-import { createSpinner } from "../src/spinner.js";
+import { createSpinner, FRAME_INTERVAL_MS } from "../src/spinner.js";
 
 interface CapturedStream {
   stream: NodeJS.WriteStream;
@@ -88,17 +88,21 @@ describe("spinner", { concurrency: false }, () => {
   }
 
   beforeEach(() => {
+    mock.timers.enable({ apis: ["setInterval"] });
     captured = createCapturedStream();
     spinner = createSpinner({ stream: captured.stream, text: "initial" });
   });
 
   afterEach(() => {
     spinner.stop();
+    mock.timers.reset();
   });
 
   describe("start", () => {
     it("should render first frame", async () => {
       spinner.start();
+
+      mock.timers.tick(FRAME_INTERVAL_MS + 1);
       assert.ok(
         captured.writes[0]?.startsWith("⠋ initial"),
         `expected first write to start with spinner frame, got: ${captured.writes[0]}`,
@@ -109,7 +113,7 @@ describe("spinner", { concurrency: false }, () => {
     });
   });
 
-  describe("stop family", () => {
+  describe("stop", () => {
     it("stop clears current line", () => {
       spinner.start();
       resetCapturedState();
@@ -121,40 +125,19 @@ describe("spinner", { concurrency: false }, () => {
     });
   });
 
-  describe("fallback behavior", () => {
-    it("disabled spinner logs once", () => {
-      const log = mock.method(console, "log");
-      try {
-        const disabled = createSpinner({
-          stream: captured.stream,
-          text: "first",
-          enabled: false,
-        });
+  describe("disabled spinner behavior", () => {
+    it("disabled spinner does nothing on start", () => {
+      const disabled = createSpinner({
+        stream: captured.stream,
+        text: "disabled",
+        enabled: false,
+      });
 
-        disabled.start();
+      disabled.start();
 
-        assert.equal(log.mock.calls.length, 1);
-        assert.deepEqual(log.mock.calls[0]?.arguments, ["first"]);
-      } finally {
-        log.mock.restore();
-      }
-    });
-
-    it("silent spinner does not log fallback", () => {
-      const log = mock.method(console, "log");
-      try {
-        const silentDisabled = createSpinner({
-          stream: captured.stream,
-          text: "quiet",
-          enabled: false,
-          silent: true,
-        });
-
-        silentDisabled.start();
-        assert.equal(log.mock.calls.length, 0);
-      } finally {
-        log.mock.restore();
-      }
+      assert.equal(captured.writes.length, 0);
+      assert.equal(captured.clearCount, 0);
+      assert.equal(captured.cursorCount, 0);
     });
   });
 });
