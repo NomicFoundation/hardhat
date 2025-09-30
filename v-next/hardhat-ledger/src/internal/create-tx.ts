@@ -15,11 +15,13 @@ export function createTx(
   txRequest: RpcTransactionRequest,
   chainId: bigint,
 ): Transaction<"eip7702" | "eip1559" | "eip2930" | "legacy"> {
+  const checksummedAddress = addr.addChecksum(
+    bytesToHexString(txRequest.to ?? new Uint8Array()),
+    true,
+  );
+
   const baseTxParams = {
-    to:
-      txRequest.to !== undefined && txRequest.to !== null
-        ? bytesToHexString(txRequest.to)
-        : "0x",
+    to: checksummedAddress,
     nonce: txRequest.nonce !== undefined ? toBigInt(txRequest.nonce) : 0n,
     chainId,
     value: txRequest.value ?? 0n,
