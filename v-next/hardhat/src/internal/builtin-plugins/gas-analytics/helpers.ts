@@ -1,5 +1,3 @@
-import path from "node:path";
-
 import { assertHardhatInvariant } from "@nomicfoundation/hardhat-errors";
 
 import { HardhatRuntimeEnvironmentImplementation } from "../../core/hre.js";
@@ -11,10 +9,6 @@ import { HardhatRuntimeEnvironmentImplementation } from "../../core/hre.js";
  *   internal public API only.
  * - We know the HRE has been initialized by the time they are used.
  */
-
-export function getGasStatsPath(rootPath: string): string {
-  return path.join(rootPath, "coverage");
-}
 
 export async function markTestRunStart(id: string): Promise<void> {
   const { default: hre } = await import("../../../index.js");

@@ -4,14 +4,12 @@ import { assertHardhatInvariant } from "@nomicfoundation/hardhat-errors";
 
 import { HardhatRuntimeEnvironmentImplementation } from "../../../core/hre.js";
 import { GasAnalyticsManagerImplementation } from "../gas-analytics-manager.js";
-import { getGasStatsPath } from "../helpers.js";
 
 export default async (): Promise<Partial<HardhatRuntimeEnvironmentHooks>> => ({
   created: async (context, hre) => {
     if (context.globalOptions.gasStats) {
-      const gasStatsPath = getGasStatsPath(hre.config.paths.root);
       const gasAnalyticsManager = new GasAnalyticsManagerImplementation(
-        gasStatsPath,
+        hre.config.paths.cache,
       );
 
       assertHardhatInvariant(

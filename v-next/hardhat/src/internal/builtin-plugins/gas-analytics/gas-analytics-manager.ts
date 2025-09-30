@@ -51,8 +51,8 @@ export class GasAnalyticsManagerImplementation implements GasAnalyticsManager {
   public gasMeasurements: GasMeasurement[] = [];
   readonly #gasStatsPath: string;
 
-  constructor(gasStatsPath: string) {
-    this.#gasStatsPath = gasStatsPath;
+  constructor(gasStatsRootPath: string) {
+    this.#gasStatsPath = path.join(gasStatsRootPath, "gas-stats");
   }
 
   public addGasMeasurement(gasMeasurement: GasMeasurement): void {
@@ -93,7 +93,7 @@ export class GasAnalyticsManagerImplementation implements GasAnalyticsManager {
   }
 
   async #getGasMeasurementsPath(id: string): Promise<string> {
-    const gasMeasurementsPath = path.join(this.#gasStatsPath, "gas-stats", id);
+    const gasMeasurementsPath = path.join(this.#gasStatsPath, id);
     await ensureDir(gasMeasurementsPath);
     return gasMeasurementsPath;
   }
