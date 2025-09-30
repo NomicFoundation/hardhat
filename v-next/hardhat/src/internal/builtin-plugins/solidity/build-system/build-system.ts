@@ -827,7 +827,9 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
       const parsed = parseRootPath(rootFilePath);
       return isNpmParsedRootPath(parsed)
         ? parsed.npmPath
-        : path.relative(this.#options.projectRoot, parsed.fsPath);
+        : toForwardSlash(
+            path.relative(this.#options.projectRoot, parsed.fsPath),
+          );
     });
 
     const userSourceNamesSet = new Set(userSourceNames);
@@ -836,7 +838,9 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
       artifactsDirectory,
       (d) => d.endsWith(".sol"),
     )) {
-      const relativePath = path.relative(artifactsDirectory, file);
+      const relativePath = toForwardSlash(
+        path.relative(artifactsDirectory, file),
+      );
 
       if (!userSourceNamesSet.has(relativePath)) {
         await remove(file);
@@ -1125,4 +1129,8 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
       }
     }
   }
+}
+
+function toForwardSlash(str: string): string {
+  return str.split(/[\\\/]/).join(path.posix.sep);
 }
