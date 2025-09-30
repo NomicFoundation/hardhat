@@ -110,6 +110,7 @@ export class CoverageManagerImplementation implements CoverageManager {
     log(`Saved lcov report to ${lcovReportPath}`);
 
     console.log(markdownReport);
+    console.log();
     log("Printed markdown report");
   }
 

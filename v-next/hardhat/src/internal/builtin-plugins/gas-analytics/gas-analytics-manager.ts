@@ -84,6 +84,7 @@ export class GasAnalyticsManagerImplementation implements GasAnalyticsManager {
     const report = this._generateGasStatsReport(gasStatsByContract);
 
     console.log(report);
+    console.log();
     gasStatsLog("Printed markdown report");
   }
 
