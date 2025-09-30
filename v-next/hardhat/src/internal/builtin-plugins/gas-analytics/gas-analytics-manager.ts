@@ -57,11 +57,6 @@ export class GasAnalyticsManagerImplementation implements GasAnalyticsManager {
 
   public addGasMeasurement(gasMeasurement: GasMeasurement): void {
     this.gasMeasurements.push(gasMeasurement);
-
-    gasStatsLog(
-      "Added gas measurement",
-      JSON.stringify(gasMeasurement, null, 2),
-    );
   }
 
   public async clearGasMeasurements(id: string): Promise<void> {
