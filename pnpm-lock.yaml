@@ -890,6 +890,9 @@ importers:
       '@nomicfoundation/hardhat-zod-utils':
         specifier: workspace:^3.0.0
         version: link:../hardhat-zod-utils
+      chalk:
+        specifier: ^5.4.1
+        version: 5.4.1
       hardhat:
         specifier: workspace:^3.0.0
         version: link:../hardhat
