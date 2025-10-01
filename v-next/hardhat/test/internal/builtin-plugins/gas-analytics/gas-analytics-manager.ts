@@ -802,9 +802,38 @@ describe("gas-analytics-manager", () => {
       it("should generate a report", () => {
         const manager = new GasAnalyticsManagerImplementation(tmpDir);
         const gasStats = new Map();
+        // Contracts are added in non-alphabetical order to test sorting
+        gasStats.set("project/contracts/TokenA.sol:TokenA", {
+          deployment: undefined,
+          functions: new Map([
+            // Functions are added in non-alphabetical order to test sorting
+            [
+              "transfer(address,uint256,bytes)",
+              {
+                min: 32000,
+                max: 36000,
+                avg: 34000,
+                median: 34000,
+                calls: 2,
+              },
+            ],
+            [
+              "transfer(address,uint256)",
+              {
+                min: 22000,
+                max: 28000,
+                avg: 25000,
+                median: 25000,
+                calls: 2,
+              },
+            ],
+          ]),
+        });
+
         gasStats.set("project/contracts/MyContract.sol:MyContract", {
           deployment: { gas: 500000, size: 2048 },
           functions: new Map([
+            // Functions are added in non-alphabetical order to test sorting
             [
               "transfer",
               {
@@ -828,42 +857,18 @@ describe("gas-analytics-manager", () => {
           ]),
         });
 
-        gasStats.set("project/contracts/TokenA.sol:TokenA", {
-          deployment: undefined,
-          functions: new Map([
-            [
-              "transfer(address,uint256)",
-              {
-                min: 22000,
-                max: 28000,
-                avg: 25000,
-                median: 25000,
-                calls: 2,
-              },
-            ],
-            [
-              "transfer(address,uint256,bytes)",
-              {
-                min: 32000,
-                max: 36000,
-                avg: 34000,
-                median: 34000,
-                calls: 2,
-              },
-            ],
-          ]),
-        });
-
         const report = manager._generateGasStatsReport(gasStats);
 
         const expectedReport = `
+| ${chalk.bold("Gas Usage Statistics")}                |                 |         |        |       |        |
+| ----------------------------------- | --------------- | ------- | ------ | ----- | ------ |
 | ${chalk.cyan.bold("contracts/MyContract.sol:MyContract")} |                 |         |        |       |        |
 | ----------------------------------- | --------------- | ------- | ------ | ----- | ------ |
 | ${chalk.yellow("Deployment Cost")}                     | ${chalk.yellow("Deployment Size")} |         |        |       |        |
 | 500000                              | 2048            |         |        |       |        |
 | ${chalk.yellow("Function name")}                       | ${chalk.yellow("Min")}             | ${chalk.yellow("Average")} | ${chalk.yellow("Median")} | ${chalk.yellow("Max")}   | ${chalk.yellow("#calls")} |
-| transfer                            | 20000           | 25000   | 25000  | 30000 | 3      |
 | balanceOf                           | 15000           | 15000   | 15000  | 15000 | 1      |
+| transfer                            | 20000           | 25000   | 25000  | 30000 | 3      |
 |                                     |                 |         |        |       |        |
 | ${chalk.cyan.bold("contracts/TokenA.sol:TokenA")}         |                 |         |        |       |        |
 | ----------------------------------- | --------------- | ------- | ------ | ----- | ------ |
@@ -873,6 +878,96 @@ describe("gas-analytics-manager", () => {
 `.trim();
 
         assert.equal(report, expectedReport);
+      });
+
+      it("should sort overloads with same parameter count correctly", () => {
+        const manager = new GasAnalyticsManagerImplementation(tmpDir);
+        const gasStats = new Map();
+        gasStats.set("project/contracts/TestContract.sol:TestContract", {
+          deployment: undefined,
+          functions: new Map([
+            [
+              "transfer(address,uint256)",
+              {
+                min: 25000,
+                max: 25000,
+                avg: 25000,
+                median: 25000,
+                calls: 1,
+              },
+            ],
+            [
+              "transfer(address,bytes32)",
+              {
+                min: 23000,
+                max: 23000,
+                avg: 23000,
+                median: 23000,
+                calls: 1,
+              },
+            ],
+          ]),
+        });
+
+        const report = manager._generateGasStatsReport(gasStats);
+
+        const lines = report.split("\n");
+        const transferBytes32Line = lines.findIndex((line) =>
+          line.includes("transfer(address,bytes32)"),
+        );
+        const transferUint256Line = lines.findIndex((line) =>
+          line.includes("transfer(address,uint256)"),
+        );
+
+        assert.ok(
+          transferBytes32Line < transferUint256Line,
+          "transfer(address,bytes32) should come before transfer(address,uint256)",
+        );
+      });
+
+      it("should sort overloads with different parameter counts correctly", () => {
+        const manager = new GasAnalyticsManagerImplementation(tmpDir);
+        const gasStats = new Map();
+        gasStats.set("project/contracts/TestContract.sol:TestContract", {
+          deployment: undefined,
+          functions: new Map([
+            [
+              "mint(uint256,bytes)",
+              {
+                min: 35000,
+                max: 35000,
+                avg: 35000,
+                median: 35000,
+                calls: 1,
+              },
+            ],
+            [
+              "mint(uint256)",
+              {
+                min: 25000,
+                max: 25000,
+                avg: 25000,
+                median: 25000,
+                calls: 1,
+              },
+            ],
+          ]),
+        });
+
+        const report = manager._generateGasStatsReport(gasStats);
+
+        const lines = report.split("\n");
+        const mintUint256Line = lines.findIndex((line) =>
+          line.includes("mint(uint256)"),
+        );
+        const mintBytesLine = lines.findIndex((line) =>
+          line.includes("mint(uint256,bytes)"),
+        );
+
+        assert.ok(
+          mintUint256Line < mintBytesLine,
+          "mint(uint256) should come before mint(uint256,bytes)",
+        );
       });
     });
   });

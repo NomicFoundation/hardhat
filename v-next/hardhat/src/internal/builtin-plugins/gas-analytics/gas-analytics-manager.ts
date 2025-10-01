@@ -210,7 +210,18 @@ export class GasAnalyticsManagerImplementation implements GasAnalyticsManager {
     gasStatsByContract: GasStatsByContract,
   ): string {
     const rows: TableItem[] = [];
-    for (const [contractFqn, contractGasStats] of gasStatsByContract) {
+
+    if (gasStatsByContract.size > 0) {
+      rows.push([chalk.bold("Gas Usage Statistics")]);
+      rows.push(divider);
+    }
+
+    // Sort contracts alphabetically for consistent output
+    const sortedContracts = [...gasStatsByContract.entries()].sort(([a], [b]) =>
+      a.localeCompare(b),
+    );
+
+    for (const [contractFqn, contractGasStats] of sortedContracts) {
       rows.push([chalk.cyan.bold(getUserFqn(contractFqn))]);
       rows.push(divider);
 
@@ -232,10 +243,15 @@ export class GasAnalyticsManagerImplementation implements GasAnalyticsManager {
         );
       }
 
-      for (const [
-        functionDisplayName,
-        gasStats,
-      ] of contractGasStats.functions) {
+      // Sort functions by removing trailing ) and comparing alphabetically.
+      // This ensures that overloaded functions with fewer params come first
+      // (e.g., foo(uint256) comes before foo(uint256,uint256)). In other
+      // scenarios, removing the trailing ) has no effect on the order.
+      const sortedFunctions = [...contractGasStats.functions.entries()].sort(
+        ([a], [b]) => a.split(")")[0].localeCompare(b.split(")")[0]),
+      );
+
+      for (const [functionDisplayName, gasStats] of sortedFunctions) {
         rows.push([
           functionDisplayName,
           `${gasStats.min}`,
