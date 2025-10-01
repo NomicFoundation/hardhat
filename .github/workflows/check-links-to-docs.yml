@@ -1,7 +1,7 @@
-# Fails if a PR doesn't have a changeset and is not labeled
-# as "no changeset needed"
+# Fails if a PR doesn't link to documentation (pr/issue on hardhat-website) and is not labeled
+# as "no docs needed"
 
-name: Check that the PR has a changeset
+name: Check that the PR links to documentation
 
 on:
   merge_group:
@@ -15,10 +15,11 @@ on:
       - reopened
       - labeled
       - unlabeled
+      - edited
 
 jobs:
-  check-if-changeset:
-    name: Check that PR has a changeset
+  check-links-to-docs:
+    name: Check that PR links to documentation
     runs-on: ubuntu-latest
     steps:
       - name: Checkout the repository
@@ -27,12 +28,9 @@ jobs:
       # We need to fetch the base ref because the pull request check inspects the diff between the head and the base ref
       - run: git fetch origin "$GITHUB_BASE_REF":"$GITHUB_BASE_REF"
 
-      - name: Check if merge group is valid
-        if: github.event_name == 'merge_group'
-        run: node scripts/validate-merge-group.mjs
-
-      - name: Check if PR has a changeset
+      - name: Check if PR links to documentation
         if: github.event_name == 'pull_request'
         env:
           GITHUB_EVENT_PULL_REQUEST_LABELS: ${{ toJson(github.event.pull_request.labels) }}
-        run: node scripts/validate-pull-request-changeset.mjs
+          GITHUB_EVENT_PULL_REQUEST_BODY: ${{ github.event.pull_request.body }}
+        run: node scripts/validate-pull-request-docs.mjs
