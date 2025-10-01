@@ -17,7 +17,7 @@ export default async (): Promise<Partial<NetworkHooks>> => {
   const ledgerHandlerPerConnection: WeakMap<
     NetworkConnection<ChainType | string>,
     LedgerHandler
-  > = new Map();
+  > = new WeakMap();
 
   const initializationMutex = new AsyncMutex();
 
