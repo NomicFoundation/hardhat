@@ -57,12 +57,12 @@
     "typescript": "~5.8.0"
   },
   "dependencies": {
-    "@ledgerhq/errors": "^6.22.0",
-    "@ledgerhq/evm-tools": "^1.7.0",
-    "@ledgerhq/hw-app-eth": "^6.45.10",
-    "@ledgerhq/hw-transport": "^6.31.7",
-    "@ledgerhq/hw-transport-node-hid": "^6.29.8",
-    "@ledgerhq/types-live": "^6.76.0",
+    "@ledgerhq/errors": "^6.25.0",
+    "@ledgerhq/evm-tools": "^1.7.7",
+    "@ledgerhq/hw-app-eth": "^6.45.19",
+    "@ledgerhq/hw-transport": "^6.31.11",
+    "@ledgerhq/hw-transport-node-hid": "^6.29.12",
+    "@ledgerhq/types-live": "^6.85.0",
     "@nomicfoundation/hardhat-errors": "workspace:^3.0.0",
     "@nomicfoundation/hardhat-utils": "workspace:^3.0.0",
     "@nomicfoundation/hardhat-zod-utils": "workspace:^3.0.0",

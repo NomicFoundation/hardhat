@@ -524,92 +524,363 @@ describe("LedgerHandler", () => {
         assert.deepEqual(res.result, signature);
       });
 
-      it("should successfully handle the method eth_sendTransaction", async () => {
-        const signedRawTx =
-          "0xf861646482520894da6a52afdae5ff66aa786da68754a227331f56e3648082f4f5a04ab14d7e96a8bc7390cfffa0260d4b82848428ce7f5b8dd367d13bf31944b6c0a03cc226daa6a2f4e22334c59c2e04ac72672af72907ec9c4a601189858ba60069";
-
-        const txRsv = {
-          v: "f4f5",
-          r: "4ab14d7e96a8bc7390cfffa0260d4b82848428ce7f5b8dd367d13bf31944b6c0",
-          s: "3cc226daa6a2f4e22334c59c2e04ac72672af72907ec9c4a601189858ba60069",
-        };
-
-        [eth] = getEthMocked({
-          getAddress: {
-            result: (searchedPath: string) => {
-              return searchedPath === derPath
-                ? account
-                : { address: "0x0", publicKey: "0x0" };
-            },
-          },
-          signTransaction: {
-            result: txRsv,
-            expectedParams: {
-              path: derPath,
-              rawTxHex:
-                "e1646482520894da6a52afdae5ff66aa786da68754a227331f56e36480827a698080",
-              resolution: {
-                nfts: [],
-                erc20Tokens: [],
-                externalPlugin: [],
-                plugin: [],
-                domains: [],
-              },
-            },
-          },
+      describe("all transaction types", () => {
+        beforeEach(() => {
+          ethereumMockedProvider.resetNumberOfCalls("eth_getTransactionCount");
+          ethereumMockedProvider.resetNumberOfCalls("eth_chainId");
         });
 
-        ethereumMockedProvider.setReturnValue("eth_chainId", "0x7a69");
-        ethereumMockedProvider.setReturnValue(
-          "eth_getTransactionCount",
-          "0x64",
-        );
+        it("should throw for eip7702 transactions because they are not supported in the current ledger library", async () => {
+          [eth] = getEthMocked({
+            getAddress: {
+              result: (searchedPath: string) => {
+                return searchedPath === derPath
+                  ? account
+                  : { address: "0x0", publicKey: "0x0" };
+              },
+            },
+          });
 
-        ledgerHandler = new LedgerHandler(
-          ethereumMockedProvider,
-          {
-            accounts: LEDGER_ADDRESSES,
-          },
-          mockedDisplayInfo.fn,
-          {
-            ethConstructor: eth,
-            transportNodeHid: getTransportNodeHidMock(),
-            cachePath: tmpCachePath,
-          },
-        );
+          ethereumMockedProvider.setReturnValue("eth_chainId", "0x7a69");
+          ethereumMockedProvider.setReturnValue(
+            "eth_getTransactionCount",
+            "0x64",
+          );
 
-        const request = createJsonRpcRequest("eth_sendTransaction", [
-          {
-            from: account.address,
-            to: LEDGER_ADDRESSES[1],
-            value: numberToHexString(100),
-            gas: numberToHexString(1000000),
-            gasPrice: numberToHexString(100),
-            gasLimit: numberToHexString(1000000),
-          },
-        ]);
+          ledgerHandler = new LedgerHandler(
+            ethereumMockedProvider,
+            {
+              accounts: LEDGER_ADDRESSES,
+            },
+            mockedDisplayInfo.fn,
+            {
+              ethConstructor: eth,
+              transportNodeHid: getTransportNodeHidMock(),
+              cachePath: tmpCachePath,
+            },
+          );
 
-        const modifiedRequest = await ledgerHandler.handle(request, []);
+          const request = createJsonRpcRequest("eth_sendTransaction", [
+            {
+              from: account.address,
+              to: LEDGER_ADDRESSES[1],
+              value: numberToHexString(100),
+              gas: numberToHexString(1000001),
+              gasLimit: numberToHexString(1000001),
+              maxFeePerGas: numberToHexString(1000001),
+              maxPriorityFeePerGas: numberToHexString(1000001),
+              authorizationList: [],
+              accessList: [
+                {
+                  address: "0xa809931e3b38059adae9bc5455bc567d0509ab92",
+                  storageKeys: [
+                    "0x0000000000000000000000000000000000000000000000000000000000000000",
+                  ],
+                },
+              ],
+            },
+          ]);
 
-        assert.ok(modifiedRequest !== null, "res should not be null");
-        assert.ok(
-          "method" in modifiedRequest && Array.isArray(modifiedRequest.params),
-          "modifiedRequest should have the property 'method' ana params should be an array",
-        );
+          await assertRejectsWithHardhatError(
+            ledgerHandler.handle(request, []),
+            HardhatError.ERRORS.HARDHAT_LEDGER.GENERAL
+              .EIP_7702_TX_CURRENTLY_NOT_SUPPORTED,
+            {},
+          );
+        });
 
-        assert.equal(modifiedRequest.method, "eth_sendRawTransaction");
-        assert.equal(modifiedRequest.params[0], signedRawTx);
+        it("should successfully handle the method eth_sendTransaction for legacy transactions", async () => {
+          const signedRawTx =
+            "0xf8626465830f424194da6a52afdae5ff66aa786da68754a227331f56e3648082f4f5a04ab14d7e96a8bc7390cfffa0260d4b82848428ce7f5b8dd367d13bf31944b6c0a03cc226daa6a2f4e22334c59c2e04ac72672af72907ec9c4a601189858ba60069";
 
-        assert.equal(
-          ethereumMockedProvider.getNumberOfCalls("eth_getTransactionCount"),
-          1,
-        );
-        assert.deepEqual(
-          ethereumMockedProvider.getLatestParams("eth_getTransactionCount"),
-          [account.address, "pending"],
-        );
+          const txRsv = {
+            v: "f4f5",
+            r: "4ab14d7e96a8bc7390cfffa0260d4b82848428ce7f5b8dd367d13bf31944b6c0",
+            s: "3cc226daa6a2f4e22334c59c2e04ac72672af72907ec9c4a601189858ba60069",
+          };
 
-        assert.equal(ethereumMockedProvider.getNumberOfCalls("eth_chainId"), 1);
+          [eth] = getEthMocked({
+            getAddress: {
+              result: (searchedPath: string) => {
+                return searchedPath === derPath
+                  ? account
+                  : { address: "0x0", publicKey: "0x0" };
+              },
+            },
+            signTransaction: {
+              result: txRsv,
+              expectedParams: {
+                path: derPath,
+                rawTxHex:
+                  "e26465830f424194da6a52afdae5ff66aa786da68754a227331f56e36480827a698080",
+                resolution: {
+                  nfts: [],
+                  erc20Tokens: [],
+                  externalPlugin: [],
+                  plugin: [],
+                  domains: [],
+                },
+              },
+            },
+          });
+
+          ethereumMockedProvider.setReturnValue("eth_chainId", "0x7a69");
+          ethereumMockedProvider.setReturnValue(
+            "eth_getTransactionCount",
+            "0x64",
+          );
+
+          ledgerHandler = new LedgerHandler(
+            ethereumMockedProvider,
+            {
+              accounts: LEDGER_ADDRESSES,
+            },
+            mockedDisplayInfo.fn,
+            {
+              ethConstructor: eth,
+              transportNodeHid: getTransportNodeHidMock(),
+              cachePath: tmpCachePath,
+            },
+          );
+
+          const request = createJsonRpcRequest("eth_sendTransaction", [
+            {
+              from: account.address,
+              to: LEDGER_ADDRESSES[1],
+              value: numberToHexString(100),
+              gas: numberToHexString(1000001),
+              gasPrice: numberToHexString(101),
+              gasLimit: numberToHexString(1000001),
+            },
+          ]);
+
+          const modifiedRequest = await ledgerHandler.handle(request, []);
+
+          assert.ok(modifiedRequest !== null, "res should not be null");
+          assert.ok(
+            "method" in modifiedRequest &&
+              Array.isArray(modifiedRequest.params),
+            "modifiedRequest should have the property 'method' ana params should be an array",
+          );
+
+          assert.equal(modifiedRequest.method, "eth_sendRawTransaction");
+          assert.equal(modifiedRequest.params[0], signedRawTx);
+
+          assert.equal(
+            ethereumMockedProvider.getNumberOfCalls("eth_getTransactionCount"),
+            1,
+          );
+          assert.deepEqual(
+            ethereumMockedProvider.getLatestParams("eth_getTransactionCount"),
+            [account.address, "pending"],
+          );
+
+          assert.equal(
+            ethereumMockedProvider.getNumberOfCalls("eth_chainId"),
+            1,
+          );
+        });
+
+        it("should successfully handle the method eth_sendTransaction for eip1559 transactions", async () => {
+          const signedRawTx =
+            "0x02f8a4827a6964830f4241830f4241830f424194da6a52afdae5ff66aa786da68754a227331f56e36480f838f794a809931e3b38059adae9bc5455bc567d0509ab92e1a0000000000000000000000000000000000000000000000000000000000000000080a04ab14d7e96a8bc7390cfffa0260d4b82848428ce7f5b8dd367d13bf31944b6c0a03cc226daa6a2f4e22334c59c2e04ac72672af72907ec9c4a601189858ba60069";
+
+          const txRsv = {
+            v: "f4f5",
+            r: "4ab14d7e96a8bc7390cfffa0260d4b82848428ce7f5b8dd367d13bf31944b6c0",
+            s: "3cc226daa6a2f4e22334c59c2e04ac72672af72907ec9c4a601189858ba60069",
+          };
+
+          [eth] = getEthMocked({
+            getAddress: {
+              result: (searchedPath: string) => {
+                return searchedPath === derPath
+                  ? account
+                  : { address: "0x0", publicKey: "0x0" };
+              },
+            },
+            signTransaction: {
+              result: txRsv,
+              expectedParams: {
+                path: derPath,
+                rawTxHex:
+                  "02f861827a6964830f4241830f4241830f424194da6a52afdae5ff66aa786da68754a227331f56e36480f838f794a809931e3b38059adae9bc5455bc567d0509ab92e1a00000000000000000000000000000000000000000000000000000000000000000",
+                resolution: {
+                  nfts: [],
+                  erc20Tokens: [],
+                  externalPlugin: [],
+                  plugin: [],
+                  domains: [],
+                },
+              },
+            },
+          });
+
+          ethereumMockedProvider.setReturnValue("eth_chainId", "0x7a69");
+          ethereumMockedProvider.setReturnValue(
+            "eth_getTransactionCount",
+            "0x64",
+          );
+
+          ledgerHandler = new LedgerHandler(
+            ethereumMockedProvider,
+            {
+              accounts: LEDGER_ADDRESSES,
+            },
+            mockedDisplayInfo.fn,
+            {
+              ethConstructor: eth,
+              transportNodeHid: getTransportNodeHidMock(),
+              cachePath: tmpCachePath,
+            },
+          );
+
+          const request = createJsonRpcRequest("eth_sendTransaction", [
+            {
+              from: account.address,
+              to: LEDGER_ADDRESSES[1],
+              value: numberToHexString(100),
+              gas: numberToHexString(1000001),
+              gasLimit: numberToHexString(1000001),
+              maxFeePerGas: numberToHexString(1000001),
+              maxPriorityFeePerGas: numberToHexString(1000001),
+              accessList: [
+                {
+                  address: "0xa809931e3b38059adae9bc5455bc567d0509ab92",
+                  storageKeys: [
+                    "0x0000000000000000000000000000000000000000000000000000000000000000",
+                  ],
+                },
+              ],
+            },
+          ]);
+
+          const modifiedRequest = await ledgerHandler.handle(request, []);
+
+          assert.ok(modifiedRequest !== null, "res should not be null");
+          assert.ok(
+            "method" in modifiedRequest &&
+              Array.isArray(modifiedRequest.params),
+            "modifiedRequest should have the property 'method' ana params should be an array",
+          );
+
+          assert.equal(modifiedRequest.method, "eth_sendRawTransaction");
+          assert.equal(modifiedRequest.params[0], signedRawTx);
+
+          assert.equal(
+            ethereumMockedProvider.getNumberOfCalls("eth_getTransactionCount"),
+            1,
+          );
+          assert.deepEqual(
+            ethereumMockedProvider.getLatestParams("eth_getTransactionCount"),
+            [account.address, "pending"],
+          );
+
+          assert.equal(
+            ethereumMockedProvider.getNumberOfCalls("eth_chainId"),
+            1,
+          );
+        });
+
+        it("should successfully handle the method eth_sendTransaction for eip2930 transactions", async () => {
+          const signedRawTx =
+            "0x01f8a0827a6964830f4241830f424194da6a52afdae5ff66aa786da68754a227331f56e36480f838f794a809931e3b38059adae9bc5455bc567d0509ab92e1a0000000000000000000000000000000000000000000000000000000000000000080a04ab14d7e96a8bc7390cfffa0260d4b82848428ce7f5b8dd367d13bf31944b6c0a03cc226daa6a2f4e22334c59c2e04ac72672af72907ec9c4a601189858ba60069";
+
+          const txRsv = {
+            v: "f4f5",
+            r: "4ab14d7e96a8bc7390cfffa0260d4b82848428ce7f5b8dd367d13bf31944b6c0",
+            s: "3cc226daa6a2f4e22334c59c2e04ac72672af72907ec9c4a601189858ba60069",
+          };
+
+          [eth] = getEthMocked({
+            getAddress: {
+              result: (searchedPath: string) => {
+                return searchedPath === derPath
+                  ? account
+                  : { address: "0x0", publicKey: "0x0" };
+              },
+            },
+            signTransaction: {
+              result: txRsv,
+              expectedParams: {
+                path: derPath,
+                rawTxHex:
+                  "01f85d827a6964830f4241830f424194da6a52afdae5ff66aa786da68754a227331f56e36480f838f794a809931e3b38059adae9bc5455bc567d0509ab92e1a00000000000000000000000000000000000000000000000000000000000000000",
+                resolution: {
+                  nfts: [],
+                  erc20Tokens: [],
+                  externalPlugin: [],
+                  plugin: [],
+                  domains: [],
+                },
+              },
+            },
+          });
+
+          ethereumMockedProvider.setReturnValue("eth_chainId", "0x7a69");
+          ethereumMockedProvider.setReturnValue(
+            "eth_getTransactionCount",
+            "0x64",
+          );
+
+          ledgerHandler = new LedgerHandler(
+            ethereumMockedProvider,
+            {
+              accounts: LEDGER_ADDRESSES,
+            },
+            mockedDisplayInfo.fn,
+            {
+              ethConstructor: eth,
+              transportNodeHid: getTransportNodeHidMock(),
+              cachePath: tmpCachePath,
+            },
+          );
+
+          const request = createJsonRpcRequest("eth_sendTransaction", [
+            {
+              from: account.address,
+              to: LEDGER_ADDRESSES[1],
+              value: numberToHexString(100),
+              gas: numberToHexString(1000001),
+              gasLimit: numberToHexString(1000001),
+              gasPrice: numberToHexString(1000001),
+              accessList: [
+                {
+                  address: "0xa809931e3b38059adae9bc5455bc567d0509ab92",
+                  storageKeys: [
+                    "0x0000000000000000000000000000000000000000000000000000000000000000",
+                  ],
+                },
+              ],
+            },
+          ]);
+
+          const modifiedRequest = await ledgerHandler.handle(request, []);
+
+          assert.ok(modifiedRequest !== null, "res should not be null");
+          assert.ok(
+            "method" in modifiedRequest &&
+              Array.isArray(modifiedRequest.params),
+            "modifiedRequest should have the property 'method' ana params should be an array",
+          );
+
+          assert.equal(modifiedRequest.method, "eth_sendRawTransaction");
+          assert.equal(modifiedRequest.params[0], signedRawTx);
+
+          assert.equal(
+            ethereumMockedProvider.getNumberOfCalls("eth_getTransactionCount"),
+            1,
+          );
+          assert.deepEqual(
+            ethereumMockedProvider.getLatestParams("eth_getTransactionCount"),
+            [account.address, "pending"],
+          );
+
+          assert.equal(
+            ethereumMockedProvider.getNumberOfCalls("eth_chainId"),
+            1,
+          );
+        });
       });
     });
 

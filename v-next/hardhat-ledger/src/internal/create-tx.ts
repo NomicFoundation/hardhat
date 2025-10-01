@@ -1,6 +1,9 @@
 import type { RpcTransactionRequest } from "@nomicfoundation/hardhat-zod-utils/rpc";
 
-import { assertHardhatInvariant } from "@nomicfoundation/hardhat-errors";
+import {
+  assertHardhatInvariant,
+  HardhatError,
+} from "@nomicfoundation/hardhat-errors";
 import { toBigInt } from "@nomicfoundation/hardhat-utils/bigint";
 import {
   bytesToBigInt,
@@ -31,6 +34,7 @@ export function createTx(
     chainId,
     value: txRequest.value ?? 0n,
     data: bytesToHexString(txRequest.data ?? new Uint8Array()),
+    gasLimit: txRequest.gasLimit,
   };
 
   const accessList = txRequest.accessList?.map(({ address, storageKeys }) => {
@@ -54,34 +58,35 @@ export function createTx(
     },
   );
 
-  if (txRequest.authorizationList !== undefined) {
-    assertHardhatInvariant(
-      txRequest.maxFeePerGas !== undefined,
-      "maxFeePerGas should be defined",
+  if (authorizationList !== undefined) {
+    throw new HardhatError(
+      HardhatError.ERRORS.HARDHAT_LEDGER.GENERAL.EIP_7702_TX_CURRENTLY_NOT_SUPPORTED,
     );
 
-    return Transaction.prepare(
-      {
-        type: "eip7702",
-        ...baseTxParams,
-        maxFeePerGas: txRequest.maxFeePerGas,
-        ...(txRequest.maxPriorityFeePerGas !== undefined && {
-          maxPriorityFeePerGas: txRequest.maxPriorityFeePerGas,
-        }),
-        accessList: accessList ?? [],
-        authorizationList: authorizationList ?? [],
-      },
-      STRICT_MODE,
-    );
+    // TODO: enable after migrating to the latest Ledger libraries that support EIP-7702
+    // assertHardhatInvariant(
+    //   txRequest.maxFeePerGas !== undefined,
+    //   "maxFeePerGas should be defined",
+    // );
+
+    // return Transaction.prepare(
+    //   {
+    //     type: "eip7702",
+    //     ...baseTxParams,
+    //     maxFeePerGas: txRequest.maxFeePerGas,
+    //     maxPriorityFeePerGas: txRequest.maxPriorityFeePerGas,
+    //     accessList: accessList ?? [],
+    //     authorizationList: authorizationList ?? [],
+    //   },
+    //   STRICT_MODE,
+    // );
   } else if (txRequest.maxFeePerGas !== undefined) {
     return Transaction.prepare(
       {
         type: "eip1559",
         ...baseTxParams,
         maxFeePerGas: txRequest.maxFeePerGas,
-        ...(txRequest.maxPriorityFeePerGas !== undefined && {
-          maxPriorityFeePerGas: txRequest.maxPriorityFeePerGas,
-        }),
+        maxPriorityFeePerGas: txRequest.maxPriorityFeePerGas,
         accessList: accessList ?? [],
       },
       STRICT_MODE,

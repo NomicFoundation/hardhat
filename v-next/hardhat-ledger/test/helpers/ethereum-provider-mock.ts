@@ -29,6 +29,10 @@ export class EthereumMockedProvider
     this.#returnValues[method] = value;
   }
 
+  public resetNumberOfCalls(method: string): void {
+    this.#numberOfCalls[method] = 0;
+  }
+
   public getNumberOfCalls(method: string): number {
     if (this.#numberOfCalls[method] === undefined) {
       return 0;
