@@ -281,6 +281,8 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
 
     const resultsMap: Map<string, FileBuildResult> = new Map();
 
+    spinner.stop();
+
     for (const result of results) {
       const contractArtifactsGenerated = isSuccessfulBuild
         ? contractArtifactsGeneratedByCompilationJob.get(result.compilationJob)
@@ -297,14 +299,10 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
         ),
       );
 
-      spinner.stop();
-
       this.#printSolcErrorsAndWarnings(errors);
       const successfulResult = !this.#hasCompilationErrors(
         result.compilerOutput,
       );
-
-      spinner.start();
 
       for (const [userSourceName, root] of result.compilationJob.dependencyGraph
         .getRoots()
@@ -340,8 +338,6 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
         });
       }
     }
-
-    spinner.stop();
 
     if (!options.quiet) {
       if (isSuccessfulBuild) {

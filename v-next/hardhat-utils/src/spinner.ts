@@ -36,11 +36,10 @@ class Spinner implements ISpinner {
   #interval: NodeJS.Timeout | null = null;
   readonly #stream: NodeJS.WriteStream;
 
-  constructor(options: SpinnerOptions) {
-    this.isEnabled = options.enabled ?? true;
-    this.#stream = options.stream ?? process.stdout;
-
-    this.#text = options.text ?? "";
+  constructor(options: Required<SpinnerOptions>) {
+    this.isEnabled = options.enabled;
+    this.#stream = options.stream;
+    this.#text = options.text;
   }
   /**
    * Begin rendering frames when enabled.
@@ -67,15 +66,8 @@ class Spinner implements ISpinner {
   }
 
   #clearLine(): void {
-    if (
-      typeof this.#stream.clearLine === "function" &&
-      typeof this.#stream.cursorTo === "function"
-    ) {
-      this.#stream.clearLine(0);
-      this.#stream.cursorTo(0);
-    } else {
-      this.#stream.write("\r");
-    }
+    this.#stream.clearLine(0);
+    this.#stream.cursorTo(0);
   }
 
   #render(frame: string): void {
@@ -124,12 +116,15 @@ class Spinner implements ISpinner {
 export function createSpinner(options: SpinnerOptions = {}): ISpinner {
   const stream = options.stream ?? process.stdout;
 
-  const enable =
-    options.enabled ?? (stream.isTTY === true && process.env.TERM !== "dumb");
+  const enabled =
+    stream.isTTY === true &&
+    process.env.TERM !== "dumb" &&
+    (options.enabled ?? true);
 
+  const text = options.text ?? "";
   return new Spinner({
-    enabled: enable,
+    enabled,
     stream,
-    text: options.text,
+    text,
   });
 }
