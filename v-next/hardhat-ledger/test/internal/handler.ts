@@ -318,7 +318,6 @@ describe("LedgerHandler", () => {
                 value: "0x100",
                 gas: "0x1000000",
                 gasPrice: "0x100",
-                gasLimit: "0x1000000",
               },
             ],
           },
@@ -566,7 +565,6 @@ describe("LedgerHandler", () => {
               to: LEDGER_ADDRESSES[1],
               value: numberToHexString(100),
               gas: numberToHexString(1000001),
-              gasLimit: numberToHexString(1000001),
               maxFeePerGas: numberToHexString(1000001),
               maxPriorityFeePerGas: numberToHexString(1000001),
               authorizationList: [],
@@ -650,7 +648,6 @@ describe("LedgerHandler", () => {
               value: numberToHexString(100),
               gas: numberToHexString(1000001),
               gasPrice: numberToHexString(101),
-              gasLimit: numberToHexString(1000001),
             },
           ]);
 
@@ -741,7 +738,6 @@ describe("LedgerHandler", () => {
               to: LEDGER_ADDRESSES[1],
               value: numberToHexString(100),
               gas: numberToHexString(1000001),
-              gasLimit: numberToHexString(1000001),
               maxFeePerGas: numberToHexString(1000001),
               maxPriorityFeePerGas: numberToHexString(1000001),
               accessList: [
@@ -842,7 +838,6 @@ describe("LedgerHandler", () => {
               to: LEDGER_ADDRESSES[1],
               value: numberToHexString(100),
               gas: numberToHexString(1000001),
-              gasLimit: numberToHexString(1000001),
               gasPrice: numberToHexString(1000001),
               accessList: [
                 {

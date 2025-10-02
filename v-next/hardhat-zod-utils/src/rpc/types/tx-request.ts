@@ -21,7 +21,6 @@ export interface RpcTransactionRequest {
   data?: Uint8Array;
   accessList?: Array<{ address: Uint8Array; storageKeys: Uint8Array[] | null }>;
   chainId?: bigint;
-  gasLimit?: bigint;
   maxFeePerGas?: bigint;
   maxPriorityFeePerGas?: bigint;
   blobs?: Uint8Array[];
@@ -44,7 +43,6 @@ export const rpcTransactionRequest: ZodType<RpcTransactionRequest> = z.object({
   value: optional(rpcQuantity),
   nonce: optional(rpcQuantity),
   data: optional(rpcData),
-  gasLimit: optional(rpcQuantity),
   accessList: optional(rpcAccessList),
   chainId: optional(rpcQuantity),
   maxFeePerGas: optional(rpcQuantity),
