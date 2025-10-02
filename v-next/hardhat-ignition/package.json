@@ -51,6 +51,14 @@
     "build": "tsc --build .",
     "clean": "rimraf .nyc_output coverage dist tsconfig.tsbuildinfo ./test/fixture-projects/**/deployments ./test/fixture-projects/**/artifacts ./test/fixture-projects/**/cache"
   },
+  "files": [
+    "dist/src/",
+    "src/",
+    "CHANGELOG.md",
+    "README.md",
+    "eslint.config.js",
+    "tsconfig.json"
+  ],
   "devDependencies": {
     "@istanbuljs/nyc-config-typescript": "1.0.2",
     "hardhat": "workspace:^3.0.0",
