@@ -27,7 +27,7 @@ function hasNoDocsNeededLabel() {
   return labels.some((l) => l.name === SKIP_LABEL);
 }
 
-async function hasLinksToDocs() {
+function hasLinksToDocs() {
   const prBody = process.env.GITHUB_EVENT_PULL_REQUEST_BODY;
 
   if (prBody === undefined) {
@@ -48,12 +48,12 @@ async function validatePullRequest() {
     return;
   }
 
-  if (await hasNoDocsNeededLabel()) {
+  if (hasNoDocsNeededLabel()) {
     console.log(`The PR is labeled as '${SKIP_LABEL}'`);
     return;
   }
 
-  if (await hasLinksToDocs()) {
+  if (hasLinksToDocs()) {
     console.log("Links to docs found");
     return;
   }
