@@ -349,7 +349,10 @@ describe("JsonRpcClient", () => {
             );
           });
 
-          it("returns null for non-existent block", async function () {
+          // TODO: re-enable this test once infura fixes the rpc response
+          // of eth_getBlockByNumber to return null instead of returning
+          // an `service temporarily unavailable` error
+          it.skip("returns null for non-existent block", async function () {
             const block = await client.getBlockByNumber(
               forkNumber + 1000n,
               true

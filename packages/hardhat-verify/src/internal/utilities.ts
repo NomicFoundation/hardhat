@@ -74,7 +74,7 @@ Custom networks added by you or by plugins:
 
 ${customNetworksTable}
 
-To learn how to add custom networks, follow these instructions: https://hardhat.org/verify-custom-networks
+To learn how to add custom networks, follow these instructions: https://v2.hardhat.org/verify-custom-networks
 `.trimStart()
   );
 }

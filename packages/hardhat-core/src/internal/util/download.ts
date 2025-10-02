@@ -24,13 +24,13 @@ export async function download(
   timeoutMillis = 10000,
   extraHeaders: { [name: string]: string } = {}
 ) {
-  const { getGlobalDispatcher, ProxyAgent, request } = await import("undici");
+  const { Agent, ProxyAgent, request } = await import("undici");
 
   let dispatcher: Dispatcher;
   if (process.env.http_proxy !== undefined && shouldUseProxy(url)) {
     dispatcher = new ProxyAgent(process.env.http_proxy);
   } else {
-    dispatcher = getGlobalDispatcher();
+    dispatcher = new Agent();
   }
 
   const hardhatVersion = getHardhatVersion();

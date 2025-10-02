@@ -3,10 +3,10 @@ name: E2E tests
 on:
   push:
     branches:
-      - main
+      - v2
   pull_request:
     branches:
-      - main
+      - v2
 
 jobs:
   run-e2e:

@@ -5,7 +5,7 @@ name: hardhat-core CI
 on:
   push:
     branches:
-      - main
+      - v2
     paths:
       - ".github/workflows/hardhat-core-ci.yml"
       - "config/**"
@@ -113,9 +113,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        # TODO: Currently there is no @types/node for Node 24,
-        # include it when it is available.
-        node: [20, 22]
+        node: [20, 22, 24]
     steps:
       - uses: actions/checkout@v4
       - uses: ./.github/actions/setup-env
@@ -131,4 +129,5 @@ jobs:
         env:
           DO_NOT_SET_THIS_ENV_VAR____IS_HARDHAT_CI: true
           FORCE_COLOR: 3
+          NODE_OPTIONS: ${{ (matrix.node == 22 || matrix.node == 24) && '--no-experimental-strip-types' || '' }}
         run: pnpm test:except-tracing

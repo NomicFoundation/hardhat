@@ -1,4 +1,4 @@
-![hardhat_Ignition_banner](https://github.com/NomicFoundation/hardhat-ignition/assets/24030/cc73227b-8791-4bb3-bc9a-a39be69d215f) [![npm](https://img.shields.io/npm/v/@nomicfoundation/hardhat-ignition-viem.svg)](https://www.npmjs.com/package/@nomicfoundation/hardhat-ignition) [![hardhat](https://hardhat.org/buidler-plugin-badge.svg?1)](https://hardhat.org)
+![hardhat_Ignition_banner](https://github.com/NomicFoundation/hardhat-ignition/assets/24030/cc73227b-8791-4bb3-bc9a-a39be69d215f) [![npm](https://img.shields.io/npm/v/@nomicfoundation/hardhat-ignition-viem.svg)](https://www.npmjs.com/package/@nomicfoundation/hardhat-ignition) [![hardhat](https://v2.hardhat.org/buidler-plugin-badge.svg?1)](https://hardhat.org)
 
 ---
 
@@ -32,15 +32,15 @@ import "@nomicfoundation/hardhat-ignition-viem";
 
 ## Documentation
 
-On [Hardhat Ignition's website](https://hardhat.org/ignition) you will find guides for:
+On [Hardhat Ignition's website](https://v2.hardhat.org/ignition) you will find guides for:
 
-- [Getting started](https://hardhat.org/ignition/docs/getting-started)
-- [Creating Modules](https://hardhat.org/ignition/docs/guides/creating-modules)
-- [Deploying a module](https://hardhat.org/ignition/docs/guides/deploy)
-- [Visualizing your module](https://hardhat.org/ignition/docs/guides/visualize)
-- [Handling errors](https://hardhat.org/ignition/docs/guides/error-handling)
-- [Modifying an existing module](https://hardhat.org/ignition/docs/guides/modifications)
-- [Using Hardhat Ignition in your tests](https://hardhat.org/ignition/docs/guides/tests)
+- [Getting started](https://v2.hardhat.org/ignition/docs/getting-started)
+- [Creating Modules](https://v2.hardhat.org/ignition/docs/guides/creating-modules)
+- [Deploying a module](https://v2.hardhat.org/ignition/docs/guides/deploy)
+- [Visualizing your module](https://v2.hardhat.org/ignition/docs/guides/visualize)
+- [Handling errors](https://v2.hardhat.org/ignition/docs/guides/error-handling)
+- [Modifying an existing module](https://v2.hardhat.org/ignition/docs/guides/modifications)
+- [Using Hardhat Ignition in your tests](https://v2.hardhat.org/ignition/docs/guides/tests)
 
 ## Contributing
 

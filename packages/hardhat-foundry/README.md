@@ -1,4 +1,4 @@
-[![npm](https://img.shields.io/npm/v/@nomicfoundation/hardhat-foundry.svg)](https://www.npmjs.com/package/@nomicfoundation/hardhat-foundry) [![hardhat](https://hardhat.org/buidler-plugin-badge.svg?1)](https://hardhat.org)
+[![npm](https://img.shields.io/npm/v/@nomicfoundation/hardhat-foundry.svg)](https://www.npmjs.com/package/@nomicfoundation/hardhat-foundry) [![hardhat](https://v2.hardhat.org/buidler-plugin-badge.svg?1)](https://hardhat.org)
 
 # hardhat-foundry
 
@@ -8,7 +8,7 @@ When this plugin is enabled, Hardhat will use the same contracts directory that 
 
 If you have a pure Hardhat project, you can use the `init-foundry` task to create a `foundry.toml` file. The file will be created using the proper values to make Foundry work well with your Hardhat project.
 
-Read [our guide](https://hardhat.org/hardhat-runner/docs/advanced/hardhat-and-foundry) to learn more.
+Read [our guide](https://v2.hardhat.org/hardhat-runner/docs/advanced/hardhat-and-foundry) to learn more.
 
 ## How it works
 

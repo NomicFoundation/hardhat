@@ -484,6 +484,13 @@ export class Resolver {
   }
 
   private _isInsideSameDir(sourceNameInDir: string, sourceNameToTest: string) {
+    if (
+      typeof sourceNameToTest !== "string" ||
+      typeof sourceNameInDir !== "string"
+    ) {
+      return false;
+    }
+
     const firstSlash = sourceNameInDir.indexOf("/");
     const dir =
       firstSlash !== -1
@@ -517,7 +524,7 @@ export class Resolver {
     );
 
     const nmIndex = sourceName.indexOf(`${NODE_MODULES}/`);
-    return sourceName.substr(nmIndex + NODE_MODULES.length + 1);
+    return sourceName.substring(nmIndex + NODE_MODULES.length + 1);
   }
 
   private async _validateSourceNameExistenceAndCasing(

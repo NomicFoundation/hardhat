@@ -128,7 +128,7 @@
 
 ### Added
 
-- Support `create2` through strategies, for more details see [our `create2` guide](https://hardhat.org/ignition/docs/guides/create2). ([#629](https://github.com/NomicFoundation/hardhat-ignition/issues/629))
+- Support `create2` through strategies, for more details see [our `create2` guide](https://v2.hardhat.org/ignition/docs/guides/create2). ([#629](https://github.com/NomicFoundation/hardhat-ignition/issues/629))
 
 ## 0.13.2 - 2024-01-25
 
@@ -161,7 +161,7 @@
 
 ### Added
 
-- Add support for verification, see our [verification guide](https://hardhat.org/ignition/docs/guides/verify) for more information ([#630](https://github.com/NomicFoundation/hardhat-ignition/issues/630))
+- Add support for verification, see our [verification guide](https://v2.hardhat.org/ignition/docs/guides/verify) for more information ([#630](https://github.com/NomicFoundation/hardhat-ignition/issues/630))
 
 ### Changed
 

@@ -2,7 +2,8 @@ name: CI
 
 on:
   push:
-    branches: main
+    branches:
+      - v2
     paths:
       - ".github/workflows/hardhat-ci.yml"
       - "packages/**"

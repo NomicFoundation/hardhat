@@ -1,4 +1,4 @@
-[![npm](https://img.shields.io/npm/v/@nomicfoundation/hardhat-viem.svg)](https://www.npmjs.com/package/@nomicfoundation/hardhat-viem) [![hardhat](https://hardhat.org/buidler-plugin-badge.svg?1)](https://hardhat.org)
+[![npm](https://img.shields.io/npm/v/@nomicfoundation/hardhat-viem.svg)](https://www.npmjs.com/package/@nomicfoundation/hardhat-viem) [![hardhat](https://v2.hardhat.org/buidler-plugin-badge.svg?1)](https://hardhat.org)
 
 # hardhat-viem
 
@@ -30,7 +30,7 @@ Or, if you are using TypeScript, add this to your `hardhat.config.ts`:
 import "@nomicfoundation/hardhat-viem";
 ```
 
-**Note:** you might want to pin Viem-related dependencies because Viem does not strictly follow semantic versioning for type changes. You can read more [here](https://hardhat.org/hardhat-runner/docs/advanced/using-viem#managing-types-and-version-stability).
+**Note:** you might want to pin Viem-related dependencies because Viem does not strictly follow semantic versioning for type changes. You can read more [here](https://v2.hardhat.org/hardhat-runner/docs/advanced/using-viem#managing-types-and-version-stability).
 
 ## Required plugins
 
@@ -266,4 +266,4 @@ There are no additional steps you need to take for this plugin to work.
 
 Install it and access Viem through the Hardhat Runtime Environment anywhere you need it (tasks, scripts, tests, etc).
 
-Read the documentation on the [Hardhat Runtime Environment](https://hardhat.org/hardhat-runner/docs/advanced/hardhat-runtime-environment) to learn how to access the HRE in different ways to use Viem from anywhere the HRE is accessible.
+Read the documentation on the [Hardhat Runtime Environment](https://v2.hardhat.org/hardhat-runner/docs/advanced/hardhat-runtime-environment) to learn how to access the HRE in different ways to use Viem from anywhere the HRE is accessible.

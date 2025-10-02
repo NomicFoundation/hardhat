@@ -4,7 +4,7 @@
 
 This plugin adds Ethereum-specific capabilities to the [Chai](https://chaijs.com/) assertion library, making your smart contract tests easy to write and read.
 
-Check [its documentation](https://hardhat.org/hardhat-chai-matchers/docs) to learn more.
+Check [its documentation](https://v2.hardhat.org/hardhat-chai-matchers/docs) to learn more.
 
 ### Installation
 

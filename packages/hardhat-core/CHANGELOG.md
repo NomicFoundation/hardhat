@@ -1,5 +1,17 @@
 # hardhat
 
+## 2.26.3
+
+### Patch Changes
+
+- 5b2be3d: Make the resolver more robust ([#7073](https://github.com/NomicFoundation/hardhat/pull/7073))
+
+## 2.26.2
+
+### Patch Changes
+
+- 11ee260: Don't use `undici`'s global dispatcher, making Hardhat more stable across Node.js versions
+
 ## 2.26.1
 
 ### Patch Changes
@@ -206,7 +218,7 @@
 
 - 6466e3a: A proper error is now thrown when requiring EDR fails
 - ae62841: Upgrade EDR to version [0.3.5](https://github.com/NomicFoundation/hardhat/blob/3b36d76a88915de6bb5efd0eb110cc1782c461ca/crates/edr_napi/CHANGELOG.md#035)
-- 679d8a5: Report [HH18](https://hardhat.org/hardhat-runner/docs/errors#HH18) to Sentry.
+- 679d8a5: Report [HH18](https://v2.hardhat.org/hardhat-runner/docs/errors#HH18) to Sentry.
 
 ## 2.22.2
 
@@ -432,7 +444,7 @@
 - 83ef755f3: Hardhat's task runner now allows you to override the arguments passed to subtasks.
 - 50779cd10: Added support for writing scripts and tests as ES modules.
 
-  To learn how to start using ESM with Hardhat read [this guide](https://hardhat.org/hardhat-runner/docs/advanced/using-esm).
+  To learn how to start using ESM with Hardhat read [this guide](https://v2.hardhat.org/hardhat-runner/docs/advanced/using-esm).
 
 ### Patch Changes
 

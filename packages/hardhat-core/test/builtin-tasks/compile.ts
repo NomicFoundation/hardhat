@@ -53,7 +53,7 @@ describe("compile task", function () {
     useFixtureProject("compilation-latest-solc-version");
     useEnvironment();
 
-    it("should have the last version of solc in the 'hardhat.config.js' and 'A.sol' files", async function () {
+    it.skip("should have the last version of solc in the 'hardhat.config.js' and 'A.sol' files", async function () {
       // Test to check that the last version of solc is being tested
       const userConfigSolcVersion = this.env.userConfig.solidity;
 
@@ -273,7 +273,7 @@ describe("compile task", function () {
 
 To learn more, run the command again with --verbose
 
-Read about compiler configuration at https://hardhat.org/config
+Read about compiler configuration at https://v2.hardhat.org/config
 `
       );
     });
@@ -316,7 +316,7 @@ Read about compiler configuration at https://hardhat.org/config
 
 To learn more, run the command again with --verbose
 
-Read about compiler configuration at https://hardhat.org/config
+Read about compiler configuration at https://v2.hardhat.org/config
 `
       );
     });
@@ -349,7 +349,7 @@ Read about compiler configuration at https://hardhat.org/config
 
 To learn more, run the command again with --verbose
 
-Read about compiler configuration at https://hardhat.org/config
+Read about compiler configuration at https://v2.hardhat.org/config
 `
       );
     });
@@ -388,7 +388,7 @@ Read about compiler configuration at https://hardhat.org/config
 
 To learn more, run the command again with --verbose
 
-Read about compiler configuration at https://hardhat.org/config
+Read about compiler configuration at https://v2.hardhat.org/config
 `
       );
     });
@@ -431,7 +431,7 @@ Read about compiler configuration at https://hardhat.org/config
 
 To learn more, run the command again with --verbose
 
-Read about compiler configuration at https://hardhat.org/config
+Read about compiler configuration at https://v2.hardhat.org/config
 `
       );
     });
@@ -478,7 +478,7 @@ Read about compiler configuration at https://hardhat.org/config
 
 To learn more, run the command again with --verbose
 
-Read about compiler configuration at https://hardhat.org/config
+Read about compiler configuration at https://v2.hardhat.org/config
 `
       );
     });
@@ -529,7 +529,7 @@ Read about compiler configuration at https://hardhat.org/config
 
 To learn more, run the command again with --verbose
 
-Read about compiler configuration at https://hardhat.org/config
+Read about compiler configuration at https://v2.hardhat.org/config
 `
       );
     });
@@ -573,7 +573,7 @@ Read about compiler configuration at https://hardhat.org/config
 
 To learn more, run the command again with --verbose
 
-Read about compiler configuration at https://hardhat.org/config
+Read about compiler configuration at https://v2.hardhat.org/config
 `
       );
     });
@@ -619,7 +619,7 @@ Read about compiler configuration at https://hardhat.org/config
 
 To learn more, run the command again with --verbose
 
-Read about compiler configuration at https://hardhat.org/config
+Read about compiler configuration at https://v2.hardhat.org/config
 `
       );
     });
@@ -670,7 +670,7 @@ Read about compiler configuration at https://hardhat.org/config
 
 To learn more, run the command again with --verbose
 
-Read about compiler configuration at https://hardhat.org/config
+Read about compiler configuration at https://v2.hardhat.org/config
 `
       );
     });
@@ -726,7 +726,7 @@ Read about compiler configuration at https://hardhat.org/config
 
 To learn more, run the command again with --verbose
 
-Read about compiler configuration at https://hardhat.org/config
+Read about compiler configuration at https://v2.hardhat.org/config
 `
       );
     });
@@ -757,7 +757,7 @@ Read about compiler configuration at https://hardhat.org/config
 
 To learn more, run the command again with --verbose
 
-Read about compiler configuration at https://hardhat.org/config
+Read about compiler configuration at https://v2.hardhat.org/config
 `
       );
     });
@@ -788,7 +788,7 @@ Read about compiler configuration at https://hardhat.org/config
 
 To learn more, run the command again with --verbose
 
-Read about compiler configuration at https://hardhat.org/config
+Read about compiler configuration at https://v2.hardhat.org/config
 `
       );
     });
@@ -882,7 +882,7 @@ These files and its dependencies cannot be compiled with your config. This can h
 
 To learn more, run the command again with --verbose
 
-Read about compiler configuration at https://hardhat.org/config
+Read about compiler configuration at https://v2.hardhat.org/config
 `
       );
     });

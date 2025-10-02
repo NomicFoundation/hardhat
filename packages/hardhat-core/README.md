@@ -2,9 +2,9 @@
 
 ---
 
-> **🚀 Hardhat 3 alpha release is out! [Learn more.](https://hardhat.org/hardhat3-alpha)**
+> **🚀 Hardhat 3 alpha release is out! [Learn more.](https://hardhat.org)**
 
-Hardhat is an Ethereum development environment for professionals. It facilitates performing frequent tasks, such as running tests, automatically checking code for mistakes or interacting with a smart contract. Check out the [plugin list](https://hardhat.org/plugins/) to use it with your existing tools.
+Hardhat is an Ethereum development environment for professionals. It facilitates performing frequent tasks, such as running tests, automatically checking code for mistakes or interacting with a smart contract. Check out the [plugin list](https://v2.hardhat.org/plugins/) to use it with your existing tools.
 
 Built by the [Nomic Foundation](https://nomic.foundation/) for the Ethereum community.
 
@@ -34,9 +34,16 @@ npx hardhat init
 
 On [Hardhat's website](https://hardhat.org) you will find:
 
-- [Guides to get started](https://hardhat.org/getting-started/)
-- [Hardhat Network](https://hardhat.org/hardhat-network/)
-- [Plugin list](https://hardhat.org/plugins/)
+- [Guides to get started](https://v2.hardhat.org/getting-started/)
+- [Hardhat Network](https://v2.hardhat.org/hardhat-network/)
+- [Plugin list](https://v2.hardhat.org/plugins/)
+
+## Branches
+
+Within the [Hardhat repo](https://github.com/nomicFoundation/hardhat):
+
+- Hardhat 2 development is on the `v2` branch
+- Hardhat 3 development is on the `main` branch
 
 ## Contributing
 

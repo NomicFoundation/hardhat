@@ -101,7 +101,7 @@
 
 ### Added
 
-- Improved support for deploying via a Ledger Hardware wallet, [see our guide for details](https://hardhat.org/ignition/docs/guides/ledger) ([#720](https://github.com/NomicFoundation/hardhat-ignition/issues/720))
+- Improved support for deploying via a Ledger Hardware wallet, [see our guide for details](https://v2.hardhat.org/ignition/docs/guides/ledger) ([#720](https://github.com/NomicFoundation/hardhat-ignition/issues/720))
 - Support `maxPriorityFeePerGas` as a configuration parameter ([#728](https://github.com/NomicFoundation/hardhat-ignition/issues/728))
 - Use RPC call `eth_maxPriorityFeePerGas` in gas fee calculations when available ([#743](https://github.com/NomicFoundation/hardhat-ignition/issues/743))
 - Support zero gas fee chains (like private Besu chains), thanks @jimthematrix ([#730](https://github.com/NomicFoundation/hardhat-ignition/pull/730))
@@ -133,7 +133,7 @@
 
 ### Added
 
-- Support `create2` through strategies, for more details see [our `create2` guide](https://hardhat.org/ignition/docs/guides/create2). ([#629](https://github.com/NomicFoundation/hardhat-ignition/issues/629))
+- Support `create2` through strategies, for more details see [our `create2` guide](https://v2.hardhat.org/ignition/docs/guides/create2). ([#629](https://github.com/NomicFoundation/hardhat-ignition/issues/629))
 
 ## 0.14.0 - 2024-02-21
 
@@ -171,13 +171,13 @@
 
 ### Changed
 
-- Split out `ethers` support from `@nomicfoundation/hardhat-plugin`, to allow opting for either **ethers** or **Viem** in tests and scripts. If you were using `hre.ignition.deploy(...)` in tests or scripts you will need to install, and require in your Hardhat config, the `@nomicfoundation/hardhat-plugin-ethers` package. For more details on our [Viem support see our guide](https://hardhat.org/ignition/docs/guides/viem). ([#612](https://github.com/NomicFoundation/hardhat-ignition/pull/612))
+- Split out `ethers` support from `@nomicfoundation/hardhat-plugin`, to allow opting for either **ethers** or **Viem** in tests and scripts. If you were using `hre.ignition.deploy(...)` in tests or scripts you will need to install, and require in your Hardhat config, the `@nomicfoundation/hardhat-plugin-ethers` package. For more details on our [Viem support see our guide](https://v2.hardhat.org/ignition/docs/guides/viem). ([#612](https://github.com/NomicFoundation/hardhat-ignition/pull/612))
 
 ## 0.12.0 - 2023-12-05
 
 ### Added
 
-- Add support for verification, see our [verification guide](https://hardhat.org/ignition/docs/guides/verify) for more information ([#630](https://github.com/NomicFoundation/hardhat-ignition/issues/630))
+- Add support for verification, see our [verification guide](https://v2.hardhat.org/ignition/docs/guides/verify) for more information ([#630](https://github.com/NomicFoundation/hardhat-ignition/issues/630))
 
 ### Changed
 

@@ -1,4 +1,4 @@
-[![npm](https://img.shields.io/npm/v/@nomiclabs/hardhat-web3.svg)](https://www.npmjs.com/package/@nomiclabs/hardhat-web3) [![hardhat](https://hardhat.org/buidler-plugin-badge.svg?1)](https://hardhat.org)
+[![npm](https://img.shields.io/npm/v/@nomiclabs/hardhat-web3.svg)](https://www.npmjs.com/package/@nomiclabs/hardhat-web3) [![hardhat](https://v2.hardhat.org/buidler-plugin-badge.svg?1)](https://hardhat.org)
 
 # hardhat-web3
 
@@ -54,4 +54,4 @@ module.exports = {};
 
 And then run `npx hardhat accounts` to try it.
 
-Read the documentation on the [Hardhat Runtime Environment](https://hardhat.org/hardhat-runner/docs/advanced/hardhat-runtime-environment) to learn how to access the HRE in different ways to use Web3.js from anywhere the HRE is accessible.
+Read the documentation on the [Hardhat Runtime Environment](https://v2.hardhat.org/hardhat-runner/docs/advanced/hardhat-runtime-environment) to learn how to access the HRE in different ways to use Web3.js from anywhere the HRE is accessible.
