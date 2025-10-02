@@ -44,6 +44,7 @@ import {
   writeUtf8File,
 } from "@nomicfoundation/hardhat-utils/fs";
 import { shortenPath } from "@nomicfoundation/hardhat-utils/path";
+import { createSpinner } from "@nomicfoundation/hardhat-utils/spinner";
 import { pluralize } from "@nomicfoundation/hardhat-utils/string";
 import chalk from "chalk";
 import debug from "debug";
@@ -175,11 +176,14 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
       ..._options,
     };
 
-    if (!options.quiet) {
-      console.log(`Compiling your Solidity ${options.scope}...`);
-    }
+    const spinner = createSpinner({
+      text: `Compiling your Solidity ${options.scope}...`,
+      enabled: !options.quiet,
+    });
 
     await this.#downloadConfiguredCompilers(options.quiet);
+
+    spinner.start();
 
     const { buildProfile } = this.#getBuildProfile(options.buildProfile);
 
@@ -189,6 +193,7 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
     );
 
     if ("reason" in compilationJobsResult) {
+      spinner.stop();
       return compilationJobsResult;
     }
 
@@ -276,6 +281,8 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
 
     const resultsMap: Map<string, FileBuildResult> = new Map();
 
+    spinner.stop();
+
     for (const result of results) {
       const contractArtifactsGenerated = isSuccessfulBuild
         ? contractArtifactsGeneratedByCompilationJob.get(result.compilationJob)
@@ -293,7 +300,6 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
       );
 
       this.#printSolcErrorsAndWarnings(errors);
-
       const successfulResult = !this.#hasCompilationErrors(
         result.compilerOutput,
       );
@@ -827,7 +833,9 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
       const parsed = parseRootPath(rootFilePath);
       return isNpmParsedRootPath(parsed)
         ? parsed.npmPath
-        : path.relative(this.#options.projectRoot, parsed.fsPath);
+        : toForwardSlash(
+            path.relative(this.#options.projectRoot, parsed.fsPath),
+          );
     });
 
     const userSourceNamesSet = new Set(userSourceNames);
@@ -836,7 +844,9 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
       artifactsDirectory,
       (d) => d.endsWith(".sol"),
     )) {
-      const relativePath = path.relative(artifactsDirectory, file);
+      const relativePath = toForwardSlash(
+        path.relative(artifactsDirectory, file),
+      );
 
       if (!userSourceNamesSet.has(relativePath)) {
         await remove(file);
@@ -1125,4 +1135,8 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
       }
     }
   }
+}
+
+function toForwardSlash(str: string): string {
+  return str.split(/[\\\/]/).join(path.posix.sep);
 }
