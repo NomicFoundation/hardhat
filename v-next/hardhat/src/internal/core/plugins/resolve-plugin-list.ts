@@ -88,27 +88,44 @@ async function reverseTopologicalSort(
       }
 
       for (const conditionalDependency of plugin.conditionalDependencies) {
+        // Check all condition plugins are installed
+        let conditionModules;
         try {
-          // Check all condition plugins are installed
-          const conditionModules = await Promise.all(
+          conditionModules = await Promise.all(
             conditionalDependency.condition(),
           );
+        } catch (_error) {
+          continue;
+        }
 
-          // Check all condition plugins are loaded
-          if (
-            conditionModules.some(
-              (conditionPlugin) =>
-                !resolvedPlugins.includes(conditionPlugin.default),
-            )
-          ) {
-            continue;
-          }
+        // Check all condition plugins are loaded
+        if (
+          conditionModules.some(
+            (conditionPlugin) =>
+              !resolvedPlugins.includes(conditionPlugin.default),
+          )
+        ) {
+          continue;
+        }
 
-          // Load the conditional dependency
-          const pluginModule = await conditionalDependency.plugin();
+        // Load the conditional dependency
+        let pluginModule;
+        try {
+          pluginModule = await conditionalDependency.plugin();
+        } catch (error) {
+          ensureError(error);
+          await detectPluginNpmDependencyProblems(projectRoot, plugin);
 
-          await dfs(pluginModule.default);
-        } catch (_error) {}
+          throw new HardhatError(
+            HardhatError.ERRORS.CORE.PLUGINS.PLUGIN_DEPENDENCY_FAILED_LOAD,
+            {
+              pluginId: plugin.id,
+            },
+            error,
+          );
+        }
+
+        await dfs(pluginModule.default);
       }
     }
   }
