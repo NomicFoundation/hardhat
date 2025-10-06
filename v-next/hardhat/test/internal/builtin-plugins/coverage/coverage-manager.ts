@@ -10,6 +10,7 @@ import { beforeEach, describe, it } from "node:test";
 
 import { disableConsole, useTmpDir } from "@nomicfoundation/hardhat-test-utils";
 import { getAllFilesMatching } from "@nomicfoundation/hardhat-utils/fs";
+import chalk from "chalk";
 
 import { CoverageManagerImplementation } from "../../../../src/internal/builtin-plugins/coverage/coverage-manager.js";
 
@@ -315,12 +316,13 @@ describe("CoverageManagerImplementation", () => {
   it("should format the markdown report", async () => {
     const actual = coverageManager.formatMarkdownReport(report);
     const expected = [
-      "| File Path 📦        | Line % 📈 | Statement % 📈 | Uncovered Lines 🔍 | Partially Covered Lines 🔍 |",
-      "| ------------------- | --------- | -------------- | ------------------ | -------------------------- |",
-      "| contracts/test.sol  | 80.00     | 75.00          | 6                  | 5                          |",
-      "| contracts/other.sol | 0.00      | 0.00           | 1-2                | -                          |",
-      "| ------------------- | --------- | -------------- | ------------------ | -------------------------- |",
-      "| Total               | 57.14     | 60.00          |                    |                            |",
+      `| ${chalk.bold("Coverage Report")}     |        |             |                 |                         |`,
+      "| ------------------- | ------ | ----------- | --------------- | ----------------------- |",
+      `| ${chalk.yellow("File Path")}           | ${chalk.yellow("Line %")} | ${chalk.yellow("Statement %")} | ${chalk.yellow("Uncovered Lines")} | ${chalk.yellow("Partially Covered Lines")} |`,
+      "| contracts/test.sol  | 80.00  | 75.00       | 6               | 5                       |",
+      "| contracts/other.sol | 0.00   | 0.00        | 1-2             | -                       |",
+      "| ------------------- | ------ | ----------- | --------------- | ----------------------- |",
+      `| ${chalk.yellow("Total")}               | 57.14  | 60.00       |                 |                         |`,
     ].join("\n");
     assert.equal(actual, expected);
   });
