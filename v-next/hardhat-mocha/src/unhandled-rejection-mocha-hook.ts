@@ -18,9 +18,9 @@ process.on("exit", () => {
     console.log(
       chalk.red(
         [
-          'Error: Missing "await" on async expectation.',
+          'Error: Missing "await" on async assert/expect.',
           "",
-          'You called "expect(...)" on a value that returns a Promise, but did not "await" it or return it from the test.',
+          'You called "expect(...)" or an assertion function on a value that returns a Promise, but did not "await" it or return it from the test.',
           "",
           "This means the assertion ran asynchronously and Mocha may finish the test before the assertion actually fails.",
         ].join("\n"),
@@ -31,8 +31,9 @@ process.on("exit", () => {
 
 // Only used in parallel mode. Mocha will load and execute this hook
 // This grace period is required otherwise mocha just kills the child processes before they get notice of the unhandled rejections
-// The value is what we think is appropriate to wait for e.g. an EDR reverted transaction
-const GRACE_TIME_MS = 100;
+// The value is what we think is appropriate to wait for e.g. an EDR reverted transaction.
+// It could be a border case where this value is too low, but we prefer to eventually lose a warning than to significantly slow down all test suites
+const GRACE_TIME_MS = 10;
 
 export const mochaHooks = {
   async afterAll(): Promise<void> {
