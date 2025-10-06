@@ -40,6 +40,11 @@ const hardhatPlugin: HardhatPlugin = {
         description: "Verbosity level of the test output",
         defaultValue: 2,
       })
+      .addFlag({
+        name: "summaryEnabled",
+        description: "Print a summary of all test runners",
+        // hidden: true
+      })
       .setAction(async () => import("./task-action.js"))
       .build(),
   ],

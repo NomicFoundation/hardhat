@@ -47,6 +47,8 @@ const runAllTests: NewTaskActionFunction<TestActionArguments> = async (
     hre._coverage.disableReport();
   }
 
+  const testSummaries: Record<string, string> = {};
+
   for (const subtask of thisTask.subtasks.values()) {
     const files = getTestFilesForSubtask(subtask, testFiles, subtasksToFiles);
 
@@ -70,7 +72,18 @@ const runAllTests: NewTaskActionFunction<TestActionArguments> = async (
       args.verbosity = verbosity;
     }
 
-    await subtask.run(args);
+    if (subtask.options.has("summaryEnabled")) {
+      args.summaryEnabled = true;
+    }
+
+    testSummaries[subtask.id.join("-")] = await subtask.run(args);
+  }
+
+  for (const [subtaskName, summary] of Object.entries(testSummaries)) {
+    console.log(`=== Summary for ${subtaskName} ===`);
+    console.log();
+    console.log(summary);
+    console.log();
   }
 
   if (hre.globalOptions.coverage === true) {

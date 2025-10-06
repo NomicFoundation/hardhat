@@ -14,7 +14,10 @@ import {
   HardhatError,
 } from "@nomicfoundation/hardhat-errors";
 import { resolveFromRoot } from "@nomicfoundation/hardhat-utils/path";
-import { createNonClosingWriter } from "@nomicfoundation/hardhat-utils/stream";
+import {
+  createNonClosingWriter,
+  StringWritable,
+} from "@nomicfoundation/hardhat-utils/stream";
 
 import { HardhatRuntimeEnvironmentImplementation } from "../../core/hre.js";
 import { isSupportedChainType } from "../../edr/chain-type.js";
@@ -41,10 +44,11 @@ interface TestActionArguments {
   grep?: string;
   noCompile: boolean;
   verbosity: number;
+  summaryEnabled: boolean;
 }
 
 const runSolidityTests: NewTaskActionFunction<TestActionArguments> = async (
-  { testFiles, chainType, grep, noCompile, verbosity },
+  { testFiles, chainType, grep, noCompile, verbosity, summaryEnabled },
   hre,
 ) => {
   if (!isSupportedChainType(chainType)) {
@@ -173,7 +177,9 @@ const runSolidityTests: NewTaskActionFunction<TestActionArguments> = async (
     );
 
   const outputStream = testReporterStream.pipe(
-    createNonClosingWriter(process.stdout),
+    summaryEnabled
+      ? new StringWritable()
+      : createNonClosingWriter(process.stdout),
   );
 
   try {
@@ -199,6 +205,10 @@ const runSolidityTests: NewTaskActionFunction<TestActionArguments> = async (
   }
 
   console.log();
+
+  if (outputStream instanceof StringWritable) {
+    return outputStream.data;
+  }
 };
 
 export default runSolidityTests;
