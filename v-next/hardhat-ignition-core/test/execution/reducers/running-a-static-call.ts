@@ -1,19 +1,19 @@
 import { assert } from "chai";
 
-import { DeploymentState } from "../../../src/internal/execution/types/deployment-state.js";
+import type { DeploymentState } from "../../../src/internal/execution/types/deployment-state.js";
 import { EvmExecutionResultTypes } from "../../../src/internal/execution/types/evm-execution.js";
 import { ExecutionResultType } from "../../../src/internal/execution/types/execution-result.js";
 import {
   ExecutionSateType,
   ExecutionStatus,
-  StaticCallExecutionState,
+  type StaticCallExecutionState,
 } from "../../../src/internal/execution/types/execution-state.js";
 import {
   JournalMessageType,
-  NetworkInteractionRequestMessage,
-  StaticCallCompleteMessage,
-  StaticCallExecutionStateCompleteMessage,
-  StaticCallExecutionStateInitializeMessage,
+  type NetworkInteractionRequestMessage,
+  type StaticCallCompleteMessage,
+  type StaticCallExecutionStateCompleteMessage,
+  type StaticCallExecutionStateInitializeMessage,
 } from "../../../src/internal/execution/types/messages.js";
 import { NetworkInteractionType } from "../../../src/internal/execution/types/network-interaction.js";
 import { findExecutionStateById } from "../../../src/internal/views/find-execution-state-by-id.js";

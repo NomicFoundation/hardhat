@@ -1,8 +1,8 @@
 import {
-  Future,
+  type Future,
   FutureType,
-  IgnitionModule,
-  RuntimeValue,
+  type IgnitionModule,
+  type RuntimeValue,
   RuntimeValueType,
 } from "../../src/types/module.js";
 

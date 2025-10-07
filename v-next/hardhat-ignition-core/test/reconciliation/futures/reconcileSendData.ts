@@ -4,7 +4,7 @@ import { buildModule } from "../../../src/build-module.js";
 import {
   ExecutionSateType,
   ExecutionStatus,
-  SendDataExecutionState,
+  type SendDataExecutionState,
 } from "../../../src/internal/execution/types/execution-state.js";
 import { FutureType } from "../../../src/types/module.js";
 import { exampleAccounts } from "../../helpers.js";

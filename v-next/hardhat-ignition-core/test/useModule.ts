@@ -1,6 +1,6 @@
 import { assert } from "chai";
 
-import { Artifact, DeploymentResultType } from "../src/index.js";
+import { type Artifact, DeploymentResultType } from "../src/index.js";
 import { buildModule } from "../src/build-module.js";
 import { validate } from "../src/internal/validation/validate.js";
 

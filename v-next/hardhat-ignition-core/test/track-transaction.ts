@@ -2,8 +2,8 @@ import { assert } from "chai";
 import path from "path";
 
 import {
-  EIP1193Provider,
-  RequestArguments,
+  type EIP1193Provider,
+  type RequestArguments,
   trackTransaction,
 } from "../src/index.js";
 import { NetworkTransaction } from "../src/internal/execution/types/jsonrpc.js";

@@ -6,7 +6,7 @@
 
 import os from "node:os";
 
-import { Artifact } from "../../src/types/artifact.js";
+import type { Artifact } from "../../src/types/artifact.js";
 
 import { RawStaticCallResult } from "../../src/internal/execution/types/jsonrpc.js";
 
