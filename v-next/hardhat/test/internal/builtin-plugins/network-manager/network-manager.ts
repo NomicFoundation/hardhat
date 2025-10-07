@@ -2171,7 +2171,7 @@ describe("NetworkManagerImplementation", () => {
             {
               path: ["networks", "hardhat", "hardfork"],
               message:
-                "Invalid hardfork name anything else for chainType op. Expected bedrock | regolith | canyon | ecotone | fjord | granite | isthmus.",
+                "Invalid hardfork name anything else for chainType op. Expected bedrock | regolith | canyon | ecotone | fjord | granite | holocene | isthmus.",
             },
           ]);
         });
