@@ -2,4 +2,4 @@
 "@nomicfoundation/hardhat-verify": patch
 ---
 
-Use apiUrl from etherscanConfig for verification
+Fix: Use apiUrl from etherscanConfig for verification ([#7509](https://github.com/NomicFoundation/hardhat/issues/7509))
