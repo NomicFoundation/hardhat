@@ -2,13 +2,13 @@ import { assert } from "chai";
 
 import { buildModule } from "../src/build-module.js";
 import { Batcher } from "../src/internal/batcher.js";
-import { DeploymentState } from "../src/internal/execution/types/deployment-state.js";
+import type { DeploymentState } from "../src/internal/execution/types/deployment-state.js";
 import {
-  DeploymentExecutionState,
+  type DeploymentExecutionState,
   ExecutionSateType,
   ExecutionStatus,
 } from "../src/internal/execution/types/execution-state.js";
-import { FutureType, IgnitionModule } from "../src/types/module.js";
+import { FutureType, type IgnitionModule } from "../src/types/module.js";
 
 describe("batcher", () => {
   const exampleDeploymentState: DeploymentExecutionState = {

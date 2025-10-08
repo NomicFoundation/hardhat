@@ -2,9 +2,9 @@ import { assert } from "chai";
 
 import { EphemeralDeploymentLoader } from "../../src/internal/deployment-loader/ephemeral-deployment-loader.js";
 import { FileDeploymentLoader } from "../../src/internal/deployment-loader/file-deployment-loader.js";
-import { DeploymentLoader } from "../../src/internal/deployment-loader/types.js";
+import type { DeploymentLoader } from "../../src/internal/deployment-loader/types.js";
 import { setupMockArtifactResolver } from "../helpers.js";
-import { ExactInterface } from "../helpers/exact-interface.js";
+import type { ExactInterface } from "../helpers/exact-interface.js";
 
 describe("DeploymentLoaderImpls", function () {
   describe("file-deployment-loader", () => {

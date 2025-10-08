@@ -1,7 +1,7 @@
 import { assert } from "chai";
 
 import { deploymentStateReducer } from "../../../src/internal/execution/reducers/deployment-state-reducer.js";
-import { DeploymentState } from "../../../src/internal/execution/types/deployment-state.js";
+import type { DeploymentState } from "../../../src/internal/execution/types/deployment-state.js";
 import { JournalMessageType } from "../../../src/internal/execution/types/messages.js";
 
 describe("DeploymentStateReducer", () => {

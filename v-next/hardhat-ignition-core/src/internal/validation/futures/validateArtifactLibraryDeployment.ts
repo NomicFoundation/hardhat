@@ -1,8 +1,7 @@
 import type { ArtifactResolver } from "../../../types/artifact.js";
 import type { DeploymentParameters } from "../../../types/deploy.js";
 import type { LibraryDeploymentFuture } from "../../../types/module.js";
-
-import { HardhatError } from "@nomicfoundation/hardhat-errors";
+import type { HardhatError } from "@nomicfoundation/hardhat-errors";
 
 import { isAccountRuntimeValue } from "../../../type-guards.js";
 import { validateLibraryNames } from "../../execution/libraries.js";

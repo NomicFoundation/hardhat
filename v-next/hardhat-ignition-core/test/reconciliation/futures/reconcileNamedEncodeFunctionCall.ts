@@ -3,8 +3,8 @@ import { assert } from "chai";
 import { buildModule } from "../../../src/build-module.js";
 import { ExecutionResultType } from "../../../src/internal/execution/types/execution-result.js";
 import {
-  DeploymentExecutionState,
-  EncodeFunctionCallExecutionState,
+  type DeploymentExecutionState,
+  type EncodeFunctionCallExecutionState,
   ExecutionSateType,
   ExecutionStatus,
 } from "../../../src/internal/execution/types/execution-state.js";
