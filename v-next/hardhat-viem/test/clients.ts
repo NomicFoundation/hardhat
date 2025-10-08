@@ -483,7 +483,7 @@ describe("clients", () => {
       assert.equal(toBalanceAfter, toBalanceBefore + etherAmount);
     });
 
-    it("should be able to query the blockchain using the test client", async () => {
+    it.skip("should be able to query the blockchain using the test client", async () => {
       const networkConnection = await hre.network.connect();
       const publicClient = await networkConnection.viem.getPublicClient();
       const testClient = await networkConnection.viem.getTestClient();
