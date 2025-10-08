@@ -2,7 +2,11 @@ import { HardhatError } from "@nomicfoundation/hardhat-errors";
 import { assertThrowsHardhatError } from "@nomicfoundation/hardhat-test-utils";
 import { assert } from "chai";
 
-import { Artifact, FutureType, ReadEventArgumentFuture } from "../src/index.js";
+import {
+  type Artifact,
+  FutureType,
+  type ReadEventArgumentFuture,
+} from "../src/index.js";
 import { buildModule } from "../src/build-module.js";
 import { getFuturesFromModule } from "../src/internal/utils/get-futures-from-module.js";
 import { validateReadEventArgument } from "../src/internal/validation/futures/validateReadEventArgument.js";

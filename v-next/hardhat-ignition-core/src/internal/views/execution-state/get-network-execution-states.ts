@@ -1,11 +1,12 @@
-import { DeploymentState } from "../../execution/types/deployment-state.js";
-import {
+import type { DeploymentState } from "../../execution/types/deployment-state.js";
+import type {
   CallExecutionState,
   DeploymentExecutionState,
-  ExecutionSateType,
   SendDataExecutionState,
   StaticCallExecutionState,
 } from "../../execution/types/execution-state.js";
+
+import { ExecutionSateType } from "../../execution/types/execution-state.js";
 
 export function getNetworkExecutionStates(
   deploymentState: DeploymentState,

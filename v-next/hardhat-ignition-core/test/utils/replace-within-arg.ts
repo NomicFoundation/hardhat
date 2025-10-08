@@ -1,8 +1,8 @@
 import { assert } from "chai";
 
 import {
-  ArgumentType,
-  SolidityParameterType,
+  type ArgumentType,
+  type SolidityParameterType,
   isAccountRuntimeValue,
 } from "../../src/index.js";
 import {
