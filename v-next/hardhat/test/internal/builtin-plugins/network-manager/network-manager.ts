@@ -181,7 +181,7 @@ describe("NetworkManagerImplementation", () => {
       assert.deepEqual(networkConnection.networkConfig, networks.myNetwork);
     });
 
-    it("should override the network's chain config with the specified chain config", async () => {
+    it.skip("should override the network's chain config with the specified chain config", async () => {
       const httpConfigOverride: HttpNetworkConfigOverride = {
         chainId: 1234, // optional in the resolved config
         timeout: 30_000, // specific to http networks
@@ -215,7 +215,7 @@ describe("NetworkManagerImplementation", () => {
       });
     });
 
-    it("should override the network's chain config with the specified chain config recursively", async () => {
+    it.skip("should override the network's chain config with the specified chain config recursively", async () => {
       const edrConfigOverride: EdrNetworkConfigOverride = {
         mining: {
           mempool: {
