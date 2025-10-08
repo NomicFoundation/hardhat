@@ -122,8 +122,9 @@ const testWithHardhat: NewTaskActionFunction<TestActionArguments> = async (
 
   await markTestRunStart("mocha");
 
+  let total = 0;
   const testFailures = await new Promise<number>((resolve) => {
-    mocha.run(resolve);
+    total = mocha.run(resolve).total;
   });
 
   if (hre.config.test.mocha.parallel !== true) {
@@ -139,7 +140,7 @@ const testWithHardhat: NewTaskActionFunction<TestActionArguments> = async (
 
   console.log();
 
-  return testFailures;
+  return `passed: ${total - testFailures}\nfailed: ${testFailures}`;
 };
 
 export default testWithHardhat;
