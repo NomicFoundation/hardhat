@@ -50,13 +50,14 @@ export class Etherscan implements VerificationProvider {
     chainId: number;
     name?: string;
     url: string;
+    apiUrl?: string;
     apiKey: string;
     dispatcher?: Dispatcher;
   }) {
     this.chainId = String(etherscanConfig.chainId);
     this.name = etherscanConfig.name ?? "Etherscan";
     this.url = etherscanConfig.url;
-    this.apiUrl = ETHERSCAN_API_URL;
+    this.apiUrl = etherscanConfig.apiUrl ?? ETHERSCAN_API_URL;
 
     const proxyUrl = shouldUseProxy(this.apiUrl)
       ? getProxyUrl(this.apiUrl)
