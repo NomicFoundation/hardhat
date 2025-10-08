@@ -35,5 +35,7 @@ module.exports = {
       },
     },
     disableFeeBumping: true,
+    maxRetries: 10,
+    retryInterval: 1000,
   },
 };

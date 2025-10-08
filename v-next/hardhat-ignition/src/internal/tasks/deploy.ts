@@ -214,6 +214,12 @@ const taskDeploy: NewTaskActionFunction<TaskDeployArguments> = async (
     disableFeeBumping:
       hre.config.ignition.disableFeeBumping ??
       hre.config.networks[connection.networkName]?.ignition.disableFeeBumping,
+    maxRetries:
+      hre.config.ignition.maxRetries ??
+      hre.config.networks[connection.networkName]?.ignition.maxRetries,
+    retryInterval:
+      hre.config.ignition.retryInterval ??
+      hre.config.networks[connection.networkName]?.ignition.retryInterval,
   });
 
   if (result.type === "SUCCESSFUL_DEPLOYMENT" && verify) {
