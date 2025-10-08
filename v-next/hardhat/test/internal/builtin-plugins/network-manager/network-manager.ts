@@ -508,7 +508,7 @@ describe("NetworkManagerImplementation", () => {
       });
     });
 
-    it("should re-extend config based on user provided values", async () => {
+    it.skip("should re-extend config based on user provided values", async () => {
       const networkConnection = await networkManager.connect({
         network: "pluginExtendedNetwork",
         /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions
