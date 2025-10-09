@@ -1,20 +1,20 @@
 import { assert } from "chai";
 
-import { DeploymentState } from "../../../src/internal/execution/types/deployment-state.js";
+import type { DeploymentState } from "../../../src/internal/execution/types/deployment-state.js";
 import { ExecutionResultType } from "../../../src/internal/execution/types/execution-result.js";
 import {
-  DeploymentExecutionState,
+  type DeploymentExecutionState,
   ExecutionSateType,
   ExecutionStatus,
 } from "../../../src/internal/execution/types/execution-state.js";
 import { TransactionReceiptStatus } from "../../../src/internal/execution/types/jsonrpc.js";
 import {
-  DeploymentExecutionStateCompleteMessage,
-  DeploymentExecutionStateInitializeMessage,
+  type DeploymentExecutionStateCompleteMessage,
+  type DeploymentExecutionStateInitializeMessage,
   JournalMessageType,
-  NetworkInteractionRequestMessage,
-  TransactionConfirmMessage,
-  TransactionSendMessage,
+  type NetworkInteractionRequestMessage,
+  type TransactionConfirmMessage,
+  type TransactionSendMessage,
 } from "../../../src/internal/execution/types/messages.js";
 import { NetworkInteractionType } from "../../../src/internal/execution/types/network-interaction.js";
 import { findExecutionStateById } from "../../../src/internal/views/find-execution-state-by-id.js";

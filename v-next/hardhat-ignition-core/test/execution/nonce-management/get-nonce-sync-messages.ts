@@ -1,30 +1,33 @@
-import { ErrorDescriptor, HardhatError } from "@nomicfoundation/hardhat-errors";
+import {
+  type ErrorDescriptor,
+  HardhatError,
+} from "@nomicfoundation/hardhat-errors";
 import { assertRejectsWithHardhatError } from "@nomicfoundation/hardhat-test-utils";
 import { assert } from "chai";
 
 import {
   FutureType,
-  IgnitionModule,
-  IgnitionModuleResult,
+  type IgnitionModule,
+  type IgnitionModuleResult,
   buildModule,
 } from "../../../src/index.js";
-import { JsonRpcClient } from "../../../src/internal/execution/jsonrpc-client.js";
+import type { JsonRpcClient } from "../../../src/internal/execution/jsonrpc-client.js";
 import { getNonceSyncMessages } from "../../../src/internal/execution/nonce-management/get-nonce-sync-messages.js";
 import { deploymentStateReducer } from "../../../src/internal/execution/reducers/deployment-state-reducer.js";
-import { DeploymentState } from "../../../src/internal/execution/types/deployment-state.js";
+import type { DeploymentState } from "../../../src/internal/execution/types/deployment-state.js";
 import {
-  DeploymentExecutionState,
+  type DeploymentExecutionState,
   ExecutionSateType,
   ExecutionStatus,
 } from "../../../src/internal/execution/types/execution-state.js";
 import {
   JournalMessageType,
-  OnchainInteractionDroppedMessage,
-  OnchainInteractionReplacedByUserMessage,
+  type OnchainInteractionDroppedMessage,
+  type OnchainInteractionReplacedByUserMessage,
 } from "../../../src/internal/execution/types/messages.js";
 import {
   NetworkInteractionType,
-  OnchainInteraction,
+  type OnchainInteraction,
 } from "../../../src/internal/execution/types/network-interaction.js";
 import { exampleAccounts } from "../../helpers.js";
 

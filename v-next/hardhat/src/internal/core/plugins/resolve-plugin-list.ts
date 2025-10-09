@@ -28,7 +28,7 @@ async function reverseTopologicalSort(
   plugins: HardhatPlugin[],
 ): Promise<HardhatPlugin[]> {
   const visitedPlugins: Map<string, HardhatPlugin> = new Map();
-  const result: HardhatPlugin[] = [];
+  const resolvedPlugins: HardhatPlugin[] = [];
 
   async function dfs(plugin: HardhatPlugin) {
     const visited = visitedPlugins.get(plugin.id);
@@ -69,12 +69,66 @@ async function reverseTopologicalSort(
       }
     }
 
-    result.push(plugin);
+    resolvedPlugins.push(plugin);
   }
 
   for (const plugin of plugins) {
     await dfs(plugin);
   }
 
-  return result;
+  // Resolve conditional dependencies iteratively
+  let lastResolvedCount = -1;
+
+  while (resolvedPlugins.length !== lastResolvedCount) {
+    lastResolvedCount = resolvedPlugins.length;
+
+    for (const plugin of resolvedPlugins) {
+      if (plugin.conditionalDependencies === undefined) {
+        continue;
+      }
+
+      for (const conditionalDependency of plugin.conditionalDependencies) {
+        // Check all condition plugins are installed
+        let conditionModules;
+        try {
+          conditionModules = await Promise.all(
+            conditionalDependency.condition(),
+          );
+        } catch (_error) {
+          continue;
+        }
+
+        // Check all condition plugins are loaded
+        if (
+          conditionModules.some(
+            (conditionPlugin) =>
+              !resolvedPlugins.includes(conditionPlugin.default),
+          )
+        ) {
+          continue;
+        }
+
+        // Load the conditional dependency
+        let pluginModule;
+        try {
+          pluginModule = await conditionalDependency.plugin();
+        } catch (error) {
+          ensureError(error);
+          await detectPluginNpmDependencyProblems(projectRoot, plugin);
+
+          throw new HardhatError(
+            HardhatError.ERRORS.CORE.PLUGINS.PLUGIN_DEPENDENCY_FAILED_LOAD,
+            {
+              pluginId: plugin.id,
+            },
+            error,
+          );
+        }
+
+        await dfs(pluginModule.default);
+      }
+    }
+  }
+
+  return resolvedPlugins;
 }

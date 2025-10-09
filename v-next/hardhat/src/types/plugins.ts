@@ -39,6 +39,11 @@ export interface HardhatPlugin {
    */
   dependencies?: () => Array<Promise<{ default: HardhatPlugin }>>;
 
+  conditionalDependencies?: Array<{
+    condition: () => Array<Promise<{ default: HardhatPlugin }>>;
+    plugin: () => Promise<{ default: HardhatPlugin }>;
+  }>;
+
   /**
    * An object with the different hook handlers that this plugin defines.
    *
