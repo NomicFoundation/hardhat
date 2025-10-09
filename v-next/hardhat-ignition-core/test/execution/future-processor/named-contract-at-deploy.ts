@@ -1,6 +1,6 @@
 import { assert } from "chai";
 
-import { NamedArtifactContractAtFuture } from "../../../src/index.js";
+import type { NamedArtifactContractAtFuture } from "../../../src/index.js";
 import { deploymentStateReducer } from "../../../src/internal/execution/reducers/deployment-state-reducer.js";
 import { NamedContractAtFutureImplementation } from "../../../src/internal/module.js";
 

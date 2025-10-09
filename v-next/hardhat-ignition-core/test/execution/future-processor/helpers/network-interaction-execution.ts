@@ -9,47 +9,47 @@ import {
   runStaticCall,
   sendTransactionForOnchainInteraction,
 } from "../../../../src/internal/execution/future-processor/helpers/network-interaction-execution.js";
-import {
+import type {
   Block,
   CallParams,
   EstimateGasParams,
   JsonRpcClient,
   TransactionParams,
 } from "../../../../src/internal/execution/jsonrpc-client.js";
-import { NonceManager } from "../../../../src/internal/execution/nonce-management/json-rpc-nonce-manager.js";
+import type { NonceManager } from "../../../../src/internal/execution/nonce-management/json-rpc-nonce-manager.js";
 import { TransactionTrackingTimer } from "../../../../src/internal/execution/transaction-tracking-timer.js";
 import { EvmExecutionResultTypes } from "../../../../src/internal/execution/types/evm-execution.js";
 import {
   ExecutionResultType,
-  SimulationErrorExecutionResult,
+  type SimulationErrorExecutionResult,
 } from "../../../../src/internal/execution/types/execution-result.js";
 import {
-  CallExecutionState,
-  DeploymentExecutionState,
+  type CallExecutionState,
+  type DeploymentExecutionState,
   ExecutionSateType,
   ExecutionStatus,
 } from "../../../../src/internal/execution/types/execution-state.js";
-import { CallStrategyGenerator } from "../../../../src/internal/execution/types/execution-strategy.js";
+import type { CallStrategyGenerator } from "../../../../src/internal/execution/types/execution-strategy.js";
 import {
-  EIP1559NetworkFees,
-  NetworkFees,
-  RawStaticCallResult,
-  Transaction,
-  TransactionReceipt,
+  type EIP1559NetworkFees,
+  type NetworkFees,
+  type RawStaticCallResult,
+  type Transaction,
+  type TransactionReceipt,
   TransactionReceiptStatus,
 } from "../../../../src/internal/execution/types/jsonrpc.js";
 import {
-  JournalMessage,
+  type JournalMessage,
   JournalMessageType,
 } from "../../../../src/internal/execution/types/messages.js";
 import {
   NetworkInteractionType,
-  OnchainInteraction,
-  StaticCall,
+  type OnchainInteraction,
+  type StaticCall,
 } from "../../../../src/internal/execution/types/network-interaction.js";
 import { FutureType } from "../../../../src/types/module.js";
 import { exampleAccounts } from "../../../helpers.js";
-import { DeploymentLoader } from "../../../../src/internal/deployment-loader/types.js";
+import type { DeploymentLoader } from "../../../../src/internal/deployment-loader/types.js";
 
 class StubJsonRpcClient implements JsonRpcClient {
   public async getChainId(): Promise<number> {

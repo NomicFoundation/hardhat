@@ -2,7 +2,7 @@ import { assert } from "chai";
 
 import { buildModule } from "../../src/build-module.js";
 import {
-  DeploymentExecutionState,
+  type DeploymentExecutionState,
   ExecutionSateType,
   ExecutionStatus,
 } from "../../src/internal/execution/types/execution-state.js";

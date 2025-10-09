@@ -5,6 +5,7 @@
  * @file
  */
 
+import type { DeploymentLoader } from "../../../deployment-loader/types.js";
 import type { JsonRpcClient, TransactionParams } from "../../jsonrpc-client.js";
 import type { NonceManager } from "../../nonce-management/json-rpc-nonce-manager.js";
 import type {
@@ -23,7 +24,6 @@ import type {
 
 import { HardhatError } from "@nomicfoundation/hardhat-errors";
 
-import { DeploymentLoader } from "../../../deployment-loader/types.js";
 import { assertIgnitionInvariant } from "../../../utils/assertions.js";
 import { JournalMessageType } from "../../types/messages.js";
 
