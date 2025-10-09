@@ -1,34 +1,34 @@
 import { assert } from "chai";
 
-import { DeploymentLoader } from "../../../../src/internal/deployment-loader/types.js";
+import type { DeploymentLoader } from "../../../../src/internal/deployment-loader/types.js";
 import { buildInitializeMessageFor } from "../../../../src/internal/execution/future-processor/helpers/build-initialize-message-for.js";
 import { deploymentStateReducer } from "../../../../src/internal/execution/reducers/deployment-state-reducer.js";
-import { DeploymentState } from "../../../../src/internal/execution/types/deployment-state.js";
+import type { DeploymentState } from "../../../../src/internal/execution/types/deployment-state.js";
 import { ExecutionResultType } from "../../../../src/internal/execution/types/execution-result.js";
 import {
-  ContractAtExecutionState,
-  DeploymentExecutionState,
+  type ContractAtExecutionState,
+  type DeploymentExecutionState,
   ExecutionSateType,
-  ReadEventArgumentExecutionState,
-  StaticCallExecutionState,
+  type ReadEventArgumentExecutionState,
+  type StaticCallExecutionState,
 } from "../../../../src/internal/execution/types/execution-state.js";
 import {
-  Transaction,
+  type Transaction,
   TransactionReceiptStatus,
 } from "../../../../src/internal/execution/types/jsonrpc.js";
 import {
-  CallExecutionStateInitializeMessage,
-  ContractAtExecutionStateInitializeMessage,
-  DeploymentExecutionStateInitializeMessage,
-  EncodeFunctionCallExecutionStateInitializeMessage,
+  type CallExecutionStateInitializeMessage,
+  type ContractAtExecutionStateInitializeMessage,
+  type DeploymentExecutionStateInitializeMessage,
+  type EncodeFunctionCallExecutionStateInitializeMessage,
   JournalMessageType,
-  ReadEventArgExecutionStateInitializeMessage,
-  SendDataExecutionStateInitializeMessage,
-  StaticCallExecutionStateInitializeMessage,
+  type ReadEventArgExecutionStateInitializeMessage,
+  type SendDataExecutionStateInitializeMessage,
+  type StaticCallExecutionStateInitializeMessage,
 } from "../../../../src/internal/execution/types/messages.js";
 import {
   NetworkInteractionType,
-  OnchainInteraction,
+  type OnchainInteraction,
 } from "../../../../src/internal/execution/types/network-interaction.js";
 import { getDefaultSender } from "../../../../src/internal/execution/utils/get-default-sender.js";
 import { MemoryJournal } from "../../../../src/internal/journal/memory-journal.js";
@@ -48,18 +48,18 @@ import {
   SendDataFutureImplementation,
 } from "../../../../src/internal/module.js";
 import {
-  ContractAtFuture,
-  ContractCallFuture,
-  ContractDeploymentFuture,
-  EncodeFunctionCallFuture,
+  type ContractAtFuture,
+  type ContractCallFuture,
+  type ContractDeploymentFuture,
+  type EncodeFunctionCallFuture,
   FutureType,
-  LibraryDeploymentFuture,
-  NamedArtifactContractAtFuture,
-  NamedArtifactContractDeploymentFuture,
-  NamedArtifactLibraryDeploymentFuture,
-  ReadEventArgumentFuture,
-  SendDataFuture,
-  StaticCallFuture,
+  type LibraryDeploymentFuture,
+  type NamedArtifactContractAtFuture,
+  type NamedArtifactContractDeploymentFuture,
+  type NamedArtifactLibraryDeploymentFuture,
+  type ReadEventArgumentFuture,
+  type SendDataFuture,
+  type StaticCallFuture,
 } from "../../../../src/types/module.js";
 import {
   exampleAccounts,

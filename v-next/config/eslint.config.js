@@ -444,11 +444,11 @@ export function createConfig(
           // but at the time of writing they are considering reverting it, so we allow them
           // here. See: https://github.com/nodejs/node/pull/58282
           allowForKnownSafeCalls: [
-            {
-              from: "package",
-              name: ["describe", "suite", "it", "test"],
-              package: "node:test",
-            },
+            "describe",
+            "suite",
+            "it",
+            "test",
+            "afterEach",
             // Theseare more permissive than needed, as they allow any call to functions
             // with these names to float a promise. They can be removed if Node 24+
             // doesn't revert the removal of floating promises, or if this gets resolved

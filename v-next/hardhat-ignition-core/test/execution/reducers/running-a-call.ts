@@ -1,21 +1,21 @@
 import { assert } from "chai";
 
-import { DeploymentState } from "../../../src/internal/execution/types/deployment-state.js";
+import type { DeploymentState } from "../../../src/internal/execution/types/deployment-state.js";
 import { EvmExecutionResultTypes } from "../../../src/internal/execution/types/evm-execution.js";
 import { ExecutionResultType } from "../../../src/internal/execution/types/execution-result.js";
 import {
-  CallExecutionState,
+  type CallExecutionState,
   ExecutionSateType,
   ExecutionStatus,
 } from "../../../src/internal/execution/types/execution-state.js";
 import { TransactionReceiptStatus } from "../../../src/internal/execution/types/jsonrpc.js";
 import {
-  CallExecutionStateCompleteMessage,
-  CallExecutionStateInitializeMessage,
+  type CallExecutionStateCompleteMessage,
+  type CallExecutionStateInitializeMessage,
   JournalMessageType,
-  NetworkInteractionRequestMessage,
-  TransactionConfirmMessage,
-  TransactionSendMessage,
+  type NetworkInteractionRequestMessage,
+  type TransactionConfirmMessage,
+  type TransactionSendMessage,
 } from "../../../src/internal/execution/types/messages.js";
 import { NetworkInteractionType } from "../../../src/internal/execution/types/network-interaction.js";
 import { assertIgnitionInvariant } from "../../../src/internal/utils/assertions.js";

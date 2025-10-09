@@ -1,14 +1,14 @@
 import { assert } from "chai";
 
-import { DeploymentState } from "../../../src/internal/execution/types/deployment-state.js";
+import type { DeploymentState } from "../../../src/internal/execution/types/deployment-state.js";
 import {
   ExecutionSateType,
   ExecutionStatus,
-  ReadEventArgumentExecutionState,
+  type ReadEventArgumentExecutionState,
 } from "../../../src/internal/execution/types/execution-state.js";
 import {
   JournalMessageType,
-  ReadEventArgExecutionStateInitializeMessage,
+  type ReadEventArgExecutionStateInitializeMessage,
 } from "../../../src/internal/execution/types/messages.js";
 import { findExecutionStateById } from "../../../src/internal/views/find-execution-state-by-id.js";
 

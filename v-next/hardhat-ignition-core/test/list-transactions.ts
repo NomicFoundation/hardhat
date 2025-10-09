@@ -5,7 +5,7 @@ import path from "path";
 
 import {
   listTransactions,
-  ListTransactionsResult,
+  type ListTransactionsResult,
   TransactionStatus,
 } from "../src/index.js";
 

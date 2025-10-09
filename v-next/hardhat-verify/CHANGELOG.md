@@ -1,5 +1,11 @@
 # @nomicfoundation/hardhat-verify
 
+## 3.0.3
+
+### Patch Changes
+
+- d25eec4: Fixed a bug that prevented verification of contracts imported from npm modules ([#7442](https://github.com/NomicFoundation/hardhat/pull/7442))
+
 ## 3.0.2
 
 ### Patch Changes

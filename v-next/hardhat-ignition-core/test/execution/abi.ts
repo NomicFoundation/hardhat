@@ -1,9 +1,9 @@
 import { HardhatError } from "@nomicfoundation/hardhat-errors";
 import { assertThrowsHardhatError } from "@nomicfoundation/hardhat-test-utils";
 import { assert } from "chai";
-import { Artifact } from "../../src/types/artifact.js";
+import type { Artifact } from "../../src/types/artifact.js";
 
-import { SolidityParameterType } from "../../src/index.js";
+import type { SolidityParameterType } from "../../src/index.js";
 import {
   decodeArtifactCustomError,
   decodeArtifactFunctionCallResult,

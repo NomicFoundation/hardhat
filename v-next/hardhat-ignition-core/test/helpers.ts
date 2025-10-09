@@ -1,6 +1,6 @@
 import { assert } from "chai";
 
-import { Artifact, ArtifactResolver } from "../src/index.js";
+import type { Artifact, ArtifactResolver } from "../src/index.js";
 import { DeploymentLoader } from "../src/internal/deployment-loader/types.js";
 import { Journal } from "../src/internal/journal/types/index.js";
 

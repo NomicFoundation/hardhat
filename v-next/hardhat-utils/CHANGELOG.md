@@ -1,5 +1,12 @@
 # @nomicfoundation/hardhat-utils
 
+## 3.0.3
+
+### Patch Changes
+
+- d821a0a: Fix npm artifact cleanup on windows ([#7459](https://github.com/NomicFoundation/hardhat/issues/7459))
+- b13620a: Add compilation progress spinner to show build progress ([#7460](https://github.com/NomicFoundation/hardhat/pull/7460))
+
 ## 3.0.2
 
 ### Patch Changes

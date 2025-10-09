@@ -1,22 +1,22 @@
 import { assert } from "chai";
 
-import {
+import type {
   Artifact,
   ArtifactResolver,
   BuildInfo,
   DeploymentParameters,
 } from "../../src/index.js";
-import { DeploymentLoader } from "../../src/internal/deployment-loader/types.js";
-import { DeploymentState } from "../../src/internal/execution/types/deployment-state.js";
+import type { DeploymentLoader } from "../../src/internal/deployment-loader/types.js";
+import type { DeploymentState } from "../../src/internal/execution/types/deployment-state.js";
 import {
-  ConcreteExecutionConfig,
+  type ConcreteExecutionConfig,
   ExecutionState,
 } from "../../src/internal/execution/types/execution-state.js";
 import { JournalMessage } from "../../src/internal/execution/types/messages.js";
 import { getDefaultSender } from "../../src/internal/execution/utils/get-default-sender.js";
 import { Reconciler } from "../../src/internal/reconciliation/reconciler.js";
 import { ReconciliationResult } from "../../src/internal/reconciliation/types.js";
-import { IgnitionModule } from "../../src/types/module.js";
+import type { IgnitionModule } from "../../src/types/module.js";
 import { exampleAccounts } from "../helpers.js";
 
 export const oneAddress = "0x1111111111111111111111111111111111111111";

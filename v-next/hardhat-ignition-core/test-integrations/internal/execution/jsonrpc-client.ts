@@ -2,7 +2,7 @@ import type { HardhatRuntimeEnvironment } from "hardhat/types/hre";
 
 import { assert } from "chai";
 
-import { Artifact } from "../../../src/index.js";
+import type { Artifact } from "../../../src/index.js";
 import {
   encodeArtifactDeploymentData,
   encodeArtifactFunctionCall,

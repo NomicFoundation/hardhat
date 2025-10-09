@@ -1,3 +1,4 @@
+import type { DeploymentLoader } from "../../../deployment-loader/types.js";
 import type { JsonRpcClient } from "../../jsonrpc-client.js";
 import type { NonceManager } from "../../nonce-management/json-rpc-nonce-manager.js";
 import type { TransactionTrackingTimer } from "../../transaction-tracking-timer.js";
@@ -18,7 +19,6 @@ import type {
   TransactionSendMessage,
 } from "../../types/messages.js";
 
-import { DeploymentLoader } from "../../../deployment-loader/types.js";
 import { assertIgnitionInvariant } from "../../../utils/assertions.js";
 import { ExecutionResultType } from "../../types/execution-result.js";
 import { JournalMessageType } from "../../types/messages.js";

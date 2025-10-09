@@ -11,7 +11,7 @@ import {
   NamedContractDeploymentFutureImplementation,
   NamedLibraryDeploymentFutureImplementation,
 } from "../src/internal/module.js";
-import {
+import type {
   ContractFuture,
   IgnitionModule,
   IgnitionModuleResult,

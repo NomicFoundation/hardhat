@@ -1,5 +1,5 @@
 import { FutureProcessor } from "../../../src/internal/execution/future-processor/future-processor.js";
-import {
+import type {
   Block,
   CallParams,
   EstimateGasParams,

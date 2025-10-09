@@ -1,7 +1,7 @@
 import { assert } from "chai";
 
 import { checkAutominedNetwork } from "../../src/internal/utils/check-automined-network.js";
-import { EIP1193Provider } from "../../src/types/provider.js";
+import type { EIP1193Provider } from "../../src/types/provider.js";
 
 describe("check-automin-network", () => {
   it("should confirm a Hardhat network that has automining enabled", async () =>

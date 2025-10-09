@@ -1,4 +1,4 @@
-import { SolidityParameterType } from "./module.js";
+import type { SolidityParameterType } from "./module.js";
 
 /**
  * The configuration info needed to verify a contract on Etherscan on a given chain.

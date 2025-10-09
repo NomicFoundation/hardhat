@@ -19,9 +19,10 @@ describe("etherscan", () => {
       chainId: 11_155_111,
       name: "SepoliaScan",
       url: "http://localhost",
+      apiUrl: "http://localhost/v2/api",
       apiKey: "someApiKey",
     };
-    const etherscanApiUrl = new URL(ETHERSCAN_API_URL).origin;
+    const etherscanApiUrl = new URL(etherscanConfig.apiUrl).origin;
     const address = "0x1234567890abcdef1234567890abcdef12345678";
     const contract = "contracts/Test.sol:Test";
     const sourceCode =
@@ -37,6 +38,7 @@ describe("etherscan", () => {
         assert.equal(etherscan.chainId, "11155111");
         assert.equal(etherscan.name, etherscanConfig.name);
         assert.equal(etherscan.url, etherscanConfig.url);
+        assert.equal(etherscan.apiUrl, etherscanConfig.apiUrl);
         assert.equal(etherscan.apiKey, etherscanConfig.apiKey);
       });
 
@@ -47,6 +49,15 @@ describe("etherscan", () => {
         });
 
         assert.equal(etherscan.name, "Etherscan");
+      });
+
+      it("should default to etherscan api if no apiUrl is provided", () => {
+        const etherscan = new Etherscan({
+          ...etherscanConfig,
+          apiUrl: undefined,
+        });
+
+        assert.equal(etherscan.apiUrl, ETHERSCAN_API_URL);
       });
 
       it("should throw an error if the apiKey is empty", () => {
@@ -66,7 +77,10 @@ describe("etherscan", () => {
       it("should configure proxy when no dispatcher provided and proxy environment variables are set", () => {
         process.env.https_proxy = "http://test-proxy:8080";
 
-        const etherscan = new Etherscan(etherscanConfig);
+        const etherscan = new Etherscan({
+          ...etherscanConfig,
+          apiUrl: ETHERSCAN_API_URL,
+        });
 
         assert.deepEqual(etherscan.dispatcherOrDispatcherOptions, {
           proxy: "http://test-proxy:8080",
@@ -216,7 +230,7 @@ describe("etherscan", () => {
           HardhatError.ERRORS.HARDHAT_VERIFY.GENERAL.EXPLORER_REQUEST_FAILED,
           {
             name: etherscanConfig.name,
-            url: ETHERSCAN_API_URL,
+            url: etherscanConfig.apiUrl,
             errorMessage: "Network error",
           },
         );
@@ -229,7 +243,7 @@ describe("etherscan", () => {
           HardhatError.ERRORS.HARDHAT_VERIFY.GENERAL.EXPLORER_REQUEST_FAILED,
           {
             name: etherscanConfig.name,
-            url: ETHERSCAN_API_URL,
+            url: etherscanConfig.apiUrl,
             // this message comes from ResponseStatusCodeError in hardhat-utils
             errorMessage: "Response status code 400: Bad Request",
           },
@@ -243,7 +257,7 @@ describe("etherscan", () => {
           HardhatError.ERRORS.HARDHAT_VERIFY.GENERAL.EXPLORER_REQUEST_FAILED,
           {
             name: etherscanConfig.name,
-            url: ETHERSCAN_API_URL,
+            url: etherscanConfig.apiUrl,
             errorMessage: `Unexpected token 'I', "Invalid js"... is not valid JSON`,
           },
         );
@@ -263,7 +277,7 @@ describe("etherscan", () => {
             .EXPLORER_REQUEST_STATUS_CODE_ERROR,
           {
             name: etherscanConfig.name,
-            url: ETHERSCAN_API_URL,
+            url: etherscanConfig.apiUrl,
             statusCode: 300,
             errorMessage: "Redirection error",
           },
@@ -348,7 +362,7 @@ describe("etherscan", () => {
           HardhatError.ERRORS.HARDHAT_VERIFY.GENERAL.EXPLORER_REQUEST_FAILED,
           {
             name: etherscanConfig.name,
-            url: ETHERSCAN_API_URL,
+            url: etherscanConfig.apiUrl,
             errorMessage: "Network error",
           },
         );
@@ -367,7 +381,7 @@ describe("etherscan", () => {
           HardhatError.ERRORS.HARDHAT_VERIFY.GENERAL.EXPLORER_REQUEST_FAILED,
           {
             name: etherscanConfig.name,
-            url: ETHERSCAN_API_URL,
+            url: etherscanConfig.apiUrl,
             // this message comes from ResponseStatusCodeError in hardhat-utils
             errorMessage: "Response status code 400: Bad Request",
           },
@@ -387,7 +401,7 @@ describe("etherscan", () => {
           HardhatError.ERRORS.HARDHAT_VERIFY.GENERAL.EXPLORER_REQUEST_FAILED,
           {
             name: etherscanConfig.name,
-            url: ETHERSCAN_API_URL,
+            url: etherscanConfig.apiUrl,
             errorMessage: `Unexpected token 'I', "Invalid js"... is not valid JSON`,
           },
         );
@@ -413,7 +427,7 @@ describe("etherscan", () => {
             .EXPLORER_REQUEST_STATUS_CODE_ERROR,
           {
             name: etherscanConfig.name,
-            url: ETHERSCAN_API_URL,
+            url: etherscanConfig.apiUrl,
             statusCode: 300,
             errorMessage: "Redirection error",
           },
@@ -441,7 +455,7 @@ describe("etherscan", () => {
           HardhatError.ERRORS.HARDHAT_VERIFY.GENERAL
             .CONTRACT_VERIFICATION_MISSING_BYTECODE,
           {
-            url: ETHERSCAN_API_URL,
+            url: etherscanConfig.apiUrl,
             address,
           },
         );
@@ -641,7 +655,7 @@ describe("etherscan", () => {
           HardhatError.ERRORS.HARDHAT_VERIFY.GENERAL.EXPLORER_REQUEST_FAILED,
           {
             name: etherscanConfig.name,
-            url: ETHERSCAN_API_URL,
+            url: etherscanConfig.apiUrl,
             errorMessage: "Network error",
           },
         );
@@ -654,7 +668,7 @@ describe("etherscan", () => {
           HardhatError.ERRORS.HARDHAT_VERIFY.GENERAL.EXPLORER_REQUEST_FAILED,
           {
             name: etherscanConfig.name,
-            url: ETHERSCAN_API_URL,
+            url: etherscanConfig.apiUrl,
             // this message comes from ResponseStatusCodeError in hardhat-utils
             errorMessage: "Response status code 400: Bad Request",
           },
@@ -668,7 +682,7 @@ describe("etherscan", () => {
           HardhatError.ERRORS.HARDHAT_VERIFY.GENERAL.EXPLORER_REQUEST_FAILED,
           {
             name: etherscanConfig.name,
-            url: ETHERSCAN_API_URL,
+            url: etherscanConfig.apiUrl,
             errorMessage: `Unexpected token 'I', "Invalid js"... is not valid JSON`,
           },
         );
@@ -690,7 +704,7 @@ describe("etherscan", () => {
             .EXPLORER_REQUEST_STATUS_CODE_ERROR,
           {
             name: etherscanConfig.name,
-            url: ETHERSCAN_API_URL,
+            url: etherscanConfig.apiUrl,
             statusCode: 300,
             errorMessage: "Redirection error",
           },

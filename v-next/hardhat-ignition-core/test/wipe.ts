@@ -2,14 +2,14 @@ import { HardhatError } from "@nomicfoundation/hardhat-errors";
 import { assertRejectsWithHardhatError } from "@nomicfoundation/hardhat-test-utils";
 import { assert } from "chai";
 
-import { ArtifactResolver } from "../src/index.js";
+import type { ArtifactResolver } from "../src/index.js";
 import { EphemeralDeploymentLoader } from "../src/internal/deployment-loader/ephemeral-deployment-loader.js";
 import {
   applyNewMessage,
   initializeDeploymentState,
 } from "../src/internal/execution/deployment-state-helpers.js";
 import {
-  DeploymentExecutionStateInitializeMessage,
+  type DeploymentExecutionStateInitializeMessage,
   JournalMessageType,
 } from "../src/internal/execution/types/messages.js";
 import { Wiper } from "../src/internal/wiper.js";

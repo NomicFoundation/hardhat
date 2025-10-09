@@ -3,10 +3,10 @@ import { assert } from "chai";
 import { buildModule } from "../../../src/build-module.js";
 import { ExecutionResultType } from "../../../src/internal/execution/types/execution-result.js";
 import {
-  DeploymentExecutionState,
+  type DeploymentExecutionState,
   ExecutionSateType,
   ExecutionStatus,
-  ReadEventArgumentExecutionState,
+  type ReadEventArgumentExecutionState,
 } from "../../../src/internal/execution/types/execution-state.js";
 import { FutureType } from "../../../src/types/module.js";
 import { exampleAccounts } from "../../helpers.js";

@@ -1,7 +1,7 @@
 import { assert } from "chai";
 
-import { NamedArtifactContractDeploymentFuture } from "../../../src/index.js";
-import { TransactionParams } from "../../../src/internal/execution/jsonrpc-client.js";
+import type { NamedArtifactContractDeploymentFuture } from "../../../src/index.js";
+import type { TransactionParams } from "../../../src/internal/execution/jsonrpc-client.js";
 import { deploymentStateReducer } from "../../../src/internal/execution/reducers/deployment-state-reducer.js";
 import { ExecutionResultType } from "../../../src/internal/execution/types/execution-result.js";
 import {

@@ -2,7 +2,7 @@ import { HardhatError } from "@nomicfoundation/hardhat-errors";
 import { assertThrowsHardhatError } from "@nomicfoundation/hardhat-test-utils";
 import { assert } from "chai";
 
-import { Artifact } from "../src/index.js";
+import type { Artifact } from "../src/index.js";
 import { buildModule } from "../src/build-module.js";
 import {
   AccountRuntimeValueImplementation,

@@ -2,7 +2,7 @@ import { assert } from "chai";
 
 import { buildModule } from "../src/build-module.js";
 import { ModuleParameterRuntimeValueImplementation } from "../src/internal/module.js";
-import { SolidityParameterType } from "../src/types/module.js";
+import type { SolidityParameterType } from "../src/types/module.js";
 
 import { assertInstanceOf } from "./helpers.js";
 
