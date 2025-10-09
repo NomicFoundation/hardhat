@@ -19,11 +19,7 @@ import { createNonClosingWriter } from "@nomicfoundation/hardhat-utils/stream";
 import { HardhatRuntimeEnvironmentImplementation } from "../../core/hre.js";
 import { isSupportedChainType } from "../../edr/chain-type.js";
 import { ArtifactManagerImplementation } from "../artifacts/artifact-manager.js";
-import {
-  markTestRunDone,
-  markTestRunStart,
-  markTestWorkerDone,
-} from "../coverage/helpers.js";
+import { markTestRunDone, markTestWorkerDone } from "../coverage/helpers.js";
 
 import { getEdrArtifacts, getBuildInfos } from "./edr-artifacts.js";
 import {
@@ -148,7 +144,8 @@ const runSolidityTests: NewTaskActionFunction<TestActionArguments> = async (
   const options: RunOptions =
     solidityTestConfigToRunOptions(solidityTestConfig);
 
-  await markTestRunStart("solidity");
+  // await markTestRunStart("solidity");
+  await hre.hooks.runParallelHandlers("test", "onTestRunStart", ["solidity"]);
 
   const runStream = run(
     chainType,
