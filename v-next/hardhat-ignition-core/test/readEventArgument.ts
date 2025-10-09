@@ -145,7 +145,141 @@ describe("Read event argument", () => {
   });
 
   describe("using the values", () => {
-    // TODO
+    it("should allow using a read value as a constructor argument and add dependency", () => {
+      const mod = buildModule("Module1", (m) => {
+        const emitter = m.contract("Emitter");
+        const read = m.readEventArgument(emitter, "Created", "owner");
+
+        const receiver = m.contract("Receiver", [read]);
+
+        return { emitter, receiver };
+      });
+
+      const [read] = Array.from(mod.futures).filter(
+        (f) => f.type === FutureType.READ_EVENT_ARGUMENT,
+      ) as ReadEventArgumentFuture[];
+
+      const receiverDeployment = Array.from(mod.futures).find(
+        (f) =>
+          f.type === FutureType.NAMED_ARTIFACT_CONTRACT_DEPLOYMENT &&
+          (f as any).contractName === "Receiver",
+      );
+
+      assert.isTrue((receiverDeployment as any).dependencies.has(read));
+    });
+
+    it("should allow using a read value as a function argument and add dependency", () => {
+      const mod = buildModule("Module1", (m) => {
+        const emitter = m.contract("Emitter");
+        const target = m.contract("Target");
+        const read = m.readEventArgument(emitter, "Created", "owner");
+
+        m.call(target, "setOwner", [read]);
+
+        return { emitter, target };
+      });
+
+      const [read] = Array.from(mod.futures).filter(
+        (f) => f.type === FutureType.READ_EVENT_ARGUMENT,
+      ) as ReadEventArgumentFuture[];
+
+      const callFuture = Array.from(mod.futures).find(
+        (f) => f.type === FutureType.CONTRACT_CALL,
+      );
+
+      assert.isTrue((callFuture as any).dependencies.has(read));
+    });
+
+    it("should allow using a read value as the value for a contract deployment", () => {
+      const mod = buildModule("Module1", (m) => {
+        const emitter = m.contract("Emitter");
+        const read = m.readEventArgument(emitter, "ValueEmitted", 0);
+
+        const payable = m.contract("Payable", [], { value: read });
+
+        return { emitter, payable };
+      });
+
+      const [read] = Array.from(mod.futures).filter(
+        (f) => f.type === FutureType.READ_EVENT_ARGUMENT,
+      ) as ReadEventArgumentFuture[];
+
+      const payableDeployment = Array.from(mod.futures).find(
+        (f) =>
+          f.type === FutureType.NAMED_ARTIFACT_CONTRACT_DEPLOYMENT &&
+          (f as any).contractName === "Payable",
+      );
+
+      assert.equal((payableDeployment as any).value, read);
+      assert.isTrue((payableDeployment as any).dependencies.has(read));
+    });
+
+    it("should allow using a read value as the value for a call", () => {
+      const mod = buildModule("Module1", (m) => {
+        const emitter = m.contract("Emitter");
+        const target = m.contract("Target");
+        const read = m.readEventArgument(emitter, "ValueEmitted", 0);
+
+        m.call(target, "deposit", [], { value: read });
+
+        return { emitter, target };
+      });
+
+      const [read] = Array.from(mod.futures).filter(
+        (f) => f.type === FutureType.READ_EVENT_ARGUMENT,
+      ) as ReadEventArgumentFuture[];
+
+      const callFuture = Array.from(mod.futures).find(
+        (f) => f.type === FutureType.CONTRACT_CALL,
+      );
+
+      assert.equal((callFuture as any).value, read);
+      assert.isTrue((callFuture as any).dependencies.has(read));
+    });
+
+    it("should allow using a read value as an address for send", () => {
+      const mod = buildModule("Module1", (m) => {
+        const emitter = m.contract("Emitter");
+        const read = m.readEventArgument(emitter, "AddressEmitted", 0);
+
+        m.send("sendToRead", read, 0n);
+
+        return { emitter };
+      });
+
+      const [read] = Array.from(mod.futures).filter(
+        (f) => f.type === FutureType.READ_EVENT_ARGUMENT,
+      ) as ReadEventArgumentFuture[];
+
+      const sendFuture = Array.from(mod.futures).find(
+        (f) => f.type === FutureType.SEND_DATA,
+      );
+
+      assert.equal((sendFuture as any).to, read);
+      assert.isTrue((sendFuture as any).dependencies.has(read));
+    });
+
+    it("should allow using a read value as an address for contractAt", () => {
+      const mod = buildModule("Module1", (m) => {
+        const emitter = m.contract("Emitter");
+        const read = m.readEventArgument(emitter, "AddressEmitted", 0);
+
+        m.contractAt("Known", read);
+
+        return { emitter };
+      });
+
+      const [read] = Array.from(mod.futures).filter(
+        (f) => f.type === FutureType.READ_EVENT_ARGUMENT,
+      ) as ReadEventArgumentFuture[];
+
+      const atFuture = Array.from(mod.futures).find(
+        (f) => f.type === FutureType.NAMED_ARTIFACT_CONTRACT_AT,
+      );
+
+      assert.equal((atFuture as any).address, read);
+      assert.isTrue((atFuture as any).dependencies.has(read));
+    });
   });
 
   describe("passing ids", () => {
