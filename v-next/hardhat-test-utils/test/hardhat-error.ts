@@ -55,15 +55,50 @@ describe("HardhatError helpers", () => {
       });
     });
 
-    it("Should not throw if the error is a HardhatError with the same descriptor and message arguments", () => {
-      assertIsHardhatError(
-        new HardhatError(
+    describe("Error cause", () => {
+      it("Should not throw if the error cause is provided and its the same", () => {
+        const cause = new Error("cause");
+
+        assertIsHardhatError(
+          new HardhatError(
+            HardhatError.ERRORS.CORE.TASK_DEFINITIONS.UNRECOGNIZED_TASK_OPTION,
+            { option: "foo", task: "bar" },
+            cause,
+          ),
           HardhatError.ERRORS.CORE.TASK_DEFINITIONS.UNRECOGNIZED_TASK_OPTION,
           { option: "foo", task: "bar" },
-        ),
-        HardhatError.ERRORS.CORE.TASK_DEFINITIONS.UNRECOGNIZED_TASK_OPTION,
-        { option: "foo", task: "bar" },
-      );
+          cause,
+        );
+      });
+
+      it("Should throw if a cause is provided and doesn't match the error cause (by reference)", () => {
+        assert.throws(() => {
+          assertIsHardhatError(
+            new HardhatError(
+              HardhatError.ERRORS.CORE.TASK_DEFINITIONS.UNRECOGNIZED_TASK_OPTION,
+              { option: "foo", task: "bar" },
+              new Error("cause"),
+            ),
+            HardhatError.ERRORS.CORE.TASK_DEFINITIONS.UNRECOGNIZED_TASK_OPTION,
+            { option: "foo", task: "bar" },
+            new Error("cause"),
+          );
+        });
+      });
+
+      it("Should throw if the cause is provided byt there's none", () => {
+        assert.throws(() => {
+          assertIsHardhatError(
+            new HardhatError(
+              HardhatError.ERRORS.CORE.TASK_DEFINITIONS.UNRECOGNIZED_TASK_OPTION,
+              { option: "foo", task: "bar" },
+            ),
+            HardhatError.ERRORS.CORE.TASK_DEFINITIONS.UNRECOGNIZED_TASK_OPTION,
+            { option: "foo", task: "bar" },
+            new Error("cause"),
+          );
+        });
+      });
     });
   });
 
@@ -102,6 +137,24 @@ describe("HardhatError helpers", () => {
         HardhatError.ERRORS.CORE.TASK_DEFINITIONS.UNRECOGNIZED_TASK_OPTION,
         { option: "foo", task: "bar" },
       );
+    });
+
+    it("asserts the cause", () => {
+      assert.throws(() => {
+        assertThrowsHardhatError(
+          () => {
+            throw new HardhatError(
+              HardhatError.ERRORS.CORE.TASK_DEFINITIONS.UNRECOGNIZED_TASK_OPTION,
+              { option: "foo", task: "bar" },
+              new Error("cause"),
+            );
+          },
+
+          HardhatError.ERRORS.CORE.TASK_DEFINITIONS.UNRECOGNIZED_TASK_OPTION,
+          { option: "foo", task: "bar" },
+          new Error("cause"),
+        );
+      });
     });
   });
 
@@ -163,6 +216,23 @@ describe("HardhatError helpers", () => {
         HardhatError.ERRORS.CORE.TASK_DEFINITIONS.UNRECOGNIZED_TASK_OPTION,
         { option: "foo", task: "bar" },
       );
+    });
+
+    it("asserts the cause", async () => {
+      await assert.rejects(async () => {
+        await assertRejectsWithHardhatError(
+          async () => {
+            throw new HardhatError(
+              HardhatError.ERRORS.CORE.TASK_DEFINITIONS.UNRECOGNIZED_TASK_OPTION,
+              { option: "foo", task: "bar" },
+              new Error("cause"),
+            );
+          },
+          HardhatError.ERRORS.CORE.TASK_DEFINITIONS.UNRECOGNIZED_TASK_OPTION,
+          { option: "foo", task: "bar" },
+          new Error("cause"),
+        );
+      });
     });
   });
 });
