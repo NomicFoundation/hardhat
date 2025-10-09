@@ -86,7 +86,7 @@ describe("HardhatError helpers", () => {
         });
       });
 
-      it("Should throw if the cause is provided byt there's none", () => {
+      it("Should throw if the cause is provided but there's none", () => {
         assert.throws(() => {
           assertIsHardhatError(
             new HardhatError(
