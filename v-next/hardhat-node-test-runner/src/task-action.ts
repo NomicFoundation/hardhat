@@ -10,7 +10,7 @@ import { hardhatTestReporter } from "@nomicfoundation/hardhat-node-test-reporter
 import { setGlobalOptionsAsEnvVariables } from "@nomicfoundation/hardhat-utils/env";
 import { getAllFilesMatching } from "@nomicfoundation/hardhat-utils/fs";
 import { createNonClosingWriter } from "@nomicfoundation/hardhat-utils/stream";
-import { markTestRunStart, markTestRunDone } from "hardhat/internal/coverage";
+import { markTestRunDone } from "hardhat/internal/coverage";
 
 interface TestActionArguments {
   testFiles: string[];
@@ -130,7 +130,8 @@ const testWithHardhat: NewTaskActionFunction<TestActionArguments> = async (
     return failures;
   }
 
-  await markTestRunStart("nodejs");
+  // await markTestRunStart("nodejs");
+  await hre.hooks.runParallelHandlers("test", "onTestRunStart", ["nodejs"]);
 
   const testFailures = await runTests();
 

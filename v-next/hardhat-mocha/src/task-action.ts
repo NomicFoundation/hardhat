@@ -7,11 +7,7 @@ import { resolve as pathResolve } from "node:path";
 import { HardhatError } from "@nomicfoundation/hardhat-errors";
 import { setGlobalOptionsAsEnvVariables } from "@nomicfoundation/hardhat-utils/env";
 import { getAllFilesMatching } from "@nomicfoundation/hardhat-utils/fs";
-import {
-  markTestRunDone,
-  markTestRunStart,
-  markTestWorkerDone,
-} from "hardhat/internal/coverage";
+import { markTestRunDone, markTestWorkerDone } from "hardhat/internal/coverage";
 
 interface TestActionArguments {
   testFiles: string[];
@@ -120,7 +116,8 @@ const testWithHardhat: NewTaskActionFunction<TestActionArguments> = async (
   // which supports both ESM and CJS
   await mocha.loadFilesAsync();
 
-  await markTestRunStart("mocha");
+  // await markTestRunStart("mocha");
+  await hre.hooks.runParallelHandlers("test", "onTestRunStart", ["mocha"]);
 
   const testFailures = await new Promise<number>((resolve) => {
     mocha.run(resolve);
