@@ -27,12 +27,7 @@
     "dist/",
     "src/",
     "CHANGELOG.md",
-    "README.md",
-    "tsconfig.node.tsbuildinfo",
-    "tsconfig.tsbuildinfo",
-    "eslint.config.js",
-    "vite.config.js",
-    "vite.config.d.ts"
+    "README.md"
   ],
   "devDependencies": {
     "@fontsource/roboto": "^5.0.8",

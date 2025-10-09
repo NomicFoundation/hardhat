@@ -42,9 +42,7 @@
     "dist/src/",
     "src/",
     "CHANGELOG.md",
-    "README.md",
-    "eslint.config.js",
-    "tsconfig.json"
+    "README.md"
   ],
   "devDependencies": {
     "@istanbuljs/nyc-config-typescript": "1.0.2",
