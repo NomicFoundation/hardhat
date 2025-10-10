@@ -5,7 +5,9 @@ import type {
   Statement,
   Tag,
 } from "./types.js";
+import type { FileCoverageData } from "istanbul-lib-coverage";
 
+import fs from "node:fs";
 import path from "node:path";
 
 import { assertHardhatInvariant } from "@nomicfoundation/hardhat-errors";
@@ -18,6 +20,12 @@ import {
   writeUtf8File,
 } from "@nomicfoundation/hardhat-utils/fs";
 import debug from "debug";
+//
+// Report
+//
+import libCoverage from "istanbul-lib-coverage";
+import libReport from "istanbul-lib-report";
+import reports from "istanbul-reports";
 
 const log = debug("hardhat:core:coverage:coverage-manager");
 
@@ -111,6 +119,79 @@ export class CoverageManagerImplementation implements CoverageManager {
 
     console.log(markdownReport);
     log("Printed markdown report");
+
+    await this.#lcovToHtml(report);
+
+    //
+    //
+    //
+  }
+
+  async #lcovToHtml(report: Report): Promise<void> {
+    const reporter: "html" | "html-spa" = "html-spa";
+
+    const outDir = "coverage/html";
+    const baseDir = process.cwd();
+    const treatUnlisted = false; // treatUnlistedLinesAsUncovered
+
+    const coverageMap = libCoverage.createCoverageMap({});
+
+    for (const [relativePath, file] of Object.entries(report)) {
+      const filePath = path.isAbsolute(relativePath)
+        ? relativePath
+        : path.join(baseDir, relativePath);
+
+      // Optional: read source to set end columns to the actual line length
+      let lines: string[] = [];
+      try {
+        lines = fs.readFileSync(filePath, "utf8").split(/\r?\n/);
+      } catch {
+        // ok if the file is not available on disk; columns will be 0
+      }
+
+      // Build the set of line candidates we want to color
+      const candidates = new Set<number>();
+      for (const line of file.lineExecutionCounts.keys()) candidates.add(line);
+      for (const line of file.unexecutedLines) candidates.add(line);
+      if (treatUnlisted && lines.length > 0) {
+        for (let i = 1; i <= lines.length; i++) candidates.add(i);
+      }
+
+      const statementMap: FileCoverageData["statementMap"] = {};
+      const s: FileCoverageData["s"] = {};
+      let sid = 0;
+
+      for (const lineNo of [...candidates].sort((a, b) => a - b)) {
+        const id = String(++sid);
+        const endCol = lines[lineNo - 1]?.length ?? 0;
+
+        // Make each source line a pseudo "statement"
+        statementMap[id] = {
+          start: { line: lineNo, column: 0 },
+          end: { line: lineNo, column: endCol },
+        };
+
+        const hits = file.lineExecutionCounts.get(lineNo) ?? 0;
+        s[id] = hits > 0 ? 1 : 0; // green if hit, red if not
+      }
+
+      const fileCoverage: FileCoverageData = {
+        path: filePath, // you can also keep relativePath if you prefer
+        statementMap,
+        s,
+        fnMap: {},
+        f: {},
+        branchMap: {},
+        b: {},
+      };
+
+      coverageMap.addFileCoverage(fileCoverage);
+    }
+
+    fs.mkdirSync(outDir, { recursive: true });
+    const context = libReport.createContext({ dir: outDir, coverageMap });
+    reports.create(reporter).execute(context);
+    console.log(`HTML report written to ${path.resolve(outDir)}`);
   }
 
   public enableReport(): void {
