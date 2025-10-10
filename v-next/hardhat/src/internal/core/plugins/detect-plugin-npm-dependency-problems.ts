@@ -15,6 +15,7 @@ import {
  *
  * @param basePathForNpmResolution the dir path for node module resolution
  * @param plugin the plugin to be validated
+ * @param originalError the original error why we are running this function
  * @throws {HardhatError} with descriptor:
  * - {@link HardhatError.ERRORS.CORE.PLUGINS.PLUGIN_NOT_INSTALLED} if the plugin is
  * not installed as an npm package
@@ -26,6 +27,7 @@ import {
 export async function detectPluginNpmDependencyProblems(
   basePathForNpmResolution: string,
   plugin: HardhatPlugin,
+  originalError: Error,
 ): Promise<void> {
   if (plugin.npmPackage === null) {
     return;
@@ -43,6 +45,7 @@ export async function detectPluginNpmDependencyProblems(
       {
         pluginId: plugin.id,
       },
+      originalError,
     );
   }
 
@@ -71,6 +74,7 @@ export async function detectPluginNpmDependencyProblems(
           pluginId: plugin.id,
           peerDependencyName: dependencyName,
         },
+        originalError,
       );
     }
 
@@ -91,6 +95,7 @@ export async function detectPluginNpmDependencyProblems(
           installedVersion,
           expectedVersion: versionSpec,
         },
+        originalError,
       );
     }
   }

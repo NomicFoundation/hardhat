@@ -12,11 +12,13 @@ import { ensureError } from "@nomicfoundation/hardhat-utils/error";
  * @param error The error.
  * @param descriptor The error descriptor.
  * @param messageArguments The message arguments.
+ * @param cause The error cause. Only checked if not `undefined`.
  */
 export function assertIsHardhatError<ErrorDescriptorT extends ErrorDescriptor>(
   error: unknown,
   descriptor: ErrorDescriptorT,
   messageArguments: HardhatError<ErrorDescriptorT>["messageArguments"],
+  cause?: Error,
 ): asserts error is HardhatError<ErrorDescriptorT> {
   assert.ok(HardhatError.isHardhatError(error), "Error is not a HardhatError");
 
@@ -31,6 +33,14 @@ export function assertIsHardhatError<ErrorDescriptorT extends ErrorDescriptor>(
   assert.deepEqual(error.descriptor, descriptor);
 
   assert.deepEqual(error.messageArguments, messageArguments);
+
+  if (cause !== undefined) {
+    assert.equal(
+      error.cause,
+      cause,
+      "Error cause is not what's expected (comparing by reference)",
+    );
+  }
 }
 
 /**
@@ -40,6 +50,7 @@ export function assertIsHardhatError<ErrorDescriptorT extends ErrorDescriptor>(
  * @param f The function that should throw.
  * @param descriptor The error descriptor.
  * @param messageArguments The message arguments.
+ * @param cause The error cause. Only checked if not `undefined`.
  */
 export function assertThrowsHardhatError<
   ErrorDescriptorT extends ErrorDescriptor,
@@ -47,12 +58,13 @@ export function assertThrowsHardhatError<
   f: () => any,
   descriptor: ErrorDescriptorT,
   messageArguments: HardhatError<ErrorDescriptorT>["messageArguments"],
+  cause?: Error,
 ): void {
   try {
     f();
   } catch (error) {
     ensureError(error);
-    assertIsHardhatError(error, descriptor, messageArguments);
+    assertIsHardhatError(error, descriptor, messageArguments, cause);
 
     return;
   }
@@ -68,6 +80,7 @@ export function assertThrowsHardhatError<
  * @param op The async operation. If it's a function, it's called and awaited.
  * @param descriptor The error descriptor.
  * @param messageArguments The message arguments.
+ * @param cause The error cause. Only checked if not `undefined`.
  */
 export async function assertRejectsWithHardhatError<
   ErrorDescriptorT extends ErrorDescriptor,
@@ -75,6 +88,7 @@ export async function assertRejectsWithHardhatError<
   op: (() => Promise<any>) | Promise<any>,
   descriptor: ErrorDescriptorT,
   messageArguments: HardhatError<ErrorDescriptorT>["messageArguments"],
+  cause?: Error,
 ): Promise<void> {
   try {
     if (op instanceof Promise) {
@@ -84,7 +98,7 @@ export async function assertRejectsWithHardhatError<
     }
   } catch (error) {
     ensureError(error);
-    assertIsHardhatError(error, descriptor, messageArguments);
+    assertIsHardhatError(error, descriptor, messageArguments, cause);
 
     return;
   }

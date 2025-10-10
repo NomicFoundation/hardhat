@@ -244,6 +244,7 @@ export class ResolvedTask implements Task {
         await detectPluginNpmDependencyProblems(
           this.#hre.config.paths.root,
           plugin,
+          error,
         );
       }
 

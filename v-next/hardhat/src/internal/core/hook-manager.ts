@@ -13,6 +13,7 @@ import type { HardhatPlugin } from "../../types/plugins.js";
 import type { LastParameter, Return } from "../../types/utils.js";
 
 import { assertHardhatInvariant } from "@nomicfoundation/hardhat-errors";
+import { ensureError } from "@nomicfoundation/hardhat-utils/error";
 import { AsyncMutex } from "@nomicfoundation/hardhat-utils/synchronization";
 
 import { detectPluginNpmDependencyProblems } from "./plugins/detect-plugin-npm-dependency-problems.js";
@@ -297,7 +298,14 @@ export class HookManagerImplementation implements HookManager {
           try {
             factory = (await hookHandlerCategoryFactory()).default;
           } catch (error) {
-            await detectPluginNpmDependencyProblems(this.#projectRoot, plugin);
+            ensureError(error);
+
+            await detectPluginNpmDependencyProblems(
+              this.#projectRoot,
+              plugin,
+              error,
+            );
+
             throw error;
           }
 

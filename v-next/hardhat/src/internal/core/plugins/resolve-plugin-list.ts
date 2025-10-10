@@ -53,7 +53,7 @@ async function reverseTopologicalSort(
         dependencyModules = await Promise.all(plugin.dependencies());
       } catch (error) {
         ensureError(error);
-        await detectPluginNpmDependencyProblems(projectRoot, plugin);
+        await detectPluginNpmDependencyProblems(projectRoot, plugin, error);
 
         throw new HardhatError(
           HardhatError.ERRORS.CORE.PLUGINS.PLUGIN_DEPENDENCY_FAILED_LOAD,
@@ -114,7 +114,7 @@ async function reverseTopologicalSort(
           pluginModule = await conditionalDependency.plugin();
         } catch (error) {
           ensureError(error);
-          await detectPluginNpmDependencyProblems(projectRoot, plugin);
+          await detectPluginNpmDependencyProblems(projectRoot, plugin, error);
 
           throw new HardhatError(
             HardhatError.ERRORS.CORE.PLUGINS.PLUGIN_DEPENDENCY_FAILED_LOAD,
