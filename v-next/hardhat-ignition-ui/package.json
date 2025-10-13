@@ -23,6 +23,12 @@
     "clean": "rimraf dist",
     "prepack": "pnpm build && vite build"
   },
+  "files": [
+    "dist/",
+    "src/",
+    "CHANGELOG.md",
+    "README.md"
+  ],
   "devDependencies": {
     "@fontsource/roboto": "^5.0.8",
     "@nomicfoundation/ignition-core": "workspace:^3.0.3",

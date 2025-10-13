@@ -67,24 +67,34 @@ const testWithHardhat: NewTaskActionFunction<TestActionArguments> = async (
     return;
   }
 
+  const unhandledRejectionHookPath = "./unhandled-rejection-mocha-hook.js";
+
   if (hre.config.test.mocha.parallel === true) {
     const imports = [];
 
     const tsx = new URL(import.meta.resolve("tsx/esm"));
+    const unhandledRejectionHook = new URL(
+      import.meta.resolve(unhandledRejectionHookPath),
+    );
     imports.push(tsx.href);
+
+    hre.config.test.mocha.require = hre.config.test.mocha.require ?? [];
+    hre.config.test.mocha.require.push(unhandledRejectionHook.href);
 
     if (hre.globalOptions.coverage === true) {
       const coverage = new URL(
         import.meta.resolve("@nomicfoundation/hardhat-mocha/coverage"),
       );
 
-      hre.config.test.mocha.require = hre.config.test.mocha.require ?? [];
       hre.config.test.mocha.require.push(coverage.href);
     }
 
     process.env.NODE_OPTIONS = imports
       .map((href) => `--import "${href}"`)
       .join(" ");
+  } else {
+    // Import the handler directly when not running in parallel mode
+    await import(unhandledRejectionHookPath);
   }
 
   const { default: Mocha } = await import("mocha");
