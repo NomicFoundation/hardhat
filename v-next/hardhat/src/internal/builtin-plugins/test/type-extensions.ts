@@ -39,5 +39,7 @@ declare module "../../../types/hooks.js" {
         filePath: string,
       ) => Promise<string | undefined>,
     ) => Promise<string | undefined>;
+
+    onTestRunStart(context: HookContext, id: string): Promise<void>;
   }
 }
