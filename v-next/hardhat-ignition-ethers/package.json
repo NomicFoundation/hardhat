@@ -38,6 +38,12 @@
     "pretest": "pnpm build",
     "pretest:only": "pnpm build"
   },
+  "files": [
+    "dist/src/",
+    "src/",
+    "CHANGELOG.md",
+    "README.md"
+  ],
   "devDependencies": {
     "@istanbuljs/nyc-config-typescript": "1.0.2",
     "hardhat": "workspace:^3.0.0",
