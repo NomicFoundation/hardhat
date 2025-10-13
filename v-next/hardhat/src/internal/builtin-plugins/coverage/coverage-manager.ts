@@ -19,11 +19,12 @@ import {
   writeJsonFile,
   writeUtf8File,
 } from "@nomicfoundation/hardhat-utils/fs";
+import { findClosestPackageRoot } from "@nomicfoundation/hardhat-utils/package";
 import debug from "debug";
 //
 // Report
 //
-import libCoverage from "istanbul-lib-coverage";
+// import libCoverage from "istanbul-lib-coverage";
 import libReport from "istanbul-lib-report";
 import reports from "istanbul-reports";
 
@@ -133,6 +134,11 @@ export class CoverageManagerImplementation implements CoverageManager {
     const outDir = "coverage/html";
     const baseDir = process.cwd();
     const treatUnlisted = false; // treatUnlistedLinesAsUncovered
+
+    const packageRoot = await findClosestPackageRoot(import.meta.url);
+    const { default: libCoverage } = await import(
+      path.join(packageRoot, "assets", "index.js")
+    );
 
     const coverageMap = libCoverage.createCoverageMap({});
 
