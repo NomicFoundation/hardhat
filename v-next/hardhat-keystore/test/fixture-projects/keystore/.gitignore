@@ -4,3 +4,5 @@ keystore-change-password.json
 fake-keystore-hardhat.checksum-path-*
 # This is a temp file created by the config variables tests
 config-variables-keystore.json
+config-variables-dev-keystore.json
+keystore-dev.json
