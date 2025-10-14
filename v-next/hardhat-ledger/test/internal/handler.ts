@@ -148,6 +148,22 @@ describe("LedgerHandler", () => {
     });
   });
 
+  describe("getLedgerAccounts", async () => {
+    it("should return the ledger accounts", async () => {
+      ledgerHandler = new LedgerHandler(
+        ethereumMockedProvider,
+        {
+          accounts: LEDGER_ADDRESSES,
+        },
+        mockedDisplayInfo.fn,
+      );
+
+      const res = ledgerHandler.getLedgerAccounts();
+
+      assert.deepEqual(res, LEDGER_ADDRESSES);
+    });
+  });
+
   describe("init", () => {
     it("should only init once on multiple calls", async () => {
       mockedDisplayInfo.clear();
@@ -261,34 +277,12 @@ describe("LedgerHandler", () => {
       );
 
       let request = createJsonRpcRequest("eth_blockNumber");
-      let res = await ledgerHandler.handle(request, []);
+      let res = await ledgerHandler.handle(request);
       assert.deepEqual(res, request);
 
       request = createJsonRpcRequest("eth_getBlockByNumber", [1n]);
-      res = await ledgerHandler.handle(request, []);
+      res = await ledgerHandler.handle(request);
       assert.deepEqual(res, request);
-    });
-
-    describe("eth_accounts", async () => {
-      it("should return both ledger and non-ledger accounts", async () => {
-        const nonLedgerAccount = "0xa700031e3b38059adae9bc5455bc567d0509ab91";
-
-        ledgerHandler = new LedgerHandler(
-          ethereumMockedProvider,
-          {
-            accounts: LEDGER_ADDRESSES,
-          },
-          mockedDisplayInfo.fn,
-        );
-
-        const request = createJsonRpcRequest("eth_accounts");
-        const res = await ledgerHandler.handle(request, [nonLedgerAccount]);
-
-        assert.ok(res !== null, "res should not be null");
-        assert.ok("result" in res, "res should have the property 'result'");
-
-        assert.deepEqual(res.result, [nonLedgerAccount, ...LEDGER_ADDRESSES]);
-      });
     });
 
     describe("supported (sign) methods", () => {
@@ -334,7 +328,7 @@ describe("LedgerHandler", () => {
         for (const args of requestArgs) {
           const request = createJsonRpcRequest(args.method, args.params);
 
-          const res = await ledgerHandler.handle(request, []);
+          const res = await ledgerHandler.handle(request);
 
           assert.deepEqual(res, request);
         }
@@ -376,7 +370,7 @@ describe("LedgerHandler", () => {
           dataToSign,
         ]);
 
-        const res = await ledgerHandler.handle(request, []);
+        const res = await ledgerHandler.handle(request);
 
         assert.ok(res !== null, "res should not be null");
         assert.ok("result" in res, "res should have the property 'result'");
@@ -420,7 +414,7 @@ describe("LedgerHandler", () => {
           account.address,
         ]);
 
-        const res = await ledgerHandler.handle(request, []);
+        const res = await ledgerHandler.handle(request);
 
         assert.ok(res !== null, "res should not be null");
         assert.ok("result" in res, "res should have the property 'result'");
@@ -465,7 +459,7 @@ describe("LedgerHandler", () => {
           typedMessage,
         ]);
 
-        const res = await ledgerHandler.handle(request, []);
+        const res = await ledgerHandler.handle(request);
 
         assert.ok(res !== null, "res should not be null");
         assert.ok("result" in res, "res should have the property 'result'");
@@ -515,7 +509,7 @@ describe("LedgerHandler", () => {
           typedMessage,
         ]);
 
-        const res = await ledgerHandler.handle(request, []);
+        const res = await ledgerHandler.handle(request);
 
         assert.ok(res !== null, "res should not be null");
         assert.ok("result" in res, "res should have the property 'result'");
@@ -580,7 +574,7 @@ describe("LedgerHandler", () => {
           ]);
 
           await assertRejectsWithHardhatError(
-            ledgerHandler.handle(request, []),
+            ledgerHandler.handle(request),
             HardhatError.ERRORS.HARDHAT_LEDGER.GENERAL
               .EIP_7702_TX_CURRENTLY_NOT_SUPPORTED,
             {},
@@ -651,7 +645,7 @@ describe("LedgerHandler", () => {
             },
           ]);
 
-          const modifiedRequest = await ledgerHandler.handle(request, []);
+          const modifiedRequest = await ledgerHandler.handle(request);
 
           assert.ok(modifiedRequest !== null, "res should not be null");
           assert.ok(
@@ -751,7 +745,7 @@ describe("LedgerHandler", () => {
             },
           ]);
 
-          const modifiedRequest = await ledgerHandler.handle(request, []);
+          const modifiedRequest = await ledgerHandler.handle(request);
 
           assert.ok(modifiedRequest !== null, "res should not be null");
           assert.ok(
@@ -850,7 +844,7 @@ describe("LedgerHandler", () => {
             },
           ]);
 
-          const modifiedRequest = await ledgerHandler.handle(request, []);
+          const modifiedRequest = await ledgerHandler.handle(request);
 
           assert.ok(modifiedRequest !== null, "res should not be null");
           assert.ok(
@@ -922,10 +916,10 @@ describe("LedgerHandler", () => {
         const c = calls.get("getAddress");
         assertHardhatInvariant(c !== undefined, "c should be defined");
 
-        await ledgerHandler.handle(request, []);
-        await ledgerHandler.handle(request, []);
-        await ledgerHandler.handle(request, []);
-        await ledgerHandler.handle(request, []);
+        await ledgerHandler.handle(request);
+        await ledgerHandler.handle(request);
+        await ledgerHandler.handle(request);
+        await ledgerHandler.handle(request);
 
         assert.equal(c.args[0], "m/44'/60'/0'/0/0");
         assert.equal(c.args[1], "m/44'/60'/1'/0/0");
@@ -933,8 +927,8 @@ describe("LedgerHandler", () => {
       });
 
       it("should cache the path per address on the paths property", async () => {
-        await ledgerHandler.handle(request, []);
-        await ledgerHandler.handle(request, []);
+        await ledgerHandler.handle(request);
+        await ledgerHandler.handle(request);
 
         assert.deepEqual(ledgerHandler.paths, {
           [LEDGER_ADDRESSES[1]]: derPath,
@@ -942,7 +936,7 @@ describe("LedgerHandler", () => {
       });
 
       it("should write the cache with the new paths", async () => {
-        await ledgerHandler.handle(request, []);
+        await ledgerHandler.handle(request);
 
         const file = await readJsonFile(tmpCachePath);
 
@@ -954,7 +948,7 @@ describe("LedgerHandler", () => {
       it("should not break if caching fails", async () => {
         let hasThrown = false;
         try {
-          await ledgerHandler.handle(request, []);
+          await ledgerHandler.handle(request);
         } catch (_error) {
           hasThrown = true;
         }
@@ -987,7 +981,7 @@ describe("LedgerHandler", () => {
         );
 
         await assertRejectsWithHardhatError(
-          () => ledgerHandler.handle(request, []),
+          () => ledgerHandler.handle(request),
           HardhatError.ERRORS.HARDHAT_LEDGER.GENERAL.ERROR_WHILE_DERIVING_PATH,
           {
             path: "m/44'/60'/0'/0/0",
@@ -1020,7 +1014,7 @@ describe("LedgerHandler", () => {
         );
 
         await assertRejectsWithHardhatError(
-          () => ledgerHandler.handle(request, []),
+          () => ledgerHandler.handle(request),
           HardhatError.ERRORS.HARDHAT_LEDGER.GENERAL
             .CANNOT_FIND_VALID_DERIVATION_PATH,
           {
@@ -1067,7 +1061,7 @@ describe("LedgerHandler", () => {
           },
         );
 
-        await ledgerHandler.handle(request, []);
+        await ledgerHandler.handle(request);
 
         const c = calls.get("getAddress");
         assertHardhatInvariant(c !== undefined, "c should be defined");

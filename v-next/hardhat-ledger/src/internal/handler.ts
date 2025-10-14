@@ -94,19 +94,14 @@ export class LedgerHandler {
     });
   }
 
+  public getLedgerAccounts(): string[] {
+    return [...this.options.accounts];
+  }
+
   public async handle(
     jsonRpcRequest: JsonRpcRequest,
-    otherAccounts: string[],
   ): Promise<JsonRpcRequest | JsonRpcResponse> {
     const params = getRequestParams(jsonRpcRequest);
-
-    if (jsonRpcRequest.method === "eth_accounts") {
-      return {
-        jsonrpc: "2.0",
-        id: jsonRpcRequest.id,
-        result: [...otherAccounts, ...this.options.accounts],
-      };
-    }
 
     if (this.#methodRequiresSignature(jsonRpcRequest.method)) {
       let result;

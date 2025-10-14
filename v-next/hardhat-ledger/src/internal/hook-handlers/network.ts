@@ -64,7 +64,6 @@ export default async (): Promise<Partial<NetworkHooks>> => {
         return handlerPerConnection;
       });
 
-      let otherAccounts: string[] = [];
       if (jsonRpcRequest.method === "eth_accounts") {
         const accountsResponse = await next(
           context,
@@ -82,13 +81,15 @@ export default async (): Promise<Partial<NetworkHooks>> => {
           "accountsResponse.result should be an array and every element should be a string",
         );
 
-        otherAccounts = accountsResponse.result;
+        accountsResponse.result = [
+          ...accountsResponse.result,
+          ...ledgerHandler.getLedgerAccounts(),
+        ];
+
+        return accountsResponse;
       }
 
-      const newRequestOrResponse = await ledgerHandler.handle(
-        jsonRpcRequest,
-        otherAccounts,
-      );
+      const newRequestOrResponse = await ledgerHandler.handle(jsonRpcRequest);
 
       if (isJsonRpcResponse(newRequestOrResponse)) {
         return newRequestOrResponse;
