@@ -405,7 +405,7 @@ async function attemptVerification(
 }> {
   const guid = await verificationProvider.verify(
     address,
-    JSON.stringify(contractInformation.compilerInput),
+    contractInformation.compilerInput,
     contractInformation.inputFqn,
     `v${contractInformation.solcLongVersion}`,
     encodedConstructorArgs,
