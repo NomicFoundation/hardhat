@@ -22,6 +22,22 @@ describe("blockscout", () => {
     const contract = "contracts/Test.sol:Test";
     const sourceCode =
       "// SPDX-License-Identifier: MIT\npragma solidity ^0.8.24;\n\ncontract Test {}";
+    const compilerInput = {
+      language: "Solidity",
+      sources: {
+        "contracts/Test.sol": {
+          content: sourceCode,
+        },
+      },
+      settings: {
+        optimizer: { enabled: false },
+        outputSelection: {
+          "*": {
+            "*": ["*"],
+          },
+        },
+      },
+    };
     const compilerVersion = "0.8.24+commit.e11b9ed9";
     const constructorArguments = "";
     const guid = "a7lpxkm9kpcpicx7daftmjifrfhiuhf5vqqnawhkfhzfrcpnxj";
@@ -268,7 +284,7 @@ describe("blockscout", () => {
           },
           body: querystring.stringify({
             contractaddress: address,
-            sourceCode,
+            sourceCode: JSON.stringify(compilerInput),
             codeformat: "solidity-standard-json-input",
             contractname: contract,
             compilerversion: compilerVersion,
@@ -293,7 +309,7 @@ describe("blockscout", () => {
         try {
           response = await blockscout.verify(
             address,
-            sourceCode,
+            compilerInput,
             contract,
             compilerVersion,
             constructorArguments,
@@ -317,7 +333,7 @@ describe("blockscout", () => {
         await assertRejectsWithHardhatError(
           blockscout.verify(
             address,
-            sourceCode,
+            compilerInput,
             contract,
             compilerVersion,
             constructorArguments,
@@ -336,7 +352,7 @@ describe("blockscout", () => {
         await assertRejectsWithHardhatError(
           blockscout.verify(
             address,
-            sourceCode,
+            compilerInput,
             contract,
             compilerVersion,
             constructorArguments,
@@ -356,7 +372,7 @@ describe("blockscout", () => {
         await assertRejectsWithHardhatError(
           blockscout.verify(
             address,
-            sourceCode,
+            compilerInput,
             contract,
             compilerVersion,
             constructorArguments,
@@ -381,7 +397,7 @@ describe("blockscout", () => {
         await assertRejectsWithHardhatError(
           blockscout.verify(
             address,
-            sourceCode,
+            compilerInput,
             contract,
             compilerVersion,
             constructorArguments,
@@ -410,7 +426,7 @@ describe("blockscout", () => {
         await assertRejectsWithHardhatError(
           blockscout.verify(
             address,
-            sourceCode,
+            compilerInput,
             contract,
             compilerVersion,
             constructorArguments,
@@ -437,7 +453,7 @@ describe("blockscout", () => {
         await assertRejectsWithHardhatError(
           blockscout.verify(
             address,
-            sourceCode,
+            compilerInput,
             contract,
             compilerVersion,
             constructorArguments,
@@ -463,7 +479,7 @@ describe("blockscout", () => {
         await assertRejectsWithHardhatError(
           blockscout.verify(
             address,
-            sourceCode,
+            compilerInput,
             contract,
             compilerVersion,
             constructorArguments,
@@ -490,7 +506,7 @@ describe("blockscout", () => {
         await assertRejectsWithHardhatError(
           blockscout.verify(
             address,
-            sourceCode,
+            compilerInput,
             contract,
             compilerVersion,
             constructorArguments,
