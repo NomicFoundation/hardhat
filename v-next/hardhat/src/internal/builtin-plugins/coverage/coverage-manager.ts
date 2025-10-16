@@ -25,7 +25,7 @@ import debug from "debug";
 // Report
 //
 // import libCoverage from "istanbul-lib-coverage";
-import libReport from "istanbul-lib-report";
+// import libReport from "istanbul-lib-report";
 import reports from "istanbul-reports";
 
 const log = debug("hardhat:core:coverage:coverage-manager");
@@ -136,7 +136,10 @@ export class CoverageManagerImplementation implements CoverageManager {
     const treatUnlisted = false; // treatUnlistedLinesAsUncovered
 
     const packageRoot = await findClosestPackageRoot(import.meta.url);
-    const { default: libCoverage } = await import(
+    const { libCoverage } = await import(
+      path.join(packageRoot, "assets", "index.js")
+    );
+    const { libReport } = await import(
       path.join(packageRoot, "assets", "index.js")
     );
 
@@ -195,8 +198,11 @@ export class CoverageManagerImplementation implements CoverageManager {
     }
 
     fs.mkdirSync(outDir, { recursive: true });
+
     const context = libReport.createContext({ dir: outDir, coverageMap });
+
     reports.create(reporter).execute(context);
+
     console.log(`HTML report written to ${path.resolve(outDir)}`);
   }
 

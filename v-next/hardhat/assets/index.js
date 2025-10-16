@@ -1,2 +1,5 @@
 import libCoverage from "./lib-coverage/index.cjs";
-export default libCoverage;
+export { libCoverage };
+
+import libReport from "./lib-report/index.cjs";
+export { libReport };
