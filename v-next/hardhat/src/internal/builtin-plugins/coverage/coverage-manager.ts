@@ -21,12 +21,6 @@ import {
 } from "@nomicfoundation/hardhat-utils/fs";
 import { findClosestPackageRoot } from "@nomicfoundation/hardhat-utils/package";
 import debug from "debug";
-//
-// Report
-//
-// import libCoverage from "istanbul-lib-coverage";
-// import libReport from "istanbul-lib-report";
-// import reports from "istanbul-reports";
 
 const log = debug("hardhat:core:coverage:coverage-manager");
 
@@ -129,7 +123,7 @@ export class CoverageManagerImplementation implements CoverageManager {
   }
 
   async #lcovToHtml(report: Report): Promise<void> {
-    const reporter: "html" | "html-spa" = "html";
+    const reporter: "html" = "html";
 
     const outDir = "coverage/html";
     const baseDir = process.cwd();
