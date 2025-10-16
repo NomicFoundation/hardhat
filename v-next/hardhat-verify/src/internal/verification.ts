@@ -28,6 +28,7 @@ import {
   filterVersionsByRange,
   resolveSupportedSolcVersions,
 } from "./solc-versions.js";
+import { Sourcify, SOURCIFY_PROVIDER_NAME } from "./sourcify.js";
 
 export interface VerifyContractArgs {
   address: string;
@@ -295,7 +296,8 @@ ${libraryInformation.undetectableLibraries.map((x) => `  * ${x}`).join("\n")}`
 export function validateVerificationProviderName(provider: unknown): void {
   if (
     provider !== ETHERSCAN_PROVIDER_NAME &&
-    provider !== BLOCKSCOUT_PROVIDER_NAME
+    provider !== BLOCKSCOUT_PROVIDER_NAME &&
+    provider !== SOURCIFY_PROVIDER_NAME
   ) {
     throw new HardhatError(
       HardhatError.ERRORS.HARDHAT_VERIFY.VALIDATION.INVALID_VERIFICATION_PROVIDER,
@@ -304,6 +306,7 @@ export function validateVerificationProviderName(provider: unknown): void {
         supportedVerificationProviders: [
           ETHERSCAN_PROVIDER_NAME,
           BLOCKSCOUT_PROVIDER_NAME,
+          SOURCIFY_PROVIDER_NAME,
         ].join(", "),
       },
     );
@@ -350,6 +353,15 @@ async function createVerificationProviderInstance({
   dispatcher?: Dispatcher;
 }): Promise<VerificationProvider> {
   const chainId = await getChainId(provider);
+  if (verificationProviderName === "sourcify") {
+    return new Sourcify({
+      chainId,
+      url: verificationProvidersConfig.sourcify.repoUrl,
+      apiUrl: verificationProvidersConfig.sourcify.apiUrl,
+      dispatcher,
+    });
+  }
+
   const chainDescriptor = await getChainDescriptor(
     chainId,
     chainDescriptors,

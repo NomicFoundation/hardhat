@@ -6,6 +6,8 @@ import type {
   EtherscanUserConfig,
   BlockscoutUserConfig,
   BlockscoutConfig,
+  SourcifyUserConfig,
+  SourcifyConfig,
 } from "hardhat/types/config";
 import type {
   ConfigHooks,
@@ -54,6 +56,13 @@ const userConfigType = z.object({
         ],
         "Expected an object with an 'apiKey' property and an optional 'enabled' boolean property",
       ).optional(),
+      sourcify: z
+        .object({
+          repoUrl: z.string().optional(),
+          apiUrl: z.string().optional(),
+          enabled: z.boolean().optional(),
+        })
+        .optional(),
     })
     .optional(),
 });
@@ -83,6 +92,7 @@ export async function resolveUserConfig(
         userConfig.verify?.etherscan,
         resolveConfigurationVariable,
       ),
+      sourcify: resolveSourcifyConfig(userConfig.verify?.sourcify),
     },
   };
 }
@@ -107,5 +117,17 @@ function resolveEtherscanConfig(
   return {
     apiKey: resolveConfigurationVariable(etherscanConfig.apiKey ?? ""),
     enabled: etherscanConfig.enabled ?? true,
+  };
+}
+
+function resolveSourcifyConfig(
+  sourcifyConfig: SourcifyUserConfig | undefined = {
+    enabled: true,
+  },
+): SourcifyConfig {
+  return {
+    repoUrl: sourcifyConfig.repoUrl,
+    apiUrl: sourcifyConfig.apiUrl,
+    enabled: sourcifyConfig.enabled ?? true,
   };
 }
