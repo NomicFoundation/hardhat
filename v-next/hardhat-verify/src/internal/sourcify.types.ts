@@ -20,7 +20,7 @@ export interface SourcifyErrorResponse {
 export type SourcifyLookupResponse = SourcifyContract;
 
 // Response type for POST /v2/verify/{chainId}/{address}
-export interface SourcifyVerifyResponse {
+export interface SourcifyVerificationResponse {
   verificationId: string;
 }
 
