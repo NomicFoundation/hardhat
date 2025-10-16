@@ -188,8 +188,16 @@ subtask(TASK_VERIFY_SOURCIFY_ATTEMPT_VERIFICATION)
       verificationInterface,
       contractInformation,
     }: AttemptVerificationArgs): Promise<VerificationResponse> => {
-      const { sourceName, contractName, contractOutput, compilerInput } =
+      const { contractName, contractOutput, compilerInput } =
         contractInformation;
+
+      const parsedMetadata = JSON.parse((contractOutput as any).metadata);
+      const sourcesToContent = Object.fromEntries(
+        Object.keys(parsedMetadata.sources).map((name) => [
+          name,
+          compilerInput.sources[name].content,
+        ])
+      );
 
       const librarySourcesToContent = Object.keys(
         contractInformation.libraries
@@ -201,7 +209,7 @@ subtask(TASK_VERIFY_SOURCIFY_ATTEMPT_VERIFICATION)
 
       const response = await verificationInterface.verify(address, {
         "metadata.json": (contractOutput as any).metadata,
-        [sourceName]: compilerInput.sources[sourceName].content,
+        ...sourcesToContent,
         ...librarySourcesToContent,
       });
 
