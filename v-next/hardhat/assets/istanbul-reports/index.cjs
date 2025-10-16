@@ -3,7 +3,7 @@
  Copyright 2012-2015, Yahoo Inc.
  Copyrights licensed under the New BSD License. See the accompanying LICENSE file for terms.
  */
-const path = require("path");
+const path = require("node:path");
 
 module.exports = {
   create(name, cfg) {

@@ -4,7 +4,7 @@
  */
 "use strict";
 
-const path = require("path");
+const path = require("node:path");
 let parsePath = path.parse;
 let SEP = path.sep;
 const origParser = parsePath;

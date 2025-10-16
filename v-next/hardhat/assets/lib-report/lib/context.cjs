@@ -3,7 +3,7 @@
  Copyright 2012-2015, Yahoo Inc.
  Copyrights licensed under the New BSD License. See the accompanying LICENSE file for terms.
  */
-const fs = require("fs");
+const fs = require("node:fs");
 const FileWriter = require("./file-writer.cjs");
 const XMLWriter = require("./xml-writer.cjs");
 const tree = require("./tree.cjs");

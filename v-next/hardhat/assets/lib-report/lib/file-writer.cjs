@@ -3,8 +3,8 @@
  Copyright 2012-2015, Yahoo Inc.
  Copyrights licensed under the New BSD License. See the accompanying LICENSE file for terms.
  */
-const path = require("path");
-const fs = require("fs");
+const path = require("node:path");
+const fs = require("node:fs");
 const mkdirp = require("make-dir");
 const supportsColor = require("supports-color");
 

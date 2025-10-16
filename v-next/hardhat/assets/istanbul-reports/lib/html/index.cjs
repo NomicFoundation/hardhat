@@ -3,8 +3,8 @@
  Copyright 2012-2015, Yahoo Inc.
  Copyrights licensed under the New BSD License. See the accompanying LICENSE file for terms.
  */
-const fs = require("fs");
-const path = require("path");
+const fs = require("node:fs");
+const path = require("node:path");
 const html = require("html-escaper");
 const { ReportBase } = require("istanbul-lib-report");
 const annotator = require("./annotator.cjs");
