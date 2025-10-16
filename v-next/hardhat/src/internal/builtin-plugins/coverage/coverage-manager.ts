@@ -26,7 +26,7 @@ import debug from "debug";
 //
 // import libCoverage from "istanbul-lib-coverage";
 // import libReport from "istanbul-lib-report";
-import reports from "istanbul-reports";
+// import reports from "istanbul-reports";
 
 const log = debug("hardhat:core:coverage:coverage-manager");
 
@@ -129,7 +129,7 @@ export class CoverageManagerImplementation implements CoverageManager {
   }
 
   async #lcovToHtml(report: Report): Promise<void> {
-    const reporter: "html" | "html-spa" = "html-spa";
+    const reporter: "html" | "html-spa" = "html";
 
     const outDir = "coverage/html";
     const baseDir = process.cwd();
@@ -140,6 +140,9 @@ export class CoverageManagerImplementation implements CoverageManager {
       path.join(packageRoot, "assets", "index.js")
     );
     const { libReport } = await import(
+      path.join(packageRoot, "assets", "index.js")
+    );
+    const { reports } = await import(
       path.join(packageRoot, "assets", "index.js")
     );
 
