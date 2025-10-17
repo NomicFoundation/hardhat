@@ -6,7 +6,6 @@
 const path = require("node:path");
 const fs = require("node:fs");
 const mkdirp = require("make-dir");
-const supportsColor = require("supports-color");
 
 /**
  * Base class for writing content
@@ -88,10 +87,6 @@ class ConsoleWriter extends ContentWriter {
       high: "32;1",
     };
 
-    /* istanbul ignore next: different modes for CI and local */
-    if (supportsColor.stdout && colors[clazz]) {
-      return `\u001b[${colors[clazz]}m${str}\u001b[0m`;
-    }
     return str;
   }
 }
