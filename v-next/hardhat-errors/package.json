@@ -1,6 +1,6 @@
 {
   "name": "@nomicfoundation/hardhat-errors",
-  "version": "3.0.2",
+  "version": "3.0.3",
   "description": "The different errors that Hardhat can throw",
   "homepage": "https://github.com/nomicfoundation/hardhat/tree/v-next/v-next/hardhat-errors",
   "repository": {
