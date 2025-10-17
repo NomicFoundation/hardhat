@@ -145,14 +145,14 @@ const runSolidityTests: NewTaskActionFunction<TestActionArguments> = async (
   }
 
   const config: SolidityTestRunnerConfigArgs =
-    await solidityTestConfigToSolidityTestRunnerConfigArgs(
+    await solidityTestConfigToSolidityTestRunnerConfigArgs({
       chainType,
-      hre.config.paths.root,
-      solidityTestConfig,
+      projectRoot: hre.config.paths.root,
+      config: solidityTestConfig,
       verbosity,
-      observabilityConfig,
-      grep,
-    );
+      observability: observabilityConfig,
+      testPattern: grep,
+    });
   const tracingConfig: TracingConfigWithBuffers = {
     buildInfos,
     ignoreContracts: false,

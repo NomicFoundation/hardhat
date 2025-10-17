@@ -24,6 +24,15 @@ import { OPTIMISM_CHAIN_TYPE } from "../../constants.js";
 
 import { type Colorizer, formatArtifactId } from "./formatters.js";
 
+interface SolidityTestConfigParams {
+  chainType: ChainType;
+  projectRoot: string;
+  config: SolidityTestConfig;
+  verbosity: number;
+  observability?: ObservabilityConfig;
+  testPattern?: string;
+}
+
 function hexStringToBuffer(hexString: string): Buffer {
   return Buffer.from(hexStringToBytes(hexString));
 }
@@ -34,14 +43,14 @@ export function solidityTestConfigToRunOptions(
   return config;
 }
 
-export async function solidityTestConfigToSolidityTestRunnerConfigArgs(
-  chainType: ChainType,
-  projectRoot: string,
-  config: SolidityTestConfig,
-  verbosity: number,
-  observability?: ObservabilityConfig,
-  testPattern?: string,
-): Promise<SolidityTestRunnerConfigArgs> {
+export async function solidityTestConfigToSolidityTestRunnerConfigArgs({
+  chainType,
+  projectRoot,
+  config,
+  verbosity,
+  observability,
+  testPattern,
+}: SolidityTestConfigParams): Promise<SolidityTestRunnerConfigArgs> {
   const fsPermissions: PathPermission[] | undefined = [
     config.fsPermissions?.readWriteFile?.map((p) => ({
       access: FsAccessPermission.ReadWriteFile,
