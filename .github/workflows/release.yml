@@ -1,4 +1,4 @@
-name: Release
+name: Create release PR / Publish packages
 
 on:
   workflow_dispatch:
@@ -11,13 +11,14 @@ defaults:
     shell: bash
 
 jobs:
-  release:
-    name: Release
+  pr:
+    name: Conditionally create a release PR
     runs-on: ubuntu-latest
+    outputs:
+      hasChangesets: ${{ steps.store-has-changesets.outputs.hasChangesets }}
     permissions:
-      contents: write # This allows us to push to the repository and create GitHub releases
       pull-requests: write # This allows us to create pull requests
-      id-token: write # Provenance generation in GitHub Actions requires "write" access to the "id-token" permission
+      contents: write
     steps:
       - name: Checkout Repo
         uses: actions/checkout@v5
@@ -43,26 +44,155 @@ jobs:
           title: Version Packages (v3)
           version: pnpm version-for-release
 
+      - name: Store hasChangesets for subsequent jobs
+        id: store-has-changesets
+        run: |
+          echo "hasChangesets=${{steps.pr.outputs.hasChangesets}}"
+          echo "hasChangesets=${{steps.pr.outputs.hasChangesets}}" >> $GITHUB_OUTPUT
+
+  pack:
+    name: Generate tarballs for publishing
+    needs: pr
+    if: needs.pr.outputs.hasChangesets == 'false'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@v5
+
+      - name: Set up the environment
+        uses: ./.github/actions/setup-env
+
+      - name: Install Dependencies
+        run: pnpm install --frozen-lockfile --prefer-offline
+
       - name: Build All Packages
-        if: steps.pr.outputs.hasChangesets == 'false'
         run: pnpm run --recursive -no-bail --filter './v-next/**' --if-present build
 
-      - name: Publish All Packages (dry-run)
-        if: steps.pr.outputs.hasChangesets == 'false'
-        run: pnpm publish --filter "./v-next/**" -r --no-git-checks --access public --dry-run
+      - name: Publish All Packages (dry-run) and save list of packages that need publishing
+        run: pnpm publish --filter "./packages/**" -r --no-git-checks --access public --dry-run --report-summary
 
-      - name: Publish All Packages
-        id: publish
-        if: steps.pr.outputs.hasChangesets == 'false'
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NODE_AUTH_TOKEN }}
-          NPM_CONFIG_PROVENANCE: true
-        run: pnpm publish --filter "./v-next/**" -r --no-git-checks --access public
+      - name: Store the package list to be published
+        uses: actions/upload-artifact@v4
+        with:
+          name: pnpm-publish-summary.json
+          path: pnpm-publish-summary.json
+          overwrite: true
+          if-no-files-found: error
 
-      - name: Create Git tags for packages
-        if: steps.pr.outputs.hasChangesets == 'false'
+      - name: Generate tarballs for packages that need publishing
+        id: pack
+        run: |
+          jq -r '.publishedPackages[].name' pnpm-publish-summary.json | while IFS= read -r name; do
+            pnpm pack -r --filter "$name" --pack-destination tarballs
+          done
+          
+      - name: Upload packed tarballs
+        uses: actions/upload-artifact@v4
+        with:
+          name: tarballs
+          path: tarballs
+          overwrite: true
+          if-no-files-found: error
+      
+  review:
+    name: Review diffs
+    needs: pack
+
+    runs-on: ubuntu-latest
+    permissions:
+      actions: read # To download the tarballs to review
+    steps:
+      - name: Download pnpm list json
+        uses: actions/download-artifact@v5
+        with:
+          name: pnpm-publish-summary.json
+          path: .
+
+      - name: Download tarballs
+        uses: actions/download-artifact@v5
+        with:
+          name: tarballs
+          path: tarballs
+
+      - name: Show diff between published and proposed packages
+        run: |
+          jq -r '.publishedPackages[] | "\(.name)|\(.version)"' pnpm-publish-summary.json |
+          while IFS='|' read -r name version; do
+            # download latest
+            TARBALL_URL=$(npm view "$name@latest" dist.tarball)
+            curl -s -L "$TARBALL_URL" -o "tarballs/$name-latest.tgz"
+
+            # unpack both latest and proposed version
+            mkdir -p tarballs/$name/proposed
+            mkdir -p tarballs/$name/latest
+            tar -xzf tarballs/$name-latest.tgz -C tarballs/$name/latest
+            tar -xzf tarballs/$name-$version.tgz -C tarballs/$name/proposed
+
+            # show diffs for review
+            echo "<< Showing files diff for $name >>"
+            git diff --color=always --no-index --name-status tarballs/$name/latest tarballs/$name/proposed || true
+            echo "<< Showing package.json diff for $name >>"
+            git diff --color=always --no-index tarballs/$name/latest/package/package.json tarballs/$name/proposed/package/package.json || true
+          done
+
+  publish:
+    name: Publish packages
+    needs: review
+    runs-on: ubuntu-latest
+    environment: npm-publish
+    permissions:
+      actions: read # To download the tarball to publish
+      id-token: write # Needed for npm Trusted Publishing (OIDC)
+    steps:
+      - name: Download tarballs
+        uses: actions/download-artifact@v5
+        with:
+          name: tarballs
+          path: tarballs
+
+      - name: Setup node to be able to update npm
+        uses: actions/setup-node@v5
+        with:
+          node-version: lts/*
+
+      - name: Update npm to make sure it supports Trusted Publishing
+        run: npm install -g npm@latest
+
+      - name: Publish
+        run: |
+          cd tarballs
+          for filename in *.tgz; do
+            echo "Publishing $filename"
+            npm publish $filename --tag latest
+          done
+
+  tag:
+    name: Push tags
+    needs: publish
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+
+      - name: Set up the environment
+        uses: ./.github/actions/setup-env
+
+      - name: Install Dependencies
+        run: pnpm install --frozen-lockfile --prefer-offline
+
+      # This step is needed otherwise tag creation fails
+      - run: |
+          git config user.name  "github-actions"
+          git config user.email "github-actions@users.noreply.github.com"
+
+      - name: Create tags for packages
         run: pnpm changeset tag
 
-      - name: Push Git tags
-        if: steps.pr.outputs.hasChangesets == 'false'
+      - name: Push tags
         run: git push --follow-tags
