@@ -72,7 +72,7 @@ importers:
         specifier: workspace:^3.0.0
         version: link:../hardhat-keystore
       '@nomicfoundation/hardhat-ledger':
-        specifier: workspace:^3.0.0
+        specifier: workspace:^1.2.0
         version: link:../hardhat-ledger
       '@nomicfoundation/hardhat-mocha':
         specifier: workspace:^3.0.0
