@@ -2,6 +2,8 @@ import type { RunOptions } from "./runner.js";
 import type { TestEvent } from "./types.js";
 import type { NewTaskActionFunction } from "../../../types/tasks.js";
 import type {
+  Artifact as EdrArtifact,
+  BuildInfoAndOutput,
   ObservabilityConfig,
   SolidityTestRunnerConfigArgs,
   TracingConfigWithBuffers,
@@ -66,7 +68,6 @@ const runSolidityTests: NewTaskActionFunction<TestActionArguments> = async (
   }
 
   // Run the compile task for test files
-
   const { testRootPaths }: { testRootPaths: string[] } = await hre.tasks
     .getTask("compile")
     .run({
@@ -76,14 +77,18 @@ const runSolidityTests: NewTaskActionFunction<TestActionArguments> = async (
       noContracts: noCompile,
     });
 
-  const artifactsDirectory = await hre.solidity.getArtifactsDirectory("tests");
-
-  const artifactsManager = new ArtifactManagerImplementation(
-    artifactsDirectory,
-  );
-
-  const buildInfos = await getBuildInfos(artifactsManager);
-  const edrArtifacts = await getEdrArtifacts(artifactsManager);
+  // EDR needs all artifacts (contracts + tests)
+  const edrArtifacts: Array<{
+    edrAtifact: EdrArtifact;
+    userSourceName: string;
+  }> = [];
+  const buildInfos: BuildInfoAndOutput[] = [];
+  for (const scope of ["contracts", "tests"] as const) {
+    const artifactsDir = await hre.solidity.getArtifactsDirectory(scope);
+    const artifactManager = new ArtifactManagerImplementation(artifactsDir);
+    edrArtifacts.push(...(await getEdrArtifacts(artifactManager)));
+    buildInfos.push(...(await getBuildInfos(artifactManager)));
+  }
 
   const sourceNameToUserSourceName = new Map(
     edrArtifacts.map(({ userSourceName, edrAtifact }) => [
