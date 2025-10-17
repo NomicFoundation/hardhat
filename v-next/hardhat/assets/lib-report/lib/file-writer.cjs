@@ -5,7 +5,7 @@
  */
 const path = require("node:path");
 const fs = require("node:fs");
-const mkdirp = require("make-dir");
+const { mkdir } = require("node:fs/promises");
 
 /**
  * Base class for writing content
@@ -152,7 +152,7 @@ class FileWriter {
       throw new Error(`Cannot write to absolute path: ${dest}`);
     }
     dest = path.resolve(this.baseDir, dest);
-    mkdirp.sync(path.dirname(dest));
+    mkdir(path.dirname(dest), { recursive: true });
     let contents;
     if (header) {
       contents = header + fs.readFileSync(source, "utf8");
@@ -176,7 +176,7 @@ class FileWriter {
       throw new Error(`Cannot write to absolute path: ${file}`);
     }
     file = path.resolve(this.baseDir, file);
-    mkdirp.sync(path.dirname(file));
+    mkdir(path.dirname(file), { recursive: true });
     return new FileContentWriter(fs.openSync(file, "w"));
   }
 }
