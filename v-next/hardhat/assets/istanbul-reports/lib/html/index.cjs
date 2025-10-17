@@ -6,7 +6,7 @@
 const fs = require("node:fs");
 const path = require("node:path");
 const html = require("html-escaper");
-const { ReportBase } = require("istanbul-lib-report");
+const ReportBase = require("../../../lib-report/lib/report-base.cjs");
 const annotator = require("./annotator.cjs");
 
 function htmlHead(details) {
