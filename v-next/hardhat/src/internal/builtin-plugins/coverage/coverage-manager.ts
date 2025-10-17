@@ -5,7 +5,7 @@ import type {
   Statement,
   Tag,
 } from "./types.js";
-import type { FileCoverageData } from "istanbul-lib-coverage";
+import type { FileCoverageData } from "../../../../assets/lib-coverage/index.js";
 
 import fs from "node:fs";
 import path from "node:path";
