@@ -1,5 +1,16 @@
 # @nomicfoundation/hardhat-mocha
 
+## 3.0.3
+
+### Patch Changes
+
+- 0fb6d34: Show error message on unawaited async expectations ([#7321](https://github.com/NomicFoundation/hardhat/issues/7321))
+- Updated dependencies [d2c9a7f]
+- Updated dependencies [ec50793]
+- Updated dependencies [a871e3e]
+  - hardhat@3.0.8
+  - @nomicfoundation/hardhat-errors@3.0.3
+
 ## 3.0.2
 
 ### Patch Changes
