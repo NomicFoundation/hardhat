@@ -31,6 +31,7 @@ export enum OpHardforkName {
   FJORD = "fjord",
   GRANITE = "granite",
   HOLOCENE = "holocene",
+  ISTHMUS = "isthmus",
 }
 
 const L1_HARDFORK_ORDER = Object.values(L1HardforkName);
