@@ -1377,6 +1377,42 @@ importers:
         specifier: ~5.8.0
         version: 5.8.3
 
+  v-next/hardhat-vendors:
+    devDependencies:
+      '@nomicfoundation/hardhat-node-test-reporter':
+        specifier: workspace:^3.0.0
+        version: link:../hardhat-node-test-reporter
+      '@types/bn.js':
+        specifier: ^5.1.5
+        version: 5.2.0
+      '@types/debug':
+        specifier: ^4.1.7
+        version: 4.1.12
+      '@types/node':
+        specifier: ^20.14.9
+        version: 20.19.18
+      c8:
+        specifier: ^9.1.0
+        version: 9.1.0
+      eslint:
+        specifier: 9.25.1
+        version: 9.25.1
+      expect-type:
+        specifier: ^1.2.1
+        version: 1.2.2
+      prettier:
+        specifier: 3.2.5
+        version: 3.2.5
+      rimraf:
+        specifier: ^5.0.5
+        version: 5.0.10
+      tsx:
+        specifier: ^4.19.3
+        version: 4.20.6
+      typescript:
+        specifier: ~5.8.0
+        version: 5.8.3
+
   v-next/hardhat-verify:
     dependencies:
       '@ethersproject/abi':
@@ -6736,7 +6772,7 @@ snapshots:
 
   '@types/bn.js@5.2.0':
     dependencies:
-      '@types/node': 20.19.18
+      '@types/node': 22.18.7
 
   '@types/chai-as-promised@8.0.2':
     dependencies:
@@ -6843,7 +6879,7 @@ snapshots:
 
   '@types/through@0.0.33':
     dependencies:
-      '@types/node': 20.19.18
+      '@types/node': 22.18.7
 
   '@types/unist@2.0.11': {}
 
