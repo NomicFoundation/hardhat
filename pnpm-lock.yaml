@@ -152,6 +152,9 @@ importers:
       '@nomicfoundation/hardhat-utils':
         specifier: workspace:^3.0.2
         version: link:../hardhat-utils
+      '@nomicfoundation/hardhat-vendors':
+        specifier: workspace:^3.0.0
+        version: link:../hardhat-vendors
       '@nomicfoundation/hardhat-zod-utils':
         specifier: workspace:^3.0.1
         version: link:../hardhat-zod-utils
