@@ -54,6 +54,10 @@ const testWithHardhat: NewTaskActionFunction<TestActionArguments> = async (
   // Set an environment variable that plugins can use to detect when a process is running tests
   process.env.HH_TEST = "true";
 
+  // Sets the NODE_ENV environment variable to "test" so the code can detect that tests are running
+  // This is done by other JS/TS test frameworks like vitest
+  process.env.NODE_ENV ??= "test";
+
   setGlobalOptionsAsEnvVariables(hre.globalOptions);
 
   if (!noCompile) {
