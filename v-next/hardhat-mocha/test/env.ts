@@ -17,7 +17,7 @@ describe("Hardhat Mocha env variables", () => {
     const nodeEnv = process.env.NODE_ENV;
     const hhTest = process.env.HH_TEST;
     try {
-      process.env.NODE_ENV = undefined;
+      delete process.env.NODE_ENV;
       await hre.tasks.getTask(["test", "mocha"]).run({ noCompile: true });
       assert.equal(process.env.NODE_ENV, "test");
       assert.equal(process.env.HH_TEST, "true");
