@@ -123,6 +123,42 @@ describe("solidity-test/task-action", function () {
   });
 
   describe("running the tests", () => {
+    it("should set the NODE_ENV variable if undefined and HH_TEST always", async () => {
+      hre = await createHardhatRuntimeEnvironment(hardhatConfigAllTests);
+
+      const exitCode = process.exitCode;
+      const nodeEnv = process.env.NODE_ENV;
+      const hhTest = process.env.HH_TEST;
+      try {
+        process.env.NODE_ENV = undefined;
+        await hre.tasks.getTask(["test", "solidity"]).run({ noCompile: true });
+        assert.equal(process.env.NODE_ENV, "test");
+        assert.equal(process.env.HH_TEST, "true");
+      } finally {
+        process.env.HH_TEST = hhTest;
+        process.env.NODE_ENV = nodeEnv;
+        process.exitCode = exitCode;
+      }
+    });
+
+    it("should not set the NODE_ENV variable if defined before", async () => {
+      hre = await createHardhatRuntimeEnvironment(hardhatConfigAllTests);
+
+      const exitCode = process.exitCode;
+      const nodeEnv = process.env.NODE_ENV;
+      const hhTest = process.env.HH_TEST;
+      try {
+        process.env.NODE_ENV = "HELLO";
+        await hre.tasks.getTask(["test", "solidity"]).run({ noCompile: true });
+        assert.equal(process.env.NODE_ENV, "HELLO");
+        assert.equal(process.env.HH_TEST, "true");
+      } finally {
+        process.env.HH_TEST = hhTest;
+        process.env.NODE_ENV = nodeEnv;
+        process.exitCode = exitCode;
+      }
+    });
+
     it("should run all the tests and throw if any of them fail", async () => {
       hre = await createHardhatRuntimeEnvironment(hardhatConfigFailingTests);
 
