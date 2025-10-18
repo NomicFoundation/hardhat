@@ -24,6 +24,7 @@ import type { SolidityBuildSystem } from "../../types/solidity/build-system.js";
 import type { TaskManager } from "../../types/tasks.js";
 import type { UserInterruptionManager } from "../../types/user-interruptions.js";
 import type { CoverageManager } from "../builtin-plugins/coverage/types.js";
+import type { GasAnalyticsManager } from "../builtin-plugins/gas-analytics/types.js";
 
 import { HardhatError } from "@nomicfoundation/hardhat-errors";
 import { findClosestPackageRoot } from "@nomicfoundation/hardhat-utils/package";
@@ -52,9 +53,13 @@ export class HardhatRuntimeEnvironmentImplementation
   public artifacts!: ArtifactManager;
   public solidity!: SolidityBuildSystem;
 
-  // NOTE: This is slight architectural violation, as this is intended for the
-  // internal use only. It is set up by the coverage plugin in the `created` hook.
+  // NOTE: These underscore-prefixed properties are architectural violations intended
+  // for internal use only. They are declared here rather than through module
+  // augmentation to hide them from TypeScript users (keeping them out of the public
+  // HardhatRuntimeEnvironment interface). They are initialized by their respective
+  // plugins in the `created` hook.
   public _coverage!: CoverageManager;
+  public _gasAnalytics!: GasAnalyticsManager;
 
   public static async create(
     inputUserConfig: HardhatUserConfig,
