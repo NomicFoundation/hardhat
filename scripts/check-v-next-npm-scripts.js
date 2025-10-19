@@ -65,8 +65,28 @@ for (const dir of dirs) {
 
   for (const scriptName in templatePackageJson.scripts) {
     if (scriptName === "clean") {
+      if (packageJson.scripts === undefined) {
+        console.error(`Missing scripts section in ${dir.name}`);
+        console.error();
+
+        errorsFound = true;
+
+        continue;
+      }
+
+      const actualCleanScript = packageJson.scripts[scriptName];
+
+      if (actualCleanScript === undefined) {
+        console.error(`Missing script ${scriptName} in ${dir.name}`);
+        console.error();
+
+        errorsFound = true;
+
+        continue;
+      }
+
       if (
-        !packageJson.scripts[scriptName].startsWith(
+        !actualCleanScript.startsWith(
           templatePackageJson.scripts[scriptName],
         )
       ) {
@@ -85,11 +105,11 @@ for (const dir of dirs) {
 
     if (
       templatePackageJson.scripts[scriptName] !==
-      packageJson.scripts[scriptName]
+      (packageJson.scripts?.[scriptName] ?? "")
     ) {
       console.error(`Mismatch in script ${scriptName} in ${dir.name}`);
       console.error(`  Expected: ${templatePackageJson.scripts[scriptName]}`);
-      console.error(`  Actual:   ${packageJson.scripts[scriptName] ?? ""}`);
+      console.error(`  Actual:   ${packageJson.scripts?.[scriptName] ?? ""}`);
       console.error();
 
       errorsFound = true;
