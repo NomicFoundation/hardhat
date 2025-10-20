@@ -80,7 +80,7 @@ export function run(
       // TODO: Add support for predeploys once EDR supports them.
       try {
         const edrContext = await getGlobalEdrContext();
-        await edrContext.runSolidityTests(
+        const solidityTestResult = await edrContext.runSolidityTests(
           hardhatChainTypeToEdrChainType(chainType),
           artifacts,
           testSuiteIds,
@@ -96,10 +96,14 @@ export function run(
             );
             if (remainingSuites.size === 0) {
               clearTimeout(timeout);
-              controller.close();
             }
           },
         );
+        controller.enqueue({
+          type: "run:done",
+          data: solidityTestResult,
+        });
+        controller.close();
       } catch (error) {
         ensureError(error);
 

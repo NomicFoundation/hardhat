@@ -31,6 +31,7 @@ interface SolidityTestConfigParams {
   verbosity: number;
   observability?: ObservabilityConfig;
   testPattern?: string;
+  generateGasReport: boolean;
 }
 
 function hexStringToBuffer(hexString: string): Buffer {
@@ -50,6 +51,7 @@ export async function solidityTestConfigToSolidityTestRunnerConfigArgs({
   verbosity,
   observability,
   testPattern,
+  generateGasReport,
 }: SolidityTestConfigParams): Promise<SolidityTestRunnerConfigArgs> {
   const fsPermissions: PathPermission[] | undefined = [
     config.fsPermissions?.readWriteFile?.map((p) => ({
@@ -141,6 +143,7 @@ export async function solidityTestConfigToSolidityTestRunnerConfigArgs({
     ethRpcUrl,
     forkBlockNumber,
     rpcEndpoints,
+    generateGasReport,
   };
 }
 

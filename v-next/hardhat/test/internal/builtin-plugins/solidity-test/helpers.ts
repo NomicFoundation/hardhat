@@ -29,6 +29,7 @@ describe("solidityTestConfigToSolidityTestRunnerConfigArgs", () => {
         projectRoot: process.cwd(),
         config: {},
         verbosity,
+        generateGasReport: false,
       });
 
       assert.equal(args.includeTraces, IncludeTraces.None);
@@ -42,6 +43,7 @@ describe("solidityTestConfigToSolidityTestRunnerConfigArgs", () => {
         projectRoot: process.cwd(),
         config: {},
         verbosity,
+        generateGasReport: false,
       });
 
       assert.equal(args.includeTraces, IncludeTraces.Failing);
@@ -55,6 +57,7 @@ describe("solidityTestConfigToSolidityTestRunnerConfigArgs", () => {
         projectRoot: process.cwd(),
         config: {},
         verbosity,
+        generateGasReport: false,
       });
 
       assert.equal(args.includeTraces, IncludeTraces.All);
@@ -67,6 +70,7 @@ describe("solidityTestConfigToSolidityTestRunnerConfigArgs", () => {
       projectRoot: process.cwd(),
       config: { blockGasLimit: undefined },
       verbosity: 1,
+      generateGasReport: false,
     });
 
     assert.equal(args.blockGasLimit, undefined);
@@ -79,6 +83,7 @@ describe("solidityTestConfigToSolidityTestRunnerConfigArgs", () => {
       projectRoot: process.cwd(),
       config: { blockGasLimit: false },
       verbosity: 1,
+      generateGasReport: false,
     });
 
     assert.equal(args.blockGasLimit, undefined);
@@ -91,6 +96,7 @@ describe("solidityTestConfigToSolidityTestRunnerConfigArgs", () => {
       projectRoot: process.cwd(),
       config: { blockGasLimit: 1n },
       verbosity: 1,
+      generateGasReport: false,
     });
 
     assert.equal(args.blockGasLimit, 1n);
@@ -103,6 +109,7 @@ describe("solidityTestConfigToSolidityTestRunnerConfigArgs", () => {
       projectRoot: process.cwd(),
       config: { prevRandao: 123n },
       verbosity: 1,
+      generateGasReport: false,
     });
 
     assert.equal(args.blockDifficulty, 123n);
@@ -125,6 +132,7 @@ describe("solidityTestConfigToSolidityTestRunnerConfigArgs", () => {
       projectRoot: process.cwd(),
       config: { forking: resolvedForkingConfig },
       verbosity: 1,
+      generateGasReport: false,
     });
 
     assert.equal(args.ethRpcUrl, "an_url");
