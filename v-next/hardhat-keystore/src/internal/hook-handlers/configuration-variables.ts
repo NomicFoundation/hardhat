@@ -64,6 +64,16 @@ export default async (): Promise<Partial<ConfigurationVariableHooks>> => {
     let keystoreLoader = isDevKeystore ? keystoreLoaderDev : keystoreLoaderProd;
     let masterKey = isDevKeystore ? masterKeyDev : masterKeyProd;
 
+    if (!isDevKeystore && onlyAllowDevKeystore) {
+      // During testing, access is only permitted to the development keystore
+      throw new HardhatError(
+        HardhatError.ERRORS.HARDHAT_KEYSTORE.GENERAL.KEY_NOT_FOUND_DURING_TESTS_WITH_DEV_KEYSTORE,
+        {
+          key: variable.name,
+        },
+      );
+    }
+
     if (keystoreLoader === undefined) {
       keystoreLoader = setupKeystoreLoaderFrom(context, isDevKeystore);
 
@@ -103,15 +113,6 @@ export default async (): Promise<Partial<ConfigurationVariableHooks>> => {
     }
 
     if (!(await keystore.hasKey(variable.name, masterKey))) {
-      if (onlyAllowDevKeystore) {
-        throw new HardhatError(
-          HardhatError.ERRORS.HARDHAT_KEYSTORE.GENERAL.KEY_NOT_FOUND_DURING_TESTS_WITH_DEV_KEYSTORE,
-          {
-            key: variable.name,
-          },
-        );
-      }
-
       return undefined;
     }
 
