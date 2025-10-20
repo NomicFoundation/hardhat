@@ -55,6 +55,7 @@ export function run(
         controller.close();
         return;
       }
+      let runCompleted = false;
 
       const remainingSuites = new Set(
         testSuiteIds.map((id) =>
@@ -96,6 +97,10 @@ export function run(
             );
             if (remainingSuites.size === 0) {
               clearTimeout(timeout);
+
+              if (runCompleted) {
+                controller.close();
+              }
             }
           },
         );
@@ -103,7 +108,11 @@ export function run(
           type: "run:done",
           data: solidityTestResult,
         });
-        controller.close();
+        runCompleted = true;
+
+        if (remainingSuites.size === 0) {
+          controller.close();
+        }
       } catch (error) {
         ensureError(error);
 

@@ -213,6 +213,9 @@ export async function* testReporter(
 
         break;
       }
+      case "run:done": {
+        break;
+      }
     }
   }
 
