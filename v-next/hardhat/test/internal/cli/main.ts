@@ -228,6 +228,22 @@ describe("main", function () {
       });
     });
 
+    describe("task with hidden option", function () {
+      useFixtureProject("cli/parsing/hidden-option");
+
+      it("should throw when passing a hidden option from the CLI", async function () {
+        const command = "npx hardhat test-task --opt <value>";
+
+        await assertRejectsWithHardhatError(
+          () => runMain(command),
+          HardhatError.ERRORS.CORE.ARGUMENTS.NO_HIDDEN_OPTION_CLI,
+          {
+            option: "--opt",
+          },
+        );
+      });
+    });
+
     describe("global help", function () {
       useFixtureProject("cli/parsing/base-project");
 

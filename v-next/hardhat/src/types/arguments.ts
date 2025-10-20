@@ -68,7 +68,15 @@ export interface OptionDefinition<T extends ArgumentType = ArgumentType> {
   description: string;
   type: T;
   defaultValue: ArgumentTypeToValueType<T>;
+  hidden?: boolean;
 }
+
+/**
+ * A global option is essentially identical to a regular OptionDefinition,
+ * except that it cannot be hidden.
+ */
+export type GlobalOptionDefinition<T extends ArgumentType = ArgumentType> =
+  Omit<OptionDefinition<T>, "hidden">;
 
 /**
  * A positional argument is used as `<value>` in the CLI, where its position
