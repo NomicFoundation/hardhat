@@ -189,11 +189,15 @@ Explorer: ${instance.getContractUrl(address)}`);
     libraries,
   );
 
-  const encodedConstructorArgs = await encodeConstructorArgs(
-    contractInformation.compilerOutputContract.abi,
-    constructorArgs,
-    contractInformation.userFqn,
-  );
+  let encodedConstructorArgs: string | undefined;
+  // Don't throw on Sourcify if no constructor args are provided
+  if (verificationProviderName !== SOURCIFY_PROVIDER_NAME) {
+    encodedConstructorArgs = await encodeConstructorArgs(
+      contractInformation.compilerOutputContract.abi,
+      constructorArgs,
+      contractInformation.userFqn,
+    );
+  }
 
   const minimalCompilerInput = await getCompilerInput(
     solidity,
@@ -402,7 +406,7 @@ async function attemptVerification(
   }: {
     verificationProvider: VerificationProvider;
     address: string;
-    encodedConstructorArgs: string;
+    encodedConstructorArgs?: string;
     contractInformation: ContractInformation;
   },
   consoleLog: (text: string) => void = console.log,
