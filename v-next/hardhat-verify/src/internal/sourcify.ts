@@ -79,7 +79,7 @@ export class Sourcify implements VerificationProvider {
     try {
       response = await getRequest(
         `${this.apiUrl}/v2/contract/${this.chainId}/${address}`,
-        {},
+        { throwOnError: false },
         this.dispatcherOrDispatcherOptions,
       );
       responseBody = await response.body.json();
@@ -136,7 +136,7 @@ export class Sourcify implements VerificationProvider {
       response = await postJsonRequest(
         `${this.apiUrl}/v2/verify/${this.chainId}/${contractAddress}`,
         body,
-        {},
+        { throwOnError: false },
         this.dispatcherOrDispatcherOptions,
       );
       responseBody = await response.body.json();
@@ -195,7 +195,7 @@ export class Sourcify implements VerificationProvider {
     try {
       response = await getRequest(
         `${this.apiUrl}/v2/verify/${guid}`,
-        {},
+        { throwOnError: false },
         this.dispatcherOrDispatcherOptions,
       );
       responseBody = await response.body.json();
