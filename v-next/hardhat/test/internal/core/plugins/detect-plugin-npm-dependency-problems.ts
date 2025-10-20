@@ -18,15 +18,21 @@ describe("Plugins - detect npm dependency problems", () => {
     npmPackage: undefined,
   };
 
+  const originalError = new Error("Error while loading a plugin's module");
+
   it("should skip validation if the plugin is not from an npm package", async () => {
     const peerDepWithWrongVersionFixture = import.meta.resolve(
       "./fixture-projects/peer-dep-with-wrong-version",
     );
 
-    await detectPluginNpmDependencyProblems(peerDepWithWrongVersionFixture, {
-      ...plugin,
-      npmPackage: null,
-    });
+    await detectPluginNpmDependencyProblems(
+      peerDepWithWrongVersionFixture,
+      {
+        ...plugin,
+        npmPackage: null,
+      },
+      originalError,
+    );
   });
 
   describe("when the plugin has no peer deps", () => {
@@ -38,6 +44,7 @@ describe("Plugins - detect npm dependency problems", () => {
       await detectPluginNpmDependencyProblems(
         installedPackageProjectFixture,
         plugin,
+        originalError,
       );
     });
 
@@ -49,6 +56,7 @@ describe("Plugins - detect npm dependency problems", () => {
       await detectPluginNpmDependencyProblems(
         installedPackageProjectFixture,
         pluginWithNpmPackageUndefined,
+        originalError,
       );
     });
 
@@ -62,11 +70,13 @@ describe("Plugins - detect npm dependency problems", () => {
           detectPluginNpmDependencyProblems(
             nonInstalledPackageProjectFixture,
             plugin,
+            originalError,
           ),
         HardhatError.ERRORS.CORE.PLUGINS.PLUGIN_NOT_INSTALLED,
         {
           pluginId: "example-plugin",
         },
+        originalError,
       );
     });
 
@@ -77,14 +87,19 @@ describe("Plugins - detect npm dependency problems", () => {
 
       await assertRejectsWithHardhatError(
         async () =>
-          detectPluginNpmDependencyProblems(nonInstalledPackageProjectFixture, {
-            ...pluginWithNpmPackageUndefined,
-            id: "does-not-match-installed-plugin",
-          }),
+          detectPluginNpmDependencyProblems(
+            nonInstalledPackageProjectFixture,
+            {
+              ...pluginWithNpmPackageUndefined,
+              id: "does-not-match-installed-plugin",
+            },
+            originalError,
+          ),
         HardhatError.ERRORS.CORE.PLUGINS.PLUGIN_NOT_INSTALLED,
         {
           pluginId: "does-not-match-installed-plugin",
         },
+        originalError,
       );
     });
   });
@@ -99,6 +114,7 @@ describe("Plugins - detect npm dependency problems", () => {
         await detectPluginNpmDependencyProblems(
           installedPeerDepsFixture,
           plugin,
+          originalError,
         );
       });
 
@@ -108,9 +124,14 @@ describe("Plugins - detect npm dependency problems", () => {
         );
 
         await assertRejectsWithHardhatError(
-          detectPluginNpmDependencyProblems(notInstalledPeerDepFixture, plugin),
+          detectPluginNpmDependencyProblems(
+            notInstalledPeerDepFixture,
+            plugin,
+            originalError,
+          ),
           HardhatError.ERRORS.CORE.PLUGINS.PLUGIN_MISSING_DEPENDENCY,
           { pluginId: "example-plugin", peerDependencyName: "peer2" },
+          originalError,
         );
       });
     });
@@ -124,6 +145,7 @@ describe("Plugins - detect npm dependency problems", () => {
         await detectPluginNpmDependencyProblems(
           installedPeerDepsFixture,
           plugin,
+          originalError,
         );
       });
     });
@@ -140,6 +162,7 @@ describe("Plugins - detect npm dependency problems", () => {
           detectPluginNpmDependencyProblems(
             peerDepWithWrongVersionFixture,
             plugin,
+            originalError,
           ),
         HardhatError.ERRORS.CORE.PLUGINS.DEPENDENCY_VERSION_MISMATCH,
         {
@@ -148,6 +171,7 @@ describe("Plugins - detect npm dependency problems", () => {
           expectedVersion: "^1.0.0",
           installedVersion: "2.0.0",
         },
+        originalError,
       );
     });
   });
