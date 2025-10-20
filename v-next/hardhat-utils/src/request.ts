@@ -60,6 +60,7 @@ export interface RequestOptions {
   queryParams?: Record<string, any>;
   extraHeaders?: Record<string, string>;
   abortSignal?: AbortSignal | EventEmitter;
+  throwOnError?: boolean;
 }
 
 export interface HttpResponse {
