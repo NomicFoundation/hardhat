@@ -13,7 +13,7 @@ const verifyBlockscoutAction: NewTaskActionFunction<VerifyActionArgs> = async (
   hre,
 ) => {
   const resolvedConstructorArgs = await resolveConstructorArgs(
-    constructorArgs,
+    constructorArgs ?? [],
     constructorArgsPath,
   );
 
