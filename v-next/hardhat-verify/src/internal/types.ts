@@ -29,7 +29,7 @@ export interface VerificationProvider {
     compilerInput: CompilerInput,
     contractName: string,
     compilerVersion: string,
-    constructorArguments: string,
+    constructorArguments?: string,
   ): Promise<string>;
 
   pollVerificationStatus(
