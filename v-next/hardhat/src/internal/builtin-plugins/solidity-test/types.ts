@@ -7,7 +7,7 @@ export type TestsStream = Readable;
 
 export type TestEvent =
   | {
-      type: "suite:result";
+      type: "suite:done";
       data: SuiteResult;
     }
   | {

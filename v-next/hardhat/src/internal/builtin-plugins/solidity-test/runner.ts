@@ -88,7 +88,7 @@ export function run(
           tracingConfig,
           (suiteResult) => {
             controller.enqueue({
-              type: "suite:result",
+              type: "suite:done",
               data: suiteResult,
             });
             remainingSuites.delete(

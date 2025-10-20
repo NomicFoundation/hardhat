@@ -72,7 +72,7 @@ export async function* testReporter(
   let firstSuite = true;
   for await (const event of source) {
     switch (event.type) {
-      case "suite:result": {
+      case "suite:done": {
         const { data: suiteResult } = event;
         const suiteTestCount = suiteResult.testResults.length;
 

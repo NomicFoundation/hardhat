@@ -182,7 +182,7 @@ const runSolidityTests: NewTaskActionFunction<TestActionArguments> = async (
 
   const testReporterStream = runStream
     .on("data", (event: TestEvent) => {
-      if (event.type === "suite:result") {
+      if (event.type === "suite:done") {
         if (event.data.testResults.some(({ status }) => status === "Failure")) {
           includesFailures = true;
         }
