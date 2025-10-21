@@ -30,6 +30,7 @@ export interface VerificationProvider {
     contractName: string,
     compilerVersion: string,
     constructorArguments?: string,
+    creationTxHash?: string,
   ): Promise<string>;
 
   pollVerificationStatus(

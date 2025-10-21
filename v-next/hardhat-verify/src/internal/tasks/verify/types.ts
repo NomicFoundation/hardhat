@@ -7,6 +7,7 @@ export interface VerifyActionArgs {
   contract?: string;
   librariesPath?: string;
   force?: boolean;
+  creationTxHash?: string;
   // TODO: M5
   // listNetworks?: boolean;
 }

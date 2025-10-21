@@ -38,6 +38,8 @@ export interface VerifyContractArgs {
   contract?: string;
   force?: boolean;
   provider?: keyof VerificationProvidersConfig;
+  /** The hash of the contract creation transaction (optional, used by Sourcify) */
+  creationTxHash?: string;
 }
 
 /**
@@ -96,6 +98,7 @@ export async function verifyContract(
     libraries = {},
     contract,
     force = false,
+    creationTxHash,
   } = verifyContractArgs;
 
   const buildProfile = config.solidity.profiles[buildProfileName];
@@ -214,6 +217,7 @@ Explorer: ${instance.getContractUrl(address)}`);
         verificationProvider: instance,
         address,
         encodedConstructorArgs,
+        creationTxHash,
         contractInformation: {
           ...contractInformation,
           // Use the minimal compiler input for the first verification attempt
@@ -255,6 +259,7 @@ Unrelated contracts may be displayed on ${instance.name} as a result.
       verificationProvider: instance,
       address,
       encodedConstructorArgs,
+      creationTxHash,
       contractInformation: {
         ...contractInformation,
         compilerInput: {
@@ -408,11 +413,13 @@ async function attemptVerification(
     address,
     encodedConstructorArgs,
     contractInformation,
+    creationTxHash,
   }: {
     verificationProvider: VerificationProvider;
     address: string;
     encodedConstructorArgs?: string;
     contractInformation: ContractInformation;
+    creationTxHash?: string;
   },
   consoleLog: (text: string) => void = console.log,
 ): Promise<{
@@ -425,6 +432,7 @@ async function attemptVerification(
     contractInformation.inputFqn,
     `v${contractInformation.solcLongVersion}`,
     encodedConstructorArgs,
+    creationTxHash,
   );
 
   consoleLog(`

@@ -152,6 +152,7 @@ export class Etherscan implements VerificationProvider {
     contractName: string,
     compilerVersion: string,
     constructorArguments: string,
+    _creationTxHash?: string,
   ): Promise<string> {
     const body = {
       contractaddress: contractAddress,
