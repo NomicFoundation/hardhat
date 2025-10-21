@@ -65,7 +65,7 @@ jobs:
         uses: ./.github/actions/setup-env
 
       - name: Install Dependencies
-        run: pnpm install --frozen-lockfile --prefer-offline
+        run: pnpm install --frozen-lockfile
 
       - name: Build All Packages
         run: pnpm run --recursive -no-bail --filter './v-next/**' --if-present build
@@ -87,7 +87,7 @@ jobs:
           jq -r '.publishedPackages[].name' pnpm-publish-summary.json | while IFS= read -r name; do
             pnpm pack -r --filter "$name" --pack-destination tarballs
           done
-          
+
       - name: Upload packed tarballs
         uses: actions/upload-artifact@v4
         with:
@@ -95,7 +95,7 @@ jobs:
           path: tarballs
           overwrite: true
           if-no-files-found: error
-      
+
   review:
     name: Review diffs
     needs: pack
