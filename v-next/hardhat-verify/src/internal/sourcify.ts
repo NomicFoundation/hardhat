@@ -123,12 +123,23 @@ export class Sourcify implements VerificationProvider {
     compilerInput: CompilerInput,
     contractName: string,
     compilerVersion: string,
+    _constructorArguments?: string,
+    creationTxHash?: string,
   ): Promise<string> {
-    const body = {
+    const body: {
+      stdJsonInput: CompilerInput;
+      contractIdentifier: string;
+      compilerVersion: string;
+      creationTransactionHash?: string;
+    } = {
       stdJsonInput: compilerInput,
       contractIdentifier: contractName,
       compilerVersion,
     };
+
+    if (creationTxHash !== undefined) {
+      body.creationTransactionHash = creationTxHash;
+    }
 
     let response: HttpResponse;
     let responseBody: SourcifyVerificationResponse | SourcifyErrorResponse;
