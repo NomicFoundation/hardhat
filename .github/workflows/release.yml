@@ -161,6 +161,8 @@ jobs:
         run: npm install -g npm@latest
 
       - name: Publish
+        env:
+          NPM_CONFIG_PROVENANCE: true # explicitly enable NPM provenance
         run: |
           cd tarballs
           for filename in *.tgz; do
