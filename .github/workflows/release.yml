@@ -71,7 +71,7 @@ jobs:
         run: pnpm run --recursive --no-bail --filter './v-next/**' --if-present build
 
       - name: Publish All Packages (dry-run) and save list of packages that need publishing
-        run: pnpm publish --filter "./packages/**" -r --no-git-checks --access public --dry-run --report-summary
+        run: pnpm publish --filter "./v-next/**" -r --no-git-checks --access public --dry-run --report-summary
 
       - name: Store the package list to be published
         uses: actions/upload-artifact@v4
