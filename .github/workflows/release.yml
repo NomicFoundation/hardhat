@@ -167,7 +167,8 @@ jobs:
           cd tarballs
           for filename in *.tgz; do
             echo "Publishing $filename"
-            npm publish $filename --tag latest
+            # We can switch to pnpm publish when pnpm supports Trusted publishing
+            npm publish $filename --tag latest --access public
           done
 
   tag:
