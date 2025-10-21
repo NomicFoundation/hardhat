@@ -139,4 +139,28 @@ describe("solidityTestConfigToSolidityTestRunnerConfigArgs", () => {
     assert.equal(args.forkBlockNumber, 123n);
     assert.deepEqual(args.rpcEndpoints, { a: "b" });
   });
+
+  it("sets generateGasReport to true", async () => {
+    const args = await solidityTestConfigToSolidityTestRunnerConfigArgs({
+      chainType: GENERIC_CHAIN_TYPE,
+      projectRoot: process.cwd(),
+      config: {},
+      verbosity: 0,
+      generateGasReport: true,
+    });
+
+    assert.equal(args.generateGasReport, true);
+  });
+
+  it("sets generateGasReport to false", async () => {
+    const args = await solidityTestConfigToSolidityTestRunnerConfigArgs({
+      chainType: GENERIC_CHAIN_TYPE,
+      projectRoot: process.cwd(),
+      config: {},
+      verbosity: 0,
+      generateGasReport: false,
+    });
+
+    assert.equal(args.generateGasReport, false);
+  });
 });
