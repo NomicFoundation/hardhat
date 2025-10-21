@@ -1,5 +1,11 @@
 # @nomicfoundation/hardhat-errors
 
+## 3.0.3
+
+### Patch Changes
+
+- a871e3e: Ported the `@nomicfoundation/hardhat-ledger` plugin to Hardhat 3 ([#5646](https://github.com/NomicFoundation/hardhat/issues/5646))
+
 ## 3.0.2
 
 ### Patch Changes
