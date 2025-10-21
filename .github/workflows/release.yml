@@ -155,7 +155,7 @@ jobs:
       - name: Setup node to be able to update npm
         uses: actions/setup-node@v5
         with:
-          node-version: lts/*
+          node-version: 24
 
       - name: Update npm to make sure it supports Trusted Publishing
         run: npm install -g npm@latest
