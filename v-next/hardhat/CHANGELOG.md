@@ -1,5 +1,12 @@
 # hardhat
 
+## 3.0.8
+
+### Patch Changes
+
+- d2c9a7f: Don't swallow the original error when trying to improve installation error messages ([#7569](https://github.com/NomicFoundation/hardhat/pull/7569))
+- ec50793: Validate `initialBaseFeePerGas` against hardfork only for L1 chain type ([#6181](https://github.com/NomicFoundation/hardhat/issues/6181))
+
 ## 3.0.7
 
 ### Patch Changes
