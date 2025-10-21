@@ -32,7 +32,7 @@ jobs:
         uses: ./.github/actions/setup-env
 
       - name: Install Dependencies
-        run: pnpm install --frozen-lockfile --prefer-offline
+        run: pnpm install --frozen-lockfile
 
       - name: Create release Pull Request
         id: pr
@@ -186,7 +186,7 @@ jobs:
         uses: ./.github/actions/setup-env
 
       - name: Install Dependencies
-        run: pnpm install --frozen-lockfile --prefer-offline
+        run: pnpm install --frozen-lockfile
 
       # This step is needed otherwise tag creation fails
       - run: |
