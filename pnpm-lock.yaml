@@ -69,7 +69,7 @@ importers:
         specifier: workspace:^3.0.0
         version: link:../hardhat-ignition-viem
       '@nomicfoundation/hardhat-keystore':
-        specifier: workspace:^3.0.0
+        specifier: workspace:^3.0.2
         version: link:../hardhat-keystore
       '@nomicfoundation/hardhat-ledger':
         specifier: workspace:^1.2.0
@@ -1673,7 +1673,7 @@ importers:
         specifier: workspace:^3.0.0
         version: link:../../../../hardhat-ignition-viem
       '@nomicfoundation/hardhat-keystore':
-        specifier: workspace:^3.0.0
+        specifier: workspace:^3.0.2
         version: link:../../../../hardhat-keystore
       '@nomicfoundation/hardhat-network-helpers':
         specifier: workspace:^3.0.1
@@ -1728,7 +1728,7 @@ importers:
         specifier: workspace:^3.0.0
         version: link:../../../../hardhat-ignition-ethers
       '@nomicfoundation/hardhat-keystore':
-        specifier: workspace:^3.0.0
+        specifier: workspace:^3.0.2
         version: link:../../../../hardhat-keystore
       '@nomicfoundation/hardhat-mocha':
         specifier: workspace:^3.0.3

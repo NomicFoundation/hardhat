@@ -30,7 +30,7 @@
     "@nomicfoundation/hardhat-ignition": "workspace:^3.0.0",
     "@nomicfoundation/ignition-core": "workspace:^3.0.0",
     "@nomicfoundation/hardhat-ignition-viem": "workspace:^3.0.0",
-    "@nomicfoundation/hardhat-keystore": "workspace:^3.0.0",
+    "@nomicfoundation/hardhat-keystore": "workspace:^3.0.2",
     "@nomicfoundation/hardhat-ledger": "workspace:^1.2.0",
     "@nomicfoundation/hardhat-mocha": "workspace:^3.0.3",
     "@nomicfoundation/hardhat-network-helpers": "workspace:^3.0.1",

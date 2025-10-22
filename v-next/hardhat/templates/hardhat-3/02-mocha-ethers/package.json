@@ -23,7 +23,7 @@
     "@nomicfoundation/hardhat-ethers-chai-matchers": "workspace:^3.0.0",
     "@nomicfoundation/hardhat-ignition": "workspace:^3.0.0",
     "@nomicfoundation/hardhat-ignition-ethers": "workspace:^3.0.0",
-    "@nomicfoundation/hardhat-keystore": "workspace:^3.0.0",
+    "@nomicfoundation/hardhat-keystore": "workspace:^3.0.2",
     "@nomicfoundation/hardhat-mocha": "workspace:^3.0.3",
     "@nomicfoundation/hardhat-network-helpers": "workspace:^3.0.1",
     "@nomicfoundation/hardhat-typechain": "workspace:^3.0.0",
