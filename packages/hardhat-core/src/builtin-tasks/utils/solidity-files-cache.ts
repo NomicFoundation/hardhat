@@ -53,12 +53,17 @@ export class SolidityFilesCache {
   public static async readFromFile(
     solidityFilesCachePath: string
   ): Promise<SolidityFilesCache> {
-    let cacheRaw: Cache = {
+    const defaultCache: Cache = {
       _format: FORMAT_VERSION,
       files: {},
     };
+    let cacheRaw = defaultCache;
     if (await fsExtra.pathExists(solidityFilesCachePath)) {
-      cacheRaw = await fsExtra.readJson(solidityFilesCachePath);
+      try {
+        cacheRaw = await fsExtra.readJson(solidityFilesCachePath);
+      } catch (_error) {
+        cacheRaw = defaultCache;
+      }
     }
 
     const result = CacheCodec.decode(cacheRaw);
@@ -71,10 +76,7 @@ export class SolidityFilesCache {
 
     log("There was a problem reading the cache");
 
-    return new SolidityFilesCache({
-      _format: FORMAT_VERSION,
-      files: {},
-    });
+    return new SolidityFilesCache(defaultCache);
   }
 
   constructor(private _cache: Cache) {}
