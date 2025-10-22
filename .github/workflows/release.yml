@@ -57,6 +57,8 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: write
+    outputs:
+      hasPackages: ${{ steps.detect.outputs.hasPackages }}
     steps:
       - name: Checkout Repo
         uses: actions/checkout@v5
@@ -81,8 +83,20 @@ jobs:
           overwrite: true
           if-no-files-found: error
 
+      - name: Detect packages needing publish
+        id: detect
+        run: |
+          count=$(jq '.publishedPackages | length' pnpm-publish-summary.json 2>/dev/null)
+          if [ "$count" -gt 0 ]; then
+            echo "hasPackages=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "No packages to publish."
+            echo "hasPackages=false" >> "$GITHUB_OUTPUT"
+          fi
+
       - name: Generate tarballs for packages that need publishing
         id: pack
+        if: steps.detect.outputs.hasPackages == 'true'
         run: |
           jq -r '.publishedPackages[].name' pnpm-publish-summary.json | while IFS= read -r name; do
             pnpm pack -r --filter "$name" --pack-destination tarballs
@@ -90,6 +104,7 @@ jobs:
 
       - name: Upload packed tarballs
         uses: actions/upload-artifact@v4
+        if: steps.detect.outputs.hasPackages == 'true'
         with:
           name: tarballs
           path: tarballs
@@ -99,6 +114,7 @@ jobs:
   review:
     name: Review diffs
     needs: pack
+    if: needs.pack.outputs.hasPackages == 'true'
 
     runs-on: ubuntu-latest
     permissions:
@@ -140,6 +156,7 @@ jobs:
   publish:
     name: Publish packages
     needs: review
+    if: needs.pack.outputs.hasPackages == 'true'
     runs-on: ubuntu-latest
     environment: npm-publish
     permissions:
@@ -174,6 +191,7 @@ jobs:
   tag:
     name: Push tags
     needs: publish
+    if: needs.pack.outputs.hasPackages == 'true'
     runs-on: ubuntu-latest
     permissions:
       contents: write
