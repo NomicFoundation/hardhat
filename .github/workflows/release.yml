@@ -94,6 +94,7 @@ jobs:
             echo "hasPackages=false" >> "$GITHUB_OUTPUT"
           fi
 
+      # The --filter parameter filters by exact package name, so there's no risk of a package name being a substring of another package name
       - name: Generate tarballs for packages that need publishing
         id: pack
         if: steps.detect.outputs.hasPackages == 'true'
