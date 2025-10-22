@@ -137,20 +137,23 @@ jobs:
           jq -r '.publishedPackages[] | "\(.name)|\(.version)"' pnpm-publish-summary.json |
           while IFS='|' read -r name version; do
             # download latest
+            NORMALIZED_NAME="${name//\//-}"
+            NORMALIZED_NAME="${NORMALIZED_NAME//@/}"
             TARBALL_URL=$(npm view "$name@latest" dist.tarball)
-            curl -s -L "$TARBALL_URL" -o "tarballs/$name-latest.tgz"
+
+            curl -s -L "$TARBALL_URL" -o "tarballs/$NORMALIZED_NAME-latest.tgz"
 
             # unpack both latest and proposed version
-            mkdir -p tarballs/$name/proposed
-            mkdir -p tarballs/$name/latest
-            tar -xzf tarballs/$name-latest.tgz -C tarballs/$name/latest
-            tar -xzf tarballs/$name-$version.tgz -C tarballs/$name/proposed
+            mkdir -p tarballs/$NORMALIZED_NAME/proposed
+            mkdir -p tarballs/$NORMALIZED_NAME/latest
+            tar -xzf tarballs/$NORMALIZED_NAME-latest.tgz -C tarballs/$NORMALIZED_NAME/latest
+            tar -xzf tarballs/$NORMALIZED_NAME-$version.tgz -C tarballs/$NORMALIZED_NAME/proposed
 
             # show diffs for review
             echo "<< Showing files diff for $name >>"
-            git diff --color=always --no-index --name-status tarballs/$name/latest tarballs/$name/proposed || true
+            git diff --color=always --no-index --name-status tarballs/$NORMALIZED_NAME/latest tarballs/$NORMALIZED_NAME/proposed || true
             echo "<< Showing package.json diff for $name >>"
-            git diff --color=always --no-index tarballs/$name/latest/package/package.json tarballs/$name/proposed/package/package.json || true
+            git diff --color=always --no-index tarballs/$NORMALIZED_NAME/latest/package/package.json tarballs/$NORMALIZED_NAME/proposed/package/package.json || true
           done
 
   publish:
