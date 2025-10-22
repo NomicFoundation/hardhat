@@ -321,6 +321,26 @@ describe("hook-handlers - configuration variables - fetchValue", () => {
           { key: "key3-prod" },
         );
       });
+
+      it("should throw an error if the keystore is executed in test mode and the development keystore does not exists", async () => {
+        // Delete the development keystore to simulate it not existing
+        await remove(configurationVariableDevKeystoreFilePath);
+
+        await assertRejectsWithHardhatError(
+          () =>
+            hre.hooks.runHandlerChain(
+              "configurationVariables",
+              "fetchValue",
+              [exampleConfigurationVariable3],
+              async (_context, _configVar) => {
+                return "unexpected-default-value";
+              },
+            ),
+          HardhatError.ERRORS.HARDHAT_KEYSTORE.GENERAL
+            .KEY_NOT_FOUND_DURING_TESTS_WITH_DEV_KEYSTORE,
+          { key: "key3-prod" },
+        );
+      });
     });
 
     describe("where the key is not in the development and production keystore", () => {
@@ -423,7 +443,7 @@ describe("hook-handlers - configuration variables - fetchValue", () => {
   });
 
   describe("when the keystore file has not been setup", () => {
-    describe("when trying to get a value", () => {
+    describe("when trying to get a value not in the tests", () => {
       let resultValueProd: string;
       let resultValueDev: string;
 

@@ -32,20 +32,27 @@ export default async (): Promise<Partial<ConfigurationVariableHooks>> => {
         return next(context, variable);
       }
 
-      // When `fetchValue` is called from a test, we only allow the use of the development keystore
-      // to avoid prompting for the production keystore password.
-      const onlyAllowDevKeystore = process.env.HH_TEST === "true";
-
       // First try to get the value from the development keystore
-      let value = await getValue(context, variable, true, onlyAllowDevKeystore);
+      let value = await getValue(context, variable, true);
 
       if (value !== undefined) {
         return value;
       }
 
+      if (process.env.HH_TEST === "true") {
+        // When `fetchValue` is called from a test, we only allow the use of the development keystore
+        // to avoid prompting for the production keystore password.
+        throw new HardhatError(
+          HardhatError.ERRORS.HARDHAT_KEYSTORE.GENERAL.KEY_NOT_FOUND_DURING_TESTS_WITH_DEV_KEYSTORE,
+          {
+            key: variable.name,
+          },
+        );
+      }
+
       // Then, if the development keystore does not have the key and `fetchValue` is not called from a test,
       // attempt to retrieve the value from the production keystore.
-      value = await getValue(context, variable, false, onlyAllowDevKeystore);
+      value = await getValue(context, variable, false);
 
       if (value !== undefined) {
         return value;
@@ -59,7 +66,6 @@ export default async (): Promise<Partial<ConfigurationVariableHooks>> => {
     context: HookContext,
     variable: ConfigurationVariable,
     isDevKeystore: boolean,
-    onlyAllowDevKeystore: boolean,
   ): Promise<string | undefined> {
     let keystoreLoader = isDevKeystore ? keystoreLoaderDev : keystoreLoaderProd;
     let masterKey = isDevKeystore ? masterKeyDev : masterKeyProd;
@@ -103,15 +109,6 @@ export default async (): Promise<Partial<ConfigurationVariableHooks>> => {
     }
 
     if (!(await keystore.hasKey(variable.name, masterKey))) {
-      if (onlyAllowDevKeystore) {
-        throw new HardhatError(
-          HardhatError.ERRORS.HARDHAT_KEYSTORE.GENERAL.KEY_NOT_FOUND_DURING_TESTS_WITH_DEV_KEYSTORE,
-          {
-            key: variable.name,
-          },
-        );
-      }
-
       return undefined;
     }
 
