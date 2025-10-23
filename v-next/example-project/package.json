@@ -23,7 +23,7 @@
     "test": "hardhat test nodejs && hardhat test mocha"
   },
   "devDependencies": {
-    "hardhat": "workspace:^3.0.8",
+    "hardhat": "workspace:^3.0.9",
     "@nomicfoundation/hardhat-ethers-chai-matchers": "workspace:^3.0.0",
     "@nomicfoundation/hardhat-errors": "workspace:^3.0.3",
     "@nomicfoundation/hardhat-ethers": "workspace:^4.0.2",
@@ -32,9 +32,9 @@
     "@nomicfoundation/hardhat-ignition-viem": "workspace:^3.0.0",
     "@nomicfoundation/hardhat-keystore": "workspace:^3.0.2",
     "@nomicfoundation/hardhat-ledger": "workspace:^1.2.0",
-    "@nomicfoundation/hardhat-mocha": "workspace:^3.0.3",
+    "@nomicfoundation/hardhat-mocha": "workspace:^3.0.4",
     "@nomicfoundation/hardhat-network-helpers": "workspace:^3.0.1",
-    "@nomicfoundation/hardhat-node-test-runner": "workspace:^3.0.0",
+    "@nomicfoundation/hardhat-node-test-runner": "workspace:^3.0.4",
     "@nomicfoundation/hardhat-typechain": "workspace:^3.0.0",
     "@nomicfoundation/hardhat-verify": "workspace:^3.0.4",
     "@nomicfoundation/hardhat-viem": "workspace:^3.0.0",
