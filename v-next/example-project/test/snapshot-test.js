@@ -1,4 +1,4 @@
-import { spawn } from "child_process";
+import { execSync } from "child_process";
 import { readFileSync, writeFileSync, existsSync } from "fs";
 import path from "path";
 
@@ -9,30 +9,31 @@ function getSnapshotPath(snapshotFile) {
 }
 
 function runTests() {
-  return new Promise((resolve, reject) => {
-    console.log("Running tests...");
+  console.log("Running tests...");
 
-    const child = spawn("pnpm", ["hardhat", "test", "nodejs", "--gas-stats"], {
-      stdio: ["ignore", "pipe", "pipe"],
+  try {
+    const output = execSync("pnpm hardhat test nodejs --gas-stats", {
       cwd: import.meta.dirname,
+      encoding: "utf8",
+      env: {
+        ...process.env,
+        FORCE_COLOR: "0",
+      },
+      maxBuffer: 10 * 1024 * 1024, // 10MB buffer
     });
 
-    let output = "";
-    child.stdout.on("data", (data) => {
-      output += data.toString();
-    });
-    child.stderr.on("data", (data) => {
-      output += data.toString();
-    });
-
-    child.on("close", (code) => {
-      if (code === 0) {
-        resolve(output);
-      } else {
-        reject(new Error(`Tests failed with code ${code}`));
-      }
-    });
-  });
+    console.log("--------------- Finished running tests");
+    console.log(output);
+    console.log("---------------------------------------");
+    return output;
+  } catch (error) {
+    console.log("--------------- Tests failed");
+    console.log("Exit code:", error.status);
+    console.log("Output:", error.stdout || "");
+    console.log("Error:", error.stderr || "");
+    console.log("---------------------------------------");
+    throw error;
+  }
 }
 
 function extractGasTable(output) {
@@ -81,7 +82,7 @@ async function main() {
   const updateMode = process.argv.includes("--update");
 
   try {
-    const output = await runTests();
+    const output = runTests();
     const gasTable = extractGasTable(output);
     const gasStatsSnapshotPath = getSnapshotPath(GAS_STATS_SNAPSHOT_FILE);
 
