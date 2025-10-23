@@ -1,7 +1,7 @@
 import type {
   ArgumentTypeToValueType,
   ArgumentValue,
-  OptionDefinition,
+  GlobalOptionDefinition,
 } from "../../types/arguments.js";
 import type {
   GlobalOptions,
@@ -108,7 +108,7 @@ export function buildGlobalOptionDefinition<
   description: string;
   type?: T;
   defaultValue: ArgumentTypeToValueType<T>;
-}): OptionDefinition {
+}): GlobalOptionDefinition {
   const argumentType = type ?? ArgumentType.STRING;
 
   validateArgumentName(name);

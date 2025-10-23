@@ -1,4 +1,4 @@
-import type { OptionDefinition } from "./arguments.js";
+import type { GlobalOptionDefinition } from "./arguments.js";
 
 /**
  * The values of each global option for a certain instance of the Hardhat
@@ -30,7 +30,7 @@ export interface GlobalOptions {
  */
 export interface GlobalOptionDefinitionsEntry {
   pluginId: string;
-  option: OptionDefinition;
+  option: GlobalOptionDefinition;
 }
 
 /**
