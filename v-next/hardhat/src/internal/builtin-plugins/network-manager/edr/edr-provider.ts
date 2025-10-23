@@ -23,6 +23,7 @@ import type {
   ProviderConfig,
   TracingConfigWithBuffers,
   AccountOverride,
+  GasReportConfig,
 } from "@nomicfoundation/edr";
 
 import {
@@ -142,6 +143,7 @@ interface EdrProviderConfig {
   tracingConfig?: TracingConfigWithBuffers;
   jsonRpcRequestWrapper?: JsonRpcRequestWrapperFunction;
   coverageConfig?: CoverageConfig;
+  gasReportConfig?: GasReportConfig;
 }
 
 export class EdrProvider extends BaseProvider {
@@ -160,6 +162,7 @@ export class EdrProvider extends BaseProvider {
     tracingConfig = {},
     jsonRpcRequestWrapper,
     coverageConfig,
+    gasReportConfig,
   }: EdrProviderConfig): Promise<EdrProvider> {
     const printLineFn = loggerConfig.printLineFn ?? printLine;
     const replaceLastLineFn = loggerConfig.replaceLastLineFn ?? replaceLastLine;
@@ -167,6 +170,7 @@ export class EdrProvider extends BaseProvider {
     const providerConfig = await getProviderConfig(
       networkConfig,
       coverageConfig,
+      gasReportConfig,
       chainDescriptors,
     );
 
@@ -431,6 +435,7 @@ export class EdrProvider extends BaseProvider {
 export async function getProviderConfig(
   networkConfig: RequireField<EdrNetworkConfig, "chainType">,
   coverageConfig: CoverageConfig | undefined,
+  gasReportConfig: GasReportConfig | undefined,
   chainDescriptors: ChainDescriptorsConfig,
 ): Promise<ProviderConfig> {
   const specId = hardhatHardforkToEdrSpecId(
@@ -507,6 +512,7 @@ export async function getProviderConfig(
     networkId: BigInt(networkConfig.networkId),
     observability: {
       codeCoverage: coverageConfig,
+      gasReport: gasReportConfig,
     },
     ownedAccounts: ownedAccounts.map((account) => account.secretKey),
     precompileOverrides: [],

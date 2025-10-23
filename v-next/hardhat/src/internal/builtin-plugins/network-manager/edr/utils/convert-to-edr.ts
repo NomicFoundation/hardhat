@@ -8,12 +8,14 @@ import type {
   EdrNetworkMiningConfig,
 } from "../../../../../types/config.js";
 import type { ChainType } from "../../../../../types/network.js";
+import type { GasMeasurement } from "../../../gas-analytics/types.js";
 import type { RpcDebugTraceOutput, RpcStructLog } from "../types/output.js";
 import type {
   IntervalRange,
   DebugTraceResult,
   ChainOverride,
   ForkConfig,
+  GasReport,
 } from "@nomicfoundation/edr";
 
 import {
@@ -43,6 +45,7 @@ import {
   FJORD,
   GRANITE,
   HOLOCENE,
+  GasReportExecutionStatus,
 } from "@nomicfoundation/edr";
 import { getUnprefixedHexString } from "@nomicfoundation/hardhat-utils/hex";
 
@@ -349,4 +352,44 @@ export async function hardhatForkingConfigToEdrForkConfig(
   }
 
   return fork;
+}
+
+/**
+ * Converts EDR's nested GasReport structure into a flat array of gas entries.
+ * Filters out reverted transactions.
+ */
+export function edrGasReportToHardhatGasMeasurements(
+  gasReport: GasReport,
+): GasMeasurement[] {
+  const gasMeasurements: GasMeasurement[] = [];
+
+  for (const [contractFqn, data] of Object.entries(gasReport.contracts)) {
+    // Process deployments
+    for (const deployment of data.deployments) {
+      if (deployment.status === GasReportExecutionStatus.Success) {
+        gasMeasurements.push({
+          contractFqn,
+          type: "deployment",
+          gas: Number(deployment.gas),
+          size: Number(deployment.size),
+        });
+      }
+    }
+
+    // Process function calls
+    for (const [functionSig, calls] of Object.entries(data.functions)) {
+      for (const call of calls) {
+        if (call.status === GasReportExecutionStatus.Success) {
+          gasMeasurements.push({
+            contractFqn,
+            type: "function",
+            functionSig,
+            gas: Number(call.gas),
+          });
+        }
+      }
+    }
+  }
+
+  return gasMeasurements;
 }
