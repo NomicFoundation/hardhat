@@ -5,21 +5,26 @@ import type {
   Statement,
   Tag,
 } from "./types.js";
-import type { FileCoverageData } from "../../../../assets/lib-coverage/index.js";
+import type { FileCoverageData } from "@nomicfoundation/hardhat-vendors/coverage/types";
 
-import fs from "node:fs";
 import path from "node:path";
 
 import { assertHardhatInvariant } from "@nomicfoundation/hardhat-errors";
 import {
   ensureDir,
   getAllFilesMatching,
+  mkdir,
   readJsonFile,
+  readUtf8File,
   remove,
   writeJsonFile,
   writeUtf8File,
 } from "@nomicfoundation/hardhat-utils/fs";
-import { findClosestPackageRoot } from "@nomicfoundation/hardhat-utils/package";
+import {
+  libCoverage,
+  libReport,
+  reports,
+} from "@nomicfoundation/hardhat-vendors/coverage";
 import debug from "debug";
 
 const log = debug("hardhat:core:coverage:coverage-manager");
@@ -112,95 +117,12 @@ export class CoverageManagerImplementation implements CoverageManager {
     await writeUtf8File(lcovReportPath, lcovReport);
     log(`Saved lcov report to ${lcovReportPath}`);
 
+    const htmlReportPath = path.join(this.#coveragePath, "html");
+    await this.#writeHtmlReport(report, htmlReportPath);
+    console.log(`Saved html report to ${htmlReportPath}`);
+
     console.log(markdownReport);
     log("Printed markdown report");
-
-    await this.#lcovToHtml(report);
-
-    //
-    //
-    //
-  }
-
-  async #lcovToHtml(report: Report): Promise<void> {
-    const reporter: "html" = "html";
-
-    const outDir = "coverage/html";
-    const baseDir = process.cwd();
-    const treatUnlisted = false; // treatUnlistedLinesAsUncovered
-
-    const packageRoot = await findClosestPackageRoot(import.meta.url);
-    const { libCoverage } = await import(
-      path.join(packageRoot, "assets", "index.js")
-    );
-    const { libReport } = await import(
-      path.join(packageRoot, "assets", "index.js")
-    );
-    const { reports } = await import(
-      path.join(packageRoot, "assets", "index.js")
-    );
-
-    const coverageMap = libCoverage.createCoverageMap({});
-
-    for (const [relativePath, file] of Object.entries(report)) {
-      const filePath = path.isAbsolute(relativePath)
-        ? relativePath
-        : path.join(baseDir, relativePath);
-
-      // Optional: read source to set end columns to the actual line length
-      let lines: string[] = [];
-      try {
-        lines = fs.readFileSync(filePath, "utf8").split(/\r?\n/);
-      } catch {
-        // ok if the file is not available on disk; columns will be 0
-      }
-
-      // Build the set of line candidates we want to color
-      const candidates = new Set<number>();
-      for (const line of file.lineExecutionCounts.keys()) candidates.add(line);
-      for (const line of file.unexecutedLines) candidates.add(line);
-      if (treatUnlisted && lines.length > 0) {
-        for (let i = 1; i <= lines.length; i++) candidates.add(i);
-      }
-
-      const statementMap: FileCoverageData["statementMap"] = {};
-      const s: FileCoverageData["s"] = {};
-      let sid = 0;
-
-      for (const lineNo of [...candidates].sort((a, b) => a - b)) {
-        const id = String(++sid);
-        const endCol = lines[lineNo - 1]?.length ?? 0;
-
-        // Make each source line a pseudo "statement"
-        statementMap[id] = {
-          start: { line: lineNo, column: 0 },
-          end: { line: lineNo, column: endCol },
-        };
-
-        const hits = file.lineExecutionCounts.get(lineNo) ?? 0;
-        s[id] = hits > 0 ? 1 : 0; // green if hit, red if not
-      }
-
-      const fileCoverage: FileCoverageData = {
-        path: filePath, // you can also keep relativePath if you prefer
-        statementMap,
-        s,
-        fnMap: {},
-        f: {},
-        branchMap: {},
-        b: {},
-      };
-
-      coverageMap.addFileCoverage(fileCoverage);
-    }
-
-    fs.mkdirSync(outDir, { recursive: true });
-
-    const context = libReport.createContext({ dir: outDir, coverageMap });
-
-    reports.create(reporter).execute(context);
-
-    console.log(`HTML report written to ${path.resolve(outDir)}`);
   }
 
   public enableReport(): void {
@@ -637,5 +559,66 @@ export class CoverageManagerImplementation implements CoverageManager {
     });
 
     return rows.map((row) => `| ${row.join(" | ")} |`).join("\n");
+  }
+
+  async #writeHtmlReport(
+    report: Report,
+    htmlReportPath: string,
+  ): Promise<void> {
+    const baseDir = process.cwd();
+    const coverageMap = libCoverage.createCoverageMap({});
+
+    // Construct coverage data for each tested file,
+    // detailing whether each line was executed or not.
+    for (const [p, fileCoverageInput] of Object.entries(report)) {
+      const testedFilePath = path.isAbsolute(p) ? p : path.join(baseDir, p);
+
+      const sourceLines = (await readUtf8File(testedFilePath)).split(/\r?\n/);
+
+      // Build the set of line candidates we want to color
+      const linesToColor = Array.from(
+        new Set<number>([
+          ...fileCoverageInput.lineExecutionCounts.keys(),
+          ...fileCoverageInput.unexecutedLines,
+        ]),
+      );
+
+      const statementMap: FileCoverageData["statementMap"] = {};
+      const s: FileCoverageData["s"] = {};
+
+      for (const lineNo of linesToColor) {
+        const id = `${lineNo}`;
+        const endCol = sourceLines[lineNo - 1]?.length ?? 0;
+
+        statementMap[id] = {
+          start: { line: lineNo, column: 0 },
+          end: { line: lineNo, column: endCol },
+        };
+
+        const hits = fileCoverageInput.lineExecutionCounts.get(lineNo) ?? 0;
+        s[id] = hits > 0 ? 1 : 0; // green if hit, red if not
+      }
+
+      const fileCoverage: FileCoverageData = {
+        path: testedFilePath,
+        statementMap,
+        s,
+        fnMap: {},
+        f: {},
+        branchMap: {},
+        b: {},
+      };
+
+      coverageMap.addFileCoverage(fileCoverage);
+    }
+
+    await mkdir(htmlReportPath);
+
+    const context = libReport.createContext({
+      dir: htmlReportPath,
+      coverageMap,
+    });
+
+    reports.create("html", undefined).execute(context);
   }
 }
