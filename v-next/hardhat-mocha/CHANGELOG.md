@@ -1,5 +1,11 @@
 # @nomicfoundation/hardhat-mocha
 
+## 3.0.4
+
+### Patch Changes
+
+- 0ee442d: All test runners now set NODE_ENV to "test" in case it is not set before the tests start ([#7511](https://github.com/NomicFoundation/hardhat/issues/7511))
+
 ## 3.0.3
 
 ### Patch Changes

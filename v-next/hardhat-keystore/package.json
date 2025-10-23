@@ -1,6 +1,6 @@
 {
   "name": "@nomicfoundation/hardhat-keystore",
-  "version": "3.0.1",
+  "version": "3.0.2",
   "description": "A module for managing keystore files that store a map from IDs to encrypted string values.",
   "homepage": "https://github.com/nomicfoundation/hardhat/tree/v-next/v-next/hardhat-keystore",
   "repository": {

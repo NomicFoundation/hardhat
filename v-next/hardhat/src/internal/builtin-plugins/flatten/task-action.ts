@@ -259,6 +259,7 @@ function getPragmaAbicoderDirectiveInfo(
 // Returns files sorted in topological order
 function getSortedFiles(dependencyGraph: DependencyGraph): ResolvedFile[] {
   const sortedFiles: ResolvedFile[] = [];
+  const visitedFiles = new Set<ResolvedFile>();
 
   // Helper function for sorting files by sourceName, for deterministic results
   const sortBySourceName = (files: Iterable<ResolvedFile>) => {
@@ -270,15 +271,17 @@ function getSortedFiles(dependencyGraph: DependencyGraph): ResolvedFile[] {
   // Depth-first walking
   const walk = (files: ResolvedFile[]) => {
     for (const file of files) {
-      if (sortedFiles.includes(file)) continue;
+      if (visitedFiles.has(file)) continue;
 
-      sortedFiles.push(file);
+      visitedFiles.add(file);
 
       const dependencies = sortBySourceName(
         Array.from(dependencyGraph.getDependencies(file)).map((d) => d.file),
       );
 
       walk(dependencies);
+
+      sortedFiles.push(file);
     }
   };
 

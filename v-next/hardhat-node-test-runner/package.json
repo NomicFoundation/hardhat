@@ -1,6 +1,6 @@
 {
   "name": "@nomicfoundation/hardhat-node-test-runner",
-  "version": "3.0.3",
+  "version": "3.0.4",
   "description": "A node:test runner",
   "homepage": "https://github.com/nomicfoundation/hardhat/tree/v-next/v-next/hardhat-node-test-runner",
   "repository": {

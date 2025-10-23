@@ -47,6 +47,13 @@ const runSolidityTests: NewTaskActionFunction<TestActionArguments> = async (
   { testFiles, chainType, grep, noCompile, verbosity },
   hre,
 ) => {
+  // Set an environment variable that plugins can use to detect when a process is running tests
+  process.env.HH_TEST = "true";
+
+  // Sets the NODE_ENV environment variable to "test" so the code can detect that tests are running
+  // This is done by other JS/TS test frameworks like vitest
+  process.env.NODE_ENV ??= "test";
+
   if (!isSupportedChainType(chainType)) {
     throw new HardhatError(
       HardhatError.ERRORS.CORE.ARGUMENTS.INVALID_VALUE_FOR_TYPE,
