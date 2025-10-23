@@ -20,7 +20,9 @@
     "build": "tsc --build .",
     "clean": "rimraf dist artifacts cache ignition/deployments types",
     "pretest": "pnpm build && pnpm install",
-    "test": "hardhat test nodejs && hardhat test mocha"
+    "test": "hardhat test nodejs && hardhat test mocha && pnpm run snapshot",
+    "snapshot": "node test/snapshot-test.js",
+    "snapshot:update": "node test/snapshot-test.js --update"
   },
   "devDependencies": {
     "hardhat": "workspace:^3.0.9",
