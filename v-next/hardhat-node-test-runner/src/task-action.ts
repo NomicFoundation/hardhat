@@ -9,7 +9,10 @@ import { URL } from "node:url";
 import { hardhatTestReporter } from "@nomicfoundation/hardhat-node-test-reporter";
 import { setGlobalOptionsAsEnvVariables } from "@nomicfoundation/hardhat-utils/env";
 import { getAllFilesMatching } from "@nomicfoundation/hardhat-utils/fs";
-import { createNonClosingWriter } from "@nomicfoundation/hardhat-utils/stream";
+import {
+  createNonClosingWriter,
+  StringWritable,
+} from "@nomicfoundation/hardhat-utils/stream";
 import { markTestRunStart, markTestRunDone } from "hardhat/internal/coverage";
 
 interface TestActionArguments {
@@ -17,6 +20,7 @@ interface TestActionArguments {
   only: boolean;
   grep?: string;
   noCompile: boolean;
+  summaryEnabled: boolean;
 }
 
 function isTypescriptFile(path: string): boolean {
@@ -54,7 +58,7 @@ async function getTestFiles(
  * Note that we are testing this manually for now as you can't run a node:test within a node:test
  */
 const testWithHardhat: NewTaskActionFunction<TestActionArguments> = async (
-  { testFiles, only, grep, noCompile },
+  { testFiles, only, grep, noCompile, summaryEnabled },
   hre,
 ) => {
   // Set an environment variable that plugins can use to detect when a process is running tests
@@ -89,7 +93,7 @@ const testWithHardhat: NewTaskActionFunction<TestActionArguments> = async (
     .map((href) => `--import "${href}"`)
     .join(" ");
 
-  async function runTests(): Promise<number> {
+  async function runTests(): Promise<{ failures: number; output?: string }> {
     let failures = 0;
 
     const nodeTestOptions: LastParameter<typeof run> = {
@@ -125,25 +129,33 @@ const testWithHardhat: NewTaskActionFunction<TestActionArguments> = async (
       })
       .compose(customReporter);
 
-    await pipeline(reporterStream, createNonClosingWriter(process.stdout));
+    const outputStream = summaryEnabled
+      ? new StringWritable()
+      : createNonClosingWriter(process.stdout);
 
-    return failures;
+    await pipeline(reporterStream, outputStream);
+
+    return {
+      failures,
+      output:
+        outputStream instanceof StringWritable ? outputStream.data : undefined,
+    };
   }
 
   await markTestRunStart("nodejs");
 
-  const testFailures = await runTests();
+  const testResults = await runTests();
 
   // NOTE: This might print a coverage report.
   await markTestRunDone("nodejs");
 
-  if (testFailures > 0) {
+  if (testResults.failures > 0) {
     process.exitCode = 1;
   }
 
   console.log();
 
-  return testFailures;
+  return testResults.output;
 };
 
 export default testWithHardhat;

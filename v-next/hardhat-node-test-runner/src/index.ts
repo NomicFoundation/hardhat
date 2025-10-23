@@ -28,6 +28,11 @@ const hardhatPlugin: HardhatPlugin = {
         name: "noCompile",
         description: "Don't compile the project before running the tests",
       })
+      .addFlag({
+        name: "summaryEnabled",
+        description: "Print a summary of all test runners",
+        // hidden: true
+      })
       .setAction(() => import("./task-action.js"))
       .build(),
   ],
