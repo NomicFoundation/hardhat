@@ -18,6 +18,7 @@ import {
 import { resolveFromRoot } from "@nomicfoundation/hardhat-utils/path";
 import { createNonClosingWriter } from "@nomicfoundation/hardhat-utils/stream";
 
+import { getFullyQualifiedName } from "../../../utils/contract-names.js";
 import { HardhatRuntimeEnvironmentImplementation } from "../../core/hre.js";
 import { isSupportedChainType } from "../../edr/chain-type.js";
 import { ArtifactManagerImplementation } from "../artifacts/artifact-manager.js";
@@ -194,9 +195,16 @@ const runSolidityTests: NewTaskActionFunction<TestActionArguments> = async (
           return;
         }
 
+        const testContractFqns = testSuiteIds.map(({ name, source }) =>
+          getFullyQualifiedName(source, name),
+        );
+
         // we can't use the onGasMeasurement hook here as it's async and stream
         // handlers are sync
-        const gasMeasurements = edrGasReportToHardhatGasMeasurements(gasReport);
+        const gasMeasurements = edrGasReportToHardhatGasMeasurements(
+          gasReport,
+          testContractFqns,
+        );
 
         for (const measurement of gasMeasurements) {
           hre._gasAnalytics.addGasMeasurement(measurement);
