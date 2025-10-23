@@ -212,6 +212,7 @@ export interface NewTaskDefinitionBuilder<
     name: NameT;
     shortName?: string;
     description?: string;
+    hidden?: boolean;
   }): NewTaskDefinitionBuilder<
     ExtendTaskArguments<NameT, ArgumentType.FLAG, TaskArgumentsT>
   >;

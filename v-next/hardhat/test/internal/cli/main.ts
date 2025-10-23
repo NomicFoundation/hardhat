@@ -242,6 +242,18 @@ describe("main", function () {
           },
         );
       });
+
+      it("should throw when passing a hidden flag from the CLI", async function () {
+        const command = "npx hardhat test-task --flag";
+
+        await assertRejectsWithHardhatError(
+          () => runMain(command),
+          HardhatError.ERRORS.CORE.ARGUMENTS.NO_HIDDEN_OPTION_CLI,
+          {
+            option: "--flag",
+          },
+        );
+      });
     });
 
     describe("global help", function () {

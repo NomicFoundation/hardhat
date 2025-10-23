@@ -12,6 +12,11 @@ const customTask = task("test-task", "description")
     defaultValue: "opt default value",
     hidden: true,
   })
+  .addFlag({
+    name: "flag",
+    description: "flag description",
+    hidden: true,
+  })
   .build();
 
 const config: HardhatUserConfig = {

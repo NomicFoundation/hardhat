@@ -69,17 +69,6 @@ export function buildGlobalOptionDefinitions(
         }
       }
 
-      // @ts-expect-error -- validation against js users
-      if (option.hidden !== undefined) {
-        throw new HardhatError(
-          HardhatError.ERRORS.CORE.GENERAL.GLOBAL_OPTION_HIDDEN_NOT_SUPPORTED,
-          {
-            plugin: plugin.id,
-            globalOption: option.name,
-          },
-        );
-      }
-
       const validatedGlobalOption = buildGlobalOptionDefinition(option);
 
       const mapEntry = {
