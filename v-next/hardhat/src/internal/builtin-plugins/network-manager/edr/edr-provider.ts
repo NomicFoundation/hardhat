@@ -174,8 +174,6 @@ export class EdrProvider extends BaseProvider {
       chainDescriptors,
     );
 
-    const contractDecoder = ContractDecoder.withContracts(tracingConfig)
-
     let edrProvider: EdrProvider;
 
     // We need to catch errors here, as the provider creation can panic unexpectedly,
