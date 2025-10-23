@@ -1,5 +1,12 @@
 # hardhat
 
+## 3.0.9
+
+### Patch Changes
+
+- 0ee442d: All test runners now set NODE_ENV to "test" in case it is not set before the tests start ([#7511](https://github.com/NomicFoundation/hardhat/issues/7511))
+- b27b924: Fix bug in flatten task where ordering was incorrect ([#7586](https://github.com/NomicFoundation/hardhat/issues/7586))
+
 ## 3.0.8
 
 ### Patch Changes
