@@ -313,11 +313,6 @@ export const ERROR_CATEGORIES: {
         max: 90099,
         websiteSubTitle: "General errors",
       },
-      VALIDATION: {
-        min: 90100,
-        max: 90199,
-        websiteSubTitle: "Validation errors",
-      },
     },
   },
 };
