@@ -21,6 +21,8 @@ declare module "hardhat/types/config" {
       gasPrice?: bigint;
       disableFeeBumping?: boolean;
       explorerUrl?: string;
+      maxRetries?: number;
+      retryInterval?: number;
     };
   }
 
@@ -31,6 +33,8 @@ declare module "hardhat/types/config" {
       gasPrice?: bigint;
       disableFeeBumping?: boolean;
       explorerUrl?: string;
+      maxRetries?: number;
+      retryInterval?: number;
     };
   }
 
@@ -41,6 +45,8 @@ declare module "hardhat/types/config" {
       gasPrice?: bigint;
       disableFeeBumping?: boolean;
       explorerUrl?: string;
+      maxRetries?: number;
+      retryInterval?: number;
     };
   }
 
@@ -51,6 +57,8 @@ declare module "hardhat/types/config" {
       gasPrice?: bigint;
       disableFeeBumping?: boolean;
       explorerUrl?: string;
+      maxRetries?: number;
+      retryInterval?: number;
     };
   }
 

@@ -33,6 +33,18 @@ export interface DeployConfig {
    * Disables fee bumping for all transactions.
    */
   disableFeeBumping: boolean;
+
+  /**
+   * The maximum number of times to retry a call to getTransactionReceipt
+   * when monitoring the status of a transaction.
+   */
+  maxRetries: number;
+
+  /**
+   * The interval, in milliseconds, between retries when calling
+   * getTransactionReceipt.
+   */
+  retryInterval: number;
 }
 
 /**

@@ -68,3 +68,11 @@ export interface StaticCall {
   from: string;
   result?: RawStaticCallResult;
 }
+
+/**
+ * Configuration for the retry loop when trying to fetch a transaction from the node.
+ */
+export interface GetTransactionRetryConfig {
+  maxRetries: number;
+  retryInterval: number;
+}
