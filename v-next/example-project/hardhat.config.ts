@@ -127,16 +127,6 @@ const pluginExample = {
 
 const config: HardhatUserConfig = {
   networks: {
-    hardhat: {
-      type: "edr-simulated",
-      chainType: "op",
-      chainId: 10,
-      hardfork: "isthmus",
-      forking: {
-        url: "https://mainnet.optimism.io",
-        blockNumber: 142849786,
-      },
-    },
     op: {
       type: "http",
       chainType: "op",
