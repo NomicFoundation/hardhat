@@ -27,6 +27,7 @@ import {
   filterVersionsByRange,
   resolveSupportedSolcVersions,
 } from "./solc-versions.js";
+import { Sourcify, SOURCIFY_PROVIDER_NAME } from "./sourcify.js";
 
 export interface VerifyContractArgs {
   address: string;
@@ -36,6 +37,8 @@ export interface VerifyContractArgs {
   contract?: string;
   force?: boolean;
   provider?: keyof VerificationProvidersConfig;
+  /** The hash of the contract creation transaction (optional, used by Sourcify) */
+  creationTxHash?: string;
 }
 
 /**
@@ -94,6 +97,7 @@ export async function verifyContract(
     libraries = {},
     contract,
     force = false,
+    creationTxHash,
   } = verifyContractArgs;
 
   const buildProfile = config.solidity.profiles[buildProfileName];
@@ -188,11 +192,15 @@ Explorer: ${instance.getContractUrl(address)}`);
     libraries,
   );
 
-  const encodedConstructorArgs = await encodeConstructorArgs(
-    contractInformation.compilerOutputContract.abi,
-    constructorArgs,
-    contractInformation.userFqn,
-  );
+  let encodedConstructorArgs: string | undefined;
+  // Don't throw on Sourcify if no constructor args are provided
+  if (verificationProviderName !== SOURCIFY_PROVIDER_NAME) {
+    encodedConstructorArgs = await encodeConstructorArgs(
+      contractInformation.compilerOutputContract.abi,
+      constructorArgs,
+      contractInformation.userFqn,
+    );
+  }
 
   const minimalCompilerInput = await getCompilerInput(
     solidity,
@@ -208,6 +216,7 @@ Explorer: ${instance.getContractUrl(address)}`);
         verificationProvider: instance,
         address,
         encodedConstructorArgs,
+        creationTxHash,
         contractInformation: {
           ...contractInformation,
           // Use the minimal compiler input for the first verification attempt
@@ -249,6 +258,7 @@ Unrelated contracts may be displayed on ${instance.name} as a result.
       verificationProvider: instance,
       address,
       encodedConstructorArgs,
+      creationTxHash,
       contractInformation: {
         ...contractInformation,
         compilerInput: {
@@ -294,7 +304,8 @@ ${libraryInformation.undetectableLibraries.map((x) => `  * ${x}`).join("\n")}`
 export function validateVerificationProviderName(provider: unknown): void {
   if (
     provider !== ETHERSCAN_PROVIDER_NAME &&
-    provider !== BLOCKSCOUT_PROVIDER_NAME
+    provider !== BLOCKSCOUT_PROVIDER_NAME &&
+    provider !== SOURCIFY_PROVIDER_NAME
   ) {
     throw new HardhatError(
       HardhatError.ERRORS.HARDHAT_VERIFY.VALIDATION.INVALID_VERIFICATION_PROVIDER,
@@ -303,6 +314,7 @@ export function validateVerificationProviderName(provider: unknown): void {
         supportedVerificationProviders: [
           ETHERSCAN_PROVIDER_NAME,
           BLOCKSCOUT_PROVIDER_NAME,
+          SOURCIFY_PROVIDER_NAME,
         ].join(", "),
       },
     );
@@ -349,6 +361,15 @@ async function createVerificationProviderInstance({
   dispatcher?: Dispatcher;
 }): Promise<VerificationProvider> {
   const chainId = await getChainId(provider);
+  if (verificationProviderName === "sourcify") {
+    return new Sourcify({
+      chainId,
+      url: verificationProvidersConfig.sourcify.repoUrl,
+      apiUrl: verificationProvidersConfig.sourcify.apiUrl,
+      dispatcher,
+    });
+  }
+
   const chainDescriptor = await getChainDescriptor(
     chainId,
     chainDescriptors,
@@ -387,11 +408,13 @@ async function attemptVerification(
     address,
     encodedConstructorArgs,
     contractInformation,
+    creationTxHash,
   }: {
     verificationProvider: VerificationProvider;
     address: string;
-    encodedConstructorArgs: string;
+    encodedConstructorArgs?: string;
     contractInformation: ContractInformation;
+    creationTxHash?: string;
   },
   consoleLog: (text: string) => void = console.log,
 ): Promise<{
@@ -400,10 +423,11 @@ async function attemptVerification(
 }> {
   const guid = await verificationProvider.verify(
     address,
-    JSON.stringify(contractInformation.compilerInput),
+    contractInformation.compilerInput,
     contractInformation.inputFqn,
     `v${contractInformation.solcLongVersion}`,
     encodedConstructorArgs,
+    creationTxHash,
   );
 
   consoleLog(`

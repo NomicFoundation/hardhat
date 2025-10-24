@@ -2,11 +2,12 @@ import type { LibraryAddresses } from "../../libraries.js";
 
 export interface VerifyActionArgs {
   address: string;
-  constructorArgs: string[];
+  constructorArgs?: string[];
   constructorArgsPath?: string;
   contract?: string;
   librariesPath?: string;
   force?: boolean;
+  creationTxHash?: string;
   // TODO: M5
   // listNetworks?: boolean;
 }
