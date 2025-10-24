@@ -363,10 +363,15 @@ export async function hardhatForkingConfigToEdrForkConfig(
  */
 export function edrGasReportToHardhatGasMeasurements(
   gasReport: GasReport,
+  excludedContractFqns: string[] = [],
 ): GasMeasurement[] {
   const gasMeasurements: GasMeasurement[] = [];
 
   for (const [contractFqn, data] of Object.entries(gasReport.contracts)) {
+    if (excludedContractFqns.includes(contractFqn)) {
+      continue;
+    }
+
     // Process deployments
     for (const deployment of data.deployments) {
       if (deployment.status === GasReportExecutionStatus.Success) {
