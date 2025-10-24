@@ -1,5 +1,22 @@
 # hardhat
 
+## 3.1.0
+
+### Minor Changes
+
+- 077f464: Upgraded EDR dependency to 0.12.0-next.10:
+  - Fixed gas calculation for EIP-7702 refunds
+  - Make all parameters of `eth_feeHistory` rpc call required
+  - Fixed various Isthmus hardfork errors
+
+### Patch Changes
+
+- 1ab6b75: Optimism ISTHMUS hardfork support added to Hardhat ([#7517](https://github.com/NomicFoundation/hardhat/issues/7517))
+- d1969e7: Added support for showing gas statistics after running nodejs tests ([#7472](https://github.com/NomicFoundation/hardhat/issues/7428)).
+- fe28daf: Added support for showing gas statistics after running solidity tests ([#7503](https://github.com/NomicFoundation/hardhat/issues/7503)).
+- bec6ee8: Improved coverage table formatting to match gas statistics table style ([#7518](https://github.com/NomicFoundation/hardhat/pull/7518))
+- 217a1a8: Fix arbitrum sepolia chain id in chain descriptors (thanks @aelmanaa!)
+
 ## 3.0.9
 
 ### Patch Changes
