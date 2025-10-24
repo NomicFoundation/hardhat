@@ -155,7 +155,7 @@ export const DEFAULT_CHAIN_DESCRIPTORS: ChainDescriptorsConfig = new Map([
   ],
   // arbitrum sepolia testnet
   [
-    42_170n,
+    421_614n,
     {
       name: "Arbitrum Sepolia",
       chainType: GENERIC_CHAIN_TYPE,
