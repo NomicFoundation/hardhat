@@ -139,9 +139,9 @@
     "stacktrace-parser": "^0.1.10",
     "tinyglobby": "^0.2.6",
     "tsort": "0.0.1",
-    "undici": "^5.14.0",
+    "undici": "^5.29.0",
     "uuid": "^8.3.2",
-    "ws": "^7.4.6"
+    "ws": "^8.17.1"
   },
   "peerDependencies": {
     "ts-node": "*",

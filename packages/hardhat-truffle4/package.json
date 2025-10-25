@@ -62,11 +62,11 @@
     "rimraf": "^3.0.2",
     "ts-node": "^10.8.0",
     "typescript": "~5.0.0",
-    "web3": "^0.20.0"
+    "web3": "^4.16.0"
   },
   "peerDependencies": {
     "@nomiclabs/hardhat-web3-legacy": "workspace:^2.0.0",
     "hardhat": "workspace:^2.6.4",
-    "web3": "^0.20.0"
+    "web3": "^4.16.0"
   }
 }

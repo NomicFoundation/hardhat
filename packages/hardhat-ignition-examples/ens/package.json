@@ -16,6 +16,6 @@
     "prettier-plugin-solidity": "1.1.3"
   },
   "dependencies": {
-    "@ensdomains/ens-contracts": "0.0.11"
+    "@ensdomains/ens-contracts": "0.0.22"
   }
 }

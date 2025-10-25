@@ -54,11 +54,11 @@
     "sha3": "^2.1.4",
     "ts-node": "^10.8.0",
     "typescript": "~5.0.0",
-    "web3": "^1.0.0-beta.36"
+    "web3": "^4.16.0"
   },
   "peerDependencies": {
     "hardhat": "workspace:^2.0.0",
-    "web3": "^1.0.0-beta.36"
+    "web3": "^4.16.0"
   },
   "dependencies": {}
 }
