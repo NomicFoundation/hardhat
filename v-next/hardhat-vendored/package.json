@@ -1,12 +1,12 @@
 {
-  "name": "@nomicfoundation/hardhat-vendors",
+  "name": "@nomicfoundation/hardhat-vendored",
   "version": "3.0.0",
   "description": "Internal dependencies used by Hardhat that have been vendored to prevent bloating the main package",
-  "homepage": "https://github.com/nomicfoundation/hardhat/tree/v-next/v-next/hardhat-vendors",
+  "homepage": "https://github.com/nomicfoundation/hardhat/tree/v-next/v-next/hardhat-vendored",
   "repository": {
     "type": "git",
     "url": "https://github.com/NomicFoundation/hardhat",
-    "directory": "v-next/hardhat-vendors"
+    "directory": "v-next/hardhat-vendored"
   },
   "author": "Nomic Foundation",
   "license": "MIT",

@@ -152,9 +152,9 @@ importers:
       '@nomicfoundation/hardhat-utils':
         specifier: workspace:^3.0.2
         version: link:../hardhat-utils
-      '@nomicfoundation/hardhat-vendors':
+      '@nomicfoundation/hardhat-vendored':
         specifier: workspace:^3.0.0
-        version: link:../hardhat-vendors
+        version: link:../hardhat-vendored
       '@nomicfoundation/hardhat-zod-utils':
         specifier: workspace:^3.0.1
         version: link:../hardhat-zod-utils
@@ -1380,7 +1380,7 @@ importers:
         specifier: ~5.8.0
         version: 5.8.3
 
-  v-next/hardhat-vendors:
+  v-next/hardhat-vendored:
     devDependencies:
       '@nomicfoundation/hardhat-node-test-reporter':
         specifier: workspace:^3.0.0
