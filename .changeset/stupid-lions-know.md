@@ -2,4 +2,4 @@
 "hardhat": patch
 ---
 
-warp solidity-files-cache.json reads in a try/catch so invalid JSON falls back to the default cache
+Ignore malformed solidity-files-cache so compilation keeps running while logging the issue in debug.

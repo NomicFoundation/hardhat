@@ -6,7 +6,6 @@ import fsExtra from "fs-extra";
 import * as t from "io-ts";
 import * as path from "path";
 
-import picocolors from "picocolors";
 import { SOLIDITY_FILES_CACHE_FILENAME } from "../../internal/constants";
 
 const log = debug("hardhat:core:tasks:compile:cache");
@@ -62,25 +61,23 @@ export class SolidityFilesCache {
 
     if (await fsExtra.pathExists(solidityFilesCachePath)) {
       try {
-        if ((await fsExtra.stat(solidityFilesCachePath)).isFile()) {
-          cacheRaw = await fsExtra.readJson(solidityFilesCachePath);
-        } else {
-          console.error(
-            picocolors.red(
-              `Hardhat couldn't read the solidity files cache at ${solidityFilesCachePath} because it's not a file. Please remove it.`
-            )
-          );
-        }
+        cacheRaw = await fsExtra.readJson(solidityFilesCachePath);
       } catch (error) {
-        if (!(error instanceof SyntaxError)) {
-          console.error(
-            picocolors.red(
-              `Hardhat couldn't read the solidity files cache at ${solidityFilesCachePath}: ${
-                (error as any)?.message ?? String(error)
-              }`
+        log(
+          "Failed to read solidity files cache at %s. Removing it. %O",
+          solidityFilesCachePath,
+          error
+        );
+
+        await fsExtra
+          .remove(solidityFilesCachePath)
+          .catch((removalError) =>
+            log(
+              "Failed to remove invalid solidity files cache at %s: %O",
+              solidityFilesCachePath,
+              removalError
             )
           );
-        }
       }
     }
 
