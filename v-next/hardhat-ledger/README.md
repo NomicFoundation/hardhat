@@ -1,4 +1,4 @@
-# Overview
+# Hardhat Ledger plugin
 
 This plugin allows Hardhat to integrate seamlessly with a connected [Ledger wallet](https://www.ledger.com/).
 
