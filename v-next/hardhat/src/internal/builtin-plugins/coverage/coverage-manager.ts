@@ -5,7 +5,7 @@ import type {
   Statement,
   Tag,
 } from "./types.js";
-import type { FileCoverageData } from "@nomicfoundation/hardhat-vendors/coverage/types";
+import type { FileCoverageData } from "@nomicfoundation/hardhat-vendored/coverage/types";
 
 import path from "node:path";
 
@@ -15,7 +15,6 @@ import {
   getAllFilesMatching,
   mkdir,
   readJsonFile,
-  readUtf8File,
   remove,
   writeJsonFile,
   writeUtf8File,
@@ -24,7 +23,7 @@ import {
   libCoverage,
   libReport,
   reports,
-} from "@nomicfoundation/hardhat-vendors/coverage";
+} from "@nomicfoundation/hardhat-vendored/coverage";
 import debug from "debug";
 
 const log = debug("hardhat:core:coverage:coverage-manager");
@@ -573,43 +572,32 @@ export class CoverageManagerImplementation implements CoverageManager {
     for (const [p, fileCoverageInput] of Object.entries(report)) {
       const testedFilePath = path.isAbsolute(p) ? p : path.join(baseDir, p);
 
-      const sourceLines = (await readUtf8File(testedFilePath)).split(/\r?\n/);
-
-      // Build the set of line candidates we want to color
-      const linesToColor = Array.from(
-        new Set<number>([
-          ...fileCoverageInput.lineExecutionCounts.keys(),
-          ...fileCoverageInput.unexecutedLines,
-        ]),
-      );
-
-      const statementMap: FileCoverageData["statementMap"] = {};
-      const s: FileCoverageData["s"] = {};
-
-      for (const lineNo of linesToColor) {
-        const id = `${lineNo}`;
-        const endCol = sourceLines[lineNo - 1]?.length ?? 0;
-
-        statementMap[id] = {
-          start: { line: lineNo, column: 0 },
-          end: { line: lineNo, column: endCol },
-        };
-
-        const hits = fileCoverageInput.lineExecutionCounts.get(lineNo) ?? 0;
-        s[id] = hits > 0 ? 1 : 0; // green if hit, red if not
-      }
-
-      const fileCoverage: FileCoverageData = {
+      const fc: FileCoverageData = {
         path: testedFilePath,
-        statementMap,
-        s,
-        fnMap: {},
-        f: {},
+        statementMap: {},
+        fnMap: {}, // Cannot be derived from current report data
         branchMap: {},
+        s: {},
+        f: {}, // Cannot be derived from current report data
         b: {},
       };
 
-      coverageMap.addFileCoverage(fileCoverage);
+      for (const [line, count] of fileCoverageInput.lineExecutionCounts) {
+        fc.statementMap[line] = {
+          start: { line, column: 0 },
+          end: { line, column: 0 },
+        };
+
+        if (fileCoverageInput.partiallyExecutedLines.has(line)) {
+          fc.s[line] = 0; // mark as not covered
+          continue;
+        }
+
+        // TODO: bug line count
+        fc.s[line] = count > 0 ? 1 : 0; // mark as covered if hit at least once
+      }
+
+      coverageMap.addFileCoverage(fc);
     }
 
     await mkdir(htmlReportPath);
