@@ -14,7 +14,7 @@ await copyFolder(
   path.resolve(
     process.cwd(),
     "src",
-    "coverage",
+    "coverage-module",
     "istanbul-reports",
     "lib",
     "html",
@@ -24,7 +24,7 @@ await copyFolder(
     process.cwd(),
     "dist",
     "src",
-    "coverage",
+    "coverage-module",
     "istanbul-reports",
     "lib",
     "html",
