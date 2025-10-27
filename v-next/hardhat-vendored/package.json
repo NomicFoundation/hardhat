@@ -12,8 +12,8 @@
   "license": "MIT",
   "type": "module",
   "exports": {
-    "./coverage": "./dist/src/coverage/index.js",
-    "./coverage/types": "./dist/src/coverage/types.js"
+    "./coverage": "./dist/src/coverage-module/index.js",
+    "./coverage/types": "./dist/src/coverage-module/types.js"
   },
   "keywords": [
     "hardhat"
