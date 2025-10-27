@@ -75,7 +75,7 @@
     "@nomicfoundation/hardhat-test-utils": "workspace:^",
     "@types/adm-zip": "^0.5.5",
     "@types/debug": "^4.1.7",
-    "@types/node": "^20.14.9",
+    "@types/node": "^22.0.0",
     "@types/semver": "^7.5.8",
     "@types/ws": "^8.5.13",
     "c8": "^9.1.0",

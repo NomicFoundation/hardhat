@@ -56,6 +56,7 @@ export async function* testReporter(
   source: TestEventSource,
   sourceNameToUserSourceName: Map<string, string>,
   verbosity: number,
+  testSummaryIndex: number = 0,
   colorizer: Colorizer = chalk,
 ): TestReporterResult {
   let runSuccessCount = 0;
@@ -218,12 +219,17 @@ export async function* testReporter(
 
   yield "\n";
   yield "\n";
-  yield indenter.t`${colorizer.green(`${runSuccessCount} passing`)}\n`;
-  if (runFailureCount > 0) {
-    yield indenter.t`${colorizer.red(`${runFailureCount} failing`)}\n`;
-  }
-  if (runSkippedCount > 0) {
-    yield indenter.t`${colorizer.cyan(`${runSkippedCount} skipped`)}\n`;
+
+  // testSummaryIndex of 0 means task is being run directly, so summary is handled here
+  // and not by the parent `test` task.
+  if (testSummaryIndex === 0) {
+    yield indenter.t`${colorizer.green(`${runSuccessCount} passing`)}\n`;
+    if (runFailureCount > 0) {
+      yield indenter.t`${colorizer.red(`${runFailureCount} failing`)}\n`;
+    }
+    if (runSkippedCount > 0) {
+      yield indenter.t`${colorizer.cyan(`${runSkippedCount} skipped`)}\n`;
+    }
   }
 
   const failuresByArtifactId = new Map<string, TestResult[]>();
@@ -234,26 +240,35 @@ export async function* testReporter(
     failuresByArtifactId.set(formattedArtifactId, artifactFailures);
   }
 
+  let failureOutput = "";
   let failureIndex = 1;
   if (failures.length > 0) {
-    yield "\n";
+    function* output(str: string): Generator<string> {
+      if (testSummaryIndex === 0) {
+        yield str;
+      } else {
+        failureOutput += str;
+      }
+    }
+
+    yield* output("\n");
     let firstSuiteWithFailures = true;
     for (const [artifactId, artifactFailures] of failuresByArtifactId) {
       if (!firstSuiteWithFailures) {
-        yield "\n";
+        yield* output("\n");
       }
       firstSuiteWithFailures = false;
 
-      yield indenter.t`${artifactId}\n`;
+      yield* output(indenter.t`${artifactId}\n`);
       indenter.inc();
       let firstFailure = true;
       for (const failure of artifactFailures) {
         if (!firstFailure) {
-          yield "\n";
+          yield* output("\n");
         }
         firstFailure = false;
 
-        yield indenter.t`${failureIndex}) ${failure.name}\n`;
+        yield* output(indenter.t`${failureIndex}) ${failure.name}\n`);
         failureIndex++;
 
         indenter.inc();
@@ -270,7 +285,7 @@ export async function* testReporter(
               ? "FFI is disabled; set `test.solidity.ffi` to `true` in your Hardhat config to allow tests to call external commands"
               : failure.reason ?? "Unknown error";
         }
-        yield indenter.t`${colorizer.red(`Error: ${reason}`)}\n`;
+        yield* output(indenter.t`${colorizer.red(`Error: ${reason}`)}\n`);
         // eslint-disable-next-line @typescript-eslint/switch-exhaustiveness-check -- Ignore Cases not matched: undefined
         switch (stackTrace?.kind) {
           case "StackTrace":
@@ -284,9 +299,9 @@ export async function* testReporter(
               }
             }
             if (stackTraceStack.length > 0) {
-              yield `${colorizer.grey(stackTraceStack.join("\n"))}\n`;
+              yield* output(`${colorizer.grey(stackTraceStack.join("\n"))}\n`);
             }
-            yield "\n";
+            yield* output("\n");
             break;
           case "UnexpectedError":
             await sendErrorTelemetry(
@@ -294,14 +309,20 @@ export async function* testReporter(
                 stackTrace.errorMessage,
               ),
             );
-            yield indenter.t`Stack Trace Warning: ${colorizer.grey(stackTrace.errorMessage)}\n`;
+            yield* output(
+              indenter.t`Stack Trace Warning: ${colorizer.grey(stackTrace.errorMessage)}\n`,
+            );
             break;
           case "UnsafeToReplay":
             if (stackTrace.globalForkLatest === true) {
-              yield indenter.t`Stack Trace Warning: ${colorizer.grey("The test is not safe to replay because a fork url without a fork block number was provided.")}\n`;
+              yield* output(
+                indenter.t`Stack Trace Warning: ${colorizer.grey("The test is not safe to replay because a fork url without a fork block number was provided.")}\n`,
+              );
             }
             if (stackTrace.impureCheatcodes.length > 0) {
-              yield indenter.t`Stack Trace Warning: ${colorizer.grey(`The test is not safe to replay because it uses impure cheatcodes: ${stackTrace.impureCheatcodes.join(", ")}`)}\n`;
+              yield* output(
+                indenter.t`Stack Trace Warning: ${colorizer.grey(`The test is not safe to replay because it uses impure cheatcodes: ${stackTrace.impureCheatcodes.join(", ")}`)}\n`,
+              );
             }
             break;
           case "HeuristicFailed":
@@ -317,11 +338,13 @@ export async function* testReporter(
               ? failure.counterexample.sequence
               : [failure.counterexample];
           for (const counterexample of counterexamples) {
-            yield indenter.t`Counterexample:\n`;
+            yield* output(indenter.t`Counterexample:\n`);
             indenter.inc();
             for (const [key, value] of Object.entries(counterexample)) {
               const counterExampleDetails = `${key}: ${Buffer.isBuffer(value) ? bytesToHexString(value) : value}`;
-              yield indenter.t`${colorizer.grey(counterExampleDetails)}\n`;
+              yield* output(
+                indenter.t`${colorizer.grey(counterExampleDetails)}\n`,
+              );
             }
             indenter.dec();
           }
@@ -330,5 +353,14 @@ export async function* testReporter(
       }
       indenter.dec();
     }
+  }
+
+  if (testSummaryIndex > 0) {
+    yield {
+      failed: runFailureCount,
+      passed: runSuccessCount,
+      skipped: runSkippedCount,
+      failureOutput,
+    };
   }
 }

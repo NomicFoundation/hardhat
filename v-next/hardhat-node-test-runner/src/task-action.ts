@@ -9,10 +9,7 @@ import { URL } from "node:url";
 import { hardhatTestReporter } from "@nomicfoundation/hardhat-node-test-reporter";
 import { setGlobalOptionsAsEnvVariables } from "@nomicfoundation/hardhat-utils/env";
 import { getAllFilesMatching } from "@nomicfoundation/hardhat-utils/fs";
-import {
-  createNonClosingWriter,
-  StringWritable,
-} from "@nomicfoundation/hardhat-utils/stream";
+import { createNonClosingWriter } from "@nomicfoundation/hardhat-utils/stream";
 import { markTestRunStart, markTestRunDone } from "hardhat/internal/coverage";
 
 interface TestActionArguments {
@@ -20,7 +17,7 @@ interface TestActionArguments {
   only: boolean;
   grep?: string;
   noCompile: boolean;
-  summaryEnabled: boolean;
+  testSummaryIndex: number;
 }
 
 function isTypescriptFile(path: string): boolean {
@@ -58,7 +55,7 @@ async function getTestFiles(
  * Note that we are testing this manually for now as you can't run a node:test within a node:test
  */
 const testWithHardhat: NewTaskActionFunction<TestActionArguments> = async (
-  { testFiles, only, grep, noCompile, summaryEnabled },
+  { testFiles, only, grep, noCompile, testSummaryIndex },
   hre,
 ) => {
   // Set an environment variable that plugins can use to detect when a process is running tests
@@ -93,9 +90,13 @@ const testWithHardhat: NewTaskActionFunction<TestActionArguments> = async (
     .map((href) => `--import "${href}"`)
     .join(" ");
 
-  async function runTests(): Promise<{ failures: number; output?: string }> {
-    let failures = 0;
-
+  async function runTests(): Promise<{
+    failed: number;
+    passed: number;
+    skipped: number;
+    todo: number;
+    failureOutput: string;
+  }> {
     const nodeTestOptions: LastParameter<typeof run> = {
       files,
       only,
@@ -110,10 +111,17 @@ const testWithHardhat: NewTaskActionFunction<TestActionArguments> = async (
       "'only' and 'runOnly' require the --only command-line option.";
     const customReporter = hardhatTestReporter(nodeTestOptions, {
       testOnlyMessage,
+      testSummaryIndex,
     });
 
     console.log("Running node:test tests");
     console.log();
+
+    let failed = 0;
+    let passed = 0;
+    let skipped = 0;
+    let todo = 0;
+    let failureOutput = "";
 
     const reporterStream = run(nodeTestOptions)
       .on("test:fail", (event) => {
@@ -125,20 +133,39 @@ const testWithHardhat: NewTaskActionFunction<TestActionArguments> = async (
           }
         }
 
-        failures++;
+        failed++;
       })
-      .compose(customReporter);
+      .on("test:summary", ({ counts }) => {
+        passed = counts.passed;
+        skipped = counts.skipped;
+        todo = counts.todo;
+      })
+      .compose(async function* (source) {
+        const reporter = customReporter(source);
 
-    const outputStream = summaryEnabled
-      ? new StringWritable()
-      : createNonClosingWriter(process.stdout);
+        for await (const value of reporter) {
+          if (typeof value === "string") {
+            yield value;
+          } else {
+            failed = value.failed;
+            passed = value.passed;
+            skipped = value.skipped;
+            todo = value.todo;
+            failureOutput = value.failureOutput;
+          }
+        }
+      });
+
+    const outputStream = createNonClosingWriter(process.stdout);
 
     await pipeline(reporterStream, outputStream);
 
     return {
-      failures,
-      output:
-        outputStream instanceof StringWritable ? outputStream.data : undefined,
+      failed,
+      passed,
+      skipped,
+      todo,
+      failureOutput,
     };
   }
 
@@ -149,13 +176,13 @@ const testWithHardhat: NewTaskActionFunction<TestActionArguments> = async (
   // NOTE: This might print a coverage report.
   await markTestRunDone("nodejs");
 
-  if (testResults.failures > 0) {
+  if (testResults.failed > 0) {
     process.exitCode = 1;
   }
 
   console.log();
 
-  return testResults.output;
+  return testResults;
 };
 
 export default testWithHardhat;

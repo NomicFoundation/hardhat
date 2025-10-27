@@ -9,6 +9,7 @@ import {
   assertHardhatInvariant,
   HardhatError,
 } from "@nomicfoundation/hardhat-errors";
+import chalk, { type ChalkInstance } from "chalk";
 
 import { HardhatRuntimeEnvironmentImplementation } from "../../core/hre.js";
 
@@ -47,7 +48,16 @@ const runAllTests: NewTaskActionFunction<TestActionArguments> = async (
     hre._coverage.disableReport();
   }
 
-  const testSummaries: Record<string, string> = {};
+  const testSummaries: Record<
+    string,
+    {
+      failed: number;
+      passed: number;
+      skipped: number;
+      todo: number;
+      failureOutput: string;
+    }
+  > = {};
 
   for (const subtask of thisTask.subtasks.values()) {
     const files = getTestFilesForSubtask(subtask, testFiles, subtasksToFiles);
@@ -72,19 +82,64 @@ const runAllTests: NewTaskActionFunction<TestActionArguments> = async (
       args.verbosity = verbosity;
     }
 
-    if (subtask.options.has("summaryEnabled")) {
-      args.summaryEnabled = true;
+    if (subtask.options.has("testSummaryIndex")) {
+      // todo: this should be updated to support cross-runner indices in the future
+      args.testSummaryIndex = 1;
     }
 
     testSummaries[subtask.id.join("-")] = await subtask.run(args);
   }
 
-  for (const [subtaskName, summary] of Object.entries(testSummaries)) {
-    console.log(`=== Summary for ${subtaskName} ===`);
-    console.log();
-    console.log(summary);
+  const passed: Array<[string, number]> = [];
+  const failed: Array<[string, number]> = [];
+  const skipped: Array<[string, number]> = [];
+  const todo: Array<[string, number]> = [];
+  const outputLines: string[] = [];
+
+  for (const [subtaskName, results] of Object.entries(testSummaries)) {
+    if (results.passed > 0) {
+      passed.push([subtaskName, results.passed]);
+    }
+
+    if (results.failed > 0) {
+      failed.push([subtaskName, results.failed]);
+    }
+
+    if (results.skipped > 0) {
+      skipped.push([subtaskName, results.skipped]);
+    }
+
+    if (results.todo > 0) {
+      todo.push([subtaskName, results.todo]);
+    }
+
+    if (results.failureOutput !== "") {
+      outputLines.push(results.failureOutput);
+    }
+  }
+
+  if (passed.length > 0) {
+    logSummaryLine("passing", passed, chalk.green);
+  }
+
+  if (failed.length > 0) {
+    logSummaryLine("failing", failed, chalk.red);
+  }
+
+  if (skipped.length > 0) {
+    logSummaryLine("skipped", skipped, chalk.cyan);
+  }
+
+  if (todo.length > 0) {
+    logSummaryLine("todo", todo, chalk.blue);
+  }
+
+  if (outputLines.length > 0) {
+    console.log(outputLines.join("\n"));
     console.log();
   }
+
+  console.log();
 
   if (hre.globalOptions.coverage === true) {
     assertHardhatInvariant(
@@ -101,6 +156,22 @@ const runAllTests: NewTaskActionFunction<TestActionArguments> = async (
     console.error("Test run failed");
   }
 };
+
+function logSummaryLine(
+  label: string,
+  items: Array<[string, number]>,
+  color: ChalkInstance = chalk.white,
+): void {
+  let total = 0;
+  const todoStr = items
+    .map(([name, count]) => {
+      total += count;
+      return `${count} ${name}`;
+    })
+    .join(", ");
+
+  console.log(`${color(`${total} ${label}`)} (${todoStr})`);
+}
 
 async function registerTestRunnersForFiles(
   testFiles: string[],

@@ -34,6 +34,7 @@ export const SLOW_TEST_THRESHOLD = 75;
 
 export interface HardhatTestReporterConfig {
   testOnlyMessage?: string;
+  testSummaryIndex: number;
 }
 
 /**
@@ -57,7 +58,9 @@ export default customReporter;
 
 export function hardhatTestReporter(
   options: TestRunOptions,
-  config: HardhatTestReporterConfig = {},
+  config: HardhatTestReporterConfig = {
+    testSummaryIndex: 0,
+  },
 ): TestReporter {
   return async function* (source: TestEventSource): TestReporterResult {
     /**
@@ -312,19 +315,36 @@ export function hardhatTestReporter(
     globalDiagnostics.tests -= topLevelFilePassCount;
     globalDiagnostics.pass -= topLevelFilePassCount;
 
-    yield "\n";
-    yield formatGlobalDiagnostics(globalDiagnostics);
-
-    if (unusedDiagnostics.length > 0) {
+    // testSummaryIndex of 0 means task is being run directly, so summary is handled here
+    // and not by the parent `test` task.
+    if (config.testSummaryIndex === 0) {
       yield "\n";
-      yield formatUnusedDiagnostics(unusedDiagnostics, config.testOnlyMessage);
+      yield formatGlobalDiagnostics(globalDiagnostics);
+
+      if (unusedDiagnostics.length > 0) {
+        yield "\n";
+        yield formatUnusedDiagnostics(
+          unusedDiagnostics,
+          config.testOnlyMessage,
+        );
+      }
     }
 
     yield "\n\n";
 
-    for (const reason of preFormattedFailureReasons) {
-      yield reason;
-      yield "\n\n";
+    if (config.testSummaryIndex === 0) {
+      for (const reason of preFormattedFailureReasons) {
+        yield reason;
+        yield "\n\n";
+      }
+    } else {
+      yield {
+        failed: globalDiagnostics.fail,
+        passed: globalDiagnostics.pass,
+        skipped: globalDiagnostics.skipped,
+        todo: globalDiagnostics.todo,
+        failureOutput: preFormattedFailureReasons.join("\n\n"),
+      };
     }
   };
 }
