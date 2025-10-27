@@ -47,9 +47,11 @@ async function arrayifiedTestReporter(
 ): Promise<string[]> {
   const source = arrayAsAsyncGenerator(arraySource);
   const result: string[] = [];
-  const reporter = testReporter(source, new Map(), verbosity, colorizer);
+  const reporter = testReporter(source, new Map(), verbosity, 0, colorizer);
   for await (const message of reporter) {
-    result.push(message);
+    if (typeof message === "string") {
+      result.push(message);
+    }
   }
   return result;
 }

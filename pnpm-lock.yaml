@@ -217,8 +217,8 @@ importers:
         specifier: ^4.1.7
         version: 4.1.12
       '@types/node':
-        specifier: ^20.14.9
-        version: 20.19.18
+        specifier: ^22.0.0
+        version: 22.18.7
       '@types/semver':
         specifier: ^7.5.8
         version: 7.7.1
@@ -1127,8 +1127,8 @@ importers:
         specifier: workspace:^
         version: link:../hardhat-test-utils
       '@types/node':
-        specifier: ^20.14.9
-        version: 20.19.18
+        specifier: ^22.0.0
+        version: 22.18.7
       c8:
         specifier: ^9.1.0
         version: 9.1.0
@@ -7114,7 +7114,7 @@ snapshots:
 
   '@types/adm-zip@0.5.7':
     dependencies:
-      '@types/node': 20.19.18
+      '@types/node': 22.18.7
 
   '@types/argparse@1.0.38': {}
 
@@ -7197,7 +7197,7 @@ snapshots:
 
   '@types/ndjson@2.0.1':
     dependencies:
-      '@types/node': 20.19.18
+      '@types/node': 22.18.7
       '@types/through': 0.0.33
 
   '@types/node@12.20.55': {}
@@ -7218,7 +7218,7 @@ snapshots:
 
   '@types/prompts@2.4.9':
     dependencies:
-      '@types/node': 20.19.18
+      '@types/node': 22.18.7
       kleur: 3.0.3
 
   '@types/prop-types@15.7.15': {}
@@ -7256,7 +7256,7 @@ snapshots:
 
   '@types/ws@8.18.1':
     dependencies:
-      '@types/node': 20.19.18
+      '@types/node': 22.18.7
 
   '@typescript-eslint/eslint-plugin@8.37.0(@typescript-eslint/parser@8.37.0(eslint@9.25.1)(typescript@5.8.3))(eslint@9.25.1)(typescript@5.8.3)':
     dependencies:
