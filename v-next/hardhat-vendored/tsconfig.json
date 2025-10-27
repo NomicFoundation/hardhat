@@ -4,6 +4,5 @@
     "isolatedDeclarations": false,
     "allowJs": true
   },
-  "include": ["src/**/*.js", "src/**/*.cjs", "src/**/*.ts"],
-  "references": []
+  "include": ["src/**/*.js", "src/**/*.cjs", "src/**/*.ts"]
 }
