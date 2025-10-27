@@ -108,6 +108,8 @@ export function hardhatTestReporter(
     const diagnostics: Array<TestEventData["test:diagnostic"]> = [];
 
     const preFormattedFailureReasons: string[] = [];
+    let failureIndex =
+      config.testSummaryIndex === 0 ? 1 : config.testSummaryIndex;
 
     let topLevelFilePassCount = 0;
 
@@ -138,7 +140,7 @@ export function hardhatTestReporter(
             if (event.type === "test:fail") {
               if (!isSubtestFailedError(event.data.details.error)) {
                 const failure: Failure = {
-                  index: preFormattedFailureReasons.length,
+                  index: failureIndex,
                   testFail: event.data,
                   contextStack: stack,
                 };
@@ -146,6 +148,7 @@ export function hardhatTestReporter(
                 // We format the failure reason and store it in an array, so that we
                 // can output it at the end.
                 preFormattedFailureReasons.push(formatFailureReason(failure));
+                failureIndex++;
 
                 await annotatePR(event.data);
 
@@ -243,7 +246,7 @@ export function hardhatTestReporter(
               const failure: Failure = {
                 // We use the index of the pre-formatted failure reasons, as the
                 // cancelled by parent error should be the next one on the stack
-                index: preFormattedFailureReasons.length,
+                index: failureIndex,
                 testFail: event.data,
                 contextStack: stack,
               };
@@ -251,7 +254,7 @@ export function hardhatTestReporter(
               yield formatTestCancelledByParentFailure(failure);
             } else {
               const failure: Failure = {
-                index: preFormattedFailureReasons.length,
+                index: failureIndex,
                 testFail: event.data,
                 contextStack: stack,
               };
@@ -259,6 +262,7 @@ export function hardhatTestReporter(
               // We format the failure reason and store it in an array, so that we
               // can output it at the end.
               preFormattedFailureReasons.push(formatFailureReason(failure));
+              failureIndex++;
 
               await annotatePR(event.data);
 

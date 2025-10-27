@@ -60,7 +60,7 @@ export async function* testReporter(
   colorizer: Colorizer = chalk,
 ): TestReporterResult {
   let runSuccessCount = 0;
-  let runFailureCount = 0;
+  let runFailureCount = testSummaryIndex === 0 ? 1 : testSummaryIndex;
   let runSkippedCount = 0;
 
   const failures: Array<{
@@ -153,8 +153,8 @@ export async function* testReporter(
             }
             case "Failure": {
               failures.push({ testResult, formattedArtifactId });
-              runFailureCount++;
               yield indenter.t`${colorizer.red(`${runFailureCount}) ${name}`)}\n`;
+              runFailureCount++;
               if (verbosity >= 3) {
                 printExecutionTraces = true;
               }
@@ -225,7 +225,7 @@ export async function* testReporter(
   if (testSummaryIndex === 0) {
     yield indenter.t`${colorizer.green(`${runSuccessCount} passing`)}\n`;
     if (runFailureCount > 0) {
-      yield indenter.t`${colorizer.red(`${runFailureCount} failing`)}\n`;
+      yield indenter.t`${colorizer.red(`${failures.length} failing`)}\n`;
     }
     if (runSkippedCount > 0) {
       yield indenter.t`${colorizer.cyan(`${runSkippedCount} skipped`)}\n`;
@@ -357,7 +357,7 @@ export async function* testReporter(
 
   if (testSummaryIndex > 0) {
     yield {
-      failed: runFailureCount,
+      failed: failures.length,
       passed: runSuccessCount,
       skipped: runSkippedCount,
       failureOutput,

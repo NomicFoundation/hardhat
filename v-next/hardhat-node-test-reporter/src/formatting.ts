@@ -144,7 +144,7 @@ export function formatUnusedDiagnostics(
 }
 
 function formatFailureIndex(index: number): string {
-  return (index + 1).toString();
+  return index.toString();
 }
 
 function nestingToIndentationLength(nesting: number): number {

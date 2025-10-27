@@ -59,6 +59,7 @@ const runAllTests: NewTaskActionFunction<TestActionArguments> = async (
     }
   > = {};
 
+  let failureIndex = 1;
   for (const subtask of thisTask.subtasks.values()) {
     const files = getTestFilesForSubtask(subtask, testFiles, subtasksToFiles);
 
@@ -83,11 +84,15 @@ const runAllTests: NewTaskActionFunction<TestActionArguments> = async (
     }
 
     if (subtask.options.has("testSummaryIndex")) {
-      // todo: this should be updated to support cross-runner indices in the future
-      args.testSummaryIndex = 1;
-    }
+      args.testSummaryIndex = failureIndex;
 
-    testSummaries[subtask.id.join("-")] = await subtask.run(args);
+      const summaryId = subtask.id.join("-");
+
+      testSummaries[summaryId] = await subtask.run(args);
+      failureIndex += testSummaries[summaryId].failed ?? 0;
+    } else {
+      await subtask.run(args);
+    }
   }
 
   const passed: Array<[string, number]> = [];
