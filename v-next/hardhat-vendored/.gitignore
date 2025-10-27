@@ -12,3 +12,8 @@ coverage
 
 # all the tmp folders in the fixture projects
 /test/fixture-projects/tmp/
+
+!*.js
+!*.cjs
+!*.css
+!*.png
