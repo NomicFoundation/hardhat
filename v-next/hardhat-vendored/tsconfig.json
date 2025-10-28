@@ -1,8 +1,13 @@
 {
   "extends": "../config/tsconfig.base.json",
   "compilerOptions": {
+    "allowJs": true,
     "isolatedDeclarations": false,
-    "allowJs": true
+    "skipDefaultLibCheck": true,
+    "sourceMap": true,
+    "composite": true,
+    "incremental": true,
+    "typeRoots": ["${configDir}/node_modules/@types"]
   },
   "include": ["src/**/*.js", "src/**/*.cjs", "src/**/*.ts"]
 }
