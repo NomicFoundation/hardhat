@@ -63,7 +63,6 @@
   "files": [
     "dist/src/",
     "src/",
-    "assets/",
     "templates/",
     "console.sol",
     "coverage.sol",
