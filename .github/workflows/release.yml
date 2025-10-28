@@ -234,7 +234,7 @@ jobs:
             
             echo "Publishing $filename"
             # We can switch to pnpm publish when pnpm supports Trusted publishing
-            npm publish $filename --tag v2 --access public
+            npm publish $filename --tag hh2 --access public
           done
 
   tag:
