@@ -1,5 +1,34 @@
 # hardhat
 
+## 3.0.9
+
+### Patch Changes
+
+- 0ee442d: All test runners now set NODE_ENV to "test" in case it is not set before the tests start ([#7511](https://github.com/NomicFoundation/hardhat/issues/7511))
+- b27b924: Fix bug in flatten task where ordering was incorrect ([#7586](https://github.com/NomicFoundation/hardhat/issues/7586))
+
+## 3.0.8
+
+### Patch Changes
+
+- d2c9a7f: Don't swallow the original error when trying to improve installation error messages ([#7569](https://github.com/NomicFoundation/hardhat/pull/7569))
+- ec50793: Validate `initialBaseFeePerGas` against hardfork only for L1 chain type ([#6181](https://github.com/NomicFoundation/hardhat/issues/6181))
+
+## 3.0.7
+
+### Patch Changes
+
+- 138d673: Added `network.createServer(...)` to spawn a Hardhat node programmatically ([#6472](https://github.com/NomicFoundation/hardhat/issues/6472))
+- d414eda: Added support for conditional dependencies on plugins ([#7424](https://github.com/NomicFoundation/hardhat/issues/7424))
+- 138d673: Added support for compiling solidity tests separately from contracts ([#6474](https://github.com/NomicFoundation/hardhat/issues/6474))
+- e17972f: Added `hre.versions` with Hardhat and EDR package versions.
+- 34add2d: Added configVariable support for test.solidity.forking config
+- b13620a: Added compilation progress spinner to show build progress ([#7460](https://github.com/NomicFoundation/hardhat/pull/7460))
+- 4c65d3e: Automatically add compilation results to a running `npx hardhat node` on recompilation ([#6040](https://github.com/NomicFoundation/hardhat/issues/6040))
+- 138d673: Updated EDR to version [`0.12.0-next.7`](https://www.npmjs.com/package/@nomicfoundation/edr/v/0.12.0-next.7)
+- d821a0a: Fixed npm artifact cleanup on windows ([#7459](https://github.com/NomicFoundation/hardhat/issues/7459))
+- 138d673: Fixed creation of network connections to include config extensions from plugins ([#7106](https://github.com/NomicFoundation/hardhat/pull/7106))
+
 ## 3.0.6
 
 ### Patch Changes

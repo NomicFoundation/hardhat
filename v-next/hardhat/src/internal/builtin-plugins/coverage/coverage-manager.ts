@@ -5,11 +5,13 @@ import type {
   Statement,
   Tag,
 } from "./types.js";
+import type { TableItem } from "@nomicfoundation/hardhat-utils/format";
 import type { FileCoverageData } from "@nomicfoundation/hardhat-vendored/coverage/types";
 
 import path from "node:path";
 
 import { assertHardhatInvariant } from "@nomicfoundation/hardhat-errors";
+import { divider, formatTable } from "@nomicfoundation/hardhat-utils/format";
 import {
   ensureDir,
   getAllFilesMatching,
@@ -24,6 +26,7 @@ import {
   libReport,
   reports,
 } from "@nomicfoundation/hardhat-vendored/coverage";
+import chalk from "chalk";
 import debug from "debug";
 
 const log = debug("hardhat:core:coverage:coverage-manager");
@@ -33,7 +36,9 @@ const MAX_COLUMN_WIDTH = 80;
 type Line = number;
 type Branch = [Line, Tag];
 
-// NOTE: This is exposed for testing only
+/**
+ * @private exposed for testing purposes only
+ */
 export interface Report {
   [relativePath: string]: {
     tagExecutionCounts: Map<Tag, number>;
@@ -50,8 +55,13 @@ export interface Report {
 }
 
 export class CoverageManagerImplementation implements CoverageManager {
-  // NOTE: These are exposed for testing only
+  /**
+   * @private exposed for testing purposes only
+   */
   public metadata: CoverageMetadata = [];
+  /**
+   * @private exposed for testing purposes only
+   */
   public data: CoverageData = [];
 
   readonly #coveragePath: string;
@@ -121,6 +131,7 @@ export class CoverageManagerImplementation implements CoverageManager {
     console.log(`Saved html report to ${htmlReportPath}`);
 
     console.log(markdownReport);
+    console.log();
     log("Printed markdown report");
   }
 
@@ -132,7 +143,9 @@ export class CoverageManagerImplementation implements CoverageManager {
     this.#reportEnabled = false;
   }
 
-  // NOTE: This is exposed for testing only
+  /**
+   * @private exposed for testing purposes only
+   */
   public async loadData(...ids: string[]): Promise<void> {
     this.data = [];
     for (const id of ids) {
@@ -148,7 +161,9 @@ export class CoverageManagerImplementation implements CoverageManager {
     }
   }
 
-  // NOTE: This is exposed for testing only
+  /**
+   * @private exposed for testing purposes only
+   */
   public getReport(): Report {
     const report: Report = {};
 
@@ -288,7 +303,9 @@ export class CoverageManagerImplementation implements CoverageManager {
     return report;
   }
 
-  // NOTE: This is exposed for testing only
+  /**
+   * @private exposed for testing purposes only
+   */
   public formatLcovReport(report: Report): string {
     // NOTE: Format follows the guidelines set out in:
     // https://github.com/linux-test-project/lcov/blob/df03ba434eee724bfc2b27716f794d0122951404/man/geninfo.1#L1409
@@ -359,7 +376,9 @@ export class CoverageManagerImplementation implements CoverageManager {
     return lcov;
   }
 
-  // NOTE: This is exposed for testing only
+  /**
+   * @private exposed for testing purposes only
+   */
   public formatRelativePath(relativePath: string): string {
     if (relativePath.length <= MAX_COLUMN_WIDTH) {
       return relativePath;
@@ -393,12 +412,16 @@ export class CoverageManagerImplementation implements CoverageManager {
     return parts.reverse().join(path.sep);
   }
 
-  // NOTE: This is exposed for testing only
+  /**
+   * @private exposed for testing purposes only
+   */
   public formatCoverage(coverage: number): string {
     return coverage.toFixed(2).toString();
   }
 
-  // NOTE: This is exposed for testing only
+  /**
+   * @private exposed for testing purposes only
+   */
   public formatLines(lines: Set<number>): string {
     if (lines.size === 0) {
       return "-";
@@ -459,7 +482,9 @@ export class CoverageManagerImplementation implements CoverageManager {
     return [intervals.join(sep), suffix].join(suffixSep);
   }
 
-  // NOTE: This is exposed for testing only
+  /**
+   * @private exposed for testing purposes only
+   */
   public formatMarkdownReport(report: Report): string {
     let totalExecutedLines = 0;
     let totalExecutableLines = 0;
@@ -467,15 +492,22 @@ export class CoverageManagerImplementation implements CoverageManager {
     let totalExecutedStatements = 0;
     let totalExecutableStatements = 0;
 
-    const headerRow = [
-      "File Path 📦",
-      "Line % 📈",
-      "Statement % 📈",
-      "Uncovered Lines 🔍",
-      "Partially Covered Lines 🔍",
-    ];
+    const rows: TableItem[] = [];
 
-    const rows = Object.entries(report).map(
+    rows.push([chalk.bold("Coverage Report")]);
+    rows.push(divider);
+
+    rows.push(
+      [
+        "File Path",
+        "Line %",
+        "Statement %",
+        "Uncovered Lines",
+        "Partially Covered Lines",
+      ].map((s) => chalk.yellow(s)),
+    );
+
+    const bodyRows = Object.entries(report).map(
       ([
         relativePath,
         {
@@ -514,6 +546,8 @@ export class CoverageManagerImplementation implements CoverageManager {
       },
     );
 
+    rows.push(...bodyRows);
+
     const totalLineCoverage =
       totalExecutableLines === 0
         ? 0
@@ -523,41 +557,16 @@ export class CoverageManagerImplementation implements CoverageManager {
         ? 0
         : (totalExecutedStatements * 100.0) / totalExecutableStatements;
 
-    const footerRow = [
-      "Total",
+    rows.push(divider);
+    rows.push([
+      chalk.yellow("Total"),
       this.formatCoverage(totalLineCoverage),
       this.formatCoverage(totalStatementCoverage),
       "",
       "",
-    ];
+    ]);
 
-    const widths = headerRow.map((header) => header.length);
-
-    for (const row of rows) {
-      for (let i = 0; i < row.length; i++) {
-        widths[i] = Math.max(widths[i], row[i].length);
-      }
-    }
-
-    for (let i = 0; i < footerRow.length; i++) {
-      widths[i] = Math.max(widths[i], footerRow[i].length);
-    }
-
-    const dividerRow = widths.map((width) => "-".repeat(width));
-
-    rows.unshift(dividerRow);
-    rows.unshift(headerRow);
-
-    rows.push(dividerRow);
-    rows.push(footerRow);
-
-    rows.forEach((row) => {
-      for (let i = 0; i < row.length; i++) {
-        row[i] = row[i].padEnd(widths[i]);
-      }
-    });
-
-    return rows.map((row) => `| ${row.join(" | ")} |`).join("\n");
+    return formatTable(rows);
   }
 
   async #writeHtmlReport(

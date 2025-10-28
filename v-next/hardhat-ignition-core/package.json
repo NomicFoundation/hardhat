@@ -51,6 +51,12 @@
     "clean": "rimraf dist",
     "prepack": "pnpm build"
   },
+  "files": [
+    "dist/src/",
+    "src/",
+    "CHANGELOG.md",
+    "README.md"
+  ],
   "devDependencies": {
     "@istanbuljs/nyc-config-typescript": "1.0.2",
     "@microsoft/api-extractor": "7.49.1",

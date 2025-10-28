@@ -1,5 +1,17 @@
 # @nomicfoundation/hardhat-verify
 
+## 3.0.4
+
+### Patch Changes
+
+- cbcb5ce: Fixed `hardhat-verify` by using apiUrl from etherscanConfig for verification ([#7509](https://github.com/NomicFoundation/hardhat/issues/7509))
+
+## 3.0.3
+
+### Patch Changes
+
+- d25eec4: Fixed a bug that prevented verification of contracts imported from npm modules ([#7442](https://github.com/NomicFoundation/hardhat/pull/7442))
+
 ## 3.0.2
 
 ### Patch Changes

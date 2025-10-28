@@ -736,7 +736,7 @@ describe("NetworkManagerImplementation", () => {
           {
             path: ["chainDescriptors", "1", "hardforkHistory", "random string"],
             message:
-              "Invalid hardfork name random string found in chain descriptor for chain 1. Expected bedrock | regolith | canyon | ecotone | fjord | granite | holocene.",
+              "Invalid hardfork name random string found in chain descriptor for chain 1. Expected bedrock | regolith | canyon | ecotone | fjord | granite | holocene | isthmus.",
           },
         ]);
 
@@ -2171,7 +2171,7 @@ describe("NetworkManagerImplementation", () => {
             {
               path: ["networks", "hardhat", "hardfork"],
               message:
-                "Invalid hardfork name anything else for chainType op. Expected bedrock | regolith | canyon | ecotone | fjord | granite | holocene.",
+                "Invalid hardfork name anything else for chainType op. Expected bedrock | regolith | canyon | ecotone | fjord | granite | holocene | isthmus.",
             },
           ]);
         });
@@ -2190,13 +2190,21 @@ describe("NetworkManagerImplementation", () => {
           validationErrors = await validateNetworkUserConfig(
             edrConfig({ initialBaseFeePerGas: 123n }),
           );
+          assertValidationErrors(validationErrors, []);
 
+          validationErrors = await validateNetworkUserConfig(
+            edrConfig({ initialBaseFeePerGas: 123, hardfork: "berlin" }),
+          );
           assertValidationErrors(validationErrors, []);
         });
 
         it("should not validate an invalid network config", async () => {
           let validationErrors = await validateNetworkUserConfig(
-            edrConfig({ initialBaseFeePerGas: 123, hardfork: "berlin" }),
+            edrConfig({
+              chainType: L1_CHAIN_TYPE,
+              initialBaseFeePerGas: 123,
+              hardfork: "berlin",
+            }),
           );
 
           assertValidationErrors(validationErrors, [
@@ -2323,7 +2331,7 @@ describe("NetworkManagerImplementation", () => {
 
         it("should not validate an invalid network config", async () => {
           let validationErrors = await validateNetworkUserConfig(
-            edrConfig({ minGasPrice: 123 }),
+            edrConfig({ chainType: L1_CHAIN_TYPE, minGasPrice: 123 }),
           );
 
           assertValidationErrors(validationErrors, [

@@ -12,7 +12,6 @@ import {
 } from "@nomicfoundation/hardhat-test-utils";
 import { createHardhatRuntimeEnvironment } from "hardhat/hre";
 
-import { ETHERSCAN_API_URL } from "../src/internal/etherscan.js";
 import { verifyContract, validateArgs } from "../src/internal/verification.js";
 import { deployContract, initializeTestDispatcher } from "../test/utils.js";
 
@@ -20,7 +19,8 @@ describe("verification", () => {
   describe("verifyContract", () => {
     describe("base cases", () => {
       useEphemeralFixtureProject("integration");
-      const etherscanApiUrl = new URL(ETHERSCAN_API_URL).origin;
+      const etherscanApiUrl = new URL("https://api-sepolia.etherscan.io")
+        .origin;
       const testDispatcher = initializeTestDispatcher({
         url: etherscanApiUrl,
       });
@@ -260,14 +260,14 @@ describe("verification", () => {
 function mockEtherscanRequests(interceptable: Interceptable) {
   interceptable
     .intercept({
-      path: /^\/v2\/api\?action=getsourcecode&address=0x[a-fA-F0-9]{40}&apikey=[A-Za-z0-9]+&chainid=\d+&module=contract$/,
+      path: /^\/(?:v2\/)?api\?action=getsourcecode&address=0x[a-fA-F0-9]{40}&apikey=[A-Za-z0-9]+&chainid=\d+&module=contract$/,
       method: "GET",
     })
     .reply(200, { status: "1", result: [{ SourceCode: "" }] });
 
   interceptable
     .intercept({
-      path: /^\/v2\/api\?action=verifysourcecode&apikey=[A-Za-z0-9]+&chainid=\d+&module=contract$/,
+      path: /^\/(?:v2\/)?api\?action=verifysourcecode&apikey=[A-Za-z0-9]+&chainid=\d+&module=contract$/,
       method: "POST",
     })
     .reply(200, {
@@ -278,7 +278,7 @@ function mockEtherscanRequests(interceptable: Interceptable) {
 
   interceptable
     .intercept({
-      path: /^\/v2\/api\?action=checkverifystatus&apikey=[A-Za-z0-9]+&chainid=\d+&guid=1234&module=contract$/,
+      path: /^\/(?:v2\/)?api\?action=checkverifystatus&apikey=[A-Za-z0-9]+&chainid=\d+&guid=1234&module=contract$/,
       method: "GET",
     })
     .reply(200, {

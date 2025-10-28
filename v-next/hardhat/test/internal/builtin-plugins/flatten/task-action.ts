@@ -92,7 +92,7 @@ describe("flatten/task-action", () => {
             hre,
           );
 
-          assert.deepEqual(getContractsOrder(bFlattened), ["B", "C"]);
+          assert.deepEqual(getContractsOrder(bFlattened), ["C", "B"]);
 
           const { flattened: baFlattened } = await flattenAction(
             {
@@ -102,7 +102,7 @@ describe("flatten/task-action", () => {
             hre,
           );
 
-          assert.deepEqual(getContractsOrder(baFlattened), ["A", "B", "C"]);
+          assert.deepEqual(getContractsOrder(baFlattened), ["C", "B", "A"]);
         });
       });
 
@@ -114,7 +114,7 @@ describe("flatten/task-action", () => {
           const { flattened } = await flattenAction(args, hre);
 
           await assertFlattenedFilesResult(flattened);
-          assert.deepEqual(getContractsOrder(flattened), ["A", "B", "C"]);
+          assert.deepEqual(getContractsOrder(flattened), ["C", "B", "A"]);
         });
       });
     });
@@ -129,7 +129,7 @@ describe("flatten/task-action", () => {
           hre,
         );
 
-        assert.deepEqual(getContractsOrder(flattened), ["A", "B", "C", "C"]);
+        assert.deepEqual(getContractsOrder(flattened), ["C", "B", "A", "C"]);
       });
     });
 

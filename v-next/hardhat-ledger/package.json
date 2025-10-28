@@ -1,0 +1,76 @@
+{
+  "name": "@nomicfoundation/hardhat-ledger",
+  "version": "1.2.0",
+  "description": "Hardhat plugin for the Ledger hardware wallet",
+  "homepage": "https://github.com/nomicfoundation/hardhat/tree/main/v-next/hardhat-ledger",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/NomicFoundation/hardhat",
+    "directory": "v-next/hardhat-ledger"
+  },
+  "author": "Nomic Foundation",
+  "license": "MIT",
+  "type": "module",
+  "exports": {
+    ".": "./dist/src/index.js"
+  },
+  "keywords": [
+    "ethereum",
+    "smart-contracts",
+    "hardhat",
+    "hardhat-plugin",
+    "ledger",
+    "hardware-wallet"
+  ],
+  "scripts": {
+    "lint": "pnpm prettier --check && pnpm eslint",
+    "lint:fix": "pnpm prettier --write && pnpm eslint --fix",
+    "eslint": "eslint \"src/**/*.ts\" \"test/**/*.ts\"",
+    "prettier": "prettier \"**/*.{ts,js,md,json}\"",
+    "test": "node --import tsx/esm --test --test-reporter=@nomicfoundation/hardhat-node-test-reporter \"test/*.ts\" \"test/!(fixture-projects|helpers)/**/*.ts\"",
+    "test:only": "node --import tsx/esm --test --test-only --test-reporter=@nomicfoundation/hardhat-node-test-reporter \"test/*.ts\" \"test/!(fixture-projects|helpers)/**/*.ts\"",
+    "test:coverage": "c8 --reporter html --reporter text --all --exclude test --exclude \"src/**/{types,type-extensions}.ts\" --src src node --import tsx/esm --test --test-reporter=@nomicfoundation/hardhat-node-test-reporter \"test/*.ts\" \"test/!(fixture-projects|helpers)/**/*.ts\"",
+    "pretest": "pnpm build",
+    "pretest:only": "pnpm build",
+    "build": "tsc --build .",
+    "prepublishOnly": "pnpm build",
+    "clean": "rimraf dist"
+  },
+  "files": [
+    "dist/src/",
+    "src/",
+    "CHANGELOG.md",
+    "LICENSE",
+    "README.md"
+  ],
+  "devDependencies": {
+    "@nomicfoundation/hardhat-node-test-reporter": "workspace:^3.0.0",
+    "@nomicfoundation/hardhat-test-utils": "workspace:^",
+    "@types/debug": "^4.1.7",
+    "@types/node": "^20.14.9",
+    "c8": "^9.1.0",
+    "eslint": "9.25.1",
+    "expect-type": "^1.2.1",
+    "prettier": "3.2.5",
+    "rimraf": "^5.0.5",
+    "tsx": "^4.19.3",
+    "typescript": "~5.8.0"
+  },
+  "dependencies": {
+    "@ledgerhq/errors": "^6.25.0",
+    "@ledgerhq/evm-tools": "^1.7.7",
+    "@ledgerhq/hw-app-eth": "^6.45.19",
+    "@ledgerhq/hw-transport": "^6.31.11",
+    "@ledgerhq/hw-transport-node-hid": "^6.29.12",
+    "@ledgerhq/types-live": "^6.85.0",
+    "@nomicfoundation/hardhat-errors": "workspace:^3.0.0",
+    "@nomicfoundation/hardhat-utils": "workspace:^3.0.0",
+    "@nomicfoundation/hardhat-zod-utils": "workspace:^3.0.0",
+    "debug": "^4.3.2",
+    "micro-eth-signer": "^0.14.0",
+    "zod": "^3.23.8"
+  },
+  "peerDependencies": {
+    "hardhat": "workspace:^3.0.0"
+  }
+}

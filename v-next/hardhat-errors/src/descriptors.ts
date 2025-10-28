@@ -302,6 +302,19 @@ export const ERROR_CATEGORIES: {
       },
     },
   },
+  HARDHAT_LEDGER: {
+    min: 90000,
+    max: 90999,
+    pluginId: "hardhat-ledger",
+    websiteTitle: "Hardhat Ledger",
+    CATEGORIES: {
+      GENERAL: {
+        min: 90000,
+        max: 90099,
+        websiteSubTitle: "General errors",
+      },
+    },
+  },
 };
 
 export const ERRORS = {
@@ -2779,6 +2792,80 @@ export default { lib1: "0x...", lib2: "0x...", ... };
         websiteTitle: "Invalid verification provider",
         websiteDescription:
           "The specified verification provider is not supported. Please use one of the supported providers.",
+      },
+    },
+  },
+  HARDHAT_LEDGER: {
+    GENERAL: {
+      INVALID_LEDGER_ADDRESS: {
+        number: 90000,
+        messageTemplate: `The ledger address "{address}" in the Hardhat configuration file is invalid.`,
+        websiteTitle: "Invalid ledger address",
+        websiteDescription: `The ledger address in the Hardhat configuration file is invalid.`,
+      },
+      UNOWNED_LEDGER_ADDRESS: {
+        number: 90001,
+        messageTemplate: `Transaction attempted from address "{address}", which is not listed in the Hardhat configuration file.`,
+        websiteTitle: "Unknown ledger address",
+        websiteDescription: `Transaction attempted from an address which is not listed in the Hardhat configuration file.`,
+      },
+      CONNECTION_ERROR: {
+        number: 90002,
+        messageTemplate: `There was an error trying to establish a connection to the Ledger wallet: {error}.{transportId}
+
+Make sure your Ledger is connected and unlocked, and that the Ethereum app is open.`,
+        websiteTitle: "Ledger connection error",
+        websiteDescription: `There was an error trying to establish a connection to the Ledger wallet.
+
+Make sure your Ledger is connected and unlocked, and that the Ethereum app is open.`,
+      },
+      ERROR_WHILE_DERIVING_PATH: {
+        number: 90003,
+        messageTemplate: `There was an error trying to derive path "{path}": "{message}". The wallet might be connected but locked or in the wrong app.`,
+        websiteTitle: "Error while deriving path",
+        websiteDescription: `There was an error trying to derivate the path. The wallet might be connected but locked or in the wrong app.`,
+      },
+      CANNOT_FIND_VALID_DERIVATION_PATH: {
+        number: 90004,
+        messageTemplate: `Cannot find a valid derivation path for address "{address}". Paths from {pathStart} to {pathEnd} were searched.`,
+        websiteTitle: "Cannot find valid derivation path",
+        websiteDescription: `Cannot find a valid derivation path for the address`,
+      },
+      PERSONAL_SIGN_MISSING_ADDRESS_PARAM: {
+        number: 90005,
+        messageTemplate: `Missing address parameter when calling personal_sign.`,
+        websiteTitle: "Missing address parameter when calling personal_sign",
+        websiteDescription: `You called "personal_sign" with incorrect parameters.
+
+Please check that you are sending an "address" parameter.`,
+      },
+      ETH_SIGN_MISSING_DATA_PARAM: {
+        number: 90006,
+        messageTemplate: `Missing "data" param when calling eth_sign.`,
+        websiteTitle: `Missing "data" param when calling eth_sign.`,
+        websiteDescription: `You called "eth_sign" with incorrect parameters.
+
+Please check that you are sending a "data" parameter.`,
+      },
+      ETH_SIGN_TYPED_DATA_V4_INVALID_DATA_PARAM: {
+        number: 90007,
+        messageTemplate: `Invalid "data" param when calling eth_signTypedData_v4.`,
+        websiteTitle: `Invalid "data" param when calling eth_signTypedData_v4.`,
+        websiteDescription: `You called "eth_signTypedData_v4" with incorrect parameters.
+
+Please check that you are sending a "data" parameter with a JSON string or object conforming to EIP712 TypedData schema.`,
+      },
+      LOCKED_DEVICE: {
+        number: 90008,
+        messageTemplate: `The ledger device is locked. Please unlock it and try again.`,
+        websiteTitle: `The ledger device is locked`,
+        websiteDescription: `The ledger device is locked. Please unlock it and try again.`,
+      },
+      EIP_7702_TX_CURRENTLY_NOT_SUPPORTED: {
+        number: 90009,
+        messageTemplate: `EIP-7702 transactions are currently not supported.`,
+        websiteTitle: `EIP-7702 transactions are currently not supported`,
+        websiteDescription: `EIP-7702 transactions are currently not supported.`,
       },
     },
   },
