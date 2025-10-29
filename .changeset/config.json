@@ -1,6 +1,6 @@
 {
   "$schema": "https://unpkg.com/@changesets/config@1.6.0/schema.json",
-  "changelog": "../scripts/custom-changelog.mjs",
+  "changelog": "../scripts/custom-changelog.js",
   "commit": false,
   "linked": [],
   "access": "public",

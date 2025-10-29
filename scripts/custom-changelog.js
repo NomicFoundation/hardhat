@@ -1,4 +1,4 @@
-const defaultChangelog = require("@changesets/cli/changelog");
+const { default: defaultChangelog } = require("@changesets/cli/changelog");
 
 module.exports = {
   getReleaseLine: async (changeset) => {
