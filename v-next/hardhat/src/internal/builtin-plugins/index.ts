@@ -37,6 +37,7 @@ export const builtinPlugins: HardhatPlugin[] = [
   solidity,
   test,
   coverage,
+  gasAnalytics,
   solidityTest,
   networkManager,
   clean,
@@ -45,5 +46,4 @@ export const builtinPlugins: HardhatPlugin[] = [
   node,
   flatten,
   telemetry,
-  gasAnalytics,
 ];

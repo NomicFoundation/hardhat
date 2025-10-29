@@ -45,6 +45,7 @@ import {
   FJORD,
   GRANITE,
   HOLOCENE,
+  ISTHMUS,
   GasReportExecutionStatus,
 } from "@nomicfoundation/edr";
 import { getUnprefixedHexString } from "@nomicfoundation/hardhat-utils/hex";
@@ -92,6 +93,8 @@ function hardhatOpHardforkToEdrSpecId(hardfork: string): string {
       return GRANITE;
     case OpHardforkName.HOLOCENE:
       return HOLOCENE;
+    case OpHardforkName.ISTHMUS:
+      return ISTHMUS;
     // eslint-disable-next-line @typescript-eslint/switch-exhaustiveness-check -- trust but verify
     default:
       const _exhaustiveCheck: never = hardforkName;
@@ -360,10 +363,15 @@ export async function hardhatForkingConfigToEdrForkConfig(
  */
 export function edrGasReportToHardhatGasMeasurements(
   gasReport: GasReport,
+  excludedContractFqns: string[] = [],
 ): GasMeasurement[] {
   const gasMeasurements: GasMeasurement[] = [];
 
   for (const [contractFqn, data] of Object.entries(gasReport.contracts)) {
+    if (excludedContractFqns.includes(contractFqn)) {
+      continue;
+    }
+
     // Process deployments
     for (const deployment of data.deployments) {
       if (deployment.status === GasReportExecutionStatus.Success) {

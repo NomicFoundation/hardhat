@@ -74,7 +74,9 @@ const testWithHardhat: NewTaskActionFunction<TestActionArguments> = async (
   setGlobalOptionsAsEnvVariables(hre.globalOptions);
 
   if (!noCompile) {
-    await hre.tasks.getTask("compile").run({});
+    await hre.tasks.getTask("compile").run({
+      noTests: true,
+    });
     console.log();
   }
 

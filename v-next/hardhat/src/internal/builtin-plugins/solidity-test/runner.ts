@@ -55,6 +55,7 @@ export function run(
         controller.close();
         return;
       }
+      let runCompleted = false;
 
       const remainingSuites = new Set(
         testSuiteIds.map((id) =>
@@ -80,7 +81,7 @@ export function run(
       // TODO: Add support for predeploys once EDR supports them.
       try {
         const edrContext = await getGlobalEdrContext();
-        await edrContext.runSolidityTests(
+        const solidityTestResult = await edrContext.runSolidityTests(
           hardhatChainTypeToEdrChainType(chainType),
           artifacts,
           testSuiteIds,
@@ -88,7 +89,7 @@ export function run(
           tracingConfig,
           (suiteResult) => {
             controller.enqueue({
-              type: "suite:result",
+              type: "suite:done",
               data: suiteResult,
             });
             remainingSuites.delete(
@@ -96,10 +97,22 @@ export function run(
             );
             if (remainingSuites.size === 0) {
               clearTimeout(timeout);
-              controller.close();
+
+              if (runCompleted) {
+                controller.close();
+              }
             }
           },
         );
+        controller.enqueue({
+          type: "run:done",
+          data: solidityTestResult,
+        });
+        runCompleted = true;
+
+        if (remainingSuites.size === 0) {
+          controller.close();
+        }
       } catch (error) {
         ensureError(error);
 

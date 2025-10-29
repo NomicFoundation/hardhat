@@ -736,7 +736,7 @@ describe("NetworkManagerImplementation", () => {
           {
             path: ["chainDescriptors", "1", "hardforkHistory", "random string"],
             message:
-              "Invalid hardfork name random string found in chain descriptor for chain 1. Expected bedrock | regolith | canyon | ecotone | fjord | granite | holocene.",
+              "Invalid hardfork name random string found in chain descriptor for chain 1. Expected bedrock | regolith | canyon | ecotone | fjord | granite | holocene | isthmus.",
           },
         ]);
 
@@ -2171,7 +2171,7 @@ describe("NetworkManagerImplementation", () => {
             {
               path: ["networks", "hardhat", "hardfork"],
               message:
-                "Invalid hardfork name anything else for chainType op. Expected bedrock | regolith | canyon | ecotone | fjord | granite | holocene.",
+                "Invalid hardfork name anything else for chainType op. Expected bedrock | regolith | canyon | ecotone | fjord | granite | holocene | isthmus.",
             },
           ]);
         });
