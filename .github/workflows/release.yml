@@ -1,42 +1,3 @@
-name: Release
-
-on:
-  push:
-    branches:
-      - v2
-
-env:
-  # This is the tag the release will use 
-  # (and the review step will use for comparisons)
-  NPM_TAG: hh2
-
-jobs:
-  release:
-    name: Release
-    runs-on: ubuntu-latest
-    permissions:
-      contents: write
-      pull-requests: write
-    steps:
-      - name: Checkout Repo
-        uses: actions/checkout@v4
-        with:
-          # This makes Actions fetch all Git history so that Changesets can generate changelogs with the correct commits
-          fetch-depth: 0
-
-      - uses: ./.github/actions/setup-env
-
-      - name: Install Dependencies
-        run: pnpm install --frozen-lockfile --prefer-offline
-
-      - name: Create Release Pull Request
-        uses: changesets/action@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          title: Version Packages (v2)
-
-
 name: Create release PR / Publish packages (v2)
 
 on:
@@ -44,6 +5,11 @@ on:
   push:
     branches:
       - v2
+
+env:
+  # This is the tag the release will use
+  # (and the review step will use for comparisons)
+  NPM_TAG: hh2
 
 defaults:
   run:
