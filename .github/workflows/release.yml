@@ -5,6 +5,11 @@ on:
     branches:
       - v2
 
+env:
+  # This is the tag the release will use 
+  # (and the review step will use for comparisons)
+  NPM_TAG: hh2
+
 jobs:
   release:
     name: Release
@@ -168,27 +173,30 @@ jobs:
           path: tarballs
 
       - name: Show diff between published and proposed packages
+        env:
+          NPM_TAG: ${{ env.NPM_TAG }}
         run: |
           jq -r '.publishedPackages[] | "\(.name)|\(.version)"' pnpm-publish-summary.json |
           while IFS='|' read -r name version; do
-            # download latest
+            # download the last version with the expected tag (e.g. hh2, latest)
             NORMALIZED_NAME="${name//\//-}"
             NORMALIZED_NAME="${NORMALIZED_NAME//@/}"
-            TARBALL_URL=$(npm view "$name@latest" dist.tarball)
+            TARBALL_URL=$(npm view "$name@${NPM_TAG}" dist.tarball)
 
-            curl -s -L "$TARBALL_URL" -o "tarballs/$NORMALIZED_NAME-latest.tgz"
+            mkdir -p tarballs
+            curl -s -L "$TARBALL_URL" -o "tarballs/$NORMALIZED_NAME-${NPM_TAG}.tgz"
 
-            # unpack both latest and proposed version
+            # unpack both last tagged version and proposed version
             mkdir -p tarballs/$NORMALIZED_NAME/proposed
-            mkdir -p tarballs/$NORMALIZED_NAME/latest
-            tar -xzf tarballs/$NORMALIZED_NAME-latest.tgz -C tarballs/$NORMALIZED_NAME/latest
+            mkdir -p tarballs/$NORMALIZED_NAME/${NPM_TAG}
+            tar -xzf tarballs/$NORMALIZED_NAME-${NPM_TAG}.tgz -C tarballs/$NORMALIZED_NAME/${NPM_TAG}
             tar -xzf tarballs/$NORMALIZED_NAME-$version.tgz -C tarballs/$NORMALIZED_NAME/proposed
 
             # show diffs for review
             echo "<< Showing files diff for $name >>"
-            git diff --color=always --no-index --name-status tarballs/$NORMALIZED_NAME/latest tarballs/$NORMALIZED_NAME/proposed || true
+            git diff --color=always --no-index --name-status tarballs/$NORMALIZED_NAME/${NPM_TAG} tarballs/$NORMALIZED_NAME/proposed || true
             echo "<< Showing package.json diff for $name >>"
-            git diff --color=always --no-index tarballs/$NORMALIZED_NAME/latest/package/package.json tarballs/$NORMALIZED_NAME/proposed/package/package.json || true
+            git diff --color=always --no-index tarballs/$NORMALIZED_NAME/${NPM_TAG}/package/package.json tarballs/$NORMALIZED_NAME/proposed/package/package.json || true
           done
 
   publish:
@@ -224,6 +232,7 @@ jobs:
       - name: Publish
         env:
           NPM_CONFIG_PROVENANCE: true # explicitly enable NPM provenance
+          NPM_TAG: ${{ env.NPM_TAG }}
         run: |
           cd tarballs
           jq -r '.publishedPackages[] | "\(.name)|\(.version)"' ../pnpm-publish-summary.json |
@@ -232,9 +241,9 @@ jobs:
             NORMALIZED_NAME="${NORMALIZED_NAME//@/}"
             filename=$NORMALIZED_NAME-$version.tgz
             
-            echo "Publishing $filename"
+            echo "Publishing $filename with tag '${NPM_TAG}'"
             # We can switch to pnpm publish when pnpm supports Trusted publishing
-            npm publish $filename --tag hh2 --access public
+            npm publish $filename --tag "${NPM_TAG}" --access public
           done
 
   tag:
