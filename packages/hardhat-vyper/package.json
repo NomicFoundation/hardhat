@@ -2,7 +2,11 @@
   "name": "@nomiclabs/hardhat-vyper",
   "version": "3.1.1",
   "description": "Hardhat plugin to develop smart contracts in Vyper",
-  "repository": "github:nomiclabs/hardhat",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/NomicFoundation/hardhat",
+    "directory": "packages/hardhat-vyper"
+  },
   "homepage": "https://github.com/nomiclabs/hardhat/tree/main/packages/hardhat-vyper",
   "author": "Nomic Labs LLC",
   "license": "MIT",

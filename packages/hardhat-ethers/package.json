@@ -3,7 +3,11 @@
   "version": "3.1.1",
   "description": "Hardhat plugin for ethers",
   "homepage": "https://github.com/nomicfoundation/hardhat/tree/main/packages/hardhat-ethers",
-  "repository": "github:nomicfoundation/hardhat",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/NomicFoundation/hardhat",
+    "directory": "packages/hardhat-ethers"
+  },
   "author": "Nomic Foundation",
   "license": "MIT",
   "main": "internal/index.js",

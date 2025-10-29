@@ -3,7 +3,11 @@
   "version": "1.2.1",
   "description": "Hardhat plugin for the Ledger hardware wallet",
   "homepage": "https://github.com/nomicfoundation/hardhat/tree/main/packages/hardhat-ledger",
-  "repository": "github:nomicfoundation/hardhat",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/NomicFoundation/hardhat",
+    "directory": "packages/hardhat-ledger"
+  },
   "author": "Nomic Foundation",
   "license": "MIT",
   "main": "dist/src/index.js",

@@ -3,7 +3,11 @@
   "version": "2.1.1",
   "description": "Truffle 4 Hardhat compatibility plugin",
   "homepage": "https://github.com/nomiclabs/hardhat/tree/main/packages/hardhat-truffle4",
-  "repository": "github:nomiclabs/hardhat",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/NomicFoundation/hardhat",
+    "directory": "packages/hardhat-truffle4"
+  },
   "author": "Nomic Labs LLC",
   "license": "MIT",
   "main": "dist/src/index.js",

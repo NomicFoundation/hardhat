@@ -2,7 +2,11 @@
   "name": "@nomiclabs/hardhat-solhint",
   "version": "4.1.1",
   "description": "Hardhat plugin for solhint",
-  "repository": "github:nomiclabs/hardhat",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/NomicFoundation/hardhat",
+    "directory": "packages/hardhat-solhint"
+  },
   "homepage": "https://github.com/nomiclabs/hardhat/tree/main/packages/hardhat-solhint",
   "author": "Nomic Labs LLC",
   "license": "MIT",

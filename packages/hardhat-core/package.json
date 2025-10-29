@@ -4,7 +4,11 @@
   "author": "Nomic Labs LLC",
   "license": "MIT",
   "homepage": "https://hardhat.org",
-  "repository": "github:nomiclabs/hardhat",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/NomicFoundation/hardhat",
+    "directory": "packages/hardhat-core"
+  },
   "main": "internal/lib/hardhat-lib.js",
   "types": "internal/lib/hardhat-lib.d.ts",
   "description": "Hardhat is an extensible developer tool that helps smart contract developers increase productivity by reliably bringing together the tools they want.",
