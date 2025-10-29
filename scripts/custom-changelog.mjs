@@ -1,6 +1,6 @@
-import defaultChangelog from "@changesets/cli/changelog";
+const defaultChangelog = require("@changesets/cli/changelog");
 
-export default {
+module.exports = {
   getReleaseLine: async (changeset) => {
     return defaultChangelog.getReleaseLine(changeset);
   },
