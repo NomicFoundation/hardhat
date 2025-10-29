@@ -1,5 +1,12 @@
 # @nomicfoundation/hardhat-toolbox
 
+## 6.1.1
+
+### Patch Changes
+
+- 9d10226: Links in the code and READMEs updated to point to the Hardhat 2 documentation and resources
+- dc7ff8c: Fix `REPORT_GAS` envvar in toolboxes (https://github.com/NomicFoundation/hardhat/pull/7367)
+
 ## 6.1.0
 
 ### Minor Changes

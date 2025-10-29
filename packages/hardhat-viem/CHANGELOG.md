@@ -1,5 +1,11 @@
 # @nomicfoundation/hardhat-viem
 
+## 2.1.2
+
+### Patch Changes
+
+- 9d10226: Links in the code and READMEs updated to point to the Hardhat 2 documentation and resources
+
 ## 2.1.1
 
 ### Patch Changes

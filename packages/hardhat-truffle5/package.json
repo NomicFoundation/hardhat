@@ -1,6 +1,6 @@
 {
   "name": "@nomiclabs/hardhat-truffle5",
-  "version": "2.1.0",
+  "version": "2.1.1",
   "description": "Truffle 5 Hardhat compatibility plugin",
   "repository": "github:nomiclabs/hardhat",
   "homepage": "https://github.com/nomiclabs/hardhat/tree/main/packages/hardhat-truffle5",

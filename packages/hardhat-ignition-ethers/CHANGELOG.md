@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.15.15
+
+### Patch Changes
+
+- 9d10226: Links in the code and READMEs updated to point to the Hardhat 2 documentation and resources
+
 ## 0.15.14
 
 ### Patch Changes

@@ -1,6 +1,6 @@
 {
   "name": "@nomicfoundation/hardhat-ethers",
-  "version": "3.1.0",
+  "version": "3.1.1",
   "description": "Hardhat plugin for ethers",
   "homepage": "https://github.com/nomicfoundation/hardhat/tree/main/packages/hardhat-ethers",
   "repository": "github:nomicfoundation/hardhat",

@@ -1,5 +1,12 @@
 # @nomicfoundation/hardhat-verify
 
+## 2.1.2
+
+### Patch Changes
+
+- 2dccd4e: Pass all sources in the contract metadata for verification in Sourcify. Thanks @natanasow! ([#7070](https://github.com/NomicFoundation/hardhat/issues/7070))
+- 9d10226: Links in the code and READMEs updated to point to the Hardhat 2 documentation and resources
+
 ## 2.1.1
 
 ### Patch Changes
