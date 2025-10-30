@@ -1,7 +1,16 @@
 {
   "name": "@nomicfoundation/ignition-ui",
-  "version": "0.15.12",
+  "version": "0.15.13",
   "type": "module",
+  "license": "MIT",
+  "author": "Nomic Foundation",
+  "homepage": "https://hardhat.org",
+  "description": "The visualization report UI for Hardhat Ignition",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/NomicFoundation/hardhat",
+    "directory": "packages/hardhat-ignition-ui"
+  },
   "scripts": {
     "predev": "pnpm regenerate-deployment-example",
     "dev": "vite --force",

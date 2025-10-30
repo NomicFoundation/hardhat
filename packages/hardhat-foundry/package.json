@@ -1,8 +1,12 @@
 {
   "name": "@nomicfoundation/hardhat-foundry",
-  "version": "1.2.0",
+  "version": "1.2.1",
   "description": "Hardhat plugin that adds Hardhat support to Foundry projects",
-  "repository": "github:nomicfoundation/hardhat",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/NomicFoundation/hardhat",
+    "directory": "packages/hardhat-foundry"
+  },
   "homepage": "https://github.com/nomicfoundation/hardhat/tree/main/packages/hardhat-foundry",
   "author": "Nomic Foundation",
   "license": "MIT",

@@ -20,7 +20,8 @@
     "clean": "pnpm run --recursive clean",
     "test": "node scripts/run-tests.js",
     "lint": "pnpm run --recursive lint && pnpm prettier --check '{.github,scripts}/**/*.{md,yml,ts,js}'",
-    "lint:fix": "pnpm run --recursive lint:fix && pnpm prettier --write '{.github,scripts}/**/*.{md,yml,ts,js}'"
+    "lint:fix": "pnpm run --recursive lint:fix && pnpm prettier --write '{.github,scripts}/**/*.{md,yml,ts,js}'",
+    "version-for-release": "pnpm changeset version && pnpm -w install --lockfile-only"
   },
   "dependencies": {}
 }

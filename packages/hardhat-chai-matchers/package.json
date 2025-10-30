@@ -1,9 +1,13 @@
 {
   "name": "@nomicfoundation/hardhat-chai-matchers",
-  "version": "2.1.0",
+  "version": "2.1.1",
   "description": "Hardhat utils for testing",
   "homepage": "https://github.com/nomicfoundation/hardhat/tree/main/packages/hardhat-chai-matchers",
-  "repository": "github:nomicfoundation/hardhat",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/NomicFoundation/hardhat",
+    "directory": "packages/hardhat-chai-matchers"
+  },
   "author": "Nomic Foundation",
   "license": "MIT",
   "main": "index.js",

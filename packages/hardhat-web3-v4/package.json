@@ -1,10 +1,14 @@
 {
   "name": "@nomicfoundation/hardhat-web3-v4",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "author": "Nomic Foundation",
   "license": "MIT",
   "homepage": "https://github.com/nomicfoundation/hardhat/tree/main/packages/hardhat-web3-v4",
-  "repository": "github:nomicfoundation/hardhat",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/NomicFoundation/hardhat",
+    "directory": "packages/hardhat-web3-v4"
+  },
   "main": "dist/src/index.js",
   "types": "dist/src/index.d.ts",
   "description": "Hardhat plugin for using Web3 4.x",

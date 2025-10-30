@@ -93,7 +93,7 @@ docs/.env.example
 edr-cache/
 
 # Brew package manager.
-# Lock file is not recommended to be commited: https://github.com/Homebrew/homebrew-bundle#versions-and-lockfiles
+# Lock file is not recommended to be committed: https://github.com/Homebrew/homebrew-bundle#versions-and-lockfiles
 Brewfile.lock.json
 
 *.code-workspace
@@ -106,3 +106,6 @@ pnpm-lock.json
 
 # Hardhat bundle
 bundle/
+
+# In a devcontainer you can end up with a `.pnpm-store` directory
+.pnpm-store/
