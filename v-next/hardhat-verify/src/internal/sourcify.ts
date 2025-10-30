@@ -73,6 +73,10 @@ export class Sourcify implements VerificationProvider {
     return `${this.url}/${this.chainId}/${address}`;
   }
 
+  public getVerificationJobUrl(guid: string): string {
+    return `${this.apiUrl}/verify-ui/jobs/${guid}`;
+  }
+
   public async isVerified(address: string): Promise<boolean> {
     let response: HttpResponse;
     let responseBody: SourcifyLookupResponse | SourcifyErrorResponse;
@@ -273,9 +277,15 @@ export class Sourcify implements VerificationProvider {
       );
     }
 
+    const success = verificationStatus.isSuccess();
+    let message = verificationStatus.message;
+    if (!success) {
+      message = `${message}
+         More info at: ${this.getVerificationJobUrl(guid)}`;
+    }
     return {
-      success: verificationStatus.isSuccess(),
-      message: verificationStatus.message,
+      success,
+      message,
     };
   }
 }
