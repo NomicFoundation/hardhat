@@ -856,25 +856,34 @@ describe("gas-analytics-manager", () => {
             ],
           ]),
         });
-
+        // ║ Function name                   | Min             | Average | Median | Max   | #calls ║
+        // ║ Function name                   │ Min             │ Average │ Median │ Max   │ #calls ║
         const report = manager._generateGasStatsReport(gasStats);
 
         const expectedReport = `
-| ${chalk.bold("Gas Usage Statistics")}                |                 |         |        |       |        |
-| ----------------------------------- | --------------- | ------- | ------ | ----- | ------ |
-| ${chalk.cyan.bold("contracts/MyContract.sol:MyContract")} |                 |         |        |       |        |
-| ----------------------------------- | --------------- | ------- | ------ | ----- | ------ |
-| ${chalk.yellow("Deployment Cost")}                     | ${chalk.yellow("Deployment Size")} |         |        |       |        |
-| 500000                              | 2048            |         |        |       |        |
-| ${chalk.yellow("Function name")}                       | ${chalk.yellow("Min")}             | ${chalk.yellow("Average")} | ${chalk.yellow("Median")} | ${chalk.yellow("Max")}   | ${chalk.yellow("#calls")} |
-| balanceOf                           | 15000           | 15000   | 15000  | 15000 | 1      |
-| transfer                            | 20000           | 25000   | 25000  | 30000 | 3      |
-|                                     |                 |         |        |       |        |
-| ${chalk.cyan.bold("contracts/TokenA.sol:TokenA")}         |                 |         |        |       |        |
-| ----------------------------------- | --------------- | ------- | ------ | ----- | ------ |
-| ${chalk.yellow("Function name")}                       | ${chalk.yellow("Min")}             | ${chalk.yellow("Average")} | ${chalk.yellow("Median")} | ${chalk.yellow("Max")}   | ${chalk.yellow("#calls")} |
-| transfer(address,uint256)           | 22000           | 25000   | 25000  | 28000 | 2      |
-| transfer(address,uint256,bytes)     | 32000           | 34000   | 34000  | 36000 | 2      |
+╔═══════════════════════════════════════════════════════════════════════════════════════╗
+║                                 ${chalk.bold("Gas Usage Statistics")}                                  ║
+╚═══════════════════════════════════════════════════════════════════════════════════════╝
+╔═══════════════════════════════════════════════════════════════════════════════════════╗
+║ ${chalk.cyan.bold("contracts/MyContract.sol:MyContract")}                                                   ║
+╟─────────────────────────────────┬─────────────────┬─────────┬────────┬───────┬────────╢
+║ ${chalk.yellow("Function name")}                   │ ${chalk.yellow("Min")}             │ ${chalk.yellow("Average")} │ ${chalk.yellow("Median")} │ ${chalk.yellow("Max")}   │ ${chalk.yellow("#calls")} ║
+╟─────────────────────────────────┼─────────────────┼─────────┼────────┼───────┼────────╢
+║ balanceOf                       │ 15000           │ 15000   │ 15000  │ 15000 │ 1      ║
+║ transfer                        │ 20000           │ 25000   │ 25000  │ 30000 │ 3      ║
+╟─────────────────────────────────┼─────────────────┼─────────┴────────┴───────┴────────╢
+║ ${chalk.yellow("Deployment Cost")}                 │ ${chalk.yellow("Deployment Size")} │                                   ║
+╟─────────────────────────────────┼─────────────────┤                                   ║
+║ 500000                          │ 2048            │                                   ║
+╚═════════════════════════════════╧═════════════════╧═══════════════════════════════════╝
+╔═══════════════════════════════════════════════════════════════════════════════════════╗
+║ ${chalk.cyan.bold("contracts/TokenA.sol:TokenA")}                                                           ║
+╟─────────────────────────────────┬─────────────────┬─────────┬────────┬───────┬────────╢
+║ ${chalk.yellow("Function name")}                   │ ${chalk.yellow("Min")}             │ ${chalk.yellow("Average")} │ ${chalk.yellow("Median")} │ ${chalk.yellow("Max")}   │ ${chalk.yellow("#calls")} ║
+╟─────────────────────────────────┼─────────────────┼─────────┼────────┼───────┼────────╢
+║ transfer(address,uint256)       │ 22000           │ 25000   │ 25000  │ 28000 │ 2      ║
+║ transfer(address,uint256,bytes) │ 32000           │ 34000   │ 34000  │ 36000 │ 2      ║
+╚═════════════════════════════════╧═════════════════╧═════════╧════════╧═══════╧════════╝
 `.trim();
 
         assert.equal(report, expectedReport);
