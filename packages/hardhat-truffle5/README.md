@@ -15,7 +15,7 @@ This plugin requires [hardhat-web3](https://github.com/nomiclabs/hardhat/tree/ma
 ## Installation
 
 ```bash
-npm install --save-dev @nomiclabs/hardhat-truffle5 @nomiclabs/hardhat-web3 'web3@^1.0.0-beta.36'
+npm install --save-dev @nomiclabs/hardhat-truffle5@hh2 @nomiclabs/hardhat-web3@hh2 'web3@^1.0.0-beta.36'
 ```
 
 And add the following statement to your `hardhat.config.js`:

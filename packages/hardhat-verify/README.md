@@ -18,7 +18,7 @@ It's smart and it tries to do as much as possible to facilitate the process:
 ## Installation
 
 ```bash
-npm install --save-dev @nomicfoundation/hardhat-verify
+npm install --save-dev @nomicfoundation/hardhat-verify@hh2
 ```
 
 And add the following statement to your `hardhat.config.js`:

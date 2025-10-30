@@ -15,7 +15,7 @@ Note: This plugin relies on the Viem library, so familiarity with [Viem's docume
 ## Installation
 
 ```bash
-npm install --save-dev @nomicfoundation/hardhat-viem viem
+npm install --save-dev @nomicfoundation/hardhat-viem@hh2 viem
 ```
 
 And add the following statement to your `hardhat.config.js`:

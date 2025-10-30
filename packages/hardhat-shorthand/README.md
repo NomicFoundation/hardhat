@@ -9,5 +9,5 @@ Check [the guide](https://v2.hardhat.org/hardhat-runner/docs/guides/command-line
 ## Installation
 
 ```bash
-npm install --global hardhat-shorthand
+npm install --global hardhat-shorthand@hh2
 ```

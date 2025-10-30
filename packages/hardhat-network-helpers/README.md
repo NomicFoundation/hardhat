@@ -9,7 +9,7 @@ Hardhat Network Helpers is a library that provides a set of utility functions to
 We recommend using npm 7 or later:
 
 ```
-npm install --save-dev @nomicfoundation/hardhat-network-helpers
+npm install --save-dev @nomicfoundation/hardhat-network-helpers@hh2
 ```
 
 ### Usage
