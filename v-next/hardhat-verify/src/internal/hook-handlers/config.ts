@@ -58,7 +58,6 @@ const userConfigType = z.object({
       ).optional(),
       sourcify: z
         .object({
-          repoUrl: z.string().optional(),
           apiUrl: z.string().optional(),
           enabled: z.boolean().optional(),
         })
@@ -126,7 +125,6 @@ function resolveSourcifyConfig(
   },
 ): SourcifyConfig {
   return {
-    repoUrl: sourcifyConfig.repoUrl,
     apiUrl: sourcifyConfig.apiUrl,
     enabled: sourcifyConfig.enabled ?? true,
   };

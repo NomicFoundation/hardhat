@@ -365,7 +365,6 @@ async function createVerificationProviderInstance({
   if (verificationProviderName === "sourcify") {
     return new Sourcify({
       chainId,
-      url: verificationProvidersConfig.sourcify.repoUrl,
       apiUrl: verificationProvidersConfig.sourcify.apiUrl,
       dispatcher,
     });

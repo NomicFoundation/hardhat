@@ -25,7 +25,6 @@ declare module "hardhat/types/config" {
       };
 
   export interface SourcifyUserConfig {
-    repoUrl?: string;
     apiUrl?: string;
     enabled?: boolean;
   }
@@ -50,7 +49,6 @@ declare module "hardhat/types/config" {
   }
 
   export interface SourcifyConfig {
-    repoUrl: string | undefined;
     apiUrl: string | undefined;
     enabled: boolean;
   }
