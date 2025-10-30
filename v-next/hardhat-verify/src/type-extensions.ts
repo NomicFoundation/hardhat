@@ -49,7 +49,7 @@ declare module "hardhat/types/config" {
   }
 
   export interface SourcifyConfig {
-    apiUrl: string | undefined;
+    apiUrl?: string;
     enabled: boolean;
   }
 }
