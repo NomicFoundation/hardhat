@@ -331,7 +331,7 @@ describe("hook-handlers/config", () => {
           enabled: true,
         },
         sourcify: {
-          apiUrl: "",
+          apiUrl: undefined,
           enabled: true,
         },
       });
@@ -367,7 +367,7 @@ describe("hook-handlers/config", () => {
           enabled: false,
         },
         sourcify: {
-          apiUrl: "",
+          apiUrl: undefined,
           enabled: true,
         },
       });
@@ -400,7 +400,7 @@ describe("hook-handlers/config", () => {
           enabled: true,
         },
         sourcify: {
-          apiUrl: "",
+          apiUrl: undefined,
           enabled: true,
         },
       });
