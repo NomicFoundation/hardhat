@@ -376,6 +376,10 @@ class BlockscoutVerificationStatusResponse
     return this.message === "Pass - Verified";
   }
 
+  public isBytecodeMissingInNetworkError(): boolean {
+    return false;
+  }
+
   public isAlreadyVerified(): boolean {
     return this.message.startsWith("Smart-contract already verified.");
   }
