@@ -23,6 +23,7 @@ import {
   getProxyUrl,
   getRequest,
   postJsonRequest,
+  ResponseStatusCodeError,
   shouldUseProxy,
 } from "@nomicfoundation/hardhat-utils/request";
 
@@ -81,12 +82,36 @@ export class Sourcify implements VerificationProvider {
     try {
       response = await getRequest(
         `${this.apiUrl}/v2/contract/${this.chainId}/${address}`,
-        { throwOnError: false },
+        {},
         this.dispatcherOrDispatcherOptions,
       );
       responseBody = await response.body.json();
     } catch (error) {
       ensureError(error);
+
+      if (
+        error instanceof ResponseStatusCodeError &&
+        isSourcifyLookupResponse(error?.body)
+      ) {
+        // Unverified contracts are returned with status 404
+        return error.body.match !== null;
+      }
+
+      if (
+        error instanceof ResponseStatusCodeError &&
+        isSourcifyErrorResponse(error?.body)
+      ) {
+        throw new HardhatError(
+          HardhatError.ERRORS.HARDHAT_VERIFY.GENERAL.EXPLORER_REQUEST_STATUS_CODE_ERROR,
+          {
+            name: this.name,
+            url: this.apiUrl,
+            statusCode: error.statusCode,
+            errorMessage: error.body.message,
+          },
+        );
+      }
+
       throw new HardhatError(
         HardhatError.ERRORS.HARDHAT_VERIFY.GENERAL.EXPLORER_REQUEST_FAILED,
         {
@@ -94,18 +119,6 @@ export class Sourcify implements VerificationProvider {
           url: this.apiUrl,
           errorMessage:
             error.cause instanceof Error ? error.cause.message : error.message,
-        },
-      );
-    }
-
-    if (isSourcifyErrorResponse(responseBody)) {
-      throw new HardhatError(
-        HardhatError.ERRORS.HARDHAT_VERIFY.GENERAL.EXPLORER_REQUEST_STATUS_CODE_ERROR,
-        {
-          name: this.name,
-          url: this.apiUrl,
-          statusCode: response.statusCode,
-          errorMessage: responseBody.message,
         },
       );
     }
@@ -149,12 +162,33 @@ export class Sourcify implements VerificationProvider {
       response = await postJsonRequest(
         `${this.apiUrl}/v2/verify/${this.chainId}/${contractAddress}`,
         body,
-        { throwOnError: false },
+        {},
         this.dispatcherOrDispatcherOptions,
       );
       responseBody = await response.body.json();
     } catch (error) {
       ensureError(error);
+
+      if (
+        error instanceof ResponseStatusCodeError &&
+        isSourcifyErrorResponse(error?.body)
+      ) {
+        if (error.body.customCode === "already_verified") {
+          throw new HardhatError(
+            HardhatError.ERRORS.HARDHAT_VERIFY.GENERAL.CONTRACT_ALREADY_VERIFIED,
+            {
+              contract: contractName,
+              address: contractAddress,
+            },
+          );
+        }
+
+        throw new HardhatError(
+          HardhatError.ERRORS.HARDHAT_VERIFY.GENERAL.CONTRACT_VERIFICATION_REQUEST_FAILED,
+          { message: error.body.message },
+        );
+      }
+
       throw new HardhatError(
         HardhatError.ERRORS.HARDHAT_VERIFY.GENERAL.EXPLORER_REQUEST_FAILED,
         {
@@ -163,23 +197,6 @@ export class Sourcify implements VerificationProvider {
           errorMessage:
             error.cause instanceof Error ? error.cause.message : error.message,
         },
-      );
-    }
-
-    if (isSourcifyErrorResponse(responseBody)) {
-      if (responseBody.customCode === "already_verified") {
-        throw new HardhatError(
-          HardhatError.ERRORS.HARDHAT_VERIFY.GENERAL.CONTRACT_ALREADY_VERIFIED,
-          {
-            contract: contractName,
-            address: contractAddress,
-          },
-        );
-      }
-
-      throw new HardhatError(
-        HardhatError.ERRORS.HARDHAT_VERIFY.GENERAL.CONTRACT_VERIFICATION_REQUEST_FAILED,
-        { message: responseBody.message },
       );
     }
 
@@ -208,12 +225,23 @@ export class Sourcify implements VerificationProvider {
     try {
       response = await getRequest(
         `${this.apiUrl}/v2/verify/${guid}`,
-        { throwOnError: false },
+        {},
         this.dispatcherOrDispatcherOptions,
       );
       responseBody = await response.body.json();
     } catch (error) {
       ensureError(error);
+
+      if (
+        error instanceof ResponseStatusCodeError &&
+        isSourcifyErrorResponse(error?.body)
+      ) {
+        throw new HardhatError(
+          HardhatError.ERRORS.HARDHAT_VERIFY.GENERAL.CONTRACT_VERIFICATION_STATUS_POLLING_FAILED,
+          { message: error.body.message },
+        );
+      }
+
       throw new HardhatError(
         HardhatError.ERRORS.HARDHAT_VERIFY.GENERAL.EXPLORER_REQUEST_FAILED,
         {
@@ -222,13 +250,6 @@ export class Sourcify implements VerificationProvider {
           errorMessage:
             error.cause instanceof Error ? error.cause.message : error.message,
         },
-      );
-    }
-
-    if (isSourcifyErrorResponse(responseBody)) {
-      throw new HardhatError(
-        HardhatError.ERRORS.HARDHAT_VERIFY.GENERAL.CONTRACT_VERIFICATION_STATUS_POLLING_FAILED,
-        { message: responseBody.message },
       );
     }
 
@@ -293,6 +314,7 @@ function isSourcifyErrorResponse(
 ): response is SourcifyErrorResponse {
   return (
     typeof response === "object" &&
+    response !== null &&
     "customCode" in response &&
     "message" in response &&
     "errorId" in response
@@ -304,6 +326,7 @@ function isSourcifyLookupResponse(
 ): response is SourcifyLookupResponse {
   return (
     typeof response === "object" &&
+    response !== null &&
     "match" in response &&
     "creationMatch" in response &&
     "runtimeMatch" in response &&
@@ -315,7 +338,11 @@ function isSourcifyLookupResponse(
 function isSourcifyVerificationResponse(
   response: any,
 ): response is SourcifyVerificationResponse {
-  return typeof response === "object" && "verificationId" in response;
+  return (
+    typeof response === "object" &&
+    response !== null &&
+    "verificationId" in response
+  );
 }
 
 function isSourcifyVerificationStatusResponse(
@@ -323,6 +350,7 @@ function isSourcifyVerificationStatusResponse(
 ): response is SourcifyVerificationStatusResponse {
   return (
     typeof response === "object" &&
+    response !== null &&
     "isJobCompleted" in response &&
     "verificationId" in response &&
     "jobStartTime" in response &&
