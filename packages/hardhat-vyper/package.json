@@ -1,6 +1,6 @@
 {
   "name": "@nomiclabs/hardhat-vyper",
-  "version": "3.1.1",
+  "version": "3.1.2",
   "description": "Hardhat plugin to develop smart contracts in Vyper",
   "repository": {
     "type": "git",

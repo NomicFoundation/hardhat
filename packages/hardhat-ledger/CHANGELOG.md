@@ -1,5 +1,11 @@
 # @nomicfoundation/hardhat-ledger
 
+## 1.2.2
+
+### Patch Changes
+
+- 8da8c38: Update README installation instructions to point to the Hardhat 2 tag: `hh2` ([#7636](https://github.com/NomicFoundation/hardhat/pull/7636))
+
 ## 1.2.1
 
 ### Patch Changes

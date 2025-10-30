@@ -1,5 +1,11 @@
 # hardhat
 
+## 2.26.5
+
+### Patch Changes
+
+- f886268: Ignore malformed solidity-files-cache so compilation keeps running while logging the issue in debug ([#6489](https://github.com/NomicFoundation/hardhat/issues/6489))
+
 ## 2.26.4
 
 ### Patch Changes
