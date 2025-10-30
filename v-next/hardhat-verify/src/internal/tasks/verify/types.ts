@@ -2,7 +2,7 @@ import type { LibraryAddresses } from "../../libraries.js";
 
 export interface VerifyActionArgs {
   address: string;
-  constructorArgs?: string[];
+  constructorArgs: string[];
   constructorArgsPath?: string;
   contract?: string;
   librariesPath?: string;

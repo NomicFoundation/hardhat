@@ -44,7 +44,7 @@ export async function internalVerifyAction(
   }
 
   const resolvedConstructorArgs = await resolveConstructorArgs(
-    constructorArgs ?? [],
+    constructorArgs,
     constructorArgsPath,
   );
 
