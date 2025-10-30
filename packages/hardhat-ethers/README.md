@@ -11,7 +11,7 @@ This plugin brings to Hardhat the Ethereum library `ethers.js`, which allows you
 ## Installation
 
 ```bash
-npm install --save-dev @nomicfoundation/hardhat-ethers ethers
+npm install --save-dev @nomicfoundation/hardhat-ethers@hh2 ethers
 ```
 
 And add the following statement to your `hardhat.config.js`:

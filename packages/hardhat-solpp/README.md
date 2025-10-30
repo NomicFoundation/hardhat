@@ -11,7 +11,7 @@ This plugin hooks into the compilation pipeline and runs the solpp preprocessor.
 ## Installation
 
 ```bash
-npm install --save-dev @nomiclabs/hardhat-solpp
+npm install --save-dev @nomiclabs/hardhat-solpp@hh2
 ```
 
 And add the following statement to your `hardhat.config.js`:

@@ -17,7 +17,7 @@ The Vyper compiler is run using the [official binary releases](https://github.co
 First, you need to install the plugin by running
 
 ```bash
-npm install --save-dev @nomiclabs/hardhat-vyper
+npm install --save-dev @nomiclabs/hardhat-vyper@hh2
 ```
 
 And add the following statement to your `hardhat.config.js`:

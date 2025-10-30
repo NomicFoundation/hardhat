@@ -11,7 +11,7 @@ This plugin runs solhint on the project's sources and prints the report.
 ## Installation
 
 ```bash
-npm install --save-dev @nomiclabs/hardhat-solhint
+npm install --save-dev @nomiclabs/hardhat-solhint@hh2
 ```
 
 And add the following statement to your `hardhat.config.js`:

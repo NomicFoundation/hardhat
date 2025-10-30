@@ -11,7 +11,7 @@ This plugin brings to Hardhat the Web3 module and an initialized instance of Web
 # Installation
 
 ```bash
-npm install --save-dev @nomiclabs/hardhat-web3-legacy web3@^0.20.7
+npm install --save-dev @nomiclabs/hardhat-web3-legacy@hh2 web3@^0.20.7
 ```
 
 And add the following statement to your `hardhat.config.js`:

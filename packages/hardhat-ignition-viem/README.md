@@ -15,7 +15,7 @@ Join the Hardhat Ignition channel of our [Hardhat Community Discord server](http
 ## Installation
 
 ```bash
-npm install --save-dev @nomicfoundation/hardhat-ignition-viem
+npm install --save-dev @nomicfoundation/hardhat-ignition-viem@hh2
 ```
 
 Import the plugin in your `hardhat.config.js``:

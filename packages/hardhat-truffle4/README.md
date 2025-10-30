@@ -17,7 +17,7 @@ This plugin requires [hardhat-web3-legacy](https://github.com/nomiclabs/hardhat/
 ## Installation
 
 ```bash
-npm install --save-dev @nomiclabs/hardhat-truffle4 @nomiclabs/hardhat-web3-legacy web3@^0.20.7
+npm install --save-dev @nomiclabs/hardhat-truffle4@hh2 @nomiclabs/hardhat-web3-legacy@hh2 web3@^0.20.7
 ```
 
 And add the following statement to your `hardhat.config.js`:

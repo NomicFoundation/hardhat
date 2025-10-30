@@ -11,19 +11,19 @@ Check [its documentation](https://v2.hardhat.org/hardhat-chai-matchers/docs) to 
 We recommend using npm 7 or later. If you do that, then you just need to install the plugin itself:
 
 ```bash
-npm install --save-dev @nomicfoundation/hardhat-chai-matchers
+npm install --save-dev @nomicfoundation/hardhat-chai-matchers@hh2
 ```
 
 If you are using an older version of npm, you'll also need to install all the packages used by the plugin.
 
 ```bash
-npm install --save-dev @nomicfoundation/hardhat-chai-matchers chai@4 @nomicfoundation/hardhat-ethers ethers
+npm install --save-dev @nomicfoundation/hardhat-chai-matchers@hh2 chai@4 @nomicfoundation/hardhat-ethers@hh2 ethers
 ```
 
 That's also the case if you are using yarn:
 
 ```bash
-yarn add --dev @nomicfoundation/hardhat-chai-matchers chai@4 @nomicfoundation/hardhat-ethers ethers
+yarn add --dev @nomicfoundation/hardhat-chai-matchers@hh2 chai@4 @nomicfoundation/hardhat-ethers@hh2 ethers
 ```
 
 ### Usage

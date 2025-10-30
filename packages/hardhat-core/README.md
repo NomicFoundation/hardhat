@@ -2,7 +2,7 @@
 
 ---
 
-> **🚀 Hardhat 3 alpha release is out! [Learn more.](https://hardhat.org)**
+> **🚀 Hardhat 3 Beta release is out! [Learn more.](https://hardhat.org)**
 
 Hardhat is an Ethereum development environment for professionals. It facilitates performing frequent tasks, such as running tests, automatically checking code for mistakes or interacting with a smart contract. Check out the [plugin list](https://v2.hardhat.org/plugins/) to use it with your existing tools.
 
@@ -18,10 +18,10 @@ Join our [Hardhat Support Discord server](https://hardhat.org/discord) to stay u
 
 ## Installation
 
-To install Hardhat, go to an empty folder, initialize an `npm` project (i.e. `npm init`), and run
+To install Hardhat 2, go to an empty folder, initialize an `npm` project (i.e. `npm init`), and run
 
 ```
-npm install --save-dev hardhat
+npm install --save-dev hardhat@hh2
 ```
 
 Once it's installed, just run this command and follow its instructions:

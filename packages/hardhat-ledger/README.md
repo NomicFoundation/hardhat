@@ -11,7 +11,7 @@ This plugin extends the Hardhat provider enabling it to work with a connected Le
 ## Installation
 
 ```bash
-npm install --save-dev @nomicfoundation/hardhat-ledger
+npm install --save-dev @nomicfoundation/hardhat-ledger@hh2
 ```
 
 And add the following statement to your `hardhat.config.js`:
