@@ -1,5 +1,30 @@
 # hardhat
 
+## 3.0.10
+
+### Patch Changes
+
+- fe28daf: Added support for showing gas statistics after running tests ([#7472](https://github.com/NomicFoundation/hardhat/issues/7428) and [#7503](https://github.com/NomicFoundation/hardhat/issues/7503))
+- 1ab6b75: Optimism ISTHMUS hardfork support added to Hardhat ([#7517](https://github.com/NomicFoundation/hardhat/issues/7517))
+- 5e64246: Improved JS/TS test tasks to not compile Solidity tests ([#7626](https://github.com/NomicFoundation/hardhat/pull/7626))
+- 217a1a8: Fix arbitrum sepolia chain id in chain descriptors (thanks @aelmanaa!)
+- 8a03bd0: Fixed gas calculation for EIP-7702 refunds ([#7606](https://github.com/NomicFoundation/hardhat/pull/7606))
+- 8a03bd0: Make all parameters of `eth_feeHistory` rpc call required ([#7606](https://github.com/NomicFoundation/hardhat/pull/7606))
+
+## 3.0.9
+
+### Patch Changes
+
+- 0ee442d: All test runners now set NODE_ENV to "test" in case it is not set before the tests start ([#7511](https://github.com/NomicFoundation/hardhat/issues/7511))
+- b27b924: Fix bug in flatten task where ordering was incorrect ([#7586](https://github.com/NomicFoundation/hardhat/issues/7586))
+
+## 3.0.8
+
+### Patch Changes
+
+- d2c9a7f: Don't swallow the original error when trying to improve installation error messages ([#7569](https://github.com/NomicFoundation/hardhat/pull/7569))
+- ec50793: Validate `initialBaseFeePerGas` against hardfork only for L1 chain type ([#6181](https://github.com/NomicFoundation/hardhat/issues/6181))
+
 ## 3.0.7
 
 ### Patch Changes

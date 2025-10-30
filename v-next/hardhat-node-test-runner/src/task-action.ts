@@ -10,7 +10,14 @@ import { hardhatTestReporter } from "@nomicfoundation/hardhat-node-test-reporter
 import { setGlobalOptionsAsEnvVariables } from "@nomicfoundation/hardhat-utils/env";
 import { getAllFilesMatching } from "@nomicfoundation/hardhat-utils/fs";
 import { createNonClosingWriter } from "@nomicfoundation/hardhat-utils/stream";
-import { markTestRunStart, markTestRunDone } from "hardhat/internal/coverage";
+import {
+  markTestRunStart as initCoverage,
+  markTestRunDone as reportCoverage,
+} from "hardhat/internal/coverage";
+import {
+  markTestRunStart as initGasStats,
+  markTestRunDone as reportGasStats,
+} from "hardhat/internal/gas-analytics";
 
 interface TestActionArguments {
   testFiles: string[];
@@ -60,10 +67,16 @@ const testWithHardhat: NewTaskActionFunction<TestActionArguments> = async (
   // Set an environment variable that plugins can use to detect when a process is running tests
   process.env.HH_TEST = "true";
 
+  // Sets the NODE_ENV environment variable to "test" so the code can detect that tests are running
+  // This is done by other JS/TS test frameworks like vitest
+  process.env.NODE_ENV ??= "test";
+
   setGlobalOptionsAsEnvVariables(hre.globalOptions);
 
   if (!noCompile) {
-    await hre.tasks.getTask("compile").run({});
+    await hre.tasks.getTask("compile").run({
+      noTests: true,
+    });
     console.log();
   }
 
@@ -83,6 +96,15 @@ const testWithHardhat: NewTaskActionFunction<TestActionArguments> = async (
       import.meta.resolve("@nomicfoundation/hardhat-node-test-runner/coverage"),
     );
     imports.push(coverage.href);
+  }
+
+  if (hre.globalOptions.gasStats === true) {
+    const gasStats = new URL(
+      import.meta.resolve(
+        "@nomicfoundation/hardhat-node-test-runner/gas-stats",
+      ),
+    );
+    imports.push(gasStats.href);
   }
 
   process.env.NODE_OPTIONS = imports
@@ -130,12 +152,14 @@ const testWithHardhat: NewTaskActionFunction<TestActionArguments> = async (
     return failures;
   }
 
-  await markTestRunStart("nodejs");
+  await initCoverage("nodejs");
+  await initGasStats("nodejs");
 
   const testFailures = await runTests();
 
   // NOTE: This might print a coverage report.
-  await markTestRunDone("nodejs");
+  await reportCoverage("nodejs");
+  await reportGasStats("nodejs");
 
   if (testFailures > 0) {
     process.exitCode = 1;

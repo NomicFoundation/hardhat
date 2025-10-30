@@ -1,5 +1,11 @@
 # @nomicfoundation/hardhat-utils
 
+## 3.0.4
+
+### Patch Changes
+
+- d1969e7: Added support for showing gas statistics after running nodejs tests ([#7472](https://github.com/NomicFoundation/hardhat/issues/7428)).
+
 ## 3.0.3
 
 ### Patch Changes

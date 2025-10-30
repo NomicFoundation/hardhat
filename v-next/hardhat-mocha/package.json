@@ -1,6 +1,6 @@
 {
   "name": "@nomicfoundation/hardhat-mocha",
-  "version": "3.0.2",
+  "version": "3.0.5",
   "description": "A mocha test runner",
   "homepage": "https://github.com/nomicfoundation/hardhat/tree/v-next/v-next/hardhat-mocha",
   "repository": {
@@ -13,7 +13,8 @@
   "type": "module",
   "exports": {
     ".": "./dist/src/index.js",
-    "./coverage": "./dist/src/coverage.js"
+    "./coverage": "./dist/src/coverage.js",
+    "./gas-stats": "./dist/src/gas-stats.js"
   },
   "keywords": [
     "ethereum",
@@ -54,11 +55,11 @@
     "typescript": "~5.8.0"
   },
   "dependencies": {
-    "@nomicfoundation/hardhat-errors": "workspace:^3.0.2",
-    "@nomicfoundation/hardhat-utils": "workspace:^3.0.1",
+    "@nomicfoundation/hardhat-errors": "workspace:^3.0.3",
+    "@nomicfoundation/hardhat-utils": "workspace:^3.0.4",
     "@nomicfoundation/hardhat-zod-utils": "workspace:^3.0.0",
     "chalk": "^5.3.0",
-    "hardhat": "workspace:^3.0.0",
+    "hardhat": "workspace:^3.0.10",
     "mocha": "^11.0.0",
     "tsx": "^4.19.3",
     "zod": "^3.23.8"

@@ -35,7 +35,9 @@ const runAllTests: NewTaskActionFunction<TestActionArguments> = async (
   const thisTask = hre.tasks.getTask("test");
 
   if (!noCompile) {
-    await hre.tasks.getTask("compile").run({});
+    await hre.tasks.getTask("compile").run({
+      noTests: true,
+    });
     console.log();
   }
 

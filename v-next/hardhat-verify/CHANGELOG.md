@@ -1,5 +1,11 @@
 # @nomicfoundation/hardhat-verify
 
+## 3.0.4
+
+### Patch Changes
+
+- cbcb5ce: Fixed `hardhat-verify` by using apiUrl from etherscanConfig for verification ([#7509](https://github.com/NomicFoundation/hardhat/issues/7509))
+
 ## 3.0.3
 
 ### Patch Changes
