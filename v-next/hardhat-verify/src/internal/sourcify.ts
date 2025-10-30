@@ -31,7 +31,6 @@ export const SOURCIFY_PROVIDER_NAME: keyof VerificationProvidersConfig =
 
 const VERIFICATION_STATUS_POLLING_SECONDS = 3;
 
-export const SOURCIFY_REPO_URL = "https://repo.sourcify.dev";
 export const SOURCIFY_API_URL = "https://sourcify.dev/server";
 
 export class Sourcify implements VerificationProvider {
@@ -47,14 +46,13 @@ export class Sourcify implements VerificationProvider {
   constructor(sourcifyConfig: {
     chainId: number;
     name?: string;
-    url?: string;
     apiUrl?: string;
     dispatcher?: Dispatcher;
   }) {
     this.chainId = String(sourcifyConfig.chainId);
     this.name = sourcifyConfig.name ?? "Sourcify";
-    this.url = sourcifyConfig.url ?? SOURCIFY_REPO_URL;
     this.apiUrl = sourcifyConfig.apiUrl ?? SOURCIFY_API_URL;
+    this.url = `${this.apiUrl}/repo-ui`;
 
     const proxyUrl = shouldUseProxy(this.apiUrl)
       ? getProxyUrl(this.apiUrl)

@@ -5,11 +5,7 @@ import { HardhatError } from "@nomicfoundation/hardhat-errors";
 import { assertRejectsWithHardhatError } from "@nomicfoundation/hardhat-test-utils";
 import { getDispatcher } from "@nomicfoundation/hardhat-utils/request";
 
-import {
-  Sourcify,
-  SOURCIFY_API_URL,
-  SOURCIFY_REPO_URL,
-} from "../src/internal/sourcify.js";
+import { Sourcify, SOURCIFY_API_URL } from "../src/internal/sourcify.js";
 
 import { initializeTestDispatcher } from "./utils.js";
 
@@ -18,7 +14,6 @@ describe("sourcify", () => {
     const sourcifyConfig = {
       chainId: 11_155_111,
       name: "Sourcify",
-      url: "http://repo.localhost",
       apiUrl: "http://localhost/server",
     };
     const sourcifyApiUrl = new URL(sourcifyConfig.apiUrl).origin;
@@ -50,7 +45,7 @@ describe("sourcify", () => {
         const sourcify = new Sourcify(sourcifyConfig);
 
         assert.equal(sourcify.name, sourcifyConfig.name);
-        assert.equal(sourcify.url, sourcifyConfig.url);
+        assert.equal(sourcify.url, `${sourcifyConfig.apiUrl}/repo-ui`);
         assert.equal(sourcify.apiUrl, sourcifyConfig.apiUrl);
         assert.equal(sourcify.chainId, String(sourcifyConfig.chainId));
       });
@@ -69,8 +64,8 @@ describe("sourcify", () => {
           chainId: sourcifyConfig.chainId,
         });
 
-        assert.equal(sourcify.url, SOURCIFY_REPO_URL);
         assert.equal(sourcify.apiUrl, SOURCIFY_API_URL);
+        assert.equal(sourcify.url, `${SOURCIFY_API_URL}/repo-ui`);
       });
 
       it("should configure proxy when no dispatcher provided and proxy environment variables are set", () => {
@@ -126,7 +121,7 @@ describe("sourcify", () => {
         const sourcify = new Sourcify(sourcifyConfig);
         assert.equal(
           sourcify.getContractUrl(address),
-          `${sourcifyConfig.url}/${sourcifyConfig.chainId}/${address}`,
+          `${sourcifyConfig.apiUrl}/repo-ui/${sourcifyConfig.chainId}/${address}`,
         );
       });
     });

@@ -331,7 +331,6 @@ describe("hook-handlers/config", () => {
           enabled: true,
         },
         sourcify: {
-          repoUrl: "",
           apiUrl: "",
           enabled: true,
         },
@@ -368,7 +367,6 @@ describe("hook-handlers/config", () => {
           enabled: false,
         },
         sourcify: {
-          repoUrl: "",
           apiUrl: "",
           enabled: true,
         },
@@ -402,7 +400,6 @@ describe("hook-handlers/config", () => {
           enabled: true,
         },
         sourcify: {
-          repoUrl: "",
           apiUrl: "",
           enabled: true,
         },
