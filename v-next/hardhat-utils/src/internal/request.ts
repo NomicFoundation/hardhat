@@ -30,14 +30,14 @@ export async function generateTempFilePath(filePath: string): Promise<string> {
 
 export async function getBaseRequestOptions(
   requestUrl: string,
-  { extraHeaders, abortSignal, queryParams, throwOnError }: RequestOptions = {},
+  { extraHeaders, abortSignal, queryParams }: RequestOptions = {},
   dispatcherOrDispatcherOptions?: UndiciT.Dispatcher | DispatcherOptions,
 ): Promise<{
   query?: Record<string, any> | undefined;
   signal?: EventEmitter | AbortSignal | undefined;
   dispatcher: UndiciT.Dispatcher;
   headers: Record<string, string>;
-  throwOnError: boolean;
+  throwOnError: true;
 }> {
   const { Dispatcher } = await import("undici");
   const dispatcher =
@@ -51,7 +51,7 @@ export async function getBaseRequestOptions(
   return {
     dispatcher,
     headers: getHeaders(requestUrl, extraHeaders),
-    throwOnError: throwOnError ?? true,
+    throwOnError: true,
     ...(abortSignal !== undefined ? { signal: abortSignal } : {}),
     ...(queryParams !== undefined ? { query: queryParams } : {}),
   };
