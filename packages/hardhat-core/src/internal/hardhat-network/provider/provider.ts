@@ -230,6 +230,7 @@ export class EdrProviderWrapper
       genesisState.push({
         address: privateToAddress(privateKey),
         balance: BigInt(account.balance),
+        code: new Uint8Array(), // Empty account code, removing potential delegation code when forking
       });
 
       return account.privateKey;
