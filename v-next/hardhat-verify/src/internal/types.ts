@@ -4,7 +4,7 @@ export interface VerificationStatusResponse {
   isPending(): boolean;
   isFailure(): boolean;
   isSuccess(): boolean;
-  isBytecodeMissingInNetworkError?(): boolean;
+  isBytecodeMissingInNetworkError(): boolean;
   isAlreadyVerified(): boolean;
   isOk(): boolean;
 }

@@ -392,6 +392,10 @@ class EtherscanVerificationStatusResponse
     return this.message === "Pass - Verified";
   }
 
+  public isBytecodeMissingInNetworkError(): boolean {
+    return false;
+  }
+
   public isAlreadyVerified(): boolean {
     return (
       this.message.startsWith("Contract source code already verified") ||
