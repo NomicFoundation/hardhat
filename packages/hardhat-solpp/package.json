@@ -1,6 +1,6 @@
 {
   "name": "@nomiclabs/hardhat-solpp",
-  "version": "2.1.1",
+  "version": "2.1.2",
   "description": "Hardhat plugin for solpp",
   "repository": {
     "type": "git",

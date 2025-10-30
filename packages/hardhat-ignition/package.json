@@ -1,6 +1,6 @@
 {
   "name": "@nomicfoundation/hardhat-ignition",
-  "version": "0.15.14",
+  "version": "0.15.15",
   "license": "MIT",
   "author": "Nomic Foundation",
   "homepage": "https://hardhat.org",
@@ -54,7 +54,7 @@
   "devDependencies": {
     "@istanbuljs/nyc-config-typescript": "1.0.2",
     "@nomicfoundation/eslint-plugin-hardhat-internal-rules": "workspace:^",
-    "@nomicfoundation/hardhat-network-helpers": "workspace:^1.1.1",
+    "@nomicfoundation/hardhat-network-helpers": "workspace:^1.1.2",
     "@nomicfoundation/hardhat-verify": "workspace:^2.1.0",
     "@types/chai": "^4.2.22",
     "@types/chai-as-promised": "^7.1.4",

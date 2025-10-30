@@ -1,6 +1,6 @@
 {
   "name": "@nomiclabs/hardhat-web3-legacy",
-  "version": "2.1.1",
+  "version": "2.1.2",
   "author": "Nomic Labs LLC",
   "license": "MIT",
   "homepage": "https://github.com/nomiclabs/hardhat/tree/main/packages/hardhat-web3-legacy",
