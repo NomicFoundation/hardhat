@@ -493,7 +493,11 @@ describe("sourcify", () => {
         );
 
         assert.equal(result.success, false);
-        assert.equal(result.message, "Compiler error.");
+        assert.equal(
+          result.message,
+          `Compiler error.
+         More info at: ${sourcifyConfig.apiUrl}/verify-ui/jobs/${verificationId}`,
+        );
       });
 
       it("should poll the verification status until it is successful or fails", async () => {
