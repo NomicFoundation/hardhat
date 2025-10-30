@@ -13,8 +13,7 @@ export function extendWithVerificationArgs(
     })
     .addVariadicArgument({
       name: "constructorArgs",
-      description:
-        "The constructor arguments (optional, required by Etherscan and Blockscout)",
+      description: "The constructor arguments",
       defaultValue: [],
     })
     .addOption({
