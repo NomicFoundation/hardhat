@@ -13,36 +13,41 @@ export async function getDeepCloneFunction(): Promise<<T>(input: T) => T> {
   return clone;
 }
 
-export function deepMergeImpl<T extends object, U extends object>(
+export function deepMergeImpl<T extends object, S extends object>(
   target: T,
-  source: U,
-): T & U {
+  source: S,
+  shouldOverwriteUndefined: boolean,
+): T & S {
   /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions
-  -- The result is expected to include properties from both target and source,
-  but initially only target is spread in, so a cast is needed. */
-  const result = { ...target } as T & U;
+  -- Result will include properties from both T and S, but starts with only T */
+  const result = { ...target } as T & S;
 
-  /*  eslint-disable-next-line @typescript-eslint/consistent-type-assertions
-  -- TypeScript cannot infer the correct union of string and symbol keys, but all keys come from U */
+  /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions
+  -- All keys come from S, TypeScript can't infer the union of string and symbol keys */
   const keys = [
     ...Object.keys(source),
     ...Object.getOwnPropertySymbols(source),
-  ] as Array<keyof U>;
+  ] as Array<keyof S>;
 
   for (const key of keys) {
     if (
       isObject(source[key]) &&
-      // Only merge recursively objects that are not class instances
+      // Only merge plain objects, not class instances
       Object.getPrototypeOf(source[key]) === Object.prototype
     ) {
       /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions
-      -- The call signature expects the second argument to be of type U; the type is correct, but TypeScript can't infer it here. */
-      result[key] = deepMergeImpl(result[key] ?? {}, source[key] as U) as (T &
-        U)[Extract<keyof U, string>];
-    } else {
+      -- result[key] will have the correct type after assignment but TS can't infer it */
+      result[key] = deepMergeImpl(
+        result[key] ?? {},
+        /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions
+        -- source[key] is known to be from S but TS can't infer it */
+        source[key] as S,
+        shouldOverwriteUndefined,
+      ) as (T & S)[Extract<keyof S, string>];
+    } else if (shouldOverwriteUndefined || source[key] !== undefined) {
       /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions
-      --  Cast required because TypeScript can't guarantee that a dynamic key from `U` exists in `T & U` or has the correct value type. */
-      result[key] = source[key] as (T & U)[Extract<keyof U, string>];
+      -- result[key] will have the correct type after assignment but TS can't infer it */
+      result[key] = source[key] as (T & S)[Extract<keyof S, string>];
     }
   }
 

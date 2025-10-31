@@ -556,6 +556,21 @@ describe("lang", () => {
       assert.equal(result.role, "admin"); // preserved from target
       assert.equal(result.active, true); // added from source
     });
+
+    it("Should overwrite with undefined from source when shouldOverwriteUndefined is true", () => {
+      const target = { a: 1, b: 2 };
+      const source = { b: undefined };
+
+      assert.deepEqual(deepMerge(target, source), { a: 1, b: undefined });
+      assert.deepEqual(deepMerge(target, source, true), { a: 1, b: undefined });
+    });
+
+    it("Should not overwrite with undefined from source when shouldOverwriteUndefined is false", () => {
+      const target = { a: 1, b: 2 };
+      const source = { b: undefined };
+
+      assert.deepEqual(deepMerge(target, source, false), { a: 1, b: 2 });
+    });
   });
 
   describe("isObject", () => {

@@ -36,14 +36,20 @@ declare module "../../../../types/config.js" {
   }
 
   export interface BlockExplorersUserConfig {
-    etherscan?: BlockExplorerUserConfig;
-    blockscout?: BlockExplorerUserConfig;
+    etherscan?: BlockExplorerEtherscanUserConfig;
+    blockscout?: BlockExplorerBlockscoutUserConfig;
   }
 
-  export interface BlockExplorerUserConfig {
+  export interface BlockExplorerEtherscanUserConfig {
     name?: string;
-    url: string;
-    apiUrl: string;
+    url?: string;
+    apiUrl?: string;
+  }
+
+  export interface BlockExplorerBlockscoutUserConfig {
+    name?: string;
+    url?: string;
+    apiUrl?: string;
   }
 
   export type NetworkUserConfig = HttpNetworkUserConfig | EdrNetworkUserConfig;
@@ -189,11 +195,17 @@ declare module "../../../../types/config.js" {
   }
 
   export interface BlockExplorersConfig {
-    etherscan?: BlockExplorerConfig;
-    blockscout?: BlockExplorerConfig;
+    etherscan?: BlockExplorerEtherscanConfig;
+    blockscout?: BlockExplorerBlockscoutConfig;
   }
 
-  export interface BlockExplorerConfig {
+  export interface BlockExplorerEtherscanConfig {
+    name?: string;
+    url: string;
+    apiUrl?: string;
+  }
+
+  export interface BlockExplorerBlockscoutConfig {
     name?: string;
     url: string;
     apiUrl: string;

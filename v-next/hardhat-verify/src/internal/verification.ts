@@ -3,6 +3,7 @@ import type { LibraryAddresses } from "./libraries.js";
 import type { VerificationProvider } from "./types.js";
 import type { Dispatcher } from "@nomicfoundation/hardhat-utils/request";
 import type {
+  BlockExplorerBlockscoutConfig,
   ChainDescriptorsConfig,
   VerificationProvidersConfig,
 } from "hardhat/types/config";
@@ -378,7 +379,11 @@ async function createVerificationProviderInstance({
     });
   }
 
-  return new Blockscout(commonOptions);
+  return new Blockscout(
+    /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions
+    -- At this point we know commonOptions is of type BlockscoutConfig */
+    commonOptions as BlockExplorerBlockscoutConfig & { dispatcher: Dispatcher },
+  );
 }
 
 async function attemptVerification(
