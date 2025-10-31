@@ -330,6 +330,10 @@ describe("hook-handlers/config", () => {
           apiKey: new MockResolvedConfigurationVariable(""),
           enabled: true,
         },
+        sourcify: {
+          apiUrl: undefined,
+          enabled: true,
+        },
       });
     });
 
@@ -362,6 +366,10 @@ describe("hook-handlers/config", () => {
           apiKey: new MockResolvedConfigurationVariable("some-api-key"),
           enabled: false,
         },
+        sourcify: {
+          apiUrl: undefined,
+          enabled: true,
+        },
       });
     });
 
@@ -389,6 +397,10 @@ describe("hook-handlers/config", () => {
         },
         etherscan: {
           apiKey: new MockResolvedConfigurationVariable("some-api-key"),
+          enabled: true,
+        },
+        sourcify: {
+          apiUrl: undefined,
           enabled: true,
         },
       });

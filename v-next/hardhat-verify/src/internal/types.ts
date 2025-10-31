@@ -1,7 +1,10 @@
+import type { CompilerInput } from "hardhat/types/solidity";
+
 export interface VerificationStatusResponse {
   isPending(): boolean;
   isFailure(): boolean;
   isSuccess(): boolean;
+  isBytecodeMissingInNetworkError(): boolean;
   isAlreadyVerified(): boolean;
   isOk(): boolean;
 }
@@ -23,10 +26,11 @@ export interface VerificationProvider {
 
   verify(
     contractAddress: string,
-    sourceCode: string,
+    compilerInput: CompilerInput,
     contractName: string,
     compilerVersion: string,
     constructorArguments: string,
+    creationTxHash?: string,
   ): Promise<string>;
 
   pollVerificationStatus(

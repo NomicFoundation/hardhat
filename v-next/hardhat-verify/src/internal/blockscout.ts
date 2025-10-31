@@ -13,6 +13,7 @@ import type {
   HttpResponse,
 } from "@nomicfoundation/hardhat-utils/request";
 import type { VerificationProvidersConfig } from "hardhat/types/config";
+import type { CompilerInput } from "hardhat/types/solidity";
 
 import { HardhatError } from "@nomicfoundation/hardhat-errors";
 import { ensureError } from "@nomicfoundation/hardhat-utils/error";
@@ -124,14 +125,15 @@ export class Blockscout implements VerificationProvider {
 
   public async verify(
     contractAddress: string,
-    sourceCode: string,
+    compilerInput: CompilerInput,
     contractName: string,
     compilerVersion: string,
     constructorArguments: string,
+    _creationTxHash?: string,
   ): Promise<string> {
     const body = {
       contractaddress: contractAddress,
-      sourceCode,
+      sourceCode: JSON.stringify(compilerInput),
       codeformat: "solidity-standard-json-input",
       contractname: contractName,
       compilerversion: compilerVersion,
@@ -372,6 +374,10 @@ class BlockscoutVerificationStatusResponse
 
   public isSuccess(): boolean {
     return this.message === "Pass - Verified";
+  }
+
+  public isBytecodeMissingInNetworkError(): boolean {
+    return false;
   }
 
   public isAlreadyVerified(): boolean {

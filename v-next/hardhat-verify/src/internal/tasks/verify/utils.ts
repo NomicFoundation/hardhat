@@ -41,6 +41,13 @@ export function extendWithVerificationArgs(
       name: "force",
       description:
         "Force the verification even if the contract is already verified",
+    })
+    .addOption({
+      name: "creationTxHash",
+      type: ArgumentType.STRING_WITHOUT_DEFAULT,
+      description:
+        "The hash of the contract creation transaction (optional, used by Sourcify)",
+      defaultValue: undefined,
     });
   /* TODO: M5
     .addFlag({
