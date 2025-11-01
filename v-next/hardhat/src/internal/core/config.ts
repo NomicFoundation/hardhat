@@ -1,6 +1,6 @@
 import type {
   ArgumentTypeToValueType,
-  OptionDefinition,
+  GlobalOptionDefinition,
 } from "../../types/arguments.js";
 import type { ConfigurationVariable } from "../../types/config.js";
 import type {
@@ -75,7 +75,7 @@ export function globalOption<T extends ArgumentType>(options: {
   description: string;
   type?: T;
   defaultValue: ArgumentTypeToValueType<T>;
-}): OptionDefinition {
+}): GlobalOptionDefinition {
   return buildGlobalOptionDefinition(options);
 }
 
@@ -86,7 +86,7 @@ export function globalFlag(options: {
   name: string;
   shortName?: string;
   description: string;
-}): OptionDefinition {
+}): GlobalOptionDefinition {
   return buildGlobalOptionDefinition({
     ...options,
     type: ArgumentType.FLAG,
@@ -102,7 +102,7 @@ export function globalLevel(options: {
   shortName?: string;
   description: string;
   defaultValue?: number;
-}): OptionDefinition {
+}): GlobalOptionDefinition {
   return buildGlobalOptionDefinition({
     ...options,
     type: ArgumentType.LEVEL,

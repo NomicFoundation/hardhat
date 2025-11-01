@@ -69,6 +69,13 @@ const greeting = task("hello", "Print a greeting")
     description: "The greeting to print",
     defaultValue: "Hello, World!",
   })
+  .addOption({
+    name: "programmatic",
+    description: "An example to show a hidden option",
+    type: ArgumentType.BOOLEAN,
+    defaultValue: false,
+    hidden: true,
+  })
   .setAction(async () => ({
     default: async ({ greeting }, _) => {
       console.log(greeting);

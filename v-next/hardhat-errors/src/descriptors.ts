@@ -486,6 +486,12 @@ Please resolve the errors before rerunning the command.`,
 
 Please install Hardhat locally using pnpm, npm or yarn, and try again.`,
       },
+      GLOBAL_OPTION_HIDDEN_NOT_SUPPORTED: {
+        number: 23,
+        messageTemplate: `Global option "{globalOption}" from plugin "{plugin}" cannot be hidden`,
+        websiteTitle: "Global option cannot be hidden",
+        websiteDescription: `A global option was defined as hidden, but global options cannot be hidden.`,
+      },
     },
     INTERNAL: {
       ASSERTION_ERROR: {
@@ -794,6 +800,13 @@ Please double check your arguments.`,
         websiteDescription: `One of your Hardhat or task short argument names is invalid.
 
 Please double check your arguments.`,
+      },
+      NO_HIDDEN_OPTION_CLI: {
+        number: 512,
+        messageTemplate:
+          'The option "{option}" is hidden and cannot be used from the CLI.',
+        websiteTitle: "Hidden options cannot be used from the CLI",
+        websiteDescription: `You are trying to use a hidden option from the CLI, which is not allowed.`,
       },
     },
     BUILTIN_TASKS: {
