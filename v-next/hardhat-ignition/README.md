@@ -15,11 +15,12 @@ npm install --save-dev @nomicfoundation/hardhat-ignition
 In your `hardhat.config.ts` file, import the plugin and add it to the `plugins` array:
 
 ```typescript
+import { defineConfig } from "hardhat/config";
 import hardhatIgnition from "@nomicfoundation/hardhat-ignition";
 
-export default {
+export default defineConfig({
   plugins: [hardhatIgnition],
-};
+});
 ```
 
 ## Usage
