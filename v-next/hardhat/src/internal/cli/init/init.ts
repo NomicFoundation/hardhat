@@ -327,7 +327,7 @@ export async function validatePackageJson(
     await writeJsonFile(absolutePathToPackageJson, packageJson);
   }
 
-  const packageManager = await getPackageManager(workspace);
+  const packageManager = getPackageManager();
 
   // We know this works with npm, pnpm, but not with yarn. If, so we use
   // pnpm or npm exclusively.
@@ -491,7 +491,7 @@ export async function installProjectDependencies(
     pathToWorkspacePackageJson,
   );
 
-  const packageManager = await getPackageManager(workspace);
+  const packageManager = getPackageManager();
 
   // Find the template dev dependencies that are not already installed
   const templateDependencies = template.packageJson.devDependencies ?? {};

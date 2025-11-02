@@ -2,7 +2,6 @@ import assert from "node:assert/strict";
 import { afterEach, beforeEach, describe, it } from "node:test";
 
 import { useTmpDir } from "@nomicfoundation/hardhat-test-utils";
-import { writeUtf8File } from "@nomicfoundation/hardhat-utils/fs";
 
 import {
   getDevDependenciesInstallationCommand,
@@ -16,35 +15,69 @@ describe("getPackageManager", () => {
   let originalUserAgent: string | undefined;
   beforeEach(() => {
     originalUserAgent = process.env.npm_config_user_agent;
-    process.env.npm_config_user_agent = "npm"; // assume we are running npm by default
   });
 
   afterEach(() => {
     process.env.npm_config_user_agent = originalUserAgent;
   });
 
-  it("should return pnpm if pnpm-lock.yaml exists", async () => {
-    await writeUtf8File("pnpm-lock.yaml", "");
-    assert.equal(await getPackageManager(process.cwd()), "pnpm");
-  });
+  const fixtureValues = [
+    {
+      agentString: "npm/11.6.1 node/v24.10.0 linux arm64 workspaces/false",
+      expected: "npm",
+    },
+    {
+      agentString: "npm/11.6.1 node/v24.10.0 linux arm64 workspaces/false",
+      expected: "npm",
+    },
+    {
+      agentString: "pnpm/10.18.3 npm/? node/v24.10.0 linux arm64",
+      expected: "pnpm",
+    },
+    {
+      agentString: "pnpm/10.18.3 npm/? node/v24.10.0 linux arm64",
+      expected: "pnpm",
+    },
+    {
+      agentString: "yarn/1.22.22 npm/? node/v24.10.0 linux arm64",
+      expected: "yarn",
+    },
+    {
+      agentString: "yarn/4.10.3 npm/? node/v24.10.0 linux arm64",
+      expected: "yarn",
+    },
+    {
+      agentString: "yarn/4.10.3 npm/? node/v24.10.0 linux arm64",
+      expected: "yarn",
+    },
+    {
+      agentString: "bun/1.3.1 npm/? node/v24.3.0 linux arm64",
+      expected: "bun",
+    },
+    {
+      agentString: "bun/1.3.1 npm/? node/v24.3.0 linux arm64",
+      expected: "bun",
+    },
+    {
+      agentString: "deno/2.5.6 npm/? deno/2.5.6 linux aarch64",
+      expected: "deno",
+    },
+    {
+      agentString: "deno/2.5.6 npm/? deno/2.5.6 linux aarch64",
+      expected: "deno",
+    },
+  ];
 
-  it("should return pnpm if invoked from pnpx", async () => {
-    assert.equal(await getPackageManager(process.cwd()), "npm");
-    process.env.npm_config_user_agent =
-      "pnpm/10.4.1 npm/? node/v23.2.0 linux x64";
-    assert.equal(await getPackageManager(process.cwd()), "pnpm");
-  });
+  it("Should work for all the fixture values", () => {
+    for (const fixture of fixtureValues) {
+      process.env.npm_config_user_agent = fixture.agentString;
 
-  it("should return npm if package-lock.json exists", async () => {
-    await writeUtf8File("package-lock.json", "");
-    assert.equal(await getPackageManager(process.cwd()), "npm");
-  });
-  it("should return yarn if yarn.lock exists", async () => {
-    await writeUtf8File("yarn.lock", "");
-    assert.equal(await getPackageManager(process.cwd()), "yarn");
-  });
-  it("should return npm if no lock file exists", async () => {
-    assert.equal(await getPackageManager(process.cwd()), "npm");
+      assert.equal(
+        getPackageManager(),
+        fixture.expected,
+        "Incorrect package manager for " + fixture.expected,
+      );
+    }
   });
 });
 
@@ -150,6 +183,26 @@ describe("installsPeerDependenciesByDefault", () => {
       assert.equal(actual, false);
     });
   });
+
+  describe("for bun", () => {
+    it("should always return true", async () => {
+      const actual = await installsPeerDependenciesByDefault(
+        process.cwd(),
+        "bun",
+      );
+      assert.equal(actual, true);
+    });
+  });
+
+  describe("for deno", () => {
+    it("should always return false", async () => {
+      const actual = await installsPeerDependenciesByDefault(
+        process.cwd(),
+        "deno",
+      );
+      assert.equal(actual, false);
+    });
+  });
 });
 
 describe("getDevDependenciesInstallationCommand", () => {
@@ -157,12 +210,24 @@ describe("getDevDependenciesInstallationCommand", () => {
     const command = getDevDependenciesInstallationCommand("pnpm", ["a", "b"]);
     assert.equal(command.join(" "), 'pnpm add --save-dev "a" "b"');
   });
+
   it("should return the correct command for npm", async () => {
     const command = getDevDependenciesInstallationCommand("npm", ["a", "b"]);
     assert.equal(command.join(" "), 'npm install --save-dev "a" "b"');
   });
+
   it("should return the correct command for yarn", async () => {
     const command = getDevDependenciesInstallationCommand("yarn", ["a", "b"]);
     assert.equal(command.join(" "), 'yarn add --dev "a" "b"');
+  });
+
+  it("should return the correct command for bun", async () => {
+    const command = getDevDependenciesInstallationCommand("bun", ["a", "b"]);
+    assert.equal(command.join(" "), 'bun add --dev "a" "b"');
+  });
+
+  it("should return the correct command for deno", async () => {
+    const command = getDevDependenciesInstallationCommand("deno", ["a", "b"]);
+    assert.equal(command.join(" "), 'deno add "npm:a" "npm:b"');
   });
 });
