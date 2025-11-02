@@ -55,7 +55,7 @@ type PackageManager = "npm" | "yarn" | "pnpm" | "bun" | "deno";
  *
  * deno:
  *
- *   uninstall: deno run -A npm:print-environment
+ *   uninstalled: deno run -A npm:print-environment
  *     "deno/2.5.6 npm/? deno/2.5.6 linux aarch64"
  *
  *   installed: deno init && deno add npm:print-environment && deno --allow-env print-environment
