@@ -27,14 +27,6 @@ describe("getPackageManager", () => {
       expected: "npm",
     },
     {
-      agentString: "npm/11.6.1 node/v24.10.0 linux arm64 workspaces/false",
-      expected: "npm",
-    },
-    {
-      agentString: "pnpm/10.18.3 npm/? node/v24.10.0 linux arm64",
-      expected: "pnpm",
-    },
-    {
       agentString: "pnpm/10.18.3 npm/? node/v24.10.0 linux arm64",
       expected: "pnpm",
     },
@@ -47,20 +39,8 @@ describe("getPackageManager", () => {
       expected: "yarn",
     },
     {
-      agentString: "yarn/4.10.3 npm/? node/v24.10.0 linux arm64",
-      expected: "yarn",
-    },
-    {
       agentString: "bun/1.3.1 npm/? node/v24.3.0 linux arm64",
       expected: "bun",
-    },
-    {
-      agentString: "bun/1.3.1 npm/? node/v24.3.0 linux arm64",
-      expected: "bun",
-    },
-    {
-      agentString: "deno/2.5.6 npm/? deno/2.5.6 linux aarch64",
-      expected: "deno",
     },
     {
       agentString: "deno/2.5.6 npm/? deno/2.5.6 linux aarch64",
