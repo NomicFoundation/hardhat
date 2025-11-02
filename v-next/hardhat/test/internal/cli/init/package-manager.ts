@@ -1,8 +1,6 @@
 import assert from "node:assert/strict";
 import { afterEach, beforeEach, describe, it } from "node:test";
 
-import { useTmpDir } from "@nomicfoundation/hardhat-test-utils";
-
 import {
   getDevDependenciesInstallationCommand,
   getPackageManager,
@@ -10,8 +8,6 @@ import {
 } from "../../../../src/internal/cli/init/package-manager.js";
 
 describe("getPackageManager", () => {
-  useTmpDir("getPackageManager");
-
   let originalUserAgent: string | undefined;
   beforeEach(() => {
     originalUserAgent = process.env.npm_config_user_agent;
