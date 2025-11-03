@@ -81,15 +81,21 @@ const hardforkHistoryUserConfigSchema: z.ZodRecord<
   ),
 );
 
-const blockExplorerUserConfigSchema = z.object({
+const blockExplorerEtherscanUserConfigSchema = z.object({
   name: z.optional(z.string()),
-  url: z.string(),
-  apiUrl: z.string(),
+  url: z.optional(z.string()),
+  apiUrl: z.optional(z.string()),
+});
+
+const blockExplorerBlockscoutUserConfigSchema = z.object({
+  name: z.optional(z.string()),
+  url: z.optional(z.string()),
+  apiUrl: z.optional(z.string()),
 });
 
 const blockExplorersUserConfigSchema = z.object({
-  etherscan: z.optional(blockExplorerUserConfigSchema),
-  blockscout: z.optional(blockExplorerUserConfigSchema),
+  etherscan: z.optional(blockExplorerEtherscanUserConfigSchema),
+  blockscout: z.optional(blockExplorerBlockscoutUserConfigSchema),
 });
 
 const chainDescriptorUserConfigSchema = z.object({
