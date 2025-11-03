@@ -303,12 +303,12 @@ describe("sourcify", () => {
 
         let result: string;
         try {
-          result = await sourcify.verify(
-            address,
+          result = await sourcify.verify({
+            contractAddress: address,
             compilerInput,
-            contract,
+            contractName: contract,
             compilerVersion,
-          );
+          });
         } catch {
           assert.fail("Expected verify to not throw an error");
         }
@@ -326,7 +326,12 @@ describe("sourcify", () => {
         verifyInterceptor.replyWithError(new Error("Network error"));
 
         await assertRejectsWithHardhatError(
-          sourcify.verify(address, compilerInput, contract, compilerVersion),
+          sourcify.verify({
+            contractAddress: address,
+            compilerInput,
+            contractName: contract,
+            compilerVersion,
+          }),
           HardhatError.ERRORS.HARDHAT_VERIFY.GENERAL.EXPLORER_REQUEST_FAILED,
           {
             name: sourcifyConfig.name,
@@ -339,7 +344,12 @@ describe("sourcify", () => {
         verifyInterceptor.reply(200, "Invalid json response");
 
         await assertRejectsWithHardhatError(
-          sourcify.verify(address, compilerInput, contract, compilerVersion),
+          sourcify.verify({
+            contractAddress: address,
+            compilerInput,
+            contractName: contract,
+            compilerVersion,
+          }),
           HardhatError.ERRORS.HARDHAT_VERIFY.GENERAL.EXPLORER_REQUEST_FAILED,
           {
             name: sourcifyConfig.name,
@@ -362,7 +372,12 @@ describe("sourcify", () => {
         });
 
         await assertRejectsWithHardhatError(
-          sourcify.verify(address, compilerInput, contract, compilerVersion),
+          sourcify.verify({
+            contractAddress: address,
+            compilerInput,
+            contractName: contract,
+            compilerVersion,
+          }),
           HardhatError.ERRORS.HARDHAT_VERIFY.GENERAL.CONTRACT_ALREADY_VERIFIED,
           {
             contract,
@@ -384,7 +399,12 @@ describe("sourcify", () => {
         });
 
         await assertRejectsWithHardhatError(
-          sourcify.verify(address, compilerInput, contract, compilerVersion),
+          sourcify.verify({
+            contractAddress: address,
+            compilerInput,
+            contractName: contract,
+            compilerVersion,
+          }),
           HardhatError.ERRORS.HARDHAT_VERIFY.GENERAL
             .CONTRACT_VERIFICATION_REQUEST_FAILED,
           {
@@ -404,7 +424,12 @@ describe("sourcify", () => {
         });
 
         await assertRejectsWithHardhatError(
-          sourcify.verify(address, compilerInput, contract, compilerVersion),
+          sourcify.verify({
+            contractAddress: address,
+            compilerInput,
+            contractName: contract,
+            compilerVersion,
+          }),
           HardhatError.ERRORS.HARDHAT_VERIFY.GENERAL
             .CONTRACT_VERIFICATION_UNEXPECTED_RESPONSE,
           {

@@ -344,13 +344,13 @@ describe("etherscan", () => {
 
         let response: string | undefined;
         try {
-          response = await etherscan.verify(
-            address,
+          response = await etherscan.verify({
+            contractAddress: address,
             compilerInput,
-            contract,
+            contractName: contract,
             compilerVersion,
             constructorArguments,
-          );
+          });
         } catch {
           assert.fail("Expected verify to not throw an error");
         }
@@ -368,13 +368,13 @@ describe("etherscan", () => {
         verifyInterceptor.replyWithError(new Error("Network error"));
 
         await assertRejectsWithHardhatError(
-          etherscan.verify(
-            address,
+          etherscan.verify({
+            contractAddress: address,
             compilerInput,
-            contract,
+            contractName: contract,
             compilerVersion,
             constructorArguments,
-          ),
+          }),
           HardhatError.ERRORS.HARDHAT_VERIFY.GENERAL.EXPLORER_REQUEST_FAILED,
           {
             name: etherscanConfig.name,
@@ -387,13 +387,13 @@ describe("etherscan", () => {
         verifyInterceptor.reply(400, "Bad Request");
 
         await assertRejectsWithHardhatError(
-          etherscan.verify(
-            address,
+          etherscan.verify({
+            contractAddress: address,
             compilerInput,
-            contract,
+            contractName: contract,
             compilerVersion,
             constructorArguments,
-          ),
+          }),
           HardhatError.ERRORS.HARDHAT_VERIFY.GENERAL.EXPLORER_REQUEST_FAILED,
           {
             name: etherscanConfig.name,
@@ -407,13 +407,13 @@ describe("etherscan", () => {
         verifyInterceptor.reply(200, "Invalid json response");
 
         await assertRejectsWithHardhatError(
-          etherscan.verify(
-            address,
+          etherscan.verify({
+            contractAddress: address,
             compilerInput,
-            contract,
+            contractName: contract,
             compilerVersion,
             constructorArguments,
-          ),
+          }),
           HardhatError.ERRORS.HARDHAT_VERIFY.GENERAL.EXPLORER_REQUEST_FAILED,
           {
             name: etherscanConfig.name,
@@ -432,13 +432,13 @@ describe("etherscan", () => {
         verifyInterceptor.reply(300, { result: "Redirection error" });
 
         await assertRejectsWithHardhatError(
-          etherscan.verify(
-            address,
+          etherscan.verify({
+            contractAddress: address,
             compilerInput,
-            contract,
+            contractName: contract,
             compilerVersion,
             constructorArguments,
-          ),
+          }),
           HardhatError.ERRORS.HARDHAT_VERIFY.GENERAL
             .EXPLORER_REQUEST_STATUS_CODE_ERROR,
           {
@@ -461,13 +461,13 @@ describe("etherscan", () => {
         });
 
         await assertRejectsWithHardhatError(
-          etherscan.verify(
-            address,
+          etherscan.verify({
+            contractAddress: address,
             compilerInput,
-            contract,
+            contractName: contract,
             compilerVersion,
             constructorArguments,
-          ),
+          }),
           HardhatError.ERRORS.HARDHAT_VERIFY.GENERAL
             .CONTRACT_VERIFICATION_MISSING_BYTECODE,
           {
@@ -488,13 +488,13 @@ describe("etherscan", () => {
         });
 
         await assertRejectsWithHardhatError(
-          etherscan.verify(
-            address,
+          etherscan.verify({
+            contractAddress: address,
             compilerInput,
-            contract,
+            contractName: contract,
             compilerVersion,
             constructorArguments,
-          ),
+          }),
           HardhatError.ERRORS.HARDHAT_VERIFY.GENERAL.CONTRACT_ALREADY_VERIFIED,
           {
             contract,
@@ -507,13 +507,13 @@ describe("etherscan", () => {
         });
 
         await assertRejectsWithHardhatError(
-          etherscan.verify(
-            address,
+          etherscan.verify({
+            contractAddress: address,
             compilerInput,
-            contract,
+            contractName: contract,
             compilerVersion,
             constructorArguments,
-          ),
+          }),
           HardhatError.ERRORS.HARDHAT_VERIFY.GENERAL.CONTRACT_ALREADY_VERIFIED,
           {
             contract,
@@ -534,13 +534,13 @@ describe("etherscan", () => {
         });
 
         await assertRejectsWithHardhatError(
-          etherscan.verify(
-            address,
+          etherscan.verify({
+            contractAddress: address,
             compilerInput,
-            contract,
+            contractName: contract,
             compilerVersion,
             constructorArguments,
-          ),
+          }),
           HardhatError.ERRORS.HARDHAT_VERIFY.GENERAL
             .CONTRACT_VERIFICATION_REQUEST_FAILED,
           { message: "Some error message" },

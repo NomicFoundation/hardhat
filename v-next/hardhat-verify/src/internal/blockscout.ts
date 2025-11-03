@@ -6,6 +6,7 @@ import type {
   VerificationProvider,
   VerificationResponse,
   VerificationStatusResponse,
+  BaseVerifyFunctionArgs,
 } from "./types.js";
 import type {
   Dispatcher,
@@ -13,7 +14,6 @@ import type {
   HttpResponse,
 } from "@nomicfoundation/hardhat-utils/request";
 import type { VerificationProvidersConfig } from "hardhat/types/config";
-import type { CompilerInput } from "hardhat/types/solidity";
 
 import { HardhatError } from "@nomicfoundation/hardhat-errors";
 import { ensureError } from "@nomicfoundation/hardhat-utils/error";
@@ -29,6 +29,10 @@ export const BLOCKSCOUT_PROVIDER_NAME: keyof VerificationProvidersConfig =
   "blockscout";
 
 const VERIFICATION_STATUS_POLLING_SECONDS = 3;
+
+export interface BlockscoutVerifyFunctionArgs extends BaseVerifyFunctionArgs {
+  constructorArguments: string;
+}
 
 export class Blockscout implements VerificationProvider {
   public readonly name: string;
@@ -123,14 +127,13 @@ export class Blockscout implements VerificationProvider {
     return typeof sourceCode === "string" && sourceCode !== "";
   }
 
-  public async verify(
-    contractAddress: string,
-    compilerInput: CompilerInput,
-    contractName: string,
-    compilerVersion: string,
-    constructorArguments: string,
-    _creationTxHash?: string,
-  ): Promise<string> {
+  public async verify({
+    contractAddress,
+    compilerInput,
+    contractName,
+    compilerVersion,
+    constructorArguments,
+  }: BlockscoutVerifyFunctionArgs): Promise<string> {
     const body = {
       contractaddress: contractAddress,
       sourceCode: JSON.stringify(compilerInput),
@@ -374,10 +377,6 @@ class BlockscoutVerificationStatusResponse
 
   public isSuccess(): boolean {
     return this.message === "Pass - Verified";
-  }
-
-  public isBytecodeMissingInNetworkError(): boolean {
-    return false;
   }
 
   public isAlreadyVerified(): boolean {

@@ -7,6 +7,7 @@ import type {
 import type {
   VerificationProvider,
   VerificationStatusResponse,
+  BaseVerifyFunctionArgs,
 } from "./types.js";
 import type {
   Dispatcher,
@@ -18,7 +19,7 @@ import type { CompilerInput } from "hardhat/types/solidity";
 
 import { HardhatError } from "@nomicfoundation/hardhat-errors";
 import { ensureError } from "@nomicfoundation/hardhat-utils/error";
-import { sleep } from "@nomicfoundation/hardhat-utils/lang";
+import { isObject, sleep } from "@nomicfoundation/hardhat-utils/lang";
 import {
   getProxyUrl,
   getRequest,
@@ -33,6 +34,10 @@ export const SOURCIFY_PROVIDER_NAME: keyof VerificationProvidersConfig =
 const VERIFICATION_STATUS_POLLING_SECONDS = 3;
 
 export const SOURCIFY_API_URL = "https://sourcify.dev/server";
+
+export interface SourcifyVerifyFunctionArgs extends BaseVerifyFunctionArgs {
+  creationTxHash?: string;
+}
 
 export class Sourcify implements VerificationProvider {
   public readonly chainId: string;
@@ -82,7 +87,7 @@ export class Sourcify implements VerificationProvider {
     try {
       response = await getRequest(
         `${this.apiUrl}/v2/contract/${this.chainId}/${address}`,
-        {},
+        undefined,
         this.dispatcherOrDispatcherOptions,
       );
       responseBody = await response.body.json();
@@ -91,7 +96,7 @@ export class Sourcify implements VerificationProvider {
 
       if (
         error instanceof ResponseStatusCodeError &&
-        isSourcifyLookupResponse(error?.body)
+        isSourcifyLookupResponse(error.body)
       ) {
         // Unverified contracts are returned with status 404
         return error.body.match !== null;
@@ -99,7 +104,7 @@ export class Sourcify implements VerificationProvider {
 
       if (
         error instanceof ResponseStatusCodeError &&
-        isSourcifyErrorResponse(error?.body)
+        isSourcifyErrorResponse(error.body)
       ) {
         throw new HardhatError(
           HardhatError.ERRORS.HARDHAT_VERIFY.GENERAL.EXPLORER_REQUEST_STATUS_CODE_ERROR,
@@ -133,14 +138,13 @@ export class Sourcify implements VerificationProvider {
     return responseBody.match !== null;
   }
 
-  public async verify(
-    contractAddress: string,
-    compilerInput: CompilerInput,
-    contractName: string,
-    compilerVersion: string,
-    _constructorArguments?: string,
-    creationTxHash?: string,
-  ): Promise<string> {
+  public async verify({
+    contractAddress,
+    compilerInput,
+    contractName,
+    compilerVersion,
+    creationTxHash,
+  }: SourcifyVerifyFunctionArgs): Promise<string> {
     const body: {
       stdJsonInput: CompilerInput;
       contractIdentifier: string;
@@ -162,7 +166,7 @@ export class Sourcify implements VerificationProvider {
       response = await postJsonRequest(
         `${this.apiUrl}/v2/verify/${this.chainId}/${contractAddress}`,
         body,
-        {},
+        undefined,
         this.dispatcherOrDispatcherOptions,
       );
       responseBody = await response.body.json();
@@ -171,7 +175,7 @@ export class Sourcify implements VerificationProvider {
 
       if (
         error instanceof ResponseStatusCodeError &&
-        isSourcifyErrorResponse(error?.body)
+        isSourcifyErrorResponse(error.body)
       ) {
         if (error.body.customCode === "already_verified") {
           throw new HardhatError(
@@ -225,7 +229,7 @@ export class Sourcify implements VerificationProvider {
     try {
       response = await getRequest(
         `${this.apiUrl}/v2/verify/${guid}`,
-        {},
+        undefined,
         this.dispatcherOrDispatcherOptions,
       );
       responseBody = await response.body.json();
@@ -234,7 +238,7 @@ export class Sourcify implements VerificationProvider {
 
       if (
         error instanceof ResponseStatusCodeError &&
-        isSourcifyErrorResponse(error?.body)
+        isSourcifyErrorResponse(error.body)
       ) {
         throw new HardhatError(
           HardhatError.ERRORS.HARDHAT_VERIFY.GENERAL.CONTRACT_VERIFICATION_STATUS_POLLING_FAILED,
@@ -310,11 +314,10 @@ export class Sourcify implements VerificationProvider {
 }
 
 function isSourcifyErrorResponse(
-  response: any,
+  response: unknown,
 ): response is SourcifyErrorResponse {
   return (
-    typeof response === "object" &&
-    response !== null &&
+    isObject(response) &&
     "customCode" in response &&
     "message" in response &&
     "errorId" in response
@@ -322,11 +325,10 @@ function isSourcifyErrorResponse(
 }
 
 function isSourcifyLookupResponse(
-  response: any,
+  response: unknown,
 ): response is SourcifyLookupResponse {
   return (
-    typeof response === "object" &&
-    response !== null &&
+    isObject(response) &&
     "match" in response &&
     "creationMatch" in response &&
     "runtimeMatch" in response &&
@@ -336,21 +338,16 @@ function isSourcifyLookupResponse(
 }
 
 function isSourcifyVerificationResponse(
-  response: any,
+  response: unknown,
 ): response is SourcifyVerificationResponse {
-  return (
-    typeof response === "object" &&
-    response !== null &&
-    "verificationId" in response
-  );
+  return isObject(response) && "verificationId" in response;
 }
 
 function isSourcifyVerificationStatusResponse(
-  response: any,
+  response: unknown,
 ): response is SourcifyVerificationStatusResponse {
   return (
-    typeof response === "object" &&
-    response !== null &&
+    isObject(response) &&
     "isJobCompleted" in response &&
     "verificationId" in response &&
     "jobStartTime" in response &&
@@ -405,8 +402,11 @@ class SourcifyVerificationStatus implements VerificationStatusResponse {
     );
   }
 
+  /**
+   * SourcifyVerificationStatusResponse represents a successful verification,
+   * so this always returns true.
+   */
   public isOk(): boolean {
-    // This class is based on SourcifyVerificationStatusResponse, which already means that the request was successful.
     return true;
   }
 }

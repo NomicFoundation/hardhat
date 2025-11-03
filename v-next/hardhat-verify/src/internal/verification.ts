@@ -38,7 +38,7 @@ export interface VerifyContractArgs {
   contract?: string;
   force?: boolean;
   provider?: keyof VerificationProvidersConfig;
-  /** The hash of the contract creation transaction (optional, used by Sourcify) */
+  /** The hash of the contract creation transaction (Sourcify only) */
   creationTxHash?: string;
 }
 
@@ -358,6 +358,7 @@ async function createVerificationProviderInstance({
   dispatcher?: Dispatcher;
 }): Promise<VerificationProvider> {
   const chainId = await getChainId(provider);
+
   if (verificationProviderName === "sourcify") {
     return new Sourcify({
       chainId,
@@ -421,14 +422,14 @@ async function attemptVerification(
   success: boolean;
   message: string;
 }> {
-  const guid = await verificationProvider.verify(
-    address,
-    contractInformation.compilerInput,
-    contractInformation.inputFqn,
-    `v${contractInformation.solcLongVersion}`,
-    encodedConstructorArgs,
+  const guid = await verificationProvider.verify({
+    contractAddress: address,
+    compilerInput: contractInformation.compilerInput,
+    contractName: contractInformation.inputFqn,
+    compilerVersion: `v${contractInformation.solcLongVersion}`,
+    constructorArguments: encodedConstructorArgs,
     creationTxHash,
-  );
+  });
 
   consoleLog(`
 📤 Submitted source code for verification on ${verificationProvider.name}:

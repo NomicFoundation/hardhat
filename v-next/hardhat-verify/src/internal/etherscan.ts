@@ -6,6 +6,7 @@ import type {
   VerificationProvider,
   VerificationResponse,
   VerificationStatusResponse,
+  BaseVerifyFunctionArgs,
 } from "./types.js";
 import type {
   Dispatcher,
@@ -13,7 +14,6 @@ import type {
   HttpResponse,
 } from "@nomicfoundation/hardhat-utils/request";
 import type { VerificationProvidersConfig } from "hardhat/types/config";
-import type { CompilerInput } from "hardhat/types/solidity";
 
 import { HardhatError } from "@nomicfoundation/hardhat-errors";
 import { ensureError } from "@nomicfoundation/hardhat-utils/error";
@@ -35,6 +35,10 @@ const VERIFICATION_STATUS_POLLING_SECONDS = 3;
 // and use this as the default API URL for Etherscan v2
 // this.apiUrl = etherscanConfig.apiUrl ?? ETHERSCAN_API_URL;
 export const ETHERSCAN_API_URL = "https://api.etherscan.io/v2/api";
+
+export interface EtherscanVerifyFunctionArgs extends BaseVerifyFunctionArgs {
+  constructorArguments: string;
+}
 
 export class Etherscan implements VerificationProvider {
   public readonly chainId: string;
@@ -146,14 +150,13 @@ export class Etherscan implements VerificationProvider {
     return typeof sourceCode === "string" && sourceCode !== "";
   }
 
-  public async verify(
-    contractAddress: string,
-    compilerInput: CompilerInput,
-    contractName: string,
-    compilerVersion: string,
-    constructorArguments: string,
-    _creationTxHash?: string,
-  ): Promise<string> {
+  public async verify({
+    contractAddress,
+    compilerInput,
+    contractName,
+    compilerVersion,
+    constructorArguments,
+  }: EtherscanVerifyFunctionArgs): Promise<string> {
     const body = {
       contractaddress: contractAddress,
       sourceCode: JSON.stringify(compilerInput),
@@ -390,10 +393,6 @@ class EtherscanVerificationStatusResponse
 
   public isSuccess(): boolean {
     return this.message === "Pass - Verified";
-  }
-
-  public isBytecodeMissingInNetworkError(): boolean {
-    return false;
   }
 
   public isAlreadyVerified(): boolean {

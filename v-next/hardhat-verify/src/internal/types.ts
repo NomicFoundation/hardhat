@@ -4,7 +4,6 @@ export interface VerificationStatusResponse {
   isPending(): boolean;
   isFailure(): boolean;
   isSuccess(): boolean;
-  isBytecodeMissingInNetworkError(): boolean;
   isAlreadyVerified(): boolean;
   isOk(): boolean;
 }
@@ -13,6 +12,20 @@ export interface VerificationResponse {
   isBytecodeMissingInNetworkError(): boolean;
   isAlreadyVerified(): boolean;
   isOk(): boolean;
+}
+
+export interface BaseVerifyFunctionArgs {
+  contractAddress: string;
+  compilerInput: CompilerInput;
+  contractName: string;
+  compilerVersion: string;
+}
+
+export interface VerifyFunctionArgs extends BaseVerifyFunctionArgs {
+  /** The constructor arguments (Etherscan & Blockscout only) */
+  constructorArguments?: string;
+  /** The hash of the contract creation transaction (Sourcify only) */
+  creationTxHash?: string;
 }
 
 export interface VerificationProvider {
@@ -24,14 +37,7 @@ export interface VerificationProvider {
 
   isVerified(address: string): Promise<boolean>;
 
-  verify(
-    contractAddress: string,
-    compilerInput: CompilerInput,
-    contractName: string,
-    compilerVersion: string,
-    constructorArguments: string,
-    creationTxHash?: string,
-  ): Promise<string>;
+  verify(verifyFunctionArgs: VerifyFunctionArgs): Promise<string>;
 
   pollVerificationStatus(
     guid: string,
