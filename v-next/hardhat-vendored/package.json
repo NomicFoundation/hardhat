@@ -41,7 +41,6 @@
     "README.md"
   ],
   "devDependencies": {
-    "@nomicfoundation/hardhat-node-test-reporter": "workspace:^3.0.0",
     "@types/bn.js": "^5.1.5",
     "@types/debug": "^4.1.7",
     "@types/node": "^20.14.9",
