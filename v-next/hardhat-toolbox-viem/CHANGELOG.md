@@ -1,5 +1,11 @@
 # @nomicfoundation/hardhat-toolbox-viem
 
+## 5.0.1
+
+### Patch Changes
+
+- 558ac5b: Update installation and config instructions
+
 ## 5.0.0
 
 ### Major Changes

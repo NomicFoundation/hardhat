@@ -1,5 +1,11 @@
 # @nomicfoundation/hardhat-ethers
 
+## 4.0.3
+
+### Patch Changes
+
+- 558ac5b: Update installation and config instructions
+
 ## 4.0.2
 
 ### Patch Changes

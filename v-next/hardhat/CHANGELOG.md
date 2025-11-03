@@ -1,5 +1,13 @@
 # hardhat
 
+## 3.0.11
+
+### Patch Changes
+
+- a4733f6: Add `defineConfig` in `hardhat/config`
+- 52d9902: Fix package manager detection
+- d45234d: Fixed Etherscan verification failures by removing hardcoded v1 API URLs from chain descriptors ([#7623](https://github.com/NomicFoundation/hardhat/issues/7623)). Also enhanced config resolution to support partial overrides in block explorer configurations for future extensibility.
+
 ## 3.0.10
 
 ### Patch Changes

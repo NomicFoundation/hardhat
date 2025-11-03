@@ -1,5 +1,11 @@
 # Changelog
 
+## 3.0.4
+
+### Patch Changes
+
+- 558ac5b: Update installation and config instructions
+
 ## 3.0.3
 
 ### Patch Changes

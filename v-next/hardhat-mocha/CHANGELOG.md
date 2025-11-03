@@ -1,5 +1,11 @@
 # @nomicfoundation/hardhat-mocha
 
+## 3.0.6
+
+### Patch Changes
+
+- 558ac5b: Update installation and config instructions
+
 ## 3.0.5
 
 ### Patch Changes
