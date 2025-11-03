@@ -17,11 +17,12 @@ npm install --save-dev @nomicfoundation/hardhat-toolbox-viem
 Then add it to your Hardhat configuration:
 
 ```typescript
+import { defineConfig } from "hardhat/config";
 import hardhatToolboxViem from "@nomicfoundation/hardhat-toolbox-viem";
 
-export default {
+export default defineConfig({
   plugins: [hardhatToolboxViem],
-};
+});
 ```
 
 ## Included functionality

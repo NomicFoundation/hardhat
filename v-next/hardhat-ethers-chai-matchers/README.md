@@ -15,11 +15,12 @@ npm install --save-dev @nomicfoundation/hardhat-ethers-chai-matchers
 In your `hardhat.config.ts` file, import the plugin and add it to the `plugins` array:
 
 ```ts
+import { defineConfig } from "hardhat/config";
 import hardhatEthersChaiMatchers from "@nomicfoundation/hardhat-ethers-chai-matchers";
 
-export default {
+export default defineConfig({
   plugins: [hardhatEthersChaiMatchers],
-};
+});
 ```
 
 ## Usage

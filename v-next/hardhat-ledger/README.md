@@ -13,12 +13,13 @@ npm install --save-dev @nomicfoundation/hardhat-ledger
 and add the following statements to your `hardhat.config.ts` file:
 
 ```typescript
+import { defineConfig } from "hardhat/config";
 // ...
 import hardhatLedgerPlugin from "@nomicfoundation/hardhat-ledger";
 
 // ...
 
-export default {
+export default defineConfig({
   // ...
   plugins: [
     // ...
@@ -26,7 +27,7 @@ export default {
   ],
 
   // ...
-};
+});
 ```
 
 ## Configuring your Ledger accounts
@@ -34,7 +35,9 @@ export default {
 In your `hardhat.config.ts` file, also add the following property to list the accounts you control via your Ledger device:
 
 ```typescript
-export default {
+import { defineConfig } from "hardhat/config";
+
+export default defineConfig({
   // ...
   networks: {
     yourNetworkName: {
@@ -48,7 +51,7 @@ export default {
   },
 
   // ...
-};
+});
 ```
 
 This will make those three accounts available to the Hardhat. If you try to send a transaction or sign something using any of those accounts, the plugin will try to connect to the Ledger wallet and find a derivation path for that address. By default, the derivation paths that are tried start from `m/44'/60'/0'/0'/0` and go up to `m/44'/60'/20'/0'/0`.
@@ -56,7 +59,9 @@ This will make those three accounts available to the Hardhat. If you try to send
 An optional `derivationFunction configuration allows setting the derivation path, supporting 'legacy' or otherwise non-standard addresses:
 
 ```typescript
-export default {
+import { defineConfig } from "hardhat/config";
+
+export default defineConfig({
   // ...
   networks: {
     yourNetworkName: {
@@ -69,7 +74,7 @@ export default {
   },
 
   // ...
-};
+});
 ```
 
 ## Usage
