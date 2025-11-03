@@ -670,6 +670,7 @@ export class EIP1193JsonRpcClient implements JsonRpcClient {
       // of blockchains using Besu. We explicitly exclude BNB
       // Smartchain (chainId 56) and its testnet (chainId 97)
       // as well as opBNB (chainId 204) and its testnet (chainId 5611)
+      // as well as Core (chainId 1116) and its testnet (chainId 1114)
       // from this logic as it is EIP-1559 compliant but
       // only sets a maxPriorityFeePerGas.
       if (
@@ -677,7 +678,9 @@ export class EIP1193JsonRpcClient implements JsonRpcClient {
         chainId !== 56 &&
         chainId !== 97 &&
         chainId !== 204 &&
-        chainId !== 5611
+        chainId !== 5611 &&
+        chainId !== 1116 &&
+        chainId !== 1114
       ) {
         return {
           maxFeePerGas: 0n,
