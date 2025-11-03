@@ -13,5 +13,5 @@
     "incremental": true,
     "typeRoots": ["${configDir}/node_modules/@types"]
   },
-  "include": ["src/**/*.js", "src/**/*.cjs", "src/**/*.ts"]
+  "include": ["src/**/*.js", "src/**/*.cjs", "src/**/*.ts", "test/**/*.ts"]
 }
