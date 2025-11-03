@@ -1,6 +1,6 @@
 {
   "name": "@nomicfoundation/hardhat-typechain",
-  "version": "3.0.0",
+  "version": "3.0.1",
   "description": "Hardhat plugin to support typechain",
   "homepage": "https://github.com/nomicfoundation/hardhat/tree/v-next/v-next/hardhat-typechain",
   "repository": {
@@ -59,7 +59,7 @@
   },
   "dependencies": {
     "@nomicfoundation/hardhat-errors": "workspace:^3.0.0",
-    "@nomicfoundation/hardhat-utils": "workspace:^3.0.0",
+    "@nomicfoundation/hardhat-utils": "workspace:^3.0.5",
     "@nomicfoundation/hardhat-zod-utils": "workspace:^3.0.0",
     "@typechain/ethers-v6": "^0.5.0",
     "debug": "^4.3.2",

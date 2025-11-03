@@ -1,5 +1,12 @@
 # Changelog
 
+## 3.0.4
+
+### Patch Changes
+
+- 843c1ae: Fixed a bug preventing Ignition from using the `hre.config.ignition` settings when deploying via script ([#7641](https://github.com/NomicFoundation/hardhat/issues/7641))
+- 558ac5b: Update installation and config instructions
+
 ## 3.0.3
 
 ### Patch Changes
