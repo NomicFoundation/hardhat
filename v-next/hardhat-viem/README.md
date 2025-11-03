@@ -15,11 +15,12 @@ npm install --save-dev @nomicfoundation/hardhat-viem
 In your `hardhat.config.ts` file, import the plugin and add it to the `plugins` array:
 
 ```typescript
+import { defineConfig } from "hardhat/config";
 import hardhatViem from "@nomicfoundation/hardhat-viem";
 
-export default {
+export default defineConfig({
   plugins: [hardhatViem],
-};
+});
 ```
 
 ## Usage
