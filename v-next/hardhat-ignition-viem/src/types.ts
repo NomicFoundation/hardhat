@@ -39,6 +39,10 @@ export interface ViemIgnitionHelper {
   ): Promise<
     IgnitionModuleResultsToViemContracts<ContractNameT, IgnitionModuleResultsT>
   >;
+
+  getResolvedConfig(
+    perDeployConfig: Partial<DeployConfig>,
+  ): Partial<DeployConfig>;
 }
 
 export type IgnitionModuleResultsToViemContracts<
