@@ -1464,6 +1464,9 @@ importers:
 
   v-next/hardhat-vendored:
     devDependencies:
+      '@nomicfoundation/hardhat-node-test-reporter':
+        specifier: workspace:^3.0.0
+        version: link:../hardhat-node-test-reporter
       '@types/bn.js':
         specifier: ^5.1.5
         version: 5.2.0
