@@ -347,6 +347,10 @@ describe("hook-handlers/config", () => {
             apiKey: "some-api-key",
             enabled: false,
           },
+          sourcify: {
+            apiUrl: "https://sourcify.custom.url",
+            enabled: false,
+          },
         },
       };
 
@@ -367,8 +371,8 @@ describe("hook-handlers/config", () => {
           enabled: false,
         },
         sourcify: {
-          apiUrl: undefined,
-          enabled: true,
+          apiUrl: "https://sourcify.custom.url",
+          enabled: false,
         },
       });
     });
@@ -379,6 +383,9 @@ describe("hook-handlers/config", () => {
           blockscout: {},
           etherscan: {
             apiKey: "some-api-key",
+          },
+          sourcify: {
+            apiUrl: "https://sourcify.custom.url",
           },
         },
       };
@@ -400,7 +407,7 @@ describe("hook-handlers/config", () => {
           enabled: true,
         },
         sourcify: {
-          apiUrl: undefined,
+          apiUrl: "https://sourcify.custom.url",
           enabled: true,
         },
       });

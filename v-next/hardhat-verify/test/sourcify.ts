@@ -39,6 +39,11 @@ describe("sourcify", () => {
     };
     const compilerVersion = "0.8.24+commit.e11b9ed9";
     const verificationId = "6ab5e94b-2959-4945-bc92-c44a3fbcdb4a";
+    // Fix for undici MockAgent + throwOnError: Without explicitly setting headers
+    // in the reply options, error.body will be null even though the mock returns
+    // a body. Adding Content-Type header makes the body accessible in the error.
+    // See: https://github.com/nodejs/undici/issues/4026#issuecomment-2612421029
+    const responseOptions = { headers: { "Content-Type": "application/json" } };
 
     describe("constructor", () => {
       it("should create an instance with the correct properties", () => {
@@ -185,13 +190,17 @@ describe("sourcify", () => {
           dispatcher: testDispatcher.interceptable,
         });
 
-        isVerifiedInterceptor.reply(404, {
-          match: null,
-          creationMatch: null,
-          runtimeMatch: null,
-          chainId: String(sourcifyConfig.chainId),
-          address,
-        });
+        isVerifiedInterceptor.reply(
+          404,
+          {
+            match: null,
+            creationMatch: null,
+            runtimeMatch: null,
+            chainId: String(sourcifyConfig.chainId),
+            address,
+          },
+          responseOptions,
+        );
 
         const isVerified = await sourcify.isVerified(address);
 
@@ -218,11 +227,15 @@ describe("sourcify", () => {
         );
 
         // Simulate an error response
-        isVerifiedInterceptor.reply(400, {
-          customCode: "unsupported_chain",
-          message: "Chain not found",
-          errorId: "72b347a4-3d74-4056-8552-a79f199e27f5",
-        });
+        isVerifiedInterceptor.reply(
+          400,
+          {
+            customCode: "unsupported_chain",
+            message: "Chain not found",
+            errorId: "72b347a4-3d74-4056-8552-a79f199e27f5",
+          },
+          responseOptions,
+        );
 
         await assertRejectsWithHardhatError(
           sourcify.isVerified(address),
@@ -365,11 +378,15 @@ describe("sourcify", () => {
           dispatcher: testDispatcher.interceptable,
         });
 
-        verifyInterceptor.reply(409, {
-          customCode: "already_verified",
-          message: "Contract is already verified",
-          errorId: "72b347a4-3d74-4056-8552-a79f199e27f5",
-        });
+        verifyInterceptor.reply(
+          409,
+          {
+            customCode: "already_verified",
+            message: "Contract is already verified",
+            errorId: "72b347a4-3d74-4056-8552-a79f199e27f5",
+          },
+          responseOptions,
+        );
 
         await assertRejectsWithHardhatError(
           sourcify.verify({
@@ -392,11 +409,15 @@ describe("sourcify", () => {
           dispatcher: testDispatcher.interceptable,
         });
 
-        verifyInterceptor.reply(404, {
-          customCode: "unsupported_chain",
-          message: "Chain not found",
-          errorId: "72b347a4-3d74-4056-8552-a79f199e27f5",
-        });
+        verifyInterceptor.reply(
+          404,
+          {
+            customCode: "unsupported_chain",
+            message: "Chain not found",
+            errorId: "72b347a4-3d74-4056-8552-a79f199e27f5",
+          },
+          responseOptions,
+        );
 
         await assertRejectsWithHardhatError(
           sourcify.verify({
@@ -594,11 +615,15 @@ describe("sourcify", () => {
         );
 
         // Simulate an error response
-        pollVerificationStatusInterceptor.reply(404, {
-          customCode: "job_not_found",
-          message: "No verification job found for id",
-          errorId: "72b347a4-3d74-4056-8552-a79f199e27f5",
-        });
+        pollVerificationStatusInterceptor.reply(
+          404,
+          {
+            customCode: "job_not_found",
+            message: "No verification job found for id",
+            errorId: "72b347a4-3d74-4056-8552-a79f199e27f5",
+          },
+          responseOptions,
+        );
 
         await assertRejectsWithHardhatError(
           sourcify.pollVerificationStatus(verificationId, address, contract),
