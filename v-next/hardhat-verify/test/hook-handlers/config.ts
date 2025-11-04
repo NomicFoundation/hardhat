@@ -330,6 +330,10 @@ describe("hook-handlers/config", () => {
           apiKey: new MockResolvedConfigurationVariable(""),
           enabled: true,
         },
+        sourcify: {
+          apiUrl: undefined,
+          enabled: true,
+        },
       });
     });
 
@@ -341,6 +345,10 @@ describe("hook-handlers/config", () => {
           },
           etherscan: {
             apiKey: "some-api-key",
+            enabled: false,
+          },
+          sourcify: {
+            apiUrl: "https://sourcify.custom.url",
             enabled: false,
           },
         },
@@ -362,6 +370,10 @@ describe("hook-handlers/config", () => {
           apiKey: new MockResolvedConfigurationVariable("some-api-key"),
           enabled: false,
         },
+        sourcify: {
+          apiUrl: "https://sourcify.custom.url",
+          enabled: false,
+        },
       });
     });
 
@@ -371,6 +383,9 @@ describe("hook-handlers/config", () => {
           blockscout: {},
           etherscan: {
             apiKey: "some-api-key",
+          },
+          sourcify: {
+            apiUrl: "https://sourcify.custom.url",
           },
         },
       };
@@ -389,6 +404,10 @@ describe("hook-handlers/config", () => {
         },
         etherscan: {
           apiKey: new MockResolvedConfigurationVariable("some-api-key"),
+          enabled: true,
+        },
+        sourcify: {
+          apiUrl: "https://sourcify.custom.url",
           enabled: true,
         },
       });

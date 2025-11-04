@@ -30,6 +30,7 @@ export async function internalVerifyAction(
   const allProviders: Array<keyof VerificationProvidersConfig> = [
     "etherscan",
     "blockscout",
+    "sourcify",
   ];
 
   const enabledProviders = allProviders.filter(

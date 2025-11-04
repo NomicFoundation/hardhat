@@ -22,6 +22,22 @@ describe("blockscout", () => {
     const contract = "contracts/Test.sol:Test";
     const sourceCode =
       "// SPDX-License-Identifier: MIT\npragma solidity ^0.8.24;\n\ncontract Test {}";
+    const compilerInput = {
+      language: "Solidity",
+      sources: {
+        "contracts/Test.sol": {
+          content: sourceCode,
+        },
+      },
+      settings: {
+        optimizer: { enabled: false },
+        outputSelection: {
+          "*": {
+            "*": ["*"],
+          },
+        },
+      },
+    };
     const compilerVersion = "0.8.24+commit.e11b9ed9";
     const constructorArguments = "";
     const guid = "a7lpxkm9kpcpicx7daftmjifrfhiuhf5vqqnawhkfhzfrcpnxj";
@@ -268,7 +284,7 @@ describe("blockscout", () => {
           },
           body: querystring.stringify({
             contractaddress: address,
-            sourceCode,
+            sourceCode: JSON.stringify(compilerInput),
             codeformat: "solidity-standard-json-input",
             contractname: contract,
             compilerversion: compilerVersion,
@@ -291,13 +307,13 @@ describe("blockscout", () => {
 
         let response: string | undefined;
         try {
-          response = await blockscout.verify(
-            address,
-            sourceCode,
-            contract,
+          response = await blockscout.verify({
+            contractAddress: address,
+            compilerInput,
+            contractName: contract,
             compilerVersion,
             constructorArguments,
-          );
+          });
         } catch {
           assert.fail("Expected verify to not throw an error");
         }
@@ -315,13 +331,13 @@ describe("blockscout", () => {
         verifyInterceptor.replyWithError(new Error("Network error"));
 
         await assertRejectsWithHardhatError(
-          blockscout.verify(
-            address,
-            sourceCode,
-            contract,
+          blockscout.verify({
+            contractAddress: address,
+            compilerInput,
+            contractName: contract,
             compilerVersion,
             constructorArguments,
-          ),
+          }),
           HardhatError.ERRORS.HARDHAT_VERIFY.GENERAL.EXPLORER_REQUEST_FAILED,
           {
             name: blockscoutConfig.name,
@@ -334,13 +350,13 @@ describe("blockscout", () => {
         verifyInterceptor.reply(400, "Bad Request");
 
         await assertRejectsWithHardhatError(
-          blockscout.verify(
-            address,
-            sourceCode,
-            contract,
+          blockscout.verify({
+            contractAddress: address,
+            compilerInput,
+            contractName: contract,
             compilerVersion,
             constructorArguments,
-          ),
+          }),
           HardhatError.ERRORS.HARDHAT_VERIFY.GENERAL.EXPLORER_REQUEST_FAILED,
           {
             name: blockscoutConfig.name,
@@ -354,13 +370,13 @@ describe("blockscout", () => {
         verifyInterceptor.reply(200, "Invalid json response");
 
         await assertRejectsWithHardhatError(
-          blockscout.verify(
-            address,
-            sourceCode,
-            contract,
+          blockscout.verify({
+            contractAddress: address,
+            compilerInput,
+            contractName: contract,
             compilerVersion,
             constructorArguments,
-          ),
+          }),
           HardhatError.ERRORS.HARDHAT_VERIFY.GENERAL.EXPLORER_REQUEST_FAILED,
           {
             name: blockscoutConfig.name,
@@ -379,13 +395,13 @@ describe("blockscout", () => {
         verifyInterceptor.reply(300, { result: "Redirection error" });
 
         await assertRejectsWithHardhatError(
-          blockscout.verify(
-            address,
-            sourceCode,
-            contract,
+          blockscout.verify({
+            contractAddress: address,
+            compilerInput,
+            contractName: contract,
             compilerVersion,
             constructorArguments,
-          ),
+          }),
           HardhatError.ERRORS.HARDHAT_VERIFY.GENERAL
             .EXPLORER_REQUEST_STATUS_CODE_ERROR,
           {
@@ -408,13 +424,13 @@ describe("blockscout", () => {
         });
 
         await assertRejectsWithHardhatError(
-          blockscout.verify(
-            address,
-            sourceCode,
-            contract,
+          blockscout.verify({
+            contractAddress: address,
+            compilerInput,
+            contractName: contract,
             compilerVersion,
             constructorArguments,
-          ),
+          }),
           HardhatError.ERRORS.HARDHAT_VERIFY.GENERAL
             .CONTRACT_VERIFICATION_MISSING_BYTECODE,
           {
@@ -435,13 +451,13 @@ describe("blockscout", () => {
         });
 
         await assertRejectsWithHardhatError(
-          blockscout.verify(
-            address,
-            sourceCode,
-            contract,
+          blockscout.verify({
+            contractAddress: address,
+            compilerInput,
+            contractName: contract,
             compilerVersion,
             constructorArguments,
-          ),
+          }),
           HardhatError.ERRORS.HARDHAT_VERIFY.GENERAL.CONTRACT_ALREADY_VERIFIED,
           {
             contract,
@@ -461,13 +477,13 @@ describe("blockscout", () => {
         });
 
         await assertRejectsWithHardhatError(
-          blockscout.verify(
-            address,
-            sourceCode,
-            contract,
+          blockscout.verify({
+            contractAddress: address,
+            compilerInput,
+            contractName: contract,
             compilerVersion,
             constructorArguments,
-          ),
+          }),
           HardhatError.ERRORS.HARDHAT_VERIFY.GENERAL.ADDRESS_NOT_A_CONTRACT,
           {
             verificationProvider: blockscoutConfig.name,
@@ -488,13 +504,13 @@ describe("blockscout", () => {
         });
 
         await assertRejectsWithHardhatError(
-          blockscout.verify(
-            address,
-            sourceCode,
-            contract,
+          blockscout.verify({
+            contractAddress: address,
+            compilerInput,
+            contractName: contract,
             compilerVersion,
             constructorArguments,
-          ),
+          }),
           HardhatError.ERRORS.HARDHAT_VERIFY.GENERAL
             .CONTRACT_VERIFICATION_REQUEST_FAILED,
           { message: "Some error message" },

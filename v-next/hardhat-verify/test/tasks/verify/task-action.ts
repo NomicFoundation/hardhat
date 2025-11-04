@@ -115,7 +115,7 @@ describe("verify/task-action", () => {
       );
 
       assert.equal(process.exitCode, 1);
-      assert.equal(consoleLogSpy.mock.callCount(), 3);
+      assert.equal(consoleLogSpy.mock.callCount(), 4);
       assert.equal(
         consoleLogSpy.mock.calls[0].arguments[0],
         chalk.cyan.bold(`\n=== Etherscan ===`),
@@ -128,10 +128,18 @@ describe("verify/task-action", () => {
         consoleLogSpy.mock.calls[2].arguments[0],
         chalk.cyan.bold(`\n=== Blockscout ===`),
       );
-      assert.equal(consoleErrorSpy.mock.callCount(), 1);
+      assert.equal(consoleErrorSpy.mock.callCount(), 2);
       assert.equal(
         consoleErrorSpy.mock.calls[0].arguments[0],
         chalk.red("Verification failed for provider: blockscout"),
+      );
+      assert.equal(
+        consoleLogSpy.mock.calls[3].arguments[0],
+        chalk.cyan.bold(`\n=== Sourcify ===`),
+      );
+      assert.equal(
+        consoleErrorSpy.mock.calls[1].arguments[0],
+        chalk.red("Verification failed for provider: sourcify"),
       );
     });
 
@@ -143,6 +151,9 @@ describe("verify/task-action", () => {
             enabled: false,
           },
           blockscout: {
+            enabled: false,
+          },
+          sourcify: {
             enabled: false,
           },
         },
