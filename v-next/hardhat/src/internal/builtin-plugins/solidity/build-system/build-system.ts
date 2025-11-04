@@ -248,6 +248,8 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
       ReadonlyMap<string, string[]>
     > = new Map();
 
+    const tmpMap = new Map<string, boolean>();
+
     if (isSuccessfulBuild) {
       log("Emitting artifacts of successful build");
       await Promise.all(
@@ -256,6 +258,8 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
             compilationResult.compilationJob,
             compilationResult.compilerOutput,
             options,
+            tmpMap,
+            buildProfile.isolated,
           );
 
           const { artifactsPerFile } = emitArtifactsResult;
@@ -669,6 +673,8 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
     runnableCompilationJob: CompilationJob,
     compilerOutput: CompilerOutput,
     options: { scope?: BuildScope } = {},
+    tmpMap: Map<string, boolean> = new Map(),
+    isolated: boolean = false,
   ): Promise<EmitArtifactsResult> {
     const scope = options.scope ?? "contracts";
 
@@ -803,8 +809,16 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
       `${buildInfoId}.output.json`,
     );
 
-    await move(buildInfoOutputCachePath, buildInfoOutputPath);
-    await move(buildInfoCachePath, buildInfoPath);
+    if (isolated) {
+      if (!tmpMap.has(buildInfoId)) {
+        await move(buildInfoOutputCachePath, buildInfoOutputPath);
+        await move(buildInfoCachePath, buildInfoPath);
+        tmpMap.set(buildInfoId, true);
+      }
+    } else {
+      await move(buildInfoOutputCachePath, buildInfoOutputPath);
+      await move(buildInfoCachePath, buildInfoPath);
+    }
 
     return {
       artifactsPerFile,
