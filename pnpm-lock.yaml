@@ -1783,6 +1783,18 @@ importers:
         specifier: ~5.8.0
         version: 5.8.3
 
+  v-next/hardhat/templates/hardhat-3/03-minimal:
+    devDependencies:
+      '@types/node':
+        specifier: ^22.8.5
+        version: 22.18.7
+      hardhat:
+        specifier: workspace:^3.0.11
+        version: link:../../..
+      typescript:
+        specifier: ~5.8.0
+        version: 5.8.3
+
   v-next/template-package:
     devDependencies:
       '@nomicfoundation/hardhat-node-test-reporter':
