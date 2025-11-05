@@ -1,4 +1,4 @@
-import type { HardhatUserConfig } from "hardhat/config";
+import { defineConfig } from "hardhat/config";
 
 import { HardhatPluginError } from "hardhat/plugins";
 
@@ -125,7 +125,7 @@ const pluginExample = {
   ],
 };
 
-const config: HardhatUserConfig = {
+export default defineConfig({
   networks: {
     op: {
       type: "http",
@@ -233,6 +233,4 @@ const config: HardhatUserConfig = {
       timeout: 1000,
     },
   },
-};
-
-export default config;
+});

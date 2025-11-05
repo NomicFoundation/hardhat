@@ -6,6 +6,7 @@ import type {
   VerificationProvider,
   VerificationResponse,
   VerificationStatusResponse,
+  BaseVerifyFunctionArgs,
 } from "./types.js";
 import type {
   Dispatcher,
@@ -34,6 +35,10 @@ const VERIFICATION_STATUS_POLLING_SECONDS = 3;
 // and use this as the default API URL for Etherscan v2
 // this.apiUrl = etherscanConfig.apiUrl ?? ETHERSCAN_API_URL;
 export const ETHERSCAN_API_URL = "https://api.etherscan.io/v2/api";
+
+export interface EtherscanVerifyFunctionArgs extends BaseVerifyFunctionArgs {
+  constructorArguments: string;
+}
 
 export class Etherscan implements VerificationProvider {
   public readonly chainId: string;
@@ -145,16 +150,16 @@ export class Etherscan implements VerificationProvider {
     return typeof sourceCode === "string" && sourceCode !== "";
   }
 
-  public async verify(
-    contractAddress: string,
-    sourceCode: string,
-    contractName: string,
-    compilerVersion: string,
-    constructorArguments: string,
-  ): Promise<string> {
+  public async verify({
+    contractAddress,
+    compilerInput,
+    contractName,
+    compilerVersion,
+    constructorArguments,
+  }: EtherscanVerifyFunctionArgs): Promise<string> {
     const body = {
       contractaddress: contractAddress,
-      sourceCode,
+      sourceCode: JSON.stringify(compilerInput),
       codeformat: "solidity-standard-json-input",
       contractname: contractName,
       compilerversion: compilerVersion,

@@ -3,6 +3,7 @@ import type { LibraryAddresses } from "./libraries.js";
 import type { VerificationProvider } from "./types.js";
 import type { Dispatcher } from "@nomicfoundation/hardhat-utils/request";
 import type {
+  BlockExplorerBlockscoutConfig,
   ChainDescriptorsConfig,
   VerificationProvidersConfig,
 } from "hardhat/types/config";
@@ -27,6 +28,7 @@ import {
   filterVersionsByRange,
   resolveSupportedSolcVersions,
 } from "./solc-versions.js";
+import { Sourcify, SOURCIFY_PROVIDER_NAME } from "./sourcify.js";
 
 export interface VerifyContractArgs {
   address: string;
@@ -36,6 +38,8 @@ export interface VerifyContractArgs {
   contract?: string;
   force?: boolean;
   provider?: keyof VerificationProvidersConfig;
+  /** The hash of the contract creation transaction (Sourcify only) */
+  creationTxHash?: string;
 }
 
 /**
@@ -94,6 +98,7 @@ export async function verifyContract(
     libraries = {},
     contract,
     force = false,
+    creationTxHash,
   } = verifyContractArgs;
 
   const buildProfile = config.solidity.profiles[buildProfileName];
@@ -208,6 +213,7 @@ Explorer: ${instance.getContractUrl(address)}`);
         verificationProvider: instance,
         address,
         encodedConstructorArgs,
+        creationTxHash,
         contractInformation: {
           ...contractInformation,
           // Use the minimal compiler input for the first verification attempt
@@ -249,6 +255,7 @@ Unrelated contracts may be displayed on ${instance.name} as a result.
       verificationProvider: instance,
       address,
       encodedConstructorArgs,
+      creationTxHash,
       contractInformation: {
         ...contractInformation,
         compilerInput: {
@@ -294,7 +301,8 @@ ${libraryInformation.undetectableLibraries.map((x) => `  * ${x}`).join("\n")}`
 export function validateVerificationProviderName(provider: unknown): void {
   if (
     provider !== ETHERSCAN_PROVIDER_NAME &&
-    provider !== BLOCKSCOUT_PROVIDER_NAME
+    provider !== BLOCKSCOUT_PROVIDER_NAME &&
+    provider !== SOURCIFY_PROVIDER_NAME
   ) {
     throw new HardhatError(
       HardhatError.ERRORS.HARDHAT_VERIFY.VALIDATION.INVALID_VERIFICATION_PROVIDER,
@@ -303,6 +311,7 @@ export function validateVerificationProviderName(provider: unknown): void {
         supportedVerificationProviders: [
           ETHERSCAN_PROVIDER_NAME,
           BLOCKSCOUT_PROVIDER_NAME,
+          SOURCIFY_PROVIDER_NAME,
         ].join(", "),
       },
     );
@@ -349,6 +358,15 @@ async function createVerificationProviderInstance({
   dispatcher?: Dispatcher;
 }): Promise<VerificationProvider> {
   const chainId = await getChainId(provider);
+
+  if (verificationProviderName === "sourcify") {
+    return new Sourcify({
+      chainId,
+      apiUrl: verificationProvidersConfig.sourcify.apiUrl,
+      dispatcher,
+    });
+  }
+
   const chainDescriptor = await getChainDescriptor(
     chainId,
     chainDescriptors,
@@ -378,7 +396,11 @@ async function createVerificationProviderInstance({
     });
   }
 
-  return new Blockscout(commonOptions);
+  return new Blockscout(
+    /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions
+    -- At this point we know commonOptions is of type BlockscoutConfig */
+    commonOptions as BlockExplorerBlockscoutConfig & { dispatcher: Dispatcher },
+  );
 }
 
 async function attemptVerification(
@@ -387,24 +409,27 @@ async function attemptVerification(
     address,
     encodedConstructorArgs,
     contractInformation,
+    creationTxHash,
   }: {
     verificationProvider: VerificationProvider;
     address: string;
     encodedConstructorArgs: string;
     contractInformation: ContractInformation;
+    creationTxHash?: string;
   },
   consoleLog: (text: string) => void = console.log,
 ): Promise<{
   success: boolean;
   message: string;
 }> {
-  const guid = await verificationProvider.verify(
-    address,
-    JSON.stringify(contractInformation.compilerInput),
-    contractInformation.inputFqn,
-    `v${contractInformation.solcLongVersion}`,
-    encodedConstructorArgs,
-  );
+  const guid = await verificationProvider.verify({
+    contractAddress: address,
+    compilerInput: contractInformation.compilerInput,
+    contractName: contractInformation.inputFqn,
+    compilerVersion: `v${contractInformation.solcLongVersion}`,
+    constructorArguments: encodedConstructorArgs,
+    creationTxHash,
+  });
 
   consoleLog(`
 📤 Submitted source code for verification on ${verificationProvider.name}:

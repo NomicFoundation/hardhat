@@ -136,10 +136,8 @@ export class ViemIgnitionHelperImpl<ChainTypeT extends ChainType | string>
         this.#artifactsManager,
       );
 
-      const resolvedConfig: Partial<DeployConfig> = {
-        ...this.#config,
-        ...perDeployConfig,
-      };
+      const resolvedConfig: Partial<DeployConfig> =
+        this.getResolvedConfig(perDeployConfig);
 
       const resolvedStrategyConfig =
         ViemIgnitionHelperImpl.#resolveStrategyConfig<StrategyT>(
@@ -214,6 +212,15 @@ export class ViemIgnitionHelperImpl<ChainTypeT extends ChainType | string>
     } finally {
       this.#mutex = false;
     }
+  }
+
+  public getResolvedConfig(
+    perDeployConfig: Partial<DeployConfig>,
+  ): Partial<DeployConfig> {
+    return {
+      ...this.#config,
+      ...perDeployConfig,
+    };
   }
 
   async #toViemContracts<

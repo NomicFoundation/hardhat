@@ -1,10 +1,10 @@
 import type { GasAnalyticsManager, GasMeasurement } from "./types.js";
-import type { TableItem } from "@nomicfoundation/hardhat-utils/format";
+import type { TableItemV2 } from "@nomicfoundation/hardhat-utils/format";
 
 import crypto from "node:crypto";
 import path from "node:path";
 
-import { divider, formatTable } from "@nomicfoundation/hardhat-utils/format";
+import { formatTableV2 } from "@nomicfoundation/hardhat-utils/format";
 import {
   ensureDir,
   getAllFilesMatching,
@@ -209,11 +209,10 @@ export class GasAnalyticsManagerImplementation implements GasAnalyticsManager {
   public _generateGasStatsReport(
     gasStatsByContract: GasStatsByContract,
   ): string {
-    const rows: TableItem[] = [];
+    const rows: TableItemV2[] = [];
 
     if (gasStatsByContract.size > 0) {
-      rows.push([chalk.bold("Gas Usage Statistics")]);
-      rows.push(divider);
+      rows.push({ type: "title", text: chalk.bold("Gas Usage Statistics") });
     }
 
     // Sort contracts alphabetically for consistent output
@@ -222,25 +221,23 @@ export class GasAnalyticsManagerImplementation implements GasAnalyticsManager {
     );
 
     for (const [contractFqn, contractGasStats] of sortedContracts) {
-      rows.push([chalk.cyan.bold(getUserFqn(contractFqn))]);
-      rows.push(divider);
-
-      if (contractGasStats.deployment !== undefined) {
-        rows.push(
-          ["Deployment Cost", "Deployment Size"].map((s) => chalk.yellow(s)),
-        );
-        rows.push([
-          `${contractGasStats.deployment.gas}`,
-          `${contractGasStats.deployment.size}`,
-        ]);
-      }
+      rows.push({
+        type: "section-header",
+        text: chalk.cyan.bold(getUserFqn(contractFqn)),
+      });
 
       if (contractGasStats.functions.size > 0) {
-        rows.push(
-          ["Function name", "Min", "Average", "Median", "Max", "#calls"].map(
-            (s) => chalk.yellow(s),
-          ),
-        );
+        rows.push({
+          type: "header",
+          cells: [
+            "Function name",
+            "Min",
+            "Average",
+            "Median",
+            "Max",
+            "#calls",
+          ].map((s) => chalk.yellow(s)),
+        });
       }
 
       // Sort functions by removing trailing ) and comparing alphabetically.
@@ -252,22 +249,37 @@ export class GasAnalyticsManagerImplementation implements GasAnalyticsManager {
       );
 
       for (const [functionDisplayName, gasStats] of sortedFunctions) {
-        rows.push([
-          functionDisplayName,
-          `${gasStats.min}`,
-          `${gasStats.avg}`,
-          `${gasStats.median}`,
-          `${gasStats.max}`,
-          `${gasStats.calls}`,
-        ]);
+        rows.push({
+          type: "row",
+          cells: [
+            functionDisplayName,
+            `${gasStats.min}`,
+            `${gasStats.avg}`,
+            `${gasStats.median}`,
+            `${gasStats.max}`,
+            `${gasStats.calls}`,
+          ],
+        });
       }
-      rows.push([]);
+
+      if (contractGasStats.deployment !== undefined) {
+        rows.push({
+          type: "header",
+          cells: ["Deployment Cost", "Deployment Size"].map((s) =>
+            chalk.yellow(s),
+          ),
+        });
+        rows.push({
+          type: "row",
+          cells: [
+            `${contractGasStats.deployment.gas}`,
+            `${contractGasStats.deployment.size}`,
+          ],
+        });
+      }
     }
 
-    // Remove the last empty row for better formatting
-    rows.pop();
-
-    return formatTable(rows);
+    return formatTableV2(rows);
   }
 }
 

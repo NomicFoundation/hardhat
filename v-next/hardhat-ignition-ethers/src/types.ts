@@ -38,6 +38,10 @@ export interface EthersIgnitionHelper {
       IgnitionModuleResultsT
     >
   >;
+
+  getResolvedConfig(
+    perDeployConfig: Partial<DeployConfig>,
+  ): Partial<DeployConfig>;
 }
 
 export type IgnitionModuleResultsTToEthersContracts<

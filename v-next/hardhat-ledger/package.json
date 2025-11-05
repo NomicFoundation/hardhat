@@ -64,7 +64,7 @@
     "@ledgerhq/hw-transport-node-hid": "^6.29.12",
     "@ledgerhq/types-live": "^6.85.0",
     "@nomicfoundation/hardhat-errors": "workspace:^3.0.0",
-    "@nomicfoundation/hardhat-utils": "workspace:^3.0.0",
+    "@nomicfoundation/hardhat-utils": "workspace:^3.0.5",
     "@nomicfoundation/hardhat-zod-utils": "workspace:^3.0.0",
     "debug": "^4.3.2",
     "micro-eth-signer": "^0.14.0",

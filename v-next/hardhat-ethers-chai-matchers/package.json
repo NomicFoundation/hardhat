@@ -1,6 +1,6 @@
 {
   "name": "@nomicfoundation/hardhat-ethers-chai-matchers",
-  "version": "3.0.0",
+  "version": "3.0.1",
   "description": "Hardhat utils for testing",
   "homepage": "https://github.com/nomicfoundation/hardhat/tree/v-next/v-next/hardhat-ethers-chai-matchers",
   "repository": {
@@ -45,7 +45,7 @@
     "README.md"
   ],
   "devDependencies": {
-    "@nomicfoundation/hardhat-mocha": "workspace:^3.0.0",
+    "@nomicfoundation/hardhat-mocha": "workspace:^3.0.6",
     "@nomicfoundation/hardhat-node-test-reporter": "workspace:^3.0.0",
     "@nomicfoundation/hardhat-test-utils": "workspace:^",
     "@types/chai": "^4.2.0",
@@ -64,7 +64,7 @@
   },
   "dependencies": {
     "@nomicfoundation/hardhat-errors": "workspace:^3.0.0",
-    "@nomicfoundation/hardhat-utils": "workspace:^3.0.0",
+    "@nomicfoundation/hardhat-utils": "workspace:^3.0.5",
     "@types/chai-as-promised": "^8.0.1",
     "chai-as-promised": "^8.0.0",
     "deep-eql": "^5.0.1"

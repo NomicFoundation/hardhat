@@ -57,46 +57,46 @@ importers:
         specifier: workspace:^3.0.3
         version: link:../hardhat-errors
       '@nomicfoundation/hardhat-ethers':
-        specifier: workspace:^4.0.2
+        specifier: workspace:^4.0.3
         version: link:../hardhat-ethers
       '@nomicfoundation/hardhat-ethers-chai-matchers':
-        specifier: workspace:^3.0.0
+        specifier: workspace:^3.0.1
         version: link:../hardhat-ethers-chai-matchers
       '@nomicfoundation/hardhat-ignition':
-        specifier: workspace:^3.0.0
+        specifier: workspace:^3.0.4
         version: link:../hardhat-ignition
       '@nomicfoundation/hardhat-ignition-viem':
-        specifier: workspace:^3.0.0
+        specifier: workspace:^3.0.4
         version: link:../hardhat-ignition-viem
       '@nomicfoundation/hardhat-keystore':
-        specifier: workspace:^3.0.2
+        specifier: workspace:^3.0.3
         version: link:../hardhat-keystore
       '@nomicfoundation/hardhat-ledger':
-        specifier: workspace:^1.2.0
+        specifier: workspace:^1.2.1
         version: link:../hardhat-ledger
       '@nomicfoundation/hardhat-mocha':
-        specifier: workspace:^3.0.4
+        specifier: workspace:^3.0.6
         version: link:../hardhat-mocha
       '@nomicfoundation/hardhat-network-helpers':
-        specifier: workspace:^3.0.1
+        specifier: workspace:^3.0.2
         version: link:../hardhat-network-helpers
       '@nomicfoundation/hardhat-node-test-runner':
-        specifier: workspace:^3.0.4
+        specifier: workspace:^3.0.6
         version: link:../hardhat-node-test-runner
       '@nomicfoundation/hardhat-typechain':
-        specifier: workspace:^3.0.0
+        specifier: workspace:^3.0.1
         version: link:../hardhat-typechain
       '@nomicfoundation/hardhat-verify':
-        specifier: workspace:^3.0.4
+        specifier: workspace:^3.0.5
         version: link:../hardhat-verify
       '@nomicfoundation/hardhat-viem':
-        specifier: workspace:^3.0.0
+        specifier: workspace:^3.0.1
         version: link:../hardhat-viem
       '@nomicfoundation/hardhat-viem-assertions':
-        specifier: workspace:^3.0.0
+        specifier: workspace:^3.0.3
         version: link:../hardhat-viem-assertions
       '@nomicfoundation/ignition-core':
-        specifier: workspace:^3.0.0
+        specifier: workspace:^3.0.4
         version: link:../hardhat-ignition-core
       '@openzeppelin/contracts':
         specifier: 5.1.0
@@ -123,7 +123,7 @@ importers:
         specifier: foundry-rs/forge-std#v1.9.4
         version: https://codeload.github.com/foundry-rs/forge-std/tar.gz/1eea5bae12ae557d589f9f0f0edae2faa47cb262
       hardhat:
-        specifier: workspace:^3.0.9
+        specifier: workspace:^3.0.11
         version: link:../hardhat
       mocha:
         specifier: ^11.0.0
@@ -153,7 +153,7 @@ importers:
         specifier: workspace:^3.0.3
         version: link:../hardhat-errors
       '@nomicfoundation/hardhat-utils':
-        specifier: workspace:^3.0.3
+        specifier: workspace:^3.0.5
         version: link:../hardhat-utils
       '@nomicfoundation/hardhat-zod-utils':
         specifier: workspace:^3.0.1
@@ -284,7 +284,7 @@ importers:
         specifier: workspace:^3.0.2
         version: link:../hardhat-errors
       '@nomicfoundation/hardhat-utils':
-        specifier: workspace:^3.0.3
+        specifier: workspace:^3.0.5
         version: link:../hardhat-utils
       debug:
         specifier: ^4.3.2
@@ -342,7 +342,7 @@ importers:
         specifier: workspace:^4.0.0
         version: link:../hardhat-ethers
       '@nomicfoundation/hardhat-utils':
-        specifier: workspace:^3.0.0
+        specifier: workspace:^3.0.5
         version: link:../hardhat-utils
       '@types/chai-as-promised':
         specifier: ^8.0.1
@@ -364,7 +364,7 @@ importers:
         version: link:../hardhat
     devDependencies:
       '@nomicfoundation/hardhat-mocha':
-        specifier: workspace:^3.0.0
+        specifier: workspace:^3.0.6
         version: link:../hardhat-mocha
       '@nomicfoundation/hardhat-node-test-reporter':
         specifier: workspace:^3.0.0
@@ -418,16 +418,16 @@ importers:
         specifier: workspace:^3.0.2
         version: link:../hardhat-errors
       '@nomicfoundation/hardhat-utils':
-        specifier: workspace:^3.0.1
+        specifier: workspace:^3.0.5
         version: link:../hardhat-utils
       '@nomicfoundation/hardhat-verify':
         specifier: workspace:^3.0.0
         version: link:../hardhat-verify
       '@nomicfoundation/ignition-core':
-        specifier: workspace:^3.0.3
+        specifier: workspace:^3.0.4
         version: link:../hardhat-ignition-core
       '@nomicfoundation/ignition-ui':
-        specifier: workspace:^3.0.3
+        specifier: workspace:^3.0.4
         version: link:../hardhat-ignition-ui
       chalk:
         specifier: ^5.3.0
@@ -446,7 +446,7 @@ importers:
         specifier: 1.0.2
         version: 1.0.2(nyc@15.1.0)
       '@nomicfoundation/hardhat-network-helpers':
-        specifier: workspace:^3.0.0
+        specifier: workspace:^3.0.2
         version: link:../hardhat-network-helpers
       '@nomicfoundation/hardhat-test-utils':
         specifier: workspace:^
@@ -521,7 +521,7 @@ importers:
         specifier: workspace:^3.0.2
         version: link:../hardhat-errors
       '@nomicfoundation/hardhat-utils':
-        specifier: workspace:^3.0.1
+        specifier: workspace:^3.0.5
         version: link:../hardhat-utils
       '@nomicfoundation/solidity-analyzer':
         specifier: ^0.1.1
@@ -588,7 +588,7 @@ importers:
         specifier: 9.25.1
         version: 9.25.1
       hardhat:
-        specifier: workspace:^3.0.5
+        specifier: workspace:^3.0.11
         version: link:../hardhat
       mocha:
         specifier: ^11.0.0
@@ -679,7 +679,7 @@ importers:
         specifier: ^5.0.8
         version: 5.2.8
       '@nomicfoundation/ignition-core':
-        specifier: workspace:^3.0.3
+        specifier: workspace:^3.0.4
         version: link:../hardhat-ignition-core
       '@types/chai':
         specifier: ^4.2.0
@@ -830,7 +830,7 @@ importers:
         specifier: workspace:^3.0.0
         version: link:../hardhat-errors
       '@nomicfoundation/hardhat-utils':
-        specifier: workspace:^3.0.0
+        specifier: workspace:^3.0.5
         version: link:../hardhat-utils
       '@nomicfoundation/hardhat-zod-utils':
         specifier: workspace:^3.0.0
@@ -906,7 +906,7 @@ importers:
         specifier: workspace:^3.0.0
         version: link:../hardhat-errors
       '@nomicfoundation/hardhat-utils':
-        specifier: workspace:^3.0.0
+        specifier: workspace:^3.0.5
         version: link:../hardhat-utils
       '@nomicfoundation/hardhat-zod-utils':
         specifier: workspace:^3.0.0
@@ -964,7 +964,7 @@ importers:
         specifier: workspace:^3.0.3
         version: link:../hardhat-errors
       '@nomicfoundation/hardhat-utils':
-        specifier: workspace:^3.0.1
+        specifier: workspace:^3.0.5
         version: link:../hardhat-utils
       '@nomicfoundation/hardhat-zod-utils':
         specifier: workspace:^3.0.0
@@ -973,7 +973,7 @@ importers:
         specifier: ^5.3.0
         version: 5.6.2
       hardhat:
-        specifier: workspace:^3.0.9
+        specifier: workspace:^3.0.11
         version: link:../hardhat
       mocha:
         specifier: ^11.0.0
@@ -1022,7 +1022,7 @@ importers:
         specifier: workspace:^3.0.0
         version: link:../hardhat-errors
       '@nomicfoundation/hardhat-utils':
-        specifier: workspace:^3.0.3
+        specifier: workspace:^3.0.5
         version: link:../hardhat-utils
       hardhat:
         specifier: workspace:^3.0.0
@@ -1108,7 +1108,7 @@ importers:
         specifier: workspace:^3.0.0
         version: link:../hardhat-node-test-reporter
       '@nomicfoundation/hardhat-utils':
-        specifier: workspace:^3.0.1
+        specifier: workspace:^3.0.5
         version: link:../hardhat-utils
       '@nomicfoundation/hardhat-zod-utils':
         specifier: workspace:^3.0.0
@@ -1222,7 +1222,7 @@ importers:
         specifier: workspace:^3.0.0
         version: link:../hardhat-typechain
       '@nomicfoundation/hardhat-utils':
-        specifier: workspace:^3.0.0
+        specifier: workspace:^3.0.5
         version: link:../hardhat-utils
       '@nomicfoundation/hardhat-verify':
         specifier: workspace:^3.0.0
@@ -1340,7 +1340,7 @@ importers:
         specifier: workspace:^4.0.0
         version: link:../hardhat-ethers
       '@nomicfoundation/hardhat-utils':
-        specifier: workspace:^3.0.0
+        specifier: workspace:^3.0.5
         version: link:../hardhat-utils
       '@nomicfoundation/hardhat-zod-utils':
         specifier: workspace:^3.0.0
@@ -1468,7 +1468,7 @@ importers:
         specifier: workspace:^3.0.3
         version: link:../hardhat-errors
       '@nomicfoundation/hardhat-utils':
-        specifier: workspace:^3.0.3
+        specifier: workspace:^3.0.5
         version: link:../hardhat-utils
       '@nomicfoundation/hardhat-zod-utils':
         specifier: workspace:^3.0.0
@@ -1535,7 +1535,7 @@ importers:
         specifier: workspace:^3.0.0
         version: link:../hardhat-errors
       '@nomicfoundation/hardhat-utils':
-        specifier: workspace:^3.0.0
+        specifier: workspace:^3.0.5
         version: link:../hardhat-utils
       hardhat:
         specifier: workspace:^3.0.0
@@ -1581,7 +1581,7 @@ importers:
         specifier: workspace:^3.0.2
         version: link:../hardhat-errors
       '@nomicfoundation/hardhat-utils':
-        specifier: workspace:^3.0.1
+        specifier: workspace:^3.0.5
         version: link:../hardhat-utils
       hardhat:
         specifier: workspace:^3.0.0
@@ -1679,7 +1679,7 @@ importers:
         specifier: workspace:^3.0.1
         version: link:../../../../hardhat-network-helpers
       '@nomicfoundation/hardhat-node-test-runner':
-        specifier: workspace:^3.0.4
+        specifier: workspace:^3.0.5
         version: link:../../../../hardhat-node-test-runner
       '@nomicfoundation/hardhat-verify':
         specifier: workspace:^3.0.4
@@ -1695,10 +1695,10 @@ importers:
         version: link:../../../../hardhat-ignition-core
     devDependencies:
       '@nomicfoundation/hardhat-ignition':
-        specifier: workspace:^3.0.0
+        specifier: workspace:^3.0.4
         version: link:../../../../hardhat-ignition
       '@nomicfoundation/hardhat-toolbox-viem':
-        specifier: workspace:^5.0.0
+        specifier: workspace:^5.0.1
         version: link:../../../../hardhat-toolbox-viem
       '@types/node':
         specifier: ^22.8.5
@@ -1707,7 +1707,7 @@ importers:
         specifier: foundry-rs/forge-std#v1.9.4
         version: https://codeload.github.com/foundry-rs/forge-std/tar.gz/1eea5bae12ae557d589f9f0f0edae2faa47cb262
       hardhat:
-        specifier: workspace:^3.0.9
+        specifier: workspace:^3.0.11
         version: link:../../..
       typescript:
         specifier: ~5.8.0
@@ -1731,7 +1731,7 @@ importers:
         specifier: workspace:^3.0.2
         version: link:../../../../hardhat-keystore
       '@nomicfoundation/hardhat-mocha':
-        specifier: workspace:^3.0.4
+        specifier: workspace:^3.0.5
         version: link:../../../../hardhat-mocha
       '@nomicfoundation/hardhat-network-helpers':
         specifier: workspace:^3.0.1
@@ -1747,10 +1747,10 @@ importers:
         version: link:../../../../hardhat-ignition-core
     devDependencies:
       '@nomicfoundation/hardhat-ignition':
-        specifier: workspace:^3.0.0
+        specifier: workspace:^3.0.4
         version: link:../../../../hardhat-ignition
       '@nomicfoundation/hardhat-toolbox-mocha-ethers':
-        specifier: workspace:^3.0.0
+        specifier: workspace:^3.0.1
         version: link:../../../../hardhat-toolbox-mocha-ethers
       '@types/chai':
         specifier: ^4.2.0
@@ -1774,11 +1774,23 @@ importers:
         specifier: foundry-rs/forge-std#v1.9.4
         version: https://codeload.github.com/foundry-rs/forge-std/tar.gz/1eea5bae12ae557d589f9f0f0edae2faa47cb262
       hardhat:
-        specifier: workspace:^3.0.9
+        specifier: workspace:^3.0.11
         version: link:../../..
       mocha:
         specifier: ^11.0.0
         version: 11.7.3
+      typescript:
+        specifier: ~5.8.0
+        version: 5.8.3
+
+  v-next/hardhat/templates/hardhat-3/03-minimal:
+    devDependencies:
+      '@types/node':
+        specifier: ^22.8.5
+        version: 22.18.7
+      hardhat:
+        specifier: workspace:^3.0.11
+        version: link:../../..
       typescript:
         specifier: ~5.8.0
         version: 5.8.3

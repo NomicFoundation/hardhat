@@ -1,5 +1,24 @@
 # hardhat
 
+## 3.0.11
+
+### Patch Changes
+
+- a4733f6: Add `defineConfig` in `hardhat/config`
+- 52d9902: Fix package manager detection
+- d45234d: Fixed Etherscan verification failures by removing hardcoded v1 API URLs from chain descriptors ([#7623](https://github.com/NomicFoundation/hardhat/issues/7623)). Also enhanced config resolution to support partial overrides in block explorer configurations for future extensibility.
+
+## 3.0.10
+
+### Patch Changes
+
+- fe28daf: Added support for showing gas statistics after running tests ([#7472](https://github.com/NomicFoundation/hardhat/issues/7428) and [#7503](https://github.com/NomicFoundation/hardhat/issues/7503))
+- 1ab6b75: Optimism ISTHMUS hardfork support added to Hardhat ([#7517](https://github.com/NomicFoundation/hardhat/issues/7517))
+- 5e64246: Improved JS/TS test tasks to not compile Solidity tests ([#7626](https://github.com/NomicFoundation/hardhat/pull/7626))
+- 217a1a8: Fix arbitrum sepolia chain id in chain descriptors (thanks @aelmanaa!)
+- 8a03bd0: Fixed gas calculation for EIP-7702 refunds ([#7606](https://github.com/NomicFoundation/hardhat/pull/7606))
+- 8a03bd0: Make all parameters of `eth_feeHistory` rpc call required ([#7606](https://github.com/NomicFoundation/hardhat/pull/7606))
+
 ## 3.0.9
 
 ### Patch Changes

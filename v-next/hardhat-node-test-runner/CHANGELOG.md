@@ -1,5 +1,18 @@
 # @nomicfoundation/hardhat-node-test-runner
 
+## 3.0.6
+
+### Patch Changes
+
+- 558ac5b: Update installation and config instructions
+
+## 3.0.5
+
+### Patch Changes
+
+- d1969e7: Added support for showing gas statistics after running nodejs tests ([#7472](https://github.com/NomicFoundation/hardhat/issues/7428)).
+- 5e64246: Improved JS/TS test tasks to not compile Solidity tests ([#7626](https://github.com/NomicFoundation/hardhat/pull/7626))
+
 ## 3.0.4
 
 ### Patch Changes

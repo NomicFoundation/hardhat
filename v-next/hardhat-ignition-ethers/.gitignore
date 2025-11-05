@@ -142,3 +142,6 @@ dist
 
 # npm lockfile since we use pnpm now
 package-lock.json
+
+artifacts
+cache
