@@ -8,6 +8,8 @@ import type {
   VerificationProvider,
   VerificationStatusResponse,
   BaseVerifyFunctionArgs,
+  CreateSourcifyOptions,
+  ResolveConfigOptions,
 } from "./types.js";
 import type {
   Dispatcher,
@@ -48,6 +50,30 @@ export class Sourcify implements VerificationProvider {
     | Dispatcher
     | DispatcherOptions;
   public readonly pollingIntervalMs: number;
+
+  public static async resolveConfig({
+    chainId,
+    verificationProvidersConfig,
+    dispatcher,
+  }: ResolveConfigOptions): Promise<CreateSourcifyOptions> {
+    return {
+      verificationProviderConfig: verificationProvidersConfig.sourcify,
+      chainId,
+      dispatcher,
+    };
+  }
+
+  public static async create({
+    verificationProviderConfig,
+    chainId,
+    dispatcher,
+  }: CreateSourcifyOptions): Promise<Sourcify> {
+    return new Sourcify({
+      chainId,
+      apiUrl: verificationProviderConfig.apiUrl,
+      dispatcher,
+    });
+  }
 
   constructor(sourcifyConfig: {
     chainId: number;

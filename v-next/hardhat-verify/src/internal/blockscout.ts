@@ -7,6 +7,8 @@ import type {
   VerificationResponse,
   VerificationStatusResponse,
   BaseVerifyFunctionArgs,
+  CreateBlockscoutOptions,
+  ResolveConfigOptions,
 } from "./types.js";
 import type {
   Dispatcher,
@@ -25,6 +27,8 @@ import {
   shouldUseProxy,
 } from "@nomicfoundation/hardhat-utils/request";
 
+import { getChainDescriptor } from "./chains.js";
+
 export const BLOCKSCOUT_PROVIDER_NAME: keyof VerificationProvidersConfig =
   "blockscout";
 
@@ -42,6 +46,46 @@ export class Blockscout implements VerificationProvider {
     | Dispatcher
     | DispatcherOptions;
   public readonly pollingIntervalMs: number;
+
+  public static async resolveConfig({
+    chainId,
+    networkName,
+    chainDescriptors,
+    dispatcher,
+  }: ResolveConfigOptions): Promise<CreateBlockscoutOptions> {
+    const chainDescriptor = await getChainDescriptor(
+      chainId,
+      chainDescriptors,
+      networkName,
+    );
+
+    const blockExplorerConfig = chainDescriptor.blockExplorers.blockscout;
+
+    if (blockExplorerConfig === undefined) {
+      throw new HardhatError(
+        HardhatError.ERRORS.HARDHAT_VERIFY.GENERAL.BLOCK_EXPLORER_NOT_CONFIGURED,
+        {
+          verificationProvider: "Blockscout",
+          chainId,
+        },
+      );
+    }
+
+    return {
+      blockExplorerConfig,
+      dispatcher,
+    };
+  }
+
+  public static async create({
+    blockExplorerConfig,
+    dispatcher,
+  }: CreateBlockscoutOptions): Promise<Blockscout> {
+    return new Blockscout({
+      ...blockExplorerConfig,
+      dispatcher,
+    });
+  }
 
   constructor(blockscoutConfig: {
     name?: string;

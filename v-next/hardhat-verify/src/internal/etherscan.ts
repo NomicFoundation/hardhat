@@ -7,6 +7,8 @@ import type {
   VerificationResponse,
   VerificationStatusResponse,
   BaseVerifyFunctionArgs,
+  CreateEtherscanOptions,
+  ResolveConfigOptions,
 } from "./types.js";
 import type {
   Dispatcher,
@@ -25,15 +27,13 @@ import {
   shouldUseProxy,
 } from "@nomicfoundation/hardhat-utils/request";
 
+import { getChainDescriptor } from "./chains.js";
+
 export const ETHERSCAN_PROVIDER_NAME: keyof VerificationProvidersConfig =
   "etherscan";
 
 const VERIFICATION_STATUS_POLLING_SECONDS = 3;
 
-// TODO: we need to remove the apiUrl from the chain descriptors in
-// v-next/hardhat/src/internal/builtin-plugins/network-manager/chain-descriptors.ts
-// and use this as the default API URL for Etherscan v2
-// this.apiUrl = etherscanConfig.apiUrl ?? ETHERSCAN_API_URL;
 export const ETHERSCAN_API_URL = "https://api.etherscan.io/v2/api";
 
 export interface EtherscanVerifyFunctionArgs extends BaseVerifyFunctionArgs {
@@ -50,6 +50,53 @@ export class Etherscan implements VerificationProvider {
     | Dispatcher
     | DispatcherOptions;
   public readonly pollingIntervalMs: number;
+
+  public static async resolveConfig({
+    chainId,
+    networkName,
+    chainDescriptors,
+    verificationProvidersConfig,
+    dispatcher,
+  }: ResolveConfigOptions): Promise<CreateEtherscanOptions> {
+    const chainDescriptor = await getChainDescriptor(
+      chainId,
+      chainDescriptors,
+      networkName,
+    );
+
+    const blockExplorerConfig = chainDescriptor.blockExplorers.etherscan;
+
+    if (blockExplorerConfig === undefined) {
+      throw new HardhatError(
+        HardhatError.ERRORS.HARDHAT_VERIFY.GENERAL.BLOCK_EXPLORER_NOT_CONFIGURED,
+        {
+          verificationProvider: "Etherscan",
+          chainId,
+        },
+      );
+    }
+
+    return {
+      blockExplorerConfig,
+      verificationProviderConfig: verificationProvidersConfig.etherscan,
+      chainId,
+      dispatcher,
+    };
+  }
+
+  public static async create({
+    blockExplorerConfig,
+    verificationProviderConfig,
+    chainId,
+    dispatcher,
+  }: CreateEtherscanOptions): Promise<Etherscan> {
+    return new Etherscan({
+      chainId,
+      ...blockExplorerConfig,
+      apiKey: await verificationProviderConfig.apiKey.get(),
+      dispatcher,
+    });
+  }
 
   constructor(etherscanConfig: {
     chainId: number;

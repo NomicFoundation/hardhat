@@ -1,3 +1,12 @@
+import type { Dispatcher } from "@nomicfoundation/hardhat-utils/request";
+import type {
+  BlockExplorerBlockscoutConfig,
+  BlockExplorerEtherscanConfig,
+  ChainDescriptorsConfig,
+  EtherscanConfig,
+  SourcifyConfig,
+  VerificationProvidersConfig,
+} from "hardhat/types/config";
 import type { CompilerInput } from "hardhat/types/solidity";
 
 export interface VerificationStatusResponse {
@@ -12,6 +21,47 @@ export interface VerificationResponse {
   isBytecodeMissingInNetworkError(): boolean;
   isAlreadyVerified(): boolean;
   isOk(): boolean;
+}
+
+export interface ResolveConfigOptions {
+  chainId: number;
+  networkName: string;
+  chainDescriptors: ChainDescriptorsConfig;
+  verificationProvidersConfig: VerificationProvidersConfig;
+  dispatcher?: Dispatcher;
+}
+
+export interface CreateBlockscoutOptions {
+  blockExplorerConfig: BlockExplorerBlockscoutConfig;
+  dispatcher?: Dispatcher;
+}
+
+export interface CreateEtherscanOptions {
+  blockExplorerConfig: BlockExplorerEtherscanConfig;
+  verificationProviderConfig: EtherscanConfig;
+  chainId: number;
+  dispatcher?: Dispatcher;
+}
+
+export interface CreateSourcifyOptions {
+  verificationProviderConfig: SourcifyConfig;
+  chainId: number;
+  dispatcher?: Dispatcher;
+}
+
+export interface VerificationProviderFactory {
+  resolveConfig(
+    options: ResolveConfigOptions,
+  ): Promise<
+    CreateEtherscanOptions | CreateBlockscoutOptions | CreateSourcifyOptions
+  >;
+
+  create(
+    options:
+      | CreateEtherscanOptions
+      | CreateBlockscoutOptions
+      | CreateSourcifyOptions,
+  ): Promise<VerificationProvider>;
 }
 
 export interface BaseVerifyFunctionArgs {
