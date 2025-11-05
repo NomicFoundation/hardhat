@@ -78,7 +78,8 @@ export function setupMockDeploymentLoader(
 
   return {
     recordToJournal: async (message) => {
-      journal.record(message);
+      // NOTE: the journal record is sync, even though this call is async
+      await journal.record(message);
     },
     readFromJournal: () => {
       return journal.read();

@@ -91,7 +91,7 @@ export class PrettyEventHandler implements ExecutionEventListener {
     this._uiState = uiState;
   }
 
-  public deploymentStart(event: DeploymentStartEvent): void {
+  public async deploymentStart(event: DeploymentStartEvent): Promise<void> {
     this.state = {
       ...this.state,
       status: UiStateDeploymentStatus.DEPLOYING,
@@ -105,19 +105,21 @@ export class PrettyEventHandler implements ExecutionEventListener {
     process.stdout.write(calculateStartingMessage(this.state));
   }
 
-  public deploymentInitialize(event: DeploymentInitializeEvent): void {
+  public async deploymentInitialize(
+    event: DeploymentInitializeEvent,
+  ): Promise<void> {
     this.state = {
       ...this.state,
       chainId: event.chainId,
     };
   }
 
-  public runStart(_event: RunStartEvent): void {
+  public async runStart(_event: RunStartEvent): Promise<void> {
     this._clearCurrentLine();
     console.log(calculateDeployingModulePanel(this.state));
   }
 
-  public beginNextBatch(_event: BeginNextBatchEvent): void {
+  public async beginNextBatch(_event: BeginNextBatchEvent): Promise<void> {
     // rerender the previous batch
     if (this.state.currentBatch > 0) {
       this._redisplayCurrentBatch();
@@ -136,7 +138,7 @@ export class PrettyEventHandler implements ExecutionEventListener {
     console.log(calculateBatchDisplay(this.state).text);
   }
 
-  public wipeApply(event: WipeApplyEvent): void {
+  public async wipeApply(event: WipeApplyEvent): Promise<void> {
     const batches: UiBatches = [];
 
     for (const batch of this.state.batches) {
@@ -159,79 +161,79 @@ export class PrettyEventHandler implements ExecutionEventListener {
     };
   }
 
-  public deploymentExecutionStateInitialize(
+  public async deploymentExecutionStateInitialize(
     event: DeploymentExecutionStateInitializeEvent,
-  ): void {
+  ): Promise<void> {
     this._setFutureStatusInitializedAndRedisplayBatch(event);
   }
 
-  public deploymentExecutionStateComplete(
+  public async deploymentExecutionStateComplete(
     event: DeploymentExecutionStateCompleteEvent,
-  ): void {
+  ): Promise<void> {
     this._setFutureStatusCompleteAndRedisplayBatch(event);
   }
 
-  public callExecutionStateInitialize(
+  public async callExecutionStateInitialize(
     event: CallExecutionStateInitializeEvent,
-  ): void {
+  ): Promise<void> {
     this._setFutureStatusInitializedAndRedisplayBatch(event);
   }
 
-  public callExecutionStateComplete(
+  public async callExecutionStateComplete(
     event: CallExecutionStateCompleteEvent,
-  ): void {
+  ): Promise<void> {
     this._setFutureStatusCompleteAndRedisplayBatch(event);
   }
 
-  public staticCallExecutionStateInitialize(
+  public async staticCallExecutionStateInitialize(
     event: StaticCallExecutionStateInitializeEvent,
-  ): void {
+  ): Promise<void> {
     this._setFutureStatusInitializedAndRedisplayBatch(event);
   }
 
-  public staticCallExecutionStateComplete(
+  public async staticCallExecutionStateComplete(
     event: StaticCallExecutionStateCompleteEvent,
-  ): void {
+  ): Promise<void> {
     this._setFutureStatusCompleteAndRedisplayBatch(event);
   }
 
-  public sendDataExecutionStateInitialize(
+  public async sendDataExecutionStateInitialize(
     event: SendDataExecutionStateInitializeEvent,
-  ): void {
+  ): Promise<void> {
     this._setFutureStatusInitializedAndRedisplayBatch(event);
   }
 
-  public sendDataExecutionStateComplete(
+  public async sendDataExecutionStateComplete(
     event: SendDataExecutionStateCompleteEvent,
-  ): void {
+  ): Promise<void> {
     this._setFutureStatusCompleteAndRedisplayBatch(event);
   }
 
-  public contractAtExecutionStateInitialize(
+  public async contractAtExecutionStateInitialize(
     event: ContractAtExecutionStateInitializeEvent,
-  ): void {
+  ): Promise<void> {
     this._setFutureStatusAndRedisplayBatch(event.futureId, {
       type: UiFutureStatusType.SUCCESS,
     });
   }
 
-  public readEventArgumentExecutionStateInitialize(
+  public async readEventArgumentExecutionStateInitialize(
     event: ReadEventArgExecutionStateInitializeEvent,
-  ): void {
+  ): Promise<void> {
     this._setFutureStatusAndRedisplayBatch(event.futureId, {
       type: UiFutureStatusType.SUCCESS,
     });
   }
 
-  public encodeFunctionCallExecutionStateInitialize(
+  public async encodeFunctionCallExecutionStateInitialize(
     event: EncodeFunctionCallExecutionStateInitializeEvent,
-  ): void {
+  ): Promise<void> {
     this._setFutureStatusAndRedisplayBatch(event.futureId, {
       type: UiFutureStatusType.SUCCESS,
     });
   }
 
-  public batchInitialize(event: BatchInitializeEvent): void {
+  public async batchInitialize(event: BatchInitializeEvent): Promise<void> {
     const batches: UiBatches = [];
 
     for (const batch of event.batches) {
@@ -255,21 +257,27 @@ export class PrettyEventHandler implements ExecutionEventListener {
     };
   }
 
-  public networkInteractionRequest(
+  public async networkInteractionRequest(
     _event: NetworkInteractionRequestEvent,
-  ): void {}
+  ): Promise<void> {}
 
-  public transactionPrepareSend(_event: TransactionPrepareSendEvent): void {}
+  public async transactionPrepareSend(
+    _event: TransactionPrepareSendEvent,
+  ): Promise<void> {}
 
-  public transactionSend(_event: TransactionSendEvent): void {}
+  public async transactionSend(_event: TransactionSendEvent): Promise<void> {}
 
-  public transactionConfirm(_event: TransactionConfirmEvent): void {}
+  public async transactionConfirm(
+    _event: TransactionConfirmEvent,
+  ): Promise<void> {}
 
-  public staticCallComplete(_event: StaticCallCompleteEvent): void {}
+  public async staticCallComplete(
+    _event: StaticCallCompleteEvent,
+  ): Promise<void> {}
 
-  public onchainInteractionBumpFees(
+  public async onchainInteractionBumpFees(
     event: OnchainInteractionBumpFeesEvent,
-  ): void {
+  ): Promise<void> {
     if (this._uiState.gasBumps[event.futureId] === undefined) {
       this._uiState.gasBumps[event.futureId] = 0;
     }
@@ -279,19 +287,21 @@ export class PrettyEventHandler implements ExecutionEventListener {
     this._redisplayCurrentBatch();
   }
 
-  public onchainInteractionDropped(
+  public async onchainInteractionDropped(
     _event: OnchainInteractionDroppedEvent,
-  ): void {}
+  ): Promise<void> {}
 
-  public onchainInteractionReplacedByUser(
+  public async onchainInteractionReplacedByUser(
     _event: OnchainInteractionReplacedByUserEvent,
-  ): void {}
+  ): Promise<void> {}
 
-  public onchainInteractionTimeout(
+  public async onchainInteractionTimeout(
     _event: OnchainInteractionTimeoutEvent,
-  ): void {}
+  ): Promise<void> {}
 
-  public deploymentComplete(event: DeploymentCompleteEvent): void {
+  public async deploymentComplete(
+    event: DeploymentCompleteEvent,
+  ): Promise<void> {
     this.state = {
       ...this.state,
       status: UiStateDeploymentStatus.COMPLETE,
@@ -311,21 +321,23 @@ export class PrettyEventHandler implements ExecutionEventListener {
     console.log(calculateDeploymentCompleteDisplay(event, this.state));
   }
 
-  public reconciliationWarnings(event: ReconciliationWarningsEvent): void {
+  public async reconciliationWarnings(
+    event: ReconciliationWarningsEvent,
+  ): Promise<void> {
     this.state = {
       ...this.state,
       warnings: [...this.state.warnings, ...event.warnings],
     };
   }
 
-  public setModuleId(event: SetModuleIdEvent): void {
+  public async setModuleId(event: SetModuleIdEvent): Promise<void> {
     this.state = {
       ...this.state,
       moduleName: event.moduleName,
     };
   }
 
-  public setStrategy(event: SetStrategyEvent): void {
+  public async setStrategy(event: SetStrategyEvent): Promise<void> {
     this.state = {
       ...this.state,
       strategy: event.strategy,
