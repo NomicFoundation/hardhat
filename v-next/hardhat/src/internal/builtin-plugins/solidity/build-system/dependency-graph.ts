@@ -82,7 +82,7 @@ export class DependencyGraphImplementation implements DependencyGraph {
   }
 
   /**
-   * Returns an sorted map of userSourceName to inputSourceName for every
+   * Returns a sorted map of userSourceName to inputSourceName for every
    * root of the graph.
    */
   public getRootsUserSourceNameMap(): Record<string, string> {
