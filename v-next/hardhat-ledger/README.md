@@ -74,7 +74,7 @@ export default defineConfig({
 
 ## Usage
 
-To sign transactions with your Ledger, first ensure the appropriate app is open on the device. Then, simply call the desired methods (e.g., `eth_sign`, `eth_sendTransaction`). If the sender account matches one of your Ledger accounts, the device will automatically connect, allowing you to review and either approve or decline the transaction.
+To sign transactions with your Ledger, first ensure the appropriate app is open on the device. Then call the desired methods (e.g., `eth_sign`, `eth_sendTransaction`). If the sender account matches one of your Ledger accounts, the device will automatically connect, allowing you to review and either approve or decline the transaction.
 
 Usage Example with Viem:
 
