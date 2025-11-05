@@ -220,9 +220,18 @@ export class CompilationJobImplementation implements CompilationJob {
       ]),
     );
 
-    // The preimage should include all the information that makes this
-    // compilation job unique, and as this is used to identify the build info
-    // file, it also includes its format string.
+    // EXTREMELLY IMPORTANT: The preimage should include **all** the information
+    // that makes this compilation job unique from the point of view of Hardhat.
+    //
+    // Note that we can have multiple compilation jobs that are equivalent from
+    // the point of view of solc, but not for Hardhat. (e.g. same input,
+    // config, version, but different root files).
+    //
+    // Also note that we include the build info format here. Technically, this
+    // violates the encapsulation of this class a bit. We could leave that
+    // field out, and then recompute the BuildInfo id based on the compilation
+    // job id and the BuildInfo format. We add it here instead to keep both
+    // ids the same, and as a small performance optimization.
     const preimage = JSON.stringify({
       format,
       solcLongVersion: this.solcLongVersion,
