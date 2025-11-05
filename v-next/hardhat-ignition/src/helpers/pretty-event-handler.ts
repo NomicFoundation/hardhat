@@ -43,6 +43,7 @@ import type {
   TransactionSendEvent,
   WipeApplyEvent,
 } from "@nomicfoundation/ignition-core";
+import type { UserInterruptionManager } from "hardhat/types/user-interruptions";
 
 import readline from "node:readline";
 
@@ -78,7 +79,15 @@ export class PrettyEventHandler implements ExecutionEventListener {
     strategy: null,
   };
 
+  /**
+   * @param _userInterruptions Hardhat's UserInterruptionManager.
+   *  It must only be `undefined` for testing. Note: Every listener that prints
+   *  something to the terminal should use the function _uninterrupted.
+   * @param _deploymentParams The deployment parameters.
+   * @param _disableOutput A boolean to disable the output.
+   */
   constructor(
+    private readonly _userInterruptions: UserInterruptionManager | undefined,
     private readonly _deploymentParams: DeploymentParameters = {},
     private readonly _disableOutput = false,
   ) {}
@@ -91,245 +100,301 @@ export class PrettyEventHandler implements ExecutionEventListener {
     this._uiState = uiState;
   }
 
-  public deploymentStart(event: DeploymentStartEvent): void {
-    this.state = {
-      ...this.state,
-      status: UiStateDeploymentStatus.DEPLOYING,
-      moduleName: event.moduleName,
-      deploymentDir: event.deploymentDir,
-      isResumed: event.isResumed,
-      maxFeeBumps: event.maxFeeBumps,
-      disableFeeBumping: event.disableFeeBumping,
-    };
+  public async deploymentStart(event: DeploymentStartEvent): Promise<void> {
+    return this._uninterrupted(async () => {
+      this.state = {
+        ...this.state,
+        status: UiStateDeploymentStatus.DEPLOYING,
+        moduleName: event.moduleName,
+        deploymentDir: event.deploymentDir,
+        isResumed: event.isResumed,
+        maxFeeBumps: event.maxFeeBumps,
+        disableFeeBumping: event.disableFeeBumping,
+      };
 
-    process.stdout.write(calculateStartingMessage(this.state));
-  }
-
-  public deploymentInitialize(event: DeploymentInitializeEvent): void {
-    this.state = {
-      ...this.state,
-      chainId: event.chainId,
-    };
-  }
-
-  public runStart(_event: RunStartEvent): void {
-    this._clearCurrentLine();
-    console.log(calculateDeployingModulePanel(this.state));
-  }
-
-  public beginNextBatch(_event: BeginNextBatchEvent): void {
-    // rerender the previous batch
-    if (this.state.currentBatch > 0) {
-      this._redisplayCurrentBatch();
-    }
-
-    this.state = {
-      ...this.state,
-      currentBatch: this.state.currentBatch + 1,
-    };
-
-    if (this.state.currentBatch === 0) {
-      return;
-    }
-
-    // render the new batch
-    console.log(calculateBatchDisplay(this.state).text);
-  }
-
-  public wipeApply(event: WipeApplyEvent): void {
-    const batches: UiBatches = [];
-
-    for (const batch of this.state.batches) {
-      const futureBatch: UiFuture[] = [];
-
-      for (const future of batch) {
-        if (future.futureId === event.futureId) {
-          continue;
-        } else {
-          futureBatch.push(future);
-        }
-      }
-
-      batches.push(futureBatch);
-    }
-
-    this.state = {
-      ...this.state,
-      batches,
-    };
-  }
-
-  public deploymentExecutionStateInitialize(
-    event: DeploymentExecutionStateInitializeEvent,
-  ): void {
-    this._setFutureStatusInitializedAndRedisplayBatch(event);
-  }
-
-  public deploymentExecutionStateComplete(
-    event: DeploymentExecutionStateCompleteEvent,
-  ): void {
-    this._setFutureStatusCompleteAndRedisplayBatch(event);
-  }
-
-  public callExecutionStateInitialize(
-    event: CallExecutionStateInitializeEvent,
-  ): void {
-    this._setFutureStatusInitializedAndRedisplayBatch(event);
-  }
-
-  public callExecutionStateComplete(
-    event: CallExecutionStateCompleteEvent,
-  ): void {
-    this._setFutureStatusCompleteAndRedisplayBatch(event);
-  }
-
-  public staticCallExecutionStateInitialize(
-    event: StaticCallExecutionStateInitializeEvent,
-  ): void {
-    this._setFutureStatusInitializedAndRedisplayBatch(event);
-  }
-
-  public staticCallExecutionStateComplete(
-    event: StaticCallExecutionStateCompleteEvent,
-  ): void {
-    this._setFutureStatusCompleteAndRedisplayBatch(event);
-  }
-
-  public sendDataExecutionStateInitialize(
-    event: SendDataExecutionStateInitializeEvent,
-  ): void {
-    this._setFutureStatusInitializedAndRedisplayBatch(event);
-  }
-
-  public sendDataExecutionStateComplete(
-    event: SendDataExecutionStateCompleteEvent,
-  ): void {
-    this._setFutureStatusCompleteAndRedisplayBatch(event);
-  }
-
-  public contractAtExecutionStateInitialize(
-    event: ContractAtExecutionStateInitializeEvent,
-  ): void {
-    this._setFutureStatusAndRedisplayBatch(event.futureId, {
-      type: UiFutureStatusType.SUCCESS,
+      process.stdout.write(calculateStartingMessage(this.state));
     });
   }
 
-  public readEventArgumentExecutionStateInitialize(
-    event: ReadEventArgExecutionStateInitializeEvent,
-  ): void {
-    this._setFutureStatusAndRedisplayBatch(event.futureId, {
-      type: UiFutureStatusType.SUCCESS,
+  public async deploymentInitialize(
+    event: DeploymentInitializeEvent,
+  ): Promise<void> {
+    return this._uninterrupted(async () => {
+      this.state = {
+        ...this.state,
+        chainId: event.chainId,
+      };
     });
   }
 
-  public encodeFunctionCallExecutionStateInitialize(
-    event: EncodeFunctionCallExecutionStateInitializeEvent,
-  ): void {
-    this._setFutureStatusAndRedisplayBatch(event.futureId, {
-      type: UiFutureStatusType.SUCCESS,
-    });
-  }
-
-  public batchInitialize(event: BatchInitializeEvent): void {
-    const batches: UiBatches = [];
-
-    for (const batch of event.batches) {
-      const futureBatch: UiFuture[] = [];
-
-      for (const futureId of batch) {
-        futureBatch.push({
-          futureId,
-          status: {
-            type: UiFutureStatusType.UNSTARTED,
-          },
-        });
-      }
-
-      batches.push(futureBatch);
-    }
-
-    this.state = {
-      ...this.state,
-      batches,
-    };
-  }
-
-  public networkInteractionRequest(
-    _event: NetworkInteractionRequestEvent,
-  ): void {}
-
-  public transactionPrepareSend(_event: TransactionPrepareSendEvent): void {}
-
-  public transactionSend(_event: TransactionSendEvent): void {}
-
-  public transactionConfirm(_event: TransactionConfirmEvent): void {}
-
-  public staticCallComplete(_event: StaticCallCompleteEvent): void {}
-
-  public onchainInteractionBumpFees(
-    event: OnchainInteractionBumpFeesEvent,
-  ): void {
-    if (this._uiState.gasBumps[event.futureId] === undefined) {
-      this._uiState.gasBumps[event.futureId] = 0;
-    }
-
-    this._uiState.gasBumps[event.futureId] += 1;
-
-    this._redisplayCurrentBatch();
-  }
-
-  public onchainInteractionDropped(
-    _event: OnchainInteractionDroppedEvent,
-  ): void {}
-
-  public onchainInteractionReplacedByUser(
-    _event: OnchainInteractionReplacedByUserEvent,
-  ): void {}
-
-  public onchainInteractionTimeout(
-    _event: OnchainInteractionTimeoutEvent,
-  ): void {}
-
-  public deploymentComplete(event: DeploymentCompleteEvent): void {
-    this.state = {
-      ...this.state,
-      status: UiStateDeploymentStatus.COMPLETE,
-      result: event.result,
-      batches: this._applyResultToBatches(this.state.batches, event.result),
-    };
-
-    // If batches where executed, rerender the last batch
-    if (wasAnythingExecuted(this.state)) {
-      this._redisplayCurrentBatch();
-    } else {
-      // Otherwise only the completion panel will be shown so clear
-      // the Starting Ignition line.
+  public async runStart(_event: RunStartEvent): Promise<void> {
+    return this._uninterrupted(async () => {
       this._clearCurrentLine();
-    }
-
-    console.log(calculateDeploymentCompleteDisplay(event, this.state));
+      console.log(calculateDeployingModulePanel(this.state));
+    });
   }
 
-  public reconciliationWarnings(event: ReconciliationWarningsEvent): void {
-    this.state = {
-      ...this.state,
-      warnings: [...this.state.warnings, ...event.warnings],
-    };
+  public async beginNextBatch(_event: BeginNextBatchEvent): Promise<void> {
+    return this._uninterrupted(async () => {
+      // rerender the previous batch
+      if (this.state.currentBatch > 0) {
+        this._redisplayCurrentBatch();
+      }
+
+      this.state = {
+        ...this.state,
+        currentBatch: this.state.currentBatch + 1,
+      };
+
+      if (this.state.currentBatch === 0) {
+        return;
+      }
+
+      // render the new batch
+      console.log(calculateBatchDisplay(this.state).text);
+    });
   }
 
-  public setModuleId(event: SetModuleIdEvent): void {
-    this.state = {
-      ...this.state,
-      moduleName: event.moduleName,
-    };
+  public async wipeApply(event: WipeApplyEvent): Promise<void> {
+    return this._uninterrupted(async () => {
+      const batches: UiBatches = [];
+
+      for (const batch of this.state.batches) {
+        const futureBatch: UiFuture[] = [];
+
+        for (const future of batch) {
+          if (future.futureId === event.futureId) {
+            continue;
+          } else {
+            futureBatch.push(future);
+          }
+        }
+
+        batches.push(futureBatch);
+      }
+
+      this.state = {
+        ...this.state,
+        batches,
+      };
+    });
   }
 
-  public setStrategy(event: SetStrategyEvent): void {
-    this.state = {
-      ...this.state,
-      strategy: event.strategy,
-    };
+  public async deploymentExecutionStateInitialize(
+    event: DeploymentExecutionStateInitializeEvent,
+  ): Promise<void> {
+    return this._uninterrupted(async () => {
+      this._setFutureStatusInitializedAndRedisplayBatch(event);
+    });
+  }
+
+  public async deploymentExecutionStateComplete(
+    event: DeploymentExecutionStateCompleteEvent,
+  ): Promise<void> {
+    return this._uninterrupted(async () => {
+      this._setFutureStatusCompleteAndRedisplayBatch(event);
+    });
+  }
+
+  public async callExecutionStateInitialize(
+    event: CallExecutionStateInitializeEvent,
+  ): Promise<void> {
+    return this._uninterrupted(async () => {
+      this._setFutureStatusInitializedAndRedisplayBatch(event);
+    });
+  }
+
+  public async callExecutionStateComplete(
+    event: CallExecutionStateCompleteEvent,
+  ): Promise<void> {
+    return this._uninterrupted(async () => {
+      this._setFutureStatusCompleteAndRedisplayBatch(event);
+    });
+  }
+
+  public async staticCallExecutionStateInitialize(
+    event: StaticCallExecutionStateInitializeEvent,
+  ): Promise<void> {
+    return this._uninterrupted(async () => {
+      this._setFutureStatusInitializedAndRedisplayBatch(event);
+    });
+  }
+
+  public async staticCallExecutionStateComplete(
+    event: StaticCallExecutionStateCompleteEvent,
+  ): Promise<void> {
+    return this._uninterrupted(async () => {
+      this._setFutureStatusCompleteAndRedisplayBatch(event);
+    });
+  }
+
+  public async sendDataExecutionStateInitialize(
+    event: SendDataExecutionStateInitializeEvent,
+  ): Promise<void> {
+    return this._uninterrupted(async () => {
+      this._setFutureStatusInitializedAndRedisplayBatch(event);
+    });
+  }
+
+  public async sendDataExecutionStateComplete(
+    event: SendDataExecutionStateCompleteEvent,
+  ): Promise<void> {
+    return this._uninterrupted(async () => {
+      this._setFutureStatusCompleteAndRedisplayBatch(event);
+    });
+  }
+
+  public async contractAtExecutionStateInitialize(
+    event: ContractAtExecutionStateInitializeEvent,
+  ): Promise<void> {
+    return this._uninterrupted(async () => {
+      this._setFutureStatusAndRedisplayBatch(event.futureId, {
+        type: UiFutureStatusType.SUCCESS,
+      });
+    });
+  }
+
+  public async readEventArgumentExecutionStateInitialize(
+    event: ReadEventArgExecutionStateInitializeEvent,
+  ): Promise<void> {
+    return this._uninterrupted(async () => {
+      this._setFutureStatusAndRedisplayBatch(event.futureId, {
+        type: UiFutureStatusType.SUCCESS,
+      });
+    });
+  }
+
+  public async encodeFunctionCallExecutionStateInitialize(
+    event: EncodeFunctionCallExecutionStateInitializeEvent,
+  ): Promise<void> {
+    return this._uninterrupted(async () => {
+      this._setFutureStatusAndRedisplayBatch(event.futureId, {
+        type: UiFutureStatusType.SUCCESS,
+      });
+    });
+  }
+
+  public async batchInitialize(event: BatchInitializeEvent): Promise<void> {
+    return this._uninterrupted(async () => {
+      const batches: UiBatches = [];
+
+      for (const batch of event.batches) {
+        const futureBatch: UiFuture[] = [];
+
+        for (const futureId of batch) {
+          futureBatch.push({
+            futureId,
+            status: {
+              type: UiFutureStatusType.UNSTARTED,
+            },
+          });
+        }
+
+        batches.push(futureBatch);
+      }
+
+      this.state = {
+        ...this.state,
+        batches,
+      };
+    });
+  }
+
+  public async networkInteractionRequest(
+    _event: NetworkInteractionRequestEvent,
+  ): Promise<void> {}
+
+  public async transactionPrepareSend(
+    _event: TransactionPrepareSendEvent,
+  ): Promise<void> {}
+
+  public async transactionSend(_event: TransactionSendEvent): Promise<void> {}
+
+  public async transactionConfirm(
+    _event: TransactionConfirmEvent,
+  ): Promise<void> {}
+
+  public async staticCallComplete(
+    _event: StaticCallCompleteEvent,
+  ): Promise<void> {}
+
+  public async onchainInteractionBumpFees(
+    event: OnchainInteractionBumpFeesEvent,
+  ): Promise<void> {
+    return this._uninterrupted(async () => {
+      if (this._uiState.gasBumps[event.futureId] === undefined) {
+        this._uiState.gasBumps[event.futureId] = 0;
+      }
+
+      this._uiState.gasBumps[event.futureId] += 1;
+
+      this._redisplayCurrentBatch();
+    });
+  }
+
+  public async onchainInteractionDropped(
+    _event: OnchainInteractionDroppedEvent,
+  ): Promise<void> {}
+
+  public async onchainInteractionReplacedByUser(
+    _event: OnchainInteractionReplacedByUserEvent,
+  ): Promise<void> {}
+
+  public async onchainInteractionTimeout(
+    _event: OnchainInteractionTimeoutEvent,
+  ): Promise<void> {}
+
+  public async deploymentComplete(
+    event: DeploymentCompleteEvent,
+  ): Promise<void> {
+    return this._uninterrupted(async () => {
+      this.state = {
+        ...this.state,
+        status: UiStateDeploymentStatus.COMPLETE,
+        result: event.result,
+        batches: this._applyResultToBatches(this.state.batches, event.result),
+      };
+
+      // If batches where executed, rerender the last batch
+      if (wasAnythingExecuted(this.state)) {
+        this._redisplayCurrentBatch();
+      } else {
+        // Otherwise only the completion panel will be shown so clear
+        // the Starting Ignition line.
+        this._clearCurrentLine();
+      }
+
+      console.log(calculateDeploymentCompleteDisplay(event, this.state));
+    });
+  }
+
+  public async reconciliationWarnings(
+    event: ReconciliationWarningsEvent,
+  ): Promise<void> {
+    return this._uninterrupted(async () => {
+      this.state = {
+        ...this.state,
+        warnings: [...this.state.warnings, ...event.warnings],
+      };
+    });
+  }
+
+  public async setModuleId(event: SetModuleIdEvent): Promise<void> {
+    return this._uninterrupted(async () => {
+      this.state = {
+        ...this.state,
+        moduleName: event.moduleName,
+      };
+    });
+  }
+
+  public async setStrategy(event: SetStrategyEvent): Promise<void> {
+    return this._uninterrupted(async () => {
+      this.state = {
+        ...this.state,
+        strategy: event.strategy,
+      };
+    });
   }
 
   private _setFutureStatusInitializedAndRedisplayBatch({
@@ -498,5 +563,18 @@ export class PrettyEventHandler implements ExecutionEventListener {
   private _clearUpToHeight(height: number) {
     readline.moveCursor(process.stdout, 0, -height);
     readline.clearScreenDown(process.stdout);
+  }
+
+  /**
+   * Runs the function `f` without being interrupted by any user interruption,
+   * as long as the userInterruptions parameter was provided to the constructor.
+   * If it hasn't been provided, it just runs `f`.
+   */
+  private _uninterrupted(f: () => Promise<void>) {
+    if (this._userInterruptions !== undefined) {
+      return this._userInterruptions.uninterrupted(f);
+    }
+
+    return f();
   }
 }
