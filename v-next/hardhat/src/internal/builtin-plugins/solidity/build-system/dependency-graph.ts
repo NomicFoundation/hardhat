@@ -89,7 +89,9 @@ export class DependencyGraphImplementation implements DependencyGraph {
     return Object.fromEntries(
       [...this.getRoots().entries()]
         .map(([userSourceName, root]) => [userSourceName, root.inputSourceName])
-        .sort(([p1, p2]) => p1.localeCompare(p2)),
+        .sort(([userSourceName1, _], [userSourceName2, __]) =>
+          userSourceName1.localeCompare(userSourceName2),
+        ),
     );
   }
 
