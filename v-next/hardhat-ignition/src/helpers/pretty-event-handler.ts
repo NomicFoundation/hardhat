@@ -566,7 +566,7 @@ export class PrettyEventHandler implements ExecutionEventListener {
   }
 
   /**
-   * Runs a the function `f` without being interrupted by any user interruption,
+   * Runs the function `f` without being interrupted by any user interruption,
    * as long as the userInterruptions parameter was provided to the constructor.
    * If it hasn't been provided, it just runs `f`.
    */
