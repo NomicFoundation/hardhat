@@ -220,7 +220,7 @@ export class CompilationJobImplementation implements CompilationJob {
       ]),
     );
 
-    // EXTREMELLY IMPORTANT: The preimage should include **all** the information
+    // EXTREMELY IMPORTANT: The preimage should include **all** the information
     // that makes this compilation job unique from the point of view of Hardhat.
     //
     // Note that we can have multiple compilation jobs that are equivalent from
