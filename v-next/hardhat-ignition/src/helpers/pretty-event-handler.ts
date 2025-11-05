@@ -81,7 +81,8 @@ export class PrettyEventHandler implements ExecutionEventListener {
 
   /**
    * @param _userInterruptions Hardhat's UserInterruptionManager.
-   *  It must only be `undefined` for testing.
+   *  It must only be `undefined` for testing. Note: Every listener that prints
+   *  something to the terminal should use the function _uninterrupted.
    * @param _deploymentParams The deployment parameters.
    * @param _disableOutput A boolean to disable the output.
    */
@@ -100,169 +101,203 @@ export class PrettyEventHandler implements ExecutionEventListener {
   }
 
   public async deploymentStart(event: DeploymentStartEvent): Promise<void> {
-    this.state = {
-      ...this.state,
-      status: UiStateDeploymentStatus.DEPLOYING,
-      moduleName: event.moduleName,
-      deploymentDir: event.deploymentDir,
-      isResumed: event.isResumed,
-      maxFeeBumps: event.maxFeeBumps,
-      disableFeeBumping: event.disableFeeBumping,
-    };
+    return this._uninterrupted(async () => {
+      this.state = {
+        ...this.state,
+        status: UiStateDeploymentStatus.DEPLOYING,
+        moduleName: event.moduleName,
+        deploymentDir: event.deploymentDir,
+        isResumed: event.isResumed,
+        maxFeeBumps: event.maxFeeBumps,
+        disableFeeBumping: event.disableFeeBumping,
+      };
 
-    process.stdout.write(calculateStartingMessage(this.state));
+      process.stdout.write(calculateStartingMessage(this.state));
+    });
   }
 
   public async deploymentInitialize(
     event: DeploymentInitializeEvent,
   ): Promise<void> {
-    this.state = {
-      ...this.state,
-      chainId: event.chainId,
-    };
+    return this._uninterrupted(async () => {
+      this.state = {
+        ...this.state,
+        chainId: event.chainId,
+      };
+    });
   }
 
   public async runStart(_event: RunStartEvent): Promise<void> {
-    this._clearCurrentLine();
-    console.log(calculateDeployingModulePanel(this.state));
+    return this._uninterrupted(async () => {
+      this._clearCurrentLine();
+      console.log(calculateDeployingModulePanel(this.state));
+    });
   }
 
   public async beginNextBatch(_event: BeginNextBatchEvent): Promise<void> {
-    // rerender the previous batch
-    if (this.state.currentBatch > 0) {
-      this._redisplayCurrentBatch();
-    }
+    return this._uninterrupted(async () => {
+      // rerender the previous batch
+      if (this.state.currentBatch > 0) {
+        this._redisplayCurrentBatch();
+      }
 
-    this.state = {
-      ...this.state,
-      currentBatch: this.state.currentBatch + 1,
-    };
+      this.state = {
+        ...this.state,
+        currentBatch: this.state.currentBatch + 1,
+      };
 
-    if (this.state.currentBatch === 0) {
-      return;
-    }
+      if (this.state.currentBatch === 0) {
+        return;
+      }
 
-    // render the new batch
-    console.log(calculateBatchDisplay(this.state).text);
+      // render the new batch
+      console.log(calculateBatchDisplay(this.state).text);
+    });
   }
 
   public async wipeApply(event: WipeApplyEvent): Promise<void> {
-    const batches: UiBatches = [];
+    return this._uninterrupted(async () => {
+      const batches: UiBatches = [];
 
-    for (const batch of this.state.batches) {
-      const futureBatch: UiFuture[] = [];
+      for (const batch of this.state.batches) {
+        const futureBatch: UiFuture[] = [];
 
-      for (const future of batch) {
-        if (future.futureId === event.futureId) {
-          continue;
-        } else {
-          futureBatch.push(future);
+        for (const future of batch) {
+          if (future.futureId === event.futureId) {
+            continue;
+          } else {
+            futureBatch.push(future);
+          }
         }
+
+        batches.push(futureBatch);
       }
 
-      batches.push(futureBatch);
-    }
-
-    this.state = {
-      ...this.state,
-      batches,
-    };
+      this.state = {
+        ...this.state,
+        batches,
+      };
+    });
   }
 
   public async deploymentExecutionStateInitialize(
     event: DeploymentExecutionStateInitializeEvent,
   ): Promise<void> {
-    this._setFutureStatusInitializedAndRedisplayBatch(event);
+    return this._uninterrupted(async () => {
+      this._setFutureStatusInitializedAndRedisplayBatch(event);
+    });
   }
 
   public async deploymentExecutionStateComplete(
     event: DeploymentExecutionStateCompleteEvent,
   ): Promise<void> {
-    this._setFutureStatusCompleteAndRedisplayBatch(event);
+    return this._uninterrupted(async () => {
+      this._setFutureStatusCompleteAndRedisplayBatch(event);
+    });
   }
 
   public async callExecutionStateInitialize(
     event: CallExecutionStateInitializeEvent,
   ): Promise<void> {
-    this._setFutureStatusInitializedAndRedisplayBatch(event);
+    return this._uninterrupted(async () => {
+      this._setFutureStatusInitializedAndRedisplayBatch(event);
+    });
   }
 
   public async callExecutionStateComplete(
     event: CallExecutionStateCompleteEvent,
   ): Promise<void> {
-    this._setFutureStatusCompleteAndRedisplayBatch(event);
+    return this._uninterrupted(async () => {
+      this._setFutureStatusCompleteAndRedisplayBatch(event);
+    });
   }
 
   public async staticCallExecutionStateInitialize(
     event: StaticCallExecutionStateInitializeEvent,
   ): Promise<void> {
-    this._setFutureStatusInitializedAndRedisplayBatch(event);
+    return this._uninterrupted(async () => {
+      this._setFutureStatusInitializedAndRedisplayBatch(event);
+    });
   }
 
   public async staticCallExecutionStateComplete(
     event: StaticCallExecutionStateCompleteEvent,
   ): Promise<void> {
-    this._setFutureStatusCompleteAndRedisplayBatch(event);
+    return this._uninterrupted(async () => {
+      this._setFutureStatusCompleteAndRedisplayBatch(event);
+    });
   }
 
   public async sendDataExecutionStateInitialize(
     event: SendDataExecutionStateInitializeEvent,
   ): Promise<void> {
-    this._setFutureStatusInitializedAndRedisplayBatch(event);
+    return this._uninterrupted(async () => {
+      this._setFutureStatusInitializedAndRedisplayBatch(event);
+    });
   }
 
   public async sendDataExecutionStateComplete(
     event: SendDataExecutionStateCompleteEvent,
   ): Promise<void> {
-    this._setFutureStatusCompleteAndRedisplayBatch(event);
+    return this._uninterrupted(async () => {
+      this._setFutureStatusCompleteAndRedisplayBatch(event);
+    });
   }
 
   public async contractAtExecutionStateInitialize(
     event: ContractAtExecutionStateInitializeEvent,
   ): Promise<void> {
-    this._setFutureStatusAndRedisplayBatch(event.futureId, {
-      type: UiFutureStatusType.SUCCESS,
+    return this._uninterrupted(async () => {
+      this._setFutureStatusAndRedisplayBatch(event.futureId, {
+        type: UiFutureStatusType.SUCCESS,
+      });
     });
   }
 
   public async readEventArgumentExecutionStateInitialize(
     event: ReadEventArgExecutionStateInitializeEvent,
   ): Promise<void> {
-    this._setFutureStatusAndRedisplayBatch(event.futureId, {
-      type: UiFutureStatusType.SUCCESS,
+    return this._uninterrupted(async () => {
+      this._setFutureStatusAndRedisplayBatch(event.futureId, {
+        type: UiFutureStatusType.SUCCESS,
+      });
     });
   }
 
   public async encodeFunctionCallExecutionStateInitialize(
     event: EncodeFunctionCallExecutionStateInitializeEvent,
   ): Promise<void> {
-    this._setFutureStatusAndRedisplayBatch(event.futureId, {
-      type: UiFutureStatusType.SUCCESS,
+    return this._uninterrupted(async () => {
+      this._setFutureStatusAndRedisplayBatch(event.futureId, {
+        type: UiFutureStatusType.SUCCESS,
+      });
     });
   }
 
   public async batchInitialize(event: BatchInitializeEvent): Promise<void> {
-    const batches: UiBatches = [];
+    return this._uninterrupted(async () => {
+      const batches: UiBatches = [];
 
-    for (const batch of event.batches) {
-      const futureBatch: UiFuture[] = [];
+      for (const batch of event.batches) {
+        const futureBatch: UiFuture[] = [];
 
-      for (const futureId of batch) {
-        futureBatch.push({
-          futureId,
-          status: {
-            type: UiFutureStatusType.UNSTARTED,
-          },
-        });
+        for (const futureId of batch) {
+          futureBatch.push({
+            futureId,
+            status: {
+              type: UiFutureStatusType.UNSTARTED,
+            },
+          });
+        }
+
+        batches.push(futureBatch);
       }
 
-      batches.push(futureBatch);
-    }
-
-    this.state = {
-      ...this.state,
-      batches,
-    };
+      this.state = {
+        ...this.state,
+        batches,
+      };
+    });
   }
 
   public async networkInteractionRequest(
@@ -286,13 +321,15 @@ export class PrettyEventHandler implements ExecutionEventListener {
   public async onchainInteractionBumpFees(
     event: OnchainInteractionBumpFeesEvent,
   ): Promise<void> {
-    if (this._uiState.gasBumps[event.futureId] === undefined) {
-      this._uiState.gasBumps[event.futureId] = 0;
-    }
+    return this._uninterrupted(async () => {
+      if (this._uiState.gasBumps[event.futureId] === undefined) {
+        this._uiState.gasBumps[event.futureId] = 0;
+      }
 
-    this._uiState.gasBumps[event.futureId] += 1;
+      this._uiState.gasBumps[event.futureId] += 1;
 
-    this._redisplayCurrentBatch();
+      this._redisplayCurrentBatch();
+    });
   }
 
   public async onchainInteractionDropped(
@@ -310,46 +347,54 @@ export class PrettyEventHandler implements ExecutionEventListener {
   public async deploymentComplete(
     event: DeploymentCompleteEvent,
   ): Promise<void> {
-    this.state = {
-      ...this.state,
-      status: UiStateDeploymentStatus.COMPLETE,
-      result: event.result,
-      batches: this._applyResultToBatches(this.state.batches, event.result),
-    };
+    return this._uninterrupted(async () => {
+      this.state = {
+        ...this.state,
+        status: UiStateDeploymentStatus.COMPLETE,
+        result: event.result,
+        batches: this._applyResultToBatches(this.state.batches, event.result),
+      };
 
-    // If batches where executed, rerender the last batch
-    if (wasAnythingExecuted(this.state)) {
-      this._redisplayCurrentBatch();
-    } else {
-      // Otherwise only the completion panel will be shown so clear
-      // the Starting Ignition line.
-      this._clearCurrentLine();
-    }
+      // If batches where executed, rerender the last batch
+      if (wasAnythingExecuted(this.state)) {
+        this._redisplayCurrentBatch();
+      } else {
+        // Otherwise only the completion panel will be shown so clear
+        // the Starting Ignition line.
+        this._clearCurrentLine();
+      }
 
-    console.log(calculateDeploymentCompleteDisplay(event, this.state));
+      console.log(calculateDeploymentCompleteDisplay(event, this.state));
+    });
   }
 
   public async reconciliationWarnings(
     event: ReconciliationWarningsEvent,
   ): Promise<void> {
-    this.state = {
-      ...this.state,
-      warnings: [...this.state.warnings, ...event.warnings],
-    };
+    return this._uninterrupted(async () => {
+      this.state = {
+        ...this.state,
+        warnings: [...this.state.warnings, ...event.warnings],
+      };
+    });
   }
 
   public async setModuleId(event: SetModuleIdEvent): Promise<void> {
-    this.state = {
-      ...this.state,
-      moduleName: event.moduleName,
-    };
+    return this._uninterrupted(async () => {
+      this.state = {
+        ...this.state,
+        moduleName: event.moduleName,
+      };
+    });
   }
 
   public async setStrategy(event: SetStrategyEvent): Promise<void> {
-    this.state = {
-      ...this.state,
-      strategy: event.strategy,
-    };
+    return this._uninterrupted(async () => {
+      this.state = {
+        ...this.state,
+        strategy: event.strategy,
+      };
+    });
   }
 
   private _setFutureStatusInitializedAndRedisplayBatch({
