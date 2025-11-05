@@ -1,6 +1,7 @@
 # Sample Hardhat 3 Beta Project (minimal)
 
-This project includes a Hardhat project with just the bare minimum:
+This project has a minimal setup of Hardhat 3 Beta, without any plugins.
 
-- A minimal `hardhat.config.ts`
-- A basic `tsconfig.json`
+## What's included?
+
+The project includes native support for TypeScript, Hardhat scripts, tasks, and support for Solidity compilation and tests.
