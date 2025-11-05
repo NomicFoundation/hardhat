@@ -10,7 +10,7 @@ export interface DependencyGraph {
   getRoots(): ReadonlyMap<string, ResolvedFile>;
 
   /**
-   * Returns an sorted map of userSourceName to inputSourceName for every
+   * Returns a sorted map of userSourceName to inputSourceName for every
    * root of the graph.
    */
   getRootsUserSourceNameMap(): Record<string, string>;
