@@ -107,18 +107,13 @@ declare module "hardhat/types/artifacts" {
 export async function getBuildInfo(
   compilationJob: CompilationJob,
 ): Promise<SolidityBuildInfo> {
-  const userSourceNameMap = Object.fromEntries(
-    [...compilationJob.dependencyGraph.getRoots().entries()].map(
-      ([userSourceName, root]) => [userSourceName, root.inputSourceName],
-    ),
-  );
-
   const buildInfo: Required<BuildInfo> = {
     _format: "hh3-sol-build-info-1",
     id: await compilationJob.getBuildId(),
     solcVersion: compilationJob.solcConfig.version,
     solcLongVersion: compilationJob.solcLongVersion,
-    userSourceNameMap,
+    userSourceNameMap:
+      compilationJob.dependencyGraph.getRootsUserSourceNameMap(),
     input: await compilationJob.getSolcInput(),
   };
 

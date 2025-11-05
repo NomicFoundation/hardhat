@@ -82,6 +82,20 @@ export class DependencyGraphImplementation implements DependencyGraph {
   }
 
   /**
+   * Returns a sorted map of userSourceName to inputSourceName for every
+   * root of the graph.
+   */
+  public getRootsUserSourceNameMap(): Record<string, string> {
+    return Object.fromEntries(
+      [...this.getRoots().entries()]
+        .map(([userSourceName, root]) => [userSourceName, root.inputSourceName])
+        .sort(([userSourceName1, _], [userSourceName2, __]) =>
+          userSourceName1.localeCompare(userSourceName2),
+        ),
+    );
+  }
+
+  /**
    * Returns a set of all the files in the graph.
    */
   public getAllFiles(): Iterable<ResolvedFile> {
