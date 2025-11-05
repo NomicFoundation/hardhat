@@ -1,51 +1,100 @@
 import type { PrettyEventHandler } from "../../helpers.js";
 import type { UserInterruptionHooks } from "hardhat/types/hooks";
 
+import { stdin, stdout } from "node:process";
+
+export async function getCursorPosition(): Promise<{
+  row: number;
+  col: number;
+}> {
+  return new Promise((resolve, reject) => {
+    // TODO: Should we check that this is a TTY?
+    // if (!stdin.isTTY || !stdout.isTTY) {
+    //   return reject(new Error("Not a TTY"));
+    // }
+
+    // Save old settings
+    const wasRaw = stdin.isRaw;
+
+    const onData = (data: Buffer) => {
+      const str = data.toString();
+      const match = /\x1B\[(\d+);(\d+)R/.exec(str);
+      if (match !== null) {
+        cleanup();
+        resolve({ row: Number(match[1]), col: Number(match[2]) });
+      }
+    };
+
+    const cleanup = () => {
+      stdin.off("data", onData);
+      if (!wasRaw) stdin.setRawMode?.(false);
+      stdin.pause();
+    };
+
+    try {
+      stdin.setRawMode(true);
+      stdin.resume();
+      stdin.on("data", onData);
+      stdout.write("\x1B[6n");
+    } catch (err) {
+      cleanup();
+      reject(err);
+    }
+  });
+}
+
 export function getUserInterruptionsHandlers(
   eventHandler: PrettyEventHandler,
 ): UserInterruptionHooks {
   return {
-    async displayMessage(
-      _context,
-      interruptor,
-      message,
-      __next,
-    ): Promise<void> {
-      const formattedMessage = `[${interruptor}] ${message}`;
+    async displayMessage(context, interruptor, message, next): Promise<void> {
+      const originalPosition = await getCursorPosition();
 
-      // console.log(formattedMessage);
+      const returnValue = next(context, interruptor, message);
 
-      eventHandler.externalLinesWritten += formattedMessage.split("\n").length;
+      const newPosition = await getCursorPosition();
+
+      const externalLines = newPosition.row - originalPosition.row;
+
+      eventHandler.externalLinesWritten += externalLines;
+
+      return returnValue;
     },
     async requestInput(
-      _context,
+      context,
       interruptor,
       inputDescription,
-      __next,
+      next,
     ): Promise<string> {
-      const formattedMessage = `[${interruptor}] ${inputDescription}`;
+      const originalPosition = await getCursorPosition();
 
-      // This one shouldn't just print, but also request the user input
-      // console.log(formattedMessage);
+      const returnValue = next(context, interruptor, inputDescription);
 
-      // Maybe the math should be different here?
-      eventHandler.externalLinesWritten += formattedMessage.split("\n").length;
+      const newPosition = await getCursorPosition();
 
-      return "mock response";
+      const externalLines = newPosition.row - originalPosition.row;
+
+      eventHandler.externalLinesWritten += externalLines;
+
+      return returnValue;
     },
     async requestSecretInput(
-      _context,
+      context,
       interruptor,
       inputDescription,
-      _next,
+      next,
     ): Promise<string> {
-      const formattedMessage = `[${interruptor}] ${inputDescription}`;
+      const originalPosition = await getCursorPosition();
 
-      // console.log("Hello from the task's implementation of requestSecretInput");
+      const returnValue = next(context, interruptor, inputDescription);
 
-      eventHandler.externalLinesWritten += formattedMessage.split("\n").length;
+      const newPosition = await getCursorPosition();
 
-      return "same as above but the input should be displayed as ***";
+      const externalLines = newPosition.row - originalPosition.row;
+
+      eventHandler.externalLinesWritten += externalLines;
+
+      return returnValue;
     },
   };
 }
