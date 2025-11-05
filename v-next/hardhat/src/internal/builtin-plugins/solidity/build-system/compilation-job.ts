@@ -232,6 +232,10 @@ export class CompilationJobImplementation implements CompilationJob {
     // field out, and then recompute the BuildInfo id based on the compilation
     // job id and the BuildInfo format. We add it here instead to keep both
     // ids the same, and as a small performance optimization.
+    //
+    // Changing this shouldn't be taken lightly, as it makes reproducing
+    // builds pretty difficult when upgrading Hardhat between versions that
+    // change it.
     const preimage = JSON.stringify({
       format,
       solcLongVersion: this.solcLongVersion,
