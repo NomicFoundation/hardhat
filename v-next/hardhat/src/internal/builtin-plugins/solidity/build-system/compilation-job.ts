@@ -228,6 +228,7 @@ export class CompilationJobImplementation implements CompilationJob {
       solcLongVersion: this.solcLongVersion,
       smallerSolcInput,
       solcConfig: this.solcConfig,
+      userSourceNameMap: this.dependencyGraph.getRootsUserSourceNameMap(),
     });
 
     const jobHash = await createNonCryptographicHashId(preimage);
