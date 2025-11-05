@@ -248,18 +248,38 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
       ReadonlyMap<string, string[]>
     > = new Map();
 
-    const tmpMap = new Map<string, boolean>();
+    // Deduplicate compilation results by buildId.
+    // Why: In isolated builds, different root files can resolve to the same solc
+    // compilation result and thus compute the same buildId. That means `results` may
+    // contain multiple entries that refer to the exact same build output.
+    // This becomes a problem when generating artifacts: the build-info files are
+    // moved from the cache to the final position, and attempting to move the
+    // same file twice can throw.
+    // Removing duplicates here prevents those conflicts.
+    //
+    // Example scenario that can produce identical buildIds (and thus duplicates):
+    //   B.sol imports A.sol
+    //   A.sol imports B.sol
+    //   C.sol imports both A.sol and B.sol
+    const uniqueResults = Array.from(
+      new Map<string, CompilationResult>(
+        await Promise.all(
+          results.map(
+            async (r) => [await r.compilationJob.getBuildId(), r] as const,
+          ),
+        ),
+      ).values(),
+    );
 
     if (isSuccessfulBuild) {
       log("Emitting artifacts of successful build");
+
       await Promise.all(
-        results.map(async (compilationResult) => {
+        uniqueResults.map(async (compilationResult) => {
           const emitArtifactsResult = await this.emitArtifacts(
             compilationResult.compilationJob,
             compilationResult.compilerOutput,
             options,
-            tmpMap,
-            buildProfile.isolated,
           );
 
           const { artifactsPerFile } = emitArtifactsResult;
@@ -287,7 +307,7 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
 
     spinner.stop();
 
-    for (const result of results) {
+    for (const result of uniqueResults) {
       const contractArtifactsGenerated = isSuccessfulBuild
         ? contractArtifactsGeneratedByCompilationJob.get(result.compilationJob)
         : new Map();
@@ -673,8 +693,6 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
     runnableCompilationJob: CompilationJob,
     compilerOutput: CompilerOutput,
     options: { scope?: BuildScope } = {},
-    tmpMap: Map<string, boolean> = new Map(),
-    isolated: boolean = false,
   ): Promise<EmitArtifactsResult> {
     const scope = options.scope ?? "contracts";
 
@@ -809,16 +827,8 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
       `${buildInfoId}.output.json`,
     );
 
-    if (isolated) {
-      if (!tmpMap.has(buildInfoId)) {
-        await move(buildInfoOutputCachePath, buildInfoOutputPath);
-        await move(buildInfoCachePath, buildInfoPath);
-        tmpMap.set(buildInfoId, true);
-      }
-    } else {
-      await move(buildInfoOutputCachePath, buildInfoOutputPath);
-      await move(buildInfoCachePath, buildInfoPath);
-    }
+    await move(buildInfoOutputCachePath, buildInfoOutputPath);
+    await move(buildInfoCachePath, buildInfoPath);
 
     return {
       artifactsPerFile,
