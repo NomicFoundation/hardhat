@@ -186,7 +186,7 @@ const taskDeploy: NewTaskActionFunction<TaskDeployArguments> = async (
 
   const artifactResolver = new HardhatArtifactResolver(hre.artifacts);
 
-  const executionEventListener = new PrettyEventHandler();
+  const executionEventListener = new PrettyEventHandler(hre.interruptions);
 
   const strategyConfig = hre.config.ignition.strategyConfig?.[strategyName];
 

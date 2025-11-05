@@ -43,6 +43,7 @@ import type {
   TransactionSendEvent,
   WipeApplyEvent,
 } from "@nomicfoundation/ignition-core";
+import type { UserInterruptionManager } from "hardhat/types/user-interruptions";
 
 import readline from "node:readline";
 
@@ -78,7 +79,14 @@ export class PrettyEventHandler implements ExecutionEventListener {
     strategy: null,
   };
 
+  /**
+   * @param _userInterruptions Hardhat's UserInterruptionManager.
+   *  It must only be `undefined` for testing.
+   * @param _deploymentParams The deployment parameters.
+   * @param _disableOutput A boolean to disable the output.
+   */
   constructor(
+    private readonly _userInterruptions: UserInterruptionManager | undefined,
     private readonly _deploymentParams: DeploymentParameters = {},
     private readonly _disableOutput = false,
   ) {}
@@ -510,5 +518,18 @@ export class PrettyEventHandler implements ExecutionEventListener {
   private _clearUpToHeight(height: number) {
     readline.moveCursor(process.stdout, 0, -height);
     readline.clearScreenDown(process.stdout);
+  }
+
+  /**
+   * Runs a the function `f` without being interrupted by any user interruption,
+   * as long as the userInterruptions parameter was provided to the constructor.
+   * If it hasn't been provided, it just runs `f`.
+   */
+  private _uninterrupted(f: () => Promise<void>) {
+    if (this._userInterruptions !== undefined) {
+      return this._userInterruptions.uninterrupted(f);
+    }
+
+    return f();
   }
 }
