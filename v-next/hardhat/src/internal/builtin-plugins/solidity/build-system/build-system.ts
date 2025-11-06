@@ -341,7 +341,9 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
 
     if (!options.quiet) {
       if (isSuccessfulBuild) {
-        await this.#printCompilationResult(runnableCompilationJobs);
+        await this.#printCompilationResult(runnableCompilationJobs, {
+          scope: options.scope,
+        });
       }
     }
 
@@ -1079,14 +1081,21 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
     }
   }
 
-  async #printCompilationResult(runnableCompilationJobs: CompilationJob[]) {
+  async #printCompilationResult(
+    runnableCompilationJobs: CompilationJob[],
+    options: { scope: BuildScope },
+  ) {
     const jobsPerVersionAndEvmVersion = new Map<
       string,
       Map<string, CompilationJob[]>
     >();
 
     if (runnableCompilationJobs.length === 0) {
-      console.log("Nothing to compile");
+      if (options.scope === "contracts") {
+        console.log("No contracts to compile");
+      } else {
+        console.log("No Solidity tests to compile");
+      }
     }
 
     for (const job of runnableCompilationJobs) {
