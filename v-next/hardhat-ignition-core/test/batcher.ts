@@ -179,21 +179,100 @@ describe("batcher", () => {
       [["Module1#Contract1"], ["Module1#Contract3"]],
     );
   });
+
+  it("should split batches exceeding maxBatchSize", () => {
+    const ignitionModule = buildModule("Module1", (m) => {
+      const contract1 = m.contract("Contract1");
+      const contract2 = m.contract("Contract2");
+      const contract3 = m.contract("Contract3");
+      const contract4 = m.contract("Contract4");
+      const contract5 = m.contract("Contract5");
+
+      return { contract1, contract2, contract3, contract4, contract5 };
+    });
+
+    // Without maxBatchSize, all contracts should be in one batch
+    assertBatching({ ignitionModule }, [
+      [
+        "Module1#Contract1",
+        "Module1#Contract2",
+        "Module1#Contract3",
+        "Module1#Contract4",
+        "Module1#Contract5",
+      ],
+    ]);
+
+    // With maxBatchSize of 2, should split into multiple batches
+    assertBatching(
+      { ignitionModule, maxBatchSize: 2 },
+      [
+        ["Module1#Contract1", "Module1#Contract2"],
+        ["Module1#Contract3", "Module1#Contract4"],
+        ["Module1#Contract5"],
+      ],
+    );
+  });
+
+  it("should split batches exceeding maxBatchSize with dependencies", () => {
+    const ignitionModule = buildModule("Module1", (m) => {
+      const contract1 = m.contract("Contract1");
+      const contract2 = m.contract("Contract2");
+      const contract3 = m.contract("Contract3");
+      const contract4 = m.contract("Contract4", [contract1, contract2]);
+
+      return { contract1, contract2, contract3, contract4 };
+    });
+
+    // With maxBatchSize of 2, the first batch [contract1, contract2, contract3] gets split:
+    // - First chunk: [contract1, contract2] - executed first
+    // - Second chunk: [contract3] - depends on contract1 and contract2 (artificial dependency)
+    // - contract4 depends on contract1 and contract2, so it can be executed together with contract3
+    //   since both have their dependencies satisfied after the first chunk
+    assertBatching(
+      { ignitionModule, maxBatchSize: 2 },
+      [
+        ["Module1#Contract1", "Module1#Contract2"],
+        ["Module1#Contract3", "Module1#Contract4"],
+      ],
+    );
+  });
+
+  it("should handle maxBatchSize with exact batch size", () => {
+    const ignitionModule = buildModule("Module1", (m) => {
+      const contract1 = m.contract("Contract1");
+      const contract2 = m.contract("Contract2");
+      const contract3 = m.contract("Contract3");
+
+      return { contract1, contract2, contract3 };
+    });
+
+    // With maxBatchSize of 3, should not split since batch size equals maxBatchSize
+    assertBatching(
+      { ignitionModule, maxBatchSize: 3 },
+      [["Module1#Contract1", "Module1#Contract2", "Module1#Contract3"]],
+    );
+  });
 });
 
 function assertBatching(
   {
     ignitionModule,
     deploymentState = { chainId: 123, executionStates: {} },
+    maxBatchSize,
   }: {
     ignitionModule: IgnitionModule;
     deploymentState?: DeploymentState;
+    maxBatchSize?: number;
   },
   expectedBatches: string[][],
 ) {
   assert.isDefined(ignitionModule);
 
-  const actualBatches = Batcher.batch(ignitionModule, deploymentState);
+  const actualBatches = Batcher.batch(
+    ignitionModule,
+    deploymentState,
+    maxBatchSize,
+  );
 
   assert.deepStrictEqual(actualBatches, expectedBatches);
 }
