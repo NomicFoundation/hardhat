@@ -83,11 +83,10 @@ const runSolidityTests: NewTaskActionFunction<TestActionArguments> = async (
   const { testRootPaths }: { testRootPaths: string[] } = await hre.tasks
     .getTask("build")
     .run({
-      quiet: true,
-      force: false,
       files: testFiles,
       noContracts: noCompile,
     });
+  console.log();
 
   // EDR needs all artifacts (contracts + tests)
   const edrArtifacts: Array<{
