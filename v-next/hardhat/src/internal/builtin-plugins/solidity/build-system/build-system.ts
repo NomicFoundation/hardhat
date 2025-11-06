@@ -1050,6 +1050,8 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
       return;
     }
 
+    console.log();
+
     for (const error of errors) {
       if (error.severity === "error") {
         const errorMessage: string =
@@ -1057,12 +1059,15 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
           error.formattedMessage ??
           error.message;
 
-        console.error(errorMessage.replace(/^\w+:/, (t) => chalk.red.bold(t)));
+        console.error(
+          errorMessage.replace(/^\w+:/, (t) => chalk.red.bold(t)).trimEnd() +
+            "\n",
+        );
       } else {
         console.warn(
-          (error.formattedMessage ?? error.message).replace(/^\w+:/, (t) =>
-            chalk.yellow.bold(t),
-          ),
+          (error.formattedMessage ?? error.message)
+            .replace(/^\w+:/, (t) => chalk.yellow.bold(t))
+            .trimEnd() + "\n",
         );
       }
     }
