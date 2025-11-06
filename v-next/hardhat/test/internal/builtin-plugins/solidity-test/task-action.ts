@@ -50,7 +50,7 @@ describe("solidity-test/task-action", function () {
   before(async function () {
     hre = await createHardhatRuntimeEnvironment(hardhatConfigAllTests);
 
-    await hre.tasks.getTask(["compile"]).run({});
+    await hre.tasks.getTask(["build"]).run({});
   });
 
   describe("when the solidity task test runner is specified", () => {

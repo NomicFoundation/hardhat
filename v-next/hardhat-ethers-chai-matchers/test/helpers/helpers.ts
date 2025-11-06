@@ -19,7 +19,7 @@ export async function initEnvironment(_artifactsPath: string): Promise<{
 
   const hre = await createHardhatRuntimeEnvironment(config);
 
-  await hre.tasks.getTask("compile").run({ force: false });
+  await hre.tasks.getTask("build").run({ force: false });
 
   const { ethers, provider } = await hre.network.connect();
 

@@ -152,8 +152,9 @@ const taskDeploy: NewTaskActionFunction<TaskDeployArguments> = async (
     );
   }
 
-  await hre.tasks.getTask("compile").run({
+  await hre.tasks.getTask("build").run({
     quiet: true,
+    noTests: true,
     defaultBuildProfile: "production",
   });
 

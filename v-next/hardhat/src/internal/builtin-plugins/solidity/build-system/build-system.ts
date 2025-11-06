@@ -178,7 +178,7 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
 
     const spinner = createSpinner({
       text: `Compiling your Solidity ${options.scope}...`,
-      enabled: !options.quiet,
+      enabled: true,
     });
 
     await this.#downloadConfiguredCompilers(options.quiet);
@@ -341,7 +341,9 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
 
     if (!options.quiet) {
       if (isSuccessfulBuild) {
-        await this.#printCompilationResult(runnableCompilationJobs);
+        await this.#printCompilationResult(runnableCompilationJobs, {
+          scope: options.scope,
+        });
       }
     }
 
@@ -1048,6 +1050,8 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
       return;
     }
 
+    console.log();
+
     for (const error of errors) {
       if (error.severity === "error") {
         const errorMessage: string =
@@ -1055,12 +1059,15 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
           error.formattedMessage ??
           error.message;
 
-        console.error(errorMessage.replace(/^\w+:/, (t) => chalk.red.bold(t)));
+        console.error(
+          errorMessage.replace(/^\w+:/, (t) => chalk.red.bold(t)).trimEnd() +
+            "\n",
+        );
       } else {
         console.warn(
-          (error.formattedMessage ?? error.message).replace(/^\w+:/, (t) =>
-            chalk.yellow.bold(t),
-          ),
+          (error.formattedMessage ?? error.message)
+            .replace(/^\w+:/, (t) => chalk.yellow.bold(t))
+            .trimEnd() + "\n",
         );
       }
     }
@@ -1079,14 +1086,23 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
     }
   }
 
-  async #printCompilationResult(runnableCompilationJobs: CompilationJob[]) {
+  async #printCompilationResult(
+    runnableCompilationJobs: CompilationJob[],
+    options: { scope: BuildScope },
+  ) {
     const jobsPerVersionAndEvmVersion = new Map<
       string,
       Map<string, CompilationJob[]>
     >();
 
     if (runnableCompilationJobs.length === 0) {
-      console.log("Nothing to compile");
+      if (options.scope === "contracts") {
+        console.log("No contracts to compile");
+      } else {
+        console.log("No Solidity tests to compile");
+      }
+
+      return;
     }
 
     for (const job of runnableCompilationJobs) {
@@ -1127,10 +1143,13 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
         );
 
         console.log(
-          `Compiled ${rootFiles} Solidity ${pluralize(
-            "file",
-            rootFiles,
-          )} with solc ${solcVersion} (evm target: ${evmVersion})`,
+          chalk.bold(
+            `Compiled ${rootFiles} Solidity ${pluralize(
+              options.scope === "contracts" ? "file" : "test file",
+              rootFiles,
+            )} with solc ${solcVersion}`,
+          ),
+          `(evm target: ${evmVersion})`,
         );
       }
     }
