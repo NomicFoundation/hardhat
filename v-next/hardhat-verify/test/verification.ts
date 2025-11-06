@@ -33,7 +33,7 @@ describe("verification", () => {
           (await import("./fixture-projects/integration/hardhat.config.js"))
             .default;
         hre = await createHardhatRuntimeEnvironment(hardhatUserConfig);
-        await hre.tasks.getTask("compile").run();
+        await hre.tasks.getTask("build").run();
       });
 
       beforeEach(() => {

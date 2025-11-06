@@ -20,7 +20,7 @@ describe("ArtifactManagerImplementation", () => {
   before(async () => {
     hre = await createHardhatRuntimeEnvironment({});
 
-    await hre.tasks.getTask(["compile"]).run({});
+    await hre.tasks.getTask(["build"]).run({});
 
     artifactManager = new ArtifactManagerImplementation(
       hre.config.paths.artifacts,

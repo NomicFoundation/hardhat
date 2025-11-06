@@ -32,7 +32,7 @@ export function useHardhatProject(fixtureProjectName: string): void {
 
     const hre = await createHre();
 
-    await hre.tasks.getTask("compile").run({ quiet: true });
+    await hre.tasks.getTask("build").run({ quiet: true });
   });
 
   after(async () => {

@@ -12,7 +12,7 @@ describe("visualize", () => {
     const visualizationPath = path.resolve("../minimal/cache/visualization");
     await emptyDir(visualizationPath);
 
-    await this.hre.tasks.getTask("compile").run({ quiet: true });
+    await this.hre.tasks.getTask("build").run({ quiet: true });
     await this.hre.tasks.getTask(["ignition", "visualize"]).run({
       noOpen: true,
       modulePath: "./ignition/modules/MyModule.js",

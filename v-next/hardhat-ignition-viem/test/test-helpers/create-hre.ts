@@ -33,7 +33,7 @@ async function createHre(): Promise<HardhatRuntimeEnvironment> {
     process.cwd(),
   );
 
-  await hre.tasks.getTask("compile").run({ quiet: true });
+  await hre.tasks.getTask("build").run({ quiet: true });
 
   return hre;
 }
