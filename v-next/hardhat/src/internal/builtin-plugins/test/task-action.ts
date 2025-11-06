@@ -38,7 +38,6 @@ const runAllTests: NewTaskActionFunction<TestActionArguments> = async (
     await hre.tasks.getTask("build").run({
       noTests: true,
     });
-    console.log();
   }
 
   if (hre.globalOptions.coverage === true) {
