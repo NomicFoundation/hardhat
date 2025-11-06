@@ -1,5 +1,7 @@
 import type {
   Artifacts,
+  CompilerInput,
+  CompilerOutput,
   EIP1193Provider,
   EthSubscription,
   HardhatNetworkChainsConfig,
@@ -8,23 +10,39 @@ import type {
 
 import type {
   EdrContext,
+  LoggerConfig as EdrLoggerConfig,
   Provider as EdrProviderT,
   Response,
   SubscriptionEvent,
-  HttpHeader,
   TracingConfigWithBuffers,
+  ProviderConfig,
+  SubscriptionConfig,
 } from "@nomicfoundation/edr";
+import { privateToAddress } from "@ethereumjs/util";
+import { ContractDecoder, precompileP256Verify } from "@nomicfoundation/edr";
 import picocolors from "picocolors";
 import debug from "debug";
 import { EventEmitter } from "events";
 import fsExtra from "fs-extra";
+import * as t from "io-ts";
 
 import { requireNapiRsModule } from "../../../common/napi-rs";
 import {
   HARDHAT_NETWORK_RESET_EVENT,
   HARDHAT_NETWORK_REVERT_SNAPSHOT_EVENT,
 } from "../../constants";
+import { numberToRpcQuantity } from "../../core/jsonrpc/types/base-types";
 import {
+  optionalRpcHardhatNetworkConfig,
+  RpcHardhatNetworkConfig,
+} from "../../core/jsonrpc/types/input/hardhat-network";
+import {
+  rpcCompilerInput,
+  rpcCompilerOutput,
+} from "../../core/jsonrpc/types/input/solc";
+import { validateParams } from "../../core/jsonrpc/types/input/validation";
+import {
+  InternalError,
   InvalidArgumentsError,
   InvalidInputError,
   ProviderError,
@@ -50,6 +68,7 @@ import {
   ethereumjsIntervalMiningConfigToEdr,
   ethereumjsMempoolOrderToEdrMineOrdering,
   ethereumsjsHardforkToEdrSpecId,
+  httpHeadersToEdr,
 } from "./utils/convertToEdr";
 import { LoggerConfig, printLine, replaceLastLine } from "./modules/logger";
 import { MinimalEthereumJsVm, getMinimalEthereumJsVm } from "./vm/minimal-vm";
@@ -62,14 +81,19 @@ export const DEFAULT_COINBASE = "0xc014ba5ec014ba5ec014ba5ec014ba5ec014ba5e";
 let _globalEdrContext: EdrContext | undefined;
 
 // Lazy initialize the global EDR context.
-export function getGlobalEdrContext(): EdrContext {
-  const { EdrContext } = requireNapiRsModule(
-    "@nomicfoundation/edr"
-  ) as typeof import("@nomicfoundation/edr");
+export async function getGlobalEdrContext(): Promise<EdrContext> {
+  const { EdrContext, GENERIC_CHAIN_TYPE, genericChainProviderFactory } =
+    requireNapiRsModule(
+      "@nomicfoundation/edr"
+    ) as typeof import("@nomicfoundation/edr");
 
   if (_globalEdrContext === undefined) {
     // Only one is allowed to exist
     _globalEdrContext = new EdrContext();
+    await _globalEdrContext.registerProviderFactory(
+      GENERIC_CHAIN_TYPE,
+      genericChainProviderFactory()
+    );
   }
 
   return _globalEdrContext;
@@ -119,11 +143,14 @@ export class EdrProviderWrapper
   private _callOverrideCallback?: CallOverrideCallback;
 
   private constructor(
-    private readonly _provider: EdrProviderT,
+    private _provider: EdrProviderT,
+    private readonly _providerConfig: ProviderConfig,
+    private readonly _loggerConfig: EdrLoggerConfig,
     // we add this for backwards-compatibility with plugins like solidity-coverage
-    private readonly _node: {
+    private _node: {
       _vm: MinimalEthereumJsVm;
-    }
+    },
+    private readonly _subscriptionConfig: SubscriptionConfig
   ) {
     super();
   }
@@ -133,35 +160,43 @@ export class EdrProviderWrapper
     loggerConfig: LoggerConfig,
     tracingConfig?: TracingConfigWithBuffers
   ): Promise<EdrProviderWrapper> {
-    const { Provider } = requireNapiRsModule(
-      "@nomicfoundation/edr"
-    ) as typeof import("@nomicfoundation/edr");
+    const { GENERIC_CHAIN_TYPE, l1GenesisState, l1HardforkFromString } =
+      requireNapiRsModule(
+        "@nomicfoundation/edr"
+      ) as typeof import("@nomicfoundation/edr");
 
     const coinbase = config.coinbase ?? DEFAULT_COINBASE;
 
     let fork;
     if (config.forkConfig !== undefined) {
-      let httpHeaders: HttpHeader[] | undefined;
-      if (config.forkConfig.httpHeaders !== undefined) {
-        httpHeaders = [];
-
-        for (const [name, value] of Object.entries(
-          config.forkConfig.httpHeaders
-        )) {
-          httpHeaders.push({
-            name,
-            value,
-          });
-        }
-      }
-
       fork = {
-        jsonRpcUrl: config.forkConfig.jsonRpcUrl,
         blockNumber:
           config.forkConfig.blockNumber !== undefined
             ? BigInt(config.forkConfig.blockNumber)
             : undefined,
-        httpHeaders,
+        cacheDir: config.forkCachePath,
+        chainOverrides: Array.from(
+          config.chains,
+          ([chainId, hardforkConfig]) => {
+            return {
+              chainId: BigInt(chainId),
+              name: "Unknown",
+              hardforks: Array.from(
+                hardforkConfig.hardforkHistory,
+                ([hardfork, blockNumber]) => {
+                  return {
+                    condition: { blockNumber: BigInt(blockNumber) },
+                    hardfork: ethereumsjsHardforkToEdrSpecId(
+                      getHardforkName(hardfork)
+                    ),
+                  };
+                }
+              ),
+            };
+          }
+        ),
+        httpHeaders: httpHeadersToEdr(config.forkConfig.httpHeaders),
+        url: config.forkConfig.jsonRpcUrl,
       };
     }
 
@@ -179,80 +214,107 @@ export class EdrProviderWrapper
 
     const hardforkName = getHardforkName(config.hardfork);
 
-    const provider = await Provider.withConfig(
-      getGlobalEdrContext(),
-      {
-        allowBlocksWithSameTimestamp:
-          config.allowBlocksWithSameTimestamp ?? false,
-        allowUnlimitedContractSize: config.allowUnlimitedContractSize,
-        bailOnCallFailure: config.throwOnCallFailures,
-        bailOnTransactionFailure: config.throwOnTransactionFailures,
-        blockGasLimit: BigInt(config.blockGasLimit),
-        chainId: BigInt(config.chainId),
-        chains: Array.from(config.chains, ([chainId, hardforkConfig]) => {
-          return {
-            chainId: BigInt(chainId),
-            hardforks: Array.from(
-              hardforkConfig.hardforkHistory,
-              ([hardfork, blockNumber]) => {
-                return {
-                  blockNumber: BigInt(blockNumber),
-                  specId: ethereumsjsHardforkToEdrSpecId(
-                    getHardforkName(hardfork)
-                  ),
-                };
-              }
-            ),
-          };
-        }),
-        cacheDir: config.forkCachePath,
-        coinbase: Buffer.from(coinbase.slice(2), "hex"),
-        enableRip7212: config.enableRip7212,
-        fork,
-        hardfork: ethereumsjsHardforkToEdrSpecId(hardforkName),
-        genesisAccounts: config.genesisAccounts.map((account) => {
-          return {
-            secretKey: account.privateKey,
-            balance: BigInt(account.balance),
-          };
-        }),
-        initialDate,
-        initialBaseFeePerGas:
-          config.initialBaseFeePerGas !== undefined
-            ? BigInt(config.initialBaseFeePerGas!)
-            : undefined,
-        minGasPrice: config.minGasPrice,
-        mining: {
-          autoMine: config.automine,
-          interval: ethereumjsIntervalMiningConfigToEdr(config.intervalMining),
-          memPool: {
-            order: ethereumjsMempoolOrderToEdrMineOrdering(config.mempoolOrder),
-          },
-        },
-        networkId: BigInt(config.networkId),
-      },
-      {
-        enable: loggerConfig.enabled,
-        decodeConsoleLogInputsCallback: ConsoleLogger.getDecodedLogs,
-        printLineCallback: (message: string, replace: boolean) => {
-          if (replace) {
-            replaceLastLineFn(message);
-          } else {
-            printLineFn(message);
-          }
+    const genesisState =
+      fork !== undefined
+        ? [] // TODO: Add support for overriding remote fork state when the local fork is different
+        : l1GenesisState(
+            l1HardforkFromString(ethereumsjsHardforkToEdrSpecId(hardforkName))
+          );
+
+    const ownedAccounts = config.genesisAccounts.map((account) => {
+      const privateKey = Uint8Array.from(
+        // Strip the `0x` prefix
+        Buffer.from(account.privateKey.slice(2), "hex")
+      );
+
+      genesisState.push({
+        address: privateToAddress(privateKey),
+        balance: BigInt(account.balance),
+        code: new Uint8Array(), // Empty account code, removing potential delegation code when forking
+      });
+
+      return account.privateKey;
+    });
+
+    const edrProviderConfig = {
+      allowBlocksWithSameTimestamp:
+        config.allowBlocksWithSameTimestamp ?? false,
+      allowUnlimitedContractSize: config.allowUnlimitedContractSize,
+      bailOnCallFailure: config.throwOnCallFailures,
+      bailOnTransactionFailure: config.throwOnTransactionFailures,
+      blockGasLimit: BigInt(config.blockGasLimit),
+      chainId: BigInt(config.chainId),
+      coinbase: Buffer.from(coinbase.slice(2), "hex"),
+      precompileOverrides: config.enableRip7212 ? [precompileP256Verify()] : [],
+      fork,
+      genesisState,
+      hardfork: ethereumsjsHardforkToEdrSpecId(hardforkName),
+      initialDate,
+      initialBaseFeePerGas:
+        config.initialBaseFeePerGas !== undefined
+          ? BigInt(config.initialBaseFeePerGas!)
+          : undefined,
+      minGasPrice: config.minGasPrice,
+      mining: {
+        autoMine: config.automine,
+        interval: ethereumjsIntervalMiningConfigToEdr(config.intervalMining),
+        memPool: {
+          order: ethereumjsMempoolOrderToEdrMineOrdering(config.mempoolOrder),
         },
       },
-      tracingConfig ?? {},
-      (event: SubscriptionEvent) => {
+      networkId: BigInt(config.networkId),
+      observability: {},
+      ownedAccounts,
+    };
+
+    const edrLoggerConfig = {
+      enable: loggerConfig.enabled,
+      decodeConsoleLogInputsCallback: (inputs: ArrayBuffer[]) => {
+        return ConsoleLogger.getDecodedLogs(
+          inputs.map((input) => {
+            return Buffer.from(input);
+          })
+        );
+      },
+      printLineCallback: (message: string, replace: boolean) => {
+        if (replace) {
+          replaceLastLineFn(message);
+        } else {
+          printLineFn(message);
+        }
+      },
+    };
+
+    const edrSubscriptionConfig = {
+      subscriptionCallback: (event: SubscriptionEvent) => {
         eventAdapter.emit("ethEvent", event);
-      }
+      },
+    };
+
+    const edrTracingConfig = tracingConfig ?? {};
+
+    const contractDecoder = ContractDecoder.withContracts(edrTracingConfig);
+
+    const context = await getGlobalEdrContext();
+    const provider = await context.createProvider(
+      GENERIC_CHAIN_TYPE,
+      edrProviderConfig,
+      edrLoggerConfig,
+      edrSubscriptionConfig,
+      contractDecoder
     );
 
     const minimalEthereumJsNode = {
       _vm: getMinimalEthereumJsVm(provider),
     };
 
-    const wrapper = new EdrProviderWrapper(provider, minimalEthereumJsNode);
+    const wrapper = new EdrProviderWrapper(
+      provider,
+      edrProviderConfig,
+      edrLoggerConfig,
+      minimalEthereumJsNode,
+      edrSubscriptionConfig
+    );
 
     // Pass through all events from the provider
     eventAdapter.addListener(
@@ -272,9 +334,22 @@ export class EdrProviderWrapper
 
     const params = args.params ?? [];
 
-    if (args.method === "hardhat_getStackTraceFailuresCount") {
-      // stubbed for backwards compatibility
-      return 0;
+    // stubbed for backwards compatibility
+    switch (args.method) {
+      case "hardhat_getStackTraceFailuresCount":
+        return 0;
+      case "eth_mining":
+        return false;
+      case "net_listening":
+        return true;
+      case "net_peerCount":
+        return numberToRpcQuantity(0);
+      case "hardhat_reset":
+        return this._reset(..._resetParams(params));
+      case "hardhat_addCompilationResult":
+        return this._addCompilationResult(
+          ..._addCompilationResultParams(params)
+        );
     }
 
     const stringifiedArgs = JSON.stringify({
@@ -301,7 +376,7 @@ export class EdrProviderWrapper
       const rawTraces = responseObject.traces;
       for (const rawTrace of rawTraces) {
         // For other consumers in JS we need to marshall the entire trace over FFI
-        const trace = rawTrace.trace();
+        const trace = rawTrace.trace;
 
         // beforeTx event
         if (this._node._vm.events.listenerCount("beforeTx") > 0) {
@@ -377,9 +452,7 @@ export class EdrProviderWrapper
       throw error;
     }
 
-    if (args.method === "hardhat_reset") {
-      this.emit(HARDHAT_NETWORK_RESET_EVENT);
-    } else if (args.method === "evm_revert") {
+    if (args.method === "evm_revert") {
       this.emit(HARDHAT_NETWORK_REVERT_SNAPSHOT_EVENT);
     }
 
@@ -397,19 +470,81 @@ export class EdrProviderWrapper
     }
   }
 
+  private async _addCompilationResult(
+    solcVersion: string,
+    input: CompilerInput,
+    output: CompilerOutput
+  ): Promise<boolean> {
+    try {
+      await this._provider.addCompilationResult(solcVersion, input, output);
+
+      return true;
+    } catch (error: any) {
+      // eslint-disable-next-line @nomicfoundation/hardhat-internal-rules/only-hardhat-error
+      throw new InternalError(error);
+    }
+  }
+
+  private async _reset(networkConfig?: RpcHardhatNetworkConfig) {
+    const { GENERIC_CHAIN_TYPE } = requireNapiRsModule(
+      "@nomicfoundation/edr"
+    ) as typeof import("@nomicfoundation/edr");
+    const forkConfig = networkConfig?.forking;
+
+    if (forkConfig !== undefined) {
+      this._providerConfig.fork = {
+        blockNumber:
+          forkConfig.blockNumber !== undefined
+            ? BigInt(forkConfig.blockNumber)
+            : undefined,
+        cacheDir: this._providerConfig.fork?.cacheDir,
+        chainOverrides: this._providerConfig.fork?.chainOverrides,
+        httpHeaders: httpHeadersToEdr(forkConfig.httpHeaders),
+        url: forkConfig.jsonRpcUrl,
+      };
+    } else {
+      this._providerConfig.fork = undefined;
+    }
+
+    const context = await getGlobalEdrContext();
+    const provider = await context.createProvider(
+      GENERIC_CHAIN_TYPE,
+      this._providerConfig,
+      this._loggerConfig,
+      this._subscriptionConfig,
+      this._provider.contractDecoder()
+    );
+
+    const minimalEthereumJsNode = {
+      _vm: getMinimalEthereumJsVm(provider),
+    };
+
+    this._provider = provider;
+    this._node = minimalEthereumJsNode;
+
+    this.emit(HARDHAT_NETWORK_RESET_EVENT);
+
+    return true;
+  }
+
   // temporarily added to make smock work with HH+EDR
-  private _setCallOverrideCallback(callback: CallOverrideCallback) {
+  private async _setCallOverrideCallback(
+    callback: CallOverrideCallback
+  ): Promise<void> {
     this._callOverrideCallback = callback;
 
-    this._provider.setCallOverrideCallback(
-      async (address: Buffer, data: Buffer) => {
-        return this._callOverrideCallback?.(address, data);
+    await this._provider.setCallOverrideCallback(
+      async (address: ArrayBuffer, data: ArrayBuffer) => {
+        return this._callOverrideCallback?.(
+          Buffer.from(address),
+          Buffer.from(data)
+        );
       }
     );
   }
 
-  private _setVerboseTracing(enabled: boolean) {
-    this._provider.setVerboseTracing(enabled);
+  private async _setVerboseTracing(enabled: boolean): Promise<void> {
+    await this._provider.setVerboseTracing(enabled);
   }
 
   private _ethEventListener(event: SubscriptionEvent) {
@@ -492,4 +627,14 @@ async function makeTracingConfig(
       );
     }
   }
+}
+
+function _addCompilationResultParams(
+  params: any[]
+): [string, CompilerInput, CompilerOutput] {
+  return validateParams(params, t.string, rpcCompilerInput, rpcCompilerOutput);
+}
+
+function _resetParams(params: any[]): [RpcHardhatNetworkConfig | undefined] {
+  return validateParams(params, optionalRpcHardhatNetworkConfig);
 }
