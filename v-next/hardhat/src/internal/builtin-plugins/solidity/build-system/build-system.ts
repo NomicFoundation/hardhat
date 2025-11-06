@@ -178,7 +178,7 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
 
     const spinner = createSpinner({
       text: `Compiling your Solidity ${options.scope}...`,
-      enabled: !options.quiet,
+      enabled: true,
     });
 
     await this.#downloadConfiguredCompilers(options.quiet);
