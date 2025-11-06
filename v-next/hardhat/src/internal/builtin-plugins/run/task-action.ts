@@ -25,7 +25,7 @@ const runScriptWithHardhat: NewTaskActionFunction<RunActionArguments> = async (
   }
 
   if (!noCompile) {
-    await hre.tasks.getTask("compile").run({});
+    await hre.tasks.getTask("build").run({ quiet: true, noTests: true });
     console.log();
   }
 
