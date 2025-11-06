@@ -1,70 +1,34 @@
-import type { PrettyEventHandler } from "../../helpers.js";
 import type { UserInterruptionHooks } from "hardhat/types/hooks";
 
-import { stdin, stdout } from "node:process";
+import process from "node:process";
 
-export async function getCursorPosition(): Promise<{
-  row: number;
-  col: number;
-}> {
-  return new Promise((resolve, reject) => {
-    // TODO: Should we check that this is a TTY?
-    // if (!stdin.isTTY || !stdout.isTTY) {
-    //   return reject(new Error("Not a TTY"));
-    // }
-
-    // Save old settings
-    const wasRaw = stdin.isRaw;
-
-    const onData = (data: Buffer) => {
-      const str = data.toString();
-      const match = /\x1B\[(\d+);(\d+)R/.exec(str);
-      if (match !== null) {
-        cleanup();
-        const position = { row: Number(match[1]), col: Number(match[2]) };
-
-        console.error(position);
-
-        resolve(position);
-      }
-    };
-
-    const cleanup = () => {
-      stdin.off("data", onData);
-      if (!wasRaw) stdin.setRawMode?.(false);
-      stdin.pause();
-    };
-
-    try {
-      stdin.setRawMode(true);
-      stdin.resume();
-      stdin.on("data", onData);
-      stdout.write("\x1B[6n");
-    } catch (err) {
-      cleanup();
-      reject(err);
-    }
-  });
+function markPosition() {
+  if (process.stdout.isTTY) {
+    process.stdout.write("\x1b7"); // Save cursor position
+  }
 }
 
-export function getUserInterruptionsHandlers(
-  eventHandler: PrettyEventHandler,
-): UserInterruptionHooks {
+function restoreAndClearBelow() {
+  if (!process.stdout.isTTY) {
+    return;
+  }
+
+  process.stdout.write("\x1b8"); // ESC 8 — restore cursor
+  process.stdout.write("\x1b[J"); // ESC [J — clear from cursor to end of screen
+}
+
+export function getUserInterruptionsHandlers(): UserInterruptionHooks {
   return {
     async displayMessage(context, interruptor, message, next): Promise<void> {
-      const originalPosition = await getCursorPosition();
+      markPosition();
 
       const returnValue = next(context, interruptor, message);
-
-      const newPosition = await getCursorPosition();
-
-      const externalLines = newPosition.row - originalPosition.row;
-
-      eventHandler.externalLinesWritten += externalLines;
 
       // Wait a few seconds so the user can read the message
       const WAIT_MESSAGE_TIME_MS = 6_000;
       await new Promise((resolve) => setTimeout(resolve, WAIT_MESSAGE_TIME_MS));
+
+      restoreAndClearBelow();
 
       return returnValue;
     },
@@ -74,15 +38,11 @@ export function getUserInterruptionsHandlers(
       inputDescription,
       next,
     ): Promise<string> {
-      const originalPosition = await getCursorPosition();
+      markPosition();
 
       const returnValue = next(context, interruptor, inputDescription);
 
-      const newPosition = await getCursorPosition();
-
-      const externalLines = newPosition.row - originalPosition.row;
-
-      eventHandler.externalLinesWritten += externalLines;
+      restoreAndClearBelow();
 
       return returnValue;
     },
@@ -92,15 +52,11 @@ export function getUserInterruptionsHandlers(
       inputDescription,
       next,
     ): Promise<string> {
-      const originalPosition = await getCursorPosition();
+      markPosition();
 
       const returnValue = next(context, interruptor, inputDescription);
 
-      const newPosition = await getCursorPosition();
-
-      const externalLines = newPosition.row - originalPosition.row;
-
-      eventHandler.externalLinesWritten += externalLines;
+      restoreAndClearBelow();
 
       return returnValue;
     },
