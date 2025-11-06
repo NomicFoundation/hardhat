@@ -1101,6 +1101,8 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
       } else {
         console.log("No Solidity tests to compile");
       }
+
+      return;
     }
 
     for (const job of runnableCompilationJobs) {
@@ -1141,10 +1143,13 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
         );
 
         console.log(
-          `Compiled ${rootFiles} Solidity ${pluralize(
-            "file",
-            rootFiles,
-          )} with solc ${solcVersion} (evm target: ${evmVersion})`,
+          chalk.bold(
+            `Compiled ${rootFiles} Solidity ${pluralize(
+              options.scope === "contracts" ? "file" : "test file",
+              rootFiles,
+            )} with solc ${solcVersion}`,
+          ),
+          `(evm target: ${evmVersion})`,
         );
       }
     }
