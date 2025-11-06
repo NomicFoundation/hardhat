@@ -24,9 +24,14 @@ export function getUserInterruptionsHandlers(): UserInterruptionHooks {
 
       const returnValue = next(context, interruptor, message);
 
-      // Wait a few seconds so the user can read the message
-      const WAIT_MESSAGE_TIME_MS = 6_000;
-      await new Promise((resolve) => setTimeout(resolve, WAIT_MESSAGE_TIME_MS));
+      // If we are going to clear the message out, we wait some time before
+      // doing it, so that the user can read it.
+      if (process.stdout.isTTY) {
+        const WAIT_MESSAGE_TIME_MS = 10_000;
+        await new Promise((resolve) =>
+          setTimeout(resolve, WAIT_MESSAGE_TIME_MS),
+        );
+      }
 
       restoreAndClearBelow();
 
