@@ -16,6 +16,7 @@ import type {
 import type { Contract } from "ethers";
 import type { ArtifactManager } from "hardhat/types/artifacts";
 import type { HardhatConfig } from "hardhat/types/config";
+import type { HookManager, UserInterruptionHooks } from "hardhat/types/hooks";
 import type { ChainType, NetworkConnection } from "hardhat/types/network";
 import type { UserInterruptionManager } from "hardhat/types/user-interruptions";
 import "@nomicfoundation/hardhat-ignition";
@@ -30,6 +31,7 @@ import {
   HardhatArtifactResolver,
   PrettyEventHandler,
   errorDeploymentResultToExceptionMessage,
+  getUserInterruptionsHandlers,
   readDeploymentParameters,
   resolveDeploymentId,
 } from "@nomicfoundation/hardhat-ignition/helpers";
@@ -50,6 +52,7 @@ export class EthersIgnitionHelperImpl<ChainTypeT extends ChainType | string>
   readonly #config: Partial<DeployConfig> | undefined;
   readonly #provider: EIP1193Provider;
   readonly #userInterruptions: UserInterruptionManager;
+  readonly #hooks: HookManager;
 
   #mutex: boolean = false;
 
@@ -58,6 +61,7 @@ export class EthersIgnitionHelperImpl<ChainTypeT extends ChainType | string>
     artifactsManager: ArtifactManager,
     connection: NetworkConnection<ChainTypeT>,
     userInterruptions: UserInterruptionManager,
+    hooks: HookManager,
     config?: Partial<DeployConfig> | undefined,
     provider?: EIP1193Provider,
   ) {
@@ -65,6 +69,7 @@ export class EthersIgnitionHelperImpl<ChainTypeT extends ChainType | string>
     this.#artifactsManager = artifactsManager;
     this.#connection = connection;
     this.#userInterruptions = userInterruptions;
+    this.#hooks = hooks;
     this.#config = config;
     this.#provider = provider ?? this.#connection.provider;
   }
@@ -128,6 +133,8 @@ export class EthersIgnitionHelperImpl<ChainTypeT extends ChainType | string>
 
     this.#mutex = true;
 
+    let userInterruptionsHandlers: UserInterruptionHooks | undefined;
+
     try {
       // eslint-disable-next-line @typescript-eslint/consistent-type-assertions -- eth_accounts returns a string array
       const accounts: string[] = (await this.#connection.provider.request({
@@ -167,6 +174,17 @@ export class EthersIgnitionHelperImpl<ChainTypeT extends ChainType | string>
       const executionEventListener = displayUi
         ? new PrettyEventHandler(this.#userInterruptions)
         : undefined;
+
+      if (executionEventListener !== undefined) {
+        userInterruptionsHandlers = getUserInterruptionsHandlers(
+          executionEventListener,
+        );
+
+        this.#hooks.registerHandlers(
+          "userInterruptions",
+          userInterruptionsHandlers,
+        );
+      }
 
       let deploymentParameters: DeploymentParameters;
 
@@ -211,6 +229,13 @@ export class EthersIgnitionHelperImpl<ChainTypeT extends ChainType | string>
         result,
       );
     } finally {
+      if (userInterruptionsHandlers !== undefined) {
+        this.#hooks.unregisterHandlers(
+          "userInterruptions",
+          userInterruptionsHandlers,
+        );
+      }
+
       this.#mutex = false;
     }
   }
