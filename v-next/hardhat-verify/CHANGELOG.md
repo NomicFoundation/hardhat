@@ -1,5 +1,11 @@
 # @nomicfoundation/hardhat-verify
 
+## 3.0.6
+
+### Patch Changes
+
+- 6307578: Added support for verifying contracts via Sourcify, thanks @manuelwedler ([#6885](https://github.com/NomicFoundation/hardhat/issues/6885)).
+
 ## 3.0.5
 
 ### Patch Changes

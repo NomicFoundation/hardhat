@@ -1,5 +1,14 @@
 # hardhat
 
+## 3.0.12
+
+### Patch Changes
+
+- 147f8a6: Improved the look and feel of compilation output ([#7669](https://github.com/NomicFoundation/hardhat/pull/7669))
+- 50ce3e0: Fix a bug that could lead to different builds having the same build id. Note that this version will change how every build id is computed.
+- 31f0b03: Don't compile solidity tests files when not needed ([#7669](https://github.com/NomicFoundation/hardhat/pull/7669))
+- a77c06a: Added a new minimal sample project
+
 ## 3.0.11
 
 ### Patch Changes
