@@ -21,7 +21,11 @@ export async function getCursorPosition(): Promise<{
       const match = /\x1B\[(\d+);(\d+)R/.exec(str);
       if (match !== null) {
         cleanup();
-        resolve({ row: Number(match[1]), col: Number(match[2]) });
+        const position = { row: Number(match[1]), col: Number(match[2]) };
+
+        console.error(position);
+
+        resolve(position);
       }
     };
 
@@ -57,6 +61,10 @@ export function getUserInterruptionsHandlers(
       const externalLines = newPosition.row - originalPosition.row;
 
       eventHandler.externalLinesWritten += externalLines;
+
+      // Wait a few seconds so the user can read the message
+      const WAIT_MESSAGE_TIME_MS = 6_000;
+      await new Promise((resolve) => setTimeout(resolve, WAIT_MESSAGE_TIME_MS));
 
       return returnValue;
     },
