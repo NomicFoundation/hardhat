@@ -2,6 +2,11 @@ import type { UserInterruptionHooks } from "hardhat/types/hooks";
 
 import process from "node:process";
 
+import { sleep } from "@nomicfoundation/hardhat-utils/lang";
+
+const WAIT_MESSAGE_TIME_SECS = 10;
+const AVOID_FLICKERING_TIME_SECS = 1;
+
 function markPosition() {
   if (process.stdout.isTTY) {
     process.stdout.write("\x1b7"); // Save cursor position
@@ -27,10 +32,7 @@ export function getUserInterruptionsHandlers(): UserInterruptionHooks {
       // If we are going to clear the message out, we wait some time before
       // doing it, so that the user can read it.
       if (process.stdout.isTTY) {
-        const WAIT_MESSAGE_TIME_MS = 10_000;
-        await new Promise((resolve) =>
-          setTimeout(resolve, WAIT_MESSAGE_TIME_MS),
-        );
+        await sleep(WAIT_MESSAGE_TIME_SECS);
       }
 
       restoreAndClearBelow();
@@ -47,6 +49,12 @@ export function getUserInterruptionsHandlers(): UserInterruptionHooks {
 
       const returnValue = next(context, interruptor, inputDescription);
 
+      // If we are going to clear the terminal, we wait a small time so it
+      // doesn't look like flickering
+      if (process.stdout.isTTY) {
+        await sleep(AVOID_FLICKERING_TIME_SECS);
+      }
+
       restoreAndClearBelow();
 
       return returnValue;
@@ -60,6 +68,12 @@ export function getUserInterruptionsHandlers(): UserInterruptionHooks {
       markPosition();
 
       const returnValue = next(context, interruptor, inputDescription);
+
+      // If we are going to clear the terminal, we wait a small time so it
+      // doesn't look like flickering
+      if (process.stdout.isTTY) {
+        await sleep(AVOID_FLICKERING_TIME_SECS);
+      }
 
       restoreAndClearBelow();
 
