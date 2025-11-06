@@ -33,6 +33,14 @@ export interface DeployConfig {
    * Disables fee bumping for all transactions.
    */
   disableFeeBumping: boolean;
+
+  /**
+   * The maximum size of a batch in Ignition. If a batch would contain more
+   * transactions than this value, it will be divided into multiple batches
+   * of up to this size. The sub-divided batches will have artificial dependencies
+   * to ensure sequential execution and avoid straining the chain memory pool.
+   */
+  maxBatchSize?: number;
 }
 
 /**
