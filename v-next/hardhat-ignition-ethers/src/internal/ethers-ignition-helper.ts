@@ -176,9 +176,7 @@ export class EthersIgnitionHelperImpl<ChainTypeT extends ChainType | string>
         : undefined;
 
       if (executionEventListener !== undefined) {
-        userInterruptionsHandlers = getUserInterruptionsHandlers(
-          executionEventListener,
-        );
+        userInterruptionsHandlers = getUserInterruptionsHandlers();
 
         this.#hooks.registerHandlers(
           "userInterruptions",

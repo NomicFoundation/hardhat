@@ -189,9 +189,7 @@ const taskDeploy: NewTaskActionFunction<TaskDeployArguments> = async (
 
   const executionEventListener = new PrettyEventHandler(hre.interruptions);
 
-  const userInterruptionsHandlers = getUserInterruptionsHandlers(
-    executionEventListener,
-  );
+  const userInterruptionsHandlers = getUserInterruptionsHandlers();
 
   hre.hooks.registerHandlers("userInterruptions", userInterruptionsHandlers);
 
