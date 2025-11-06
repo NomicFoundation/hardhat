@@ -27,7 +27,7 @@ export function getUserInterruptionsHandlers(): UserInterruptionHooks {
     async displayMessage(context, interruptor, message, next): Promise<void> {
       markPosition();
 
-      const returnValue = next(context, interruptor, message);
+      const returnValue = await next(context, interruptor, message);
 
       // If we are going to clear the message out, we wait some time before
       // doing it, so that the user can read it.
@@ -47,7 +47,7 @@ export function getUserInterruptionsHandlers(): UserInterruptionHooks {
     ): Promise<string> {
       markPosition();
 
-      const returnValue = next(context, interruptor, inputDescription);
+      const returnValue = await next(context, interruptor, inputDescription);
 
       // If we are going to clear the terminal, we wait a small time so it
       // doesn't look like flickering
@@ -67,7 +67,7 @@ export function getUserInterruptionsHandlers(): UserInterruptionHooks {
     ): Promise<string> {
       markPosition();
 
-      const returnValue = next(context, interruptor, inputDescription);
+      const returnValue = await next(context, interruptor, inputDescription);
 
       // If we are going to clear the terminal, we wait a small time so it
       // doesn't look like flickering
