@@ -9,14 +9,17 @@ import { deploymentStateReducer } from "./internal/execution/reducers/deployment
  * run from as a fresh deployment.
  *
  * @param ignitionModule - the Ignition module to be get batch information for
+ * @param maxBatchSize - optional maximum size of a batch. If a batch would contain
+ * more transactions than this value, it will be divided into multiple batches.
  * @returns the batches Ignition will use for the module
  *
  * @beta
  */
 export function batches(
   ignitionModule: IgnitionModule<string, string, IgnitionModuleResult<string>>,
+  maxBatchSize?: number,
 ): string[][] {
   const deploymentState = deploymentStateReducer(undefined);
 
-  return Batcher.batch(ignitionModule, deploymentState);
+  return Batcher.batch(ignitionModule, deploymentState, maxBatchSize);
 }
