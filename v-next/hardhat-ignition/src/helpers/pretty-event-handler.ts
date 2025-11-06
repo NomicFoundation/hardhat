@@ -45,8 +45,6 @@ import type {
 } from "@nomicfoundation/ignition-core";
 import type { UserInterruptionManager } from "hardhat/types/user-interruptions";
 
-import readline from "node:readline";
-
 import {
   DeploymentResultType,
   ExecutionEventResultType,
@@ -63,8 +61,6 @@ import {
 } from "../internal/ui/types.js";
 
 export class PrettyEventHandler implements ExecutionEventListener {
-  public externalLinesWritten = 0;
-
   private readonly _config: {
     deploymentParams: DeploymentParameters;
     disableOutput: boolean;
@@ -543,21 +539,21 @@ export class PrettyEventHandler implements ExecutionEventListener {
   private _redisplayCurrentBatch() {
     const { height, text: batch } = calculateBatchDisplay(this.state);
 
-    this._clearUpToHeight(height + this.externalLinesWritten);
+    this._clearUpToHeight(height);
 
     console.log(batch);
-
-    this.externalLinesWritten = 0;
   }
 
   private _clearCurrentLine(): void {
-    readline.clearLine(process.stdout, 0);
-    readline.cursorTo(process.stdout, 0);
+    if (!process.stdout.isTTY) return;
+    process.stdout.write("\x1b[2K"); // clear entire line
+    process.stdout.write("\x1b[0G"); // move cursor to column 0
   }
 
   private _clearUpToHeight(height: number): void {
-    readline.moveCursor(process.stdout, 0, -height);
-    readline.clearScreenDown(process.stdout);
+    if (!process.stdout.isTTY) return;
+    if (height > 0) process.stdout.write(`\x1b[${height}A`); // move up N lines
+    process.stdout.write("\x1b[J"); // clear from cursor down
   }
 }
 
