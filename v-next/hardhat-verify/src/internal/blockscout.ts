@@ -106,7 +106,7 @@ export class Blockscout implements VerificationProvider {
 
     try {
       const response = await getRequest(
-        "https://chains.blockscout.com/api/chains1.",
+        "https://chains.blockscout.com/api/chains",
       );
       const chainListData: BlockscoutChainListResponse =
         await response.body.json();
