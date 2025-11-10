@@ -1,4 +1,5 @@
 import type {
+  EtherscanChainListResponse,
   EtherscanGetSourceCodeResponse,
   EtherscanResponse,
 } from "./etherscan.types.js";
@@ -15,9 +16,13 @@ import type {
   DispatcherOptions,
   HttpResponse,
 } from "@nomicfoundation/hardhat-utils/request";
-import type { VerificationProvidersConfig } from "hardhat/types/config";
+import type {
+  ChainDescriptorsConfig,
+  VerificationProvidersConfig,
+} from "hardhat/types/config";
 
 import { HardhatError } from "@nomicfoundation/hardhat-errors";
+import { toBigInt } from "@nomicfoundation/hardhat-utils/bigint";
 import { ensureError } from "@nomicfoundation/hardhat-utils/error";
 import { sleep } from "@nomicfoundation/hardhat-utils/lang";
 import {
@@ -26,8 +31,6 @@ import {
   postFormRequest,
   shouldUseProxy,
 } from "@nomicfoundation/hardhat-utils/request";
-
-import { getChainDescriptor } from "./chains.js";
 
 export const ETHERSCAN_PROVIDER_NAME: keyof VerificationProvidersConfig =
   "etherscan";
@@ -58,15 +61,26 @@ export class Etherscan implements VerificationProvider {
     verificationProvidersConfig,
     dispatcher,
   }: ResolveConfigOptions): Promise<CreateEtherscanOptions> {
-    const chainDescriptor = await getChainDescriptor(
-      chainId,
-      chainDescriptors,
-      networkName,
-    );
+    const chainDescriptor = chainDescriptors.get(toBigInt(chainId));
 
-    const blockExplorerConfig = chainDescriptor.blockExplorers.etherscan;
+    let blockExplorerConfig = chainDescriptor?.blockExplorers.etherscan;
+    if (blockExplorerConfig === undefined) {
+      const supportedChains = await Etherscan.getSupportedChains();
+      blockExplorerConfig = supportedChains.get(toBigInt(chainId))
+        ?.blockExplorers.etherscan;
+    }
 
     if (blockExplorerConfig === undefined) {
+      if (chainDescriptor === undefined) {
+        throw new HardhatError(
+          HardhatError.ERRORS.HARDHAT_VERIFY.GENERAL.NETWORK_NOT_SUPPORTED,
+          {
+            networkName,
+            chainId,
+          },
+        );
+      }
+
       throw new HardhatError(
         HardhatError.ERRORS.HARDHAT_VERIFY.GENERAL.BLOCK_EXPLORER_NOT_CONFIGURED,
         {
@@ -96,6 +110,37 @@ export class Etherscan implements VerificationProvider {
       apiKey: await verificationProviderConfig.apiKey.get(),
       dispatcher,
     });
+  }
+
+  public static async getSupportedChains(): Promise<ChainDescriptorsConfig> {
+    const supportedChains: ChainDescriptorsConfig = new Map();
+
+    try {
+      const response = await getRequest(
+        "https://api.etherscan.io/v2/chainlist",
+      );
+      const responseBody: EtherscanChainListResponse =
+        await response.body.json();
+
+      const chainListData = responseBody.result;
+
+      for (const chain of chainListData) {
+        const chainId = toBigInt(chain.chainid);
+        supportedChains.set(chainId, {
+          name: chain.chainname,
+          chainType: "generic",
+          blockExplorers: {
+            etherscan: {
+              url: chain.blockexplorer,
+            },
+          },
+        });
+      }
+    } catch {
+      // ignore errors
+    }
+
+    return supportedChains;
   }
 
   constructor(etherscanConfig: {

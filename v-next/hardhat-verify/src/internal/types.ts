@@ -62,6 +62,8 @@ export interface VerificationProviderFactory {
       | CreateBlockscoutOptions
       | CreateSourcifyOptions,
   ): Promise<VerificationProvider>;
+
+  getSupportedChains(): Promise<ChainDescriptorsConfig>;
 }
 
 export interface BaseVerifyFunctionArgs {

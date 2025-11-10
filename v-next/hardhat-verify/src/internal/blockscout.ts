@@ -1,4 +1,5 @@
 import type {
+  BlockscoutChainListResponse,
   BlockscoutGetSourceCodeResponse,
   BlockscoutResponse,
 } from "./blockscout.types.js";
@@ -15,9 +16,13 @@ import type {
   DispatcherOptions,
   HttpResponse,
 } from "@nomicfoundation/hardhat-utils/request";
-import type { VerificationProvidersConfig } from "hardhat/types/config";
+import type {
+  ChainDescriptorsConfig,
+  VerificationProvidersConfig,
+} from "hardhat/types/config";
 
 import { HardhatError } from "@nomicfoundation/hardhat-errors";
+import { toBigInt } from "@nomicfoundation/hardhat-utils/bigint";
 import { ensureError } from "@nomicfoundation/hardhat-utils/error";
 import { sleep } from "@nomicfoundation/hardhat-utils/lang";
 import {
@@ -26,8 +31,6 @@ import {
   postFormRequest,
   shouldUseProxy,
 } from "@nomicfoundation/hardhat-utils/request";
-
-import { getChainDescriptor } from "./chains.js";
 
 export const BLOCKSCOUT_PROVIDER_NAME: keyof VerificationProvidersConfig =
   "blockscout";
@@ -53,15 +56,26 @@ export class Blockscout implements VerificationProvider {
     chainDescriptors,
     dispatcher,
   }: ResolveConfigOptions): Promise<CreateBlockscoutOptions> {
-    const chainDescriptor = await getChainDescriptor(
-      chainId,
-      chainDescriptors,
-      networkName,
-    );
+    const chainDescriptor = chainDescriptors.get(toBigInt(chainId));
 
-    const blockExplorerConfig = chainDescriptor.blockExplorers.blockscout;
+    let blockExplorerConfig = chainDescriptor?.blockExplorers.blockscout;
+    if (blockExplorerConfig === undefined) {
+      const supportedChains = await Blockscout.getSupportedChains();
+      blockExplorerConfig = supportedChains.get(toBigInt(chainId))
+        ?.blockExplorers.blockscout;
+    }
 
     if (blockExplorerConfig === undefined) {
+      if (chainDescriptor === undefined) {
+        throw new HardhatError(
+          HardhatError.ERRORS.HARDHAT_VERIFY.GENERAL.NETWORK_NOT_SUPPORTED,
+          {
+            networkName,
+            chainId,
+          },
+        );
+      }
+
       throw new HardhatError(
         HardhatError.ERRORS.HARDHAT_VERIFY.GENERAL.BLOCK_EXPLORER_NOT_CONFIGURED,
         {
@@ -85,6 +99,43 @@ export class Blockscout implements VerificationProvider {
       ...blockExplorerConfig,
       dispatcher,
     });
+  }
+
+  public static async getSupportedChains(): Promise<ChainDescriptorsConfig> {
+    const supportedChains: ChainDescriptorsConfig = new Map();
+
+    try {
+      const response = await getRequest(
+        "https://chains.blockscout.com/api/chains1.",
+      );
+      const chainListData: BlockscoutChainListResponse =
+        await response.body.json();
+
+      for (const [chainId, chain] of Object.entries(chainListData)) {
+        const blockExplorer = chain.explorers.find(
+          (explorer) => explorer.hostedBy.toLowerCase() === "blockscout",
+        );
+
+        if (blockExplorer === undefined) {
+          continue;
+        }
+
+        supportedChains.set(toBigInt(chainId), {
+          name: chain.name,
+          chainType: "generic",
+          blockExplorers: {
+            blockscout: {
+              url: blockExplorer.url,
+              apiUrl: `${blockExplorer.url}/api`,
+            },
+          },
+        });
+      }
+    } catch {
+      // ignore errors
+    }
+
+    return supportedChains;
   }
 
   constructor(blockscoutConfig: {

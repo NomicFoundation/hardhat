@@ -40,3 +40,23 @@ interface BlockscoutOkResponse {
   message: "OK";
   result: string;
 }
+
+export type BlockscoutChainListResponse = Record<
+  string,
+  {
+    name: string;
+    description: string;
+    logo: string;
+    ecosystem: string | string[];
+    isTestnet: boolean;
+    layer: number;
+    rollupType: string | null;
+    // eslint-disable-next-line @typescript-eslint/naming-convention -- External API
+    native_currency: string;
+    website: string;
+    explorers: Array<{
+      url: string;
+      hostedBy: string;
+    }>;
+  }
+>;

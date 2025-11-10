@@ -16,7 +16,10 @@ import type {
   DispatcherOptions,
   HttpResponse,
 } from "@nomicfoundation/hardhat-utils/request";
-import type { VerificationProvidersConfig } from "hardhat/types/config";
+import type {
+  ChainDescriptorsConfig,
+  VerificationProvidersConfig,
+} from "hardhat/types/config";
 import type { CompilerInput } from "hardhat/types/solidity";
 
 import { HardhatError } from "@nomicfoundation/hardhat-errors";
@@ -73,6 +76,11 @@ export class Sourcify implements VerificationProvider {
       apiUrl: verificationProviderConfig.apiUrl,
       dispatcher,
     });
+  }
+
+  // Not used by sourcify, but required by the VerificationProvider interface
+  public static async getSupportedChains(): Promise<ChainDescriptorsConfig> {
+    return new Map();
   }
 
   constructor(sourcifyConfig: {
