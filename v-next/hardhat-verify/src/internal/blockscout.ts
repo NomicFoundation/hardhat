@@ -41,6 +41,8 @@ export interface BlockscoutVerifyFunctionArgs extends BaseVerifyFunctionArgs {
   constructorArguments: string;
 }
 
+let supportedChainsCache: ChainDescriptorsConfig | undefined;
+
 export class Blockscout implements VerificationProvider {
   public readonly name: string;
   public readonly url: string;
@@ -102,6 +104,10 @@ export class Blockscout implements VerificationProvider {
   }
 
   public static async getSupportedChains(): Promise<ChainDescriptorsConfig> {
+    if (supportedChainsCache !== undefined) {
+      return supportedChainsCache;
+    }
+
     const supportedChains: ChainDescriptorsConfig = new Map();
 
     try {
@@ -134,6 +140,8 @@ export class Blockscout implements VerificationProvider {
     } catch {
       // ignore errors
     }
+
+    supportedChainsCache = supportedChains;
 
     return supportedChains;
   }

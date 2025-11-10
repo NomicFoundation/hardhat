@@ -43,6 +43,8 @@ export interface EtherscanVerifyFunctionArgs extends BaseVerifyFunctionArgs {
   constructorArguments: string;
 }
 
+let supportedChainsCache: ChainDescriptorsConfig | undefined;
+
 export class Etherscan implements VerificationProvider {
   public readonly chainId: string;
   public readonly name: string;
@@ -113,6 +115,10 @@ export class Etherscan implements VerificationProvider {
   }
 
   public static async getSupportedChains(): Promise<ChainDescriptorsConfig> {
+    if (supportedChainsCache !== undefined) {
+      return supportedChainsCache;
+    }
+
     const supportedChains: ChainDescriptorsConfig = new Map();
 
     try {
@@ -139,6 +145,8 @@ export class Etherscan implements VerificationProvider {
     } catch {
       // ignore errors
     }
+
+    supportedChainsCache = supportedChains;
 
     return supportedChains;
   }
