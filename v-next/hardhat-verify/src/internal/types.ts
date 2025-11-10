@@ -28,12 +28,22 @@ export interface ResolveConfigOptions {
   networkName: string;
   chainDescriptors: ChainDescriptorsConfig;
   verificationProvidersConfig: VerificationProvidersConfig;
+  /**
+   * @internal Used for testing only. Allows tests to inject a custom HTTP
+   * dispatcher.
+   */
   dispatcher?: Dispatcher;
+  /**
+   * @internal Used for testing only. When false, bypasses the supported
+   * chains cache and fetches fresh data from the API.
+   */
+  shouldUseCache?: boolean;
 }
 
 export interface CreateBlockscoutOptions {
   blockExplorerConfig: BlockExplorerBlockscoutConfig;
   dispatcher?: Dispatcher;
+  shouldUseCache?: boolean;
 }
 
 export interface CreateEtherscanOptions {
@@ -41,6 +51,7 @@ export interface CreateEtherscanOptions {
   verificationProviderConfig: EtherscanConfig;
   chainId: number;
   dispatcher?: Dispatcher;
+  shouldUseCache?: boolean;
 }
 
 export interface CreateSourcifyOptions {
@@ -63,7 +74,10 @@ export interface VerificationProviderFactory {
       | CreateSourcifyOptions,
   ): Promise<VerificationProvider>;
 
-  getSupportedChains(): Promise<ChainDescriptorsConfig>;
+  getSupportedChains(
+    dispatcher?: Dispatcher,
+    shouldUseCache?: boolean,
+  ): Promise<ChainDescriptorsConfig>;
 }
 
 export interface BaseVerifyFunctionArgs {

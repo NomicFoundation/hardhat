@@ -57,12 +57,16 @@ export class Blockscout implements VerificationProvider {
     networkName,
     chainDescriptors,
     dispatcher,
+    shouldUseCache = true,
   }: ResolveConfigOptions): Promise<CreateBlockscoutOptions> {
     const chainDescriptor = chainDescriptors.get(toBigInt(chainId));
 
     let blockExplorerConfig = chainDescriptor?.blockExplorers.blockscout;
     if (blockExplorerConfig === undefined) {
-      const supportedChains = await Blockscout.getSupportedChains();
+      const supportedChains = await Blockscout.getSupportedChains(
+        dispatcher,
+        shouldUseCache,
+      );
       blockExplorerConfig = supportedChains.get(toBigInt(chainId))
         ?.blockExplorers.blockscout;
     }
@@ -103,8 +107,11 @@ export class Blockscout implements VerificationProvider {
     });
   }
 
-  public static async getSupportedChains(): Promise<ChainDescriptorsConfig> {
-    if (supportedChainsCache !== undefined) {
+  public static async getSupportedChains(
+    dispatcher?: Dispatcher,
+    shouldUseCache = true,
+  ): Promise<ChainDescriptorsConfig> {
+    if (supportedChainsCache !== undefined && shouldUseCache) {
       return supportedChainsCache;
     }
 
@@ -113,6 +120,8 @@ export class Blockscout implements VerificationProvider {
     try {
       const response = await getRequest(
         "https://chains.blockscout.com/api/chains",
+        undefined,
+        dispatcher,
       );
       const chainListData: BlockscoutChainListResponse =
         await response.body.json();
@@ -141,7 +150,9 @@ export class Blockscout implements VerificationProvider {
       // ignore errors
     }
 
-    supportedChainsCache = supportedChains;
+    if (shouldUseCache) {
+      supportedChainsCache = supportedChains;
+    }
 
     return supportedChains;
   }

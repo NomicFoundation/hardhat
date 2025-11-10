@@ -13,35 +13,7 @@ import {
   resolveUserConfig,
   validateUserConfig,
 } from "../../src/internal/hook-handlers/config.js";
-
-class MockResolvedConfigurationVariable
-  implements ResolvedConfigurationVariable
-{
-  public _type: "ResolvedConfigurationVariable" =
-    "ResolvedConfigurationVariable";
-  public format: string = "{variable}";
-  readonly #value: string;
-
-  constructor(value: string) {
-    this.#value = value;
-  }
-
-  public async get(): Promise<string> {
-    return this.#value;
-  }
-
-  public async getUrl(): Promise<string> {
-    return this.#value;
-  }
-
-  public async getBigInt(): Promise<bigint> {
-    return BigInt(this.#value);
-  }
-
-  public async getHexString(): Promise<string> {
-    return this.#value;
-  }
-}
+import { MockResolvedConfigurationVariable } from "../utils.js";
 
 describe("hook-handlers/config", () => {
   describe("validateUserConfig", () => {

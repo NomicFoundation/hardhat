@@ -62,12 +62,16 @@ export class Etherscan implements VerificationProvider {
     chainDescriptors,
     verificationProvidersConfig,
     dispatcher,
+    shouldUseCache = true,
   }: ResolveConfigOptions): Promise<CreateEtherscanOptions> {
     const chainDescriptor = chainDescriptors.get(toBigInt(chainId));
 
     let blockExplorerConfig = chainDescriptor?.blockExplorers.etherscan;
     if (blockExplorerConfig === undefined) {
-      const supportedChains = await Etherscan.getSupportedChains();
+      const supportedChains = await Etherscan.getSupportedChains(
+        dispatcher,
+        shouldUseCache,
+      );
       blockExplorerConfig = supportedChains.get(toBigInt(chainId))
         ?.blockExplorers.etherscan;
     }
@@ -114,8 +118,11 @@ export class Etherscan implements VerificationProvider {
     });
   }
 
-  public static async getSupportedChains(): Promise<ChainDescriptorsConfig> {
-    if (supportedChainsCache !== undefined) {
+  public static async getSupportedChains(
+    dispatcher?: Dispatcher,
+    shouldUseCache = true,
+  ): Promise<ChainDescriptorsConfig> {
+    if (supportedChainsCache !== undefined && shouldUseCache) {
       return supportedChainsCache;
     }
 
@@ -124,6 +131,8 @@ export class Etherscan implements VerificationProvider {
     try {
       const response = await getRequest(
         "https://api.etherscan.io/v2/chainlist",
+        undefined,
+        dispatcher,
       );
       const responseBody: EtherscanChainListResponse =
         await response.body.json();
@@ -146,7 +155,9 @@ export class Etherscan implements VerificationProvider {
       // ignore errors
     }
 
-    supportedChainsCache = supportedChains;
+    if (shouldUseCache) {
+      supportedChainsCache = supportedChains;
+    }
 
     return supportedChains;
   }
