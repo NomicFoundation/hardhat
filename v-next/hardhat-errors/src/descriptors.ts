@@ -1168,7 +1168,7 @@ Please check Hardhat's output for more details.`,
         websiteDescription: `Hardhat failed to parse the full compiler version from the output of the compiler's 'version' command.`,
       },
       UNRECOGNIZED_FILES_NOT_COMPILED: {
-        number: 914,
+        number: 915,
         messageTemplate: `The build process failed because these files you provided haven't been reconized neither as constracts nor tests:
         
 {files}`,
