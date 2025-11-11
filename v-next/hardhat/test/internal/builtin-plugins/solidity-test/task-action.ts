@@ -207,7 +207,7 @@ describe("solidity-test/task-action", function () {
         [hre: HardhatRuntimeEnvironment, buildArgs: any[]]
       > {
         const buildArgs: any[] = [];
-        const ovrridenHre = await createHardhatRuntimeEnvironment({
+        const overridenHre = await createHardhatRuntimeEnvironment({
           ...hardhatConfigAllTests,
           tasks: [
             overrideTask("build")
@@ -224,7 +224,7 @@ describe("solidity-test/task-action", function () {
           ],
         });
 
-        return [ovrridenHre, buildArgs];
+        return [overridenHre, buildArgs];
       }
 
       describe("When noCompile is provided", () => {

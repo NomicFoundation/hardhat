@@ -3,4 +3,4 @@
 "hardhat": patch
 ---
 
-Fail when a file isn't build neither as contract nor test
+Fail when a file isn't built neither as contract nor test
