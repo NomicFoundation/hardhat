@@ -1,5 +1,12 @@
 # hardhat
 
+## 3.0.13
+
+### Patch Changes
+
+- 6e4ad6d: Fixed unexpected test failure when running in isolate/gas stats mode ([#1146](https://github.com/NomicFoundation/edr/issues/1146))
+- 6e4ad6d: Added latest dynamic base fee parameters to Base Mainnet chain config ([#1141](https://github.com/NomicFoundation/edr/pull/1141))
+
 ## 3.0.12
 
 ### Patch Changes
