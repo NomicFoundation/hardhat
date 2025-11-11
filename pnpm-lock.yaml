@@ -1370,15 +1370,27 @@ importers:
       '@nomicfoundation/hardhat-test-utils':
         specifier: workspace:^
         version: link:../hardhat-test-utils
+      '@types/chai':
+        specifier: ^4.3.20
+        version: 4.3.20
       '@types/debug':
         specifier: ^4.1.7
         version: 4.1.12
+      '@types/mocha':
+        specifier: ^10.0.10
+        version: 10.0.10
       '@types/node':
         specifier: ^20.14.9
         version: 20.19.18
       c8:
         specifier: ^9.1.0
         version: 9.1.0
+      chai:
+        specifier: ^5.3.3
+        version: 5.3.3
+      cross-spawn:
+        specifier: ^7.0.6
+        version: 7.0.6
       eslint:
         specifier: 9.25.1
         version: 9.25.1

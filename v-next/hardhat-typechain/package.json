@@ -47,9 +47,13 @@
   "devDependencies": {
     "@nomicfoundation/hardhat-node-test-reporter": "workspace:^3.0.0",
     "@nomicfoundation/hardhat-test-utils": "workspace:^",
+    "@types/chai": "^4.3.20",
     "@types/debug": "^4.1.7",
+    "@types/mocha": "^10.0.10",
     "@types/node": "^20.14.9",
     "c8": "^9.1.0",
+    "chai": "^5.3.3",
+    "cross-spawn": "^7.0.6",
     "eslint": "9.25.1",
     "expect-type": "^1.2.1",
     "prettier": "3.2.5",
@@ -67,8 +71,8 @@
     "zod": "^3.23.8"
   },
   "peerDependencies": {
-    "hardhat": "workspace:^3.0.0",
     "@nomicfoundation/hardhat-ethers": "workspace:^4.0.0",
-    "ethers": "^6.14.0"
+    "ethers": "^6.14.0",
+    "hardhat": "workspace:^3.0.0"
   }
 }
