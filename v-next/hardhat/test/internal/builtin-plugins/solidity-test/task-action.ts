@@ -207,7 +207,7 @@ describe("solidity-test/task-action", function () {
         [hre: HardhatRuntimeEnvironment, buildArgs: any[]]
       > {
         const buildArgs: any[] = [];
-        const overridenHre = await createHardhatRuntimeEnvironment({
+        const overriddenHre = await createHardhatRuntimeEnvironment({
           ...hardhatConfigAllTests,
           tasks: [
             overrideTask("build")
@@ -224,16 +224,16 @@ describe("solidity-test/task-action", function () {
           ],
         });
 
-        return [overridenHre, buildArgs];
+        return [overriddenHre, buildArgs];
       }
 
       describe("When noCompile is provided", () => {
         it("Should compile the test files, but not the contracts", async () => {
-          const [overridenHre, buildArgs] = await getHreWithOverriddenBuild();
+          const [overriddenHre, buildArgs] = await getHreWithOverriddenBuild();
 
           const exitCode = process.exitCode;
           try {
-            await overridenHre.tasks.getTask(["test", "solidity"]).run({
+            await overriddenHre.tasks.getTask(["test", "solidity"]).run({
               noCompile: true,
             });
 
@@ -250,12 +250,12 @@ describe("solidity-test/task-action", function () {
         });
 
         it("Should compile only the provided test files, and not the contracts", async () => {
-          const [overridenHre, buildArgs] = await getHreWithOverriddenBuild();
+          const [overriddenHre, buildArgs] = await getHreWithOverriddenBuild();
 
           const exitCode = process.exitCode;
           const testFiles = ["test/contracts/all/Counter-1.t.sol"];
           try {
-            await overridenHre.tasks.getTask(["test", "solidity"]).run({
+            await overriddenHre.tasks.getTask(["test", "solidity"]).run({
               noCompile: true,
               testFiles,
             });
@@ -275,11 +275,11 @@ describe("solidity-test/task-action", function () {
 
       describe("When noCompile is not provided", () => {
         it("Should compile the contracts and then the test files", async () => {
-          const [overridenHre, buildArgs] = await getHreWithOverriddenBuild();
+          const [overriddenHre, buildArgs] = await getHreWithOverriddenBuild();
 
           const exitCode = process.exitCode;
           try {
-            await overridenHre.tasks.getTask(["test", "solidity"]).run({});
+            await overriddenHre.tasks.getTask(["test", "solidity"]).run({});
 
             assert.equal(buildArgs.length, 2);
 
@@ -298,12 +298,12 @@ describe("solidity-test/task-action", function () {
         });
 
         it("Should compile the contracts and then the provided test files", async () => {
-          const [overridenHre, buildArgs] = await getHreWithOverriddenBuild();
+          const [overriddenHre, buildArgs] = await getHreWithOverriddenBuild();
 
           const exitCode = process.exitCode;
           const testFiles = ["test/contracts/all/Counter-1.t.sol"];
           try {
-            await overridenHre.tasks
+            await overriddenHre.tasks
               .getTask(["test", "solidity"])
               .run({ testFiles });
 

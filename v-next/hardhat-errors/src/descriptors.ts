@@ -1169,7 +1169,7 @@ Please check Hardhat's output for more details.`,
       },
       UNRECOGNIZED_FILES_NOT_COMPILED: {
         number: 915,
-        messageTemplate: `The build process failed because these files you provided haven't been recognized neither as constracts nor tests:
+        messageTemplate: `The build process failed because these files you provided haven't been recognized neither as contracts nor tests:
         
 {files}`,
         websiteTitle: "Build failed due to unrecognized files",
