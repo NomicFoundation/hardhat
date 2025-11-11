@@ -1167,6 +1167,14 @@ Please check Hardhat's output for more details.`,
         websiteTitle: "Could not parse a compiler version",
         websiteDescription: `Hardhat failed to parse the full compiler version from the output of the compiler's 'version' command.`,
       },
+      UNRECOGNIZED_FILES_NOT_COMPILED: {
+        number: 914,
+        messageTemplate: `The build process failed because these files you provided haven't been reconized neither as constracts nor tests:
+        
+{files}`,
+        websiteTitle: "Build failed due to unrecognized files",
+        websiteDescription: `Hardhat failed to build your contracts and/or tests because you passed a file as parameter, but it wasn't recognized neither as a valid contract nor test.`,
+      },
     },
     ARTIFACTS: {
       NOT_FOUND: {
