@@ -2,6 +2,7 @@ import type { HardhatPlugin } from "../../../types/plugins.js";
 
 import { ArgumentType } from "hardhat/types/arguments";
 
+import { DEFAULT_VERBOSITY } from "../../constants.js";
 import { task } from "../../core/config.js";
 
 import "./type-extensions.js";
@@ -38,7 +39,7 @@ const hardhatPlugin: HardhatPlugin = {
         name: "verbosity",
         shortName: "v",
         description: "Verbosity level of the test output",
-        defaultValue: 2,
+        defaultValue: DEFAULT_VERBOSITY,
       })
       .setAction(async () => import("./task-action.js"))
       .build(),

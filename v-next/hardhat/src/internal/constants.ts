@@ -9,3 +9,5 @@ export const L1_CHAIN_TYPE = "l1";
 export const OPTIMISM_CHAIN_TYPE = "op";
 
 export const DEFAULT_NETWORK_NAME = "default";
+
+export const DEFAULT_VERBOSITY = 2;
