@@ -91,7 +91,7 @@ const runSolidityTests: NewTaskActionFunction<TestActionArguments> = async (
     .getTask("build")
     .run({
       files: testFiles,
-      noContracts: noCompile,
+      noContracts: true,
     });
   console.log();
 
