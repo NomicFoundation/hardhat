@@ -203,7 +203,7 @@ describe("solidity-test/task-action", function () {
        * Returns an HRE that accumulates the args to `build` in the array it
        * returns
        */
-      async function getHreWithOverridenBuild(): Promise<
+      async function getHreWithOverriddenBuild(): Promise<
         [hre: HardhatRuntimeEnvironment, buildArgs: any[]]
       > {
         const buildArgs: any[] = [];
@@ -229,7 +229,7 @@ describe("solidity-test/task-action", function () {
 
       describe("When noCompile is provided", () => {
         it("Should compile the test files, but not the contracts", async () => {
-          const [overridenHre, buildArgs] = await getHreWithOverridenBuild();
+          const [overridenHre, buildArgs] = await getHreWithOverriddenBuild();
 
           const exitCode = process.exitCode;
           try {
@@ -250,7 +250,7 @@ describe("solidity-test/task-action", function () {
         });
 
         it("Should compile only the provided test files, and not the contracts", async () => {
-          const [overridenHre, buildArgs] = await getHreWithOverridenBuild();
+          const [overridenHre, buildArgs] = await getHreWithOverriddenBuild();
 
           const exitCode = process.exitCode;
           const testFiles = ["test/contracts/all/Counter-1.t.sol"];
@@ -275,7 +275,7 @@ describe("solidity-test/task-action", function () {
 
       describe("When noCompile is not provided", () => {
         it("Should compile the contracts and then the test files", async () => {
-          const [overridenHre, buildArgs] = await getHreWithOverridenBuild();
+          const [overridenHre, buildArgs] = await getHreWithOverriddenBuild();
 
           const exitCode = process.exitCode;
           try {
@@ -298,7 +298,7 @@ describe("solidity-test/task-action", function () {
         });
 
         it("Should compile the contracts and then the provided test files", async () => {
-          const [overridenHre, buildArgs] = await getHreWithOverridenBuild();
+          const [overridenHre, buildArgs] = await getHreWithOverriddenBuild();
 
           const exitCode = process.exitCode;
           const testFiles = ["test/contracts/all/Counter-1.t.sol"];
