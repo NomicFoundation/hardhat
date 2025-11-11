@@ -841,9 +841,6 @@ importers:
       debug:
         specifier: ^4.3.2
         version: 4.4.3(supports-color@5.5.0)
-      hardhat:
-        specifier: workspace:^3.0.0
-        version: link:../hardhat
       zod:
         specifier: ^3.23.8
         version: 3.25.76
@@ -869,6 +866,9 @@ importers:
       expect-type:
         specifier: ^1.2.1
         version: 1.2.2
+      hardhat:
+        specifier: workspace:^3.0.0
+        version: link:../hardhat
       prettier:
         specifier: 3.2.5
         version: 3.2.5
