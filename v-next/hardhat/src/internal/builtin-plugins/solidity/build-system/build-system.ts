@@ -185,6 +185,10 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
       options,
     );
 
+    if ("reason" in compilationJobsResult) {
+      return compilationJobsResult;
+    }
+
     const spinner = createSpinner({
       text: `Compiling your Solidity ${options.scope}...`,
       enabled: true,
@@ -192,10 +196,6 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
     spinner.start();
 
     try {
-      if ("reason" in compilationJobsResult) {
-        return compilationJobsResult;
-      }
-
       const { compilationJobsPerFile, indexedIndividualJobs } =
         compilationJobsResult;
 
