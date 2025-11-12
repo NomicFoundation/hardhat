@@ -38,6 +38,7 @@ import {
   SHANGHAI,
   CANCUN,
   PRAGUE,
+  OSAKA,
   BEDROCK,
   REGOLITH,
   CANYON,
@@ -145,6 +146,8 @@ function hardhatL1HardforkToEdrSpecId(hardfork: string): string {
       return CANCUN;
     case L1HardforkName.PRAGUE:
       return PRAGUE;
+    case L1HardforkName.OSAKA:
+      return OSAKA;
 
     // eslint-disable-next-line @typescript-eslint/switch-exhaustiveness-check -- we want to print the fork
     default:
