@@ -21,8 +21,8 @@ const buildAction: NewTaskActionFunction<BuildActionArguments> = async (
   args: BuildActionArguments,
   hre,
 ) => {
-  let contractRootPaths;
-  let testRootPaths;
+  let contractRootPaths: string[] = [];
+  let testRootPaths: string[] = [];
   const allUsedFiles: string[] = [];
 
   if (args.noContracts === false) {
