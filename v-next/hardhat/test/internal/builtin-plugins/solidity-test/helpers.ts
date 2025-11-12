@@ -67,7 +67,7 @@ describe("solidityTestConfigToSolidityTestRunnerConfigArgs", () => {
     }
   });
 
-  it("should enable always tracinng for verbosities above the default one", async () => {
+  it("should enable always tracing for verbosities above the default one", async () => {
     for (const verbosity of [1, 2, 3, 4, 5, 6, 7]) {
       const args = await solidityTestConfigToSolidityTestRunnerConfigArgs({
         chainType: GENERIC_CHAIN_TYPE,
