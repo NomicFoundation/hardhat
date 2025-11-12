@@ -1,5 +1,11 @@
 # @nomicfoundation/hardhat-errors
 
+## 3.0.4
+
+### Patch Changes
+
+- ce5c22a: Fail when a file isn't built neither as contract nor test
+
 ## 3.0.3
 
 ### Patch Changes
