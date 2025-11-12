@@ -27,6 +27,7 @@ describe("config", () => {
             },
             ignition: {
               maxFeePerGasLimit: 2n,
+              maxFeePerGas: 5n,
               maxPriorityFeePerGas: 3n,
               gasPrice: 1n,
               disableFeeBumping: false,
@@ -79,6 +80,10 @@ describe("config", () => {
 
     it("should apply maxFeePerGasLimit", async function () {
       assert.equal(hardhatNetworkOptions.ignition.maxFeePerGasLimit, 2n);
+    });
+
+    it("should apply maxFeePerGas", async function () {
+      assert.equal(hardhatNetworkOptions.ignition.maxFeePerGas, 5n);
     });
 
     it("should apply maxPriorityFeePerGas", async function () {
