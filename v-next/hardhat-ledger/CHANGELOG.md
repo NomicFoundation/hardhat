@@ -1,5 +1,11 @@
 # @nomicfoundation/hardhat-ledger
 
+## 3.0.1
+
+### Patch Changes
+
+- d053490: Fixed a bug in `hardhat-ledger` where the `derivationFunction` parameter was being ignored ([7682](https://github.com/NomicFoundation/hardhat/pull/7682)).
+
 ## 3.0.0
 
 ### Major Changes

@@ -1,5 +1,11 @@
 # @nomicfoundation/hardhat-verify
 
+## 3.0.7
+
+### Patch Changes
+
+- 29acf32: Added fallback for chains not included in chain descriptors ([#7657](https://github.com/NomicFoundation/hardhat/issues/7657))
+
 ## 3.0.6
 
 ### Patch Changes

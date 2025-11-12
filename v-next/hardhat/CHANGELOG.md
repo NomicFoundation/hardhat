@@ -1,5 +1,13 @@
 # hardhat
 
+## 3.0.14
+
+### Patch Changes
+
+- 3d42a6f: Remove the compilation spinner when the compilation fails
+- 52e1eb4: Fix the `test solidity` task's compilation process
+- ce5c22a: Fail when a file isn't built neither as contract nor test
+
 ## 3.0.13
 
 ### Patch Changes

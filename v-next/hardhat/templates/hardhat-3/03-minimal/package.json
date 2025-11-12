@@ -5,7 +5,7 @@
   "description": "A minimal Hardhat project",
   "type": "module",
   "devDependencies": {
-    "hardhat": "workspace:^3.0.13",
+    "hardhat": "workspace:^3.0.14",
     "@types/node": "^22.8.5",
     "typescript": "~5.8.0"
   }
