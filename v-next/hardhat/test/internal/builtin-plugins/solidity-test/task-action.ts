@@ -69,6 +69,19 @@ describe("solidity-test/task-action", function () {
         testFiles: ["./test/contracts/partial/Counter-1.sol"],
       });
     });
+
+    it("should throw if a file is provided but is not considered a test", async () => {
+      hre = await createHardhatRuntimeEnvironment(hardhatConfigPartialTests);
+      await assertRejectsWithHardhatError(
+        () =>
+          hre.tasks.getTask(["test", "solidity"]).run({
+            noCompile: true,
+            testFiles: ["./test/not-in-test-path.t.sol"],
+          }),
+        HardhatError.ERRORS.CORE.SOLIDITY.UNRECOGNIZED_FILES_NOT_COMPILED,
+        { files: "- ./test/not-in-test-path.t.sol" },
+      );
+    });
   });
 
   describe("when the solidity task test runner is not specified", () => {
@@ -86,12 +99,17 @@ describe("solidity-test/task-action", function () {
       });
     });
 
-    it("should run even if test is not in test config path because it ends in .t.sol", async () => {
+    it("should throw if a file is provided but is not considered a test", async () => {
       hre = await createHardhatRuntimeEnvironment(hardhatConfigPartialTests);
-      await hre.tasks.getTask(["test"]).run({
-        noCompile: true,
-        testFiles: ["./test/not-in-test-path.t.sol"],
-      });
+      await assertRejectsWithHardhatError(
+        () =>
+          hre.tasks.getTask(["test"]).run({
+            noCompile: true,
+            testFiles: ["./test/not-in-test-path.t.sol"],
+          }),
+        HardhatError.ERRORS.CORE.SOLIDITY.UNRECOGNIZED_FILES_NOT_COMPILED,
+        { files: "- ./test/not-in-test-path.t.sol" },
+      );
     });
 
     it("should throw because the file ends in .sol and is not in the test path", async () => {
