@@ -1167,6 +1167,18 @@ Please check Hardhat's output for more details.`,
         websiteTitle: "Could not parse a compiler version",
         websiteDescription: `Hardhat failed to parse the full compiler version from the output of the compiler's 'version' command.`,
       },
+      UNRECOGNIZED_FILES_NOT_COMPILED: {
+        number: 915,
+        messageTemplate: `The build process failed because these files you provided haven't been recognized neither as contracts nor tests:
+        
+{files}
+
+Solidity test files must be placed in your test directory, or in your contracts directory and end in .t.sol.`,
+        websiteTitle: "Build failed due to unrecognized files",
+        websiteDescription: `Hardhat failed to build your contracts and/or tests because you passed a file as parameter, but it wasn't recognized neither as a valid contract nor test.
+        
+Solidity test files must be placed in your test directory, or in your contracts directory and end in .t.sol.`,
+      },
     },
     ARTIFACTS: {
       NOT_FOUND: {

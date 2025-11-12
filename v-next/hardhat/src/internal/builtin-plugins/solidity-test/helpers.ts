@@ -16,11 +16,12 @@ import {
   l1HardforkLatest,
   IncludeTraces,
   FsAccessPermission,
+  CollectStackTraces,
 } from "@nomicfoundation/edr";
 import { hexStringToBytes } from "@nomicfoundation/hardhat-utils/hex";
 import chalk from "chalk";
 
-import { OPTIMISM_CHAIN_TYPE } from "../../constants.js";
+import { DEFAULT_VERBOSITY, OPTIMISM_CHAIN_TYPE } from "../../constants.js";
 
 import { type Colorizer, formatArtifactId } from "./formatters.js";
 
@@ -126,6 +127,8 @@ export async function solidityTestConfigToSolidityTestRunnerConfigArgs({
     }
   }
 
+  const shouldAlwaysCollectStackTraces = verbosity > DEFAULT_VERBOSITY;
+
   return {
     projectRoot,
     ...config,
@@ -144,6 +147,9 @@ export async function solidityTestConfigToSolidityTestRunnerConfigArgs({
     forkBlockNumber,
     rpcEndpoints,
     generateGasReport,
+    collectStackTraces: shouldAlwaysCollectStackTraces
+      ? CollectStackTraces.Always
+      : CollectStackTraces.OnFailure,
   };
 }
 

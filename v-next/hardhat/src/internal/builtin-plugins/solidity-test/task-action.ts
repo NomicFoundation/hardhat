@@ -79,12 +79,19 @@ const runSolidityTests: NewTaskActionFunction<TestActionArguments> = async (
     );
   }
 
+  // Run the build task for contract files if needed
+  if (noCompile !== true) {
+    await hre.tasks.getTask("build").run({
+      noTests: true,
+    });
+  }
+
   // Run the build task for test files
   const { testRootPaths }: { testRootPaths: string[] } = await hre.tasks
     .getTask("build")
     .run({
       files: testFiles,
-      noContracts: noCompile,
+      noContracts: true,
     });
   console.log();
 

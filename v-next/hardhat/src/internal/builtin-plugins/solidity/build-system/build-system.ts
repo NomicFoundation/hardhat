@@ -176,14 +176,7 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
       ..._options,
     };
 
-    const spinner = createSpinner({
-      text: `Compiling your Solidity ${options.scope}...`,
-      enabled: true,
-    });
-
     await this.#downloadConfiguredCompilers(options.quiet);
-
-    spinner.start();
 
     const { buildProfile } = this.#getBuildProfile(options.buildProfile);
 
@@ -193,161 +186,173 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
     );
 
     if ("reason" in compilationJobsResult) {
-      spinner.stop();
       return compilationJobsResult;
     }
 
-    const { compilationJobsPerFile, indexedIndividualJobs } =
-      compilationJobsResult;
+    const spinner = createSpinner({
+      text: `Compiling your Solidity ${options.scope}...`,
+      enabled: true,
+    });
+    spinner.start();
 
-    const runnableCompilationJobs = [
-      ...new Set(compilationJobsPerFile.values()),
-    ];
+    try {
+      const { compilationJobsPerFile, indexedIndividualJobs } =
+        compilationJobsResult;
 
-    // NOTE: We precompute the build ids in parallel here, which are cached
-    // internally in each compilation job
-    await Promise.all(
-      runnableCompilationJobs.map(async (runnableCompilationJob) =>
-        runnableCompilationJob.getBuildId(),
-      ),
-    );
+      const runnableCompilationJobs = [
+        ...new Set(compilationJobsPerFile.values()),
+      ];
 
-    const results: CompilationResult[] = await pMap(
-      runnableCompilationJobs,
-      async (runnableCompilationJob) => {
-        const { output, compiler } = await this.runCompilationJob(
-          runnableCompilationJob,
-          options,
-        );
-
-        return {
-          compilationJob: runnableCompilationJob,
-          compilerOutput: output,
-          cached: false,
-          compiler,
-        };
-      },
-      {
-        concurrency: options.concurrency,
-        // An error when running the compiler is not a compilation failure, but
-        // a fatal failure trying to run it, so we just throw on the first error
-        stopOnError: true,
-      },
-    );
-
-    const uncachedResults = results.filter((result) => !result.cached);
-    const uncachedSuccessfulResults = uncachedResults.filter(
-      (result) => !this.#hasCompilationErrors(result.compilerOutput),
-    );
-
-    const isSuccessfulBuild =
-      uncachedResults.length === uncachedSuccessfulResults.length;
-
-    const contractArtifactsGeneratedByCompilationJob: Map<
-      CompilationJob,
-      ReadonlyMap<string, string[]>
-    > = new Map();
-
-    if (isSuccessfulBuild) {
-      log("Emitting artifacts of successful build");
+      // NOTE: We precompute the build ids in parallel here, which are cached
+      // internally in each compilation job
       await Promise.all(
-        results.map(async (compilationResult) => {
-          const emitArtifactsResult = await this.emitArtifacts(
-            compilationResult.compilationJob,
-            compilationResult.compilerOutput,
-            options,
-          );
-
-          const { artifactsPerFile } = emitArtifactsResult;
-
-          contractArtifactsGeneratedByCompilationJob.set(
-            compilationResult.compilationJob,
-            artifactsPerFile,
-          );
-
-          // Cache the results
-          await this.#cacheCompilationResult(
-            indexedIndividualJobs,
-            compilationResult,
-            emitArtifactsResult,
-            buildProfile.isolated,
-            options.scope,
-          );
-        }),
-      );
-
-      await saveCache(this.#options.cachePath, this.#compileCache);
-    }
-
-    const resultsMap: Map<string, FileBuildResult> = new Map();
-
-    spinner.stop();
-
-    for (const result of results) {
-      const contractArtifactsGenerated = isSuccessfulBuild
-        ? contractArtifactsGeneratedByCompilationJob.get(result.compilationJob)
-        : new Map();
-
-      assertHardhatInvariant(
-        contractArtifactsGenerated !== undefined,
-        "We emitted contract artifacts for all the jobs if the build was successful",
-      );
-
-      const errors = await Promise.all(
-        (result.compilerOutput.errors ?? []).map((error) =>
-          this.remapCompilerError(result.compilationJob, error, true),
+        runnableCompilationJobs.map(async (runnableCompilationJob) =>
+          runnableCompilationJob.getBuildId(),
         ),
       );
 
-      this.#printSolcErrorsAndWarnings(errors);
-      const successfulResult = !this.#hasCompilationErrors(
-        result.compilerOutput,
+      const results: CompilationResult[] = await pMap(
+        runnableCompilationJobs,
+        async (runnableCompilationJob) => {
+          const { output, compiler } = await this.runCompilationJob(
+            runnableCompilationJob,
+            options,
+          );
+
+          return {
+            compilationJob: runnableCompilationJob,
+            compilerOutput: output,
+            cached: false,
+            compiler,
+          };
+        },
+        {
+          concurrency: options.concurrency,
+          // An error when running the compiler is not a compilation failure, but
+          // a fatal failure trying to run it, so we just throw on the first error
+          stopOnError: true,
+        },
       );
 
-      for (const [userSourceName, root] of result.compilationJob.dependencyGraph
-        .getRoots()
-        .entries()) {
-        if (!successfulResult) {
-          resultsMap.set(formatRootPath(userSourceName, root), {
-            type: FileBuildResultType.BUILD_FAILURE,
-            compilationJob: result.compilationJob,
-            errors,
-          });
+      const uncachedResults = results.filter((result) => !result.cached);
+      const uncachedSuccessfulResults = uncachedResults.filter(
+        (result) => !this.#hasCompilationErrors(result.compilerOutput),
+      );
 
-          continue;
-        }
+      const isSuccessfulBuild =
+        uncachedResults.length === uncachedSuccessfulResults.length;
 
-        if (result.cached) {
+      const contractArtifactsGeneratedByCompilationJob: Map<
+        CompilationJob,
+        ReadonlyMap<string, string[]>
+      > = new Map();
+
+      if (isSuccessfulBuild) {
+        log("Emitting artifacts of successful build");
+        await Promise.all(
+          results.map(async (compilationResult) => {
+            const emitArtifactsResult = await this.emitArtifacts(
+              compilationResult.compilationJob,
+              compilationResult.compilerOutput,
+              options,
+            );
+
+            const { artifactsPerFile } = emitArtifactsResult;
+
+            contractArtifactsGeneratedByCompilationJob.set(
+              compilationResult.compilationJob,
+              artifactsPerFile,
+            );
+
+            // Cache the results
+            await this.#cacheCompilationResult(
+              indexedIndividualJobs,
+              compilationResult,
+              emitArtifactsResult,
+              buildProfile.isolated,
+              options.scope,
+            );
+          }),
+        );
+
+        await saveCache(this.#options.cachePath, this.#compileCache);
+      }
+
+      spinner.stop();
+
+      const resultsMap: Map<string, FileBuildResult> = new Map();
+
+      for (const result of results) {
+        const contractArtifactsGenerated = isSuccessfulBuild
+          ? contractArtifactsGeneratedByCompilationJob.get(
+              result.compilationJob,
+            )
+          : new Map();
+
+        assertHardhatInvariant(
+          contractArtifactsGenerated !== undefined,
+          "We emitted contract artifacts for all the jobs if the build was successful",
+        );
+
+        const errors = await Promise.all(
+          (result.compilerOutput.errors ?? []).map((error) =>
+            this.remapCompilerError(result.compilationJob, error, true),
+          ),
+        );
+
+        this.#printSolcErrorsAndWarnings(errors);
+        const successfulResult = !this.#hasCompilationErrors(
+          result.compilerOutput,
+        );
+
+        for (const [
+          userSourceName,
+          root,
+        ] of result.compilationJob.dependencyGraph.getRoots().entries()) {
+          if (!successfulResult) {
+            resultsMap.set(formatRootPath(userSourceName, root), {
+              type: FileBuildResultType.BUILD_FAILURE,
+              compilationJob: result.compilationJob,
+              errors,
+            });
+
+            continue;
+          }
+
+          if (result.cached) {
+            resultsMap.set(formatRootPath(userSourceName, root), {
+              type: FileBuildResultType.CACHE_HIT,
+              compilationJob: result.compilationJob,
+              contractArtifactsGenerated:
+                contractArtifactsGenerated.get(userSourceName) ?? [],
+              warnings: errors,
+            });
+
+            continue;
+          }
+
           resultsMap.set(formatRootPath(userSourceName, root), {
-            type: FileBuildResultType.CACHE_HIT,
+            type: FileBuildResultType.BUILD_SUCCESS,
             compilationJob: result.compilationJob,
             contractArtifactsGenerated:
               contractArtifactsGenerated.get(userSourceName) ?? [],
             warnings: errors,
           });
-
-          continue;
         }
-
-        resultsMap.set(formatRootPath(userSourceName, root), {
-          type: FileBuildResultType.BUILD_SUCCESS,
-          compilationJob: result.compilationJob,
-          contractArtifactsGenerated:
-            contractArtifactsGenerated.get(userSourceName) ?? [],
-          warnings: errors,
-        });
       }
-    }
 
-    if (!options.quiet) {
-      if (isSuccessfulBuild) {
-        await this.#printCompilationResult(runnableCompilationJobs, {
-          scope: options.scope,
-        });
+      if (!options.quiet) {
+        if (isSuccessfulBuild) {
+          await this.#printCompilationResult(runnableCompilationJobs, {
+            scope: options.scope,
+          });
+        }
       }
-    }
 
-    return resultsMap;
+      return resultsMap;
+    } finally {
+      spinner.stop();
+    }
   }
 
   public async getCompilationJobs(
