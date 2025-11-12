@@ -1,12 +1,7 @@
-import type { ChainDescriptorConfig } from "hardhat/types/config";
-
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 
-import { HardhatError } from "@nomicfoundation/hardhat-errors";
-import { assertRejectsWithHardhatError } from "@nomicfoundation/hardhat-test-utils";
-
-import { getChainDescriptor, getChainId } from "../src/internal/chains.js";
+import { getChainId } from "../src/internal/chains.js";
 
 import { MockEthereumProvider } from "./utils.js";
 
@@ -65,47 +60,6 @@ describe("chains", () => {
         provider2.callCount,
         1,
         "Second provider call count should be 1",
-      );
-    });
-  });
-
-  describe("getChainDescriptor", () => {
-    it("should return the chain descriptor if found", async () => {
-      const testnetChainDescriptor: ChainDescriptorConfig = {
-        name: "Testnet",
-        chainType: "l1",
-        blockExplorers: {
-          etherscan: {
-            url: "https://testnet.example.com",
-            apiUrl: "https://api.testnet.example.com",
-          },
-        },
-      };
-      const chainDescriptors = new Map([[123n, testnetChainDescriptor]]);
-      const networkName = "testnet";
-      const chainId = 123;
-
-      const descriptor = await getChainDescriptor(
-        chainId,
-        chainDescriptors,
-        networkName,
-      );
-
-      assert.deepEqual(descriptor, testnetChainDescriptor);
-    });
-
-    it("should throw an error if the chain descriptor is not found", async () => {
-      const chainDescriptors = new Map();
-      const networkName = "unknown";
-      const chainId = 999;
-
-      await assertRejectsWithHardhatError(
-        getChainDescriptor(chainId, chainDescriptors, networkName),
-        HardhatError.ERRORS.HARDHAT_VERIFY.GENERAL.NETWORK_NOT_SUPPORTED,
-        {
-          networkName,
-          chainId,
-        },
       );
     });
   });

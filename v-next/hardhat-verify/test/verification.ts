@@ -12,7 +12,12 @@ import {
 } from "@nomicfoundation/hardhat-test-utils";
 import { createHardhatRuntimeEnvironment } from "hardhat/hre";
 
-import { verifyContract, validateArgs } from "../src/internal/verification.js";
+import { VERIFICATION_PROVIDERS } from "../src/internal/verification-providers.js";
+import {
+  verifyContract,
+  validateArgs,
+  validateVerificationProviderName,
+} from "../src/internal/verification.js";
 import { deployContract, initializeTestDispatcher } from "../test/utils.js";
 
 describe("verification", () => {
@@ -252,6 +257,90 @@ describe("verification", () => {
           }),
         HardhatError.ERRORS.CORE.GENERAL.INVALID_FULLY_QUALIFIED_NAME,
         { name: invalidFqn },
+      );
+    });
+  });
+
+  describe("Provider Factory Pattern", () => {
+    it("VERIFICATION_PROVIDERS should not be empty", () => {
+      const providerCount = Object.keys(VERIFICATION_PROVIDERS).length;
+      assert.ok(
+        providerCount > 0,
+        "VERIFICATION_PROVIDERS should contain providers",
+      );
+    });
+
+    it("all providers should have resolveConfig method", () => {
+      for (const [providerName, provider] of Object.entries(
+        VERIFICATION_PROVIDERS,
+      )) {
+        assert.equal(
+          typeof provider.resolveConfig,
+          "function",
+          `Provider "${providerName}" should have resolveConfig method`,
+        );
+      }
+    });
+
+    it("all providers should have create method", () => {
+      for (const [providerName, provider] of Object.entries(
+        VERIFICATION_PROVIDERS,
+      )) {
+        assert.equal(
+          typeof provider.create,
+          "function",
+          `Provider "${providerName}" should have create method`,
+        );
+      }
+    });
+
+    it("all providers should have getSupportedChains method", () => {
+      for (const [providerName, provider] of Object.entries(
+        VERIFICATION_PROVIDERS,
+      )) {
+        assert.equal(
+          typeof provider.getSupportedChains,
+          "function",
+          `Provider "${providerName}" should have getSupportedChains method`,
+        );
+      }
+    });
+  });
+
+  describe("validateVerificationProviderName", () => {
+    it("should accept valid provider names", () => {
+      validateVerificationProviderName("etherscan");
+      validateVerificationProviderName("blockscout");
+      validateVerificationProviderName("sourcify");
+    });
+
+    it("should throw error for invalid provider names", () => {
+      assertThrowsHardhatError(
+        () => {
+          validateVerificationProviderName("invalid");
+        },
+        HardhatError.ERRORS.HARDHAT_VERIFY.VALIDATION
+          .INVALID_VERIFICATION_PROVIDER,
+        {
+          verificationProvider: "invalid",
+          supportedVerificationProviders: Object.keys(
+            VERIFICATION_PROVIDERS,
+          ).join(", "),
+        },
+      );
+
+      assertThrowsHardhatError(
+        () => {
+          validateVerificationProviderName("ethscan");
+        },
+        HardhatError.ERRORS.HARDHAT_VERIFY.VALIDATION
+          .INVALID_VERIFICATION_PROVIDER,
+        {
+          verificationProvider: "ethscan",
+          supportedVerificationProviders: Object.keys(
+            VERIFICATION_PROVIDERS,
+          ).join(", "),
+        },
       );
     });
   });

@@ -1,3 +1,8 @@
+import type {
+  ChainDescriptorConfig,
+  ChainDescriptorsConfig,
+} from "hardhat/types/config";
+
 import assert from "node:assert/strict";
 import querystring from "node:querystring";
 import { beforeEach, describe, it } from "node:test";
@@ -11,7 +16,10 @@ import { getDispatcher } from "@nomicfoundation/hardhat-utils/request";
 
 import { Etherscan, ETHERSCAN_API_URL } from "../src/internal/etherscan.js";
 
-import { initializeTestDispatcher } from "./utils.js";
+import {
+  initializeTestDispatcher,
+  MockResolvedConfigurationVariable,
+} from "./utils.js";
 
 describe("etherscan", () => {
   describe("Etherscan class", async () => {
@@ -797,6 +805,262 @@ describe("etherscan", () => {
           { message: "Some unexpected result" },
         );
       });
+    });
+  });
+
+  describe("resolveConfig", () => {
+    const testDispatcher = initializeTestDispatcher({
+      url: "https://api.etherscan.io",
+    });
+    const verificationProvidersConfig = {
+      etherscan: {
+        enabled: true,
+        apiKey: new MockResolvedConfigurationVariable("test-key"),
+      },
+      blockscout: { enabled: true },
+      sourcify: { enabled: true },
+    };
+
+    it("should return explorer config from chain descriptors when chain is configured", async () => {
+      const testChainDescriptor: ChainDescriptorConfig = {
+        name: "Sepolia",
+        chainType: "l1",
+        blockExplorers: {
+          etherscan: {
+            url: "https://sepolia.etherscan.io",
+          },
+        },
+      };
+
+      const chainDescriptors: ChainDescriptorsConfig = new Map([
+        [11155111n, testChainDescriptor],
+      ]);
+
+      const result = await Etherscan.resolveConfig({
+        chainId: 11155111,
+        networkName: "sepolia",
+        chainDescriptors,
+        verificationProvidersConfig,
+      });
+
+      assert.deepEqual(
+        result.blockExplorerConfig,
+        testChainDescriptor.blockExplorers.etherscan,
+      );
+    });
+
+    it("should fetch from API when chain not in descriptors", async () => {
+      const chainDescriptors: ChainDescriptorsConfig = new Map();
+
+      testDispatcher.interceptable
+        .intercept({
+          path: "/v2/chainlist",
+          method: "GET",
+        })
+        .reply(200, {
+          comments: "Version 1.0",
+          totalcount: "1",
+          result: [
+            {
+              chainname: "Mainnet",
+              chainid: "1",
+              blockexplorer: "https://etherscan.io",
+              apiurl: "https://api.etherscan.io",
+              status: 1,
+              comment: "Mainnet",
+            },
+          ],
+        });
+
+      const result = await Etherscan.resolveConfig({
+        chainId: 1,
+        networkName: "mainnet",
+        chainDescriptors,
+        verificationProvidersConfig,
+        dispatcher: testDispatcher.interceptable,
+        shouldUseCache: false,
+      });
+
+      assert.deepEqual(result.blockExplorerConfig, {
+        url: "https://etherscan.io",
+      });
+    });
+
+    it("should throw NETWORK_NOT_SUPPORTED when chain not found anywhere", async () => {
+      const chainDescriptors: ChainDescriptorsConfig = new Map();
+
+      testDispatcher.interceptable
+        .intercept({
+          path: "/v2/chainlist",
+          method: "GET",
+        })
+        .reply(200, {
+          comments: "Version 1.0",
+          totalcount: "0",
+          result: [],
+        });
+
+      await assertRejectsWithHardhatError(
+        Etherscan.resolveConfig({
+          chainId: 999,
+          networkName: "unknown",
+          chainDescriptors,
+          verificationProvidersConfig,
+          dispatcher: testDispatcher.interceptable,
+          shouldUseCache: false,
+        }),
+        HardhatError.ERRORS.HARDHAT_VERIFY.GENERAL.NETWORK_NOT_SUPPORTED,
+        {
+          networkName: "unknown",
+          chainId: 999,
+        },
+      );
+    });
+
+    it("should throw BLOCK_EXPLORER_NOT_CONFIGURED when chain exists but explorer not found", async () => {
+      const chainDescriptors: ChainDescriptorsConfig = new Map([
+        [
+          100n,
+          {
+            name: "TestNet",
+            chainType: "l1",
+            blockExplorers: {},
+          },
+        ],
+      ]);
+
+      testDispatcher.interceptable
+        .intercept({
+          path: "/v2/chainlist",
+          method: "GET",
+        })
+        .reply(200, {
+          comments: "Version 1.0",
+          totalcount: "0",
+          result: [],
+        });
+
+      await assertRejectsWithHardhatError(
+        Etherscan.resolveConfig({
+          chainId: 100,
+          networkName: "testnet",
+          chainDescriptors,
+          verificationProvidersConfig,
+          dispatcher: testDispatcher.interceptable,
+          shouldUseCache: false,
+        }),
+        HardhatError.ERRORS.HARDHAT_VERIFY.GENERAL
+          .BLOCK_EXPLORER_NOT_CONFIGURED,
+        {
+          verificationProvider: "Etherscan",
+          chainId: 100,
+        },
+      );
+    });
+  });
+
+  describe("getSupportedChains", () => {
+    const testDispatcher = initializeTestDispatcher({
+      url: "https://api.etherscan.io",
+    });
+    let getSupportedChainsInterceptor: ReturnType<
+      typeof testDispatcher.interceptable.intercept
+    >;
+    beforeEach(() => {
+      getSupportedChainsInterceptor = testDispatcher.interceptable.intercept({
+        path: "/v2/chainlist",
+        method: "GET",
+      });
+    });
+
+    it("should cache result and reuse on second call", async () => {
+      getSupportedChainsInterceptor.reply(200, {
+        comments: "Version 1.0",
+        totalcount: "1",
+        result: [
+          {
+            chainname: "Mainnet",
+            chainid: "1",
+            blockexplorer: "https://etherscan.io",
+            apiurl: "https://api.etherscan.io",
+            status: 1,
+            comment: "Mainnet",
+          },
+        ],
+      });
+
+      const result1 = await Etherscan.getSupportedChains(
+        testDispatcher.interceptable,
+      );
+      // Second call will throw MockNotMatchedError if it tries to make another request
+      const result2 = await Etherscan.getSupportedChains(
+        testDispatcher.interceptable,
+      );
+
+      assert.equal(result1, result2, "Should return same cached instance");
+    });
+
+    it("should parse chain data correctly", async () => {
+      getSupportedChainsInterceptor.reply(200, {
+        comments: "Version 1.0",
+        totalcount: "3",
+        result: [
+          {
+            chainname: "Ethereum Mainnet",
+            chainid: "1",
+            blockexplorer: "https://etherscan.io",
+            apiurl: "https://api.etherscan.io",
+            status: 1,
+            comment: "Mainnet",
+          },
+          {
+            chainname: "Polygon",
+            chainid: "137",
+            blockexplorer: "https://polygonscan.com",
+            apiurl: "https://api.polygonscan.com",
+            status: 1,
+            comment: "Sidechain",
+          },
+          {
+            chainname: "Sepolia",
+            chainid: "11155111",
+            blockexplorer: "https://sepolia.etherscan.io",
+            apiurl: "https://api-sepolia.etherscan.io",
+            status: 1,
+            comment: "Testnet",
+          },
+        ],
+      });
+
+      const chains = await Etherscan.getSupportedChains(
+        testDispatcher.interceptable,
+        false,
+      );
+
+      assert.equal(chains.size, 3);
+      assert.ok(chains.has(1n), "Should have Mainnet");
+      assert.ok(chains.has(137n), "Should have Polygon");
+      assert.ok(chains.has(11155111n), "Should have Sepolia");
+      assert.equal(chains.get(1n)?.name, "Ethereum Mainnet");
+      assert.equal(chains.get(137n)?.name, "Polygon");
+      assert.equal(chains.get(11155111n)?.name, "Sepolia");
+    });
+
+    it("should return empty map on API error without throwing", async () => {
+      testDispatcher.interceptable
+        .intercept({
+          path: "/v2/chainlist",
+          method: "GET",
+        })
+        .reply(500, "Internal Server Error");
+
+      const chains = await Etherscan.getSupportedChains(
+        testDispatcher.interceptable,
+        false,
+      );
+
+      assert.ok(chains instanceof Map, "Should be a Map instance");
+      assert.equal(chains.size, 0);
     });
   });
 });

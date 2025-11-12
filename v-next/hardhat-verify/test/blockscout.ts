@@ -1,3 +1,8 @@
+import type {
+  ChainDescriptorConfig,
+  ChainDescriptorsConfig,
+} from "hardhat/types/config";
+
 import assert from "node:assert/strict";
 import querystring from "node:querystring";
 import { beforeEach, describe, it } from "node:test";
@@ -8,7 +13,10 @@ import { getDispatcher } from "@nomicfoundation/hardhat-utils/request";
 
 import { Blockscout } from "../src/internal/blockscout.js";
 
-import { initializeTestDispatcher } from "./utils.js";
+import {
+  initializeTestDispatcher,
+  MockResolvedConfigurationVariable,
+} from "./utils.js";
 
 describe("blockscout", () => {
   describe("Blockscout class", async () => {
@@ -752,6 +760,370 @@ describe("blockscout", () => {
           { message: "Some unexpected result" },
         );
       });
+    });
+  });
+
+  describe("resolveConfig", () => {
+    const testDispatcher = initializeTestDispatcher({
+      url: "https://chains.blockscout.com",
+    });
+    const verificationProvidersConfig = {
+      etherscan: {
+        enabled: true,
+        apiKey: new MockResolvedConfigurationVariable("test-key"),
+      },
+      blockscout: { enabled: true },
+      sourcify: { enabled: true },
+    };
+
+    it("should return explorer config from chain descriptors when chain is configured", async () => {
+      const testChainDescriptor: ChainDescriptorConfig = {
+        name: "TestNet",
+        chainType: "l1",
+        blockExplorers: {
+          blockscout: {
+            url: "https://blockscout.test.com",
+            apiUrl: "https://api.blockscout.test.com/api",
+          },
+        },
+      };
+
+      const chainDescriptors: ChainDescriptorsConfig = new Map([
+        [123n, testChainDescriptor],
+      ]);
+
+      const result = await Blockscout.resolveConfig({
+        chainId: 123,
+        networkName: "testnet",
+        chainDescriptors,
+        verificationProvidersConfig,
+      });
+
+      assert.deepEqual(
+        result.blockExplorerConfig,
+        testChainDescriptor.blockExplorers.blockscout,
+      );
+    });
+
+    it("should fetch from API when chain not in descriptors", async () => {
+      const chainDescriptors: ChainDescriptorsConfig = new Map();
+
+      testDispatcher.interceptable
+        .intercept({
+          path: "/api/chains",
+          method: "GET",
+        })
+        .reply(200, {
+          "789": {
+            name: "TestNet",
+            description: "Test network",
+            logo: "https://test.com/logo.png",
+            ecosystem: "test",
+            isTestnet: true,
+            layer: 1,
+            rollupType: null,
+            native_currency: "TEST",
+            website: "https://test.com",
+            explorers: [
+              {
+                url: "https://blockscout.test.com",
+                hostedBy: "blockscout",
+              },
+            ],
+          },
+        });
+
+      const result = await Blockscout.resolveConfig({
+        chainId: 789,
+        networkName: "testnet",
+        chainDescriptors,
+        verificationProvidersConfig,
+        dispatcher: testDispatcher.interceptable,
+        shouldUseCache: false,
+      });
+
+      assert.deepEqual(result.blockExplorerConfig, {
+        url: "https://blockscout.test.com",
+        apiUrl: "https://blockscout.test.com/api",
+      });
+    });
+
+    it("should throw NETWORK_NOT_SUPPORTED when chain not found anywhere", async () => {
+      const chainDescriptors: ChainDescriptorsConfig = new Map();
+
+      testDispatcher.interceptable
+        .intercept({
+          path: "/api/chains",
+          method: "GET",
+        })
+        .reply(200, {});
+
+      await assertRejectsWithHardhatError(
+        Blockscout.resolveConfig({
+          chainId: 999,
+          networkName: "unknown",
+          chainDescriptors,
+          verificationProvidersConfig,
+          dispatcher: testDispatcher.interceptable,
+          shouldUseCache: false,
+        }),
+        HardhatError.ERRORS.HARDHAT_VERIFY.GENERAL.NETWORK_NOT_SUPPORTED,
+        {
+          networkName: "unknown",
+          chainId: 999,
+        },
+      );
+    });
+
+    it("should throw BLOCK_EXPLORER_NOT_CONFIGURED when chain exists but explorer not found", async () => {
+      const chainDescriptors: ChainDescriptorsConfig = new Map([
+        [
+          100n,
+          {
+            name: "TestNet",
+            chainType: "l1",
+            blockExplorers: {},
+          },
+        ],
+      ]);
+
+      testDispatcher.interceptable
+        .intercept({
+          path: "/api/chains",
+          method: "GET",
+        })
+        .reply(200, {
+          "100": {
+            name: "TestNet",
+            description: "Test network",
+            logo: "https://test.com/logo.png",
+            ecosystem: "test",
+            isTestnet: true,
+            layer: 1,
+            rollupType: null,
+            native_currency: "TEST",
+            website: "https://test.com",
+            explorers: [
+              {
+                url: "https://other.test.com",
+                hostedBy: "other",
+              },
+            ],
+          },
+        });
+
+      await assertRejectsWithHardhatError(
+        Blockscout.resolveConfig({
+          chainId: 100,
+          networkName: "testnet",
+          chainDescriptors,
+          verificationProvidersConfig,
+          dispatcher: testDispatcher.interceptable,
+          shouldUseCache: false,
+        }),
+        HardhatError.ERRORS.HARDHAT_VERIFY.GENERAL
+          .BLOCK_EXPLORER_NOT_CONFIGURED,
+        {
+          verificationProvider: "Blockscout",
+          chainId: 100,
+        },
+      );
+    });
+  });
+
+  describe("getSupportedChains", () => {
+    const testDispatcher = initializeTestDispatcher({
+      url: "https://chains.blockscout.com",
+    });
+    let getSupportedChainsInterceptor: ReturnType<
+      typeof testDispatcher.interceptable.intercept
+    >;
+    beforeEach(() => {
+      getSupportedChainsInterceptor = testDispatcher.interceptable.intercept({
+        path: "/api/chains",
+        method: "GET",
+      });
+    });
+
+    it("should cache result and reuse on second call", async () => {
+      getSupportedChainsInterceptor.reply(200, {
+        "301": {
+          name: "TestNet",
+          description: "Test network",
+          logo: "https://test.com/logo.png",
+          ecosystem: "test",
+          isTestnet: true,
+          layer: 1,
+          rollupType: null,
+          native_currency: "TEST",
+          website: "https://test.com",
+          explorers: [
+            {
+              url: "https://blockscout.test.com",
+              hostedBy: "blockscout",
+            },
+          ],
+        },
+      });
+
+      const result1 = await Blockscout.getSupportedChains(
+        testDispatcher.interceptable,
+      );
+      // Second call will throw MockNotMatchedError if it tries to make another request
+      const result2 = await Blockscout.getSupportedChains(
+        testDispatcher.interceptable,
+      );
+
+      assert.equal(result1, result2, "Should return same cached instance");
+    });
+
+    it("should parse chain data correctly", async () => {
+      getSupportedChainsInterceptor.reply(200, {
+        "302": {
+          name: "TestNet",
+          description: "Test network",
+          logo: "https://test.com/logo.png",
+          ecosystem: ["defi", "nft"],
+          isTestnet: true,
+          layer: 2,
+          rollupType: "optimistic",
+          native_currency: "TEST",
+          website: "https://test.com",
+          explorers: [
+            {
+              url: "https://blockscout.test.com",
+              hostedBy: "blockscout",
+            },
+          ],
+        },
+      });
+
+      const chains = await Blockscout.getSupportedChains(
+        testDispatcher.interceptable,
+        false,
+      );
+
+      const chain = chains.get(302n);
+      assert.ok(chain !== undefined, "Should include chain 302");
+      assert.equal(chain.name, "TestNet");
+      assert.equal(
+        chain.blockExplorers.blockscout?.url,
+        "https://blockscout.test.com",
+      );
+      assert.equal(
+        chain.blockExplorers.blockscout?.apiUrl,
+        "https://blockscout.test.com/api",
+      );
+    });
+
+    it("should filter explorers by hostedBy field", async () => {
+      getSupportedChainsInterceptor.reply(200, {
+        "303": {
+          name: "TestNet",
+          description: "Test network",
+          logo: "https://test.com/logo.png",
+          ecosystem: "test",
+          isTestnet: true,
+          layer: 1,
+          rollupType: null,
+          native_currency: "TEST",
+          website: "https://test.com",
+          explorers: [
+            {
+              url: "https://other.test.com",
+              hostedBy: "otherhost",
+            },
+            {
+              url: "https://blockscout.test.com",
+              hostedBy: "blockscout",
+            },
+            {
+              url: "https://another.test.com",
+              hostedBy: "anotherhost",
+            },
+          ],
+        },
+      });
+
+      const chains = await Blockscout.getSupportedChains(
+        testDispatcher.interceptable,
+        false,
+      );
+
+      const chain = chains.get(303n);
+      assert.equal(
+        chain?.blockExplorers.blockscout?.url,
+        "https://blockscout.test.com",
+      );
+      assert.equal(
+        chain?.blockExplorers.blockscout?.apiUrl,
+        "https://blockscout.test.com/api",
+      );
+    });
+
+    it("should skip chains without blockscout explorer", async () => {
+      getSupportedChainsInterceptor.reply(200, {
+        "304": {
+          name: "TestNet1",
+          description: "Test network",
+          logo: "https://test.com/logo.png",
+          ecosystem: "test",
+          isTestnet: true,
+          layer: 1,
+          rollupType: null,
+          native_currency: "TEST",
+          website: "https://test.com",
+          explorers: [
+            {
+              url: "https://blockscout.test.com",
+              hostedBy: "blockscout",
+            },
+          ],
+        },
+        "305": {
+          name: "TestNet2",
+          description: "Test network 2",
+          logo: "https://test2.com/logo.png",
+          ecosystem: "test",
+          isTestnet: true,
+          layer: 1,
+          rollupType: null,
+          native_currency: "TEST2",
+          website: "https://test2.com",
+          explorers: [
+            {
+              url: "https://other.test.com",
+              hostedBy: "otherhost",
+            },
+          ],
+        },
+      });
+
+      const chains = await Blockscout.getSupportedChains(
+        testDispatcher.interceptable,
+        false,
+      );
+
+      assert.ok(
+        chains.has(304n),
+        "Should include chain with blockscout explorer",
+      );
+      assert.ok(
+        !chains.has(305n),
+        "Should not include chain without blockscout explorer",
+      );
+    });
+
+    it("should return empty map on API error without throwing", async () => {
+      getSupportedChainsInterceptor.reply(500, "Internal Server Error");
+
+      const chains = await Blockscout.getSupportedChains(
+        testDispatcher.interceptable,
+        false,
+      );
+
+      assert.ok(chains instanceof Map, "Should return a Map instance");
+      assert.equal(chains.size, 0);
     });
   });
 });

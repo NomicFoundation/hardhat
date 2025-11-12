@@ -8,13 +8,18 @@ import type {
   VerificationProvider,
   VerificationStatusResponse,
   BaseVerifyFunctionArgs,
+  CreateSourcifyOptions,
+  ResolveConfigOptions,
 } from "./types.js";
 import type {
   Dispatcher,
   DispatcherOptions,
   HttpResponse,
 } from "@nomicfoundation/hardhat-utils/request";
-import type { VerificationProvidersConfig } from "hardhat/types/config";
+import type {
+  ChainDescriptorsConfig,
+  VerificationProvidersConfig,
+} from "hardhat/types/config";
 import type { CompilerInput } from "hardhat/types/solidity";
 
 import { HardhatError } from "@nomicfoundation/hardhat-errors";
@@ -48,6 +53,35 @@ export class Sourcify implements VerificationProvider {
     | Dispatcher
     | DispatcherOptions;
   public readonly pollingIntervalMs: number;
+
+  public static async resolveConfig({
+    chainId,
+    verificationProvidersConfig,
+    dispatcher,
+  }: ResolveConfigOptions): Promise<CreateSourcifyOptions> {
+    return {
+      verificationProviderConfig: verificationProvidersConfig.sourcify,
+      chainId,
+      dispatcher,
+    };
+  }
+
+  public static async create({
+    verificationProviderConfig,
+    chainId,
+    dispatcher,
+  }: CreateSourcifyOptions): Promise<Sourcify> {
+    return new Sourcify({
+      chainId,
+      apiUrl: verificationProviderConfig.apiUrl,
+      dispatcher,
+    });
+  }
+
+  // Not used by sourcify, but required by the VerificationProvider interface
+  public static async getSupportedChains(): Promise<ChainDescriptorsConfig> {
+    return new Map();
+  }
 
   constructor(sourcifyConfig: {
     chainId: number;
