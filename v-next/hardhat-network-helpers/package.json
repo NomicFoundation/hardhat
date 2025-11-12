@@ -1,7 +1,7 @@
 {
   "name": "@nomicfoundation/hardhat-network-helpers",
   "version": "3.0.2",
-  "description": "Hardhat utils for testing",
+  "description": "Hardhat Network Helpers is a library that provides a set of utility functions to interact with locally simulated networks.",
   "homepage": "https://github.com/nomicfoundation/hardhat/tree/v-next/v-next/hardhat-network-helpers",
   "repository": {
     "type": "git",
