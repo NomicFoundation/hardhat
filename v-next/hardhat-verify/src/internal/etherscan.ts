@@ -31,6 +31,9 @@ import {
   postFormRequest,
   shouldUseProxy,
 } from "@nomicfoundation/hardhat-utils/request";
+import debug from "debug";
+
+const log = debug("hardhat:hardhat-verify:etherscan");
 
 export const ETHERSCAN_PROVIDER_NAME: keyof VerificationProvidersConfig =
   "etherscan";
@@ -151,8 +154,11 @@ export class Etherscan implements VerificationProvider {
           },
         });
       }
-    } catch {
+    } catch (error) {
       // ignore errors
+      log("Failed to fetch supported chains from Etherscan");
+      log(error);
+      return new Map();
     }
 
     if (shouldUseCache) {

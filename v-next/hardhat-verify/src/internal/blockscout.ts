@@ -31,6 +31,9 @@ import {
   postFormRequest,
   shouldUseProxy,
 } from "@nomicfoundation/hardhat-utils/request";
+import debug from "debug";
+
+const log = debug("hardhat:hardhat-verify:blockscout");
 
 export const BLOCKSCOUT_PROVIDER_NAME: keyof VerificationProvidersConfig =
   "blockscout";
@@ -146,8 +149,11 @@ export class Blockscout implements VerificationProvider {
           },
         });
       }
-    } catch {
+    } catch (error) {
       // ignore errors
+      log("Failed to fetch supported chains from Blockscout");
+      log(error);
+      return new Map();
     }
 
     if (shouldUseCache) {
