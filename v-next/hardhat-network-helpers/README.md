@@ -41,9 +41,9 @@ await networkHelpers.time.increase(60);
 
 ## Reference
 
-## Mining blocks
+### Mining blocks
 
-### `mine`
+#### `mine`
 
 Mines a specified number of blocks with an optional time interval between them.
 
@@ -72,7 +72,7 @@ const { networkHelpers } = await hre.network.connect();
 await networkHelpers.mine(10, { interval: 60 });
 ```
 
-### `mineUpTo`
+#### `mineUpTo`
 
 Mines new blocks until the latest block number reaches `blockNumber`.
 
@@ -95,9 +95,9 @@ const { networkHelpers } = await hre.network.connect();
 await networkHelpers.mineUpTo(150); // Mines until block with block number 150
 ```
 
-## Manipulating accounts
+### Manipulating accounts
 
-### `getStorageAt`
+#### `getStorageAt`
 
 Retrieves the data located at the given address, index, and block number.
 
@@ -122,7 +122,7 @@ const { networkHelpers } = await hre.network.connect();
 const storageData = await networkHelpers.getStorageAt("0x123...", 0);
 ```
 
-### `impersonateAccount`
+#### `impersonateAccount`
 
 Allows Hardhat Network to sign transactions as the given address.
 
@@ -145,7 +145,7 @@ const { networkHelpers } = await hre.network.connect();
 await networkHelpers.impersonateAccount("0x123...");
 ```
 
-### `setBalance`
+#### `setBalance`
 
 Sets the balance for the given address.
 
@@ -169,7 +169,7 @@ const { networkHelpers } = await hre.network.connect();
 await networkHelpers.setBalance("0x123...", 1000000000000000000n); // Sets 1 ETH
 ```
 
-### `setCode`
+#### `setCode`
 
 Modifies the bytecode stored at an account's address.
 
@@ -193,7 +193,7 @@ const { networkHelpers } = await hre.network.connect();
 await networkHelpers.setCode("0x123...", "0x6001600101...");
 ```
 
-### `setNonce`
+#### `setNonce`
 
 Modifies an account's nonce by overwriting it.
 
@@ -217,7 +217,7 @@ const { networkHelpers } = await hre.network.connect();
 await networkHelpers.setNonce("0x123...", 10); // Set the nonce of the account to 10
 ```
 
-### `setStorageAt`
+#### `setStorageAt`
 
 Writes a single position of an account's storage.
 
@@ -242,7 +242,7 @@ const { networkHelpers } = await hre.network.connect();
 await networkHelpers.setStorageAt("0x123...", 0, 0x0000...);
 ```
 
-### `stopImpersonatingAccount`
+#### `stopImpersonatingAccount`
 
 Stops Hardhat Network from impersonating the given address.
 
@@ -265,9 +265,9 @@ const { networkHelpers } = await hre.network.connect();
 await networkHelpers.stopImpersonatingAccount("0x123...");
 ```
 
-## Snapshots
+### Snapshots
 
-### `takeSnapshot`
+#### `takeSnapshot`
 
 Takes a snapshot of the blockchain state at the current block.
 
@@ -287,7 +287,7 @@ const snapshot = await networkHelpers.takeSnapshot();
 await snapshot.restore(); // Restores the blockchain state
 ```
 
-### `clearSnapshots`
+#### `clearSnapshots`
 
 Clears every existing snapshot.
 
@@ -304,9 +304,9 @@ Example:
 clearSnapshots();
 ```
 
-## Fixtures
+### Fixtures
 
-### `loadFixture`
+#### `loadFixture`
 
 Executes a fixture function and restores the state to a snapshot on subsequent calls.
 
@@ -344,9 +344,9 @@ async function setupContracts({ viem }: NetworkConnection) {
 const { contractA, contractB } = await loadFixture(setupContracts);
 ```
 
-## Manipulating blocks
+### Manipulating blocks
 
-### `dropTransaction`
+#### `dropTransaction`
 
 Removes the given transaction from the mempool, if it exists.
 
@@ -369,7 +369,7 @@ const { networkHelpers } = await hre.network.connect();
 const success = await networkHelpers.dropTransaction("0x123...");
 ```
 
-### `setBlockGasLimit`
+#### `setBlockGasLimit`
 
 Sets the gas limit for future blocks.
 
@@ -392,7 +392,7 @@ const { networkHelpers } = await hre.network.connect();
 await networkHelpers.setBlockGasLimit(1000000); // Set block gas limit to 1,000,000
 ```
 
-### `setCoinbase`
+#### `setCoinbase`
 
 Sets the coinbase address to be used in new blocks.
 
@@ -415,7 +415,7 @@ const { networkHelpers } = await hre.network.connect();
 await networkHelpers.setCoinbase("0x123...");
 ```
 
-### `setNextBlockBaseFeePerGas`
+#### `setNextBlockBaseFeePerGas`
 
 Sets the base fee of the next block.
 
@@ -438,7 +438,7 @@ const { networkHelpers } = await hre.network.connect();
 await networkHelpers.setNextBlockBaseFeePerGas(1000000); // Set base fee to 1,000,000
 ```
 
-### `setPrevRandao`
+#### `setPrevRandao`
 
 Sets the PREVRANDAO value of the next block.
 
@@ -461,9 +461,9 @@ const { networkHelpers } = await hre.network.connect();
 await networkHelpers.setPrevRandao(123456789); // Set the PREVRANDAO value
 ```
 
-## Time
+### Time
 
-### `increase`
+#### `increase`
 
 Mines a new block whose timestamp is `amountInSeconds` after the latest block's timestamp.
 
@@ -486,7 +486,7 @@ const { networkHelpers } = await hre.network.connect();
 await networkHelpers.time.increase(12);
 ```
 
-### `increaseTo`
+#### `increaseTo`
 
 Mines a new block whose timestamp is `timestamp`.
 
@@ -509,7 +509,7 @@ const { networkHelpers } = await hre.network.connect();
 networkHelpers.time.increaseTo(1700000000);
 ```
 
-### `latest`
+#### `latest`
 
 Retrieves the timestamp of the latest block.
 
@@ -528,7 +528,7 @@ const { networkHelpers } = await hre.network.connect();
 const timestamp = await networkHelpers.time.latest();
 ```
 
-### `latestBlock`
+#### `latestBlock`
 
 Retrieves the latest block number.
 
@@ -547,7 +547,7 @@ const { networkHelpers } = await hre.network.connect();
 const blockNumber = await networkHelpers.time.latestBlock();
 ```
 
-### `setNextBlockTimestamp`
+#### `setNextBlockTimestamp`
 
 Sets the timestamp of the next block but doesn't mine one.
 
@@ -568,9 +568,9 @@ const { networkHelpers } = await hre.network.connect();
 networkHelpers.time.setNextBlockTimestamp(1700000000);
 ```
 
-## Duration
+### Duration
 
-### `years`
+#### `years`
 
 Converts the given number of years into seconds.
 
@@ -593,7 +593,7 @@ const { networkHelpers } = await hre.network.connect();
 const seconds = networkHelpers.time.duration.years(1);
 ```
 
-### `weeks`
+#### `weeks`
 
 Converts the given number of weeks into seconds.
 
@@ -616,7 +616,7 @@ const { networkHelpers } = await hre.network.connect();
 const seconds = networkHelpers.time.duration.weeks(1);
 ```
 
-### `days`
+#### `days`
 
 Converts the given number of days into seconds.
 
@@ -639,7 +639,7 @@ const { networkHelpers } = await hre.network.connect();
 const seconds = networkHelpers.time.duration.days(1);
 ```
 
-### `hours`
+#### `hours`
 
 Converts the given number of hours into seconds.
 
@@ -662,7 +662,7 @@ const { networkHelpers } = await hre.network.connect();
 const seconds = networkHelpers.time.duration.hours(1);
 ```
 
-### `minutes`
+#### `minutes`
 
 Converts the given number of minutes into seconds.
 
@@ -685,7 +685,7 @@ const { networkHelpers } = await hre.network.connect();
 const seconds = networkHelpers.time.duration.minutes(1);
 ```
 
-### `seconds`
+#### `seconds`
 
 Converts the given number of seconds into seconds.
 
@@ -708,7 +708,7 @@ const { networkHelpers } = await hre.network.connect();
 const seconds = networkHelpers.time.duration.seconds(1);
 ```
 
-### `millis`
+#### `millis`
 
 Converts the given number of milliseconds into seconds, rounded down to the nearest whole number.
 
