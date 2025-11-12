@@ -1,12 +1,6 @@
 # hardhat-network-helpers
 
-## Overview
-
-Hardhat Network Helpers provides a convenient JavaScript interface to the JSON-RPC functionality of Hardhat Network.
-
-Hardhat Network exposes its custom functionality primarily through its JSON-RPC API. However, for easy-to-read tests and short scripts, interfacing with the JSON-RPC API is too noisy, requiring a verbose syntax and extensive conversions of both input and output data.
-
-This package provides convenience functions for quick and easy interaction with Hardhat Network. Facilities include the ability to mine blocks up to a certain timestamp or block number, the ability to manipulate attributes of accounts (balance, code, nonce, storage), the ability to impersonate specific accounts, and the ability to take and restore snapshots.
+Hardhat Network Helpers is a plugin that provides a set of utility functions to interact with locally simulated networks.
 
 ## Installation
 
@@ -46,45 +40,6 @@ await networkHelpers.time.increase(60);
 ```
 
 ## Reference
-
-### Table of Contents
-
-- [Mining blocks](#mining-blocks)
-  - [`mine`](#mine)
-  - [`mineUpTo`](#mineup-to)
-- [Manipulating accounts](#manipulating-accounts)
-  - [`getStorageAt`](#getstorageat)
-  - [`impersonateAccount`](#impersonateaccount)
-  - [`setBalance`](#setbalance)
-  - [`setCode`](#setcode)
-  - [`setNonce`](#setnonce)
-  - [`setStorageAt`](#setstorageat)
-  - [`stopImpersonatingAccount`](#stopimpersonatingaccount)
-- [Snapshots](#snapshots)
-  - [`takeSnapshot`](#takesnapshot)
-  - [`clearSnapshots`](#clearsnapshots)
-- [Fixtures](#fixtures)
-  - [`loadFixture`](#loadfixture)
-- [Manipulating blocks](#manipulating-blocks)
-  - [`dropTransaction`](#droptransaction)
-  - [`setBlockGasLimit`](#setblockgaslimit)
-  - [`setCoinbase`](#setcoinbase)
-  - [`setNextBlockBaseFeePerGas`](#setnextblockbasefeepergas)
-  - [`setPrevRandao`](#setprevrandao)
-- [Time](#time)
-  - [`increase`](#increase)
-  - [`increaseTo`](#increaseto)
-  - [`latest`](#latest)
-  - [`latestBlock`](#latestblock)
-  - [`setNextBlockTimestamp`](#setnextblocktimestamp)
-- [Duration](#duration)
-  - [`years`](#years)
-  - [`weeks`](#weeks)
-  - [`days`](#days)
-  - [`hours`](#hours)
-  - [`minutes`](#minutes)
-  - [`seconds`](#seconds)
-  - [`millis`](#millis)
 
 ## Mining blocks
 
