@@ -27,6 +27,7 @@ import {
   SHANGHAI,
   CANCUN,
   PRAGUE,
+  OSAKA,
 } from "@nomicfoundation/edr";
 import { Address } from "@ethereumjs/util";
 
@@ -80,6 +81,8 @@ export function ethereumsjsHardforkToEdrSpecId(hardfork: HardforkName): string {
       return CANCUN;
     case HardforkName.PRAGUE:
       return PRAGUE;
+    case HardforkName.OSAKA:
+      return OSAKA;
     default:
       const _exhaustiveCheck: never = hardfork;
       throw new Error(
@@ -130,6 +133,8 @@ export function edrSpecIdToEthereumHardfork(specId: SpecId): HardforkName {
       return HardforkName.CANCUN;
     case SpecId.Prague:
       return HardforkName.PRAGUE;
+    case SpecId.Osaka:
+      return HardforkName.OSAKA;
 
     default:
       throw new Error(`Unknown spec id '${specId}', this shouldn't happen`);
