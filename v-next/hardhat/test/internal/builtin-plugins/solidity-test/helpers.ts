@@ -4,12 +4,15 @@ import type { HardhatRuntimeEnvironment } from "../../../../src/types/hre.js";
 import assert from "node:assert/strict";
 import { before, describe, it } from "node:test";
 
-import { IncludeTraces } from "@nomicfoundation/edr";
+import { CollectStackTraces, IncludeTraces } from "@nomicfoundation/edr";
 
 import { createHardhatRuntimeEnvironment } from "../../../../src/hre.js";
 import { resolveSolidityTestForkingConfig } from "../../../../src/internal/builtin-plugins/solidity-test/config.js";
 import { solidityTestConfigToSolidityTestRunnerConfigArgs } from "../../../../src/internal/builtin-plugins/solidity-test/helpers.js";
-import { GENERIC_CHAIN_TYPE } from "../../../../src/internal/constants.js";
+import {
+  DEFAULT_VERBOSITY,
+  GENERIC_CHAIN_TYPE,
+} from "../../../../src/internal/constants.js";
 import { resolveConfigurationVariable } from "../../../../src/internal/core/configuration-variables.js";
 
 describe("solidityTestConfigToSolidityTestRunnerConfigArgs", () => {
@@ -61,6 +64,25 @@ describe("solidityTestConfigToSolidityTestRunnerConfigArgs", () => {
       });
 
       assert.equal(args.includeTraces, IncludeTraces.All);
+    }
+  });
+
+  it("should enable always tracinng for verbosities above the default one", async () => {
+    for (const verbosity of [1, 2, 3, 4, 5, 6, 7]) {
+      const args = await solidityTestConfigToSolidityTestRunnerConfigArgs({
+        chainType: GENERIC_CHAIN_TYPE,
+        projectRoot: process.cwd(),
+        config: {},
+        verbosity,
+        generateGasReport: false,
+      });
+
+      assert.equal(
+        args.collectStackTraces,
+        verbosity > DEFAULT_VERBOSITY
+          ? CollectStackTraces.Always
+          : CollectStackTraces.OnFailure,
+      );
     }
   });
 
