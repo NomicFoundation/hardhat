@@ -23,41 +23,6 @@ export default defineConfig({
 });
 ```
 
-## Migration from hardhat v2
-
-When migrating from Hardhat v2 to v3, note that several matcher signatures have changed. Because v3 supports multiple connections, you must specify the `ethers` instance the matcher should use, since a single test file can include multiple ethers instances for different `connections`. In Hardhat v3, several matchers now require an initial ethers parameter. The affected methods are:
-
-- revert (this method replaces `reverted`)
-- revertedWithoutReason
-- changeEtherBalance
-- changeEtherBalances
-- changeTokenBalance
-- changeTokenBalances
-
-Example:
-
-```ts
-// Usage in v2
-await expect(
-  sender.sendTransaction({ to: receiver, value: 1000 }),
-).to.changeEtherBalance(sender, -1000);
-
-// Usage in v3
-await expect(
-  sender.sendTransaction({ to: receiver, value: 1000 }),
-).to.changeEtherBalance(ethers, sender, -1000); // Note the additional `ethers` parameter
-```
-
-As mentioned above, the `reverted` method has been replaced by `revert`:
-
-```ts
-// Usage in v2
-await expect(token.transfer(address, 0)).to.be.reverted;
-
-// Usage in v3
-await expect(token.transfer(address, 0)).to.revert(ethers);
-```
-
 ## Usage
 
 You don't need to do anything else to use this plugin. Whenever you run your tests with Hardhat, it will automatically add the matchers.
@@ -344,4 +309,39 @@ Assert that the given hexadecimal strings correspond to the same numerical value
 
 ```ts
 expect("0x00012AB").to.hexEqual("0x12ab");
+```
+
+## Migration from hardhat v2
+
+When migrating from Hardhat v2 to v3, note that several matcher signatures have changed. Because v3 supports multiple connections, you must specify the `ethers` instance the matcher should use, since a single test file can include multiple ethers instances for different `connections`. In Hardhat v3, several matchers now require an initial ethers parameter. The affected methods are:
+
+- revert (this method replaces `reverted`)
+- revertedWithoutReason
+- changeEtherBalance
+- changeEtherBalances
+- changeTokenBalance
+- changeTokenBalances
+
+Example:
+
+```ts
+// Usage in v2
+await expect(
+  sender.sendTransaction({ to: receiver, value: 1000 }),
+).to.changeEtherBalance(sender, -1000);
+
+// Usage in v3
+await expect(
+  sender.sendTransaction({ to: receiver, value: 1000 }),
+).to.changeEtherBalance(ethers, sender, -1000); // Note the additional `ethers` parameter
+```
+
+As mentioned above, the `reverted` method has been replaced by `revert`:
+
+```ts
+// Usage in v2
+await expect(token.transfer(address, 0)).to.be.reverted;
+
+// Usage in v3
+await expect(token.transfer(address, 0)).to.revert(ethers);
 ```
