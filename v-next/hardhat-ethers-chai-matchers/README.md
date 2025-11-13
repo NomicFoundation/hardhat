@@ -23,27 +23,6 @@ export default defineConfig({
 });
 ```
 
-## Usage
-
-You don't need to do anything else to use this plugin. Whenever you run your tests with Hardhat, it will automatically add the matchers.
-
-Here is an example of using the `emit` matcher:
-
-```ts
-import { expect } from "chai";
-import { network } from "hardhat";
-
-const { ethers } = await network.connect();
-
-it("some test", async function () {
-  const contract = await ethers.deployContract("SomeContract");
-
-  await expect(contract.someFunction())
-    .to.emit(contract, "SomeEvent")
-    .withArgs("0x...", 3);
-});
-```
-
 ## Migration from hardhat v2
 
 When migrating from Hardhat v2 to v3, note that several matcher signatures have changed. Because v3 supports multiple connections, you must specify the `ethers` instance the matcher should use, since a single test file can include multiple ethers instances for different `connections`. In Hardhat v3, several matchers now require an initial ethers parameter. The affected methods are:
@@ -77,6 +56,27 @@ await expect(token.transfer(address, 0)).to.be.reverted;
 
 // Usage in v3
 await expect(token.transfer(address, 0)).to.revert(ethers);
+```
+
+## Usage
+
+You don't need to do anything else to use this plugin. Whenever you run your tests with Hardhat, it will automatically add the matchers.
+
+Here is an example of using the `emit` matcher:
+
+```ts
+import { expect } from "chai";
+import { network } from "hardhat";
+
+const { ethers } = await network.connect();
+
+it("some test", async function () {
+  const contract = await ethers.deployContract("SomeContract");
+
+  await expect(contract.someFunction())
+    .to.emit(contract, "SomeEvent")
+    .withArgs("0x...", 3);
+});
 ```
 
 ## Reference
