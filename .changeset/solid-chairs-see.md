@@ -1,5 +1,4 @@
 ---
-"@nomicfoundation/ignition-ui": patch
 "@nomicfoundation/hardhat-errors": patch
 ---
 
