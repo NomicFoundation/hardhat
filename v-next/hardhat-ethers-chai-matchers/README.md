@@ -153,7 +153,7 @@ await expect(token.transfer(address, 0))
   .withArgs(0);
 ```
 
-See the [`.withArgs`](#.withargs) matcher entry to learn more.
+See the [`.withArgs`](#withargs) matcher entry to learn more.
 
 #### `.revertedWithPanic`
 
@@ -209,7 +209,7 @@ await expect(token.transfer(address, 0))
   .withArgs(100);
 ```
 
-See the [`.withArgs`](#.withargs) matcher entry to learn more.
+See the [`.withArgs`](#withargs) matcher entry to learn more.
 
 ### Balance change
 
@@ -275,7 +275,7 @@ await expect(token.transfer(receiver, 1000)).to.changeTokenBalances(
 
 ### Other matchers
 
-#### .withargs
+#### `.withargs`
 
 Can be used after a `.emit` or a `.revertedWithCustomError` matcher to assert the values of the event/error's arguments:
 
