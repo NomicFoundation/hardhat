@@ -16,10 +16,10 @@
   "peerDependencies": {
     "@nomicfoundation/hardhat-ignition-viem": "workspace:^3.0.5",
     "@nomicfoundation/hardhat-keystore": "workspace:^3.0.2",
-    "@nomicfoundation/hardhat-network-helpers": "workspace:^3.0.1",
+    "@nomicfoundation/hardhat-network-helpers": "workspace:^3.0.3",
     "@nomicfoundation/hardhat-node-test-runner": "workspace:^3.0.7",
     "@nomicfoundation/hardhat-viem": "workspace:^3.0.0",
-    "@nomicfoundation/hardhat-viem-assertions": "workspace:^3.0.0",
+    "@nomicfoundation/hardhat-viem-assertions": "workspace:^3.0.4",
     "@nomicfoundation/hardhat-verify": "workspace:^3.0.7",
     "@nomicfoundation/ignition-core": "workspace:^3.0.5"
   }

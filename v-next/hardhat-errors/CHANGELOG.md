@@ -1,5 +1,12 @@
 # @nomicfoundation/hardhat-errors
 
+## 3.0.5
+
+### Patch Changes
+
+- 03a4539: Export error descriptors for the website
+- 95684ac: Full links to documentation replaced by short links with redirects added to the Hardhat website ([#142](https://github.com/NomicFoundation/hardhat-website/issues/142))
+
 ## 3.0.4
 
 ### Patch Changes
