@@ -326,7 +326,7 @@ export const ERRORS = {
         websiteTitle: "You are not inside a Hardhat project",
         websiteDescription: `You are trying to run Hardhat outside of a Hardhat project.
 
-You can learn how to use Hardhat by reading the [Getting Started guide](/hardhat-runner/docs/getting-started).`,
+You can learn how to use Hardhat by reading the [Getting Started guide](/getting-started).`,
       },
       DUPLICATED_PLUGIN_ID: {
         number: 2,
@@ -951,7 +951,7 @@ Please double check your accounts and the "from" parameter in your RPC calls.`,
         websiteTitle: "Invalid HD path",
         websiteDescription: `An invalid HD/BIP32 derivation path was provided in your config.
 
-Read the [documentation](https://hardhat.org/hardhat-runner/docs/config#hd-wallet-config) to learn how to define HD accounts correctly.`,
+Read the [documentation](https://hardhat.org/hd-wallet-config) to learn how to define HD accounts correctly.`,
       },
       CANT_DERIVE_KEY: {
         number: 718,
@@ -1987,7 +1987,7 @@ Please try again later.`,
       },
       MISSING_LINK_FOR_LIBRARY: {
         number: 20012,
-        messageTemplate: `The contract "{contractName}" is missing links for the following libraries: "{missingLibraries}". Learn more about linking contracts at (https://hardhat.org/hardhat-runner/plugins/nomicfoundation-hardhat-ethers#library-linking).`,
+        messageTemplate: `The contract "{contractName}" is missing links for the following libraries: "{missingLibraries}". Learn more about linking contracts at (https://hardhat.org/ethers-library-linking).`,
         websiteTitle: "Missing links for library",
         websiteDescription: "Missing links for library",
       },
@@ -2213,7 +2213,7 @@ You probably did something like this:
 
 Instead, define a fixture function and refer to that same function in each call to loadFixture.
 
-Learn more at (https://hardhat.org/hardhat-network-helpers/docs/reference#fixtures)`,
+Learn more at (https://hardhat.org/hardhat-network-helpers-fixtures)`,
         websiteTitle: "Anonymous functions cannot be used as fixtures",
         websiteDescription: "Anonymous functions cannot be used as fixtures",
       },
