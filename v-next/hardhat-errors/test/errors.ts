@@ -410,6 +410,30 @@ describe("Error descriptors", () => {
       }
     }
   });
+
+  it("Shouldn't be empty", () => {
+    /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions --
+    We know that this is correct */
+    for (const packageName of Object.keys(HardhatError.ERRORS) as Array<
+      keyof typeof HardhatError.ERRORS
+    >) {
+      /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions --
+    We know that this is correct */
+      for (const categoryName of Object.keys(
+        HardhatError.ERRORS[packageName],
+      ) as Array<keyof (typeof HardhatError.ERRORS)[typeof packageName]>) {
+        const errorsPerCategory = Object.keys(
+          HardhatError.ERRORS[packageName][categoryName],
+        ).length;
+
+        assert.notEqual(
+          errorsPerCategory,
+          0,
+          `The error category ERRORS[${packageName}][${categoryName}] is empty`,
+        );
+      }
+    }
+  });
 });
 
 describe("applyErrorMessageTemplate", () => {
