@@ -338,7 +338,7 @@ Assert that the given string is a proper hexadecimal string of a specific length
 expect("0x1234").to.be.properHex(4);
 ```
 
-### `.hexEqual`
+#### `.hexEqual`
 
 Assert that the given hexadecimal strings correspond to the same numerical value:
 
