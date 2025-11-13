@@ -286,7 +286,7 @@ Assert that the given string is a proper address:
 expect("0xf39fd6e51aad88f6f4ce6ab8827279cfffb92266").to.be.properAddress;
 ```
 
-### `.properPrivateKey`
+#### `.properPrivateKey`
 
 Assert that the given string is a proper private key:
 
@@ -295,7 +295,7 @@ expect("0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80").to
   .be.properPrivateKey;
 ```
 
-### `.properHex`
+#### `.properHex`
 
 Assert that the given string is a proper hexadecimal string of a specific length:
 
@@ -303,7 +303,7 @@ Assert that the given string is a proper hexadecimal string of a specific length
 expect("0x1234").to.be.properHex(4);
 ```
 
-### `.hexEqual`
+#### `.hexEqual`
 
 Assert that the given hexadecimal strings correspond to the same numerical value:
 
