@@ -54,13 +54,13 @@ importers:
   v-next/example-project:
     devDependencies:
       '@nomicfoundation/hardhat-errors':
-        specifier: workspace:^3.0.4
+        specifier: workspace:^3.0.5
         version: link:../hardhat-errors
       '@nomicfoundation/hardhat-ethers':
         specifier: workspace:^4.0.3
         version: link:../hardhat-ethers
       '@nomicfoundation/hardhat-ethers-chai-matchers':
-        specifier: workspace:^3.0.1
+        specifier: workspace:^3.0.2
         version: link:../hardhat-ethers-chai-matchers
       '@nomicfoundation/hardhat-ignition':
         specifier: workspace:^3.0.5
@@ -78,7 +78,7 @@ importers:
         specifier: workspace:^3.0.7
         version: link:../hardhat-mocha
       '@nomicfoundation/hardhat-network-helpers':
-        specifier: workspace:^3.0.2
+        specifier: workspace:^3.0.3
         version: link:../hardhat-network-helpers
       '@nomicfoundation/hardhat-node-test-runner':
         specifier: workspace:^3.0.7
@@ -93,7 +93,7 @@ importers:
         specifier: workspace:^3.0.1
         version: link:../hardhat-viem
       '@nomicfoundation/hardhat-viem-assertions':
-        specifier: workspace:^3.0.3
+        specifier: workspace:^3.0.4
         version: link:../hardhat-viem-assertions
       '@nomicfoundation/ignition-core':
         specifier: workspace:^3.0.5
@@ -336,7 +336,7 @@ importers:
   v-next/hardhat-ethers-chai-matchers:
     dependencies:
       '@nomicfoundation/hardhat-errors':
-        specifier: workspace:^3.0.0
+        specifier: workspace:^3.0.5
         version: link:../hardhat-errors
       '@nomicfoundation/hardhat-ethers':
         specifier: workspace:^4.0.0
@@ -1019,7 +1019,7 @@ importers:
   v-next/hardhat-network-helpers:
     dependencies:
       '@nomicfoundation/hardhat-errors':
-        specifier: workspace:^3.0.0
+        specifier: workspace:^3.0.5
         version: link:../hardhat-errors
       '@nomicfoundation/hardhat-utils':
         specifier: workspace:^3.0.5
@@ -1578,7 +1578,7 @@ importers:
   v-next/hardhat-viem-assertions:
     dependencies:
       '@nomicfoundation/hardhat-errors':
-        specifier: workspace:^3.0.2
+        specifier: workspace:^3.0.5
         version: link:../hardhat-errors
       '@nomicfoundation/hardhat-utils':
         specifier: workspace:^3.0.5
@@ -1676,7 +1676,7 @@ importers:
         specifier: workspace:^3.0.2
         version: link:../../../../hardhat-keystore
       '@nomicfoundation/hardhat-network-helpers':
-        specifier: workspace:^3.0.1
+        specifier: workspace:^3.0.3
         version: link:../../../../hardhat-network-helpers
       '@nomicfoundation/hardhat-node-test-runner':
         specifier: workspace:^3.0.7
@@ -1688,7 +1688,7 @@ importers:
         specifier: workspace:^3.0.0
         version: link:../../../../hardhat-viem
       '@nomicfoundation/hardhat-viem-assertions':
-        specifier: workspace:^3.0.0
+        specifier: workspace:^3.0.4
         version: link:../../../../hardhat-viem-assertions
       '@nomicfoundation/ignition-core':
         specifier: workspace:^3.0.5
@@ -1722,7 +1722,7 @@ importers:
         specifier: workspace:^4.0.2
         version: link:../../../../hardhat-ethers
       '@nomicfoundation/hardhat-ethers-chai-matchers':
-        specifier: workspace:^3.0.0
+        specifier: workspace:^3.0.2
         version: link:../../../../hardhat-ethers-chai-matchers
       '@nomicfoundation/hardhat-ignition-ethers':
         specifier: workspace:^3.0.5
@@ -1734,7 +1734,7 @@ importers:
         specifier: workspace:^3.0.7
         version: link:../../../../hardhat-mocha
       '@nomicfoundation/hardhat-network-helpers':
-        specifier: workspace:^3.0.1
+        specifier: workspace:^3.0.3
         version: link:../../../../hardhat-network-helpers
       '@nomicfoundation/hardhat-typechain':
         specifier: workspace:^3.0.0

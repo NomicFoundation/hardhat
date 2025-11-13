@@ -1,5 +1,11 @@
 # @nomicfoundation/hardhat-network-helpers
 
+## 3.0.3
+
+### Patch Changes
+
+- 0245213: Improved the documentation
+
 ## 3.0.2
 
 ### Patch Changes
