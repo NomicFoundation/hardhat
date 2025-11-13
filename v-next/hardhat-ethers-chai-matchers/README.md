@@ -184,7 +184,7 @@ await expect(token.transfer(address, 0)).to.be.revertedWithPanic(
 Assert that a transaction reverted without returning a reason:
 
 ```ts
-await expect(token.transfer(address, 0)).to.be.revertedWithoutReason();
+await expect(token.transfer(address, 0)).to.be.revertedWithoutReason(ethers);
 ```
 
 This matcher differs from `.revert` in that it will fail if the transaction reverts with a reason string, custom error or panic code. Examples of Solidity expressions that revert without a reason are `require(false)` (without the reason string) and `assert(false)` before Solidity v0.8.0. This also happens for out-of-gas errors.
@@ -204,7 +204,7 @@ The first argument must be the contract that emits the event.
 If the event has arguments, the `.withArgs` matcher can be added:
 
 ```ts
-await expect(token.transfer(address, 0))
+await expect(token.transfer(address, 100))
   .to.emit(token, "Transfer")
   .withArgs(100);
 ```
@@ -281,7 +281,7 @@ Can be used after a `.emit` or a `.revertedWithCustomError` matcher to assert th
 
 ```ts
 // events
-await expect(token.transfer(address, 0))
+await expect(token.transfer(address, 100))
   .to.emit(token, "Transfer")
   .withArgs(100);
 
@@ -298,7 +298,7 @@ import { anyValue } from "@nomicfoundation/hardhat-ethers-chai-matchers/withArgs
 
 await expect(token.transfer(address, 0))
   .to.be.revertedWithCustomError(token, "InvalidTransferValueAndAddress")
-  .withArgs(0, anyValue);
+  .withArgs(0, anyValue, 0);
 ```
 
 Predicates are just functions that return true if the value is correct, and return false if it isn't, so you can create your own predicates:
