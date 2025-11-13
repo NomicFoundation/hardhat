@@ -311,6 +311,39 @@ Assert that the given hexadecimal strings correspond to the same numerical value
 expect("0x00012AB").to.hexEqual("0x12ab");
 ```
 
+## Known limitations
+
+### Chaining Async Matchers
+
+Currently, the following matchers do not support chaining:
+
+- `revert`
+- `revertedWith`
+- `revertedWithCustomError`
+- `revertedWithoutReason`
+- `revertedWithPanic`
+- `changeEtherBalance`
+- `changeEtherBalances`
+- `changeTokenBalance`
+- `changeTokenBalances`
+- `emit` (with the only exception of chaining multiple `emit` matchers)
+
+Which means you can't do:
+
+```ts
+await expect(contract.f(...))
+  .to.changeEtherBalance(...)
+  .and.to.changeTokenBalance(...);
+```
+
+To work around this limitation, write separate assertions for each matcher:
+
+```ts
+const tx = contract.f(...);
+await expect(tx).to.changeEtherBalance(...)
+await expect(tx).to.changeTokenBalance(...)
+```
+
 ## Migration from hardhat v2
 
 When migrating from Hardhat v2 to v3, note that several matcher signatures have changed. Because v3 supports multiple connections, you must specify the `ethers` instance the matcher should use, since a single test file can include multiple ethers instances for different `connections`. In Hardhat v3, several matchers now require an initial ethers parameter. The affected methods are:
