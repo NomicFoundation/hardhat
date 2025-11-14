@@ -48,6 +48,8 @@ const defaultTestConfig: DeployConfig = {
   blockPollingInterval: 200,
   requiredConfirmations: 1,
   disableFeeBumping: false,
+  maxRetries: 10,
+  retryInterval: 1000,
 };
 
 // todo: whenever these tests are migrated to node:test,
