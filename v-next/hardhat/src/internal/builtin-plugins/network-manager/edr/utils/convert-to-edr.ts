@@ -19,7 +19,10 @@ import type {
 } from "@nomicfoundation/edr";
 
 import {
+  GasReportExecutionStatus,
   MineOrdering,
+  OpHardfork,
+  SpecId,
   FRONTIER,
   HOMESTEAD,
   DAO_FORK,
@@ -47,7 +50,6 @@ import {
   GRANITE,
   HOLOCENE,
   ISTHMUS,
-  GasReportExecutionStatus,
 } from "@nomicfoundation/edr";
 import { getUnprefixedHexString } from "@nomicfoundation/hardhat-utils/hex";
 
@@ -66,6 +68,90 @@ import {
 import { L1HardforkName, OpHardforkName } from "../types/hardfork.js";
 
 import { getL1HardforkName, getOpHardforkName } from "./hardfork.js";
+
+export function edrL1HardforkToHardhatL1HardforkName(
+  hardfork: SpecId,
+): L1HardforkName {
+  switch (hardfork) {
+    case SpecId.Frontier:
+      return L1HardforkName.FRONTIER;
+    case SpecId.FrontierThawing:
+      return L1HardforkName.FRONTIER;
+    case SpecId.Homestead:
+      return L1HardforkName.HOMESTEAD;
+    case SpecId.DaoFork:
+      return L1HardforkName.DAO;
+    case SpecId.Tangerine:
+      return L1HardforkName.TANGERINE_WHISTLE;
+    case SpecId.SpuriousDragon:
+      return L1HardforkName.SPURIOUS_DRAGON;
+    case SpecId.Byzantium:
+      return L1HardforkName.BYZANTIUM;
+    case SpecId.Constantinople:
+      return L1HardforkName.CONSTANTINOPLE;
+    case SpecId.Petersburg:
+      return L1HardforkName.PETERSBURG;
+    case SpecId.Istanbul:
+      return L1HardforkName.ISTANBUL;
+    case SpecId.MuirGlacier:
+      return L1HardforkName.MUIR_GLACIER;
+    case SpecId.Berlin:
+      return L1HardforkName.BERLIN;
+    case SpecId.London:
+      return L1HardforkName.LONDON;
+    case SpecId.ArrowGlacier:
+      return L1HardforkName.ARROW_GLACIER;
+    case SpecId.GrayGlacier:
+      return L1HardforkName.GRAY_GLACIER;
+    case SpecId.Merge:
+      return L1HardforkName.MERGE;
+    case SpecId.Shanghai:
+      return L1HardforkName.SHANGHAI;
+    case SpecId.Cancun:
+      return L1HardforkName.CANCUN;
+    case SpecId.Prague:
+      return L1HardforkName.PRAGUE;
+    case SpecId.Osaka:
+      return L1HardforkName.OSAKA;
+    // eslint-disable-next-line @typescript-eslint/switch-exhaustiveness-check -- trust but verify
+    default:
+      const _exhaustiveCheck: never = hardfork;
+      throw new Error(
+        // eslint-disable-next-line @typescript-eslint/consistent-type-assertions -- we want to print the fork
+        `Unknown L1 hardfork '${hardfork as SpecId}', this shouldn't happen`,
+      );
+  }
+}
+
+export function edrOpHardforkToHardhatOpHardforkName(
+  hardfork: OpHardfork,
+): OpHardforkName {
+  switch (hardfork) {
+    case OpHardfork.Bedrock:
+      return OpHardforkName.BEDROCK;
+    case OpHardfork.Regolith:
+      return OpHardforkName.REGOLITH;
+    case OpHardfork.Canyon:
+      return OpHardforkName.CANYON;
+    case OpHardfork.Ecotone:
+      return OpHardforkName.ECOTONE;
+    case OpHardfork.Fjord:
+      return OpHardforkName.FJORD;
+    case OpHardfork.Granite:
+      return OpHardforkName.GRANITE;
+    case OpHardfork.Holocene:
+      return OpHardforkName.HOLOCENE;
+    case OpHardfork.Isthmus:
+      return OpHardforkName.ISTHMUS;
+    // eslint-disable-next-line @typescript-eslint/switch-exhaustiveness-check -- trust but verify
+    default:
+      const _exhaustiveCheck: never = hardfork;
+      throw new Error(
+        // eslint-disable-next-line @typescript-eslint/consistent-type-assertions -- we want to print the fork
+        `Unknown OP hardfork '${hardfork as OpHardfork}', this shouldn't happen`,
+      );
+  }
+}
 
 export function hardhatHardforkToEdrSpecId(
   hardfork: string,

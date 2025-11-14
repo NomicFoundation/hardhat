@@ -29,7 +29,7 @@ import {
 } from "@nomicfoundation/hardhat-utils/hex";
 import { deepClone, deepMerge } from "@nomicfoundation/hardhat-utils/lang";
 
-import { GENERIC_CHAIN_TYPE } from "../../constants.js";
+import { GENERIC_CHAIN_TYPE, OPTIMISM_CHAIN_TYPE } from "../../constants.js";
 
 import { DEFAULT_HD_ACCOUNTS_CONFIG_PARAMS } from "./accounts/constants.js";
 import { DEFAULT_CHAIN_DESCRIPTORS } from "./chain-descriptors.js";
@@ -37,7 +37,7 @@ import {
   DEFAULT_EDR_NETWORK_HD_ACCOUNTS_CONFIG_PARAMS,
   EDR_NETWORK_DEFAULT_COINBASE,
 } from "./edr/edr-provider.js";
-import { getCurrentHardfork } from "./edr/types/hardfork.js";
+import { getCurrentHardfork, hardforkGte } from "./edr/types/hardfork.js";
 import { isHttpNetworkHdAccountsUserConfig } from "./type-validation.js";
 
 export function resolveHttpNetwork(
@@ -67,6 +67,16 @@ export function resolveEdrNetwork(
   cachePath: string,
   resolveConfigurationVariable: ConfigurationVariableResolver,
 ): EdrNetworkConfig {
+  const hardfork = resolveHardfork(
+    networkConfig.hardfork,
+    networkConfig.chainType,
+  );
+
+  const blockGasLimit = BigInt(
+    networkConfig.blockGasLimit ??
+      resolveDefaultBlockGasLimit(hardfork, networkConfig.chainType),
+  );
+
   return {
     type: "edr-simulated",
     accounts: resolveEdrNetworkAccounts(
@@ -84,7 +94,7 @@ export function resolveEdrNetwork(
       networkConfig.allowBlocksWithSameTimestamp ?? false,
     allowUnlimitedContractSize:
       networkConfig.allowUnlimitedContractSize ?? false,
-    blockGasLimit: BigInt(networkConfig.blockGasLimit ?? 30_000_000n),
+    blockGasLimit,
     coinbase: resolveCoinbase(networkConfig.coinbase),
 
     forking: resolveForkingConfig(
@@ -92,7 +102,7 @@ export function resolveEdrNetwork(
       cachePath,
       resolveConfigurationVariable,
     ),
-    hardfork: resolveHardfork(networkConfig.hardfork, networkConfig.chainType),
+    hardfork,
     initialBaseFeePerGas: resolveInitialBaseFeePerGas(
       networkConfig.initialBaseFeePerGas,
     ),
@@ -290,4 +300,16 @@ export function resolveInitialBaseFeePerGas(
   return initialBaseFeePerGas !== undefined
     ? BigInt(initialBaseFeePerGas)
     : undefined;
+}
+
+function resolveDefaultBlockGasLimit(
+  hardfork: string,
+  chainType: ChainType | undefined = GENERIC_CHAIN_TYPE,
+): bigint {
+  const isPostOsaka =
+    chainType === OPTIMISM_CHAIN_TYPE
+      ? false // TODO: implement OP hardfork comparison once we have more OP hardforks
+      : hardforkGte(hardfork, "osaka", chainType);
+
+  return isPostOsaka ? 16_777_216n : 30_000_000n;
 }
