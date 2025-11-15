@@ -33,7 +33,11 @@ import {
   SolidityUserConfig,
 } from "../../../types";
 import { HARDHAT_NETWORK_NAME } from "../../constants";
-import { HardforkName } from "../../util/hardforks";
+import {
+  getHardforkName,
+  hardforkGte,
+  HardforkName,
+} from "../../util/hardforks";
 import { fromEntries } from "../../util/lang";
 import { assertHardhatInvariant } from "../errors";
 
@@ -170,6 +174,9 @@ function resolveHardhatNetworkConfig(
     }
   }
 
+  const hardfork =
+    hardhatNetworkConfig.hardfork ?? clonedDefaultHardhatNetworkParams.hardfork;
+
   const mining = resolveMiningConfig(hardhatNetworkConfig.mining);
 
   const minGasPrice = BigInt(
@@ -179,7 +186,9 @@ function resolveHardhatNetworkConfig(
 
   const blockGasLimit =
     hardhatNetworkConfig.blockGasLimit ??
-    clonedDefaultHardhatNetworkParams.blockGasLimit;
+    (hardforkGte(getHardforkName(hardfork), HardforkName.OSAKA)
+      ? 16_777_216
+      : clonedDefaultHardhatNetworkParams.blockGasLimit);
 
   const gas = hardhatNetworkConfig.gas ?? blockGasLimit;
   const gasPrice =
