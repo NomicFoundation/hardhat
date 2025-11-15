@@ -1718,9 +1718,6 @@ importers:
 
   v-next/hardhat/templates/hardhat-3/02-mocha-ethers:
     dependencies:
-      '@nomicfoundation/hardhat-ethers':
-        specifier: workspace:^4.0.2
-        version: link:../../../../hardhat-ethers
       '@nomicfoundation/hardhat-ethers-chai-matchers':
         specifier: workspace:^3.0.2
         version: link:../../../../hardhat-ethers-chai-matchers
@@ -1746,6 +1743,9 @@ importers:
         specifier: workspace:^3.0.5
         version: link:../../../../hardhat-ignition-core
     devDependencies:
+      '@nomicfoundation/hardhat-ethers':
+        specifier: workspace:^4.0.2
+        version: link:../../../../hardhat-ethers
       '@nomicfoundation/hardhat-ignition':
         specifier: workspace:^3.0.5
         version: link:../../../../hardhat-ignition
