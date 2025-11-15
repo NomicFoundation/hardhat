@@ -63,63 +63,6 @@ export const defaultHardhatNetworkParams: Omit<
    */
   chains: new Map([
     [
-      1, // mainnet
-      {
-        hardforkHistory: new Map([
-          [HardforkName.FRONTIER, 0],
-          [HardforkName.HOMESTEAD, 1_150_000],
-          [HardforkName.DAO, 1_920_000],
-          [HardforkName.TANGERINE_WHISTLE, 2_463_000],
-          [HardforkName.SPURIOUS_DRAGON, 2_675_000],
-          [HardforkName.BYZANTIUM, 4_370_000],
-          [HardforkName.CONSTANTINOPLE, 7_280_000],
-          [HardforkName.PETERSBURG, 7_280_000],
-          [HardforkName.ISTANBUL, 9_069_000],
-          [HardforkName.MUIR_GLACIER, 9_200_000],
-          [HardforkName.BERLIN, 1_2244_000],
-          [HardforkName.LONDON, 12_965_000],
-          [HardforkName.ARROW_GLACIER, 13_773_000],
-          [HardforkName.GRAY_GLACIER, 15_050_000],
-          [HardforkName.MERGE, 15_537_394],
-          [HardforkName.SHANGHAI, 17_034_870],
-          [HardforkName.CANCUN, 19_426_589],
-          [HardforkName.PRAGUE, 22_431_084],
-        ]),
-      },
-    ],
-    [
-      5, // goerli
-      {
-        hardforkHistory: new Map([
-          [HardforkName.ISTANBUL, 1_561_651],
-          [HardforkName.BERLIN, 4_460_644],
-          [HardforkName.LONDON, 5_062_605],
-        ]),
-      },
-    ],
-    [
-      17000, // holesky
-      {
-        hardforkHistory: new Map([
-          [HardforkName.MERGE, 0],
-          [HardforkName.SHANGHAI, 6_698],
-          [HardforkName.CANCUN, 894_732],
-          [HardforkName.PRAGUE, 3_419_704],
-        ]),
-      },
-    ],
-    [
-      560048, // hoodi
-      {
-        hardforkHistory: new Map([
-          [HardforkName.MERGE, 0],
-          [HardforkName.SHANGHAI, 0],
-          [HardforkName.CANCUN, 0],
-          [HardforkName.PRAGUE, 60_412],
-        ]),
-      },
-    ],
-    [
       11155111, // sepolia
       {
         hardforkHistory: new Map([

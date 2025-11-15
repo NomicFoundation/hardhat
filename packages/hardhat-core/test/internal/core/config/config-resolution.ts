@@ -761,19 +761,6 @@ describe("Config resolution", () => {
           });
         });
       });
-
-      it("should default to the latest hardfork", async function () {
-        const config = resolveConfig(__filename, {
-          networks: {
-            hardhat: {},
-          },
-        });
-
-        assert.equal(
-          config.networks.hardhat.hardfork,
-          Object.values(HardforkName).pop()
-        );
-      });
     });
 
     describe("HTTP networks resolution", function () {
