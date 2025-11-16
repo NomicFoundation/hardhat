@@ -1,5 +1,11 @@
 # hardhat
 
+## 3.0.15
+
+### Patch Changes
+
+- 9fb054a: Fix the initialization of the Mocha and Ethers sample project when using pnpm
+
 ## 3.0.14
 
 ### Patch Changes
