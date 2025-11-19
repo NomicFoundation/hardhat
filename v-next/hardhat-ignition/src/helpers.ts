@@ -3,3 +3,4 @@ export { errorDeploymentResultToExceptionMessage } from "./helpers/error-deploym
 export { resolveDeploymentId } from "./helpers/resolve-deployment-id.js";
 export { PrettyEventHandler } from "./helpers/pretty-event-handler.js";
 export { readDeploymentParameters } from "./helpers/read-deployment-parameters.js";
+export { getUserInterruptionsHandlers } from "./internal/hook-handlers/user-interruptions.js";
