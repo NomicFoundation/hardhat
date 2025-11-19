@@ -24,6 +24,7 @@ export class Batcher {
   public static batch(
     module: IgnitionModule,
     deploymentState: DeploymentState,
+    maxBatchSize?: number,
   ): string[][] {
     const batchState = this._initializeBatchStateFrom(module, deploymentState);
 
@@ -32,9 +33,39 @@ export class Batcher {
     while (!this._allVisited(batchState)) {
       const nextBatch = this._resolveNextBatch(batchState);
 
-      batches.push(nextBatch);
+      if (maxBatchSize !== undefined && nextBatch.length > maxBatchSize) {
+        // Split the batch into chunks and add artificial dependencies
+        const splitBatches = this._splitBatch(
+          nextBatch,
+          maxBatchSize,
+          batchState,
+        );
 
-      this._markAsVisited(batchState, nextBatch);
+        // Only mark the first chunk as visited immediately
+        // The remaining chunks will be processed in subsequent iterations
+        // because they now have dependencies on the previous chunks
+        batches.push(splitBatches[0]);
+        this._markAsVisited(batchState, splitBatches[0]);
+
+        // Add artificial dependencies for remaining chunks
+        for (let i = 1; i < splitBatches.length; i++) {
+          const currentChunk = splitBatches[i];
+          const previousChunk = splitBatches[i - 1];
+
+          // Add dependencies from futures in current chunk to futures in previous chunk
+          for (const futureId of currentChunk) {
+            for (const prevFutureId of previousChunk) {
+              batchState.adjacencyList.addDependency({
+                from: futureId,
+                to: prevFutureId,
+              });
+            }
+          }
+        }
+      } else {
+        batches.push(nextBatch);
+        this._markAsVisited(batchState, nextBatch);
+      }
     }
 
     return batches;
@@ -155,5 +186,23 @@ export class Batcher {
     return dependencies.every(
       (depId) => batchState.visitState[depId] === VisitStatus.VISITED,
     );
+  }
+
+  /**
+   * Splits a batch that exceeds maxBatchSize into multiple smaller batches.
+   */
+  private static _splitBatch(
+    batch: string[],
+    maxBatchSize: number,
+    _batchState: BatchState,
+  ): string[][] {
+    const splitBatches: string[][] = [];
+
+    for (let i = 0; i < batch.length; i += maxBatchSize) {
+      const chunk = batch.slice(i, i + maxBatchSize);
+      splitBatches.push(chunk);
+    }
+
+    return splitBatches;
   }
 }

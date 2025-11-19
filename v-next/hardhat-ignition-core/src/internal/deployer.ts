@@ -175,7 +175,11 @@ export class Deployer {
       );
     }
 
-    const batches = Batcher.batch(ignitionModule, deploymentState);
+    const batches = Batcher.batch(
+      ignitionModule,
+      deploymentState,
+      this._config.maxBatchSize,
+    );
 
     await this._emitDeploymentBatchEvent(batches);
 
