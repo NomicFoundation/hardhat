@@ -82,6 +82,7 @@
     "@nomicfoundation/ignition-core": "workspace:^3.0.0",
     "chai": "^5.1.2",
     "ethers": "^6.14.0",
-    "hardhat": "workspace:^3.0.0"
+    "hardhat": "workspace:^3.0.0",
+    "mocha": "^11.0.0"
   }
 }
