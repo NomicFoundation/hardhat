@@ -8,6 +8,7 @@ import type {
   NetworkUserConfig,
 } from "../../../../types/config.js";
 import type { ConfigHooks } from "../../../../types/hooks.js";
+import type { ChainType } from "../../../../types/network.js";
 
 import { HardhatError } from "@nomicfoundation/hardhat-errors";
 
@@ -78,21 +79,21 @@ export async function resolveUserConfig(
 ): Promise<HardhatConfig> {
   const resolvedConfig = await next(userConfig, resolveConfigurationVariable);
 
+  const resolvedDefaultChainType: ChainType =
+    userConfig.defaultChainType ?? GENERIC_CHAIN_TYPE;
+
   const networks: Record<string, NetworkUserConfig> = userConfig.networks ?? {};
 
   const resolvedNetworks: Record<string, NetworkConfig> = {};
 
   for (const [networkName, networkConfig] of Object.entries(networks)) {
-    if (
-      networkConfig.type !== "http" &&
-      networkConfig.type !== "edr-simulated"
-    ) {
+    const networkType = networkConfig.type;
+    if (networkType !== "http" && networkType !== "edr-simulated") {
       throw new HardhatError(
         HardhatError.ERRORS.CORE.NETWORK.INVALID_NETWORK_TYPE,
         {
           networkName,
-          // eslint-disable-next-line @typescript-eslint/consistent-type-assertions -- we want to show the type
-          networkType: (networkConfig as any).type,
+          networkType,
         },
       );
     }
@@ -102,6 +103,7 @@ export async function resolveUserConfig(
         ? resolveHttpNetwork(networkConfig, resolveConfigurationVariable)
         : resolveEdrNetwork(
             networkConfig,
+            resolvedDefaultChainType,
             resolvedConfig.paths.cache,
             resolveConfigurationVariable,
           );
@@ -112,7 +114,7 @@ export async function resolveUserConfig(
     chainDescriptors: await resolveChainDescriptors(
       userConfig.chainDescriptors,
     ),
-    defaultChainType: userConfig.defaultChainType ?? GENERIC_CHAIN_TYPE,
+    defaultChainType: resolvedDefaultChainType,
     networks: resolvedNetworks,
   };
 }

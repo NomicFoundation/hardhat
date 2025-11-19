@@ -64,6 +64,7 @@ export function resolveHttpNetwork(
 
 export function resolveEdrNetwork(
   networkConfig: EdrNetworkUserConfig,
+  defaultChainType: ChainType,
   cachePath: string,
   resolveConfigurationVariable: ConfigurationVariableResolver,
 ): EdrNetworkConfig {
@@ -92,7 +93,10 @@ export function resolveEdrNetwork(
       cachePath,
       resolveConfigurationVariable,
     ),
-    hardfork: resolveHardfork(networkConfig.hardfork, networkConfig.chainType),
+    hardfork: resolveHardfork(
+      networkConfig.hardfork,
+      networkConfig.chainType ?? defaultChainType,
+    ),
     initialBaseFeePerGas: resolveInitialBaseFeePerGas(
       networkConfig.initialBaseFeePerGas,
     ),
@@ -275,7 +279,7 @@ export async function resolveChainDescriptors(
 
 export function resolveHardfork(
   hardfork: string | undefined,
-  chainType: ChainType | undefined = GENERIC_CHAIN_TYPE,
+  chainType: ChainType,
 ): string {
   if (hardfork !== undefined) {
     return hardfork;
