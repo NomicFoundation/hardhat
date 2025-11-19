@@ -54,6 +54,8 @@ export async function deploy<
   maxPriorityFeePerGas,
   gasPrice,
   disableFeeBumping,
+  maxRetries,
+  retryInterval,
 }: {
   config?: Partial<DeployConfig>;
   artifactResolver: ArtifactResolver;
@@ -74,6 +76,8 @@ export async function deploy<
   maxPriorityFeePerGas?: bigint;
   gasPrice?: bigint;
   disableFeeBumping?: boolean;
+  maxRetries?: number;
+  retryInterval?: number;
 }): Promise<DeploymentResult> {
   const executionStrategy: ExecutionStrategy = resolveStrategy(
     strategy,
@@ -131,6 +135,8 @@ export async function deploy<
       ? DEFAULT_AUTOMINE_REQUIRED_CONFIRMATIONS
       : config.requiredConfirmations ?? defaultConfig.requiredConfirmations,
     disableFeeBumping: disableFeeBumping ?? defaultConfig.disableFeeBumping,
+    maxRetries: maxRetries ?? defaultConfig.maxRetries,
+    retryInterval: retryInterval ?? defaultConfig.retryInterval,
     ...config,
   };
 

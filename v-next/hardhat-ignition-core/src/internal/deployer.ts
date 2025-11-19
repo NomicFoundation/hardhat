@@ -193,6 +193,8 @@ export class Deployer {
         this._config.maxFeeBumps,
         this._config.blockPollingInterval,
         this._config.disableFeeBumping,
+        this._config.maxRetries,
+        this._config.retryInterval,
       );
 
       deploymentState = await executionEngine.executeModule(
