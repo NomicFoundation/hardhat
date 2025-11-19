@@ -62,6 +62,13 @@ const buildAction: NewTaskActionFunction<BuildActionArguments> = async (
     }
   }
 
+  await hre.hooks.runHandlerChain(
+    "solidity",
+    "onBuildCompleted",
+    [],
+    async () => {},
+  );
+
   return { contractRootPaths, testRootPaths };
 };
 
