@@ -39,6 +39,7 @@ export async function resolveUserConfig(
             ...networkConfig,
             ignition: {
               maxFeePerGasLimit: givenIgnition.maxFeePerGasLimit,
+              maxFeePerGas: givenIgnition.maxFeePerGas,
               maxPriorityFeePerGas: givenIgnition.maxPriorityFeePerGas,
               gasPrice: givenIgnition.gasPrice,
               disableFeeBumping: givenIgnition.disableFeeBumping,

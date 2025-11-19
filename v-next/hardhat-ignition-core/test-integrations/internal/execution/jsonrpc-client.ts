@@ -105,6 +105,17 @@ describe("JSON-RPC client", function () {
           );
         });
 
+        it("Should use the configured maxFeePerGas", async function () {
+          const { client: maxFeeClient } = await createClient({
+            maxFeePerGas: 1n,
+          });
+          const fees = await maxFeeClient.getNetworkFees();
+
+          assert("maxFeePerGas" in fees);
+
+          assert.equal(fees.maxFeePerGas, 1n);
+        });
+
         it("Should use the configured maxPriorityFeePerGas", async function () {
           const { client: maxFeeClient } = await createClient({
             maxPriorityFeePerGas: 1n,
