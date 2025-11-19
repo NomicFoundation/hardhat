@@ -1,5 +1,12 @@
 # hardhat
 
+## 3.0.16
+
+### Patch Changes
+
+- 806ee5a: Fixed an issue caused by networks that don't implement `eth_feeHistory` correctly (https://github.com/NomicFoundation/hardhat/pull/7678)
+- f4b7f7e: Fix: use user config provided value for `defaultChainType` ([#7700](https://github.com/NomicFoundation/hardhat/issues/7700))
+
 ## 3.0.15
 
 ### Patch Changes
