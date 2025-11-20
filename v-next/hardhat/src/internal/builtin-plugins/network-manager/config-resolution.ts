@@ -42,13 +42,13 @@ import { isHttpNetworkHdAccountsUserConfig } from "./type-validation.js";
 
 export function resolveHttpNetwork(
   networkConfig: HttpNetworkUserConfig,
-  resolveConfigurationVariable: ConfigurationVariableResolver
+  resolveConfigurationVariable: ConfigurationVariableResolver,
 ): HttpNetworkConfig {
   return {
     type: "http",
     accounts: resolveHttpNetworkAccounts(
       networkConfig.accounts,
-      resolveConfigurationVariable
+      resolveConfigurationVariable,
     ),
     chainId: networkConfig.chainId,
     chainType: networkConfig.chainType,
@@ -65,13 +65,13 @@ export function resolveHttpNetwork(
 export function resolveEdrNetwork(
   networkConfig: EdrNetworkUserConfig,
   cachePath: string,
-  resolveConfigurationVariable: ConfigurationVariableResolver
+  resolveConfigurationVariable: ConfigurationVariableResolver,
 ): EdrNetworkConfig {
   return {
     type: "edr-simulated",
     accounts: resolveEdrNetworkAccounts(
       networkConfig.accounts,
-      resolveConfigurationVariable
+      resolveConfigurationVariable,
     ),
     chainId: networkConfig.chainId ?? 31337,
     chainType: networkConfig.chainType,
@@ -90,11 +90,11 @@ export function resolveEdrNetwork(
     forking: resolveForkingConfig(
       networkConfig.forking,
       cachePath,
-      resolveConfigurationVariable
+      resolveConfigurationVariable,
     ),
     hardfork: resolveHardfork(networkConfig.hardfork, networkConfig.chainType),
     initialBaseFeePerGas: resolveInitialBaseFeePerGas(
-      networkConfig.initialBaseFeePerGas
+      networkConfig.initialBaseFeePerGas,
     ),
     initialDate: networkConfig.initialDate ?? new Date(),
     loggingEnabled: networkConfig.loggingEnabled ?? false,
@@ -113,7 +113,7 @@ export function resolveGasConfig(value: GasUserConfig = "auto"): GasConfig {
 
 export function resolveHttpNetworkAccounts(
   accounts: HttpNetworkAccountsUserConfig | undefined = "remote",
-  resolveConfigurationVariable: ConfigurationVariableResolver
+  resolveConfigurationVariable: ConfigurationVariableResolver,
 ): HttpNetworkAccountsConfig {
   if (Array.isArray(accounts)) {
     return accounts.map((acc) => {
@@ -145,7 +145,7 @@ export function resolveEdrNetworkAccounts(
   accounts:
     | EdrNetworkAccountsUserConfig
     | undefined = DEFAULT_EDR_NETWORK_HD_ACCOUNTS_CONFIG_PARAMS,
-  resolveConfigurationVariable: ConfigurationVariableResolver
+  resolveConfigurationVariable: ConfigurationVariableResolver,
 ): EdrNetworkAccountsConfig {
   if (Array.isArray(accounts)) {
     return accounts.map(({ privateKey, balance }) => {
@@ -179,7 +179,7 @@ export function resolveEdrNetworkAccounts(
 export function resolveForkingConfig(
   forkingUserConfig: EdrNetworkForkingUserConfig | undefined,
   cacheDir: string,
-  resolveConfigurationVariable: ConfigurationVariableResolver
+  resolveConfigurationVariable: ConfigurationVariableResolver,
 ): EdrNetworkForkingConfig | undefined {
   if (forkingUserConfig === undefined) {
     return undefined;
@@ -198,7 +198,7 @@ export function resolveForkingConfig(
 }
 
 export function resolveMiningConfig(
-  miningUserConfig: EdrNetworkMiningUserConfig | undefined = {}
+  miningUserConfig: EdrNetworkMiningUserConfig | undefined = {},
 ): EdrNetworkMiningConfig {
   const { auto, interval, mempool } = miningUserConfig;
 
@@ -212,16 +212,16 @@ export function resolveMiningConfig(
 }
 
 export function resolveCoinbase(
-  coinbase: string | undefined = EDR_NETWORK_DEFAULT_COINBASE
+  coinbase: string | undefined = EDR_NETWORK_DEFAULT_COINBASE,
 ): Uint8Array {
   return hexStringToBytes(coinbase);
 }
 
 export async function resolveChainDescriptors(
-  chainDescriptors: ChainDescriptorsUserConfig | undefined
+  chainDescriptors: ChainDescriptorsUserConfig | undefined,
 ): Promise<ChainDescriptorsConfig> {
   const resolvedChainDescriptors: ChainDescriptorsConfig = await deepClone(
-    DEFAULT_CHAIN_DESCRIPTORS
+    DEFAULT_CHAIN_DESCRIPTORS,
   );
 
   if (chainDescriptors === undefined) {
@@ -246,7 +246,7 @@ export async function resolveChainDescriptors(
 
     if (userDescriptor.hardforkHistory !== undefined) {
       existingDescriptor.hardforkHistory = new Map(
-        Object.entries(userDescriptor.hardforkHistory)
+        Object.entries(userDescriptor.hardforkHistory),
       );
     }
 
@@ -258,12 +258,12 @@ export async function resolveChainDescriptors(
     const existingBlockExplorers: Record<string, any> =
       existingDescriptor.blockExplorers;
     for (const [explorerName, explorerConfig] of Object.entries(
-      userDescriptor.blockExplorers ?? {}
+      userDescriptor.blockExplorers ?? {},
     )) {
       existingBlockExplorers[explorerName] = deepMerge(
         existingBlockExplorers[explorerName] ?? {},
         explorerConfig,
-        false
+        false,
       );
     }
 
@@ -275,7 +275,7 @@ export async function resolveChainDescriptors(
 
 export function resolveHardfork(
   hardfork: string | undefined,
-  chainType: ChainType | undefined = GENERIC_CHAIN_TYPE
+  chainType: ChainType | undefined = GENERIC_CHAIN_TYPE,
 ): string {
   if (hardfork !== undefined) {
     return hardfork;
@@ -285,7 +285,7 @@ export function resolveHardfork(
 }
 
 export function resolveInitialBaseFeePerGas(
-  initialBaseFeePerGas: bigint | number | undefined
+  initialBaseFeePerGas: bigint | number | undefined,
 ): bigint | undefined {
   return initialBaseFeePerGas !== undefined
     ? BigInt(initialBaseFeePerGas)
