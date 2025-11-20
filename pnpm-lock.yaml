@@ -43,7 +43,7 @@ importers:
     dependencies:
       '@typescript-eslint/utils':
         specifier: ^5.61.0
-        version: 5.62.0(eslint@8.57.1)(typescript@5.3.3)
+        version: 5.62.0(eslint@8.57.1)(typescript@5.0.4)
       requireindex:
         specifier: ^1.2.0
         version: 1.2.0
@@ -56,7 +56,7 @@ importers:
         version: 8.3.0(eslint@8.57.1)
       eslint-doc-generator:
         specifier: ^1.0.0
-        version: 1.7.1(eslint@8.57.1)(typescript@5.3.3)
+        version: 1.7.1(eslint@8.57.1)(typescript@5.0.4)
       eslint-plugin-eslint-plugin:
         specifier: ^5.0.0
         version: 5.5.1(eslint@8.57.1)
@@ -65,7 +65,7 @@ importers:
         version: 16.6.2(eslint@8.57.1)
       eslint-plugin-prettier:
         specifier: 3.4.0
-        version: 3.4.0(eslint-config-prettier@8.3.0(eslint@8.57.1))(eslint@8.57.1)(prettier@2.8.8)
+        version: 3.4.0(eslint-config-prettier@8.3.0(eslint@8.57.1))(eslint@8.57.1)(prettier@2.4.1)
       mocha:
         specifier: ^10.0.0
         version: 10.8.2
@@ -201,8 +201,8 @@ importers:
         specifier: ^5.1.2
         version: 5.8.0
       '@nomicfoundation/edr':
-        specifier: ^0.12.0-next.15
-        version: 0.12.0-next.15
+        specifier: 0.12.0-next.16
+        version: 0.12.0-next.16
       '@nomicfoundation/solidity-analyzer':
         specifier: ^0.1.0
         version: 0.1.2
@@ -3067,36 +3067,36 @@ packages:
     resolution: {integrity: sha512-nn5ozdjYQpUCZlWGuxcJY/KpxkWQs4DcbMCmKojjyrYDEAGy4Ce19NN4v5MduafTwJlbKc99UA8YhSVqq9yPZA==}
     engines: {node: '>=12.4.0'}
 
-  '@nomicfoundation/edr-darwin-arm64@0.12.0-next.15':
-    resolution: {integrity: sha512-y/Z7fOaPxLzYTFDwWE/s4TIxvgq2cQhs6HKKh7+aJSQ6RxKrja5iKQEWg3D71jtgwizhGQpFQHtYXxmzWAjwyw==}
+  '@nomicfoundation/edr-darwin-arm64@0.12.0-next.16':
+    resolution: {integrity: sha512-no/8BPVBzVxDGGbDba0zsAxQmVNIq6SLjKzzhCxVKt4tatArXa6+24mr4jXJEmhVBvTNpQsNBO+MMpuEDVaTzQ==}
     engines: {node: '>= 20'}
 
-  '@nomicfoundation/edr-darwin-x64@0.12.0-next.15':
-    resolution: {integrity: sha512-hLDkDmtxOyUnlf1Mem6S8TKjCZh6yiWSA8kasqq7HSDa1/QmJou5eY1zFbw2xBky3StEUx5vfn3NpgBHTOCSBQ==}
+  '@nomicfoundation/edr-darwin-x64@0.12.0-next.16':
+    resolution: {integrity: sha512-tf36YbcC6po3XYRbi+v0gjwzqg1MvyRqVUujNMXPHgjNWATXNRNOLyjwt2qDn+RD15qtzk70SHVnz9n9mPWzwg==}
     engines: {node: '>= 20'}
 
-  '@nomicfoundation/edr-linux-arm64-gnu@0.12.0-next.15':
-    resolution: {integrity: sha512-+cHxrjLG3ILNj4+bRQ4uRBVfeCEhYYIqteZjiyryB2UXzyUJHaEqCRVxxJpiqzpsXTpTgVAsEuwYwERgT/1a5Q==}
+  '@nomicfoundation/edr-linux-arm64-gnu@0.12.0-next.16':
+    resolution: {integrity: sha512-Kr6t9icKSaKtPVbb0TjUcbn3XHqXOGIn+KjKKSSpm6542OkL0HyOi06amh6/8CNke9Gf6Lwion8UJ0aGQhnFwA==}
     engines: {node: '>= 20'}
 
-  '@nomicfoundation/edr-linux-arm64-musl@0.12.0-next.15':
-    resolution: {integrity: sha512-ppGDxVbGofWYkiFw8NrE+JlhNE39FTCXzvE586ZBaUqV3TMDcwnTkDltxzbl5YPmhNp3Qne3pJfJ0NB330Js+Q==}
+  '@nomicfoundation/edr-linux-arm64-musl@0.12.0-next.16':
+    resolution: {integrity: sha512-HaStgfxctSg5PYF+6ooDICL1O59KrgM4XEUsIqoRrjrQax9HnMBXcB8eAj+0O52FWiO9FlchBni2dzh4RjQR2g==}
     engines: {node: '>= 20'}
 
-  '@nomicfoundation/edr-linux-x64-gnu@0.12.0-next.15':
-    resolution: {integrity: sha512-ifOr9sAuBbnJpZtGYtFkEkwTXBsM9pT9tq7KXT3eOYBWw3TJIsP3DfnTgYF+pZObxBFyBtMJnyy0j1ItL+s9rg==}
+  '@nomicfoundation/edr-linux-x64-gnu@0.12.0-next.16':
+    resolution: {integrity: sha512-8JPTxEZkwOPTgnN4uTWut9ze9R8rp7+T4IfmsKK9i+lDtdbJIxkrFY275YHG2BEYLd7Y5jTa/I4nC74ZpTAvpA==}
     engines: {node: '>= 20'}
 
-  '@nomicfoundation/edr-linux-x64-musl@0.12.0-next.15':
-    resolution: {integrity: sha512-Jc0HZZOJAcPjxj3FbgtWQQGe6OmI6xiblFBAmXUGothxTZ3rn1YZeHqXews9MEjL8MCvHvfAjfLRkafSyyXX2Q==}
+  '@nomicfoundation/edr-linux-x64-musl@0.12.0-next.16':
+    resolution: {integrity: sha512-KugTrq3iHukbG64DuCYg8uPgiBtrrtX4oZSLba5sjocp0Ul6WWI1FeP1Qule+vClUrHSpJ+wR1G6SE7G0lyS/Q==}
     engines: {node: '>= 20'}
 
-  '@nomicfoundation/edr-win32-x64-msvc@0.12.0-next.15':
-    resolution: {integrity: sha512-TFbhcY1J+IRB4nVwXAvw/a5gy3o7+AQ83vfxT3Sk/z4Kk6v3c6Xkizy6IY6vTtpSWWmiuAh998QYq8D7LHIc3g==}
+  '@nomicfoundation/edr-win32-x64-msvc@0.12.0-next.16':
+    resolution: {integrity: sha512-Idy0ZjurxElfSmepUKXh6QdptLbW5vUNeIaydvqNogWoTbkJIM6miqZd9lXUy1TYxY7G4Rx5O50c52xc4pFwXQ==}
     engines: {node: '>= 20'}
 
-  '@nomicfoundation/edr@0.12.0-next.15':
-    resolution: {integrity: sha512-JMLvnro2cxSq1h/A2WYo018o5R4ns7ut/A6WoiBfXKDj/OSN8mRnEpDaICIrk6fopbAfMi6MmP8TQefDs+lKAg==}
+  '@nomicfoundation/edr@0.12.0-next.16':
+    resolution: {integrity: sha512-bBL/nHmQwL1WCveALwg01VhJcpVVklJyunG1d/bhJbHgbjzAn6kohVJc7A6gFZegw+Rx38vdxpBkeCDjAEprzw==}
     engines: {node: '>= 20'}
 
   '@nomicfoundation/solidity-analyzer-darwin-arm64@0.1.2':
@@ -9897,29 +9897,29 @@ snapshots:
 
   '@nolyfill/is-core-module@1.0.39': {}
 
-  '@nomicfoundation/edr-darwin-arm64@0.12.0-next.15': {}
+  '@nomicfoundation/edr-darwin-arm64@0.12.0-next.16': {}
 
-  '@nomicfoundation/edr-darwin-x64@0.12.0-next.15': {}
+  '@nomicfoundation/edr-darwin-x64@0.12.0-next.16': {}
 
-  '@nomicfoundation/edr-linux-arm64-gnu@0.12.0-next.15': {}
+  '@nomicfoundation/edr-linux-arm64-gnu@0.12.0-next.16': {}
 
-  '@nomicfoundation/edr-linux-arm64-musl@0.12.0-next.15': {}
+  '@nomicfoundation/edr-linux-arm64-musl@0.12.0-next.16': {}
 
-  '@nomicfoundation/edr-linux-x64-gnu@0.12.0-next.15': {}
+  '@nomicfoundation/edr-linux-x64-gnu@0.12.0-next.16': {}
 
-  '@nomicfoundation/edr-linux-x64-musl@0.12.0-next.15': {}
+  '@nomicfoundation/edr-linux-x64-musl@0.12.0-next.16': {}
 
-  '@nomicfoundation/edr-win32-x64-msvc@0.12.0-next.15': {}
+  '@nomicfoundation/edr-win32-x64-msvc@0.12.0-next.16': {}
 
-  '@nomicfoundation/edr@0.12.0-next.15':
+  '@nomicfoundation/edr@0.12.0-next.16':
     dependencies:
-      '@nomicfoundation/edr-darwin-arm64': 0.12.0-next.15
-      '@nomicfoundation/edr-darwin-x64': 0.12.0-next.15
-      '@nomicfoundation/edr-linux-arm64-gnu': 0.12.0-next.15
-      '@nomicfoundation/edr-linux-arm64-musl': 0.12.0-next.15
-      '@nomicfoundation/edr-linux-x64-gnu': 0.12.0-next.15
-      '@nomicfoundation/edr-linux-x64-musl': 0.12.0-next.15
-      '@nomicfoundation/edr-win32-x64-msvc': 0.12.0-next.15
+      '@nomicfoundation/edr-darwin-arm64': 0.12.0-next.16
+      '@nomicfoundation/edr-darwin-x64': 0.12.0-next.16
+      '@nomicfoundation/edr-linux-arm64-gnu': 0.12.0-next.16
+      '@nomicfoundation/edr-linux-arm64-musl': 0.12.0-next.16
+      '@nomicfoundation/edr-linux-x64-gnu': 0.12.0-next.16
+      '@nomicfoundation/edr-linux-x64-musl': 0.12.0-next.16
+      '@nomicfoundation/edr-win32-x64-msvc': 0.12.0-next.16
 
   '@nomicfoundation/solidity-analyzer-darwin-arm64@0.1.2':
     optional: true
@@ -12268,6 +12268,25 @@ snapshots:
     dependencies:
       eslint: 8.57.1
 
+  eslint-doc-generator@1.7.1(eslint@8.57.1)(typescript@5.0.4):
+    dependencies:
+      '@typescript-eslint/utils': 5.62.0(eslint@8.57.1)(typescript@5.0.4)
+      ajv: 8.17.1
+      boolean: 3.2.0
+      commander: 10.0.1
+      cosmiconfig: 8.3.6(typescript@5.0.4)
+      deepmerge: 4.3.1
+      dot-prop: 7.2.0
+      eslint: 8.57.1
+      jest-diff: 29.7.0
+      json-schema-traverse: 1.0.0
+      markdown-table: 3.0.4
+      no-case: 3.0.4
+      type-fest: 3.13.1
+    transitivePeerDependencies:
+      - supports-color
+      - typescript
+
   eslint-doc-generator@1.7.1(eslint@8.57.1)(typescript@5.3.3):
     dependencies:
       '@typescript-eslint/utils': 5.62.0(eslint@8.57.1)(typescript@5.3.3)
@@ -12420,14 +12439,6 @@ snapshots:
     dependencies:
       eslint: 8.57.1
       prettier: 2.4.1
-      prettier-linter-helpers: 1.0.0
-    optionalDependencies:
-      eslint-config-prettier: 8.3.0(eslint@8.57.1)
-
-  eslint-plugin-prettier@3.4.0(eslint-config-prettier@8.3.0(eslint@8.57.1))(eslint@8.57.1)(prettier@2.8.8):
-    dependencies:
-      eslint: 8.57.1
-      prettier: 2.8.8
       prettier-linter-helpers: 1.0.0
     optionalDependencies:
       eslint-config-prettier: 8.3.0(eslint@8.57.1)
