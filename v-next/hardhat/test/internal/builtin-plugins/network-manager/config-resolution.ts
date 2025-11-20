@@ -208,20 +208,6 @@ describe("config-resolution", () => {
       assert.equal(edrNetworkConfig.throwOnTransactionFailures, true);
     });
 
-    it("should use the transaction gas cap as default block gas limit for post-Osaka hardforks", () => {
-      const userConfig: EdrNetworkUserConfig = {
-        type: "edr-simulated",
-        hardfork: "osaka",
-      };
-      const edrNetworkConfig = resolveEdrNetwork(
-        userConfig,
-        "",
-        configVarResolver,
-      );
-
-      assert.equal(edrNetworkConfig.blockGasLimit, 16_777_216n);
-    });
-
     it("should use the provided chainId for the networkId if it is not provided", () => {
       const userConfig: EdrNetworkUserConfig = {
         type: "edr-simulated",
