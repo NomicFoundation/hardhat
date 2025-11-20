@@ -54,6 +54,8 @@ extendConfig((config, userConfig) => {
       gasPrice: userNetworkConfig.ignition?.gasPrice,
       disableFeeBumping: userNetworkConfig.ignition?.disableFeeBumping,
       explorerUrl: userNetworkConfig.ignition?.explorerUrl,
+      maxRetries: userNetworkConfig.ignition?.maxRetries,
+      retryInterval: userNetworkConfig.ignition?.retryInterval,
     };
   });
 
@@ -335,6 +337,12 @@ ignitionScope
           disableFeeBumping:
             hre.config.ignition.disableFeeBumping ??
             hre.config.networks[hre.network.name]?.ignition.disableFeeBumping,
+          maxRetries:
+            hre.config.ignition.maxRetries ??
+            hre.config.networks[hre.network.name]?.ignition.maxRetries,
+          retryInterval:
+            hre.config.ignition.retryInterval ??
+            hre.config.networks[hre.network.name]?.ignition.retryInterval,
         });
 
         try {
