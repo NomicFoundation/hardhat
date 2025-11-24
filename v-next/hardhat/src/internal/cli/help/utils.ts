@@ -68,7 +68,9 @@ export function parseOptions(task: Task): {
   const options = [];
   const positionalArguments = [];
 
-  for (const [optionName, option] of task.options) {
+  for (const [optionName, option] of task.options
+    .entries()
+    .filter(([, o]) => o.hidden !== true)) {
     if (option.hidden === true) {
       continue;
     }

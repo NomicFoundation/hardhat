@@ -21,7 +21,7 @@ import {
 import { ArgumentType } from "../../../../src/types/arguments.js";
 import { TaskDefinitionType } from "../../../../src/types/tasks.js";
 
-describe("Task builders", () => {
+describe.only("Task builders", () => {
   before(() => {
     // Make sure we have some reserved names
     RESERVED_ARGUMENT_NAMES.add("testName1");
@@ -1222,6 +1222,7 @@ describe("Task builders", () => {
               description: "",
               type: ArgumentType.STRING,
               defaultValue: "default",
+              hidden: undefined,
             },
           },
         });
@@ -1255,6 +1256,7 @@ describe("Task builders", () => {
               description: "Argument description",
               type: ArgumentType.STRING,
               defaultValue: "default",
+              hidden: undefined,
             },
           },
         });
@@ -1288,6 +1290,7 @@ describe("Task builders", () => {
               description: "",
               type: ArgumentType.INT,
               defaultValue: 1,
+              hidden: undefined,
             },
           },
         });
@@ -1323,6 +1326,41 @@ describe("Task builders", () => {
               description: "",
               type: ArgumentType.INT,
               defaultValue: 1,
+              hidden: undefined,
+            },
+          },
+        });
+      });
+
+      it("should add a hidden option", () => {
+        const builder = new TaskOverrideDefinitionBuilderImplementation(
+          "task-id",
+        );
+        const taskAction = async () => ({
+          default: () => {},
+        });
+        const taskDefinition = builder
+          .setAction(taskAction)
+          .addOption({
+            name: "arg",
+            defaultValue: "default",
+            hidden: true,
+          })
+          .build();
+
+        assert.deepEqual(taskDefinition, {
+          type: TaskDefinitionType.TASK_OVERRIDE,
+          id: ["task-id"],
+          description: undefined,
+          action: taskAction,
+          options: {
+            arg: {
+              name: "arg",
+              shortName: undefined,
+              description: "",
+              type: ArgumentType.STRING,
+              defaultValue: "default",
+              hidden: true,
             },
           },
         });
@@ -1354,6 +1392,7 @@ describe("Task builders", () => {
               description: "",
               type: ArgumentType.FLAG,
               defaultValue: false,
+              hidden: undefined,
             },
           },
         });
@@ -1383,6 +1422,7 @@ describe("Task builders", () => {
               description: "Flag description",
               type: ArgumentType.FLAG,
               defaultValue: false,
+              hidden: undefined,
             },
           },
         });
@@ -1412,6 +1452,7 @@ describe("Task builders", () => {
               description: "",
               type: ArgumentType.FLAG,
               defaultValue: false,
+              hidden: undefined,
             },
           },
         });
