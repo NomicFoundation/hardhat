@@ -166,7 +166,7 @@ The configuration object supports the following properties:
 
 Same as `deployContract`, but doesn't wait for the deployment to be mined, and returns an object with two properties:
 
-- `contract`: the contract instance, which is available even before the deployment is mined.
+- `contract`: the contract instance, which is available even before the transaction is mined.
 - `deploymentTransaction`: the deployment transaction.
 
 The optional configuration object has the following properties:
