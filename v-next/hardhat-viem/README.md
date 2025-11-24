@@ -161,6 +161,12 @@ The configuration object supports the following properties:
 
 - `confirmations`: the number of confirmations to wait after the deployment transaction is mined. Default is `1`.
 - `libraries`: an object specifying the libraries to link in the contract.
+- `client`: an object with two properties, `public` and `wallet`, that specify the public and wallet clients to use with the returned contract. At least one of them must be provided.
+- `gas`: the gas limit for the transaction.
+- `gasPrice`: the gas price for the transaction.
+- `maxFeePerGas`: the maximum fee per gas for the transaction.
+- `maxPriorityFeePerGas`: the maximum priority fee per gas for the transaction.
+- `value`: the value to send with the transaction, in wei.
 
 ### `sendDeploymentTransaction(contractName, constructorArgs?, sendDeploymentContractConfig?)`
 
@@ -169,12 +175,10 @@ Same as `deployContract`, but doesn't wait for the deployment to be mined, and r
 - `contract`: the contract instance, which is available even before the transaction is mined.
 - `deploymentTransaction`: the deployment transaction.
 
-The optional configuration object has the following properties:
-
-- `libraries`: an object specifying the libraries to link in the contract.
+The optional configuration object has the same properties as the one in `deployContract`, except for `confirmations`, which is not applicable here.
 
 ### `getContractAt(contractName, address, getContractConfig?)`
 
 Returns a contract instance for an already deployed contract. Provide the contract name and address. Optionally pass a configuration object with the following properties:
 
-- `client`: an object with two properties, `public` and `wallet`, that specify the public and wallet clients to use with the contract. At least one of them must be provided.
+- `client`: an object with two properties, `public` and `wallet`, that specify the public and wallet clients to use with the returned contract. At least one of them must be provided.
