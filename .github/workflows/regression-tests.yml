@@ -84,7 +84,7 @@ jobs:
       commands: ${{ inputs.commands || toJson(fromJson(steps.config.outputs.preset).commands) }}
     steps:
       - id: checkout
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
         with:
           repository: NomicFoundation/hardhat
           ref: ${{ inputs.ref || github.ref }}
@@ -124,7 +124,7 @@ jobs:
         shell: bash
         working-directory: crates/edr_napi
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
         with:
           repository: NomicFoundation/edr
           ref: ${{ needs.inputs.outputs.edr-ref }}
@@ -174,7 +174,7 @@ jobs:
         shell: bash
         working-directory: crates/edr_napi
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
         with:
           repository: NomicFoundation/edr
           ref: ${{ needs.inputs.outputs.edr-ref }}
@@ -222,7 +222,7 @@ jobs:
         shell: bash
         working-directory: v-next/hardhat
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
         with:
           repository: NomicFoundation/hardhat
           ref: ${{ needs.inputs.outputs.hardhat-ref }}
@@ -288,7 +288,7 @@ jobs:
         runner: ${{ fromJSON(needs.inputs.outputs.runners) }}
         command: ${{ fromJSON(needs.inputs.outputs.commands) }}
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
         with:
           repository: NomicFoundation/hardhat
           path: NomicFoundation/hardhat
@@ -393,7 +393,7 @@ jobs:
           version: ${{ fromJSON(steps.config.outputs.repository).forge-version }}
           cache: false
       - name: Checkout the repository
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
         with:
           submodules: recursive
           repository: ${{ matrix.repository }}

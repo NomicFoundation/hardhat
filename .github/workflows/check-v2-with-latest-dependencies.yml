@@ -13,7 +13,7 @@ jobs:
         system: ["ubuntu-latest", "windows-latest"]
     runs-on: ${{ matrix.system }}
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
         with:
           ref: v2 # Checkout the `v2` branch
       - uses: ./.github/actions/setup-env
