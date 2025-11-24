@@ -120,12 +120,22 @@ export class JsonRpcHandler {
 
       // Clear any active subscriptions for the closed websocket connection.
       isClosed = true;
-      subscriptions.forEach(async (subscriptionId) => {
-        await this.#provider.request({
-          method: "eth_unsubscribe",
-          params: [subscriptionId],
-        });
-      });
+      // Ensure we unsubscribe without leaving dangling promises when the provider rejects.
+      void Promise.all(
+        subscriptions.map((subscriptionId) =>
+          this.#provider
+            .request({
+              method: "eth_unsubscribe",
+              params: [subscriptionId],
+            })
+            .catch((error) => {
+              ensureError(error);
+              console.warn(
+                `Failed to unsubscribe from ${subscriptionId}: ${error.message}`,
+              );
+            }),
+        ),
+      );
     });
   };
 
