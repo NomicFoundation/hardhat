@@ -1417,7 +1417,7 @@ describe("Task builders", () => {
         });
       });
 
-      it("should add a flag with a short name", () => {
+      it("should add a hidden flag", () => {
         const builder = new TaskOverrideDefinitionBuilderImplementation(
           "task-id",
         );
@@ -1426,7 +1426,7 @@ describe("Task builders", () => {
         });
         const taskDefinition = builder
           .setAction(taskAction)
-          .addFlag({ name: "flag", shortName: "f" })
+          .addFlag({ name: "flag", hidden: true })
           .build();
 
         assert.deepEqual(taskDefinition, {
@@ -1437,10 +1437,11 @@ describe("Task builders", () => {
           options: {
             flag: {
               name: "flag",
-              shortName: "f",
+              shortName: undefined,
               description: "",
               type: ArgumentType.FLAG,
               defaultValue: false,
+              hidden: true,
             },
           },
         });
