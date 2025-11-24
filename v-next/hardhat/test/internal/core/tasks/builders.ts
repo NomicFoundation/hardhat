@@ -21,7 +21,7 @@ import {
 import { ArgumentType } from "../../../../src/types/arguments.js";
 import { TaskDefinitionType } from "../../../../src/types/tasks.js";
 
-describe.only("Task builders", () => {
+describe("Task builders", () => {
   before(() => {
     // Make sure we have some reserved names
     RESERVED_ARGUMENT_NAMES.add("testName1");
