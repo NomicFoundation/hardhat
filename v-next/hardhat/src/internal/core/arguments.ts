@@ -191,7 +191,7 @@ export function parseArgumentValue(
 
 function validateAndParseInt(name: string, value: string): number {
   const decimalPattern = /^\d+(?:[eE]\d+)?$/;
-  const hexPattern = /^0[xX][\dABCDEabcde]+$/;
+  const hexPattern = /^0[xX][\dA-Fa-f]+$/;
 
   if (!decimalPattern.test(value) && !hexPattern.test(value)) {
     throw new HardhatError(
@@ -226,7 +226,7 @@ function validateAndParseLevel(name: string, value: string): number {
 
 function validateAndParseFloat(name: string, value: string): number {
   const decimalPattern = /^(?:\d+(?:\.\d*)?|\.\d+)(?:[eE]\d+)?$/;
-  const hexPattern = /^0[xX][\dABCDEabcde]+$/;
+  const hexPattern = /^0[xX][\dA-Fa-f]+$/;
 
   if (!decimalPattern.test(value) && !hexPattern.test(value)) {
     throw new HardhatError(
@@ -244,7 +244,7 @@ function validateAndParseFloat(name: string, value: string): number {
 
 function validateAndParseBigInt(name: string, value: string): bigint {
   const decimalPattern = /^\d+(?:n)?$/;
-  const hexPattern = /^0[xX][\dABCDEabcde]+$/;
+  const hexPattern = /^0[xX][\dA-Fa-f]+$/;
 
   if (!decimalPattern.test(value) && !hexPattern.test(value)) {
     throw new HardhatError(
