@@ -30,9 +30,7 @@ describe("Solpp plugin", function () {
     });
 
     it("should compile without errors", async function () {
-      assert.doesNotThrow(async () => {
-        await this.env.run(TASK_COMPILE);
-      });
+      await this.env.run(TASK_COMPILE);
     });
   });
 
