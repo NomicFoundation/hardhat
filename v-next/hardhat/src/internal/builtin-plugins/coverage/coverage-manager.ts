@@ -6,7 +6,6 @@ import type {
   Tag,
 } from "./types.js";
 import type { TableItem } from "@nomicfoundation/hardhat-utils/format";
-import type { FileCoverageData } from "@nomicfoundation/hardhat-vendored/coverage/types";
 
 import path from "node:path";
 
@@ -15,17 +14,11 @@ import { divider, formatTable } from "@nomicfoundation/hardhat-utils/format";
 import {
   ensureDir,
   getAllFilesMatching,
-  mkdir,
   readJsonFile,
   remove,
   writeJsonFile,
   writeUtf8File,
 } from "@nomicfoundation/hardhat-utils/fs";
-import {
-  libCoverage,
-  libReport,
-  reports,
-} from "@nomicfoundation/hardhat-vendored/coverage";
 import chalk from "chalk";
 import debug from "debug";
 
@@ -125,10 +118,6 @@ export class CoverageManagerImplementation implements CoverageManager {
     const lcovReportPath = path.join(this.#coveragePath, "lcov.info");
     await writeUtf8File(lcovReportPath, lcovReport);
     log(`Saved lcov report to ${lcovReportPath}`);
-
-    const htmlReportPath = path.join(this.#coveragePath, "html");
-    await this.#writeHtmlReport(report, htmlReportPath);
-    console.log(`Saved html report to ${htmlReportPath}`);
 
     console.log(markdownReport);
     console.log();
@@ -567,55 +556,5 @@ export class CoverageManagerImplementation implements CoverageManager {
     ]);
 
     return formatTable(rows);
-  }
-
-  async #writeHtmlReport(
-    report: Report,
-    htmlReportPath: string,
-  ): Promise<void> {
-    const baseDir = process.cwd();
-    const coverageMap = libCoverage.createCoverageMap({});
-
-    // Construct coverage data for each tested file,
-    // detailing whether each line was executed or not.
-    for (const [p, fileCoverageInput] of Object.entries(report)) {
-      const testedFilePath = path.isAbsolute(p) ? p : path.join(baseDir, p);
-
-      const fc: FileCoverageData = {
-        path: testedFilePath,
-        statementMap: {},
-        fnMap: {}, // Cannot be derived from current report data
-        branchMap: {},
-        s: {},
-        f: {}, // Cannot be derived from current report data
-        b: {},
-      };
-
-      for (const [line, count] of fileCoverageInput.lineExecutionCounts) {
-        fc.statementMap[line] = {
-          start: { line, column: 0 },
-          end: { line, column: 0 },
-        };
-
-        if (fileCoverageInput.partiallyExecutedLines.has(line)) {
-          fc.s[line] = 0; // mark as not covered
-          continue;
-        }
-
-        // TODO: bug line count
-        fc.s[line] = count > 0 ? 1 : 0; // mark as covered if hit at least once
-      }
-
-      coverageMap.addFileCoverage(fc);
-    }
-
-    await mkdir(htmlReportPath);
-
-    const context = libReport.createContext({
-      dir: htmlReportPath,
-      coverageMap,
-    });
-
-    reports.create("html", undefined).execute(context);
   }
 }

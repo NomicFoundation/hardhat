@@ -90,7 +90,6 @@
     "@nomicfoundation/edr": "0.12.0-next.14",
     "@nomicfoundation/hardhat-errors": "workspace:^3.0.4",
     "@nomicfoundation/hardhat-utils": "workspace:^3.0.5",
-    "@nomicfoundation/hardhat-vendored": "workspace:^3.0.0",
     "@nomicfoundation/hardhat-zod-utils": "workspace:^3.0.1",
     "@nomicfoundation/solidity-analyzer": "^0.1.1",
     "@sentry/core": "^9.4.0",

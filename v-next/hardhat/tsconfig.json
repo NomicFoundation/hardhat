@@ -15,9 +15,6 @@
     },
     {
       "path": "../hardhat-zod-utils"
-    },
-    {
-      "path": "../hardhat-vendored"
     }
   ],
   "exclude": [
