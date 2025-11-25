@@ -1,6 +1,6 @@
 {
   "name": "@nomicfoundation/hardhat-errors",
-  "version": "3.0.3",
+  "version": "3.0.5",
   "description": "The different errors that Hardhat can throw",
   "homepage": "https://github.com/nomicfoundation/hardhat/tree/v-next/v-next/hardhat-errors",
   "repository": {
@@ -13,7 +13,8 @@
   "type": "module",
   "types": "dist/src/index.d.ts",
   "exports": {
-    ".": "./dist/src/index.js"
+    ".": "./dist/src/index.js",
+    "./descriptors": "./dist/src/descriptors.js"
   },
   "keywords": [
     "ethereum",

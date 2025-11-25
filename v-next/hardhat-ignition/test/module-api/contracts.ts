@@ -69,7 +69,7 @@ describe("contract deploys", () => {
   });
 
   it("should be able to use an artifact to deploy a contract", async function () {
-    await this.hre.tasks.getTask("compile").run({ quiet: true });
+    await this.hre.tasks.getTask("build").run({ quiet: true });
 
     const artifact = await this.hre.artifacts.readArtifact("Greeter");
 

@@ -28,7 +28,7 @@ describe("contracts", () => {
       hre = await createHardhatRuntimeEnvironment({
         plugins: [HardhatViem],
       });
-      await hre.tasks.getTask("compile").run({});
+      await hre.tasks.getTask("build").run({});
     });
 
     describe("deployContract", () => {

@@ -1,5 +1,17 @@
 # @nomicfoundation/hardhat-viem-assertions
 
+## 3.0.4
+
+### Patch Changes
+
+- 67008ab: Improved the documentation
+
+## 3.0.3
+
+### Patch Changes
+
+- 558ac5b: Update installation and config instructions
+
 ## 3.0.2
 
 ### Patch Changes

@@ -23,6 +23,7 @@ import type {
 import type { ArtifactManager } from "hardhat/types/artifacts";
 import type { HardhatConfig } from "hardhat/types/config";
 import type { NetworkConnection, ChainType } from "hardhat/types/network";
+import type { UserInterruptionManager } from "hardhat/types/user-interruptions";
 
 import path from "node:path";
 
@@ -52,6 +53,7 @@ export class ViemIgnitionHelperImpl<ChainTypeT extends ChainType | string>
   readonly #hardhatConfig: HardhatConfig;
   readonly #artifactsManager: ArtifactManager;
   readonly #connection: NetworkConnection<ChainTypeT>;
+  readonly #userInterruptions: UserInterruptionManager;
   readonly #config: Partial<DeployConfig> | undefined;
   readonly #provider: EIP1193Provider;
 
@@ -61,12 +63,14 @@ export class ViemIgnitionHelperImpl<ChainTypeT extends ChainType | string>
     hardhatConfig: HardhatConfig,
     artifactsManager: ArtifactManager,
     connection: NetworkConnection<ChainTypeT>,
+    userInterruptions: UserInterruptionManager,
     config?: Partial<DeployConfig> | undefined,
     provider?: EIP1193Provider,
   ) {
     this.#hardhatConfig = hardhatConfig;
     this.#artifactsManager = artifactsManager;
     this.#connection = connection;
+    this.#userInterruptions = userInterruptions;
     this.#config = config;
     this.#provider = provider ?? this.#connection.provider;
   }
@@ -136,10 +140,8 @@ export class ViemIgnitionHelperImpl<ChainTypeT extends ChainType | string>
         this.#artifactsManager,
       );
 
-      const resolvedConfig: Partial<DeployConfig> = {
-        ...this.#config,
-        ...perDeployConfig,
-      };
+      const resolvedConfig: Partial<DeployConfig> =
+        this.getResolvedConfig(perDeployConfig);
 
       const resolvedStrategyConfig =
         ViemIgnitionHelperImpl.#resolveStrategyConfig<StrategyT>(
@@ -166,7 +168,7 @@ export class ViemIgnitionHelperImpl<ChainTypeT extends ChainType | string>
             );
 
       const executionEventListener = displayUi
-        ? new PrettyEventHandler()
+        ? new PrettyEventHandler(this.#userInterruptions)
         : undefined;
 
       let deploymentParameters: DeploymentParameters;
@@ -214,6 +216,15 @@ export class ViemIgnitionHelperImpl<ChainTypeT extends ChainType | string>
     } finally {
       this.#mutex = false;
     }
+  }
+
+  public getResolvedConfig(
+    perDeployConfig: Partial<DeployConfig>,
+  ): Partial<DeployConfig> {
+    return {
+      ...this.#config,
+      ...perDeployConfig,
+    };
   }
 
   async #toViemContracts<

@@ -152,8 +152,9 @@ const taskDeploy: NewTaskActionFunction<TaskDeployArguments> = async (
     );
   }
 
-  await hre.tasks.getTask("compile").run({
+  await hre.tasks.getTask("build").run({
     quiet: true,
+    noTests: true,
     defaultBuildProfile: "production",
   });
 
@@ -186,7 +187,7 @@ const taskDeploy: NewTaskActionFunction<TaskDeployArguments> = async (
 
   const artifactResolver = new HardhatArtifactResolver(hre.artifacts);
 
-  const executionEventListener = new PrettyEventHandler();
+  const executionEventListener = new PrettyEventHandler(hre.interruptions);
 
   const strategyConfig = hre.config.ignition.strategyConfig?.[strategyName];
 

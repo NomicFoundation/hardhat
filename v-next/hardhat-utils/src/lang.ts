@@ -30,24 +30,33 @@ export async function deepEqual<T>(x: T, y: T): Promise<boolean> {
  *
  * @remarks
  * - Arrays or `undefined` values are not valid inputs.
- * - Functions: If a function exists in both the target and source, the source function overwrites the target.
- * - Symbol properties: Symbol-keyed properties are merged just like string keys.
- * - Class instances: Class instances are not merged recursively. If a class instance exists in the source, it will replace the one in the target.
+ * - Functions: If a function exists in both the target and source, the source
+ * function overwrites the target.
+ * - Symbol properties: Symbol-keyed properties are merged just like string
+ * keys.
+ * - Class instances: Class instances are not merged recursively. If a class
+ * instance exists in the source, it will replace the one in the target.
  *
  * @param target The target object to merge into.
  * @param source The source object to merge from.
+ * @param shouldOverwriteUndefined If true, properties with `undefined` values
+ * in the source will overwrite those in the target. Default is true.
  * @returns A new object containing the deeply merged properties.
  *
  * @example
  * deepMerge({ a: { b: 1 } }, { a: { c: 2 } }) // => { a: { b: 1, c: 2 } }
  *
- * deepMerge({ a: { fn: () => "from target" } }, { a: { fn: () => "from source" } }) // => { a: { fn: () => "from source" } }
+ * deepMerge(
+ *   { a: { fn: () => "from target" } },
+ *   { a: { fn: () => "from source" } }
+ * ) // => { a: { fn: () => "from source" } }
  */
 export function deepMerge<T extends object, U extends object>(
   target: T,
   source: U,
+  shouldOverwriteUndefined: boolean = true,
 ): T & U {
-  return deepMergeImpl(target, source);
+  return deepMergeImpl(target, source, shouldOverwriteUndefined);
 }
 
 /**

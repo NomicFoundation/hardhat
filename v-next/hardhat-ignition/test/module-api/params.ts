@@ -137,7 +137,7 @@ describe("params validation", () => {
   useEphemeralIgnitionProject("minimal");
 
   it("should throw if no parameters object provided", async function () {
-    await this.hre.tasks.getTask("compile").run({ quiet: true });
+    await this.hre.tasks.getTask("build").run({ quiet: true });
 
     const userModule = buildModule("UserModule", (m) => {
       const myNumber = m.getParameter("MyNumber");
@@ -158,7 +158,7 @@ describe("params validation", () => {
   });
 
   it("should throw if parameter missing from parameters", async function () {
-    await this.hre.tasks.getTask("compile").run({ quiet: true });
+    await this.hre.tasks.getTask("build").run({ quiet: true });
 
     const userModule = buildModule("UserModule", (m) => {
       const myNumber = m.getParameter("MyNumber");

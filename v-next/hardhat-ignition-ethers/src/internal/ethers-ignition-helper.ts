@@ -17,6 +17,7 @@ import type { Contract } from "ethers";
 import type { ArtifactManager } from "hardhat/types/artifacts";
 import type { HardhatConfig } from "hardhat/types/config";
 import type { ChainType, NetworkConnection } from "hardhat/types/network";
+import type { UserInterruptionManager } from "hardhat/types/user-interruptions";
 import "@nomicfoundation/hardhat-ignition";
 
 import path from "node:path";
@@ -48,6 +49,7 @@ export class EthersIgnitionHelperImpl<ChainTypeT extends ChainType | string>
   readonly #connection: NetworkConnection<ChainTypeT>;
   readonly #config: Partial<DeployConfig> | undefined;
   readonly #provider: EIP1193Provider;
+  readonly #userInterruptions: UserInterruptionManager;
 
   #mutex: boolean = false;
 
@@ -55,12 +57,14 @@ export class EthersIgnitionHelperImpl<ChainTypeT extends ChainType | string>
     hardhatConfig: HardhatConfig,
     artifactsManager: ArtifactManager,
     connection: NetworkConnection<ChainTypeT>,
+    userInterruptions: UserInterruptionManager,
     config?: Partial<DeployConfig> | undefined,
     provider?: EIP1193Provider,
   ) {
     this.#hardhatConfig = hardhatConfig;
     this.#artifactsManager = artifactsManager;
     this.#connection = connection;
+    this.#userInterruptions = userInterruptions;
     this.#config = config;
     this.#provider = provider ?? this.#connection.provider;
   }
@@ -134,10 +138,8 @@ export class EthersIgnitionHelperImpl<ChainTypeT extends ChainType | string>
         this.#artifactsManager,
       );
 
-      const resolvedConfig: Partial<DeployConfig> = {
-        ...this.#config,
-        ...perDeployConfig,
-      };
+      const resolvedConfig: Partial<DeployConfig> =
+        this.getResolvedConfig(perDeployConfig);
 
       const resolvedStrategyConfig = this.#resolveStrategyConfig<StrategyT>(
         this.#hardhatConfig,
@@ -163,7 +165,7 @@ export class EthersIgnitionHelperImpl<ChainTypeT extends ChainType | string>
             );
 
       const executionEventListener = displayUi
-        ? new PrettyEventHandler()
+        ? new PrettyEventHandler(this.#userInterruptions)
         : undefined;
 
       let deploymentParameters: DeploymentParameters;
@@ -211,6 +213,15 @@ export class EthersIgnitionHelperImpl<ChainTypeT extends ChainType | string>
     } finally {
       this.#mutex = false;
     }
+  }
+
+  public getResolvedConfig(
+    perDeployConfig: Partial<DeployConfig>,
+  ): Partial<DeployConfig> {
+    return {
+      ...this.#config,
+      ...perDeployConfig,
+    };
   }
 
   async #toEthersContracts<

@@ -21,6 +21,7 @@ import type {
   JsonRpcRequest,
   JsonRpcResponse,
 } from "../../../types/providers.js";
+import type { GasReportConfig } from "@nomicfoundation/edr";
 
 import {
   HardhatError,
@@ -34,6 +35,7 @@ import { isSupportedChainType } from "../../edr/chain-type.js";
 import { JsonRpcServerImplementation } from "../node/json-rpc/server.js";
 
 import { EdrProvider } from "./edr/edr-provider.js";
+import { edrGasReportToHardhatGasMeasurements } from "./edr/utils/convert-to-edr.js";
 import { HttpProvider } from "./http-provider.js";
 import { NetworkConnectionImplementation } from "./network-connection.js";
 
@@ -199,7 +201,6 @@ export class NetworkManagerImplementation implements NetworkManager {
         }
 
         let coverageConfig: CoverageConfig | undefined;
-
         const shouldEnableCoverage = await hookManager.hasHandlers(
           "network",
           "onCoverageData",
@@ -217,6 +218,28 @@ export class NetworkManagerImplementation implements NetworkManager {
                 "onCoverageData",
                 [tags],
               );
+            },
+          };
+        }
+
+        let gasReportConfig: GasReportConfig | undefined;
+        const shouldEnableGasStats = await hookManager.hasHandlers(
+          "network",
+          "onGasMeasurement",
+        );
+        if (shouldEnableGasStats) {
+          gasReportConfig = {
+            onCollectedGasReportCallback: async (gasReport) => {
+              const gasMeasurements =
+                edrGasReportToHardhatGasMeasurements(gasReport);
+
+              for (const measurement of gasMeasurements) {
+                await hookManager.runParallelHandlers(
+                  "network",
+                  "onGasMeasurement",
+                  [measurement],
+                );
+              }
             },
           };
         }
@@ -242,6 +265,7 @@ export class NetworkManagerImplementation implements NetworkManager {
             ignoreContracts: false,
           },
           coverageConfig,
+          gasReportConfig,
         });
       }
 

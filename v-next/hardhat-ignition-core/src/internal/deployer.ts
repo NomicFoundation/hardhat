@@ -81,7 +81,7 @@ export class Deployer {
     const isResumed = deployment.isResumed;
     let deploymentState = deployment.deploymentState;
 
-    this._emitDeploymentStartEvent(
+    await this._emitDeploymentStartEvent(
       ignitionModule.id,
       this._deploymentDir,
       isResumed,
@@ -140,7 +140,7 @@ export class Deployer {
         errors,
       };
 
-      this._emitDeploymentCompleteEvent(reconciliationErrorResult);
+      await this._emitDeploymentCompleteEvent(reconciliationErrorResult);
 
       return reconciliationErrorResult;
     }
@@ -164,23 +164,23 @@ export class Deployer {
         errors,
       };
 
-      this._emitDeploymentCompleteEvent(previousRunErrorResult);
+      await this._emitDeploymentCompleteEvent(previousRunErrorResult);
 
       return previousRunErrorResult;
     }
 
     if (reconciliationResult.missingExecutedFutures.length > 0) {
-      this._emitReconciliationWarningsEvent(
+      await this._emitReconciliationWarningsEvent(
         reconciliationResult.missingExecutedFutures,
       );
     }
 
     const batches = Batcher.batch(ignitionModule, deploymentState);
 
-    this._emitDeploymentBatchEvent(batches);
+    await this._emitDeploymentBatchEvent(batches);
 
     if (this._hasBatchesToExecute(batches)) {
-      this._emitRunStartEvent();
+      await this._emitRunStartEvent();
 
       const executionEngine = new ExecutionEngine(
         this._deploymentLoader,
@@ -210,7 +210,7 @@ export class Deployer {
       ignitionModule,
     );
 
-    this._emitDeploymentCompleteEvent(result);
+    await this._emitDeploymentCompleteEvent(result);
 
     return result;
   }
@@ -273,18 +273,18 @@ export class Deployer {
     return { deploymentState, isResumed: true };
   }
 
-  private _emitDeploymentStartEvent(
+  private async _emitDeploymentStartEvent(
     moduleId: string,
     deploymentDir: string | undefined,
     isResumed: boolean,
     maxFeeBumps: number,
     disableFeeBumping: boolean,
-  ): void {
+  ): Promise<void> {
     if (this._executionEventListener === undefined) {
       return;
     }
 
-    this._executionEventListener.deploymentStart({
+    await this._executionEventListener.deploymentStart({
       type: ExecutionEventType.DEPLOYMENT_START,
       moduleName: moduleId,
       deploymentDir: deploymentDir ?? undefined,
@@ -294,44 +294,48 @@ export class Deployer {
     });
   }
 
-  private _emitReconciliationWarningsEvent(warnings: string[]): void {
+  private async _emitReconciliationWarningsEvent(
+    warnings: string[],
+  ): Promise<void> {
     if (this._executionEventListener === undefined) {
       return;
     }
 
-    this._executionEventListener.reconciliationWarnings({
+    await this._executionEventListener.reconciliationWarnings({
       type: ExecutionEventType.RECONCILIATION_WARNINGS,
       warnings,
     });
   }
 
-  private _emitDeploymentBatchEvent(batches: string[][]): void {
+  private async _emitDeploymentBatchEvent(batches: string[][]): Promise<void> {
     if (this._executionEventListener === undefined) {
       return;
     }
 
-    this._executionEventListener.batchInitialize({
+    await this._executionEventListener.batchInitialize({
       type: ExecutionEventType.BATCH_INITIALIZE,
       batches,
     });
   }
 
-  private _emitRunStartEvent(): void {
+  private async _emitRunStartEvent(): Promise<void> {
     if (this._executionEventListener === undefined) {
       return;
     }
 
-    this._executionEventListener.runStart({
+    await this._executionEventListener.runStart({
       type: ExecutionEventType.RUN_START,
     });
   }
 
-  private _emitDeploymentCompleteEvent(result: DeploymentResult): void {
+  private async _emitDeploymentCompleteEvent(
+    result: DeploymentResult,
+  ): Promise<void> {
     if (this._executionEventListener === undefined) {
       return;
     }
 
-    this._executionEventListener.deploymentComplete({
+    await this._executionEventListener.deploymentComplete({
       type: ExecutionEventType.DEPLOYMENT_COMPLETE,
       result,
     });

@@ -352,7 +352,7 @@ describe("bytecode", () => {
         // eslint-disable-next-line import/no-relative-packages -- allowed in test
         (await import("./fixture-projects/default/hardhat.config.js")).default;
       hre = await createHardhatRuntimeEnvironment(hardhatUserConfig);
-      await hre.tasks.getTask("compile").run();
+      await hre.tasks.getTask("build").run();
     });
 
     it("should nullify offsets in bytecode", async () => {

@@ -5,6 +5,7 @@ import clean from "./clean/index.js";
 import console from "./console/index.js";
 import coverage from "./coverage/index.js";
 import flatten from "./flatten/index.js";
+import gasAnalytics from "./gas-analytics/index.js";
 import networkManager from "./network-manager/index.js";
 import node from "./node/index.js";
 import run from "./run/index.js";
@@ -19,6 +20,7 @@ export type * from "./artifacts/index.js";
 export type * from "./solidity/index.js";
 export type * from "./test/index.js";
 export type * from "./solidity-test/index.js";
+export type * from "./gas-analytics/index.js";
 export type * from "./network-manager/index.js";
 export type * from "./clean/index.js";
 export type * from "./console/index.js";
@@ -35,6 +37,7 @@ export const builtinPlugins: HardhatPlugin[] = [
   solidity,
   test,
   coverage,
+  gasAnalytics,
   solidityTest,
   networkManager,
   clean,

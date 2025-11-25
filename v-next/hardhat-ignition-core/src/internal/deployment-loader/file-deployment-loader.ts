@@ -59,7 +59,7 @@ export class FileDeploymentLoader implements DeploymentLoader {
     await this._initialize();
 
     // NOTE: the journal record is sync, even though this call is async
-    this._journal.record(message);
+    await this._journal.record(message);
   }
 
   public readFromJournal(): AsyncGenerator<JournalMessage, any, unknown> {

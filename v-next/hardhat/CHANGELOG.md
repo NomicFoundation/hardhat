@@ -1,5 +1,61 @@
 # hardhat
 
+## 3.0.15
+
+### Patch Changes
+
+- 9fb054a: Fix the initialization of the Mocha and Ethers sample project when using pnpm
+
+## 3.0.14
+
+### Patch Changes
+
+- 3d42a6f: Remove the compilation spinner when the compilation fails
+- 52e1eb4: Fix the `test solidity` task's compilation process
+- ce5c22a: Fail when a file isn't built neither as contract nor test
+
+## 3.0.13
+
+### Patch Changes
+
+- 6e4ad6d: Fixed unexpected test failure when running in isolate/gas stats mode ([#1146](https://github.com/NomicFoundation/edr/issues/1146))
+- 6e4ad6d: Added latest dynamic base fee parameters to Base Mainnet chain config ([#1141](https://github.com/NomicFoundation/edr/pull/1141))
+
+## 3.0.12
+
+### Patch Changes
+
+- 147f8a6: Improved the look and feel of compilation output ([#7669](https://github.com/NomicFoundation/hardhat/pull/7669))
+- 50ce3e0: Fix a bug that could lead to different builds having the same build id. Note that this version will change how every build id is computed.
+- 31f0b03: Don't compile solidity tests files when not needed ([#7669](https://github.com/NomicFoundation/hardhat/pull/7669))
+- a77c06a: Added a new minimal sample project
+
+## 3.0.11
+
+### Patch Changes
+
+- a4733f6: Add `defineConfig` in `hardhat/config`
+- 52d9902: Fix package manager detection
+- d45234d: Fixed Etherscan verification failures by removing hardcoded v1 API URLs from chain descriptors ([#7623](https://github.com/NomicFoundation/hardhat/issues/7623)). Also enhanced config resolution to support partial overrides in block explorer configurations for future extensibility.
+
+## 3.0.10
+
+### Patch Changes
+
+- fe28daf: Added support for showing gas statistics after running tests ([#7472](https://github.com/NomicFoundation/hardhat/issues/7428) and [#7503](https://github.com/NomicFoundation/hardhat/issues/7503))
+- 1ab6b75: Optimism ISTHMUS hardfork support added to Hardhat ([#7517](https://github.com/NomicFoundation/hardhat/issues/7517))
+- 5e64246: Improved JS/TS test tasks to not compile Solidity tests ([#7626](https://github.com/NomicFoundation/hardhat/pull/7626))
+- 217a1a8: Fix arbitrum sepolia chain id in chain descriptors (thanks @aelmanaa!)
+- 8a03bd0: Fixed gas calculation for EIP-7702 refunds ([#7606](https://github.com/NomicFoundation/hardhat/pull/7606))
+- 8a03bd0: Make all parameters of `eth_feeHistory` rpc call required ([#7606](https://github.com/NomicFoundation/hardhat/pull/7606))
+
+## 3.0.9
+
+### Patch Changes
+
+- 0ee442d: All test runners now set NODE_ENV to "test" in case it is not set before the tests start ([#7511](https://github.com/NomicFoundation/hardhat/issues/7511))
+- b27b924: Fix bug in flatten task where ordering was incorrect ([#7586](https://github.com/NomicFoundation/hardhat/issues/7586))
+
 ## 3.0.8
 
 ### Patch Changes

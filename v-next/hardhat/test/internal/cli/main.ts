@@ -289,6 +289,7 @@ GLOBAL OPTIONS:
   --build-profile          The build profile to use
   --config                 A Hardhat config file
   --coverage               Enables code coverage
+  --gas-stats              Collects and displays gas usage statistics for all function calls during tests
   --help, -h               Show this message, or a task's help if its name is provided
   --init                   Initializes a Hardhat project
   --network                The network to connect to
@@ -361,6 +362,7 @@ GLOBAL OPTIONS:
   --build-profile          The build profile to use
   --config                 A Hardhat config file
   --coverage               Enables code coverage
+  --gas-stats              Collects and displays gas usage statistics for all function calls during tests
   --help, -h               Show this message, or a task's help if its name is provided
   --init                   Initializes a Hardhat project
   --network                The network to connect to
@@ -400,6 +402,7 @@ GLOBAL OPTIONS:
   --build-profile          The build profile to use
   --config                 A Hardhat config file
   --coverage               Enables code coverage
+  --gas-stats              Collects and displays gas usage statistics for all function calls during tests
   --help, -h               Show this message, or a task's help if its name is provided
   --init                   Initializes a Hardhat project
   --network                The network to connect to

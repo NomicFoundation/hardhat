@@ -1,5 +1,11 @@
 # @nomicfoundation/hardhat-keystore
 
+## 3.0.3
+
+### Patch Changes
+
+- 558ac5b: Update installation and config instructions
+
 ## 3.0.2
 
 ### Patch Changes

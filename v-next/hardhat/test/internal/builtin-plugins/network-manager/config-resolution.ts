@@ -4,6 +4,7 @@ import type {
   EdrNetworkMiningUserConfig,
   EdrNetworkUserConfig,
   HttpNetworkUserConfig,
+  BlockExplorersUserConfig,
 } from "../../../../src/types/config.js";
 import type { HardhatRuntimeEnvironment } from "../../../../src/types/hre.js";
 
@@ -645,12 +646,21 @@ describe("config-resolution", () => {
         },
         [sepoliaChainId]: {
           name: "Sepolia Testnet",
+          /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions
+          -- in the real world, BlockExplorersUserConfig would be extended with
+          the new block explorer, but for testing purposes we cast it */
           blockExplorers: {
             etherscan: {
-              url: "http://localhost:8545",
+              url: undefined,
               apiUrl: "http://localhost:8545/api",
+              name: "Etherscan",
             },
-          },
+            // users can add new block explorers
+            customExplorer: {
+              apiUrl: "http://custom-explorer.io/api",
+              someOtherField: "some value",
+            },
+          } as BlockExplorersUserConfig,
         },
         [holeskyChainId]: {
           name: "Holesky Testnet",
@@ -696,12 +706,27 @@ describe("config-resolution", () => {
         sepoliaDefault?.hardforkHistory,
       );
       assert.deepEqual(
-        sepoliaConfig?.blockExplorers.etherscan,
-        sepoliaUserConfig.blockExplorers?.etherscan,
+        sepoliaConfig?.blockExplorers.etherscan?.name,
+        sepoliaUserConfig.blockExplorers?.etherscan?.name,
+      );
+      assert.deepEqual(
+        sepoliaConfig?.blockExplorers.etherscan?.apiUrl,
+        sepoliaUserConfig.blockExplorers?.etherscan?.apiUrl,
+      );
+      // make sure undefined values are ignored
+      assert.deepEqual(
+        sepoliaConfig?.blockExplorers.etherscan?.url,
+        sepoliaDefault?.blockExplorers?.etherscan?.url,
       );
       assert.deepEqual(
         sepoliaConfig?.blockExplorers.blockscout,
         sepoliaDefault?.blockExplorers.blockscout,
+      );
+      assert.deepEqual(
+        // eslint-disable-next-line @typescript-eslint/consistent-type-assertions -- cast to access customExplorer
+        (sepoliaConfig?.blockExplorers as any).customExplorer,
+        // eslint-disable-next-line @typescript-eslint/consistent-type-assertions -- cast to access customExplorer
+        (sepoliaUserConfig.blockExplorers as any)?.customExplorer,
       );
 
       const holeskyUserConfig = chainDescriptorsUserConfig[holeskyChainId];

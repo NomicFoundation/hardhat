@@ -1,5 +1,19 @@
 # Changelog
 
+## 3.0.5
+
+### Patch Changes
+
+- 147f8a6: Improved the look and feel of compilation output ([#7669](https://github.com/NomicFoundation/hardhat/pull/7669))
+- 31f0b03: Don't compile solidity tests files when not needed ([#7669](https://github.com/NomicFoundation/hardhat/pull/7669))
+- d1c1803: Make `@nomicfoundation/hardhat-ignition`'s UI work well with other plugins, like Ledger's.
+
+## 3.0.4
+
+### Patch Changes
+
+- 558ac5b: Update installation and config instructions
+
 ## 3.0.3
 
 ### Patch Changes

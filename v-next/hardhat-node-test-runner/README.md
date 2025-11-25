@@ -15,11 +15,12 @@ npm install --save-dev @nomicfoundation/hardhat-node-test-runner
 In your `hardhat.config.ts` file, import the plugin and add it to the `plugins` array:
 
 ```ts
+import { defineConfig } from "hardhat/config";
 import hardhatNodeTestRunner from "@nomicfoundation/hardhat-node-test-runner";
 
-export default {
+export default defineConfig({
   plugins: [hardhatNodeTestRunner],
-};
+});
 ```
 
 ## Usage
