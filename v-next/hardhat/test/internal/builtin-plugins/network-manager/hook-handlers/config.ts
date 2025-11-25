@@ -1277,9 +1277,10 @@ describe("network-manager/hook-handlers/config", () => {
 
     it("should resolve with the user config", async () => {
       const userConfig: HardhatUserConfig = {
-        // To change the defaultChainType, we need to augment the Hardhat types.
-        // Since this can't be done for a single test, we'll leave this untested.
-        defaultChainType: GENERIC_CHAIN_TYPE,
+        /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions 
+        -- Type assertion needed because changing defaultChainType requires module 
+        augmentation, which can't be done in test files */
+        defaultChainType: L1_CHAIN_TYPE as any,
         networks: {
           myNetwork: {
             type: "http",
@@ -1305,7 +1306,7 @@ describe("network-manager/hook-handlers/config", () => {
         next,
       );
 
-      assert.equal(resolvedConfig.defaultChainType, GENERIC_CHAIN_TYPE);
+      assert.equal(resolvedConfig.defaultChainType, L1_CHAIN_TYPE);
       assert.equal(resolvedConfig.networks.myNetwork.type, "http");
       assert.deepEqual(resolvedConfig.networks, {
         myNetwork: {

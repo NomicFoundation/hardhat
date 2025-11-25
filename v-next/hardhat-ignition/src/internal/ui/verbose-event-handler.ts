@@ -38,23 +38,25 @@ import {
 } from "@nomicfoundation/ignition-core";
 
 export class VerboseEventHandler implements ExecutionEventListener {
-  public deploymentInitialize(event: DeploymentInitializeEvent): void {
+  public async deploymentInitialize(
+    event: DeploymentInitializeEvent,
+  ): Promise<void> {
     console.log(`Deployment initialized for chainId: ${event.chainId}`);
   }
 
-  public wipeApply(event: WipeApplyEvent): void {
+  public async wipeApply(event: WipeApplyEvent): Promise<void> {
     console.log(`Removing the execution of future ${event.futureId}`);
   }
 
-  public deploymentExecutionStateInitialize(
+  public async deploymentExecutionStateInitialize(
     event: DeploymentExecutionStateInitializeEvent,
-  ): void {
+  ): Promise<void> {
     console.log(`Starting to execute the deployment future ${event.futureId}`);
   }
 
-  public deploymentExecutionStateComplete(
+  public async deploymentExecutionStateComplete(
     event: DeploymentExecutionStateCompleteEvent,
-  ): void {
+  ): Promise<void> {
     switch (event.result.type) {
       case ExecutionEventResultType.SUCCESS: {
         return console.log(
@@ -76,15 +78,15 @@ export class VerboseEventHandler implements ExecutionEventListener {
     }
   }
 
-  public callExecutionStateInitialize(
+  public async callExecutionStateInitialize(
     event: CallExecutionStateInitializeEvent,
-  ): void {
+  ): Promise<void> {
     console.log(`Starting to execute the call future ${event.futureId}`);
   }
 
-  public callExecutionStateComplete(
+  public async callExecutionStateComplete(
     event: CallExecutionStateCompleteEvent,
-  ): void {
+  ): Promise<void> {
     switch (event.result.type) {
       case ExecutionEventResultType.SUCCESS: {
         return console.log(
@@ -104,15 +106,15 @@ export class VerboseEventHandler implements ExecutionEventListener {
     }
   }
 
-  public staticCallExecutionStateInitialize(
+  public async staticCallExecutionStateInitialize(
     event: StaticCallExecutionStateInitializeEvent,
-  ): void {
+  ): Promise<void> {
     console.log(`Starting to execute the static call future ${event.futureId}`);
   }
 
-  public staticCallExecutionStateComplete(
+  public async staticCallExecutionStateComplete(
     event: StaticCallExecutionStateCompleteEvent,
-  ): void {
+  ): Promise<void> {
     switch (event.result.type) {
       case ExecutionEventResultType.SUCCESS: {
         return console.log(
@@ -134,15 +136,15 @@ export class VerboseEventHandler implements ExecutionEventListener {
     }
   }
 
-  public sendDataExecutionStateInitialize(
+  public async sendDataExecutionStateInitialize(
     event: SendDataExecutionStateInitializeEvent,
-  ): void {
+  ): Promise<void> {
     console.log(`Started to execute the send data future ${event.futureId}`);
   }
 
-  public sendDataExecutionStateComplete(
+  public async sendDataExecutionStateComplete(
     event: SendDataExecutionStateCompleteEvent,
-  ): void {
+  ): Promise<void> {
     switch (event.result.type) {
       case ExecutionEventResultType.SUCCESS: {
         return console.log(
@@ -164,15 +166,15 @@ export class VerboseEventHandler implements ExecutionEventListener {
     }
   }
 
-  public contractAtExecutionStateInitialize(
+  public async contractAtExecutionStateInitialize(
     event: ContractAtExecutionStateInitializeEvent,
-  ): void {
+  ): Promise<void> {
     console.log(`Executed contract at future ${event.futureId}`);
   }
 
-  public readEventArgumentExecutionStateInitialize(
+  public async readEventArgumentExecutionStateInitialize(
     event: ReadEventArgExecutionStateInitializeEvent,
-  ): void {
+  ): Promise<void> {
     console.log(
       `Executed read event argument future ${event.futureId} with result ${
         event.result.result ?? "undefined"
@@ -180,9 +182,9 @@ export class VerboseEventHandler implements ExecutionEventListener {
     );
   }
 
-  public encodeFunctionCallExecutionStateInitialize(
+  public async encodeFunctionCallExecutionStateInitialize(
     event: EncodeFunctionCallExecutionStateInitializeEvent,
-  ): void {
+  ): Promise<void> {
     console.log(
       `Executed encode function call future ${event.futureId} with result ${
         event.result.result ?? "undefined"
@@ -190,9 +192,9 @@ export class VerboseEventHandler implements ExecutionEventListener {
     );
   }
 
-  public networkInteractionRequest(
+  public async networkInteractionRequest(
     event: NetworkInteractionRequestEvent,
-  ): void {
+  ): Promise<void> {
     if (
       event.networkInteractionType ===
       ExecutionEventNetworkInteractionType.ONCHAIN_INTERACTION
@@ -205,77 +207,87 @@ export class VerboseEventHandler implements ExecutionEventListener {
     }
   }
 
-  public transactionPrepareSend(event: TransactionPrepareSendEvent): void {
+  public async transactionPrepareSend(
+    event: TransactionPrepareSendEvent,
+  ): Promise<void> {
     console.log(
       `Transaction about to be sent for onchain interaction of future ${event.futureId}`,
     );
   }
 
-  public transactionSend(event: TransactionSendEvent): void {
+  public async transactionSend(event: TransactionSendEvent): Promise<void> {
     console.log(
       `Transaction ${event.hash} sent for onchain interaction of future ${event.futureId}`,
     );
   }
 
-  public transactionConfirm(event: TransactionConfirmEvent): void {
+  public async transactionConfirm(
+    event: TransactionConfirmEvent,
+  ): Promise<void> {
     console.log(`Transaction ${event.hash} confirmed`);
   }
 
-  public staticCallComplete(event: StaticCallCompleteEvent): void {
+  public async staticCallComplete(
+    event: StaticCallCompleteEvent,
+  ): Promise<void> {
     console.log(`Static call completed for future ${event.futureId}`);
   }
 
-  public onchainInteractionBumpFees(
+  public async onchainInteractionBumpFees(
     event: OnchainInteractionBumpFeesEvent,
-  ): void {
+  ): Promise<void> {
     console.log(
       `A transaction with higher fees will be sent for onchain interaction of future ${event.futureId}`,
     );
   }
 
-  public onchainInteractionDropped(
+  public async onchainInteractionDropped(
     event: OnchainInteractionDroppedEvent,
-  ): void {
+  ): Promise<void> {
     console.log(
       `Transactions for onchain interaction of future ${event.futureId} has been dropped and will be resent`,
     );
   }
 
-  public onchainInteractionReplacedByUser(
+  public async onchainInteractionReplacedByUser(
     event: OnchainInteractionReplacedByUserEvent,
-  ): void {
+  ): Promise<void> {
     console.log(
       `Transactions for onchain interaction of future ${event.futureId} has been replaced by the user and the onchain interaction execution will start again`,
     );
   }
 
-  public onchainInteractionTimeout(
+  public async onchainInteractionTimeout(
     event: OnchainInteractionTimeoutEvent,
-  ): void {
+  ): Promise<void> {
     console.log(
       `Onchain interaction of future ${event.futureId} failed due to being resent too many times and not having confirmed`,
     );
   }
 
-  public batchInitialize(event: BatchInitializeEvent): void {
+  public async batchInitialize(event: BatchInitializeEvent): Promise<void> {
     console.log(
       `Starting execution for batches: ${JSON.stringify(event.batches)}`,
     );
   }
 
-  public deploymentStart(_event: DeploymentStartEvent): void {
+  public async deploymentStart(_event: DeploymentStartEvent): Promise<void> {
     console.log(`Starting execution for new deployment`);
   }
 
-  public beginNextBatch(_event: BeginNextBatchEvent): void {
+  public async beginNextBatch(_event: BeginNextBatchEvent): Promise<void> {
     console.log(`Starting execution for next batch`);
   }
 
-  public deploymentComplete(_event: DeploymentCompleteEvent): void {
+  public async deploymentComplete(
+    _event: DeploymentCompleteEvent,
+  ): Promise<void> {
     console.log(`Deployment complete`);
   }
 
-  public reconciliationWarnings(event: ReconciliationWarningsEvent): void {
+  public async reconciliationWarnings(
+    event: ReconciliationWarningsEvent,
+  ): Promise<void> {
     console.log(
       `Deployment produced reconciliation warnings:\n${event.warnings.join(
         "  -",
@@ -283,15 +295,15 @@ export class VerboseEventHandler implements ExecutionEventListener {
     );
   }
 
-  public setModuleId(event: SetModuleIdEvent): void {
+  public async setModuleId(event: SetModuleIdEvent): Promise<void> {
     console.log(`Starting validation for module: ${event.moduleName}`);
   }
 
-  public setStrategy(event: SetStrategyEvent): void {
+  public async setStrategy(event: SetStrategyEvent): Promise<void> {
     console.log(`Starting execution with strategy: ${event.strategy}`);
   }
 
-  public runStart(_event: RunStartEvent): void {
+  public async runStart(_event: RunStartEvent): Promise<void> {
     console.log("Execution run starting");
   }
 }

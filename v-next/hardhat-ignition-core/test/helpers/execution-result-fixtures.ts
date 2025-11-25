@@ -14,8 +14,8 @@ import { RawStaticCallResult } from "../../src/internal/execution/types/jsonrpc.
 // On Linux ARM64 we download from a mirror that does not provide the long version, hence the known build info id has to change when running the test suite on that platform.
 const buildInfoId =
   os.platform() === "linux" && os.arch() === "arm64"
-    ? "solc-0_8_19-212d1ae643d27f15734ceaa4108859c2f104c4ca"
-    : "solc-0_8_19-2fe1cba8ef218c727cd1ce3da3aaa170f8016338";
+    ? "solc-0_8_19-d17b87acbe94849750bc6495e7e18cd2b1dc3d73"
+    : "solc-0_8_19-fa69743fd6914c0dd508b989815c073281a7e58e";
 
 export const staticCallResultFixtures: {
   [contractName: string]: { [functionName: string]: RawStaticCallResult };

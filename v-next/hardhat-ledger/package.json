@@ -1,6 +1,6 @@
 {
   "name": "@nomicfoundation/hardhat-ledger",
-  "version": "1.2.0",
+  "version": "3.0.1",
   "description": "Hardhat plugin for the Ledger hardware wallet",
   "homepage": "https://github.com/nomicfoundation/hardhat/tree/main/v-next/hardhat-ledger",
   "repository": {
@@ -51,6 +51,7 @@
     "c8": "^9.1.0",
     "eslint": "9.25.1",
     "expect-type": "^1.2.1",
+    "hardhat": "workspace:^3.0.0",
     "prettier": "3.2.5",
     "rimraf": "^5.0.5",
     "tsx": "^4.19.3",
@@ -63,7 +64,7 @@
     "@ledgerhq/hw-transport": "^6.31.11",
     "@ledgerhq/hw-transport-node-hid": "^6.29.12",
     "@ledgerhq/types-live": "^6.85.0",
-    "@nomicfoundation/hardhat-errors": "workspace:^3.0.0",
+    "@nomicfoundation/hardhat-errors": "workspace:^3.0.4",
     "@nomicfoundation/hardhat-utils": "workspace:^3.0.5",
     "@nomicfoundation/hardhat-zod-utils": "workspace:^3.0.0",
     "debug": "^4.3.2",

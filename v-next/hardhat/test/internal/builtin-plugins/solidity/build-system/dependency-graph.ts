@@ -256,6 +256,26 @@ describe("DependencyGraphImplementation", () => {
     });
   });
 
+  describe("getRootsUserSourceNameMap", () => {
+    it("Should return the roots map in order", () => {
+      const root1 = createProjectResolvedFile("root1.sol");
+      const root2 = createProjectResolvedFile("root2.sol");
+      const dependency1 = createProjectResolvedFile("dependency1.sol");
+      const dependency2 = createProjectResolvedFile("dependency2.sol");
+
+      dependencyGraph.addRootFile(root2.inputSourceName, root2);
+      dependencyGraph.addRootFile(root1.inputSourceName, root1);
+      dependencyGraph.addDependency(root1, dependency1);
+      dependencyGraph.addDependency(root2, dependency2);
+
+      const rootsMap = dependencyGraph.getRootsUserSourceNameMap();
+      assert.deepEqual(rootsMap, {
+        [root1.inputSourceName]: root1.inputSourceName,
+        [root2.inputSourceName]: root2.inputSourceName,
+      });
+    });
+  });
+
   describe("getAllFiles", () => {
     it("should return the list of all added files", () => {
       const root1 = createProjectResolvedFile("root1.sol");

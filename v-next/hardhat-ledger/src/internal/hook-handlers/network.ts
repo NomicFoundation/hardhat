@@ -51,6 +51,9 @@ export default async (): Promise<Partial<NetworkHooks>> => {
             networkConnection.provider,
             {
               accounts: networkConnection.networkConfig.ledgerAccounts,
+              derivationFunction:
+                networkConnection.networkConfig.ledgerOptions
+                  ?.derivationFunction,
             },
             context.interruptions.displayMessage.bind(context.interruptions),
           );

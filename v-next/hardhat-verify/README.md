@@ -77,7 +77,7 @@ await verifyContract(
   {
     address: "DEPLOYED_CONTRACT_ADDRESS",
     constructorArgs: ["Constructor argument 1"],
-    provider: "etherscan", // or "blockscout" for Blockscout-compatible explorers
+    provider: "etherscan", // or "blockscout", or "sourcify"
   },
   hre,
 );

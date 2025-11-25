@@ -2,7 +2,7 @@ export type DerivationFunction = (index: number) => string;
 
 export interface LedgerOptions {
   accounts: string[];
-  derivationFunction?: DerivationFunction;
+  derivationFunction: DerivationFunction | undefined;
 }
 
 export interface Signature {

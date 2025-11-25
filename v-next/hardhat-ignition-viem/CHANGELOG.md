@@ -1,5 +1,11 @@
 # Changelog
 
+## 3.0.5
+
+### Patch Changes
+
+- d1c1803: Make `@nomicfoundation/hardhat-ignition`'s UI work well with other plugins, like Ledger's.
+
 ## 3.0.4
 
 ### Patch Changes

@@ -79,15 +79,21 @@ const runSolidityTests: NewTaskActionFunction<TestActionArguments> = async (
     );
   }
 
-  // Run the compile task for test files
-  const { testRootPaths }: { testRootPaths: string[] } = await hre.tasks
-    .getTask("compile")
-    .run({
-      quiet: true,
-      force: false,
-      files: testFiles,
-      noContracts: noCompile,
+  // Run the build task for contract files if needed
+  if (noCompile !== true) {
+    await hre.tasks.getTask("build").run({
+      noTests: true,
     });
+  }
+
+  // Run the build task for test files
+  const { testRootPaths }: { testRootPaths: string[] } = await hre.tasks
+    .getTask("build")
+    .run({
+      files: testFiles,
+      noContracts: true,
+    });
+  console.log();
 
   // EDR needs all artifacts (contracts + tests)
   const edrArtifacts: Array<{

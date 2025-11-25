@@ -112,7 +112,7 @@ export async function resolveUserConfig(
     chainDescriptors: await resolveChainDescriptors(
       userConfig.chainDescriptors,
     ),
-    defaultChainType: resolvedConfig.defaultChainType ?? GENERIC_CHAIN_TYPE,
+    defaultChainType: userConfig.defaultChainType ?? GENERIC_CHAIN_TYPE,
     networks: resolvedNetworks,
   };
 }

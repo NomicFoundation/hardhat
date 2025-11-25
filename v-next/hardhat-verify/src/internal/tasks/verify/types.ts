@@ -1,6 +1,6 @@
 import type { LibraryAddresses } from "../../libraries.js";
 
-export interface VerifyActionArgs {
+export interface BaseVerifyActionArgs {
   address: string;
   constructorArgs: string[];
   constructorArgsPath?: string;
@@ -9,6 +9,10 @@ export interface VerifyActionArgs {
   force?: boolean;
   // TODO: M5
   // listNetworks?: boolean;
+}
+
+export interface VerifyActionArgs extends BaseVerifyActionArgs {
+  creationTxHash?: string; // Sourcify specific
 }
 
 export interface VerifyActionResolvedArgs {

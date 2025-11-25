@@ -302,9 +302,11 @@ export async function* testReporter(
           case "UnsafeToReplay":
             if (stackTrace.globalForkLatest === true) {
               yield indenter.t`Stack Trace Warning: ${colorizer.grey("The test is not safe to replay because a fork url without a fork block number was provided.")}\n`;
+              yield indenter.t`Try rerunning your tests with -vvv or above.\n`;
             }
             if (stackTrace.impureCheatcodes.length > 0) {
               yield indenter.t`Stack Trace Warning: ${colorizer.grey(`The test is not safe to replay because it uses impure cheatcodes: ${stackTrace.impureCheatcodes.join(", ")}`)}\n`;
+              yield indenter.t`Try rerunning your tests with -vvv or above.\n`;
             }
             break;
           case "HeuristicFailed":
