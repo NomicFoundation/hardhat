@@ -8,6 +8,12 @@ This repository vendors code from:
   - license: https://github.com/WebReflection/html-escaper/blob/master/LICENSE.txt
   - repo path: ./src/coverage-module/html-escaper
 
+- istanbul-reports
+
+  - github link: https://github.com/istanbuljs/istanbuljs/tree/main/packages/istanbul-reports
+  - license: https://github.com/istanbuljs/istanbuljs/blob/main/packages/istanbul-reports/LICENSE
+  - repo path: ./src/coverage-module/istanbul-reports
+
 - istanbul-lib-coverage
 
   - github link: https://github.com/istanbuljs/istanbuljs/tree/main/packages/istanbul-lib-coverage
@@ -19,9 +25,3 @@ This repository vendors code from:
   - github link: https://github.com/istanbuljs/istanbuljs/tree/main/packages/istanbul-lib-report
   - license: https://github.com/istanbuljs/istanbuljs/blob/main/packages/istanbul-lib-report/LICENSE
   - repo path:./src/coverage-module/lib-report
-
-- istanbul-reports
-
-  - github link: https://github.com/istanbuljs/istanbuljs/tree/main/packages/istanbul-reports
-  - license: https://github.com/istanbuljs/istanbuljs/blob/main/packages/istanbul-reports/LICENSE
-  - repo path: ./src/coverage-module/istanbul-reports

@@ -38,7 +38,8 @@
     "src/",
     "CHANGELOG.md",
     "LICENSE",
-    "README.md"
+    "README.md",
+    "VENDORED.md"
   ],
   "devDependencies": {
     "@nomicfoundation/hardhat-node-test-reporter": "workspace:^3.0.0",
