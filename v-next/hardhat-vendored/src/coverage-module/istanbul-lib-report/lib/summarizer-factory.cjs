@@ -4,7 +4,7 @@
  */
 "use strict";
 
-const coverage = require("../../lib-coverage/index.cjs");
+const coverage = require("../../istanbul-lib-coverage/index.cjs");
 const Path = require("./path.cjs");
 const { BaseNode, BaseTree } = require("./tree.cjs");
 

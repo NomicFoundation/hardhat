@@ -1,8 +1,8 @@
-import libCoverage from "./istanbul-lib-coverage/index.cjs";
-export { libCoverage };
+import istanbulLibCoverage from "./istanbul-lib-coverage/index.cjs";
+export { istanbulLibCoverage };
 
-import libReport from "./istanbul-lib-report/index.cjs";
-export { libReport };
+import istanbulLibReport from "./istanbul-lib-report/index.cjs";
+export { istanbulLibReport };
 
-import reports from "./istanbul-reports/index.cjs";
-export { reports };
+import istanbulReports from "./istanbul-reports/index.cjs";
+export { istanbulReports };
