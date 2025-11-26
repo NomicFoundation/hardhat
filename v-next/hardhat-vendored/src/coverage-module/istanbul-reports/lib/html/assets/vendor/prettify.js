@@ -1,3 +1,6 @@
+// Contains code copied from istanbul-reports (https://github.com/istanbuljs/istanbuljs/tree/main/packages/istanbul-reports).
+// The original license is in the LICENSE.txt file in the parent directory.
+
 window.PR_SHOULD_USE_CONTINUATION = true;
 (function () {
   var h = ["break,continue,do,else,for,if,return,while"];

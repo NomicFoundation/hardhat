@@ -1,3 +1,6 @@
+// Contains code copied from istanbul-lib-report (https://github.com/istanbuljs/istanbuljs/tree/main/packages/istanbul-lib-report).
+// The original license is in the LICENSE.txt file in the parent directory.
+
 "use strict";
 
 // TODO: switch to class private field when targeting node.js 12

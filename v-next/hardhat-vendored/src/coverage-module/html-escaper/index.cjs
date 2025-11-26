@@ -1,3 +1,6 @@
+// Contains code copied from html-escaper (https://github.com/WebReflection/html-escaper).
+// The original license is in the LICENSE.txt file in the parent directory.
+
 const { replace } = "";
 
 // escape

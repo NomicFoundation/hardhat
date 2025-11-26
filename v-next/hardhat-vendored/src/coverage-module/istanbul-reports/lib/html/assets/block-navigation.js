@@ -1,3 +1,6 @@
+// Contains code copied from istanbul-reports (https://github.com/istanbuljs/istanbuljs/tree/main/packages/istanbul-reports).
+// The original license is in the LICENSE.txt file in the parent directory.
+
 var jumpToCode = (function init() {
   // Classes of code we would like to highlight in the file view
   var missingCoverageClasses = [".cbranch-no", ".cstat-no", ".fstat-no"];
