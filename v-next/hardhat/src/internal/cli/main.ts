@@ -539,6 +539,15 @@ function parseOptions(
       );
     }
 
+    if (optionDefinition.hidden === true) {
+      throw new HardhatError(
+        HardhatError.ERRORS.CORE.ARGUMENTS.NO_HIDDEN_OPTION_CLI,
+        {
+          option: arg,
+        },
+      );
+    }
+
     const optionName = optionDefinition.name;
 
     // Check if the short name is valid again now that we know its type

@@ -284,6 +284,7 @@ describe("Task builders", () => {
               description: "",
               type: ArgumentType.STRING,
               defaultValue: "default",
+              hidden: undefined,
             },
           },
           positionalArguments: [],
@@ -316,6 +317,7 @@ describe("Task builders", () => {
               description: "Argument description",
               type: ArgumentType.STRING,
               defaultValue: "default",
+              hidden: undefined,
             },
           },
           positionalArguments: [],
@@ -348,6 +350,7 @@ describe("Task builders", () => {
               description: "",
               type: ArgumentType.INT,
               defaultValue: 1,
+              hidden: undefined,
             },
           },
           positionalArguments: [],
@@ -380,6 +383,40 @@ describe("Task builders", () => {
               description: "",
               type: ArgumentType.STRING,
               defaultValue: "default",
+              hidden: undefined,
+            },
+          },
+          positionalArguments: [],
+        });
+      });
+
+      it("should add a hidden option", () => {
+        const builder = new NewTaskDefinitionBuilderImplementation("task-id");
+        const taskAction = async () => ({
+          default: () => {},
+        });
+        const taskDefinition = builder
+          .setAction(taskAction)
+          .addOption({
+            name: "arg",
+            defaultValue: "default",
+            hidden: true,
+          })
+          .build();
+
+        assert.deepEqual(taskDefinition, {
+          type: TaskDefinitionType.NEW_TASK,
+          id: ["task-id"],
+          description: "",
+          action: taskAction,
+          options: {
+            arg: {
+              name: "arg",
+              shortName: undefined,
+              description: "",
+              type: ArgumentType.STRING,
+              defaultValue: "default",
+              hidden: true,
             },
           },
           positionalArguments: [],
@@ -410,6 +447,7 @@ describe("Task builders", () => {
               description: "",
               type: ArgumentType.FLAG,
               defaultValue: false,
+              hidden: undefined,
             },
           },
           positionalArguments: [],
@@ -438,6 +476,7 @@ describe("Task builders", () => {
               description: "Flag description",
               type: ArgumentType.FLAG,
               defaultValue: false,
+              hidden: undefined,
             },
           },
           positionalArguments: [],
@@ -466,20 +505,21 @@ describe("Task builders", () => {
               description: "",
               type: ArgumentType.FLAG,
               defaultValue: false,
+              hidden: undefined,
             },
           },
           positionalArguments: [],
         });
       });
 
-      it("should add a flag with a short name", () => {
+      it("should add a hidden flag", () => {
         const builder = new NewTaskDefinitionBuilderImplementation("task-id");
         const taskAction = async () => ({
           default: () => {},
         });
         const taskDefinition = builder
           .setAction(taskAction)
-          .addFlag({ name: "flag", shortName: "f" })
+          .addFlag({ name: "flag", hidden: true })
           .build();
 
         assert.deepEqual(taskDefinition, {
@@ -490,10 +530,11 @@ describe("Task builders", () => {
           options: {
             flag: {
               name: "flag",
-              shortName: "f",
+              shortName: undefined,
               description: "",
               type: ArgumentType.FLAG,
               defaultValue: false,
+              hidden: true,
             },
           },
           positionalArguments: [],
@@ -1181,6 +1222,7 @@ describe("Task builders", () => {
               description: "",
               type: ArgumentType.STRING,
               defaultValue: "default",
+              hidden: undefined,
             },
           },
         });
@@ -1214,6 +1256,7 @@ describe("Task builders", () => {
               description: "Argument description",
               type: ArgumentType.STRING,
               defaultValue: "default",
+              hidden: undefined,
             },
           },
         });
@@ -1247,6 +1290,7 @@ describe("Task builders", () => {
               description: "",
               type: ArgumentType.INT,
               defaultValue: 1,
+              hidden: undefined,
             },
           },
         });
@@ -1282,6 +1326,41 @@ describe("Task builders", () => {
               description: "",
               type: ArgumentType.INT,
               defaultValue: 1,
+              hidden: undefined,
+            },
+          },
+        });
+      });
+
+      it("should add a hidden option", () => {
+        const builder = new TaskOverrideDefinitionBuilderImplementation(
+          "task-id",
+        );
+        const taskAction = async () => ({
+          default: () => {},
+        });
+        const taskDefinition = builder
+          .setAction(taskAction)
+          .addOption({
+            name: "arg",
+            defaultValue: "default",
+            hidden: true,
+          })
+          .build();
+
+        assert.deepEqual(taskDefinition, {
+          type: TaskDefinitionType.TASK_OVERRIDE,
+          id: ["task-id"],
+          description: undefined,
+          action: taskAction,
+          options: {
+            arg: {
+              name: "arg",
+              shortName: undefined,
+              description: "",
+              type: ArgumentType.STRING,
+              defaultValue: "default",
+              hidden: true,
             },
           },
         });
@@ -1313,6 +1392,7 @@ describe("Task builders", () => {
               description: "",
               type: ArgumentType.FLAG,
               defaultValue: false,
+              hidden: undefined,
             },
           },
         });
@@ -1342,6 +1422,7 @@ describe("Task builders", () => {
               description: "Flag description",
               type: ArgumentType.FLAG,
               defaultValue: false,
+              hidden: undefined,
             },
           },
         });
@@ -1371,12 +1452,13 @@ describe("Task builders", () => {
               description: "",
               type: ArgumentType.FLAG,
               defaultValue: false,
+              hidden: undefined,
             },
           },
         });
       });
 
-      it("should add a flag with a short name", () => {
+      it("should add a hidden flag", () => {
         const builder = new TaskOverrideDefinitionBuilderImplementation(
           "task-id",
         );
@@ -1385,7 +1467,7 @@ describe("Task builders", () => {
         });
         const taskDefinition = builder
           .setAction(taskAction)
-          .addFlag({ name: "flag", shortName: "f" })
+          .addFlag({ name: "flag", hidden: true })
           .build();
 
         assert.deepEqual(taskDefinition, {
@@ -1396,10 +1478,11 @@ describe("Task builders", () => {
           options: {
             flag: {
               name: "flag",
-              shortName: "f",
+              shortName: undefined,
               description: "",
               type: ArgumentType.FLAG,
               defaultValue: false,
+              hidden: true,
             },
           },
         });
