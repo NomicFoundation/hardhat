@@ -18,10 +18,10 @@ This repository vendors code from:
 
   - github link: https://github.com/istanbuljs/istanbuljs/tree/main/packages/istanbul-lib-coverage
   - license: https://github.com/istanbuljs/istanbuljs/blob/main/packages/istanbul-lib-coverage/LICENSE
-  - repo path: ./src/coverage-module/lib-coverage
+  - repo path: ./src/coverage-module/istanbul-lib-coverage
 
 - istanbul-lib-report
 
   - github link: https://github.com/istanbuljs/istanbuljs/tree/main/packages/istanbul-lib-report
   - license: https://github.com/istanbuljs/istanbuljs/blob/main/packages/istanbul-lib-report/LICENSE
-  - repo path:./src/coverage-module/lib-report
+  - repo path:./src/coverage-module/istanbul-lib-report
