@@ -11,7 +11,7 @@ import hardhatIgnition from "../src/index.js";
 
 import { useEphemeralIgnitionProject } from "./test-helpers/use-ignition-project.js";
 
-describe.only("config", () => {
+describe("config", () => {
   describe("loading", () => {
     let loadedOptions: Partial<HardhatConfig["ignition"]>;
     let hardhatNetworkOptions: NetworkConfig;
