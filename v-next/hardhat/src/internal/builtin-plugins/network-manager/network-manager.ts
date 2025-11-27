@@ -309,21 +309,33 @@ export class NetworkManagerImplementation implements NetworkManager {
    */
   async #resolveNetworkConfig(
     resolvedNetworkName: string,
-    networkConfigOverride: NetworkConfigOverride | undefined,
+    networkConfigOverride: NetworkConfigOverride | undefined = {},
   ): Promise<NetworkConfig> {
-    if (networkConfigOverride === undefined) {
-      return this.#networkConfigs[resolvedNetworkName];
+    const existingNetworkConfig = this.#networkConfigs[resolvedNetworkName];
+    if (Object.keys(networkConfigOverride).length === 0) {
+      return existingNetworkConfig;
     }
 
     if (
       "type" in networkConfigOverride &&
-      networkConfigOverride.type !==
-        this.#networkConfigs[resolvedNetworkName].type
+      networkConfigOverride.type !== existingNetworkConfig.type
     ) {
       throw new HardhatError(
         HardhatError.ERRORS.CORE.NETWORK.INVALID_CONFIG_OVERRIDE,
         {
           errors: `\t* The type of the network cannot be changed.`,
+        },
+      );
+    }
+
+    if (
+      "chainType" in networkConfigOverride &&
+      networkConfigOverride.chainType !== existingNetworkConfig.chainType
+    ) {
+      throw new HardhatError(
+        HardhatError.ERRORS.CORE.NETWORK.INVALID_CONFIG_OVERRIDE,
+        {
+          errors: `\t* The chainType cannot be specified in config overrides. Pass it at the top level instead: hre.network.connect({ chainType: 'op' })`,
         },
       );
     }
