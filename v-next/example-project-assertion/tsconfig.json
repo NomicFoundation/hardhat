@@ -1,0 +1,50 @@
+{
+  "extends": "../config/tsconfig.base.json",
+  "compilerOptions": {
+    "isolatedDeclarations": false
+  },
+  "references": [
+    {
+      "path": "../hardhat"
+    },
+    {
+      "path": "../hardhat-network-helpers"
+    },
+    {
+      "path": "../hardhat-node-test-runner"
+    },
+    {
+      "path": "../hardhat-mocha"
+    },
+    {
+      "path": "../hardhat-keystore"
+    },
+    {
+      "path": "../hardhat-ethers"
+    },
+    {
+      "path": "../hardhat-verify"
+    },
+    {
+      "path": "../hardhat-viem"
+    },
+    {
+      "path": "../hardhat-viem-assertions"
+    },
+    {
+      "path": "../hardhat-ethers-chai-matchers"
+    },
+    {
+      "path": "../hardhat-typechain"
+    },
+    {
+      "path": "../hardhat-ignition"
+    },
+    {
+      "path": "../hardhat-ignition-viem"
+    },
+    {
+      "path": "../hardhat-ledger"
+    }
+  ]
+}
