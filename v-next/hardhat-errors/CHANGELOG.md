@@ -1,5 +1,11 @@
 # @nomicfoundation/hardhat-errors
 
+## 3.0.6
+
+### Patch Changes
+
+- 6b2ed9a: Add ability for task options to be hidden from the CLI ([#7426](https://github.com/NomicFoundation/hardhat/issues/7426))
+
 ## 3.0.5
 
 ### Patch Changes
