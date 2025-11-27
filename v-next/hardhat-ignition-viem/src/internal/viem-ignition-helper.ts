@@ -177,6 +177,22 @@ export class ViemIgnitionHelperImpl<ChainTypeT extends ChainType | string>
         deploymentParameters = parameters;
       }
 
+      if (
+        resolvedConfig.maxRetries === undefined &&
+        this.#connection.networkConfig.ignition.maxRetries !== undefined
+      ) {
+        resolvedConfig.maxRetries =
+          this.#connection.networkConfig.ignition.maxRetries;
+      }
+
+      if (
+        resolvedConfig.retryInterval === undefined &&
+        this.#connection.networkConfig.ignition.retryInterval !== undefined
+      ) {
+        resolvedConfig.retryInterval =
+          this.#connection.networkConfig.ignition.retryInterval;
+      }
+
       const result = await deploy({
         config: resolvedConfig,
         provider: this.#provider,
@@ -193,12 +209,6 @@ export class ViemIgnitionHelperImpl<ChainTypeT extends ChainType | string>
           this.#connection.networkConfig?.ignition.maxFeePerGasLimit,
         maxPriorityFeePerGas:
           this.#connection.networkConfig?.ignition.maxPriorityFeePerGas,
-        maxRetries:
-          resolvedConfig.maxRetries ??
-          this.#connection.networkConfig.ignition.maxRetries,
-        retryInterval:
-          resolvedConfig.retryInterval ??
-          this.#connection.networkConfig.ignition.retryInterval,
       });
 
       if (result.type !== DeploymentResultType.SUCCESSFUL_DEPLOYMENT) {

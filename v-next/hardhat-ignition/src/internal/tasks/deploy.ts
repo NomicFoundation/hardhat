@@ -191,7 +191,13 @@ const taskDeploy: NewTaskActionFunction<TaskDeployArguments> = async (
   const strategyConfig = hre.config.ignition.strategyConfig?.[strategyName];
 
   const result = await deploy({
-    config: hre.config.ignition,
+    config: {
+      maxRetries:
+        hre.config.networks[connection.networkName]?.ignition.maxRetries,
+      retryInterval:
+        hre.config.networks[connection.networkName]?.ignition.retryInterval,
+      ...hre.config.ignition,
+    },
     provider: connection.provider,
     executionEventListener,
     artifactResolver,
@@ -214,12 +220,6 @@ const taskDeploy: NewTaskActionFunction<TaskDeployArguments> = async (
     disableFeeBumping:
       hre.config.ignition.disableFeeBumping ??
       hre.config.networks[connection.networkName]?.ignition.disableFeeBumping,
-    maxRetries:
-      hre.config.ignition.maxRetries ??
-      hre.config.networks[connection.networkName]?.ignition.maxRetries,
-    retryInterval:
-      hre.config.ignition.retryInterval ??
-      hre.config.networks[connection.networkName]?.ignition.retryInterval,
   });
 
   if (result.type === "SUCCESSFUL_DEPLOYMENT" && verify) {
