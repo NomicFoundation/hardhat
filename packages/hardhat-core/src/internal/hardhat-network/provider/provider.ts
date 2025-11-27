@@ -48,7 +48,11 @@ import {
   ProviderError,
 } from "../../core/providers/errors";
 import { isErrorResponse } from "../../core/providers/http";
-import { getHardforkName } from "../../util/hardforks";
+import {
+  getHardforkName,
+  hardforkGte,
+  HardforkName,
+} from "../../util/hardforks";
 import { ConsoleLogger } from "../stack-traces/consoleLogger";
 import { encodeSolidityStackTrace } from "../stack-traces/solidity-errors";
 import { SolidityStackTrace } from "../stack-traces/solidity-stack-trace";
@@ -236,6 +240,12 @@ export class EdrProviderWrapper
       return account.privateKey;
     });
 
+    const precompileOverrides = config.enableRip7212
+      ? hardforkGte(hardforkName, HardforkName.OSAKA)
+        ? [] // Osaka includes the P256 precompile natively
+        : [precompileP256Verify()]
+      : [];
+
     const edrProviderConfig = {
       allowBlocksWithSameTimestamp:
         config.allowBlocksWithSameTimestamp ?? false,
@@ -245,7 +255,7 @@ export class EdrProviderWrapper
       blockGasLimit: BigInt(config.blockGasLimit),
       chainId: BigInt(config.chainId),
       coinbase: Buffer.from(coinbase.slice(2), "hex"),
-      precompileOverrides: config.enableRip7212 ? [precompileP256Verify()] : [],
+      precompileOverrides,
       fork,
       genesisState,
       hardfork: ethereumsjsHardforkToEdrSpecId(hardforkName),

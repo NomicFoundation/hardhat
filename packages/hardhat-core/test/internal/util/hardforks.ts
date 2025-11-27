@@ -29,6 +29,7 @@ describe("Hardfork utils", function () {
       assert.equal("shanghai", HardforkName.SHANGHAI);
       assert.equal("cancun", HardforkName.CANCUN);
       assert.equal("prague", HardforkName.PRAGUE);
+      assert.equal("osaka", HardforkName.OSAKA);
     });
   });
 });
