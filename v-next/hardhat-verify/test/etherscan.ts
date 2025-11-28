@@ -599,6 +599,71 @@ describe("etherscan", () => {
         assert.equal(response.message, "Fail - Unable to verify");
       });
 
+      it("should handle detailed failure messages with additional information", async () => {
+        const etherscan = new Etherscan({
+          ...etherscanConfig,
+          dispatcher: testDispatcher.interceptable,
+        });
+
+        const detailedErrorMessage =
+          "Fail - Unable to verify. Compiled contract deployment bytecode does NOT match the transaction deployment bytecode.";
+
+        pollVerificationStatusInterceptor.reply(200, {
+          status: "0",
+          result: detailedErrorMessage,
+        });
+
+        let response: { success: boolean; message: string } | undefined;
+        try {
+          response = await etherscan.pollVerificationStatus(
+            guid,
+            address,
+            contract,
+          );
+        } catch {
+          assert.fail("Expected pollVerificationStatus to not throw an error");
+        }
+
+        assert.equal(response.success, false);
+        assert.equal(response.message, detailedErrorMessage);
+      });
+
+      it("should handle various detailed failure messages starting with 'Fail - Unable to verify'", async () => {
+        const etherscan = new Etherscan({
+          ...etherscanConfig,
+          dispatcher: testDispatcher.interceptable,
+        });
+
+        const failureMessages = [
+          "Fail - Unable to verify. Some other reason.",
+          "Fail - Unable to verify. Constructor arguments do not match.",
+          "Fail - Unable to verify. Invalid compiler version specified.",
+        ];
+
+        for (const failureMessage of failureMessages) {
+          pollVerificationStatusInterceptor.reply(200, {
+            status: "0",
+            result: failureMessage,
+          });
+
+          let response: { success: boolean; message: string } | undefined;
+          try {
+            response = await etherscan.pollVerificationStatus(
+              guid,
+              address,
+              contract,
+            );
+          } catch {
+            assert.fail(
+              "Expected pollVerificationStatus to not throw an error",
+            );
+          }
+
+          assert.equal(response.success, false);
+          assert.equal(response.message, failureMessage);
+        }
+      });
+
       it("should poll the verification status until it is successful or fails", async () => {
         const etherscan = new Etherscan({
           ...etherscanConfig,
