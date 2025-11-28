@@ -179,6 +179,22 @@ export class ViemIgnitionHelperImpl<ChainTypeT extends ChainType | string>
         deploymentParameters = parameters;
       }
 
+      if (
+        resolvedConfig.maxRetries === undefined &&
+        this.#connection.networkConfig.ignition.maxRetries !== undefined
+      ) {
+        resolvedConfig.maxRetries =
+          this.#connection.networkConfig.ignition.maxRetries;
+      }
+
+      if (
+        resolvedConfig.retryInterval === undefined &&
+        this.#connection.networkConfig.ignition.retryInterval !== undefined
+      ) {
+        resolvedConfig.retryInterval =
+          this.#connection.networkConfig.ignition.retryInterval;
+      }
+
       const result = await deploy({
         config: resolvedConfig,
         provider: this.#provider,
