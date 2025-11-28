@@ -1,5 +1,5 @@
 // Contains code copied from istanbul-reports (https://github.com/istanbuljs/istanbuljs/tree/main/packages/istanbul-reports).
-// The original license is in the LICENSE.txt file in the parent directory.
+// The link to the original license is in the VENDORED.md file in the parent directory.
 
 /*
  Copyright 2012-2015, Yahoo Inc.
