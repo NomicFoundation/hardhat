@@ -1,5 +1,11 @@
 # hardhat
 
+## 3.0.17
+
+### Patch Changes
+
+- a9a47e5: Fixed hex validation patterns, thanks @Bilogweb3 ([#7719](https://github.com/NomicFoundation/hardhat/pull/7719))
+
 ## 3.0.16
 
 ### Patch Changes
