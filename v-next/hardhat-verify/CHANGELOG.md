@@ -1,5 +1,11 @@
 # @nomicfoundation/hardhat-verify
 
+## 3.0.8
+
+### Patch Changes
+
+- 0635271: Fix Etherscan verification retry with full compiler input, thanks @SyedAsadKazmi! ([#7577](https://github.com/NomicFoundation/hardhat/pull/7577))
+
 ## 3.0.7
 
 ### Patch Changes
