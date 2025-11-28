@@ -193,6 +193,7 @@ export class EIP1193JsonRpcClient implements JsonRpcClient {
     private readonly _provider: EIP1193Provider,
     private readonly _config?: {
       maxFeePerGasLimit?: bigint;
+      maxFeePerGas?: bigint;
       maxPriorityFeePerGas?: bigint;
       gasPrice?: bigint;
     },
@@ -689,6 +690,7 @@ export class EIP1193JsonRpcClient implements JsonRpcClient {
 
       // Logic copied from ethers v6
       const maxFeePerGas =
+        this._config?.maxFeePerGas ??
         latestBlock.baseFeePerGas * 2n + maxPriorityFeePerGas;
 
       return {
