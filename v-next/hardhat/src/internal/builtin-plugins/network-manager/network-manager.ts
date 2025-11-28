@@ -266,6 +266,7 @@ export class NetworkManagerImplementation implements NetworkManager {
           },
           coverageConfig,
           gasReportConfig,
+          loggerConfig: resolvedNetworkConfig.logger,
         });
       }
 

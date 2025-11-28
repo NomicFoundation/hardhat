@@ -108,6 +108,7 @@ export function resolveEdrNetwork(
     throwOnCallFailures: networkConfig.throwOnCallFailures ?? true,
     throwOnTransactionFailures:
       networkConfig.throwOnTransactionFailures ?? true,
+    logger: networkConfig.logger,
   };
 }
 

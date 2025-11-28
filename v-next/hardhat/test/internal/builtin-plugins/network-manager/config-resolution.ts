@@ -259,6 +259,45 @@ describe("config-resolution", () => {
         getCurrentHardfork(OPTIMISM_CHAIN_TYPE),
       );
     });
+
+    it("should pass through the logger config if it is provided", () => {
+      const printLineFn = (line: string) => console.log(line);
+      const replaceLastLineFn = (line: string) => console.log(line);
+      const userConfig: EdrNetworkUserConfig = {
+        type: "edr-simulated",
+        logger: {
+          enabled: true,
+          printLineFn,
+          replaceLastLineFn,
+        },
+      };
+      const edrNetworkConfig = resolveEdrNetwork(
+        userConfig,
+        GENERIC_CHAIN_TYPE,
+        "",
+        configVarResolver,
+      );
+
+      assert.deepEqual(edrNetworkConfig.logger, {
+        enabled: true,
+        printLineFn,
+        replaceLastLineFn,
+      });
+    });
+
+    it("should return undefined for logger if it is not provided", () => {
+      const userConfig: EdrNetworkUserConfig = {
+        type: "edr-simulated",
+      };
+      const edrNetworkConfig = resolveEdrNetwork(
+        userConfig,
+        GENERIC_CHAIN_TYPE,
+        "",
+        configVarResolver,
+      );
+
+      assert.equal(edrNetworkConfig.logger, undefined);
+    });
   });
 
   describe("resolveGasConfig", () => {
