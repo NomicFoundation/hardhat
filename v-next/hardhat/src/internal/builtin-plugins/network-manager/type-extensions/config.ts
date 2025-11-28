@@ -59,7 +59,7 @@ declare module "../../../../types/config.js" {
   >;
 
   export type EdrNetworkConfigOverride = Partial<
-    Omit<EdrNetworkUserConfig, "type">
+    Omit<EdrNetworkUserConfig, "type" | "chainType">
   >;
 
   // Ideally we use Partial<Omit<NetworkUserConfig, "type">> but omit breaks

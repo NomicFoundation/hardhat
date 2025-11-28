@@ -1,4 +1,5 @@
 import type { EdrNetworkConfigOverride } from "../../../types/config.js";
+import type { ChainType } from "../../../types/network.js";
 import type { NewTaskActionFunction } from "../../../types/tasks.js";
 
 import path from "node:path";
@@ -56,6 +57,13 @@ const nodeAction: NewTaskActionFunction<NodeActionArguments> = async (
     });
   }
 
+  const connectionParams: {
+    network: string;
+    chainType?: ChainType;
+    override?: EdrNetworkConfigOverride;
+  } = {
+    network,
+  };
   // NOTE: We create an empty network config override here. We add to it based
   // on the result of arguments parsing. We can expand the list of arguments
   // as much as needed.
@@ -72,7 +80,7 @@ const nodeAction: NewTaskActionFunction<NodeActionArguments> = async (
         },
       );
     }
-    networkConfigOverride.chainType = args.chainType;
+    connectionParams.chainType = args.chainType;
   }
 
   if (args.chainId !== -1) {
@@ -100,10 +108,8 @@ const nodeAction: NewTaskActionFunction<NodeActionArguments> = async (
 
   // NOTE: This is where we initialize the network; the connect method returns
   // a fully resolved networkConfig object which might be useful for display
-  const { networkConfig, provider } = await hre.network.connect({
-    network,
-    override: networkConfigOverride,
-  });
+  const { networkConfig, provider } =
+    await hre.network.connect(connectionParams);
 
   assertHardhatInvariant(
     provider instanceof EdrProvider,

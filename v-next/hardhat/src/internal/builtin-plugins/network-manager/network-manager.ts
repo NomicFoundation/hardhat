@@ -35,6 +35,7 @@ import { isSupportedChainType } from "../../edr/chain-type.js";
 import { JsonRpcServerImplementation } from "../node/json-rpc/server.js";
 
 import { EdrProvider } from "./edr/edr-provider.js";
+import { getHardforks } from "./edr/types/hardfork.js";
 import { edrGasReportToHardhatGasMeasurements } from "./edr/utils/convert-to-edr.js";
 import { HttpProvider } from "./http-provider.js";
 import { NetworkConnectionImplementation } from "./network-connection.js";
@@ -132,8 +133,9 @@ export class NetworkManagerImplementation implements NetworkManager {
     networkConfigOverride?: NetworkConfigOverride,
   ): Promise<NetworkConnection<ChainTypeT>> {
     const resolvedNetworkName = networkName ?? this.#defaultNetwork;
+    const existingNetworkConfig = this.#networkConfigs[resolvedNetworkName];
 
-    if (this.#networkConfigs[resolvedNetworkName] === undefined) {
+    if (existingNetworkConfig === undefined) {
       throw new HardhatError(
         HardhatError.ERRORS.CORE.NETWORK.NETWORK_NOT_FOUND,
         {
@@ -142,36 +144,19 @@ export class NetworkManagerImplementation implements NetworkManager {
       );
     }
 
+    /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions --
+     * Type assertion is safe: defaultChainType ensures non-undefined, and the
+     * resolved value will be ChainTypeT (if provided) or a fallback that
+     * satisfies the ChainType | string constraint */
+    const resolvedChainType = (chainType ??
+      existingNetworkConfig.chainType ??
+      this.#defaultChainType) as ChainTypeT;
+
     const resolvedNetworkConfig = await this.#resolveNetworkConfig(
       resolvedNetworkName,
       networkConfigOverride,
+      resolvedChainType,
     );
-
-    /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions
-    -- Cast to ChainTypeT because we know it's valid */
-    const resolvedChainType = (chainType ??
-      resolvedNetworkConfig.chainType ??
-      this.#defaultChainType) as ChainTypeT;
-
-    /**
-     * If resolvedNetworkConfig.chainType is defined, it must match the
-     * provided chainType.
-     * We use resolvedChainType as it will be either chainType or
-     * resolvedNetworkConfig.chainType in this context.
-     */
-    if (
-      resolvedNetworkConfig.chainType !== undefined &&
-      resolvedChainType !== resolvedNetworkConfig.chainType
-    ) {
-      throw new HardhatError(
-        HardhatError.ERRORS.CORE.NETWORK.INVALID_CHAIN_TYPE,
-        {
-          networkName: resolvedNetworkName,
-          chainType: resolvedChainType,
-          networkChainType: resolvedNetworkConfig.chainType,
-        },
-      );
-    }
 
     /* Capture the hook manager in a local variable to avoid retaining a
     reference to the NetworkManager instance, allowing the garbage collector
@@ -307,18 +292,22 @@ export class NetworkManagerImplementation implements NetworkManager {
    * @returns a valid network configuration including any config additions from
    *   plugins
    */
-  async #resolveNetworkConfig(
+  async #resolveNetworkConfig<ChainTypeT extends ChainType | string>(
     resolvedNetworkName: string,
-    networkConfigOverride: NetworkConfigOverride | undefined,
+    networkConfigOverride: NetworkConfigOverride | undefined = {},
+    resolvedChainType: ChainTypeT,
   ): Promise<NetworkConfig> {
-    if (networkConfigOverride === undefined) {
-      return this.#networkConfigs[resolvedNetworkName];
+    const existingNetworkConfig = this.#networkConfigs[resolvedNetworkName];
+    if (
+      Object.keys(networkConfigOverride).length === 0 &&
+      resolvedChainType === existingNetworkConfig.chainType
+    ) {
+      return existingNetworkConfig;
     }
 
     if (
       "type" in networkConfigOverride &&
-      networkConfigOverride.type !==
-        this.#networkConfigs[resolvedNetworkName].type
+      networkConfigOverride.type !== existingNetworkConfig.type
     ) {
       throw new HardhatError(
         HardhatError.ERRORS.CORE.NETWORK.INVALID_CONFIG_OVERRIDE,
@@ -328,9 +317,24 @@ export class NetworkManagerImplementation implements NetworkManager {
       );
     }
 
-    const newConfig = deepMerge(this.#userConfig, {
+    if (
+      "chainType" in networkConfigOverride &&
+      networkConfigOverride.chainType !== existingNetworkConfig.chainType
+    ) {
+      throw new HardhatError(
+        HardhatError.ERRORS.CORE.NETWORK.INVALID_CONFIG_OVERRIDE,
+        {
+          errors: `\t* The chainType cannot be specified in config overrides. Pass it at the top level instead: hre.network.connect({ chainType: 'op' })`,
+        },
+      );
+    }
+
+    const userConfigWithOverrides = deepMerge(this.#userConfig, {
       networks: {
-        [resolvedNetworkName]: networkConfigOverride,
+        [resolvedNetworkName]: {
+          ...networkConfigOverride,
+          chainType: resolvedChainType,
+        },
       },
     });
 
@@ -341,7 +345,7 @@ export class NetworkManagerImplementation implements NetworkManager {
     const resolvedPlugins: HardhatPlugin[] = [];
 
     const configResolutionResult = await resolveUserConfigToHardhatConfig(
-      newConfig,
+      userConfigWithOverrides,
       this.#hookManager,
       this.#projectRoot,
       this.#userProvidedConfigPath,
@@ -359,9 +363,23 @@ export class NetworkManagerImplementation implements NetworkManager {
                 resolvedNetworkName,
               );
 
+              let errorMessage = error.message;
+              // When chainType is changed but the network has a configured hardfork,
+              // provide a specific message explaining the hardfork must also be updated
+              if (path[0] === "hardfork") {
+                errorMessage =
+                  `Your configured hardfork is incompatible with chainType ${resolvedChainType}. ` +
+                  `You need to update the hardfork in your network config or pass a valid hardfork ` +
+                  `in the overrides when connecting to the network. ` +
+                  `Valid hardforks for chainType ${resolvedChainType} are: ` +
+                  /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions
+                  -- We know resolvedChainType is a valid ChainType */
+                  `${getHardforks(resolvedChainType as ChainType).join(", ")}.`;
+              }
+
               return path.length > 0
-                ? `* Error in ${path.join(".")}: ${error.message}`
-                : `* ${error.message}`;
+                ? `* Error in ${path.join(".")}: ${errorMessage}`
+                : `* ${errorMessage}`;
             })
             .join("\n\t")}`,
         },
