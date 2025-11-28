@@ -1,3 +1,4 @@
 packages:
   - "v-next/*"
   - "v-next/hardhat/templates/hardhat-3/*"
+forceLegacyDeploy: true

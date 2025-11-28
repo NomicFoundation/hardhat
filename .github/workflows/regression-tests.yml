@@ -9,7 +9,7 @@ on:
       preset:
         required: false
         type: string
-        default: 'default'
+        default: "default"
       hardhat-ref:
         required: false
         type: string
@@ -28,43 +28,43 @@ on:
       color:
         required: false
         type: string
-        default: '0'
+        default: "0"
   workflow_dispatch:
     inputs:
       preset:
-        description: 'The preset to use'
+        description: "The preset to use"
         required: false
         type: choice
         options:
           - solidity-test
           - solidity-compile
           - default
-        default: 'default'
+        default: "default"
       hardhat-ref:
-        description: 'The branch, tag or SHA of hardhat to test against'
+        description: "The branch, tag or SHA of hardhat to test against"
         required: false
         type: string
       edr-ref:
-        description: 'The branch, tag or SHA of edr to test against'
+        description: "The branch, tag or SHA of edr to test against"
         required: false
         type: string
       repositories:
-        description: 'A list of repositories to test against'
+        description: "A list of repositories to test against"
         required: false
         type: string
       runners:
-        description: 'A list of runners to test against'
+        description: "A list of runners to test against"
         required: false
         type: string
       commands:
-        description: 'A list of commands to test against'
+        description: "A list of commands to test against"
         required: false
         type: string
       color:
-        description: 'Force output colorization'
+        description: "Force output colorization"
         required: false
         type: string
-        default: '0'
+        default: "0"
 
 defaults:
   run:
@@ -262,7 +262,11 @@ jobs:
         run: jq --argjson json "$JSON" '. + $json' package.json > package.json.tmp && mv package.json.tmp package.json
         working-directory: ${{ github.workspace }}
       - name: Deploy
+        env:
+          # We want to allow workspace packages for the regression tests deploy
+          inject-workspace-packages: true
         run: |
+          echo "inject-workspace-packages=true" >> .npmrc
           pnpm deploy --config.node-linker=hoisted --filter=hardhat --prod bundle.tmp
           rsync -a --copy-links bundle.tmp/ bundle
           rm -rf **/bundle.tmp
@@ -517,7 +521,7 @@ jobs:
       - name: Download the results
         uses: actions/download-artifact@v4
         with:
-          pattern: 'repository-*;command-*;runner-*'
+          pattern: "repository-*;command-*;runner-*"
       - name: Summarize the results
         id: summary
         env:
