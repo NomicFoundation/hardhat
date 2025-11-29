@@ -9,3 +9,8 @@ node_modules
 /typechain-types
 
 pnpm-lock.yaml
+
+# Environment files
+.env
+.env.*
+!.env.example

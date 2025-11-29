@@ -15,3 +15,8 @@
 
 # Typechain output
 /types
+
+# Environment files
+.env
+.env.*
+!.env.example
