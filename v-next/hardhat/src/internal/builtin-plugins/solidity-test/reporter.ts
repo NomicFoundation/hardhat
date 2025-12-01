@@ -227,7 +227,7 @@ export async function* testReporter(
     yield "\n";
 
     yield indenter.t`${colorizer.green(`${runSuccessCount} passing`)}\n`;
-    if (runFailureCount > 0) {
+    if (failures.length > 0) {
       yield indenter.t`${colorizer.red(`${failures.length} failing`)}\n`;
     }
     if (runSkippedCount > 0) {
