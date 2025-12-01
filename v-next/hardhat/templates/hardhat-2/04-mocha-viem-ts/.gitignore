@@ -5,3 +5,8 @@ node_modules
 /artifacts
 
 pnpm-lock.yaml
+
+# Environment files
+.env
+.env.*
+!.env.example
