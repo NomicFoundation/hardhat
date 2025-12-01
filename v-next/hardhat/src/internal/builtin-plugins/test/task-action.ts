@@ -86,7 +86,7 @@ const runAllTests: NewTaskActionFunction<TestActionArguments> = async (
     if (subtask.options.has("testSummaryIndex")) {
       args.testSummaryIndex = failureIndex;
 
-      const summaryId = subtask.id.join("-");
+      const summaryId = subtask.id[subtask.id.length - 1];
 
       testSummaries[summaryId] = await subtask.run(args);
       failureIndex += testSummaries[summaryId].failed ?? 0;
@@ -118,8 +118,30 @@ const runAllTests: NewTaskActionFunction<TestActionArguments> = async (
       todo.push([subtaskName, results.todo]);
     }
 
+    /**
+     * Failure formatting test cases:
+     *
+     * no failures
+     * only node
+     * multiple node
+     * only solidity
+     *    - 1 top
+     *    - 2 bottom but sometimes - 1 instead??? how many do we need bottom
+     * multiple solidity
+     * single node + single solidity
+     * multiple node + multiple solidity
+     * single node + multiple solidity
+     * multiple node + single solidity
+     *
+     */
     if (results.failureOutput !== "") {
-      outputLines.push(results.failureOutput);
+      const output = results.failureOutput;
+
+      if (subtaskName.includes("node")) {
+        outputLines.push(`\n${output}\n`);
+      } else {
+        outputLines.push(output);
+      }
     }
   }
 
@@ -140,8 +162,17 @@ const runAllTests: NewTaskActionFunction<TestActionArguments> = async (
   }
 
   if (outputLines.length > 0) {
-    console.log(outputLines.join("\n"));
-    console.log();
+    console.log(
+      outputLines
+        .map((o) => {
+          const nl = o.match(/\n+$/gm);
+          if (nl !== null) {
+            return o.replace(new RegExp(`${nl[0]}$`), "\n");
+          }
+          return o;
+        })
+        .join("\n"),
+    );
   }
 
   console.log();
@@ -168,14 +199,14 @@ function logSummaryLine(
   color: ChalkInstance = chalk.white,
 ): void {
   let total = 0;
-  const todoStr = items
+  const str = items
     .map(([name, count]) => {
       total += count;
       return `${count} ${name}`;
     })
     .join(", ");
 
-  console.log(`${color(`${total} ${label}`)} (${todoStr})`);
+  console.log(`${color(`${total} ${label}`)} (${str})`);
 }
 
 async function registerTestRunnersForFiles(

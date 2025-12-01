@@ -332,11 +332,9 @@ export function hardhatTestReporter(
           config.testOnlyMessage,
         );
       }
-    }
 
-    yield "\n\n";
+      yield "\n\n";
 
-    if (config.testSummaryIndex === 0) {
       for (const reason of preFormattedFailureReasons) {
         yield reason;
         yield "\n\n";

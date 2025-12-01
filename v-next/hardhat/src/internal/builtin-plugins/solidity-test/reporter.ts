@@ -217,12 +217,12 @@ export async function* testReporter(
     }
   }
 
-  yield "\n";
-  yield "\n";
-
   // testSummaryIndex of 0 means task is being run directly, so summary is handled here
   // and not by the parent `test` task.
   if (testSummaryIndex === 0) {
+    yield "\n";
+    yield "\n";
+
     yield indenter.t`${colorizer.green(`${runSuccessCount} passing`)}\n`;
     if (runFailureCount > 0) {
       yield indenter.t`${colorizer.red(`${failures.length} failing`)}\n`;
