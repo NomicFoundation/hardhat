@@ -15,11 +15,12 @@ npm install --save-dev @nomicfoundation/hardhat-verify
 In your `hardhat.config.ts` file, import the plugin and add it to the `plugins` array:
 
 ```ts
+import { defineConfig } from "hardhat/config";
 import hardhatVerify from "@nomicfoundation/hardhat-verify";
 
-export default {
+export default defineConfig({
   plugins: [hardhatVerify],
-};
+});
 ```
 
 ## Usage
@@ -29,7 +30,9 @@ export default {
 You need to add the following Etherscan config in your `hardhat.config.ts` file
 
 ```typescript
-export default {
+import { defineConfig } from "hardhat/config";
+
+export default defineConfig({
   verify: {
     etherscan: {
       // Your API key for Etherscan
@@ -37,15 +40,15 @@ export default {
       apiKey: "<ETHERSCAN_API_KEY>",
     },
   },
-};
+});
 ```
 
 We recommend using a [configuration variable](https://hardhat.org/docs/learn-more/configuration-variables) to set sensitive information like API keys.
 
 ```typescript
-import { configVariable } from "hardhat/config";
+import { configVariable, defineConfig } from "hardhat/config";
 
-export default {
+export default defineConfig({
   verify: {
     etherscan: {
       // Your API key for Etherscan
@@ -53,7 +56,7 @@ export default {
       apiKey: configVariable("ETHERSCAN_API_KEY"),
     },
   },
-};
+});
 ```
 
 Run the `verify` task passing the network where it's deployed, the address of the contract, and the constructor arguments that were used to deploy it (if any):
@@ -74,7 +77,7 @@ await verifyContract(
   {
     address: "DEPLOYED_CONTRACT_ADDRESS",
     constructorArgs: ["Constructor argument 1"],
-    provider: "etherscan", // or "blockscout" for Blockscout-compatible explorers
+    provider: "etherscan", // or "blockscout", or "sourcify"
   },
   hre,
 );

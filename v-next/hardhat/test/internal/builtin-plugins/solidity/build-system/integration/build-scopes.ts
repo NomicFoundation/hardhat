@@ -2,6 +2,8 @@ import assert from "node:assert/strict";
 import path from "node:path";
 import { describe, it } from "node:test";
 
+import { HardhatError } from "@nomicfoundation/hardhat-errors";
+import { assertRejectsWithHardhatError } from "@nomicfoundation/hardhat-test-utils";
 import {
   exists,
   readJsonFile,
@@ -399,6 +401,84 @@ describe("build system - build task - behavior on build scope", function () {
       assert.equal(await exists(contractArtifactPath), true);
       assert.equal(await exists(testBuildInfoPath), false);
       assert.equal(await exists(testArtifactPath), false);
+    });
+
+    describe("When user provided files' scopes can't be recognized", async () => {
+      it("Should throw if a test file isn't recognized", async () => {
+        await using project =
+          await useTestProjectTemplate(basicProjectTemplate);
+        const hre = await project.getHRE();
+
+        const previousCwd = process.cwd();
+        process.chdir(project.path);
+
+        try {
+          await assertRejectsWithHardhatError(
+            hre.tasks
+              .getTask("build")
+              .run({ noTests: true, files: ["contracts/Foo.t.sol"] }),
+            HardhatError.ERRORS.CORE.SOLIDITY.UNRECOGNIZED_FILES_NOT_COMPILED,
+            { files: "- contracts/Foo.t.sol" },
+          );
+
+          await assertRejectsWithHardhatError(
+            hre.tasks
+              .getTask("build")
+              .run({ noTests: true, files: ["test/OtherFooTest.sol"] }),
+            HardhatError.ERRORS.CORE.SOLIDITY.UNRECOGNIZED_FILES_NOT_COMPILED,
+            { files: "- test/OtherFooTest.sol" },
+          );
+        } catch {
+          process.chdir(previousCwd);
+        }
+      });
+
+      it("Should throw if a contract isn't recognized", async () => {
+        await using project =
+          await useTestProjectTemplate(basicProjectTemplate);
+        const hre = await project.getHRE();
+
+        const previousCwd = process.cwd();
+        process.chdir(project.path);
+
+        try {
+          await assertRejectsWithHardhatError(
+            hre.tasks
+              .getTask("build")
+              .run({ noContracts: true, files: ["contracts/Foo.sol"] }),
+            HardhatError.ERRORS.CORE.SOLIDITY.UNRECOGNIZED_FILES_NOT_COMPILED,
+            { files: "- contracts/Foo.sol" },
+          );
+        } catch {
+          process.chdir(previousCwd);
+        }
+      });
+
+      it("Should throw if neither is recognized", async () => {
+        await using project =
+          await useTestProjectTemplate(basicProjectTemplate);
+        const hre = await project.getHRE();
+
+        const previousCwd = process.cwd();
+        process.chdir(project.path);
+
+        try {
+          await assertRejectsWithHardhatError(
+            hre.tasks.getTask("build").run({
+              noContracts: true,
+              noTests: true,
+              files: ["contracts/Foo.sol", "contracts/Foo.t.sol"],
+            }),
+            HardhatError.ERRORS.CORE.SOLIDITY.UNRECOGNIZED_FILES_NOT_COMPILED,
+            {
+              files: `- contracts/Foo.sol
+- contracts/Foo.t.sol`,
+            },
+          );
+        } catch {
+          process.chdir(previousCwd);
+        }
+      });
     });
   });
 });

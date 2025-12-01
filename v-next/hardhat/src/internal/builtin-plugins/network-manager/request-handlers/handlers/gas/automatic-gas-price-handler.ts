@@ -200,7 +200,9 @@ export class AutomaticGasPriceHandler implements RequestHandler {
         // next N blocks here.
 
         maxFeePerGas:
-          (hexStringToBigInt(response.baseFeePerGas[1]) *
+          (hexStringToBigInt(
+            response.baseFeePerGas[response.baseFeePerGas.length - 1],
+          ) *
             9n **
               (AutomaticGasPriceHandler.EIP1559_BASE_FEE_MAX_FULL_BLOCKS_PREFERENCE -
                 1n)) /

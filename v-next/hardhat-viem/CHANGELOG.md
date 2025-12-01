@@ -1,5 +1,11 @@
 # @nomicfoundation/hardhat-viem
 
+## 3.0.1
+
+### Patch Changes
+
+- 558ac5b: Update installation and config instructions
+
 ## 3.0.0
 
 ### Major Changes

@@ -16,7 +16,6 @@ export const DEFAULT_CHAIN_DESCRIPTORS: ChainDescriptorsConfig = new Map([
       blockExplorers: {
         etherscan: {
           url: "https://etherscan.io",
-          apiUrl: "https://api.etherscan.io/api",
         },
         blockscout: {
           url: "https://eth.blockscout.com",
@@ -34,7 +33,6 @@ export const DEFAULT_CHAIN_DESCRIPTORS: ChainDescriptorsConfig = new Map([
       blockExplorers: {
         etherscan: {
           url: "https://holesky.etherscan.io",
-          apiUrl: "https://api-holesky.etherscan.io/api",
         },
         blockscout: {
           url: "https://eth-holesky.blockscout.com",
@@ -52,7 +50,6 @@ export const DEFAULT_CHAIN_DESCRIPTORS: ChainDescriptorsConfig = new Map([
       blockExplorers: {
         etherscan: {
           url: "https://hoodi.etherscan.io",
-          apiUrl: "https://api-hoodi.etherscan.io/api",
         },
         blockscout: {
           url: "https://eth-hoodi.blockscout.com",
@@ -70,7 +67,6 @@ export const DEFAULT_CHAIN_DESCRIPTORS: ChainDescriptorsConfig = new Map([
       blockExplorers: {
         etherscan: {
           url: "https://sepolia.etherscan.io",
-          apiUrl: "https://api-sepolia.etherscan.io/api",
         },
         blockscout: {
           url: "https://eth-sepolia.blockscout.com",
@@ -88,7 +84,6 @@ export const DEFAULT_CHAIN_DESCRIPTORS: ChainDescriptorsConfig = new Map([
       blockExplorers: {
         etherscan: {
           url: "https://optimistic.etherscan.io",
-          apiUrl: "https://api-optimistic.etherscan.io/api",
         },
         blockscout: {
           url: "https://optimism.blockscout.com",
@@ -106,7 +101,6 @@ export const DEFAULT_CHAIN_DESCRIPTORS: ChainDescriptorsConfig = new Map([
       blockExplorers: {
         etherscan: {
           url: "https://sepolia-optimism.etherscan.io",
-          apiUrl: "https://api-sepolia-optimism.etherscan.io/api",
         },
         blockscout: {
           url: "https://optimism-sepolia.blockscout.com",
@@ -125,7 +119,6 @@ export const DEFAULT_CHAIN_DESCRIPTORS: ChainDescriptorsConfig = new Map([
         etherscan: {
           name: "Arbiscan",
           url: "https://arbiscan.io",
-          apiUrl: "https://api.arbiscan.io/api",
         },
         blockscout: {
           url: "https://arbitrum.blockscout.com",
@@ -144,7 +137,6 @@ export const DEFAULT_CHAIN_DESCRIPTORS: ChainDescriptorsConfig = new Map([
         etherscan: {
           name: "Arbiscan",
           url: "https://nova.arbiscan.io",
-          apiUrl: "https://api-nova.arbiscan.io/api",
         },
         blockscout: {
           url: "https://arbitrum-nova.blockscout.com",
@@ -155,7 +147,7 @@ export const DEFAULT_CHAIN_DESCRIPTORS: ChainDescriptorsConfig = new Map([
   ],
   // arbitrum sepolia testnet
   [
-    42_170n,
+    421_614n,
     {
       name: "Arbitrum Sepolia",
       chainType: GENERIC_CHAIN_TYPE,
@@ -163,7 +155,6 @@ export const DEFAULT_CHAIN_DESCRIPTORS: ChainDescriptorsConfig = new Map([
         etherscan: {
           name: "Arbiscan",
           url: "https://sepolia.arbiscan.io",
-          apiUrl: "https://api-sepolia.arbiscan.io/api",
         },
         blockscout: {
           url: "https://arbitrum-sepolia.blockscout.com",
@@ -182,7 +173,6 @@ export const DEFAULT_CHAIN_DESCRIPTORS: ChainDescriptorsConfig = new Map([
         etherscan: {
           name: "Basescan",
           url: "https://basescan.org",
-          apiUrl: "https://api.basescan.org/api",
         },
         blockscout: {
           url: "https://base.blockscout.com",
@@ -201,7 +191,6 @@ export const DEFAULT_CHAIN_DESCRIPTORS: ChainDescriptorsConfig = new Map([
         etherscan: {
           name: "Basescan",
           url: "https://sepolia.basescan.org",
-          apiUrl: "https://api-sepolia.basescan.org/api",
         },
         blockscout: {
           url: "https://base-sepolia.blockscout.com",
@@ -220,7 +209,6 @@ export const DEFAULT_CHAIN_DESCRIPTORS: ChainDescriptorsConfig = new Map([
         etherscan: {
           name: "SnowTrace",
           url: "https://snowtrace.io",
-          apiUrl: "https://api.snowtrace.io/api",
         },
       },
     },
@@ -235,7 +223,6 @@ export const DEFAULT_CHAIN_DESCRIPTORS: ChainDescriptorsConfig = new Map([
         etherscan: {
           name: "SnowTrace",
           url: "https://testnet.snowtrace.io",
-          apiUrl: "https://api-testnet.snowtrace.io/api",
         },
       },
     },
@@ -250,7 +237,6 @@ export const DEFAULT_CHAIN_DESCRIPTORS: ChainDescriptorsConfig = new Map([
         etherscan: {
           name: "PolygonScan",
           url: "https://polygonscan.com",
-          apiUrl: "https://api.polygonscan.com/api",
         },
         blockscout: {
           url: "https://polygon.blockscout.com",
@@ -269,7 +255,6 @@ export const DEFAULT_CHAIN_DESCRIPTORS: ChainDescriptorsConfig = new Map([
         etherscan: {
           name: "PolygonScan",
           url: "https://amoy.polygonscan.com",
-          apiUrl: "https://api-amoy.polygonscan.com/api",
         },
       },
     },
@@ -284,7 +269,6 @@ export const DEFAULT_CHAIN_DESCRIPTORS: ChainDescriptorsConfig = new Map([
         etherscan: {
           name: "PolygonScan",
           url: "https://zkevm.polygonscan.com",
-          apiUrl: "https://api-zkevm.polygonscan.com/api",
         },
         blockscout: {
           url: "https://zkevm.blockscout.com",
@@ -303,7 +287,6 @@ export const DEFAULT_CHAIN_DESCRIPTORS: ChainDescriptorsConfig = new Map([
         etherscan: {
           name: "PolygonScan",
           url: "https://cardona-zkevm.polygonscan.com",
-          apiUrl: "https://api-cardona-zkevm.polygonscan.com/api",
         },
       },
     },
@@ -318,7 +301,6 @@ export const DEFAULT_CHAIN_DESCRIPTORS: ChainDescriptorsConfig = new Map([
         etherscan: {
           name: "zkSync Era Explorer",
           url: "https://era.zksync.network",
-          apiUrl: "https://api-era.zksync.network/api",
         },
         blockscout: {
           url: "https://zksync.blockscout.com",
@@ -337,7 +319,6 @@ export const DEFAULT_CHAIN_DESCRIPTORS: ChainDescriptorsConfig = new Map([
         etherscan: {
           name: "zkSync Era Explorer",
           url: "https://sepolia-era.zksync.network",
-          apiUrl: "https://sepolia-era.zksync.network/api",
         },
         blockscout: {
           url: "https://zksync-sepolia.blockscout.com",
@@ -356,7 +337,6 @@ export const DEFAULT_CHAIN_DESCRIPTORS: ChainDescriptorsConfig = new Map([
         etherscan: {
           name: "BscScan",
           url: "https://bscscan.com",
-          apiUrl: "https://api.bscscan.com/api",
         },
       },
     },
@@ -371,7 +351,6 @@ export const DEFAULT_CHAIN_DESCRIPTORS: ChainDescriptorsConfig = new Map([
         etherscan: {
           name: "BscScan",
           url: "https://testnet.bscscan.com",
-          apiUrl: "https://api-testnet.bscscan.com/api",
         },
       },
     },
@@ -386,7 +365,6 @@ export const DEFAULT_CHAIN_DESCRIPTORS: ChainDescriptorsConfig = new Map([
         etherscan: {
           name: "Gnosisscan",
           url: "https://gnosisscan.io",
-          apiUrl: "https://api.gnosisscan.com/api",
         },
         blockscout: {
           url: "https://gnosis.blockscout.com",
@@ -434,7 +412,6 @@ export const DEFAULT_CHAIN_DESCRIPTORS: ChainDescriptorsConfig = new Map([
         etherscan: {
           name: "Moonscan",
           url: "https://moonbeam.moonscan.io",
-          apiUrl: "https://api-moonbeam.moonscan.io/api",
         },
       },
     },
@@ -449,7 +426,6 @@ export const DEFAULT_CHAIN_DESCRIPTORS: ChainDescriptorsConfig = new Map([
         etherscan: {
           name: "Moonscan",
           url: "https://moonbase.moonscan.io",
-          apiUrl: "https://api-moonbase.moonscan.io/api",
         },
       },
     },
@@ -464,7 +440,6 @@ export const DEFAULT_CHAIN_DESCRIPTORS: ChainDescriptorsConfig = new Map([
         etherscan: {
           name: "Moonscan",
           url: "https://moonriver.moonscan.io",
-          apiUrl: "https://api-moonriver.moonscan.io/api",
         },
       },
     },
@@ -493,7 +468,6 @@ export const DEFAULT_CHAIN_DESCRIPTORS: ChainDescriptorsConfig = new Map([
         etherscan: {
           name: "LineaScan",
           url: "https://sepolia.lineascan.build",
-          apiUrl: "https://api-sepolia.lineascan.build/api",
         },
         blockscout: {
           url: "https://explorer.sepolia.linea.build",
@@ -512,7 +486,6 @@ export const DEFAULT_CHAIN_DESCRIPTORS: ChainDescriptorsConfig = new Map([
         etherscan: {
           name: "LineaScan",
           url: "https://lineascan.build",
-          apiUrl: "https://api.lineascan.build/api",
         },
         blockscout: {
           url: "https://explorer.linea.build",

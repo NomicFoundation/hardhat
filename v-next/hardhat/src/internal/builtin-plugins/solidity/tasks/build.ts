@@ -2,6 +2,7 @@ import type { HardhatRuntimeEnvironment } from "../../../../types/hre.js";
 import type { BuildScope } from "../../../../types/solidity.js";
 import type { NewTaskActionFunction } from "../../../../types/tasks.js";
 
+import { HardhatError } from "@nomicfoundation/hardhat-errors";
 import { resolveFromRoot } from "@nomicfoundation/hardhat-utils/path";
 
 import { throwIfSolidityBuildFailed } from "../build-results.js";
@@ -20,15 +21,45 @@ const buildAction: NewTaskActionFunction<BuildActionArguments> = async (
   args: BuildActionArguments,
   hre,
 ) => {
-  const contractRootPaths = [];
-  const testRootPaths = [];
+  let contractRootPaths: string[] = [];
+  let testRootPaths: string[] = [];
+  const allUsedFiles: string[] = [];
 
   if (args.noContracts === false) {
-    contractRootPaths.push(...(await buildForScope("contracts", args, hre)));
+    const { rootPaths, usedFiles } = await buildForScope(
+      "contracts",
+      args,
+      hre,
+    );
+
+    contractRootPaths = rootPaths;
+    allUsedFiles.push(...usedFiles);
   }
 
   if (args.noTests === false) {
-    testRootPaths.push(...(await buildForScope("tests", args, hre)));
+    const { rootPaths, usedFiles } = await buildForScope("tests", args, hre);
+
+    testRootPaths = rootPaths;
+    allUsedFiles.push(...usedFiles);
+  }
+
+  // If there's an unused file we fail
+  if (args.files.length !== 0) {
+    const files = new Set(args.files);
+    const usedFiles = new Set(allUsedFiles);
+    const unusedFiles = files.difference(usedFiles);
+
+    if (unusedFiles.size > 0) {
+      const list = [...unusedFiles]
+        .sort()
+        .map((f) => `- ${f}`)
+        .join("\n");
+
+      throw new HardhatError(
+        HardhatError.ERRORS.CORE.SOLIDITY.UNRECOGNIZED_FILES_NOT_COMPILED,
+        { files: list },
+      );
+    }
   }
 
   return { contractRootPaths, testRootPaths };
@@ -39,6 +70,8 @@ async function buildForScope(
   { force, files, quiet, defaultBuildProfile }: BuildActionArguments,
   { solidity, globalOptions }: HardhatRuntimeEnvironment,
 ) {
+  const usedFiles = [];
+
   // If no specific files are passed, it means a full compilation, i.e. all source files
   const isFullCompilation = files.length === 0;
 
@@ -58,12 +91,13 @@ async function buildForScope(
         continue;
       }
 
+      usedFiles.push(file);
       rootPaths.push(rootPath);
     }
 
     // If a file list has been passed but none match this scope, we don't run the build
     if (rootPaths.length === 0) {
-      return [];
+      return { rootPaths, usedFiles };
     }
   }
 
@@ -83,7 +117,7 @@ async function buildForScope(
     await solidity.cleanupArtifacts(rootPaths, { scope });
   }
 
-  return rootPaths;
+  return { rootPaths, usedFiles };
 }
 
 export default buildAction;

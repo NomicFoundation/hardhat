@@ -2,10 +2,16 @@ import type { NewTaskDefinition } from "hardhat/types/tasks";
 
 import { task } from "hardhat/config";
 
-import { extendWithVerificationArgs } from "../utils.js";
+import {
+  extendWithSourcifyArgs,
+  extendWithVerificationArgs,
+} from "../utils.js";
 
-const verifySourcifyTask: NewTaskDefinition = extendWithVerificationArgs(
-  task(["verify", "sourcify"], "Verify a contract on Sourcify"),
+const verifySourcifyTask: NewTaskDefinition = extendWithSourcifyArgs(
+  extendWithVerificationArgs(
+    task(["verify", "sourcify"], "Verify a contract on Sourcify"),
+  ),
+  false,
 )
   .setAction(() => import("./task-action.js"))
   .build();

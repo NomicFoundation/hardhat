@@ -297,12 +297,14 @@ export class TaskOverrideDefinitionBuilderImplementation<
     description = "",
     type,
     defaultValue,
+    hidden,
   }: {
     name: NameT;
     shortName?: string;
     description?: string;
     type?: TypeT;
     defaultValue: ArgumentTypeToValueType<TypeT>;
+    hidden?: boolean;
   }): TaskOverrideDefinitionBuilder<
     ExtendTaskArguments<NameT, TypeT, TaskArgumentsT>
   > {
@@ -314,6 +316,7 @@ export class TaskOverrideDefinitionBuilderImplementation<
       description,
       type: argumentType,
       defaultValue,
+      hidden,
     };
 
     const usedNames = new Set<string>();
@@ -335,6 +338,7 @@ export class TaskOverrideDefinitionBuilderImplementation<
     name: string;
     shortName?: string;
     description?: string;
+    hidden?: boolean;
   }): TaskOverrideDefinitionBuilder<
     ExtendTaskArguments<NameT, ArgumentType.FLAG, TaskArgumentsT>
   > {
@@ -342,6 +346,7 @@ export class TaskOverrideDefinitionBuilderImplementation<
       ...flagConfig,
       type: ArgumentType.FLAG,
       defaultValue: false,
+      hidden: flagConfig.hidden,
     });
   }
 

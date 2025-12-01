@@ -1,11 +1,11 @@
-import type { VerifyActionArgs } from "./types.js";
+import type { BaseVerifyActionArgs, VerifyActionArgs } from "./types.js";
 import type { NewTaskDefinitionBuilder } from "hardhat/types/tasks";
 
 import { ArgumentType } from "hardhat/types/arguments";
 
 export function extendWithVerificationArgs(
   task: NewTaskDefinitionBuilder,
-): NewTaskDefinitionBuilder<VerifyActionArgs> {
+): NewTaskDefinitionBuilder<BaseVerifyActionArgs> {
   return task
     .addPositionalArgument({
       name: "address",
@@ -48,4 +48,18 @@ export function extendWithVerificationArgs(
       description: "List the networks that are supported by Etherscan",
     });
   */
+}
+
+export function extendWithSourcifyArgs(
+  task: NewTaskDefinitionBuilder<BaseVerifyActionArgs>,
+  isMainTask: boolean = true,
+): NewTaskDefinitionBuilder<VerifyActionArgs> {
+  return task.addOption({
+    name: "creationTxHash",
+    type: ArgumentType.STRING_WITHOUT_DEFAULT,
+    description:
+      "The hash of the contract creation transaction" +
+      (isMainTask ? " (Sourcify only)" : ""),
+    defaultValue: undefined,
+  });
 }

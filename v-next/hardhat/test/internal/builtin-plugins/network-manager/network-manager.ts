@@ -125,6 +125,7 @@ describe("NetworkManagerImplementation", () => {
             },
           },
         },
+        GENERIC_CHAIN_TYPE,
         "",
         (varOrStr) => resolveConfigurationVariable(hre.hooks, varOrStr),
       ),
@@ -736,7 +737,7 @@ describe("NetworkManagerImplementation", () => {
           {
             path: ["chainDescriptors", "1", "hardforkHistory", "random string"],
             message:
-              "Invalid hardfork name random string found in chain descriptor for chain 1. Expected bedrock | regolith | canyon | ecotone | fjord | granite | holocene.",
+              "Invalid hardfork name random string found in chain descriptor for chain 1. Expected bedrock | regolith | canyon | ecotone | fjord | granite | holocene | isthmus.",
           },
         ]);
 
@@ -1434,19 +1435,19 @@ describe("NetworkManagerImplementation", () => {
       describe("http config", () => {
         it("should validate a valid network config", async () => {
           let validationErrors = await validateNetworkUserConfig(
-            httpConfig({ chainType: "l1" }),
+            httpConfig({ chainType: L1_CHAIN_TYPE }),
           );
 
           assertValidationErrors(validationErrors, []);
 
           validationErrors = await validateNetworkUserConfig(
-            httpConfig({ chainType: "op" }),
+            httpConfig({ chainType: OPTIMISM_CHAIN_TYPE }),
           );
 
           assertValidationErrors(validationErrors, []);
 
           validationErrors = await validateNetworkUserConfig(
-            httpConfig({ chainType: "generic" }),
+            httpConfig({ chainType: GENERIC_CHAIN_TYPE }),
           );
 
           assertValidationErrors(validationErrors, []);
@@ -1469,19 +1470,19 @@ describe("NetworkManagerImplementation", () => {
       describe("edr config", () => {
         it("should validate a valid network config", async () => {
           let validationErrors = await validateNetworkUserConfig(
-            edrConfig({ chainType: "l1" }),
+            edrConfig({ chainType: L1_CHAIN_TYPE }),
           );
 
           assertValidationErrors(validationErrors, []);
 
           validationErrors = await validateNetworkUserConfig(
-            edrConfig({ chainType: "op" }),
+            edrConfig({ chainType: OPTIMISM_CHAIN_TYPE }),
           );
 
           assertValidationErrors(validationErrors, []);
 
           validationErrors = await validateNetworkUserConfig(
-            edrConfig({ chainType: "generic" }),
+            edrConfig({ chainType: GENERIC_CHAIN_TYPE }),
           );
 
           assertValidationErrors(validationErrors, []);
@@ -2145,6 +2146,18 @@ describe("NetworkManagerImplementation", () => {
 
             assertValidationErrors(validationErrors, []);
           }
+
+          for (const hardfork of Object.values(OpHardforkName)) {
+            const validationErrors = await validateNetworkUserConfig({
+              ...edrConfig({ hardfork }),
+              /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions 
+              -- Type assertion needed because changing defaultChainType requires module 
+              augmentation, which can't be done in test files */
+              defaultChainType: OPTIMISM_CHAIN_TYPE as any,
+            });
+
+            assertValidationErrors(validationErrors, []);
+          }
         });
 
         it("should not validate an invalid network config", async () => {
@@ -2171,7 +2184,25 @@ describe("NetworkManagerImplementation", () => {
             {
               path: ["networks", "hardhat", "hardfork"],
               message:
-                "Invalid hardfork name anything else for chainType op. Expected bedrock | regolith | canyon | ecotone | fjord | granite | holocene.",
+                "Invalid hardfork name anything else for chainType op. Expected bedrock | regolith | canyon | ecotone | fjord | granite | holocene | isthmus.",
+            },
+          ]);
+
+          validationErrors = await validateNetworkUserConfig({
+            ...edrConfig({
+              hardfork: L1HardforkName.PRAGUE,
+            }),
+            /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions 
+            -- Type assertion needed because changing defaultChainType requires module 
+            augmentation, which can't be done in test files */
+            defaultChainType: OPTIMISM_CHAIN_TYPE as any,
+          });
+
+          assertValidationErrors(validationErrors, [
+            {
+              path: ["networks", "hardhat", "hardfork"],
+              message:
+                "Invalid hardfork name prague for chainType op. Expected bedrock | regolith | canyon | ecotone | fjord | granite | holocene | isthmus.",
             },
           ]);
         });
@@ -2209,7 +2240,7 @@ describe("NetworkManagerImplementation", () => {
 
           assertValidationErrors(validationErrors, [
             {
-              path: ["networks", "hardhat"],
+              path: ["networks", "hardhat", "initialBaseFeePerGas"],
               message:
                 "initialBaseFeePerGas is only valid for networks with EIP-1559. Try a newer hardfork or remove it.",
             },
@@ -2336,7 +2367,7 @@ describe("NetworkManagerImplementation", () => {
 
           assertValidationErrors(validationErrors, [
             {
-              path: ["networks", "hardhat"],
+              path: ["networks", "hardhat", "minGasPrice"],
               message:
                 "minGasPrice is not valid for networks with EIP-1559. Try an older hardfork or remove it.",
             },

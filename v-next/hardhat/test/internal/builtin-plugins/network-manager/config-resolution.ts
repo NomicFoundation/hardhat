@@ -4,6 +4,7 @@ import type {
   EdrNetworkMiningUserConfig,
   EdrNetworkUserConfig,
   HttpNetworkUserConfig,
+  BlockExplorersUserConfig,
 } from "../../../../src/types/config.js";
 import type { HardhatRuntimeEnvironment } from "../../../../src/types/hre.js";
 
@@ -132,6 +133,7 @@ describe("config-resolution", () => {
       };
       const edrNetworkConfig = resolveEdrNetwork(
         userConfig,
+        GENERIC_CHAIN_TYPE,
         "",
         configVarResolver,
       );
@@ -181,6 +183,7 @@ describe("config-resolution", () => {
       const now = new Date();
       const edrNetworkConfig = resolveEdrNetwork(
         userConfig,
+        GENERIC_CHAIN_TYPE,
         "",
         configVarResolver,
       );
@@ -214,11 +217,47 @@ describe("config-resolution", () => {
       };
       const edrNetworkConfig = resolveEdrNetwork(
         userConfig,
+        GENERIC_CHAIN_TYPE,
         "",
         configVarResolver,
       );
 
       assert.equal(edrNetworkConfig.networkId, userConfig.chainId);
+    });
+
+    it("should resolve the hardfork based on the network chain type", () => {
+      const userConfig: EdrNetworkUserConfig = {
+        type: "edr-simulated",
+        chainType: OPTIMISM_CHAIN_TYPE,
+      };
+      const edrNetworkConfig = resolveEdrNetwork(
+        userConfig,
+        L1_CHAIN_TYPE, // different from network chain type so we know it's ignored
+        "",
+        configVarResolver,
+      );
+
+      assert.equal(
+        edrNetworkConfig.hardfork,
+        getCurrentHardfork(OPTIMISM_CHAIN_TYPE),
+      );
+    });
+
+    it("should resolve the hardfork based on the default chain type if chainType is not provided", () => {
+      const userConfig: EdrNetworkUserConfig = {
+        type: "edr-simulated",
+      };
+      const edrNetworkConfig = resolveEdrNetwork(
+        userConfig,
+        OPTIMISM_CHAIN_TYPE,
+        "",
+        configVarResolver,
+      );
+
+      assert.equal(
+        edrNetworkConfig.hardfork,
+        getCurrentHardfork(OPTIMISM_CHAIN_TYPE),
+      );
     });
   });
 
@@ -645,12 +684,21 @@ describe("config-resolution", () => {
         },
         [sepoliaChainId]: {
           name: "Sepolia Testnet",
+          /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions
+          -- in the real world, BlockExplorersUserConfig would be extended with
+          the new block explorer, but for testing purposes we cast it */
           blockExplorers: {
             etherscan: {
-              url: "http://localhost:8545",
+              url: undefined,
               apiUrl: "http://localhost:8545/api",
+              name: "Etherscan",
             },
-          },
+            // users can add new block explorers
+            customExplorer: {
+              apiUrl: "http://custom-explorer.io/api",
+              someOtherField: "some value",
+            },
+          } as BlockExplorersUserConfig,
         },
         [holeskyChainId]: {
           name: "Holesky Testnet",
@@ -696,12 +744,27 @@ describe("config-resolution", () => {
         sepoliaDefault?.hardforkHistory,
       );
       assert.deepEqual(
-        sepoliaConfig?.blockExplorers.etherscan,
-        sepoliaUserConfig.blockExplorers?.etherscan,
+        sepoliaConfig?.blockExplorers.etherscan?.name,
+        sepoliaUserConfig.blockExplorers?.etherscan?.name,
+      );
+      assert.deepEqual(
+        sepoliaConfig?.blockExplorers.etherscan?.apiUrl,
+        sepoliaUserConfig.blockExplorers?.etherscan?.apiUrl,
+      );
+      // make sure undefined values are ignored
+      assert.deepEqual(
+        sepoliaConfig?.blockExplorers.etherscan?.url,
+        sepoliaDefault?.blockExplorers?.etherscan?.url,
       );
       assert.deepEqual(
         sepoliaConfig?.blockExplorers.blockscout,
         sepoliaDefault?.blockExplorers.blockscout,
+      );
+      assert.deepEqual(
+        // eslint-disable-next-line @typescript-eslint/consistent-type-assertions -- cast to access customExplorer
+        (sepoliaConfig?.blockExplorers as any).customExplorer,
+        // eslint-disable-next-line @typescript-eslint/consistent-type-assertions -- cast to access customExplorer
+        (sepoliaUserConfig.blockExplorers as any)?.customExplorer,
       );
 
       const holeskyUserConfig = chainDescriptorsUserConfig[holeskyChainId];
@@ -773,9 +836,6 @@ describe("config-resolution", () => {
 
     it("should return the current hardfork if no hardfork is provided", () => {
       let hardfork = resolveHardfork(undefined, L1_CHAIN_TYPE);
-      assert.equal(hardfork, getCurrentHardfork(L1_CHAIN_TYPE));
-
-      hardfork = resolveHardfork(undefined, undefined);
       assert.equal(hardfork, getCurrentHardfork(L1_CHAIN_TYPE));
 
       hardfork = resolveHardfork(undefined, OPTIMISM_CHAIN_TYPE);

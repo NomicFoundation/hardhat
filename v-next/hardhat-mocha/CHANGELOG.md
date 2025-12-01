@@ -1,5 +1,30 @@
 # @nomicfoundation/hardhat-mocha
 
+## 3.0.7
+
+### Patch Changes
+
+- 147f8a6: Improved the look and feel of compilation output ([#7669](https://github.com/NomicFoundation/hardhat/pull/7669))
+
+## 3.0.6
+
+### Patch Changes
+
+- 558ac5b: Update installation and config instructions
+
+## 3.0.5
+
+### Patch Changes
+
+- d1969e7: Added support for showing gas statistics after running nodejs tests ([#7472](https://github.com/NomicFoundation/hardhat/issues/7428)).
+- 5e64246: Improved JS/TS test tasks to not compile Solidity tests ([#7626](https://github.com/NomicFoundation/hardhat/pull/7626))
+
+## 3.0.4
+
+### Patch Changes
+
+- 0ee442d: All test runners now set NODE_ENV to "test" in case it is not set before the tests start ([#7511](https://github.com/NomicFoundation/hardhat/issues/7511))
+
 ## 3.0.3
 
 ### Patch Changes

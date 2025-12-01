@@ -1,35 +1,98 @@
 import { execSync } from "node:child_process";
-import path from "node:path";
 
-import { exists } from "@nomicfoundation/hardhat-utils/fs";
 import semver from "semver";
 
-type PackageManager = "npm" | "yarn" | "pnpm";
+type PackageManager = "npm" | "yarn" | "pnpm" | "bun" | "deno";
 
 /**
- * getPackageManager returns the name of the package manager used in the workspace.
- * It determines this by checking the presence of package manager specific lock files.
+ * getPackageManager returns the name of the package manager used to run Hardhat
  *
- * @param workspace The path to the workspace where the package manager should be checked.
- * @returns The name of the package manager used in the workspace.
+ * This logic is based on the env variable `npm_config_user_agent`, which is set
+ * by all major package manager, both when running a package that has been
+ * installed, and when it hasn't.
+ *
+ * Here's how to reproduce it, with the value of the env var:
+ *
+ * npm:
+ *
+ *   uninstalled: npx -y print-environment
+ *     "npm/11.6.1 node/v24.10.0 linux arm64 workspaces/false"
+ *
+ *   installed: npm init -y && npm i print-environment && npx print-environment
+ *     "npm/11.6.1 node/v24.10.0 linux arm64 workspaces/false"
+ *
+ *
+ * pnpm:
+ *
+ *   uninstalled: pnpm dlx print-environment
+ *     "pnpm/10.18.3 npm/? node/v24.10.0 linux arm64"
+ *
+ *   installed: pnpm init && pnpm add print-environment && pnpm print-environment
+ *     "pnpm/10.18.3 npm/? node/v24.10.0 linux arm64"
+ *
+ *
+ * yarn classic:
+ *   uninstalled: unsupported
+ *
+ *   installed: yarn init -y && yarn add print-environment && yarn print-environment
+ *     "yarn/1.22.22 npm/? node/v24.10.0 linux arm64"
+ *
+ * yarn berry:
+ *
+ *   uninstalled: yarn set version berry && yarn dlx print-environment
+ *     "yarn/4.10.3 npm/? node/v24.10.0 linux arm64"
+ *
+ *   installed: yarn set version berry && yarn add print-environment && yarn print-environment
+ *     "yarn/4.10.3 npm/? node/v24.10.0 linux arm64"
+ *
+ * bun:
+ *
+ *   uninstalled: bunx print-environment
+ *     "bun/1.3.1 npm/? node/v24.3.0 linux arm64"
+ *
+ *   installed: bun init -y && bun add print-environment && bun print-environment
+ *     "bun/1.3.1 npm/? node/v24.3.0 linux arm64"
+ *
+ * deno:
+ *
+ *   uninstalled: deno run -A npm:print-environment
+ *     "deno/2.5.6 npm/? deno/2.5.6 linux aarch64"
+ *
+ *   installed: deno init && deno add npm:print-environment && deno --allow-env print-environment
+ *     "deno/2.5.6 npm/? deno/2.5.6 linux aarch64"
+ *
+ * @returns The name of the package manager used to run hardhat.
  */
-export async function getPackageManager(
-  workspace: string,
-): Promise<PackageManager> {
-  const pathToYarnLock = path.join(workspace, "yarn.lock");
-  const pathToPnpmLock = path.join(workspace, "pnpm-lock.yaml");
+export function getPackageManager(): PackageManager {
+  const DEFAULT = "npm";
 
-  const invokedFromPnpm = (process.env.npm_config_user_agent ?? "").includes(
-    "pnpm",
-  );
+  const userAgent = process.env.npm_config_user_agent;
 
-  if (await exists(pathToYarnLock)) {
-    return "yarn";
+  if (userAgent === undefined) {
+    return DEFAULT;
   }
-  if ((await exists(pathToPnpmLock)) || invokedFromPnpm) {
-    return "pnpm";
+
+  const firstSlashIndex = userAgent.indexOf("/");
+  if (firstSlashIndex === -1) {
+    return DEFAULT;
   }
-  return "npm";
+
+  const packageManager = userAgent.substring(0, firstSlashIndex);
+
+  switch (packageManager) {
+    case "npm":
+      return "npm";
+    case "yarn":
+      return "yarn";
+    case "pnpm":
+      return "pnpm";
+    case "bun":
+      return "bun";
+    case "deno":
+      return "deno";
+    default:
+      return DEFAULT;
+  }
 }
 
 /**
@@ -49,11 +112,21 @@ export function getDevDependenciesInstallationCommand(
     npm: ["npm", "install", "--save-dev"],
     yarn: ["yarn", "add", "--dev"],
     pnpm: ["pnpm", "add", "--save-dev"],
+    deno: ["deno", "add"],
+    bun: ["bun", "add", "--dev"],
   };
   const command = packageManagerToCommand[packageManager];
   // We quote all the dependency identifiers so that they can be run on a shell
   // without semver symbols interfering with the command
-  command.push(...dependencies.map((d) => `"${d}"`));
+  command.push(
+    ...dependencies.map((d) => {
+      if (packageManager === "deno") {
+        return `"npm:${d}"`;
+      }
+
+      return `"${d}"`;
+    }),
+  );
   return command;
 }
 
@@ -117,6 +190,15 @@ export async function installsPeerDependenciesByDefault(
           return true;
         }
       }
+      return false;
+    case "bun":
+      // Bun has installed peer dependencies for over 2 years, so that's fine
+      // https://github.com/oven-sh/bun/releases/tag/bun-v1.0.5
+      // This can be disabled, and there's no easy way to check that, so we
+      // assume true for now
+      return true;
+    case "deno":
+      // Deno doesn't autoinstall peers
       return false;
   }
 }

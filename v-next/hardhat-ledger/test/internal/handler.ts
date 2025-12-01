@@ -117,6 +117,7 @@ describe("LedgerHandler", () => {
         ethereumMockedProvider,
         {
           accounts: uppercaseAccounts,
+          derivationFunction: undefined,
         },
         mockedDisplayInfo.fn,
       );
@@ -137,6 +138,7 @@ describe("LedgerHandler", () => {
                 "0x1",
                 "0x343fe45cd2d785a5F2e97a00de8436f9c42Ef444",
               ],
+              derivationFunction: undefined,
             },
             mockedDisplayInfo.fn,
           ),
@@ -154,6 +156,7 @@ describe("LedgerHandler", () => {
         ethereumMockedProvider,
         {
           accounts: LEDGER_ADDRESSES,
+          derivationFunction: undefined,
         },
         mockedDisplayInfo.fn,
       );
@@ -172,6 +175,7 @@ describe("LedgerHandler", () => {
         ethereumMockedProvider,
         {
           accounts: LEDGER_ADDRESSES,
+          derivationFunction: undefined,
         },
         mockedDisplayInfo.fn,
         { transportNodeHid: getTransportNodeHidMock() },
@@ -197,6 +201,7 @@ describe("LedgerHandler", () => {
         ethereumMockedProvider,
         {
           accounts: LEDGER_ADDRESSES,
+          derivationFunction: undefined,
         },
         mockedDisplayInfo.fn,
         { transportNodeHid },
@@ -224,6 +229,7 @@ describe("LedgerHandler", () => {
         ethereumMockedProvider,
         {
           accounts: LEDGER_ADDRESSES,
+          derivationFunction: undefined,
         },
         mockedDisplayInfo.fn,
         { transportNodeHid },
@@ -248,6 +254,7 @@ describe("LedgerHandler", () => {
         ethereumMockedProvider,
         {
           accounts: LEDGER_ADDRESSES,
+          derivationFunction: undefined,
         },
         mockedDisplayInfo.fn,
         {
@@ -272,6 +279,7 @@ describe("LedgerHandler", () => {
         ethereumMockedProvider,
         {
           accounts: LEDGER_ADDRESSES,
+          derivationFunction: undefined,
         },
         mockedDisplayInfo.fn,
       );
@@ -321,6 +329,7 @@ describe("LedgerHandler", () => {
           ethereumMockedProvider,
           {
             accounts: LEDGER_ADDRESSES,
+            derivationFunction: undefined,
           },
           mockedDisplayInfo.fn,
         );
@@ -356,6 +365,7 @@ describe("LedgerHandler", () => {
           ethereumMockedProvider,
           {
             accounts: LEDGER_ADDRESSES,
+            derivationFunction: undefined,
           },
           mockedDisplayInfo.fn,
           {
@@ -400,6 +410,7 @@ describe("LedgerHandler", () => {
           ethereumMockedProvider,
           {
             accounts: LEDGER_ADDRESSES,
+            derivationFunction: undefined,
           },
           mockedDisplayInfo.fn,
           {
@@ -445,6 +456,7 @@ describe("LedgerHandler", () => {
           ethereumMockedProvider,
           {
             accounts: LEDGER_ADDRESSES,
+            derivationFunction: undefined,
           },
           mockedDisplayInfo.fn,
           {
@@ -495,6 +507,7 @@ describe("LedgerHandler", () => {
           ethereumMockedProvider,
           {
             accounts: LEDGER_ADDRESSES,
+            derivationFunction: undefined,
           },
           mockedDisplayInfo.fn,
           {
@@ -544,6 +557,7 @@ describe("LedgerHandler", () => {
             ethereumMockedProvider,
             {
               accounts: LEDGER_ADDRESSES,
+              derivationFunction: undefined,
             },
             mockedDisplayInfo.fn,
             {
@@ -626,6 +640,7 @@ describe("LedgerHandler", () => {
             ethereumMockedProvider,
             {
               accounts: LEDGER_ADDRESSES,
+              derivationFunction: undefined,
             },
             mockedDisplayInfo.fn,
             {
@@ -717,6 +732,7 @@ describe("LedgerHandler", () => {
             ethereumMockedProvider,
             {
               accounts: LEDGER_ADDRESSES,
+              derivationFunction: undefined,
             },
             mockedDisplayInfo.fn,
             {
@@ -817,6 +833,7 @@ describe("LedgerHandler", () => {
             ethereumMockedProvider,
             {
               accounts: LEDGER_ADDRESSES,
+              derivationFunction: undefined,
             },
             mockedDisplayInfo.fn,
             {
@@ -902,6 +919,7 @@ describe("LedgerHandler", () => {
           ethereumMockedProvider,
           {
             accounts: LEDGER_ADDRESSES,
+            derivationFunction: undefined,
           },
           mockedDisplayInfo.fn,
           {
@@ -971,6 +989,7 @@ describe("LedgerHandler", () => {
           ethereumMockedProvider,
           {
             accounts: LEDGER_ADDRESSES,
+            derivationFunction: undefined,
           },
           mockedDisplayInfo.fn,
           {
@@ -1004,6 +1023,7 @@ describe("LedgerHandler", () => {
           ethereumMockedProvider,
           {
             accounts: LEDGER_ADDRESSES,
+            derivationFunction: undefined,
           },
           mockedDisplayInfo.fn,
           {

@@ -25,6 +25,8 @@ export default async (): Promise<Partial<NetworkHooks>> => {
         context.config,
         context.artifacts,
         connection,
+        context.interruptions,
+        context.config.ignition,
       );
 
       return connection;

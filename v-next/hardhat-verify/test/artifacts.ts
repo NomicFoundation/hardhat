@@ -21,7 +21,7 @@ describe("artifacts", () => {
         // eslint-disable-next-line import/no-relative-packages -- allowed in test
         (await import("./fixture-projects/default/hardhat.config.js")).default;
       hre = await createHardhatRuntimeEnvironment(hardhatUserConfig);
-      await hre.tasks.getTask("compile").run();
+      await hre.tasks.getTask("build").run();
     });
 
     it("should return the build info and output for a contract", async () => {
@@ -54,7 +54,7 @@ describe("artifacts", () => {
         // eslint-disable-next-line import/no-relative-packages -- allowed in test
         (await import("./fixture-projects/default/hardhat.config.js")).default;
       hre = await createHardhatRuntimeEnvironment(hardhatUserConfig);
-      await hre.tasks.getTask("compile").run();
+      await hre.tasks.getTask("build").run();
     });
 
     it("should return the compiler input for a contract", async () => {

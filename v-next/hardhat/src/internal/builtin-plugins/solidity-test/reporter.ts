@@ -73,7 +73,7 @@ export async function* testReporter(
   let firstSuite = true;
   for await (const event of source) {
     switch (event.type) {
-      case "suite:result": {
+      case "suite:done": {
         const { data: suiteResult } = event;
         const suiteTestCount = suiteResult.testResults.length;
 
@@ -214,6 +214,9 @@ export async function* testReporter(
 
         break;
       }
+      case "run:done": {
+        break;
+      }
     }
   }
 
@@ -318,10 +321,16 @@ export async function* testReporter(
               yield* output(
                 indenter.t`Stack Trace Warning: ${colorizer.grey("The test is not safe to replay because a fork url without a fork block number was provided.")}\n`,
               );
+              yield* output(
+                indenter.t`Try rerunning your tests with -vvv or above.\n`,
+              );
             }
             if (stackTrace.impureCheatcodes.length > 0) {
               yield* output(
                 indenter.t`Stack Trace Warning: ${colorizer.grey(`The test is not safe to replay because it uses impure cheatcodes: ${stackTrace.impureCheatcodes.join(", ")}`)}\n`,
+              );
+              yield* output(
+                indenter.t`Try rerunning your tests with -vvv or above.\n`,
               );
             }
             break;

@@ -80,7 +80,7 @@ const mocker = {
     return mockSuites.map(
       (mockSuite) =>
         ({
-          type: "suite:result",
+          type: "suite:done",
           data: {
             id: {
               source: mockSuite.source,

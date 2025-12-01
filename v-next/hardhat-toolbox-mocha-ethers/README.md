@@ -17,11 +17,12 @@ npm install --save-dev @nomicfoundation/hardhat-toolbox-mocha-ethers
 Then add it to your Hardhat configuration:
 
 ```typescript
+import { defineConfig } from "hardhat/config";
 import hardhatToolboxMochaEthers from "@nomicfoundation/hardhat-toolbox-mocha-ethers";
 
-export default {
+export default defineConfig({
   plugins: [hardhatToolboxMochaEthers],
-};
+});
 ```
 
 ## Included functionality

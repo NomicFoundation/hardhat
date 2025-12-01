@@ -335,6 +335,40 @@ describe("CompilationJobImplementation", () => {
           await newCompilationJob.getBuildId(),
         );
       });
+
+      it("The compilation job is the same, except for the roots", async () => {
+        const dependencyGraph1 = new DependencyGraphImplementation();
+        dependencyGraph1.addRootFile(rootFile.inputSourceName, rootFile);
+        dependencyGraph1.addDependency(rootFile, npmDependencyFile);
+        dependencyGraph1.addDependency(npmDependencyFile, rootFile);
+
+        const dependencyGraph2 = new DependencyGraphImplementation();
+        dependencyGraph2.addRootFile(
+          npmDependencyFile.inputSourceName,
+          npmDependencyFile,
+        );
+        dependencyGraph2.addDependency(npmDependencyFile, rootFile);
+        dependencyGraph2.addDependency(rootFile, npmDependencyFile);
+
+        const compilationJob1 = new CompilationJobImplementation(
+          dependencyGraph1,
+          solcConfig,
+          solcLongVersion,
+          hooks,
+        );
+
+        const compilationJob2 = new CompilationJobImplementation(
+          dependencyGraph2,
+          solcConfig,
+          solcLongVersion,
+          hooks,
+        );
+
+        assert.notEqual(
+          await compilationJob1.getBuildId(),
+          await compilationJob2.getBuildId(),
+        );
+      });
     });
     describe("should not change when", () => {
       it("the version of one of the dependencies changes without it being reflected in the input source name", async () => {

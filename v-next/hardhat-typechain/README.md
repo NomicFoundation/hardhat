@@ -15,11 +15,12 @@ npm install --save-dev @nomicfoundation/hardhat-typechain
 In your `hardhat.config.ts` file, import the plugin and add it to the `plugins` array:
 
 ```ts
+import { defineConfig } from "hardhat/config";
 import hardhatTypechain from "@nomicfoundation/hardhat-typechain";
 
-export default {
+export default defineConfig({
   plugins: [hardhatTypechain],
-};
+});
 ```
 
 ## Usage

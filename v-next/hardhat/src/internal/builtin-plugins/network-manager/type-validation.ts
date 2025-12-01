@@ -7,7 +7,6 @@ import type {
   HardhatUserConfig,
   HttpNetworkHDAccountsConfig,
   HttpNetworkHDAccountsUserConfig,
-  NetworkUserConfig,
 } from "../../../types/config.js";
 import type { HardhatUserConfigValidationError } from "../../../types/hooks.js";
 import type { RefinementCtx } from "zod";
@@ -81,15 +80,21 @@ const hardforkHistoryUserConfigSchema: z.ZodRecord<
   ),
 );
 
-const blockExplorerUserConfigSchema = z.object({
+const blockExplorerEtherscanUserConfigSchema = z.object({
   name: z.optional(z.string()),
-  url: z.string(),
-  apiUrl: z.string(),
+  url: z.optional(z.string()),
+  apiUrl: z.optional(z.string()),
+});
+
+const blockExplorerBlockscoutUserConfigSchema = z.object({
+  name: z.optional(z.string()),
+  url: z.optional(z.string()),
+  apiUrl: z.optional(z.string()),
 });
 
 const blockExplorersUserConfigSchema = z.object({
-  etherscan: z.optional(blockExplorerUserConfigSchema),
-  blockscout: z.optional(blockExplorerUserConfigSchema),
+  etherscan: z.optional(blockExplorerEtherscanUserConfigSchema),
+  blockscout: z.optional(blockExplorerBlockscoutUserConfigSchema),
 });
 
 const chainDescriptorUserConfigSchema = z.object({
@@ -318,110 +323,99 @@ const edrNetworkUserConfigSchema = z.object({
   throwOnTransactionFailures: z.optional(z.boolean()),
 });
 
-const baseNetworkUserConfigSchema = z.discriminatedUnion("type", [
+const networkUserConfigSchema = z.discriminatedUnion("type", [
   httpNetworkUserConfigSchema,
   edrNetworkUserConfigSchema,
 ]);
 
+const userConfigSchema = z
+  .object({
+    chainDescriptors: z.optional(chainDescriptorsUserConfigSchema),
+    defaultChainType: z.optional(chainTypeUserConfigSchema),
+    networks: z.optional(z.record(networkUserConfigSchema)),
+  })
+  // The superRefine is used to perform additional validation of correlated
+  // fields of the edr network that are not possible to express with Zod's
+  // built-in validation methods. It is applied to the whole user config object
+  // because we need access to the defaultChainType.
+  .superRefine(refineEdrNetworkUserConfig);
+
 function refineEdrNetworkUserConfig(
-  networkConfig: NetworkUserConfig,
+  { defaultChainType = GENERIC_CHAIN_TYPE, networks = {} }: HardhatUserConfig,
   ctx: RefinementCtx,
 ): void {
-  if (networkConfig.type === "edr-simulated") {
-    const {
-      chainType = GENERIC_CHAIN_TYPE,
-      hardfork,
-      minGasPrice,
-      initialBaseFeePerGas,
-    } = networkConfig;
+  for (const [networkName, network] of Object.entries(networks)) {
+    if (network.type === "edr-simulated") {
+      const { chainType, hardfork, minGasPrice, initialBaseFeePerGas } =
+        network;
+      const resolvedChainType = chainType ?? defaultChainType;
 
-    if (hardfork !== undefined && !isValidHardforkName(hardfork, chainType)) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        path: ["hardfork"],
-        message: `Invalid hardfork name ${hardfork} for chainType ${chainType}. Expected ${getHardforks(
-          chainType,
-        ).join(" | ")}.`,
-      });
-    }
-
-    const resolvedHardfork = hardfork ?? getCurrentHardfork(chainType);
-    if (chainType === L1_CHAIN_TYPE) {
-      if (hardforkGte(resolvedHardfork, L1HardforkName.LONDON, chainType)) {
-        if (minGasPrice !== undefined) {
-          ctx.addIssue({
-            code: z.ZodIssueCode.custom,
-            message:
-              "minGasPrice is not valid for networks with EIP-1559. Try an older hardfork or remove it.",
-          });
-        }
-      } else {
-        if (initialBaseFeePerGas !== undefined) {
-          ctx.addIssue({
-            code: z.ZodIssueCode.custom,
-            message:
-              "initialBaseFeePerGas is only valid for networks with EIP-1559. Try a newer hardfork or remove it.",
-          });
-        }
-      }
-    }
-
-    if (
-      typeof networkConfig.mining?.interval === "number" ||
-      Array.isArray(networkConfig.mining?.interval)
-    ) {
-      const interval = networkConfig.mining.interval;
-      const minInterval =
-        typeof interval === "number" ? interval : Math.min(...interval);
       if (
-        minInterval < 1000 &&
-        networkConfig.allowBlocksWithSameTimestamp !== true
+        hardfork !== undefined &&
+        !isValidHardforkName(hardfork, resolvedChainType)
       ) {
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
-          message: `mining.interval is set to less than 1000 ms. To avoid the block timestamp diverging from clock time, please set allowBlocksWithSameTimestamp: true on the network config`,
+          path: ["networks", networkName, "hardfork"],
+          message: `Invalid hardfork name ${hardfork} for chainType ${resolvedChainType}. Expected ${getHardforks(
+            resolvedChainType,
+          ).join(" | ")}.`,
         });
+      }
+
+      const resolvedHardfork =
+        hardfork ?? getCurrentHardfork(resolvedChainType);
+      if (resolvedChainType === L1_CHAIN_TYPE) {
+        if (
+          hardforkGte(
+            resolvedHardfork,
+            L1HardforkName.LONDON,
+            resolvedChainType,
+          )
+        ) {
+          if (minGasPrice !== undefined) {
+            ctx.addIssue({
+              code: z.ZodIssueCode.custom,
+              path: ["networks", networkName, "minGasPrice"],
+              message:
+                "minGasPrice is not valid for networks with EIP-1559. Try an older hardfork or remove it.",
+            });
+          }
+        } else {
+          if (initialBaseFeePerGas !== undefined) {
+            ctx.addIssue({
+              code: z.ZodIssueCode.custom,
+              path: ["networks", networkName, "initialBaseFeePerGas"],
+              message:
+                "initialBaseFeePerGas is only valid for networks with EIP-1559. Try a newer hardfork or remove it.",
+            });
+          }
+        }
+      }
+
+      const interval = network.mining?.interval;
+      if (typeof interval === "number" || Array.isArray(interval)) {
+        const minInterval =
+          typeof interval === "number" ? interval : Math.min(...interval);
+        if (
+          minInterval < 1000 &&
+          network.allowBlocksWithSameTimestamp !== true
+        ) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            path: ["networks", networkName, "mining", "interval"],
+            message: `mining.interval is set to less than 1000 ms. To avoid the block timestamp diverging from clock time, please set allowBlocksWithSameTimestamp: true on the network config`,
+          });
+        }
       }
     }
   }
 }
 
-// The superRefine is used to perform additional validation of correlated
-// fields of the edr network that are not possible to express with Zod's
-// built-in validation methods.
-// Ideally, it should be applied to the edrNetworkUserConfigSchema, but it
-// returns a ZodEffects, which is not compatible with the discriminatedUnion
-// method, so it is applied to the networkUserConfigSchema instead.
-const networkUserConfigSchema = baseNetworkUserConfigSchema.superRefine(
-  refineEdrNetworkUserConfig,
-);
-
-const userConfigSchema = z.object({
-  chainDescriptors: z.optional(chainDescriptorsUserConfigSchema),
-  defaultChainType: z.optional(chainTypeUserConfigSchema),
-  networks: z.optional(z.record(networkUserConfigSchema)),
-});
-
-const networkConfigOverrideSchema = z
-  .discriminatedUnion("type", [
-    httpNetworkUserConfigSchema.passthrough(),
-    edrNetworkUserConfigSchema.passthrough(),
-  ])
-  .superRefine(refineEdrNetworkUserConfig);
-
 export async function validateNetworkUserConfig(
   userConfig: HardhatUserConfig,
 ): Promise<HardhatUserConfigValidationError[]> {
   return validateUserConfigZodType(userConfig, userConfigSchema);
-}
-
-export async function validateNetworkConfigOverride(
-  networkConfigOverride: NetworkUserConfig,
-): Promise<HardhatUserConfigValidationError[]> {
-  return validateUserConfigZodType(
-    networkConfigOverride,
-    networkConfigOverrideSchema,
-  );
 }
 
 // This type guard does not check beyond accounts being an object

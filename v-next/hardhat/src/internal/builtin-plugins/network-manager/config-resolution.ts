@@ -27,7 +27,7 @@ import {
   hexStringToBytes,
   normalizeHexString,
 } from "@nomicfoundation/hardhat-utils/hex";
-import { deepClone } from "@nomicfoundation/hardhat-utils/lang";
+import { deepClone, deepMerge } from "@nomicfoundation/hardhat-utils/lang";
 
 import { GENERIC_CHAIN_TYPE } from "../../constants.js";
 
@@ -64,6 +64,7 @@ export function resolveHttpNetwork(
 
 export function resolveEdrNetwork(
   networkConfig: EdrNetworkUserConfig,
+  defaultChainType: ChainType,
   cachePath: string,
   resolveConfigurationVariable: ConfigurationVariableResolver,
 ): EdrNetworkConfig {
@@ -92,7 +93,10 @@ export function resolveEdrNetwork(
       cachePath,
       resolveConfigurationVariable,
     ),
-    hardfork: resolveHardfork(networkConfig.hardfork, networkConfig.chainType),
+    hardfork: resolveHardfork(
+      networkConfig.hardfork,
+      networkConfig.chainType ?? defaultChainType,
+    ),
     initialBaseFeePerGas: resolveInitialBaseFeePerGas(
       networkConfig.initialBaseFeePerGas,
     ),
@@ -250,15 +254,20 @@ export async function resolveChainDescriptors(
       );
     }
 
-    if (userDescriptor.blockExplorers?.etherscan !== undefined) {
-      existingDescriptor.blockExplorers.etherscan = await deepClone(
-        userDescriptor.blockExplorers.etherscan,
-      );
-    }
-
-    if (userDescriptor.blockExplorers?.blockscout !== undefined) {
-      existingDescriptor.blockExplorers.blockscout = await deepClone(
-        userDescriptor.blockExplorers.blockscout,
+    // Merge block explorers configs so users can override individual fields
+    // without losing the others. Also allows adding new explorers not present
+    // in the defaults. We cast to Record<string, any> because explorerConfig
+    // can be different types (EtherscanUserConfig, BlockscoutUserConfig, etc.)
+    // and we need to handle them uniformly for extensibility.
+    const existingBlockExplorers: Record<string, any> =
+      existingDescriptor.blockExplorers;
+    for (const [explorerName, explorerConfig] of Object.entries(
+      userDescriptor.blockExplorers ?? {},
+    )) {
+      existingBlockExplorers[explorerName] = deepMerge(
+        existingBlockExplorers[explorerName] ?? {},
+        explorerConfig,
+        false,
       );
     }
 
@@ -270,7 +279,7 @@ export async function resolveChainDescriptors(
 
 export function resolveHardfork(
   hardfork: string | undefined,
-  chainType: ChainType | undefined = GENERIC_CHAIN_TYPE,
+  chainType: ChainType,
 ): string {
   if (hardfork !== undefined) {
     return hardfork;

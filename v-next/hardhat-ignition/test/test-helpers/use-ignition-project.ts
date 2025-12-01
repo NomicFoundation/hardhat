@@ -115,7 +115,7 @@ export function useEphemeralIgnitionProject(fixtureProjectName: string): void {
       params: [true],
     });
 
-    const compileTask = hre.tasks.getTask("compile");
+    const compileTask = hre.tasks.getTask("build");
     await compileTask.run({ quiet: true });
 
     this.hre = hre;
@@ -183,7 +183,7 @@ export function useFileIgnitionProject(
     this.ignition = new TestIgnitionHelper(hre, connection);
     this.deploymentDir = deploymentDir;
 
-    const compileTask = hre.tasks.getTask("compile");
+    const compileTask = hre.tasks.getTask("build");
     await compileTask.run({ quiet: true });
 
     const testConfig: Partial<DeployConfig> = {

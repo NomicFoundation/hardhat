@@ -335,6 +335,7 @@ export interface TaskOverrideDefinitionBuilder<
     name: NameT;
     shortName?: string;
     description?: string;
+    hidden?: boolean;
   }): TaskOverrideDefinitionBuilder<
     ExtendTaskArguments<NameT, ArgumentType.FLAG, TaskArgumentsT>
   >;

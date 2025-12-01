@@ -28,7 +28,7 @@ describe("emitWithArgs", () => {
       plugins: [hardhatViem, hardhatViemAssertions],
     });
 
-    await hre.tasks.getTask("compile").run({});
+    await hre.tasks.getTask("build").run({});
   });
 
   beforeEach(async () => {
