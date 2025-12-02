@@ -42,6 +42,12 @@ export default async (): Promise<Partial<SolidityHooks>> => ({
           COVERAGE_LIBRARY_PATH,
         );
 
+        //        console.log(source);
+
+        // console.log(source);
+        // console.log("---------------------------------------------");
+        // console.log(JSON.stringify(metadata, null, 2));
+
         // TODO: Remove this once EDR starts returning line information as part
         // of the metadata.
         let lineNumber = 1;
@@ -63,13 +69,14 @@ export default async (): Promise<Partial<SolidityHooks>> => ({
                 fsPath,
               );
               const tag = Buffer.from(m.tag).toString("hex");
-              const startLine = lineNumbers[m.startUtf16];
-              const endLine = lineNumbers[m.endUtf16 - 1];
+              const startLine = m.startUtf16;
+              const endLine = m.endUtf16;
+
               coverageMetadata.push({
                 relativePath,
                 tag,
-                startLine,
-                endLine,
+                startUtf16: startLine,
+                endUtf16: endLine,
               });
               break;
             default:

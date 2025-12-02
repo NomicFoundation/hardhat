@@ -1,12 +1,22 @@
 export type Tag = string;
+
 export interface Statement {
   relativePath: string;
   tag: Tag;
-  startLine: number;
-  endLine: number;
+  startUtf16: number;
+  endUtf16: number;
 }
+
+export interface ReportCoverageStatement {
+  startUtf16: number;
+  endUtf16: number;
+  executed: boolean;
+}
+
 export type CoverageMetadata = Statement[];
+
 export type CoverageData = Tag[];
+
 export interface CoverageManager {
   addData(data: CoverageData): Promise<void>;
   addMetadata(metadata: CoverageMetadata): Promise<void>;
