@@ -2,4 +2,4 @@
 "hardhat": patch
 ---
 
-The network config is now correctly re-validated and re-resolved on `connect()` based on `chainType` ([#7700](https://github.com/NomicFoundation/hardhat/issues/7700)).
+Fixed the network config to re-validate and re-resolve `chainType` on `connect()` ([#7700](https://github.com/NomicFoundation/hardhat/issues/7700)).
