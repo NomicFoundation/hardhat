@@ -73,7 +73,9 @@ describe("config", () => {
         "blockPollingInterval",
         "disableFeeBumping",
         "maxFeeBumps",
+        "maxRetries",
         "requiredConfirmations",
+        "retryInterval",
         "strategyConfig",
         "timeBeforeBumpingFees",
       ];

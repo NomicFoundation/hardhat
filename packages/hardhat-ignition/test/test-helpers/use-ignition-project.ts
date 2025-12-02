@@ -26,6 +26,8 @@ const defaultTestConfig: DeployConfig = {
   blockPollingInterval: 200,
   requiredConfirmations: 1,
   disableFeeBumping: false,
+  maxRetries: 10,
+  retryInterval: 1000,
 };
 
 export function useEphemeralIgnitionProject(fixtureProjectName: string) {

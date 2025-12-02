@@ -1,9 +1,6 @@
 import { assert } from "chai";
 
-import {
-  GetTransactionRetryConfig,
-  monitorOnchainInteraction,
-} from "../../../../src/internal/execution/future-processor/handlers/monitor-onchain-interaction";
+import { monitorOnchainInteraction } from "../../../../src/internal/execution/future-processor/handlers/monitor-onchain-interaction";
 import { decodeSimulationResult } from "../../../../src/internal/execution/future-processor/helpers/decode-simulation-result";
 import {
   TRANSACTION_SENT_TYPE,
@@ -219,11 +216,6 @@ describe("Network interactions", () => {
     const millisecondBeforeBumpingFees = 1;
     const maxFeeBumps = 1;
 
-    const testGetTransactionRetryConfig: GetTransactionRetryConfig = {
-      maxRetries: 10,
-      retryInterval: 1,
-    };
-
     let mockClient: MockGetTransactionJsonRpcClient;
     let fakeTransactionTrackingTimer: FakeTransactionTrackingTimer;
 
@@ -282,16 +274,17 @@ describe("Network interactions", () => {
         },
       };
 
-      const message = await monitorOnchainInteraction(
-        deploymentExecutionState,
-        mockClient,
-        fakeTransactionTrackingTimer,
+      const message = await monitorOnchainInteraction({
+        exState: deploymentExecutionState,
+        jsonRpcClient: mockClient,
+        transactionTrackingTimer: fakeTransactionTrackingTimer,
         requiredConfirmations,
         millisecondBeforeBumpingFees,
         maxFeeBumps,
-        testGetTransactionRetryConfig,
-        false
-      );
+        disableFeeBumping: false,
+        maxRetries: 10,
+        retryInterval: 1,
+      });
 
       if (message === undefined) {
         return assert.fail("No message returned from monitoring");
@@ -327,16 +320,17 @@ describe("Network interactions", () => {
       };
 
       await assert.isRejected(
-        monitorOnchainInteraction(
-          deploymentExecutionState,
-          mockClient,
-          fakeTransactionTrackingTimer,
+        monitorOnchainInteraction({
+          exState: deploymentExecutionState,
+          jsonRpcClient: mockClient,
+          transactionTrackingTimer: fakeTransactionTrackingTimer,
           requiredConfirmations,
           millisecondBeforeBumpingFees,
           maxFeeBumps,
-          testGetTransactionRetryConfig,
-          false
-        ),
+          disableFeeBumping: false,
+          maxRetries: 10,
+          retryInterval: 1,
+        }),
         /IGN401: Error while executing test: all the transactions of its network interaction 1 were dropped\. Please try rerunning Hardhat Ignition\./
       );
 
