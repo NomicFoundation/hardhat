@@ -131,6 +131,8 @@ export async function deploy<
       ? DEFAULT_AUTOMINE_REQUIRED_CONFIRMATIONS
       : config.requiredConfirmations ?? defaultConfig.requiredConfirmations,
     disableFeeBumping: disableFeeBumping ?? defaultConfig.disableFeeBumping,
+    maxRetries: config.maxRetries ?? defaultConfig.maxRetries,
+    retryInterval: config.retryInterval ?? defaultConfig.retryInterval,
     ...config,
   };
 

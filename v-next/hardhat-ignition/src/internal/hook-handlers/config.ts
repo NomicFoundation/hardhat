@@ -43,6 +43,8 @@ export async function resolveUserConfig(
               gasPrice: givenIgnition.gasPrice,
               disableFeeBumping: givenIgnition.disableFeeBumping,
               explorerUrl: givenIgnition.explorerUrl,
+              maxRetries: givenIgnition.maxRetries,
+              retryInterval: givenIgnition.retryInterval,
             },
           },
         ];
