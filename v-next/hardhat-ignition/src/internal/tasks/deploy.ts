@@ -226,6 +226,8 @@ const taskDeploy: NewTaskActionFunction<TaskDeployArguments> = async (
     strategyConfig,
     maxFeePerGasLimit:
       hre.config.networks[connection.networkName]?.ignition.maxFeePerGasLimit,
+    maxFeePerGas:
+      hre.config.networks[connection.networkName]?.ignition.maxFeePerGas,
     maxPriorityFeePerGas:
       hre.config.networks[connection.networkName]?.ignition
         .maxPriorityFeePerGas,
