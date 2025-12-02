@@ -1190,6 +1190,9 @@ importers:
       hardhat:
         specifier: workspace:^3.0.0
         version: link:../hardhat
+      mocha:
+        specifier: ^11.0.0
+        version: 11.7.3
     devDependencies:
       '@nomicfoundation/hardhat-ethers':
         specifier: workspace:^4.0.0
