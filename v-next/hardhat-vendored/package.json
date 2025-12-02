@@ -1,0 +1,59 @@
+{
+  "name": "@nomicfoundation/hardhat-vendored",
+  "version": "3.0.0",
+  "description": "Internal dependencies used by Hardhat that have been vendored to prevent bloating the main package",
+  "homepage": "https://github.com/nomicfoundation/hardhat/tree/main/v-next/hardhat-vendored",
+  "private": true,
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/NomicFoundation/hardhat",
+    "directory": "v-next/hardhat-vendored"
+  },
+  "author": "Nomic Foundation",
+  "license": "MIT",
+  "type": "module",
+  "exports": {
+    "./coverage": "./dist/src/coverage-module/index.js",
+    "./coverage/types": "./dist/src/coverage-module/types.js"
+  },
+  "keywords": [
+    "hardhat"
+  ],
+  "scripts": {
+    "lint": "pnpm prettier --check && pnpm eslint",
+    "lint:fix": "pnpm prettier --write && pnpm eslint --fix",
+    "eslint": "eslint \"src/**/*.ts\" \"test/**/*.ts\"",
+    "prettier": "prettier \"**/*.{ts,js,md,json}\"",
+    "test": "node --import tsx/esm --test --test-reporter=@nomicfoundation/hardhat-node-test-reporter \"test/*.ts\" \"test/!(fixture-projects|helpers)/**/*.ts\"",
+    "test:only": "node --import tsx/esm --test --test-only --test-reporter=@nomicfoundation/hardhat-node-test-reporter \"test/*.ts\" \"test/!(fixture-projects|helpers)/**/*.ts\"",
+    "test:coverage": "c8 --reporter html --reporter text --all --exclude test --exclude \"src/**/{types,type-extensions}.ts\" --src src node --import tsx/esm --test --test-reporter=@nomicfoundation/hardhat-node-test-reporter \"test/*.ts\" \"test/!(fixture-projects|helpers)/**/*.ts\"",
+    "pretest": "pnpm build",
+    "pretest:only": "pnpm build",
+    "build": "tsc --build .",
+    "postbuild": "node dist/src/copy-assets.js",
+    "prepublishOnly": "pnpm build",
+    "clean": "rimraf dist"
+  },
+  "files": [
+    "dist/src/",
+    "src/",
+    "CHANGELOG.md",
+    "LICENSE",
+    "README.md",
+    "VENDORED.md"
+  ],
+  "devDependencies": {
+    "@nomicfoundation/hardhat-node-test-reporter": "workspace:^3.0.0",
+    "@types/bn.js": "^5.1.5",
+    "@types/debug": "^4.1.7",
+    "@types/node": "^20.14.9",
+    "c8": "^9.1.0",
+    "eslint": "9.25.1",
+    "expect-type": "^1.2.1",
+    "prettier": "3.2.5",
+    "rimraf": "^5.0.5",
+    "tsx": "^4.19.3",
+    "typescript": "~5.8.0"
+  },
+  "dependencies": {}
+}

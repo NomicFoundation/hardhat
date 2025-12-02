@@ -710,7 +710,7 @@ describe("NetworkManagerImplementation", () => {
           {
             path: ["chainDescriptors", "2", "hardforkHistory", "random string"],
             message:
-              "Invalid hardfork name random string found in chain descriptor for chain 2. Expected chainstart | homestead | dao | tangerineWhistle | spuriousDragon | byzantium | constantinople | petersburg | istanbul | muirGlacier | berlin | london | arrowGlacier | grayGlacier | merge | shanghai | cancun | prague.",
+              "Invalid hardfork name random string found in chain descriptor for chain 2. Expected chainstart | homestead | dao | tangerineWhistle | spuriousDragon | byzantium | constantinople | petersburg | istanbul | muirGlacier | berlin | london | arrowGlacier | grayGlacier | merge | shanghai | cancun | prague | osaka.",
           },
         ]);
 
@@ -2169,7 +2169,7 @@ describe("NetworkManagerImplementation", () => {
             {
               path: ["networks", "hardhat", "hardfork"],
               message:
-                "Invalid hardfork name anything else for chainType generic. Expected chainstart | homestead | dao | tangerineWhistle | spuriousDragon | byzantium | constantinople | petersburg | istanbul | muirGlacier | berlin | london | arrowGlacier | grayGlacier | merge | shanghai | cancun | prague.",
+                "Invalid hardfork name anything else for chainType generic. Expected chainstart | homestead | dao | tangerineWhistle | spuriousDragon | byzantium | constantinople | petersburg | istanbul | muirGlacier | berlin | london | arrowGlacier | grayGlacier | merge | shanghai | cancun | prague | osaka.",
             },
           ]);
 

@@ -27,9 +27,12 @@ describe("config", () => {
             },
             ignition: {
               maxFeePerGasLimit: 2n,
+              maxFeePerGas: 5n,
               maxPriorityFeePerGas: 3n,
               gasPrice: 1n,
               disableFeeBumping: false,
+              maxRetries: 7,
+              retryInterval: 7000,
             },
           },
         },
@@ -44,6 +47,8 @@ describe("config", () => {
             },
           },
           disableFeeBumping: true,
+          maxRetries: 5,
+          retryInterval: 2000,
         },
       });
 
@@ -81,6 +86,10 @@ describe("config", () => {
       assert.equal(hardhatNetworkOptions.ignition.maxFeePerGasLimit, 2n);
     });
 
+    it("should apply maxFeePerGas", async function () {
+      assert.equal(hardhatNetworkOptions.ignition.maxFeePerGas, 5n);
+    });
+
     it("should apply maxPriorityFeePerGas", async function () {
       assert.equal(hardhatNetworkOptions.ignition.maxPriorityFeePerGas, 3n);
     });
@@ -93,12 +102,30 @@ describe("config", () => {
       assert.equal(hardhatNetworkOptions.ignition.disableFeeBumping, false);
     });
 
+    it("should apply maxRetries at the top level", async function () {
+      assert.equal(loadedOptions.maxRetries, 5);
+    });
+
+    it("should apply maxRetries at the network level", async function () {
+      assert.equal(hardhatNetworkOptions.ignition.maxRetries, 7);
+    });
+
+    it("should apply retryInterval at the top level", async function () {
+      assert.equal(loadedOptions.retryInterval, 2000);
+    });
+
+    it("should apply retryInterval at the network level", async function () {
+      assert.equal(hardhatNetworkOptions.ignition.retryInterval, 7000);
+    });
+
     it("should only have known config", () => {
       const configOptions: KeyListOf<HardhatConfig["ignition"]> = [
         "blockPollingInterval",
         "disableFeeBumping",
         "maxFeeBumps",
+        "maxRetries",
         "requiredConfirmations",
+        "retryInterval",
         "strategyConfig",
         "timeBeforeBumpingFees",
       ];

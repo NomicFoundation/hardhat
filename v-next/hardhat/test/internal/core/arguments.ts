@@ -162,6 +162,10 @@ describe("Arguments", () => {
       assert.equal(parseArgumentValue("123", ArgumentType.INT, "name"), 123);
     });
 
+    it("should parse int arguments encoded in hex", () => {
+      assert.equal(parseArgumentValue("0x7b", ArgumentType.INT, "name"), 123);
+    });
+
     it("should parse float arguments", () => {
       assert.equal(
         parseArgumentValue("123.45", ArgumentType.FLOAT, "name"),
@@ -169,9 +173,23 @@ describe("Arguments", () => {
       );
     });
 
+    it("should parse float arguments encoded in hex", () => {
+      assert.equal(
+        parseArgumentValue("0x7b", ArgumentType.FLOAT, "name"),
+        123.0,
+      );
+    });
+
     it("should parse bigint arguments", () => {
       assert.equal(
         parseArgumentValue("123", ArgumentType.BIGINT, "name"),
+        BigInt(123),
+      );
+    });
+
+    it("should parse bigint arguments encoded in hex", () => {
+      assert.equal(
+        parseArgumentValue("0x7b", ArgumentType.BIGINT, "name"),
         BigInt(123),
       );
     });
