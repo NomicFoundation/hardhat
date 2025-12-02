@@ -1,5 +1,11 @@
 # @nomicfoundation/hardhat-mocha
 
+## 3.0.8
+
+### Patch Changes
+
+- 3667ecd: Fixed `hardhat-mocha` dependencies by moving `hardhat` and `mocha` to `peerDependencies` ([#7519](https://github.com/NomicFoundation/hardhat/issues/7519))
+
 ## 3.0.7
 
 ### Patch Changes

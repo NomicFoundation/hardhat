@@ -5,22 +5,22 @@
   "description": "A TypeScript Hardhat project using Node Test Runner and Viem",
   "type": "module",
   "devDependencies": {
-    "hardhat": "workspace:^3.0.16",
+    "hardhat": "workspace:^3.0.17",
     "@nomicfoundation/hardhat-toolbox-viem": "workspace:^5.0.1",
-    "@nomicfoundation/hardhat-ignition": "workspace:^3.0.5",
+    "@nomicfoundation/hardhat-ignition": "workspace:^3.0.6",
     "@types/node": "^22.8.5",
     "forge-std": "foundry-rs/forge-std#v1.9.4",
     "typescript": "~5.8.0",
     "viem": "^2.30.0"
   },
   "peerDependencies": {
-    "@nomicfoundation/hardhat-ignition-viem": "workspace:^3.0.5",
+    "@nomicfoundation/hardhat-ignition-viem": "workspace:^3.0.6",
     "@nomicfoundation/hardhat-keystore": "workspace:^3.0.2",
     "@nomicfoundation/hardhat-network-helpers": "workspace:^3.0.3",
     "@nomicfoundation/hardhat-node-test-runner": "workspace:^3.0.7",
     "@nomicfoundation/hardhat-viem": "workspace:^3.0.0",
     "@nomicfoundation/hardhat-viem-assertions": "workspace:^3.0.4",
-    "@nomicfoundation/hardhat-verify": "workspace:^3.0.7",
-    "@nomicfoundation/ignition-core": "workspace:^3.0.5"
+    "@nomicfoundation/hardhat-verify": "workspace:^3.0.8",
+    "@nomicfoundation/ignition-core": "workspace:^3.0.6"
   }
 }
