@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.15.15
+
+### Patch Changes
+
+- 0c776b5: Expose ignition retry loop variables in user config (Hardhat v2) ([#7303](https://github.com/NomicFoundation/hardhat/issues/7303))
+
 ## 0.15.14
 
 ### Patch Changes
