@@ -1,5 +1,13 @@
 # hardhat
 
+## 3.0.17
+
+### Patch Changes
+
+- 9f4020b: - Update template projects to ignore local `.env` files but still allow committing `.env.example` files, thanks @KonstantinosChonas! ([7702](https://github.com/NomicFoundation/hardhat/issues/7702))
+- a9a47e5: Fixed hex validation patterns, thanks @Bilogweb3 ([#7719](https://github.com/NomicFoundation/hardhat/pull/7719))
+- b0f37e1: Fixed the network config to re-validate and re-resolve `chainType` on `connect()` ([#7700](https://github.com/NomicFoundation/hardhat/issues/7700)).
+
 ## 3.0.16
 
 ### Patch Changes

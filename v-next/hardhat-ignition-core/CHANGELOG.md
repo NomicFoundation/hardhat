@@ -1,5 +1,12 @@
 # Changelog
 
+## 3.0.6
+
+### Patch Changes
+
+- 57cc2bc: Restore gas config feature that was lost during v3 update ([#7666](https://github.com/NomicFoundation/hardhat/pull/7666))
+- dac916b: Expose ignition retry loop variables in user config (Hardhat v3) ([#7303](https://github.com/NomicFoundation/hardhat/issues/7303))
+
 ## 3.0.5
 
 ### Patch Changes
