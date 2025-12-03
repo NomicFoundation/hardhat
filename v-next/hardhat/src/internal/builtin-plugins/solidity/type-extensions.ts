@@ -1,5 +1,6 @@
+import type { SolcConfig } from "../../../types/config.js";
 import type { SolidityBuildSystem } from "../../../types/solidity/build-system.js";
-import type { CompilerInput } from "../../../types/solidity.js";
+import type { CompilerInput, CompilerOutput } from "../../../types/solidity.js";
 
 import "../../../types/config.js";
 declare module "../../../types/config.js" {
@@ -177,5 +178,31 @@ declare module "../../../types/hooks.js" {
         nextAbsolutePath: string,
       ) => Promise<string>,
     ) => Promise<string>;
+
+    /**
+     * Hook triggered on the solc compile of a compilation job, providing the
+     * Solc input and output.
+     *
+     * @param context The hook context.
+     * @param solcConfig The configuration used to setup solc e.g. version.
+     * @param solcInput The solc input json passed to solc for this compilation
+     * job.
+     * @param solcOutput The solc output json received from solc for this
+     * compilation job.
+     * @param next A function to call the next handler for this hook, or the
+     * default implementation if no more handlers exist.
+     */
+    onSolcCompileComplete(
+      context: HookContext,
+      solcConfig: SolcConfig,
+      solcInput: CompilerInput,
+      solcOutput: CompilerOutput,
+      next: (
+        nextContext: HookContext,
+        nextSolcConfig: SolcConfig,
+        nextSolcInput: CompilerInput,
+        nextSolcOutput: CompilerOutput,
+      ) => Promise<void>,
+    ): Promise<void>;
   }
 }
