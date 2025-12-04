@@ -53,7 +53,7 @@
     "@nomicfoundation/hardhat-node-test-reporter": "workspace:^3.0.0",
     "@nomicfoundation/hardhat-viem": "workspace:^3.0.0",
     "@nomicfoundation/hardhat-test-utils": "workspace:^",
-    "@types/node": "^20.14.9",
+    "@types/node": "^22.0.0",
     "c8": "^9.1.0",
     "cross-env": "7.0.3",
     "eslint": "9.25.1",

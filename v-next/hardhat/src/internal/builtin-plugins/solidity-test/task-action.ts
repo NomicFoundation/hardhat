@@ -50,10 +50,11 @@ interface TestActionArguments {
   grep?: string;
   noCompile: boolean;
   verbosity: number;
+  testSummaryIndex: number;
 }
 
 const runSolidityTests: NewTaskActionFunction<TestActionArguments> = async (
-  { testFiles, chainType, grep, noCompile, verbosity },
+  { testFiles, chainType, grep, noCompile, verbosity, testSummaryIndex },
   hre,
 ) => {
   assertHardhatInvariant(
@@ -187,6 +188,11 @@ const runSolidityTests: NewTaskActionFunction<TestActionArguments> = async (
     options,
   );
 
+  let failed = 0;
+  let passed = 0;
+  let skipped = 0;
+  let failureOutput = "";
+
   const testReporterStream = runStream
     .on("data", (event: TestEvent) => {
       if (event.type === "suite:done") {
@@ -217,9 +223,25 @@ const runSolidityTests: NewTaskActionFunction<TestActionArguments> = async (
         }
       }
     })
-    .compose((source) =>
-      testReporter(source, sourceNameToUserSourceName, verbosity),
-    );
+    .compose(async function* (source) {
+      const reporter = testReporter(
+        source,
+        sourceNameToUserSourceName,
+        verbosity,
+        testSummaryIndex,
+      );
+
+      for await (const value of reporter) {
+        if (typeof value === "string") {
+          yield value;
+        } else {
+          failed = value.failed;
+          passed = value.passed;
+          skipped = value.skipped;
+          failureOutput = value.failureOutput;
+        }
+      }
+    });
 
   const outputStream = testReporterStream.pipe(
     createNonClosingWriter(process.stdout),
@@ -250,6 +272,14 @@ const runSolidityTests: NewTaskActionFunction<TestActionArguments> = async (
   }
 
   console.log();
+
+  return {
+    failed,
+    passed,
+    skipped,
+    todo: 0,
+    failureOutput,
+  };
 };
 
 export default runSolidityTests;

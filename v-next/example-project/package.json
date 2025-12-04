@@ -42,7 +42,7 @@
     "@openzeppelin/contracts": "5.1.0",
     "@types/chai": "^4.2.0",
     "@types/mocha": ">=10.0.10",
-    "@types/node": "^20.14.9",
+    "@types/node": "^22.0.0",
     "@uniswap/v4-core": "1.0.2",
     "permit2": "uniswap/permit2#cc56ad0f3439c502c246fc5cfcc3db92bb8b7219",
     "chai": "^5.1.2",

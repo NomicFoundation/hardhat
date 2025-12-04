@@ -41,6 +41,14 @@ const hardhatPlugin: HardhatPlugin = {
         description: "Verbosity level of the test output",
         defaultValue: DEFAULT_VERBOSITY,
       })
+      .addOption({
+        name: "testSummaryIndex",
+        description:
+          "Print a summary of all test runners starting from the given index",
+        type: ArgumentType.INT,
+        defaultValue: 0,
+        hidden: true,
+      })
       .setAction(async () => import("./task-action.js"))
       .build(),
   ],
