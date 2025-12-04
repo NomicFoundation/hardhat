@@ -158,7 +158,7 @@ const runSolidityTests: NewTaskActionFunction<TestActionArguments> = async (
     };
   }
 
-  const config: SolidityTestRunnerConfigArgs =
+  const testRunnerConfig: SolidityTestRunnerConfigArgs =
     await solidityTestConfigToSolidityTestRunnerConfigArgs({
       chainType,
       projectRoot: hre.config.paths.root,
@@ -182,7 +182,7 @@ const runSolidityTests: NewTaskActionFunction<TestActionArguments> = async (
     chainType,
     edrArtifacts.map(({ edrAtifact }) => edrAtifact),
     testSuiteIds,
-    config,
+    testRunnerConfig,
     tracingConfig,
     sourceNameToUserSourceName,
     options,
