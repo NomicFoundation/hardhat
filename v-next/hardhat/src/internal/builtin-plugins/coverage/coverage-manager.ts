@@ -2,7 +2,6 @@ import type {
   CoverageData,
   CoverageManager,
   CoverageMetadata,
-  Tag,
 } from "./types.js";
 import type { TableItem } from "@nomicfoundation/hardhat-utils/format";
 
@@ -75,12 +74,12 @@ export interface Report {
     // In addition, partially executed lines cannot be determined, as this information is missing in EDR,
     // since only whole lines can be registered as executed or not.
 
-    tagExecutionCounts: Map<Tag, number>;
     lineExecutionCounts: Map<Line, number>;
 
     // branchExecutionCounts: Map<Branch, number>;
 
-    executedTagsCount: number;
+    executedStatementsCount: number;
+    unexecutedStatementsCount: number;
     executedLinesCount: number;
     // executedBranchesCount: number;
 
@@ -201,15 +200,28 @@ export class CoverageManagerImplementation implements CoverageManager {
   public async getReport(): Promise<Report> {
     const report: Report = {};
 
+    const uniqueMetdataMap = new Map<string, CoverageMetadata[number]>();
+    for (const m of this.metadata) {
+      const key = `${m.relativePath}-${m.tag}-${m.startUtf16}-${m.endUtf16}`;
+      uniqueMetdataMap.set(key, m);
+    }
+
+    const uniqueMetdata = Array.from(uniqueMetdataMap.values());
+
+    console.log(JSON.stringify(uniqueMetdata, null, 2));
+    console.log(JSON.stringify(this.data, null, 2));
+
+    console.log("++++++++++++++++++++++++++++++++++++++++++++++++++++++");
+
     const allExecutedTags = new Set(this.data);
 
     const fileRelativePaths = new Set(
-      this.metadata.map(({ relativePath }) => relativePath),
+      uniqueMetdata.map(({ relativePath }) => relativePath),
     );
 
     // Calculate the coverage for each file individually
     for (const fileRelativePath of fileRelativePaths) {
-      const statmentsForFile = this.metadata.filter(
+      const statmentsForFile = uniqueMetdata.filter(
         (m) => m.relativePath === fileRelativePath,
       );
 
@@ -229,12 +241,15 @@ export class CoverageManagerImplementation implements CoverageManager {
         executedTagsForFile,
       );
 
-      const tagExecutionCounts = new Map<string, number>();
+      let executedStatementsCount = 0;
+      let unexecutedStatementsCount = 0;
       for (const s of tagsForFile) {
-        tagExecutionCounts.set(s, (tagExecutionCounts.get(s) ?? 0) + 1);
+        if (allExecutedTags.has(s)) {
+          executedStatementsCount++;
+        } else {
+          unexecutedStatementsCount++;
+        }
       }
-
-      const executedTagsCount = new Set(executedTagsForFile).size;
 
       // Create a map that tracks how many times each line was executed.
       // Map: line number -> execution count
@@ -260,7 +275,7 @@ export class CoverageManagerImplementation implements CoverageManager {
 
       // console.log("");
 
-      // console.log(JSON.stringify(this.metadata, null, 2));
+      // console.log(JSON.stringify(uniqueMetdata, null, 2));
 
       const fileToPrint: Array<{
         char: string;
@@ -287,21 +302,21 @@ export class CoverageManagerImplementation implements CoverageManager {
       // console.log(lineExecutionCounts);
       // console.log(coverageInfo.lines.executed);
       // console.log("--------------");
-      // for (const c of fileToPrint) {
-      //   if (c.covered === true) {
-      //     process.stdout.write(chalk.green(c.char));
-      //   } else if (c.covered === false) {
-      //     process.stdout.write(chalk.red(c.char));
-      //   } else {
-      //     process.stdout.write(c.char);
-      //   }
-      // }
+      for (const c of fileToPrint) {
+        if (c.covered === true) {
+          process.stdout.write(chalk.green(c.char));
+        } else if (c.covered === false) {
+          process.stdout.write(chalk.red(c.char));
+        } else {
+          process.stdout.write(c.char);
+        }
+      }
 
       console.log(coverageInfo.lines.executed);
       console.log(coverageInfo.lines.notExecuted);
       console.log("----------------------------- REAL ONE END");
 
-      // for (const m of this.metadata) {
+      // for (const m of uniqueMetdata) {
       //   console.log(
       //     fileToPrint
       //       .slice(m.startUtf16, m.endUtf16)
@@ -315,8 +330,8 @@ export class CoverageManagerImplementation implements CoverageManager {
       // console.log(allExecutedTags);
 
       // const indexes = [
-      //   ...this.metadata.map((m) => m.startUtf16),
-      //   ...this.metadata.map((m) => m.endUtf16),
+      //   ...uniqueMetdata.map((m) => m.startUtf16),
+      //   ...uniqueMetdata.map((m) => m.endUtf16),
       // ];
 
       // console.log(indexes);
@@ -331,7 +346,7 @@ export class CoverageManagerImplementation implements CoverageManager {
       //   ik++;
       // }
 
-      // for (const i of this.metadata) {
+      // for (const i of uniqueMetdata) {
       //   console.log(
       //     fileToPrint
       //       .slice(i.startUtf16, i.endUtf16)
@@ -342,14 +357,39 @@ export class CoverageManagerImplementation implements CoverageManager {
       //   console.log("---");
       // }
 
+      // console.log("--------------------------------");
+
+      // for (const i of [
+      //   ...coverageInfo.statments.executed,
+      //   ...coverageInfo.statments.notExecuted,
+      // ]) {
+      //   console.log(
+      //     fileToPrint
+      //       .slice(i.startUtf16, i.endUtf16)
+      //       .map((c) => c.char)
+      //       .join(""),
+      //   );
+      //   console.log("---");
+      // }
+
+      console.log({
+        lineExecutionCounts,
+
+        executedStatementsCount,
+        unexecutedStatementsCount,
+        executedLinesCount,
+
+        unexecutedLines,
+      });
+
       // ----------------------
       // ------------------------------------------------------------------------------------------------------------
 
       report[fileRelativePath] = {
-        tagExecutionCounts,
         lineExecutionCounts,
 
-        executedTagsCount,
+        executedStatementsCount,
+        unexecutedStatementsCount,
         executedLinesCount,
 
         unexecutedLines,
@@ -567,9 +607,10 @@ export class CoverageManagerImplementation implements CoverageManager {
       ([
         relativePath,
         {
-          tagExecutionCounts,
+          executedStatementsCount,
+          unexecutedStatementsCount,
           lineExecutionCounts,
-          executedTagsCount,
+
           executedLinesCount,
           unexecutedLines,
         },
@@ -580,15 +621,17 @@ export class CoverageManagerImplementation implements CoverageManager {
             : (executedLinesCount * 100.0) / lineExecutionCounts.size;
 
         const statementCoverage =
-          tagExecutionCounts.size === 0
+          executedStatementsCount === 0
             ? 0
-            : (executedTagsCount * 100.0) / tagExecutionCounts.size;
+            : (executedStatementsCount * 100.0) /
+              (executedStatementsCount + unexecutedStatementsCount);
 
         totalExecutedLines += executedLinesCount;
         totalExecutableLines += lineExecutionCounts.size;
 
-        totalExecutedStatements += executedTagsCount;
-        totalExecutableStatements += tagExecutionCounts.size;
+        totalExecutedStatements += executedStatementsCount;
+        totalExecutableStatements +=
+          executedStatementsCount + unexecutedStatementsCount;
 
         const row: string[] = [
           this.formatRelativePath(relativePath),

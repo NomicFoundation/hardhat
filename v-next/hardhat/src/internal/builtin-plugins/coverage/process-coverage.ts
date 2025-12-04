@@ -231,7 +231,7 @@ function getLinesInfo(
   executed: Map<number, string>;
   notExecuted: Map<number, string>;
 } {
-  const lines: string[] = [];
+  const lines: Array<string | null> = [];
   const lineExecuted: Array<boolean | null> = [];
 
   let tmpLine: string | null = null;
@@ -255,8 +255,7 @@ function getLinesInfo(
 
     if (tmpLine === null) {
       tmpLine = "";
-      tmpExecuted =
-        i >= minCharI && i <= maxCharI ? markedFileContent[i] : null;
+      tmpExecuted = i >= minCharI && i <= maxCharI ? true : null;
     }
 
     tmpLine += c;
@@ -269,29 +268,20 @@ function getLinesInfo(
     }
 
     if (c === "\n") {
-      let emptyLine = true;
+      // A line has ended, analyze whether it should be counted for coverage or not
+      let emptyLine = false;
+      const possibleLine = tmpLine;
 
-      if (
-        // Regex to match when only an `else` is present in a line, or at most a `else` with `{` after or `}` before.
-        // Example:
-        // - else
-        // - } else {
-        // - } else
-        // - else {
-        !/^\s*(?:\}\s*)?else(?:\s*\{)?\s*$/.test(tmpLine) &&
-        // Matches when:
-        // - only spaces are present
-        // - only { is present (allow multiple spaces before and after)
-        // - only } is present (allow multiple spaces before and after)
-        // - only \n is present (allow multiple spaces before and after)
-        !/^\s*(?:\{|\}|\n)?\s*$/.test(tmpLine)
-      ) {
-        emptyLine = false;
+      if (REGEXES_TO_REMOVE_LINES.some((regex) => regex.test(possibleLine))) {
+        emptyLine = true;
       }
 
       if (!emptyLine) {
         lines.push(tmpLine);
         lineExecuted.push(tmpExecuted);
+      } else {
+        lines.push(null);
+        lineExecuted.push(null);
       }
 
       tmpLine = null;
@@ -301,19 +291,58 @@ function getLinesInfo(
   const executed: Map<number, string> = new Map();
   const notExecuted: Map<number, string> = new Map();
 
-  // for (let m = 0; m < lines.length; m++) {
-  //   console.log("----");
-  //   console.log(lines[m] + " " + lineExecuted[m]);
-  // }
-
   // When adding to the map, use +1 on the index because file lines start at 1, not 0
   for (let j = 0; j < lines.length; j++) {
+    const line = lines[j];
+
+    if (line === null) {
+      continue;
+    }
+
     if (lineExecuted[j] === true) {
-      executed.set(j + 1, lines[j]);
+      executed.set(j + 1, line);
     } else if (lineExecuted[j] === false) {
-      notExecuted.set(j + 1, lines[j]);
+      notExecuted.set(j + 1, line);
     }
   }
 
   return { executed, notExecuted };
 }
+
+const REGEXES_TO_REMOVE_LINES = [
+  // Matches when only an `else` is present in a line, or at most a `else` with `{` after or `}` before.
+  // Match examples:
+  // - else
+  // - } else {
+  // - } else
+  // - else {
+  /^\s*(?:\}\s*)?else(?:\s*\{)?\s*$/,
+  // Matches a line when:
+  // - only spaces are present
+  // - only { is present (allow multiple spaces before and after)
+  // - only } is present (allow multiple spaces before and after)
+  // - only \n is present (allow multiple spaces before and after)
+  /^\s*(?:\{|\}|\n)?\s*$/,
+  // Matches when a line is a comment satrting with //, unless there is code before it
+  // Match:
+  // // This is a comment
+  // Not a match:
+  // uint256 x = 0; // This is a comment
+  /^\s*\/\/.*/,
+  // Matches when a line is a comment starting with /* (unless there is code before it)
+  // Match:
+  // /* This is a comment
+  // Not a match:
+  // uint256 x = 0; /* This is a comment
+  /^\s*\/\*/,
+  // Matches when a line is a comment ending with */ (unless there is code before it)
+  // Match:
+  // This is a comment */
+  // Not a match:
+  // This is a comment */ uint256 x = 0;
+  /\*\/\s*$/,
+  // Matches when a line is part of a block comment.
+  // Example:
+  // * This is a comment
+  /^\s*\*(?!\/)/,
+];
