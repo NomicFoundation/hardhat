@@ -1,4 +1,5 @@
 import type { ChainType, DefaultChainType } from "../../../../types/network.js";
+import type { LoggerConfig } from "../edr/types/logger.js";
 
 import "../../../../types/config.js";
 declare module "../../../../types/config.js" {
@@ -124,6 +125,7 @@ declare module "../../../../types/config.js" {
     networkId?: number;
     throwOnCallFailures?: boolean;
     throwOnTransactionFailures?: boolean;
+    logger?: LoggerConfig;
   }
 
   export type EdrNetworkAccountsUserConfig =
@@ -269,6 +271,7 @@ declare module "../../../../types/config.js" {
     networkId: number;
     throwOnCallFailures: boolean;
     throwOnTransactionFailures: boolean;
+    logger?: LoggerConfig;
   }
 
   export type EdrNetworkAccountsConfig =
