@@ -1,5 +1,5 @@
 ---
-"hardhat": patch
+"hardhat": minor
 ---
 
 Bumped EDR version to [`0.12.0-next.17`](https://www.npmjs.com/package/@nomicfoundation/edr/v/0.12.0-next.17)
