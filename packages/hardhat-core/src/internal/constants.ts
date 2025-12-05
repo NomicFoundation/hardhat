@@ -38,3 +38,7 @@ export const EDIT_DISTANCE_THRESHOLD = 3;
 export const HARDHAT_NETWORK_RESET_EVENT = "hardhatNetworkReset";
 export const HARDHAT_NETWORK_REVERT_SNAPSHOT_EVENT =
   "hardhatNetworkRevertSnapshot";
+
+// The Fusaka hardfork introduced a gas limit of 2^24 to individual transactions
+// as part of EIP 7825.
+export const FUSAKA_TRANSACTION_GAS_LIMIT = 16777216;

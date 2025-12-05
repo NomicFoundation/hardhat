@@ -1,4 +1,5 @@
 import { EIP1193Provider, RequestArguments } from "../../../types";
+import { FUSAKA_TRANSACTION_GAS_LIMIT } from "../../constants";
 import {
   numberToRpcQuantity,
   rpcQuantityToNumber,
@@ -77,7 +78,10 @@ abstract class MultipliedGasEstimationProvider extends ProviderWrapper {
       }
 
       const normalGas = rpcQuantityToNumber(realEstimation);
-      const gasLimit = await this._getBlockGasLimit();
+      const gasLimit = Math.min(
+        FUSAKA_TRANSACTION_GAS_LIMIT,
+        await this._getBlockGasLimit()
+      );
 
       const multiplied = Math.floor(normalGas * this._gasMultiplier);
       const gas = multiplied > gasLimit ? gasLimit - 1 : multiplied;
