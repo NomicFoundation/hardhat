@@ -29,6 +29,7 @@ import {
   resolveProperties,
 } from "./internal/ethers-utils";
 import { HardhatEthersError, NotImplementedError } from "./internal/errors";
+import { FUSAKA_TRANSACTION_GAS_LIMIT } from "./internal/constants";
 
 export class HardhatEthersSigner implements ethers.Signer {
   private readonly _accounts:
@@ -74,7 +75,10 @@ export class HardhatEthersSigner implements ethers.Signer {
           if (isHardhatNetwork) {
             // WARNING: this assumes that the hardhat node is being run in the
             // same project which might be wrong
-            gasLimit = hre.config.networks.hardhat.blockGasLimit;
+            gasLimit = Math.min(
+              FUSAKA_TRANSACTION_GAS_LIMIT,
+              hre.config.networks.hardhat.blockGasLimit
+            );
           }
         }
       }

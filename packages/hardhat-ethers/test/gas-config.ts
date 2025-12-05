@@ -1,6 +1,7 @@
 import { assert, use } from "chai";
 import chaiAsPromised from "chai-as-promised";
 
+import { FUSAKA_TRANSACTION_GAS_LIMIT } from "../src/internal/constants";
 import { useGeneratedEnvironment } from "./environment";
 
 use(chaiAsPromised);
@@ -70,8 +71,9 @@ describe("gas config behavior", function () {
         (connectedNetwork === "hardhat" && hardhatGasLimit === "default") ||
         (connectedNetwork === "localhost" && localhostGasLimit === "default")
       ) {
-        // expect the block gas limit to be used as the default gas limit
-        defaultGasLimit = 30_000_000n;
+        // expect the block gas limit to be the default transaction gas
+        // limit from Fusaka (EIP 7825)
+        defaultGasLimit = BigInt(FUSAKA_TRANSACTION_GAS_LIMIT);
       }
 
       it("plain transaction, default gas limit", async function () {
