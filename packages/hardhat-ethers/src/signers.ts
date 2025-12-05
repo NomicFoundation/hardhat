@@ -59,24 +59,6 @@ export class HardhatEthersSigner implements ethers.Signer {
       if (configuredGasLimit !== "auto") {
         // if the resolved gas config is a number, we use that
         gasLimit = configuredGasLimit;
-      } else {
-        // if the resolved gas config is "auto", we need to check that
-        // the user config is undefined, because that's the default value;
-        // otherwise explicitly setting the gas to "auto" would have no effect
-        if (hre.userConfig.networks?.localhost?.gas === undefined) {
-          // finally, we check if we are connected to a hardhat network
-          let isHardhatNetwork = false;
-          try {
-            await hre.network.provider.send("hardhat_metadata");
-            isHardhatNetwork = true;
-          } catch {}
-
-          if (isHardhatNetwork) {
-            // WARNING: this assumes that the hardhat node is being run in the
-            // same project which might be wrong
-            gasLimit = hre.config.networks.hardhat.blockGasLimit;
-          }
-        }
       }
     }
 

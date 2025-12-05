@@ -181,7 +181,7 @@ function resolveHardhatNetworkConfig(
     hardhatNetworkConfig.blockGasLimit ??
     clonedDefaultHardhatNetworkParams.blockGasLimit;
 
-  const gas = hardhatNetworkConfig.gas ?? blockGasLimit;
+  const gas = hardhatNetworkConfig.gas ?? "auto";
   const gasPrice =
     hardhatNetworkConfig.gasPrice ?? clonedDefaultHardhatNetworkParams.gasPrice;
   const initialBaseFeePerGas =
