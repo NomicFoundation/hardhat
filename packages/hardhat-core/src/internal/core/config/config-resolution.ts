@@ -32,7 +32,10 @@ import {
   SolidityConfig,
   SolidityUserConfig,
 } from "../../../types";
-import { HARDHAT_NETWORK_NAME } from "../../constants";
+import {
+  FUSAKA_TRANSACTION_GAS_LIMIT,
+  HARDHAT_NETWORK_NAME,
+} from "../../constants";
 import { HardforkName } from "../../util/hardforks";
 import { fromEntries } from "../../util/lang";
 import { assertHardhatInvariant } from "../errors";
@@ -181,7 +184,9 @@ function resolveHardhatNetworkConfig(
     hardhatNetworkConfig.blockGasLimit ??
     clonedDefaultHardhatNetworkParams.blockGasLimit;
 
-  const gas = hardhatNetworkConfig.gas ?? blockGasLimit;
+  const gas =
+    hardhatNetworkConfig.gas ??
+    Math.min(FUSAKA_TRANSACTION_GAS_LIMIT, blockGasLimit);
   const gasPrice =
     hardhatNetworkConfig.gasPrice ?? clonedDefaultHardhatNetworkParams.gasPrice;
   const initialBaseFeePerGas =
