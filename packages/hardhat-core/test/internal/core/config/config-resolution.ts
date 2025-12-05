@@ -30,6 +30,7 @@ import {
   getRealPathSync,
 } from "../../../../src/internal/util/fs-utils";
 import { useEnvironment } from "../../../helpers/environment";
+import { FUSAKA_TRANSACTION_GAS_LIMIT } from "../../../../src/internal/constants";
 
 function getBuildInfos() {
   return getAllFilesMatchingSync(getRealPathSync("artifacts/build-info"), (f) =>
@@ -304,7 +305,10 @@ describe("Config resolution", () => {
         const configWithoutBlockGasLimit = resolveConfig(__filename, {});
         assert.deepEqual(configWithoutBlockGasLimit.networks.hardhat, {
           ...defaultHardhatNetworkParams,
-          gas: configWithoutBlockGasLimit.networks.hardhat.blockGasLimit,
+          gas: Math.min(
+            FUSAKA_TRANSACTION_GAS_LIMIT,
+            configWithoutBlockGasLimit.networks.hardhat.blockGasLimit
+          ),
           initialDate: configWithoutBlockGasLimit.networks.hardhat.initialDate,
         });
 
