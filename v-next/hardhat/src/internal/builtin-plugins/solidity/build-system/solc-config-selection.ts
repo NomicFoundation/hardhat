@@ -154,12 +154,66 @@ export class SolcConfigSelector {
       }
     }
 
+    //  Collect incompatible files information
+    const incompatibleFiles: Array<{ path: string; pragma: string }> = [];
+
+    // check root file
+    if (maxSatisfying(compilerVersions, rootVersionRange) == null) {
+      incompatibleFiles.push({
+        path: shortenPath(root.fsPath),
+        pragma: root.content.versionPragmas.join(" "),
+      });
+    }
+
+    // Check all dependencies
+    for (const transitiveDependency of this.#getTransitiveDependencies(
+      root,
+      dependencyGraph,
+    )) {
+      const depVersionRange = transitiveDependency.versionPragmasPath
+        .map((pragmas) => pragmas.join(" "))
+        .join(" ");
+      if (maxSatisfying(compilerVersions, depVersionRange) == null) {
+        incompatibleFiles.push({
+          path: shortenPath(transitiveDependency.dependency.fsPath),
+          pragma:
+            transitiveDependency.dependency.content.versionPragmas.join(" "),
+        });
+      }
+    }
+
+    // Bulid detailed error message
+    let detailedMessage = `No solc version enabled in this profile is compatible with this file and all of its dependencies.`;
+
+    if (incompatibleFiles.length > 0) {
+      detailedMessage += `
+
+The following file(s) have incompatible version requirements:`;
+
+      const maxFilesToShow = 5;
+      const filesToShow = incompatibleFiles.slice(0, maxFilesToShow);
+
+      for (const file of filesToShow) {
+        detailedMessage += `
+  - ${file.path}: requires ${file.pragma}`;
+      }
+
+      if (incompatibleFiles.length > maxFilesToShow) {
+        detailedMessage += `
+  ... and ${incompatibleFiles.length - maxFilesToShow} more file(s)`;
+      }
+
+      detailedMessage += `
+
+Available compiler versions: ${compilerVersions.join(", ")}`;
+    }
+
     return {
       reason:
         CompilationJobCreationErrorReason.NO_COMPATIBLE_SOLC_VERSION_FOUND,
       rootFilePath: root.fsPath,
       buildProfile: this.#buildProfileName,
-      formattedReason: `No solc version enabled in this profile is compatible with this file and all of its dependencies.`,
+      formattedReason: detailedMessage,
     };
   }
 
