@@ -317,6 +317,11 @@ const REGEXES_TO_REMOVE_LINES = [
   // - } else
   // - else {
   /^\s*(?:\}\s*)?else(?:\s*\{)?\s*$/,
+  // Matches when a `catch` is present in a line.
+  // Match examples:
+  // - } catch {
+  // - } catch catch Error(string memory reason) {
+  /^\s*(?:\}\s*)?catch.*/,
   // Matches a line when:
   // - only spaces are present
   // - only { is present (allow multiple spaces before and after)
