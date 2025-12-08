@@ -9,6 +9,7 @@ import {
   assertHardhatInvariant,
   HardhatError,
 } from "@nomicfoundation/hardhat-errors";
+import chalk, { type ChalkInstance } from "chalk";
 
 import { HardhatRuntimeEnvironmentImplementation } from "../../core/hre.js";
 
@@ -48,6 +49,18 @@ const runAllTests: NewTaskActionFunction<TestActionArguments> = async (
     hre._coverage.disableReport();
   }
 
+  const testSummaries: Record<
+    string,
+    {
+      failed: number;
+      passed: number;
+      skipped: number;
+      todo: number;
+      failureOutput: string;
+    }
+  > = {};
+
+  let failureIndex = 1;
   for (const subtask of thisTask.subtasks.values()) {
     const files = getTestFilesForSubtask(subtask, testFiles, subtasksToFiles);
 
@@ -71,8 +84,99 @@ const runAllTests: NewTaskActionFunction<TestActionArguments> = async (
       args.verbosity = verbosity;
     }
 
-    await subtask.run(args);
+    if (subtask.options.has("testSummaryIndex")) {
+      args.testSummaryIndex = failureIndex;
+
+      const summaryId = subtask.id[subtask.id.length - 1];
+
+      testSummaries[summaryId] = await subtask.run(args);
+      failureIndex += testSummaries[summaryId].failed ?? 0;
+    } else {
+      await subtask.run(args);
+    }
   }
+
+  const passed: Array<[string, number]> = [];
+  const failed: Array<[string, number]> = [];
+  const skipped: Array<[string, number]> = [];
+  const todo: Array<[string, number]> = [];
+  const outputLines: string[] = [];
+
+  for (const [subtaskName, results] of Object.entries(testSummaries)) {
+    if (results.passed > 0) {
+      passed.push([subtaskName, results.passed]);
+    }
+
+    if (results.failed > 0) {
+      failed.push([subtaskName, results.failed]);
+    }
+
+    if (results.skipped > 0) {
+      skipped.push([subtaskName, results.skipped]);
+    }
+
+    if (results.todo > 0) {
+      todo.push([subtaskName, results.todo]);
+    }
+
+    /**
+     * Failure formatting test cases:
+     *
+     * no failures
+     * only node
+     * multiple node
+     * only solidity
+     *    - 1 top
+     *    - 2 bottom but sometimes - 1 instead??? how many do we need bottom
+     * multiple solidity
+     * single node + single solidity
+     * multiple node + multiple solidity
+     * single node + multiple solidity
+     * multiple node + single solidity
+     *
+     */
+    if (results.failureOutput !== "") {
+      const output = results.failureOutput;
+
+      if (subtaskName.includes("node")) {
+        outputLines.push(`\n${output}\n`);
+      } else {
+        outputLines.push(output);
+      }
+    }
+  }
+
+  if (passed.length > 0) {
+    logSummaryLine("passing", passed, chalk.green);
+  }
+
+  if (failed.length > 0) {
+    logSummaryLine("failing", failed, chalk.red);
+  }
+
+  if (skipped.length > 0) {
+    logSummaryLine("skipped", skipped, chalk.cyan);
+  }
+
+  if (todo.length > 0) {
+    logSummaryLine("todo", todo, chalk.blue);
+  }
+
+  if (outputLines.length > 0) {
+    console.log(
+      outputLines
+        .map((o) => {
+          const nl = o.match(/\n+$/gm);
+          if (nl !== null) {
+            return o.replace(new RegExp(`${nl[0]}$`), "\n");
+          }
+          return o;
+        })
+        .join("\n"),
+    );
+  }
+
+  console.log();
 
   if (hre.globalOptions.coverage === true) {
     assertHardhatInvariant(
@@ -89,6 +193,22 @@ const runAllTests: NewTaskActionFunction<TestActionArguments> = async (
     console.error("Test run failed");
   }
 };
+
+function logSummaryLine(
+  label: string,
+  items: Array<[string, number]>,
+  color: ChalkInstance = chalk.white,
+): void {
+  let total = 0;
+  const str = items
+    .map(([name, count]) => {
+      total += count;
+      return `${count} ${name}`;
+    })
+    .join(", ");
+
+  console.log(`${color(`${total} ${label}`)} (${str})`);
+}
 
 async function registerTestRunnersForFiles(
   testFiles: string[],
