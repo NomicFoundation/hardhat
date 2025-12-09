@@ -469,6 +469,14 @@ describe(
       });
 
       it("should work if there are prereleases in the list", async () => {
+        // skip test if we are in linux arm, which doesn't have 0.8.31 yet
+        if (
+          CompilerDownloader.getCompilerPlatform() ===
+          CompilerPlatform.LINUX_ARM64
+        ) {
+          return;
+        }
+
         await downloader.updateCompilerListIfNeeded(new Set(["0.8.31"]));
         await downloader.downloadCompiler("0.8.31");
         const compiler = await downloader.getCompiler("0.8.31");
