@@ -31,23 +31,25 @@ type Line = number;
 /**
  * @private exposed for testing purposes only
  */
+export interface FileReport {
+  // NOTE: currently, the counters for how many times a statement is executed are not implemented in EDR,
+  // so the only information available is whether a statement was executed, not how many times it was executed.
+  // Also, branch coverage is not available.
+  // In addition, partially executed lines (for example, ternary operators) cannot be determined, as this information is missing in EDR,
+  // since only whole lines can be registered as executed or not.
+
+  lineExecutionCounts: Map<Line, number>;
+
+  executedStatementsCount: number;
+  unexecutedStatementsCount: number;
+
+  executedLinesCount: number;
+
+  unexecutedLines: Set<Line>;
+}
+
 export interface Report {
-  [relativePath: string]: {
-    // NOTE: currently, the counters for how many times a statement is executed are not implemented in EDR,
-    // so the only information available is whether a statement was executed, not how many times it was executed.
-    // Also, branch coverage is not available.
-    // In addition, partially executed lines (for example, ternary operators) cannot be determined, as this information is missing in EDR,
-    // since only whole lines can be registered as executed or not.
-
-    lineExecutionCounts: Map<Line, number>;
-
-    executedStatementsCount: number;
-    unexecutedStatementsCount: number;
-
-    executedLinesCount: number;
-
-    unexecutedLines: Set<Line>;
-  };
+  [relativePath: string]: FileReport;
 }
 
 export class CoverageManagerImplementation implements CoverageManager {

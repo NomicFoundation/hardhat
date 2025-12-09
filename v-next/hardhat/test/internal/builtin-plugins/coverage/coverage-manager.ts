@@ -393,7 +393,10 @@ describe("CoverageManagerImplementation - report data processing", () => {
 
       const res = await coverageManagerTmp.getReport();
 
-      assert.deepEqual(res, testScenrario.expectedResult);
+      assert.deepEqual(
+        res[testScenrario.sourceFilePath],
+        testScenrario.expectedResult,
+      );
     });
   }
 });
