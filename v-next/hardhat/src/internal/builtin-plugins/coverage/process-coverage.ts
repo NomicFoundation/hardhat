@@ -16,7 +16,7 @@ import chalk from "chalk";
  * for this specific file.
  *
  * @returns An object containing:
- * - statments: the executed and not-executed statements
+ * - statements: the executed and not-executed statements
  * - lines: the executed and not-executed line numbers
  */
 export function getProcessedCoverageInfo(
@@ -24,7 +24,7 @@ export function getProcessedCoverageInfo(
   metadata: CoverageMetadata,
   hitTags: string[],
 ): {
-  statments: {
+  statements: {
     executed: ReportCoverageStatement[];
     notExecuted: ReportCoverageStatement[];
   };
@@ -52,7 +52,7 @@ export function getProcessedCoverageInfo(
   );
 
   return {
-    statments: getProcessedExecutedStatments(fileContent, markedFile),
+    statements: getProcessedExecutedStatements(fileContent, markedFile),
     lines: getLinesInfo(fileContent, markedFile, minCharI, maxCharI),
   };
 }
@@ -154,7 +154,7 @@ function createMarkedFile(
 // [
 //   { start: 12, end: 20, executed: true  }
 // ]
-function getProcessedExecutedStatments(
+function getProcessedExecutedStatements(
   fileContent: string,
   markedFile: Array<boolean | null>,
 ): {
@@ -164,8 +164,8 @@ function getProcessedExecutedStatments(
   // Note: `markedFile` is modified in place
   extendStatementToElse(fileContent, markedFile);
 
-  const executed = generateProcessedStatments(markedFile, true);
-  const notExecuted = generateProcessedStatments(markedFile, false);
+  const executed = generateProcessedStatements(markedFile, true);
+  const notExecuted = generateProcessedStatements(markedFile, false);
 
   return {
     executed,
@@ -202,7 +202,7 @@ function extendStatementToElse(
 
 // Based on the marked file, where each character is marked as either executed (true) or not executed (false),
 // generate non-overlapping statements that indicate the start and end indices, along with whether they were executed or not.
-function generateProcessedStatments(
+function generateProcessedStatements(
   markedFile: Array<boolean | null>,
   executed: boolean,
 ): ReportCoverageStatement[] {
