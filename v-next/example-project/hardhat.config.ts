@@ -237,7 +237,6 @@ export default defineConfig({
       color: true,
     },
     solidity: {
-      timeout: 1000,
     },
   },
 });
