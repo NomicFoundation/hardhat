@@ -178,11 +178,11 @@ export class CoverageManagerImplementation implements CoverageManager {
 
     // Calculate the coverage for each file individually
     for (const fileRelativePath of fileRelativePaths) {
-      const statmentsForFile = uniqueMetadata.filter(
+      const statementsForFile = uniqueMetadata.filter(
         (m) => m.relativePath === fileRelativePath,
       );
 
-      const tagsForFile = statmentsForFile.map((s) => s.tag);
+      const tagsForFile = statementsForFile.map((s) => s.tag);
 
       const executedTagsForFile = tagsForFile.filter((t) =>
         allExecutedTags.has(t),
@@ -194,7 +194,7 @@ export class CoverageManagerImplementation implements CoverageManager {
 
       const coverageInfo = getProcessedCoverageInfo(
         fileContent,
-        statmentsForFile,
+        statementsForFile,
         executedTagsForFile,
       );
 
