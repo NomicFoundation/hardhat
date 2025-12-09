@@ -63,13 +63,11 @@ export default async (): Promise<Partial<SolidityHooks>> => ({
                 fsPath,
               );
               const tag = Buffer.from(m.tag).toString("hex");
-              const startLine = lineNumbers[m.startUtf16];
-              const endLine = lineNumbers[m.endUtf16 - 1];
               coverageMetadata.push({
                 relativePath,
                 tag,
-                startLine,
-                endLine,
+                startUtf16: m.startUtf16,
+                endUtf16: m.endUtf16,
               });
               break;
             default:
