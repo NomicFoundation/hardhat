@@ -20,7 +20,7 @@ import chalk from "chalk";
 
 import { createHardhatRuntimeEnvironment } from "../../../../src/hre.js";
 import { CoverageManagerImplementation } from "../../../../src/internal/builtin-plugins/coverage/coverage-manager.js";
-import { COVERAGE_TEST_SCENARIO_DO_WHILE_LOOP } from "../../../fixture-projects/test-coverage/contracts/do-while-loop/coverage-edr-info.js";
+import { COVERAGE_TEST_SCENARIO_DO_WHILE_LOOP } from "../../../fixture-projects/coverage/contracts/do-while-loop/coverage-edr-info.js";
 
 describe("CoverageManagerImplementation", () => {
   const id = "test";
@@ -366,7 +366,7 @@ describe("CoverageManagerImplementation - report data processing", () => {
   let hre: HardhatRuntimeEnvironment;
   let originalCoverageFlag: boolean;
 
-  useFixtureProject("test-coverage");
+  useFixtureProject("coverage");
 
   before(async () => {
     hre = await createHardhatRuntimeEnvironment({});
