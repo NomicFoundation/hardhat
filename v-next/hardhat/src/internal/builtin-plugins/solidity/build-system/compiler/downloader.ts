@@ -51,6 +51,7 @@ interface CompilerBuild {
   version: string;
   longVersion: string;
   sha256: string;
+  prerelease?: string;
 }
 
 interface CompilerList {
@@ -273,7 +274,9 @@ export class CompilerDownloaderImplementation implements CompilerDownloader {
 
     const list = await this.#readCompilerList(listPath);
 
-    const build = list.builds.find((b) => b.version === version);
+    const build = list.builds.find(
+      (b) => b.version === version && b.prerelease === undefined,
+    );
 
     if (build === undefined) {
       throw new HardhatError(
