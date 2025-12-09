@@ -21,6 +21,16 @@ import chalk from "chalk";
 import { createHardhatRuntimeEnvironment } from "../../../../src/hre.js";
 import { CoverageManagerImplementation } from "../../../../src/internal/builtin-plugins/coverage/coverage-manager.js";
 import { COVERAGE_TEST_SCENARIO_DO_WHILE_LOOP } from "../../../fixture-projects/coverage/contracts/do-while-loop/coverage-edr-info.js";
+import { COVERAGE_TEST_SCENARIO_FOR_LOOP } from "../../../fixture-projects/coverage/contracts/for-loop/coverage-edr-info.js";
+import { COVERAGE_TEST_SCENARIO_FUNCTIONS } from "../../../fixture-projects/coverage/contracts/functions/coverage-edr-info.js";
+import { COVERAGE_TEST_SCENARIO_IF_ELSE } from "../../../fixture-projects/coverage/contracts/if-else/coverage-edr-info.js";
+import { COVERAGE_TEST_SCENARIO_IGNORE_COMMENTS } from "../../../fixture-projects/coverage/contracts/ignore-comments/coverage-edr-info.js";
+import { COVERAGE_TEST_SCENARIO_INLINE_ASSEMBLY } from "../../../fixture-projects/coverage/contracts/inline-assembly/coverage-edr-info.js";
+import { COVERAGE_TEST_SCENARIO_ONE_LINER } from "../../../fixture-projects/coverage/contracts/one-liner/coverage-edr-info.js";
+import { COVERAGE_TEST_SCENARIO_RANDOM_FORMATTING } from "../../../fixture-projects/coverage/contracts/random-formatting/coverage-edr-info.js";
+import { COVERAGE_TEST_SCENARIO_REQUIRE } from "../../../fixture-projects/coverage/contracts/require/coverage-edr-info.js";
+import { COVERAGE_TEST_SCENARIO_TRY_CATCH } from "../../../fixture-projects/coverage/contracts/try-catch/coverage-edr-info.js";
+import { COVERAGE_TEST_SCENARIO_WHILE_LOOP } from "../../../fixture-projects/coverage/contracts/while-loop/coverage-edr-info.js";
 
 describe("CoverageManagerImplementation", () => {
   const id = "test";
@@ -360,6 +370,16 @@ describe("CoverageManagerImplementation - report data processing", () => {
   //
   const testScenrarios: CoverageTestScenario[] = [
     COVERAGE_TEST_SCENARIO_DO_WHILE_LOOP,
+    COVERAGE_TEST_SCENARIO_FOR_LOOP,
+    COVERAGE_TEST_SCENARIO_FUNCTIONS,
+    COVERAGE_TEST_SCENARIO_IF_ELSE,
+    COVERAGE_TEST_SCENARIO_IGNORE_COMMENTS,
+    COVERAGE_TEST_SCENARIO_INLINE_ASSEMBLY,
+    COVERAGE_TEST_SCENARIO_ONE_LINER,
+    COVERAGE_TEST_SCENARIO_RANDOM_FORMATTING,
+    COVERAGE_TEST_SCENARIO_REQUIRE,
+    COVERAGE_TEST_SCENARIO_TRY_CATCH,
+    COVERAGE_TEST_SCENARIO_WHILE_LOOP,
   ];
 
   const coverageManagerTmp = new CoverageManagerImplementation("");
@@ -378,6 +398,10 @@ describe("CoverageManagerImplementation - report data processing", () => {
     /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions
     -- For the test we need to access to the hidden _coverage property */
     (hre as any)._coverage = coverageManagerTmp;
+
+    await hre.tasks.getTask(["compile"]).run({
+      quiet: true,
+    });
   });
 
   after(() => {
@@ -387,7 +411,7 @@ describe("CoverageManagerImplementation - report data processing", () => {
   for (const testScenrario of testScenrarios) {
     it(testScenrario.description, async () => {
       await hre.tasks.getTask(["test", "solidity"]).run({
-        noCompile: false,
+        noCompile: true,
         testFiles: [testScenrario.testFilePath],
       });
 
