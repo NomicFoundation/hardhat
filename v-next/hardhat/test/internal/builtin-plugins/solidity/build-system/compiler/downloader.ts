@@ -467,6 +467,16 @@ describe(
           "Compiler should be defined",
         );
       });
+
+      it("should work if there are prereleases in the list", async () => {
+        await downloader.updateCompilerListIfNeeded(new Set(["0.8.31"]));
+        await downloader.downloadCompiler("0.8.31");
+        const compiler = await downloader.getCompiler("0.8.31");
+
+        assert.ok(compiler !== undefined, "Compiler should be defined");
+        assert.equal(compiler.version, "0.8.31");
+        assert.equal(compiler.longVersion, "0.8.31+commit.fd3a2265");
+      });
     });
 
     describe("when on linux-arm64", function () {
