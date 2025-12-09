@@ -4,8 +4,6 @@ import type {
   Statement,
 } from "./types.js";
 
-import chalk from "chalk";
-
 /**
  * Processes the raw EDR coverage information for a file and returns the executed and
  * non-executed statements and lines.
@@ -248,19 +246,6 @@ function getLinesInfo(
 
   let tmpLine: string | null = null;
   let tmpExecuted: boolean | null = null;
-
-  let ik = 0;
-  for (const c of markedFile) {
-    if (c === true) {
-      process.stdout.write(chalk.green(fileContent[ik]));
-    } else if (c === false) {
-      process.stdout.write(chalk.red(fileContent[ik]));
-    } else {
-      process.stdout.write(fileContent[ik]);
-    }
-
-    ik++;
-  }
 
   for (let i = 0; i < fileContent.length; i++) {
     const c = fileContent[i];

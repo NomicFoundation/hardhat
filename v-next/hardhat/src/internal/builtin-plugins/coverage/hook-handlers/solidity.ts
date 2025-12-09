@@ -9,7 +9,7 @@ import {
   HardhatError,
 } from "@nomicfoundation/hardhat-errors";
 import { ensureError } from "@nomicfoundation/hardhat-utils/error";
-import { readUtf8File } from "@nomicfoundation/hardhat-utils/fs";
+import { exists, readUtf8File } from "@nomicfoundation/hardhat-utils/fs";
 import debug from "debug";
 
 import { CoverageManagerImplementation } from "../coverage-manager.js";
@@ -122,9 +122,20 @@ export default async (): Promise<Partial<SolidityHooks>> => ({
       // NOTE: We add the coverage.sol straight into sources here. The alternative
       // would be to do it during the resolution phase. However, we decided this
       // is a simpler solution, at least for now.
-      const content = await readUtf8File(
-        path.join(import.meta.dirname, "../../../../../../coverage.sol"),
+      let coverageSolPath = path.join(
+        import.meta.dirname,
+        "../../../../../../coverage.sol",
       );
+
+      if ((await exists(coverageSolPath)) === false) {
+        // Fallback for when running tests
+        coverageSolPath = path.join(
+          import.meta.dirname,
+          "../../../../../coverage.sol",
+        );
+      }
+
+      const content = await readUtf8File(coverageSolPath);
       solcInput.sources[COVERAGE_LIBRARY_PATH] = { content };
     }
 

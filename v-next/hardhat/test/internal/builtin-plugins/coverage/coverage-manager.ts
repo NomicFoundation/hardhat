@@ -1,18 +1,26 @@
+import type { CoverageTestScenario } from "./types.js";
 import type { Report } from "../../../../src/internal/builtin-plugins/coverage/coverage-manager.js";
 import type {
   CoverageData,
   CoverageMetadata,
 } from "../../../../src/internal/builtin-plugins/coverage/types.js";
+import type { HardhatRuntimeEnvironment } from "../../../../src/types/hre.js";
 
 import assert from "node:assert/strict";
 import path from "node:path";
-import { beforeEach, describe, it } from "node:test";
+import { after, before, beforeEach, describe, it } from "node:test";
 
-import { disableConsole, useTmpDir } from "@nomicfoundation/hardhat-test-utils";
+import {
+  disableConsole,
+  useFixtureProject,
+  useTmpDir,
+} from "@nomicfoundation/hardhat-test-utils";
 import { getAllFilesMatching } from "@nomicfoundation/hardhat-utils/fs";
 import chalk from "chalk";
 
+import { createHardhatRuntimeEnvironment } from "../../../../src/hre.js";
 import { CoverageManagerImplementation } from "../../../../src/internal/builtin-plugins/coverage/coverage-manager.js";
+import { COVERAGE_TEST_SCENARIO_DO_WHILE_LOOP } from "../../../fixture-projects/test-coverage/contracts/do-while-loop/coverage-edr-info.js";
 
 describe("CoverageManagerImplementation", () => {
   const id = "test";
@@ -245,15 +253,6 @@ describe("CoverageManagerImplementation", () => {
     );
   });
 
-  // it("should process data and metadata", async () => {
-  //   await coverageManager.addMetadata(metadata);
-  //   await coverageManager.addData(data);
-
-  //   const actual = coverageManager.getReport();
-
-  //   assert.deepEqual(actual, report);
-  // });
-
   it("should format the lcov report", async () => {
     const actual = coverageManager.formatLcovReport(report);
     const expected = [
@@ -347,6 +346,54 @@ describe("CoverageManagerImplementation", () => {
     it(`should format the lines (${Array.from(lines).join(", ")})`, async () => {
       const actual = coverageManager.formatLines(lines);
       assert.equal(actual, expected);
+    });
+  }
+});
+
+describe("CoverageManagerImplementation - report data processing", () => {
+  //
+  // The following tests use fixture projects to validate coverage report generation.
+  // For each scenario, there is a .sol file containing a specific feature (e.g. if/else condition, while loop, etc.)
+  // and a .t.sol test file that verifies that feature.
+  // The result of the coverage processing is compared against the expected output defined in the same directory
+  // where these Solidity files are located.
+  //
+  const testScenrarios: CoverageTestScenario[] = [
+    COVERAGE_TEST_SCENARIO_DO_WHILE_LOOP,
+  ];
+
+  const coverageManagerTmp = new CoverageManagerImplementation("");
+  let hre: HardhatRuntimeEnvironment;
+  let originalCoverageFlag: boolean;
+
+  useFixtureProject("test-coverage");
+
+  before(async () => {
+    hre = await createHardhatRuntimeEnvironment({});
+
+    originalCoverageFlag = hre.globalOptions.coverage;
+
+    hre.globalOptions.coverage = true;
+
+    /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions
+    -- For the test we need to access to the hidden _coverage property */
+    (hre as any)._coverage = coverageManagerTmp;
+  });
+
+  after(() => {
+    hre.globalOptions.coverage = originalCoverageFlag;
+  });
+
+  for (const testScenrario of testScenrarios) {
+    it(testScenrario.description, async () => {
+      await hre.tasks.getTask(["test", "solidity"]).run({
+        noCompile: false,
+        testFiles: [testScenrario.testFilePath],
+      });
+
+      const res = await coverageManagerTmp.getReport();
+
+      assert.deepEqual(res, testScenrario.expectedResult);
     });
   }
 });
