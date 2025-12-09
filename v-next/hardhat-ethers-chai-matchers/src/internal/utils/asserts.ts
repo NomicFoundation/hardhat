@@ -12,9 +12,12 @@ import { ordinal } from "./ordinal.js";
 
 export function assertIsNotNull<T>(
   value: T,
-  valueName: string,
 ): asserts value is Exclude<T, null> {
-  assertHardhatInvariant(value !== null, `${valueName} should not be null`);
+  if (value === null) {
+    throw new HardhatError(
+      HardhatError.ERRORS.CHAI_MATCHERS.GENERAL.UNKNOWN_ERROR,
+    );
+  }
 }
 
 export function assertArgsArraysEqual(

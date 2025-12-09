@@ -237,7 +237,7 @@ export async function getBalanceChange(
   const txResponse = await transaction;
 
   const txReceipt = await txResponse.wait();
-  assertIsNotNull(txReceipt, "txReceipt");
+  assertIsNotNull(txReceipt);
   const txBlockNumber = txReceipt.blockNumber;
 
   const block = await ethers.provider.getBlock(txReceipt.blockHash, false);

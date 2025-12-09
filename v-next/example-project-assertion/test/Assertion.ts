@@ -39,10 +39,10 @@ describe("Hardhat3 test", function () {
           address.slice(2) +
           BigInt(w.amount).toString(16).padStart(64, "0")
         );
-      })
+      }),
     );
     const hashedElements = elements.map((elem) =>
-      MerkleTree.bufferToHex(keccak128(elem))
+      MerkleTree.bufferToHex(keccak128(elem)),
     );
     const tree = new MerkleTree(elements, keccak128, {
       hashLeaves: true,
@@ -55,23 +55,23 @@ describe("Hardhat3 test", function () {
       .map((proof) => "0x" + proof.map((p) => p.slice(2)).join(""));
 
     const SignatureMerkleDrop128Factory = await ethers.getContractFactory(
-      "SignatureMerkleDrop128"
+      "SignatureMerkleDrop128",
     );
     const drop = await SignatureMerkleDrop128Factory.deploy(
       await token.getAddress(),
       root,
-      tree.getDepth()
+      tree.getDepth(),
     );
     await token.mint(
       await drop.getAddress(),
-      accountWithDropValues.map((w) => w.amount).reduce((a, b) => a + b, 0)
+      accountWithDropValues.map((w) => w.amount).reduce((a, b) => a + b, 0),
     );
 
     const data = MerkleTree.bufferToHex(keccak256(await alice.getAddress()));
     const signature = personalSign({
       privateKey: Buffer.from(
         "ac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80",
-        "hex"
+        "hex",
       ),
       data,
     });
@@ -94,7 +94,7 @@ describe("Hardhat3 test", function () {
       1,
       proofs[leaves.indexOf(hashedElements[0])],
       signature,
-      { value: 10 }
+      { value: 10 },
     );
     expect(txn).to.changeEtherBalance(ethers, alice, 10);
   });
@@ -106,7 +106,7 @@ describe("Hardhat3 test", function () {
       others: { signature },
     } = await loadFixture(deployContractsFixture);
     await expect(
-      drop.claim(alice, 1, "0x", signature)
+      drop.claim(alice, 1, "0x", signature),
     ).to.be.revertedWithCustomError(drop, "InvalidProof");
   });
 });

@@ -2423,6 +2423,14 @@ This might be caused by using hardhat_reset and loadFixture calls in a testcase.
         websiteDescription:
           "The `.reverted` matcher was deprecated and you should use `.revert(ethers)` instead.",
       },
+      UNKNOWN_ERROR: {
+        number: 70025,
+        messageTemplate:
+          "An unknown error occurred. You may have forgotten to `await` a promise.\nPlease double check your test code and try again.",
+        websiteTitle: "An unknown error occurred",
+        websiteDescription:
+          "An unknown error occurred. You may have forgotten to `await` a promise.",
+      },
     },
   },
   HARDHAT_VERIFY: {

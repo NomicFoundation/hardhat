@@ -224,7 +224,7 @@ export async function revertedWithCustomErrorWithArgs(
 
   const errorFragment = contractInterface.getError(customError.name);
 
-  assertIsNotNull(errorFragment, "errorFragment");
+  assertIsNotNull(errorFragment);
 
   // We transform ether's Array-like object into an actual array as it's safer
   const actualArgs = resultToArray(

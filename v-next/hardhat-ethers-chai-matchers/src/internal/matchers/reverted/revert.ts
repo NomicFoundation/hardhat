@@ -58,7 +58,7 @@ export function supportRevert(
             }
           }
 
-          assertIsNotNull(receipt, "receipt");
+          assertIsNotNull(receipt);
           assert(
             receipt.status === 0,
             "Expected transaction to be reverted",

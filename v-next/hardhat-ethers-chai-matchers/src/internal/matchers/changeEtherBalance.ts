@@ -4,7 +4,10 @@ import type { Addressable } from "ethers/address";
 import type { TransactionResponse } from "ethers/providers";
 import type { BigNumberish } from "ethers/utils";
 
-import { assertHardhatInvariant } from "@nomicfoundation/hardhat-errors";
+import {
+  assertHardhatInvariant,
+  HardhatError,
+} from "@nomicfoundation/hardhat-errors";
 import { isObject } from "@nomicfoundation/hardhat-utils/lang";
 import { toBigInt } from "ethers/utils";
 
@@ -92,12 +95,16 @@ export async function getBalanceChange(
   }
 
   const txReceipt = await txResponse.wait();
-  assertIsNotNull(txReceipt, "txReceipt");
+  assertIsNotNull(txReceipt);
   const txBlockNumber = txReceipt.blockNumber;
 
   const block = await ethers.provider.getBlock(txReceipt.blockHash, false);
 
-  assertHardhatInvariant(block !== null, "The block doesn't exist");
+  if (block === null) {
+    throw new HardhatError(
+      HardhatError.ERRORS.CHAI_MATCHERS.GENERAL.UNKNOWN_ERROR,
+    );
+  }
 
   assertHardhatInvariant(
     isObject(block) &&

@@ -131,7 +131,7 @@ export function supportEmit(
 
         return waitForPendingTransaction(tx, contract.runner.provider).then(
           (receipt) => {
-            assertIsNotNull(receipt, "receipt");
+            assertIsNotNull(receipt);
             return onSuccess(receipt);
           },
         );
@@ -183,7 +183,7 @@ const tryAssertArgsArraysEqual = (
     const parsedLog = chaiUtils
       .flag(context, "contract")
       .interface.parseLog(logs[0]);
-    assertIsNotNull(parsedLog, "parsedLog");
+    assertIsNotNull(parsedLog);
 
     return assertArgsArraysEqual(
       Assertion,
@@ -204,7 +204,7 @@ const tryAssertArgsArraysEqual = (
         const parsedLog = chaiUtils
           .flag(context, "contract")
           .interface.parseLog(logs[index]);
-        assertIsNotNull(parsedLog, "parsedLog");
+        assertIsNotNull(parsedLog);
 
         assertArgsArraysEqual(
           Assertion,
