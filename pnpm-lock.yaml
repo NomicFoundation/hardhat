@@ -81,7 +81,7 @@ importers:
         specifier: workspace:^3.0.3
         version: link:../hardhat-network-helpers
       '@nomicfoundation/hardhat-node-test-runner':
-        specifier: workspace:^3.0.7
+        specifier: workspace:^3.0.8
         version: link:../hardhat-node-test-runner
       '@nomicfoundation/hardhat-typechain':
         specifier: workspace:^3.0.1
@@ -123,7 +123,7 @@ importers:
         specifier: foundry-rs/forge-std#v1.9.4
         version: https://codeload.github.com/foundry-rs/forge-std/tar.gz/1eea5bae12ae557d589f9f0f0edae2faa47cb262
       hardhat:
-        specifier: workspace:^3.0.17
+        specifier: workspace:^3.1.0
         version: link:../hardhat
       mocha:
         specifier: ^11.0.0
@@ -205,7 +205,7 @@ importers:
         version: 3.25.76
     devDependencies:
       '@nomicfoundation/hardhat-node-test-reporter':
-        specifier: workspace:^3.0.0
+        specifier: workspace:^3.0.2
         version: link:../hardhat-node-test-reporter
       '@nomicfoundation/hardhat-test-utils':
         specifier: workspace:^
@@ -1105,7 +1105,7 @@ importers:
         specifier: workspace:^3.0.2
         version: link:../hardhat-errors
       '@nomicfoundation/hardhat-node-test-reporter':
-        specifier: workspace:^3.0.0
+        specifier: workspace:^3.0.2
         version: link:../hardhat-node-test-reporter
       '@nomicfoundation/hardhat-utils':
         specifier: workspace:^3.0.5
@@ -1718,7 +1718,7 @@ importers:
         specifier: workspace:^3.0.3
         version: link:../../../../hardhat-network-helpers
       '@nomicfoundation/hardhat-node-test-runner':
-        specifier: workspace:^3.0.7
+        specifier: workspace:^3.0.8
         version: link:../../../../hardhat-node-test-runner
       '@nomicfoundation/hardhat-verify':
         specifier: workspace:^3.0.8
@@ -1746,7 +1746,7 @@ importers:
         specifier: foundry-rs/forge-std#v1.9.4
         version: https://codeload.github.com/foundry-rs/forge-std/tar.gz/1eea5bae12ae557d589f9f0f0edae2faa47cb262
       hardhat:
-        specifier: workspace:^3.0.17
+        specifier: workspace:^3.1.0
         version: link:../../..
       typescript:
         specifier: ~5.8.0
@@ -1813,7 +1813,7 @@ importers:
         specifier: foundry-rs/forge-std#v1.9.4
         version: https://codeload.github.com/foundry-rs/forge-std/tar.gz/1eea5bae12ae557d589f9f0f0edae2faa47cb262
       hardhat:
-        specifier: workspace:^3.0.17
+        specifier: workspace:^3.1.0
         version: link:../../..
       mocha:
         specifier: ^11.0.0
@@ -1828,7 +1828,7 @@ importers:
         specifier: ^22.8.5
         version: 22.18.7
       hardhat:
-        specifier: workspace:^3.0.17
+        specifier: workspace:^3.1.0
         version: link:../../..
       typescript:
         specifier: ~5.8.0
@@ -1837,7 +1837,7 @@ importers:
   v-next/template-package:
     devDependencies:
       '@nomicfoundation/hardhat-node-test-reporter':
-        specifier: workspace:^3.0.0
+        specifier: workspace:^3.0.2
         version: link:../hardhat-node-test-reporter
       '@nomicfoundation/hardhat-test-utils':
         specifier: workspace:^

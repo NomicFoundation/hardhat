@@ -1,5 +1,19 @@
 # hardhat
 
+## 3.1.0
+
+### Minor Changes
+
+- 7b851f3: Bumped EDR version to [`0.12.0-next.17`](https://www.npmjs.com/package/@nomicfoundation/edr/v/0.12.0-next.17)
+  - Changed default L1 hardfork to Osaka
+  - Changed default OP stack hardfork to Isthmus
+  - Fixed default transaction gas limit for post-Osaka hardforks in OP stack and generic chains
+
+### Patch Changes
+
+- 7697451: Test summaries are now merged when running multiple test tasks ([#7053](https://github.com/NomicFoundation/hardhat/issues/7053))
+- a3bf244: Fixed the download of solc, which broke for v0.8.31
+
 ## 3.0.17
 
 ### Patch Changes
