@@ -21,7 +21,7 @@ interface TestActionArguments {
 }
 
 const runAllTests: NewTaskActionFunction<TestActionArguments> = async (
-  { testFiles, chainType, grep, noCompile, verbosity },
+  { testFiles, chainType, grep, noCompile, verbosity, ...otherArgs },
   hre,
 ) => {
   // If this code is executed, it means the user has not specified a test runner.
@@ -69,6 +69,12 @@ const runAllTests: NewTaskActionFunction<TestActionArguments> = async (
 
     if (subtask.options.has("verbosity")) {
       args.verbosity = verbosity;
+    }
+
+    for (const [key, value] of Object.entries(otherArgs)) {
+      if (subtask.options.has(key)) {
+        args[key] = value;
+      }
     }
 
     await subtask.run(args);
