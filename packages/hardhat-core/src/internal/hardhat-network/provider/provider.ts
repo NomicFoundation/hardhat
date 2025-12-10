@@ -275,6 +275,10 @@ export class EdrProviderWrapper
       networkId: BigInt(config.networkId),
       observability: {},
       ownedAccounts,
+      // Turn off the Osaka EIP-7825 per transaction gas limit for HH2, we will
+      // re-enable this once options are provided to avoid breaking the
+      // coverage plugin.
+      transactionGasCap: 18446744073709551615n,
     };
 
     const edrLoggerConfig = {
