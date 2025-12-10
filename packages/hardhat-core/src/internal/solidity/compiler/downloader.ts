@@ -36,6 +36,7 @@ interface CompilerBuild {
   keccak256: string;
   urls: string[];
   platform: CompilerPlatform;
+  prerelease?: string;
 }
 
 interface CompilerList {
@@ -250,7 +251,9 @@ export class CompilerDownloader implements ICompilerDownloader {
     }
 
     const list = await this._readCompilerList(listPath);
-    return list.builds.find((b) => b.version === version);
+    return list.builds.find(
+      (b) => b.version === version && b.prerelease === undefined
+    );
   }
 
   private _getCompilerListPath(): string {
