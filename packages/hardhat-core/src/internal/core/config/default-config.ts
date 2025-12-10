@@ -36,8 +36,8 @@ export const defaultHardhatNetworkParams: Omit<
   HardhatNetworkConfig,
   "gas" | "initialDate"
 > = {
-  hardfork: HardforkName.PRAGUE,
-  blockGasLimit: 30_000_000,
+  hardfork: HardforkName.OSAKA,
+  blockGasLimit: 60_000_000,
   gasPrice: HARDHAT_NETWORK_DEFAULT_GAS_PRICE,
   chainId: 31337,
   throwOnTransactionFailures: true,
