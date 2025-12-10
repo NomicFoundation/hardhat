@@ -275,6 +275,17 @@ export class EdrProviderWrapper
       networkId: BigInt(config.networkId),
       observability: {},
       ownedAccounts,
+      // Turn off the Osaka EIP-7825 per transaction gas limit for HH2
+      // when being run from `solidity-coverage`.
+      // We detect the magic number that `solidity-coverage` sets the block
+      // gas limit to, see https://github.com/sc-forks/solidity-coverage/blob/8e52fd7eae73803edf50c5af2faeeca8e5a57e27/lib/api.js#L55
+      // We turn it off the transaction gas limit by setting it
+      // to a large number (the same number `solidity-coverage` uses for
+      // setting gas).
+      transactionGasCap:
+        config.blockGasLimit === 0x1fffffffffffff
+          ? BigInt(0xfffffffffffff)
+          : undefined,
     };
 
     const edrLoggerConfig = {
