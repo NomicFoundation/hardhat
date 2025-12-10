@@ -1,5 +1,11 @@
 # hardhat
 
+## 2.27.2
+
+### Patch Changes
+
+- 43ff56a: Fixed the download of solc, which broke for v0.8.31
+
 ## 2.27.1
 
 ### Patch Changes
