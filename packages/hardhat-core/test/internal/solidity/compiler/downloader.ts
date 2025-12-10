@@ -381,5 +381,19 @@ describe("Compiler downloader", function () {
       );
       assert.isDefined(downloader.getCompiler("0.4.13"));
     });
+
+    it("should work if there are prereleases in the list", async () => {
+      // await downloader.updateCompilerListIfNeeded(new Set(["0.8.31"]));
+      await downloader.downloadCompiler(
+        "0.8.31",
+        async () => {},
+        async () => {}
+      );
+      const compiler = await downloader.getCompiler("0.8.31");
+
+      assert.ok(compiler !== undefined, "Compiler should be defined");
+      assert.equal(compiler.version, "0.8.31");
+      assert.equal(compiler.longVersion, "0.8.31+commit.fd3a2265");
+    });
   });
 });

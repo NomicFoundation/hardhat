@@ -12,7 +12,7 @@ describe("Compiler List download", function () {
     it("Should call download with the right params", async function () {
       const compilersDir = this.tmpDir;
       const downloadPath = path.join(compilersDir, "downloadedCompiler");
-      const expectedUrl = `https://solc-bin.ethereum.org/wasm/list.json`;
+      const expectedUrl = `https://binaries.soliditylang.org/wasm/list.json`;
 
       // download the file
       await download(expectedUrl, downloadPath);
