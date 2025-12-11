@@ -7,8 +7,7 @@ library __HardhatCoverage {
 
   function _sendHitImplementation(uint256 coverageId) private view {
     address coverageAddress = COVERAGE_ADDRESS;
-    /// @solidity memory-safe-assembly
-    assembly {
+    assembly ('memory-safe') {
       let ptr := mload(0x40)           // Get free memory pointer
       mstore(ptr, coverageId)          // Store coverageId at free memory
       pop(
