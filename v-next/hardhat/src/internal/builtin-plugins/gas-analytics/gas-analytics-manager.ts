@@ -140,8 +140,8 @@ export class GasAnalyticsManagerImplementation implements GasAnalyticsManager {
 
         const isOverloaded = overloadedFnNames.has(functionName);
         const stats: GasStats = {
-          min: Math.min(...gasValues),
-          max: Math.max(...gasValues),
+          min: gasValues.reduce((a, b) => Math.min(a, b), Infinity),
+          max: gasValues.reduce((a, b) => Math.max(a, b), -Infinity),
           avg: roundTo(avg(gasValues), 2),
           median: roundTo(median(gasValues), 2),
           calls: gasValues.length,
