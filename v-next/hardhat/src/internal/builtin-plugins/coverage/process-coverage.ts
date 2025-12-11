@@ -4,6 +4,8 @@ import type {
   Statement,
 } from "./types.js";
 
+import chalk from "chalk";
+
 /**
  * Processes the raw EDR coverage information for a file and returns the executed and
  * non-executed statements and lines.
@@ -43,15 +45,20 @@ export function getProcessedCoverageInfo(
   );
 
   const markedFile = createMarkedFile(
-    fileContent.length,
+    fileContent,
     minCharI,
     maxCharI,
     rawStatements.notExecutedStatements,
   );
 
+  markAsNonExecutableSpecialSubstrings(fileContent, markedFile);
+
+  // Enable this function while debugging to view the coverage for a file
+  // printFileCoverageForDebuggingPuroses(fileContent, markedFile);
+
   return {
-    statements: getProcessedExecutedStatements(fileContent, markedFile),
-    lines: getLinesInfo(fileContent, markedFile, minCharI, maxCharI),
+    statements: getProcessedExecutedStatements(markedFile),
+    lines: getLinesInfo(fileContent, markedFile),
   };
 }
 
@@ -113,12 +120,12 @@ function getCoverageStartAndEndIndex(
 // // SPDX-License-Identifier: MIT
 // pragma solidity ^0.8.0;
 function createMarkedFile(
-  fileContentLength: number,
+  fileContent: string,
   minCharI: number,
   maxCharI: number,
   rawNotExecutedStatements: Statement[],
 ): Array<null | boolean> {
-  const markedFile: Array<null | boolean> = new Array(fileContentLength).fill(
+  const markedFile: Array<null | boolean> = new Array(fileContent.length).fill(
     null,
   );
 
@@ -127,16 +134,74 @@ function createMarkedFile(
   // Setting everything to true first simplifies the logic for extracting coverage data.
   // Starting with false and toggling only covered characters would make statement processing more complex.
   for (let i = minCharI; i < maxCharI; i++) {
+    if (charMustBeIgnored(fileContent[i])) {
+      continue;
+    }
+
     markedFile[i] = true;
   }
 
   for (const n of rawNotExecutedStatements) {
     for (let i = n.startUtf16; i < n.endUtf16; i++) {
+      if (charMustBeIgnored(fileContent[i])) {
+        continue;
+      }
+
       markedFile[i] = false;
     }
   }
 
   return markedFile;
+}
+
+// The following characters are not relevant for the code coverage, so they must be ignored
+// when marking characters as executed (true) or not executed (false)
+function charMustBeIgnored(c: string): boolean {
+  return /\s/.test(c) || c === "{" || c === "}";
+}
+
+// Mark different types of substrings as not relevant for code coverage (set them to null).
+// For example, all "else" substrings or comments are not relevant for code coverage.
+function markAsNonExecutableSpecialSubstrings(
+  fileContent: string,
+  markedFile: Array<null | boolean>,
+) {
+  // Coments that start with //
+  markMatchingCharsWithNull(fileContent, markedFile, /\/\/.*?(?=\n|$)/g);
+
+  // Comments wrapped between /* and */
+  markMatchingCharsWithNull(fileContent, markedFile, /\/\*[\s\S]*?\*\//g);
+
+  // Lines containing `else`, since they do not represent executable code by themselves.
+  // Keep in mind that `else` is preceded by a closing brace and followed by an opening brace.
+  // This can span multiple lines.
+  markMatchingCharsWithNull(fileContent, markedFile, /\}\s*\belse\b\s*\{/g);
+
+  // Lines containing the function signature. This can span multiple lines
+  markMatchingCharsWithNull(
+    fileContent,
+    markedFile,
+    /^\s*(function\s+[A-Za-z_$][A-Za-z0-9_$]*\s*\([\s\S]*?\)[^{]*?)(?=\s*\{)/gm,
+  );
+
+  // Lines containing the catch signature. This can span multiple lines.
+  markMatchingCharsWithNull(
+    fileContent,
+    markedFile,
+    /\bcatch\b(?:\s+[A-Za-z_][A-Za-z0-9_]*)?\s*(?:\([\s\S]*?\))?(?=\s*\{)/g,
+  );
+}
+
+function markMatchingCharsWithNull(
+  fileContent: string,
+  markedFile: Array<null | boolean>,
+  regex: RegExp,
+) {
+  for (const match of fileContent.matchAll(regex)) {
+    for (let i = match.index; i < match.index + match[0].length; i++) {
+      markedFile[i] = null;
+    }
+  }
 }
 
 // Generate non overlapping coverage statements. Every character between the start and end indexes is guaranteed
@@ -152,16 +217,10 @@ function createMarkedFile(
 // [
 //   { start: 12, end: 20, executed: true  }
 // ]
-function getProcessedExecutedStatements(
-  fileContent: string,
-  markedFile: Array<boolean | null>,
-): {
+function getProcessedExecutedStatements(markedFile: Array<boolean | null>): {
   executed: ReportCoverageStatement[];
   notExecuted: ReportCoverageStatement[];
 } {
-  // Note: `markedFile` is modified in place
-  extendStatementToElse(fileContent, markedFile);
-
   const executed = generateProcessedStatements(markedFile, true);
   const notExecuted = generateProcessedStatements(markedFile, false);
 
@@ -169,33 +228,6 @@ function getProcessedExecutedStatements(
     executed,
     notExecuted,
   };
-}
-
-// The else keyword is not correctly represented in the EDR statement, since it does not appear
-// in the execution intervals that indicate hit or not hit. To infer whether an else branch was executed,
-// we inspect the characters that follow it. If those characters were executed, we mark the else as executed;
-// if not, we mark it as not executed.
-function extendStatementToElse(
-  fileContent: string,
-  markedFile: Array<boolean | null>,
-) {
-  const elseWord = "else";
-
-  let pos = fileContent.indexOf(elseWord, 0);
-
-  while (pos !== -1) {
-    const firstCharAfterElse = pos + elseWord.length;
-
-    if (markedFile[firstCharAfterElse] === false) {
-      // Mark all chars of "else" as not covered
-      markedFile[pos] = false; // e
-      markedFile[pos + 1] = false; // l
-      markedFile[pos + 2] = false; // s
-      markedFile[pos + 3] = false; // e
-    }
-
-    pos = fileContent.indexOf(elseWord, pos + elseWord.length);
-  }
 }
 
 // Based on the marked file, where each character is marked as either executed (true) or not executed (false),
@@ -235,53 +267,45 @@ function generateProcessedStatements(
 function getLinesInfo(
   fileContent: string,
   markedFile: Array<boolean | null>,
-  minCharI: number,
-  maxCharI: number,
 ): {
   executed: Map<number, string>;
   notExecuted: Map<number, string>;
 } {
-  const lines: Array<string | null> = [];
+  const lines: string[] = [];
   const lineExecuted: Array<boolean | null> = [];
 
-  let tmpLine: string | null = null;
-  let tmpExecuted: boolean | null = null;
+  let lineStart = 0;
+
+  let allNull = true;
+  let allTrueOrNull = true;
 
   for (let i = 0; i < fileContent.length; i++) {
     const c = fileContent[i];
+    const v = markedFile[i];
 
-    if (tmpLine === null) {
-      tmpLine = "";
-      tmpExecuted = i >= minCharI && i <= maxCharI ? true : null;
+    if (v !== null) {
+      allNull = false;
     }
-
-    tmpLine += c;
-
-    if (i >= minCharI && i <= maxCharI) {
-      if (!["{", "}", "\n", " "].includes(c)) {
-        tmpExecuted =
-          tmpExecuted === null ? null : tmpExecuted && markedFile[i];
-      }
+    if (v !== true && v !== null) {
+      allTrueOrNull = false;
     }
 
     if (c === "\n") {
-      // A line has ended, analyze whether it should be counted for coverage or not
-      let emptyLine = false;
-      const possibleLine = tmpLine;
+      const line = fileContent.slice(lineStart, i);
 
-      if (REGEXES_TO_REMOVE_LINES.some((regex) => regex.test(possibleLine))) {
-        emptyLine = true;
-      }
+      lines.push(line);
 
-      if (!emptyLine) {
-        lines.push(tmpLine);
-        lineExecuted.push(tmpExecuted);
-      } else {
-        lines.push(null);
+      if (allNull) {
         lineExecuted.push(null);
+      } else if (allTrueOrNull) {
+        lineExecuted.push(true);
+      } else {
+        lineExecuted.push(false);
       }
 
-      tmpLine = null;
+      lineStart = i + 1;
+      allNull = true;
+      allTrueOrNull = true;
     }
   }
 
@@ -292,7 +316,7 @@ function getLinesInfo(
   for (let j = 0; j < lines.length; j++) {
     const line = lines[j];
 
-    if (line === null) {
+    if (lineExecuted[j] === null) {
       continue;
     }
 
@@ -305,46 +329,21 @@ function getLinesInfo(
 
   return { executed, notExecuted };
 }
-
-const REGEXES_TO_REMOVE_LINES = [
-  // Matches when only an `else` is present in a line, or at most a `else` with `{` after or `}` before.
-  // Match examples:
-  // - else
-  // - } else {
-  // - } else
-  // - else {
-  /^\s*(?:\}\s*)?else(?:\s*\{)?\s*$/,
-  // Matches when a `catch` is present in a line.
-  // Match examples:
-  // - } catch {
-  // - } catch catch Error(string memory reason) {
-  /^\s*(?:\}\s*)?catch.*/,
-  // Matches a line when:
-  // - only spaces are present
-  // - only { is present (allow multiple spaces before and after)
-  // - only } is present (allow multiple spaces before and after)
-  // - only \n is present (allow multiple spaces before and after)
-  /^\s*(?:\{|\}|\n)?\s*$/,
-  // Matches when a line is a comment satrting with //, unless there is code before it
-  // Match:
-  // // This is a comment
-  // Not a match:
-  // uint256 x = 0; // This is a comment
-  /^\s*\/\/.*/,
-  // Matches when a line is a comment starting with /* (unless there is code before it)
-  // Match:
-  // /* This is a comment
-  // Not a match:
-  // uint256 x = 0; /* This is a comment
-  /^\s*\/\*/,
-  // Matches when a line is a comment ending with */ (unless there is code before it)
-  // Match:
-  // This is a comment */
-  // Not a match:
-  // This is a comment */ uint256 x = 0;
-  /\*\/\s*$/,
-  // Matches when a line is part of a block comment.
-  // Example:
-  // * This is a comment
-  /^\s*\*(?!\/)/,
-];
+// Enable this function while debugging to display the coverage for a file.
+// The file will be printed with green characters when they are executed, red characters when they are not executed,
+// and gray characters when they are irrelevant for code coverage.
+// eslint-disable-next-line @typescript-eslint/no-unused-vars -- this function can be enabled for debugging purposes
+function printFileCoverageForDebuggingPuroses(
+  fileContent: string,
+  markedFile: Array<boolean | null>,
+): void {
+  for (let i = 0; i < markedFile.length; i++) {
+    if (markedFile[i] === null) {
+      process.stdout.write(chalk.gray(fileContent[i]));
+    } else if (markedFile[i] === true) {
+      process.stdout.write(chalk.green(fileContent[i]));
+    } else {
+      process.stdout.write(chalk.red(fileContent[i]));
+    }
+  }
+}

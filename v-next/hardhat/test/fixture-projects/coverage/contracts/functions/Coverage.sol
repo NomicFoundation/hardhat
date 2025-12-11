@@ -23,4 +23,10 @@ contract Coverage {
 
     return;
   }
+
+  // this is a comment: function { not real }
+  function runNumber4() public pure {
+    // Not executed on purpose
+    return;
+  }
 }
