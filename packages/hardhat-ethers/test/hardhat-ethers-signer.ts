@@ -3,6 +3,7 @@ import chaiAsPromised from "chai-as-promised";
 
 import { HardhatRuntimeEnvironment } from "hardhat/types/runtime";
 import { AuthorizationRequest } from "ethers";
+import { FUSAKA_TRANSACTION_GAS_LIMIT } from "../src/internal/constants";
 import {
   useGeneratedEnvironment,
   usePersistentEnvironment,
@@ -471,7 +472,7 @@ describe("hardhat ethers signer", function () {
     });
 
     describe("default gas limit", function () {
-      it("should use the block gas limit for the in-process hardhat network", async function () {
+      it("should use the block gas limit or transaction limit whichever is lower for the in-process hardhat network", async function () {
         const signer = await this.env.ethers.provider.getSigner(0);
 
         const tx = await signer.sendTransaction({ to: signer });
@@ -481,7 +482,10 @@ describe("hardhat ethers signer", function () {
         }
 
         const blockGasLimit = this.env.network.config.blockGasLimit;
-        assert.strictEqual(Number(tx.gasLimit), blockGasLimit);
+        assert.strictEqual(
+          Number(tx.gasLimit),
+          Math.min(FUSAKA_TRANSACTION_GAS_LIMIT, blockGasLimit)
+        );
       });
 
       it("should use custom gas limit, if provided", async function () {
