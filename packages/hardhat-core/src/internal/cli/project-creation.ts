@@ -56,7 +56,7 @@ const PEER_DEPENDENCIES: Dependencies = {
   "@nomicfoundation/hardhat-verify": "^2.0.0",
   chai: "^4.2.0",
   "hardhat-gas-reporter": "^2.3.0",
-  "solidity-coverage": "^0.8.0",
+  "solidity-coverage": "^0.8.17",
   "@nomicfoundation/hardhat-ignition": "^0.15.0",
 };
 
