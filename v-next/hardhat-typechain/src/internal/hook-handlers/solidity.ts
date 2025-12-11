@@ -4,14 +4,14 @@ import { generateTypes } from "../generate-types.js";
 
 export default async (): Promise<Partial<SolidityHooks>> => {
   const handlers: Partial<SolidityHooks> = {
-    async onCleanUpArtifacts(
+    async onBuildCompleted(
       context: HookContext,
-      artifactPaths: string[],
-      next: (
-        nextContext: HookContext,
-        artifactPaths: string[],
-      ) => Promise<void>,
+      next: (nextContext: HookContext) => Promise<void>,
     ) {
+      const artifactPaths = Array.from(
+        await context.artifacts.getAllArtifactPaths(),
+      );
+
       await generateTypes(
         context.config.paths.root,
         context.config.typechain,
@@ -19,7 +19,7 @@ export default async (): Promise<Partial<SolidityHooks>> => {
         artifactPaths,
       );
 
-      return next(context, artifactPaths);
+      return next(context);
     },
   };
 
