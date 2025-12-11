@@ -166,7 +166,7 @@ function markAsNonExecutableSpecialSubstrings(
   fileContent: string,
   markedFile: Array<null | boolean>,
 ) {
-  // Coments that start with //
+  // Comments that start with //
   markMatchingCharsWithNull(fileContent, markedFile, /\/\/.*?(?=\n|$)/g);
 
   // Comments wrapped between /* and */
