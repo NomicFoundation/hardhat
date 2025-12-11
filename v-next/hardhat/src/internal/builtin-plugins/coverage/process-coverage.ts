@@ -54,7 +54,7 @@ export function getProcessedCoverageInfo(
   markAsNonExecutableSpecialSubstrings(fileContent, markedFile);
 
   // Enable this function while debugging to view the coverage for a file
-  // printFileCoverageForDebuggingPuroses(fileContent, markedFile);
+  // printFileCoverageForDebugging(fileContent, markedFile);
 
   return {
     statements: getProcessedExecutedStatements(markedFile),
@@ -333,7 +333,7 @@ function getLinesInfo(
 // The file will be printed with green characters when they are executed, red characters when they are not executed,
 // and gray characters when they are irrelevant for code coverage.
 // eslint-disable-next-line @typescript-eslint/no-unused-vars -- this function can be enabled for debugging purposes
-function printFileCoverageForDebuggingPuroses(
+function printFileCoverageForDebugging(
   fileContent: string,
   markedFile: Array<boolean | null>,
 ): void {
