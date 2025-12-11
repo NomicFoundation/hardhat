@@ -21,7 +21,7 @@ export const COVERAGE_TEST_SCENARIO_IGNORE_COMMENTS: CoverageTestScenario = {
       [11, 1],
       [22, 1],
       [23, 1],
-      [25, 1],
+      [30, 1],
     ]),
     executedLinesCount: 4,
     unexecutedLines: new Set([]),

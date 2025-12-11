@@ -22,6 +22,11 @@ contract Coverage {
     a = n; /* Comment after code, line should included in coverage
     Comment before code, line should included in coverage */ a = n;
 
+    /** Single line comment */
+
+    /**
+     * Multi line comment */
+
     return a;
   }
 }

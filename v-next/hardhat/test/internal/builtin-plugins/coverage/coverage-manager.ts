@@ -26,6 +26,7 @@ import { COVERAGE_TEST_SCENARIO_FUNCTIONS } from "../../../fixture-projects/cove
 import { COVERAGE_TEST_SCENARIO_IF_ELSE } from "../../../fixture-projects/coverage/contracts/if-else/coverage-edr-info.js";
 import { COVERAGE_TEST_SCENARIO_IGNORE_COMMENTS } from "../../../fixture-projects/coverage/contracts/ignore-comments/coverage-edr-info.js";
 import { COVERAGE_TEST_SCENARIO_INLINE_ASSEMBLY } from "../../../fixture-projects/coverage/contracts/inline-assembly/coverage-edr-info.js";
+import { COVERAGE_TEST_SCENARIO_MULTIPLE_FILES } from "../../../fixture-projects/coverage/contracts/multiple-files/coverage-edr-info.js";
 import { COVERAGE_TEST_SCENARIO_ONE_LINER } from "../../../fixture-projects/coverage/contracts/one-liner/coverage-edr-info.js";
 import { COVERAGE_TEST_SCENARIO_RANDOM_FORMATTING } from "../../../fixture-projects/coverage/contracts/random-formatting/coverage-edr-info.js";
 import { COVERAGE_TEST_SCENARIO_REQUIRE } from "../../../fixture-projects/coverage/contracts/require/coverage-edr-info.js";
@@ -423,4 +424,25 @@ describe("CoverageManagerImplementation - report data processing", () => {
       );
     });
   }
+
+  it("should run coverage on multiple files, one is covered by tests, the other is not", async () => {
+    const testScenrario = COVERAGE_TEST_SCENARIO_MULTIPLE_FILES;
+
+    await hre.tasks.getTask(["test", "solidity"]).run({
+      noCompile: true,
+      testFiles: [testScenrario.testFilePath1],
+    });
+
+    const res = await coverageManagerTmp.getReport();
+
+    assert.deepEqual(
+      res[testScenrario.sourceFilePath1],
+      testScenrario.expectedResult1,
+    );
+
+    assert.deepEqual(
+      res[testScenrario.sourceFilePath2],
+      testScenrario.expectedResult2,
+    );
+  });
 });

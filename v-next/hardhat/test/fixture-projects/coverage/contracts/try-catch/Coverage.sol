@@ -3,11 +3,6 @@ pragma solidity ^0.8.0;
 
 contract Coverage {
   function runNumber(uint256 n) public view returns (uint256) {
-    //
-    // Attention:
-    // Do not autoformat on save in order to keep this specific formatting
-    //
-
     uint256 result;
 
     try this.divideByZero(n) returns (uint256) {
@@ -19,14 +14,6 @@ contract Coverage {
     try this.willRevertWithError(n) returns (uint256) {
       return result;
     } catch Error(string memory reason) {
-      result = 0;
-    }
-
-    try this.willRevertWithError(n) returns (uint256) {
-      return result;
-    } catch
-    Error(string memory reason)
-    {
       result = 0;
     }
 
