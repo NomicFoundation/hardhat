@@ -1,6 +1,8 @@
 import type { TaskOverrideActionFunction } from "../../../../../types/tasks.js";
 import type { SuiteResult } from "@nomicfoundation/edr";
 
+import { extractFunctionGasSnapshots } from "../../gas-snapshots.js";
+
 interface GasAnalyticsTestActionArguments {
   snapshot: boolean;
 }
@@ -11,22 +13,9 @@ const runSolidityTests: TaskOverrideActionFunction<
   const suiteResults: SuiteResult[] = await runSuper(args);
 
   if (args.snapshot && process.exitCode !== 1) {
-    const gasSnapshots = [];
-    for (const { id: suiteId, testResults } of suiteResults) {
-      for (const testResult of testResults) {
-        if ("calls" in testResult.kind) {
-          continue;
-        }
+    const functionGasSnapshots = extractFunctionGasSnapshots(suiteResults);
 
-        gasSnapshots.push({
-          contractName: suiteId.name,
-          testName: testResult.name,
-          gas: testResult.kind,
-        });
-      }
-    }
-
-    console.log(gasSnapshots);
+    console.log(functionGasSnapshots);
   }
 
   return suiteResults;
