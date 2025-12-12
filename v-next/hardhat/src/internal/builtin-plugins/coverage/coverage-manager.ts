@@ -202,7 +202,7 @@ export class CoverageManagerImplementation implements CoverageManager {
 
       // Create a map that tracks how many times each line was executed.
       // Map: line number -> execution count
-      // Currently, from EDR we only know whether a line was executed or not,
+      // Currently, from EDR we only know whether a statement was executed or not,
       // so the execution count is either 0 or 1.
       const lineExecutionCounts = new Map<number, number>([
         ...[...coverageInfo.lines.executed.keys()].map((k) => [k, 1] as const),
