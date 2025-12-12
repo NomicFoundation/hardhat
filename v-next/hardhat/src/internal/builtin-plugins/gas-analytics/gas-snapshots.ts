@@ -4,6 +4,12 @@ import type {
   SuiteResult,
 } from "@nomicfoundation/edr";
 
+import path from "node:path";
+
+import { writeUtf8File } from "@nomicfoundation/hardhat-utils/fs";
+
+const FUNCTION_GAS_SNAPSHOTS_FILE = ".gas-snapshot";
+
 interface FunctionGasSnapshot {
   contractName: string;
   functionName: string;
@@ -43,4 +49,12 @@ export function stringifyFunctionGasSnapshots(
     lines.push(`${contractName}:${functionName} (${gasDetails})`);
   }
   return lines.join("\n");
+}
+
+export async function saveGasFunctionSnapshots(
+  basePath: string,
+  stringifiedFunctionGasSnapshots: string,
+): Promise<void> {
+  const snapshotPath = path.join(basePath, FUNCTION_GAS_SNAPSHOTS_FILE);
+  await writeUtf8File(snapshotPath, stringifiedFunctionGasSnapshots);
 }

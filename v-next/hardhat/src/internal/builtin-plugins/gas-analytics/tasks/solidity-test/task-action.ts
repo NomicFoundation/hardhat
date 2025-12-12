@@ -4,6 +4,7 @@ import type { SuiteResult } from "@nomicfoundation/edr";
 import {
   extractFunctionGasSnapshots,
   stringifyFunctionGasSnapshots,
+  saveGasFunctionSnapshots,
 } from "../../gas-snapshots.js";
 
 interface GasAnalyticsTestActionArguments {
@@ -12,7 +13,7 @@ interface GasAnalyticsTestActionArguments {
 
 const runSolidityTests: TaskOverrideActionFunction<
   GasAnalyticsTestActionArguments
-> = async (args, _hre, runSuper) => {
+> = async (args, hre, runSuper) => {
   const taskResult = await runSuper(args);
   const suiteResults: SuiteResult[] = taskResult.suiteResults;
 
@@ -20,8 +21,10 @@ const runSolidityTests: TaskOverrideActionFunction<
     const functionGasSnapshots = extractFunctionGasSnapshots(suiteResults);
     const stringifiedFunctionGasSnapshots =
       stringifyFunctionGasSnapshots(functionGasSnapshots);
-
-    console.log(stringifiedFunctionGasSnapshots);
+    await saveGasFunctionSnapshots(
+      hre.config.paths.root,
+      stringifiedFunctionGasSnapshots,
+    );
   }
 
   return {
