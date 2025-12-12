@@ -10,7 +10,7 @@ const runSolidityTests: TaskOverrideActionFunction<
 > = async (args, _hre, runSuper) => {
   const suiteResults: SuiteResult[] = await runSuper(args);
 
-  if (args.snapshot) {
+  if (args.snapshot && process.exitCode !== 1) {
     const gasSnapshots = [];
     for (const { id: suiteId, testResults } of suiteResults) {
       for (const testResult of testResults) {
@@ -25,6 +25,8 @@ const runSolidityTests: TaskOverrideActionFunction<
         });
       }
     }
+
+    console.log(gasSnapshots);
   }
 
   return suiteResults;
