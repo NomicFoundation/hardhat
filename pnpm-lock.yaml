@@ -1591,8 +1591,8 @@ importers:
         specifier: ^3.0.2
         version: 3.0.2
       solidity-coverage:
-        specifier: ^0.8.1
-        version: 0.8.16(hardhat@packages+hardhat-core)
+        specifier: ^0.8.17
+        version: 0.8.17(hardhat@packages+hardhat-core)
       ts-node:
         specifier: ^10.8.0
         version: 10.9.1(@types/node@20.19.6)(typescript@5.0.4)
@@ -1679,8 +1679,8 @@ importers:
         specifier: ^3.0.2
         version: 3.0.2
       solidity-coverage:
-        specifier: ^0.8.1
-        version: 0.8.16(hardhat@packages+hardhat-core)
+        specifier: ^0.8.17
+        version: 0.8.17(hardhat@packages+hardhat-core)
       ts-node:
         specifier: ^10.8.0
         version: 10.9.1(@types/node@20.19.6)(typescript@5.0.4)
@@ -7733,8 +7733,8 @@ packages:
     resolution: {integrity: sha512-WrnG6T+/UduuzSWsSOAbfq1ywLUDwNea3Gd5hg6PS+pLUm8lz2ECNr0beX609clBxmDeZ3676AiA9nPDljmbJQ==}
     hasBin: true
 
-  solidity-coverage@0.8.16:
-    resolution: {integrity: sha512-qKqgm8TPpcnCK0HCDLJrjbOA2tQNEJY4dHX/LSSQ9iwYFS973MwjtgYn2Iv3vfCEQJTj5xtm4cuUMzlJsJSMbg==}
+  solidity-coverage@0.8.17:
+    resolution: {integrity: sha512-5P8vnB6qVX9tt1MfuONtCTEaEGO/O4WuEidPHIAJjx4sktHHKhO3rFvnE0q8L30nWJPTrcqGQMT7jpE29B2qow==}
     hasBin: true
     peerDependencies:
       hardhat: ^2.11.0
@@ -15390,7 +15390,7 @@ snapshots:
     transitivePeerDependencies:
       - typescript
 
-  solidity-coverage@0.8.16(hardhat@packages+hardhat-core):
+  solidity-coverage@0.8.17(hardhat@packages+hardhat-core):
     dependencies:
       '@ethersproject/abi': 5.8.0
       '@solidity-parser/parser': 0.20.1
