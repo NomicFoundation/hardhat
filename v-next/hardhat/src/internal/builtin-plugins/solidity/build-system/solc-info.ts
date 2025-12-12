@@ -67,6 +67,7 @@ const defaultEvmTargets: { [key: string]: string } = {
   "0.8.28": "cancun",
   "0.8.29": "cancun",
   "0.8.30": "prague",
+  "0.8.31": "prague",
 };
 
 export function getEvmVersionFromSolcVersion(
