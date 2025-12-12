@@ -4,7 +4,7 @@ import type {
   SuiteResult,
 } from "@nomicfoundation/edr";
 
-interface TestFunctionGasSnapshot {
+interface FunctionGasSnapshot {
   contractName: string;
   functionName: string;
   gasUsage: StandardTestKind | FuzzTestKind;
@@ -12,8 +12,8 @@ interface TestFunctionGasSnapshot {
 
 export function extractFunctionGasSnapshots(
   suiteResults: SuiteResult[],
-): TestFunctionGasSnapshot[] {
-  const gasSnapshots: TestFunctionGasSnapshot[] = [];
+): FunctionGasSnapshot[] {
+  const gasSnapshots: FunctionGasSnapshot[] = [];
   for (const { id: suiteId, testResults } of suiteResults) {
     for (const testResult of testResults) {
       if ("calls" in testResult.kind) {
@@ -31,7 +31,7 @@ export function extractFunctionGasSnapshots(
 }
 
 export function stringifyFunctionGasSnapshots(
-  gasSnapshots: TestFunctionGasSnapshot[],
+  gasSnapshots: FunctionGasSnapshot[],
 ): string {
   const lines: string[] = [];
   for (const { contractName, functionName, gasUsage } of gasSnapshots) {
