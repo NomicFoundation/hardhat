@@ -1,5 +1,11 @@
 # hardhat
 
+## 3.1.1
+
+### Patch Changes
+
+- b3bde25: Disable test summary when mocha is included in runners ([#7781](https://github.com/NomicFoundation/hardhat/issues/7781))
+
 ## 3.1.0
 
 ### Minor Changes
