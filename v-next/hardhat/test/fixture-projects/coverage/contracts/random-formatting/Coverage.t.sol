@@ -10,7 +10,7 @@ contract CoverageTest {
     cv = new Coverage();
   }
 
-  function testNumberClassZero() public view {
+  function testCoverage() public view {
     cv.runNumber(2);
   }
 }
