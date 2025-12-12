@@ -11,7 +11,7 @@ const runSolidityTests: TaskOverrideActionFunction<
   const taskResult = await runSuper(args);
   const suiteResults: SuiteResult[] = taskResult.suiteResults;
 
-  if (args.snapshot) {
+  if (args.snapshot && process.exitCode !== 1) {
     const gasSnapshots = [];
     for (const { id: suiteId, testResults } of suiteResults) {
       for (const testResult of testResults) {
@@ -26,6 +26,8 @@ const runSolidityTests: TaskOverrideActionFunction<
         });
       }
     }
+
+    console.log(gasSnapshots);
   }
 
   return {
