@@ -17,9 +17,11 @@ export async function generateHtmlReport(
   const baseDir = process.cwd();
   const coverageMap = istanbulLibCoverage.createCoverageMap({});
 
+  await mkdir(htmlReportPath);
+
   // Construct coverage data for each tested file,
   // detailing whether each line was executed or not.
-  for (const [p, fileCoverageInput] of Object.entries(report)) {
+  for (const [p, coverageInfo] of Object.entries(report)) {
     const testedFilePath = path.join(baseDir, p);
 
     const fc: FileCoverageData = {
@@ -32,7 +34,7 @@ export async function generateHtmlReport(
       b: {},
     };
 
-    for (const [line, count] of fileCoverageInput.lineExecutionCounts) {
+    for (const [line, count] of coverageInfo.lineExecutionCounts) {
       fc.statementMap[line] = {
         start: { line, column: 0 },
         end: { line, column: 0 },
@@ -44,8 +46,6 @@ export async function generateHtmlReport(
 
     coverageMap.addFileCoverage(fc);
   }
-
-  await mkdir(htmlReportPath);
 
   const context = istanbulLibReport.createContext({
     dir: htmlReportPath,
