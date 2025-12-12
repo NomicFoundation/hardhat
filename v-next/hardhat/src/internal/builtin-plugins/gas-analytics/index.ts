@@ -8,26 +8,24 @@ const hardhatPlugin: HardhatPlugin = {
   id: "builtin:gas-analytics",
   tasks: [
     overrideTask("test")
-      .setAction(async () => ({
-        default: async (args, _hre, runSuper) => {
-          await runSuper(args);
-        },
-      }))
       .addFlag({
         name: "snapshot",
         description: "Update gas snapshots (Solidity tests only)",
       })
-      .build(),
-    overrideTask(["test", "solidity"])
       .setAction(async () => ({
         default: async (args, _hre, runSuper) => {
+          // We don't need to do anything here, as the test task will forward
+          // the arguments to its subtasks.
           await runSuper(args);
         },
       }))
+      .build(),
+    overrideTask(["test", "solidity"])
       .addFlag({
         name: "snapshot",
         description: "Update gas snapshots",
       })
+      .setAction(async () => import("./tasks/solidity-test/task-action.js"))
       .build(),
   ],
   globalOptions: [

@@ -99,7 +99,7 @@ const runAllTests: NewTaskActionFunction<TestActionArguments> = async (
 
       const summaryId = subtask.id[subtask.id.length - 1];
 
-      testSummaries[summaryId] = await subtask.run(args);
+      testSummaries[summaryId] = (await subtask.run(args)).testSummary;
       failureIndex += testSummaries[summaryId].failed ?? 0;
     } else {
       await subtask.run(args);
