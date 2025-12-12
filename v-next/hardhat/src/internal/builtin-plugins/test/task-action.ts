@@ -61,7 +61,11 @@ const runAllTests: NewTaskActionFunction<TestActionArguments> = async (
   > = {};
 
   let failureIndex = 1;
-  for (const subtask of thisTask.subtasks.values()) {
+  const subtasks = Array.from(thisTask.subtasks.values());
+  const hasMocha = subtasks.some(
+    (subtask) => subtask.id[subtask.id.length - 1] === "mocha",
+  );
+  for (const subtask of subtasks) {
     const files = getTestFilesForSubtask(subtask, testFiles, subtasksToFiles);
 
     if (files === undefined) {
@@ -84,7 +88,7 @@ const runAllTests: NewTaskActionFunction<TestActionArguments> = async (
       args.verbosity = verbosity;
     }
 
-    if (subtask.options.has("testSummaryIndex")) {
+    if (!hasMocha && subtask.options.has("testSummaryIndex")) {
       args.testSummaryIndex = failureIndex;
 
       const summaryId = subtask.id[subtask.id.length - 1];
@@ -96,87 +100,73 @@ const runAllTests: NewTaskActionFunction<TestActionArguments> = async (
     }
   }
 
-  const passed: Array<[string, number]> = [];
-  const failed: Array<[string, number]> = [];
-  const skipped: Array<[string, number]> = [];
-  const todo: Array<[string, number]> = [];
-  const outputLines: string[] = [];
+  if (!hasMocha) {
+    const passed: Array<[string, number]> = [];
+    const failed: Array<[string, number]> = [];
+    const skipped: Array<[string, number]> = [];
+    const todo: Array<[string, number]> = [];
+    const outputLines: string[] = [];
 
-  for (const [subtaskName, results] of Object.entries(testSummaries)) {
-    if (results.passed > 0) {
-      passed.push([subtaskName, results.passed]);
-    }
+    for (const [subtaskName, results] of Object.entries(testSummaries)) {
+      if (results.passed > 0) {
+        passed.push([subtaskName, results.passed]);
+      }
 
-    if (results.failed > 0) {
-      failed.push([subtaskName, results.failed]);
-    }
+      if (results.failed > 0) {
+        failed.push([subtaskName, results.failed]);
+      }
 
-    if (results.skipped > 0) {
-      skipped.push([subtaskName, results.skipped]);
-    }
+      if (results.skipped > 0) {
+        skipped.push([subtaskName, results.skipped]);
+      }
 
-    if (results.todo > 0) {
-      todo.push([subtaskName, results.todo]);
-    }
+      if (results.todo > 0) {
+        todo.push([subtaskName, results.todo]);
+      }
 
-    /**
-     * Failure formatting test cases:
-     *
-     * no failures
-     * only node
-     * multiple node
-     * only solidity
-     *    - 1 top
-     *    - 2 bottom but sometimes - 1 instead??? how many do we need bottom
-     * multiple solidity
-     * single node + single solidity
-     * multiple node + multiple solidity
-     * single node + multiple solidity
-     * multiple node + single solidity
-     *
-     */
-    if (results.failureOutput !== "") {
-      const output = results.failureOutput;
+      if (results.failureOutput !== "") {
+        const output = results.failureOutput;
 
-      if (subtaskName.includes("node")) {
-        outputLines.push(`\n${output}\n`);
-      } else {
-        outputLines.push(output);
+        if (subtaskName.includes("node")) {
+          outputLines.push(`\n${output}\n`);
+        } else {
+          outputLines.push(output);
+        }
       }
     }
-  }
 
-  if (passed.length > 0) {
-    logSummaryLine("passing", passed, chalk.green);
-  }
+    if (passed.length > 0) {
+      logSummaryLine("passing", passed, chalk.green);
+    }
 
-  if (failed.length > 0) {
-    logSummaryLine("failing", failed, chalk.red);
-  }
+    if (failed.length > 0) {
+      logSummaryLine("failing", failed, chalk.red);
+    }
 
-  if (skipped.length > 0) {
-    logSummaryLine("skipped", skipped, chalk.cyan);
-  }
+    if (skipped.length > 0) {
+      logSummaryLine("skipped", skipped, chalk.cyan);
+    }
 
-  if (todo.length > 0) {
-    logSummaryLine("todo", todo, chalk.blue);
-  }
+    if (todo.length > 0) {
+      logSummaryLine("todo", todo, chalk.blue);
+    }
 
-  if (outputLines.length > 0) {
-    console.log(
-      outputLines
-        .map((o) => {
-          const nl = o.match(/\n+$/gm);
-          if (nl !== null) {
-            return o.replace(new RegExp(`${nl[0]}$`), "\n");
-          }
-          return o;
-        })
-        .join("\n"),
-    );
-  }
+    if (outputLines.length > 0) {
+      console.log(
+        outputLines
+          .map((o) => {
+            const nl = o.match(/\n+$/gm);
+            if (nl !== null) {
+              return o.replace(new RegExp(`${nl[0]}$`), "\n");
+            }
+            return o;
+          })
+          .join("\n"),
+      );
+    }
 
-  console.log();
+    console.log();
+  }
 
   if (hre.globalOptions.coverage === true) {
     assertHardhatInvariant(
