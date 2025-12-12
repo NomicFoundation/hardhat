@@ -36,7 +36,7 @@ export interface FileReport {
   // so the only information available is whether a statement was executed, not how many times it was executed.
   // Also, branch coverage is not available.
   // In addition, partially executed lines (for example, ternary operators) cannot be determined, as this information is missing in EDR,
-  // since only whole lines can be registered as executed or not.
+  // since only whole statements can be registered as executed or not.
 
   lineExecutionCounts: Map<Line, number>;
 
