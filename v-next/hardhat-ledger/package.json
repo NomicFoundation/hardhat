@@ -63,6 +63,7 @@
     "@ledgerhq/hw-app-eth": "^6.45.19",
     "@ledgerhq/hw-transport": "^6.31.11",
     "@ledgerhq/hw-transport-node-hid": "^6.29.12",
+    "node-gyp": "^12.1.0",
     "@ledgerhq/types-live": "^6.85.0",
     "@nomicfoundation/hardhat-errors": "workspace:^3.0.4",
     "@nomicfoundation/hardhat-utils": "workspace:^3.0.5",
