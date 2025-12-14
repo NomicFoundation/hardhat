@@ -26,10 +26,6 @@ export function getJsonRpcRequest(
 
   requestObject.params = getRequestParams({ method, params });
 
-  if (id !== undefined) {
-    requestObject.id = id;
-  }
-
   return requestObject;
 }
 
