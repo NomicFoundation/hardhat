@@ -1,5 +1,11 @@
 # @nomiclabs/hardhat-ethers
 
+## 3.1.3
+
+### Patch Changes
+
+- c69b99d: Update default gas limit to take into account `osaka` transaction limit ([#7751](https://github.com/NomicFoundation/hardhat/issues/7751))
+
 ## 3.1.2
 
 ### Patch Changes
