@@ -7,11 +7,14 @@ import type {
 import path from "node:path";
 
 import { writeUtf8File } from "@nomicfoundation/hardhat-utils/fs";
+import { findDuplicates } from "@nomicfoundation/hardhat-utils/lang";
+
+import { getFullyQualifiedName } from "../../../utils/contract-names.js";
 
 const FUNCTION_GAS_SNAPSHOTS_FILE = ".gas-snapshot";
 
 interface FunctionGasSnapshot {
-  contractName: string;
+  contractNameOrFqn: string;
   functionName: string;
   gasUsage: StandardTestKind | FuzzTestKind;
 }
@@ -19,6 +22,10 @@ interface FunctionGasSnapshot {
 export function extractFunctionGasSnapshots(
   suiteResults: SuiteResult[],
 ): FunctionGasSnapshot[] {
+  const duplicateContractNames = findDuplicates(
+    suiteResults.map(({ id }) => id.name),
+  );
+
   const gasSnapshots: FunctionGasSnapshot[] = [];
   for (const { id: suiteId, testResults } of suiteResults) {
     for (const testResult of testResults) {
@@ -26,8 +33,12 @@ export function extractFunctionGasSnapshots(
         continue;
       }
 
+      const contractNameOrFqn = duplicateContractNames.has(suiteId.name)
+        ? getFullyQualifiedName(suiteId.source, suiteId.name)
+        : suiteId.name;
+
       gasSnapshots.push({
-        contractName: suiteId.name,
+        contractNameOrFqn,
         functionName: testResult.name,
         gasUsage: testResult.kind,
       });
@@ -40,13 +51,13 @@ export function stringifyFunctionGasSnapshots(
   gasSnapshots: FunctionGasSnapshot[],
 ): string {
   const lines: string[] = [];
-  for (const { contractName, functionName, gasUsage } of gasSnapshots) {
+  for (const { contractNameOrFqn, functionName, gasUsage } of gasSnapshots) {
     const gasDetails =
       "consumedGas" in gasUsage
         ? `gas: ${gasUsage.consumedGas}`
         : `runs: ${gasUsage.runs}, μ: ${gasUsage.meanGas}, ~: ${gasUsage.medianGas}`;
 
-    lines.push(`${contractName}:${functionName} (${gasDetails})`);
+    lines.push(`${contractNameOrFqn}:${functionName} (${gasDetails})`);
   }
   return lines.join("\n");
 }

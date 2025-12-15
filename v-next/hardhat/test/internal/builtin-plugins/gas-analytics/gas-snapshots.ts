@@ -21,6 +21,7 @@ import {
   stringifyFunctionGasSnapshots,
   saveGasFunctionSnapshots,
 } from "../../../../src/internal/builtin-plugins/gas-analytics/gas-snapshots.js";
+import { parseName } from "../../../../src/utils/contract-names.js";
 
 describe("gas-snapshots", () => {
   describe("extractFunctionGasSnapshots", () => {
@@ -35,14 +36,14 @@ describe("gas-snapshots", () => {
       const snapshots = extractFunctionGasSnapshots(suiteResults);
 
       assert.equal(snapshots.length, 2);
-      assert.equal(snapshots[0].contractName, "MyContract");
+      assert.equal(snapshots[0].contractNameOrFqn, "MyContract");
       assert.equal(snapshots[0].functionName, "testTransfer");
       assert.ok(
         "consumedGas" in snapshots[0].gasUsage,
         "gasUsage should be StandardTestKind",
       );
       assert.equal(snapshots[0].gasUsage.consumedGas, 25000n);
-      assert.equal(snapshots[1].contractName, "MyContract");
+      assert.equal(snapshots[1].contractNameOrFqn, "MyContract");
       assert.equal(snapshots[1].functionName, "testApprove");
       assert.ok(
         "consumedGas" in snapshots[1].gasUsage,
@@ -61,7 +62,7 @@ describe("gas-snapshots", () => {
       const snapshots = extractFunctionGasSnapshots(suiteResults);
 
       assert.equal(snapshots.length, 1);
-      assert.equal(snapshots[0].contractName, "FuzzContract");
+      assert.equal(snapshots[0].contractNameOrFqn, "FuzzContract");
       assert.equal(snapshots[0].functionName, "testFuzzTransfer");
       assert.ok(
         "runs" in snapshots[0].gasUsage,
@@ -99,9 +100,9 @@ describe("gas-snapshots", () => {
       const snapshots = extractFunctionGasSnapshots(suiteResults);
 
       assert.equal(snapshots.length, 2);
-      assert.equal(snapshots[0].contractName, "ContractA");
+      assert.equal(snapshots[0].contractNameOrFqn, "ContractA");
       assert.equal(snapshots[0].functionName, "testA");
-      assert.equal(snapshots[1].contractName, "ContractB");
+      assert.equal(snapshots[1].contractNameOrFqn, "ContractB");
       assert.equal(snapshots[1].functionName, "testB");
     });
 
@@ -122,20 +123,80 @@ describe("gas-snapshots", () => {
 
       assert.equal(snapshots.length, 0);
     });
+
+    it("should use simple contract name when given FQN with no duplicates", () => {
+      const suiteResults: SuiteResult[] = [
+        createSuiteResult("contracts/MyContract.sol:MyContract", [
+          createStandardTestResult("testTransfer", 25000n),
+        ]),
+      ];
+
+      const snapshots = extractFunctionGasSnapshots(suiteResults);
+
+      assert.equal(snapshots.length, 1);
+      assert.equal(snapshots[0].contractNameOrFqn, "MyContract");
+      assert.equal(snapshots[0].functionName, "testTransfer");
+    });
+
+    it("should use FQN when there are duplicate contract names", () => {
+      const suiteResults: SuiteResult[] = [
+        createSuiteResult("contracts/Token.sol:Token", [
+          createStandardTestResult("testTransfer", 25000n),
+        ]),
+        createSuiteResult("contracts/legacy/Token.sol:Token", [
+          createStandardTestResult("testLegacyTransfer", 30000n),
+        ]),
+      ];
+
+      const snapshots = extractFunctionGasSnapshots(suiteResults);
+
+      assert.equal(snapshots.length, 2);
+      assert.equal(snapshots[0].contractNameOrFqn, "contracts/Token.sol:Token");
+      assert.equal(snapshots[0].functionName, "testTransfer");
+      assert.equal(
+        snapshots[1].contractNameOrFqn,
+        "contracts/legacy/Token.sol:Token",
+      );
+      assert.equal(snapshots[1].functionName, "testLegacyTransfer");
+    });
+
+    it("should use FQN only for duplicates, simple name for unique contracts", () => {
+      const suiteResults: SuiteResult[] = [
+        createSuiteResult("contracts/Token.sol:Token", [
+          createStandardTestResult("testTransfer", 25000n),
+        ]),
+        createSuiteResult("contracts/legacy/Token.sol:Token", [
+          createStandardTestResult("testLegacyTransfer", 30000n),
+        ]),
+        createSuiteResult("UniqueContract", [
+          createStandardTestResult("testUnique", 15000n),
+        ]),
+      ];
+
+      const snapshots = extractFunctionGasSnapshots(suiteResults);
+
+      assert.equal(snapshots.length, 3);
+      assert.equal(snapshots[0].contractNameOrFqn, "contracts/Token.sol:Token");
+      assert.equal(
+        snapshots[1].contractNameOrFqn,
+        "contracts/legacy/Token.sol:Token",
+      );
+      assert.equal(snapshots[2].contractNameOrFqn, "UniqueContract");
+    });
   });
 
   describe("stringifyFunctionGasSnapshots", () => {
     it("should stringify standard test snapshots", () => {
       const snapshots = [
         {
-          contractName: "MyContract",
+          contractNameOrFqn: "MyContract",
           functionName: "testTransfer",
           gasUsage: {
             consumedGas: 25000n,
           },
         },
         {
-          contractName: "MyContract",
+          contractNameOrFqn: "MyContract",
           functionName: "testApprove",
           gasUsage: {
             consumedGas: 30000n,
@@ -153,7 +214,7 @@ MyContract:testApprove (gas: 30000)`;
     it("should stringify fuzz test snapshots", () => {
       const snapshots = [
         {
-          contractName: "FuzzContract",
+          contractNameOrFqn: "FuzzContract",
           functionName: "testFuzzTransfer",
           gasUsage: {
             runs: 100n,
@@ -172,14 +233,14 @@ MyContract:testApprove (gas: 30000)`;
     it("should stringify mixed test types", () => {
       const snapshots = [
         {
-          contractName: "MixedContract",
+          contractNameOrFqn: "MixedContract",
           functionName: "testStandard",
           gasUsage: {
             consumedGas: 20000n,
           },
         },
         {
-          contractName: "MixedContract",
+          contractNameOrFqn: "MixedContract",
           functionName: "testFuzz",
           gasUsage: {
             runs: 50n,
@@ -198,7 +259,7 @@ MixedContract:testFuzz (runs: 50, μ: 22000, ~: 21500)`;
 
     it("should handle empty snapshots array", () => {
       const snapshots: Array<{
-        contractName: string;
+        contractNameOrFqn: string;
         functionName: string;
         gasUsage: StandardTestKind | FuzzTestKind;
       }> = [];
@@ -211,21 +272,21 @@ MixedContract:testFuzz (runs: 50, μ: 22000, ~: 21500)`;
     it("should handle snapshots from multiple contracts", () => {
       const snapshots = [
         {
-          contractName: "ContractA",
+          contractNameOrFqn: "ContractA",
           functionName: "testA",
           gasUsage: {
             consumedGas: 10000n,
           },
         },
         {
-          contractName: "ContractB",
+          contractNameOrFqn: "ContractB",
           functionName: "testB",
           gasUsage: {
             consumedGas: 15000n,
           },
         },
         {
-          contractName: "ContractA",
+          contractNameOrFqn: "ContractA",
           functionName: "testA2",
           gasUsage: {
             consumedGas: 12000n,
@@ -352,13 +413,14 @@ function createInvariantTestResult(
 }
 
 function createSuiteResult(
-  contractName: string,
+  contractNameOrFqn: string,
   testResults: TestResult[],
 ): SuiteResult {
+  const { sourceName, contractName } = parseName(contractNameOrFqn);
   return {
     id: {
       name: contractName,
-      source: `${contractName}.sol`,
+      source: sourceName ?? `${contractName}.sol`,
       solcVersion: "0.8.0",
     },
     durationNs: 0n,
