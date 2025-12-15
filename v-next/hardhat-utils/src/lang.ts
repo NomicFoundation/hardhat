@@ -116,3 +116,18 @@ export function bindAllMethods<ObjectT extends object>(obj: ObjectT): void {
     }
   }
 }
+
+export function findDuplicates<T>(arr: T[]): Set<T> {
+  const seen = new Set<T>();
+  const duplicates = new Set<T>();
+
+  for (const item of arr) {
+    if (seen.has(item)) {
+      duplicates.add(item);
+    } else {
+      seen.add(item);
+    }
+  }
+
+  return duplicates;
+}
