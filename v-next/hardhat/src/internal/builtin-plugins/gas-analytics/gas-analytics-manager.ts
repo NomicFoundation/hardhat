@@ -12,6 +12,7 @@ import {
   remove,
   writeJsonFile,
 } from "@nomicfoundation/hardhat-utils/fs";
+import { findDuplicates } from "@nomicfoundation/hardhat-utils/lang";
 import chalk from "chalk";
 import debug from "debug";
 
@@ -131,8 +132,8 @@ export class GasAnalyticsManagerImplementation implements GasAnalyticsManager {
         };
       }
 
-      const overloadedFnNames = new Set(
-        findDuplicates([...measurements.functions.keys()].map(getFunctionName)),
+      const overloadedFnNames = findDuplicates(
+        [...measurements.functions.keys()].map(getFunctionName),
       );
 
       for (const [functionSig, gasValues] of measurements.functions) {
@@ -316,21 +317,6 @@ export function getUserFqn(inputFqn: string): string {
 
 export function getFunctionName(signature: string): string {
   return signature.split("(")[0];
-}
-
-export function findDuplicates<T>(arr: T[]): T[] {
-  const seen = new Set<T>();
-  const duplicates = new Set<T>();
-
-  for (const item of arr) {
-    if (seen.has(item)) {
-      duplicates.add(item);
-    } else {
-      seen.add(item);
-    }
-  }
-
-  return [...duplicates];
 }
 
 export function roundTo(value: number, decimals: number): number {

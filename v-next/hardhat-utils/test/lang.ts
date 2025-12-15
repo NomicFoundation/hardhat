@@ -8,6 +8,7 @@ import {
   deepClone,
   deepEqual,
   deepMerge,
+  findDuplicates,
   isObject,
   sleep,
 } from "../src/lang.js";
@@ -669,6 +670,31 @@ describe("lang", () => {
 
     it("should handle non-integer delay", async () => {
       await assertSleep(1.5, { minMillis: 1500 });
+    });
+  });
+
+  describe("findDuplicates", () => {
+    it("should find duplicate strings", () => {
+      const result = findDuplicates(["a", "b", "a", "c", "b"]);
+      assert.deepEqual(result, new Set(["a", "b"]));
+    });
+
+    it("should find duplicate numbers", () => {
+      const result = findDuplicates([1, 2, 1, 3, 2]);
+      assert.deepEqual(result, new Set([1, 2]));
+    });
+
+    it("should return empty set when no duplicates", () => {
+      assert.deepEqual(findDuplicates(["a", "b", "c"]), new Set());
+      assert.deepEqual(findDuplicates([1, 2, 3]), new Set());
+    });
+
+    it("should handle empty array", () => {
+      assert.deepEqual(findDuplicates([]), new Set());
+    });
+
+    it("should handle single element", () => {
+      assert.deepEqual(findDuplicates(["a"]), new Set());
     });
   });
 
