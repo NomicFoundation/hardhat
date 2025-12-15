@@ -1,6 +1,6 @@
 {
   "name": "@nomicfoundation/hardhat-toolbox-viem",
-  "version": "4.1.1",
+  "version": "4.1.2",
   "description": "Nomic Foundation's recommended bundle of Hardhat plugins (viem based)",
   "repository": {
     "type": "git",
@@ -65,7 +65,7 @@
     "eslint-plugin-import": "2.27.5",
     "eslint-plugin-mocha": "10.4.1",
     "eslint-plugin-prettier": "3.4.0",
-    "hardhat": "workspace:^2.26.0",
+    "hardhat": "workspace:^2.28.0",
     "hardhat-gas-reporter": "^2.3.0",
     "mocha": "^10.0.0",
     "prettier": "2.4.1",
@@ -85,7 +85,7 @@
     "@types/mocha": ">=9.1.0",
     "@types/node": ">=20.0.0",
     "chai": "^4.2.0",
-    "hardhat": "workspace:^2.26.0",
+    "hardhat": "workspace:^2.28.0",
     "hardhat-gas-reporter": "^2.3.0",
     "solidity-coverage": "^0.8.17",
     "ts-node": ">=8.0.0",

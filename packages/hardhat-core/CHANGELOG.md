@@ -1,5 +1,18 @@
 # hardhat
 
+## 2.28.0
+
+### Minor Changes
+
+- 6f50b84: Changed default L1 hardfork to `osaka` ([@nomicfoundation/edr@0.12.0-next.17](https://github.com/NomicFoundation/edr/releases/tag/%40nomicfoundation%2Fedr%400.12.0-next.17))
+
+### Patch Changes
+
+- c69b99d: Update default gas limit to take into account `osaka` transaction limit ([#7751](https://github.com/NomicFoundation/hardhat/issues/7751))
+- a7e4215: Update `solidity-coverage` minimum version to include Osaka changes
+- 6f50b84: Changed default OP stack hardfork to `isthmus` ([@nomicfoundation/edr@0.12.0-next.17](https://github.com/NomicFoundation/edr/releases/tag/%40nomicfoundation%2Fedr%400.12.0-next.17))
+- 6f50b84: Fixed default transaction gas limit for post-Osaka hardforks in OP stack and generic chains ([@nomicfoundation/edr@0.12.0-next.17](https://github.com/NomicFoundation/edr/releases/tag/%40nomicfoundation%2Fedr%400.12.0-next.17))
+
 ## 2.27.2
 
 ### Patch Changes

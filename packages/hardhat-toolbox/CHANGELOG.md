@@ -1,5 +1,11 @@
 # @nomicfoundation/hardhat-toolbox
 
+## 6.1.2
+
+### Patch Changes
+
+- a7e4215: Update `solidity-coverage` minimum version to include Osaka changes
+
 ## 6.1.1
 
 ### Patch Changes
