@@ -67,7 +67,6 @@ import {
   MempoolOrder,
 } from "./node-types";
 import {
-  edrRpcDebugTraceToHardhat,
   edrTracingMessageResultToMinimalEVMResult,
   edrTracingMessageToMinimalMessage,
   edrTracingStepToMinimalInterpreterStep,
@@ -479,11 +478,6 @@ export class EdrProviderWrapper
     // e.g. `HardhatNetwork/2.19.0/@nomicfoundation/edr/0.2.0-dev`
     if (args.method === "web3_clientVersion") {
       return clientVersion(response.result);
-    } else if (
-      args.method === "debug_traceTransaction" ||
-      args.method === "debug_traceCall"
-    ) {
-      return edrRpcDebugTraceToHardhat(response.result);
     } else {
       return response.result;
     }
