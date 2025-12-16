@@ -174,62 +174,6 @@ export function ethereumjsMempoolOrderToEdrMineOrdering(
   }
 }
 
-export function edrRpcDebugTraceToHardhat(
-  rpcDebugTrace: DebugTraceResult
-): RpcDebugTraceOutput {
-  const structLogs = rpcDebugTrace.structLogs.map((log) => {
-    const result: RpcStructLog = {
-      depth: Number(log.depth),
-      gas: Number(log.gas),
-      gasCost: Number(log.gasCost),
-      op: log.opName,
-      pc: Number(log.pc),
-    };
-
-    if (log.memory !== undefined) {
-      result.memory = log.memory;
-    }
-
-    if (log.stack !== undefined) {
-      // Remove 0x prefix which is required by EIP-3155, but not expected by Hardhat.
-      result.stack = log.stack?.map((item) => item.slice(2));
-    }
-
-    if (log.storage !== undefined) {
-      result.storage = Object.fromEntries(
-        Object.entries(log.storage).map(([key, value]) => {
-          return [key.slice(2), value.slice(2)];
-        })
-      );
-    }
-
-    if (log.error !== undefined) {
-      result.error = {
-        message: log.error,
-      };
-    }
-
-    return result;
-  });
-
-  // REVM trace adds initial STOP that Hardhat doesn't expect
-  if (structLogs.length > 0 && structLogs[0].op === "STOP") {
-    structLogs.shift();
-  }
-
-  let returnValue = rpcDebugTrace.output?.toString() ?? "";
-  if (returnValue === "0x") {
-    returnValue = "";
-  }
-
-  return {
-    failed: !rpcDebugTrace.pass,
-    gas: Number(rpcDebugTrace.gasUsed),
-    returnValue,
-    structLogs,
-  };
-}
-
 export function edrTracingStepToMinimalInterpreterStep(
   step: TracingStep
 ): MinimalInterpreterStep {
