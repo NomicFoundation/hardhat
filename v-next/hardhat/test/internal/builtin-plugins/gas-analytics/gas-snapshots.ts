@@ -19,7 +19,7 @@ import {
 import {
   extractFunctionGasSnapshots,
   stringifyFunctionGasSnapshots,
-  saveGasFunctionSnapshots,
+  writeGasFunctionSnapshots,
 } from "../../../../src/internal/builtin-plugins/gas-analytics/gas-snapshots.js";
 import { parseName } from "../../../../src/utils/contract-names.js";
 
@@ -344,7 +344,7 @@ ZContract:testZ (gas: 30000)`;
     });
   });
 
-  describe("saveGasFunctionSnapshots", () => {
+  describe("writeGasFunctionSnapshots", () => {
     let tmpDir: string;
 
     before(async () => {
@@ -359,7 +359,7 @@ ZContract:testZ (gas: 30000)`;
       const stringifiedSnapshots = `MyContract:testTransfer (gas: 25000)
 MyContract:testApprove (gas: 30000)`;
 
-      await saveGasFunctionSnapshots(tmpDir, stringifiedSnapshots);
+      await writeGasFunctionSnapshots(tmpDir, stringifiedSnapshots);
 
       const snapshotPath = path.join(tmpDir, ".gas-snapshot");
       const savedContent = await readUtf8File(snapshotPath);
@@ -371,8 +371,8 @@ MyContract:testApprove (gas: 30000)`;
       const firstSnapshot = `MyContract:testA (gas: 10000)`;
       const secondSnapshot = `MyContract:testB (gas: 20000)`;
 
-      await saveGasFunctionSnapshots(tmpDir, firstSnapshot);
-      await saveGasFunctionSnapshots(tmpDir, secondSnapshot);
+      await writeGasFunctionSnapshots(tmpDir, firstSnapshot);
+      await writeGasFunctionSnapshots(tmpDir, secondSnapshot);
 
       const snapshotPath = path.join(tmpDir, ".gas-snapshot");
       const savedContent = await readUtf8File(snapshotPath);
@@ -383,7 +383,7 @@ MyContract:testApprove (gas: 30000)`;
     it("should save empty snapshots", async () => {
       const emptySnapshot = "";
 
-      await saveGasFunctionSnapshots(tmpDir, emptySnapshot);
+      await writeGasFunctionSnapshots(tmpDir, emptySnapshot);
 
       const snapshotPath = path.join(tmpDir, ".gas-snapshot");
       const savedContent = await readUtf8File(snapshotPath);

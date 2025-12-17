@@ -63,7 +63,7 @@ export function stringifyFunctionGasSnapshots(
   return lines.sort((a, b) => a.localeCompare(b)).join("\n");
 }
 
-export async function saveGasFunctionSnapshots(
+export async function writeGasFunctionSnapshots(
   basePath: string,
   stringifiedFunctionGasSnapshots: string,
 ): Promise<void> {
