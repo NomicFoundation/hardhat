@@ -4,7 +4,7 @@ import type { SuiteResult } from "@nomicfoundation/edr";
 import {
   extractFunctionGasSnapshots,
   stringifyFunctionGasSnapshots,
-  saveGasFunctionSnapshots,
+  writeGasFunctionSnapshots,
 } from "../../gas-snapshots.js";
 
 interface GasAnalyticsTestActionArguments {
@@ -22,7 +22,7 @@ const runSolidityTests: TaskOverrideActionFunction<
     const functionGasSnapshots = extractFunctionGasSnapshots(suiteResults);
     const stringifiedFunctionGasSnapshots =
       stringifyFunctionGasSnapshots(functionGasSnapshots);
-    await saveGasFunctionSnapshots(
+    await writeGasFunctionSnapshots(
       hre.config.paths.root,
       stringifiedFunctionGasSnapshots,
     );
