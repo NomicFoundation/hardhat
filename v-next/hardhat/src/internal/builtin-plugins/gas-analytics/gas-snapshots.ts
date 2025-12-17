@@ -59,7 +59,8 @@ export function stringifyFunctionGasSnapshots(
 
     lines.push(`${contractNameOrFqn}:${functionName} (${gasDetails})`);
   }
-  return lines.join("\n");
+
+  return lines.sort((a, b) => a.localeCompare(b)).join("\n");
 }
 
 export async function saveGasFunctionSnapshots(

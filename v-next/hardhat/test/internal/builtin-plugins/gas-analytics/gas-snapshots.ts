@@ -206,8 +206,8 @@ describe("gas-snapshots", () => {
 
       const result = stringifyFunctionGasSnapshots(snapshots);
 
-      const expected = `MyContract:testTransfer (gas: 25000)
-MyContract:testApprove (gas: 30000)`;
+      const expected = `MyContract:testApprove (gas: 30000)
+MyContract:testTransfer (gas: 25000)`;
       assert.equal(result, expected);
     });
 
@@ -252,8 +252,8 @@ MyContract:testApprove (gas: 30000)`;
 
       const result = stringifyFunctionGasSnapshots(snapshots);
 
-      const expected = `MixedContract:testStandard (gas: 20000)
-MixedContract:testFuzz (runs: 50, μ: 22000, ~: 21500)`;
+      const expected = `MixedContract:testFuzz (runs: 50, μ: 22000, ~: 21500)
+MixedContract:testStandard (gas: 20000)`;
       assert.equal(result, expected);
     });
 
@@ -297,8 +297,49 @@ MixedContract:testFuzz (runs: 50, μ: 22000, ~: 21500)`;
       const result = stringifyFunctionGasSnapshots(snapshots);
 
       const expected = `ContractA:testA (gas: 10000)
-ContractB:testB (gas: 15000)
-ContractA:testA2 (gas: 12000)`;
+ContractA:testA2 (gas: 12000)
+ContractB:testB (gas: 15000)`;
+      assert.equal(result, expected);
+    });
+
+    it("should sort snapshots alphabetically", () => {
+      const snapshots = [
+        {
+          contractNameOrFqn: "ZContract",
+          functionName: "testZ",
+          gasUsage: {
+            consumedGas: 30000n,
+          },
+        },
+        {
+          contractNameOrFqn: "AContract",
+          functionName: "testB",
+          gasUsage: {
+            consumedGas: 10000n,
+          },
+        },
+        {
+          contractNameOrFqn: "AContract",
+          functionName: "testA",
+          gasUsage: {
+            consumedGas: 20000n,
+          },
+        },
+        {
+          contractNameOrFqn: "MContract",
+          functionName: "testM",
+          gasUsage: {
+            consumedGas: 15000n,
+          },
+        },
+      ];
+
+      const result = stringifyFunctionGasSnapshots(snapshots);
+
+      const expected = `AContract:testA (gas: 20000)
+AContract:testB (gas: 10000)
+MContract:testM (gas: 15000)
+ZContract:testZ (gas: 30000)`;
       assert.equal(result, expected);
     });
   });
