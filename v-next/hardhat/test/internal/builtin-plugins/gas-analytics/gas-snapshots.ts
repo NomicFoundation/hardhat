@@ -1,9 +1,5 @@
-import type {
-  FuzzTestKind,
-  StandardTestKind,
-  SuiteResult,
-  TestResult,
-} from "@nomicfoundation/edr";
+import type { FunctionGasSnapshot } from "../../../../src/internal/builtin-plugins/gas-analytics/gas-snapshots.js";
+import type { SuiteResult, TestResult } from "@nomicfoundation/edr";
 
 import assert from "node:assert/strict";
 import path from "node:path";
@@ -258,11 +254,7 @@ MixedContract:testStandard (gas: 20000)`;
     });
 
     it("should handle empty snapshots array", () => {
-      const snapshots: Array<{
-        contractNameOrFqn: string;
-        functionName: string;
-        gasUsage: StandardTestKind | FuzzTestKind;
-      }> = [];
+      const snapshots: FunctionGasSnapshot[] = [];
 
       const result = stringifyFunctionGasSnapshots(snapshots);
 
@@ -356,34 +348,66 @@ ZContract:testZ (gas: 30000)`;
     });
 
     it("should save snapshots to .gas-snapshot file", async () => {
-      const stringifiedSnapshots = `MyContract:testTransfer (gas: 25000)
-MyContract:testApprove (gas: 30000)`;
+      const snapshots = [
+        {
+          contractNameOrFqn: "MyContract",
+          functionName: "testApprove",
+          gasUsage: {
+            consumedGas: 30000n,
+          },
+        },
+        {
+          contractNameOrFqn: "MyContract",
+          functionName: "testTransfer",
+          gasUsage: {
+            consumedGas: 25000n,
+          },
+        },
+      ];
 
-      await writeGasFunctionSnapshots(tmpDir, stringifiedSnapshots);
+      await writeGasFunctionSnapshots(tmpDir, snapshots);
 
       const snapshotPath = path.join(tmpDir, ".gas-snapshot");
       const savedContent = await readUtf8File(snapshotPath);
 
-      assert.equal(savedContent, stringifiedSnapshots);
+      const expected = `MyContract:testApprove (gas: 30000)
+MyContract:testTransfer (gas: 25000)`;
+      assert.equal(savedContent, expected);
     });
 
     it("should overwrite existing snapshot file", async () => {
-      const firstSnapshot = `MyContract:testA (gas: 10000)`;
-      const secondSnapshot = `MyContract:testB (gas: 20000)`;
+      const firstSnapshots = [
+        {
+          contractNameOrFqn: "MyContract",
+          functionName: "testA",
+          gasUsage: {
+            consumedGas: 10000n,
+          },
+        },
+      ];
+      const secondSnapshots = [
+        {
+          contractNameOrFqn: "MyContract",
+          functionName: "testB",
+          gasUsage: {
+            consumedGas: 20000n,
+          },
+        },
+      ];
 
-      await writeGasFunctionSnapshots(tmpDir, firstSnapshot);
-      await writeGasFunctionSnapshots(tmpDir, secondSnapshot);
+      await writeGasFunctionSnapshots(tmpDir, firstSnapshots);
+      await writeGasFunctionSnapshots(tmpDir, secondSnapshots);
 
       const snapshotPath = path.join(tmpDir, ".gas-snapshot");
       const savedContent = await readUtf8File(snapshotPath);
 
-      assert.equal(savedContent, secondSnapshot);
+      assert.equal(savedContent, "MyContract:testB (gas: 20000)");
     });
 
     it("should save empty snapshots", async () => {
-      const emptySnapshot = "";
+      const emptySnapshots: FunctionGasSnapshot[] = [];
 
-      await writeGasFunctionSnapshots(tmpDir, emptySnapshot);
+      await writeGasFunctionSnapshots(tmpDir, emptySnapshots);
 
       const snapshotPath = path.join(tmpDir, ".gas-snapshot");
       const savedContent = await readUtf8File(snapshotPath);

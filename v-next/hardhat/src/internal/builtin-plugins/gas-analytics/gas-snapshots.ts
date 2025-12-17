@@ -13,7 +13,7 @@ import { getFullyQualifiedName } from "../../../utils/contract-names.js";
 
 const FUNCTION_GAS_SNAPSHOTS_FILE = ".gas-snapshot";
 
-interface FunctionGasSnapshot {
+export interface FunctionGasSnapshot {
   contractNameOrFqn: string;
   functionName: string;
   gasUsage: StandardTestKind | FuzzTestKind;
@@ -47,6 +47,17 @@ export function extractFunctionGasSnapshots(
   return gasSnapshots;
 }
 
+export async function writeGasFunctionSnapshots(
+  basePath: string,
+  gasSnapshots: FunctionGasSnapshot[],
+): Promise<void> {
+  const snapshotPath = path.join(basePath, FUNCTION_GAS_SNAPSHOTS_FILE);
+  await writeUtf8File(
+    snapshotPath,
+    stringifyFunctionGasSnapshots(gasSnapshots),
+  );
+}
+
 export function stringifyFunctionGasSnapshots(
   gasSnapshots: FunctionGasSnapshot[],
 ): string {
@@ -61,12 +72,4 @@ export function stringifyFunctionGasSnapshots(
   }
 
   return lines.sort((a, b) => a.localeCompare(b)).join("\n");
-}
-
-export async function writeGasFunctionSnapshots(
-  basePath: string,
-  stringifiedFunctionGasSnapshots: string,
-): Promise<void> {
-  const snapshotPath = path.join(basePath, FUNCTION_GAS_SNAPSHOTS_FILE);
-  await writeUtf8File(snapshotPath, stringifiedFunctionGasSnapshots);
 }
