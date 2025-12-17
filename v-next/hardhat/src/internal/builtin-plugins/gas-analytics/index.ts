@@ -12,6 +12,11 @@ const hardhatPlugin: HardhatPlugin = {
         name: "snapshot",
         description: "Update gas snapshots (Solidity tests only)",
       })
+      .addFlag({
+        name: "snapshotCheck",
+        description:
+          "Check the gas snapshots match the stored values (Solidity tests only)",
+      })
       .setAction(async () => ({
         default: async (args, _hre, runSuper) => {
           // We don't need to do anything here, as the test task will forward
@@ -24,6 +29,10 @@ const hardhatPlugin: HardhatPlugin = {
       .addFlag({
         name: "snapshot",
         description: "Update gas snapshots",
+      })
+      .addFlag({
+        name: "snapshotCheck",
+        description: "Check the gas snapshots match the stored values",
       })
       .setAction(async () => import("./tasks/solidity-test/task-action.js"))
       .build(),

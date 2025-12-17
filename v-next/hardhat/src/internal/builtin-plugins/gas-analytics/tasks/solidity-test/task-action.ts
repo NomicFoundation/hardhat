@@ -9,6 +9,7 @@ import {
 
 interface GasAnalyticsTestActionArguments {
   snapshot: boolean;
+  snapshotCheck: boolean;
 }
 
 const runSolidityTests: TaskOverrideActionFunction<
