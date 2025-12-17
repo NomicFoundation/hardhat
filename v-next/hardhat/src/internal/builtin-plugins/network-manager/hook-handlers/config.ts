@@ -62,8 +62,8 @@ export async function extendUserConfig(
         gas: "auto",
         gasMultiplier: 1,
         gasPrice: "auto",
-        ...defaultConfig,
         type: "edr-simulated",
+        ...defaultConfig,
       },
     },
   };

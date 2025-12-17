@@ -97,6 +97,27 @@ describe("network-manager/hook-handlers/config", () => {
         type: "http",
       });
     });
+
+    it("should allow overriding the type of the default network", async () => {
+      const config = {
+        networks: {
+          default: {
+            type: "http",
+            url: "http://localhost:8545",
+          },
+        },
+      };
+      const next = async (nextConfig: HardhatUserConfig) => nextConfig;
+
+      /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions
+      -- testing invalid network type for js users */
+      const extendedConfig = await extendUserConfig(config as any, next);
+      assert.equal(extendedConfig.networks?.default.type, "http");
+      assert.equal(
+        extendedConfig.networks?.default.url,
+        "http://localhost:8545",
+      );
+    });
   });
 
   describe("validateUserConfig", () => {
