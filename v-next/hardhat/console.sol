@@ -7,8 +7,7 @@ library console {
 
     function _sendLogPayloadImplementation(bytes memory payload) internal view {
         address consoleAddress = CONSOLE_ADDRESS;
-        /// @solidity memory-safe-assembly
-        assembly {
+        assembly ("memory-safe") {
             pop(
                 staticcall(
                     gas(),
