@@ -3,6 +3,7 @@ import type { SuiteResult } from "@nomicfoundation/edr";
 
 import {
   extractFunctionGasSnapshots,
+  readFunctionGasSnapshots,
   writeGasFunctionSnapshots,
 } from "../../gas-snapshots.js";
 
@@ -16,13 +17,22 @@ const runSolidityTests: TaskOverrideActionFunction<
 > = async (args, hre, runSuper) => {
   const taskResult = await runSuper(args);
   const suiteResults: SuiteResult[] = taskResult.suiteResults;
+  const testsPassed = process.exitCode !== 1;
 
-  if (args.snapshot && process.exitCode !== 1) {
-    const functionGasSnapshots = extractFunctionGasSnapshots(suiteResults);
-    await writeGasFunctionSnapshots(
-      hre.config.paths.root,
-      functionGasSnapshots,
-    );
+  if (testsPassed) {
+    if (args.snapshot) {
+      const functionGasSnapshots = extractFunctionGasSnapshots(suiteResults);
+      await writeGasFunctionSnapshots(
+        hre.config.paths.root,
+        functionGasSnapshots,
+      );
+    } else if (args.snapshotCheck) {
+      const previousFunctionGasSnapshots = await readFunctionGasSnapshots(
+        hre.config.paths.root,
+      );
+
+      console.log(previousFunctionGasSnapshots);
+    }
   }
 
   return {

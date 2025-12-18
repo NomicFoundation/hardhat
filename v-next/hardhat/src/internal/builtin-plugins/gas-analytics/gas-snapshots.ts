@@ -6,7 +6,8 @@ import type {
 
 import path from "node:path";
 
-import { writeUtf8File } from "@nomicfoundation/hardhat-utils/fs";
+import { HardhatError } from "@nomicfoundation/hardhat-errors";
+import { readUtf8File, writeUtf8File } from "@nomicfoundation/hardhat-utils/fs";
 import { findDuplicates } from "@nomicfoundation/hardhat-utils/lang";
 
 import { getFullyQualifiedName } from "../../../utils/contract-names.js";
@@ -58,6 +59,14 @@ export async function writeGasFunctionSnapshots(
   );
 }
 
+export async function readFunctionGasSnapshots(
+  basePath: string,
+): Promise<FunctionGasSnapshot[]> {
+  const snapshotPath = path.join(basePath, FUNCTION_GAS_SNAPSHOTS_FILE);
+  const stringifiedSnapshots = await readUtf8File(snapshotPath);
+  return parseFunctionGasSnapshots(stringifiedSnapshots);
+}
+
 export function stringifyFunctionGasSnapshots(
   gasSnapshots: FunctionGasSnapshot[],
 ): string {
@@ -72,4 +81,58 @@ export function stringifyFunctionGasSnapshots(
   }
 
   return lines.sort((a, b) => a.localeCompare(b)).join("\n");
+}
+
+export function parseFunctionGasSnapshots(
+  stringifiedSnapshots: string,
+): FunctionGasSnapshot[] {
+  if (stringifiedSnapshots.trim() === "") {
+    return [];
+  }
+
+  const lines = stringifiedSnapshots.split("\n");
+  const gasSnapshots: FunctionGasSnapshot[] = [];
+
+  const standardTestRegex = /^(.+):([^:]+) \(gas: (\d+)\)$/;
+  const fuzzTestRegex = /^(.+):([^:]+) \(runs: (\d+), μ: (\d+), ~: (\d+)\)$/;
+
+  for (const line of lines) {
+    if (line.trim() === "") {
+      continue;
+    }
+
+    const standardMatch = standardTestRegex.exec(line);
+    if (standardMatch !== null) {
+      const [, contractNameOrFqn, functionName, gasValue] = standardMatch;
+      gasSnapshots.push({
+        contractNameOrFqn,
+        functionName,
+        gasUsage: { consumedGas: BigInt(gasValue) },
+      });
+      continue;
+    }
+
+    const fuzzMatch = fuzzTestRegex.exec(line);
+    if (fuzzMatch !== null) {
+      const [, contractNameOrFqn, functionName, runs, meanGas, medianGas] =
+        fuzzMatch;
+      gasSnapshots.push({
+        contractNameOrFqn,
+        functionName,
+        gasUsage: {
+          runs: BigInt(runs),
+          meanGas: BigInt(meanGas),
+          medianGas: BigInt(medianGas),
+        },
+      });
+      continue;
+    }
+
+    throw new HardhatError(
+      HardhatError.ERRORS.CORE.SOLIDITY_TESTS.INVALID_GAS_SNAPSHOT_FORMAT,
+      { line },
+    );
+  }
+
+  return gasSnapshots;
 }
