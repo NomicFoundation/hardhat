@@ -62,7 +62,7 @@ describe("chains", () => {
 
       const chain = await getChain(provider);
 
-      expect(chain).to.deep.equal(chains.wanchainTestnet);
+      expect(chain).to.deep.equal(chains.hyperEvm);
     });
 
     it("should throw if the chain id is 31337 and the network is neither hardhat nor foundry", async () => {
