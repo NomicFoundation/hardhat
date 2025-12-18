@@ -55,7 +55,7 @@ describe("chains", () => {
     it("should return the first matching chain if the chain id is not 31337 and there are multiple chains with that id", async () => {
       const provider: EthereumProvider = new EthereumMockedProvider();
       const sendStub = sinon.stub(provider, "send");
-      // chain id 999 corresponds to wanchainTestnet but also zoraTestnet
+      // chain id 999 corresponds to hyperEvm, wanchainTestnet and zoraTestnet
       sendStub.withArgs("eth_chainId").returns(Promise.resolve("0x3e7"));
       sendStub.withArgs("hardhat_metadata").throws();
       sendStub.withArgs("anvil_nodeInfo").throws();
