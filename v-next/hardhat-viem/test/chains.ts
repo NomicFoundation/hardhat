@@ -101,7 +101,7 @@ describe("chains", () => {
     });
 
     it("should return the first chain that matches the chain id if there are multiple chains with the same id", async () => {
-      // chain id 999 corresponds to wanchainTestnet but also zoraTestnet
+      // chain id 999 corresponds to hyperEvm, wanchainTestnet and also zoraTestnet
       const provider = new MockEthereumProvider({ eth_chainId: "0x3e7" }); // 999 in hex
 
       const chainId = await getChain(provider, "generic");
