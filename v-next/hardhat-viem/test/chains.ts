@@ -105,7 +105,7 @@ describe("chains", () => {
       const provider = new MockEthereumProvider({ eth_chainId: "0x3e7" }); // 999 in hex
 
       const chainId = await getChain(provider, "generic");
-      assert.equal(chainId, chains.wanchainTestnet);
+      assert.equal(chainId, chains.hyperEvm);
     });
 
     it("should return a hardhat chain with the custom chainId", async () => {
