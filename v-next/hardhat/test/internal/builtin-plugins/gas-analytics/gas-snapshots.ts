@@ -6,6 +6,8 @@ import path from "node:path";
 import { afterEach, before, describe, it } from "node:test";
 
 import { TestStatus } from "@nomicfoundation/edr";
+import { HardhatError } from "@nomicfoundation/hardhat-errors";
+import { assertThrowsHardhatError } from "@nomicfoundation/hardhat-test-utils";
 import {
   emptyDir,
   mkdtemp,
@@ -14,6 +16,7 @@ import {
 
 import {
   extractFunctionGasSnapshots,
+  parseFunctionGasSnapshots,
   stringifyFunctionGasSnapshots,
   writeGasFunctionSnapshots,
 } from "../../../../src/internal/builtin-plugins/gas-analytics/gas-snapshots.js";
@@ -333,6 +336,114 @@ AContract:testB (gas: 10000)
 MContract:testM (gas: 15000)
 ZContract:testZ (gas: 30000)`;
       assert.equal(result, expected);
+    });
+  });
+
+  describe("parseFunctionGasSnapshots", () => {
+    it("should parse standard test snapshots", () => {
+      const stringified = "MyContract:testApprove (gas: 30000)";
+
+      const snapshots = parseFunctionGasSnapshots(stringified);
+
+      assert.equal(snapshots.length, 1);
+      assert.equal(snapshots[0].contractNameOrFqn, "MyContract");
+      assert.equal(snapshots[0].functionName, "testApprove");
+      assert.ok(
+        "consumedGas" in snapshots[0].gasUsage,
+        "gasUsage should be StandardTestKind",
+      );
+      assert.equal(snapshots[0].gasUsage.consumedGas, 30000n);
+    });
+
+    it("should parse fuzz test snapshots", () => {
+      const stringified =
+        "FuzzContract:testFuzzTransfer (runs: 100, μ: 25000, ~: 24500)";
+
+      const snapshots = parseFunctionGasSnapshots(stringified);
+
+      assert.equal(snapshots.length, 1);
+      assert.equal(snapshots[0].contractNameOrFqn, "FuzzContract");
+      assert.equal(snapshots[0].functionName, "testFuzzTransfer");
+      assert.ok(
+        "runs" in snapshots[0].gasUsage,
+        "gasUsage should be FuzzTestKind",
+      );
+      assert.equal(snapshots[0].gasUsage.runs, 100n);
+      assert.equal(snapshots[0].gasUsage.meanGas, 25000n);
+      assert.equal(snapshots[0].gasUsage.medianGas, 24500n);
+    });
+
+    it("should parse mixed test types", () => {
+      const stringified = `MixedContract:testFuzz (runs: 50, μ: 22000, ~: 21500)
+MixedContract:testStandard (gas: 20000)`;
+
+      const snapshots = parseFunctionGasSnapshots(stringified);
+
+      assert.equal(snapshots.length, 2);
+      assert.equal(snapshots[0].contractNameOrFqn, "MixedContract");
+      assert.equal(snapshots[0].functionName, "testFuzz");
+      assert.ok(
+        "runs" in snapshots[0].gasUsage,
+        "gasUsage should be FuzzTestKind",
+      );
+      assert.equal(snapshots[1].contractNameOrFqn, "MixedContract");
+      assert.equal(snapshots[1].functionName, "testStandard");
+      assert.ok(
+        "consumedGas" in snapshots[1].gasUsage,
+        "gasUsage should be StandardTestKind",
+      );
+    });
+
+    it("should parse snapshots with FQN contract names", () => {
+      const stringified = `contracts/Token.sol:Token:testTransfer (gas: 25000)
+contracts/legacy/Token.sol:Token:testLegacyTransfer (gas: 30000)`;
+
+      const snapshots = parseFunctionGasSnapshots(stringified);
+
+      assert.equal(snapshots.length, 2);
+      assert.equal(snapshots[0].contractNameOrFqn, "contracts/Token.sol:Token");
+      assert.equal(snapshots[0].functionName, "testTransfer");
+      assert.equal(
+        snapshots[1].contractNameOrFqn,
+        "contracts/legacy/Token.sol:Token",
+      );
+      assert.equal(snapshots[1].functionName, "testLegacyTransfer");
+    });
+
+    it("should handle empty string", () => {
+      const snapshots = parseFunctionGasSnapshots("");
+
+      assert.equal(snapshots.length, 0);
+    });
+
+    it("should handle string with only whitespace", () => {
+      const snapshots = parseFunctionGasSnapshots("   \n  \n  ");
+
+      assert.equal(snapshots.length, 0);
+    });
+
+    it("should skip empty lines", () => {
+      const stringified = `MyContract:testA (gas: 10000)
+
+MyContract:testB (gas: 20000)`;
+
+      const snapshots = parseFunctionGasSnapshots(stringified);
+
+      assert.equal(snapshots.length, 2);
+      assert.equal(snapshots[0].functionName, "testA");
+      assert.equal(snapshots[1].functionName, "testB");
+    });
+
+    it("should throw on malformed line", () => {
+      // Invariant tests are not supported in gas snapshots
+      const stringified =
+        "MyContract:invariantTest() (runs: 256, calls: 128000, reverts: 23933)";
+
+      assertThrowsHardhatError(
+        () => parseFunctionGasSnapshots(stringified),
+        HardhatError.ERRORS.CORE.SOLIDITY_TESTS.INVALID_GAS_SNAPSHOT_FORMAT,
+        { line: stringified },
+      );
     });
   });
 

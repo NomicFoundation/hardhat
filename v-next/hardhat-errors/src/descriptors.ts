@@ -1038,6 +1038,13 @@ Remaining test suites: {suites}`,
         websiteTitle: "Unhandled EDR error in Solidity tests",
         websiteDescription: "Unhandled EDR error while running Solidity tests.",
       },
+      INVALID_GAS_SNAPSHOT_FORMAT: {
+        number: 803,
+        messageTemplate: "Invalid gas snapshot format in line: {line}",
+        websiteTitle: "Invalid gas snapshot format",
+        websiteDescription:
+          "The .gas-snapshot file contains a line with an invalid format. Expected format is 'ContractName:functionName (gas: value)' for standard tests or 'ContractName:functionName (runs: value, μ: value, ~: value)' for fuzz tests.",
+      },
     },
     SOLIDITY: {
       PROJECT_ROOT_RESOLUTION_ERROR: {
