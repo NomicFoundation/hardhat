@@ -123,6 +123,18 @@ declare module "../../../types/hooks.js" {
     ) => Promise<void>;
 
     /**
+     * Hook triggered after a build task is finished successfully
+     *
+     * @param context The hook context.
+     * @param next A function to call the next handler for this hook, or the
+     * default implementation if no more handlers exist.
+     */
+    onBuildCompleted: (
+      context: HookContext,
+      next: (nextContext: HookContext) => Promise<void>,
+    ) => Promise<void>;
+
+    /**
      * Hook triggered within the compilation job when its' solc input is first constructed.
      *
      * @param context The hook context.
