@@ -30,35 +30,21 @@ for (const dir of dirs) {
     continue;
   }
 
-  // TODO: This is a temporary solution until we convert Ignitions tests
-  // to Node Test Runner.
-  if (dir.name === "hardhat-ignition-core") {
-    continue;
-  }
+// TODO: This is a temporary solution until we convert Ignitions tests
+// to Node Test Runner.
+const IGNITION_PACKAGES = new Set([
+  "hardhat-ignition-core",
+  "hardhat-ignition-ui",
+  "hardhat-ignition",
+  "hardhat-ignition-viem",
+  "hardhat-ignition-ethers",
+]);
 
-  // TODO: This is a temporary solution until we convert Ignitions tests
-  // to Node Test Runner.
-  if (dir.name === "hardhat-ignition-ui") {
-    continue;
-  }
-
-  // TODO: This is a temporary solution until we convert Ignitions tests
-  // to Node Test Runner.
-  if (dir.name === "hardhat-ignition") {
-    continue;
-  }
-
-  // TODO: This is a temporary solution until we convert Ignitions tests
-  // to Node Test Runner.
-  if (dir.name === "hardhat-ignition-viem") {
-    continue;
-  }
-
-  // TODO: This is a temporary solution until we convert Ignitions tests
-  // to Node Test Runner.
-  if (dir.name === "hardhat-ignition-ethers") {
-    continue;
-  }
+// TODO: This is a temporary solution until we convert Ignitions tests
+// to Node Test Runner.
+if (IGNITION_PACKAGES.has(dir.name)) {
+  continue;
+}
 
   const packageJsonPath = path.resolve(vNextDir, dir.name, "package.json");
   const packageJson = require(packageJsonPath);
