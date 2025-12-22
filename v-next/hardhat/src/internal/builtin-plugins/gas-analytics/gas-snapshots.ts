@@ -1,8 +1,4 @@
-import type {
-  FuzzTestKind,
-  StandardTestKind,
-  SuiteResult,
-} from "@nomicfoundation/edr";
+import type { SuiteResult } from "@nomicfoundation/edr";
 
 import path from "node:path";
 
@@ -22,7 +18,19 @@ const FUNCTION_GAS_SNAPSHOTS_FILE = ".gas-snapshot";
 export interface FunctionGasSnapshot {
   contractNameOrFqn: string;
   functionName: string;
-  gasUsage: StandardTestKind | FuzzTestKind;
+  gasUsage: StandardTestKindGasUsage | FuzzTestKindGasUsage;
+}
+
+interface StandardTestKindGasUsage {
+  kind: "standard";
+  gas: bigint;
+}
+
+interface FuzzTestKindGasUsage {
+  kind: "fuzz";
+  runs: bigint;
+  meanGas: bigint;
+  medianGas: bigint;
 }
 
 export function getFunctionGasSnapshotsPath(basePath: string): string {
@@ -47,10 +55,23 @@ export function extractFunctionGasSnapshots(
         ? getFullyQualifiedName(suiteId.source, suiteId.name)
         : suiteId.name;
 
+      const gasUsage =
+        "consumedGas" in testResult.kind
+          ? {
+              kind: "standard" as const,
+              gas: testResult.kind.consumedGas,
+            }
+          : {
+              kind: "fuzz" as const,
+              runs: testResult.kind.runs,
+              meanGas: testResult.kind.meanGas,
+              medianGas: testResult.kind.medianGas,
+            };
+
       gasSnapshots.push({
         contractNameOrFqn,
         functionName: testResult.name,
-        gasUsage: testResult.kind,
+        gasUsage,
       });
     }
   }
@@ -108,8 +129,8 @@ export function stringifyFunctionGasSnapshots(
   const lines: string[] = [];
   for (const { contractNameOrFqn, functionName, gasUsage } of gasSnapshots) {
     const gasDetails =
-      "consumedGas" in gasUsage
-        ? `gas: ${gasUsage.consumedGas}`
+      gasUsage.kind === "standard"
+        ? `gas: ${gasUsage.gas}`
         : `runs: ${gasUsage.runs}, μ: ${gasUsage.meanGas}, ~: ${gasUsage.medianGas}`;
 
     lines.push(`${contractNameOrFqn}:${functionName} (${gasDetails})`);
@@ -142,7 +163,7 @@ export function parseFunctionGasSnapshots(
       gasSnapshots.push({
         contractNameOrFqn,
         functionName,
-        gasUsage: { consumedGas: BigInt(gasValue) },
+        gasUsage: { kind: "standard", gas: BigInt(gasValue) },
       });
       continue;
     }
@@ -155,6 +176,7 @@ export function parseFunctionGasSnapshots(
         contractNameOrFqn,
         functionName,
         gasUsage: {
+          kind: "fuzz",
           runs: BigInt(runs),
           meanGas: BigInt(meanGas),
           medianGas: BigInt(medianGas),
