@@ -21,29 +21,22 @@ const runSolidityTests: TaskOverrideActionFunction<
   const taskResult = await runSuper(args);
   const suiteResults: SuiteResult[] = taskResult.suiteResults;
   const testsPassed = process.exitCode !== 1;
+  const rootPath = hre.config.paths.root;
 
   if (testsPassed) {
     if (args.snapshot) {
       const functionGasSnapshots = extractFunctionGasSnapshots(suiteResults);
-      await writeGasFunctionSnapshots(
-        hre.config.paths.root,
-        functionGasSnapshots,
-      );
+      await writeGasFunctionSnapshots(rootPath, functionGasSnapshots);
     } else if (args.snapshotCheck) {
       const functionGasSnapshots = extractFunctionGasSnapshots(suiteResults);
       let previousFunctionGasSnapshots: FunctionGasSnapshot[];
       try {
-        previousFunctionGasSnapshots = await readFunctionGasSnapshots(
-          hre.config.paths.root,
-        );
+        previousFunctionGasSnapshots = await readFunctionGasSnapshots(rootPath);
 
         console.log({ functionGasSnapshots, previousFunctionGasSnapshots });
       } catch (error) {
         if (error instanceof FileNotFoundError) {
-          await writeGasFunctionSnapshots(
-            hre.config.paths.root,
-            functionGasSnapshots,
-          );
+          await writeGasFunctionSnapshots(rootPath, functionGasSnapshots);
         } else {
           throw error;
         }
