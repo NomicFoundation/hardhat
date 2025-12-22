@@ -633,9 +633,17 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
       "The long version of the compiler should match the long version of the compilation job",
     );
 
-    const output = await compiler.compile(
-      await runnableCompilationJob.getSolcInput(),
+    const input = await runnableCompilationJob.getSolcInput();
+
+    const output = await compiler.compile(input);
+
+    await this.#hooks.runHandlerChain(
+      "solidity",
+      "onSolcCompileComplete",
+      [runnableCompilationJob.solcConfig, input, output],
+      async () => {},
     );
+
     return { output, compiler };
   }
 
