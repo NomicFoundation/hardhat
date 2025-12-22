@@ -1,5 +1,14 @@
 # hardhat
 
+## 3.1.1
+
+### Patch Changes
+
+- b3bde25: Disable test summary when mocha is included in runners ([#7781](https://github.com/NomicFoundation/hardhat/issues/7781))
+- 88fcf8b: Bumped EDR version to [`0.12.0-next.19`](https://www.npmjs.com/package/@nomicfoundation/edr/v/0.12.0-next.19).
+
+  - [faef065](https://github.com/NomicFoundation/edr/commit/faef0656f8c86c6f92c7c309d2373bbca89cbff7): Added support for EIP-7892 (Blob Parameter Only hardforks)
+
 ## 3.1.0
 
 ### Minor Changes
