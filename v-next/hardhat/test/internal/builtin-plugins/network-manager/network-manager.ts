@@ -2514,7 +2514,7 @@ describe("NetworkManagerImplementation", () => {
 
           validationErrors = await validateNetworkUserConfig({
             ...edrConfig({
-              hardfork: L1HardforkName.PRAGUE,
+              hardfork: L1HardforkName.OSAKA,
             }),
             /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions 
             -- Type assertion needed because changing defaultChainType requires module 
@@ -2525,7 +2525,7 @@ describe("NetworkManagerImplementation", () => {
           assertValidationErrors(validationErrors, [
             {
               path: ["networks", "hardhat", "hardfork"],
-              message: `Invalid hardfork name prague for chainType op. Expected ${getHardforks(
+              message: `Invalid hardfork name osaka for chainType op. Expected ${getHardforks(
                 OPTIMISM_CHAIN_TYPE,
               ).join(" | ")}.`,
             },

@@ -93,7 +93,7 @@ describe("gas config behavior", () => {
         (connectedNetwork === "localhost" && localhostGasLimit === "default")
       ) {
         // expect the block gas limit to be used as the default gas limit
-        defaultGasLimit = 30_000_000n;
+        defaultGasLimit = 60_000_000n;
       }
 
       it("plain transaction, default gas limit", async () => {
