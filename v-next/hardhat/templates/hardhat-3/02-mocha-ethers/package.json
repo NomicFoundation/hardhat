@@ -5,7 +5,7 @@
   "description": "A TypeScript Hardhat project using Mocha and Ethers.js",
   "type": "module",
   "devDependencies": {
-    "hardhat": "workspace:^3.1.0",
+    "hardhat": "workspace:^3.1.1",
     "@nomicfoundation/hardhat-toolbox-mocha-ethers": "workspace:^3.0.2",
     "@nomicfoundation/hardhat-ethers": "workspace:^4.0.2",
     "@nomicfoundation/hardhat-ignition": "workspace:^3.0.6",
