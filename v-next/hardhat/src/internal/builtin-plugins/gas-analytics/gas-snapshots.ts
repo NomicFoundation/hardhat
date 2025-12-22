@@ -7,7 +7,12 @@ import type {
 import path from "node:path";
 
 import { HardhatError } from "@nomicfoundation/hardhat-errors";
-import { readUtf8File, writeUtf8File } from "@nomicfoundation/hardhat-utils/fs";
+import { ensureError } from "@nomicfoundation/hardhat-utils/error";
+import {
+  FileNotFoundError,
+  readUtf8File,
+  writeUtf8File,
+} from "@nomicfoundation/hardhat-utils/fs";
 import { findDuplicates } from "@nomicfoundation/hardhat-utils/lang";
 
 import { getFullyQualifiedName } from "../../../utils/contract-names.js";
@@ -18,6 +23,10 @@ export interface FunctionGasSnapshot {
   contractNameOrFqn: string;
   functionName: string;
   gasUsage: StandardTestKind | FuzzTestKind;
+}
+
+export function getFunctionGasSnapshotsPath(basePath: string): string {
+  return path.join(basePath, FUNCTION_GAS_SNAPSHOTS_FILE);
 }
 
 export function extractFunctionGasSnapshots(
@@ -52,18 +61,44 @@ export async function writeGasFunctionSnapshots(
   basePath: string,
   gasSnapshots: FunctionGasSnapshot[],
 ): Promise<void> {
-  const snapshotPath = path.join(basePath, FUNCTION_GAS_SNAPSHOTS_FILE);
-  await writeUtf8File(
-    snapshotPath,
-    stringifyFunctionGasSnapshots(gasSnapshots),
-  );
+  const snapshotPath = getFunctionGasSnapshotsPath(basePath);
+  try {
+    await writeUtf8File(
+      snapshotPath,
+      stringifyFunctionGasSnapshots(gasSnapshots),
+    );
+  } catch (error) {
+    ensureError(error);
+    throw new HardhatError(
+      HardhatError.ERRORS.CORE.SOLIDITY_TESTS.GAS_SNAPSHOT_WRITE_ERROR,
+      { path: snapshotPath, error: error.message },
+      error,
+    );
+  }
 }
 
 export async function readFunctionGasSnapshots(
   basePath: string,
 ): Promise<FunctionGasSnapshot[]> {
-  const snapshotPath = path.join(basePath, FUNCTION_GAS_SNAPSHOTS_FILE);
-  const stringifiedSnapshots = await readUtf8File(snapshotPath);
+  const snapshotPath = getFunctionGasSnapshotsPath(basePath);
+  let stringifiedSnapshots: string;
+  try {
+    stringifiedSnapshots = await readUtf8File(snapshotPath);
+  } catch (error) {
+    ensureError(error);
+
+    // Re-throw as-is to allow the caller to handle this case specifically
+    if (error instanceof FileNotFoundError) {
+      throw error;
+    }
+
+    throw new HardhatError(
+      HardhatError.ERRORS.CORE.SOLIDITY_TESTS.GAS_SNAPSHOT_READ_ERROR,
+      { path: snapshotPath, error: error.message },
+      error,
+    );
+  }
+
   return parseFunctionGasSnapshots(stringifiedSnapshots);
 }
 

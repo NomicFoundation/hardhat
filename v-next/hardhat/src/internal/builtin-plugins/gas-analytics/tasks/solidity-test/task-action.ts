@@ -1,5 +1,8 @@
 import type { TaskOverrideActionFunction } from "../../../../../types/tasks.js";
+import type { FunctionGasSnapshot } from "../../gas-snapshots.js";
 import type { SuiteResult } from "@nomicfoundation/edr";
+
+import { FileNotFoundError } from "@nomicfoundation/hardhat-utils/fs";
 
 import {
   extractFunctionGasSnapshots,
@@ -27,11 +30,24 @@ const runSolidityTests: TaskOverrideActionFunction<
         functionGasSnapshots,
       );
     } else if (args.snapshotCheck) {
-      const previousFunctionGasSnapshots = await readFunctionGasSnapshots(
-        hre.config.paths.root,
-      );
+      const functionGasSnapshots = extractFunctionGasSnapshots(suiteResults);
+      let previousFunctionGasSnapshots: FunctionGasSnapshot[];
+      try {
+        previousFunctionGasSnapshots = await readFunctionGasSnapshots(
+          hre.config.paths.root,
+        );
 
-      console.log(previousFunctionGasSnapshots);
+        console.log({ functionGasSnapshots, previousFunctionGasSnapshots });
+      } catch (error) {
+        if (error instanceof FileNotFoundError) {
+          await writeGasFunctionSnapshots(
+            hre.config.paths.root,
+            functionGasSnapshots,
+          );
+        } else {
+          throw error;
+        }
+      }
     }
   }
 
