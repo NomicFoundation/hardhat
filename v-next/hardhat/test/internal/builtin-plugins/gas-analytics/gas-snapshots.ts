@@ -2,7 +2,6 @@ import type { FunctionGasSnapshot } from "../../../../src/internal/builtin-plugi
 import type { SuiteResult, TestResult } from "@nomicfoundation/edr";
 
 import assert from "node:assert/strict";
-import path from "node:path";
 import { afterEach, before, describe, it } from "node:test";
 
 import { TestStatus } from "@nomicfoundation/edr";
@@ -19,6 +18,7 @@ import {
 
 import {
   extractFunctionGasSnapshots,
+  getFunctionGasSnapshotsPath,
   parseFunctionGasSnapshots,
   stringifyFunctionGasSnapshots,
   writeFunctionGasSnapshots,
@@ -484,7 +484,7 @@ MyContract:testB (gas: 20000)`;
 
       await writeFunctionGasSnapshots(tmpDir, snapshots);
 
-      const snapshotPath = path.join(tmpDir, ".gas-snapshot");
+      const snapshotPath = getFunctionGasSnapshotsPath(tmpDir);
       const savedContent = await readUtf8File(snapshotPath);
 
       const expected = `MyContract:testApprove (gas: 30000)
@@ -517,7 +517,7 @@ MyContract:testTransfer (gas: 25000)`;
       await writeFunctionGasSnapshots(tmpDir, firstSnapshots);
       await writeFunctionGasSnapshots(tmpDir, secondSnapshots);
 
-      const snapshotPath = path.join(tmpDir, ".gas-snapshot");
+      const snapshotPath = getFunctionGasSnapshotsPath(tmpDir);
       const savedContent = await readUtf8File(snapshotPath);
 
       assert.equal(savedContent, "MyContract:testB (gas: 20000)");
@@ -528,7 +528,7 @@ MyContract:testTransfer (gas: 25000)`;
 
       await writeFunctionGasSnapshots(tmpDir, emptySnapshots);
 
-      const snapshotPath = path.join(tmpDir, ".gas-snapshot");
+      const snapshotPath = getFunctionGasSnapshotsPath(tmpDir);
       const savedContent = await readUtf8File(snapshotPath);
 
       assert.equal(savedContent, "");
@@ -547,7 +547,7 @@ MyContract:testTransfer (gas: 25000)`;
       ];
 
       const invalidPath = "invalid\0path";
-      const snapshotsPath = path.join(invalidPath, ".gas-snapshot");
+      const snapshotsPath = getFunctionGasSnapshotsPath(invalidPath);
 
       await assertRejectsWithHardhatError(
         () => writeFunctionGasSnapshots(invalidPath, snapshots),
