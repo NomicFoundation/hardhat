@@ -37,18 +37,16 @@ describe("gas-snapshots", () => {
       assert.equal(snapshots.length, 2);
       assert.equal(snapshots[0].contractNameOrFqn, "MyContract");
       assert.equal(snapshots[0].functionName, "testTransfer");
-      assert.ok(
-        "consumedGas" in snapshots[0].gasUsage,
-        "gasUsage should be StandardTestKind",
-      );
-      assert.equal(snapshots[0].gasUsage.consumedGas, 25000n);
+      assert.equal(snapshots[0].gasUsage.kind, "standard");
+      if (snapshots[0].gasUsage.kind === "standard") {
+        assert.equal(snapshots[0].gasUsage.gas, 25000n);
+      }
       assert.equal(snapshots[1].contractNameOrFqn, "MyContract");
       assert.equal(snapshots[1].functionName, "testApprove");
-      assert.ok(
-        "consumedGas" in snapshots[1].gasUsage,
-        "gasUsage should be StandardTestKind",
-      );
-      assert.equal(snapshots[1].gasUsage.consumedGas, 30000n);
+      assert.equal(snapshots[1].gasUsage.kind, "standard");
+      if (snapshots[1].gasUsage.kind === "standard") {
+        assert.equal(snapshots[1].gasUsage.gas, 30000n);
+      }
     });
 
     it("should extract fuzz test gas snapshots", () => {
@@ -63,13 +61,12 @@ describe("gas-snapshots", () => {
       assert.equal(snapshots.length, 1);
       assert.equal(snapshots[0].contractNameOrFqn, "FuzzContract");
       assert.equal(snapshots[0].functionName, "testFuzzTransfer");
-      assert.ok(
-        "runs" in snapshots[0].gasUsage,
-        "gasUsage should be FuzzTestKind",
-      );
-      assert.equal(snapshots[0].gasUsage.runs, 100n);
-      assert.equal(snapshots[0].gasUsage.meanGas, 25000n);
-      assert.equal(snapshots[0].gasUsage.medianGas, 24500n);
+      assert.equal(snapshots[0].gasUsage.kind, "fuzz");
+      if (snapshots[0].gasUsage.kind === "fuzz") {
+        assert.equal(snapshots[0].gasUsage.runs, 100n);
+        assert.equal(snapshots[0].gasUsage.meanGas, 25000n);
+        assert.equal(snapshots[0].gasUsage.medianGas, 24500n);
+      }
     });
 
     it("should skip invariant tests with calls", () => {
@@ -186,19 +183,21 @@ describe("gas-snapshots", () => {
 
   describe("stringifyFunctionGasSnapshots", () => {
     it("should stringify standard test snapshots", () => {
-      const snapshots = [
+      const snapshots: FunctionGasSnapshot[] = [
         {
           contractNameOrFqn: "MyContract",
           functionName: "testTransfer",
           gasUsage: {
-            consumedGas: 25000n,
+            kind: "standard",
+            gas: 25000n,
           },
         },
         {
           contractNameOrFqn: "MyContract",
           functionName: "testApprove",
           gasUsage: {
-            consumedGas: 30000n,
+            kind: "standard",
+            gas: 30000n,
           },
         },
       ];
@@ -211,11 +210,12 @@ MyContract:testTransfer (gas: 25000)`;
     });
 
     it("should stringify fuzz test snapshots", () => {
-      const snapshots = [
+      const snapshots: FunctionGasSnapshot[] = [
         {
           contractNameOrFqn: "FuzzContract",
           functionName: "testFuzzTransfer",
           gasUsage: {
+            kind: "fuzz",
             runs: 100n,
             meanGas: 25000n,
             medianGas: 24500n,
@@ -230,18 +230,20 @@ MyContract:testTransfer (gas: 25000)`;
     });
 
     it("should stringify mixed test types", () => {
-      const snapshots = [
+      const snapshots: FunctionGasSnapshot[] = [
         {
           contractNameOrFqn: "MixedContract",
           functionName: "testStandard",
           gasUsage: {
-            consumedGas: 20000n,
+            kind: "standard",
+            gas: 20000n,
           },
         },
         {
           contractNameOrFqn: "MixedContract",
           functionName: "testFuzz",
           gasUsage: {
+            kind: "fuzz",
             runs: 50n,
             meanGas: 22000n,
             medianGas: 21500n,
@@ -265,26 +267,29 @@ MixedContract:testStandard (gas: 20000)`;
     });
 
     it("should handle snapshots from multiple contracts", () => {
-      const snapshots = [
+      const snapshots: FunctionGasSnapshot[] = [
         {
           contractNameOrFqn: "ContractA",
           functionName: "testA",
           gasUsage: {
-            consumedGas: 10000n,
+            kind: "standard",
+            gas: 10000n,
           },
         },
         {
           contractNameOrFqn: "ContractB",
           functionName: "testB",
           gasUsage: {
-            consumedGas: 15000n,
+            kind: "standard",
+            gas: 15000n,
           },
         },
         {
           contractNameOrFqn: "ContractA",
           functionName: "testA2",
           gasUsage: {
-            consumedGas: 12000n,
+            kind: "standard",
+            gas: 12000n,
           },
         },
       ];
@@ -298,33 +303,37 @@ ContractB:testB (gas: 15000)`;
     });
 
     it("should sort snapshots alphabetically", () => {
-      const snapshots = [
+      const snapshots: FunctionGasSnapshot[] = [
         {
           contractNameOrFqn: "ZContract",
           functionName: "testZ",
           gasUsage: {
-            consumedGas: 30000n,
+            kind: "standard",
+            gas: 30000n,
           },
         },
         {
           contractNameOrFqn: "AContract",
           functionName: "testB",
           gasUsage: {
-            consumedGas: 10000n,
+            kind: "standard",
+            gas: 10000n,
           },
         },
         {
           contractNameOrFqn: "AContract",
           functionName: "testA",
           gasUsage: {
-            consumedGas: 20000n,
+            kind: "standard",
+            gas: 20000n,
           },
         },
         {
           contractNameOrFqn: "MContract",
           functionName: "testM",
           gasUsage: {
-            consumedGas: 15000n,
+            kind: "standard",
+            gas: 15000n,
           },
         },
       ];
@@ -348,11 +357,10 @@ ZContract:testZ (gas: 30000)`;
       assert.equal(snapshots.length, 1);
       assert.equal(snapshots[0].contractNameOrFqn, "MyContract");
       assert.equal(snapshots[0].functionName, "testApprove");
-      assert.ok(
-        "consumedGas" in snapshots[0].gasUsage,
-        "gasUsage should be StandardTestKind",
-      );
-      assert.equal(snapshots[0].gasUsage.consumedGas, 30000n);
+      assert.equal(snapshots[0].gasUsage.kind, "standard");
+      if (snapshots[0].gasUsage.kind === "standard") {
+        assert.equal(snapshots[0].gasUsage.gas, 30000n);
+      }
     });
 
     it("should parse fuzz test snapshots", () => {
@@ -364,13 +372,12 @@ ZContract:testZ (gas: 30000)`;
       assert.equal(snapshots.length, 1);
       assert.equal(snapshots[0].contractNameOrFqn, "FuzzContract");
       assert.equal(snapshots[0].functionName, "testFuzzTransfer");
-      assert.ok(
-        "runs" in snapshots[0].gasUsage,
-        "gasUsage should be FuzzTestKind",
-      );
-      assert.equal(snapshots[0].gasUsage.runs, 100n);
-      assert.equal(snapshots[0].gasUsage.meanGas, 25000n);
-      assert.equal(snapshots[0].gasUsage.medianGas, 24500n);
+      assert.equal(snapshots[0].gasUsage.kind, "fuzz");
+      if (snapshots[0].gasUsage.kind === "fuzz") {
+        assert.equal(snapshots[0].gasUsage.runs, 100n);
+        assert.equal(snapshots[0].gasUsage.meanGas, 25000n);
+        assert.equal(snapshots[0].gasUsage.medianGas, 24500n);
+      }
     });
 
     it("should parse mixed test types", () => {
@@ -382,16 +389,10 @@ MixedContract:testStandard (gas: 20000)`;
       assert.equal(snapshots.length, 2);
       assert.equal(snapshots[0].contractNameOrFqn, "MixedContract");
       assert.equal(snapshots[0].functionName, "testFuzz");
-      assert.ok(
-        "runs" in snapshots[0].gasUsage,
-        "gasUsage should be FuzzTestKind",
-      );
+      assert.equal(snapshots[0].gasUsage.kind, "fuzz");
       assert.equal(snapshots[1].contractNameOrFqn, "MixedContract");
       assert.equal(snapshots[1].functionName, "testStandard");
-      assert.ok(
-        "consumedGas" in snapshots[1].gasUsage,
-        "gasUsage should be StandardTestKind",
-      );
+      assert.equal(snapshots[1].gasUsage.kind, "standard");
     });
 
     it("should parse snapshots with FQN contract names", () => {
@@ -459,19 +460,21 @@ MyContract:testB (gas: 20000)`;
     });
 
     it("should save snapshots to .gas-snapshot file", async () => {
-      const snapshots = [
+      const snapshots: FunctionGasSnapshot[] = [
         {
           contractNameOrFqn: "MyContract",
           functionName: "testApprove",
           gasUsage: {
-            consumedGas: 30000n,
+            kind: "standard",
+            gas: 30000n,
           },
         },
         {
           contractNameOrFqn: "MyContract",
           functionName: "testTransfer",
           gasUsage: {
-            consumedGas: 25000n,
+            kind: "standard",
+            gas: 25000n,
           },
         },
       ];
@@ -487,21 +490,23 @@ MyContract:testTransfer (gas: 25000)`;
     });
 
     it("should overwrite existing snapshot file", async () => {
-      const firstSnapshots = [
+      const firstSnapshots: FunctionGasSnapshot[] = [
         {
           contractNameOrFqn: "MyContract",
           functionName: "testA",
           gasUsage: {
-            consumedGas: 10000n,
+            kind: "standard",
+            gas: 10000n,
           },
         },
       ];
-      const secondSnapshots = [
+      const secondSnapshots: FunctionGasSnapshot[] = [
         {
           contractNameOrFqn: "MyContract",
           functionName: "testB",
           gasUsage: {
-            consumedGas: 20000n,
+            kind: "standard",
+            gas: 20000n,
           },
         },
       ];
