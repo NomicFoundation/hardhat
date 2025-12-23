@@ -21,17 +21,37 @@ export interface FunctionGasSnapshot {
   gasUsage: StandardTestKindGasUsage | FuzzTestKindGasUsage;
 }
 
-interface StandardTestKindGasUsage {
+export interface StandardTestKindGasUsage {
   kind: "standard";
   gas: bigint;
 }
 
-interface FuzzTestKindGasUsage {
+export interface FuzzTestKindGasUsage {
   kind: "fuzz";
   runs: bigint;
   meanGas: bigint;
   medianGas: bigint;
 }
+
+export interface FunctionGasSnapshotComparison {
+  added: FunctionGasSnapshot[];
+  removed: FunctionGasSnapshot[];
+  changed: FunctionGasSnapshotChange[];
+}
+
+export type FunctionGasSnapshotChange =
+  | {
+      contractNameOrFqn: string;
+      functionName: string;
+      expected: StandardTestKindGasUsage;
+      actual: StandardTestKindGasUsage;
+    }
+  | {
+      contractNameOrFqn: string;
+      functionName: string;
+      expected: FuzzTestKindGasUsage;
+      actual: FuzzTestKindGasUsage;
+    };
 
 export function getFunctionGasSnapshotsPath(basePath: string): string {
   return path.join(basePath, FUNCTION_GAS_SNAPSHOTS_FILE);
@@ -192,4 +212,66 @@ export function parseFunctionGasSnapshots(
   }
 
   return gasSnapshots;
+}
+
+export function compareFunctionGasSnapshots(
+  previousSnapshots: FunctionGasSnapshot[],
+  currentSnapshots: FunctionGasSnapshot[],
+): FunctionGasSnapshotComparison {
+  const previousSnapshotsMap = new Map(
+    previousSnapshots.map((s) => [
+      `${s.contractNameOrFqn}:${s.functionName}`,
+      s,
+    ]),
+  );
+
+  const added: FunctionGasSnapshot[] = [];
+  const changed: FunctionGasSnapshotChange[] = [];
+
+  for (const current of currentSnapshots) {
+    const key = `${current.contractNameOrFqn}:${current.functionName}`;
+    const previous = previousSnapshotsMap.get(key);
+
+    if (
+      previous === undefined ||
+      // If the kind doesn't match, we treat it as an addition + removal
+      previous.gasUsage.kind !== current.gasUsage.kind
+    ) {
+      added.push(current);
+      continue;
+    }
+
+    if (hasGasUsageChanged(previous.gasUsage, current.gasUsage)) {
+      /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions
+      -- Safe: we've verified both have the same kind, and hasGasUsageChanged
+      returns true only when both are the same type (both standard or both fuzz) */
+      changed.push({
+        contractNameOrFqn: current.contractNameOrFqn,
+        functionName: current.functionName,
+        expected: previous.gasUsage,
+        actual: current.gasUsage,
+      } as FunctionGasSnapshotChange);
+    }
+
+    previousSnapshotsMap.delete(key);
+  }
+
+  const removed = Array.from(previousSnapshotsMap.values());
+
+  return { added, removed, changed };
+}
+
+export function hasGasUsageChanged(
+  previous: StandardTestKindGasUsage | FuzzTestKindGasUsage,
+  current: StandardTestKindGasUsage | FuzzTestKindGasUsage,
+): boolean {
+  if (previous.kind === "standard" && current.kind === "standard") {
+    return previous.gas !== current.gas;
+  }
+
+  if (previous.kind === "fuzz" && current.kind === "fuzz") {
+    return previous.medianGas !== current.medianGas;
+  }
+
+  return false;
 }

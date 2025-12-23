@@ -5,6 +5,7 @@ import type { SuiteResult } from "@nomicfoundation/edr";
 import { FileNotFoundError } from "@nomicfoundation/hardhat-utils/fs";
 
 import {
+  compareFunctionGasSnapshots,
   extractFunctionGasSnapshots,
   readFunctionGasSnapshots,
   writeGasFunctionSnapshots,
@@ -33,7 +34,12 @@ const runSolidityTests: TaskOverrideActionFunction<
       try {
         previousFunctionGasSnapshots = await readFunctionGasSnapshots(rootPath);
 
-        console.log({ functionGasSnapshots, previousFunctionGasSnapshots });
+        const functionGasSnapshotComparison = compareFunctionGasSnapshots(
+          previousFunctionGasSnapshots,
+          functionGasSnapshots,
+        );
+
+        console.log({ functionGasSnapshotComparison });
       } catch (error) {
         if (error instanceof FileNotFoundError) {
           await writeGasFunctionSnapshots(rootPath, functionGasSnapshots);
