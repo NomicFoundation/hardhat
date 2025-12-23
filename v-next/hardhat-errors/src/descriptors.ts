@@ -1047,17 +1047,17 @@ Remaining test suites: {suites}`,
       },
       GAS_SNAPSHOT_READ_ERROR: {
         number: 804,
-        messageTemplate: "Error reading gas snapshot file at {path}: {error}",
+        messageTemplate:
+          "Error reading gas snapshot file at {snapshotsPath}: {error}",
         websiteTitle: "Error reading gas snapshot file",
-        websiteDescription:
-          "There was an error reading the gas snapshot file.",
+        websiteDescription: "There was an error reading the gas snapshot file.",
       },
       GAS_SNAPSHOT_WRITE_ERROR: {
         number: 805,
-        messageTemplate: "Error writing gas snapshot file at {path}: {error}",
+        messageTemplate:
+          "Error writing gas snapshot file at {snapshotsPath}: {error}",
         websiteTitle: "Error writing gas snapshot file",
-        websiteDescription:
-          "There was an error writing the gas snapshot file.",
+        websiteDescription: "There was an error writing the gas snapshot file.",
       },
     },
     SOLIDITY: {
