@@ -8,7 +8,7 @@ import {
   compareFunctionGasSnapshots,
   extractFunctionGasSnapshots,
   readFunctionGasSnapshots,
-  writeGasFunctionSnapshots,
+  writeFunctionGasSnapshots,
 } from "../../gas-snapshots.js";
 
 interface GasAnalyticsTestActionArguments {
@@ -27,7 +27,7 @@ const runSolidityTests: TaskOverrideActionFunction<
   if (testsPassed) {
     if (args.snapshot) {
       const functionGasSnapshots = extractFunctionGasSnapshots(suiteResults);
-      await writeGasFunctionSnapshots(rootPath, functionGasSnapshots);
+      await writeFunctionGasSnapshots(rootPath, functionGasSnapshots);
     } else if (args.snapshotCheck) {
       const functionGasSnapshots = extractFunctionGasSnapshots(suiteResults);
       let previousFunctionGasSnapshots: FunctionGasSnapshot[];
@@ -42,7 +42,7 @@ const runSolidityTests: TaskOverrideActionFunction<
         console.log({ functionGasSnapshotComparison });
       } catch (error) {
         if (error instanceof FileNotFoundError) {
-          await writeGasFunctionSnapshots(rootPath, functionGasSnapshots);
+          await writeFunctionGasSnapshots(rootPath, functionGasSnapshots);
         } else {
           throw error;
         }

@@ -64,10 +64,10 @@ export function extractFunctionGasSnapshots(
     suiteResults.map(({ id }) => id.name),
   );
 
-  const gasSnapshots: FunctionGasSnapshot[] = [];
+  const snapshots: FunctionGasSnapshot[] = [];
   for (const { id: suiteId, testResults } of suiteResults) {
-    for (const testResult of testResults) {
-      if ("calls" in testResult.kind) {
+    for (const { name: functionName, kind: testKind } of testResults) {
+      if ("calls" in testKind) {
         continue;
       }
 
@@ -76,43 +76,43 @@ export function extractFunctionGasSnapshots(
         : suiteId.name;
 
       const gasUsage =
-        "consumedGas" in testResult.kind
+        "consumedGas" in testKind
           ? {
               kind: "standard" as const,
-              gas: testResult.kind.consumedGas,
+              gas: testKind.consumedGas,
             }
           : {
               kind: "fuzz" as const,
-              runs: testResult.kind.runs,
-              meanGas: testResult.kind.meanGas,
-              medianGas: testResult.kind.medianGas,
+              runs: testKind.runs,
+              meanGas: testKind.meanGas,
+              medianGas: testKind.medianGas,
             };
 
-      gasSnapshots.push({
+      snapshots.push({
         contractNameOrFqn,
-        functionName: testResult.name,
+        functionName,
         gasUsage,
       });
     }
   }
-  return gasSnapshots;
+  return snapshots;
 }
 
-export async function writeGasFunctionSnapshots(
+export async function writeFunctionGasSnapshots(
   basePath: string,
-  gasSnapshots: FunctionGasSnapshot[],
+  snapshots: FunctionGasSnapshot[],
 ): Promise<void> {
-  const snapshotPath = getFunctionGasSnapshotsPath(basePath);
+  const snapshotsPath = getFunctionGasSnapshotsPath(basePath);
   try {
     await writeUtf8File(
-      snapshotPath,
-      stringifyFunctionGasSnapshots(gasSnapshots),
+      snapshotsPath,
+      stringifyFunctionGasSnapshots(snapshots),
     );
   } catch (error) {
     ensureError(error);
     throw new HardhatError(
       HardhatError.ERRORS.CORE.SOLIDITY_TESTS.GAS_SNAPSHOT_WRITE_ERROR,
-      { path: snapshotPath, error: error.message },
+      { snapshotsPath, error: error.message },
       error,
     );
   }
@@ -121,10 +121,10 @@ export async function writeGasFunctionSnapshots(
 export async function readFunctionGasSnapshots(
   basePath: string,
 ): Promise<FunctionGasSnapshot[]> {
-  const snapshotPath = getFunctionGasSnapshotsPath(basePath);
+  const snapshotsPath = getFunctionGasSnapshotsPath(basePath);
   let stringifiedSnapshots: string;
   try {
-    stringifiedSnapshots = await readUtf8File(snapshotPath);
+    stringifiedSnapshots = await readUtf8File(snapshotsPath);
   } catch (error) {
     ensureError(error);
 
@@ -135,7 +135,7 @@ export async function readFunctionGasSnapshots(
 
     throw new HardhatError(
       HardhatError.ERRORS.CORE.SOLIDITY_TESTS.GAS_SNAPSHOT_READ_ERROR,
-      { path: snapshotPath, error: error.message },
+      { snapshotsPath, error: error.message },
       error,
     );
   }
@@ -144,10 +144,10 @@ export async function readFunctionGasSnapshots(
 }
 
 export function stringifyFunctionGasSnapshots(
-  gasSnapshots: FunctionGasSnapshot[],
+  snapshots: FunctionGasSnapshot[],
 ): string {
   const lines: string[] = [];
-  for (const { contractNameOrFqn, functionName, gasUsage } of gasSnapshots) {
+  for (const { contractNameOrFqn, functionName, gasUsage } of snapshots) {
     const gasDetails =
       gasUsage.kind === "standard"
         ? `gas: ${gasUsage.gas}`
@@ -167,7 +167,7 @@ export function parseFunctionGasSnapshots(
   }
 
   const lines = stringifiedSnapshots.split("\n");
-  const gasSnapshots: FunctionGasSnapshot[] = [];
+  const snapshots: FunctionGasSnapshot[] = [];
 
   const standardTestRegex = /^(.+):([^:]+) \(gas: (\d+)\)$/;
   const fuzzTestRegex = /^(.+):([^:]+) \(runs: (\d+), μ: (\d+), ~: (\d+)\)$/;
@@ -180,7 +180,7 @@ export function parseFunctionGasSnapshots(
     const standardMatch = standardTestRegex.exec(line);
     if (standardMatch !== null) {
       const [, contractNameOrFqn, functionName, gasValue] = standardMatch;
-      gasSnapshots.push({
+      snapshots.push({
         contractNameOrFqn,
         functionName,
         gasUsage: { kind: "standard", gas: BigInt(gasValue) },
@@ -192,7 +192,7 @@ export function parseFunctionGasSnapshots(
     if (fuzzMatch !== null) {
       const [, contractNameOrFqn, functionName, runs, meanGas, medianGas] =
         fuzzMatch;
-      gasSnapshots.push({
+      snapshots.push({
         contractNameOrFqn,
         functionName,
         gasUsage: {
@@ -211,7 +211,7 @@ export function parseFunctionGasSnapshots(
     );
   }
 
-  return gasSnapshots;
+  return snapshots;
 }
 
 export function compareFunctionGasSnapshots(
