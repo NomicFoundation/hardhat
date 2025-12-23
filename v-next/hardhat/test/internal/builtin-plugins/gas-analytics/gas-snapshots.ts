@@ -186,6 +186,173 @@ describe("gas-snapshots", () => {
     });
   });
 
+  describe("writeFunctionGasSnapshots", () => {
+    let tmpDir: string;
+
+    before(async () => {
+      tmpDir = await mkdtemp("gas-snapshots-test-");
+    });
+
+    afterEach(async () => {
+      await emptyDir(tmpDir);
+    });
+
+    it("should save snapshots to .gas-snapshot file", async () => {
+      const snapshots: FunctionGasSnapshot[] = [
+        {
+          contractNameOrFqn: "MyContract",
+          functionName: "testApprove",
+          gasUsage: {
+            kind: "standard",
+            gas: 30000n,
+          },
+        },
+        {
+          contractNameOrFqn: "MyContract",
+          functionName: "testTransfer",
+          gasUsage: {
+            kind: "standard",
+            gas: 25000n,
+          },
+        },
+      ];
+
+      await writeFunctionGasSnapshots(tmpDir, snapshots);
+
+      const snapshotPath = getFunctionGasSnapshotsPath(tmpDir);
+      const savedContent = await readUtf8File(snapshotPath);
+
+      const expected = `MyContract:testApprove (gas: 30000)
+MyContract:testTransfer (gas: 25000)`;
+      assert.equal(savedContent, expected);
+    });
+
+    it("should overwrite existing snapshot file", async () => {
+      const firstSnapshots: FunctionGasSnapshot[] = [
+        {
+          contractNameOrFqn: "MyContract",
+          functionName: "testA",
+          gasUsage: {
+            kind: "standard",
+            gas: 10000n,
+          },
+        },
+      ];
+      const secondSnapshots: FunctionGasSnapshot[] = [
+        {
+          contractNameOrFqn: "MyContract",
+          functionName: "testB",
+          gasUsage: {
+            kind: "standard",
+            gas: 20000n,
+          },
+        },
+      ];
+
+      await writeFunctionGasSnapshots(tmpDir, firstSnapshots);
+      await writeFunctionGasSnapshots(tmpDir, secondSnapshots);
+
+      const snapshotPath = getFunctionGasSnapshotsPath(tmpDir);
+      const savedContent = await readUtf8File(snapshotPath);
+
+      assert.equal(savedContent, "MyContract:testB (gas: 20000)");
+    });
+
+    it("should save empty snapshots", async () => {
+      const emptySnapshots: FunctionGasSnapshot[] = [];
+
+      await writeFunctionGasSnapshots(tmpDir, emptySnapshots);
+
+      const snapshotPath = getFunctionGasSnapshotsPath(tmpDir);
+      const savedContent = await readUtf8File(snapshotPath);
+
+      assert.equal(savedContent, "");
+    });
+
+    it("should throw HardhatError on write failure", async () => {
+      const snapshots: FunctionGasSnapshot[] = [
+        {
+          contractNameOrFqn: "MyContract",
+          functionName: "testA",
+          gasUsage: {
+            kind: "standard",
+            gas: 10000n,
+          },
+        },
+      ];
+
+      const invalidPath = "invalid\0path";
+      const snapshotsPath = getFunctionGasSnapshotsPath(invalidPath);
+
+      await assertRejectsWithHardhatError(
+        () => writeFunctionGasSnapshots(invalidPath, snapshots),
+        HardhatError.ERRORS.CORE.SOLIDITY_TESTS.GAS_SNAPSHOT_WRITE_ERROR,
+        {
+          snapshotsPath,
+          error:
+            "The argument 'path' must be a string, Uint8Array, or URL without null bytes. Received 'invalid\\x00path'",
+        },
+      );
+    });
+  });
+
+  describe("readFunctionGasSnapshots", () => {
+    let tmpDir: string;
+
+    before(async () => {
+      tmpDir = await mkdtemp("gas-snapshots-test-");
+    });
+
+    afterEach(async () => {
+      await emptyDir(tmpDir);
+    });
+
+    it("should read snapshots from file", async () => {
+      const snapshots: FunctionGasSnapshot[] = [
+        {
+          contractNameOrFqn: "MyContract",
+          functionName: "testA",
+          gasUsage: {
+            kind: "standard",
+            gas: 10000n,
+          },
+        },
+      ];
+
+      await writeFunctionGasSnapshots(tmpDir, snapshots);
+      const readSnapshots = await readFunctionGasSnapshots(tmpDir);
+
+      assert.deepEqual(readSnapshots, snapshots);
+    });
+
+    it("should throw FileNotFoundError when file doesn't exist", async () => {
+      try {
+        // file does not exist
+        await readFunctionGasSnapshots(tmpDir);
+        assert.fail("Expected FileNotFoundError to be thrown");
+      } catch (error) {
+        assert.ok(
+          error instanceof FileNotFoundError,
+          "Error should be FileNotFoundError",
+        );
+      }
+    });
+
+    it("should throw HardhatError on read failure", async () => {
+      const invalidPath = "invalid\0path";
+      const snapshotsPath = getFunctionGasSnapshotsPath(invalidPath);
+      await assertRejectsWithHardhatError(
+        () => readFunctionGasSnapshots(invalidPath),
+        HardhatError.ERRORS.CORE.SOLIDITY_TESTS.GAS_SNAPSHOT_READ_ERROR,
+        {
+          snapshotsPath,
+          error:
+            "The argument 'path' must be a string, Uint8Array, or URL without null bytes. Received 'invalid\\x00path/.gas-snapshot'",
+        },
+      );
+    });
+  });
+
   describe("stringifyFunctionGasSnapshots", () => {
     it("should stringify standard test snapshots", () => {
       const snapshots: FunctionGasSnapshot[] = [
@@ -449,173 +616,6 @@ MyContract:testB (gas: 20000)`;
         () => parseFunctionGasSnapshots(stringified),
         HardhatError.ERRORS.CORE.SOLIDITY_TESTS.INVALID_GAS_SNAPSHOT_FORMAT,
         { line: stringified },
-      );
-    });
-  });
-
-  describe("writeFunctionGasSnapshots", () => {
-    let tmpDir: string;
-
-    before(async () => {
-      tmpDir = await mkdtemp("gas-snapshots-test-");
-    });
-
-    afterEach(async () => {
-      await emptyDir(tmpDir);
-    });
-
-    it("should save snapshots to .gas-snapshot file", async () => {
-      const snapshots: FunctionGasSnapshot[] = [
-        {
-          contractNameOrFqn: "MyContract",
-          functionName: "testApprove",
-          gasUsage: {
-            kind: "standard",
-            gas: 30000n,
-          },
-        },
-        {
-          contractNameOrFqn: "MyContract",
-          functionName: "testTransfer",
-          gasUsage: {
-            kind: "standard",
-            gas: 25000n,
-          },
-        },
-      ];
-
-      await writeFunctionGasSnapshots(tmpDir, snapshots);
-
-      const snapshotPath = getFunctionGasSnapshotsPath(tmpDir);
-      const savedContent = await readUtf8File(snapshotPath);
-
-      const expected = `MyContract:testApprove (gas: 30000)
-MyContract:testTransfer (gas: 25000)`;
-      assert.equal(savedContent, expected);
-    });
-
-    it("should overwrite existing snapshot file", async () => {
-      const firstSnapshots: FunctionGasSnapshot[] = [
-        {
-          contractNameOrFqn: "MyContract",
-          functionName: "testA",
-          gasUsage: {
-            kind: "standard",
-            gas: 10000n,
-          },
-        },
-      ];
-      const secondSnapshots: FunctionGasSnapshot[] = [
-        {
-          contractNameOrFqn: "MyContract",
-          functionName: "testB",
-          gasUsage: {
-            kind: "standard",
-            gas: 20000n,
-          },
-        },
-      ];
-
-      await writeFunctionGasSnapshots(tmpDir, firstSnapshots);
-      await writeFunctionGasSnapshots(tmpDir, secondSnapshots);
-
-      const snapshotPath = getFunctionGasSnapshotsPath(tmpDir);
-      const savedContent = await readUtf8File(snapshotPath);
-
-      assert.equal(savedContent, "MyContract:testB (gas: 20000)");
-    });
-
-    it("should save empty snapshots", async () => {
-      const emptySnapshots: FunctionGasSnapshot[] = [];
-
-      await writeFunctionGasSnapshots(tmpDir, emptySnapshots);
-
-      const snapshotPath = getFunctionGasSnapshotsPath(tmpDir);
-      const savedContent = await readUtf8File(snapshotPath);
-
-      assert.equal(savedContent, "");
-    });
-
-    it("should throw HardhatError on write failure", async () => {
-      const snapshots: FunctionGasSnapshot[] = [
-        {
-          contractNameOrFqn: "MyContract",
-          functionName: "testA",
-          gasUsage: {
-            kind: "standard",
-            gas: 10000n,
-          },
-        },
-      ];
-
-      const invalidPath = "invalid\0path";
-      const snapshotsPath = getFunctionGasSnapshotsPath(invalidPath);
-
-      await assertRejectsWithHardhatError(
-        () => writeFunctionGasSnapshots(invalidPath, snapshots),
-        HardhatError.ERRORS.CORE.SOLIDITY_TESTS.GAS_SNAPSHOT_WRITE_ERROR,
-        {
-          snapshotsPath,
-          error:
-            "The argument 'path' must be a string, Uint8Array, or URL without null bytes. Received 'invalid\\x00path'",
-        },
-      );
-    });
-  });
-
-  describe("readFunctionGasSnapshots", () => {
-    let tmpDir: string;
-
-    before(async () => {
-      tmpDir = await mkdtemp("gas-snapshots-test-");
-    });
-
-    afterEach(async () => {
-      await emptyDir(tmpDir);
-    });
-
-    it("should read snapshots from file", async () => {
-      const snapshots: FunctionGasSnapshot[] = [
-        {
-          contractNameOrFqn: "MyContract",
-          functionName: "testA",
-          gasUsage: {
-            kind: "standard",
-            gas: 10000n,
-          },
-        },
-      ];
-
-      await writeFunctionGasSnapshots(tmpDir, snapshots);
-      const readSnapshots = await readFunctionGasSnapshots(tmpDir);
-
-      assert.deepEqual(readSnapshots, snapshots);
-    });
-
-    it("should throw FileNotFoundError when file doesn't exist", async () => {
-      try {
-        // file does not exist
-        await readFunctionGasSnapshots(tmpDir);
-        assert.fail("Expected FileNotFoundError to be thrown");
-      } catch (error) {
-        assert.ok(
-          error instanceof FileNotFoundError,
-          "Error should be FileNotFoundError",
-        );
-      }
-    });
-
-    it("should throw HardhatError on read failure", async () => {
-      const invalidPath = "invalid\0path";
-      const snapshotsPath = getFunctionGasSnapshotsPath(invalidPath);
-      await assertRejectsWithHardhatError(
-        () => readFunctionGasSnapshots(invalidPath),
-        HardhatError.ERRORS.CORE.SOLIDITY_TESTS.GAS_SNAPSHOT_READ_ERROR,
-        {
-          snapshotsPath,
-          error:
-            "The argument 'path' must be a string, Uint8Array, or URL without null bytes. Received 'invalid\\x00path/.gas-snapshot'",
-        },
       );
     });
   });
