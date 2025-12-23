@@ -7,7 +7,10 @@ import { afterEach, before, describe, it } from "node:test";
 
 import { TestStatus } from "@nomicfoundation/edr";
 import { HardhatError } from "@nomicfoundation/hardhat-errors";
-import { assertThrowsHardhatError } from "@nomicfoundation/hardhat-test-utils";
+import {
+  assertRejectsWithHardhatError,
+  assertThrowsHardhatError,
+} from "@nomicfoundation/hardhat-test-utils";
 import {
   emptyDir,
   mkdtemp,
@@ -529,6 +532,32 @@ MyContract:testTransfer (gas: 25000)`;
       const savedContent = await readUtf8File(snapshotPath);
 
       assert.equal(savedContent, "");
+    });
+
+    it("should throw HardhatError on write failure", async () => {
+      const snapshots: FunctionGasSnapshot[] = [
+        {
+          contractNameOrFqn: "MyContract",
+          functionName: "testA",
+          gasUsage: {
+            kind: "standard",
+            gas: 10000n,
+          },
+        },
+      ];
+
+      const invalidPath = "invalid\0path";
+      const snapshotsPath = path.join(invalidPath, ".gas-snapshot");
+
+      await assertRejectsWithHardhatError(
+        () => writeFunctionGasSnapshots(invalidPath, snapshots),
+        HardhatError.ERRORS.CORE.SOLIDITY_TESTS.GAS_SNAPSHOT_WRITE_ERROR,
+        {
+          snapshotsPath,
+          error:
+            "The argument 'path' must be a string, Uint8Array, or URL without null bytes. Received 'invalid\\x00path'",
+        },
+      );
     });
   });
 });
