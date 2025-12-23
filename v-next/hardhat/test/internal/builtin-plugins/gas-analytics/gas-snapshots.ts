@@ -12,6 +12,7 @@ import {
 } from "@nomicfoundation/hardhat-test-utils";
 import {
   emptyDir,
+  FileNotFoundError,
   mkdtemp,
   readUtf8File,
 } from "@nomicfoundation/hardhat-utils/fs";
@@ -20,6 +21,7 @@ import {
   extractFunctionGasSnapshots,
   getFunctionGasSnapshotsPath,
   parseFunctionGasSnapshots,
+  readFunctionGasSnapshots,
   stringifyFunctionGasSnapshots,
   writeFunctionGasSnapshots,
 } from "../../../../src/internal/builtin-plugins/gas-analytics/gas-snapshots.js";
@@ -556,6 +558,63 @@ MyContract:testTransfer (gas: 25000)`;
           snapshotsPath,
           error:
             "The argument 'path' must be a string, Uint8Array, or URL without null bytes. Received 'invalid\\x00path'",
+        },
+      );
+    });
+  });
+
+  describe("readFunctionGasSnapshots", () => {
+    let tmpDir: string;
+
+    before(async () => {
+      tmpDir = await mkdtemp("gas-snapshots-test-");
+    });
+
+    afterEach(async () => {
+      await emptyDir(tmpDir);
+    });
+
+    it("should read snapshots from file", async () => {
+      const snapshots: FunctionGasSnapshot[] = [
+        {
+          contractNameOrFqn: "MyContract",
+          functionName: "testA",
+          gasUsage: {
+            kind: "standard",
+            gas: 10000n,
+          },
+        },
+      ];
+
+      await writeFunctionGasSnapshots(tmpDir, snapshots);
+      const readSnapshots = await readFunctionGasSnapshots(tmpDir);
+
+      assert.deepEqual(readSnapshots, snapshots);
+    });
+
+    it("should throw FileNotFoundError when file doesn't exist", async () => {
+      try {
+        // file does not exist
+        await readFunctionGasSnapshots(tmpDir);
+        assert.fail("Expected FileNotFoundError to be thrown");
+      } catch (error) {
+        assert.ok(
+          error instanceof FileNotFoundError,
+          "Error should be FileNotFoundError",
+        );
+      }
+    });
+
+    it("should throw HardhatError on read failure", async () => {
+      const invalidPath = "invalid\0path";
+      const snapshotsPath = getFunctionGasSnapshotsPath(invalidPath);
+      await assertRejectsWithHardhatError(
+        () => readFunctionGasSnapshots(invalidPath),
+        HardhatError.ERRORS.CORE.SOLIDITY_TESTS.GAS_SNAPSHOT_READ_ERROR,
+        {
+          snapshotsPath,
+          error:
+            "The argument 'path' must be a string, Uint8Array, or URL without null bytes. Received 'invalid\\x00path/.gas-snapshot'",
         },
       );
     });
