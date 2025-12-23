@@ -18,8 +18,10 @@ import {
 } from "@nomicfoundation/hardhat-utils/fs";
 
 import {
+  compareFunctionGasSnapshots,
   extractFunctionGasSnapshots,
   getFunctionGasSnapshotsPath,
+  hasGasUsageChanged,
   parseFunctionGasSnapshots,
   readFunctionGasSnapshots,
   stringifyFunctionGasSnapshots,
@@ -617,6 +619,300 @@ MyContract:testB (gas: 20000)`;
         HardhatError.ERRORS.CORE.SOLIDITY_TESTS.INVALID_GAS_SNAPSHOT_FORMAT,
         { line: stringified },
       );
+    });
+  });
+
+  describe("compareFunctionGasSnapshots", () => {
+    it("should return empty comparison when both snapshots are empty", () => {
+      const result = compareFunctionGasSnapshots([], []);
+
+      assert.deepEqual(result, {
+        added: [],
+        removed: [],
+        changed: [],
+      });
+    });
+
+    it("should detect added snapshots", () => {
+      const previous: FunctionGasSnapshot[] = [];
+      const current: FunctionGasSnapshot[] = [
+        {
+          contractNameOrFqn: "MyContract",
+          functionName: "testA",
+          gasUsage: { kind: "standard", gas: 10000n },
+        },
+      ];
+
+      const result = compareFunctionGasSnapshots(previous, current);
+
+      assert.equal(result.added.length, 1);
+      assert.equal(result.removed.length, 0);
+      assert.equal(result.changed.length, 0);
+      assert.deepEqual(result.added[0], current[0]);
+    });
+
+    it("should detect removed snapshots", () => {
+      const previous: FunctionGasSnapshot[] = [
+        {
+          contractNameOrFqn: "MyContract",
+          functionName: "testA",
+          gasUsage: { kind: "standard", gas: 10000n },
+        },
+      ];
+      const current: FunctionGasSnapshot[] = [];
+
+      const result = compareFunctionGasSnapshots(previous, current);
+
+      assert.equal(result.added.length, 0);
+      assert.equal(result.removed.length, 1);
+      assert.equal(result.changed.length, 0);
+      assert.deepEqual(result.removed[0], previous[0]);
+    });
+
+    it("should detect changed standard test snapshots", () => {
+      const previous: FunctionGasSnapshot[] = [
+        {
+          contractNameOrFqn: "MyContract",
+          functionName: "testA",
+          gasUsage: { kind: "standard", gas: 10000n },
+        },
+      ];
+      const current: FunctionGasSnapshot[] = [
+        {
+          contractNameOrFqn: "MyContract",
+          functionName: "testA",
+          gasUsage: { kind: "standard", gas: 15000n },
+        },
+      ];
+
+      const result = compareFunctionGasSnapshots(previous, current);
+
+      assert.equal(result.added.length, 0);
+      assert.equal(result.removed.length, 0);
+      assert.equal(result.changed.length, 1);
+      assert.equal(result.changed[0].contractNameOrFqn, "MyContract");
+      assert.equal(result.changed[0].functionName, "testA");
+      assert.equal(result.changed[0].expected.kind, "standard");
+      assert.equal(result.changed[0].expected.gas, 10000n);
+      assert.equal(result.changed[0].actual.kind, "standard");
+      assert.equal(result.changed[0].actual.gas, 15000n);
+    });
+
+    it("should detect changed fuzz test snapshots", () => {
+      const previous: FunctionGasSnapshot[] = [
+        {
+          contractNameOrFqn: "FuzzContract",
+          functionName: "testFuzz",
+          gasUsage: {
+            kind: "fuzz",
+            runs: 100n,
+            meanGas: 25000n,
+            medianGas: 24500n,
+          },
+        },
+      ];
+      const current: FunctionGasSnapshot[] = [
+        {
+          contractNameOrFqn: "FuzzContract",
+          functionName: "testFuzz",
+          gasUsage: {
+            kind: "fuzz",
+            runs: 100n,
+            meanGas: 26000n,
+            medianGas: 25000n,
+          },
+        },
+      ];
+
+      const result = compareFunctionGasSnapshots(previous, current);
+
+      assert.equal(result.added.length, 0);
+      assert.equal(result.removed.length, 0);
+      assert.equal(result.changed.length, 1);
+      assert.equal(result.changed[0].contractNameOrFqn, "FuzzContract");
+      assert.equal(result.changed[0].functionName, "testFuzz");
+      assert.equal(result.changed[0].expected.kind, "fuzz");
+      assert.equal(result.changed[0].expected.medianGas, 24500n);
+      assert.equal(result.changed[0].actual.kind, "fuzz");
+      assert.equal(result.changed[0].actual.medianGas, 25000n);
+    });
+
+    it("should treat kind change as addition + removal", () => {
+      const previous: FunctionGasSnapshot[] = [
+        {
+          contractNameOrFqn: "MyContract",
+          functionName: "testA",
+          gasUsage: { kind: "standard", gas: 10000n },
+        },
+      ];
+      const current: FunctionGasSnapshot[] = [
+        {
+          contractNameOrFqn: "MyContract",
+          functionName: "testA",
+          gasUsage: {
+            kind: "fuzz",
+            runs: 100n,
+            meanGas: 25000n,
+            medianGas: 24500n,
+          },
+        },
+      ];
+
+      const result = compareFunctionGasSnapshots(previous, current);
+
+      assert.equal(result.added.length, 1);
+      assert.equal(result.removed.length, 1);
+      assert.equal(result.changed.length, 0);
+      assert.deepEqual(result.added[0], current[0]);
+      assert.deepEqual(result.removed[0], previous[0]);
+    });
+
+    it("should handle multiple changes", () => {
+      const previous: FunctionGasSnapshot[] = [
+        {
+          contractNameOrFqn: "ContractA",
+          functionName: "testA",
+          gasUsage: { kind: "standard", gas: 10000n },
+        },
+        {
+          contractNameOrFqn: "ContractB",
+          functionName: "testB",
+          gasUsage: { kind: "standard", gas: 20000n },
+        },
+        {
+          contractNameOrFqn: "ContractC",
+          functionName: "testC",
+          gasUsage: { kind: "standard", gas: 30000n },
+        },
+      ];
+      const current: FunctionGasSnapshot[] = [
+        {
+          contractNameOrFqn: "ContractA",
+          functionName: "testA",
+          gasUsage: { kind: "standard", gas: 15000n },
+        },
+        {
+          contractNameOrFqn: "ContractB",
+          functionName: "testB",
+          gasUsage: { kind: "standard", gas: 20000n },
+        },
+        {
+          contractNameOrFqn: "ContractD",
+          functionName: "testD",
+          gasUsage: { kind: "standard", gas: 40000n },
+        },
+      ];
+
+      const result = compareFunctionGasSnapshots(previous, current);
+
+      assert.equal(result.added.length, 1);
+      assert.equal(result.removed.length, 1);
+      assert.equal(result.changed.length, 1);
+      assert.equal(result.added[0].contractNameOrFqn, "ContractD");
+      assert.equal(result.removed[0].contractNameOrFqn, "ContractC");
+      assert.equal(result.changed[0].contractNameOrFqn, "ContractA");
+    });
+
+    it("should handle unchanged snapshots", () => {
+      const previous: FunctionGasSnapshot[] = [
+        {
+          contractNameOrFqn: "MyContract",
+          functionName: "testA",
+          gasUsage: { kind: "standard", gas: 10000n },
+        },
+      ];
+      const current: FunctionGasSnapshot[] = [
+        {
+          contractNameOrFqn: "MyContract",
+          functionName: "testA",
+          gasUsage: { kind: "standard", gas: 10000n },
+        },
+      ];
+
+      const result = compareFunctionGasSnapshots(previous, current);
+
+      assert.equal(result.added.length, 0);
+      assert.equal(result.removed.length, 0);
+      assert.equal(result.changed.length, 0);
+    });
+  });
+
+  describe("hasGasUsageChanged", () => {
+    it("should return false for identical standard gas usage", () => {
+      const previous = { kind: "standard" as const, gas: 10000n };
+      const current = { kind: "standard" as const, gas: 10000n };
+
+      assert.equal(hasGasUsageChanged(previous, current), false);
+    });
+
+    it("should return true for different standard gas usage", () => {
+      const previous = { kind: "standard" as const, gas: 10000n };
+      const current = { kind: "standard" as const, gas: 15000n };
+
+      assert.equal(hasGasUsageChanged(previous, current), true);
+    });
+
+    it("should return false for identical fuzz gas usage", () => {
+      const previous = {
+        kind: "fuzz" as const,
+        runs: 100n,
+        meanGas: 25000n,
+        medianGas: 24500n,
+      };
+      const current = {
+        kind: "fuzz" as const,
+        runs: 100n,
+        meanGas: 25000n,
+        medianGas: 24500n,
+      };
+
+      assert.equal(hasGasUsageChanged(previous, current), false);
+    });
+
+    it("should return true for different fuzz median gas", () => {
+      const previous = {
+        kind: "fuzz" as const,
+        runs: 100n,
+        meanGas: 25000n,
+        medianGas: 24500n,
+      };
+      const current = {
+        kind: "fuzz" as const,
+        runs: 100n,
+        meanGas: 25000n,
+        medianGas: 25000n,
+      };
+
+      assert.equal(hasGasUsageChanged(previous, current), true);
+    });
+
+    it("should return false for fuzz tests with different mean gas but same median", () => {
+      const previous = {
+        kind: "fuzz" as const,
+        runs: 100n,
+        meanGas: 25000n,
+        medianGas: 24500n,
+      };
+      const current = {
+        kind: "fuzz" as const,
+        runs: 100n,
+        meanGas: 26000n,
+        medianGas: 24500n,
+      };
+
+      assert.equal(hasGasUsageChanged(previous, current), false);
+    });
+
+    it("should return false for different kinds", () => {
+      const previous = { kind: "standard" as const, gas: 10000n };
+      const current = {
+        kind: "fuzz" as const,
+        runs: 100n,
+        meanGas: 25000n,
+        medianGas: 24500n,
+      };
+
+      assert.equal(hasGasUsageChanged(previous, current), false);
     });
   });
 });
