@@ -18,7 +18,7 @@ export async function main() {
     process.exit(1);
   }
 
-  const { status } = spawnSync(
+  const { status, signal } = spawnSync(
     "node",
     [pathToHardhat, ...process.argv.slice(2)],
     {
@@ -26,7 +26,15 @@ export async function main() {
     }
   );
 
-  process.exitCode = status ?? 0;
+  if (status !== null) {
+    process.exitCode = status;
+  } else {
+    // Treat signal terminations as failures so CI/shells don't see false success
+    if (signal !== null) {
+      console.error(`[hh] terminated by signal: ${signal}`);
+    }
+    process.exitCode = 1;
+  }
 }
 
 main()
