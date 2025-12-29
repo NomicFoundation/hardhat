@@ -39,19 +39,14 @@ export interface FunctionGasSnapshotComparison {
   changed: FunctionGasSnapshotChange[];
 }
 
-export type FunctionGasSnapshotChange =
-  | {
-      contractNameOrFqn: string;
-      functionName: string;
-      expected: StandardTestKindGasUsage;
-      actual: StandardTestKindGasUsage;
-    }
-  | {
-      contractNameOrFqn: string;
-      functionName: string;
-      expected: FuzzTestKindGasUsage;
-      actual: FuzzTestKindGasUsage;
-    };
+export interface FunctionGasSnapshotChange {
+  contractNameOrFqn: string;
+  functionName: string;
+  kind: "standard" | "fuzz";
+  expected: number;
+  actual: number;
+  runs?: number;
+}
 
 export function getFunctionGasSnapshotsPath(basePath: string): string {
   return path.join(basePath, FUNCTION_GAS_SNAPSHOTS_FILE);
@@ -231,28 +226,38 @@ export function compareFunctionGasSnapshots(
   for (const current of currentSnapshots) {
     const key = `${current.contractNameOrFqn}:${current.functionName}`;
     const previous = previousSnapshotsMap.get(key);
+    const currentKind = current.gasUsage.kind;
+    const previousKind = previous?.gasUsage.kind;
 
     if (
       previous === undefined ||
       // If the kind doesn't match, we treat it as an addition + removal
-      previous.gasUsage.kind !== current.gasUsage.kind
+      previousKind !== currentKind
     ) {
       added.push(current);
       continue;
     }
 
     if (hasGasUsageChanged(previous.gasUsage, current.gasUsage)) {
-      /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions
-      -- Safe: we've verified both have the same kind, and hasGasUsageChanged
-      returns true only when both are the same type (both standard or both fuzz) */
+      const expectedValue =
+        previousKind === "standard"
+          ? previous.gasUsage.gas
+          : previous.gasUsage.medianGas;
+      const actualValue =
+        currentKind === "standard"
+          ? current.gasUsage.gas
+          : current.gasUsage.medianGas;
+
       changed.push({
         contractNameOrFqn: current.contractNameOrFqn,
         functionName: current.functionName,
-        expected: previous.gasUsage,
-        actual: current.gasUsage,
-      } as FunctionGasSnapshotChange);
+        kind: currentKind,
+        expected: Number(expectedValue),
+        actual: Number(actualValue),
+        runs:
+          currentKind === "fuzz" ? Number(current.gasUsage.runs) : undefined,
+      });
     }
-
     previousSnapshotsMap.delete(key);
   }
 
