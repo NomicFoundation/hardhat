@@ -10,6 +10,7 @@ import {
   writeUtf8File,
 } from "@nomicfoundation/hardhat-utils/fs";
 import { findDuplicates } from "@nomicfoundation/hardhat-utils/lang";
+import chalk from "chalk";
 
 import { getFullyQualifiedName } from "../../../utils/contract-names.js";
 
@@ -279,4 +280,46 @@ export function hasGasUsageChanged(
   }
 
   return false;
+}
+
+export function printFunctionGasSnapshotChanges(
+  changes: FunctionGasSnapshotChange[],
+): void {
+  const lines: string[] = [];
+
+  for (const change of changes) {
+    lines.push(`  ${change.contractNameOrFqn}#${change.functionName}`);
+
+    if (change.kind === "fuzz") {
+      lines.push(chalk.grey(`    Runs: ${change.runs}`));
+    }
+
+    const diff = change.actual - change.expected;
+    const formattedDiff = diff > 0 ? `Δ+${diff}` : `Δ${diff}`;
+
+    let gasChange = `${formattedDiff}`;
+    if (change.expected > 0) {
+      const percent = (diff / change.expected) * 100;
+      const formattedPercent =
+        percent >= 0 ? `+${percent.toFixed(2)}%` : `${percent.toFixed(2)}%`;
+      gasChange = `${formattedPercent}, ${formattedDiff}`;
+    }
+
+    // Color: green for decrease (improvement), red for increase (regression)
+    const formattedGasChange =
+      diff < 0 ? chalk.green(gasChange) : chalk.red(gasChange);
+
+    const label = change.kind === "fuzz" ? "~" : "gas";
+
+    lines.push(chalk.grey(`    Expected (${label}): ${change.expected}`));
+    lines.push(
+      chalk.grey(`    Actual (${label}):   ${change.actual} (`) +
+        formattedGasChange +
+        chalk.grey(")"),
+    );
+
+    lines.push("");
+  }
+
+  console.error(lines.join("\n"));
 }
