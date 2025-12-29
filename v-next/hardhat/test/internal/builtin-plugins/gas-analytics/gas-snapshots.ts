@@ -692,10 +692,10 @@ MyContract:testB (gas: 20000)`;
       assert.equal(result.changed.length, 1);
       assert.equal(result.changed[0].contractNameOrFqn, "MyContract");
       assert.equal(result.changed[0].functionName, "testA");
-      assert.equal(result.changed[0].expected.kind, "standard");
-      assert.equal(result.changed[0].expected.gas, 10000n);
-      assert.equal(result.changed[0].actual.kind, "standard");
-      assert.equal(result.changed[0].actual.gas, 15000n);
+      assert.equal(result.changed[0].kind, "standard");
+      assert.equal(result.changed[0].expected, 10000);
+      assert.equal(result.changed[0].actual, 15000);
+      assert.equal(result.changed[0].runs, undefined);
     });
 
     it("should detect changed fuzz test snapshots", () => {
@@ -731,10 +731,10 @@ MyContract:testB (gas: 20000)`;
       assert.equal(result.changed.length, 1);
       assert.equal(result.changed[0].contractNameOrFqn, "FuzzContract");
       assert.equal(result.changed[0].functionName, "testFuzz");
-      assert.equal(result.changed[0].expected.kind, "fuzz");
-      assert.equal(result.changed[0].expected.medianGas, 24500n);
-      assert.equal(result.changed[0].actual.kind, "fuzz");
-      assert.equal(result.changed[0].actual.medianGas, 25000n);
+      assert.equal(result.changed[0].kind, "fuzz");
+      assert.equal(result.changed[0].expected, 24500);
+      assert.equal(result.changed[0].actual, 25000);
+      assert.equal(result.changed[0].runs, 100);
     });
 
     it("should treat kind change as addition + removal", () => {
