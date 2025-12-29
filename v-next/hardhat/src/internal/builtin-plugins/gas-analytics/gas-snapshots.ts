@@ -18,7 +18,7 @@ const FUNCTION_GAS_SNAPSHOTS_FILE = ".gas-snapshot";
 
 export interface FunctionGasSnapshot {
   contractNameOrFqn: string;
-  functionName: string;
+  functionSig: string;
   gasUsage: StandardTestKindGasUsage | FuzzTestKindGasUsage;
 }
 
@@ -42,7 +42,7 @@ export interface FunctionGasSnapshotComparison {
 
 export interface FunctionGasSnapshotChange {
   contractNameOrFqn: string;
-  functionName: string;
+  functionSig: string;
   kind: "standard" | "fuzz";
   expected: number;
   actual: number;
@@ -62,7 +62,7 @@ export function extractFunctionGasSnapshots(
 
   const snapshots: FunctionGasSnapshot[] = [];
   for (const { id: suiteId, testResults } of suiteResults) {
-    for (const { name: functionName, kind: testKind } of testResults) {
+    for (const { name: functionSig, kind: testKind } of testResults) {
       if ("calls" in testKind) {
         continue;
       }
@@ -86,7 +86,7 @@ export function extractFunctionGasSnapshots(
 
       snapshots.push({
         contractNameOrFqn,
-        functionName,
+        functionSig,
         gasUsage,
       });
     }
@@ -143,13 +143,13 @@ export function stringifyFunctionGasSnapshots(
   snapshots: FunctionGasSnapshot[],
 ): string {
   const lines: string[] = [];
-  for (const { contractNameOrFqn, functionName, gasUsage } of snapshots) {
+  for (const { contractNameOrFqn, functionSig, gasUsage } of snapshots) {
     const gasDetails =
       gasUsage.kind === "standard"
         ? `gas: ${gasUsage.gas}`
         : `runs: ${gasUsage.runs}, μ: ${gasUsage.meanGas}, ~: ${gasUsage.medianGas}`;
 
-    lines.push(`${contractNameOrFqn}:${functionName} (${gasDetails})`);
+    lines.push(`${contractNameOrFqn}:${functionSig} (${gasDetails})`);
   }
 
   return lines.sort((a, b) => a.localeCompare(b)).join("\n");
@@ -175,10 +175,10 @@ export function parseFunctionGasSnapshots(
 
     const standardMatch = standardTestRegex.exec(line);
     if (standardMatch !== null) {
-      const [, contractNameOrFqn, functionName, gasValue] = standardMatch;
+      const [, contractNameOrFqn, functionSig, gasValue] = standardMatch;
       snapshots.push({
         contractNameOrFqn,
-        functionName,
+        functionSig,
         gasUsage: { kind: "standard", gas: BigInt(gasValue) },
       });
       continue;
@@ -186,11 +186,11 @@ export function parseFunctionGasSnapshots(
 
     const fuzzMatch = fuzzTestRegex.exec(line);
     if (fuzzMatch !== null) {
-      const [, contractNameOrFqn, functionName, runs, meanGas, medianGas] =
+      const [, contractNameOrFqn, functionSig, runs, meanGas, medianGas] =
         fuzzMatch;
       snapshots.push({
         contractNameOrFqn,
-        functionName,
+        functionSig,
         gasUsage: {
           kind: "fuzz",
           runs: BigInt(runs),
@@ -216,7 +216,7 @@ export function compareFunctionGasSnapshots(
 ): FunctionGasSnapshotComparison {
   const previousSnapshotsMap = new Map(
     previousSnapshots.map((s) => [
-      `${s.contractNameOrFqn}:${s.functionName}`,
+      `${s.contractNameOrFqn}:${s.functionSig}`,
       s,
     ]),
   );
@@ -225,7 +225,7 @@ export function compareFunctionGasSnapshots(
   const changed: FunctionGasSnapshotChange[] = [];
 
   for (const current of currentSnapshots) {
-    const key = `${current.contractNameOrFqn}:${current.functionName}`;
+    const key = `${current.contractNameOrFqn}:${current.functionSig}`;
     const previous = previousSnapshotsMap.get(key);
     const currentKind = current.gasUsage.kind;
     const previousKind = previous?.gasUsage.kind;
@@ -251,7 +251,7 @@ export function compareFunctionGasSnapshots(
 
       changed.push({
         contractNameOrFqn: current.contractNameOrFqn,
-        functionName: current.functionName,
+        functionSig: current.functionSig,
         kind: currentKind,
         expected: Number(expectedValue),
         actual: Number(actualValue),
@@ -288,7 +288,7 @@ export function printFunctionGasSnapshotChanges(
   const lines: string[] = [];
 
   for (const change of changes) {
-    lines.push(`  ${change.contractNameOrFqn}#${change.functionName}`);
+    lines.push(`  ${change.contractNameOrFqn}#${change.functionSig}`);
 
     if (change.kind === "fuzz") {
       lines.push(chalk.grey(`    Runs: ${change.runs}`));
