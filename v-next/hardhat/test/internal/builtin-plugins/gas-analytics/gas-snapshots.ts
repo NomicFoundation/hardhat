@@ -43,13 +43,13 @@ describe("gas-snapshots", () => {
 
       assert.equal(snapshots.length, 2);
       assert.equal(snapshots[0].contractNameOrFqn, "MyContract");
-      assert.equal(snapshots[0].functionName, "testTransfer");
+      assert.equal(snapshots[0].functionSig, "testTransfer");
       assert.equal(snapshots[0].gasUsage.kind, "standard");
       if (snapshots[0].gasUsage.kind === "standard") {
         assert.equal(snapshots[0].gasUsage.gas, 25000n);
       }
       assert.equal(snapshots[1].contractNameOrFqn, "MyContract");
-      assert.equal(snapshots[1].functionName, "testApprove");
+      assert.equal(snapshots[1].functionSig, "testApprove");
       assert.equal(snapshots[1].gasUsage.kind, "standard");
       if (snapshots[1].gasUsage.kind === "standard") {
         assert.equal(snapshots[1].gasUsage.gas, 30000n);
@@ -67,7 +67,7 @@ describe("gas-snapshots", () => {
 
       assert.equal(snapshots.length, 1);
       assert.equal(snapshots[0].contractNameOrFqn, "FuzzContract");
-      assert.equal(snapshots[0].functionName, "testFuzzTransfer");
+      assert.equal(snapshots[0].functionSig, "testFuzzTransfer");
       assert.equal(snapshots[0].gasUsage.kind, "fuzz");
       if (snapshots[0].gasUsage.kind === "fuzz") {
         assert.equal(snapshots[0].gasUsage.runs, 100n);
@@ -87,7 +87,7 @@ describe("gas-snapshots", () => {
       const snapshots = extractFunctionGasSnapshots(suiteResults);
 
       assert.equal(snapshots.length, 1);
-      assert.equal(snapshots[0].functionName, "testStandard");
+      assert.equal(snapshots[0].functionSig, "testStandard");
     });
 
     it("should handle multiple suites", () => {
@@ -104,9 +104,9 @@ describe("gas-snapshots", () => {
 
       assert.equal(snapshots.length, 2);
       assert.equal(snapshots[0].contractNameOrFqn, "ContractA");
-      assert.equal(snapshots[0].functionName, "testA");
+      assert.equal(snapshots[0].functionSig, "testA");
       assert.equal(snapshots[1].contractNameOrFqn, "ContractB");
-      assert.equal(snapshots[1].functionName, "testB");
+      assert.equal(snapshots[1].functionSig, "testB");
     });
 
     it("should handle empty suite results", () => {
@@ -138,7 +138,7 @@ describe("gas-snapshots", () => {
 
       assert.equal(snapshots.length, 1);
       assert.equal(snapshots[0].contractNameOrFqn, "MyContract");
-      assert.equal(snapshots[0].functionName, "testTransfer");
+      assert.equal(snapshots[0].functionSig, "testTransfer");
     });
 
     it("should use FQN when there are duplicate contract names", () => {
@@ -155,12 +155,12 @@ describe("gas-snapshots", () => {
 
       assert.equal(snapshots.length, 2);
       assert.equal(snapshots[0].contractNameOrFqn, "contracts/Token.sol:Token");
-      assert.equal(snapshots[0].functionName, "testTransfer");
+      assert.equal(snapshots[0].functionSig, "testTransfer");
       assert.equal(
         snapshots[1].contractNameOrFqn,
         "contracts/legacy/Token.sol:Token",
       );
-      assert.equal(snapshots[1].functionName, "testLegacyTransfer");
+      assert.equal(snapshots[1].functionSig, "testLegacyTransfer");
     });
 
     it("should use FQN only for duplicates, simple name for unique contracts", () => {
@@ -203,7 +203,7 @@ describe("gas-snapshots", () => {
       const snapshots: FunctionGasSnapshot[] = [
         {
           contractNameOrFqn: "MyContract",
-          functionName: "testApprove",
+          functionSig: "testApprove",
           gasUsage: {
             kind: "standard",
             gas: 30000n,
@@ -211,7 +211,7 @@ describe("gas-snapshots", () => {
         },
         {
           contractNameOrFqn: "MyContract",
-          functionName: "testTransfer",
+          functionSig: "testTransfer",
           gasUsage: {
             kind: "standard",
             gas: 25000n,
@@ -233,7 +233,7 @@ MyContract:testTransfer (gas: 25000)`;
       const firstSnapshots: FunctionGasSnapshot[] = [
         {
           contractNameOrFqn: "MyContract",
-          functionName: "testA",
+          functionSig: "testA",
           gasUsage: {
             kind: "standard",
             gas: 10000n,
@@ -243,7 +243,7 @@ MyContract:testTransfer (gas: 25000)`;
       const secondSnapshots: FunctionGasSnapshot[] = [
         {
           contractNameOrFqn: "MyContract",
-          functionName: "testB",
+          functionSig: "testB",
           gasUsage: {
             kind: "standard",
             gas: 20000n,
@@ -275,7 +275,7 @@ MyContract:testTransfer (gas: 25000)`;
       const snapshots: FunctionGasSnapshot[] = [
         {
           contractNameOrFqn: "MyContract",
-          functionName: "testA",
+          functionSig: "testA",
           gasUsage: {
             kind: "standard",
             gas: 10000n,
@@ -313,7 +313,7 @@ MyContract:testTransfer (gas: 25000)`;
       const snapshots: FunctionGasSnapshot[] = [
         {
           contractNameOrFqn: "MyContract",
-          functionName: "testA",
+          functionSig: "testA",
           gasUsage: {
             kind: "standard",
             gas: 10000n,
@@ -360,7 +360,7 @@ MyContract:testTransfer (gas: 25000)`;
       const snapshots: FunctionGasSnapshot[] = [
         {
           contractNameOrFqn: "MyContract",
-          functionName: "testTransfer",
+          functionSig: "testTransfer",
           gasUsage: {
             kind: "standard",
             gas: 25000n,
@@ -368,7 +368,7 @@ MyContract:testTransfer (gas: 25000)`;
         },
         {
           contractNameOrFqn: "MyContract",
-          functionName: "testApprove",
+          functionSig: "testApprove",
           gasUsage: {
             kind: "standard",
             gas: 30000n,
@@ -387,7 +387,7 @@ MyContract:testTransfer (gas: 25000)`;
       const snapshots: FunctionGasSnapshot[] = [
         {
           contractNameOrFqn: "FuzzContract",
-          functionName: "testFuzzTransfer",
+          functionSig: "testFuzzTransfer",
           gasUsage: {
             kind: "fuzz",
             runs: 100n,
@@ -407,7 +407,7 @@ MyContract:testTransfer (gas: 25000)`;
       const snapshots: FunctionGasSnapshot[] = [
         {
           contractNameOrFqn: "MixedContract",
-          functionName: "testStandard",
+          functionSig: "testStandard",
           gasUsage: {
             kind: "standard",
             gas: 20000n,
@@ -415,7 +415,7 @@ MyContract:testTransfer (gas: 25000)`;
         },
         {
           contractNameOrFqn: "MixedContract",
-          functionName: "testFuzz",
+          functionSig: "testFuzz",
           gasUsage: {
             kind: "fuzz",
             runs: 50n,
@@ -444,7 +444,7 @@ MixedContract:testStandard (gas: 20000)`;
       const snapshots: FunctionGasSnapshot[] = [
         {
           contractNameOrFqn: "ContractA",
-          functionName: "testA",
+          functionSig: "testA",
           gasUsage: {
             kind: "standard",
             gas: 10000n,
@@ -452,7 +452,7 @@ MixedContract:testStandard (gas: 20000)`;
         },
         {
           contractNameOrFqn: "ContractB",
-          functionName: "testB",
+          functionSig: "testB",
           gasUsage: {
             kind: "standard",
             gas: 15000n,
@@ -460,7 +460,7 @@ MixedContract:testStandard (gas: 20000)`;
         },
         {
           contractNameOrFqn: "ContractA",
-          functionName: "testA2",
+          functionSig: "testA2",
           gasUsage: {
             kind: "standard",
             gas: 12000n,
@@ -480,7 +480,7 @@ ContractB:testB (gas: 15000)`;
       const snapshots: FunctionGasSnapshot[] = [
         {
           contractNameOrFqn: "ZContract",
-          functionName: "testZ",
+          functionSig: "testZ",
           gasUsage: {
             kind: "standard",
             gas: 30000n,
@@ -488,7 +488,7 @@ ContractB:testB (gas: 15000)`;
         },
         {
           contractNameOrFqn: "AContract",
-          functionName: "testB",
+          functionSig: "testB",
           gasUsage: {
             kind: "standard",
             gas: 10000n,
@@ -496,7 +496,7 @@ ContractB:testB (gas: 15000)`;
         },
         {
           contractNameOrFqn: "AContract",
-          functionName: "testA",
+          functionSig: "testA",
           gasUsage: {
             kind: "standard",
             gas: 20000n,
@@ -504,7 +504,7 @@ ContractB:testB (gas: 15000)`;
         },
         {
           contractNameOrFqn: "MContract",
-          functionName: "testM",
+          functionSig: "testM",
           gasUsage: {
             kind: "standard",
             gas: 15000n,
@@ -530,7 +530,7 @@ ZContract:testZ (gas: 30000)`;
 
       assert.equal(snapshots.length, 1);
       assert.equal(snapshots[0].contractNameOrFqn, "MyContract");
-      assert.equal(snapshots[0].functionName, "testApprove");
+      assert.equal(snapshots[0].functionSig, "testApprove");
       assert.equal(snapshots[0].gasUsage.kind, "standard");
       if (snapshots[0].gasUsage.kind === "standard") {
         assert.equal(snapshots[0].gasUsage.gas, 30000n);
@@ -545,7 +545,7 @@ ZContract:testZ (gas: 30000)`;
 
       assert.equal(snapshots.length, 1);
       assert.equal(snapshots[0].contractNameOrFqn, "FuzzContract");
-      assert.equal(snapshots[0].functionName, "testFuzzTransfer");
+      assert.equal(snapshots[0].functionSig, "testFuzzTransfer");
       assert.equal(snapshots[0].gasUsage.kind, "fuzz");
       if (snapshots[0].gasUsage.kind === "fuzz") {
         assert.equal(snapshots[0].gasUsage.runs, 100n);
@@ -562,10 +562,10 @@ MixedContract:testStandard (gas: 20000)`;
 
       assert.equal(snapshots.length, 2);
       assert.equal(snapshots[0].contractNameOrFqn, "MixedContract");
-      assert.equal(snapshots[0].functionName, "testFuzz");
+      assert.equal(snapshots[0].functionSig, "testFuzz");
       assert.equal(snapshots[0].gasUsage.kind, "fuzz");
       assert.equal(snapshots[1].contractNameOrFqn, "MixedContract");
-      assert.equal(snapshots[1].functionName, "testStandard");
+      assert.equal(snapshots[1].functionSig, "testStandard");
       assert.equal(snapshots[1].gasUsage.kind, "standard");
     });
 
@@ -577,12 +577,12 @@ contracts/legacy/Token.sol:Token:testLegacyTransfer (gas: 30000)`;
 
       assert.equal(snapshots.length, 2);
       assert.equal(snapshots[0].contractNameOrFqn, "contracts/Token.sol:Token");
-      assert.equal(snapshots[0].functionName, "testTransfer");
+      assert.equal(snapshots[0].functionSig, "testTransfer");
       assert.equal(
         snapshots[1].contractNameOrFqn,
         "contracts/legacy/Token.sol:Token",
       );
-      assert.equal(snapshots[1].functionName, "testLegacyTransfer");
+      assert.equal(snapshots[1].functionSig, "testLegacyTransfer");
     });
 
     it("should handle empty string", () => {
@@ -605,8 +605,8 @@ MyContract:testB (gas: 20000)`;
       const snapshots = parseFunctionGasSnapshots(stringified);
 
       assert.equal(snapshots.length, 2);
-      assert.equal(snapshots[0].functionName, "testA");
-      assert.equal(snapshots[1].functionName, "testB");
+      assert.equal(snapshots[0].functionSig, "testA");
+      assert.equal(snapshots[1].functionSig, "testB");
     });
 
     it("should throw on malformed line", () => {
@@ -638,7 +638,7 @@ MyContract:testB (gas: 20000)`;
       const current: FunctionGasSnapshot[] = [
         {
           contractNameOrFqn: "MyContract",
-          functionName: "testA",
+          functionSig: "testA",
           gasUsage: { kind: "standard", gas: 10000n },
         },
       ];
@@ -655,7 +655,7 @@ MyContract:testB (gas: 20000)`;
       const previous: FunctionGasSnapshot[] = [
         {
           contractNameOrFqn: "MyContract",
-          functionName: "testA",
+          functionSig: "testA",
           gasUsage: { kind: "standard", gas: 10000n },
         },
       ];
@@ -673,14 +673,14 @@ MyContract:testB (gas: 20000)`;
       const previous: FunctionGasSnapshot[] = [
         {
           contractNameOrFqn: "MyContract",
-          functionName: "testA",
+          functionSig: "testA",
           gasUsage: { kind: "standard", gas: 10000n },
         },
       ];
       const current: FunctionGasSnapshot[] = [
         {
           contractNameOrFqn: "MyContract",
-          functionName: "testA",
+          functionSig: "testA",
           gasUsage: { kind: "standard", gas: 15000n },
         },
       ];
@@ -691,7 +691,7 @@ MyContract:testB (gas: 20000)`;
       assert.equal(result.removed.length, 0);
       assert.equal(result.changed.length, 1);
       assert.equal(result.changed[0].contractNameOrFqn, "MyContract");
-      assert.equal(result.changed[0].functionName, "testA");
+      assert.equal(result.changed[0].functionSig, "testA");
       assert.equal(result.changed[0].kind, "standard");
       assert.equal(result.changed[0].expected, 10000);
       assert.equal(result.changed[0].actual, 15000);
@@ -702,7 +702,7 @@ MyContract:testB (gas: 20000)`;
       const previous: FunctionGasSnapshot[] = [
         {
           contractNameOrFqn: "FuzzContract",
-          functionName: "testFuzz",
+          functionSig: "testFuzz",
           gasUsage: {
             kind: "fuzz",
             runs: 100n,
@@ -714,7 +714,7 @@ MyContract:testB (gas: 20000)`;
       const current: FunctionGasSnapshot[] = [
         {
           contractNameOrFqn: "FuzzContract",
-          functionName: "testFuzz",
+          functionSig: "testFuzz",
           gasUsage: {
             kind: "fuzz",
             runs: 100n,
@@ -730,7 +730,7 @@ MyContract:testB (gas: 20000)`;
       assert.equal(result.removed.length, 0);
       assert.equal(result.changed.length, 1);
       assert.equal(result.changed[0].contractNameOrFqn, "FuzzContract");
-      assert.equal(result.changed[0].functionName, "testFuzz");
+      assert.equal(result.changed[0].functionSig, "testFuzz");
       assert.equal(result.changed[0].kind, "fuzz");
       assert.equal(result.changed[0].expected, 24500);
       assert.equal(result.changed[0].actual, 25000);
@@ -741,14 +741,14 @@ MyContract:testB (gas: 20000)`;
       const previous: FunctionGasSnapshot[] = [
         {
           contractNameOrFqn: "MyContract",
-          functionName: "testA",
+          functionSig: "testA",
           gasUsage: { kind: "standard", gas: 10000n },
         },
       ];
       const current: FunctionGasSnapshot[] = [
         {
           contractNameOrFqn: "MyContract",
-          functionName: "testA",
+          functionSig: "testA",
           gasUsage: {
             kind: "fuzz",
             runs: 100n,
@@ -771,34 +771,34 @@ MyContract:testB (gas: 20000)`;
       const previous: FunctionGasSnapshot[] = [
         {
           contractNameOrFqn: "ContractA",
-          functionName: "testA",
+          functionSig: "testA",
           gasUsage: { kind: "standard", gas: 10000n },
         },
         {
           contractNameOrFqn: "ContractB",
-          functionName: "testB",
+          functionSig: "testB",
           gasUsage: { kind: "standard", gas: 20000n },
         },
         {
           contractNameOrFqn: "ContractC",
-          functionName: "testC",
+          functionSig: "testC",
           gasUsage: { kind: "standard", gas: 30000n },
         },
       ];
       const current: FunctionGasSnapshot[] = [
         {
           contractNameOrFqn: "ContractA",
-          functionName: "testA",
+          functionSig: "testA",
           gasUsage: { kind: "standard", gas: 15000n },
         },
         {
           contractNameOrFqn: "ContractB",
-          functionName: "testB",
+          functionSig: "testB",
           gasUsage: { kind: "standard", gas: 20000n },
         },
         {
           contractNameOrFqn: "ContractD",
-          functionName: "testD",
+          functionSig: "testD",
           gasUsage: { kind: "standard", gas: 40000n },
         },
       ];
@@ -817,14 +817,14 @@ MyContract:testB (gas: 20000)`;
       const previous: FunctionGasSnapshot[] = [
         {
           contractNameOrFqn: "MyContract",
-          functionName: "testA",
+          functionSig: "testA",
           gasUsage: { kind: "standard", gas: 10000n },
         },
       ];
       const current: FunctionGasSnapshot[] = [
         {
           contractNameOrFqn: "MyContract",
-          functionName: "testA",
+          functionSig: "testA",
           gasUsage: { kind: "standard", gas: 10000n },
         },
       ];
