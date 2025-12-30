@@ -1,5 +1,26 @@
 # hardhat
 
+## 2.28.2
+
+### Patch Changes
+
+- 14bf5b0: Bumped EDR version to [`0.12.0-next.20`](https://www.npmjs.com/package/@nomicfoundation/edr/v/0.12.0-next.20).
+
+  Patch Changes
+
+  - NomicFoundation/edr@34e1ab4: Updated base mainnet eip1559 parameters after SystemConfig update on 2025-12-18
+  - NomicFoundation/edr@2272bc0: Fixed excess_blob_gas calculation after Osaka
+
+- e6ddffc: Bumped EDR version to [`0.12.0-next.21`](https://github.com/NomicFoundation/edr/releases/tag/%40nomicfoundation%2Fedr%400.12.0-next.21).
+
+  ### Minor Changes
+
+  - NomicFoundation/edr@44e779c: Added function-level configuration overrides for Solidity tests
+
+  ### Patch Changes
+
+  - NomicFoundation/edr@b5ad15c: Added support for instrumentation of Solidity `0.8.32` and `0.8.33`
+
 ## 2.28.1
 
 ### Patch Changes
