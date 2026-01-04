@@ -12,10 +12,24 @@ const config: HardhatUserConfig = {
   solidity: {
     profiles: {
       default: {
-        version: "0.8.28",
+        compilers: [
+          {
+            version: "0.8.28",
+          },
+          {
+            version: "0.8.33",
+          },
+        ],
       },
       production: {
-        version: "0.8.28",
+        compilers: [
+          {
+            version: "0.8.28",
+          },
+          {
+            version: "0.8.33",
+          },
+        ],
       },
     },
   },

@@ -210,6 +210,9 @@ export default defineConfig({
             // Required for @uniswap/core
             version: "0.8.26",
           },
+          {
+            version: "0.8.33",
+          },
         ],
         overrides: {
           "foo/bar.sol": {
