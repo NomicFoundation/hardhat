@@ -2,7 +2,7 @@ import type { FunctionGasSnapshot } from "../../../../src/internal/builtin-plugi
 import type { SuiteResult, TestResult } from "@nomicfoundation/edr";
 
 import assert from "node:assert/strict";
-import { afterEach, before, describe, it } from "node:test";
+import { after, afterEach, before, describe, it } from "node:test";
 
 import { TestStatus } from "@nomicfoundation/edr";
 import { HardhatError } from "@nomicfoundation/hardhat-errors";
@@ -23,6 +23,7 @@ import {
   getFunctionGasSnapshotsPath,
   hasGasUsageChanged,
   parseFunctionGasSnapshots,
+  printFunctionGasSnapshotChanges,
   readFunctionGasSnapshots,
   stringifyFunctionGasSnapshots,
   writeFunctionGasSnapshots,
@@ -913,6 +914,164 @@ MyContract:testB (gas: 20000)`;
       };
 
       assert.equal(hasGasUsageChanged(previous, current), false);
+    });
+  });
+
+  describe("printFunctionGasSnapshotChanges", () => {
+    let consoleErrorOutput: string[];
+    let originalConsoleError: typeof console.error;
+
+    before(() => {
+      consoleErrorOutput = [];
+      originalConsoleError = console.error;
+      console.error = (...args: any[]) => {
+        consoleErrorOutput.push(args.join(""));
+      };
+    });
+
+    afterEach(() => {
+      consoleErrorOutput = [];
+    });
+
+    after(() => {
+      console.error = originalConsoleError;
+    });
+
+    it("should print gas increase", () => {
+      const changes = [
+        {
+          contractNameOrFqn: "MyContract",
+          functionSig: "testA",
+          kind: "standard" as const,
+          expected: 10000,
+          actual: 15000,
+        },
+      ];
+
+      printFunctionGasSnapshotChanges(changes);
+
+      const output = consoleErrorOutput.join("\n");
+      assert.match(output, /MyContract#testA/);
+      assert.match(output, /Expected \(gas\): 10000/);
+      assert.match(output, /Actual \(gas\):\s+15000/);
+      assert.match(output, /\+50\.00%/);
+      assert.match(output, /Δ\+5000/);
+    });
+
+    it("should print gas decrease", () => {
+      const changes = [
+        {
+          contractNameOrFqn: "MyContract",
+          functionSig: "testA",
+          kind: "standard" as const,
+          expected: 15000,
+          actual: 10000,
+        },
+      ];
+
+      printFunctionGasSnapshotChanges(changes);
+
+      const output = consoleErrorOutput.join("\n");
+      assert.match(output, /Expected \(gas\): 15000/);
+      assert.match(output, /Actual \(gas\):\s+10000/);
+      assert.match(output, /-33\.33%/);
+      assert.match(output, /Δ-5000/);
+    });
+
+    it("should omit percentage when expected is 0", () => {
+      const changes = [
+        {
+          contractNameOrFqn: "MyContract",
+          functionSig: "testA",
+          kind: "standard" as const,
+          expected: 0,
+          actual: 5000,
+        },
+      ];
+
+      printFunctionGasSnapshotChanges(changes);
+
+      const output = consoleErrorOutput.join("\n");
+      assert.match(output, /Expected \(gas\): 0/);
+      assert.match(output, /Actual \(gas\):\s+5000/);
+      assert.match(output, /Δ\+5000/);
+      assert.doesNotMatch(output, /%/);
+    });
+
+    it("should print runs when there are fuzz test changes", () => {
+      const changes = [
+        {
+          contractNameOrFqn: "FuzzContract",
+          functionSig: "testFuzz",
+          kind: "fuzz" as const,
+          expected: 24500,
+          actual: 25000,
+          runs: 100,
+        },
+      ];
+
+      printFunctionGasSnapshotChanges(changes);
+
+      const output = consoleErrorOutput.join("\n");
+      assert.match(output, /FuzzContract#testFuzz/);
+      assert.match(output, /Runs: 100/);
+      assert.match(output, /Expected \(~\): 24500/);
+      assert.match(output, /Actual \(~\):\s+25000/);
+      assert.match(output, /\+2\.04%/);
+      assert.match(output, /Δ\+500/);
+    });
+
+    it("should print multiple changes", () => {
+      const changes = [
+        {
+          contractNameOrFqn: "ContractA",
+          functionSig: "testA",
+          kind: "standard" as const,
+          expected: 10000,
+          actual: 15000,
+        },
+        {
+          contractNameOrFqn: "ContractB",
+          functionSig: "testB",
+          kind: "fuzz" as const,
+          expected: 20000,
+          actual: 18000,
+          runs: 256,
+        },
+      ];
+
+      printFunctionGasSnapshotChanges(changes);
+
+      const output = consoleErrorOutput.join("\n");
+      assert.match(output, /ContractA#testA/);
+      assert.match(output, /ContractB#testB/);
+      assert.match(output, /Runs: 256/);
+    });
+
+    it("should handle empty changes array", () => {
+      const changes: any[] = [];
+
+      printFunctionGasSnapshotChanges(changes);
+
+      const output = consoleErrorOutput.join("\n");
+      assert.equal(output, "");
+    });
+
+    it("should handle FQN contract names", () => {
+      const changes = [
+        {
+          contractNameOrFqn: "contracts/Token.sol:Token",
+          functionSig: "testTransfer",
+          kind: "standard" as const,
+          expected: 25000,
+          actual: 30000,
+        },
+      ];
+
+      printFunctionGasSnapshotChanges(changes);
+
+      const output = consoleErrorOutput.join("\n");
+      assert.match(output, /contracts\/Token\.sol:Token#testTransfer/);
     });
   });
 });
