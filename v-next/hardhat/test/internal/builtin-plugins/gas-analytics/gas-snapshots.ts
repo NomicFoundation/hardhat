@@ -1,4 +1,9 @@
-import type { FunctionGasSnapshot } from "../../../../src/internal/builtin-plugins/gas-analytics/gas-snapshots.js";
+import type {
+  FunctionGasSnapshot,
+  FunctionGasSnapshotChange,
+  FuzzTestKindGasUsage,
+  StandardTestKindGasUsage,
+} from "../../../../src/internal/builtin-plugins/gas-analytics/gas-snapshots.js";
 import type { SuiteResult, TestResult } from "@nomicfoundation/edr";
 
 import assert from "node:assert/strict";
@@ -840,28 +845,28 @@ MyContract:testB (gas: 20000)`;
 
   describe("hasGasUsageChanged", () => {
     it("should return false for identical standard gas usage", () => {
-      const previous = { kind: "standard" as const, gas: 10000n };
-      const current = { kind: "standard" as const, gas: 10000n };
+      const previous: StandardTestKindGasUsage = { kind: "standard", gas: 10000n };
+      const current: StandardTestKindGasUsage = { kind: "standard", gas: 10000n };
 
       assert.equal(hasGasUsageChanged(previous, current), false);
     });
 
     it("should return true for different standard gas usage", () => {
-      const previous = { kind: "standard" as const, gas: 10000n };
-      const current = { kind: "standard" as const, gas: 15000n };
+      const previous: StandardTestKindGasUsage = { kind: "standard", gas: 10000n };
+      const current: StandardTestKindGasUsage = { kind: "standard", gas: 15000n };
 
       assert.equal(hasGasUsageChanged(previous, current), true);
     });
 
     it("should return false for identical fuzz gas usage", () => {
-      const previous = {
-        kind: "fuzz" as const,
+      const previous: FuzzTestKindGasUsage = {
+        kind: "fuzz",
         runs: 100n,
         meanGas: 25000n,
         medianGas: 24500n,
       };
-      const current = {
-        kind: "fuzz" as const,
+      const current: FuzzTestKindGasUsage = {
+        kind: "fuzz",
         runs: 100n,
         meanGas: 25000n,
         medianGas: 24500n,
@@ -871,14 +876,14 @@ MyContract:testB (gas: 20000)`;
     });
 
     it("should return true for different fuzz median gas", () => {
-      const previous = {
-        kind: "fuzz" as const,
+      const previous: FuzzTestKindGasUsage = {
+        kind: "fuzz",
         runs: 100n,
         meanGas: 25000n,
         medianGas: 24500n,
       };
-      const current = {
-        kind: "fuzz" as const,
+      const current: FuzzTestKindGasUsage = {
+        kind: "fuzz",
         runs: 100n,
         meanGas: 25000n,
         medianGas: 25000n,
@@ -888,14 +893,14 @@ MyContract:testB (gas: 20000)`;
     });
 
     it("should return false for fuzz tests with different mean gas but same median", () => {
-      const previous = {
-        kind: "fuzz" as const,
+      const previous: FuzzTestKindGasUsage = {
+        kind: "fuzz",
         runs: 100n,
         meanGas: 25000n,
         medianGas: 24500n,
       };
-      const current = {
-        kind: "fuzz" as const,
+      const current: FuzzTestKindGasUsage = {
+        kind: "fuzz",
         runs: 100n,
         meanGas: 26000n,
         medianGas: 24500n,
@@ -905,9 +910,9 @@ MyContract:testB (gas: 20000)`;
     });
 
     it("should return false for different kinds", () => {
-      const previous = { kind: "standard" as const, gas: 10000n };
-      const current = {
-        kind: "fuzz" as const,
+      const previous: StandardTestKindGasUsage = { kind: "standard", gas: 10000n };
+      const current: FuzzTestKindGasUsage = {
+        kind: "fuzz",
         runs: 100n,
         meanGas: 25000n,
         medianGas: 24500n,
@@ -938,11 +943,11 @@ MyContract:testB (gas: 20000)`;
     });
 
     it("should print gas increase", () => {
-      const changes = [
+      const changes: FunctionGasSnapshotChange[] = [
         {
           contractNameOrFqn: "MyContract",
           functionSig: "testA",
-          kind: "standard" as const,
+          kind: "standard",
           expected: 10000,
           actual: 15000,
         },
@@ -959,11 +964,11 @@ MyContract:testB (gas: 20000)`;
     });
 
     it("should print gas decrease", () => {
-      const changes = [
+      const changes: FunctionGasSnapshotChange[] = [
         {
           contractNameOrFqn: "MyContract",
           functionSig: "testA",
-          kind: "standard" as const,
+          kind: "standard",
           expected: 15000,
           actual: 10000,
         },
@@ -979,11 +984,11 @@ MyContract:testB (gas: 20000)`;
     });
 
     it("should omit percentage when expected is 0", () => {
-      const changes = [
+      const changes: FunctionGasSnapshotChange[] = [
         {
           contractNameOrFqn: "MyContract",
           functionSig: "testA",
-          kind: "standard" as const,
+          kind: "standard",
           expected: 0,
           actual: 5000,
         },
@@ -999,11 +1004,11 @@ MyContract:testB (gas: 20000)`;
     });
 
     it("should print runs when there are fuzz test changes", () => {
-      const changes = [
+      const changes: FunctionGasSnapshotChange[] = [
         {
           contractNameOrFqn: "FuzzContract",
           functionSig: "testFuzz",
-          kind: "fuzz" as const,
+          kind: "fuzz",
           expected: 24500,
           actual: 25000,
           runs: 100,
@@ -1022,18 +1027,18 @@ MyContract:testB (gas: 20000)`;
     });
 
     it("should print multiple changes", () => {
-      const changes = [
+      const changes: FunctionGasSnapshotChange[] = [
         {
           contractNameOrFqn: "ContractA",
           functionSig: "testA",
-          kind: "standard" as const,
+          kind: "standard",
           expected: 10000,
           actual: 15000,
         },
         {
           contractNameOrFqn: "ContractB",
           functionSig: "testB",
-          kind: "fuzz" as const,
+          kind: "fuzz",
           expected: 20000,
           actual: 18000,
           runs: 256,
@@ -1049,7 +1054,7 @@ MyContract:testB (gas: 20000)`;
     });
 
     it("should handle empty changes array", () => {
-      const changes: any[] = [];
+      const changes: FunctionGasSnapshotChange[] = [];
 
       printFunctionGasSnapshotChanges(changes);
 
@@ -1058,11 +1063,11 @@ MyContract:testB (gas: 20000)`;
     });
 
     it("should handle FQN contract names", () => {
-      const changes = [
+      const changes: FunctionGasSnapshotChange[] = [
         {
           contractNameOrFqn: "contracts/Token.sol:Token",
           functionSig: "testTransfer",
-          kind: "standard" as const,
+          kind: "standard",
           expected: 25000,
           actual: 30000,
         },
