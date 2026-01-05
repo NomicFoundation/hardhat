@@ -69,7 +69,7 @@ describe("gas-snapshots", () => {
 
       const snapshotPath = getFunctionGasSnapshotsPath(tmpDir);
       const savedContent = await readUtf8File(snapshotPath);
-      assert.equal(savedContent, "MyContract:testA (gas: 10000)");
+      assert.equal(savedContent, "MyContract#testA (gas: 10000)");
 
       const output = consoleLogOutput.join("\n");
       assert.match(output, /Gas snapshots written successfully/);
@@ -139,7 +139,7 @@ describe("gas-snapshots", () => {
 
       const snapshotPath = getFunctionGasSnapshotsPath(tmpDir);
       const savedContent = await readUtf8File(snapshotPath);
-      assert.equal(savedContent, "MyContract:testA (gas: 10000)");
+      assert.equal(savedContent, "MyContract#testA (gas: 10000)");
 
       const output = consoleLogOutput.join("\n");
       assert.match(output, /Gas snapshots written successfully/);
@@ -213,12 +213,12 @@ describe("gas-snapshots", () => {
       const output = consoleLogOutput.join("\n");
       assert.match(output, /Gas snapshot check passed/);
       assert.match(output, /Added 1 function\(s\):/);
-      assert.match(output, /\+ MyContract:testB \(gas: 20000\)/);
+      assert.match(output, /\+ MyContract#testB \(gas: 20000\)/);
       assert.equal(process.exitCode, undefined);
 
       const snapshotPath = getFunctionGasSnapshotsPath(tmpDir);
       const savedContent = await readUtf8File(snapshotPath);
-      assert.match(savedContent, /MyContract:testB \(gas: 20000\)/);
+      assert.match(savedContent, /MyContract#testB \(gas: 20000\)/);
     });
 
     it("should pass and update file when functions are removed", async () => {
@@ -242,7 +242,7 @@ describe("gas-snapshots", () => {
       const output = consoleLogOutput.join("\n");
       assert.match(output, /Gas snapshot check passed/);
       assert.match(output, /Removed 1 function\(s\):/);
-      assert.match(output, /- MyContract:testB \(gas: 20000\)/);
+      assert.match(output, /- MyContract#testB \(gas: 20000\)/);
       assert.equal(process.exitCode, undefined);
 
       const snapshotPath = getFunctionGasSnapshotsPath(tmpDir);
@@ -445,8 +445,8 @@ describe("gas-snapshots", () => {
       const snapshotPath = getFunctionGasSnapshotsPath(tmpDir);
       const savedContent = await readUtf8File(snapshotPath);
 
-      const expected = `MyContract:testApprove (gas: 30000)
-MyContract:testTransfer (gas: 25000)`;
+      const expected = `MyContract#testApprove (gas: 30000)
+MyContract#testTransfer (gas: 25000)`;
       assert.equal(savedContent, expected);
     });
 
@@ -478,7 +478,7 @@ MyContract:testTransfer (gas: 25000)`;
       const snapshotPath = getFunctionGasSnapshotsPath(tmpDir);
       const savedContent = await readUtf8File(snapshotPath);
 
-      assert.equal(savedContent, "MyContract:testB (gas: 20000)");
+      assert.equal(savedContent, "MyContract#testB (gas: 20000)");
     });
 
     it("should save empty snapshots", async () => {
@@ -559,8 +559,8 @@ MyContract:testTransfer (gas: 25000)`;
 
       const result = stringifyFunctionGasSnapshots(snapshots);
 
-      const expected = `MyContract:testApprove (gas: 30000)
-MyContract:testTransfer (gas: 25000)`;
+      const expected = `MyContract#testApprove (gas: 30000)
+MyContract#testTransfer (gas: 25000)`;
       assert.equal(result, expected);
     });
 
@@ -580,7 +580,7 @@ MyContract:testTransfer (gas: 25000)`;
 
       const result = stringifyFunctionGasSnapshots(snapshots);
 
-      const expected = `FuzzContract:testFuzzTransfer (runs: 100, μ: 25000, ~: 24500)`;
+      const expected = `FuzzContract#testFuzzTransfer (runs: 100, μ: 25000, ~: 24500)`;
       assert.equal(result, expected);
     });
 
@@ -608,8 +608,8 @@ MyContract:testTransfer (gas: 25000)`;
 
       const result = stringifyFunctionGasSnapshots(snapshots);
 
-      const expected = `MixedContract:testFuzz (runs: 50, μ: 22000, ~: 21500)
-MixedContract:testStandard (gas: 20000)`;
+      const expected = `MixedContract#testFuzz (runs: 50, μ: 22000, ~: 21500)
+MixedContract#testStandard (gas: 20000)`;
       assert.equal(result, expected);
     });
 
@@ -651,9 +651,9 @@ MixedContract:testStandard (gas: 20000)`;
 
       const result = stringifyFunctionGasSnapshots(snapshots);
 
-      const expected = `ContractA:testA (gas: 10000)
-ContractA:testA2 (gas: 12000)
-ContractB:testB (gas: 15000)`;
+      const expected = `ContractA#testA (gas: 10000)
+ContractA#testA2 (gas: 12000)
+ContractB#testB (gas: 15000)`;
       assert.equal(result, expected);
     });
 
@@ -695,17 +695,17 @@ ContractB:testB (gas: 15000)`;
 
       const result = stringifyFunctionGasSnapshots(snapshots);
 
-      const expected = `AContract:testA (gas: 20000)
-AContract:testB (gas: 10000)
-MContract:testM (gas: 15000)
-ZContract:testZ (gas: 30000)`;
+      const expected = `AContract#testA (gas: 20000)
+AContract#testB (gas: 10000)
+MContract#testM (gas: 15000)
+ZContract#testZ (gas: 30000)`;
       assert.equal(result, expected);
     });
   });
 
   describe("parseFunctionGasSnapshots", () => {
     it("should parse standard test snapshots", () => {
-      const stringified = "MyContract:testApprove (gas: 30000)";
+      const stringified = "MyContract#testApprove (gas: 30000)";
 
       const snapshots = parseFunctionGasSnapshots(stringified);
 
@@ -720,7 +720,7 @@ ZContract:testZ (gas: 30000)`;
 
     it("should parse fuzz test snapshots", () => {
       const stringified =
-        "FuzzContract:testFuzzTransfer (runs: 100, μ: 25000, ~: 24500)";
+        "FuzzContract#testFuzzTransfer (runs: 100, μ: 25000, ~: 24500)";
 
       const snapshots = parseFunctionGasSnapshots(stringified);
 
@@ -736,8 +736,8 @@ ZContract:testZ (gas: 30000)`;
     });
 
     it("should parse mixed test types", () => {
-      const stringified = `MixedContract:testFuzz (runs: 50, μ: 22000, ~: 21500)
-MixedContract:testStandard (gas: 20000)`;
+      const stringified = `MixedContract#testFuzz (runs: 50, μ: 22000, ~: 21500)
+MixedContract#testStandard (gas: 20000)`;
 
       const snapshots = parseFunctionGasSnapshots(stringified);
 
@@ -751,8 +751,8 @@ MixedContract:testStandard (gas: 20000)`;
     });
 
     it("should parse snapshots with FQN contract names", () => {
-      const stringified = `contracts/Token.sol:Token:testTransfer (gas: 25000)
-contracts/legacy/Token.sol:Token:testLegacyTransfer (gas: 30000)`;
+      const stringified = `contracts/Token.sol:Token#testTransfer (gas: 25000)
+contracts/legacy/Token.sol:Token#testLegacyTransfer (gas: 30000)`;
 
       const snapshots = parseFunctionGasSnapshots(stringified);
 
@@ -779,9 +779,9 @@ contracts/legacy/Token.sol:Token:testLegacyTransfer (gas: 30000)`;
     });
 
     it("should skip empty lines", () => {
-      const stringified = `MyContract:testA (gas: 10000)
+      const stringified = `MyContract#testA (gas: 10000)
 
-MyContract:testB (gas: 20000)`;
+MyContract#testB (gas: 20000)`;
 
       const snapshots = parseFunctionGasSnapshots(stringified);
 
@@ -793,7 +793,7 @@ MyContract:testB (gas: 20000)`;
     it("should throw on malformed line", () => {
       // Invariant tests are not supported in gas snapshots
       const stringified =
-        "MyContract:invariantTest() (runs: 256, calls: 128000, reverts: 23933)";
+        "MyContract#invariantTest() (runs: 256, calls: 128000, reverts: 23933)";
 
       assertThrowsHardhatError(
         () => parseFunctionGasSnapshots(stringified),

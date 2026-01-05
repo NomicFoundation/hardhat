@@ -229,7 +229,7 @@ export function stringifyFunctionGasSnapshots(
         ? `gas: ${gasUsage.gas}`
         : `runs: ${gasUsage.runs}, μ: ${gasUsage.meanGas}, ~: ${gasUsage.medianGas}`;
 
-    lines.push(`${contractNameOrFqn}:${functionSig} (${gasDetails})`);
+    lines.push(`${contractNameOrFqn}#${functionSig} (${gasDetails})`);
   }
 
   return lines.sort((a, b) => a.localeCompare(b)).join("\n");
@@ -245,8 +245,8 @@ export function parseFunctionGasSnapshots(
   const lines = stringifiedSnapshots.split("\n");
   const snapshots: FunctionGasSnapshot[] = [];
 
-  const standardTestRegex = /^(.+):([^:]+) \(gas: (\d+)\)$/;
-  const fuzzTestRegex = /^(.+):([^:]+) \(runs: (\d+), μ: (\d+), ~: (\d+)\)$/;
+  const standardTestRegex = /^(.+)#(.+) \(gas: (\d+)\)$/;
+  const fuzzTestRegex = /^(.+)#(.+) \(runs: (\d+), μ: (\d+), ~: (\d+)\)$/;
 
   for (const line of lines) {
     if (line.trim() === "") {
@@ -296,7 +296,7 @@ export function compareFunctionGasSnapshots(
 ): FunctionGasSnapshotComparison {
   const previousSnapshotsMap = new Map(
     previousSnapshots.map((s) => [
-      `${s.contractNameOrFqn}:${s.functionSig}`,
+      `${s.contractNameOrFqn}#${s.functionSig}`,
       s,
     ]),
   );
@@ -305,7 +305,7 @@ export function compareFunctionGasSnapshots(
   const changed: FunctionGasSnapshotChange[] = [];
 
   for (const current of currentSnapshots) {
-    const key = `${current.contractNameOrFqn}:${current.functionSig}`;
+    const key = `${current.contractNameOrFqn}#${current.functionSig}`;
     const previous = previousSnapshotsMap.get(key);
     const currentKind = current.gasUsage.kind;
     const previousKind = previous?.gasUsage.kind;
