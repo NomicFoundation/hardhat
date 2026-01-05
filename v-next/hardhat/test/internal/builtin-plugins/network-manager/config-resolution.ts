@@ -197,7 +197,7 @@ describe("config-resolution", () => {
       assert.equal(edrNetworkConfig.gasMultiplier, 1);
       assert.equal(edrNetworkConfig.allowBlocksWithSameTimestamp, false);
       assert.equal(edrNetworkConfig.allowUnlimitedContractSize, false);
-      assert.equal(edrNetworkConfig.blockGasLimit, 30_000_000n);
+      assert.equal(edrNetworkConfig.blockGasLimit, 60_000_000n);
       const initialDate = new Date(edrNetworkConfig.initialDate);
       assert.ok(
         Math.abs(initialDate.getTime() - now.getTime()) < 1000,

@@ -85,7 +85,7 @@ export function resolveEdrNetwork(
       networkConfig.allowBlocksWithSameTimestamp ?? false,
     allowUnlimitedContractSize:
       networkConfig.allowUnlimitedContractSize ?? false,
-    blockGasLimit: BigInt(networkConfig.blockGasLimit ?? 30_000_000n),
+    blockGasLimit: BigInt(networkConfig.blockGasLimit ?? 60_000_000n),
     coinbase: resolveCoinbase(networkConfig.coinbase),
 
     forking: resolveForkingConfig(
