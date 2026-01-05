@@ -42,7 +42,7 @@ describe("verify/task-action", () => {
       consoleErrorSpy = mock.method(console, "error", () => {});
     });
 
-    let exitCode: string | number | undefined;
+    let exitCode: typeof process.exitCode;
     beforeEach(() => {
       exitCode = process.exitCode;
       consoleLogSpy.mock.resetCalls();
