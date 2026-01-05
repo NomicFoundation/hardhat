@@ -4,6 +4,15 @@
   "features": {
     "ghcr.io/devcontainers/features/node:1": {
       "version": "24"
+    },
+    "ghcr.io/devcontainers/features/common-utils:2": {
+      "installZsh": true,
+      "installOhMyZsh": true,
+      "configureZshAsDefaultShell": true
+    },
+    "ghcr.io/devcontainers-extra/features/zsh-plugins:0": {
+      "plugins": "git zsh-autosuggestions zsh-syntax-highlighting",
+      "omzPlugins": "https://github.com/zsh-users/zsh-autosuggestions https://github.com/zsh-users/zsh-syntax-highlighting"
     }
   },
   "onCreateCommand": "scripts/setup.sh",
@@ -18,7 +27,10 @@
       "extensions": [
         "esbenp.prettier-vscode",
         "NomicFoundation.hardhat-solidity"
-      ]
+      ],
+      "settings": {
+        "terminal.integrated.defaultProfile.linux": "zsh"
+      }
     }
   }
 }
