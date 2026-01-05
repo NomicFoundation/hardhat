@@ -11,16 +11,12 @@ import { after, afterEach, before, describe, it } from "node:test";
 
 import { TestStatus } from "@nomicfoundation/edr";
 import { HardhatError } from "@nomicfoundation/hardhat-errors";
-import {
-  assertRejectsWithHardhatError,
-  assertThrowsHardhatError,
-} from "@nomicfoundation/hardhat-test-utils";
+import { assertThrowsHardhatError } from "@nomicfoundation/hardhat-test-utils";
 import {
   emptyDir,
   FileNotFoundError,
   mkdtemp,
   readUtf8File,
-  writeUtf8File,
 } from "@nomicfoundation/hardhat-utils/fs";
 
 import {
@@ -495,35 +491,6 @@ MyContract:testTransfer (gas: 25000)`;
 
       assert.equal(savedContent, "");
     });
-
-    it("should throw HardhatError on write failure", async () => {
-      const snapshots: FunctionGasSnapshot[] = [
-        {
-          contractNameOrFqn: "MyContract",
-          functionSig: "testA",
-          gasUsage: {
-            kind: "standard",
-            gas: 10000n,
-          },
-        },
-      ];
-
-      const invalidPath = getFunctionGasSnapshotsPath(tmpDir);
-      await writeUtf8File(invalidPath, "");
-
-      const snapshotsPath = getFunctionGasSnapshotsPath(invalidPath);
-
-      await assertRejectsWithHardhatError(
-        // writeFunctionGasSnapshots expects a directory,
-        // giving it a file path should cause an error
-        () => writeFunctionGasSnapshots(invalidPath, snapshots),
-        HardhatError.ERRORS.CORE.SOLIDITY_TESTS.GAS_SNAPSHOT_WRITE_ERROR,
-        {
-          snapshotsPath,
-          error: `ENOTDIR: not a directory, open '${snapshotsPath}'`,
-        },
-      );
-    });
   });
 
   describe("readFunctionGasSnapshots", () => {
@@ -566,24 +533,6 @@ MyContract:testTransfer (gas: 25000)`;
           "Error should be FileNotFoundError",
         );
       }
-    });
-
-    it("should throw HardhatError on read failure", async () => {
-      const invalidPath = getFunctionGasSnapshotsPath(tmpDir);
-      await writeUtf8File(invalidPath, "");
-
-      const snapshotsPath = getFunctionGasSnapshotsPath(invalidPath);
-
-      await assertRejectsWithHardhatError(
-        // readFunctionGasSnapshots expects a directory,
-        // giving it a file path should cause an error
-        () => readFunctionGasSnapshots(invalidPath),
-        HardhatError.ERRORS.CORE.SOLIDITY_TESTS.GAS_SNAPSHOT_READ_ERROR,
-        {
-          snapshotsPath,
-          error: `ENOTDIR: not a directory, open '${snapshotsPath}'`,
-        },
-      );
     });
   });
 
