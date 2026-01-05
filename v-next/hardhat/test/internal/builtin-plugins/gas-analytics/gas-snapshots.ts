@@ -20,6 +20,7 @@ import {
   FileNotFoundError,
   mkdtemp,
   readUtf8File,
+  writeUtf8File,
 } from "@nomicfoundation/hardhat-utils/fs";
 
 import {
@@ -507,16 +508,19 @@ MyContract:testTransfer (gas: 25000)`;
         },
       ];
 
-      const invalidPath = "invalid\0path";
+      const invalidPath = getFunctionGasSnapshotsPath(tmpDir);
+      await writeUtf8File(invalidPath, "");
+
       const snapshotsPath = getFunctionGasSnapshotsPath(invalidPath);
 
       await assertRejectsWithHardhatError(
+        // writeFunctionGasSnapshots expects a directory,
+        // giving it a file path should cause an error
         () => writeFunctionGasSnapshots(invalidPath, snapshots),
         HardhatError.ERRORS.CORE.SOLIDITY_TESTS.GAS_SNAPSHOT_WRITE_ERROR,
         {
           snapshotsPath,
-          error:
-            "The argument 'path' must be a string, Uint8Array, or URL without null bytes. Received 'invalid\\x00path'",
+          error: `ENOTDIR: not a directory, open '${snapshotsPath}'`,
         },
       );
     });
@@ -565,15 +569,19 @@ MyContract:testTransfer (gas: 25000)`;
     });
 
     it("should throw HardhatError on read failure", async () => {
-      const invalidPath = "invalid\0path";
+      const invalidPath = getFunctionGasSnapshotsPath(tmpDir);
+      await writeUtf8File(invalidPath, "");
+
       const snapshotsPath = getFunctionGasSnapshotsPath(invalidPath);
+
       await assertRejectsWithHardhatError(
+        // readFunctionGasSnapshots expects a directory,
+        // giving it a file path should cause an error
         () => readFunctionGasSnapshots(invalidPath),
         HardhatError.ERRORS.CORE.SOLIDITY_TESTS.GAS_SNAPSHOT_READ_ERROR,
         {
           snapshotsPath,
-          error:
-            "The argument 'path' must be a string, Uint8Array, or URL without null bytes. Received 'invalid\\x00path/.gas-snapshot'",
+          error: `ENOTDIR: not a directory, open '${snapshotsPath}'`,
         },
       );
     });
