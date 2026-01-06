@@ -205,12 +205,23 @@ describe("CoverageManagerImplementation", () => {
     await coverageManager.addMetadata(metadata1);
     await coverageManager.addMetadata(metadata2);
 
-    const allMetadata = coverageManager.metadata;
+    const filesMetadata = coverageManager.filesMetadata;
 
     for (const item of [...metadata1, ...metadata2]) {
+      const fileBucket = filesMetadata.get(item.relativePath);
+
       assert.ok(
-        allMetadata.some((i) => i.tag === item.tag),
-        `The loaded metadata should include ${item.tag}`,
+        fileBucket !== undefined,
+        `Metadata bucket for file ${item.relativePath} should exist`,
+      );
+
+      const hasTag = Array.from(fileBucket.values()).some(
+        (entry) => entry.tag === item.tag,
+      );
+
+      assert.ok(
+        hasTag,
+        `The loaded metadata should include tag '${item.tag}' inside '${item.relativePath}'`,
       );
     }
   });
@@ -247,19 +258,16 @@ describe("CoverageManagerImplementation", () => {
   it("should not clear the metadata", async () => {
     await coverageManager.addMetadata(metadata);
 
-    let allMetadata = coverageManager.metadata;
+    let allMetadata = coverageManager.filesMetadata;
 
-    assert.ok(
-      allMetadata.length !== 0,
-      "The metadata should be saved to memory",
-    );
+    assert.ok(allMetadata.size !== 0, "The metadata should be saved to memory");
 
     await coverageManager.clearData(id);
 
-    allMetadata = coverageManager.metadata;
+    allMetadata = coverageManager.filesMetadata;
 
     assert.ok(
-      allMetadata.length !== 0,
+      allMetadata.size !== 0,
       "The metadata should not be cleared from memory",
     );
   });
