@@ -2,6 +2,7 @@ import type {
   CoverageData,
   CoverageManager,
   CoverageMetadata,
+  Statement,
 } from "./types.js";
 import type { TableItem } from "@nomicfoundation/hardhat-utils/format";
 
@@ -52,11 +53,23 @@ export interface Report {
   [relativePath: string]: FileReport;
 }
 
+type FilesMetadata = Map<
+  string, // relative path
+  Map<
+    string, // composite key
+    Statement
+  >
+>;
+
 export class CoverageManagerImplementation implements CoverageManager {
   /**
    * @private exposed for testing purposes only
    */
-  public metadata: CoverageMetadata = [];
+  public filesMetadata: FilesMetadata = new Map<
+    string,
+    Map<string, Statement>
+  >();
+
   /**
    * @private exposed for testing purposes only
    */
@@ -85,13 +98,24 @@ export class CoverageManagerImplementation implements CoverageManager {
   }
 
   public async addMetadata(metadata: CoverageMetadata): Promise<void> {
-    // NOTE: The received metadata might contain duplicates. We deduplicate it
-    // when we generate the report.
     for (const entry of metadata) {
-      this.metadata.push(entry);
-    }
+      log("Added metadata", JSON.stringify(metadata, null, 2));
 
-    log("Added metadata", JSON.stringify(metadata, null, 2));
+      let fileStatements = this.filesMetadata.get(entry.relativePath);
+
+      if (fileStatements === undefined) {
+        fileStatements = new Map();
+        this.filesMetadata.set(entry.relativePath, fileStatements);
+      }
+
+      const key = `${entry.relativePath}-${entry.tag}-${entry.startUtf16}-${entry.endUtf16}`;
+
+      const existingData = fileStatements.get(key);
+
+      if (existingData === undefined) {
+        fileStatements.set(key, entry);
+      }
+    }
   }
 
   public async clearData(id: string): Promise<void> {
@@ -161,82 +185,65 @@ export class CoverageManagerImplementation implements CoverageManager {
   public async getReport(): Promise<Report> {
     const report: Report = {};
 
-    const seenMetadata = new Set<string>();
-    const uniqueMetadata: CoverageMetadata = [];
-    for (const m of this.metadata) {
-      const key = `${m.relativePath}-${m.tag}-${m.startUtf16}-${m.endUtf16}`;
-
-      if (!seenMetadata.has(key)) {
-        seenMetadata.add(key);
-        uniqueMetadata.push(m);
-      }
-    }
-
     const allExecutedTags = new Set(this.data);
 
-    const fileRelativePaths = new Set(
-      uniqueMetadata.map(({ relativePath }) => relativePath),
+    const reportPromises = Array.from(this.filesMetadata.entries()).map(
+      async ([fileRelativePath, innerMap]) => {
+        const statementsForFile = Array.from(innerMap.values()).map((s) => s);
+
+        const fileContent = await readUtf8File(
+          path.join(process.cwd(), fileRelativePath),
+        );
+
+        const executedTagsForFile: string[] = [];
+        let executedStatementsCount = 0;
+        let unexecutedStatementsCount = 0;
+
+        for (const stmt of statementsForFile) {
+          if (allExecutedTags.has(stmt.tag)) {
+            executedTagsForFile.push(stmt.tag);
+            executedStatementsCount++;
+          } else {
+            unexecutedStatementsCount++;
+          }
+        }
+
+        const coverageInfo = getProcessedCoverageInfo(
+          fileContent,
+          statementsForFile,
+          executedTagsForFile,
+        );
+
+        const lineExecutionCounts = new Map<number, number>();
+
+        for (const line of coverageInfo.lines.executed.keys()) {
+          lineExecutionCounts.set(line, 1);
+        }
+
+        for (const line of coverageInfo.lines.notExecuted.keys()) {
+          lineExecutionCounts.set(line, 0);
+        }
+
+        const executedLinesCount = coverageInfo.lines.executed.size;
+        const unexecutedLines = new Set(coverageInfo.lines.notExecuted.keys());
+
+        return {
+          path: fileRelativePath,
+          data: {
+            lineExecutionCounts,
+            executedStatementsCount,
+            unexecutedStatementsCount,
+            executedLinesCount,
+            unexecutedLines,
+          },
+        };
+      },
     );
 
-    // Calculate the coverage for each file individually
-    for (const fileRelativePath of fileRelativePaths) {
-      const statementsForFile = uniqueMetadata.filter(
-        (m) => m.relativePath === fileRelativePath,
-      );
+    const results = await Promise.all(reportPromises);
 
-      const tagsForFile = statementsForFile.map((s) => s.tag);
-
-      const executedTagsForFile = tagsForFile.filter((t) =>
-        allExecutedTags.has(t),
-      );
-
-      const fileContent = await readUtf8File(
-        path.join(process.cwd(), fileRelativePath),
-      );
-
-      const coverageInfo = getProcessedCoverageInfo(
-        fileContent,
-        statementsForFile,
-        executedTagsForFile,
-      );
-
-      // Create a map that tracks how many times each line was executed.
-      // Map: line number -> execution count
-      // Currently, from EDR we only know whether a statement was executed or not,
-      // so the execution count is either 0 or 1.
-      const lineExecutionCounts = new Map<number, number>([
-        ...[...coverageInfo.lines.executed.keys()].map((k) => [k, 1] as const),
-        ...[...coverageInfo.lines.notExecuted.keys()].map(
-          (k) => [k, 0] as const,
-        ),
-      ]);
-
-      let executedStatementsCount = 0;
-      let unexecutedStatementsCount = 0;
-      for (const s of tagsForFile) {
-        if (allExecutedTags.has(s)) {
-          executedStatementsCount++;
-        } else {
-          unexecutedStatementsCount++;
-        }
-      }
-
-      const executedLinesCount = coverageInfo.lines.executed.size;
-
-      const unexecutedLines = new Set([
-        ...coverageInfo.lines.notExecuted.keys(),
-      ]);
-
-      report[fileRelativePath] = {
-        lineExecutionCounts,
-
-        executedStatementsCount,
-        unexecutedStatementsCount,
-
-        executedLinesCount,
-
-        unexecutedLines,
-      };
+    for (const result of results) {
+      report[result.path] = result.data;
     }
 
     return report;
