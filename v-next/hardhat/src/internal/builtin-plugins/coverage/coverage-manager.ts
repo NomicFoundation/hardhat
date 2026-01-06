@@ -215,14 +215,12 @@ export class CoverageManagerImplementation implements CoverageManager {
         );
 
         const lineExecutionCounts = new Map<number, number>();
-
-        for (const line of coverageInfo.lines.executed.keys()) {
-          lineExecutionCounts.set(line, 1);
-        }
-
-        for (const line of coverageInfo.lines.notExecuted.keys()) {
-          lineExecutionCounts.set(line, 0);
-        }
+        coverageInfo.lines.executed.forEach((_, line) =>
+          lineExecutionCounts.set(line, 1),
+        );
+        coverageInfo.lines.notExecuted.forEach((_, line) =>
+          lineExecutionCounts.set(line, 0),
+        );
 
         const executedLinesCount = coverageInfo.lines.executed.size;
         const unexecutedLines = new Set(coverageInfo.lines.notExecuted.keys());
