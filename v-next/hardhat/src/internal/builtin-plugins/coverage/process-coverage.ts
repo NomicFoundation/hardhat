@@ -8,8 +8,8 @@ import chalk from "chalk";
 
 // Use constants for the Uint8Array to improve memory usage (1 byte vs 8 bytes per item)
 const STATUS_NOT_EXECUTED = 0; // equivalent to false
-const STATUS_EXECUTED = 1;     // equivalent to true
-const STATUS_IGNORED = 2;      // equivalent to null
+const STATUS_EXECUTED = 1; // equivalent to true
+const STATUS_IGNORED = 2; // equivalent to null
 
 /**
  * Processes the raw EDR coverage information for a file and returns the executed and
@@ -227,7 +227,10 @@ function getProcessedExecutedStatements(markedFile: Uint8Array): {
   notExecuted: ReportCoverageStatement[];
 } {
   const executed = generateProcessedStatements(markedFile, STATUS_EXECUTED);
-  const notExecuted = generateProcessedStatements(markedFile, STATUS_NOT_EXECUTED);
+  const notExecuted = generateProcessedStatements(
+    markedFile,
+    STATUS_NOT_EXECUTED,
+  );
 
   return {
     executed,
@@ -254,7 +257,11 @@ function generateProcessedStatements(
     } else {
       if (start !== -1) {
         // Map back to boolean for the output object
-        ranges.push({ startUtf16: start, endUtf16: i - 1, executed: targetStatus === STATUS_EXECUTED });
+        ranges.push({
+          startUtf16: start,
+          endUtf16: i - 1,
+          executed: targetStatus === STATUS_EXECUTED,
+        });
         start = -1;
       }
     }
@@ -262,7 +269,11 @@ function generateProcessedStatements(
 
   // close last range if file ends inside a run
   if (start !== -1) {
-    ranges.push({ startUtf16: start, endUtf16: n - 1, executed: targetStatus === STATUS_EXECUTED });
+    ranges.push({
+      startUtf16: start,
+      endUtf16: n - 1,
+      executed: targetStatus === STATUS_EXECUTED,
+    });
   }
 
   return ranges;
@@ -282,7 +293,7 @@ function getLinesInfo(
 
   let lineStart = 0;
 
-  let allIgnored = true; 
+  let allIgnored = true;
   let allExecutedOrIgnored = true;
 
   for (let i = 0; i < fileContent.length; i++) {
