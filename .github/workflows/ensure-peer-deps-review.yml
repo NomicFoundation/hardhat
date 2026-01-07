@@ -1,0 +1,31 @@
+# This check runs only on the release PR created by changesets.
+# It requires that a label is added to ensure that peer dependency versions have been manually reviewed.
+
+name: Check peer dependency versions have been reviewed
+
+on:
+  pull_request:
+    branches:
+      - changeset-release/main
+    types:
+      - opened
+      - synchronize
+      - reopened
+      - labeled
+      - unlabeled
+      - edited
+      - ready_for_review
+
+jobs:
+  check-label:
+    name: Check peer dependency versions have been reviewed
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout the repository
+        uses: actions/checkout@v5
+
+      - name: Check for the label presence
+        if: github.event_name == 'pull_request'
+        env:
+          GITHUB_EVENT_PULL_REQUEST_LABELS: ${{ toJson(github.event.pull_request.labels) }}
+        run: node scripts/validate-peer-dependencies-reviewed-label.mjs

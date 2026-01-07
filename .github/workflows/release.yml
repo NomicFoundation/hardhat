@@ -50,6 +50,51 @@ jobs:
           echo "hasChangesets=${{steps.pr.outputs.hasChangesets}}"
           echo "hasChangesets=${{steps.pr.outputs.hasChangesets}}" >> $GITHUB_OUTPUT
 
+      # The following two steps are to mark the changesets PR as draft
+      # This is so a user must mark it as ready for review, which will trigger workflows on this PR
+      # Otherwise workflows won't run since the PR is created by an action itself
+
+      - name: Find package versions PR
+        if: steps.pr.outputs.hasChangesets == 'true'
+        uses: actions/github-script@v7
+        id: find
+        with:
+          script: |
+            const owner = context.repo.owner;
+            const repo  = context.repo.repo;
+            const head  = `${owner}:changeset-release/main`;
+
+            const { data: prs } = await github.rest.pulls.list({ owner, repo, state: "open", head });
+            if (!prs.length) core.setFailed(`No open PR from ${head}`);
+            return { number: prs[0].number };
+
+      - name: Convert to draft
+        if: steps.pr.outputs.hasChangesets == 'true'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const { number } = ${{ steps.find.outputs.result }};
+            // 1) Get node ID for GraphQL
+            const query = `
+              query($owner:String!, $repo:String!, $number:Int!) {
+                repository(owner:$owner, name:$repo) {
+                  pullRequest(number:$number) { id, isDraft, number }
+                }
+              }`;
+            const vars = { owner: context.repo.owner, repo: context.repo.repo, number: Number(number) };
+            const qres = await github.graphql(query, vars);
+            const pr = qres.repository.pullRequest;
+            if (pr.isDraft) return { already: true };
+
+            // 2) Convert to draft
+            const mutation = `
+              mutation($prId:ID!) {
+                convertPullRequestToDraft(input:{pullRequestId:$prId}) {
+                  pullRequest { number, isDraft }
+                }
+              }`;
+            await github.graphql(mutation, { prId: pr.id });
+
   pack:
     name: Generate tarballs for publishing
     needs: pr

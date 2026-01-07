@@ -10,6 +10,8 @@
 import { exec as execSync } from "node:child_process";
 import { promisify } from "node:util";
 
+const CHANGESET_LABEL = "no changeset needed";
+
 const exec = promisify(execSync);
 
 const changesetDir = ".changeset";
@@ -29,7 +31,7 @@ function hasNoChangesetNeededLabel() {
 
   const labels = JSON.parse(process.env.GITHUB_EVENT_PULL_REQUEST_LABELS);
 
-  return labels.some(l => l.name === "no changeset needed");
+  return labels.some(l => l.name === CHANGESET_LABEL);
 }
 
 async function hasChangeset() {
@@ -54,7 +56,7 @@ async function validatePullRequest() {
   }
 
   if (await hasNoChangesetNeededLabel()) {
-    console.log("The PR is labeled as 'no changeset needed'");
+    console.log(`The PR is labeled as '${CHANGESET_LABEL}'`);
     return;
   }
 
