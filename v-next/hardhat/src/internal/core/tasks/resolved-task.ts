@@ -8,6 +8,7 @@ import type {
   LazyActionObject,
   NewTaskActionFunction,
   Task,
+  TaskAction,
   TaskActions,
   TaskArguments,
   TaskOverrideActionFunction,
@@ -49,7 +50,7 @@ export class ResolvedTask implements Task {
     hre: HardhatRuntimeEnvironment,
     id: string[],
     description: string,
-    action: LazyActionObject<NewTaskActionFunction>,
+    taskAction: TaskAction,
     options: Record<string, OptionDefinition>,
     positionalArguments: PositionalArgumentDefinition[],
     pluginId?: string,
@@ -57,7 +58,12 @@ export class ResolvedTask implements Task {
     return new ResolvedTask(
       id,
       description,
-      [{ pluginId, action }],
+      [
+        {
+          pluginId,
+          ...taskAction,
+        },
+      ],
       new Map(Object.entries(options)),
       positionalArguments,
       pluginId,
@@ -142,17 +148,25 @@ export class ResolvedTask implements Task {
       nextTaskArguments: TaskArguments,
       currentIndex = this.actions.length - 1,
     ): Promise<any> => {
-      // The first action may be empty if the task was originally an empty task
-      const currentAction =
-        this.actions[currentIndex].action ??
-        (async () => ({
-          default: () => {},
-        }));
+      const currentTaskAction = this.actions[currentIndex];
 
-      const actionFn = await this.#resolveImportAction(
-        currentAction,
-        this.actions[currentIndex].pluginId,
-      );
+      let actionFn: NewTaskActionFunction | TaskOverrideActionFunction;
+
+      // The first action may be empty if the task was originally an empty task
+      if (currentTaskAction.inlineAction !== undefined) {
+        actionFn = currentTaskAction.inlineAction;
+      } else {
+        const lazyAction =
+          currentTaskAction.action ??
+          (async () => ({
+            default: () => {},
+          }));
+
+        actionFn = await this.#resolveImportAction(
+          lazyAction,
+          currentTaskAction.pluginId,
+        );
+      }
 
       if (currentIndex === 0) {
         /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions --

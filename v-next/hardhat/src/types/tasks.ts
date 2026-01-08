@@ -75,6 +75,17 @@ export enum TaskDefinitionType {
   TASK_OVERRIDE = "TASK_OVERRIDE",
 }
 
+export type TaskAction =
+  | { action: LazyActionObject<NewTaskActionFunction>; inlineAction?: never }
+  | { inlineAction: NewTaskActionFunction; action?: never };
+
+export type TaskOverrideAction =
+  | {
+      action: LazyActionObject<TaskOverrideActionFunction>;
+      inlineAction?: never;
+    }
+  | { inlineAction: TaskOverrideActionFunction; action?: never };
+
 /**
  * Empty task definition. It is meant to be used as a placeholder task that only
  * prints information about its subtasks.
@@ -90,16 +101,14 @@ export interface EmptyTaskDefinition {
 }
 
 /**
- * The definition of a new task.
+ * The base definition of a new task.
  */
-export interface NewTaskDefinition {
+export interface BaseTaskDefinition {
   type: TaskDefinitionType.NEW_TASK;
 
   id: string[];
 
   description: string;
-
-  action: LazyActionObject<NewTaskActionFunction>;
 
   options: Record<string, OptionDefinition>;
 
@@ -107,18 +116,58 @@ export interface NewTaskDefinition {
 }
 
 /**
- * An override of an existing task.
+ * The definition of a new task.
  */
-export interface TaskOverrideDefinition {
+export type NewTaskDefinition = BaseTaskDefinition & TaskAction;
+
+/**
+ * A readable error type used when a plugin attempts to use an inline action.
+ */
+export type PluginsCannotUseInlineActionsError =
+  "Plugins cannot use inline actions. You must use .setAction()";
+
+/**
+ * The definition of a new task specifically for plugins (action is required, inlineAction is forbidden).
+ */
+export interface PluginNewTaskDefinition extends BaseTaskDefinition {
+  action: LazyActionObject<NewTaskActionFunction>;
+  /**
+   * Plugins strictly forbid inline actions.
+   * If you see an error here, it means you used `.setInlineAction()` but must use `.setAction()`.
+   */
+  inlineAction?: PluginsCannotUseInlineActionsError;
+}
+
+/**
+ * The base definition of an override of an existing task.
+ */
+export interface BaseTaskOverrideDefinition {
   type: TaskDefinitionType.TASK_OVERRIDE;
 
   id: string[];
 
   description?: string;
 
-  action: LazyActionObject<TaskOverrideActionFunction>;
-
   options: Record<string, OptionDefinition>;
+}
+
+/**
+ * An override of an existing task.
+ */
+export type TaskOverrideDefinition = BaseTaskOverrideDefinition &
+  TaskOverrideAction;
+
+/**
+ * An override of an existing task specifically for plugins (action is required, inlineAction is forbidden).
+ */
+export interface PluginTaskOverrideDefinition
+  extends BaseTaskOverrideDefinition {
+  action: LazyActionObject<TaskOverrideActionFunction>;
+  /**
+   * Plugins strictly forbid inline actions.
+   * If you see an error here, it means you used `.setInlineAction()` but must use `.setAction()`.
+   */
+  inlineAction?: PluginsCannotUseInlineActionsError;
 }
 
 /**
@@ -130,6 +179,14 @@ export type TaskDefinition =
   | EmptyTaskDefinition
   | NewTaskDefinition
   | TaskOverrideDefinition;
+
+/**
+ * The definition of a task, strictly for plugins.
+ */
+export type PluginTaskDefinition =
+  | EmptyTaskDefinition
+  | PluginNewTaskDefinition
+  | PluginTaskOverrideDefinition;
 
 /**
  * This helper type adds an argument to an existing TaskArgumentsT.
@@ -149,6 +206,34 @@ export type ExtendTaskArguments<
   TaskArgumentsT;
 
 /**
+ * Helper to determine the build return type based on ActionTypeT.
+ *
+ * This ensures strict typing for plugins:
+ * - If ActionTypeT is "FILE", it returns `PluginSafeDef`. This allows the task to be used
+ * in a `HardhatPlugin`, where `inlineAction` is strictly forbidden and only `action`
+ * (file-based import) is allowed.
+ * - If ActionTypeT is "INLINE" (or "NONE"), it returns `BaseDef`. These tasks allow
+ * `inlineAction` but result in a type incompatible with `HardhatPlugin.tasks`.
+ */
+export type BuildReturnType<BaseDef, ActionTypeT, PluginSafeDef> =
+  ActionTypeT extends "FILE"
+    ? PluginSafeDef
+    : ActionTypeT extends "INLINE"
+      ? BaseDef
+      : BaseDef;
+
+/**
+ * Error state used when the user forgot to add an action.
+ * Using a string literal type ensures a readable error message in the IDE.
+ */
+export type MissingActionState = "You forgot to add an action to the task";
+
+/**
+ * State used when the action has been correctly defined.
+ */
+export type ActionDefinedState = "Action defined";
+
+/**
  * A builder for creating EmptyTaskDefinitions.
  */
 export interface EmptyTaskDefinitionBuilder {
@@ -160,10 +245,27 @@ export interface EmptyTaskDefinitionBuilder {
 
 /**
  * A builder for creating NewTaskDefinitions.
+ *
+ * @template TaskArgumentsT The arguments of the task.
+ * @template ActionStateT Tracks the state of the action definition for error messages.
+ * This state ensures that `setAction` and `setInlineAction` are mutually exclusive
+ * and can strictly be called only once per task definition chain.
+ * @template ActionTypeT Tracks if the action is "FILE" (Plugin Safe) or "INLINE".
  */
 export interface NewTaskDefinitionBuilder<
   TaskArgumentsT extends TaskArguments = TaskArguments,
+  ActionStateT extends
+    | MissingActionState
+    | ActionDefinedState = MissingActionState,
+  ActionTypeT extends "FILE" | "INLINE" | "NONE" = "NONE",
 > {
+  /**
+   * Technical property needed to enforce the `ActionStateT` state check at compile time.
+   * See `ActionStateT`for more info.
+   * @internal
+   */
+  readonly isActionDefined: ActionStateT;
+
   /**
    * Sets the description of the task.
    */
@@ -172,15 +274,26 @@ export interface NewTaskDefinitionBuilder<
   /**
    * Sets the action of the task.
    *
-   * It can be provided as a function, or as a `file://` URL pointing to a file
+   * It must be provided as a `file://` URL pointing to a file
    * that exports a default NewTaskActionFunction.
    *
    * Note that plugins can only use the inline function form for development
    * purposes.
    */
   setAction(
+    this: NewTaskDefinitionBuilder<TaskArgumentsT, MissingActionState, any>,
     action: LazyActionObject<NewTaskActionFunction<TaskArgumentsT>>,
-  ): this;
+  ): NewTaskDefinitionBuilder<TaskArgumentsT, ActionDefinedState, "FILE">;
+
+  /**
+   * Sets the inline action of the task.
+   *
+   * It must be provided as a function.
+   */
+  setInlineAction(
+    this: NewTaskDefinitionBuilder<TaskArgumentsT, MissingActionState, any>,
+    inlineAction: NewTaskActionFunction<TaskArgumentsT>,
+  ): NewTaskDefinitionBuilder<TaskArgumentsT, ActionDefinedState, "INLINE">;
 
   /**
    * Adds an option to the task.
@@ -202,7 +315,9 @@ export interface NewTaskDefinitionBuilder<
     defaultValue: ArgumentTypeToValueType<TypeT>;
     hidden?: boolean;
   }): NewTaskDefinitionBuilder<
-    ExtendTaskArguments<NameT, TypeT, TaskArgumentsT>
+    ExtendTaskArguments<NameT, TypeT, TaskArgumentsT>,
+    ActionStateT,
+    ActionTypeT
   >;
 
   /**
@@ -214,7 +329,9 @@ export interface NewTaskDefinitionBuilder<
     description?: string;
     hidden?: boolean;
   }): NewTaskDefinitionBuilder<
-    ExtendTaskArguments<NameT, ArgumentType.FLAG, TaskArgumentsT>
+    ExtendTaskArguments<NameT, ArgumentType.FLAG, TaskArgumentsT>,
+    ActionStateT,
+    ActionTypeT
   >;
 
   /**
@@ -226,7 +343,9 @@ export interface NewTaskDefinitionBuilder<
     description?: string;
     defaultValue?: number;
   }): NewTaskDefinitionBuilder<
-    ExtendTaskArguments<NameT, ArgumentType.LEVEL, TaskArgumentsT>
+    ExtendTaskArguments<NameT, ArgumentType.LEVEL, TaskArgumentsT>,
+    ActionStateT,
+    ActionTypeT
   >;
 
   /**
@@ -254,7 +373,9 @@ export interface NewTaskDefinitionBuilder<
     type?: TypeT;
     defaultValue?: ArgumentTypeToValueType<TypeT>;
   }): NewTaskDefinitionBuilder<
-    ExtendTaskArguments<NameT, TypeT, TaskArgumentsT>
+    ExtendTaskArguments<NameT, TypeT, TaskArgumentsT>,
+    ActionStateT,
+    ActionTypeT
   >;
 
   /**
@@ -280,21 +401,46 @@ export interface NewTaskDefinitionBuilder<
     type?: TypeT;
     defaultValue?: Array<ArgumentTypeToValueType<TypeT>>;
   }): NewTaskDefinitionBuilder<
-    ExtendTaskArguments<NameT, TypeT[], TaskArgumentsT>
+    ExtendTaskArguments<NameT, TypeT[], TaskArgumentsT>,
+    ActionStateT,
+    ActionTypeT
   >;
 
   /**
    * Builds the NewTaskDefinition.
    */
-  build(): NewTaskDefinition;
+  build(
+    this: NewTaskDefinitionBuilder<
+      TaskArgumentsT,
+      ActionDefinedState,
+      ActionTypeT
+    >,
+  ): BuildReturnType<NewTaskDefinition, ActionTypeT, PluginNewTaskDefinition>;
 }
 
 /**
- * A builder for overriding existing tasks.
+ * A builder for overriding existing tasks
+ *
+ * @template TaskArgumentsT The arguments of the task.
+ * @template ActionStateT Tracks the state of the action definition for error messages.
+ * This state ensures that `setAction` and `setInlineAction` are mutually exclusive
+ * and can strictly be called only once per task definition chain.
+ * @template ActionTypeT Tracks if the action is "FILE" (Plugin Safe) or "INLINE".
  */
 export interface TaskOverrideDefinitionBuilder<
   TaskArgumentsT extends TaskArguments = TaskArguments,
+  ActionStateT extends
+    | MissingActionState
+    | ActionDefinedState = MissingActionState,
+  ActionTypeT extends "FILE" | "INLINE" | "NONE" = "NONE",
 > {
+  /**
+   * Technical property needed to enforce the `ActionStateT` state check at compile time.
+   * See `ActionStateT`for more info.
+   * @internal
+   */
+  readonly isActionDefined: ActionStateT;
+
   /**
    * Sets a new description for the task.
    */
@@ -306,8 +452,31 @@ export interface TaskOverrideDefinitionBuilder<
    * @see NewTaskDefinitionBuilder.setAction
    */
   setAction(
+    this: TaskOverrideDefinitionBuilder<
+      TaskArgumentsT,
+      MissingActionState,
+      any
+    >,
     action: LazyActionObject<TaskOverrideActionFunction<TaskArgumentsT>>,
-  ): this;
+  ): TaskOverrideDefinitionBuilder<TaskArgumentsT, ActionDefinedState, "FILE">;
+
+  /**
+   * Sets a new inline action for the task.
+   *
+   * @see NewTaskDefinitionBuilder.setInlineAction
+   */
+  setInlineAction(
+    this: TaskOverrideDefinitionBuilder<
+      TaskArgumentsT,
+      MissingActionState,
+      any
+    >,
+    inlineAction: TaskOverrideActionFunction<TaskArgumentsT>,
+  ): TaskOverrideDefinitionBuilder<
+    TaskArgumentsT,
+    ActionDefinedState,
+    "INLINE"
+  >;
 
   /**
    * Adds a new option to the task.
@@ -325,7 +494,9 @@ export interface TaskOverrideDefinitionBuilder<
     defaultValue: ArgumentTypeToValueType<TypeT>;
     hidden?: boolean;
   }): TaskOverrideDefinitionBuilder<
-    ExtendTaskArguments<NameT, TypeT, TaskArgumentsT>
+    ExtendTaskArguments<NameT, TypeT, TaskArgumentsT>,
+    ActionStateT,
+    ActionTypeT
   >;
 
   /**
@@ -337,7 +508,9 @@ export interface TaskOverrideDefinitionBuilder<
     description?: string;
     hidden?: boolean;
   }): TaskOverrideDefinitionBuilder<
-    ExtendTaskArguments<NameT, ArgumentType.FLAG, TaskArgumentsT>
+    ExtendTaskArguments<NameT, ArgumentType.FLAG, TaskArgumentsT>,
+    ActionStateT,
+    ActionTypeT
   >;
 
   /**
@@ -349,36 +522,56 @@ export interface TaskOverrideDefinitionBuilder<
     description?: string;
     defaultValue?: number;
   }): TaskOverrideDefinitionBuilder<
-    ExtendTaskArguments<NameT, ArgumentType.LEVEL, TaskArgumentsT>
+    ExtendTaskArguments<NameT, ArgumentType.LEVEL, TaskArgumentsT>,
+    ActionStateT,
+    ActionTypeT
   >;
 
   /**
    * Builds the TaskOverrideDefinition.
    */
-  build(): TaskOverrideDefinition;
+  build(
+    this: TaskOverrideDefinitionBuilder<
+      TaskArgumentsT,
+      ActionDefinedState,
+      ActionTypeT
+    >,
+  ): BuildReturnType<
+    TaskOverrideDefinition,
+    ActionTypeT,
+    PluginTaskOverrideDefinition
+  >;
 }
 
 /**
  * The actions associated to the task, in order.
  *
  * Each of them has the pluginId of the plugin that defined it, if any, and the
- * action itself.
+ * action itself. The action is stored either in `action` or `inlineAction`.
+ * Note that `inlineAction` is reserved for user tasks and is not allowed for plugins.
  *
- * Note that the first action is a `NewTaskActionFunction`, `string`, or
- * `undefined`. `undefined` is only used for empty tasks.
+ * Note that the first action is a `NewTaskActionFunction` or undefined.
+ * `undefined` is only used for empty tasks.
  *
- * The rest of the actions always have a `TaskOverrideActionFunction` or a
- * `string`.
+ * The rest of the actions always have a `TaskOverrideActionFunction`.
  */
 export type TaskActions = [
+  // The Task Definition
   {
     pluginId?: string;
-    action?: LazyActionObject<NewTaskActionFunction>;
-  },
-  ...Array<{
-    pluginId?: string;
-    action: LazyActionObject<TaskOverrideActionFunction>;
-  }>,
+  } & (
+    | TaskAction
+    | {
+        action?: undefined;
+        inlineAction?: undefined;
+      }
+  ),
+  // The Task Overrides
+  ...Array<
+    {
+      pluginId?: string;
+    } & TaskOverrideAction
+  >,
 ];
 
 /**
