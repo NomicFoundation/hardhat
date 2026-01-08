@@ -158,7 +158,7 @@ export class SolcConfigSelector {
     const incompatibleFiles: Array<{ path: string; pragma: string }> = [];
 
     // check root file
-    if (maxSatisfying(compilerVersions, rootVersionRange) == null) {
+    if (maxSatisfying(compilerVersions, rootVersionRange) === null) {
       incompatibleFiles.push({
         path: shortenPath(root.fsPath),
         pragma: root.content.versionPragmas.join(" "),
