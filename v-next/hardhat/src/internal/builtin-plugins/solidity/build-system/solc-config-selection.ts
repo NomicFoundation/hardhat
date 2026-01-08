@@ -173,7 +173,7 @@ export class SolcConfigSelector {
       const depVersionRange = transitiveDependency.versionPragmasPath
         .map((pragmas) => pragmas.join(" "))
         .join(" ");
-      if (maxSatisfying(compilerVersions, depVersionRange) == null) {
+      if (maxSatisfying(compilerVersions, depVersionRange) === null) {
         incompatibleFiles.push({
           path: shortenPath(transitiveDependency.dependency.fsPath),
           pragma:
