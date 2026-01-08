@@ -60,7 +60,7 @@ const solidityTestUserConfigType = z.object({
   forking: z
     .object({
       url: z.optional(sensitiveUrlSchema),
-      blockNumber: z.bigint().optional(),
+      blockNumber: z.number().or(z.bigint()).optional(),
       rpcEndpoints: z.record(sensitiveStringSchema).optional(),
     })
     .optional(),
