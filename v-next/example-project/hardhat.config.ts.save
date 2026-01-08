@@ -1,5 +1,3 @@
-port { defineConfig } from "hardhat/config";
-
 import { HardhatPluginError } from "hardhat/plugins";
 
 import util from "node:util";
