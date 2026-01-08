@@ -4,12 +4,10 @@ import type {
   FuzzTestKindGasUsage,
   StandardTestKindGasUsage,
 } from "../../../../src/internal/builtin-plugins/gas-analytics/gas-snapshots.js";
-import type { SuiteResult, TestResult } from "@nomicfoundation/edr";
 
 import assert from "node:assert/strict";
 import { after, afterEach, before, describe, it } from "node:test";
 
-import { TestStatus } from "@nomicfoundation/edr";
 import { HardhatError } from "@nomicfoundation/hardhat-errors";
 import { assertThrowsHardhatError } from "@nomicfoundation/hardhat-test-utils";
 import {
@@ -32,7 +30,13 @@ import {
   stringifyFunctionGasSnapshots,
   writeFunctionGasSnapshots,
 } from "../../../../src/internal/builtin-plugins/gas-analytics/gas-snapshots.js";
-import { parseName } from "../../../../src/utils/contract-names.js";
+
+import {
+  createFuzzTestResult,
+  createInvariantTestResult,
+  createStandardTestResult,
+  createSuiteResult,
+} from "./suite-result-helpers.js";
 
 describe("gas-snapshots", () => {
   describe("handleSnapshot", () => {
@@ -59,7 +63,7 @@ describe("gas-snapshots", () => {
     });
 
     it("should write snapshots and print success message", async () => {
-      const suiteResults: SuiteResult[] = [
+      const suiteResults = [
         createSuiteResult("MyContract", [
           createStandardTestResult("testA", 10000n),
         ]),
@@ -76,9 +80,7 @@ describe("gas-snapshots", () => {
     });
 
     it("should handle empty suite results", async () => {
-      const suiteResults: SuiteResult[] = [];
-
-      await handleSnapshot(tmpDir, suiteResults);
+      await handleSnapshot(tmpDir, []);
 
       const snapshotPath = getFunctionGasSnapshotsPath(tmpDir);
       const savedContent = await readUtf8File(snapshotPath);
@@ -129,7 +131,7 @@ describe("gas-snapshots", () => {
     });
 
     it("should write snapshots on first run (no existing file)", async () => {
-      const suiteResults: SuiteResult[] = [
+      const suiteResults = [
         createSuiteResult("MyContract", [
           createStandardTestResult("testA", 10000n),
         ]),
@@ -146,7 +148,7 @@ describe("gas-snapshots", () => {
     });
 
     it("should pass when snapshots are unchanged", async () => {
-      const suiteResults: SuiteResult[] = [
+      const suiteResults = [
         createSuiteResult("MyContract", [
           createStandardTestResult("testA", 10000n),
         ]),
@@ -163,12 +165,12 @@ describe("gas-snapshots", () => {
     });
 
     it("should fail and set exit code when gas changes", async () => {
-      const initialResults: SuiteResult[] = [
+      const initialResults = [
         createSuiteResult("MyContract", [
           createStandardTestResult("testA", 10000n),
         ]),
       ];
-      const changedResults: SuiteResult[] = [
+      const changedResults = [
         createSuiteResult("MyContract", [
           createStandardTestResult("testA", 15000n),
         ]),
@@ -193,12 +195,12 @@ describe("gas-snapshots", () => {
     });
 
     it("should pass and update file when functions are added", async () => {
-      const initialResults: SuiteResult[] = [
+      const initialResults = [
         createSuiteResult("MyContract", [
           createStandardTestResult("testA", 10000n),
         ]),
       ];
-      const withAddedResults: SuiteResult[] = [
+      const withAddedResults = [
         createSuiteResult("MyContract", [
           createStandardTestResult("testA", 10000n),
           createStandardTestResult("testB", 20000n),
@@ -222,13 +224,13 @@ describe("gas-snapshots", () => {
     });
 
     it("should pass and update file when functions are removed", async () => {
-      const initialResults: SuiteResult[] = [
+      const initialResults = [
         createSuiteResult("MyContract", [
           createStandardTestResult("testA", 10000n),
           createStandardTestResult("testB", 20000n),
         ]),
       ];
-      const withRemovedResults: SuiteResult[] = [
+      const withRemovedResults = [
         createSuiteResult("MyContract", [
           createStandardTestResult("testA", 10000n),
         ]),
@@ -253,7 +255,7 @@ describe("gas-snapshots", () => {
 
   describe("extractFunctionGasSnapshots", () => {
     it("should extract standard test gas snapshots", () => {
-      const suiteResults: SuiteResult[] = [
+      const suiteResults = [
         createSuiteResult("MyContract", [
           createStandardTestResult("testTransfer", 25000n),
           createStandardTestResult("testApprove", 30000n),
@@ -278,7 +280,7 @@ describe("gas-snapshots", () => {
     });
 
     it("should extract fuzz test gas snapshots", () => {
-      const suiteResults: SuiteResult[] = [
+      const suiteResults = [
         createSuiteResult("FuzzContract", [
           createFuzzTestResult("testFuzzTransfer", 100n, 25000n, 24500n),
         ]),
@@ -298,7 +300,7 @@ describe("gas-snapshots", () => {
     });
 
     it("should skip invariant tests with calls", () => {
-      const suiteResults: SuiteResult[] = [
+      const suiteResults = [
         createSuiteResult("InvariantContract", [
           createInvariantTestResult("invariantTest", 10n, 5n),
           createStandardTestResult("testStandard", 20000n),
@@ -312,7 +314,7 @@ describe("gas-snapshots", () => {
     });
 
     it("should handle multiple suites", () => {
-      const suiteResults: SuiteResult[] = [
+      const suiteResults = [
         createSuiteResult("ContractA", [
           createStandardTestResult("testA", 10000n),
         ]),
@@ -331,17 +333,13 @@ describe("gas-snapshots", () => {
     });
 
     it("should handle empty suite results", () => {
-      const suiteResults: SuiteResult[] = [];
-
-      const snapshots = extractFunctionGasSnapshots(suiteResults);
+      const snapshots = extractFunctionGasSnapshots([]);
 
       assert.equal(snapshots.length, 0);
     });
 
     it("should handle suite with no test results", () => {
-      const suiteResults: SuiteResult[] = [
-        createSuiteResult("EmptyContract", []),
-      ];
+      const suiteResults = [createSuiteResult("EmptyContract", [])];
 
       const snapshots = extractFunctionGasSnapshots(suiteResults);
 
@@ -349,7 +347,7 @@ describe("gas-snapshots", () => {
     });
 
     it("should use simple contract name when given FQN with no duplicates", () => {
-      const suiteResults: SuiteResult[] = [
+      const suiteResults = [
         createSuiteResult("contracts/MyContract.sol:MyContract", [
           createStandardTestResult("testTransfer", 25000n),
         ]),
@@ -363,7 +361,7 @@ describe("gas-snapshots", () => {
     });
 
     it("should use FQN when there are duplicate contract names", () => {
-      const suiteResults: SuiteResult[] = [
+      const suiteResults = [
         createSuiteResult("contracts/Token.sol:Token", [
           createStandardTestResult("testTransfer", 25000n),
         ]),
@@ -385,7 +383,7 @@ describe("gas-snapshots", () => {
     });
 
     it("should use FQN only for duplicates, simple name for unique contracts", () => {
-      const suiteResults: SuiteResult[] = [
+      const suiteResults = [
         createSuiteResult("contracts/Token.sol:Token", [
           createStandardTestResult("testTransfer", 25000n),
         ]),
@@ -1270,80 +1268,3 @@ MyContract#testB (gas: 20000)`;
     });
   });
 });
-
-function createStandardTestResult(
-  name: string,
-  consumedGas: bigint,
-): TestResult {
-  return {
-    name,
-    status: TestStatus.Success,
-    decodedLogs: [],
-    durationNs: 0n,
-    kind: {
-      consumedGas,
-    },
-    stackTrace: () => null,
-    callTraces: () => [],
-  };
-}
-
-function createFuzzTestResult(
-  name: string,
-  runs: bigint,
-  meanGas: bigint,
-  medianGas: bigint,
-): TestResult {
-  return {
-    name,
-    status: TestStatus.Success,
-    decodedLogs: [],
-    durationNs: 0n,
-    kind: {
-      runs,
-      meanGas,
-      medianGas,
-    },
-    stackTrace: () => null,
-    callTraces: () => [],
-  };
-}
-
-function createInvariantTestResult(
-  name: string,
-  runs: bigint,
-  calls: bigint,
-): TestResult {
-  return {
-    name,
-    status: TestStatus.Success,
-    decodedLogs: [],
-    durationNs: 0n,
-    kind: {
-      runs,
-      calls,
-      reverts: 0n,
-      metrics: {},
-      failedCorpusReplays: 0n,
-    },
-    stackTrace: () => null,
-    callTraces: () => [],
-  };
-}
-
-function createSuiteResult(
-  contractNameOrFqn: string,
-  testResults: TestResult[],
-): SuiteResult {
-  const { sourceName, contractName } = parseName(contractNameOrFqn);
-  return {
-    id: {
-      name: contractName,
-      source: sourceName ?? `${contractName}.sol`,
-      solcVersion: "0.8.0",
-    },
-    durationNs: 0n,
-    warnings: [],
-    testResults,
-  };
-}
