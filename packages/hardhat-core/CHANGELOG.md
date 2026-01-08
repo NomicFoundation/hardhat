@@ -1,5 +1,13 @@
 # hardhat
 
+## 2.28.3
+
+### Patch Changes
+
+- 494b2c2: Bumped EDR version to [`0.12.0-next.22`](https://github.com/NomicFoundation/edr/releases/tag/%40nomicfoundation%2Fedr%400.12.0-next.22).
+  - NomicFoundation/edr@b5a7b75: Added an API that reports the latest supported Solidity version for source instrumentation
+- 893277f: Increase the default block gas limit per EIP-7935. Thanks @Amxx! ([#7776](https://github.com/NomicFoundation/hardhat/pull/7776))
+
 ## 2.28.2
 
 ### Patch Changes
