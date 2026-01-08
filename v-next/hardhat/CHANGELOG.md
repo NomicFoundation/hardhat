@@ -1,5 +1,15 @@
 # hardhat
 
+## 3.1.3
+
+### Patch Changes
+
+- 12d7468: Add mocha results to test summary numbers ([#7791](https://github.com/NomicFoundation/hardhat/pull/7791))
+- 25155b5: Add support for the official builds of `solc` for ARM64 Linux ([#7752](https://github.com/NomicFoundation/hardhat/issues/7752))
+- 065df38: Bumped EDR version to [`0.12.0-next.22`](https://github.com/NomicFoundation/edr/releases/tag/%40nomicfoundation%2Fedr%400.12.0-next.22).
+  - NomicFoundation/edr@b5a7b75: Added an API that reports the latest supported Solidity version for source instrumentation
+- 5abcee6: Use Osaka as the default EVM target for solc 0.8.31+ and increase the gas limit per EIP-7935. Thanks @Amxx! ([#7813](https://github.com/NomicFoundation/hardhat/pull/7813))
+
 ## 3.1.2
 
 ### Patch Changes

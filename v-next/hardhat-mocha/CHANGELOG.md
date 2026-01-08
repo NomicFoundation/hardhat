@@ -1,5 +1,11 @@
 # @nomicfoundation/hardhat-mocha
 
+## 3.0.9
+
+### Patch Changes
+
+- 12d7468: Add mocha results to test summary numbers ([#7791](https://github.com/NomicFoundation/hardhat/pull/7791))
+
 ## 3.0.8
 
 ### Patch Changes
