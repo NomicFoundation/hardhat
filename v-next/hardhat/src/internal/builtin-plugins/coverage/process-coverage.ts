@@ -76,12 +76,15 @@ function getRawEdrExecutedAndNotExecutedStatements(
 } {
   const hitTagsSet = new Set(hitTags);
 
-  const executedStatements = metadata.filter((node) =>
-    hitTagsSet.has(node.tag),
-  );
-  const notExecutedStatements = metadata.filter(
-    (node) => !hitTagsSet.has(node.tag),
-  );
+  const executedStatements: Statement[] = [];
+  const notExecutedStatements: Statement[] = [];
+  for (const node of metadata) {
+    if (hitTagsSet.has(node.tag)) {
+      executedStatements.push(node);
+    } else {
+      notExecutedStatements.push(node);
+    }
+  }
 
   return {
     executedStatements,
