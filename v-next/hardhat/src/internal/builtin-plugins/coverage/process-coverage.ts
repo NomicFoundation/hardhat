@@ -54,7 +54,6 @@ export function getProcessedCoverageInfo(
 
   markAsNonExecutableSpecialSubstrings(fileContent, markedFile);
 
-  // Enable this function while debugging to view the coverage for a file
   // printFileCoverageForDebugging(fileContent, markedFile);
 
   return {
