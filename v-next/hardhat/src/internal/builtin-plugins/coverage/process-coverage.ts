@@ -52,8 +52,6 @@ export function getProcessedCoverageInfo(
     rawStatements.notExecutedStatements,
   );
 
-  markAsNonExecutableSpecialSubstrings(fileContent, markedFile);
-
   // printFileCoverageForDebugging(fileContent, markedFile);
 
   return {
@@ -152,6 +150,8 @@ function createMarkedFile(
       markedFile[i] = STATUS_NOT_EXECUTED;
     }
   }
+
+  markAsNonExecutableSpecialSubstrings(fileContent, markedFile);
 
   return markedFile;
 }
