@@ -3,7 +3,7 @@ import type {
   FunctionGasSnapshotChange,
   FuzzTestKindGasUsage,
   StandardTestKindGasUsage,
-} from "../../../../src/internal/builtin-plugins/gas-analytics/gas-snapshots.js";
+} from "../../../../src/internal/builtin-plugins/gas-analytics/function-gas-snapshots.js";
 
 import assert from "node:assert/strict";
 import { after, afterEach, before, describe, it } from "node:test";
@@ -27,7 +27,7 @@ import {
   readFunctionGasSnapshots,
   stringifyFunctionGasSnapshots,
   writeFunctionGasSnapshots,
-} from "../../../../src/internal/builtin-plugins/gas-analytics/gas-snapshots.js";
+} from "../../../../src/internal/builtin-plugins/gas-analytics/function-gas-snapshots.js";
 
 import {
   createFuzzTestResult,
@@ -36,7 +36,7 @@ import {
   createSuiteResult,
 } from "./suite-result-helpers.js";
 
-describe("gas-snapshots", () => {
+describe("function-gas-snapshots", () => {
   describe("extractFunctionGasSnapshots", () => {
     it("should extract standard test gas snapshots", () => {
       const suiteResults = [

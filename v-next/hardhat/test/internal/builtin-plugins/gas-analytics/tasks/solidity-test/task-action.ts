@@ -7,7 +7,7 @@ import {
   mkdtemp,
 } from "@nomicfoundation/hardhat-utils/fs";
 
-import { getFunctionGasSnapshotsPath } from "../../../../../../src/internal/builtin-plugins/gas-analytics/gas-snapshots.js";
+import { getFunctionGasSnapshotsPath } from "../../../../../../src/internal/builtin-plugins/gas-analytics/function-gas-snapshots.js";
 import {
   handleSnapshot,
   handleSnapshotCheck,

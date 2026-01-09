@@ -1,5 +1,5 @@
 import type { TaskOverrideActionFunction } from "../../../../../types/tasks.js";
-import type { FunctionGasSnapshot } from "../../gas-snapshots.js";
+import type { FunctionGasSnapshot } from "../../function-gas-snapshots.js";
 import type { SuiteResult } from "@nomicfoundation/edr";
 
 import { FileNotFoundError } from "@nomicfoundation/hardhat-utils/fs";
@@ -12,7 +12,7 @@ import {
   readFunctionGasSnapshots,
   stringifyFunctionGasSnapshots,
   writeFunctionGasSnapshots,
-} from "../../gas-snapshots.js";
+} from "../../function-gas-snapshots.js";
 
 interface GasAnalyticsTestActionArguments {
   snapshot: boolean;
