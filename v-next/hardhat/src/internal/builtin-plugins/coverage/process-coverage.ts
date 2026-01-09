@@ -51,7 +51,8 @@ export function getProcessedCoverageInfo(
     statementsByExecution.unexecuted,
   );
 
-  // printFileCoverageForDebugging(fileContent, characterCoverage);
+  // printStatementsForDebugging(fileContent, statementsByExecution);
+  // printCharacterCoverageForDebugging(fileContent, characterCoverage);
 
   return {
     lines: partitionLinesByExecution(fileContent, characterCoverage),
@@ -378,7 +379,54 @@ function partitionLinesByExecution(
 // and gray characters when they are irrelevant for code coverage.
 /* eslint-disable-next-line @typescript-eslint/no-unused-vars
 -- this function can be enabled for debugging purposes */
-function printFileCoverageForDebugging(
+function printStatementsForDebugging(
+  fileContent: string,
+  statementsByExecution: {
+    executed: Statement[];
+    unexecuted: Statement[];
+  },
+): void {
+  const relativePath =
+    statementsByExecution.executed.length > 0
+      ? statementsByExecution.executed[0].relativePath
+      : statementsByExecution.unexecuted[0].relativePath;
+
+  console.debug("Statments fro file: " + relativePath);
+
+  console.debug("Executed statements:");
+  let counter = 0;
+  for (const statement of statementsByExecution.executed) {
+    console.debug(counter++ + " ---");
+
+    for (let i = statement.startUtf16; i < statement.endUtf16; i++) {
+      process.stdout.write(chalk.gray(fileContent[i]));
+    }
+
+    console.debug();
+  }
+
+  console.debug();
+
+  console.debug("Unexecuted statements:");
+  counter = 0;
+  for (const statement of statementsByExecution.unexecuted) {
+    console.debug(counter++ + " ---");
+
+    for (let i = statement.startUtf16; i < statement.endUtf16; i++) {
+      process.stdout.write(chalk.gray(fileContent[i]));
+    }
+
+    console.debug();
+  }
+}
+
+// Enable this function while debugging to display the coverage for a file.
+// The file will be printed with green characters when they are executed,
+// red characters when they are not executed,
+// and gray characters when they are irrelevant for code coverage.
+/* eslint-disable-next-line @typescript-eslint/no-unused-vars
+-- this function can be enabled for debugging purposes */
+function printCharacterCoverageForDebugging(
   fileContent: string,
   characterCoverage: Uint8Array,
 ): void {
