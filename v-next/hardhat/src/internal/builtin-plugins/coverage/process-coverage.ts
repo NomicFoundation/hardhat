@@ -82,9 +82,10 @@ function getRawEdrExecutedAndNotExecutedStatements(
   };
 }
 
-// Determine the minimum and maximum character indexes that define the range where coverage should be calculated,
-// excluding parts that the tests never reach. This removes irrelevant sections from coverage analysis,
-// such as the beginning or end of each Solidity file.
+// Determine the minimum and maximum character indexes that define the range
+// where coverage should be calculated, excluding parts that the tests never
+// reach. This removes irrelevant sections from coverage analysis, such as the
+// beginning or end of each Solidity file.
 // Example:
 // // SPDX-License-Identifier: MIT
 // pragma solidity ^0.8.0;
@@ -109,11 +110,12 @@ function getCoverageStartAndEndIndex(
   return { minCharI, maxCharI };
 }
 
-// Return an array with the same length as the file content.
-// Each position in the array corresponds to a character in the file.
-// The value at each position indicates whether that character was executed during tests (STATUS_EXECUTED),
-// not executed (STATUS_NOT_EXECUTED), or not relevant for coverage (STATUS_IGNORED).
-// STATUS_IGNORED is used to indicate characters that are not executed during test, such as those found at the start or end of every Solidity file.
+// Return an array with the same length as the file content. Each position in
+// the array corresponds to a character in the file. The value at each position
+// indicates whether that character was executed during tests (STATUS_EXECUTED),
+// not executed (STATUS_NOT_EXECUTED), or not relevant for coverage
+// (STATUS_IGNORED). STATUS_IGNORED is used to indicate characters that are not
+// executed during test, such as those found at the start or end of every Solidity file.
 // Example:
 // // SPDX-License-Identifier: MIT
 // pragma solidity ^0.8.0;
@@ -127,10 +129,12 @@ function createMarkedFile(
   // We initialize with STATUS_IGNORED (equivalent to filling with null)
   const markedFile = new Uint8Array(fileContent.length).fill(STATUS_IGNORED);
 
-  // Initially mark all characters that may be executed during the tests as STATUS_EXECUTED. They will be set to false later
-  // if they are not executed. The coverage statement received from EDR will provide this information.
-  // Setting everything to true first simplifies the logic for extracting coverage data.
-  // Starting with false and toggling only covered characters would make statement processing more complex.
+  // Initially mark all characters that may be executed during the tests as
+  // STATUS_EXECUTED. They will be set to false later if they are not executed.
+  // The coverage statement received from EDR will provide this information.
+  // Setting everything to true first simplifies the logic for extracting
+  // coverage data. Starting with false and toggling only covered characters
+  // would make statement processing more complex.
   for (let i = minCharI; i < maxCharI; i++) {
     if (charMustBeIgnored(fileContent[i])) {
       continue;
@@ -154,8 +158,8 @@ function createMarkedFile(
   return markedFile;
 }
 
-// The following characters are not relevant for the code coverage, so they must be ignored
-// when marking characters as executed (true) or not executed (false)
+// The following characters are not relevant for the code coverage, so they
+// must be ignored when marking characters as executed (true) or not executed (false)
 function charMustBeIgnored(c: string): boolean {
   const code = c.charCodeAt(0);
 
@@ -211,10 +215,10 @@ function markMatchingCharsWithIgnored(
   }
 }
 
-// Generate non overlapping coverage statements. Every character between the start and end indexes is guaranteed
-// to be either executed or not executed.
-// Unlike the statements received from EDR, which may include nested sub statements, these are processed
-// and have no sub statements or overlapping statements.
+// Generate non overlapping coverage statements. Every character between the start
+// and end indexes is guaranteed to be either executed or not executed.
+// Unlike the statements received from EDR, which may include nested sub
+// statements, these are processed and have no sub statements or overlapping statements.
 // Example:
 // [
 //   { start: 12, end: 20, executed: true  },
@@ -243,8 +247,10 @@ function getProcessedExecutedStatements(markedFile: Uint8Array): {
   };
 }
 
-// Based on the marked file, where each character is marked as either executed (STATUS_EXECUTED) or not executed (STATUS_NOT_EXECUTED),
-// generate non-overlapping statements that indicate the start and end indices, along with whether they were executed or not.
+// Based on the marked file, where each character is marked as either
+// executed (STATUS_EXECUTED) or not executed (STATUS_NOT_EXECUTED),
+// generate non-overlapping statements that indicate the start and
+// end indices, along with whether they were executed or not.
 function generateProcessedStatements(
   markedFile: Uint8Array,
   targetStatus: number,
@@ -346,9 +352,11 @@ function getLinesInfo(
 }
 
 // Enable this function while debugging to display the coverage for a file.
-// The file will be printed with green characters when they are executed, red characters when they are not executed,
+// The file will be printed with green characters when they are executed,
+// red characters when they are not executed,
 // and gray characters when they are irrelevant for code coverage.
-// eslint-disable-next-line @typescript-eslint/no-unused-vars -- this function can be enabled for debugging purposes
+/* eslint-disable-next-line @typescript-eslint/no-unused-vars
+-- this function can be enabled for debugging purposes */
 function printFileCoverageForDebugging(
   fileContent: string,
   markedFile: Uint8Array,
