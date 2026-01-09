@@ -27,7 +27,7 @@ const STATUS_IGNORED = 2; // equivalent to null
 export function getProcessedCoverageInfo(
   fileContent: string,
   metadata: CoverageMetadata,
-  hitTags: string[],
+  hitTags: Set<string>,
 ): {
   lines: {
     executed: Map<number, string>;
@@ -61,17 +61,15 @@ export function getProcessedCoverageInfo(
 
 function getRawEdrExecutedAndNotExecutedStatements(
   metadata: CoverageMetadata,
-  hitTags: string[],
+  hitTags: Set<string>,
 ): {
   executedStatements: Statement[];
   notExecutedStatements: Statement[];
 } {
-  const hitTagsSet = new Set(hitTags);
-
   const executedStatements: Statement[] = [];
   const notExecutedStatements: Statement[] = [];
   for (const node of metadata) {
-    if (hitTagsSet.has(node.tag)) {
+    if (hitTags.has(node.tag)) {
       executedStatements.push(node);
     } else {
       notExecutedStatements.push(node);

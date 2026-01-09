@@ -193,13 +193,13 @@ export class CoverageManagerImplementation implements CoverageManager {
           path.join(process.cwd(), fileRelativePath),
         );
 
-        const tags: string[] = [];
+        const tags: Set<string> = new Set();
         let executedStatementsCount = 0;
         let unexecutedStatementsCount = 0;
 
         for (const { tag } of statements) {
           if (allExecutedTags.has(tag)) {
-            tags.push(tag);
+            tags.add(tag);
             executedStatementsCount++;
           } else {
             unexecutedStatementsCount++;
