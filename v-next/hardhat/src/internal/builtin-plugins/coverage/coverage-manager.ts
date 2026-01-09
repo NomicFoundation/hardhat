@@ -216,12 +216,12 @@ export class CoverageManagerImplementation implements CoverageManager {
         coverageInfo.lines.executed.forEach((_, line) =>
           lineExecutionCounts.set(line, 1),
         );
-        coverageInfo.lines.notExecuted.forEach((_, line) =>
+        coverageInfo.lines.unexecuted.forEach((_, line) =>
           lineExecutionCounts.set(line, 0),
         );
 
         const executedLinesCount = coverageInfo.lines.executed.size;
-        const unexecutedLines = new Set(coverageInfo.lines.notExecuted.keys());
+        const unexecutedLines = new Set(coverageInfo.lines.unexecuted.keys());
 
         return {
           path: fileRelativePath,

@@ -31,54 +31,54 @@ export function getProcessedCoverageInfo(
 ): {
   lines: {
     executed: Map<number, string>;
-    notExecuted: Map<number, string>;
+    unexecuted: Map<number, string>;
   };
 } {
-  const rawStatements = getRawEdrExecutedAndNotExecutedStatements(
+  const statementsByExecution = partitionStatementsByExecution(
     metadata,
     hitTags,
   );
 
-  const { minCharI, maxCharI } = getCoverageStartAndEndIndex(
-    rawStatements.executedStatements,
-    rawStatements.notExecutedStatements,
+  const { start, end } = getCoverageBounds(
+    statementsByExecution,
     fileContent.length,
   );
 
-  const markedFile = createMarkedFile(
+  const characterCoverage = buildCharacterCoverage(
     fileContent,
-    minCharI,
-    maxCharI,
-    rawStatements.notExecutedStatements,
+    start,
+    end,
+    statementsByExecution.unexecuted,
   );
 
-  // printFileCoverageForDebugging(fileContent, markedFile);
+  // printFileCoverageForDebugging(fileContent, characterCoverage);
 
   return {
-    lines: getLinesInfo(fileContent, markedFile),
+    lines: partitionLinesByExecution(fileContent, characterCoverage),
   };
 }
 
-function getRawEdrExecutedAndNotExecutedStatements(
+function partitionStatementsByExecution(
   metadata: CoverageMetadata,
   hitTags: Set<string>,
 ): {
-  executedStatements: Statement[];
-  notExecutedStatements: Statement[];
+  executed: Statement[];
+  unexecuted: Statement[];
 } {
-  const executedStatements: Statement[] = [];
-  const notExecutedStatements: Statement[] = [];
+  const executed: Statement[] = [];
+  const unexecuted: Statement[] = [];
+
   for (const node of metadata) {
     if (hitTags.has(node.tag)) {
-      executedStatements.push(node);
+      executed.push(node);
     } else {
-      notExecutedStatements.push(node);
+      unexecuted.push(node);
     }
   }
 
   return {
-    executedStatements,
-    notExecutedStatements,
+    executed,
+    unexecuted,
   };
 }
 
@@ -89,25 +89,29 @@ function getRawEdrExecutedAndNotExecutedStatements(
 // Example:
 // // SPDX-License-Identifier: MIT
 // pragma solidity ^0.8.0;
-function getCoverageStartAndEndIndex(
-  rawExecutedStatements: Statement[],
-  rawNotExecutedStatements: Statement[],
+function getCoverageBounds(
+  statementsByExecution: {
+    executed: Statement[];
+    unexecuted: Statement[];
+  },
   fileLength: number,
-): { minCharI: number; maxCharI: number } {
-  let minCharI = fileLength;
-  let maxCharI = 0;
+): { start: number; end: number } {
+  let start = fileLength;
+  let end = 0;
 
-  for (const s of [...rawExecutedStatements, ...rawNotExecutedStatements]) {
-    if (s.startUtf16 < minCharI) {
-      minCharI = s.startUtf16;
+  const { executed, unexecuted } = statementsByExecution;
+
+  for (const s of [...executed, ...unexecuted]) {
+    if (s.startUtf16 < start) {
+      start = s.startUtf16;
     }
 
-    if (s.endUtf16 > maxCharI) {
-      maxCharI = s.endUtf16;
+    if (s.endUtf16 > end) {
+      end = s.endUtf16;
     }
   }
 
-  return { minCharI, maxCharI };
+  return { start, end };
 }
 
 // Return an array with the same length as the file content. Each position in
@@ -119,15 +123,17 @@ function getCoverageStartAndEndIndex(
 // Example:
 // // SPDX-License-Identifier: MIT
 // pragma solidity ^0.8.0;
-function createMarkedFile(
+function buildCharacterCoverage(
   fileContent: string,
-  minCharI: number,
-  maxCharI: number,
-  rawNotExecutedStatements: Statement[],
+  start: number,
+  end: number,
+  unexecutedStatements: Statement[],
 ): Uint8Array {
   // Use Uint8Array instead of Array<null | boolean> for memory efficiency.
   // We initialize with STATUS_IGNORED (equivalent to filling with null)
-  const markedFile = new Uint8Array(fileContent.length).fill(STATUS_IGNORED);
+  const characterCoverage = new Uint8Array(fileContent.length).fill(
+    STATUS_IGNORED,
+  );
 
   // Initially mark all characters that may be executed during the tests as
   // STATUS_EXECUTED. They will be set to false later if they are not executed.
@@ -135,33 +141,33 @@ function createMarkedFile(
   // Setting everything to true first simplifies the logic for extracting
   // coverage data. Starting with false and toggling only covered characters
   // would make statement processing more complex.
-  for (let i = minCharI; i < maxCharI; i++) {
+  for (let i = start; i < end; i++) {
     if (charMustBeIgnored(fileContent[i])) {
       continue;
     }
 
-    markedFile[i] = STATUS_EXECUTED;
+    characterCoverage[i] = STATUS_EXECUTED;
   }
 
-  for (const n of rawNotExecutedStatements) {
-    for (let i = n.startUtf16; i < n.endUtf16; i++) {
-      if (markedFile[i] === STATUS_IGNORED) {
+  for (const statement of unexecutedStatements) {
+    for (let i = statement.startUtf16; i < statement.endUtf16; i++) {
+      if (characterCoverage[i] === STATUS_IGNORED) {
         continue;
       }
 
-      markedFile[i] = STATUS_NOT_EXECUTED;
+      characterCoverage[i] = STATUS_NOT_EXECUTED;
     }
   }
 
-  markAsNonExecutableSpecialSubstrings(fileContent, markedFile);
+  markNonExecutablePatterns(fileContent, characterCoverage);
 
-  return markedFile;
+  return characterCoverage;
 }
 
 // The following characters are not relevant for the code coverage, so they
 // must be ignored when marking characters as executed (true) or not executed (false)
-function charMustBeIgnored(c: string): boolean {
-  const code = c.charCodeAt(0);
+function charMustBeIgnored(char: string): boolean {
+  const code = char.charCodeAt(0);
 
   return (
     code === 32 || // Space
@@ -173,44 +179,56 @@ function charMustBeIgnored(c: string): boolean {
 
 // Mark different types of substrings as not relevant for code coverage (set them to STATUS_IGNORED).
 // For example, all "else" substrings or comments are not relevant for code coverage.
-function markAsNonExecutableSpecialSubstrings(
+function markNonExecutablePatterns(
   fileContent: string,
-  markedFile: Uint8Array,
+  characterCoverage: Uint8Array,
 ) {
   // Comments that start with //
-  markMatchingCharsWithIgnored(fileContent, markedFile, /\/\/.*?(?=\n|$)/g);
+  markMatchingCharsWithIgnored(
+    fileContent,
+    characterCoverage,
+    /\/\/.*?(?=\n|$)/g,
+  );
 
   // Comments wrapped between /* and */
-  markMatchingCharsWithIgnored(fileContent, markedFile, /\/\*[\s\S]*?\*\//g);
+  markMatchingCharsWithIgnored(
+    fileContent,
+    characterCoverage,
+    /\/\*[\s\S]*?\*\//g,
+  );
 
   // Lines containing `else`, since they do not represent executable code by themselves.
   // Keep in mind that `else` is preceded by a closing brace and followed by an opening brace.
   // This can span multiple lines.
-  markMatchingCharsWithIgnored(fileContent, markedFile, /\}\s*\belse\b\s*\{/g);
+  markMatchingCharsWithIgnored(
+    fileContent,
+    characterCoverage,
+    /\}\s*\belse\b\s*\{/g,
+  );
 
   // Lines containing the function signature. This can span multiple lines
   markMatchingCharsWithIgnored(
     fileContent,
-    markedFile,
+    characterCoverage,
     /^\s*(function\s+[A-Za-z_$][A-Za-z0-9_$]*\s*\([\s\S]*?\)[^{]*?)(?=\s*\{)/gm,
   );
 
   // Lines containing the catch signature. This can span multiple lines.
   markMatchingCharsWithIgnored(
     fileContent,
-    markedFile,
+    characterCoverage,
     /\bcatch\b(?:\s+[A-Za-z_][A-Za-z0-9_]*)?\s*(?:\([\s\S]*?\))?(?=\s*\{)/g,
   );
 }
 
 function markMatchingCharsWithIgnored(
   fileContent: string,
-  markedFile: Uint8Array,
+  characterCoverage: Uint8Array,
   regex: RegExp,
 ) {
   for (const match of fileContent.matchAll(regex)) {
     for (let i = match.index; i < match.index + match[0].length; i++) {
-      markedFile[i] = STATUS_IGNORED;
+      characterCoverage[i] = STATUS_IGNORED;
     }
   }
 }
@@ -231,19 +249,22 @@ function markMatchingCharsWithIgnored(
 /* eslint-disable-next-line @typescript-eslint/no-unused-vars
 -- currently not used, but it will be used to create more detailed.
 It will be used to return statements from the function `getProcessedCoverageInfo` */
-function getProcessedExecutedStatements(markedFile: Uint8Array): {
+function getProcessedExecutedStatements(characterCoverage: Uint8Array): {
   executed: ReportCoverageStatement[];
-  notExecuted: ReportCoverageStatement[];
+  unexecuted: ReportCoverageStatement[];
 } {
-  const executed = generateProcessedStatements(markedFile, STATUS_EXECUTED);
-  const notExecuted = generateProcessedStatements(
-    markedFile,
+  const executed = generateProcessedStatements(
+    characterCoverage,
+    STATUS_EXECUTED,
+  );
+  const unexecuted = generateProcessedStatements(
+    characterCoverage,
     STATUS_NOT_EXECUTED,
   );
 
   return {
     executed,
-    notExecuted,
+    unexecuted,
   };
 }
 
@@ -252,16 +273,16 @@ function getProcessedExecutedStatements(markedFile: Uint8Array): {
 // generate non-overlapping statements that indicate the start and
 // end indices, along with whether they were executed or not.
 function generateProcessedStatements(
-  markedFile: Uint8Array,
+  characterCoverage: Uint8Array,
   targetStatus: number,
 ): ReportCoverageStatement[] {
   const ranges: ReportCoverageStatement[] = [];
-  const n = markedFile.length;
+  const fileLength = characterCoverage.length;
 
   let start = -1;
 
-  for (let i = 0; i < n; i++) {
-    if (markedFile[i] === targetStatus) {
+  for (let i = 0; i < fileLength; i++) {
+    if (characterCoverage[i] === targetStatus) {
       if (start === -1) {
         start = i; // begin new range
       }
@@ -282,7 +303,7 @@ function generateProcessedStatements(
   if (start !== -1) {
     ranges.push({
       startUtf16: start,
-      endUtf16: n - 1,
+      endUtf16: fileLength - 1,
       executed: targetStatus === STATUS_EXECUTED,
     });
   }
@@ -292,53 +313,53 @@ function generateProcessedStatements(
 
 // Return the executed and non executed lines based on the marked file.
 // Some lines are excluded from the execution count, for example, comments.
-function getLinesInfo(
+function partitionLinesByExecution(
   fileContent: string,
-  markedFile: Uint8Array,
+  characterCoverage: Uint8Array,
 ): {
   executed: Map<number, string>;
-  notExecuted: Map<number, string>;
+  unexecuted: Map<number, string>;
 } {
   const executed: Map<number, string> = new Map();
-  const notExecuted: Map<number, string> = new Map();
+  const unexecuted: Map<number, string> = new Map();
 
   let lineStart = 0;
-  let allIgnored = true;
-  let allExecutedOrIgnored = true;
+  let isLineIgnored = true;
+  let isLineExecutedOrIgnored = true;
   let lineNumber = 1; // File lines start at 1
 
   // Helper to process a line and push to correct map
   const processLine = (endIndex: number) => {
     // Only process if the line isn't entirely ignored
-    if (!allIgnored) {
-      const line = fileContent.slice(lineStart, endIndex);
+    if (!isLineIgnored) {
+      const lineText = fileContent.slice(lineStart, endIndex);
 
-      if (allExecutedOrIgnored) {
-        executed.set(lineNumber, line);
+      if (isLineExecutedOrIgnored) {
+        executed.set(lineNumber, lineText);
       } else {
-        notExecuted.set(lineNumber, line);
+        unexecuted.set(lineNumber, lineText);
       }
     }
 
     // Reset state for the next line
     lineStart = endIndex + 1;
-    allIgnored = true;
-    allExecutedOrIgnored = true;
+    isLineIgnored = true;
+    isLineExecutedOrIgnored = true;
     lineNumber++;
   };
 
   for (let i = 0; i < fileContent.length; i++) {
-    const c = fileContent[i];
-    const v = markedFile[i];
+    const char = fileContent[i];
+    const status = characterCoverage[i];
 
-    if (v !== STATUS_IGNORED) {
-      allIgnored = false;
+    if (status !== STATUS_IGNORED) {
+      isLineIgnored = false;
     }
-    if (v === STATUS_NOT_EXECUTED) {
-      allExecutedOrIgnored = false;
+    if (status === STATUS_NOT_EXECUTED) {
+      isLineExecutedOrIgnored = false;
     }
 
-    if (c === "\n") {
+    if (char === "\n") {
       processLine(i);
     }
   }
@@ -348,7 +369,7 @@ function getLinesInfo(
     processLine(fileContent.length);
   }
 
-  return { executed, notExecuted };
+  return { executed, unexecuted };
 }
 
 // Enable this function while debugging to display the coverage for a file.
@@ -359,12 +380,12 @@ function getLinesInfo(
 -- this function can be enabled for debugging purposes */
 function printFileCoverageForDebugging(
   fileContent: string,
-  markedFile: Uint8Array,
+  characterCoverage: Uint8Array,
 ): void {
-  for (let i = 0; i < markedFile.length; i++) {
-    if (markedFile[i] === STATUS_IGNORED) {
+  for (let i = 0; i < characterCoverage.length; i++) {
+    if (characterCoverage[i] === STATUS_IGNORED) {
       process.stdout.write(chalk.gray(fileContent[i]));
-    } else if (markedFile[i] === STATUS_EXECUTED) {
+    } else if (characterCoverage[i] === STATUS_EXECUTED) {
       process.stdout.write(chalk.green(fileContent[i]));
     } else {
       process.stdout.write(chalk.red(fileContent[i]));
