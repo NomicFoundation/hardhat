@@ -165,7 +165,14 @@ function createMarkedFile(
 // The following characters are not relevant for the code coverage, so they must be ignored
 // when marking characters as executed (true) or not executed (false)
 function charMustBeIgnored(c: string): boolean {
-  return /\s/.test(c) || c === "{" || c === "}";
+  const code = c.charCodeAt(0);
+
+  return (
+    code === 32 || // Space
+    (code >= 9 && code <= 13) || // \t (9), \n (10), \v (11), \f (12), \r (13)
+    code === 123 || // {
+    code === 125 // }
+  );
 }
 
 // Mark different types of substrings as not relevant for code coverage (set them to STATUS_IGNORED).
