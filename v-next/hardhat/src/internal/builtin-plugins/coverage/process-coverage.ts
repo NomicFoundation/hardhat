@@ -141,7 +141,7 @@ function createMarkedFile(
 
   for (const n of rawNotExecutedStatements) {
     for (let i = n.startUtf16; i < n.endUtf16; i++) {
-      if (charMustBeIgnored(fileContent[i])) {
+      if (markedFile[i] === STATUS_IGNORED) {
         continue;
       }
 
