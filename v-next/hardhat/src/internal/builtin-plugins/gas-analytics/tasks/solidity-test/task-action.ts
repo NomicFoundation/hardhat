@@ -13,6 +13,10 @@ import {
   stringifyFunctionGasSnapshots,
   writeFunctionGasSnapshots,
 } from "../../function-gas-snapshots.js";
+import {
+  extractGasSnapshotCheatcodes,
+  writeGasSnapshotCheatcodes,
+} from "../../gas-snapshot-cheatcodes.js";
 
 interface GasAnalyticsTestActionArguments {
   snapshot: boolean;
@@ -27,12 +31,10 @@ const runSolidityTests: TaskOverrideActionFunction<
   const testsPassed = process.exitCode !== 1;
   const rootPath = hre.config.paths.root;
 
-  if (testsPassed) {
-    if (args.snapshot) {
-      await handleSnapshot(rootPath, suiteResults);
-    } else if (args.snapshotCheck) {
-      await handleSnapshotCheck(rootPath, suiteResults);
-    }
+  if (args.snapshot) {
+    await handleSnapshot(rootPath, suiteResults, testsPassed);
+  } else if (testsPassed && args.snapshotCheck) {
+    await handleSnapshotCheck(rootPath, suiteResults);
   }
 
   return {
@@ -44,13 +46,19 @@ const runSolidityTests: TaskOverrideActionFunction<
 export async function handleSnapshot(
   basePath: string,
   suiteResults: SuiteResult[],
+  testsPassed: boolean,
 ): Promise<void> {
-  const functionGasSnapshots = extractFunctionGasSnapshots(suiteResults);
-  await writeFunctionGasSnapshots(basePath, functionGasSnapshots);
+  if (testsPassed) {
+    const functionGasSnapshots = extractFunctionGasSnapshots(suiteResults);
+    await writeFunctionGasSnapshots(basePath, functionGasSnapshots);
 
-  console.log();
-  console.log(chalk.green("Gas snapshots written successfully"));
-  console.log();
+    console.log();
+    console.log(chalk.green("Gas snapshots written successfully"));
+    console.log();
+  }
+
+  const gasSnapshotCheatcodes = extractGasSnapshotCheatcodes(suiteResults);
+  await writeGasSnapshotCheatcodes(basePath, gasSnapshotCheatcodes);
 }
 
 export async function handleSnapshotCheck(
@@ -64,7 +72,12 @@ export async function handleSnapshotCheck(
     previousFunctionGasSnapshots = await readFunctionGasSnapshots(basePath);
   } catch (error) {
     if (error instanceof FileNotFoundError) {
-      return handleSnapshot(basePath, suiteResults);
+      await writeFunctionGasSnapshots(basePath, functionGasSnapshots);
+
+      console.log();
+      console.log(chalk.green("Gas snapshots written successfully"));
+      console.log();
+      return;
     }
 
     throw error;

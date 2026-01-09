@@ -72,12 +72,18 @@ export function createTestResultWithSnapshots(
   valueSnapshotGroups?: ValueSnapshotGroup[],
 ): TestResult {
   return {
-    name: "testFunction",
+    name: "testWithSnapshotCheatcodes",
     status: TestStatus.Success,
     decodedLogs: [],
     durationNs: 0n,
+    // Use invariant test kind since it's not tracked by function gas snapshots,
+    // so this helper won't interfere if used alongside standard test results.
     kind: {
-      consumedGas: 10000n,
+      runs: 1n,
+      calls: 1n,
+      reverts: 0n,
+      metrics: {},
+      failedCorpusReplays: 0n,
     },
     stackTrace: () => null,
     callTraces: () => [],

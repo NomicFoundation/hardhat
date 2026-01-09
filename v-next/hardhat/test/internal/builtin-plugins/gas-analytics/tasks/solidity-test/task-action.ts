@@ -3,11 +3,14 @@ import { after, afterEach, before, describe, it } from "node:test";
 
 import {
   emptyDir,
+  exists,
+  readJsonFile,
   readUtf8File,
   mkdtemp,
 } from "@nomicfoundation/hardhat-utils/fs";
 
 import { getFunctionGasSnapshotsPath } from "../../../../../../src/internal/builtin-plugins/gas-analytics/function-gas-snapshots.js";
+import { getGasSnapshotCheatcodesPath } from "../../../../../../src/internal/builtin-plugins/gas-analytics/gas-snapshot-cheatcodes.js";
 import {
   handleSnapshot,
   handleSnapshotCheck,
@@ -15,6 +18,7 @@ import {
 import {
   createSuiteResult,
   createStandardTestResult,
+  createTestResultWithSnapshots,
 } from "../../suite-result-helpers.js";
 
 describe("solidity-test/task-action (override in gas-analytics/index)", () => {
@@ -41,14 +45,14 @@ describe("solidity-test/task-action (override in gas-analytics/index)", () => {
       consoleLogOutput = [];
     });
 
-    it("should write snapshots and print success message", async () => {
+    it("should write function gas snapshots when tests pass", async () => {
       const suiteResults = [
         createSuiteResult("MyContract", [
           createStandardTestResult("testA", 10000n),
         ]),
       ];
 
-      await handleSnapshot(tmpDir, suiteResults);
+      await handleSnapshot(tmpDir, suiteResults, true);
 
       const snapshotPath = getFunctionGasSnapshotsPath(tmpDir);
       const savedContent = await readUtf8File(snapshotPath);
@@ -58,15 +62,92 @@ describe("solidity-test/task-action (override in gas-analytics/index)", () => {
       assert.match(output, /Gas snapshots written successfully/);
     });
 
-    it("should handle empty suite results", async () => {
-      await handleSnapshot(tmpDir, []);
+    it("should not write function gas snapshots when tests fail", async () => {
+      const suiteResults = [
+        createSuiteResult("MyContract", [
+          createStandardTestResult("testA", 10000n),
+        ]),
+      ];
+
+      await handleSnapshot(tmpDir, suiteResults, false);
 
       const snapshotPath = getFunctionGasSnapshotsPath(tmpDir);
-      const savedContent = await readUtf8File(snapshotPath);
-      assert.equal(savedContent, "");
+      const fileExists = await exists(snapshotPath);
+      assert.equal(fileExists, false);
 
       const output = consoleLogOutput.join("\n");
-      assert.match(output, /Gas snapshots written successfully/);
+      assert.doesNotMatch(output, /Gas snapshots written successfully/);
+    });
+
+    it("should write gas snapshot cheatcodes when tests pass", async () => {
+      const suiteResults = [
+        createSuiteResult("MyContract", [
+          createTestResultWithSnapshots([
+            {
+              name: "TestGroup",
+              entries: [{ name: "test-entry", value: "42" }],
+            },
+          ]),
+        ]),
+      ];
+
+      await handleSnapshot(tmpDir, suiteResults, true);
+
+      const cheatcodePath = getGasSnapshotCheatcodesPath(
+        tmpDir,
+        "TestGroup.json",
+      );
+      const cheatcodeContent = await readJsonFile(cheatcodePath);
+      assert.deepEqual(cheatcodeContent, { "test-entry": "42" });
+    });
+
+    it("should write gas snapshot cheatcodes even when tests fail", async () => {
+      const suiteResults = [
+        createSuiteResult("MyContract", [
+          createTestResultWithSnapshots([
+            {
+              name: "TestGroup",
+              entries: [{ name: "test-entry", value: "42" }],
+            },
+          ]),
+        ]),
+      ];
+
+      await handleSnapshot(tmpDir, suiteResults, false);
+
+      const cheatcodePath = getGasSnapshotCheatcodesPath(
+        tmpDir,
+        "TestGroup.json",
+      );
+      const cheatcodeContent = await readJsonFile(cheatcodePath);
+      assert.deepEqual(cheatcodeContent, { "test-entry": "42" });
+    });
+
+    it("should write both function snapshots and cheatcodes when both are present", async () => {
+      const suiteResults = [
+        createSuiteResult("MyContract", [
+          createStandardTestResult("testA", 10000n),
+          createTestResultWithSnapshots([
+            {
+              name: "TestGroup",
+              entries: [{ name: "test-entry", value: "42" }],
+            },
+          ]),
+        ]),
+      ];
+
+      await handleSnapshot(tmpDir, suiteResults, true);
+
+      const snapshotPath = getFunctionGasSnapshotsPath(tmpDir);
+      const functionContent = await readUtf8File(snapshotPath);
+      assert.equal(functionContent, "MyContract#testA (gas: 10000)");
+
+      const cheatcodePath = getGasSnapshotCheatcodesPath(
+        tmpDir,
+        "TestGroup.json",
+      );
+      const cheatcodeContent = await readJsonFile(cheatcodePath);
+      assert.deepEqual(cheatcodeContent, { "test-entry": "42" });
     });
   });
 
@@ -133,7 +214,7 @@ describe("solidity-test/task-action (override in gas-analytics/index)", () => {
         ]),
       ];
 
-      await handleSnapshot(tmpDir, suiteResults);
+      await handleSnapshot(tmpDir, suiteResults, true);
       consoleLogOutput = [];
 
       await handleSnapshotCheck(tmpDir, suiteResults);
@@ -155,7 +236,7 @@ describe("solidity-test/task-action (override in gas-analytics/index)", () => {
         ]),
       ];
 
-      await handleSnapshot(tmpDir, initialResults);
+      await handleSnapshot(tmpDir, initialResults, true);
       consoleLogOutput = [];
 
       await handleSnapshotCheck(tmpDir, changedResults);
@@ -186,7 +267,7 @@ describe("solidity-test/task-action (override in gas-analytics/index)", () => {
         ]),
       ];
 
-      await handleSnapshot(tmpDir, initialResults);
+      await handleSnapshot(tmpDir, initialResults, true);
       consoleLogOutput = [];
 
       await handleSnapshotCheck(tmpDir, withAddedResults);
@@ -215,7 +296,7 @@ describe("solidity-test/task-action (override in gas-analytics/index)", () => {
         ]),
       ];
 
-      await handleSnapshot(tmpDir, initialResults);
+      await handleSnapshot(tmpDir, initialResults, true);
       consoleLogOutput = [];
 
       await handleSnapshotCheck(tmpDir, withRemovedResults);
