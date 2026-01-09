@@ -293,13 +293,33 @@ function getLinesInfo(
   executed: Map<number, string>;
   notExecuted: Map<number, string>;
 } {
-  const lines: string[] = [];
-  const lineExecuted: Array<boolean | null> = [];
+  const executed: Map<number, string> = new Map();
+  const notExecuted: Map<number, string> = new Map();
 
   let lineStart = 0;
-
   let allIgnored = true;
   let allExecutedOrIgnored = true;
+  let lineNumber = 1; // File lines start at 1
+
+  // Helper to process a line and push to correct map
+  const processLine = (endIndex: number) => {
+    // Only process if the line isn't entirely ignored
+    if (!allIgnored) {
+      const line = fileContent.slice(lineStart, endIndex);
+
+      if (allExecutedOrIgnored) {
+        executed.set(lineNumber, line);
+      } else {
+        notExecuted.set(lineNumber, line);
+      }
+    }
+
+    // Reset state for the next line
+    lineStart = endIndex + 1;
+    allIgnored = true;
+    allExecutedOrIgnored = true;
+    lineNumber++;
+  };
 
   for (let i = 0; i < fileContent.length; i++) {
     const c = fileContent[i];
@@ -313,44 +333,18 @@ function getLinesInfo(
     }
 
     if (c === "\n") {
-      const line = fileContent.slice(lineStart, i);
-
-      lines.push(line);
-
-      if (allIgnored) {
-        lineExecuted.push(null);
-      } else if (allExecutedOrIgnored) {
-        lineExecuted.push(true);
-      } else {
-        lineExecuted.push(false);
-      }
-
-      lineStart = i + 1;
-      allIgnored = true;
-      allExecutedOrIgnored = true;
+      processLine(i);
     }
   }
 
-  const executed: Map<number, string> = new Map();
-  const notExecuted: Map<number, string> = new Map();
-
-  // When adding to the map, use +1 on the index because file lines start at 1, not 0
-  for (let j = 0; j < lines.length; j++) {
-    const line = lines[j];
-
-    if (lineExecuted[j] === null) {
-      continue;
-    }
-
-    if (lineExecuted[j] === true) {
-      executed.set(j + 1, line);
-    } else if (lineExecuted[j] === false) {
-      notExecuted.set(j + 1, line);
-    }
+  // Handle the final line if the file doesn't end in a newline
+  if (lineStart < fileContent.length) {
+    processLine(fileContent.length);
   }
 
   return { executed, notExecuted };
 }
+
 // Enable this function while debugging to display the coverage for a file.
 // The file will be printed with green characters when they are executed, red characters when they are not executed,
 // and gray characters when they are irrelevant for code coverage.
