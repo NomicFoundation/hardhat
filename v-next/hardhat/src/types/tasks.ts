@@ -123,7 +123,7 @@ export type NewTaskDefinition = BaseTaskDefinition & TaskAction;
 /**
  * The definition of a new task specifically for plugins (action is required, inlineAction is forbidden).
  */
-export interface PluginNewTaskDefinition extends BaseTaskDefinition {
+export interface NewTaskDefinitionPlugin extends BaseTaskDefinition {
   action: LazyActionObject<NewTaskActionFunction>;
   /**
    * Plugins strictly forbid inline actions.
@@ -179,7 +179,7 @@ export type TaskDefinition =
  */
 export type TaskDefinitionPlugin =
   | EmptyTaskDefinition
-  | PluginNewTaskDefinition
+  | NewTaskDefinitionPlugin
   | TaskOverrideDefinitionPlugin;
 
 /**
@@ -409,7 +409,7 @@ export interface NewTaskDefinitionBuilder<
       ActionDefinedState,
       ActionTypeT
     >,
-  ): BuildReturnType<NewTaskDefinition, ActionTypeT, PluginNewTaskDefinition>;
+  ): BuildReturnType<NewTaskDefinition, ActionTypeT, NewTaskDefinitionPlugin>;
 }
 
 /**

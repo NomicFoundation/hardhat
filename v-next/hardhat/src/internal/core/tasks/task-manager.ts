@@ -8,7 +8,7 @@ import type {
   NewTaskDefinition,
   TaskOverrideDefinition,
   TaskDefinitionPlugin,
-  PluginNewTaskDefinition,
+  NewTaskDefinitionPlugin,
   TaskOverrideDefinitionPlugin,
 } from "../../../types/tasks.js";
 
@@ -203,7 +203,7 @@ export class TaskManagerImplementation implements TaskManager {
     globalOptionDefinitions: GlobalOptionDefinitions,
     taskDefinition:
       | NewTaskDefinition
-      | PluginNewTaskDefinition
+      | NewTaskDefinitionPlugin
       | TaskOverrideDefinition
       | TaskOverrideDefinitionPlugin,
     pluginId?: string,

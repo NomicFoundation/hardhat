@@ -17,7 +17,7 @@ import type {
   LazyActionObject,
   TaskAction,
   TaskOverrideAction,
-  PluginNewTaskDefinition,
+  NewTaskDefinitionPlugin,
   TaskOverrideDefinitionPlugin,
   BuildReturnType,
   MissingActionState,
@@ -265,7 +265,7 @@ export class NewTaskDefinitionBuilderImplementation<
   public build(): BuildReturnType<
     NewTaskDefinition,
     ActionTypeT,
-    PluginNewTaskDefinition
+    NewTaskDefinitionPlugin
   > {
     if (this.#action === undefined && this.#inlineAction === undefined) {
       throw new HardhatError(
@@ -295,7 +295,7 @@ export class NewTaskDefinitionBuilderImplementation<
     } as BuildReturnType<
       NewTaskDefinition,
       ActionTypeT,
-      PluginNewTaskDefinition
+      NewTaskDefinitionPlugin
     >;
   }
 
