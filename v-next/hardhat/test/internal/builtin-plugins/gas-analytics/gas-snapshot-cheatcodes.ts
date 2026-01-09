@@ -1,7 +1,22 @@
-import assert from "node:assert/strict";
-import { describe, it } from "node:test";
+import type { GasSnapshotCheatcodesMap } from "../../../../src/internal/builtin-plugins/gas-analytics/gas-snapshot-cheatcodes.js";
 
-import { extractGasSnapshotCheatcodes } from "../../../../src/internal/builtin-plugins/gas-analytics/gas-snapshot-cheatcodes.js";
+import assert from "node:assert/strict";
+import path from "node:path";
+import { afterEach, before, describe, it } from "node:test";
+
+import {
+  emptyDir,
+  exists,
+  mkdtemp,
+  readJsonFile,
+} from "@nomicfoundation/hardhat-utils/fs";
+
+import {
+  extractGasSnapshotCheatcodes,
+  getGasSnapshotCheatcodesPath,
+  SNAPSHOT_CHEATCODES_DIR,
+  writeGasSnapshotCheatcodes,
+} from "../../../../src/internal/builtin-plugins/gas-analytics/gas-snapshot-cheatcodes.js";
 
 import {
   createSuiteResult,
@@ -220,6 +235,110 @@ describe("gas-snapshot-cheatcodes", () => {
       const snapshots = extractGasSnapshotCheatcodes(suiteResults);
 
       assert.equal(snapshots.size, 0);
+    });
+  });
+
+  describe("writeGasSnapshotCheatcodes", () => {
+    let tmpDir: string;
+
+    before(async () => {
+      tmpDir = await mkdtemp("gas-snapshot-cheatcodes-test-");
+    });
+
+    afterEach(async () => {
+      await emptyDir(tmpDir);
+    });
+
+    it("should write single snapshot group to JSON file", async () => {
+      const snapshots = new Map([
+        [
+          "CalculatorTest",
+          {
+            "calculator-add": "48359",
+            "calculator-subtract": "47891",
+          },
+        ],
+      ]);
+
+      await writeGasSnapshotCheatcodes(tmpDir, snapshots);
+
+      const snapshotPath = getGasSnapshotCheatcodesPath(
+        tmpDir,
+        "CalculatorTest.json",
+      );
+      const savedContent = await readJsonFile(snapshotPath);
+
+      assert.deepEqual(savedContent, {
+        "calculator-add": "48359",
+        "calculator-subtract": "47891",
+      });
+    });
+
+    it("should write multiple snapshot groups to separate JSON files", async () => {
+      const snapshots: GasSnapshotCheatcodesMap = new Map<
+        string,
+        Record<string, string>
+      >([
+        ["GroupA", { "entry-a": "100" }],
+        ["GroupB", { "entry-b": "200", "entry-c": "300" }],
+      ]);
+
+      await writeGasSnapshotCheatcodes(tmpDir, snapshots);
+
+      const groupAPath = getGasSnapshotCheatcodesPath(tmpDir, "GroupA.json");
+      const groupAContent = await readJsonFile(groupAPath);
+      assert.deepEqual(groupAContent, { "entry-a": "100" });
+
+      const groupBPath = getGasSnapshotCheatcodesPath(tmpDir, "GroupB.json");
+      const groupBContent = await readJsonFile(groupBPath);
+      assert.deepEqual(groupBContent, {
+        "entry-b": "200",
+        "entry-c": "300",
+      });
+    });
+
+    it("should overwrite existing snapshot files", async () => {
+      const firstSnapshots = new Map([
+        [
+          "TestGroup",
+          {
+            "old-entry": "100",
+          },
+        ],
+      ]);
+      const secondSnapshots = new Map([
+        [
+          "TestGroup",
+          {
+            "new-entry": "200",
+          },
+        ],
+      ]);
+
+      await writeGasSnapshotCheatcodes(tmpDir, firstSnapshots);
+      await writeGasSnapshotCheatcodes(tmpDir, secondSnapshots);
+
+      const snapshotPath = getGasSnapshotCheatcodesPath(
+        tmpDir,
+        "TestGroup.json",
+      );
+      const savedContent = await readJsonFile(snapshotPath);
+
+      assert.deepEqual(savedContent, { "new-entry": "200" });
+    });
+
+    it("should handle empty snapshots map", async () => {
+      const emptySnapshots = new Map();
+
+      await writeGasSnapshotCheatcodes(tmpDir, emptySnapshots);
+
+      const snapshotsDir = path.join(tmpDir, SNAPSHOT_CHEATCODES_DIR);
+      const dirExists = await exists(snapshotsDir);
+      assert.equal(
+        dirExists,
+        false,
+        "Snapshots directory should not be created when map is empty",
+      );
     });
   });
 });
