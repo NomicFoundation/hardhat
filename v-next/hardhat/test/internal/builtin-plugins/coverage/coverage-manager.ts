@@ -1,18 +1,37 @@
+import type { CoverageTestScenario } from "./types.js";
 import type { Report } from "../../../../src/internal/builtin-plugins/coverage/coverage-manager.js";
 import type {
   CoverageData,
   CoverageMetadata,
 } from "../../../../src/internal/builtin-plugins/coverage/types.js";
+import type { HardhatRuntimeEnvironment } from "../../../../src/types/hre.js";
 
 import assert from "node:assert/strict";
 import path from "node:path";
-import { beforeEach, describe, it } from "node:test";
+import { after, before, beforeEach, describe, it } from "node:test";
 
-import { disableConsole, useTmpDir } from "@nomicfoundation/hardhat-test-utils";
+import {
+  disableConsole,
+  useFixtureProject,
+  useTmpDir,
+} from "@nomicfoundation/hardhat-test-utils";
 import { getAllFilesMatching } from "@nomicfoundation/hardhat-utils/fs";
 import chalk from "chalk";
 
+import { createHardhatRuntimeEnvironment } from "../../../../src/hre.js";
 import { CoverageManagerImplementation } from "../../../../src/internal/builtin-plugins/coverage/coverage-manager.js";
+import { COVERAGE_TEST_SCENARIO_DO_WHILE_LOOP } from "../../../fixture-projects/coverage/contracts/do-while-loop/coverage-edr-info.js";
+import { COVERAGE_TEST_SCENARIO_FOR_LOOP } from "../../../fixture-projects/coverage/contracts/for-loop/coverage-edr-info.js";
+import { COVERAGE_TEST_SCENARIO_FUNCTIONS } from "../../../fixture-projects/coverage/contracts/functions/coverage-edr-info.js";
+import { COVERAGE_TEST_SCENARIO_IF_ELSE } from "../../../fixture-projects/coverage/contracts/if-else/coverage-edr-info.js";
+import { COVERAGE_TEST_SCENARIO_IGNORE_COMMENTS } from "../../../fixture-projects/coverage/contracts/ignore-comments/coverage-edr-info.js";
+import { COVERAGE_TEST_SCENARIO_INLINE_ASSEMBLY } from "../../../fixture-projects/coverage/contracts/inline-assembly/coverage-edr-info.js";
+import { COVERAGE_TEST_SCENARIO_MULTIPLE_FILES } from "../../../fixture-projects/coverage/contracts/multiple-files/coverage-edr-info.js";
+import { COVERAGE_TEST_SCENARIO_ONE_LINER } from "../../../fixture-projects/coverage/contracts/one-liner/coverage-edr-info.js";
+import { COVERAGE_TEST_SCENARIO_RANDOM_FORMATTING } from "../../../fixture-projects/coverage/contracts/random-formatting/coverage-edr-info.js";
+import { COVERAGE_TEST_SCENARIO_REQUIRE } from "../../../fixture-projects/coverage/contracts/require/coverage-edr-info.js";
+import { COVERAGE_TEST_SCENARIO_TRY_CATCH } from "../../../fixture-projects/coverage/contracts/try-catch/coverage-edr-info.js";
+import { COVERAGE_TEST_SCENARIO_WHILE_LOOP } from "../../../fixture-projects/coverage/contracts/while-loop/coverage-edr-info.js";
 
 describe("CoverageManagerImplementation", () => {
   const id = "test";
@@ -20,43 +39,37 @@ describe("CoverageManagerImplementation", () => {
     {
       relativePath: "contracts/test.sol",
       tag: "a",
-      startLine: 1,
-      endLine: 3,
+      startUtf16: 1,
+      endUtf16: 3,
     },
     {
       relativePath: "contracts/test.sol",
       tag: "b",
-      startLine: 5,
-      endLine: 5,
+      startUtf16: 5,
+      endUtf16: 5,
     },
     {
       relativePath: "contracts/test.sol",
       tag: "c",
-      startLine: 5,
-      endLine: 6,
+      startUtf16: 5,
+      endUtf16: 6,
     },
     {
       relativePath: "contracts/test.sol",
       tag: "d",
-      startLine: 1,
-      endLine: 2,
+      startUtf16: 1,
+      endUtf16: 2,
     },
     {
       relativePath: "contracts/other.sol",
       tag: "e",
-      startLine: 1,
-      endLine: 2,
+      startUtf16: 1,
+      endUtf16: 2,
     },
   ];
   const data: CoverageData = ["a", "b", "d", "a", "a", "d"];
   const report: Report = {
     "contracts/test.sol": {
-      tagExecutionCounts: new Map([
-        ["a", 3],
-        ["b", 1],
-        ["d", 2],
-        ["c", 0],
-      ]),
       lineExecutionCounts: new Map([
         [1, 5],
         [2, 5],
@@ -64,36 +77,21 @@ describe("CoverageManagerImplementation", () => {
         [5, 1],
         [6, 0],
       ]),
-      branchExecutionCounts: new Map([
-        [[1, "a"], 3],
-        [[2, "a"], 3],
-        [[3, "a"], 3],
-        [[5, "b"], 1],
-        [[1, "d"], 2],
-        [[2, "d"], 2],
-        [[5, "c"], 0],
-        [[6, "c"], 0],
-      ]),
-      executedTagsCount: 3,
+      executedStatementsCount: 3,
+      unexecutedStatementsCount: 1,
+
       executedLinesCount: 4,
-      executedBranchesCount: 6,
-      partiallyExecutedLines: new Set([5]),
       unexecutedLines: new Set([6]),
     },
     "contracts/other.sol": {
-      tagExecutionCounts: new Map([["e", 0]]),
       lineExecutionCounts: new Map([
         [1, 0],
         [2, 0],
       ]),
-      branchExecutionCounts: new Map([
-        [[1, "e"], 0],
-        [[2, "e"], 0],
-      ]),
-      executedTagsCount: 0,
       executedLinesCount: 0,
-      executedBranchesCount: 0,
-      partiallyExecutedLines: new Set(),
+
+      executedStatementsCount: 0,
+      unexecutedStatementsCount: 2,
       unexecutedLines: new Set([1, 2]),
     },
   };
@@ -117,8 +115,8 @@ describe("CoverageManagerImplementation", () => {
       allMetadata.push({
         relativePath: "contracts/test.sol",
         tag: item,
-        startLine: 1,
-        endLine: 1,
+        startUtf16: 1,
+        endUtf16: 1,
       });
     }
 
@@ -166,8 +164,8 @@ describe("CoverageManagerImplementation", () => {
       allMetadata.push({
         relativePath: "contracts/test.sol",
         tag: item,
-        startLine: 1,
-        endLine: 1,
+        startUtf16: 1,
+        endUtf16: 1,
       });
     }
 
@@ -191,28 +189,39 @@ describe("CoverageManagerImplementation", () => {
       {
         relativePath: "contracts/test1.sol",
         tag: "test1",
-        startLine: 1,
-        endLine: 1,
+        startUtf16: 1,
+        endUtf16: 1,
       },
     ];
     const metadata2: CoverageMetadata = [
       {
         relativePath: "contracts/test2.sol",
         tag: "test2",
-        startLine: 1,
-        endLine: 1,
+        startUtf16: 1,
+        endUtf16: 1,
       },
     ];
 
     await coverageManager.addMetadata(metadata1);
     await coverageManager.addMetadata(metadata2);
 
-    const allMetadata = coverageManager.metadata;
+    const filesMetadata = coverageManager.filesMetadata;
 
     for (const item of [...metadata1, ...metadata2]) {
+      const fileBucket = filesMetadata.get(item.relativePath);
+
       assert.ok(
-        allMetadata.some((i) => i.tag === item.tag),
-        `The loaded metadata should include ${item.tag}`,
+        fileBucket !== undefined,
+        `Metadata bucket for file ${item.relativePath} should exist`,
+      );
+
+      const hasTag = Array.from(fileBucket.values()).some(
+        (entry) => entry.tag === item.tag,
+      );
+
+      assert.ok(
+        hasTag,
+        `The loaded metadata should include tag '${item.tag}' inside '${item.relativePath}'`,
       );
     }
   });
@@ -249,30 +258,18 @@ describe("CoverageManagerImplementation", () => {
   it("should not clear the metadata", async () => {
     await coverageManager.addMetadata(metadata);
 
-    let allMetadata = coverageManager.metadata;
+    let allMetadata = coverageManager.filesMetadata;
 
-    assert.ok(
-      allMetadata.length !== 0,
-      "The metadata should be saved to memory",
-    );
+    assert.ok(allMetadata.size !== 0, "The metadata should be saved to memory");
 
     await coverageManager.clearData(id);
 
-    allMetadata = coverageManager.metadata;
+    allMetadata = coverageManager.filesMetadata;
 
     assert.ok(
-      allMetadata.length !== 0,
+      allMetadata.size !== 0,
       "The metadata should not be cleared from memory",
     );
-  });
-
-  it("should process data and metadata", async () => {
-    await coverageManager.addMetadata(metadata);
-    await coverageManager.addData(data);
-
-    const actual = coverageManager.getReport();
-
-    assert.deepEqual(actual, report);
   });
 
   it("should format the lcov report", async () => {
@@ -280,16 +277,6 @@ describe("CoverageManagerImplementation", () => {
     const expected = [
       "TN:",
       "SF:contracts/test.sol",
-      "BRDA:1,0,a,3",
-      "BRDA:2,0,a,3",
-      "BRDA:3,0,a,3",
-      "BRDA:5,0,b,1",
-      "BRDA:1,0,d,2",
-      "BRDA:2,0,d,2",
-      "BRDA:5,0,c,-",
-      "BRDA:6,0,c,-",
-      "BRH:6",
-      "BRF:8",
       "DA:1,5",
       "DA:2,5",
       "DA:3,3",
@@ -299,10 +286,6 @@ describe("CoverageManagerImplementation", () => {
       "LF:5",
       "end_of_record",
       "SF:contracts/other.sol",
-      "BRDA:1,0,e,-",
-      "BRDA:2,0,e,-",
-      "BRH:0",
-      "BRF:2",
       "DA:1,0",
       "DA:2,0",
       "LH:0",
@@ -315,15 +298,17 @@ describe("CoverageManagerImplementation", () => {
 
   it("should format the markdown report", async () => {
     const actual = coverageManager.formatMarkdownReport(report);
+
     const expected = [
-      `| ${chalk.bold("Coverage Report")}     |        |             |                 |                         |`,
-      "| ------------------- | ------ | ----------- | --------------- | ----------------------- |",
-      `| ${chalk.yellow("File Path")}           | ${chalk.yellow("Line %")} | ${chalk.yellow("Statement %")} | ${chalk.yellow("Uncovered Lines")} | ${chalk.yellow("Partially Covered Lines")} |`,
-      "| contracts/test.sol  | 80.00  | 75.00       | 6               | 5                       |",
-      "| contracts/other.sol | 0.00   | 0.00        | 1-2             | -                       |",
-      "| ------------------- | ------ | ----------- | --------------- | ----------------------- |",
-      `| ${chalk.yellow("Total")}               | 57.14  | 60.00       |                 |                         |`,
+      `| ${chalk.bold("Coverage Report")}     |        |             |                 |`,
+      "| ------------------- | ------ | ----------- | --------------- |",
+      `| ${chalk.yellow("File Path")}           | ${chalk.yellow("Line %")} | ${chalk.yellow("Statement %")} | ${chalk.yellow("Uncovered Lines")} |`,
+      "| contracts/test.sol  | 80.00  | 75.00       | 6               |",
+      "| contracts/other.sol | 0.00   | 0.00        | 1-2             |",
+      "| ------------------- | ------ | ----------- | --------------- |",
+      `| ${chalk.yellow("Total")}               | 57.14  | 50.00       |                 |`,
     ].join("\n");
+
     assert.equal(actual, expected);
   });
 
@@ -382,4 +367,90 @@ describe("CoverageManagerImplementation", () => {
       assert.equal(actual, expected);
     });
   }
+});
+
+describe("CoverageManagerImplementation - report data processing", () => {
+  //
+  // The following tests use fixture projects to validate coverage report generation.
+  // For each scenario, there is a .sol file containing a specific feature (e.g. if/else condition, while loop, etc.)
+  // and a .t.sol test file that verifies that feature.
+  // The result of the coverage processing is compared against the expected output defined in the same directory
+  // where these Solidity files are located.
+  //
+  const testScenarios: CoverageTestScenario[] = [
+    COVERAGE_TEST_SCENARIO_DO_WHILE_LOOP,
+    COVERAGE_TEST_SCENARIO_FOR_LOOP,
+    COVERAGE_TEST_SCENARIO_FUNCTIONS,
+    COVERAGE_TEST_SCENARIO_IF_ELSE,
+    COVERAGE_TEST_SCENARIO_IGNORE_COMMENTS,
+    COVERAGE_TEST_SCENARIO_INLINE_ASSEMBLY,
+    COVERAGE_TEST_SCENARIO_ONE_LINER,
+    COVERAGE_TEST_SCENARIO_RANDOM_FORMATTING,
+    COVERAGE_TEST_SCENARIO_REQUIRE,
+    COVERAGE_TEST_SCENARIO_TRY_CATCH,
+    COVERAGE_TEST_SCENARIO_WHILE_LOOP,
+  ];
+
+  const coverageManagerTmp = new CoverageManagerImplementation("");
+  let hre: HardhatRuntimeEnvironment;
+  let originalCoverageFlag: boolean;
+
+  useFixtureProject("coverage");
+
+  before(async () => {
+    hre = await createHardhatRuntimeEnvironment({});
+
+    originalCoverageFlag = hre.globalOptions.coverage;
+
+    hre.globalOptions.coverage = true;
+
+    /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions
+    -- For the test we need to access to the hidden _coverage property */
+    (hre as any)._coverage = coverageManagerTmp;
+
+    await hre.tasks.getTask(["compile"]).run({
+      quiet: true,
+    });
+  });
+
+  after(() => {
+    hre.globalOptions.coverage = originalCoverageFlag;
+  });
+
+  for (const testScenario of testScenarios) {
+    it(testScenario.description, async () => {
+      await hre.tasks.getTask(["test", "solidity"]).run({
+        noCompile: true,
+        testFiles: [testScenario.testFilePath],
+      });
+
+      const res = await coverageManagerTmp.getReport();
+
+      assert.deepEqual(
+        res[testScenario.sourceFilePath],
+        testScenario.expectedResult,
+      );
+    });
+  }
+
+  it("should run coverage on multiple files, one is covered by tests, the other is not", async () => {
+    const testScenrario = COVERAGE_TEST_SCENARIO_MULTIPLE_FILES;
+
+    await hre.tasks.getTask(["test", "solidity"]).run({
+      noCompile: true,
+      testFiles: [testScenrario.testFilePath1],
+    });
+
+    const res = await coverageManagerTmp.getReport();
+
+    assert.deepEqual(
+      res[testScenrario.sourceFilePath1],
+      testScenrario.expectedResult1,
+    );
+
+    assert.deepEqual(
+      res[testScenrario.sourceFilePath2],
+      testScenrario.expectedResult2,
+    );
+  });
 });
