@@ -183,25 +183,23 @@ export class CoverageManagerImplementation implements CoverageManager {
    * @private exposed for testing purposes only
    */
   public async getReport(): Promise<Report> {
-    const report: Report = {};
-
     const allExecutedTags = new Set(this.data);
 
     const reportPromises = Array.from(this.filesMetadata.entries()).map(
-      async ([fileRelativePath, innerMap]) => {
-        const statementsForFile = Array.from(innerMap.values()).map((s) => s);
+      async ([fileRelativePath, fileStatements]) => {
+        const statements = Array.from(fileStatements.values());
 
         const fileContent = await readUtf8File(
           path.join(process.cwd(), fileRelativePath),
         );
 
-        const executedTagsForFile: string[] = [];
+        const tags: string[] = [];
         let executedStatementsCount = 0;
         let unexecutedStatementsCount = 0;
 
-        for (const stmt of statementsForFile) {
-          if (allExecutedTags.has(stmt.tag)) {
-            executedTagsForFile.push(stmt.tag);
+        for (const { tag } of statements) {
+          if (allExecutedTags.has(tag)) {
+            tags.push(tag);
             executedStatementsCount++;
           } else {
             unexecutedStatementsCount++;
@@ -210,8 +208,8 @@ export class CoverageManagerImplementation implements CoverageManager {
 
         const coverageInfo = getProcessedCoverageInfo(
           fileContent,
-          statementsForFile,
-          executedTagsForFile,
+          statements,
+          tags,
         );
 
         const lineExecutionCounts = new Map<number, number>();
@@ -240,11 +238,7 @@ export class CoverageManagerImplementation implements CoverageManager {
 
     const results = await Promise.all(reportPromises);
 
-    for (const result of results) {
-      report[result.path] = result.data;
-    }
-
-    return report;
+    return Object.fromEntries(results.map((r) => [r.path, r.data]));
   }
 
   /**
