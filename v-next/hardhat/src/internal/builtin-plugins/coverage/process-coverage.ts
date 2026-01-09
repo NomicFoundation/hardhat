@@ -391,7 +391,7 @@ function printStatementsForDebugging(
       ? statementsByExecution.executed[0].relativePath
       : statementsByExecution.unexecuted[0].relativePath;
 
-  console.debug("Statments fro file: " + relativePath);
+  console.debug("Statements for file: " + relativePath);
 
   console.debug("Executed statements:");
   let counter = 0;
