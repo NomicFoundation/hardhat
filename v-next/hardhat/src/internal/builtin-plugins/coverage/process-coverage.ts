@@ -29,10 +29,6 @@ export function getProcessedCoverageInfo(
   metadata: CoverageMetadata,
   hitTags: string[],
 ): {
-  statements: {
-    executed: ReportCoverageStatement[];
-    notExecuted: ReportCoverageStatement[];
-  };
   lines: {
     executed: Map<number, string>;
     notExecuted: Map<number, string>;
@@ -62,7 +58,6 @@ export function getProcessedCoverageInfo(
   // printFileCoverageForDebugging(fileContent, markedFile);
 
   return {
-    statements: getProcessedExecutedStatements(markedFile),
     lines: getLinesInfo(fileContent, markedFile),
   };
 }
@@ -232,6 +227,9 @@ function markMatchingCharsWithIgnored(
 // [
 //   { start: 12, end: 20, executed: true  }
 // ]
+/* eslint-disable-next-line @typescript-eslint/no-unused-vars
+-- currently not used, but it will be used to create more detailed.
+It will be used to return statements from the function `getProcessedCoverageInfo` */
 function getProcessedExecutedStatements(markedFile: Uint8Array): {
   executed: ReportCoverageStatement[];
   notExecuted: ReportCoverageStatement[];
