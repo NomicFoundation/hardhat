@@ -1,6 +1,6 @@
 import type { GlobalOptionDefinition } from "./arguments.js";
 import type { HardhatHooks } from "./hooks.js";
-import type { PluginTaskDefinition } from "./tasks.js";
+import type { TaskDefinitionPlugin } from "./tasks.js";
 
 // NOTE: We import the builtin plugins in this module, so that their
 // type-extensions are loaded when the user imports `hardhat/types/plugins`.
@@ -85,7 +85,7 @@ export interface HardhatPlugin {
    * have been defined before, either by a plugin you depend on or by Hardhat
    * itself.
    */
-  tasks?: PluginTaskDefinition[];
+  tasks?: TaskDefinitionPlugin[];
 }
 
 /**

@@ -18,9 +18,11 @@ import {
 } from "../../types/arguments.js";
 import {
   type EmptyTaskDefinition,
+  type TaskOverrideDefinitionPlugin,
+  TaskDefinitionType,
+  type TaskDefinitionPlugin,
   type NewTaskDefinition,
   type TaskDefinition,
-  TaskDefinitionType,
   type TaskOverrideDefinition,
 } from "../../types/tasks.js";
 
@@ -183,7 +185,7 @@ function validatePath(
 }
 
 export function validateTasksConfig(
-  tasks: TaskDefinition[],
+  tasks: TaskDefinition[] | TaskDefinitionPlugin[],
   path: Array<string | number> = [],
 ): HardhatUserConfigValidationError[] {
   const validationErrors: HardhatUserConfigValidationError[] = [];
@@ -306,7 +308,7 @@ export function validateNewTask(
 }
 
 export function validateTaskOverride(
-  task: TaskOverrideDefinition,
+  task: TaskOverrideDefinition | TaskOverrideDefinitionPlugin,
   path: Array<string | number>,
 ): HardhatUserConfigValidationError[] {
   const validationErrors: HardhatUserConfigValidationError[] = [];

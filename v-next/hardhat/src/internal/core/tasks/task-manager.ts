@@ -7,6 +7,9 @@ import type {
   TaskManager,
   NewTaskDefinition,
   TaskOverrideDefinition,
+  TaskDefinitionPlugin,
+  PluginNewTaskDefinition,
+  TaskOverrideDefinitionPlugin,
 } from "../../../types/tasks.js";
 
 import {
@@ -146,7 +149,7 @@ export class TaskManagerImplementation implements TaskManager {
 
   #reduceTaskDefinition(
     globalOptionDefinitions: GlobalOptionDefinitions,
-    taskDefinition: TaskDefinition,
+    taskDefinition: TaskDefinition | TaskDefinitionPlugin,
     pluginId?: string,
   ) {
     switch (taskDefinition.type) {
@@ -198,7 +201,11 @@ export class TaskManagerImplementation implements TaskManager {
 
   #validateClashesWithGlobalOptions(
     globalOptionDefinitions: GlobalOptionDefinitions,
-    taskDefinition: NewTaskDefinition | TaskOverrideDefinition,
+    taskDefinition:
+      | NewTaskDefinition
+      | PluginNewTaskDefinition
+      | TaskOverrideDefinition
+      | TaskOverrideDefinitionPlugin,
     pluginId?: string,
   ) {
     const optionNames = Object.keys(taskDefinition.options);
@@ -253,7 +260,7 @@ export class TaskManagerImplementation implements TaskManager {
   }
 
   #processTaskOverride(
-    taskDefinition: TaskOverrideDefinition,
+    taskDefinition: TaskOverrideDefinition | TaskOverrideDefinitionPlugin,
     pluginId?: string,
   ) {
     const task = this.getTask(taskDefinition.id);
@@ -290,7 +297,7 @@ export class TaskManagerImplementation implements TaskManager {
   }
 
   #validateTaskDefinition(
-    taskDefinition: TaskDefinition,
+    taskDefinition: TaskDefinition | TaskDefinitionPlugin,
     isPlugin: boolean,
   ): void {
     validateId(taskDefinition.id);

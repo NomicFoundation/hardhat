@@ -121,12 +121,6 @@ export interface BaseTaskDefinition {
 export type NewTaskDefinition = BaseTaskDefinition & TaskAction;
 
 /**
- * A readable error type used when a plugin attempts to use an inline action.
- */
-export type PluginsCannotUseInlineActionsError =
-  "Plugins cannot use inline actions. You must use .setAction()";
-
-/**
  * The definition of a new task specifically for plugins (action is required, inlineAction is forbidden).
  */
 export interface PluginNewTaskDefinition extends BaseTaskDefinition {
@@ -135,7 +129,7 @@ export interface PluginNewTaskDefinition extends BaseTaskDefinition {
    * Plugins strictly forbid inline actions.
    * If you see an error here, it means you used `.setInlineAction()` but must use `.setAction()`.
    */
-  inlineAction?: PluginsCannotUseInlineActionsError;
+  inlineAction?: never;
 }
 
 /**
@@ -160,14 +154,14 @@ export type TaskOverrideDefinition = BaseTaskOverrideDefinition &
 /**
  * An override of an existing task specifically for plugins (action is required, inlineAction is forbidden).
  */
-export interface PluginTaskOverrideDefinition
+export interface TaskOverrideDefinitionPlugin
   extends BaseTaskOverrideDefinition {
   action: LazyActionObject<TaskOverrideActionFunction>;
   /**
    * Plugins strictly forbid inline actions.
    * If you see an error here, it means you used `.setInlineAction()` but must use `.setAction()`.
    */
-  inlineAction?: PluginsCannotUseInlineActionsError;
+  inlineAction?: never;
 }
 
 /**
@@ -183,10 +177,10 @@ export type TaskDefinition =
 /**
  * The definition of a task, strictly for plugins.
  */
-export type PluginTaskDefinition =
+export type TaskDefinitionPlugin =
   | EmptyTaskDefinition
   | PluginNewTaskDefinition
-  | PluginTaskOverrideDefinition;
+  | TaskOverrideDefinitionPlugin;
 
 /**
  * This helper type adds an argument to an existing TaskArgumentsT.
@@ -539,7 +533,7 @@ export interface TaskOverrideDefinitionBuilder<
   ): BuildReturnType<
     TaskOverrideDefinition,
     ActionTypeT,
-    PluginTaskOverrideDefinition
+    TaskOverrideDefinitionPlugin
   >;
 }
 

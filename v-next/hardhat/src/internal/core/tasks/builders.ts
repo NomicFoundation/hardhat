@@ -18,7 +18,7 @@ import type {
   TaskAction,
   TaskOverrideAction,
   PluginNewTaskDefinition,
-  PluginTaskOverrideDefinition,
+  TaskOverrideDefinitionPlugin,
   BuildReturnType,
   MissingActionState,
   ActionDefinedState,
@@ -530,7 +530,7 @@ export class TaskOverrideDefinitionBuilderImplementation<
   public build(): BuildReturnType<
     TaskOverrideDefinition,
     ActionTypeT,
-    PluginTaskOverrideDefinition
+    TaskOverrideDefinitionPlugin
   > {
     if (this.#action === undefined && this.#inlineAction === undefined) {
       throw new HardhatError(
@@ -563,7 +563,7 @@ export class TaskOverrideDefinitionBuilderImplementation<
     } as BuildReturnType<
       TaskOverrideDefinition,
       ActionTypeT,
-      PluginTaskOverrideDefinition
+      TaskOverrideDefinitionPlugin
     >;
   }
 }
