@@ -377,7 +377,7 @@ describe("CoverageManagerImplementation - report data processing", () => {
   // The result of the coverage processing is compared against the expected output defined in the same directory
   // where these Solidity files are located.
   //
-  const testScenrarios: CoverageTestScenario[] = [
+  const testScenarios: CoverageTestScenario[] = [
     COVERAGE_TEST_SCENARIO_DO_WHILE_LOOP,
     COVERAGE_TEST_SCENARIO_FOR_LOOP,
     COVERAGE_TEST_SCENARIO_FUNCTIONS,
@@ -417,18 +417,18 @@ describe("CoverageManagerImplementation - report data processing", () => {
     hre.globalOptions.coverage = originalCoverageFlag;
   });
 
-  for (const testScenrario of testScenrarios) {
-    it(testScenrario.description, async () => {
+  for (const testScenario of testScenarios) {
+    it(testScenario.description, async () => {
       await hre.tasks.getTask(["test", "solidity"]).run({
         noCompile: true,
-        testFiles: [testScenrario.testFilePath],
+        testFiles: [testScenario.testFilePath],
       });
 
       const res = await coverageManagerTmp.getReport();
 
       assert.deepEqual(
-        res[testScenrario.sourceFilePath],
-        testScenrario.expectedResult,
+        res[testScenario.sourceFilePath],
+        testScenario.expectedResult,
       );
     });
   }
