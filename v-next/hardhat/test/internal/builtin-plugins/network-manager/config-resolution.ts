@@ -133,6 +133,7 @@ describe("config-resolution", () => {
       };
       const edrNetworkConfig = resolveEdrNetwork(
         userConfig,
+        GENERIC_CHAIN_TYPE,
         "",
         configVarResolver,
       );
@@ -182,6 +183,7 @@ describe("config-resolution", () => {
       const now = new Date();
       const edrNetworkConfig = resolveEdrNetwork(
         userConfig,
+        GENERIC_CHAIN_TYPE,
         "",
         configVarResolver,
       );
@@ -195,7 +197,7 @@ describe("config-resolution", () => {
       assert.equal(edrNetworkConfig.gasMultiplier, 1);
       assert.equal(edrNetworkConfig.allowBlocksWithSameTimestamp, false);
       assert.equal(edrNetworkConfig.allowUnlimitedContractSize, false);
-      assert.equal(edrNetworkConfig.blockGasLimit, 30_000_000n);
+      assert.equal(edrNetworkConfig.blockGasLimit, 60_000_000n);
       const initialDate = new Date(edrNetworkConfig.initialDate);
       assert.ok(
         Math.abs(initialDate.getTime() - now.getTime()) < 1000,
@@ -215,11 +217,47 @@ describe("config-resolution", () => {
       };
       const edrNetworkConfig = resolveEdrNetwork(
         userConfig,
+        GENERIC_CHAIN_TYPE,
         "",
         configVarResolver,
       );
 
       assert.equal(edrNetworkConfig.networkId, userConfig.chainId);
+    });
+
+    it("should resolve the hardfork based on the network chain type", () => {
+      const userConfig: EdrNetworkUserConfig = {
+        type: "edr-simulated",
+        chainType: OPTIMISM_CHAIN_TYPE,
+      };
+      const edrNetworkConfig = resolveEdrNetwork(
+        userConfig,
+        L1_CHAIN_TYPE, // different from network chain type so we know it's ignored
+        "",
+        configVarResolver,
+      );
+
+      assert.equal(
+        edrNetworkConfig.hardfork,
+        getCurrentHardfork(OPTIMISM_CHAIN_TYPE),
+      );
+    });
+
+    it("should resolve the hardfork based on the default chain type if chainType is not provided", () => {
+      const userConfig: EdrNetworkUserConfig = {
+        type: "edr-simulated",
+      };
+      const edrNetworkConfig = resolveEdrNetwork(
+        userConfig,
+        OPTIMISM_CHAIN_TYPE,
+        "",
+        configVarResolver,
+      );
+
+      assert.equal(
+        edrNetworkConfig.hardfork,
+        getCurrentHardfork(OPTIMISM_CHAIN_TYPE),
+      );
     });
   });
 
@@ -798,9 +836,6 @@ describe("config-resolution", () => {
 
     it("should return the current hardfork if no hardfork is provided", () => {
       let hardfork = resolveHardfork(undefined, L1_CHAIN_TYPE);
-      assert.equal(hardfork, getCurrentHardfork(L1_CHAIN_TYPE));
-
-      hardfork = resolveHardfork(undefined, undefined);
       assert.equal(hardfork, getCurrentHardfork(L1_CHAIN_TYPE));
 
       hardfork = resolveHardfork(undefined, OPTIMISM_CHAIN_TYPE);

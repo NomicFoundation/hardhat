@@ -1,5 +1,23 @@
 # @nomicfoundation/hardhat-mocha
 
+## 3.0.9
+
+### Patch Changes
+
+- 12d7468: Add mocha results to test summary numbers ([#7791](https://github.com/NomicFoundation/hardhat/pull/7791))
+
+## 3.0.8
+
+### Patch Changes
+
+- 3667ecd: Fixed `hardhat-mocha` dependencies by moving `hardhat` and `mocha` to `peerDependencies` ([#7519](https://github.com/NomicFoundation/hardhat/issues/7519))
+
+## 3.0.7
+
+### Patch Changes
+
+- 147f8a6: Improved the look and feel of compilation output ([#7669](https://github.com/NomicFoundation/hardhat/pull/7669))
+
 ## 3.0.6
 
 ### Patch Changes

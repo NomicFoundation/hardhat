@@ -66,7 +66,7 @@ const testWithHardhat: NewTaskActionFunction<TestActionArguments> = async (
   setGlobalOptionsAsEnvVariables(hre.globalOptions);
 
   if (!noCompile) {
-    await hre.tasks.getTask("compile").run({
+    await hre.tasks.getTask("build").run({
       noTests: true,
     });
     console.log();
@@ -153,8 +153,10 @@ const testWithHardhat: NewTaskActionFunction<TestActionArguments> = async (
   await initCoverage("mocha");
   await initGasStats("mocha");
 
+  let total = 0;
   const testFailures = await new Promise<number>((resolve) => {
-    mocha.run(resolve);
+    const runner = mocha.run(resolve);
+    total = runner.total;
   });
 
   if (hre.config.test.mocha.parallel !== true) {
@@ -172,7 +174,7 @@ const testWithHardhat: NewTaskActionFunction<TestActionArguments> = async (
 
   console.log();
 
-  return testFailures;
+  return { failed: testFailures, passed: total - testFailures };
 };
 
 export default testWithHardhat;

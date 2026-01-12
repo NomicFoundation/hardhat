@@ -9,6 +9,7 @@ import {
   useFixtureProject,
 } from "@nomicfoundation/hardhat-test-utils";
 
+import { overrideTask } from "../../../../src/config.js";
 import { createHardhatRuntimeEnvironment } from "../../../../src/internal/hre-initialization.js";
 import hardhatConfig from "../../../fixture-projects/solidity-test/hardhat.config.js";
 
@@ -50,7 +51,7 @@ describe("solidity-test/task-action", function () {
   before(async function () {
     hre = await createHardhatRuntimeEnvironment(hardhatConfigAllTests);
 
-    await hre.tasks.getTask(["compile"]).run({});
+    await hre.tasks.getTask(["build"]).run({});
   });
 
   describe("when the solidity task test runner is specified", () => {
@@ -67,6 +68,19 @@ describe("solidity-test/task-action", function () {
         noCompile: true,
         testFiles: ["./test/contracts/partial/Counter-1.sol"],
       });
+    });
+
+    it("should throw if a file is provided but is not considered a test", async () => {
+      hre = await createHardhatRuntimeEnvironment(hardhatConfigPartialTests);
+      await assertRejectsWithHardhatError(
+        () =>
+          hre.tasks.getTask(["test", "solidity"]).run({
+            noCompile: true,
+            testFiles: ["./test/not-in-test-path.t.sol"],
+          }),
+        HardhatError.ERRORS.CORE.SOLIDITY.UNRECOGNIZED_FILES_NOT_COMPILED,
+        { files: "- ./test/not-in-test-path.t.sol" },
+      );
     });
   });
 
@@ -85,12 +99,17 @@ describe("solidity-test/task-action", function () {
       });
     });
 
-    it("should run even if test is not in test config path because it ends in .t.sol", async () => {
+    it("should throw if a file is provided but is not considered a test", async () => {
       hre = await createHardhatRuntimeEnvironment(hardhatConfigPartialTests);
-      await hre.tasks.getTask(["test"]).run({
-        noCompile: true,
-        testFiles: ["./test/not-in-test-path.t.sol"],
-      });
+      await assertRejectsWithHardhatError(
+        () =>
+          hre.tasks.getTask(["test"]).run({
+            noCompile: true,
+            testFiles: ["./test/not-in-test-path.t.sol"],
+          }),
+        HardhatError.ERRORS.CORE.SOLIDITY.UNRECOGNIZED_FILES_NOT_COMPILED,
+        { files: "- ./test/not-in-test-path.t.sol" },
+      );
     });
 
     it("should throw because the file ends in .sol and is not in the test path", async () => {
@@ -194,6 +213,133 @@ describe("solidity-test/task-action", function () {
         } finally {
           process.exitCode = exitCode;
         }
+      });
+    });
+
+    describe("building contracts and tests", () => {
+      /**
+       * Returns an HRE that accumulates the args to `build` in the array it
+       * returns
+       */
+      async function getHreWithOverriddenBuild(): Promise<
+        [hre: HardhatRuntimeEnvironment, buildArgs: any[]]
+      > {
+        const buildArgs: any[] = [];
+        const overriddenHre = await createHardhatRuntimeEnvironment({
+          ...hardhatConfigAllTests,
+          tasks: [
+            overrideTask("build")
+              .setAction(async () => {
+                return {
+                  default: (args, _hre, runSuper) => {
+                    buildArgs.push(args);
+
+                    return runSuper(args);
+                  },
+                };
+              })
+              .build(),
+          ],
+        });
+
+        return [overriddenHre, buildArgs];
+      }
+
+      describe("When noCompile is provided", () => {
+        it("Should compile the test files, but not the contracts", async () => {
+          const [overriddenHre, buildArgs] = await getHreWithOverriddenBuild();
+
+          const exitCode = process.exitCode;
+          try {
+            await overriddenHre.tasks.getTask(["test", "solidity"]).run({
+              noCompile: true,
+            });
+
+            // We only call build once
+            assert.equal(buildArgs.length, 1);
+
+            const lastArgs = buildArgs[0];
+            assert.equal(lastArgs.noContracts, true);
+            assert.equal(lastArgs.noTests, false);
+            assert.deepEqual(lastArgs.files, []);
+          } finally {
+            process.exitCode = exitCode;
+          }
+        });
+
+        it("Should compile only the provided test files, and not the contracts", async () => {
+          const [overriddenHre, buildArgs] = await getHreWithOverriddenBuild();
+
+          const exitCode = process.exitCode;
+          const testFiles = ["test/contracts/all/Counter-1.t.sol"];
+          try {
+            await overriddenHre.tasks.getTask(["test", "solidity"]).run({
+              noCompile: true,
+              testFiles,
+            });
+
+            // We only call build once
+            assert.equal(buildArgs.length, 1);
+
+            const lastArgs = buildArgs[0];
+            assert.equal(lastArgs.noContracts, true);
+            assert.equal(lastArgs.noTests, false);
+            assert.deepEqual(lastArgs.files, testFiles);
+          } finally {
+            process.exitCode = exitCode;
+          }
+        });
+      });
+
+      describe("When noCompile is not provided", () => {
+        it("Should compile the contracts and then the test files", async () => {
+          const [overriddenHre, buildArgs] = await getHreWithOverriddenBuild();
+
+          const exitCode = process.exitCode;
+          try {
+            await overriddenHre.tasks.getTask(["test", "solidity"]).run({});
+
+            assert.equal(buildArgs.length, 2);
+
+            const firstArgs = buildArgs[0];
+            assert.equal(firstArgs.noContracts, false);
+            assert.equal(firstArgs.noTests, true);
+            assert.deepEqual(firstArgs.files, []);
+
+            const lastArgs = buildArgs[1];
+            assert.equal(lastArgs.noContracts, true);
+            assert.equal(lastArgs.noTests, false);
+            assert.deepEqual(lastArgs.files, []);
+          } finally {
+            process.exitCode = exitCode;
+          }
+        });
+
+        it("Should compile the contracts and then the provided test files", async () => {
+          const [overriddenHre, buildArgs] = await getHreWithOverriddenBuild();
+
+          const exitCode = process.exitCode;
+          const testFiles = ["test/contracts/all/Counter-1.t.sol"];
+          try {
+            await overriddenHre.tasks
+              .getTask(["test", "solidity"])
+              .run({ testFiles });
+
+            assert.equal(buildArgs.length, 2);
+
+            const firstArgs = buildArgs[0];
+            assert.equal(firstArgs.noContracts, false);
+            assert.equal(firstArgs.noTests, true);
+            assert.deepEqual(firstArgs.files, []);
+
+            const lastArgs = buildArgs[1];
+            assert.equal(lastArgs.noContracts, true);
+            assert.equal(lastArgs.noTests, false);
+            assert.deepEqual(lastArgs.files, testFiles);
+          } finally {
+            process.exitCode = exitCode;
+          }
+        });
       });
     });
   });

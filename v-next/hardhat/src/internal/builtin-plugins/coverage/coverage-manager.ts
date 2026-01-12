@@ -3,18 +3,17 @@ import type {
   CoverageManager,
   CoverageMetadata,
   Statement,
-  Tag,
 } from "./types.js";
 import type { TableItem } from "@nomicfoundation/hardhat-utils/format";
 
 import path from "node:path";
 
-import { assertHardhatInvariant } from "@nomicfoundation/hardhat-errors";
 import { divider, formatTable } from "@nomicfoundation/hardhat-utils/format";
 import {
   ensureDir,
   getAllFilesMatching,
   readJsonFile,
+  readUtf8File,
   remove,
   writeJsonFile,
   writeUtf8File,
@@ -22,36 +21,55 @@ import {
 import chalk from "chalk";
 import debug from "debug";
 
+import { getProcessedCoverageInfo } from "./process-coverage.js";
+
 const log = debug("hardhat:core:coverage:coverage-manager");
 
 const MAX_COLUMN_WIDTH = 80;
 
 type Line = number;
-type Branch = [Line, Tag];
 
 /**
  * @private exposed for testing purposes only
  */
-export interface Report {
-  [relativePath: string]: {
-    tagExecutionCounts: Map<Tag, number>;
-    lineExecutionCounts: Map<Line, number>;
-    branchExecutionCounts: Map<Branch, number>;
+export interface FileReport {
+  // NOTE: currently, the counters for how many times a statement is executed are not implemented in EDR,
+  // so the only information available is whether a statement was executed, not how many times it was executed.
+  // Also, branch coverage is not available.
+  // In addition, partially executed lines (for example, ternary operators) cannot be determined, as this information is missing in EDR,
+  // since only whole statements can be registered as executed or not.
 
-    executedTagsCount: number;
-    executedLinesCount: number;
-    executedBranchesCount: number;
+  lineExecutionCounts: Map<Line, number>;
 
-    partiallyExecutedLines: Set<Line>;
-    unexecutedLines: Set<Line>;
-  };
+  executedStatementsCount: number;
+  unexecutedStatementsCount: number;
+
+  executedLinesCount: number;
+
+  unexecutedLines: Set<Line>;
 }
+
+export interface Report {
+  [relativePath: string]: FileReport;
+}
+
+type FilesMetadata = Map<
+  string, // relative path
+  Map<
+    string, // composite key
+    Statement
+  >
+>;
 
 export class CoverageManagerImplementation implements CoverageManager {
   /**
    * @private exposed for testing purposes only
    */
-  public metadata: CoverageMetadata = [];
+  public filesMetadata: FilesMetadata = new Map<
+    string,
+    Map<string, Statement>
+  >();
+
   /**
    * @private exposed for testing purposes only
    */
@@ -80,13 +98,24 @@ export class CoverageManagerImplementation implements CoverageManager {
   }
 
   public async addMetadata(metadata: CoverageMetadata): Promise<void> {
-    // NOTE: The received metadata might contain duplicates. We deduplicate it
-    // when we generate the report.
     for (const entry of metadata) {
-      this.metadata.push(entry);
-    }
+      log("Added metadata", JSON.stringify(metadata, null, 2));
 
-    log("Added metadata", JSON.stringify(metadata, null, 2));
+      let fileStatements = this.filesMetadata.get(entry.relativePath);
+
+      if (fileStatements === undefined) {
+        fileStatements = new Map();
+        this.filesMetadata.set(entry.relativePath, fileStatements);
+      }
+
+      const key = `${entry.relativePath}-${entry.tag}-${entry.startUtf16}-${entry.endUtf16}`;
+
+      const existingData = fileStatements.get(key);
+
+      if (existingData === undefined) {
+        fileStatements.set(key, entry);
+      }
+    }
   }
 
   public async clearData(id: string): Promise<void> {
@@ -111,7 +140,7 @@ export class CoverageManagerImplementation implements CoverageManager {
 
     await this.loadData(...ids);
 
-    const report = this.getReport();
+    const report = await this.getReport();
     const lcovReport = this.formatLcovReport(report);
     const markdownReport = this.formatMarkdownReport(report);
 
@@ -153,143 +182,63 @@ export class CoverageManagerImplementation implements CoverageManager {
   /**
    * @private exposed for testing purposes only
    */
-  public getReport(): Report {
-    const report: Report = {};
+  public async getReport(): Promise<Report> {
+    const allExecutedTags = new Set(this.data);
 
-    const relativePaths = this.metadata.map(({ relativePath }) => relativePath);
+    const reportPromises = Array.from(this.filesMetadata.entries()).map(
+      async ([fileRelativePath, fileStatements]) => {
+        const statements = Array.from(fileStatements.values());
 
-    const allStatements = this.metadata;
+        const fileContent = await readUtf8File(
+          path.join(process.cwd(), fileRelativePath),
+        );
 
-    // NOTE: We preserve only the last statement per tag in the statementsByTag map.
-    const statementsByTag = new Map<string, Statement>();
-    for (const statement of allStatements) {
-      statementsByTag.set(statement.tag, statement);
-    }
+        const tags: Set<string> = new Set();
+        let executedStatementsCount = 0;
+        let unexecutedStatementsCount = 0;
 
-    const allExecutedTags = this.data;
+        for (const { tag } of statements) {
+          if (allExecutedTags.has(tag)) {
+            tags.add(tag);
+            executedStatementsCount++;
+          } else {
+            unexecutedStatementsCount++;
+          }
+        }
 
-    const allExecutedStatementsByRelativePath = new Map<string, Statement[]>();
-    for (const tag of allExecutedTags) {
-      // NOTE: We should not encounter an executed tag we don't have metadata for.
-      const statement = statementsByTag.get(tag);
-      assertHardhatInvariant(statement !== undefined, "Expected a statement");
+        const coverageInfo = getProcessedCoverageInfo(
+          fileContent,
+          statements,
+          tags,
+        );
 
-      const relativePath = statement.relativePath;
-      const allExecutedStatements =
-        allExecutedStatementsByRelativePath.get(relativePath) ?? [];
-      allExecutedStatements.push(statement);
-      allExecutedStatementsByRelativePath.set(
-        relativePath,
-        allExecutedStatements,
-      );
-    }
+        const lineExecutionCounts = new Map<number, number>();
+        coverageInfo.lines.executed.forEach((_, line) =>
+          lineExecutionCounts.set(line, 1),
+        );
+        coverageInfo.lines.unexecuted.forEach((_, line) =>
+          lineExecutionCounts.set(line, 0),
+        );
 
-    const uniqueExecutedTags = new Set(allExecutedTags);
-    const uniqueUnexecutedTags = Array.from(statementsByTag.keys()).filter(
-      (tag) => !uniqueExecutedTags.has(tag),
+        const executedLinesCount = coverageInfo.lines.executed.size;
+        const unexecutedLines = new Set(coverageInfo.lines.unexecuted.keys());
+
+        return {
+          path: fileRelativePath,
+          data: {
+            lineExecutionCounts,
+            executedStatementsCount,
+            unexecutedStatementsCount,
+            executedLinesCount,
+            unexecutedLines,
+          },
+        };
+      },
     );
 
-    const uniqueUnexecutedStatementsByRelativePath = new Map<
-      string,
-      Statement[]
-    >();
-    for (const tag of uniqueUnexecutedTags) {
-      // NOTE: We cannot encounter an executed tag we don't have metadata for.
-      const statement = statementsByTag.get(tag);
-      assertHardhatInvariant(statement !== undefined, "Expected a statement");
+    const results = await Promise.all(reportPromises);
 
-      const relativePath = statement.relativePath;
-      const unexecutedStatements =
-        uniqueUnexecutedStatementsByRelativePath.get(relativePath) ?? [];
-      unexecutedStatements.push(statement);
-      uniqueUnexecutedStatementsByRelativePath.set(
-        relativePath,
-        unexecutedStatements,
-      );
-    }
-
-    for (const relativePath of relativePaths) {
-      const allExecutedStatements =
-        allExecutedStatementsByRelativePath.get(relativePath) ?? [];
-      const uniqueUnexecutedStatements =
-        uniqueUnexecutedStatementsByRelativePath.get(relativePath) ?? [];
-
-      const tagExecutionCounts = new Map<Tag, number>();
-
-      for (const statement of allExecutedStatements) {
-        const tagExecutionCount = tagExecutionCounts.get(statement.tag) ?? 0;
-        tagExecutionCounts.set(statement.tag, tagExecutionCount + 1);
-      }
-
-      const lineExecutionCounts = new Map<number, number>();
-      const branchExecutionCounts = new Map<Branch, number>();
-
-      for (const [tag, executionCount] of tagExecutionCounts) {
-        const statement = statementsByTag.get(tag);
-        assertHardhatInvariant(statement !== undefined, "Expected a statement");
-
-        for (
-          let line = statement.startLine;
-          line <= statement.endLine;
-          line++
-        ) {
-          const lineExecutionCount = lineExecutionCounts.get(line) ?? 0;
-          lineExecutionCounts.set(line, lineExecutionCount + executionCount);
-
-          const branchExecutionCount =
-            branchExecutionCounts.get([line, tag]) ?? 0;
-          branchExecutionCounts.set(
-            [line, tag],
-            branchExecutionCount + executionCount,
-          );
-        }
-      }
-
-      const executedTagsCount = tagExecutionCounts.size;
-      const executedLinesCount = lineExecutionCounts.size;
-      const executedBranchesCount = branchExecutionCounts.size;
-
-      const partiallyExecutedLines = new Set<number>();
-      const unexecutedLines = new Set<number>();
-
-      for (const statement of uniqueUnexecutedStatements) {
-        if (!tagExecutionCounts.has(statement.tag)) {
-          tagExecutionCounts.set(statement.tag, 0);
-        }
-
-        for (
-          let line = statement.startLine;
-          line <= statement.endLine;
-          line++
-        ) {
-          if (!lineExecutionCounts.has(line)) {
-            lineExecutionCounts.set(line, 0);
-            unexecutedLines.add(line);
-          } else {
-            partiallyExecutedLines.add(line);
-          }
-
-          if (!branchExecutionCounts.has([line, statement.tag])) {
-            branchExecutionCounts.set([line, statement.tag], 0);
-          }
-        }
-      }
-
-      report[relativePath] = {
-        tagExecutionCounts,
-        lineExecutionCounts,
-        branchExecutionCounts,
-
-        executedTagsCount,
-        executedLinesCount,
-        executedBranchesCount,
-
-        partiallyExecutedLines,
-        unexecutedLines,
-      };
-    }
-
-    return report;
+    return Object.fromEntries(results.map((r) => [r.path, r.data]));
   }
 
   /**
@@ -315,12 +264,7 @@ export class CoverageManagerImplementation implements CoverageManager {
 
     for (const [
       relativePath,
-      {
-        branchExecutionCounts,
-        executedBranchesCount,
-        lineExecutionCounts,
-        executedLinesCount,
-      },
+      { lineExecutionCounts, executedLinesCount },
     ] of Object.entries(report)) {
       lcov += `SF:${relativePath}\n`;
 
@@ -336,11 +280,12 @@ export class CoverageManagerImplementation implements CoverageManager {
       // BRF:<number of branches found>
       // BRH:<number of branches hit>
 
-      for (const [[line, tag], executionCount] of branchExecutionCounts) {
-        lcov += `BRDA:${line},0,${tag},${executionCount === 0 ? "-" : executionCount}\n`;
-      }
-      lcov += `BRH:${executedBranchesCount}\n`;
-      lcov += `BRF:${branchExecutionCounts.size}\n`;
+      // TODO: currently EDR does not provide branch coverage information.
+      // for (const [[line, tag], executionCount] of branchExecutionCounts) {
+      //   lcov += `BRDA:${line},0,${tag},${executionCount === 0 ? "-" : executionCount}\n`;
+      // }
+      // lcov += `BRH:${executedBranchesCount}\n`;
+      // lcov += `BRF:${branchExecutionCounts.size}\n`;
 
       // Then there is a list of execution counts for each instrumented line
       // (i.e. a line which resulted in executable code):
@@ -487,25 +432,20 @@ export class CoverageManagerImplementation implements CoverageManager {
     rows.push(divider);
 
     rows.push(
-      [
-        "File Path",
-        "Line %",
-        "Statement %",
-        "Uncovered Lines",
-        "Partially Covered Lines",
-      ].map((s) => chalk.yellow(s)),
+      ["File Path", "Line %", "Statement %", "Uncovered Lines"].map((s) =>
+        chalk.yellow(s),
+      ),
     );
 
     const bodyRows = Object.entries(report).map(
       ([
         relativePath,
         {
-          tagExecutionCounts,
+          executedStatementsCount,
+          unexecutedStatementsCount,
           lineExecutionCounts,
-          executedTagsCount,
           executedLinesCount,
           unexecutedLines,
-          partiallyExecutedLines,
         },
       ]) => {
         const lineCoverage =
@@ -513,22 +453,23 @@ export class CoverageManagerImplementation implements CoverageManager {
             ? 0
             : (executedLinesCount * 100.0) / lineExecutionCounts.size;
         const statementCoverage =
-          tagExecutionCounts.size === 0
+          executedStatementsCount === 0
             ? 0
-            : (executedTagsCount * 100.0) / tagExecutionCounts.size;
+            : (executedStatementsCount * 100.0) /
+              (executedStatementsCount + unexecutedStatementsCount);
 
         totalExecutedLines += executedLinesCount;
         totalExecutableLines += lineExecutionCounts.size;
 
-        totalExecutedStatements += executedTagsCount;
-        totalExecutableStatements += tagExecutionCounts.size;
+        totalExecutedStatements += executedStatementsCount;
+        totalExecutableStatements +=
+          executedStatementsCount + unexecutedStatementsCount;
 
         const row: string[] = [
           this.formatRelativePath(relativePath),
           this.formatCoverage(lineCoverage),
           this.formatCoverage(statementCoverage),
           this.formatLines(unexecutedLines),
-          this.formatLines(partiallyExecutedLines),
         ];
 
         return row;
@@ -551,7 +492,6 @@ export class CoverageManagerImplementation implements CoverageManager {
       chalk.yellow("Total"),
       this.formatCoverage(totalLineCoverage),
       this.formatCoverage(totalStatementCoverage),
-      "",
       "",
     ]);
 

@@ -62,7 +62,7 @@ export class TestProjectWrapper {
   ) {}
 
   public async compile(options: any = {}): Promise<void> {
-    await this.hre.tasks.getTask(["compile"]).run({ ...options, quiet: true });
+    await this.hre.tasks.getTask(["build"]).run({ ...options, quiet: true });
   }
 
   public async getSnapshot(): Promise<Snapshot> {

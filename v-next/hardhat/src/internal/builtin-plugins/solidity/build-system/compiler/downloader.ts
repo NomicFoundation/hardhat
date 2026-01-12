@@ -40,7 +40,7 @@ const LINUX_ARM64_REPOSITORY_URL =
 
 export enum CompilerPlatform {
   LINUX = "linux-amd64",
-  LINUX_ARM64 = "linux-aarch64",
+  LINUX_ARM64 = "linux-arm64",
   WINDOWS = "windows-amd64",
   MACOS = "macosx-amd64",
   WASM = "wasm",
@@ -48,9 +48,11 @@ export enum CompilerPlatform {
 
 interface CompilerBuild {
   path: string;
+  url?: string;
   version: string;
   longVersion: string;
   sha256: string;
+  prerelease?: string;
 }
 
 interface CompilerList {
@@ -273,7 +275,9 @@ export class CompilerDownloaderImplementation implements CompilerDownloader {
 
     const list = await this.#readCompilerList(listPath);
 
-    const build = list.builds.find((b) => b.version === version);
+    const build = list.builds.find(
+      (b) => b.version === version && b.prerelease === undefined,
+    );
 
     if (build === undefined) {
       throw new HardhatError(
@@ -338,46 +342,59 @@ export class CompilerDownloaderImplementation implements CompilerDownloader {
       }
     }
 
-    return false;
+    // download the list in case the cached list contains older ARM64 Linux builds without URL
+    return list.builds
+      .map((b) => b.path.startsWith("solc-v") && b.url === undefined)
+      .reduce((a, b) => a || b, false);
   }
 
   async #downloadCompilerList(): Promise<void> {
     log(`Downloading compiler list for platform ${this.#platform}`);
-    let url: string;
-
-    if (this.#onLinuxArm()) {
-      url = `${LINUX_ARM64_REPOSITORY_URL}/list.json`;
-    } else {
-      url = `${COMPILER_REPOSITORY_URL}/${this.#platform}/list.json`;
-    }
     const downloadPath = this.#getCompilerListPath();
 
-    await this.#downloadFunction(url, downloadPath);
+    // download hte official solc compiler list (now that ARM64 Linus is supported)
+    await this.#downloadFunction(
+      `${COMPILER_REPOSITORY_URL}/${this.#platform}/list.json`,
+      downloadPath,
+    );
 
-    // If using the arm64 binary mirror, the list.json file has different information than the solc official mirror, so we complete it
-    if (this.#onLinuxArm()) {
-      const compilerList: CompilerList = await readJsonFile(downloadPath);
-      for (const build of compilerList.builds) {
+    // for Linux ARM64, we need to merge the official list with our custom builds
+    if (this.#platform === CompilerPlatform.LINUX_ARM64) {
+      // cache the official list since the file will be overwritten below
+      const officialCompilerList: CompilerList =
+        await readJsonFile(downloadPath);
+
+      await this.#downloadFunction(
+        `${LINUX_ARM64_REPOSITORY_URL}/list.json`,
+        downloadPath,
+      );
+
+      // add missing information and an explicit URL for download
+      const armLinuxcompilerList: CompilerList =
+        await readJsonFile(downloadPath);
+      for (const build of armLinuxcompilerList.builds) {
         build.path = `solc-v${build.version}`;
+        build.url = LINUX_ARM64_REPOSITORY_URL;
         build.longVersion = build.version;
       }
 
-      await writeJsonFile(downloadPath, compilerList);
-    }
-  }
+      // merge the official and custom lists
+      officialCompilerList.builds = officialCompilerList.builds.concat(
+        armLinuxcompilerList.builds,
+      );
+      officialCompilerList.releases = {
+        ...officialCompilerList.releases,
+        ...armLinuxcompilerList.releases,
+      };
 
-  #onLinuxArm() {
-    return this.#platform === CompilerPlatform.LINUX_ARM64;
+      await writeJsonFile(downloadPath, officialCompilerList);
+    }
   }
 
   async #downloadCompiler(build: CompilerBuild): Promise<string> {
-    let url: string;
-
-    if (this.#onLinuxArm()) {
-      url = `${LINUX_ARM64_REPOSITORY_URL}/${build.path}`;
-    } else {
-      url = `${COMPILER_REPOSITORY_URL}/${this.#platform}/${build.path}`;
-    }
+    // use the explicit URL if available or the default solc download URL if not
+    const defaultUrl = `${COMPILER_REPOSITORY_URL}/${this.#platform}`;
+    const url = `${build.url ?? defaultUrl}/${build.path}`;
 
     log(`Downloading compiler ${build.version} from ${url}`);
 

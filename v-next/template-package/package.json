@@ -44,9 +44,9 @@
     "README.md"
   ],
   "devDependencies": {
-    "@nomicfoundation/hardhat-node-test-reporter": "workspace:^3.0.0",
+    "@nomicfoundation/hardhat-node-test-reporter": "workspace:^3.0.2",
     "@nomicfoundation/hardhat-test-utils": "workspace:^",
-    "@types/node": "^20.14.9",
+    "@types/node": "^22.0.0",
     "c8": "^9.1.0",
     "eslint": "9.25.1",
     "expect-type": "^1.2.1",

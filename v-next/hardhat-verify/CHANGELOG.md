@@ -1,5 +1,23 @@
 # @nomicfoundation/hardhat-verify
 
+## 3.0.8
+
+### Patch Changes
+
+- 0635271: Fix Etherscan verification retry with full compiler input, thanks @SyedAsadKazmi! ([#7577](https://github.com/NomicFoundation/hardhat/pull/7577))
+
+## 3.0.7
+
+### Patch Changes
+
+- 29acf32: Added fallback for chains not included in chain descriptors ([#7657](https://github.com/NomicFoundation/hardhat/issues/7657))
+
+## 3.0.6
+
+### Patch Changes
+
+- 6307578: Added support for verifying contracts via Sourcify, thanks @manuelwedler ([#6885](https://github.com/NomicFoundation/hardhat/issues/6885)).
+
 ## 3.0.5
 
 ### Patch Changes

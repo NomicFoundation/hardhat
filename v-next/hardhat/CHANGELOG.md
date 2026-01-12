@@ -1,5 +1,109 @@
 # hardhat
 
+## 3.1.3
+
+### Patch Changes
+
+- 12d7468: Add mocha results to test summary numbers ([#7791](https://github.com/NomicFoundation/hardhat/pull/7791))
+- 25155b5: Add support for the official builds of `solc` for ARM64 Linux ([#7752](https://github.com/NomicFoundation/hardhat/issues/7752))
+- 065df38: Bumped EDR version to [`0.12.0-next.22`](https://github.com/NomicFoundation/edr/releases/tag/%40nomicfoundation%2Fedr%400.12.0-next.22).
+  - NomicFoundation/edr@b5a7b75: Added an API that reports the latest supported Solidity version for source instrumentation
+- 5abcee6: Use Osaka as the default EVM target for solc 0.8.31+ and increase the gas limit per EIP-7935. Thanks @Amxx! ([#7813](https://github.com/NomicFoundation/hardhat/pull/7813))
+
+## 3.1.2
+
+### Patch Changes
+
+- 3575a52: Bumped EDR version to [`0.12.0-next.21`](https://github.com/NomicFoundation/edr/releases/tag/%40nomicfoundation%2Fedr%400.12.0-next.21).
+
+  ### Minor Changes
+
+  - NomicFoundation/edr@44e779c: Added function-level configuration overrides for Solidity tests
+
+  ### Patch Changes
+
+  - NomicFoundation/edr@b5ad15c: Added support for instrumentation of Solidity `0.8.32` and `0.8.33`
+
+- fd70728: Bumped EDR version to [`0.12.0-next.20`](https://www.npmjs.com/package/@nomicfoundation/edr/v/0.12.0-next.20).
+
+  Patch Changes
+
+  - NomicFoundation/edr@34e1ab4: Updated base mainnet eip1559 parameters after SystemConfig update on 2025-12-18
+  - NomicFoundation/edr@2272bc0: Fixed excess_blob_gas calculation after Osaka
+
+## 3.1.1
+
+### Patch Changes
+
+- b3bde25: Disable test summary when mocha is included in runners ([#7781](https://github.com/NomicFoundation/hardhat/issues/7781))
+- 88fcf8b: Bumped EDR version to [`0.12.0-next.19`](https://www.npmjs.com/package/@nomicfoundation/edr/v/0.12.0-next.19).
+
+  - [faef065](https://github.com/NomicFoundation/edr/commit/faef0656f8c86c6f92c7c309d2373bbca89cbff7): Added support for EIP-7892 (Blob Parameter Only hardforks)
+
+## 3.1.0
+
+### Minor Changes
+
+- 7b851f3: Bumped EDR version to [`0.12.0-next.17`](https://www.npmjs.com/package/@nomicfoundation/edr/v/0.12.0-next.17)
+  - Changed default L1 hardfork to Osaka
+  - Changed default OP stack hardfork to Isthmus
+  - Fixed default transaction gas limit for post-Osaka hardforks in OP stack and generic chains
+
+### Patch Changes
+
+- 7697451: Test summaries are now merged when running multiple test tasks ([#7053](https://github.com/NomicFoundation/hardhat/issues/7053))
+- a3bf244: Fixed the download of solc, which broke for v0.8.31
+
+## 3.0.17
+
+### Patch Changes
+
+- 9f4020b: - Update template projects to ignore local `.env` files but still allow committing `.env.example` files, thanks @KonstantinosChonas! ([7702](https://github.com/NomicFoundation/hardhat/issues/7702))
+- a9a47e5: Fixed hex validation patterns, thanks @Bilogweb3 ([#7719](https://github.com/NomicFoundation/hardhat/pull/7719))
+- b0f37e1: Fixed the network config to re-validate and re-resolve `chainType` on `connect()` ([#7700](https://github.com/NomicFoundation/hardhat/issues/7700)).
+
+## 3.0.16
+
+### Patch Changes
+
+- 478ee07: Bumped EDR version to [`0.12.0-next.16`](https://www.npmjs.com/package/@nomicfoundation/edr/v/0.12.0-next.16)
+  - Added support for Osaka hardfork
+  - Added full support for OP stack Isthmus hardfork
+- 806ee5a: Fixed an issue caused by networks that don't implement `eth_feeHistory` correctly (https://github.com/NomicFoundation/hardhat/pull/7678)
+- f4b7f7e: Fix: use user config provided value for `defaultChainType` ([#7700](https://github.com/NomicFoundation/hardhat/issues/7700))
+- 6b2ed9a: Add ability for task options to be hidden from the CLI ([#7426](https://github.com/NomicFoundation/hardhat/issues/7426))
+- 6d10d05: Update `hardfork` validation and resolution to use `defaultChainType` when `chainType` is undefined ([#7700](https://github.com/NomicFoundation/hardhat/issues/7700))
+
+## 3.0.15
+
+### Patch Changes
+
+- 9fb054a: Fix the initialization of the Mocha and Ethers sample project when using pnpm
+
+## 3.0.14
+
+### Patch Changes
+
+- 3d42a6f: Remove the compilation spinner when the compilation fails
+- 52e1eb4: Fix the `test solidity` task's compilation process
+- ce5c22a: Fail when a file isn't built neither as contract nor test
+
+## 3.0.13
+
+### Patch Changes
+
+- 6e4ad6d: Fixed unexpected test failure when running in isolate/gas stats mode ([#1146](https://github.com/NomicFoundation/edr/issues/1146))
+- 6e4ad6d: Added latest dynamic base fee parameters to Base Mainnet chain config ([#1141](https://github.com/NomicFoundation/edr/pull/1141))
+
+## 3.0.12
+
+### Patch Changes
+
+- 147f8a6: Improved the look and feel of compilation output ([#7669](https://github.com/NomicFoundation/hardhat/pull/7669))
+- 50ce3e0: Fix a bug that could lead to different builds having the same build id. Note that this version will change how every build id is computed.
+- 31f0b03: Don't compile solidity tests files when not needed ([#7669](https://github.com/NomicFoundation/hardhat/pull/7669))
+- a77c06a: Added a new minimal sample project
+
 ## 3.0.11
 
 ### Patch Changes

@@ -1,5 +1,20 @@
 # Changelog
 
+## 3.0.6
+
+### Patch Changes
+
+- 57cc2bc: Restore gas config feature that was lost during v3 update ([#7666](https://github.com/NomicFoundation/hardhat/pull/7666))
+- dac916b: Expose ignition retry loop variables in user config (Hardhat v3) ([#7303](https://github.com/NomicFoundation/hardhat/issues/7303))
+
+## 3.0.5
+
+### Patch Changes
+
+- 147f8a6: Improved the look and feel of compilation output ([#7669](https://github.com/NomicFoundation/hardhat/pull/7669))
+- 31f0b03: Don't compile solidity tests files when not needed ([#7669](https://github.com/NomicFoundation/hardhat/pull/7669))
+- d1c1803: Make `@nomicfoundation/hardhat-ignition`'s UI work well with other plugins, like Ledger's.
+
 ## 3.0.4
 
 ### Patch Changes

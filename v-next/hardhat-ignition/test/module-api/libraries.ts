@@ -30,7 +30,7 @@ describe("libraries", () => {
   });
 
   it("should be able to deploy a contract that depends on an artifact library", async function () {
-    await this.hre.tasks.getTask("compile").run({ quiet: true });
+    await this.hre.tasks.getTask("build").run({ quiet: true });
 
     const libraryArtifact =
       await this.hre.artifacts.readArtifact("RubbishMath");

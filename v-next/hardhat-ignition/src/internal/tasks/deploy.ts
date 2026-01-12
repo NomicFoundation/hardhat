@@ -153,8 +153,9 @@ const taskDeploy: NewTaskActionFunction<TaskDeployArguments> = async (
     );
   }
 
-  await hre.tasks.getTask("compile").run({
+  await hre.tasks.getTask("build").run({
     quiet: true,
+    noTests: true,
     defaultBuildProfile: "production",
   });
 
@@ -189,13 +190,31 @@ const taskDeploy: NewTaskActionFunction<TaskDeployArguments> = async (
 
   const executionEventListener = new PrettyEventHandler(hre.interruptions);
 
+  const strategyConfig = hre.config.ignition.strategyConfig?.[strategyName];
+
   const userInterruptionsHandlers = getUserInterruptionsHandlers();
 
   hre.hooks.registerHandlers("userInterruptions", userInterruptionsHandlers);
 
-  try {
-    const strategyConfig = hre.config.ignition.strategyConfig?.[strategyName];
+  if (
+    hre.config.ignition.maxRetries === undefined &&
+    hre.config.networks[connection.networkName]?.ignition.maxRetries !==
+      undefined
+  ) {
+    hre.config.ignition.maxRetries =
+      hre.config.networks[connection.networkName]?.ignition.maxRetries;
+  }
 
+  if (
+    hre.config.ignition.retryInterval === undefined &&
+    hre.config.networks[connection.networkName]?.ignition.retryInterval !==
+      undefined
+  ) {
+    hre.config.ignition.retryInterval =
+      hre.config.networks[connection.networkName]?.ignition.retryInterval;
+  }
+
+  try {
     const result = await deploy({
       config: hre.config.ignition,
       provider: connection.provider,
@@ -213,6 +232,8 @@ const taskDeploy: NewTaskActionFunction<TaskDeployArguments> = async (
       strategyConfig,
       maxFeePerGasLimit:
         hre.config.networks[connection.networkName]?.ignition.maxFeePerGasLimit,
+      maxFeePerGas:
+        hre.config.networks[connection.networkName]?.ignition.maxFeePerGas,
       maxPriorityFeePerGas:
         hre.config.networks[connection.networkName]?.ignition
           .maxPriorityFeePerGas,

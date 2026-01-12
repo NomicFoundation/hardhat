@@ -54,17 +54,55 @@ await viem.assertions.balancesHaveChanged(
 
 Several assertions are included to check that a transaction reverted, and the reason of the revert.
 
-#### `.revert`
+#### `revert`
 
-Assert that a transaction reverted for any reason, without checking the cause of the revert:
+Assert that executing a contract function reverts for any reason, without checking the cause of the revert.
+
+Type:
+
+```ts
+revert(
+  contractFn: Promise<ReadContractReturnType | WriteContractReturnType>,
+): Promise<void>;
+```
+
+Parameters:
+
+- `contractFn`: A promise returned by a viem read or write contract call expected to revert.
+
+Returns:
+
+- A promise that resolves if the assertion passes, or rejects if it fails.
+
+Example:
 
 ```ts
 await viem.assertions.revert(token.write.transfer([address, 0n]));
 ```
 
-#### `.revertWith`
+#### `revertWith`
 
-Assert that a transaction reverted with a specific reason string:
+Assert that executing a contract function reverts with the specified reason string.
+
+Type:
+
+```ts
+revertWith(
+  contractFn: Promise<ReadContractReturnType | WriteContractReturnType>,
+  expectedRevertReason: string,
+): Promise<void>;
+```
+
+Parameters:
+
+- `contractFn`: A promise returned by a viem read or write contract call expected to revert.
+- `expectedRevertReason`: The expected revert reason string.
+
+Returns:
+
+- A promise that resolves if the assertion passes, or rejects if it fails.
+
+Example:
 
 ```ts
 await viem.assertions.revertWith(
@@ -73,9 +111,31 @@ await viem.assertions.revertWith(
 );
 ```
 
-#### `.revertWithCustomError`
+#### `revertWithCustomError`
 
-Assert that a transaction reverted with a specific custom error:
+Assert that executing a contract function reverts with a specific custom error defined in the given contract.
+
+Type:
+
+```ts
+revertWithCustomError(
+  contractFn: Promise<ReadContractReturnType | WriteContractReturnType>,
+  contract: ContractReturnType,
+  customErrorName: string,
+): Promise<void>;
+```
+
+Parameters:
+
+- `contractFn`: A promise returned by a viem read or write contract call expected to revert.
+- `contract`: The viem contract instance whose ABI defines the expected custom error.
+- `customErrorName`: The expected custom error name.
+
+Returns:
+
+- A promise that resolves if the assertion passes, or rejects if it fails.
+
+Example:
 
 ```ts
 await viem.assertions.revertWithCustomError(
@@ -85,11 +145,33 @@ await viem.assertions.revertWithCustomError(
 );
 ```
 
-The second argument must be the contract that defines the error. The contract is used to determine the full signature of the expected error. The assertion does not check whether the error was emitted by the contract.
+#### `revertWithCustomErrorWithArgs`
 
-#### `.revertWithCustomErrorWithArgs`
+Assert that executing a contract function reverts with a specific custom error and arguments.
 
-Assert that a transaction reverted with a custom error and specific arguments:
+Type:
+
+```ts
+revertWithCustomErrorWithArgs(
+  contractFn: Promise<ReadContractReturnType | WriteContractReturnType>,
+  contract: ContractReturnType,
+  customErrorName: string,
+  args: any[],
+): Promise<void>;
+```
+
+Parameters:
+
+- `contractFn`: A promise returned by a viem read or write contract call expected to revert.
+- `contract`: The viem contract instance whose ABI defines the expected custom error.
+- `customErrorName`: The expected custom error name.
+- `args`: Expected custom error arguments. Each item can be a concrete value or a predicate function `(value) => boolean`.
+
+Returns:
+
+- A promise that resolves if the assertion passes, or rejects if it fails.
+
+Example:
 
 ```ts
 await viem.assertions.revertWithCustomErrorWithArgs(
@@ -124,9 +206,33 @@ await viem.assertions.revertWithCustomErrorWithArgs(
 
 ### Events
 
-#### `.emit`
+These assertions can be used to check that a transaction emits specific events and their arguments.
 
-Assert that a transaction emits a specific event:
+#### `emit`
+
+Assert that executing a contract function emits a specific event.
+
+Type:
+
+```ts
+emit(
+  contractFn: Promise<ReadContractReturnType | WriteContractReturnType>,
+  contract: ContractReturnType,
+  eventName: string,
+): Promise<void>;
+```
+
+Parameters:
+
+- `contractFn`: A promise returned by a viem read or write contract call.
+- `contract`: The viem contract instance whose ABI is used to parse logs.
+- `eventName`: The event name to assert.
+
+Returns:
+
+- A promise that resolves if the assertion passes, or rejects if it fails.
+
+Example:
 
 ```ts
 await viem.assertions.emit(
@@ -136,9 +242,33 @@ await viem.assertions.emit(
 );
 ```
 
-#### `.emitWithArgs`
+#### `emitWithArgs`
 
-Assert that a transaction emits an event with specific arguments:
+Assert that executing a contract function emits a specific event with the given arguments.
+
+Type:
+
+```ts
+emitWithArgs(
+  contractFn: Promise<ReadContractReturnType | WriteContractReturnType>,
+  contract: ContractReturnType,
+  eventName: string,
+  args: any[],
+): Promise<void>;
+```
+
+Parameters:
+
+- `contractFn`: A promise returned by a viem read or write contract call.
+- `contract`: The viem contract instance whose ABI is used to parse logs.
+- `eventName`: The event name to assert.
+- `args`: Expected event arguments. Each item can be a concrete value or a predicate function `(value) => boolean`.
+
+Returns:
+
+- A promise that resolves if the assertion passes, or rejects if it fails.
+
+Example:
 
 ```ts
 await viem.assertions.emitWithArgs(
@@ -175,9 +305,32 @@ await viem.assertions.emitWithArgs(
 
 These assertions can be used to check how a given transaction affects the ether balance of a specific address.
 
-#### `.balancesHaveChanged`
+#### `balancesHaveChanged`
 
-Assert that a transaction changes the balance of specific addresses:
+Assert that a transaction changes the ether balance of the given addresses by the specified amounts.
+
+Type:
+
+```ts
+balancesHaveChanged(
+  resolvedTxHash: Promise<Hash>,
+  changes: Array<{
+    address: Address;
+    amount: bigint;
+  }>,
+): Promise<void>;
+```
+
+Parameters:
+
+- `resolvedTxHash`: A promise that resolves to the transaction hash returned by `sendTransaction`.
+- `changes`: The expected balance deltas, in wei, for each address. Negative values are allowed.
+
+Returns:
+
+- A promise that resolves if the assertion passes, or rejects if it fails.
+
+Example:
 
 ```ts
 await viem.assertions.balancesHaveChanged(

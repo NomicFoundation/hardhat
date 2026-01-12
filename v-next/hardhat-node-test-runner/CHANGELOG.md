@@ -1,5 +1,17 @@
 # @nomicfoundation/hardhat-node-test-runner
 
+## 3.0.8
+
+### Patch Changes
+
+- 7697451: Test summaries are now merged when running multiple test tasks ([#7053](https://github.com/NomicFoundation/hardhat/issues/7053))
+
+## 3.0.7
+
+### Patch Changes
+
+- 147f8a6: Improved the look and feel of compilation output ([#7669](https://github.com/NomicFoundation/hardhat/pull/7669))
+
 ## 3.0.6
 
 ### Patch Changes

@@ -40,3 +40,16 @@ interface EtherscanOkResponse {
   message: "OK";
   result: string;
 }
+
+export interface EtherscanChainListResponse {
+  comments: string;
+  totalcount: string;
+  result: Array<{
+    chainname: string;
+    chainid: string;
+    blockexplorer: string;
+    apiurl: string;
+    status: number;
+    comment: string;
+  }>;
+}

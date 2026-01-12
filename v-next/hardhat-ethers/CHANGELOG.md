@@ -1,5 +1,11 @@
 # @nomicfoundation/hardhat-ethers
 
+## 4.0.4
+
+### Patch Changes
+
+- 5abcee6: Use Osaka as the default EVM target for solc 0.8.31+ and increase the gas limit per EIP-7935. Thanks @Amxx! ([#7813](https://github.com/NomicFoundation/hardhat/pull/7813))
+
 ## 4.0.3
 
 ### Patch Changes

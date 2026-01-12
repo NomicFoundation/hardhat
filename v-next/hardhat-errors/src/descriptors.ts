@@ -326,7 +326,7 @@ export const ERRORS = {
         websiteTitle: "You are not inside a Hardhat project",
         websiteDescription: `You are trying to run Hardhat outside of a Hardhat project.
 
-You can learn how to use Hardhat by reading the [Getting Started guide](/hardhat-runner/docs/getting-started).`,
+You can learn how to use Hardhat by reading the [Getting Started guide](/getting-started).`,
       },
       DUPLICATED_PLUGIN_ID: {
         number: 2,
@@ -485,6 +485,12 @@ Please resolve the errors before rerunning the command.`,
         websiteDescription: `You tried to run Hardhat from a global installation or not installing it at all. This is not supported.
 
 Please install Hardhat locally using pnpm, npm or yarn, and try again.`,
+      },
+      GLOBAL_OPTION_HIDDEN_NOT_SUPPORTED: {
+        number: 23,
+        messageTemplate: `Global option "{globalOption}" from plugin "{plugin}" cannot be hidden`,
+        websiteTitle: "Global option cannot be hidden",
+        websiteDescription: `A global option was defined as hidden, but global options cannot be hidden.`,
       },
     },
     INTERNAL: {
@@ -795,6 +801,13 @@ Please double check your arguments.`,
 
 Please double check your arguments.`,
       },
+      NO_HIDDEN_OPTION_CLI: {
+        number: 512,
+        messageTemplate:
+          'The option "{option}" is hidden and cannot be used from the CLI.',
+        websiteTitle: "Hidden options cannot be used from the CLI",
+        websiteDescription: `You are trying to use a hidden option from the CLI, which is not allowed.`,
+      },
     },
     BUILTIN_TASKS: {
       RUN_FILE_NOT_FOUND: {
@@ -951,7 +964,7 @@ Please double check your accounts and the "from" parameter in your RPC calls.`,
         websiteTitle: "Invalid HD path",
         websiteDescription: `An invalid HD/BIP32 derivation path was provided in your config.
 
-Read the [documentation](https://hardhat.org/hardhat-runner/docs/config#hd-wallet-config) to learn how to define HD accounts correctly.`,
+Read the [documentation](https://hardhat.org/hd-wallet-config) to learn how to define HD accounts correctly.`,
       },
       CANT_DERIVE_KEY: {
         number: 718,
@@ -1166,6 +1179,18 @@ Please check Hardhat's output for more details.`,
         messageTemplate: `Could not parse the full compiler version from "{versionString}" using "{compilerPath}"`,
         websiteTitle: "Could not parse a compiler version",
         websiteDescription: `Hardhat failed to parse the full compiler version from the output of the compiler's 'version' command.`,
+      },
+      UNRECOGNIZED_FILES_NOT_COMPILED: {
+        number: 915,
+        messageTemplate: `The build process failed because these files you provided haven't been recognized neither as contracts nor tests:
+        
+{files}
+
+Solidity test files must be placed in your test directory, or in your contracts directory and end in .t.sol.`,
+        websiteTitle: "Build failed due to unrecognized files",
+        websiteDescription: `Hardhat failed to build your contracts and/or tests because you passed a file as parameter, but it wasn't recognized neither as a valid contract nor test.
+        
+Solidity test files must be placed in your test directory, or in your contracts directory and end in .t.sol.`,
       },
     },
     ARTIFACTS: {
@@ -1975,7 +2000,7 @@ Please try again later.`,
       },
       MISSING_LINK_FOR_LIBRARY: {
         number: 20012,
-        messageTemplate: `The contract "{contractName}" is missing links for the following libraries: "{missingLibraries}". Learn more about linking contracts at (https://hardhat.org/hardhat-runner/plugins/nomicfoundation-hardhat-ethers#library-linking).`,
+        messageTemplate: `The contract "{contractName}" is missing links for the following libraries: "{missingLibraries}". Learn more about linking contracts at (https://hardhat.org/ethers-library-linking).`,
         websiteTitle: "Missing links for library",
         websiteDescription: "Missing links for library",
       },
@@ -2201,7 +2226,7 @@ You probably did something like this:
 
 Instead, define a fixture function and refer to that same function in each call to loadFixture.
 
-Learn more at (https://hardhat.org/hardhat-network-helpers/docs/reference#fixtures)`,
+Learn more at (https://hardhat.org/hardhat-network-helpers-fixtures)`,
         websiteTitle: "Anonymous functions cannot be used as fixtures",
         websiteDescription: "Anonymous functions cannot be used as fixtures",
       },

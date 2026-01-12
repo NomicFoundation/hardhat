@@ -36,6 +36,8 @@ import {
   resolveHttpNetwork,
 } from "../../../../src/internal/builtin-plugins/network-manager/config-resolution.js";
 import {
+  getCurrentHardfork,
+  getHardforks,
   L1HardforkName,
   OpHardforkName,
 } from "../../../../src/internal/builtin-plugins/network-manager/edr/types/hardfork.js";
@@ -125,6 +127,7 @@ describe("NetworkManagerImplementation", () => {
             },
           },
         },
+        GENERIC_CHAIN_TYPE,
         "",
         (varOrStr) => resolveConfigurationVariable(hre.hooks, varOrStr),
       ),
@@ -150,7 +153,10 @@ describe("NetworkManagerImplementation", () => {
       const networkConnection = await networkManager.connect();
       assert.equal(networkConnection.networkName, "localhost");
       assert.equal(networkConnection.chainType, GENERIC_CHAIN_TYPE);
-      assert.deepEqual(networkConnection.networkConfig, networks.localhost);
+      assert.deepEqual(networkConnection.networkConfig, {
+        ...networks.localhost,
+        chainType: GENERIC_CHAIN_TYPE,
+      });
     });
 
     it("should connect to the specified network and default chain type if none are provided and the network doesn't have a chain type", async () => {
@@ -159,7 +165,10 @@ describe("NetworkManagerImplementation", () => {
       });
       assert.equal(networkConnection.networkName, "customNetwork");
       assert.equal(networkConnection.chainType, GENERIC_CHAIN_TYPE);
-      assert.deepEqual(networkConnection.networkConfig, networks.customNetwork);
+      assert.deepEqual(networkConnection.networkConfig, {
+        ...networks.customNetwork,
+        chainType: GENERIC_CHAIN_TYPE,
+      });
     });
 
     it("should connect to the specified network and use it's chain type if none is provided and the network has a chain type", async () => {
@@ -306,19 +315,331 @@ describe("NetworkManagerImplementation", () => {
       );
     });
 
-    it("should throw an error if the specified chain type doesn't match the network's chain type", async () => {
+    it("should throw an error if the specified network config override tries to change the chainType", async () => {
       await assertRejectsWithHardhatError(
         networkManager.connect({
-          network: "myNetwork",
-          chainType: L1_CHAIN_TYPE,
+          network: "edrNetwork",
+          override: {
+            /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions
+              -- Cast to test validation error */
+            chainType: L1_CHAIN_TYPE as any,
+          },
         }),
-        HardhatError.ERRORS.CORE.NETWORK.INVALID_CHAIN_TYPE,
+        HardhatError.ERRORS.CORE.NETWORK.INVALID_CONFIG_OVERRIDE,
         {
-          networkName: "myNetwork",
-          chainType: L1_CHAIN_TYPE,
-          networkChainType: OPTIMISM_CHAIN_TYPE,
+          errors: `\t* The chainType cannot be specified in config overrides. Pass it at the top level instead: hre.network.connect({ chainType: 'op' })`,
         },
       );
+    });
+
+    describe("connecting with different chainType and hardfork configurations", () => {
+      describe("network with no chainType or hardfork in config", () => {
+        it("should connect with default chainType and latest hardfork", async () => {
+          const connection = await hre.network.connect({});
+
+          assert.equal(connection.chainType, GENERIC_CHAIN_TYPE);
+          assert.equal(connection.networkConfig.type, "edr-simulated");
+          assert.equal(connection.networkConfig.chainType, GENERIC_CHAIN_TYPE);
+          assert.equal(
+            connection.networkConfig.hardfork,
+            getCurrentHardfork(GENERIC_CHAIN_TYPE),
+          );
+        });
+
+        it("should connect with specified chainType and its latest hardfork", async () => {
+          const connection = await hre.network.connect({
+            chainType: OPTIMISM_CHAIN_TYPE,
+          });
+
+          assert.equal(connection.chainType, OPTIMISM_CHAIN_TYPE);
+          assert.equal(connection.networkConfig.type, "edr-simulated");
+          assert.equal(connection.networkConfig.chainType, OPTIMISM_CHAIN_TYPE);
+          assert.equal(
+            connection.networkConfig.hardfork,
+            getCurrentHardfork(OPTIMISM_CHAIN_TYPE),
+          );
+        });
+
+        it("should connect with specified chainType and hardfork override", async () => {
+          const connection = await hre.network.connect({
+            chainType: OPTIMISM_CHAIN_TYPE,
+            override: {
+              hardfork: OpHardforkName.HOLOCENE,
+            },
+          });
+
+          assert.equal(connection.chainType, OPTIMISM_CHAIN_TYPE);
+          assert.equal(connection.networkConfig.type, "edr-simulated");
+          assert.equal(connection.networkConfig.chainType, OPTIMISM_CHAIN_TYPE);
+          assert.equal(
+            connection.networkConfig.hardfork,
+            OpHardforkName.HOLOCENE,
+          );
+        });
+
+        it("should throw an error when overriding with invalid hardfork for the chainType", async () => {
+          await assertRejectsWithHardhatError(
+            hre.network.connect({
+              chainType: OPTIMISM_CHAIN_TYPE,
+              override: {
+                hardfork: L1HardforkName.LONDON,
+              },
+            }),
+            HardhatError.ERRORS.CORE.NETWORK.INVALID_CONFIG_OVERRIDE,
+            {
+              errors:
+                `\t* Error in hardfork: Your configured hardfork is incompatible with chainType ${OPTIMISM_CHAIN_TYPE}. ` +
+                `You need to update the hardfork in your network config or pass a valid hardfork ` +
+                `in the overrides when connecting to the network. ` +
+                `Valid hardforks for chainType ${OPTIMISM_CHAIN_TYPE} are: ` +
+                `${getHardforks(OPTIMISM_CHAIN_TYPE).join(", ")}.`,
+            },
+          );
+
+          await assertRejectsWithHardhatError(
+            hre.network.connect({
+              override: {
+                hardfork: OpHardforkName.HOLOCENE,
+              },
+            }),
+            HardhatError.ERRORS.CORE.NETWORK.INVALID_CONFIG_OVERRIDE,
+            {
+              errors:
+                `\t* Error in hardfork: Your configured hardfork is incompatible with chainType ${GENERIC_CHAIN_TYPE}. ` +
+                `You need to update the hardfork in your network config or pass a valid hardfork ` +
+                `in the overrides when connecting to the network. ` +
+                `Valid hardforks for chainType ${GENERIC_CHAIN_TYPE} are: ` +
+                `${getHardforks(GENERIC_CHAIN_TYPE).join(", ")}.`,
+            },
+          );
+        });
+      });
+
+      describe("network with no chainType but with hardfork in config", () => {
+        beforeEach(async () => {
+          hre = await createHardhatRuntimeEnvironment({
+            networks: {
+              default: {
+                type: "edr-simulated",
+                hardfork: L1HardforkName.LONDON,
+              },
+            },
+          });
+        });
+
+        it("should connect with default chainType and configured hardfork", async () => {
+          const connection = await hre.network.connect({});
+
+          assert.equal(connection.chainType, GENERIC_CHAIN_TYPE);
+          assert.equal(connection.networkConfig.type, "edr-simulated");
+          assert.equal(connection.networkConfig.chainType, GENERIC_CHAIN_TYPE);
+          assert.equal(
+            connection.networkConfig.hardfork,
+            L1HardforkName.LONDON,
+          );
+        });
+
+        it("should connect with overridden valid hardfork for same chainType", async () => {
+          const connection = await hre.network.connect({
+            override: {
+              hardfork: L1HardforkName.SHANGHAI,
+            },
+          });
+
+          assert.equal(connection.chainType, GENERIC_CHAIN_TYPE);
+          assert.equal(connection.networkConfig.type, "edr-simulated");
+          assert.equal(connection.networkConfig.chainType, GENERIC_CHAIN_TYPE);
+          assert.equal(
+            connection.networkConfig.hardfork,
+            L1HardforkName.SHANGHAI,
+          );
+        });
+
+        it("should throw an error when overriding with invalid hardfork", async () => {
+          await assertRejectsWithHardhatError(
+            hre.network.connect({
+              override: {
+                hardfork: OpHardforkName.HOLOCENE,
+              },
+            }),
+            HardhatError.ERRORS.CORE.NETWORK.INVALID_CONFIG_OVERRIDE,
+            {
+              errors:
+                `\t* Error in hardfork: Your configured hardfork is incompatible with chainType ${GENERIC_CHAIN_TYPE}. ` +
+                `You need to update the hardfork in your network config or pass a valid hardfork ` +
+                `in the overrides when connecting to the network. ` +
+                `Valid hardforks for chainType ${GENERIC_CHAIN_TYPE} are: ` +
+                `${getHardforks(GENERIC_CHAIN_TYPE).join(", ")}.`,
+            },
+          );
+        });
+
+        it("should throw an error when changing chainType without overriding hardfork", async () => {
+          await assertRejectsWithHardhatError(
+            hre.network.connect({
+              chainType: OPTIMISM_CHAIN_TYPE,
+            }),
+            HardhatError.ERRORS.CORE.NETWORK.INVALID_CONFIG_OVERRIDE,
+            {
+              errors:
+                `\t* Error in hardfork: Your configured hardfork is incompatible with chainType ${OPTIMISM_CHAIN_TYPE}. ` +
+                `You need to update the hardfork in your network config or pass a valid hardfork ` +
+                `in the overrides when connecting to the network. ` +
+                `Valid hardforks for chainType ${OPTIMISM_CHAIN_TYPE} are: ` +
+                `${getHardforks(OPTIMISM_CHAIN_TYPE).join(", ")}.`,
+            },
+          );
+        });
+      });
+
+      describe("network with chainType but without hardfork in config", () => {
+        beforeEach(async () => {
+          hre = await createHardhatRuntimeEnvironment({
+            networks: {
+              default: {
+                type: "edr-simulated",
+                chainType: OPTIMISM_CHAIN_TYPE,
+              },
+            },
+          });
+        });
+
+        it("should connect with configured chainType and its latest hardfork", async () => {
+          const connection = await hre.network.connect({});
+
+          assert.equal(connection.chainType, OPTIMISM_CHAIN_TYPE);
+          assert.equal(connection.networkConfig.type, "edr-simulated");
+          assert.equal(connection.networkConfig.chainType, OPTIMISM_CHAIN_TYPE);
+          assert.equal(
+            connection.networkConfig.hardfork,
+            getCurrentHardfork(OPTIMISM_CHAIN_TYPE),
+          );
+        });
+
+        it("should connect with valid hardfork override for configured chainType", async () => {
+          const connection = await hre.network.connect({
+            override: {
+              hardfork: OpHardforkName.HOLOCENE,
+            },
+          });
+
+          assert.equal(connection.chainType, OPTIMISM_CHAIN_TYPE);
+          assert.equal(connection.networkConfig.type, "edr-simulated");
+          assert.equal(connection.networkConfig.chainType, OPTIMISM_CHAIN_TYPE);
+          assert.equal(
+            connection.networkConfig.hardfork,
+            OpHardforkName.HOLOCENE,
+          );
+        });
+
+        it("should throw an error when overriding with invalid hardfork for configured chainType", async () => {
+          await assertRejectsWithHardhatError(
+            hre.network.connect({
+              override: {
+                hardfork: L1HardforkName.LONDON,
+              },
+            }),
+            HardhatError.ERRORS.CORE.NETWORK.INVALID_CONFIG_OVERRIDE,
+            {
+              errors:
+                `\t* Error in hardfork: Your configured hardfork is incompatible with chainType ${OPTIMISM_CHAIN_TYPE}. ` +
+                `You need to update the hardfork in your network config or pass a valid hardfork ` +
+                `in the overrides when connecting to the network. ` +
+                `Valid hardforks for chainType ${OPTIMISM_CHAIN_TYPE} are: ` +
+                `${getHardforks(OPTIMISM_CHAIN_TYPE).join(", ")}.`,
+            },
+          );
+        });
+
+        it("should connect when changing to different chainType with its latest hardfork", async () => {
+          const connection = await hre.network.connect({
+            chainType: GENERIC_CHAIN_TYPE,
+          });
+
+          assert.equal(connection.chainType, GENERIC_CHAIN_TYPE);
+          assert.equal(connection.networkConfig.type, "edr-simulated");
+          assert.equal(connection.networkConfig.chainType, GENERIC_CHAIN_TYPE);
+          assert.equal(
+            connection.networkConfig.hardfork,
+            getCurrentHardfork(GENERIC_CHAIN_TYPE),
+          );
+        });
+      });
+
+      describe("network with chainType and hardfork in config", () => {
+        beforeEach(async () => {
+          hre = await createHardhatRuntimeEnvironment({
+            networks: {
+              default: {
+                type: "edr-simulated",
+                chainType: OPTIMISM_CHAIN_TYPE,
+                hardfork: OpHardforkName.HOLOCENE,
+              },
+            },
+          });
+        });
+
+        it("should connect with configured chainType and hardfork", async () => {
+          const connection = await hre.network.connect({});
+
+          assert.equal(connection.chainType, OPTIMISM_CHAIN_TYPE);
+          assert.equal(connection.networkConfig.type, "edr-simulated");
+          assert.equal(connection.networkConfig.chainType, OPTIMISM_CHAIN_TYPE);
+          assert.equal(
+            connection.networkConfig.hardfork,
+            OpHardforkName.HOLOCENE,
+          );
+        });
+
+        it("should connect with valid hardfork override for configured chainType", async () => {
+          const connection = await hre.network.connect({
+            override: {
+              hardfork: OpHardforkName.FJORD,
+            },
+          });
+
+          assert.equal(connection.chainType, OPTIMISM_CHAIN_TYPE);
+          assert.equal(connection.networkConfig.type, "edr-simulated");
+          assert.equal(connection.networkConfig.chainType, OPTIMISM_CHAIN_TYPE);
+          assert.equal(connection.networkConfig.hardfork, OpHardforkName.FJORD);
+        });
+
+        it("should throw an error when overriding with invalid hardfork for configured chainType", async () => {
+          await assertRejectsWithHardhatError(
+            hre.network.connect({
+              override: {
+                hardfork: L1HardforkName.LONDON,
+              },
+            }),
+            HardhatError.ERRORS.CORE.NETWORK.INVALID_CONFIG_OVERRIDE,
+            {
+              errors:
+                `\t* Error in hardfork: Your configured hardfork is incompatible with chainType ${OPTIMISM_CHAIN_TYPE}. ` +
+                `You need to update the hardfork in your network config or pass a valid hardfork ` +
+                `in the overrides when connecting to the network. ` +
+                `Valid hardforks for chainType ${OPTIMISM_CHAIN_TYPE} are: ` +
+                `${getHardforks(OPTIMISM_CHAIN_TYPE).join(", ")}.`,
+            },
+          );
+        });
+
+        it("should throw an error when changing chainType without hardfork override", async () => {
+          await assertRejectsWithHardhatError(
+            hre.network.connect({
+              chainType: GENERIC_CHAIN_TYPE,
+            }),
+            HardhatError.ERRORS.CORE.NETWORK.INVALID_CONFIG_OVERRIDE,
+            {
+              errors:
+                `\t* Error in hardfork: Your configured hardfork is incompatible with chainType ${GENERIC_CHAIN_TYPE}. ` +
+                `You need to update the hardfork in your network config or pass a valid hardfork ` +
+                `in the overrides when connecting to the network. ` +
+                `Valid hardforks for chainType ${GENERIC_CHAIN_TYPE} are: ` +
+                `${getHardforks(GENERIC_CHAIN_TYPE).join(", ")}.`,
+            },
+          );
+        });
+      });
     });
 
     describe("network -> newConnection hook", () => {
@@ -708,8 +1029,9 @@ describe("NetworkManagerImplementation", () => {
         assertValidationErrors(validationErrors, [
           {
             path: ["chainDescriptors", "2", "hardforkHistory", "random string"],
-            message:
-              "Invalid hardfork name random string found in chain descriptor for chain 2. Expected chainstart | homestead | dao | tangerineWhistle | spuriousDragon | byzantium | constantinople | petersburg | istanbul | muirGlacier | berlin | london | arrowGlacier | grayGlacier | merge | shanghai | cancun | prague.",
+            message: `Invalid hardfork name random string found in chain descriptor for chain 2. Expected ${getHardforks(
+              L1_CHAIN_TYPE,
+            ).join(" | ")}.`,
           },
         ]);
 
@@ -735,8 +1057,9 @@ describe("NetworkManagerImplementation", () => {
         assertValidationErrors(validationErrors, [
           {
             path: ["chainDescriptors", "1", "hardforkHistory", "random string"],
-            message:
-              "Invalid hardfork name random string found in chain descriptor for chain 1. Expected bedrock | regolith | canyon | ecotone | fjord | granite | holocene | isthmus.",
+            message: `Invalid hardfork name random string found in chain descriptor for chain 1. Expected ${getHardforks(
+              OPTIMISM_CHAIN_TYPE,
+            ).join(" | ")}.`,
           },
         ]);
 
@@ -1434,19 +1757,19 @@ describe("NetworkManagerImplementation", () => {
       describe("http config", () => {
         it("should validate a valid network config", async () => {
           let validationErrors = await validateNetworkUserConfig(
-            httpConfig({ chainType: "l1" }),
+            httpConfig({ chainType: L1_CHAIN_TYPE }),
           );
 
           assertValidationErrors(validationErrors, []);
 
           validationErrors = await validateNetworkUserConfig(
-            httpConfig({ chainType: "op" }),
+            httpConfig({ chainType: OPTIMISM_CHAIN_TYPE }),
           );
 
           assertValidationErrors(validationErrors, []);
 
           validationErrors = await validateNetworkUserConfig(
-            httpConfig({ chainType: "generic" }),
+            httpConfig({ chainType: GENERIC_CHAIN_TYPE }),
           );
 
           assertValidationErrors(validationErrors, []);
@@ -1469,19 +1792,19 @@ describe("NetworkManagerImplementation", () => {
       describe("edr config", () => {
         it("should validate a valid network config", async () => {
           let validationErrors = await validateNetworkUserConfig(
-            edrConfig({ chainType: "l1" }),
+            edrConfig({ chainType: L1_CHAIN_TYPE }),
           );
 
           assertValidationErrors(validationErrors, []);
 
           validationErrors = await validateNetworkUserConfig(
-            edrConfig({ chainType: "op" }),
+            edrConfig({ chainType: OPTIMISM_CHAIN_TYPE }),
           );
 
           assertValidationErrors(validationErrors, []);
 
           validationErrors = await validateNetworkUserConfig(
-            edrConfig({ chainType: "generic" }),
+            edrConfig({ chainType: GENERIC_CHAIN_TYPE }),
           );
 
           assertValidationErrors(validationErrors, []);
@@ -2145,6 +2468,18 @@ describe("NetworkManagerImplementation", () => {
 
             assertValidationErrors(validationErrors, []);
           }
+
+          for (const hardfork of Object.values(OpHardforkName)) {
+            const validationErrors = await validateNetworkUserConfig({
+              ...edrConfig({ hardfork }),
+              /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions 
+              -- Type assertion needed because changing defaultChainType requires module 
+              augmentation, which can't be done in test files */
+              defaultChainType: OPTIMISM_CHAIN_TYPE as any,
+            });
+
+            assertValidationErrors(validationErrors, []);
+          }
         });
 
         it("should not validate an invalid network config", async () => {
@@ -2155,8 +2490,9 @@ describe("NetworkManagerImplementation", () => {
           assertValidationErrors(validationErrors, [
             {
               path: ["networks", "hardhat", "hardfork"],
-              message:
-                "Invalid hardfork name anything else for chainType generic. Expected chainstart | homestead | dao | tangerineWhistle | spuriousDragon | byzantium | constantinople | petersburg | istanbul | muirGlacier | berlin | london | arrowGlacier | grayGlacier | merge | shanghai | cancun | prague.",
+              message: `Invalid hardfork name anything else for chainType generic. Expected ${getHardforks(
+                L1_CHAIN_TYPE,
+              ).join(" | ")}.`,
             },
           ]);
 
@@ -2170,8 +2506,28 @@ describe("NetworkManagerImplementation", () => {
           assertValidationErrors(validationErrors, [
             {
               path: ["networks", "hardhat", "hardfork"],
-              message:
-                "Invalid hardfork name anything else for chainType op. Expected bedrock | regolith | canyon | ecotone | fjord | granite | holocene | isthmus.",
+              message: `Invalid hardfork name anything else for chainType op. Expected ${getHardforks(
+                OPTIMISM_CHAIN_TYPE,
+              ).join(" | ")}.`,
+            },
+          ]);
+
+          validationErrors = await validateNetworkUserConfig({
+            ...edrConfig({
+              hardfork: L1HardforkName.OSAKA,
+            }),
+            /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions 
+            -- Type assertion needed because changing defaultChainType requires module 
+            augmentation, which can't be done in test files */
+            defaultChainType: OPTIMISM_CHAIN_TYPE as any,
+          });
+
+          assertValidationErrors(validationErrors, [
+            {
+              path: ["networks", "hardhat", "hardfork"],
+              message: `Invalid hardfork name osaka for chainType op. Expected ${getHardforks(
+                OPTIMISM_CHAIN_TYPE,
+              ).join(" | ")}.`,
             },
           ]);
         });
@@ -2209,7 +2565,7 @@ describe("NetworkManagerImplementation", () => {
 
           assertValidationErrors(validationErrors, [
             {
-              path: ["networks", "hardhat"],
+              path: ["networks", "hardhat", "initialBaseFeePerGas"],
               message:
                 "initialBaseFeePerGas is only valid for networks with EIP-1559. Try a newer hardfork or remove it.",
             },
@@ -2336,7 +2692,7 @@ describe("NetworkManagerImplementation", () => {
 
           assertValidationErrors(validationErrors, [
             {
-              path: ["networks", "hardhat"],
+              path: ["networks", "hardhat", "minGasPrice"],
               message:
                 "minGasPrice is not valid for networks with EIP-1559. Try an older hardfork or remove it.",
             },

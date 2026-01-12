@@ -22,7 +22,7 @@ describe("Hardhat Mocha plugin", () => {
 
       const result = await hre.tasks.getTask(["test", "mocha"]).run({});
 
-      assert.equal(result, 0);
+      assert.deepEqual(result, { failed: 0, passed: 2 });
     });
   });
 

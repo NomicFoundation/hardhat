@@ -42,7 +42,7 @@ const consoleAction: NewTaskActionFunction<ConsoleActionArguments> = async (
     }
 
     if (!noCompile) {
-      await hre.tasks.getTask("compile").run({ quiet: true });
+      await hre.tasks.getTask("build").run({ noTests: true, quiet: true });
     }
 
     return await new Promise<REPLServer>(async (resolve) => {

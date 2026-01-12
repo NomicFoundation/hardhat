@@ -95,12 +95,14 @@ export class NewTaskDefinitionBuilderImplementation<
     description = "",
     type,
     defaultValue,
+    hidden,
   }: {
     name: NameT;
     shortName?: string;
     description?: string;
     type?: TypeT;
     defaultValue: ArgumentTypeToValueType<TypeT>;
+    hidden?: boolean;
   }): NewTaskDefinitionBuilder<
     ExtendTaskArguments<NameT, TypeT, TaskArgumentsT>
   > {
@@ -112,6 +114,7 @@ export class NewTaskDefinitionBuilderImplementation<
       description,
       type: argumentType,
       defaultValue,
+      hidden,
     };
 
     validateOption(optionDefinition, this.#usedNames, this.#id);
@@ -125,6 +128,7 @@ export class NewTaskDefinitionBuilderImplementation<
     name: NameT;
     shortName?: string;
     description?: string;
+    hidden?: boolean;
   }): NewTaskDefinitionBuilder<
     ExtendTaskArguments<NameT, ArgumentType.FLAG, TaskArgumentsT>
   > {
@@ -132,6 +136,7 @@ export class NewTaskDefinitionBuilderImplementation<
       ...flagConfig,
       type: ArgumentType.FLAG,
       defaultValue: false,
+      hidden: flagConfig.hidden,
     });
   }
 
@@ -292,12 +297,14 @@ export class TaskOverrideDefinitionBuilderImplementation<
     description = "",
     type,
     defaultValue,
+    hidden,
   }: {
     name: NameT;
     shortName?: string;
     description?: string;
     type?: TypeT;
     defaultValue: ArgumentTypeToValueType<TypeT>;
+    hidden?: boolean;
   }): TaskOverrideDefinitionBuilder<
     ExtendTaskArguments<NameT, TypeT, TaskArgumentsT>
   > {
@@ -309,6 +316,7 @@ export class TaskOverrideDefinitionBuilderImplementation<
       description,
       type: argumentType,
       defaultValue,
+      hidden,
     };
 
     const usedNames = new Set<string>();
@@ -330,6 +338,7 @@ export class TaskOverrideDefinitionBuilderImplementation<
     name: string;
     shortName?: string;
     description?: string;
+    hidden?: boolean;
   }): TaskOverrideDefinitionBuilder<
     ExtendTaskArguments<NameT, ArgumentType.FLAG, TaskArgumentsT>
   > {
@@ -337,6 +346,7 @@ export class TaskOverrideDefinitionBuilderImplementation<
       ...flagConfig,
       type: ArgumentType.FLAG,
       defaultValue: false,
+      hidden: flagConfig.hidden,
     });
   }
 

@@ -16,6 +16,15 @@ export type TestEvent =
     };
 
 export type TestEventSource = AsyncGenerator<TestEvent, void>;
-export type TestReporterResult = AsyncGenerator<string, void>;
+export type TestReporterResult = AsyncGenerator<
+  | string
+  | {
+      failed: number;
+      passed: number;
+      skipped: number;
+      failureOutput: string;
+    },
+  void
+>;
 
 export type TestReporter = (source: TestEventSource) => TestReporterResult;

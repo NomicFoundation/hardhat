@@ -3,7 +3,6 @@ import type { LibraryAddresses } from "./libraries.js";
 import type { VerificationProvider } from "./types.js";
 import type { Dispatcher } from "@nomicfoundation/hardhat-utils/request";
 import type {
-  BlockExplorerBlockscoutConfig,
   ChainDescriptorsConfig,
   VerificationProvidersConfig,
 } from "hardhat/types/config";
@@ -13,22 +12,20 @@ import type { EthereumProvider } from "hardhat/types/providers";
 import { HardhatError } from "@nomicfoundation/hardhat-errors";
 import { isAddress } from "@nomicfoundation/hardhat-utils/eth";
 import { sleep } from "@nomicfoundation/hardhat-utils/lang";
-import { capitalize } from "@nomicfoundation/hardhat-utils/string";
 import { isFullyQualifiedName } from "hardhat/utils/contract-names";
 
 import { getCompilerInput } from "./artifacts.js";
-import { Blockscout, BLOCKSCOUT_PROVIDER_NAME } from "./blockscout.js";
 import { Bytecode } from "./bytecode.js";
-import { getChainDescriptor, getChainId } from "./chains.js";
+import { getChainId } from "./chains.js";
 import { encodeConstructorArgs } from "./constructor-args.js";
 import { ContractInformationResolver } from "./contract.js";
-import { Etherscan, ETHERSCAN_PROVIDER_NAME } from "./etherscan.js";
+import { ETHERSCAN_PROVIDER_NAME } from "./etherscan.js";
 import { resolveLibraryInformation } from "./libraries.js";
 import {
   filterVersionsByRange,
   resolveSupportedSolcVersions,
 } from "./solc-versions.js";
-import { Sourcify, SOURCIFY_PROVIDER_NAME } from "./sourcify.js";
+import { VERIFICATION_PROVIDERS } from "./verification-providers.js";
 
 export interface VerifyContractArgs {
   address: string;
@@ -299,20 +296,14 @@ ${libraryInformation.undetectableLibraries.map((x) => `  * ${x}`).join("\n")}`
 }
 
 export function validateVerificationProviderName(provider: unknown): void {
-  if (
-    provider !== ETHERSCAN_PROVIDER_NAME &&
-    provider !== BLOCKSCOUT_PROVIDER_NAME &&
-    provider !== SOURCIFY_PROVIDER_NAME
-  ) {
+  if (Object.keys(VERIFICATION_PROVIDERS).indexOf(String(provider)) === -1) {
     throw new HardhatError(
       HardhatError.ERRORS.HARDHAT_VERIFY.VALIDATION.INVALID_VERIFICATION_PROVIDER,
       {
         verificationProvider: String(provider),
-        supportedVerificationProviders: [
-          ETHERSCAN_PROVIDER_NAME,
-          BLOCKSCOUT_PROVIDER_NAME,
-          SOURCIFY_PROVIDER_NAME,
-        ].join(", "),
+        supportedVerificationProviders: Object.keys(
+          VERIFICATION_PROVIDERS,
+        ).join(", "),
       },
     );
   }
@@ -359,48 +350,17 @@ async function createVerificationProviderInstance({
 }): Promise<VerificationProvider> {
   const chainId = await getChainId(provider);
 
-  if (verificationProviderName === "sourcify") {
-    return new Sourcify({
-      chainId,
-      apiUrl: verificationProvidersConfig.sourcify.apiUrl,
-      dispatcher,
-    });
-  }
+  const ProviderClass = VERIFICATION_PROVIDERS[verificationProviderName];
 
-  const chainDescriptor = await getChainDescriptor(
+  const createOptions = await ProviderClass.resolveConfig({
     chainId,
-    chainDescriptors,
     networkName,
-  );
-
-  if (chainDescriptor.blockExplorers[verificationProviderName] === undefined) {
-    throw new HardhatError(
-      HardhatError.ERRORS.HARDHAT_VERIFY.GENERAL.BLOCK_EXPLORER_NOT_CONFIGURED,
-      {
-        verificationProvider: capitalize(verificationProviderName),
-        chainId,
-      },
-    );
-  }
-
-  const commonOptions = {
-    ...chainDescriptor.blockExplorers[verificationProviderName],
+    chainDescriptors,
+    verificationProvidersConfig,
     dispatcher,
-  };
+  });
 
-  if (verificationProviderName === "etherscan") {
-    return new Etherscan({
-      ...commonOptions,
-      chainId,
-      apiKey: await verificationProvidersConfig.etherscan.apiKey.get(),
-    });
-  }
-
-  return new Blockscout(
-    /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions
-    -- At this point we know commonOptions is of type BlockscoutConfig */
-    commonOptions as BlockExplorerBlockscoutConfig & { dispatcher: Dispatcher },
-  );
+  return ProviderClass.create(createOptions);
 }
 
 async function attemptVerification(

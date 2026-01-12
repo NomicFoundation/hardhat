@@ -29,7 +29,7 @@ describe("hardhat-typechain", () => {
 
       await hre.tasks.getTask("clean").run();
 
-      await hre.tasks.getTask("compile").run();
+      await hre.tasks.getTask("build").run();
     });
 
     it("should generate the types for the `hardhat.d.ts` file", async () => {
@@ -132,7 +132,7 @@ describe("hardhat-typechain", () => {
 
         await hre.tasks.getTask("clean").run();
 
-        await hre.tasks.getTask("compile").run();
+        await hre.tasks.getTask("build").run();
 
         assert.equal(await exists(`${process.cwd()}/types`), false);
       });
@@ -163,7 +163,7 @@ describe("hardhat-typechain", () => {
 
         await hre.tasks.getTask("clean").run();
 
-        await hre.tasks.getTask("compile").run();
+        await hre.tasks.getTask("build").run();
 
         assert.equal(await exists(`${process.cwd()}/types`), false);
       });
@@ -190,7 +190,7 @@ describe("hardhat-typechain", () => {
 
       await hre.tasks.getTask("clean").run();
 
-      await hre.tasks.getTask("compile").run();
+      await hre.tasks.getTask("build").run();
 
       assert.equal(await exists(`${process.cwd()}/types`), false);
     });
@@ -217,7 +217,7 @@ describe("hardhat-typechain", () => {
 
       await hre.tasks.getTask("clean").run();
 
-      await hre.tasks.getTask("compile").run();
+      await hre.tasks.getTask("build").run();
 
       assert.equal(await exists(`${process.cwd()}/custom-types`), true);
       assert.equal(await exists(`${process.cwd()}/types`), false);

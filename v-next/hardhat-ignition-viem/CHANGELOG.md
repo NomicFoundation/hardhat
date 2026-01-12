@@ -1,5 +1,17 @@
 # Changelog
 
+## 3.0.6
+
+### Patch Changes
+
+- dac916b: Expose ignition retry loop variables in user config (Hardhat v3) ([#7303](https://github.com/NomicFoundation/hardhat/issues/7303))
+
+## 3.0.5
+
+### Patch Changes
+
+- d1c1803: Make `@nomicfoundation/hardhat-ignition`'s UI work well with other plugins, like Ledger's.
+
 ## 3.0.4
 
 ### Patch Changes

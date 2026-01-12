@@ -27,7 +27,7 @@ describe("build profile", function () {
         ...userConfig,
         plugins: [hardhatIgnitionPlugin],
         tasks: [
-          overrideTask("compile")
+          overrideTask("build")
             .setAction(async () => ({
               default: async (args, _hre, runSuper) => {
                 defaultBuildProfile = args.defaultBuildProfile;

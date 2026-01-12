@@ -200,6 +200,7 @@ export interface NewTaskDefinitionBuilder<
     description?: string;
     type?: TypeT;
     defaultValue: ArgumentTypeToValueType<TypeT>;
+    hidden?: boolean;
   }): NewTaskDefinitionBuilder<
     ExtendTaskArguments<NameT, TypeT, TaskArgumentsT>
   >;
@@ -211,6 +212,7 @@ export interface NewTaskDefinitionBuilder<
     name: NameT;
     shortName?: string;
     description?: string;
+    hidden?: boolean;
   }): NewTaskDefinitionBuilder<
     ExtendTaskArguments<NameT, ArgumentType.FLAG, TaskArgumentsT>
   >;
@@ -321,6 +323,7 @@ export interface TaskOverrideDefinitionBuilder<
     description?: string;
     type?: TypeT;
     defaultValue: ArgumentTypeToValueType<TypeT>;
+    hidden?: boolean;
   }): TaskOverrideDefinitionBuilder<
     ExtendTaskArguments<NameT, TypeT, TaskArgumentsT>
   >;
@@ -332,6 +335,7 @@ export interface TaskOverrideDefinitionBuilder<
     name: NameT;
     shortName?: string;
     description?: string;
+    hidden?: boolean;
   }): TaskOverrideDefinitionBuilder<
     ExtendTaskArguments<NameT, ArgumentType.FLAG, TaskArgumentsT>
   >;
