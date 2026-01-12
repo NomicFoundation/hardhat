@@ -1,12 +1,33 @@
 import type { HardhatPlugin } from "../../../types/plugins.js";
 
-import { globalFlag } from "../../core/config.js";
+import { globalFlag, overrideTask } from "../../core/config.js";
 
 import "./type-extensions.js";
 
 const hardhatPlugin: HardhatPlugin = {
   id: "builtin:gas-analytics",
-  tasks: [],
+  tasks: [
+    overrideTask("test")
+      .addFlag({
+        name: "snapshot",
+        description: "Update gas snapshots (Solidity tests only)",
+      })
+      .setAction(async () => ({
+        default: async (args, _hre, runSuper) => {
+          // We don't need to do anything here, as the test task will forward
+          // the arguments to its subtasks.
+          await runSuper(args);
+        },
+      }))
+      .build(),
+    overrideTask(["test", "solidity"])
+      .addFlag({
+        name: "snapshot",
+        description: "Update gas snapshots",
+      })
+      .setAction(async () => import("./tasks/solidity-test/task-action.js"))
+      .build(),
+  ],
   globalOptions: [
     globalFlag({
       name: "gasStats",
@@ -18,6 +39,10 @@ const hardhatPlugin: HardhatPlugin = {
     hre: () => import("./hook-handlers/hre.js"),
     test: () => import("./hook-handlers/test.js"),
   },
+  dependencies: () => [
+    import("../test/index.js"),
+    import("../solidity-test/index.js"),
+  ],
   npmPackage: "hardhat",
 };
 

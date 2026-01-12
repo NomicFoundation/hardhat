@@ -110,11 +110,13 @@ const testWithHardhat: NewTaskActionFunction<TestActionArguments> = async (
     .join(" ");
 
   async function runTests(): Promise<{
-    failed: number;
-    passed: number;
-    skipped: number;
-    todo: number;
-    failureOutput: string;
+    testSummary: {
+      failed: number;
+      passed: number;
+      skipped: number;
+      todo: number;
+      failureOutput: string;
+    };
   }> {
     const nodeTestOptions: LastParameter<typeof run> = {
       files,
@@ -180,11 +182,13 @@ const testWithHardhat: NewTaskActionFunction<TestActionArguments> = async (
     await pipeline(reporterStream, outputStream);
 
     return {
-      failed,
-      passed,
-      skipped,
-      todo,
-      failureOutput,
+      testSummary: {
+        failed,
+        passed,
+        skipped,
+        todo,
+        failureOutput,
+      },
     };
   }
 

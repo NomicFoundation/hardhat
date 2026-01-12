@@ -2,9 +2,9 @@
 pragma solidity ^0.8.0;
 
 import "./Counter.sol";
-import "hardhat/console.sol";
+import "forge-std/Test.sol";
 
-contract CounterTest {
+contract CounterTest is Test {
   Counter counter;
 
   function setUp() public {
@@ -26,7 +26,32 @@ contract CounterTest {
     require(counter.x() == x, "Value after calling inc x times should be x");
   }
 
-  // function invariant() public pure {
-  //   assert(true);
-  // }
+  function invariantCounterOnlyIncreases() public view {
+    uint256 currentValue = counter.x();
+    require(currentValue < type(uint256).max, "Counter should never overflow");
+  }
+
+  function testSnapshotGasRegion() public {
+    vm.startSnapshotGas("gasRegion", "inc-10-times");
+    for (uint i = 0; i < 10; i++) {
+      counter.inc();
+    }
+    vm.stopSnapshotGas();
+  }
+
+  function testSnapshotGasLastCall() public {
+    counter.inc();
+    vm.snapshotGasLastCall("gasLastCall", "inc-single-call");
+  }
+
+  function testSnapshotValue() public {
+    uint256 initialValue = counter.x();
+    vm.snapshotValue("value", "counter-initial", initialValue);
+
+    // After batch operation
+    for (uint i = 0; i < 5; i++) {
+      counter.inc();
+    }
+    vm.snapshotValue("value", "counter-after-batch-5", counter.x());
+  }
 }
