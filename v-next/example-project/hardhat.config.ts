@@ -239,8 +239,5 @@ export default defineConfig({
     mocha: {
       color: true,
     },
-    solidity: {
-      timeout: 1000,
-    },
   },
 });
