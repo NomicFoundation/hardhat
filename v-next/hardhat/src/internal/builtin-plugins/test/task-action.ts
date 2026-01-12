@@ -22,7 +22,7 @@ interface TestActionArguments {
 }
 
 const runAllTests: NewTaskActionFunction<TestActionArguments> = async (
-  { testFiles, chainType, grep, noCompile, verbosity },
+  { testFiles, chainType, grep, noCompile, verbosity, ...otherArgs },
   hre,
 ) => {
   // If this code is executed, it means the user has not specified a test runner.
@@ -84,12 +84,18 @@ const runAllTests: NewTaskActionFunction<TestActionArguments> = async (
       args.verbosity = verbosity;
     }
 
+    for (const [key, value] of Object.entries(otherArgs)) {
+      if (subtask.options.has(key)) {
+        args[key] = value;
+      }
+    }
+
     const summaryId = subtask.id[subtask.id.length - 1];
 
     if (subtask.options.has("testSummaryIndex")) {
       args.testSummaryIndex = failureIndex;
 
-      testSummaries[summaryId] = await subtask.run(args);
+      testSummaries[summaryId] = (await subtask.run(args)).testSummary;
       failureIndex += testSummaries[summaryId].failed ?? 0;
     } else if (summaryId === "mocha") {
       // mocha doesn't use the testSummaryIndex, but it does return failure & success counts
