@@ -530,8 +530,6 @@ export class EdrProviderWrapper
           ? this._originalChainOverrides
           : this._providerConfig.fork?.chainOverrides;
 
-      this._providerConfig;
-
       this._providerConfig.fork = {
         blockNumber:
           forkConfig.blockNumber !== undefined
