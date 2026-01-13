@@ -63,7 +63,7 @@
     "ts-node": "10.9.2",
     "tsx": "^4.19.3",
     "typescript": "~5.8.0",
-    "viem": "^2.30.0"
+    "viem": "^2.43.0"
   },
   "dependencies": {
     "@nomicfoundation/hardhat-errors": "workspace:^3.0.2"
@@ -74,6 +74,6 @@
     "@nomicfoundation/ignition-core": "workspace:^3.0.6",
     "@nomicfoundation/hardhat-verify": "workspace:^3.0.0",
     "@nomicfoundation/hardhat-viem": "workspace:^3.0.0",
-    "viem": "^2.30.0"
+    "viem": "^2.43.0"
   }
 }
