@@ -3,7 +3,10 @@ import type { CoverageMetadata } from "../types.js";
 
 import path from "node:path";
 
-import { addStatementCoverageInstrumentation } from "@nomicfoundation/edr";
+import {
+  addStatementCoverageInstrumentation,
+  latestSupportedSolidityVersion,
+} from "@nomicfoundation/edr";
 import {
   assertHardhatInvariant,
   HardhatError,
@@ -12,6 +15,7 @@ import { ensureError } from "@nomicfoundation/hardhat-utils/error";
 import { readUtf8File } from "@nomicfoundation/hardhat-utils/fs";
 import { findClosestPackageRoot } from "@nomicfoundation/hardhat-utils/package";
 import debug from "debug";
+import { satisfies } from "semver";
 
 import { CoverageManagerImplementation } from "../coverage-manager.js";
 
@@ -36,6 +40,13 @@ export default async (): Promise<Partial<SolidityHooks>> => ({
 
     if (context.globalOptions.coverage && !isTestSource) {
       try {
+        const latestSupportedVersion = latestSupportedSolidityVersion();
+        if (!satisfies(solcVersion, `<=${latestSupportedVersion}`)) {
+          console.log(
+            `Solidity version ${solcVersion} is not yet supported for coverage instrumentation. Hardhat will try the latest supported version ${latestSupportedVersion} instead.`,
+          );
+          solcVersion = latestSupportedVersion;
+        }
         const { source, metadata } = addStatementCoverageInstrumentation(
           fileContent,
           sourceName,
