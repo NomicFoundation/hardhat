@@ -10,6 +10,7 @@ import assert from "node:assert/strict";
 import path from "node:path";
 import { after, before, beforeEach, describe, it } from "node:test";
 
+import { latestSupportedSolidityVersion } from "@nomicfoundation/edr";
 import {
   disableConsole,
   useFixtureProject,
@@ -432,6 +433,41 @@ describe("CoverageManagerImplementation - report data processing", () => {
       );
     });
   }
+
+  it("should should use the latesst supported Solidity version", async () => {
+    const version = await hre.hooks.runHandlerChain(
+      "solidity",
+      "preprocessProjectFileBeforeBuilding",
+      ["", "", "", "0.10.100"],
+      async (
+        nextContext,
+        nextInputSourceName,
+        nextFsPath,
+        nextFileContent,
+        nextSolcVersion,
+      ) => nextSolcVersion,
+    );
+
+    assert.equal(version, latestSupportedSolidityVersion());
+  });
+
+  it("should should use the selected Solidity version", async () => {
+    const supportedVersion = "0.8.28";
+    const version = await hre.hooks.runHandlerChain(
+      "solidity",
+      "preprocessProjectFileBeforeBuilding",
+      ["", "", "", supportedVersion],
+      async (
+        nextContext,
+        nextInputSourceName,
+        nextFsPath,
+        nextFileContent,
+        nextSolcVersion,
+      ) => nextSolcVersion,
+    );
+
+    assert.equal(version, supportedVersion);
+  });
 
   it("should run coverage on multiple files, one is covered by tests, the other is not", async () => {
     const testScenrario = COVERAGE_TEST_SCENARIO_MULTIPLE_FILES;
