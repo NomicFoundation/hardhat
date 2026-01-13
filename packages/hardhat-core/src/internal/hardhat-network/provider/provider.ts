@@ -161,7 +161,7 @@ export class EdrProviderWrapper
     // calls, in case there is switching between local and fork configurations.
     private readonly _originalGenesisAccounts: GenesisAccount[],
     private readonly _originalCacheDir: string | undefined,
-    private readonly _originalChainOverrides: Array<ChainOverride> | undefined
+    private readonly _originalChainOverrides: ChainOverride[] | undefined
   ) {
     super();
   }
@@ -681,7 +681,7 @@ function _genesisStateAndOwnedAccounts(
   isForked: boolean,
   hardfork: string,
   genesisAccounts: GenesisAccount[]
-): [Array<AccountOverride>, string[]] {
+): [AccountOverride[], string[]] {
   const { l1GenesisState, l1HardforkFromString } = requireNapiRsModule(
     "@nomicfoundation/edr"
   ) as typeof import("@nomicfoundation/edr");
