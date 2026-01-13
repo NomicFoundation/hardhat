@@ -1,3 +1,5 @@
+import { isDeepStrictEqual } from "node:util";
+
 import { deepMergeImpl, getDeepCloneFunction } from "./internal/lang.js";
 
 /**
@@ -20,9 +22,7 @@ export async function deepClone<T>(value: T): Promise<T> {
  * @returns True if the values are deeply equal, false otherwise.
  */
 export async function deepEqual<T>(x: T, y: T): Promise<boolean> {
-  const { deepEqual: _deepEqual } = await import("fast-equals");
-
-  return _deepEqual(x, y);
+  return isDeepStrictEqual(x, y);
 }
 
 /**
