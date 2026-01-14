@@ -2,9 +2,12 @@ import type { HardhatRuntimeEnvironment } from "../../../../src/types/hre.js";
 
 import assert from "node:assert/strict";
 import path from "node:path";
-import { before, beforeEach, describe, it, mock } from "node:test";
+import { after, before, beforeEach, describe, it, mock } from "node:test";
 
-import { useFixtureProject } from "@nomicfoundation/hardhat-test-utils";
+import {
+  getTmpDir,
+  useFixtureProject,
+} from "@nomicfoundation/hardhat-test-utils";
 import {
   exists,
   mkdir,
@@ -21,6 +24,10 @@ let hre: HardhatRuntimeEnvironment;
 let globalCacheDir: string;
 let cacheDir: string;
 let artifactsDir: string;
+
+// Variables for isolating the global cache during tests
+let originalXdgCacheHome: string | undefined;
+let testGlobalCacheRoot: string;
 
 const onClean = mock.fn(async () => {});
 
@@ -63,6 +70,11 @@ describe("clean/task-action", () => {
     useFixtureProject("loaded-config");
 
     before(async function () {
+      // Set up isolated cache directory to avoid deleting the real global cache
+      originalXdgCacheHome = process.env.XDG_CACHE_HOME;
+      testGlobalCacheRoot = await getTmpDir("clean-task-global-cache");
+      process.env.XDG_CACHE_HOME = testGlobalCacheRoot;
+
       globalCacheDir = await getCacheDir();
       cacheDir = path.join(process.cwd(), "cache");
       artifactsDir = path.join(process.cwd(), "artifacts");
@@ -73,6 +85,18 @@ describe("clean/task-action", () => {
       hre.hooks.registerHandlers("clean", {
         onClean,
       });
+    });
+
+    after(async function () {
+      // Restore original environment
+      if (originalXdgCacheHome === undefined) {
+        delete process.env.XDG_CACHE_HOME;
+      } else {
+        process.env.XDG_CACHE_HOME = originalXdgCacheHome;
+      }
+
+      // Clean up temp directory
+      await remove(testGlobalCacheRoot);
     });
 
     beforeEach(async () => {
