@@ -477,7 +477,7 @@ debug log
         [90] <green>Bar</green>
           └─ [80] <green>Baz</green>
 
-    <green>✔ successful test</green>
+    <green>✔</green> successful test
 
 
   <green>1 passing</green>
