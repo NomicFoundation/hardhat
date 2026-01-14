@@ -22,6 +22,7 @@ import chalk from "chalk";
 import debug from "debug";
 
 import { getProcessedCoverageInfo } from "./process-coverage.js";
+import { generateHtmlReport } from "./reports/html.js";
 
 const log = debug("hardhat:core:coverage:coverage-manager");
 
@@ -147,6 +148,10 @@ export class CoverageManagerImplementation implements CoverageManager {
     const lcovReportPath = path.join(this.#coveragePath, "lcov.info");
     await writeUtf8File(lcovReportPath, lcovReport);
     log(`Saved lcov report to ${lcovReportPath}`);
+
+    const htmlReportPath = path.join(this.#coveragePath, "html");
+    await generateHtmlReport(report, htmlReportPath);
+    console.log(`Saved html report to ${htmlReportPath}`);
 
     console.log(markdownReport);
     console.log();
