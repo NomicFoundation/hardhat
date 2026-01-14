@@ -65,7 +65,7 @@ export async function* testReporter(
 
   const failures: Array<{
     testResult: TestResult;
-    formattedArtifactId: string;
+    contractName: string;
   }> = [];
 
   const indenter = new Indenter();
@@ -152,7 +152,7 @@ export async function* testReporter(
               break;
             }
             case "Failure": {
-              failures.push({ testResult, formattedArtifactId });
+              failures.push({ testResult, contractName: suiteResult.id.name });
               yield indenter.t`${colorizer.red(`${runFailureCount}) ${name}`)}\n`;
               runFailureCount++;
               if (verbosity >= 3) {
@@ -235,14 +235,6 @@ export async function* testReporter(
     }
   }
 
-  const failuresByArtifactId = new Map<string, TestResult[]>();
-  for (const { testResult, formattedArtifactId } of failures) {
-    const artifactFailures =
-      failuresByArtifactId.get(formattedArtifactId) ?? [];
-    artifactFailures.push(testResult);
-    failuresByArtifactId.set(formattedArtifactId, artifactFailures);
-  }
-
   let failureOutput = "";
   let failureIndex = 1;
   if (failures.length > 0) {
@@ -255,110 +247,99 @@ export async function* testReporter(
     }
 
     yield* output("\n");
-    let firstSuiteWithFailures = true;
-    for (const [artifactId, artifactFailures] of failuresByArtifactId) {
-      if (!firstSuiteWithFailures) {
+    let firstFailure = true;
+    for (const { testResult: failure, contractName } of failures) {
+      if (!firstFailure) {
         yield* output("\n");
       }
-      firstSuiteWithFailures = false;
+      firstFailure = false;
 
-      yield* output(indenter.t`${artifactId}\n`);
+      yield* output(
+        indenter.t`${failureIndex}) ${contractName}#${failure.name}\n`,
+      );
+      failureIndex++;
+
       indenter.inc();
-      let firstFailure = true;
-      for (const failure of artifactFailures) {
-        if (!firstFailure) {
+      const stackTrace = failure.stackTrace();
+      let reason: string | undefined;
+      if (stackTrace?.kind === "StackTrace") {
+        reason = getMessageFromLastStackTraceEntry(
+          stackTrace.entries[stackTrace.entries.length - 1],
+        );
+      }
+      if (reason === undefined || reason === "") {
+        reason =
+          failure.reason?.startsWith("FFI is disabled") === true
+            ? "FFI is disabled; set `test.solidity.ffi` to `true` in your Hardhat config to allow tests to call external commands"
+            : failure.reason ?? "Unknown error";
+      }
+      yield* output(indenter.t`${colorizer.red(`Error: ${reason}`)}\n`);
+      // eslint-disable-next-line @typescript-eslint/switch-exhaustiveness-check -- Ignore Cases not matched: undefined
+      switch (stackTrace?.kind) {
+        case "StackTrace":
+          const stackTraceStack: string[] = [];
+          for (const entry of stackTrace.entries.reverse()) {
+            const callsite = encodeStackTraceEntry(entry);
+            if (callsite !== undefined) {
+              indenter.inc();
+              stackTraceStack.push(indenter.t`at ${callsite.toString()}`);
+              indenter.dec();
+            }
+          }
+          if (stackTraceStack.length > 0) {
+            yield* output(`${colorizer.grey(stackTraceStack.join("\n"))}\n`);
+          }
           yield* output("\n");
-        }
-        firstFailure = false;
-
-        yield* output(indenter.t`${failureIndex}) ${failure.name}\n`);
-        failureIndex++;
-
-        indenter.inc();
-        const stackTrace = failure.stackTrace();
-        let reason: string | undefined;
-        if (stackTrace?.kind === "StackTrace") {
-          reason = getMessageFromLastStackTraceEntry(
-            stackTrace.entries[stackTrace.entries.length - 1],
+          break;
+        case "UnexpectedError":
+          await sendErrorTelemetry(
+            new SolidityTestStackTraceGenerationError(stackTrace.errorMessage),
           );
-        }
-        if (reason === undefined || reason === "") {
-          reason =
-            failure.reason?.startsWith("FFI is disabled") === true
-              ? "FFI is disabled; set `test.solidity.ffi` to `true` in your Hardhat config to allow tests to call external commands"
-              : failure.reason ?? "Unknown error";
-        }
-        yield* output(indenter.t`${colorizer.red(`Error: ${reason}`)}\n`);
-        // eslint-disable-next-line @typescript-eslint/switch-exhaustiveness-check -- Ignore Cases not matched: undefined
-        switch (stackTrace?.kind) {
-          case "StackTrace":
-            const stackTraceStack: string[] = [];
-            for (const entry of stackTrace.entries.reverse()) {
-              const callsite = encodeStackTraceEntry(entry);
-              if (callsite !== undefined) {
-                indenter.inc();
-                stackTraceStack.push(indenter.t`at ${callsite.toString()}`);
-                indenter.dec();
-              }
-            }
-            if (stackTraceStack.length > 0) {
-              yield* output(`${colorizer.grey(stackTraceStack.join("\n"))}\n`);
-            }
-            yield* output("\n");
-            break;
-          case "UnexpectedError":
-            await sendErrorTelemetry(
-              new SolidityTestStackTraceGenerationError(
-                stackTrace.errorMessage,
-              ),
+          yield* output(
+            indenter.t`Stack Trace Warning: ${colorizer.grey(stackTrace.errorMessage)}\n`,
+          );
+          break;
+        case "UnsafeToReplay":
+          if (stackTrace.globalForkLatest === true) {
+            yield* output(
+              indenter.t`Stack Trace Warning: ${colorizer.grey("The test is not safe to replay because a fork url without a fork block number was provided.")}\n`,
             );
             yield* output(
-              indenter.t`Stack Trace Warning: ${colorizer.grey(stackTrace.errorMessage)}\n`,
+              indenter.t`Try rerunning your tests with -vvv or above.\n`,
             );
-            break;
-          case "UnsafeToReplay":
-            if (stackTrace.globalForkLatest === true) {
-              yield* output(
-                indenter.t`Stack Trace Warning: ${colorizer.grey("The test is not safe to replay because a fork url without a fork block number was provided.")}\n`,
-              );
-              yield* output(
-                indenter.t`Try rerunning your tests with -vvv or above.\n`,
-              );
-            }
-            if (stackTrace.impureCheatcodes.length > 0) {
-              yield* output(
-                indenter.t`Stack Trace Warning: ${colorizer.grey(`The test is not safe to replay because it uses impure cheatcodes: ${stackTrace.impureCheatcodes.join(", ")}`)}\n`,
-              );
-              yield* output(
-                indenter.t`Try rerunning your tests with -vvv or above.\n`,
-              );
-            }
-            break;
-          case "HeuristicFailed":
-          default:
-            break;
-        }
-        if (
-          failure.counterexample !== undefined &&
-          failure.counterexample !== null
-        ) {
-          const counterexamples =
-            "sequence" in failure.counterexample
-              ? failure.counterexample.sequence
-              : [failure.counterexample];
-          for (const counterexample of counterexamples) {
-            yield* output(indenter.t`Counterexample:\n`);
-            indenter.inc();
-            for (const [key, value] of Object.entries(counterexample)) {
-              const counterExampleDetails = `${key}: ${Buffer.isBuffer(value) ? bytesToHexString(value) : value}`;
-              yield* output(
-                indenter.t`${colorizer.grey(counterExampleDetails)}\n`,
-              );
-            }
-            indenter.dec();
           }
+          if (stackTrace.impureCheatcodes.length > 0) {
+            yield* output(
+              indenter.t`Stack Trace Warning: ${colorizer.grey(`The test is not safe to replay because it uses impure cheatcodes: ${stackTrace.impureCheatcodes.join(", ")}`)}\n`,
+            );
+            yield* output(
+              indenter.t`Try rerunning your tests with -vvv or above.\n`,
+            );
+          }
+          break;
+        case "HeuristicFailed":
+        default:
+          break;
+      }
+      if (
+        failure.counterexample !== undefined &&
+        failure.counterexample !== null
+      ) {
+        const counterexamples =
+          "sequence" in failure.counterexample
+            ? failure.counterexample.sequence
+            : [failure.counterexample];
+        for (const counterexample of counterexamples) {
+          yield* output(indenter.t`Counterexample:\n`);
+          indenter.inc();
+          for (const [key, value] of Object.entries(counterexample)) {
+            const counterExampleDetails = `${key}: ${Buffer.isBuffer(value) ? bytesToHexString(value) : value}`;
+            yield* output(
+              indenter.t`${colorizer.grey(counterExampleDetails)}\n`,
+            );
+          }
+          indenter.dec();
         }
-        indenter.dec();
       }
       indenter.dec();
     }
