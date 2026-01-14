@@ -3,7 +3,6 @@
   "version": "3.0.0",
   "description": "Internal dependencies used by Hardhat that have been vendored to prevent bloating the main package",
   "homepage": "https://github.com/nomicfoundation/hardhat/tree/main/v-next/hardhat-vendored",
-  "private": true,
   "repository": {
     "type": "git",
     "url": "https://github.com/NomicFoundation/hardhat",
