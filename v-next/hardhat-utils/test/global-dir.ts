@@ -1,6 +1,9 @@
 import assert from "node:assert/strict";
+import os from "node:os";
+import path from "node:path";
 import { describe, it } from "node:test";
 
+import { mkdir, remove } from "../src/fs.js";
 import {
   getCacheDir,
   getConfigDir,
@@ -18,37 +21,77 @@ describe("global-dir", () => {
 
   describe("getConfigDir", () => {
     it("should return the path to the configuration directory with default name 'hardhat'", async () => {
-      const path = await getConfigDir();
-      assert.equal(path, (await getExpectedPath(HARDHAT_PACKAGE_NAME)).config);
+      const configPath = await getConfigDir();
+      assert.equal(
+        configPath,
+        (await getExpectedPath(HARDHAT_PACKAGE_NAME)).config,
+      );
     });
 
     it("should return the path to the configuration directory with custom name", async () => {
-      const path = await getConfigDir(CUSTOM_PACKAGE_NAME);
-      assert.equal(path, (await getExpectedPath(CUSTOM_PACKAGE_NAME)).config);
+      const configPath = await getConfigDir(CUSTOM_PACKAGE_NAME);
+      assert.equal(
+        configPath,
+        (await getExpectedPath(CUSTOM_PACKAGE_NAME)).config,
+      );
     });
   });
 
   describe("getCacheDir", () => {
     it("should return the path to the cache directory with default name 'hardhat'", async () => {
-      const path = await getCacheDir();
-      assert.equal(path, (await getExpectedPath(HARDHAT_PACKAGE_NAME)).cache);
+      const cachePath = await getCacheDir();
+      assert.equal(
+        cachePath,
+        (await getExpectedPath(HARDHAT_PACKAGE_NAME)).cache,
+      );
     });
 
     it("should return the path to the cache directory with custom name", async () => {
-      const path = await getCacheDir(CUSTOM_PACKAGE_NAME);
-      assert.equal(path, (await getExpectedPath(CUSTOM_PACKAGE_NAME)).cache);
+      const cachePath = await getCacheDir(CUSTOM_PACKAGE_NAME);
+      assert.equal(
+        cachePath,
+        (await getExpectedPath(CUSTOM_PACKAGE_NAME)).cache,
+      );
+    });
+
+    it("should use HARDHAT_CACHE_DIR when set", async () => {
+      const customPath = path.join(
+        os.tmpdir(),
+        `hardhat-test-cache-override-${Date.now()}`,
+      );
+      await mkdir(customPath);
+      const originalValue = process.env.HARDHAT_CACHE_DIR;
+
+      try {
+        process.env.HARDHAT_CACHE_DIR = customPath;
+        const result = await getCacheDir();
+        assert.equal(result, customPath);
+      } finally {
+        if (originalValue === undefined) {
+          delete process.env.HARDHAT_CACHE_DIR;
+        } else {
+          process.env.HARDHAT_CACHE_DIR = originalValue;
+        }
+        await remove(customPath);
+      }
     });
   });
 
   describe("getTelemetryDir", () => {
     it("should return the path to the telemetry directory with default name 'hardhat'", async () => {
-      const path = await getTelemetryDir();
-      assert.equal(path, (await getExpectedPath(HARDHAT_PACKAGE_NAME)).data);
+      const telemetryPath = await getTelemetryDir();
+      assert.equal(
+        telemetryPath,
+        (await getExpectedPath(HARDHAT_PACKAGE_NAME)).data,
+      );
     });
 
     it("should return the path to the telemetry directory with custom name", async () => {
-      const path = await getTelemetryDir(CUSTOM_PACKAGE_NAME);
-      assert.equal(path, (await getExpectedPath(CUSTOM_PACKAGE_NAME)).data);
+      const telemetryPath = await getTelemetryDir(CUSTOM_PACKAGE_NAME);
+      assert.equal(
+        telemetryPath,
+        (await getExpectedPath(CUSTOM_PACKAGE_NAME)).data,
+      );
     });
   });
 });

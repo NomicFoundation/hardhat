@@ -26,7 +26,7 @@ let cacheDir: string;
 let artifactsDir: string;
 
 // Variables for isolating the global cache during tests
-let originalXdgCacheHome: string | undefined;
+let originalHardhatCacheDir: string | undefined;
 let testGlobalCacheRoot: string;
 
 const onClean = mock.fn(async () => {});
@@ -71,9 +71,9 @@ describe("clean/task-action", () => {
 
     before(async function () {
       // Set up isolated cache directory to avoid deleting the real global cache
-      originalXdgCacheHome = process.env.XDG_CACHE_HOME;
+      originalHardhatCacheDir = process.env.HARDHAT_CACHE_DIR;
       testGlobalCacheRoot = await getTmpDir("clean-task-global-cache");
-      process.env.XDG_CACHE_HOME = testGlobalCacheRoot;
+      process.env.HARDHAT_CACHE_DIR = testGlobalCacheRoot;
 
       globalCacheDir = await getCacheDir();
       cacheDir = path.join(process.cwd(), "cache");
@@ -89,10 +89,10 @@ describe("clean/task-action", () => {
 
     after(async function () {
       // Restore original environment
-      if (originalXdgCacheHome === undefined) {
-        delete process.env.XDG_CACHE_HOME;
+      if (originalHardhatCacheDir === undefined) {
+        delete process.env.HARDHAT_CACHE_DIR;
       } else {
-        process.env.XDG_CACHE_HOME = originalXdgCacheHome;
+        process.env.HARDHAT_CACHE_DIR = originalHardhatCacheDir;
       }
 
       // Clean up temp directory

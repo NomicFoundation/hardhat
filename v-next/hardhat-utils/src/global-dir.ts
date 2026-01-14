@@ -21,6 +21,9 @@ export async function getConfigDir(
  * Returns the cache directory path for a given package (defaults to "hardhat").
  * Ensures that the directory exists before returning the path.
  *
+ * The cache directory can be overridden by setting the `HARDHAT_CACHE_DIR`
+ * environment variable.
+ *
  * @param packageName The name of the package for which to generate paths. Defaults to "hardhat" if no package name is provided.
  * @returns The path to the hardhat cache directory.
  * @throws FileSystemAccessError for any error.
@@ -28,6 +31,13 @@ export async function getConfigDir(
 export async function getCacheDir(
   packageName: string = HARDHAT_PACKAGE_NAME,
 ): Promise<string> {
+  // Allow explicit override via environment variable
+  const overrideDir = process.env.HARDHAT_CACHE_DIR;
+  if (overrideDir !== undefined) {
+    await ensureDir(overrideDir);
+    return overrideDir;
+  }
+
   const { cache } = await generatePaths(packageName);
   await ensureDir(cache);
   return cache;
