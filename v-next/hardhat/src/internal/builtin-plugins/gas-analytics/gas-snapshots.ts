@@ -1,22 +1,136 @@
-import type {
-  FuzzTestKind,
-  StandardTestKind,
-  SuiteResult,
-} from "@nomicfoundation/edr";
+import type { SuiteResult } from "@nomicfoundation/edr";
 
 import path from "node:path";
 
-import { writeUtf8File } from "@nomicfoundation/hardhat-utils/fs";
+import { HardhatError } from "@nomicfoundation/hardhat-errors";
+import { ensureError } from "@nomicfoundation/hardhat-utils/error";
+import {
+  FileNotFoundError,
+  readUtf8File,
+  writeUtf8File,
+} from "@nomicfoundation/hardhat-utils/fs";
 import { findDuplicates } from "@nomicfoundation/hardhat-utils/lang";
+import chalk from "chalk";
 
 import { getFullyQualifiedName } from "../../../utils/contract-names.js";
 
 const FUNCTION_GAS_SNAPSHOTS_FILE = ".gas-snapshot";
 
-interface FunctionGasSnapshot {
+export interface FunctionGasSnapshot {
   contractNameOrFqn: string;
-  functionName: string;
-  gasUsage: StandardTestKind | FuzzTestKind;
+  functionSig: string;
+  gasUsage: StandardTestKindGasUsage | FuzzTestKindGasUsage;
+}
+
+export interface StandardTestKindGasUsage {
+  kind: "standard";
+  gas: bigint;
+}
+
+export interface FuzzTestKindGasUsage {
+  kind: "fuzz";
+  runs: bigint;
+  meanGas: bigint;
+  medianGas: bigint;
+}
+
+export interface FunctionGasSnapshotComparison {
+  added: FunctionGasSnapshot[];
+  removed: FunctionGasSnapshot[];
+  changed: FunctionGasSnapshotChange[];
+}
+
+export interface FunctionGasSnapshotChange {
+  contractNameOrFqn: string;
+  functionSig: string;
+  kind: "standard" | "fuzz";
+  expected: number;
+  actual: number;
+  runs?: number;
+}
+
+export async function handleSnapshot(
+  basePath: string,
+  suiteResults: SuiteResult[],
+): Promise<void> {
+  const functionGasSnapshots = extractFunctionGasSnapshots(suiteResults);
+  await writeFunctionGasSnapshots(basePath, functionGasSnapshots);
+
+  console.log();
+  console.log(chalk.green("Gas snapshots written successfully"));
+  console.log();
+}
+
+export async function handleSnapshotCheck(
+  basePath: string,
+  suiteResults: SuiteResult[],
+): Promise<void> {
+  const functionGasSnapshots = extractFunctionGasSnapshots(suiteResults);
+
+  let previousFunctionGasSnapshots: FunctionGasSnapshot[];
+  try {
+    previousFunctionGasSnapshots = await readFunctionGasSnapshots(basePath);
+  } catch (error) {
+    if (error instanceof FileNotFoundError) {
+      return handleSnapshot(basePath, suiteResults);
+    }
+
+    throw error;
+  }
+
+  const { added, removed, changed } = compareFunctionGasSnapshots(
+    previousFunctionGasSnapshots,
+    functionGasSnapshots,
+  );
+
+  if (changed.length > 0) {
+    console.log();
+    console.log(
+      `${chalk.red("Gas snapshot check failed:")} ${chalk.grey(`${changed.length} function(s) changed`)}`,
+    );
+    console.log();
+
+    printFunctionGasSnapshotChanges(changed);
+    process.exitCode = 1;
+
+    console.log(
+      chalk.yellow("To update snapshots, run your tests with --snapshot"),
+    );
+    console.log();
+  } else if (added.length > 0 || removed.length > 0) {
+    // Update snapshots when functions are added or removed (but not changed)
+    await writeFunctionGasSnapshots(basePath, functionGasSnapshots);
+
+    console.log();
+    console.log(chalk.green("Gas snapshot check passed"));
+    console.log();
+
+    if (added.length > 0) {
+      console.log(chalk.grey(`Added ${added.length} function(s):`));
+      const addedLines = stringifyFunctionGasSnapshots(added).split("\n");
+      for (const line of addedLines) {
+        console.log(chalk.green(`  + ${line}`));
+      }
+      console.log();
+    }
+
+    if (removed.length > 0) {
+      console.log(chalk.grey(`Removed ${removed.length} function(s):`));
+      const removedLines = stringifyFunctionGasSnapshots(removed).split("\n");
+      for (const line of removedLines) {
+        console.log(chalk.red(`  - ${line}`));
+      }
+      console.log();
+    }
+  } else {
+    console.log();
+    console.log(chalk.green("Gas snapshot check passed"));
+    console.log();
+  }
+}
+
+export function getFunctionGasSnapshotsPath(basePath: string): string {
+  return path.join(basePath, FUNCTION_GAS_SNAPSHOTS_FILE);
 }
 
 export function extractFunctionGasSnapshots(
@@ -26,10 +140,10 @@ export function extractFunctionGasSnapshots(
     suiteResults.map(({ id }) => id.name),
   );
 
-  const gasSnapshots: FunctionGasSnapshot[] = [];
+  const snapshots: FunctionGasSnapshot[] = [];
   for (const { id: suiteId, testResults } of suiteResults) {
-    for (const testResult of testResults) {
-      if ("calls" in testResult.kind) {
+    for (const { name: functionSig, kind: testKind } of testResults) {
+      if ("calls" in testKind) {
         continue;
       }
 
@@ -37,35 +151,255 @@ export function extractFunctionGasSnapshots(
         ? getFullyQualifiedName(suiteId.source, suiteId.name)
         : suiteId.name;
 
-      gasSnapshots.push({
+      const gasUsage =
+        "consumedGas" in testKind
+          ? {
+              kind: "standard" as const,
+              gas: testKind.consumedGas,
+            }
+          : {
+              kind: "fuzz" as const,
+              runs: testKind.runs,
+              meanGas: testKind.meanGas,
+              medianGas: testKind.medianGas,
+            };
+
+      snapshots.push({
         contractNameOrFqn,
-        functionName: testResult.name,
-        gasUsage: testResult.kind,
+        functionSig,
+        gasUsage,
       });
     }
   }
-  return gasSnapshots;
+  return snapshots;
+}
+
+export async function writeFunctionGasSnapshots(
+  basePath: string,
+  snapshots: FunctionGasSnapshot[],
+): Promise<void> {
+  const snapshotsPath = getFunctionGasSnapshotsPath(basePath);
+  try {
+    await writeUtf8File(
+      snapshotsPath,
+      stringifyFunctionGasSnapshots(snapshots),
+    );
+  } catch (error) {
+    ensureError(error);
+    throw new HardhatError(
+      HardhatError.ERRORS.CORE.SOLIDITY_TESTS.GAS_SNAPSHOT_WRITE_ERROR,
+      { snapshotsPath, error: error.message },
+      error,
+    );
+  }
+}
+
+export async function readFunctionGasSnapshots(
+  basePath: string,
+): Promise<FunctionGasSnapshot[]> {
+  const snapshotsPath = getFunctionGasSnapshotsPath(basePath);
+  let stringifiedSnapshots: string;
+  try {
+    stringifiedSnapshots = await readUtf8File(snapshotsPath);
+  } catch (error) {
+    ensureError(error);
+
+    // Re-throw as-is to allow the caller to handle this case specifically
+    if (error instanceof FileNotFoundError) {
+      throw error;
+    }
+
+    throw new HardhatError(
+      HardhatError.ERRORS.CORE.SOLIDITY_TESTS.GAS_SNAPSHOT_READ_ERROR,
+      { snapshotsPath, error: error.message },
+      error,
+    );
+  }
+
+  return parseFunctionGasSnapshots(stringifiedSnapshots);
 }
 
 export function stringifyFunctionGasSnapshots(
-  gasSnapshots: FunctionGasSnapshot[],
+  snapshots: FunctionGasSnapshot[],
 ): string {
   const lines: string[] = [];
-  for (const { contractNameOrFqn, functionName, gasUsage } of gasSnapshots) {
+  for (const { contractNameOrFqn, functionSig, gasUsage } of snapshots) {
     const gasDetails =
-      "consumedGas" in gasUsage
-        ? `gas: ${gasUsage.consumedGas}`
+      gasUsage.kind === "standard"
+        ? `gas: ${gasUsage.gas}`
         : `runs: ${gasUsage.runs}, μ: ${gasUsage.meanGas}, ~: ${gasUsage.medianGas}`;
 
-    lines.push(`${contractNameOrFqn}:${functionName} (${gasDetails})`);
+    lines.push(`${contractNameOrFqn}#${functionSig} (${gasDetails})`);
   }
-  return lines.join("\n");
+
+  return lines.sort((a, b) => a.localeCompare(b)).join("\n");
 }
 
-export async function saveGasFunctionSnapshots(
-  basePath: string,
-  stringifiedFunctionGasSnapshots: string,
-): Promise<void> {
-  const snapshotPath = path.join(basePath, FUNCTION_GAS_SNAPSHOTS_FILE);
-  await writeUtf8File(snapshotPath, stringifiedFunctionGasSnapshots);
+export function parseFunctionGasSnapshots(
+  stringifiedSnapshots: string,
+): FunctionGasSnapshot[] {
+  if (stringifiedSnapshots.trim() === "") {
+    return [];
+  }
+
+  const lines = stringifiedSnapshots.split("\n");
+  const snapshots: FunctionGasSnapshot[] = [];
+
+  const standardTestRegex = /^(.+)#(.+) \(gas: (\d+)\)$/;
+  const fuzzTestRegex = /^(.+)#(.+) \(runs: (\d+), μ: (\d+), ~: (\d+)\)$/;
+
+  for (const line of lines) {
+    if (line.trim() === "") {
+      continue;
+    }
+
+    const standardMatch = standardTestRegex.exec(line);
+    if (standardMatch !== null) {
+      const [, contractNameOrFqn, functionSig, gasValue] = standardMatch;
+      snapshots.push({
+        contractNameOrFqn,
+        functionSig,
+        gasUsage: { kind: "standard", gas: BigInt(gasValue) },
+      });
+      continue;
+    }
+
+    const fuzzMatch = fuzzTestRegex.exec(line);
+    if (fuzzMatch !== null) {
+      const [, contractNameOrFqn, functionSig, runs, meanGas, medianGas] =
+        fuzzMatch;
+      snapshots.push({
+        contractNameOrFqn,
+        functionSig,
+        gasUsage: {
+          kind: "fuzz",
+          runs: BigInt(runs),
+          meanGas: BigInt(meanGas),
+          medianGas: BigInt(medianGas),
+        },
+      });
+      continue;
+    }
+
+    throw new HardhatError(
+      HardhatError.ERRORS.CORE.SOLIDITY_TESTS.INVALID_GAS_SNAPSHOT_FORMAT,
+      { line },
+    );
+  }
+
+  return snapshots;
+}
+
+export function compareFunctionGasSnapshots(
+  previousSnapshots: FunctionGasSnapshot[],
+  currentSnapshots: FunctionGasSnapshot[],
+): FunctionGasSnapshotComparison {
+  const previousSnapshotsMap = new Map(
+    previousSnapshots.map((s) => [
+      `${s.contractNameOrFqn}#${s.functionSig}`,
+      s,
+    ]),
+  );
+
+  const added: FunctionGasSnapshot[] = [];
+  const changed: FunctionGasSnapshotChange[] = [];
+
+  for (const current of currentSnapshots) {
+    const key = `${current.contractNameOrFqn}#${current.functionSig}`;
+    const previous = previousSnapshotsMap.get(key);
+    const currentKind = current.gasUsage.kind;
+    const previousKind = previous?.gasUsage.kind;
+
+    if (
+      previous === undefined ||
+      // If the kind doesn't match, we treat it as an addition + removal
+      previousKind !== currentKind
+    ) {
+      added.push(current);
+      continue;
+    }
+
+    if (hasGasUsageChanged(previous.gasUsage, current.gasUsage)) {
+      const expectedValue =
+        previousKind === "standard"
+          ? previous.gasUsage.gas
+          : previous.gasUsage.medianGas;
+      const actualValue =
+        currentKind === "standard"
+          ? current.gasUsage.gas
+          : current.gasUsage.medianGas;
+
+      changed.push({
+        contractNameOrFqn: current.contractNameOrFqn,
+        functionSig: current.functionSig,
+        kind: currentKind,
+        expected: Number(expectedValue),
+        actual: Number(actualValue),
+        runs:
+          currentKind === "fuzz" ? Number(current.gasUsage.runs) : undefined,
+      });
+    }
+    previousSnapshotsMap.delete(key);
+  }
+
+  const removed = Array.from(previousSnapshotsMap.values());
+
+  return { added, removed, changed };
+}
+
+export function hasGasUsageChanged(
+  previous: StandardTestKindGasUsage | FuzzTestKindGasUsage,
+  current: StandardTestKindGasUsage | FuzzTestKindGasUsage,
+): boolean {
+  if (previous.kind === "standard" && current.kind === "standard") {
+    return previous.gas !== current.gas;
+  }
+
+  if (previous.kind === "fuzz" && current.kind === "fuzz") {
+    return previous.medianGas !== current.medianGas;
+  }
+
+  return false;
+}
+
+export function printFunctionGasSnapshotChanges(
+  changes: FunctionGasSnapshotChange[],
+): void {
+  const lines: string[] = [];
+
+  for (const change of changes) {
+    lines.push(`  ${change.contractNameOrFqn}#${change.functionSig}`);
+
+    if (change.kind === "fuzz") {
+      lines.push(chalk.grey(`    Runs: ${change.runs}`));
+    }
+
+    const diff = change.actual - change.expected;
+    const formattedDiff = diff > 0 ? `Δ+${diff}` : `Δ${diff}`;
+
+    let gasChange = `${formattedDiff}`;
+    if (change.expected > 0) {
+      const percent = (diff / change.expected) * 100;
+      const formattedPercent =
+        percent >= 0 ? `+${percent.toFixed(2)}%` : `${percent.toFixed(2)}%`;
+      gasChange = `${formattedPercent}, ${formattedDiff}`;
+    }
+
+    // Color: green for decrease (improvement), red for increase (regression)
+    const formattedGasChange =
+      diff < 0 ? chalk.green(gasChange) : chalk.red(gasChange);
+
+    const label = change.kind === "fuzz" ? "~" : "gas";
+
+    lines.push(chalk.grey(`    Expected (${label}): ${change.expected}`));
+    lines.push(
+      chalk.grey(`    Actual (${label}):   ${change.actual} (`) +
+        formattedGasChange +
+        chalk.grey(")"),
+    );
+
+    lines.push("");
+  }
+
+  console.error(lines.join("\n"));
 }
