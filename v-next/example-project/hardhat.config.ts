@@ -239,5 +239,10 @@ export default defineConfig({
     mocha: {
       color: true,
     },
+    solidity: {
+      fuzz: {
+        seed: "1",
+      },
+    },
   },
 });
