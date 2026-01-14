@@ -473,7 +473,7 @@ debug log
         [90] <green>Bar</green>
           └─ [80] <green>Baz</green>
 
-    <green>✔</green> successful test
+    <green>✔</green> <grey>successful test</grey>
 
 
   <green>1 passing</green>

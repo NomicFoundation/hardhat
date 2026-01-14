@@ -139,7 +139,7 @@ export async function* testReporter(
 
           switch (status) {
             case "Success": {
-              let successOutput = `${colorizer.green("✔")} ${name}`;
+              let successOutput = `${colorizer.green("✔")} ${colorizer.grey(name)}`;
               if (details !== "") {
                 successOutput += colorizer.dim(details);
               }
