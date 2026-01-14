@@ -54,23 +54,23 @@ describe("global-dir", () => {
       );
     });
 
-    it("should use HARDHAT_CACHE_DIR when set", async () => {
+    it("should use HARDHAT_TEST_CACHE_DIR when set (for testing purposes only)", async () => {
       const customPath = path.join(
         os.tmpdir(),
         `hardhat-test-cache-override-${Date.now()}`,
       );
       await mkdir(customPath);
-      const originalValue = process.env.HARDHAT_CACHE_DIR;
+      const originalValue = process.env.HARDHAT_TEST_CACHE_DIR;
 
       try {
-        process.env.HARDHAT_CACHE_DIR = customPath;
+        process.env.HARDHAT_TEST_CACHE_DIR = customPath;
         const result = await getCacheDir();
         assert.equal(result, customPath);
       } finally {
         if (originalValue === undefined) {
-          delete process.env.HARDHAT_CACHE_DIR;
+          delete process.env.HARDHAT_TEST_CACHE_DIR;
         } else {
-          process.env.HARDHAT_CACHE_DIR = originalValue;
+          process.env.HARDHAT_TEST_CACHE_DIR = originalValue;
         }
         await remove(customPath);
       }
