@@ -1,5 +1,13 @@
 # hardhat
 
+## 3.1.4
+
+### Patch Changes
+
+- d7c13fa: Fixes a bug in how code coverage for Solidity tests is calculated ([7767](https://github.com/NomicFoundation/hardhat/pull/7767)).
+- b6a9d5a: Hardhat tries to use the latest Solidity version supported by Slang in case the a newer, unsupported version is selected ([7846](https://github.com/NomicFoundation/hardhat/pull/7846)).
+- 268acbf: Added HTML coverage report for solidity tests ([7787](https://github.com/NomicFoundation/hardhat/pull/7787)).
+
 ## 3.1.3
 
 ### Patch Changes
