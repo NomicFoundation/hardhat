@@ -2,6 +2,7 @@ import type { TaskOverrideActionFunction } from "../../../../../types/tasks.js";
 import type { FunctionGasSnapshot } from "../../function-gas-snapshots.js";
 import type { SuiteResult } from "@nomicfoundation/edr";
 
+import { HardhatError } from "@nomicfoundation/hardhat-errors";
 import { FileNotFoundError } from "@nomicfoundation/hardhat-utils/fs";
 import chalk from "chalk";
 
@@ -30,6 +31,12 @@ const runSolidityTests: TaskOverrideActionFunction<
   const suiteResults: SuiteResult[] = taskResult.suiteResults;
   const testsPassed = process.exitCode !== 1;
   const rootPath = hre.config.paths.root;
+
+  if (args.snapshot && args.snapshotCheck) {
+    throw new HardhatError(
+      HardhatError.ERRORS.CORE.SOLIDITY_TESTS.MUTUALLY_EXCLUSIVE_SNAPSHOT_FLAGS,
+    );
+  }
 
   if (args.snapshot) {
     await handleSnapshot(rootPath, suiteResults, testsPassed);

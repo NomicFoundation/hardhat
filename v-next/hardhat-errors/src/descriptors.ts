@@ -1059,6 +1059,14 @@ Remaining test suites: {suites}`,
         websiteTitle: "Error writing gas snapshot file",
         websiteDescription: "There was an error writing the gas snapshot file.",
       },
+      MUTUALLY_EXCLUSIVE_SNAPSHOT_FLAGS: {
+        number: 806,
+        messageTemplate:
+          "The flags --snapshot and --snapshot-check are mutually exclusive.",
+        websiteTitle: "Mutually exclusive snapshot flags",
+        websiteDescription:
+          "The flags --snapshot and --snapshot-check are mutually exclusive. Please provide only one of them.",
+      },
     },
     SOLIDITY: {
       PROJECT_ROOT_RESOLUTION_ERROR: {
