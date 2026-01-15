@@ -1,4 +1,8 @@
-import { deepMergeImpl, getDeepCloneFunction } from "./internal/lang.js";
+import {
+  customFastEqual,
+  deepMergeImpl,
+  getDeepCloneFunction,
+} from "./internal/lang.js";
 
 /**
  * Creates a deep clone of the provided value.
@@ -20,9 +24,7 @@ export async function deepClone<T>(value: T): Promise<T> {
  * @returns True if the values are deeply equal, false otherwise.
  */
 export async function deepEqual<T>(x: T, y: T): Promise<boolean> {
-  const { deepEqual: _deepEqual } = await import("fast-equals");
-
-  return _deepEqual(x, y);
+  return customFastEqual(x, y);
 }
 
 /**

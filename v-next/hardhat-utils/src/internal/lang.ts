@@ -53,3 +53,39 @@ export function deepMergeImpl<T extends object, S extends object>(
 
   return result;
 }
+
+let cachedCustomEqual: ((a: unknown, b: unknown) => boolean) | undefined;
+
+/**
+ * Performs a custom deep equality check using `fast-equals` with specific overrides.
+ *
+ * @param x The first value to compare.
+ * @param y The second value to compare.
+ * @returns A promise that resolves to true if the values are deeply equal, false otherwise.
+ */
+export async function customFastEqual<T>(x: T, y: T): Promise<boolean> {
+  if (cachedCustomEqual !== undefined) {
+    return cachedCustomEqual(x, y);
+  }
+
+  const { createCustomEqual } = await import("fast-equals");
+
+  cachedCustomEqual = createCustomEqual({
+    createCustomConfig: (defaultConfig) => ({
+      areTypedArraysEqual: (a, b, state) => {
+        // Node.js uses an internal pool for small Buffers, so multiple Buffers can
+        // share the same underlying ArrayBuffer while having different byteOffsets.
+        // Structural equality checks (e.g. deep equality) consider offset and length
+        // and may fail even if the contents are identical.
+        // We use Buffer.equals() to compare content only.
+        if (Buffer.isBuffer(a) && Buffer.isBuffer(b)) {
+          return a.equals(b);
+        }
+
+        return defaultConfig.areTypedArraysEqual(a, b, state);
+      },
+    }),
+  });
+
+  return cachedCustomEqual(x, y);
+}
