@@ -1,13 +1,15 @@
 import assert from "node:assert/strict";
 import os from "node:os";
 import path from "node:path";
-import { describe, it } from "node:test";
+import { afterEach, describe, it } from "node:test";
 
 import { mkdir, remove } from "../src/fs.js";
 import {
   getCacheDir,
   getConfigDir,
   getTelemetryDir,
+  resetMockCacheDir,
+  setMockCacheDir,
 } from "../src/global-dir.js";
 
 async function getExpectedPath(packageName: string) {
@@ -38,6 +40,11 @@ describe("global-dir", () => {
   });
 
   describe("getCacheDir", () => {
+    afterEach(() => {
+      // Ensure mock is always reset between tests
+      resetMockCacheDir();
+    });
+
     it("should return the path to the cache directory with default name 'hardhat'", async () => {
       const cachePath = await getCacheDir();
       assert.equal(
@@ -54,24 +61,19 @@ describe("global-dir", () => {
       );
     });
 
-    it("should use HARDHAT_TEST_CACHE_DIR when set (for testing purposes only)", async () => {
+    it("should use setMockCacheDir when set (for testing purposes)", async () => {
       const customPath = path.join(
         os.tmpdir(),
         `hardhat-test-cache-override-${Date.now()}`,
       );
       await mkdir(customPath);
-      const originalValue = process.env.HARDHAT_TEST_CACHE_DIR;
 
       try {
-        process.env.HARDHAT_TEST_CACHE_DIR = customPath;
+        setMockCacheDir(customPath);
         const result = await getCacheDir();
         assert.equal(result, customPath);
       } finally {
-        if (originalValue === undefined) {
-          delete process.env.HARDHAT_TEST_CACHE_DIR;
-        } else {
-          process.env.HARDHAT_TEST_CACHE_DIR = originalValue;
-        }
+        resetMockCacheDir();
         await remove(customPath);
       }
     });

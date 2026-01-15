@@ -1,6 +1,27 @@
 import { ensureDir } from "./fs.js";
 import { generatePaths, HARDHAT_PACKAGE_NAME } from "./internal/global-dir.js";
 
+// Internal override for testing purposes
+let _cacheDirOverride: string | undefined;
+
+/**
+ * Sets a mock cache directory for getCacheDir. This is intended for testing
+ * purposes only, to isolate tests from the real global cache.
+ *
+ * @param dir The directory path to use as the mock cache directory.
+ */
+export function setMockCacheDir(dir: string): void {
+  _cacheDirOverride = dir;
+}
+
+/**
+ * Resets the mock cache directory set by setMockCacheDir.
+ * Call this in test cleanup to restore normal behavior.
+ */
+export function resetMockCacheDir(): void {
+  _cacheDirOverride = undefined;
+}
+
 /**
  * Returns the configuration directory path for a given package (defaults to "hardhat").
  * Ensures that the directory exists before returning the path.
@@ -21,9 +42,9 @@ export async function getConfigDir(
  * Returns the cache directory path for a given package (defaults to "hardhat").
  * Ensures that the directory exists before returning the path.
  *
- * For testing purposes only, the cache directory can be overridden by setting
- * the `HARDHAT_TEST_CACHE_DIR` environment variable. This is intended to
- * isolate tests from the real global cache.
+ * For testing purposes, the cache directory can be overridden using
+ * setMockCacheDir(). This is intended to isolate tests from the real
+ * global cache.
  *
  * @param packageName The name of the package for which to generate paths. Defaults to "hardhat" if no package name is provided.
  * @returns The path to the hardhat cache directory.
@@ -32,11 +53,10 @@ export async function getConfigDir(
 export async function getCacheDir(
   packageName: string = HARDHAT_PACKAGE_NAME,
 ): Promise<string> {
-  // Allow override for testing purposes only
-  const testOverrideDir = process.env.HARDHAT_TEST_CACHE_DIR;
-  if (testOverrideDir !== undefined) {
-    await ensureDir(testOverrideDir);
-    return testOverrideDir;
+  // Allow override for testing purposes
+  if (_cacheDirOverride !== undefined) {
+    await ensureDir(_cacheDirOverride);
+    return _cacheDirOverride;
   }
 
   const { cache } = await generatePaths(packageName);

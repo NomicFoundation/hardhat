@@ -15,7 +15,11 @@ import {
   remove,
   writeUtf8File,
 } from "@nomicfoundation/hardhat-utils/fs";
-import { getCacheDir } from "@nomicfoundation/hardhat-utils/global-dir";
+import {
+  getCacheDir,
+  resetMockCacheDir,
+  setMockCacheDir,
+} from "@nomicfoundation/hardhat-utils/global-dir";
 
 import cleanAction from "../../../../src/internal/builtin-plugins/clean/task-action.js";
 import { createHardhatRuntimeEnvironment } from "../../../../src/internal/hre-initialization.js";
@@ -25,8 +29,7 @@ let globalCacheDir: string;
 let cacheDir: string;
 let artifactsDir: string;
 
-// Variables for isolating the global cache during tests
-let originalHardhatTestCacheDir: string | undefined;
+// Variable for isolating the global cache during tests
 let testGlobalCacheRoot: string;
 
 const onClean = mock.fn(async () => {});
@@ -71,9 +74,8 @@ describe("clean/task-action", () => {
 
     before(async function () {
       // Set up isolated cache directory to avoid deleting the real global cache
-      originalHardhatTestCacheDir = process.env.HARDHAT_TEST_CACHE_DIR;
       testGlobalCacheRoot = await getTmpDir("clean-task-global-cache");
-      process.env.HARDHAT_TEST_CACHE_DIR = testGlobalCacheRoot;
+      setMockCacheDir(testGlobalCacheRoot);
 
       globalCacheDir = await getCacheDir();
       cacheDir = path.join(process.cwd(), "cache");
@@ -88,12 +90,8 @@ describe("clean/task-action", () => {
     });
 
     after(async function () {
-      // Restore original environment
-      if (originalHardhatTestCacheDir === undefined) {
-        delete process.env.HARDHAT_TEST_CACHE_DIR;
-      } else {
-        process.env.HARDHAT_TEST_CACHE_DIR = originalHardhatTestCacheDir;
-      }
+      // Reset mock cache directory
+      resetMockCacheDir();
 
       // Clean up temp directory
       await remove(testGlobalCacheRoot);
