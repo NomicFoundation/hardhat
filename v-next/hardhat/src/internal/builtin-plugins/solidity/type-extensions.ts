@@ -123,7 +123,10 @@ declare module "../../../types/hooks.js" {
     ) => Promise<void>;
 
     /**
-     * Hook triggered within the compilation job when its' solc input is first constructed.
+     * Hook triggered to preprocess a Solidity file and manipulate its contents
+     * before it is passed along for compilation. Only files directly under
+     * the Hardhat project are preprocessed, Solidity files from npm
+     * dependencies are not included.
      *
      * @param context The hook context.
      * @param inputSourceName The input source name of the project file.
