@@ -635,13 +635,13 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
 
     const input = await runnableCompilationJob.getSolcInput();
 
-    const output = await compiler.compile(input);
-
-    await this.#hooks.runHandlerChain(
+    const output = await this.#hooks.runHandlerChain(
       "solidity",
-      "onSolcCompileComplete",
-      [runnableCompilationJob.solcConfig, input, output],
-      async () => {},
+      "invokeSolc",
+      [compiler, input, runnableCompilationJob.solcConfig],
+      async () => {
+        return compiler.compile(input);
+      },
     );
 
     return { output, compiler };

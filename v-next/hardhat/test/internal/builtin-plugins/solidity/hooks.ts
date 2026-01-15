@@ -1,3 +1,4 @@
+import type { Compiler } from "../../../../src/internal/builtin-plugins/solidity/build-system/compiler/compiler.js";
 import type { SolcConfig } from "../../../../src/types/config.js";
 import type {
   HookContext,
@@ -18,18 +19,21 @@ import { useFixtureProject } from "@nomicfoundation/hardhat-test-utils";
 import { createHardhatRuntimeEnvironment } from "../../../../src/hre.js";
 
 describe("solidity - hooks", () => {
-  describe("onSolcCompileComplete", () => {
+  describe("invokeSolc", () => {
     useFixtureProject("solidity/simple-project");
 
+    const expectedSolidityVersion = "0.8.23";
+
     let hre: HardhatRuntimeEnvironment;
-    let onSolcCompileCompleteTriggered: boolean = false;
+    let invokeSolcTriggered: boolean = false;
+    let passedCompiler: Compiler | undefined;
     let passedSolcInput: CompilerInput | undefined;
-    let passedSolcOutput: CompilerOutput | undefined;
+    let returnedSolcOutput: CompilerOutput | undefined;
 
     beforeEach(async function () {
-      onSolcCompileCompleteTriggered = false;
+      invokeSolcTriggered = false;
       passedSolcInput = undefined;
-      passedSolcOutput = undefined;
+      returnedSolcOutput = undefined;
 
       const onBuildPlugin: HardhatPlugin = {
         id: "test-on-build-complete-plugin",
@@ -37,24 +41,31 @@ describe("solidity - hooks", () => {
           solidity: async () => ({
             default: async () => {
               const handlers: Partial<SolidityHooks> = {
-                onSolcCompileComplete: async (
+                invokeSolc: async (
                   context: HookContext,
-                  solcConfig: SolcConfig,
+                  compiler: Compiler,
                   solcInput: CompilerInput,
-                  solcOutput: CompilerOutput,
+                  solcConfig: SolcConfig,
                   next: (
                     nextContext: HookContext,
-                    nextSolcConfig: SolcConfig,
+                    nextCompiler: Compiler,
                     nextSolcInput: CompilerInput,
-                    nextSolcOutput: CompilerOutput,
-                  ) => Promise<void>,
+                    nextSolcConfig: SolcConfig,
+                  ) => Promise<CompilerOutput>,
                 ) => {
+                  passedCompiler = compiler;
                   passedSolcInput = solcInput;
-                  passedSolcOutput = solcOutput;
 
-                  await next(context, solcConfig, solcInput, solcOutput);
+                  returnedSolcOutput = await next(
+                    context,
+                    compiler,
+                    solcInput,
+                    solcConfig,
+                  );
 
-                  onSolcCompileCompleteTriggered = true;
+                  invokeSolcTriggered = true;
+
+                  return returnedSolcOutput;
                 },
               };
 
@@ -66,10 +77,11 @@ describe("solidity - hooks", () => {
 
       hre = await createHardhatRuntimeEnvironment({
         plugins: [onBuildPlugin],
+        solidity: expectedSolidityVersion,
       });
     });
 
-    it("should trigger the onSolcCompileComplete hook", async () => {
+    it("should trigger the invokeSolc hook", async () => {
       const buildTask = hre.tasks.getTask("build");
 
       await buildTask.run({
@@ -77,13 +89,11 @@ describe("solidity - hooks", () => {
         noTests: true,
       });
 
-      assert.ok(
-        onSolcCompileCompleteTriggered,
-        "The onSolcCompileComplete hook should be triggered",
-      );
+      assert.ok(invokeSolcTriggered, "The invokeSolc hook should be triggered");
 
+      assert.equal(passedCompiler?.version, expectedSolidityVersion);
       assert.equal(passedSolcInput?.language, "Solidity");
-      const sources = passedSolcOutput?.sources;
+      const sources = returnedSolcOutput?.sources;
       assert.ok(
         sources !== undefined,
         "The solc output should includes compiled contract sources",
