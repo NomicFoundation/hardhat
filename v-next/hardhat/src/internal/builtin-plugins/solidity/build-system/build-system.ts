@@ -639,8 +639,8 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
       "solidity",
       "invokeSolc",
       [compiler, input, runnableCompilationJob.solcConfig],
-      async () => {
-        return compiler.compile(input);
+      async (_context, nextCompiler, nextSolcInput) => {
+        return nextCompiler.compile(nextSolcInput);
       },
     );
 

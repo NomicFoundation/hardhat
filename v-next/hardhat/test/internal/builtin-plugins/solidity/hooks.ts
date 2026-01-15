@@ -24,6 +24,9 @@ describe("solidity - hooks", () => {
 
     const expectedSolidityVersion = "0.8.23";
 
+    // eslint-disable-next-line @typescript-eslint/consistent-type-assertions -- intentional fake for test
+    const fakeOutput: CompilerOutput = {} as any;
+
     let hre: HardhatRuntimeEnvironment;
     let invokeSolcTriggered: boolean = false;
     let passedCompiler: Compiler | undefined;
@@ -34,6 +37,13 @@ describe("solidity - hooks", () => {
       invokeSolcTriggered = false;
       passedSolcInput = undefined;
       returnedSolcOutput = undefined;
+
+      // eslint-disable-next-line @typescript-eslint/consistent-type-assertions -- intentional mocking of compiler
+      const fakeCompiler: Compiler = {
+        compile: () => {
+          return fakeOutput;
+        },
+      } as any;
 
       const onBuildPlugin: HardhatPlugin = {
         id: "test-on-build-complete-plugin",
@@ -58,7 +68,7 @@ describe("solidity - hooks", () => {
 
                   returnedSolcOutput = await next(
                     context,
-                    compiler,
+                    fakeCompiler,
                     solcInput,
                     solcConfig,
                   );
@@ -93,15 +103,7 @@ describe("solidity - hooks", () => {
 
       assert.equal(passedCompiler?.version, expectedSolidityVersion);
       assert.equal(passedSolcInput?.language, "Solidity");
-      const sources = returnedSolcOutput?.sources;
-      assert.ok(
-        sources !== undefined,
-        "The solc output should includes compiled contract sources",
-      );
-      assert.deepEqual(Object.keys(sources), [
-        "project/contracts/A.sol",
-        "project/contracts/B.sol",
-      ]);
+      assert.equal(returnedSolcOutput, fakeOutput);
     });
   });
 });
