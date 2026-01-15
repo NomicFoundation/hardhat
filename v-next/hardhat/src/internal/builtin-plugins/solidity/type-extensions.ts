@@ -1,5 +1,7 @@
+import type { Compiler } from "./build-system/compiler/compiler.js";
+import type { SolcConfig } from "../../../types/config.js";
 import type { SolidityBuildSystem } from "../../../types/solidity/build-system.js";
-import type { CompilerInput } from "../../../types/solidity.js";
+import type { CompilerInput, CompilerOutput } from "../../../types/solidity.js";
 
 import "../../../types/config.js";
 declare module "../../../types/config.js" {
@@ -177,5 +179,34 @@ declare module "../../../types/hooks.js" {
         nextAbsolutePath: string,
       ) => Promise<string>,
     ) => Promise<string>;
+
+    /**
+     * Hook triggered to invoke a passed in Solc compiler on the
+     * Solc input generated for a given compilation job.
+     * This hook allows for manipulating the Solc input passed into the Solc
+     * compiler Hardhat has selected for the compilation job, and similarly to
+     * manipulate the Solc output.
+     *
+     * @param context The hook context.
+     * @param compile The Solc compiler selected by Hardhat for this compilation
+     * job.
+     * @param solcInput The solc input json constructed from the compilation
+     * job.
+     * @param solcConfig The configuration used to setup solc e.g. version.
+     * @param next A function to call the next handler for this hook, or the
+     * default implementation if no more handlers exist.
+     */
+    invokeSolc(
+      context: HookContext,
+      compiler: Compiler,
+      solcInput: CompilerInput,
+      solcConfig: SolcConfig,
+      next: (
+        nextContext: HookContext,
+        nextCompiler: Compiler,
+        nextSolcInput: CompilerInput,
+        nextSolcConfig: SolcConfig,
+      ) => Promise<CompilerOutput>,
+    ): Promise<CompilerOutput>;
   }
 }
