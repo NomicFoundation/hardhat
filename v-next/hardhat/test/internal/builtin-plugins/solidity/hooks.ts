@@ -1,4 +1,3 @@
-import type { Compiler } from "../../../../src/internal/builtin-plugins/solidity/build-system/compiler/compiler.js";
 import type { SolcConfig } from "../../../../src/types/config.js";
 import type {
   HookContext,
@@ -7,6 +6,7 @@ import type {
 import type { HardhatRuntimeEnvironment } from "../../../../src/types/hre.js";
 import type { HardhatPlugin } from "../../../../src/types/plugins.js";
 import type {
+  Compiler,
   CompilerInput,
   CompilerOutput,
 } from "../../../../src/types/solidity.js";

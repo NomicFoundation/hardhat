@@ -1,5 +1,4 @@
 import type { CompileCache } from "./cache.js";
-import type { Compiler } from "./compiler/compiler.js";
 import type { DependencyGraphImplementation } from "./dependency-graph.js";
 import type { Artifact } from "../../../../types/artifacts.js";
 import type { SolcConfig, SolidityConfig } from "../../../../types/config.js";
@@ -17,12 +16,13 @@ import type {
   RunCompilationJobResult,
   BuildScope,
 } from "../../../../types/solidity/build-system.js";
-import type { CompilationJob } from "../../../../types/solidity/compilation-job.js";
 import type {
+  CompilationJob,
+  Compiler,
   CompilerOutput,
   CompilerOutputError,
-} from "../../../../types/solidity/compiler-io.js";
-import type { SolidityBuildInfo } from "../../../../types/solidity.js";
+  SolidityBuildInfo,
+} from "../../../../types/solidity.js";
 
 import os from "node:os";
 import path from "node:path";

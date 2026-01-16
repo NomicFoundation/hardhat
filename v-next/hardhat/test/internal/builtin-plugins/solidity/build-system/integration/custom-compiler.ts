@@ -1,6 +1,6 @@
 /* eslint-disable no-restricted-syntax -- test */
-import type { Compiler } from "../../../../../../src/internal/builtin-plugins/solidity/build-system/compiler/compiler.js";
 import type {
+  Compiler,
   CompilationJobCreationError,
   FileBuildResult,
 } from "../../../../../../src/types/solidity.js";

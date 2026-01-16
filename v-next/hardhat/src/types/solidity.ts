@@ -1,5 +1,6 @@
 export * from "./solidity/build-system.js";
 export * from "./solidity/compilation-job.js";
+export * from "./solidity/compiler.js";
 export * from "./solidity/compiler-io.js";
 export * from "./solidity/dependency-graph.js";
 export * from "./solidity/errors.js";
