@@ -20,7 +20,7 @@
     "prettier": "prettier \"**/*.{ts,js,md,json}\"",
     "eslint": "eslint \"src/**/*.ts\" \"test/**/*.ts\"",
     "preview": "vite preview",
-    "clean": "rimraf dist",
+    "clean": "rimraf ./dist ./tsconfig.node.tsbuildinfo ./tsconfig.tsbuildinfo",
     "prepack": "pnpm build && vite build"
   },
   "files": [
