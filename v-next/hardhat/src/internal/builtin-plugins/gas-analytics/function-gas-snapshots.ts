@@ -289,14 +289,16 @@ export function hasGasUsageChanged(
 
 export function printFunctionGasSnapshotChanges(
   changes: FunctionGasSnapshotChange[],
+  logger: typeof console.log = console.log,
 ): void {
-  const lines: string[] = [];
+  for (let i = 0; i < changes.length; i++) {
+    const change = changes[i];
+    const isLast = i === changes.length - 1;
 
-  for (const change of changes) {
-    lines.push(`  ${change.contractNameOrFqn}#${change.functionSig}`);
+    logger(`  ${change.contractNameOrFqn}#${change.functionSig}`);
 
     if (change.kind === "fuzz") {
-      lines.push(chalk.grey(`    Runs: ${change.runs}`));
+      logger(chalk.grey(`    Runs: ${change.runs}`));
     }
 
     const diff = change.actual - change.expected;
@@ -316,15 +318,15 @@ export function printFunctionGasSnapshotChanges(
 
     const label = change.kind === "fuzz" ? "~" : "gas";
 
-    lines.push(chalk.grey(`    Expected (${label}): ${change.expected}`));
-    lines.push(
+    logger(chalk.grey(`    Expected (${label}): ${change.expected}`));
+    logger(
       chalk.grey(`    Actual (${label}):   ${change.actual} (`) +
         formattedGasChange +
         chalk.grey(")"),
     );
 
-    lines.push("");
+    if (!isLast) {
+      logger();
+    }
   }
-
-  console.error(lines.join("\n"));
 }
