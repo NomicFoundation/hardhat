@@ -69,7 +69,7 @@ describe(
 
     // We download a specific version of native and WASM solc and use it for the tests
     before(async function () {
-      await downloadConfiguredCompilers(new Set(["0.8.26"]), true);
+      await downloadConfiguredCompilers(new Set(["0.8.26"]), true, 0);
 
       const potentiallyNativeCompiler = await getCompiler("0.8.26", {
         preferWasm: false,

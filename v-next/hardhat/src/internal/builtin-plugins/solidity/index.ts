@@ -10,6 +10,12 @@ const buildTask = task("build", "Build project")
     name: "force",
     description: "Force compilation even if no files have changed",
   })
+  .addOption({
+    name: "retryCount",
+    description: "Number of times to retry downloading the compiler",
+    defaultValue: 3,
+    type: ArgumentType.INT,
+  })
   .addFlag({
     name: "quiet",
     description: "Make the compilation process less verbose",

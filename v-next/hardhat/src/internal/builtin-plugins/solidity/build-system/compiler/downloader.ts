@@ -150,6 +150,7 @@ export class CompilerDownloaderImplementation implements CompilerDownloader {
   readonly #platform: CompilerPlatform;
   readonly #compilersDir: string;
   readonly #downloadFunction: typeof download;
+  readonly #retryCount: number;
 
   readonly #mutexCompiler = new MultiProcessMutex("compiler-download");
   readonly #mutexCompilerList = new MultiProcessMutex("compiler-download-list");
@@ -160,11 +161,13 @@ export class CompilerDownloaderImplementation implements CompilerDownloader {
   constructor(
     platform: CompilerPlatform,
     compilersDir: string,
+    retryCount: number = 3,
     downloadFunction: typeof download = download,
   ) {
     this.#platform = platform;
     this.#compilersDir = compilersDir;
     this.#downloadFunction = downloadFunction;
+    this.#retryCount = retryCount;
   }
 
   public async updateCompilerListIfNeeded(
@@ -211,29 +214,21 @@ export class CompilerDownloaderImplementation implements CompilerDownloader {
 
       const build = await this.#getCompilerBuild(version);
 
-      let downloadPath: string;
-      try {
-        downloadPath = await this.#downloadCompiler(build);
-      } catch (e) {
-        ensureError(e);
-
-        throw new HardhatError(
-          HardhatError.ERRORS.CORE.SOLIDITY.DOWNLOAD_FAILED,
-          {
-            remoteVersion: build.longVersion,
-          },
-          e,
-        );
-      }
-
-      const verified = await this.#verifyCompilerDownload(build, downloadPath);
-      if (!verified) {
-        throw new HardhatError(
-          HardhatError.ERRORS.CORE.SOLIDITY.INVALID_DOWNLOAD,
-          {
-            remoteVersion: build.longVersion,
-          },
-        );
+      let downloadPath: string = "";
+      for (let i = 0; i <= this.#retryCount; i++) {
+        try {
+          downloadPath = await this.#downloadAndVerifyCompiler(build);
+          break;
+        } catch (e) {
+          if (i === this.#retryCount) {
+            ensureError(e);
+            throw e;
+          } else {
+            log(
+              `Download or verification failed for solc ${version}, retrying`,
+            );
+          }
+        }
       }
 
       return this.#postProcessCompilerDownload(build, downloadPath);
@@ -389,6 +384,36 @@ export class CompilerDownloaderImplementation implements CompilerDownloader {
 
       await writeJsonFile(downloadPath, officialCompilerList);
     }
+  }
+
+  async #downloadAndVerifyCompiler(build: CompilerBuild): Promise<string> {
+    let downloadPath: string = "";
+
+    try {
+      downloadPath = await this.#downloadCompiler(build);
+    } catch (e) {
+      ensureError(e);
+
+      throw new HardhatError(
+        HardhatError.ERRORS.CORE.SOLIDITY.DOWNLOAD_FAILED,
+        {
+          remoteVersion: build.longVersion,
+        },
+        e,
+      );
+    }
+
+    const verified = await this.#verifyCompilerDownload(build, downloadPath);
+    if (!verified) {
+      throw new HardhatError(
+        HardhatError.ERRORS.CORE.SOLIDITY.INVALID_DOWNLOAD,
+        {
+          remoteVersion: build.longVersion,
+        },
+      );
+    }
+
+    return downloadPath;
   }
 
   async #downloadCompiler(build: CompilerBuild): Promise<string> {
