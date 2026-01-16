@@ -26,10 +26,6 @@ declare module "./config.js" {
 
 /**
  * A helper type to strictly enforce that plugins only use file-based actions.
- * It allows:
- * - Empty tasks
- * - New tasks with an 'action' property (and NOT inlineAction)
- * - Override tasks with an 'action' property (and NOT inlineAction)
  */
 export type PluginSafeTaskDefinition =
   | EmptyTaskDefinition
