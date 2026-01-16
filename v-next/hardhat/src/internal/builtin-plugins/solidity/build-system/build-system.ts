@@ -1063,9 +1063,17 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
       return;
     }
 
+    // Filter out deprecated natspec memory-safe-assembly warnings
+    const filteredErrors = errors.filter((error) => {
+      const msg = error.formattedMessage ?? error.message;
+      return msg.includes(
+        "Warning: Natspec memory-safe-assembly special comment for inline assembly is deprecated and scheduled for removal. Use the memory-safe block annotation instead.",
+      );
+    });
+
     console.log();
 
-    for (const error of errors) {
+    for (const error of filteredErrors) {
       if (error.severity === "error") {
         const errorMessage: string =
           this.#getFormattedInternalCompilerErrorMessage(error) ??
@@ -1085,7 +1093,7 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
       }
     }
 
-    const hasConsoleErrors: boolean = errors.some((e) =>
+    const hasConsoleErrors: boolean = filteredErrors.some((e) =>
       this.#isConsoleLogError(e),
     );
 
