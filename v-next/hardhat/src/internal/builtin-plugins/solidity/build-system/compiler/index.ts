@@ -1,3 +1,5 @@
+import type { Compiler } from "../../../../../types/solidity.js";
+
 import { execFile } from "node:child_process";
 import path from "node:path";
 import { pathToFileURL } from "node:url";
@@ -11,7 +13,6 @@ import { exists, isBinaryFile } from "@nomicfoundation/hardhat-utils/fs";
 import { getCacheDir } from "@nomicfoundation/hardhat-utils/global-dir";
 import debug from "debug";
 
-import type { Compiler } from "../../../../../types/solidity.js";
 import { NativeCompiler, SolcJsCompiler } from "./compiler.js";
 import {
   CompilerDownloaderImplementation,

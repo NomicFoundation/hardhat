@@ -1,11 +1,9 @@
 import type {
-  Compiler
-} from "../../../../../types/solidity/compiler.js";
-
-import type {
   CompilerInput,
   CompilerOutput,
 } from "../../../../../types/solidity/compiler-io.js";
+import type { Compiler } from "../../../../../types/solidity/compiler.js";
+
 
 import { spawn } from "node:child_process";
 import fsPromises from "node:fs/promises";

@@ -1,4 +1,4 @@
-import { CompilerInput, CompilerOutput } from "./compiler-io.js";
+import type { CompilerInput, CompilerOutput } from "./compiler-io.js";
 
 export interface Compiler {
   readonly version: string;

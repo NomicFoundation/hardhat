@@ -1,6 +1,10 @@
 import type { SolcConfig } from "../../../types/config.js";
 import type { SolidityBuildSystem } from "../../../types/solidity/build-system.js";
-import type { Compiler, CompilerInput, CompilerOutput } from "../../../types/solidity.js";
+import type {
+  Compiler,
+  CompilerInput,
+  CompilerOutput,
+} from "../../../types/solidity.js";
 
 import "../../../types/config.js";
 declare module "../../../types/config.js" {
