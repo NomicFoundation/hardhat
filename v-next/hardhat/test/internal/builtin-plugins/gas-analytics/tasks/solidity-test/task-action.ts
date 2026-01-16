@@ -177,14 +177,16 @@ describe("solidity-test/task-action (override in gas-analytics/index)", () => {
         ]),
       ];
 
-      const result = await handleSnapshotCheck(tmpDir, suiteResults);
+      const { functionGasSnapshotsCheck } = await handleSnapshotCheck(
+        tmpDir,
+        suiteResults,
+      );
 
-      assert.equal(result.passed, true);
-      assert.equal(result.functionGasSnapshotsWritten, true);
-      assert.equal(result.comparison.added.length, 0);
-      assert.equal(result.comparison.removed.length, 0);
-      assert.equal(result.comparison.changed.length, 0);
-
+      assert.equal(functionGasSnapshotsCheck.passed, true);
+      assert.equal(functionGasSnapshotsCheck.written, true);
+      assert.equal(functionGasSnapshotsCheck.comparison.added.length, 0);
+      assert.equal(functionGasSnapshotsCheck.comparison.removed.length, 0);
+      assert.equal(functionGasSnapshotsCheck.comparison.changed.length, 0);
       const snapshotPath = getFunctionGasSnapshotsPath(tmpDir);
       const savedContent = await readUtf8File(snapshotPath);
       assert.equal(savedContent, "MyContract#testA (gas: 10000)");
@@ -199,13 +201,16 @@ describe("solidity-test/task-action (override in gas-analytics/index)", () => {
 
       await handleSnapshot(tmpDir, suiteResults, true);
 
-      const result = await handleSnapshotCheck(tmpDir, suiteResults);
+      const { functionGasSnapshotsCheck } = await handleSnapshotCheck(
+        tmpDir,
+        suiteResults,
+      );
 
-      assert.equal(result.passed, true);
-      assert.equal(result.functionGasSnapshotsWritten, false);
-      assert.equal(result.comparison.added.length, 0);
-      assert.equal(result.comparison.removed.length, 0);
-      assert.equal(result.comparison.changed.length, 0);
+      assert.equal(functionGasSnapshotsCheck.passed, true);
+      assert.equal(functionGasSnapshotsCheck.written, false);
+      assert.equal(functionGasSnapshotsCheck.comparison.added.length, 0);
+      assert.equal(functionGasSnapshotsCheck.comparison.removed.length, 0);
+      assert.equal(functionGasSnapshotsCheck.comparison.changed.length, 0);
     });
 
     it("should fail when gas changes", async () => {
@@ -222,13 +227,16 @@ describe("solidity-test/task-action (override in gas-analytics/index)", () => {
 
       await handleSnapshot(tmpDir, initialResults, true);
 
-      const result = await handleSnapshotCheck(tmpDir, changedResults);
+      const { functionGasSnapshotsCheck } = await handleSnapshotCheck(
+        tmpDir,
+        changedResults,
+      );
 
-      assert.equal(result.passed, false);
-      assert.equal(result.functionGasSnapshotsWritten, false);
-      assert.equal(result.comparison.added.length, 0);
-      assert.equal(result.comparison.removed.length, 0);
-      assert.equal(result.comparison.changed.length, 1);
+      assert.equal(functionGasSnapshotsCheck.passed, false);
+      assert.equal(functionGasSnapshotsCheck.written, false);
+      assert.equal(functionGasSnapshotsCheck.comparison.added.length, 0);
+      assert.equal(functionGasSnapshotsCheck.comparison.removed.length, 0);
+      assert.equal(functionGasSnapshotsCheck.comparison.changed.length, 1);
     });
 
     it("should pass and update file when functions are added", async () => {
@@ -246,13 +254,16 @@ describe("solidity-test/task-action (override in gas-analytics/index)", () => {
 
       await handleSnapshot(tmpDir, initialResults, true);
 
-      const result = await handleSnapshotCheck(tmpDir, withAddedResults);
+      const { functionGasSnapshotsCheck } = await handleSnapshotCheck(
+        tmpDir,
+        withAddedResults,
+      );
 
-      assert.equal(result.passed, true);
-      assert.equal(result.functionGasSnapshotsWritten, true);
-      assert.equal(result.comparison.added.length, 1);
-      assert.equal(result.comparison.removed.length, 0);
-      assert.equal(result.comparison.changed.length, 0);
+      assert.equal(functionGasSnapshotsCheck.passed, true);
+      assert.equal(functionGasSnapshotsCheck.written, true);
+      assert.equal(functionGasSnapshotsCheck.comparison.added.length, 1);
+      assert.equal(functionGasSnapshotsCheck.comparison.removed.length, 0);
+      assert.equal(functionGasSnapshotsCheck.comparison.changed.length, 0);
 
       const snapshotPath = getFunctionGasSnapshotsPath(tmpDir);
       const savedContent = await readUtf8File(snapshotPath);
@@ -274,13 +285,16 @@ describe("solidity-test/task-action (override in gas-analytics/index)", () => {
 
       await handleSnapshot(tmpDir, initialResults, true);
 
-      const result = await handleSnapshotCheck(tmpDir, withRemovedResults);
+      const { functionGasSnapshotsCheck } = await handleSnapshotCheck(
+        tmpDir,
+        withRemovedResults,
+      );
 
-      assert.equal(result.passed, true);
-      assert.equal(result.functionGasSnapshotsWritten, true);
-      assert.equal(result.comparison.added.length, 0);
-      assert.equal(result.comparison.removed.length, 1);
-      assert.equal(result.comparison.changed.length, 0);
+      assert.equal(functionGasSnapshotsCheck.passed, true);
+      assert.equal(functionGasSnapshotsCheck.written, true);
+      assert.equal(functionGasSnapshotsCheck.comparison.added.length, 0);
+      assert.equal(functionGasSnapshotsCheck.comparison.removed.length, 1);
+      assert.equal(functionGasSnapshotsCheck.comparison.changed.length, 0);
 
       const snapshotPath = getFunctionGasSnapshotsPath(tmpDir);
       const savedContent = await readUtf8File(snapshotPath);
@@ -301,21 +315,23 @@ describe("solidity-test/task-action (override in gas-analytics/index)", () => {
 
     it("should log failure message when check fails", () => {
       const result = {
-        passed: false,
-        comparison: {
-          added: [],
-          removed: [],
-          changed: [
-            {
-              contractNameOrFqn: "MyContract",
-              functionSig: "testA",
-              kind: "standard" as const,
-              expected: 10000,
-              actual: 15000,
-            },
-          ],
+        functionGasSnapshotsCheck: {
+          passed: false,
+          comparison: {
+            added: [],
+            removed: [],
+            changed: [
+              {
+                contractNameOrFqn: "MyContract",
+                functionSig: "testA",
+                kind: "standard" as const,
+                expected: 10000,
+                actual: 15000,
+              },
+            ],
+          },
+          written: false,
         },
-        functionGasSnapshotsWritten: false,
       };
 
       logSnapshotCheckResult(result, logger);
@@ -328,13 +344,15 @@ describe("solidity-test/task-action (override in gas-analytics/index)", () => {
 
     it("should log first-time write message when function gas snapshots written with no changes", () => {
       const result = {
-        passed: true,
-        comparison: {
-          added: [],
-          removed: [],
-          changed: [],
+        functionGasSnapshotsCheck: {
+          passed: true,
+          comparison: {
+            added: [],
+            removed: [],
+            changed: [],
+          },
+          written: true,
         },
-        functionGasSnapshotsWritten: true,
       };
 
       logSnapshotCheckResult(result, logger);
@@ -350,13 +368,15 @@ describe("solidity-test/task-action (override in gas-analytics/index)", () => {
 
     it("should log check passed message when there are no changes", () => {
       const result = {
-        passed: true,
-        comparison: {
-          added: [],
-          removed: [],
-          changed: [],
+        functionGasSnapshotsCheck: {
+          passed: true,
+          comparison: {
+            added: [],
+            removed: [],
+            changed: [],
+          },
+          written: false,
         },
-        functionGasSnapshotsWritten: false,
       };
 
       logSnapshotCheckResult(result, logger);
@@ -367,22 +387,24 @@ describe("solidity-test/task-action (override in gas-analytics/index)", () => {
 
     it("should log check passed with added functions", () => {
       const result = {
-        passed: true,
-        comparison: {
-          added: [
-            {
-              contractNameOrFqn: "MyContract",
-              functionSig: "testB",
-              gasUsage: {
-                kind: "standard" as const,
-                gas: 20000n,
+        functionGasSnapshotsCheck: {
+          passed: true,
+          comparison: {
+            added: [
+              {
+                contractNameOrFqn: "MyContract",
+                functionSig: "testB",
+                gasUsage: {
+                  kind: "standard" as const,
+                  gas: 20000n,
+                },
               },
-            },
-          ],
-          removed: [],
-          changed: [],
+            ],
+            removed: [],
+            changed: [],
+          },
+          written: true,
         },
-        functionGasSnapshotsWritten: true,
       };
 
       logSnapshotCheckResult(result, logger);
@@ -396,22 +418,24 @@ describe("solidity-test/task-action (override in gas-analytics/index)", () => {
 
     it("should log check passed with removed functions", () => {
       const result = {
-        passed: true,
-        comparison: {
-          added: [],
-          removed: [
-            {
-              contractNameOrFqn: "MyContract",
-              functionSig: "testB",
-              gasUsage: {
-                kind: "standard" as const,
-                gas: 20000n,
+        functionGasSnapshotsCheck: {
+          passed: true,
+          comparison: {
+            added: [],
+            removed: [
+              {
+                contractNameOrFqn: "MyContract",
+                functionSig: "testB",
+                gasUsage: {
+                  kind: "standard" as const,
+                  gas: 20000n,
+                },
               },
-            },
-          ],
-          changed: [],
+            ],
+            changed: [],
+          },
+          written: true,
         },
-        functionGasSnapshotsWritten: true,
       };
 
       logSnapshotCheckResult(result, logger);
@@ -426,9 +450,11 @@ describe("solidity-test/task-action (override in gas-analytics/index)", () => {
     describe("full output", () => {
       it("should output success format (no changes)", () => {
         const result = {
-          passed: true,
-          comparison: { added: [], removed: [], changed: [] },
-          functionGasSnapshotsWritten: false,
+          functionGasSnapshotsCheck: {
+            passed: true,
+            comparison: { added: [], removed: [], changed: [] },
+            written: false,
+          },
         };
 
         logSnapshotCheckResult(result, logger);
@@ -442,35 +468,37 @@ Snapshot check passed`;
 
       it("should output success format with added and removed functions", () => {
         const result = {
-          passed: true,
-          comparison: {
-            added: [
-              {
-                contractNameOrFqn: "ContractA",
-                functionSig: "testNew()",
-                gasUsage: { kind: "standard" as const, gas: 10000n },
-              },
-              {
-                contractNameOrFqn: "ContractB",
-                functionSig: "testFuzz(uint256)",
-                gasUsage: {
-                  kind: "fuzz" as const,
-                  runs: 256n,
-                  meanGas: 15000n,
-                  medianGas: 14500n,
+          functionGasSnapshotsCheck: {
+            passed: true,
+            comparison: {
+              added: [
+                {
+                  contractNameOrFqn: "ContractA",
+                  functionSig: "testNew()",
+                  gasUsage: { kind: "standard" as const, gas: 10000n },
                 },
-              },
-            ],
-            removed: [
-              {
-                contractNameOrFqn: "ContractA",
-                functionSig: "testOld()",
-                gasUsage: { kind: "standard" as const, gas: 8000n },
-              },
-            ],
-            changed: [],
+                {
+                  contractNameOrFqn: "ContractB",
+                  functionSig: "testFuzz(uint256)",
+                  gasUsage: {
+                    kind: "fuzz" as const,
+                    runs: 256n,
+                    meanGas: 15000n,
+                    medianGas: 14500n,
+                  },
+                },
+              ],
+              removed: [
+                {
+                  contractNameOrFqn: "ContractA",
+                  functionSig: "testOld()",
+                  gasUsage: { kind: "standard" as const, gas: 8000n },
+                },
+              ],
+              changed: [],
+            },
+            written: true,
           },
-          functionGasSnapshotsWritten: true,
         };
 
         logSnapshotCheckResult(result, logger);
@@ -494,9 +522,11 @@ Function gas snapshots: 2 added, 1 removed
 
       it("should output success format with no existing snapshots (first-time write)", () => {
         const result = {
-          passed: true,
-          comparison: { added: [], removed: [], changed: [] },
-          functionGasSnapshotsWritten: true,
+          functionGasSnapshotsCheck: {
+            passed: true,
+            comparison: { added: [], removed: [], changed: [] },
+            written: true,
+          },
         };
 
         logSnapshotCheckResult(result, logger);
@@ -516,41 +546,43 @@ Function gas snapshots:
 
       it("should output failure format with changed, added, and removed functions", () => {
         const result = {
-          passed: false,
-          comparison: {
-            changed: [
-              {
-                contractNameOrFqn: "ContractA",
-                functionSig: "testStandard()",
-                kind: "standard" as const,
-                expected: 10000,
-                actual: 15000,
-              },
-              {
-                contractNameOrFqn: "ContractB",
-                functionSig: "testFuzz(uint256)",
-                kind: "fuzz" as const,
-                expected: 20000,
-                actual: 18000,
-                runs: 256,
-              },
-            ],
-            added: [
-              {
-                contractNameOrFqn: "ContractA",
-                functionSig: "testNew()",
-                gasUsage: { kind: "standard" as const, gas: 12000n },
-              },
-            ],
-            removed: [
-              {
-                contractNameOrFqn: "ContractA",
-                functionSig: "testOld()",
-                gasUsage: { kind: "standard" as const, gas: 9000n },
-              },
-            ],
+          functionGasSnapshotsCheck: {
+            passed: false,
+            comparison: {
+              changed: [
+                {
+                  contractNameOrFqn: "ContractA",
+                  functionSig: "testStandard()",
+                  kind: "standard" as const,
+                  expected: 10000,
+                  actual: 15000,
+                },
+                {
+                  contractNameOrFqn: "ContractB",
+                  functionSig: "testFuzz(uint256)",
+                  kind: "fuzz" as const,
+                  expected: 20000,
+                  actual: 18000,
+                  runs: 256,
+                },
+              ],
+              added: [
+                {
+                  contractNameOrFqn: "ContractA",
+                  functionSig: "testNew()",
+                  gasUsage: { kind: "standard" as const, gas: 12000n },
+                },
+              ],
+              removed: [
+                {
+                  contractNameOrFqn: "ContractA",
+                  functionSig: "testOld()",
+                  gasUsage: { kind: "standard" as const, gas: 9000n },
+                },
+              ],
+            },
+            written: false,
           },
-          functionGasSnapshotsWritten: false,
         };
 
         logSnapshotCheckResult(result, logger);
@@ -584,21 +616,23 @@ To update snapshots, run your tests with --snapshot
 
       it("should output failure format with only changed functions", () => {
         const result = {
-          passed: false,
-          comparison: {
-            changed: [
-              {
-                contractNameOrFqn: "MyContract",
-                functionSig: "testFunc()",
-                kind: "standard" as const,
-                expected: 5000,
-                actual: 6000,
-              },
-            ],
-            added: [],
-            removed: [],
+          functionGasSnapshotsCheck: {
+            passed: false,
+            comparison: {
+              changed: [
+                {
+                  contractNameOrFqn: "MyContract",
+                  functionSig: "testFunc()",
+                  kind: "standard" as const,
+                  expected: 5000,
+                  actual: 6000,
+                },
+              ],
+              added: [],
+              removed: [],
+            },
+            written: false,
           },
-          functionGasSnapshotsWritten: false,
         };
 
         logSnapshotCheckResult(result, logger);
@@ -621,19 +655,21 @@ To update snapshots, run your tests with --snapshot
 
       it("should output success format with only added functions", () => {
         const result = {
-          passed: true,
-          comparison: {
-            added: [
-              {
-                contractNameOrFqn: "NewContract",
-                functionSig: "testA()",
-                gasUsage: { kind: "standard" as const, gas: 7500n },
-              },
-            ],
-            removed: [],
-            changed: [],
+          functionGasSnapshotsCheck: {
+            passed: true,
+            comparison: {
+              added: [
+                {
+                  contractNameOrFqn: "NewContract",
+                  functionSig: "testA()",
+                  gasUsage: { kind: "standard" as const, gas: 7500n },
+                },
+              ],
+              removed: [],
+              changed: [],
+            },
+            written: true,
           },
-          functionGasSnapshotsWritten: true,
         };
 
         logSnapshotCheckResult(result, logger);
@@ -653,19 +689,21 @@ Function gas snapshots: 1 added
 
       it("should output success format with only removed functions", () => {
         const result = {
-          passed: true,
-          comparison: {
-            added: [],
-            removed: [
-              {
-                contractNameOrFqn: "OldContract",
-                functionSig: "testDeprecated()",
-                gasUsage: { kind: "standard" as const, gas: 3000n },
-              },
-            ],
-            changed: [],
+          functionGasSnapshotsCheck: {
+            passed: true,
+            comparison: {
+              added: [],
+              removed: [
+                {
+                  contractNameOrFqn: "OldContract",
+                  functionSig: "testDeprecated()",
+                  gasUsage: { kind: "standard" as const, gas: 3000n },
+                },
+              ],
+              changed: [],
+            },
+            written: true,
           },
-          functionGasSnapshotsWritten: true,
         };
 
         logSnapshotCheckResult(result, logger);
