@@ -46,6 +46,11 @@ export interface BuildOptions {
    * Whether to compile contracts or tests. Defaults to contracts
    */
   scope?: BuildScope;
+
+  /**
+   * The number of times to retry downloading the compiler
+   */
+  retryCount?: number;
 }
 
 /**
