@@ -15,9 +15,9 @@ import {
   writeFunctionGasSnapshots,
 } from "../../function-gas-snapshots.js";
 import {
-  extractGasSnapshotCheatcodes,
-  writeGasSnapshotCheatcodes,
-} from "../../gas-snapshot-cheatcodes.js";
+  extractSnapshotCheatcodes,
+  writeSnapshotCheatcodes,
+} from "../../snapshot-cheatcodes.js";
 
 interface GasAnalyticsTestActionArguments {
   snapshot: boolean;
@@ -80,8 +80,8 @@ export async function handleSnapshot(
     await writeFunctionGasSnapshots(basePath, functionGasSnapshots);
   }
 
-  const gasSnapshotCheatcodes = extractGasSnapshotCheatcodes(suiteResults);
-  await writeGasSnapshotCheatcodes(basePath, gasSnapshotCheatcodes);
+  const snapshotCheatcodes = extractSnapshotCheatcodes(suiteResults);
+  await writeSnapshotCheatcodes(basePath, snapshotCheatcodes);
 
   return {
     functionGasSnapshotsWritten: testsPassed,
@@ -94,7 +94,7 @@ export function logSnapshotResult(
 ): void {
   if (result.functionGasSnapshotsWritten) {
     logger();
-    logger(chalk.green("Gas snapshots written successfully"));
+    logger(chalk.green("Function gas snapshots written successfully"));
     logger();
   }
 }
@@ -152,7 +152,7 @@ export function logSnapshotCheckResult(
   if (!result.passed) {
     logger();
     logger(
-      `${chalk.red("Gas snapshot check failed:")} ${chalk.grey(`${result.comparison.changed.length} function(s) changed`)}`,
+      `${chalk.red("Snapshot check failed:")} ${chalk.grey(`${result.comparison.changed.length} function(s) changed`)}`,
     );
     logger();
 
@@ -172,8 +172,8 @@ export function logSnapshotCheckResult(
   logger(
     chalk.green(
       isFirstTimeWrite
-        ? "Gas snapshots written successfully"
-        : "Gas snapshot check passed",
+        ? "Function gas snapshots written successfully"
+        : "Snapshot check passed",
     ),
   );
   logger();

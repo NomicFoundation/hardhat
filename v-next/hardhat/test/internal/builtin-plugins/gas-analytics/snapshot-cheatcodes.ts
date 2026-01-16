@@ -1,4 +1,4 @@
-import type { GasSnapshotCheatcodesMap } from "../../../../src/internal/builtin-plugins/gas-analytics/gas-snapshot-cheatcodes.js";
+import type { SnapshotCheatcodesMap } from "../../../../src/internal/builtin-plugins/gas-analytics/snapshot-cheatcodes.js";
 
 import assert from "node:assert/strict";
 import path from "node:path";
@@ -12,19 +12,19 @@ import {
 } from "@nomicfoundation/hardhat-utils/fs";
 
 import {
-  extractGasSnapshotCheatcodes,
-  getGasSnapshotCheatcodesPath,
+  extractSnapshotCheatcodes,
+  getSnapshotCheatcodesPath,
   SNAPSHOT_CHEATCODES_DIR,
-  writeGasSnapshotCheatcodes,
-} from "../../../../src/internal/builtin-plugins/gas-analytics/gas-snapshot-cheatcodes.js";
+  writeSnapshotCheatcodes,
+} from "../../../../src/internal/builtin-plugins/gas-analytics/snapshot-cheatcodes.js";
 
 import {
   createSuiteResult,
   createTestResultWithSnapshots,
 } from "./suite-result-helpers.js";
 
-describe("gas-snapshot-cheatcodes", () => {
-  describe("extractGasSnapshotCheatcodes", () => {
+describe("snapshot-cheatcodes", () => {
+  describe("extractSnapshotCheatcodes", () => {
     it("should extract single snapshot group with single entry", () => {
       const suiteResults = [
         createSuiteResult("MyContract", [
@@ -37,7 +37,7 @@ describe("gas-snapshot-cheatcodes", () => {
         ]),
       ];
 
-      const snapshots = extractGasSnapshotCheatcodes(suiteResults);
+      const snapshots = extractSnapshotCheatcodes(suiteResults);
 
       assert.equal(snapshots.size, 1);
       const groupA = snapshots.get("GroupA");
@@ -60,7 +60,7 @@ describe("gas-snapshot-cheatcodes", () => {
         ]),
       ];
 
-      const snapshots = extractGasSnapshotCheatcodes(suiteResults);
+      const snapshots = extractSnapshotCheatcodes(suiteResults);
 
       assert.equal(snapshots.size, 1);
       const groupB = snapshots.get("GroupB");
@@ -88,7 +88,7 @@ describe("gas-snapshot-cheatcodes", () => {
         ]),
       ];
 
-      const snapshots = extractGasSnapshotCheatcodes(suiteResults);
+      const snapshots = extractSnapshotCheatcodes(suiteResults);
 
       assert.equal(snapshots.size, 2);
       const groupA = snapshots.get("GroupA");
@@ -120,7 +120,7 @@ describe("gas-snapshot-cheatcodes", () => {
         ]),
       ];
 
-      const snapshots = extractGasSnapshotCheatcodes(suiteResults);
+      const snapshots = extractSnapshotCheatcodes(suiteResults);
 
       assert.equal(snapshots.size, 2);
       const groupA = snapshots.get("GroupA");
@@ -157,7 +157,7 @@ describe("gas-snapshot-cheatcodes", () => {
         ]),
       ];
 
-      const snapshots = extractGasSnapshotCheatcodes(suiteResults);
+      const snapshots = extractSnapshotCheatcodes(suiteResults);
 
       assert.equal(snapshots.size, 1);
       const sharedGroup = snapshots.get("SharedGroup");
@@ -193,7 +193,7 @@ describe("gas-snapshot-cheatcodes", () => {
         ]),
       ];
 
-      const snapshots = extractGasSnapshotCheatcodes(suiteResults);
+      const snapshots = extractSnapshotCheatcodes(suiteResults);
 
       assert.equal(snapshots.size, 1);
       const testGroup = snapshots.get("TestGroup");
@@ -202,7 +202,7 @@ describe("gas-snapshot-cheatcodes", () => {
     });
 
     it("should handle empty suite results", () => {
-      const snapshots = extractGasSnapshotCheatcodes([]);
+      const snapshots = extractSnapshotCheatcodes([]);
 
       assert.equal(snapshots.size, 0);
     });
@@ -210,7 +210,7 @@ describe("gas-snapshot-cheatcodes", () => {
     it("should handle suite with no test results", () => {
       const suiteResults = [createSuiteResult("EmptyContract", [])];
 
-      const snapshots = extractGasSnapshotCheatcodes(suiteResults);
+      const snapshots = extractSnapshotCheatcodes(suiteResults);
 
       assert.equal(snapshots.size, 0);
     });
@@ -222,7 +222,7 @@ describe("gas-snapshot-cheatcodes", () => {
         ]),
       ];
 
-      const snapshots = extractGasSnapshotCheatcodes(suiteResults);
+      const snapshots = extractSnapshotCheatcodes(suiteResults);
 
       assert.equal(snapshots.size, 0);
     });
@@ -232,17 +232,17 @@ describe("gas-snapshot-cheatcodes", () => {
         createSuiteResult("MyContract", [createTestResultWithSnapshots([])]),
       ];
 
-      const snapshots = extractGasSnapshotCheatcodes(suiteResults);
+      const snapshots = extractSnapshotCheatcodes(suiteResults);
 
       assert.equal(snapshots.size, 0);
     });
   });
 
-  describe("writeGasSnapshotCheatcodes", () => {
+  describe("writeSnapshotCheatcodes", () => {
     let tmpDir: string;
 
     before(async () => {
-      tmpDir = await mkdtemp("gas-snapshot-cheatcodes-test-");
+      tmpDir = await mkdtemp("snapshot-cheatcodes-test-");
     });
 
     afterEach(async () => {
@@ -260,9 +260,9 @@ describe("gas-snapshot-cheatcodes", () => {
         ],
       ]);
 
-      await writeGasSnapshotCheatcodes(tmpDir, snapshots);
+      await writeSnapshotCheatcodes(tmpDir, snapshots);
 
-      const snapshotPath = getGasSnapshotCheatcodesPath(
+      const snapshotPath = getSnapshotCheatcodesPath(
         tmpDir,
         "CalculatorTest.json",
       );
@@ -275,7 +275,7 @@ describe("gas-snapshot-cheatcodes", () => {
     });
 
     it("should write multiple snapshot groups to separate JSON files", async () => {
-      const snapshots: GasSnapshotCheatcodesMap = new Map<
+      const snapshots: SnapshotCheatcodesMap = new Map<
         string,
         Record<string, string>
       >([
@@ -283,13 +283,13 @@ describe("gas-snapshot-cheatcodes", () => {
         ["GroupB", { "entry-b": "200", "entry-c": "300" }],
       ]);
 
-      await writeGasSnapshotCheatcodes(tmpDir, snapshots);
+      await writeSnapshotCheatcodes(tmpDir, snapshots);
 
-      const groupAPath = getGasSnapshotCheatcodesPath(tmpDir, "GroupA.json");
+      const groupAPath = getSnapshotCheatcodesPath(tmpDir, "GroupA.json");
       const groupAContent = await readJsonFile(groupAPath);
       assert.deepEqual(groupAContent, { "entry-a": "100" });
 
-      const groupBPath = getGasSnapshotCheatcodesPath(tmpDir, "GroupB.json");
+      const groupBPath = getSnapshotCheatcodesPath(tmpDir, "GroupB.json");
       const groupBContent = await readJsonFile(groupBPath);
       assert.deepEqual(groupBContent, {
         "entry-b": "200",
@@ -315,13 +315,10 @@ describe("gas-snapshot-cheatcodes", () => {
         ],
       ]);
 
-      await writeGasSnapshotCheatcodes(tmpDir, firstSnapshots);
-      await writeGasSnapshotCheatcodes(tmpDir, secondSnapshots);
+      await writeSnapshotCheatcodes(tmpDir, firstSnapshots);
+      await writeSnapshotCheatcodes(tmpDir, secondSnapshots);
 
-      const snapshotPath = getGasSnapshotCheatcodesPath(
-        tmpDir,
-        "TestGroup.json",
-      );
+      const snapshotPath = getSnapshotCheatcodesPath(tmpDir, "TestGroup.json");
       const savedContent = await readJsonFile(snapshotPath);
 
       assert.deepEqual(savedContent, { "new-entry": "200" });
@@ -330,7 +327,7 @@ describe("gas-snapshot-cheatcodes", () => {
     it("should handle empty snapshots map", async () => {
       const emptySnapshots = new Map();
 
-      await writeGasSnapshotCheatcodes(tmpDir, emptySnapshots);
+      await writeSnapshotCheatcodes(tmpDir, emptySnapshots);
 
       const snapshotsDir = path.join(tmpDir, SNAPSHOT_CHEATCODES_DIR);
       const dirExists = await exists(snapshotsDir);

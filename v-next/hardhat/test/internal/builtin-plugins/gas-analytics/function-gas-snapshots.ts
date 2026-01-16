@@ -20,6 +20,7 @@ import {
 import {
   compareFunctionGasSnapshots,
   extractFunctionGasSnapshots,
+  FUNCTION_GAS_SNAPSHOTS_FILE,
   getFunctionGasSnapshotsPath,
   hasGasUsageChanged,
   parseFunctionGasSnapshots,
@@ -579,8 +580,13 @@ MyContract#testB (gas: 20000)`;
 
       assertThrowsHardhatError(
         () => parseFunctionGasSnapshots(stringified),
-        HardhatError.ERRORS.CORE.SOLIDITY_TESTS.INVALID_GAS_SNAPSHOT_FORMAT,
-        { line: stringified },
+        HardhatError.ERRORS.CORE.SOLIDITY_TESTS.INVALID_SNAPSHOT_FORMAT,
+        {
+          file: FUNCTION_GAS_SNAPSHOTS_FILE,
+          line: stringified,
+          expectedFormat:
+            "'ContractName:functionName (gas: value)' for standard tests or 'ContractName:functionName (runs: value, μ: value, ~: value)' for fuzz tests",
+        },
       );
     });
   });

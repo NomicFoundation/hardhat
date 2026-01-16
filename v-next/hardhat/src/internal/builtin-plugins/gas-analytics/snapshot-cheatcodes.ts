@@ -8,7 +8,7 @@ import { writeJsonFile } from "@nomicfoundation/hardhat-utils/fs";
 
 export const SNAPSHOT_CHEATCODES_DIR = "snapshots";
 
-export type GasSnapshotCheatcodesMap = Map<
+export type SnapshotCheatcodesMap = Map<
   string, // group
   Record<
     string, // name
@@ -16,17 +16,17 @@ export type GasSnapshotCheatcodesMap = Map<
   >
 >;
 
-export function getGasSnapshotCheatcodesPath(
+export function getSnapshotCheatcodesPath(
   basePath: string,
   filename: string,
 ): string {
   return path.join(basePath, SNAPSHOT_CHEATCODES_DIR, filename);
 }
 
-export function extractGasSnapshotCheatcodes(
+export function extractSnapshotCheatcodes(
   suiteResults: SuiteResult[],
-): GasSnapshotCheatcodesMap {
-  const snapshots: GasSnapshotCheatcodesMap = new Map();
+): SnapshotCheatcodesMap {
+  const snapshots: SnapshotCheatcodesMap = new Map();
   for (const { testResults } of suiteResults) {
     for (const { valueSnapshotGroups: snapshotGroups } of testResults) {
       if (snapshotGroups === undefined) {
@@ -50,12 +50,12 @@ export function extractGasSnapshotCheatcodes(
   return snapshots;
 }
 
-export async function writeGasSnapshotCheatcodes(
+export async function writeSnapshotCheatcodes(
   basePath: string,
-  gasSnapshotCheatcodes: GasSnapshotCheatcodesMap,
+  snapshotCheatcodes: SnapshotCheatcodesMap,
 ): Promise<void> {
-  for (const [snapshotGroup, snapshot] of gasSnapshotCheatcodes) {
-    const snapshotCheatcodesPath = getGasSnapshotCheatcodesPath(
+  for (const [snapshotGroup, snapshot] of snapshotCheatcodes) {
+    const snapshotCheatcodesPath = getSnapshotCheatcodesPath(
       basePath,
       `${snapshotGroup}.json`,
     );
@@ -65,7 +65,7 @@ export async function writeGasSnapshotCheatcodes(
     } catch (error) {
       ensureError(error);
       throw new HardhatError(
-        HardhatError.ERRORS.CORE.SOLIDITY_TESTS.GAS_SNAPSHOT_WRITE_ERROR,
+        HardhatError.ERRORS.CORE.SOLIDITY_TESTS.SNAPSHOT_WRITE_ERROR,
         { snapshotsPath: snapshotCheatcodesPath, error: error.message },
         error,
       );

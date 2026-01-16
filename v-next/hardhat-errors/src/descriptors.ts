@@ -1038,26 +1038,27 @@ Remaining test suites: {suites}`,
         websiteTitle: "Unhandled EDR error in Solidity tests",
         websiteDescription: "Unhandled EDR error while running Solidity tests.",
       },
-      INVALID_GAS_SNAPSHOT_FORMAT: {
+      INVALID_SNAPSHOT_FORMAT: {
         number: 803,
-        messageTemplate: "Invalid gas snapshot format in line: {line}",
-        websiteTitle: "Invalid gas snapshot format",
+        messageTemplate:
+          "Invalid format in snapshot file {file} at line {line}. Expected format: {expectedFormat}.",
+        websiteTitle: "Invalid snapshot format",
         websiteDescription:
-          "The .gas-snapshot file contains a line with an invalid format. Expected format is 'ContractName:functionName (gas: value)' for standard tests or 'ContractName:functionName (runs: value, μ: value, ~: value)' for fuzz tests.",
+          "The snapshot file contains a line with an invalid format.",
       },
-      GAS_SNAPSHOT_READ_ERROR: {
+      SNAPSHOT_READ_ERROR: {
         number: 804,
         messageTemplate:
-          "Error reading gas snapshot file at {snapshotsPath}: {error}",
-        websiteTitle: "Error reading gas snapshot file",
-        websiteDescription: "There was an error reading the gas snapshot file.",
+          "Error reading snapshot file at {snapshotsPath}: {error}",
+        websiteTitle: "Error reading snapshot file",
+        websiteDescription: "There was an error reading the snapshot file.",
       },
-      GAS_SNAPSHOT_WRITE_ERROR: {
+      SNAPSHOT_WRITE_ERROR: {
         number: 805,
         messageTemplate:
-          "Error writing gas snapshot file at {snapshotsPath}: {error}",
-        websiteTitle: "Error writing gas snapshot file",
-        websiteDescription: "There was an error writing the gas snapshot file.",
+          "Error writing snapshot file at {snapshotsPath}: {error}",
+        websiteTitle: "Error writing snapshot file",
+        websiteDescription: "There was an error writing the snapshot file.",
       },
       MUTUALLY_EXCLUSIVE_SNAPSHOT_FLAGS: {
         number: 806,

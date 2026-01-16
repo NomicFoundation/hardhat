@@ -14,7 +14,7 @@ import chalk from "chalk";
 
 import { getFullyQualifiedName } from "../../../utils/contract-names.js";
 
-const FUNCTION_GAS_SNAPSHOTS_FILE = ".gas-snapshot";
+export const FUNCTION_GAS_SNAPSHOTS_FILE = ".gas-snapshot";
 
 export interface FunctionGasSnapshot {
   contractNameOrFqn: string;
@@ -107,7 +107,7 @@ export async function writeFunctionGasSnapshots(
   } catch (error) {
     ensureError(error);
     throw new HardhatError(
-      HardhatError.ERRORS.CORE.SOLIDITY_TESTS.GAS_SNAPSHOT_WRITE_ERROR,
+      HardhatError.ERRORS.CORE.SOLIDITY_TESTS.SNAPSHOT_WRITE_ERROR,
       { snapshotsPath, error: error.message },
       error,
     );
@@ -130,7 +130,7 @@ export async function readFunctionGasSnapshots(
     }
 
     throw new HardhatError(
-      HardhatError.ERRORS.CORE.SOLIDITY_TESTS.GAS_SNAPSHOT_READ_ERROR,
+      HardhatError.ERRORS.CORE.SOLIDITY_TESTS.SNAPSHOT_READ_ERROR,
       { snapshotsPath, error: error.message },
       error,
     );
@@ -202,8 +202,13 @@ export function parseFunctionGasSnapshots(
     }
 
     throw new HardhatError(
-      HardhatError.ERRORS.CORE.SOLIDITY_TESTS.INVALID_GAS_SNAPSHOT_FORMAT,
-      { line },
+      HardhatError.ERRORS.CORE.SOLIDITY_TESTS.INVALID_SNAPSHOT_FORMAT,
+      {
+        file: FUNCTION_GAS_SNAPSHOTS_FILE,
+        line,
+        expectedFormat:
+          "'ContractName:functionName (gas: value)' for standard tests or 'ContractName:functionName (runs: value, μ: value, ~: value)' for fuzz tests",
+      },
     );
   }
 

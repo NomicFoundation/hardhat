@@ -10,7 +10,7 @@ import {
 } from "@nomicfoundation/hardhat-utils/fs";
 
 import { getFunctionGasSnapshotsPath } from "../../../../../../src/internal/builtin-plugins/gas-analytics/function-gas-snapshots.js";
-import { getGasSnapshotCheatcodesPath } from "../../../../../../src/internal/builtin-plugins/gas-analytics/gas-snapshot-cheatcodes.js";
+import { getSnapshotCheatcodesPath } from "../../../../../../src/internal/builtin-plugins/gas-analytics/snapshot-cheatcodes.js";
 import {
   handleSnapshot,
   handleSnapshotCheck,
@@ -28,7 +28,7 @@ describe("solidity-test/task-action (override in gas-analytics/index)", () => {
     let tmpDir: string;
 
     before(async () => {
-      tmpDir = await mkdtemp("gas-snapshots-handler-test-");
+      tmpDir = await mkdtemp("snapshots-handler-test-");
     });
 
     afterEach(async () => {
@@ -67,7 +67,7 @@ describe("solidity-test/task-action (override in gas-analytics/index)", () => {
       assert.equal(fileExists, false);
     });
 
-    it("should write gas snapshot cheatcodes when tests pass", async () => {
+    it("should write snapshot cheatcodes when tests pass", async () => {
       const suiteResults = [
         createSuiteResult("MyContract", [
           createTestResultWithSnapshots([
@@ -81,15 +81,12 @@ describe("solidity-test/task-action (override in gas-analytics/index)", () => {
 
       await handleSnapshot(tmpDir, suiteResults, true);
 
-      const cheatcodePath = getGasSnapshotCheatcodesPath(
-        tmpDir,
-        "TestGroup.json",
-      );
+      const cheatcodePath = getSnapshotCheatcodesPath(tmpDir, "TestGroup.json");
       const cheatcodeContent = await readJsonFile(cheatcodePath);
       assert.deepEqual(cheatcodeContent, { "test-entry": "42" });
     });
 
-    it("should write gas snapshot cheatcodes even when tests fail", async () => {
+    it("should write snapshot cheatcodes even when tests fail", async () => {
       const suiteResults = [
         createSuiteResult("MyContract", [
           createTestResultWithSnapshots([
@@ -103,10 +100,7 @@ describe("solidity-test/task-action (override in gas-analytics/index)", () => {
 
       await handleSnapshot(tmpDir, suiteResults, false);
 
-      const cheatcodePath = getGasSnapshotCheatcodesPath(
-        tmpDir,
-        "TestGroup.json",
-      );
+      const cheatcodePath = getSnapshotCheatcodesPath(tmpDir, "TestGroup.json");
       const cheatcodeContent = await readJsonFile(cheatcodePath);
       assert.deepEqual(cheatcodeContent, { "test-entry": "42" });
     });
@@ -130,10 +124,7 @@ describe("solidity-test/task-action (override in gas-analytics/index)", () => {
       const functionContent = await readUtf8File(snapshotPath);
       assert.equal(functionContent, "MyContract#testA (gas: 10000)");
 
-      const cheatcodePath = getGasSnapshotCheatcodesPath(
-        tmpDir,
-        "TestGroup.json",
-      );
+      const cheatcodePath = getSnapshotCheatcodesPath(tmpDir, "TestGroup.json");
       const cheatcodeContent = await readJsonFile(cheatcodePath);
       assert.deepEqual(cheatcodeContent, { "test-entry": "42" });
     });
@@ -148,7 +139,7 @@ describe("solidity-test/task-action (override in gas-analytics/index)", () => {
       logSnapshotResult(result, logger);
 
       const text = output.join("\n");
-      assert.match(text, /Gas snapshots written successfully/);
+      assert.match(text, /Function gas snapshots written successfully/);
     });
 
     it("should not log anything when function gas snapshots were not written", () => {
@@ -166,7 +157,7 @@ describe("solidity-test/task-action (override in gas-analytics/index)", () => {
     let tmpDir: string;
 
     before(async () => {
-      tmpDir = await mkdtemp("gas-snapshots-check-test-");
+      tmpDir = await mkdtemp("snapshots-check-test-");
     });
 
     afterEach(async () => {
@@ -316,7 +307,7 @@ describe("solidity-test/task-action (override in gas-analytics/index)", () => {
       logSnapshotCheckResult(result, logger);
 
       const text = output.join("\n");
-      assert.match(text, /Gas snapshot check failed/);
+      assert.match(text, /Snapshot check failed/);
       assert.match(text, /1 function\(s\) changed/);
       assert.match(text, /To update snapshots, run your tests with --snapshot/);
     });
@@ -337,7 +328,7 @@ describe("solidity-test/task-action (override in gas-analytics/index)", () => {
       logSnapshotCheckResult(result, logger);
 
       const text = output.join("\n");
-      assert.match(text, /Gas snapshots written successfully/);
+      assert.match(text, /Function gas snapshots written successfully/);
     });
 
     it("should log check passed message when there are no changes", () => {
@@ -356,7 +347,7 @@ describe("solidity-test/task-action (override in gas-analytics/index)", () => {
       logSnapshotCheckResult(result, logger);
 
       const text = output.join("\n");
-      assert.match(text, /Gas snapshot check passed/);
+      assert.match(text, /Snapshot check passed/);
     });
 
     it("should log check passed with added functions", () => {
@@ -384,7 +375,7 @@ describe("solidity-test/task-action (override in gas-analytics/index)", () => {
       logSnapshotCheckResult(result, logger);
 
       const text = output.join("\n");
-      assert.match(text, /Gas snapshot check passed/);
+      assert.match(text, /Snapshot check passed/);
       assert.match(text, /Added 1 function\(s\):/);
       assert.match(text, /\+ MyContract#testB \(gas: 20000\)/);
     });
@@ -414,7 +405,7 @@ describe("solidity-test/task-action (override in gas-analytics/index)", () => {
       logSnapshotCheckResult(result, logger);
 
       const text = output.join("\n");
-      assert.match(text, /Gas snapshot check passed/);
+      assert.match(text, /Snapshot check passed/);
       assert.match(text, /Removed 1 function\(s\):/);
       assert.match(text, /- MyContract#testB \(gas: 20000\)/);
     });
