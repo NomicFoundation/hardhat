@@ -1,4 +1,8 @@
 import type {
+  Compiler
+} from "../../../../../types/solidity/compiler.js";
+
+import type {
   CompilerInput,
   CompilerOutput,
 } from "../../../../../types/solidity/compiler-io.js";
@@ -22,15 +26,6 @@ import {
 } from "@nomicfoundation/hardhat-utils/fs";
 import { createNonClosingWriter } from "@nomicfoundation/hardhat-utils/stream";
 import * as semver from "semver";
-
-export interface Compiler {
-  readonly version: string;
-  readonly longVersion: string;
-  readonly compilerPath: string;
-  readonly isSolcJs: boolean;
-
-  compile(input: CompilerInput): Promise<CompilerOutput>;
-}
 
 /**
  * Spawns a compilation process and returns its output.

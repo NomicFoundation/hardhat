@@ -11,7 +11,8 @@ import { exists, isBinaryFile } from "@nomicfoundation/hardhat-utils/fs";
 import { getCacheDir } from "@nomicfoundation/hardhat-utils/global-dir";
 import debug from "debug";
 
-import { NativeCompiler, SolcJsCompiler, type Compiler } from "./compiler.js";
+import type { Compiler } from "../../../../../types/solidity.js";
+import { NativeCompiler, SolcJsCompiler } from "./compiler.js";
 import {
   CompilerDownloaderImplementation,
   CompilerPlatform,
