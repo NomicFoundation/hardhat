@@ -14,7 +14,7 @@ import chalk from "chalk";
 
 import { getFullyQualifiedName } from "../../../utils/contract-names.js";
 
-const FUNCTION_GAS_SNAPSHOTS_FILE = ".gas-snapshot";
+export const FUNCTION_GAS_SNAPSHOTS_FILE = ".gas-snapshot";
 
 export interface FunctionGasSnapshot {
   contractNameOrFqn: string;
@@ -47,86 +47,6 @@ export interface FunctionGasSnapshotChange {
   expected: number;
   actual: number;
   runs?: number;
-}
-
-export async function handleSnapshot(
-  basePath: string,
-  suiteResults: SuiteResult[],
-): Promise<void> {
-  const functionGasSnapshots = extractFunctionGasSnapshots(suiteResults);
-  await writeFunctionGasSnapshots(basePath, functionGasSnapshots);
-
-  console.log();
-  console.log(chalk.green("Gas snapshots written successfully"));
-  console.log();
-}
-
-export async function handleSnapshotCheck(
-  basePath: string,
-  suiteResults: SuiteResult[],
-): Promise<void> {
-  const functionGasSnapshots = extractFunctionGasSnapshots(suiteResults);
-
-  let previousFunctionGasSnapshots: FunctionGasSnapshot[];
-  try {
-    previousFunctionGasSnapshots = await readFunctionGasSnapshots(basePath);
-  } catch (error) {
-    if (error instanceof FileNotFoundError) {
-      return handleSnapshot(basePath, suiteResults);
-    }
-
-    throw error;
-  }
-
-  const { added, removed, changed } = compareFunctionGasSnapshots(
-    previousFunctionGasSnapshots,
-    functionGasSnapshots,
-  );
-
-  if (changed.length > 0) {
-    console.log();
-    console.log(
-      `${chalk.red("Gas snapshot check failed:")} ${chalk.grey(`${changed.length} function(s) changed`)}`,
-    );
-    console.log();
-
-    printFunctionGasSnapshotChanges(changed);
-    process.exitCode = 1;
-
-    console.log(
-      chalk.yellow("To update snapshots, run your tests with --snapshot"),
-    );
-    console.log();
-  } else if (added.length > 0 || removed.length > 0) {
-    // Update snapshots when functions are added or removed (but not changed)
-    await writeFunctionGasSnapshots(basePath, functionGasSnapshots);
-
-    console.log();
-    console.log(chalk.green("Gas snapshot check passed"));
-    console.log();
-
-    if (added.length > 0) {
-      console.log(chalk.grey(`Added ${added.length} function(s):`));
-      const addedLines = stringifyFunctionGasSnapshots(added).split("\n");
-      for (const line of addedLines) {
-        console.log(chalk.green(`  + ${line}`));
-      }
-      console.log();
-    }
-
-    if (removed.length > 0) {
-      console.log(chalk.grey(`Removed ${removed.length} function(s):`));
-      const removedLines = stringifyFunctionGasSnapshots(removed).split("\n");
-      for (const line of removedLines) {
-        console.log(chalk.red(`  - ${line}`));
-      }
-      console.log();
-    }
-  } else {
-    console.log();
-    console.log(chalk.green("Gas snapshot check passed"));
-    console.log();
-  }
 }
 
 export function getFunctionGasSnapshotsPath(basePath: string): string {
@@ -187,7 +107,7 @@ export async function writeFunctionGasSnapshots(
   } catch (error) {
     ensureError(error);
     throw new HardhatError(
-      HardhatError.ERRORS.CORE.SOLIDITY_TESTS.GAS_SNAPSHOT_WRITE_ERROR,
+      HardhatError.ERRORS.CORE.SOLIDITY_TESTS.SNAPSHOT_WRITE_ERROR,
       { snapshotsPath, error: error.message },
       error,
     );
@@ -210,7 +130,7 @@ export async function readFunctionGasSnapshots(
     }
 
     throw new HardhatError(
-      HardhatError.ERRORS.CORE.SOLIDITY_TESTS.GAS_SNAPSHOT_READ_ERROR,
+      HardhatError.ERRORS.CORE.SOLIDITY_TESTS.SNAPSHOT_READ_ERROR,
       { snapshotsPath, error: error.message },
       error,
     );
@@ -282,8 +202,13 @@ export function parseFunctionGasSnapshots(
     }
 
     throw new HardhatError(
-      HardhatError.ERRORS.CORE.SOLIDITY_TESTS.INVALID_GAS_SNAPSHOT_FORMAT,
-      { line },
+      HardhatError.ERRORS.CORE.SOLIDITY_TESTS.INVALID_SNAPSHOT_FORMAT,
+      {
+        file: FUNCTION_GAS_SNAPSHOTS_FILE,
+        line,
+        expectedFormat:
+          "'ContractName:functionName (gas: value)' for standard tests or 'ContractName:functionName (runs: value, μ: value, ~: value)' for fuzz tests",
+      },
     );
   }
 

@@ -102,7 +102,7 @@ contract CalculatorTest is Test {
     );
   }
 
-  // Gas Snapshot Tests
+  // Snapshot Tests
   function testSnapshotGasAddition() public {
     calculator.add(100, 200);
     vm.snapshotGasLastCall("calculator-add-single");
