@@ -1,10 +1,10 @@
-import type { NewTaskDefinitionPlugin } from "hardhat/types/tasks";
+import type { PluginSafeTaskDefinition } from "hardhat/types/plugins";
 
 import { task } from "hardhat/config";
 
 import { extendWithVerificationArgs } from "../utils.js";
 
-const verifyBlockscoutTask: NewTaskDefinitionPlugin =
+const verifyBlockscoutTask: PluginSafeTaskDefinition =
   extendWithVerificationArgs(
     task(["verify", "blockscout"], "Verify a contract on Blockscout"),
   )
