@@ -2,9 +2,12 @@ import type { HardhatRuntimeEnvironment } from "../../../../src/types/hre.js";
 
 import assert from "node:assert/strict";
 import path from "node:path";
-import { before, beforeEach, describe, it, mock } from "node:test";
+import { after, before, beforeEach, describe, it, mock } from "node:test";
 
-import { useFixtureProject } from "@nomicfoundation/hardhat-test-utils";
+import {
+  getTmpDir,
+  useFixtureProject,
+} from "@nomicfoundation/hardhat-test-utils";
 import {
   exists,
   mkdir,
@@ -12,7 +15,11 @@ import {
   remove,
   writeUtf8File,
 } from "@nomicfoundation/hardhat-utils/fs";
-import { getCacheDir } from "@nomicfoundation/hardhat-utils/global-dir";
+import {
+  getCacheDir,
+  resetMockCacheDir,
+  setMockCacheDir,
+} from "@nomicfoundation/hardhat-utils/global-dir";
 
 import cleanAction from "../../../../src/internal/builtin-plugins/clean/task-action.js";
 import { createHardhatRuntimeEnvironment } from "../../../../src/internal/hre-initialization.js";
@@ -21,6 +28,9 @@ let hre: HardhatRuntimeEnvironment;
 let globalCacheDir: string;
 let cacheDir: string;
 let artifactsDir: string;
+
+// Variable for isolating the global cache during tests
+let testGlobalCacheRoot: string;
 
 const onClean = mock.fn(async () => {});
 
@@ -63,6 +73,10 @@ describe("clean/task-action", () => {
     useFixtureProject("loaded-config");
 
     before(async function () {
+      // Set up isolated cache directory to avoid deleting the real global cache
+      testGlobalCacheRoot = await getTmpDir("clean-task-global-cache");
+      setMockCacheDir(testGlobalCacheRoot);
+
       globalCacheDir = await getCacheDir();
       cacheDir = path.join(process.cwd(), "cache");
       artifactsDir = path.join(process.cwd(), "artifacts");
@@ -73,6 +87,14 @@ describe("clean/task-action", () => {
       hre.hooks.registerHandlers("clean", {
         onClean,
       });
+    });
+
+    after(async function () {
+      // Reset mock cache directory
+      resetMockCacheDir();
+
+      // Clean up temp directory
+      await remove(testGlobalCacheRoot);
     });
 
     beforeEach(async () => {
