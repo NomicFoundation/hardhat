@@ -1,17 +1,14 @@
 import type { TaskOverrideActionFunction } from "../../../../../types/tasks.js";
-import type { FunctionGasSnapshotComparison } from "../../function-gas-snapshots.js";
+import type { FunctionGasSnapshotCheckResult } from "../../function-gas-snapshots.js";
 import type { SuiteResult } from "@nomicfoundation/edr";
 
 import { HardhatError } from "@nomicfoundation/hardhat-errors";
-import { FileNotFoundError } from "@nomicfoundation/hardhat-utils/fs";
 import chalk from "chalk";
 
 import {
-  compareFunctionGasSnapshots,
+  checkFunctionGasSnapshots,
   extractFunctionGasSnapshots,
-  printFunctionGasSnapshotChanges,
-  readFunctionGasSnapshots,
-  stringifyFunctionGasSnapshots,
+  logFunctionGasSnapshotsSection,
   writeFunctionGasSnapshots,
 } from "../../function-gas-snapshots.js";
 import {
@@ -29,9 +26,7 @@ export interface SnapshotResult {
 }
 
 export interface SnapshotCheckResult {
-  passed: boolean;
-  comparison: FunctionGasSnapshotComparison;
-  functionGasSnapshotsWritten: boolean;
+  functionGasSnapshotsCheck: FunctionGasSnapshotCheckResult;
 }
 
 const runSolidityTests: TaskOverrideActionFunction<
@@ -57,9 +52,12 @@ const runSolidityTests: TaskOverrideActionFunction<
     );
     logSnapshotResult(snapshotResult);
   } else if (testsPassed && args.snapshotCheck) {
-    const checkResult = await handleSnapshotCheck(rootPath, suiteResults);
-    logSnapshotCheckResult(checkResult);
-    snapshotCheckPassed = checkResult.passed;
+    const snapshotCheckResult = await handleSnapshotCheck(
+      rootPath,
+      suiteResults,
+    );
+    logSnapshotCheckResult(snapshotCheckResult);
+    snapshotCheckPassed = snapshotCheckResult.functionGasSnapshotsCheck.passed;
   }
 
   process.exitCode = testsPassed && snapshotCheckPassed ? 0 : 1;
@@ -103,145 +101,34 @@ export async function handleSnapshotCheck(
   basePath: string,
   suiteResults: SuiteResult[],
 ): Promise<SnapshotCheckResult> {
-  const functionGasSnapshots = extractFunctionGasSnapshots(suiteResults);
-
-  let previousFunctionGasSnapshots;
-  try {
-    previousFunctionGasSnapshots = await readFunctionGasSnapshots(basePath);
-  } catch (error) {
-    if (error instanceof FileNotFoundError) {
-      await writeFunctionGasSnapshots(basePath, functionGasSnapshots);
-
-      return {
-        passed: true,
-        comparison: {
-          added: [],
-          removed: [],
-          changed: [],
-        },
-        functionGasSnapshotsWritten: true,
-      };
-    }
-
-    throw error;
-  }
-
-  const comparison = compareFunctionGasSnapshots(
-    previousFunctionGasSnapshots,
-    functionGasSnapshots,
+  const functionGasSnapshotsCheck = await checkFunctionGasSnapshots(
+    basePath,
+    suiteResults,
   );
 
-  // Update snapshots when functions are added or removed (but not changed)
-  const hasAddedOrRemoved =
-    comparison.added.length > 0 || comparison.removed.length > 0;
-  if (comparison.changed.length === 0 && hasAddedOrRemoved) {
-    await writeFunctionGasSnapshots(basePath, functionGasSnapshots);
-  }
-
   return {
-    passed: comparison.changed.length === 0,
-    comparison,
-    functionGasSnapshotsWritten: hasAddedOrRemoved,
+    functionGasSnapshotsCheck,
   };
 }
 
 export function logSnapshotCheckResult(
-  result: SnapshotCheckResult,
+  { functionGasSnapshotsCheck }: SnapshotCheckResult,
   logger: typeof console.log = console.log,
 ): void {
   logger();
 
   logger(
-    result.passed
+    functionGasSnapshotsCheck.passed
       ? chalk.green("Snapshot check passed")
       : chalk.red("Snapshot check failed"),
   );
 
-  logFunctionGasSnapshotsSection(result, logger);
+  logFunctionGasSnapshotsSection(functionGasSnapshotsCheck, logger);
 
-  if (!result.passed) {
+  if (!functionGasSnapshotsCheck.passed) {
     logger(chalk.yellow("To update snapshots, run your tests with --snapshot"));
     logger();
   }
-}
-
-export function logFunctionGasSnapshotsSection(
-  result: SnapshotCheckResult,
-  logger: typeof console.log = console.log,
-): void {
-  const { comparison, functionGasSnapshotsWritten } = result;
-  const hasChanges = comparison.changed.length > 0;
-  const hasAdded = comparison.added.length > 0;
-  const hasRemoved = comparison.removed.length > 0;
-  const hasAnyDifferences = hasChanges || hasAdded || hasRemoved;
-  const isFirstTimeWrite = functionGasSnapshotsWritten && !hasAnyDifferences;
-
-  // Nothing to report
-  if (!isFirstTimeWrite && !hasAnyDifferences) {
-    return;
-  }
-
-  logger();
-  logger(formatSectionHeader("Function gas snapshots", comparison));
-
-  if (isFirstTimeWrite) {
-    logger();
-    logger(
-      chalk.green(
-        "  No existing snapshots found. Function gas snapshots written successfully",
-      ),
-    );
-    logger();
-    return;
-  }
-
-  if (hasChanges) {
-    logger();
-    printFunctionGasSnapshotChanges(comparison.changed, logger);
-  }
-
-  if (hasAdded) {
-    logger();
-    logger(chalk.grey(`  Added ${comparison.added.length} function(s):`));
-    const addedLines = stringifyFunctionGasSnapshots(comparison.added).split(
-      "\n",
-    );
-    for (const line of addedLines) {
-      logger(chalk.green(`    + ${line}`));
-    }
-  }
-
-  if (hasRemoved) {
-    logger();
-    logger(chalk.grey(`  Removed ${comparison.removed.length} function(s):`));
-    const removedLines = stringifyFunctionGasSnapshots(
-      comparison.removed,
-    ).split("\n");
-    for (const line of removedLines) {
-      logger(chalk.red(`    - ${line}`));
-    }
-  }
-
-  logger();
-}
-
-function formatSectionHeader(
-  sectionName: string,
-  { changed, added, removed }: FunctionGasSnapshotComparison,
-): string {
-  const parts: string[] = [];
-
-  if (changed.length > 0) {
-    parts.push(`${changed.length} changed`);
-  }
-  if (added.length > 0) {
-    parts.push(`${added.length} added`);
-  }
-  if (removed.length > 0) {
-    parts.push(`${removed.length} removed`);
-  }
-
-  return `${sectionName}: ${parts.join(", ")}`;
 }
 
 export default runSolidityTests;
