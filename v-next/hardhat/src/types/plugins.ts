@@ -1,6 +1,10 @@
 import type { GlobalOptionDefinition } from "./arguments.js";
 import type { HardhatHooks } from "./hooks.js";
-import type { TaskDefinitionPlugin } from "./tasks.js";
+import type {
+  EmptyTaskDefinition,
+  NewTaskDefinition,
+  TaskOverrideDefinition,
+} from "./tasks.js";
 
 // NOTE: We import the builtin plugins in this module, so that their
 // type-extensions are loaded when the user imports `hardhat/types/plugins`.
@@ -19,6 +23,18 @@ declare module "./config.js" {
     plugins: HardhatPlugin[];
   }
 }
+
+/**
+ * A helper type to strictly enforce that plugins only use file-based actions.
+ * It allows:
+ * - Empty tasks
+ * - New tasks with an 'action' property (and NOT inlineAction)
+ * - Override tasks with an 'action' property (and NOT inlineAction)
+ */
+export type PluginSafeTaskDefinition =
+  | EmptyTaskDefinition
+  | Extract<NewTaskDefinition, { action: any }>
+  | Extract<TaskOverrideDefinition, { action: any }>;
 
 /**
  * A Hardhat plugin.
@@ -65,8 +81,8 @@ export interface HardhatPlugin {
    * returning an object with a handler for the `extendUserConfig` hook.
    *
    * You can define each factory in two ways:
-   *  - As an inline function.
-   *  - As a string with the path to a file that exports the factory as `default`.
+   * - As an inline function.
+   * - As a string with the path to a file that exports the factory as `default`.
    *
    * The first option should only be used for development. You MUST use the second
    * option for production.
@@ -85,7 +101,7 @@ export interface HardhatPlugin {
    * have been defined before, either by a plugin you depend on or by Hardhat
    * itself.
    */
-  tasks?: TaskDefinitionPlugin[];
+  tasks?: PluginSafeTaskDefinition[];
 }
 
 /**

@@ -121,18 +121,6 @@ export interface BaseTaskDefinition {
 export type NewTaskDefinition = BaseTaskDefinition & TaskAction;
 
 /**
- * The definition of a new task specifically for plugins (action is required, inlineAction is forbidden).
- */
-export interface NewTaskDefinitionPlugin extends BaseTaskDefinition {
-  action: LazyActionObject<NewTaskActionFunction>;
-  /**
-   * Plugins strictly forbid inline actions.
-   * If you see an error here, it means you used `.setInlineAction()` but must use `.setAction()`.
-   */
-  inlineAction?: never;
-}
-
-/**
  * The base definition of an override of an existing task.
  */
 export interface BaseTaskOverrideDefinition {
@@ -152,19 +140,6 @@ export type TaskOverrideDefinition = BaseTaskOverrideDefinition &
   TaskOverrideAction;
 
 /**
- * An override of an existing task specifically for plugins (action is required, inlineAction is forbidden).
- */
-export interface TaskOverrideDefinitionPlugin
-  extends BaseTaskOverrideDefinition {
-  action: LazyActionObject<TaskOverrideActionFunction>;
-  /**
-   * Plugins strictly forbid inline actions.
-   * If you see an error here, it means you used `.setInlineAction()` but must use `.setAction()`.
-   */
-  inlineAction?: never;
-}
-
-/**
  * The definition of a task, as used in the plugins and user config. They are
  * declarative descriptions of the task, which are later processed to create the
  * actual `Task`s.
@@ -173,14 +148,6 @@ export type TaskDefinition =
   | EmptyTaskDefinition
   | NewTaskDefinition
   | TaskOverrideDefinition;
-
-/**
- * The definition of a task, strictly for plugins.
- */
-export type TaskDefinitionPlugin =
-  | EmptyTaskDefinition
-  | NewTaskDefinitionPlugin
-  | TaskOverrideDefinitionPlugin;
 
 /**
  * This helper type adds an argument to an existing TaskArgumentsT.
@@ -198,23 +165,6 @@ export type ExtendTaskArguments<
       : never
 > &
   TaskArgumentsT;
-
-/**
- * Helper to determine the build return type based on ActionTypeT.
- *
- * This ensures strict typing for plugins:
- * - If ActionTypeT is "FILE", it returns `PluginSafeDef`. This allows the task to be used
- * in a `HardhatPlugin`, where `inlineAction` is strictly forbidden and only `action`
- * (file-based import) is allowed.
- * - If ActionTypeT is "INLINE" (or "NONE"), it returns `BaseDef`. These tasks allow
- * `inlineAction` but result in a type incompatible with `HardhatPlugin.tasks`.
- */
-export type BuildReturnType<BaseDef, ActionTypeT, PluginSafeDef> =
-  ActionTypeT extends "FILE"
-    ? PluginSafeDef
-    : ActionTypeT extends "INLINE"
-      ? BaseDef
-      : BaseDef;
 
 /**
  * Error state used when the user forgot to add an action.
@@ -409,7 +359,12 @@ export interface NewTaskDefinitionBuilder<
       ActionDefinedState,
       ActionTypeT
     >,
-  ): BuildReturnType<NewTaskDefinition, ActionTypeT, NewTaskDefinitionPlugin>;
+  ): ActionTypeT extends "FILE"
+    ? Extract<
+        NewTaskDefinition,
+        { action: LazyActionObject<NewTaskActionFunction> }
+      >
+    : Extract<NewTaskDefinition, { inlineAction: NewTaskActionFunction }>;
 }
 
 /**
@@ -530,11 +485,15 @@ export interface TaskOverrideDefinitionBuilder<
       ActionDefinedState,
       ActionTypeT
     >,
-  ): BuildReturnType<
-    TaskOverrideDefinition,
-    ActionTypeT,
-    TaskOverrideDefinitionPlugin
-  >;
+  ): ActionTypeT extends "FILE"
+    ? Extract<
+        TaskOverrideDefinition,
+        { action: LazyActionObject<TaskOverrideActionFunction> }
+      >
+    : Extract<
+        TaskOverrideDefinition,
+        { inlineAction: TaskOverrideActionFunction }
+      >;
 }
 
 /**

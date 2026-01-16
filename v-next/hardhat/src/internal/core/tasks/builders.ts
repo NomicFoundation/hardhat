@@ -17,9 +17,6 @@ import type {
   LazyActionObject,
   TaskAction,
   TaskOverrideAction,
-  NewTaskDefinitionPlugin,
-  TaskOverrideDefinitionPlugin,
-  BuildReturnType,
   MissingActionState,
   ActionDefinedState,
 } from "../../../types/tasks.js";
@@ -109,7 +106,7 @@ export class NewTaskDefinitionBuilderImplementation<
 
     /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions
     -- Cast to update the builder state, ensuring via the interface constraints that setAction or
-    setInlineAction cannot be called again. It also set the action type to FILE or INLINE. */
+    setInlineAction cannot be called again. It also set the action type to FILE. */
     return this as NewTaskDefinitionBuilder<
       TaskArgumentsT,
       ActionDefinedState,
@@ -133,7 +130,7 @@ export class NewTaskDefinitionBuilderImplementation<
 
     /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions
     -- Cast to update the builder state, ensuring via the interface constraints that setAction or
-    setInlineAction cannot be called again. It also set the action type to FILE or INLINE. */
+    setInlineAction cannot be called again. It also set the action type to INLINE. */
     return this as NewTaskDefinitionBuilder<
       TaskArgumentsT,
       ActionDefinedState,
@@ -262,11 +259,12 @@ export class NewTaskDefinitionBuilderImplementation<
     });
   }
 
-  public build(): BuildReturnType<
-    NewTaskDefinition,
-    ActionTypeT,
-    NewTaskDefinitionPlugin
-  > {
+  public build(): ActionTypeT extends "FILE"
+    ? Extract<
+        NewTaskDefinition,
+        { action: LazyActionObject<NewTaskActionFunction> }
+      >
+    : Extract<NewTaskDefinition, { inlineAction: NewTaskActionFunction }> {
     if (this.#action === undefined && this.#inlineAction === undefined) {
       throw new HardhatError(
         HardhatError.ERRORS.CORE.TASK_DEFINITIONS.NO_ACTION,
@@ -278,7 +276,7 @@ export class NewTaskDefinitionBuilderImplementation<
 
     /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions
     -- Cast the return value because TypeScript cannot verify that the object matches
-    the conditional type `BuildReturnType` while the `ActionTypeT` generic remains unresolved. */
+    the conditional type. */
     return {
       type: TaskDefinitionType.NEW_TASK,
       id: this.#id,
@@ -292,11 +290,12 @@ export class NewTaskDefinitionBuilderImplementation<
         : { inlineAction: this.#inlineAction }) as TaskAction),
       options: this.#options,
       positionalArguments: this.#positionalArgs,
-    } as BuildReturnType<
-      NewTaskDefinition,
-      ActionTypeT,
-      NewTaskDefinitionPlugin
-    >;
+    } as ActionTypeT extends "FILE"
+      ? Extract<
+          NewTaskDefinition,
+          { action: LazyActionObject<NewTaskActionFunction> }
+        >
+      : Extract<NewTaskDefinition, { inlineAction: NewTaskActionFunction }>;
   }
 
   #addPositionalArgument<
@@ -400,7 +399,7 @@ export class TaskOverrideDefinitionBuilderImplementation<
 
     /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions
     -- Cast to update the builder state, ensuring via the interface constraints that setAction or
-    setInlineAction cannot be called again. It also set the action type to FILE or INLINE. */
+    setInlineAction cannot be called again. It also set the action type to FILE. */
     return this as TaskOverrideDefinitionBuilder<
       TaskArgumentsT,
       ActionDefinedState,
@@ -428,7 +427,7 @@ export class TaskOverrideDefinitionBuilderImplementation<
 
     /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions
     -- Cast to update the builder state, ensuring via the interface constraints that setAction or
-    setInlineAction cannot be called again. It also set the action type to FILE or INLINE. */
+    setInlineAction cannot be called again. It also set the action type to INLINE. */
     return this as TaskOverrideDefinitionBuilder<
       TaskArgumentsT,
       ActionDefinedState,
@@ -527,11 +526,15 @@ export class TaskOverrideDefinitionBuilderImplementation<
     });
   }
 
-  public build(): BuildReturnType<
-    TaskOverrideDefinition,
-    ActionTypeT,
-    TaskOverrideDefinitionPlugin
-  > {
+  public build(): ActionTypeT extends "FILE"
+    ? Extract<
+        TaskOverrideDefinition,
+        { action: LazyActionObject<TaskOverrideActionFunction> }
+      >
+    : Extract<
+        TaskOverrideDefinition,
+        { inlineAction: TaskOverrideActionFunction }
+      > {
     if (this.#action === undefined && this.#inlineAction === undefined) {
       throw new HardhatError(
         HardhatError.ERRORS.CORE.TASK_DEFINITIONS.NO_ACTION,
@@ -543,7 +546,7 @@ export class TaskOverrideDefinitionBuilderImplementation<
 
     /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions
     -- Cast the return value because TypeScript cannot verify that the object matches
-    the conditional type `BuildReturnType` while the `ActionTypeT` generic remains unresolved. */
+    the conditional type. */
     return {
       type: TaskDefinitionType.TASK_OVERRIDE,
       id: this.#id,
@@ -560,10 +563,14 @@ export class TaskOverrideDefinitionBuilderImplementation<
             inlineAction: this.#inlineAction,
           }) as TaskOverrideAction),
       options: this.#options,
-    } as BuildReturnType<
-      TaskOverrideDefinition,
-      ActionTypeT,
-      TaskOverrideDefinitionPlugin
-    >;
+    } as ActionTypeT extends "FILE"
+      ? Extract<
+          TaskOverrideDefinition,
+          { action: LazyActionObject<TaskOverrideActionFunction> }
+        >
+      : Extract<
+          TaskOverrideDefinition,
+          { inlineAction: TaskOverrideActionFunction }
+        >;
   }
 }

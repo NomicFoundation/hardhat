@@ -86,7 +86,11 @@ export class ResolvedTask implements Task {
   }
 
   public get isEmpty(): boolean {
-    return this.actions.length === 1 && this.actions[0].action === undefined;
+    return (
+      this.actions.length === 1 &&
+      this.actions[0].action === undefined &&
+      this.actions[0].inlineAction === undefined
+    );
   }
 
   /**
