@@ -29,3 +29,20 @@ To learn more about Hardhat, check out the [documentation](https://hardhat.org/d
 Contributions are always welcome! Feel free to open any issue or send a pull request.
 
 Go to [CONTRIBUTING.md](https://github.com/NomicFoundation/hardhat/blob/main/CONTRIBUTING.md) to learn about how to set up Hardhat's development environment.
+## Basic Deploy Script Example
+
+```js
+const hre = require("hardhat");
+
+async function main() {
+  const Token = await hre.ethers.getContractFactory("Token");
+  const token = await Token.deploy();
+
+  await token.deployed();
+  console.log("Token deployed to:", token.address);
+}
+
+main().catch((error) => {
+  console.error(error);
+  process.exitCode = 1;
+});
