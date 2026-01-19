@@ -1118,10 +1118,10 @@ Snapshot cheatcodes: 1 added, 2 removed
 
   Added 1 snapshot(s):
     + TestGroup#test-entry: 42
-    
+
   Removed 2 snapshot(s):
-    - TestGroup#removed-entry: 100
     - AnotherGroup#old-entry: 150
+    - TestGroup#removed-entry: 100
 `;
 
           assert.equal(text, expected);
