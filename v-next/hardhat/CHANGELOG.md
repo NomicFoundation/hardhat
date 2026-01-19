@@ -1,5 +1,14 @@
 # hardhat
 
+## 3.1.5
+
+### Patch Changes
+
+- 346f92a: Improve how solidity tests are displayed, making it more consistent with the js reporters.
+- 2bc18b2: Bumped `viem` version across all packages [7861](https://github.com/NomicFoundation/hardhat/pull/7861).
+- 865e346: Updated the incorrect JSDOC against the `preprocessProjectFileBeforeBuilding` Solidity Hook ([#7870](https://github.com/NomicFoundation/hardhat/pull/7870))
+- c9bdbd0: Added `invokeSolc` in `SolidityHooks` to allow plugins to respond to the input/output from solc ([#7646](https://github.com/NomicFoundation/hardhat/issues/7646))
+
 ## 3.1.4
 
 ### Patch Changes

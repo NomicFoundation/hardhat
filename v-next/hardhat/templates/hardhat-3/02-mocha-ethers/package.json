@@ -5,10 +5,10 @@
   "description": "A TypeScript Hardhat project using Mocha and Ethers.js",
   "type": "module",
   "devDependencies": {
-    "hardhat": "workspace:^3.1.4",
+    "hardhat": "workspace:^3.1.5",
     "@nomicfoundation/hardhat-toolbox-mocha-ethers": "workspace:^3.0.2",
     "@nomicfoundation/hardhat-ethers": "workspace:^4.0.4",
-    "@nomicfoundation/hardhat-ignition": "workspace:^3.0.6",
+    "@nomicfoundation/hardhat-ignition": "workspace:^3.0.7",
     "@types/chai": "^4.2.0",
     "@types/chai-as-promised": "^8.0.1",
     "@types/mocha": ">=10.0.10",
@@ -22,13 +22,13 @@
   "peerDependencies": {
     "@nomicfoundation/hardhat-ethers": "workspace:^4.0.4",
     "@nomicfoundation/hardhat-ethers-chai-matchers": "workspace:^3.0.2",
-    "@nomicfoundation/hardhat-ignition": "workspace:^3.0.6",
-    "@nomicfoundation/hardhat-ignition-ethers": "workspace:^3.0.6",
+    "@nomicfoundation/hardhat-ignition": "workspace:^3.0.7",
+    "@nomicfoundation/hardhat-ignition-ethers": "workspace:^3.0.7",
     "@nomicfoundation/hardhat-keystore": "workspace:^3.0.2",
     "@nomicfoundation/hardhat-mocha": "workspace:^3.0.9",
     "@nomicfoundation/hardhat-network-helpers": "workspace:^3.0.3",
     "@nomicfoundation/hardhat-typechain": "workspace:^3.0.0",
     "@nomicfoundation/hardhat-verify": "workspace:^3.0.8",
-    "@nomicfoundation/ignition-core": "workspace:^3.0.6"
+    "@nomicfoundation/ignition-core": "workspace:^3.0.7"
   }
 }
