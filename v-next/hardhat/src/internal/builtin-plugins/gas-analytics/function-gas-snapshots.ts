@@ -360,7 +360,6 @@ export function logFunctionGasSnapshotsSection(
     return;
   }
 
-  logger();
   logger(
     formatSectionHeader("Function gas snapshots", {
       changedLength,

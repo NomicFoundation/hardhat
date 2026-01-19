@@ -1,5 +1,6 @@
 import type { TaskOverrideActionFunction } from "../../../../../types/tasks.js";
 import type { FunctionGasSnapshotCheckResult } from "../../function-gas-snapshots.js";
+import type { SnapshotCheatcodesCheckResult } from "../../snapshot-cheatcodes.js";
 import type { SuiteResult } from "@nomicfoundation/edr";
 
 import { HardhatError } from "@nomicfoundation/hardhat-errors";
@@ -12,7 +13,9 @@ import {
   writeFunctionGasSnapshots,
 } from "../../function-gas-snapshots.js";
 import {
+  checkSnapshotCheatcodes,
   extractSnapshotCheatcodes,
+  logSnapshotCheatcodesSection,
   writeSnapshotCheatcodes,
 } from "../../snapshot-cheatcodes.js";
 
@@ -27,6 +30,7 @@ export interface SnapshotResult {
 
 export interface SnapshotCheckResult {
   functionGasSnapshotsCheck: FunctionGasSnapshotCheckResult;
+  snapshotCheatcodesCheck: SnapshotCheatcodesCheckResult;
 }
 
 const runSolidityTests: TaskOverrideActionFunction<
@@ -57,7 +61,9 @@ const runSolidityTests: TaskOverrideActionFunction<
       suiteResults,
     );
     logSnapshotCheckResult(snapshotCheckResult);
-    snapshotCheckPassed = snapshotCheckResult.functionGasSnapshotsCheck.passed;
+    snapshotCheckPassed =
+      snapshotCheckResult.functionGasSnapshotsCheck.passed &&
+      snapshotCheckResult.snapshotCheatcodesCheck.passed;
   }
 
   process.exitCode = testsPassed && snapshotCheckPassed ? 0 : 1;
@@ -105,27 +111,56 @@ export async function handleSnapshotCheck(
     basePath,
     suiteResults,
   );
+  const snapshotCheatcodesCheck = await checkSnapshotCheatcodes(
+    basePath,
+    suiteResults,
+  );
 
   return {
     functionGasSnapshotsCheck,
+    snapshotCheatcodesCheck,
   };
 }
 
 export function logSnapshotCheckResult(
-  { functionGasSnapshotsCheck }: SnapshotCheckResult,
+  { functionGasSnapshotsCheck, snapshotCheatcodesCheck }: SnapshotCheckResult,
   logger: typeof console.log = console.log,
 ): void {
   logger();
 
   logger(
-    functionGasSnapshotsCheck.passed
+    functionGasSnapshotsCheck.passed && snapshotCheatcodesCheck.passed
       ? chalk.green("Snapshot check passed")
       : chalk.red("Snapshot check failed"),
   );
 
+  const functionGasHasOutput =
+    functionGasSnapshotsCheck.written ||
+    functionGasSnapshotsCheck.comparison.changed.length > 0 ||
+    functionGasSnapshotsCheck.comparison.added.length > 0 ||
+    functionGasSnapshotsCheck.comparison.removed.length > 0;
+  const snapshotCheatcodesHasOutput =
+    snapshotCheatcodesCheck.written ||
+    snapshotCheatcodesCheck.comparison.changed.length > 0 ||
+    snapshotCheatcodesCheck.comparison.added.length > 0 ||
+    snapshotCheatcodesCheck.comparison.removed.length > 0;
+
+  // Add an extra newline if function gas snapshots have output
+  if (functionGasHasOutput) {
+    logger();
+  }
+
   logFunctionGasSnapshotsSection(functionGasSnapshotsCheck, logger);
 
-  if (!functionGasSnapshotsCheck.passed) {
+  // Add an extra newline if only snapshot cheatcodes have output
+  // (logFunctionGasSnapshotsSection adds one if it has output)
+  if (!functionGasHasOutput && snapshotCheatcodesHasOutput) {
+    logger();
+  }
+
+  logSnapshotCheatcodesSection(snapshotCheatcodesCheck, logger);
+
+  if (!functionGasSnapshotsCheck.passed || !snapshotCheatcodesCheck.passed) {
     logger(chalk.yellow("To update snapshots, run your tests with --snapshot"));
     logger();
   }
