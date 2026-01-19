@@ -596,6 +596,64 @@ ZGroup#entry-z: 300`;
       assert.equal(result.removed.length, 0);
       assert.equal(result.changed.length, 0);
     });
+
+    it("should sort results by group#name", () => {
+      const previous: SnapshotCheatcodesMap = new Map<
+        string,
+        Record<string, string>
+      >([
+        ["ZGroup", { "entry-z": "100", "entry-a": "200" }],
+        ["AGroup", { "entry-m": "300", "entry-b": "400" }],
+      ]);
+      const current: SnapshotCheatcodesMap = new Map<
+        string,
+        Record<string, string>
+      >([
+        ["MGroup", { "entry-x": "500", "entry-c": "600" }],
+        ["BGroup", { "entry-y": "150", "entry-d": "250" }],
+        ["ZGroup", { "entry-z": "999" }],
+      ]);
+
+      const result = compareSnapshotCheatcodes(previous, current);
+
+      assert.equal(result.added.length, 4);
+      assert.equal(
+        `${result.added[0].group}#${result.added[0].name}`,
+        "BGroup#entry-d",
+      );
+      assert.equal(
+        `${result.added[1].group}#${result.added[1].name}`,
+        "BGroup#entry-y",
+      );
+      assert.equal(
+        `${result.added[2].group}#${result.added[2].name}`,
+        "MGroup#entry-c",
+      );
+      assert.equal(
+        `${result.added[3].group}#${result.added[3].name}`,
+        "MGroup#entry-x",
+      );
+
+      assert.equal(result.removed.length, 3);
+      assert.equal(
+        `${result.removed[0].group}#${result.removed[0].name}`,
+        "AGroup#entry-b",
+      );
+      assert.equal(
+        `${result.removed[1].group}#${result.removed[1].name}`,
+        "AGroup#entry-m",
+      );
+      assert.equal(
+        `${result.removed[2].group}#${result.removed[2].name}`,
+        "ZGroup#entry-a",
+      );
+
+      assert.equal(result.changed.length, 1);
+      assert.equal(
+        `${result.changed[0].group}#${result.changed[0].name}`,
+        "ZGroup#entry-z",
+      );
+    });
   });
 
   describe("printSnapshotCheatcodeChanges", () => {
