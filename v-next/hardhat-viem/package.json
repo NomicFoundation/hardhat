@@ -1,6 +1,6 @@
 {
   "name": "@nomicfoundation/hardhat-viem",
-  "version": "3.0.1",
+  "version": "3.0.2",
   "description": "Hardhat plugin for viem",
   "homepage": "https://github.com/nomicfoundation/hardhat/tree/v-next/v-next/hardhat-viem",
   "repository": {
@@ -59,7 +59,7 @@
   },
   "dependencies": {
     "@nomicfoundation/hardhat-errors": "workspace:^3.0.0",
-    "@nomicfoundation/hardhat-utils": "workspace:^3.0.5"
+    "@nomicfoundation/hardhat-utils": "workspace:^3.0.6"
   },
   "peerDependencies": {
     "hardhat": "workspace:^3.0.0",

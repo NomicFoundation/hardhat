@@ -1,5 +1,11 @@
 # @nomicfoundation/hardhat-viem-assertions
 
+## 3.0.5
+
+### Patch Changes
+
+- 2bc18b2: Bumped `viem` version across all packages [7861](https://github.com/NomicFoundation/hardhat/pull/7861).
+
 ## 3.0.4
 
 ### Patch Changes
