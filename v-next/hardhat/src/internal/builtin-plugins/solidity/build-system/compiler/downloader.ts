@@ -1,4 +1,4 @@
-import type { Compiler } from "./compiler.js";
+import type { Compiler } from "../../../../../../src/types/solidity.js";
 
 import { execFile } from "node:child_process";
 import os from "node:os";

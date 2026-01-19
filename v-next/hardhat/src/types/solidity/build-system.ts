@@ -1,7 +1,7 @@
 import type { CompilationJob } from "./compilation-job.js";
 import type { CompilerOutput, CompilerOutputError } from "./compiler-io.js";
+import type { Compiler } from "./compiler.js";
 import type { SolidityBuildInfo } from "./solidity-artifacts.js";
-import type { Compiler } from "../../internal/builtin-plugins/solidity/build-system/compiler/compiler.js";
 
 /**
  * The options of the `build` method.
