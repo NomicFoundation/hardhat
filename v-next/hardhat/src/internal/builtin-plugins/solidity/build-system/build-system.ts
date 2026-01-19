@@ -75,6 +75,11 @@ import { SolcConfigSelector } from "./solc-config-selection.js";
 
 const log = debug("hardhat:core:solidity:build-system");
 
+// Warnings that should be suppressed from the build output.
+export const SUPPRESSED_WARNINGS: string[] = [
+  "Natspec memory-safe-assembly special comment for inline assembly is deprecated and scheduled for removal. Use the memory-safe block annotation instead.",
+];
+
 interface CompilationResult {
   compilationJob: CompilationJob;
   compilerOutput: CompilerOutput;
@@ -1055,13 +1060,10 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
       return;
     }
 
-    // Filter out deprecated natspec memory-safe-assembly warnings
-    const filteredErrors = errors.filter((error) => {
-      const msg = error.formattedMessage ?? error.message;
-      return msg.includes(
-        "Warning: Natspec memory-safe-assembly special comment for inline assembly is deprecated and scheduled for removal. Use the memory-safe block annotation instead.",
-      );
-    });
+    // Filter out specific warnings that should be suppressed
+    const filteredErrors = errors.filter(
+      (error) => !this.#shouldSuppressWarning(error),
+    );
 
     console.log();
 
@@ -1097,6 +1099,11 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
       );
       console.log();
     }
+  }
+
+  #shouldSuppressWarning(error: CompilerOutputError): boolean {
+    const msg = error.formattedMessage ?? error.message;
+    return SUPPRESSED_WARNINGS.some((warning) => msg.includes(warning));
   }
 
   async #printCompilationResult(
