@@ -81,12 +81,12 @@ const log = debug("hardhat:core:solidity:build-system");
 // while still showing the same warning type from user code.
 export const SUPPRESSED_WARNINGS: Array<{
   message: string;
-  sourceFile: `hardhat/${string}`;
+  sourceFile: string;
 }> = [
   {
     message:
       "Natspec memory-safe-assembly special comment for inline assembly is deprecated and scheduled for removal. Use the memory-safe block annotation instead.",
-    sourceFile: "hardhat/console.sol",
+    sourceFile: path.normalize("hardhat/console.sol"),
   },
 ];
 
