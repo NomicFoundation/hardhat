@@ -75,6 +75,21 @@ import { SolcConfigSelector } from "./solc-config-selection.js";
 
 const log = debug("hardhat:core:solidity:build-system");
 
+// Compiler warnings to suppress from build output.
+// Each rule specifies a warning message and the source file it applies to.
+// This allows suppressing known warnings from internal files (e.g., console.sol)
+// while still showing the same warning type from user code.
+export const SUPPRESSED_WARNINGS: Array<{
+  message: string;
+  sourceFile: string;
+}> = [
+  {
+    message:
+      "Natspec memory-safe-assembly special comment for inline assembly is deprecated and scheduled for removal. Use the memory-safe block annotation instead.",
+    sourceFile: path.normalize("hardhat/console.sol"),
+  },
+];
+
 interface CompilationResult {
   compilationJob: CompilationJob;
   compilerOutput: CompilerOutput;
@@ -1063,9 +1078,14 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
       return;
     }
 
+    // Filter out specific warnings that should be suppressed
+    const filteredErrors = errors.filter(
+      (error) => !this.#shouldSuppressWarning(error),
+    );
+
     console.log();
 
-    for (const error of errors) {
+    for (const error of filteredErrors) {
       if (error.severity === "error") {
         const errorMessage: string =
           this.#getFormattedInternalCompilerErrorMessage(error) ??
@@ -1085,7 +1105,7 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
       }
     }
 
-    const hasConsoleErrors: boolean = errors.some((e) =>
+    const hasConsoleErrors: boolean = filteredErrors.some((e) =>
       this.#isConsoleLogError(e),
     );
 
@@ -1097,6 +1117,14 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
       );
       console.log();
     }
+  }
+
+  #shouldSuppressWarning(error: CompilerOutputError): boolean {
+    const msg = error.formattedMessage ?? error.message;
+
+    return SUPPRESSED_WARNINGS.some(
+      (rule) => msg.includes(rule.message) && msg.includes(rule.sourceFile),
+    );
   }
 
   async #printCompilationResult(
