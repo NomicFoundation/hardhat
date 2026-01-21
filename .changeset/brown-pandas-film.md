@@ -1,5 +1,4 @@
 ---
-"@nomicfoundation/example-project": patch
 "@nomicfoundation/hardhat-errors": patch
 "hardhat": patch
 ---
