@@ -519,6 +519,7 @@ describe("solidity-test/task-action (override in gas-analytics/index)", () => {
                 kind: "standard" as const,
                 expected: 10000,
                 actual: 15000,
+                source: "test/source/path.sol",
               },
             ],
           },
@@ -1203,6 +1204,7 @@ Snapshot cheatcodes:
                     kind: "standard" as const,
                     expected: 5000,
                     actual: 6000,
+                    source: "contracts/MyContract.sol",
                   },
                 ],
                 added: [],
@@ -1226,6 +1228,7 @@ Snapshot check failed
 Function gas snapshots: 1 changed
 
   MyContract#testFunc()
+    (in contracts/MyContract.sol)
     Expected (gas): 5000
     Actual (gas):   6000 (+20.00%, Δ+1000)
 
@@ -1292,6 +1295,7 @@ To update snapshots, run your tests with --snapshot
                     kind: "standard" as const,
                     expected: 5000,
                     actual: 6000,
+                    source: "contracts/MyContract.sol",
                   },
                 ],
               },
@@ -1324,6 +1328,7 @@ Snapshot check failed
 Function gas snapshots: 1 changed
 
   MyContract#testFunc()
+    (in contracts/MyContract.sol)
     Expected (gas): 5000
     Actual (gas):   6000 (+20.00%, Δ+1000)
 
@@ -1351,6 +1356,7 @@ To update snapshots, run your tests with --snapshot
                     kind: "standard" as const,
                     expected: 10000,
                     actual: 15000,
+                    source: "contracts/ContractA.sol",
                   },
                   {
                     contractNameOrFqn: "ContractB",
@@ -1359,6 +1365,7 @@ To update snapshots, run your tests with --snapshot
                     expected: 20000,
                     actual: 18000,
                     runs: 256,
+                    source: "contracts/ContractB.sol",
                   },
                 ],
                 added: [
@@ -1394,10 +1401,12 @@ Snapshot check failed
 Function gas snapshots: 2 changed, 1 added, 1 removed
 
   ContractA#testStandard()
+    (in contracts/ContractA.sol)
     Expected (gas): 10000
     Actual (gas):   15000 (+50.00%, Δ+5000)
 
   ContractB#testFuzz(uint256)
+    (in contracts/ContractB.sol)
     Runs: 256
     Expected (~): 20000
     Actual (~):   18000 (-10.00%, Δ-2000)
@@ -1505,6 +1514,7 @@ To update snapshots, run your tests with --snapshot
                     kind: "standard" as const,
                     expected: 5000,
                     actual: 6000,
+                    source: "contracts/MyContract.sol",
                   },
                 ],
               },
@@ -1549,6 +1559,7 @@ Snapshot check failed
 Function gas snapshots: 1 changed, 1 added, 1 removed
 
   MyContract#testFunc()
+    (in contracts/MyContract.sol)
     Expected (gas): 5000
     Actual (gas):   6000 (+20.00%, Δ+1000)
 
@@ -1657,6 +1668,7 @@ To update snapshots, run your tests with --snapshot
                     kind: "standard" as const,
                     expected: 5000,
                     actual: 6000,
+                    source: "contracts/MyContract.sol",
                   },
                 ],
               },
@@ -1694,6 +1706,7 @@ Snapshot check failed
 Function gas snapshots: 1 changed
 
   MyContract#testFunc()
+    (in contracts/MyContract.sol)
     Expected (gas): 5000
     Actual (gas):   6000 (+20.00%, Δ+1000)
 
@@ -1776,6 +1789,7 @@ To update snapshots, run your tests with --snapshot
                     kind: "standard" as const,
                     expected: 5000,
                     actual: 6000,
+                    source: "contracts/MyContract.sol",
                   },
                 ],
               },
@@ -1801,6 +1815,7 @@ Snapshot check failed
 Function gas snapshots: 1 changed
 
   MyContract#testFunc()
+    (in contracts/MyContract.sol)
     Expected (gas): 5000
     Actual (gas):   6000 (+20.00%, Δ+1000)
 
