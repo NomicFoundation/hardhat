@@ -558,6 +558,7 @@ describe("solidity-test/task-action (override in gas-analytics/index)", () => {
                 name: "test-entry",
                 expected: 42,
                 actual: 100,
+                source: "test/source/path.sol",
               },
             ],
           },
@@ -1256,6 +1257,7 @@ To update snapshots, run your tests with --snapshot
                     name: "test-entry",
                     expected: 42,
                     actual: 100,
+                    source: "test/source/path.sol",
                   },
                 ],
               },
@@ -1272,6 +1274,7 @@ Snapshot check failed
 Snapshot cheatcodes: 1 changed
 
   TestGroup#test-entry
+    (in test/source/path.sol)
     Expected: 42
     Actual:   100 (+138.10%, Δ+58)
 
@@ -1312,6 +1315,7 @@ To update snapshots, run your tests with --snapshot
                     name: "test-entry",
                     expected: 42,
                     actual: 100,
+                    source: "test/source/path.sol",
                   },
                 ],
               },
@@ -1335,6 +1339,7 @@ Function gas snapshots: 1 changed
 Snapshot cheatcodes: 1 changed
 
   TestGroup#test-entry
+    (in test/source/path.sol)
     Expected: 42
     Actual:   100 (+138.10%, Δ+58)
 
@@ -1457,6 +1462,7 @@ To update snapshots, run your tests with --snapshot
                     name: "test-entry",
                     expected: 42,
                     actual: 100,
+                    source: "test/source/path.sol",
                   },
                 ],
               },
@@ -1473,6 +1479,7 @@ Snapshot check failed
 Snapshot cheatcodes: 1 changed, 1 added, 1 removed
 
   GroupC#test-entry
+    (in test/source/path.sol)
     Expected: 42
     Actual:   100 (+138.10%, Δ+58)
 
@@ -1543,6 +1550,7 @@ To update snapshots, run your tests with --snapshot
                     name: "test-entry",
                     expected: 42,
                     actual: 100,
+                    source: "test/source/path.sol",
                   },
                 ],
               },
@@ -1572,6 +1580,7 @@ Function gas snapshots: 1 changed, 1 added, 1 removed
 Snapshot cheatcodes: 1 changed, 1 added, 1 removed
 
   GroupC#test-entry
+    (in test/source/path.sol)
     Expected: 42
     Actual:   100 (+138.10%, Δ+58)
 
@@ -1621,6 +1630,7 @@ To update snapshots, run your tests with --snapshot
                     name: "test-entry",
                     expected: 42,
                     actual: 100,
+                    source: "test/source/path.sol",
                   },
                 ],
               },
@@ -1645,6 +1655,7 @@ Function gas snapshots: 1 added, 1 removed
 Snapshot cheatcodes: 1 changed
 
   GroupC#test-entry
+    (in test/source/path.sol)
     Expected: 42
     Actual:   100 (+138.10%, Δ+58)
 
@@ -1746,6 +1757,7 @@ To update snapshots, run your tests with --snapshot
                     name: "test-entry",
                     expected: 42,
                     actual: 100,
+                    source: "test/source/path.sol",
                   },
                 ],
               },
@@ -1766,6 +1778,7 @@ Function gas snapshots:
 Snapshot cheatcodes: 1 changed
 
   GroupC#test-entry
+    (in test/source/path.sol)
     Expected: 42
     Actual:   100 (+138.10%, Δ+58)
 

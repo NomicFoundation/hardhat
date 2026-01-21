@@ -99,7 +99,7 @@ export function createSuiteResult(
   return {
     id: {
       name: contractName,
-      source: sourceName ?? `${contractName}.sol`,
+      source: sourceName ?? "",
       solcVersion: "0.8.0",
     },
     durationNs: 0n,
