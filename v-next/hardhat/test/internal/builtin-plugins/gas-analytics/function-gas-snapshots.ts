@@ -1,6 +1,7 @@
 import type {
   FunctionGasSnapshot,
   FunctionGasSnapshotChange,
+  FunctionGasSnapshotWithMetadata,
   FuzzTestKindGasUsage,
   StandardTestKindGasUsage,
 } from "../../../../src/internal/builtin-plugins/gas-analytics/function-gas-snapshots.js";
@@ -41,7 +42,7 @@ describe("function-gas-snapshots", () => {
   describe("extractFunctionGasSnapshots", () => {
     it("should extract standard test gas snapshots", () => {
       const suiteResults = [
-        createSuiteResult("MyContract", [
+        createSuiteResult("test/source/path.sol:MyContract", [
           createStandardTestResult("testTransfer", 25000n),
           createStandardTestResult("testApprove", 30000n),
         ]),
@@ -56,17 +57,19 @@ describe("function-gas-snapshots", () => {
       if (snapshots[0].gasUsage.kind === "standard") {
         assert.equal(snapshots[0].gasUsage.gas, 25000n);
       }
+      assert.equal(snapshots[0].metadata.source, "test/source/path.sol");
       assert.equal(snapshots[1].contractNameOrFqn, "MyContract");
       assert.equal(snapshots[1].functionSig, "testApprove");
       assert.equal(snapshots[1].gasUsage.kind, "standard");
       if (snapshots[1].gasUsage.kind === "standard") {
         assert.equal(snapshots[1].gasUsage.gas, 30000n);
       }
+      assert.equal(snapshots[1].metadata.source, "test/source/path.sol");
     });
 
     it("should extract fuzz test gas snapshots", () => {
       const suiteResults = [
-        createSuiteResult("FuzzContract", [
+        createSuiteResult("test/source/path.sol:FuzzContract", [
           createFuzzTestResult("testFuzzTransfer", 100n, 25000n, 24500n),
         ]),
       ];
@@ -82,6 +85,7 @@ describe("function-gas-snapshots", () => {
         assert.equal(snapshots[0].gasUsage.meanGas, 25000n);
         assert.equal(snapshots[0].gasUsage.medianGas, 24500n);
       }
+      assert.equal(snapshots[0].metadata.source, "test/source/path.sol");
     });
 
     it("should skip invariant tests with calls", () => {
@@ -604,11 +608,14 @@ MyContract#testB (gas: 20000)`;
 
     it("should detect added snapshots", () => {
       const previous: FunctionGasSnapshot[] = [];
-      const current: FunctionGasSnapshot[] = [
+      const current: FunctionGasSnapshotWithMetadata[] = [
         {
           contractNameOrFqn: "MyContract",
           functionSig: "testA",
           gasUsage: { kind: "standard", gas: 10000n },
+          metadata: {
+            source: "test/source/path.sol",
+          },
         },
       ];
 
@@ -628,7 +635,7 @@ MyContract#testB (gas: 20000)`;
           gasUsage: { kind: "standard", gas: 10000n },
         },
       ];
-      const current: FunctionGasSnapshot[] = [];
+      const current: FunctionGasSnapshotWithMetadata[] = [];
 
       const result = compareFunctionGasSnapshots(previous, current);
 
@@ -646,11 +653,14 @@ MyContract#testB (gas: 20000)`;
           gasUsage: { kind: "standard", gas: 10000n },
         },
       ];
-      const current: FunctionGasSnapshot[] = [
+      const current: FunctionGasSnapshotWithMetadata[] = [
         {
           contractNameOrFqn: "MyContract",
           functionSig: "testA",
           gasUsage: { kind: "standard", gas: 15000n },
+          metadata: {
+            source: "test/source/path.sol",
+          },
         },
       ];
 
@@ -665,6 +675,7 @@ MyContract#testB (gas: 20000)`;
       assert.equal(result.changed[0].expected, 10000);
       assert.equal(result.changed[0].actual, 15000);
       assert.equal(result.changed[0].runs, undefined);
+      assert.equal(result.changed[0].source, "test/source/path.sol");
     });
 
     it("should detect changed fuzz test snapshots", () => {
@@ -680,7 +691,7 @@ MyContract#testB (gas: 20000)`;
           },
         },
       ];
-      const current: FunctionGasSnapshot[] = [
+      const current: FunctionGasSnapshotWithMetadata[] = [
         {
           contractNameOrFqn: "FuzzContract",
           functionSig: "testFuzz",
@@ -689,6 +700,9 @@ MyContract#testB (gas: 20000)`;
             runs: 100n,
             meanGas: 26000n,
             medianGas: 25000n,
+          },
+          metadata: {
+            source: "test/source/path.sol",
           },
         },
       ];
@@ -704,6 +718,7 @@ MyContract#testB (gas: 20000)`;
       assert.equal(result.changed[0].expected, 24500);
       assert.equal(result.changed[0].actual, 25000);
       assert.equal(result.changed[0].runs, 100);
+      assert.equal(result.changed[0].source, "test/source/path.sol");
     });
 
     it("should treat kind change as addition + removal", () => {
@@ -714,7 +729,7 @@ MyContract#testB (gas: 20000)`;
           gasUsage: { kind: "standard", gas: 10000n },
         },
       ];
-      const current: FunctionGasSnapshot[] = [
+      const current: FunctionGasSnapshotWithMetadata[] = [
         {
           contractNameOrFqn: "MyContract",
           functionSig: "testA",
@@ -723,6 +738,9 @@ MyContract#testB (gas: 20000)`;
             runs: 100n,
             meanGas: 25000n,
             medianGas: 24500n,
+          },
+          metadata: {
+            source: "test/source/path.sol",
           },
         },
       ];
@@ -754,21 +772,30 @@ MyContract#testB (gas: 20000)`;
           gasUsage: { kind: "standard", gas: 30000n },
         },
       ];
-      const current: FunctionGasSnapshot[] = [
+      const current: FunctionGasSnapshotWithMetadata[] = [
         {
           contractNameOrFqn: "ContractA",
           functionSig: "testA",
           gasUsage: { kind: "standard", gas: 15000n },
+          metadata: {
+            source: "test/source/path.sol",
+          },
         },
         {
           contractNameOrFqn: "ContractB",
           functionSig: "testB",
           gasUsage: { kind: "standard", gas: 20000n },
+          metadata: {
+            source: "test/source/path.sol",
+          },
         },
         {
           contractNameOrFqn: "ContractD",
           functionSig: "testD",
           gasUsage: { kind: "standard", gas: 40000n },
+          metadata: {
+            source: "test/source/path.sol",
+          },
         },
       ];
 
@@ -790,11 +817,14 @@ MyContract#testB (gas: 20000)`;
           gasUsage: { kind: "standard", gas: 10000n },
         },
       ];
-      const current: FunctionGasSnapshot[] = [
+      const current: FunctionGasSnapshotWithMetadata[] = [
         {
           contractNameOrFqn: "MyContract",
           functionSig: "testA",
           gasUsage: { kind: "standard", gas: 10000n },
+          metadata: {
+            source: "test/source/path.sol",
+          },
         },
       ];
 
@@ -919,6 +949,7 @@ MyContract#testB (gas: 20000)`;
           kind: "standard",
           expected: 10000,
           actual: 15000,
+          source: "test/source/path.sol",
         },
       ];
 
@@ -940,6 +971,7 @@ MyContract#testB (gas: 20000)`;
           kind: "standard",
           expected: 15000,
           actual: 10000,
+          source: "test/source/path.sol",
         },
       ];
 
@@ -960,6 +992,7 @@ MyContract#testB (gas: 20000)`;
           kind: "standard",
           expected: 0,
           actual: 5000,
+          source: "test/source/path.sol",
         },
       ];
 
@@ -981,6 +1014,7 @@ MyContract#testB (gas: 20000)`;
           expected: 24500,
           actual: 25000,
           runs: 100,
+          source: "test/source/path.sol",
         },
       ];
 
@@ -1003,6 +1037,7 @@ MyContract#testB (gas: 20000)`;
           kind: "standard",
           expected: 10000,
           actual: 15000,
+          source: "test/source/path.sol",
         },
         {
           contractNameOrFqn: "ContractB",
@@ -1011,6 +1046,7 @@ MyContract#testB (gas: 20000)`;
           expected: 20000,
           actual: 18000,
           runs: 256,
+          source: "test/source/path.sol",
         },
       ];
 
@@ -1039,6 +1075,7 @@ MyContract#testB (gas: 20000)`;
           kind: "standard",
           expected: 25000,
           actual: 30000,
+          source: "test/source/path.sol",
         },
       ];
 
@@ -1046,6 +1083,24 @@ MyContract#testB (gas: 20000)`;
 
       const text = getLoggerOutput();
       assert.match(text, /contracts\/Token\.sol:Token#testTransfer/);
+    });
+
+    it("should print the source file path", () => {
+      const changes: FunctionGasSnapshotChange[] = [
+        {
+          contractNameOrFqn: "MyContract",
+          functionSig: "testFunc",
+          kind: "standard",
+          expected: 10000,
+          actual: 12000,
+          source: "test/contracts/MyContract.t.sol",
+        },
+      ];
+
+      printFunctionGasSnapshotChanges(changes, logger);
+
+      const text = getLoggerOutput();
+      assert.match(text, /\(in test\/contracts\/MyContract\.t\.sol\)/);
     });
   });
 });
