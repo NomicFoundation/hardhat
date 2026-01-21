@@ -10,12 +10,12 @@ const hardhatPlugin: HardhatPlugin = {
     overrideTask("test")
       .addFlag({
         name: "snapshot",
-        description: "Update gas snapshots (Solidity tests only)",
+        description: "Update snapshots (Solidity tests only)",
       })
       .addFlag({
         name: "snapshotCheck",
         description:
-          "Check the gas snapshots match the stored values (Solidity tests only)",
+          "Check the snapshots match the stored values (Solidity tests only)",
       })
       .setAction(async () => ({
         default: async (args, _hre, runSuper) => {
@@ -28,11 +28,11 @@ const hardhatPlugin: HardhatPlugin = {
     overrideTask(["test", "solidity"])
       .addFlag({
         name: "snapshot",
-        description: "Update gas snapshots",
+        description: "Update snapshots",
       })
       .addFlag({
         name: "snapshotCheck",
-        description: "Check the gas snapshots match the stored values",
+        description: "Check the snapshots match the stored values",
       })
       .setAction(async () => import("./tasks/solidity-test/task-action.js"))
       .build(),

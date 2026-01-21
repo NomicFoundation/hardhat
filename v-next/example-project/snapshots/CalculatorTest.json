@@ -1,0 +1,11 @@
+{
+  "calculator-add-single": "48360",
+  "calculator-divide-single": "48420",
+  "calculator-multiple-operations": "70733",
+  "calculator-multiply-single": "48402",
+  "calculator-subtract-single": "48387",
+  "calculator-after-add": "300",
+  "calculator-after-divide": "20",
+  "calculator-after-multiply": "10",
+  "calculator-initial-result": "0"
+}
