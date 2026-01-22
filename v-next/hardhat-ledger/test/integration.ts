@@ -7,6 +7,8 @@ import { createHardhatRuntimeEnvironment } from "hardhat/hre";
 
 import hardhatLedgerPlugin from "../src/index.js";
 
+import mockedNetworkPlugin from "./mocked-network-plugin.js";
+
 /**
  * Only tests the `eth_accounts` method, as it is the only one that doesn't require
  * a Ledger device to be connected.
@@ -59,6 +61,26 @@ describe("LedgerHandler", () => {
         ...HARDHAT_ACCOUNTS_ADDRESSES,
         ...LEDGER_ADDRESSES,
       ]);
+    });
+
+    it("should return only ledger accounts when eth_accounts is not supported by the network", async () => {
+      const hre = await createHardhatRuntimeEnvironment({
+        // Use a mocked network that doesn't support eth_accounts
+        plugins: [mockedNetworkPlugin, hardhatLedgerPlugin],
+        networks: {
+          default: {
+            type: "edr-simulated",
+            accounts: HARDHAT_ACCOUNTS,
+            ledgerAccounts: LEDGER_ADDRESSES,
+          },
+        },
+      });
+
+      const { provider } = await hre.network.connect();
+
+      const res = await provider.request({ method: "eth_accounts" });
+
+      assert.deepEqual(res, LEDGER_ADDRESSES);
     });
 
     it("should return only the non-ledger accounts", async () => {
