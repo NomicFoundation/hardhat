@@ -6,6 +6,7 @@ import type {
 } from "../../../types/config.js";
 import type { HardhatUserConfigValidationError } from "../../../types/hooks.js";
 import type {
+  SolidityTestConfig,
   SolidityTestForkingConfig,
   SolidityTestUserConfig,
 } from "../../../types/test.js";
@@ -21,6 +22,10 @@ import {
   validateUserConfigZodType,
 } from "@nomicfoundation/hardhat-zod-utils";
 import { z } from "zod";
+
+// the keccak256 of "built for ethereum"
+export const DEFAULT_FUZZ_SEED =
+  "0x7727ea51af0441c20da14dcd68a15dac8c9ebd589c5be8fa8c87c1d3720450bc";
 
 const solidityTestUserConfigType = z.object({
   timeout: z.number().optional(),
@@ -151,6 +156,7 @@ export async function resolveSolidityTestUserConfig(
   const solidityTest = {
     rpcCachePath: defaultRpcCachePath,
     ...userConfig.test?.solidity,
+    fuzz: resolveFuzzConfig(userConfig.test?.solidity?.fuzz),
     forking: resolvedForking,
   };
 
@@ -167,5 +173,14 @@ export async function resolveSolidityTestUserConfig(
       ...resolvedConfig.test,
       solidity: solidityTest,
     },
+  };
+}
+
+export function resolveFuzzConfig(
+  fuzzUserConfig: SolidityTestUserConfig["fuzz"] = {},
+): SolidityTestConfig["fuzz"] {
+  return {
+    ...fuzzUserConfig,
+    seed: fuzzUserConfig.seed ?? DEFAULT_FUZZ_SEED,
   };
 }
