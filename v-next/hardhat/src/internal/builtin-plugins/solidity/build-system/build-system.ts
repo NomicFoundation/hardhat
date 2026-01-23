@@ -471,9 +471,12 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
           "individual subgraph doesn't have exactly 1 root file",
         );
 
-        const rootFilePath = Array.from(subgraph.getRoots().keys())[0];
+        const [userSourceName, root] = [...subgraph.getRoots().entries()][0];
 
-        indexedIndividualJobs.set(rootFilePath, individualJob);
+        indexedIndividualJobs.set(
+          formatRootPath(userSourceName, root),
+          individualJob,
+        );
       }),
     );
 
@@ -551,7 +554,8 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
           "there should be only 1 root file on subgraph",
         );
 
-        const rootFile = Array.from(subgraph.getRoots().keys())[0];
+        const [userSourceName, root] = [...subgraph.getRoots().entries()][0];
+        const rootFile = formatRootPath(userSourceName, root);
 
         // Skip root files with cache hit (should not recompile)
         if (!rootFilesToCompile.has(rootFile)) {
@@ -577,7 +581,8 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
             "there should be only 1 root file on subgraph",
           );
 
-          const rootFile = Array.from(subgraph.getRoots().keys())[0];
+          const [userSourceName, root] = [...subgraph.getRoots().entries()][0];
+          const rootFile = formatRootPath(userSourceName, root);
 
           return rootFilesToCompile.has(rootFile);
         },
@@ -763,7 +768,7 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
         }
       }
 
-      artifactsPerFile.set(userSourceName, paths);
+      artifactsPerFile.set(formatRootPath(userSourceName, root), paths);
 
       // Write the type declaration file, only for contracts
       if (scope === "contracts") {
@@ -771,7 +776,10 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
           fileFolder,
           "artifacts.d.ts",
         );
-        typeFilePaths.set(userSourceName, artifactsDeclarationFilePath);
+        typeFilePaths.set(
+          formatRootPath(userSourceName, root),
+          artifactsDeclarationFilePath,
+        );
 
         const artifactsDeclarationFile = getArtifactsDeclarationFile(artifacts);
 
@@ -1053,11 +1061,10 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
     isolated: boolean,
     scope: BuildScope,
   ): Promise<void> {
-    const rootFilePaths = result.compilationJob.dependencyGraph
+    for (const [userSourceName, root] of result.compilationJob.dependencyGraph
       .getRoots()
-      .keys();
-
-    for (const rootFilePath of rootFilePaths) {
+      .entries()) {
+      const rootFilePath = formatRootPath(userSourceName, root);
       const individualJob = indexedIndividualJobs.get(rootFilePath);
 
       assertHardhatInvariant(
