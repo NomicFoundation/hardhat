@@ -302,6 +302,10 @@ export interface SolidityBuildSystem {
    * Compiles a build info, returning the output of the compilation, verbatim,
    * as `solc` returns it.
    *
+   * This method doesn't call the hooks that the rest of the build system do.
+   * It's intended to be a lower-level primitive used by plugins and advanced
+   * users.
+   *
    * @param buildInfo The build info to compile.
    * @param options The options to use when compiling the build info.
    * @returns The output of the compilation.

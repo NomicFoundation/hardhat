@@ -972,11 +972,18 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
   }
 
   public async compileBuildInfo(
-    _buildInfo: SolidityBuildInfo,
-    _options?: CompileBuildInfoOptions,
+    buildInfo: SolidityBuildInfo,
+    options?: CompileBuildInfoOptions,
   ): Promise<CompilerOutput> {
-    // TODO: Download the buildinfo compiler version
-    assertHardhatInvariant(false, "Method not implemented.");
+    const quiet = options?.quiet ?? false;
+
+    await downloadConfiguredCompilers(new Set([buildInfo.solcVersion]), quiet);
+
+    const compiler = await getCompiler(buildInfo.solcVersion, {
+      preferWasm: false,
+    });
+
+    return compiler.compile(buildInfo.input);
   }
 
   async #downloadConfiguredCompilers(quiet = false): Promise<void> {
