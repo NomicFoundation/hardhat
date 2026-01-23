@@ -1,5 +1,10 @@
 import type { SolcConfig } from "../../../types/config.js";
-import type { SolidityBuildSystem } from "../../../types/solidity/build-system.js";
+import type {
+  BuildOptions,
+  CompilationJobCreationError,
+  FileBuildResult,
+  SolidityBuildSystem,
+} from "../../../types/solidity/build-system.js";
 import type {
   Compiler,
   CompilerInput,
@@ -185,6 +190,27 @@ declare module "../../../types/hooks.js" {
         nextAbsolutePath: string,
       ) => Promise<string>,
     ) => Promise<string>;
+
+    /**
+     * Hook triggered when a Solidity build process is run using the `build`
+     * method of the Solidity build system.
+     *
+     * @param context The hook context.
+     * @param rootFilePaths The files to build, which can be either absolute
+     * paths or `npm:<package-name>/<file-path>` URIs.
+     * @param options The options to use when building the files.
+     * @param next A function to call the next handler for this hook.
+     */
+    onBuild: (
+      context: HookContext,
+      rootFilePaths: string[],
+      options: BuildOptions | undefined,
+      next: (
+        nextContext: HookContext,
+        nextRootFilePaths: string[],
+        nextOptions: BuildOptions | undefined,
+      ) => Promise<CompilationJobCreationError | Map<string, FileBuildResult>>,
+    ) => Promise<CompilationJobCreationError | Map<string, FileBuildResult>>;
 
     /**
      * Hook triggered to invoke a passed in Solc compiler on the
