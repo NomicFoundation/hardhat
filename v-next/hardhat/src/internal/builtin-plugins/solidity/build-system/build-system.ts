@@ -183,7 +183,7 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
   ): Promise<CompilationJobCreationError | Map<string, FileBuildResult>> {
     return this.#hooks.runHandlerChain(
       "solidity",
-      "onBuild",
+      "build",
       [rootFilePaths, _options],
       async (_context, nextRootFilePaths, nextOptions) =>
         this.#build(nextRootFilePaths, nextOptions),

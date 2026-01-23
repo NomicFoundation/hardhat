@@ -201,7 +201,7 @@ declare module "../../../types/hooks.js" {
      * @param options The options to use when building the files.
      * @param next A function to call the next handler for this hook.
      */
-    onBuild: (
+    build: (
       context: HookContext,
       rootFilePaths: string[],
       options: BuildOptions | undefined,

@@ -112,7 +112,7 @@ describe("solidity - hooks", () => {
     });
   });
 
-  describe("onBuild", () => {
+  describe("build", () => {
     useFixtureProject("solidity/simple-project");
 
     const expectedSolidityVersion = "0.8.23";
@@ -137,7 +137,7 @@ describe("solidity - hooks", () => {
             solidity: async () => ({
               default: async () => {
                 const handlers: Partial<SolidityHooks> = {
-                  onBuild: async (
+                  build: async (
                     context: HookContext,
                     rootFilePaths: string[],
                     options: BuildOptions | undefined,
@@ -235,7 +235,7 @@ describe("solidity - hooks", () => {
             solidity: async () => ({
               default: async () => {
                 const handlers: Partial<SolidityHooks> = {
-                  onBuild: async (
+                  build: async (
                     context: HookContext,
                     rootFilePaths: string[],
                     options: BuildOptions | undefined,
@@ -298,7 +298,7 @@ describe("solidity - hooks", () => {
             solidity: async () => ({
               default: async () => {
                 const handlers: Partial<SolidityHooks> = {
-                  onBuild: async (
+                  build: async (
                     context: HookContext,
                     rootFilePaths: string[],
                     options: BuildOptions | undefined,
@@ -329,7 +329,7 @@ describe("solidity - hooks", () => {
             solidity: async () => ({
               default: async () => {
                 const handlers: Partial<SolidityHooks> = {
-                  onBuild: async (
+                  build: async (
                     context: HookContext,
                     rootFilePaths: string[],
                     options: BuildOptions | undefined,
