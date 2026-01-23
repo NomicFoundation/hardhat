@@ -1,4 +1,5 @@
 ---
+"@nomicfoundation/hardhat": patch
 "@nomicfoundation/hardhat-vendored": patch
 ---
 
