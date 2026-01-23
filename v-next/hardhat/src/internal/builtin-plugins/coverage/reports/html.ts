@@ -3,7 +3,6 @@ import type { FileCoverageData } from "@nomicfoundation/hardhat-vendored/coverag
 
 import path from "node:path";
 
-import { mkdir } from "@nomicfoundation/hardhat-utils/fs";
 import {
   istanbulLibCoverage,
   istanbulLibReport,
