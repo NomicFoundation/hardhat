@@ -17,8 +17,6 @@ export async function generateHtmlReport(
   const baseDir = process.cwd();
   const coverageMap = istanbulLibCoverage.createCoverageMap({});
 
-  await mkdir(htmlReportPath);
-
   // Construct coverage data for each tested file,
   // detailing whether each line was executed or not.
   for (const [p, coverageInfo] of Object.entries(report)) {
