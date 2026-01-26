@@ -92,7 +92,9 @@ export const rename = async (
 
   await keystoreLoader.saveKeystoreToFile();
 
-  consoleLog(UserDisplayMessages.displayKeyRenamedInfoMessage(oldKey, newKey, dev));
+  consoleLog(
+    UserDisplayMessages.displayKeyRenamedInfoMessage(oldKey, newKey, dev),
+  );
 };
 
 export default taskRename;

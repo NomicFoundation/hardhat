@@ -98,8 +98,7 @@ const hardhatKeystorePlugin: HardhatPlugin = {
       })
       .addFlag({
         name: "force",
-        description:
-          "Force overwrite if the new key already exists.",
+        description: "Force overwrite if the new key already exists.",
       })
       .setAction(() => import("./internal/tasks/rename.js"))
       .build(),
