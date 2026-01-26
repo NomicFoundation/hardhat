@@ -15,7 +15,6 @@ interface BuildActionArguments {
   defaultBuildProfile: string | undefined;
   noTests: boolean;
   noContracts: boolean;
-  retryCount: number;
 }
 
 const buildAction: NewTaskActionFunction<BuildActionArguments> = async (
@@ -68,13 +67,7 @@ const buildAction: NewTaskActionFunction<BuildActionArguments> = async (
 
 async function buildForScope(
   scope: BuildScope,
-  {
-    force,
-    files,
-    quiet,
-    defaultBuildProfile,
-    retryCount,
-  }: BuildActionArguments,
+  { force, files, quiet, defaultBuildProfile }: BuildActionArguments,
   { solidity, globalOptions }: HardhatRuntimeEnvironment,
 ) {
   const usedFiles = [];
@@ -115,7 +108,6 @@ async function buildForScope(
     buildProfile,
     quiet,
     scope,
-    retryCount,
   });
 
   throwIfSolidityBuildFailed(results);

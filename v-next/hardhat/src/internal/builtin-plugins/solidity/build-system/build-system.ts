@@ -173,11 +173,10 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
       isolated: false,
       quiet: false,
       scope: "contracts",
-      retryCount: 3,
       ..._options,
     };
 
-    await this.#downloadConfiguredCompilers(options.quiet, options.retryCount);
+    await this.#downloadConfiguredCompilers(options.quiet);
 
     const { buildProfile } = this.#getBuildProfile(options.buildProfile);
 
@@ -952,21 +951,14 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
     assertHardhatInvariant(false, "Method not implemented.");
   }
 
-  async #downloadConfiguredCompilers(
-    quiet = false,
-    retryCount = 3,
-  ): Promise<void> {
+  async #downloadConfiguredCompilers(quiet = false): Promise<void> {
     // TODO: For the alpha release, we always print this message
     quiet = false;
     if (this.#downloadedCompilers) {
       return;
     }
 
-    await downloadConfiguredCompilers(
-      this.#getAllCompilerVersions(),
-      quiet,
-      retryCount,
-    );
+    await downloadConfiguredCompilers(this.#getAllCompilerVersions(), quiet);
     this.#downloadedCompilers = true;
   }
 

@@ -143,7 +143,6 @@ describe(
         const mockDownloader = new CompilerDownloader(
           CompilerPlatform.WASM,
           process.cwd(),
-          0,
           (_url, _destination, _requestOptions, _dispatcherOptions) => {
             throw new Error("download failed");
           },
@@ -156,13 +155,12 @@ describe(
         );
       });
 
-      it("Should throw the right error when the compiler download fails", async function () {
+      it("Should throw the right error and retry 3 times when the compiler download fails", async function () {
         let hasDownloadedOnce = false;
-        let retryCount = 0;
+        let downloadAttempts = 0;
         const mockDownloader = new CompilerDownloader(
           CompilerPlatform.WASM,
           process.cwd(),
-          0,
           (url, destination, requestOptions, dispatcherOptions) => {
             if (!hasDownloadedOnce) {
               hasDownloadedOnce = true;
@@ -173,42 +171,7 @@ describe(
                 dispatcherOptions,
               );
             }
-            retryCount++;
-            throw new Error("download failed");
-          },
-        );
-
-        await mockDownloader.updateCompilerListIfNeeded(new Set(["0.5.0"]));
-
-        await assertRejectsWithHardhatError(
-          () => mockDownloader.downloadCompiler("0.5.0"),
-          HardhatError.ERRORS.CORE.SOLIDITY.DOWNLOAD_FAILED,
-          {
-            remoteVersion: "0.5.0+commit.1d4f565a",
-          },
-        );
-
-        assert.equal(retryCount, 1, "Should have downloaded only once");
-      });
-
-      it("Should retry 3 times when the compiler download fails", async function () {
-        let hasDownloadedOnce = false;
-        let retryCount = 0;
-        const mockDownloader = new CompilerDownloader(
-          CompilerPlatform.WASM,
-          process.cwd(),
-          3,
-          (url, destination, requestOptions, dispatcherOptions) => {
-            if (!hasDownloadedOnce) {
-              hasDownloadedOnce = true;
-              return download(
-                url,
-                destination,
-                requestOptions,
-                dispatcherOptions,
-              );
-            }
-            retryCount++;
+            downloadAttempts++;
             throw new Error("download failed");
           },
         );
@@ -224,7 +187,7 @@ describe(
         );
 
         assert.equal(
-          retryCount,
+          downloadAttempts,
           4,
           "Should have downloaded once and retried 3 times",
         );
@@ -235,7 +198,6 @@ describe(
         const mockDownloader = new CompilerDownloader(
           CompilerPlatform.WASM,
           process.cwd(),
-          0,
           (url, destination, requestOptions, dispatcherOptions) => {
             downloads++;
             return download(
@@ -266,7 +228,6 @@ describe(
         const mockDownloader = new CompilerDownloader(
           CompilerPlatform.WASM,
           process.cwd(),
-          0,
           async (url, destination, requestOptions, dispatcherOptions) => {
             if (stopMocking) {
               return download(
@@ -332,7 +293,6 @@ describe(
           const mockDownloader = new CompilerDownloader(
             CompilerPlatform.WASM,
             process.cwd(),
-            0,
             (url, destination, requestOptions, dispatcherOptions) => {
               downloads++;
               return download(
@@ -369,7 +329,6 @@ describe(
           const mockDownloader = new CompilerDownloader(
             CompilerPlatform.WASM,
             process.cwd(),
-            0,
             (url, destination, requestOptions, dispatcherOptions) => {
               downloads++;
               return download(
@@ -448,7 +407,6 @@ describe(
         const mockDownloader = new CompilerDownloader(
           platform,
           process.cwd(),
-          0,
           async (_url, destination, _requestOptions, _dispatcherOptions) => {
             if (!hasDownloadedOnce) {
               hasDownloadedOnce = true;

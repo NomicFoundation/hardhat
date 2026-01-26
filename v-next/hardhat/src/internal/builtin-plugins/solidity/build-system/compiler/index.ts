@@ -29,7 +29,6 @@ const log = debug("hardhat:core:solidity:build-system:compiler");
 export async function downloadConfiguredCompilers(
   versions: Set<string>,
   quiet: boolean,
-  retryCount: number,
 ): Promise<void> {
   const platform = CompilerDownloaderImplementation.getCompilerPlatform();
 
@@ -37,7 +36,6 @@ export async function downloadConfiguredCompilers(
     const mainCompilerDownloader = new CompilerDownloaderImplementation(
       platform,
       await getGlobalCompilersCacheDir(),
-      retryCount,
     );
 
     await mainCompilerDownloader.updateCompilerListIfNeeded(versions);
@@ -62,7 +60,6 @@ export async function downloadConfiguredCompilers(
   const wasmCompilerDownloader = new CompilerDownloaderImplementation(
     CompilerPlatform.WASM,
     await getGlobalCompilersCacheDir(),
-    retryCount,
   );
 
   await wasmCompilerDownloader.updateCompilerListIfNeeded(versions);
