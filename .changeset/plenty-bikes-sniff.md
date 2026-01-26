@@ -2,4 +2,4 @@
 "@nomicfoundation/hardhat-keystore": patch
 ---
 
-Added `rename` task to `keystore` ([7895](https://github.com/NomicFoundation/hardhat/pull/7895)).
+Added `rename` task to `keystore` ([7573](https://github.com/NomicFoundation/hardhat/issues/7573)).
