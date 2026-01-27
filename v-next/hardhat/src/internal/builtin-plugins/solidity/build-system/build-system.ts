@@ -110,7 +110,7 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
   readonly #hooks: HookManager;
   readonly #options: SolidityBuildSystemOptions;
   #compileCache: CompileCache = {};
-  #downloadedCompilers = false;
+  #configuredCompilersDownloaded = false;
 
   constructor(hooks: HookManager, options: SolidityBuildSystemOptions) {
     this.#hooks = hooks;
@@ -977,6 +977,8 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
   ): Promise<CompilerOutput> {
     const quiet = options?.quiet ?? false;
 
+    // We download the compiler for the build info as it may not be configured
+    // in the HH config, hence not downloaded with the other compilers
     await downloadSolcCompilers(new Set([buildInfo.solcVersion]), quiet);
 
     const compiler = await getCompiler(buildInfo.solcVersion, {
@@ -989,12 +991,12 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
   async #downloadConfiguredCompilers(quiet = false): Promise<void> {
     // We always print that we are downloading the compilers
     quiet = false;
-    if (this.#downloadedCompilers) {
+    if (this.#configuredCompilersDownloaded) {
       return;
     }
 
     await downloadSolcCompilers(this.#getAllCompilerVersions(), quiet);
-    this.#downloadedCompilers = true;
+    this.#configuredCompilersDownloaded = true;
   }
 
   #getAllCompilerVersions(): Set<string> {
