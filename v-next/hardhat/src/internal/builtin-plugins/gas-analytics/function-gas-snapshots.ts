@@ -14,6 +14,8 @@ import chalk from "chalk";
 
 import { getFullyQualifiedName } from "../../../utils/contract-names.js";
 
+import { formatSectionHeader } from "./helpers.js";
+
 export const FUNCTION_GAS_SNAPSHOTS_FILE = ".gas-snapshot";
 
 export interface FunctionGasSnapshot {
@@ -47,6 +49,12 @@ export interface FunctionGasSnapshotChange {
   expected: number;
   actual: number;
   runs?: number;
+}
+
+export interface FunctionGasSnapshotCheckResult {
+  passed: boolean;
+  comparison: FunctionGasSnapshotComparison;
+  written: boolean;
 }
 
 export function getFunctionGasSnapshotsPath(basePath: string): string {
@@ -287,16 +295,132 @@ export function hasGasUsageChanged(
   return false;
 }
 
+export async function checkFunctionGasSnapshots(
+  basePath: string,
+  suiteResults: SuiteResult[],
+): Promise<FunctionGasSnapshotCheckResult> {
+  const functionGasSnapshots = extractFunctionGasSnapshots(suiteResults);
+
+  let previousFunctionGasSnapshots;
+  try {
+    previousFunctionGasSnapshots = await readFunctionGasSnapshots(basePath);
+  } catch (error) {
+    if (error instanceof FileNotFoundError) {
+      await writeFunctionGasSnapshots(basePath, functionGasSnapshots);
+
+      return {
+        passed: true,
+        comparison: {
+          added: [],
+          removed: [],
+          changed: [],
+        },
+        written: true,
+      };
+    }
+
+    throw error;
+  }
+
+  const comparison = compareFunctionGasSnapshots(
+    previousFunctionGasSnapshots,
+    functionGasSnapshots,
+  );
+
+  // Update snapshots when functions are added or removed (but not changed)
+  const hasAddedOrRemoved =
+    comparison.added.length > 0 || comparison.removed.length > 0;
+  if (comparison.changed.length === 0 && hasAddedOrRemoved) {
+    await writeFunctionGasSnapshots(basePath, functionGasSnapshots);
+  }
+
+  return {
+    passed: comparison.changed.length === 0,
+    comparison,
+    written: hasAddedOrRemoved,
+  };
+}
+
+export function logFunctionGasSnapshotsSection(
+  result: FunctionGasSnapshotCheckResult,
+  logger: typeof console.log = console.log,
+): void {
+  const { comparison, written } = result;
+  const changedLength = comparison.changed.length;
+  const addedLength = comparison.added.length;
+  const removedLength = comparison.removed.length;
+  const hasChanges = changedLength > 0;
+  const hasAdded = addedLength > 0;
+  const hasRemoved = removedLength > 0;
+  const hasAnyDifferences = hasChanges || hasAdded || hasRemoved;
+  const isFirstTimeWrite = written && !hasAnyDifferences;
+
+  // Nothing to report
+  if (!isFirstTimeWrite && !hasAnyDifferences) {
+    return;
+  }
+
+  logger(
+    formatSectionHeader("Function gas snapshots", {
+      changedLength,
+      addedLength,
+      removedLength,
+    }),
+  );
+
+  if (isFirstTimeWrite) {
+    logger();
+    logger(
+      chalk.green(
+        "  No existing snapshots found. Function gas snapshots written successfully",
+      ),
+    );
+    logger();
+    return;
+  }
+
+  if (hasChanges) {
+    logger();
+    printFunctionGasSnapshotChanges(comparison.changed, logger);
+  }
+
+  if (hasAdded) {
+    logger();
+    logger(`  Added ${comparison.added.length} function(s):`);
+    const addedLines = stringifyFunctionGasSnapshots(comparison.added).split(
+      "\n",
+    );
+    for (const line of addedLines) {
+      logger(chalk.green(`    + ${line}`));
+    }
+  }
+
+  if (hasRemoved) {
+    logger();
+    logger(`  Removed ${comparison.removed.length} function(s):`);
+    const removedLines = stringifyFunctionGasSnapshots(
+      comparison.removed,
+    ).split("\n");
+    for (const line of removedLines) {
+      logger(chalk.red(`    - ${line}`));
+    }
+  }
+
+  logger();
+}
+
 export function printFunctionGasSnapshotChanges(
   changes: FunctionGasSnapshotChange[],
+  logger: typeof console.log = console.log,
 ): void {
-  const lines: string[] = [];
+  for (let i = 0; i < changes.length; i++) {
+    const change = changes[i];
+    const isLast = i === changes.length - 1;
 
-  for (const change of changes) {
-    lines.push(`  ${change.contractNameOrFqn}#${change.functionSig}`);
+    logger(`  ${change.contractNameOrFqn}#${change.functionSig}`);
 
     if (change.kind === "fuzz") {
-      lines.push(chalk.grey(`    Runs: ${change.runs}`));
+      logger(chalk.grey(`    Runs: ${change.runs}`));
     }
 
     const diff = change.actual - change.expected;
@@ -316,15 +440,15 @@ export function printFunctionGasSnapshotChanges(
 
     const label = change.kind === "fuzz" ? "~" : "gas";
 
-    lines.push(chalk.grey(`    Expected (${label}): ${change.expected}`));
-    lines.push(
+    logger(chalk.grey(`    Expected (${label}): ${change.expected}`));
+    logger(
       chalk.grey(`    Actual (${label}):   ${change.actual} (`) +
         formattedGasChange +
         chalk.grey(")"),
     );
 
-    lines.push("");
+    if (!isLast) {
+      logger();
+    }
   }
-
-  console.error(lines.join("\n"));
 }
