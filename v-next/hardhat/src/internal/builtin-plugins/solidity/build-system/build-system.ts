@@ -987,7 +987,7 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
   }
 
   async #downloadConfiguredCompilers(quiet = false): Promise<void> {
-    // TODO: For the alpha release, we always print this message
+    // We always print that we are downloading the compilers
     quiet = false;
     if (this.#downloadedCompilers) {
       return;
