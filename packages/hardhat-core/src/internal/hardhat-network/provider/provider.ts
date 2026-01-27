@@ -17,6 +17,8 @@ import type {
   TracingConfigWithBuffers,
   ProviderConfig,
   SubscriptionConfig,
+  ChainOverride,
+  AccountOverride,
 } from "@nomicfoundation/edr";
 import { privateToAddress } from "@ethereumjs/util";
 import { ContractDecoder, precompileP256Verify } from "@nomicfoundation/edr";
@@ -154,7 +156,12 @@ export class EdrProviderWrapper
     private _node: {
       _vm: MinimalEthereumJsVm;
     },
-    private readonly _subscriptionConfig: SubscriptionConfig
+    private readonly _subscriptionConfig: SubscriptionConfig,
+    // Store the initial `genesisAccounts`, `cacheDir`, and `chainOverrides` for `hardhat_reset`
+    // calls, in case there is switching between local and fork configurations.
+    private readonly _originalGenesisAccounts: GenesisAccount[],
+    private readonly _originalCacheDir: string | undefined,
+    private readonly _originalChainOverrides: ChainOverride[] | undefined
   ) {
     super();
   }
@@ -164,12 +171,34 @@ export class EdrProviderWrapper
     loggerConfig: LoggerConfig,
     tracingConfig?: TracingConfigWithBuffers
   ): Promise<EdrProviderWrapper> {
-    const { GENERIC_CHAIN_TYPE, l1GenesisState, l1HardforkFromString } =
-      requireNapiRsModule(
-        "@nomicfoundation/edr"
-      ) as typeof import("@nomicfoundation/edr");
+    const { GENERIC_CHAIN_TYPE } = requireNapiRsModule(
+      "@nomicfoundation/edr"
+    ) as typeof import("@nomicfoundation/edr");
 
     const coinbase = config.coinbase ?? DEFAULT_COINBASE;
+
+    const chainOverrides = Array.from(
+      config.chains,
+      ([chainId, hardforkConfig]) => {
+        return {
+          chainId: BigInt(chainId),
+          name: "Unknown",
+          hardforks: Array.from(
+            hardforkConfig.hardforkHistory,
+            ([hardfork, blockNumber]) => {
+              return {
+                condition: { blockNumber: BigInt(blockNumber) },
+                hardfork: ethereumsjsHardforkToEdrSpecId(
+                  getHardforkName(hardfork)
+                ),
+              };
+            }
+          ),
+        };
+      }
+    );
+
+    const cacheDir = config.forkCachePath;
 
     let fork;
     if (config.forkConfig !== undefined) {
@@ -178,27 +207,8 @@ export class EdrProviderWrapper
           config.forkConfig.blockNumber !== undefined
             ? BigInt(config.forkConfig.blockNumber)
             : undefined,
-        cacheDir: config.forkCachePath,
-        chainOverrides: Array.from(
-          config.chains,
-          ([chainId, hardforkConfig]) => {
-            return {
-              chainId: BigInt(chainId),
-              name: "Unknown",
-              hardforks: Array.from(
-                hardforkConfig.hardforkHistory,
-                ([hardfork, blockNumber]) => {
-                  return {
-                    condition: { blockNumber: BigInt(blockNumber) },
-                    hardfork: ethereumsjsHardforkToEdrSpecId(
-                      getHardforkName(hardfork)
-                    ),
-                  };
-                }
-              ),
-            };
-          }
-        ),
+        cacheDir,
+        chainOverrides,
         httpHeaders: httpHeadersToEdr(config.forkConfig.httpHeaders),
         url: config.forkConfig.jsonRpcUrl,
       };
@@ -217,28 +227,13 @@ export class EdrProviderWrapper
     const replaceLastLineFn = loggerConfig.replaceLastLineFn ?? replaceLastLine;
 
     const hardforkName = getHardforkName(config.hardfork);
+    const edrHardfork = ethereumsjsHardforkToEdrSpecId(hardforkName);
 
-    const genesisState =
-      fork !== undefined
-        ? [] // TODO: Add support for overriding remote fork state when the local fork is different
-        : l1GenesisState(
-            l1HardforkFromString(ethereumsjsHardforkToEdrSpecId(hardforkName))
-          );
-
-    const ownedAccounts = config.genesisAccounts.map((account) => {
-      const privateKey = Uint8Array.from(
-        // Strip the `0x` prefix
-        Buffer.from(account.privateKey.slice(2), "hex")
-      );
-
-      genesisState.push({
-        address: privateToAddress(privateKey),
-        balance: BigInt(account.balance),
-        code: new Uint8Array(), // Empty account code, removing potential delegation code when forking
-      });
-
-      return account.privateKey;
-    });
+    const [genesisState, ownedAccounts] = _genesisStateAndOwnedAccounts(
+      fork !== undefined,
+      edrHardfork,
+      config.genesisAccounts
+    );
 
     const precompileOverrides = config.enableRip7212
       ? hardforkGte(hardforkName, HardforkName.OSAKA)
@@ -258,7 +253,7 @@ export class EdrProviderWrapper
       precompileOverrides,
       fork,
       genesisState,
-      hardfork: ethereumsjsHardforkToEdrSpecId(hardforkName),
+      hardfork: edrHardfork,
       initialDate,
       initialBaseFeePerGas:
         config.initialBaseFeePerGas !== undefined
@@ -334,7 +329,10 @@ export class EdrProviderWrapper
       edrProviderConfig,
       edrLoggerConfig,
       minimalEthereumJsNode,
-      edrSubscriptionConfig
+      edrSubscriptionConfig,
+      config.genesisAccounts,
+      cacheDir,
+      chainOverrides
     );
 
     // Pass through all events from the provider
@@ -512,14 +510,33 @@ export class EdrProviderWrapper
     ) as typeof import("@nomicfoundation/edr");
     const forkConfig = networkConfig?.forking;
 
+    const [genesisState, ownedAccounts] = _genesisStateAndOwnedAccounts(
+      forkConfig !== undefined,
+      this._providerConfig.hardfork,
+      this._originalGenesisAccounts
+    );
+
+    this._providerConfig.genesisState = genesisState;
+    this._providerConfig.ownedAccounts = ownedAccounts;
+
     if (forkConfig !== undefined) {
+      const cacheDir =
+        this._providerConfig.fork === undefined
+          ? this._originalCacheDir
+          : this._providerConfig.fork?.cacheDir;
+
+      const chainOverrides =
+        this._providerConfig.fork === undefined
+          ? this._originalChainOverrides
+          : this._providerConfig.fork?.chainOverrides;
+
       this._providerConfig.fork = {
         blockNumber:
           forkConfig.blockNumber !== undefined
             ? BigInt(forkConfig.blockNumber)
             : undefined,
-        cacheDir: this._providerConfig.fork?.cacheDir,
-        chainOverrides: this._providerConfig.fork?.chainOverrides,
+        cacheDir,
+        chainOverrides,
         httpHeaders: httpHeadersToEdr(forkConfig.httpHeaders),
         url: forkConfig.jsonRpcUrl,
       };
@@ -658,4 +675,35 @@ function _addCompilationResultParams(
 
 function _resetParams(params: any[]): [RpcHardhatNetworkConfig | undefined] {
   return validateParams(params, optionalRpcHardhatNetworkConfig);
+}
+
+function _genesisStateAndOwnedAccounts(
+  isForked: boolean,
+  hardfork: string,
+  genesisAccounts: GenesisAccount[]
+): [AccountOverride[], string[]] {
+  const { l1GenesisState, l1HardforkFromString } = requireNapiRsModule(
+    "@nomicfoundation/edr"
+  ) as typeof import("@nomicfoundation/edr");
+
+  const genesisState = isForked
+    ? [] // TODO: Add support for overriding remote fork state when the local fork is different
+    : l1GenesisState(l1HardforkFromString(hardfork));
+
+  const ownedAccounts = genesisAccounts.map((account) => {
+    const privateKey = Uint8Array.from(
+      // Strip the `0x` prefix
+      Buffer.from(account.privateKey.slice(2), "hex")
+    );
+
+    genesisState.push({
+      address: privateToAddress(privateKey),
+      balance: BigInt(account.balance),
+      code: new Uint8Array(), // Empty account code, removing potential delegation code when forking
+    });
+
+    return account.privateKey;
+  });
+
+  return [genesisState, ownedAccounts];
 }
