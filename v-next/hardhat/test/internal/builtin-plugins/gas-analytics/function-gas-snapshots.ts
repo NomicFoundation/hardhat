@@ -6,7 +6,7 @@ import type {
 } from "../../../../src/internal/builtin-plugins/gas-analytics/function-gas-snapshots.js";
 
 import assert from "node:assert/strict";
-import { after, afterEach, before, describe, it } from "node:test";
+import { afterEach, before, describe, it } from "node:test";
 
 import { HardhatError } from "@nomicfoundation/hardhat-errors";
 import { assertThrowsHardhatError } from "@nomicfoundation/hardhat-test-utils";
@@ -901,23 +901,14 @@ MyContract#testB (gas: 20000)`;
   });
 
   describe("printFunctionGasSnapshotChanges", () => {
-    let consoleErrorOutput: string[];
-    let originalConsoleError: typeof console.error;
-
-    before(() => {
-      consoleErrorOutput = [];
-      originalConsoleError = console.error;
-      console.error = (...args: any[]) => {
-        consoleErrorOutput.push(args.join(""));
-      };
-    });
+    let output: string[] = [];
+    const logger = (...args: any[]) => output.push(args.join(""));
+    const getLoggerOutput = (): string =>
+      // Remove ANSI escape codes for color and formatting
+      output.join("\n").replace(/\x1b\[[0-9;]*m/g, "");
 
     afterEach(() => {
-      consoleErrorOutput = [];
-    });
-
-    after(() => {
-      console.error = originalConsoleError;
+      output = [];
     });
 
     it("should print gas increase", () => {
@@ -931,14 +922,14 @@ MyContract#testB (gas: 20000)`;
         },
       ];
 
-      printFunctionGasSnapshotChanges(changes);
+      printFunctionGasSnapshotChanges(changes, logger);
 
-      const output = consoleErrorOutput.join("\n");
-      assert.match(output, /MyContract#testA/);
-      assert.match(output, /Expected \(gas\): 10000/);
-      assert.match(output, /Actual \(gas\):\s+15000/);
-      assert.match(output, /\+50\.00%/);
-      assert.match(output, /Δ\+5000/);
+      const text = getLoggerOutput();
+      assert.match(text, /MyContract#testA/);
+      assert.match(text, /Expected \(gas\): 10000/);
+      assert.match(text, /Actual \(gas\):\s+15000/);
+      assert.match(text, /\+50\.00%/);
+      assert.match(text, /Δ\+5000/);
     });
 
     it("should print gas decrease", () => {
@@ -952,13 +943,13 @@ MyContract#testB (gas: 20000)`;
         },
       ];
 
-      printFunctionGasSnapshotChanges(changes);
+      printFunctionGasSnapshotChanges(changes, logger);
 
-      const output = consoleErrorOutput.join("\n");
-      assert.match(output, /Expected \(gas\): 15000/);
-      assert.match(output, /Actual \(gas\):\s+10000/);
-      assert.match(output, /-33\.33%/);
-      assert.match(output, /Δ-5000/);
+      const text = getLoggerOutput();
+      assert.match(text, /Expected \(gas\): 15000/);
+      assert.match(text, /Actual \(gas\):\s+10000/);
+      assert.match(text, /-33\.33%/);
+      assert.match(text, /Δ-5000/);
     });
 
     it("should omit percentage when expected is 0", () => {
@@ -972,13 +963,13 @@ MyContract#testB (gas: 20000)`;
         },
       ];
 
-      printFunctionGasSnapshotChanges(changes);
+      printFunctionGasSnapshotChanges(changes, logger);
 
-      const output = consoleErrorOutput.join("\n");
-      assert.match(output, /Expected \(gas\): 0/);
-      assert.match(output, /Actual \(gas\):\s+5000/);
-      assert.match(output, /Δ\+5000/);
-      assert.doesNotMatch(output, /%/);
+      const text = getLoggerOutput();
+      assert.match(text, /Expected \(gas\): 0/);
+      assert.match(text, /Actual \(gas\):\s+5000/);
+      assert.match(text, /Δ\+5000/);
+      assert.doesNotMatch(text, /%/);
     });
 
     it("should print runs when there are fuzz test changes", () => {
@@ -993,15 +984,15 @@ MyContract#testB (gas: 20000)`;
         },
       ];
 
-      printFunctionGasSnapshotChanges(changes);
+      printFunctionGasSnapshotChanges(changes, logger);
 
-      const output = consoleErrorOutput.join("\n");
-      assert.match(output, /FuzzContract#testFuzz/);
-      assert.match(output, /Runs: 100/);
-      assert.match(output, /Expected \(~\): 24500/);
-      assert.match(output, /Actual \(~\):\s+25000/);
-      assert.match(output, /\+2\.04%/);
-      assert.match(output, /Δ\+500/);
+      const text = getLoggerOutput();
+      assert.match(text, /FuzzContract#testFuzz/);
+      assert.match(text, /Runs: 100/);
+      assert.match(text, /Expected \(~\): 24500/);
+      assert.match(text, /Actual \(~\):\s+25000/);
+      assert.match(text, /\+2\.04%/);
+      assert.match(text, /Δ\+500/);
     });
 
     it("should print multiple changes", () => {
@@ -1023,21 +1014,21 @@ MyContract#testB (gas: 20000)`;
         },
       ];
 
-      printFunctionGasSnapshotChanges(changes);
+      printFunctionGasSnapshotChanges(changes, logger);
 
-      const output = consoleErrorOutput.join("\n");
-      assert.match(output, /ContractA#testA/);
-      assert.match(output, /ContractB#testB/);
-      assert.match(output, /Runs: 256/);
+      const text = getLoggerOutput();
+      assert.match(text, /ContractA#testA/);
+      assert.match(text, /ContractB#testB/);
+      assert.match(text, /Runs: 256/);
     });
 
     it("should handle empty changes array", () => {
       const changes: FunctionGasSnapshotChange[] = [];
 
-      printFunctionGasSnapshotChanges(changes);
+      printFunctionGasSnapshotChanges(changes, logger);
 
-      const output = consoleErrorOutput.join("\n");
-      assert.equal(output, "");
+      const text = getLoggerOutput();
+      assert.equal(text, "");
     });
 
     it("should handle FQN contract names", () => {
@@ -1051,10 +1042,10 @@ MyContract#testB (gas: 20000)`;
         },
       ];
 
-      printFunctionGasSnapshotChanges(changes);
+      printFunctionGasSnapshotChanges(changes, logger);
 
-      const output = consoleErrorOutput.join("\n");
-      assert.match(output, /contracts\/Token\.sol:Token#testTransfer/);
+      const text = getLoggerOutput();
+      assert.match(text, /contracts\/Token\.sol:Token#testTransfer/);
     });
   });
 });
