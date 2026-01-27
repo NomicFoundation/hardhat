@@ -62,7 +62,7 @@ import {
 } from "./artifacts.js";
 import { loadCache, saveCache } from "./cache.js";
 import { CompilationJobImplementation } from "./compilation-job.js";
-import { downloadConfiguredCompilers, getCompiler } from "./compiler/index.js";
+import { downloadSolcCompilers, getCompiler } from "./compiler/index.js";
 import { buildDependencyGraph } from "./dependency-graph-building.js";
 import { readSourceFileFactory } from "./read-source-file.js";
 import {
@@ -977,7 +977,7 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
   ): Promise<CompilerOutput> {
     const quiet = options?.quiet ?? false;
 
-    await downloadConfiguredCompilers(new Set([buildInfo.solcVersion]), quiet);
+    await downloadSolcCompilers(new Set([buildInfo.solcVersion]), quiet);
 
     const compiler = await getCompiler(buildInfo.solcVersion, {
       preferWasm: false,
@@ -993,7 +993,7 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
       return;
     }
 
-    await downloadConfiguredCompilers(this.#getAllCompilerVersions(), quiet);
+    await downloadSolcCompilers(this.#getAllCompilerVersions(), quiet);
     this.#downloadedCompilers = true;
   }
 
