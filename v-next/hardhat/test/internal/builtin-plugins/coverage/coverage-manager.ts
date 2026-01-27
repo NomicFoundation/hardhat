@@ -526,13 +526,28 @@ describe("report generation", () => {
 
   it("should generate the html report", async () => {
     const coveragePath = path.join(process.cwd(), "coverage");
-    const htmlIndexPath = path.join(coveragePath, "html", "index.html");
+    const htmlRootIndexPath = path.join(coveragePath, "html", "index.html");
+    const htmlNestedIndexPath = path.join(
+      coveragePath,
+      "html",
+      "do-while-loop", // One of the nested contract folders
+      "index.html",
+    );
 
     await remove(coveragePath);
 
     await coverageManagerTmp.report();
 
-    const htmlContent = await readUtf8File(htmlIndexPath);
-    assert.ok(htmlContent.length > 0, "HTML report should have content");
+    const htmlRootContent = await readUtf8File(htmlRootIndexPath);
+    assert.ok(
+      htmlRootContent.length > 0,
+      "HTML root report should have content",
+    );
+
+    const htmlNestedContent = await readUtf8File(htmlNestedIndexPath);
+    assert.ok(
+      htmlNestedContent.length > 0,
+      "HTML nested report should have content",
+    );
   });
 });
