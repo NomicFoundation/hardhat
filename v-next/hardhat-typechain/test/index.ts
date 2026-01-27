@@ -2,13 +2,18 @@ import assert from "node:assert/strict";
 import path from "node:path";
 import { before, describe, it } from "node:test";
 
-import { useFixtureProject } from "@nomicfoundation/hardhat-test-utils";
+import {
+  assertRejects,
+  useFixtureProject,
+} from "@nomicfoundation/hardhat-test-utils";
 import {
   exists,
   readUtf8File,
   remove,
 } from "@nomicfoundation/hardhat-utils/fs";
 import { createHardhatRuntimeEnvironment } from "hardhat/hre";
+
+import hardhatTypechain from "../src/index.js";
 
 describe("hardhat-typechain", () => {
   describe("check that types are generated correctly", () => {
@@ -220,6 +225,145 @@ describe("hardhat-typechain", () => {
       await hre.tasks.getTask("build").run();
 
       assert.equal(await exists(`${process.cwd()}/custom-types`), true);
+      assert.equal(await exists(`${process.cwd()}/types`), false);
+    });
+  });
+
+  describe("types are generated for partial compilation", () => {
+    const projectFolder = "generate-types";
+
+    useFixtureProject(projectFolder);
+
+    it("should generate types for all artifacts when compiling a single file", async () => {
+      const hardhatConfig = await import(
+        `./fixture-projects/${projectFolder}/hardhat.config.js`
+      );
+
+      const hre = await createHardhatRuntimeEnvironment(hardhatConfig.default);
+
+      // Clean everything to start fresh
+      await hre.tasks.getTask("clean").run();
+      await remove(`${process.cwd()}/types`);
+
+      // Verify types don't exist
+      assert.equal(await exists(`${process.cwd()}/types`), false);
+
+      // Build only a single file (partial compilation)
+      await hre.tasks.getTask("build").run({ files: ["contracts/A.sol"] });
+
+      // Types should be generated for the compiled contract, which is just
+      // A.ts, and not B.ts in this case
+      assert.equal(await exists(`${process.cwd()}/types`), true);
+      assert.equal(
+        await exists(
+          path.join(process.cwd(), "types", "ethers-contracts", "A.ts"),
+        ),
+        true,
+      );
+      assert.equal(
+        await exists(
+          path.join(process.cwd(), "types", "ethers-contracts", "B.ts"),
+        ),
+        false,
+      );
+    });
+
+    it("should generate types for all artifacts when types are deleted and cache is valid", async () => {
+      const hardhatConfig = await import(
+        `./fixture-projects/${projectFolder}/hardhat.config.js`
+      );
+
+      const hre = await createHardhatRuntimeEnvironment(hardhatConfig.default);
+
+      // Initial clean build of all contracts
+      await hre.tasks.getTask("clean").run();
+      await hre.tasks.getTask("build").run();
+
+      // Verify types were generated for both contracts
+      assert.equal(
+        await exists(
+          path.join(process.cwd(), "types", "ethers-contracts", "A.ts"),
+        ),
+        true,
+      );
+      assert.equal(
+        await exists(
+          path.join(process.cwd(), "types", "ethers-contracts", "B.ts"),
+        ),
+        true,
+      );
+
+      // Delete types directory
+      await remove(`${process.cwd()}/types`);
+      assert.equal(await exists(`${process.cwd()}/types`), false);
+
+      // Build only one file (partial compilation with cache hit for the other)
+      await hre.tasks.getTask("build").run({ files: ["contracts/A.sol"] });
+
+      // Types should be regenerated for ALL artifacts, not just the one compiled
+      assert.equal(
+        await exists(
+          path.join(process.cwd(), "types", "ethers-contracts", "A.ts"),
+        ),
+        true,
+      );
+      assert.equal(
+        await exists(
+          path.join(process.cwd(), "types", "ethers-contracts", "B.ts"),
+        ),
+        true,
+      );
+    });
+  });
+
+  describe("types are not generated when build fails", () => {
+    const projectFolder = "compilation-error";
+
+    useFixtureProject(projectFolder);
+
+    it("should not generate types when compilation fails", async () => {
+      // Use inline config to avoid circular module dependency issues
+      const hre = await createHardhatRuntimeEnvironment({
+        solidity: {
+          version: "0.8.28",
+        },
+        plugins: [hardhatTypechain],
+      });
+
+      await hre.tasks.getTask("clean").run();
+      await remove(`${process.cwd()}/types`);
+
+      // Build should throw due to compilation error
+      await assertRejects(async () => hre.tasks.getTask("build").run());
+
+      // Types should NOT be generated
+      assert.equal(await exists(`${process.cwd()}/types`), false);
+    });
+  });
+
+  describe("types are not generated for test scope", () => {
+    const projectFolder = "generate-types";
+
+    useFixtureProject(projectFolder);
+
+    it("should not generate types when building with test scope", async () => {
+      const hardhatConfig = await import(
+        `./fixture-projects/${projectFolder}/hardhat.config.js`
+      );
+
+      const hre = await createHardhatRuntimeEnvironment(hardhatConfig.default);
+
+      await hre.tasks.getTask("clean").run();
+      await remove(`${process.cwd()}/types`);
+
+      // Build with test scope directly, passing a normal contract, but with
+      // an explicit scope
+      await hre.solidity.build(
+        [path.join(hre.config.paths.root, "contracts", "A.sol")],
+        { scope: "tests" },
+      );
+
+      // Types should NOT be generated for test scope builds
       assert.equal(await exists(`${process.cwd()}/types`), false);
     });
   });
