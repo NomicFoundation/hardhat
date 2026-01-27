@@ -102,6 +102,7 @@ describe("solidity - hooks", () => {
       await buildTask.run({
         force: true,
         noTests: true,
+        quiet: true,
       });
 
       assert.ok(invokeSolcTriggered, "The invokeSolc hook should be triggered");
@@ -115,21 +116,15 @@ describe("solidity - hooks", () => {
   describe("build", () => {
     useFixtureProject("solidity/simple-project");
 
-    const expectedSolidityVersion = "0.8.23";
-
-    let hre: HardhatRuntimeEnvironment;
-    let onBuildTriggered: boolean;
-    let capturedRootFilePaths: string[];
-    let capturedOptions: BuildOptions | undefined;
-    let returnedResult:
-      | CompilationJobCreationError
-      | Map<string, FileBuildResult>;
-
     describe("basic invocation", () => {
-      beforeEach(async function () {
-        onBuildTriggered = false;
-        capturedRootFilePaths = [];
-        capturedOptions = undefined;
+      it("should trigger the onBuild hook", async () => {
+        let onBuildTriggered = false;
+        let capturedRootFilePaths: string[] = [];
+        let capturedOptions: BuildOptions | undefined;
+        let returnedResult:
+          | CompilationJobCreationError
+          | Map<string, FileBuildResult>
+          | undefined;
 
         const onBuildPlugin: HardhatPlugin = {
           id: "test-on-build-plugin",
@@ -169,65 +164,31 @@ describe("solidity - hooks", () => {
           },
         };
 
-        hre = await createHardhatRuntimeEnvironment({
+        const hre = await createHardhatRuntimeEnvironment({
           plugins: [onBuildPlugin],
-          solidity: expectedSolidityVersion,
+          solidity: "0.8.23",
         });
-      });
 
-      it("should trigger the onBuild hook", async () => {
         const buildSystem = hre.solidity;
-        const rootFilePaths = await buildSystem.getRootFilePaths();
+        const roots = await buildSystem.getRootFilePaths();
 
-        await buildSystem.build(rootFilePaths, { force: true });
+        const result = await buildSystem.build(roots, {
+          force: true,
+          quiet: true,
+        });
 
         assert.ok(onBuildTriggered, "The onBuild hook should be triggered");
-      });
-
-      it("should receive rootFilePaths parameter", async () => {
-        const buildSystem = hre.solidity;
-        const rootFilePaths = await buildSystem.getRootFilePaths();
-
-        await buildSystem.build(rootFilePaths, { force: true });
-
-        assert.ok(
-          capturedRootFilePaths.length > 0,
-          "rootFilePaths should not be empty",
-        );
-        assert.deepEqual(capturedRootFilePaths, rootFilePaths);
-      });
-
-      it("should receive options parameter", async () => {
-        const buildSystem = hre.solidity;
-        const rootFilePaths = await buildSystem.getRootFilePaths();
-
-        const options: BuildOptions = { force: true, quiet: true };
-        await buildSystem.build(rootFilePaths, options);
-
-        assert.ok(
-          capturedOptions !== undefined,
-          "options should be passed to the hook",
-        );
-        assert.equal(capturedOptions.force, true);
-        assert.equal(capturedOptions.quiet, true);
-      });
-
-      it("should return build results", async () => {
-        const buildSystem = hre.solidity;
-        const rootFilePaths = await buildSystem.getRootFilePaths();
-
-        await buildSystem.build(rootFilePaths, { force: true });
-
+        assert.deepEqual(capturedRootFilePaths, roots);
+        assert.deepEqual(capturedOptions, { force: true, quiet: true });
+        assert.deepEqual(result, returnedResult);
         assert.ok(returnedResult instanceof Map, "Result should be a Map");
         assert.ok(returnedResult.size > 0, "Result map should not be empty");
       });
     });
 
     describe("parameter modification", () => {
-      let modifiedRootFilePaths: string[];
-
-      beforeEach(async function () {
-        modifiedRootFilePaths = [];
+      it("should allow modifying rootFilePaths before calling next", async () => {
+        let modifiedRootFilePaths: string[] = [];
 
         const onBuildPlugin: HardhatPlugin = {
           id: "test-on-build-modify-plugin",
@@ -263,21 +224,19 @@ describe("solidity - hooks", () => {
           },
         };
 
-        hre = await createHardhatRuntimeEnvironment({
+        const hre = await createHardhatRuntimeEnvironment({
           plugins: [onBuildPlugin],
-          solidity: expectedSolidityVersion,
+          solidity: "0.8.23",
         });
-      });
 
-      it("should allow modifying rootFilePaths before calling next", async () => {
         const buildSystem = hre.solidity;
-        const rootFilePaths = await buildSystem.getRootFilePaths();
+        const roots = await buildSystem.getRootFilePaths();
         assert.ok(
-          rootFilePaths.length > 1,
+          roots.length > 1,
           "Expected more than 1 root file path in the fixture project",
         );
 
-        const result = await buildSystem.build(rootFilePaths);
+        const result = await buildSystem.build(roots, { quiet: true });
 
         assert.ok(result instanceof Map, "Result should be a Map");
         // Only 1 file should be in results since we filtered
