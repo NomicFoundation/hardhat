@@ -93,7 +93,7 @@ describe("hardhat-typechain", () => {
       );
     });
 
-    it("should notgenerated types for the contracts and do not add the support for the `attach` method for abstract contracts", async () => {
+    it("should not generate types for the contracts and do not add the support for the `attach` method for abstract contracts", async () => {
       const content = await readUtf8File(
         path.join(
           process.cwd(),
