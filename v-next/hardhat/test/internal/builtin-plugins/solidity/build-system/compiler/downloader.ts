@@ -155,8 +155,9 @@ describe(
         );
       });
 
-      it("Should throw the right error when the compiler download fails", async function () {
+      it("Should throw the right error and retry 3 times when the compiler download fails", async function () {
         let hasDownloadedOnce = false;
+        let downloadAttempts = 0;
         const mockDownloader = new CompilerDownloader(
           CompilerPlatform.WASM,
           process.cwd(),
@@ -170,6 +171,7 @@ describe(
                 dispatcherOptions,
               );
             }
+            downloadAttempts++;
             throw new Error("download failed");
           },
         );
@@ -182,6 +184,12 @@ describe(
           {
             remoteVersion: "0.5.0+commit.1d4f565a",
           },
+        );
+
+        assert.equal(
+          downloadAttempts,
+          4,
+          "Should have downloaded once and retried 3 times",
         );
       });
 
