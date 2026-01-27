@@ -182,7 +182,7 @@ export function compareSnapshotCheatcodes(
 
       if (
         previousSnapshots === undefined ||
-        !previousSnapshots.hasOwnProperty(name)
+        !Object.hasOwn(previousSnapshots, name)
       ) {
         added.push({ group, name, value: currentValue });
       } else {
