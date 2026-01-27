@@ -3,7 +3,6 @@ import type { FileCoverageData } from "@nomicfoundation/hardhat-vendored/coverag
 
 import path from "node:path";
 
-import { mkdir } from "@nomicfoundation/hardhat-utils/fs";
 import {
   istanbulLibCoverage,
   istanbulLibReport,
@@ -16,8 +15,6 @@ export async function generateHtmlReport(
 ): Promise<void> {
   const baseDir = process.cwd();
   const coverageMap = istanbulLibCoverage.createCoverageMap({});
-
-  await mkdir(htmlReportPath);
 
   // Construct coverage data for each tested file,
   // detailing whether each line was executed or not.
