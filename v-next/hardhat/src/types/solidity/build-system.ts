@@ -146,9 +146,8 @@ export type FileBuildResult =
 
 export interface CacheHitFileBuildResult {
   type: FileBuildResultType.CACHE_HIT;
-  compilationJob: CompilationJob;
+  buildId: string;
   contractArtifactsGenerated: string[];
-  warnings: CompilerOutputError[];
 }
 
 export interface SuccessfulFileBuildResult {
@@ -183,6 +182,10 @@ export interface GetCompilationJobsResult {
    * Map from root file path to individual (non-merged) compilation job.
    */
   indexedIndividualJobs: Map<string, CompilationJob>;
+  /**
+   * Map from root file path to cache hit info for files that don't need recompilation.
+   */
+  cacheHits: Map<string, CacheHitInfo>;
 }
 
 /**

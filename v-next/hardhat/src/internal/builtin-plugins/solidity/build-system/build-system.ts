@@ -15,6 +15,7 @@ import type {
   EmitArtifactsResult,
   RunCompilationJobResult,
   BuildScope,
+  CacheHitInfo,
 } from "../../../../types/solidity/build-system.js";
 import type {
   CompilationJob,
@@ -93,7 +94,6 @@ export const SUPPRESSED_WARNINGS: Array<{
 interface CompilationResult {
   compilationJob: CompilationJob;
   compilerOutput: CompilerOutput;
-  cached: boolean;
   compiler: Compiler;
 }
 
@@ -224,7 +224,7 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
     spinner.start();
 
     try {
-      const { compilationJobsPerFile, indexedIndividualJobs } =
+      const { compilationJobsPerFile, indexedIndividualJobs, cacheHits } =
         compilationJobsResult;
 
       const runnableCompilationJobs = [
@@ -250,7 +250,6 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
           return {
             compilationJob: runnableCompilationJob,
             compilerOutput: output,
-            cached: false,
             compiler,
           };
         },
@@ -262,13 +261,11 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
         },
       );
 
-      const uncachedResults = results.filter((result) => !result.cached);
-      const uncachedSuccessfulResults = uncachedResults.filter(
+      const successfulResults = results.filter(
         (result) => !this.#hasCompilationErrors(result.compilerOutput),
       );
 
-      const isSuccessfulBuild =
-        uncachedResults.length === uncachedSuccessfulResults.length;
+      const isSuccessfulBuild = results.length === successfulResults.length;
 
       const contractArtifactsGeneratedByCompilationJob: Map<
         CompilationJob,
@@ -347,18 +344,6 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
             continue;
           }
 
-          if (result.cached) {
-            resultsMap.set(formatRootPath(userSourceName, root), {
-              type: FileBuildResultType.CACHE_HIT,
-              compilationJob: result.compilationJob,
-              contractArtifactsGenerated:
-                contractArtifactsGenerated.get(userSourceName) ?? [],
-              warnings: errors,
-            });
-
-            continue;
-          }
-
           resultsMap.set(formatRootPath(userSourceName, root), {
             type: FileBuildResultType.BUILD_SUCCESS,
             compilationJob: result.compilationJob,
@@ -367,6 +352,15 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
             warnings: errors,
           });
         }
+      }
+
+      // Add cache hits to the results map
+      for (const [rootFilePath, cacheHitInfo] of cacheHits.entries()) {
+        resultsMap.set(rootFilePath, {
+          type: FileBuildResultType.CACHE_HIT,
+          buildId: cacheHitInfo.buildId,
+          contractArtifactsGenerated: cacheHitInfo.artifactPaths,
+        });
       }
 
       if (!options.quiet) {
@@ -485,6 +479,7 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
 
     // Select which files to compile
     const rootFilesToCompile: Set<string> = new Set();
+    const cacheHits: Map<string, CacheHitInfo> = new Map();
 
     const isolated = buildProfile.isolated;
 
@@ -533,6 +528,19 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
           rootFilesToCompile.add(rootFile);
           break;
         }
+      }
+
+      // If file was not added to rootFilesToCompile, it's a cache hit
+      if (!rootFilesToCompile.has(rootFile)) {
+        const [userSourceName, root] = [
+          ...compilationJob.dependencyGraph.getRoots().entries(),
+        ][0];
+        // Extract buildId from buildInfoPath (format: <dir>/<buildId>.json)
+        const buildId = path.basename(cacheResult.buildInfoPath, ".json");
+        cacheHits.set(formatRootPath(userSourceName, root), {
+          buildId,
+          artifactPaths,
+        });
       }
     }
 
@@ -614,7 +622,7 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
       }
     }
 
-    return { compilationJobsPerFile, indexedIndividualJobs };
+    return { compilationJobsPerFile, indexedIndividualJobs, cacheHits };
   }
 
   #getBuildProfile(buildProfileName: string = DEFAULT_BUILD_PROFILE) {
