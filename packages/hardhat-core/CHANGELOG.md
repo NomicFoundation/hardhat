@@ -1,5 +1,11 @@
 # hardhat
 
+## 2.28.4
+
+### Patch Changes
+
+- 32f29d6: Fixed bug in `hardhat_reset` when switching from local to fork mode ([#7834](https://github.com/NomicFoundation/hardhat/issues/7834))
+
 ## 2.28.3
 
 ### Patch Changes
