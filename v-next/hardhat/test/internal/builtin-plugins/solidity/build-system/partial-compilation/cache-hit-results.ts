@@ -1,30 +1,12 @@
-import type { HardhatRuntimeEnvironment } from "../../../../../../src/types/hre.js";
-import type { TestProject } from "../resolver/helpers.js";
-
 import assert from "node:assert/strict";
 import { writeFile } from "node:fs/promises";
 import path from "node:path";
 import { describe, it } from "node:test";
 
-import { createHardhatRuntimeEnvironment } from "../../../../../../src/internal/hre-initialization.js";
 import { FileBuildResultType } from "../../../../../../src/types/solidity/build-system.js";
 import { useTestProjectTemplate } from "../resolver/helpers.js";
 
-async function getHRE(
-  project: TestProject,
-): Promise<HardhatRuntimeEnvironment> {
-  return createHardhatRuntimeEnvironment(
-    {
-      solidity: {
-        profiles: {
-          default: { version: "0.8.28", isolated: false },
-        },
-      },
-    },
-    {},
-    project.path,
-  );
-}
+import { getHRE } from "./helpers.js";
 
 describe("CacheHitFileBuildResult", () => {
   describe("build() cache hit results", () => {
