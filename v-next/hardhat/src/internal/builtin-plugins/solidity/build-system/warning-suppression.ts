@@ -29,6 +29,7 @@ export const SUPPRESSED_WARNINGS: Array<
     message:
       "Natspec memory-safe-assembly special comment for inline assembly is deprecated and scheduled for removal. Use the memory-safe block annotation instead.",
     scope: "specific-file",
+    // Normalize to handle different OS path separators
     filePath: path.normalize("hardhat/console.sol"),
   },
   {

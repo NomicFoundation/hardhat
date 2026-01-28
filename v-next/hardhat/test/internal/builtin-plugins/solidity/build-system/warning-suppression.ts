@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import path from "node:path";
 import { describe, it } from "node:test";
 
 import {
@@ -15,22 +16,22 @@ describe("shouldSuppressWarning", () => {
     const scenarios = [
       {
         name: "should suppress warnings from console.sol",
-        path: "./hardhat/console.sol",
+        path: path.normalize("./hardhat/console.sol"),
         expected: true,
       },
       {
         name: "should suppress warnings from console.sol with absolute path",
-        path: "/home/user/project/hardhat/console.sol",
+        path: path.normalize("/home/user/project/hardhat/console.sol"),
         expected: true,
       },
       {
         name: "should NOT suppress warnings from regular contract files",
-        path: "./contracts/Example.sol",
+        path: path.normalize("./contracts/Example.sol"),
         expected: false,
       },
       {
         name: "should NOT suppress warnings from test files",
-        path: "./contracts/Counter.t.sol",
+        path: path.normalize("./contracts/Counter.t.sol"),
         expected: false,
       },
     ];
