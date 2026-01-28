@@ -1,5 +1,16 @@
 # hardhat
 
+## 3.1.6
+
+### Patch Changes
+
+- 98fbf44: Implement `SolidityBuildSystemImplementation#compileBuildInfo`
+- 127ce88: Suppress Hardhat console.sol memory-safe-assembly warning [7862](https://github.com/NomicFoundation/hardhat/pull/7862).
+- c40697b: Add a Solidity#build hook
+- 8e5610f: Fixed a bug where nested folders were not created during the HTML coverage report generation ([7889](https://github.com/NomicFoundation/hardhat/pull/7889)).
+- 13a1e4b: Multiple internal fixes to the solidity build system
+- 0c47a69: Compiler downloader retries download in case of failure [7031](https://github.com/NomicFoundation/hardhat/issues/7031).
+
 ## 3.1.5
 
 ### Patch Changes
