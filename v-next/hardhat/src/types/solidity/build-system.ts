@@ -146,9 +146,8 @@ export type FileBuildResult =
 
 export interface CacheHitFileBuildResult {
   type: FileBuildResultType.CACHE_HIT;
-  compilationJob: CompilationJob;
+  buildId: string;
   contractArtifactsGenerated: string[];
-  warnings: CompilerOutputError[];
 }
 
 export interface SuccessfulFileBuildResult {
@@ -164,14 +163,43 @@ export interface FailedFileBuildResult {
   errors: CompilerOutputError[];
 }
 
-export interface GetCompilationJobsResult {
-  compilationJobsPerFile: Map<string, CompilationJob>;
-  indexedIndividualJobs: Map<string, CompilationJob>;
+export interface CacheHitInfo {
+  buildId: string;
+  artifactPaths: string[];
 }
 
+/**
+ * The result of calling `getCompilationJobs`.
+ *
+ * The keys in the maps of this interface are Root File Paths, which means either absolute paths or `npm:<package>/<file>` URIs.
+ */
+export interface GetCompilationJobsResult {
+  /**
+   * Map from root file path to compilation job for files that need compilation.
+   */
+  compilationJobsPerFile: Map<string, CompilationJob>;
+  /**
+   * Map from root file path to individual (non-merged) compilation job.
+   */
+  indexedIndividualJobs: Map<string, CompilationJob>;
+  /**
+   * Map from root file path to cache hit info for files that don't need recompilation.
+   */
+  cacheHits: Map<string, CacheHitInfo>;
+}
+
+/**
+ * The result of emitting artifacts for a compilation job.
+ */
 export interface EmitArtifactsResult {
+  /**
+   * Map from root file path to artifact file paths.
+   */
   artifactsPerFile: ReadonlyMap<string, string[]>;
   buildInfoPath: string;
+  /**
+   * Map from root file path to type declaration file path.
+   */
   typeFilePaths: ReadonlyMap<string, string>;
   buildInfoOutputPath: string;
 }

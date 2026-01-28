@@ -15,12 +15,14 @@ import type {
   EmitArtifactsResult,
   RunCompilationJobResult,
   BuildScope,
+  CacheHitInfo,
 } from "../../../../types/solidity/build-system.js";
 import type {
   CompilationJob,
   Compiler,
   CompilerOutput,
   CompilerOutputError,
+  DependencyGraph,
   SolidityBuildInfo,
 } from "../../../../types/solidity.js";
 
@@ -93,7 +95,6 @@ export const SUPPRESSED_WARNINGS: Array<{
 interface CompilationResult {
   compilationJob: CompilationJob;
   compilerOutput: CompilerOutput;
-  cached: boolean;
   compiler: Compiler;
 }
 
@@ -104,6 +105,24 @@ export interface SolidityBuildSystemOptions {
   readonly artifactsPath: string;
   readonly cachePath: string;
   readonly solidityTestsPath: string;
+}
+
+/**
+ * Returns the formatted root path for a dependency graph that has exactly one
+ * root file.
+ *
+ * @param dependencyGraph A dependency graph with exactly one root file.
+ * @returns The formatted root path.
+ * @throws If the graph doesn't have exactly one root file.
+ */
+function getSingleRootFilePath(dependencyGraph: DependencyGraph): string {
+  assertHardhatInvariant(
+    dependencyGraph.getRoots().size === 1,
+    "dependency graph doesn't have exactly 1 root file",
+  );
+
+  const [userSourceName, root] = [...dependencyGraph.getRoots().entries()][0];
+  return formatRootPath(userSourceName, root);
 }
 
 export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
@@ -224,7 +243,7 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
     spinner.start();
 
     try {
-      const { compilationJobsPerFile, indexedIndividualJobs } =
+      const { compilationJobsPerFile, indexedIndividualJobs, cacheHits } =
         compilationJobsResult;
 
       const runnableCompilationJobs = [
@@ -250,7 +269,6 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
           return {
             compilationJob: runnableCompilationJob,
             compilerOutput: output,
-            cached: false,
             compiler,
           };
         },
@@ -262,13 +280,11 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
         },
       );
 
-      const uncachedResults = results.filter((result) => !result.cached);
-      const uncachedSuccessfulResults = uncachedResults.filter(
+      const successfulResults = results.filter(
         (result) => !this.#hasCompilationErrors(result.compilerOutput),
       );
 
-      const isSuccessfulBuild =
-        uncachedResults.length === uncachedSuccessfulResults.length;
+      const isSuccessfulBuild = results.length === successfulResults.length;
 
       const contractArtifactsGeneratedByCompilationJob: Map<
         CompilationJob,
@@ -347,18 +363,6 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
             continue;
           }
 
-          if (result.cached) {
-            resultsMap.set(formatRootPath(userSourceName, root), {
-              type: FileBuildResultType.CACHE_HIT,
-              compilationJob: result.compilationJob,
-              contractArtifactsGenerated:
-                contractArtifactsGenerated.get(userSourceName) ?? [],
-              warnings: errors,
-            });
-
-            continue;
-          }
-
           resultsMap.set(formatRootPath(userSourceName, root), {
             type: FileBuildResultType.BUILD_SUCCESS,
             compilationJob: result.compilationJob,
@@ -367,6 +371,15 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
             warnings: errors,
           });
         }
+      }
+
+      // Add cache hits to the results map
+      for (const [rootFilePath, cacheHitInfo] of cacheHits.entries()) {
+        resultsMap.set(rootFilePath, {
+          type: FileBuildResultType.CACHE_HIT,
+          buildId: cacheHitInfo.buildId,
+          contractArtifactsGenerated: cacheHitInfo.artifactPaths,
+        });
       }
 
       if (!options.quiet) {
@@ -466,14 +479,10 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
 
         await individualJob.getBuildId(); // precompute
 
-        assertHardhatInvariant(
-          subgraph.getRoots().size === 1,
-          "individual subgraph doesn't have exactly 1 root file",
+        indexedIndividualJobs.set(
+          getSingleRootFilePath(subgraph),
+          individualJob,
         );
-
-        const rootFilePath = Array.from(subgraph.getRoots().keys())[0];
-
-        indexedIndividualJobs.set(rootFilePath, individualJob);
       }),
     );
 
@@ -482,6 +491,7 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
 
     // Select which files to compile
     const rootFilesToCompile: Set<string> = new Set();
+    const cacheHits: Map<string, CacheHitInfo> = new Map();
 
     const isolated = buildProfile.isolated;
 
@@ -531,6 +541,16 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
           break;
         }
       }
+
+      // If file was not added to rootFilesToCompile, it's a cache hit
+      if (!rootFilesToCompile.has(rootFile)) {
+        // Extract buildId from buildInfoPath (format: <dir>/<buildId>.json)
+        const buildId = path.basename(cacheResult.buildInfoPath, ".json");
+        cacheHits.set(getSingleRootFilePath(compilationJob.dependencyGraph), {
+          buildId,
+          artifactPaths,
+        });
+      }
     }
 
     if (!isolated) {
@@ -546,12 +566,7 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
       // based on reference, and not by deep equality. It misses some merging
       // opportunities, but this is Hardhat v2's behavior and works well enough.
       for (const [config, subgraph] of subgraphsWithConfig) {
-        assertHardhatInvariant(
-          subgraph.getRoots().size === 1,
-          "there should be only 1 root file on subgraph",
-        );
-
-        const rootFile = Array.from(subgraph.getRoots().keys())[0];
+        const rootFile = getSingleRootFilePath(subgraph);
 
         // Skip root files with cache hit (should not recompile)
         if (!rootFilesToCompile.has(rootFile)) {
@@ -572,12 +587,7 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
       // isolated mode
       subgraphsWithConfig = subgraphsWithConfig.filter(
         ([_config, subgraph]) => {
-          assertHardhatInvariant(
-            subgraph.getRoots().size === 1,
-            "there should be only 1 root file on subgraph",
-          );
-
-          const rootFile = Array.from(subgraph.getRoots().keys())[0];
+          const rootFile = getSingleRootFilePath(subgraph);
 
           return rootFilesToCompile.has(rootFile);
         },
@@ -609,7 +619,7 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
       }
     }
 
-    return { compilationJobsPerFile, indexedIndividualJobs };
+    return { compilationJobsPerFile, indexedIndividualJobs, cacheHits };
   }
 
   #getBuildProfile(buildProfileName: string = DEFAULT_BUILD_PROFILE) {
@@ -763,7 +773,7 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
         }
       }
 
-      artifactsPerFile.set(userSourceName, paths);
+      artifactsPerFile.set(formatRootPath(userSourceName, root), paths);
 
       // Write the type declaration file, only for contracts
       if (scope === "contracts") {
@@ -771,7 +781,10 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
           fileFolder,
           "artifacts.d.ts",
         );
-        typeFilePaths.set(userSourceName, artifactsDeclarationFilePath);
+        typeFilePaths.set(
+          formatRootPath(userSourceName, root),
+          artifactsDeclarationFilePath,
+        );
 
         const artifactsDeclarationFile = getArtifactsDeclarationFile(artifacts);
 
@@ -1053,11 +1066,10 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
     isolated: boolean,
     scope: BuildScope,
   ): Promise<void> {
-    const rootFilePaths = result.compilationJob.dependencyGraph
+    for (const [userSourceName, root] of result.compilationJob.dependencyGraph
       .getRoots()
-      .keys();
-
-    for (const rootFilePath of rootFilePaths) {
+      .entries()) {
+      const rootFilePath = formatRootPath(userSourceName, root);
       const individualJob = indexedIndividualJobs.get(rootFilePath);
 
       assertHardhatInvariant(
