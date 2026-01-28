@@ -28,7 +28,7 @@ async function getGlobalCompilersCacheDir(): Promise<string> {
 
 const log = debug("hardhat:core:solidity:build-system:compiler");
 
-export async function downloadConfiguredCompilers(
+export async function downloadSolcCompilers(
   versions: Set<string>,
   quiet: boolean,
 ): Promise<void> {

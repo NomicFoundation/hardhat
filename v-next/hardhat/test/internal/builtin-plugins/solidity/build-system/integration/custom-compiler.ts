@@ -25,7 +25,7 @@ import {
   CompilerPlatform,
 } from "../../../../../../src/internal/builtin-plugins/solidity/build-system/compiler/downloader.js";
 import {
-  downloadConfiguredCompilers,
+  downloadSolcCompilers,
   getCompiler,
 } from "../../../../../../src/internal/builtin-plugins/solidity/build-system/compiler/index.js";
 import { createHardhatRuntimeEnvironment } from "../../../../../../src/internal/hre-initialization.js";
@@ -82,7 +82,7 @@ describe(
       testGlobalCacheRoot = await getTmpDir("custom-compiler-test-cache");
       setMockCacheDir(testGlobalCacheRoot);
 
-      await downloadConfiguredCompilers(new Set(["0.8.26"]), true);
+      await downloadSolcCompilers(new Set(["0.8.26"]), true);
 
       const potentiallyNativeCompiler = await getCompiler("0.8.26", {
         preferWasm: false,
