@@ -84,4 +84,25 @@ describe("ArtifactManagerImplementation", () => {
       assert.equal(result, undefined);
     });
   });
+
+  describe("getAllArtifactPaths", () => {
+    it("should return all artifact paths", async () => {
+      const artifactPaths = await artifactManager.getAllArtifactPaths();
+
+      // Should have exactly one artifact (Counter)
+      assert.equal(artifactPaths.size, 1, "Should have exactly one artifact");
+
+      // Check the path is correct
+      const expectedPath = path.join(
+        hre.config.paths.artifacts,
+        "contracts",
+        "Counter.sol",
+        "Counter.json",
+      );
+      assert.ok(
+        artifactPaths.has(expectedPath) === true,
+        `Expected artifact path ${expectedPath} to be in the set`,
+      );
+    });
+  });
 });

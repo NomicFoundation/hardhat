@@ -68,6 +68,15 @@ export class MockArtifactManager implements ArtifactManager {
     );
   }
 
+  public async getAllArtifactPaths(): Promise<ReadonlySet<string>> {
+    throw new HardhatError(
+      HardhatError.ERRORS.CORE.INTERNAL.NOT_IMPLEMENTED_ERROR,
+      {
+        message: "Not implemented in MockArtifactManager",
+      },
+    );
+  }
+
   public async getBuildInfoId(
     _contractNameOrFullyQualifiedName: string,
   ): Promise<string | undefined> {

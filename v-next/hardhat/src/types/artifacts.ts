@@ -66,6 +66,13 @@ export interface ArtifactManager {
   getAllFullyQualifiedNames(): Promise<ReadonlySet<string>>;
 
   /**
+   * Returns all artifact paths in the project.
+   *
+   * @returns A readonly set of absolute paths to all artifact files.
+   */
+  getAllArtifactPaths(): Promise<ReadonlySet<string>>;
+
+  /**
    * Returns the BuildInfo id associated with the solc run that compiled a
    * contract.
    *
