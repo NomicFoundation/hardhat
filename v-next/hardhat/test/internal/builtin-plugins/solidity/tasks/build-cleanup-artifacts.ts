@@ -29,6 +29,8 @@ describe("build task - cleanupArtifacts", () => {
             "contracts/Original.sol": `// SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 contract Original {}`,
+            // This file is not part of in contracts/ so it won't be included
+            // as a root by default.
             "extra/AddedByHook.sol": `// SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 contract AddedByHook {}`,
@@ -61,13 +63,11 @@ contract AddedByHook {}`,
                     );
 
                     // Add extra file to the build
-                    const extendedPaths = rootFilePaths.some(
-                      (p) => p === extraFile,
-                    )
-                      ? rootFilePaths
-                      : [...rootFilePaths, extraFile];
-
-                    return next(context, extendedPaths, options);
+                    return next(
+                      context,
+                      [...rootFilePaths, extraFile],
+                      options,
+                    );
                   },
                 };
 
