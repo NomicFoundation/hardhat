@@ -7,6 +7,10 @@ import type {
   JsonRpcResponse,
 } from "hardhat/types/providers";
 
+import {
+  DisconnectedDevice,
+  DisconnectedDeviceDuringOperation,
+} from "@ledgerhq/errors";
 import { isEIP712Message } from "@ledgerhq/evm-tools/lib/index";
 import Eth, { ledgerService } from "@ledgerhq/hw-app-eth";
 import TransportNodeHid from "@ledgerhq/hw-transport-node-hid";
@@ -30,6 +34,7 @@ import {
   rpcTransactionRequest,
   validateParams,
 } from "@nomicfoundation/hardhat-zod-utils/rpc";
+import debug from "debug";
 import { Transaction } from "micro-eth-signer";
 import * as typed from "micro-eth-signer/typed-data";
 import { add0x, initSig } from "micro-eth-signer/utils";
@@ -40,9 +45,12 @@ import { getYParity } from "./get-y-parity.js";
 import { PLUGIN_NAME } from "./plugin-name.js";
 import { getRequestParams } from "./rpc-helpers.js";
 
+const log = debug("hardhat:hardhat-ledger:handler");
+
 export class LedgerHandler {
   public static readonly MAX_DERIVATION_ACCOUNTS = 20;
   public static readonly DEFAULT_TIMEOUT = 3000;
+  public static readonly MAX_RECONNECTION_ATTEMPTS = 1;
 
   readonly #provider: EthereumProvider;
   readonly #displayMessage: (message: string) => Promise<void>;
@@ -269,6 +277,7 @@ export class LedgerHandler {
 
   async #derivePath(
     addressToFindAsBuffer: Uint8Array<ArrayBufferLike>,
+    reconnectionAttempts: number = 0,
   ): Promise<string> {
     const addressToFind = bytesToHexString(addressToFindAsBuffer).toLowerCase();
 
@@ -312,6 +321,25 @@ export class LedgerHandler {
     } catch (error) {
       ensureError(error);
 
+      // Check if we should attempt reconnection
+      if (
+        this.#isReconnectableError(error) &&
+        reconnectionAttempts < LedgerHandler.MAX_RECONNECTION_ATTEMPTS
+      ) {
+        log("Reconnectable error during path derivation, attempting reconnect");
+        log(error);
+
+        await this.#displayMessage("Reconnecting to Ledger...");
+        await this.#resetConnection();
+        await this.init();
+
+        // Retry derivation
+        return this.#derivePath(
+          addressToFindAsBuffer,
+          reconnectionAttempts + 1,
+        );
+      }
+
       await this.#displayMessage("Derivation failure");
 
       throw new HardhatError(
@@ -343,8 +371,39 @@ export class LedgerHandler {
     }
   }
 
+  /**
+   * Checks if an error indicates the Ledger connection is lost and reconnection should be attempted.
+   * This includes:
+   * - DisconnectedDevice: Device was physically unplugged
+   * - DisconnectedDeviceDuringOperation: Device was unplugged mid-operation
+   */
+  #isReconnectableError(error: Error): boolean {
+    return (
+      error instanceof DisconnectedDevice ||
+      error instanceof DisconnectedDeviceDuringOperation
+    );
+  }
+
+  /**
+   * Resets the Ledger connection by closing the transport and clearing the eth instance.
+   * This allows the next init() call to create a fresh connection.
+   */
+  async #resetConnection(): Promise<void> {
+    if (this.#eth !== undefined) {
+      try {
+        await this.#eth.transport.close();
+      } catch (error) {
+        log("Failed to close transport during reset");
+        log(error);
+      }
+    }
+
+    this.#eth = undefined;
+  }
+
   async #withConfirmation<T extends (...args: any) => any>(
     func: T,
+    reconnectionAttempts: number = 0,
   ): Promise<ReturnType<T>> {
     try {
       await this.#displayMessage("Confirmation start");
@@ -355,9 +414,25 @@ export class LedgerHandler {
 
       return result;
     } catch (error) {
-      await this.#displayMessage("Confirmation failure");
-
       ensureError(error);
+
+      // Check if we should attempt reconnection
+      if (
+        this.#isReconnectableError(error) &&
+        reconnectionAttempts < LedgerHandler.MAX_RECONNECTION_ATTEMPTS
+      ) {
+        log("Reconnectable error during confirmation, attempting reconnect");
+        log(error);
+
+        await this.#displayMessage("Reconnecting to Ledger...");
+        await this.#resetConnection();
+        await this.init();
+
+        // Retry the operation
+        return this.#withConfirmation(func, reconnectionAttempts + 1);
+      }
+
+      await this.#displayMessage("Confirmation failure");
 
       if (error.name === "LockedDeviceError") {
         throw new HardhatError(

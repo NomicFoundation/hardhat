@@ -4,12 +4,17 @@ import assert from "node:assert/strict";
 import path from "node:path";
 import { after, before, beforeEach, describe, it } from "node:test";
 
+import {
+  DisconnectedDevice,
+  DisconnectedDeviceDuringOperation,
+} from "@ledgerhq/errors";
 import { TransportError } from "@ledgerhq/hw-transport";
 import {
   assertHardhatInvariant,
   HardhatError,
 } from "@nomicfoundation/hardhat-errors";
 import {
+  assertRejects,
   assertRejectsWithHardhatError,
   assertThrowsHardhatError,
 } from "@nomicfoundation/hardhat-test-utils";
@@ -23,9 +28,12 @@ import { numberToHexString } from "@nomicfoundation/hardhat-utils/hex";
 import { LedgerHandler } from "../../src/internal/handler.js";
 import { createJsonRpcRequest } from "../helpers/create-json-rpc-request.js";
 import { mockedDisplayInfo } from "../helpers/display-info-mock.js";
-import { getEthMocked } from "../helpers/eth-mocked.js";
+import { getEthMocked, type MethodsConfig } from "../helpers/eth-mocked.js";
 import { EthereumMockedProvider } from "../helpers/ethereum-provider-mock.js";
-import { getTransportNodeHidMock } from "../helpers/transport-node-hid-mock.js";
+import {
+  getTransportNodeHidMock,
+  type TransportMockState,
+} from "../helpers/transport-node-hid-mock.js";
 
 const LEDGER_ADDRESSES = [
   "0xa809931e3b38059adae9bc5455bc567d0509ab92",
@@ -891,7 +899,7 @@ describe("LedgerHandler", () => {
     });
 
     describe("path derivation", () => {
-      let calls: Map<string, { totCall: number; args: any[] }>;
+      let calls: Map<string, { totalCalls: number; args: any[] }>;
       const request = createJsonRpcRequest("personal_sign", [
         dataToSign,
         account.address,
@@ -941,7 +949,7 @@ describe("LedgerHandler", () => {
 
         assert.equal(c.args[0], "m/44'/60'/0'/0/0");
         assert.equal(c.args[1], "m/44'/60'/1'/0/0");
-        assert.equal(c.totCall, 2);
+        assert.equal(c.totalCalls, 2);
       });
 
       it("should cache the path per address on the paths property", async () => {
@@ -1087,6 +1095,285 @@ describe("LedgerHandler", () => {
         assertHardhatInvariant(c !== undefined, "c should be defined");
 
         assert.equal(c.args[0], expectedPath);
+      });
+    });
+  });
+
+  describe("reconnection", () => {
+    describe("exhausted retries", () => {
+      it("should give up and display failure message after reconnection also fails", async () => {
+        const methodsConfig: MethodsConfig = {
+          getAddress: {
+            result: (searchedPath: string) =>
+              searchedPath === derPath
+                ? account
+                : { address: "0x0", publicKey: "0x0" },
+          },
+          signPersonalMessage: {
+            result: rsv,
+            alwaysThrow: true,
+            errorToThrow: new DisconnectedDevice(),
+          },
+        };
+
+        const transportState: TransportMockState = { createCount: 0 };
+        const [ethMock] = getEthMocked(methodsConfig);
+
+        ledgerHandler = new LedgerHandler(
+          ethereumMockedProvider,
+          {
+            accounts: LEDGER_ADDRESSES,
+            derivationFunction: undefined,
+          },
+          mockedDisplayInfo.fn,
+          {
+            ethConstructor: ethMock,
+            transportNodeHid: getTransportNodeHidMock(transportState),
+            cachePath: tmpCachePath,
+          },
+        );
+
+        mockedDisplayInfo.clear();
+
+        const request = createJsonRpcRequest("personal_sign", [
+          dataToSign,
+          account.address,
+        ]);
+
+        await assertRejects(
+          () => ledgerHandler.handle(request),
+          (error) => error instanceof DisconnectedDevice,
+          "Expected DisconnectedDevice error after exhausted retries",
+        );
+
+        assert.equal(
+          transportState.createCount,
+          2,
+          "Transport should be created twice (initial + one reconnection attempt)",
+        );
+        assert.ok(
+          mockedDisplayInfo.messages.includes("Confirmation failure"),
+          "Confirmation failure should be displayed after exhausting retries",
+        );
+        assert.ok(
+          mockedDisplayInfo.messages.includes("Reconnecting to Ledger..."),
+          "Reconnecting message should be displayed",
+        );
+      });
+    });
+
+    describe("DisconnectedDevice recovery", () => {
+      it("should reconnect and succeed when device is unplugged/replugged during signing", async () => {
+        const methodsConfig: MethodsConfig = {
+          getAddress: {
+            result: (searchedPath: string) =>
+              searchedPath === derPath
+                ? account
+                : { address: "0x0", publicKey: "0x0" },
+          },
+          signPersonalMessage: {
+            result: rsv,
+            throwOnCall: 2,
+            errorToThrow: new DisconnectedDevice(),
+          },
+        };
+
+        const transportState: TransportMockState = { createCount: 0 };
+        const [ethMock] = getEthMocked(methodsConfig);
+
+        ledgerHandler = new LedgerHandler(
+          ethereumMockedProvider,
+          {
+            accounts: LEDGER_ADDRESSES,
+            derivationFunction: undefined,
+          },
+          mockedDisplayInfo.fn,
+          {
+            ethConstructor: ethMock,
+            transportNodeHid: getTransportNodeHidMock(transportState),
+            cachePath: tmpCachePath,
+          },
+        );
+
+        // First request should succeed
+        const request1 = createJsonRpcRequest("personal_sign", [
+          dataToSign,
+          account.address,
+        ]);
+        const res1 = await ledgerHandler.handle(request1);
+        assert.ok(res1 !== null, "res1 should not be null");
+        assert.ok("result" in res1, "res1 should have the property 'result'");
+        assert.deepEqual(res1.result, signature);
+
+        assert.equal(
+          transportState.createCount,
+          1,
+          "Transport should be created once initially",
+        );
+
+        // Clear messages before second request to verify reconnection messages
+        mockedDisplayInfo.clear();
+
+        // Second request - should reconnect and succeed
+        const request2 = createJsonRpcRequest("personal_sign", [
+          dataToSign,
+          account.address,
+        ]);
+        const res2 = await ledgerHandler.handle(request2);
+
+        assert.ok(res2 !== null, "res2 should not be null");
+        assert.ok("result" in res2, "res2 should have the property 'result'");
+        assert.deepEqual(res2.result, signature);
+
+        assert.equal(
+          transportState.createCount,
+          2,
+          "Transport should be created twice (initial + reconnection)",
+        );
+
+        assert.ok(
+          !mockedDisplayInfo.messages.includes("Confirmation failure"),
+          "Confirmation failure should not be displayed on successful reconnection",
+        );
+        assert.ok(
+          mockedDisplayInfo.messages.includes("Reconnecting to Ledger..."),
+          "Reconnecting message should be displayed",
+        );
+      });
+
+      it("should reconnect and succeed when device is disconnected during operation", async () => {
+        const methodsConfig: MethodsConfig = {
+          getAddress: {
+            result: (searchedPath: string) =>
+              searchedPath === derPath
+                ? account
+                : { address: "0x0", publicKey: "0x0" },
+          },
+          signPersonalMessage: {
+            result: rsv,
+            throwOnCall: 2,
+            errorToThrow: new DisconnectedDeviceDuringOperation(),
+          },
+        };
+
+        const transportState: TransportMockState = { createCount: 0 };
+        const [ethMock] = getEthMocked(methodsConfig);
+
+        ledgerHandler = new LedgerHandler(
+          ethereumMockedProvider,
+          {
+            accounts: LEDGER_ADDRESSES,
+            derivationFunction: undefined,
+          },
+          mockedDisplayInfo.fn,
+          {
+            ethConstructor: ethMock,
+            transportNodeHid: getTransportNodeHidMock(transportState),
+            cachePath: tmpCachePath,
+          },
+        );
+
+        // First request should succeed
+        const request1 = createJsonRpcRequest("personal_sign", [
+          dataToSign,
+          account.address,
+        ]);
+        const res1 = await ledgerHandler.handle(request1);
+        assert.ok(res1 !== null, "res1 should not be null");
+        assert.ok("result" in res1, "res1 should have the property 'result'");
+
+        // Clear messages before second request to verify reconnection messages
+        mockedDisplayInfo.clear();
+
+        // Second request - should reconnect and succeed
+        const request2 = createJsonRpcRequest("personal_sign", [
+          dataToSign,
+          account.address,
+        ]);
+        const res2 = await ledgerHandler.handle(request2);
+
+        assert.ok(res2 !== null, "res2 should not be null");
+        assert.ok("result" in res2, "res2 should have the property 'result'");
+        assert.deepEqual(res2.result, signature);
+
+        assert.equal(
+          transportState.createCount,
+          2,
+          "Transport should be created twice (initial + reconnection)",
+        );
+
+        assert.ok(
+          !mockedDisplayInfo.messages.includes("Confirmation failure"),
+          "Confirmation failure should not be displayed on successful reconnection",
+        );
+        assert.ok(
+          mockedDisplayInfo.messages.includes("Reconnecting to Ledger..."),
+          "Reconnecting message should be displayed",
+        );
+      });
+    });
+
+    describe("error during path derivation", () => {
+      it("should reconnect and succeed when device is disconnected during path derivation", async () => {
+        const methodsConfig: MethodsConfig = {
+          getAddress: {
+            result: (searchedPath: string) =>
+              searchedPath === derPath
+                ? account
+                : { address: "0x0", publicKey: "0x0" },
+            throwOnCall: 1,
+            errorToThrow: new DisconnectedDevice(),
+          },
+          signPersonalMessage: {
+            result: rsv,
+          },
+        };
+
+        const transportState: TransportMockState = { createCount: 0 };
+        const [ethMock] = getEthMocked(methodsConfig);
+
+        ledgerHandler = new LedgerHandler(
+          ethereumMockedProvider,
+          {
+            accounts: LEDGER_ADDRESSES,
+            derivationFunction: undefined,
+          },
+          mockedDisplayInfo.fn,
+          {
+            ethConstructor: ethMock,
+            transportNodeHid: getTransportNodeHidMock(transportState),
+            cachePath: tmpCachePath,
+          },
+        );
+
+        // Clear messages to verify reconnection messages
+        mockedDisplayInfo.clear();
+
+        const request = createJsonRpcRequest("personal_sign", [
+          dataToSign,
+          account.address,
+        ]);
+
+        const res = await ledgerHandler.handle(request);
+
+        assert.ok(res !== null, "res should not be null");
+        assert.ok("result" in res, "res should have the property 'result'");
+        assert.deepEqual(res.result, signature);
+
+        assert.equal(
+          transportState.createCount,
+          2,
+          "Transport should be created twice (initial + reconnection)",
+        );
+
+        assert.ok(
+          !mockedDisplayInfo.messages.includes("Derivation failure"),
+          "Derivation failure should not be displayed on successful reconnection",
+        );
+        assert.ok(
+          mockedDisplayInfo.messages.includes("Reconnecting to Ledger..."),
+          "Reconnecting message should be displayed",
+        );
       });
     });
   });
