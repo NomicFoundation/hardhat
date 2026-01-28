@@ -62,7 +62,7 @@ import {
 } from "./artifacts.js";
 import { loadCache, saveCache } from "./cache.js";
 import { CompilationJobImplementation } from "./compilation-job.js";
-import { downloadConfiguredCompilers, getCompiler } from "./compiler/index.js";
+import { downloadSolcCompilers, getCompiler } from "./compiler/index.js";
 import { buildDependencyGraph } from "./dependency-graph-building.js";
 import { readSourceFileFactory } from "./read-source-file.js";
 import {
@@ -110,7 +110,7 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
   readonly #hooks: HookManager;
   readonly #options: SolidityBuildSystemOptions;
   #compileCache: CompileCache = {};
-  #downloadedCompilers = false;
+  #configuredCompilersDownloaded = false;
 
   constructor(hooks: HookManager, options: SolidityBuildSystemOptions) {
     this.#hooks = hooks;
@@ -178,6 +178,19 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
   }
 
   public async build(
+    rootFilePaths: string[],
+    _options?: BuildOptions,
+  ): Promise<CompilationJobCreationError | Map<string, FileBuildResult>> {
+    return this.#hooks.runHandlerChain(
+      "solidity",
+      "build",
+      [rootFilePaths, _options],
+      async (_context, nextRootFilePaths, nextOptions) =>
+        this.#build(nextRootFilePaths, nextOptions),
+    );
+  }
+
+  async #build(
     rootFilePaths: string[],
     _options?: BuildOptions,
   ): Promise<CompilationJobCreationError | Map<string, FileBuildResult>> {
@@ -959,22 +972,31 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
   }
 
   public async compileBuildInfo(
-    _buildInfo: SolidityBuildInfo,
-    _options?: CompileBuildInfoOptions,
+    buildInfo: SolidityBuildInfo,
+    options?: CompileBuildInfoOptions,
   ): Promise<CompilerOutput> {
-    // TODO: Download the buildinfo compiler version
-    assertHardhatInvariant(false, "Method not implemented.");
+    const quiet = options?.quiet ?? false;
+
+    // We download the compiler for the build info as it may not be configured
+    // in the HH config, hence not downloaded with the other compilers
+    await downloadSolcCompilers(new Set([buildInfo.solcVersion]), quiet);
+
+    const compiler = await getCompiler(buildInfo.solcVersion, {
+      preferWasm: false,
+    });
+
+    return compiler.compile(buildInfo.input);
   }
 
   async #downloadConfiguredCompilers(quiet = false): Promise<void> {
-    // TODO: For the alpha release, we always print this message
+    // We always print that we are downloading the compilers
     quiet = false;
-    if (this.#downloadedCompilers) {
+    if (this.#configuredCompilersDownloaded) {
       return;
     }
 
-    await downloadConfiguredCompilers(this.#getAllCompilerVersions(), quiet);
-    this.#downloadedCompilers = true;
+    await downloadSolcCompilers(this.#getAllCompilerVersions(), quiet);
+    this.#configuredCompilersDownloaded = true;
   }
 
   #getAllCompilerVersions(): Set<string> {
