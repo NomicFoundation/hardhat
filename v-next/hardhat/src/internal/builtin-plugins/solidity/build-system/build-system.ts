@@ -72,23 +72,9 @@ import {
   parseRootPath,
 } from "./root-paths-utils.js";
 import { SolcConfigSelector } from "./solc-config-selection.js";
+import { shouldSuppressWarning } from "./warning-suppression.js";
 
 const log = debug("hardhat:core:solidity:build-system");
-
-// Compiler warnings to suppress from build output.
-// Each rule specifies a warning message and the source file it applies to.
-// This allows suppressing known warnings from internal files (e.g., console.sol)
-// while still showing the same warning type from user code.
-export const SUPPRESSED_WARNINGS: Array<{
-  message: string;
-  sourceFile: string;
-}> = [
-  {
-    message:
-      "Natspec memory-safe-assembly special comment for inline assembly is deprecated and scheduled for removal. Use the memory-safe block annotation instead.",
-    sourceFile: path.normalize("hardhat/console.sol"),
-  },
-];
 
 interface CompilationResult {
   compilationJob: CompilationJob;
@@ -1121,10 +1107,7 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
 
   #shouldSuppressWarning(error: CompilerOutputError): boolean {
     const msg = error.formattedMessage ?? error.message;
-
-    return SUPPRESSED_WARNINGS.some(
-      (rule) => msg.includes(rule.message) && msg.includes(rule.sourceFile),
-    );
+    return shouldSuppressWarning(msg);
   }
 
   async #printCompilationResult(
