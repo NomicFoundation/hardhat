@@ -119,8 +119,11 @@ export async function generateExposedContractsForCompilationJobsRoots(
       // The given that we are skipping npm files, we know that the users source
       // name is the relative path from the root of the file, and it's input
       // source name is `project/${userSourceName}`.
-      const userSourceName = rootFilePath.replace(
-        context.config.paths.root.replace(/\\/g, "/") + "/",
+      // Normalize both paths to forward slashes for consistent string replacement on Windows
+      const normalizedRootFilePath = rootFilePath.replace(/\\/g, "/");
+      const normalizedRoot = context.config.paths.root.replace(/\\/g, "/");
+      const userSourceName = normalizedRootFilePath.replace(
+        normalizedRoot + "/",
         "",
       );
       const inputSourceName = `project/${userSourceName}`;
@@ -173,10 +176,10 @@ function generateExposedContractContent(
   }
 
   // Calculate relative import path
-  const importPath = path.relative(
-    path.dirname(generatedFilePath),
-    originalFilePath,
-  );
+  // Normalize to forward slashes for Solidity imports (required on Windows)
+  const importPath = path
+    .relative(path.dirname(generatedFilePath), originalFilePath)
+    .replace(/\\/g, "/");
 
   // Generate file content
   const lines: string[] = [];
