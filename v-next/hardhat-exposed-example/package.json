@@ -1,0 +1,60 @@
+{
+  "name": "hardhat-exposed-example",
+  "private": true,
+  "version": "3.0.0",
+  "description": "hardhat-exposed-example",
+  "homepage": "https://github.com/nomicfoundation/hardhat/tree/v-next/v-next/hardhat-exposed-example",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/NomicFoundation/hardhat",
+    "directory": "v-next/hardhat-exposed-example"
+  },
+  "author": "Nomic Foundation",
+  "license": "MIT",
+  "type": "module",
+  "types": "dist/src/index.d.ts",
+  "exports": {
+    ".": "./dist/src/index.js"
+  },
+  "keywords": [
+    "ethereum",
+    "smart-contracts",
+    "hardhat"
+  ],
+  "scripts": {
+    "lint": "pnpm prettier --check && pnpm eslint",
+    "lint:fix": "pnpm prettier --write && pnpm eslint --fix",
+    "eslint": "eslint \"src/**/*.ts\" \"test/**/*.ts\"",
+    "prettier": "prettier \"**/*.{ts,js,md,json}\"",
+    "test": "node --import tsx/esm --test --test-reporter=@nomicfoundation/hardhat-node-test-reporter \"test/*.ts\" \"test/!(fixture-projects|helpers)/**/*.ts\"",
+    "test:only": "node --import tsx/esm --test --test-only --test-reporter=@nomicfoundation/hardhat-node-test-reporter \"test/*.ts\" \"test/!(fixture-projects|helpers)/**/*.ts\"",
+    "test:coverage": "c8 --reporter html --reporter text --all --exclude test --exclude \"src/**/{types,type-extensions}.ts\" --src src node --import tsx/esm --test --test-reporter=@nomicfoundation/hardhat-node-test-reporter \"test/*.ts\" \"test/!(fixture-projects|helpers)/**/*.ts\"",
+    "pretest": "pnpm build",
+    "pretest:only": "pnpm build",
+    "build": "tsc --build .",
+    "prepublishOnly": "pnpm build",
+    "clean": "rimraf dist"
+  },
+  "files": [
+    "dist/src/",
+    "src/",
+    "CHANGELOG.md",
+    "LICENSE",
+    "README.md"
+  ],
+  "devDependencies": {
+    "@nomicfoundation/hardhat-node-test-reporter": "workspace:^3.0.2",
+    "@types/node": "^22.0.0",
+    "c8": "^9.1.0",
+    "eslint": "9.25.1",
+    "expect-type": "^1.2.1",
+    "hardhat": "workspace:^3.1.5",
+    "prettier": "3.2.5",
+    "rimraf": "^5.0.5",
+    "tsx": "^4.19.3",
+    "typescript": "~5.8.0"
+  },
+  "peerDependencies": {
+    "hardhat": "workspace:^3.1.5"
+  }
+}
