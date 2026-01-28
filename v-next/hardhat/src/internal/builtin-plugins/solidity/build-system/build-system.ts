@@ -22,6 +22,7 @@ import type {
   Compiler,
   CompilerOutput,
   CompilerOutputError,
+  DependencyGraph,
   SolidityBuildInfo,
 } from "../../../../types/solidity.js";
 
@@ -104,6 +105,24 @@ export interface SolidityBuildSystemOptions {
   readonly artifactsPath: string;
   readonly cachePath: string;
   readonly solidityTestsPath: string;
+}
+
+/**
+ * Returns the formatted root path for a dependency graph that has exactly one
+ * root file.
+ *
+ * @param dependencyGraph A dependency graph with exactly one root file.
+ * @returns The formatted root path.
+ * @throws If the graph doesn't have exactly one root file.
+ */
+function getSingleRootFilePath(dependencyGraph: DependencyGraph): string {
+  assertHardhatInvariant(
+    dependencyGraph.getRoots().size === 1,
+    "dependency graph doesn't have exactly 1 root file",
+  );
+
+  const [userSourceName, root] = [...dependencyGraph.getRoots().entries()][0];
+  return formatRootPath(userSourceName, root);
 }
 
 export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
@@ -460,15 +479,8 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
 
         await individualJob.getBuildId(); // precompute
 
-        assertHardhatInvariant(
-          subgraph.getRoots().size === 1,
-          "individual subgraph doesn't have exactly 1 root file",
-        );
-
-        const [userSourceName, root] = [...subgraph.getRoots().entries()][0];
-
         indexedIndividualJobs.set(
-          formatRootPath(userSourceName, root),
+          getSingleRootFilePath(subgraph),
           individualJob,
         );
       }),
@@ -532,12 +544,9 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
 
       // If file was not added to rootFilesToCompile, it's a cache hit
       if (!rootFilesToCompile.has(rootFile)) {
-        const [userSourceName, root] = [
-          ...compilationJob.dependencyGraph.getRoots().entries(),
-        ][0];
         // Extract buildId from buildInfoPath (format: <dir>/<buildId>.json)
         const buildId = path.basename(cacheResult.buildInfoPath, ".json");
-        cacheHits.set(formatRootPath(userSourceName, root), {
+        cacheHits.set(getSingleRootFilePath(compilationJob.dependencyGraph), {
           buildId,
           artifactPaths,
         });
@@ -557,13 +566,7 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
       // based on reference, and not by deep equality. It misses some merging
       // opportunities, but this is Hardhat v2's behavior and works well enough.
       for (const [config, subgraph] of subgraphsWithConfig) {
-        assertHardhatInvariant(
-          subgraph.getRoots().size === 1,
-          "there should be only 1 root file on subgraph",
-        );
-
-        const [userSourceName, root] = [...subgraph.getRoots().entries()][0];
-        const rootFile = formatRootPath(userSourceName, root);
+        const rootFile = getSingleRootFilePath(subgraph);
 
         // Skip root files with cache hit (should not recompile)
         if (!rootFilesToCompile.has(rootFile)) {
@@ -584,13 +587,7 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
       // isolated mode
       subgraphsWithConfig = subgraphsWithConfig.filter(
         ([_config, subgraph]) => {
-          assertHardhatInvariant(
-            subgraph.getRoots().size === 1,
-            "there should be only 1 root file on subgraph",
-          );
-
-          const [userSourceName, root] = [...subgraph.getRoots().entries()][0];
-          const rootFile = formatRootPath(userSourceName, root);
+          const rootFile = getSingleRootFilePath(subgraph);
 
           return rootFilesToCompile.has(rootFile);
         },
