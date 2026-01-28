@@ -56,7 +56,6 @@ const hardhatPlugin: HardhatPlugin = {
     import("../solidity/index.js"),
     import("../test/index.js"),
     import("../coverage/index.js"),
-    import("../gas-analytics/index.js"),
   ],
   npmPackage: "hardhat",
 };
