@@ -1,3 +1,5 @@
+import type { RemappingsReaderFunction } from "./resolver/remapped-npm-packages-graph.js";
+import type { HookManager } from "../../../../types/hooks.js";
 import type { ResolvedFile } from "../../../../types/solidity/resolved-file.js";
 
 import { HardhatError } from "@nomicfoundation/hardhat-errors";
@@ -17,8 +19,28 @@ export async function buildDependencyGraph(
   rootFiles: string[],
   projectRoot: string,
   readFile: (absPath: string) => Promise<string>,
+  hookManager: HookManager,
 ): Promise<DependencyGraphImplementation> {
-  const resolver = await ResolverImplementation.create(projectRoot, readFile);
+  // Create the wrapper function that captures the hook manager
+  const remappingsReader: RemappingsReaderFunction = (
+    packageName,
+    packageVersion,
+    packagePath,
+    defaultBehavior,
+  ) =>
+    hookManager.runHandlerChain(
+      "solidity",
+      "readNpmPackageRemappings",
+      [packageName, packageVersion, packagePath],
+      async (_context, name, version, path) =>
+        defaultBehavior(name, version, path),
+    );
+
+  const resolver = await ResolverImplementation.create(
+    projectRoot,
+    readFile,
+    remappingsReader,
+  );
 
   const dependencyGraph = new DependencyGraphImplementation();
 

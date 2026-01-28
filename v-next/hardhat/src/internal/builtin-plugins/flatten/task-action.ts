@@ -64,6 +64,7 @@ const flattenAction: NewTaskActionFunction<FlattenActionArguments> = async (
     rootPaths.toSorted(), // We sort them to have a deterministic order
     config.paths.root,
     readSourceFileFactory(hooks),
+    hooks,
   );
 
   let flattened = "";
