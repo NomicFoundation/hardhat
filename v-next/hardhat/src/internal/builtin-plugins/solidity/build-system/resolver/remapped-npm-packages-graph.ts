@@ -37,6 +37,17 @@ import { UserRemappingType } from "./types.js";
 
 const HARDHAT_PROJECT_INPUT_SOURCE_NAME_ROOT = "project";
 
+export type RemappingsReaderFunction = (
+  packageName: string,
+  packageVersion: string,
+  packagePath: string,
+  defaultBehavior: (
+    name: string,
+    version: string,
+    path: string,
+  ) => Promise<Array<{ remappings: string[]; source: string }>>,
+) => Promise<Array<{ remappings: string[]; source: string }>>;
+
 export function isResolvedUserRemapping(
   remapping: Remapping | ResolvedUserRemapping,
 ): remapping is ResolvedUserRemapping {
@@ -54,6 +65,11 @@ export class RemappedNpmPackagesGraphImplementation
    * The Hardhat project itself.
    */
   readonly #hardhatProjectPackage: ResolvedNpmPackage;
+
+  /**
+   * The remappings reader function to use when reading package remappings.
+   */
+  readonly #remappingsReader?: RemappingsReaderFunction;
 
   /**
    * This is a map of all the npm packages. Every package that has been
@@ -104,6 +120,7 @@ export class RemappedNpmPackagesGraphImplementation
 
   public static async create(
     projectRootPath: string,
+    remappingsReader?: RemappingsReaderFunction,
   ): Promise<RemappedNpmPackagesGraphImplementation> {
     const projectPackageJson = await readJsonFile<PackageJson>(
       path.join(projectRootPath, "package.json"),
@@ -117,11 +134,18 @@ export class RemappedNpmPackagesGraphImplementation
       inputSourceNameRoot: HARDHAT_PROJECT_INPUT_SOURCE_NAME_ROOT,
     };
 
-    return new RemappedNpmPackagesGraphImplementation(resolvedNpmPackage);
+    return new RemappedNpmPackagesGraphImplementation(
+      resolvedNpmPackage,
+      remappingsReader,
+    );
   }
 
-  private constructor(hardhatProjectPackage: ResolvedNpmPackage) {
+  private constructor(
+    hardhatProjectPackage: ResolvedNpmPackage,
+    remappingsReader?: RemappingsReaderFunction,
+  ) {
     this.#hardhatProjectPackage = hardhatProjectPackage;
+    this.#remappingsReader = remappingsReader;
     this.#insertNewPackage(hardhatProjectPackage);
   }
 
@@ -397,41 +421,76 @@ export class RemappedNpmPackagesGraphImplementation
       UserRemappingError[]
     >
   > {
-    const remappingsTxtFiles = await getAllFilesMatching(
-      npmPackage.rootFsPath,
-      (f) => path.basename(f) === "remappings.txt",
-      (f) => !f.endsWith("node_modules"),
-    );
+    const defaultBehavior = async (
+      packageName: string,
+      packageVersion: string,
+      packagePath: string,
+    ) => {
+      // Default: read from remappings.txt files (existing implementation)
+      const remappingsTxtFiles = await getAllFilesMatching(
+        packagePath,
+        (f) => path.basename(f) === "remappings.txt",
+        (f) => !f.endsWith("node_modules"),
+      );
 
-    const remappings = [];
-    const errors = [];
+      const results: Array<{ remappings: string[]; source: string }> = [];
+      for (const file of remappingsTxtFiles) {
+        const contents = await readUtf8File(file);
+        const lines = contents
+          .split("\n")
+          .map((line) => line.trim())
+          .filter((line) => line !== "" && !line.startsWith("#"));
+        results.push({ remappings: lines, source: file });
+      }
 
-    for (const remappingsTxtFsPath of remappingsTxtFiles) {
-      const packageRemappingsTxtContents =
-        await readUtf8File(remappingsTxtFsPath);
+      return results;
+    };
 
-      const rawUserRemappings = packageRemappingsTxtContents
-        .split("\n")
-        .map((line) => line.trim())
-        .filter((line) => line !== "")
-        .filter((line) => !line.startsWith("#"));
+    // Call the wrapper function if provided, otherwise use default
+    let hookResults: Array<{ remappings: string[]; source: string }>;
 
-      for (const userRemapping of rawUserRemappings) {
+    if (this.#remappingsReader !== undefined) {
+      hookResults = await this.#remappingsReader(
+        npmPackage.name,
+        npmPackage.version,
+        npmPackage.rootFsPath,
+        defaultBehavior,
+      );
+    } else {
+      hookResults = await defaultBehavior(
+        npmPackage.name,
+        npmPackage.version,
+        npmPackage.rootFsPath,
+      );
+    }
+
+    // Parse and deduplicate remappings
+    const remappings: Array<LocalUserRemapping | UnresolvedNpmUserRemapping> =
+      [];
+    const errors: UserRemappingError[] = [];
+    const seen = new Set<string>(); // Track by "context:prefix"
+
+    for (const { remappings: remappingStrings, source } of hookResults) {
+      for (const remappingString of remappingStrings) {
         const result = await this.#parseUserRemapping(
           npmPackage,
-          remappingsTxtFsPath,
-          userRemapping,
+          source,
+          remappingString,
         );
 
         if (!result.success) {
           errors.push(result.error);
-        } else {
-          // If parsing returned `undefined`, it means that it should be
-          // ignored.
-          if (result.value === undefined) {
-            continue;
-          }
+          continue;
+        }
 
+        if (result.value === undefined) {
+          continue;
+        }
+
+        // Deduplicate by (context + prefix) - first occurrence wins
+        const key = `${result.value.context}:${result.value.prefix}`;
+        if (!seen.has(key)) {
+          seen.add(key);
           remappings.push(result.value);
         }
       }
