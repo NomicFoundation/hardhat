@@ -1,3 +1,11 @@
+import type {
+  ChainDescriptorConfig,
+  ChainDescriptorsConfig,
+  HttpNetworkConfig,
+  ResolvedConfigurationVariable,
+} from "hardhat/types/config";
+import type { ChainType } from "hardhat/types/network";
+
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 
@@ -12,9 +20,57 @@ import {
   isHardhatNetwork,
   isAnvilNetwork,
   getMode,
+  setChainContext,
 } from "../src/internal/chains.js";
 
 import { MockEthereumProvider } from "./utils.js";
+
+// Helper to create mock NetworkConfig with proper ResolvedConfigurationVariable
+function createMockHttpNetworkConfig(
+  url: string,
+  chainId: number,
+  chainType?: ChainType,
+): Readonly<HttpNetworkConfig> {
+  const resolvedUrl: ResolvedConfigurationVariable = {
+    _type: "ResolvedConfigurationVariable",
+    format: "url",
+    get: async () => url,
+    getUrl: async () => url,
+    getBigInt: async () => 0n,
+    getHexString: async () => "0x",
+  };
+
+  const config: HttpNetworkConfig = {
+    type: "http",
+    url: resolvedUrl,
+    chainId,
+    chainType: chainType ?? "generic",
+    accounts: "remote",
+    gas: "auto",
+    gasMultiplier: 1,
+    gasPrice: "auto",
+    httpHeaders: {},
+    timeout: 20000,
+  };
+
+  return config;
+}
+
+// Helper to create a mock ChainDescriptorConfig
+function createMockChainDescriptor(
+  name: string,
+  chainType: ChainType = "generic",
+  etherscanUrl?: string,
+): ChainDescriptorConfig {
+  return {
+    name,
+    chainType,
+    blockExplorers:
+      etherscanUrl !== undefined
+        ? { etherscan: { name: "Explorer", url: etherscanUrl, apiUrl: "" } }
+        : {},
+  };
+}
 
 describe("chains", () => {
   describe("getChain", () => {
@@ -134,6 +190,149 @@ describe("chains", () => {
         ...chains.anvil,
         id: 12345,
       });
+    });
+
+    it("should return a custom chain when chainDescriptor is defined", async () => {
+      const provider = new MockEthereumProvider({ eth_chainId: "0x2694" }); // 9876 in hex
+
+      const chainDescriptors: ChainDescriptorsConfig = new Map([
+        [9876n, createMockChainDescriptor("GCCNET")],
+      ]);
+
+      await setChainContext(
+        provider,
+        chainDescriptors,
+        "gccnet",
+        createMockHttpNetworkConfig("https://rpc.gccnet.io", 9876),
+      );
+
+      const chain = await getChain(provider, "generic");
+
+      assert.equal(chain.id, 9876);
+      assert.equal(chain.name, "GCCNET");
+    });
+
+    it("should fallback to network config when no chainDescriptor defined", async () => {
+      const provider = new MockEthereumProvider({ eth_chainId: "0x2694" }); // 9876 in hex
+
+      await setChainContext(
+        provider,
+        new Map(), // Empty chainDescriptors
+        "adiTestnet", // Network name becomes chain name
+        createMockHttpNetworkConfig("https://rpc.adi.io", 9876),
+      );
+
+      const chain = await getChain(provider, "generic");
+
+      assert.equal(chain.id, 9876);
+      assert.equal(chain.name, "adiTestnet");
+    });
+
+    it("should throw if chainId doesn't match network config and no chainDescriptor", async () => {
+      const provider = new MockEthereumProvider({ eth_chainId: "0x2694" }); // 9876 in hex
+
+      await setChainContext(
+        provider,
+        new Map(), // Empty chainDescriptors
+        "otherNetwork",
+        createMockHttpNetworkConfig("https://rpc.other.io", 12345), // Different chainId!
+      );
+
+      await assertRejectsWithHardhatError(
+        getChain(provider, "generic"),
+        HardhatError.ERRORS.HARDHAT_VIEM.GENERAL.NETWORK_NOT_FOUND,
+        { chainId: 9876 },
+      );
+    });
+
+    it("should include etherscan block explorer when defined in chainDescriptor", async () => {
+      const provider = new MockEthereumProvider({ eth_chainId: "0x2694" });
+
+      const chainDescriptors: ChainDescriptorsConfig = new Map([
+        [
+          9876n,
+          createMockChainDescriptor(
+            "GCCNET",
+            "generic",
+            "https://scan.gccnet.io",
+          ),
+        ],
+      ]);
+
+      await setChainContext(
+        provider,
+        chainDescriptors,
+        "gccnet",
+        createMockHttpNetworkConfig("https://rpc.gccnet.io", 9876),
+      );
+
+      const chain = await getChain(provider, "generic");
+
+      assert.equal(chain.blockExplorers?.default?.name, "Explorer");
+      assert.equal(
+        chain.blockExplorers?.default?.url,
+        "https://scan.gccnet.io",
+      );
+    });
+
+    it("should add OP contracts when chainDescriptor has chainType op", async () => {
+      const provider = new MockEthereumProvider({ eth_chainId: "0x2694" });
+
+      const chainDescriptors: ChainDescriptorsConfig = new Map([
+        [9876n, createMockChainDescriptor("MyL2", "op")],
+      ]);
+
+      await setChainContext(
+        provider,
+        chainDescriptors,
+        "myl2",
+        createMockHttpNetworkConfig("https://rpc.myl2.io", 9876),
+      );
+
+      const chain = await getChain(provider, "generic");
+
+      assert.ok(
+        chain.contracts !== undefined,
+        "OP chain should have contracts",
+      );
+    });
+
+    it("should add OP contracts when network config chainType is op", async () => {
+      const provider = new MockEthereumProvider({ eth_chainId: "0x2694" });
+
+      await setChainContext(
+        provider,
+        new Map(), // No chainDescriptor - use network fallback
+        "adiTestnet",
+        createMockHttpNetworkConfig("https://rpc.adi.io", 9876, "op"),
+      );
+
+      const chain = await getChain(provider, "generic");
+
+      assert.ok(
+        chain.contracts !== undefined,
+        "OP chain from network config should have contracts",
+      );
+    });
+
+    it("should prefer chainDescriptor over network config when both available", async () => {
+      const provider = new MockEthereumProvider({ eth_chainId: "0x2694" });
+
+      const chainDescriptors: ChainDescriptorsConfig = new Map([
+        [9876n, createMockChainDescriptor("ExplicitName")],
+      ]);
+
+      await setChainContext(
+        provider,
+        chainDescriptors,
+        "networkName", // Different from chainDescriptor name
+        createMockHttpNetworkConfig("https://rpc.network.io", 9876),
+      );
+
+      const chain = await getChain(provider, "generic");
+
+      // Should use chainDescriptor name, not network name
+      assert.equal(chain.name, "ExplicitName");
     });
   });
 
