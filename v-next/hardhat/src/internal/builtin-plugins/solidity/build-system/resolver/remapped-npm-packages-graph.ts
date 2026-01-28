@@ -447,17 +447,17 @@ export class RemappedNpmPackagesGraphImplementation
     };
 
     // Call the wrapper function if provided, otherwise use default
-    let hookResults: Array<{ remappings: string[]; source: string }>;
+    let allRemappings: Array<{ remappings: string[]; source: string }>;
 
     if (this.#remappingsReader !== undefined) {
-      hookResults = await this.#remappingsReader(
+      allRemappings = await this.#remappingsReader(
         npmPackage.name,
         npmPackage.version,
         npmPackage.rootFsPath,
         defaultBehavior,
       );
     } else {
-      hookResults = await defaultBehavior(
+      allRemappings = await defaultBehavior(
         npmPackage.name,
         npmPackage.version,
         npmPackage.rootFsPath,
@@ -470,7 +470,7 @@ export class RemappedNpmPackagesGraphImplementation
     const errors: UserRemappingError[] = [];
     const seen = new Set<string>(); // Track by "context:prefix"
 
-    for (const { remappings: remappingStrings, source } of hookResults) {
+    for (const { remappings: remappingStrings, source } of allRemappings) {
       for (const remappingString of remappingStrings) {
         const result = await this.#parseUserRemapping(
           npmPackage,
