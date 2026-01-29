@@ -1230,6 +1230,9 @@ describe("LedgerHandler", () => {
   });
 
   describe("reconnection", () => {
+    // No-op sleep for fast tests
+    const noOpSleep = async (_seconds: number): Promise<void> => {};
+
     describe("exhausted retries", () => {
       it("should give up and display failure message after reconnection also fails", async () => {
         const methodsConfig: MethodsConfig = {
@@ -1241,8 +1244,9 @@ describe("LedgerHandler", () => {
           },
           signPersonalMessage: {
             result: rsv,
-            // Need enough errors to exhaust retries (initial + 1 reconnection attempt)
+            // Need enough errors to exhaust retries (initial + 2 reconnection attempts = 3)
             errorSequenceToThrow: [
+              new DisconnectedDevice(),
               new DisconnectedDevice(),
               new DisconnectedDevice(),
             ],
@@ -1263,6 +1267,7 @@ describe("LedgerHandler", () => {
             ethConstructor: ethMock,
             transportNodeHid: getTransportNodeHidMock(transportState),
             cachePath: tmpCachePath,
+            delayBeforeRetry: noOpSleep,
           },
         );
 
@@ -1281,8 +1286,8 @@ describe("LedgerHandler", () => {
 
         assert.equal(
           transportState.createCount,
-          2,
-          "Transport should be created twice (initial + one reconnection attempt)",
+          3,
+          "Transport should be created 3 times (initial + 2 reconnection attempts)",
         );
         assert.ok(
           mockedDisplayInfo.messages.includes("Confirmation failure"),
@@ -1325,6 +1330,7 @@ describe("LedgerHandler", () => {
             ethConstructor: ethMock,
             transportNodeHid: getTransportNodeHidMock(transportState),
             cachePath: tmpCachePath,
+            delayBeforeRetry: noOpSleep,
           },
         );
 
@@ -1403,6 +1409,7 @@ describe("LedgerHandler", () => {
             ethConstructor: ethMock,
             transportNodeHid: getTransportNodeHidMock(transportState),
             cachePath: tmpCachePath,
+            delayBeforeRetry: noOpSleep,
           },
         );
 
@@ -1476,6 +1483,7 @@ describe("LedgerHandler", () => {
             ethConstructor: ethMock,
             transportNodeHid: getTransportNodeHidMock(transportState),
             cachePath: tmpCachePath,
+            delayBeforeRetry: noOpSleep,
           },
         );
 
@@ -1717,7 +1725,9 @@ describe("LedgerHandler", () => {
         );
       });
 
-      it("should handle DisconnectedDevice followed by LockedDeviceError followed by app-not-open then succeed", async () => {
+      it("should handle DisconnectedDevice followed by LockedDeviceError followed by app-not-open followed by DisconnectedDeviceDuringOperation then succeed", async () => {
+        // This test reproduces a real-world scenario where app-not-open is followed
+        // by a disconnect when the user opens the Ethereum app (app switch causes disconnect)
         const methodsConfig: MethodsConfig = {
           getAddress: {
             result: (searchedPath: string) =>
@@ -1730,11 +1740,13 @@ describe("LedgerHandler", () => {
             // First call: DisconnectedDevice (triggers reconnect)
             // Second call: LockedDeviceError (triggers wait/retry)
             // Third call: app not open (0x6511, triggers wait/retry)
-            // Fourth call: success
+            // Fourth call: DisconnectedDeviceDuringOperation (triggers reconnect - user opened app)
+            // Fifth call: success
             errorSequenceToThrow: [
               new DisconnectedDevice(),
               new LockedDeviceError("Device is locked"),
               new TransportStatusError(APP_NOT_OPEN_STATUS_CODE),
+              new DisconnectedDeviceDuringOperation(),
             ],
           },
         };
@@ -1774,19 +1786,24 @@ describe("LedgerHandler", () => {
         assert.ok(signCalls !== undefined, "signCalls should be defined");
         assert.equal(
           signCalls.totalCalls,
-          4,
-          "signPersonalMessage should be called 4 times",
+          5,
+          "signPersonalMessage should be called 5 times",
         );
 
         assert.equal(
           transportState.createCount,
-          2,
-          "Transport should be created twice (initial + reconnection after disconnect)",
+          3,
+          "Transport should be created 3 times (initial + 2 reconnections)",
         );
 
-        assert.ok(
-          mockedDisplayInfo.messages.includes("Reconnecting to Ledger..."),
-          "Reconnecting message should be displayed",
+        // Reconnecting message should appear twice (once for each disconnect)
+        const reconnectMessages = mockedDisplayInfo.messages.filter(
+          (m) => m === "Reconnecting to Ledger...",
+        );
+        assert.equal(
+          reconnectMessages.length,
+          2,
+          "Reconnecting message should be displayed twice",
         );
         assert.ok(
           mockedDisplayInfo.messages.some((m) =>

@@ -1,5 +1,4 @@
 import type { Paths, Signature, LedgerOptions } from "./types.js";
-import type { TransportError } from "@ledgerhq/errors";
 import type { EIP712Message } from "@ledgerhq/types-live";
 import type {
   EthereumProvider,
@@ -11,6 +10,7 @@ import {
   DisconnectedDevice,
   DisconnectedDeviceDuringOperation,
   LockedDeviceError,
+  TransportError,
   TransportStatusError,
 } from "@ledgerhq/errors";
 import { isEIP712Message } from "@ledgerhq/evm-tools/lib/index";
@@ -54,10 +54,16 @@ const APP_NOT_OPEN_STATUS_CODE = 0x6511;
 
 const log = debug("hardhat:hardhat-ledger:handler");
 
+interface RetryState {
+  reconnection: number;
+  deviceNotReady: number;
+}
+
 export class LedgerHandler {
   public static readonly MAX_DERIVATION_ACCOUNTS = 20;
   public static readonly DEFAULT_TIMEOUT = 3000;
-  public static readonly MAX_RECONNECTION_ATTEMPTS = 1;
+  public static readonly MAX_RECONNECTION_ATTEMPTS = 2;
+  public static readonly RECONNECTION_DELAY_SECONDS = 0.5;
   public static readonly DEVICE_NOT_READY_RETRY_DELAY_SECONDS = 30;
   public static readonly MAX_DEVICE_NOT_READY_RETRIES = 60;
 
@@ -277,7 +283,7 @@ export class LedgerHandler {
 
           const delay = LedgerHandler.DEVICE_NOT_READY_RETRY_DELAY_SECONDS;
           await this.#displayMessage(
-            `Device not connected. Please plug in your Ledger. Retrying in ${delay} seconds...`,
+            `Device not connected or PIN not entered. Please plug in your Ledger, enter the PIN and open the Ethereum app. Retrying in ${delay} seconds...`,
           );
           await this.#delayBeforeRetry(delay);
 
@@ -287,11 +293,7 @@ export class LedgerHandler {
         // Give up - either not a retryable error or exhausted retries
         await this.#displayMessage("Connection error");
 
-        let transportId = "";
-        if (error.name === "TransportError") {
-          // eslint-disable-next-line @typescript-eslint/consistent-type-assertions -- if error is of type TransportError, it has an id property
-          transportId = (error as TransportError).id;
-        }
+        const transportId = error instanceof TransportError ? error.id : "";
 
         throw new HardhatError(
           HardhatError.ERRORS.HARDHAT_LEDGER.GENERAL.CONNECTION_ERROR,
@@ -311,7 +313,7 @@ export class LedgerHandler {
 
   async #derivePath(
     addressToFindAsBuffer: Uint8Array<ArrayBufferLike>,
-    retryAttempts: number = 0,
+    retryState: RetryState = { reconnection: 0, deviceNotReady: 0 },
   ): Promise<string> {
     const addressToFind = bytesToHexString(addressToFindAsBuffer).toLowerCase();
 
@@ -358,22 +360,26 @@ export class LedgerHandler {
       // Check if we should attempt reconnection
       if (
         this.#isReconnectableError(error) &&
-        retryAttempts < LedgerHandler.MAX_RECONNECTION_ATTEMPTS
+        retryState.reconnection < LedgerHandler.MAX_RECONNECTION_ATTEMPTS
       ) {
         log("Reconnectable error during path derivation, attempting reconnect");
         log(error);
 
         await this.#displayMessage("Reconnecting to Ledger...");
+        await this.#delayBeforeRetry(LedgerHandler.RECONNECTION_DELAY_SECONDS);
         await this.#resetConnection();
         await this.init();
 
-        return this.#derivePath(addressToFindAsBuffer, retryAttempts + 1);
+        return this.#derivePath(addressToFindAsBuffer, {
+          ...retryState,
+          reconnection: retryState.reconnection + 1,
+        });
       }
 
       // Retry if device not ready and we have retries left
       if (
         this.#isDeviceNotReadyError(error) &&
-        retryAttempts < this.#maxDeviceNotReadyRetries
+        retryState.deviceNotReady < this.#maxDeviceNotReadyRetries
       ) {
         log("Device not ready error during path derivation, waiting for user");
         log(error);
@@ -383,7 +389,10 @@ export class LedgerHandler {
           LedgerHandler.DEVICE_NOT_READY_RETRY_DELAY_SECONDS,
         );
 
-        return this.#derivePath(addressToFindAsBuffer, retryAttempts + 1);
+        return this.#derivePath(addressToFindAsBuffer, {
+          ...retryState,
+          deviceNotReady: retryState.deviceNotReady + 1,
+        });
       }
 
       // Give up - either exhausted retries or other error
@@ -392,12 +401,14 @@ export class LedgerHandler {
       if (this.#isDeviceNotReadyError(error)) {
         throw new HardhatError(
           HardhatError.ERRORS.HARDHAT_LEDGER.GENERAL.LOCKED_DEVICE,
+          error,
         );
       }
 
       throw new HardhatError(
         HardhatError.ERRORS.HARDHAT_LEDGER.GENERAL.ERROR_WHILE_DERIVING_PATH,
         { path, message: error.message },
+        error,
       );
     }
 
@@ -467,7 +478,7 @@ export class LedgerHandler {
    * TransportError with id "NoDeviceFound" is thrown when no Ledger device is detected.
    */
   #isDeviceNotConnectedError(error: Error): boolean {
-    return error.name === "TransportError";
+    return error instanceof TransportError;
   }
 
   /**
@@ -499,7 +510,7 @@ export class LedgerHandler {
 
   async #withConfirmation<T extends (...args: any) => any>(
     func: T,
-    retryAttempts: number = 0,
+    retryState: RetryState = { reconnection: 0, deviceNotReady: 0 },
   ): Promise<ReturnType<T>> {
     try {
       await this.#displayMessage("Confirmation start");
@@ -515,22 +526,26 @@ export class LedgerHandler {
       // Check if we should attempt reconnection
       if (
         this.#isReconnectableError(error) &&
-        retryAttempts < LedgerHandler.MAX_RECONNECTION_ATTEMPTS
+        retryState.reconnection < LedgerHandler.MAX_RECONNECTION_ATTEMPTS
       ) {
         log("Reconnectable error during confirmation, attempting reconnect");
         log(error);
 
         await this.#displayMessage("Reconnecting to Ledger...");
+        await this.#delayBeforeRetry(LedgerHandler.RECONNECTION_DELAY_SECONDS);
         await this.#resetConnection();
         await this.init();
 
-        return this.#withConfirmation(func, retryAttempts + 1);
+        return this.#withConfirmation(func, {
+          ...retryState,
+          reconnection: retryState.reconnection + 1,
+        });
       }
 
       // Retry if device not ready and we have retries left
       if (
         this.#isDeviceNotReadyError(error) &&
-        retryAttempts < this.#maxDeviceNotReadyRetries
+        retryState.deviceNotReady < this.#maxDeviceNotReadyRetries
       ) {
         log("Device not ready error during confirmation, waiting for user");
         log(error);
@@ -540,7 +555,10 @@ export class LedgerHandler {
           LedgerHandler.DEVICE_NOT_READY_RETRY_DELAY_SECONDS,
         );
 
-        return this.#withConfirmation(func, retryAttempts + 1);
+        return this.#withConfirmation(func, {
+          ...retryState,
+          deviceNotReady: retryState.deviceNotReady + 1,
+        });
       }
 
       // Give up - either exhausted retries or other error
@@ -549,6 +567,7 @@ export class LedgerHandler {
       if (this.#isDeviceNotReadyError(error)) {
         throw new HardhatError(
           HardhatError.ERRORS.HARDHAT_LEDGER.GENERAL.LOCKED_DEVICE,
+          error,
         );
       }
 
