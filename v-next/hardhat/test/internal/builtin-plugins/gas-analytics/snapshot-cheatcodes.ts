@@ -2,6 +2,7 @@ import type {
   SnapshotCheatcode,
   SnapshotCheatcodeChange,
   SnapshotCheatcodesMap,
+  SnapshotCheatcodesWithMetadataMap,
 } from "../../../../src/internal/builtin-plugins/gas-analytics/snapshot-cheatcodes.js";
 
 import assert from "node:assert/strict";
@@ -36,7 +37,7 @@ describe("snapshot-cheatcodes", () => {
   describe("extractSnapshotCheatcodes", () => {
     it("should extract single snapshot group with single entry", () => {
       const suiteResults = [
-        createSuiteResult("MyContract", [
+        createSuiteResult("contracts/MyContract.t.sol:MyContract", [
           createTestResultWithSnapshots([
             {
               name: "GroupA",
@@ -51,7 +52,11 @@ describe("snapshot-cheatcodes", () => {
       assert.equal(snapshots.size, 1);
       const groupA = snapshots.get("GroupA");
       assert.ok(groupA !== undefined, "GroupA should be defined");
-      assert.equal(groupA["entry-a"], "100");
+      assert.equal(groupA["entry-a"].value, "100");
+      assert.equal(
+        groupA["entry-a"].metadata.source,
+        "contracts/MyContract.t.sol",
+      );
     });
 
     it("should extract single snapshot group with multiple entries", () => {
@@ -74,8 +79,8 @@ describe("snapshot-cheatcodes", () => {
       assert.equal(snapshots.size, 1);
       const groupB = snapshots.get("GroupB");
       assert.ok(groupB !== undefined, "GroupB should be defined");
-      assert.equal(groupB["entry-a"], "100");
-      assert.equal(groupB["entry-b"], "200");
+      assert.equal(groupB["entry-a"].value, "100");
+      assert.equal(groupB["entry-b"].value, "200");
     });
 
     it("should extract multiple snapshot groups", () => {
@@ -102,16 +107,16 @@ describe("snapshot-cheatcodes", () => {
       assert.equal(snapshots.size, 2);
       const groupA = snapshots.get("GroupA");
       assert.ok(groupA !== undefined, "groupA should be defined");
-      assert.equal(groupA["entry-a"], "100");
+      assert.equal(groupA["entry-a"].value, "100");
       const groupB = snapshots.get("GroupB");
       assert.ok(groupB !== undefined, "groupB should be defined");
-      assert.equal(groupB["entry-a"], "100");
-      assert.equal(groupB["entry-b"], "200");
+      assert.equal(groupB["entry-a"].value, "100");
+      assert.equal(groupB["entry-b"].value, "200");
     });
 
     it("should handle multiple suites", () => {
       const suiteResults = [
-        createSuiteResult("ContractA", [
+        createSuiteResult("contracts/ContractA.t.sol:ContractA", [
           createTestResultWithSnapshots([
             {
               name: "GroupA",
@@ -119,7 +124,7 @@ describe("snapshot-cheatcodes", () => {
             },
           ]),
         ]),
-        createSuiteResult("ContractB", [
+        createSuiteResult("contracts/ContractB.t.sol:ContractB", [
           createTestResultWithSnapshots([
             {
               name: "GroupB",
@@ -134,10 +139,18 @@ describe("snapshot-cheatcodes", () => {
       assert.equal(snapshots.size, 2);
       const groupA = snapshots.get("GroupA");
       assert.ok(groupA !== undefined, "groupA should be defined");
-      assert.equal(groupA["entry-a"], "100");
+      assert.equal(groupA["entry-a"].value, "100");
+      assert.equal(
+        groupA["entry-a"].metadata.source,
+        "contracts/ContractA.t.sol",
+      );
       const groupB = snapshots.get("GroupB");
       assert.ok(groupB !== undefined, "groupB should be defined");
-      assert.equal(groupB["entry-b"], "200");
+      assert.equal(groupB["entry-b"].value, "200");
+      assert.equal(
+        groupB["entry-b"].metadata.source,
+        "contracts/ContractB.t.sol",
+      );
     });
 
     it("should merge entries from same group across multiple suites", () => {
@@ -171,9 +184,9 @@ describe("snapshot-cheatcodes", () => {
       assert.equal(snapshots.size, 1);
       const sharedGroup = snapshots.get("SharedGroup");
       assert.ok(sharedGroup !== undefined, "sharedGroup should be defined");
-      assert.equal(sharedGroup["entry-1"], "100");
-      assert.equal(sharedGroup["entry-2"], "200");
-      assert.equal(sharedGroup["entry-3"], "300");
+      assert.equal(sharedGroup["entry-1"].value, "100");
+      assert.equal(sharedGroup["entry-2"].value, "200");
+      assert.equal(sharedGroup["entry-3"].value, "300");
     });
 
     it("should overwrite entries with the same name in the same group with the latest value across multiple suites", () => {
@@ -207,7 +220,7 @@ describe("snapshot-cheatcodes", () => {
       assert.equal(snapshots.size, 1);
       const testGroup = snapshots.get("TestGroup");
       assert.ok(testGroup !== undefined, "testGroup should be defined");
-      assert.equal(testGroup["duplicate-entry"], "300");
+      assert.equal(testGroup["duplicate-entry"].value, "300");
     });
 
     it("should handle empty suite results", () => {
@@ -263,8 +276,18 @@ describe("snapshot-cheatcodes", () => {
         [
           "CalculatorTest",
           {
-            "calculator-add": "48359",
-            "calculator-subtract": "47891",
+            "calculator-add": {
+              value: "48359",
+              metadata: {
+                source: "tests/CalculatorTest.sol",
+              },
+            },
+            "calculator-subtract": {
+              value: "47891",
+              metadata: {
+                source: "tests/CalculatorTest.sol",
+              },
+            },
           },
         ],
       ]);
@@ -284,12 +307,32 @@ describe("snapshot-cheatcodes", () => {
     });
 
     it("should write multiple snapshot groups to separate JSON files", async () => {
-      const snapshots: SnapshotCheatcodesMap = new Map<
+      const snapshots: SnapshotCheatcodesWithMetadataMap = new Map<
         string,
-        Record<string, string>
+        Record<string, { value: string; metadata: { source: string } }>
       >([
-        ["GroupA", { "entry-a": "100" }],
-        ["GroupB", { "entry-b": "200", "entry-c": "300" }],
+        [
+          "GroupA",
+          {
+            "entry-a": {
+              value: "100",
+              metadata: { source: "contracts/GroupA.t.sol" },
+            },
+          },
+        ],
+        [
+          "GroupB",
+          {
+            "entry-b": {
+              value: "200",
+              metadata: { source: "contracts/GroupB.t.sol" },
+            },
+            "entry-c": {
+              value: "300",
+              metadata: { source: "contracts/GroupB.t.sol" },
+            },
+          },
+        ],
       ]);
 
       await writeSnapshotCheatcodes(tmpDir, snapshots);
@@ -311,7 +354,10 @@ describe("snapshot-cheatcodes", () => {
         [
           "TestGroup",
           {
-            "old-entry": "100",
+            "old-entry": {
+              value: "100",
+              metadata: { source: "contracts/TestGroup.t.sol" },
+            },
           },
         ],
       ]);
@@ -319,7 +365,10 @@ describe("snapshot-cheatcodes", () => {
         [
           "TestGroup",
           {
-            "new-entry": "200",
+            "new-entry": {
+              value: "200",
+              metadata: { source: "contracts/TestGroup.t.sol" },
+            },
           },
         ],
       ]);
@@ -360,12 +409,22 @@ describe("snapshot-cheatcodes", () => {
     });
 
     it("should read single snapshot group from JSON file", async () => {
-      const snapshots: SnapshotCheatcodesMap = new Map([
+      const snapshots: SnapshotCheatcodesWithMetadataMap = new Map([
         [
           "CalculatorTest",
           {
-            "calculator-add": "48359",
-            "calculator-subtract": "47891",
+            "calculator-add": {
+              value: "48359",
+              metadata: {
+                source: "tests/CalculatorTest.sol",
+              },
+            },
+            "calculator-subtract": {
+              value: "47891",
+              metadata: {
+                source: "tests/CalculatorTest.sol",
+              },
+            },
           },
         ],
       ]);
@@ -384,12 +443,32 @@ describe("snapshot-cheatcodes", () => {
     });
 
     it("should read multiple snapshot groups from separate JSON files", async () => {
-      const snapshots: SnapshotCheatcodesMap = new Map<
+      const snapshots: SnapshotCheatcodesWithMetadataMap = new Map<
         string,
-        Record<string, string>
+        Record<string, { value: string; metadata: { source: string } }>
       >([
-        ["GroupA", { "entry-a": "100" }],
-        ["GroupB", { "entry-b": "200", "entry-c": "300" }],
+        [
+          "GroupA",
+          {
+            "entry-a": {
+              value: "100",
+              metadata: { source: "contracts/GroupA.t.sol" },
+            },
+          },
+        ],
+        [
+          "GroupB",
+          {
+            "entry-b": {
+              value: "200",
+              metadata: { source: "contracts/GroupB.t.sol" },
+            },
+            "entry-c": {
+              value: "300",
+              metadata: { source: "contracts/GroupB.t.sol" },
+            },
+          },
+        ],
       ]);
 
       await writeSnapshotCheatcodes(tmpDir, snapshots);
@@ -496,8 +575,16 @@ ZGroup#entry-z: 300`;
 
     it("should detect added snapshots", () => {
       const previous: SnapshotCheatcodesMap = new Map();
-      const current: SnapshotCheatcodesMap = new Map([
-        ["GroupA", { "entry-a": "100" }],
+      const current: SnapshotCheatcodesWithMetadataMap = new Map([
+        [
+          "GroupA",
+          {
+            "entry-a": {
+              value: "100",
+              metadata: { source: "contracts/GroupA.t.sol" },
+            },
+          },
+        ],
       ]);
 
       const result = compareSnapshotCheatcodes(previous, current);
@@ -516,7 +603,7 @@ ZGroup#entry-z: 300`;
       const previous: SnapshotCheatcodesMap = new Map([
         ["GroupA", { "entry-a": "100" }],
       ]);
-      const current: SnapshotCheatcodesMap = new Map();
+      const current: SnapshotCheatcodesWithMetadataMap = new Map();
 
       const result = compareSnapshotCheatcodes(previous, current);
 
@@ -534,8 +621,16 @@ ZGroup#entry-z: 300`;
       const previous: SnapshotCheatcodesMap = new Map([
         ["GroupA", { "entry-a": "100" }],
       ]);
-      const current: SnapshotCheatcodesMap = new Map([
-        ["GroupA", { "entry-a": "200" }],
+      const current: SnapshotCheatcodesWithMetadataMap = new Map([
+        [
+          "GroupA",
+          {
+            "entry-a": {
+              value: "200",
+              metadata: { source: "contracts/GroupA.t.sol" },
+            },
+          },
+        ],
       ]);
 
       const result = compareSnapshotCheatcodes(previous, current);
@@ -548,6 +643,7 @@ ZGroup#entry-z: 300`;
         name: "entry-a",
         expected: 100,
         actual: 200,
+        source: "contracts/GroupA.t.sol",
       });
     });
 
@@ -560,13 +656,37 @@ ZGroup#entry-z: 300`;
         ["GroupB", { "entry-b": "200" }],
         ["GroupC", { "entry-c": "300" }],
       ]);
-      const current: SnapshotCheatcodesMap = new Map<
+      const current: SnapshotCheatcodesWithMetadataMap = new Map<
         string,
-        Record<string, string>
+        Record<string, { value: string; metadata: { source: string } }>
       >([
-        ["GroupA", { "entry-a": "150" }],
-        ["GroupB", { "entry-b": "200" }],
-        ["GroupD", { "entry-d": "400" }],
+        [
+          "GroupA",
+          {
+            "entry-a": {
+              value: "150",
+              metadata: { source: "contracts/GroupA.t.sol" },
+            },
+          },
+        ],
+        [
+          "GroupB",
+          {
+            "entry-b": {
+              value: "200",
+              metadata: { source: "contracts/GroupB.t.sol" },
+            },
+          },
+        ],
+        [
+          "GroupD",
+          {
+            "entry-d": {
+              value: "400",
+              metadata: { source: "contracts/GroupD.t.sol" },
+            },
+          },
+        ],
       ]);
 
       const result = compareSnapshotCheatcodes(previous, current);
@@ -586,8 +706,16 @@ ZGroup#entry-z: 300`;
       const previous: SnapshotCheatcodesMap = new Map([
         ["GroupA", { "entry-a": "100" }],
       ]);
-      const current: SnapshotCheatcodesMap = new Map([
-        ["GroupA", { "entry-a": "100" }],
+      const current: SnapshotCheatcodesWithMetadataMap = new Map([
+        [
+          "GroupA",
+          {
+            "entry-a": {
+              value: "100",
+              metadata: { source: "contracts/GroupA.t.sol" },
+            },
+          },
+        ],
       ]);
 
       const result = compareSnapshotCheatcodes(previous, current);
@@ -605,13 +733,45 @@ ZGroup#entry-z: 300`;
         ["ZGroup", { "entry-z": "100", "entry-a": "200" }],
         ["AGroup", { "entry-m": "300", "entry-b": "400" }],
       ]);
-      const current: SnapshotCheatcodesMap = new Map<
+      const current: SnapshotCheatcodesWithMetadataMap = new Map<
         string,
-        Record<string, string>
+        Record<string, { value: string; metadata: { source: string } }>
       >([
-        ["MGroup", { "entry-x": "500", "entry-c": "600" }],
-        ["BGroup", { "entry-y": "150", "entry-d": "250" }],
-        ["ZGroup", { "entry-z": "999" }],
+        [
+          "MGroup",
+          {
+            "entry-x": {
+              value: "500",
+              metadata: { source: "contracts/MGroup.t.sol" },
+            },
+            "entry-c": {
+              value: "600",
+              metadata: { source: "contracts/MGroup.t.sol" },
+            },
+          },
+        ],
+        [
+          "BGroup",
+          {
+            "entry-y": {
+              value: "150",
+              metadata: { source: "contracts/BGroup.t.sol" },
+            },
+            "entry-d": {
+              value: "250",
+              metadata: { source: "contracts/BGroup.t.sol" },
+            },
+          },
+        ],
+        [
+          "ZGroup",
+          {
+            "entry-z": {
+              value: "999",
+              metadata: { source: "contracts/ZGroup.t.sol" },
+            },
+          },
+        ],
       ]);
 
       const result = compareSnapshotCheatcodes(previous, current);
@@ -674,6 +834,7 @@ ZGroup#entry-z: 300`;
           name: "entry-a",
           expected: 10000,
           actual: 15000,
+          source: "contracts/GroupA.t.sol",
         },
       ];
 
@@ -681,6 +842,7 @@ ZGroup#entry-z: 300`;
 
       const text = getLoggerOutput();
       assert.match(text, /GroupA#entry-a/);
+      assert.match(text, /\(in contracts\/GroupA\.t\.sol\)/);
       assert.match(text, /Expected: 10000/);
       assert.match(text, /Actual:\s+15000/);
       assert.match(text, /\+50\.00%/);
@@ -694,6 +856,7 @@ ZGroup#entry-z: 300`;
           name: "entry-a",
           expected: 15000,
           actual: 10000,
+          source: "contracts/GroupA.t.sol",
         },
       ];
 
@@ -713,6 +876,7 @@ ZGroup#entry-z: 300`;
           name: "entry-a",
           expected: 0,
           actual: 5000,
+          source: "contracts/GroupA.t.sol",
         },
       ];
 
@@ -732,12 +896,14 @@ ZGroup#entry-z: 300`;
           name: "entry-a",
           expected: 10000,
           actual: 15000,
+          source: "contracts/GroupA.t.sol",
         },
         {
           group: "GroupB",
           name: "entry-b",
           expected: 20000,
           actual: 18000,
+          source: "contracts/GroupB.t.sol",
         },
       ];
 
