@@ -17,7 +17,7 @@
     "lint": "pnpm run --recursive --if-present lint",
     "prelint:fix": "pnpm build",
     "lint:fix": "pnpm run --recursive --if-present lint:fix",
-    "version-for-release": "pnpm changeset version && pnpm -w install --lockfile-only"
+    "version-for-release": "pnpm changeset version && node scripts/bump-peers.ts apply && pnpm -w install --lockfile-only"
   },
   "pnpm": {
     "onlyBuiltDependencies": [
