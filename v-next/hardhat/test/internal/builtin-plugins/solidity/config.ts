@@ -482,6 +482,9 @@ describe("solidity plugin config validation", () => {
       );
     });
 
+  });
+
+  describe("per-compiler path validation", () => {
     it("Should accept path in SolcUserConfig", () => {
       assert.deepEqual(
         validateSolidityUserConfig({
