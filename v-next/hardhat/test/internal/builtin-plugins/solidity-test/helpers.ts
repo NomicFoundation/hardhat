@@ -41,7 +41,7 @@ describe("solidityTestConfigToSolidityTestRunnerConfigArgs", () => {
       const args = await solidityTestConfigToSolidityTestRunnerConfigArgs({
         chainType: GENERIC_CHAIN_TYPE,
         projectRoot: process.cwd(),
-        config: {},
+        config: { fuzz: { seed: "0x1234" } },
         verbosity,
         generateGasReport: false,
       });
@@ -55,7 +55,7 @@ describe("solidityTestConfigToSolidityTestRunnerConfigArgs", () => {
       const args = await solidityTestConfigToSolidityTestRunnerConfigArgs({
         chainType: GENERIC_CHAIN_TYPE,
         projectRoot: process.cwd(),
-        config: {},
+        config: { fuzz: { seed: "0x1234" } },
         verbosity,
         generateGasReport: false,
       });
@@ -69,7 +69,7 @@ describe("solidityTestConfigToSolidityTestRunnerConfigArgs", () => {
       const args = await solidityTestConfigToSolidityTestRunnerConfigArgs({
         chainType: GENERIC_CHAIN_TYPE,
         projectRoot: process.cwd(),
-        config: {},
+        config: { fuzz: { seed: "0x1234" } },
         verbosity,
         generateGasReport: false,
       });
@@ -83,7 +83,7 @@ describe("solidityTestConfigToSolidityTestRunnerConfigArgs", () => {
       const args = await solidityTestConfigToSolidityTestRunnerConfigArgs({
         chainType: GENERIC_CHAIN_TYPE,
         projectRoot: process.cwd(),
-        config: {},
+        config: { fuzz: { seed: "0x1234" } },
         verbosity,
         generateGasReport: false,
       });
@@ -101,7 +101,7 @@ describe("solidityTestConfigToSolidityTestRunnerConfigArgs", () => {
     const args = await solidityTestConfigToSolidityTestRunnerConfigArgs({
       chainType: GENERIC_CHAIN_TYPE,
       projectRoot: process.cwd(),
-      config: { blockGasLimit: undefined },
+      config: { fuzz: { seed: "0x1234" }, blockGasLimit: undefined },
       verbosity: 1,
       generateGasReport: false,
     });
@@ -114,7 +114,7 @@ describe("solidityTestConfigToSolidityTestRunnerConfigArgs", () => {
     const args = await solidityTestConfigToSolidityTestRunnerConfigArgs({
       chainType: GENERIC_CHAIN_TYPE,
       projectRoot: process.cwd(),
-      config: { blockGasLimit: false },
+      config: { fuzz: { seed: "0x1234" }, blockGasLimit: false },
       verbosity: 1,
       generateGasReport: false,
     });
@@ -127,7 +127,7 @@ describe("solidityTestConfigToSolidityTestRunnerConfigArgs", () => {
     const args = await solidityTestConfigToSolidityTestRunnerConfigArgs({
       chainType: GENERIC_CHAIN_TYPE,
       projectRoot: process.cwd(),
-      config: { blockGasLimit: 1n },
+      config: { fuzz: { seed: "0x1234" }, blockGasLimit: 1n },
       verbosity: 1,
       generateGasReport: false,
     });
@@ -140,7 +140,7 @@ describe("solidityTestConfigToSolidityTestRunnerConfigArgs", () => {
     const args = await solidityTestConfigToSolidityTestRunnerConfigArgs({
       chainType: GENERIC_CHAIN_TYPE,
       projectRoot: process.cwd(),
-      config: { prevRandao: 123n },
+      config: { fuzz: { seed: "0x1234" }, prevRandao: 123n },
       verbosity: 1,
       generateGasReport: false,
     });
@@ -163,7 +163,7 @@ describe("solidityTestConfigToSolidityTestRunnerConfigArgs", () => {
     const args = await solidityTestConfigToSolidityTestRunnerConfigArgs({
       chainType: GENERIC_CHAIN_TYPE,
       projectRoot: process.cwd(),
-      config: { forking: resolvedForkingConfig },
+      config: { fuzz: { seed: "0x1234" }, forking: resolvedForkingConfig },
       verbosity: 1,
       generateGasReport: false,
     });
@@ -177,7 +177,7 @@ describe("solidityTestConfigToSolidityTestRunnerConfigArgs", () => {
     const args = await solidityTestConfigToSolidityTestRunnerConfigArgs({
       chainType: GENERIC_CHAIN_TYPE,
       projectRoot: process.cwd(),
-      config: {},
+      config: { fuzz: { seed: "0x1234" } },
       verbosity: 0,
       generateGasReport: true,
     });
@@ -189,7 +189,7 @@ describe("solidityTestConfigToSolidityTestRunnerConfigArgs", () => {
     const args = await solidityTestConfigToSolidityTestRunnerConfigArgs({
       chainType: GENERIC_CHAIN_TYPE,
       projectRoot: process.cwd(),
-      config: {},
+      config: { fuzz: { seed: "0x1234" } },
       verbosity: 0,
       generateGasReport: false,
     });
