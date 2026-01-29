@@ -647,15 +647,12 @@ describe("solidity plugin config resolution", () => {
     });
   });
 
-  describe(
-    "ARM64 Linux per-compiler preferWasm defaults",
-    {
-      skip: !missesSomeOfficialNativeBuilds(),
-    },
-    () => {
+  describe("ARM64 Linux per-compiler preferWasm defaults", {
+    skip: !missesSomeOfficialNativeBuilds(),
+  }, () => {
     const otherResolvedConfig = { paths: { root: process.cwd() } } as any;
 
-      it("should default preferWasm to true in production profile for versions without official ARM64 builds", async () => {
+    it("should default preferWasm to true in production profile for versions without official ARM64 builds", async () => {
       const resolvedConfig = await resolveSolidityUserConfig(
         {
           solidity: {
@@ -735,7 +732,7 @@ describe("solidity plugin config resolution", () => {
   });
 
   describe("non-ARM64 platform per-compiler preferWasm defaults", {
-    skip: os.platform() === "linux" && os.arch() === "arm64",
+    skip: missesSomeOfficialNativeBuilds(),
   }, () => {
     const otherResolvedConfig = { paths: { root: process.cwd() } } as any;
 
