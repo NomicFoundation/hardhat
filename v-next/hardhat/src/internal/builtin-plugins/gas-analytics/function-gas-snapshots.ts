@@ -12,8 +12,12 @@ import {
 import { findDuplicates } from "@nomicfoundation/hardhat-utils/lang";
 import chalk from "chalk";
 
-import { getFullyQualifiedName } from "../../../utils/contract-names.js";
+import {
+  getFullyQualifiedName,
+  parseFullyQualifiedName,
+} from "../../../utils/contract-names.js";
 
+import { getUserFqn } from "./gas-analytics-manager.js";
 import { formatSectionHeader } from "./helpers.js";
 
 export const FUNCTION_GAS_SNAPSHOTS_FILE = ".gas-snapshot";
@@ -22,6 +26,12 @@ export interface FunctionGasSnapshot {
   contractNameOrFqn: string;
   functionSig: string;
   gasUsage: StandardTestKindGasUsage | FuzzTestKindGasUsage;
+}
+
+export interface FunctionGasSnapshotWithMetadata extends FunctionGasSnapshot {
+  metadata: {
+    source: string;
+  };
 }
 
 export interface StandardTestKindGasUsage {
@@ -43,6 +53,7 @@ export interface FunctionGasSnapshotComparison {
 }
 
 export interface FunctionGasSnapshotChange {
+  source: string;
   contractNameOrFqn: string;
   functionSig: string;
   kind: "standard" | "fuzz";
@@ -63,20 +74,23 @@ export function getFunctionGasSnapshotsPath(basePath: string): string {
 
 export function extractFunctionGasSnapshots(
   suiteResults: SuiteResult[],
-): FunctionGasSnapshot[] {
+): FunctionGasSnapshotWithMetadata[] {
   const duplicateContractNames = findDuplicates(
     suiteResults.map(({ id }) => id.name),
   );
 
-  const snapshots: FunctionGasSnapshot[] = [];
+  const snapshots: FunctionGasSnapshotWithMetadata[] = [];
   for (const { id: suiteId, testResults } of suiteResults) {
     for (const { name: functionSig, kind: testKind } of testResults) {
       if ("calls" in testKind) {
         continue;
       }
 
+      const userFqn = getUserFqn(
+        getFullyQualifiedName(suiteId.source, suiteId.name),
+      );
       const contractNameOrFqn = duplicateContractNames.has(suiteId.name)
-        ? getFullyQualifiedName(suiteId.source, suiteId.name)
+        ? userFqn
         : suiteId.name;
 
       const gasUsage =
@@ -96,6 +110,9 @@ export function extractFunctionGasSnapshots(
         contractNameOrFqn,
         functionSig,
         gasUsage,
+        metadata: {
+          source: parseFullyQualifiedName(userFqn).sourceName,
+        },
       });
     }
   }
@@ -225,7 +242,7 @@ export function parseFunctionGasSnapshots(
 
 export function compareFunctionGasSnapshots(
   previousSnapshots: FunctionGasSnapshot[],
-  currentSnapshots: FunctionGasSnapshot[],
+  currentSnapshots: FunctionGasSnapshotWithMetadata[],
 ): FunctionGasSnapshotComparison {
   const previousSnapshotsMap = new Map(
     previousSnapshots.map((s) => [
@@ -270,6 +287,7 @@ export function compareFunctionGasSnapshots(
         actual: Number(actualValue),
         runs:
           currentKind === "fuzz" ? Number(current.gasUsage.runs) : undefined,
+        source: current.metadata.source,
       });
     }
     previousSnapshotsMap.delete(key);
@@ -301,7 +319,7 @@ export async function checkFunctionGasSnapshots(
 ): Promise<FunctionGasSnapshotCheckResult> {
   const functionGasSnapshots = extractFunctionGasSnapshots(suiteResults);
 
-  let previousFunctionGasSnapshots;
+  let previousFunctionGasSnapshots: FunctionGasSnapshot[];
   try {
     previousFunctionGasSnapshots = await readFunctionGasSnapshots(basePath);
   } catch (error) {
@@ -418,6 +436,7 @@ export function printFunctionGasSnapshotChanges(
     const isLast = i === changes.length - 1;
 
     logger(`  ${change.contractNameOrFqn}#${change.functionSig}`);
+    logger(chalk.grey(`    (in ${change.source})`));
 
     if (change.kind === "fuzz") {
       logger(chalk.grey(`    Runs: ${change.runs}`));

@@ -12,6 +12,12 @@ import {
 } from "@nomicfoundation/hardhat-utils/fs";
 import chalk from "chalk";
 
+import {
+  getFullyQualifiedName,
+  parseFullyQualifiedName,
+} from "../../../utils/contract-names.js";
+
+import { getUserFqn } from "./gas-analytics-manager.js";
 import { formatSectionHeader } from "./helpers.js";
 
 export const SNAPSHOT_CHEATCODES_DIR = "snapshots";
@@ -21,6 +27,19 @@ export type SnapshotCheatcodesMap = Map<
   Record<
     string, // name
     string // value
+  >
+>;
+
+export type SnapshotCheatcodesWithMetadataMap = Map<
+  string, // group
+  Record<
+    string, // name
+    {
+      value: string;
+      metadata: {
+        source: string;
+      };
+    }
   >
 >;
 
@@ -35,6 +54,7 @@ export interface SnapshotCheatcodeChange {
   name: string;
   expected: number;
   actual: number;
+  source: string;
 }
 
 export interface SnapshotCheatcodesComparison {
@@ -58,13 +78,17 @@ export function getSnapshotCheatcodesPath(
 
 export function extractSnapshotCheatcodes(
   suiteResults: SuiteResult[],
-): SnapshotCheatcodesMap {
-  const snapshots: SnapshotCheatcodesMap = new Map();
-  for (const { testResults } of suiteResults) {
+): SnapshotCheatcodesWithMetadataMap {
+  const snapshots: SnapshotCheatcodesWithMetadataMap = new Map();
+  for (const { id: suiteId, testResults } of suiteResults) {
     for (const { valueSnapshotGroups: snapshotGroups } of testResults) {
       if (snapshotGroups === undefined) {
         continue;
       }
+
+      const userFqn = getUserFqn(
+        getFullyQualifiedName(suiteId.source, suiteId.name),
+      );
 
       for (const group of snapshotGroups) {
         let snapshot = snapshots.get(group.name);
@@ -74,7 +98,12 @@ export function extractSnapshotCheatcodes(
         }
 
         for (const entry of group.entries) {
-          snapshot[entry.name] = entry.value;
+          snapshot[entry.name] = {
+            value: entry.value,
+            metadata: {
+              source: parseFullyQualifiedName(userFqn).sourceName,
+            },
+          };
         }
       }
     }
@@ -85,7 +114,7 @@ export function extractSnapshotCheatcodes(
 
 export async function writeSnapshotCheatcodes(
   basePath: string,
-  snapshotCheatcodes: SnapshotCheatcodesMap,
+  snapshotCheatcodes: SnapshotCheatcodesWithMetadataMap,
 ): Promise<void> {
   for (const [snapshotGroup, snapshot] of snapshotCheatcodes) {
     const snapshotCheatcodesPath = getSnapshotCheatcodesPath(
@@ -93,8 +122,13 @@ export async function writeSnapshotCheatcodes(
       `${snapshotGroup}.json`,
     );
 
+    const snapshotWithoutMetadata: Record<string, string> = {};
+    for (const [name, entry] of Object.entries(snapshot)) {
+      snapshotWithoutMetadata[name] = entry.value;
+    }
+
     try {
-      await writeJsonFile(snapshotCheatcodesPath, snapshot);
+      await writeJsonFile(snapshotCheatcodesPath, snapshotWithoutMetadata);
     } catch (error) {
       ensureError(error);
       throw new HardhatError(
@@ -167,7 +201,7 @@ export function stringifySnapshotCheatcodes(
 
 export function compareSnapshotCheatcodes(
   previousSnapshotsMap: SnapshotCheatcodesMap,
-  currentSnapshotsMap: SnapshotCheatcodesMap,
+  currentSnapshotsMap: SnapshotCheatcodesWithMetadataMap,
 ): SnapshotCheatcodesComparison {
   const added: SnapshotCheatcode[] = [];
   const removed: SnapshotCheatcode[] = [];
@@ -177,23 +211,24 @@ export function compareSnapshotCheatcodes(
   for (const [group, currentSnapshots] of currentSnapshotsMap) {
     const previousSnapshots = previousSnapshotsMap.get(group);
 
-    for (const [name, currentValue] of Object.entries(currentSnapshots)) {
+    for (const [name, currentEntry] of Object.entries(currentSnapshots)) {
       const key = `${group}#${name}`;
 
       if (
         previousSnapshots === undefined ||
         !Object.hasOwn(previousSnapshots, name)
       ) {
-        added.push({ group, name, value: currentValue });
+        added.push({ group, name, value: currentEntry.value });
       } else {
         seenPreviousEntries.add(key);
         const previousValue = previousSnapshots[name];
-        if (previousValue !== currentValue) {
+        if (previousValue !== currentEntry.value) {
           changed.push({
             group,
             name,
             expected: Number(previousValue),
-            actual: Number(currentValue),
+            actual: Number(currentEntry.value),
+            source: currentEntry.metadata.source,
           });
         }
       }
@@ -345,6 +380,7 @@ export function printSnapshotCheatcodeChanges(
     const isLast = i === changes.length - 1;
 
     logger(`  ${change.group}#${change.name}`);
+    logger(chalk.grey(`    (in ${change.source})`));
 
     const diff = change.actual - change.expected;
     const formattedDiff = diff > 0 ? `Δ+${diff}` : `Δ${diff}`;
