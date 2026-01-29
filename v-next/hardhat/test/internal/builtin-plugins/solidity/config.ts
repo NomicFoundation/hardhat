@@ -1,8 +1,10 @@
 /* eslint-disable @typescript-eslint/consistent-type-assertions -- test*/
 import assert from "node:assert/strict";
+import os from "node:os";
 import { describe, it } from "node:test";
 
 import {
+  hasOfficialArm64Build,
   resolveSolidityUserConfig,
   shouldUseWasm,
   validateSolidityUserConfig,
@@ -450,6 +452,65 @@ describe("solidity plugin config validation", () => {
       );
     });
   });
+
+  describe("per-compiler preferWasm validation", () => {
+    it("Should accept preferWasm in SolcUserConfig", () => {
+      assert.deepEqual(
+        validateSolidityUserConfig({
+          solidity: {
+            compilers: [
+              { version: "0.8.28", preferWasm: true },
+              { version: "0.8.31", preferWasm: false },
+            ],
+          },
+        }),
+        [],
+      );
+    });
+
+    it("Should reject invalid preferWasm values in SolcUserConfig", () => {
+      assert.deepEqual(
+        validateSolidityUserConfig({
+          solidity: {
+            compilers: [{ version: "0.8.28", preferWasm: "true" as any }],
+          },
+        }),
+        [
+          {
+            message: "Expected boolean, received string",
+            path: ["solidity", "compilers", 0, "preferWasm"],
+          },
+        ],
+      );
+    });
+
+    it("Should accept path in SolcUserConfig", () => {
+      assert.deepEqual(
+        validateSolidityUserConfig({
+          solidity: {
+            compilers: [{ version: "0.8.28", path: "/path/to/solc" }],
+          },
+        }),
+        [],
+      );
+    });
+
+    it("Should reject invalid path values in SolcUserConfig", () => {
+      assert.deepEqual(
+        validateSolidityUserConfig({
+          solidity: {
+            compilers: [{ version: "0.8.28", path: 123 as any }],
+          },
+        }),
+        [
+          {
+            message: "Expected string, received number",
+            path: ["solidity", "compilers", 0, "path"],
+          },
+        ],
+      );
+    });
+  });
 });
 
 describe("solidity plugin config resolution", () => {
@@ -463,10 +524,10 @@ describe("solidity plugin config resolution", () => {
 
   it.todo("should resolve a BuildProfilesSolidityUserConfig value", () => {});
 
-  describe("preferWasm setting resolution", function () {
+  describe("profile-level preferWasm setting resolution", function () {
     const otherResolvedConfig = { paths: { root: process.cwd() } } as any;
 
-    it("resolves to shouldUseWasm() when build profile is production and is not specified in the config", async () => {
+    it("resolves to false when build profile is production and preferWasm is not specified", async () => {
       const resolvedConfig = await resolveSolidityUserConfig(
         {
           solidity: {
@@ -481,33 +542,10 @@ describe("solidity plugin config resolution", () => {
         otherResolvedConfig,
       );
 
+      // Profile-level preferWasm now always defaults to false
       assert.equal(
         resolvedConfig.solidity.profiles.production.preferWasm,
-        shouldUseWasm(),
-      );
-    });
-
-    it("resolves to shouldUseWasm() when build profile is production and is specified, but preferWasm is not set", async () => {
-      const resolvedConfig = await resolveSolidityUserConfig(
-        {
-          solidity: {
-            profiles: {
-              default: {
-                version: "0.8.28",
-                preferWasm: false,
-              },
-              production: {
-                version: "0.8.28",
-              },
-            },
-          },
-        },
-        otherResolvedConfig,
-      );
-
-      assert.equal(
-        resolvedConfig.solidity.profiles.production.preferWasm,
-        shouldUseWasm(),
+        false,
       );
     });
 
@@ -566,6 +604,142 @@ describe("solidity plugin config resolution", () => {
         resolvedConfig.solidity.profiles.profile_2.preferWasm,
         false,
       );
+    });
+  });
+
+  describe("per-compiler preferWasm resolution", () => {
+    const otherResolvedConfig = { paths: { root: process.cwd() } } as any;
+
+    it("should preserve per-compiler preferWasm when explicitly set", async () => {
+      const resolvedConfig = await resolveSolidityUserConfig(
+        {
+          solidity: {
+            compilers: [
+              { version: "0.8.28", preferWasm: true },
+              { version: "0.8.31", preferWasm: false },
+            ],
+          },
+        },
+        otherResolvedConfig,
+      );
+
+      const compilers = resolvedConfig.solidity.profiles.default.compilers;
+      assert.equal(compilers[0].preferWasm, true);
+      assert.equal(compilers[1].preferWasm, false);
+    });
+
+    it("should preserve per-compiler preferWasm in overrides when explicitly set", async () => {
+      const resolvedConfig = await resolveSolidityUserConfig(
+        {
+          solidity: {
+            compilers: [{ version: "0.8.28" }],
+            overrides: {
+              "contracts/Special.sol": { version: "0.8.31", preferWasm: true },
+            },
+          },
+        },
+        otherResolvedConfig,
+      );
+
+      const overrides = resolvedConfig.solidity.profiles.default.overrides;
+      assert.equal(overrides["contracts/Special.sol"].preferWasm, true);
+    });
+  });
+
+  describe("ARM64 Linux per-compiler preferWasm defaults", {
+    skip: !(os.platform() === "linux" && os.arch() === "arm64"),
+  }, () => {
+    const otherResolvedConfig = { paths: { root: process.cwd() } } as any;
+
+    it("should default preferWasm to true for versions without official ARM64 builds", async () => {
+      const resolvedConfig = await resolveSolidityUserConfig(
+        {
+          solidity: {
+            compilers: [
+              { version: "0.8.28" }, // No official ARM64 build
+              { version: "0.8.30" }, // No official ARM64 build
+            ],
+          },
+        },
+        otherResolvedConfig,
+      );
+
+      const compilers = resolvedConfig.solidity.profiles.default.compilers;
+      assert.equal(compilers[0].preferWasm, true);
+      assert.equal(compilers[1].preferWasm, true);
+    });
+
+    it("should default preferWasm to false for versions with official ARM64 builds", async () => {
+      const resolvedConfig = await resolveSolidityUserConfig(
+        {
+          solidity: {
+            compilers: [
+              { version: "0.8.31" }, // Has official ARM64 build
+              { version: "0.8.32" }, // Has official ARM64 build
+            ],
+          },
+        },
+        otherResolvedConfig,
+      );
+
+      const compilers = resolvedConfig.solidity.profiles.default.compilers;
+      assert.equal(compilers[0].preferWasm, false);
+      assert.equal(compilers[1].preferWasm, false);
+    });
+
+    it("should allow explicit override even on ARM64 Linux", async () => {
+      const resolvedConfig = await resolveSolidityUserConfig(
+        {
+          solidity: {
+            compilers: [
+              { version: "0.8.28", preferWasm: false }, // Force native even without official build
+              { version: "0.8.31", preferWasm: true }, // Force WASM even with official build
+            ],
+          },
+        },
+        otherResolvedConfig,
+      );
+
+      const compilers = resolvedConfig.solidity.profiles.default.compilers;
+      assert.equal(compilers[0].preferWasm, false);
+      assert.equal(compilers[1].preferWasm, true);
+    });
+  });
+
+  describe("non-ARM64 platform per-compiler preferWasm defaults", {
+    skip: os.platform() === "linux" && os.arch() === "arm64",
+  }, () => {
+    const otherResolvedConfig = { paths: { root: process.cwd() } } as any;
+
+    it("should leave preferWasm undefined when not on ARM64 Linux", async () => {
+      const resolvedConfig = await resolveSolidityUserConfig(
+        {
+          solidity: {
+            compilers: [{ version: "0.8.28" }, { version: "0.8.31" }],
+          },
+        },
+        otherResolvedConfig,
+      );
+
+      const compilers = resolvedConfig.solidity.profiles.default.compilers;
+      assert.equal(compilers[0].preferWasm, undefined);
+      assert.equal(compilers[1].preferWasm, undefined);
+    });
+  });
+
+  describe("hasOfficialArm64Build", () => {
+    it("returns false for versions before 0.8.31", () => {
+      assert.equal(hasOfficialArm64Build("0.5.0"), false);
+      assert.equal(hasOfficialArm64Build("0.8.0"), false);
+      assert.equal(hasOfficialArm64Build("0.8.28"), false);
+      assert.equal(hasOfficialArm64Build("0.8.30"), false);
+    });
+
+    it("returns true for 0.8.31 and later", () => {
+      assert.equal(hasOfficialArm64Build("0.8.31"), true);
+      assert.equal(hasOfficialArm64Build("0.8.32"), true);
+      assert.equal(hasOfficialArm64Build("0.9.0"), true);
+      assert.equal(hasOfficialArm64Build("1.0.0"), true);
     });
   });
 });

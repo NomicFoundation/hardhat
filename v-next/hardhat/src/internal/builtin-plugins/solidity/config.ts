@@ -14,6 +14,7 @@ import type { HardhatUserConfigValidationError } from "../../../types/hooks.js";
 import os from "node:os";
 
 import { deepMerge, isObject } from "@nomicfoundation/hardhat-utils/lang";
+import semver from "semver";
 import { resolveFromRoot } from "@nomicfoundation/hardhat-utils/path";
 import {
   conditionalUnionType,
@@ -23,6 +24,16 @@ import {
 import { z } from "zod";
 
 import { DEFAULT_BUILD_PROFILES } from "./build-profiles.js";
+
+// The first solc version with official ARM64 Linux builds
+export const FIRST_OFFICIAL_ARM64_SOLC_VERSION = "0.8.31";
+
+/**
+ * Determines if a solc version has an official ARM64 Linux build.
+ */
+export function hasOfficialArm64Build(version: string): boolean {
+  return semver.gte(version, FIRST_OFFICIAL_ARM64_SOLC_VERSION);
+}
 
 const sourcePathsType = conditionalUnionType(
   [
@@ -39,6 +50,8 @@ const commonSolcUserConfigType = z.object({
 const solcUserConfigType = z.object({
   version: z.string(),
   settings: z.any().optional(),
+  path: z.string().optional(),
+  preferWasm: z.boolean().optional(),
   compilers: incompatibleFieldType("This field is incompatible with `version`"),
   overrides: incompatibleFieldType("This field is incompatible with `version`"),
   profiles: incompatibleFieldType("This field is incompatible with `version`"),
@@ -290,7 +303,7 @@ function resolveBuildProfileConfig(
       compilers: [resolveSolcConfig(solidityConfig, production)],
       overrides: {},
       isolated: solidityConfig.isolated ?? production,
-      preferWasm: solidityConfig.preferWasm ?? (production && shouldUseWasm()),
+      preferWasm: solidityConfig.preferWasm ?? false,
     };
   }
 
@@ -307,7 +320,7 @@ function resolveBuildProfileConfig(
       ),
     ),
     isolated: solidityConfig.isolated ?? production,
-    preferWasm: solidityConfig.preferWasm ?? (production && shouldUseWasm()),
+    preferWasm: solidityConfig.preferWasm ?? false,
   };
 }
 
@@ -337,10 +350,20 @@ function resolveSolcConfig(
     };
   }
 
+  // Resolve per-compiler preferWasm:
+  // If explicitly set, use that value.
+  // Otherwise, for ARM64 Linux, default to true only for versions
+  // without official ARM64 builds.
+  let resolvedPreferWasm: boolean | undefined = solcConfig.preferWasm;
+  if (resolvedPreferWasm === undefined && shouldUseWasm()) {
+    resolvedPreferWasm = !hasOfficialArm64Build(solcConfig.version);
+  }
+
   return {
     version: solcConfig.version,
     settings: deepMerge(defaultSolcConfigSettings, solcConfig.settings ?? {}),
     path: solcConfig.path,
+    preferWasm: resolvedPreferWasm,
   };
 }
 

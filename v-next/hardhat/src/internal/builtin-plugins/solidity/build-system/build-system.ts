@@ -448,7 +448,7 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
 
       if (solcLongVersion === undefined) {
         const compiler = await getCompiler(solcConfig.version, {
-          preferWasm: buildProfile.preferWasm,
+          preferWasm: solcConfig.preferWasm ?? buildProfile.preferWasm,
           compilerPath: solcConfig.path,
         });
         solcLongVersion = compiler.longVersion;
@@ -657,7 +657,9 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
     const compiler = await getCompiler(
       runnableCompilationJob.solcConfig.version,
       {
-        preferWasm: buildProfile.preferWasm,
+        preferWasm:
+          runnableCompilationJob.solcConfig.preferWasm ??
+          buildProfile.preferWasm,
         compilerPath: runnableCompilationJob.solcConfig.path,
       },
     );
