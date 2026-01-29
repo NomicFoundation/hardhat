@@ -481,7 +481,6 @@ describe("solidity plugin config validation", () => {
         ],
       );
     });
-
   });
 
   describe("per-compiler path validation", () => {
@@ -647,109 +646,116 @@ describe("solidity plugin config resolution", () => {
     });
   });
 
-  describe("ARM64 Linux per-compiler preferWasm defaults", {
-    skip: !missesSomeOfficialNativeBuilds(),
-  }, () => {
-    const otherResolvedConfig = { paths: { root: process.cwd() } } as any;
+  describe(
+    "ARM64 Linux per-compiler preferWasm defaults",
+    {
+      skip: !missesSomeOfficialNativeBuilds(),
+    },
+    () => {
+      const otherResolvedConfig = { paths: { root: process.cwd() } } as any;
 
-    it("should default preferWasm to true in production profile for versions without official ARM64 builds", async () => {
-      const resolvedConfig = await resolveSolidityUserConfig(
-        {
-          solidity: {
-            compilers: [
-              { version: "0.8.28" }, // No official ARM64 build
-              { version: "0.8.30" }, // No official ARM64 build
-            ],
+      it("should default preferWasm to true in production profile for versions without official ARM64 builds", async () => {
+        const resolvedConfig = await resolveSolidityUserConfig(
+          {
+            solidity: {
+              compilers: [
+                { version: "0.8.28" }, // No official ARM64 build
+                { version: "0.8.30" }, // No official ARM64 build
+              ],
+            },
           },
-        },
-        otherResolvedConfig,
-      );
+          otherResolvedConfig,
+        );
 
-      // Production profile gets preferWasm: true for old versions
-      const productionCompilers =
-        resolvedConfig.solidity.profiles.production.compilers;
-      assert.equal(productionCompilers[0].preferWasm, true);
-      assert.equal(productionCompilers[1].preferWasm, true);
-    });
+        // Production profile gets preferWasm: true for old versions
+        const productionCompilers =
+          resolvedConfig.solidity.profiles.production.compilers;
+        assert.equal(productionCompilers[0].preferWasm, true);
+        assert.equal(productionCompilers[1].preferWasm, true);
+      });
 
-    it("should leave preferWasm undefined in production profile for versions with official ARM64 builds", async () => {
-      const resolvedConfig = await resolveSolidityUserConfig(
-        {
-          solidity: {
-            compilers: [
-              { version: "0.8.31" }, // Has official ARM64 build
-              { version: "0.8.32" }, // Has official ARM64 build
-            ],
+      it("should leave preferWasm undefined in production profile for versions with official ARM64 builds", async () => {
+        const resolvedConfig = await resolveSolidityUserConfig(
+          {
+            solidity: {
+              compilers: [
+                { version: "0.8.31" }, // Has official ARM64 build
+                { version: "0.8.32" }, // Has official ARM64 build
+              ],
+            },
           },
-        },
-        otherResolvedConfig,
-      );
+          otherResolvedConfig,
+        );
 
-      // Production profile gets preferWasm: undefined for versions with official builds
-      const productionCompilers =
-        resolvedConfig.solidity.profiles.production.compilers;
-      assert.equal(productionCompilers[0].preferWasm, undefined);
-      assert.equal(productionCompilers[1].preferWasm, undefined);
-    });
+        // Production profile gets preferWasm: undefined for versions with official builds
+        const productionCompilers =
+          resolvedConfig.solidity.profiles.production.compilers;
+        assert.equal(productionCompilers[0].preferWasm, undefined);
+        assert.equal(productionCompilers[1].preferWasm, undefined);
+      });
 
-    it("should leave preferWasm undefined in default profile for all versions", async () => {
-      const resolvedConfig = await resolveSolidityUserConfig(
-        {
-          solidity: {
-            compilers: [
-              { version: "0.8.28" }, // No official ARM64 build
-              { version: "0.8.31" }, // Has official ARM64 build
-            ],
+      it("should leave preferWasm undefined in default profile for all versions", async () => {
+        const resolvedConfig = await resolveSolidityUserConfig(
+          {
+            solidity: {
+              compilers: [
+                { version: "0.8.28" }, // No official ARM64 build
+                { version: "0.8.31" }, // Has official ARM64 build
+              ],
+            },
           },
-        },
-        otherResolvedConfig,
-      );
+          otherResolvedConfig,
+        );
 
-      // Default profile gets preferWasm: undefined for all versions
-      const defaultCompilers =
-        resolvedConfig.solidity.profiles.default.compilers;
-      assert.equal(defaultCompilers[0].preferWasm, undefined);
-      assert.equal(defaultCompilers[1].preferWasm, undefined);
-    });
+        // Default profile gets preferWasm: undefined for all versions
+        const defaultCompilers =
+          resolvedConfig.solidity.profiles.default.compilers;
+        assert.equal(defaultCompilers[0].preferWasm, undefined);
+        assert.equal(defaultCompilers[1].preferWasm, undefined);
+      });
 
-    it("should allow explicit override even on ARM64 Linux", async () => {
-      const resolvedConfig = await resolveSolidityUserConfig(
-        {
-          solidity: {
-            compilers: [
-              { version: "0.8.28", preferWasm: false }, // Force native even without official build
-              { version: "0.8.31", preferWasm: true }, // Force WASM even with official build
-            ],
+      it("should allow explicit override even on ARM64 Linux", async () => {
+        const resolvedConfig = await resolveSolidityUserConfig(
+          {
+            solidity: {
+              compilers: [
+                { version: "0.8.28", preferWasm: false }, // Force native even without official build
+                { version: "0.8.31", preferWasm: true }, // Force WASM even with official build
+              ],
+            },
           },
-        },
-        otherResolvedConfig,
-      );
+          otherResolvedConfig,
+        );
 
-      const compilers = resolvedConfig.solidity.profiles.default.compilers;
-      assert.equal(compilers[0].preferWasm, false);
-      assert.equal(compilers[1].preferWasm, true);
-    });
-  });
+        const compilers = resolvedConfig.solidity.profiles.default.compilers;
+        assert.equal(compilers[0].preferWasm, false);
+        assert.equal(compilers[1].preferWasm, true);
+      });
+    },
+  );
 
-  describe("non-ARM64 platform per-compiler preferWasm defaults", {
-    skip: missesSomeOfficialNativeBuilds(),
-  }, () => {
-    const otherResolvedConfig = { paths: { root: process.cwd() } } as any;
+  describe(
+    "non-ARM64 platform per-compiler preferWasm defaults",
+    {
+      skip: missesSomeOfficialNativeBuilds(),
+    },
+    () => {
+      const otherResolvedConfig = { paths: { root: process.cwd() } } as any;
 
-    it("should leave preferWasm undefined when not on ARM64 Linux", async () => {
-      const resolvedConfig = await resolveSolidityUserConfig(
-        {
-          solidity: {
-            compilers: [{ version: "0.8.28" }, { version: "0.8.31" }],
+      it("should leave preferWasm undefined when not on ARM64 Linux", async () => {
+        const resolvedConfig = await resolveSolidityUserConfig(
+          {
+            solidity: {
+              compilers: [{ version: "0.8.28" }, { version: "0.8.31" }],
+            },
           },
-        },
-        otherResolvedConfig,
-      );
+          otherResolvedConfig,
+        );
 
-      const compilers = resolvedConfig.solidity.profiles.default.compilers;
-      assert.equal(compilers[0].preferWasm, undefined);
-      assert.equal(compilers[1].preferWasm, undefined);
-    });
-  });
-
+        const compilers = resolvedConfig.solidity.profiles.default.compilers;
+        assert.equal(compilers[0].preferWasm, undefined);
+        assert.equal(compilers[1].preferWasm, undefined);
+      });
+    },
+  );
 });
