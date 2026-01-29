@@ -343,11 +343,14 @@ function resolveSolcConfig(
 
   // Resolve per-compiler preferWasm:
   // If explicitly set, use that value.
-  // Otherwise, for ARM64 Linux, default to true only for versions
-  // without official ARM64 builds.
+  // Otherwise, for ARM64 Linux in production, default to true only for
+  // versions without official ARM64 builds.
   let resolvedPreferWasm: boolean | undefined = solcConfig.preferWasm;
-  if (resolvedPreferWasm === undefined && shouldUseWasm()) {
-    resolvedPreferWasm = !hasOfficialArm64Build(solcConfig.version);
+  if (resolvedPreferWasm === undefined && missesSomeOfficialNativeBuilds()) {
+    resolvedPreferWasm =
+      production && !hasOfficialArm64Build(solcConfig.version)
+        ? true
+        : undefined;
   }
 
   return {

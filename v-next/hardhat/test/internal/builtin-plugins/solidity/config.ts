@@ -644,12 +644,15 @@ describe("solidity plugin config resolution", () => {
     });
   });
 
-  describe("ARM64 Linux per-compiler preferWasm defaults", {
-    skip: !(os.platform() === "linux" && os.arch() === "arm64"),
-  }, () => {
+  describe(
+    "ARM64 Linux per-compiler preferWasm defaults",
+    {
+      skip: !missesSomeOfficialNativeBuilds(),
+    },
+    () => {
     const otherResolvedConfig = { paths: { root: process.cwd() } } as any;
 
-    it("should default preferWasm to true for versions without official ARM64 builds", async () => {
+      it("should default preferWasm to true in production profile for versions without official ARM64 builds", async () => {
       const resolvedConfig = await resolveSolidityUserConfig(
         {
           solidity: {
@@ -662,12 +665,14 @@ describe("solidity plugin config resolution", () => {
         otherResolvedConfig,
       );
 
-      const compilers = resolvedConfig.solidity.profiles.default.compilers;
-      assert.equal(compilers[0].preferWasm, true);
-      assert.equal(compilers[1].preferWasm, true);
+      // Production profile gets preferWasm: true for old versions
+      const productionCompilers =
+        resolvedConfig.solidity.profiles.production.compilers;
+      assert.equal(productionCompilers[0].preferWasm, true);
+      assert.equal(productionCompilers[1].preferWasm, true);
     });
 
-    it("should default preferWasm to false for versions with official ARM64 builds", async () => {
+    it("should leave preferWasm undefined in production profile for versions with official ARM64 builds", async () => {
       const resolvedConfig = await resolveSolidityUserConfig(
         {
           solidity: {
@@ -680,9 +685,31 @@ describe("solidity plugin config resolution", () => {
         otherResolvedConfig,
       );
 
-      const compilers = resolvedConfig.solidity.profiles.default.compilers;
-      assert.equal(compilers[0].preferWasm, false);
-      assert.equal(compilers[1].preferWasm, false);
+      // Production profile gets preferWasm: undefined for versions with official builds
+      const productionCompilers =
+        resolvedConfig.solidity.profiles.production.compilers;
+      assert.equal(productionCompilers[0].preferWasm, undefined);
+      assert.equal(productionCompilers[1].preferWasm, undefined);
+    });
+
+    it("should leave preferWasm undefined in default profile for all versions", async () => {
+      const resolvedConfig = await resolveSolidityUserConfig(
+        {
+          solidity: {
+            compilers: [
+              { version: "0.8.28" }, // No official ARM64 build
+              { version: "0.8.31" }, // Has official ARM64 build
+            ],
+          },
+        },
+        otherResolvedConfig,
+      );
+
+      // Default profile gets preferWasm: undefined for all versions
+      const defaultCompilers =
+        resolvedConfig.solidity.profiles.default.compilers;
+      assert.equal(defaultCompilers[0].preferWasm, undefined);
+      assert.equal(defaultCompilers[1].preferWasm, undefined);
     });
 
     it("should allow explicit override even on ARM64 Linux", async () => {
@@ -723,6 +750,6 @@ describe("solidity plugin config resolution", () => {
       assert.equal(compilers[0].preferWasm, undefined);
       assert.equal(compilers[1].preferWasm, undefined);
     });
-    },
-  );
+  });
+
 });
