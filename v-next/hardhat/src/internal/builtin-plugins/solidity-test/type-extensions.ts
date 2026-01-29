@@ -15,6 +15,21 @@ declare module "../../../types/config.js" {
 }
 
 declare module "../../../types/test.js" {
+  export interface SolidityTestFuzzConfigBase {
+    failurePersistDir?: string;
+    failurePersistFile?: string;
+    runs?: number;
+    maxTestRejects?: number;
+    seed?: string;
+    dictionaryWeight?: number;
+    includeStorage?: boolean;
+    includePushBytes?: boolean;
+  }
+
+  export interface SolidityTestFuzzConfig extends SolidityTestFuzzConfigBase {
+    seed: string;
+  }
+
   export interface SolidityTestConfigBase {
     timeout?: number;
     fsPermissions?: {
@@ -37,16 +52,7 @@ declare module "../../../types/test.js" {
     prevRandao?: bigint;
     blockGasLimit?: bigint | false;
 
-    fuzz?: {
-      failurePersistDir?: string;
-      failurePersistFile?: string;
-      runs?: number;
-      maxTestRejects?: number;
-      seed?: string;
-      dictionaryWeight?: number;
-      includeStorage?: boolean;
-      includePushBytes?: boolean;
-    };
+    fuzz?: SolidityTestFuzzConfigBase;
     invariant?: {
       failurePersistDir?: string;
       runs?: number;
@@ -81,6 +87,7 @@ declare module "../../../types/test.js" {
   }
 
   export interface SolidityTestConfig extends SolidityTestConfigBase {
+    fuzz: SolidityTestFuzzConfig;
     forking?: SolidityTestForkingConfig;
   }
   export interface HardhatTestConfig {
