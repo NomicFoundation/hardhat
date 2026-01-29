@@ -11,10 +11,7 @@ import type {
 } from "../../../types/config.js";
 import type { HardhatUserConfigValidationError } from "../../../types/hooks.js";
 
-import os from "node:os";
-
 import { deepMerge, isObject } from "@nomicfoundation/hardhat-utils/lang";
-import semver from "semver";
 import { resolveFromRoot } from "@nomicfoundation/hardhat-utils/path";
 import {
   conditionalUnionType,
@@ -24,16 +21,10 @@ import {
 import { z } from "zod";
 
 import { DEFAULT_BUILD_PROFILES } from "./build-profiles.js";
-
-// The first solc version with official ARM64 Linux builds
-export const FIRST_OFFICIAL_ARM64_SOLC_VERSION = "0.8.31";
-
-/**
- * Determines if a solc version has an official ARM64 Linux build.
- */
-export function hasOfficialArm64Build(version: string): boolean {
-  return semver.gte(version, FIRST_OFFICIAL_ARM64_SOLC_VERSION);
-}
+import {
+  hasOfficialArm64Build,
+  missesSomeOfficialNativeBuilds,
+} from "./build-system/solc-info.js";
 
 const sourcePathsType = conditionalUnionType(
   [
@@ -391,10 +382,4 @@ function copyFromDefault(
       ),
     ),
   };
-}
-
-// We use wasm builds in production to avoid using unofficial builds for deployments
-// This should change once https://github.com/ethereum/solidity/issues/11351 gets resolved
-export function shouldUseWasm(): boolean {
-  return os.platform() === "linux" && os.arch() === "arm64";
 }

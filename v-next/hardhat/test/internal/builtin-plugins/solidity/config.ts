@@ -1,12 +1,10 @@
 /* eslint-disable @typescript-eslint/consistent-type-assertions -- test*/
 import assert from "node:assert/strict";
-import os from "node:os";
 import { describe, it } from "node:test";
 
+import { missesSomeOfficialNativeBuilds } from "../../../../src/internal/builtin-plugins/solidity/build-system/solc-info.js";
 import {
-  hasOfficialArm64Build,
   resolveSolidityUserConfig,
-  shouldUseWasm,
   validateSolidityUserConfig,
 } from "../../../../src/internal/builtin-plugins/solidity/config.js";
 
@@ -725,21 +723,6 @@ describe("solidity plugin config resolution", () => {
       assert.equal(compilers[0].preferWasm, undefined);
       assert.equal(compilers[1].preferWasm, undefined);
     });
-  });
-
-  describe("hasOfficialArm64Build", () => {
-    it("returns false for versions before 0.8.31", () => {
-      assert.equal(hasOfficialArm64Build("0.5.0"), false);
-      assert.equal(hasOfficialArm64Build("0.8.0"), false);
-      assert.equal(hasOfficialArm64Build("0.8.28"), false);
-      assert.equal(hasOfficialArm64Build("0.8.30"), false);
-    });
-
-    it("returns true for 0.8.31 and later", () => {
-      assert.equal(hasOfficialArm64Build("0.8.31"), true);
-      assert.equal(hasOfficialArm64Build("0.8.32"), true);
-      assert.equal(hasOfficialArm64Build("0.9.0"), true);
-      assert.equal(hasOfficialArm64Build("1.0.0"), true);
-    });
-  });
+    },
+  );
 });
