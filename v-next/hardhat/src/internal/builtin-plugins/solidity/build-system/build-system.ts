@@ -77,6 +77,17 @@ import { SolcConfigSelector } from "./solc-config-selection.js";
 
 const log = debug("hardhat:core:solidity:build-system");
 
+/**
+ * Resolves the preferWasm setting for a given solc config, falling back
+ * to the build profile's preferWasm if not set on the compiler.
+ */
+function resolvePreferWasm(
+  solcConfig: SolcConfig,
+  buildProfilePreferWasm: boolean,
+): boolean {
+  return solcConfig.preferWasm ?? buildProfilePreferWasm;
+}
+
 // Compiler warnings to suppress from build output.
 // Each rule specifies a warning message and the source file it applies to.
 // This allows suppressing known warnings from internal files (e.g., console.sol)
@@ -448,7 +459,7 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
 
       if (solcLongVersion === undefined) {
         const compiler = await getCompiler(solcConfig.version, {
-          preferWasm: solcConfig.preferWasm ?? buildProfile.preferWasm,
+          preferWasm: resolvePreferWasm(solcConfig, buildProfile.preferWasm),
           compilerPath: solcConfig.path,
         });
         solcLongVersion = compiler.longVersion;
@@ -657,9 +668,10 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
     const compiler = await getCompiler(
       runnableCompilationJob.solcConfig.version,
       {
-        preferWasm:
-          runnableCompilationJob.solcConfig.preferWasm ??
+        preferWasm: resolvePreferWasm(
+          runnableCompilationJob.solcConfig,
           buildProfile.preferWasm,
+        ),
         compilerPath: runnableCompilationJob.solcConfig.path,
       },
     );
