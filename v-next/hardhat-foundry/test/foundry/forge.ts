@@ -140,12 +140,16 @@ describe("forge utilities", () => {
         );
 
         // The error code should be 127 (command not found) or 'ENOENT' (no such file)
+        // On Windows, the error code is 1 when the command is not found
         // This is what we mock in our tests as FORGE_NOT_INSTALLED scenario
-        const isCommandNotFound = error.code === 127 || error.code === "ENOENT";
+        const isCommandNotFound =
+          error.code === 127 ||
+          error.code === "ENOENT" ||
+          (process.platform === "win32" && error.code === 1);
 
         assert(
           isCommandNotFound,
-          `Expected error.code to be 127 or 'ENOENT', got: ${error.code}`,
+          `Expected error.code to be 127, 'ENOENT', or 1 (Windows), got: ${error.code}`,
         );
 
         // Log the actual error for documentation purposes
