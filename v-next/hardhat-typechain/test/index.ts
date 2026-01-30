@@ -268,7 +268,7 @@ describe("hardhat-typechain", () => {
       );
     });
 
-    it("should generate types for all artifacts when types are deleted and cache is valid", async () => {
+    it("should generate types for all the artifacts present in the file system, even if a single file is being compiled", async () => {
       const hardhatConfig = await import(
         `./fixture-projects/${projectFolder}/hardhat.config.js`
       );
