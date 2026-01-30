@@ -17,7 +17,7 @@ export interface MinimalEthereumJsVm {
   evm: {
     events: AsyncEventEmitter<MinimalEthereumJsEvmEvents>;
   };
-  stateManager: MinimalEthereumJSStateManager;
+  stateManager: MinimalEthereumJsStateManager;
 }
 
 // we need to use a type instead of an interface to satisfy the type constraint
@@ -49,7 +49,7 @@ type MinimalEthereumJsEvmEvents = {
 export class MinimalEthereumJsVmEventEmitter extends AsyncEventEmitter<MinimalEthereumJsVmEvents> {}
 export class MinimalEthereumJsEvmEventEmitter extends AsyncEventEmitter<MinimalEthereumJsEvmEvents> {}
 
-export interface MinimalEthereumJSStateManager {
+export interface MinimalEthereumJsStateManager {
   putContractCode: (address: Address, code: Buffer) => Promise<void>;
   getContractStorage: (address: Address, slotHash: Buffer) => Promise<Buffer>;
   putContractStorage: (
@@ -57,6 +57,7 @@ export interface MinimalEthereumJSStateManager {
     slotHash: Buffer,
     slotValue: Buffer
   ) => Promise<void>;
+  updateProvider: (newProvider: EdrProviderT) => void;
 }
 
 export function getMinimalEthereumJsVm(
@@ -73,9 +74,11 @@ export function getMinimalEthereumJsVm(
   return minimalEthereumJsVm;
 }
 
-export function getMinimalEthereumJsStateManager(
-  provider: EdrProviderT
-): MinimalEthereumJSStateManager {
+function getMinimalEthereumJsStateManager(
+  initialProvider: EdrProviderT
+): MinimalEthereumJsStateManager {
+  let provider = initialProvider;
+
   return {
     putContractCode: async (address: Address, code: Buffer) => {
       await provider.handleRequest(
@@ -117,6 +120,9 @@ export function getMinimalEthereumJsStateManager(
           ],
         })
       );
+    },
+    updateProvider: (newProvider: EdrProviderT) => {
+      provider = newProvider;
     },
   };
 }
