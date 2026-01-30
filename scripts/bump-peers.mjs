@@ -90,7 +90,7 @@ const fmt = {
   /** @param {string} v */
   version: (v) => styleText("green", v),
   /** @param {string} text */
-  dim: (text) => styleText("dim", text),
+  deemphasize: (text) => styleText("dim", text),
   /** @param {string} text */
   success: (text) => styleText("green", text),
 };
@@ -118,7 +118,10 @@ function git(args) {
   if (gitPath === undefined) {
     gitPath = which("git");
   }
-  return execFileSync(gitPath, args, { encoding: "utf-8", cwd: ROOT_DIR }).trim();
+  return execFileSync(gitPath, args, {
+    encoding: "utf-8",
+    cwd: ROOT_DIR,
+  }).trim();
 }
 
 /** @type {string | undefined} */
@@ -132,7 +135,10 @@ function pnpm(args) {
   if (pnpmPath === undefined) {
     pnpmPath = which("pnpm");
   }
-  return execFileSync(pnpmPath, args, { encoding: "utf-8", cwd: ROOT_DIR }).trim();
+  return execFileSync(pnpmPath, args, {
+    encoding: "utf-8",
+    cwd: ROOT_DIR,
+  }).trim();
 }
 
 // =============================================================================
@@ -287,7 +293,7 @@ function filterPackages(packages, excludedFolders) {
     for (const excludedFolder of excludedFolders) {
       if (relativePath.startsWith(excludedFolder)) {
         log(
-          `  Excluding ${fmt.pkg(pkg.name)} ${fmt.dim(`(in ${excludedFolder})`)}`,
+          `  Excluding ${fmt.pkg(pkg.name)} ${fmt.deemphasize(`(in ${excludedFolder})`)}`,
         );
 
         excluded = true;
@@ -402,7 +408,7 @@ function revertPeerDependencies(packages) {
       if (!isWorkspaceDependency(currentVersion)) {
         // External dependency, not managed by this tool
         log(
-          `  ${fmt.pkg(pkg.name)}: ${fmt.dim(`${peerName} is external, skipping`)}`,
+          `  ${fmt.pkg(pkg.name)}: ${fmt.deemphasize(`${peerName} is external, skipping`)}`,
         );
         continue;
       }
@@ -460,7 +466,7 @@ function revertPeerDependencies(packages) {
   }
 
   if (modifications.size === 0) {
-    log(fmt.dim("  No peer dependency changes to revert"));
+    log(fmt.deemphasize("  No peer dependency changes to revert"));
   }
 
   return modifications;
@@ -548,7 +554,7 @@ function applyIntentionalBumps(
     log(
       `  ${fmt.pkg(bump.package)}: bumped ${bump.peer} to ${fmt.version(newVersion)}`,
     );
-    log(`    ${fmt.dim(`Reason: ${bump.reason}`)}`);
+    log(`    ${fmt.deemphasize(`Reason: ${bump.reason}`)}`);
   }
 }
 
@@ -598,7 +604,7 @@ function syncPeerToDevDependencies(modifications) {
   }
 
   if (syncCount === 0) {
-    log(fmt.dim("  No devDependencies needed syncing"));
+    log(fmt.deemphasize("  No devDependencies needed syncing"));
   }
 }
 
@@ -615,7 +621,7 @@ function writeModifications(modifications) {
   }
 
   if (modifications.size === 0) {
-    log(fmt.dim("  No files to write"));
+    log(fmt.deemphasize("  No files to write"));
   }
 }
 
