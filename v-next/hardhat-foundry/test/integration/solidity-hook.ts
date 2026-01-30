@@ -161,7 +161,7 @@ describe("hardhat-foundry integration", () => {
     useFixtureProject("forge-remappings-override");
 
     it("should build successfully using remappings", async () => {
-      // In this test with have v1 and v2 of the library. Foundry remaps to v2,
+      // In this test we have v1 and v2 of the library. Foundry remaps to v2,
       // while remappings.txt points to v1. The remappings.txt file should take
       // precedence, to validate it, we introduced an intentional syntax error
       // in v2 of the library, so it won't compile if forge's remappings are
