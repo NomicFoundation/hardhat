@@ -36,9 +36,13 @@ function hasLinksToDocs() {
 
   console.log(JSON.stringify({ prBody }, null, 2));
 
+  const lowerCaseBody = prBody.toLowerCase();
+
   return (
-    prBody.includes("github.com/NomicFoundation/hardhat-website/issues") ||
-    prBody.includes("github.com/NomicFoundation/hardhat-website/pull")
+    lowerCaseBody.includes(
+      "github.com/NomicFoundation/hardhat-website/issues",
+    ) ||
+    lowerCaseBody.includes("github.com/NomicFoundation/hardhat-website/pull")
   );
 }
 
