@@ -3,14 +3,14 @@
 /**
  * A pull request is valid if:
  * - it is a release PR (i.e. it's head ref starts with "changeset-release/")
- * - or it is labeled as "no-peer-bump-needed"
+ * - or it is labeled as "no peer bump needed"
  * - or it modifies .peer-bumps.json.
  */
 
 import { exec as execSync } from "node:child_process";
 import { promisify } from "node:util";
 
-const PEER_BUMP_LABEL = "no-peer-bump-needed";
+const PEER_BUMP_LABEL = "no peer bump needed";
 
 const exec = promisify(execSync);
 
@@ -40,7 +40,7 @@ async function hasPeerBumpEntry() {
   }
 
   const { stdout } = await exec(
-    `git diff --name-only ${process.env.GITHUB_BASE_REF} -- ${peerBumpsFile}`
+    `git diff --name-only ${process.env.GITHUB_BASE_REF} -- ${peerBumpsFile}`,
   );
 
   return stdout.trim().length > 0;
@@ -63,7 +63,7 @@ async function validatePullRequest() {
   }
 
   throw new Error(
-    `No peer bump entry found. Either modify ${peerBumpsFile} or add the '${PEER_BUMP_LABEL}' label to this PR.`
+    `No peer bump entry found. Either modify ${peerBumpsFile} or add the '${PEER_BUMP_LABEL}' label to this PR.`,
   );
 }
 
