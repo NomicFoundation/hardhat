@@ -315,6 +315,19 @@ export const ERROR_CATEGORIES: {
       },
     },
   },
+  HARDHAT_FOUNDRY: {
+    min: 100000,
+    max: 109999,
+    pluginId: "hardhat-foundry",
+    websiteTitle: "Hardhat Foundry",
+    CATEGORIES: {
+      GENERAL: {
+        min: 100000,
+        max: 100099,
+        websiteSubTitle: "General errors",
+      },
+    },
+  },
 };
 
 export const ERRORS = {
@@ -2891,6 +2904,35 @@ Please check that you are sending a "data" parameter with a JSON string or objec
         messageTemplate: `EIP-7702 transactions are currently not supported.`,
         websiteTitle: `EIP-7702 transactions are currently not supported`,
         websiteDescription: `EIP-7702 transactions are currently not supported.`,
+      },
+    },
+  },
+  HARDHAT_FOUNDRY: {
+    GENERAL: {
+      FORGE_NOT_INSTALLED: {
+        number: 100000,
+        messageTemplate: `Couldn't run \`forge\`. Please check that Foundry is installed and that \`forge\` is in your PATH.
+
+If you need to install Foundry, please go to https://getfoundry.sh`,
+        websiteTitle: "Forge not installed",
+        websiteDescription: `You tried to use the hardhat-foundry plugin, but Foundry is not installed or \`forge\` is not in your PATH.
+
+If you need to install Foundry, please go to https://getfoundry.sh`,
+      },
+      FORGE_REMAPPINGS_FAILED: {
+        number: 100001,
+        messageTemplate: `Running \`forge remappings\` in "{packagePath}" failed.
+
+Error: {stderr}`,
+        websiteTitle: "Forge remappings command failed",
+        websiteDescription: `The \`forge remappings\` command failed when trying to read remappings for a package.
+
+This could be due to:
+- An invalid foundry.toml configuration
+- Missing dependencies
+- Forge installation issues
+
+Check the error message for more details and verify your foundry.toml configuration.`,
       },
     },
   },
