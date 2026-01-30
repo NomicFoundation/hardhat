@@ -13,6 +13,7 @@ import { before, describe, it } from "node:test";
 import { HardhatError } from "@nomicfoundation/hardhat-errors";
 import { assertRejectsWithHardhatError } from "@nomicfoundation/hardhat-test-utils";
 import { mkdtemp } from "@nomicfoundation/hardhat-utils/fs";
+import { numberToHexString } from "@nomicfoundation/hardhat-utils/hex";
 
 import { createHardhatRuntimeEnvironment } from "../../../../../src/hre.js";
 import {
@@ -204,6 +205,130 @@ describe("edr-provider", () => {
         return;
       }
       assert.fail("Function did not throw any error");
+    });
+
+    it("should return the expected response when the method is eth_getProof", async () => {
+      const { provider } = await hre.network.connect();
+
+      const accounts = await provider.request({
+        method: "eth_accounts",
+      });
+
+      assert.ok(Array.isArray(accounts), "Accounts should be an array");
+      assert.ok(accounts.length > 0, "There should be at least one account");
+
+      const account = accounts[0];
+
+      // Make eth_getProof request
+      const proof = await provider.request({
+        method: "eth_getProof",
+        params: [
+          account,
+          [], // storage keys (empty array)
+          "latest",
+        ],
+      });
+
+      assert.equal(
+        proof.address,
+        account,
+        "Address should match the requested account",
+      );
+
+      // Default hardhat accounts have 10,000 ETH
+      assert.equal(
+        proof.balance,
+        numberToHexString(10_000n * 10n ** 18n),
+        "Balance should be 10,000 ETH",
+      );
+
+      // Fresh account that hasn't sent any transactions yet
+      assert.equal(proof.nonce, "0x0", "Nonce should be 0");
+
+      // This confirms the account is an EOA (Externally Owned Account) and not a contract
+      assert.equal(
+        proof.codeHash,
+        "0xc5d2460186f7233c927e7db2dcc703c0e500b653ca82273b7bfad8045d85a470",
+        "CodeHash should be empty (standard EOA hash)",
+      );
+
+      // StorageHash is the root hash of an empty Merkle Trie.
+      // This confirms the account has no storage (standard for EOAs).
+      assert.equal(
+        proof.storageHash,
+        "0x56e81f171bcc55a6ff8345e692c0f86e5b48e01b996cadc001622fb5e363b421",
+        "StorageHash should be empty (standard empty trie root)",
+      );
+
+      // Check Cryptographic Proof Structure
+      assert.ok(
+        Array.isArray(proof.accountProof) && proof.accountProof.length > 0,
+        "accountProof should be a non empty array",
+      );
+      assert.ok(
+        Array.isArray(proof.storageProof) && proof.storageProof.length === 0,
+        // we passed `[]` as storage keys in the request
+        "StorageProof should be an empty array for 0 storage keys",
+      );
+    });
+
+    it("should throw a ProviderError when calling eth_getProof on a locally mined block in a forked network", async () => {
+      const forkedHre = await createHardhatRuntimeEnvironment({
+        networks: {
+          edrOptimism: {
+            type: "edr-simulated",
+            chainId: 10,
+            chainType: "op",
+            forking: {
+              url: "https://mainnet.optimism.io",
+            },
+          },
+        },
+      });
+
+      const { provider } = await forkedHre.network.connect("edrOptimism");
+
+      try {
+        const accounts = await provider.request({ method: "eth_accounts" });
+        const sender = accounts[0];
+
+        // Action: Mine a local block on top of the fork
+        // Sending 1 wei to self is enough to trigger a state change and mine a new block
+        await provider.request({
+          method: "eth_sendTransaction",
+          params: [
+            {
+              from: sender,
+              to: sender,
+              value: "0x1",
+            },
+          ],
+        });
+
+        // We expect this to fail because the state root of this new local block
+        // does not exist on the remote node.
+        await provider.request({
+          method: "eth_getProof",
+          params: [sender, [], "latest"],
+        });
+      } catch (error) {
+        assert.ok(
+          ProviderError.isProviderError(error),
+          "Error is not a ProviderError",
+        );
+
+        assert.match(
+          error.message,
+          /proof is not supported in fork mode when local changes have been made/,
+          "Error message should explain lack of support for local blocks on fork",
+        );
+
+        return;
+      } finally {
+        await provider.close();
+      }
+
+      assert.fail("eth_getProof should have thrown an error");
     });
   });
 
