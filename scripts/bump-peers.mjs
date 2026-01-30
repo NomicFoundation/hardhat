@@ -47,41 +47,13 @@ import { styleText } from "node:util";
  */
 
 // =============================================================================
-// Constants
+// Constants (must be before functions that use them, as const is not hoisted)
 // =============================================================================
 
 const ROOT_DIR = resolve(import.meta.dirname, "..");
 const CONFIG_FILE = ".peer-bumps.json";
 const CONFIG_PATH = resolve(ROOT_DIR, CONFIG_FILE);
 const PREFIX = "[bump-peers]";
-
-// =============================================================================
-// Logging Helpers
-// =============================================================================
-
-/**
- * @param {string} msg
- * @returns {void}
- */
-function log(msg) {
-  console.log(`${styleText("cyan", PREFIX)} ${msg}`);
-}
-
-/**
- * @param {string} step
- * @returns {void}
- */
-function logStep(step) {
-  console.log(styleText(["bold", "yellow"], `${PREFIX} === ${step} ===`));
-}
-
-/**
- * @param {string} msg
- * @returns {void}
- */
-function logError(msg) {
-  console.error(styleText("red", `${PREFIX} Error: ${msg}`));
-}
 
 // Styling helpers for consistent formatting
 const fmt = {
@@ -95,270 +67,178 @@ const fmt = {
   success: (text) => styleText("green", text),
 };
 
-// =============================================================================
-// Shell Helpers
-// =============================================================================
-
-/**
- * @param {string} command
- * @returns {string}
- */
-function which(command) {
-  return execSync(`which ${command}`, { encoding: "utf-8" }).trim();
-}
-
 /** @type {string | undefined} */
 let gitPath;
-
-/**
- * @param {string[]} args
- * @returns {string}
- */
-function git(args) {
-  if (gitPath === undefined) {
-    gitPath = which("git");
-  }
-  return execFileSync(gitPath, args, {
-    encoding: "utf-8",
-    cwd: ROOT_DIR,
-  }).trim();
-}
 
 /** @type {string | undefined} */
 let pnpmPath;
 
-/**
- * @param {string[]} args
- * @returns {string}
- */
-function pnpm(args) {
-  if (pnpmPath === undefined) {
-    pnpmPath = which("pnpm");
-  }
-  return execFileSync(pnpmPath, args, {
-    encoding: "utf-8",
-    cwd: ROOT_DIR,
-  }).trim();
-}
-
 // =============================================================================
-// Config Helpers
+// Entry Point
 // =============================================================================
 
 /**
- * @returns {PeerBumpsConfig}
+ * @returns {void}
  */
-function loadConfig() {
-  if (!existsSync(CONFIG_PATH)) {
-    throw new Error(
-      `Config file not found: ${CONFIG_FILE}\nCreate it with: { "excludedFolders": [], "bumps": [] }`,
-    );
-  }
-
-  const content = readFileSync(CONFIG_PATH, "utf-8");
-  /** @type {unknown} */
-  let config;
+function main() {
+  const command = process.argv[2];
 
   try {
-    config = JSON.parse(content);
-  } catch {
-    throw new Error(`Invalid JSON in ${CONFIG_FILE}`);
-  }
-
-  validateConfigSchema(config);
-  return /** @type {PeerBumpsConfig} */ (config);
-}
-
-/**
- * @param {unknown} config
- * @returns {void}
- */
-function validateConfigSchema(config) {
-  if (typeof config !== "object" || config === null) {
-    throw new Error(`${CONFIG_FILE} must be an object`);
-  }
-
-  const obj = /** @type {Record<string, unknown>} */ (config);
-
-  if (!Array.isArray(obj.excludedFolders)) {
-    throw new Error(`${CONFIG_FILE} must have an "excludedFolders" array`);
-  }
-
-  for (const folder of obj.excludedFolders) {
-    if (typeof folder !== "string") {
-      throw new Error(`${CONFIG_FILE} excludedFolders must contain strings`);
+    if (command === "apply") {
+      apply();
+    } else {
+      printUsage();
     }
-  }
-
-  if (!Array.isArray(obj.bumps)) {
-    throw new Error(`${CONFIG_FILE} must have a "bumps" array`);
-  }
-
-  for (const bump of obj.bumps) {
-    if (typeof bump !== "object" || bump === null) {
-      throw new Error(`${CONFIG_FILE} bumps must be objects`);
-    }
-
-    const bumpObj = /** @type {Record<string, unknown>} */ (bump);
-
-    if (typeof bumpObj.package !== "string") {
-      throw new Error(
-        `${CONFIG_FILE} bump entries must have a "package" string`,
-      );
-    }
-
-    if (typeof bumpObj.peer !== "string") {
-      throw new Error(`${CONFIG_FILE} bump entries must have a "peer" string`);
-    }
-
-    if (typeof bumpObj.reason !== "string") {
-      throw new Error(
-        `${CONFIG_FILE} bump entries must have a "reason" string`,
-      );
-    }
-
-    if (bumpObj.version !== undefined && typeof bumpObj.version !== "string") {
-      throw new Error(
-        `${CONFIG_FILE} bump entry "version" must be a string if present`,
-      );
-    }
+  } catch (error) {
+    logError(/** @type {Error} */ (error).message);
+    process.exit(1);
   }
 }
 
 // =============================================================================
-// Git Helpers
+// Commands
 // =============================================================================
 
 /**
  * @returns {void}
  */
-function validateNoChangesets() {
-  const changesetDir = resolve(ROOT_DIR, ".changeset");
+function apply() {
+  log("Starting peer dependency management");
 
-  if (!existsSync(changesetDir)) {
-    throw new Error(`Changeset directory not found: ${changesetDir}`);
-  }
+  // Load and validate config
+  const config = loadConfig();
+  log(`Loaded config with ${config.bumps.length} intentional bump(s)`);
 
-  const files = readdirSync(changesetDir);
-  const changesetFiles = files.filter(
-    (file) => file.endsWith(".md") && file !== "README.md",
+  // Validate we're in the right state
+  validateNoChangesets();
+  log("Verified no pending changesets");
+
+  // Get workspace packages
+  logStep("Filtering workspace packages");
+  const allPackages = getWorkspacePackages();
+  const packages = filterPackages(allPackages, config.excludedFolders);
+  const packageMap = buildPackageMap(packages);
+
+  log(
+    `Found ${packages.length} packages (excluded ${allPackages.length - packages.length})`,
   );
 
-  if (changesetFiles.length > 0) {
-    throw new Error(
-      `Pending changesets found: ${changesetFiles.join(", ")}\n` +
-        `Run \`pnpm changeset version --no-commit\` first to consume them.`,
-    );
-  }
+  // Revert automatic peer dependency bumps
+  const modifications = revertPeerDependencies(packages);
+
+  // Apply intentional bumps
+  applyIntentionalBumps(
+    config.bumps,
+    packageMap,
+    config.excludedFolders,
+    modifications,
+  );
+
+  // Sync peer deps to dev deps
+  syncPeerToDevDependencies(modifications);
+
+  // Write all changes
+  writeModifications(modifications);
+
+  // Clear the bumps array in config
+  clearBumpsInConfig();
+
+  log(fmt.success("Done! Review the changes and commit manually."));
 }
 
 /**
- * @param {string} ref
- * @param {string} filePath
- * @returns {string | null}
- */
-function getFileFromCommit(ref, filePath) {
-  try {
-    return git(["show", `${ref}:${filePath}`]);
-  } catch {
-    return null;
-  }
-}
-
-// =============================================================================
-// Package Helpers
-// =============================================================================
-
-/**
- * @returns {PnpmPackage[]}
- */
-function getWorkspacePackages() {
-  const output = pnpm(["ls", "-r", "--depth", "-1", "--json"]);
-  return /** @type {PnpmPackage[]} */ (JSON.parse(output));
-}
-
-/**
- * @param {PnpmPackage[]} packages
- * @param {string[]} excludedFolders
- * @returns {PnpmPackage[]}
- */
-function filterPackages(packages, excludedFolders) {
-  /** @type {PnpmPackage[]} */
-  const result = [];
-
-  for (const pkg of packages) {
-    const relativePath = relative(ROOT_DIR, pkg.path);
-    let excluded = false;
-
-    for (const excludedFolder of excludedFolders) {
-      if (relativePath.startsWith(excludedFolder)) {
-        log(
-          `  Excluding ${fmt.pkg(pkg.name)} ${fmt.deemphasize(`(in ${excludedFolder})`)}`,
-        );
-
-        excluded = true;
-        break;
-      }
-    }
-
-    if (!excluded) {
-      result.push(pkg);
-    }
-  }
-
-  return result;
-}
-
-/**
- * @param {PnpmPackage[]} packages
- * @returns {Map<string, PnpmPackage>}
- */
-function buildPackageMap(packages) {
-  /** @type {Map<string, PnpmPackage>} */
-  const map = new Map();
-
-  for (const pkg of packages) {
-    map.set(pkg.name, pkg);
-  }
-
-  return map;
-}
-
-/**
- * @param {string} packagePath
- * @returns {PackageJson}
- */
-function readPackageJson(packagePath) {
-  const filePath = resolve(packagePath, "package.json");
-  const content = readFileSync(filePath, "utf-8");
-  return /** @type {PackageJson} */ (JSON.parse(content));
-}
-
-/**
- * @param {string} packagePath
- * @param {PackageJson} json
  * @returns {void}
  */
-function writePackageJson(packagePath, json) {
-  const filePath = resolve(packagePath, "package.json");
-  const content = JSON.stringify(json, null, 2) + "\n";
-  writeFileSync(filePath, content);
-}
+function printUsage() {
+  console.log(`
+bump-peers - Manage peer dependency bumps in this pnpm monorepo
 
-/**
- * @param {string} version
- * @returns {boolean}
- */
-function isWorkspaceDependency(version) {
-  return version.startsWith("workspace:");
-}
+DESCRIPTION
+  This tool addresses the problem where changesets automatically bumps internal
+  peer dependencies too aggressively. It works by:
 
-/**
- * @param {string} version
- * @returns {string}
- */
-function buildWorkspaceVersion(version) {
-  return `workspace:^${version}`;
+  1. Reverting all workspace peer dependency changes made by changesets
+  2. Applying only intentional bumps declared in ${CONFIG_FILE}
+
+WORKFLOW
+  1. Run \`pnpm changeset version --no-commit\`
+  2. Run \`node scripts/bump-peers.mjs apply\`
+  3. Review changes and commit manually
+
+EDGE CASES
+  The tool validates that no pending changeset files exist (i.e., changesets
+  have been consumed by \`pnpm changeset version --no-commit\`). If .md files
+  other than README.md exist in .changeset/, the tool will fail with an error.
+
+  The tool handles several edge cases when reverting peer dependencies:
+
+  - Excluded packages: Packages in excludedFolders are skipped entirely and
+    logged. This is useful for example projects, templates, or archived code.
+
+  - New packages: If a package didn't exist in the last commit and has peer
+    dependencies, the tool will fail. New packages are not supported.
+
+  - External peer dependencies: Peer dependencies that don't use the
+    "workspace:" protocol are skipped, as they're not managed by this tool.
+
+  - New peer dependencies: If a peer dependency was added in the working
+    directory (didn't exist before), the tool will fail. New peer dependencies
+    are not supported.
+
+  - Converted dependencies: If a peer dependency was changed from an external
+    version to a workspace dependency, it's kept as-is since that conversion
+    is intentional.
+
+  - Changed workspace versions: Only workspace peer dependencies that existed
+    before AND changed version are reverted to their previous values.
+
+  After reverting and applying bumps, the tool syncs peerDependencies to
+  devDependencies for all modified packages:
+
+  - Missing devDependencies: If a peer dependency is not in devDependencies,
+    it will be added with the same version range.
+
+  - Mismatched versions: If a peer dependency exists in devDependencies but
+    has a different version range, it will be updated to match.
+
+  This applies to both workspace and external peer dependencies.
+
+CONFIGURATION
+  Create ${CONFIG_FILE} in the repository root:
+
+  {
+    "excludedFolders": ["archive", "v-next/example-project"],
+    "bumps": [
+      {
+        "package": "@nomicfoundation/hardhat-ignition-ethers",
+        "peer": "hardhat",
+        "reason": "Requires new task API from hardhat 3.1.0",
+        "version": "3.1.0"
+      },
+      {
+        "package": "@nomicfoundation/hardhat-ethers",
+        "peer": "hardhat",
+        "reason": "Requires new network helpers"
+      }
+    ]
+  }
+
+  Fields:
+    excludedFolders - Package folders to skip (relative to repo root)
+    bumps           - Intentional peer dependency bumps to apply
+      package       - The package that has the peer dependency
+      peer          - The peer dependency to bump
+      reason        - Why this bump is intentional (for documentation)
+      version       - (Optional) Specific version; defaults to peer's current version (the one being released)
+
+COMMANDS
+  apply     Run the peer dependency management workflow
+  (none)    Print this usage information
+
+EXAMPLES
+  node scripts/bump-peers.mjs          # Print usage
+  node scripts/bump-peers.mjs apply    # Apply peer dependency fixes
+`);
 }
 
 // =============================================================================
@@ -641,171 +521,295 @@ function clearBumpsInConfig() {
 }
 
 // =============================================================================
-// Commands
+// Package Helpers
 // =============================================================================
 
 /**
- * @returns {void}
+ * @returns {PnpmPackage[]}
  */
-function printUsage() {
-  console.log(`
-bump-peers - Manage peer dependency bumps in this pnpm monorepo
+function getWorkspacePackages() {
+  const output = pnpm(["ls", "-r", "--depth", "-1", "--json"]);
+  return /** @type {PnpmPackage[]} */ (JSON.parse(output));
+}
 
-DESCRIPTION
-  This tool addresses the problem where changesets automatically bumps internal
-  peer dependencies too aggressively. It works by:
+/**
+ * @param {PnpmPackage[]} packages
+ * @param {string[]} excludedFolders
+ * @returns {PnpmPackage[]}
+ */
+function filterPackages(packages, excludedFolders) {
+  /** @type {PnpmPackage[]} */
+  const result = [];
 
-  1. Reverting all workspace peer dependency changes made by changesets
-  2. Applying only intentional bumps declared in ${CONFIG_FILE}
+  for (const pkg of packages) {
+    const relativePath = relative(ROOT_DIR, pkg.path);
+    let excluded = false;
 
-WORKFLOW
-  1. Run \`pnpm changeset version --no-commit\`
-  2. Run \`node scripts/bump-peers.mjs apply\`
-  3. Review changes and commit manually
+    for (const excludedFolder of excludedFolders) {
+      if (relativePath.startsWith(excludedFolder)) {
+        log(
+          `  Excluding ${fmt.pkg(pkg.name)} ${fmt.deemphasize(`(in ${excludedFolder})`)}`,
+        );
 
-EDGE CASES
-  The tool validates that no pending changeset files exist (i.e., changesets
-  have been consumed by \`pnpm changeset version --no-commit\`). If .md files
-  other than README.md exist in .changeset/, the tool will fail with an error.
-
-  The tool handles several edge cases when reverting peer dependencies:
-
-  - Excluded packages: Packages in excludedFolders are skipped entirely and
-    logged. This is useful for example projects, templates, or archived code.
-
-  - New packages: If a package didn't exist in the last commit and has peer
-    dependencies, the tool will fail. New packages are not supported.
-
-  - External peer dependencies: Peer dependencies that don't use the
-    "workspace:" protocol are skipped, as they're not managed by this tool.
-
-  - New peer dependencies: If a peer dependency was added in the working
-    directory (didn't exist before), the tool will fail. New peer dependencies
-    are not supported.
-
-  - Converted dependencies: If a peer dependency was changed from an external
-    version to a workspace dependency, it's kept as-is since that conversion
-    is intentional.
-
-  - Changed workspace versions: Only workspace peer dependencies that existed
-    before AND changed version are reverted to their previous values.
-
-  After reverting and applying bumps, the tool syncs peerDependencies to
-  devDependencies for all modified packages:
-
-  - Missing devDependencies: If a peer dependency is not in devDependencies,
-    it will be added with the same version range.
-
-  - Mismatched versions: If a peer dependency exists in devDependencies but
-    has a different version range, it will be updated to match.
-
-  This applies to both workspace and external peer dependencies.
-
-CONFIGURATION
-  Create ${CONFIG_FILE} in the repository root:
-
-  {
-    "excludedFolders": ["archive", "v-next/example-project"],
-    "bumps": [
-      {
-        "package": "@nomicfoundation/hardhat-ignition-ethers",
-        "peer": "hardhat",
-        "reason": "Requires new task API from hardhat 3.1.0",
-        "version": "3.1.0"
-      },
-      {
-        "package": "@nomicfoundation/hardhat-ethers",
-        "peer": "hardhat",
-        "reason": "Requires new network helpers"
+        excluded = true;
+        break;
       }
-    ]
+    }
+
+    if (!excluded) {
+      result.push(pkg);
+    }
   }
 
-  Fields:
-    excludedFolders - Package folders to skip (relative to repo root)
-    bumps           - Intentional peer dependency bumps to apply
-      package       - The package that has the peer dependency
-      peer          - The peer dependency to bump
-      reason        - Why this bump is intentional (for documentation)
-      version       - (Optional) Specific version; defaults to peer's current version (the one being released)
-
-COMMANDS
-  apply     Run the peer dependency management workflow
-  (none)    Print this usage information
-
-EXAMPLES
-  node scripts/bump-peers.mjs          # Print usage
-  node scripts/bump-peers.mjs apply    # Apply peer dependency fixes
-`);
+  return result;
 }
 
 /**
+ * @param {PnpmPackage[]} packages
+ * @returns {Map<string, PnpmPackage>}
+ */
+function buildPackageMap(packages) {
+  /** @type {Map<string, PnpmPackage>} */
+  const map = new Map();
+
+  for (const pkg of packages) {
+    map.set(pkg.name, pkg);
+  }
+
+  return map;
+}
+
+/**
+ * @param {string} packagePath
+ * @returns {PackageJson}
+ */
+function readPackageJson(packagePath) {
+  const filePath = resolve(packagePath, "package.json");
+  const content = readFileSync(filePath, "utf-8");
+  return /** @type {PackageJson} */ (JSON.parse(content));
+}
+
+/**
+ * @param {string} packagePath
+ * @param {PackageJson} json
  * @returns {void}
  */
-function apply() {
-  log("Starting peer dependency management");
+function writePackageJson(packagePath, json) {
+  const filePath = resolve(packagePath, "package.json");
+  const content = JSON.stringify(json, null, 2) + "\n";
+  writeFileSync(filePath, content);
+}
 
-  // Load and validate config
-  const config = loadConfig();
-  log(`Loaded config with ${config.bumps.length} intentional bump(s)`);
+/**
+ * @param {string} version
+ * @returns {boolean}
+ */
+function isWorkspaceDependency(version) {
+  return version.startsWith("workspace:");
+}
 
-  // Validate we're in the right state
-  validateNoChangesets();
-  log("Verified no pending changesets");
-
-  // Get workspace packages
-  logStep("Filtering workspace packages");
-  const allPackages = getWorkspacePackages();
-  const packages = filterPackages(allPackages, config.excludedFolders);
-  const packageMap = buildPackageMap(packages);
-
-  log(
-    `Found ${packages.length} packages (excluded ${allPackages.length - packages.length})`,
-  );
-
-  // Revert automatic peer dependency bumps
-  const modifications = revertPeerDependencies(packages);
-
-  // Apply intentional bumps
-  applyIntentionalBumps(
-    config.bumps,
-    packageMap,
-    config.excludedFolders,
-    modifications,
-  );
-
-  // Sync peer deps to dev deps
-  syncPeerToDevDependencies(modifications);
-
-  // Write all changes
-  writeModifications(modifications);
-
-  // Clear the bumps array in config
-  clearBumpsInConfig();
-
-  log(fmt.success("Done! Review the changes and commit manually."));
+/**
+ * @param {string} version
+ * @returns {string}
+ */
+function buildWorkspaceVersion(version) {
+  return `workspace:^${version}`;
 }
 
 // =============================================================================
-// Entry Point
+// Git Helpers
 // =============================================================================
 
 /**
  * @returns {void}
  */
-function main() {
-  const command = process.argv[2];
+function validateNoChangesets() {
+  const changesetDir = resolve(ROOT_DIR, ".changeset");
+
+  if (!existsSync(changesetDir)) {
+    throw new Error(`Changeset directory not found: ${changesetDir}`);
+  }
+
+  const files = readdirSync(changesetDir);
+  const changesetFiles = files.filter(
+    (file) => file.endsWith(".md") && file !== "README.md",
+  );
+
+  if (changesetFiles.length > 0) {
+    throw new Error(
+      `Pending changesets found: ${changesetFiles.join(", ")}\n` +
+        `Run \`pnpm changeset version --no-commit\` first to consume them.`,
+    );
+  }
+}
+
+/**
+ * @param {string} ref
+ * @param {string} filePath
+ * @returns {string | null}
+ */
+function getFileFromCommit(ref, filePath) {
+  try {
+    return git(["show", `${ref}:${filePath}`]);
+  } catch {
+    return null;
+  }
+}
+
+// =============================================================================
+// Config Helpers
+// =============================================================================
+
+/**
+ * @returns {PeerBumpsConfig}
+ */
+function loadConfig() {
+  if (!existsSync(CONFIG_PATH)) {
+    throw new Error(
+      `Config file not found: ${CONFIG_FILE}\nCreate it with: { "excludedFolders": [], "bumps": [] }`,
+    );
+  }
+
+  const content = readFileSync(CONFIG_PATH, "utf-8");
+  /** @type {unknown} */
+  let config;
 
   try {
-    if (command === "apply") {
-      apply();
-    } else {
-      printUsage();
+    config = JSON.parse(content);
+  } catch {
+    throw new Error(`Invalid JSON in ${CONFIG_FILE}`);
+  }
+
+  validateConfigSchema(config);
+  return /** @type {PeerBumpsConfig} */ (config);
+}
+
+/**
+ * @param {unknown} config
+ * @returns {void}
+ */
+function validateConfigSchema(config) {
+  if (typeof config !== "object" || config === null) {
+    throw new Error(`${CONFIG_FILE} must be an object`);
+  }
+
+  const obj = /** @type {Record<string, unknown>} */ (config);
+
+  if (!Array.isArray(obj.excludedFolders)) {
+    throw new Error(`${CONFIG_FILE} must have an "excludedFolders" array`);
+  }
+
+  for (const folder of obj.excludedFolders) {
+    if (typeof folder !== "string") {
+      throw new Error(`${CONFIG_FILE} excludedFolders must contain strings`);
     }
-  } catch (error) {
-    logError(/** @type {Error} */ (error).message);
-    process.exit(1);
+  }
+
+  if (!Array.isArray(obj.bumps)) {
+    throw new Error(`${CONFIG_FILE} must have a "bumps" array`);
+  }
+
+  for (const bump of obj.bumps) {
+    if (typeof bump !== "object" || bump === null) {
+      throw new Error(`${CONFIG_FILE} bumps must be objects`);
+    }
+
+    const bumpObj = /** @type {Record<string, unknown>} */ (bump);
+
+    if (typeof bumpObj.package !== "string") {
+      throw new Error(
+        `${CONFIG_FILE} bump entries must have a "package" string`,
+      );
+    }
+
+    if (typeof bumpObj.peer !== "string") {
+      throw new Error(`${CONFIG_FILE} bump entries must have a "peer" string`);
+    }
+
+    if (typeof bumpObj.reason !== "string") {
+      throw new Error(
+        `${CONFIG_FILE} bump entries must have a "reason" string`,
+      );
+    }
+
+    if (bumpObj.version !== undefined && typeof bumpObj.version !== "string") {
+      throw new Error(
+        `${CONFIG_FILE} bump entry "version" must be a string if present`,
+      );
+    }
   }
 }
+
+// =============================================================================
+// Shell Helpers
+// =============================================================================
+
+/**
+ * @param {string} command
+ * @returns {string}
+ */
+function which(command) {
+  return execSync(`which ${command}`, { encoding: "utf-8" }).trim();
+}
+
+/**
+ * @param {string[]} args
+ * @returns {string}
+ */
+function git(args) {
+  if (gitPath === undefined) {
+    gitPath = which("git");
+  }
+  return execFileSync(gitPath, args, {
+    encoding: "utf-8",
+    cwd: ROOT_DIR,
+  }).trim();
+}
+
+/**
+ * @param {string[]} args
+ * @returns {string}
+ */
+function pnpm(args) {
+  if (pnpmPath === undefined) {
+    pnpmPath = which("pnpm");
+  }
+  return execFileSync(pnpmPath, args, {
+    encoding: "utf-8",
+    cwd: ROOT_DIR,
+  }).trim();
+}
+
+// =============================================================================
+// Logging Helpers
+// =============================================================================
+
+/**
+ * @param {string} msg
+ * @returns {void}
+ */
+function log(msg) {
+  console.log(`${styleText("cyan", PREFIX)} ${msg}`);
+}
+
+/**
+ * @param {string} step
+ * @returns {void}
+ */
+function logStep(step) {
+  console.log(styleText(["bold", "yellow"], `${PREFIX} === ${step} ===`));
+}
+
+/**
+ * @param {string} msg
+ * @returns {void}
+ */
+function logError(msg) {
+  console.error(styleText("red", `${PREFIX} Error: ${msg}`));
+}
+
+// =============================================================================
+// Run
+// =============================================================================
 
 main();
