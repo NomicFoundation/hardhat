@@ -696,6 +696,13 @@ export class ResolverImplementation implements Resolver {
       );
 
     if (dependencyResolution === undefined) {
+      // Check if the from file's package has foundry.toml
+      const foundryTomlPath = path.join(
+        from.package.rootFsPath,
+        "foundry.toml",
+      );
+      const fromHasFoundryToml = await exists(foundryTomlPath);
+
       return {
         success: false,
         error: {
@@ -703,6 +710,7 @@ export class ResolverImplementation implements Resolver {
           fromFsPath: from.fsPath,
           importPath,
           installationName: parsedDirectImport.package,
+          fromHasFoundryToml,
         },
       };
     }
@@ -1103,6 +1111,7 @@ export class ResolverImplementation implements Resolver {
           type: RootResolutionErrorType.NPM_ROOT_FILE_OF_UNINSTALLED_PACKAGE,
           npmModule,
           installationName: error.installationName,
+          fromHasFoundryToml: error.fromHasFoundryToml,
         };
       }
       case ImportResolutionErrorType.IMPORT_WITH_REMAPPING_ERRORS: {
