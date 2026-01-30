@@ -1,6 +1,6 @@
 // @ts-check
 
-import { execSync } from "node:child_process";
+import { execFileSync, execSync } from "node:child_process";
 import { readFileSync, writeFileSync, existsSync, readdirSync } from "node:fs";
 import { resolve, relative } from "node:path";
 import { styleText } from "node:util";
@@ -103,24 +103,36 @@ const fmt = {
  * @param {string} command
  * @returns {string}
  */
-function exec(command) {
-  return execSync(command, { encoding: "utf-8", cwd: ROOT_DIR }).trim();
+function which(command) {
+  return execSync(`which ${command}`, { encoding: "utf-8" }).trim();
 }
 
+/** @type {string | undefined} */
+let gitPath;
+
 /**
- * @param {string} args
+ * @param {string[]} args
  * @returns {string}
  */
 function git(args) {
-  return exec(`git ${args}`);
+  if (gitPath === undefined) {
+    gitPath = which("git");
+  }
+  return execFileSync(gitPath, args, { encoding: "utf-8", cwd: ROOT_DIR }).trim();
 }
 
+/** @type {string | undefined} */
+let pnpmPath;
+
 /**
- * @param {string} args
+ * @param {string[]} args
  * @returns {string}
  */
 function pnpm(args) {
-  return exec(`pnpm ${args}`);
+  if (pnpmPath === undefined) {
+    pnpmPath = which("pnpm");
+  }
+  return execFileSync(pnpmPath, args, { encoding: "utf-8", cwd: ROOT_DIR }).trim();
 }
 
 // =============================================================================
@@ -241,7 +253,7 @@ function validateNoChangesets() {
  */
 function getFileFromCommit(ref, filePath) {
   try {
-    return exec(`git show ${ref}:${filePath}`);
+    return git(["show", `${ref}:${filePath}`]);
   } catch {
     return null;
   }
@@ -255,7 +267,7 @@ function getFileFromCommit(ref, filePath) {
  * @returns {PnpmPackage[]}
  */
 function getWorkspacePackages() {
-  const output = pnpm("ls -r --depth -1 --json");
+  const output = pnpm(["ls", "-r", "--depth", "-1", "--json"]);
   return /** @type {PnpmPackage[]} */ (JSON.parse(output));
 }
 
