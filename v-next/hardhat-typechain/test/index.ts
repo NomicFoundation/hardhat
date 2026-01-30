@@ -234,7 +234,7 @@ describe("hardhat-typechain", () => {
 
     useFixtureProject(projectFolder);
 
-    it("should generate types for all artifacts when compiling a single file", async () => {
+    it("should generate types for the artifacts of the only file being compiled on a fresh build", async () => {
       const hardhatConfig = await import(
         `./fixture-projects/${projectFolder}/hardhat.config.js`
       );
