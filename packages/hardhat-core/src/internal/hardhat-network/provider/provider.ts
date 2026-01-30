@@ -553,12 +553,8 @@ export class EdrProviderWrapper
       this._provider.contractDecoder()
     );
 
-    const minimalEthereumJsNode = {
-      _vm: getMinimalEthereumJsVm(provider),
-    };
-
     this._provider = provider;
-    this._node = minimalEthereumJsNode;
+    this._node._vm.stateManager.updateProvider(provider);
 
     this.emit(HARDHAT_NETWORK_RESET_EVENT);
 
