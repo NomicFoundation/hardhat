@@ -8,6 +8,7 @@ const hardhatTypechain: HardhatPlugin = {
   hookHandlers: {
     config: () => import("./internal/hook-handlers/config.js"),
     solidity: () => import("./internal/hook-handlers/solidity.js"),
+    clean: () => import("./internal/hook-handlers/clean.js"),
   },
   npmPackage: "@nomicfoundation/hardhat-typechain",
   dependencies: () => [import("@nomicfoundation/hardhat-ethers")],
