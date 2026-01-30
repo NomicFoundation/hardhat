@@ -1107,7 +1107,11 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
 
   #shouldSuppressWarning(error: CompilerOutputError): boolean {
     const msg = error.formattedMessage ?? error.message;
-    return shouldSuppressWarning(msg);
+    return shouldSuppressWarning(
+      msg,
+      this.#options.solidityTestsPath,
+      this.#options.projectRoot,
+    );
   }
 
   async #printCompilationResult(

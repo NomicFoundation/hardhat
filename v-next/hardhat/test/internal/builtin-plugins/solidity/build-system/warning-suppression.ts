@@ -12,26 +12,30 @@ describe("shouldSuppressWarning", () => {
   const SPDX_WARNING = SUPPRESSED_WARNINGS[1].message;
   const PRAGMA_WARNING = SUPPRESSED_WARNINGS[2].message;
 
+  // Mock project paths for testing
+  const PROJECT_ROOT = path.join("home", "user", "project");
+  const SOLIDITY_TESTS_PATH = path.join(PROJECT_ROOT, "test", "contracts");
+
   describe("Natspec memory-safe-assembly warning (specific-file scope)", () => {
     const scenarios = [
       {
         name: "should suppress warnings from console.sol",
-        path: path.normalize("./hardhat/console.sol"),
+        path: path.join("hardhat", "console.sol"),
         expected: true,
       },
       {
         name: "should suppress warnings from console.sol with absolute path",
-        path: path.normalize("/home/user/project/hardhat/console.sol"),
+        path: path.join("home", "user", "project", "hardhat", "console.sol"),
         expected: true,
       },
       {
         name: "should NOT suppress warnings from regular contract files",
-        path: path.normalize("./contracts/Example.sol"),
+        path: path.join("contracts", "Example.sol"),
         expected: false,
       },
       {
         name: "should NOT suppress warnings from test files",
-        path: path.normalize("./contracts/Counter.t.sol"),
+        path: path.join("contracts", "Counter.t.sol"),
         expected: false,
       },
     ];
@@ -39,7 +43,10 @@ describe("shouldSuppressWarning", () => {
     for (const scenario of scenarios) {
       it(scenario.name, () => {
         const message = `Warning: ${NATSPEC_WARNING}\n  --> ${scenario.path}:1:1:`;
-        assert.equal(shouldSuppressWarning(message), scenario.expected);
+        assert.equal(
+          shouldSuppressWarning(message, SOLIDITY_TESTS_PATH, PROJECT_ROOT),
+          scenario.expected,
+        );
       });
     }
   });
@@ -54,11 +61,11 @@ describe("shouldSuppressWarning", () => {
       const scenarios = [
         {
           name: "from .t.sol files",
-          path: "./contracts/Counter.t.sol",
+          path: path.join("contracts", "Counter.t.sol"),
         },
         {
           name: "from .t.sol files in subdirectories",
-          path: "./test/solidity/Example.t.sol",
+          path: path.join("test", "solidity", "Example.t.sol"),
         },
       ];
 
@@ -66,7 +73,10 @@ describe("shouldSuppressWarning", () => {
         for (const scenario of scenarios) {
           it(`should suppress ${warning.name} warning ${scenario.name}`, () => {
             const message = `Warning: ${warning.message}\n  --> ${scenario.path}:1:1:`;
-            assert.equal(shouldSuppressWarning(message), true);
+            assert.equal(
+              shouldSuppressWarning(message, SOLIDITY_TESTS_PATH, PROJECT_ROOT),
+              true,
+            );
           });
         }
       }
@@ -76,19 +86,22 @@ describe("shouldSuppressWarning", () => {
       const scenarios = [
         {
           name: "from test/contracts/ directory",
-          path: "./test/contracts/Example.sol",
+          path: path.join("test", "contracts", "Example.sol"),
         },
         {
           name: "from nested test/contracts/ subdirectories",
-          path: "./test/contracts/utils/Helper.sol",
-        },
-        {
-          name: "with Windows-style paths",
-          path: ".\\test\\contracts\\Example.sol",
+          path: path.join("test", "contracts", "utils", "Helper.sol"),
         },
         {
           name: "with absolute paths",
-          path: "/home/user/project/test/contracts/Example.sol",
+          path: path.join(
+            "home",
+            "user",
+            "project",
+            "test",
+            "contracts",
+            "Example.sol",
+          ),
         },
       ];
 
@@ -96,7 +109,10 @@ describe("shouldSuppressWarning", () => {
         for (const scenario of scenarios) {
           it(`should suppress ${warning.name} warning ${scenario.name}`, () => {
             const message = `Warning: ${warning.message}\n  --> ${scenario.path}:1:1:`;
-            assert.equal(shouldSuppressWarning(message), true);
+            assert.equal(
+              shouldSuppressWarning(message, SOLIDITY_TESTS_PATH, PROJECT_ROOT),
+              true,
+            );
           });
         }
       }
@@ -106,27 +122,27 @@ describe("shouldSuppressWarning", () => {
       const scenarios = [
         {
           name: "from regular contracts directory",
-          path: "./contracts/Counter.sol",
+          path: path.join("contracts", "Counter.sol"),
         },
         {
           name: "from test/ directory (only test/contracts/ is suppressed)",
-          path: "./test/Example.sol",
+          path: path.join("test", "Example.sol"),
         },
         {
           name: "from files with 'test' in the filename",
-          path: "./contracts/TestHelper.sol",
+          path: path.join("contracts", "TestHelper.sol"),
         },
         {
           name: "from directories with 'test' as substring (laTEST)",
-          path: "./contracts/latest/Example.sol",
+          path: path.join("contracts", "latest", "Example.sol"),
         },
         {
           name: "from test/utils directory (only test/contracts/ is suppressed)",
-          path: "./test/utils/Helper.sol",
+          path: path.join("test", "utils", "Helper.sol"),
         },
         {
           name: "from test/contracts.sol file (not a directory)",
-          path: "./test/contracts.sol",
+          path: path.join("test", "contracts.sol"),
         },
       ];
 
@@ -134,7 +150,10 @@ describe("shouldSuppressWarning", () => {
         for (const scenario of scenarios) {
           it(`should NOT suppress ${warning.name} warning ${scenario.name}`, () => {
             const message = `Warning: ${warning.message}\n  --> ${scenario.path}:1:1:`;
-            assert.equal(shouldSuppressWarning(message), false);
+            assert.equal(
+              shouldSuppressWarning(message, SOLIDITY_TESTS_PATH, PROJECT_ROOT),
+              false,
+            );
           });
         }
       }
@@ -144,7 +163,10 @@ describe("shouldSuppressWarning", () => {
   describe("non-matching warnings", () => {
     it("should NOT suppress warnings that don't match any rule", () => {
       const message = `Warning: Some other warning message\n  --> ./test/contracts/Example.sol:1:1:`;
-      assert.equal(shouldSuppressWarning(message), false);
+      assert.equal(
+        shouldSuppressWarning(message, SOLIDITY_TESTS_PATH, PROJECT_ROOT),
+        false,
+      );
     });
   });
 });

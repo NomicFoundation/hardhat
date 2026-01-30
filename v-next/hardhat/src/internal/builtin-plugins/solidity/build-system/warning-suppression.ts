@@ -46,9 +46,26 @@ export const SUPPRESSED_WARNINGS: Array<
  * Determines if a compiler warning should be suppressed based on the suppression rules.
  *
  * @param errorMessage - The formatted error message from the compiler
+ * @param absoluteSolidityTestsPath - Absolute path to the Solidity test directory
+ * @param absoluteProjectRoot - Absolute path to the project root
  * @returns true if the warning should be suppressed, false otherwise
  */
-export function shouldSuppressWarning(errorMessage: string): boolean {
+export function shouldSuppressWarning(
+  errorMessage: string,
+  absoluteSolidityTestsPath: string,
+  absoluteProjectRoot: string,
+): boolean {
+  // Compute relative path from project root to test directory.
+  // Example:
+  // absoluteSolidityTestsPath: /workspaces/hardhat-4/v-next/example-project/test/contracts
+  // absoluteProjectRoot:       /workspaces/hardhat-4/v-next/example-project
+  // relativeTestPath:          test/contracts/ - note the addition of the `/`
+  // to avoid partial matches, e.g.: test/contractsUtils/
+  const relativeTestPath = path.join(
+    path.relative(absoluteProjectRoot, absoluteSolidityTestsPath),
+    "/",
+  );
+
   return SUPPRESSED_WARNINGS.some((rule) => {
     if (!errorMessage.includes(rule.message)) {
       return false;
@@ -61,10 +78,20 @@ export function shouldSuppressWarning(errorMessage: string): boolean {
     // Check if the message contains a path to a test file
     // Test files are identified by:
     // - Ending in .t.sol (e.g., Counter.t.sol)
-    // - Being inside test/contracts/ directory (e.g., test/contracts/Example.sol)
-    return (
-      /\.t\.sol(:|$|\s)/.test(errorMessage) ||
-      /(^|[/\\])test[/\\]contracts[/\\].*\.sol/.test(errorMessage)
-    );
+    // - Being inside the configured Solidity test directory
+
+    if (/\.t\.sol(:|$|\s)/.test(errorMessage)) {
+      return true;
+    }
+
+    // Extract file path from error message
+    // Format: "Warning: message\n  --> path/to/file.sol:line:column:"
+    const pathMatches = errorMessage.match(/-->\s+([^\s:]+\.sol)/);
+
+    if (pathMatches !== null) {
+      return pathMatches[1].includes(relativeTestPath);
+    }
+
+    return false;
   });
 }

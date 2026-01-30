@@ -51,6 +51,20 @@ library console {
   },
 };
 
+// Project with missing SPDX/pragma in a .t.sol test file (should suppress warnings)
+const projectWithMissingSpdxPragmaInTestFile = {
+  name: "missing-spdx-pragma-test-file",
+  version: "1.0.0",
+  files: {
+    "contracts/Counter.t.sol": `contract CounterTest {
+  function testIncrement() public {
+    // test code
+  }
+}
+`,
+  },
+};
+
 // Project with missing SPDX/pragma in a regular contract (should show warnings)
 const projectWithMissingSpdxPragmaInRegularFile = {
   name: "missing-spdx-pragma-test",
@@ -61,20 +75,6 @@ const projectWithMissingSpdxPragmaInRegularFile = {
 
   function increment() public {
     count += 1;
-  }
-}
-`,
-  },
-};
-
-// Project with missing SPDX/pragma in a .t.sol test file (should suppress warnings)
-const projectWithMissingSpdxPragmaInTestFile = {
-  name: "missing-spdx-pragma-test-file",
-  version: "1.0.0",
-  files: {
-    "contracts/Counter.t.sol": `contract CounterTest {
-  function testIncrement() public {
-    // test code
   }
 }
 `,
