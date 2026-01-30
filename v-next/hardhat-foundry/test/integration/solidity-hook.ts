@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import path from "node:path";
 import { describe, it } from "node:test";
 
 import { HardhatError } from "@nomicfoundation/hardhat-errors";
@@ -105,11 +106,15 @@ describe("hardhat-foundry integration", () => {
 
       const hre = await createHardhatRuntimeEnvironment(hardhatConfig.default);
 
+      // We normalize the path manually here, because the error uses os-specific
+      // path separators to refer to the file.
+      const filePath = "./contracts/Main.sol".replace(/\//g, path.sep);
+
       await assertRejectsWithHardhatError(
         () => hre.tasks.getTask("build").run({ quiet: true }),
         HardhatError.ERRORS.CORE.SOLIDITY.IMPORT_RESOLUTION_ERROR,
         {
-          filePath: "./contracts/Main.sol",
+          filePath,
           importPath: "missing-dep/MissingLib.sol",
           error: `The package "missing-dep" is not installed.`,
         },
