@@ -222,7 +222,7 @@ describe("hardhat-typechain", () => {
 
       await hre.tasks.getTask("clean").run();
 
-      await hre.tasks.getTask("build").run();
+      await hre.tasks.getTask("build").run({ quiet: true });
 
       assert.equal(await exists(`${process.cwd()}/custom-types`), true);
       assert.equal(await exists(`${process.cwd()}/types`), false);
@@ -249,7 +249,9 @@ describe("hardhat-typechain", () => {
       assert.equal(await exists(`${process.cwd()}/types`), false);
 
       // Build only a single file (partial compilation)
-      await hre.tasks.getTask("build").run({ files: ["contracts/A.sol"] });
+      await hre.tasks
+        .getTask("build")
+        .run({ files: ["contracts/A.sol"], quiet: true });
 
       // Types should be generated for the compiled contract, which is just
       // A.ts, and not B.ts in this case
@@ -277,7 +279,7 @@ describe("hardhat-typechain", () => {
 
       // Initial clean build of all contracts
       await hre.tasks.getTask("clean").run();
-      await hre.tasks.getTask("build").run();
+      await hre.tasks.getTask("build").run({ quiet: true });
 
       // Verify types were generated for both contracts
       assert.equal(
@@ -298,7 +300,9 @@ describe("hardhat-typechain", () => {
       assert.equal(await exists(`${process.cwd()}/types`), false);
 
       // Build only one file (partial compilation with cache hit for the other)
-      await hre.tasks.getTask("build").run({ files: ["contracts/A.sol"] });
+      await hre.tasks
+        .getTask("build")
+        .run({ files: ["contracts/A.sol"], quiet: true });
 
       // Types should be regenerated for ALL artifacts, not just the one compiled
       assert.equal(
@@ -334,7 +338,9 @@ describe("hardhat-typechain", () => {
       await remove(`${process.cwd()}/types`);
 
       // Build should throw due to compilation error
-      await assertRejects(async () => hre.tasks.getTask("build").run());
+      await assertRejects(async () =>
+        hre.tasks.getTask("build").run({ quiet: true }),
+      );
 
       // Types should NOT be generated
       assert.equal(await exists(`${process.cwd()}/types`), false);
@@ -360,7 +366,7 @@ describe("hardhat-typechain", () => {
       // an explicit scope
       await hre.solidity.build(
         [path.join(hre.config.paths.root, "contracts", "A.sol")],
-        { scope: "tests" },
+        { scope: "tests", quiet: true },
       );
 
       // Types should NOT be generated for test scope builds
