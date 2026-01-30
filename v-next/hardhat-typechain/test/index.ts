@@ -243,7 +243,6 @@ describe("hardhat-typechain", () => {
 
       // Clean everything to start fresh
       await hre.tasks.getTask("clean").run();
-      await remove(`${process.cwd()}/types`);
 
       // Verify types don't exist
       assert.equal(await exists(`${process.cwd()}/types`), false);
@@ -335,7 +334,6 @@ describe("hardhat-typechain", () => {
       });
 
       await hre.tasks.getTask("clean").run();
-      await remove(`${process.cwd()}/types`);
 
       // Build should throw due to compilation error
       await assertRejects(async () =>
@@ -360,7 +358,6 @@ describe("hardhat-typechain", () => {
       const hre = await createHardhatRuntimeEnvironment(hardhatConfig.default);
 
       await hre.tasks.getTask("clean").run();
-      await remove(`${process.cwd()}/types`);
 
       // Build with test scope directly, passing a normal contract, but with
       // an explicit scope
