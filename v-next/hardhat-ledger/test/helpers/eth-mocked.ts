@@ -22,9 +22,11 @@ export interface MethodsConfig {
     result: (
       searchedPath: string,
     ) => { address: string; publicKey: string } | string;
-    /** If set, throws errorToThrow when call count equals this value */
+    /** If set, throws errorSequenceToThrow[0] when call count equals this value */
     throwOnCall?: number;
-    errorToThrow?: Error;
+    /** Errors to throw. If throwOnCall is set, throws first error on that call.
+     *  Otherwise, throws errors in sequence on consecutive calls, then succeeds. */
+    errorSequenceToThrow?: Error[];
   };
   signPersonalMessage?: {
     result: Rsv;
@@ -32,11 +34,11 @@ export interface MethodsConfig {
       path: string;
       data: string;
     };
-    /** If set, throws errorToThrow when call count equals this value */
+    /** If set, throws errorSequenceToThrow[0] when call count equals this value */
     throwOnCall?: number;
-    /** If set, throws errorToThrow on every call */
-    alwaysThrow?: boolean;
-    errorToThrow?: Error;
+    /** Errors to throw. If throwOnCall is set, throws first error on that call.
+     *  Otherwise, throws errors in sequence on consecutive calls, then succeeds. */
+    errorSequenceToThrow?: Error[];
   };
   signEIP712Message?:
     | {
@@ -67,9 +69,11 @@ export interface MethodsConfig {
       rawTxHex: string;
       resolution?: LedgerEthTransactionResolution | null;
     };
-    /** If set, throws errorToThrow when call count equals this value */
+    /** If set, throws errorSequenceToThrow[0] when call count equals this value */
     throwOnCall?: number;
-    errorToThrow?: Error;
+    /** Errors to throw. If throwOnCall is set, throws first error on that call.
+     *  Otherwise, throws errors in sequence on consecutive calls, then succeeds. */
+    errorSequenceToThrow?: Error[];
   };
 }
 
@@ -111,14 +115,21 @@ export function getEthMocked(
         c.totalCalls++;
         c.args.push(searchedPath);
 
-        // Check if we should throw on this call
         const config = this.#methodsConfig.getAddress;
-        if (
-          config.throwOnCall !== undefined &&
-          c.totalCalls === config.throwOnCall &&
-          config.errorToThrow !== undefined
-        ) {
-          throw config.errorToThrow;
+
+        // Handle error throwing
+        if (config.errorSequenceToThrow !== undefined) {
+          if (config.throwOnCall !== undefined) {
+            // Throw first error on specific call
+            if (c.totalCalls === config.throwOnCall) {
+              throw config.errorSequenceToThrow[0];
+            }
+          } else {
+            // Throw errors in sequence
+            if (c.totalCalls <= config.errorSequenceToThrow.length) {
+              throw config.errorSequenceToThrow[c.totalCalls - 1];
+            }
+          }
         }
 
         return this.#methodsConfig.getAddress.result(searchedPath);
@@ -138,17 +149,20 @@ export function getEthMocked(
         c.totalCalls++;
         c.args.push({ path, messageHex });
 
-        // Check if we should throw on this call
         const config = this.#methodsConfig.signPersonalMessage;
-        if (config.errorToThrow !== undefined) {
-          if (config.alwaysThrow === true) {
-            throw config.errorToThrow;
-          }
-          if (
-            config.throwOnCall !== undefined &&
-            c.totalCalls === config.throwOnCall
-          ) {
-            throw config.errorToThrow;
+
+        // Handle error throwing
+        if (config.errorSequenceToThrow !== undefined) {
+          if (config.throwOnCall !== undefined) {
+            // Throw first error on specific call
+            if (c.totalCalls === config.throwOnCall) {
+              throw config.errorSequenceToThrow[0];
+            }
+          } else {
+            // Throw errors in sequence
+            if (c.totalCalls <= config.errorSequenceToThrow.length) {
+              throw config.errorSequenceToThrow[c.totalCalls - 1];
+            }
           }
         }
 
@@ -229,14 +243,21 @@ export function getEthMocked(
         c.totalCalls++;
         c.args.push({ path, rawTxHex, resolution });
 
-        // Check if we should throw on this call
         const config = this.#methodsConfig.signTransaction;
-        if (
-          config.throwOnCall !== undefined &&
-          c.totalCalls === config.throwOnCall &&
-          config.errorToThrow !== undefined
-        ) {
-          throw config.errorToThrow;
+
+        // Handle error throwing
+        if (config.errorSequenceToThrow !== undefined) {
+          if (config.throwOnCall !== undefined) {
+            // Throw first error on specific call
+            if (c.totalCalls === config.throwOnCall) {
+              throw config.errorSequenceToThrow[0];
+            }
+          } else {
+            // Throw errors in sequence
+            if (c.totalCalls <= config.errorSequenceToThrow.length) {
+              throw config.errorSequenceToThrow[c.totalCalls - 1];
+            }
+          }
         }
 
         // Only validate params if expectedParams is provided
