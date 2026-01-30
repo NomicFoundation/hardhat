@@ -4,7 +4,7 @@ This plugin provides compatibility between Hardhat and Foundry-based projects by
 
 ## Installation
 
-First, you need to make sure you have installed by following the [Foundry installation guide](https://getfoundry.sh/introduction/installation/).
+First, you need to make sure you have installed Foundry by following the [Foundry installation guide](https://getfoundry.sh/introduction/installation/).
 
 Then, install the plugin by running the following command:
 
