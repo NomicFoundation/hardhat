@@ -243,7 +243,6 @@ describe("hardhat-typechain", () => {
 
       // Clean everything to start fresh
       await hre.tasks.getTask("clean").run();
-      await remove(`${process.cwd()}/types`);
 
       // Verify types don't exist
       assert.equal(await exists(`${process.cwd()}/types`), false);
@@ -335,7 +334,6 @@ describe("hardhat-typechain", () => {
       });
 
       await hre.tasks.getTask("clean").run();
-      await remove(`${process.cwd()}/types`);
 
       // Build should throw due to compilation error
       await assertRejects(async () =>
@@ -360,7 +358,6 @@ describe("hardhat-typechain", () => {
       const hre = await createHardhatRuntimeEnvironment(hardhatConfig.default);
 
       await hre.tasks.getTask("clean").run();
-      await remove(`${process.cwd()}/types`);
 
       // Build with test scope directly, passing a normal contract, but with
       // an explicit scope
@@ -371,6 +368,86 @@ describe("hardhat-typechain", () => {
 
       // Types should NOT be generated for test scope builds
       assert.equal(await exists(`${process.cwd()}/types`), false);
+    });
+  });
+
+  describe("clean hook removes the types folder", () => {
+    describe("with default outDir", () => {
+      const projectFolder = "generate-types";
+
+      useFixtureProject(projectFolder);
+
+      it("should remove the types folder when clean is run", async () => {
+        const hardhatConfig = await import(
+          `./fixture-projects/${projectFolder}/hardhat.config.js`
+        );
+
+        const hre = await createHardhatRuntimeEnvironment(
+          hardhatConfig.default,
+        );
+
+        // Clean first to ensure fresh state
+        await hre.tasks.getTask("clean").run();
+
+        // Build to generate types
+        await hre.tasks.getTask("build").run({ quiet: true });
+        assert.equal(await exists(`${process.cwd()}/types`), true);
+
+        // Run clean again
+        await hre.tasks.getTask("clean").run();
+
+        // Types folder should be removed
+        assert.equal(await exists(`${process.cwd()}/types`), false);
+      });
+
+      it("should not fail if types folder does not exist", async () => {
+        const hardhatConfig = await import(
+          `./fixture-projects/${projectFolder}/hardhat.config.js`
+        );
+
+        const hre = await createHardhatRuntimeEnvironment(
+          hardhatConfig.default,
+        );
+
+        // Ensure types folder does not exist
+        await remove(`${process.cwd()}/types`);
+        assert.equal(await exists(`${process.cwd()}/types`), false);
+
+        // Run clean - should not throw
+        await hre.tasks.getTask("clean").run();
+
+        // Still no types folder, but no error
+        assert.equal(await exists(`${process.cwd()}/types`), false);
+      });
+    });
+
+    describe("with custom outDir", () => {
+      const projectFolder = "custom-out-dir";
+
+      useFixtureProject(projectFolder);
+
+      it("should remove the custom types folder when clean is run", async () => {
+        const hardhatConfig = await import(
+          `./fixture-projects/${projectFolder}/hardhat.config.js`
+        );
+
+        const hre = await createHardhatRuntimeEnvironment(
+          hardhatConfig.default,
+        );
+
+        // Clean first to ensure fresh state
+        await hre.tasks.getTask("clean").run();
+
+        // Build to generate types in custom directory
+        await hre.tasks.getTask("build").run({ quiet: true });
+        assert.equal(await exists(`${process.cwd()}/custom-types`), true);
+
+        // Run clean again
+        await hre.tasks.getTask("clean").run();
+
+        // Custom types folder should be removed
+        assert.equal(await exists(`${process.cwd()}/custom-types`), false);
+      });
     });
   });
 });
