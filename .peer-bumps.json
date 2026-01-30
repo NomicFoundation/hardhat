@@ -1,0 +1,16 @@
+{
+  "$schema": "./scripts/peer-bumps.schema.json",
+  "excludedFolders": [
+    "archive",
+    "v-next/example-project",
+    "v-next/hardhat/templates",
+    "v-next/config"
+  ],
+  "bumps": [
+    {
+      "package": "@nomicfoundation/hardhat-verify",
+      "peer": "hardhat",
+      "reason": "#7900 fixed some inconsistency issues in the SolidityBuildSystem API that will be shipped in the next version of Hardhat"
+    }
+  ]
+}
