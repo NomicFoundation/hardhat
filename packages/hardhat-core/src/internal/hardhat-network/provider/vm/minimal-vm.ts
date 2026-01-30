@@ -17,15 +17,7 @@ export interface MinimalEthereumJsVm {
   evm: {
     events: AsyncEventEmitter<MinimalEthereumJsEvmEvents>;
   };
-  stateManager: {
-    putContractCode: (address: Address, code: Buffer) => Promise<void>;
-    getContractStorage: (address: Address, slotHash: Buffer) => Promise<Buffer>;
-    putContractStorage: (
-      address: Address,
-      slotHash: Buffer,
-      slotValue: Buffer
-    ) => Promise<void>;
-  };
+  stateManager: MinimalEthereumJSStateManager;
 }
 
 // we need to use a type instead of an interface to satisfy the type constraint
@@ -57,6 +49,16 @@ type MinimalEthereumJsEvmEvents = {
 export class MinimalEthereumJsVmEventEmitter extends AsyncEventEmitter<MinimalEthereumJsVmEvents> {}
 export class MinimalEthereumJsEvmEventEmitter extends AsyncEventEmitter<MinimalEthereumJsEvmEvents> {}
 
+export interface MinimalEthereumJSStateManager {
+  putContractCode: (address: Address, code: Buffer) => Promise<void>;
+  getContractStorage: (address: Address, slotHash: Buffer) => Promise<Buffer>;
+  putContractStorage: (
+    address: Address,
+    slotHash: Buffer,
+    slotValue: Buffer
+  ) => Promise<void>;
+}
+
 export function getMinimalEthereumJsVm(
   provider: EdrProviderT
 ): MinimalEthereumJsVm {
@@ -65,50 +67,56 @@ export function getMinimalEthereumJsVm(
     evm: {
       events: new MinimalEthereumJsEvmEventEmitter(),
     },
-    stateManager: {
-      putContractCode: async (address: Address, code: Buffer) => {
-        await provider.handleRequest(
-          JSON.stringify({
-            method: "hardhat_setCode",
-            params: [address.toString(), `0x${code.toString("hex")}`],
-          })
-        );
-      },
-      getContractStorage: async (address: Address, slotHash: Buffer) => {
-        const responseObject = await provider.handleRequest(
-          JSON.stringify({
-            method: "eth_getStorageAt",
-            params: [address.toString(), `0x${slotHash.toString("hex")}`],
-          })
-        );
-
-        let response;
-        if (typeof responseObject.data === "string") {
-          response = JSON.parse(responseObject.data);
-        } else {
-          response = responseObject.data;
-        }
-
-        return Buffer.from(response.result.slice(2), "hex");
-      },
-      putContractStorage: async (
-        address: Address,
-        slotHash: Buffer,
-        slotValue: Buffer
-      ) => {
-        await provider.handleRequest(
-          JSON.stringify({
-            method: "hardhat_setStorageAt",
-            params: [
-              address.toString(),
-              `0x${slotHash.toString("hex")}`,
-              `0x${slotValue.toString("hex")}`,
-            ],
-          })
-        );
-      },
-    },
+    stateManager: getMinimalEthereumJsStateManager(provider),
   };
 
   return minimalEthereumJsVm;
+}
+
+export function getMinimalEthereumJsStateManager(
+  provider: EdrProviderT
+): MinimalEthereumJSStateManager {
+  return {
+    putContractCode: async (address: Address, code: Buffer) => {
+      await provider.handleRequest(
+        JSON.stringify({
+          method: "hardhat_setCode",
+          params: [address.toString(), `0x${code.toString("hex")}`],
+        })
+      );
+    },
+    getContractStorage: async (address: Address, slotHash: Buffer) => {
+      const responseObject = await provider.handleRequest(
+        JSON.stringify({
+          method: "eth_getStorageAt",
+          params: [address.toString(), `0x${slotHash.toString("hex")}`],
+        })
+      );
+
+      let response;
+      if (typeof responseObject.data === "string") {
+        response = JSON.parse(responseObject.data);
+      } else {
+        response = responseObject.data;
+      }
+
+      return Buffer.from(response.result.slice(2), "hex");
+    },
+    putContractStorage: async (
+      address: Address,
+      slotHash: Buffer,
+      slotValue: Buffer
+    ) => {
+      await provider.handleRequest(
+        JSON.stringify({
+          method: "hardhat_setStorageAt",
+          params: [
+            address.toString(),
+            `0x${slotHash.toString("hex")}`,
+            `0x${slotValue.toString("hex")}`,
+          ],
+        })
+      );
+    },
+  };
 }

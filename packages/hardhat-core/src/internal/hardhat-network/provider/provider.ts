@@ -77,7 +77,11 @@ import {
   httpHeadersToEdr,
 } from "./utils/convertToEdr";
 import { LoggerConfig, printLine, replaceLastLine } from "./modules/logger";
-import { MinimalEthereumJsVm, getMinimalEthereumJsVm } from "./vm/minimal-vm";
+import {
+  MinimalEthereumJsVm,
+  getMinimalEthereumJsStateManager,
+  getMinimalEthereumJsVm,
+} from "./vm/minimal-vm";
 
 const log = debug("hardhat:core:hardhat-network:provider");
 
@@ -553,12 +557,8 @@ export class EdrProviderWrapper
       this._provider.contractDecoder()
     );
 
-    const minimalEthereumJsNode = {
-      _vm: getMinimalEthereumJsVm(provider),
-    };
-
     this._provider = provider;
-    this._node = minimalEthereumJsNode;
+    this._node._vm.stateManager = getMinimalEthereumJsStateManager(provider);
 
     this.emit(HARDHAT_NETWORK_RESET_EVENT);
 
