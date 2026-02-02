@@ -1,0 +1,49 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Peer Bumps Configuration",
+  "description": "Configuration for the bump-peers.ts CLI tool that manages peer dependency bumps in this pnpm monorepo.",
+  "type": "object",
+  "required": ["excludedFolders", "bumps"],
+  "additionalProperties": false,
+  "properties": {
+    "$schema": {
+      "type": "string",
+      "description": "Path to the JSON schema file."
+    },
+    "excludedFolders": {
+      "type": "array",
+      "description": "Package folders to skip (relative to repo root). Useful for example projects, templates, or archived code.",
+      "items": {
+        "type": "string"
+      },
+      "examples": [["archive", "v-next/example-project"]]
+    },
+    "bumps": {
+      "type": "array",
+      "description": "Intentional peer dependency bumps to apply. These are applied after reverting automatic changesets bumps.",
+      "items": {
+        "type": "object",
+        "required": ["package", "peer", "reason"],
+        "additionalProperties": false,
+        "properties": {
+          "package": {
+            "type": "string",
+            "description": "The package that has the peer dependency (e.g., \"@nomicfoundation/hardhat-ethers\")."
+          },
+          "peer": {
+            "type": "string",
+            "description": "The peer dependency to bump (e.g., \"hardhat\")."
+          },
+          "reason": {
+            "type": "string",
+            "description": "Why this bump is intentional. This is for documentation purposes."
+          },
+          "version": {
+            "type": "string",
+            "description": "Specific version to set. If omitted, defaults to the peer's current version (the one being released)."
+          }
+        }
+      }
+    }
+  }
+}
