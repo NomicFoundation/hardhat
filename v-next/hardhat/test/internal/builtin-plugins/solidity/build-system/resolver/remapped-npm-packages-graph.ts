@@ -25,6 +25,7 @@ import {
 import {
   isResolvedUserRemapping,
   RemappedNpmPackagesGraphImplementation,
+  type RemappingsReaderFunction,
 } from "../../../../../../src/internal/builtin-plugins/solidity/build-system/resolver/remapped-npm-packages-graph.js";
 import { UserRemappingType } from "../../../../../../src/internal/builtin-plugins/solidity/build-system/resolver/types.js";
 import {
@@ -1642,6 +1643,398 @@ contr:to-npm=node_modules/dep/contracts`,
           });
         });
       });
+    });
+  });
+
+  describe("readNpmPackageRemappings hook behavior", () => {
+    it("should call the hook for the main project package", async () => {
+      const template: TestProjectTemplate = {
+        name: "test-project",
+        version: "1.0.0",
+        files: {
+          "contracts/A.sol": `import "foo/Bar.sol";`,
+          "remappings.txt": "foo/=src/foo/",
+        },
+      };
+
+      await using project = await useTestProjectTemplate(template);
+
+      // Track hook invocations
+      const hookCalls: Array<{ name: string; version: string; path: string }> =
+        [];
+
+      const mockReader: RemappingsReaderFunction = async (
+        name,
+        version,
+        packagePath,
+        defaultBehavior,
+      ) => {
+        hookCalls.push({ name, version, path: packagePath });
+        return defaultBehavior(name, version, packagePath);
+      };
+
+      const graph = await RemappedNpmPackagesGraphImplementation.create(
+        project.path,
+        mockReader,
+      );
+
+      const hhProjectPackage = graph.getHardhatProjectPackage();
+      const contractsASol: ProjectResolvedFile = {
+        type: ResolvedFileType.PROJECT_FILE,
+        fsPath: path.join(project.path, "contracts/A.sol"),
+        content: {
+          text: `import "foo/Bar.sol";`,
+          importPaths: ["foo/Bar.sol"],
+          versionPragmas: [],
+        },
+        inputSourceName: "project/contracts/A.sol",
+        package: hhProjectPackage,
+      };
+
+      // Trigger remapping resolution
+      await graph.selectBestUserRemapping(contractsASol, "foo/Bar.sol");
+
+      // Verify hook was called for main project
+      assert.equal(hookCalls.length, 1);
+      assert.equal(hookCalls[0].name, "test-project");
+      assert.equal(hookCalls[0].version, "1.0.0");
+      assert.equal(hookCalls[0].path, project.path);
+    });
+
+    it("should call the hook for npm package dependencies", async () => {
+      const template: TestProjectTemplate = {
+        name: "test-project",
+        version: "1.0.0",
+        files: {
+          "contracts/A.sol": `import "dep1/Foo.sol"; import "dep2/Bar.sol";`,
+        },
+        dependencies: {
+          dep1: {
+            name: "dep1",
+            version: "2.0.0",
+            files: {
+              "contracts/Foo.sol": `contract Foo {}`,
+              "remappings.txt": "alias1/=src/",
+            },
+          },
+          dep2: {
+            name: "dep2",
+            version: "3.0.0",
+            files: {
+              "contracts/Bar.sol": `contract Bar {}`,
+              "remappings.txt": "alias2/=lib/",
+            },
+          },
+        },
+      };
+
+      await using project = await useTestProjectTemplate(template);
+
+      const hookCalls: Array<{ name: string; version: string; path: string }> =
+        [];
+
+      const mockReader: RemappingsReaderFunction = async (
+        name,
+        version,
+        packagePath,
+        defaultBehavior,
+      ) => {
+        hookCalls.push({ name, version, path: packagePath });
+        return defaultBehavior(name, version, packagePath);
+      };
+
+      const graph = await RemappedNpmPackagesGraphImplementation.create(
+        project.path,
+        mockReader,
+      );
+
+      const hhProjectPackage = graph.getHardhatProjectPackage();
+
+      // First, resolve dep1 to trigger loading its package
+      const dep1Result = await graph.resolveDependencyByInstallationName(
+        hhProjectPackage,
+        "dep1",
+      );
+      assert.ok(dep1Result !== undefined, "dep1 should exist");
+
+      // Create a file from dep1 and trigger its remapping resolution
+      const dep1FooSol: NpmPackageResolvedFile = {
+        type: ResolvedFileType.NPM_PACKAGE_FILE,
+        fsPath: path.join(dep1Result.package.rootFsPath, "contracts/Foo.sol"),
+        content: {
+          text: `import "alias1/Something.sol";`,
+          importPaths: ["alias1/Something.sol"],
+          versionPragmas: [],
+        },
+        inputSourceName: `${dep1Result.package.inputSourceNameRoot}/contracts/Foo.sol`,
+        package: dep1Result.package,
+      };
+
+      // Trigger remapping resolution for dep1
+      await graph.selectBestUserRemapping(dep1FooSol, "alias1/Something.sol");
+
+      // Verify hook was called for dep1 (because it has remappings.txt)
+      const dep1Call = hookCalls.find((call) => call.name === "dep1");
+      assert.ok(dep1Call !== undefined, "Hook should be called for dep1");
+      assert.equal(dep1Call.version, "2.0.0");
+      assert.equal(dep1Call.path, path.join(project.path, "node_modules/dep1"));
+    });
+
+    it("should deduplicate remappings by context+prefix with first occurrence winning", async () => {
+      const template: TestProjectTemplate = {
+        name: "test-project",
+        version: "1.0.0",
+        files: {
+          "contracts/A.sol": `import "foo/Bar.sol";`,
+        },
+      };
+
+      await using project = await useTestProjectTemplate(template);
+
+      // Hook provides multiple sources with overlapping remappings
+      const mockReader: RemappingsReaderFunction = async (
+        name,
+        version,
+        packagePath,
+        _defaultBehavior,
+      ) => {
+        // Return multiple sources with duplicate context+prefix
+        return [
+          {
+            remappings: ["foo/=src/first/"],
+            source: path.join(packagePath, "source1.toml"),
+          },
+          {
+            remappings: ["foo/=src/second/"], // Same prefix, should be ignored
+            source: path.join(packagePath, "source2.toml"),
+          },
+          {
+            remappings: ["bar/=src/bar/"], // Different prefix, should be kept
+            source: path.join(packagePath, "source2.toml"),
+          },
+          {
+            remappings: ["contracts/:foo/=src/third/"], // Different context, should be kept
+            source: path.join(packagePath, "source3.toml"),
+          },
+        ];
+      };
+
+      const graph = await RemappedNpmPackagesGraphImplementation.create(
+        project.path,
+        mockReader,
+      );
+
+      const hhProjectPackage = graph.getHardhatProjectPackage();
+      const contractsASol: ProjectResolvedFile = {
+        type: ResolvedFileType.PROJECT_FILE,
+        fsPath: path.join(project.path, "contracts/A.sol"),
+        content: {
+          text: `import "foo/Bar.sol";`,
+          importPaths: ["foo/Bar.sol"],
+          versionPragmas: [],
+        },
+        inputSourceName: "project/contracts/A.sol",
+        package: hhProjectPackage,
+      };
+
+      // Trigger remapping resolution
+      await graph.selectBestUserRemapping(contractsASol, "foo/Bar.sol");
+
+      // Get all user remappings
+      const userRemappings = graph.toJSON().userRemappingsPerPackage.project;
+
+      // Verify deduplication behavior
+      const fooRemappings = userRemappings.filter((r) => r.prefix === "foo/");
+      assert.equal(
+        fooRemappings.length,
+        2,
+        "Should have 2 foo/ remappings (different contexts)",
+      );
+
+      // Find remapping without context
+      const noContextFoo = fooRemappings.find((r) => r.context === "project/");
+      assert.ok(
+        noContextFoo !== undefined,
+        "Should have foo/ remapping without context",
+      );
+      assert.equal(
+        noContextFoo.target,
+        "project/src/first/",
+        "First occurrence should win",
+      );
+      assert.equal(
+        noContextFoo.source,
+        path.join(project.path, "source1.toml"),
+      );
+
+      // Find remapping with context
+      const withContextFoo = fooRemappings.find(
+        (r) => r.context === "project/contracts/",
+      );
+      assert.ok(
+        withContextFoo !== undefined,
+        "Should have foo/ remapping with contracts/ context",
+      );
+      assert.equal(withContextFoo.target, "project/src/third/");
+
+      // Verify bar/ remapping exists
+      const barRemapping = userRemappings.find((r) => r.prefix === "bar/");
+      assert.ok(barRemapping !== undefined, "Should have bar/ remapping");
+      assert.equal(barRemapping.target, "project/src/bar/");
+    });
+
+    it("should allow hook to add additional remappings to default ones", async () => {
+      const template: TestProjectTemplate = {
+        name: "test-project",
+        version: "1.0.0",
+        files: {
+          "contracts/A.sol": `import "foo/Bar.sol";`,
+          "remappings.txt": "default/=src/default/",
+        },
+      };
+
+      await using project = await useTestProjectTemplate(template);
+
+      const mockReader: RemappingsReaderFunction = async (
+        name,
+        version,
+        packagePath,
+        defaultBehavior,
+      ) => {
+        // Get default remappings
+        const defaultResults = await defaultBehavior(
+          name,
+          version,
+          packagePath,
+        );
+
+        // Add additional remappings from a hypothetical foundry.toml
+        return [
+          ...defaultResults,
+          {
+            remappings: ["foundry/=lib/foundry/"],
+            source: path.join(packagePath, "foundry.toml"),
+          },
+        ];
+      };
+
+      const graph = await RemappedNpmPackagesGraphImplementation.create(
+        project.path,
+        mockReader,
+      );
+
+      const hhProjectPackage = graph.getHardhatProjectPackage();
+      const contractsASol: ProjectResolvedFile = {
+        type: ResolvedFileType.PROJECT_FILE,
+        fsPath: path.join(project.path, "contracts/A.sol"),
+        content: {
+          text: `import "foo/Bar.sol";`,
+          importPaths: ["foo/Bar.sol"],
+          versionPragmas: [],
+        },
+        inputSourceName: "project/contracts/A.sol",
+        package: hhProjectPackage,
+      };
+
+      await graph.selectBestUserRemapping(contractsASol, "foo/Bar.sol");
+
+      const userRemappings = graph.toJSON().userRemappingsPerPackage.project;
+
+      // Should have both default and foundry remappings
+      const defaultRemapping = userRemappings.find(
+        (r) => r.prefix === "default/",
+      );
+      const foundryRemapping = userRemappings.find(
+        (r) => r.prefix === "foundry/",
+      );
+
+      assert.ok(
+        defaultRemapping !== undefined,
+        "Should have default/ remapping from remappings.txt",
+      );
+      assert.equal(
+        defaultRemapping.source,
+        path.join(project.path, "remappings.txt"),
+      );
+
+      assert.ok(
+        foundryRemapping !== undefined,
+        "Should have foundry/ remapping from hook",
+      );
+      assert.equal(
+        foundryRemapping.source,
+        path.join(project.path, "foundry.toml"),
+      );
+    });
+
+    it("should allow hook to completely replace default remappings", async () => {
+      const template: TestProjectTemplate = {
+        name: "test-project",
+        version: "1.0.0",
+        files: {
+          "contracts/A.sol": `import "foo/Bar.sol";`,
+          "remappings.txt": "default/=src/default/",
+        },
+      };
+
+      await using project = await useTestProjectTemplate(template);
+
+      const mockReader: RemappingsReaderFunction = async (
+        _name,
+        _version,
+        _packagePath,
+        _defaultBehavior,
+      ) => {
+        // DON'T call defaultBehavior - completely override
+        return [
+          {
+            remappings: ["custom/=lib/custom/"],
+            source: "custom-source",
+          },
+        ];
+      };
+
+      const graph = await RemappedNpmPackagesGraphImplementation.create(
+        project.path,
+        mockReader,
+      );
+
+      const hhProjectPackage = graph.getHardhatProjectPackage();
+      const contractsASol: ProjectResolvedFile = {
+        type: ResolvedFileType.PROJECT_FILE,
+        fsPath: path.join(project.path, "contracts/A.sol"),
+        content: {
+          text: `import "foo/Bar.sol";`,
+          importPaths: ["foo/Bar.sol"],
+          versionPragmas: [],
+        },
+        inputSourceName: "project/contracts/A.sol",
+        package: hhProjectPackage,
+      };
+
+      await graph.selectBestUserRemapping(contractsASol, "foo/Bar.sol");
+
+      const userRemappings = graph.toJSON().userRemappingsPerPackage.project;
+
+      // Should NOT have default remapping
+      const defaultRemapping = userRemappings.find(
+        (r) => r.prefix === "default/",
+      );
+      assert.equal(
+        defaultRemapping,
+        undefined,
+        "Should not have default remapping",
+      );
+
+      // Should have custom remapping
+      const customRemapping = userRemappings.find(
+        (r) => r.prefix === "custom/",
+      );
+      assert.ok(
+        customRemapping !== undefined,
+        "Should have custom/ remapping from hook",
+      );
+      assert.equal(customRemapping.source, "custom-source");
     });
   });
 });
