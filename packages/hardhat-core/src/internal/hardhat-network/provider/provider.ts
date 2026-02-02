@@ -386,75 +386,88 @@ export class EdrProviderWrapper
       response = responseObject.data;
     }
 
-    const needsTraces =
-      this._node._vm.evm.events.eventNames().length > 0 ||
-      this._node._vm.events.eventNames().length > 0;
+    // TODO: re-enable tracing events once EDR adds backwards compatibility support
+    // const needsTraces =
+    //   this._node._vm.evm.events.eventNames().length > 0 ||
+    //   this._node._vm.events.eventNames().length > 0;
 
-    if (needsTraces) {
-      const rawTraces = responseObject.traces;
-      for (const rawTrace of rawTraces) {
-        // For other consumers in JS we need to marshall the entire trace over FFI
-        const trace = rawTrace.trace;
+    // if (needsTraces) {
+    //   const rawTraces = responseObject.traces;
+    //   for (const rawTrace of rawTraces) {
+    //     // For other consumers in JS we need to marshall the entire trace over FFI
+    //     const trace = rawTrace.trace;
 
-        // beforeTx event
-        if (this._node._vm.events.listenerCount("beforeTx") > 0) {
-          this._node._vm.events.emit("beforeTx");
-        }
+    //     // beforeTx event
+    //     if (this._node._vm.events.listenerCount("beforeTx") > 0) {
+    //       this._node._vm.events.emit("beforeTx");
+    //     }
 
-        for (const traceItem of trace) {
-          // step event
-          if ("pc" in traceItem) {
-            if (this._node._vm.evm.events.listenerCount("step") > 0) {
-              this._node._vm.evm.events.emit(
-                "step",
-                edrTracingStepToMinimalInterpreterStep(traceItem)
-              );
-            }
-          }
-          // afterMessage event
-          else if ("executionResult" in traceItem) {
-            if (this._node._vm.evm.events.listenerCount("afterMessage") > 0) {
-              this._node._vm.evm.events.emit(
-                "afterMessage",
-                edrTracingMessageResultToMinimalEVMResult(traceItem)
-              );
-            }
-          }
-          // beforeMessage event
-          else {
-            if (this._node._vm.evm.events.listenerCount("beforeMessage") > 0) {
-              this._node._vm.evm.events.emit(
-                "beforeMessage",
-                edrTracingMessageToMinimalMessage(traceItem)
-              );
-            }
-          }
-        }
+    //     for (const traceItem of trace) {
+    //       // step event
+    //       if ("pc" in traceItem) {
+    //         if (this._node._vm.evm.events.listenerCount("step") > 0) {
+    //           this._node._vm.evm.events.emit(
+    //             "step",
+    //             edrTracingStepToMinimalInterpreterStep(traceItem)
+    //           );
+    //         }
+    //       }
+    //       // afterMessage event
+    //       else if ("executionResult" in traceItem) {
+    //         if (this._node._vm.evm.events.listenerCount("afterMessage") > 0) {
+    //           this._node._vm.evm.events.emit(
+    //             "afterMessage",
+    //             edrTracingMessageResultToMinimalEVMResult(traceItem)
+    //           );
+    //         }
+    //       }
+    //       // beforeMessage event
+    //       else {
+    //         if (this._node._vm.evm.events.listenerCount("beforeMessage") > 0) {
+    //           this._node._vm.evm.events.emit(
+    //             "beforeMessage",
+    //             edrTracingMessageToMinimalMessage(traceItem)
+    //           );
+    //         }
+    //       }
+    //     }
 
-        // afterTx event
-        if (this._node._vm.events.listenerCount("afterTx") > 0) {
-          this._node._vm.events.emit("afterTx");
-        }
-      }
-    }
+    //     // afterTx event
+    //     if (this._node._vm.events.listenerCount("afterTx") > 0) {
+    //       this._node._vm.events.emit("afterTx");
+    //     }
+    //   }
+    // }
 
     if (isErrorResponse(response)) {
       let error;
 
-      let stackTrace: SolidityStackTrace | null = null;
-      try {
-        stackTrace = responseObject.stackTrace();
-      } catch (e) {
-        log("Failed to get stack trace: %O", e);
-      }
+      const stackTrace = responseObject.stackTrace();
 
-      if (stackTrace !== null) {
-        error = encodeSolidityStackTrace(response.error.message, stackTrace);
+      if (stackTrace?.kind === "StackTrace") {
+        error = encodeSolidityStackTrace(
+          response.error.message,
+          stackTrace.entries
+        );
         // Pass data and transaction hash from the original error
         (error as any).data = response.error.data?.data ?? undefined;
         (error as any).transactionHash =
           response.error.data?.transactionHash ?? undefined;
       } else {
+        if (stackTrace !== null) {
+          switch (stackTrace.kind) {
+            case "UnexpectedError":
+              log(
+                "Failed to get stack trace due to error: %O",
+                stackTrace.errorMessage
+              );
+              break;
+            case "HeuristicFailed":
+              log("Failed to get stack trace due to failing heuristics");
+              break;
+          }
+        }
+
         if (response.error.code === InvalidArgumentsError.CODE) {
           error = new InvalidArgumentsError(response.error.message);
         } else {
