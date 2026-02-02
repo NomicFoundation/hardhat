@@ -6,16 +6,5 @@
     "v-next/hardhat/templates",
     "v-next/config"
   ],
-  "bumps": [
-    {
-      "package": "@nomicfoundation/hardhat-verify",
-      "peer": "hardhat",
-      "reason": "#7900 fixed some inconsistency issues in the SolidityBuildSystem API that will be shipped in the next version of Hardhat"
-    },
-    {
-      "package": "@nomicfoundation/hardhat-typechain",
-      "peer": "hardhat",
-      "reason": "#7902 switched the build system hook used to trigger the type generation from `onCleanUpArtifacts` to `build`"
-    }
-  ]
+  "bumps": []
 }

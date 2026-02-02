@@ -1,5 +1,11 @@
 # @nomicfoundation/hardhat-verify
 
+## 3.0.9
+
+### Patch Changes
+
+- 13a1e4b: Multiple internal fixes to the solidity build system ([#7900](https://github.com/NomicFoundation/hardhat/pull/7900))
+
 ## 3.0.8
 
 ### Patch Changes
