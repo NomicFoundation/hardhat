@@ -1,8 +1,16 @@
+import type { BaseVerifyFunctionArgs } from "./types.js";
+
+export interface EtherscanResponseBody {
+  status: string;
+  message: string;
+  result: any;
+}
+
 export type EtherscanGetSourceCodeResponse =
   | EtherscanNotOkResponse
   | EtherscanGetSourceCodeOkResponse;
 
-interface EtherscanGetSourceCodeOkResponse {
+interface EtherscanGetSourceCodeOkResponse extends EtherscanResponseBody {
   status: "1";
   message: "OK";
   result: EtherscanContract[];
@@ -29,13 +37,13 @@ interface EtherscanContract {
 
 export type EtherscanResponse = EtherscanNotOkResponse | EtherscanOkResponse;
 
-interface EtherscanNotOkResponse {
+interface EtherscanNotOkResponse extends EtherscanResponseBody {
   status: "0";
   message: "NOTOK";
   result: string;
 }
 
-interface EtherscanOkResponse {
+interface EtherscanOkResponse extends EtherscanResponseBody {
   status: "1";
   message: "OK";
   result: string;
@@ -52,4 +60,33 @@ export interface EtherscanChainListResponse {
     status: number;
     comment: string;
   }>;
+}
+
+export interface EtherscanVerifyArgs extends BaseVerifyFunctionArgs {
+  constructorArguments: string;
+}
+
+export interface EtherscanCustomApiCallOptions {
+  method?: "GET" | "POST";
+  body?: Record<string, unknown>;
+}
+
+export interface LazyEtherscan {
+  getChainId(): Promise<string>;
+  getName(): Promise<string>;
+  getUrl(): Promise<string>;
+  getApiUrl(): Promise<string>;
+  getApiKey(): Promise<string>;
+  getContractUrl(address: string): Promise<string>;
+  isVerified(address: string): Promise<boolean>;
+  verify(args: EtherscanVerifyArgs): Promise<string>;
+  pollVerificationStatus(
+    guid: string,
+    contractAddress: string,
+    contractName: string,
+  ): Promise<{ success: boolean; message: string }>;
+  customApiCall(
+    params: Record<string, unknown>,
+    options?: EtherscanCustomApiCallOptions,
+  ): Promise<EtherscanResponseBody>;
 }

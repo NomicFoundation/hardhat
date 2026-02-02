@@ -14,7 +14,8 @@
   "types": "dist/src/index.d.ts",
   "exports": {
     ".": "./dist/src/index.js",
-    "./verify": "./dist/src/verify.js"
+    "./verify": "./dist/src/verify.js",
+    "./types": "./dist/src/types.js"
   },
   "keywords": [
     "ethereum",

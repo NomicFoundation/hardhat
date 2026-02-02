@@ -1,13 +1,16 @@
 import type {
+  EtherscanCustomApiCallOptions,
   EtherscanChainListResponse,
   EtherscanGetSourceCodeResponse,
   EtherscanResponse,
+  EtherscanResponseBody,
+  EtherscanVerifyArgs,
+  LazyEtherscan,
 } from "./etherscan.types.js";
 import type {
   VerificationProvider,
   VerificationResponse,
   VerificationStatusResponse,
-  BaseVerifyFunctionArgs,
   CreateEtherscanOptions,
   ResolveConfigOptions,
 } from "./types.js";
@@ -20,6 +23,7 @@ import type {
   ChainDescriptorsConfig,
   VerificationProvidersConfig,
 } from "hardhat/types/config";
+import type { EthereumProvider } from "hardhat/types/providers";
 
 import { HardhatError } from "@nomicfoundation/hardhat-errors";
 import { toBigInt } from "@nomicfoundation/hardhat-utils/bigint";
@@ -41,10 +45,6 @@ export const ETHERSCAN_PROVIDER_NAME: keyof VerificationProvidersConfig =
 const VERIFICATION_STATUS_POLLING_SECONDS = 3;
 
 export const ETHERSCAN_API_URL = "https://api.etherscan.io/v2/api";
-
-export interface EtherscanVerifyFunctionArgs extends BaseVerifyFunctionArgs {
-  constructorArguments: string;
-}
 
 let supportedChainsCache: ChainDescriptorsConfig | undefined;
 
@@ -273,7 +273,7 @@ export class Etherscan implements VerificationProvider {
     contractName,
     compilerVersion,
     constructorArguments,
-  }: EtherscanVerifyFunctionArgs): Promise<string> {
+  }: EtherscanVerifyArgs): Promise<string> {
     const body = {
       contractaddress: contractAddress,
       sourceCode: JSON.stringify(compilerInput),
@@ -462,6 +462,69 @@ export class Etherscan implements VerificationProvider {
       { message: etherscanResponse.message },
     );
   }
+
+  public async customApiCall(
+    params: Record<string, unknown>,
+    options: EtherscanCustomApiCallOptions = {},
+  ): Promise<EtherscanResponseBody> {
+    const { method = "GET", body = {} } = options;
+
+    const queryParams = {
+      chainid: this.chainId,
+      apikey: this.apiKey,
+      ...params,
+    };
+
+    let response: HttpResponse;
+    try {
+      if (method === "GET") {
+        response = await getRequest(
+          this.apiUrl,
+          { queryParams },
+          this.dispatcherOrDispatcherOptions,
+        );
+      } else {
+        response = await postFormRequest(
+          this.apiUrl,
+          body,
+          { queryParams },
+          this.dispatcherOrDispatcherOptions,
+        );
+      }
+    } catch (error) {
+      ensureError(error);
+      throw new HardhatError(
+        HardhatError.ERRORS.HARDHAT_VERIFY.GENERAL.EXPLORER_REQUEST_FAILED,
+        {
+          name: this.name,
+          url: this.apiUrl,
+          errorMessage:
+            error.cause instanceof Error ? error.cause.message : error.message,
+        },
+      );
+    }
+
+    const responseBody =
+      /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions
+      -- Cast to EtherscanResponseBody because that's what we expect from the API */
+      (await response.body.json()) as EtherscanResponseBody;
+
+    const isSuccessStatusCode =
+      response.statusCode >= 200 && response.statusCode <= 299;
+    if (!isSuccessStatusCode) {
+      throw new HardhatError(
+        HardhatError.ERRORS.HARDHAT_VERIFY.GENERAL.EXPLORER_REQUEST_STATUS_CODE_ERROR,
+        {
+          name: this.name,
+          url: this.apiUrl,
+          statusCode: response.statusCode,
+          errorMessage: String(responseBody.result),
+        },
+      );
+    }
+
+    return responseBody;
+  }
 }
 
 class EtherscanVerificationResponse implements VerificationResponse {
@@ -521,5 +584,107 @@ class EtherscanVerificationStatusResponse
 
   public isOk(): boolean {
     return this.status === 1;
+  }
+}
+
+export class LazyEtherscanImpl implements LazyEtherscan {
+  readonly #provider: EthereumProvider;
+  readonly #networkName: string;
+  readonly #chainDescriptors: ChainDescriptorsConfig;
+  readonly #verificationProvidersConfig: VerificationProvidersConfig;
+
+  #etherscan: Etherscan | undefined;
+
+  constructor(
+    provider: EthereumProvider,
+    networkName: string,
+    chainDescriptors: ChainDescriptorsConfig,
+    verificationProvidersConfig: VerificationProvidersConfig,
+  ) {
+    this.#provider = provider;
+    this.#networkName = networkName;
+    this.#chainDescriptors = chainDescriptors;
+    this.#verificationProvidersConfig = verificationProvidersConfig;
+  }
+
+  async #getEtherscan(): Promise<Etherscan> {
+    if (this.#etherscan === undefined) {
+      const { createVerificationProviderInstance } = await import(
+        "./verification.js"
+      );
+
+      this.#etherscan =
+        /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions
+        -- Cast to Etherscan because we know the provider name is "etherscan" */
+        (await createVerificationProviderInstance({
+          provider: this.#provider,
+          networkName: this.#networkName,
+          chainDescriptors: this.#chainDescriptors,
+          verificationProviderName: "etherscan",
+          verificationProvidersConfig: this.#verificationProvidersConfig,
+        })) as Etherscan;
+    }
+    return this.#etherscan;
+  }
+
+  public async getChainId(): Promise<string> {
+    const etherscan = await this.#getEtherscan();
+    return etherscan.chainId;
+  }
+
+  public async getName(): Promise<string> {
+    const etherscan = await this.#getEtherscan();
+    return etherscan.name;
+  }
+
+  public async getUrl(): Promise<string> {
+    const etherscan = await this.#getEtherscan();
+    return etherscan.url;
+  }
+
+  public async getApiUrl(): Promise<string> {
+    const etherscan = await this.#getEtherscan();
+    return etherscan.apiUrl;
+  }
+
+  public async getApiKey(): Promise<string> {
+    const etherscan = await this.#getEtherscan();
+    return etherscan.apiKey;
+  }
+
+  public async getContractUrl(address: string): Promise<string> {
+    const etherscan = await this.#getEtherscan();
+    return etherscan.getContractUrl(address);
+  }
+
+  public async isVerified(address: string): Promise<boolean> {
+    const etherscan = await this.#getEtherscan();
+    return etherscan.isVerified(address);
+  }
+
+  public async verify(args: EtherscanVerifyArgs): Promise<string> {
+    const etherscan = await this.#getEtherscan();
+    return etherscan.verify(args);
+  }
+
+  public async pollVerificationStatus(
+    guid: string,
+    contractAddress: string,
+    contractName: string,
+  ): Promise<{ success: boolean; message: string }> {
+    const etherscan = await this.#getEtherscan();
+    return etherscan.pollVerificationStatus(
+      guid,
+      contractAddress,
+      contractName,
+    );
+  }
+
+  public async customApiCall(
+    params: Record<string, unknown>,
+    options?: EtherscanCustomApiCallOptions,
+  ): Promise<EtherscanResponseBody> {
+    const etherscan = await this.#getEtherscan();
+    return etherscan.customApiCall(params, options);
   }
 }
