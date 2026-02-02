@@ -2,4 +2,4 @@
 "@nomicfoundation/hardhat-ledger": patch
 ---
 
-Handle errors occurring due to device being locked or the Ethereum App not being opened, by waiting and retrying.
+Handled locked or the Ethereum App not being opened errors by adding a wait and retry ([#7905](https://github.com/NomicFoundation/hardhat/pull/7905))

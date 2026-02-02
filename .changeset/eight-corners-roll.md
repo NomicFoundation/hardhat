@@ -3,4 +3,4 @@
 "hardhat": patch
 ---
 
-Make typechain work when compiling a subset of the Solidity files
+Fixed typechain type generation when compiling a subset of the Solidity files ([#7902](https://github.com/NomicFoundation/hardhat/pull/7902))
