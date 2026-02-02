@@ -40,9 +40,9 @@ function hasLinksToDocs() {
 
   return (
     lowerCaseBody.includes(
-      "github.com/NomicFoundation/hardhat-website/issues",
+      "github.com/nomicfoundation/hardhat-website/issues",
     ) ||
-    lowerCaseBody.includes("github.com/NomicFoundation/hardhat-website/pull")
+    lowerCaseBody.includes("github.com/nomicfoundation/hardhat-website/pull")
   );
 }
 
