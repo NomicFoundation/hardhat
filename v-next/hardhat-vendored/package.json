@@ -1,6 +1,6 @@
 {
   "name": "@nomicfoundation/hardhat-vendored",
-  "version": "3.0.0",
+  "version": "3.0.1",
   "description": "Internal dependencies used by Hardhat that have been vendored to prevent bloating the main package",
   "homepage": "https://github.com/nomicfoundation/hardhat/tree/main/v-next/hardhat-vendored",
   "repository": {

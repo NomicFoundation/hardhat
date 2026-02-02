@@ -1,6 +1,6 @@
 {
   "name": "@nomicfoundation/hardhat-verify",
-  "version": "3.0.8",
+  "version": "3.0.9",
   "description": "Hardhat plugin for verifying contracts",
   "homepage": "https://github.com/nomicfoundation/hardhat/tree/v-next/v-next/hardhat-verify",
   "repository": {
@@ -58,7 +58,8 @@
     "prettier": "3.2.5",
     "rimraf": "^5.0.5",
     "tsx": "^4.19.3",
-    "typescript": "~5.8.0"
+    "typescript": "~5.8.0",
+    "hardhat": "workspace:^3.1.6"
   },
   "dependencies": {
     "@ethersproject/abi": "^5.8.0",
@@ -72,6 +73,6 @@
     "zod": "^3.23.8"
   },
   "peerDependencies": {
-    "hardhat": "workspace:^3.0.0"
+    "hardhat": "workspace:^3.1.6"
   }
 }
