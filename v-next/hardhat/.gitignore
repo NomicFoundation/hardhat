@@ -7,7 +7,7 @@
 # pnpm deploy output
 /bundle
 
-# all cache folders
+# cache directory at package root
 /cache
 
 # test coverage output

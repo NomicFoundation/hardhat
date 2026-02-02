@@ -207,128 +207,192 @@ describe("edr-provider", () => {
       assert.fail("Function did not throw any error");
     });
 
-    it("should return the expected response when the method is eth_getProof", async () => {
-      const { provider } = await hre.network.connect();
+    describe("eth_getProof", () => {
+      it("should return account proof on local network", async () => {
+        const { provider } = await hre.network.connect();
 
-      const accounts = await provider.request({
-        method: "eth_accounts",
-      });
+        const accounts = await provider.request({
+          method: "eth_accounts",
+        });
 
-      assert.ok(Array.isArray(accounts), "Accounts should be an array");
-      assert.ok(accounts.length > 0, "There should be at least one account");
+        assert.ok(
+          Array.isArray(accounts) && accounts.length > 0,
+          "Accounts should be a non empty array",
+        );
 
-      const account = accounts[0];
+        const account = accounts[0];
 
-      // Make eth_getProof request
-      const proof = await provider.request({
-        method: "eth_getProof",
-        params: [
-          account,
-          [], // storage keys (empty array)
-          "latest",
-        ],
-      });
-
-      assert.equal(
-        proof.address,
-        account,
-        "Address should match the requested account",
-      );
-
-      // Default hardhat accounts have 10,000 ETH
-      assert.equal(
-        proof.balance,
-        numberToHexString(10_000n * 10n ** 18n),
-        "Balance should be 10,000 ETH",
-      );
-
-      // Fresh account that hasn't sent any transactions yet
-      assert.equal(proof.nonce, "0x0", "Nonce should be 0");
-
-      // This confirms the account is an EOA (Externally Owned Account) and not a contract
-      assert.equal(
-        proof.codeHash,
-        "0xc5d2460186f7233c927e7db2dcc703c0e500b653ca82273b7bfad8045d85a470",
-        "CodeHash should be empty (standard EOA hash)",
-      );
-
-      // StorageHash is the root hash of an empty Merkle Trie.
-      // This confirms the account has no storage (standard for EOAs).
-      assert.equal(
-        proof.storageHash,
-        "0x56e81f171bcc55a6ff8345e692c0f86e5b48e01b996cadc001622fb5e363b421",
-        "StorageHash should be empty (standard empty trie root)",
-      );
-
-      // Check Cryptographic Proof Structure
-      assert.ok(
-        Array.isArray(proof.accountProof) && proof.accountProof.length > 0,
-        "accountProof should be a non empty array",
-      );
-      assert.ok(
-        Array.isArray(proof.storageProof) && proof.storageProof.length === 0,
-        // we passed `[]` as storage keys in the request
-        "StorageProof should be an empty array for 0 storage keys",
-      );
-    });
-
-    it("should throw a ProviderError when calling eth_getProof on a locally mined block in a forked network", async () => {
-      const forkedHre = await createHardhatRuntimeEnvironment({
-        networks: {
-          edrOptimism: {
-            type: "edr-simulated",
-            chainId: 10,
-            chainType: "op",
-            forking: {
-              url: "https://mainnet.optimism.io",
-            },
-          },
-        },
-      });
-
-      const { provider } = await forkedHre.network.connect("edrOptimism");
-
-      try {
-        const accounts = await provider.request({ method: "eth_accounts" });
-        const sender = accounts[0];
-
-        // Action: Mine a local block on top of the fork
-        // Sending 1 wei to self is enough to trigger a state change and mine a new block
-        await provider.request({
-          method: "eth_sendTransaction",
+        const proof = await provider.request({
+          method: "eth_getProof",
           params: [
-            {
-              from: sender,
-              to: sender,
-              value: "0x1",
-            },
+            account,
+            [], // storage keys (empty array)
+            "latest",
           ],
         });
 
-        // We expect this to fail because the state root of this new local block
-        // does not exist on the remote node.
-        await provider.request({
-          method: "eth_getProof",
-          params: [sender, [], "latest"],
-        });
-      } catch (error) {
+        assert.equal(
+          proof.address,
+          account,
+          "Address should match the requested account",
+        );
+
+        // Default hardhat accounts have 10_000 ETH
+        assert.equal(
+          proof.balance,
+          numberToHexString(10_000n * 10n ** 18n),
+          "Balance should be 10_000 ETH",
+        );
+
+        // Check cryptographic proof structure
         assert.ok(
-          ProviderError.isProviderError(error),
-          "Error is not a ProviderError",
+          Array.isArray(proof.accountProof) && proof.accountProof.length > 0,
+          "accountProof should be a non empty array",
         );
-
-        assert.match(
-          error.message,
-          /proof is not supported in fork mode when local changes have been made/,
-          "Error message should explain lack of support for local blocks on fork",
+        assert.ok(
+          Array.isArray(proof.storageProof) && proof.storageProof.length === 0,
+          // we passed `[]` as storage keys in the request
+          "StorageProof should be an empty array for 0 storage keys",
         );
+      });
 
-        return;
-      } finally {
-        await provider.close();
-      }
+      it("should return storage proof for contract on local network", async () => {
+        const { provider } = await hre.network.connect();
 
-      assert.fail("eth_getProof should have thrown an error");
+        // Define arbitrary address and storage key
+        const contractAddress = "0x1234567890123456789012345678901234567890";
+        const slotZero =
+          "0x0000000000000000000000000000000000000000000000000000000000000000";
+        const valueOne =
+          "0x0000000000000000000000000000000000000000000000000000000000000001";
+
+        // Set storage directly (bypassing deployment & mining)
+        await provider.request({
+          method: "hardhat_setStorageAt",
+          params: [contractAddress, slotZero, valueOne],
+        });
+
+        const proof = await provider.request({
+          method: "eth_getProof",
+          params: [contractAddress, [slotZero], "latest"],
+        });
+
+        assert.equal(proof.address, contractAddress, "Address should match");
+        assert.equal(
+          proof.storageProof.length,
+          1,
+          "Should return 1 storage proof",
+        );
+        assert.equal(
+          proof.storageProof[0].key,
+          slotZero,
+          "Storage key should match",
+        );
+        assert.equal(
+          proof.storageProof[0].value,
+          "0x1",
+          "Storage value should be 0x1",
+        );
+        assert.ok(
+          proof.storageProof[0].proof.length > 0,
+          "Storage proof should not be empty",
+        );
+      });
+
+      it("should return proof on fork without local changes", async () => {
+        // NOTE: Accounts are disabled in the network configuration to prevent local state changes, which would
+        // cause eth_getProof to fail with a "proof not supported in fork mode" error.
+
+        const forkedHre = await createHardhatRuntimeEnvironment({
+          networks: {
+            edrOptimism: {
+              type: "edr-simulated",
+              chainId: 10,
+              chainType: "op",
+              // Disable default accounts to prevent local state modification
+              accounts: [],
+              forking: {
+                url: "https://mainnet.optimism.io",
+                enabled: true,
+              },
+            },
+          },
+        });
+
+        const { provider } = await forkedHre.network.connect("edrOptimism");
+
+        try {
+          // WETH Optimism address
+          const targetAddress = "0x4200000000000000000000000000000000000006";
+
+          const proof = await provider.request({
+            method: "eth_getProof",
+            params: [targetAddress, [], "latest"],
+          });
+
+          assert.equal(
+            proof.address,
+            targetAddress,
+            "Should return proof for the requested address",
+          );
+          assert.ok(
+            proof.accountProof.length > 0,
+            "Should have account proof from remote",
+          );
+        } finally {
+          await provider.close();
+        }
+      });
+
+      it("should throw error on fork with local changes", async () => {
+        // NOTE: Accounts are NOT disabled in the network configuration, so Hardhat modifies the state by
+        // injecting default accounts, causing eth_getProof to fail with a
+        // "proof not supported in fork mode" error.
+
+        const forkedHre = await createHardhatRuntimeEnvironment({
+          networks: {
+            edrOptimism: {
+              type: "edr-simulated",
+              chainId: 10,
+              chainType: "op",
+              forking: {
+                url: "https://mainnet.optimism.io",
+                enabled: true,
+              },
+            },
+          },
+        });
+
+        const { provider } = await forkedHre.network.connect("edrOptimism");
+
+        try {
+          const accounts = await provider.request({ method: "eth_accounts" });
+          const sender = accounts[0];
+
+          // We expect this to fail
+          await provider.request({
+            method: "eth_getProof",
+            params: [sender, [], "latest"],
+          });
+        } catch (error) {
+          assert.ok(
+            ProviderError.isProviderError(error),
+            "Error is not a ProviderError",
+          );
+
+          assert.match(
+            error.message,
+            /proof is not supported in fork mode when local changes have been made/,
+            "Error message should explain lack of support for local blocks on fork",
+          );
+
+          return;
+        } finally {
+          await provider.close();
+        }
+
+        assert.fail("eth_getProof should have thrown an error");
+      });
     });
   });
 
