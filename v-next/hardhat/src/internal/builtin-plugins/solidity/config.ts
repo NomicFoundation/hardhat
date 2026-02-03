@@ -11,8 +11,6 @@ import type {
 } from "../../../types/config.js";
 import type { HardhatUserConfigValidationError } from "../../../types/hooks.js";
 
-import os from "node:os";
-
 import { deepMerge, isObject } from "@nomicfoundation/hardhat-utils/lang";
 import { resolveFromRoot } from "@nomicfoundation/hardhat-utils/path";
 import {
@@ -23,6 +21,10 @@ import {
 import { z } from "zod";
 
 import { DEFAULT_BUILD_PROFILES } from "./build-profiles.js";
+import {
+  hasOfficialArm64Build,
+  missesSomeOfficialNativeBuilds,
+} from "./build-system/solc-info.js";
 
 const sourcePathsType = conditionalUnionType(
   [
@@ -39,6 +41,8 @@ const commonSolcUserConfigType = z.object({
 const solcUserConfigType = z.object({
   version: z.string(),
   settings: z.any().optional(),
+  path: z.string().optional(),
+  preferWasm: z.boolean().optional(),
   compilers: incompatibleFieldType("This field is incompatible with `version`"),
   overrides: incompatibleFieldType("This field is incompatible with `version`"),
   profiles: incompatibleFieldType("This field is incompatible with `version`"),
@@ -290,7 +294,7 @@ function resolveBuildProfileConfig(
       compilers: [resolveSolcConfig(solidityConfig, production)],
       overrides: {},
       isolated: solidityConfig.isolated ?? production,
-      preferWasm: solidityConfig.preferWasm ?? (production && shouldUseWasm()),
+      preferWasm: solidityConfig.preferWasm ?? false,
     };
   }
 
@@ -307,7 +311,7 @@ function resolveBuildProfileConfig(
       ),
     ),
     isolated: solidityConfig.isolated ?? production,
-    preferWasm: solidityConfig.preferWasm ?? (production && shouldUseWasm()),
+    preferWasm: solidityConfig.preferWasm ?? false,
   };
 }
 
@@ -337,10 +341,23 @@ function resolveSolcConfig(
     };
   }
 
+  // Resolve per-compiler preferWasm:
+  // If explicitly set, use that value.
+  // Otherwise, for ARM64 Linux in production, default to true only for
+  // versions without official ARM64 builds.
+  let resolvedPreferWasm: boolean | undefined = solcConfig.preferWasm;
+  if (resolvedPreferWasm === undefined && missesSomeOfficialNativeBuilds()) {
+    resolvedPreferWasm =
+      production && !hasOfficialArm64Build(solcConfig.version)
+        ? true
+        : undefined;
+  }
+
   return {
     version: solcConfig.version,
     settings: deepMerge(defaultSolcConfigSettings, solcConfig.settings ?? {}),
     path: solcConfig.path,
+    preferWasm: resolvedPreferWasm,
   };
 }
 
@@ -368,10 +385,4 @@ function copyFromDefault(
       ),
     ),
   };
-}
-
-// We use wasm builds in production to avoid using unofficial builds for deployments
-// This should change once https://github.com/ethereum/solidity/issues/11351 gets resolved
-export function shouldUseWasm(): boolean {
-  return os.platform() === "linux" && os.arch() === "arm64";
 }
