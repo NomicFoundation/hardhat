@@ -76,7 +76,7 @@ describe("Resolver utils", () => {
       },
     };
 
-    it("Should return the the resolved path", () => {
+    it("Should return the resolved path", () => {
       assert.deepEqual(resolveSubpathWithPackageExports(npmPackage, "A.sol"), {
         success: true,
         value: "src/A.sol",

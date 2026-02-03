@@ -64,7 +64,7 @@ describe("network-helpers - setNextBlockBaseFeePerGas", () => {
       });
     }
 
-    it("should throw because the the string is not 0x-prefixed", async () => {
+    it("should throw because the string is not 0x-prefixed", async () => {
       await assertRejectsWithHardhatError(
         async () => networkHelpers.setNextBlockBaseFeePerGas("3"),
         HardhatError.ERRORS.NETWORK_HELPERS.GENERAL
