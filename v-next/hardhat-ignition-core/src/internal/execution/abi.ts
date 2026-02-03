@@ -785,7 +785,7 @@ function validateOverloadedName(
 }
 
 /**
- * Returns teh param type of an event argument, throwing a validation error if it's not found.
+ * Returns the param type of an event argument, throwing a validation error if it's not found.
  * @param eventFragment
  * @param argument
  */
