@@ -605,6 +605,10 @@ export class LazyEtherscanImpl implements LazyEtherscan {
     this.#verificationProvidersConfig = verificationProvidersConfig;
   }
 
+  /**
+   * Lazily initializes the underlying Etherscan verification provider and caches
+   * the created instance so that subsequent calls reuse the same object.
+   */
   async #getEtherscan(): Promise<Etherscan> {
     if (this.#etherscan === undefined) {
       const { createVerificationProviderInstance } = await import(

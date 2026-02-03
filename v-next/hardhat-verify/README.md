@@ -85,6 +85,78 @@ await verifyContract(
 
 > Note: The `verifyContract` function is not re-exported from the Hardhat toolboxes, so you need to install the plugin and import it directly from `@nomicfoundation/hardhat-verify/verify`.
 
+## Advanced Usage for Plugin Authors
+
+If you're building a Hardhat plugin that needs direct access to the Etherscan API (for example, to verify proxy contracts or make custom API calls), you can access the Etherscan instance through `network.connect()`.
+
+### Accessing the Etherscan Instance
+
+```typescript
+import type { HardhatRuntimeEnvironment } from "hardhat/types";
+
+export async function myCustomVerificationTask(hre: HardhatRuntimeEnvironment) {
+  const { verifier } = await hre.network.connect();
+
+  // Access Etherscan instance
+  const etherscan = verifier.etherscan;
+
+  // Check if a contract is already verified
+  const isVerified = await etherscan.isVerified("0x1234...");
+
+  // Get the contract URL on the block explorer
+  const url = await etherscan.getContractUrl("0x1234...");
+
+  // Submit a contract for verification
+  const guid = await etherscan.verify({
+    contractAddress: "0x1234...",
+    compilerInput: {
+      /* compiler input JSON */
+    },
+    contractName: "contracts/MyContract.sol:MyContract",
+    compilerVersion: "v0.8.19+commit.7dd6d404",
+    constructorArguments: "0x...",
+  });
+
+  // Poll for verification status
+  const result = await etherscan.pollVerificationStatus(
+    guid,
+    "0x1234...",
+    "MyContract",
+  );
+}
+```
+
+### Making Custom API Calls
+
+For API endpoints not covered by the standard methods, use `customApiCall()`:
+
+```typescript
+const { verifier } = await hre.network.connect();
+
+// Make a custom API call (apikey and chainid are added automatically)
+const response = await verifier.etherscan.customApiCall({
+  module: "contract",
+  action: "getsourcecode",
+  address: "0x1234...",
+});
+
+// Check the response
+if (response.status === "1") {
+  console.log("Contract source:", response.result);
+} else {
+  console.error("Error:", response.message);
+}
+```
+
+### API Reference
+
+For complete type definitions and available methods, see the exported types:
+
+- `Etherscan` - The main interface for Etherscan API access
+- `EtherscanResponseBody` - Structure of API response bodies
+- `EtherscanCustomApiCallOptions` - Options for custom API calls
+- `EtherscanVerifyArgs` - Arguments for contract verification
+
 ### Build profiles and verification
 
 When no build profile is specified, this plugin defaults to `production`. However, tasks like `build` and `run` default to the `default` build profile. If your contracts are compiled with a different profile than the one used for verification, the compiled bytecode may not match the deployed bytecode, causing verification to fail.
