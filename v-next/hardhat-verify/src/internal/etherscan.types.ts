@@ -66,10 +66,14 @@ export interface EtherscanVerifyArgs extends BaseVerifyFunctionArgs {
   constructorArguments: string;
 }
 
-export interface EtherscanCustomApiCallOptions {
-  method?: "GET" | "POST";
-  body?: Record<string, unknown>;
-}
+export type EtherscanCustomApiCallOptions =
+  | {
+      method: "GET";
+    }
+  | {
+      method: "POST";
+      body?: Record<string, unknown>;
+    };
 
 export interface LazyEtherscan {
   getChainId(): Promise<string>;

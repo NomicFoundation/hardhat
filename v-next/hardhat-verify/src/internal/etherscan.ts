@@ -465,10 +465,8 @@ export class Etherscan implements VerificationProvider {
 
   public async customApiCall(
     params: Record<string, unknown>,
-    options: EtherscanCustomApiCallOptions = {},
+    options: EtherscanCustomApiCallOptions = { method: "GET" },
   ): Promise<EtherscanResponseBody> {
-    const { method = "GET", body = {} } = options;
-
     const queryParams = {
       chainid: this.chainId,
       apikey: this.apiKey,
@@ -477,7 +475,7 @@ export class Etherscan implements VerificationProvider {
 
     let response: HttpResponse;
     try {
-      if (method === "GET") {
+      if (options.method === "GET") {
         response = await getRequest(
           this.apiUrl,
           { queryParams },
@@ -486,7 +484,7 @@ export class Etherscan implements VerificationProvider {
       } else {
         response = await postFormRequest(
           this.apiUrl,
-          body,
+          options.body,
           { queryParams },
           this.dispatcherOrDispatcherOptions,
         );
