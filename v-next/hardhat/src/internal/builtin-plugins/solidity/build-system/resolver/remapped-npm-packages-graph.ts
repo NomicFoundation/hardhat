@@ -536,7 +536,7 @@ export class RemappedNpmPackagesGraphImplementation
     // an npm module's (i.e. `<package-name>/<file-path>`), except that
     // `<file-path>` here could be a prefix, and not a file path.
     //
-    // Note that that package name is the installation name of the dependency
+    // Note that the package name is the installation name of the dependency
     // within the npm package, not the actual dependency name.
     const installationName = getNpmPackageName(targetWithoutNodeModules);
 

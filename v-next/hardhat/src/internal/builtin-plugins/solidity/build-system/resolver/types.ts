@@ -222,7 +222,7 @@ export interface RemappedNpmPackagesGraphJson {
 }
 
 /**
- * A Resolver is a stateful object that can be used to to construct a dependency
+ * A Resolver is a stateful object that can be used to construct a dependency
  * graph, by resolving both the local project and npm files, and their imports.
  *
  * This resolver uses `inputSourceName`s to identify the resolved files, which
