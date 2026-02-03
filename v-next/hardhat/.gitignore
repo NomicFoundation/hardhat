@@ -7,9 +7,6 @@
 # pnpm deploy output
 /bundle
 
-# cache directory at package root
-/cache
-
 # test coverage output
 coverage
 !src/internal/builtin-plugins/coverage

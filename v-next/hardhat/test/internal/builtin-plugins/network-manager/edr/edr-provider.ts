@@ -208,6 +208,12 @@ describe("edr-provider", () => {
     });
 
     describe("eth_getProof", () => {
+      let tmpCacheDir: string;
+
+      before(async () => {
+        tmpCacheDir = await mkdtemp("edr-provider-eth-getProof");
+      });
+
       it("should return account proof on local network", async () => {
         const { provider } = await hre.network.connect();
 
@@ -304,6 +310,7 @@ describe("edr-provider", () => {
         // cause eth_getProof to fail with a "proof not supported in fork mode" error.
 
         const forkedHre = await createHardhatRuntimeEnvironment({
+          paths: { cache: tmpCacheDir },
           networks: {
             edrOptimism: {
               type: "edr-simulated",
@@ -350,6 +357,7 @@ describe("edr-provider", () => {
         // "proof not supported in fork mode" error.
 
         const forkedHre = await createHardhatRuntimeEnvironment({
+          paths: { cache: tmpCacheDir },
           networks: {
             edrOptimism: {
               type: "edr-simulated",
