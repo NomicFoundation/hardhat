@@ -1,6 +1,6 @@
 # hardhat-verify
 
-[Hardhat](https://hardhat.org) plugin to verify the source of code of deployed contracts.
+[Hardhat](https://hardhat.org) plugin to verify the source code of deployed contracts.
 
 ## Installation
 

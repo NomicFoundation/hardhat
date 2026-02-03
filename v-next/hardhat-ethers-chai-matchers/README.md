@@ -240,7 +240,7 @@ await expect(token.transfer(receiver, 1000)).to.changeTokenBalances(
 
 ### Other matchers
 
-#### `.withargs`
+#### `.withArgs`
 
 Can be used after a `.emit` or a `.revertedWithCustomError` matcher to assert the values of the event/error's arguments:
 
