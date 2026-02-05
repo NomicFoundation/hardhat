@@ -2049,7 +2049,9 @@ Please try again later.`,
         number: 40000,
         messageTemplate: `No network with chain id "{chainId}" found.`,
         websiteTitle: "Network not found",
-        websiteDescription: `No network with the specified chain id was found. You can override the chain by passing it as a parameter to the client getter:
+        websiteDescription: `No network with the specified chain id was found. You have two options:
+
+1. Pass the chain explicitly to the client getter:
 
 \`\`\`ts
 import { someChain } from "viem/chains";
@@ -2059,7 +2061,21 @@ const client = await hre.viem.getPublicClient({
 });
 \`\`\`
 
-You can find a list of supported networks here: https://github.com/wevm/viem/blob/main/src/chains/index.ts`,
+2. Define a custom chain in your hardhat.config:
+
+\`\`\`ts
+export default {
+  chainDescriptors: {
+    [YOUR_CHAIN_ID]: {
+      name: "My Custom Chain",
+      chainType: "generic",
+    },
+  },
+  // ...
+};
+\`\`\`
+
+You can find a list of viem's supported networks here: https://github.com/wevm/viem/blob/main/src/chains/index.ts`,
       },
       UNSUPPORTED_DEVELOPMENT_NETWORK: {
         number: 40001,
