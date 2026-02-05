@@ -21,6 +21,9 @@ jobs:
         run: pnpm install --no-frozen-lockfile
       - name: List dependencies
         run: pnpm list -r --depth 2
+      - name: Run build
+        # Ensure all projects are built before parallel test execution
+        run: pnpm build
       - name: Run tests
         run: pnpm test || (echo "===== Retry =====" && pnpm test)
         env:
