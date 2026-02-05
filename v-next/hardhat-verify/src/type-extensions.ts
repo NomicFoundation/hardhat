@@ -1,3 +1,5 @@
+import type { VerifierHelpers } from "./types.js";
+
 import "hardhat/types/config";
 declare module "hardhat/types/config" {
   export interface HardhatUserConfig {
@@ -51,5 +53,15 @@ declare module "hardhat/types/config" {
   export interface SourcifyConfig {
     apiUrl?: string;
     enabled: boolean;
+  }
+}
+
+import "hardhat/types/network";
+declare module "hardhat/types/network" {
+  interface NetworkConnection<
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars -- the ChainTypeT must be declared in the interface but in this scenario it's not used
+    ChainTypeT extends ChainType | string = DefaultChainType,
+  > {
+    verifier: VerifierHelpers;
   }
 }

@@ -333,7 +333,7 @@ export function validateArgs({ address, contract }: VerifyContractArgs): void {
   }
 }
 
-async function createVerificationProviderInstance({
+export async function createVerificationProviderInstance({
   provider,
   networkName,
   chainDescriptors,
