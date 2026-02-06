@@ -18,9 +18,9 @@ import {
 } from "../../types/arguments.js";
 import {
   type EmptyTaskDefinition,
+  TaskDefinitionType,
   type NewTaskDefinition,
   type TaskDefinition,
-  TaskDefinitionType,
   type TaskOverrideDefinition,
 } from "../../types/tasks.js";
 
@@ -272,12 +272,23 @@ export function validateNewTask(
     });
   }
 
-  if (typeof task.action !== "function") {
-    validationErrors.push({
-      path: [...path, "action"],
-      message:
-        "task action must be a lazy import function returning a module with a default export",
-    });
+  // Either action or inlineAction must be defined
+  if (task.action !== undefined) {
+    if (typeof task.action !== "function") {
+      validationErrors.push({
+        path: [...path, "action"],
+        message:
+          "task action must be a lazy import function returning a module with a default export",
+      });
+    }
+  } else {
+    if (typeof task.inlineAction !== "function") {
+      validationErrors.push({
+        path: [...path, "inlineAction"],
+        message:
+          "task inlineAction must be a function implementing the task's behavior",
+      });
+    }
   }
 
   if (isObject(task.options)) {
@@ -328,12 +339,23 @@ export function validateTaskOverride(
     });
   }
 
-  if (typeof task.action !== "function") {
-    validationErrors.push({
-      path: [...path, "action"],
-      message:
-        "task action must be a lazy import function returning a module with a default export",
-    });
+  // Either action or inlineAction must be defined
+  if (task.action !== undefined) {
+    if (typeof task.action !== "function") {
+      validationErrors.push({
+        path: [...path, "action"],
+        message:
+          "task action must be a lazy import function returning a module with a default export",
+      });
+    }
+  } else {
+    if (typeof task.inlineAction !== "function") {
+      validationErrors.push({
+        path: [...path, "inlineAction"],
+        message:
+          "task inlineAction must be a function implementing the task's behavior",
+      });
+    }
   }
 
   if (isObject(task.options)) {
