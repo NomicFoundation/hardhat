@@ -8,6 +8,7 @@ import {
   FileNotFoundError,
   readdir,
   readJsonFile,
+  remove,
   writeJsonFile,
 } from "@nomicfoundation/hardhat-utils/fs";
 import chalk from "chalk";
@@ -112,10 +113,48 @@ export function extractSnapshotCheatcodes(
   return snapshots;
 }
 
+async function deleteOrphanedSnapshotFiles(
+  snapshotsDir: string,
+  currentGroups: Set<string>,
+): Promise<void> {
+  let dirEntries: string[];
+  try {
+    dirEntries = await readdir(snapshotsDir);
+
+    for (const entry of dirEntries) {
+      if (entry.endsWith(".json")) {
+        const groupName = entry.slice(0, -5); // remove .json
+        if (!currentGroups.has(groupName)) {
+          const filePath = path.join(snapshotsDir, entry);
+          await remove(filePath);
+        }
+      }
+    }
+  } catch (error) {
+    ensureError(error);
+    // Directory doesn't exist yet, nothing to clean up
+    if (error instanceof FileNotFoundError) {
+      return;
+    }
+    throw new HardhatError(
+      HardhatError.ERRORS.CORE.SOLIDITY_TESTS.SNAPSHOT_WRITE_ERROR,
+      { snapshotsPath: snapshotsDir, error: error.message },
+      error,
+    );
+  }
+}
+
 export async function writeSnapshotCheatcodes(
   basePath: string,
   snapshotCheatcodes: SnapshotCheatcodesWithMetadataMap,
 ): Promise<void> {
+  const snapshotsDir = path.join(basePath, SNAPSHOT_CHEATCODES_DIR);
+
+  // Delete old files that are no longer in the map
+  const currentGroups = new Set(snapshotCheatcodes.keys());
+  await deleteOrphanedSnapshotFiles(snapshotsDir, currentGroups);
+
+  // Write current snapshot files
   for (const [snapshotGroup, snapshot] of snapshotCheatcodes) {
     const snapshotCheatcodesPath = getSnapshotCheatcodesPath(
       basePath,
