@@ -335,6 +335,25 @@ describe("solidity-test/task-action (override in gas-analytics/index)", () => {
         assert.deepEqual(cheatcodeContent, { "test-entry": "42" });
       });
 
+      it("should not write when no existing file and no cheatcodes in current run", async () => {
+        const suiteResults = [
+          createSuiteResult("MyContract", [
+            createTestResultWithSnapshots(undefined),
+          ]),
+        ];
+
+        const { snapshotCheatcodesCheck } = await handleSnapshotCheck(
+          tmpDir,
+          suiteResults,
+        );
+
+        assert.equal(snapshotCheatcodesCheck.passed, true);
+        assert.equal(snapshotCheatcodesCheck.written, false);
+        assert.equal(snapshotCheatcodesCheck.comparison.added.length, 0);
+        assert.equal(snapshotCheatcodesCheck.comparison.removed.length, 0);
+        assert.equal(snapshotCheatcodesCheck.comparison.changed.length, 0);
+      });
+
       it("should pass when snapshot cheatcodes are unchanged", async () => {
         const suiteResults = [
           createSuiteResult("MyContract", [
