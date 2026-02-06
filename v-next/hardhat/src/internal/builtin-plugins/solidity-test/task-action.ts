@@ -7,6 +7,7 @@ import type {
   ObservabilityConfig,
   SolidityTestRunnerConfigArgs,
   TracingConfigWithBuffers,
+  SuiteResult,
 } from "@nomicfoundation/edr";
 
 import { finished } from "node:stream/promises";
@@ -158,7 +159,7 @@ const runSolidityTests: NewTaskActionFunction<TestActionArguments> = async (
     };
   }
 
-  const config: SolidityTestRunnerConfigArgs =
+  const testRunnerConfig: SolidityTestRunnerConfigArgs =
     await solidityTestConfigToSolidityTestRunnerConfigArgs({
       chainType,
       projectRoot: hre.config.paths.root,
@@ -182,7 +183,7 @@ const runSolidityTests: NewTaskActionFunction<TestActionArguments> = async (
     chainType,
     edrArtifacts.map(({ edrAtifact }) => edrAtifact),
     testSuiteIds,
-    config,
+    testRunnerConfig,
     tracingConfig,
     sourceNameToUserSourceName,
     options,
@@ -192,10 +193,11 @@ const runSolidityTests: NewTaskActionFunction<TestActionArguments> = async (
   let passed = 0;
   let skipped = 0;
   let failureOutput = "";
-
+  const suiteResults: SuiteResult[] = [];
   const testReporterStream = runStream
     .on("data", (event: TestEvent) => {
       if (event.type === "suite:done") {
+        suiteResults.push(event.data);
         if (event.data.testResults.some(({ status }) => status === "Failure")) {
           includesFailures = true;
         }
@@ -274,11 +276,14 @@ const runSolidityTests: NewTaskActionFunction<TestActionArguments> = async (
   console.log();
 
   return {
-    failed,
-    passed,
-    skipped,
-    todo: 0,
-    failureOutput,
+    testSummary: {
+      failed,
+      passed,
+      skipped,
+      todo: 0,
+      failureOutput,
+    },
+    suiteResults,
   };
 };
 

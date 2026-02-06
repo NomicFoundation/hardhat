@@ -35,10 +35,6 @@ interface SolidityTestConfigParams {
   generateGasReport: boolean;
 }
 
-function hexStringToBuffer(hexString: string): Buffer {
-  return Buffer.from(hexStringToBytes(hexString));
-}
-
 export function solidityTestConfigToRunOptions(
   config: SolidityTestConfig,
 ): RunOptions {
@@ -81,16 +77,12 @@ export async function solidityTestConfigToSolidityTestRunnerConfigArgs({
     })) ?? [],
   ].flat(1);
 
-  const sender: Buffer | undefined =
-    config.from === undefined ? undefined : hexStringToBuffer(config.from);
-  const txOrigin: Buffer | undefined =
-    config.txOrigin === undefined
-      ? undefined
-      : hexStringToBuffer(config.txOrigin);
-  const blockCoinbase: Buffer | undefined =
-    config.coinbase === undefined
-      ? undefined
-      : hexStringToBuffer(config.coinbase);
+  const hexToBytes = (hex: string | undefined) =>
+    hex !== undefined ? hexStringToBytes(hex) : undefined;
+
+  const sender = hexToBytes(config.from);
+  const txOrigin = hexToBytes(config.txOrigin);
+  const blockCoinbase = hexToBytes(config.coinbase);
 
   const localPredeploys =
     chainType === OPTIMISM_CHAIN_TYPE

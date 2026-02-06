@@ -17,7 +17,6 @@ import {
   median,
   getUserFqn,
   getFunctionName,
-  findDuplicates,
   roundTo,
   GasAnalyticsManagerImplementation,
 } from "../../../../src/internal/builtin-plugins/gas-analytics/gas-analytics-manager.js";
@@ -1054,31 +1053,6 @@ describe("gas-analytics-manager", () => {
 
       it("should handle simple names without parentheses", () => {
         assert.equal(getFunctionName("simple"), "simple");
-      });
-    });
-
-    describe("findDuplicates", () => {
-      it("should find duplicate strings", () => {
-        const result = findDuplicates(["a", "b", "a", "c", "b"]);
-        assert.deepEqual(result.sort(), ["a", "b"]);
-      });
-
-      it("should find duplicate numbers", () => {
-        const result = findDuplicates([1, 2, 1, 3, 2]);
-        assert.deepEqual(result.sort(), [1, 2]);
-      });
-
-      it("should return empty array when no duplicates", () => {
-        assert.deepEqual(findDuplicates(["a", "b", "c"]), []);
-        assert.deepEqual(findDuplicates([1, 2, 3]), []);
-      });
-
-      it("should handle empty array", () => {
-        assert.deepEqual(findDuplicates([]), []);
-      });
-
-      it("should handle single element", () => {
-        assert.deepEqual(findDuplicates(["a"]), []);
       });
     });
 
