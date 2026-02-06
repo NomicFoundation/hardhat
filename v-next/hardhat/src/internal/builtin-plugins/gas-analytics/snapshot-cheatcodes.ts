@@ -268,7 +268,11 @@ export async function checkSnapshotCheatcodes(
     previousSnapshotCheatcodes = await readSnapshotCheatcodes(basePath);
   } catch (error) {
     if (error instanceof FileNotFoundError) {
-      await writeSnapshotCheatcodes(basePath, snapshotCheatcodes);
+      // Only write if there are cheatcodes to save
+      const written = snapshotCheatcodes.size > 0;
+      if (written) {
+        await writeSnapshotCheatcodes(basePath, snapshotCheatcodes);
+      }
 
       return {
         passed: true,
@@ -277,7 +281,7 @@ export async function checkSnapshotCheatcodes(
           removed: [],
           changed: [],
         },
-        written: true,
+        written,
       };
     }
 
