@@ -395,6 +395,69 @@ describe("snapshot-cheatcodes", () => {
         "Snapshots directory should not be created when map is empty",
       );
     });
+
+    it("should delete orphaned snapshot files when groups are removed", async () => {
+      // First write two groups
+      const firstSnapshots: SnapshotCheatcodesWithMetadataMap = new Map<
+        string,
+        Record<string, { value: string; metadata: { source: string } }>
+      >([
+        [
+          "GroupA",
+          {
+            "entry-a": {
+              value: "100",
+              metadata: { source: "contracts/GroupA.t.sol" },
+            },
+          },
+        ],
+        [
+          "GroupB",
+          {
+            "entry-b": {
+              value: "200",
+              metadata: { source: "contracts/GroupB.t.sol" },
+            },
+          },
+        ],
+      ]);
+      await writeSnapshotCheatcodes(tmpDir, firstSnapshots);
+
+      // Verify both files exist
+      const groupAPath = getSnapshotCheatcodesPath(tmpDir, "GroupA.json");
+      const groupBPath = getSnapshotCheatcodesPath(tmpDir, "GroupB.json");
+      assert.equal(await exists(groupAPath), true, "GroupA.json should exist");
+      assert.equal(await exists(groupBPath), true, "GroupB.json should exist");
+
+      // Now write only GroupA (GroupB is removed)
+      const secondSnapshots: SnapshotCheatcodesWithMetadataMap = new Map<
+        string,
+        Record<string, { value: string; metadata: { source: string } }>
+      >([
+        [
+          "GroupA",
+          {
+            "entry-a": {
+              value: "100",
+              metadata: { source: "contracts/GroupA.t.sol" },
+            },
+          },
+        ],
+      ]);
+      await writeSnapshotCheatcodes(tmpDir, secondSnapshots);
+
+      // GroupA should still exist, GroupB should be deleted
+      assert.equal(
+        await exists(groupAPath),
+        true,
+        "GroupA.json should still exist",
+      );
+      assert.equal(
+        await exists(groupBPath),
+        false,
+        "GroupB.json should be deleted",
+      );
+    });
   });
 
   describe("readSnapshotCheatcodes", () => {
