@@ -97,7 +97,6 @@ export function logSnapshotResult(
   logger: typeof console.log = console.log,
 ): void {
   if (result.functionGasSnapshotsWritten) {
-    logger();
     logger(chalk.green("Function gas snapshots written successfully"));
     logger();
   }
@@ -126,8 +125,6 @@ export function logSnapshotCheckResult(
   { functionGasSnapshotsCheck, snapshotCheatcodesCheck }: SnapshotCheckResult,
   logger: typeof console.log = console.log,
 ): void {
-  logger();
-
   logger(
     functionGasSnapshotsCheck.passed && snapshotCheatcodesCheck.passed
       ? chalk.green("Snapshot check passed")

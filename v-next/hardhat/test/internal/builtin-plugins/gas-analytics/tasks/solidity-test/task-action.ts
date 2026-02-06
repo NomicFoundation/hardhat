@@ -832,8 +832,7 @@ describe("solidity-test/task-action (override in gas-analytics/index)", () => {
           logSnapshotCheckResult(result, logger);
 
           const text = getLoggerOutput();
-          const expected = `
-Snapshot check passed`;
+          const expected = `Snapshot check passed`;
 
           assert.equal(text, expected);
         });
@@ -865,8 +864,7 @@ Snapshot check passed`;
           logSnapshotCheckResult(result, logger);
 
           const text = getLoggerOutput();
-          const expected = `
-Snapshot check passed
+          const expected = `Snapshot check passed
 
 Function gas snapshots: 1 added
 
@@ -904,8 +902,7 @@ Function gas snapshots: 1 added
           logSnapshotCheckResult(result, logger);
 
           const text = getLoggerOutput();
-          const expected = `
-Snapshot check passed
+          const expected = `Snapshot check passed
 
 Function gas snapshots: 1 removed
 
@@ -959,8 +956,7 @@ Function gas snapshots: 1 removed
           logSnapshotCheckResult(result, logger);
 
           const text = getLoggerOutput();
-          const expected = `
-Snapshot check passed
+          const expected = `Snapshot check passed
 
 Function gas snapshots: 2 added, 1 removed
 
@@ -993,8 +989,7 @@ Function gas snapshots: 2 added, 1 removed
 
           const text = getLoggerOutput();
           // Note: "Function gas snapshots: " has a trailing space when there are no counts
-          const expected = `
-Snapshot check passed
+          const expected = `Snapshot check passed
 
 Function gas snapshots: 
 
@@ -1035,8 +1030,7 @@ Function gas snapshots:
           logSnapshotCheckResult(result, logger);
 
           const text = getLoggerOutput();
-          const expected = `
-Snapshot check passed
+          const expected = `Snapshot check passed
 
 Snapshot cheatcodes: 1 added
 
@@ -1078,8 +1072,7 @@ Snapshot cheatcodes: 1 added
           logSnapshotCheckResult(result, logger);
 
           const text = getLoggerOutput();
-          const expected = `
-Snapshot check passed
+          const expected = `Snapshot check passed
 
 Snapshot cheatcodes: 1 removed
 
@@ -1132,8 +1125,7 @@ Snapshot cheatcodes: 1 removed
           logSnapshotCheckResult(result, logger);
 
           const text = getLoggerOutput();
-          const expected = `
-Snapshot check passed
+          const expected = `Snapshot check passed
 
 Snapshot cheatcodes: 1 added, 2 removed
 
@@ -1166,8 +1158,7 @@ Snapshot cheatcodes: 1 added, 2 removed
 
           const text = getLoggerOutput();
           // Note: "Snapshot cheatcodes: " has a trailing space when there are no counts
-          const expected = `
-Snapshot check passed
+          const expected = `Snapshot check passed
 
 Snapshot cheatcodes: 
 
@@ -1195,8 +1186,7 @@ Snapshot cheatcodes:
 
           const text = getLoggerOutput();
           // Note: "Function gas snapshots: " has a trailing space when there are no counts
-          const expected = `
-Snapshot check passed
+          const expected = `Snapshot check passed
 
 Function gas snapshots: 
 
@@ -1242,8 +1232,7 @@ Snapshot cheatcodes:
           logSnapshotCheckResult(result, logger);
 
           const text = getLoggerOutput();
-          const expected = `
-Snapshot check failed
+          const expected = `Snapshot check failed
 
 Function gas snapshots: 1 changed
 
@@ -1287,8 +1276,7 @@ To update snapshots, run your tests with --snapshot
           logSnapshotCheckResult(result, logger);
 
           const text = getLoggerOutput();
-          const expected = `
-Snapshot check failed
+          const expected = `Snapshot check failed
 
 Snapshot cheatcodes: 1 changed
 
@@ -1345,8 +1333,7 @@ To update snapshots, run your tests with --snapshot
           logSnapshotCheckResult(result, logger);
 
           const text = getLoggerOutput();
-          const expected = `
-Snapshot check failed
+          const expected = `Snapshot check failed
 
 Function gas snapshots: 1 changed
 
@@ -1419,8 +1406,7 @@ To update snapshots, run your tests with --snapshot
           logSnapshotCheckResult(result, logger);
 
           const text = getLoggerOutput();
-          const expected = `
-Snapshot check failed
+          const expected = `Snapshot check failed
 
 Function gas snapshots: 2 changed, 1 added, 1 removed
 
@@ -1492,8 +1478,7 @@ To update snapshots, run your tests with --snapshot
           logSnapshotCheckResult(result, logger);
 
           const text = getLoggerOutput();
-          const expected = `
-Snapshot check failed
+          const expected = `Snapshot check failed
 
 Snapshot cheatcodes: 1 changed, 1 added, 1 removed
 
@@ -1580,8 +1565,7 @@ To update snapshots, run your tests with --snapshot
           logSnapshotCheckResult(result, logger);
 
           const text = getLoggerOutput();
-          const expected = `
-Snapshot check failed
+          const expected = `Snapshot check failed
 
 Function gas snapshots: 1 changed, 1 added, 1 removed
 
@@ -1660,8 +1644,7 @@ To update snapshots, run your tests with --snapshot
           logSnapshotCheckResult(result, logger);
 
           const text = getLoggerOutput();
-          const expected = `
-Snapshot check failed
+          const expected = `Snapshot check failed
 
 Function gas snapshots: 1 added, 1 removed
 
@@ -1730,8 +1713,7 @@ To update snapshots, run your tests with --snapshot
           logSnapshotCheckResult(result, logger);
 
           const text = getLoggerOutput();
-          const expected = `
-Snapshot check failed
+          const expected = `Snapshot check failed
 
 Function gas snapshots: 1 changed
 
@@ -1787,8 +1769,7 @@ To update snapshots, run your tests with --snapshot
           logSnapshotCheckResult(result, logger);
 
           const text = getLoggerOutput();
-          const expected = `
-Snapshot check failed
+          const expected = `Snapshot check failed
 
 Function gas snapshots: 
 
@@ -1841,8 +1822,7 @@ To update snapshots, run your tests with --snapshot
           logSnapshotCheckResult(result, logger);
 
           const text = getLoggerOutput();
-          const expected = `
-Snapshot check failed
+          const expected = `Snapshot check failed
 
 Function gas snapshots: 1 changed
 
