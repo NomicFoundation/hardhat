@@ -6,5 +6,11 @@
     "v-next/hardhat/templates",
     "v-next/config"
   ],
-  "bumps": []
+  "bumps": [
+    {
+      "package": "@nomicfoundation/hardhat-node-test-runner",
+      "peer": "hardhat",
+      "reason": "#7901 changed the way test results are returned from the in-built tasks"
+    }
+  ]
 }

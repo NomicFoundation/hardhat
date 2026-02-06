@@ -1,5 +1,7 @@
 ---
 "@nomicfoundation/hardhat-errors": patch
+"@nomicfoundation/hardhat-node-test-runner": patch
+"@nomicfoundation/hardhat-utils": patch
 "hardhat": patch
 ---
 
