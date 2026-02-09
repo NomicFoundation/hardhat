@@ -13,14 +13,17 @@ import { getRealPathSync } from "../../../src/internal/util/fs-utils";
 const projectRoot = getRealPathSync(".");
 
 export class MockFile {
+  public readonly name: string;
+  public readonly versionPragmas: string[];
+  public readonly libraryName: string | undefined;
   public readonly sourceName: string;
   public readonly absolutePath: string;
 
-  constructor(
-    public name: string,
-    public versionPragmas: string[],
-    public libraryName?: string
-  ) {
+  constructor(name: string, versionPragmas: string[], libraryName?: string) {
+    this.name = name;
+    this.versionPragmas = versionPragmas;
+    this.libraryName = libraryName;
+
     this.sourceName = `contracts/${name}.sol`;
     this.absolutePath = path.join(projectRoot, "contracts", `${name}.sol`);
   }
