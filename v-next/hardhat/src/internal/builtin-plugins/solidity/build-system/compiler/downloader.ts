@@ -153,7 +153,6 @@ export class CompilerDownloaderImplementation implements CompilerDownloader {
   readonly #compilersDir: string;
   readonly #downloadFunction: typeof download;
 
-  readonly #mutexCompiler = new MultiProcessMutex("compiler-download");
   readonly #mutexCompilerList = new MultiProcessMutex("compiler-download-list");
 
   /**
@@ -204,7 +203,9 @@ export class CompilerDownloaderImplementation implements CompilerDownloader {
     // This is because the mutex blocks access until a compiler has been fully downloaded, preventing any new process
     // from checking whether that version of the compiler exists. Without mutex it might incorrectly
     // return false, indicating that the compiler isn't present, even though it is currently being downloaded.
-    return this.#mutexCompiler.use(async () => {
+    const mutex = new MultiProcessMutex(`compiler-download-${version}`);
+
+    return mutex.use(async () => {
       const isCompilerDownloaded = await this.isCompilerDownloaded(version);
 
       if (isCompilerDownloaded === true) {
