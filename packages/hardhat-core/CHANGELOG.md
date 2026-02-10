@@ -1,5 +1,11 @@
 # hardhat
 
+## 2.28.5
+
+### Patch Changes
+
+- 6e1f27c: Added support for `eth_getProof` as a JSON-RPC method ([#7933](https://github.com/NomicFoundation/hardhat/pull/7933))
+
 ## 2.28.4
 
 ### Patch Changes
