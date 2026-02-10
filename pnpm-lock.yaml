@@ -1154,6 +1154,15 @@ importers:
         specifier: ~5.8.0
         version: 5.8.3
 
+  v-next/hardhat-shapshosts-instability:
+    devDependencies:
+      forge-std:
+        specifier: github:foundry-rs/forge-std#v1.9.4
+        version: https://codeload.github.com/foundry-rs/forge-std/tar.gz/1eea5bae12ae557d589f9f0f0edae2faa47cb262
+      hardhat:
+        specifier: workspace:^3.1.7
+        version: link:../hardhat
+
   v-next/hardhat-test-utils:
     dependencies:
       '@nomicfoundation/hardhat-errors':

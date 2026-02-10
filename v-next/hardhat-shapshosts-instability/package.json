@@ -1,0 +1,9 @@
+{
+  "name": "snapshots-repro",
+  "version": "1.0.0",
+  "type": "module",
+  "devDependencies": {
+    "forge-std": "github:foundry-rs/forge-std#v1.9.4",
+    "hardhat": "workspace:^3.1.7"
+  }
+}

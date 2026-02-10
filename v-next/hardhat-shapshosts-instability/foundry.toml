@@ -1,0 +1,9 @@
+[profile.default]
+solc_version = "0.8.28"
+src = "src"
+out = "artifacts"
+libs = ["node_modules"]
+remappings = ["forge-std/=node_modules/forge-std/src/"]
+evm_version = "cancun"
+
+# See more config options https://github.com/foundry-rs/foundry/blob/master/crates/config/README.md#all-options
