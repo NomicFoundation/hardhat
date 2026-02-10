@@ -35,7 +35,7 @@
     "@nomicfoundation/hardhat-network-helpers": "workspace:^3.0.3",
     "@nomicfoundation/hardhat-node-test-runner": "workspace:^3.0.8",
     "@nomicfoundation/hardhat-typechain": "workspace:^3.0.2",
-    "@nomicfoundation/hardhat-verify": "workspace:^3.0.9",
+    "@nomicfoundation/hardhat-verify": "workspace:^3.0.10",
     "@nomicfoundation/hardhat-viem": "workspace:^3.0.2",
     "@nomicfoundation/hardhat-viem-assertions": "workspace:^3.0.5",
     "@openzeppelin/contracts": "5.1.0",

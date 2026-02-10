@@ -87,7 +87,7 @@ importers:
         specifier: workspace:^3.0.2
         version: link:../hardhat-typechain
       '@nomicfoundation/hardhat-verify':
-        specifier: workspace:^3.0.9
+        specifier: workspace:^3.0.10
         version: link:../hardhat-verify
       '@nomicfoundation/hardhat-viem':
         specifier: workspace:^3.0.2
@@ -1727,7 +1727,7 @@ importers:
         specifier: workspace:^3.0.8
         version: link:../../../../hardhat-node-test-runner
       '@nomicfoundation/hardhat-verify':
-        specifier: workspace:^3.0.9
+        specifier: workspace:^3.0.10
         version: link:../../../../hardhat-verify
       '@nomicfoundation/hardhat-viem':
         specifier: workspace:^3.0.2
@@ -1782,7 +1782,7 @@ importers:
         specifier: workspace:^3.0.2
         version: link:../../../../hardhat-typechain
       '@nomicfoundation/hardhat-verify':
-        specifier: workspace:^3.0.9
+        specifier: workspace:^3.0.10
         version: link:../../../../hardhat-verify
       '@nomicfoundation/ignition-core':
         specifier: workspace:^3.0.7

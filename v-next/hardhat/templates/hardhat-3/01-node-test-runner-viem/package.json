@@ -20,7 +20,7 @@
     "@nomicfoundation/hardhat-node-test-runner": "workspace:^3.0.8",
     "@nomicfoundation/hardhat-viem": "workspace:^3.0.2",
     "@nomicfoundation/hardhat-viem-assertions": "workspace:^3.0.5",
-    "@nomicfoundation/hardhat-verify": "workspace:^3.0.9",
+    "@nomicfoundation/hardhat-verify": "workspace:^3.0.10",
     "@nomicfoundation/ignition-core": "workspace:^3.0.7"
   }
 }

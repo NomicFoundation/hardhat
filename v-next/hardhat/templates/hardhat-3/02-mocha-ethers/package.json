@@ -28,7 +28,7 @@
     "@nomicfoundation/hardhat-mocha": "workspace:^3.0.9",
     "@nomicfoundation/hardhat-network-helpers": "workspace:^3.0.3",
     "@nomicfoundation/hardhat-typechain": "workspace:^3.0.2",
-    "@nomicfoundation/hardhat-verify": "workspace:^3.0.9",
+    "@nomicfoundation/hardhat-verify": "workspace:^3.0.10",
     "@nomicfoundation/ignition-core": "workspace:^3.0.7"
   }
 }
