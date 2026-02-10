@@ -24,6 +24,7 @@ import { hexStringToBytes } from "@nomicfoundation/hardhat-utils/hex";
 import chalk from "chalk";
 
 import { DEFAULT_VERBOSITY, OPTIMISM_CHAIN_TYPE } from "../../constants.js";
+import { hardhatHardforkToEdrSpecId } from "../network-manager/edr/utils/convert-to-edr.js";
 
 import { type Colorizer, formatArtifactId } from "./formatters.js";
 
@@ -97,10 +98,11 @@ export async function solidityTestConfigToSolidityTestRunnerConfigArgs({
       : hexStringToBuffer(config.coinbase);
 
   const resolvedHardfork =
-    hardfork ??
-    (chainType === OPTIMISM_CHAIN_TYPE
-      ? opHardforkToString(opLatestHardfork())
-      : l1HardforkToString(l1HardforkLatest()));
+    hardfork !== undefined
+      ? hardhatHardforkToEdrSpecId(hardfork, chainType)
+      : chainType === OPTIMISM_CHAIN_TYPE
+        ? opHardforkToString(opLatestHardfork())
+        : l1HardforkToString(l1HardforkLatest());
 
   const localPredeploys =
     chainType === OPTIMISM_CHAIN_TYPE

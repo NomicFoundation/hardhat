@@ -4,7 +4,16 @@ import type { HardhatRuntimeEnvironment } from "../../../../src/types/hre.js";
 import assert from "node:assert/strict";
 import { before, describe, it } from "node:test";
 
-import { CollectStackTraces, IncludeTraces } from "@nomicfoundation/edr";
+import {
+  CANCUN,
+  CollectStackTraces,
+  ECOTONE,
+  IncludeTraces,
+  l1HardforkLatest,
+  l1HardforkToString,
+  opHardforkToString,
+  opLatestHardfork,
+} from "@nomicfoundation/edr";
 
 import { createHardhatRuntimeEnvironment } from "../../../../src/hre.js";
 import { resolveSolidityTestForkingConfig } from "../../../../src/internal/builtin-plugins/solidity-test/config.js";
@@ -12,6 +21,8 @@ import { solidityTestConfigToSolidityTestRunnerConfigArgs } from "../../../../sr
 import {
   DEFAULT_VERBOSITY,
   GENERIC_CHAIN_TYPE,
+  L1_CHAIN_TYPE,
+  OPTIMISM_CHAIN_TYPE,
 } from "../../../../src/internal/constants.js";
 import { resolveConfigurationVariable } from "../../../../src/internal/core/configuration-variables.js";
 
@@ -184,5 +195,61 @@ describe("solidityTestConfigToSolidityTestRunnerConfigArgs", () => {
     });
 
     assert.equal(args.generateGasReport, false);
+  });
+
+  describe("hardfork parameter", () => {
+    it("should use provided hardfork for EDR", async () => {
+      const args = await solidityTestConfigToSolidityTestRunnerConfigArgs({
+        chainType: L1_CHAIN_TYPE,
+        projectRoot: process.cwd(),
+        hardfork: "cancun",
+        config: {},
+        verbosity: 2,
+        generateGasReport: false,
+      });
+
+      assert.equal(args.hardfork, CANCUN);
+    });
+
+    it("should use provided hardfork for OP", async () => {
+      const args = await solidityTestConfigToSolidityTestRunnerConfigArgs({
+        chainType: OPTIMISM_CHAIN_TYPE,
+        projectRoot: process.cwd(),
+        hardfork: "ecotone",
+        config: {},
+        verbosity: 2,
+        generateGasReport: false,
+      });
+
+      assert.equal(args.hardfork, ECOTONE);
+    });
+
+    it("should use latest L1 hardfork when hardfork is undefined", async () => {
+      const args = await solidityTestConfigToSolidityTestRunnerConfigArgs({
+        chainType: L1_CHAIN_TYPE,
+        projectRoot: process.cwd(),
+        hardfork: undefined,
+        config: {},
+        verbosity: 2,
+        generateGasReport: false,
+      });
+
+      const expectedHardfork = l1HardforkToString(l1HardforkLatest());
+      assert.equal(args.hardfork, expectedHardfork);
+    });
+
+    it("should use latest OP hardfork when hardfork is undefined", async () => {
+      const args = await solidityTestConfigToSolidityTestRunnerConfigArgs({
+        chainType: OPTIMISM_CHAIN_TYPE,
+        projectRoot: process.cwd(),
+        hardfork: undefined,
+        config: {},
+        verbosity: 2,
+        generateGasReport: false,
+      });
+
+      const expectedHardfork = opHardforkToString(opLatestHardfork());
+      assert.equal(args.hardfork, expectedHardfork);
+    });
   });
 });
