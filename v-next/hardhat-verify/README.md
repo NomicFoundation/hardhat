@@ -95,10 +95,10 @@ If you're building a Hardhat plugin that needs direct access to the Etherscan AP
 import type { HardhatRuntimeEnvironment } from "hardhat/types";
 
 export async function myCustomVerificationTask(hre: HardhatRuntimeEnvironment) {
-  const { verifier } = await hre.network.connect();
+  const { verification } = await hre.network.connect();
 
   // Access Etherscan instance
-  const etherscan = verifier.etherscan;
+  const etherscan = verification.etherscan;
 
   // Check if a contract is already verified
   const isVerified = await etherscan.isVerified("0x1234...");
@@ -131,10 +131,10 @@ export async function myCustomVerificationTask(hre: HardhatRuntimeEnvironment) {
 For API endpoints not covered by the standard methods, use `customApiCall()`:
 
 ```typescript
-const { verifier } = await hre.network.connect();
+const { verification } = await hre.network.connect();
 
 // Make a custom API call (apikey and chainid are added automatically)
-const response = await verifier.etherscan.customApiCall({
+const response = await verification.etherscan.customApiCall({
   module: "contract",
   action: "getsourcecode",
   address: "0x1234...",

@@ -1,6 +1,6 @@
 import type { LazyEtherscan } from "./internal/etherscan.types.js";
 
-export interface VerifierHelpers {
+export interface VerificationHelpers {
   readonly etherscan: LazyEtherscan;
 }
 

@@ -86,8 +86,8 @@ export type EtherscanCustomApiCallOptions =
  *
  * @example
  * ```typescript
- * const { verifier } = await hre.network.connect();
- * const etherscan = verifier.etherscan;
+ * const { verification } = await hre.network.connect();
+ * const etherscan = verification.etherscan;
  *
  * // Use Etherscan methods
  * const isVerified = await etherscan.isVerified("0x1234...");
@@ -241,7 +241,7 @@ export interface LazyEtherscan {
    *
    * @example
    * ```typescript
-   * const response = await verifier.etherscan.customApiCall({
+   * const response = await verification.etherscan.customApiCall({
    *   module: "contract",
    *   action: "getsourcecode",
    *   address: "0x1234..."

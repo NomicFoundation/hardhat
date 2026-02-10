@@ -22,19 +22,22 @@ describe("hook-handlers/network", () => {
       connection = await hre.network.connect();
     });
 
-    it("should extend connection with verifier property", () => {
-      assert.ok(isObject(connection.verifier), "verifier should be defined");
+    it("should extend connection with verification property", () => {
+      assert.ok(
+        isObject(connection.verification),
+        "verification should be defined",
+      );
     });
 
-    it("should have verifier with etherscan property", () => {
+    it("should have verification with etherscan property", () => {
       assert.ok(
-        isObject(connection.verifier.etherscan),
-        "verifier.etherscan should be defined",
+        isObject(connection.verification.etherscan),
+        "verification.etherscan should be defined",
       );
     });
 
     it("should have etherscan with all getter methods", () => {
-      const { etherscan } = connection.verifier;
+      const { etherscan } = connection.verification;
 
       assert.equal(
         typeof etherscan.getChainId,
@@ -69,7 +72,7 @@ describe("hook-handlers/network", () => {
     });
 
     it("should have etherscan with all verification methods", () => {
-      const { etherscan } = connection.verifier;
+      const { etherscan } = connection.verification;
 
       assert.equal(
         typeof etherscan.isVerified,
@@ -93,7 +96,7 @@ describe("hook-handlers/network", () => {
       );
     });
 
-    it("should create independent verifier instances for each connection", async () => {
+    it("should create independent verification instances for each connection", async () => {
       const hre = await createHardhatRuntimeEnvironment({
         plugins: [hardhatVerify],
       });
@@ -101,9 +104,9 @@ describe("hook-handlers/network", () => {
       const connection2 = await hre.network.connect();
 
       assert.notEqual(
-        connection1.verifier,
-        connection2.verifier,
-        "Each connection should have its own verifier instance",
+        connection1.verification,
+        connection2.verification,
+        "Each connection should have its own verification instance",
       );
     });
   });

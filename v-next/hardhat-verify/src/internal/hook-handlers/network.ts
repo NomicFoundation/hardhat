@@ -8,9 +8,9 @@ export default async (): Promise<Partial<NetworkHooks>> => ({
   ) {
     const connection = await next(context);
 
-    const { Verifier } = await import("../verifier.js");
+    const { Verification } = await import("../verification-helpers.js");
 
-    connection.verifier = new Verifier(
+    connection.verification = new Verification(
       connection.provider,
       connection.networkName,
       context.config.chainDescriptors,
