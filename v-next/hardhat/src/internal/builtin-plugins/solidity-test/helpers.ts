@@ -17,6 +17,8 @@ import {
   IncludeTraces,
   FsAccessPermission,
   CollectStackTraces,
+  opHardforkToString,
+  l1HardforkToString,
 } from "@nomicfoundation/edr";
 import { hexStringToBytes } from "@nomicfoundation/hardhat-utils/hex";
 import chalk from "chalk";
@@ -28,6 +30,7 @@ import { type Colorizer, formatArtifactId } from "./formatters.js";
 interface SolidityTestConfigParams {
   chainType: ChainType;
   projectRoot: string;
+  hardfork?: string;
   config: SolidityTestConfig;
   verbosity: number;
   observability?: ObservabilityConfig;
@@ -48,6 +51,7 @@ export function solidityTestConfigToRunOptions(
 export async function solidityTestConfigToSolidityTestRunnerConfigArgs({
   chainType,
   projectRoot,
+  hardfork,
   config,
   verbosity,
   observability,
@@ -92,6 +96,12 @@ export async function solidityTestConfigToSolidityTestRunnerConfigArgs({
       ? undefined
       : hexStringToBuffer(config.coinbase);
 
+  const resolvedHardfork =
+    hardfork ??
+    (chainType === OPTIMISM_CHAIN_TYPE
+      ? opHardforkToString(opLatestHardfork())
+      : l1HardforkToString(l1HardforkLatest()));
+
   const localPredeploys =
     chainType === OPTIMISM_CHAIN_TYPE
       ? opGenesisState(opLatestHardfork())
@@ -131,6 +141,7 @@ export async function solidityTestConfigToSolidityTestRunnerConfigArgs({
 
   return {
     projectRoot,
+    hardfork: resolvedHardfork,
     ...config,
     fsPermissions,
     localPredeploys,
