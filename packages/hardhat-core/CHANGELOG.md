@@ -1,5 +1,11 @@
 # hardhat
 
+## 2.28.6
+
+### Patch Changes
+
+- f6d5437: Fixed an issue affecting the hardhat-tracer community plugin causing traces to stop being reported after calling `hardhat_reset`
+
 ## 2.28.5
 
 ### Patch Changes
