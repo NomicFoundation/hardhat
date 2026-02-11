@@ -173,7 +173,7 @@ EDGE CASES
   The tool handles several edge cases when reverting peer dependencies:
 
   - Excluded packages: Packages in excludedFolders are skipped entirely and
-    logged. This is useful for example projects, or templates.
+    logged. This is useful for example projects or templates.
 
   - New packages: If a package didn't exist in the last commit and has peer
     dependencies, the tool will fail. New packages are not supported.
