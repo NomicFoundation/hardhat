@@ -173,7 +173,7 @@ EDGE CASES
   The tool handles several edge cases when reverting peer dependencies:
 
   - Excluded packages: Packages in excludedFolders are skipped entirely and
-    logged. This is useful for example projects, templates, or archived code.
+    logged. This is useful for example projects, or templates.
 
   - New packages: If a package didn't exist in the last commit and has peer
     dependencies, the tool will fail. New packages are not supported.
@@ -207,7 +207,7 @@ CONFIGURATION
   Create ${CONFIG_FILE} in the repository root:
 
   {
-    "excludedFolders": ["archive", "v-next/example-project"],
+    "excludedFolders": ["v-next/example-project"],
     "bumps": [
       {
         "package": "@nomicfoundation/hardhat-ignition-ethers",
