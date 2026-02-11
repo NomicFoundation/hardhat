@@ -11,12 +11,12 @@ import type {
 
 import {
   opGenesisState,
-  opLatestHardfork,
   l1GenesisState,
-  l1HardforkLatest,
   IncludeTraces,
   FsAccessPermission,
   CollectStackTraces,
+  opHardforkFromString,
+  l1HardforkFromString,
 } from "@nomicfoundation/edr";
 import { hexStringToBytes } from "@nomicfoundation/hardhat-utils/hex";
 import chalk from "chalk";
@@ -103,8 +103,8 @@ export async function solidityTestConfigToSolidityTestRunnerConfigArgs({
 
   const localPredeploys =
     chainType === OPTIMISM_CHAIN_TYPE
-      ? opGenesisState(opLatestHardfork())
-      : l1GenesisState(l1HardforkLatest());
+      ? opGenesisState(opHardforkFromString(resolvedHardfork))
+      : l1GenesisState(l1HardforkFromString(resolvedHardfork));
 
   let includeTraces: IncludeTraces = IncludeTraces.None;
   if (verbosity >= 5) {
