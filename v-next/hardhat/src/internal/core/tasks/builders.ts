@@ -19,6 +19,7 @@ import type {
   TaskOverrideAction,
   MissingActionState,
   ActionDefinedState,
+  DuplicateActionError,
 } from "../../../types/tasks.js";
 
 import { HardhatError } from "@nomicfoundation/hardhat-errors";
@@ -91,9 +92,29 @@ export class NewTaskDefinitionBuilderImplementation<
   }
 
   public setAction(
+    this: NewTaskDefinitionBuilder<TaskArgumentsT, MissingActionState, "NONE">,
     action: LazyActionObject<NewTaskActionFunction<TaskArgumentsT>>,
-  ): NewTaskDefinitionBuilder<TaskArgumentsT, ActionDefinedState, "FILE"> {
-    if (this.#inlineAction !== undefined) {
+  ): NewTaskDefinitionBuilder<TaskArgumentsT, ActionDefinedState, "FILE">;
+  public setAction(
+    this: NewTaskDefinitionBuilder<
+      TaskArgumentsT,
+      ActionDefinedState,
+      "FILE" | "INLINE"
+    >,
+    action: LazyActionObject<NewTaskActionFunction<TaskArgumentsT>>,
+  ): NewTaskDefinitionBuilder<
+    TaskArgumentsT,
+    DuplicateActionError,
+    "FILE" | "INLINE"
+  >;
+  public setAction(
+    action: LazyActionObject<NewTaskActionFunction<TaskArgumentsT>>,
+  ): NewTaskDefinitionBuilder<
+    TaskArgumentsT,
+    ActionDefinedState | DuplicateActionError,
+    "FILE" | "INLINE"
+  > {
+    if (this.#action !== undefined || this.#inlineAction !== undefined) {
       throw new HardhatError(
         HardhatError.ERRORS.CORE.TASK_DEFINITIONS.ACTION_AND_INLINE_ACTION_CONFLICT,
         {
@@ -105,8 +126,9 @@ export class NewTaskDefinitionBuilderImplementation<
     this.#action = action;
 
     /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions
-    -- Cast to update the builder state, ensuring via the interface constraints that setAction or
-    setInlineAction cannot be called again. It also set the action type to FILE. */
+    -- Cast to update the builder state. The interface defines multiple overloads
+    to provide clear error messages for duplicate action calls, but at runtime we
+    always cast to ActionDefinedState with the appropriate ActionTypeT. */
     return this as NewTaskDefinitionBuilder<
       TaskArgumentsT,
       ActionDefinedState,
@@ -115,9 +137,29 @@ export class NewTaskDefinitionBuilderImplementation<
   }
 
   public setInlineAction(
+    this: NewTaskDefinitionBuilder<TaskArgumentsT, MissingActionState, "NONE">,
     inlineAction: NewTaskActionFunction<TaskArgumentsT>,
-  ): NewTaskDefinitionBuilder<TaskArgumentsT, ActionDefinedState, "INLINE"> {
-    if (this.#action !== undefined) {
+  ): NewTaskDefinitionBuilder<TaskArgumentsT, ActionDefinedState, "INLINE">;
+  public setInlineAction(
+    this: NewTaskDefinitionBuilder<
+      TaskArgumentsT,
+      ActionDefinedState,
+      "FILE" | "INLINE"
+    >,
+    inlineAction: NewTaskActionFunction<TaskArgumentsT>,
+  ): NewTaskDefinitionBuilder<
+    TaskArgumentsT,
+    DuplicateActionError,
+    "FILE" | "INLINE"
+  >;
+  public setInlineAction(
+    inlineAction: NewTaskActionFunction<TaskArgumentsT>,
+  ): NewTaskDefinitionBuilder<
+    TaskArgumentsT,
+    ActionDefinedState | DuplicateActionError,
+    "FILE" | "INLINE"
+  > {
+    if (this.#action !== undefined || this.#inlineAction !== undefined) {
       throw new HardhatError(
         HardhatError.ERRORS.CORE.TASK_DEFINITIONS.ACTION_AND_INLINE_ACTION_CONFLICT,
         {
@@ -129,8 +171,9 @@ export class NewTaskDefinitionBuilderImplementation<
     this.#inlineAction = inlineAction;
 
     /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions
-    -- Cast to update the builder state, ensuring via the interface constraints that setAction or
-    setInlineAction cannot be called again. It also set the action type to INLINE. */
+    -- Cast to update the builder state. The interface defines multiple overloads
+    to provide clear error messages for duplicate action calls, but at runtime we
+    always cast to ActionDefinedState with the appropriate ActionTypeT. */
     return this as NewTaskDefinitionBuilder<
       TaskArgumentsT,
       ActionDefinedState,
@@ -384,9 +427,33 @@ export class TaskOverrideDefinitionBuilderImplementation<
   }
 
   public setAction(
+    this: TaskOverrideDefinitionBuilder<
+      TaskArgumentsT,
+      MissingActionState,
+      "NONE"
+    >,
     action: LazyActionObject<TaskOverrideActionFunction<TaskArgumentsT>>,
-  ): TaskOverrideDefinitionBuilder<TaskArgumentsT, ActionDefinedState, "FILE"> {
-    if (this.#inlineAction !== undefined) {
+  ): TaskOverrideDefinitionBuilder<TaskArgumentsT, ActionDefinedState, "FILE">;
+  public setAction(
+    this: TaskOverrideDefinitionBuilder<
+      TaskArgumentsT,
+      ActionDefinedState,
+      "FILE" | "INLINE"
+    >,
+    action: LazyActionObject<TaskOverrideActionFunction<TaskArgumentsT>>,
+  ): TaskOverrideDefinitionBuilder<
+    TaskArgumentsT,
+    DuplicateActionError,
+    "FILE" | "INLINE"
+  >;
+  public setAction(
+    action: LazyActionObject<TaskOverrideActionFunction<TaskArgumentsT>>,
+  ): TaskOverrideDefinitionBuilder<
+    TaskArgumentsT,
+    ActionDefinedState | DuplicateActionError,
+    "FILE" | "INLINE"
+  > {
+    if (this.#action !== undefined || this.#inlineAction !== undefined) {
       throw new HardhatError(
         HardhatError.ERRORS.CORE.TASK_DEFINITIONS.ACTION_AND_INLINE_ACTION_CONFLICT,
         {
@@ -398,8 +465,9 @@ export class TaskOverrideDefinitionBuilderImplementation<
     this.#action = action;
 
     /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions
-    -- Cast to update the builder state, ensuring via the interface constraints that setAction or
-    setInlineAction cannot be called again. It also set the action type to FILE. */
+    -- Cast to update the builder state. The interface defines multiple overloads
+    to provide clear error messages for duplicate action calls, but at runtime we
+    always cast to ActionDefinedState with the appropriate ActionTypeT. */
     return this as TaskOverrideDefinitionBuilder<
       TaskArgumentsT,
       ActionDefinedState,
@@ -408,13 +476,37 @@ export class TaskOverrideDefinitionBuilderImplementation<
   }
 
   public setInlineAction(
+    this: TaskOverrideDefinitionBuilder<
+      TaskArgumentsT,
+      MissingActionState,
+      "NONE"
+    >,
     inlineAction: TaskOverrideActionFunction<TaskArgumentsT>,
   ): TaskOverrideDefinitionBuilder<
     TaskArgumentsT,
     ActionDefinedState,
     "INLINE"
+  >;
+  public setInlineAction(
+    this: TaskOverrideDefinitionBuilder<
+      TaskArgumentsT,
+      ActionDefinedState,
+      "FILE" | "INLINE"
+    >,
+    inlineAction: TaskOverrideActionFunction<TaskArgumentsT>,
+  ): TaskOverrideDefinitionBuilder<
+    TaskArgumentsT,
+    DuplicateActionError,
+    "FILE" | "INLINE"
+  >;
+  public setInlineAction(
+    inlineAction: TaskOverrideActionFunction<TaskArgumentsT>,
+  ): TaskOverrideDefinitionBuilder<
+    TaskArgumentsT,
+    ActionDefinedState | DuplicateActionError,
+    "FILE" | "INLINE"
   > {
-    if (this.#action !== undefined) {
+    if (this.#action !== undefined || this.#inlineAction !== undefined) {
       throw new HardhatError(
         HardhatError.ERRORS.CORE.TASK_DEFINITIONS.ACTION_AND_INLINE_ACTION_CONFLICT,
         {
@@ -426,8 +518,9 @@ export class TaskOverrideDefinitionBuilderImplementation<
     this.#inlineAction = inlineAction;
 
     /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions
-    -- Cast to update the builder state, ensuring via the interface constraints that setAction or
-    setInlineAction cannot be called again. It also set the action type to INLINE. */
+    -- Cast to update the builder state. The interface defines multiple overloads
+    to provide clear error messages for duplicate action calls, but at runtime we
+    always cast to ActionDefinedState with the appropriate ActionTypeT. */
     return this as TaskOverrideDefinitionBuilder<
       TaskArgumentsT,
       ActionDefinedState,

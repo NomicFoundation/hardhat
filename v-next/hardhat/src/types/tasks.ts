@@ -178,6 +178,13 @@ export type MissingActionState = "You forgot to add an action to the task";
 export type ActionDefinedState = "Action defined";
 
 /**
+ * Error state used when the user tries to define multiple actions on the same task.
+ * This includes calling setAction twice, setInlineAction twice, or mixing both.
+ */
+export type DuplicateActionError =
+  "Cannot define multiple actions on the same task";
+
+/**
  * A builder for creating EmptyTaskDefinitions.
  */
 export interface EmptyTaskDefinitionBuilder {
@@ -200,7 +207,8 @@ export interface NewTaskDefinitionBuilder<
   TaskArgumentsT extends TaskArguments = TaskArguments,
   ActionStateT extends
     | MissingActionState
-    | ActionDefinedState = MissingActionState,
+    | ActionDefinedState
+    | DuplicateActionError = MissingActionState,
   ActionTypeT extends "FILE" | "INLINE" | "NONE" = "NONE",
 > {
   /**
@@ -223,21 +231,65 @@ export interface NewTaskDefinitionBuilder<
    *
    * Note that plugins can only use the inline function form for development
    * purposes.
+   *
+   * @remarks
+   * This method can only be called once per task definition. Calling it multiple
+   * times will result in a TypeScript error at compile time and a runtime error
+   * if the check is bypassed.
+   *
+   * This method cannot be used together with {@link setInlineAction} on the same
+   * task. Use one or the other.
    */
+  // Overload 1: Valid call when no action is defined
   setAction(
-    this: NewTaskDefinitionBuilder<TaskArgumentsT, MissingActionState, any>,
+    this: NewTaskDefinitionBuilder<TaskArgumentsT, MissingActionState, "NONE">,
     action: LazyActionObject<NewTaskActionFunction<TaskArgumentsT>>,
   ): NewTaskDefinitionBuilder<TaskArgumentsT, ActionDefinedState, "FILE">;
+  // Overload 2: Error when trying to define a second action
+  setAction(
+    this: NewTaskDefinitionBuilder<
+      TaskArgumentsT,
+      ActionDefinedState,
+      "FILE" | "INLINE"
+    >,
+    action: LazyActionObject<NewTaskActionFunction<TaskArgumentsT>>,
+  ): NewTaskDefinitionBuilder<
+    TaskArgumentsT,
+    DuplicateActionError,
+    "FILE" | "INLINE"
+  >;
 
   /**
    * Sets the inline action of the task.
    *
    * It must be provided as a function.
+   *
+   * @remarks
+   * This method can only be called once per task definition. Calling it multiple
+   * times will result in a TypeScript error at compile time and a runtime error
+   * if the check is bypassed.
+   *
+   * This method cannot be used together with {@link setAction} on the same
+   * task. Use one or the other.
    */
+  // Overload 1: Valid call when no action is defined
   setInlineAction(
-    this: NewTaskDefinitionBuilder<TaskArgumentsT, MissingActionState, any>,
+    this: NewTaskDefinitionBuilder<TaskArgumentsT, MissingActionState, "NONE">,
     inlineAction: NewTaskActionFunction<TaskArgumentsT>,
   ): NewTaskDefinitionBuilder<TaskArgumentsT, ActionDefinedState, "INLINE">;
+  // Overload 2: Error when trying to define a second action
+  setInlineAction(
+    this: NewTaskDefinitionBuilder<
+      TaskArgumentsT,
+      ActionDefinedState,
+      "FILE" | "INLINE"
+    >,
+    inlineAction: NewTaskActionFunction<TaskArgumentsT>,
+  ): NewTaskDefinitionBuilder<
+    TaskArgumentsT,
+    DuplicateActionError,
+    "FILE" | "INLINE"
+  >;
 
   /**
    * Adds an option to the task.
@@ -380,7 +432,8 @@ export interface TaskOverrideDefinitionBuilder<
   TaskArgumentsT extends TaskArguments = TaskArguments,
   ActionStateT extends
     | MissingActionState
-    | ActionDefinedState = MissingActionState,
+    | ActionDefinedState
+    | DuplicateActionError = MissingActionState,
   ActionTypeT extends "FILE" | "INLINE" | "NONE" = "NONE",
 > {
   /**
@@ -400,31 +453,59 @@ export interface TaskOverrideDefinitionBuilder<
    *
    * @see NewTaskDefinitionBuilder.setAction
    */
+  // Overload 1: Valid call when no action is defined
   setAction(
     this: TaskOverrideDefinitionBuilder<
       TaskArgumentsT,
       MissingActionState,
-      any
+      "NONE"
     >,
     action: LazyActionObject<TaskOverrideActionFunction<TaskArgumentsT>>,
   ): TaskOverrideDefinitionBuilder<TaskArgumentsT, ActionDefinedState, "FILE">;
+  // Overload 2: Error when trying to define a second action
+  setAction(
+    this: TaskOverrideDefinitionBuilder<
+      TaskArgumentsT,
+      ActionDefinedState,
+      "FILE" | "INLINE"
+    >,
+    action: LazyActionObject<TaskOverrideActionFunction<TaskArgumentsT>>,
+  ): TaskOverrideDefinitionBuilder<
+    TaskArgumentsT,
+    DuplicateActionError,
+    "FILE" | "INLINE"
+  >;
 
   /**
    * Sets a new inline action for the task.
    *
    * @see NewTaskDefinitionBuilder.setInlineAction
    */
+  // Overload 1: Valid call when no action is defined
   setInlineAction(
     this: TaskOverrideDefinitionBuilder<
       TaskArgumentsT,
       MissingActionState,
-      any
+      "NONE"
     >,
     inlineAction: TaskOverrideActionFunction<TaskArgumentsT>,
   ): TaskOverrideDefinitionBuilder<
     TaskArgumentsT,
     ActionDefinedState,
     "INLINE"
+  >;
+  // Overload 2: Error when trying to define a second action
+  setInlineAction(
+    this: TaskOverrideDefinitionBuilder<
+      TaskArgumentsT,
+      ActionDefinedState,
+      "FILE" | "INLINE"
+    >,
+    inlineAction: TaskOverrideActionFunction<TaskArgumentsT>,
+  ): TaskOverrideDefinitionBuilder<
+    TaskArgumentsT,
+    DuplicateActionError,
+    "FILE" | "INLINE"
   >;
 
   /**
