@@ -12,7 +12,7 @@
     },
     "excludedFolders": {
       "type": "array",
-      "description": "Package folders to skip (relative to repo root). Useful for example projects, or templates.",
+      "description": "Package folders to skip (relative to repo root). Useful for example projects or templates.",
       "items": {
         "type": "string"
       },
