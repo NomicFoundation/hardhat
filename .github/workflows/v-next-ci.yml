@@ -283,10 +283,32 @@ jobs:
           key: solc-${{ runner.os }}-${{ runner.arch }}-${{ github.sha }}
           restore-keys: |
             solc-${{ runner.os }}-${{ runner.arch }}-
+      - name: List cached compilers (before tests)
+        if: steps.compiler-cache.outputs.path != ''
+        shell: bash
+        run: |
+          echo "Cache path: ${{ steps.compiler-cache.outputs.path }}"
+          if [ -d "${{ steps.compiler-cache.outputs.path }}" ]; then
+            echo "Cached compilers:"
+            find "${{ steps.compiler-cache.outputs.path }}" -type f | sort
+          else
+            echo "No compiler cache directory found"
+          fi
       - name: Run tests
         env:
           __DO_NOT_USE_IS_HARDHAT_CI: true
         run: pnpm run --if-present test
+      - name: List cached compilers (after tests)
+        if: steps.compiler-cache.outputs.path != ''
+        shell: bash
+        run: |
+          echo "Cache path: ${{ steps.compiler-cache.outputs.path }}"
+          if [ -d "${{ steps.compiler-cache.outputs.path }}" ]; then
+            echo "Cached compilers:"
+            find "${{ steps.compiler-cache.outputs.path }}" -type f | sort
+          else
+            echo "No compiler cache directory found"
+          fi
       - name: Save Solidity compilers cache
         if: success() && steps.compiler-cache.outputs.path != ''
         uses: actions/cache/save@v4
