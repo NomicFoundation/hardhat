@@ -1,0 +1,34 @@
+# Fails if a PR doesn't modify .peer-bumps.json and is not labeled
+# as "no-peer-bump-needed"
+
+name: Check that the PR has peer bump entries
+
+on:
+  merge_group:
+  pull_request:
+    branches:
+      - main
+      - v2
+    types:
+      - opened
+      - synchronize
+      - reopened
+      - labeled
+      - unlabeled
+
+jobs:
+  check-peer-bumps:
+    name: Check that PR has peer bump entries
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout the repository
+        uses: actions/checkout@v5
+
+      # We need to fetch the base ref because the pull request check inspects the diff between the head and the base ref
+      - run: git fetch origin "$GITHUB_BASE_REF":"$GITHUB_BASE_REF"
+
+      - name: Check if PR modifies peer bumps
+        if: github.event_name == 'pull_request'
+        env:
+          GITHUB_EVENT_PULL_REQUEST_LABELS: ${{ toJson(github.event.pull_request.labels) }}
+        run: node scripts/validate-pull-request-peer-bumps.mjs

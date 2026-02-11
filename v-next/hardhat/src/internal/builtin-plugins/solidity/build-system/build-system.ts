@@ -74,6 +74,7 @@ import {
   parseRootPath,
 } from "./root-paths-utils.js";
 import { SolcConfigSelector } from "./solc-config-selection.js";
+import { shouldSuppressWarning } from "./warning-suppression.js";
 
 const log = debug("hardhat:core:solidity:build-system");
 
@@ -1169,9 +1170,10 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
 
   #shouldSuppressWarning(error: CompilerOutputError): boolean {
     const msg = error.formattedMessage ?? error.message;
-
-    return SUPPRESSED_WARNINGS.some(
-      (rule) => msg.includes(rule.message) && msg.includes(rule.sourceFile),
+    return shouldSuppressWarning(
+      msg,
+      this.#options.solidityTestsPath,
+      this.#options.projectRoot,
     );
   }
 

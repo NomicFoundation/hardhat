@@ -1,0 +1,10 @@
+{
+  "$schema": "./scripts/peer-bumps.schema.json",
+  "excludedFolders": [
+    "archive",
+    "v-next/example-project",
+    "v-next/hardhat/templates",
+    "v-next/config"
+  ],
+  "bumps": []
+}

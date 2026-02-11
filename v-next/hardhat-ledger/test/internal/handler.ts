@@ -7,6 +7,8 @@ import { after, before, beforeEach, describe, it } from "node:test";
 import {
   DisconnectedDevice,
   DisconnectedDeviceDuringOperation,
+  LockedDeviceError,
+  TransportStatusError,
 } from "@ledgerhq/errors";
 import { TransportError } from "@ledgerhq/hw-transport";
 import {
@@ -34,6 +36,9 @@ import {
   getTransportNodeHidMock,
   type TransportMockState,
 } from "../helpers/transport-node-hid-mock.js";
+
+// Status code 0x6511 is thrown when the Ethereum app is not open on the Ledger device
+const APP_NOT_OPEN_STATUS_CODE = 0x6511;
 
 const LEDGER_ADDRESSES = [
   "0xa809931e3b38059adae9bc5455bc567d0509ab92",
@@ -240,7 +245,12 @@ describe("LedgerHandler", () => {
           derivationFunction: undefined,
         },
         mockedDisplayInfo.fn,
-        { transportNodeHid },
+        {
+          transportNodeHid,
+          // Set maxDeviceNotReadyRetries to 0 so the test fails immediately
+          // without retrying (which would cause actual 30s sleeps)
+          maxDeviceNotReadyRetries: 0,
+        },
       );
 
       await assertRejectsWithHardhatError(
@@ -277,6 +287,126 @@ describe("LedgerHandler", () => {
 
       assert.deepEqual(ledgerHandler.paths, {
         "0xe149ff2797adc146aa2d68d3df3e819c3c38e762": "m/44'/60'/0'/0/0",
+      });
+    });
+
+    describe("TransportError retry (device not connected)", () => {
+      // No-op sleep for fast tests
+      const noOpSleep = async (_seconds: number): Promise<void> => {};
+
+      it("should retry and succeed after 2 TransportError retries", async () => {
+        let createCallCount = 0;
+
+        const transportNodeHid = getTransportNodeHidMock();
+        const originalCreate = transportNodeHid.create.bind(transportNodeHid);
+
+        transportNodeHid.create = async (...args: any[]) => {
+          createCallCount++;
+          if (createCallCount <= 2) {
+            throw new TransportError("No Ledger device found", "NoDeviceFound");
+          }
+          return originalCreate(...args);
+        };
+
+        ledgerHandler = new LedgerHandler(
+          ethereumMockedProvider,
+          {
+            accounts: LEDGER_ADDRESSES,
+            derivationFunction: undefined,
+          },
+          mockedDisplayInfo.fn,
+          {
+            transportNodeHid,
+            delayBeforeRetry: noOpSleep,
+          },
+        );
+
+        mockedDisplayInfo.clear();
+
+        await ledgerHandler.init();
+
+        assert.equal(
+          createCallCount,
+          3,
+          "Transport create should be called 3 times (2 failures + 1 success)",
+        );
+
+        // Verify the not-connected message was displayed twice
+        const notConnectedMessages = mockedDisplayInfo.messages.filter((m) =>
+          m.includes("Device not connected"),
+        );
+        assert.equal(
+          notConnectedMessages.length,
+          2,
+          "Device not connected message should be displayed twice",
+        );
+
+        // Verify successful connection message was displayed
+        assert.ok(
+          mockedDisplayInfo.messages.includes("Connection successful"),
+          "Connection successful message should be displayed",
+        );
+      });
+
+      it("should throw CONNECTION_ERROR after max retries", async () => {
+        let createCallCount = 0;
+        const transportError = new TransportError(
+          "No Ledger device found",
+          "NoDeviceFound",
+        );
+
+        const transportNodeHid = getTransportNodeHidMock();
+        transportNodeHid.create = async () => {
+          createCallCount++;
+          throw transportError;
+        };
+
+        ledgerHandler = new LedgerHandler(
+          ethereumMockedProvider,
+          {
+            accounts: LEDGER_ADDRESSES,
+            derivationFunction: undefined,
+          },
+          mockedDisplayInfo.fn,
+          {
+            transportNodeHid,
+            delayBeforeRetry: noOpSleep,
+            maxDeviceNotReadyRetries: 5,
+          },
+        );
+
+        mockedDisplayInfo.clear();
+
+        await assertRejectsWithHardhatError(
+          () => ledgerHandler.init(),
+          HardhatError.ERRORS.HARDHAT_LEDGER.GENERAL.CONNECTION_ERROR,
+          {
+            error: transportError,
+            transportId: "NoDeviceFound",
+          },
+        );
+
+        assert.equal(
+          createCallCount,
+          6,
+          "Transport create should be called 6 times (5 retries + 1 initial)",
+        );
+
+        // Verify the not-connected message was displayed 5 times (once per retry, not on final failure)
+        const notConnectedMessages = mockedDisplayInfo.messages.filter((m) =>
+          m.includes("Device not connected"),
+        );
+        assert.equal(
+          notConnectedMessages.length,
+          5,
+          "Device not connected message should be displayed 5 times",
+        );
+
+        // Verify connection error message was displayed on final failure
+        assert.ok(
+          mockedDisplayInfo.messages.includes("Connection error"),
+          "Connection error message should be displayed on final failure",
+        );
       });
     });
   });
@@ -1100,6 +1230,9 @@ describe("LedgerHandler", () => {
   });
 
   describe("reconnection", () => {
+    // No-op sleep for fast tests
+    const noOpSleep = async (_seconds: number): Promise<void> => {};
+
     describe("exhausted retries", () => {
       it("should give up and display failure message after reconnection also fails", async () => {
         const methodsConfig: MethodsConfig = {
@@ -1111,8 +1244,12 @@ describe("LedgerHandler", () => {
           },
           signPersonalMessage: {
             result: rsv,
-            alwaysThrow: true,
-            errorToThrow: new DisconnectedDevice(),
+            // Need enough errors to exhaust retries (initial + 2 reconnection attempts = 3)
+            errorSequenceToThrow: [
+              new DisconnectedDevice(),
+              new DisconnectedDevice(),
+              new DisconnectedDevice(),
+            ],
           },
         };
 
@@ -1130,6 +1267,7 @@ describe("LedgerHandler", () => {
             ethConstructor: ethMock,
             transportNodeHid: getTransportNodeHidMock(transportState),
             cachePath: tmpCachePath,
+            delayBeforeRetry: noOpSleep,
           },
         );
 
@@ -1148,8 +1286,8 @@ describe("LedgerHandler", () => {
 
         assert.equal(
           transportState.createCount,
-          2,
-          "Transport should be created twice (initial + one reconnection attempt)",
+          3,
+          "Transport should be created 3 times (initial + 2 reconnection attempts)",
         );
         assert.ok(
           mockedDisplayInfo.messages.includes("Confirmation failure"),
@@ -1174,7 +1312,7 @@ describe("LedgerHandler", () => {
           signPersonalMessage: {
             result: rsv,
             throwOnCall: 2,
-            errorToThrow: new DisconnectedDevice(),
+            errorSequenceToThrow: [new DisconnectedDevice()],
           },
         };
 
@@ -1192,6 +1330,7 @@ describe("LedgerHandler", () => {
             ethConstructor: ethMock,
             transportNodeHid: getTransportNodeHidMock(transportState),
             cachePath: tmpCachePath,
+            delayBeforeRetry: noOpSleep,
           },
         );
 
@@ -1252,7 +1391,7 @@ describe("LedgerHandler", () => {
           signPersonalMessage: {
             result: rsv,
             throwOnCall: 2,
-            errorToThrow: new DisconnectedDeviceDuringOperation(),
+            errorSequenceToThrow: [new DisconnectedDeviceDuringOperation()],
           },
         };
 
@@ -1270,6 +1409,7 @@ describe("LedgerHandler", () => {
             ethConstructor: ethMock,
             transportNodeHid: getTransportNodeHidMock(transportState),
             cachePath: tmpCachePath,
+            delayBeforeRetry: noOpSleep,
           },
         );
 
@@ -1322,7 +1462,7 @@ describe("LedgerHandler", () => {
                 ? account
                 : { address: "0x0", publicKey: "0x0" },
             throwOnCall: 1,
-            errorToThrow: new DisconnectedDevice(),
+            errorSequenceToThrow: [new DisconnectedDevice()],
           },
           signPersonalMessage: {
             result: rsv,
@@ -1343,6 +1483,7 @@ describe("LedgerHandler", () => {
             ethConstructor: ethMock,
             transportNodeHid: getTransportNodeHidMock(transportState),
             cachePath: tmpCachePath,
+            delayBeforeRetry: noOpSleep,
           },
         );
 
@@ -1373,6 +1514,515 @@ describe("LedgerHandler", () => {
         assert.ok(
           mockedDisplayInfo.messages.includes("Reconnecting to Ledger..."),
           "Reconnecting message should be displayed",
+        );
+      });
+    });
+  });
+
+  describe("LockedDeviceError handling", () => {
+    // No-op sleep for fast tests
+    const noOpSleep = async (_seconds: number): Promise<void> => {};
+
+    describe("during signing (#withConfirmation)", () => {
+      it("should retry and succeed after 2 LockedDeviceError retries", async () => {
+        const methodsConfig: MethodsConfig = {
+          getAddress: {
+            result: (searchedPath: string) =>
+              searchedPath === derPath
+                ? account
+                : { address: "0x0", publicKey: "0x0" },
+          },
+          signPersonalMessage: {
+            result: rsv,
+            // Throw LockedDeviceError twice, then succeed on 3rd call
+            errorSequenceToThrow: [
+              new LockedDeviceError("Device is locked"),
+              new LockedDeviceError("Device is locked"),
+            ],
+          },
+        };
+
+        const transportState: TransportMockState = { createCount: 0 };
+        const [ethMock, calls] = getEthMocked(methodsConfig);
+
+        ledgerHandler = new LedgerHandler(
+          ethereumMockedProvider,
+          {
+            accounts: LEDGER_ADDRESSES,
+            derivationFunction: undefined,
+          },
+          mockedDisplayInfo.fn,
+          {
+            ethConstructor: ethMock,
+            transportNodeHid: getTransportNodeHidMock(transportState),
+            cachePath: tmpCachePath,
+            delayBeforeRetry: noOpSleep,
+          },
+        );
+
+        mockedDisplayInfo.clear();
+
+        const request = createJsonRpcRequest("personal_sign", [
+          dataToSign,
+          account.address,
+        ]);
+
+        const res = await ledgerHandler.handle(request);
+
+        assert.ok(res !== null, "res should not be null");
+        assert.ok("result" in res, "res should have the property 'result'");
+        assert.deepEqual(res.result, signature);
+
+        const signCalls = calls.get("signPersonalMessage");
+        assert.ok(signCalls !== undefined, "signCalls should be defined");
+        assert.equal(
+          signCalls.totalCalls,
+          3,
+          "signPersonalMessage should be called 3 times (2 failures + 1 success)",
+        );
+
+        // Verify the locked device message was displayed twice
+        const lockedMessages = mockedDisplayInfo.messages.filter((m) =>
+          m.includes("Device is locked"),
+        );
+        assert.equal(
+          lockedMessages.length,
+          2,
+          "Locked device message should be displayed twice",
+        );
+      });
+
+      it("should throw HardhatError.LOCKED_DEVICE after max retries", async () => {
+        const methodsConfig: MethodsConfig = {
+          getAddress: {
+            result: (searchedPath: string) =>
+              searchedPath === derPath
+                ? account
+                : { address: "0x0", publicKey: "0x0" },
+          },
+          signPersonalMessage: {
+            result: rsv,
+            // Need enough errors for maxLockedDeviceRetries (5) + 1 initial = 6 calls
+            errorSequenceToThrow: [
+              new LockedDeviceError("Device is locked"),
+              new LockedDeviceError("Device is locked"),
+              new LockedDeviceError("Device is locked"),
+              new LockedDeviceError("Device is locked"),
+              new LockedDeviceError("Device is locked"),
+              new LockedDeviceError("Device is locked"),
+            ],
+          },
+        };
+
+        const transportState: TransportMockState = { createCount: 0 };
+        const [ethMock, calls] = getEthMocked(methodsConfig);
+
+        ledgerHandler = new LedgerHandler(
+          ethereumMockedProvider,
+          {
+            accounts: LEDGER_ADDRESSES,
+            derivationFunction: undefined,
+          },
+          mockedDisplayInfo.fn,
+          {
+            ethConstructor: ethMock,
+            transportNodeHid: getTransportNodeHidMock(transportState),
+            cachePath: tmpCachePath,
+            delayBeforeRetry: noOpSleep,
+            maxDeviceNotReadyRetries: 5,
+          },
+        );
+
+        mockedDisplayInfo.clear();
+
+        const request = createJsonRpcRequest("personal_sign", [
+          dataToSign,
+          account.address,
+        ]);
+
+        await assertRejectsWithHardhatError(
+          () => ledgerHandler.handle(request),
+          HardhatError.ERRORS.HARDHAT_LEDGER.GENERAL.LOCKED_DEVICE,
+          {},
+        );
+
+        const signCalls = calls.get("signPersonalMessage");
+        assert.ok(signCalls !== undefined, "signCalls should be defined");
+        assert.equal(
+          signCalls.totalCalls,
+          6,
+          "signPersonalMessage should be called 6 times (5 retries + 1 initial)",
+        );
+      });
+
+      it("should retry and succeed after app-not-open errors (0x6511)", async () => {
+        const methodsConfig: MethodsConfig = {
+          getAddress: {
+            result: (searchedPath: string) =>
+              searchedPath === derPath
+                ? account
+                : { address: "0x0", publicKey: "0x0" },
+          },
+          signPersonalMessage: {
+            result: rsv,
+            // First call: app not open (0x6511)
+            // Second call: app not open (0x6511)
+            // Third call: success
+            errorSequenceToThrow: [
+              new TransportStatusError(APP_NOT_OPEN_STATUS_CODE),
+              new TransportStatusError(APP_NOT_OPEN_STATUS_CODE),
+            ],
+          },
+        };
+
+        const transportState: TransportMockState = { createCount: 0 };
+        const [ethMock, calls] = getEthMocked(methodsConfig);
+
+        ledgerHandler = new LedgerHandler(
+          ethereumMockedProvider,
+          {
+            accounts: LEDGER_ADDRESSES,
+            derivationFunction: undefined,
+          },
+          mockedDisplayInfo.fn,
+          {
+            ethConstructor: ethMock,
+            transportNodeHid: getTransportNodeHidMock(transportState),
+            cachePath: tmpCachePath,
+            delayBeforeRetry: noOpSleep,
+          },
+        );
+
+        mockedDisplayInfo.clear();
+
+        const request = createJsonRpcRequest("personal_sign", [
+          dataToSign,
+          account.address,
+        ]);
+
+        const res = await ledgerHandler.handle(request);
+
+        assert.ok(res !== null, "res should not be null");
+        assert.ok("result" in res, "res should have the property 'result'");
+        assert.deepEqual(res.result, signature);
+
+        const signCalls = calls.get("signPersonalMessage");
+        assert.ok(signCalls !== undefined, "signCalls should be defined");
+        assert.equal(
+          signCalls.totalCalls,
+          3,
+          "signPersonalMessage should be called 3 times (2 failures + 1 success)",
+        );
+
+        // Verify the app-not-open message was displayed twice
+        const appNotOpenMessages = mockedDisplayInfo.messages.filter((m) =>
+          m.includes("Device not ready"),
+        );
+        assert.equal(
+          appNotOpenMessages.length,
+          2,
+          "Device not ready message should be displayed twice",
+        );
+      });
+
+      it("should handle DisconnectedDevice followed by LockedDeviceError followed by app-not-open followed by DisconnectedDeviceDuringOperation then succeed", async () => {
+        // This test reproduces a real-world scenario where app-not-open is followed
+        // by a disconnect when the user opens the Ethereum app (app switch causes disconnect)
+        const methodsConfig: MethodsConfig = {
+          getAddress: {
+            result: (searchedPath: string) =>
+              searchedPath === derPath
+                ? account
+                : { address: "0x0", publicKey: "0x0" },
+          },
+          signPersonalMessage: {
+            result: rsv,
+            // First call: DisconnectedDevice (triggers reconnect)
+            // Second call: LockedDeviceError (triggers wait/retry)
+            // Third call: app not open (0x6511, triggers wait/retry)
+            // Fourth call: DisconnectedDeviceDuringOperation (triggers reconnect - user opened app)
+            // Fifth call: success
+            errorSequenceToThrow: [
+              new DisconnectedDevice(),
+              new LockedDeviceError("Device is locked"),
+              new TransportStatusError(APP_NOT_OPEN_STATUS_CODE),
+              new DisconnectedDeviceDuringOperation(),
+            ],
+          },
+        };
+
+        const transportState: TransportMockState = { createCount: 0 };
+        const [ethMock, calls] = getEthMocked(methodsConfig);
+
+        ledgerHandler = new LedgerHandler(
+          ethereumMockedProvider,
+          {
+            accounts: LEDGER_ADDRESSES,
+            derivationFunction: undefined,
+          },
+          mockedDisplayInfo.fn,
+          {
+            ethConstructor: ethMock,
+            transportNodeHid: getTransportNodeHidMock(transportState),
+            cachePath: tmpCachePath,
+            delayBeforeRetry: noOpSleep,
+          },
+        );
+
+        mockedDisplayInfo.clear();
+
+        const request = createJsonRpcRequest("personal_sign", [
+          dataToSign,
+          account.address,
+        ]);
+
+        const res = await ledgerHandler.handle(request);
+
+        assert.ok(res !== null, "res should not be null");
+        assert.ok("result" in res, "res should have the property 'result'");
+        assert.deepEqual(res.result, signature);
+
+        const signCalls = calls.get("signPersonalMessage");
+        assert.ok(signCalls !== undefined, "signCalls should be defined");
+        assert.equal(
+          signCalls.totalCalls,
+          5,
+          "signPersonalMessage should be called 5 times",
+        );
+
+        assert.equal(
+          transportState.createCount,
+          3,
+          "Transport should be created 3 times (initial + 2 reconnections)",
+        );
+
+        // Reconnecting message should appear twice (once for each disconnect)
+        const reconnectMessages = mockedDisplayInfo.messages.filter(
+          (m) => m === "Reconnecting to Ledger...",
+        );
+        assert.equal(
+          reconnectMessages.length,
+          2,
+          "Reconnecting message should be displayed twice",
+        );
+        assert.ok(
+          mockedDisplayInfo.messages.some((m) =>
+            m.includes("Device is locked"),
+          ),
+          "Locked device message should be displayed",
+        );
+        assert.ok(
+          mockedDisplayInfo.messages.some((m) =>
+            m.includes("Device not ready"),
+          ),
+          "Device not ready message should be displayed",
+        );
+      });
+    });
+
+    describe("during path derivation (#derivePath)", () => {
+      it("should retry and succeed after 2 LockedDeviceError retries", async () => {
+        const methodsConfig: MethodsConfig = {
+          getAddress: {
+            result: (searchedPath: string) =>
+              searchedPath === derPath
+                ? account
+                : { address: "0x0", publicKey: "0x0" },
+            // Throw LockedDeviceError twice, then succeed
+            // Note: derivation may call getAddress multiple times per attempt
+            // First call (path 0): LockedDeviceError
+            // Second call (path 0 retry): LockedDeviceError
+            // Third call (path 0 retry): success, returns wrong address
+            // Fourth call (path 1): success, returns correct address
+            errorSequenceToThrow: [
+              new LockedDeviceError("Device is locked"),
+              new LockedDeviceError("Device is locked"),
+            ],
+          },
+          signPersonalMessage: {
+            result: rsv,
+          },
+        };
+
+        const transportState: TransportMockState = { createCount: 0 };
+        const [ethMock] = getEthMocked(methodsConfig);
+
+        ledgerHandler = new LedgerHandler(
+          ethereumMockedProvider,
+          {
+            accounts: LEDGER_ADDRESSES,
+            derivationFunction: undefined,
+          },
+          mockedDisplayInfo.fn,
+          {
+            ethConstructor: ethMock,
+            transportNodeHid: getTransportNodeHidMock(transportState),
+            cachePath: tmpCachePath,
+            delayBeforeRetry: noOpSleep,
+          },
+        );
+
+        mockedDisplayInfo.clear();
+
+        const request = createJsonRpcRequest("personal_sign", [
+          dataToSign,
+          account.address,
+        ]);
+
+        const res = await ledgerHandler.handle(request);
+
+        assert.ok(res !== null, "res should not be null");
+        assert.ok("result" in res, "res should have the property 'result'");
+        assert.deepEqual(res.result, signature);
+
+        // Verify the locked device message was displayed twice
+        const lockedMessages = mockedDisplayInfo.messages.filter((m) =>
+          m.includes("Device is locked"),
+        );
+        assert.equal(
+          lockedMessages.length,
+          2,
+          "Locked device message should be displayed twice",
+        );
+      });
+
+      it("should throw HardhatError.LOCKED_DEVICE after max retries", async () => {
+        const methodsConfig: MethodsConfig = {
+          getAddress: {
+            result: () => ({ address: "0x0", publicKey: "0x0" }),
+            // Need enough errors for maxLockedDeviceRetries (5) + 1 initial = 6 calls
+            errorSequenceToThrow: [
+              new LockedDeviceError("Device is locked"),
+              new LockedDeviceError("Device is locked"),
+              new LockedDeviceError("Device is locked"),
+              new LockedDeviceError("Device is locked"),
+              new LockedDeviceError("Device is locked"),
+              new LockedDeviceError("Device is locked"),
+            ],
+          },
+          signPersonalMessage: {
+            result: rsv,
+          },
+        };
+
+        const transportState: TransportMockState = { createCount: 0 };
+        const [ethMock, calls] = getEthMocked(methodsConfig);
+
+        ledgerHandler = new LedgerHandler(
+          ethereumMockedProvider,
+          {
+            accounts: LEDGER_ADDRESSES,
+            derivationFunction: undefined,
+          },
+          mockedDisplayInfo.fn,
+          {
+            ethConstructor: ethMock,
+            transportNodeHid: getTransportNodeHidMock(transportState),
+            cachePath: tmpCachePath,
+            delayBeforeRetry: noOpSleep,
+            maxDeviceNotReadyRetries: 5,
+          },
+        );
+
+        mockedDisplayInfo.clear();
+
+        const request = createJsonRpcRequest("personal_sign", [
+          dataToSign,
+          account.address,
+        ]);
+
+        await assertRejectsWithHardhatError(
+          () => ledgerHandler.handle(request),
+          HardhatError.ERRORS.HARDHAT_LEDGER.GENERAL.LOCKED_DEVICE,
+          {},
+        );
+
+        const getAddressCalls = calls.get("getAddress");
+        assert.ok(
+          getAddressCalls !== undefined,
+          "getAddressCalls should be defined",
+        );
+        assert.equal(
+          getAddressCalls.totalCalls,
+          6,
+          "getAddress should be called 6 times (5 retries + 1 initial)",
+        );
+      });
+
+      it("should handle DisconnectedDevice followed by LockedDeviceError followed by app-not-open then succeed", async () => {
+        const methodsConfig: MethodsConfig = {
+          getAddress: {
+            result: (searchedPath: string) =>
+              searchedPath === derPath
+                ? account
+                : { address: "0x0", publicKey: "0x0" },
+            // First call: DisconnectedDevice (triggers reconnect)
+            // Second call: LockedDeviceError (triggers wait/retry)
+            // Third call: app not open (0x6511, triggers wait/retry)
+            // Fourth+ calls: success
+            errorSequenceToThrow: [
+              new DisconnectedDevice(),
+              new LockedDeviceError("Device is locked"),
+              new TransportStatusError(APP_NOT_OPEN_STATUS_CODE),
+            ],
+          },
+          signPersonalMessage: {
+            result: rsv,
+          },
+        };
+
+        const transportState: TransportMockState = { createCount: 0 };
+        const [ethMock] = getEthMocked(methodsConfig);
+
+        ledgerHandler = new LedgerHandler(
+          ethereumMockedProvider,
+          {
+            accounts: LEDGER_ADDRESSES,
+            derivationFunction: undefined,
+          },
+          mockedDisplayInfo.fn,
+          {
+            ethConstructor: ethMock,
+            transportNodeHid: getTransportNodeHidMock(transportState),
+            cachePath: tmpCachePath,
+            delayBeforeRetry: noOpSleep,
+          },
+        );
+
+        mockedDisplayInfo.clear();
+
+        const request = createJsonRpcRequest("personal_sign", [
+          dataToSign,
+          account.address,
+        ]);
+
+        const res = await ledgerHandler.handle(request);
+
+        assert.ok(res !== null, "res should not be null");
+        assert.ok("result" in res, "res should have the property 'result'");
+        assert.deepEqual(res.result, signature);
+
+        assert.equal(
+          transportState.createCount,
+          2,
+          "Transport should be created twice (initial + reconnection after disconnect)",
+        );
+
+        assert.ok(
+          mockedDisplayInfo.messages.includes("Reconnecting to Ledger..."),
+          "Reconnecting message should be displayed",
+        );
+        assert.ok(
+          mockedDisplayInfo.messages.some((m) =>
+            m.includes("Device is locked"),
+          ),
+          "Locked device message should be displayed",
+        );
+        assert.ok(
+          mockedDisplayInfo.messages.some((m) =>
+            m.includes("Device not ready"),
+          ),
+          "Device not ready message should be displayed",
         );
       });
     });
