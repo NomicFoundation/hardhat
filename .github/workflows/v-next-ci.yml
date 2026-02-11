@@ -262,10 +262,34 @@ jobs:
         run: pnpm install --frozen-lockfile --prefer-offline
       - name: Build
         run: pnpm run --if-present build
+      - name: Get compiler cache path
+        id: compiler-cache
+        shell: bash
+        run: |
+          CACHE_PATH=$(node --input-type=module -e "
+            import { getCacheDir } from '@nomicfoundation/hardhat-utils/global-dir';
+            import path from 'node:path';
+            const cacheDir = await getCacheDir();
+            console.log(path.join(cacheDir, 'compilers-v3'));
+          ")
+          echo "path=$CACHE_PATH" >> "$GITHUB_OUTPUT"
+      - name: Restore Solidity compilers cache
+        uses: actions/cache/restore@v4
+        with:
+          path: ${{ steps.compiler-cache.outputs.path }}
+          key: solc-${{ runner.os }}-${{ runner.arch }}-${{ github.sha }}
+          restore-keys: |
+            solc-${{ runner.os }}-${{ runner.arch }}-
       - name: Run tests
         env:
           __DO_NOT_USE_IS_HARDHAT_CI: true
         run: pnpm run --if-present test
+      - name: Save Solidity compilers cache
+        if: success()
+        uses: actions/cache/save@v4
+        with:
+          path: ${{ steps.compiler-cache.outputs.path }}
+          key: solc-${{ runner.os }}-${{ runner.arch }}-${{ github.sha }}
 
   ci-aggregate:
     needs: ci
