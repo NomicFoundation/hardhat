@@ -78,6 +78,32 @@ import { shouldSuppressWarning } from "./warning-suppression.js";
 
 const log = debug("hardhat:core:solidity:build-system");
 
+/**
+ * Resolves the preferWasm setting for a given solc config, falling back
+ * to the build profile's preferWasm if not set on the compiler.
+ */
+function resolvePreferWasm(
+  solcConfig: SolcConfig,
+  buildProfilePreferWasm: boolean,
+): boolean {
+  return solcConfig.preferWasm ?? buildProfilePreferWasm;
+}
+
+// Compiler warnings to suppress from build output.
+// Each rule specifies a warning message and the source file it applies to.
+// This allows suppressing known warnings from internal files (e.g., console.sol)
+// while still showing the same warning type from user code.
+export const SUPPRESSED_WARNINGS: Array<{
+  message: string;
+  sourceFile: string;
+}> = [
+  {
+    message:
+      "Natspec memory-safe-assembly special comment for inline assembly is deprecated and scheduled for removal. Use the memory-safe block annotation instead.",
+    sourceFile: path.normalize("hardhat/console.sol"),
+  },
+];
+
 interface CompilationResult {
   compilationJob: CompilationJob;
   compilerOutput: CompilerOutput;
@@ -434,7 +460,7 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
 
       if (solcLongVersion === undefined) {
         const compiler = await getCompiler(solcConfig.version, {
-          preferWasm: buildProfile.preferWasm,
+          preferWasm: resolvePreferWasm(solcConfig, buildProfile.preferWasm),
           compilerPath: solcConfig.path,
         });
         solcLongVersion = compiler.longVersion;
@@ -643,7 +669,10 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
     const compiler = await getCompiler(
       runnableCompilationJob.solcConfig.version,
       {
-        preferWasm: buildProfile.preferWasm,
+        preferWasm: resolvePreferWasm(
+          runnableCompilationJob.solcConfig,
+          buildProfile.preferWasm,
+        ),
         compilerPath: runnableCompilationJob.solcConfig.path,
       },
     );
