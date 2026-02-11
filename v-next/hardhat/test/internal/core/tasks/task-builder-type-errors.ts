@@ -239,7 +239,9 @@ const TYPE_TEST_SCENARIOS: TypeTestScenario[] = [
  */
 async function runTypeCheckOnCode(code: string) {
   const packageRoot = await findClosestPackageRoot(import.meta.url);
-  const tscPath = join(packageRoot, "node_modules", ".bin", "tsc");
+  // On Windows, binaries have .cmd extension
+  const tscBin = process.platform === "win32" ? "tsc.cmd" : "tsc";
+  const tscPath = join(packageRoot, "node_modules", ".bin", tscBin);
   const tsconfigPath = join(process.cwd(), "tsconfig.json");
 
   // Generate unique temp file name
