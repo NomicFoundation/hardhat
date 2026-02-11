@@ -17,13 +17,12 @@ import {
   IncludeTraces,
   FsAccessPermission,
   CollectStackTraces,
-  opHardforkToString,
-  l1HardforkToString,
 } from "@nomicfoundation/edr";
 import { hexStringToBytes } from "@nomicfoundation/hardhat-utils/hex";
 import chalk from "chalk";
 
 import { DEFAULT_VERBOSITY, OPTIMISM_CHAIN_TYPE } from "../../constants.js";
+import { resolveHardfork } from "../network-manager/config-resolution.js";
 import { hardhatHardforkToEdrSpecId } from "../network-manager/edr/utils/convert-to-edr.js";
 
 import { type Colorizer, formatArtifactId } from "./formatters.js";
@@ -97,12 +96,10 @@ export async function solidityTestConfigToSolidityTestRunnerConfigArgs({
       ? undefined
       : hexStringToBuffer(config.coinbase);
 
-  const resolvedHardfork =
-    hardfork !== undefined
-      ? hardhatHardforkToEdrSpecId(hardfork, chainType)
-      : chainType === OPTIMISM_CHAIN_TYPE
-        ? opHardforkToString(opLatestHardfork())
-        : l1HardforkToString(l1HardforkLatest());
+  const resolvedHardfork = hardhatHardforkToEdrSpecId(
+    resolveHardfork(hardfork, chainType),
+    chainType,
+  );
 
   const localPredeploys =
     chainType === OPTIMISM_CHAIN_TYPE
