@@ -271,9 +271,12 @@ jobs:
             import path from 'node:path';
             const cacheDir = await getCacheDir();
             console.log(path.join(cacheDir, 'compilers-v3'));
-          ")
-          echo "path=$CACHE_PATH" >> "$GITHUB_OUTPUT"
+          " 2>/dev/null) || true
+          if [ -n "$CACHE_PATH" ]; then
+            echo "path=$CACHE_PATH" >> "$GITHUB_OUTPUT"
+          fi
       - name: Restore Solidity compilers cache
+        if: steps.compiler-cache.outputs.path != ''
         uses: actions/cache/restore@v4
         with:
           path: ${{ steps.compiler-cache.outputs.path }}
@@ -285,7 +288,7 @@ jobs:
           __DO_NOT_USE_IS_HARDHAT_CI: true
         run: pnpm run --if-present test
       - name: Save Solidity compilers cache
-        if: success()
+        if: success() && steps.compiler-cache.outputs.path != ''
         uses: actions/cache/save@v4
         with:
           path: ${{ steps.compiler-cache.outputs.path }}
