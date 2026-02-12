@@ -154,6 +154,8 @@ jobs:
           fi
         shell: bash
       - uses: actions/download-artifact@v4
+        with:
+          pattern: "!compilers-*"
       - id: download
         run: ls -1 | wc -l | xargs -I {} -0 echo "count={}" | tee -a $GITHUB_OUTPUT
         shell: bash
