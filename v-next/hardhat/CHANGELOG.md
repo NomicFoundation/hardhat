@@ -1,5 +1,12 @@
 # hardhat
 
+## 3.1.8
+
+### Patch Changes
+
+- a6947fb: Use the official Linux ARM64 builds of solc in the `production` profile when available ([#7917](https://github.com/NomicFoundation/hardhat/pull/7917)).
+- fd42744: Fixed missing EIP-7212 precompile in Solidity Tests ([#7872](https://github.com/NomicFoundation/hardhat/issues/7872)).
+
 ## 3.1.7
 
 ### Patch Changes
