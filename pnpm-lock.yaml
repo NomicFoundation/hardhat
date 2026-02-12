@@ -978,6 +978,9 @@ importers:
       chalk:
         specifier: ^5.3.0
         version: 5.6.2
+      debug:
+        specifier: ^4.3.2
+        version: 4.4.3(supports-color@5.5.0)
       hardhat:
         specifier: workspace:^3.0.12
         version: link:../hardhat
@@ -997,6 +1000,9 @@ importers:
       '@nomicfoundation/hardhat-test-utils':
         specifier: workspace:^
         version: link:../hardhat-test-utils
+      '@types/debug':
+        specifier: ^4.1.7
+        version: 4.1.12
       '@types/mocha':
         specifier: '>=10.0.10'
         version: 10.0.10

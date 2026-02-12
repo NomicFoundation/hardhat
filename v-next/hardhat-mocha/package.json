@@ -45,6 +45,7 @@
   "devDependencies": {
     "@nomicfoundation/hardhat-node-test-reporter": "workspace:^3.0.0",
     "@nomicfoundation/hardhat-test-utils": "workspace:^",
+    "@types/debug": "^4.1.7",
     "@types/mocha": ">=10.0.10",
     "@types/node": "^22.0.0",
     "c8": "^9.1.0",
@@ -59,6 +60,7 @@
     "@nomicfoundation/hardhat-utils": "workspace:^3.0.5",
     "@nomicfoundation/hardhat-zod-utils": "workspace:^3.0.0",
     "chalk": "^5.3.0",
+    "debug": "^4.3.2",
     "tsx": "^4.19.3",
     "zod": "^3.23.8"
   },
