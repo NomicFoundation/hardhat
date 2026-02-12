@@ -249,6 +249,9 @@ jobs:
 
     name: "[${{ matrix.package }}] ci on ${{ matrix.os }} (Node ${{ matrix.node }})"
     runs-on: ${{ matrix.os }}
+    permissions:
+      contents: read
+      actions: write
     defaults:
       run:
         working-directory: v-next/${{ matrix.package }}
@@ -283,38 +286,19 @@ jobs:
           key: solc-${{ runner.os }}-${{ runner.arch }}-${{ github.sha }}
           restore-keys: |
             solc-${{ runner.os }}-${{ runner.arch }}-
-      - name: List cached compilers (before tests)
-        if: steps.compiler-cache.outputs.path != ''
-        shell: bash
-        run: |
-          echo "Cache path: ${{ steps.compiler-cache.outputs.path }}"
-          if [ -d "${{ steps.compiler-cache.outputs.path }}" ]; then
-            echo "Cached compilers:"
-            find "${{ steps.compiler-cache.outputs.path }}" -type f | sort
-          else
-            echo "No compiler cache directory found"
-          fi
       - name: Run tests
         env:
           __DO_NOT_USE_IS_HARDHAT_CI: true
         run: pnpm run --if-present test
-      - name: List cached compilers (after tests)
-        if: steps.compiler-cache.outputs.path != ''
-        shell: bash
-        run: |
-          echo "Cache path: ${{ steps.compiler-cache.outputs.path }}"
-          if [ -d "${{ steps.compiler-cache.outputs.path }}" ]; then
-            echo "Cached compilers:"
-            find "${{ steps.compiler-cache.outputs.path }}" -type f | sort
-          else
-            echo "No compiler cache directory found"
-          fi
-      - name: Save Solidity compilers cache
+      - name: Upload compilers artifact
         if: success() && steps.compiler-cache.outputs.path != ''
-        uses: actions/cache/save@v4
+        uses: actions/upload-artifact@v4
         with:
+          name: compilers-${{ runner.os }}-${{ runner.arch }}-${{ matrix.package }}-${{ matrix.node }}
           path: ${{ steps.compiler-cache.outputs.path }}
-          key: solc-${{ runner.os }}-${{ runner.arch }}-${{ github.sha }}
+          retention-days: 1
+          if-no-files-found: ignore
+          include-hidden-files: true
 
   ci-aggregate:
     needs: ci
@@ -332,6 +316,66 @@ jobs:
             exit 1
           fi
         shell: bash
+
+  consolidate-compiler-cache:
+    needs: ci
+    if: success()
+
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-latest
+            runner_os: Linux
+            runner_arch: X64
+          - os: ubuntu-24.04-arm
+            runner_os: Linux
+            runner_arch: ARM64
+          - os: macos-latest
+            runner_os: macOS
+            runner_arch: ARM64
+          - os: windows-latest
+            runner_os: Windows
+            runner_arch: X64
+
+    name: "Save compiler cache (${{ matrix.runner_os }}-${{ matrix.runner_arch }})"
+    runs-on: ${{ matrix.os }}
+    permissions:
+      actions: write
+
+    steps:
+      - name: Download all compiler artifacts for this OS/arch
+        uses: actions/download-artifact@v4
+        with:
+          pattern: compilers-${{ matrix.runner_os }}-${{ matrix.runner_arch }}-*
+          merge-multiple: true
+          path: compilers-merged
+
+      - name: List merged compilers
+        shell: bash
+        run: |
+          if [ -d "compilers-merged" ]; then
+            echo "Merged compilers:"
+            find compilers-merged -type f | sort
+          else
+            echo "No compilers found"
+          fi
+
+      - name: Delete existing compiler cache
+        if: hashFiles('compilers-merged/**') != ''
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh actions-cache delete "solc-${{ matrix.runner_os }}-${{ matrix.runner_arch }}-${{ github.sha }}" \
+            --repo ${{ github.repository }} --confirm 2>/dev/null || true
+
+      - name: Save unified compiler cache
+        if: hashFiles('compilers-merged/**') != ''
+        uses: actions/cache/save@v4
+        with:
+          path: compilers-merged
+          key: solc-${{ matrix.runner_os }}-${{ matrix.runner_arch }}-${{ github.sha }}
 
   hardhat-node-test-reporter:
     needs: list-packages
