@@ -287,6 +287,8 @@ jobs:
   hardhat-node-test-reporter:
     needs: list-packages
 
+    if: contains(needs.list-packages.outputs.packages, 'hardhat-node-test-reporter')
+
     strategy:
       fail-fast: false
       matrix:
