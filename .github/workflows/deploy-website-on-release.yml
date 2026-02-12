@@ -11,7 +11,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Trigger Vercel Deploy
-        run: curl -X POST "${{ secrets.VERCEL_DEPLOY_AFTER_HARDHAT_RELEASE_WEBHOOK }}"
+        run: curl --silent --show-error --fail --output /dev/null -X POST "${{ secrets.VERCEL_DEPLOY_AFTER_HARDHAT_RELEASE_WEBHOOK }}"
       - name: Notify failures
         if: failure()
         uses: slackapi/slack-github-action@70cd7be8e40a46e8b0eced40b0de447bdb42f68e # v1.26.0
