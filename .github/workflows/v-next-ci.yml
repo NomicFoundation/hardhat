@@ -268,7 +268,7 @@ jobs:
         run: pnpm run --if-present test
 
   ci-aggregate:
-    needs: ci
+    needs: [ci, hardhat-node-test-reporter]
 
     if: ${{ !cancelled() }}
 
@@ -277,15 +277,18 @@ jobs:
 
     steps:
       - env:
-          result: ${{ needs.ci.result }}
+          ci_result: ${{ needs.ci.result }}
+          reporter_result: ${{ needs.hardhat-node-test-reporter.result }}
         run: |
-          if [[ "$result" == "failure" ]]; then
+          if [[ "$ci_result" == "failure" || "$reporter_result" == "failure" ]]; then
             exit 1
           fi
         shell: bash
 
   hardhat-node-test-reporter:
     needs: list-packages
+
+    if: contains(fromJson(needs.list-packages.outputs.packages), 'hardhat-node-test-reporter')
 
     strategy:
       fail-fast: false
