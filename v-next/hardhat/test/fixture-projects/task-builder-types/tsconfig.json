@@ -1,9 +1,0 @@
-{
-  "extends": "../../../tsconfig.json",
-  "include": [".temp-type-test-*.ts", "../../../src/**/*"],
-  "compilerOptions": {
-    "noEmit": true,
-    "skipLibCheck": true,
-    "rootDir": "../../.."
-  }
-}

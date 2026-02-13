@@ -1,4 +1,0 @@
-# Ignore all temporary type test files
-.temp-type-test-*.ts
-.temp-type-test-*.js
-.temp-tsconfig-*.json
