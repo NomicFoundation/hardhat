@@ -1780,7 +1780,7 @@ describe("Task builders", () => {
       const action = async () => ({
         default: () => {},
       });
-      const inlineAction = (_args: any, _hre: any, _runSuper: any) => {};
+      const inlineAction = () => {};
 
       it("should be valid with only action", () => {
         const builder = new TaskOverrideDefinitionBuilderImplementation(

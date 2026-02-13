@@ -1199,7 +1199,9 @@ describe("config validation", function () {
     });
 
     it("should return an error if both action and inlineAction are defined", function () {
-      const task: any = {
+      /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions
+      -- Allow type assertions to simulate invalid task definitions */
+      const task = {
         type: TaskDefinitionType.NEW_TASK,
         id: ["task-id"],
         description: "task description",
@@ -1207,53 +1209,68 @@ describe("config validation", function () {
         inlineAction: () => {},
         options: {},
         positionalArguments: [],
-      };
+      } as unknown as NewTaskDefinition;
 
       const errors = validateNewTask(task, []);
       assert.equal(errors.length, 1);
-      assert.equal(errors[0].message, 'task cannot define both "action" and "inlineAction"');
+      assert.equal(
+        errors[0].message,
+        'task cannot define both "action" and "inlineAction"',
+      );
     });
 
     it("should return an error if neither action nor inlineAction are defined", function () {
-      const task: any = {
+      /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions
+      -- Allow type assertions to simulate invalid task definitions */
+      const task = {
         type: TaskDefinitionType.NEW_TASK,
         id: ["task-id"],
         description: "task description",
         options: {},
         positionalArguments: [],
-      };
+      } as unknown as NewTaskDefinition;
 
       const errors = validateNewTask(task, []);
       assert.equal(errors.length, 1);
-      assert.equal(errors[0].message, 'task must define either "action" or "inlineAction"');
+      assert.equal(
+        errors[0].message,
+        'task must define either "action" or "inlineAction"',
+      );
     });
 
     it("should accept a task with only inlineAction", function () {
-      const task: any = {
+      /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions
+      -- Allow type assertions to simulate invalid task definitions */
+      const task = {
         type: TaskDefinitionType.NEW_TASK,
         id: ["task-id"],
         description: "task description",
         inlineAction: () => {},
         options: {},
         positionalArguments: [],
-      };
+      } as unknown as NewTaskDefinition;
 
       assert.deepEqual(validateNewTask(task, []), []);
     });
 
     it("should return an error if inlineAction is not a function", function () {
-      const task: any = {
+      /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions
+      -- Allow type assertions to simulate invalid task definitions */
+      const task = {
         type: TaskDefinitionType.NEW_TASK,
         id: ["task-id"],
         description: "task description",
         inlineAction: "not a function",
         options: {},
         positionalArguments: [],
-      };
+      } as unknown as NewTaskDefinition;
 
       const errors = validateNewTask(task, []);
       assert.equal(errors.length, 1);
-      assert.equal(errors[0].message, "task inlineAction must be a function implementing the task's behavior");
+      assert.equal(
+        errors[0].message,
+        "task inlineAction must be a function implementing the task's behavior",
+      );
       assert.deepEqual(errors[0].path, ["inlineAction"]);
     });
   });
@@ -1371,57 +1388,74 @@ describe("config validation", function () {
     });
 
     it("should return an error if both action and inlineAction are defined", function () {
-      const task: any = {
+      /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions
+      -- Allow type assertions to simulate invalid task definitions */
+      const task = {
         type: TaskDefinitionType.TASK_OVERRIDE,
         id: ["task-id"],
         description: "task description",
         action: async () => ({ default: () => {} }),
         inlineAction: () => {},
         options: {},
-      };
+      } as unknown as TaskOverrideDefinition;
 
       const errors = validateTaskOverride(task, []);
       assert.equal(errors.length, 1);
-      assert.equal(errors[0].message, 'task cannot define both "action" and "inlineAction"');
+      assert.equal(
+        errors[0].message,
+        'task cannot define both "action" and "inlineAction"',
+      );
     });
 
     it("should return an error if neither action nor inlineAction are defined", function () {
-      const task: any = {
+      /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions
+      -- Allow type assertions to simulate invalid task definitions */
+      const task = {
         type: TaskDefinitionType.TASK_OVERRIDE,
         id: ["task-id"],
         description: "task description",
         options: {},
-      };
+      } as unknown as TaskOverrideDefinition;
 
       const errors = validateTaskOverride(task, []);
       assert.equal(errors.length, 1);
-      assert.equal(errors[0].message, 'task must define either "action" or "inlineAction"');
+      assert.equal(
+        errors[0].message,
+        'task must define either "action" or "inlineAction"',
+      );
     });
 
     it("should accept a task override with only inlineAction", function () {
-      const task: any = {
+      /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions
+      -- Allow type assertions to simulate invalid task definitions */
+      const task = {
         type: TaskDefinitionType.TASK_OVERRIDE,
         id: ["task-id"],
         description: "task description",
         inlineAction: () => {},
         options: {},
-      };
+      } as unknown as TaskOverrideDefinition;
 
       assert.deepEqual(validateTaskOverride(task, []), []);
     });
 
     it("should return an error if inlineAction is not a function", function () {
-      const task: any = {
+      /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions
+      -- Allow type assertions to simulate invalid task definitions */
+      const task = {
         type: TaskDefinitionType.TASK_OVERRIDE,
         id: ["task-id"],
         description: "task description",
         inlineAction: "not a function",
         options: {},
-      };
+      } as unknown as TaskOverrideDefinition;
 
       const errors = validateTaskOverride(task, []);
       assert.equal(errors.length, 1);
-      assert.equal(errors[0].message, "task inlineAction must be a function implementing the task's behavior");
+      assert.equal(
+        errors[0].message,
+        "task inlineAction must be a function implementing the task's behavior",
+      );
       assert.deepEqual(errors[0].path, ["inlineAction"]);
     });
   });

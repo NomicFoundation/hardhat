@@ -2,7 +2,10 @@ import type { GlobalOptionDefinition } from "./arguments.js";
 import type { HardhatHooks } from "./hooks.js";
 import type {
   EmptyTaskDefinition,
+  LazyActionObject,
+  NewTaskActionFunction,
   NewTaskDefinition,
+  TaskOverrideActionFunction,
   TaskOverrideDefinition,
 } from "./tasks.js";
 
@@ -29,8 +32,14 @@ declare module "./config.js" {
  */
 export type PluginTaskDefinition =
   | EmptyTaskDefinition
-  | Extract<NewTaskDefinition, { action: any }>
-  | Extract<TaskOverrideDefinition, { action: any }>;
+  | Extract<
+      NewTaskDefinition,
+      { action: LazyActionObject<NewTaskActionFunction> }
+    >
+  | Extract<
+      TaskOverrideDefinition,
+      { action: LazyActionObject<TaskOverrideActionFunction> }
+    >;
 
 /**
  * A Hardhat plugin.
