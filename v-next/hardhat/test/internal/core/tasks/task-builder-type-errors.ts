@@ -28,8 +28,7 @@ const TYPE_TEST_SCENARIOS: TypeTestScenario[] = [
                   .setAction(async () => ({ default: () => {} }))
                   .build();
     `,
-    shouldError: true,
-    expectedError: /Cannot define multiple actions/,
+    shouldError: false,
   },
   {
     name: "duplicate setInlineAction calls",
@@ -39,8 +38,7 @@ const TYPE_TEST_SCENARIOS: TypeTestScenario[] = [
                   .setInlineAction(() => {})
                   .build();
     `,
-    shouldError: true,
-    expectedError: /Cannot define multiple actions/,
+    shouldError: false,
   },
   {
     name: "mixed setAction then setInlineAction",
@@ -50,8 +48,7 @@ const TYPE_TEST_SCENARIOS: TypeTestScenario[] = [
                   .setInlineAction(() => {})
                   .build();
     `,
-    shouldError: true,
-    expectedError: /Cannot define multiple actions/,
+    shouldError: false,
   },
   {
     name: "mixed setInlineAction then setAction",
@@ -61,8 +58,7 @@ const TYPE_TEST_SCENARIOS: TypeTestScenario[] = [
                   .setAction(async () => ({ default: () => {} }))
                   .build();
     `,
-    shouldError: true,
-    expectedError: /Cannot define multiple actions/,
+    shouldError: false,
   },
 
   //
@@ -75,8 +71,7 @@ const TYPE_TEST_SCENARIOS: TypeTestScenario[] = [
       task("test").addOption({ name: "opt", defaultValue: "value" })
                   .build();
     `,
-    shouldError: true,
-    expectedError: /You forgot to add an action to the task/,
+    shouldError: false,
   },
 
   //
@@ -112,8 +107,7 @@ const TYPE_TEST_SCENARIOS: TypeTestScenario[] = [
                              .setAction(async () => ({ default: () => {} }))
                              .build();
     `,
-    shouldError: true,
-    expectedError: /Cannot define multiple actions/,
+    shouldError: false,
   },
   {
     name: "duplicate setInlineAction calls in override",
@@ -123,8 +117,7 @@ const TYPE_TEST_SCENARIOS: TypeTestScenario[] = [
                              .setInlineAction(() => {})
                              .build();
     `,
-    shouldError: true,
-    expectedError: /Cannot define multiple actions/,
+    shouldError: false,
   },
   {
     name: "mixed setInlineAction then setAction in override",
@@ -134,8 +127,7 @@ const TYPE_TEST_SCENARIOS: TypeTestScenario[] = [
                              .setAction(async () => ({ default: () => {} }))
                              .build();
     `,
-    shouldError: true,
-    expectedError: /Cannot define multiple actions/,
+    shouldError: false,
   },
   {
     name: "mixed setAction then setInlineAction in override",
@@ -145,8 +137,7 @@ const TYPE_TEST_SCENARIOS: TypeTestScenario[] = [
                              .setInlineAction(() => {})
                              .build();
     `,
-    shouldError: true,
-    expectedError: /Cannot define multiple actions/,
+    shouldError: false,
   },
 
   //
@@ -178,7 +169,7 @@ const TYPE_TEST_SCENARIOS: TypeTestScenario[] = [
     name: "plugin task with setAction",
     category: "Plugin tasks - file-based actions",
     code: `
-      const t: PluginSafeTaskDefinition = task("test")
+      const t: PluginTaskDefinition = task("test")
         .setAction(async () => ({ default: () => {} }))
         .build();
     `,
@@ -188,7 +179,7 @@ const TYPE_TEST_SCENARIOS: TypeTestScenario[] = [
     name: "plugin override with setAction",
     category: "Plugin tasks - file-based actions",
     code: `
-      const t: PluginSafeTaskDefinition = overrideTask("compile")
+      const t: PluginTaskDefinition = overrideTask("compile")
         .setAction(async () => ({ default: () => {} }))
         .build();
     `,
@@ -202,34 +193,34 @@ const TYPE_TEST_SCENARIOS: TypeTestScenario[] = [
     name: "plugin task with setInlineAction",
     category: "Plugin tasks - inline action restrictions",
     code: `
-      const t: PluginSafeTaskDefinition = task("test")
+      const t: PluginTaskDefinition = task("test")
         .setInlineAction(() => {})
         .build();
     `,
     shouldError: true,
-    expectedError: /is not assignable to type 'PluginSafeTaskDefinition'/,
+    expectedError: /is not assignable to type .PluginTaskDefinition./,
   },
   {
     name: "plugin override with setInlineAction",
     category: "Plugin tasks - inline action restrictions",
     code: `
-      const t: PluginSafeTaskDefinition = overrideTask("compile")
+      const t: PluginTaskDefinition = overrideTask("compile")
         .setInlineAction(() => {})
         .build();
     `,
     shouldError: true,
-    expectedError: /is not assignable to type 'PluginSafeTaskDefinition'/,
+    expectedError: /is not assignable to type .PluginTaskDefinition./,
   },
   {
     name: "plugin task without action",
     category: "Plugin tasks - inline action restrictions",
     code: `
-      const t: PluginSafeTaskDefinition = task("test")
+      const t: PluginTaskDefinition = task("test")
         .addOption({ name: "opt", defaultValue: "value" })
         .build();
     `,
     shouldError: true,
-    expectedError: /You forgot to add an action to the task/,
+    expectedError: /is not assignable to type .PluginTaskDefinition./,
   },
 ];
 
@@ -256,7 +247,7 @@ async function runTypeCheckOnCode(code: string) {
     // Write test file with imports and code
     await writeFile(
       tempFilePath,
-      `import type { PluginSafeTaskDefinition } from "../../../src/types/plugins.js";
+      `import type { PluginTaskDefinition } from "../../../src/types/plugins.js";
 import { task, overrideTask } from "../../../src/internal/core/config.js";
 
 ${code}

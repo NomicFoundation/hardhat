@@ -25,9 +25,9 @@ declare module "./config.js" {
 }
 
 /**
- * A helper type to strictly enforce that plugins only use file-based actions.
+ * A helper type to strictly enforce that plugins only use lazy-loaded file-based actions.
  */
-export type PluginSafeTaskDefinition =
+export type PluginTaskDefinition =
   | EmptyTaskDefinition
   | Extract<NewTaskDefinition, { action: any }>
   | Extract<TaskOverrideDefinition, { action: any }>;
@@ -97,7 +97,7 @@ export interface HardhatPlugin {
    * have been defined before, either by a plugin you depend on or by Hardhat
    * itself.
    */
-  tasks?: PluginSafeTaskDefinition[];
+  tasks?: PluginTaskDefinition[];
 }
 
 /**

@@ -17,9 +17,6 @@ import type {
   LazyActionObject,
   TaskAction,
   TaskOverrideAction,
-  MissingActionState,
-  ActionDefinedState,
-  DuplicateActionError,
 } from "../../../types/tasks.js";
 
 import { HardhatError } from "@nomicfoundation/hardhat-errors";
@@ -59,15 +56,12 @@ export class EmptyTaskDefinitionBuilderImplementation
 
 export class NewTaskDefinitionBuilderImplementation<
   TaskArgumentsT extends TaskArguments = TaskArguments,
-  ActionStateT extends
-    | MissingActionState
-    | ActionDefinedState = MissingActionState,
-  ActionTypeT extends "FILE" | "INLINE" | "NONE" = "NONE",
-> implements
-    NewTaskDefinitionBuilder<TaskArgumentsT, ActionStateT, ActionTypeT>
+  ActionTypeT extends
+    | "LAZY_ACTION"
+    | "INLINE_ACTION"
+    | "MISSING_ACTION" = "MISSING_ACTION",
+> implements NewTaskDefinitionBuilder<TaskArgumentsT, ActionTypeT>
 {
-  public readonly isActionDefined!: ActionStateT;
-
   readonly #id: string[];
   readonly #usedNames: Set<string> = new Set();
 
@@ -92,28 +86,8 @@ export class NewTaskDefinitionBuilderImplementation<
   }
 
   public setAction(
-    this: NewTaskDefinitionBuilder<TaskArgumentsT, MissingActionState, "NONE">,
     action: LazyActionObject<NewTaskActionFunction<TaskArgumentsT>>,
-  ): NewTaskDefinitionBuilder<TaskArgumentsT, ActionDefinedState, "FILE">;
-  public setAction(
-    this: NewTaskDefinitionBuilder<
-      TaskArgumentsT,
-      ActionDefinedState,
-      "FILE" | "INLINE"
-    >,
-    action: LazyActionObject<NewTaskActionFunction<TaskArgumentsT>>,
-  ): NewTaskDefinitionBuilder<
-    TaskArgumentsT,
-    DuplicateActionError,
-    "FILE" | "INLINE"
-  >;
-  public setAction(
-    action: LazyActionObject<NewTaskActionFunction<TaskArgumentsT>>,
-  ): NewTaskDefinitionBuilder<
-    TaskArgumentsT,
-    ActionDefinedState | DuplicateActionError,
-    "FILE" | "INLINE"
-  > {
+  ): NewTaskDefinitionBuilder<TaskArgumentsT, "LAZY_ACTION"> {
     if (this.#action !== undefined || this.#inlineAction !== undefined) {
       throw new HardhatError(
         HardhatError.ERRORS.CORE.TASK_DEFINITIONS.ACTION_AND_INLINE_ACTION_CONFLICT,
@@ -126,39 +100,13 @@ export class NewTaskDefinitionBuilderImplementation<
     this.#action = action;
 
     /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions
-    -- Cast to update the builder state. The interface defines multiple overloads
-    to provide clear error messages for duplicate action calls, but at runtime we
-    always cast to ActionDefinedState with the appropriate ActionTypeT. */
-    return this as NewTaskDefinitionBuilder<
-      TaskArgumentsT,
-      ActionDefinedState,
-      "FILE"
-    >;
+    -- Cast to update the ActionTypeT to "LAZY_ACTION". */
+    return this as NewTaskDefinitionBuilder<TaskArgumentsT, "LAZY_ACTION">;
   }
 
   public setInlineAction(
-    this: NewTaskDefinitionBuilder<TaskArgumentsT, MissingActionState, "NONE">,
     inlineAction: NewTaskActionFunction<TaskArgumentsT>,
-  ): NewTaskDefinitionBuilder<TaskArgumentsT, ActionDefinedState, "INLINE">;
-  public setInlineAction(
-    this: NewTaskDefinitionBuilder<
-      TaskArgumentsT,
-      ActionDefinedState,
-      "FILE" | "INLINE"
-    >,
-    inlineAction: NewTaskActionFunction<TaskArgumentsT>,
-  ): NewTaskDefinitionBuilder<
-    TaskArgumentsT,
-    DuplicateActionError,
-    "FILE" | "INLINE"
-  >;
-  public setInlineAction(
-    inlineAction: NewTaskActionFunction<TaskArgumentsT>,
-  ): NewTaskDefinitionBuilder<
-    TaskArgumentsT,
-    ActionDefinedState | DuplicateActionError,
-    "FILE" | "INLINE"
-  > {
+  ): NewTaskDefinitionBuilder<TaskArgumentsT, "INLINE_ACTION"> {
     if (this.#action !== undefined || this.#inlineAction !== undefined) {
       throw new HardhatError(
         HardhatError.ERRORS.CORE.TASK_DEFINITIONS.ACTION_AND_INLINE_ACTION_CONFLICT,
@@ -171,14 +119,8 @@ export class NewTaskDefinitionBuilderImplementation<
     this.#inlineAction = inlineAction;
 
     /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions
-    -- Cast to update the builder state. The interface defines multiple overloads
-    to provide clear error messages for duplicate action calls, but at runtime we
-    always cast to ActionDefinedState with the appropriate ActionTypeT. */
-    return this as NewTaskDefinitionBuilder<
-      TaskArgumentsT,
-      ActionDefinedState,
-      "INLINE"
-    >;
+    -- Cast to update the ActionTypeT to "INLINE_ACTION". */
+    return this as NewTaskDefinitionBuilder<TaskArgumentsT, "INLINE_ACTION">;
   }
 
   public addOption<
@@ -200,7 +142,6 @@ export class NewTaskDefinitionBuilderImplementation<
     hidden?: boolean;
   }): NewTaskDefinitionBuilder<
     ExtendTaskArguments<NameT, TypeT, TaskArgumentsT>,
-    ActionStateT,
     ActionTypeT
   > {
     const argumentType = type ?? ArgumentType.STRING;
@@ -219,12 +160,10 @@ export class NewTaskDefinitionBuilderImplementation<
     this.#options[name] = optionDefinition;
 
     /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions
-    -- Cast to update the generic argument types. Explicitly propagate 'ActionStateT' and
-    'ActionTypeT' to preserve the current state (whether an action is defined or not,
-    and if it is file-based or inline) for subsequent method calls. */
+    -- Cast to update the generic argument types. Propagate 'ActionTypeT' to preserve
+    the current action state for subsequent method calls. */
     return this as NewTaskDefinitionBuilder<
       ExtendTaskArguments<NameT, TypeT, TaskArgumentsT>,
-      ActionStateT,
       ActionTypeT
     >;
   }
@@ -236,7 +175,6 @@ export class NewTaskDefinitionBuilderImplementation<
     hidden?: boolean;
   }): NewTaskDefinitionBuilder<
     ExtendTaskArguments<NameT, ArgumentType.FLAG, TaskArgumentsT>,
-    ActionStateT,
     ActionTypeT
   > {
     return this.addOption({
@@ -254,7 +192,6 @@ export class NewTaskDefinitionBuilderImplementation<
     defaultValue?: number;
   }): NewTaskDefinitionBuilder<
     ExtendTaskArguments<NameT, ArgumentType.LEVEL, TaskArgumentsT>,
-    ActionStateT,
     ActionTypeT
   > {
     return this.addOption({
@@ -274,7 +211,6 @@ export class NewTaskDefinitionBuilderImplementation<
     defaultValue?: ArgumentTypeToValueType<TypeT>;
   }): NewTaskDefinitionBuilder<
     ExtendTaskArguments<NameT, TypeT, TaskArgumentsT>,
-    ActionStateT,
     ActionTypeT
   > {
     return this.#addPositionalArgument({
@@ -292,8 +228,7 @@ export class NewTaskDefinitionBuilderImplementation<
     type?: TypeT;
     defaultValue?: Array<ArgumentTypeToValueType<TypeT>>;
   }): NewTaskDefinitionBuilder<
-    ExtendTaskArguments<NameT, TypeT, TaskArgumentsT>,
-    ActionStateT,
+    ExtendTaskArguments<NameT, TypeT[], TaskArgumentsT>,
     ActionTypeT
   > {
     return this.#addPositionalArgument({
@@ -302,7 +237,7 @@ export class NewTaskDefinitionBuilderImplementation<
     });
   }
 
-  public build(): ActionTypeT extends "FILE"
+  public build(): ActionTypeT extends "LAZY_ACTION"
     ? Extract<
         NewTaskDefinition,
         { action: LazyActionObject<NewTaskActionFunction> }
@@ -333,7 +268,7 @@ export class NewTaskDefinitionBuilderImplementation<
         : { inlineAction: this.#inlineAction }) as TaskAction),
       options: this.#options,
       positionalArguments: this.#positionalArgs,
-    } as ActionTypeT extends "FILE"
+    } as ActionTypeT extends "LAZY_ACTION"
       ? Extract<
           NewTaskDefinition,
           { action: LazyActionObject<NewTaskActionFunction> }
@@ -360,7 +295,6 @@ export class NewTaskDefinitionBuilderImplementation<
     isVariadic: boolean;
   }): NewTaskDefinitionBuilder<
     ExtendTaskArguments<NameT, TypeT, TaskArgumentsT>,
-    ActionStateT,
     ActionTypeT
   > {
     const argumentType = type ?? ArgumentType.STRING;
@@ -384,12 +318,10 @@ export class NewTaskDefinitionBuilderImplementation<
     this.#positionalArgs.push(positionalArgDef);
 
     /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions
-    -- Cast to update the generic argument types. Explicitly propagate 'ActionStateT' and
-    'ActionTypeT' to preserve the current state (whether an action is defined or not,
-    and if it is file-based or inline) for subsequent method calls. */
+    -- Cast to update the generic argument types. Propagate 'ActionTypeT' to preserve
+    the current action state for subsequent method calls. */
     return this as NewTaskDefinitionBuilder<
       ExtendTaskArguments<NameT, TypeT, TaskArgumentsT>,
-      ActionStateT,
       ActionTypeT
     >;
   }
@@ -397,15 +329,12 @@ export class NewTaskDefinitionBuilderImplementation<
 
 export class TaskOverrideDefinitionBuilderImplementation<
   TaskArgumentsT extends TaskArguments = TaskArguments,
-  ActionStateT extends
-    | MissingActionState
-    | ActionDefinedState = MissingActionState,
-  ActionTypeT extends "FILE" | "INLINE" | "NONE" = "NONE",
-> implements
-    TaskOverrideDefinitionBuilder<TaskArgumentsT, ActionStateT, ActionTypeT>
+  ActionTypeT extends
+    | "LAZY_ACTION"
+    | "INLINE_ACTION"
+    | "MISSING_ACTION" = "MISSING_ACTION",
+> implements TaskOverrideDefinitionBuilder<TaskArgumentsT, ActionTypeT>
 {
-  public readonly isActionDefined!: ActionStateT;
-
   readonly #id: string[];
 
   readonly #options: Record<string, OptionDefinition> = {};
@@ -427,32 +356,8 @@ export class TaskOverrideDefinitionBuilderImplementation<
   }
 
   public setAction(
-    this: TaskOverrideDefinitionBuilder<
-      TaskArgumentsT,
-      MissingActionState,
-      "NONE"
-    >,
     action: LazyActionObject<TaskOverrideActionFunction<TaskArgumentsT>>,
-  ): TaskOverrideDefinitionBuilder<TaskArgumentsT, ActionDefinedState, "FILE">;
-  public setAction(
-    this: TaskOverrideDefinitionBuilder<
-      TaskArgumentsT,
-      ActionDefinedState,
-      "FILE" | "INLINE"
-    >,
-    action: LazyActionObject<TaskOverrideActionFunction<TaskArgumentsT>>,
-  ): TaskOverrideDefinitionBuilder<
-    TaskArgumentsT,
-    DuplicateActionError,
-    "FILE" | "INLINE"
-  >;
-  public setAction(
-    action: LazyActionObject<TaskOverrideActionFunction<TaskArgumentsT>>,
-  ): TaskOverrideDefinitionBuilder<
-    TaskArgumentsT,
-    ActionDefinedState | DuplicateActionError,
-    "FILE" | "INLINE"
-  > {
+  ): TaskOverrideDefinitionBuilder<TaskArgumentsT, "LAZY_ACTION"> {
     if (this.#action !== undefined || this.#inlineAction !== undefined) {
       throw new HardhatError(
         HardhatError.ERRORS.CORE.TASK_DEFINITIONS.ACTION_AND_INLINE_ACTION_CONFLICT,
@@ -465,47 +370,13 @@ export class TaskOverrideDefinitionBuilderImplementation<
     this.#action = action;
 
     /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions
-    -- Cast to update the builder state. The interface defines multiple overloads
-    to provide clear error messages for duplicate action calls, but at runtime we
-    always cast to ActionDefinedState with the appropriate ActionTypeT. */
-    return this as TaskOverrideDefinitionBuilder<
-      TaskArgumentsT,
-      ActionDefinedState,
-      "FILE"
-    >;
+    -- Cast to update the ActionTypeT to "LAZY_ACTION". */
+    return this as TaskOverrideDefinitionBuilder<TaskArgumentsT, "LAZY_ACTION">;
   }
 
   public setInlineAction(
-    this: TaskOverrideDefinitionBuilder<
-      TaskArgumentsT,
-      MissingActionState,
-      "NONE"
-    >,
     inlineAction: TaskOverrideActionFunction<TaskArgumentsT>,
-  ): TaskOverrideDefinitionBuilder<
-    TaskArgumentsT,
-    ActionDefinedState,
-    "INLINE"
-  >;
-  public setInlineAction(
-    this: TaskOverrideDefinitionBuilder<
-      TaskArgumentsT,
-      ActionDefinedState,
-      "FILE" | "INLINE"
-    >,
-    inlineAction: TaskOverrideActionFunction<TaskArgumentsT>,
-  ): TaskOverrideDefinitionBuilder<
-    TaskArgumentsT,
-    DuplicateActionError,
-    "FILE" | "INLINE"
-  >;
-  public setInlineAction(
-    inlineAction: TaskOverrideActionFunction<TaskArgumentsT>,
-  ): TaskOverrideDefinitionBuilder<
-    TaskArgumentsT,
-    ActionDefinedState | DuplicateActionError,
-    "FILE" | "INLINE"
-  > {
+  ): TaskOverrideDefinitionBuilder<TaskArgumentsT, "INLINE_ACTION"> {
     if (this.#action !== undefined || this.#inlineAction !== undefined) {
       throw new HardhatError(
         HardhatError.ERRORS.CORE.TASK_DEFINITIONS.ACTION_AND_INLINE_ACTION_CONFLICT,
@@ -518,13 +389,10 @@ export class TaskOverrideDefinitionBuilderImplementation<
     this.#inlineAction = inlineAction;
 
     /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions
-    -- Cast to update the builder state. The interface defines multiple overloads
-    to provide clear error messages for duplicate action calls, but at runtime we
-    always cast to ActionDefinedState with the appropriate ActionTypeT. */
+    -- Cast to update the ActionTypeT to "INLINE_ACTION". */
     return this as TaskOverrideDefinitionBuilder<
       TaskArgumentsT,
-      ActionDefinedState,
-      "INLINE"
+      "INLINE_ACTION"
     >;
   }
 
@@ -547,7 +415,6 @@ export class TaskOverrideDefinitionBuilderImplementation<
     hidden?: boolean;
   }): TaskOverrideDefinitionBuilder<
     ExtendTaskArguments<NameT, TypeT, TaskArgumentsT>,
-    ActionStateT,
     ActionTypeT
   > {
     const argumentType = type ?? ArgumentType.STRING;
@@ -574,12 +441,10 @@ export class TaskOverrideDefinitionBuilderImplementation<
     this.#options[name] = optionDefinition;
 
     /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions
-    -- Cast to update the generic argument types. Explicitly propagate 'ActionStateT' and
-    'ActionTypeT' to preserve the current state (whether an action is defined or not,
-    and if it is file-based or inline) for subsequent method calls. */
+    -- Cast to update the generic argument types. Propagate 'ActionTypeT' to preserve
+    the current action state for subsequent method calls. */
     return this as TaskOverrideDefinitionBuilder<
       ExtendTaskArguments<NameT, TypeT, TaskArgumentsT>,
-      ActionStateT,
       ActionTypeT
     >;
   }
@@ -591,7 +456,6 @@ export class TaskOverrideDefinitionBuilderImplementation<
     hidden?: boolean;
   }): TaskOverrideDefinitionBuilder<
     ExtendTaskArguments<NameT, ArgumentType.FLAG, TaskArgumentsT>,
-    ActionStateT,
     ActionTypeT
   > {
     return this.addOption({
@@ -609,7 +473,6 @@ export class TaskOverrideDefinitionBuilderImplementation<
     defaultValue?: number;
   }): TaskOverrideDefinitionBuilder<
     ExtendTaskArguments<NameT, ArgumentType.LEVEL, TaskArgumentsT>,
-    ActionStateT,
     ActionTypeT
   > {
     return this.addOption({
@@ -619,7 +482,7 @@ export class TaskOverrideDefinitionBuilderImplementation<
     });
   }
 
-  public build(): ActionTypeT extends "FILE"
+  public build(): ActionTypeT extends "LAZY_ACTION"
     ? Extract<
         TaskOverrideDefinition,
         { action: LazyActionObject<TaskOverrideActionFunction> }
@@ -656,7 +519,7 @@ export class TaskOverrideDefinitionBuilderImplementation<
             inlineAction: this.#inlineAction,
           }) as TaskOverrideAction),
       options: this.#options,
-    } as ActionTypeT extends "FILE"
+    } as ActionTypeT extends "LAZY_ACTION"
       ? Extract<
           TaskOverrideDefinition,
           { action: LazyActionObject<TaskOverrideActionFunction> }

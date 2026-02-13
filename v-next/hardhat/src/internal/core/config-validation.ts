@@ -272,7 +272,22 @@ export function validateNewTask(
     });
   }
 
-  // Either action or inlineAction must be defined
+  // Mutual exclusivity: cannot have both action and inlineAction
+  if (task.action !== undefined && task.inlineAction !== undefined) {
+    validationErrors.push({
+      path: [...path],
+      message: 'task cannot define both "action" and "inlineAction"',
+    });
+  }
+
+  // At least one action must be defined
+  if (task.action === undefined && task.inlineAction === undefined) {
+    validationErrors.push({
+      path: [...path, "action"],
+      message: 'task must define either "action" or "inlineAction"',
+    });
+  }
+
   if (task.action !== undefined) {
     if (typeof task.action !== "function") {
       validationErrors.push({
@@ -281,7 +296,9 @@ export function validateNewTask(
           "task action must be a lazy import function returning a module with a default export",
       });
     }
-  } else {
+  }
+
+  if (task.inlineAction !== undefined) {
     if (typeof task.inlineAction !== "function") {
       validationErrors.push({
         path: [...path, "inlineAction"],
@@ -339,7 +356,22 @@ export function validateTaskOverride(
     });
   }
 
-  // Either action or inlineAction must be defined
+  // Mutual exclusivity: cannot have both action and inlineAction
+  if (task.action !== undefined && task.inlineAction !== undefined) {
+    validationErrors.push({
+      path: [...path],
+      message: 'task cannot define both "action" and "inlineAction"',
+    });
+  }
+
+  // At least one action must be defined
+  if (task.action === undefined && task.inlineAction === undefined) {
+    validationErrors.push({
+      path: [...path, "action"],
+      message: 'task must define either "action" or "inlineAction"',
+    });
+  }
+
   if (task.action !== undefined) {
     if (typeof task.action !== "function") {
       validationErrors.push({
@@ -348,7 +380,9 @@ export function validateTaskOverride(
           "task action must be a lazy import function returning a module with a default export",
       });
     }
-  } else {
+  }
+
+  if (task.inlineAction !== undefined) {
     if (typeof task.inlineAction !== "function") {
       validationErrors.push({
         path: [...path, "inlineAction"],

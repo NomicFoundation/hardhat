@@ -166,23 +166,6 @@ export type ExtendTaskArguments<
 > &
   TaskArgumentsT;
 
-/**
- * Error state used when the user forgot to add an action.
- * Using a string literal type ensures a readable error message in the IDE.
- */
-export type MissingActionState = "You forgot to add an action to the task";
-
-/**
- * State used when the action has been correctly defined.
- */
-export type ActionDefinedState = "Action defined";
-
-/**
- * Error state used when the user tries to define multiple actions on the same task.
- * This includes calling setAction twice, setInlineAction twice, or mixing both.
- */
-export type DuplicateActionError =
-  "Cannot define multiple actions on the same task";
 
 /**
  * A builder for creating EmptyTaskDefinitions.
@@ -198,25 +181,19 @@ export interface EmptyTaskDefinitionBuilder {
  * A builder for creating NewTaskDefinitions.
  *
  * @template TaskArgumentsT The arguments of the task.
- * @template ActionStateT Tracks the state of the action definition for error messages.
- * This state ensures that `setAction` and `setInlineAction` are mutually exclusive
- * and can strictly be called only once per task definition chain.
- * @template ActionTypeT Tracks if the action is "FILE" (Plugin Safe) or "INLINE".
+ * @template ActionTypeT Tracks if the action is "LAZY_ACTION" (Plugin Safe) or "INLINE_ACTION".
+ *
+ * @remarks
+ * This builder validates action definitions at runtime. Attempting to:
+ * - Call setAction or setInlineAction multiple times
+ * - Call both setAction and setInlineAction on the same task
+ * - Build without setting an action
+ * will throw a HardhatError with a clear message.
  */
 export interface NewTaskDefinitionBuilder<
   TaskArgumentsT extends TaskArguments = TaskArguments,
-  ActionStateT extends
-    | MissingActionState
-    | ActionDefinedState
-    | DuplicateActionError = MissingActionState,
-  ActionTypeT extends "FILE" | "INLINE" | "NONE" = "NONE",
+  ActionTypeT extends "LAZY_ACTION" | "INLINE_ACTION" | "MISSING_ACTION" = "MISSING_ACTION",
 > {
-  /**
-   * Technical property needed to enforce the `ActionStateT` state check at compile time.
-   * See `ActionStateT`for more info.
-   * @internal
-   */
-  readonly isActionDefined: ActionStateT;
 
   /**
    * Sets the description of the task.
@@ -234,30 +211,16 @@ export interface NewTaskDefinitionBuilder<
    *
    * @remarks
    * This method can only be called once per task definition. Calling it multiple
-   * times will result in a TypeScript error at compile time and a runtime error
-   * if the check is bypassed.
+   * times will result in a runtime error.
    *
    * This method cannot be used together with {@link setInlineAction} on the same
    * task. Use one or the other.
+   *
+   * @throws {HardhatError} CORE.TASK_DEFINITIONS.ACTION_AND_INLINE_ACTION_CONFLICT
    */
-  // Overload 1: Valid call when no action is defined
   setAction(
-    this: NewTaskDefinitionBuilder<TaskArgumentsT, MissingActionState, "NONE">,
     action: LazyActionObject<NewTaskActionFunction<TaskArgumentsT>>,
-  ): NewTaskDefinitionBuilder<TaskArgumentsT, ActionDefinedState, "FILE">;
-  // Overload 2: Error when trying to define a second action
-  setAction(
-    this: NewTaskDefinitionBuilder<
-      TaskArgumentsT,
-      ActionDefinedState,
-      "FILE" | "INLINE"
-    >,
-    action: LazyActionObject<NewTaskActionFunction<TaskArgumentsT>>,
-  ): NewTaskDefinitionBuilder<
-    TaskArgumentsT,
-    DuplicateActionError,
-    "FILE" | "INLINE"
-  >;
+  ): NewTaskDefinitionBuilder<TaskArgumentsT, "LAZY_ACTION">;
 
   /**
    * Sets the inline action of the task.
@@ -266,30 +229,16 @@ export interface NewTaskDefinitionBuilder<
    *
    * @remarks
    * This method can only be called once per task definition. Calling it multiple
-   * times will result in a TypeScript error at compile time and a runtime error
-   * if the check is bypassed.
+   * times will result in a runtime error.
    *
    * This method cannot be used together with {@link setAction} on the same
    * task. Use one or the other.
+   *
+   * @throws {HardhatError} CORE.TASK_DEFINITIONS.ACTION_AND_INLINE_ACTION_CONFLICT
    */
-  // Overload 1: Valid call when no action is defined
   setInlineAction(
-    this: NewTaskDefinitionBuilder<TaskArgumentsT, MissingActionState, "NONE">,
     inlineAction: NewTaskActionFunction<TaskArgumentsT>,
-  ): NewTaskDefinitionBuilder<TaskArgumentsT, ActionDefinedState, "INLINE">;
-  // Overload 2: Error when trying to define a second action
-  setInlineAction(
-    this: NewTaskDefinitionBuilder<
-      TaskArgumentsT,
-      ActionDefinedState,
-      "FILE" | "INLINE"
-    >,
-    inlineAction: NewTaskActionFunction<TaskArgumentsT>,
-  ): NewTaskDefinitionBuilder<
-    TaskArgumentsT,
-    DuplicateActionError,
-    "FILE" | "INLINE"
-  >;
+  ): NewTaskDefinitionBuilder<TaskArgumentsT, "INLINE_ACTION">;
 
   /**
    * Adds an option to the task.
@@ -312,7 +261,6 @@ export interface NewTaskDefinitionBuilder<
     hidden?: boolean;
   }): NewTaskDefinitionBuilder<
     ExtendTaskArguments<NameT, TypeT, TaskArgumentsT>,
-    ActionStateT,
     ActionTypeT
   >;
 
@@ -326,7 +274,6 @@ export interface NewTaskDefinitionBuilder<
     hidden?: boolean;
   }): NewTaskDefinitionBuilder<
     ExtendTaskArguments<NameT, ArgumentType.FLAG, TaskArgumentsT>,
-    ActionStateT,
     ActionTypeT
   >;
 
@@ -340,7 +287,6 @@ export interface NewTaskDefinitionBuilder<
     defaultValue?: number;
   }): NewTaskDefinitionBuilder<
     ExtendTaskArguments<NameT, ArgumentType.LEVEL, TaskArgumentsT>,
-    ActionStateT,
     ActionTypeT
   >;
 
@@ -370,7 +316,6 @@ export interface NewTaskDefinitionBuilder<
     defaultValue?: ArgumentTypeToValueType<TypeT>;
   }): NewTaskDefinitionBuilder<
     ExtendTaskArguments<NameT, TypeT, TaskArgumentsT>,
-    ActionStateT,
     ActionTypeT
   >;
 
@@ -398,20 +343,15 @@ export interface NewTaskDefinitionBuilder<
     defaultValue?: Array<ArgumentTypeToValueType<TypeT>>;
   }): NewTaskDefinitionBuilder<
     ExtendTaskArguments<NameT, TypeT[], TaskArgumentsT>,
-    ActionStateT,
     ActionTypeT
   >;
 
   /**
    * Builds the NewTaskDefinition.
+   *
+   * @throws {HardhatError} CORE.TASK_DEFINITIONS.NO_ACTION if no action was set
    */
-  build(
-    this: NewTaskDefinitionBuilder<
-      TaskArgumentsT,
-      ActionDefinedState,
-      ActionTypeT
-    >,
-  ): ActionTypeT extends "FILE"
+  build(): ActionTypeT extends "LAZY_ACTION"
     ? Extract<
         NewTaskDefinition,
         { action: LazyActionObject<NewTaskActionFunction> }
@@ -423,25 +363,19 @@ export interface NewTaskDefinitionBuilder<
  * A builder for overriding existing tasks
  *
  * @template TaskArgumentsT The arguments of the task.
- * @template ActionStateT Tracks the state of the action definition for error messages.
- * This state ensures that `setAction` and `setInlineAction` are mutually exclusive
- * and can strictly be called only once per task definition chain.
- * @template ActionTypeT Tracks if the action is "FILE" (Plugin Safe) or "INLINE".
+ * @template ActionTypeT Tracks if the action is "LAZY_ACTION" (Plugin Safe) or "INLINE_ACTION".
+ *
+ * @remarks
+ * This builder validates action definitions at runtime. Attempting to:
+ * - Call setAction or setInlineAction multiple times
+ * - Call both setAction and setInlineAction on the same task
+ * - Build without setting an action
+ * will throw a HardhatError with a clear message.
  */
 export interface TaskOverrideDefinitionBuilder<
   TaskArgumentsT extends TaskArguments = TaskArguments,
-  ActionStateT extends
-    | MissingActionState
-    | ActionDefinedState
-    | DuplicateActionError = MissingActionState,
-  ActionTypeT extends "FILE" | "INLINE" | "NONE" = "NONE",
+  ActionTypeT extends "LAZY_ACTION" | "INLINE_ACTION" | "MISSING_ACTION" = "MISSING_ACTION",
 > {
-  /**
-   * Technical property needed to enforce the `ActionStateT` state check at compile time.
-   * See `ActionStateT`for more info.
-   * @internal
-   */
-  readonly isActionDefined: ActionStateT;
 
   /**
    * Sets a new description for the task.
@@ -452,61 +386,21 @@ export interface TaskOverrideDefinitionBuilder<
    * Sets a new action for the task.
    *
    * @see NewTaskDefinitionBuilder.setAction
+   * @throws {HardhatError} CORE.TASK_DEFINITIONS.ACTION_AND_INLINE_ACTION_CONFLICT
    */
-  // Overload 1: Valid call when no action is defined
   setAction(
-    this: TaskOverrideDefinitionBuilder<
-      TaskArgumentsT,
-      MissingActionState,
-      "NONE"
-    >,
     action: LazyActionObject<TaskOverrideActionFunction<TaskArgumentsT>>,
-  ): TaskOverrideDefinitionBuilder<TaskArgumentsT, ActionDefinedState, "FILE">;
-  // Overload 2: Error when trying to define a second action
-  setAction(
-    this: TaskOverrideDefinitionBuilder<
-      TaskArgumentsT,
-      ActionDefinedState,
-      "FILE" | "INLINE"
-    >,
-    action: LazyActionObject<TaskOverrideActionFunction<TaskArgumentsT>>,
-  ): TaskOverrideDefinitionBuilder<
-    TaskArgumentsT,
-    DuplicateActionError,
-    "FILE" | "INLINE"
-  >;
+  ): TaskOverrideDefinitionBuilder<TaskArgumentsT, "LAZY_ACTION">;
 
   /**
    * Sets a new inline action for the task.
    *
    * @see NewTaskDefinitionBuilder.setInlineAction
+   * @throws {HardhatError} CORE.TASK_DEFINITIONS.ACTION_AND_INLINE_ACTION_CONFLICT
    */
-  // Overload 1: Valid call when no action is defined
   setInlineAction(
-    this: TaskOverrideDefinitionBuilder<
-      TaskArgumentsT,
-      MissingActionState,
-      "NONE"
-    >,
     inlineAction: TaskOverrideActionFunction<TaskArgumentsT>,
-  ): TaskOverrideDefinitionBuilder<
-    TaskArgumentsT,
-    ActionDefinedState,
-    "INLINE"
-  >;
-  // Overload 2: Error when trying to define a second action
-  setInlineAction(
-    this: TaskOverrideDefinitionBuilder<
-      TaskArgumentsT,
-      ActionDefinedState,
-      "FILE" | "INLINE"
-    >,
-    inlineAction: TaskOverrideActionFunction<TaskArgumentsT>,
-  ): TaskOverrideDefinitionBuilder<
-    TaskArgumentsT,
-    DuplicateActionError,
-    "FILE" | "INLINE"
-  >;
+  ): TaskOverrideDefinitionBuilder<TaskArgumentsT, "INLINE_ACTION">;
 
   /**
    * Adds a new option to the task.
@@ -525,7 +419,6 @@ export interface TaskOverrideDefinitionBuilder<
     hidden?: boolean;
   }): TaskOverrideDefinitionBuilder<
     ExtendTaskArguments<NameT, TypeT, TaskArgumentsT>,
-    ActionStateT,
     ActionTypeT
   >;
 
@@ -539,7 +432,6 @@ export interface TaskOverrideDefinitionBuilder<
     hidden?: boolean;
   }): TaskOverrideDefinitionBuilder<
     ExtendTaskArguments<NameT, ArgumentType.FLAG, TaskArgumentsT>,
-    ActionStateT,
     ActionTypeT
   >;
 
@@ -553,20 +445,15 @@ export interface TaskOverrideDefinitionBuilder<
     defaultValue?: number;
   }): TaskOverrideDefinitionBuilder<
     ExtendTaskArguments<NameT, ArgumentType.LEVEL, TaskArgumentsT>,
-    ActionStateT,
     ActionTypeT
   >;
 
   /**
    * Builds the TaskOverrideDefinition.
+   *
+   * @throws {HardhatError} CORE.TASK_DEFINITIONS.NO_ACTION if no action was set
    */
-  build(
-    this: TaskOverrideDefinitionBuilder<
-      TaskArgumentsT,
-      ActionDefinedState,
-      ActionTypeT
-    >,
-  ): ActionTypeT extends "FILE"
+  build(): ActionTypeT extends "LAZY_ACTION"
     ? Extract<
         TaskOverrideDefinition,
         { action: LazyActionObject<TaskOverrideActionFunction> }
@@ -581,7 +468,7 @@ export interface TaskOverrideDefinitionBuilder<
  * The actions associated to the task, in order.
  *
  * Each of them has the pluginId of the plugin that defined it, if any, and the
- * action itself. The action is stored either in `action` or `inlineAction`.
+ * action itself. The action is stored either in `lazyAction` or `inlineAction`.
  * Note that `inlineAction` is reserved for user tasks and is not allowed for plugins.
  *
  * Note that the first action is a `NewTaskActionFunction` or undefined.
