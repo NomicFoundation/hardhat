@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import { spawn } from "node:child_process";
 import os from "node:os";
 import path from "node:path";
+import { performance } from "node:perf_hooks";
 import { describe, it } from "node:test";
 
 import { readUtf8File } from "../src/fs.js";
