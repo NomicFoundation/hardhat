@@ -20,8 +20,7 @@ describe("validateAction", () => {
   it("should throw when both action and inlineAction are provided", () => {
     assertThrowsHardhatError(
       () => validateAction(action, inlineAction, ["task-id"], false),
-      HardhatError.ERRORS.CORE.TASK_DEFINITIONS
-        .ACTION_AND_INLINE_ACTION_CONFLICT,
+      HardhatError.ERRORS.CORE.TASK_DEFINITIONS.ACTION_ALREADY_SET,
       { task: "task-id" },
     );
   });

@@ -43,7 +43,7 @@ export function validateAction(
 ): void {
   if (action !== undefined && inlineAction !== undefined) {
     throw new HardhatError(
-      HardhatError.ERRORS.CORE.TASK_DEFINITIONS.ACTION_AND_INLINE_ACTION_CONFLICT,
+      HardhatError.ERRORS.CORE.TASK_DEFINITIONS.ACTION_ALREADY_SET,
       { task: formatTaskId(taskId) },
     );
   }

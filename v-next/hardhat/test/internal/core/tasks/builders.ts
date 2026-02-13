@@ -1112,8 +1112,7 @@ describe("Task builders", () => {
 
         assertThrowsHardhatError(
           () => builder.setInlineAction(inlineAction),
-          HardhatError.ERRORS.CORE.TASK_DEFINITIONS
-            .ACTION_AND_INLINE_ACTION_CONFLICT,
+          HardhatError.ERRORS.CORE.TASK_DEFINITIONS.ACTION_ALREADY_SET,
           { task: "task-id" },
         );
       });
@@ -1125,8 +1124,7 @@ describe("Task builders", () => {
 
         assertThrowsHardhatError(
           () => builder.setAction(action),
-          HardhatError.ERRORS.CORE.TASK_DEFINITIONS
-            .ACTION_AND_INLINE_ACTION_CONFLICT,
+          HardhatError.ERRORS.CORE.TASK_DEFINITIONS.ACTION_ALREADY_SET,
           { task: "task-id" },
         );
       });
@@ -1141,8 +1139,7 @@ describe("Task builders", () => {
 
         assertThrowsHardhatError(
           () => builder.setAction(action2),
-          HardhatError.ERRORS.CORE.TASK_DEFINITIONS
-            .ACTION_AND_INLINE_ACTION_CONFLICT,
+          HardhatError.ERRORS.CORE.TASK_DEFINITIONS.ACTION_ALREADY_SET,
           { task: "task-id" },
         );
       });
@@ -1155,8 +1152,7 @@ describe("Task builders", () => {
 
         assertThrowsHardhatError(
           () => builder.setInlineAction(inlineAction2),
-          HardhatError.ERRORS.CORE.TASK_DEFINITIONS
-            .ACTION_AND_INLINE_ACTION_CONFLICT,
+          HardhatError.ERRORS.CORE.TASK_DEFINITIONS.ACTION_ALREADY_SET,
           { task: "task-id" },
         );
       });
@@ -1815,8 +1811,7 @@ describe("Task builders", () => {
 
         assertThrowsHardhatError(
           () => builder.setInlineAction(inlineAction),
-          HardhatError.ERRORS.CORE.TASK_DEFINITIONS
-            .ACTION_AND_INLINE_ACTION_CONFLICT,
+          HardhatError.ERRORS.CORE.TASK_DEFINITIONS.ACTION_ALREADY_SET,
           { task: "task-id" },
         );
       });
@@ -1830,8 +1825,7 @@ describe("Task builders", () => {
 
         assertThrowsHardhatError(
           () => builder.setAction(action),
-          HardhatError.ERRORS.CORE.TASK_DEFINITIONS
-            .ACTION_AND_INLINE_ACTION_CONFLICT,
+          HardhatError.ERRORS.CORE.TASK_DEFINITIONS.ACTION_ALREADY_SET,
           { task: "task-id" },
         );
       });
@@ -1848,8 +1842,7 @@ describe("Task builders", () => {
 
         assertThrowsHardhatError(
           () => builder.setAction(action2),
-          HardhatError.ERRORS.CORE.TASK_DEFINITIONS
-            .ACTION_AND_INLINE_ACTION_CONFLICT,
+          HardhatError.ERRORS.CORE.TASK_DEFINITIONS.ACTION_ALREADY_SET,
           { task: "task-id" },
         );
       });
@@ -1864,8 +1857,7 @@ describe("Task builders", () => {
 
         assertThrowsHardhatError(
           () => builder.setInlineAction(inlineAction2),
-          HardhatError.ERRORS.CORE.TASK_DEFINITIONS
-            .ACTION_AND_INLINE_ACTION_CONFLICT,
+          HardhatError.ERRORS.CORE.TASK_DEFINITIONS.ACTION_ALREADY_SET,
           { task: "task-id" },
         );
       });

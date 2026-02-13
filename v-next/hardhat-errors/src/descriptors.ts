@@ -702,13 +702,13 @@ Please check you have the correct subtask.`,
 
 Please define the action in a separate file and reference it.`,
       },
-      ACTION_AND_INLINE_ACTION_CONFLICT: {
+      ACTION_ALREADY_SET: {
         number: 418,
-        messageTemplate: `The definition for task "{task}" contains conflicting properties: "action" and "inlineAction". You must remove one of them.`,
-        websiteTitle: `Task definition cannot use both "action" and "inlineAction"`,
-        websiteDescription: `A task cannot define both "action" and "inlineAction" properties at the same time.
+        messageTemplate: `The action for task "{task}" has already been set. You can only call setAction or setInlineAction once per task definition.`,
+        websiteTitle: "Task action already set",
+        websiteDescription: `A task definition can only have one action. You cannot call setAction or setInlineAction more than once on the same task builder.
 
-Please remove one of the properties.`,
+Please remove the duplicate call.`,
       },
     },
     ARGUMENTS: {

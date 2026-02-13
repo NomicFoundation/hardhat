@@ -88,14 +88,7 @@ export class NewTaskDefinitionBuilderImplementation<
   public setAction(
     action: LazyActionObject<NewTaskActionFunction<TaskArgumentsT>>,
   ): NewTaskDefinitionBuilder<TaskArgumentsT, "LAZY_ACTION"> {
-    if (this.#action !== undefined || this.#inlineAction !== undefined) {
-      throw new HardhatError(
-        HardhatError.ERRORS.CORE.TASK_DEFINITIONS.ACTION_AND_INLINE_ACTION_CONFLICT,
-        {
-          task: formatTaskId(this.#id),
-        },
-      );
-    }
+    this.#ensureNoActionSet();
 
     this.#action = action;
 
@@ -107,14 +100,7 @@ export class NewTaskDefinitionBuilderImplementation<
   public setInlineAction(
     inlineAction: NewTaskActionFunction<TaskArgumentsT>,
   ): NewTaskDefinitionBuilder<TaskArgumentsT, "INLINE_ACTION"> {
-    if (this.#action !== undefined || this.#inlineAction !== undefined) {
-      throw new HardhatError(
-        HardhatError.ERRORS.CORE.TASK_DEFINITIONS.ACTION_AND_INLINE_ACTION_CONFLICT,
-        {
-          task: formatTaskId(this.#id),
-        },
-      );
-    }
+    this.#ensureNoActionSet();
 
     this.#inlineAction = inlineAction;
 
@@ -242,7 +228,9 @@ export class NewTaskDefinitionBuilderImplementation<
         NewTaskDefinition,
         { action: LazyActionObject<NewTaskActionFunction> }
       >
-    : Extract<NewTaskDefinition, { inlineAction: NewTaskActionFunction }> {
+    : ActionTypeT extends "INLINE_ACTION"
+      ? Extract<NewTaskDefinition, { inlineAction: NewTaskActionFunction }>
+      : never {
     if (this.#action === undefined && this.#inlineAction === undefined) {
       throw new HardhatError(
         HardhatError.ERRORS.CORE.TASK_DEFINITIONS.NO_ACTION,
@@ -273,7 +261,9 @@ export class NewTaskDefinitionBuilderImplementation<
           NewTaskDefinition,
           { action: LazyActionObject<NewTaskActionFunction> }
         >
-      : Extract<NewTaskDefinition, { inlineAction: NewTaskActionFunction }>;
+      : ActionTypeT extends "INLINE_ACTION"
+        ? Extract<NewTaskDefinition, { inlineAction: NewTaskActionFunction }>
+        : never;
   }
 
   #addPositionalArgument<
@@ -325,6 +315,17 @@ export class NewTaskDefinitionBuilderImplementation<
       ActionTypeT
     >;
   }
+
+  #ensureNoActionSet(): void {
+    if (this.#action !== undefined || this.#inlineAction !== undefined) {
+      throw new HardhatError(
+        HardhatError.ERRORS.CORE.TASK_DEFINITIONS.ACTION_ALREADY_SET,
+        {
+          task: formatTaskId(this.#id),
+        },
+      );
+    }
+  }
 }
 
 export class TaskOverrideDefinitionBuilderImplementation<
@@ -358,14 +359,7 @@ export class TaskOverrideDefinitionBuilderImplementation<
   public setAction(
     action: LazyActionObject<TaskOverrideActionFunction<TaskArgumentsT>>,
   ): TaskOverrideDefinitionBuilder<TaskArgumentsT, "LAZY_ACTION"> {
-    if (this.#action !== undefined || this.#inlineAction !== undefined) {
-      throw new HardhatError(
-        HardhatError.ERRORS.CORE.TASK_DEFINITIONS.ACTION_AND_INLINE_ACTION_CONFLICT,
-        {
-          task: formatTaskId(this.#id),
-        },
-      );
-    }
+    this.#ensureNoActionSet();
 
     this.#action = action;
 
@@ -377,14 +371,7 @@ export class TaskOverrideDefinitionBuilderImplementation<
   public setInlineAction(
     inlineAction: TaskOverrideActionFunction<TaskArgumentsT>,
   ): TaskOverrideDefinitionBuilder<TaskArgumentsT, "INLINE_ACTION"> {
-    if (this.#action !== undefined || this.#inlineAction !== undefined) {
-      throw new HardhatError(
-        HardhatError.ERRORS.CORE.TASK_DEFINITIONS.ACTION_AND_INLINE_ACTION_CONFLICT,
-        {
-          task: formatTaskId(this.#id),
-        },
-      );
-    }
+    this.#ensureNoActionSet();
 
     this.#inlineAction = inlineAction;
 
@@ -487,10 +474,12 @@ export class TaskOverrideDefinitionBuilderImplementation<
         TaskOverrideDefinition,
         { action: LazyActionObject<TaskOverrideActionFunction> }
       >
-    : Extract<
-        TaskOverrideDefinition,
-        { inlineAction: TaskOverrideActionFunction }
-      > {
+    : ActionTypeT extends "INLINE_ACTION"
+      ? Extract<
+          TaskOverrideDefinition,
+          { inlineAction: TaskOverrideActionFunction }
+        >
+      : never {
     if (this.#action === undefined && this.#inlineAction === undefined) {
       throw new HardhatError(
         HardhatError.ERRORS.CORE.TASK_DEFINITIONS.NO_ACTION,
@@ -524,9 +513,22 @@ export class TaskOverrideDefinitionBuilderImplementation<
           TaskOverrideDefinition,
           { action: LazyActionObject<TaskOverrideActionFunction> }
         >
-      : Extract<
-          TaskOverrideDefinition,
-          { inlineAction: TaskOverrideActionFunction }
-        >;
+      : ActionTypeT extends "INLINE_ACTION"
+        ? Extract<
+            TaskOverrideDefinition,
+            { inlineAction: TaskOverrideActionFunction }
+          >
+        : never;
+  }
+
+  #ensureNoActionSet(): void {
+    if (this.#action !== undefined || this.#inlineAction !== undefined) {
+      throw new HardhatError(
+        HardhatError.ERRORS.CORE.TASK_DEFINITIONS.ACTION_ALREADY_SET,
+        {
+          task: formatTaskId(this.#id),
+        },
+      );
+    }
   }
 }

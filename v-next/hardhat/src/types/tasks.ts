@@ -217,7 +217,7 @@ export interface NewTaskDefinitionBuilder<
    * This method cannot be used together with {@link setInlineAction} on the same
    * task. Use one or the other.
    *
-   * @throws {HardhatError} CORE.TASK_DEFINITIONS.ACTION_AND_INLINE_ACTION_CONFLICT
+   * @throws {HardhatError} CORE.TASK_DEFINITIONS.ACTION_ALREADY_SET
    */
   setAction(
     action: LazyActionObject<NewTaskActionFunction<TaskArgumentsT>>,
@@ -235,7 +235,7 @@ export interface NewTaskDefinitionBuilder<
    * This method cannot be used together with {@link setAction} on the same
    * task. Use one or the other.
    *
-   * @throws {HardhatError} CORE.TASK_DEFINITIONS.ACTION_AND_INLINE_ACTION_CONFLICT
+   * @throws {HardhatError} CORE.TASK_DEFINITIONS.ACTION_ALREADY_SET
    */
   setInlineAction(
     inlineAction: NewTaskActionFunction<TaskArgumentsT>,
@@ -357,7 +357,9 @@ export interface NewTaskDefinitionBuilder<
         NewTaskDefinition,
         { action: LazyActionObject<NewTaskActionFunction> }
       >
-    : Extract<NewTaskDefinition, { inlineAction: NewTaskActionFunction }>;
+    : ActionTypeT extends "INLINE_ACTION"
+      ? Extract<NewTaskDefinition, { inlineAction: NewTaskActionFunction }>
+      : never;
 }
 
 /**
@@ -389,7 +391,7 @@ export interface TaskOverrideDefinitionBuilder<
    * Sets a new action for the task.
    *
    * @see NewTaskDefinitionBuilder.setAction
-   * @throws {HardhatError} CORE.TASK_DEFINITIONS.ACTION_AND_INLINE_ACTION_CONFLICT
+   * @throws {HardhatError} CORE.TASK_DEFINITIONS.ACTION_ALREADY_SET
    */
   setAction(
     action: LazyActionObject<TaskOverrideActionFunction<TaskArgumentsT>>,
@@ -399,7 +401,7 @@ export interface TaskOverrideDefinitionBuilder<
    * Sets a new inline action for the task.
    *
    * @see NewTaskDefinitionBuilder.setInlineAction
-   * @throws {HardhatError} CORE.TASK_DEFINITIONS.ACTION_AND_INLINE_ACTION_CONFLICT
+   * @throws {HardhatError} CORE.TASK_DEFINITIONS.ACTION_ALREADY_SET
    */
   setInlineAction(
     inlineAction: TaskOverrideActionFunction<TaskArgumentsT>,
@@ -461,10 +463,12 @@ export interface TaskOverrideDefinitionBuilder<
         TaskOverrideDefinition,
         { action: LazyActionObject<TaskOverrideActionFunction> }
       >
-    : Extract<
-        TaskOverrideDefinition,
-        { inlineAction: TaskOverrideActionFunction }
-      >;
+    : ActionTypeT extends "INLINE_ACTION"
+      ? Extract<
+          TaskOverrideDefinition,
+          { inlineAction: TaskOverrideActionFunction }
+        >
+      : never;
 }
 
 /**
