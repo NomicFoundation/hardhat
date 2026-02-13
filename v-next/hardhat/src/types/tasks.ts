@@ -166,7 +166,6 @@ export type ExtendTaskArguments<
 > &
   TaskArgumentsT;
 
-
 /**
  * A builder for creating EmptyTaskDefinitions.
  */
@@ -192,9 +191,11 @@ export interface EmptyTaskDefinitionBuilder {
  */
 export interface NewTaskDefinitionBuilder<
   TaskArgumentsT extends TaskArguments = TaskArguments,
-  ActionTypeT extends "LAZY_ACTION" | "INLINE_ACTION" | "MISSING_ACTION" = "MISSING_ACTION",
+  ActionTypeT extends
+    | "LAZY_ACTION"
+    | "INLINE_ACTION"
+    | "MISSING_ACTION" = "MISSING_ACTION",
 > {
-
   /**
    * Sets the description of the task.
    */
@@ -374,9 +375,11 @@ export interface NewTaskDefinitionBuilder<
  */
 export interface TaskOverrideDefinitionBuilder<
   TaskArgumentsT extends TaskArguments = TaskArguments,
-  ActionTypeT extends "LAZY_ACTION" | "INLINE_ACTION" | "MISSING_ACTION" = "MISSING_ACTION",
+  ActionTypeT extends
+    | "LAZY_ACTION"
+    | "INLINE_ACTION"
+    | "MISSING_ACTION" = "MISSING_ACTION",
 > {
-
   /**
    * Sets a new description for the task.
    */
