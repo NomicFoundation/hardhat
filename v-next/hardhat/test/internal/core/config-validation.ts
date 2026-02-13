@@ -1238,25 +1238,59 @@ describe("config validation", function () {
       );
     });
 
+    it("should accept a task with only action", function () {
+      const task: NewTaskDefinition = {
+        type: TaskDefinitionType.NEW_TASK,
+        id: ["task-id"],
+        description: "task description",
+        action: async () => ({
+          default: () => {},
+        }),
+        options: {},
+        positionalArguments: [],
+      };
+
+      assert.deepEqual(validateNewTask(task, []), []);
+    });
+
     it("should accept a task with only inlineAction", function () {
-      /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions
-      -- Allow type assertions to simulate invalid task definitions */
-      const task = {
+      const task: NewTaskDefinition = {
         type: TaskDefinitionType.NEW_TASK,
         id: ["task-id"],
         description: "task description",
         inlineAction: () => {},
         options: {},
         positionalArguments: [],
-      } as unknown as NewTaskDefinition;
+      };
 
       assert.deepEqual(validateNewTask(task, []), []);
+    });
+
+    it("should return an error if action is not a lazy import function", function () {
+      /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions
+      -- Allow type assertions to simulate invalid task definitions */
+      const task: NewTaskDefinition = {
+        type: TaskDefinitionType.NEW_TASK,
+        id: ["task-id"],
+        description: "task description",
+        action: "not a lazy import function",
+        options: {},
+        positionalArguments: [],
+      } as unknown as NewTaskDefinition;
+
+      const errors = validateNewTask(task, []);
+      assert.equal(errors.length, 1);
+      assert.equal(
+        errors[0].message,
+        "task action must be a lazy import function returning a module with a default export",
+      );
+      assert.deepEqual(errors[0].path, ["action"]);
     });
 
     it("should return an error if inlineAction is not a function", function () {
       /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions
       -- Allow type assertions to simulate invalid task definitions */
-      const task = {
+      const task: NewTaskDefinition = {
         type: TaskDefinitionType.NEW_TASK,
         id: ["task-id"],
         description: "task description",
@@ -1425,18 +1459,48 @@ describe("config validation", function () {
       );
     });
 
+    it("should accept a task override with only action", function () {
+      const task: TaskOverrideDefinition = {
+        type: TaskDefinitionType.TASK_OVERRIDE,
+        id: ["task-id"],
+        description: "task description",
+        action: async () => ({ default: () => {} }),
+        options: {},
+      };
+
+      assert.deepEqual(validateTaskOverride(task, []), []);
+    });
+
     it("should accept a task override with only inlineAction", function () {
+      const task: TaskOverrideDefinition = {
+        type: TaskDefinitionType.TASK_OVERRIDE,
+        id: ["task-id"],
+        description: "task description",
+        inlineAction: () => {},
+        options: {},
+      };
+
+      assert.deepEqual(validateTaskOverride(task, []), []);
+    });
+
+    it("should return an error if action is not a lazy import function", function () {
       /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions
       -- Allow type assertions to simulate invalid task definitions */
       const task = {
         type: TaskDefinitionType.TASK_OVERRIDE,
         id: ["task-id"],
         description: "task description",
-        inlineAction: () => {},
+        action: "not a lazy import function",
         options: {},
       } as unknown as TaskOverrideDefinition;
 
-      assert.deepEqual(validateTaskOverride(task, []), []);
+      const errors = validateTaskOverride(task, []);
+      assert.equal(errors.length, 1);
+      assert.equal(
+        errors[0].message,
+        "task action must be a lazy import function returning a module with a default export",
+      );
+      assert.deepEqual(errors[0].path, ["action"]);
     });
 
     it("should return an error if inlineAction is not a function", function () {
