@@ -23,6 +23,14 @@ const mockErrorDescriptor = {
   websiteDescription: "This is a mock error",
 } as const;
 
+const mockDeprecatedErrorDescriptor = {
+  number: 456,
+  messageTemplate: "deprecated error message",
+  websiteTitle: "Deprecated mock error",
+  websiteDescription: "This is a deprecated mock error",
+  isDeprecated: true,
+} as const;
+
 describe("HardhatError", () => {
   describe("Type guard", () => {
     it("Should return true for HardhatErrors", () => {
@@ -152,6 +160,31 @@ describe("HardhatError", () => {
         new Error(),
       );
       assert.equal(error.message, "HHE12: a b 123");
+    });
+  });
+
+  describe("Deprecated error descriptor", () => {
+    it("should have the right error number", () => {
+      const error = new HardhatError(mockDeprecatedErrorDescriptor);
+      assert.equal(error.number, mockDeprecatedErrorDescriptor.number);
+    });
+
+    it("should have the right error message", () => {
+      const error = new HardhatError(mockDeprecatedErrorDescriptor);
+      assert.equal(
+        error.message,
+        `HHE456: ${mockDeprecatedErrorDescriptor.messageTemplate}`,
+      );
+    });
+
+    it("should expose the isDeprecated flag via the descriptor", () => {
+      const error = new HardhatError(mockDeprecatedErrorDescriptor);
+      assert.equal(error.descriptor.isDeprecated, true);
+    });
+
+    it("should not have isDeprecated on non-deprecated descriptors", () => {
+      const error = new HardhatError(mockErrorDescriptor);
+      assert.equal(error.descriptor.isDeprecated, undefined);
     });
   });
 

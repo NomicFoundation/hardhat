@@ -124,16 +124,26 @@ function getErrorWithCategory(error: Error): ErrorWithCategory {
 function getErrorMessages(error: Error): ErrorMessages {
   const { category, categorizedError } = getErrorWithCategory(error);
   switch (category) {
-    case ErrorCategory.HARDHAT:
+    case ErrorCategory.HARDHAT: {
+      const deprecationNotice =
+        categorizedError.descriptor.isDeprecated === true
+          ? `\n${chalk.yellow("Note: This error is deprecated and will be removed in a future version of Hardhat. Please consider upgrading Hardhat.")}`
+          : "";
       return {
-        formattedErrorMessage: `${chalk.red.bold(`Error ${categorizedError.errorCode}:`)} ${categorizedError.formattedMessage}`,
+        formattedErrorMessage: `${chalk.red.bold(`Error ${categorizedError.errorCode}:`)} ${categorizedError.formattedMessage}${deprecationNotice}`,
         showMoreInfoMessage: `For more info go to ${HARDHAT_WEBSITE_URL}${categorizedError.errorCode} or run ${HARDHAT_NAME} with --show-stack-traces`,
       };
-    case ErrorCategory.PLUGIN:
+    }
+    case ErrorCategory.PLUGIN: {
+      const deprecationNotice =
+        categorizedError.descriptor.isDeprecated === true
+          ? `\n${chalk.yellow("Note: This error is deprecated and will be removed in a future version of Hardhat. Please consider upgrading Hardhat.")}`
+          : "";
       return {
-        formattedErrorMessage: `${chalk.red.bold(`Error ${categorizedError.errorCode} in plugin ${categorizedError.pluginId}:`)} ${categorizedError.formattedMessage}`,
+        formattedErrorMessage: `${chalk.red.bold(`Error ${categorizedError.errorCode} in plugin ${categorizedError.pluginId}:`)} ${categorizedError.formattedMessage}${deprecationNotice}`,
         showMoreInfoMessage: `For more info go to ${HARDHAT_WEBSITE_URL}${categorizedError.errorCode} or run ${HARDHAT_NAME} with --show-stack-traces`,
       };
+    }
     case ErrorCategory.COMMUNITY_PLUGIN:
       return {
         formattedErrorMessage: `${chalk.red.bold(`Error in community plugin ${categorizedError.pluginId}:`)} ${categorizedError.message}`,

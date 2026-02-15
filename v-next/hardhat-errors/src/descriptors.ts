@@ -33,6 +33,16 @@ export interface ErrorDescriptor {
    * can use markdown.
    */
   websiteDescription: string;
+
+  /**
+   * `true` if this error descriptor is deprecated.
+   *
+   * Deprecated error descriptors are kept for backwards compatibility, as older
+   * Hardhat versions may still throw them and they are shown on the website.
+   * They should be clearly marked as deprecated on the website, and users
+   * should be encouraged to upgrade Hardhat.
+   */
+  isDeprecated?: true;
 }
 
 export const ERROR_CATEGORIES: {

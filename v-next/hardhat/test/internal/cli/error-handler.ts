@@ -27,6 +27,22 @@ const mockPluginErrorDescriptor = {
   websiteDescription: "This is a mock error in the range of a plugin",
 } as const;
 
+const mockDeprecatedCoreErrorDescriptor = {
+  number: 124,
+  messageTemplate: "deprecated error message",
+  websiteTitle: "Deprecated mock error",
+  websiteDescription: "This is a deprecated mock error",
+  isDeprecated: true,
+} as const;
+
+const mockDeprecatedPluginErrorDescriptor = {
+  number: 50001,
+  messageTemplate: "deprecated plugin error message",
+  websiteTitle: "Deprecated mock plugin error",
+  websiteDescription: "This is a deprecated mock plugin error",
+  isDeprecated: true,
+} as const;
+
 describe("error-handler", () => {
   describe("printErrorMessages", () => {
     describe("with a Hardhat error", () => {
@@ -104,6 +120,62 @@ describe("error-handler", () => {
         );
         assert.equal(lines[1], "");
         assert.equal(lines[2], error);
+      });
+    });
+
+    describe("with a deprecated Hardhat error", () => {
+      it("should print the error message with deprecation notice", () => {
+        const lines: Array<string | Error> = [];
+        const error = new HardhatError(mockDeprecatedCoreErrorDescriptor);
+
+        printErrorMessages(error, false, (msg: string | Error) => {
+          lines.push(msg);
+        });
+
+        assert.equal(lines.length, 3);
+        assert.ok(
+          (lines[0] as string).includes(error.formattedMessage),
+          "should contain the error message",
+        );
+        assert.ok(
+          (lines[0] as string).includes(
+            "This error is deprecated and will be removed in a future version of Hardhat",
+          ),
+          "should contain the deprecation notice",
+        );
+        assert.equal(lines[1], "");
+        assert.equal(
+          lines[2],
+          `For more info go to ${HARDHAT_WEBSITE_URL}${error.errorCode} or run ${HARDHAT_NAME} with --show-stack-traces`,
+        );
+      });
+    });
+
+    describe("with a deprecated Hardhat plugin error", () => {
+      it("should print the error message with deprecation notice", () => {
+        const lines: Array<string | Error> = [];
+        const error = new HardhatError(mockDeprecatedPluginErrorDescriptor);
+
+        printErrorMessages(error, false, (msg: string | Error) => {
+          lines.push(msg);
+        });
+
+        assert.equal(lines.length, 3);
+        assert.ok(
+          (lines[0] as string).includes(error.formattedMessage),
+          "should contain the error message",
+        );
+        assert.ok(
+          (lines[0] as string).includes(
+            "This error is deprecated and will be removed in a future version of Hardhat",
+          ),
+          "should contain the deprecation notice",
+        );
+        assert.equal(lines[1], "");
+        assert.equal(
+          lines[2],
+          `For more info go to ${HARDHAT_WEBSITE_URL}${error.errorCode} or run ${HARDHAT_NAME} with --show-stack-traces`,
+        );
       });
     });
 
