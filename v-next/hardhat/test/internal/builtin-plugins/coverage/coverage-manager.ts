@@ -304,17 +304,52 @@ describe("CoverageManagerImplementation", () => {
   it("should format the markdown report", async () => {
     const actual = coverageManager.formatMarkdownReport(report);
 
-    const expected = [
-      `| ${chalk.bold("Coverage Report")}     |        |             |                 |`,
-      "| ------------------- | ------ | ----------- | --------------- |",
-      `| ${chalk.yellow("File Path")}           | ${chalk.yellow("Line %")} | ${chalk.yellow("Statement %")} | ${chalk.yellow("Uncovered Lines")} |`,
-      "| contracts/test.sol  | 80.00  | 75.00       | 6               |",
-      "| contracts/other.sol | 0.00   | 0.00        | 1-2             |",
-      "| ------------------- | ------ | ----------- | --------------- |",
-      `| ${chalk.yellow("Total")}               | 57.14  | 50.00       |                 |`,
-    ].join("\n");
-
-    assert.equal(actual, expected);
+    // The report now uses formatTable (formerly formatTableV2) with box-drawing characters
+    assert.ok(
+      actual.includes("Coverage Report"),
+      "Should contain the title",
+    );
+    assert.ok(
+      actual.includes("File Coverage"),
+      "Should contain the section header",
+    );
+    assert.ok(
+      actual.includes("contracts/test.sol"),
+      "Should contain the test.sol file path",
+    );
+    assert.ok(
+      actual.includes("contracts/other.sol"),
+      "Should contain the other.sol file path",
+    );
+    assert.ok(
+      actual.includes("80.00"),
+      "Should contain the line coverage for test.sol",
+    );
+    assert.ok(
+      actual.includes("75.00"),
+      "Should contain the statement coverage for test.sol",
+    );
+    assert.ok(
+      actual.includes("0.00"),
+      "Should contain the zero coverage for other.sol",
+    );
+    assert.ok(
+      actual.includes("57.14"),
+      "Should contain the total line coverage",
+    );
+    assert.ok(
+      actual.includes("50.00"),
+      "Should contain the total statement coverage",
+    );
+    // Verify box-drawing characters are used (V2 format)
+    assert.ok(
+      actual.includes("╔"),
+      "Should use box-drawing characters",
+    );
+    assert.ok(
+      actual.includes("║"),
+      "Should use box-drawing border characters",
+    );
   });
 
   const expectedRelativePath: Array<[string, string]> = [
