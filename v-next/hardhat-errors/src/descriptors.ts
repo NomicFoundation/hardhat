@@ -704,9 +704,9 @@ Please define the action in a separate file and reference it.`,
       },
       ACTION_ALREADY_SET: {
         number: 418,
-        messageTemplate: `The action for task "{task}" has already been set. You can only call setAction or setInlineAction once per task definition.`,
+        messageTemplate: `The action for task "{task}" has already been set. You can only call "setAction" or "setInlineAction" once per task definition.`,
         websiteTitle: "Task action already set",
-        websiteDescription: `A task definition can only have one action. You cannot call setAction or setInlineAction more than once on the same task builder.
+        websiteDescription: `A task definition can only have one action. You cannot call "setAction" or "setInlineAction" more than once on the same task builder.
 
 Please remove the duplicate call.`,
       },
