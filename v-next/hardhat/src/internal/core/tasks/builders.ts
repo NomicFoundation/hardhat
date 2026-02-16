@@ -93,7 +93,7 @@ export class NewTaskDefinitionBuilderImplementation<
     this.#action = action;
 
     /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions
-    -- Cast to update the ActionTypeT to "LAZY_ACTION". */
+    -- Cast to update the ActionTypeT to the expected type for this scenario. */
     return this as NewTaskDefinitionBuilder<TaskArgumentsT, "LAZY_ACTION">;
   }
 
@@ -105,7 +105,7 @@ export class NewTaskDefinitionBuilderImplementation<
     this.#inlineAction = inlineAction;
 
     /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions
-    -- Cast to update the ActionTypeT to "INLINE_ACTION". */
+    -- Cast to update the ActionTypeT to the expected type for this scenario. */
     return this as NewTaskDefinitionBuilder<TaskArgumentsT, "INLINE_ACTION">;
   }
 
@@ -364,7 +364,7 @@ export class TaskOverrideDefinitionBuilderImplementation<
     this.#action = action;
 
     /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions
-    -- Cast to update the ActionTypeT to "LAZY_ACTION". */
+    -- Cast to update the ActionTypeT to the expected type for this scenario. */
     return this as TaskOverrideDefinitionBuilder<TaskArgumentsT, "LAZY_ACTION">;
   }
 
@@ -376,7 +376,7 @@ export class TaskOverrideDefinitionBuilderImplementation<
     this.#inlineAction = inlineAction;
 
     /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions
-    -- Cast to update the ActionTypeT to "INLINE_ACTION". */
+    -- Cast to update the ActionTypeT to the expected type for this scenario. */
     return this as TaskOverrideDefinitionBuilder<
       TaskArgumentsT,
       "INLINE_ACTION"
