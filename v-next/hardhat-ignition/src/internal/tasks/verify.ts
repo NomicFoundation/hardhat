@@ -19,7 +19,12 @@ const verifyTask: NewTaskActionFunction<TaskVerifyArguments> = async (
   { deploymentId, force },
   hre: HardhatRuntimeEnvironment,
 ) => {
-  await internalVerifyAction({ deploymentId, force }, hre, verifyContract, getVerificationInformation);
+  await internalVerifyAction(
+    { deploymentId, force },
+    hre,
+    verifyContract,
+    getVerificationInformation,
+  );
 };
 
 export async function internalVerifyAction(
@@ -51,7 +56,9 @@ export async function internalVerifyAction(
 
   const connection = await hre.network.connect();
 
-  for await (const contractInfo of getVerificationInformationFn(deploymentDir)) {
+  for await (const contractInfo of getVerificationInformationFn(
+    deploymentDir,
+  )) {
     if (typeof contractInfo === "string") {
       console.log(
         `Could not resolve contract artifacts for contract "${contractInfo}". Skipping verification.`,

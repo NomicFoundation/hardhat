@@ -184,6 +184,7 @@ export class Create2Strategy implements ExecutionStrategy {
     return {
       type: ExecutionResultType.SUCCESS,
       address: deployedAddress,
+      creationTxHash: transactionOrResult.transaction.hash,
     };
   }
 

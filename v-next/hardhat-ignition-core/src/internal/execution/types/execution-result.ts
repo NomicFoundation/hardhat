@@ -75,6 +75,7 @@ export interface StrategyHeldExecutionResult {
 export interface SuccessfulDeploymentExecutionResult {
   type: ExecutionResultType.SUCCESS;
   address: string;
+  creationTxHash: string;
 }
 
 /**

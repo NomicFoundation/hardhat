@@ -101,6 +101,7 @@ async function convertExStateToVerifyInfo(
     libraries,
     address: exState.result.address,
     contract: `${artifact.sourceName}:${contractName}`,
+    creationTxHash: exState.result.creationTxHash,
   };
 
   return verifyInfo;

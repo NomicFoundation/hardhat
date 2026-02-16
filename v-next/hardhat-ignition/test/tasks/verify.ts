@@ -47,6 +47,8 @@ describe("ignition verify task", () => {
         constructorArgs: [],
         libraries: {},
         contract: "contracts/Foo.sol:Foo",
+        creationTxHash:
+          "0xabcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890",
       };
     };
 
@@ -102,6 +104,8 @@ describe("ignition verify task", () => {
         constructorArgs: [],
         libraries: {},
         contract: "contracts/Foo.sol:Foo",
+        creationTxHash:
+          "0xabcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890",
       };
     };
 
