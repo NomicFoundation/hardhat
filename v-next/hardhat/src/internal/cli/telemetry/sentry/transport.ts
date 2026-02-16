@@ -177,6 +177,7 @@ async function sendSerializedEnvelopeToSentryBackend(
     .filter(Boolean)
     .join(", ");
 
+  // eslint-disable-next-line no-restricted-globals -- TODO: determine whether this should be using undici
   const res = await fetch(ingestUrl, {
     method: "POST",
     headers: {
