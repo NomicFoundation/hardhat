@@ -1,5 +1,11 @@
 import "hardhat/types/config";
 
+import type {
+  ChainType,
+  DefaultChainType,
+  NetworkConnectionParams,
+  NetworkConnection,
+} from "hardhat/types/network";
 import type { MochaOptions } from "mocha";
 
 declare module "hardhat/types/config" {
@@ -21,4 +27,22 @@ declare module "hardhat/types/test" {
   export interface HardhatTestConfig {
     mocha: MochaOptions;
   }
+}
+
+import "hardhat/types/network";
+declare module "hardhat/types/network" {
+  export interface NetworkManager<
+    ChainTypeT extends ChainType | string = DefaultChainType,
+  > {
+    mocha: MochaNetworkHelpers<ChainTypeT>;
+  }
+}
+
+export interface MochaNetworkHelpers<
+  ChainTypeT extends ChainType | string = DefaultChainType,
+> {
+  connectOnBefore(
+    networkOrParams?: NetworkConnectionParams<ChainTypeT> | string,
+    closeOnAfter?: boolean,
+  ): NetworkConnection<ChainTypeT>;
 }
