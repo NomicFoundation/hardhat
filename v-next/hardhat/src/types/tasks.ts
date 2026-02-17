@@ -475,7 +475,7 @@ export interface TaskOverrideDefinitionBuilder<
  * The actions associated to the task, in order.
  *
  * Each of them has the pluginId of the plugin that defined it, if any, and the
- * action itself. The action is stored either in `lazyAction` or `inlineAction`.
+ * action itself. The action is stored either in `action` or `inlineAction`.
  * Note that `inlineAction` is reserved for user tasks and is not allowed for plugins.
  *
  * Note that the first action is a `NewTaskActionFunction` or undefined.

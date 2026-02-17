@@ -2156,6 +2156,41 @@ describe("TaskManagerImplementation", () => {
         assert.equal(result, "original + override");
       });
 
+      it("should override an inline action task with a lazy action and call runSuper", async () => {
+        let taskRun = false;
+        let overrideTaskRun = false;
+        const hre = await HardhatRuntimeEnvironmentImplementation.create(
+          {
+            tasks: [
+              new NewTaskDefinitionBuilderImplementation("task1")
+                .setInlineAction(() => {
+                  taskRun = true;
+                  return "inline original";
+                })
+                .build(),
+              new TaskOverrideDefinitionBuilderImplementation("task1")
+                .setAction(async () => ({
+                  default: async (args, _hre, runSuper) => {
+                    const superResult = await runSuper(args);
+                    overrideTaskRun = true;
+                    return `${superResult} + lazy override`;
+                  },
+                }))
+                .build(),
+            ],
+          },
+          {},
+        );
+
+        const task1 = hre.tasks.getTask("task1");
+        assert.equal(taskRun, false);
+        assert.equal(overrideTaskRun, false);
+        const result = await task1.run();
+        assert.equal(taskRun, true);
+        assert.equal(overrideTaskRun, true);
+        assert.equal(result, "inline original + lazy override");
+      });
+
       it("should reject plugin new tasks with inline actions", async () => {
         await assertRejectsWithHardhatError(
           HardhatRuntimeEnvironmentImplementation.create(
