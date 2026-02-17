@@ -3,7 +3,7 @@
   "private": "true",
   "type": "module",
   "dependencies": {
-    "@types/chai": "^4.2.0",
+    "@types/chai": "^5.2.3",
     "chai": "^5.1.2",
     "hardhat": "workspace:*"
   }
