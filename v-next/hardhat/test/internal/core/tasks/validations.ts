@@ -34,8 +34,33 @@ describe("validateAction", () => {
     );
   });
 
+  it("should throw when neither action nor inlineAction is provided", () => {
+    assertThrowsHardhatError(
+      () => validateAction(undefined, undefined, ["task-id"], false),
+      HardhatError.ERRORS.CORE.TASK_DEFINITIONS.NO_ACTION,
+      { task: "task-id" },
+    );
+  });
+
+  it("should throw when neither action nor inlineAction is provided for plugin tasks", () => {
+    assertThrowsHardhatError(
+      () => validateAction(undefined, undefined, ["task-id"], true),
+      HardhatError.ERRORS.CORE.TASK_DEFINITIONS.NO_ACTION,
+      { task: "task-id" },
+    );
+  });
+
   it("should allow action for plugin tasks", () => {
     validateAction(action, undefined, ["task-id"], true);
+  });
+
+  it("should throw plugin-specific error when both action and inlineAction are provided for plugins", () => {
+    assertThrowsHardhatError(
+      () => validateAction(action, inlineAction, ["task-id"], true),
+      HardhatError.ERRORS.CORE.TASK_DEFINITIONS
+        .INLINE_ACTION_CANNOT_BE_USED_IN_PLUGINS,
+      { task: "task-id" },
+    );
   });
 
   it("should handle subtask ids correctly in error messages", () => {

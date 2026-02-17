@@ -1966,6 +1966,252 @@ describe("TaskManagerImplementation", () => {
       );
     });
 
+    describe("inline actions", () => {
+      it("should run a user task with an inline action and return its result", async () => {
+        const hre = await HardhatRuntimeEnvironmentImplementation.create(
+          {
+            tasks: [
+              new NewTaskDefinitionBuilderImplementation("task1")
+                .setInlineAction(() => {
+                  return "inline result";
+                })
+                .build(),
+            ],
+          },
+          {},
+        );
+
+        const task1 = hre.tasks.getTask("task1");
+        const result = await task1.run();
+        assert.equal(result, "inline result");
+      });
+
+      it("should override a lazy action task with an inline action and call runSuper", async () => {
+        let taskRun = false;
+        let overrideTaskRun = false;
+        const hre = await HardhatRuntimeEnvironmentImplementation.create(
+          {
+            plugins: [
+              {
+                id: "plugin1",
+                tasks: [
+                  new NewTaskDefinitionBuilderImplementation("task1")
+                    .setAction(async () => ({
+                      default: () => {
+                        taskRun = true;
+                      },
+                    }))
+                    .build(),
+                ],
+              },
+            ],
+            tasks: [
+              new TaskOverrideDefinitionBuilderImplementation("task1")
+                .setInlineAction(async (args, _hre, runSuper) => {
+                  await runSuper(args);
+                  overrideTaskRun = true;
+                })
+                .build(),
+            ],
+          },
+          {},
+        );
+
+        const task1 = hre.tasks.getTask("task1");
+        assert.equal(taskRun, false);
+        assert.equal(overrideTaskRun, false);
+        await task1.run();
+        assert.equal(taskRun, true);
+        assert.equal(overrideTaskRun, true);
+      });
+
+      it("should not consider a task with an inline action as empty", async () => {
+        const hre = await HardhatRuntimeEnvironmentImplementation.create(
+          {
+            tasks: [
+              new NewTaskDefinitionBuilderImplementation("task1")
+                .setInlineAction(() => {})
+                .build(),
+            ],
+          },
+          {},
+        );
+
+        const task1 = hre.tasks.getTask("task1");
+        assert.equal(task1.isEmpty, false);
+      });
+
+      it("should run an empty task overridden with an inline action", async () => {
+        let overrideTaskRun = false;
+        const hre = await HardhatRuntimeEnvironmentImplementation.create(
+          {
+            plugins: [
+              {
+                id: "plugin1",
+                tasks: [
+                  new EmptyTaskDefinitionBuilderImplementation(
+                    "task1",
+                    "description1",
+                  ).build(),
+                ],
+              },
+            ],
+            tasks: [
+              new TaskOverrideDefinitionBuilderImplementation("task1")
+                .setInlineAction(async (args, _hre, runSuper) => {
+                  await runSuper(args);
+                  overrideTaskRun = true;
+                })
+                .build(),
+            ],
+          },
+          {},
+        );
+
+        const task1 = hre.tasks.getTask("task1");
+        assert.equal(overrideTaskRun, false);
+        await task1.run();
+        assert.equal(overrideTaskRun, true);
+      });
+
+      it("should pass arguments and hre to an inline action", async () => {
+        const hre = await HardhatRuntimeEnvironmentImplementation.create(
+          {
+            tasks: [
+              new NewTaskDefinitionBuilderImplementation("task1")
+                .addOption({
+                  name: "greeting",
+                  defaultValue: "hello",
+                })
+                .setInlineAction((args, hreParam) => {
+                  assert.notEqual(hreParam.tasks, undefined);
+                  return `${args.greeting} world`;
+                })
+                .build(),
+            ],
+          },
+          {},
+        );
+
+        const task1 = hre.tasks.getTask("task1");
+        const result = await task1.run({ greeting: "hi" });
+        assert.equal(result, "hi world");
+      });
+
+      it("should run a subtask with an inline action", async () => {
+        const hre = await HardhatRuntimeEnvironmentImplementation.create(
+          {
+            tasks: [
+              new EmptyTaskDefinitionBuilderImplementation(
+                "parent",
+                "parent task",
+              ).build(),
+              new NewTaskDefinitionBuilderImplementation(["parent", "child"])
+                .setInlineAction(() => {
+                  return "subtask result";
+                })
+                .build(),
+            ],
+          },
+          {},
+        );
+
+        const parentTask = hre.tasks.getTask("parent");
+        const childTask = parentTask.subtasks.get("child");
+        assert.ok(childTask !== undefined, "child subtask should exist");
+        const result = await childTask.run();
+        assert.equal(result, "subtask result");
+      });
+
+      it("should override an inline action task with an inline action and call runSuper", async () => {
+        let taskRun = false;
+        let overrideTaskRun = false;
+        const hre = await HardhatRuntimeEnvironmentImplementation.create(
+          {
+            tasks: [
+              new NewTaskDefinitionBuilderImplementation("task1")
+                .setInlineAction(() => {
+                  taskRun = true;
+                  return "original";
+                })
+                .build(),
+              new TaskOverrideDefinitionBuilderImplementation("task1")
+                .setInlineAction(async (args, _hre, runSuper) => {
+                  const superResult = await runSuper(args);
+                  overrideTaskRun = true;
+                  return `${superResult} + override`;
+                })
+                .build(),
+            ],
+          },
+          {},
+        );
+
+        const task1 = hre.tasks.getTask("task1");
+        assert.equal(taskRun, false);
+        assert.equal(overrideTaskRun, false);
+        const result = await task1.run();
+        assert.equal(taskRun, true);
+        assert.equal(overrideTaskRun, true);
+        assert.equal(result, "original + override");
+      });
+
+      it("should reject plugin new tasks with inline actions", async () => {
+        await assertRejectsWithHardhatError(
+          HardhatRuntimeEnvironmentImplementation.create(
+            {
+              plugins: [
+                {
+                  id: "plugin1",
+                  tasks: [
+                    /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions
+                    -- Simulate a plugin incorrectly using an inline action */
+                    new NewTaskDefinitionBuilderImplementation("task1")
+                      .setInlineAction(() => {})
+                      .build() as any,
+                  ],
+                },
+              ],
+            },
+            {},
+          ),
+          HardhatError.ERRORS.CORE.TASK_DEFINITIONS
+            .INLINE_ACTION_CANNOT_BE_USED_IN_PLUGINS,
+          { task: "task1" },
+        );
+      });
+
+      it("should reject plugin task overrides with inline actions", async () => {
+        await assertRejectsWithHardhatError(
+          HardhatRuntimeEnvironmentImplementation.create(
+            {
+              plugins: [
+                {
+                  id: "plugin1",
+                  tasks: [
+                    new NewTaskDefinitionBuilderImplementation("task1")
+                      .setAction(async () => ({
+                        default: () => {},
+                      }))
+                      .build(),
+                    /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions
+                    -- Simulate a plugin incorrectly using an inline action override */
+                    new TaskOverrideDefinitionBuilderImplementation("task1")
+                      .setInlineAction(() => {})
+                      .build() as any,
+                  ],
+                },
+              ],
+            },
+            {},
+          ),
+          HardhatError.ERRORS.CORE.TASK_DEFINITIONS
+            .INLINE_ACTION_CANNOT_BE_USED_IN_PLUGINS,
+          { task: "task1" },
+        );
+      });
+    });
+
     describe("validations", () => {
       it("should throw if the task is empty", async () => {
         const hre = await HardhatRuntimeEnvironmentImplementation.create(

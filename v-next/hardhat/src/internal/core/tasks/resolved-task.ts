@@ -37,7 +37,7 @@ export class ResolvedTask implements Task {
     return new ResolvedTask(
       id,
       description,
-      [{ pluginId, action: undefined }],
+      [{ pluginId, action: undefined, inlineAction: undefined }],
       new Map(),
       [],
       pluginId,

@@ -1213,6 +1213,7 @@ describe("config validation", function () {
 
       const errors = validateNewTask(task, []);
       assert.equal(errors.length, 1);
+      assert.deepEqual(errors[0].path, []);
       assert.equal(
         errors[0].message,
         'task cannot define both "action" and "inlineAction"',
@@ -1232,6 +1233,7 @@ describe("config validation", function () {
 
       const errors = validateNewTask(task, []);
       assert.equal(errors.length, 1);
+      assert.deepEqual(errors[0].path, ["action"]);
       assert.equal(
         errors[0].message,
         'task must define either "action" or "inlineAction"',
@@ -1435,6 +1437,7 @@ describe("config validation", function () {
 
       const errors = validateTaskOverride(task, []);
       assert.equal(errors.length, 1);
+      assert.deepEqual(errors[0].path, []);
       assert.equal(
         errors[0].message,
         'task cannot define both "action" and "inlineAction"',
@@ -1453,6 +1456,7 @@ describe("config validation", function () {
 
       const errors = validateTaskOverride(task, []);
       assert.equal(errors.length, 1);
+      assert.deepEqual(errors[0].path, ["action"]);
       assert.equal(
         errors[0].message,
         'task must define either "action" or "inlineAction"',

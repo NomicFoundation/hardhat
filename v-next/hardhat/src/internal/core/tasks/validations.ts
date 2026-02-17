@@ -41,6 +41,14 @@ export function validateAction(
   taskId: string[],
   isPlugin: boolean,
 ): void {
+  // Check plugin restriction first, as it's the most specific error
+  if (isPlugin && inlineAction !== undefined) {
+    throw new HardhatError(
+      HardhatError.ERRORS.CORE.TASK_DEFINITIONS.INLINE_ACTION_CANNOT_BE_USED_IN_PLUGINS,
+      { task: formatTaskId(taskId) },
+    );
+  }
+
   if (action !== undefined && inlineAction !== undefined) {
     throw new HardhatError(
       HardhatError.ERRORS.CORE.TASK_DEFINITIONS.ACTION_ALREADY_SET,
@@ -48,10 +56,9 @@ export function validateAction(
     );
   }
 
-  if (isPlugin && inlineAction !== undefined) {
-    // Inline actions cannot be used in plugins, as they are only allowed in user tasks
+  if (action === undefined && inlineAction === undefined) {
     throw new HardhatError(
-      HardhatError.ERRORS.CORE.TASK_DEFINITIONS.INLINE_ACTION_CANNOT_BE_USED_IN_PLUGINS,
+      HardhatError.ERRORS.CORE.TASK_DEFINITIONS.NO_ACTION,
       { task: formatTaskId(taskId) },
     );
   }

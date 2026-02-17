@@ -1,6 +1,7 @@
 import type {
   LazyActionObject,
   NewTaskActionFunction,
+  TaskOverrideActionFunction,
 } from "../../../../src/types/tasks.js";
 
 import assert from "node:assert/strict";
@@ -1773,10 +1774,10 @@ describe("Task builders", () => {
     });
 
     describe("actions", () => {
-      const action = async () => ({
+      const action: LazyActionObject<TaskOverrideActionFunction> = async () => ({
         default: () => {},
       });
-      const inlineAction = () => {};
+      const inlineAction: TaskOverrideActionFunction = () => {};
 
       it("should be valid with only action", () => {
         const builder = new TaskOverrideDefinitionBuilderImplementation(
