@@ -229,7 +229,7 @@ describe("solidity-test/task-action", function () {
           ...hardhatConfigAllTests,
           tasks: [
             overrideTask("build")
-              .setAction(async () => {
+              .setLazyAction(async () => {
                 return {
                   default: (args, _hre, runSuper) => {
                     buildArgs.push(args);

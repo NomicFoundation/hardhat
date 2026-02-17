@@ -28,7 +28,7 @@ describe("build profile", function () {
         plugins: [hardhatIgnitionPlugin],
         tasks: [
           overrideTask("build")
-            .setAction(async () => ({
+            .setLazyAction(async () => ({
               default: async (args, _hre, runSuper) => {
                 defaultBuildProfile = args.defaultBuildProfile;
 

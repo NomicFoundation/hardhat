@@ -32,7 +32,7 @@ const buildTask = task("build", "Build project")
     name: "noContracts",
     description: "Skip solidity contracts compilation",
   })
-  .setAction(async () => import("./tasks/build.js"))
+  .setLazyAction(async () => import("./tasks/build.js"))
   .build();
 
 const hardhatPlugin: HardhatPlugin = {

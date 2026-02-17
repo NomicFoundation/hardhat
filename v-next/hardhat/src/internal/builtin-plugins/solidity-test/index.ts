@@ -49,7 +49,7 @@ const hardhatPlugin: HardhatPlugin = {
         defaultValue: 0,
         hidden: true,
       })
-      .setAction(async () => import("./task-action.js"))
+      .setLazyAction(async () => import("./task-action.js"))
       .build(),
   ],
   dependencies: () => [

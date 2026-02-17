@@ -14,7 +14,7 @@ const hardhatPlugin: HardhatPlugin = {
         name: "disable",
         description: "Disable telemetry",
       })
-      .setAction(async () => import("./task-action.js"))
+      .setLazyAction(async () => import("./task-action.js"))
       .build(),
   ],
   npmPackage: "hardhat",

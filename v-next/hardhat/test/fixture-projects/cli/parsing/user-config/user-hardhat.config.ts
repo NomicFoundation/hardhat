@@ -7,7 +7,7 @@ export const tasksResults = {
 };
 
 const customTask = task("user-task")
-  .setAction(async () => ({
+  .setLazyAction(async () => ({
     default: () => {
       tasksResults.wasArg1Used = true;
     },

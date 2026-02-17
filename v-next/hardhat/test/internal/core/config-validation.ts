@@ -1065,7 +1065,7 @@ describe("config validation", function () {
         type: TaskDefinitionType.NEW_TASK,
         id: ["task-id"],
         description: "task description",
-        action: async () => ({
+        lazyAction: async () => ({
           default: () => {},
         }),
         options: {},
@@ -1081,7 +1081,7 @@ describe("config validation", function () {
         /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions -- testing validations for js users who can bypass type checks */
         id: 1 as any,
         description: "task description",
-        action: async () => ({
+        lazyAction: async () => ({
           default: () => {},
         }),
         options: {},
@@ -1093,7 +1093,7 @@ describe("config validation", function () {
         /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions -- testing validations for js users who can bypass type checks */
         id: [1] as any,
         description: "task description",
-        action: async () => ({
+        lazyAction: async () => ({
           default: () => {},
         }),
         options: {},
@@ -1121,7 +1121,7 @@ describe("config validation", function () {
         id: ["task-id"],
         /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions -- testing validations for js users who can bypass type checks */
         description: 1 as any,
-        action: async () => ({
+        lazyAction: async () => ({
           default: () => {},
         }),
         options: {},
@@ -1142,7 +1142,7 @@ describe("config validation", function () {
         id: ["task-id"],
         description: "task description",
         /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions -- testing validations for js users who can bypass type checks */
-        action: 1 as any,
+        lazyAction: 1 as any,
         options: {},
         positionalArguments: [],
       };
@@ -1150,8 +1150,8 @@ describe("config validation", function () {
       assert.deepEqual(validateNewTask(task, []), [
         {
           message:
-            "task action must be a lazy import function returning a module with a default export",
-          path: ["action"],
+            "task lazyAction must be a lazy import function returning a module with a default export",
+          path: ["lazyAction"],
         },
       ]);
     });
@@ -1161,7 +1161,7 @@ describe("config validation", function () {
         type: TaskDefinitionType.NEW_TASK,
         id: ["task-id"],
         description: "task description",
-        action: async () => ({
+        lazyAction: async () => ({
           default: () => {},
         }),
         /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions -- testing validations for js users who can bypass type checks */
@@ -1182,7 +1182,7 @@ describe("config validation", function () {
         type: TaskDefinitionType.NEW_TASK,
         id: ["task-id"],
         description: "task description",
-        action: async () => ({
+        lazyAction: async () => ({
           default: () => {},
         }),
         options: {},
@@ -1205,7 +1205,7 @@ describe("config validation", function () {
         type: TaskDefinitionType.NEW_TASK,
         id: ["task-id"],
         description: "task description",
-        action: async () => ({ default: () => {} }),
+        lazyAction: async () => ({ default: () => {} }),
         inlineAction: () => {},
         options: {},
         positionalArguments: [],
@@ -1216,7 +1216,7 @@ describe("config validation", function () {
       assert.deepEqual(errors[0].path, []);
       assert.equal(
         errors[0].message,
-        'task cannot define both "action" and "inlineAction"',
+        'task cannot define both "lazyAction" and "inlineAction"',
       );
     });
 
@@ -1233,10 +1233,10 @@ describe("config validation", function () {
 
       const errors = validateNewTask(task, []);
       assert.equal(errors.length, 1);
-      assert.deepEqual(errors[0].path, ["action"]);
+      assert.deepEqual(errors[0].path, ["lazyAction"]);
       assert.equal(
         errors[0].message,
-        'task must define either "action" or "inlineAction"',
+        'task must define either "lazyAction" or "inlineAction"',
       );
     });
 
@@ -1281,7 +1281,7 @@ describe("config validation", function () {
         type: TaskDefinitionType.TASK_OVERRIDE,
         id: ["task-id"],
         description: "task description",
-        action: async () => ({
+        lazyAction: async () => ({
           default: () => {},
         }),
         options: {},
@@ -1296,7 +1296,7 @@ describe("config validation", function () {
         /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions -- testing validations for js users who can bypass type checks */
         id: 1 as any,
         description: "task description",
-        action: async () => ({
+        lazyAction: async () => ({
           default: () => {},
         }),
         options: {},
@@ -1307,7 +1307,7 @@ describe("config validation", function () {
         /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions -- testing validations for js users who can bypass type checks */
         id: [1] as any,
         description: "task description",
-        action: async () => ({
+        lazyAction: async () => ({
           default: () => {},
         }),
         options: {},
@@ -1334,7 +1334,7 @@ describe("config validation", function () {
         id: ["task-id"],
         /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions -- testing validations for js users who can bypass type checks */
         description: 1 as any,
-        action: async () => ({
+        lazyAction: async () => ({
           default: () => {},
         }),
         options: {},
@@ -1354,15 +1354,15 @@ describe("config validation", function () {
         id: ["task-id"],
         description: "task description",
         /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions -- testing validations for js users who can bypass type checks */
-        action: 1 as any,
+        lazyAction: 1 as any,
         options: {},
       };
 
       assert.deepEqual(validateTaskOverride(task, []), [
         {
           message:
-            "task action must be a lazy import function returning a module with a default export",
-          path: ["action"],
+            "task lazyAction must be a lazy import function returning a module with a default export",
+          path: ["lazyAction"],
         },
       ]);
     });
@@ -1372,7 +1372,7 @@ describe("config validation", function () {
         type: TaskDefinitionType.TASK_OVERRIDE,
         id: ["task-id"],
         description: "task description",
-        action: async () => ({
+        lazyAction: async () => ({
           default: () => {},
         }),
         /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions -- testing validations for js users who can bypass type checks */
@@ -1394,7 +1394,7 @@ describe("config validation", function () {
         type: TaskDefinitionType.TASK_OVERRIDE,
         id: ["task-id"],
         description: "task description",
-        action: async () => ({ default: () => {} }),
+        lazyAction: async () => ({ default: () => {} }),
         inlineAction: () => {},
         options: {},
       } as unknown as TaskOverrideDefinition;
@@ -1404,7 +1404,7 @@ describe("config validation", function () {
       assert.deepEqual(errors[0].path, []);
       assert.equal(
         errors[0].message,
-        'task cannot define both "action" and "inlineAction"',
+        'task cannot define both "lazyAction" and "inlineAction"',
       );
     });
 
@@ -1420,10 +1420,10 @@ describe("config validation", function () {
 
       const errors = validateTaskOverride(task, []);
       assert.equal(errors.length, 1);
-      assert.deepEqual(errors[0].path, ["action"]);
+      assert.deepEqual(errors[0].path, ["lazyAction"]);
       assert.equal(
         errors[0].message,
-        'task must define either "action" or "inlineAction"',
+        'task must define either "lazyAction" or "inlineAction"',
       );
     });
 
@@ -1589,7 +1589,7 @@ describe("config validation", function () {
           /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions -- testing validations for js users who can bypass type checks */
           type: "invalid" as any,
           id: ["task-id"],
-          action: async () => ({
+          lazyAction: async () => ({
             default: () => {},
           }),
           options: {},

@@ -41,7 +41,7 @@ export type TaskArguments = Record<string, any>;
  * another one.
  *
  * A TaskArgumentsT type parameter can be passed to obtain precise argument
- * types. This is useful within the `setAction` method of the task builder, as
+ * types. This is useful within the `setLazyAction` method of the task builder, as
  * it allows inferring the types of the action function's arguments.
  */
 export type NewTaskActionFunction<
@@ -55,7 +55,7 @@ export type NewTaskActionFunction<
  * original task.
  *
  * A TaskArgumentsT type parameter can be passed to obtain precise argument
- * types. This is useful within the `setAction` method of the task builder, as
+ * types. This is useful within the `setLazyAction` method of the task builder, as
  * it allows inferring the types of the action function's arguments.
  */
 export type TaskOverrideActionFunction<
@@ -76,15 +76,18 @@ export enum TaskDefinitionType {
 }
 
 export type TaskAction =
-  | { action: LazyActionObject<NewTaskActionFunction>; inlineAction?: never }
-  | { inlineAction: NewTaskActionFunction; action?: never };
+  | {
+      lazyAction: LazyActionObject<NewTaskActionFunction>;
+      inlineAction?: never;
+    }
+  | { inlineAction: NewTaskActionFunction; lazyAction?: never };
 
 export type TaskOverrideAction =
   | {
-      action: LazyActionObject<TaskOverrideActionFunction>;
+      lazyAction: LazyActionObject<TaskOverrideActionFunction>;
       inlineAction?: never;
     }
-  | { inlineAction: TaskOverrideActionFunction; action?: never };
+  | { inlineAction: TaskOverrideActionFunction; lazyAction?: never };
 
 /**
  * Empty task definition. It is meant to be used as a placeholder task that only
@@ -184,8 +187,8 @@ export interface EmptyTaskDefinitionBuilder {
  *
  * @remarks
  * This builder validates action definitions at runtime. Attempting to:
- * - Call setAction or setInlineAction multiple times
- * - Call both setAction and setInlineAction on the same task
+ * - Call setLazyAction or setInlineAction multiple times
+ * - Call both setLazyAction and setInlineAction on the same task
  * - Build without setting an action
  * will throw a HardhatError with a clear message.
  */
@@ -202,7 +205,7 @@ export interface NewTaskDefinitionBuilder<
   setDescription(description: string): this;
 
   /**
-   * Sets the action of the task.
+   * Sets the lazy action of the task.
    *
    * It must be provided as a `file://` URL pointing to a file
    * that exports a default NewTaskActionFunction.
@@ -219,8 +222,8 @@ export interface NewTaskDefinitionBuilder<
    *
    * @throws {HardhatError} CORE.TASK_DEFINITIONS.ACTION_ALREADY_SET
    */
-  setAction(
-    action: LazyActionObject<NewTaskActionFunction<TaskArgumentsT>>,
+  setLazyAction(
+    lazyAction: LazyActionObject<NewTaskActionFunction<TaskArgumentsT>>,
   ): NewTaskDefinitionBuilder<TaskArgumentsT, "LAZY_ACTION">;
 
   /**
@@ -232,7 +235,7 @@ export interface NewTaskDefinitionBuilder<
    * This method can only be called once per task definition. Calling it multiple
    * times will result in a runtime error.
    *
-   * This method cannot be used together with {@link setAction} on the same
+   * This method cannot be used together with {@link setLazyAction} on the same
    * task. Use one or the other.
    *
    * @throws {HardhatError} CORE.TASK_DEFINITIONS.ACTION_ALREADY_SET
@@ -355,7 +358,7 @@ export interface NewTaskDefinitionBuilder<
   build(): ActionTypeT extends "LAZY_ACTION"
     ? Extract<
         NewTaskDefinition,
-        { action: LazyActionObject<NewTaskActionFunction> }
+        { lazyAction: LazyActionObject<NewTaskActionFunction> }
       >
     : ActionTypeT extends "INLINE_ACTION"
       ? Extract<NewTaskDefinition, { inlineAction: NewTaskActionFunction }>
@@ -370,8 +373,8 @@ export interface NewTaskDefinitionBuilder<
  *
  * @remarks
  * This builder validates action definitions at runtime. Attempting to:
- * - Call setAction or setInlineAction multiple times
- * - Call both setAction and setInlineAction on the same task
+ * - Call setLazyAction or setInlineAction multiple times
+ * - Call both setLazyAction and setInlineAction on the same task
  * - Build without setting an action
  * will throw a HardhatError with a clear message.
  */
@@ -388,13 +391,13 @@ export interface TaskOverrideDefinitionBuilder<
   setDescription(description: string): this;
 
   /**
-   * Sets a new action for the task.
+   * Sets a new lazy action for the task.
    *
-   * @see NewTaskDefinitionBuilder.setAction
+   * @see NewTaskDefinitionBuilder.setLazyAction
    * @throws {HardhatError} CORE.TASK_DEFINITIONS.ACTION_ALREADY_SET
    */
-  setAction(
-    action: LazyActionObject<TaskOverrideActionFunction<TaskArgumentsT>>,
+  setLazyAction(
+    lazyAction: LazyActionObject<TaskOverrideActionFunction<TaskArgumentsT>>,
   ): TaskOverrideDefinitionBuilder<TaskArgumentsT, "LAZY_ACTION">;
 
   /**
@@ -461,7 +464,7 @@ export interface TaskOverrideDefinitionBuilder<
   build(): ActionTypeT extends "LAZY_ACTION"
     ? Extract<
         TaskOverrideDefinition,
-        { action: LazyActionObject<TaskOverrideActionFunction> }
+        { lazyAction: LazyActionObject<TaskOverrideActionFunction> }
       >
     : ActionTypeT extends "INLINE_ACTION"
       ? Extract<
@@ -475,7 +478,7 @@ export interface TaskOverrideDefinitionBuilder<
  * The actions associated to the task, in order.
  *
  * Each of them has the pluginId of the plugin that defined it, if any, and the
- * action itself. The action is stored either in `action` or `inlineAction`.
+ * action itself. The action is stored either in `lazyAction` or `inlineAction`.
  * Note that `inlineAction` is reserved for user tasks and is not allowed for plugins.
  *
  * Note that the first action is a `NewTaskActionFunction` or undefined.
@@ -490,7 +493,7 @@ export type TaskActions = [
   } & (
     | TaskAction
     | {
-        action?: undefined;
+        lazyAction?: undefined;
         inlineAction?: undefined;
       }
   ),

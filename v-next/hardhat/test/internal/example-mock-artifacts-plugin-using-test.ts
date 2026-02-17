@@ -28,7 +28,7 @@ describe("createMockHardhatRuntimeEnvironment", () => {
       id: "my-plugin",
       tasks: [
         task("hello-artifact-using-world", "Test artifact loading")
-          .setAction(async () => ({
+          .setLazyAction(async () => ({
             default: (_args, hre) => {
               return hre.artifacts.readArtifact("MyContract");
             },

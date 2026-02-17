@@ -172,8 +172,8 @@ export class TaskManagerImplementation implements TaskManager {
           this.#hre,
           taskDefinition.id,
           taskDefinition.description,
-          taskDefinition.action !== undefined
-            ? { action: taskDefinition.action }
+          taskDefinition.lazyAction !== undefined
+            ? { lazyAction: taskDefinition.lazyAction }
             : { inlineAction: taskDefinition.inlineAction },
           taskDefinition.options,
           taskDefinition.positionalArguments,
@@ -283,8 +283,8 @@ export class TaskManagerImplementation implements TaskManager {
 
     task.actions.push({
       pluginId,
-      ...(taskDefinition.action !== undefined
-        ? { action: taskDefinition.action }
+      ...(taskDefinition.lazyAction !== undefined
+        ? { lazyAction: taskDefinition.lazyAction }
         : { inlineAction: taskDefinition.inlineAction }),
     });
   }
@@ -301,7 +301,7 @@ export class TaskManagerImplementation implements TaskManager {
     }
 
     validateAction(
-      taskDefinition.action,
+      taskDefinition.lazyAction,
       taskDefinition.inlineAction,
       taskDefinition.id,
       isPlugin,

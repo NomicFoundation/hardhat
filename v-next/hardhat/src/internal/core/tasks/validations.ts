@@ -30,7 +30,7 @@ export function validateId(id: string | string[]): void {
 }
 
 export function validateAction(
-  action:
+  lazyAction:
     | LazyActionObject<NewTaskActionFunction<TaskArguments>>
     | LazyActionObject<TaskOverrideActionFunction<TaskArguments>>
     | undefined,
@@ -49,14 +49,14 @@ export function validateAction(
     );
   }
 
-  if (action !== undefined && inlineAction !== undefined) {
+  if (lazyAction !== undefined && inlineAction !== undefined) {
     throw new HardhatError(
       HardhatError.ERRORS.CORE.TASK_DEFINITIONS.ACTION_ALREADY_SET,
       { task: formatTaskId(taskId) },
     );
   }
 
-  if (action === undefined && inlineAction === undefined) {
+  if (lazyAction === undefined && inlineAction === undefined) {
     throw new HardhatError(
       HardhatError.ERRORS.CORE.TASK_DEFINITIONS.NO_ACTION,
       { task: formatTaskId(taskId) },

@@ -24,7 +24,7 @@ const exampleEmptyTask = emptyTask("empty", "An example empty task").build();
 
 const exampleEmptySubtask = task(["empty", "task"])
   .setDescription("An example empty subtask task")
-  .setAction(async () => ({
+  .setLazyAction(async () => ({
     default: async (_, _hre) => {
       console.log("empty task");
     },
@@ -32,7 +32,7 @@ const exampleEmptySubtask = task(["empty", "task"])
   .build();
 
 const exampleTaskOverride = task("example2")
-  .setAction(async () => ({
+  .setLazyAction(async () => ({
     default: async (_, _hre) => {
       console.log("from an override");
     },
@@ -76,7 +76,7 @@ const greeting = task("hello", "Print a greeting")
     defaultValue: false,
     hidden: true,
   })
-  .setAction(async () => ({
+  .setLazyAction(async () => ({
     default: async ({ greeting }, _) => {
       console.log(greeting);
     },
@@ -84,7 +84,7 @@ const greeting = task("hello", "Print a greeting")
   .build();
 
 const printConfig = task("config", "Print the config")
-  .setAction(async () => ({
+  .setLazyAction(async () => ({
     default: async ({}, hre) => {
       console.log(util.inspect(hre.config, { colors: true, depth: null }));
     },
@@ -92,7 +92,7 @@ const printConfig = task("config", "Print the config")
   .build();
 
 const printAccounts = task("accounts", "Print the accounts")
-  .setAction(async () => ({
+  .setLazyAction(async () => ({
     default: async ({}, hre) => {
       const { provider } = await hre.network.connect();
       console.log(await provider.request({ method: "eth_accounts" }));
@@ -109,7 +109,7 @@ const pluginExample = {
         description: "The greeting to print",
         defaultValue: "Hello, World from community-plugin!",
       })
-      .setAction(async () => ({
+      .setLazyAction(async () => ({
         default: async ({ greeting }, _) => {
           console.log(greeting);
 

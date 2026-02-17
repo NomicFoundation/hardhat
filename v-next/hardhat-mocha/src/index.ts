@@ -28,7 +28,7 @@ const hardhatPlugin: HardhatPlugin = {
         name: "noCompile",
         description: "Don't compile the project before running the tests",
       })
-      .setAction(() => import("./task-action.js"))
+      .setLazyAction(() => import("./task-action.js"))
       .build(),
   ],
   hookHandlers: {

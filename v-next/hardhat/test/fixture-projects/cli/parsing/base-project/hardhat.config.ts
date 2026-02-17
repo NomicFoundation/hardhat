@@ -13,7 +13,7 @@ const customTask = task("task")
   .addVariadicArgument({ name: "arg3" })
   .addFlag({ name: "arg4", shortName: "f" })
   .addLevel({ name: "arg5", shortName: "l" })
-  .setAction(async () => ({
+  .setLazyAction(async () => ({
     default: () => {
       tasksResults.wasArg1Used = true;
     },
