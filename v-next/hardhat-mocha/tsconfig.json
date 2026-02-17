@@ -8,6 +8,12 @@
       "path": "../hardhat-errors"
     },
     {
+      "path": "../hardhat-ethers"
+    },
+    {
+      "path": "../hardhat-network-helpers"
+    },
+    {
       "path": "../hardhat-node-test-reporter"
     },
     {
@@ -15,6 +21,9 @@
     },
     {
       "path": "../hardhat-utils"
+    },
+    {
+      "path": "../hardhat-zod-utils"
     }
   ]
 }
