@@ -230,6 +230,11 @@ export const ERROR_CATEGORIES: {
         max: 30099,
         websiteSubTitle: "General errors",
       },
+      CONNECT_ON_BEFORE: {
+        min: 30100,
+        max: 30199,
+        websiteSubTitle: "connectOnBefore errors",
+      },
     },
   },
   HARDHAT_VIEM: {
@@ -2077,6 +2082,30 @@ Please try again later.`,
         websiteTitle: "Running tests twice in an ESM project",
         websiteDescription:
           'You have run your tests twice programmatically and your project is an ESM project (you have `"type": "module"` in your `package.json`, or some of your files have the `.mjs` extension). This is not supported by Mocha yet (https://github.com/mochajs/mocha/issues/2706).',
+      },
+    },
+    CONNECT_ON_BEFORE: {
+      USE_BEFORE_HOOK: {
+        number: 30100,
+        messageTemplate: `The network connection proxy can't be used before the \`before\` hook runs. Make sure you only use it inside \`it\`, \`before\`, \`beforeEach\`, etc.`,
+        websiteTitle:
+          "Used network connection before the Mocha `before` hook ran",
+        websiteDescription:
+          "You tried to use a `connectOnBefore` network connection proxy before the Mocha `before` hook has run. Make sure you only use the value inside `it`, `before`, `beforeEach`, or other Mocha hooks.",
+      },
+      AWAIT_CONNECT_ON_BEFORE: {
+        number: 30101,
+        messageTemplate: `\`connectOnBefore\` must not be awaited. It returns a synchronous proxy — remove the \`await\` keyword.`,
+        websiteTitle: "Awaited connectOnBefore",
+        websiteDescription:
+          "You used `await` on the network connection proxy returned by `connectOnBefore`. This function returns a synchronous proxy that is populated by a Mocha `before` hook. Remove the `await` keyword.",
+      },
+      UNSUPPORTED_OPERATION: {
+        number: 30102,
+        messageTemplate: `This operation is not supported on the network connection proxy.`,
+        websiteTitle: "Unsupported proxy operation",
+        websiteDescription:
+          "You attempted an operation (such as Object.getPrototypeOf, Object.defineProperty, delete, new, or Object.freeze) on a connectOnBefore network connection proxy. These operations are not supported. Use standard property access and assignment instead.",
       },
     },
   },
