@@ -2,4 +2,4 @@
 "hardhat": patch
 ---
 
-Round average and mean gas usage in the gas analytics output
+Round average and median gas usage in the gas analytics output
