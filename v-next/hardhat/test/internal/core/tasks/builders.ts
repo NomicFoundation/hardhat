@@ -1774,7 +1774,9 @@ describe("Task builders", () => {
     });
 
     describe("actions", () => {
-      const action: LazyActionObject<TaskOverrideActionFunction> = async () => ({
+      const action: LazyActionObject<
+        TaskOverrideActionFunction
+      > = async () => ({
         default: () => {},
       });
       const inlineAction: TaskOverrideActionFunction = () => {};
