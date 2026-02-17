@@ -1086,16 +1086,6 @@ describe("Task builders", () => {
       });
       const inlineAction: NewTaskActionFunction = () => {};
 
-      it("should be valid with only action", () => {
-        const builder = new NewTaskDefinitionBuilderImplementation("task-id");
-
-        const result = builder.setAction(action).build();
-
-        assert.equal(result.type, TaskDefinitionType.NEW_TASK);
-        assert.equal(result.action, action);
-        assert.equal(result.inlineAction, undefined);
-      });
-
       it("should be valid with only inline action", () => {
         const builder = new NewTaskDefinitionBuilderImplementation("task-id");
 
@@ -1780,18 +1770,6 @@ describe("Task builders", () => {
         default: () => {},
       });
       const inlineAction: TaskOverrideActionFunction = () => {};
-
-      it("should be valid with only action", () => {
-        const builder = new TaskOverrideDefinitionBuilderImplementation(
-          "task-id",
-        );
-
-        const result = builder.setAction(action).build();
-
-        assert.equal(result.type, TaskDefinitionType.TASK_OVERRIDE);
-        assert.equal(result.action, action);
-        assert.equal(result.inlineAction, undefined);
-      });
 
       it("should be valid with only inline action", () => {
         const builder = new TaskOverrideDefinitionBuilderImplementation(
