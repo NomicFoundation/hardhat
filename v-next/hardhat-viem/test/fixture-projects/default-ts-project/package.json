@@ -3,6 +3,6 @@
   "private": "true",
   "type": "module",
   "dependencies": {
-    "hardhat": "*"
+    "hardhat": "workspace:*"
   }
 }
