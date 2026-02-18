@@ -18,6 +18,7 @@ describe("find result by future by", () => {
           result: {
             type: ExecutionResultType.SUCCESS,
             address: exampleAddress,
+            creationTxHash: "0x123",
           },
         },
       },

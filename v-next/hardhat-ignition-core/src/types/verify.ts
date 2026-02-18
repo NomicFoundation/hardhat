@@ -37,6 +37,7 @@ export interface VerifyInfo {
   constructorArgs: SolidityParameterType[];
   libraries: Record<string, string>;
   contract: string;
+  creationTxHash: string;
 }
 
 /**

@@ -22,6 +22,8 @@ import {
 describe("Reconciliation - artifact contract at", () => {
   const exampleAddress = "0x1F98431c8aD98523631AE4a59f267346ea31F984";
   const differentAddress = "0xBA12222222228d8Ba445958a75a0704d566BF2C8";
+  const exampleTxHash =
+    "0xeef10fc5170f669b86c4cd0444882a96087221325f8bf2f55d6188633aa7be7c";
 
   const exampleContractAtState: ContractAtExecutionState = {
     id: "Example",
@@ -115,6 +117,7 @@ describe("Reconciliation - artifact contract at", () => {
         result: {
           type: ExecutionResultType.SUCCESS,
           address: exampleAddress,
+          creationTxHash: exampleTxHash,
         },
       },
       {
