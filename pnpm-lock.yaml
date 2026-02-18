@@ -994,6 +994,12 @@ importers:
         specifier: ^3.23.8
         version: 3.25.76
     devDependencies:
+      '@nomicfoundation/hardhat-ethers':
+        specifier: workspace:^
+        version: link:../hardhat-ethers
+      '@nomicfoundation/hardhat-network-helpers':
+        specifier: workspace:^
+        version: link:../hardhat-network-helpers
       '@nomicfoundation/hardhat-node-test-reporter':
         specifier: workspace:^3.0.0
         version: link:../hardhat-node-test-reporter
@@ -1015,6 +1021,9 @@ importers:
       eslint:
         specifier: 9.25.1
         version: 9.25.1
+      ethers:
+        specifier: ^6.14.0
+        version: 6.16.0
       expect-type:
         specifier: ^1.2.1
         version: 1.3.0

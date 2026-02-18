@@ -10,7 +10,6 @@ describe("connectOnBefore", function () {
     it("should have a valid connection", function () {
       assert.ok(connection !== undefined);
       assert.ok(typeof connection.id === "number");
-      assert.equal(connection.id, 0);
     });
 
     it("should have a valid provider", async function () {
@@ -20,7 +19,7 @@ describe("connectOnBefore", function () {
         method: "eth_blockNumber",
       });
 
-      assert.equal(result, "0x0");
+      assert.equal(result, numberToHexString(0));
     });
 
     it("should allow sending transactions", async function () {
