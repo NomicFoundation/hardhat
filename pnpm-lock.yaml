@@ -369,6 +369,9 @@ importers:
       '@nomicfoundation/hardhat-mocha':
         specifier: workspace:^3.0.6
         version: link:../hardhat-mocha
+      '@nomicfoundation/hardhat-network-helpers':
+        specifier: workspace:^
+        version: link:../hardhat-network-helpers
       '@nomicfoundation/hardhat-node-test-reporter':
         specifier: workspace:^3.0.0
         version: link:../hardhat-node-test-reporter

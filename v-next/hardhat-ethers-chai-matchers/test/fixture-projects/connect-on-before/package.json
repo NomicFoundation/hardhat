@@ -1,0 +1,8 @@
+{
+  "type": "module",
+  "devDependencies": {
+    "@nomicfoundation/hardhat-ethers": "workspace:*",
+    "@nomicfoundation/hardhat-mocha": "workspace:*",
+    "@nomicfoundation/hardhat-network-helpers": "workspace:*"
+  }
+}

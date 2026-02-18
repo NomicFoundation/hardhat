@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import type { Contract } from "ethers";
 import { network } from "hardhat";
 
-describe("connectOnBefore network", function () {
+describe("connectOnBefore ethers usage", function () {
   const expectedDeploymentAddress =
     "0x5FbDB2315678afecb367f032d93F642f64180aa3";
 

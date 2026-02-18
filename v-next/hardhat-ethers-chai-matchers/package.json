@@ -46,6 +46,7 @@
   ],
   "devDependencies": {
     "@nomicfoundation/hardhat-mocha": "workspace:^3.0.6",
+    "@nomicfoundation/hardhat-network-helpers": "workspace:^",
     "@nomicfoundation/hardhat-node-test-reporter": "workspace:^3.0.0",
     "@nomicfoundation/hardhat-test-utils": "workspace:^",
     "@types/chai": "^4.2.0",
