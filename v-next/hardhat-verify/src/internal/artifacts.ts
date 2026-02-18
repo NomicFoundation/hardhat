@@ -79,7 +79,7 @@ export async function getCompilerInput(
 ): Promise<CompilerInput> {
   const rootFilePath = isNpmModule
     ? `npm:${sourceName}`
-    : path.join(root, sourceName);
+    : path.join(root, sourceName).replace(/\\/g, "/");
 
   const getCompilationJobsResult = await solidity.getCompilationJobs(
     [rootFilePath],
