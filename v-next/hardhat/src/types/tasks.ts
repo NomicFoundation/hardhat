@@ -181,13 +181,6 @@ export interface EmptyTaskDefinitionBuilder {
  *
  * @template TaskArgumentsT The arguments of the task.
  * @template ActionTypeT Tracks if the action is "LAZY_ACTION" (Plugin Safe) or "INLINE_ACTION".
- *
- * @remarks
- * This builder validates action definitions at runtime. Attempting to:
- * - Call setAction or setInlineAction multiple times
- * - Call both setAction and setInlineAction on the same task
- * - Build without setting an action
- * will throw a HardhatError with a clear message.
  */
 export interface NewTaskDefinitionBuilder<
   TaskArgumentsT extends TaskArguments = TaskArguments,
@@ -216,8 +209,6 @@ export interface NewTaskDefinitionBuilder<
    *
    * This method cannot be used together with {@link setInlineAction} on the same
    * task. Use one or the other.
-   *
-   * @throws {HardhatError} CORE.TASK_DEFINITIONS.ACTION_ALREADY_SET
    */
   setAction(
     action: LazyActionObject<NewTaskActionFunction<TaskArgumentsT>>,
@@ -234,8 +225,6 @@ export interface NewTaskDefinitionBuilder<
    *
    * This method cannot be used together with {@link setAction} on the same
    * task. Use one or the other.
-   *
-   * @throws {HardhatError} CORE.TASK_DEFINITIONS.ACTION_ALREADY_SET
    */
   setInlineAction(
     inlineAction: NewTaskActionFunction<TaskArgumentsT>,
@@ -349,8 +338,6 @@ export interface NewTaskDefinitionBuilder<
 
   /**
    * Builds the NewTaskDefinition.
-   *
-   * @throws {HardhatError} CORE.TASK_DEFINITIONS.NO_ACTION if no action was set
    */
   build(): ActionTypeT extends "LAZY_ACTION"
     ? Extract<
@@ -367,13 +354,6 @@ export interface NewTaskDefinitionBuilder<
  *
  * @template TaskArgumentsT The arguments of the task.
  * @template ActionTypeT Tracks if the action is "LAZY_ACTION" (Plugin Safe) or "INLINE_ACTION".
- *
- * @remarks
- * This builder validates action definitions at runtime. Attempting to:
- * - Call setAction or setInlineAction multiple times
- * - Call both setAction and setInlineAction on the same task
- * - Build without setting an action
- * will throw a HardhatError with a clear message.
  */
 export interface TaskOverrideDefinitionBuilder<
   TaskArgumentsT extends TaskArguments = TaskArguments,
@@ -391,7 +371,6 @@ export interface TaskOverrideDefinitionBuilder<
    * Sets a new action for the task.
    *
    * @see NewTaskDefinitionBuilder.setAction
-   * @throws {HardhatError} CORE.TASK_DEFINITIONS.ACTION_ALREADY_SET
    */
   setAction(
     action: LazyActionObject<TaskOverrideActionFunction<TaskArgumentsT>>,
@@ -401,7 +380,6 @@ export interface TaskOverrideDefinitionBuilder<
    * Sets a new inline action for the task.
    *
    * @see NewTaskDefinitionBuilder.setInlineAction
-   * @throws {HardhatError} CORE.TASK_DEFINITIONS.ACTION_ALREADY_SET
    */
   setInlineAction(
     inlineAction: TaskOverrideActionFunction<TaskArgumentsT>,
@@ -455,8 +433,6 @@ export interface TaskOverrideDefinitionBuilder<
 
   /**
    * Builds the TaskOverrideDefinition.
-   *
-   * @throws {HardhatError} CORE.TASK_DEFINITIONS.NO_ACTION if no action was set
    */
   build(): ActionTypeT extends "LAZY_ACTION"
     ? Extract<
