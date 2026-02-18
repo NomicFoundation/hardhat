@@ -258,6 +258,13 @@ jobs:
       - uses: ./.github/actions/setup-env
         with:
           node-version: ${{ matrix.node }}
+      # Needed for node-hid, which is used by @ledgerhq/hw-transport-node-hid
+      # We need to install it because downloading the prebuilt binaries is not
+      # reliable, so the CI sometimes falls back to building it from source,
+      # which needs this package.
+      - name: Install Linux system dependencies
+        if: runner.os == 'Linux'
+        run: sudo apt-get update && sudo apt-get install -y libusb-1.0-0-dev
       - name: Install dependencies
         run: pnpm install --frozen-lockfile --prefer-offline
       - name: Build
