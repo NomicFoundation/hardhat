@@ -41,7 +41,6 @@ export function validateAction(
   taskId: string[],
   isPlugin: boolean,
 ): void {
-  // Check plugin restriction first, as it's the most specific error
   if (isPlugin && inlineAction !== undefined) {
     throw new HardhatError(
       HardhatError.ERRORS.CORE.TASK_DEFINITIONS.INLINE_ACTION_CANNOT_BE_USED_IN_PLUGINS,
