@@ -112,13 +112,13 @@ describe("Task builders", () => {
       const taskAction = async () => ({
         default: () => {},
       });
-      const taskDefinition = builder.setAction(taskAction).build();
+      const taskDefinition = builder.setLazyAction(taskAction).build();
 
       assert.deepEqual(taskDefinition, {
         type: TaskDefinitionType.NEW_TASK,
         id: ["task-id"],
         description: "",
-        action: taskAction,
+        lazyAction: taskAction,
         options: {},
         positionalArguments: [],
       });
@@ -130,13 +130,13 @@ describe("Task builders", () => {
       const taskAction = async () => ({
         default: () => {},
       });
-      const taskDefinition = builder.setAction(taskAction).build();
+      const taskDefinition = builder.setLazyAction(taskAction).build();
 
       assert.deepEqual(taskDefinition, {
         type: TaskDefinitionType.NEW_TASK,
         id: ids,
         description: "",
-        action: taskAction,
+        lazyAction: taskAction,
         options: {},
         positionalArguments: [],
       });
@@ -170,13 +170,13 @@ describe("Task builders", () => {
         const lazyAction: LazyActionObject<NewTaskActionFunction> = () =>
           import(taskActionUrl);
 
-        const taskDefinition = builder.setAction(lazyAction).build();
+        const taskDefinition = builder.setLazyAction(lazyAction).build();
 
         assert.deepEqual(taskDefinition, {
           type: TaskDefinitionType.NEW_TASK,
           id: ["task-id"],
           description: "",
-          action: lazyAction,
+          lazyAction,
           options: {},
           positionalArguments: [],
         });
@@ -203,13 +203,13 @@ describe("Task builders", () => {
         const taskAction = async () => ({
           default: () => {},
         });
-        const taskDefinition = builder.setAction(taskAction).build();
+        const taskDefinition = builder.setLazyAction(taskAction).build();
 
         assert.deepEqual(taskDefinition, {
           type: TaskDefinitionType.NEW_TASK,
           id: ["task-id"],
           description: "Task description",
-          action: taskAction,
+          lazyAction: taskAction,
           options: {},
           positionalArguments: [],
         });
@@ -221,7 +221,7 @@ describe("Task builders", () => {
           default: () => {},
         });
         const taskDefinition = builder
-          .setAction(taskAction)
+          .setLazyAction(taskAction)
           .setDescription("Task description")
           .build();
 
@@ -229,7 +229,7 @@ describe("Task builders", () => {
           type: TaskDefinitionType.NEW_TASK,
           id: ["task-id"],
           description: "Task description",
-          action: taskAction,
+          lazyAction: taskAction,
           options: {},
           positionalArguments: [],
         });
@@ -244,7 +244,7 @@ describe("Task builders", () => {
           default: () => {},
         });
         const taskDefinition = builder
-          .setAction(taskAction)
+          .setLazyAction(taskAction)
           .setDescription("New task description")
           .build();
 
@@ -252,7 +252,7 @@ describe("Task builders", () => {
           type: TaskDefinitionType.NEW_TASK,
           id: ["task-id"],
           description: "New task description",
-          action: taskAction,
+          lazyAction: taskAction,
           options: {},
           positionalArguments: [],
         });
@@ -266,7 +266,7 @@ describe("Task builders", () => {
           default: () => {},
         });
         const taskDefinition = builder
-          .setAction(taskAction)
+          .setLazyAction(taskAction)
           .addOption({
             name: "arg",
             defaultValue: "default",
@@ -277,7 +277,7 @@ describe("Task builders", () => {
           type: TaskDefinitionType.NEW_TASK,
           id: ["task-id"],
           description: "",
-          action: taskAction,
+          lazyAction: taskAction,
           options: {
             arg: {
               name: "arg",
@@ -298,7 +298,7 @@ describe("Task builders", () => {
           default: () => {},
         });
         const taskDefinition = builder
-          .setAction(taskAction)
+          .setLazyAction(taskAction)
           .addOption({
             name: "arg",
             description: "Argument description",
@@ -310,7 +310,7 @@ describe("Task builders", () => {
           type: TaskDefinitionType.NEW_TASK,
           id: ["task-id"],
           description: "",
-          action: taskAction,
+          lazyAction: taskAction,
           options: {
             arg: {
               name: "arg",
@@ -331,7 +331,7 @@ describe("Task builders", () => {
           default: () => {},
         });
         const taskDefinition = builder
-          .setAction(taskAction)
+          .setLazyAction(taskAction)
           .addOption({
             name: "arg",
             type: ArgumentType.INT,
@@ -343,7 +343,7 @@ describe("Task builders", () => {
           type: TaskDefinitionType.NEW_TASK,
           id: ["task-id"],
           description: "",
-          action: taskAction,
+          lazyAction: taskAction,
           options: {
             arg: {
               name: "arg",
@@ -364,7 +364,7 @@ describe("Task builders", () => {
           default: () => {},
         });
         const taskDefinition = builder
-          .setAction(taskAction)
+          .setLazyAction(taskAction)
           .addOption({
             name: "arg",
             shortName: "a",
@@ -376,7 +376,7 @@ describe("Task builders", () => {
           type: TaskDefinitionType.NEW_TASK,
           id: ["task-id"],
           description: "",
-          action: taskAction,
+          lazyAction: taskAction,
           options: {
             arg: {
               name: "arg",
@@ -397,7 +397,7 @@ describe("Task builders", () => {
           default: () => {},
         });
         const taskDefinition = builder
-          .setAction(taskAction)
+          .setLazyAction(taskAction)
           .addOption({
             name: "arg",
             defaultValue: "default",
@@ -409,7 +409,7 @@ describe("Task builders", () => {
           type: TaskDefinitionType.NEW_TASK,
           id: ["task-id"],
           description: "",
-          action: taskAction,
+          lazyAction: taskAction,
           options: {
             arg: {
               name: "arg",
@@ -432,7 +432,7 @@ describe("Task builders", () => {
           default: () => {},
         });
         const taskDefinition = builder
-          .setAction(taskAction)
+          .setLazyAction(taskAction)
           .addFlag({ name: "flag" })
           .build();
 
@@ -440,7 +440,7 @@ describe("Task builders", () => {
           type: TaskDefinitionType.NEW_TASK,
           id: ["task-id"],
           description: "",
-          action: taskAction,
+          lazyAction: taskAction,
           options: {
             flag: {
               name: "flag",
@@ -461,7 +461,7 @@ describe("Task builders", () => {
           default: () => {},
         });
         const taskDefinition = builder
-          .setAction(taskAction)
+          .setLazyAction(taskAction)
           .addFlag({ name: "flag", description: "Flag description" })
           .build();
 
@@ -469,7 +469,7 @@ describe("Task builders", () => {
           type: TaskDefinitionType.NEW_TASK,
           id: ["task-id"],
           description: "",
-          action: taskAction,
+          lazyAction: taskAction,
           options: {
             flag: {
               name: "flag",
@@ -490,7 +490,7 @@ describe("Task builders", () => {
           default: () => {},
         });
         const taskDefinition = builder
-          .setAction(taskAction)
+          .setLazyAction(taskAction)
           .addFlag({ name: "flag", shortName: "f" })
           .build();
 
@@ -498,7 +498,7 @@ describe("Task builders", () => {
           type: TaskDefinitionType.NEW_TASK,
           id: ["task-id"],
           description: "",
-          action: taskAction,
+          lazyAction: taskAction,
           options: {
             flag: {
               name: "flag",
@@ -519,7 +519,7 @@ describe("Task builders", () => {
           default: () => {},
         });
         const taskDefinition = builder
-          .setAction(taskAction)
+          .setLazyAction(taskAction)
           .addFlag({ name: "flag", hidden: true })
           .build();
 
@@ -527,7 +527,7 @@ describe("Task builders", () => {
           type: TaskDefinitionType.NEW_TASK,
           id: ["task-id"],
           description: "",
-          action: taskAction,
+          lazyAction: taskAction,
           options: {
             flag: {
               name: "flag",
@@ -550,7 +550,7 @@ describe("Task builders", () => {
           default: () => {},
         });
         const taskDefinition = builder
-          .setAction(taskAction)
+          .setLazyAction(taskAction)
           .addPositionalArgument({ name: "arg" })
           .build();
 
@@ -558,7 +558,7 @@ describe("Task builders", () => {
           type: TaskDefinitionType.NEW_TASK,
           id: ["task-id"],
           description: "",
-          action: taskAction,
+          lazyAction: taskAction,
           options: {},
           positionalArguments: [
             {
@@ -578,7 +578,7 @@ describe("Task builders", () => {
           default: () => {},
         });
         const taskDefinition = builder
-          .setAction(taskAction)
+          .setLazyAction(taskAction)
           .addPositionalArgument({
             name: "arg",
             description: "Argument description",
@@ -589,7 +589,7 @@ describe("Task builders", () => {
           type: TaskDefinitionType.NEW_TASK,
           id: ["task-id"],
           description: "",
-          action: taskAction,
+          lazyAction: taskAction,
           options: {},
           positionalArguments: [
             {
@@ -609,7 +609,7 @@ describe("Task builders", () => {
           default: () => {},
         });
         const taskDefinition = builder
-          .setAction(taskAction)
+          .setLazyAction(taskAction)
           .addPositionalArgument({
             name: "arg",
             defaultValue: "default",
@@ -620,7 +620,7 @@ describe("Task builders", () => {
           type: TaskDefinitionType.NEW_TASK,
           id: ["task-id"],
           description: "",
-          action: taskAction,
+          lazyAction: taskAction,
           options: {},
           positionalArguments: [
             {
@@ -640,7 +640,7 @@ describe("Task builders", () => {
           default: () => {},
         });
         const taskDefinition = builder
-          .setAction(taskAction)
+          .setLazyAction(taskAction)
           .addPositionalArgument({
             name: "arg",
             type: ArgumentType.INT,
@@ -651,7 +651,7 @@ describe("Task builders", () => {
           type: TaskDefinitionType.NEW_TASK,
           id: ["task-id"],
           description: "",
-          action: taskAction,
+          lazyAction: taskAction,
           options: {},
           positionalArguments: [
             {
@@ -673,7 +673,7 @@ describe("Task builders", () => {
           default: () => {},
         });
         const taskDefinition = builder
-          .setAction(taskAction)
+          .setLazyAction(taskAction)
           .addVariadicArgument({ name: "arg" })
           .build();
 
@@ -681,7 +681,7 @@ describe("Task builders", () => {
           type: TaskDefinitionType.NEW_TASK,
           id: ["task-id"],
           description: "",
-          action: taskAction,
+          lazyAction: taskAction,
           options: {},
           positionalArguments: [
             {
@@ -701,7 +701,7 @@ describe("Task builders", () => {
           default: () => {},
         });
         const taskDefinition = builder
-          .setAction(taskAction)
+          .setLazyAction(taskAction)
           .addVariadicArgument({
             name: "arg",
             description: "Argument description",
@@ -712,7 +712,7 @@ describe("Task builders", () => {
           type: TaskDefinitionType.NEW_TASK,
           id: ["task-id"],
           description: "",
-          action: taskAction,
+          lazyAction: taskAction,
           options: {},
           positionalArguments: [
             {
@@ -732,7 +732,7 @@ describe("Task builders", () => {
           default: () => {},
         });
         const taskDefinition = builder
-          .setAction(taskAction)
+          .setLazyAction(taskAction)
           .addVariadicArgument({
             name: "arg",
             defaultValue: ["default1", "default2"],
@@ -743,7 +743,7 @@ describe("Task builders", () => {
           type: TaskDefinitionType.NEW_TASK,
           id: ["task-id"],
           description: "",
-          action: taskAction,
+          lazyAction: taskAction,
           options: {},
           positionalArguments: [
             {
@@ -763,7 +763,7 @@ describe("Task builders", () => {
           default: () => {},
         });
         const taskDefinition = builder
-          .setAction(taskAction)
+          .setLazyAction(taskAction)
           .addVariadicArgument({ name: "arg", type: ArgumentType.INT })
           .build();
 
@@ -771,7 +771,7 @@ describe("Task builders", () => {
           type: TaskDefinitionType.NEW_TASK,
           id: ["task-id"],
           description: "",
-          action: taskAction,
+          lazyAction: taskAction,
           options: {},
           positionalArguments: [
             {
@@ -1081,7 +1081,7 @@ describe("Task builders", () => {
     });
 
     describe("actions", () => {
-      const action: LazyActionObject<NewTaskActionFunction> = async () => ({
+      const lazyAction: LazyActionObject<NewTaskActionFunction> = async () => ({
         default: () => {},
       });
       const inlineAction: NewTaskActionFunction = () => {};
@@ -1093,13 +1093,13 @@ describe("Task builders", () => {
 
         assert.equal(result.type, TaskDefinitionType.NEW_TASK);
         assert.equal(result.inlineAction, inlineAction);
-        assert.equal(result.action, undefined);
+        assert.equal(result.lazyAction, undefined);
       });
 
       it("should be invalid with action + inline action", () => {
         const builder = new NewTaskDefinitionBuilderImplementation("task-id");
 
-        builder.setAction(action);
+        builder.setLazyAction(lazyAction);
 
         assertThrowsHardhatError(
           () => builder.setInlineAction(inlineAction),
@@ -1114,7 +1114,7 @@ describe("Task builders", () => {
         builder.setInlineAction(inlineAction);
 
         assertThrowsHardhatError(
-          () => builder.setAction(action),
+          () => builder.setLazyAction(lazyAction),
           HardhatError.ERRORS.CORE.TASK_DEFINITIONS.ACTION_ALREADY_SET,
           { task: "task-id" },
         );
@@ -1122,14 +1122,16 @@ describe("Task builders", () => {
 
       it("should be invalid with double action", () => {
         const builder = new NewTaskDefinitionBuilderImplementation("task-id");
-        const action2: LazyActionObject<NewTaskActionFunction> = async () => ({
+        const lazyAction2: LazyActionObject<
+          NewTaskActionFunction
+        > = async () => ({
           default: () => {},
         });
 
-        builder.setAction(action);
+        builder.setLazyAction(lazyAction);
 
         assertThrowsHardhatError(
-          () => builder.setAction(action2),
+          () => builder.setLazyAction(lazyAction2),
           HardhatError.ERRORS.CORE.TASK_DEFINITIONS.ACTION_ALREADY_SET,
           { task: "task-id" },
         );
@@ -1158,13 +1160,13 @@ describe("Task builders", () => {
       const taskAction = async () => ({
         default: () => {},
       });
-      const taskDefinition = builder.setAction(taskAction).build();
+      const taskDefinition = builder.setLazyAction(taskAction).build();
 
       assert.deepEqual(taskDefinition, {
         type: TaskDefinitionType.TASK_OVERRIDE,
         id: ["task-id"],
         description: undefined,
-        action: taskAction,
+        lazyAction: taskAction,
         options: {},
       });
     });
@@ -1175,13 +1177,13 @@ describe("Task builders", () => {
       const taskAction = async () => ({
         default: () => {},
       });
-      const taskDefinition = builder.setAction(taskAction).build();
+      const taskDefinition = builder.setLazyAction(taskAction).build();
 
       assert.deepEqual(taskDefinition, {
         type: TaskDefinitionType.TASK_OVERRIDE,
         id: ids,
         description: undefined,
-        action: taskAction,
+        lazyAction: taskAction,
         options: {},
       });
     });
@@ -1216,13 +1218,13 @@ describe("Task builders", () => {
         const lazyAction: LazyActionObject<NewTaskActionFunction> = () =>
           import(taskActionUrl);
 
-        const taskDefinition = builder.setAction(lazyAction).build();
+        const taskDefinition = builder.setLazyAction(lazyAction).build();
 
         assert.deepEqual(taskDefinition, {
           type: TaskDefinitionType.TASK_OVERRIDE,
           id: ["task-id"],
           description: undefined,
-          action: lazyAction,
+          lazyAction,
           options: {},
         });
       });
@@ -1250,7 +1252,7 @@ describe("Task builders", () => {
           default: () => {},
         });
         const taskDefinition = builder
-          .setAction(taskAction)
+          .setLazyAction(taskAction)
           .setDescription("Task description")
           .build();
 
@@ -1258,7 +1260,7 @@ describe("Task builders", () => {
           type: TaskDefinitionType.TASK_OVERRIDE,
           id: ["task-id"],
           description: "Task description",
-          action: taskAction,
+          lazyAction: taskAction,
           options: {},
         });
       });
@@ -1273,7 +1275,7 @@ describe("Task builders", () => {
           default: () => {},
         });
         const taskDefinition = builder
-          .setAction(taskAction)
+          .setLazyAction(taskAction)
           .addOption({
             name: "arg",
             defaultValue: "default",
@@ -1284,7 +1286,7 @@ describe("Task builders", () => {
           type: TaskDefinitionType.TASK_OVERRIDE,
           id: ["task-id"],
           description: undefined,
-          action: taskAction,
+          lazyAction: taskAction,
           options: {
             arg: {
               name: "arg",
@@ -1306,7 +1308,7 @@ describe("Task builders", () => {
           default: () => {},
         });
         const taskDefinition = builder
-          .setAction(taskAction)
+          .setLazyAction(taskAction)
           .addOption({
             name: "arg",
             description: "Argument description",
@@ -1318,7 +1320,7 @@ describe("Task builders", () => {
           type: TaskDefinitionType.TASK_OVERRIDE,
           id: ["task-id"],
           description: undefined,
-          action: taskAction,
+          lazyAction: taskAction,
           options: {
             arg: {
               name: "arg",
@@ -1340,7 +1342,7 @@ describe("Task builders", () => {
           default: () => {},
         });
         const taskDefinition = builder
-          .setAction(taskAction)
+          .setLazyAction(taskAction)
           .addOption({
             name: "arg",
             type: ArgumentType.INT,
@@ -1352,7 +1354,7 @@ describe("Task builders", () => {
           type: TaskDefinitionType.TASK_OVERRIDE,
           id: ["task-id"],
           description: undefined,
-          action: taskAction,
+          lazyAction: taskAction,
           options: {
             arg: {
               name: "arg",
@@ -1374,7 +1376,7 @@ describe("Task builders", () => {
           default: () => {},
         });
         const taskDefinition = builder
-          .setAction(taskAction)
+          .setLazyAction(taskAction)
           .addOption({
             name: "arg",
             shortName: "a",
@@ -1388,7 +1390,7 @@ describe("Task builders", () => {
           type: TaskDefinitionType.TASK_OVERRIDE,
           id: ["task-id"],
           description: undefined,
-          action: taskAction,
+          lazyAction: taskAction,
           options: {
             arg: {
               name: "arg",
@@ -1410,7 +1412,7 @@ describe("Task builders", () => {
           default: () => {},
         });
         const taskDefinition = builder
-          .setAction(taskAction)
+          .setLazyAction(taskAction)
           .addOption({
             name: "arg",
             defaultValue: "default",
@@ -1422,7 +1424,7 @@ describe("Task builders", () => {
           type: TaskDefinitionType.TASK_OVERRIDE,
           id: ["task-id"],
           description: undefined,
-          action: taskAction,
+          lazyAction: taskAction,
           options: {
             arg: {
               name: "arg",
@@ -1446,7 +1448,7 @@ describe("Task builders", () => {
           default: () => {},
         });
         const taskDefinition = builder
-          .setAction(taskAction)
+          .setLazyAction(taskAction)
           .addFlag({ name: "flag" })
           .build();
 
@@ -1454,7 +1456,7 @@ describe("Task builders", () => {
           type: TaskDefinitionType.TASK_OVERRIDE,
           id: ["task-id"],
           description: undefined,
-          action: taskAction,
+          lazyAction: taskAction,
           options: {
             flag: {
               name: "flag",
@@ -1476,7 +1478,7 @@ describe("Task builders", () => {
           default: () => {},
         });
         const taskDefinition = builder
-          .setAction(taskAction)
+          .setLazyAction(taskAction)
           .addFlag({ name: "flag", description: "Flag description" })
           .build();
 
@@ -1484,7 +1486,7 @@ describe("Task builders", () => {
           type: TaskDefinitionType.TASK_OVERRIDE,
           id: ["task-id"],
           description: undefined,
-          action: taskAction,
+          lazyAction: taskAction,
           options: {
             flag: {
               name: "flag",
@@ -1506,7 +1508,7 @@ describe("Task builders", () => {
           default: () => {},
         });
         const taskDefinition = builder
-          .setAction(taskAction)
+          .setLazyAction(taskAction)
           .addFlag({ name: "flag", shortName: "f" })
           .build();
 
@@ -1514,7 +1516,7 @@ describe("Task builders", () => {
           type: TaskDefinitionType.TASK_OVERRIDE,
           id: ["task-id"],
           description: undefined,
-          action: taskAction,
+          lazyAction: taskAction,
           options: {
             flag: {
               name: "flag",
@@ -1536,7 +1538,7 @@ describe("Task builders", () => {
           default: () => {},
         });
         const taskDefinition = builder
-          .setAction(taskAction)
+          .setLazyAction(taskAction)
           .addFlag({ name: "flag", hidden: true })
           .build();
 
@@ -1544,7 +1546,7 @@ describe("Task builders", () => {
           type: TaskDefinitionType.TASK_OVERRIDE,
           id: ["task-id"],
           description: undefined,
-          action: taskAction,
+          lazyAction: taskAction,
           options: {
             flag: {
               name: "flag",
@@ -1764,7 +1766,7 @@ describe("Task builders", () => {
     });
 
     describe("actions", () => {
-      const action: LazyActionObject<
+      const lazyAction: LazyActionObject<
         TaskOverrideActionFunction
       > = async () => ({
         default: () => {},
@@ -1780,7 +1782,7 @@ describe("Task builders", () => {
 
         assert.equal(result.type, TaskDefinitionType.TASK_OVERRIDE);
         assert.equal(result.inlineAction, inlineAction);
-        assert.equal(result.action, undefined);
+        assert.equal(result.lazyAction, undefined);
       });
 
       it("should be invalid with action + inline action", () => {
@@ -1788,7 +1790,7 @@ describe("Task builders", () => {
           "task-id",
         );
 
-        builder.setAction(action);
+        builder.setLazyAction(lazyAction);
 
         assertThrowsHardhatError(
           () => builder.setInlineAction(inlineAction),
@@ -1805,7 +1807,7 @@ describe("Task builders", () => {
         builder.setInlineAction(inlineAction);
 
         assertThrowsHardhatError(
-          () => builder.setAction(action),
+          () => builder.setLazyAction(lazyAction),
           HardhatError.ERRORS.CORE.TASK_DEFINITIONS.ACTION_ALREADY_SET,
           { task: "task-id" },
         );
@@ -1815,14 +1817,14 @@ describe("Task builders", () => {
         const builder = new TaskOverrideDefinitionBuilderImplementation(
           "task-id",
         );
-        const action2 = async () => ({
+        const lazyAction2 = async () => ({
           default: () => {},
         });
 
-        builder.setAction(action);
+        builder.setLazyAction(lazyAction);
 
         assertThrowsHardhatError(
-          () => builder.setAction(action2),
+          () => builder.setLazyAction(lazyAction2),
           HardhatError.ERRORS.CORE.TASK_DEFINITIONS.ACTION_ALREADY_SET,
           { task: "task-id" },
         );

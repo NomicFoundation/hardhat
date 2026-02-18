@@ -24,7 +24,7 @@ const customTask = task("task")
   .addVariadicArgument({ name: "arg3" })
   .addFlag({ name: "arg4", shortName: "f" })
   .addLevel({ name: "arg5", shortName: "l" })
-  .setAction(async () => ({
+  .setLazyAction(async () => ({
     default: (taskArguments) => {
       resetResults();
 
@@ -44,7 +44,7 @@ const customTask = task("task")
 
 const customTask2 = task("task-default")
   .addOption({ name: "arg1", shortName: "o", defaultValue: "<default-value1>" })
-  .setAction(async () => ({
+  .setLazyAction(async () => ({
     default: (taskArguments) => {
       resetResults();
 
@@ -62,7 +62,7 @@ const customSubtask = task(["task", "subtask"])
   .addVariadicArgument({ name: "arg3" })
   .addFlag({ name: "arg4", shortName: "f" })
   .addLevel({ name: "arg5", shortName: "l" })
-  .setAction(async () => ({
+  .setLazyAction(async () => ({
     default: (taskArguments) => {
       resetResults();
 
@@ -80,7 +80,7 @@ const customSubtask = task(["task", "subtask"])
 
 const customSubtask2 = task(["task-default", "subtask-default"])
   .addOption({ name: "arg1", shortName: "o", defaultValue: "<default-value1>" })
-  .setAction(async () => ({
+  .setLazyAction(async () => ({
     default: (taskArguments) => {
       resetResults();
 
@@ -90,7 +90,7 @@ const customSubtask2 = task(["task-default", "subtask-default"])
   }))
   .build();
 const customSubtask3 = task(["task-default-3", "subtask-default-3"])
-  .setAction(async () => ({ default: () => {} }))
+  .setLazyAction(async () => ({ default: () => {} }))
   .build();
 
 const config: HardhatUserConfig = {

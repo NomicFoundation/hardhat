@@ -9,7 +9,7 @@ const verifyTask: PluginTaskDefinition = extendWithSourcifyArgs(
     task("verify", "Verify a contract on all supported explorers"),
   ),
 )
-  .setAction(() => import("./task-action.js"))
+  .setLazyAction(() => import("./task-action.js"))
   .build();
 
 export default verifyTask;

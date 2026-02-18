@@ -46,7 +46,7 @@ const hardhatPlugin: HardhatPlugin = {
         type: ArgumentType.INT,
         defaultValue: -1,
       })
-      .setAction(async () => import("./task-action.js"))
+      .setLazyAction(async () => import("./task-action.js"))
       .build(),
   ],
   dependencies: () => [import("../network-manager/index.js")],

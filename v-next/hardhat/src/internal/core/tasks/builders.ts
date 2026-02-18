@@ -70,7 +70,7 @@ export class NewTaskDefinitionBuilderImplementation<
 
   #description: string;
 
-  #action?: LazyActionObject<NewTaskActionFunction<TaskArgumentsT>>;
+  #lazyAction?: LazyActionObject<NewTaskActionFunction<TaskArgumentsT>>;
   #inlineAction?: NewTaskActionFunction<TaskArgumentsT>;
 
   constructor(id: string | string[], description: string = "") {
@@ -85,12 +85,12 @@ export class NewTaskDefinitionBuilderImplementation<
     return this;
   }
 
-  public setAction(
-    action: LazyActionObject<NewTaskActionFunction<TaskArgumentsT>>,
+  public setLazyAction(
+    lazyAction: LazyActionObject<NewTaskActionFunction<TaskArgumentsT>>,
   ): NewTaskDefinitionBuilder<TaskArgumentsT, "LAZY_ACTION"> {
     this.#ensureNoActionSet();
 
-    this.#action = action;
+    this.#lazyAction = lazyAction;
 
     /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions
     -- Cast to update the ActionTypeT to the expected type for this scenario. */
@@ -226,12 +226,12 @@ export class NewTaskDefinitionBuilderImplementation<
   public build(): ActionTypeT extends "LAZY_ACTION"
     ? Extract<
         NewTaskDefinition,
-        { action: LazyActionObject<NewTaskActionFunction> }
+        { lazyAction: LazyActionObject<NewTaskActionFunction> }
       >
     : ActionTypeT extends "INLINE_ACTION"
       ? Extract<NewTaskDefinition, { inlineAction: NewTaskActionFunction }>
       : never {
-    if (this.#action === undefined && this.#inlineAction === undefined) {
+    if (this.#lazyAction === undefined && this.#inlineAction === undefined) {
       throw new HardhatError(
         HardhatError.ERRORS.CORE.TASK_DEFINITIONS.NO_ACTION,
         {
@@ -248,18 +248,18 @@ export class NewTaskDefinitionBuilderImplementation<
       id: this.#id,
       description: this.#description,
       /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions
-      -- The type of the action is narrowed in the setAction function or setInlineAction to
+      -- The type of the action is narrowed in the setLazyAction function or setInlineAction to
       improve the argument types. Once the task is built, we use the more
       general type to avoid having to parameterize the NewTaskDefinition */
-      ...((this.#action !== undefined
-        ? { action: this.#action }
+      ...((this.#lazyAction !== undefined
+        ? { lazyAction: this.#lazyAction }
         : { inlineAction: this.#inlineAction }) as TaskAction),
       options: this.#options,
       positionalArguments: this.#positionalArgs,
     } as ActionTypeT extends "LAZY_ACTION"
       ? Extract<
           NewTaskDefinition,
-          { action: LazyActionObject<NewTaskActionFunction> }
+          { lazyAction: LazyActionObject<NewTaskActionFunction> }
         >
       : ActionTypeT extends "INLINE_ACTION"
         ? Extract<NewTaskDefinition, { inlineAction: NewTaskActionFunction }>
@@ -317,7 +317,7 @@ export class NewTaskDefinitionBuilderImplementation<
   }
 
   #ensureNoActionSet(): void {
-    if (this.#action !== undefined || this.#inlineAction !== undefined) {
+    if (this.#lazyAction !== undefined || this.#inlineAction !== undefined) {
       throw new HardhatError(
         HardhatError.ERRORS.CORE.TASK_DEFINITIONS.ACTION_ALREADY_SET,
         {
@@ -342,7 +342,7 @@ export class TaskOverrideDefinitionBuilderImplementation<
 
   #description?: string;
 
-  #action?: LazyActionObject<TaskOverrideActionFunction<TaskArgumentsT>>;
+  #lazyAction?: LazyActionObject<TaskOverrideActionFunction<TaskArgumentsT>>;
   #inlineAction?: TaskOverrideActionFunction<TaskArgumentsT>;
 
   constructor(id: string | string[]) {
@@ -356,12 +356,12 @@ export class TaskOverrideDefinitionBuilderImplementation<
     return this;
   }
 
-  public setAction(
-    action: LazyActionObject<TaskOverrideActionFunction<TaskArgumentsT>>,
+  public setLazyAction(
+    lazyAction: LazyActionObject<TaskOverrideActionFunction<TaskArgumentsT>>,
   ): TaskOverrideDefinitionBuilder<TaskArgumentsT, "LAZY_ACTION"> {
     this.#ensureNoActionSet();
 
-    this.#action = action;
+    this.#lazyAction = lazyAction;
 
     /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions
     -- Cast to update the ActionTypeT to the expected type for this scenario. */
@@ -472,7 +472,7 @@ export class TaskOverrideDefinitionBuilderImplementation<
   public build(): ActionTypeT extends "LAZY_ACTION"
     ? Extract<
         TaskOverrideDefinition,
-        { action: LazyActionObject<TaskOverrideActionFunction> }
+        { lazyAction: LazyActionObject<TaskOverrideActionFunction> }
       >
     : ActionTypeT extends "INLINE_ACTION"
       ? Extract<
@@ -480,7 +480,7 @@ export class TaskOverrideDefinitionBuilderImplementation<
           { inlineAction: TaskOverrideActionFunction }
         >
       : never {
-    if (this.#action === undefined && this.#inlineAction === undefined) {
+    if (this.#lazyAction === undefined && this.#inlineAction === undefined) {
       throw new HardhatError(
         HardhatError.ERRORS.CORE.TASK_DEFINITIONS.NO_ACTION,
         {
@@ -497,12 +497,12 @@ export class TaskOverrideDefinitionBuilderImplementation<
       id: this.#id,
       description: this.#description,
       /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions
-      -- The type of the action is narrowed in the setAction function or setInlineAction to
+      -- The type of the action is narrowed in the setLazyAction function or setInlineAction to
       improve the argument types. Once the task is built, we use the more
       general type to avoid having to parameterize the TaskOverrideDefinition */
-      ...((this.#action !== undefined
+      ...((this.#lazyAction !== undefined
         ? {
-            action: this.#action,
+            lazyAction: this.#lazyAction,
           }
         : {
             inlineAction: this.#inlineAction,
@@ -511,7 +511,7 @@ export class TaskOverrideDefinitionBuilderImplementation<
     } as ActionTypeT extends "LAZY_ACTION"
       ? Extract<
           TaskOverrideDefinition,
-          { action: LazyActionObject<TaskOverrideActionFunction> }
+          { lazyAction: LazyActionObject<TaskOverrideActionFunction> }
         >
       : ActionTypeT extends "INLINE_ACTION"
         ? Extract<
@@ -522,7 +522,7 @@ export class TaskOverrideDefinitionBuilderImplementation<
   }
 
   #ensureNoActionSet(): void {
-    if (this.#action !== undefined || this.#inlineAction !== undefined) {
+    if (this.#lazyAction !== undefined || this.#inlineAction !== undefined) {
       throw new HardhatError(
         HardhatError.ERRORS.CORE.TASK_DEFINITIONS.ACTION_ALREADY_SET,
         {

@@ -34,11 +34,11 @@ export type PluginTaskDefinition =
   | EmptyTaskDefinition
   | Extract<
       NewTaskDefinition,
-      { action: LazyActionObject<NewTaskActionFunction> }
+      { lazyAction: LazyActionObject<NewTaskActionFunction> }
     >
   | Extract<
       TaskOverrideDefinition,
-      { action: LazyActionObject<TaskOverrideActionFunction> }
+      { lazyAction: LazyActionObject<TaskOverrideActionFunction> }
     >;
 
 /**

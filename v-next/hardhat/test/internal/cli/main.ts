@@ -56,7 +56,7 @@ async function getTasksAndHreEnvironment(
   for (const t of tasksBuilders) {
     tasks.push(
       t
-        .setAction(async () => ({
+        .setLazyAction(async () => ({
           default: () => {},
         }))
         .build(),
@@ -66,7 +66,7 @@ async function getTasksAndHreEnvironment(
   for (const s of subtasksBuilders) {
     subtasks.push(
       s
-        .setAction(async () => ({
+        .setLazyAction(async () => ({
           default: () => {},
         }))
         .build(),

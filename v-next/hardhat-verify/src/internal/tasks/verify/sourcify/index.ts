@@ -13,7 +13,7 @@ const verifySourcifyTask: PluginTaskDefinition = extendWithSourcifyArgs(
   ),
   false,
 )
-  .setAction(() => import("./task-action.js"))
+  .setLazyAction(() => import("./task-action.js"))
   .build();
 
 export default verifySourcifyTask;

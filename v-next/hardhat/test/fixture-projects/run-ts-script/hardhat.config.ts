@@ -5,7 +5,7 @@ import { task } from "hardhat/config";
 const config: HardhatUserConfig = {
   tasks: [
     task("test-task", "Print a test")
-      .setAction(async () => ({
+      .setLazyAction(async () => ({
         default: () => {
           console.log("test!");
         },

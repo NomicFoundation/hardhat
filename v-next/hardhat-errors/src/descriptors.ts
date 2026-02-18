@@ -559,12 +559,12 @@ Please install a version of the peer dependency that meets the plugin's requirem
       },
     },
     TASK_DEFINITIONS: {
-      INVALID_FILE_ACTION: {
+      INVALID_LAZY_ACTION: {
         number: 400,
         messageTemplate:
           "Invalid file action: {action} is not a valid file URL",
         websiteTitle: "Invalid file action",
-        websiteDescription: `The setAction function was called with a string parameter that is not a valid file URL. A valid file URL must start with 'file://'.
+        websiteDescription: `The setLazyAction function was called with a string parameter that is not a valid file URL. A valid file URL must start with 'file://'.
 
 Please ensure that you are providing a correct file URL.`,
       },
@@ -704,9 +704,9 @@ Please define the action in a separate file and reference it.`,
       },
       ACTION_ALREADY_SET: {
         number: 418,
-        messageTemplate: `The action for task "{task}" has already been set. You can only call "setAction" or "setInlineAction" once per task definition.`,
+        messageTemplate: `The action for task "{task}" has already been set. You can only call "setLazyAction" or "setInlineAction" once per task definition.`,
         websiteTitle: "Task action already set",
-        websiteDescription: `A task definition can only have one action. You cannot call "setAction" or "setInlineAction" more than once on the same task builder.
+        websiteDescription: `A task definition can only have one action. You cannot call "setLazyAction" or "setInlineAction" more than once on the same task builder.
 
 Please remove the duplicate call.`,
       },

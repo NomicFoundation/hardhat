@@ -14,7 +14,7 @@ const hardhatPlugin: HardhatPlugin = {
         name: "noCompile",
         description: "Do not compile the project before running the script",
       })
-      .setAction(async () => import("./task-action.js"))
+      .setLazyAction(async () => import("./task-action.js"))
       .build(),
   ],
   dependencies: () => [import("../solidity/index.js")],

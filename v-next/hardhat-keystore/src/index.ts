@@ -35,7 +35,7 @@ const hardhatKeystorePlugin: HardhatPlugin = {
         description:
           "Use the development keystore instead of the production one",
       })
-      .setAction(() => import("./internal/tasks/set.js"))
+      .setLazyAction(() => import("./internal/tasks/set.js"))
       .build(),
 
     task(["keystore", "get"], "Get a value given a key")
@@ -49,7 +49,7 @@ const hardhatKeystorePlugin: HardhatPlugin = {
         type: ArgumentType.STRING,
         description: "Specify the key to retrieve the value for",
       })
-      .setAction(() => import("./internal/tasks/get.js"))
+      .setLazyAction(() => import("./internal/tasks/get.js"))
       .build(),
 
     task(["keystore", "list"], "List all keys in the keystore")
@@ -58,7 +58,7 @@ const hardhatKeystorePlugin: HardhatPlugin = {
         description:
           "Use the development keystore instead of the production one",
       })
-      .setAction(() => import("./internal/tasks/list.js"))
+      .setLazyAction(() => import("./internal/tasks/list.js"))
       .build(),
 
     task(["keystore", "delete"], "Delete a key from the keystore")
@@ -77,7 +77,7 @@ const hardhatKeystorePlugin: HardhatPlugin = {
         description:
           "Force to not throw an error if the key does not exist during deletion.",
       })
-      .setAction(() => import("./internal/tasks/delete.js"))
+      .setLazyAction(() => import("./internal/tasks/delete.js"))
       .build(),
 
     task(["keystore", "path"], "Display the path where the keystore is stored")
@@ -86,7 +86,7 @@ const hardhatKeystorePlugin: HardhatPlugin = {
         description:
           "Use the development keystore instead of the production one",
       })
-      .setAction(() => import("./internal/tasks/path.js"))
+      .setLazyAction(() => import("./internal/tasks/path.js"))
       .build(),
 
     task(
@@ -98,7 +98,7 @@ const hardhatKeystorePlugin: HardhatPlugin = {
         description:
           "Use the development keystore instead of the production one",
       })
-      .setAction(() => import("./internal/tasks/change-password.js"))
+      .setLazyAction(() => import("./internal/tasks/change-password.js"))
       .build(),
   ],
   npmPackage: "@nomicfoundation/hardhat-keystore",
