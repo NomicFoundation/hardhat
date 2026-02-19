@@ -1,9 +1,9 @@
 import { expect } from "chai";
 import { network } from "hardhat";
 
-const { ethers } = await network.connect();
-
 describe("Counter", function () {
+  const { ethers } = network.mocha.connectOnBefore();
+
   it("Should emit the Increment event when calling the inc() function", async function () {
     const counter = await ethers.deployContract("Counter");
 
