@@ -61,7 +61,8 @@ Note that the npm module is being remapped by ${formatRemappingReference(error.u
       if (error.fromHasFoundryToml === true) {
         return `${baseMessage}
 
-Your project has a foundry.toml, so consider installing the "@nomicfoundation/hardhat-foundry" plugin to improve Hardhat's Foundry compatibility.`;
+Your project has a foundry.toml, and you may need to install the "@nomicfoundation/hardhat-foundry" plugin.
+Learn more about Hardhat's Foundry compatibility here: https://hardhat.org/foundry-compatibility`;
       }
       return baseMessage;
     }
@@ -131,7 +132,8 @@ You should write your the path of your imports into npm modules just as you woul
       if (error.fromHasFoundryToml === true) {
         return `${baseMessage}
 
-The file importing this package is inside a Foundry project (foundry.toml detected). Consider installing the "@nomicfoundation/hardhat-foundry" plugin to improve Hardhat's Foundry compatibility.`;
+The file importing this package is inside a Foundry project (foundry.toml detected), and you may need to install the "@nomicfoundation/hardhat-foundry" plugin.
+Learn more about Hardhat's Foundry compatibility here: https://hardhat.org/foundry-compatibility`;
       }
       return baseMessage;
     }
