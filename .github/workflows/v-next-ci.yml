@@ -240,10 +240,10 @@ jobs:
       matrix:
         package: ${{ fromJson(needs.list-packages.outputs.packages) }}
         os: [ubuntu-latest, ubuntu-24.04-arm, macos-latest, windows-latest]
-        node: [22.0.0, 24.0.0]
+        node: [22.10.0, 24.0.0]
         exclude:
           - package: hardhat-node-test-reporter
-            node: 22.0.0
+            node: 22.10.0
           - package: hardhat-node-test-reporter
             node: 24.0.0
 
