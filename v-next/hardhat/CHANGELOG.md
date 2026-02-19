@@ -1,5 +1,19 @@
 # hardhat
 
+## 3.1.8
+
+### Patch Changes
+
+- a6947fb: Use the official Linux ARM64 builds of solc in the `production` profile when available ([#7917](https://github.com/NomicFoundation/hardhat/pull/7917)).
+- fd42744: Fixed missing EIP-7212 precompile in Solidity Tests ([#7872](https://github.com/NomicFoundation/hardhat/issues/7872)).
+
+## 3.1.7
+
+### Patch Changes
+
+- 4995121: Suppressed pragma and license warnings in Solidity test files ([7894](https://github.com/NomicFoundation/hardhat/issues/7894)).
+- 22adbcb: Added support for `eth_getProof` ([3345](https://github.com/NomicFoundation/hardhat/issues/3345)).
+
 ## 3.1.6
 
 ### Patch Changes

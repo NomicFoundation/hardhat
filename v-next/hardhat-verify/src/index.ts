@@ -10,6 +10,7 @@ const hardhatPlugin: HardhatPlugin = {
   id: "hardhat-verify",
   hookHandlers: {
     config: () => import("./internal/hook-handlers/config.js"),
+    network: () => import("./internal/hook-handlers/network.js"),
   },
   tasks: [
     verifyTask,

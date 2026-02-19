@@ -23,6 +23,9 @@ jobs:
         run: pnpm install --no-frozen-lockfile
       - name: List dependencies
         run: pnpm list -r --depth 2
+      - name: Run build
+        # Ensure all projects are built before parallel test execution
+        run: pnpm build
       - name: Run tests
         env:
           DO_NOT_SET_THIS_ENV_VAR____IS_HARDHAT_CI: true

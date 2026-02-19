@@ -344,6 +344,24 @@ export function createConfig(
       },
     ],
     "use-isnan": "error",
+    "no-restricted-globals": [
+      "error",
+      {
+        name: "performance",
+        message:
+          "Import from 'node:perf_hooks' explicitly e.g. `import { performance } from \"node:perf_hooks\";`",
+      },
+      {
+        name: "fetch",
+        message:
+          'Consider using `request` from `hardhat-utils e.g. `import { getRequest } from "@nomicfoundation/hardhat-utils/request";`',
+      },
+      {
+        name: "structuredClone",
+        message:
+          'Avoid structuredClone, consider `deepClone` instead e.g. `import { deepClone } from "@nomicfoundation/hardhat-utils/lang";`',
+      },
+    ],
     "no-restricted-imports": [
       "error",
       {

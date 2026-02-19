@@ -199,10 +199,11 @@ export class CompilerDownloaderImplementation implements CompilerDownloader {
   }
 
   public async downloadCompiler(version: string): Promise<boolean> {
-    // Since only one process at a time can acquire the mutex, we avoid the risk of downloading the same compiler multiple times.
-    // This is because the mutex blocks access until a compiler has been fully downloaded, preventing any new process
-    // from checking whether that version of the compiler exists. Without mutex it might incorrectly
-    // return false, indicating that the compiler isn't present, even though it is currently being downloaded.
+    // A per-version mutex ensures that only one process at a time can download a given compiler version,
+    // while still allowing different compiler versions to be downloaded in parallel.
+    // Without the mutex, a concurrent process might check whether a version exists, incorrectly
+    // find it missing (because another process is still downloading it), and start a redundant download.
+
     const mutex = new MultiProcessMutex(`compiler-download-${version}`);
 
     return mutex.use(async () => {

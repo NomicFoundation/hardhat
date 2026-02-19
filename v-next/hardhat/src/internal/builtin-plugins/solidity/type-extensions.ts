@@ -24,6 +24,7 @@ declare module "../../../types/config.js" {
     version: string;
     settings?: any;
     path?: string;
+    preferWasm?: boolean;
   }
 
   export interface SingleVersionSolcUserConfig extends SolcUserConfig {
@@ -66,6 +67,7 @@ declare module "../../../types/config.js" {
     version: string;
     settings: any;
     path?: string;
+    preferWasm?: boolean;
   }
 
   export interface SolidityBuildProfileConfig {

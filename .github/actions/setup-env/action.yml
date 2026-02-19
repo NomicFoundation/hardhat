@@ -38,8 +38,7 @@ runs:
       shell: bash
     - uses: actions/cache/restore@v4
       id: cache-restore
-      # TODO: remove OS check when https://github.com/actions/runner-images/issues/13341 is resolved
-      if: inputs.cache-save == 'false' && runner.os != 'macOS'
+      if: inputs.cache-save == 'false'
       with:
         path: ${{ steps.pnpm.outputs.path }}
         key: node-cache-${{ runner.os }}-pnpm-${{ hashFiles('**/pnpm-lock.yaml') }}
