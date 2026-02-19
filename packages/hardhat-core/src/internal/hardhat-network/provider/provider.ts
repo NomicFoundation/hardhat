@@ -386,58 +386,54 @@ export class EdrProviderWrapper
       response = responseObject.data;
     }
 
-    // TODO: re-enable tracing events once EDR adds backwards compatibility support
-    // const needsTraces =
-    //   this._node._vm.evm.events.eventNames().length > 0 ||
-    //   this._node._vm.events.eventNames().length > 0;
+    const needsTraces =
+      this._node._vm.evm.events.eventNames().length > 0 ||
+      this._node._vm.events.eventNames().length > 0;
 
-    // if (needsTraces) {
-    //   const rawTraces = responseObject.traces;
-    //   for (const rawTrace of rawTraces) {
-    //     // For other consumers in JS we need to marshall the entire trace over FFI
-    //     const trace = rawTrace.trace;
+    if (needsTraces) {
+      const rawTraces = responseObject.traces();
+      for (const trace of rawTraces) {
+        // beforeTx event
+        if (this._node._vm.events.listenerCount("beforeTx") > 0) {
+          this._node._vm.events.emit("beforeTx");
+        }
 
-    //     // beforeTx event
-    //     if (this._node._vm.events.listenerCount("beforeTx") > 0) {
-    //       this._node._vm.events.emit("beforeTx");
-    //     }
+        for (const traceItem of trace) {
+          // step event
+          if ("pc" in traceItem) {
+            if (this._node._vm.evm.events.listenerCount("step") > 0) {
+              this._node._vm.evm.events.emit(
+                "step",
+                edrTracingStepToMinimalInterpreterStep(traceItem)
+              );
+            }
+          }
+          // afterMessage event
+          else if ("execResult" in traceItem) {
+            if (this._node._vm.evm.events.listenerCount("afterMessage") > 0) {
+              this._node._vm.evm.events.emit(
+                "afterMessage",
+                edrTracingMessageResultToMinimalEVMResult(traceItem)
+              );
+            }
+          }
+          // beforeMessage event
+          else {
+            if (this._node._vm.evm.events.listenerCount("beforeMessage") > 0) {
+              this._node._vm.evm.events.emit(
+                "beforeMessage",
+                edrTracingMessageToMinimalMessage(traceItem)
+              );
+            }
+          }
+        }
 
-    //     for (const traceItem of trace) {
-    //       // step event
-    //       if ("pc" in traceItem) {
-    //         if (this._node._vm.evm.events.listenerCount("step") > 0) {
-    //           this._node._vm.evm.events.emit(
-    //             "step",
-    //             edrTracingStepToMinimalInterpreterStep(traceItem)
-    //           );
-    //         }
-    //       }
-    //       // afterMessage event
-    //       else if ("executionResult" in traceItem) {
-    //         if (this._node._vm.evm.events.listenerCount("afterMessage") > 0) {
-    //           this._node._vm.evm.events.emit(
-    //             "afterMessage",
-    //             edrTracingMessageResultToMinimalEVMResult(traceItem)
-    //           );
-    //         }
-    //       }
-    //       // beforeMessage event
-    //       else {
-    //         if (this._node._vm.evm.events.listenerCount("beforeMessage") > 0) {
-    //           this._node._vm.evm.events.emit(
-    //             "beforeMessage",
-    //             edrTracingMessageToMinimalMessage(traceItem)
-    //           );
-    //         }
-    //       }
-    //     }
-
-    //     // afterTx event
-    //     if (this._node._vm.events.listenerCount("afterTx") > 0) {
-    //       this._node._vm.events.emit("afterTx");
-    //     }
-    //   }
-    // }
+        // afterTx event
+        if (this._node._vm.events.listenerCount("afterTx") > 0) {
+          this._node._vm.events.emit("afterTx");
+        }
+      }
+    }
 
     if (isErrorResponse(response)) {
       let error;
