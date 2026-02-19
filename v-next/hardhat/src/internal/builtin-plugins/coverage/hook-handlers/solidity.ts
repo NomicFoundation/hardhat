@@ -4,10 +4,6 @@ import type { CoverageMetadata } from "../types.js";
 import path from "node:path";
 
 import {
-  addStatementCoverageInstrumentation,
-  latestSupportedSolidityVersion,
-} from "@nomicfoundation/edr";
-import {
   assertHardhatInvariant,
   HardhatError,
 } from "@nomicfoundation/hardhat-errors";
@@ -15,9 +11,9 @@ import { ensureError } from "@nomicfoundation/hardhat-utils/error";
 import { readUtf8File } from "@nomicfoundation/hardhat-utils/fs";
 import { findClosestPackageRoot } from "@nomicfoundation/hardhat-utils/package";
 import debug from "debug";
-import { satisfies } from "semver";
 
 import { CoverageManagerImplementation } from "../coverage-manager.js";
+import { instrumentSolidityFileForCompilationJob } from "../instrumentation.js";
 
 const log = debug("hardhat:core:coverage:hook-handlers:solidity");
 
@@ -40,19 +36,12 @@ export default async (): Promise<Partial<SolidityHooks>> => ({
 
     if (context.globalOptions.coverage && !isTestSource) {
       try {
-        const latestSupportedVersion = latestSupportedSolidityVersion();
-        if (!satisfies(solcVersion, `<=${latestSupportedVersion}`)) {
-          console.log(
-            `Solidity version ${solcVersion} is not yet supported for coverage instrumentation. Hardhat will try the latest supported version ${latestSupportedVersion} instead.`,
-          );
-          solcVersion = latestSupportedVersion;
-        }
-        const { source, metadata } = addStatementCoverageInstrumentation(
-          fileContent,
+        const { source, metadata } = instrumentSolidityFileForCompilationJob({
+          compilationJobSolcVersion: solcVersion,
           sourceName,
-          solcVersion,
-          COVERAGE_LIBRARY_PATH,
-        );
+          fileContent,
+          coverageLibraryPath: COVERAGE_LIBRARY_PATH,
+        });
 
         // TODO: Remove this once EDR starts returning line information as part
         // of the metadata.
