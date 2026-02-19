@@ -1,5 +1,13 @@
 # hardhat
 
+## 3.1.9
+
+### Patch Changes
+
+- 621d07e: Make the coverage work with versions of Solidity that aren't fully supported by EDR [#7982 ](https://github.com/NomicFoundation/hardhat/pull/7982)
+- 3e39a06: Round average and median gas usage in the gas analytics output
+- 78af2ed: Allow multiple parallel downloads of different compilers ([7946](https://github.com/NomicFoundation/hardhat/pull/7946)).
+
 ## 3.1.8
 
 ### Patch Changes
