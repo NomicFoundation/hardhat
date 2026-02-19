@@ -1,5 +1,4 @@
 ---
-"@nomicfoundation/example-project": patch
 "@nomicfoundation/hardhat-ethers-chai-matchers": patch
 "@nomicfoundation/ignition-core": patch
 "@nomicfoundation/ignition-ui": patch
