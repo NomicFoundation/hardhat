@@ -2,6 +2,7 @@ import type { DispatcherOptions, RequestOptions } from "../request.js";
 import type EventEmitter from "node:events";
 import type UndiciT from "undici";
 
+import crypto from "node:crypto";
 import path from "node:path";
 
 import { mkdir } from "../fs.js";
@@ -24,7 +25,7 @@ export async function generateTempFilePath(filePath: string): Promise<string> {
   return path.format({
     dir,
     ext,
-    name: `tmp-${name}`,
+    name: `tmp-${name}-${crypto.randomBytes(8).toString("hex")}`,
   });
 }
 

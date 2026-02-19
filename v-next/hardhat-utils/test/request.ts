@@ -9,8 +9,9 @@ import { expectTypeOf } from "expect-type";
 import { ProxyAgent, Pool, Agent, Client } from "undici";
 
 import { ensureError } from "../src/error.js";
-import { exists, readUtf8File } from "../src/fs.js";
+import { exists, readUtf8File, readdir } from "../src/fs.js";
 import {
+  generateTempFilePath,
   getBaseDispatcherOptions,
   getBaseRequestOptions,
 } from "../src/internal/request.js";
@@ -543,6 +544,61 @@ describe("Requests util", () => {
         name: "ResponseStatusCodeError",
         message: `Received an unexpected status code from ${url}`,
       });
+    });
+
+    it("Should not leave temp files after a failed download", async () => {
+      const tmpDir = getTmpDir();
+      const destination = path.join(tmpDir, "file.txt");
+      interceptor
+        .intercept(baseInterceptorOptions)
+        .reply(500, "Internal Server Error");
+
+      await assert.rejects(download(url, destination, undefined, interceptor));
+
+      const files = await readdir(tmpDir);
+      const tempFiles = files.filter((f) => f.startsWith("tmp-"));
+      assert.deepEqual(
+        tempFiles,
+        [],
+        "No temp files should remain after a failed download",
+      );
+    });
+  });
+
+  describe("generateTempFilePath", () => {
+    const getTmpDir = useTmpDir("generateTempFilePath");
+
+    it("Should produce unique paths for the same input", async () => {
+      const filePath = path.join(getTmpDir(), "list.json");
+      const result1 = await generateTempFilePath(filePath);
+      const result2 = await generateTempFilePath(filePath);
+
+      assert.notEqual(
+        result1,
+        result2,
+        "Two calls should produce different paths",
+      );
+    });
+
+    it("Should preserve directory and extension", async () => {
+      const dir = getTmpDir();
+      const filePath = path.join(dir, "list.json");
+      const result = await generateTempFilePath(filePath);
+      const parsed = path.parse(result);
+
+      assert.equal(parsed.dir, dir);
+      assert.equal(parsed.ext, ".json");
+    });
+
+    it("Should have a name starting with tmp-<originalName>-", async () => {
+      const filePath = path.join(getTmpDir(), "list.json");
+      const result = await generateTempFilePath(filePath);
+      const parsed = path.parse(result);
+
+      assert.ok(
+        parsed.name.startsWith("tmp-list-"),
+        `Expected name to start with "tmp-list-", got "${parsed.name}"`,
+      );
     });
   });
 
