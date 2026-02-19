@@ -1,4 +1,4 @@
-import type { TableItemV2 } from "../format.js";
+import type { TableItem } from "../format.js";
 
 /**
  * Calculate the display width of a string by removing ANSI escape codes.
@@ -17,7 +17,7 @@ export function getStringWidth(str: string): number {
  * Calculates the minimum width needed by each column in the table
  * to fit its content (accounting for ANSI color codes).
  */
-export function getColumnWidths(items: TableItemV2[]): number[] {
+export function getColumnWidths(items: TableItem[]): number[] {
   const columnWidths: number[] = [];
 
   for (const item of items) {
@@ -53,7 +53,7 @@ export function getContentWidth(columnWidths: number[]): number {
  * Each title/header is padded by 1 space on each side.
  * Accounts for ANSI color codes.
  */
-export function getHeadingWidth(items: TableItemV2[]): number {
+export function getHeadingWidth(items: TableItem[]): number {
   let headingWidth = 0;
   for (const item of items) {
     if (item.type === "section-header" || item.type === "title") {
