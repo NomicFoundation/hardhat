@@ -178,17 +178,14 @@ export function edrTracingStepToMinimalInterpreterStep(
   step: TracingStep
 ): MinimalInterpreterStep {
   const minimalInterpreterStep: MinimalInterpreterStep = {
-    pc: Number(step.pc),
+    pc: step.pc,
     depth: step.depth,
     opcode: {
-      name: step.opcode,
+      name: step.opcode.name,
     },
     stack: step.stack,
+    memory: step.memory,
   };
-
-  if (step.memory !== undefined) {
-    minimalInterpreterStep.memory = step.memory;
-  }
 
   return minimalInterpreterStep;
 }
@@ -196,34 +193,23 @@ export function edrTracingStepToMinimalInterpreterStep(
 export function edrTracingMessageResultToMinimalEVMResult(
   tracingMessageResult: TracingMessageResult
 ): MinimalEVMResult {
-  const { result, contractAddress } = tracingMessageResult.executionResult;
-
-  // only SuccessResult has logs
-  const success = "logs" in result;
+  const execResult = tracingMessageResult.execResult;
 
   const minimalEVMResult: MinimalEVMResult = {
     execResult: {
-      executionGasUsed: result.gasUsed,
-      success,
+      success: execResult.success,
+      executionGasUsed: execResult.executionGasUsed,
+      contractAddress:
+        execResult.contractAddress !== undefined
+          ? new Address(execResult.contractAddress)
+          : undefined,
+      reason: execResult.reason,
+      output:
+        execResult.output !== undefined
+          ? Buffer.from(execResult.output)
+          : undefined,
     },
   };
-
-  // only success and exceptional halt have reason
-  if ("reason" in result) {
-    minimalEVMResult.execResult.reason = result.reason;
-  }
-  if ("output" in result) {
-    const { output } = result;
-    if (output instanceof Uint8Array) {
-      minimalEVMResult.execResult.output = Buffer.from(output);
-    } else {
-      minimalEVMResult.execResult.output = Buffer.from(output.returnValue);
-    }
-  }
-
-  if (contractAddress !== undefined) {
-    minimalEVMResult.execResult.contractAddress = new Address(contractAddress);
-  }
 
   return minimalEVMResult;
 }
