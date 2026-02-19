@@ -18,9 +18,9 @@ import {
 } from "../../types/arguments.js";
 import {
   type EmptyTaskDefinition,
+  TaskDefinitionType,
   type NewTaskDefinition,
   type TaskDefinition,
-  TaskDefinitionType,
   type TaskOverrideDefinition,
 } from "../../types/tasks.js";
 
@@ -272,13 +272,7 @@ export function validateNewTask(
     });
   }
 
-  if (typeof task.action !== "function") {
-    validationErrors.push({
-      path: [...path, "action"],
-      message:
-        "task action must be a lazy import function returning a module with a default export",
-    });
-  }
+  validationErrors.push(...validateActionFields(task, path));
 
   if (isObject(task.options)) {
     validationErrors.push(
@@ -328,13 +322,7 @@ export function validateTaskOverride(
     });
   }
 
-  if (typeof task.action !== "function") {
-    validationErrors.push({
-      path: [...path, "action"],
-      message:
-        "task action must be a lazy import function returning a module with a default export",
-    });
-  }
+  validationErrors.push(...validateActionFields(task, path));
 
   if (isObject(task.options)) {
     validationErrors.push(
@@ -345,6 +333,51 @@ export function validateTaskOverride(
       path: [...path, "options"],
       message: "task options must be an object",
     });
+  }
+
+  return validationErrors;
+}
+
+function validateActionFields(
+  task: { action?: unknown; inlineAction?: unknown },
+  path: Array<string | number>,
+): HardhatUserConfigValidationError[] {
+  const validationErrors: HardhatUserConfigValidationError[] = [];
+
+  // Mutual exclusivity: cannot have both action and inlineAction
+  if (task.action !== undefined && task.inlineAction !== undefined) {
+    validationErrors.push({
+      path: [...path],
+      message: 'task cannot define both "action" and "inlineAction"',
+    });
+  }
+
+  // At least one action must be defined
+  if (task.action === undefined && task.inlineAction === undefined) {
+    validationErrors.push({
+      path: [...path, "action"],
+      message: 'task must define either "action" or "inlineAction"',
+    });
+  }
+
+  if (task.action !== undefined) {
+    if (typeof task.action !== "function") {
+      validationErrors.push({
+        path: [...path, "action"],
+        message:
+          "task action must be a lazy import function returning a module with a default export",
+      });
+    }
+  }
+
+  if (task.inlineAction !== undefined) {
+    if (typeof task.inlineAction !== "function") {
+      validationErrors.push({
+        path: [...path, "inlineAction"],
+        message:
+          "task inlineAction must be a function implementing the task's behavior",
+      });
+    }
   }
 
   return validationErrors;

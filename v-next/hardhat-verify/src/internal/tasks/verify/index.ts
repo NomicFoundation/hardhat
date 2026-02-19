@@ -1,10 +1,10 @@
-import type { NewTaskDefinition } from "hardhat/types/tasks";
+import type { PluginTaskDefinition } from "hardhat/types/plugins";
 
 import { task } from "hardhat/config";
 
 import { extendWithSourcifyArgs, extendWithVerificationArgs } from "./utils.js";
 
-const verifyTask: NewTaskDefinition = extendWithSourcifyArgs(
+const verifyTask: PluginTaskDefinition = extendWithSourcifyArgs(
   extendWithVerificationArgs(
     task("verify", "Verify a contract on all supported explorers"),
   ),
