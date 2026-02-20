@@ -1,3 +1,4 @@
+import type { NetworkHelpers } from "@nomicfoundation/hardhat-network-helpers/types";
 import type { NetworkConfig } from "hardhat/types/config";
 import type { NetworkConnection } from "hardhat/types/network";
 import type {
@@ -97,7 +98,9 @@ describe("createNetworkConnectionProxy", () => {
       // key "then")
       assert.deepEqual(Object.keys(proxy), [
         "id",
+        "ethers",
         "networkConfig",
+        "networkHelpers",
         "provider",
         "close",
         "then",
@@ -144,7 +147,7 @@ describe("createNetworkConnectionProxy", () => {
         "Expected nested proxy to not be undefined",
       );
 
-      assert.equal(typeof proxy.networkConfig, "object");
+      assert.equal(typeof proxy.networkConfig, "function");
     });
 
     it("should throw on set before resolution", () => {
@@ -319,19 +322,19 @@ describe("createNetworkConnectionProxy", () => {
   });
 
   describe("nested proxy errors before resolution", () => {
-    it("should throw on property access with a helpful message", () => {
+    it("should return a nested proxy on property access before resolution", () => {
       const proxy = createNetworkConnectionProxy(() => undefined);
 
       const { provider } = proxy;
 
-      assertThrowsHardhatError(
-        () => {
-          // eslint-disable-next-line @typescript-eslint/no-unused-expressions -- trigger the get trap
-          provider.request;
-        },
-        HardhatError.ERRORS.HARDHAT_MOCHA.CONNECT_ON_BEFORE.ACCESS_BEFORE_HOOK,
-        { property: "request" },
+      // Before resolution, accessing a property returns a deeper proxy
+      const nested = provider.request;
+
+      assert.ok(
+        nested !== undefined,
+        "Expected nested proxy to not be undefined",
       );
+      assert.equal(typeof nested, "function");
     });
 
     it("should throw on set with a helpful message", () => {
@@ -388,6 +391,196 @@ describe("createNetworkConnectionProxy", () => {
       assert.equal((nested as any).then, undefined);
     });
   });
+
+  describe("deeply nested proxy (multi-level destructuring, used after resolution)", () => {
+    it("should return a proxy at arbitrary depth before resolution", () => {
+      const proxy = createNetworkConnectionProxy(() => undefined);
+
+      const deep = proxy.networkHelpers.time.increase;
+
+      assert.ok(
+        deep !== undefined,
+        "Expected deeply nested proxy to not be undefined",
+      );
+      assert.equal(typeof deep, "function");
+    });
+
+    it("should forward property access after resolution", () => {
+      // eslint-disable-next-line prefer-const -- intentionally reassigned after proxy captures the variable
+      let resolved: NetworkConnection | undefined;
+
+      const proxy = createNetworkConnectionProxy(() => resolved);
+
+      // Capture a two-level deep proxy while unresolved
+      const nested = proxy.ethers.BaseContract;
+
+      resolved = buildMockNetworkConnectionFrom({
+        ethers: { BaseContract: { name: "BaseContract" } },
+      });
+
+      // Accessing a property on the deep nested proxy resolves correctly
+      assert.equal(nested.name, "BaseContract");
+    });
+
+    it("should bind functions after resolution", async () => {
+      // eslint-disable-next-line prefer-const -- intentionally reassigned after proxy captures the variable
+      let resolved: NetworkConnection | undefined;
+
+      const proxy = createNetworkConnectionProxy(() => resolved);
+
+      const {
+        provider: { request },
+      } = proxy;
+
+      resolved = buildMockNetworkConnectionFrom({
+        provider: {
+          request: async () => {
+            return "deep-test-response";
+          },
+        },
+      });
+
+      assert.equal(
+        await request({ method: "eth_blockNumber" }),
+        "deep-test-response",
+      );
+    });
+
+    it("should delegate set after resolution", () => {
+      // eslint-disable-next-line prefer-const -- intentionally reassigned after proxy captures the variable
+      let resolved: NetworkConnection | undefined;
+
+      const proxy = createNetworkConnectionProxy(() => resolved);
+
+      const nested = proxy.ethers.BaseContract;
+
+      resolved = buildMockNetworkConnectionFrom({
+        ethers: { BaseContract: { name: "BaseContract" } },
+      });
+
+      // eslint-disable-next-line @typescript-eslint/consistent-type-assertions -- testing set on proxy
+      (nested as any).name = "Modified";
+
+      assert.equal(resolved.ethers.BaseContract.name, "Modified");
+    });
+
+    it("should delegate `in` after resolution", () => {
+      // eslint-disable-next-line prefer-const -- intentionally reassigned after proxy captures the variable
+      let resolved: NetworkConnection | undefined;
+
+      const proxy = createNetworkConnectionProxy(() => resolved);
+
+      const nested = proxy.ethers.BaseContract;
+
+      resolved = buildMockNetworkConnectionFrom({
+        ethers: { BaseContract: { name: "BaseContract" } },
+      });
+
+      assert.equal("name" in nested, true);
+      assert.equal("missing" in nested, false);
+    });
+
+    it("should return keys from ownKeys after resolution", () => {
+      // eslint-disable-next-line prefer-const -- intentionally reassigned after proxy captures the variable
+      let resolved: NetworkConnection | undefined;
+
+      const proxy = createNetworkConnectionProxy(() => resolved);
+
+      const nested = proxy.ethers.BaseContract;
+
+      resolved = buildMockNetworkConnectionFrom({
+        ethers: { BaseContract: { name: "BaseContract" } },
+      });
+
+      assert.deepEqual(Object.keys(nested), ["name"]);
+    });
+
+    it("should delegate getOwnPropertyDescriptor after resolution", () => {
+      // eslint-disable-next-line prefer-const -- intentionally reassigned after proxy captures the variable
+      let resolved: NetworkConnection | undefined;
+
+      const proxy = createNetworkConnectionProxy(() => resolved);
+
+      const nested = proxy.ethers.BaseContract;
+
+      resolved = buildMockNetworkConnectionFrom({
+        ethers: { BaseContract: { name: "BaseContract" } },
+      });
+
+      const desc = Object.getOwnPropertyDescriptor(nested, "name");
+      assert.equal(desc?.value, "BaseContract");
+    });
+  });
+
+  describe("deeply nested proxy errors before resolution", () => {
+    it("should throw on set before resolution", () => {
+      const proxy = createNetworkConnectionProxy(() => undefined);
+
+      const deep = proxy.ethers.BaseContract;
+
+      assertThrowsHardhatError(
+        () => {
+          // eslint-disable-next-line @typescript-eslint/consistent-type-assertions -- testing set on proxy
+          (deep as any).name = "x";
+        },
+        HardhatError.ERRORS.HARDHAT_MOCHA.CONNECT_ON_BEFORE.SET_BEFORE_HOOK,
+        { property: "name" },
+      );
+    });
+
+    it("should throw for `in` before resolution", () => {
+      const proxy = createNetworkConnectionProxy(() => undefined);
+
+      const deep = proxy.ethers.BaseContract;
+
+      assertThrowsHardhatError(
+        () => {
+          // eslint-disable-next-line @typescript-eslint/no-unused-expressions -- trigger the has trap
+          "name" in deep;
+        },
+        HardhatError.ERRORS.HARDHAT_MOCHA.CONNECT_ON_BEFORE.ACCESS_BEFORE_HOOK,
+        { property: "name" },
+      );
+    });
+
+    it("should throw for ownKeys before resolution", () => {
+      const proxy = createNetworkConnectionProxy(() => undefined);
+
+      const deep = proxy.ethers.BaseContract;
+
+      assertThrowsHardhatError(
+        () => {
+          Object.keys(deep);
+        },
+        HardhatError.ERRORS.HARDHAT_MOCHA.CONNECT_ON_BEFORE
+          .ENUMERATE_BEFORE_HOOK,
+        {},
+      );
+    });
+
+    it("should throw for getOwnPropertyDescriptor before resolution", () => {
+      const proxy = createNetworkConnectionProxy(() => undefined);
+
+      const deep = proxy.ethers.BaseContract;
+
+      assertThrowsHardhatError(
+        () => {
+          Object.getOwnPropertyDescriptor(deep, "name");
+        },
+        HardhatError.ERRORS.HARDHAT_MOCHA.CONNECT_ON_BEFORE.ACCESS_BEFORE_HOOK,
+        { property: "name" },
+      );
+    });
+
+    it("should return undefined for `then` at deep levels", () => {
+      const proxy = createNetworkConnectionProxy(() => undefined);
+
+      const deep = proxy.ethers.BaseContract;
+
+      // eslint-disable-next-line @typescript-eslint/consistent-type-assertions -- testing proxy behaviour with plain objects
+      assert.equal((deep as any).then, undefined);
+    });
+  });
 });
 
 function buildMockNetworkConnectionFrom({
@@ -395,6 +588,16 @@ function buildMockNetworkConnectionFrom({
   networkConfig = {
     gas: 1000n,
   },
+  networkHelpers = {
+    // eslint-disable-next-line @typescript-eslint/consistent-type-assertions -- testing proxy behavior with plain objects
+    time: {
+      duration: {},
+    } as any,
+  },
+  // eslint-disable-next-line @typescript-eslint/consistent-type-assertions -- testing proxy behavior with plain objects
+  ethers = {
+    BaseContract: { name: "BaseContract" },
+  } as any,
   provider = {
     request: async (_requestArguments: RequestArguments) => {},
   },
@@ -402,7 +605,9 @@ function buildMockNetworkConnectionFrom({
   then = async () => {},
 }: {
   id?: number;
+  ethers?: any;
   networkConfig?: Partial<NetworkConfig>;
+  networkHelpers?: Partial<NetworkHelpers<"generic">>;
   provider?: Partial<EthereumProvider>;
   close?: () => Promise<void>;
   then?: () => void;
@@ -410,7 +615,9 @@ function buildMockNetworkConnectionFrom({
   // eslint-disable-next-line @typescript-eslint/consistent-type-assertions -- testing proxy behavior with plain objects
   return {
     id,
+    ethers,
     networkConfig,
+    networkHelpers,
     provider,
     close,
     then,

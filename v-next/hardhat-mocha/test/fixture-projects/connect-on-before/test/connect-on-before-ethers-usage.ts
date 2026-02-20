@@ -60,4 +60,21 @@ describe("connectOnBefore ethers usage", function () {
       assert.equal(await counter.x(), 1n);
     });
   });
+
+  describe("deep nested destructuring usage", () => {
+    const {
+      ethers: { deployContract },
+    } = network.mocha.connectOnBefore();
+    let counter: Contract;
+
+    before(async () => {
+      counter = await deployContract("Counter");
+    });
+
+    it("should support invoking read and write functions on the contract", async function () {
+      assert.equal(await counter.x(), 0n);
+      await counter.inc();
+      assert.equal(await counter.x(), 1n);
+    });
+  });
 });

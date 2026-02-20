@@ -128,7 +128,13 @@ export function createNetworkConnectionProxy<
 // like `const { ethers } = connectOnBefore(...)`, `ethers` becomes a proxy
 // that defers access until `resolved` is populated.
 function createNestedProxyForPath(getTarget: () => unknown): any {
-  return new Proxy(Object.create(null), {
+  // Use an arrow function as the proxy target so the `apply` trap works when
+  // the resolved value turns out to be callable (e.g. `deployContract`).
+  // An arrow function (unlike `function(){}`) has no `prototype` property,
+  // which avoids proxy invariant issues with the `ownKeys` trap.
+  const noop = () => {};
+
+  return new Proxy(noop, {
     get(_obj, prop) {
       // Support common inspection/coercion symbols without throwing.
       if (prop === Symbol.toPrimitive || prop === Symbol.toStringTag) {
@@ -148,22 +154,32 @@ function createNestedProxyForPath(getTarget: () => unknown): any {
       }
 
       const target = getTarget();
-      if (target === null || target === undefined) {
-        throw new HardhatError(
-          HardhatError.ERRORS.HARDHAT_MOCHA.CONNECT_ON_BEFORE.ACCESS_BEFORE_HOOK,
-          { property: String(prop) },
-        );
+
+      // Already resolved — return the real value.
+      if (target !== null && target !== undefined) {
+        // eslint-disable-next-line @typescript-eslint/consistent-type-assertions -- Reflect operations require object type
+        const val = Reflect.get(target as object, prop);
+
+        // Bind functions so they retain their original `this`.
+        if (typeof val === "function") {
+          return val.bind(target);
+        }
+
+        return val;
       }
 
-      // eslint-disable-next-line @typescript-eslint/consistent-type-assertions -- Reflect operations require object type
-      const val = Reflect.get(target as object, prop);
+      // Not yet resolved — return a further nested proxy so multi-level
+      // destructuring works (e.g. `const { ethers: { deployContract } } = ...`).
+      return createNestedProxyForPath(() => {
+        const t = getTarget();
 
-      // Bind functions so they retain their original `this`.
-      if (typeof val === "function") {
-        return val.bind(target);
-      }
+        if (t === null || t === undefined) {
+          return undefined;
+        }
 
-      return val;
+        // eslint-disable-next-line @typescript-eslint/consistent-type-assertions -- Reflect operations require object type
+        return Reflect.get(t as object, prop);
+      });
     },
 
     set(_obj, prop, value) {

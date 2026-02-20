@@ -82,8 +82,8 @@ describe("connectOnBefore", function () {
       assert.throws(
         () => connection.provider.request({ method: "eth_blockNumber" }),
         // The connection within the proxy has been set to undefined, so
-        // this property access on provider fails
-        /Cannot access property/,
+        // calling through the proxy chain fails
+        /Cannot call.*before the.*hook/,
       );
     });
   });
