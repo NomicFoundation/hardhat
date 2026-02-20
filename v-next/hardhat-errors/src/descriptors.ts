@@ -2051,9 +2051,10 @@ Please try again later.`,
       USE_BEFORE_HOOK: {
         number: 30100,
         messageTemplate: `The network connection proxy can't be used before the \`before\` hook runs. Make sure you only use it inside \`it\`, \`before\`, \`beforeEach\`, etc.`,
-        websiteTitle: "Used network connection before the before hook",
+        websiteTitle:
+          "Used network connection before the Mocha `before` hook ran",
         websiteDescription:
-          "You tried to use a connectOnBefore network connection proxy before the Mocha before hook has run. Make sure you only use the value inside it, before, beforeEach, or other Mocha hooks.",
+          "You tried to use a `connectOnBefore` network connection proxy before the Mocha `before` hook has run. Make sure you only use the value inside `it`, `before`, `beforeEach`, or other Mocha hooks.",
       },
       AWAIT_CONNECT_ON_BEFORE: {
         number: 30101,
