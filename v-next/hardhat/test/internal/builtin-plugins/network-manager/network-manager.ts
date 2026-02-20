@@ -145,6 +145,7 @@ describe("NetworkManagerImplementation", () => {
       chainDescriptors,
       hre.globalOptions.config,
       hre.config.paths.root,
+      hre.globalOptions.verbosity,
     );
   });
 
@@ -803,6 +804,7 @@ describe("NetworkManagerImplementation", () => {
         chainDescriptors,
         hre.globalOptions.config,
         hre.config.paths.root,
+        hre.globalOptions.verbosity,
       );
     });
 

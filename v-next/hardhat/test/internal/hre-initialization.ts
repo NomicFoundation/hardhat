@@ -251,6 +251,7 @@ describe("HRE initialization", () => {
           help: false,
           init: false,
           showStackTraces: false,
+          verbosity: 2,
           version: false,
           myGlobalOption: "default",
           network: undefined,

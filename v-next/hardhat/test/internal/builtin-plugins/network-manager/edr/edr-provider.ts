@@ -110,7 +110,7 @@ describe("edr-provider", () => {
       assert.deepEqual(response, {
         failed: false,
         gas: 21000,
-        returnValue: "",
+        returnValue: "0x",
         structLogs: [],
       });
     });
@@ -150,7 +150,7 @@ describe("edr-provider", () => {
       assert.deepEqual(response, {
         failed: false,
         gas: 21000,
-        returnValue: "",
+        returnValue: "0x",
         structLogs: [],
       });
     });
