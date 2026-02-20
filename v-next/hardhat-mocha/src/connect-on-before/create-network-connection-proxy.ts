@@ -158,8 +158,7 @@ function createNestedProxyForPath(getTarget: () => unknown): any {
 
       // Already resolved — return the real value.
       if (target !== null && target !== undefined) {
-        // eslint-disable-next-line @typescript-eslint/consistent-type-assertions -- Reflect operations require object type
-        const val = Reflect.get(target as object, prop);
+        const val = Reflect.get(target, prop);
 
         // Bind functions so they retain their original `this`.
         if (typeof val === "function") {
@@ -172,14 +171,13 @@ function createNestedProxyForPath(getTarget: () => unknown): any {
       // Not yet resolved — return a further nested proxy so multi-level
       // destructuring works (e.g. `const { ethers: { deployContract } } = ...`).
       return createNestedProxyForPath(() => {
-        const t = getTarget();
+        const parent = getTarget();
 
-        if (t === null || t === undefined) {
+        if (parent === null || parent === undefined) {
           return undefined;
         }
 
-        // eslint-disable-next-line @typescript-eslint/consistent-type-assertions -- Reflect operations require object type
-        return Reflect.get(t as object, prop);
+        return Reflect.get(parent, prop);
       });
     },
 
