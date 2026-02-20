@@ -7,7 +7,7 @@ import { createHardhatRuntimeEnvironment } from "hardhat/hre";
 describe("connectOnBefore", () => {
   useFixtureProject("connect-on-before");
 
-  it("should successfully a mocha test suite that uses `network.mocha.connectOnBefore`", async () => {
+  it("should successfully run a mocha test suite that uses `network.mocha.connectOnBefore`", async () => {
     const hardhatConfig = await import(
       "./fixture-projects/connect-on-before/hardhat.config.js"
     );
