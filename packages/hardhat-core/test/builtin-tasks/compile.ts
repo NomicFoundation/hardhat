@@ -1,4 +1,4 @@
-import { getLatestSupportedSolcVersion } from "@nomicfoundation/edr";
+import { latestSupportedSolidityVersion } from "@nomicfoundation/edr";
 import { assert, expect } from "chai";
 import ci from "ci-info";
 import * as fsExtra from "fs-extra";
@@ -57,7 +57,7 @@ describe("compile task", function () {
       // Test to check that the last version of solc is being tested
       const userConfigSolcVersion = this.env.userConfig.solidity;
 
-      const lastSolcVersion = getLatestSupportedSolcVersion();
+      const lastSolcVersion = latestSupportedSolidityVersion();
 
       assert.equal(
         userConfigSolcVersion,

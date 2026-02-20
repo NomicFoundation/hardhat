@@ -1,4 +1,4 @@
-import { getLatestSupportedSolcVersion } from "@nomicfoundation/edr";
+import { latestSupportedSolidityVersion } from "@nomicfoundation/edr";
 import semver from "semver";
 
 import {
@@ -161,7 +161,7 @@ async function downloadCompiler(solidityVersion: string): Promise<void> {
 }
 
 export const getNextUnsupportedVersion = () =>
-  semver.inc(getLatestSupportedSolcVersion(), "patch")!;
+  semver.inc(latestSupportedSolidityVersion(), "patch")!;
 
 export const getNextNextUnsupportedVersion = () =>
   semver.inc(getNextUnsupportedVersion(), "patch")!;
