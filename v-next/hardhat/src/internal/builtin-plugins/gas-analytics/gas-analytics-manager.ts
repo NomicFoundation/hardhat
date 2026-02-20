@@ -142,8 +142,8 @@ export class GasAnalyticsManagerImplementation implements GasAnalyticsManager {
         const stats: GasStats = {
           min: Math.min(...gasValues),
           max: Math.max(...gasValues),
-          avg: roundTo(avg(gasValues), 2),
-          median: roundTo(median(gasValues), 2),
+          avg: Math.round(avg(gasValues)),
+          median: Math.round(median(gasValues)),
           calls: gasValues.length,
         };
 
@@ -331,9 +331,4 @@ export function findDuplicates<T>(arr: T[]): T[] {
   }
 
   return [...duplicates];
-}
-
-export function roundTo(value: number, decimals: number): number {
-  const factor = 10 ** decimals;
-  return Math.round(value * factor) / factor;
 }

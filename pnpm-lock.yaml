@@ -75,7 +75,7 @@ importers:
         specifier: workspace:^3.0.2
         version: link:../hardhat-ledger
       '@nomicfoundation/hardhat-mocha':
-        specifier: workspace:^3.0.9
+        specifier: workspace:^3.0.10
         version: link:../hardhat-mocha
       '@nomicfoundation/hardhat-network-helpers':
         specifier: workspace:^3.0.3
@@ -123,7 +123,7 @@ importers:
         specifier: foundry-rs/forge-std#v1.9.4
         version: https://codeload.github.com/foundry-rs/forge-std/tar.gz/1eea5bae12ae557d589f9f0f0edae2faa47cb262
       hardhat:
-        specifier: workspace:^3.1.8
+        specifier: workspace:^3.1.9
         version: link:../hardhat
       mocha:
         specifier: ^11.0.0
@@ -984,12 +984,6 @@ importers:
       debug:
         specifier: ^4.3.2
         version: 4.4.3(supports-color@5.5.0)
-      hardhat:
-        specifier: workspace:^3.0.12
-        version: link:../hardhat
-      mocha:
-        specifier: ^11.0.0
-        version: 11.7.5
       tsx:
         specifier: ^4.19.3
         version: 4.21.0
@@ -1030,6 +1024,12 @@ importers:
       expect-type:
         specifier: ^1.2.1
         version: 1.3.0
+      hardhat:
+        specifier: workspace:^3.0.12
+        version: link:../hardhat
+      mocha:
+        specifier: ^11.0.0
+        version: 11.7.5
       prettier:
         specifier: 3.2.5
         version: 3.2.5
@@ -1770,7 +1770,7 @@ importers:
         specifier: foundry-rs/forge-std#v1.9.4
         version: https://codeload.github.com/foundry-rs/forge-std/tar.gz/1eea5bae12ae557d589f9f0f0edae2faa47cb262
       hardhat:
-        specifier: workspace:^3.1.8
+        specifier: workspace:^3.1.9
         version: link:../../..
       typescript:
         specifier: ~5.8.0
@@ -1791,7 +1791,7 @@ importers:
         specifier: workspace:^3.0.4
         version: link:../../../../hardhat-keystore
       '@nomicfoundation/hardhat-mocha':
-        specifier: workspace:^3.0.9
+        specifier: workspace:^3.0.10
         version: link:../../../../hardhat-mocha
       '@nomicfoundation/hardhat-network-helpers':
         specifier: workspace:^3.0.3
@@ -1837,7 +1837,7 @@ importers:
         specifier: foundry-rs/forge-std#v1.9.4
         version: https://codeload.github.com/foundry-rs/forge-std/tar.gz/1eea5bae12ae557d589f9f0f0edae2faa47cb262
       hardhat:
-        specifier: workspace:^3.1.8
+        specifier: workspace:^3.1.9
         version: link:../../..
       mocha:
         specifier: ^11.0.0
@@ -1852,7 +1852,7 @@ importers:
         specifier: ^22.8.5
         version: 22.19.11
       hardhat:
-        specifier: workspace:^3.1.8
+        specifier: workspace:^3.1.9
         version: link:../../..
       typescript:
         specifier: ~5.8.0
