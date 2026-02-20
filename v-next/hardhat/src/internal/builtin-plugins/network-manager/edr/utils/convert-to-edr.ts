@@ -9,10 +9,8 @@ import type {
 } from "../../../../../types/config.js";
 import type { ChainType } from "../../../../../types/network.js";
 import type { GasMeasurement } from "../../../gas-analytics/types.js";
-import type { RpcDebugTraceOutput, RpcStructLog } from "../types/output.js";
 import type {
   IntervalRange,
-  DebugTraceResult,
   ChainOverride,
   ForkConfig,
   GasReport,
@@ -272,67 +270,6 @@ export function hardhatMempoolOrderToEdrMineOrdering(
     case "priority":
       return MineOrdering.Priority;
   }
-}
-
-// TODO: EDR should handle this conversion. This is a temporary solution.
-export function edrRpcDebugTraceToHardhat(
-  debugTraceResult: DebugTraceResult,
-): RpcDebugTraceOutput {
-  const structLogs = debugTraceResult.structLogs.map((log) => {
-    const result: RpcStructLog = {
-      depth: Number(log.depth),
-      gas: Number(log.gas),
-      gasCost: Number(log.gasCost),
-      op: log.opName,
-      pc: Number(log.pc),
-    };
-
-    if (log.memory !== undefined) {
-      result.memory = log.memory;
-    }
-
-    if (log.stack !== undefined) {
-      // Remove 0x prefix which is required by EIP-3155, but not expected by Hardhat.
-      result.stack = log.stack.map(getUnprefixedHexString);
-    }
-
-    if (log.storage !== undefined) {
-      result.storage = Object.fromEntries(
-        Object.entries(log.storage).map(([key, value]) => [
-          getUnprefixedHexString(key),
-          getUnprefixedHexString(value),
-        ]),
-      );
-    }
-
-    if (log.error !== undefined) {
-      result.error = {
-        message: log.error,
-      };
-    }
-
-    return result;
-  });
-
-  // REVM trace adds initial STOP that Hardhat doesn't expect
-  // TODO: double check with EDR team that this is still the case
-  if (structLogs.length > 0 && structLogs[0].op === "STOP") {
-    structLogs.shift();
-  }
-
-  /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions --
-  debugTraceResult.output is a string, but it's typed as Buffer in Edr */
-  let returnValue = (debugTraceResult.output as unknown as string) ?? "0x";
-  if (returnValue === "0x") {
-    returnValue = "";
-  }
-
-  return {
-    failed: !debugTraceResult.pass,
-    gas: Number(debugTraceResult.gasUsed),
-    returnValue,
-    structLogs,
-  };
 }
 
 export async function hardhatAccountsToEdrOwnedAccounts(
