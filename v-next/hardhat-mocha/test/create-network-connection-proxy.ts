@@ -159,22 +159,42 @@ describe("createNetworkConnectionProxy", () => {
       );
     });
 
-    it("should return false for `in`", () => {
+    it("should throw for `in`", () => {
       const proxy = createNetworkConnectionProxy(() => undefined);
 
-      assert.equal("id" in proxy, false);
+      assertThrowsHardhatError(
+        () => {
+          // eslint-disable-next-line @typescript-eslint/no-unused-expressions -- trigger the has trap
+          "id" in proxy;
+        },
+        HardhatError.ERRORS.HARDHAT_MOCHA.CONNECT_ON_BEFORE.ACCESS_BEFORE_HOOK,
+        { property: "id" },
+      );
     });
 
-    it("should return an empty array from ownKeys", () => {
+    it("should throw for ownKeys", () => {
       const proxy = createNetworkConnectionProxy(() => undefined);
 
-      assert.deepEqual(Object.keys(proxy), []);
+      assertThrowsHardhatError(
+        () => {
+          Object.keys(proxy);
+        },
+        HardhatError.ERRORS.HARDHAT_MOCHA.CONNECT_ON_BEFORE
+          .ENUMERATE_BEFORE_HOOK,
+        {},
+      );
     });
 
-    it("should return undefined from getOwnPropertyDescriptor", () => {
+    it("should throw for getOwnPropertyDescriptor", () => {
       const proxy = createNetworkConnectionProxy(() => undefined);
 
-      assert.equal(Object.getOwnPropertyDescriptor(proxy, "id"), undefined);
+      assertThrowsHardhatError(
+        () => {
+          Object.getOwnPropertyDescriptor(proxy, "id");
+        },
+        HardhatError.ERRORS.HARDHAT_MOCHA.CONNECT_ON_BEFORE.ACCESS_BEFORE_HOOK,
+        { property: "id" },
+      );
     });
 
     it("should throw for `then`", () => {
@@ -329,20 +349,34 @@ describe("createNetworkConnectionProxy", () => {
       );
     });
 
-    it("should return false for `in`", () => {
+    it("should throw for `in`", () => {
       const proxy = createNetworkConnectionProxy(() => undefined);
 
       const { networkConfig } = proxy;
 
-      assert.equal("chainId" in networkConfig, false);
+      assertThrowsHardhatError(
+        () => {
+          // eslint-disable-next-line @typescript-eslint/no-unused-expressions -- trigger the has trap
+          "chainId" in networkConfig;
+        },
+        HardhatError.ERRORS.HARDHAT_MOCHA.CONNECT_ON_BEFORE.ACCESS_BEFORE_HOOK,
+        { property: "chainId" },
+      );
     });
 
-    it("should return an empty array from ownKeys", () => {
+    it("should throw for ownKeys", () => {
       const proxy = createNetworkConnectionProxy(() => undefined);
 
       const { networkConfig } = proxy;
 
-      assert.deepEqual(Object.keys(networkConfig), []);
+      assertThrowsHardhatError(
+        () => {
+          Object.keys(networkConfig);
+        },
+        HardhatError.ERRORS.HARDHAT_MOCHA.CONNECT_ON_BEFORE
+          .ENUMERATE_BEFORE_HOOK,
+        {},
+      );
     });
 
     it("should return undefined for `then`", () => {

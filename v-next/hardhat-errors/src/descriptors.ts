@@ -2076,6 +2076,13 @@ Please try again later.`,
         websiteDescription:
           "You used `await` on the network connection proxy returned by `connectOnBefore`. This function returns a synchronous proxy that is populated by a Mocha `before` hook. Remove the `await` keyword.",
       },
+      ENUMERATE_BEFORE_HOOK: {
+        number: 30104,
+        messageTemplate: `Cannot enumerate properties before the \`before\` hook runs. Make sure you only access this inside \`it\`, \`before\`, \`beforeEach\`, etc.`,
+        websiteTitle: "Enumerate properties before the before hook",
+        websiteDescription:
+          "You tried to enumerate the properties of a `connectOnBefore` network connection proxy before the Mocha `before` hook has run. Make sure you only access the value inside `it`, `before`, `beforeEach`, or other Mocha hooks.",
+      },
     },
   },
   HARDHAT_VIEM: {

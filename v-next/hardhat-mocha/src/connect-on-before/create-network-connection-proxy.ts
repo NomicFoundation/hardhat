@@ -88,7 +88,10 @@ export function createNetworkConnectionProxy<
       const resolved = getResolved();
 
       if (resolved === null || resolved === undefined) {
-        return false;
+        throw new HardhatError(
+          HardhatError.ERRORS.HARDHAT_MOCHA.CONNECT_ON_BEFORE.ACCESS_BEFORE_HOOK,
+          { property: String(prop) },
+        );
       }
 
       return Reflect.has(resolved, prop);
@@ -98,7 +101,9 @@ export function createNetworkConnectionProxy<
       const resolved = getResolved();
 
       if (resolved === null || resolved === undefined) {
-        return [];
+        throw new HardhatError(
+          HardhatError.ERRORS.HARDHAT_MOCHA.CONNECT_ON_BEFORE.ENUMERATE_BEFORE_HOOK,
+        );
       }
 
       return Reflect.ownKeys(resolved);
@@ -108,7 +113,10 @@ export function createNetworkConnectionProxy<
       const resolved = getResolved();
 
       if (resolved === null || resolved === undefined) {
-        return undefined;
+        throw new HardhatError(
+          HardhatError.ERRORS.HARDHAT_MOCHA.CONNECT_ON_BEFORE.ACCESS_BEFORE_HOOK,
+          { property: String(prop) },
+        );
       }
 
       return Reflect.getOwnPropertyDescriptor(resolved, prop);
@@ -175,7 +183,10 @@ function createNestedProxyForPath(getTarget: () => unknown): any {
       const target = getTarget();
 
       if (target === null || target === undefined) {
-        return false;
+        throw new HardhatError(
+          HardhatError.ERRORS.HARDHAT_MOCHA.CONNECT_ON_BEFORE.ACCESS_BEFORE_HOOK,
+          { property: String(prop) },
+        );
       }
 
       return Reflect.has(target, prop);
@@ -185,7 +196,9 @@ function createNestedProxyForPath(getTarget: () => unknown): any {
       const target = getTarget();
 
       if (target === null || target === undefined) {
-        return [];
+        throw new HardhatError(
+          HardhatError.ERRORS.HARDHAT_MOCHA.CONNECT_ON_BEFORE.ENUMERATE_BEFORE_HOOK,
+        );
       }
 
       return Reflect.ownKeys(target);
@@ -195,7 +208,10 @@ function createNestedProxyForPath(getTarget: () => unknown): any {
       const target = getTarget();
 
       if (target === null || target === undefined) {
-        return undefined;
+        throw new HardhatError(
+          HardhatError.ERRORS.HARDHAT_MOCHA.CONNECT_ON_BEFORE.ACCESS_BEFORE_HOOK,
+          { property: String(prop) },
+        );
       }
 
       return Reflect.getOwnPropertyDescriptor(target, prop);
