@@ -21,7 +21,11 @@ import type {
   AccountOverride,
 } from "@nomicfoundation/edr";
 import { privateToAddress } from "@ethereumjs/util";
-import { ContractDecoder, precompileP256Verify } from "@nomicfoundation/edr";
+import {
+  ContractDecoder,
+  IncludeTraces,
+  precompileP256Verify,
+} from "@nomicfoundation/edr";
 import picocolors from "picocolors";
 import debug from "debug";
 import { EventEmitter } from "events";
@@ -267,7 +271,9 @@ export class EdrProviderWrapper
         },
       },
       networkId: BigInt(config.networkId),
-      observability: {},
+      observability: {
+        includeCallTraces: IncludeTraces.All,
+      },
       ownedAccounts,
       // Turn off the Osaka EIP-7825 per transaction gas limit for HH2
       // when being run from `solidity-coverage`.
