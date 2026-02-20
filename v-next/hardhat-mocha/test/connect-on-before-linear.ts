@@ -4,7 +4,7 @@ import { describe, it } from "node:test";
 import { useFixtureProject } from "@nomicfoundation/hardhat-test-utils";
 import { createHardhatRuntimeEnvironment } from "hardhat/hre";
 
-describe("connectOnBefore", () => {
+describe("connect-on-before (linear)", () => {
   useFixtureProject("connect-on-before");
 
   it("should successfully run a mocha test suite that uses `network.mocha.connectOnBefore`", async () => {
@@ -12,7 +12,14 @@ describe("connectOnBefore", () => {
       "./fixture-projects/connect-on-before/hardhat.config.js"
     );
 
-    const hre = await createHardhatRuntimeEnvironment(hardhatConfig.default);
+    const hre = await createHardhatRuntimeEnvironment({
+      ...hardhatConfig.default,
+      test: {
+        mocha: {
+          parallel: false,
+        },
+      },
+    });
 
     const result = await hre.tasks.getTask(["test", "mocha"]).run({});
 
