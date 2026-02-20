@@ -2048,43 +2048,22 @@ Please try again later.`,
       },
     },
     CONNECT_ON_BEFORE: {
-      SET_BEFORE_HOOK: {
+      USE_BEFORE_HOOK: {
         number: 30100,
-        messageTemplate: `Cannot set property '{property}' on network connection before the \`before\` hook runs.`,
-        websiteTitle: "Set property before the before hook",
+        messageTemplate: `The network connection proxy can't be used before the \`before\` hook runs. Make sure you only use it inside \`it\`, \`before\`, \`beforeEach\`, etc.`,
+        websiteTitle: "Used network connection before the before hook",
         websiteDescription:
-          "You tried to set a property on a `connectOnBefore` network connection proxy before the Mocha `before` hook has run. Properties are only available inside `it`, `before`, `beforeEach`, and other Mocha hooks.",
-      },
-      ACCESS_BEFORE_HOOK: {
-        number: 30101,
-        messageTemplate: `Cannot access property '{property}' before the \`before\` hook runs. Make sure you only access this inside \`it\`, \`before\`, \`beforeEach\`, etc.`,
-        websiteTitle: "Access property before the before hook",
-        websiteDescription:
-          "You tried to access a property on a destructured `connectOnBefore` network connection proxy before the Mocha `before` hook has run. Make sure you only access the value inside `it`, `before`, `beforeEach`, or other Mocha hooks.",
-      },
-      CALL_BEFORE_HOOK: {
-        number: 30102,
-        messageTemplate: `Cannot call this value before the \`before\` hook runs.`,
-        websiteTitle: "Call value before the before hook",
-        websiteDescription:
-          "You tried to call a function obtained from a `connectOnBefore` network connection proxy before the Mocha `before` hook has run. Make sure you only call the value inside `it`, `before`, `beforeEach`, or other Mocha hooks.",
+          "You tried to use a connectOnBefore network connection proxy before the Mocha before hook has run. Make sure you only use the value inside it, before, beforeEach, or other Mocha hooks.",
       },
       AWAIT_CONNECT_ON_BEFORE: {
-        number: 30103,
+        number: 30101,
         messageTemplate: `\`connectOnBefore\` must not be awaited. It returns a synchronous proxy — remove the \`await\` keyword.`,
         websiteTitle: "Awaited connectOnBefore",
         websiteDescription:
           "You used `await` on the network connection proxy returned by `connectOnBefore`. This function returns a synchronous proxy that is populated by a Mocha `before` hook. Remove the `await` keyword.",
       },
-      ENUMERATE_BEFORE_HOOK: {
-        number: 30104,
-        messageTemplate: `Cannot enumerate properties before the \`before\` hook runs. Make sure you only access this inside \`it\`, \`before\`, \`beforeEach\`, etc.`,
-        websiteTitle: "Enumerate properties before the before hook",
-        websiteDescription:
-          "You tried to enumerate the properties of a `connectOnBefore` network connection proxy before the Mocha `before` hook has run. Make sure you only access the value inside `it`, `before`, `beforeEach`, or other Mocha hooks.",
-      },
       UNSUPPORTED_OPERATION: {
-        number: 30105,
+        number: 30102,
         messageTemplate: `This operation is not supported on the network connection proxy.`,
         websiteTitle: "Unsupported proxy operation",
         websiteDescription:

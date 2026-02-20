@@ -157,8 +157,8 @@ describe("createNetworkConnectionProxy", () => {
         () => {
           proxy.close = async () => {};
         },
-        HardhatError.ERRORS.HARDHAT_MOCHA.CONNECT_ON_BEFORE.SET_BEFORE_HOOK,
-        { property: "close" },
+        HardhatError.ERRORS.HARDHAT_MOCHA.CONNECT_ON_BEFORE.USE_BEFORE_HOOK,
+        {},
       );
     });
 
@@ -170,8 +170,8 @@ describe("createNetworkConnectionProxy", () => {
           // eslint-disable-next-line @typescript-eslint/no-unused-expressions -- trigger the has trap
           "id" in proxy;
         },
-        HardhatError.ERRORS.HARDHAT_MOCHA.CONNECT_ON_BEFORE.ACCESS_BEFORE_HOOK,
-        { property: "id" },
+        HardhatError.ERRORS.HARDHAT_MOCHA.CONNECT_ON_BEFORE.USE_BEFORE_HOOK,
+        {},
       );
     });
 
@@ -182,8 +182,7 @@ describe("createNetworkConnectionProxy", () => {
         () => {
           Object.keys(proxy);
         },
-        HardhatError.ERRORS.HARDHAT_MOCHA.CONNECT_ON_BEFORE
-          .ENUMERATE_BEFORE_HOOK,
+        HardhatError.ERRORS.HARDHAT_MOCHA.CONNECT_ON_BEFORE.USE_BEFORE_HOOK,
         {},
       );
     });
@@ -195,8 +194,8 @@ describe("createNetworkConnectionProxy", () => {
         () => {
           Object.getOwnPropertyDescriptor(proxy, "id");
         },
-        HardhatError.ERRORS.HARDHAT_MOCHA.CONNECT_ON_BEFORE.ACCESS_BEFORE_HOOK,
-        { property: "id" },
+        HardhatError.ERRORS.HARDHAT_MOCHA.CONNECT_ON_BEFORE.USE_BEFORE_HOOK,
+        {},
       );
     });
 
@@ -347,8 +346,8 @@ describe("createNetworkConnectionProxy", () => {
           // eslint-disable-next-line @typescript-eslint/consistent-type-assertions -- intentionally allow set to test edge case
           (networkConfig as any).chainId = 1;
         },
-        HardhatError.ERRORS.HARDHAT_MOCHA.CONNECT_ON_BEFORE.SET_BEFORE_HOOK,
-        { property: "chainId" },
+        HardhatError.ERRORS.HARDHAT_MOCHA.CONNECT_ON_BEFORE.USE_BEFORE_HOOK,
+        {},
       );
     });
 
@@ -362,8 +361,8 @@ describe("createNetworkConnectionProxy", () => {
           // eslint-disable-next-line @typescript-eslint/no-unused-expressions -- trigger the has trap
           "chainId" in networkConfig;
         },
-        HardhatError.ERRORS.HARDHAT_MOCHA.CONNECT_ON_BEFORE.ACCESS_BEFORE_HOOK,
-        { property: "chainId" },
+        HardhatError.ERRORS.HARDHAT_MOCHA.CONNECT_ON_BEFORE.USE_BEFORE_HOOK,
+        {},
       );
     });
 
@@ -376,8 +375,7 @@ describe("createNetworkConnectionProxy", () => {
         () => {
           Object.keys(networkConfig);
         },
-        HardhatError.ERRORS.HARDHAT_MOCHA.CONNECT_ON_BEFORE
-          .ENUMERATE_BEFORE_HOOK,
+        HardhatError.ERRORS.HARDHAT_MOCHA.CONNECT_ON_BEFORE.USE_BEFORE_HOOK,
         {},
       );
     });
@@ -523,8 +521,8 @@ describe("createNetworkConnectionProxy", () => {
           // eslint-disable-next-line @typescript-eslint/consistent-type-assertions -- testing set on proxy
           (deep as any).name = "x";
         },
-        HardhatError.ERRORS.HARDHAT_MOCHA.CONNECT_ON_BEFORE.SET_BEFORE_HOOK,
-        { property: "name" },
+        HardhatError.ERRORS.HARDHAT_MOCHA.CONNECT_ON_BEFORE.USE_BEFORE_HOOK,
+        {},
       );
     });
 
@@ -538,8 +536,8 @@ describe("createNetworkConnectionProxy", () => {
           // eslint-disable-next-line @typescript-eslint/no-unused-expressions -- trigger the has trap
           "name" in deep;
         },
-        HardhatError.ERRORS.HARDHAT_MOCHA.CONNECT_ON_BEFORE.ACCESS_BEFORE_HOOK,
-        { property: "name" },
+        HardhatError.ERRORS.HARDHAT_MOCHA.CONNECT_ON_BEFORE.USE_BEFORE_HOOK,
+        {},
       );
     });
 
@@ -552,8 +550,7 @@ describe("createNetworkConnectionProxy", () => {
         () => {
           Object.keys(deep);
         },
-        HardhatError.ERRORS.HARDHAT_MOCHA.CONNECT_ON_BEFORE
-          .ENUMERATE_BEFORE_HOOK,
+        HardhatError.ERRORS.HARDHAT_MOCHA.CONNECT_ON_BEFORE.USE_BEFORE_HOOK,
         {},
       );
     });
@@ -567,8 +564,8 @@ describe("createNetworkConnectionProxy", () => {
         () => {
           Object.getOwnPropertyDescriptor(deep, "name");
         },
-        HardhatError.ERRORS.HARDHAT_MOCHA.CONNECT_ON_BEFORE.ACCESS_BEFORE_HOOK,
-        { property: "name" },
+        HardhatError.ERRORS.HARDHAT_MOCHA.CONNECT_ON_BEFORE.USE_BEFORE_HOOK,
+        {},
       );
     });
 

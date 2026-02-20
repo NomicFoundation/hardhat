@@ -83,7 +83,7 @@ describe("connectOnBefore", function () {
         () => connection.provider.request({ method: "eth_blockNumber" }),
         // The connection within the proxy has been set to undefined, so
         // calling through the proxy chain fails
-        /Cannot call.*before the.*hook/,
+        /can't be used before the.*hook/,
       );
     });
   });

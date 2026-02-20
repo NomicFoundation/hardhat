@@ -78,8 +78,7 @@ export function createNetworkConnectionProxy<
 
       if (resolved === null || resolved === undefined) {
         throw new HardhatError(
-          HardhatError.ERRORS.HARDHAT_MOCHA.CONNECT_ON_BEFORE.SET_BEFORE_HOOK,
-          { property: String(prop) },
+          HardhatError.ERRORS.HARDHAT_MOCHA.CONNECT_ON_BEFORE.USE_BEFORE_HOOK,
         );
       }
 
@@ -91,8 +90,7 @@ export function createNetworkConnectionProxy<
 
       if (resolved === null || resolved === undefined) {
         throw new HardhatError(
-          HardhatError.ERRORS.HARDHAT_MOCHA.CONNECT_ON_BEFORE.ACCESS_BEFORE_HOOK,
-          { property: String(prop) },
+          HardhatError.ERRORS.HARDHAT_MOCHA.CONNECT_ON_BEFORE.USE_BEFORE_HOOK,
         );
       }
 
@@ -104,7 +102,7 @@ export function createNetworkConnectionProxy<
 
       if (resolved === null || resolved === undefined) {
         throw new HardhatError(
-          HardhatError.ERRORS.HARDHAT_MOCHA.CONNECT_ON_BEFORE.ENUMERATE_BEFORE_HOOK,
+          HardhatError.ERRORS.HARDHAT_MOCHA.CONNECT_ON_BEFORE.USE_BEFORE_HOOK,
         );
       }
 
@@ -116,8 +114,7 @@ export function createNetworkConnectionProxy<
 
       if (resolved === null || resolved === undefined) {
         throw new HardhatError(
-          HardhatError.ERRORS.HARDHAT_MOCHA.CONNECT_ON_BEFORE.ACCESS_BEFORE_HOOK,
-          { property: String(prop) },
+          HardhatError.ERRORS.HARDHAT_MOCHA.CONNECT_ON_BEFORE.USE_BEFORE_HOOK,
         );
       }
 
@@ -191,8 +188,7 @@ function createNestedProxyForPath(getTarget: () => unknown): any {
 
       if (target === null || target === undefined) {
         throw new HardhatError(
-          HardhatError.ERRORS.HARDHAT_MOCHA.CONNECT_ON_BEFORE.SET_BEFORE_HOOK,
-          { property: String(prop) },
+          HardhatError.ERRORS.HARDHAT_MOCHA.CONNECT_ON_BEFORE.USE_BEFORE_HOOK,
         );
       }
 
@@ -204,8 +200,7 @@ function createNestedProxyForPath(getTarget: () => unknown): any {
 
       if (target === null || target === undefined) {
         throw new HardhatError(
-          HardhatError.ERRORS.HARDHAT_MOCHA.CONNECT_ON_BEFORE.ACCESS_BEFORE_HOOK,
-          { property: String(prop) },
+          HardhatError.ERRORS.HARDHAT_MOCHA.CONNECT_ON_BEFORE.USE_BEFORE_HOOK,
         );
       }
 
@@ -217,7 +212,7 @@ function createNestedProxyForPath(getTarget: () => unknown): any {
 
       if (target === null || target === undefined) {
         throw new HardhatError(
-          HardhatError.ERRORS.HARDHAT_MOCHA.CONNECT_ON_BEFORE.ENUMERATE_BEFORE_HOOK,
+          HardhatError.ERRORS.HARDHAT_MOCHA.CONNECT_ON_BEFORE.USE_BEFORE_HOOK,
         );
       }
 
@@ -229,8 +224,7 @@ function createNestedProxyForPath(getTarget: () => unknown): any {
 
       if (target === null || target === undefined) {
         throw new HardhatError(
-          HardhatError.ERRORS.HARDHAT_MOCHA.CONNECT_ON_BEFORE.ACCESS_BEFORE_HOOK,
-          { property: String(prop) },
+          HardhatError.ERRORS.HARDHAT_MOCHA.CONNECT_ON_BEFORE.USE_BEFORE_HOOK,
         );
       }
 
@@ -242,7 +236,7 @@ function createNestedProxyForPath(getTarget: () => unknown): any {
 
       if (target === null || target === undefined) {
         throw new HardhatError(
-          HardhatError.ERRORS.HARDHAT_MOCHA.CONNECT_ON_BEFORE.CALL_BEFORE_HOOK,
+          HardhatError.ERRORS.HARDHAT_MOCHA.CONNECT_ON_BEFORE.USE_BEFORE_HOOK,
         );
       }
 
