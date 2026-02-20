@@ -2069,6 +2069,13 @@ Please try again later.`,
         websiteDescription:
           "You tried to call a function obtained from a `connectOnBefore` network connection proxy before the Mocha `before` hook has run. Make sure you only call the value inside `it`, `before`, `beforeEach`, or other Mocha hooks.",
       },
+      AWAIT_CONNECT_ON_BEFORE: {
+        number: 30103,
+        messageTemplate: `\`connectOnBefore\` must not be awaited. It returns a synchronous proxy — remove the \`await\` keyword.`,
+        websiteTitle: "Awaited connectOnBefore",
+        websiteDescription:
+          "You used `await` on the network connection proxy returned by `connectOnBefore`. This function returns a synchronous proxy that is populated by a Mocha `before` hook. Remove the `await` keyword.",
+      },
     },
   },
   HARDHAT_VIEM: {

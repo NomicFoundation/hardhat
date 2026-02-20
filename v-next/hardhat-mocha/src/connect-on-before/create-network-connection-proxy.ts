@@ -39,7 +39,9 @@ export function createNetworkConnectionProxy<
       }
 
       if (prop === "then") {
-        return undefined;
+        throw new HardhatError(
+          HardhatError.ERRORS.HARDHAT_MOCHA.CONNECT_ON_BEFORE.AWAIT_CONNECT_ON_BEFORE,
+        );
       }
 
       // If already resolved, return the real value directly.

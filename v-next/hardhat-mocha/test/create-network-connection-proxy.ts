@@ -117,15 +117,20 @@ describe("createNetworkConnectionProxy", () => {
       assert.equal(id?.writable, true);
     });
 
-    it("should return undefined for `then` so the proxy is not a thenable", () => {
+    it("should throw for `then` so the proxy is not a thenable", () => {
       const resolved = buildMockNetworkConnectionFrom({
         then: () => {},
       });
 
       const proxy = createNetworkConnectionProxy(() => resolved);
 
-      // eslint-disable-next-line @typescript-eslint/consistent-type-assertions -- testing proxy behavior with plain objects
-      assert.equal((proxy as any).then, undefined);
+      assertThrowsHardhatError(
+        // eslint-disable-next-line @typescript-eslint/consistent-type-assertions -- testing proxy behavior with plain objects
+        () => (proxy as any).then,
+        HardhatError.ERRORS.HARDHAT_MOCHA.CONNECT_ON_BEFORE
+          .AWAIT_CONNECT_ON_BEFORE,
+        {},
+      );
     });
   });
 
@@ -172,11 +177,16 @@ describe("createNetworkConnectionProxy", () => {
       assert.equal(Object.getOwnPropertyDescriptor(proxy, "id"), undefined);
     });
 
-    it("should return undefined for `then`", () => {
+    it("should throw for `then`", () => {
       const proxy = createNetworkConnectionProxy(() => undefined);
 
-      // eslint-disable-next-line @typescript-eslint/consistent-type-assertions -- testing `then` which is not part of the type
-      assert.equal((proxy as any).then, undefined);
+      assertThrowsHardhatError(
+        // eslint-disable-next-line @typescript-eslint/consistent-type-assertions -- testing `then` which is not part of the type
+        () => (proxy as any).then,
+        HardhatError.ERRORS.HARDHAT_MOCHA.CONNECT_ON_BEFORE
+          .AWAIT_CONNECT_ON_BEFORE,
+        {},
+      );
     });
   });
 
