@@ -27,6 +27,8 @@ export function createNetworkConnectionProxy<
   getResolved: () => NetworkConnection<ChainTypeT> | undefined,
 ): NetworkConnection<ChainTypeT> {
   return new Proxy(Object.create(null), {
+    ...defaultProxyHandlerTraps,
+
     get(_obj, prop) {
       const resolved = getResolved();
 
@@ -135,6 +137,8 @@ function createNestedProxyForPath(getTarget: () => unknown): any {
   const noop = () => {};
 
   return new Proxy(noop, {
+    ...defaultProxyHandlerTraps,
+
     get(_obj, prop) {
       // Support common inspection/coercion symbols without throwing.
       if (prop === Symbol.toPrimitive || prop === Symbol.toStringTag) {
@@ -247,3 +251,78 @@ function createNestedProxyForPath(getTarget: () => unknown): any {
     },
   });
 }
+
+/**
+ * Default proxy handler traps that throw `UNSUPPORTED_OPERATION` for every
+ * trap. Spread this into each `new Proxy(...)` handler and override only the
+ * traps that should be forwarded to the resolved object. This ensures no trap
+ * falls through to the default behaviour (which would operate on the dummy
+ * proxy target instead of the real connection).
+ */
+const defaultProxyHandlerTraps: Required<ProxyHandler<object>> = {
+  apply() {
+    throw new HardhatError(
+      HardhatError.ERRORS.HARDHAT_MOCHA.CONNECT_ON_BEFORE.UNSUPPORTED_OPERATION,
+    );
+  },
+  construct() {
+    throw new HardhatError(
+      HardhatError.ERRORS.HARDHAT_MOCHA.CONNECT_ON_BEFORE.UNSUPPORTED_OPERATION,
+    );
+  },
+  defineProperty() {
+    throw new HardhatError(
+      HardhatError.ERRORS.HARDHAT_MOCHA.CONNECT_ON_BEFORE.UNSUPPORTED_OPERATION,
+    );
+  },
+  deleteProperty() {
+    throw new HardhatError(
+      HardhatError.ERRORS.HARDHAT_MOCHA.CONNECT_ON_BEFORE.UNSUPPORTED_OPERATION,
+    );
+  },
+  get() {
+    throw new HardhatError(
+      HardhatError.ERRORS.HARDHAT_MOCHA.CONNECT_ON_BEFORE.UNSUPPORTED_OPERATION,
+    );
+  },
+  getOwnPropertyDescriptor() {
+    throw new HardhatError(
+      HardhatError.ERRORS.HARDHAT_MOCHA.CONNECT_ON_BEFORE.UNSUPPORTED_OPERATION,
+    );
+  },
+  getPrototypeOf() {
+    throw new HardhatError(
+      HardhatError.ERRORS.HARDHAT_MOCHA.CONNECT_ON_BEFORE.UNSUPPORTED_OPERATION,
+    );
+  },
+  has() {
+    throw new HardhatError(
+      HardhatError.ERRORS.HARDHAT_MOCHA.CONNECT_ON_BEFORE.UNSUPPORTED_OPERATION,
+    );
+  },
+  isExtensible() {
+    throw new HardhatError(
+      HardhatError.ERRORS.HARDHAT_MOCHA.CONNECT_ON_BEFORE.UNSUPPORTED_OPERATION,
+    );
+  },
+  ownKeys() {
+    throw new HardhatError(
+      HardhatError.ERRORS.HARDHAT_MOCHA.CONNECT_ON_BEFORE.UNSUPPORTED_OPERATION,
+    );
+  },
+  preventExtensions() {
+    throw new HardhatError(
+      HardhatError.ERRORS.HARDHAT_MOCHA.CONNECT_ON_BEFORE.UNSUPPORTED_OPERATION,
+    );
+  },
+  set() {
+    throw new HardhatError(
+      HardhatError.ERRORS.HARDHAT_MOCHA.CONNECT_ON_BEFORE.UNSUPPORTED_OPERATION,
+    );
+  },
+  setPrototypeOf() {
+    throw new HardhatError(
+      HardhatError.ERRORS.HARDHAT_MOCHA.CONNECT_ON_BEFORE.UNSUPPORTED_OPERATION,
+    );
+  },
+};

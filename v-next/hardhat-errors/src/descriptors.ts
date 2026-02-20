@@ -2083,6 +2083,13 @@ Please try again later.`,
         websiteDescription:
           "You tried to enumerate the properties of a `connectOnBefore` network connection proxy before the Mocha `before` hook has run. Make sure you only access the value inside `it`, `before`, `beforeEach`, or other Mocha hooks.",
       },
+      UNSUPPORTED_OPERATION: {
+        number: 30105,
+        messageTemplate: `This operation is not supported on the network connection proxy.`,
+        websiteTitle: "Unsupported proxy operation",
+        websiteDescription:
+          "You attempted an operation (such as Object.getPrototypeOf, Object.defineProperty, delete, new, or Object.freeze) on a connectOnBefore network connection proxy. These operations are not supported. Use standard property access and assignment instead.",
+      },
     },
   },
   HARDHAT_VIEM: {
