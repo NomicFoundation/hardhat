@@ -2,6 +2,7 @@ import type { RunOptions } from "./runner.js";
 import type { Abi } from "../../../types/artifacts.js";
 import type { ChainType } from "../../../types/network.js";
 import type { SolidityTestConfig } from "../../../types/test.js";
+import type { Colorizer } from "../../utils/colorizer.js";
 import type {
   SolidityTestRunnerConfigArgs,
   PathPermission,
@@ -12,7 +13,6 @@ import type {
 import {
   opGenesisState,
   l1GenesisState,
-  IncludeTraces,
   FsAccessPermission,
   CollectStackTraces,
   opHardforkFromString,
@@ -24,8 +24,9 @@ import chalk from "chalk";
 import { DEFAULT_VERBOSITY, OPTIMISM_CHAIN_TYPE } from "../../constants.js";
 import { resolveHardfork } from "../network-manager/config-resolution.js";
 import { hardhatHardforkToEdrSpecId } from "../network-manager/edr/utils/convert-to-edr.js";
+import { verbosityToIncludeTraces } from "../network-manager/edr/utils/trace-formatters.js";
 
-import { type Colorizer, formatArtifactId } from "./formatters.js";
+import { formatArtifactId } from "./formatters.js";
 
 interface SolidityTestConfigParams {
   chainType: ChainType;
@@ -106,12 +107,7 @@ export async function solidityTestConfigToSolidityTestRunnerConfigArgs({
       ? opGenesisState(opHardforkFromString(resolvedHardfork))
       : l1GenesisState(l1HardforkFromString(resolvedHardfork));
 
-  let includeTraces: IncludeTraces = IncludeTraces.None;
-  if (verbosity >= 5) {
-    includeTraces = IncludeTraces.All;
-  } else if (verbosity >= 3) {
-    includeTraces = IncludeTraces.Failing;
-  }
+  const includeTraces = verbosityToIncludeTraces(verbosity);
 
   const blockGasLimit =
     config.blockGasLimit === false ? undefined : config.blockGasLimit;

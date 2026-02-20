@@ -1,7 +1,9 @@
 import type { GlobalOptionDefinitions } from "../types/global-options.js";
 
-import { globalFlag, globalOption } from "../config.js";
+import { globalFlag, globalLevel, globalOption } from "../config.js";
 import { ArgumentType } from "../types/arguments.js";
+
+import { DEFAULT_VERBOSITY } from "./constants.js";
 
 export const BUILTIN_GLOBAL_OPTIONS_DEFINITIONS: GlobalOptionDefinitions =
   new Map([
@@ -46,6 +48,18 @@ export const BUILTIN_GLOBAL_OPTIONS_DEFINITIONS: GlobalOptionDefinitions =
         option: globalFlag({
           name: "showStackTraces",
           description: "Show stack traces (always enabled on CI servers).",
+        }),
+      },
+    ],
+    [
+      "verbosity",
+      {
+        pluginId: "builtin",
+        option: globalLevel({
+          name: "verbosity",
+          shortName: "v",
+          description: "Verbosity level of the output.",
+          defaultValue: DEFAULT_VERBOSITY,
         }),
       },
     ],
