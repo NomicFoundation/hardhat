@@ -33,7 +33,7 @@
     "pretest:only": "pnpm build",
     "build": "tsc --build .",
     "prepublishOnly": "pnpm build",
-    "clean": "rimraf dist"
+    "clean": "rimraf dist coverage tsconfig.tsbuildinfo ./test/fixture-projects/**/deployments ./test/fixture-projects/**/artifacts ./test/fixture-projects/**/cache"
   },
   "files": [
     "dist/src/",
