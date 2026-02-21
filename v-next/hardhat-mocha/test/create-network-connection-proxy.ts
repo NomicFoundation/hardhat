@@ -11,10 +11,7 @@ import { describe, it } from "node:test";
 import util from "node:util";
 
 import { HardhatError } from "@nomicfoundation/hardhat-errors";
-import {
-  assertRejects,
-  assertThrowsHardhatError,
-} from "@nomicfoundation/hardhat-test-utils";
+import { assertThrowsHardhatError } from "@nomicfoundation/hardhat-test-utils";
 
 import { createNetworkConnectionProxy } from "../src/connect-on-before/create-network-connection-proxy.js";
 
@@ -33,7 +30,7 @@ describe("createNetworkConnectionProxy", () => {
       it("Should partially support `toString`", () => {
         const resolved = buildMockNetworkConnectionFrom({ id: 99 });
         const proxy = createNetworkConnectionProxy(() => resolved);
-        assert.equal(proxy.toString(), "[object Function]");
+        assert.equal(proxy.toString(), "[object Object]");
       });
     });
 
@@ -67,27 +64,6 @@ describe("createNetworkConnectionProxy", () => {
       });
 
       it("shouldn't bind functions to the resolved object on get", async () => {
-        const resolved = buildMockNetworkConnectionFrom({
-          id: 99,
-          async close() {
-            // This should throw because `this` should be undefined as we are
-            // getting the function but not binding it
-            console.log(this.id);
-          },
-        });
-
-        const proxy = createNetworkConnectionProxy(() => resolved);
-
-        const closeFn = proxy.close;
-
-        await assertRejects(
-          () => closeFn(),
-          (e) => e instanceof TypeError,
-          "close function should not be bound to the resolved object",
-        );
-      });
-
-      it("should let you get a function from the proxy, unbinding it, and then applying it with the proxy as this", async () => {
         let idDuringClose: number | undefined;
 
         const resolved = buildMockNetworkConnectionFrom({
@@ -101,7 +77,25 @@ describe("createNetworkConnectionProxy", () => {
 
         const closeFn = proxy.close;
 
-        await closeFn.apply(proxy);
+        await closeFn();
+        assert.equal(idDuringClose, 99);
+      });
+
+      it("should let you call functions with a different `this` and still use the resolved object (known limitation)", async () => {
+        let idDuringClose: number | undefined;
+
+        const resolved = buildMockNetworkConnectionFrom({
+          id: 99,
+          async close() {
+            idDuringClose = this.id;
+          },
+        });
+
+        const proxy = createNetworkConnectionProxy(() => resolved);
+
+        const closeFn = proxy.close;
+
+        await closeFn.apply(Object.create(null));
         assert.equal(idDuringClose, 99);
       });
 
@@ -120,6 +114,31 @@ describe("createNetworkConnectionProxy", () => {
         await proxy.close();
 
         assert.equal(idDuringClose, 99);
+      });
+
+      it("Should work with private properties", async () => {
+        let fooDuringClose: number | undefined;
+
+        class MockNetworkConnection {
+          readonly #foo: number;
+
+          constructor() {
+            this.#foo = 123;
+          }
+
+          public async close() {
+            fooDuringClose = this.#foo;
+          }
+        }
+
+        // eslint-disable-next-line @typescript-eslint/consistent-type-assertions -- casting to `any` is intentional for testing purposes
+        const resolved = new MockNetworkConnection() as any;
+
+        const proxy = createNetworkConnectionProxy(() => resolved);
+
+        await proxy.close();
+
+        assert.equal(fooDuringClose, 123);
       });
     });
 
@@ -371,7 +390,7 @@ describe("createNetworkConnectionProxy", () => {
           networkConfig: { gas: 9999n },
         });
 
-        assert.equal(networkConfig.toString(), "[object Function]");
+        assert.equal(networkConfig.toString(), "[object Object]");
       });
     });
 
@@ -417,7 +436,7 @@ describe("createNetworkConnectionProxy", () => {
         );
       });
 
-      it("shouldn't bind functions on the nested target on get", async () => {
+      it("should bind functions of the nested target on get", async () => {
         // eslint-disable-next-line prefer-const -- intentionally reassigned after proxy captures the variable
         let resolved: NetworkConnection | undefined;
 
@@ -437,14 +456,10 @@ describe("createNetworkConnectionProxy", () => {
 
         const requestFn = provider.request;
 
-        await assertRejects(
-          () => requestFn({ method: "eth_blockNumber" }),
-          (e) => e instanceof TypeError,
-          "close function should not be bound to the resolved object",
-        );
+        assert.equal(await requestFn({ method: "eth_blockNumber" }), "request");
       });
 
-      it("should let you get a function from the proxy, unbinding it, and then applying it with the proxy as this", async () => {
+      it("should let you call functions with a different `this` and still use the resolved object (known limitation)", async () => {
         // eslint-disable-next-line prefer-const -- intentionally reassigned after proxy captures the variable
         let resolved: NetworkConnection | undefined;
 
@@ -464,7 +479,7 @@ describe("createNetworkConnectionProxy", () => {
 
         const requestFn = provider.request;
 
-        const response = await requestFn.apply(provider, [
+        const response = await requestFn.apply(Object.create(null), [
           { method: "eth_blockNumber" },
         ]);
 
@@ -492,6 +507,31 @@ describe("createNetworkConnectionProxy", () => {
         const response = await provider.request({ method: "eth_blockNumber" });
 
         assert.equal(response, "request");
+      });
+
+      it("Should work with private properties", async () => {
+        // eslint-disable-next-line prefer-const -- intentionally reassigned after proxy captures the variable
+        let resolved: NetworkConnection | undefined;
+
+        const proxy = createNetworkConnectionProxy(() => resolved);
+
+        const { provider } = proxy;
+
+        class MockProvider {
+          readonly #result: string = "foo";
+
+          public async request() {
+            return this.#result;
+          }
+        }
+
+        resolved = buildMockNetworkConnectionFrom({
+          provider: new MockProvider(),
+        });
+
+        const response = await provider.request({ method: "eth_blockNumber" });
+
+        assert.equal(response, "foo");
       });
     });
 

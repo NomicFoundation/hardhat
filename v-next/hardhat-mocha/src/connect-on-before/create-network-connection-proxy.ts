@@ -46,7 +46,16 @@ export function createNetworkConnectionProxy<
 
       // If already resolved, return the real value directly.
       if (resolved !== undefined) {
-        return Reflect.get(resolved, prop);
+        const value = Reflect.get(resolved, prop);
+
+        // We need to bind functions to the resolved object on get, because
+        // otherwise the Proxy will be used as `this` (e.g. proxy.method()) and
+        // won't be able to access #private properties
+        if (typeof value === "function") {
+          return value.bind(resolved);
+        }
+
+        return value;
       }
 
       if (prop === Symbol.toStringTag || prop === "toString") {
@@ -138,7 +147,16 @@ function createNestedProxyForPath(getTarget: () => unknown): any {
 
       // Already resolved — return the real value.
       if (target !== null && target !== undefined) {
-        return Reflect.get(target, prop);
+        const value = Reflect.get(target, prop);
+
+        // We need to bind functions to the target object on get, because
+        // otherwise the Proxy will be used as `this` (e.g. proxy.method()) and
+        // won't be able to access #private properties
+        if (typeof value === "function") {
+          return value.bind(target);
+        }
+
+        return value;
       }
 
       if (prop === Symbol.toStringTag || prop === "toString") {
