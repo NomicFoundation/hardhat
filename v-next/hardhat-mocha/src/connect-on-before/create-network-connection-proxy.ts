@@ -46,13 +46,11 @@ export function createNetworkConnectionProxy<
 
       // If already resolved, return the real value directly.
       if (resolved !== undefined) {
-        const val = Reflect.get(resolved, prop);
+        return Reflect.get(resolved, prop);
+      }
 
-        if (typeof val === "function") {
-          return val.bind(resolved);
-        }
-
-        return val;
+      if (prop === Symbol.toStringTag || prop === "toString") {
+        return () => stringRepresentation;
       }
 
       // Not yet resolved — return a nested proxy so destructuring works.
@@ -140,14 +138,7 @@ function createNestedProxyForPath(getTarget: () => unknown): any {
 
       // Already resolved — return the real value.
       if (target !== null && target !== undefined) {
-        const val = Reflect.get(target, prop);
-
-        // Bind functions so they retain their original `this`.
-        if (typeof val === "function") {
-          return val.bind(target);
-        }
-
-        return val;
+        return Reflect.get(target, prop);
       }
 
       if (prop === Symbol.toStringTag || prop === "toString") {
