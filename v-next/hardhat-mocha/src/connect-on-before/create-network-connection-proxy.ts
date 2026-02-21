@@ -138,12 +138,6 @@ function createNestedProxyForPath(getTarget: () => unknown): any {
     get(_obj, prop) {
       const target = getTarget();
 
-      // `then` must return undefined so the proxy is not mistaken for a
-      // thenable (e.g. when returned from an async context or awaited).
-      if (prop === "then") {
-        return undefined;
-      }
-
       // Already resolved — return the real value.
       if (target !== null && target !== undefined) {
         const val = Reflect.get(target, prop);

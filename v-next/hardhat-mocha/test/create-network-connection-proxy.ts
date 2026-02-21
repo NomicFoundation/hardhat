@@ -481,15 +481,6 @@ describe("createNetworkConnectionProxy", () => {
         {},
       );
     });
-
-    it("should return undefined for `then`", () => {
-      const proxy = createNetworkConnectionProxy(() => undefined);
-
-      const { provider: nested } = proxy;
-
-      // eslint-disable-next-line @typescript-eslint/consistent-type-assertions -- testing proxy behaviour with plain objects
-      assert.equal((nested as any).then, undefined);
-    });
   });
 
   describe("deeply nested proxy (multi-level destructuring, used after resolution)", () => {
@@ -669,15 +660,6 @@ describe("createNetworkConnectionProxy", () => {
         HardhatError.ERRORS.HARDHAT_MOCHA.CONNECT_ON_BEFORE.USE_BEFORE_HOOK,
         {},
       );
-    });
-
-    it("should return undefined for `then` at deep levels", () => {
-      const proxy = createNetworkConnectionProxy(() => undefined);
-
-      const deep = proxy.ethers.BaseContract;
-
-      // eslint-disable-next-line @typescript-eslint/consistent-type-assertions -- testing proxy behaviour with plain objects
-      assert.equal((deep as any).then, undefined);
     });
   });
 });
