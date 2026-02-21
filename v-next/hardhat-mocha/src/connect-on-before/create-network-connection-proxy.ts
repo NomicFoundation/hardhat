@@ -26,19 +26,17 @@ export function createNetworkConnectionProxy<
 >(
   getResolved: () => NetworkConnection<ChainTypeT> | undefined,
 ): NetworkConnection<ChainTypeT> {
-  return new Proxy(Object.create(null), {
+  const NetworkConnectionProxy = () => {};
+  const stringRepresentation = "<NetworkConnectionProxy>";
+
+  /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions -- 
+    We use this cast instead of Object.create(null) because the name leaks in 
+    `util.inspect` when using `node:test` */
+  return new Proxy(NetworkConnectionProxy as any, {
     ...defaultProxyHandlerTraps,
 
     get(_obj, prop) {
       const resolved = getResolved();
-
-      if (prop === Symbol.toPrimitive || prop === Symbol.toStringTag) {
-        if (resolved === null || resolved === undefined) {
-          return undefined;
-        }
-
-        return Reflect.get(resolved, prop);
-      }
 
       if (prop === "then") {
         throw new HardhatError(
@@ -131,30 +129,20 @@ function createNestedProxyForPath(getTarget: () => unknown): any {
   // the resolved value turns out to be callable (e.g. `deployContract`).
   // An arrow function (unlike `function(){}`) has no `prototype` property,
   // which avoids proxy invariant issues with the `ownKeys` trap.
-  const noop = () => {};
+  const NetworkConnectionPropertyProxy = () => {};
+  const stringRepresentation = "<NetworkConnectionPropertyProxy>";
 
-  return new Proxy(noop, {
+  return new Proxy(NetworkConnectionPropertyProxy, {
     ...defaultProxyHandlerTraps,
 
     get(_obj, prop) {
-      // Support common inspection/coercion symbols without throwing.
-      if (prop === Symbol.toPrimitive || prop === Symbol.toStringTag) {
-        const t = getTarget();
-
-        if (t === null || t === undefined) {
-          return undefined;
-        }
-
-        return Reflect.get(t, prop);
-      }
+      const target = getTarget();
 
       // `then` must return undefined so the proxy is not mistaken for a
       // thenable (e.g. when returned from an async context or awaited).
       if (prop === "then") {
         return undefined;
       }
-
-      const target = getTarget();
 
       // Already resolved — return the real value.
       if (target !== null && target !== undefined) {
@@ -166,6 +154,10 @@ function createNestedProxyForPath(getTarget: () => unknown): any {
         }
 
         return val;
+      }
+
+      if (prop === Symbol.toStringTag || prop === "toString") {
+        return () => stringRepresentation;
       }
 
       // Not yet resolved — return a further nested proxy so multi-level

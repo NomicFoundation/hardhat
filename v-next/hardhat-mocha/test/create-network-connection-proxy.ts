@@ -8,14 +8,35 @@ import type {
 
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
+import util from "node:util";
 
 import { HardhatError } from "@nomicfoundation/hardhat-errors";
-import { assertThrowsHardhatError } from "@nomicfoundation/hardhat-test-utils";
+import {
+  assertRejects,
+  assertThrowsHardhatError,
+} from "@nomicfoundation/hardhat-test-utils";
 
 import { createNetworkConnectionProxy } from "../src/connect-on-before/create-network-connection-proxy.js";
 
 describe("createNetworkConnectionProxy", () => {
   describe("when the connection is resolved", () => {
+    describe("inspect and toString", () => {
+      // These tests are here to document the behavior that the proxy forces
+      // on us, not because this is the ideal behavior
+      it("Should partially support `util.inspect`", () => {
+        const resolved = buildMockNetworkConnectionFrom({ id: 99 });
+        const proxy = createNetworkConnectionProxy(() => resolved);
+
+        assert.equal(util.inspect(proxy), "[Function: NetworkConnectionProxy]");
+      });
+
+      it("Should partially support `toString`", () => {
+        const resolved = buildMockNetworkConnectionFrom({ id: 99 });
+        const proxy = createNetworkConnectionProxy(() => resolved);
+        assert.equal(proxy.toString(), "[object Function]");
+      });
+    });
+
     it("should forward property access to the resolved object", () => {
       const resolved = buildMockNetworkConnectionFrom({ id: 99 });
 
@@ -138,6 +159,18 @@ describe("createNetworkConnectionProxy", () => {
   });
 
   describe("when the connection is not yet resolved", () => {
+    describe("inspect and toString", () => {
+      it("Should partially support `util.inspect`", () => {
+        const proxy = createNetworkConnectionProxy(() => undefined);
+        assert.equal(util.inspect(proxy), "[Function: NetworkConnectionProxy]");
+      });
+
+      it("Should support `toString`", () => {
+        const proxy = createNetworkConnectionProxy(() => undefined);
+        assert.equal(proxy.toString(), "<NetworkConnectionProxy>");
+      });
+    });
+
     it("should return a nested proxy for property (not undefined)", () => {
       const proxy = createNetworkConnectionProxy(() => undefined);
 
@@ -212,7 +245,76 @@ describe("createNetworkConnectionProxy", () => {
     });
   });
 
+  describe("nested proxy (destructured before resolution, inspected before)", () => {
+    describe("inspect and toString", () => {
+      it("Should partially support `util.inspect`", () => {
+        const proxy = createNetworkConnectionProxy(() => undefined);
+
+        // Destructure while unresolved — captures a nested proxy
+        const { networkConfig } = proxy;
+
+        assert.equal(
+          util.inspect(networkConfig),
+          "[Function: NetworkConnectionPropertyProxy]",
+        );
+      });
+
+      it("Should support `toString`", () => {
+        const proxy = createNetworkConnectionProxy(() => undefined);
+
+        // Destructure while unresolved — captures a nested proxy
+        const { networkConfig } = proxy;
+
+        assert.equal(
+          networkConfig.toString(),
+          "<NetworkConnectionPropertyProxy>",
+        );
+      });
+    });
+  });
+
   describe("nested proxy (destructured before resolution, used after)", () => {
+    describe("inspect and toString", () => {
+      // These tests are here to document the behavior that the proxy forces
+      // on us, not because this is the ideal behavior
+      it("Should partially support `util.inspect`", () => {
+        // eslint-disable-next-line prefer-const -- intentionally reassigned after proxy captures the variable
+        let resolved: NetworkConnection | undefined;
+
+        const proxy = createNetworkConnectionProxy(() => resolved);
+
+        // Destructure while unresolved — captures a nested proxy
+        const { networkConfig } = proxy;
+
+        // Now resolve
+        resolved = buildMockNetworkConnectionFrom({
+          networkConfig: { gas: 9999n },
+        });
+
+        assert.equal(
+          util.inspect(networkConfig),
+          "[Function: NetworkConnectionPropertyProxy]",
+        );
+      });
+
+      it("Should partially support `toString`", () => {
+        // eslint-disable-next-line prefer-const -- intentionally reassigned after proxy captures the variable
+        let resolved: NetworkConnection | undefined;
+
+        const proxy = createNetworkConnectionProxy(() => resolved);
+
+        // Destructure while unresolved — captures a nested proxy
+        const { networkConfig } = proxy;
+
+        // Now resolve
+        resolved = buildMockNetworkConnectionFrom({
+          networkConfig: { gas: 9999n },
+        });
+
+        assert.equal(networkConfig.toString(), "[object Function]");
+      });
+    });
+
     it("should forward property access once the connection resolves", () => {
       // eslint-disable-next-line prefer-const -- intentionally reassigned after proxy captures the variable
       let resolved: NetworkConnection | undefined;
