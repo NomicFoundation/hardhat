@@ -74,6 +74,13 @@ export function createNetworkConnectionProxy<
 
         const val = Reflect.get(r, prop);
 
+        // We need to bind functions to the resolved object on get, because
+        // otherwise the Proxy will be used as `this` (e.g. proxy.method()) and
+        // won't be able to access #private properties
+        if (typeof val === "function") {
+          return val.bind(r);
+        }
+
         return val;
       });
     },

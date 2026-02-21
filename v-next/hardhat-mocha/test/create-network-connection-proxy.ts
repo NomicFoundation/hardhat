@@ -412,6 +412,27 @@ describe("createNetworkConnectionProxy", () => {
     });
 
     describe("function properties", () => {
+      it("Should work with top level functions, binding them", async () => {
+        // eslint-disable-next-line prefer-const -- intentionally reassigned after proxy captures the variable
+        let resolved: NetworkConnection | undefined;
+        let idDuringClose: number | undefined;
+
+        const proxy = createNetworkConnectionProxy(() => resolved);
+
+        const { close } = proxy;
+
+        resolved = buildMockNetworkConnectionFrom({
+          id: 99,
+          async close() {
+            idDuringClose = this.id;
+          },
+        });
+
+        await close();
+
+        assert.equal(idDuringClose, 99);
+      });
+
       it("should work with functions on the nested target", async () => {
         // eslint-disable-next-line prefer-const -- intentionally reassigned after proxy captures the variable
         let resolved: NetworkConnection | undefined;
