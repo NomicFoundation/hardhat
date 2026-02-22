@@ -227,7 +227,7 @@ contract ERC20 {}`,
         quiet: true,
       });
 
-      assert(!("reason" in result), "getCompilationJobs should succeed");
+      assert(result.success, "getCompilationJobs should succeed");
       assert.equal(
         result.cacheHits.size,
         1,
@@ -284,7 +284,7 @@ contract ERC20 {}`,
         quiet: true,
       });
 
-      assert(!("reason" in result), "getCompilationJobs should succeed");
+      assert(result.success, "getCompilationJobs should succeed");
       const cacheHitInfo = result.cacheHits.get(npmRootPath);
 
       assert(cacheHitInfo !== undefined, "Should have cache hit info");
@@ -352,7 +352,7 @@ contract Foo { uint256 public value; }`,
         { quiet: true },
       );
 
-      assert(!("reason" in result), "getCompilationJobs should succeed");
+      assert(result.success, "getCompilationJobs should succeed");
 
       // Local file was modified, should be in compilationJobsPerFile
       assert(
@@ -409,7 +409,7 @@ contract ERC20 {}`,
         force: true,
       });
 
-      assert(!("reason" in result), "getCompilationJobs should succeed");
+      assert(result.success, "getCompilationJobs should succeed");
       assert.equal(
         result.compilationJobsPerFile.size,
         1,

@@ -244,7 +244,7 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
       options,
     );
 
-    if ("reason" in compilationJobsResult) {
+    if (!compilationJobsResult.success) {
       return compilationJobsResult;
     }
 
@@ -631,7 +631,12 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
       }
     }
 
-    return { compilationJobsPerFile, indexedIndividualJobs, cacheHits };
+    return {
+      success: true as const,
+      compilationJobsPerFile,
+      indexedIndividualJobs,
+      cacheHits,
+    };
   }
 
   #getBuildProfile(buildProfileName: string = DEFAULT_BUILD_PROFILE) {

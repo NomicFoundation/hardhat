@@ -37,7 +37,7 @@ async function emitArtifacts(solidity: SolidityBuildSystem): Promise<void> {
   );
 
   assert.ok(
-    !("reason" in compilationJobsResult),
+    compilationJobsResult.success,
     "getCompilationJobs should not error",
   );
 

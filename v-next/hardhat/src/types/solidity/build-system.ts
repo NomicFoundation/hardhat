@@ -220,6 +220,11 @@ export interface CacheHitInfo {
  */
 export interface GetCompilationJobsResult {
   /**
+   * A flag to distinguish between a successful and a failed result.
+   */
+  success: true;
+
+  /**
    * Map from root file path to compilation job for files that need compilation.
    */
   compilationJobsPerFile: Map<string, CompilationJob>;
