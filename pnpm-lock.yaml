@@ -102,8 +102,8 @@ importers:
         specifier: 5.1.0
         version: 5.1.0
       '@types/chai':
-        specifier: ^4.2.0
-        version: 4.3.20
+        specifier: ^5.2.3
+        version: 5.2.3
       '@types/mocha':
         specifier: '>=10.0.10'
         version: 10.0.10
@@ -114,8 +114,8 @@ importers:
         specifier: 1.0.2
         version: 1.0.2
       chai:
-        specifier: ^5.1.2
-        version: 5.3.3
+        specifier: ^6.2.2
+        version: 6.2.2
       ethers:
         specifier: ^6.14.0
         version: 6.15.0
@@ -351,11 +351,11 @@ importers:
         specifier: ^8.0.1
         version: 8.0.2
       chai:
-        specifier: ^5.1.2
-        version: 5.3.3
+        specifier: '>=5.1.2 <7'
+        version: 6.2.2
       chai-as-promised:
         specifier: ^8.0.0
-        version: 8.0.2(chai@5.3.3)
+        version: 8.0.2(chai@6.2.2)
       deep-eql:
         specifier: ^5.0.1
         version: 5.0.2
@@ -376,8 +376,8 @@ importers:
         specifier: workspace:^
         version: link:../hardhat-test-utils
       '@types/chai':
-        specifier: ^4.2.0
-        version: 4.3.20
+        specifier: ^5.2.3
+        version: 5.2.3
       '@types/debug':
         specifier: ^4.1.7
         version: 4.1.12
@@ -455,8 +455,8 @@ importers:
         specifier: workspace:^
         version: link:../hardhat-test-utils
       '@types/chai':
-        specifier: ^4.2.0
-        version: 4.3.20
+        specifier: ^5.2.3
+        version: 5.2.3
       '@types/chai-as-promised':
         specifier: ^8.0.1
         version: 8.0.2
@@ -476,11 +476,11 @@ importers:
         specifier: ^10.0.13
         version: 10.0.20
       chai:
-        specifier: ^5.1.2
-        version: 5.3.3
+        specifier: ^6.2.2
+        version: 6.2.2
       chai-as-promised:
         specifier: ^8.0.0
-        version: 8.0.2(chai@5.3.3)
+        version: 8.0.2(chai@6.2.2)
       cross-env:
         specifier: 7.0.3
         version: 7.0.3
@@ -558,8 +558,8 @@ importers:
         specifier: workspace:^
         version: link:../hardhat-test-utils
       '@types/chai':
-        specifier: ^4.2.0
-        version: 4.3.20
+        specifier: ^5.2.3
+        version: 5.2.3
       '@types/chai-as-promised':
         specifier: ^8.0.1
         version: 8.0.2
@@ -579,11 +579,11 @@ importers:
         specifier: ^22.0.0
         version: 22.18.7
       chai:
-        specifier: ^5.1.2
-        version: 5.3.3
+        specifier: ^6.2.2
+        version: 6.2.2
       chai-as-promised:
         specifier: ^8.0.0
-        version: 8.0.2(chai@5.3.3)
+        version: 8.0.2(chai@6.2.2)
       cross-env:
         specifier: 7.0.3
         version: 7.0.3
@@ -685,8 +685,8 @@ importers:
         specifier: workspace:^3.0.7
         version: link:../hardhat-ignition-core
       '@types/chai':
-        specifier: ^4.2.0
-        version: 4.3.20
+        specifier: ^5.2.3
+        version: 5.2.3
       '@types/chai-as-promised':
         specifier: ^8.0.1
         version: 8.0.2
@@ -706,11 +706,11 @@ importers:
         specifier: ^4.0.0
         version: 4.7.0(vite@5.4.20(@types/node@22.18.7))
       chai:
-        specifier: ^5.1.2
-        version: 5.3.3
+        specifier: ^6.2.2
+        version: 6.2.2
       chai-as-promised:
         specifier: ^8.0.0
-        version: 8.0.2(chai@5.3.3)
+        version: 8.0.2(chai@6.2.2)
       eslint:
         specifier: 9.25.1
         version: 9.25.1
@@ -1246,8 +1246,8 @@ importers:
         specifier: workspace:^3.0.0
         version: link:../hardhat-ignition-core
       '@types/chai':
-        specifier: ^4.2.0
-        version: 4.3.20
+        specifier: ^5.2.3
+        version: 5.2.3
       '@types/node':
         specifier: ^22.0.0
         version: 22.18.7
@@ -1255,8 +1255,8 @@ importers:
         specifier: ^9.1.0
         version: 9.1.0
       chai:
-        specifier: ^5.1.2
-        version: 5.3.3
+        specifier: '>=5.1.2 <7'
+        version: 6.2.2
       eslint:
         specifier: 9.25.1
         version: 9.25.1
@@ -1804,8 +1804,8 @@ importers:
         specifier: workspace:^3.0.2
         version: link:../../../../hardhat-toolbox-mocha-ethers
       '@types/chai':
-        specifier: ^4.2.0
-        version: 4.3.20
+        specifier: ^5.2.3
+        version: 5.2.3
       '@types/chai-as-promised':
         specifier: ^8.0.1
         version: 8.0.2
@@ -1816,8 +1816,8 @@ importers:
         specifier: ^22.8.5
         version: 22.18.7
       chai:
-        specifier: ^5.1.2
-        version: 5.3.3
+        specifier: ^6.2.2
+        version: 6.2.2
       ethers:
         specifier: ^6.14.0
         version: 6.15.0
@@ -3019,8 +3019,8 @@ packages:
   '@types/chai-as-promised@8.0.2':
     resolution: {integrity: sha512-meQ1wDr1K5KRCSvG2lX7n7/5wf70BeptTKst0axGvnN6zqaVpRqegoIbugiAPSqOW9K9aL8gDVrm7a2LXOtn2Q==}
 
-  '@types/chai@4.3.20':
-    resolution: {integrity: sha512-/pC9HAB5I/xMlc5FP77qjCnI16ChlJfW0tGa0IUcFn38VJrTV6DeZ60NU5KZBtaOZqjdpwTWohz5HU1RrhiYxQ==}
+  '@types/chai@5.2.3':
+    resolution: {integrity: sha512-Mw558oeA9fFbv65/y4mHtXDs9bPnFMZAL/jxdPFUpOHHIXX91mcgEHbS5Lahr+pwZFR8A7GQleRWeI6cGFC2UA==}
 
   '@types/d3-scale-chromatic@3.1.0':
     resolution: {integrity: sha512-iWMJgwkK7yTRmWqRB5plb1kadXyQ5Sj8V/zYlFGMUBbIPKQScw+Dku9cAAMgJG+z5GYDoMjWGLVOvjghDEFnKQ==}
@@ -3577,8 +3577,8 @@ packages:
     peerDependencies:
       chai: '>= 2.1.2 < 7'
 
-  chai@5.3.3:
-    resolution: {integrity: sha512-4zNhdJD/iOjSH0A05ea+Ke6MU5mmpQcbQsSOkgdaUMJ9zTlDTD/GYlwohmIE2u0gaxHYiVHEn1Fw9mZ/ktJWgw==}
+  chai@6.2.2:
+    resolution: {integrity: sha512-NUPRluOfOiTKBKvWPtSD4PhFvWCqOi0BGStNWs57X9js7XGTprSmFoz5F0tWhR4WPjNeR9jXqdC7/UpSJTnlRg==}
     engines: {node: '>=18'}
 
   chalk@2.4.2:
@@ -4849,9 +4849,6 @@ packages:
     resolution: {integrity: sha512-lyuxPGr/Wfhrlem2CL/UcnUc1zcqKAImBDzukY7Y5F/yQiNdko6+fRLevlw1HgMySw7f611UIY408EtxRSoK3Q==}
     hasBin: true
 
-  loupe@3.2.1:
-    resolution: {integrity: sha512-CdzqowRJCeLU72bHvWqwRBBlLcMEtIvGrlvef74kMnV2AolS9Y8xUv1I0U/MNAWMhBlKIoyuEgoJ0t/bbwHbLQ==}
-
   lru-cache@10.4.3:
     resolution: {integrity: sha512-JNAzZcXrCt42VGLuYz0zfAzDfAvJWW6AfYlDBQyDV5DClI2m5sAmK+OIO7s59XfsRsWHp02jAJrRadPRGTt6SQ==}
 
@@ -5258,10 +5255,6 @@ packages:
   path-type@4.0.0:
     resolution: {integrity: sha512-gDKb8aZMDeD/tZWs9P6+q0J9Mwkdl6xMV8TjnGP3qJVJ06bdMgkbBlLU8IdfOsIsFz2BW1rNVT3XuNEl8zPAvw==}
     engines: {node: '>=8'}
-
-  pathval@2.0.1:
-    resolution: {integrity: sha512-//nshmD55c46FuFw26xV/xFAaB5HF9Xdap7HJBBnrKdAd6/GxDBaNA1870O79+9ueg61cZLSVc+OaFlfmObYVQ==}
-    engines: {node: '>= 14.16'}
 
   picocolors@1.1.1:
     resolution: {integrity: sha512-xceH2snhtb5M9liqDsmEw56le376mTZkEX/jEb/RxNFyegNul7eNslCXP9FDj/Lcu0X8KEyMceP2ntpaHrDEVA==}
@@ -7402,9 +7395,12 @@ snapshots:
 
   '@types/chai-as-promised@8.0.2':
     dependencies:
-      '@types/chai': 4.3.20
+      '@types/chai': 5.2.3
 
-  '@types/chai@4.3.20': {}
+  '@types/chai@5.2.3':
+    dependencies:
+      '@types/deep-eql': 4.0.2
+      assertion-error: 2.0.1
 
   '@types/d3-scale-chromatic@3.1.0': {}
 
@@ -7974,18 +7970,12 @@ snapshots:
 
   cbor2@1.12.0: {}
 
-  chai-as-promised@8.0.2(chai@5.3.3):
+  chai-as-promised@8.0.2(chai@6.2.2):
     dependencies:
-      chai: 5.3.3
+      chai: 6.2.2
       check-error: 2.1.1
 
-  chai@5.3.3:
-    dependencies:
-      assertion-error: 2.0.1
-      check-error: 2.1.1
-      deep-eql: 5.0.2
-      loupe: 3.2.1
-      pathval: 2.0.1
+  chai@6.2.2: {}
 
   chalk@2.4.2:
     dependencies:
@@ -9386,8 +9376,6 @@ snapshots:
     dependencies:
       js-tokens: 4.0.0
 
-  loupe@3.2.1: {}
-
   lru-cache@10.4.3: {}
 
   lru-cache@11.2.4: {}
@@ -9959,8 +9947,6 @@ snapshots:
   path-to-regexp@6.3.0: {}
 
   path-type@4.0.0: {}
-
-  pathval@2.0.1: {}
 
   picocolors@1.1.1: {}
 

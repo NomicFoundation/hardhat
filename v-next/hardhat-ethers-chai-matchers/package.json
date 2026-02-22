@@ -48,7 +48,7 @@
     "@nomicfoundation/hardhat-mocha": "workspace:^3.0.6",
     "@nomicfoundation/hardhat-node-test-reporter": "workspace:^3.0.0",
     "@nomicfoundation/hardhat-test-utils": "workspace:^",
-    "@types/chai": "^4.2.0",
+    "@types/chai": "^5.2.3",
     "@types/debug": "^4.1.7",
     "@types/deep-eql": "^4.0.2",
     "@types/mocha": ">=10.0.10",
@@ -72,7 +72,7 @@
   "peerDependencies": {
     "hardhat": "workspace:^3.0.0",
     "@nomicfoundation/hardhat-ethers": "workspace:^4.0.0",
-    "chai": "^5.1.2",
+    "chai": ">=5.1.2 <7",
     "ethers": "^6.14.0"
   }
 }
