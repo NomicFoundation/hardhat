@@ -289,11 +289,22 @@ export interface SolidityBuildSystem {
    * @param options The options to use when building the files.
    * @returns An `Map` of the files to their build results, or an error if
    * there was a problem when trying to create the necessary compilation jobs.
+   * @see `isSuccessfulBuildResult` to check if the build result is successful.
    */
   build(
     rootFilePaths: string[],
     options?: BuildOptions,
   ): Promise<CompilationJobCreationError | Map<string, FileBuildResult>>;
+
+  /**
+   * Returns true if the given build result is successful.
+   *
+   * @param buildResult Result of the `build` method.
+   * @returns True if the build result is successful.
+   */
+  isSuccessfulBuildResult(
+    buildResult: CompilationJobCreationError | Map<string, FileBuildResult>,
+  ): buildResult is Map<string, FileBuildResult>;
 
   /**
    * Returns the CompilationJobs that would be used to build the provided files.

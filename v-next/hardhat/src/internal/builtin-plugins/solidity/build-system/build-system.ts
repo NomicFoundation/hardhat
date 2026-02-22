@@ -208,6 +208,12 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
     }
   }
 
+  public isSuccessfulBuildResult(
+    buildResult: CompilationJobCreationError | Map<string, FileBuildResult>,
+  ): buildResult is Map<string, FileBuildResult> {
+    return buildResult instanceof Map;
+  }
+
   public async build(
     rootFilePaths: string[],
     _options?: BuildOptions,

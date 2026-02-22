@@ -60,7 +60,7 @@ contract Foo {}`,
 
     // First build to get original buildId
     const buildResult = await hre.solidity.build([filePath], { quiet: true });
-    assert(!("reason" in buildResult), "Build should succeed");
+    assert(hre.solidity.isSuccessfulBuildResult(buildResult), "Build should succeed");
     const fileBuildResult = buildResult.get(filePath);
     assert.equal(fileBuildResult?.type, FileBuildResultType.BUILD_SUCCESS);
     const originalBuildId = await fileBuildResult.compilationJob.getBuildId();
