@@ -268,7 +268,7 @@ jobs:
         run: pnpm run --if-present test
 
   ci-aggregate:
-    needs: [ci, hardhat-node-test-reporter]
+    needs: [ci, hardhat-node-test-reporter, hardhat-ethers-chai-v5-matchers]
 
     if: ${{ !cancelled() }}
 
@@ -310,6 +310,40 @@ jobs:
           node-version: ${{ matrix.node }}
       - name: Install dependencies
         run: pnpm install --frozen-lockfile --prefer-offline
+      - name: Build
+        run: pnpm run --if-present build
+      - name: Run tests
+        env:
+          __DO_NOT_USE_IS_HARDHAT_CI: true
+        run: pnpm run --if-present test
+
+  ## We run this extra job to make sure that the hardhat-ethers-chai-matchers plugin can still
+  ## work with chai v5.
+  hardhat-ethers-chai-v5-matchers:
+    needs: list-packages
+
+    if: contains(fromJson(needs.list-packages.outputs.packages), 'hardhat-ethers-chai-matchers')
+
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, ubuntu-24.04-arm, macos-latest, windows-latest]
+        node: [22.0.0, 24.0.0]
+
+    name: "[hardhat-ethers-chai-v5-matchers] ci on ${{ matrix.os }} (Node ${{ matrix.node }})"
+    runs-on: ${{ matrix.os }}
+    defaults:
+      run:
+        working-directory: v-next/hardhat-ethers-chai-matchers
+    steps:
+      - uses: actions/checkout@v5
+      - uses: ./.github/actions/setup-env
+        with:
+          node-version: ${{ matrix.node }}
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile --prefer-offline
+      - name: Install chai v5
+        run: pnpm add --save-dev "chai@^5.1.2" "@types/chai@^4.2.0"
       - name: Build
         run: pnpm run --if-present build
       - name: Run tests
