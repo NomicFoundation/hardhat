@@ -42,13 +42,17 @@ export async function extendUserConfig(
   const defaultConfig: NetworkUserConfig | undefined = networks.default;
 
   let extendedLocalhostConfig: NetworkUserConfig;
-  if (localhostConfig === undefined || localhostConfig.type === "http") {
+  if (
+    localhostConfig === undefined ||
+    localhostConfig.type === undefined ||
+    localhostConfig.type === "http"
+  ) {
     extendedLocalhostConfig = {
       url: "http://localhost:8545",
       type: "http",
       /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions
-        -- We cast it here because otherwise TS complains that url and http will
-        be always overwritten, which is not true for js incomplete configs. */
+        -- We cast it here because otherwise TS complains that some fields are
+        always overwritten, which is not true for js incomplete configs. */
       ...(localhostConfig as Partial<HttpNetworkUserConfig>),
     };
   } else {
@@ -56,7 +60,11 @@ export async function extendUserConfig(
   }
 
   let extendedDefaultConfig: NetworkUserConfig;
-  if (defaultConfig === undefined || defaultConfig.type === "edr-simulated") {
+  if (
+    defaultConfig === undefined ||
+    defaultConfig.type === undefined ||
+    defaultConfig.type === "edr-simulated"
+  ) {
     extendedDefaultConfig = {
       chainId: 31337,
       gas: "auto",
@@ -64,8 +72,8 @@ export async function extendUserConfig(
       gasPrice: "auto",
       type: "edr-simulated",
       /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions
-        -- We cast it here because otherwise TS complains that url and http will
-        be always overwritten, which is not true for js incomplete configs. */
+        -- We cast it here because otherwise TS complains that some fields are
+        always overwritten, which is not true for js incomplete configs. */
       ...(defaultConfig as Partial<EdrNetworkUserConfig>),
     };
   } else {

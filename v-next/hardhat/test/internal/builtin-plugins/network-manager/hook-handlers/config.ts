@@ -41,6 +41,43 @@ describe("network-manager/hook-handlers/config", () => {
       });
     });
 
+    it("should extend the localhost network when its type is undefined", async () => {
+      const config = {
+        networks: {
+          localhost: {},
+        },
+      };
+      const next = async (nextConfig: HardhatUserConfig) => nextConfig;
+
+      /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions
+      -- testing incomplete config for js users */
+      const extendedConfig = await extendUserConfig(config as any, next);
+      assert.deepEqual(extendedConfig.networks?.localhost, {
+        type: "http",
+        url: "http://localhost:8545",
+      });
+    });
+
+    it("should extend the default network when its type is undefined", async () => {
+      const config = {
+        networks: {
+          default: {},
+        },
+      };
+      const next = async (nextConfig: HardhatUserConfig) => nextConfig;
+
+      /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions
+      -- testing incomplete config for js users */
+      const extendedConfig = await extendUserConfig(config as any, next);
+      assert.deepEqual(extendedConfig.networks?.default, {
+        chainId: 31337,
+        gas: "auto",
+        gasMultiplier: 1,
+        gasPrice: "auto",
+        type: "edr-simulated",
+      });
+    });
+
     it("should allow setting other properties of the localhost network", async () => {
       const config: HardhatUserConfig = {
         networks: {
@@ -1396,10 +1433,11 @@ describe("network-manager/hook-handlers/config", () => {
         "blockGasLimit" in localhost && localhost.blockGasLimit,
         60_000_000n,
       );
-      assert.deepEqual(
-        "mining" in localhost && localhost.mining,
-        { auto: true, interval: 0, mempool: { order: "priority" } },
-      );
+      assert.deepEqual("mining" in localhost && localhost.mining, {
+        auto: true,
+        interval: 0,
+        mempool: { order: "priority" },
+      });
       assert.equal(
         "throwOnCallFailures" in localhost && localhost.throwOnCallFailures,
         true,
@@ -1413,14 +1451,8 @@ describe("network-manager/hook-handlers/config", () => {
         "loggingEnabled" in localhost && localhost.loggingEnabled,
         false,
       );
-      assert.equal(
-        "minGasPrice" in localhost && localhost.minGasPrice,
-        0n,
-      );
-      assert.equal(
-        "networkId" in localhost && localhost.networkId,
-        31337,
-      );
+      assert.equal("minGasPrice" in localhost && localhost.minGasPrice, 0n);
+      assert.equal("networkId" in localhost && localhost.networkId, 31337);
       assert.equal(
         "forking" in localhost ? localhost.forking : undefined,
         undefined,
