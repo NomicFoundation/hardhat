@@ -58,7 +58,10 @@ contract ERC20 {}`,
         quiet: true,
       });
 
-      assert(hre.solidity.isSuccessfulBuildResult(secondResult), "Second build should be successful");
+      assert(
+        hre.solidity.isSuccessfulBuildResult(secondResult),
+        "Second build should be successful",
+      );
       assert.equal(secondResult.size, 1, "Should have one result");
       const secondBuildResult = secondResult.get(npmRootPath);
       assert.equal(
@@ -98,7 +101,10 @@ contract ERC20 {}`,
       const firstResult = await hre.solidity.build([npmRootPath], {
         quiet: true,
       });
-      assert(hre.solidity.isSuccessfulBuildResult(firstResult), "First build should be successful");
+      assert(
+        hre.solidity.isSuccessfulBuildResult(firstResult),
+        "First build should be successful",
+      );
       const firstBuildResult = firstResult.get(npmRootPath);
       assert.equal(firstBuildResult?.type, FileBuildResultType.BUILD_SUCCESS);
       const originalBuildId =
@@ -109,7 +115,10 @@ contract ERC20 {}`,
         quiet: true,
       });
 
-      assert(hre.solidity.isSuccessfulBuildResult(secondResult), "Second build should be successful");
+      assert(
+        hre.solidity.isSuccessfulBuildResult(secondResult),
+        "Second build should be successful",
+      );
       const secondBuildResult = secondResult.get(npmRootPath);
       assert.equal(secondBuildResult?.type, FileBuildResultType.CACHE_HIT);
       assert.equal(
@@ -155,7 +164,10 @@ contract ERC20 {}`,
         quiet: true,
       });
 
-      assert(hre.solidity.isSuccessfulBuildResult(firstResult), "First build should be successful");
+      assert(
+        hre.solidity.isSuccessfulBuildResult(firstResult),
+        "First build should be successful",
+      );
       assert.equal(firstResult.size, 2, "Should have two results");
 
       // Modify only local file
@@ -171,7 +183,10 @@ contract Foo { uint256 public value; }`,
         quiet: true,
       });
 
-      assert(hre.solidity.isSuccessfulBuildResult(secondResult), "Second build should be successful");
+      assert(
+        hre.solidity.isSuccessfulBuildResult(secondResult),
+        "Second build should be successful",
+      );
       assert.equal(secondResult.size, 2, "Should have two results");
 
       // Local file was modified - BUILD_SUCCESS
@@ -274,7 +289,10 @@ contract ERC20 {}`,
       const buildResult = await hre.solidity.build([npmRootPath], {
         quiet: true,
       });
-      assert(hre.solidity.isSuccessfulBuildResult(buildResult), "Build should succeed");
+      assert(
+        hre.solidity.isSuccessfulBuildResult(buildResult),
+        "Build should succeed",
+      );
       const fileBuildResult = buildResult.get(npmRootPath);
       assert.equal(fileBuildResult?.type, FileBuildResultType.BUILD_SUCCESS);
       const originalBuildId = await fileBuildResult.compilationJob.getBuildId();
