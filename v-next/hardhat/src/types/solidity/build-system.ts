@@ -84,10 +84,40 @@ export interface CompileBuildInfoOptions {
 }
 
 export enum CompilationJobCreationErrorReason {
-  NO_COMPATIBLE_SOLC_VERSION_FOUND = "NO_COMPATIBLE_SOLC_VERSION_FOUND",
+  /**
+   * The root file's own pragmas are incompatible with all configured compilers.
+   */
   NO_COMPATIBLE_SOLC_VERSION_WITH_ROOT = "NO_COMPATIBLE_SOLC_VERSION_WITH_ROOT",
-  INCOMPATIBLE_OVERRIDDEN_SOLC_VERSION = "INCOMPATIBLE_OVERRIDDEN_SOLC_VERSION",
+
+  /**
+   * A dependency's own pragmas are incompatible with all configured compilers.
+   */
+  NO_COMPATIBLE_SOLC_VERSION_WITH_DEPENDENCY = "NO_COMPATIBLE_SOLC_VERSION_WITH_DEPENDENCY",
+
+  /**
+   * Root and a transitive import path have contradictory pragmas (invalid range / empty intersection).
+   */
   IMPORT_OF_INCOMPATIBLE_FILE = "IMPORT_OF_INCOMPATIBLE_FILE",
+
+  /**
+   * Root and a transitive import path have a valid range but no configured compiler satisfies it.
+   */
+  NO_COMPATIBLE_SOLC_VERSION_FOR_TRANSITIVE_IMPORT_PATH = "NO_COMPATIBLE_SOLC_VERSION_FOR_TRANSITIVE_IMPORT_PATH",
+
+  /**
+   * The override version doesn't satisfy the root file's own pragmas.
+   */
+  INCOMPATIBLE_OVERRIDDEN_SOLC_VERSION = "INCOMPATIBLE_OVERRIDDEN_SOLC_VERSION",
+
+  /**
+   * A dependency's pragmas are incompatible with the override version.
+   */
+  OVERRIDDEN_SOLC_VERSION_INCOMPATIBLE_WITH_DEPENDENCY = "OVERRIDDEN_SOLC_VERSION_INCOMPATIBLE_WITH_DEPENDENCY",
+
+  /**
+   * Generic fallback — no single compiler works for root + all dependencies.
+   */
+  NO_COMPATIBLE_SOLC_VERSION_FOUND = "NO_COMPATIBLE_SOLC_VERSION_FOUND",
 }
 
 export interface BaseCompilationJobCreationError {
@@ -96,39 +126,53 @@ export interface BaseCompilationJobCreationError {
   formattedReason: string;
 }
 
-export interface CompilationJobCreationErrorNoCompatibleSolcVersionFound
+export interface CompilationJobCreationErrorNoCompatibleSolcVersionWithRoot
   extends BaseCompilationJobCreationError {
   reason: CompilationJobCreationErrorReason.NO_COMPATIBLE_SOLC_VERSION_WITH_ROOT;
 }
 
-export interface CompilationJobCreationErrorIncompatibleOverriddenSolcVersion
+export interface CompilationJobCreationErrorNoCompatibleSolcVersionWithDependency
   extends BaseCompilationJobCreationError {
-  reason: CompilationJobCreationErrorReason.INCOMPATIBLE_OVERRIDDEN_SOLC_VERSION;
-}
-
-export interface CompilationJobCreationErrorIncompatibleOverriddenSolcVersion
-  extends BaseCompilationJobCreationError {
-  reason: CompilationJobCreationErrorReason.INCOMPATIBLE_OVERRIDDEN_SOLC_VERSION;
-}
-
-export interface CompilationJobCreationErrorIportOfIncompatibleFile
-  extends BaseCompilationJobCreationError {
-  reason: CompilationJobCreationErrorReason.IMPORT_OF_INCOMPATIBLE_FILE;
-  // The path of absolute files imported, starting from the root, that take you
-  // to the first file with an incompatible version pragma.
+  reason: CompilationJobCreationErrorReason.NO_COMPATIBLE_SOLC_VERSION_WITH_DEPENDENCY;
   incompatibleImportPath: string[];
 }
 
-export interface NoCompatibleSolcVersionFound
+export interface CompilationJobCreationErrorImportOfIncompatibleFile
+  extends BaseCompilationJobCreationError {
+  reason: CompilationJobCreationErrorReason.IMPORT_OF_INCOMPATIBLE_FILE;
+  incompatibleImportPath: string[];
+}
+
+export interface CompilationJobCreationErrorNoCompatibleSolcVersionForTransitiveImportPath
+  extends BaseCompilationJobCreationError {
+  reason: CompilationJobCreationErrorReason.NO_COMPATIBLE_SOLC_VERSION_FOR_TRANSITIVE_IMPORT_PATH;
+  incompatibleImportPath: string[];
+}
+
+export interface CompilationJobCreationErrorIncompatibleOverriddenSolcVersion
+  extends BaseCompilationJobCreationError {
+  reason: CompilationJobCreationErrorReason.INCOMPATIBLE_OVERRIDDEN_SOLC_VERSION;
+}
+
+export interface CompilationJobCreationErrorOverriddenSolcVersionIncompatibleWithDependency
+  extends BaseCompilationJobCreationError {
+  reason: CompilationJobCreationErrorReason.OVERRIDDEN_SOLC_VERSION_INCOMPATIBLE_WITH_DEPENDENCY;
+  incompatibleImportPath: string[];
+}
+
+export interface CompilationJobCreationErrorNoCompatibleSolcVersionFound
   extends BaseCompilationJobCreationError {
   reason: CompilationJobCreationErrorReason.NO_COMPATIBLE_SOLC_VERSION_FOUND;
 }
 
 export type CompilationJobCreationError =
-  | CompilationJobCreationErrorNoCompatibleSolcVersionFound
-  | CompilationJobCreationErrorIportOfIncompatibleFile
+  | CompilationJobCreationErrorNoCompatibleSolcVersionWithRoot
+  | CompilationJobCreationErrorNoCompatibleSolcVersionWithDependency
+  | CompilationJobCreationErrorImportOfIncompatibleFile
+  | CompilationJobCreationErrorNoCompatibleSolcVersionForTransitiveImportPath
   | CompilationJobCreationErrorIncompatibleOverriddenSolcVersion
-  | NoCompatibleSolcVersionFound;
+  | CompilationJobCreationErrorOverriddenSolcVersionIncompatibleWithDependency
+  | CompilationJobCreationErrorNoCompatibleSolcVersionFound;
 
 /**
  * The restult of building a file.

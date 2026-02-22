@@ -30,7 +30,6 @@ export class SolcConfigSelector {
   constructor(
     buildProfileName: string,
     buildProfile: SolidityBuildProfileConfig,
-    _dependencyGraph: DependencyGraph,
   ) {
     this.#buildProfileName = buildProfileName;
     this.#buildProfile = buildProfile;
@@ -103,6 +102,18 @@ export class SolcConfigSelector {
     return matchingConfig;
   }
 
+  /**
+   * Returns a description of why we couldn't get a compiler configuration for
+   * the given root file and dependency subgraph.
+   *
+   * @param root The root file that created the single-root dependency subgraph
+   * @param dependencyGraph The dependency subgraph we couldn't get a compiler
+   *   configuration for
+   * @param compilerVersions The compiler versions that are configured for the
+   *   selected build profile. For overridden roots, it's a single one.
+   * @param overridden True if the root has an overriden config.
+   * @returns The error why we couldn't get a compiler configuration.
+   */
   #getCompilationJobCreationError(
     root: ResolvedFile,
     dependencyGraph: DependencyGraph,
@@ -110,27 +121,67 @@ export class SolcConfigSelector {
     overridden: boolean,
   ): CompilationJobCreationError {
     const rootVersionRange = root.content.versionPragmas.join(" ");
-    if (maxSatisfying(compilerVersions, rootVersionRange) === null) {
-      let reason: CompilationJobCreationErrorReason;
-      let formattedReason: string;
-      if (overridden) {
-        reason =
-          CompilationJobCreationErrorReason.INCOMPATIBLE_OVERRIDDEN_SOLC_VERSION;
-        formattedReason = `An override with incompatible solc version was found for this file.`;
-      } else {
-        reason =
-          CompilationJobCreationErrorReason.NO_COMPATIBLE_SOLC_VERSION_WITH_ROOT;
-        formattedReason = `No solc version enabled in this profile is compatible with this file.`;
+
+    // This logic is pretty different depending if we are dealing with a config
+    // override or not. If we are, we have a single compiler option, so things
+    // are simpler.
+
+    if (overridden) {
+      // The root may not be compatible with the override version
+      if (maxSatisfying(compilerVersions, rootVersionRange) === null) {
+        return {
+          reason:
+            CompilationJobCreationErrorReason.INCOMPATIBLE_OVERRIDDEN_SOLC_VERSION,
+          rootFilePath: root.fsPath,
+          buildProfile: this.#buildProfileName,
+          formattedReason: `An override with incompatible solc version was found for this file.`,
+        };
       }
 
+      // A transitive dependency can have a pragma that's incompatible with
+      // the overriden version.
+      for (const transitiveDependency of this.#getTransitiveDependencies(
+        root,
+        dependencyGraph,
+      )) {
+        const depOwnRange =
+          transitiveDependency.dependency.content.versionPragmas.join(" ");
+
+        if (maxSatisfying(compilerVersions, depOwnRange) === null) {
+          return {
+            reason:
+              CompilationJobCreationErrorReason.OVERRIDDEN_SOLC_VERSION_INCOMPATIBLE_WITH_DEPENDENCY,
+            rootFilePath: root.fsPath,
+            buildProfile: this.#buildProfileName,
+            incompatibleImportPath: transitiveDependency.fsPath,
+            formattedReason: `The compiler version override is incompatible with a dependency of this file:\n  * ${shortenPath(root.fsPath)}\n  * ${transitiveDependency.fsPath.map((s) => shortenPath(s)).join("\n  * ")}`,
+          };
+        }
+      }
+
+      // There's no other case. If the root and all the dependencies are
+      // compatible, and we still can choose a version, we have a bug.
+      /* c8 ignore next 5 */
+      assertHardhatInvariant(
+        false,
+        "Trying to get the error for an overriden solidity file that has no compatible config, but failed to detect it, as the root and all the dependencies are compatible with the overriden compiler config.",
+      );
+    }
+
+    // Non-overriden case: we first check if the root is compatible with any
+    // configured compiler
+    if (maxSatisfying(compilerVersions, rootVersionRange) === null) {
       return {
-        reason,
+        reason:
+          CompilationJobCreationErrorReason.NO_COMPATIBLE_SOLC_VERSION_WITH_ROOT,
         rootFilePath: root.fsPath,
         buildProfile: this.#buildProfileName,
-        formattedReason,
+        formattedReason: `No solc version enabled in this profile is compatible with this file.`,
       };
     }
 
+    // We check all the transitive dependencies of the root to try to return
+    // the most specific error that we can.
     for (const transitiveDependency of this.#getTransitiveDependencies(
       root,
       dependencyGraph,
@@ -140,20 +191,54 @@ export class SolcConfigSelector {
           .map((pragmas) => pragmas.join(" "))
           .join(" ");
 
+      const depOwnRange =
+        transitiveDependency.dependency.content.versionPragmas.join(" ");
+
+      // A transitive dependency can have a pragma that's incompatible with
+      // all the configured compilers
+      if (maxSatisfying(compilerVersions, depOwnRange) === null) {
+        return {
+          reason:
+            CompilationJobCreationErrorReason.NO_COMPATIBLE_SOLC_VERSION_WITH_DEPENDENCY,
+          rootFilePath: root.fsPath,
+          buildProfile: this.#buildProfileName,
+          incompatibleImportPath: transitiveDependency.fsPath,
+          formattedReason: `No solc version enabled in this profile is compatible with a dependency of this file:\n  * ${shortenPath(root.fsPath)}\n  * ${transitiveDependency.fsPath.map((s) => shortenPath(s)).join("\n  * ")}`,
+        };
+      }
+
+      // The root and the version ranges to get to this transittive dependency
+      // may be contradictory, so no version ever can satisfy them.
       if (!intersects(rootVersionRange, transitiveDependencyVersionRange)) {
         return {
           reason: CompilationJobCreationErrorReason.IMPORT_OF_INCOMPATIBLE_FILE,
           rootFilePath: root.fsPath,
           buildProfile: this.#buildProfileName,
           incompatibleImportPath: transitiveDependency.fsPath,
-          formattedReason: `Following these imports leads to an incompatible solc version pragma that no version can satisfy:
-  * ${shortenPath(root.fsPath)}
-  * ${transitiveDependency.fsPath.map((s) => shortenPath(s)).join("\n  * ")}
-`,
+          formattedReason: `Following these imports leads to an incompatible solc version pragma that no version can satisfy:\n  * ${shortenPath(root.fsPath)}\n  * ${transitiveDependency.fsPath.map((s) => shortenPath(s)).join("\n  * ")}`,
+        };
+      }
+
+      // The root and the version ranges to get to this transittive dependency
+      // may not be compatible with any configured compiler.
+      const combinedRange = `${rootVersionRange} ${transitiveDependencyVersionRange}`;
+      if (maxSatisfying(compilerVersions, combinedRange) === null) {
+        return {
+          reason:
+            CompilationJobCreationErrorReason.NO_COMPATIBLE_SOLC_VERSION_FOR_TRANSITIVE_IMPORT_PATH,
+          rootFilePath: root.fsPath,
+          buildProfile: this.#buildProfileName,
+          incompatibleImportPath: transitiveDependency.fsPath,
+          formattedReason: `No solc version enabled in this profile is compatible with this file and this import path:\n  * ${shortenPath(root.fsPath)}\n  * ${transitiveDependency.fsPath.map((s) => shortenPath(s)).join("\n  * ")}`,
         };
       }
     }
 
+    // This is a generic case that can happen when the incompatibilities exists
+    // but we can't detect them with the above algorithm. For example, if a
+    // root imports two compatible dependencies that are incompatible with each
+    // other. We could try and improve this error message, but it's
+    // computationally expensive and hard to express to the users.
     return {
       reason:
         CompilationJobCreationErrorReason.NO_COMPATIBLE_SOLC_VERSION_FOUND,
@@ -163,6 +248,11 @@ export class SolcConfigSelector {
     };
   }
 
+  /**
+   * Returns a generator of all the transitive dependencies of a root. Each
+   * of them has the fsPath from the root file, including the path of version
+   * pragmas. The paths don't include the root itself.
+   */
   *#getTransitiveDependencies(
     root: ResolvedFile,
     dependencyGraph: DependencyGraph,
@@ -179,7 +269,7 @@ export class SolcConfigSelector {
         continue;
       }
 
-      visited.add(file);
+      visited = new Set([...visited, file]);
 
       yield {
         fsPath: [file.fsPath],

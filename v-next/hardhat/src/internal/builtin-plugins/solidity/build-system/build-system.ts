@@ -430,7 +430,6 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
     const solcConfigSelector = new SolcConfigSelector(
       buildProfileName,
       buildProfile,
-      dependencyGraph,
     );
 
     let subgraphsWithConfig: Array<
