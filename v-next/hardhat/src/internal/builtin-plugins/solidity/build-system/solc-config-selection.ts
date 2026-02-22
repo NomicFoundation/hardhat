@@ -111,7 +111,7 @@ export class SolcConfigSelector {
    *   configuration for
    * @param compilerVersions The compiler versions that are configured for the
    *   selected build profile. For overridden roots, it's a single one.
-   * @param overridden True if the root has an overriden config.
+   * @param overridden True if the root has an overridden config.
    * @returns The error why we couldn't get a compiler configuration.
    */
   #getCompilationJobCreationError(
@@ -140,7 +140,7 @@ export class SolcConfigSelector {
       }
 
       // A transitive dependency can have a pragma that's incompatible with
-      // the overriden version.
+      // the overridden version.
       for (const transitiveDependency of this.#getTransitiveDependencies(
         root,
         dependencyGraph,
@@ -166,11 +166,11 @@ export class SolcConfigSelector {
       /* c8 ignore next 5 */
       assertHardhatInvariant(
         false,
-        "Trying to get the error for an overriden solidity file that has no compatible config, but failed to detect it, as the root and all the dependencies are compatible with the overriden compiler config.",
+        "Trying to get the error for an overridden solidity file that has no compatible config, but failed to detect it, as the root and all the dependencies are compatible with the overridden compiler config.",
       );
     }
 
-    // Non-overriden case: we first check if the root is compatible with any
+    // Non-overridden case: we first check if the root is compatible with any
     // configured compiler
     if (maxSatisfying(compilerVersions, rootVersionRange) === null) {
       return {
