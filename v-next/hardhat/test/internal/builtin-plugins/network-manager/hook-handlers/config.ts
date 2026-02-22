@@ -150,6 +150,65 @@ describe("network-manager/hook-handlers/config", () => {
         "http://localhost:8545",
       );
     });
+
+    it("should extend the user config with the node network", async () => {
+      const config: HardhatUserConfig = {};
+      const next = async (nextConfig: HardhatUserConfig) => nextConfig;
+
+      const extendedConfig = await extendUserConfig(config, next);
+      assert.ok(
+        extendedConfig.networks?.node !== undefined,
+        "node network should be defined",
+      );
+      assert.deepEqual(extendedConfig.networks?.node, {
+        chainId: 31337,
+        gas: "auto",
+        gasMultiplier: 1,
+        gasPrice: "auto",
+        type: "edr-simulated",
+      });
+    });
+
+    it("should allow setting other properties of the node network", async () => {
+      const config: HardhatUserConfig = {
+        networks: {
+          node: {
+            type: "edr-simulated",
+            chainId: 5555,
+          },
+        },
+      };
+      const next = async (nextConfig: HardhatUserConfig) => nextConfig;
+
+      const extendedConfig = await extendUserConfig(config, next);
+      assert.deepEqual(extendedConfig.networks?.node, {
+        chainId: 5555,
+        gas: "auto",
+        gasMultiplier: 1,
+        gasPrice: "auto",
+        type: "edr-simulated",
+      });
+    });
+
+    it("should extend the node network when its type is undefined", async () => {
+      const config = {
+        networks: {
+          node: {},
+        },
+      };
+      const next = async (nextConfig: HardhatUserConfig) => nextConfig;
+
+      /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions
+      -- testing incomplete config for js users */
+      const extendedConfig = await extendUserConfig(config as any, next);
+      assert.deepEqual(extendedConfig.networks?.node, {
+        chainId: 31337,
+        gas: "auto",
+        gasMultiplier: 1,
+        gasPrice: "auto",
+        type: "edr-simulated",
+      });
+    });
   });
 
   describe("validateUserConfig", () => {
@@ -209,6 +268,28 @@ describe("network-manager/hook-handlers/config", () => {
         {
           path: ["networks"],
           message: "Expected object, received number",
+        },
+      ]);
+    });
+
+    it("should throw if the node network type is not edr-simulated", async () => {
+      const config = {
+        networks: {
+          node: {
+            type: "http",
+            url: "http://localhost:8545",
+          },
+        },
+      };
+
+      /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions
+      -- testing invalid network type for js users */
+      const validationErrors = await validateNetworkUserConfig(config as any);
+
+      assertValidationErrors(validationErrors, [
+        {
+          path: ["networks", "node", "type"],
+          message: "The node network type must be 'edr-simulated'",
         },
       ]);
     });

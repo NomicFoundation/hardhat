@@ -344,6 +344,15 @@ function refineEdrNetworkUserConfig(
   { defaultChainType = GENERIC_CHAIN_TYPE, networks = {} }: HardhatUserConfig,
   ctx: RefinementCtx,
 ): void {
+  const nodeNetwork = networks.node;
+  if (nodeNetwork !== undefined && nodeNetwork.type !== "edr-simulated") {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      path: ["networks", "node", "type"],
+      message: "The node network type must be 'edr-simulated'",
+    });
+  }
+
   for (const [networkName, network] of Object.entries(networks)) {
     if (network.type === "edr-simulated") {
       const { chainType, hardfork, minGasPrice, initialBaseFeePerGas } =
