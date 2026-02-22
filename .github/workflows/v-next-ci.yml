@@ -343,7 +343,9 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile --prefer-offline
       - name: Install chai v5
-        run: pnpm add --save-dev "chai@^5.1.2" "@types/chai@^4.2.0"
+        run: |
+          pnpm add --save-dev "chai@^5.1.2" "@types/chai@^4.2.0"
+          pnpm ls
       - name: Build
         run: pnpm run --if-present build
       - name: Run tests
