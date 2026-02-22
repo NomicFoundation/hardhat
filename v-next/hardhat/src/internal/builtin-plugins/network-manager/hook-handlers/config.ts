@@ -38,33 +38,46 @@ export async function extendUserConfig(
   const networks: Record<string, NetworkUserConfig> =
     extendedConfig.networks ?? {};
 
-  const localhostConfig: Omit<HttpNetworkUserConfig, "url"> = {
-    // eslint-disable-next-line @typescript-eslint/consistent-type-assertions -- This is always http
-    ...(networks.localhost as HttpNetworkUserConfig),
-  };
+  const localhostConfig: NetworkUserConfig | undefined = networks.localhost;
+  const defaultConfig: NetworkUserConfig | undefined = networks.default;
 
-  const defaultConfig: Partial<EdrNetworkUserConfig> = {
-    // eslint-disable-next-line @typescript-eslint/consistent-type-assertions -- This is always edr
-    ...(networks.default as EdrNetworkUserConfig),
-  };
+  let extendedLocalhostConfig: NetworkUserConfig;
+  if (localhostConfig === undefined || localhostConfig.type === "http") {
+    extendedLocalhostConfig = {
+      url: "http://localhost:8545",
+      type: "http",
+      /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions
+        -- We cast it here because otherwise TS complains that url and http will
+        be always overwritten, which is not true for js incomplete configs. */
+      ...(localhostConfig as Partial<HttpNetworkUserConfig>),
+    };
+  } else {
+    extendedLocalhostConfig = localhostConfig;
+  }
+
+  let extendedDefaultConfig: NetworkUserConfig;
+  if (defaultConfig === undefined || defaultConfig.type === "edr-simulated") {
+    extendedDefaultConfig = {
+      chainId: 31337,
+      gas: "auto",
+      gasMultiplier: 1,
+      gasPrice: "auto",
+      type: "edr-simulated",
+      /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions
+        -- We cast it here because otherwise TS complains that url and http will
+        be always overwritten, which is not true for js incomplete configs. */
+      ...(defaultConfig as Partial<EdrNetworkUserConfig>),
+    };
+  } else {
+    extendedDefaultConfig = defaultConfig;
+  }
 
   return {
     ...extendedConfig,
     networks: {
       ...networks,
-      localhost: {
-        url: "http://localhost:8545",
-        ...localhostConfig,
-        type: "http",
-      },
-      [DEFAULT_NETWORK_NAME]: {
-        chainId: 31337,
-        gas: "auto",
-        gasMultiplier: 1,
-        gasPrice: "auto",
-        type: "edr-simulated",
-        ...defaultConfig,
-      },
+      localhost: extendedLocalhostConfig,
+      [DEFAULT_NETWORK_NAME]: extendedDefaultConfig,
     },
   };
 }
