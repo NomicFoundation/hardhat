@@ -121,6 +121,7 @@ export enum CompilationJobCreationErrorReason {
 }
 
 export interface BaseCompilationJobCreationError {
+  success: false;
   buildProfile: string;
   rootFilePath: string;
   formattedReason: string;

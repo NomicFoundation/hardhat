@@ -45,7 +45,7 @@ export class SolcConfigSelector {
    */
   public selectBestSolcConfigForSingleRootGraph(
     subgraph: DependencyGraph,
-  ): SolcConfig | CompilationJobCreationError {
+  ): { success: true; config: SolcConfig } | CompilationJobCreationError {
     const roots = subgraph.getRoots();
 
     assertHardhatInvariant(
@@ -74,7 +74,7 @@ export class SolcConfigSelector {
         );
       }
 
-      return overriddenCompiler;
+      return { success: true, config: overriddenCompiler };
     }
 
     // if there's no override, we find a compiler that matches the version range
@@ -99,7 +99,7 @@ export class SolcConfigSelector {
       `Matching config not found for version '${matchingVersion.toString()}'`,
     );
 
-    return matchingConfig;
+    return { success: true, config: matchingConfig };
   }
 
   /**
@@ -130,6 +130,7 @@ export class SolcConfigSelector {
       // The root may not be compatible with the override version
       if (maxSatisfying(compilerVersions, rootVersionRange) === null) {
         return {
+          success: false,
           reason:
             CompilationJobCreationErrorReason.INCOMPATIBLE_OVERRIDDEN_SOLC_VERSION,
           rootFilePath: root.fsPath,
@@ -149,6 +150,7 @@ export class SolcConfigSelector {
 
         if (maxSatisfying(compilerVersions, depOwnRange) === null) {
           return {
+            success: false,
             reason:
               CompilationJobCreationErrorReason.OVERRIDDEN_SOLC_VERSION_INCOMPATIBLE_WITH_DEPENDENCY,
             rootFilePath: root.fsPath,
@@ -172,6 +174,7 @@ export class SolcConfigSelector {
     // configured compiler
     if (maxSatisfying(compilerVersions, rootVersionRange) === null) {
       return {
+        success: false,
         reason:
           CompilationJobCreationErrorReason.NO_COMPATIBLE_SOLC_VERSION_WITH_ROOT,
         rootFilePath: root.fsPath,
@@ -198,6 +201,7 @@ export class SolcConfigSelector {
       // all the configured compilers
       if (maxSatisfying(compilerVersions, depOwnRange) === null) {
         return {
+          success: false,
           reason:
             CompilationJobCreationErrorReason.NO_COMPATIBLE_SOLC_VERSION_WITH_DEPENDENCY,
           rootFilePath: root.fsPath,
@@ -211,6 +215,7 @@ export class SolcConfigSelector {
       // may be contradictory, so no version ever can satisfy them.
       if (!intersects(rootVersionRange, transitiveDependencyVersionRange)) {
         return {
+          success: false,
           reason: CompilationJobCreationErrorReason.IMPORT_OF_INCOMPATIBLE_FILE,
           rootFilePath: root.fsPath,
           buildProfile: this.#buildProfileName,
@@ -224,6 +229,7 @@ export class SolcConfigSelector {
       const combinedRange = `${rootVersionRange} ${transitiveDependencyVersionRange}`;
       if (maxSatisfying(compilerVersions, combinedRange) === null) {
         return {
+          success: false,
           reason:
             CompilationJobCreationErrorReason.NO_COMPATIBLE_SOLC_VERSION_FOR_TRANSITIVE_IMPORT_PATH,
           rootFilePath: root.fsPath,
@@ -240,6 +246,7 @@ export class SolcConfigSelector {
     // other. We could try and improve this error message, but it's
     // computationally expensive and hard to express to the users.
     return {
+      success: false,
       reason:
         CompilationJobCreationErrorReason.NO_COMPATIBLE_SOLC_VERSION_FOUND,
       rootFilePath: root.fsPath,

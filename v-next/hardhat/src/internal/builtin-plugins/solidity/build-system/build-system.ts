@@ -445,11 +445,11 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
       const configOrError =
         solcConfigSelector.selectBestSolcConfigForSingleRootGraph(subgraph);
 
-      if ("reason" in configOrError) {
+      if (!configOrError.success) {
         return configOrError;
       }
 
-      subgraphsWithConfig.push([configOrError, subgraph]);
+      subgraphsWithConfig.push([configOrError.config, subgraph]);
     }
 
     // get longVersion and isWasm from the compiler for each version

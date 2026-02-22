@@ -110,7 +110,10 @@ describe("SolcConfigSelector", () => {
         const config =
           selector.selectBestSolcConfigForSingleRootGraph(dependencyGraph);
 
-        assert.deepEqual(config, buildProfile.overrides[root.inputSourceName]);
+        assert.deepEqual(config, {
+          success: true,
+          config: buildProfile.overrides[root.inputSourceName],
+        });
       });
 
       it("should return the compiler if it satisfies the version range of root and dependencies", () => {
@@ -128,7 +131,10 @@ describe("SolcConfigSelector", () => {
         const config =
           selector.selectBestSolcConfigForSingleRootGraph(dependencyGraph);
 
-        assert.deepEqual(config, buildProfile.overrides[root.inputSourceName]);
+        assert.deepEqual(config, {
+          success: true,
+          config: buildProfile.overrides[root.inputSourceName],
+        });
       });
 
       describe("if it does not satisfy the version range", () => {
@@ -146,6 +152,7 @@ describe("SolcConfigSelector", () => {
             selector.selectBestSolcConfigForSingleRootGraph(dependencyGraph);
 
           assert.deepEqual(config, {
+            success: false,
             reason:
               CompilationJobCreationErrorReason.INCOMPATIBLE_OVERRIDDEN_SOLC_VERSION,
             rootFilePath: root.fsPath,
@@ -174,6 +181,7 @@ describe("SolcConfigSelector", () => {
             selector.selectBestSolcConfigForSingleRootGraph(dependencyGraph);
 
           assert.deepEqual(config, {
+            success: false,
             reason:
               CompilationJobCreationErrorReason.OVERRIDDEN_SOLC_VERSION_INCOMPATIBLE_WITH_DEPENDENCY,
             rootFilePath: root.fsPath,
@@ -202,6 +210,7 @@ describe("SolcConfigSelector", () => {
             selector.selectBestSolcConfigForSingleRootGraph(dependencyGraph);
 
           assert.deepEqual(config, {
+            success: false,
             reason:
               CompilationJobCreationErrorReason.OVERRIDDEN_SOLC_VERSION_INCOMPATIBLE_WITH_DEPENDENCY,
             rootFilePath: root.fsPath,
@@ -224,7 +233,10 @@ describe("SolcConfigSelector", () => {
         const config =
           selector.selectBestSolcConfigForSingleRootGraph(dependencyGraph);
 
-        assert.deepEqual(config, buildProfile.compilers[0]);
+        assert.deepEqual(config, {
+          success: true,
+          config: buildProfile.compilers[0],
+        });
       });
 
       it("should return the config of the max satisfying compiler if it exists", () => {
@@ -258,7 +270,10 @@ describe("SolcConfigSelector", () => {
         const config =
           selector.selectBestSolcConfigForSingleRootGraph(dependencyGraph);
 
-        assert.deepEqual(config, buildProfile.compilers[2]);
+        assert.deepEqual(config, {
+          success: true,
+          config: buildProfile.compilers[2],
+        });
       });
 
       it("should handle multiple version pragmas per file", () => {
@@ -280,7 +295,10 @@ describe("SolcConfigSelector", () => {
         const config =
           selector.selectBestSolcConfigForSingleRootGraph(dependencyGraph);
 
-        assert.deepEqual(config, buildProfile.compilers[0]);
+        assert.deepEqual(config, {
+          success: true,
+          config: buildProfile.compilers[0],
+        });
       });
 
       describe("if it does not satisfy the version range", () => {
@@ -298,6 +316,7 @@ describe("SolcConfigSelector", () => {
             selector.selectBestSolcConfigForSingleRootGraph(dependencyGraph);
 
           assert.deepEqual(config, {
+            success: false,
             reason:
               CompilationJobCreationErrorReason.NO_COMPATIBLE_SOLC_VERSION_WITH_ROOT,
             rootFilePath: root.fsPath,
@@ -326,6 +345,7 @@ describe("SolcConfigSelector", () => {
             selector.selectBestSolcConfigForSingleRootGraph(dependencyGraph);
 
           assert.deepEqual(config, {
+            success: false,
             reason:
               CompilationJobCreationErrorReason.NO_COMPATIBLE_SOLC_VERSION_WITH_DEPENDENCY,
             rootFilePath: root.fsPath,
@@ -354,6 +374,7 @@ describe("SolcConfigSelector", () => {
             selector.selectBestSolcConfigForSingleRootGraph(dependencyGraph);
 
           assert.deepEqual(config, {
+            success: false,
             reason:
               CompilationJobCreationErrorReason.NO_COMPATIBLE_SOLC_VERSION_WITH_DEPENDENCY,
             rootFilePath: root.fsPath,
@@ -386,6 +407,7 @@ describe("SolcConfigSelector", () => {
             selector.selectBestSolcConfigForSingleRootGraph(dependencyGraph);
 
           assert.deepEqual(config, {
+            success: false,
             reason:
               CompilationJobCreationErrorReason.IMPORT_OF_INCOMPATIBLE_FILE,
             rootFilePath: root.fsPath,
@@ -421,6 +443,7 @@ describe("SolcConfigSelector", () => {
             selector.selectBestSolcConfigForSingleRootGraph(dependencyGraph);
 
           assert.deepEqual(config, {
+            success: false,
             reason:
               CompilationJobCreationErrorReason.IMPORT_OF_INCOMPATIBLE_FILE,
             rootFilePath: root.fsPath,
@@ -453,6 +476,7 @@ describe("SolcConfigSelector", () => {
             selector.selectBestSolcConfigForSingleRootGraph(dependencyGraph);
 
           assert.deepEqual(config, {
+            success: false,
             reason:
               CompilationJobCreationErrorReason.NO_COMPATIBLE_SOLC_VERSION_FOR_TRANSITIVE_IMPORT_PATH,
             rootFilePath: root.fsPath,
@@ -497,6 +521,7 @@ describe("SolcConfigSelector", () => {
             selector.selectBestSolcConfigForSingleRootGraph(dependencyGraph);
 
           assert.deepEqual(config, {
+            success: false,
             reason:
               CompilationJobCreationErrorReason.NO_COMPATIBLE_SOLC_VERSION_FOUND,
             rootFilePath: root.fsPath,
@@ -536,7 +561,7 @@ describe("SolcConfigSelector", () => {
       const configOrError =
         selector.selectBestSolcConfigForSingleRootGraph(dependencyGraph);
 
-      assert.ok("reason" in configOrError, "Error expected");
+      assert.ok(!configOrError.success, "Error expected");
       assert.equal(
         configOrError.reason,
         CompilationJobCreationErrorReason.NO_COMPATIBLE_SOLC_VERSION_FOR_TRANSITIVE_IMPORT_PATH,
@@ -577,6 +602,7 @@ describe("SolcConfigSelector", () => {
         selector.selectBestSolcConfigForSingleRootGraph(dependencyGraph);
 
       assert.deepEqual(configOrError, {
+        success: false,
         reason:
           CompilationJobCreationErrorReason.NO_COMPATIBLE_SOLC_VERSION_FOUND,
         rootFilePath: root.fsPath,
