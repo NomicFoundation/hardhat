@@ -76,7 +76,10 @@ export enum TaskDefinitionType {
 }
 
 export type TaskAction =
-  | { lazyAction: LazyActionObject<NewTaskActionFunction>; inlineAction?: never }
+  | {
+      lazyAction: LazyActionObject<NewTaskActionFunction>;
+      inlineAction?: never;
+    }
   | { inlineAction: NewTaskActionFunction; lazyAction?: never };
 
 export type TaskOverrideAction =

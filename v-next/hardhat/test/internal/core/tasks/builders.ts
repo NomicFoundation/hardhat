@@ -176,7 +176,7 @@ describe("Task builders", () => {
           type: TaskDefinitionType.NEW_TASK,
           id: ["task-id"],
           description: "",
-          lazyAction: lazyAction,
+          lazyAction,
           options: {},
           positionalArguments: [],
         });
@@ -1222,7 +1222,7 @@ describe("Task builders", () => {
           type: TaskDefinitionType.TASK_OVERRIDE,
           id: ["task-id"],
           description: undefined,
-          lazyAction: lazyAction,
+          lazyAction,
           options: {},
         });
       });
