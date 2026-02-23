@@ -710,6 +710,14 @@ Please define the action in a separate file and reference it.`,
 
 Please remove the duplicate call.`,
       },
+      ACTION_AND_INLINE_ACTION_SET: {
+        number: 419,
+        messageTemplate: `Invalid task definition for task "{task}": both "action" and "inlineAction" are set.`,
+        websiteTitle: "Task defines both action and inline action",
+        websiteDescription: `A task definition cannot have both an "action" and an "inlineAction". Use one or the other.
+
+Please remove one of the two action definitions.`,
+      },
     },
     ARGUMENTS: {
       INVALID_VALUE_FOR_TYPE: {
