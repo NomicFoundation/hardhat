@@ -1,13 +1,6 @@
 import type { GlobalOptionDefinition } from "./arguments.js";
 import type { HardhatHooks } from "./hooks.js";
-import type {
-  EmptyTaskDefinition,
-  LazyActionObject,
-  NewTaskActionFunction,
-  NewTaskDefinition,
-  TaskOverrideActionFunction,
-  TaskOverrideDefinition,
-} from "./tasks.js";
+import type { TaskDefinition } from "./tasks.js";
 
 // NOTE: We import the builtin plugins in this module, so that their
 // type-extensions are loaded when the user imports `hardhat/types/plugins`.
@@ -26,20 +19,6 @@ declare module "./config.js" {
     plugins: HardhatPlugin[];
   }
 }
-
-/**
- * A helper type to strictly enforce that plugins only use lazy-loaded file-based actions.
- */
-export type PluginTaskDefinition =
-  | EmptyTaskDefinition
-  | Extract<
-      NewTaskDefinition,
-      { lazyAction: LazyActionObject<NewTaskActionFunction> }
-    >
-  | Extract<
-      TaskOverrideDefinition,
-      { lazyAction: LazyActionObject<TaskOverrideActionFunction> }
-    >;
 
 /**
  * A Hardhat plugin.
@@ -106,7 +85,7 @@ export interface HardhatPlugin {
    * have been defined before, either by a plugin you depend on or by Hardhat
    * itself.
    */
-  tasks?: PluginTaskDefinition[];
+  tasks?: TaskDefinition[];
 }
 
 /**

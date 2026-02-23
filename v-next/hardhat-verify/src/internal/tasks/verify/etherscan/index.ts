@@ -1,10 +1,10 @@
-import type { PluginTaskDefinition } from "hardhat/types/plugins";
+import type { NewTaskDefinition } from "hardhat/types/tasks";
 
 import { task } from "hardhat/config";
 
 import { extendWithVerificationArgs } from "../utils.js";
 
-const verifyEtherscanTask: PluginTaskDefinition = extendWithVerificationArgs(
+const verifyEtherscanTask: NewTaskDefinition = extendWithVerificationArgs(
   task(["verify", "etherscan"], "Verify a contract on Etherscan"),
 )
   .setAction(() => import("./task-action.js"))
