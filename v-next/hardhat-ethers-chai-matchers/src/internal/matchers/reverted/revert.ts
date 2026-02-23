@@ -58,7 +58,10 @@ export function supportRevert(
             }
           }
 
-          assertIsNotNull(receipt, "receipt");
+          assertIsNotNull(
+            receipt,
+            "Transaction's receipt cannot be fetched from the network",
+          );
           assert(
             receipt.status === 0,
             "Expected transaction to be reverted",

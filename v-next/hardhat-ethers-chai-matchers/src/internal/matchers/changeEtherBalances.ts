@@ -145,7 +145,10 @@ export async function getBalanceChanges(
   const txResponse = await transaction;
 
   const txReceipt = await txResponse.wait();
-  assertIsNotNull(txReceipt, "txReceipt");
+  assertIsNotNull(
+    txReceipt,
+    "Transaction's receipt cannot be fetched from the network",
+  );
   const txBlockNumber = txReceipt.blockNumber;
 
   const balancesAfter = await getBalances(ethers, accounts, txBlockNumber);
@@ -170,7 +173,10 @@ async function getTxFees(
         (await getAddressOf(account)) === txResponse.from
       ) {
         const txReceipt = await txResponse.wait();
-        assertIsNotNull(txReceipt, "txReceipt");
+        assertIsNotNull(
+          txReceipt,
+          "Transaction's receipt cannot be fetched from the network",
+        );
         const gasPrice = txReceipt.gasPrice ?? txResponse.gasPrice;
         const gasUsed = txReceipt.gasUsed;
         const txFee = gasPrice * gasUsed;
