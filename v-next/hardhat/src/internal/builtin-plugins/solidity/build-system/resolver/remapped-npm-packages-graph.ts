@@ -69,7 +69,7 @@ export class RemappedNpmPackagesGraphImplementation
   /**
    * The remappings reader function to use when reading package remappings.
    */
-  readonly #remappingsReader?: RemappingsReaderFunction;
+  readonly #remappingsReader: RemappingsReaderFunction;
 
   /**
    * This is a map of all the npm packages. Every package that has been
@@ -120,7 +120,12 @@ export class RemappedNpmPackagesGraphImplementation
 
   public static async create(
     projectRootPath: string,
-    remappingsReader?: RemappingsReaderFunction,
+    remappingsReader: RemappingsReaderFunction = (
+      packageName,
+      packageVersion,
+      packagePath,
+      defaultBehavior,
+    ) => defaultBehavior(packageName, packageVersion, packagePath),
   ): Promise<RemappedNpmPackagesGraphImplementation> {
     const projectPackageJson = await readJsonFile<PackageJson>(
       path.join(projectRootPath, "package.json"),
@@ -142,7 +147,7 @@ export class RemappedNpmPackagesGraphImplementation
 
   private constructor(
     hardhatProjectPackage: ResolvedNpmPackage,
-    remappingsReader?: RemappingsReaderFunction,
+    remappingsReader: RemappingsReaderFunction,
   ) {
     this.#hardhatProjectPackage = hardhatProjectPackage;
     this.#remappingsReader = remappingsReader;
@@ -421,21 +426,13 @@ export class RemappedNpmPackagesGraphImplementation
       UserRemappingError[]
     >
   > {
-    let allRemappings: Array<{ remappings: string[]; source: string }>;
-
-    if (this.#remappingsReader !== undefined) {
-      allRemappings = await this.#remappingsReader(
-        npmPackage.name,
-        npmPackage.version,
-        npmPackage.rootFsPath,
-        async (_packageName, _packageVersion, packagePath) =>
-          this.#defaultReadPackageRemappings(packagePath),
-      );
-    } else {
-      allRemappings = await this.#defaultReadPackageRemappings(
-        npmPackage.rootFsPath,
-      );
-    }
+    const allRemappings = await this.#remappingsReader(
+      npmPackage.name,
+      npmPackage.version,
+      npmPackage.rootFsPath,
+      async (_packageName, _packageVersion, packagePath) =>
+        this.#defaultReadPackageRemappings(packagePath),
+    );
 
     return this.#parseAndDeduplicateRemappings(npmPackage, allRemappings);
   }
