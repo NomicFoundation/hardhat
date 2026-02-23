@@ -578,7 +578,7 @@ describe("SolcConfigSelector", () => {
       //         B
       //
       // The [root, A, B] are compatible with 0.8.1, and [root, C] with 0.8.0,
-      // so the cycle is fully analyzed, and we only fial for the general case.
+      // so the cycle is fully analyzed, and we only fail for the general case.
       const depA = createProjectResolvedFile("depA.sol", ["^0.8.1"]);
       const depB = createProjectResolvedFile("depB.sol", ["^0.8.0"]);
       const depC = createProjectResolvedFile("depC.sol", ["0.8.0"]);
