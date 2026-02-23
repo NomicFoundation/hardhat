@@ -1979,6 +1979,7 @@ contr:to-npm=node_modules/dep/contracts`,
 
       await using project = await useTestProjectTemplate(template);
 
+      // This simulates the hook handler running a hook that doesn't call `next`
       const mockReader: RemappingsReaderFunction = async (
         _name,
         _version,
