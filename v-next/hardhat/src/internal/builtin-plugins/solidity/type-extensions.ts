@@ -1,4 +1,4 @@
-import type { SolcConfig } from "../../../types/config.js";
+import type { SolidityCompilerConfig } from "../../../types/config.js";
 import type {
   BuildOptions,
   CompilationJobCreationError,
@@ -20,10 +20,14 @@ declare module "../../../types/config.js" {
     | MultiVersionSolidityUserConfig
     | BuildProfilesSolidityUserConfig;
 
-  export interface SolcUserConfig {
+  export interface SolidityCompilerUserConfig {
+    type?: string;
     version: string;
     settings?: any;
     path?: string;
+  }
+
+  export interface SolcUserConfig extends SolidityCompilerUserConfig {
     preferWasm?: boolean;
   }
 
@@ -35,8 +39,8 @@ declare module "../../../types/config.js" {
   export interface MultiVersionSolcUserConfig {
     isolated?: boolean;
     preferWasm?: boolean;
-    compilers: SolcUserConfig[];
-    overrides?: Record<string, SolcUserConfig>;
+    compilers: Array<SolcUserConfig | SolidityCompilerUserConfig>;
+    overrides?: Record<string, SolcUserConfig | SolidityCompilerUserConfig>;
   }
 
   export interface CommonSolidityUserConfig {
@@ -63,18 +67,22 @@ declare module "../../../types/config.js" {
     solidity?: SolidityUserConfig;
   }
 
-  export interface SolcConfig {
+  export interface SolidityCompilerConfig {
+    type?: string;
     version: string;
     settings: any;
     path?: string;
+  }
+
+  export interface SolcConfig extends SolidityCompilerConfig {
     preferWasm?: boolean;
   }
 
   export interface SolidityBuildProfileConfig {
     isolated: boolean;
     preferWasm: boolean;
-    compilers: SolcConfig[];
-    overrides: Record<string, SolcConfig>;
+    compilers: SolidityCompilerConfig[];
+    overrides: Record<string, SolidityCompilerConfig>;
   }
 
   export interface SolidityConfig {
@@ -234,12 +242,12 @@ declare module "../../../types/hooks.js" {
       context: HookContext,
       compiler: Compiler,
       solcInput: CompilerInput,
-      solcConfig: SolcConfig,
+      compilerConfig: SolidityCompilerConfig,
       next: (
         nextContext: HookContext,
         nextCompiler: Compiler,
         nextSolcInput: CompilerInput,
-        nextSolcConfig: SolcConfig,
+        nextSolidityCompilerConfig: SolidityCompilerConfig,
       ) => Promise<CompilerOutput>,
     ): Promise<CompilerOutput>;
 

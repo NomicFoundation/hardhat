@@ -39,7 +39,7 @@ import * as semver from "semver";
  * @throws Error if the compilation process exits with a non-zero exit code.
  * @throws HardhatInvariantError if the any of the io streams are null.
  */
-async function spawnCompile(
+export async function spawnCompile(
   command: string,
   args: string[],
   input: CompilerInput,

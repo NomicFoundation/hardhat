@@ -1,7 +1,11 @@
 import type { CompileCache } from "./cache.js";
 import type { DependencyGraphImplementation } from "./dependency-graph.js";
 import type { Artifact } from "../../../../types/artifacts.js";
-import type { SolcConfig, SolidityConfig } from "../../../../types/config.js";
+import type {
+  SolidityCompilerConfig,
+  SolcConfig,
+  SolidityConfig,
+} from "../../../../types/config.js";
 import type { HookManager } from "../../../../types/hooks.js";
 import type {
   SolidityBuildSystem,
@@ -79,14 +83,26 @@ import { shouldSuppressWarning } from "./warning-suppression.js";
 const log = debug("hardhat:core:solidity:build-system");
 
 /**
- * Resolves the preferWasm setting for a given solc config, falling back
+ * Returns true if the given compiler config is a SolcConfig.
+ */
+export function isSolcConfig(
+  config: SolidityCompilerConfig,
+): config is SolcConfig {
+  return config.type === undefined || config.type === "solc";
+}
+
+/**
+ * Resolves the preferWasm setting for a given compiler config, falling back
  * to the build profile's preferWasm if not set on the compiler.
  */
 function resolvePreferWasm(
-  solcConfig: SolcConfig,
+  compilerConfig: SolidityCompilerConfig,
   buildProfilePreferWasm: boolean,
 ): boolean {
-  return solcConfig.preferWasm ?? buildProfilePreferWasm;
+  if (isSolcConfig(compilerConfig)) {
+    return compilerConfig.preferWasm ?? buildProfilePreferWasm;
+  }
+  return false;
 }
 
 // Compiler warnings to suppress from build output.
@@ -434,7 +450,7 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
     );
 
     let subgraphsWithConfig: Array<
-      [SolcConfig, DependencyGraphImplementation]
+      [SolidityCompilerConfig, DependencyGraphImplementation]
     > = [];
     for (const [rootFile, resolvedFile] of dependencyGraph.getRoots()) {
       log(
@@ -571,7 +587,7 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
       log(`Merging compilation jobs`);
 
       const mergedSubgraphsByConfig: Map<
-        SolcConfig,
+        SolidityCompilerConfig,
         DependencyGraphImplementation
       > = new Map();
 
@@ -682,10 +698,18 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
       `Compiling ${numberOfRootFiles} root files and ${numberOfFiles - numberOfRootFiles} dependency files with solc ${runnableCompilationJob.solcConfig.version} using ${compiler.compilerPath}`,
     );
 
-    assertHardhatInvariant(
-      runnableCompilationJob.solcLongVersion === compiler.longVersion,
-      "The long version of the compiler should match the long version of the compilation job",
-    );
+    // For custom compilers (path set), compare short version only (long version may differ)
+    if (runnableCompilationJob.solcConfig.path !== undefined) {
+      assertHardhatInvariant(
+        runnableCompilationJob.solcConfig.version === compiler.version,
+        "The version of the compiler should match the version of the compilation job",
+      );
+    } else {
+      assertHardhatInvariant(
+        runnableCompilationJob.solcLongVersion === compiler.longVersion,
+        "The long version of the compiler should match the long version of the compilation job",
+      );
+    }
 
     const input = await runnableCompilationJob.getSolcInput();
 
