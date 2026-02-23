@@ -240,7 +240,7 @@ export class SolcConfigSelector {
       }
     }
 
-    // This is a generic case that can happen when the incompatibilities exists
+    // This is a generic case that can happen when the incompatibilities exist
     // but we can't detect them with the above algorithm. For example, if a
     // root imports two compatible dependencies that are incompatible with each
     // other. We could try and improve this error message, but it's
