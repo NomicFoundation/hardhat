@@ -21,6 +21,7 @@
     "./hre": "./dist/src/hre.js",
     "./plugins": "./dist/src/plugins.js",
     "./internal/lsp-helpers": "./dist/src/lsp-helpers.js",
+    "./types": "./dist/src/types/index.js",
     "./types/arguments": "./dist/src/types/arguments.js",
     "./types/artifacts": "./dist/src/types/artifacts.js",
     "./types/config": "./dist/src/types/config.js",
