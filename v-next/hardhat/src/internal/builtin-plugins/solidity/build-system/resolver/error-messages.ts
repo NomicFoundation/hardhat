@@ -58,7 +58,7 @@ Note that the npm module is being remapped by ${formatRemappingReference(error.u
 
     case RootResolutionErrorType.NPM_ROOT_FILE_OF_UNINSTALLED_PACKAGE: {
       const baseMessage = `The package "${error.installationName}" is not installed.`;
-      if (error.fromHasFoundryToml === true) {
+      if (error.projectHasFoundryToml === true) {
         return `${baseMessage}
 
 Your project has a foundry.toml, and you may need to install the "@nomicfoundation/hardhat-foundry" plugin.
@@ -129,7 +129,7 @@ You should write your the path of your imports into npm modules just as you woul
 
     case ImportResolutionErrorType.IMPORT_OF_UNINSTALLED_PACKAGE: {
       const baseMessage = `The package "${error.installationName}" is not installed.`;
-      if (error.fromHasFoundryToml === true) {
+      if (error.importerPackageHasFoundryToml === true) {
         return `${baseMessage}
 
 The file importing this package is inside a Foundry project (foundry.toml detected), and you may need to install the "@nomicfoundation/hardhat-foundry" plugin.

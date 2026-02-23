@@ -320,7 +320,7 @@ other-exports/=node_modules/exports/other/`,
           type: RootResolutionErrorType.NPM_ROOT_FILE_OF_UNINSTALLED_PACKAGE,
           npmModule,
           installationName: "not-installed",
-          fromHasFoundryToml: false,
+          projectHasFoundryToml: false,
         };
 
         assert.deepEqual(
@@ -353,7 +353,7 @@ other-exports/=node_modules/exports/other/`,
           type: RootResolutionErrorType.NPM_ROOT_FILE_OF_UNINSTALLED_PACKAGE,
           npmModule,
           installationName: "forge-std",
-          fromHasFoundryToml: true,
+          projectHasFoundryToml: true,
         };
 
         assert.deepEqual(
