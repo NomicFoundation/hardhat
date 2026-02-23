@@ -197,11 +197,11 @@ export interface NewTaskDefinitionBuilder<
   /**
    * Sets the action of the task.
    *
-   * It must be provided as a `file://` URL pointing to a file
-   * that exports a default NewTaskActionFunction.
+   * It must be provided as a lazy import function that returns a module with
+   * a default export, like `() => import("./my-action.js")`.
    *
-   * Note that plugins can only use the inline function form for development
-   * purposes.
+   * Note that plugins cannot use inline actions (see {@link setInlineAction}).
+   * They must use this method with a lazy import.
    *
    * @remarks
    * This method can only be called once per task definition. Calling it multiple
