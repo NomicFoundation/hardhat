@@ -694,6 +694,30 @@ Please double check your arguments.`,
 
 Please check you have the correct subtask.`,
       },
+      INLINE_ACTION_CANNOT_BE_USED_IN_PLUGINS: {
+        number: 417,
+        messageTemplate: `The task "{task}" defines an "inlineAction", which is not allowed in plugins.`,
+        websiteTitle: "Inline action not allowed in plugins",
+        websiteDescription: `Plugins are not allowed to use inline actions for tasks.
+
+Please define the action in a separate file and reference it.`,
+      },
+      ACTION_ALREADY_SET: {
+        number: 418,
+        messageTemplate: `The action for task "{task}" has already been set. You can only call "setAction" or "setInlineAction" once per task definition.`,
+        websiteTitle: "Task action already set",
+        websiteDescription: `A task definition can only have one action. You cannot call "setAction" or "setInlineAction" more than once on the same task builder.
+
+Please remove the duplicate call.`,
+      },
+      ACTION_AND_INLINE_ACTION_SET: {
+        number: 419,
+        messageTemplate: `Invalid task definition for task "{task}": both "action" and "inlineAction" are set.`,
+        websiteTitle: "Task defines both action and inline action",
+        websiteDescription: `A task definition cannot have both an "action" and an "inlineAction". Use one or the other.
+
+Please remove one of the two action definitions.`,
+      },
     },
     ARGUMENTS: {
       INVALID_VALUE_FOR_TYPE: {

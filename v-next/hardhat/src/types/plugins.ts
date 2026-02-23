@@ -65,8 +65,8 @@ export interface HardhatPlugin {
    * returning an object with a handler for the `extendUserConfig` hook.
    *
    * You can define each factory in two ways:
-   *  - As an inline function.
-   *  - As a string with the path to a file that exports the factory as `default`.
+   * - As an inline function.
+   * - As a string with the path to a file that exports the factory as `default`.
    *
    * The first option should only be used for development. You MUST use the second
    * option for production.
