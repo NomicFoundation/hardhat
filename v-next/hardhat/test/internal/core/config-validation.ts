@@ -1790,6 +1790,82 @@ describe("config validation", function () {
         },
       ]);
     });
+
+    it("should return an error if a plugin new task uses inlineAction", function () {
+      /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions
+      -- Allow type assertions to simulate invalid plugin task definitions */
+      const plugins = [
+        {
+          id: "plugin-id",
+          tasks: [
+            {
+              type: TaskDefinitionType.NEW_TASK,
+              id: ["task-id"],
+              description: "task description",
+              inlineAction: () => {},
+              options: {},
+              positionalArguments: [],
+            },
+          ],
+        },
+      ] as unknown as HardhatPlugin[];
+
+      const errors = validatePluginsConfig(plugins, []);
+      assert.ok(
+        errors.length >= 1 &&
+          errors.some(
+            (e) =>
+              e.message ===
+              "plugins cannot use inline actions. Use a lazy action import instead",
+          ),
+        "Expected an error about plugins not being allowed to use inline actions",
+      );
+    });
+
+    it("should return an error if a plugin task override uses inlineAction", function () {
+      /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions
+      -- Allow type assertions to simulate invalid plugin task definitions */
+      const plugins = [
+        {
+          id: "plugin-id",
+          tasks: [
+            {
+              type: TaskDefinitionType.TASK_OVERRIDE,
+              id: ["task-id"],
+              inlineAction: () => {},
+              options: {},
+            },
+          ],
+        },
+      ] as unknown as HardhatPlugin[];
+
+      const errors = validatePluginsConfig(plugins, []);
+      assert.ok(
+        errors.length >= 1 &&
+          errors.some(
+            (e) =>
+              e.message ===
+              "plugins cannot use inline actions. Use a lazy action import instead",
+          ),
+        "Expected an error about plugins not being allowed to use inline actions",
+      );
+    });
+
+    it("should not return an inline action error for non-plugin tasks", function () {
+      const tasks: TaskDefinition[] = [
+        {
+          type: TaskDefinitionType.NEW_TASK,
+          id: ["task-id"],
+          description: "task description",
+          inlineAction: () => {},
+          options: {},
+          positionalArguments: [],
+        },
+      ];
+
+      const errors = validateTasksConfig(tasks);
+      assert.deepEqual(errors, []);
+    });
   });
 
   describe("collectValidationErrorsForUserConfig", function () {

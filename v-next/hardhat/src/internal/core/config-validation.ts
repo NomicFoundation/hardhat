@@ -185,6 +185,7 @@ function validatePath(
 export function validateTasksConfig(
   tasks: TaskDefinition[],
   path: Array<string | number> = [],
+  isPlugin: boolean = false,
 ): HardhatUserConfigValidationError[] {
   const validationErrors: HardhatUserConfigValidationError[] = [];
 
@@ -207,13 +208,13 @@ export function validateTasksConfig(
       }
       case TaskDefinitionType.NEW_TASK: {
         validationErrors.push(
-          ...validateNewTask(task, [...path, "tasks", index]),
+          ...validateNewTask(task, [...path, "tasks", index], isPlugin),
         );
         break;
       }
       case TaskDefinitionType.TASK_OVERRIDE: {
         validationErrors.push(
-          ...validateTaskOverride(task, [...path, "tasks", index]),
+          ...validateTaskOverride(task, [...path, "tasks", index], isPlugin),
         );
         break;
       }
@@ -252,6 +253,7 @@ export function validateEmptyTask(
 export function validateNewTask(
   task: NewTaskDefinition,
   path: Array<string | number>,
+  isPlugin: boolean = false,
 ): HardhatUserConfigValidationError[] {
   const validationErrors: HardhatUserConfigValidationError[] = [];
 
@@ -272,7 +274,7 @@ export function validateNewTask(
     });
   }
 
-  validationErrors.push(...validateActionFields(task, path));
+  validationErrors.push(...validateActionFields(task, path, isPlugin));
 
   if (isObject(task.options)) {
     validationErrors.push(
@@ -302,6 +304,7 @@ export function validateNewTask(
 export function validateTaskOverride(
   task: TaskOverrideDefinition,
   path: Array<string | number>,
+  isPlugin: boolean = false,
 ): HardhatUserConfigValidationError[] {
   const validationErrors: HardhatUserConfigValidationError[] = [];
 
@@ -322,7 +325,7 @@ export function validateTaskOverride(
     });
   }
 
-  validationErrors.push(...validateActionFields(task, path));
+  validationErrors.push(...validateActionFields(task, path, isPlugin));
 
   if (isObject(task.options)) {
     validationErrors.push(
@@ -341,6 +344,7 @@ export function validateTaskOverride(
 function validateActionFields(
   task: { action?: unknown; inlineAction?: unknown },
   path: Array<string | number>,
+  isPlugin: boolean = false,
 ): HardhatUserConfigValidationError[] {
   const validationErrors: HardhatUserConfigValidationError[] = [];
 
@@ -349,6 +353,14 @@ function validateActionFields(
     validationErrors.push({
       path: [...path],
       message: 'task cannot define both "action" and "inlineAction"',
+    });
+  }
+
+  if (isPlugin && task.inlineAction !== undefined) {
+    validationErrors.push({
+      path: [...path, "inlineAction"],
+      message:
+        "plugins cannot use inline actions. Use a lazy action import instead",
     });
   }
 
@@ -698,7 +710,11 @@ export function validatePluginsConfig(
     if (plugin.tasks !== undefined) {
       if (Array.isArray(plugin.tasks)) {
         validationErrors.push(
-          ...validateTasksConfig(plugin.tasks, [...path, "plugins", index]),
+          ...validateTasksConfig(
+            plugin.tasks,
+            [...path, "plugins", index],
+            true,
+          ),
         );
       } else {
         validationErrors.push({

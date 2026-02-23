@@ -2210,9 +2210,11 @@ describe("TaskManagerImplementation", () => {
             },
             {},
           ),
-          HardhatError.ERRORS.CORE.TASK_DEFINITIONS
-            .INLINE_ACTION_CANNOT_BE_USED_IN_PLUGINS,
-          { task: "task1" },
+          HardhatError.ERRORS.CORE.GENERAL.INVALID_CONFIG,
+          {
+            errors:
+              "\t* Config error in config.plugins.0.tasks.0.inlineAction: plugins cannot use inline actions. Use a lazy action import instead",
+          },
         );
       });
 
@@ -2240,9 +2242,11 @@ describe("TaskManagerImplementation", () => {
             },
             {},
           ),
-          HardhatError.ERRORS.CORE.TASK_DEFINITIONS
-            .INLINE_ACTION_CANNOT_BE_USED_IN_PLUGINS,
-          { task: "task1" },
+          HardhatError.ERRORS.CORE.GENERAL.INVALID_CONFIG,
+          {
+            errors:
+              "\t* Config error in config.plugins.0.tasks.1.inlineAction: plugins cannot use inline actions. Use a lazy action import instead",
+          },
         );
       });
     });
