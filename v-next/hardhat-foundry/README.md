@@ -29,4 +29,4 @@ export default defineConfig({
 
 ## Usage
 
-You don't need to do anything differently, just install the plugin and Hardhat will be able to resolve Solidity remappings for Foundry-based packages, including those installed with npm.
+You only need to install the plugin and Hardhat will be able to resolve Solidity remappings for Foundry-based packages, including those installed with npm.
