@@ -576,7 +576,7 @@ describe("TaskManagerImplementation", () => {
                     type: TaskDefinitionType.NEW_TASK,
                     id: [], // empty id
                     description: "",
-                    action: async () => ({
+                    lazyAction: async () => ({
                       default: () => {},
                     }),
                     options: {},
@@ -1089,7 +1089,7 @@ describe("TaskManagerImplementation", () => {
                       type: TaskDefinitionType.NEW_TASK,
                       id: [],
                       description: "",
-                      action: async () => ({
+                      lazyAction: async () => ({
                         default: () => {},
                       }),
                       options: {},
@@ -1116,7 +1116,7 @@ describe("TaskManagerImplementation", () => {
                       type: TaskDefinitionType.TASK_OVERRIDE,
                       id: [],
                       description: "",
-                      action: async () => ({
+                      lazyAction: async () => ({
                         default: () => {},
                       }),
                       options: {},
@@ -1145,7 +1145,7 @@ describe("TaskManagerImplementation", () => {
                       type: TaskDefinitionType.NEW_TASK,
                       id: ["task-id"],
                       description: "",
-                      action: async () => ({
+                      lazyAction: async () => ({
                         default: () => {},
                       }),
                       options: {
@@ -1181,7 +1181,7 @@ describe("TaskManagerImplementation", () => {
                       type: TaskDefinitionType.TASK_OVERRIDE,
                       id: ["task-id"],
                       description: "",
-                      action: async () => ({
+                      lazyAction: async () => ({
                         default: () => {},
                       }),
                       options: {
@@ -1219,7 +1219,7 @@ describe("TaskManagerImplementation", () => {
                         type: TaskDefinitionType.NEW_TASK,
                         id: ["task-id"],
                         description: "",
-                        action: async () => ({
+                        lazyAction: async () => ({
                           default: () => {},
                         }),
                         options: {
@@ -1255,7 +1255,7 @@ describe("TaskManagerImplementation", () => {
                         type: TaskDefinitionType.TASK_OVERRIDE,
                         id: ["task-id"],
                         description: "",
-                        action: async () => ({
+                        lazyAction: async () => ({
                           default: () => {},
                         }),
                         options: {
@@ -1294,7 +1294,7 @@ describe("TaskManagerImplementation", () => {
                       type: TaskDefinitionType.NEW_TASK,
                       id: ["task-id"],
                       description: "",
-                      action: async () => ({
+                      lazyAction: async () => ({
                         default: () => {},
                       }),
                       options: {
@@ -1337,7 +1337,7 @@ describe("TaskManagerImplementation", () => {
                       type: TaskDefinitionType.NEW_TASK,
                       id: ["task-id"],
                       description: "",
-                      action: async () => ({
+                      lazyAction: async () => ({
                         default: () => {},
                       }),
                       options: {},
@@ -1382,7 +1382,7 @@ describe("TaskManagerImplementation", () => {
                       type: TaskDefinitionType.NEW_TASK,
                       id: ["task-id"],
                       description: "",
-                      action: async () => ({
+                      lazyAction: async () => ({
                         default: () => {},
                       }),
                       options: {},
@@ -1421,7 +1421,7 @@ describe("TaskManagerImplementation", () => {
                         type: TaskDefinitionType.NEW_TASK,
                         id: ["task-id"],
                         description: "",
-                        action: async () => ({
+                        lazyAction: async () => ({
                           default: () => {},
                         }),
                         options: {},
@@ -1460,7 +1460,7 @@ describe("TaskManagerImplementation", () => {
                       type: TaskDefinitionType.NEW_TASK,
                       id: ["task-id"],
                       description: "",
-                      action: async () => ({
+                      lazyAction: async () => ({
                         default: () => {},
                       }),
                       options: {},
