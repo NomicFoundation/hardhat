@@ -211,7 +211,7 @@ export class SolcConfigSelector {
         };
       }
 
-      // The root and the version ranges to get to this transittive dependency
+      // The root and the version ranges to get to this transitive dependency
       // may be contradictory, so no version ever can satisfy them.
       if (!intersects(rootVersionRange, transitiveDependencyVersionRange)) {
         return {
@@ -224,7 +224,7 @@ export class SolcConfigSelector {
         };
       }
 
-      // The root and the version ranges to get to this transittive dependency
+      // The root and the version ranges to get to this transitive dependency
       // may not be compatible with any configured compiler.
       const combinedRange = `${rootVersionRange} ${transitiveDependencyVersionRange}`;
       if (maxSatisfying(compilerVersions, combinedRange) === null) {
