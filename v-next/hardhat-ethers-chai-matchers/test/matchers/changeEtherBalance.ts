@@ -101,7 +101,7 @@ describe("INTEGRATION: changeEtherBalance matcher", { timeout: 60000 }, () => {
               includeFee: true,
             }),
           ).to.be.eventually.rejectedWith(
-            "There should be only 1 transaction in the block",
+            "There should be only 1 transaction in the block: expected 2 to equal 1",
           );
         });
 

@@ -8,11 +8,9 @@ import type {
 } from "ethers";
 import type { TransactionResponse } from "ethers/providers";
 
-import {
-  assertHardhatInvariant,
-  HardhatError,
-} from "@nomicfoundation/hardhat-errors";
+import { HardhatError } from "@nomicfoundation/hardhat-errors";
 import { isObject } from "@nomicfoundation/hardhat-utils/lang";
+import { assert as chaiAssert } from "chai";
 import { toBigInt } from "ethers/utils";
 
 import {
@@ -237,15 +235,22 @@ export async function getBalanceChange(
   const txResponse = await transaction;
 
   const txReceipt = await txResponse.wait();
-  assertIsNotNull(txReceipt, "txReceipt");
+  assertIsNotNull(
+    txReceipt,
+    "Transaction's receipt cannot be fetched from the network",
+  );
   const txBlockNumber = txReceipt.blockNumber;
 
   const block = await ethers.provider.getBlock(txReceipt.blockHash, false);
 
-  assertHardhatInvariant(block !== null, "The block doesn't exist");
+  assertIsNotNull(
+    block,
+    "The transaction's block cannot be fetched from the network",
+  );
 
-  assertHardhatInvariant(
-    Array.isArray(block.transactions) && block.transactions.length === 1,
+  chaiAssert.equal(
+    block.transactions.length,
+    1,
     "There should be only 1 transaction in the block",
   );
 

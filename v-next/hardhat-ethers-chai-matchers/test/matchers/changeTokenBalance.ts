@@ -758,7 +758,7 @@ describe(
                 mockToken.transfer(receiver.address, 50, { gasLimit: 100_000 }),
               ).to.changeTokenBalance(ethers, mockToken, sender, -50),
             ).to.be.rejectedWith(
-              "There should be only 1 transaction in the block",
+              "There should be only 1 transaction in the block: expected 2 to equal 1",
             );
           });
 
@@ -867,7 +867,9 @@ describe(
 
             await expect(
               expect(
-                mockToken.transfer(receiver.address, 50, { gasLimit: 100_000 }),
+                mockToken.transfer(receiver.address, 50, {
+                  gasLimit: 100_000,
+                }),
               ).to.changeTokenBalances(
                 ethers,
                 mockToken,
@@ -875,7 +877,7 @@ describe(
                 [-50, 50],
               ),
             ).to.be.rejectedWith(
-              "There should be only 1 transaction in the block",
+              "There should be only 1 transaction in the block: expected 2 to equal 1",
             );
           });
 

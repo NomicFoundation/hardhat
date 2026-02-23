@@ -1,10 +1,8 @@
 import type { AssertWithSsfi, Ssfi } from "./ssfi.js";
 
-import {
-  assertHardhatInvariant,
-  HardhatError,
-} from "@nomicfoundation/hardhat-errors";
+import { HardhatError } from "@nomicfoundation/hardhat-errors";
 import { ensureError } from "@nomicfoundation/hardhat-utils/error";
+import { assert as chaiAssert } from "chai";
 import { keccak256 } from "ethers/crypto";
 import { getBytes, hexlify, isHexString, toUtf8Bytes } from "ethers/utils";
 
@@ -12,9 +10,9 @@ import { ordinal } from "./ordinal.js";
 
 export function assertIsNotNull<T>(
   value: T,
-  valueName: string,
+  errorMessage: string,
 ): asserts value is Exclude<T, null> {
-  assertHardhatInvariant(value !== null, `${valueName} should not be null`);
+  chaiAssert.notEqual(value, null, errorMessage);
 }
 
 export function assertArgsArraysEqual(
@@ -147,7 +145,7 @@ function innerAssertArgEqual(
 export function assertCanBeConvertedToBigint(
   value: unknown,
 ): asserts value is string | number | bigint {
-  assertHardhatInvariant(
+  chaiAssert.ok(
     typeof value === "string" ||
       typeof value === "number" ||
       typeof value === "bigint",

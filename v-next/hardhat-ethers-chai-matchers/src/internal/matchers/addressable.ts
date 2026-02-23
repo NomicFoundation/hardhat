@@ -1,4 +1,4 @@
-import { assertHardhatInvariant } from "@nomicfoundation/hardhat-errors";
+import { assert as chaiAssert } from "chai";
 import { isAddress, isAddressable } from "ethers";
 
 import { tryDereference } from "../utils/typed.js";
@@ -35,9 +35,9 @@ function tryGetAddressSync(value: any): string | undefined {
     if ("address" in value) {
       value = value.address;
     } else {
-      assertHardhatInvariant(
+      chaiAssert.ok(
         "target" in value,
-        "target property should exist in value",
+        "Addressable value should have the property target",
       );
       value = value.target;
     }
