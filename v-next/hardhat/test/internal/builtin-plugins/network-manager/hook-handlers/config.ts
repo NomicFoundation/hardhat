@@ -156,10 +156,6 @@ describe("network-manager/hook-handlers/config", () => {
       const next = async (nextConfig: HardhatUserConfig) => nextConfig;
 
       const extendedConfig = await extendUserConfig(config, next);
-      assert.ok(
-        extendedConfig.networks?.node !== undefined,
-        "node network should be defined",
-      );
       assert.deepEqual(extendedConfig.networks?.node, {
         chainId: 31337,
         gas: "auto",
@@ -280,11 +276,9 @@ describe("network-manager/hook-handlers/config", () => {
             url: "http://localhost:8545",
           },
         },
-      };
+      } as const;
 
-      /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions
-      -- testing invalid network type for js users */
-      const validationErrors = await validateNetworkUserConfig(config as any);
+      const validationErrors = await validateNetworkUserConfig(config);
 
       assertValidationErrors(validationErrors, [
         {
