@@ -40,6 +40,7 @@ export async function extendUserConfig(
 
   const localhostConfig: NetworkUserConfig | undefined = networks.localhost;
   const defaultConfig: NetworkUserConfig | undefined = networks.default;
+  const nodeConfig: NetworkUserConfig | undefined = networks.node;
 
   let extendedLocalhostConfig: NetworkUserConfig;
   if (
@@ -59,6 +60,14 @@ export async function extendUserConfig(
     extendedLocalhostConfig = localhostConfig;
   }
 
+  const defaultEdrNetworkConfigValues = {
+    chainId: 31337,
+    gas: "auto",
+    gasMultiplier: 1,
+    gasPrice: "auto",
+    type: "edr-simulated",
+  } as const;
+
   let extendedDefaultConfig: NetworkUserConfig;
   if (
     defaultConfig === undefined ||
@@ -66,11 +75,7 @@ export async function extendUserConfig(
     defaultConfig.type === "edr-simulated"
   ) {
     extendedDefaultConfig = {
-      chainId: 31337,
-      gas: "auto",
-      gasMultiplier: 1,
-      gasPrice: "auto",
-      type: "edr-simulated",
+      ...defaultEdrNetworkConfigValues,
       /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions
         -- We cast it here because otherwise TS complains that some fields are
         always overwritten, which is not true for js incomplete configs. */
@@ -80,12 +85,30 @@ export async function extendUserConfig(
     extendedDefaultConfig = defaultConfig;
   }
 
+  let extendedNodeConfig: NetworkUserConfig;
+  if (
+    nodeConfig === undefined ||
+    nodeConfig.type === undefined ||
+    nodeConfig.type === "edr-simulated"
+  ) {
+    extendedNodeConfig = {
+      ...defaultEdrNetworkConfigValues,
+      /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions
+        -- We cast it here because otherwise TS complains that url and http will
+        be always overwritten, which is not true for js incomplete configs. */
+      ...(nodeConfig as Partial<EdrNetworkUserConfig>),
+    };
+  } else {
+    extendedNodeConfig = nodeConfig;
+  }
+
   return {
     ...extendedConfig,
     networks: {
       ...networks,
       localhost: extendedLocalhostConfig,
       [DEFAULT_NETWORK_NAME]: extendedDefaultConfig,
+      node: extendedNodeConfig,
     },
   };
 }
