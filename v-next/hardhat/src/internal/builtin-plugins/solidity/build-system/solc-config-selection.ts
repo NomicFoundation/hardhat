@@ -256,9 +256,10 @@ export class SolcConfigSelector {
   }
 
   /**
-   * Returns a generator of all the transitive dependencies of a root. Each
-   * of them has the fsPath from the root file, including the path of version
-   * pragmas. The paths don't include the root itself.
+   * Returns a generator of all the transitive dependencies of a root file. For each
+   * dependency, it yields the sequence of fsPaths from the root to that dependency,
+   * along with the corresponding version pragma paths for each file in the import chain.
+   * The paths don't include the root itself.
    */
   *#getTransitiveDependencies(
     root: ResolvedFile,
