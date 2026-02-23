@@ -39,7 +39,10 @@
     "./console.sol": "./console.sol",
     "./internal/coverage": "./dist/src/internal/builtin-plugins/coverage/exports.js",
     "./internal/gas-analytics": "./dist/src/internal/builtin-plugins/gas-analytics/exports.js",
-    "./utils/contract-names": "./dist/src/utils/contract-names.js"
+    "./utils/contract-names": "./dist/src/utils/contract-names.js",
+    "./types/runtime": "./dist/src/internal/deprecated-module-imported-from-hardhat2-plugin.js",
+    "./builtin-tasks/task-names": "./dist/src/internal/deprecated-module-imported-from-hardhat2-plugin.js",
+    "./internal/artifacts": "./dist/src/internal/deprecated-module-imported-from-hardhat2-plugin.js"
   },
   "keywords": [
     "ethereum",
