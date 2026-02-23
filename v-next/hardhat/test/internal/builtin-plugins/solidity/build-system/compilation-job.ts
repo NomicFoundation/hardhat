@@ -1,4 +1,4 @@
-import type { SolcConfig } from "../../../../../src/types/config.js";
+import type { SolidityCompilerConfig } from "../../../../../src/types/config.js";
 import type { HookContext } from "../../../../../src/types/hooks.js";
 
 import assert from "node:assert/strict";
@@ -22,7 +22,7 @@ describe("CompilationJobImplementation", () => {
   let rootFile: ProjectResolvedFile;
   let npmDependencyFile: NpmPackageResolvedFile;
   let projectDependencyFile: ProjectResolvedFile;
-  let solcConfig: SolcConfig;
+  let solcConfig: SolidityCompilerConfig;
   let solcLongVersion: string;
   let hooks: HookManagerImplementation;
   let compilationJob: CompilationJobImplementation;
