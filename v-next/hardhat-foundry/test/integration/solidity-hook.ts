@@ -207,4 +207,45 @@ describe("hardhat-foundry integration", () => {
       }
     });
   });
+
+  describe("duplicate remappings are deduplicated", () => {
+    useFixtureProject("forge-remappings-dedup");
+
+    it("should build successfully when remappings.txt and forge return the same remapping", async () => {
+      // remappings.txt contains "foo/=lib/foo/src/" and forge remappings also
+      // returns "foo/=lib/foo/src/". The deduplication logic should keep only
+      // the first occurrence and the build should succeed.
+      setExecMock(
+        createCommandAwareMockExec({
+          forgeVersion: MOCK_SCENARIOS.FORGE_VERSION_SUCCESS,
+          forgeRemappings: {
+            stdout: "foo/=lib/foo/src/\n",
+            stderr: "",
+            code: 0,
+          },
+        }),
+      );
+
+      try {
+        const hardhatConfig = await import(
+          "../fixture-projects/forge-remappings-dedup/hardhat.config.js"
+        );
+
+        const hre = await createHardhatRuntimeEnvironment(
+          hardhatConfig.default,
+        );
+
+        const result = await hre.tasks
+          .getTask("build")
+          .run({ force: true, quiet: true });
+
+        assert.ok(
+          result !== undefined && result !== null,
+          "Build should succeed",
+        );
+      } finally {
+        resetExecMock();
+      }
+    });
+  });
 });
