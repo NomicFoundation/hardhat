@@ -123,12 +123,10 @@ describe("network-manager/hook-handlers/config", () => {
             type: "edr-simulated",
           },
         },
-      };
+      } as const;
       const next = async (nextConfig: HardhatUserConfig) => nextConfig;
 
-      /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions
-      -- testing invalid network type for js users */
-      const extendedConfig = await extendUserConfig(config as any, next);
+      const extendedConfig = await extendUserConfig(config, next);
       assert.deepEqual(extendedConfig.networks?.localhost, {
         type: "edr-simulated",
       });
@@ -142,12 +140,10 @@ describe("network-manager/hook-handlers/config", () => {
             url: "http://localhost:8545",
           },
         },
-      };
+      } as const;
       const next = async (nextConfig: HardhatUserConfig) => nextConfig;
 
-      /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions
-      -- testing invalid network type for js users */
-      const extendedConfig = await extendUserConfig(config as any, next);
+      const extendedConfig = await extendUserConfig(config, next);
       assert.equal(extendedConfig.networks?.default.type, "http");
       assert.equal(
         extendedConfig.networks?.default.url,
@@ -1410,7 +1406,11 @@ describe("network-manager/hook-handlers/config", () => {
       );
 
       const localhost = resolvedConfig.networks.localhost;
-      assert.equal(localhost.type, "edr-simulated");
+      assert(
+        localhost.type === "edr-simulated",
+        "The network type should be edr-simulated",
+      );
+
       assert.equal(localhost.chainId, 31337);
       assert.equal(localhost.chainType, undefined);
       assert.equal(localhost.from, undefined);
@@ -1419,44 +1419,20 @@ describe("network-manager/hook-handlers/config", () => {
       assert.equal(localhost.gasPrice, "auto");
 
       // EDR-specific fields
-      assert.equal(
-        "allowBlocksWithSameTimestamp" in localhost &&
-          localhost.allowBlocksWithSameTimestamp,
-        false,
-      );
-      assert.equal(
-        "allowUnlimitedContractSize" in localhost &&
-          localhost.allowUnlimitedContractSize,
-        false,
-      );
-      assert.equal(
-        "blockGasLimit" in localhost && localhost.blockGasLimit,
-        60_000_000n,
-      );
-      assert.deepEqual("mining" in localhost && localhost.mining, {
+      assert.equal(localhost.allowBlocksWithSameTimestamp, false);
+      assert.equal(localhost.allowUnlimitedContractSize, false);
+      assert.equal(localhost.blockGasLimit, 60_000_000n);
+      assert.deepEqual(localhost.mining, {
         auto: true,
         interval: 0,
         mempool: { order: "priority" },
       });
-      assert.equal(
-        "throwOnCallFailures" in localhost && localhost.throwOnCallFailures,
-        true,
-      );
-      assert.equal(
-        "throwOnTransactionFailures" in localhost &&
-          localhost.throwOnTransactionFailures,
-        true,
-      );
-      assert.equal(
-        "loggingEnabled" in localhost && localhost.loggingEnabled,
-        false,
-      );
-      assert.equal("minGasPrice" in localhost && localhost.minGasPrice, 0n);
-      assert.equal("networkId" in localhost && localhost.networkId, 31337);
-      assert.equal(
-        "forking" in localhost ? localhost.forking : undefined,
-        undefined,
-      );
+      assert.equal(localhost.throwOnCallFailures, true);
+      assert.equal(localhost.throwOnTransactionFailures, true);
+      assert.equal(localhost.loggingEnabled, false);
+      assert.equal(localhost.minGasPrice, 0n);
+      assert.equal(localhost.networkId, 31337);
+      assert.equal(localhost.forking, undefined);
     });
 
     it("should resolve the default network when its type is overridden to http", async () => {
