@@ -86,12 +86,18 @@ function innerAssertArgEqual(
     } catch (e) {
       ensureError(e);
 
-      assert(
-        false,
-        `The predicate threw when called: ${e.message}`,
-        // no need for a negated message, since we disallow mixing .not. with
-        // .withArgs
-      );
+      try {
+        assert(
+          false,
+          `The predicate threw when called: ${e.message}`,
+          // no need for a negated message, since we disallow mixing .not. with
+          // .withArgs
+        );
+      } catch (assertError) {
+        ensureError(assertError);
+        assertError.cause = e;
+        throw assertError;
+      }
     }
     assert(
       false,

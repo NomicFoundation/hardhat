@@ -1,5 +1,6 @@
 import { HardhatError } from "@nomicfoundation/hardhat-errors";
 import { toBigInt } from "@nomicfoundation/hardhat-utils/bigint";
+import { ensureError } from "@nomicfoundation/hardhat-utils/error";
 import { numberToHexString } from "@nomicfoundation/hardhat-utils/hex";
 
 import { REVERTED_WITH_PANIC_MATCHER } from "../../constants.js";
@@ -24,7 +25,9 @@ export function supportRevertedWithPanic(
         if (expectedCodeArg !== undefined) {
           expectedCode = toBigInt(expectedCodeArg);
         }
-      } catch {
+      } catch (e) {
+        ensureError(e);
+
         // if the input validation fails, we discard the subject since it could
         // potentially be a rejected promise
         Promise.resolve(this._obj).catch(() => {});
@@ -34,6 +37,7 @@ export function supportRevertedWithPanic(
           {
             panicCode: expectedCodeArg,
           },
+          e,
         );
       }
 

@@ -74,8 +74,9 @@ export function supportEmit(
         } catch (e) {
           if (e instanceof TypeError) {
             const errorMessage = e.message.split(" (argument=")[0];
-            // eslint-disable-next-line no-restricted-syntax -- keep the original chai error structure
-            throw new AssertionError(errorMessage);
+            const error = new AssertionError(errorMessage);
+            error.cause = e;
+            throw error;
           }
         }
 
