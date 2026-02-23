@@ -129,7 +129,10 @@ async function getCompilerFromPath(
 
   log(`Version output: ${stdout}`);
 
-  const match = stdout.match(/(?<longVersion>\d+\.\d+\.\d+\+commit\.\w+)/);
+  // Match solc-style version (with +commit hash) or plain semver (for non-solc compilers)
+  const match =
+    stdout.match(/(?<longVersion>\d+\.\d+\.\d+\+commit\.\w+)/) ??
+    stdout.match(/(?<shortVersion>\d+\.\d+\.\d+)/);
 
   if (match === null || match.groups === undefined) {
     throw new HardhatError(
@@ -138,7 +141,8 @@ async function getCompilerFromPath(
     );
   }
 
-  const { longVersion } = match.groups;
+  const longVersion =
+    match.groups.longVersion ?? `${match.groups.shortVersion}+custom`;
 
   log(`Long version: ${longVersion}`);
 
