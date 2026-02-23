@@ -437,7 +437,54 @@ export class RemappedNpmPackagesGraphImplementation
       );
     }
 
-    // Parse and deduplicate remappings
+    return this.#parseAndDeduplicateRemappings(npmPackage, allRemappings);
+  }
+
+  /**
+   * The default behavior of reading all the remappings.txt files in a package.
+   * @param packagePath The fs path to the root of the package.
+   * @returns An array with one entry per remappings.txt file, with the
+   * contents of the file and the fs path to the file.
+   */
+  async #defaultReadPackageRemappings(
+    packagePath: string,
+  ): Promise<Array<{ remappings: string[]; source: string }>> {
+    const remappingsTxtFiles = await getAllFilesMatching(
+      packagePath,
+      (f) => path.basename(f) === "remappings.txt",
+      (f) => !f.endsWith("node_modules"),
+    );
+
+    const results: Array<{ remappings: string[]; source: string }> = [];
+    for (const file of remappingsTxtFiles) {
+      const contents = await readUtf8File(file);
+      const lines = contents
+        .split("\n")
+        .map((line) => line.trim())
+        .filter((line) => line !== "" && !line.startsWith("#"));
+      results.push({ remappings: lines, source: file });
+    }
+
+    return results;
+  }
+
+  /**
+   * Parses and deduplicates by "context:prefix" all the remappings from the
+   * package.
+   *
+   * @param npmPackage The npm package.
+   * @param allRemappings An array with all the remappings.txt files in the
+   * package and their content.
+   * @returns A result with the parsed and deduplicated remappings, or an error
+   * if there was a problem parsing any of them.
+   */
+  #parseAndDeduplicateRemappings(
+    npmPackage: ResolvedNpmPackage,
+    allRemappings: Array<{ remappings: string[]; source: string }>,
+  ): Result<
+    Array<LocalUserRemapping | UnresolvedNpmUserRemapping>,
+    UserRemappingError[]
+  > {
     const remappings: Array<LocalUserRemapping | UnresolvedNpmUserRemapping> =
       [];
     const errors: UserRemappingError[] = [];
@@ -445,7 +492,7 @@ export class RemappedNpmPackagesGraphImplementation
 
     for (const { remappings: remappingStrings, source } of allRemappings) {
       for (const remappingString of remappingStrings) {
-        const result = await this.#parseUserRemapping(
+        const result = this.#parseUserRemapping(
           npmPackage,
           source,
           remappingString,
@@ -476,28 +523,6 @@ export class RemappedNpmPackagesGraphImplementation
     return { success: true, value: remappings };
   }
 
-  async #defaultReadPackageRemappings(
-    packagePath: string,
-  ): Promise<Array<{ remappings: string[]; source: string }>> {
-    const remappingsTxtFiles = await getAllFilesMatching(
-      packagePath,
-      (f) => path.basename(f) === "remappings.txt",
-      (f) => !f.endsWith("node_modules"),
-    );
-
-    const results: Array<{ remappings: string[]; source: string }> = [];
-    for (const file of remappingsTxtFiles) {
-      const contents = await readUtf8File(file);
-      const lines = contents
-        .split("\n")
-        .map((line) => line.trim())
-        .filter((line) => line !== "" && !line.startsWith("#"));
-      results.push({ remappings: lines, source: file });
-    }
-
-    return results;
-  }
-
   /**
    * Parses a user remapping, validating it, and preprocessing it, but without
    * loading its npm package (if any).
@@ -508,15 +533,13 @@ export class RemappedNpmPackagesGraphImplementation
    * @returns The parsed user remapping, or undefined if it should be ignored.
    * If the parsing and validation fails, an error is returned.
    */
-  async #parseUserRemapping(
+  #parseUserRemapping(
     npmPackage: ResolvedNpmPackage,
     sourceOfTheRemapping: string,
     remappingString: string,
-  ): Promise<
-    Result<
-      LocalUserRemapping | UnresolvedNpmUserRemapping | undefined,
-      UserRemappingError
-    >
+  ): Result<
+    LocalUserRemapping | UnresolvedNpmUserRemapping | undefined,
+    UserRemappingError
   > {
     // We first parse the remapping string and validate that it doesn't have
     // a context starting with `npm/`, and that the prefix and targets end in /.
