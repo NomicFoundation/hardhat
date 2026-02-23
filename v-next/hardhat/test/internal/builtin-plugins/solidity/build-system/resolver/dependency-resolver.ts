@@ -332,7 +332,7 @@ other-exports/=node_modules/exports/other/`,
         );
       });
 
-      it("Should set fromHasFoundryToml to true when project has foundry.toml", async () => {
+      it("Should set projectHasFoundryToml to true when project has foundry.toml", async () => {
         const templateWithFoundry: TestProjectTemplate = {
           name: "foundry-project-npm-root",
           version: "1.0.0",
@@ -2161,14 +2161,14 @@ submodule2/=lib/submodule2/src/`,
               fromFsPath: absoluteFilePath,
               importPath,
               installationName: "not-installed",
-              fromHasFoundryToml: false,
+              importerPackageHasFoundryToml: false,
             },
           },
         );
       });
 
       describe("foundry.toml detection for uninstalled packages", () => {
-        it("Should set fromHasFoundryToml to true when project has foundry.toml", async () => {
+        it("Should set importerPackageHasFoundryToml to true when project has foundry.toml", async () => {
           const templateWithFoundry: TestProjectTemplate = {
             name: "foundry-project",
             version: "1.0.0",
@@ -2198,13 +2198,13 @@ submodule2/=lib/submodule2/src/`,
                 fromFsPath: absoluteFilePath,
                 importPath,
                 installationName: "forge-std",
-                fromHasFoundryToml: true,
+                importerPackageHasFoundryToml: true,
               },
             },
           );
         });
 
-        it("Should set fromHasFoundryToml to true when npm dependency has foundry.toml", async () => {
+        it("Should set importerPackageHasFoundryToml to true when npm dependency has foundry.toml", async () => {
           const templateWithNpmFoundry: TestProjectTemplate = {
             name: "project-with-foundry-dep",
             version: "1.0.0",
@@ -2261,12 +2261,12 @@ submodule2/=lib/submodule2/src/`,
               ),
               importPath,
               installationName: "forge-std",
-              fromHasFoundryToml: true,
+              importerPackageHasFoundryToml: true,
             },
           });
         });
 
-        it("Should set fromHasFoundryToml to false when npm dependency does not have foundry.toml", async () => {
+        it("Should set importerPackageHasFoundryToml to false when npm dependency does not have foundry.toml", async () => {
           const templateWithoutFoundry: TestProjectTemplate = {
             name: "project-without-foundry-dep",
             version: "1.0.0",
@@ -2322,7 +2322,7 @@ submodule2/=lib/submodule2/src/`,
               ),
               importPath,
               installationName: "some-lib",
-              fromHasFoundryToml: false,
+              importerPackageHasFoundryToml: false,
             },
           });
         });
