@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import path from "node:path";
 import { describe, it } from "node:test";
 
 import { getCallerRelativePath } from "../../src/internal/using-hardhat2-plugin-errors.js";
@@ -12,17 +13,19 @@ describe("getCallerRelativePath", () => {
     const result = getCallerRelativePath(DIRECT_CALL_DEPTH);
     assert(result !== undefined, "Result should not be undefined");
     assert.ok(
-      result.includes("test/internal/hardhat2-plugin-errors.ts"),
-      `Expected path to contain "test/internal/hardhat2-plugin-errors.ts", got "${result}"`,
+      result.includes(
+        path.join("test", "internal", "hardhat2-plugin-errors.ts"),
+      ),
+      `Expected path to contain the path of "test/internal/hardhat2-plugin-errors.ts", got "${result}"`,
     );
   });
 
-  it("should return a relative path starting with ./", () => {
+  it("should return a relative path starting with ." + path.sep, () => {
     const result = getCallerRelativePath(DIRECT_CALL_DEPTH);
     assert(result !== undefined, "Result should not be undefined");
     assert.ok(
-      result.startsWith("./"),
-      `Expected path to start with "./", got "${result}"`,
+      result.startsWith("." + path.sep),
+      `Expected path to start with ".${path.sep}", got "${result}"`,
     );
   });
 
@@ -39,8 +42,10 @@ describe("getCallerRelativePath", () => {
     const result = wrapper();
     assert(result !== undefined, "Result should not be undefined");
     assert.ok(
-      result.includes("test/internal/hardhat2-plugin-errors.ts"),
-      `Expected path to contain "test/internal/hardhat2-plugin-errors.ts", got "${result}"`,
+      result.includes(
+        path.join("test", "internal", "hardhat2-plugin-errors.ts"),
+      ),
+      `Expected path to contain the path of "test/internal/hardhat2-plugin-errors.ts", got "${result}"`,
     );
   });
 });

@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import path from "node:path";
 import { describe, it } from "node:test";
 
 import { assertThrows } from "@nomicfoundation/hardhat-test-utils";
@@ -22,7 +23,8 @@ describe("Hardhat 2 plugin compatibility", () => {
           "Should be a UsingHardhat2PluginError",
         );
         assert.ok(
-          error.callerRelativePath?.includes("test/config.ts") === true,
+          error.callerRelativePath?.includes(path.join("test", "config.ts")) ===
+            true,
           "Should have the caller path",
         );
         return true;
@@ -39,7 +41,8 @@ describe("Hardhat 2 plugin compatibility", () => {
           "Should be a UsingHardhat2PluginError",
         );
         assert.ok(
-          error.callerRelativePath?.includes("test/config.ts") === true,
+          error.callerRelativePath?.includes(path.join("test", "config.ts")) ===
+            true,
           "Should have the caller path",
         );
         return true;
@@ -56,7 +59,8 @@ describe("Hardhat 2 plugin compatibility", () => {
           "Should be a UsingHardhat2PluginError",
         );
         assert.ok(
-          error.callerRelativePath?.includes("test/config.ts") === true,
+          error.callerRelativePath?.includes(path.join("test", "config.ts")) ===
+            true,
           "Should have the caller path",
         );
         return true;
@@ -73,7 +77,8 @@ describe("Hardhat 2 plugin compatibility", () => {
           "Should be a UsingHardhat2PluginError",
         );
         assert.ok(
-          error.callerRelativePath?.includes("test/config.ts") === true,
+          error.callerRelativePath?.includes(path.join("test", "config.ts")) ===
+            true,
           "Should have the caller path",
         );
         return true;
@@ -90,7 +95,8 @@ describe("Hardhat 2 plugin compatibility", () => {
           "Should be a UsingHardhat2PluginError",
         );
         assert.ok(
-          error.callerRelativePath?.includes("test/config.ts") === true,
+          error.callerRelativePath?.includes(path.join("test", "config.ts")) ===
+            true,
           "Should have the caller path",
         );
         return true;
