@@ -38,17 +38,30 @@ const nodeAction: NewTaskActionFunction<NodeActionArguments> = async (
   args,
   hre,
 ) => {
-  assertHardhatInvariant(
-    hre.config.networks.node.type === "edr-simulated",
-    "`node` network type must be `edr-simulated`",
-  );
+  const network =
+    hre.globalOptions.network !== undefined
+      ? hre.globalOptions.network
+      : "node";
+
+  if (!(network in hre.config.networks)) {
+    throw new HardhatError(HardhatError.ERRORS.CORE.NETWORK.NETWORK_NOT_FOUND, {
+      networkName: network,
+    });
+  }
+
+  if (hre.config.networks[network].type !== "edr-simulated") {
+    throw new HardhatError(HardhatError.ERRORS.CORE.NODE.INVALID_NETWORK_TYPE, {
+      networkType: hre.config.networks[network].type,
+      networkName: network,
+    });
+  }
 
   const connectionParams: {
     network: string;
     chainType?: ChainType;
     override?: EdrNetworkConfigOverride;
   } = {
-    network: "node",
+    network,
   };
 
   // NOTE: We create an empty network config override here. We add to it based
