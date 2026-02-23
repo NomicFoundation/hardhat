@@ -95,7 +95,7 @@ export interface NpmRootFileOfUninstalledPackageError {
    * A boolean indicating if the Hardhat project has a foundry.toml file in its
    * root.
    */
-  fromHasFoundryToml?: boolean;
+  projectHasFoundryToml?: boolean;
 }
 
 export interface NpmRootResolutionWithRemappingErrors {
@@ -239,7 +239,7 @@ export interface ImportOfUninstalledPackageError {
    * A boolean indicating weather the import is from a source file whose package
    * has a foundry.toml file in its root.
    */
-  fromHasFoundryToml?: boolean;
+  importerPackageHasFoundryToml?: boolean;
 }
 
 export interface ImportWithRemappingErrorsError {

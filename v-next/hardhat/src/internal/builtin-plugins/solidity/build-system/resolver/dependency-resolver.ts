@@ -710,7 +710,7 @@ export class ResolverImplementation implements Resolver {
           fromFsPath: from.fsPath,
           importPath,
           installationName: parsedDirectImport.package,
-          fromHasFoundryToml,
+          importerPackageHasFoundryToml: fromHasFoundryToml,
         },
       };
     }
@@ -1111,7 +1111,7 @@ export class ResolverImplementation implements Resolver {
           type: RootResolutionErrorType.NPM_ROOT_FILE_OF_UNINSTALLED_PACKAGE,
           npmModule,
           installationName: error.installationName,
-          fromHasFoundryToml: error.fromHasFoundryToml,
+          projectHasFoundryToml: error.importerPackageHasFoundryToml,
         };
       }
       case ImportResolutionErrorType.IMPORT_WITH_REMAPPING_ERRORS: {
