@@ -85,6 +85,7 @@ export function decodeReturnData(returnData: string): DecodedReturnData {
           type: "string",
           reason: e.message,
         },
+        e,
       );
     }
 
@@ -107,6 +108,7 @@ export function decodeReturnData(returnData: string): DecodedReturnData {
           type: "uint256",
           reason: e.message,
         },
+        e,
       );
     }
 
