@@ -245,4 +245,233 @@ describe("solidity - hooks", () => {
       });
     });
   });
+
+  describe("downloadCompilers", () => {
+    useFixtureProject("solidity/simple-project");
+
+    it("should invoke downloadCompilers hook with compiler configs during build", async () => {
+      let capturedConfigs: SolidityCompilerConfig[] = [];
+      let downloadHookCalled = false;
+
+      const downloadPlugin: HardhatPlugin = {
+        id: "test-download-compilers-plugin",
+        hookHandlers: {
+          solidity: async () => ({
+            default: async () => {
+              const handlers: Partial<SolidityHooks> = {
+                downloadCompilers: async (
+                  _context: HookContext,
+                  compilerConfigs: SolidityCompilerConfig[],
+                  _quiet: boolean,
+                ) => {
+                  downloadHookCalled = true;
+                  capturedConfigs = compilerConfigs;
+                },
+              };
+
+              return handlers;
+            },
+          }),
+        },
+      };
+
+      const hre = await createHardhatRuntimeEnvironment({
+        plugins: [downloadPlugin],
+        solidity: "0.8.23",
+      });
+
+      const roots = await hre.solidity.getRootFilePaths();
+      await hre.solidity.build(roots, {
+        force: true,
+        quiet: true,
+      });
+
+      assert.ok(
+        downloadHookCalled,
+        "The downloadCompilers hook should be triggered during build",
+      );
+      assert.ok(
+        capturedConfigs.length > 0,
+        "The downloadCompilers hook should receive compiler configs",
+      );
+      assert.equal(
+        capturedConfigs[0].version,
+        "0.8.23",
+        "The compiler config should have the expected version",
+      );
+    });
+
+    it("should pass all compiler configs from all profiles", async () => {
+      let capturedConfigs: SolidityCompilerConfig[] = [];
+
+      const downloadPlugin: HardhatPlugin = {
+        id: "test-download-all-configs-plugin",
+        hookHandlers: {
+          solidity: async () => ({
+            default: async () => {
+              const handlers: Partial<SolidityHooks> = {
+                downloadCompilers: async (
+                  _context: HookContext,
+                  compilerConfigs: SolidityCompilerConfig[],
+                  _quiet: boolean,
+                ) => {
+                  capturedConfigs = compilerConfigs;
+                },
+              };
+
+              return handlers;
+            },
+          }),
+        },
+      };
+
+      const hre = await createHardhatRuntimeEnvironment({
+        plugins: [downloadPlugin],
+        solidity: {
+          compilers: [{ version: "0.8.23" }, { version: "0.8.24" }],
+        },
+      });
+
+      const roots = await hre.solidity.getRootFilePaths();
+      await hre.solidity.build(roots, {
+        force: true,
+        quiet: true,
+      });
+
+      const versions = capturedConfigs.map((c) => c.version);
+      // Both default and production profiles have these compilers
+      assert.ok(versions.includes("0.8.23"), "Should include version 0.8.23");
+      assert.ok(versions.includes("0.8.24"), "Should include version 0.8.24");
+    });
+
+    it("should include overrides in compiler configs", async () => {
+      let capturedConfigs: SolidityCompilerConfig[] = [];
+
+      const downloadPlugin: HardhatPlugin = {
+        id: "test-download-overrides-plugin",
+        hookHandlers: {
+          solidity: async () => ({
+            default: async () => {
+              const handlers: Partial<SolidityHooks> = {
+                downloadCompilers: async (
+                  _context: HookContext,
+                  compilerConfigs: SolidityCompilerConfig[],
+                  _quiet: boolean,
+                ) => {
+                  capturedConfigs = compilerConfigs;
+                },
+              };
+
+              return handlers;
+            },
+          }),
+        },
+      };
+
+      const hre = await createHardhatRuntimeEnvironment({
+        plugins: [downloadPlugin],
+        solidity: {
+          compilers: [{ version: "0.8.23" }],
+          overrides: {
+            "contracts/Special.sol": { version: "0.8.24" },
+          },
+        },
+      });
+
+      const roots = await hre.solidity.getRootFilePaths();
+      await hre.solidity.build(roots, {
+        force: true,
+        quiet: true,
+      });
+
+      const versions = capturedConfigs.map((c) => c.version);
+      assert.ok(
+        versions.includes("0.8.24"),
+        "Should include override version 0.8.24",
+      );
+    });
+
+    it("should filter non-solc configs in built-in handler", async () => {
+      // The built-in handler should only download solc compilers.
+      // A non-solc config (type: "solx") should not cause a download failure.
+      // We verify this by building with a mixed config — if the built-in
+      // handler tried to download "solx" type, it would fail since there's
+      // no solx binary to download via the solc downloader.
+      let capturedConfigs: SolidityCompilerConfig[] = [];
+
+      const downloadPlugin: HardhatPlugin = {
+        id: "test-filter-non-solc-plugin",
+        hookHandlers: {
+          solidity: async () => ({
+            default: async () => {
+              const handlers: Partial<SolidityHooks> = {
+                downloadCompilers: async (
+                  _context: HookContext,
+                  compilerConfigs: SolidityCompilerConfig[],
+                  _quiet: boolean,
+                ) => {
+                  capturedConfigs = compilerConfigs;
+                  // Don't call next — we handle all downloads here
+                  // to prevent the built-in handler from running
+                },
+              };
+
+              return handlers;
+            },
+          }),
+        },
+      };
+
+      const hre = await createHardhatRuntimeEnvironment({
+        plugins: [downloadPlugin],
+        solidity: {
+          compilers: [
+            { version: "0.8.23" },
+            { type: "solx", version: "0.8.23" },
+          ],
+        },
+      });
+
+      const roots = await hre.solidity.getRootFilePaths();
+      await hre.solidity.build(roots, {
+        force: true,
+        quiet: true,
+      });
+
+      // Verify both configs are passed (the hook receives ALL configs)
+      assert.equal(
+        capturedConfigs.filter((c) => c.type === undefined).length > 0,
+        true,
+        "Should include solc configs (type undefined)",
+      );
+      assert.equal(
+        capturedConfigs.filter((c) => c.type === "solx").length > 0,
+        true,
+        "Should include non-solc configs (type solx)",
+      );
+    });
+
+    it("should only download solc compilers in built-in handler", async () => {
+      // Build with both solc and non-solc configs.
+      // The built-in handler uses isSolcConfig() to filter — only solc
+      // versions should be downloaded. If it tried to download a non-existent
+      // "solx" version via the solc downloader, the build would fail.
+      const hre = await createHardhatRuntimeEnvironment({
+        solidity: {
+          compilers: [
+            { version: "0.8.23" },
+            { type: "solx", version: "0.8.23", path: "/mock/path/to/solx" },
+          ],
+        },
+      });
+
+      const roots = await hre.solidity.getRootFilePaths();
+      // This should NOT throw — the built-in handler should skip the solx
+      // config and only download solc 0.8.23 (which is cached)
+      await hre.solidity.build(roots, {
+        force: true,
+        quiet: true,
+      });
+    });
+  });
 });

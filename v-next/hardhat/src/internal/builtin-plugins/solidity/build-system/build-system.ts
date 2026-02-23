@@ -1040,20 +1040,17 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
       return;
     }
 
-    await downloadSolcCompilers(this.#getAllCompilerVersions(), quiet);
+    const allSolidityCompilerConfigs = this.#getAllSolidityCompilerConfigs();
+    await this.#hooks.runParallelHandlers("solidity", "downloadCompilers", [
+      allSolidityCompilerConfigs,
+      quiet,
+    ]);
     this.#configuredCompilersDownloaded = true;
   }
 
-  #getAllCompilerVersions(): Set<string> {
-    return new Set(
-      Object.values(this.#options.solidityConfig.profiles)
-        .map((profile) => [
-          ...profile.compilers.map((compiler) => compiler.version),
-          ...Object.values(profile.overrides).map(
-            (override) => override.version,
-          ),
-        ])
-        .flat(1),
+  #getAllSolidityCompilerConfigs(): SolidityCompilerConfig[] {
+    return Object.values(this.#options.solidityConfig.profiles).flatMap(
+      (profile) => [...profile.compilers, ...Object.values(profile.overrides)],
     );
   }
 

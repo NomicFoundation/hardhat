@@ -125,6 +125,21 @@ declare module "../../../types/hooks.js" {
 
   export interface SolidityHooks {
     /**
+     * Hook triggered to download compilers needed for compilation.
+     * Each handler should download compilers it is responsible for.
+     * Runs in parallel — all registered handlers execute concurrently.
+     *
+     * @param context The hook context.
+     * @param compilerConfigs All compiler configurations from all build profiles.
+     * @param quiet Whether to suppress download progress output.
+     */
+    downloadCompilers: (
+      context: HookContext,
+      compilerConfigs: SolidityCompilerConfig[],
+      quiet: boolean,
+    ) => Promise<void>;
+
+    /**
      * Hook triggered during the cleanup process of Solidity compilation artifacts.
      * This hook runs after unused artifacts and build-info files have been removed.
      *

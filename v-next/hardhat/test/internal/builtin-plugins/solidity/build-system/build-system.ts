@@ -24,6 +24,7 @@ import {
 } from "@nomicfoundation/hardhat-utils/fs";
 
 import { SolidityBuildSystemImplementation } from "../../../../../src/internal/builtin-plugins/solidity/build-system/build-system.js";
+import createSolidityHookHandlers from "../../../../../src/internal/builtin-plugins/solidity/hook-handlers/solidity.js";
 import { HookManagerImplementation } from "../../../../../src/internal/core/hook-manager.js";
 
 async function emitArtifacts(solidity: SolidityBuildSystem): Promise<void> {
@@ -106,6 +107,7 @@ describe(
       const hooks = new HookManagerImplementation(process.cwd(), []);
       // eslint-disable-next-line @typescript-eslint/consistent-type-assertions -- We don't care about hooks in this context
       hooks.setContext({} as HookContext);
+      hooks.registerHandlers("solidity", await createSolidityHookHandlers());
       solidity = new SolidityBuildSystemImplementation(hooks, {
         solidityConfig,
         projectRoot: process.cwd(),
@@ -129,6 +131,7 @@ describe(
       const hooks = new HookManagerImplementation(process.cwd(), []);
       // eslint-disable-next-line @typescript-eslint/consistent-type-assertions -- We don't care about hooks in this context
       hooks.setContext({} as HookContext);
+      hooks.registerHandlers("solidity", await createSolidityHookHandlers());
       solidity = new SolidityBuildSystemImplementation(hooks, {
         solidityConfig,
         projectRoot: process.cwd(),
