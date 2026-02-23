@@ -1,6 +1,5 @@
 ---
 "@nomicfoundation/hardhat-errors": patch
-"@nomicfoundation/hardhat-verify": patch
 "hardhat": patch
 ---
 
