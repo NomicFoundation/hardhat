@@ -24,7 +24,7 @@ describe("utils", function () {
         actions: [
           {
             pluginId: "task-plugin-id",
-            lazyAction: async () => ({
+            action: async () => ({
               default: () => {},
             }),
           },
@@ -62,7 +62,7 @@ describe("utils", function () {
         actions: [
           {
             pluginId: "task-plugin-id",
-            lazyAction: async () => ({
+            action: async () => ({
               default: () => {},
             }),
           },
@@ -100,7 +100,7 @@ describe("utils", function () {
         actions: [
           {
             pluginId: "task-plugin-id",
-            lazyAction: async () => ({
+            action: async () => ({
               default: () => {},
             }),
           },
@@ -140,7 +140,7 @@ describe("utils", function () {
         actions: [
           {
             pluginId: "task-plugin-id",
-            lazyAction: async () => ({
+            action: async () => ({
               default: () => {},
             }),
           },
@@ -175,7 +175,7 @@ describe("utils", function () {
         actions: [
           {
             pluginId: "task-plugin-id",
-            lazyAction: async () => ({
+            action: async () => ({
               default: () => {},
             }),
           },
@@ -212,7 +212,7 @@ describe("utils", function () {
         actions: [
           {
             pluginId: "task-plugin-id",
-            lazyAction: async () => ({
+            action: async () => ({
               default: () => {},
             }),
           },
@@ -290,7 +290,7 @@ describe("utils", function () {
         actions: [
           {
             pluginId: "task-plugin-id",
-            lazyAction: async () => ({
+            action: async () => ({
               default: () => {},
             }),
           },
@@ -432,7 +432,7 @@ Section Title:
           actions: [
             {
               pluginId: "task-plugin-id",
-              lazyAction: async () => ({
+              action: async () => ({
                 default: () => {},
               }),
             },
@@ -512,7 +512,7 @@ Section Title:
           actions: [
             {
               pluginId: "task-plugin-id",
-              lazyAction: async () => ({
+              action: async () => ({
                 default: () => {},
               }),
             },

@@ -76,18 +76,15 @@ export enum TaskDefinitionType {
 }
 
 export type TaskAction =
-  | {
-      lazyAction: LazyActionObject<NewTaskActionFunction>;
-      inlineAction?: never;
-    }
-  | { inlineAction: NewTaskActionFunction; lazyAction?: never };
+  | { action: LazyActionObject<NewTaskActionFunction>; inlineAction?: never }
+  | { inlineAction: NewTaskActionFunction; action?: never };
 
 export type TaskOverrideAction =
   | {
-      lazyAction: LazyActionObject<TaskOverrideActionFunction>;
+      action: LazyActionObject<TaskOverrideActionFunction>;
       inlineAction?: never;
     }
-  | { inlineAction: TaskOverrideActionFunction; lazyAction?: never };
+  | { inlineAction: TaskOverrideActionFunction; action?: never };
 
 /**
  * Empty task definition. It is meant to be used as a placeholder task that only
@@ -345,7 +342,7 @@ export interface NewTaskDefinitionBuilder<
   build(): ActionTypeT extends "LAZY_ACTION"
     ? Extract<
         NewTaskDefinition,
-        { lazyAction: LazyActionObject<NewTaskActionFunction> }
+        { action: LazyActionObject<NewTaskActionFunction> }
       >
     : ActionTypeT extends "INLINE_ACTION"
       ? Extract<NewTaskDefinition, { inlineAction: NewTaskActionFunction }>
@@ -440,7 +437,7 @@ export interface TaskOverrideDefinitionBuilder<
   build(): ActionTypeT extends "LAZY_ACTION"
     ? Extract<
         TaskOverrideDefinition,
-        { lazyAction: LazyActionObject<TaskOverrideActionFunction> }
+        { action: LazyActionObject<TaskOverrideActionFunction> }
       >
     : ActionTypeT extends "INLINE_ACTION"
       ? Extract<
@@ -454,7 +451,7 @@ export interface TaskOverrideDefinitionBuilder<
  * The actions associated to the task, in order.
  *
  * Each of them has the pluginId of the plugin that defined it, if any, and the
- * action itself. The action is stored either in `lazyAction` or `inlineAction`.
+ * action itself. The action is stored either in `action` or `inlineAction`.
  * Note that `inlineAction` is reserved for user tasks and is not allowed for plugins.
  *
  * Note that the first action is a `NewTaskActionFunction` or undefined.
@@ -469,7 +466,7 @@ export type TaskActions = [
   } & (
     | TaskAction
     | {
-        lazyAction?: undefined;
+        action?: undefined;
         inlineAction?: undefined;
       }
   ),

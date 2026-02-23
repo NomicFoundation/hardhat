@@ -45,7 +45,7 @@ To get help for a specific task run: npx hardhat <TASK> [SUBTASK] --help`;
             actions: [
               {
                 pluginId: "task1-plugin-id",
-                lazyAction: async () => ({
+                action: async () => ({
                   default: () => {},
                 }),
               },
@@ -66,7 +66,7 @@ To get help for a specific task run: npx hardhat <TASK> [SUBTASK] --help`;
             actions: [
               {
                 pluginId: "task2-plugin-id",
-                lazyAction: async () => ({
+                action: async () => ({
                   default: () => {},
                 }),
               },
@@ -142,7 +142,7 @@ To get help for a specific task run: npx hardhat <TASK> [SUBTASK] --help`;
             actions: [
               {
                 pluginId: "task1-plugin-id",
-                lazyAction: async () => ({
+                action: async () => ({
                   default: () => {},
                 }),
               },
@@ -156,8 +156,8 @@ To get help for a specific task run: npx hardhat <TASK> [SUBTASK] --help`;
               actions: [
                 {
                   pluginId: "task1-plugin-id",
-                  lazyAction: {
-                    lazyAction: async () => ({
+                  action: {
+                    action: async () => ({
                       default: () => {},
                     }),
                   },
@@ -182,7 +182,7 @@ To get help for a specific task run: npx hardhat <TASK> [SUBTASK] --help`;
             actions: [
               {
                 pluginId: "task2-plugin-id",
-                lazyAction: async () => ({
+                action: async () => ({
                   default: () => {},
                 }),
               },
@@ -284,7 +284,7 @@ To get help for a specific task run: npx hardhat <TASK> [SUBTASK] --help`;
             actions: [
               {
                 pluginId: "task1-plugin-id",
-                lazyAction: async () => ({
+                action: async () => ({
                   default: () => {},
                 }),
               },
@@ -298,8 +298,8 @@ To get help for a specific task run: npx hardhat <TASK> [SUBTASK] --help`;
               actions: [
                 {
                   pluginId: "task1-plugin-id",
-                  lazyAction: {
-                    lazyAction: async () => ({
+                  action: {
+                    action: async () => ({
                       default: () => {},
                     }),
                   },
@@ -324,7 +324,7 @@ To get help for a specific task run: npx hardhat <TASK> [SUBTASK] --help`;
             actions: [
               {
                 pluginId: "task2-plugin-id",
-                lazyAction: async () => ({
+                action: async () => ({
                   default: () => {},
                 }),
               },

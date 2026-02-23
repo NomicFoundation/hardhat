@@ -118,7 +118,7 @@ describe("Task builders", () => {
         type: TaskDefinitionType.NEW_TASK,
         id: ["task-id"],
         description: "",
-        lazyAction: taskAction,
+        action: taskAction,
         options: {},
         positionalArguments: [],
       });
@@ -136,7 +136,7 @@ describe("Task builders", () => {
         type: TaskDefinitionType.NEW_TASK,
         id: ids,
         description: "",
-        lazyAction: taskAction,
+        action: taskAction,
         options: {},
         positionalArguments: [],
       });
@@ -167,16 +167,16 @@ describe("Task builders", () => {
         const builder = new NewTaskDefinitionBuilderImplementation("task-id");
         const taskActionUrl = "./path/to/task-action.js";
 
-        const lazyAction: LazyActionObject<NewTaskActionFunction> = () =>
+        const action: LazyActionObject<NewTaskActionFunction> = () =>
           import(taskActionUrl);
 
-        const taskDefinition = builder.setAction(lazyAction).build();
+        const taskDefinition = builder.setAction(action).build();
 
         assert.deepEqual(taskDefinition, {
           type: TaskDefinitionType.NEW_TASK,
           id: ["task-id"],
           description: "",
-          lazyAction,
+          action,
           options: {},
           positionalArguments: [],
         });
@@ -209,7 +209,7 @@ describe("Task builders", () => {
           type: TaskDefinitionType.NEW_TASK,
           id: ["task-id"],
           description: "Task description",
-          lazyAction: taskAction,
+          action: taskAction,
           options: {},
           positionalArguments: [],
         });
@@ -229,7 +229,7 @@ describe("Task builders", () => {
           type: TaskDefinitionType.NEW_TASK,
           id: ["task-id"],
           description: "Task description",
-          lazyAction: taskAction,
+          action: taskAction,
           options: {},
           positionalArguments: [],
         });
@@ -252,7 +252,7 @@ describe("Task builders", () => {
           type: TaskDefinitionType.NEW_TASK,
           id: ["task-id"],
           description: "New task description",
-          lazyAction: taskAction,
+          action: taskAction,
           options: {},
           positionalArguments: [],
         });
@@ -277,7 +277,7 @@ describe("Task builders", () => {
           type: TaskDefinitionType.NEW_TASK,
           id: ["task-id"],
           description: "",
-          lazyAction: taskAction,
+          action: taskAction,
           options: {
             arg: {
               name: "arg",
@@ -310,7 +310,7 @@ describe("Task builders", () => {
           type: TaskDefinitionType.NEW_TASK,
           id: ["task-id"],
           description: "",
-          lazyAction: taskAction,
+          action: taskAction,
           options: {
             arg: {
               name: "arg",
@@ -343,7 +343,7 @@ describe("Task builders", () => {
           type: TaskDefinitionType.NEW_TASK,
           id: ["task-id"],
           description: "",
-          lazyAction: taskAction,
+          action: taskAction,
           options: {
             arg: {
               name: "arg",
@@ -376,7 +376,7 @@ describe("Task builders", () => {
           type: TaskDefinitionType.NEW_TASK,
           id: ["task-id"],
           description: "",
-          lazyAction: taskAction,
+          action: taskAction,
           options: {
             arg: {
               name: "arg",
@@ -409,7 +409,7 @@ describe("Task builders", () => {
           type: TaskDefinitionType.NEW_TASK,
           id: ["task-id"],
           description: "",
-          lazyAction: taskAction,
+          action: taskAction,
           options: {
             arg: {
               name: "arg",
@@ -440,7 +440,7 @@ describe("Task builders", () => {
           type: TaskDefinitionType.NEW_TASK,
           id: ["task-id"],
           description: "",
-          lazyAction: taskAction,
+          action: taskAction,
           options: {
             flag: {
               name: "flag",
@@ -469,7 +469,7 @@ describe("Task builders", () => {
           type: TaskDefinitionType.NEW_TASK,
           id: ["task-id"],
           description: "",
-          lazyAction: taskAction,
+          action: taskAction,
           options: {
             flag: {
               name: "flag",
@@ -498,7 +498,7 @@ describe("Task builders", () => {
           type: TaskDefinitionType.NEW_TASK,
           id: ["task-id"],
           description: "",
-          lazyAction: taskAction,
+          action: taskAction,
           options: {
             flag: {
               name: "flag",
@@ -527,7 +527,7 @@ describe("Task builders", () => {
           type: TaskDefinitionType.NEW_TASK,
           id: ["task-id"],
           description: "",
-          lazyAction: taskAction,
+          action: taskAction,
           options: {
             flag: {
               name: "flag",
@@ -558,7 +558,7 @@ describe("Task builders", () => {
           type: TaskDefinitionType.NEW_TASK,
           id: ["task-id"],
           description: "",
-          lazyAction: taskAction,
+          action: taskAction,
           options: {},
           positionalArguments: [
             {
@@ -589,7 +589,7 @@ describe("Task builders", () => {
           type: TaskDefinitionType.NEW_TASK,
           id: ["task-id"],
           description: "",
-          lazyAction: taskAction,
+          action: taskAction,
           options: {},
           positionalArguments: [
             {
@@ -620,7 +620,7 @@ describe("Task builders", () => {
           type: TaskDefinitionType.NEW_TASK,
           id: ["task-id"],
           description: "",
-          lazyAction: taskAction,
+          action: taskAction,
           options: {},
           positionalArguments: [
             {
@@ -651,7 +651,7 @@ describe("Task builders", () => {
           type: TaskDefinitionType.NEW_TASK,
           id: ["task-id"],
           description: "",
-          lazyAction: taskAction,
+          action: taskAction,
           options: {},
           positionalArguments: [
             {
@@ -681,7 +681,7 @@ describe("Task builders", () => {
           type: TaskDefinitionType.NEW_TASK,
           id: ["task-id"],
           description: "",
-          lazyAction: taskAction,
+          action: taskAction,
           options: {},
           positionalArguments: [
             {
@@ -712,7 +712,7 @@ describe("Task builders", () => {
           type: TaskDefinitionType.NEW_TASK,
           id: ["task-id"],
           description: "",
-          lazyAction: taskAction,
+          action: taskAction,
           options: {},
           positionalArguments: [
             {
@@ -743,7 +743,7 @@ describe("Task builders", () => {
           type: TaskDefinitionType.NEW_TASK,
           id: ["task-id"],
           description: "",
-          lazyAction: taskAction,
+          action: taskAction,
           options: {},
           positionalArguments: [
             {
@@ -771,7 +771,7 @@ describe("Task builders", () => {
           type: TaskDefinitionType.NEW_TASK,
           id: ["task-id"],
           description: "",
-          lazyAction: taskAction,
+          action: taskAction,
           options: {},
           positionalArguments: [
             {
@@ -1093,7 +1093,7 @@ describe("Task builders", () => {
 
         assert.equal(result.type, TaskDefinitionType.NEW_TASK);
         assert.equal(result.inlineAction, inlineAction);
-        assert.equal(result.lazyAction, undefined);
+        assert.equal(result.action, undefined);
       });
 
       it("should be invalid with action + inline action", () => {
@@ -1164,7 +1164,7 @@ describe("Task builders", () => {
         type: TaskDefinitionType.TASK_OVERRIDE,
         id: ["task-id"],
         description: undefined,
-        lazyAction: taskAction,
+        action: taskAction,
         options: {},
       });
     });
@@ -1181,7 +1181,7 @@ describe("Task builders", () => {
         type: TaskDefinitionType.TASK_OVERRIDE,
         id: ids,
         description: undefined,
-        lazyAction: taskAction,
+        action: taskAction,
         options: {},
       });
     });
@@ -1213,16 +1213,16 @@ describe("Task builders", () => {
         );
         const taskActionUrl = "./path/to/task-action.js";
 
-        const lazyAction: LazyActionObject<NewTaskActionFunction> = () =>
+        const action: LazyActionObject<NewTaskActionFunction> = () =>
           import(taskActionUrl);
 
-        const taskDefinition = builder.setAction(lazyAction).build();
+        const taskDefinition = builder.setAction(action).build();
 
         assert.deepEqual(taskDefinition, {
           type: TaskDefinitionType.TASK_OVERRIDE,
           id: ["task-id"],
           description: undefined,
-          lazyAction,
+          action,
           options: {},
         });
       });
@@ -1258,7 +1258,7 @@ describe("Task builders", () => {
           type: TaskDefinitionType.TASK_OVERRIDE,
           id: ["task-id"],
           description: "Task description",
-          lazyAction: taskAction,
+          action: taskAction,
           options: {},
         });
       });
@@ -1284,7 +1284,7 @@ describe("Task builders", () => {
           type: TaskDefinitionType.TASK_OVERRIDE,
           id: ["task-id"],
           description: undefined,
-          lazyAction: taskAction,
+          action: taskAction,
           options: {
             arg: {
               name: "arg",
@@ -1318,7 +1318,7 @@ describe("Task builders", () => {
           type: TaskDefinitionType.TASK_OVERRIDE,
           id: ["task-id"],
           description: undefined,
-          lazyAction: taskAction,
+          action: taskAction,
           options: {
             arg: {
               name: "arg",
@@ -1352,7 +1352,7 @@ describe("Task builders", () => {
           type: TaskDefinitionType.TASK_OVERRIDE,
           id: ["task-id"],
           description: undefined,
-          lazyAction: taskAction,
+          action: taskAction,
           options: {
             arg: {
               name: "arg",
@@ -1388,7 +1388,7 @@ describe("Task builders", () => {
           type: TaskDefinitionType.TASK_OVERRIDE,
           id: ["task-id"],
           description: undefined,
-          lazyAction: taskAction,
+          action: taskAction,
           options: {
             arg: {
               name: "arg",
@@ -1422,7 +1422,7 @@ describe("Task builders", () => {
           type: TaskDefinitionType.TASK_OVERRIDE,
           id: ["task-id"],
           description: undefined,
-          lazyAction: taskAction,
+          action: taskAction,
           options: {
             arg: {
               name: "arg",
@@ -1454,7 +1454,7 @@ describe("Task builders", () => {
           type: TaskDefinitionType.TASK_OVERRIDE,
           id: ["task-id"],
           description: undefined,
-          lazyAction: taskAction,
+          action: taskAction,
           options: {
             flag: {
               name: "flag",
@@ -1484,7 +1484,7 @@ describe("Task builders", () => {
           type: TaskDefinitionType.TASK_OVERRIDE,
           id: ["task-id"],
           description: undefined,
-          lazyAction: taskAction,
+          action: taskAction,
           options: {
             flag: {
               name: "flag",
@@ -1514,7 +1514,7 @@ describe("Task builders", () => {
           type: TaskDefinitionType.TASK_OVERRIDE,
           id: ["task-id"],
           description: undefined,
-          lazyAction: taskAction,
+          action: taskAction,
           options: {
             flag: {
               name: "flag",
@@ -1544,7 +1544,7 @@ describe("Task builders", () => {
           type: TaskDefinitionType.TASK_OVERRIDE,
           id: ["task-id"],
           description: undefined,
-          lazyAction: taskAction,
+          action: taskAction,
           options: {
             flag: {
               name: "flag",
@@ -1780,7 +1780,7 @@ describe("Task builders", () => {
 
         assert.equal(result.type, TaskDefinitionType.TASK_OVERRIDE);
         assert.equal(result.inlineAction, inlineAction);
-        assert.equal(result.lazyAction, undefined);
+        assert.equal(result.action, undefined);
       });
 
       it("should be invalid with action + inline action", () => {

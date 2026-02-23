@@ -37,7 +37,7 @@ export class ResolvedTask implements Task {
     return new ResolvedTask(
       id,
       description,
-      [{ pluginId, lazyAction: undefined, inlineAction: undefined }],
+      [{ pluginId, action: undefined, inlineAction: undefined }],
       new Map(),
       [],
       pluginId,
@@ -88,7 +88,7 @@ export class ResolvedTask implements Task {
   public get isEmpty(): boolean {
     return (
       this.actions.length === 1 &&
-      this.actions[0].lazyAction === undefined &&
+      this.actions[0].action === undefined &&
       this.actions[0].inlineAction === undefined
     );
   }
@@ -160,14 +160,14 @@ export class ResolvedTask implements Task {
       if (currentTaskAction.inlineAction !== undefined) {
         actionFn = currentTaskAction.inlineAction;
       } else {
-        const lazyAction =
-          currentTaskAction.lazyAction ??
+        const action =
+          currentTaskAction.action ??
           (async () => ({
             default: () => {},
           }));
 
         actionFn = await this.#resolveImportAction(
-          lazyAction,
+          action,
           currentTaskAction.pluginId,
         );
       }

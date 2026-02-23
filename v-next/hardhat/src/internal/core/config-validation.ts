@@ -342,14 +342,14 @@ export function validateTaskOverride(
 }
 
 function validateActionFields(
-  task: { lazyAction?: unknown; inlineAction?: unknown },
+  task: { action?: unknown; inlineAction?: unknown },
   path: Array<string | number>,
   isPlugin: boolean = false,
 ): HardhatUserConfigValidationError[] {
   const validationErrors: HardhatUserConfigValidationError[] = [];
 
-  // Mutual exclusivity: cannot have both lazyAction and inlineAction
-  if (task.lazyAction !== undefined && task.inlineAction !== undefined) {
+  // Mutual exclusivity: cannot have both action and inlineAction
+  if (task.action !== undefined && task.inlineAction !== undefined) {
     validationErrors.push({
       path: [...path],
       message: 'task cannot define both "action" and "inlineAction"',
@@ -365,17 +365,17 @@ function validateActionFields(
   }
 
   // At least one action must be defined
-  if (task.lazyAction === undefined && task.inlineAction === undefined) {
+  if (task.action === undefined && task.inlineAction === undefined) {
     validationErrors.push({
-      path: [...path, "lazyAction"],
+      path: [...path, "action"],
       message: 'task must define either "action" or "inlineAction"',
     });
   }
 
-  if (task.lazyAction !== undefined) {
-    if (typeof task.lazyAction !== "function") {
+  if (task.action !== undefined) {
+    if (typeof task.action !== "function") {
       validationErrors.push({
-        path: [...path, "lazyAction"],
+        path: [...path, "action"],
         message:
           "task action must be a lazy import function returning a module with a default export",
       });
