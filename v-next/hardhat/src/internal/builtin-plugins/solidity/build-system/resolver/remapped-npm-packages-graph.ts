@@ -421,32 +421,6 @@ export class RemappedNpmPackagesGraphImplementation
       UserRemappingError[]
     >
   > {
-    const defaultBehavior = async (
-      packageName: string,
-      packageVersion: string,
-      packagePath: string,
-    ) => {
-      // Default: read from remappings.txt files (existing implementation)
-      const remappingsTxtFiles = await getAllFilesMatching(
-        packagePath,
-        (f) => path.basename(f) === "remappings.txt",
-        (f) => !f.endsWith("node_modules"),
-      );
-
-      const results: Array<{ remappings: string[]; source: string }> = [];
-      for (const file of remappingsTxtFiles) {
-        const contents = await readUtf8File(file);
-        const lines = contents
-          .split("\n")
-          .map((line) => line.trim())
-          .filter((line) => line !== "" && !line.startsWith("#"));
-        results.push({ remappings: lines, source: file });
-      }
-
-      return results;
-    };
-
-    // Call the wrapper function if provided, otherwise use default
     let allRemappings: Array<{ remappings: string[]; source: string }>;
 
     if (this.#remappingsReader !== undefined) {
@@ -454,12 +428,11 @@ export class RemappedNpmPackagesGraphImplementation
         npmPackage.name,
         npmPackage.version,
         npmPackage.rootFsPath,
-        defaultBehavior,
+        async (_packageName, _packageVersion, packagePath) =>
+          this.#defaultReadPackageRemappings(packagePath),
       );
     } else {
-      allRemappings = await defaultBehavior(
-        npmPackage.name,
-        npmPackage.version,
+      allRemappings = await this.#defaultReadPackageRemappings(
         npmPackage.rootFsPath,
       );
     }
@@ -501,6 +474,28 @@ export class RemappedNpmPackagesGraphImplementation
     }
 
     return { success: true, value: remappings };
+  }
+
+  async #defaultReadPackageRemappings(
+    packagePath: string,
+  ): Promise<Array<{ remappings: string[]; source: string }>> {
+    const remappingsTxtFiles = await getAllFilesMatching(
+      packagePath,
+      (f) => path.basename(f) === "remappings.txt",
+      (f) => !f.endsWith("node_modules"),
+    );
+
+    const results: Array<{ remappings: string[]; source: string }> = [];
+    for (const file of remappingsTxtFiles) {
+      const contents = await readUtf8File(file);
+      const lines = contents
+        .split("\n")
+        .map((line) => line.trim())
+        .filter((line) => line !== "" && !line.startsWith("#"));
+      results.push({ remappings: lines, source: file });
+    }
+
+    return results;
   }
 
   /**
