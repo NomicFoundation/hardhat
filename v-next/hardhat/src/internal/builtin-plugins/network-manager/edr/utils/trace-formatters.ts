@@ -8,7 +8,6 @@ import type {
 import { LogKind, CallKind, IncludeTraces } from "@nomicfoundation/edr";
 import { assertHardhatInvariant } from "@nomicfoundation/hardhat-errors";
 import { bytesToHexString } from "@nomicfoundation/hardhat-utils/hex";
-import chalk from "chalk";
 
 type NestedArray<T> = Array<T | NestedArray<T>>;
 
@@ -54,7 +53,7 @@ function formatOutputs(outputs: string | Uint8Array): string | undefined {
   }
 }
 
-function formatLog(log: LogTrace, colorizer: Colorizer = chalk): string[] {
+function formatLog(log: LogTrace, colorizer: Colorizer): string[] {
   const { parameters } = log;
   const lines = [];
   if (Array.isArray(parameters)) {
@@ -136,7 +135,7 @@ function formatTrace(
     if (formattedInputs !== undefined) {
       openingLine = `${openingLine}::${formattedInputs}`;
     }
-    if (value !== BigInt(0)) {
+    if (value !== 0n) {
       openingLine = `${openingLine} {value: ${value}}`;
     }
     if (formattedKind !== undefined) {
@@ -158,7 +157,7 @@ function formatTrace(
   lines.push(openingLine);
   for (const child of trace.children) {
     if (child.kind === LogKind.Log) {
-      lines.push(formatLog(child));
+      lines.push(formatLog(child, colorizer));
     } else {
       lines.push(formatTrace(child, colorizer));
     }
