@@ -102,7 +102,7 @@ export function decodeReturnData(returnData: string): DecodedReturnData {
 
       try {
         chaiAssert.fail(
-          `There was an error decoding "${encodedReason}" as a "uint256. Reason: ${cause.message}"`,
+          `There was an error decoding "${encodedReason}" as a "uint256". Reason: ${cause.message}`,
         );
       } catch (e) {
         ensureError(e);
