@@ -145,6 +145,8 @@ export async function* testReporter(
               suiteSuccessCount++;
               if (verbosity >= 5) {
                 printSetUpTraces = true;
+              }
+              if (verbosity >= 4) {
                 printExecutionTraces = true;
               }
               break;

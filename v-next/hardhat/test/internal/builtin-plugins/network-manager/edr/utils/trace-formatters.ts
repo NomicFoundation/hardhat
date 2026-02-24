@@ -28,8 +28,8 @@ describe("verbosityToIncludeTraces", () => {
     assert.equal(verbosityToIncludeTraces(3), IncludeTraces.Failing);
   });
 
-  it("should return Failing for verbosity 4", () => {
-    assert.equal(verbosityToIncludeTraces(4), IncludeTraces.Failing);
+  it("should return All for verbosity 4", () => {
+    assert.equal(verbosityToIncludeTraces(4), IncludeTraces.All);
   });
 
   it("should return All for verbosity 5", () => {

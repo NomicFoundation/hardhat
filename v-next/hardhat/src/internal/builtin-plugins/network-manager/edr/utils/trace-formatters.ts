@@ -13,7 +13,7 @@ import chalk from "chalk";
 type NestedArray<T> = Array<T | NestedArray<T>>;
 
 export function verbosityToIncludeTraces(verbosity: number): IncludeTraces {
-  if (verbosity >= 5) {
+  if (verbosity >= 4) {
     return IncludeTraces.All;
   } else if (verbosity >= 3) {
     return IncludeTraces.Failing;
