@@ -2,16 +2,15 @@
   "name": "@nomiclabs/hardhat-truffle4",
   "version": "2.1.2",
   "description": "Truffle 4 Hardhat compatibility plugin",
-  "homepage": "https://github.com/nomiclabs/hardhat/tree/main/packages/hardhat-truffle4",
+  "homepage": "https://github.com/nomicfoundation/hardhat/tree/deprecated-versions/packages/hardhat-truffle4",
   "repository": {
     "type": "git",
     "url": "https://github.com/NomicFoundation/hardhat",
     "directory": "packages/hardhat-truffle4"
   },
-  "author": "Nomic Labs LLC",
+  "author": "Nomic Foundation",
   "license": "MIT",
-  "main": "dist/src/index.js",
-  "types": "dist/src/index.d.ts",
+  "main": "index.js",
   "keywords": [
     "ethereum",
     "smart-contracts",
@@ -19,58 +18,5 @@
     "hardhat-plugin",
     "truffle",
     "truffle-contract"
-  ],
-  "scripts": {
-    "lint": "pnpm prettier --check && pnpm eslint",
-    "lint:fix": "pnpm prettier --write && pnpm eslint --fix",
-    "eslint": "eslint 'src/**/*.ts' 'test/**/*.ts'",
-    "prettier": "prettier \"**/*.{js,md,json}\"",
-    "pretest": "cd ../.. && pnpm build",
-    "test": "mocha --recursive \"test/**/*.ts\" --exit",
-    "build": "tsc --build .",
-    "prepublishOnly": "pnpm build",
-    "clean": "rimraf dist"
-  },
-  "files": [
-    "dist/src/",
-    "src/",
-    "LICENSE",
-    "README.md"
-  ],
-  "dependencies": {
-    "@types/chai": "^4.2.0",
-    "chai": "^4.2.0",
-    "ethereumjs-util": "^7.1.4",
-    "fs-extra": "^7.0.1",
-    "truffle-contract": "^3.0.7"
-  },
-  "devDependencies": {
-    "@nomicfoundation/eslint-plugin-hardhat-internal-rules": "workspace:^",
-    "@nomicfoundation/eslint-plugin-slow-imports": "workspace:^",
-    "@nomiclabs/hardhat-web3-legacy": "workspace:^2.1.0",
-    "@types/fs-extra": "^5.1.0",
-    "@types/glob": "^7.1.1",
-    "@types/mocha": ">=9.1.0",
-    "@types/node": "^20.0.0",
-    "@typescript-eslint/eslint-plugin": "5.61.0",
-    "@typescript-eslint/parser": "5.61.0",
-    "chai": "^4.2.0",
-    "eslint": "^8.44.0",
-    "eslint-config-prettier": "8.3.0",
-    "eslint-plugin-import": "2.27.5",
-    "eslint-plugin-mocha": "10.4.1",
-    "eslint-plugin-prettier": "3.4.0",
-    "hardhat": "workspace:^2.26.0",
-    "mocha": "^10.0.0",
-    "prettier": "2.4.1",
-    "rimraf": "^3.0.2",
-    "ts-node": "^10.8.0",
-    "typescript": "~5.0.0",
-    "web3": "^0.20.0"
-  },
-  "peerDependencies": {
-    "@nomiclabs/hardhat-web3-legacy": "workspace:^2.1.0",
-    "hardhat": "workspace:^2.26.0",
-    "web3": "^0.20.0"
-  }
+  ]
 }
