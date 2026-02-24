@@ -97,7 +97,7 @@ importers:
         version: link:../hardhat-viem-assertions
       '@nomicfoundation/ignition-core':
         specifier: workspace:^3.0.8
-        version: link:../hardhat-ignition-core
+        version: link:../ignition-core
       '@openzeppelin/contracts':
         specifier: 5.1.0
         version: 5.1.0
@@ -462,7 +462,7 @@ importers:
         version: link:../hardhat-utils
       '@nomicfoundation/ignition-core':
         specifier: workspace:^3.0.8
-        version: link:../hardhat-ignition-core
+        version: link:../ignition-core
       '@nomicfoundation/ignition-ui':
         specifier: workspace:^3.0.8
         version: link:../hardhat-ignition-ui
@@ -552,103 +552,6 @@ importers:
         specifier: ^2.43.0
         version: 2.43.5(typescript@5.8.3)(zod@3.25.76)
 
-  v-next/hardhat-ignition-core:
-    dependencies:
-      '@ethersproject/address':
-        specifier: 5.6.1
-        version: 5.6.1
-      '@nomicfoundation/hardhat-errors':
-        specifier: workspace:^3.0.7
-        version: link:../hardhat-errors
-      '@nomicfoundation/hardhat-utils':
-        specifier: workspace:^4.0.0
-        version: link:../hardhat-utils
-      '@nomicfoundation/solidity-analyzer':
-        specifier: ^0.1.1
-        version: 0.1.2
-      cbor2:
-        specifier: ^1.9.0
-        version: 1.12.0
-      debug:
-        specifier: ^4.3.2
-        version: 4.4.3(supports-color@5.5.0)
-      ethers:
-        specifier: ^6.14.0
-        version: 6.15.0
-      immer:
-        specifier: 10.0.2
-        version: 10.0.2
-      lodash-es:
-        specifier: 4.17.21
-        version: 4.17.21
-      ndjson:
-        specifier: 2.0.0
-        version: 2.0.0
-    devDependencies:
-      '@istanbuljs/nyc-config-typescript':
-        specifier: 1.0.2
-        version: 1.0.2(nyc@15.1.0)
-      '@microsoft/api-extractor':
-        specifier: 7.49.1
-        version: 7.49.1(@types/node@22.18.7)
-      '@nomicfoundation/hardhat-test-utils':
-        specifier: workspace:^
-        version: link:../hardhat-test-utils
-      '@types/chai':
-        specifier: ^5.2.3
-        version: 5.2.3
-      '@types/chai-as-promised':
-        specifier: ^8.0.1
-        version: 8.0.2
-      '@types/debug':
-        specifier: ^4.1.7
-        version: 4.1.12
-      '@types/lodash-es':
-        specifier: ^4.17.12
-        version: 4.17.12
-      '@types/mocha':
-        specifier: '>=10.0.10'
-        version: 10.0.10
-      '@types/ndjson':
-        specifier: 2.0.1
-        version: 2.0.1
-      '@types/node':
-        specifier: ^22.0.0
-        version: 22.18.7
-      chai:
-        specifier: ^6.2.2
-        version: 6.2.2
-      chai-as-promised:
-        specifier: ^8.0.0
-        version: 8.0.2(chai@6.2.2)
-      cross-env:
-        specifier: 7.0.3
-        version: 7.0.3
-      eslint:
-        specifier: 9.25.1
-        version: 9.25.1
-      hardhat:
-        specifier: workspace:^3.1.10
-        version: link:../hardhat
-      mocha:
-        specifier: ^11.0.0
-        version: 11.7.3
-      nyc:
-        specifier: 15.1.0
-        version: 15.1.0
-      prettier:
-        specifier: 3.2.5
-        version: 3.2.5
-      rimraf:
-        specifier: ^5.0.5
-        version: 5.0.10
-      ts-node:
-        specifier: 10.9.2
-        version: 10.9.2(@types/node@22.18.7)(typescript@5.8.3)
-      typescript:
-        specifier: ~5.8.0
-        version: 5.8.3
-
   v-next/hardhat-ignition-ethers:
     dependencies:
       '@nomicfoundation/hardhat-errors':
@@ -675,7 +578,7 @@ importers:
         version: link:../hardhat-verify
       '@nomicfoundation/ignition-core':
         specifier: workspace:^3.0.7
-        version: link:../hardhat-ignition-core
+        version: link:../ignition-core
       '@types/node':
         specifier: ^22.0.0
         version: 22.18.7
@@ -720,7 +623,7 @@ importers:
         version: 5.2.8
       '@nomicfoundation/ignition-core':
         specifier: workspace:^3.0.8
-        version: link:../hardhat-ignition-core
+        version: link:../ignition-core
       '@types/chai':
         specifier: ^5.2.3
         version: 5.2.3
@@ -820,7 +723,7 @@ importers:
         version: link:../hardhat-viem
       '@nomicfoundation/ignition-core':
         specifier: workspace:^3.0.7
-        version: link:../hardhat-ignition-core
+        version: link:../ignition-core
       '@types/node':
         specifier: ^22.0.0
         version: 22.18.7
@@ -1274,7 +1177,7 @@ importers:
         version: link:../hardhat-verify
       '@nomicfoundation/ignition-core':
         specifier: workspace:^3.0.0
-        version: link:../hardhat-ignition-core
+        version: link:../ignition-core
       '@types/chai':
         specifier: ^5.2.3
         version: 5.2.3
@@ -1353,7 +1256,7 @@ importers:
         version: link:../hardhat-viem-assertions
       '@nomicfoundation/ignition-core':
         specifier: workspace:^3.0.7
-        version: link:../hardhat-ignition-core
+        version: link:../ignition-core
       '@types/node':
         specifier: ^22.0.0
         version: 22.18.7
@@ -1779,7 +1682,7 @@ importers:
         version: link:../../../../hardhat-viem-assertions
       '@nomicfoundation/ignition-core':
         specifier: workspace:^3.0.8
-        version: link:../../../../hardhat-ignition-core
+        version: link:../../../../ignition-core
     devDependencies:
       '@nomicfoundation/hardhat-ignition':
         specifier: workspace:^3.0.8
@@ -1828,7 +1731,7 @@ importers:
         version: link:../../../../hardhat-verify
       '@nomicfoundation/ignition-core':
         specifier: workspace:^3.0.8
-        version: link:../../../../hardhat-ignition-core
+        version: link:../../../../ignition-core
     devDependencies:
       '@nomicfoundation/hardhat-ethers':
         specifier: workspace:^4.0.5
@@ -1878,6 +1781,103 @@ importers:
       hardhat:
         specifier: workspace:^3.1.10
         version: link:../../..
+      typescript:
+        specifier: ~5.8.0
+        version: 5.8.3
+
+  v-next/ignition-core:
+    dependencies:
+      '@ethersproject/address':
+        specifier: 5.6.1
+        version: 5.6.1
+      '@nomicfoundation/hardhat-errors':
+        specifier: workspace:^3.0.7
+        version: link:../hardhat-errors
+      '@nomicfoundation/hardhat-utils':
+        specifier: workspace:^4.0.0
+        version: link:../hardhat-utils
+      '@nomicfoundation/solidity-analyzer':
+        specifier: ^0.1.1
+        version: 0.1.2
+      cbor2:
+        specifier: ^1.9.0
+        version: 1.12.0
+      debug:
+        specifier: ^4.3.2
+        version: 4.4.3(supports-color@5.5.0)
+      ethers:
+        specifier: ^6.14.0
+        version: 6.15.0
+      immer:
+        specifier: 10.0.2
+        version: 10.0.2
+      lodash-es:
+        specifier: 4.17.21
+        version: 4.17.21
+      ndjson:
+        specifier: 2.0.0
+        version: 2.0.0
+    devDependencies:
+      '@istanbuljs/nyc-config-typescript':
+        specifier: 1.0.2
+        version: 1.0.2(nyc@15.1.0)
+      '@microsoft/api-extractor':
+        specifier: 7.49.1
+        version: 7.49.1(@types/node@22.18.7)
+      '@nomicfoundation/hardhat-test-utils':
+        specifier: workspace:^
+        version: link:../hardhat-test-utils
+      '@types/chai':
+        specifier: ^5.2.3
+        version: 5.2.3
+      '@types/chai-as-promised':
+        specifier: ^8.0.1
+        version: 8.0.2
+      '@types/debug':
+        specifier: ^4.1.7
+        version: 4.1.12
+      '@types/lodash-es':
+        specifier: ^4.17.12
+        version: 4.17.12
+      '@types/mocha':
+        specifier: '>=10.0.10'
+        version: 10.0.10
+      '@types/ndjson':
+        specifier: 2.0.1
+        version: 2.0.1
+      '@types/node':
+        specifier: ^22.0.0
+        version: 22.18.7
+      chai:
+        specifier: ^6.2.2
+        version: 6.2.2
+      chai-as-promised:
+        specifier: ^8.0.0
+        version: 8.0.2(chai@6.2.2)
+      cross-env:
+        specifier: 7.0.3
+        version: 7.0.3
+      eslint:
+        specifier: 9.25.1
+        version: 9.25.1
+      hardhat:
+        specifier: workspace:^3.1.10
+        version: link:../hardhat
+      mocha:
+        specifier: ^11.0.0
+        version: 11.7.3
+      nyc:
+        specifier: 15.1.0
+        version: 15.1.0
+      prettier:
+        specifier: 3.2.5
+        version: 3.2.5
+      rimraf:
+        specifier: ^5.0.5
+        version: 5.0.10
+      ts-node:
+        specifier: 10.9.2
+        version: 10.9.2(@types/node@22.18.7)(typescript@5.8.3)
       typescript:
         specifier: ~5.8.0
         version: 5.8.3
@@ -4409,6 +4409,7 @@ packages:
 
   glob@10.4.5:
     resolution: {integrity: sha512-7Bv8RF0k6xjo7d4A/PxYLbUCfb6c+Vpd2/mB2yRDlew7Jb5hEXiCD9ibfO7wpk8i4sevK6DFny9h7EYbM3/sHg==}
+    deprecated: Old versions of glob are not supported, and contain widely publicized security vulnerabilities, which have been fixed in the current version. Please update. Support for old versions may be purchased (at exorbitant rates) by contacting i@izs.me
     hasBin: true
 
   glob@13.0.0:
@@ -4421,7 +4422,7 @@ packages:
 
   glob@7.2.3:
     resolution: {integrity: sha512-nFR0zLpU2YCaRxwoCJvL6UvCH2JFyFVIvwTLsIf21AuHlMskA1hhTdk+LlYJtOlYt9v6dvszD2BGRqBL+iQK9Q==}
-    deprecated: Glob versions prior to v9 are no longer supported
+    deprecated: Old versions of glob are not supported, and contain widely publicized security vulnerabilities, which have been fixed in the current version. Please update. Support for old versions may be purchased (at exorbitant rates) by contacting i@izs.me
 
   globals@14.0.0:
     resolution: {integrity: sha512-oahGvuMGQlPw/ivIYBjVSrWAfWLBeku5tpPE2fOPLi+WHffIWbuh2tCjhyQhTBPMf5E9jDEH4FOmTYgYwbKwtQ==}
@@ -5768,7 +5769,7 @@ packages:
   tar@7.5.2:
     resolution: {integrity: sha512-7NyxrTE4Anh8km8iEy7o0QYPs+0JKBTj5ZaqHg6B39erLg0qYXN3BijtShwbsNSvQ+LN75+KV+C4QR/f6Gwnpg==}
     engines: {node: '>=18'}
-    deprecated: Old versions of tar are not supported, and contain widely publicized security vulnerabilities, which have been fixed in the current version. Please update. Support for old versions may be purchased (at exhorbitant rates) by contacting i@izs.me
+    deprecated: Old versions of tar are not supported, and contain widely publicized security vulnerabilities, which have been fixed in the current version. Please update. Support for old versions may be purchased (at exorbitant rates) by contacting i@izs.me
 
   term-size@2.2.1:
     resolution: {integrity: sha512-wK0Ri4fOGjv/XPy8SBHZChl8CM7uMc5VML7SqiQ0zG7+J5Vr+RMQDoHa2CNT6KHUnTGIXH34UDMkPzAUyapBZg==}
@@ -10221,7 +10222,7 @@ snapshots:
 
   rxjs@7.8.2:
     dependencies:
-      tslib: 2.7.0
+      tslib: 2.8.1
 
   sade@1.8.1:
     dependencies:
@@ -10591,8 +10592,7 @@ snapshots:
 
   tslib@2.7.0: {}
 
-  tslib@2.8.1:
-    optional: true
+  tslib@2.8.1: {}
 
   tsx@4.20.6:
     dependencies:

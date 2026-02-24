@@ -1,7 +1,7 @@
 {
   "extends": "../config/tsconfig.base.json",
   "references": [
-    { "path": "../hardhat-ignition-core" },
+    { "path": "../ignition-core" },
     { "path": "../hardhat" },
     { "path": "../hardhat-errors" },
     { "path": "../hardhat-network-helpers" },
