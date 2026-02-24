@@ -49,4 +49,4 @@ runs:
     - name: Install Linux system dependencies
       if: runner.os == 'Linux'
       shell: bash
-      run: sudo apt-get install -y libusb-1.0-0-dev
+      run: sudo apt-get install -y libusb-1.0-0-dev libudev-dev
