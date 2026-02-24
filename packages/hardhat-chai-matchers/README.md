@@ -4,81 +4,18 @@
 
 This plugin adds Ethereum-specific capabilities to the [Chai](https://chaijs.com/) assertion library, making your smart contract tests easy to write and read.
 
-Check [its documentation](https://v2.hardhat.org/hardhat-chai-matchers/docs) to learn more.
+**Version compatibility warning:** This version of the package does not work with Hardhat 2 nor 3. Please read below to migrate to Hardhat 3 or install a version compatible with Hardhat 2.
 
 ### Installation
 
-We recommend using npm 7 or later. If you do that, then you just need to install the plugin itself:
+#### Hardhat 3
+
+To learn how to migrate to Hardhat 3, please read the [migration guide](https://hardhat.org/migrate-from-hardhat2).
+
+#### Hardhat 2
+
+To use this package with Hardhat 2, please install the `hh2` tag with npm or your package manager of choice:
 
 ```bash
 npm install --save-dev @nomicfoundation/hardhat-chai-matchers@hh2
 ```
-
-If you are using an older version of npm, you'll also need to install all the packages used by the plugin.
-
-```bash
-npm install --save-dev @nomicfoundation/hardhat-chai-matchers@hh2 chai@4 @nomicfoundation/hardhat-ethers@hh2 ethers
-```
-
-That's also the case if you are using yarn:
-
-```bash
-yarn add --dev @nomicfoundation/hardhat-chai-matchers@hh2 chai@4 @nomicfoundation/hardhat-ethers@hh2 ethers
-```
-
-### Usage
-
-After installing it, add the plugin to your Hardhat config:
-
-```js
-require("@nomicfoundation/hardhat-chai-matchers");
-```
-
-Then you'll be able to use the matchers in your tests:
-
-```js
-expect(await token.totalSupply()).to.equal(1_000_000);
-
-await expect(token.transfer(token, 1000)).to.be.revertedWith(
-  "Cannot transfer to the contract itself"
-);
-
-await expect(token.transfer(recipient, 1000))
-  .to.emit(token, "Transfer")
-  .withArgs(owner, recipient, 1000);
-```
-
-### Known issues
-
-#### Chaining Async Matchers
-
-Currently, the following matchers do not support chaining:
-
-- `reverted`
-- `revertedWith`
-- `revertedWithCustomError`
-- `revertedWithoutReason`
-- `revertedWithPanic`
-- `changeEtherBalance`
-- `changeEtherBalances`
-- `changeTokenBalance`
-- `changeTokenBalances`
-- `emit` (with the only exception of chaining multiple `emit` matchers)
-
-Which means you can't do:
-
-```js
-await expect(contract.f(...))
-  .to.changeEtherBalance(...)
-  .and.to.changeTokenBalance(...)
-```
-
-To work around this limitation, write separate assertions for each matcher:
-
-```js
-const tx = contract.f(...);
-await expect(tx).to.changeEtherBalance(...)
-await expect(tx).to.changeTokenBalance(...)
-```
-
-If you are interested in seeing an implementation of chaining for async matchers, please visit the GitHub issue [#4235](https://github.com/NomicFoundation/hardhat/issues/4235) and leave an upvote or comment.
