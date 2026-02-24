@@ -1,6 +1,6 @@
 {
   "name": "@nomicfoundation/hardhat-foundry",
-  "version": "3.0.0",
+  "version": "2.0.0",
   "description": "Hardhat plugin that provides compatibility with Foundry-based projects remappings.",
   "homepage": "https://github.com/nomicfoundation/hardhat/tree/v-next/v-next/hardhat-foundry",
   "repository": {

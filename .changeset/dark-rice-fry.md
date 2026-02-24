@@ -3,4 +3,4 @@
 "@nomicfoundation/hardhat-errors": patch
 ---
 
-Introduce @nomicfoundation/hardhat-foundry plugin
+Introduce the `@nomicfoundation/hardhat-foundry` plugin for Hardhat 3
