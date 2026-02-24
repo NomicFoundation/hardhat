@@ -17,5 +17,5 @@ To learn how to migrate to Hardhat 3, please read the [migration guide](https://
 To use this package with Hardhat 2, please install the `hh2` tag with npm or your package manager of choice:
 
 ```bash
-npm install --save-dev @nomicfoundation/hardhat-web3-v4@hh2
+npm install --save-dev "@nomicfoundation/hardhat-web3-v4@hh2"
 ```
