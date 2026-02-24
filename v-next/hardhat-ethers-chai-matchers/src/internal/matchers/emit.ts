@@ -71,7 +71,10 @@ export function supportEmit(
           if (e instanceof TypeError) {
             const errorMessage = e.message.split(" (argument=")[0];
             const error = new AssertionError(errorMessage);
-            error.cause = e;
+            /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions 
+              -- This cast is here because otherwise the CI job that ensures that
+              this package still works with chai v5 will fail */
+            (error as any).cause = e;
             throw error;
           }
         }
