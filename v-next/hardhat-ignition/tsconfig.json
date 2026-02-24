@@ -5,7 +5,7 @@
     { "path": "../hardhat" },
     { "path": "../hardhat-errors" },
     { "path": "../hardhat-network-helpers" },
-    { "path": "../hardhat-ignition-ui/tsconfig.node.json" },
+    { "path": "../ignition-ui/tsconfig.node.json" },
     { "path": "../hardhat-test-utils" },
     { "path": "../hardhat-verify" }
   ],

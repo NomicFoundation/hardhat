@@ -81,10 +81,5 @@ export function buildGitHubCliReleaseArgs(release) {
 function _getChangelogPath(packageName) {
   const unscopedName = packageName.replace(/^@[^/]+\//, "");
 
-  // These packages have folder names that don't match the unscoped package name
-  if (unscopedName === "ignition-ui") {
-    return path.join(PACKAGES_DIR, "hardhat-ignition-ui", "CHANGELOG.md");
-  }
-
   return path.join(PACKAGES_DIR, unscopedName, "CHANGELOG.md");
 }

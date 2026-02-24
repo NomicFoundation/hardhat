@@ -465,7 +465,7 @@ importers:
         version: link:../ignition-core
       '@nomicfoundation/ignition-ui':
         specifier: workspace:^3.0.8
-        version: link:../hardhat-ignition-ui
+        version: link:../ignition-ui
       chalk:
         specifier: ^5.3.0
         version: 5.6.2
@@ -615,87 +615,6 @@ importers:
       typescript:
         specifier: ~5.8.0
         version: 5.8.3
-
-  v-next/hardhat-ignition-ui:
-    devDependencies:
-      '@fontsource/roboto':
-        specifier: ^5.0.8
-        version: 5.2.8
-      '@nomicfoundation/ignition-core':
-        specifier: workspace:^3.0.8
-        version: link:../ignition-core
-      '@types/chai':
-        specifier: ^5.2.3
-        version: 5.2.3
-      '@types/chai-as-promised':
-        specifier: ^8.0.1
-        version: 8.0.2
-      '@types/mocha':
-        specifier: '>=10.0.10'
-        version: 10.0.10
-      '@types/react':
-        specifier: ^18.0.28
-        version: 18.3.25
-      '@types/react-dom':
-        specifier: ^18.0.11
-        version: 18.3.7(@types/react@18.3.25)
-      '@types/styled-components':
-        specifier: 5.1.26
-        version: 5.1.26
-      '@vitejs/plugin-react':
-        specifier: ^4.0.0
-        version: 4.7.0(vite@5.4.20(@types/node@22.18.7))
-      chai:
-        specifier: ^6.2.2
-        version: 6.2.2
-      chai-as-promised:
-        specifier: ^8.0.0
-        version: 8.0.2(chai@6.2.2)
-      eslint:
-        specifier: 9.25.1
-        version: 9.25.1
-      mermaid:
-        specifier: 10.9.3
-        version: 10.9.3
-      mocha:
-        specifier: ^11.0.0
-        version: 11.7.3
-      prettier:
-        specifier: 3.2.5
-        version: 3.2.5
-      react:
-        specifier: ^18.2.0
-        version: 18.3.1
-      react-dom:
-        specifier: ^18.2.0
-        version: 18.3.1(react@18.3.1)
-      react-router-dom:
-        specifier: 6.11.0
-        version: 6.11.0(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
-      react-tooltip:
-        specifier: ^5.21.4
-        version: 5.29.1(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
-      rimraf:
-        specifier: ^5.0.5
-        version: 5.0.10
-      styled-components:
-        specifier: 5.3.10
-        version: 5.3.10(@babel/core@7.28.4)(react-dom@18.3.1(react@18.3.1))(react-is@18.3.1)(react@18.3.1)
-      svg-pan-zoom:
-        specifier: ^3.6.1
-        version: 3.6.2
-      ts-node:
-        specifier: 10.9.2
-        version: 10.9.2(@types/node@22.18.7)(typescript@5.8.3)
-      typescript:
-        specifier: ~5.8.0
-        version: 5.8.3
-      vite:
-        specifier: ^5.0.0
-        version: 5.4.20(@types/node@22.18.7)
-      vite-plugin-singlefile:
-        specifier: ^2.0.1
-        version: 2.3.0(rollup@4.52.3)(vite@5.4.20(@types/node@22.18.7))
 
   v-next/hardhat-ignition-viem:
     dependencies:
@@ -1881,6 +1800,87 @@ importers:
       typescript:
         specifier: ~5.8.0
         version: 5.8.3
+
+  v-next/ignition-ui:
+    devDependencies:
+      '@fontsource/roboto':
+        specifier: ^5.0.8
+        version: 5.2.8
+      '@nomicfoundation/ignition-core':
+        specifier: workspace:^3.0.8
+        version: link:../ignition-core
+      '@types/chai':
+        specifier: ^5.2.3
+        version: 5.2.3
+      '@types/chai-as-promised':
+        specifier: ^8.0.1
+        version: 8.0.2
+      '@types/mocha':
+        specifier: '>=10.0.10'
+        version: 10.0.10
+      '@types/react':
+        specifier: ^18.0.28
+        version: 18.3.25
+      '@types/react-dom':
+        specifier: ^18.0.11
+        version: 18.3.7(@types/react@18.3.25)
+      '@types/styled-components':
+        specifier: 5.1.26
+        version: 5.1.26
+      '@vitejs/plugin-react':
+        specifier: ^4.0.0
+        version: 4.7.0(vite@5.4.20(@types/node@22.18.7))
+      chai:
+        specifier: ^6.2.2
+        version: 6.2.2
+      chai-as-promised:
+        specifier: ^8.0.0
+        version: 8.0.2(chai@6.2.2)
+      eslint:
+        specifier: 9.25.1
+        version: 9.25.1
+      mermaid:
+        specifier: 10.9.3
+        version: 10.9.3
+      mocha:
+        specifier: ^11.0.0
+        version: 11.7.3
+      prettier:
+        specifier: 3.2.5
+        version: 3.2.5
+      react:
+        specifier: ^18.2.0
+        version: 18.3.1
+      react-dom:
+        specifier: ^18.2.0
+        version: 18.3.1(react@18.3.1)
+      react-router-dom:
+        specifier: 6.11.0
+        version: 6.11.0(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      react-tooltip:
+        specifier: ^5.21.4
+        version: 5.29.1(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      rimraf:
+        specifier: ^5.0.5
+        version: 5.0.10
+      styled-components:
+        specifier: 5.3.10
+        version: 5.3.10(@babel/core@7.28.4)(react-dom@18.3.1(react@18.3.1))(react-is@18.3.1)(react@18.3.1)
+      svg-pan-zoom:
+        specifier: ^3.6.1
+        version: 3.6.2
+      ts-node:
+        specifier: 10.9.2
+        version: 10.9.2(@types/node@22.18.7)(typescript@5.8.3)
+      typescript:
+        specifier: ~5.8.0
+        version: 5.8.3
+      vite:
+        specifier: ^5.0.0
+        version: 5.4.20(@types/node@22.18.7)
+      vite-plugin-singlefile:
+        specifier: ^2.0.1
+        version: 2.3.0(rollup@4.52.3)(vite@5.4.20(@types/node@22.18.7))
 
   v-next/template-package:
     devDependencies:

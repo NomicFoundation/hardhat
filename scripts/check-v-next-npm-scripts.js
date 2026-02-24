@@ -38,7 +38,7 @@ for (const dir of dirs) {
 
   // TODO: This is a temporary solution until we convert Ignitions tests
   // to Node Test Runner.
-  if (dir.name === "hardhat-ignition-ui") {
+  if (dir.name === "ignition-ui") {
     continue;
   }
 
