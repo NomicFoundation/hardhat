@@ -1,8 +1,9 @@
 import type EventEmitter from "node:events";
+import type { FileHandle } from "node:fs/promises";
 import type { ParsedUrlQueryInput } from "node:querystring";
 import type UndiciT from "undici";
 
-import fs from "node:fs";
+import { open } from "node:fs/promises";
 import querystring from "node:querystring";
 import stream from "node:stream/promises";
 
@@ -12,7 +13,7 @@ import {
   RequestError,
   DispatcherError,
 } from "./errors/request.js";
-import { move } from "./fs.js";
+import { move, remove } from "./fs.js";
 import {
   generateTempFilePath,
   getBaseDispatcherOptions,
@@ -217,11 +218,12 @@ export async function download(
   dispatcherOrDispatcherOptions?: UndiciT.Dispatcher | DispatcherOptions,
 ): Promise<void> {
   let statusCode: number | undefined;
+  let tempFilePath: string | undefined;
 
   try {
     /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions
     -- We need the full Dispatcher.ResponseData here for stream.pipeline,
-    but HttpResponse doesn’t expose the raw ReadableStream.
+    but HttpResponse doesn't expose the raw ReadableStream.
     TODO: wrap undici's request so we can keep the public API
     strictly typed without falling back to Undici types. */
     const response = (await getRequest(
@@ -236,12 +238,33 @@ export async function download(
       throw new Error(await body.text());
     }
 
-    const tempFilePath = await generateTempFilePath(destination);
-    const fileStream = fs.createWriteStream(tempFilePath);
-    await stream.pipeline(body, fileStream);
+    tempFilePath = await generateTempFilePath(destination);
+
+    let fileHandle: FileHandle | undefined;
+
+    try {
+      fileHandle = await open(tempFilePath, "w");
+
+      const fileStream = fileHandle.createWriteStream();
+
+      await stream.pipeline(body, fileStream);
+    } finally {
+      // NOTE: Historically, not closing the file handle caused issues on Windows,
+      // for example, when trying to move the file previously written to by this function
+      await fileHandle?.close();
+    }
+
     await move(tempFilePath, destination);
   } catch (e) {
     ensureError(e);
+
+    if (tempFilePath !== undefined) {
+      try {
+        await remove(tempFilePath);
+      } catch {
+        // Best-effort: file may not exist or may have already been moved
+      }
+    }
 
     handleError(e, url);
 

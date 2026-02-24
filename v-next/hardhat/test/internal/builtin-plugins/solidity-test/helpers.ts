@@ -136,6 +136,30 @@ describe("solidityTestConfigToSolidityTestRunnerConfigArgs", () => {
     assert.equal(args.disableBlockGasLimit, false);
   });
 
+  it("sets gasLimit when it is undefined", async () => {
+    const args = await solidityTestConfigToSolidityTestRunnerConfigArgs({
+      chainType: GENERIC_CHAIN_TYPE,
+      projectRoot: process.cwd(),
+      config: { gasLimit: undefined },
+      verbosity: 1,
+      generateGasReport: false,
+    });
+
+    assert.equal(args.gasLimit, undefined);
+  });
+
+  it("sets gasLimit when it is a bigint", async () => {
+    const args = await solidityTestConfigToSolidityTestRunnerConfigArgs({
+      chainType: GENERIC_CHAIN_TYPE,
+      projectRoot: process.cwd(),
+      config: { gasLimit: 12_000_000n },
+      verbosity: 1,
+      generateGasReport: false,
+    });
+
+    assert.equal(args.gasLimit, 12_000_000n);
+  });
+
   it("sets blockDifficulty based on prevRandao", async () => {
     const args = await solidityTestConfigToSolidityTestRunnerConfigArgs({
       chainType: GENERIC_CHAIN_TYPE,
