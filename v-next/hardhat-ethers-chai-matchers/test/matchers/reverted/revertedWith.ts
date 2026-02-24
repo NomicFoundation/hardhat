@@ -6,9 +6,8 @@ import path from "node:path";
 import { before, beforeEach, describe, it } from "node:test";
 import util from "node:util";
 
-import { HardhatError } from "@nomicfoundation/hardhat-errors";
 import {
-  assertThrowsHardhatError,
+  assertThrows,
   useEphemeralFixtureProject,
 } from "@nomicfoundation/hardhat-test-utils";
 import { AssertionError, expect } from "chai";
@@ -200,24 +199,28 @@ describe("INTEGRATION: Reverted with", { timeout: 60000 }, () => {
       it("non-string as expectation", async () => {
         const { hash } = await mineSuccessfulTransaction(provider, ethers);
 
-        assertThrowsHardhatError(
+        assertThrows(
           // @ts-expect-error -- force error scenario: reason should be a string or a regular expression
           () => expect(hash).to.be.revertedWith(10),
-          HardhatError.ERRORS.CHAI_MATCHERS.GENERAL
-            .EXPECT_STRING_OR_REGEX_AS_REVERT_REASON,
-          {},
+          (e) =>
+            e.message.includes(
+              "Expected the revert reason to be a string or a regular expression",
+            ),
+          "Expected revert reason type error message",
         );
       });
 
       it("non-string as expectation, subject is a rejected promise", async () => {
         const tx = matchers.revertsWithoutReason();
 
-        assertThrowsHardhatError(
+        assertThrows(
           // @ts-expect-error -- force error scenario: reason should be a string or a regular expression
           () => expect(tx).to.be.revertedWith(10),
-          HardhatError.ERRORS.CHAI_MATCHERS.GENERAL
-            .EXPECT_STRING_OR_REGEX_AS_REVERT_REASON,
-          {},
+          (e) =>
+            e.message.includes(
+              "Expected the revert reason to be a string or a regular expression",
+            ),
+          "Expected revert reason type error message",
         );
       });
 

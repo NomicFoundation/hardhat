@@ -1,8 +1,7 @@
 import type { Result } from "ethers/abi";
 
-import { HardhatError } from "@nomicfoundation/hardhat-errors";
 import { ensureError } from "@nomicfoundation/hardhat-utils/error";
-import { AssertionError } from "chai";
+import { assert as chaiAssert, AssertionError } from "chai";
 import { AbiCoder, decodeBytes32String } from "ethers/abi";
 
 import { panicErrorCodeToReason } from "./panic.js";
@@ -75,18 +74,18 @@ export function decodeReturnData(returnData: string): DecodedReturnData {
 
     try {
       reason = abi.decode(["string"], `0x${encodedReason}`)[0];
-    } catch (e) {
-      ensureError(e);
+    } catch (cause) {
+      ensureError(cause);
 
-      throw new HardhatError(
-        HardhatError.ERRORS.CHAI_MATCHERS.GENERAL.DECODING_ERROR,
-        {
-          encodedData: encodedReason,
-          type: "string",
-          reason: e.message,
-        },
-        e,
-      );
+      try {
+        chaiAssert.fail(
+          `There was an error decoding "${encodedReason}" as a "string. Reason: ${cause.message}"`,
+        );
+      } catch (e) {
+        ensureError(e);
+        e.cause = cause;
+        throw e;
+      }
     }
 
     return {
@@ -98,18 +97,18 @@ export function decodeReturnData(returnData: string): DecodedReturnData {
     let code: bigint;
     try {
       code = abi.decode(["uint256"], `0x${encodedReason}`)[0];
-    } catch (e) {
-      ensureError(e);
+    } catch (cause) {
+      ensureError(cause);
 
-      throw new HardhatError(
-        HardhatError.ERRORS.CHAI_MATCHERS.GENERAL.DECODING_ERROR,
-        {
-          encodedData: encodedReason,
-          type: "uint256",
-          reason: e.message,
-        },
-        e,
-      );
+      try {
+        chaiAssert.fail(
+          `There was an error decoding "${encodedReason}" as a "uint256. Reason: ${cause.message}"`,
+        );
+      } catch (e) {
+        ensureError(e);
+        e.cause = cause;
+        throw e;
+      }
     }
 
     const description = panicErrorCodeToReason(code) ?? "unknown panic code";

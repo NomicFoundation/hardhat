@@ -10,9 +10,8 @@ import path from "node:path";
 import { before, beforeEach, describe, it } from "node:test";
 import util from "node:util";
 
-import { HardhatError } from "@nomicfoundation/hardhat-errors";
 import {
-  assertThrowsHardhatError,
+  assertThrows,
   useEphemeralFixtureProject,
 } from "@nomicfoundation/hardhat-test-utils";
 import { expect, AssertionError } from "chai";
@@ -621,7 +620,7 @@ describe("INTEGRATION: changeEtherBalance matcher", { timeout: 60000 }, () => {
         });
 
         it("should throw if chained to another non-chainable method", () => {
-          assertThrowsHardhatError(
+          assertThrows(
             () =>
               expect(
                 sender.sendTransaction({
@@ -631,12 +630,11 @@ describe("INTEGRATION: changeEtherBalance matcher", { timeout: 60000 }, () => {
               )
                 .to.changeTokenBalance(ethers, mockToken, receiver, 0)
                 .and.to.changeEtherBalance(ethers, sender, "-200"),
-            HardhatError.ERRORS.CHAI_MATCHERS.GENERAL
-              .MATCHER_CANNOT_BE_CHAINED_AFTER,
-            {
-              matcher: "changeEtherBalance",
-              previousMatcher: "changeTokenBalance",
-            },
+            (e) =>
+              e.message.includes(
+                'The matcher "changeEtherBalance" cannot be chained after "changeTokenBalance"',
+              ),
+            "Expected chaining error message",
           );
         });
       });

@@ -1,6 +1,5 @@
 import type { AssertWithSsfi, Ssfi } from "./ssfi.js";
 
-import { HardhatError } from "@nomicfoundation/hardhat-errors";
 import { ensureError } from "@nomicfoundation/hardhat-utils/error";
 import { assert as chaiAssert } from "chai";
 import { keccak256 } from "ethers/crypto";
@@ -122,8 +121,8 @@ function innerAssertArgEqual(
   } else {
     if (actualArg.hash !== undefined && actualArg._isIndexed === true) {
       if (assertionType !== "event") {
-        throw new HardhatError(
-          HardhatError.ERRORS.CHAI_MATCHERS.GENERAL.INDEXED_EVENT_FORBIDDEN,
+        chaiAssert.fail(
+          "Should not get an indexed event when the assertion type is not event. Please open an issue about this.",
         );
       }
 

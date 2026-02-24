@@ -1,7 +1,7 @@
 import type { HardhatEthers } from "@nomicfoundation/hardhat-ethers/types";
 
-import { HardhatError } from "@nomicfoundation/hardhat-errors";
 import { numberToHexString } from "@nomicfoundation/hardhat-utils/hex";
+import { assert as chaiAssert } from "chai";
 
 import { REVERT_MATCHER } from "../../constants.js";
 import { assertIsNotNull } from "../../utils/asserts.js";
@@ -40,11 +40,8 @@ export function supportRevert(
           const hash = typeof value === "string" ? value : value.hash;
 
           if (!isValidTransactionHash(hash)) {
-            throw new HardhatError(
-              HardhatError.ERRORS.CHAI_MATCHERS.GENERAL.EXPECTED_VALID_TRANSACTION_HASH,
-              {
-                hash,
-              },
+            chaiAssert.fail(
+              `Expected a valid transaction hash, but got "${hash}"`,
             );
           }
 

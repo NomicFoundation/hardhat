@@ -6,10 +6,9 @@ import path from "node:path";
 import { before, beforeEach, describe, it } from "node:test";
 import util from "node:util";
 
-import { HardhatError } from "@nomicfoundation/hardhat-errors";
 import {
-  assertRejectsWithHardhatError,
-  assertThrowsHardhatError,
+  assertRejects,
+  assertThrows,
   useEphemeralFixtureProject,
 } from "@nomicfoundation/hardhat-test-utils";
 import { AssertionError, expect } from "chai";
@@ -80,22 +79,22 @@ describe("INTEGRATION: Revert", { timeout: 60000 }, () => {
       });
 
       it("invalid string", async () => {
-        await assertRejectsWithHardhatError(
+        await assertRejects(
           () => expect("0x123").to.be.revert(ethers),
-          HardhatError.ERRORS.CHAI_MATCHERS.GENERAL
-            .EXPECTED_VALID_TRANSACTION_HASH,
-          {
-            hash: "0x123",
-          },
+          (e) =>
+            e.message.includes(
+              'Expected a valid transaction hash, but got "0x123"',
+            ),
+          "Expected invalid transaction hash error message",
         );
 
-        await assertRejectsWithHardhatError(
+        await assertRejects(
           () => expect("0x123").to.not.be.revert(ethers),
-          HardhatError.ERRORS.CHAI_MATCHERS.GENERAL
-            .EXPECTED_VALID_TRANSACTION_HASH,
-          {
-            hash: "0x123",
-          },
+          (e) =>
+            e.message.includes(
+              'Expected a valid transaction hash, but got "0x123"',
+            ),
+          "Expected invalid transaction hash error message",
         );
       });
 
@@ -122,22 +121,22 @@ describe("INTEGRATION: Revert", { timeout: 60000 }, () => {
       });
 
       it("promise of an invalid string", async () => {
-        await assertRejectsWithHardhatError(
+        await assertRejects(
           () => expect(Promise.resolve("0x123")).to.be.revert(ethers),
-          HardhatError.ERRORS.CHAI_MATCHERS.GENERAL
-            .EXPECTED_VALID_TRANSACTION_HASH,
-          {
-            hash: "0x123",
-          },
+          (e) =>
+            e.message.includes(
+              'Expected a valid transaction hash, but got "0x123"',
+            ),
+          "Expected invalid transaction hash error message",
         );
 
-        await assertRejectsWithHardhatError(
+        await assertRejects(
           () => expect(Promise.resolve("0x123")).to.not.be.revert(ethers),
-          HardhatError.ERRORS.CHAI_MATCHERS.GENERAL
-            .EXPECTED_VALID_TRANSACTION_HASH,
-          {
-            hash: "0x123",
-          },
+          (e) =>
+            e.message.includes(
+              'Expected a valid transaction hash, but got "0x123"',
+            ),
+          "Expected invalid transaction hash error message",
         );
       });
 
@@ -192,69 +191,65 @@ describe("INTEGRATION: Revert", { timeout: 60000 }, () => {
       });
 
       it("reverted: should throw if chained to another non-chainable method", () => {
-        assertThrowsHardhatError(
+        assertThrows(
           () =>
             expect(matchers.revertsWith("bar"))
               .to.be.revertedWith("bar")
               .and.to.be.revert(ethers),
-          HardhatError.ERRORS.CHAI_MATCHERS.GENERAL
-            .MATCHER_CANNOT_BE_CHAINED_AFTER,
-          {
-            matcher: "revert",
-            previousMatcher: "revertedWith",
-          },
+          (e) =>
+            e.message.includes(
+              'The matcher "revert" cannot be chained after "revertedWith"',
+            ),
+          "Expected chaining error message",
         );
       });
 
       it("revertedWith: should throw if chained to another non-chainable method", () => {
-        assertThrowsHardhatError(
+        assertThrows(
           () =>
             expect(matchers.revertWithCustomErrorWithInt(1))
               .to.be.revertedWithCustomError(matchers, "CustomErrorWithInt")
               .and.to.be.revertedWith("an error message"),
-          HardhatError.ERRORS.CHAI_MATCHERS.GENERAL
-            .MATCHER_CANNOT_BE_CHAINED_AFTER,
-          {
-            matcher: "revertedWith",
-            previousMatcher: "revertedWithCustomError",
-          },
+          (e) =>
+            e.message.includes(
+              'The matcher "revertedWith" cannot be chained after "revertedWithCustomError"',
+            ),
+          "Expected chaining error message",
         );
       });
 
       it("revertedWithCustomError: should throw if chained to another non-chainable method", () => {
-        assertThrowsHardhatError(
+        assertThrows(
           () =>
             expect(matchers.revertsWithoutReason())
               .to.be.revertedWithoutReason(ethers)
               .and.to.be.revertedWithCustomError(matchers, "SomeCustomError"),
-          HardhatError.ERRORS.CHAI_MATCHERS.GENERAL
-            .MATCHER_CANNOT_BE_CHAINED_AFTER,
-          {
-            matcher: "revertedWithCustomError",
-            previousMatcher: "revertedWithoutReason",
-          },
+          (e) =>
+            e.message.includes(
+              'The matcher "revertedWithCustomError" cannot be chained after "revertedWithoutReason"',
+            ),
+          "Expected chaining error message",
         );
       });
 
       it("revertedWithoutReason: should throw if chained to another non-chainable method", () => {
-        assertThrowsHardhatError(
+        assertThrows(
           () =>
             expect(matchers.panicAssert())
               .to.be.revertedWithPanic()
               .and.to.be.revertedWithoutReason(ethers),
-          HardhatError.ERRORS.CHAI_MATCHERS.GENERAL
-            .MATCHER_CANNOT_BE_CHAINED_AFTER,
-          {
-            matcher: "revertedWithoutReason",
-            previousMatcher: "revertedWithPanic",
-          },
+          (e) =>
+            e.message.includes(
+              'The matcher "revertedWithoutReason" cannot be chained after "revertedWithPanic"',
+            ),
+          "Expected chaining error message",
         );
       });
 
       it("revertedWithPanic: should throw if chained to another non-chainable method", async () => {
         const [sender, receiver] = await ethers.getSigners();
 
-        assertThrowsHardhatError(
+        assertThrows(
           () =>
             expect(() =>
               sender.sendTransaction({
@@ -264,12 +259,11 @@ describe("INTEGRATION: Revert", { timeout: 60000 }, () => {
             )
               .to.changeEtherBalance(ethers, sender, "-200")
               .and.to.be.revertedWithPanic(),
-          HardhatError.ERRORS.CHAI_MATCHERS.GENERAL
-            .MATCHER_CANNOT_BE_CHAINED_AFTER,
-          {
-            matcher: "revertedWithPanic",
-            previousMatcher: "changeEtherBalance",
-          },
+          (e) =>
+            e.message.includes(
+              'The matcher "revertedWithPanic" cannot be chained after "changeEtherBalance"',
+            ),
+          "Expected chaining error message",
         );
       });
     });

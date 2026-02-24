@@ -3,7 +3,7 @@ import type { HardhatEthers } from "@nomicfoundation/hardhat-ethers/types";
 import type { Addressable } from "ethers/address";
 import type { TransactionResponse } from "ethers/providers";
 
-import { HardhatError } from "@nomicfoundation/hardhat-errors";
+import { assert as chaiAssert } from "chai";
 import { toBigInt } from "ethers/utils";
 
 import { CHANGE_ETHER_BALANCES_MATCHER } from "../constants.js";
@@ -120,12 +120,8 @@ function validateInput(
       Array.isArray(balanceChanges) &&
       accounts.length !== balanceChanges.length
     ) {
-      throw new HardhatError(
-        HardhatError.ERRORS.CHAI_MATCHERS.GENERAL.ACCOUNTS_NUMBER_DIFFERENT_FROM_BALANCE_CHANGES,
-        {
-          accounts: accounts.length,
-          balanceChanges: balanceChanges.length,
-        },
+      chaiAssert.fail(
+        `The number of accounts (${accounts.length}) is different than the number of expected balance changes (${balanceChanges.length})`,
       );
     }
   } catch (e) {

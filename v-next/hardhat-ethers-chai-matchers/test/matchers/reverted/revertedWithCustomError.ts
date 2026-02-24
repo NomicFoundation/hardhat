@@ -6,9 +6,8 @@ import path from "node:path";
 import { before, beforeEach, describe, it } from "node:test";
 import util from "node:util";
 
-import { HardhatError } from "@nomicfoundation/hardhat-errors";
 import {
-  assertThrowsHardhatError,
+  assertThrows,
   useEphemeralFixtureProject,
 } from "@nomicfoundation/hardhat-test-utils";
 import { AssertionError, expect } from "chai";
@@ -459,37 +458,43 @@ describe("INTEGRATION: Reverted with custom error", { timeout: 60000 }, () => {
       it("non-string as expectation", async () => {
         const { hash } = await mineSuccessfulTransaction(provider, ethers);
 
-        assertThrowsHardhatError(
+        assertThrows(
           // @ts-expect-error -- force error scenario: reason should be a string or a regular expression
           () => expect(hash).to.be.revertedWith(10),
-          HardhatError.ERRORS.CHAI_MATCHERS.GENERAL
-            .EXPECT_STRING_OR_REGEX_AS_REVERT_REASON,
-          {},
+          (e) =>
+            e.message.includes(
+              "Expected the revert reason to be a string or a regular expression",
+            ),
+          "Expected revert reason type error message",
         );
       });
 
       it("the contract is not specified", async () => {
-        assertThrowsHardhatError(
+        assertThrows(
           () =>
             expect(
               matchers.revertWithSomeCustomError(),
               // @ts-expect-error -- force error scenario: contract should be specified
             ).to.be.revertedWithCustomError("SomeCustomError"),
-          HardhatError.ERRORS.CHAI_MATCHERS.GENERAL
-            .FIRST_ARGUMENT_MUST_BE_A_CONTRACT,
-          {},
+          (e) =>
+            e.message.includes(
+              "The first argument of .revertedWithCustomError must be the contract that defines the custom error",
+            ),
+          "Expected contract argument error message",
         );
       });
 
       it("the contract doesn't have a custom error with that name", async () => {
-        assertThrowsHardhatError(
+        assertThrows(
           () =>
             expect(
               matchers.revertWithSomeCustomError(),
             ).to.be.revertedWithCustomError(matchers, "SomeCustmError"),
-          HardhatError.ERRORS.CHAI_MATCHERS.GENERAL
-            .CONTRACT_DOES_NOT_HAVE_CUSTOM_ERROR,
-          { customErrorName: "SomeCustmError" },
+          (e) =>
+            e.message.includes(
+              `The given contract doesn't have a custom error named "SomeCustmError"`,
+            ),
+          "Expected custom error not found error message",
         );
       });
 
@@ -518,7 +523,7 @@ describe("INTEGRATION: Reverted with custom error", { timeout: 60000 }, () => {
       });
 
       it("extra arguments", async () => {
-        assertThrowsHardhatError(
+        assertThrows(
           () =>
             expect(
               matchers.revertWithSomeCustomError(),
@@ -528,9 +533,11 @@ describe("INTEGRATION: Reverted with custom error", { timeout: 60000 }, () => {
               // @ts-expect-error -- force error scenario: extra arguments should not be specified
               "extraArgument",
             ),
-          HardhatError.ERRORS.CHAI_MATCHERS.GENERAL
-            .REVERT_INVALID_ARGUMENTS_LENGTH,
-          {},
+          (e) =>
+            e.message.includes(
+              "The .revertedWithCustomError matcher expects two arguments: the contract and the custom error name. Arguments should be asserted with the .withArgs helper.",
+            ),
+          "Expected invalid arguments length error message",
         );
       });
     });

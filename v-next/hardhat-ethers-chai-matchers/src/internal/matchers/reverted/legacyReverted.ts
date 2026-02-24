@@ -1,4 +1,4 @@
-import { HardhatError } from "@nomicfoundation/hardhat-errors";
+import { assert as chaiAssert } from "chai";
 
 import { LEGACY_REVERTED_MATCHER } from "../../constants.js";
 
@@ -12,8 +12,8 @@ export function supportLegacyReverted(
       this._obj.catch(() => {});
     }
 
-    throw new HardhatError(
-      HardhatError.ERRORS.CHAI_MATCHERS.GENERAL.DEPRECATED_REVERTED_MATCHER,
+    chaiAssert.fail(
+      "The .reverted matcher has been deprecated. Use .revert(ethers) instead.",
     );
   });
 }
