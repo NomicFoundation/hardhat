@@ -412,6 +412,46 @@ importers:
         specifier: ~5.8.0
         version: 5.8.3
 
+  v-next/hardhat-foundry:
+    dependencies:
+      '@nomicfoundation/hardhat-errors':
+        specifier: workspace:^3.0.5
+        version: link:../hardhat-errors
+      '@nomicfoundation/hardhat-utils':
+        specifier: workspace:^3.0.5
+        version: link:../hardhat-utils
+    devDependencies:
+      '@nomicfoundation/hardhat-node-test-reporter':
+        specifier: workspace:^3.0.0
+        version: link:../hardhat-node-test-reporter
+      '@nomicfoundation/hardhat-test-utils':
+        specifier: workspace:^
+        version: link:../hardhat-test-utils
+      '@types/node':
+        specifier: ^22.0.0
+        version: 22.18.7
+      c8:
+        specifier: ^9.1.0
+        version: 9.1.0
+      eslint:
+        specifier: 9.25.1
+        version: 9.25.1
+      hardhat:
+        specifier: workspace:^3.0.0
+        version: link:../hardhat
+      prettier:
+        specifier: 3.2.5
+        version: 3.2.5
+      rimraf:
+        specifier: ^5.0.5
+        version: 5.0.10
+      tsx:
+        specifier: ^4.19.3
+        version: 4.20.6
+      typescript:
+        specifier: ~5.8.0
+        version: 5.8.3
+
   v-next/hardhat-ignition:
     dependencies:
       '@nomicfoundation/hardhat-errors':
