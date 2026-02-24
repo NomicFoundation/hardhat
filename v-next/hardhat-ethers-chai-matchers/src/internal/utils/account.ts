@@ -1,7 +1,7 @@
 import type { Addressable } from "ethers/address";
 
-import { HardhatError } from "@nomicfoundation/hardhat-errors";
 import { isAddress } from "@nomicfoundation/hardhat-utils/eth";
+import { assert as chaiAssert } from "chai";
 import { isAddressable } from "ethers/address";
 
 export async function getAddressOf(
@@ -15,10 +15,5 @@ export async function getAddressOf(
     return account.getAddress();
   }
 
-  throw new HardhatError(
-    HardhatError.ERRORS.CHAI_MATCHERS.GENERAL.EXPECTED_STRING_OR_ADDRESSABLE,
-    {
-      account,
-    },
-  );
+  chaiAssert.fail(`Expected string or addressable, but got "${account}"`);
 }
