@@ -467,16 +467,59 @@ export class HardhatEthersProvider implements HardhatEthersProviderI {
   }
 
   public async waitForTransaction(
-    _hash: string,
+    hash: string,
     _confirms?: number | undefined,
-    _timeout?: number | undefined,
+    timeout?: number | undefined,
   ): Promise<ethers.TransactionReceipt | null> {
-    throw new HardhatError(
-      HardhatError.ERRORS.HARDHAT_ETHERS.GENERAL.METHOD_NOT_IMPLEMENTED,
-      {
-        method: "HardhatEthersProvider.waitForTransaction",
-      },
-    );
+    const confirms = _confirms ?? 1;
+
+    if (confirms === 0) {
+      return this.getTransactionReceipt(hash);
+    }
+
+    return new Promise<ethers.TransactionReceipt | null>((resolve, reject) => {
+      let timeoutTimer: NodeJS.Timeout | undefined;
+      let pollingTimeout: NodeJS.Timeout | undefined;
+
+      if (timeout !== undefined && timeout > 0) {
+        timeoutTimer = setTimeout(() => {
+          clearTimeout(pollingTimeout);
+          resolve(null);
+        }, timeout);
+      }
+
+      const poll = async () => {
+        try {
+          const receipt = await this.getTransactionReceipt(hash);
+
+          if (receipt !== null) {
+            if (timeoutTimer !== undefined) {
+              clearTimeout(timeoutTimer);
+            }
+
+            resolve(receipt);
+
+            return;
+          }
+
+          const _isHardhatNetwork = await this.#isHardhatNetwork();
+          const pollingInterval = _isHardhatNetwork ? 50 : 500;
+
+          clearTimeout(pollingTimeout);
+          pollingTimeout = setTimeout(poll, pollingInterval);
+        } catch (e) {
+          ensureError(e);
+
+          if (timeoutTimer !== undefined) {
+            clearTimeout(timeoutTimer);
+          }
+
+          reject(e);
+        }
+      };
+
+      void poll();
+    });
   }
 
   public async waitForBlock(
