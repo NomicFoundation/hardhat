@@ -32,11 +32,11 @@ Please read https://hardhat.org/migrate-from-hardhat2 to learn how to migrate yo
 }
 
 /**
- * Returns the relative path of the file that called a deprecated Hardhat 
- * plugin API, based on the stack trace. This helps identify which plugin 
+ * Returns the relative path of the file that called a deprecated Hardhat
+ * plugin API, based on the stack trace. This helps identify which plugin
  * file is triggering usage of Hardhat 2 APIs in a Hardhat 3 project.
  *
- * @param {number} [depth=5] The stack trace depth to locate the caller's 
+ * @param {number} [depth=5] The stack trace depth to locate the caller's
  * source file. By default, depth 5 is used because:
  *   0 = message
  *   1 = getCallerRelativePath
@@ -45,7 +45,7 @@ Please read https://hardhat.org/migrate-from-hardhat2 to learn how to migrate yo
  *   4 = deprecated function
  *   5 = actual caller (the plugin file)
  *
- * @returns {string|undefined} The shortened relative path of the caller file, 
+ * @returns {string|undefined} The shortened relative path of the caller file,
  * or undefined if not found.
  *
  * @example
@@ -65,7 +65,6 @@ export function getCallerRelativePath(depth: number = 5): string | undefined {
       return undefined;
     }
 
-    // Default depth=5 assumes: 0=message, 1=getCallerRelativePath, 2=Hardhat2PluginError constructor, 3=throwHardhat2PluginError, 4=deprecated fn, 5=actual caller
     const lines = stack.split("\n");
     const callerLine = lines[depth];
     if (callerLine === undefined) {
