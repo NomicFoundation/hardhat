@@ -4,42 +4,18 @@
 
 [Hardhat](https://hardhat.org) plugin for integration with TruffleContract from Truffle 5. This allows tests and scripts written for Truffle to work with Hardhat.
 
-## What
+**Version compatibility warning:** This version of the package does not work with Hardhat 2 nor 3. Please read below to migrate to Hardhat 3 or install a version compatible with Hardhat 2.
 
-This plugin brings to Hardhat TruffleContracts from Truffle 5. With it you can call [`contract()` and `artifacts.require()`](https://archive.trufflesuite.com/docs/truffle/how-to/debug-test/write-tests-in-javascript/) like you normally would with Truffle. Interact with your contracts with a familiar API from tasks, scripts and tests.
+### Installation
 
-## Required plugins
+#### Hardhat 3
 
-This plugin requires [hardhat-web3](https://github.com/nomiclabs/hardhat/tree/main/packages/hardhat-web3) as a prerequisite.
+To learn how to migrate to Hardhat 3, please read the [migration guide](https://hardhat.org/migrate-from-hardhat2).
 
-## Installation
+#### Hardhat 2
+
+To use this package with Hardhat 2, please install the `hh2` tag with npm or your package manager of choice:
 
 ```bash
-npm install --save-dev @nomiclabs/hardhat-truffle5@hh2 @nomiclabs/hardhat-web3@hh2 'web3@^1.0.0-beta.36'
+npm install --save-dev @nomiclabs/hardhat-truffle5@hh2
 ```
-
-And add the following statement to your `hardhat.config.js`:
-
-```js
-require("@nomiclabs/hardhat-truffle5");
-```
-
-Or, if you are using TypeScript, add this to your `hardhat.config.ts`:
-
-```js
-import "@nomiclabs/hardhat-truffle5";
-```
-
-## Tasks
-
-This plugin creates no additional tasks.
-
-## Environment extensions
-
-An instance of [`TruffleEnvironmentArtifacts`](https://github.com/nomiclabs/hardhat/blob/main/packages/hardhat-truffle5/src/artifacts.ts) is injected into `env.artifacts` and the method `contract()` is injected into the global scope for using in tests.
-
-## Usage
-
-There are no additional steps you need to take for this plugin to work. Install it, run `npx hardhat test` and your Truffle tests should run with no need to make any modifications.
-
-Take a look at the [testing guide](https://v2.hardhat.org/hardhat-runner/docs/other-guides/truffle-testing) for a tutorial using it.
