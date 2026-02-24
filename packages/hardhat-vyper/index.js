@@ -21,13 +21,14 @@ console.log(
   style(["red", "bold"], "Warning:"),
   `You installed the \`latest\` version of ${style(
     "bold",
-    packageName
-  )}, which does not work with Hardhat 2 nor 3.`
+    packageName,
+  )}, which does not work with Hardhat 2 nor 3.`,
 );
 
 console.log();
 
 console.log(`To learn how to migrate to Hardhat 3, please visit:`);
+console.log();
 console.log(style("bold", `    https://hardhat.org/migrate-from-hardhat2`));
 
 console.log();
@@ -36,10 +37,11 @@ console.log();
 console.log(
   `To use ${style(
     "bold",
-    packageName
-  )} with Hardhat 2, please install the \`hh2\` tag with npm or your package manager of choice:`
+    packageName,
+  )} with Hardhat 2, please install the \`hh2\` tag with npm or your package manager of choice:`,
 );
-console.log(style("bold", `    npm install --save-dev ${packageName}@hh2`));
+console.log();
+console.log(style("bold", `    npm install --save-dev "${packageName}@hh2"`));
 console.log();
 
 process.exit(1);
