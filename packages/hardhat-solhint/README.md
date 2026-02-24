@@ -1,43 +1,21 @@
-[![npm](https://img.shields.io/npm/v/@nomiclabs/hardhat-solhint.svg)](https://www.npmjs.com/package/@nomiclabs/hardhat-solhint) [![hardhat](https://v2.hardhat.org/buidler-plugin-badge.svg?1)](https://hardhat.org)
+[![npm](https://img.shields.io/npm/v/@nomiclabs/hardhat-solhint.svg)](https://www.npmjs.com/package/@nomiclabs/hardhat-solhint)
 
 # hardhat-solhint
 
 [Hardhat](https://hardhat.org) plugin for integration with [solhint linter](https://github.com/protofire/solhint).
 
-## What
+**Version compatibility warning:** This version of the package does not work with Hardhat 2 nor 3. Please read below to migrate to Hardhat 3 or install a version compatible with Hardhat 2.
 
-This plugin runs solhint on the project's sources and prints the report.
+### Installation
 
-## Installation
+#### Hardhat 3
+
+To learn how to migrate to Hardhat 3, please read the [migration guide](https://hardhat.org/migrate-from-hardhat2).
+
+#### Hardhat 2
+
+To use this package with Hardhat 2, please install the `hh2` tag with npm or your package manager of choice:
 
 ```bash
 npm install --save-dev @nomiclabs/hardhat-solhint@hh2
 ```
-
-And add the following statement to your `hardhat.config.js`:
-
-```js
-require("@nomiclabs/hardhat-solhint");
-```
-
-Or, if you are using TypeScript, add this to your `hardhat.config.ts`:
-
-```js
-import "@nomiclabs/hardhat-solhint";
-```
-
-## Tasks
-
-This plugin overrides the `check` task, runs solhint on the project's sources and prints the report to the console.
-
-## Environment extensions
-
-This plugin does not extend the environment.
-
-## Usage
-
-There are no additional steps you need to take for this plugin to work.
-
-Install it, run `npx hardhat check` and check the Solhint report.
-
-You may want to add a [solhint configuration](https://github.com/protofire/solhint/blob/master) file to customize your rules or include a Solhint plugin.
