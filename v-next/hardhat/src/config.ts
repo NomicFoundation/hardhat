@@ -8,6 +8,8 @@ export type { HardhatUserConfig } from "./types/config.js";
 import "./internal/builtin-plugins/index.js";
 import type { HardhatUserConfig } from "./types/config.js";
 
+import { throwUsingHardhat2PluginError } from "./internal/using-hardhat2-plugin-errors.js";
+
 /**
  * Defines a Hardhat user config.
  *
@@ -37,4 +39,39 @@ export function defineConfig(config: HardhatUserConfig): HardhatUserConfig {
   //  - While it doesn't do anything, it feels mandatory, so most users will
   //    use it and have a better user experience.
   return config;
+}
+
+/**
+ * @deprecated This function is part of the Hardhat 2 plugin API.
+ */
+export function extendConfig(..._args: any): any {
+  throwUsingHardhat2PluginError();
+}
+
+/**
+ * @deprecated This function is part of the Hardhat 2 plugin API.
+ */
+export function extendEnvironment(..._args: any): any {
+  throwUsingHardhat2PluginError();
+}
+
+/**
+ * @deprecated This function is part of the Hardhat 2 plugin API.
+ */
+export function extendProvider(..._args: any): any {
+  throwUsingHardhat2PluginError();
+}
+
+/**
+ * @deprecated This function is part of the Hardhat 2 plugin API.
+ */
+export function scope(..._args: any): any {
+  throwUsingHardhat2PluginError();
+}
+
+/**
+ * @deprecated This function is part of the Hardhat 2 plugin API.
+ */
+export function subtask(..._args: any): any {
+  throwUsingHardhat2PluginError();
 }
