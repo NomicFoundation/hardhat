@@ -71,31 +71,19 @@ export function getCallerRelativePath(depth: number = 5): string | undefined {
       return undefined;
     }
 
-    const regex = new RegExp(
-      [
-        "^", // Matches the beginning of the line
-        "at ", // Matches the string "at "
-        "(?:", // Opens a non-capturing group
-        ".+?", // Lazily matches the context
-        " \\(", // Matches the string " ("
-        ")?", // Closes the non-capturing group and makes it optional
-        "(?:", // Opens a non-capturing group
-        "([^\\(].*?)", // Lazily captures the location as 1 or more characters not starting with "("
-        "(?:", // Opens a non-capturing group
-        ":", // Matches the string ":"
-        "\\d+", // Matches the line number
-        ")?", // Closes the non-capturing group and makes it optional
-        "(?:", // Opens a non-capturing group
-        ":", // Matches the string ":"
-        "\\d+", // Matches the column number
-        ")?", // Closes the non-capturing group and makes it optional
-        ")", // Closes the non-capturing group
-        "\\)?", // Optionally matches the string ")"
-        "$", // Matches the end of the line
-      ].join(""),
-    );
+    /**
+     * Matches a single stack trace line:
+     *
+     * at FunctionName (path/to/file.ts:10:5)
+     * at path/to/file.ts:10:5
+     *
+     * Captures:
+     *  - group 1: file location (without line/column)
+     */
+    const STACK_TRACE_LINE_REGEX =
+      /^at (?:.+? \()?([^\(].*?)(?::\d+)?(?::\d+)?\)?$/;
 
-    const match = callerLine.trim().match(regex);
+    const match = callerLine.trim().match(STACK_TRACE_LINE_REGEX);
     if (match === null || match[1] === undefined) {
       return undefined;
     }
