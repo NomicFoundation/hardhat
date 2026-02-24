@@ -1,9 +1,0 @@
-/node_modules
-/dist
-/test/fixture-projects/*/artifacts
-/test/fixture-projects/*/cache
-/coverage
-/.nyc_output
-/test/fixture-projects/*/deployments/*/artifacts
-/test/fixture-projects/*/deployments/*/build-info
-
