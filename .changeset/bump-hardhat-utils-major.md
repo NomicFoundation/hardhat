@@ -16,6 +16,9 @@
 "@nomicfoundation/hardhat-viem-assertions": patch
 "@nomicfoundation/hardhat-zod-utils": patch
 "@nomicfoundation/ignition-core": patch
+"@nomicfoundation/hardhat-ignition-ethers": patch
+"@nomicfoundation/ignition-ui": patch
+"@nomicfoundation/hardhat-ignition-viem": patch
 ---
 
 Bump `hardhat-utils` major
