@@ -20,7 +20,7 @@ Please read https://hardhat.org/migrate-from-hardhat2 to learn how to migrate yo
     } else {
       message = `You are trying to use a Hardhat 2 plugin in a Hardhat 3 project.
       
-Take a look at this stack trace to find the which plugin it is.
+Check the stack trace below to identify which plugin is causing this.
 
 Please read https://hardhat.org/migrate-from-hardhat2 to learn how to migrate your project to Hardhat 3.
 `;
