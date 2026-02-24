@@ -44,6 +44,7 @@ const solidityTestUserConfigType = z.object({
   coinbase: z.string().startsWith("0x").optional(),
   blockTimestamp: z.bigint().optional(),
   prevRandao: z.bigint().optional(),
+  gasLimit: z.bigint().optional(),
   blockGasLimit: z.bigint().or(z.literal(false)).optional(),
   fuzz: z
     .object({
