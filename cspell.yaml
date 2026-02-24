@@ -1,5 +1,0 @@
-ignorePaths:
-  - pnpm-lock.yaml
-ignoreWords:
-  - buidler
-  - Saty248
