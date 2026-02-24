@@ -16,9 +16,8 @@ import path from "node:path";
 import { afterEach, before, beforeEach, describe, it } from "node:test";
 import util from "node:util";
 
-import { HardhatError } from "@nomicfoundation/hardhat-errors";
 import {
-  assertThrowsHardhatError,
+  assertThrows,
   useEphemeralFixtureProject,
 } from "@nomicfoundation/hardhat-test-utils";
 import { AssertionError, expect } from "chai";
@@ -655,22 +654,21 @@ describe(
           });
 
           it("changeTokenBalance: Should throw if chained to another non-chainable method", () => {
-            assertThrowsHardhatError(
+            assertThrows(
               () =>
                 expect(contract.emitWithoutArgs())
                   .to.emit(contract, "WithoutArgs")
                   .and.to.changeTokenBalance(ethers, mockToken, receiver, 0),
-              HardhatError.ERRORS.CHAI_MATCHERS.GENERAL
-                .MATCHER_CANNOT_BE_CHAINED_AFTER,
-              {
-                matcher: "changeTokenBalance",
-                previousMatcher: "emit",
-              },
+              (e) =>
+                e.message.includes(
+                  'The matcher "changeTokenBalance" cannot be chained after "emit"',
+                ),
+              "Expected chaining error message",
             );
           });
 
           it("changeTokenBalances: should throw if chained to another non-chainable method", () => {
-            assertThrowsHardhatError(
+            assertThrows(
               () =>
                 expect(matchers.revertWithCustomErrorWithInt(1))
                   .to.be.revert(ethers)
@@ -680,12 +678,11 @@ describe(
                     [sender, receiver],
                     [-50, 100],
                   ),
-              HardhatError.ERRORS.CHAI_MATCHERS.GENERAL
-                .MATCHER_CANNOT_BE_CHAINED_AFTER,
-              {
-                matcher: "changeTokenBalances",
-                previousMatcher: "revert",
-              },
+              (e) =>
+                e.message.includes(
+                  'The matcher "changeTokenBalances" cannot be chained after "revert"',
+                ),
+              "Expected chaining error message",
             );
           });
         });
@@ -694,31 +691,31 @@ describe(
       describe("validation errors", () => {
         describe(CHANGE_TOKEN_BALANCE_MATCHER, () => {
           it("token is not specified", async () => {
-            assertThrowsHardhatError(
+            assertThrows(
               () =>
                 expect(
                   mockToken.transfer(receiver.address, 50),
                   // @ts-expect-error -- force error scenario: token should be specified
                 ).to.changeTokenBalance(ethers, receiver, 50),
-              HardhatError.ERRORS.CHAI_MATCHERS.GENERAL
-                .FIRST_ARGUMENT_MUST_BE_A_CONTRACT_INSTANCE,
-              {
-                method: CHANGE_TOKEN_BALANCE_MATCHER,
-              },
+              (e) =>
+                e.message.includes(
+                  `The first argument of "${CHANGE_TOKEN_BALANCE_MATCHER}" must be the contract instance of the token`,
+                ),
+              "Expected contract instance error message",
             );
 
             // if an address is used (receiver.address)
-            assertThrowsHardhatError(
+            assertThrows(
               () =>
                 expect(
                   mockToken.transfer(receiver.address, 50),
                   // @ts-expect-error -- force error scenario: token should be specified
                 ).to.changeTokenBalance(ethers, receiver.address, 50),
-              HardhatError.ERRORS.CHAI_MATCHERS.GENERAL
-                .FIRST_ARGUMENT_MUST_BE_A_CONTRACT_INSTANCE,
-              {
-                method: CHANGE_TOKEN_BALANCE_MATCHER,
-              },
+              (e) =>
+                e.message.includes(
+                  `The first argument of "${CHANGE_TOKEN_BALANCE_MATCHER}" must be the contract instance of the token`,
+                ),
+              "Expected contract instance error message",
             );
           });
 
@@ -758,7 +755,7 @@ describe(
                 mockToken.transfer(receiver.address, 50, { gasLimit: 100_000 }),
               ).to.changeTokenBalance(ethers, mockToken, sender, -50),
             ).to.be.rejectedWith(
-              "There should be only 1 transaction in the block",
+              "There should be only 1 transaction in the block: expected 2 to equal 1",
             );
           });
 
@@ -777,17 +774,17 @@ describe(
 
         describe(CHANGE_TOKEN_BALANCES_MATCHER, () => {
           it("token is not specified", async () => {
-            assertThrowsHardhatError(
+            assertThrows(
               () =>
                 expect(
                   mockToken.transfer(receiver.address, 50),
                   // @ts-expect-error -- force error scenario: token should be specified
                 ).to.changeTokenBalances(ethers, [sender, receiver], [-50, 50]),
-              HardhatError.ERRORS.CHAI_MATCHERS.GENERAL
-                .FIRST_ARGUMENT_MUST_BE_A_CONTRACT_INSTANCE,
-              {
-                method: CHANGE_TOKEN_BALANCES_MATCHER,
-              },
+              (e) =>
+                e.message.includes(
+                  `The first argument of "${CHANGE_TOKEN_BALANCES_MATCHER}" must be the contract instance of the token`,
+                ),
+              "Expected contract instance error message",
             );
           });
 
@@ -867,7 +864,9 @@ describe(
 
             await expect(
               expect(
-                mockToken.transfer(receiver.address, 50, { gasLimit: 100_000 }),
+                mockToken.transfer(receiver.address, 50, {
+                  gasLimit: 100_000,
+                }),
               ).to.changeTokenBalances(
                 ethers,
                 mockToken,
@@ -875,7 +874,7 @@ describe(
                 [-50, 50],
               ),
             ).to.be.rejectedWith(
-              "There should be only 1 transaction in the block",
+              "There should be only 1 transaction in the block: expected 2 to equal 1",
             );
           });
 

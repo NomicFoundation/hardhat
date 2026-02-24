@@ -63,7 +63,6 @@
     "typescript": "~5.8.0"
   },
   "dependencies": {
-    "@nomicfoundation/hardhat-errors": "workspace:^3.0.5",
     "@nomicfoundation/hardhat-utils": "workspace:^3.0.5",
     "@types/chai-as-promised": "^8.0.1",
     "chai-as-promised": "^8.0.0",

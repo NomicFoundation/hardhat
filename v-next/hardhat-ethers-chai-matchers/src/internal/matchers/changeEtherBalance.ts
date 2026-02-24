@@ -1,19 +1,15 @@
-import type { BalanceChangeOptions } from "../utils/balance.js";
 import type { HardhatEthers } from "@nomicfoundation/hardhat-ethers/types";
 import type { Addressable } from "ethers/address";
 import type { TransactionResponse } from "ethers/providers";
 import type { BigNumberish } from "ethers/utils";
 
-import { assertHardhatInvariant } from "@nomicfoundation/hardhat-errors";
-import { isObject } from "@nomicfoundation/hardhat-utils/lang";
+import { assert as chaiAssert } from "chai";
 import { toBigInt } from "ethers/utils";
 
 import { CHANGE_ETHER_BALANCE_MATCHER } from "../constants.js";
 import { getAddressOf } from "../utils/account.js";
-import {
-  assertCanBeConvertedToBigint,
-  assertIsNotNull,
-} from "../utils/asserts.js";
+import { assertIsNotNull } from "../utils/asserts.js";
+import { getBalances, type BalanceChangeOptions } from "../utils/balance.js";
 import { buildAssert } from "../utils/build-assert.js";
 import { preventAsyncMatcherChaining } from "../utils/prevent-chaining.js";
 
@@ -92,37 +88,33 @@ export async function getBalanceChange(
   }
 
   const txReceipt = await txResponse.wait();
-  assertIsNotNull(txReceipt, "txReceipt");
+  assertIsNotNull(
+    txReceipt,
+    "Transaction's receipt cannot be fetched from the network",
+  );
   const txBlockNumber = txReceipt.blockNumber;
 
   const block = await ethers.provider.getBlock(txReceipt.blockHash, false);
 
-  assertHardhatInvariant(block !== null, "The block doesn't exist");
+  assertIsNotNull(
+    block,
+    "The transaction's block cannot be fetched from the network",
+  );
 
-  assertHardhatInvariant(
-    isObject(block) &&
-      Array.isArray(block.transactions) &&
-      block.transactions.length === 1,
+  chaiAssert.equal(
+    block.transactions.length,
+    1,
     "There should be only 1 transaction in the block",
   );
 
   const address = await getAddressOf(account);
 
-  const balanceAfterHex = await ethers.provider.getBalance(
-    address,
-    txBlockNumber,
-  );
-
-  const balanceBeforeHex = await ethers.provider.getBalance(
-    address,
+  const [balanceAfter] = await getBalances(ethers, [account], txBlockNumber);
+  const [balanceBefore] = await getBalances(
+    ethers,
+    [account],
     txBlockNumber - 1,
   );
-
-  assertCanBeConvertedToBigint(balanceAfterHex);
-  assertCanBeConvertedToBigint(balanceBeforeHex);
-
-  const balanceAfter = BigInt(balanceAfterHex);
-  const balanceBefore = BigInt(balanceBeforeHex);
 
   if (options?.includeFee !== true && address === txResponse.from) {
     const gasPrice = txReceipt.gasPrice;

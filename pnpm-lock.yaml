@@ -338,9 +338,6 @@ importers:
 
   v-next/hardhat-ethers-chai-matchers:
     dependencies:
-      '@nomicfoundation/hardhat-errors':
-        specifier: workspace:^3.0.5
-        version: link:../hardhat-errors
       '@nomicfoundation/hardhat-ethers':
         specifier: workspace:^4.0.0
         version: link:../hardhat-ethers
