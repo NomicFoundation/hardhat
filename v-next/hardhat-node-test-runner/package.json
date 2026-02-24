@@ -13,8 +13,7 @@
   "type": "module",
   "exports": {
     ".": "./dist/src/index.js",
-    "./coverage": "./dist/src/coverage.js",
-    "./gas-stats": "./dist/src/gas-stats.js"
+    "./test-worker-done": "./dist/src/test-worker-done.js"
   },
   "keywords": [
     "ethereum",

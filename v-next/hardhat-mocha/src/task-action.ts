@@ -8,16 +8,6 @@ import { HardhatError } from "@nomicfoundation/hardhat-errors";
 import { setGlobalOptionsAsEnvVariables } from "@nomicfoundation/hardhat-utils/env";
 import { getAllFilesMatching } from "@nomicfoundation/hardhat-utils/fs";
 import debug from "debug";
-import {
-  markTestRunStart as initCoverage,
-  markTestWorkerDone as saveCoverageData,
-  markTestRunDone as reportCoverage,
-} from "hardhat/internal/coverage";
-import {
-  markTestRunStart as initGasStats,
-  markTestWorkerDone as saveGasStats,
-  markTestRunDone as reportGasStats,
-} from "hardhat/internal/gas-analytics";
 
 import { createPerformanceTracker } from "./performance.js";
 
@@ -121,21 +111,15 @@ const testWithHardhat: NewTaskActionFunction<TestActionArguments> = async (
     hre.config.test.mocha.require = hre.config.test.mocha.require ?? [];
     hre.config.test.mocha.require.push(unhandledRejectionHook.href);
 
-    if (hre.globalOptions.coverage === true) {
-      const coverage = new URL(
-        import.meta.resolve("@nomicfoundation/hardhat-mocha/coverage"),
+    if (
+      hre.globalOptions.coverage === true ||
+      hre.globalOptions.gasStats === true
+    ) {
+      const testWorkerDone = new URL(
+        import.meta.resolve("@nomicfoundation/hardhat-mocha/test-worker-done"),
       );
 
-      hre.config.test.mocha.require.push(coverage.href);
-    }
-
-    if (hre.globalOptions.gasStats === true) {
-      const gasStats = new URL(
-        import.meta.resolve("@nomicfoundation/hardhat-mocha/gas-stats"),
-      );
-
-      hre.config.test.mocha.require = hre.config.test.mocha.require ?? [];
-      hre.config.test.mocha.require.push(gasStats.href);
+      hre.config.test.mocha.require.push(testWorkerDone.href);
     }
 
     process.env.NODE_OPTIONS = imports
@@ -186,8 +170,7 @@ const testWithHardhat: NewTaskActionFunction<TestActionArguments> = async (
   perf.endPhase("Test file loading");
   perf.startPhase("Test execution");
 
-  await initCoverage("mocha");
-  await initGasStats("mocha");
+  await hre.hooks.runSequentialHandlers("test", "onTestRunStart", ["mocha"]);
 
   let total = 0;
   const testFailures = await new Promise<number>((resolve) => {
@@ -199,13 +182,11 @@ const testWithHardhat: NewTaskActionFunction<TestActionArguments> = async (
   perf.startPhase("Reporting");
 
   if (hre.config.test.mocha.parallel !== true) {
-    // NOTE: We execute mocha tests in the main process.
-    await saveCoverageData("mocha");
-    await saveGasStats("mocha");
+    await hre.hooks.runSequentialHandlers("test", "onTestWorkerDone", [
+      "mocha",
+    ]);
   }
-  // NOTE: This might print a coverage report.
-  await reportCoverage("mocha");
-  await reportGasStats("mocha");
+  await hre.hooks.runSequentialHandlers("test", "onTestRunDone", ["mocha"]);
 
   perf.endPhase("Reporting");
 

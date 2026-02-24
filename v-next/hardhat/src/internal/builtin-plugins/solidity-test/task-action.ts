@@ -22,16 +22,6 @@ import { getFullyQualifiedName } from "../../../utils/contract-names.js";
 import { HardhatRuntimeEnvironmentImplementation } from "../../core/hre.js";
 import { isSupportedChainType } from "../../edr/chain-type.js";
 import { ArtifactManagerImplementation } from "../artifacts/artifact-manager.js";
-import {
-  markTestRunStart as initCoverage,
-  markTestWorkerDone as saveCoverageData,
-  markTestRunDone as reportCoverage,
-} from "../coverage/helpers.js";
-import {
-  markTestRunStart as initGasStats,
-  markTestWorkerDone as saveGasStatsData,
-  markTestRunDone as reportGasStats,
-} from "../gas-analytics/helpers.js";
 import { edrGasReportToHardhatGasMeasurements } from "../network-manager/edr/utils/convert-to-edr.js";
 
 import { getEdrArtifacts, getBuildInfos } from "./edr-artifacts.js";
@@ -186,8 +176,7 @@ const runSolidityTests: NewTaskActionFunction<TestActionArguments> = async (
   const options: RunOptions =
     solidityTestConfigToRunOptions(solidityTestConfig);
 
-  await initCoverage("solidity");
-  await initGasStats("solidity");
+  await hre.hooks.runSequentialHandlers("test", "onTestRunStart", ["solidity"]);
 
   const runStream = run(
     chainType,
@@ -271,12 +260,11 @@ const runSolidityTests: NewTaskActionFunction<TestActionArguments> = async (
     includesErrors = true;
   }
 
-  await saveCoverageData("solidity");
-  await saveGasStatsData("solidity");
+  await hre.hooks.runSequentialHandlers("test", "onTestWorkerDone", [
+    "solidity",
+  ]);
 
-  // this may print coverage and gas statistics reports
-  await reportCoverage("solidity");
-  await reportGasStats("solidity");
+  await hre.hooks.runSequentialHandlers("test", "onTestRunDone", ["solidity"]);
 
   if (includesFailures || includesErrors) {
     process.exitCode = 1;
