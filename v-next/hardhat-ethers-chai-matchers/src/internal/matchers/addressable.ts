@@ -39,7 +39,11 @@ function tryGetAddressSync(value: any): string | undefined {
         "target" in value,
         "Addressable value should have the property target",
       );
-      value = value.target;
+
+      /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions
+        -- This cast is here so the CI job with @types/chai@4.3.0 builds. Note
+        that we have the assertion that target exists above. */
+      value = (value as any).target;
     }
   }
 
