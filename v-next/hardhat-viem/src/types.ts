@@ -1,4 +1,7 @@
-import type { ArtifactMap } from "hardhat/types/artifacts";
+import type {
+  ArtifactContractNames,
+  ArtifactMap,
+} from "hardhat/types/artifacts";
 import type { ChainType, DefaultChainType } from "hardhat/types/network";
 import type {
   Abi as ViemAbi,
@@ -88,7 +91,7 @@ export interface HardhatViemHelpers<
    * {@link DeployContractConfig} for more details.
    * @returns The deployed contract instance.
    */
-  deployContract: <ContractName extends string>(
+  deployContract: <ContractName extends ArtifactContractNames>(
     contractName: ContractName,
     constructorArgs?: ConstructorArgs<ContractName>,
     deployContractConfig?: DeployContractConfig,
@@ -106,7 +109,7 @@ export interface HardhatViemHelpers<
    * @returns An object containing the deployed contract instance and the
    * deployment transaction.
    */
-  sendDeploymentTransaction: <ContractName extends string>(
+  sendDeploymentTransaction: <ContractName extends ArtifactContractNames>(
     contractName: ContractName,
     constructorArgs?: ConstructorArgs<ContractName>,
     sendDeploymentTransactionConfig?: SendDeploymentTransactionConfig,
@@ -125,7 +128,7 @@ export interface HardhatViemHelpers<
    * {@link GetContractAtConfig} for more details.
    * @returns The contract instance.
    */
-  getContractAt: <ContractName extends string>(
+  getContractAt: <ContractName extends ArtifactContractNames>(
     contractName: ContractName,
     address: ViemAddress,
     getContractAtConfig?: GetContractAtConfig,

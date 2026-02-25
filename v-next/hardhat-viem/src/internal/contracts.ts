@@ -9,7 +9,10 @@ import type {
   WalletClient,
 } from "../types.js";
 import type { PrefixedHexString } from "@nomicfoundation/hardhat-utils/hex";
-import type { ArtifactManager } from "hardhat/types/artifacts";
+import type {
+  ArtifactContractNames,
+  ArtifactManager,
+} from "hardhat/types/artifacts";
 import type { EthereumProvider } from "hardhat/types/providers";
 import type { Abi as ViemAbi, Address as ViemAddress } from "viem";
 
@@ -21,7 +24,9 @@ import { getContractAddress, getContract } from "viem";
 
 import { getDefaultWalletClient, getPublicClient } from "./clients.js";
 
-export async function deployContract<ContractName extends string>(
+export async function deployContract<
+  ContractName extends ArtifactContractNames,
+>(
   provider: EthereumProvider,
   artifactManager: ArtifactManager,
   contractName: ContractName,
@@ -110,7 +115,9 @@ export async function deployContract<ContractName extends string>(
   return contract;
 }
 
-export async function sendDeploymentTransaction<ContractName extends string>(
+export async function sendDeploymentTransaction<
+  ContractName extends ArtifactContractNames,
+>(
   provider: EthereumProvider,
   artifactManager: ArtifactManager,
   contractName: ContractName,
@@ -173,7 +180,7 @@ export async function sendDeploymentTransaction<ContractName extends string>(
   return { contract, deploymentTransaction: deploymentTx };
 }
 
-export async function getContractAt<ContractName extends string>(
+export async function getContractAt<ContractName extends ArtifactContractNames>(
   provider: EthereumProvider,
   artifactManager: ArtifactManager,
   contractName: ContractName,
@@ -196,7 +203,7 @@ export async function getContractAt<ContractName extends string>(
   );
 }
 
-function createContractInstance<ContractName extends string>(
+function createContractInstance<ContractName extends ArtifactContractNames>(
   _contractName: ContractName,
   publicClient: PublicClient,
   walletClient: WalletClient,
