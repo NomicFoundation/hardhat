@@ -2475,7 +2475,7 @@ describe("isResolvedUserRemapping", () => {
   });
 });
 
-describe("getNodeModulesTargetOrUndefined", () => {
+describe("getNormalizeNodeModulesPath", () => {
   it("Should return the target as-is when it starts with node_modules/", () => {
     assert.equal(
       getNormalizeNodeModulesPath("node_modules/dep1/src/"),
