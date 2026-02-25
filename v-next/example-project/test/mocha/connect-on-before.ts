@@ -4,14 +4,16 @@ import { network } from "hardhat";
 describe("Counter", function () {
   const { ethers } = network.mocha.connectOnBefore();
 
-  it("Should emit the Increment event when calling the inc() function", async function () {
-    const counter = await ethers.deployContract("Counter");
+  let counter: any;
+  beforeEach(async function () {
+    counter = await ethers.deployContract("Counter");
+  });
 
+  it("Should emit the Increment event when calling the inc() function", async function () {
     await expect(counter.inc()).to.emit(counter, "Increment").withArgs(1n);
   });
 
   it("The sum of the Increment events should match the current value", async function () {
-    const counter = await ethers.deployContract("Counter");
     const deploymentBlockNumber = await ethers.provider.getBlockNumber();
 
     // run a series of increments

@@ -3,7 +3,7 @@
   "private": "true",
   "type": "module",
   "dependencies": {
-    "hardhat": "*",
-    "@nomicfoundation/hardhat-ethers": "*"
+    "hardhat": "workspace:*",
+    "@nomicfoundation/hardhat-ethers": "workspace:*"
   }
 }

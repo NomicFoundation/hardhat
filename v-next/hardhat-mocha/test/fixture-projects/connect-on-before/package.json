@@ -1,0 +1,9 @@
+{
+  "type": "module",
+  "devDependencies": {
+    "@nomicfoundation/hardhat-ethers": "workspace:*",
+    "@nomicfoundation/hardhat-network-helpers": "workspace:*",
+    "@nomicfoundation/hardhat-test-utils": "workspace:*",
+    "ethers": "^6.14.0"
+  }
+}
