@@ -6,5 +6,16 @@
     "v-next/hardhat/templates",
     "v-next/config"
   ],
-  "bumps": []
+  "bumps": [
+    {
+      "package": "@nomicfoundation/hardhat-viem",
+      "peer": "hardhat",
+      "reason": "It now uses ArtifactContractNames"
+    },
+    {
+      "package": "@nomicfoundation/hardhat-viem",
+      "peer": "hardhat",
+      "reason": "It now uses ArtifactContractNames"
+    }
+  ]
 }
