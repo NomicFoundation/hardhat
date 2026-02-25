@@ -38,7 +38,7 @@ export async function readAllNewChangsets() {
   return changesets;
 }
 
-function parseFrontMatter(markdown) {
+export function parseFrontMatter(markdown) {
   const match = markdown.match(/^---\n([\s\S]*?)\n---\n([\s\S]*)$/);
   if (!match) {
     return { frontMatter: null, content: markdown };
@@ -48,6 +48,19 @@ function parseFrontMatter(markdown) {
     frontMatter: match[1],
     content: match[2],
   };
+}
+
+const DOCS_URL_PATTERN =
+  /^#\s*docs:\s*(https?:\/\/github\.com\/NomicFoundation\/hardhat-website\/pull\/\d+)/i;
+
+export function extractDocsUrlsFromFrontMatter(frontMatter) {
+  if (frontMatter === null) return [];
+  const urls = [];
+  for (const line of frontMatter.split("\n")) {
+    const match = line.match(DOCS_URL_PATTERN);
+    if (match !== null) urls.push(match[1]);
+  }
+  return urls;
 }
 
 async function getAddingCommit(filePath) {
