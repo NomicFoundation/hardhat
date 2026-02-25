@@ -26,6 +26,16 @@
       "package": "@nomicfoundation/hardhat-typechain",
       "peer": "hardhat",
       "reason": "Uses the new api to detect errors in SolidityBuildSystem#build"
+    },
+    {
+      "package": "@nomicfoundation/hardhat-viem",
+      "peer": "hardhat",
+      "reason": "It now uses ArtifactContractNames"
+    },
+    {
+      "package": "@nomicfoundation/hardhat-viem",
+      "peer": "hardhat",
+      "reason": "It now uses ArtifactContractNames"
     }
   ]
 }
