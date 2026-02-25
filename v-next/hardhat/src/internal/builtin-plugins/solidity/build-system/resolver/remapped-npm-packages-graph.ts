@@ -621,7 +621,7 @@ export class RemappedNpmPackagesGraphImplementation
         },
       };
     } else {
-      // We updaet the target to the normalized version
+      // We update the target to the normalized version
       target = normalizedNodeModulesTarget;
     }
 
