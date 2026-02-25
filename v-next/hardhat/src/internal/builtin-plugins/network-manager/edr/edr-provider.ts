@@ -1,4 +1,3 @@
-import type { SolidityStackTrace } from "./stack-traces/solidity-stack-trace.js";
 import type { CoverageConfig } from "./types/coverage.js";
 import type { LoggerConfig } from "./types/logger.js";
 import type {
@@ -63,14 +62,10 @@ import {
 
 import { EdrProviderStackTraceGenerationError } from "./stack-traces/stack-trace-generation-errors.js";
 import { createSolidityErrorWithStackTrace } from "./stack-traces/stack-trace-solidity-errors.js";
-import {
-  isDebugTraceResult,
-  isEdrProviderErrorData,
-} from "./type-validation.js";
+import { isEdrProviderErrorData } from "./type-validation.js";
 import { clientVersion } from "./utils/client-version.js";
 import { ConsoleLogger } from "./utils/console-logger.js";
 import {
-  edrRpcDebugTraceToHardhat,
   hardhatMiningIntervalToEdrMiningInterval,
   hardhatMempoolOrderToEdrMineOrdering,
   hardhatHardforkToEdrSpecId,
@@ -289,15 +284,6 @@ export class EdrProvider extends BaseProvider {
         "Invalid client version response",
       );
       return clientVersion(jsonRpcResponse.result);
-    } else if (
-      jsonRpcRequest.method === "debug_traceTransaction" ||
-      jsonRpcRequest.method === "debug_traceCall"
-    ) {
-      assertHardhatInvariant(
-        isDebugTraceResult(jsonRpcResponse.result),
-        "Invalid debug trace response",
-      );
-      return edrRpcDebugTraceToHardhat(jsonRpcResponse.result);
     } else {
       return jsonRpcResponse.result;
     }
@@ -339,18 +325,9 @@ export class EdrProvider extends BaseProvider {
       const responseError = jsonRpcResponse.error;
       let error;
 
-      let stackTrace: SolidityStackTrace | null = null;
-      try {
-        stackTrace = edrResponse.stackTrace();
-      } catch (e) {
-        if (e instanceof Error) {
-          await sendErrorTelemetry(new EdrProviderStackTraceGenerationError(e));
-        }
+      const stackTrace = edrResponse.stackTrace();
 
-        log("Failed to get stack trace: %O", e);
-      }
-
-      if (stackTrace !== null) {
+      if (stackTrace?.kind === "StackTrace") {
         // If we have a stack trace, we know that the json rpc response data
         // is an object with the data and transactionHash fields
         assertHardhatInvariant(
@@ -360,11 +337,27 @@ export class EdrProvider extends BaseProvider {
 
         error = createSolidityErrorWithStackTrace(
           responseError.message,
-          stackTrace,
+          stackTrace.entries,
           responseError.data.data,
           responseError.data.transactionHash,
         );
       } else {
+        if (stackTrace !== null) {
+          if (stackTrace.kind === "UnexpectedError") {
+            await sendErrorTelemetry(
+              new EdrProviderStackTraceGenerationError(stackTrace.errorMessage),
+            );
+            log(`Failed to get stack trace: ${stackTrace.errorMessage}`);
+          } else {
+            const errHeuristicFailed =
+              "Heuristic failed to generate stack trace";
+            await sendErrorTelemetry(
+              new EdrProviderStackTraceGenerationError(errHeuristicFailed),
+            );
+            log(`Failed to get stack trace: ${errHeuristicFailed}`);
+          }
+        }
+
         error =
           responseError.code === InvalidArgumentsError.CODE
             ? new InvalidArgumentsError(responseError.message)
