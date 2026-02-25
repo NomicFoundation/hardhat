@@ -23,6 +23,7 @@ import {
 } from "@nomicfoundation/hardhat-utils/fs";
 
 import {
+  getNormalizeNodeModulesPath,
   isResolvedUserRemapping,
   RemappedNpmPackagesGraphImplementation,
   type RemappingsReaderFunction,
@@ -1644,6 +1645,385 @@ contr:to-npm=node_modules/dep/contracts`,
         });
       });
     });
+
+    describe("Relative node_modules remappings", () => {
+      it("Should treat ../node_modules/ remappings as npm remappings", async () => {
+        const template: TestProjectTemplate = {
+          name: "relative-parent-node-modules",
+          version: "1.0.0",
+          files: {
+            "contracts/A.sol": `import "d/B.sol";`,
+            "remappings.txt": `d/=../node_modules/dep1/src/`,
+          },
+          dependencies: {
+            dep1: {
+              name: "dep1",
+              version: "1.2.3",
+              files: {
+                "src/B.sol": ``,
+              },
+            },
+          },
+        };
+
+        await using project = await useTestProjectTemplate(template);
+        const graph = await RemappedNpmPackagesGraphImplementation.create(
+          project.path,
+        );
+
+        const hhProjectPackage = graph.getHardhatProjectPackage();
+        const contractsASol: ProjectResolvedFile = {
+          type: ResolvedFileType.PROJECT_FILE,
+          fsPath: path.join(project.path, "contracts/A.sol"),
+          content: {
+            text: `import "d/B.sol";`,
+            importPaths: ["d/B.sol"],
+            versionPragmas: [],
+          },
+          inputSourceName: "project/contracts/A.sol",
+          package: hhProjectPackage,
+        };
+
+        // First, trigger loading without matching to see the UNRESOLVED_NPM form
+        await graph.selectBestUserRemapping(contractsASol, "nope");
+        const userRemappings = graph.toJSON().userRemappingsPerPackage.project;
+
+        assert.deepEqual(userRemappings, [
+          {
+            type: "UNRESOLVED_NPM",
+            installationName: "dep1",
+            context: "project/",
+            prefix: "d/",
+            target: "node_modules/dep1/src/",
+            originalFormat: `d/=../node_modules/dep1/src/`,
+            source: path.join(project.path, "remappings.txt"),
+          },
+        ]);
+      });
+
+      it("Should treat ./node_modules/ remappings as npm remappings", async () => {
+        const template: TestProjectTemplate = {
+          name: "relative-dot-node-modules",
+          version: "1.0.0",
+          files: {
+            "contracts/A.sol": `import "d/B.sol";`,
+            "remappings.txt": `d/=./node_modules/dep1/src/`,
+          },
+          dependencies: {
+            dep1: {
+              name: "dep1",
+              version: "1.2.3",
+              files: {
+                "src/B.sol": ``,
+              },
+            },
+          },
+        };
+
+        await using project = await useTestProjectTemplate(template);
+        const graph = await RemappedNpmPackagesGraphImplementation.create(
+          project.path,
+        );
+
+        const hhProjectPackage = graph.getHardhatProjectPackage();
+        const contractsASol: ProjectResolvedFile = {
+          type: ResolvedFileType.PROJECT_FILE,
+          fsPath: path.join(project.path, "contracts/A.sol"),
+          content: {
+            text: `import "d/B.sol";`,
+            importPaths: ["d/B.sol"],
+            versionPragmas: [],
+          },
+          inputSourceName: "project/contracts/A.sol",
+          package: hhProjectPackage,
+        };
+
+        await graph.selectBestUserRemapping(contractsASol, "nope");
+        const userRemappings = graph.toJSON().userRemappingsPerPackage.project;
+
+        assert.deepEqual(userRemappings, [
+          {
+            type: "UNRESOLVED_NPM",
+            installationName: "dep1",
+            context: "project/",
+            prefix: "d/",
+            target: "node_modules/dep1/src/",
+            originalFormat: `d/=./node_modules/dep1/src/`,
+            source: path.join(project.path, "remappings.txt"),
+          },
+        ]);
+      });
+
+      it("Should normalize ../../a/../node_modules/ correctly", async () => {
+        const template: TestProjectTemplate = {
+          name: "relative-complex-path-node-modules",
+          version: "1.0.0",
+          files: {
+            "contracts/A.sol": `import "d/B.sol";`,
+            "remappings.txt": `d/=../../a/../node_modules/dep1/src/`,
+          },
+          dependencies: {
+            dep1: {
+              name: "dep1",
+              version: "1.2.3",
+              files: {
+                "src/B.sol": ``,
+              },
+            },
+          },
+        };
+
+        await using project = await useTestProjectTemplate(template);
+        const graph = await RemappedNpmPackagesGraphImplementation.create(
+          project.path,
+        );
+
+        const hhProjectPackage = graph.getHardhatProjectPackage();
+        const contractsASol: ProjectResolvedFile = {
+          type: ResolvedFileType.PROJECT_FILE,
+          fsPath: path.join(project.path, "contracts/A.sol"),
+          content: {
+            text: `import "d/B.sol";`,
+            importPaths: ["d/B.sol"],
+            versionPragmas: [],
+          },
+          inputSourceName: "project/contracts/A.sol",
+          package: hhProjectPackage,
+        };
+
+        await graph.selectBestUserRemapping(contractsASol, "nope");
+        const userRemappings = graph.toJSON().userRemappingsPerPackage.project;
+
+        assert.deepEqual(userRemappings, [
+          {
+            type: "UNRESOLVED_NPM",
+            installationName: "dep1",
+            context: "project/",
+            prefix: "d/",
+            target: "node_modules/dep1/src/",
+            originalFormat: `d/=../../a/../node_modules/dep1/src/`,
+            source: path.join(project.path, "remappings.txt"),
+          },
+        ]);
+      });
+
+      it("Should treat ./something/node_modules/ as a LOCAL remapping (nested node_modules)", async () => {
+        const template: TestProjectTemplate = {
+          name: "nested-node-modules-local",
+          version: "1.0.0",
+          files: {
+            "contracts/A.sol": `import "d/B.sol";`,
+            "remappings.txt": `d/=./something/node_modules/dep1/`,
+          },
+        };
+
+        await using project = await useTestProjectTemplate(template);
+        const graph = await RemappedNpmPackagesGraphImplementation.create(
+          project.path,
+        );
+
+        const hhProjectPackage = graph.getHardhatProjectPackage();
+        const contractsASol: ProjectResolvedFile = {
+          type: ResolvedFileType.PROJECT_FILE,
+          fsPath: path.join(project.path, "contracts/A.sol"),
+          content: {
+            text: `import "d/B.sol";`,
+            importPaths: ["d/B.sol"],
+            versionPragmas: [],
+          },
+          inputSourceName: "project/contracts/A.sol",
+          package: hhProjectPackage,
+        };
+
+        await graph.selectBestUserRemapping(contractsASol, "nope");
+        const userRemappings = graph.toJSON().userRemappingsPerPackage.project;
+
+        assert.deepEqual(userRemappings, [
+          {
+            type: UserRemappingType.LOCAL,
+            context: "project/",
+            prefix: "d/",
+            target: "project/something/node_modules/dep1/",
+            originalFormat: `d/=./something/node_modules/dep1/`,
+            source: path.join(project.path, "remappings.txt"),
+          },
+        ]);
+      });
+
+      it("Should resolve a relative npm remapping to the correct npm target", async () => {
+        const template: TestProjectTemplate = {
+          name: "resolve-relative-npm-remapping",
+          version: "1.0.0",
+          files: {
+            "contracts/A.sol": `import "d/B.sol";`,
+            "remappings.txt": `d/=../node_modules/dep1/src/`,
+          },
+          dependencies: {
+            dep1: {
+              name: "dep1",
+              version: "1.2.3",
+              files: {
+                "src/B.sol": ``,
+              },
+            },
+          },
+        };
+
+        await using project = await useTestProjectTemplate(template);
+        const graph = await RemappedNpmPackagesGraphImplementation.create(
+          project.path,
+        );
+
+        const hhProjectPackage = graph.getHardhatProjectPackage();
+        const contractsASol: ProjectResolvedFile = {
+          type: ResolvedFileType.PROJECT_FILE,
+          fsPath: path.join(project.path, "contracts/A.sol"),
+          content: {
+            text: `import "d/B.sol";`,
+            importPaths: ["d/B.sol"],
+            versionPragmas: [],
+          },
+          inputSourceName: "project/contracts/A.sol",
+          package: hhProjectPackage,
+        };
+
+        const result = await graph.selectBestUserRemapping(
+          contractsASol,
+          "d/B.sol",
+        );
+
+        assert.deepEqual(result, {
+          success: true,
+          value: {
+            type: UserRemappingType.NPM,
+            context: "project/",
+            prefix: "d/",
+            target: "npm/dep1@1.2.3/src/",
+            originalFormat: `d/=../node_modules/dep1/src/`,
+            source: path.join(project.path, "remappings.txt"),
+            targetNpmPackage: {
+              installationName: "dep1",
+              package: {
+                name: "dep1",
+                version: "1.2.3",
+                rootFsPath: path.join(project.path, "node_modules/dep1"),
+                inputSourceNameRoot: "npm/dep1@1.2.3",
+                exports: undefined,
+              },
+            },
+          },
+        });
+      });
+
+      it("Should skip identity remapping d/=../node_modules/d/ (same as d/=node_modules/d/)", async () => {
+        const template: TestProjectTemplate = {
+          name: "skip-relative-identity-remapping",
+          version: "1.0.0",
+          files: {
+            "contracts/A.sol": `import "d/B.sol";`,
+            "remappings.txt": `foo/=bar/
+d/=../node_modules/d/`,
+          },
+          dependencies: {
+            d: {
+              name: "d",
+              version: "1.0.0",
+              files: {
+                "B.sol": ``,
+              },
+            },
+          },
+        };
+
+        await using project = await useTestProjectTemplate(template);
+        const graph = await RemappedNpmPackagesGraphImplementation.create(
+          project.path,
+        );
+
+        const hhProjectPackage = graph.getHardhatProjectPackage();
+        const contractsASol: ProjectResolvedFile = {
+          type: ResolvedFileType.PROJECT_FILE,
+          fsPath: path.join(project.path, "contracts/A.sol"),
+          content: {
+            text: `import "d/B.sol";`,
+            importPaths: ["d/B.sol"],
+            versionPragmas: [],
+          },
+          inputSourceName: "project/contracts/A.sol",
+          package: hhProjectPackage,
+        };
+
+        await graph.selectBestUserRemapping(contractsASol, "nope");
+        const userRemappings = graph.toJSON().userRemappingsPerPackage.project;
+
+        // Only the local remapping should be present; the identity npm remapping is skipped
+        assert.deepEqual(userRemappings, [
+          {
+            type: UserRemappingType.LOCAL,
+            context: "project/",
+            prefix: "foo/",
+            target: "project/bar/",
+            originalFormat: `foo/=bar/`,
+            source: path.join(project.path, "remappings.txt"),
+          },
+        ]);
+      });
+    });
+
+    describe("isResolvedUserRemapping", () => {
+      it("Should return true if the remapping is a resolved user remapping", () => {
+        const resolvedNpmRemapping: ResolvedUserRemapping = {
+          type: UserRemappingType.NPM,
+          context: "context",
+          prefix: "prefix",
+          target: "target",
+          originalFormat: "originalFormat",
+          source: "source",
+          targetNpmPackage: {
+            installationName: "installationName",
+            package: {
+              name: "name",
+              version: "version",
+              rootFsPath: "rootFsPath",
+              inputSourceNameRoot: "inputSourceNameRoot",
+              exports: undefined,
+            },
+          },
+        };
+
+        assert.ok(
+          isResolvedUserRemapping(resolvedNpmRemapping),
+          "Should be true for a resolved npm user remapping",
+        );
+
+        const localRemapping: ResolvedUserRemapping = {
+          type: UserRemappingType.LOCAL,
+          context: "context",
+          prefix: "prefix",
+          target: "target",
+          originalFormat: "originalFormat",
+          source: "source",
+        };
+
+        assert.ok(
+          isResolvedUserRemapping(localRemapping),
+          "Should be true for a local user remapping",
+        );
+      });
+
+      it("Should return false for a plain remapping", () => {
+        const plainRemapping: Remapping = {
+          context: "context",
+          prefix: "prefix",
+          target: "target",
+        };
+
+        assert.ok(
+          !isResolvedUserRemapping(plainRemapping),
+          "Should be false for a plain remapping",
+        );
+      });
+    });
   });
 
   describe("readNpmPackageRemappings hook behavior", () => {
@@ -2092,5 +2472,65 @@ describe("isResolvedUserRemapping", () => {
       !isResolvedUserRemapping(plainRemapping),
       "Should be false for a plain remapping",
     );
+  });
+});
+
+describe("getNodeModulesTargetOrUndefined", () => {
+  it("Should return the target as-is when it starts with node_modules/", () => {
+    assert.equal(
+      getNormalizeNodeModulesPath("node_modules/dep1/src/"),
+      "node_modules/dep1/src/",
+    );
+  });
+
+  it("Should normalize ../node_modules/ to node_modules/", () => {
+    assert.equal(
+      getNormalizeNodeModulesPath("../node_modules/dep1/src/"),
+      "node_modules/dep1/src/",
+    );
+  });
+
+  it("Should normalize ../../node_modules/ to node_modules/", () => {
+    assert.equal(
+      getNormalizeNodeModulesPath("../../node_modules/dep1/src/"),
+      "node_modules/dep1/src/",
+    );
+  });
+
+  it("Should normalize ./node_modules/ to node_modules/", () => {
+    assert.equal(
+      getNormalizeNodeModulesPath("./node_modules/dep1/src/"),
+      "node_modules/dep1/src/",
+    );
+  });
+
+  it("Should normalize ../../a/../node_modules/ to node_modules/", () => {
+    assert.equal(
+      getNormalizeNodeModulesPath("../../a/../node_modules/dep1/src/"),
+      "node_modules/dep1/src/",
+    );
+  });
+
+  it("Should return undefined for paths with node_modules nested inside another directory", () => {
+    assert.equal(
+      getNormalizeNodeModulesPath("./something/node_modules/dep1/"),
+      undefined,
+    );
+  });
+
+  it("Should return undefined for paths with node_modules nested inside a parent directory", () => {
+    assert.equal(
+      getNormalizeNodeModulesPath("../something/node_modules/dep1/"),
+      undefined,
+    );
+  });
+
+  it("Should return undefined for plain local paths", () => {
+    assert.equal(getNormalizeNodeModulesPath("src/contracts/"), undefined);
+    assert.equal(getNormalizeNodeModulesPath("lib/foo/"), undefined);
+  });
+
+  it("Should return undefined for npm/ paths", () => {
+    assert.equal(getNormalizeNodeModulesPath("npm/dep1@1.0.0/src/"), undefined);
   });
 });
