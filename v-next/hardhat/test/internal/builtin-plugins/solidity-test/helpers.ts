@@ -50,22 +50,20 @@ describe("solidityTestConfigToSolidityTestRunnerConfigArgs", () => {
     }
   });
 
-  it("should include failing traces for verbosity level 3 and 4", async () => {
-    for (const verbosity of [3, 4]) {
-      const args = await solidityTestConfigToSolidityTestRunnerConfigArgs({
-        chainType: GENERIC_CHAIN_TYPE,
-        projectRoot: process.cwd(),
-        config: {},
-        verbosity,
-        generateGasReport: false,
-      });
+  it("should include failing traces for verbosity level 3", async () => {
+    const args = await solidityTestConfigToSolidityTestRunnerConfigArgs({
+      chainType: GENERIC_CHAIN_TYPE,
+      projectRoot: process.cwd(),
+      config: {},
+      verbosity: 3,
+      generateGasReport: false,
+    });
 
-      assert.equal(args.includeTraces, IncludeTraces.Failing);
-    }
+    assert.equal(args.includeTraces, IncludeTraces.Failing);
   });
 
-  it("should include all traces for verbosity level 5 and above", async () => {
-    for (const verbosity of [5, 6, 7]) {
+  it("should include all traces for verbosity level 4 and above", async () => {
+    for (const verbosity of [4, 5, 6, 7]) {
       const args = await solidityTestConfigToSolidityTestRunnerConfigArgs({
         chainType: GENERIC_CHAIN_TYPE,
         projectRoot: process.cwd(),

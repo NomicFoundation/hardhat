@@ -2,7 +2,6 @@ import type { HardhatPlugin } from "../../../types/plugins.js";
 
 import { ArgumentType } from "hardhat/types/arguments";
 
-import { DEFAULT_VERBOSITY } from "../../constants.js";
 import { task } from "../../core/config.js";
 
 import "./type-extensions.js";
@@ -34,12 +33,6 @@ const hardhatPlugin: HardhatPlugin = {
       .addFlag({
         name: "noCompile",
         description: "Don't compile the project before running the tests",
-      })
-      .addLevel({
-        name: "verbosity",
-        shortName: "v",
-        description: "Verbosity level of the test output",
-        defaultValue: DEFAULT_VERBOSITY,
       })
       .addOption({
         name: "testSummaryIndex",

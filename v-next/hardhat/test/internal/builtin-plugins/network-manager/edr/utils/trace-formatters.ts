@@ -3,34 +3,41 @@ import type { CallTrace } from "@nomicfoundation/edr";
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 
+import { IncludeTraces } from "@nomicfoundation/edr";
 import chalk from "chalk";
 
 import {
-  formatLogs,
   formatTraces,
-} from "../../../../src/internal/builtin-plugins/solidity-test/formatters.js";
+  verbosityToIncludeTraces,
+} from "../../../../../../src/internal/builtin-plugins/network-manager/edr/utils/trace-formatters.js";
 
-describe("formatLogs", () => {
-  it("should format logs correctly", async () => {
-    const lines = ["a", "b", "c"];
-
-    const actual = `  a
-  b
-  c`;
-
-    const expected = formatLogs(lines, 2, chalk);
-
-    assert.equal(expected, chalk.grey(actual));
+describe("verbosityToIncludeTraces", () => {
+  it("should return None for verbosity 0", () => {
+    assert.equal(verbosityToIncludeTraces(0), IncludeTraces.None);
   });
 
-  it("should return an empty string for empty logs", async () => {
-    const lines: string[] = [];
+  it("should return None for verbosity 1", () => {
+    assert.equal(verbosityToIncludeTraces(1), IncludeTraces.None);
+  });
 
-    const expected = "";
+  it("should return None for verbosity 2", () => {
+    assert.equal(verbosityToIncludeTraces(2), IncludeTraces.None);
+  });
 
-    const actual = formatLogs(lines, 2, chalk);
+  it("should return Failing for verbosity 3", () => {
+    assert.equal(verbosityToIncludeTraces(3), IncludeTraces.Failing);
+  });
 
-    assert.equal(expected, actual);
+  it("should return All for verbosity 4", () => {
+    assert.equal(verbosityToIncludeTraces(4), IncludeTraces.All);
+  });
+
+  it("should return All for verbosity 5", () => {
+    assert.equal(verbosityToIncludeTraces(5), IncludeTraces.All);
+  });
+
+  it("should return All for verbosity 6", () => {
+    assert.equal(verbosityToIncludeTraces(6), IncludeTraces.All);
   });
 });
 

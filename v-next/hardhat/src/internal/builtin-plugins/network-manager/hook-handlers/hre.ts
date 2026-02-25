@@ -50,5 +50,6 @@ async function createNetworkManager(
     hre.config.chainDescriptors,
     hre.globalOptions.config,
     hre.config.paths.root,
+    hre.globalOptions.verbosity,
   );
 }

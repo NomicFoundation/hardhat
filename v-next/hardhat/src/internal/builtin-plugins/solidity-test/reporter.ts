@@ -3,6 +3,7 @@ import type {
   TestReporterResult,
   TestStatus,
 } from "./types.js";
+import type { Colorizer } from "../../utils/colorizer.js";
 import type { TestResult } from "@nomicfoundation/edr";
 
 import { bytesToHexString } from "@nomicfoundation/hardhat-utils/hex";
@@ -11,12 +12,9 @@ import chalk from "chalk";
 import { sendErrorTelemetry } from "../../cli/telemetry/sentry/reporter.js";
 import { SolidityTestStackTraceGenerationError } from "../network-manager/edr/stack-traces/stack-trace-generation-errors.js";
 import { encodeStackTraceEntry } from "../network-manager/edr/stack-traces/stack-trace-solidity-errors.js";
+import { formatTraces } from "../network-manager/edr/utils/trace-formatters.js";
 
-import {
-  type Colorizer,
-  formatArtifactId,
-  formatTraces,
-} from "./formatters.js";
+import { formatArtifactId } from "./formatters.js";
 import { getMessageFromLastStackTraceEntry } from "./stack-trace-solidity-errors.js";
 
 class Indenter {
@@ -147,6 +145,8 @@ export async function* testReporter(
               suiteSuccessCount++;
               if (verbosity >= 5) {
                 printSetUpTraces = true;
+              }
+              if (verbosity >= 4) {
                 printExecutionTraces = true;
               }
               break;
@@ -184,7 +184,7 @@ export async function* testReporter(
               if (printSetUpTraces && functionName === "setUp") {
                 return true;
               }
-              if (printExecutionTraces && functionName !== "setUp()") {
+              if (printExecutionTraces && functionName !== "setUp") {
                 return true;
               }
               return false;

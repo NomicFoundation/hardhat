@@ -1,4 +1,3 @@
-import type { SolidityStackTrace } from "./stack-traces/solidity-stack-trace.js";
 import type { CoverageConfig } from "./types/coverage.js";
 import type { LoggerConfig } from "./types/logger.js";
 import type {
@@ -24,6 +23,7 @@ import type {
   TracingConfigWithBuffers,
   AccountOverride,
   GasReportConfig,
+  IncludeTraces,
 } from "@nomicfoundation/edr";
 
 import {
@@ -41,6 +41,7 @@ import { toSeconds } from "@nomicfoundation/hardhat-utils/date";
 import { ensureError } from "@nomicfoundation/hardhat-utils/error";
 import { numberToHexString } from "@nomicfoundation/hardhat-utils/hex";
 import { deepEqual } from "@nomicfoundation/hardhat-utils/lang";
+import chalk from "chalk";
 import debug from "debug";
 import { hexToBytes } from "ethereum-cryptography/utils";
 import { addr } from "micro-eth-signer";
@@ -63,14 +64,10 @@ import {
 
 import { EdrProviderStackTraceGenerationError } from "./stack-traces/stack-trace-generation-errors.js";
 import { createSolidityErrorWithStackTrace } from "./stack-traces/stack-trace-solidity-errors.js";
-import {
-  isDebugTraceResult,
-  isEdrProviderErrorData,
-} from "./type-validation.js";
+import { isEdrProviderErrorData } from "./type-validation.js";
 import { clientVersion } from "./utils/client-version.js";
 import { ConsoleLogger } from "./utils/console-logger.js";
 import {
-  edrRpcDebugTraceToHardhat,
   hardhatMiningIntervalToEdrMiningInterval,
   hardhatMempoolOrderToEdrMineOrdering,
   hardhatHardforkToEdrSpecId,
@@ -78,6 +75,7 @@ import {
   hardhatForkingConfigToEdrForkConfig,
 } from "./utils/convert-to-edr.js";
 import { printLine, replaceLastLine } from "./utils/logger.js";
+import { formatTraces } from "./utils/trace-formatters.js";
 
 const log = debug("hardhat:core:hardhat-network:provider");
 
@@ -144,6 +142,7 @@ interface EdrProviderConfig {
   jsonRpcRequestWrapper?: JsonRpcRequestWrapperFunction;
   coverageConfig?: CoverageConfig;
   gasReportConfig?: GasReportConfig;
+  includeCallTraces?: IncludeTraces;
 }
 
 export class EdrProvider extends BaseProvider {
@@ -151,6 +150,7 @@ export class EdrProvider extends BaseProvider {
 
   #provider: Provider | undefined;
   #nextRequestId = 1;
+  readonly #printLineFn: (line: string) => void;
 
   /**
    * Creates a new instance of `EdrProvider`.
@@ -163,6 +163,7 @@ export class EdrProvider extends BaseProvider {
     jsonRpcRequestWrapper,
     coverageConfig,
     gasReportConfig,
+    includeCallTraces,
   }: EdrProviderConfig): Promise<EdrProvider> {
     const printLineFn = loggerConfig.printLineFn ?? printLine;
     const replaceLastLineFn = loggerConfig.replaceLastLineFn ?? replaceLastLine;
@@ -172,6 +173,7 @@ export class EdrProvider extends BaseProvider {
       coverageConfig,
       gasReportConfig,
       chainDescriptors,
+      includeCallTraces,
     );
 
     let edrProvider: EdrProvider;
@@ -210,7 +212,11 @@ export class EdrProvider extends BaseProvider {
         contractDecoder,
       );
 
-      edrProvider = new EdrProvider(provider, jsonRpcRequestWrapper);
+      edrProvider = new EdrProvider(
+        provider,
+        printLineFn,
+        jsonRpcRequestWrapper,
+      );
     } catch (error) {
       ensureError(error);
 
@@ -230,11 +236,13 @@ export class EdrProvider extends BaseProvider {
    */
   private constructor(
     provider: Provider,
+    printLineFn: (line: string) => void,
     jsonRpcRequestWrapper?: JsonRpcRequestWrapperFunction,
   ) {
     super();
 
     this.#provider = provider;
+    this.#printLineFn = printLineFn;
     this.#jsonRpcRequestWrapper = jsonRpcRequestWrapper;
   }
 
@@ -289,15 +297,6 @@ export class EdrProvider extends BaseProvider {
         "Invalid client version response",
       );
       return clientVersion(jsonRpcResponse.result);
-    } else if (
-      jsonRpcRequest.method === "debug_traceTransaction" ||
-      jsonRpcRequest.method === "debug_traceCall"
-    ) {
-      assertHardhatInvariant(
-        isDebugTraceResult(jsonRpcResponse.result),
-        "Invalid debug trace response",
-      );
-      return edrRpcDebugTraceToHardhat(jsonRpcResponse.result);
     } else {
       return jsonRpcResponse.result;
     }
@@ -324,6 +323,20 @@ export class EdrProvider extends BaseProvider {
     );
   }
 
+  #outputCallTraces(edrResponse: Response): void {
+    try {
+      const callTraces = edrResponse.callTraces();
+
+      if (callTraces.length > 0) {
+        const formatted = formatTraces(callTraces, "  ", chalk);
+        this.#printLineFn("  Call Traces:");
+        this.#printLineFn(formatted);
+      }
+    } catch (e) {
+      log("Failed to get call traces: %O", e);
+    }
+  }
+
   async #handleEdrResponse(
     edrResponse: Response,
   ): Promise<SuccessfulJsonRpcResponse> {
@@ -339,18 +352,9 @@ export class EdrProvider extends BaseProvider {
       const responseError = jsonRpcResponse.error;
       let error;
 
-      let stackTrace: SolidityStackTrace | null = null;
-      try {
-        stackTrace = edrResponse.stackTrace();
-      } catch (e) {
-        if (e instanceof Error) {
-          await sendErrorTelemetry(new EdrProviderStackTraceGenerationError(e));
-        }
+      const stackTrace = edrResponse.stackTrace();
 
-        log("Failed to get stack trace: %O", e);
-      }
-
-      if (stackTrace !== null) {
+      if (stackTrace?.kind === "StackTrace") {
         // If we have a stack trace, we know that the json rpc response data
         // is an object with the data and transactionHash fields
         assertHardhatInvariant(
@@ -360,11 +364,27 @@ export class EdrProvider extends BaseProvider {
 
         error = createSolidityErrorWithStackTrace(
           responseError.message,
-          stackTrace,
+          stackTrace.entries,
           responseError.data.data,
           responseError.data.transactionHash,
         );
       } else {
+        if (stackTrace !== null) {
+          if (stackTrace.kind === "UnexpectedError") {
+            await sendErrorTelemetry(
+              new EdrProviderStackTraceGenerationError(stackTrace.errorMessage),
+            );
+            log(`Failed to get stack trace: ${stackTrace.errorMessage}`);
+          } else {
+            const errHeuristicFailed =
+              "Heuristic failed to generate stack trace";
+            await sendErrorTelemetry(
+              new EdrProviderStackTraceGenerationError(errHeuristicFailed),
+            );
+            log(`Failed to get stack trace: ${errHeuristicFailed}`);
+          }
+        }
+
         error =
           responseError.code === InvalidArgumentsError.CODE
             ? new InvalidArgumentsError(responseError.message)
@@ -372,10 +392,14 @@ export class EdrProvider extends BaseProvider {
         error.data = responseError.data;
       }
 
+      this.#outputCallTraces(edrResponse);
+
       /* eslint-disable-next-line no-restricted-syntax -- we may throw
       non-Hardaht errors inside of an EthereumProvider */
       throw error;
     }
+
+    this.#outputCallTraces(edrResponse);
 
     return jsonRpcResponse;
   }
@@ -437,6 +461,7 @@ export async function getProviderConfig(
   coverageConfig: CoverageConfig | undefined,
   gasReportConfig: GasReportConfig | undefined,
   chainDescriptors: ChainDescriptorsConfig,
+  includeCallTraces?: IncludeTraces,
 ): Promise<ProviderConfig> {
   const specId = hardhatHardforkToEdrSpecId(
     networkConfig.hardfork,
@@ -513,6 +538,7 @@ export async function getProviderConfig(
     observability: {
       codeCoverage: coverageConfig,
       gasReport: gasReportConfig,
+      includeCallTraces,
     },
     ownedAccounts: ownedAccounts.map((account) => account.secretKey),
     precompileOverrides: [],
