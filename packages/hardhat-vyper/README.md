@@ -1,7 +1,5 @@
 # hardhat-vyper
 
-[![npm](https://img.shields.io/npm/v/@nomiclabs/hardhat-vyper.svg)](https://www.npmjs.com/package/@nomiclabs/hardhat-vyper) [![hardhat](https://v2.hardhat.org/buidler-plugin-badge.svg?1)](https://hardhat.org)
-
 [Hardhat](https://hardhat.org) plugin to develop smart contracts with Vyper.
 
 **Version compatibility warning:** This version of the package does not work with Hardhat 2 nor 3. Please read below to migrate to Hardhat 3 or install a version compatible with Hardhat 2.

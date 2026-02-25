@@ -1,5 +1,3 @@
-[![npm](https://img.shields.io/npm/v/@nomiclabs/hardhat-solhint.svg)](https://www.npmjs.com/package/@nomiclabs/hardhat-solhint)
-
 # hardhat-solhint
 
 [Hardhat](https://hardhat.org) plugin for integration with [solhint linter](https://github.com/protofire/solhint).

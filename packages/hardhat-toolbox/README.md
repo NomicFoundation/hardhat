@@ -1,5 +1,3 @@
-[![npm](https://img.shields.io/npm/v/@nomicfoundation/hardhat-toolbox.svg)](https://www.npmjs.com/package/@nomicfoundation/hardhat-toolbox)
-
 # Hardhat Toolbox
 
 The `@nomicfoundation/hardhat-toolbox` plugin bundles all the commonly used packages and Hardhat plugins we recommend to start developing with Hardhat.

@@ -1,5 +1,3 @@
-[![npm](https://img.shields.io/npm/v/@nomicfoundation/hardhat-chai-matchers.svg)](https://www.npmjs.com/package/@nomicfoundation/hardhat-chai-matchers)
-
 # Hardhat Chai Matchers
 
 This plugin adds Ethereum-specific capabilities to the [Chai](https://chaijs.com/) assertion library, making your smart contract tests easy to write and read.
