@@ -6,11 +6,5 @@
     "v-next/hardhat/templates",
     "v-next/config"
   ],
-  "bumps": [
-    {
-      "package": "@nomicfoundation/hardhat-foundry",
-      "peer": "hardhat",
-      "reason": "It depends on the new SolidityHooks#readNpmPackageRemappings hook"
-    }
-  ]
+  "bumps": []
 }

@@ -1,5 +1,11 @@
 # @nomicfoundation/hardhat-test-utils
 
+## 2.0.2
+
+### Patch Changes
+
+- 6674b00: Bump `hardhat-utils` major
+
 ## 2.0.1
 
 ### Patch Changes
