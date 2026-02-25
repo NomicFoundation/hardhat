@@ -25,7 +25,7 @@ export async function deployContract<ContractName extends string>(
   provider: EthereumProvider,
   artifactManager: ArtifactManager,
   contractName: ContractName,
-  constructorArgs: unknown[] = [],
+  constructorArgs: readonly unknown[] = [],
   deployContractConfig: DeployContractConfig = {},
 ): Promise<ContractReturnType<ContractName>> {
   const {
@@ -114,7 +114,7 @@ export async function sendDeploymentTransaction<ContractName extends string>(
   provider: EthereumProvider,
   artifactManager: ArtifactManager,
   contractName: ContractName,
-  constructorArgs: unknown[] = [],
+  constructorArgs: readonly unknown[] = [],
   sendDeploymentTransactionConfig: SendDeploymentTransactionConfig = {},
 ): Promise<{
   contract: ContractReturnType<ContractName>;

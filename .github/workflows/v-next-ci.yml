@@ -6,6 +6,7 @@ on:
     branches:
       - main
   pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
   workflow_dispatch:
 
 concurrency:
@@ -17,6 +18,7 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       is_v_next: ${{ steps.check.outputs.folder_exists }}
+      scripts_changed: ${{ steps.scripts-filter.outputs.scripts }}
 
     steps:
       - name: Checkout code
@@ -30,6 +32,14 @@ jobs:
           else
             echo "folder_exists=false" >> $GITHUB_OUTPUT
           fi
+
+      - name: Check if scripts have changed
+        id: scripts-filter
+        uses: dorny/paths-filter@de90cc6fb38fc0963ad72b210f1f284cd68cea36 # v3.0.2
+        with:
+          filters: |
+            scripts:
+              - 'scripts/**'
 
   check_dependencies:
     name: Check dependency versions
@@ -56,6 +66,19 @@ jobs:
           node-version: 24
       - name: Run check
         run: node scripts/check-v-next-npm-scripts.js
+
+  check_infra_scripts_tests:
+    name: Check that infrastructure script tests pass
+    needs: is-v-next
+    if: ${{ needs.is-v-next.outputs.is_v_next == 'true' && needs.is-v-next.outputs.scripts_changed == 'true' }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: ./.github/actions/setup-env
+        with:
+          node-version: 24
+      - name: Run check
+        run: pnpm test:scripts
 
   list-packages:
     name: List packages
@@ -240,10 +263,10 @@ jobs:
       matrix:
         package: ${{ fromJson(needs.list-packages.outputs.packages) }}
         os: [ubuntu-latest, ubuntu-24.04-arm, macos-latest, windows-latest]
-        node: [22.0.0, 24.0.0]
+        node: [22.10.0, 24.0.0]
         exclude:
           - package: hardhat-node-test-reporter
-            node: 22.0.0
+            node: 22.10.0
           - package: hardhat-node-test-reporter
             node: 24.0.0
 
@@ -268,7 +291,7 @@ jobs:
         run: pnpm run --if-present test
 
   ci-aggregate:
-    needs: ci
+    needs: [ci, hardhat-node-test-reporter, hardhat-ethers-chai-v5-matchers]
 
     if: ${{ !cancelled() }}
 
@@ -277,15 +300,18 @@ jobs:
 
     steps:
       - env:
-          result: ${{ needs.ci.result }}
+          ci_result: ${{ needs.ci.result }}
+          reporter_result: ${{ needs.hardhat-node-test-reporter.result }}
         run: |
-          if [[ "$result" == "failure" ]]; then
+          if [[ "$ci_result" == "failure" || "$reporter_result" == "failure" ]]; then
             exit 1
           fi
         shell: bash
 
   hardhat-node-test-reporter:
     needs: list-packages
+
+    if: contains(fromJson(needs.list-packages.outputs.packages), 'hardhat-node-test-reporter')
 
     strategy:
       fail-fast: false
@@ -307,6 +333,42 @@ jobs:
           node-version: ${{ matrix.node }}
       - name: Install dependencies
         run: pnpm install --frozen-lockfile --prefer-offline
+      - name: Build
+        run: pnpm run --if-present build
+      - name: Run tests
+        env:
+          __DO_NOT_USE_IS_HARDHAT_CI: true
+        run: pnpm run --if-present test
+
+  ## We run this extra job to make sure that the hardhat-ethers-chai-matchers plugin can still
+  ## work with chai v5.
+  hardhat-ethers-chai-v5-matchers:
+    needs: list-packages
+
+    if: contains(fromJson(needs.list-packages.outputs.packages), 'hardhat-ethers-chai-matchers')
+
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, ubuntu-24.04-arm, macos-latest, windows-latest]
+        node: [22.0.0, 24.0.0]
+
+    name: "[hardhat-ethers-chai-v5-matchers] ci on ${{ matrix.os }} (Node ${{ matrix.node }})"
+    runs-on: ${{ matrix.os }}
+    defaults:
+      run:
+        working-directory: v-next/hardhat-ethers-chai-matchers
+    steps:
+      - uses: actions/checkout@v5
+      - uses: ./.github/actions/setup-env
+        with:
+          node-version: ${{ matrix.node }}
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile --prefer-offline
+      - name: Install chai v5
+        run: |
+          pnpm add --save-dev "chai@^5.1.2" "@types/chai@^4.3.0"
+          pnpm ls
       - name: Build
         run: pnpm run --if-present build
       - name: Run tests

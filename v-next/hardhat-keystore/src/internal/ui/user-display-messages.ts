@@ -47,6 +47,14 @@ export class UserDisplayMessages {
     return `Key "${key}" deleted from the ${getKeystoreType(dev)} keystore`;
   }
 
+  public static displayKeyRenamedInfoMessage(
+    oldKey: string,
+    newKey: string,
+    dev: boolean,
+  ): string {
+    return `Key "${oldKey}" renamed to "${newKey}" in the ${getKeystoreType(dev)} keystore`;
+  }
+
   public static displayKeySetInfoMessage(key: string, dev: boolean): string {
     return `Key "${key}" set in the ${getKeystoreType(dev)} keystore`;
   }

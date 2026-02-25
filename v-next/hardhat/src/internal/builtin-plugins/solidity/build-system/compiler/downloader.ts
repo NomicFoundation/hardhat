@@ -1,4 +1,4 @@
-import type { Compiler } from "./compiler.js";
+import type { Compiler } from "../../../../../../src/types/solidity.js";
 
 import { execFile } from "node:child_process";
 import os from "node:os";
@@ -32,6 +32,8 @@ import { NativeCompiler, SolcJsCompiler } from "./compiler.js";
 const log = debug("hardhat:solidity:downloader");
 
 const COMPILER_REPOSITORY_URL = "https://binaries.soliditylang.org";
+const DEFAULT_COMPILER_DOWNLOAD_RETRY_COUNT = 3;
+const DEFAULT_COMPILER_DOWNLOAD_RETRY_DELAY_MS = 2000;
 
 // We use a mirror of nikitastupin/solc because downloading directly from
 // github has rate limiting issues
@@ -150,13 +152,8 @@ export class CompilerDownloaderImplementation implements CompilerDownloader {
   readonly #platform: CompilerPlatform;
   readonly #compilersDir: string;
   readonly #downloadFunction: typeof download;
+  readonly #mutexCompilerList: MultiProcessMutex;
 
-  readonly #mutexCompiler = new MultiProcessMutex("compiler-download");
-  readonly #mutexCompilerList = new MultiProcessMutex("compiler-download-list");
-
-  /**
-   * Use CompilerDownloader.getConcurrencySafeDownloader instead
-   */
   constructor(
     platform: CompilerPlatform,
     compilersDir: string,
@@ -164,6 +161,9 @@ export class CompilerDownloaderImplementation implements CompilerDownloader {
   ) {
     this.#platform = platform;
     this.#compilersDir = compilersDir;
+    this.#mutexCompilerList = new MultiProcessMutex(
+      path.join(compilersDir, "compiler-download-list"),
+    );
     this.#downloadFunction = downloadFunction;
   }
 
@@ -198,11 +198,16 @@ export class CompilerDownloaderImplementation implements CompilerDownloader {
   }
 
   public async downloadCompiler(version: string): Promise<boolean> {
-    // Since only one process at a time can acquire the mutex, we avoid the risk of downloading the same compiler multiple times.
-    // This is because the mutex blocks access until a compiler has been fully downloaded, preventing any new process
-    // from checking whether that version of the compiler exists. Without mutex it might incorrectly
-    // return false, indicating that the compiler isn't present, even though it is currently being downloaded.
-    return this.#mutexCompiler.use(async () => {
+    // A per-version mutex ensures that only one process at a time can download a given compiler version,
+    // while still allowing different compiler versions to be downloaded in parallel.
+    // Without the mutex, a concurrent process might check whether a version exists, incorrectly
+    // find it missing (because another process is still downloading it), and start a redundant download.
+
+    const mutex = new MultiProcessMutex(
+      path.join(this.#compilersDir, `compiler-download-${version}`),
+    );
+
+    return mutex.use(async () => {
       const isCompilerDownloaded = await this.isCompilerDownloaded(version);
 
       if (isCompilerDownloaded === true) {
@@ -211,29 +216,27 @@ export class CompilerDownloaderImplementation implements CompilerDownloader {
 
       const build = await this.#getCompilerBuild(version);
 
-      let downloadPath: string;
-      try {
-        downloadPath = await this.#downloadCompiler(build);
-      } catch (e) {
-        ensureError(e);
+      let downloadPath: string = "";
+      for (let i = 0; i <= DEFAULT_COMPILER_DOWNLOAD_RETRY_COUNT; i++) {
+        try {
+          downloadPath = await this.#downloadAndVerifyCompiler(build);
+          break;
+        } catch (e) {
+          if (i === DEFAULT_COMPILER_DOWNLOAD_RETRY_COUNT) {
+            ensureError(e);
+            throw e;
+          } else {
+            const attempt = i + 1;
 
-        throw new HardhatError(
-          HardhatError.ERRORS.CORE.SOLIDITY.DOWNLOAD_FAILED,
-          {
-            remoteVersion: build.longVersion,
-          },
-          e,
-        );
-      }
+            log(
+              `Download or verification failed for solc ${version}, retrying (attempt ${attempt} of ${DEFAULT_COMPILER_DOWNLOAD_RETRY_COUNT})`,
+            );
 
-      const verified = await this.#verifyCompilerDownload(build, downloadPath);
-      if (!verified) {
-        throw new HardhatError(
-          HardhatError.ERRORS.CORE.SOLIDITY.INVALID_DOWNLOAD,
-          {
-            remoteVersion: build.longVersion,
-          },
-        );
+            await new Promise((resolve) =>
+              setTimeout(resolve, DEFAULT_COMPILER_DOWNLOAD_RETRY_DELAY_MS),
+            );
+          }
+        }
       }
 
       return this.#postProcessCompilerDownload(build, downloadPath);
@@ -389,6 +392,36 @@ export class CompilerDownloaderImplementation implements CompilerDownloader {
 
       await writeJsonFile(downloadPath, officialCompilerList);
     }
+  }
+
+  async #downloadAndVerifyCompiler(build: CompilerBuild): Promise<string> {
+    let downloadPath: string = "";
+
+    try {
+      downloadPath = await this.#downloadCompiler(build);
+    } catch (e) {
+      ensureError(e);
+
+      throw new HardhatError(
+        HardhatError.ERRORS.CORE.SOLIDITY.DOWNLOAD_FAILED,
+        {
+          remoteVersion: build.longVersion,
+        },
+        e,
+      );
+    }
+
+    const verified = await this.#verifyCompilerDownload(build, downloadPath);
+    if (!verified) {
+      throw new HardhatError(
+        HardhatError.ERRORS.CORE.SOLIDITY.INVALID_DOWNLOAD,
+        {
+          remoteVersion: build.longVersion,
+        },
+      );
+    }
+
+    return downloadPath;
   }
 
   async #downloadCompiler(build: CompilerBuild): Promise<string> {

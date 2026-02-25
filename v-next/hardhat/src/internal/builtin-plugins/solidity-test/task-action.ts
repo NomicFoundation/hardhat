@@ -158,10 +158,21 @@ const runSolidityTests: NewTaskActionFunction<TestActionArguments> = async (
     };
   }
 
+  // Extract hardfork from the selected network configuration
+  let hardfork: string | undefined;
+  if (hre.globalOptions.network !== undefined) {
+    const networkName = hre.globalOptions.network;
+    const networkConfig = hre.config.networks[networkName];
+    if (networkConfig !== undefined && networkConfig.type === "edr-simulated") {
+      hardfork = networkConfig.hardfork;
+    }
+  }
+
   const config: SolidityTestRunnerConfigArgs =
     await solidityTestConfigToSolidityTestRunnerConfigArgs({
       chainType,
       projectRoot: hre.config.paths.root,
+      hardfork,
       config: solidityTestConfig,
       verbosity,
       observability: observabilityConfig,

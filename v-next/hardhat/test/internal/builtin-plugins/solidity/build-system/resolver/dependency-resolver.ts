@@ -320,6 +320,40 @@ other-exports/=node_modules/exports/other/`,
           type: RootResolutionErrorType.NPM_ROOT_FILE_OF_UNINSTALLED_PACKAGE,
           npmModule,
           installationName: "not-installed",
+          projectHasFoundryToml: false,
+        };
+
+        assert.deepEqual(
+          await resolver.resolveNpmDependencyFileAsRoot(npmModule),
+          {
+            success: false,
+            error: expectedError,
+          },
+        );
+      });
+
+      it("Should set projectHasFoundryToml to true when project has foundry.toml", async () => {
+        const templateWithFoundry: TestProjectTemplate = {
+          name: "foundry-project-npm-root",
+          version: "1.0.0",
+          files: {
+            "foundry.toml": "[profile.default]\nsrc = 'contracts'\n",
+            "contracts/A.sol": `A`,
+          },
+        };
+
+        await using project = await useTestProjectTemplate(templateWithFoundry);
+        const resolver = await ResolverImplementation.create(
+          project.path,
+          readUtf8File,
+        );
+
+        const npmModule = "forge-std/Test.sol";
+        const expectedError: NpmRootResolutionError = {
+          type: RootResolutionErrorType.NPM_ROOT_FILE_OF_UNINSTALLED_PACKAGE,
+          npmModule,
+          installationName: "forge-std",
+          projectHasFoundryToml: true,
         };
 
         assert.deepEqual(
@@ -2127,9 +2161,171 @@ submodule2/=lib/submodule2/src/`,
               fromFsPath: absoluteFilePath,
               importPath,
               installationName: "not-installed",
+              importerPackageHasFoundryToml: false,
             },
           },
         );
+      });
+
+      describe("foundry.toml detection for uninstalled packages", () => {
+        it("Should set importerPackageHasFoundryToml to true when project has foundry.toml", async () => {
+          const templateWithFoundry: TestProjectTemplate = {
+            name: "foundry-project",
+            version: "1.0.0",
+            files: {
+              "foundry.toml": "[profile.default]\nsrc = 'contracts'\n",
+              "contracts/A.sol": `A`,
+            },
+          };
+
+          await using project =
+            await useTestProjectTemplate(templateWithFoundry);
+          const resolver = await ResolverImplementation.create(
+            project.path,
+            readUtf8File,
+          );
+          const absoluteFilePath = path.join(project.path, "contracts/A.sol");
+          const result = await resolver.resolveProjectFile(absoluteFilePath);
+          assert.ok(result.success, "Result should be successful");
+
+          const importPath = "forge-std/Test.sol";
+          assert.deepEqual(
+            await resolver.resolveImport(result.value, importPath),
+            {
+              success: false,
+              error: {
+                type: ImportResolutionErrorType.IMPORT_OF_UNINSTALLED_PACKAGE,
+                fromFsPath: absoluteFilePath,
+                importPath,
+                installationName: "forge-std",
+                importerPackageHasFoundryToml: true,
+              },
+            },
+          );
+        });
+
+        it("Should set importerPackageHasFoundryToml to true when npm dependency has foundry.toml", async () => {
+          const templateWithNpmFoundry: TestProjectTemplate = {
+            name: "project-with-foundry-dep",
+            version: "1.0.0",
+            files: {
+              "contracts/A.sol": `A`,
+            },
+            dependencies: {
+              "my-foundry-dep": {
+                name: "my-foundry-dep",
+                version: "1.0.0",
+                files: {
+                  "foundry.toml": "[profile.default]\nsrc = 'src'\n",
+                  "src/Lib.sol": `import "forge-std/Test.sol";`,
+                },
+              },
+            },
+          };
+
+          await using project = await useTestProjectTemplate(
+            templateWithNpmFoundry,
+          );
+          const resolver = await ResolverImplementation.create(
+            project.path,
+            readUtf8File,
+          );
+
+          // First, resolve a project file that imports from the npm dependency
+          const absoluteFilePath = path.join(project.path, "contracts/A.sol");
+          const projectResult =
+            await resolver.resolveProjectFile(absoluteFilePath);
+          assert.ok(projectResult.success, "Project file should resolve");
+
+          // Resolve the npm dependency file
+          const npmDepResult = await resolver.resolveImport(
+            projectResult.value,
+            "my-foundry-dep/src/Lib.sol",
+          );
+          assert.ok(npmDepResult.success, "Npm dependency should resolve");
+
+          // Now try to import an uninstalled package from the npm dependency
+          const importPath = "forge-std/Test.sol";
+          const errorResult = await resolver.resolveImport(
+            npmDepResult.value.file,
+            importPath,
+          );
+
+          assert.deepEqual(errorResult, {
+            success: false,
+            error: {
+              type: ImportResolutionErrorType.IMPORT_OF_UNINSTALLED_PACKAGE,
+              fromFsPath: path.join(
+                project.path,
+                "node_modules/my-foundry-dep/src/Lib.sol",
+              ),
+              importPath,
+              installationName: "forge-std",
+              importerPackageHasFoundryToml: true,
+            },
+          });
+        });
+
+        it("Should set importerPackageHasFoundryToml to false when npm dependency does not have foundry.toml", async () => {
+          const templateWithoutFoundry: TestProjectTemplate = {
+            name: "project-without-foundry-dep",
+            version: "1.0.0",
+            files: {
+              "contracts/A.sol": `A`,
+            },
+            dependencies: {
+              "regular-dep": {
+                name: "regular-dep",
+                version: "1.0.0",
+                files: {
+                  "src/Lib.sol": `import "some-lib/Foo.sol";`,
+                },
+              },
+            },
+          };
+
+          await using project = await useTestProjectTemplate(
+            templateWithoutFoundry,
+          );
+          const resolver = await ResolverImplementation.create(
+            project.path,
+            readUtf8File,
+          );
+
+          // First, resolve a project file that imports from the npm dependency
+          const absoluteFilePath = path.join(project.path, "contracts/A.sol");
+          const projectResult =
+            await resolver.resolveProjectFile(absoluteFilePath);
+          assert.ok(projectResult.success, "Project file should resolve");
+
+          // Resolve the npm dependency file
+          const npmDepResult = await resolver.resolveImport(
+            projectResult.value,
+            "regular-dep/src/Lib.sol",
+          );
+          assert.ok(npmDepResult.success, "Npm dependency should resolve");
+
+          // Now try to import an uninstalled package from the npm dependency
+          const importPath = "some-lib/Foo.sol";
+          const errorResult = await resolver.resolveImport(
+            npmDepResult.value.file,
+            importPath,
+          );
+
+          assert.deepEqual(errorResult, {
+            success: false,
+            error: {
+              type: ImportResolutionErrorType.IMPORT_OF_UNINSTALLED_PACKAGE,
+              fromFsPath: path.join(
+                project.path,
+                "node_modules/regular-dep/src/Lib.sol",
+              ),
+              importPath,
+              installationName: "some-lib",
+              importerPackageHasFoundryToml: false,
+            },
+          });
+        });
       });
 
       describe("Without package.exports", () => {

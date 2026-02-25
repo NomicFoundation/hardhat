@@ -1,6 +1,7 @@
 import type { SolidityConfig } from "../../../../../src/types/config.js";
 import type { HookContext } from "../../../../../src/types/hooks.js";
 import type {
+  SolidityBuildInfo,
   SolidityBuildInfoOutput,
   SolidityBuildSystem,
 } from "../../../../../src/types/solidity.js";
@@ -317,6 +318,88 @@ describe(
           {
             buildProfileName: "not-defined",
           },
+        );
+      });
+    });
+
+    describe("compileBuildInfo", () => {
+      it("should compile a valid build info and return matching output", async () => {
+        // 1. Build the project first
+        const rootFilePaths = await solidity.getRootFilePaths();
+        const buildResult = await solidity.build(rootFilePaths, {
+          force: true,
+          quiet: true,
+        });
+        assert.ok(buildResult instanceof Map, "Build result should be a Map");
+
+        // 2. Read a build info file from artifacts
+        const buildInfoFiles = await getAllFilesMatching(
+          path.join(actualArtifactsPath, "build-info"),
+          (f) => f.endsWith(".json") && !f.endsWith(".output.json"),
+        );
+        assert.ok(
+          buildInfoFiles.length > 0,
+          "Should have at least one build info file",
+        );
+
+        const buildInfo = await readJsonFile<SolidityBuildInfo>(
+          buildInfoFiles[0],
+        );
+
+        // 3. Call compileBuildInfo
+        const output = await solidity.compileBuildInfo(buildInfo, {
+          quiet: true,
+        });
+
+        // 4. Verify output has expected structure
+        assert.ok(
+          output.contracts !== undefined || output.errors !== undefined,
+          "Output should have contracts or errors",
+        );
+        assert.ok(
+          output.errors === undefined ||
+            !output.errors.some((e) => e.severity === "error"),
+          "Output should not have compilation errors",
+        );
+      });
+
+      it("should return compilation errors without throwing", async () => {
+        // Create a build info with invalid Solidity code
+        const invalidBuildInfo: SolidityBuildInfo = {
+          _format: "hh3-sol-build-info-1",
+          id: "test-invalid-build-info",
+          solcVersion: "0.8.0",
+          solcLongVersion: "0.8.0+commit.c7dfd78e",
+          userSourceNameMap: { "Invalid.sol": "Invalid.sol" },
+          input: {
+            language: "Solidity",
+            sources: {
+              "Invalid.sol": {
+                content:
+                  "pragma solidity ^0.8.0; contract Invalid { undefined_type x; }",
+              },
+            },
+            settings: {
+              optimizer: { enabled: false, runs: 200 },
+              outputSelection: {
+                "*": {
+                  "*": ["abi", "evm.bytecode"],
+                },
+              },
+            },
+          },
+        };
+
+        // Should not throw
+        const output = await solidity.compileBuildInfo(invalidBuildInfo, {
+          quiet: true,
+        });
+
+        // Should have errors in output
+        assert.ok(output.errors !== undefined, "Output should have errors");
+        assert.ok(
+          output.errors.some((e) => e.severity === "error"),
+          "Output should have at least one error",
         );
       });
     });

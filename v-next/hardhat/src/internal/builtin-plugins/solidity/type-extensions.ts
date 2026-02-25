@@ -1,5 +1,15 @@
-import type { SolidityBuildSystem } from "../../../types/solidity/build-system.js";
-import type { CompilerInput } from "../../../types/solidity.js";
+import type { SolcConfig } from "../../../types/config.js";
+import type {
+  BuildOptions,
+  CompilationJobCreationError,
+  FileBuildResult,
+  SolidityBuildSystem,
+} from "../../../types/solidity/build-system.js";
+import type {
+  Compiler,
+  CompilerInput,
+  CompilerOutput,
+} from "../../../types/solidity.js";
 
 import "../../../types/config.js";
 declare module "../../../types/config.js" {
@@ -14,6 +24,7 @@ declare module "../../../types/config.js" {
     version: string;
     settings?: any;
     path?: string;
+    preferWasm?: boolean;
   }
 
   export interface SingleVersionSolcUserConfig extends SolcUserConfig {
@@ -56,6 +67,7 @@ declare module "../../../types/config.js" {
     version: string;
     settings: any;
     path?: string;
+    preferWasm?: boolean;
   }
 
   export interface SolidityBuildProfileConfig {
@@ -123,7 +135,10 @@ declare module "../../../types/hooks.js" {
     ) => Promise<void>;
 
     /**
-     * Hook triggered within the compilation job when its' solc input is first constructed.
+     * Hook triggered to preprocess a Solidity file and manipulate its contents
+     * before it is passed along for compilation. Only files directly under
+     * the Hardhat project are preprocessed, Solidity files from npm
+     * dependencies are not included.
      *
      * @param context The hook context.
      * @param inputSourceName The input source name of the project file.
@@ -177,5 +192,83 @@ declare module "../../../types/hooks.js" {
         nextAbsolutePath: string,
       ) => Promise<string>,
     ) => Promise<string>;
+
+    /**
+     * Hook triggered when a Solidity build process is run using the `build`
+     * method of the Solidity build system.
+     *
+     * @param context The hook context.
+     * @param rootFilePaths The files to build, which can be either absolute
+     * paths or `npm:<package-name>/<file-path>` URIs.
+     * @param options The options to use when building the files.
+     * @param next A function to call the next handler for this hook.
+     */
+    build: (
+      context: HookContext,
+      rootFilePaths: string[],
+      options: BuildOptions | undefined,
+      next: (
+        nextContext: HookContext,
+        nextRootFilePaths: string[],
+        nextOptions: BuildOptions | undefined,
+      ) => Promise<CompilationJobCreationError | Map<string, FileBuildResult>>,
+    ) => Promise<CompilationJobCreationError | Map<string, FileBuildResult>>;
+
+    /**
+     * Hook triggered to invoke a passed in Solc compiler on the
+     * Solc input generated for a given compilation job.
+     * This hook allows for manipulating the Solc input passed into the Solc
+     * compiler Hardhat has selected for the compilation job, and similarly to
+     * manipulate the Solc output.
+     *
+     * @param context The hook context.
+     * @param compile The Solc compiler selected by Hardhat for this compilation
+     * job.
+     * @param solcInput The solc input json constructed from the compilation
+     * job.
+     * @param solcConfig The configuration used to setup solc e.g. version.
+     * @param next A function to call the next handler for this hook, or the
+     * default implementation if no more handlers exist.
+     */
+    invokeSolc(
+      context: HookContext,
+      compiler: Compiler,
+      solcInput: CompilerInput,
+      solcConfig: SolcConfig,
+      next: (
+        nextContext: HookContext,
+        nextCompiler: Compiler,
+        nextSolcInput: CompilerInput,
+        nextSolcConfig: SolcConfig,
+      ) => Promise<CompilerOutput>,
+    ): Promise<CompilerOutput>;
+
+    /**
+     * Provide a handler for this hook to supply remappings for npm packages.
+     *
+     * This hook is called when the resolver needs to read remappings for a package.
+     * Handlers can provide remappings from alternative sources (e.g., foundry.toml)
+     * in addition to the default remappings.txt files.
+     *
+     * @param context The hook context.
+     * @param packageName The name of the npm package.
+     * @param packageVersion The version of the npm package.
+     * @param packagePath The absolute filesystem path to the package root.
+     * @param next A function to get remappings from other sources (including default behavior).
+     * @returns An array of remapping sources, each containing an array of remapping strings
+     *   and the source path they came from.
+     */
+    readNpmPackageRemappings: (
+      context: HookContext,
+      packageName: string,
+      packageVersion: string,
+      packagePath: string,
+      next: (
+        nextContext: HookContext,
+        nextPackageName: string,
+        nextPackageVersion: string,
+        nextPackagePath: string,
+      ) => Promise<Array<{ remappings: string[]; source: string }>>,
+    ) => Promise<Array<{ remappings: string[]; source: string }>>;
   }
 }

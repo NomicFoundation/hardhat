@@ -1,6 +1,6 @@
 {
   "name": "@nomicfoundation/ignition-ui",
-  "version": "3.0.6",
+  "version": "3.0.8",
   "type": "module",
   "repository": {
     "type": "git",
@@ -20,7 +20,7 @@
     "prettier": "prettier \"**/*.{ts,js,md,json}\"",
     "eslint": "eslint \"src/**/*.ts\" \"test/**/*.ts\"",
     "preview": "vite preview",
-    "clean": "rimraf dist",
+    "clean": "rimraf ./dist ./tsconfig.node.tsbuildinfo ./tsconfig.tsbuildinfo",
     "prepack": "pnpm build && vite build"
   },
   "files": [
@@ -31,15 +31,15 @@
   ],
   "devDependencies": {
     "@fontsource/roboto": "^5.0.8",
-    "@nomicfoundation/ignition-core": "workspace:^3.0.6",
-    "@types/chai": "^4.2.0",
+    "@nomicfoundation/ignition-core": "workspace:^3.0.8",
+    "@types/chai": "^5.2.3",
     "@types/chai-as-promised": "^8.0.1",
     "@types/mocha": ">=10.0.10",
     "@types/react": "^18.0.28",
     "@types/react-dom": "^18.0.11",
     "@types/styled-components": "5.1.26",
     "@vitejs/plugin-react": "^4.0.0",
-    "chai": "^5.1.2",
+    "chai": "^6.2.2",
     "chai-as-promised": "^8.0.0",
     "eslint": "9.25.1",
     "mermaid": "10.9.3",

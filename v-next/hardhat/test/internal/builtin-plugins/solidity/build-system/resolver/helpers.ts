@@ -60,7 +60,10 @@ export interface TestProjectTemplate {
 export interface TestProject {
   path: string;
   clean: () => Promise<void>;
-  getHRE: () => Promise<HardhatRuntimeEnvironment>;
+  getHRE: (
+    config?: HardhatUserConfig,
+    globalOptions?: Partial<GlobalOptions>,
+  ) => Promise<HardhatRuntimeEnvironment>;
   [Symbol.asyncDispose]: () => Promise<void>;
 }
 

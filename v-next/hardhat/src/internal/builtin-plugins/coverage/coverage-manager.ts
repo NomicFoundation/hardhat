@@ -8,7 +8,7 @@ import type { TableItem } from "@nomicfoundation/hardhat-utils/format";
 
 import path from "node:path";
 
-import { divider, formatTable } from "@nomicfoundation/hardhat-utils/format";
+import { formatTable } from "@nomicfoundation/hardhat-utils/format";
 import {
   ensureDir,
   getAllFilesMatching,
@@ -22,6 +22,7 @@ import chalk from "chalk";
 import debug from "debug";
 
 import { getProcessedCoverageInfo } from "./process-coverage.js";
+import { generateHtmlReport } from "./reports/html.js";
 
 const log = debug("hardhat:core:coverage:coverage-manager");
 
@@ -147,6 +148,10 @@ export class CoverageManagerImplementation implements CoverageManager {
     const lcovReportPath = path.join(this.#coveragePath, "lcov.info");
     await writeUtf8File(lcovReportPath, lcovReport);
     log(`Saved lcov report to ${lcovReportPath}`);
+
+    const htmlReportPath = path.join(this.#coveragePath, "html");
+    await generateHtmlReport(report, htmlReportPath);
+    console.log(`Saved html report to ${htmlReportPath}`);
 
     console.log(markdownReport);
     console.log();
@@ -428,55 +433,60 @@ export class CoverageManagerImplementation implements CoverageManager {
 
     const rows: TableItem[] = [];
 
-    rows.push([chalk.bold("Coverage Report")]);
-    rows.push(divider);
+    rows.push({
+      type: "title",
+      text: chalk.bold("Coverage Report"),
+    });
 
-    rows.push(
-      ["File Path", "Line %", "Statement %", "Uncovered Lines"].map((s) =>
-        chalk.yellow(s),
+    rows.push({
+      type: "section-header",
+      text: chalk.bold("File Coverage"),
+    });
+
+    rows.push({
+      type: "header",
+      cells: ["File Path", "Line %", "Statement %", "Uncovered Lines"].map(
+        (s) => chalk.yellow(s),
       ),
-    );
+    });
 
-    const bodyRows = Object.entries(report).map(
-      ([
-        relativePath,
-        {
-          executedStatementsCount,
-          unexecutedStatementsCount,
-          lineExecutionCounts,
-          executedLinesCount,
-          unexecutedLines,
-        },
-      ]) => {
-        const lineCoverage =
-          lineExecutionCounts.size === 0
-            ? 0
-            : (executedLinesCount * 100.0) / lineExecutionCounts.size;
-        const statementCoverage =
-          executedStatementsCount === 0
-            ? 0
-            : (executedStatementsCount * 100.0) /
-              (executedStatementsCount + unexecutedStatementsCount);
+    for (const [
+      relativePath,
+      {
+        executedStatementsCount,
+        unexecutedStatementsCount,
+        lineExecutionCounts,
+        executedLinesCount,
+        unexecutedLines,
+      },
+    ] of Object.entries(report)) {
+      const lineCoverage =
+        lineExecutionCounts.size === 0
+          ? 0
+          : (executedLinesCount * 100.0) / lineExecutionCounts.size;
+      const statementCoverage =
+        executedStatementsCount === 0
+          ? 0
+          : (executedStatementsCount * 100.0) /
+            (executedStatementsCount + unexecutedStatementsCount);
 
-        totalExecutedLines += executedLinesCount;
-        totalExecutableLines += lineExecutionCounts.size;
+      totalExecutedLines += executedLinesCount;
+      totalExecutableLines += lineExecutionCounts.size;
 
-        totalExecutedStatements += executedStatementsCount;
-        totalExecutableStatements +=
-          executedStatementsCount + unexecutedStatementsCount;
+      totalExecutedStatements += executedStatementsCount;
+      totalExecutableStatements +=
+        executedStatementsCount + unexecutedStatementsCount;
 
-        const row: string[] = [
+      rows.push({
+        type: "row",
+        cells: [
           this.formatRelativePath(relativePath),
           this.formatCoverage(lineCoverage),
           this.formatCoverage(statementCoverage),
           this.formatLines(unexecutedLines),
-        ];
-
-        return row;
-      },
-    );
-
-    rows.push(...bodyRows);
+        ],
+      });
+    }
 
     const totalLineCoverage =
       totalExecutableLines === 0
@@ -487,13 +497,15 @@ export class CoverageManagerImplementation implements CoverageManager {
         ? 0
         : (totalExecutedStatements * 100.0) / totalExecutableStatements;
 
-    rows.push(divider);
-    rows.push([
-      chalk.yellow("Total"),
-      this.formatCoverage(totalLineCoverage),
-      this.formatCoverage(totalStatementCoverage),
-      "",
-    ]);
+    rows.push({
+      type: "header",
+      cells: [
+        chalk.yellow("Total"),
+        this.formatCoverage(totalLineCoverage),
+        this.formatCoverage(totalStatementCoverage),
+        "",
+      ],
+    });
 
     return formatTable(rows);
   }

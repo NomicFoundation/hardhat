@@ -4,6 +4,12 @@ import type {
   OptionDefinition,
   PositionalArgumentDefinition,
 } from "../../../types/arguments.js";
+import type {
+  LazyActionObject,
+  NewTaskActionFunction,
+  TaskArguments,
+  TaskOverrideActionFunction,
+} from "../../../types/tasks.js";
 
 import { HardhatError } from "@nomicfoundation/hardhat-errors";
 
@@ -19,6 +25,40 @@ export function validateId(id: string | string[]): void {
   if (id.length === 0) {
     throw new HardhatError(
       HardhatError.ERRORS.CORE.TASK_DEFINITIONS.EMPTY_TASK_ID,
+    );
+  }
+}
+
+export function validateAction(
+  action:
+    | LazyActionObject<NewTaskActionFunction<TaskArguments>>
+    | LazyActionObject<TaskOverrideActionFunction<TaskArguments>>
+    | undefined,
+  inlineAction:
+    | NewTaskActionFunction<TaskArguments>
+    | TaskOverrideActionFunction<TaskArguments>
+    | undefined,
+  taskId: string[],
+  isPlugin: boolean,
+): void {
+  if (isPlugin && inlineAction !== undefined) {
+    throw new HardhatError(
+      HardhatError.ERRORS.CORE.TASK_DEFINITIONS.INLINE_ACTION_CANNOT_BE_USED_IN_PLUGINS,
+      { task: formatTaskId(taskId) },
+    );
+  }
+
+  if (action !== undefined && inlineAction !== undefined) {
+    throw new HardhatError(
+      HardhatError.ERRORS.CORE.TASK_DEFINITIONS.ACTION_AND_INLINE_ACTION_SET,
+      { task: formatTaskId(taskId) },
+    );
+  }
+
+  if (action === undefined && inlineAction === undefined) {
+    throw new HardhatError(
+      HardhatError.ERRORS.CORE.TASK_DEFINITIONS.NO_ACTION,
+      { task: formatTaskId(taskId) },
     );
   }
 }

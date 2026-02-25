@@ -221,6 +221,16 @@ describe("integration tests for the keystore tasks", () => {
           "myValue1\n",
         );
       });
+
+      it("should rename a key on `npx hardhat keystore rename myKey1 renamedKey`", async () => {
+        await _assertConsoleOutputMatchesFor(
+          () =>
+            hre.tasks
+              .getTask(["keystore", "rename"])
+              .run({ dev, oldKey: "myKey1", newKey: "renamedKey" }),
+          `Key "myKey1" renamed to "renamedKey" in the ${getKeystoreType(dev)} keystore\n`,
+        );
+      });
     });
   }
 });

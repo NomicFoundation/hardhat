@@ -15,7 +15,11 @@ import {
   useFixtureProject,
   useTmpDir,
 } from "@nomicfoundation/hardhat-test-utils";
-import { getAllFilesMatching } from "@nomicfoundation/hardhat-utils/fs";
+import {
+  getAllFilesMatching,
+  readUtf8File,
+  remove,
+} from "@nomicfoundation/hardhat-utils/fs";
 import chalk from "chalk";
 
 import { createHardhatRuntimeEnvironment } from "../../../../src/hre.js";
@@ -297,19 +301,33 @@ describe("CoverageManagerImplementation", () => {
   });
 
   it("should format the markdown report", async () => {
-    const actual = coverageManager.formatMarkdownReport(report);
+    const originalChalkLevel = chalk.level;
+    chalk.level = 0;
 
-    const expected = [
-      `| ${chalk.bold("Coverage Report")}     |        |             |                 |`,
-      "| ------------------- | ------ | ----------- | --------------- |",
-      `| ${chalk.yellow("File Path")}           | ${chalk.yellow("Line %")} | ${chalk.yellow("Statement %")} | ${chalk.yellow("Uncovered Lines")} |`,
-      "| contracts/test.sol  | 80.00  | 75.00       | 6               |",
-      "| contracts/other.sol | 0.00   | 0.00        | 1-2             |",
-      "| ------------------- | ------ | ----------- | --------------- |",
-      `| ${chalk.yellow("Total")}               | 57.14  | 50.00       |                 |`,
-    ].join("\n");
+    try {
+      const actual = coverageManager.formatMarkdownReport(report);
 
-    assert.equal(actual, expected);
+      assert.equal(
+        actual,
+        [
+          "╔══════════════════════════════════════════════════════════════╗",
+          "║                       Coverage Report                        ║",
+          "╚══════════════════════════════════════════════════════════════╝",
+          "╔══════════════════════════════════════════════════════════════╗",
+          "║ File Coverage                                                ║",
+          "╟─────────────────────┬────────┬─────────────┬─────────────────╢",
+          "║ File Path           │ Line % │ Statement % │ Uncovered Lines ║",
+          "╟─────────────────────┼────────┼─────────────┼─────────────────╢",
+          "║ contracts/test.sol  │ 80.00  │ 75.00       │ 6               ║",
+          "║ contracts/other.sol │ 0.00   │ 0.00        │ 1-2             ║",
+          "╟─────────────────────┼────────┼─────────────┼─────────────────╢",
+          "║ Total               │ 57.14  │ 50.00       │                 ║",
+          "╚═════════════════════╧════════╧═════════════╧═════════════════╝",
+        ].join("\n"),
+      );
+    } finally {
+      chalk.level = originalChalkLevel;
+    }
   });
 
   const expectedRelativePath: Array<[string, string]> = [
@@ -451,6 +469,63 @@ describe("CoverageManagerImplementation - report data processing", () => {
     assert.deepEqual(
       res[testScenrario.sourceFilePath2],
       testScenrario.expectedResult2,
+    );
+  });
+});
+
+describe("report generation", () => {
+  const coverageManagerTmp = new CoverageManagerImplementation("coverage");
+  let hre: HardhatRuntimeEnvironment;
+  let originalCoverageFlag: boolean;
+
+  useFixtureProject("coverage");
+
+  disableConsole();
+
+  before(async () => {
+    hre = await createHardhatRuntimeEnvironment({});
+
+    originalCoverageFlag = hre.globalOptions.coverage;
+
+    hre.globalOptions.coverage = true;
+
+    /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions
+    -- For the test we need to access to the hidden _coverage property */
+    (hre as any)._coverage = coverageManagerTmp;
+
+    await hre.tasks.getTask(["compile"]).run({
+      quiet: true,
+    });
+  });
+
+  after(() => {
+    hre.globalOptions.coverage = originalCoverageFlag;
+  });
+
+  it("should generate the html report", async () => {
+    const coveragePath = path.join(process.cwd(), "coverage");
+    const htmlRootIndexPath = path.join(coveragePath, "html", "index.html");
+    const htmlNestedIndexPath = path.join(
+      coveragePath,
+      "html",
+      "do-while-loop", // One of the nested contract folders
+      "index.html",
+    );
+
+    await remove(coveragePath);
+
+    await coverageManagerTmp.report();
+
+    const htmlRootContent = await readUtf8File(htmlRootIndexPath);
+    assert.ok(
+      htmlRootContent.length > 0,
+      "HTML root report should have content",
+    );
+
+    const htmlNestedContent = await readUtf8File(htmlNestedIndexPath);
+    assert.ok(
+      htmlNestedContent.length > 0,
+      "HTML nested report should have content",
     );
   });
 });

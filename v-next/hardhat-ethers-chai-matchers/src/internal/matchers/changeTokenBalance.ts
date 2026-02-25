@@ -8,11 +8,8 @@ import type {
 } from "ethers";
 import type { TransactionResponse } from "ethers/providers";
 
-import {
-  assertHardhatInvariant,
-  HardhatError,
-} from "@nomicfoundation/hardhat-errors";
 import { isObject } from "@nomicfoundation/hardhat-utils/lang";
+import { assert as chaiAssert } from "chai";
 import { toBigInt } from "ethers/utils";
 
 import {
@@ -190,12 +187,8 @@ function validateInput(
       Array.isArray(balanceChanges) &&
       accounts.length !== balanceChanges.length
     ) {
-      throw new HardhatError(
-        HardhatError.ERRORS.CHAI_MATCHERS.GENERAL.ACCOUNTS_NUMBER_DIFFERENT_FROM_BALANCE_CHANGES,
-        {
-          accounts: accounts.length,
-          balanceChanges: balanceChanges.length,
-        },
+      chaiAssert.fail(
+        `The number of accounts (${accounts.length}) is different than the number of expected balance changes (${balanceChanges.length})`,
       );
     }
   } catch (e) {
@@ -208,11 +201,8 @@ function validateInput(
 
 function checkToken(token: unknown, method: string) {
   if (!isObject(token) || token === null || !("interface" in token)) {
-    throw new HardhatError(
-      HardhatError.ERRORS.CHAI_MATCHERS.GENERAL.FIRST_ARGUMENT_MUST_BE_A_CONTRACT_INSTANCE,
-      {
-        method,
-      },
+    chaiAssert.fail(
+      `The first argument of "${method}" must be the contract instance of the token`,
     );
   } else if (
     isObject(token) &&
@@ -222,9 +212,7 @@ function checkToken(token: unknown, method: string) {
     typeof token.interface.getFunction === "function" &&
     token.interface.getFunction("balanceOf") === null
   ) {
-    throw new HardhatError(
-      HardhatError.ERRORS.CHAI_MATCHERS.GENERAL.CONTRACT_IS_NOT_AN_ERC20_TOKEN,
-    );
+    chaiAssert.fail("The given contract instance is not an ERC20 token");
   }
 }
 
@@ -237,15 +225,22 @@ export async function getBalanceChange(
   const txResponse = await transaction;
 
   const txReceipt = await txResponse.wait();
-  assertIsNotNull(txReceipt, "txReceipt");
+  assertIsNotNull(
+    txReceipt,
+    "Transaction's receipt cannot be fetched from the network",
+  );
   const txBlockNumber = txReceipt.blockNumber;
 
   const block = await ethers.provider.getBlock(txReceipt.blockHash, false);
 
-  assertHardhatInvariant(block !== null, "The block doesn't exist");
+  assertIsNotNull(
+    block,
+    "The transaction's block cannot be fetched from the network",
+  );
 
-  assertHardhatInvariant(
-    Array.isArray(block.transactions) && block.transactions.length === 1,
+  chaiAssert.equal(
+    block.transactions.length,
+    1,
     "There should be only 1 transaction in the block",
   );
 

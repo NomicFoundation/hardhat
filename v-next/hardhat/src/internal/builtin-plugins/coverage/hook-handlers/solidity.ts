@@ -3,7 +3,6 @@ import type { CoverageMetadata } from "../types.js";
 
 import path from "node:path";
 
-import { addStatementCoverageInstrumentation } from "@nomicfoundation/edr";
 import {
   assertHardhatInvariant,
   HardhatError,
@@ -14,6 +13,7 @@ import { findClosestPackageRoot } from "@nomicfoundation/hardhat-utils/package";
 import debug from "debug";
 
 import { CoverageManagerImplementation } from "../coverage-manager.js";
+import { instrumentSolidityFileForCompilationJob } from "../instrumentation.js";
 
 const log = debug("hardhat:core:coverage:hook-handlers:solidity");
 
@@ -36,12 +36,12 @@ export default async (): Promise<Partial<SolidityHooks>> => ({
 
     if (context.globalOptions.coverage && !isTestSource) {
       try {
-        const { source, metadata } = addStatementCoverageInstrumentation(
-          fileContent,
+        const { source, metadata } = instrumentSolidityFileForCompilationJob({
+          compilationJobSolcVersion: solcVersion,
           sourceName,
-          solcVersion,
-          COVERAGE_LIBRARY_PATH,
-        );
+          fileContent,
+          coverageLibraryPath: COVERAGE_LIBRARY_PATH,
+        });
 
         // TODO: Remove this once EDR starts returning line information as part
         // of the metadata.

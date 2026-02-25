@@ -642,6 +642,15 @@ export async function exists(absolutePath: string): Promise<boolean> {
  * @throws FileSystemAccessError for any other error.
  */
 export async function copy(source: string, destination: string): Promise<void> {
+  // We must proactively check if the source is a directory.
+  // On modern Linux kernels (6.x+), the `copy_file_range` system call used by
+  // Node.js may return success (0 bytes copied) when the source is a directory
+  // instead of throwing EISDIR. Node.js interprets this 0-byte success as a
+  // completed operation, resulting in no error being thrown.
+  if (await isDirectory(source)) {
+    throw new IsDirectoryError(source, undefined);
+  }
+
   try {
     await fsPromises.copyFile(source, destination);
   } catch (e) {

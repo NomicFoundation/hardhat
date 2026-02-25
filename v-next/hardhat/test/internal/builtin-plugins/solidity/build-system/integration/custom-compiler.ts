@@ -1,23 +1,31 @@
 /* eslint-disable no-restricted-syntax -- test */
-import type { Compiler } from "../../../../../../src/internal/builtin-plugins/solidity/build-system/compiler/compiler.js";
 import type {
+  Compiler,
   CompilationJobCreationError,
   FileBuildResult,
 } from "../../../../../../src/types/solidity.js";
 
 import assert from "node:assert/strict";
 import path from "node:path";
-import { before, beforeEach, describe, it } from "node:test";
+import { after, before, beforeEach, describe, it } from "node:test";
 
 import { HardhatError } from "@nomicfoundation/hardhat-errors";
-import { assertRejectsWithHardhatError } from "@nomicfoundation/hardhat-test-utils";
+import {
+  assertRejectsWithHardhatError,
+  getTmpDir,
+} from "@nomicfoundation/hardhat-test-utils";
+import { remove } from "@nomicfoundation/hardhat-utils/fs";
+import {
+  resetMockCacheDir,
+  setMockCacheDir,
+} from "@nomicfoundation/hardhat-utils/global-dir";
 
 import {
   CompilerDownloaderImplementation,
   CompilerPlatform,
 } from "../../../../../../src/internal/builtin-plugins/solidity/build-system/compiler/downloader.js";
 import {
-  downloadConfiguredCompilers,
+  downloadSolcCompilers,
   getCompiler,
 } from "../../../../../../src/internal/builtin-plugins/solidity/build-system/compiler/index.js";
 import { createHardhatRuntimeEnvironment } from "../../../../../../src/internal/hre-initialization.js";
@@ -30,6 +38,7 @@ describe(
   function () {
     let nativeCompiler: Compiler;
     let wasmCompiler: Compiler;
+    let testGlobalCacheRoot: string;
 
     const basicProjectTemplate = {
       name: "test",
@@ -69,7 +78,11 @@ describe(
 
     // We download a specific version of native and WASM solc and use it for the tests
     before(async function () {
-      await downloadConfiguredCompilers(new Set(["0.8.26"]), true);
+      // Set up isolated cache directory to avoid using/affecting the real global cache
+      testGlobalCacheRoot = await getTmpDir("custom-compiler-test-cache");
+      setMockCacheDir(testGlobalCacheRoot);
+
+      await downloadSolcCompilers(new Set(["0.8.26"]), true);
 
       const potentiallyNativeCompiler = await getCompiler("0.8.26", {
         preferWasm: false,
@@ -86,6 +99,14 @@ describe(
       if (potentiallyWasmCompiler.isSolcJs) {
         wasmCompiler = potentiallyWasmCompiler;
       }
+    });
+
+    after(async function () {
+      // Reset mock cache directory
+      resetMockCacheDir();
+
+      // Clean up temp directory
+      await remove(testGlobalCacheRoot);
     });
 
     for (const compilerType of ["native", "wasm"]) {

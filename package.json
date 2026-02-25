@@ -4,7 +4,7 @@
   "author": "Nomic Foundation",
   "license": "SEE LICENSE IN EACH PACKAGE'S LICENSE FILE",
   "private": true,
-  "packageManager": "pnpm@10.17.1",
+  "packageManager": "pnpm@10.28.2",
   "devDependencies": {
     "@changesets/cli": "^2.16.0",
     "typescript": "~5.8.0"
@@ -13,11 +13,12 @@
     "build": "pnpm run --recursive --if-present build",
     "clean": "pnpm run --recursive --if-present clean",
     "test": "pnpm run --recursive --if-present test",
+    "test:scripts": "node --test ./scripts/**/*.test.mjs",
     "prelint": "pnpm build",
     "lint": "pnpm run --recursive --if-present lint",
     "prelint:fix": "pnpm build",
     "lint:fix": "pnpm run --recursive --if-present lint:fix",
-    "version-for-release": "pnpm changeset version && pnpm -w install --lockfile-only"
+    "version-for-release": "pnpm changeset version && node scripts/bump-peers.mjs apply && pnpm -w install --lockfile-only"
   },
   "pnpm": {
     "onlyBuiltDependencies": [

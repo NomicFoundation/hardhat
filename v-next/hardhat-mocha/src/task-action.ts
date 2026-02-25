@@ -7,6 +7,7 @@ import { resolve as pathResolve } from "node:path";
 import { HardhatError } from "@nomicfoundation/hardhat-errors";
 import { setGlobalOptionsAsEnvVariables } from "@nomicfoundation/hardhat-utils/env";
 import { getAllFilesMatching } from "@nomicfoundation/hardhat-utils/fs";
+import debug from "debug";
 import {
   markTestRunStart as initCoverage,
   markTestWorkerDone as saveCoverageData,
@@ -18,12 +19,29 @@ import {
   markTestRunDone as reportGasStats,
 } from "hardhat/internal/gas-analytics";
 
+import { createPerformanceTracker } from "./performance.js";
+
 interface TestActionArguments {
   testFiles: string[];
   bail: boolean;
   grep?: string;
   noCompile: boolean;
 }
+
+type PerformancePhase =
+  | "Build"
+  | "Get test files"
+  | "Mocha setup"
+  | "Test file loading"
+  | "Test execution"
+  | "Reporting";
+
+const performanceScope = "hardhat:mocha:performance";
+const performanceLog = debug(performanceScope);
+const perf = createPerformanceTracker<PerformancePhase>(
+  performanceScope,
+  "Mocha test task",
+);
 
 function isTypescriptFile(path: string): boolean {
   return /\.(ts|cts|mts)$/i.test(path);
@@ -63,7 +81,11 @@ const testWithHardhat: NewTaskActionFunction<TestActionArguments> = async (
   // This is done by other JS/TS test frameworks like vitest
   process.env.NODE_ENV ??= "test";
 
+  perf.start();
+
   setGlobalOptionsAsEnvVariables(hre.globalOptions);
+
+  perf.startPhase("Build");
 
   if (!noCompile) {
     await hre.tasks.getTask("build").run({
@@ -72,13 +94,20 @@ const testWithHardhat: NewTaskActionFunction<TestActionArguments> = async (
     console.log();
   }
 
+  perf.endPhase("Build");
+  perf.startPhase("Get test files");
+
   const files = await getTestFiles(testFiles, hre.config);
+
+  perf.endPhase("Get test files");
 
   if (files.length === 0) {
     return;
   }
 
   const unhandledRejectionHookPath = "./unhandled-rejection-mocha-hook.js";
+
+  perf.startPhase("Mocha setup");
 
   if (hre.config.test.mocha.parallel === true) {
     const imports = [];
@@ -133,6 +162,8 @@ const testWithHardhat: NewTaskActionFunction<TestActionArguments> = async (
 
   files.forEach((file) => mocha.addFile(file));
 
+  perf.endPhase("Mocha setup");
+
   // Because of the way the ESM cache works, loadFilesAsync doesn't work
   // correctly if used twice within the same process, so we throw an error
   // in that case
@@ -146,9 +177,14 @@ const testWithHardhat: NewTaskActionFunction<TestActionArguments> = async (
   // We write instead of console.log because Mocha already prints some newlines
   process.stdout.write("Running Mocha tests\n");
 
+  perf.startPhase("Test file loading");
+
   // This instructs Mocha to use the more verbose file loading infrastructure
   // which supports both ESM and CJS
   await mocha.loadFilesAsync();
+
+  perf.endPhase("Test file loading");
+  perf.startPhase("Test execution");
 
   await initCoverage("mocha");
   await initGasStats("mocha");
@@ -159,6 +195,9 @@ const testWithHardhat: NewTaskActionFunction<TestActionArguments> = async (
     total = runner.total;
   });
 
+  perf.endPhase("Test execution");
+  perf.startPhase("Reporting");
+
   if (hre.config.test.mocha.parallel !== true) {
     // NOTE: We execute mocha tests in the main process.
     await saveCoverageData("mocha");
@@ -168,11 +207,18 @@ const testWithHardhat: NewTaskActionFunction<TestActionArguments> = async (
   await reportCoverage("mocha");
   await reportGasStats("mocha");
 
+  perf.endPhase("Reporting");
+
   if (testFailures > 0) {
     process.exitCode = 1;
   }
 
   console.log();
+
+  perf.end();
+
+  perf.logInto(performanceLog);
+  perf.clear();
 
   return { failed: testFailures, passed: total - testFailures };
 };

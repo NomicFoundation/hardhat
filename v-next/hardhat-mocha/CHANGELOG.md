@@ -1,5 +1,18 @@
 # @nomicfoundation/hardhat-mocha
 
+## 3.0.11
+
+### Patch Changes
+
+- 6674b00: Bump `hardhat-utils` major
+- 33a3b44: Improve the error message shown when an `await` is missing [#7993](https://github.com/NomicFoundation/hardhat/pull/7993)
+
+## 3.0.10
+
+### Patch Changes
+
+- c6e93c4: Added extra debugging support for tracking performance in `npx hardhat test mocha` test runs ([#7948](https://github.com/NomicFoundation/hardhat/pull/7948))
+
 ## 3.0.9
 
 ### Patch Changes

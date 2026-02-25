@@ -1,5 +1,72 @@
 # hardhat
 
+## 3.1.10
+
+### Patch Changes
+
+- ca26adb: Update `hardhat node` to always use the new `node` network (#7989)[https://github.com/NomicFoundation/hardhat/pull/7989]
+- 87623db: Introduce new inter-process mutex implementation ([7942](https://github.com/NomicFoundation/hardhat/pull/7942)).
+- 88e9cb5: Add a `SolidityHooks#readNpmPackageRemappings` hook
+- ec03a01: Allow overriding the type of the network configs `default` and `localhost` [#7805](https://github.com/NomicFoundation/hardhat/pull/7805)
+- 2c2e1f5: Throw better error messages when trying to use a Hardhat 2 plugin with Hardhat 3 [#7991](https://github.com/NomicFoundation/hardhat/pull/7991).
+- 90b5eec: Suggest installing hardhat-foundry when appropriate
+- 87623db: Make the solc downloader safe when run by multiple processes ([7946](https://github.com/NomicFoundation/hardhat/pull/7946)).
+- 726ff37: Update the `--coverage` table output to match the style used by `--gas-stats`. Thanks @jose-blockchain! ([#7733](https://github.com/NomicFoundation/hardhat/issues/7733))
+- f1e9b05: Added support for `inline actions` in tasks [7851](https://github.com/NomicFoundation/hardhat/pull/7851).
+- 73cb725: Expose `gasLimit` configuration for Solidity tests [#7996](https://github.com/NomicFoundation/hardhat/pull/7996)
+
+## 3.1.9
+
+### Patch Changes
+
+- 621d07e: Make the coverage work with versions of Solidity that aren't fully supported by EDR [#7982 ](https://github.com/NomicFoundation/hardhat/pull/7982)
+- 3e39a06: Round average and median gas usage in the gas analytics output
+- 78af2ed: Allow multiple parallel downloads of different compilers ([7946](https://github.com/NomicFoundation/hardhat/pull/7946)).
+
+## 3.1.8
+
+### Patch Changes
+
+- a6947fb: Use the official Linux ARM64 builds of solc in the `production` profile when available ([#7917](https://github.com/NomicFoundation/hardhat/pull/7917)).
+- fd42744: Fixed missing EIP-7212 precompile in Solidity Tests ([#7872](https://github.com/NomicFoundation/hardhat/issues/7872)).
+
+## 3.1.7
+
+### Patch Changes
+
+- 4995121: Suppressed pragma and license warnings in Solidity test files ([7894](https://github.com/NomicFoundation/hardhat/issues/7894)).
+- 22adbcb: Added support for `eth_getProof` ([3345](https://github.com/NomicFoundation/hardhat/issues/3345)).
+
+## 3.1.6
+
+### Patch Changes
+
+- 98fbf44: Implemented `SolidityBuildSystemImplementation#compileBuildInfo` ([#7891](https://github.com/NomicFoundation/hardhat/pull/7891))
+- a9445c9: Added ArtifactManager#getAllArtifactPaths ([#7902](https://github.com/NomicFoundation/hardhat/pull/7902))
+- a9445c9: Fixed typechain type generation when compiling a subset of the Solidity files ([#7902](https://github.com/NomicFoundation/hardhat/pull/7902))
+- 127ce88: Suppress Hardhat console.sol memory-safe-assembly warning [#7862](https://github.com/NomicFoundation/hardhat/pull/7862).
+- c40697b: Added a Solidity#build hook ([#7890](https://github.com/NomicFoundation/hardhat/pull/7890))
+- 8e5610f: Fixed a bug where nested folders were not created during the HTML coverage report generation ([#7889](https://github.com/NomicFoundation/hardhat/pull/7889))
+- 13a1e4b: Multiple internal fixes to the solidity build system ([#7900](https://github.com/NomicFoundation/hardhat/pull/7900))
+- 0c47a69: Added compiler downloader retry in case of failure ([#7031](https://github.com/NomicFoundation/hardhat/issues/7031))
+
+## 3.1.5
+
+### Patch Changes
+
+- 346f92a: Improve how solidity tests are displayed, making it more consistent with the js reporters.
+- 2bc18b2: Bumped `viem` version across all packages [7861](https://github.com/NomicFoundation/hardhat/pull/7861).
+- 865e346: Updated the incorrect JSDOC against the `preprocessProjectFileBeforeBuilding` Solidity Hook ([#7870](https://github.com/NomicFoundation/hardhat/pull/7870))
+- c9bdbd0: Added `invokeSolc` in `SolidityHooks` to allow plugins to respond to the input/output from solc ([#7646](https://github.com/NomicFoundation/hardhat/issues/7646))
+
+## 3.1.4
+
+### Patch Changes
+
+- d7c13fa: Fixes a bug in how code coverage for Solidity tests is calculated ([7767](https://github.com/NomicFoundation/hardhat/pull/7767)).
+- b6a9d5a: Hardhat tries to use the latest Solidity version supported by Slang in case the a newer, unsupported version is selected ([7846](https://github.com/NomicFoundation/hardhat/pull/7846)).
+- 268acbf: Added HTML coverage report for solidity tests ([7787](https://github.com/NomicFoundation/hardhat/pull/7787)).
+
 ## 3.1.3
 
 ### Patch Changes

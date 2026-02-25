@@ -307,6 +307,42 @@ describe("lang", () => {
       );
     });
 
+    it("Should compare Buffers nested in objects correctly", async () => {
+      const obj1 = { data: Buffer.from("test") };
+      const obj2 = { data: Buffer.from("test") };
+      const obj3 = { data: Buffer.from("test2") };
+
+      const areEqual = await deepEqual(obj1, obj2);
+      const areNotEqual = await deepEqual(obj1, obj3);
+
+      assert.ok(
+        areEqual,
+        `${JSON.stringify(obj1)} should equal ${JSON.stringify(obj2)}`,
+      );
+      assert.ok(
+        !areNotEqual,
+        `${JSON.stringify(obj1)} should not equal ${JSON.stringify(obj3)}`,
+      );
+    });
+
+    it("Should compare Buffers nested in arrays correctly", async () => {
+      const arr1 = [Buffer.from("test")];
+      const arr2 = [Buffer.from("test")];
+      const arr3 = [Buffer.from("test2")];
+
+      const areEqual = await deepEqual(arr1, arr2);
+      const areNotEqual = await deepEqual(arr1, arr3);
+
+      assert.ok(
+        areEqual,
+        `${JSON.stringify(arr1)} should equal ${JSON.stringify(arr2)}`,
+      );
+      assert.ok(
+        !areNotEqual,
+        `${JSON.stringify(arr1)} should not equal ${JSON.stringify(arr3)}`,
+      );
+    });
+
     it("Should compare arguments correctly", async () => {
       function testFunc(_a: number, _b: string, _c: boolean) {
         return arguments;

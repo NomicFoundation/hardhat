@@ -5,7 +5,7 @@ inputs:
   pnpm-version:
     description: Version of pnpm to install
     required: false
-    default: "10.17.1"
+    default: "10.28.2"
   node-version:
     description: Version of node to install
     required: false
@@ -38,8 +38,15 @@ runs:
       shell: bash
     - uses: actions/cache/restore@v4
       id: cache-restore
-      # TODO: remove OS check when https://github.com/actions/runner-images/issues/13341 is resolved
-      if: inputs.cache-save == 'false' && runner.os != 'macOS'
+      if: inputs.cache-save == 'false'
       with:
         path: ${{ steps.pnpm.outputs.path }}
         key: node-cache-${{ runner.os }}-pnpm-${{ hashFiles('**/pnpm-lock.yaml') }}
+    # Needed for node-hid, which is used by @ledgerhq/hw-transport-node-hid
+    # We need to install it because downloading the prebuilt binaries is not
+    # reliable, so the CI sometimes falls back to building it from source,
+    # which needs this package.
+    - name: Install Linux system dependencies
+      if: runner.os == 'Linux'
+      shell: bash
+      run: sudo apt-get install -y libusb-1.0-0-dev libudev-dev

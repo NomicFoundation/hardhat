@@ -196,9 +196,8 @@ debug log
   0 passing
   1 failing
 
-  TestSuite.sol:TestSuite
-    1) failing test
-      Error: Unknown error
+  1) TestSuite#failing test
+    Error: Unknown error
 `.replace("\n", ""); // the first newline is only here to make the expected output more readable
 
       assert.deepEqual(result.join(""), expectedOutput);
@@ -284,9 +283,8 @@ debug log
   1 failing
   1 skipped
 
-  TestSuite.sol:TestSuite
-    1) failing test
-      Error: Unknown error
+  1) TestSuite#failing test
+    Error: Unknown error
 `.replace("\n", ""); // the first newline is only here to make the expected output more readable
 
       assert.deepEqual(result.join(""), expectedOutput);
@@ -412,19 +410,17 @@ debug log
   0 passing
   4 failing
 
-  TestSuite.sol:TestSuite1
-    1) failing test1
-      Error: Unknown error
+  1) TestSuite1#failing test1
+    Error: Unknown error
 
-    2) failing test2
-      Error: Unknown error
+  2) TestSuite1#failing test2
+    Error: Unknown error
 
-  TestSuite.sol:TestSuite2
-    3) failing test3
-      Error: Unknown error
+  3) TestSuite2#failing test3
+    Error: Unknown error
 
-    4) failing test4
-      Error: Unknown error
+  4) TestSuite2#failing test4
+    Error: Unknown error
 `.replace("\n", ""); // the first newline is only here to make the expected output more readable
 
       assert.deepEqual(result.join(""), expectedOutput);
@@ -477,16 +473,15 @@ debug log
         [90] <green>Bar</green>
           └─ [80] <green>Baz</green>
 
-    <green>✔ successful test</green>
+    <green>✔</green> <grey>successful test</grey>
 
 
   <green>1 passing</green>
   <red>1 failing</red>
   <cyan>1 skipped</cyan>
 
-  TestSuite.sol:TestSuite
-    1) failing test
-      <red>Error: Unknown error</red>
+  1) TestSuite#failing test
+    <red>Error: Unknown error</red>
 `.replace("\n", ""); // the first newline is only here to make the expected output more readable
 
       assert.deepEqual(result.join(""), expectedOutput);

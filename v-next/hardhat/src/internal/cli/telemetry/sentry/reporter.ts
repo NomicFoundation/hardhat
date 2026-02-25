@@ -8,6 +8,7 @@ import {
   ProviderError,
   UnknownError,
 } from "../../../builtin-plugins/network-manager/provider-errors.js";
+import { UsingHardhat2PluginError } from "../../../using-hardhat2-plugin-errors.js";
 import { getHardhatVersion } from "../../../utils/package.js";
 import { isTelemetryAllowed } from "../telemetry-permissions.js";
 
@@ -131,6 +132,10 @@ class Reporter {
       HardhatError.isHardhatError(error) &&
       !error.descriptor.shouldBeReported
     ) {
+      return false;
+    }
+
+    if (error instanceof UsingHardhat2PluginError) {
       return false;
     }
 

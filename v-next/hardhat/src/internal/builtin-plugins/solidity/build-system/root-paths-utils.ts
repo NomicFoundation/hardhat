@@ -63,7 +63,7 @@ export function isNpmParsedRootPath(
 
 /**
  * Formats the path of a root file, making it compatible with the
- * SolidityBuildSystem APIs.
+ * SolidityBuildSystem APIs, which expect an absolute path or an npm: root path.
  *
  * @param userSourceName The user source name of the root file.
  * @param rootFile The root file.
@@ -74,7 +74,7 @@ export function formatRootPath(
   rootFile: ResolvedFile,
 ): string {
   if (rootFile.type !== ResolvedFileType.NPM_PACKAGE_FILE) {
-    return userSourceName;
+    return rootFile.fsPath;
   }
 
   return `npm:${userSourceName}`;

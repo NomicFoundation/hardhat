@@ -12,7 +12,6 @@ import { ensureDir, exists } from "@nomicfoundation/hardhat-utils/fs";
 import chalk from "chalk";
 import debug from "debug";
 
-import { DEFAULT_NETWORK_NAME } from "../../constants.js";
 import { isSupportedChainType } from "../../edr/chain-type.js";
 import { BUILD_INFO_DIR_NAME } from "../artifacts/artifact-manager.js";
 import { EdrProvider } from "../network-manager/edr/edr-provider.js";
@@ -42,7 +41,7 @@ const nodeAction: NewTaskActionFunction<NodeActionArguments> = async (
   const network =
     hre.globalOptions.network !== undefined
       ? hre.globalOptions.network
-      : DEFAULT_NETWORK_NAME;
+      : "node";
 
   if (!(network in hre.config.networks)) {
     throw new HardhatError(HardhatError.ERRORS.CORE.NETWORK.NETWORK_NOT_FOUND, {
@@ -64,6 +63,7 @@ const nodeAction: NewTaskActionFunction<NodeActionArguments> = async (
   } = {
     network,
   };
+
   // NOTE: We create an empty network config override here. We add to it based
   // on the result of arguments parsing. We can expand the list of arguments
   // as much as needed.

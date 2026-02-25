@@ -109,6 +109,11 @@ export class ArtifactManagerImplementation implements ArtifactManager {
     return allFullyQualifiedNames;
   }
 
+  public async getAllArtifactPaths(): Promise<ReadonlySet<string>> {
+    const { allArtifactPaths } = await this.#getFsData();
+    return allArtifactPaths;
+  }
+
   public async getAllBuildInfoIds(): Promise<ReadonlySet<string>> {
     const paths = await getAllFilesMatching(
       path.join(this.#artifactsPath, BUILD_INFO_DIR_NAME),

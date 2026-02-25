@@ -1,5 +1,17 @@
 # @nomicfoundation/hardhat-viem
 
+## 3.0.3
+
+### Patch Changes
+
+- 6674b00: Bump `hardhat-utils` major
+
+## 3.0.2
+
+### Patch Changes
+
+- 2bc18b2: Bumped `viem` version across all packages [7861](https://github.com/NomicFoundation/hardhat/pull/7861).
+
 ## 3.0.1
 
 ### Patch Changes

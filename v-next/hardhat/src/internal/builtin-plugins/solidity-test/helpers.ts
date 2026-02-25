@@ -11,23 +11,26 @@ import type {
 
 import {
   opGenesisState,
-  opLatestHardfork,
   l1GenesisState,
-  l1HardforkLatest,
   IncludeTraces,
   FsAccessPermission,
   CollectStackTraces,
+  opHardforkFromString,
+  l1HardforkFromString,
 } from "@nomicfoundation/edr";
 import { hexStringToBytes } from "@nomicfoundation/hardhat-utils/hex";
 import chalk from "chalk";
 
 import { DEFAULT_VERBOSITY, OPTIMISM_CHAIN_TYPE } from "../../constants.js";
+import { resolveHardfork } from "../network-manager/config-resolution.js";
+import { hardhatHardforkToEdrSpecId } from "../network-manager/edr/utils/convert-to-edr.js";
 
 import { type Colorizer, formatArtifactId } from "./formatters.js";
 
 interface SolidityTestConfigParams {
   chainType: ChainType;
   projectRoot: string;
+  hardfork?: string;
   config: SolidityTestConfig;
   verbosity: number;
   observability?: ObservabilityConfig;
@@ -48,6 +51,7 @@ export function solidityTestConfigToRunOptions(
 export async function solidityTestConfigToSolidityTestRunnerConfigArgs({
   chainType,
   projectRoot,
+  hardfork,
   config,
   verbosity,
   observability,
@@ -92,10 +96,15 @@ export async function solidityTestConfigToSolidityTestRunnerConfigArgs({
       ? undefined
       : hexStringToBuffer(config.coinbase);
 
+  const resolvedHardfork = hardhatHardforkToEdrSpecId(
+    resolveHardfork(hardfork, chainType),
+    chainType,
+  );
+
   const localPredeploys =
     chainType === OPTIMISM_CHAIN_TYPE
-      ? opGenesisState(opLatestHardfork())
-      : l1GenesisState(l1HardforkLatest());
+      ? opGenesisState(opHardforkFromString(resolvedHardfork))
+      : l1GenesisState(l1HardforkFromString(resolvedHardfork));
 
   let includeTraces: IncludeTraces = IncludeTraces.None;
   if (verbosity >= 5) {
@@ -131,6 +140,7 @@ export async function solidityTestConfigToSolidityTestRunnerConfigArgs({
 
   return {
     projectRoot,
+    hardfork: resolvedHardfork,
     ...config,
     fsPermissions,
     localPredeploys,

@@ -80,6 +80,29 @@ const hardhatKeystorePlugin: HardhatPlugin = {
       .setAction(() => import("./internal/tasks/delete.js"))
       .build(),
 
+    task(["keystore", "rename"], "Rename a key in the keystore")
+      .addFlag({
+        name: "dev",
+        description:
+          "Use the development keystore instead of the production one",
+      })
+      .addPositionalArgument({
+        name: "oldKey",
+        type: ArgumentType.STRING,
+        description: "Specify the current key name to rename",
+      })
+      .addPositionalArgument({
+        name: "newKey",
+        type: ArgumentType.STRING,
+        description: "Specify the new key name",
+      })
+      .addFlag({
+        name: "force",
+        description: "Force overwrite if the new key already exists.",
+      })
+      .setAction(() => import("./internal/tasks/rename.js"))
+      .build(),
+
     task(["keystore", "path"], "Display the path where the keystore is stored")
       .addFlag({
         name: "dev",

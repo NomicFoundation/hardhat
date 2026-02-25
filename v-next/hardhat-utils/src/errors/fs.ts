@@ -35,7 +35,7 @@ export class NotADirectoryError extends CustomError {
 }
 
 export class IsDirectoryError extends CustomError {
-  constructor(filePath: string, cause: Error) {
+  constructor(filePath: string, cause: Error | undefined) {
     super(`Path ${filePath} is a directory`, cause);
   }
 }
