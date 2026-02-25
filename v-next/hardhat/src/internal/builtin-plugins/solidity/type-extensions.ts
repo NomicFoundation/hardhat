@@ -242,5 +242,33 @@ declare module "../../../types/hooks.js" {
         nextSolcConfig: SolcConfig,
       ) => Promise<CompilerOutput>,
     ): Promise<CompilerOutput>;
+
+    /**
+     * Provide a handler for this hook to supply remappings for npm packages.
+     *
+     * This hook is called when the resolver needs to read remappings for a package.
+     * Handlers can provide remappings from alternative sources (e.g., foundry.toml)
+     * in addition to the default remappings.txt files.
+     *
+     * @param context The hook context.
+     * @param packageName The name of the npm package.
+     * @param packageVersion The version of the npm package.
+     * @param packagePath The absolute filesystem path to the package root.
+     * @param next A function to get remappings from other sources (including default behavior).
+     * @returns An array of remapping sources, each containing an array of remapping strings
+     *   and the source path they came from.
+     */
+    readNpmPackageRemappings: (
+      context: HookContext,
+      packageName: string,
+      packageVersion: string,
+      packagePath: string,
+      next: (
+        nextContext: HookContext,
+        nextPackageName: string,
+        nextPackageVersion: string,
+        nextPackagePath: string,
+      ) => Promise<Array<{ remappings: string[]; source: string }>>,
+    ) => Promise<Array<{ remappings: string[]; source: string }>>;
   }
 }

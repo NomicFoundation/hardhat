@@ -35,6 +35,7 @@ declare module "../../../types/test.js" {
     coinbase?: string; // 0x-prefixed hex string
     blockTimestamp?: bigint;
     prevRandao?: bigint;
+    gasLimit?: bigint;
     blockGasLimit?: bigint | false;
 
     fuzz?: {

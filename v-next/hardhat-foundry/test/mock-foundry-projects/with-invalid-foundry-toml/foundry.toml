@@ -1,0 +1,3 @@
+# Invalid foundry.toml - malformed TOML that forge cannot parse
+[profile.default
+src = "src"

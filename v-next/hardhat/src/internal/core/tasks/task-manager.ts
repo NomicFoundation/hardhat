@@ -19,6 +19,7 @@ import { TaskDefinitionType } from "../../../types/tasks.js";
 import { ResolvedTask } from "./resolved-task.js";
 import { formatTaskId, getActorFragment } from "./utils.js";
 import {
+  validateAction,
   validateId,
   validateOption,
   validatePositionalArgument,
@@ -41,7 +42,7 @@ export class TaskManagerImplementation implements TaskManager {
       }
 
       for (const taskDefinition of plugin.tasks) {
-        this.#validateTaskDefinition(taskDefinition);
+        this.#validateTaskDefinition(taskDefinition, true);
         this.#reduceTaskDefinition(
           globalOptionDefinitions,
           taskDefinition,
@@ -52,7 +53,7 @@ export class TaskManagerImplementation implements TaskManager {
 
     // reduce global user defined tasks
     for (const taskDefinition of this.#hre.config.tasks) {
-      this.#validateTaskDefinition(taskDefinition);
+      this.#validateTaskDefinition(taskDefinition, false);
       this.#reduceTaskDefinition(globalOptionDefinitions, taskDefinition);
     }
   }
@@ -171,7 +172,9 @@ export class TaskManagerImplementation implements TaskManager {
           this.#hre,
           taskDefinition.id,
           taskDefinition.description,
-          taskDefinition.action,
+          taskDefinition.action !== undefined
+            ? { action: taskDefinition.action }
+            : { inlineAction: taskDefinition.inlineAction },
           taskDefinition.options,
           taskDefinition.positionalArguments,
           pluginId,
@@ -278,16 +281,31 @@ export class TaskManagerImplementation implements TaskManager {
       task.description = taskDefinition.description;
     }
 
-    task.actions.push({ pluginId, action: taskDefinition.action });
+    task.actions.push({
+      pluginId,
+      ...(taskDefinition.action !== undefined
+        ? { action: taskDefinition.action }
+        : { inlineAction: taskDefinition.inlineAction }),
+    });
   }
 
-  #validateTaskDefinition(taskDefinition: TaskDefinition): void {
+  #validateTaskDefinition(
+    taskDefinition: TaskDefinition,
+    isPlugin: boolean,
+  ): void {
     validateId(taskDefinition.id);
 
     // Empty tasks don't have actions, options, or positional arguments
     if (taskDefinition.type === TaskDefinitionType.EMPTY_TASK) {
       return;
     }
+
+    validateAction(
+      taskDefinition.action,
+      taskDefinition.inlineAction,
+      taskDefinition.id,
+      isPlugin,
+    );
 
     const usedNames = new Set<string>();
 

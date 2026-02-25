@@ -1,4 +1,4 @@
-import { HardhatError } from "@nomicfoundation/hardhat-errors";
+import { assert as chaiAssert } from "chai";
 
 import { PREVIOUS_MATCHER_NAME } from "../constants.js";
 
@@ -23,11 +23,7 @@ export function preventAsyncMatcherChaining(
     return;
   }
 
-  throw new HardhatError(
-    HardhatError.ERRORS.CHAI_MATCHERS.GENERAL.MATCHER_CANNOT_BE_CHAINED_AFTER,
-    {
-      matcher: matcherName,
-      previousMatcher: previousMatcherName,
-    },
+  chaiAssert.fail(
+    `The matcher "${matcherName}" cannot be chained after "${previousMatcherName}". For more information, please refer to the documentation at: (https://hardhat.org/chaining-async-matchers).`,
   );
 }

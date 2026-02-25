@@ -2,8 +2,8 @@ import type { Ssfi } from "../../utils/ssfi.js";
 import type { ErrorFragment, Interface } from "ethers/abi";
 import type { BaseContract } from "ethers/contract";
 
-import { HardhatError } from "@nomicfoundation/hardhat-errors";
 import { numberToHexString } from "@nomicfoundation/hardhat-utils/hex";
+import { assert as chaiAssert } from "chai";
 
 import {
   ASSERTION_ABORTED,
@@ -160,16 +160,14 @@ function validateInput(
     // argument
     if (typeof contract === "string" || contract?.interface === undefined) {
       // discard subject since it could potentially be a rejected promise
-      throw new HardhatError(
-        HardhatError.ERRORS.CHAI_MATCHERS.GENERAL.FIRST_ARGUMENT_MUST_BE_A_CONTRACT,
+      chaiAssert.fail(
+        "The first argument of .revertedWithCustomError must be the contract that defines the custom error",
       );
     }
 
     // validate custom error name
     if (typeof expectedCustomErrorName !== "string") {
-      throw new HardhatError(
-        HardhatError.ERRORS.CHAI_MATCHERS.GENERAL.STRING_EXPECTED_AS_CUSTOM_ERROR_NAME,
-      );
+      chaiAssert.fail("Expected the custom error name to be a string");
     }
 
     const iface = contract.interface;
@@ -177,17 +175,14 @@ function validateInput(
 
     // check that interface contains the given custom error
     if (expectedCustomError === null) {
-      throw new HardhatError(
-        HardhatError.ERRORS.CHAI_MATCHERS.GENERAL.CONTRACT_DOES_NOT_HAVE_CUSTOM_ERROR,
-        {
-          customErrorName: expectedCustomErrorName,
-        },
+      chaiAssert.fail(
+        `The given contract doesn't have a custom error named "${expectedCustomErrorName}"`,
       );
     }
 
     if (args.length > 0) {
-      throw new HardhatError(
-        HardhatError.ERRORS.CHAI_MATCHERS.GENERAL.REVERT_INVALID_ARGUMENTS_LENGTH,
+      chaiAssert.fail(
+        "The .revertedWithCustomError matcher expects two arguments: the contract and the custom error name. Arguments should be asserted with the .withArgs helper.",
       );
     }
 
@@ -214,8 +209,8 @@ export async function revertedWithCustomErrorWithArgs(
     context.customErrorData;
 
   if (customErrorAssertionData === undefined) {
-    throw new HardhatError(
-      HardhatError.ERRORS.CHAI_MATCHERS.GENERAL.WITH_ARGS_FORBIDDEN,
+    chaiAssert.fail(
+      "[.withArgs] should never happen, please submit an issue to the Hardhat repository",
     );
   }
 
@@ -224,7 +219,10 @@ export async function revertedWithCustomErrorWithArgs(
 
   const errorFragment = contractInterface.getError(customError.name);
 
-  assertIsNotNull(errorFragment, "errorFragment");
+  assertIsNotNull(
+    errorFragment,
+    "Error type can't be found in the contract's interface",
+  );
 
   // We transform ether's Array-like object into an actual array as it's safer
   const actualArgs = resultToArray(

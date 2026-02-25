@@ -1,3 +1,5 @@
+import type { HookContext } from "../../../../../src/types/hooks.js";
+
 import assert from "node:assert/strict";
 import path from "node:path";
 import { describe, it } from "node:test";
@@ -6,15 +8,20 @@ import { useFixtureProject } from "@nomicfoundation/hardhat-test-utils";
 import { readUtf8File } from "@nomicfoundation/hardhat-utils/fs";
 
 import { buildDependencyGraph } from "../../../../../src/internal/builtin-plugins/solidity/build-system/dependency-graph-building.js";
+import { HookManagerImplementation } from "../../../../../src/internal/core/hook-manager.js";
 
 describe("buildDependencyGraph", () => {
   useFixtureProject("solidity/example-project");
 
   it("should return an empty graph if no files are provided", async () => {
+    const hookManager = new HookManagerImplementation(process.cwd(), []);
+    // eslint-disable-next-line @typescript-eslint/consistent-type-assertions -- We don't care about hooks in this context
+    hookManager.setContext({} as HookContext);
     const dependencyGraph = await buildDependencyGraph(
       [],
       process.cwd(),
       readUtf8File,
+      hookManager,
     );
 
     assert.equal(dependencyGraph.getRoots().size, 0);
@@ -39,10 +46,14 @@ describe("buildDependencyGraph", () => {
       "npm/@openzeppelin/contracts@5.1.0/access/Ownable.sol",
     ];
 
+    const hookManager = new HookManagerImplementation(process.cwd(), []);
+    // eslint-disable-next-line @typescript-eslint/consistent-type-assertions -- We don't care about hooks in this context
+    hookManager.setContext({} as HookContext);
     const dependencyGraph = await buildDependencyGraph(
       rootRelativePaths.map((p) => path.join(process.cwd(), p)),
       process.cwd(),
       readUtf8File,
+      hookManager,
     );
 
     const roots = dependencyGraph.getRoots();

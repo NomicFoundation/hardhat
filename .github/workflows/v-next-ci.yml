@@ -6,6 +6,7 @@ on:
     branches:
       - main
   pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
   workflow_dispatch:
 
 concurrency:
@@ -17,6 +18,7 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       is_v_next: ${{ steps.check.outputs.folder_exists }}
+      scripts_changed: ${{ steps.scripts-filter.outputs.scripts }}
 
     steps:
       - name: Checkout code
@@ -30,6 +32,14 @@ jobs:
           else
             echo "folder_exists=false" >> $GITHUB_OUTPUT
           fi
+
+      - name: Check if scripts have changed
+        id: scripts-filter
+        uses: dorny/paths-filter@de90cc6fb38fc0963ad72b210f1f284cd68cea36 # v3.0.2
+        with:
+          filters: |
+            scripts:
+              - 'scripts/**'
 
   check_dependencies:
     name: Check dependency versions
@@ -56,6 +66,19 @@ jobs:
           node-version: 24
       - name: Run check
         run: node scripts/check-v-next-npm-scripts.js
+
+  check_infra_scripts_tests:
+    name: Check that infrastructure script tests pass
+    needs: is-v-next
+    if: ${{ needs.is-v-next.outputs.is_v_next == 'true' && needs.is-v-next.outputs.scripts_changed == 'true' }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: ./.github/actions/setup-env
+        with:
+          node-version: 24
+      - name: Run check
+        run: pnpm test:scripts
 
   list-packages:
     name: List packages

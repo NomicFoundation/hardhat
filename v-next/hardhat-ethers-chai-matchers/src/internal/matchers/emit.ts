@@ -6,8 +6,7 @@ import type { Transaction } from "ethers/transaction";
 
 import util from "node:util";
 
-import { HardhatError } from "@nomicfoundation/hardhat-errors";
-import { AssertionError } from "chai";
+import { assert as chaiAssert, AssertionError } from "chai";
 
 import { ASSERTION_ABORTED, EMIT_MATCHER } from "../constants.js";
 import { assertArgsArraysEqual, assertIsNotNull } from "../utils/asserts.js";
@@ -30,10 +29,7 @@ async function waitForPendingTransaction(
   }
 
   if (hash === null) {
-    throw new HardhatError(
-      HardhatError.ERRORS.CHAI_MATCHERS.GENERAL.INVALID_TRANSACTION,
-      { transaction: JSON.stringify(tx) },
-    );
+    chaiAssert.fail(`"${JSON.stringify(tx)}" is not a valid transaction`);
   }
 
   return provider.getTransactionReceipt(hash);
@@ -74,8 +70,12 @@ export function supportEmit(
         } catch (e) {
           if (e instanceof TypeError) {
             const errorMessage = e.message.split(" (argument=")[0];
-            // eslint-disable-next-line no-restricted-syntax -- keep the original chai error structure
-            throw new AssertionError(errorMessage);
+            const error = new AssertionError(errorMessage);
+            /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions 
+              -- This cast is here because otherwise the CI job that ensures that
+              this package still works with chai v5 will fail */
+            (error as any).cause = e;
+            throw error;
           }
         }
 
@@ -89,14 +89,12 @@ export function supportEmit(
         const topic = eventFragment.topicHash;
         const contractAddress = contract.target;
         if (typeof contractAddress !== "string") {
-          throw new HardhatError(
-            HardhatError.ERRORS.CHAI_MATCHERS.GENERAL.CONTRACT_TARGET_MUST_BE_A_STRING,
-          );
+          chaiAssert.fail("The contract target should be a string");
         }
 
         if (args.length > 0) {
-          throw new HardhatError(
-            HardhatError.ERRORS.CHAI_MATCHERS.GENERAL.EMIT_EXPECTS_TWO_ARGUMENTS,
+          chaiAssert.fail(
+            "The .emit matcher expects two arguments: the contract and the event name. Arguments should be asserted with the .withArgs helper.",
           );
         }
 
@@ -124,14 +122,15 @@ export function supportEmit(
         }
 
         if (contract.runner === null || contract.runner.provider === null) {
-          throw new HardhatError(
-            HardhatError.ERRORS.CHAI_MATCHERS.GENERAL.CONTRACT_RUNNER_PROVIDER_NOT_NULL,
-          );
+          chaiAssert.fail("contract.runner.provider shouldn't be null");
         }
 
         return waitForPendingTransaction(tx, contract.runner.provider).then(
           (receipt) => {
-            assertIsNotNull(receipt, "receipt");
+            assertIsNotNull(
+              receipt,
+              "Transaction's receipt cannot be fetched from the network",
+            );
             return onSuccess(receipt);
           },
         );
@@ -183,7 +182,7 @@ const tryAssertArgsArraysEqual = (
     const parsedLog = chaiUtils
       .flag(context, "contract")
       .interface.parseLog(logs[0]);
-    assertIsNotNull(parsedLog, "parsedLog");
+    assertIsNotNull(parsedLog, "Can't parse the first log");
 
     return assertArgsArraysEqual(
       Assertion,
@@ -204,7 +203,7 @@ const tryAssertArgsArraysEqual = (
         const parsedLog = chaiUtils
           .flag(context, "contract")
           .interface.parseLog(logs[index]);
-        assertIsNotNull(parsedLog, "parsedLog");
+        assertIsNotNull(parsedLog, `Can't parse the log index ${index}`);
 
         assertArgsArraysEqual(
           Assertion,

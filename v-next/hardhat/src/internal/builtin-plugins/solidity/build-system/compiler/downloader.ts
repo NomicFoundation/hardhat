@@ -152,12 +152,8 @@ export class CompilerDownloaderImplementation implements CompilerDownloader {
   readonly #platform: CompilerPlatform;
   readonly #compilersDir: string;
   readonly #downloadFunction: typeof download;
+  readonly #mutexCompilerList: MultiProcessMutex;
 
-  readonly #mutexCompilerList = new MultiProcessMutex("compiler-download-list");
-
-  /**
-   * Use CompilerDownloader.getConcurrencySafeDownloader instead
-   */
   constructor(
     platform: CompilerPlatform,
     compilersDir: string,
@@ -165,6 +161,9 @@ export class CompilerDownloaderImplementation implements CompilerDownloader {
   ) {
     this.#platform = platform;
     this.#compilersDir = compilersDir;
+    this.#mutexCompilerList = new MultiProcessMutex(
+      path.join(compilersDir, "compiler-download-list"),
+    );
     this.#downloadFunction = downloadFunction;
   }
 
@@ -204,7 +203,9 @@ export class CompilerDownloaderImplementation implements CompilerDownloader {
     // Without the mutex, a concurrent process might check whether a version exists, incorrectly
     // find it missing (because another process is still downloading it), and start a redundant download.
 
-    const mutex = new MultiProcessMutex(`compiler-download-${version}`);
+    const mutex = new MultiProcessMutex(
+      path.join(this.#compilersDir, `compiler-download-${version}`),
+    );
 
     return mutex.use(async () => {
       const isCompilerDownloaded = await this.isCompilerDownloaded(version);
