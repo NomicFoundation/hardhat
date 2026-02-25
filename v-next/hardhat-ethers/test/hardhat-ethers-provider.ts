@@ -962,6 +962,48 @@ describe("hardhat ethers provider", () => {
     });
   });
 
+  describe("waitForTransaction", () => {
+    it("should wait for a transaction and return its receipt", async () => {
+      const signer = await ethers.provider.getSigner(0);
+      const tx = await signer.sendTransaction({ to: signer.address });
+
+      const receipt = await ethers.provider.waitForTransaction(tx.hash);
+
+      assertIsNotNull(receipt);
+      assert.equal(receipt.hash, tx.hash);
+      assert.equal(receipt.status, 1);
+    });
+
+    it("should return the receipt immediately when confirms is 0", async () => {
+      const signer = await ethers.provider.getSigner(0);
+      const tx = await signer.sendTransaction({ to: signer.address });
+
+      const receipt = await ethers.provider.waitForTransaction(tx.hash, 0);
+
+      assertIsNotNull(receipt);
+      assert.equal(receipt.hash, tx.hash);
+    });
+
+    it("should return null when confirms is 0 and the transaction doesn't exist", async () => {
+      const receipt = await ethers.provider.waitForTransaction(
+        "0x0000000000000000000000000000000000000000000000000000000000000000",
+        0,
+      );
+
+      assert.equal(receipt === null, true);
+    });
+
+    it("should resolve to null when the timeout is reached", async () => {
+      const receipt = await ethers.provider.waitForTransaction(
+        "0x0000000000000000000000000000000000000000000000000000000000000000",
+        1,
+        100,
+      );
+
+      assert.equal(receipt === null, true);
+    });
+  });
+
   describe("getLogs", () => {
     // keccak("Inc()")
     const INC_EVENT_TOPIC =

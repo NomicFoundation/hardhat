@@ -45,15 +45,27 @@ export function supportRevert(
             );
           }
 
-          const receipt = await getTransactionReceipt(ethers, hash);
+          // If the input is a raw string that is also a valid bytes32-encoded
+          // string, it might not be a real tx hash. Do a one-shot check to
+          // avoid polling forever.
+          if (typeof value === "string" && isBytes32String(hash)) {
+            const oneShotReceipt =
+              await ethers.provider.getTransactionReceipt(hash);
 
-          if (receipt === null) {
-            // If the receipt is null, maybe the string is a bytes32 string
-            if (isBytes32String(hash)) {
+            if (oneShotReceipt === null) {
               assert(false, "Expected transaction to be reverted");
               return;
             }
+
+            assert(
+              oneShotReceipt.status === 0,
+              "Expected transaction to be reverted",
+              "Expected transaction NOT to be reverted",
+            );
+            return;
           }
+
+          const receipt = await waitForTransactionReceipt(ethers, hash);
 
           assertIsNotNull(
             receipt,
@@ -126,8 +138,8 @@ export function supportRevert(
   );
 }
 
-async function getTransactionReceipt(ethers: HardhatEthers, hash: string) {
-  return ethers.provider.getTransactionReceipt(hash);
+async function waitForTransactionReceipt(ethers: HardhatEthers, hash: string) {
+  return ethers.provider.waitForTransaction(hash);
 }
 
 function isTransactionResponse(x: unknown): x is { hash: string } {

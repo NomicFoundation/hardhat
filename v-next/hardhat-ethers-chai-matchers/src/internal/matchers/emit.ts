@@ -32,7 +32,7 @@ async function waitForPendingTransaction(
     chaiAssert.fail(`"${JSON.stringify(tx)}" is not a valid transaction`);
   }
 
-  return provider.getTransactionReceipt(hash);
+  return provider.waitForTransaction(hash);
 }
 
 export function supportEmit(

@@ -470,5 +470,31 @@ describe("INTEGRATION: Revert", { timeout: 60000 }, () => {
         expect.fail("Expected an exception but none was thrown");
       });
     });
+
+    describe("When automining is disabled", () => {
+      it("should wait for the tx to be mined and detect the revert", async () => {
+        await provider.request({
+          method: "evm_setAutomine",
+          params: [false],
+        });
+
+        try {
+          const tx = await matchers.revertsWithoutReason({
+            gasLimit: 1_000_000,
+          });
+
+          const revertPromise = expect(tx).to.be.revert(ethers);
+
+          await provider.request({ method: "hardhat_mine", params: [] });
+
+          await revertPromise;
+        } finally {
+          await provider.request({
+            method: "evm_setAutomine",
+            params: [true],
+          });
+        }
+      });
+    });
   }
 });
