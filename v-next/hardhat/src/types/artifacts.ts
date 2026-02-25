@@ -1,4 +1,5 @@
 import type { SolidityBuildInfo } from "./solidity/solidity-artifacts.js";
+import type { NonNeverKeys } from "./utils.js";
 
 /**
  * A map of bare contract names and fully qualified contract names to their
@@ -16,6 +17,23 @@ export type GetArtifactByName<ContractNameT extends string> =
   ContractNameT extends keyof ArtifactMap
     ? ArtifactMap[ContractNameT]
     : Artifact;
+
+/**
+ * A type type that represents the contract names (bare and fully qualified) of
+ * all the artifacts that have been built in a project.
+ *
+ * This is meant to be used in functions like this:
+ * @example
+ * ```
+ * function doSomething<ContractNameT extends ArtifactContractNames>(
+ *   contractName: ContractNameT,
+ *   ...
+ * ): DoSomethingReturnType<ContractNameT> {
+ * }
+ */
+export type ArtifactContractNames = keyof ArtifactMap extends never
+  ? string
+  : NonNeverKeys<ArtifactMap>;
 
 /**
  * The ArtifactManager is responsible for reading and writing artifacts from

@@ -50,3 +50,10 @@ export type Return<T> = T extends (...args: any[]) => infer Ret ? Ret : never;
 export type RequireField<T, K extends keyof T> = T & {
   [P in K]-?: T[P];
 };
+
+/**
+ * Returns the keys of T tht don't map to never.
+ */
+export type NonNeverKeys<T> = {
+  [K in keyof T]: T[K] extends never ? never : K;
+}[keyof T];
