@@ -95,6 +95,24 @@ jobs:
               }`;
             await github.graphql(mutation, { prId: pr.id });
 
+      - name: Collect docs URLs from changesets
+        if: steps.pr.outputs.hasChangesets == 'true'
+        id: docs
+        run: node scripts/collect-changeset-docs-urls.mjs
+
+      - name: Post docs comment on release PR
+        if: steps.pr.outputs.hasChangesets == 'true' && steps.docs.outputs.has_docs == 'true'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const { number } = ${{ steps.find.outputs.result }};
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: number,
+              body: `${{ steps.docs.outputs.comment_body }}`
+            });
+
   pack:
     name: Generate tarballs for publishing
     needs: pr
