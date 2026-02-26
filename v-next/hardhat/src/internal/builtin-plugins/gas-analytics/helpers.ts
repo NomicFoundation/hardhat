@@ -1,4 +1,5 @@
 import { assertHardhatInvariant } from "@nomicfoundation/hardhat-errors";
+import chalk from "chalk";
 
 import { HardhatRuntimeEnvironmentImplementation } from "../../core/hre.js";
 
@@ -41,4 +42,31 @@ export async function markTestRunDone(id: string): Promise<void> {
     );
     await hre._gasAnalytics.reportGasStats(id);
   }
+}
+
+export function formatSectionHeader(
+  sectionName: string,
+  {
+    changedLength,
+    addedLength,
+    removedLength,
+  }: {
+    changedLength: number;
+    addedLength: number;
+    removedLength: number;
+  },
+): string {
+  const parts: string[] = [];
+
+  if (changedLength > 0) {
+    parts.push(`${changedLength} changed`);
+  }
+  if (addedLength > 0) {
+    parts.push(`${addedLength} added`);
+  }
+  if (removedLength > 0) {
+    parts.push(`${removedLength} removed`);
+  }
+
+  return `${sectionName}: ${chalk.gray(parts.join(", "))}`;
 }

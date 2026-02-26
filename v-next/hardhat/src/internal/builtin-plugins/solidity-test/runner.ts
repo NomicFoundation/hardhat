@@ -44,7 +44,7 @@ export function run(
   chainType: ChainType,
   artifacts: Artifact[],
   testSuiteIds: ArtifactId[],
-  configArgs: SolidityTestRunnerConfigArgs,
+  testRunnerConfig: SolidityTestRunnerConfigArgs,
   tracingConfig: TracingConfigWithBuffers,
   sourceNameToUserSourceName: Map<string, string>,
   options?: RunOptions,
@@ -85,7 +85,7 @@ export function run(
           hardhatChainTypeToEdrChainType(chainType),
           artifacts,
           testSuiteIds,
-          configArgs,
+          testRunnerConfig,
           tracingConfig,
           (suiteResult) => {
             controller.enqueue({
