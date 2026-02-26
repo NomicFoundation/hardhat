@@ -56,7 +56,7 @@ const hardhatIgnitionPlugin: HardhatPlugin = {
       })
       .addFlag({
         name: "verify",
-        description: "Verify the deployment on Etherscan",
+        description: "Verify the deployment on all supported explorers",
       })
       .addFlag({
         name: "writeLocalhostDeployment",
