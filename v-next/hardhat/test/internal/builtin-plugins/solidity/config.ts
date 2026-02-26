@@ -1,7 +1,13 @@
 /* eslint-disable @typescript-eslint/consistent-type-assertions -- test*/
+import type {
+  SolcConfig,
+  SolidityCompilerConfig,
+} from "../../../../src/types/config.js";
+
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 
+import { isSolcConfig } from "../../../../src/internal/builtin-plugins/solidity/build-system/build-system.js";
 import { missesSomeOfficialNativeBuilds } from "../../../../src/internal/builtin-plugins/solidity/build-system/solc-info.js";
 import {
   resolveSolidityUserConfig,
@@ -481,6 +487,67 @@ describe("solidity plugin config validation", () => {
         ],
       );
     });
+
+    it("Should accept preferWasm on compiler with type 'solc'", () => {
+      assert.deepEqual(
+        validateSolidityUserConfig({
+          solidity: {
+            compilers: [{ type: "solc", version: "0.8.28", preferWasm: true }],
+          },
+        }),
+        [],
+      );
+    });
+
+    it("Should reject preferWasm on compiler with non-solc type", () => {
+      const errors = validateSolidityUserConfig({
+        solidity: {
+          compilers: [
+            { type: "solx", version: "0.8.28", preferWasm: true } as any,
+          ],
+        },
+      });
+      assert.ok(
+        errors.length > 0,
+        "Should reject preferWasm on non-solc compiler type",
+      );
+    });
+  });
+
+  describe("per-compiler type validation", () => {
+    it("Should accept type field in compiler config", () => {
+      assert.deepEqual(
+        validateSolidityUserConfig({
+          solidity: {
+            compilers: [{ version: "0.8.28", type: "solx" }],
+          },
+        }),
+        [],
+      );
+    });
+
+    it("Should accept missing type field (backward compat)", () => {
+      assert.deepEqual(
+        validateSolidityUserConfig({
+          solidity: {
+            compilers: [{ version: "0.8.28" }],
+          },
+        }),
+        [],
+      );
+    });
+
+    it("Should reject invalid type values", () => {
+      const errors = validateSolidityUserConfig({
+        solidity: {
+          compilers: [{ version: "0.8.28", type: 123 as any }],
+        },
+      });
+      assert.ok(
+        errors.length > 0,
+        "Should produce validation error for non-string type",
+      );
+    });
   });
 
   describe("per-compiler path validation", () => {
@@ -624,8 +691,8 @@ describe("solidity plugin config resolution", () => {
       );
 
       const compilers = resolvedConfig.solidity.profiles.default.compilers;
-      assert.equal(compilers[0].preferWasm, true);
-      assert.equal(compilers[1].preferWasm, false);
+      assert.equal((compilers[0] as SolcConfig).preferWasm, true);
+      assert.equal((compilers[1] as SolcConfig).preferWasm, false);
     });
 
     it("should preserve per-compiler preferWasm in overrides when explicitly set", async () => {
@@ -642,7 +709,10 @@ describe("solidity plugin config resolution", () => {
       );
 
       const overrides = resolvedConfig.solidity.profiles.default.overrides;
-      assert.equal(overrides["contracts/Special.sol"].preferWasm, true);
+      assert.equal(
+        (overrides["contracts/Special.sol"] as SolcConfig).preferWasm,
+        true,
+      );
     });
   });
 
@@ -670,8 +740,8 @@ describe("solidity plugin config resolution", () => {
         // Production profile gets preferWasm: true for old versions
         const productionCompilers =
           resolvedConfig.solidity.profiles.production.compilers;
-        assert.equal(productionCompilers[0].preferWasm, true);
-        assert.equal(productionCompilers[1].preferWasm, true);
+        assert.equal((productionCompilers[0] as SolcConfig).preferWasm, true);
+        assert.equal((productionCompilers[1] as SolcConfig).preferWasm, true);
       });
 
       it("should leave preferWasm undefined in production profile for versions with official ARM64 builds", async () => {
@@ -690,8 +760,14 @@ describe("solidity plugin config resolution", () => {
         // Production profile gets preferWasm: undefined for versions with official builds
         const productionCompilers =
           resolvedConfig.solidity.profiles.production.compilers;
-        assert.equal(productionCompilers[0].preferWasm, undefined);
-        assert.equal(productionCompilers[1].preferWasm, undefined);
+        assert.equal(
+          (productionCompilers[0] as SolcConfig).preferWasm,
+          undefined,
+        );
+        assert.equal(
+          (productionCompilers[1] as SolcConfig).preferWasm,
+          undefined,
+        );
       });
 
       it("should leave preferWasm undefined in default profile for all versions", async () => {
@@ -710,8 +786,8 @@ describe("solidity plugin config resolution", () => {
         // Default profile gets preferWasm: undefined for all versions
         const defaultCompilers =
           resolvedConfig.solidity.profiles.default.compilers;
-        assert.equal(defaultCompilers[0].preferWasm, undefined);
-        assert.equal(defaultCompilers[1].preferWasm, undefined);
+        assert.equal((defaultCompilers[0] as SolcConfig).preferWasm, undefined);
+        assert.equal((defaultCompilers[1] as SolcConfig).preferWasm, undefined);
       });
 
       it("should allow explicit override even on ARM64 Linux", async () => {
@@ -728,8 +804,8 @@ describe("solidity plugin config resolution", () => {
         );
 
         const compilers = resolvedConfig.solidity.profiles.default.compilers;
-        assert.equal(compilers[0].preferWasm, false);
-        assert.equal(compilers[1].preferWasm, true);
+        assert.equal((compilers[0] as SolcConfig).preferWasm, false);
+        assert.equal((compilers[1] as SolcConfig).preferWasm, true);
       });
     },
   );
@@ -753,9 +829,225 @@ describe("solidity plugin config resolution", () => {
         );
 
         const compilers = resolvedConfig.solidity.profiles.default.compilers;
-        assert.equal(compilers[0].preferWasm, undefined);
-        assert.equal(compilers[1].preferWasm, undefined);
+        assert.equal((compilers[0] as SolcConfig).preferWasm, undefined);
+        assert.equal((compilers[1] as SolcConfig).preferWasm, undefined);
       });
     },
   );
+
+  describe("config resolution with type discriminator", () => {
+    const otherResolvedConfig = { paths: { root: process.cwd() } } as any;
+
+    it("should resolve compiler entry without type with type undefined (backward compat)", async () => {
+      const resolvedConfig = await resolveSolidityUserConfig(
+        {
+          solidity: {
+            compilers: [{ version: "0.8.28" }],
+          },
+        },
+        otherResolvedConfig,
+      );
+
+      const compiler = resolvedConfig.solidity.profiles.default.compilers[0];
+      assert.equal(compiler.type, undefined);
+      // Should still be a SolcConfig with preferWasm field
+      assert.ok(
+        "preferWasm" in compiler,
+        "Compiler without type should resolve as SolcConfig with preferWasm",
+      );
+    });
+
+    it("should resolve compiler entry with type 'solc' as SolcConfig with preferWasm", async () => {
+      const resolvedConfig = await resolveSolidityUserConfig(
+        {
+          solidity: {
+            compilers: [{ type: "solc", version: "0.8.28" }],
+          },
+        },
+        otherResolvedConfig,
+      );
+
+      const compiler = resolvedConfig.solidity.profiles.default.compilers[0];
+      assert.equal(compiler.type, "solc");
+      assert.ok(
+        "preferWasm" in compiler,
+        "Compiler with type 'solc' should resolve as SolcConfig with preferWasm",
+      );
+    });
+
+    it("should resolve compiler entry with non-solc type WITHOUT preferWasm", async () => {
+      const resolvedConfig = await resolveSolidityUserConfig(
+        {
+          solidity: {
+            compilers: [{ type: "solx", version: "0.8.28" }],
+          },
+        },
+        otherResolvedConfig,
+      );
+
+      const compiler = resolvedConfig.solidity.profiles.default.compilers[0];
+      assert.equal(compiler.type, "solx");
+      assert.ok(
+        !("preferWasm" in compiler),
+        "Compiler with non-solc type should NOT have preferWasm field",
+      );
+    });
+  });
+
+  describe("copyFromDefault preserves type field", () => {
+    const otherResolvedConfig = { paths: { root: process.cwd() } } as any;
+
+    it("should preserve type on auto-generated production profile", async () => {
+      const resolvedConfig = await resolveSolidityUserConfig(
+        {
+          solidity: {
+            compilers: [{ type: "solx", version: "0.8.28" }],
+          },
+        },
+        otherResolvedConfig,
+      );
+
+      const prodCompiler =
+        resolvedConfig.solidity.profiles.production.compilers[0];
+      assert.equal(
+        prodCompiler.type,
+        "solx",
+        "Production profile should inherit type from default",
+      );
+    });
+
+    it("should preserve type on auto-generated production profile (single version config)", async () => {
+      const resolvedConfig = await resolveSolidityUserConfig(
+        {
+          solidity: {
+            type: "solx",
+            version: "0.8.28",
+          } as any,
+        },
+        otherResolvedConfig,
+      );
+
+      const prodCompiler =
+        resolvedConfig.solidity.profiles.production.compilers[0];
+      assert.equal(
+        prodCompiler.type,
+        "solx",
+        "Production profile should inherit type from single-version default",
+      );
+    });
+  });
+
+  describe("backward compatibility", () => {
+    const otherResolvedConfig = { paths: { root: process.cwd() } } as any;
+
+    it("should resolve an existing multi-version config identically (no type field)", async () => {
+      const resolvedConfig = await resolveSolidityUserConfig(
+        {
+          solidity: {
+            compilers: [{ version: "0.8.24" }, { version: "0.8.28" }],
+            overrides: {
+              "contracts/Special.sol": { version: "0.8.26" },
+            },
+          },
+        },
+        otherResolvedConfig,
+      );
+
+      const defaultProfile = resolvedConfig.solidity.profiles.default;
+      assert.equal(defaultProfile.compilers.length, 2);
+      assert.equal(defaultProfile.compilers[0].version, "0.8.24");
+      assert.equal(defaultProfile.compilers[0].type, undefined);
+      assert.equal(defaultProfile.compilers[1].version, "0.8.28");
+      assert.equal(defaultProfile.compilers[1].type, undefined);
+      assert.equal(
+        defaultProfile.overrides["contracts/Special.sol"].version,
+        "0.8.26",
+      );
+      assert.equal(
+        defaultProfile.overrides["contracts/Special.sol"].type,
+        undefined,
+      );
+      // SolcConfig fields should be present
+      assert.ok(
+        "preferWasm" in defaultProfile.compilers[0],
+        "Existing configs should still resolve with preferWasm",
+      );
+    });
+
+    it("should resolve a simple version string config identically", async () => {
+      const resolvedConfig = await resolveSolidityUserConfig(
+        { solidity: "0.8.28" },
+        otherResolvedConfig,
+      );
+
+      const defaultProfile = resolvedConfig.solidity.profiles.default;
+      assert.equal(defaultProfile.compilers.length, 1);
+      assert.equal(defaultProfile.compilers[0].version, "0.8.28");
+      assert.equal(defaultProfile.compilers[0].type, undefined);
+      assert.ok(
+        "preferWasm" in defaultProfile.compilers[0],
+        "Existing configs should still resolve with preferWasm",
+      );
+      // Production profile should also exist
+      assert.ok(
+        "production" in resolvedConfig.solidity.profiles,
+        "Production profile should exist",
+      );
+    });
+
+    it("should resolve a build profiles config identically", async () => {
+      const resolvedConfig = await resolveSolidityUserConfig(
+        {
+          solidity: {
+            profiles: {
+              default: {
+                compilers: [{ version: "0.8.24" }, { version: "0.8.28" }],
+              },
+              production: {
+                version: "0.8.28",
+                isolated: true,
+              },
+            },
+          },
+        },
+        otherResolvedConfig,
+      );
+
+      const defaultProfile = resolvedConfig.solidity.profiles.default;
+      const prodProfile = resolvedConfig.solidity.profiles.production;
+      assert.equal(defaultProfile.compilers.length, 2);
+      assert.equal(defaultProfile.compilers[0].type, undefined);
+      assert.equal(prodProfile.compilers[0].version, "0.8.28");
+      assert.equal(prodProfile.isolated, true);
+    });
+  });
+});
+
+describe("isSolcConfig type guard", () => {
+  it("should return true for config with undefined type", () => {
+    const config: SolidityCompilerConfig = {
+      type: undefined,
+      version: "0.8.28",
+      settings: {},
+    };
+    assert.equal(isSolcConfig(config), true);
+  });
+
+  it("should return true for config with type 'solc'", () => {
+    const config: SolidityCompilerConfig = {
+      type: "solc",
+      version: "0.8.28",
+      settings: {},
+    };
+    assert.equal(isSolcConfig(config), true);
+  });
+
+  it("should return false for config with non-solc type", () => {
+    const config: SolidityCompilerConfig = {
+      type: "solx",
+      version: "0.8.28",
+      settings: {},
+    };
+    assert.equal(isSolcConfig(config), false);
+  });
 });

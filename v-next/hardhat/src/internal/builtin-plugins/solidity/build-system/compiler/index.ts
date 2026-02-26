@@ -20,6 +20,28 @@ import {
 } from "./downloader.js";
 import wrapper from "./solcjs-wrapper.js";
 
+/**
+ * Parses a compiler's --version output to extract the long version string.
+ * Matches solc-style versions (with +commit hash) first, then falls back
+ * to plain semver (for non-solc compilers like solx), synthesizing a
+ * "+custom" suffix.
+ *
+ * NOTE: This function is exported for testing purposes only.
+ *
+ * @returns The long version string, or null if unparseable.
+ */
+export function parseVersionFromOutput(stdout: string): string | null {
+  const match =
+    stdout.match(/(?<longVersion>\d+\.\d+\.\d+\+commit\.\w+)/) ??
+    stdout.match(/(?<shortVersion>\d+\.\d+\.\d+)/);
+
+  if (match === null || match.groups === undefined) {
+    return null;
+  }
+
+  return match.groups.longVersion ?? `${match.groups.shortVersion}+custom`;
+}
+
 async function getGlobalCompilersCacheDir(): Promise<string> {
   const globalCompilersCacheDir = await getCacheDir();
 
@@ -129,16 +151,14 @@ async function getCompilerFromPath(
 
   log(`Version output: ${stdout}`);
 
-  const match = stdout.match(/(?<longVersion>\d+\.\d+\.\d+\+commit\.\w+)/);
+  const longVersion = parseVersionFromOutput(stdout);
 
-  if (match === null || match.groups === undefined) {
+  if (longVersion === null) {
     throw new HardhatError(
       HardhatError.ERRORS.CORE.SOLIDITY.PARSING_VERSION_STRING_FAILED,
       { versionString: stdout, compilerPath },
     );
   }
-
-  const { longVersion } = match.groups;
 
   log(`Long version: ${longVersion}`);
 

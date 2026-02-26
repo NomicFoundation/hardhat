@@ -1,6 +1,6 @@
 import type { DependencyGraphImplementation } from "./dependency-graph.js";
 import type { BuildInfo } from "../../../../types/artifacts.js";
-import type { SolcConfig } from "../../../../types/config.js";
+import type { SolidityCompilerConfig } from "../../../../types/config.js";
 import type { HookManager } from "../../../../types/hooks.js";
 import type { CompilationJob } from "../../../../types/solidity/compilation-job.js";
 import type { CompilerInput } from "../../../../types/solidity/compiler-io.js";
@@ -21,7 +21,7 @@ import { getEvmVersionFromSolcVersion } from "./solc-info.js";
 
 export class CompilationJobImplementation implements CompilationJob {
   public readonly dependencyGraph: DependencyGraph;
-  public readonly solcConfig: SolcConfig;
+  public readonly solcConfig: SolidityCompilerConfig;
   public readonly solcLongVersion: string;
 
   readonly #hooks: HookManager;
@@ -34,7 +34,7 @@ export class CompilationJobImplementation implements CompilationJob {
 
   constructor(
     dependencyGraph: DependencyGraphImplementation,
-    solcConfig: SolcConfig,
+    solcConfig: SolidityCompilerConfig,
     solcLongVersion: string,
     hooks: HookManager,
     sharedContentHashes: Map<string, string> = new Map(),

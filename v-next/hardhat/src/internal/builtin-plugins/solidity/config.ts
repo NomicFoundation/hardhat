@@ -1,5 +1,7 @@
 import type { HardhatUserConfig } from "../../../config.js";
 import type {
+  SolidityCompilerConfig,
+  SolidityCompilerUserConfig,
   HardhatConfig,
   MultiVersionSolidityUserConfig,
   SingleVersionSolidityUserConfig,
@@ -38,25 +40,62 @@ const commonSolcUserConfigType = z.object({
   isolated: z.boolean().optional(),
 });
 
-const solcUserConfigType = z.object({
+const baseCompilerFields = {
+  type: z.string().optional(),
   version: z.string(),
   settings: z.any().optional(),
   path: z.string().optional(),
-  preferWasm: z.boolean().optional(),
+};
+
+const incompatibleVersionFields = {
   compilers: incompatibleFieldType("This field is incompatible with `version`"),
   overrides: incompatibleFieldType("This field is incompatible with `version`"),
   profiles: incompatibleFieldType("This field is incompatible with `version`"),
-});
+};
+
+// Per-compiler config: preferWasm is only allowed for solc (type undefined or "solc")
+const compilerUserConfigType = conditionalUnionType(
+  [
+    [
+      (data) =>
+        !isObject(data) ||
+        !("type" in data) ||
+        data.type === undefined ||
+        data.type === "solc",
+      z.object({
+        ...baseCompilerFields,
+        ...incompatibleVersionFields,
+        preferWasm: z.boolean().optional(),
+      }),
+    ],
+    [
+      (data) =>
+        isObject(data) &&
+        "type" in data &&
+        typeof data.type === "string" &&
+        data.type !== "solc",
+      z
+        .object({
+          ...baseCompilerFields,
+          ...incompatibleVersionFields,
+        })
+        .strict(),
+    ],
+  ],
+  "Expected a valid compiler configuration",
+);
 
 // NOTE: This is only to match the setup present in ./type-extensions.ts
-const singleVersionSolcUserConfigType = solcUserConfigType.extend({
+const singleVersionSolcUserConfigType = z.object({
+  ...baseCompilerFields,
+  ...incompatibleVersionFields,
   isolated: z.boolean().optional(),
   preferWasm: z.boolean().optional(),
 });
 
 const multiVersionSolcUserConfigType = commonSolcUserConfigType.extend({
-  compilers: z.array(solcUserConfigType).nonempty(),
-  overrides: z.record(z.string(), solcUserConfigType).optional(),
+  compilers: z.array(compilerUserConfigType).nonempty(),
+  overrides: z.record(z.string(), compilerUserConfigType).optional(),
   isolated: z.boolean().optional(),
   preferWasm: z.boolean().optional(),
   version: incompatibleFieldType("This field is incompatible with `compilers`"),
@@ -291,7 +330,7 @@ function resolveBuildProfileConfig(
 ): SolidityBuildProfileConfig {
   if ("version" in solidityConfig) {
     return {
-      compilers: [resolveSolcConfig(solidityConfig, production)],
+      compilers: [resolveSolidityCompilerConfig(solidityConfig, production)],
       overrides: {},
       isolated: solidityConfig.isolated ?? production,
       preferWasm: solidityConfig.preferWasm ?? false,
@@ -300,13 +339,13 @@ function resolveBuildProfileConfig(
 
   return {
     compilers: solidityConfig.compilers.map((compiler) =>
-      resolveSolcConfig(compiler, production),
+      resolveSolidityCompilerConfig(compiler, production),
     ),
     overrides: Object.fromEntries(
       Object.entries(solidityConfig.overrides ?? {}).map(
         ([userSourceName, override]) => [
           userSourceName,
-          resolveSolcConfig(override, production),
+          resolveSolidityCompilerConfig(override, production),
         ],
       ),
     ),
@@ -315,11 +354,11 @@ function resolveBuildProfileConfig(
   };
 }
 
-function resolveSolcConfig(
-  solcConfig: SolcUserConfig,
+function resolveSolidityCompilerConfig(
+  compilerConfig: SolidityCompilerUserConfig,
   production: boolean = false,
-): SolcConfig {
-  const defaultSolcConfigSettings: SolcConfig["settings"] = {
+): SolidityCompilerConfig {
+  const defaultSettings: SolidityCompilerConfig["settings"] = {
     outputSelection: {
       "*": {
         "": ["ast"],
@@ -335,30 +374,52 @@ function resolveSolcConfig(
   };
 
   if (production) {
-    defaultSolcConfigSettings.optimizer = {
+    defaultSettings.optimizer = {
       enabled: true,
       runs: 200,
     };
   }
 
-  // Resolve per-compiler preferWasm:
-  // If explicitly set, use that value.
-  // Otherwise, for ARM64 Linux in production, default to true only for
-  // versions without official ARM64 builds.
-  let resolvedPreferWasm: boolean | undefined = solcConfig.preferWasm;
-  if (resolvedPreferWasm === undefined && missesSomeOfficialNativeBuilds()) {
-    resolvedPreferWasm =
-      production && !hasOfficialArm64Build(solcConfig.version)
-        ? true
-        : undefined;
+  const resolvedSettings = deepMerge(
+    defaultSettings,
+    compilerConfig.settings ?? {},
+  );
+
+  // Resolve solc-specific preferWasm if this is a SolcUserConfig
+  if (isSolcUserConfig(compilerConfig)) {
+    // Resolve per-compiler preferWasm:
+    // If explicitly set, use that value.
+    // Otherwise, for ARM64 Linux in production, default to true only for
+    // versions without official ARM64 builds.
+    let resolvedPreferWasm: boolean | undefined = compilerConfig.preferWasm;
+    if (resolvedPreferWasm === undefined && missesSomeOfficialNativeBuilds()) {
+      resolvedPreferWasm =
+        production && !hasOfficialArm64Build(compilerConfig.version)
+          ? true
+          : undefined;
+    }
+    const solcResolved: SolcConfig = {
+      type: compilerConfig.type,
+      version: compilerConfig.version,
+      settings: resolvedSettings,
+      path: compilerConfig.path,
+      preferWasm: resolvedPreferWasm,
+    };
+    return solcResolved;
   }
 
   return {
-    version: solcConfig.version,
-    settings: deepMerge(defaultSolcConfigSettings, solcConfig.settings ?? {}),
-    path: solcConfig.path,
-    preferWasm: resolvedPreferWasm,
+    type: compilerConfig.type,
+    version: compilerConfig.version,
+    settings: resolvedSettings,
+    path: compilerConfig.path,
   };
+}
+
+function isSolcUserConfig(
+  config: SolidityCompilerUserConfig,
+): config is SolcUserConfig {
+  return config.type === undefined || config.type === "solc";
 }
 
 function copyFromDefault(
@@ -369,18 +430,20 @@ function copyFromDefault(
   if ("version" in defaultSolidityConfig) {
     return {
       version: defaultSolidityConfig.version,
+      type: defaultSolidityConfig.type,
     };
   }
 
   return {
     compilers: defaultSolidityConfig.compilers.map((c) => ({
       version: c.version,
+      type: c.type,
     })),
     overrides: Object.fromEntries(
       Object.entries(defaultSolidityConfig.overrides ?? {}).map(
         ([userSourceName, override]) => [
           userSourceName,
-          { version: override.version },
+          { version: override.version, type: override.type },
         ],
       ),
     ),
