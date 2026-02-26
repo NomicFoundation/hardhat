@@ -17,6 +17,17 @@ describe("task-result", function () {
       assert.equal(isTaskResult({ success: false }), true);
     });
 
+    it("should return true for a failed TaskResult with a value", function () {
+      assert.equal(
+        isTaskResult({ success: false, value: { failed: 2, passed: 5 } }),
+        true,
+      );
+    });
+
+    it("should return true for a successful TaskResult without a value", function () {
+      assert.equal(isTaskResult({ success: true }), true);
+    });
+
     it("should return false for undefined", function () {
       assert.equal(isTaskResult(undefined), false);
     });
@@ -52,6 +63,16 @@ describe("task-result", function () {
       assert.deepEqual(result, { success: true, value: 42 });
     });
 
+    it("should create a successful TaskResult without a value when called with no arguments", function () {
+      const result = taskSuccess();
+      assert.deepEqual(result, { success: true });
+    });
+
+    it("should not have a value property when called with no arguments", function () {
+      const result = taskSuccess();
+      assert.equal("value" in result, false);
+    });
+
     it("should be recognized by isTaskResult", function () {
       assert.equal(isTaskResult(taskSuccess("hello")), true);
     });
@@ -63,8 +84,25 @@ describe("task-result", function () {
       assert.deepEqual(result, { success: false });
     });
 
+    it("should not have a value property when called with no arguments", function () {
+      const result = taskFailure();
+      assert.equal("value" in result, false);
+    });
+
+    it("should create a failed TaskResult with the given value", function () {
+      const result = taskFailure({ failed: 2, passed: 5 });
+      assert.deepEqual(result, {
+        success: false,
+        value: { failed: 2, passed: 5 },
+      });
+    });
+
     it("should be recognized by isTaskResult", function () {
       assert.equal(isTaskResult(taskFailure()), true);
+    });
+
+    it("should be recognized by isTaskResult when called with a value", function () {
+      assert.equal(isTaskResult(taskFailure("error details")), true);
     });
   });
 });

@@ -1795,5 +1795,15 @@ GLOBAL OPTIONS:
       await runMain("npx hardhat plain-object-task");
       assert.equal(process.exitCode, undefined);
     });
+
+    it("should set process.exitCode = 1 when task returns TaskResult with success: false and a value", async function () {
+      await runMain("npx hardhat failing-task-with-value");
+      assert.equal(process.exitCode, 1);
+    });
+
+    it("should not set process.exitCode when task returns TaskResult with success: true and no value", async function () {
+      await runMain("npx hardhat succeeding-task-no-value");
+      assert.equal(process.exitCode, undefined);
+    });
   });
 });

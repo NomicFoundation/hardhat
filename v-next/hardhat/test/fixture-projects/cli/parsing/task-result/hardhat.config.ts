@@ -24,8 +24,27 @@ const plainObjectTask = task("plain-object-task")
   })
   .build();
 
+const failingTaskWithValue = task("failing-task-with-value")
+  .setInlineAction(() => {
+    return { success: false, value: { failed: 2, passed: 5 } };
+  })
+  .build();
+
+const succeedingTaskNoValue = task("succeeding-task-no-value")
+  .setInlineAction(() => {
+    return { success: true };
+  })
+  .build();
+
 const config: HardhatUserConfig = {
-  tasks: [failingTask, succeedingTask, undefinedTask, plainObjectTask],
+  tasks: [
+    failingTask,
+    succeedingTask,
+    undefinedTask,
+    plainObjectTask,
+    failingTaskWithValue,
+    succeedingTaskNoValue,
+  ],
 };
 
 export default config;
