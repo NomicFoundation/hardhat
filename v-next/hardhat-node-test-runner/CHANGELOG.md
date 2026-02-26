@@ -1,5 +1,11 @@
 # @nomicfoundation/hardhat-node-test-runner
 
+## 3.0.9
+
+### Patch Changes
+
+- 6674b00: Bump `hardhat-utils` major
+
 ## 3.0.8
 
 ### Patch Changes
