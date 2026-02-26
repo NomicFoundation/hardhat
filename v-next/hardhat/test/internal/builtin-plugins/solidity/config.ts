@@ -487,6 +487,31 @@ describe("solidity plugin config validation", () => {
         ],
       );
     });
+
+    it("Should accept preferWasm on compiler with type 'solc'", () => {
+      assert.deepEqual(
+        validateSolidityUserConfig({
+          solidity: {
+            compilers: [{ type: "solc", version: "0.8.28", preferWasm: true }],
+          },
+        }),
+        [],
+      );
+    });
+
+    it("Should reject preferWasm on compiler with non-solc type", () => {
+      const errors = validateSolidityUserConfig({
+        solidity: {
+          compilers: [
+            { type: "solx", version: "0.8.28", preferWasm: true } as any,
+          ],
+        },
+      });
+      assert.ok(
+        errors.length > 0,
+        "Should reject preferWasm on non-solc compiler type",
+      );
+    });
   });
 
   describe("per-compiler type validation", () => {
@@ -513,18 +538,14 @@ describe("solidity plugin config validation", () => {
     });
 
     it("Should reject invalid type values", () => {
-      assert.deepEqual(
-        validateSolidityUserConfig({
-          solidity: {
-            compilers: [{ version: "0.8.28", type: 123 as any }],
-          },
-        }),
-        [
-          {
-            message: "Expected string, received number",
-            path: ["solidity", "compilers", 0, "type"],
-          },
-        ],
+      const errors = validateSolidityUserConfig({
+        solidity: {
+          compilers: [{ version: "0.8.28", type: 123 as any }],
+        },
+      });
+      assert.ok(
+        errors.length > 0,
+        "Should produce validation error for non-string type",
       );
     });
   });

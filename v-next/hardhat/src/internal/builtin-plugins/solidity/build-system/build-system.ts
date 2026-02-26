@@ -698,18 +698,10 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
       `Compiling ${numberOfRootFiles} root files and ${numberOfFiles - numberOfRootFiles} dependency files with solc ${runnableCompilationJob.solcConfig.version} using ${compiler.compilerPath}`,
     );
 
-    // For custom compilers (path set), compare short version only (long version may differ)
-    if (runnableCompilationJob.solcConfig.path !== undefined) {
-      assertHardhatInvariant(
-        runnableCompilationJob.solcConfig.version === compiler.version,
-        "The version of the compiler should match the version of the compilation job",
-      );
-    } else {
-      assertHardhatInvariant(
-        runnableCompilationJob.solcLongVersion === compiler.longVersion,
-        "The long version of the compiler should match the long version of the compilation job",
-      );
-    }
+    assertHardhatInvariant(
+      runnableCompilationJob.solcLongVersion === compiler.longVersion,
+      "The long version of the compiler should match the long version of the compilation job",
+    );
 
     const input = await runnableCompilationJob.getSolcInput();
 
