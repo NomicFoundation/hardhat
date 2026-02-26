@@ -40,26 +40,62 @@ const commonSolcUserConfigType = z.object({
   isolated: z.boolean().optional(),
 });
 
-const solcUserConfigType = z.object({
+const baseCompilerFields = {
   type: z.string().optional(),
   version: z.string(),
   settings: z.any().optional(),
   path: z.string().optional(),
-  preferWasm: z.boolean().optional(),
+};
+
+const incompatibleVersionFields = {
   compilers: incompatibleFieldType("This field is incompatible with `version`"),
   overrides: incompatibleFieldType("This field is incompatible with `version`"),
   profiles: incompatibleFieldType("This field is incompatible with `version`"),
-});
+};
+
+// Per-compiler config: preferWasm is only allowed for solc (type undefined or "solc")
+const compilerUserConfigType = conditionalUnionType(
+  [
+    [
+      (data) =>
+        !isObject(data) ||
+        !("type" in data) ||
+        data.type === undefined ||
+        data.type === "solc",
+      z.object({
+        ...baseCompilerFields,
+        ...incompatibleVersionFields,
+        preferWasm: z.boolean().optional(),
+      }),
+    ],
+    [
+      (data) =>
+        isObject(data) &&
+        "type" in data &&
+        typeof data.type === "string" &&
+        data.type !== "solc",
+      z
+        .object({
+          ...baseCompilerFields,
+          ...incompatibleVersionFields,
+        })
+        .strict(),
+    ],
+  ],
+  "Expected a valid compiler configuration",
+);
 
 // NOTE: This is only to match the setup present in ./type-extensions.ts
-const singleVersionSolcUserConfigType = solcUserConfigType.extend({
+const singleVersionSolcUserConfigType = z.object({
+  ...baseCompilerFields,
+  ...incompatibleVersionFields,
   isolated: z.boolean().optional(),
   preferWasm: z.boolean().optional(),
 });
 
 const multiVersionSolcUserConfigType = commonSolcUserConfigType.extend({
-  compilers: z.array(solcUserConfigType).nonempty(),
-  overrides: z.record(z.string(), solcUserConfigType).optional(),
+  compilers: z.array(compilerUserConfigType).nonempty(),
+  overrides: z.record(z.string(), compilerUserConfigType).optional(),
   isolated: z.boolean().optional(),
   preferWasm: z.boolean().optional(),
   version: incompatibleFieldType("This field is incompatible with `compilers`"),
