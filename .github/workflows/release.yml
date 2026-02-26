@@ -1,15 +1,15 @@
-name: Create release PR / Publish packages (v2)
+name: Create release PR / Publish packages (deprecated-versions)
 
 on:
   workflow_dispatch:
   push:
     branches:
-      - v2
+      - deprecated-versions
 
 env:
   # This is the tag the release will use
   # (and the review step will use for comparisons)
-  NPM_TAG: hh2
+  NPM_TAG: latest
 
 defaults:
   run:

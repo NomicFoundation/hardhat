@@ -1,7 +1,0 @@
-/node_modules
-/dist
-/test/fixture-projects/**/artifacts
-/test/fixture-projects/**/artifacts-dir
-/test/fixture-projects/**/cache
-CHANGELOG.md
-.nyc_output

@@ -109,3 +109,5 @@ bundle/
 
 # In a devcontainer you can end up with a `.pnpm-store` directory
 .pnpm-store/
+
+node_modules

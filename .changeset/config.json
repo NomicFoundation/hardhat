@@ -4,9 +4,9 @@
   "commit": false,
   "linked": [],
   "access": "public",
-  "baseBranch": "v2",
+  "baseBranch": "deprecated-versions",
   "updateInternalDependencies": "minor",
-  "ignore": ["@nomiclabs/common"],
+  "ignore": [],
   "___experimentalUnsafeOptions_WILL_CHANGE_IN_PATCH": {
     "onlyUpdatePeerDependentsWhenOutOfRange": true
   }

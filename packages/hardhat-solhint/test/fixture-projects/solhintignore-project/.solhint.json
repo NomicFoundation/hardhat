@@ -1,4 +1,0 @@
-{
-  "extends": "solhint:all",
-  "excludedFiles": ["contracts/Greeter3.sol"]
-}
