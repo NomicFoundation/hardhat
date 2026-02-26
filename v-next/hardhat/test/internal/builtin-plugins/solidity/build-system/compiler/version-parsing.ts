@@ -1,25 +1,7 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 
-/**
- * Tests for the version parsing regex used in getCompilerFromPath.
- *
- * The regex logic has been extracted here for unit testing without
- * needing to spawn actual compiler binaries.
- */
-
-function parseVersionFromOutput(stdout: string): string | null {
-  // This mirrors the logic in compiler/index.ts getCompilerFromPath
-  const match =
-    stdout.match(/(?<longVersion>\d+\.\d+\.\d+\+commit\.\w+)/) ??
-    stdout.match(/(?<shortVersion>\d+\.\d+\.\d+)/);
-
-  if (match === null || match.groups === undefined) {
-    return null;
-  }
-
-  return match.groups.longVersion ?? `${match.groups.shortVersion}+custom`;
-}
+import { parseVersionFromOutput } from "../../../../../../src/internal/builtin-plugins/solidity/build-system/compiler/index.js";
 
 describe("Version string parsing", () => {
   it("parses standard solc version string with +commit hash", () => {
@@ -34,7 +16,6 @@ describe("Version string parsing", () => {
   });
 
   it("parses solx-style version output", () => {
-    // solx outputs something like: "solc v0.8.28, LLVM revision v1.0.1"
     const stdout = "solc v0.8.28, LLVM revision v1.0.1";
     assert.equal(parseVersionFromOutput(stdout), "0.8.28+custom");
   });
@@ -58,7 +39,6 @@ describe("Version string parsing", () => {
 
   it("handles version string with pre-release tag (no +commit)", () => {
     const stdout = "0.8.28-alpha.1";
-    // Should match 0.8.28 from the prefix
     assert.equal(parseVersionFromOutput(stdout), "0.8.28+custom");
   });
 });
