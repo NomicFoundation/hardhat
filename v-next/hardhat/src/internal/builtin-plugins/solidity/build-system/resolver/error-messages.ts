@@ -57,7 +57,14 @@ Note that the npm module is being remapped by ${formatRemappingReference(error.u
     }
 
     case RootResolutionErrorType.NPM_ROOT_FILE_OF_UNINSTALLED_PACKAGE: {
-      return `The package "${error.installationName}" is not installed.`;
+      const baseMessage = `The package "${error.installationName}" is not installed.`;
+      if (error.projectHasFoundryToml === true) {
+        return `${baseMessage}
+
+Your project has a foundry.toml, and you may need to install the "@nomicfoundation/hardhat-foundry" plugin.
+Learn more about Hardhat's Foundry compatibility here: https://hardhat.org/foundry-compatibility`;
+      }
+      return baseMessage;
     }
 
     case RootResolutionErrorType.NPM_ROOT_FILE_RESOLUTION_WITH_REMAPPING_ERRORS: {
@@ -107,13 +114,13 @@ export function formatImportResolutionError(
     }
 
     case ImportResolutionErrorType.ILLEGAL_RELATIVE_IMPORT: {
-      return "The import has too many '../', and trying to leave its package.";
+      return "The import has too many '../' and is trying to leave its package.";
     }
 
     case ImportResolutionErrorType.RELATIVE_IMPORT_INTO_NODE_MODULES: {
       return `You are trying to import a file from your node_modules directory with its file system path.
 
-You should write your the path of your imports into npm modules just as you would do in JavaScript files.`;
+You should write your imports into npm modules just as you would do in JavaScript files.`;
     }
 
     case ImportResolutionErrorType.IMPORT_WITH_INVALID_NPM_SYNTAX: {
@@ -121,7 +128,14 @@ You should write your the path of your imports into npm modules just as you woul
     }
 
     case ImportResolutionErrorType.IMPORT_OF_UNINSTALLED_PACKAGE: {
-      return `The package "${error.installationName}" is not installed.`;
+      const baseMessage = `The package "${error.installationName}" is not installed.`;
+      if (error.importerPackageHasFoundryToml === true) {
+        return `${baseMessage}
+
+The file importing this package is inside a Foundry project (foundry.toml detected), and you may need to install the "@nomicfoundation/hardhat-foundry" plugin.
+Learn more about Hardhat's Foundry compatibility here: https://hardhat.org/foundry-compatibility`;
+      }
+      return baseMessage;
     }
 
     case ImportResolutionErrorType.IMPORT_WITH_REMAPPING_ERRORS: {
@@ -148,7 +162,7 @@ If you still want to be able to do it, try adding this remapping "${error.sugges
           ? "the package"
           : "the project";
 
-      const message = `The file ${error.packageExportsResolvedSubpath ?? error.subpath} doesn't exist within ${packageOrProject}.`;
+      const message = `The file "${error.packageExportsResolvedSubpath ?? error.subpath}" doesn't exist within ${packageOrProject}.`;
 
       return formatResolutionErrorRemappingsOrPackageExportsNotes({
         message,

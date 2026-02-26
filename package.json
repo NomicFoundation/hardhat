@@ -13,6 +13,7 @@
     "build": "pnpm run --recursive --if-present build",
     "clean": "pnpm run --recursive --if-present clean",
     "test": "pnpm run --recursive --if-present test",
+    "test:scripts": "node --test ./scripts/**/*.test.mjs",
     "prelint": "pnpm build",
     "lint": "pnpm run --recursive --if-present lint",
     "prelint:fix": "pnpm build",

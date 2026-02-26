@@ -1,5 +1,11 @@
 # @nomicfoundation/hardhat-ethers
 
+## 4.0.5
+
+### Patch Changes
+
+- 6674b00: Bump `hardhat-utils` major
+
 ## 4.0.4
 
 ### Patch Changes

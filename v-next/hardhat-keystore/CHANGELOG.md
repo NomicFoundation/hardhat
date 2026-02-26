@@ -1,5 +1,11 @@
 # @nomicfoundation/hardhat-keystore
 
+## 3.0.5
+
+### Patch Changes
+
+- 6674b00: Bump `hardhat-utils` major
+
 ## 3.0.4
 
 ### Patch Changes

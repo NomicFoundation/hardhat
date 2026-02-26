@@ -8,9 +8,8 @@ import type { HardhatEthers } from "@nomicfoundation/hardhat-ethers/types";
 
 import { before, beforeEach, describe, it } from "node:test";
 
-import { HardhatError } from "@nomicfoundation/hardhat-errors";
 import {
-  assertRejectsWithHardhatError,
+  assertRejects,
   useEphemeralFixtureProject,
 } from "@nomicfoundation/hardhat-test-utils";
 import { expect, AssertionError } from "chai";
@@ -80,12 +79,15 @@ describe(".to.emit (contract events)", { timeout: 60000 }, () => {
     });
 
     it("should fail when matcher is called with too many arguments", async () => {
-      await assertRejectsWithHardhatError(
+      await assertRejects(
         () =>
           // @ts-expect-error -- force error scenario: emit should not be called with more than two arguments
           expect(contract.emitUint(1)).not.to.emit(contract, "WithoutArgs", 1),
-        HardhatError.ERRORS.CHAI_MATCHERS.GENERAL.EMIT_EXPECTS_TWO_ARGUMENTS,
-        {},
+        (e) =>
+          e.message.includes(
+            "The .emit matcher expects two arguments: the contract and the event name. Arguments should be asserted with the .withArgs helper.",
+          ),
+        "Expected emit arguments error message",
       );
     });
 

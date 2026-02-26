@@ -1,5 +1,5 @@
-import { HardhatError } from "@nomicfoundation/hardhat-errors";
 import { numberToHexString } from "@nomicfoundation/hardhat-utils/hex";
+import { assert as chaiAssert } from "chai";
 
 import { REVERTED_WITH_MATCHER } from "../../constants.js";
 import { buildAssert } from "../../utils/build-assert.js";
@@ -26,8 +26,8 @@ export function supportRevertedWith(
         // potentially be a rejected promise
         Promise.resolve(this._obj).catch(() => {});
 
-        throw new HardhatError(
-          HardhatError.ERRORS.CHAI_MATCHERS.GENERAL.EXPECT_STRING_OR_REGEX_AS_REVERT_REASON,
+        chaiAssert.fail(
+          "Expected the revert reason to be a string or a regular expression",
         );
       }
 

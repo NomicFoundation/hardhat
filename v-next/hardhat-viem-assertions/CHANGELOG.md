@@ -1,5 +1,11 @@
 # @nomicfoundation/hardhat-viem-assertions
 
+## 3.0.6
+
+### Patch Changes
+
+- 6674b00: Bump `hardhat-utils` major
+
 ## 3.0.5
 
 ### Patch Changes

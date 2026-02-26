@@ -10,7 +10,6 @@ import assert from "node:assert/strict";
 import path from "node:path";
 import { after, before, beforeEach, describe, it } from "node:test";
 
-import { latestSupportedSolidityVersion } from "@nomicfoundation/edr";
 import {
   disableConsole,
   useFixtureProject,
@@ -302,19 +301,33 @@ describe("CoverageManagerImplementation", () => {
   });
 
   it("should format the markdown report", async () => {
-    const actual = coverageManager.formatMarkdownReport(report);
+    const originalChalkLevel = chalk.level;
+    chalk.level = 0;
 
-    const expected = [
-      `| ${chalk.bold("Coverage Report")}     |        |             |                 |`,
-      "| ------------------- | ------ | ----------- | --------------- |",
-      `| ${chalk.yellow("File Path")}           | ${chalk.yellow("Line %")} | ${chalk.yellow("Statement %")} | ${chalk.yellow("Uncovered Lines")} |`,
-      "| contracts/test.sol  | 80.00  | 75.00       | 6               |",
-      "| contracts/other.sol | 0.00   | 0.00        | 1-2             |",
-      "| ------------------- | ------ | ----------- | --------------- |",
-      `| ${chalk.yellow("Total")}               | 57.14  | 50.00       |                 |`,
-    ].join("\n");
+    try {
+      const actual = coverageManager.formatMarkdownReport(report);
 
-    assert.equal(actual, expected);
+      assert.equal(
+        actual,
+        [
+          "╔══════════════════════════════════════════════════════════════╗",
+          "║                       Coverage Report                        ║",
+          "╚══════════════════════════════════════════════════════════════╝",
+          "╔══════════════════════════════════════════════════════════════╗",
+          "║ File Coverage                                                ║",
+          "╟─────────────────────┬────────┬─────────────┬─────────────────╢",
+          "║ File Path           │ Line % │ Statement % │ Uncovered Lines ║",
+          "╟─────────────────────┼────────┼─────────────┼─────────────────╢",
+          "║ contracts/test.sol  │ 80.00  │ 75.00       │ 6               ║",
+          "║ contracts/other.sol │ 0.00   │ 0.00        │ 1-2             ║",
+          "╟─────────────────────┼────────┼─────────────┼─────────────────╢",
+          "║ Total               │ 57.14  │ 50.00       │                 ║",
+          "╚═════════════════════╧════════╧═════════════╧═════════════════╝",
+        ].join("\n"),
+      );
+    } finally {
+      chalk.level = originalChalkLevel;
+    }
   });
 
   const expectedRelativePath: Array<[string, string]> = [
@@ -437,41 +450,6 @@ describe("CoverageManagerImplementation - report data processing", () => {
       );
     });
   }
-
-  it("should should use the latesst supported Solidity version", async () => {
-    const version = await hre.hooks.runHandlerChain(
-      "solidity",
-      "preprocessProjectFileBeforeBuilding",
-      ["", "", "", "0.10.100"],
-      async (
-        nextContext,
-        nextInputSourceName,
-        nextFsPath,
-        nextFileContent,
-        nextSolcVersion,
-      ) => nextSolcVersion,
-    );
-
-    assert.equal(version, latestSupportedSolidityVersion());
-  });
-
-  it("should should use the selected Solidity version", async () => {
-    const supportedVersion = "0.8.28";
-    const version = await hre.hooks.runHandlerChain(
-      "solidity",
-      "preprocessProjectFileBeforeBuilding",
-      ["", "", "", supportedVersion],
-      async (
-        nextContext,
-        nextInputSourceName,
-        nextFsPath,
-        nextFileContent,
-        nextSolcVersion,
-      ) => nextSolcVersion,
-    );
-
-    assert.equal(version, supportedVersion);
-  });
 
   it("should run coverage on multiple files, one is covered by tests, the other is not", async () => {
     const testScenrario = COVERAGE_TEST_SCENARIO_MULTIPLE_FILES;

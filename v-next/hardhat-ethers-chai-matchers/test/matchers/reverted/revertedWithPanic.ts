@@ -6,9 +6,8 @@ import path from "node:path";
 import { before, beforeEach, describe, it } from "node:test";
 import util from "node:util";
 
-import { HardhatError } from "@nomicfoundation/hardhat-errors";
 import {
-  assertThrowsHardhatError,
+  assertThrows,
   useEphemeralFixtureProject,
 } from "@nomicfoundation/hardhat-test-utils";
 import { AssertionError, expect } from "chai";
@@ -272,24 +271,26 @@ describe("INTEGRATION: Reverted with panic", { timeout: 60000 }, () => {
       it("non-number as expectation", async () => {
         const { hash } = await mineSuccessfulTransaction(provider, ethers);
 
-        assertThrowsHardhatError(
+        assertThrows(
           () => expect(hash).to.be.revertedWithPanic("invalid"),
-          HardhatError.ERRORS.CHAI_MATCHERS.GENERAL.PANIC_CODE_EXPECTED,
-          {
-            panicCode: "invalid",
-          },
+          (e) =>
+            e.message.includes(
+              'Expected the given panic code to be a number-like value, but got "invalid"',
+            ),
+          "Expected panic code type error message",
         );
       });
 
       it("non-number as expectation, subject is a rejected promise", async () => {
         const tx = matchers.revertsWithoutReason();
 
-        assertThrowsHardhatError(
+        assertThrows(
           () => expect(tx).to.be.revertedWithPanic("invalid"),
-          HardhatError.ERRORS.CHAI_MATCHERS.GENERAL.PANIC_CODE_EXPECTED,
-          {
-            panicCode: "invalid",
-          },
+          (e) =>
+            e.message.includes(
+              'Expected the given panic code to be a number-like value, but got "invalid"',
+            ),
+          "Expected panic code type error message",
         );
       });
 

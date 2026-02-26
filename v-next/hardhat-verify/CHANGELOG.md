@@ -1,5 +1,11 @@
 # @nomicfoundation/hardhat-verify
 
+## 3.0.11
+
+### Patch Changes
+
+- 6674b00: Bump `hardhat-utils` major
+
 ## 3.0.10
 
 ### Patch Changes

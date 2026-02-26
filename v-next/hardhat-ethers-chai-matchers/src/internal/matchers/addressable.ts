@@ -1,4 +1,4 @@
-import { assertHardhatInvariant } from "@nomicfoundation/hardhat-errors";
+import { assert as chaiAssert } from "chai";
 import { isAddress, isAddressable } from "ethers";
 
 import { tryDereference } from "../utils/typed.js";
@@ -35,11 +35,15 @@ function tryGetAddressSync(value: any): string | undefined {
     if ("address" in value) {
       value = value.address;
     } else {
-      assertHardhatInvariant(
+      chaiAssert.ok(
         "target" in value,
-        "target property should exist in value",
+        "Addressable value should have the property target",
       );
-      value = value.target;
+
+      /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions
+        -- This cast is here so the CI job with @types/chai@4.3.0 builds. Note
+        that we have the assertion that target exists above. */
+      value = (value as any).target;
     }
   }
 

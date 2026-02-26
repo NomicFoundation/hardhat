@@ -18,6 +18,7 @@ import {
   assertIsSigner,
   initializeTestEthers,
   spawnTestRpcServer,
+  tryUntil,
 } from "./helpers/helpers.js";
 
 describe("Ethers plugin", () => {
@@ -719,12 +720,9 @@ describe("Ethers plugin", () => {
 
             await greeter.setGreeting("Hola");
 
-            // wait for 1.5 polling intervals for the event to fire
-            await new Promise((resolve) => setTimeout(resolve, 100));
+            await tryUntil(() => assert.equal(eventEmitted, true));
 
             await greeter.removeAllListeners();
-
-            assert.equal(eventEmitted, true);
           });
 
           describe("with hardhat's signer", () => {
@@ -948,11 +946,9 @@ describe("Ethers plugin", () => {
 
         await deployedGreeter.setGreeting("Hola");
 
-        // wait for 1.5 polling intervals for the event to fire
-        await new Promise((resolve) => setTimeout(resolve, 100));
+        await tryUntil(() => assert.equal(eventEmitted, true));
 
         deployedGreeter.removeAllListeners();
-        assert.equal(eventEmitted, true);
       });
     });
 
@@ -1160,11 +1156,9 @@ describe("Ethers plugin", () => {
 
       await deployedGreeter.setGreeting("Hola");
 
-      // wait for the event to fire
-      await new Promise((resolve) => setTimeout(resolve, 100));
+      await tryUntil(() => assert.equal(emitted, true));
 
       await wsProvider.destroy();
-      assert.equal(emitted, true);
     });
   });
 });

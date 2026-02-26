@@ -4,6 +4,19 @@ const path = require("path");
 
 const IGNORED_PACKAGE_FOLDERS = new Set(["hardhat-build-system"]);
 
+// Packages that are allowed to have a different version spec for a given dependency.
+// These packages are excluded from the cross-package version consistency check for
+// the specified dependency, but are still checked for internal consistency.
+const ALLOWED_DIFFERENT_VERSION_SPECS = new Map([
+  [
+    "chai",
+    new Set([
+      "@nomicfoundation/hardhat-ethers-chai-matchers",
+      "@nomicfoundation/hardhat-toolbox-mocha-ethers",
+    ]),
+  ],
+]);
+
 /**
  * @typedef {Object} Package
  * @property {string} name
@@ -252,6 +265,12 @@ function buildDependencyVersionMap(packages) {
       // We ignore workspace: dependencies, as they can have small differences, which are ok,
       // and sometimes intentional.
       if (version.startsWith("workspace:")) {
+        continue;
+      }
+
+      // Skip packages that are allowed to have different version specs for this dependency
+      const allowedPackages = ALLOWED_DIFFERENT_VERSION_SPECS.get(dependencyName);
+      if (allowedPackages !== undefined && allowedPackages.has(package.name)) {
         continue;
       }
 

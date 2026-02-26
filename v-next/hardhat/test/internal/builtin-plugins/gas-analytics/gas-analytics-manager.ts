@@ -18,7 +18,6 @@ import {
   getUserFqn,
   getFunctionName,
   findDuplicates,
-  roundTo,
   GasAnalyticsManagerImplementation,
 } from "../../../../src/internal/builtin-plugins/gas-analytics/gas-analytics-manager.js";
 
@@ -785,8 +784,8 @@ describe("gas-analytics-manager", () => {
           transferStats !== undefined,
           "transfer function stats should be defined",
         );
-        assert.equal(transferStats.avg, 33334.75);
-        assert.equal(transferStats.median, 33334.5);
+        assert.equal(transferStats.avg, 33335);
+        assert.equal(transferStats.median, 33335);
       });
     });
 
@@ -1079,28 +1078,6 @@ describe("gas-analytics-manager", () => {
 
       it("should handle single element", () => {
         assert.deepEqual(findDuplicates(["a"]), []);
-      });
-    });
-
-    describe("roundTo", () => {
-      it("should round to specified decimal places", () => {
-        assert.equal(roundTo(3.14159, 2), 3.14);
-        assert.equal(roundTo(3.14159, 3), 3.142);
-        assert.equal(roundTo(3.14159, 0), 3);
-      });
-
-      it("should handle rounding up", () => {
-        assert.equal(roundTo(3.156, 2), 3.16);
-        assert.equal(roundTo(3.999, 2), 4);
-      });
-
-      it("should handle negative numbers", () => {
-        assert.equal(roundTo(-3.14159, 2), -3.14);
-        assert.equal(roundTo(-3.156, 2), -3.16);
-      });
-
-      it("should handle zero", () => {
-        assert.equal(roundTo(0, 2), 0);
       });
     });
   });

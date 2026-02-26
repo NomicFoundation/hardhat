@@ -5,6 +5,7 @@ import {
 import chalk from "chalk";
 
 import { HARDHAT_NAME, HARDHAT_WEBSITE_URL } from "../constants.js";
+import { UsingHardhat2PluginError } from "../using-hardhat2-plugin-errors.js";
 
 /**
  * The different categories of errors that can be handled by hardhat cli.
@@ -69,6 +70,11 @@ export function printErrorMessages(
   shouldShowStackTraces: boolean = false,
   print: (message: string | Error) => void = console.error,
 ): void {
+  if (error instanceof UsingHardhat2PluginError) {
+    printUsingHardhat2Error(error, print);
+    return;
+  }
+
   const showStackTraces =
     shouldShowStackTraces ||
     getErrorWithCategory(error).category === ErrorCategory.OTHER;
@@ -144,5 +150,17 @@ function getErrorMessages(error: Error): ErrorMessages {
         formattedErrorMessage: chalk.red.bold(`An unexpected error occurred:`),
         postErrorStackTraceMessage: `If you think this is a bug in Hardhat, please report it here: ${HARDHAT_WEBSITE_URL}report-bug`,
       };
+  }
+}
+function printUsingHardhat2Error(
+  error: UsingHardhat2PluginError,
+  print: (message: string | Error) => void = console.error,
+): void {
+  print(chalk.red.bold(`Hardhat 3 installation error:`));
+  print("");
+  if (error.callerRelativePath !== undefined) {
+    print(error.message);
+  } else {
+    print(error.stack);
   }
 }

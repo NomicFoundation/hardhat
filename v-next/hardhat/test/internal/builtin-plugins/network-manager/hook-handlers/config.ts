@@ -41,6 +41,43 @@ describe("network-manager/hook-handlers/config", () => {
       });
     });
 
+    it("should extend the localhost network when its type is undefined", async () => {
+      const config = {
+        networks: {
+          localhost: {},
+        },
+      };
+      const next = async (nextConfig: HardhatUserConfig) => nextConfig;
+
+      /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions
+      -- testing incomplete config for js users */
+      const extendedConfig = await extendUserConfig(config as any, next);
+      assert.deepEqual(extendedConfig.networks?.localhost, {
+        type: "http",
+        url: "http://localhost:8545",
+      });
+    });
+
+    it("should extend the default network when its type is undefined", async () => {
+      const config = {
+        networks: {
+          default: {},
+        },
+      };
+      const next = async (nextConfig: HardhatUserConfig) => nextConfig;
+
+      /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions
+      -- testing incomplete config for js users */
+      const extendedConfig = await extendUserConfig(config as any, next);
+      assert.deepEqual(extendedConfig.networks?.default, {
+        chainId: 31337,
+        gas: "auto",
+        gasMultiplier: 1,
+        gasPrice: "auto",
+        type: "edr-simulated",
+      });
+    });
+
     it("should allow setting other properties of the localhost network", async () => {
       const config: HardhatUserConfig = {
         networks: {
@@ -79,22 +116,93 @@ describe("network-manager/hook-handlers/config", () => {
       });
     });
 
-    it("should not allow overriding the type of the localhost network", async () => {
+    it("should allow overriding the type of the localhost network", async () => {
       const config = {
         networks: {
           localhost: {
-            type: "http2",
+            type: "edr-simulated",
+          },
+        },
+      } as const;
+      const next = async (nextConfig: HardhatUserConfig) => nextConfig;
+
+      const extendedConfig = await extendUserConfig(config, next);
+      assert.deepEqual(extendedConfig.networks?.localhost, {
+        type: "edr-simulated",
+      });
+    });
+
+    it("should allow overriding the type of the default network", async () => {
+      const config = {
+        networks: {
+          default: {
+            type: "http",
+            url: "http://localhost:8545",
+          },
+        },
+      } as const;
+      const next = async (nextConfig: HardhatUserConfig) => nextConfig;
+
+      const extendedConfig = await extendUserConfig(config, next);
+      assert.equal(extendedConfig.networks?.default.type, "http");
+      assert.equal(
+        extendedConfig.networks?.default.url,
+        "http://localhost:8545",
+      );
+    });
+
+    it("should extend the user config with the node network", async () => {
+      const config: HardhatUserConfig = {};
+      const next = async (nextConfig: HardhatUserConfig) => nextConfig;
+
+      const extendedConfig = await extendUserConfig(config, next);
+      assert.deepEqual(extendedConfig.networks?.node, {
+        chainId: 31337,
+        gas: "auto",
+        gasMultiplier: 1,
+        gasPrice: "auto",
+        type: "edr-simulated",
+      });
+    });
+
+    it("should allow setting other properties of the node network", async () => {
+      const config: HardhatUserConfig = {
+        networks: {
+          node: {
+            type: "edr-simulated",
+            chainId: 5555,
           },
         },
       };
       const next = async (nextConfig: HardhatUserConfig) => nextConfig;
 
+      const extendedConfig = await extendUserConfig(config, next);
+      assert.deepEqual(extendedConfig.networks?.node, {
+        chainId: 5555,
+        gas: "auto",
+        gasMultiplier: 1,
+        gasPrice: "auto",
+        type: "edr-simulated",
+      });
+    });
+
+    it("should extend the node network when its type is undefined", async () => {
+      const config = {
+        networks: {
+          node: {},
+        },
+      };
+      const next = async (nextConfig: HardhatUserConfig) => nextConfig;
+
       /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions
-      -- testing invalid network type for js users */
+      -- testing incomplete config for js users */
       const extendedConfig = await extendUserConfig(config as any, next);
-      assert.deepEqual(extendedConfig.networks?.localhost, {
-        url: "http://localhost:8545",
-        type: "http",
+      assert.deepEqual(extendedConfig.networks?.node, {
+        chainId: 31337,
+        gas: "auto",
+        gasMultiplier: 1,
+        gasPrice: "auto",
+        type: "edr-simulated",
       });
     });
   });
@@ -156,6 +264,26 @@ describe("network-manager/hook-handlers/config", () => {
         {
           path: ["networks"],
           message: "Expected object, received number",
+        },
+      ]);
+    });
+
+    it("should throw if the node network type is not edr-simulated", async () => {
+      const config = {
+        networks: {
+          node: {
+            type: "http",
+            url: "http://localhost:8545",
+          },
+        },
+      } as const;
+
+      const validationErrors = await validateNetworkUserConfig(config);
+
+      assertValidationErrors(validationErrors, [
+        {
+          path: ["networks", "node", "type"],
+          message: "The node network type must be 'edr-simulated'",
         },
       ]);
     });
@@ -1327,6 +1455,93 @@ describe("network-manager/hook-handlers/config", () => {
           httpHeaders: {
             "Content-Type": "application/json",
           },
+        },
+      });
+    });
+
+    it("should resolve the localhost network when its type is overridden to edr-simulated", async () => {
+      // This is how the user config looks like after it's been extended
+      // by the extendUserConfig hook handler when the user overrides
+      // the localhost network type to "edr-simulated".
+      const extendedConfig: HardhatUserConfig = {
+        paths: {
+          cache: "/tmp/hardhat-cache",
+        },
+        networks: {
+          localhost: {
+            type: "edr-simulated",
+          },
+        },
+      };
+
+      const resolvedConfig = await resolveUserConfig(
+        extendedConfig,
+        (variable) => resolveConfigurationVariable(hre.hooks, variable),
+        next,
+      );
+
+      const localhost = resolvedConfig.networks.localhost;
+      assert(
+        localhost.type === "edr-simulated",
+        "The network type should be edr-simulated",
+      );
+
+      assert.equal(localhost.chainId, 31337);
+      assert.equal(localhost.chainType, undefined);
+      assert.equal(localhost.from, undefined);
+      assert.equal(localhost.gas, "auto");
+      assert.equal(localhost.gasMultiplier, 1);
+      assert.equal(localhost.gasPrice, "auto");
+
+      // EDR-specific fields
+      assert.equal(localhost.allowBlocksWithSameTimestamp, false);
+      assert.equal(localhost.allowUnlimitedContractSize, false);
+      assert.equal(localhost.blockGasLimit, 60_000_000n);
+      assert.deepEqual(localhost.mining, {
+        auto: true,
+        interval: 0,
+        mempool: { order: "priority" },
+      });
+      assert.equal(localhost.throwOnCallFailures, true);
+      assert.equal(localhost.throwOnTransactionFailures, true);
+      assert.equal(localhost.loggingEnabled, false);
+      assert.equal(localhost.minGasPrice, 0n);
+      assert.equal(localhost.networkId, 31337);
+      assert.equal(localhost.forking, undefined);
+    });
+
+    it("should resolve the default network when its type is overridden to http", async () => {
+      // This is how the user config looks like after it's been extended
+      // by the extendUserConfig hook handler when the user overrides
+      // the default network type to "http".
+      const extendedConfig: HardhatUserConfig = {
+        networks: {
+          default: {
+            type: "http",
+            url: "http://localhost:8545",
+          },
+        },
+      };
+
+      const resolvedConfig = await resolveUserConfig(
+        extendedConfig,
+        (variable) => resolveConfigurationVariable(hre.hooks, variable),
+        next,
+      );
+
+      assert.deepEqual(resolvedConfig.networks, {
+        default: {
+          type: "http",
+          chainId: undefined,
+          chainType: undefined,
+          from: undefined,
+          gas: "auto",
+          gasMultiplier: 1,
+          gasPrice: "auto",
+          accounts: "remote",
+          url: new FixedValueConfigurationVariable("http://localhost:8545"),
+          timeout: 300_000,
+          httpHeaders: {},
         },
       });
     });

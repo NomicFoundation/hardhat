@@ -7,7 +7,7 @@ on:
 
 jobs:
   deploy:
-    if: github.event_name == 'workflow_dispatch' || startsWith(github.event.release.tag_name, 'hardhat.3')
+    if: github.event_name == 'workflow_dispatch' || startsWith(github.event.release.tag_name, 'hardhat@3.')
     runs-on: ubuntu-latest
     steps:
       - name: Trigger Vercel Deploy

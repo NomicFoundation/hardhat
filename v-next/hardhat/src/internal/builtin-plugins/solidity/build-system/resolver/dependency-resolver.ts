@@ -38,6 +38,7 @@ import { parseNpmDirectImport } from "./npm-module-parsing.js";
 import {
   isResolvedUserRemapping,
   RemappedNpmPackagesGraphImplementation,
+  type RemappingsReaderFunction,
 } from "./remapped-npm-packages-graph.js";
 import { applyValidRemapping, formatRemapping } from "./remappings.js";
 import {
@@ -86,14 +87,18 @@ export class ResolverImplementation implements Resolver {
    *
    * @param projectRoot The absolute path to the Hardhat project root.
    * @param readUtf8File A function that reads a UTF-8 file.
+   * @param remappingsReader Optional function to read remappings from packages.
    * @returns The resolver or the user remapping errors found.
    */
   public static async create(
     projectRoot: string,
     readUtf8File: (absPath: string) => Promise<string>,
+    remappingsReader?: RemappingsReaderFunction,
   ): Promise<Resolver> {
-    const map =
-      await RemappedNpmPackagesGraphImplementation.create(projectRoot);
+    const map = await RemappedNpmPackagesGraphImplementation.create(
+      projectRoot,
+      remappingsReader,
+    );
 
     return new ResolverImplementation(projectRoot, map, readUtf8File);
   }
@@ -691,6 +696,13 @@ export class ResolverImplementation implements Resolver {
       );
 
     if (dependencyResolution === undefined) {
+      // Check if the from file's package has foundry.toml
+      const foundryTomlPath = path.join(
+        from.package.rootFsPath,
+        "foundry.toml",
+      );
+      const fromHasFoundryToml = await exists(foundryTomlPath);
+
       return {
         success: false,
         error: {
@@ -698,6 +710,7 @@ export class ResolverImplementation implements Resolver {
           fromFsPath: from.fsPath,
           importPath,
           installationName: parsedDirectImport.package,
+          importerPackageHasFoundryToml: fromHasFoundryToml,
         },
       };
     }
@@ -1098,6 +1111,7 @@ export class ResolverImplementation implements Resolver {
           type: RootResolutionErrorType.NPM_ROOT_FILE_OF_UNINSTALLED_PACKAGE,
           npmModule,
           installationName: error.installationName,
+          projectHasFoundryToml: error.importerPackageHasFoundryToml,
         };
       }
       case ImportResolutionErrorType.IMPORT_WITH_REMAPPING_ERRORS: {

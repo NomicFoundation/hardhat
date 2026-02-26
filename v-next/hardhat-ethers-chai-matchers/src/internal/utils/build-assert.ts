@@ -1,7 +1,6 @@
 import type { Ssfi } from "./ssfi.js";
 
-import { HardhatError } from "@nomicfoundation/hardhat-errors";
-import { AssertionError } from "chai";
+import { assert as chaiAssert, AssertionError } from "chai";
 
 /**
  * This function is used by the matchers to obtain an `assert` function, which
@@ -27,8 +26,8 @@ export function buildAssert(negated: boolean, ssfi: Ssfi) {
   ): void {
     if (!negated && !condition) {
       if (messageFalse === undefined) {
-        throw new HardhatError(
-          HardhatError.ERRORS.CHAI_MATCHERS.GENERAL.ASSERTION_WITHOUT_ERROR_MESSAGE,
+        chaiAssert.fail(
+          "Assertion doesn't have an error message. Please open an issue to report this.",
         );
       }
 
@@ -40,8 +39,8 @@ export function buildAssert(negated: boolean, ssfi: Ssfi) {
 
     if (negated && condition) {
       if (messageTrue === undefined) {
-        throw new HardhatError(
-          HardhatError.ERRORS.CHAI_MATCHERS.GENERAL.ASSERTION_WITHOUT_ERROR_MESSAGE,
+        chaiAssert.fail(
+          "Assertion doesn't have an error message. Please open an issue to report this.",
         );
       }
 
