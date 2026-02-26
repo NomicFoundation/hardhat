@@ -21,6 +21,8 @@ describe("Example EDR based test", () => {
     });
 
     assert.equal(blockNumberAfter, `0x5`);
+
+    await connection.viem.deployContract("Counter2");
   });
 
   it("should show stack traces when a transaction reverts", async () => {
