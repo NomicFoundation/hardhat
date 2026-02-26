@@ -1,6 +1,6 @@
 {
   "name": "@nomicfoundation/hardhat-chai-matchers",
-  "version": "2.1.2",
+  "version": "3.0.0",
   "description": "Hardhat utils for testing",
   "homepage": "https://github.com/nomicfoundation/hardhat/tree/deprecated-versions/packages/hardhat-chai-matchers",
   "repository": {

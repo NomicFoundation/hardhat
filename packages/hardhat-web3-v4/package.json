@@ -1,6 +1,6 @@
 {
   "name": "@nomicfoundation/hardhat-web3-v4",
-  "version": "1.1.2",
+  "version": "2.0.0",
   "description": "Hardhat plugin for using Web3 4.x",
   "homepage": "https://github.com/nomicfoundation/hardhat/tree/deprecated-versions/packages/hardhat-web3-v4",
   "repository": {

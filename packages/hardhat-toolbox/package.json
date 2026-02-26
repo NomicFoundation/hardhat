@@ -1,6 +1,6 @@
 {
   "name": "@nomicfoundation/hardhat-toolbox",
-  "version": "6.1.2",
+  "version": "7.0.0",
   "description": "Nomic Foundation's recommended bundle of Hardhat plugins (ethers based)",
   "homepage": "https://github.com/nomicfoundation/hardhat/tree/deprecated-versions/packages/hardhat-toolbox",
   "repository": {
