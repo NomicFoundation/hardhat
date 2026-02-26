@@ -6,5 +6,16 @@
     "v-next/hardhat/templates",
     "v-next/config"
   ],
-  "bumps": []
+  "bumps": [
+    {
+      "package": "@nomicfoundation/hardhat-mocha",
+      "peer": "hardhat",
+      "reason": "It depends on the new TestHooks#onTestRunStart, TestHooks#onTestWorkerDone, and TestHooks#onTestRunDone hooks"
+    },
+    {
+      "package": "@nomicfoundation/hardhat-node-test-runner",
+      "peer": "hardhat",
+      "reason": "It depends on the new TestHooks#onTestRunStart, TestHooks#onTestWorkerDone, and TestHooks#onTestRunDone hooks"
+    }
+  ]
 }

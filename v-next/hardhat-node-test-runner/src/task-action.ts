@@ -10,14 +10,6 @@ import { hardhatTestReporter } from "@nomicfoundation/hardhat-node-test-reporter
 import { setGlobalOptionsAsEnvVariables } from "@nomicfoundation/hardhat-utils/env";
 import { getAllFilesMatching } from "@nomicfoundation/hardhat-utils/fs";
 import { createNonClosingWriter } from "@nomicfoundation/hardhat-utils/stream";
-import {
-  markTestRunStart as initCoverage,
-  markTestRunDone as reportCoverage,
-} from "hardhat/internal/coverage";
-import {
-  markTestRunStart as initGasStats,
-  markTestRunDone as reportGasStats,
-} from "hardhat/internal/gas-analytics";
 
 interface TestActionArguments {
   testFiles: string[];
@@ -92,20 +84,16 @@ const testWithHardhat: NewTaskActionFunction<TestActionArguments> = async (
   const tsx = new URL(import.meta.resolve("tsx/esm"));
   imports.push(tsx.href);
 
-  if (hre.globalOptions.coverage === true) {
-    const coverage = new URL(
-      import.meta.resolve("@nomicfoundation/hardhat-node-test-runner/coverage"),
-    );
-    imports.push(coverage.href);
-  }
-
-  if (hre.globalOptions.gasStats === true) {
-    const gasStats = new URL(
+  if (
+    hre.globalOptions.coverage === true ||
+    hre.globalOptions.gasStats === true
+  ) {
+    const testWorkerDone = new URL(
       import.meta.resolve(
-        "@nomicfoundation/hardhat-node-test-runner/gas-stats",
+        "@nomicfoundation/hardhat-node-test-runner/test-worker-done",
       ),
     );
-    imports.push(gasStats.href);
+    imports.push(testWorkerDone.href);
   }
 
   process.env.NODE_OPTIONS = imports
@@ -191,14 +179,21 @@ const testWithHardhat: NewTaskActionFunction<TestActionArguments> = async (
     };
   }
 
-  await initCoverage("nodejs");
-  await initGasStats("nodejs");
+  await hre.hooks.runHandlerChain(
+    "test",
+    "onTestRunStart",
+    ["nodejs"],
+    async () => {},
+  );
 
   const testResults = await runTests();
 
-  // NOTE: This might print a coverage report.
-  await reportCoverage("nodejs");
-  await reportGasStats("nodejs");
+  await hre.hooks.runHandlerChain(
+    "test",
+    "onTestRunDone",
+    ["nodejs"],
+    async () => {},
+  );
 
   if (testResults.failed > 0) {
     process.exitCode = 1;
