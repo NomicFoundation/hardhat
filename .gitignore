@@ -109,3 +109,6 @@ pnpm-lock.json
 
 # Hardhat bundle
 bundle/
+
+# pnpm publish summary (generated during release process)
+pnpm-publish-summary.json
