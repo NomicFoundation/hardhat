@@ -7,5 +7,5 @@
     "allowSyntheticDefaultImports": true
   },
   "include": ["vite.config.ts"],
-  "references": [{ "path": "../hardhat-ignition-core" }]
+  "references": [{ "path": "../ignition-core" }]
 }

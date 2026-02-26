@@ -11,7 +11,7 @@
       "path": "../hardhat-ignition"
     },
     {
-      "path": "../hardhat-ignition-core"
+      "path": "../ignition-core"
     },
     {
       "path": "../hardhat-ignition-ethers"

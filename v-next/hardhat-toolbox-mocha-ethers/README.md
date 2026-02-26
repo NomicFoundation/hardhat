@@ -48,7 +48,7 @@ When you install `@nomicfoundation/hardhat-toolbox-mocha-ethers`, these plugins 
 - [`@nomicfoundation/hardhat-network-helpers`](https://github.com/NomicFoundation/hardhat/tree/v-next/v-next/hardhat-network-helpers)
 - [`@nomicfoundation/hardhat-typechain`](https://github.com/NomicFoundation/hardhat/tree/v-next/v-next/hardhat-typechain)
 - [`@nomicfoundation/hardhat-verify`](https://github.com/NomicFoundation/hardhat/tree/v-next/v-next/hardhat-verify)
-- [`@nomicfoundation/ignition-core`](https://github.com/NomicFoundation/hardhat/tree/v-next/v-next/hardhat-ignition-core)
+- [`@nomicfoundation/ignition-core`](https://github.com/NomicFoundation/hardhat/tree/v-next/v-next/ignition-core)
 
 ## Explicitly installing plugins
 
