@@ -50,7 +50,49 @@ export interface UserInterruptionManager {
 
   /**
    * Executes `f` without allowing user interruptions during its execution.
+   *
+   * To run a function that needs to run multiple user interruptions without
+   * being interrupted by something else, use the `withBatchedInterruptions`
+   * method.
+   *
    * @param f - The function to execute.
    */
   uninterrupted<ReturnT>(f: () => ReturnT): Promise<Awaited<ReturnT>>;
+
+  /**
+   * Executes `f` while holding the interruption lock, passing it a
+   * BatchedUserInterruptionManager whose methods do not individually acquire
+   * the lock.
+   *
+   * Use this when you need to perform multiple user interruptions as a single
+   * uninterruptable unit — for example, displaying a message and then
+   * requesting input without another interruption slipping in between.
+   *
+   * @param f - The function to execute. It receives a
+   *   {@link BatchedUserInterruptionManager} that can be used to perform
+   *   interruptions without deadlocking.
+   */
+  withBatchedInterruptions<ReturnT>(
+    f: (interruptions: BatchedUserInterruptionManager) => ReturnT,
+  ): Promise<Awaited<ReturnT>>;
+}
+
+/**
+ * A version of UserInterruptionManager that can be used within a
+ * UserInterruptionManager#withBatchedInterruptions callback.
+ *
+ * It provides the same interruption methods but without individual lock
+ * acquisition, as the lock is already held by the enclosing
+ * `withBatchedInterruptions` call.
+ */
+export interface BatchedUserInterruptionManager {
+  displayMessage: (interruptor: string, message: string) => Promise<void>;
+  requestInput: (
+    interruptor: string,
+    inputDescription: string,
+  ) => Promise<string>;
+  requestSecretInput: (
+    interruptor: string,
+    inputDescription: string,
+  ) => Promise<string>;
 }

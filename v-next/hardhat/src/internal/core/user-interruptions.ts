@@ -1,5 +1,8 @@
 import type { HookContext, HookManager } from "../../types/hooks.js";
-import type { UserInterruptionManager } from "../../types/user-interruptions.js";
+import type {
+  BatchedUserInterruptionManager,
+  UserInterruptionManager,
+} from "../../types/user-interruptions.js";
 
 import { assertHardhatInvariant } from "@nomicfoundation/hardhat-errors";
 import { AsyncMutex } from "@nomicfoundation/hardhat-utils/synchronization";
@@ -18,48 +21,82 @@ export class UserInterruptionManagerImplementation
     interruptor: string,
     message: string,
   ): Promise<void> {
-    return this.#mutex.exclusiveRun(async () => {
-      return this.#hooks.runHandlerChain(
-        "userInterruptions",
-        "displayMessage",
-        [interruptor, message],
-        defaultDisplayMessage,
-      );
-    });
+    return this.#mutex.exclusiveRun(() =>
+      this.#displayMessage(interruptor, message),
+    );
   }
 
   public async requestInput(
     interruptor: string,
     inputDescription: string,
   ): Promise<string> {
-    return this.#mutex.exclusiveRun(async () => {
-      return this.#hooks.runHandlerChain(
-        "userInterruptions",
-        "requestInput",
-        [interruptor, inputDescription],
-        defaultRequestInput,
-      );
-    });
+    return this.#mutex.exclusiveRun(() =>
+      this.#requestInput(interruptor, inputDescription),
+    );
   }
 
   public async requestSecretInput(
     interruptor: string,
     inputDescription: string,
   ): Promise<string> {
-    return this.#mutex.exclusiveRun(async () => {
-      return this.#hooks.runHandlerChain(
-        "userInterruptions",
-        "requestSecretInput",
-        [interruptor, inputDescription],
-        defaultRequestSecretInput,
-      );
-    });
+    return this.#mutex.exclusiveRun(() =>
+      this.#requestSecretInput(interruptor, inputDescription),
+    );
   }
 
   public async uninterrupted<ReturnT>(
     f: () => ReturnT,
   ): Promise<Awaited<ReturnT>> {
     return this.#mutex.exclusiveRun(f);
+  }
+
+  public async withBatchedInterruptions<ReturnT>(
+    f: (interruptions: BatchedUserInterruptionManager) => ReturnT,
+  ): Promise<Awaited<ReturnT>> {
+    return this.#mutex.exclusiveRun(() => {
+      const interruptions: BatchedUserInterruptionManager = {
+        displayMessage: (interruptor, message) =>
+          this.#displayMessage(interruptor, message),
+        requestInput: (interruptor, inputDescription) =>
+          this.#requestInput(interruptor, inputDescription),
+        requestSecretInput: (interruptor, inputDescription) =>
+          this.#requestSecretInput(interruptor, inputDescription),
+      };
+      return f(interruptions);
+    });
+  }
+
+  #displayMessage(interruptor: string, message: string): Promise<void> {
+    return this.#hooks.runHandlerChain(
+      "userInterruptions",
+      "displayMessage",
+      [interruptor, message],
+      defaultDisplayMessage,
+    );
+  }
+
+  #requestInput(
+    interruptor: string,
+    inputDescription: string,
+  ): Promise<string> {
+    return this.#hooks.runHandlerChain(
+      "userInterruptions",
+      "requestInput",
+      [interruptor, inputDescription],
+      defaultRequestInput,
+    );
+  }
+
+  #requestSecretInput(
+    interruptor: string,
+    inputDescription: string,
+  ): Promise<string> {
+    return this.#hooks.runHandlerChain(
+      "userInterruptions",
+      "requestSecretInput",
+      [interruptor, inputDescription],
+      defaultRequestSecretInput,
+    );
   }
 }
 
