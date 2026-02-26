@@ -543,6 +543,22 @@ export interface TaskManager {
   getTask(taskId: string | string[]): Task;
 }
 
+/**
+ * A type representing the result of a task action.
+ *
+ * Tasks can optionally return a TaskResult to signal success or failure
+ * to the CLI. When a task returns { success: false }, the CLI will set
+ * process.exitCode = 1.
+ *
+ * Tasks that return undefined, or any value that is not a TaskResult,
+ * are treated as successful.
+ *
+ * @template ValueT The type of the value returned on success.
+ */
+export type TaskResult<ValueT> =
+  | { success: true; value: ValueT }
+  | { success: false };
+
 export type LazyActionObject<T> = () => Promise<{
   default: T;
 }>;

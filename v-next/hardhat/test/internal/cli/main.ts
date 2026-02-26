@@ -1767,4 +1767,33 @@ GLOBAL OPTIONS:
       assert.deepEqual(parsedArgs, ["task", "-a=value1"]);
     });
   });
+
+  describe("TaskResult handling", function () {
+    useFixtureProject("cli/parsing/task-result");
+
+    afterEach(function () {
+      process.exitCode = undefined;
+      resetGlobalHardhatRuntimeEnvironment();
+    });
+
+    it("should set process.exitCode = 1 when task returns TaskResult with success: false", async function () {
+      await runMain("npx hardhat failing-task");
+      assert.equal(process.exitCode, 1);
+    });
+
+    it("should not set process.exitCode when task returns TaskResult with success: true", async function () {
+      await runMain("npx hardhat succeeding-task");
+      assert.equal(process.exitCode, undefined);
+    });
+
+    it("should not set process.exitCode when task returns undefined", async function () {
+      await runMain("npx hardhat undefined-task");
+      assert.equal(process.exitCode, undefined);
+    });
+
+    it("should not set process.exitCode when task returns a plain object", async function () {
+      await runMain("npx hardhat plain-object-task");
+      assert.equal(process.exitCode, undefined);
+    });
+  });
 });

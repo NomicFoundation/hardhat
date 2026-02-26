@@ -38,6 +38,7 @@
     "./types/solidity": "./dist/src/types/solidity.js",
     "./console.sol": "./console.sol",
     "./utils/contract-names": "./dist/src/utils/contract-names.js",
+    "./utils/task-result": "./dist/src/utils/task-result.js",
     "./types/runtime": "./dist/src/internal/deprecated-module-imported-from-hardhat2-plugin.js",
     "./builtin-tasks/task-names": "./dist/src/internal/deprecated-module-imported-from-hardhat2-plugin.js",
     "./internal/artifacts": "./dist/src/internal/deprecated-module-imported-from-hardhat2-plugin.js"
