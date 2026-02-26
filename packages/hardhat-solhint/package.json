@@ -1,6 +1,6 @@
 {
   "name": "@nomiclabs/hardhat-solhint",
-  "version": "4.1.2",
+  "version": "5.0.0",
   "description": "Hardhat plugin for solhint",
   "homepage": "https://github.com/nomicfoundation/hardhat/tree/deprecated-versions/packages/hardhat-solhint",
   "repository": {

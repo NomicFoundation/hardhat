@@ -1,6 +1,6 @@
 {
   "name": "@nomiclabs/hardhat-web3",
-  "version": "2.1.2",
+  "version": "3.0.0",
   "description": "Hardhat plugin for using Web3 1.x",
   "homepage": "https://github.com/nomiclabs/hardhat/tree/deprecated-versions/packages/hardhat-web3",
   "repository": {
