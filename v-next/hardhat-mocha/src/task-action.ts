@@ -170,7 +170,12 @@ const testWithHardhat: NewTaskActionFunction<TestActionArguments> = async (
   perf.endPhase("Test file loading");
   perf.startPhase("Test execution");
 
-  await hre.hooks.runSequentialHandlers("test", "onTestRunStart", ["mocha"]);
+  await hre.hooks.runHandlerChain(
+    "test",
+    "onTestRunStart",
+    ["mocha"],
+    async () => {},
+  );
 
   let total = 0;
   const testFailures = await new Promise<number>((resolve) => {
@@ -182,11 +187,19 @@ const testWithHardhat: NewTaskActionFunction<TestActionArguments> = async (
   perf.startPhase("Reporting");
 
   if (hre.config.test.mocha.parallel !== true) {
-    await hre.hooks.runSequentialHandlers("test", "onTestWorkerDone", [
-      "mocha",
-    ]);
+    await hre.hooks.runHandlerChain(
+      "test",
+      "onTestWorkerDone",
+      ["mocha"],
+      async () => {},
+    );
   }
-  await hre.hooks.runSequentialHandlers("test", "onTestRunDone", ["mocha"]);
+  await hre.hooks.runHandlerChain(
+    "test",
+    "onTestRunDone",
+    ["mocha"],
+    async () => {},
+  );
 
   perf.endPhase("Reporting");
 

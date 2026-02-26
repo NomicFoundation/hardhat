@@ -176,7 +176,12 @@ const runSolidityTests: NewTaskActionFunction<TestActionArguments> = async (
   const options: RunOptions =
     solidityTestConfigToRunOptions(solidityTestConfig);
 
-  await hre.hooks.runSequentialHandlers("test", "onTestRunStart", ["solidity"]);
+  await hre.hooks.runHandlerChain(
+    "test",
+    "onTestRunStart",
+    ["solidity"],
+    async () => {},
+  );
 
   const runStream = run(
     chainType,
@@ -260,11 +265,19 @@ const runSolidityTests: NewTaskActionFunction<TestActionArguments> = async (
     includesErrors = true;
   }
 
-  await hre.hooks.runSequentialHandlers("test", "onTestWorkerDone", [
-    "solidity",
-  ]);
+  await hre.hooks.runHandlerChain(
+    "test",
+    "onTestWorkerDone",
+    ["solidity"],
+    async () => {},
+  );
 
-  await hre.hooks.runSequentialHandlers("test", "onTestRunDone", ["solidity"]);
+  await hre.hooks.runHandlerChain(
+    "test",
+    "onTestRunDone",
+    ["solidity"],
+    async () => {},
+  );
 
   if (includesFailures || includesErrors) {
     process.exitCode = 1;

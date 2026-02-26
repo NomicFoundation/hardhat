@@ -5,7 +5,9 @@ import { assertHardhatInvariant } from "@nomicfoundation/hardhat-errors";
 import { HardhatRuntimeEnvironmentImplementation } from "../../../core/hre.js";
 
 export default async (): Promise<Partial<TestHooks>> => ({
-  onTestRunStart: async (context, id) => {
+  onTestRunStart: async (context, id, next) => {
+    await next(context, id);
+
     if (context.globalOptions.gasStats === true) {
       assertHardhatInvariant(
         context instanceof HardhatRuntimeEnvironmentImplementation,
@@ -15,7 +17,9 @@ export default async (): Promise<Partial<TestHooks>> => ({
     }
   },
 
-  onTestWorkerDone: async (context, id) => {
+  onTestWorkerDone: async (context, id, next) => {
+    await next(context, id);
+
     if (context.globalOptions.gasStats === true) {
       assertHardhatInvariant(
         context instanceof HardhatRuntimeEnvironmentImplementation,
@@ -25,7 +29,9 @@ export default async (): Promise<Partial<TestHooks>> => ({
     }
   },
 
-  onTestRunDone: async (context, id) => {
+  onTestRunDone: async (context, id, next) => {
+    await next(context, id);
+
     if (context.globalOptions.gasStats === true) {
       assertHardhatInvariant(
         context instanceof HardhatRuntimeEnvironmentImplementation,

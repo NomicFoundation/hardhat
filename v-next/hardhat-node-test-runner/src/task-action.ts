@@ -179,11 +179,21 @@ const testWithHardhat: NewTaskActionFunction<TestActionArguments> = async (
     };
   }
 
-  await hre.hooks.runSequentialHandlers("test", "onTestRunStart", ["nodejs"]);
+  await hre.hooks.runHandlerChain(
+    "test",
+    "onTestRunStart",
+    ["nodejs"],
+    async () => {},
+  );
 
   const testResults = await runTests();
 
-  await hre.hooks.runSequentialHandlers("test", "onTestRunDone", ["nodejs"]);
+  await hre.hooks.runHandlerChain(
+    "test",
+    "onTestRunDone",
+    ["nodejs"],
+    async () => {},
+  );
 
   if (testResults.failed > 0) {
     process.exitCode = 1;
