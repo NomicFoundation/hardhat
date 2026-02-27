@@ -28,10 +28,10 @@ export default async (): Promise<Partial<SolidityHooks>> => {
       const solxPath = await downloadSolx(solxConfig.version);
 
       log(
-        `Downloaded solx ${solxConfig.version} to ${solxPath}, setting path on ${solxConfigs.length} compiler config(s)`,
+        `Downloaded solx ${solxConfig.version} to ${solxPath}, setting path on ${solxConfigs.length} solx compiler(s)`,
       );
 
-      // Set the path on each solx compiler config so the core build system
+      // Set the compiler path on each solx-typed entry so the core build system
       // uses getCompilerFromPath() with this binary.
       for (const config of solxConfigs) {
         config.path = solxPath;
@@ -41,7 +41,7 @@ export default async (): Promise<Partial<SolidityHooks>> => {
     invokeSolc: async (context, compiler, solcInput, compilerConfig, next) => {
       const solxConfig: SolxConfig = context.config.solx;
 
-      // Only intercept solx compilations that need extra settings
+      // Only intercept solx-typed compilations to inject plugin config settings
       if (
         compilerConfig.type !== "solx" ||
         Object.keys(solxConfig.settings).length === 0
