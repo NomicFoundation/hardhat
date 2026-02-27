@@ -328,6 +328,19 @@ export const ERROR_CATEGORIES: {
       },
     },
   },
+  HARDHAT_SOLX: {
+    min: 110000,
+    max: 119999,
+    pluginId: "hardhat-solx",
+    websiteTitle: "Hardhat Solx",
+    CATEGORIES: {
+      GENERAL: {
+        min: 110000,
+        max: 110099,
+        websiteSubTitle: "General errors",
+      },
+    },
+  },
 };
 
 export const ERRORS = {
@@ -2965,6 +2978,28 @@ This could be due to:
 - Forge installation issues
 
 Check the error message for more details and verify your foundry.toml configuration.`,
+      },
+    },
+  },
+  HARDHAT_SOLX: {
+    GENERAL: {
+      UNSUPPORTED_PLATFORM: {
+        number: 110000,
+        messageTemplate: `solx is not available for the current platform ({platform}/{arch}).
+
+solx supports: linux/x64, linux/arm64, darwin (macOS), windows/x64.`,
+        websiteTitle: "Unsupported platform",
+        websiteDescription: `The solx compiler is not available for your current operating system and architecture combination.
+
+solx supports: linux/x64, linux/arm64, darwin (macOS), windows/x64.`,
+      },
+      DOWNLOAD_FAILED: {
+        number: 110001,
+        messageTemplate: `Failed to download solx {version} after {attempts} attempts: {reason}`,
+        websiteTitle: "solx download failed",
+        websiteDescription: `The solx compiler binary could not be downloaded from GitHub releases.
+
+Check your internet connection and verify that the requested solx version exists.`,
       },
     },
   },
