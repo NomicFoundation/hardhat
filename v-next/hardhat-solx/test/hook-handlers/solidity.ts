@@ -4,7 +4,7 @@ import type { CompilerInput, CompilerOutput } from "hardhat/types/solidity";
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 
-// Helper to create a mock context with the given solx config
+// Helper to create a mock context with the given plugin config
 function createMockContext(solxConfig: SolxConfig): any {
   return {
     config: {
@@ -177,7 +177,7 @@ describe("hardhat-solx solidity hook handler", () => {
       );
     });
 
-    it("does nothing when no solx compiler configs present", async () => {
+    it("does nothing when no solx-typed compilers present", async () => {
       const hookHandlerModule = await import(
         "../../src/internal/hook-handlers/solidity.js"
       );

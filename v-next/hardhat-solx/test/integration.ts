@@ -9,18 +9,21 @@ describe("hardhat-solx integration", () => {
 
   useFixtureProject(projectFolder);
 
-  it("resolves solx config through the HRE", async () => {
+  it("resolves plugin config through the HRE", async () => {
     const baseHhConfig = (
       await import(`./fixture-projects/${projectFolder}/hardhat.config.js`)
     ).default;
     const hre = await createHardhatRuntimeEnvironment(baseHhConfig);
 
-    // Verify the solx config was resolved correctly
+    // Verify the plugin config was resolved correctly
     assert.equal(hre.config.solx.version, "0.1.3");
-    assert.deepEqual(hre.config.solx.settings, {});
+    assert.deepEqual(hre.config.solx.settings, {
+      viaIR: true,
+      LLVMOptimization: "1",
+    });
   });
 
-  it("resolves solx config with defaults when not specified", async () => {
+  it("resolves plugin config with defaults when not specified", async () => {
     const hre = await createHardhatRuntimeEnvironment({
       solidity: "0.8.28",
       plugins: [(await import("../src/index.js")).default],
@@ -28,10 +31,13 @@ describe("hardhat-solx integration", () => {
 
     // Verify defaults are applied
     assert.equal(hre.config.solx.version, "0.1.3");
-    assert.deepEqual(hre.config.solx.settings, {});
+    assert.deepEqual(hre.config.solx.settings, {
+      viaIR: true,
+      LLVMOptimization: "1",
+    });
   });
 
-  it("preserves type: 'solx' on compiler config entries", async () => {
+  it("preserves compiler type 'solx' on compiler entries", async () => {
     const baseHhConfig = (
       await import(`./fixture-projects/${projectFolder}/hardhat.config.js`)
     ).default;

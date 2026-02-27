@@ -4,5 +4,11 @@
 # Compilation output
 /dist
 
+# pnpm deploy output
+/bundle
+
 # test coverage output
 coverage
+
+# all the tmp folders in the fixture projects
+/test/fixture-projects/tmp/
