@@ -638,7 +638,7 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
     }
 
     return {
-      success: true as const,
+      success: true,
       compilationJobsPerFile,
       indexedIndividualJobs,
       cacheHits,
