@@ -100,7 +100,9 @@ async function convertExStateToVerifyInfo(
     constructorArgs,
     libraries,
     address: exState.result.address,
-    contract: `${artifact.sourceName}:${contractName}`,
+    contract: contractName.includes(":")
+      ? contractName
+      : `${artifact.sourceName}:${contractName}`,
   };
 
   return verifyInfo;
