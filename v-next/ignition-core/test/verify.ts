@@ -90,8 +90,9 @@ describe("verify", () => {
       "fqn-contract-name",
     );
 
+    let sawLibrary = false;
     for await (const info of getVerificationInformation(deploymentDir)) {
-      // Note" the library in this test is called UUUUU
+      // Note: the library in this test is called UUUUU
       assert(typeof info !== "string", "Expected a VerifyInfo, got a string");
       assert.notInclude(
         info.contract,
@@ -100,8 +101,10 @@ describe("verify", () => {
       );
       if (info.contract.endsWith(":UUUUU")) {
         assert.equal(info.contract, "contracts/Lib.sol:UUUUU");
+        sawLibrary = true;
       }
     }
+    assert.isTrue(sawLibrary, "Expected to find the UUUUU library entry");
   });
 
   it("should yield a verify result for contract with libraries", async () => {
