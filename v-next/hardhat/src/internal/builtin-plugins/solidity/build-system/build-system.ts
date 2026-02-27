@@ -208,6 +208,12 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
     }
   }
 
+  public isSuccessfulBuildResult(
+    buildResult: CompilationJobCreationError | Map<string, FileBuildResult>,
+  ): buildResult is Map<string, FileBuildResult> {
+    return buildResult instanceof Map;
+  }
+
   public async build(
     rootFilePaths: string[],
     _options?: BuildOptions,
@@ -244,7 +250,7 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
       options,
     );
 
-    if ("reason" in compilationJobsResult) {
+    if (!compilationJobsResult.success) {
       return compilationJobsResult;
     }
 
@@ -430,7 +436,6 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
     const solcConfigSelector = new SolcConfigSelector(
       buildProfileName,
       buildProfile,
-      dependencyGraph,
     );
 
     let subgraphsWithConfig: Array<
@@ -446,11 +451,11 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
       const configOrError =
         solcConfigSelector.selectBestSolcConfigForSingleRootGraph(subgraph);
 
-      if ("reason" in configOrError) {
+      if (!configOrError.success) {
         return configOrError;
       }
 
-      subgraphsWithConfig.push([configOrError, subgraph]);
+      subgraphsWithConfig.push([configOrError.config, subgraph]);
     }
 
     // get longVersion and isWasm from the compiler for each version
@@ -632,7 +637,12 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
       }
     }
 
-    return { compilationJobsPerFile, indexedIndividualJobs, cacheHits };
+    return {
+      success: true,
+      compilationJobsPerFile,
+      indexedIndividualJobs,
+      cacheHits,
+    };
   }
 
   #getBuildProfile(buildProfileName: string = DEFAULT_BUILD_PROFILE) {

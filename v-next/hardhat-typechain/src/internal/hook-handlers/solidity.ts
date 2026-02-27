@@ -22,7 +22,7 @@ export default async (): Promise<Partial<SolidityHooks>> => {
       const result = await next(context, rootFilePaths, options);
 
       // Skip if build failed (returned an error)
-      if ("reason" in result) {
+      if (!context.solidity.isSuccessfulBuildResult(result)) {
         return result;
       }
 

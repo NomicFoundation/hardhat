@@ -26,7 +26,10 @@ contract Foo {}`,
 
       // First build
       const firstResult = await hre.solidity.build([filePath], { quiet: true });
-      assert(!("reason" in firstResult), "First build should succeed");
+      assert(
+        hre.solidity.isSuccessfulBuildResult(firstResult),
+        "First build should succeed",
+      );
       const firstBuildResult = firstResult.get(filePath);
       assert.equal(firstBuildResult?.type, FileBuildResultType.BUILD_SUCCESS);
       const originalBuildId =
@@ -36,7 +39,10 @@ contract Foo {}`,
       const secondResult = await hre.solidity.build([filePath], {
         quiet: true,
       });
-      assert(!("reason" in secondResult), "Second build should succeed");
+      assert(
+        hre.solidity.isSuccessfulBuildResult(secondResult),
+        "Second build should succeed",
+      );
       const cacheHitResult = secondResult.get(filePath);
 
       assert.equal(cacheHitResult?.type, FileBuildResultType.CACHE_HIT);
@@ -74,7 +80,10 @@ contract Bar {}`,
       const secondResult = await hre.solidity.build([filePath], {
         quiet: true,
       });
-      assert(!("reason" in secondResult), "Second build should succeed");
+      assert(
+        hre.solidity.isSuccessfulBuildResult(secondResult),
+        "Second build should succeed",
+      );
       const cacheHitResult = secondResult.get(filePath);
 
       assert.equal(cacheHitResult?.type, FileBuildResultType.CACHE_HIT);
@@ -118,7 +127,10 @@ contract Foo { uint256 public value; }`,
       const result = await hre.solidity.build([fooPath, barPath], {
         quiet: true,
       });
-      assert(!("reason" in result), "Build should succeed");
+      assert(
+        hre.solidity.isSuccessfulBuildResult(result),
+        "Build should succeed",
+      );
 
       assert.equal(
         result.get(fooPath)?.type,
@@ -149,7 +161,10 @@ contract Foo {}`,
         quiet: true,
         force: true,
       });
-      assert(!("reason" in result), "Build should succeed");
+      assert(
+        hre.solidity.isSuccessfulBuildResult(result),
+        "Build should succeed",
+      );
 
       assert.equal(
         result.get(filePath)?.type,

@@ -2,6 +2,7 @@ import type {
   CompilationJobCreationError,
   FailedFileBuildResult,
   FileBuildResult,
+  SolidityBuildSystem,
 } from "../../../types/solidity.js";
 
 import { HardhatError } from "@nomicfoundation/hardhat-errors";
@@ -22,9 +23,10 @@ type SuccessfulSolidityBuildResults = Map<
  * job failed.
  */
 export function throwIfSolidityBuildFailed(
+  solidity: SolidityBuildSystem,
   results: SolidityBuildResults,
 ): asserts results is SuccessfulSolidityBuildResults {
-  if ("reason" in results) {
+  if (!solidity.isSuccessfulBuildResult(results)) {
     throw new HardhatError(
       HardhatError.ERRORS.CORE.SOLIDITY.COMPILATION_JOB_CREATION_ERROR,
       {
