@@ -10,7 +10,7 @@ import {
   validateUserConfig,
 } from "../src/internal/hook-handlers/config.js";
 
-describe("hardhat-solx config validation", () => {
+describe("hardhat-solx plugin config validation", () => {
   it("accepts valid config with all fields", async () => {
     const errors = await validateUserConfig({
       solx: {
@@ -30,14 +30,14 @@ describe("hardhat-solx config validation", () => {
     assert.deepEqual(errors, []);
   });
 
-  it("accepts empty solx config", async () => {
+  it("accepts empty plugin config", async () => {
     const errors = await validateUserConfig({
       solx: {},
     });
     assert.deepEqual(errors, []);
   });
 
-  it("accepts config without solx key", async () => {
+  it("accepts config without plugin config key", async () => {
     const errors = await validateUserConfig({});
     assert.deepEqual(errors, []);
   });
@@ -61,8 +61,8 @@ describe("hardhat-solx config validation", () => {
   });
 });
 
-describe("hardhat-solx config resolution", () => {
-  it("resolves with defaults when no solx config provided", async () => {
+describe("hardhat-solx plugin config resolution", () => {
+  it("resolves with defaults when no plugin config provided", async () => {
     const resolvedConfig = await resolveUserConfig(
       {},
       undefined as any,
@@ -70,10 +70,13 @@ describe("hardhat-solx config resolution", () => {
     );
 
     assert.equal(resolvedConfig.solx.version, "0.1.3");
-    assert.deepEqual(resolvedConfig.solx.settings, {});
+    assert.deepEqual(resolvedConfig.solx.settings, {
+      viaIR: true,
+      LLVMOptimization: "1",
+    });
   });
 
-  it("resolves with defaults when empty solx config provided", async () => {
+  it("resolves with defaults when empty plugin config provided", async () => {
     const resolvedConfig = await resolveUserConfig(
       { solx: {} },
       undefined as any,
@@ -81,7 +84,10 @@ describe("hardhat-solx config resolution", () => {
     );
 
     assert.equal(resolvedConfig.solx.version, "0.1.3");
-    assert.deepEqual(resolvedConfig.solx.settings, {});
+    assert.deepEqual(resolvedConfig.solx.settings, {
+      viaIR: true,
+      LLVMOptimization: "1",
+    });
   });
 
   it("resolves with user-specified values", async () => {
@@ -295,5 +301,252 @@ describe("hardhat-solx extendUserConfig — test profile creation", () => {
   it("returns config unchanged when solidity is undefined", async () => {
     const result = await extendUserConfig({}, next);
     assert.equal(result.solidity, undefined);
+  });
+});
+
+describe("hardhat-solx EVM version validation", () => {
+  it("rejects type: 'solx' with pre-cancun evmVersion", async () => {
+    const errors = await validateUserConfig({
+      solidity: {
+        profiles: {
+          default: {
+            compilers: [
+              {
+                version: "0.8.28",
+                type: "solx",
+                settings: { evmVersion: "paris" },
+              },
+            ],
+          },
+        },
+      },
+    });
+    assert.ok(errors.length > 0, "Should have validation errors");
+    assert.ok(
+      errors.some((e) => e.message.includes("does not support EVM version")),
+      `Expected EVM version error, got: ${errors.map((e) => e.message).join(", ")}`,
+    );
+  });
+
+  it("rejects type: 'solx' with shanghai evmVersion", async () => {
+    const errors = await validateUserConfig({
+      solidity: {
+        profiles: {
+          default: {
+            compilers: [
+              {
+                version: "0.8.28",
+                type: "solx",
+                settings: { evmVersion: "shanghai" },
+              },
+            ],
+          },
+        },
+      },
+    });
+    assert.ok(errors.length > 0, "Should have validation errors");
+  });
+
+  it("accepts type: 'solx' with cancun evmVersion", async () => {
+    const errors = await validateUserConfig({
+      solidity: {
+        profiles: {
+          default: {
+            compilers: [
+              {
+                version: "0.8.28",
+                type: "solx",
+                settings: { evmVersion: "cancun" },
+              },
+            ],
+          },
+        },
+      },
+    });
+    assert.deepEqual(errors, []);
+  });
+
+  it("accepts type: 'solx' with prague evmVersion", async () => {
+    const errors = await validateUserConfig({
+      solidity: {
+        profiles: {
+          default: {
+            compilers: [
+              {
+                version: "0.8.28",
+                type: "solx",
+                settings: { evmVersion: "prague" },
+              },
+            ],
+          },
+        },
+      },
+    });
+    assert.deepEqual(errors, []);
+  });
+
+  it("accepts type: 'solx' with osaka evmVersion", async () => {
+    const errors = await validateUserConfig({
+      solidity: {
+        profiles: {
+          default: {
+            compilers: [
+              {
+                version: "0.8.28",
+                type: "solx",
+                settings: { evmVersion: "osaka" },
+              },
+            ],
+          },
+        },
+      },
+    });
+    assert.deepEqual(errors, []);
+  });
+
+  it("accepts type: 'solx' without evmVersion", async () => {
+    const errors = await validateUserConfig({
+      solidity: {
+        profiles: {
+          default: {
+            compilers: [{ version: "0.8.28", type: "solx" }],
+          },
+        },
+      },
+    });
+    assert.deepEqual(errors, []);
+  });
+
+  it("ignores evmVersion on non-solx compiler entries", async () => {
+    const errors = await validateUserConfig({
+      solidity: {
+        profiles: {
+          default: {
+            compilers: [
+              {
+                version: "0.8.28",
+                settings: { evmVersion: "paris" },
+              },
+            ],
+          },
+        },
+      },
+    });
+    assert.deepEqual(errors, []);
+  });
+
+  it("reports errors for overrides with unsupported evmVersion", async () => {
+    const errors = await validateUserConfig({
+      solidity: {
+        profiles: {
+          default: {
+            compilers: [{ version: "0.8.28" }],
+            overrides: {
+              "contracts/Old.sol": {
+                version: "0.8.28",
+                type: "solx",
+                settings: { evmVersion: "london" },
+              },
+            },
+          },
+        },
+      },
+    });
+    assert.ok(errors.length > 0, "Should have validation errors");
+    assert.ok(
+      errors[0].path.includes("overrides"),
+      `Error path should include 'overrides', got: ${JSON.stringify(errors[0].path)}`,
+    );
+  });
+});
+
+describe("hardhat-solx production profile safeguard", () => {
+  it("rejects type: 'solx' in production profile", async () => {
+    const errors = await validateUserConfig({
+      solidity: {
+        profiles: {
+          default: { version: "0.8.28" },
+          production: {
+            compilers: [{ version: "0.8.28", type: "solx" }],
+          },
+        },
+      },
+    });
+    assert.ok(errors.length > 0, "Should have validation errors");
+    assert.ok(
+      errors.some((e) =>
+        e.message.includes("not supported in the production build profile"),
+      ),
+      `Expected production safeguard error, got: ${errors.map((e) => e.message).join(", ")}`,
+    );
+  });
+
+  it("rejects single-version solx in production profile", async () => {
+    const errors = await validateUserConfig({
+      solidity: {
+        profiles: {
+          default: { version: "0.8.28" },
+          production: { version: "0.8.28", type: "solx" },
+        },
+      },
+    });
+    assert.ok(errors.length > 0, "Should have validation errors");
+  });
+
+  it("accepts type: 'solx' in production with dangerouslyAllowSolxInProduction", async () => {
+    const errors = await validateUserConfig({
+      solx: { dangerouslyAllowSolxInProduction: true },
+      solidity: {
+        profiles: {
+          default: { version: "0.8.28" },
+          production: {
+            compilers: [{ version: "0.8.28", type: "solx" }],
+          },
+        },
+      },
+    });
+    assert.deepEqual(errors, []);
+  });
+
+  it("accepts type: 'solx' in non-production profiles", async () => {
+    const errors = await validateUserConfig({
+      solidity: {
+        profiles: {
+          default: {
+            compilers: [{ version: "0.8.28", type: "solx" }],
+          },
+          test: {
+            compilers: [{ version: "0.8.28", type: "solx" }],
+          },
+        },
+      },
+    });
+    assert.deepEqual(errors, []);
+  });
+
+  it("accepts production profile without type: 'solx'", async () => {
+    const errors = await validateUserConfig({
+      solidity: {
+        profiles: {
+          default: { version: "0.8.28" },
+          production: { version: "0.8.28" },
+        },
+      },
+    });
+    assert.deepEqual(errors, []);
+  });
+
+  it("accepts dangerouslyAllowSolxInProduction in zod schema", async () => {
+    const errors = await validateUserConfig({
+      solx: { dangerouslyAllowSolxInProduction: true },
+    });
+    assert.deepEqual(errors, []);
+  });
+
+  it("rejects invalid dangerouslyAllowSolxInProduction type", async () => {
+    const errors = await validateUserConfig({
+      solx: { dangerouslyAllowSolxInProduction: "yes" as any },
+    });
+    assert.ok(errors.length > 0, "Should have validation errors");
   });
 });

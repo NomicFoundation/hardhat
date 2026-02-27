@@ -77,9 +77,11 @@ export async function downloadSolx(version: string): Promise<string> {
     }
 
     throw new HardhatError(
-      HardhatError.ERRORS.CORE.GENERAL.UNSUPPORTED_OPERATION,
+      HardhatError.ERRORS.HARDHAT_SOLX.GENERAL.DOWNLOAD_FAILED,
       {
-        operation: `download solx ${version} (failed after ${DOWNLOAD_RETRY_COUNT} attempts: ${lastError?.message})`,
+        version,
+        attempts: DOWNLOAD_RETRY_COUNT.toString(),
+        reason: lastError?.message ?? "unknown error",
       },
     );
   });

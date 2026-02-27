@@ -22,9 +22,10 @@ export function getSolxBinaryBaseName(): string {
   if (platform === "win32" && arch === "x64") return "solx-windows-amd64-gnu";
 
   throw new HardhatError(
-    HardhatError.ERRORS.CORE.GENERAL.UNSUPPORTED_OPERATION,
+    HardhatError.ERRORS.HARDHAT_SOLX.GENERAL.UNSUPPORTED_PLATFORM,
     {
-      operation: `solx on ${platform}/${arch}`,
+      platform,
+      arch,
     },
   );
 }
