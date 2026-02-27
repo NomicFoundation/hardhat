@@ -18,14 +18,13 @@ export class SolcConfigSelector {
 
   /**
    * Creates a new SolcConfigSelector that can be used to select the best solc
-   * configuration for subgraphs of the given dependency graph.
+   * configuration for single-root subgraphs to create their resepective
+   * individual compilation jobs.
    *
-   * All the queries are done in the context of the given dependency graph, and
-   * using the same build profile.
+   * All the queries use the same build profile.
    *
    * @param buildProfileName The name of the build profile to use.
    * @param buildProfile  The build profile config.
-   * @param _dependencyGraph The entire dependency graph of the project.
    */
   constructor(
     buildProfileName: string,
