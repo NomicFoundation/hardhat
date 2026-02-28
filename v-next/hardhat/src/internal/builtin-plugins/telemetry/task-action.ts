@@ -1,5 +1,6 @@
 import type { NewTaskActionFunction } from "../../../types/tasks.js";
 
+import { errorResult, successResult } from "../../../utils/result.js";
 import {
   isTelemetryAllowed,
   setTelemetryEnabled,
@@ -15,8 +16,7 @@ const configureTelemetry: NewTaskActionFunction<
 > = async ({ enable, disable }) => {
   if (enable && disable) {
     console.error("Cannot enable and disable telemetry at the same time");
-    process.exitCode = 1;
-    return;
+    return errorResult();
   }
 
   if (enable) {
@@ -40,6 +40,8 @@ const configureTelemetry: NewTaskActionFunction<
       "Telemetry is disabled, to enable it run `npx hardhat telemetry --enable`",
     );
   }
+
+  return successResult();
 };
 
 export default configureTelemetry;

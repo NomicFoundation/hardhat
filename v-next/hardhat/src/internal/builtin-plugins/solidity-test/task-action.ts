@@ -1,6 +1,8 @@
 import type { RunOptions } from "./runner.js";
 import type { TestEvent } from "./types.js";
+import type { Result } from "../../../types/result.js";
 import type { NewTaskActionFunction } from "../../../types/tasks.js";
+import type { TestSummary } from "../../../types/test.js";
 import type {
   Artifact as EdrArtifact,
   BuildInfoAndOutput,
@@ -19,6 +21,7 @@ import { resolveFromRoot } from "@nomicfoundation/hardhat-utils/path";
 import { createNonClosingWriter } from "@nomicfoundation/hardhat-utils/stream";
 
 import { getFullyQualifiedName } from "../../../utils/contract-names.js";
+import { errorResult, successResult } from "../../../utils/result.js";
 import { HardhatRuntimeEnvironmentImplementation } from "../../core/hre.js";
 import { isSupportedChainType } from "../../edr/chain-type.js";
 import { ArtifactManagerImplementation } from "../artifacts/artifact-manager.js";
@@ -46,7 +49,7 @@ interface TestActionArguments {
 const runSolidityTests: NewTaskActionFunction<TestActionArguments> = async (
   { testFiles, chainType, grep, noCompile, verbosity, testSummaryIndex },
   hre,
-) => {
+): Promise<Result<TestSummary, TestSummary>> => {
   assertHardhatInvariant(
     hre instanceof HardhatRuntimeEnvironmentImplementation,
     "Expected HRE to be an instance of HardhatRuntimeEnvironmentImplementation",
@@ -279,19 +282,13 @@ const runSolidityTests: NewTaskActionFunction<TestActionArguments> = async (
     async () => {},
   );
 
-  if (includesFailures || includesErrors) {
-    process.exitCode = 1;
-  }
-
   console.log();
 
-  return {
-    failed,
-    passed,
-    skipped,
-    todo: 0,
-    failureOutput,
-  };
+  const summary = { failed, passed, skipped, todo: 0, failureOutput };
+
+  return includesFailures || includesErrors
+    ? errorResult(summary)
+    : successResult(summary);
 };
 
 export default runSolidityTests;

@@ -150,7 +150,6 @@ describe("solidity-test/task-action", function () {
     it("should set the NODE_ENV variable if undefined and HH_TEST always", async () => {
       hre = await createHardhatRuntimeEnvironment(hardhatConfigAllTests);
 
-      const exitCode = process.exitCode;
       const nodeEnv = process.env.NODE_ENV;
       const hhTest = process.env.HH_TEST;
       try {
@@ -161,14 +160,12 @@ describe("solidity-test/task-action", function () {
       } finally {
         process.env.HH_TEST = hhTest;
         process.env.NODE_ENV = nodeEnv;
-        process.exitCode = exitCode;
       }
     });
 
     it("should not set the NODE_ENV variable if defined before", async () => {
       hre = await createHardhatRuntimeEnvironment(hardhatConfigAllTests);
 
-      const exitCode = process.exitCode;
       const nodeEnv = process.env.NODE_ENV;
       const hhTest = process.env.HH_TEST;
       try {
@@ -179,20 +176,31 @@ describe("solidity-test/task-action", function () {
       } finally {
         process.env.HH_TEST = hhTest;
         process.env.NODE_ENV = nodeEnv;
-        process.exitCode = exitCode;
       }
     });
 
-    it("should run all the tests and throw if any of them fail", async () => {
+    it("should return an error result when any test fails", async () => {
       hre = await createHardhatRuntimeEnvironment(hardhatConfigFailingTests);
 
-      const exitCode = process.exitCode;
-      try {
-        await hre.tasks.getTask(["test", "solidity"]).run({ noCompile: true });
-        assert.equal(process.exitCode, 1);
-      } finally {
-        process.exitCode = exitCode;
-      }
+      const result = await hre.tasks
+        .getTask(["test", "solidity"])
+        .run({ noCompile: true });
+      assert.deepEqual(result, {
+        success: false,
+        error: { failed: 0, passed: 0, skipped: 0, todo: 0, failureOutput: "" },
+      });
+    });
+
+    it("should return a success result when all tests pass", async () => {
+      hre = await createHardhatRuntimeEnvironment(hardhatConfigAllTests);
+
+      const result = await hre.tasks
+        .getTask(["test", "solidity"])
+        .run({ noCompile: true });
+      assert.deepEqual(result, {
+        success: true,
+        value: { failed: 0, passed: 0, skipped: 0, todo: 0, failureOutput: "" },
+      });
     });
 
     describe("when the contracts are in the optimism chain type", () => {
@@ -205,19 +213,14 @@ describe("solidity-test/task-action", function () {
         });
       });
 
-      it("should throw because the test is not compatible with the l1 chain type", async () => {
+      it("should return an error result because the test is not compatible with the l1 chain type", async () => {
         hre = await createHardhatRuntimeEnvironment(hardhatConfigOpTests);
 
-        const exitCode = process.exitCode;
-        try {
-          // default chain type is l1
-          await hre.tasks.getTask(["test", "solidity"]).run({
-            noCompile: true,
-          });
-          assert.equal(process.exitCode, 1);
-        } finally {
-          process.exitCode = exitCode;
-        }
+        // default chain type is l1
+        const result = await hre.tasks.getTask(["test", "solidity"]).run({
+          noCompile: true,
+        });
+        assert.equal(result.success, false);
       });
     });
 
@@ -254,45 +257,35 @@ describe("solidity-test/task-action", function () {
         it("Should compile the test files, but not the contracts", async () => {
           const [overriddenHre, buildArgs] = await getHreWithOverriddenBuild();
 
-          const exitCode = process.exitCode;
-          try {
-            await overriddenHre.tasks.getTask(["test", "solidity"]).run({
-              noCompile: true,
-            });
+          await overriddenHre.tasks.getTask(["test", "solidity"]).run({
+            noCompile: true,
+          });
 
-            // We only call build once
-            assert.equal(buildArgs.length, 1);
+          // We only call build once
+          assert.equal(buildArgs.length, 1);
 
-            const lastArgs = buildArgs[0];
-            assert.equal(lastArgs.noContracts, true);
-            assert.equal(lastArgs.noTests, false);
-            assert.deepEqual(lastArgs.files, []);
-          } finally {
-            process.exitCode = exitCode;
-          }
+          const lastArgs = buildArgs[0];
+          assert.equal(lastArgs.noContracts, true);
+          assert.equal(lastArgs.noTests, false);
+          assert.deepEqual(lastArgs.files, []);
         });
 
         it("Should compile only the provided test files, and not the contracts", async () => {
           const [overriddenHre, buildArgs] = await getHreWithOverriddenBuild();
 
-          const exitCode = process.exitCode;
           const testFiles = ["test/contracts/all/Counter-1.t.sol"];
-          try {
-            await overriddenHre.tasks.getTask(["test", "solidity"]).run({
-              noCompile: true,
-              testFiles,
-            });
+          await overriddenHre.tasks.getTask(["test", "solidity"]).run({
+            noCompile: true,
+            testFiles,
+          });
 
-            // We only call build once
-            assert.equal(buildArgs.length, 1);
+          // We only call build once
+          assert.equal(buildArgs.length, 1);
 
-            const lastArgs = buildArgs[0];
-            assert.equal(lastArgs.noContracts, true);
-            assert.equal(lastArgs.noTests, false);
-            assert.deepEqual(lastArgs.files, testFiles);
-          } finally {
-            process.exitCode = exitCode;
-          }
+          const lastArgs = buildArgs[0];
+          assert.equal(lastArgs.noContracts, true);
+          assert.equal(lastArgs.noTests, false);
+          assert.deepEqual(lastArgs.files, testFiles);
         });
       });
 
@@ -300,50 +293,40 @@ describe("solidity-test/task-action", function () {
         it("Should compile the contracts and then the test files", async () => {
           const [overriddenHre, buildArgs] = await getHreWithOverriddenBuild();
 
-          const exitCode = process.exitCode;
-          try {
-            await overriddenHre.tasks.getTask(["test", "solidity"]).run({});
+          await overriddenHre.tasks.getTask(["test", "solidity"]).run({});
 
-            assert.equal(buildArgs.length, 2);
+          assert.equal(buildArgs.length, 2);
 
-            const firstArgs = buildArgs[0];
-            assert.equal(firstArgs.noContracts, false);
-            assert.equal(firstArgs.noTests, true);
-            assert.deepEqual(firstArgs.files, []);
+          const firstArgs = buildArgs[0];
+          assert.equal(firstArgs.noContracts, false);
+          assert.equal(firstArgs.noTests, true);
+          assert.deepEqual(firstArgs.files, []);
 
-            const lastArgs = buildArgs[1];
-            assert.equal(lastArgs.noContracts, true);
-            assert.equal(lastArgs.noTests, false);
-            assert.deepEqual(lastArgs.files, []);
-          } finally {
-            process.exitCode = exitCode;
-          }
+          const lastArgs = buildArgs[1];
+          assert.equal(lastArgs.noContracts, true);
+          assert.equal(lastArgs.noTests, false);
+          assert.deepEqual(lastArgs.files, []);
         });
 
         it("Should compile the contracts and then the provided test files", async () => {
           const [overriddenHre, buildArgs] = await getHreWithOverriddenBuild();
 
-          const exitCode = process.exitCode;
           const testFiles = ["test/contracts/all/Counter-1.t.sol"];
-          try {
-            await overriddenHre.tasks
-              .getTask(["test", "solidity"])
-              .run({ testFiles });
+          await overriddenHre.tasks
+            .getTask(["test", "solidity"])
+            .run({ testFiles });
 
-            assert.equal(buildArgs.length, 2);
+          assert.equal(buildArgs.length, 2);
 
-            const firstArgs = buildArgs[0];
-            assert.equal(firstArgs.noContracts, false);
-            assert.equal(firstArgs.noTests, true);
-            assert.deepEqual(firstArgs.files, []);
+          const firstArgs = buildArgs[0];
+          assert.equal(firstArgs.noContracts, false);
+          assert.equal(firstArgs.noTests, true);
+          assert.deepEqual(firstArgs.files, []);
 
-            const lastArgs = buildArgs[1];
-            assert.equal(lastArgs.noContracts, true);
-            assert.equal(lastArgs.noTests, false);
-            assert.deepEqual(lastArgs.files, testFiles);
-          } finally {
-            process.exitCode = exitCode;
-          }
+          const lastArgs = buildArgs[1];
+          assert.equal(lastArgs.noContracts, true);
+          assert.equal(lastArgs.noTests, false);
+          assert.deepEqual(lastArgs.files, testFiles);
         });
       });
     });
