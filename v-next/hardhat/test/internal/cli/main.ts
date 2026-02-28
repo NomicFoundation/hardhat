@@ -1768,7 +1768,7 @@ GLOBAL OPTIONS:
     });
   });
 
-  describe("TaskResult handling", function () {
+  describe("Result handling", function () {
     useFixtureProject("cli/parsing/task-result");
 
     afterEach(function () {
@@ -1776,12 +1776,12 @@ GLOBAL OPTIONS:
       resetGlobalHardhatRuntimeEnvironment();
     });
 
-    it("should set process.exitCode = 1 when task returns TaskResult with success: false", async function () {
+    it("should set process.exitCode = 1 when task returns Result with success: false", async function () {
       await runMain("npx hardhat failing-task");
       assert.equal(process.exitCode, 1);
     });
 
-    it("should not set process.exitCode when task returns TaskResult with success: true", async function () {
+    it("should not set process.exitCode when task returns Result with success: true", async function () {
       await runMain("npx hardhat succeeding-task");
       assert.equal(process.exitCode, undefined);
     });
@@ -1796,12 +1796,12 @@ GLOBAL OPTIONS:
       assert.equal(process.exitCode, undefined);
     });
 
-    it("should set process.exitCode = 1 when task returns TaskResult with success: false and a value", async function () {
+    it("should set process.exitCode = 1 when task returns Result with success: false and an error", async function () {
       await runMain("npx hardhat failing-task-with-value");
       assert.equal(process.exitCode, 1);
     });
 
-    it("should not set process.exitCode when task returns TaskResult with success: true and no value", async function () {
+    it("should not set process.exitCode when task returns Result with success: true and no value", async function () {
       await runMain("npx hardhat succeeding-task-no-value");
       assert.equal(process.exitCode, undefined);
     });

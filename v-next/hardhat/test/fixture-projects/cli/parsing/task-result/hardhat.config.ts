@@ -26,7 +26,7 @@ const plainObjectTask = task("plain-object-task")
 
 const failingTaskWithValue = task("failing-task-with-value")
   .setInlineAction(() => {
-    return { success: false, value: { failed: 2, passed: 5 } };
+    return { success: false, error: { failed: 2, passed: 5 } };
   })
   .build();
 

@@ -1,3 +1,4 @@
+import type { Result } from "../../../../../types/result.js";
 import type {
   ImportResolutionError,
   NpmRootResolutionError,
@@ -10,13 +11,6 @@ import type {
   ResolvedFile,
   ResolvedNpmPackage,
 } from "../../../../../types/solidity/resolved-file.js";
-
-/**
- * A result that can either have a value or an error.
- */
-export type Result<ValueT, ErrorT> =
-  | { readonly success: true; readonly value: ValueT }
-  | { readonly success: false; readonly error: ErrorT };
 
 /**
  * A solc remapping.

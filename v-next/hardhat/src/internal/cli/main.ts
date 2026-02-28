@@ -28,7 +28,7 @@ import {
   type OptionDefinition,
   type PositionalArgumentDefinition,
 } from "../../types/arguments.js";
-import { isTaskResult } from "../../utils/task-result.js";
+import { isResult } from "../../utils/result.js";
 import { BUILTIN_GLOBAL_OPTIONS_DEFINITIONS } from "../builtin-global-options.js";
 import { builtinPlugins } from "../builtin-plugins/index.js";
 import {
@@ -223,7 +223,7 @@ export async function main(
       sendTaskAnalytics(task.id),
     ]);
 
-    if (isTaskResult(taskResult) && !taskResult.success) {
+    if (isResult(taskResult) && !taskResult.success) {
       process.exitCode = 1;
     }
   } catch (error) {
