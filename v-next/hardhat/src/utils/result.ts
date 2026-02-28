@@ -50,8 +50,8 @@ export function isResult<ValueT = unknown, ErrorT = unknown>(
   }
 
   if (value.success === true) {
-    return isValue === undefined || isValue(value.value);
+    return "value" in value && (isValue === undefined || isValue(value.value));
   }
 
-  return isError === undefined || isError(value.error);
+  return "error" in value && (isError === undefined || isError(value.error));
 }

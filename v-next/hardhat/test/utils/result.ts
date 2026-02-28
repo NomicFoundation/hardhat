@@ -56,12 +56,27 @@ describe("result", function () {
       assert.equal(isResult({ success: false, error: "oops" }), true);
     });
 
-    it("should return true for a successful Result without a value", function () {
-      assert.equal(isResult({ success: true }), true);
+    it("should return true for a successful Result with value: undefined", function () {
+      assert.equal(isResult({ success: true, value: undefined }), true);
     });
 
-    it("should return true for a failed Result without an error", function () {
-      assert.equal(isResult({ success: false }), true);
+    it("should return true for a failed Result with error: undefined", function () {
+      assert.equal(isResult({ success: false, error: undefined }), true);
+    });
+
+    it("should return false for { success: true } without a value field", function () {
+      assert.equal(isResult({ success: true }), false);
+    });
+
+    it("should return false for { success: false } without an error field", function () {
+      assert.equal(isResult({ success: false }), false);
+    });
+
+    it("should return false for an object with success: false but no error field", function () {
+      assert.equal(
+        isResult({ success: false, value: { failed: 2, passed: 5 } }),
+        false,
+      );
     });
 
     it("should return false for undefined", function () {
