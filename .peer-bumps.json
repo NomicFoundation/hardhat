@@ -10,12 +10,12 @@
     {
       "package": "@nomicfoundation/hardhat-mocha",
       "peer": "hardhat",
-      "reason": "It depends on the new TestHooks#onTestRunStart, TestHooks#onTestWorkerDone, and TestHooks#onTestRunDone hooks"
+      "reason": "It depends on the new TestHooks#onTestRunStart, TestHooks#onTestWorkerDone, and TestHooks#onTestRunDone hooks, the Result type helpers from hardhat/utils/result, and the TestSummary type from hardhat/types/test"
     },
     {
       "package": "@nomicfoundation/hardhat-node-test-runner",
       "peer": "hardhat",
-      "reason": "It depends on the new TestHooks#onTestRunStart, TestHooks#onTestWorkerDone, and TestHooks#onTestRunDone hooks"
+      "reason": "It depends on the new TestHooks#onTestRunStart, TestHooks#onTestWorkerDone, and TestHooks#onTestRunDone hooks, the Result type helpers from hardhat/utils/result, and the TestSummary type from hardhat/types/test"
     },
     {
       "package": "@nomicfoundation/hardhat-verify",
