@@ -1,10 +1,7 @@
 import type { HardhatUserConfig } from "../../../../src/config.js";
 
 import { task } from "../../../../src/config.js";
-import {
-  errorResult,
-  successResult,
-} from "../../../../src/utils/result.js";
+import { errorResult, successResult } from "../../../../src/utils/result.js";
 
 const failingTask = task("failing-task")
   .setInlineAction(() => {
