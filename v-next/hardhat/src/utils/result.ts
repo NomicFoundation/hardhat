@@ -3,37 +3,31 @@ import type { Result } from "../types/result.js";
 import { isObject } from "@nomicfoundation/hardhat-utils/lang";
 
 /**
- * Creates a successful Result without a value.
- *
- * @returns A Result with success: true and value: undefined.
- */
-export function successResult(): Result<undefined, never>;
-/**
  * Creates a successful Result with the given value.
  *
  * @param value The value to include in the result.
  * @returns A Result with success: true and the given value.
  */
-export function successResult<ValueT>(value: ValueT): Result<ValueT, never>;
-export function successResult(value?: unknown): Result<unknown, never> {
-  return { success: true, value };
+export function successResult<ValueT = undefined>(
+  ...args: ValueT extends undefined | void ? [] : [value: ValueT]
+): { success: true; value: ValueT } {
+  /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions
+  -- Cast needed because TS loses the conditional rest parameter context */
+  return { success: true, value: args[0] as ValueT };
 }
 
-/**
- * Creates a failed Result without an error.
- *
- * @returns A Result with success: false and error: undefined.
- */
-export function errorResult(): Result<never, undefined>;
 /**
  * Creates a failed Result with the given error.
  *
  * @param error The error to include in the result.
  * @returns A Result with success: false and the given error.
  */
-export function errorResult<ErrorT>(error: ErrorT): Result<never, ErrorT>;
-export function errorResult(error?: unknown): Result<never, unknown> {
-  return { success: false, error };
+export function errorResult<ErrorT = undefined>(
+  ...args: ErrorT extends undefined | void ? [] : [error: ErrorT]
+): { success: false; error: ErrorT } {
+  /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions
+  -- Cast needed because TS loses the conditional rest parameter context */
+  return { success: false, error: args[0] as ErrorT };
 }
 
 /**
