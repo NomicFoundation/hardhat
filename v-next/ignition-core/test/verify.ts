@@ -82,6 +82,31 @@ describe("verify", () => {
     assert.deepEqual(result2, expectedResult2);
   });
 
+  it("should yield a correct verify result when contractName is an FQN", async () => {
+    const deploymentDir = path.join(
+      __dirname,
+      "mocks",
+      "verify",
+      "fqn-contract-name",
+    );
+
+    let sawLibrary = false;
+    for await (const info of getVerificationInformation(deploymentDir)) {
+      // Note: the library in this test is called UUUUU
+      assert(typeof info !== "string", "Expected a VerifyInfo, got a string");
+      assert.notInclude(
+        info.contract,
+        "contracts/Lib.sol:contracts/Lib.sol:",
+        "Source name should not be duplicated in the contract FQN",
+      );
+      if (info.contract.endsWith(":UUUUU")) {
+        assert.equal(info.contract, "contracts/Lib.sol:UUUUU");
+        sawLibrary = true;
+      }
+    }
+    assert.isTrue(sawLibrary, "Expected to find the UUUUU library entry");
+  });
+
   it("should yield a verify result for contract with libraries", async () => {
     const librariesResult = {
       UUUUU: "0x0B014cb3B1AF9F45123195B37538Fb9dB6F5eF5F",
