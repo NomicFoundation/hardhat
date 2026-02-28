@@ -1,6 +1,7 @@
 import type { HookContext, NetworkHooks } from "hardhat/types/hooks";
 import type { ChainType, NetworkConnection } from "hardhat/types/network";
 
+import { setChainContext } from "../chains.js";
 import { initializeViem } from "../initialization.js";
 
 export default async (): Promise<Partial<NetworkHooks>> => {
@@ -12,6 +13,14 @@ export default async (): Promise<Partial<NetworkHooks>> => {
       ) => Promise<NetworkConnection<ChainTypeT>>,
     ) {
       const connection: NetworkConnection<ChainTypeT> = await next(context);
+
+      // Set chain context before initializing viem (resolves URL if HTTP network)
+      await setChainContext(
+        connection.provider,
+        context.config.chainDescriptors,
+        connection.networkName,
+        connection.networkConfig,
+      );
 
       connection.viem = initializeViem(
         connection.chainType,
