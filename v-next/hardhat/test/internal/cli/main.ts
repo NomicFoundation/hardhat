@@ -1769,7 +1769,7 @@ GLOBAL OPTIONS:
   });
 
   describe("Result handling", function () {
-    useFixtureProject("cli/parsing/task-result");
+    useFixtureProject("cli/result");
 
     afterEach(function () {
       process.exitCode = undefined;

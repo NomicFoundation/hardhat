@@ -1,16 +1,20 @@
-import type { HardhatUserConfig } from "../../../../../src/config.js";
+import type { HardhatUserConfig } from "../../../../src/config.js";
 
-import { task } from "../../../../../src/config.js";
+import { task } from "../../../../src/config.js";
+import {
+  errorResult,
+  successResult,
+} from "../../../../src/utils/result.js";
 
 const failingTask = task("failing-task")
   .setInlineAction(() => {
-    return { success: false };
+    return errorResult();
   })
   .build();
 
 const succeedingTask = task("succeeding-task")
   .setInlineAction(() => {
-    return { success: true, value: 42 };
+    return successResult(42);
   })
   .build();
 
@@ -26,13 +30,13 @@ const plainObjectTask = task("plain-object-task")
 
 const failingTaskWithValue = task("failing-task-with-value")
   .setInlineAction(() => {
-    return { success: false, error: { failed: 2, passed: 5 } };
+    return errorResult({ failed: 2, passed: 5 });
   })
   .build();
 
 const succeedingTaskNoValue = task("succeeding-task-no-value")
   .setInlineAction(() => {
-    return { success: true };
+    return successResult();
   })
   .build();
 
