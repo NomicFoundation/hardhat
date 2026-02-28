@@ -1,5 +1,11 @@
 # @nomicfoundation/hardhat-node-test-runner
 
+## 3.0.10
+
+### Patch Changes
+
+- c755693: Add `onTestRunStart`, `onTestWorkerDone`, and `onTestRunDone` test hooks.
+
 ## 3.0.9
 
 ### Patch Changes

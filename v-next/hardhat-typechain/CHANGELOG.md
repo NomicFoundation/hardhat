@@ -1,5 +1,11 @@
 # @nomicfoundation/hardhat-typechain
 
+## 3.0.4
+
+### Patch Changes
+
+- 696b295: Make SolidityBuildSystem easier to work with
+
 ## 3.0.3
 
 ### Patch Changes
