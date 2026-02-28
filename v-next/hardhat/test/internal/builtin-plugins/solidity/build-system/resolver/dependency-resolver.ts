@@ -1,3 +1,4 @@
+import type { Result } from "../../../../../../src/types/result.js";
 import type {
   ImportResolutionError,
   NpmRootResolutionError,
@@ -17,7 +18,6 @@ import { readUtf8File } from "@nomicfoundation/hardhat-utils/fs";
 import { ResolverImplementation } from "../../../../../../src/internal/builtin-plugins/solidity/build-system/resolver/dependency-resolver.js";
 import {
   type Resolver,
-  type Result,
   UserRemappingType,
 } from "../../../../../../src/internal/builtin-plugins/solidity/build-system/resolver/types.js";
 import {

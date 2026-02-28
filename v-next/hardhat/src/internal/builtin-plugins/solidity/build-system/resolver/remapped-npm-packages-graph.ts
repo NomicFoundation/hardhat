@@ -7,8 +7,8 @@ import type {
   ResolvedUserRemapping,
   UnresolvedNpmUserRemapping,
   RemappedNpmPackagesGraphJson,
-  Result,
 } from "./types.js";
+import type { Result } from "../../../../../types/result.js";
 import type {
   ResolvedFile,
   ResolvedNpmPackage,

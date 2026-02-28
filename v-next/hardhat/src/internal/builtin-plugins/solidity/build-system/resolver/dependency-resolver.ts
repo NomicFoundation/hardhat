@@ -4,8 +4,8 @@ import type {
   Remapping,
   ResolvedNpmUserRemapping,
   ResolvedUserRemapping,
-  Result,
 } from "./types.js";
+import type { Result } from "../../../../../types/result.js";
 import type {
   ImportResolutionError,
   NpmRootResolutionError,
