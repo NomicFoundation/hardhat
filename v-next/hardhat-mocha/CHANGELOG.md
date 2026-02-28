@@ -1,5 +1,11 @@
 # @nomicfoundation/hardhat-mocha
 
+## 3.0.12
+
+### Patch Changes
+
+- c755693: Add `onTestRunStart`, `onTestWorkerDone`, and `onTestRunDone` test hooks.
+
 ## 3.0.11
 
 ### Patch Changes

@@ -1,5 +1,11 @@
 # Changelog
 
+## 3.0.9
+
+### Patch Changes
+
+- 3916293: Fix an issue that prevented the verification of contracts using FQNs [#8014](https://github.com/NomicFoundation/hardhat/pull/8014)
+
 ## 3.0.8
 
 ### Patch Changes
