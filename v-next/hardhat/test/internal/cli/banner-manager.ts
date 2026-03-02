@@ -50,7 +50,7 @@ describe("BannerManager", () => {
   };
 
   const baseInterceptorOptions = {
-    path: BANNER_CONFIG_URL,
+    path: new URL(BANNER_CONFIG_URL).pathname,
     method: "GET",
   };
 
