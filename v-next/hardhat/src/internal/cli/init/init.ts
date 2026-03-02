@@ -131,6 +131,14 @@ export async function initHardhat(options?: InitHardhatOptions): Promise<void> {
     ]);
 
     showStarOnGitHubMessage();
+
+    try {
+      const { BannerManager } = await import("../banner-manager.js");
+      const bannerManager = await BannerManager.getInstance();
+      await bannerManager.showBanner();
+    } catch (bannerError) {
+      log("Error showing banner", bannerError);
+    }
   } catch (e) {
     if (e === "") {
       // If the user cancels any prompt, we quit silently
