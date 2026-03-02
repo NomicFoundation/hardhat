@@ -1781,9 +1781,21 @@ GLOBAL OPTIONS:
       assert.equal(process.exitCode, 1);
     });
 
+    it("should override process.exitCode to 1 when task returns Result with success: false", async function () {
+      process.exitCode = 123;
+      await runMain("npx hardhat failing-task");
+      assert.equal(process.exitCode, 1);
+    });
+
     it("should not set process.exitCode when task returns Result with success: true", async function () {
       await runMain("npx hardhat succeeding-task");
       assert.equal(process.exitCode, undefined);
+    });
+
+    it("should not override process.exitCode when task returns Result with success: true", async function () {
+      process.exitCode = 123;
+      await runMain("npx hardhat succeeding-task");
+      assert.equal(process.exitCode, 123);
     });
 
     it("should not set process.exitCode when task returns undefined", async function () {
