@@ -4,7 +4,6 @@ import type {
   Remapping,
   ResolvedNpmUserRemapping,
   ResolvedUserRemapping,
-  Result,
 } from "./types.js";
 import type {
   ImportResolutionError,
@@ -20,6 +19,7 @@ import type {
   ProjectResolvedFile,
   NpmPackageResolvedFile,
 } from "../../../../../types/solidity/resolved-file.js";
+import type { Result } from "../../../../../types/utils.js";
 
 import path from "node:path";
 

@@ -7,13 +7,13 @@ import type {
   ResolvedUserRemapping,
   UnresolvedNpmUserRemapping,
   RemappedNpmPackagesGraphJson,
-  Result,
 } from "./types.js";
 import type {
   ResolvedFile,
   ResolvedNpmPackage,
   UserRemappingError,
 } from "../../../../../types/solidity.js";
+import type { Result } from "../../../../../types/utils.js";
 
 import path from "node:path";
 
