@@ -4,4 +4,4 @@
 "hardhat": patch
 ---
 
-Make SolidityBuildSystem easier to work with
+Make SolidityBuildSystem easier to work with ([#7988](https://github.com/NomicFoundation/hardhat/pull/7988))
