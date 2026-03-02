@@ -31,7 +31,7 @@ function isTestSummary(value: unknown): value is TestSummary {
 const runAllTests: NewTaskActionFunction<TestActionArguments> = async (
   { testFiles, chainType, grep, noCompile, verbosity },
   hre,
-) => {
+) => Result<void, void> {
   // If this code is executed, it means the user has not specified a test runner.
   // If file paths are specified, we need to determine which test runner applies to each test file.
   // If no file paths are specified, each test runner will execute all tests located under its configured path in the Hardhat configuration.
