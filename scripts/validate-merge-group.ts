@@ -1,5 +1,3 @@
-// @ts-check
-
 /**
  * A merge group can contain multiple PRs at once - to proceed the merge group should be either:
  * 1. Only a release PR (+ no changeset changes PRs)
@@ -10,11 +8,11 @@
  * We are only invalid if we have both changesets and unreleased packages. This indicates a Release PR is being unintentionally mixed with a new Feature PR - we throw on this case.
  */
 
-import { readAllNewChangsets } from "./lib/changesets.mjs";
+import { readAllNewChangsets } from "./lib/changesets.ts";
 import {
   isPackageReleasedToNpm,
   readAllReleasablePackages,
-} from "./lib/packages.mjs";
+} from "./lib/packages.ts";
 
 // NOTE: This function is currently unused but it could be useful to preserve
 // the information about how to do it.
@@ -22,7 +20,7 @@ function getPullNumber(headRef) {
   // The head ref (github.event.merge_group.head_ref) is of the form:
   // refs/heads/gh-readonly-queue/master/pr-6-90b00e094e6de7fc4f3fac9a0087c01cf48acad8
   const [, _baseRefName, pullNumber, _headSha] = headRef.match(
-    /^refs\/heads\/gh-readonly-queue\/([^\/]+)\/pr-(\d+)-([a-z0-9]+)$/
+    /^refs\/heads\/gh-readonly-queue\/([^\/]+)\/pr-(\d+)-([a-z0-9]+)$/,
   );
   return parseInt(pullNumber, 10);
 }

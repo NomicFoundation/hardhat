@@ -1,10 +1,14 @@
-// @ts-check
-const fs = require("fs");
-const path = require("path");
+import fs from "node:fs";
+import path from "node:path";
 
-const templatePackageJson = require("../v-next/template-package/package.json");
+const templatePackageJson = JSON.parse(
+  fs.readFileSync(
+    path.join(import.meta.dirname, "../v-next/template-package/package.json"),
+    "utf-8",
+  ),
+);
 
-const vNextDir = path.resolve(__dirname, "../v-next");
+const vNextDir = path.resolve(import.meta.dirname, "../v-next");
 const dirs = fs.readdirSync(vNextDir, { withFileTypes: true });
 
 let errorsFound = false;
@@ -15,7 +19,7 @@ for (const dir of dirs) {
   }
 
   // This config package don't have same scripts.
-  if (dir.name === "config"){
+  if (dir.name === "config") {
     continue;
   }
 
@@ -61,7 +65,7 @@ for (const dir of dirs) {
   }
 
   const packageJsonPath = path.resolve(vNextDir, dir.name, "package.json");
-  const packageJson = require(packageJsonPath);
+  const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, "utf-8"));
 
   for (const scriptName in templatePackageJson.scripts) {
     if (scriptName === "clean") {

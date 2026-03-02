@@ -1,8 +1,6 @@
-// @ts-check
-
 import { describe, it } from "node:test";
 import assert from "node:assert/strict";
-import { buildReleaseDescriptors } from "./build-release-descriptors.mjs";
+import { buildReleaseDescriptors } from "./build-release-descriptors.ts";
 
 const ExampleHardhatChangelog = `
 # hardhat
