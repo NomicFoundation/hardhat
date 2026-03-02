@@ -1,5 +1,5 @@
-import type { Result } from "../../../../../types/result.js";
 import type { ResolvedNpmPackage } from "../../../../../types/solidity.js";
+import type { Result } from "../../../../../types/utils.js";
 
 import { assertHardhatInvariant } from "@nomicfoundation/hardhat-errors";
 import { ensureError } from "@nomicfoundation/hardhat-utils/error";

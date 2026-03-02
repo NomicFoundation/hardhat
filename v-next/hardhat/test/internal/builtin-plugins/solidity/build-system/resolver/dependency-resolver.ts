@@ -1,4 +1,3 @@
-import type { Result } from "../../../../../../src/types/result.js";
 import type {
   ImportResolutionError,
   NpmRootResolutionError,
@@ -8,6 +7,7 @@ import type {
   ProjectResolvedFile,
   ResolvedFile,
 } from "../../../../../../src/types/solidity/resolved-file.js";
+import type { Result } from "../../../../../../src/types/utils.js";
 
 import assert from "node:assert/strict";
 import path from "node:path";

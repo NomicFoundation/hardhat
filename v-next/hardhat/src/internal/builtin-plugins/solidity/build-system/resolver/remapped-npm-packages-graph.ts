@@ -8,12 +8,12 @@ import type {
   UnresolvedNpmUserRemapping,
   RemappedNpmPackagesGraphJson,
 } from "./types.js";
-import type { Result } from "../../../../../types/result.js";
 import type {
   ResolvedFile,
   ResolvedNpmPackage,
   UserRemappingError,
 } from "../../../../../types/solidity.js";
+import type { Result } from "../../../../../types/utils.js";
 
 import path from "node:path";
 

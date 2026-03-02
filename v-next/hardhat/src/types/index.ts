@@ -11,5 +11,4 @@ export * from "./solidity.js";
 export * from "./tasks.js";
 export * from "./test.js";
 export * from "./user-interruptions.js";
-export * from "./result.js";
 export * from "./utils.js";

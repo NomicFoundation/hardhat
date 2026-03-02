@@ -1,4 +1,3 @@
-import type { Result } from "../../../../../types/result.js";
 import type {
   ImportResolutionError,
   NpmRootResolutionError,
@@ -11,6 +10,7 @@ import type {
   ResolvedFile,
   ResolvedNpmPackage,
 } from "../../../../../types/solidity/resolved-file.js";
+import type { Result } from "../../../../../types/utils.js";
 
 /**
  * A solc remapping.

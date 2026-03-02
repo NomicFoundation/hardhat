@@ -1,4 +1,4 @@
-import type { Result } from "../types/result.js";
+import type { Result } from "../types/utils.js";
 
 import { isObject } from "@nomicfoundation/hardhat-utils/lang";
 
