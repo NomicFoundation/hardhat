@@ -4,7 +4,7 @@
     { "path": "../hardhat" },
     { "path": "../hardhat-errors" },
     { "path": "../hardhat-ignition" },
-    { "path": "../hardhat-ignition-core" },
+    { "path": "../ignition-core" },
     { "path": "../hardhat-viem" },
     { "path": "../hardhat-test-utils" }
   ],

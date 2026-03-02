@@ -37,8 +37,6 @@
     "./types/utils": "./dist/src/types/utils.js",
     "./types/solidity": "./dist/src/types/solidity.js",
     "./console.sol": "./console.sol",
-    "./internal/coverage": "./dist/src/internal/builtin-plugins/coverage/exports.js",
-    "./internal/gas-analytics": "./dist/src/internal/builtin-plugins/gas-analytics/exports.js",
     "./utils/contract-names": "./dist/src/utils/contract-names.js",
     "./types/runtime": "./dist/src/internal/deprecated-module-imported-from-hardhat2-plugin.js",
     "./builtin-tasks/task-names": "./dist/src/internal/deprecated-module-imported-from-hardhat2-plugin.js",
@@ -91,7 +89,7 @@
     "typescript": "~5.8.0"
   },
   "dependencies": {
-    "@nomicfoundation/edr": "0.12.0-next.25",
+    "@nomicfoundation/edr": "0.12.0-next.27",
     "@nomicfoundation/hardhat-errors": "workspace:^3.0.7",
     "@nomicfoundation/hardhat-utils": "workspace:^4.0.0",
     "@nomicfoundation/hardhat-vendored": "workspace:^3.0.1",

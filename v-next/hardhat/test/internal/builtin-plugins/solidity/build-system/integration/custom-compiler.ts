@@ -3,6 +3,7 @@ import type {
   Compiler,
   CompilationJobCreationError,
   FileBuildResult,
+  SolidityBuildSystem,
 } from "../../../../../../src/types/solidity.js";
 
 import assert from "node:assert/strict";
@@ -53,10 +54,11 @@ describe(
       CompilerPlatform.WASM;
 
     function assertCompilerSelection(
+      solidity: SolidityBuildSystem,
       compiler: Compiler,
       buildResult: CompilationJobCreationError | Map<string, FileBuildResult>,
     ) {
-      assert(!("reason" in buildResult));
+      assert(solidity.isSuccessfulBuildResult(buildResult));
       const jobBuildResult = buildResult.values().next().value;
       assert(jobBuildResult !== undefined);
       assert(jobBuildResult.type === FileBuildResultType.BUILD_SUCCESS);
@@ -144,7 +146,7 @@ describe(
             { quiet: true },
           );
 
-          assertCompilerSelection(compiler, result);
+          assertCompilerSelection(hre.solidity, compiler, result);
         });
 
         it("can be specified on multi version config", async function () {
@@ -171,7 +173,7 @@ describe(
             { quiet: true },
           );
 
-          assertCompilerSelection(compiler, result);
+          assertCompilerSelection(hre.solidity, compiler, result);
         });
 
         it("can be specified on single-version build profile config", async function () {
@@ -198,7 +200,7 @@ describe(
             { quiet: true },
           );
 
-          assertCompilerSelection(compiler, result);
+          assertCompilerSelection(hre.solidity, compiler, result);
         });
 
         it("can be specified on multi-version build profile config", async function () {
@@ -229,7 +231,7 @@ describe(
             { quiet: true },
           );
 
-          assertCompilerSelection(compiler, result);
+          assertCompilerSelection(hre.solidity, compiler, result);
         });
 
         it("can be specified on file overrides config", async function () {
@@ -262,7 +264,7 @@ describe(
             { quiet: true },
           );
 
-          assertCompilerSelection(compiler, result);
+          assertCompilerSelection(hre.solidity, compiler, result);
         });
 
         it("throws a descriptive error if the provided path doesn't exist", async () => {
