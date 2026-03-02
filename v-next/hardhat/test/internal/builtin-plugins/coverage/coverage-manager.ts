@@ -409,7 +409,7 @@ describe("CoverageManagerImplementation - report data processing", () => {
     COVERAGE_TEST_SCENARIO_WHILE_LOOP,
   ];
 
-  const coverageManagerTmp = new CoverageManagerImplementation("");
+  const coverageManagerTmp = new CoverageManagerImplementation("coverage");
   let hre: HardhatRuntimeEnvironment;
   let originalCoverageFlag: boolean;
 
