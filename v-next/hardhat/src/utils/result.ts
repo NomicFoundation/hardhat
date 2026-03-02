@@ -8,7 +8,7 @@ import { isObject } from "@nomicfoundation/hardhat-utils/lang";
  * @param value The value to include in the result.
  * @returns A Result with success: true and the given value.
  */
-export function successResult<ValueT = undefined>(
+export function successfulResult<ValueT = undefined>(
   ...args: ValueT extends undefined | void ? [] : [value: ValueT]
 ): { success: true; value: ValueT } {
   /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions

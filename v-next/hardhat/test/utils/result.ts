@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 
 import {
-  successResult,
+  successfulResult,
   errorResult,
   isResult,
 } from "../../src/utils/result.js";
@@ -10,17 +10,17 @@ import {
 describe("result", function () {
   describe("successResult", function () {
     it("should create a successful Result with the given value", function () {
-      const result = successResult(42);
+      const result = successfulResult(42);
       assert.deepEqual(result, { success: true, value: 42 });
     });
 
     it("should create a successful Result without a value when called with no arguments", function () {
-      const result = successResult();
+      const result = successfulResult();
       assert.deepEqual(result, { success: true, value: undefined });
     });
 
     it("should be recognized by isResult", function () {
-      assert.equal(isResult(successResult("hello")), true);
+      assert.equal(isResult(successfulResult("hello")), true);
     });
   });
 

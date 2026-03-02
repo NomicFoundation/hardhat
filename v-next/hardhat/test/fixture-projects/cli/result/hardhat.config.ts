@@ -1,7 +1,7 @@
 import type { HardhatUserConfig } from "../../../../src/config.js";
 
 import { task } from "../../../../src/config.js";
-import { errorResult, successResult } from "../../../../src/utils/result.js";
+import { errorResult, successfulResult } from "../../../../src/utils/result.js";
 
 const failingTask = task("failing-task")
   .setInlineAction(() => {
@@ -11,7 +11,7 @@ const failingTask = task("failing-task")
 
 const succeedingTask = task("succeeding-task")
   .setInlineAction(() => {
-    return successResult(42);
+    return successfulResult(42);
   })
   .build();
 
@@ -33,7 +33,7 @@ const failingTaskWithValue = task("failing-task-with-value")
 
 const succeedingTaskNoValue = task("succeeding-task-no-value")
   .setInlineAction(() => {
-    return successResult();
+    return successfulResult();
   })
   .build();
 
