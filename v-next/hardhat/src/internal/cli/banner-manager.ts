@@ -8,6 +8,7 @@ import {
   FileNotFoundError,
 } from "@nomicfoundation/hardhat-utils/fs";
 import { getCacheDir } from "@nomicfoundation/hardhat-utils/global-dir";
+import { isObject } from "@nomicfoundation/hardhat-utils/lang";
 import { getRequest } from "@nomicfoundation/hardhat-utils/request";
 import debug from "debug";
 
@@ -165,7 +166,7 @@ export class BannerManager {
   }
 
   #isBannerConfig(value: unknown): value is BannerConfig {
-    if (typeof value !== "object" || value === null || Array.isArray(value)) {
+    if (!isObject(value)) {
       return false;
     }
 
