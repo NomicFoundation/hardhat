@@ -47,6 +47,7 @@ hdkey
 hdpath
 heco
 hexlify
+htpasswd
 hoodi
 Hoodi
 Impls
@@ -124,6 +125,7 @@ unpad
 unpadded
 unparseable
 Unpayable
+unpublishing
 unreconciliable
 unrs
 Unstarted

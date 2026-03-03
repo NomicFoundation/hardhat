@@ -112,3 +112,6 @@ bundle/
 
 # pnpm publish summary (generated during release process)
 pnpm-publish-summary.json
+
+# Local Verdaccio registry for end-to-end testing
+.verdaccio/
