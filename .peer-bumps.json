@@ -26,6 +26,21 @@
       "package": "@nomicfoundation/hardhat-typechain",
       "peer": "hardhat",
       "reason": "Uses the new api to detect errors in SolidityBuildSystem#build"
+    },
+    {
+      "package": "@nomicfoundation/hardhat-ignition-viem",
+      "peer": "@nomicfoundation/hardhat-viem",
+      "reason": "Requires the fallback chain resolution for unknown chain ids"
+    },
+    {
+      "package": "@nomicfoundation/hardhat-viem-assertions",
+      "peer": "@nomicfoundation/hardhat-viem",
+      "reason": "Requires the fallback chain resolution for unknown chain ids"
+    },
+    {
+      "package": "@nomicfoundation/hardhat-toolbox-viem",
+      "peer": "@nomicfoundation/hardhat-viem",
+      "reason": "Requires the fallback chain resolution for unknown chain ids"
     }
   ]
 }
