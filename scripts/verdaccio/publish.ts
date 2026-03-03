@@ -3,11 +3,11 @@ import { resolve } from "node:path";
 import { fmt, log, logStep } from "./helpers/logging.ts";
 import {
   git,
+  isVerdaccioRunning,
   npm,
   pnpm,
   ROOT_DIR,
   VERDACCIO_NPMRC,
-  VERDACCIO_PID_FILE,
   VERDACCIO_URL,
 } from "./helpers/shell.ts";
 
@@ -56,20 +56,9 @@ function ensureCleanWorkingTree(): void {
 }
 
 function ensureVerdaccioRunning(): void {
-  if (!existsSync(VERDACCIO_PID_FILE)) {
+  if (!isVerdaccioRunning()) {
     throw new Error(
       "Verdaccio is not running. Start it first with:\n" +
-        "  pnpm verdaccio:start",
-    );
-  }
-
-  const pid = parseInt(readFileSync(VERDACCIO_PID_FILE, "utf-8").trim(), 10);
-
-  try {
-    process.kill(pid, 0);
-  } catch {
-    throw new Error(
-      "Verdaccio process is not running (stale PID file). Start it with:\n" +
         "  pnpm verdaccio:start",
     );
   }

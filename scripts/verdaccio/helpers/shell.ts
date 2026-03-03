@@ -1,4 +1,5 @@
 import { execFileSync, execSync, type StdioOptions } from "node:child_process";
+import { existsSync, readFileSync } from "node:fs";
 import { resolve } from "node:path";
 
 export const ROOT_DIR = resolve(import.meta.dirname, "../../..");
@@ -13,6 +14,21 @@ export const VERDACCIO_SERVER = resolve(import.meta.dirname, "../server.ts");
 export const VERDACCIO_HOST = "127.0.0.1";
 export const VERDACCIO_PORT = 4873;
 export const VERDACCIO_URL = `http://${VERDACCIO_HOST}:${VERDACCIO_PORT}`;
+
+export function isVerdaccioRunning(): boolean {
+  if (!existsSync(VERDACCIO_PID_FILE)) {
+    return false;
+  }
+
+  const pid = parseInt(readFileSync(VERDACCIO_PID_FILE, "utf-8").trim(), 10);
+
+  try {
+    process.kill(pid, 0);
+    return true;
+  } catch {
+    return false;
+  }
+}
 
 let gitPath: string | undefined;
 
