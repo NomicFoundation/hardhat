@@ -1,8 +1,7 @@
 import type { HardhatConfig } from "hardhat/types/config";
-import type { Result } from "hardhat/types/result";
 import type { NewTaskActionFunction } from "hardhat/types/tasks";
 import type { TestSummary } from "hardhat/types/test";
-import type { LastParameter } from "hardhat/types/utils";
+import type { LastParameter, Result } from "hardhat/types/utils";
 
 import { pipeline } from "node:stream/promises";
 import { run } from "node:test";
@@ -12,7 +11,7 @@ import { hardhatTestReporter } from "@nomicfoundation/hardhat-node-test-reporter
 import { setGlobalOptionsAsEnvVariables } from "@nomicfoundation/hardhat-utils/env";
 import { getAllFilesMatching } from "@nomicfoundation/hardhat-utils/fs";
 import { createNonClosingWriter } from "@nomicfoundation/hardhat-utils/stream";
-import { errorResult, successResult } from "hardhat/utils/result";
+import { errorResult, successfulResult } from "hardhat/utils/result";
 
 interface TestActionArguments {
   testFiles: string[];
@@ -79,7 +78,12 @@ const testWithHardhat: NewTaskActionFunction<TestActionArguments> = async (
   const files = await getTestFiles(testFiles, hre.config);
 
   if (files.length === 0) {
-    return successResult({});
+    return successfulResult({
+      passed: 0,
+      failed: 0,
+      skipped: 0,
+      todo: 0,
+    });
   }
 
   const imports = [];
@@ -202,7 +206,7 @@ const testWithHardhat: NewTaskActionFunction<TestActionArguments> = async (
 
   return testResults.failed > 0
     ? errorResult(testResults)
-    : successResult(testResults);
+    : successfulResult(testResults);
 };
 
 export default testWithHardhat;

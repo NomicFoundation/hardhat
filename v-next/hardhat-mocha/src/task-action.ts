@@ -1,7 +1,7 @@
 import type { HardhatConfig } from "hardhat/types/config";
-import type { Result } from "hardhat/types/result";
 import type { NewTaskActionFunction } from "hardhat/types/tasks";
 import type { TestSummary } from "hardhat/types/test";
+import type { Result } from "hardhat/types/utils";
 import type { MochaOptions } from "mocha";
 
 import { resolve as pathResolve } from "node:path";
@@ -10,7 +10,7 @@ import { HardhatError } from "@nomicfoundation/hardhat-errors";
 import { setGlobalOptionsAsEnvVariables } from "@nomicfoundation/hardhat-utils/env";
 import { getAllFilesMatching } from "@nomicfoundation/hardhat-utils/fs";
 import debug from "debug";
-import { errorResult, successResult } from "hardhat/utils/result";
+import { errorResult, successfulResult } from "hardhat/utils/result";
 
 import { createPerformanceTracker } from "./performance.js";
 
@@ -95,7 +95,12 @@ const testWithHardhat: NewTaskActionFunction<TestActionArguments> = async (
   perf.endPhase("Get test files");
 
   if (files.length === 0) {
-    return successResult({});
+    return successfulResult({
+      failed: 0,
+      passed: 0,
+      skipped: 0,
+      todo: 0,
+    });
   }
 
   const unhandledRejectionHookPath = "./unhandled-rejection-mocha-hook.js";
@@ -213,9 +218,14 @@ const testWithHardhat: NewTaskActionFunction<TestActionArguments> = async (
   perf.logInto(performanceLog);
   perf.clear();
 
-  const summary = { failed: testFailures, passed: total - testFailures };
+  const summary = {
+    failed: testFailures,
+    passed: total - testFailures,
+    skipped: 0,
+    todo: 0,
+  };
 
-  return testFailures > 0 ? errorResult(summary) : successResult(summary);
+  return testFailures > 0 ? errorResult(summary) : successfulResult(summary);
 };
 
 export default testWithHardhat;

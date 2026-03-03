@@ -1,8 +1,8 @@
 import type { RunOptions } from "./runner.js";
 import type { TestEvent } from "./types.js";
-import type { Result } from "../../../types/result.js";
 import type { NewTaskActionFunction } from "../../../types/tasks.js";
 import type { TestSummary } from "../../../types/test.js";
+import type { Result } from "../../../types/utils.js";
 import type {
   Artifact as EdrArtifact,
   BuildInfoAndOutput,
@@ -21,7 +21,7 @@ import { resolveFromRoot } from "@nomicfoundation/hardhat-utils/path";
 import { createNonClosingWriter } from "@nomicfoundation/hardhat-utils/stream";
 
 import { getFullyQualifiedName } from "../../../utils/contract-names.js";
-import { errorResult, successResult } from "../../../utils/result.js";
+import { errorResult, successfulResult } from "../../../utils/result.js";
 import { HardhatRuntimeEnvironmentImplementation } from "../../core/hre.js";
 import { isSupportedChainType } from "../../edr/chain-type.js";
 import { ArtifactManagerImplementation } from "../artifacts/artifact-manager.js";
@@ -288,7 +288,7 @@ const runSolidityTests: NewTaskActionFunction<TestActionArguments> = async (
 
   return includesFailures || includesErrors
     ? errorResult(summary)
-    : successResult(summary);
+    : successfulResult(summary);
 };
 
 export default runSolidityTests;

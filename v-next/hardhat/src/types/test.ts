@@ -8,13 +8,12 @@ export interface HardhatTestConfig {}
 
 /**
  * Summary of a test run, containing counts of test outcomes and optional
- * failure output. All fields are optional because different test runners
- * may provide different subsets.
+ * failure output.
  */
 export interface TestSummary {
-  failed?: number;
-  passed?: number;
-  skipped?: number;
-  todo?: number;
+  failed: number;
+  passed: number;
+  skipped: number;
+  todo: number;
   failureOutput?: string;
 }

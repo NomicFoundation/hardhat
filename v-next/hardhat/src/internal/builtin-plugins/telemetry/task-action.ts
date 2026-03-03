@@ -1,6 +1,6 @@
 import type { NewTaskActionFunction } from "../../../types/tasks.js";
 
-import { errorResult, successResult } from "../../../utils/result.js";
+import { errorResult, successfulResult } from "../../../utils/result.js";
 import {
   isTelemetryAllowed,
   setTelemetryEnabled,
@@ -41,7 +41,7 @@ const configureTelemetry: NewTaskActionFunction<
     );
   }
 
-  return successResult();
+  return successfulResult();
 };
 
 export default configureTelemetry;
