@@ -1,5 +1,20 @@
 # hardhat
 
+## 3.1.11
+
+### Patch Changes
+
+- 2b6ced9: Bumped EDR version to [`0.12.0-next.27`](https://github.com/NomicFoundation/edr/releases/tag/%40nomicfoundation%2Fedr%400.12.0-next.27)
+
+  BREAKING CHANGE: Memory capture used to be enabled by default on geth, but has since been flipped https://github.com/ethereum/go-ethereum/pull/23558 and is now disabled by default. We have followed suit and disabled it by default as well. If you were relying on memory capture, you will need to explicitly enable it by setting the `enableMemory` option to true in your tracer configuration.
+
+- 696b295: Make SolidityBuildSystem easier to work with ([#7988](https://github.com/NomicFoundation/hardhat/pull/7988))
+- 48da5a5: Expose `Result` type for task action success/failure signaling.
+- f002c65: Fixed the acceptance of relative paths to `node_modules` in npm remappings ([#8007](https://github.com/NomicFoundation/hardhat/pull/8007))
+- 2413fd3: Implement a global banner logic in Hardhat 3 [#8021](https://github.com/NomicFoundation/hardhat/pull/8021)
+- 696b295: Show fs paths and better error messages when a Solidity file can't be compiled with any configured compiler ([#7988](https://github.com/NomicFoundation/hardhat/pull/7988))
+- c755693: Add `onTestRunStart`, `onTestWorkerDone`, and `onTestRunDone` test hooks ([#8001](https://github.com/NomicFoundation/hardhat/pull/8001))
+
 ## 3.1.10
 
 ### Patch Changes

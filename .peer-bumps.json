@@ -6,26 +6,5 @@
     "v-next/hardhat/templates",
     "v-next/config"
   ],
-  "bumps": [
-    {
-      "package": "@nomicfoundation/hardhat-mocha",
-      "peer": "hardhat",
-      "reason": "It depends on the new TestHooks#onTestRunStart, TestHooks#onTestWorkerDone, and TestHooks#onTestRunDone hooks"
-    },
-    {
-      "package": "@nomicfoundation/hardhat-node-test-runner",
-      "peer": "hardhat",
-      "reason": "It depends on the new TestHooks#onTestRunStart, TestHooks#onTestWorkerDone, and TestHooks#onTestRunDone hooks"
-    },
-    {
-      "package": "@nomicfoundation/hardhat-verify",
-      "peer": "hardhat",
-      "reason": "Uses the new api to detect errors in SolidityBuildSystem#getCompilationJobs"
-    },
-    {
-      "package": "@nomicfoundation/hardhat-typechain",
-      "peer": "hardhat",
-      "reason": "Uses the new api to detect errors in SolidityBuildSystem#build"
-    }
-  ]
+  "bumps": []
 }
