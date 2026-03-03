@@ -24,7 +24,7 @@ describe("hardhat-ethers-chai-matchers plugin correctly initialized", () => {
 
     assert.deepEqual(result, {
       success: true,
-      value: { failed: 0, passed: 1 },
+      value: { failed: 0, passed: 1, skipped: 0, todo: 0 },
     });
   });
 });
