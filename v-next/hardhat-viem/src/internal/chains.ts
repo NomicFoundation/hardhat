@@ -2,7 +2,6 @@ import type { TestClientMode } from "../types.js";
 import type {
   ChainDescriptorConfig,
   ChainDescriptorsConfig,
-  NetworkConfig,
 } from "hardhat/types/config";
 import type { ChainType } from "hardhat/types/network";
 import type { EthereumProvider } from "hardhat/types/providers";
@@ -26,51 +25,14 @@ const chainIdCache = new WeakMap<EthereumProvider, number>();
 const hardhatMetadataCache = new WeakMap<EthereumProvider, HardhatMetadata>();
 const isAnvilNetworkCache = new WeakMap<EthereumProvider, boolean>();
 
-// Caches for custom chain support
-const chainDescriptorsCache = new WeakMap<
-  EthereumProvider,
-  ChainDescriptorsConfig
->();
-const networkContextCache = new WeakMap<
-  EthereumProvider,
-  {
-    networkName: string;
-    networkConfig: Readonly<NetworkConfig>;
-    resolvedUrl: string | undefined;
-  }
->();
-
-/**
- * Sets the chain context for a provider, enabling custom chain resolution.
- * Must be called before getChain() for custom chains to work.
- */
-export async function setChainContext(
-  provider: EthereumProvider,
-  chainDescriptors: ChainDescriptorsConfig,
-  networkName: string,
-  networkConfig: Readonly<NetworkConfig>,
-): Promise<void> {
-  chainDescriptorsCache.set(provider, chainDescriptors);
-
-  // Pre-resolve the URL for HTTP networks
-  const resolvedUrl =
-    networkConfig.type === "http"
-      ? await networkConfig.url.getUrl()
-      : undefined;
-
-  networkContextCache.set(provider, {
-    networkName,
-    networkConfig,
-    resolvedUrl,
-  });
-}
-
 const HARDHAT_METADATA_METHOD = "hardhat_metadata";
 const ANVIL_NODE_INFO_METHOD = "anvil_nodeInfo";
 
 export async function getChain<ChainTypeT extends ChainType | string>(
   provider: EthereumProvider,
   chainType: ChainTypeT,
+  chainDescriptors: ChainDescriptorsConfig,
+  networkName: string,
 ): Promise<ViemChain> {
   const cachedChain = chainCache.get(provider);
   if (cachedChain !== undefined) {
@@ -93,34 +55,7 @@ export async function getChain<ChainTypeT extends ChainType | string>(
         id: chainId,
       };
     } else if (chain === undefined) {
-      // Try 1: Create chain from user's chainDescriptors config
-      const chainDescriptors = chainDescriptorsCache.get(provider);
-      const descriptor = chainDescriptors?.get(BigInt(chainId));
-
-      if (descriptor !== undefined) {
-        chain = createChainFromDescriptor(
-          chainId,
-          chainType,
-          provider,
-          descriptor,
-        );
-      } else {
-        // Try 2: Fallback to network config if chainId matches
-        const networkChain = createChainFromNetworkConfig(
-          chainId,
-          chainType,
-          provider,
-        );
-
-        if (networkChain === undefined) {
-          // Neither chainDescriptor nor matching network config found
-          throw new HardhatError(
-            HardhatError.ERRORS.HARDHAT_VIEM.GENERAL.NETWORK_NOT_FOUND,
-            { chainId },
-          );
-        }
-        chain = networkChain;
-      }
+      chain = resolveChain(chainId, networkName, chainDescriptors);
     } else {
       assertHardhatInvariant(
         false,
@@ -223,93 +158,6 @@ async function isMethodSupported(provider: EthereumProvider, method: string) {
   }
 }
 
-/**
- * Create a viem chain from an explicit chainDescriptor.
- */
-function createChainFromDescriptor(
-  chainId: number,
-  chainType: ChainType | string,
-  provider: EthereumProvider,
-  descriptor: ChainDescriptorConfig,
-): ViemChain {
-  const networkContext = networkContextCache.get(provider);
-  const rpcUrl = networkContext?.resolvedUrl;
-
-  const chain: ViemChain = {
-    id: chainId,
-    name: descriptor.name,
-    nativeCurrency: { name: "Ether", symbol: "ETH", decimals: 18 },
-    rpcUrls: {
-      default: { http: rpcUrl !== undefined ? [rpcUrl] : [] },
-    },
-  };
-
-  // Add block explorers - check both etherscan and blockscout, prefer etherscan
-  const etherscan = descriptor.blockExplorers.etherscan;
-  const blockscout = descriptor.blockExplorers.blockscout;
-
-  if (etherscan?.url !== undefined) {
-    chain.blockExplorers = {
-      default: {
-        name: etherscan.name ?? "Etherscan",
-        url: etherscan.url,
-      },
-    };
-  } else if (blockscout?.url !== undefined) {
-    chain.blockExplorers = {
-      default: {
-        name: blockscout.name ?? "Blockscout",
-        url: blockscout.url,
-      },
-    };
-  }
-
-  // Add OP contracts for L2 chains
-  if (chainType === "op" || descriptor.chainType === "op") {
-    chain.contracts = { ...optimism.contracts };
-  }
-
-  return chain;
-}
-
-/**
- * Create a viem chain from the network config as a fallback
- * when no chainDescriptor is defined.
- */
-function createChainFromNetworkConfig(
-  chainId: number,
-  chainType: ChainType | string,
-  provider: EthereumProvider,
-): ViemChain | undefined {
-  const networkContext = networkContextCache.get(provider);
-  if (networkContext === undefined) {
-    return undefined;
-  }
-
-  const { networkName, networkConfig, resolvedUrl } = networkContext;
-
-  // Only use as fallback if network's chainId matches
-  if (networkConfig.chainId !== chainId) {
-    return undefined;
-  }
-
-  const chain: ViemChain = {
-    id: chainId,
-    name: networkName,
-    nativeCurrency: { name: "Ether", symbol: "ETH", decimals: 18 },
-    rpcUrls: {
-      default: { http: resolvedUrl !== undefined ? [resolvedUrl] : [] },
-    },
-  };
-
-  // Add OP contracts if network or passed chainType is "op"
-  if (chainType === "op" || networkConfig.chainType === "op") {
-    chain.contracts = { ...optimism.contracts };
-  }
-
-  return chain;
-}
-
 function createHardhatChain<ChainTypeT extends ChainType | string>(
   provider: EthereumProvider,
   chainId: number,
@@ -364,4 +212,66 @@ function isHardhatMetadata(value: unknown): value is HardhatMetadata {
       (isObject(value.forkedNetwork) &&
         typeof value.forkedNetwork.chainId === "number"))
   );
+}
+
+/**
+ * Resolves a viem chain for a given chain id using the provided chain
+ * descriptors. If a matching descriptor is found, the chain is enriched with
+ * the descriptor's name and block explorer. Otherwise, falls back to a minimal
+ * chain using the network name.
+ */
+export function resolveChain(
+  chainId: number,
+  networkName: string,
+  chainDescriptors: ChainDescriptorsConfig,
+): ViemChain {
+  const chainDescriptor = chainDescriptors.get(BigInt(chainId));
+  if (chainDescriptor === undefined) {
+    return createMinimalChain(chainId, networkName);
+  }
+
+  const chain = createMinimalChain(chainId, chainDescriptor.name);
+  const blockExplorer = getDefaultBlockExplorer(chainDescriptor);
+  if (blockExplorer !== undefined) {
+    chain.blockExplorers = {
+      default: blockExplorer,
+    };
+  }
+
+  return chain;
+}
+
+/**
+ * Creates a viem chain with the minimum fields required to satisfy the
+ * {@link ViemChain} type.
+ */
+export function createMinimalChain(id: number, name: string): ViemChain {
+  return {
+    id,
+    name,
+    nativeCurrency: { name: "Ether", symbol: "ETH", decimals: 18 },
+    rpcUrls: {
+      default: { http: [] },
+    },
+  };
+}
+
+/**
+ * Returns the default block explorer for a chain descriptor, preferring
+ * Etherscan over Blockscout. Returns `undefined` if neither is configured.
+ */
+export function getDefaultBlockExplorer(
+  chainDescriptor: ChainDescriptorConfig,
+): { name: string; url: string } | undefined {
+  const { etherscan, blockscout } = chainDescriptor.blockExplorers;
+
+  if (etherscan !== undefined) {
+    return { name: etherscan.name ?? "Etherscan", url: etherscan.url };
+  }
+
+  if (blockscout !== undefined) {
+    return { name: blockscout.name ?? "Blockscout", url: blockscout.url };
+  }
+
+  return undefined;
 }
