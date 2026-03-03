@@ -136,11 +136,8 @@ export class BannerManager {
     try {
       const response = await getRequest(
         BANNER_CONFIG_URL,
-        {
-          abortSignal:
-            timeout !== undefined ? AbortSignal.timeout(timeout) : undefined,
-        },
-        this.#dispatcher,
+        undefined,
+        this.#dispatcher ?? { timeout },
       );
 
       const bannerConfig: unknown = await response.body.json();
