@@ -64,11 +64,11 @@ describe("in describe", () => {
 
 describe("testing before each", () => {
   describe("nested", () => {
-    it("neseted foo", async () => {
+    it("nested foo", async () => {
       console.log("1");
     });
 
-    it("neseted foo 2", async () => {
+    it("nested foo 2", async () => {
       console.log("2");
     });
   });

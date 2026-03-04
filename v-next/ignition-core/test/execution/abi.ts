@@ -543,7 +543,7 @@ describe("abi", () => {
         });
       });
 
-      it("should return RevertWithInvalidData if the revert reason signature is used incorrectlt", async () => {
+      it("should return RevertWithInvalidData if the revert reason signature is used incorrectly", async () => {
         const { decoded, returnData } = decode(
           "C",
           "revertWithInvalidErrorMessage",

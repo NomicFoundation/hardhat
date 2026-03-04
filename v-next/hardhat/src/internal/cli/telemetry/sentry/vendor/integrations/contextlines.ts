@@ -140,7 +140,7 @@ function getContextLinesFromFile(path: string, ranges: ReadlineRange[], output: 
     // as it will cause the 'line' event to
     // be emitted before the listener is attached.
     const stream = createReadStream(path);
-    const lineReaded = createInterface({
+    const lineRead = createInterface({
       input: stream,
     });
 
@@ -170,18 +170,18 @@ function getContextLinesFromFile(path: string, ranges: ReadlineRange[], output: 
       // Mark file path as failed to read and prevent multiple read attempts.
       LRU_FILE_CONTENTS_FS_READ_FAILED.set(path, 1);
       DEBUG_BUILD && logger.error(`Failed to read file: ${path}. Error: ${e}`);
-      lineReaded.close();
-      lineReaded.removeAllListeners();
+      lineRead.close();
+      lineRead.removeAllListeners();
       destroyStreamAndResolve();
     }
 
     // We need to handle the error event to prevent the process from crashing in < Node 16
     // https://github.com/nodejs/node/pull/31603
     stream.on('error', onStreamError);
-    lineReaded.on('error', onStreamError);
-    lineReaded.on('close', destroyStreamAndResolve);
+    lineRead.on('error', onStreamError);
+    lineRead.on('close', destroyStreamAndResolve);
 
-    lineReaded.on('line', line => {
+    lineRead.on('line', line => {
       lineNumber++;
       if (lineNumber < rangeStart) return;
 
@@ -191,16 +191,16 @@ function getContextLinesFromFile(path: string, ranges: ReadlineRange[], output: 
       if (lineNumber >= rangeEnd) {
         if (currentRangeIndex === ranges.length - 1) {
           // We need to close the file stream and remove listeners, else the reader will continue to run our listener;
-          lineReaded.close();
-          lineReaded.removeAllListeners();
+          lineRead.close();
+          lineRead.removeAllListeners();
           return;
         }
         currentRangeIndex++;
         const range = ranges[currentRangeIndex];
         if (range === undefined) {
           // This should never happen as it means we have a bug in the context.
-          lineReaded.close();
-          lineReaded.removeAllListeners();
+          lineRead.close();
+          lineRead.removeAllListeners();
           return;
         }
         rangeStart = range[0];

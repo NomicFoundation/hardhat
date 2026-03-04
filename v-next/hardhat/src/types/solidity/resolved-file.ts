@@ -3,7 +3,7 @@
  */
 export interface ResolvedNpmPackage {
   /**
-   * The name of the package, potentially scopde.
+   * The name of the package, potentially scoped.
    */
   name: string;
 
@@ -103,7 +103,7 @@ export interface NpmPackageResolvedFile {
 }
 
 /**
- * The resolult of resolving a file or import using a Resolver.
+ * The result of resolving a file or import using a Resolver.
  */
 export type ResolvedFile = ProjectResolvedFile | NpmPackageResolvedFile;
 

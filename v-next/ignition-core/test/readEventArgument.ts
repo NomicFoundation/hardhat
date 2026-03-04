@@ -72,7 +72,7 @@ describe("Read event argument", () => {
     it("should accept an explicit emitter", () => {
       const mod = buildModule("Module1", (m) => {
         const contract = m.contract("ContractThatCallsEmitter");
-        const emitter = m.contract("ContractThatEmittsEvent2");
+        const emitter = m.contract("ContractThatEmitsEvent2");
         const call = m.call(contract, "doSomethingAndCallThEmitter", [emitter]);
 
         m.readEventArgument(contract, "EventEmittedDuringConstruction", "arg1");
@@ -194,7 +194,7 @@ describe("Read event argument", () => {
       assert.include(futuresIds, "Module1#second");
     });
 
-    it("should throw if the same read event arguennet is done twice without differentiating ids", () => {
+    it("should throw if the same read event argument is done twice without differentiating ids", () => {
       assertThrowsHardhatError(
         () =>
           buildModule("Module1", (m) => {

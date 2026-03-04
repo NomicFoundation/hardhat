@@ -61,7 +61,7 @@ export async function deployContract<ContractName extends string>(
 
   let deploymentTxHash: PrefixedHexString;
   // If gasPrice is defined, then maxFeePerGas and maxPriorityFeePerGas
-  // must be undefined because it's a legaxy tx.
+  // must be undefined because it's a legacy tx.
   if (deployContractParameters.gasPrice !== undefined) {
     deploymentTxHash = await walletClient.deployContract({
       abi,
@@ -133,7 +133,7 @@ export async function sendDeploymentTransaction<ContractName extends string>(
 
   let deploymentTxHash: PrefixedHexString;
   // If gasPrice is defined, then maxFeePerGas and maxPriorityFeePerGas
-  // must be undefined because it's a legaxy tx.
+  // must be undefined because it's a legacy tx.
   if (deployContractParameters.gasPrice !== undefined) {
     deploymentTxHash = await walletClient.deployContract({
       abi,

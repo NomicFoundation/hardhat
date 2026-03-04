@@ -18,7 +18,7 @@ export class SolcConfigSelector {
 
   /**
    * Creates a new SolcConfigSelector that can be used to select the best solc
-   * configuration for single-root subgraphs to create their resepective
+   * configuration for single-root subgraphs to create their respective
    * individual compilation jobs.
    *
    * All the queries use the same build profile.
@@ -54,11 +54,11 @@ export class SolcConfigSelector {
 
     const [userSourceName, root] = [...roots.entries()][0];
 
-    const allVersionPragamas = [...subgraph.getAllFiles()]
+    const allVersionPragmas = [...subgraph.getAllFiles()]
       .map(({ content }) => content.versionPragmas)
       .flat(1);
 
-    const versionRange = Array.from(new Set(allVersionPragamas)).join(" ");
+    const versionRange = Array.from(new Set(allVersionPragmas)).join(" ");
 
     const overriddenCompiler = this.#buildProfile.overrides[userSourceName];
 

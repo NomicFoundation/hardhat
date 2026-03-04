@@ -218,7 +218,7 @@ class IgnitionModuleBuilderImplementation<
   public contract<ContractNameT extends string>(
     contractName: ContractNameT,
     artifactOrArgs?: Artifact | ArgumentType[],
-    argsorOptions?: ArgumentType[] | ContractAtOptions,
+    argsOrOptions?: ArgumentType[] | ContractAtOptions,
     maybeOptions?: ContractOptions,
   ):
     | NamedArtifactContractDeploymentFuture<ContractNameT>
@@ -231,7 +231,7 @@ class IgnitionModuleBuilderImplementation<
     }
 
     if (artifactOrArgs === undefined || Array.isArray(artifactOrArgs)) {
-      if (Array.isArray(argsorOptions)) {
+      if (Array.isArray(argsOrOptions)) {
         this._throwErrorWithStackTrace(
           `Invalid parameter "options" provided to contract "${contractName}" in module "${this._module.id}"`,
           this.contract,
@@ -241,11 +241,11 @@ class IgnitionModuleBuilderImplementation<
       return this._namedArtifactContract(
         contractName,
         artifactOrArgs,
-        argsorOptions,
+        argsOrOptions,
       );
     }
 
-    if (argsorOptions !== undefined && !Array.isArray(argsorOptions)) {
+    if (argsOrOptions !== undefined && !Array.isArray(argsOrOptions)) {
       this._throwErrorWithStackTrace(
         `Invalid parameter "args" provided to contract "${contractName}" in module "${this._module.id}"`,
         this.contract,
@@ -255,7 +255,7 @@ class IgnitionModuleBuilderImplementation<
     return this._contractFromArtifact(
       contractName,
       artifactOrArgs,
-      argsorOptions,
+      argsOrOptions,
       maybeOptions,
     );
   }

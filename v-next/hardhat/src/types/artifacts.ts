@@ -239,7 +239,7 @@ export interface LinkReferences {
  * is the id of the AST node that represents the variable.
  */
 export interface ImmutableReferences {
-  [immuatableId: string]: Array<{ start: number; length: number }>;
+  [immutableId: string]: Array<{ start: number; length: number }>;
 }
 
 /**

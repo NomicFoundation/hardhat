@@ -489,10 +489,10 @@ describe("INTEGRATION: Reverted with custom error", { timeout: 60000 }, () => {
           () =>
             expect(
               matchers.revertWithSomeCustomError(),
-            ).to.be.revertedWithCustomError(matchers, "SomeCustmError"),
+            ).to.be.revertedWithCustomError(matchers, "SomeCustomError"),
           (e) =>
             e.message.includes(
-              `The given contract doesn't have a custom error named "SomeCustmError"`,
+              `The given contract doesn't have a custom error named "SomeCustomError"`,
             ),
           "Expected custom error not found error message",
         );

@@ -206,7 +206,7 @@ describe("Ethers plugin", () => {
           const response = await sig.sendTransaction(tx);
           const receipt = await response.wait();
           if (receipt === null) {
-            assert.fail("receipt shoudn't be null");
+            assert.fail("receipt shouldn't be null");
           }
           assert.equal(receipt.status, 1);
         });
@@ -1043,10 +1043,10 @@ describe("Ethers plugin", () => {
         const receipt = await response.wait();
 
         if (receipt === null) {
-          assert.fail("receipt shoudn't be null");
+          assert.fail("receipt shouldn't be null");
         }
         if (receipt.contractAddress === null) {
-          assert.fail("receipt.contractAddress shoudn't be null");
+          assert.fail("receipt.contractAddress shouldn't be null");
         }
 
         let code = await ethers.provider.getCode(receipt.contractAddress);

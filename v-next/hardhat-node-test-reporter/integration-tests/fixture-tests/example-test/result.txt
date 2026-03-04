@@ -23,8 +23,8 @@
 
   testing before each
     nested
-      [90m[32m✔[39m[90m neseted foo[39m
-      [90m[32m✔[39m[90m neseted foo 2[39m
+      [90m[32m✔[39m[90m nested foo[39m
+      [90m[32m✔[39m[90m nested foo 2[39m
 
 
   [34m+ todo test[39m

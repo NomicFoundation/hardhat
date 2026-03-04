@@ -1,7 +1,7 @@
 import type { ErrorDescriptor } from "../src/descriptors.js";
 import type {
   ErrorMessageTemplateValue,
-  MessagetTemplateArguments,
+  MessageTemplateArguments,
 } from "../src/errors.js";
 
 import assert from "node:assert/strict";
@@ -532,61 +532,59 @@ describe("Type tests", () => {
     });
   });
 
-  describe("MessagetTemplateArguments type", () => {
+  describe("MessageTemplateArguments type", () => {
     it("Should work with no variables", () => {
-      expectTypeOf<MessagetTemplateArguments<"hello">>().toEqualTypeOf<{}>();
+      expectTypeOf<MessageTemplateArguments<"hello">>().toEqualTypeOf<{}>();
     });
 
     it("Should work with a single variable", () => {
-      expectTypeOf<MessagetTemplateArguments<"{hello}">>().toEqualTypeOf<{
+      expectTypeOf<MessageTemplateArguments<"{hello}">>().toEqualTypeOf<{
         hello: ErrorMessageTemplateValue;
       }>();
 
-      expectTypeOf<MessagetTemplateArguments<" {hello}">>().toEqualTypeOf<{
+      expectTypeOf<MessageTemplateArguments<" {hello}">>().toEqualTypeOf<{
         hello: ErrorMessageTemplateValue;
       }>();
 
       expectTypeOf<
-        MessagetTemplateArguments<"asdjkhads {hello}">
+        MessageTemplateArguments<"asdjkhads {hello}">
       >().toEqualTypeOf<{
         hello: ErrorMessageTemplateValue;
       }>();
 
-      expectTypeOf<
-        MessagetTemplateArguments<"{hello} asdasd">
-      >().toEqualTypeOf<{
+      expectTypeOf<MessageTemplateArguments<"{hello} asdasd">>().toEqualTypeOf<{
         hello: ErrorMessageTemplateValue;
       }>();
 
       expectTypeOf<
-        MessagetTemplateArguments<"asdasd {hello} asdasd">
+        MessageTemplateArguments<"asdasd {hello} asdasd">
       >().toEqualTypeOf<{
         hello: ErrorMessageTemplateValue;
       }>();
     });
 
     it("Should work with multiple variables", () => {
-      expectTypeOf<MessagetTemplateArguments<"{hello}{hola}">>().toEqualTypeOf<{
+      expectTypeOf<MessageTemplateArguments<"{hello}{hola}">>().toEqualTypeOf<{
         hello: ErrorMessageTemplateValue;
         hola: ErrorMessageTemplateValue;
       }>();
 
       expectTypeOf<
-        MessagetTemplateArguments<"{hello}asdas{hola}">
+        MessageTemplateArguments<"{hello}asdas{hola}">
       >().toEqualTypeOf<{
         hello: ErrorMessageTemplateValue;
         hola: ErrorMessageTemplateValue;
       }>();
 
       expectTypeOf<
-        MessagetTemplateArguments<"asd {hello}asdas{hola}">
+        MessageTemplateArguments<"asd {hello}asdas{hola}">
       >().toEqualTypeOf<{
         hello: ErrorMessageTemplateValue;
         hola: ErrorMessageTemplateValue;
       }>();
 
       expectTypeOf<
-        MessagetTemplateArguments<"asd{hola}asd {hello}asdas">
+        MessageTemplateArguments<"asd{hola}asd {hello}asdas">
       >().toEqualTypeOf<{
         hello: ErrorMessageTemplateValue;
         hola: ErrorMessageTemplateValue;
@@ -595,7 +593,7 @@ describe("Type tests", () => {
 
     it("Should work with repeated variables", () => {
       expectTypeOf<
-        MessagetTemplateArguments<"asd{hola}asd {hello}asdas{hello},asd,jhasd  {hola}">
+        MessageTemplateArguments<"asd{hola}asd {hello}asdas{hello},asd,jhasd  {hola}">
       >().toEqualTypeOf<{
         hello: ErrorMessageTemplateValue;
         hola: ErrorMessageTemplateValue;
@@ -604,7 +602,7 @@ describe("Type tests", () => {
 
     describe("Edge cases", () => {
       it("Should support {}", () => {
-        expectTypeOf<MessagetTemplateArguments<"foo {} {}">>().toEqualTypeOf<{
+        expectTypeOf<MessageTemplateArguments<"foo {} {}">>().toEqualTypeOf<{
           /* eslint-disable-next-line @typescript-eslint/naming-convention --
           This test case is intentionally testing a weird variable name */
           "": ErrorMessageTemplateValue;
