@@ -294,6 +294,7 @@ GLOBAL OPTIONS:
   --init                   Initializes a Hardhat project
   --network                The network to connect to
   --show-stack-traces      Show stack traces (always enabled on CI servers)
+  --verbosity, -v          Verbosity level of the output
   --version                Show the version of hardhat
 
 To get help for a specific task run: npx hardhat <TASK> [SUBTASK] --help`;
@@ -367,6 +368,7 @@ GLOBAL OPTIONS:
   --init                   Initializes a Hardhat project
   --network                The network to connect to
   --show-stack-traces      Show stack traces (always enabled on CI servers)
+  --verbosity, -v          Verbosity level of the output
   --version                Show the version of hardhat
 `;
 
@@ -407,6 +409,7 @@ GLOBAL OPTIONS:
   --init                   Initializes a Hardhat project
   --network                The network to connect to
   --show-stack-traces      Show stack traces (always enabled on CI servers)
+  --verbosity, -v          Verbosity level of the output
   --version                Show the version of hardhat
 `;
 
@@ -821,8 +824,8 @@ GLOBAL OPTIONS:
             defaultValue: "default",
           }),
           task(["task4"]).addLevel({
-            name: "verbosity",
-            shortName: "v",
+            name: "logLevel",
+            shortName: "l",
           }),
         ];
 
@@ -1042,7 +1045,7 @@ GLOBAL OPTIONS:
       }
 
       it("should get the task and its level argument when provided by long name", function () {
-        const command = "npx hardhat task4 --verbosity 4";
+        const command = "npx hardhat task4 --log-level 4";
 
         const cliArguments = command.split(" ").slice(2);
         const usedCliArguments = new Array(cliArguments.length).fill(false);
@@ -1055,11 +1058,11 @@ GLOBAL OPTIONS:
           usedCliArguments,
           new Array(cliArguments.length).fill(true),
         );
-        assert.deepEqual(res.taskArguments, { verbosity: 4 });
+        assert.deepEqual(res.taskArguments, { logLevel: 4 });
       });
 
       it("should throw when level is provided by long name and not followed by a value", function () {
-        const command = "npx hardhat task4 --verbosity";
+        const command = "npx hardhat task4 --log-level";
 
         const cliArguments = command.split(" ").slice(2);
         const usedCliArguments = new Array(cliArguments.length).fill(false);
@@ -1068,13 +1071,13 @@ GLOBAL OPTIONS:
           () => parseTaskAndArguments(cliArguments, usedCliArguments, hre),
           HardhatError.ERRORS.CORE.ARGUMENTS.MISSING_VALUE_FOR_ARGUMENT,
           {
-            argument: "--verbosity",
+            argument: "--log-level",
           },
         );
       });
 
       it("should get the task and its level argument when provided by short name", function () {
-        const command = "npx hardhat task4 -vvvv";
+        const command = "npx hardhat task4 -llll";
 
         const cliArguments = command.split(" ").slice(2);
         const usedCliArguments = new Array(cliArguments.length).fill(false);
@@ -1087,11 +1090,11 @@ GLOBAL OPTIONS:
           usedCliArguments,
           new Array(cliArguments.length).fill(true),
         );
-        assert.deepEqual(res.taskArguments, { verbosity: 4 });
+        assert.deepEqual(res.taskArguments, { logLevel: 4 });
       });
 
       it("should throw when level is provided by short name and followed by a value", function () {
-        const command = "npx hardhat task4 -v 4";
+        const command = "npx hardhat task4 -l 4";
 
         const cliArguments = command.split(" ").slice(2);
         const usedCliArguments = new Array(cliArguments.length).fill(false);
