@@ -1,0 +1,14 @@
+{
+  "extends": "../config/tsconfig.base.json",
+  "compilerOptions": {
+    "isolatedDeclarations": false
+  },
+  "references": [
+    {
+      "path": "../hardhat"
+    },
+    {
+      "path": "../hardhat-solx"
+    }
+  ]
+}

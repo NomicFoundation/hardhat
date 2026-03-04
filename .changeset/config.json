@@ -9,6 +9,7 @@
   "ignore": [
     "@nomicfoundation/config",
     "@nomicfoundation/example-project",
+    "@nomicfoundation/example-project-solx",
     "@nomicfoundation/template-package",
     "template-*"
   ],
