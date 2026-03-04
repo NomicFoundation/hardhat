@@ -8,7 +8,7 @@ import { download } from "@nomicfoundation/hardhat-utils/request";
 import { MultiProcessMutex } from "@nomicfoundation/hardhat-utils/synchronization";
 import debug from "debug";
 
-import { SOLX_GITHUB_RELEASES_BASE_URL } from "./constants.js";
+import { SOLX_RELEASES_BASE_URL } from "./constants.js";
 import { getSolxAssetName } from "./platform.js";
 
 const log = debug("hardhat:solx:downloader");
@@ -16,15 +16,23 @@ const log = debug("hardhat:solx:downloader");
 const DOWNLOAD_RETRY_COUNT = 3;
 const DOWNLOAD_RETRY_DELAY_MS = 2000;
 
-async function getSolxCacheDir(version: string): Promise<string> {
+/**
+ * Returns the deterministic path where a solx binary for the given version
+ * would be cached. This is a pure function — it does not check whether the
+ * binary exists on disk.
+ */
+export async function getSolxBinaryPath(solxVersion: string): Promise<string> {
+  const assetName = getSolxAssetName(solxVersion);
   const globalCacheDir = await getCacheDir();
-  return path.join(globalCacheDir, `solx-v${version}`);
+  return path.join(globalCacheDir, `solx-v${solxVersion}`, assetName);
 }
 
-export async function downloadSolx(version: string): Promise<string> {
-  const assetName = getSolxAssetName(version);
-  const cacheDir = await getSolxCacheDir(version);
-  const binaryPath = path.join(cacheDir, assetName);
+/**
+ * Downloads the solx binary for the given version if not already cached.
+ * Returns the path to the binary on disk.
+ */
+export async function downloadSolx(solxVersion: string): Promise<string> {
+  const binaryPath = await getSolxBinaryPath(solxVersion);
 
   // Return cached binary if it already exists
   if (await exists(binaryPath)) {
@@ -33,7 +41,7 @@ export async function downloadSolx(version: string): Promise<string> {
   }
 
   // Use a mutex to prevent concurrent downloads of the same version
-  const mutex = new MultiProcessMutex(`solx-download-${version}`);
+  const mutex = new MultiProcessMutex(`solx-download-${solxVersion}`);
 
   return mutex.use(async () => {
     // Re-check after acquiring the mutex (another process may have downloaded it)
@@ -44,9 +52,8 @@ export async function downloadSolx(version: string): Promise<string> {
       return binaryPath;
     }
 
-    // Tag format: no "v" prefix (e.g., "0.1.3" not "v0.1.3")
-    const url = `${SOLX_GITHUB_RELEASES_BASE_URL}/${version}/${assetName}`;
-    log(`Downloading solx ${version} from ${url}`);
+    const url = `${SOLX_RELEASES_BASE_URL}/${solxVersion}/${getSolxAssetName(solxVersion)}`;
+    log(`Downloading solx ${solxVersion} from ${url}`);
 
     let lastError: Error | undefined;
 
@@ -59,7 +66,7 @@ export async function downloadSolx(version: string): Promise<string> {
           await chmod(binaryPath, 0o755);
         }
 
-        log(`Successfully downloaded solx ${version}`);
+        log(`Successfully downloaded solx ${solxVersion}`);
         return binaryPath;
       } catch (error) {
         ensureError(error);
@@ -79,7 +86,7 @@ export async function downloadSolx(version: string): Promise<string> {
     throw new HardhatError(
       HardhatError.ERRORS.HARDHAT_SOLX.GENERAL.DOWNLOAD_FAILED,
       {
-        version,
+        version: solxVersion,
         attempts: DOWNLOAD_RETRY_COUNT.toString(),
         reason: lastError?.message ?? "unknown error",
       },

@@ -1,13 +1,27 @@
-import type { CompilerInput, CompilerOutput } from "hardhat/types/solidity";
+import type {
+  Compiler,
+  CompilerInput,
+  CompilerOutput,
+} from "hardhat/types/solidity";
 
 import { spawnCompile } from "hardhat/internal/solidity";
 
-export class SolxCompiler {
-  readonly #binaryPath: string;
+export class SolxCompiler implements Compiler {
+  readonly version: string;
+  readonly longVersion: string;
+  readonly compilerPath: string;
+  readonly isSolcJs: boolean = false;
+
   readonly #extraSettings: Record<string, unknown>;
 
-  constructor(binaryPath: string, extraSettings: Record<string, unknown> = {}) {
-    this.#binaryPath = binaryPath;
+  constructor(
+    version: string,
+    compilerPath: string,
+    extraSettings: Record<string, unknown> = {},
+  ) {
+    this.version = version;
+    this.longVersion = `${version}+solx`;
+    this.compilerPath = compilerPath;
     this.#extraSettings = extraSettings;
   }
 
@@ -24,6 +38,6 @@ export class SolxCompiler {
       },
     };
 
-    return spawnCompile(this.#binaryPath, args, modifiedInput);
+    return spawnCompile(this.compilerPath, args, modifiedInput);
   }
 }

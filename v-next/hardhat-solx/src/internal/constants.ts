@@ -1,7 +1,5 @@
-export const LATEST_KNOWN_SOLX_VERSION = "0.1.3";
-
-export const SOLX_GITHUB_RELEASES_BASE_URL =
-  "https://github.com/NomicFoundation/solx/releases/download";
+export const SOLX_RELEASES_BASE_URL =
+  "https://solx-releases-mirror.hardhat.org";
 
 export const SUPPORTED_SOLX_EVM_VERSIONS: readonly string[] = [
   "cancun",
@@ -12,4 +10,13 @@ export const SUPPORTED_SOLX_EVM_VERSIONS: readonly string[] = [
 export const DEFAULT_SOLX_SETTINGS: Record<string, unknown> = {
   viaIR: true,
   LLVMOptimization: "1",
+};
+
+/**
+ * Maps Solidity compiler versions to the solx version that embeds them.
+ * Only stable solx releases are included.
+ */
+export const SOLIDITY_TO_SOLX_VERSION_MAP: Record<string, string> = {
+  "0.8.30": "0.1.2",
+  "0.8.33": "0.1.3",
 };

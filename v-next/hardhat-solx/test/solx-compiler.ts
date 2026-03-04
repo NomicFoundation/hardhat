@@ -1,6 +1,4 @@
 import type { SolxCompiler as SolxCompilerType } from "../src/internal/solx-compiler.js";
-import type { SolidityCompilerConfig, SolxConfig } from "hardhat/types/config";
-import type { SolidityHooks } from "hardhat/types/hooks";
 import type { CompilerInput, CompilerOutput } from "hardhat/types/solidity";
 
 import assert from "node:assert/strict";
@@ -40,8 +38,17 @@ describe("SolxCompiler", () => {
     spawnCompileCalls = [];
   });
 
+  it("implements the Compiler interface", async () => {
+    const compiler = new SolxCompiler("0.8.33", "/path/to/solx");
+
+    assert.equal(compiler.version, "0.8.33");
+    assert.equal(compiler.longVersion, "0.8.33+solx");
+    assert.equal(compiler.compilerPath, "/path/to/solx");
+    assert.equal(compiler.isSolcJs, false);
+  });
+
   it("calls spawnCompile with correct binary path and args", async () => {
-    const compiler = new SolxCompiler("/path/to/solx");
+    const compiler = new SolxCompiler("0.8.33", "/path/to/solx");
     const input: CompilerInput = {
       language: "Solidity",
       sources: { "A.sol": { content: "pragma solidity ^0.8.0;" } },
@@ -57,7 +64,7 @@ describe("SolxCompiler", () => {
   });
 
   it("merges extraSettings into input.settings", async () => {
-    const compiler = new SolxCompiler("/path/to/solx", {
+    const compiler = new SolxCompiler("0.8.33", "/path/to/solx", {
       LLVMOptimization: "1",
     });
     const input: CompilerInput = {
@@ -80,7 +87,7 @@ describe("SolxCompiler", () => {
   });
 
   it("does not modify the original input object", async () => {
-    const compiler = new SolxCompiler("/path/to/solx", {
+    const compiler = new SolxCompiler("0.8.33", "/path/to/solx", {
       LLVMOptimization: "1",
     });
     const input: CompilerInput = {
@@ -100,7 +107,7 @@ describe("SolxCompiler", () => {
   });
 
   it("returns the output from spawnCompile", async () => {
-    const compiler = new SolxCompiler("/path/to/solx");
+    const compiler = new SolxCompiler("0.8.33", "/path/to/solx");
     const input: CompilerInput = {
       language: "Solidity",
       sources: { "A.sol": { content: "pragma solidity ^0.8.0;" } },
@@ -108,145 +115,6 @@ describe("SolxCompiler", () => {
     };
 
     const result = await compiler.compile(input);
-    assert.equal(result, fakeOutput);
-  });
-});
-
-describe("invokeSolc hook — solx compilation path", () => {
-  let hookHandlerModule: {
-    default: () => Promise<Partial<SolidityHooks>>;
-  };
-
-  before(async () => {
-    hookHandlerModule = await import(
-      "../src/internal/hook-handlers/solidity.js"
-    );
-  });
-
-  beforeEach(() => {
-    spawnCompileCalls = [];
-  });
-
-  const mockCompiler = {
-    version: "0.8.28",
-    longVersion: "0.8.28+commit.abc123",
-    compilerPath: "/path/to/solx-binary",
-    isSolcJs: false,
-    compile: async (_input: CompilerInput): Promise<CompilerOutput> => ({
-      sources: {},
-      contracts: {},
-    }),
-  };
-
-  const mockInput: CompilerInput = {
-    language: "Solidity",
-    sources: {
-      "A.sol": { content: "pragma solidity ^0.8.0; contract A {}" },
-    },
-    settings: {
-      optimizer: {},
-      outputSelection: { "*": { "*": ["abi"] } },
-    },
-  };
-
-  function createMockContext(solxConfig: SolxConfig): any {
-    return { config: { solx: solxConfig } };
-  }
-
-  function createMockNext() {
-    let called = false;
-    const mockOutput: CompilerOutput = { sources: {}, contracts: {} };
-    const next = async (
-      _context: any,
-      _compiler: any,
-      _input: CompilerInput,
-      _compilerConfig: SolidityCompilerConfig,
-    ): Promise<CompilerOutput> => {
-      called = true;
-      return mockOutput;
-    };
-    return { next, wasCalled: () => called };
-  }
-
-  it("does not call next when type is 'solx' with non-empty settings", async () => {
-    const hooks = await hookHandlerModule.default();
-
-    const context = createMockContext({
-      version: "0.1.3",
-      settings: { LLVMOptimization: "1" },
-    });
-
-    const compilerConfig: SolidityCompilerConfig = {
-      type: "solx",
-      version: "0.8.28",
-      settings: { optimizer: {}, outputSelection: {} },
-      // _buildScope was removed during PR 1 review; will be cleaned up at rebase
-    };
-
-    const mockNext = createMockNext();
-
-    assert.ok(
-      hooks.invokeSolc !== undefined,
-      "invokeSolc hook should be defined",
-    );
-    await hooks.invokeSolc(
-      context,
-      mockCompiler,
-      mockInput,
-      compilerConfig,
-      mockNext.next,
-    );
-
-    assert.ok(
-      !mockNext.wasCalled(),
-      "next should NOT have been called for solx with settings",
-    );
-  });
-
-  it("invokes spawnCompile with merged settings through SolxCompiler", async () => {
-    const hooks = await hookHandlerModule.default();
-
-    const context = createMockContext({
-      version: "0.1.3",
-      settings: { LLVMOptimization: "1" },
-    });
-
-    const compilerConfig: SolidityCompilerConfig = {
-      type: "solx",
-      version: "0.8.28",
-      settings: { optimizer: {}, outputSelection: {} },
-    };
-
-    const mockNext = createMockNext();
-
-    assert.ok(
-      hooks.invokeSolc !== undefined,
-      "invokeSolc hook should be defined",
-    );
-    const result = await hooks.invokeSolc(
-      context,
-      mockCompiler,
-      mockInput,
-      compilerConfig,
-      mockNext.next,
-    );
-
-    // Verify spawnCompile was called with the compiler's binary path
-    assert.equal(spawnCompileCalls.length, 1);
-    assert.equal(spawnCompileCalls[0].command, "/path/to/solx-binary");
-    assert.deepEqual(spawnCompileCalls[0].args, [
-      "--standard-json",
-      "--no-import-callback",
-    ]);
-
-    // Verify settings were merged (LLVMOptimization added to input settings)
-    assert.deepEqual(spawnCompileCalls[0].input.settings, {
-      optimizer: {},
-      outputSelection: { "*": { "*": ["abi"] } },
-      LLVMOptimization: "1",
-    });
-
-    // Verify it returned the output
     assert.equal(result, fakeOutput);
   });
 });
