@@ -1,4 +1,4 @@
-import type { TestHooks } from "../../../../types/hooks.js";
+import type { HookContext, TestHooks } from "../../../../types/hooks.js";
 
 import { assertHardhatInvariant } from "@nomicfoundation/hardhat-errors";
 
@@ -7,37 +7,52 @@ import { HardhatRuntimeEnvironmentImplementation } from "../../../core/hre.js";
 export default async (): Promise<Partial<TestHooks>> => ({
   onTestRunStart: async (context, id, next) => {
     await next(context, id);
-
-    if (context.globalOptions.coverage === true) {
-      assertHardhatInvariant(
-        context instanceof HardhatRuntimeEnvironmentImplementation,
-        "Expected context to be an instance of HardhatRuntimeEnvironmentImplementation",
-      );
-      await context._coverage.clearData(id);
-    }
+    await testRunStart(context, id);
   },
 
   onTestWorkerDone: async (context, id, next) => {
     await next(context, id);
-
-    if (context.globalOptions.coverage === true) {
-      assertHardhatInvariant(
-        context instanceof HardhatRuntimeEnvironmentImplementation,
-        "Expected context to be an instance of HardhatRuntimeEnvironmentImplementation",
-      );
-      await context._coverage.saveData(id);
-    }
+    await testWorkerDone(context, id);
   },
 
   onTestRunDone: async (context, id, next) => {
     await next(context, id);
-
-    if (context.globalOptions.coverage === true) {
-      assertHardhatInvariant(
-        context instanceof HardhatRuntimeEnvironmentImplementation,
-        "Expected context to be an instance of HardhatRuntimeEnvironmentImplementation",
-      );
-      await context._coverage.report(id);
-    }
+    await testRunDone(context, id);
   },
 });
+
+export async function testRunStart(
+  hre: HookContext,
+  id: string,
+): Promise<void> {
+  if (hre.globalOptions.coverage === true) {
+    assertHardhatInvariant(
+      hre instanceof HardhatRuntimeEnvironmentImplementation,
+      "Expected HRE to be an instance of HardhatRuntimeEnvironmentImplementation",
+    );
+    await hre._coverage.clearData(id);
+  }
+}
+
+export async function testWorkerDone(
+  hre: HookContext,
+  id: string,
+): Promise<void> {
+  if (hre.globalOptions.coverage === true) {
+    assertHardhatInvariant(
+      hre instanceof HardhatRuntimeEnvironmentImplementation,
+      "Expected HRE to be an instance of HardhatRuntimeEnvironmentImplementation",
+    );
+    await hre._coverage.saveData(id);
+  }
+}
+
+export async function testRunDone(hre: HookContext, id: string): Promise<void> {
+  if (hre.globalOptions.coverage === true) {
+    assertHardhatInvariant(
+      hre instanceof HardhatRuntimeEnvironmentImplementation,
+      "Expected HRE to be an instance of HardhatRuntimeEnvironmentImplementation",
+    );
+    await hre._coverage.report(id);
+  }
+}

@@ -1,19 +1,13 @@
-import path from "node:path";
-
 import {
   testRunDone,
   testRunStart,
   testWorkerDone,
 } from "./hook-handlers/test.js";
 
-export function getCoveragePath(rootPath: string): string {
-  return path.join(rootPath, "coverage");
-}
-
 /**
  * The following helpers are kept for backward compatibility with older versions
  * of test runner plugins (hardhat-mocha, hardhat-node-test-runner) that import
- * from "hardhat/internal/coverage".
+ * from "hardhat/internal/gas-analytics".
  */
 
 export async function markTestRunStart(id: string): Promise<void> {
