@@ -16,25 +16,17 @@ describe("hardhat-solx integration", () => {
     const hre = await createHardhatRuntimeEnvironment(baseHhConfig);
 
     // Verify the plugin config was resolved correctly
-    assert.equal(hre.config.solx.version, "0.1.3");
-    assert.deepEqual(hre.config.solx.settings, {
-      viaIR: true,
-      LLVMOptimization: "1",
-    });
+    assert.equal(hre.config.solx.dangerouslyAllowSolxInProduction, false);
   });
 
   it("resolves plugin config with defaults when not specified", async () => {
     const hre = await createHardhatRuntimeEnvironment({
-      solidity: "0.8.28",
+      solidity: "0.8.33",
       plugins: [(await import("../src/index.js")).default],
     });
 
     // Verify defaults are applied
-    assert.equal(hre.config.solx.version, "0.1.3");
-    assert.deepEqual(hre.config.solx.settings, {
-      viaIR: true,
-      LLVMOptimization: "1",
-    });
+    assert.equal(hre.config.solx.dangerouslyAllowSolxInProduction, false);
   });
 
   it("preserves compiler type 'solx' on compiler entries", async () => {
@@ -63,11 +55,31 @@ describe("hardhat-solx integration", () => {
     ).default;
     const hre = await createHardhatRuntimeEnvironment(baseHhConfig);
 
-    // The "test" build profile should exist (created by plugin's extendUserConfig)
+    // The "test" build profile should exist (created by plugin's resolveUserConfig)
     const profileNames = Object.keys(hre.config.solidity.profiles);
     assert.ok(
       profileNames.includes("test"),
       `Expected "test" profile in: ${profileNames.join(", ")}`,
+    );
+
+    // The test profile's compiler should have type: "solx"
+    const testProfile = hre.config.solidity.profiles.test;
+    assert.equal(
+      testProfile.compilers[0].type,
+      "solx",
+      "test profile compiler should have type: 'solx'",
+    );
+  });
+
+  it("registers 'solx' as a compiler type", async () => {
+    const baseHhConfig = (
+      await import(`./fixture-projects/${projectFolder}/hardhat.config.js`)
+    ).default;
+    const hre = await createHardhatRuntimeEnvironment(baseHhConfig);
+
+    assert.ok(
+      hre.config.solidity.registeredCompilerTypes.includes("solx"),
+      "registeredCompilerTypes should include 'solx'",
     );
   });
 });
