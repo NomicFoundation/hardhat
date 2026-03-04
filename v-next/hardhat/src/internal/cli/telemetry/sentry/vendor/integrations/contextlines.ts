@@ -1,15 +1,15 @@
 /* eslint-disable -- This file is vendored from https://github.com/getsentry/sentry-javascript/blob/9.4.0/packages/node/src/integrations/contextlines.ts */
 
-import { createReadStream } from 'node:fs';
-import { createInterface } from 'node:readline';
-import type { Event, IntegrationFn, StackFrame } from '@sentry/core';
-import { LRUMap, defineIntegration, logger, snipLine } from '@sentry/core';
-import { DEBUG_BUILD } from '../debug-build.js';
+import { createReadStream } from "node:fs";
+import { createInterface } from "node:readline";
+import type { Event, IntegrationFn, StackFrame } from "@sentry/core";
+import { LRUMap, defineIntegration, logger, snipLine } from "@sentry/core";
+import { DEBUG_BUILD } from "../debug-build.js";
 
 const LRU_FILE_CONTENTS_CACHE = new LRUMap<string, Record<number, string>>(10);
 const LRU_FILE_CONTENTS_FS_READ_FAILED = new LRUMap<string, 1>(20);
 const DEFAULT_LINES_OF_CONTEXT = 7;
-const INTEGRATION_NAME = 'ContextLines';
+const INTEGRATION_NAME = "ContextLines";
 // Determines the upper bound of lineno/colno that we will attempt to read. Large colno values are likely to be
 // minified code while large lineno values are likely to be bundled code.
 // Exported for testing purposes.
@@ -36,7 +36,11 @@ export function resetFileContentCache(): void {
 /**
  * Get or init map value
  */
-function emplace<T extends LRUMap<K, V>, K extends string, V>(map: T, key: K, contents: V): V {
+function emplace<T extends LRUMap<K, V>, K extends string, V>(
+  map: T,
+  key: K,
+  contents: V,
+): V {
   const value = map.get(key);
 
   if (value === undefined) {
@@ -49,18 +53,18 @@ function emplace<T extends LRUMap<K, V>, K extends string, V>(map: T, key: K, co
 
 /**
  * Determines if context lines should be skipped for a file.
- * - .min.(mjs|cjs|js) files are and not useful since they dont point to the original source
+ * - .min.(mjs|cjs|js) files are and not useful since they don't point to the original source
  * - node: prefixed modules are part of the runtime and cannot be resolved to a file
  * - data: skip json, wasm and inline js https://nodejs.org/api/esm.html#data-imports
  */
 function shouldSkipContextLinesForFile(path: string): boolean {
   // Test the most common prefix and extension first. These are the ones we
   // are most likely to see in user applications and are the ones we can break out of first.
-  if (path.startsWith('node:')) return true;
-  if (path.endsWith('.min.js')) return true;
-  if (path.endsWith('.min.cjs')) return true;
-  if (path.endsWith('.min.mjs')) return true;
-  if (path.startsWith('data:')) return true;
+  if (path.startsWith("node:")) return true;
+  if (path.endsWith(".min.js")) return true;
+  if (path.endsWith(".min.cjs")) return true;
+  if (path.endsWith(".min.mjs")) return true;
+  if (path.startsWith("data:")) return true;
   return false;
 }
 
@@ -68,14 +72,19 @@ function shouldSkipContextLinesForFile(path: string): boolean {
  * Determines if we should skip contextlines based off the max lineno and colno values.
  */
 function shouldSkipContextLinesForFrame(frame: StackFrame): boolean {
-  if (frame.lineno !== undefined && frame.lineno > MAX_CONTEXTLINES_LINENO) return true;
-  if (frame.colno !== undefined && frame.colno > MAX_CONTEXTLINES_COLNO) return true;
+  if (frame.lineno !== undefined && frame.lineno > MAX_CONTEXTLINES_LINENO)
+    return true;
+  if (frame.colno !== undefined && frame.colno > MAX_CONTEXTLINES_COLNO)
+    return true;
   return false;
 }
 /**
  * Checks if we have all the contents that we need in the cache.
  */
-function rangeExistsInContentCache(file: string, range: ReadlineRange): boolean {
+function rangeExistsInContentCache(
+  file: string,
+  range: ReadlineRange,
+): boolean {
   const contents = LRU_FILE_CONTENTS_CACHE.get(file);
   if (contents === undefined) return false;
 
@@ -92,7 +101,10 @@ function rangeExistsInContentCache(file: string, range: ReadlineRange): boolean 
  * Creates contiguous ranges of lines to read from a file. In the case where context lines overlap,
  * the ranges are merged to create a single range.
  */
-function makeLineReaderRanges(lines: number[], linecontext: number): ReadlineRange[] {
+function makeLineReaderRanges(
+  lines: number[],
+  linecontext: number,
+): ReadlineRange[] {
   if (!lines.length) {
     return [];
   }
@@ -100,7 +112,7 @@ function makeLineReaderRanges(lines: number[], linecontext: number): ReadlineRan
   let i = 0;
   const line = lines[0];
 
-  if (typeof line !== 'number') {
+  if (typeof line !== "number") {
     return [];
   }
 
@@ -115,7 +127,7 @@ function makeLineReaderRanges(lines: number[], linecontext: number): ReadlineRan
 
     // If the next line falls into the current range, extend the current range to lineno + linecontext.
     const next = lines[i + 1];
-    if (typeof next !== 'number') {
+    if (typeof next !== "number") {
       break;
     }
     if (next <= current[1]) {
@@ -134,7 +146,11 @@ function makeLineReaderRanges(lines: number[], linecontext: number): ReadlineRan
 /**
  * Extracts lines from a file and stores them in a cache.
  */
-function getContextLinesFromFile(path: string, ranges: ReadlineRange[], output: Record<number, string>): Promise<void> {
+function getContextLinesFromFile(
+  path: string,
+  ranges: ReadlineRange[],
+  output: Record<number, string>,
+): Promise<void> {
   return new Promise((resolve, _reject) => {
     // It is important *not* to have any async code between createInterface and the 'line' event listener
     // as it will cause the 'line' event to
@@ -177,11 +193,11 @@ function getContextLinesFromFile(path: string, ranges: ReadlineRange[], output: 
 
     // We need to handle the error event to prevent the process from crashing in < Node 16
     // https://github.com/nodejs/node/pull/31603
-    stream.on('error', onStreamError);
-    lineRead.on('error', onStreamError);
-    lineRead.on('close', destroyStreamAndResolve);
+    stream.on("error", onStreamError);
+    lineRead.on("error", onStreamError);
+    lineRead.on("close", destroyStreamAndResolve);
 
-    lineRead.on('line', line => {
+    lineRead.on("line", (line) => {
       lineNumber++;
       if (lineNumber < rangeStart) return;
 
@@ -217,7 +233,10 @@ function getContextLinesFromFile(path: string, ranges: ReadlineRange[], output: 
  * failing reads from happening.
  */
 
-async function addSourceContext(event: Event, contextLines: number): Promise<Event> {
+async function addSourceContext(
+  event: Event,
+  contextLines: number,
+): Promise<Event> {
   // keep a lookup map of which files we've already enqueued to read,
   // so we don't enqueue the same file multiple times which would cause multiple i/o reads
   const filesToLines: Record<string, number[]> = {};
@@ -236,8 +255,8 @@ async function addSourceContext(event: Event, contextLines: number): Promise<Eve
 
         if (
           !frame ||
-          typeof filename !== 'string' ||
-          typeof frame.lineno !== 'number' ||
+          typeof filename !== "string" ||
+          typeof frame.lineno !== "number" ||
           shouldSkipContextLinesForFile(filename) ||
           shouldSkipContextLinesForFrame(frame)
         ) {
@@ -258,7 +277,7 @@ async function addSourceContext(event: Event, contextLines: number): Promise<Eve
 
   const readlinePromises: Promise<void>[] = [];
   for (const file of files) {
-    // If we failed to read this before, dont try reading it again.
+    // If we failed to read this before, don't try reading it again.
     if (LRU_FILE_CONTENTS_FS_READ_FAILED.get(file)) {
       continue;
     }
@@ -272,7 +291,7 @@ async function addSourceContext(event: Event, contextLines: number): Promise<Eve
     filesToLineRanges.sort((a, b) => a - b);
     // Check if the contents are already in the cache and if we can avoid reading the file again.
     const ranges = makeLineReaderRanges(filesToLineRanges, contextLines);
-    if (ranges.every(r => rangeExistsInContentCache(file, r))) {
+    if (ranges.every((r) => rangeExistsInContentCache(file, r))) {
       continue;
     }
 
@@ -282,15 +301,25 @@ async function addSourceContext(event: Event, contextLines: number): Promise<Eve
 
   // The promise rejections are caught in order to prevent them from short circuiting Promise.all
   await Promise.all(readlinePromises).catch(() => {
-    DEBUG_BUILD && logger.log('Failed to read one or more source files and resolve context lines');
+    DEBUG_BUILD &&
+      logger.log(
+        "Failed to read one or more source files and resolve context lines",
+      );
   });
 
   // Perform the same loop as above, but this time we can assume all files are in the cache
   // and attempt to add source context to frames.
   if (contextLines > 0 && event.exception?.values) {
     for (const exception of event.exception.values) {
-      if (exception.stacktrace?.frames && exception.stacktrace.frames.length > 0) {
-        addSourceContextToFrames(exception.stacktrace.frames, contextLines, LRU_FILE_CONTENTS_CACHE);
+      if (
+        exception.stacktrace?.frames &&
+        exception.stacktrace.frames.length > 0
+      ) {
+        addSourceContextToFrames(
+          exception.stacktrace.frames,
+          contextLines,
+          LRU_FILE_CONTENTS_CACHE,
+        );
       }
     }
   }
@@ -307,7 +336,11 @@ function addSourceContextToFrames(
 ): void {
   for (const frame of frames) {
     // Only add context if we have a filename and it hasn't already been added
-    if (frame.filename && frame.context_line === undefined && typeof frame.lineno === 'number') {
+    if (
+      frame.filename &&
+      frame.context_line === undefined &&
+      typeof frame.lineno === "number"
+    ) {
       const contents = cache.get(frame.filename);
       if (contents === undefined) {
         continue;
@@ -340,29 +373,34 @@ export function addContextToFrame(
   // When there is no line number in the frame, attaching context is nonsensical and will even break grouping.
   // We already check for lineno before calling this, but since StackFrame lineno ism optional, we check it again.
   if (frame.lineno === undefined || contents === undefined) {
-    DEBUG_BUILD && logger.error('Cannot resolve context for frame with no lineno or file contents');
+    DEBUG_BUILD &&
+      logger.error(
+        "Cannot resolve context for frame with no lineno or file contents",
+      );
     return;
   }
 
   frame.pre_context = [];
   for (let i = makeRangeStart(lineno, contextLines); i < lineno; i++) {
-    // We always expect the start context as line numbers cannot be negative. If we dont find a line, then
+    // We always expect the start context as line numbers cannot be negative. If we don't find a line, then
     // something went wrong somewhere. Clear the context and return without adding any linecontext.
     const line = contents[i];
     if (line === undefined) {
       clearLineContext(frame);
-      DEBUG_BUILD && logger.error(`Could not find line ${i} in file ${frame.filename}`);
+      DEBUG_BUILD &&
+        logger.error(`Could not find line ${i} in file ${frame.filename}`);
       return;
     }
 
     frame.pre_context.push(line);
   }
 
-  // We should always have the context line. If we dont, something went wrong, so we clear the context and return
+  // We should always have the context line. If we don't, something went wrong, so we clear the context and return
   // without adding any linecontext.
   if (contents[lineno] === undefined) {
     clearLineContext(frame);
-    DEBUG_BUILD && logger.error(`Could not find line ${lineno} in file ${frame.filename}`);
+    DEBUG_BUILD &&
+      logger.error(`Could not find line ${lineno} in file ${frame.filename}`);
     return;
   }
 
@@ -371,7 +409,7 @@ export function addContextToFrame(
   const end = makeRangeEnd(lineno, contextLines);
   frame.post_context = [];
   for (let i = lineno + 1; i <= end; i++) {
-    // Since we dont track when the file ends, we cant clear the context if we dont find a line as it could
+    // Since we don't track when the file ends, we cant clear the context if we don't find a line as it could
     // just be that we reached the end of the file.
     const line = contents[i];
     if (line === undefined) {
@@ -393,13 +431,21 @@ function makeRangeEnd(line: number, linecontext: number): number {
   return line + linecontext;
 }
 // Determine start and end indices for context range (inclusive);
-function makeContextRange(line: number, linecontext: number): [start: number, end: number] {
+function makeContextRange(
+  line: number,
+  linecontext: number,
+): [start: number, end: number] {
   return [makeRangeStart(line, linecontext), makeRangeEnd(line, linecontext)];
 }
 
 /** Exported only for tests, as a type-safe variant. */
-export const _contextLinesIntegration: any = ((options: ContextLinesOptions = {}) => {
-  const contextLines = options.frameContextLines !== undefined ? options.frameContextLines : DEFAULT_LINES_OF_CONTEXT;
+export const _contextLinesIntegration: any = ((
+  options: ContextLinesOptions = {},
+) => {
+  const contextLines =
+    options.frameContextLines !== undefined
+      ? options.frameContextLines
+      : DEFAULT_LINES_OF_CONTEXT;
 
   return {
     name: INTEGRATION_NAME,
@@ -412,4 +458,6 @@ export const _contextLinesIntegration: any = ((options: ContextLinesOptions = {}
 /**
  * Capture the lines before and after the frame's context.
  */
-export const contextLinesIntegration: any = defineIntegration(_contextLinesIntegration);
+export const contextLinesIntegration: any = defineIntegration(
+  _contextLinesIntegration,
+);

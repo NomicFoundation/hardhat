@@ -95,9 +95,9 @@ export const conditionalUnionType = (
       return;
     }
 
-    const zodeType = matchingCase[1];
+    const zodType = matchingCase[1];
 
-    const parsedData = zodeType.safeParse(data);
+    const parsedData = zodType.safeParse(data);
     if (parsedData.error !== undefined) {
       for (const issue of parsedData.error.issues) {
         ctx.addIssue(issue);

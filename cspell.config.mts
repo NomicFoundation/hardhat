@@ -23,5 +23,9 @@ export default defineConfig({
     "v-next/*/dist",
     "v-next/*/CHANGELOG.md",
     ".github/config/regression-tests.yml",
+    "v-next/hardhat-vendored/{src,test}/**/*",
+    "**/vendored/**/*",
+    "**/vendor/**/*",
+    "**/coverage/html/**/*",
   ],
 });
