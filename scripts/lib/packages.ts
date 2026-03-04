@@ -11,6 +11,7 @@ export async function readAllReleasablePackages() {
       ![
         "config",
         "example-project",
+        "example-project-solx",
         "template-package",
         "hardhat-test-utils",
         "hardhat-vendored",
