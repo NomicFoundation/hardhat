@@ -481,10 +481,16 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
       let solcLongVersion = solcVersionToLongVersion.get(solcConfig.version);
 
       if (solcLongVersion === undefined) {
-        const compiler = await getCompiler(solcConfig.version, {
-          preferWasm: resolvePreferWasm(solcConfig, buildProfile.preferWasm),
-          compilerPath: solcConfig.path,
-        });
+        const compiler = await this.#hooks.runHandlerChain(
+          "solidity",
+          "getCompiler",
+          [solcConfig],
+          async (_context, cfg) =>
+            getCompiler(cfg.version, {
+              preferWasm: resolvePreferWasm(cfg, buildProfile.preferWasm),
+              compilerPath: cfg.path,
+            }),
+        );
         solcLongVersion = compiler.longVersion;
         solcVersionToLongVersion.set(solcConfig.version, solcLongVersion);
         versionIsWasm.set(solcConfig.version, compiler.isSolcJs);
@@ -693,15 +699,15 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
 
     const { buildProfile } = this.#getBuildProfile(options?.buildProfile);
 
-    const compiler = await getCompiler(
-      runnableCompilationJob.solcConfig.version,
-      {
-        preferWasm: resolvePreferWasm(
-          runnableCompilationJob.solcConfig,
-          buildProfile.preferWasm,
-        ),
-        compilerPath: runnableCompilationJob.solcConfig.path,
-      },
+    const compiler = await this.#hooks.runHandlerChain(
+      "solidity",
+      "getCompiler",
+      [runnableCompilationJob.solcConfig],
+      async (_context, cfg) =>
+        getCompiler(cfg.version, {
+          preferWasm: resolvePreferWasm(cfg, buildProfile.preferWasm),
+          compilerPath: cfg.path,
+        }),
     );
 
     log(
@@ -1036,9 +1042,21 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
     // in the HH config, hence not downloaded with the other compilers
     await downloadSolcCompilers(new Set([buildInfo.solcVersion]), quiet);
 
-    const compiler = await getCompiler(buildInfo.solcVersion, {
-      preferWasm: false,
-    });
+    const compilerConfig: SolidityCompilerConfig = {
+      version: buildInfo.solcVersion,
+      settings: {},
+    };
+
+    const compiler = await this.#hooks.runHandlerChain(
+      "solidity",
+      "getCompiler",
+      [compilerConfig],
+      async (_context, cfg) =>
+        getCompiler(cfg.version, {
+          preferWasm: false,
+          compilerPath: cfg.path,
+        }),
+    );
 
     return compiler.compile(buildInfo.input);
   }
