@@ -5,7 +5,9 @@ import { postJsonRequest } from "@nomicfoundation/hardhat-utils/request";
 
 // These keys are expected to be public
 const ANALYTICS_URL = "https://www.google-analytics.com/mp/collect";
+/* cspell:disable-next-line */
 // const API_SECRET = "iXzTRik5RhahYpgiatSv1w"; // DEV
+/* cspell:disable-next-line */
 // const MEASUREMENT_ID = "G-ZFZWHGZ64H"; // DEV
 const API_SECRET = "fQ5joCsDRTOp55wX8a2cVw"; // PROD
 const MEASUREMENT_ID = "G-8LQ007N2QJ"; // PROD

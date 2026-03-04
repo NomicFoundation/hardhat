@@ -1,3 +1,4 @@
+// cSpell:ignore asdr asdjkhads asdasd asdas jhasd
 import type { ErrorDescriptor } from "../src/descriptors.js";
 import type {
   ErrorMessageTemplateValue,

@@ -227,7 +227,9 @@ m.readEventArgument(..., { id: "MyUniqueId"})`,
               id: "ReadEvent1",
             });
 
+            /* cspell:disable-next-line */
             m.send("first", "0xtest", 0n, "test");
+            /* cspell:disable-next-line */
             m.send("first", "0xtest", 0n, "test");
             return {};
           }),

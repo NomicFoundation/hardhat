@@ -1587,6 +1587,7 @@ describe("JSON-RPC client", function () {
   });
 
   describe("With a hardhat network that doesn't throw on transaction errors", function () {
+    /* cspell:disable-next-line */
     useHardhatProject("dont-throw-on-reverts");
 
     describe("sendTransaction", function () {

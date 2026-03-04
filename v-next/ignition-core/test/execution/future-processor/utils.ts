@@ -118,6 +118,7 @@ class MockJsonRpcClient implements JsonRpcClient {
     const blockNumber = this._blockNumber++;
 
     return {
+      /* cspell:disable-next-line */
       hash: `0xblockhash-${blockNumber}`,
       number: blockNumber,
     };

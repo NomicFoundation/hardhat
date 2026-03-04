@@ -1,5 +1,6 @@
 import { before, beforeEach, describe, it } from "node:test";
 
+/* cspell:disable-next-line */
 describe("Foooo", () => {
   it("test", async () => {});
 
@@ -8,6 +9,7 @@ describe("Foooo", () => {
   });
 
   describe("child", () => {
+    /* cspell:disable-next-line */
     it("asdasd", () => {
       const error = new Error("Different arrays", {
         cause: new Error("cause"),

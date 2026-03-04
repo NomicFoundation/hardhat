@@ -29,6 +29,7 @@ describe("Ethers plugin", () => {
     // Declare all the artifacts that we need during the test
     ({ ethers, artifactManager } = await initializeTestEthers([
       { artifactName: "Greeter", fileName: "greeter" },
+      /* cspell:disable-next-line */
       { artifactName: "IGreeter", fileName: "igreeter" },
       { artifactName: "TestContractLib", fileName: "test-contract-lib" },
       { artifactName: "TestLibrary", fileName: "test-library" },
