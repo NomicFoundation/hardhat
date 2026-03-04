@@ -4,8 +4,8 @@ export default defineConfig({
   version: "0.2",
   language: "en",
   files: [
-    "*.{js,ts,md,json}",
-    "{.github,scripts,v-next}/**/*.{js,ts,md,yml,yaml}",
+    "*.{js,ts,md,json,yml,yaml,mjs,cjs,mts,cts}",
+    "{.github,scripts,v-next}/**/*.{js,ts,md,json,yml,yaml,mjs,cjs,mts,cts}",
   ],
   ignoreRandomStrings: true,
   allowCompoundWords: true,
@@ -18,6 +18,7 @@ export default defineConfig({
   ],
   dictionaries: ["project-dictionary"],
   ignorePaths: [
+    "pnpm-lock.yaml",
     "node_modules",
     "v-next/*/node_modules",
     "v-next/*/dist",
@@ -27,5 +28,8 @@ export default defineConfig({
     "**/vendored/**/*",
     "**/vendor/**/*",
     "**/coverage/html/**/*",
+    "**/artifacts/**/*.json",
+    "**/artifacts/**/*.d.ts",
+    "**/build-info/**/*",
   ],
 });

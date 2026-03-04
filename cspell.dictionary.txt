@@ -79,6 +79,7 @@ mylib
 mylock
 napi
 niño
+NFKC
 Nomic
 nomiclabs
 normalise
