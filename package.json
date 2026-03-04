@@ -11,12 +11,13 @@
     "@types/node": "^24.1.0",
     "cspell": "9.7.0",
     "prettier": "3.2.5",
+    "rimraf": "^5.0.5",
     "typescript": "~5.8.0",
     "verdaccio": "^6.0.0"
   },
   "scripts": {
     "build": "pnpm run --recursive --if-present build",
-    "clean": "pnpm run --recursive --if-present clean",
+    "clean": "pnpm run --recursive --if-present clean && rimraf .verdaccio",
     "test": "pnpm run --recursive --if-present test",
     "test:scripts": "node --test ./scripts/**/*.test.ts",
     "prettier:scripts": "prettier \"scripts/**/*.{ts,json}\"",
