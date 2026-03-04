@@ -22,5 +22,6 @@ export default defineConfig({
     "v-next/*/node_modules",
     "v-next/*/dist",
     "v-next/*/CHANGELOG.md",
+    ".github/config/regression-tests.yml",
   ],
 });
