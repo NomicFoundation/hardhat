@@ -20,7 +20,7 @@
     "prelint:fix": "pnpm build",
     "lint:fix": "pnpm run --recursive --if-present lint:fix",
     "version-for-release": "pnpm changeset version && node scripts/bump-peers.mjs apply && pnpm -w install --lockfile-only",
-    "spellcheck": "cspell --no-progress || echo \"\\n\\n==== cspell failed ===\\n\\nIf you think a word is correctly spelled, please add it to cspell.dictionary.txt\\nTo ignore a word use the comments 'cSpell:ignore wooord' or 'cspell:disable-next-line'\""
+    "spellcheck": "cspell --no-progress || (echo \"\\n\\n==== cspell failed ===\\n\\nIf you think a word is correctly spelled, please add it to cspell.dictionary.txt\\nTo ignore a word use the comments 'cSpell:ignore wooord' or 'cspell:disable-next-line'\"; exit 1)"
   },
   "pnpm": {
     "onlyBuiltDependencies": [
