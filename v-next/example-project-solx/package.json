@@ -1,0 +1,24 @@
+{
+  "name": "@nomicfoundation/example-project-solx",
+  "private": true,
+  "version": "0.1.0",
+  "description": "Example project using Hardhat v3 with the hardhat-solx plugin",
+  "author": "Nomic Foundation",
+  "license": "MIT",
+  "type": "module",
+  "scripts": {
+    "lint": "pnpm prettier --check",
+    "lint:fix": "pnpm prettier --write",
+    "prettier": "prettier \"**/*.{ts,js,md,json}\"",
+    "build": "tsc --build .",
+    "clean": "rimraf dist artifacts cache"
+  },
+  "devDependencies": {
+    "hardhat": "workspace:^3.1.11",
+    "@nomicfoundation/hardhat-solx": "workspace:*",
+    "@types/node": "^22.0.0",
+    "prettier": "3.2.5",
+    "rimraf": "^5.0.5",
+    "typescript": "~5.8.0"
+  }
+}
