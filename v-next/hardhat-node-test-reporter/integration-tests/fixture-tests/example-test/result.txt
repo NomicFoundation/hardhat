@@ -3,8 +3,7 @@
   Foooo
     [90m[32m✔[39m[90m test[39m
     [31m1) test with cause[39m
-    childhere { a: [ 1, 2, 3 ], b: [ 1, 3, 3 ] }
-
+    child
       [31m2) asdasd[39m
 
   a
