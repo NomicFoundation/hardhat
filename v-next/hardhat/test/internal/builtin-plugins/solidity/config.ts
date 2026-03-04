@@ -7,6 +7,13 @@ import type {
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 
+// Extend compiler type definitions for testing non-solc types
+declare module "../../../../src/types/config.js" {
+  interface SolidityCompilerTypeDefinitions {
+    solx: true;
+  }
+}
+
 import { isSolcConfig } from "../../../../src/internal/builtin-plugins/solidity/build-system/build-system.js";
 import { missesSomeOfficialNativeBuilds } from "../../../../src/internal/builtin-plugins/solidity/build-system/solc-info.js";
 import {
