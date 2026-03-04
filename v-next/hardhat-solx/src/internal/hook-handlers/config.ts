@@ -2,11 +2,8 @@ import type {
   ConfigurationVariableResolver,
   HardhatConfig,
   HardhatUserConfig,
-  MultiVersionSolcUserConfig,
-  SingleVersionSolcUserConfig,
   SolidityUserConfig,
   SolxConfig,
-  SolxUserConfig,
 } from "hardhat/types/config";
 import type {
   ConfigHooks,
@@ -17,45 +14,22 @@ import { validateUserConfigZodType } from "@nomicfoundation/hardhat-zod-utils";
 import { z } from "zod";
 
 import {
-  DEFAULT_SOLX_SETTINGS,
-  LATEST_KNOWN_SOLX_VERSION,
+  SOLIDITY_TO_SOLX_VERSION_MAP,
   SUPPORTED_SOLX_EVM_VERSIONS,
 } from "../constants.js";
 
 const solxUserConfigType = z.object({
   solx: z
     .object({
-      version: z.string().optional(),
-      settings: z.record(z.unknown()).optional(),
       dangerouslyAllowSolxInProduction: z.boolean().optional(),
     })
     .optional(),
 });
 
 export default async (): Promise<Partial<ConfigHooks>> => ({
-  extendUserConfig,
   validateUserConfig,
   resolveUserConfig,
 });
-
-export async function extendUserConfig(
-  config: HardhatUserConfig,
-  next: (nextConfig: HardhatUserConfig) => Promise<HardhatUserConfig>,
-): Promise<HardhatUserConfig> {
-  const extendedConfig = await next(config);
-
-  const solidity = extendedConfig.solidity;
-  if (solidity === undefined) {
-    return extendedConfig;
-  }
-
-  // If user already has a custom test profile, don't override it
-  if (hasCustomTestProfile(solidity)) {
-    return extendedConfig;
-  }
-
-  return addTestProfile(extendedConfig, solidity);
-}
 
 export async function validateUserConfig(
   userConfig: HardhatUserConfig,
@@ -64,7 +38,9 @@ export async function validateUserConfig(
 
   if (userConfig.solidity !== undefined) {
     errors.push(...validateEvmVersions(userConfig.solidity));
+    errors.push(...validateSolidityVersions(userConfig.solidity));
     errors.push(...validateProductionProfile(userConfig));
+    errors.push(...validatePluginIsUseful(userConfig.solidity));
   }
 
   return errors;
@@ -80,96 +56,80 @@ export async function resolveUserConfig(
 ): Promise<HardhatConfig> {
   const resolvedConfig = await next(userConfig, resolveConfigurationVariable);
 
+  // Register "solx" as a known compiler type
+  resolvedConfig.solidity.registeredCompilerTypes.push("solx");
+
+  // Add "test" build profile if not already present
+  addTestProfile(resolvedConfig);
+
   return {
     ...resolvedConfig,
     solx: resolveSolxConfig(userConfig.solx),
   };
 }
 
-function resolveSolxConfig(userConfig?: SolxUserConfig): SolxConfig {
+function resolveSolxConfig(userConfig?: {
+  dangerouslyAllowSolxInProduction?: boolean;
+}): SolxConfig {
   return {
-    version: userConfig?.version ?? LATEST_KNOWN_SOLX_VERSION,
-    settings: userConfig?.settings ?? DEFAULT_SOLX_SETTINGS,
+    dangerouslyAllowSolxInProduction:
+      userConfig?.dangerouslyAllowSolxInProduction ?? false,
   };
 }
 
-function hasCustomTestProfile(solidity: SolidityUserConfig): boolean {
-  return (
-    typeof solidity === "object" &&
-    !Array.isArray(solidity) &&
-    "profiles" in solidity &&
-    "test" in solidity.profiles
-  );
-}
+/**
+ * Add a "test" build profile by cloning the resolved "default" profile and
+ * setting type: "solx" on compilers whose Solidity version is in the
+ * supported version map.
+ *
+ * Operates on the fully-resolved config (SolidityBuildProfileConfig shape),
+ * avoiding the complexity of handling all 5 user config forms.
+ */
+function addTestProfile(resolvedConfig: HardhatConfig): void {
+  const profiles = resolvedConfig.solidity.profiles;
 
-function addTestProfile(
-  config: HardhatUserConfig,
-  solidity: SolidityUserConfig,
-): HardhatUserConfig {
-  // String: "0.8.28"
-  if (typeof solidity === "string") {
-    return {
-      ...config,
-      solidity: {
-        profiles: {
-          default: { version: solidity },
-          test: { version: solidity, type: "solx" },
-        },
-      },
-    };
+  // If user already has a custom test profile, don't override it
+  if (profiles.test !== undefined) {
+    return;
   }
 
-  // Array: ["0.8.24", "0.8.25"]
-  if (Array.isArray(solidity)) {
-    return {
-      ...config,
-      solidity: {
-        profiles: {
-          default: {
-            compilers: solidity.map((v) => ({ version: v })),
-          },
-          test: {
-            compilers: solidity.map((v) => ({ version: v, type: "solx" })),
-          },
-        },
-      },
-    };
+  const defaultProfile = profiles.default;
+  if (defaultProfile === undefined) {
+    return;
   }
 
-  // Build profiles: { profiles: { default: {...} } }
-  if ("profiles" in solidity) {
-    const defaultProfile = solidity.profiles.default;
-    return {
-      ...config,
-      solidity: {
-        ...solidity,
-        profiles: {
-          ...solidity.profiles,
-          test: cloneWithSolxType(defaultProfile),
+  profiles.test = {
+    isolated: defaultProfile.isolated,
+    preferWasm: defaultProfile.preferWasm,
+    compilers: defaultProfile.compilers.map((compiler) => ({
+      ...compiler,
+      // Only set type: "solx" for versions we support
+      type:
+        compiler.version in SOLIDITY_TO_SOLX_VERSION_MAP
+          ? ("solx" as const)
+          : compiler.type,
+      // Strip settings for solx entries (solx defaults are injected in SolxCompiler)
+      settings:
+        compiler.version in SOLIDITY_TO_SOLX_VERSION_MAP
+          ? {}
+          : compiler.settings,
+    })),
+    overrides: Object.fromEntries(
+      Object.entries(defaultProfile.overrides).map(([key, compiler]) => [
+        key,
+        {
+          ...compiler,
+          type:
+            compiler.version in SOLIDITY_TO_SOLX_VERSION_MAP
+              ? ("solx" as const)
+              : compiler.type,
+          settings:
+            compiler.version in SOLIDITY_TO_SOLX_VERSION_MAP
+              ? {}
+              : compiler.settings,
         },
-      },
-    };
-  }
-
-  // Single/multi version object: { version: ... } or { compilers: [...] }
-  // Extract npmFilesToBuild (from CommonSolidityUserConfig) separately
-  const {
-    npmFilesToBuild,
-    ...defaultProfileContent
-  }: { npmFilesToBuild?: string[] } & (
-    | SingleVersionSolcUserConfig
-    | MultiVersionSolcUserConfig
-  ) = solidity;
-
-  return {
-    ...config,
-    solidity: {
-      profiles: {
-        default: defaultProfileContent,
-        test: cloneWithSolxType(defaultProfileContent),
-      },
-      ...(npmFilesToBuild !== undefined ? { npmFilesToBuild } : {}),
-    },
+      ]),
+    ),
   };
 }
 
@@ -197,6 +157,66 @@ function validateEvmVersions(
   }
 
   return errors;
+}
+
+/**
+ * Validate that compilers with type: "solx" use a Solidity version that
+ * is in the supported version map.
+ */
+function validateSolidityVersions(
+  solidity: SolidityUserConfig,
+): HardhatUserConfigValidationError[] {
+  const errors: HardhatUserConfigValidationError[] = [];
+  const supportedVersions = Object.keys(SOLIDITY_TO_SOLX_VERSION_MAP);
+
+  for (const { path, entry } of iterateCompilerEntries(solidity)) {
+    if (entry.type !== "solx") {
+      continue;
+    }
+
+    if (
+      entry.version !== undefined &&
+      !(entry.version in SOLIDITY_TO_SOLX_VERSION_MAP)
+    ) {
+      errors.push({
+        path: [...path, "version"],
+        message: `Solidity version "${entry.version}" is not supported by solx. Supported versions: ${supportedVersions.join(", ")}.`,
+      });
+    }
+  }
+
+  return errors;
+}
+
+/**
+ * Check that at least one compiler version in the config is supported by solx.
+ * If the plugin is installed but no versions are compatible, emit an error.
+ */
+function validatePluginIsUseful(
+  solidity: SolidityUserConfig,
+): HardhatUserConfigValidationError[] {
+  const allVersions = getAllCompilerVersions(solidity);
+
+  // If no solidity config at all, skip this check
+  if (allVersions.length === 0) {
+    return [];
+  }
+
+  const hasSupported = allVersions.some(
+    (v) => v in SOLIDITY_TO_SOLX_VERSION_MAP,
+  );
+
+  if (!hasSupported) {
+    const supportedVersions = Object.keys(SOLIDITY_TO_SOLX_VERSION_MAP);
+    return [
+      {
+        path: ["solidity"],
+        message: `The hardhat-solx plugin is installed but none of the configured Solidity versions are supported by solx. Supported versions: ${supportedVersions.join(", ")}. Either add a supported version or remove the plugin.`,
+      },
+    ];
+  }
+
+  return [];
 }
 
 function validateProductionProfile(
@@ -305,33 +325,34 @@ function iterateCompilerEntries(
 }
 
 /**
- * Clone a profile, setting compiler type to "solx" and keeping only the
- * version. Strips settings, path, preferWasm, etc.
- * This mirrors core's `copyFromDefault` behavior.
+ * Extract all Solidity compiler versions from the user config, regardless
+ * of shape (string, array, single, multi, profiles).
  */
-function cloneWithSolxType(
-  profile: SingleVersionSolcUserConfig | MultiVersionSolcUserConfig,
-): SingleVersionSolcUserConfig | MultiVersionSolcUserConfig {
-  // Single version: { version: "0.8.28", ... }
-  if ("version" in profile) {
-    return { version: profile.version, type: "solx" };
+function getAllCompilerVersions(solidity: SolidityUserConfig): string[] {
+  if (typeof solidity === "string") {
+    return [solidity];
   }
-
-  // Multi version: { compilers: [...], overrides: {...} }
-  return {
-    compilers: profile.compilers.map((c) => ({
-      version: c.version,
-      type: "solx" as const,
-    })),
-    ...(profile.overrides !== undefined
-      ? {
-          overrides: Object.fromEntries(
-            Object.entries(profile.overrides).map(([key, val]) => [
-              key,
-              { version: val.version, type: "solx" as const },
-            ]),
-          ),
+  if (Array.isArray(solidity)) {
+    return solidity;
+  }
+  if ("profiles" in solidity) {
+    const versions: string[] = [];
+    for (const profile of Object.values(solidity.profiles)) {
+      if ("version" in profile) {
+        versions.push(profile.version);
+      } else if ("compilers" in profile) {
+        for (const compiler of profile.compilers) {
+          versions.push(compiler.version);
         }
-      : {}),
-  };
+      }
+    }
+    return versions;
+  }
+  if ("version" in solidity) {
+    return [solidity.version];
+  }
+  if ("compilers" in solidity) {
+    return solidity.compilers.map((c) => c.version);
+  }
+  return [];
 }
