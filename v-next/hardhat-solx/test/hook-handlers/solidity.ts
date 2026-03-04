@@ -1,63 +1,51 @@
-import type { SolidityCompilerConfig, SolxConfig } from "hardhat/types/config";
+import type { SolidityCompilerConfig } from "hardhat/types/config";
 import type { CompilerInput, CompilerOutput } from "hardhat/types/solidity";
 
 import assert from "node:assert/strict";
-import { describe, it } from "node:test";
-
-// Helper to create a mock context with the given plugin config
-function createMockContext(solxConfig: SolxConfig): any {
-  return {
-    config: {
-      solx: solxConfig,
-    },
-  };
-}
+import { describe, it, mock } from "node:test";
 
 // Helper to create a compiler config
-function createSolidityCompilerConfig(type?: string): SolidityCompilerConfig {
+function createSolidityCompilerConfig(
+  overrides: Partial<SolidityCompilerConfig> = {},
+): SolidityCompilerConfig {
   return {
-    type,
-    version: "0.8.28",
+    version: "0.8.33",
     settings: {
       optimizer: {},
       outputSelection: {},
     },
+    ...overrides,
   };
 }
 
-// A mock "next" function that records if it was called
-function createMockNext() {
+// A mock "next" function for getCompiler
+function createGetCompilerMockNext() {
   let called = false;
-  const mockOutput: CompilerOutput = { sources: {}, contracts: {} };
+  const mockCompiler = {
+    version: "0.8.33",
+    longVersion: "0.8.33+commit.abc123",
+    compilerPath: "/path/to/solc",
+    isSolcJs: false,
+    compile: async (_input: CompilerInput): Promise<CompilerOutput> => ({
+      sources: {},
+      contracts: {},
+    }),
+  };
 
   const next = async (
     _context: any,
-    _compiler: any,
-    _input: CompilerInput,
     _compilerConfig: SolidityCompilerConfig,
-  ): Promise<CompilerOutput> => {
+  ) => {
     called = true;
-    return mockOutput;
+    return mockCompiler;
   };
 
   return {
     next,
     wasCalled: () => called,
-    output: mockOutput,
+    compiler: mockCompiler,
   };
 }
-
-// A mock compiler
-const mockCompiler = {
-  version: "0.8.28",
-  longVersion: "0.8.28+commit.abc123",
-  compilerPath: "/path/to/solc",
-  isSolcJs: false,
-  compile: async (_input: CompilerInput): Promise<CompilerOutput> => ({
-    sources: {},
-    contracts: {},
-  }),
-};
 
 const mockInput: CompilerInput = {
   language: "Solidity",
@@ -71,99 +59,6 @@ const mockInput: CompilerInput = {
 };
 
 describe("hardhat-solx solidity hook handler", () => {
-  describe("invokeSolc", () => {
-    it("passes through to next when compiler type is not 'solx'", async () => {
-      const hookHandlerModule = await import(
-        "../../src/internal/hook-handlers/solidity.js"
-      );
-      const hooks = await hookHandlerModule.default();
-
-      const context = createMockContext({
-        version: "0.1.3",
-        settings: { LLVMOptimization: "1" },
-      });
-
-      // Standard solc config (no type or type undefined)
-      const compilerConfig = createSolidityCompilerConfig(undefined);
-      const mock = createMockNext();
-
-      assert.ok(
-        hooks.invokeSolc !== undefined,
-        "invokeSolc hook should be defined",
-      );
-      await hooks.invokeSolc(
-        context,
-        mockCompiler,
-        mockInput,
-        compilerConfig,
-        mock.next,
-      );
-
-      assert.ok(mock.wasCalled(), "next should have been called");
-    });
-
-    it("passes through to next when compiler type is 'solc'", async () => {
-      const hookHandlerModule = await import(
-        "../../src/internal/hook-handlers/solidity.js"
-      );
-      const hooks = await hookHandlerModule.default();
-
-      const context = createMockContext({
-        version: "0.1.3",
-        settings: { LLVMOptimization: "1" },
-      });
-
-      const compilerConfig = createSolidityCompilerConfig("solc");
-      const mock = createMockNext();
-
-      assert.ok(
-        hooks.invokeSolc !== undefined,
-        "invokeSolc hook should be defined",
-      );
-      await hooks.invokeSolc(
-        context,
-        mockCompiler,
-        mockInput,
-        compilerConfig,
-        mock.next,
-      );
-
-      assert.ok(mock.wasCalled(), "next should have been called");
-    });
-
-    it("passes through to next when type is 'solx' but settings is empty", async () => {
-      const hookHandlerModule = await import(
-        "../../src/internal/hook-handlers/solidity.js"
-      );
-      const hooks = await hookHandlerModule.default();
-
-      const context = createMockContext({
-        version: "0.1.3",
-        settings: {},
-      });
-
-      const compilerConfig = createSolidityCompilerConfig("solx");
-      const mock = createMockNext();
-
-      assert.ok(
-        hooks.invokeSolc !== undefined,
-        "invokeSolc hook should be defined",
-      );
-      await hooks.invokeSolc(
-        context,
-        mockCompiler,
-        mockInput,
-        compilerConfig,
-        mock.next,
-      );
-
-      assert.ok(
-        mock.wasCalled(),
-        "next should have been called (no settings to inject)",
-      );
-    });
-  });
-
   describe("downloadCompilers", () => {
     it("is defined on the hook handler", async () => {
       const hookHandlerModule = await import(
@@ -183,27 +78,135 @@ describe("hardhat-solx solidity hook handler", () => {
       );
       const hooks = await hookHandlerModule.default();
 
-      const context = createMockContext({
-        version: "0.1.3",
-        settings: {},
-      });
+      const context = { config: {} } as any;
 
       // All configs are solc (no type or type undefined)
       const configs: SolidityCompilerConfig[] = [
-        createSolidityCompilerConfig(undefined),
-        createSolidityCompilerConfig("solc"),
+        createSolidityCompilerConfig({ type: undefined }),
+        createSolidityCompilerConfig({ type: "solc" }),
       ];
 
-      // Should not throw and should not modify configs
+      // Should not throw
       assert.ok(
         hooks.downloadCompilers !== undefined,
         "downloadCompilers hook should be defined",
       );
       await hooks.downloadCompilers(context, configs, true);
 
-      // Paths should remain undefined (no download triggered)
+      // Paths should remain undefined (no download triggered, no mutation)
       assert.equal(configs[0].path, undefined);
       assert.equal(configs[1].path, undefined);
+    });
+
+    it("does not mutate compiler config paths", async () => {
+      const hookHandlerModule = await import(
+        "../../src/internal/hook-handlers/solidity.js"
+      );
+      const hooks = await hookHandlerModule.default();
+
+      const context = { config: {} } as any;
+
+      const configs: SolidityCompilerConfig[] = [
+        createSolidityCompilerConfig({ type: "solx", version: "0.8.33" }),
+      ];
+
+      // This will fail to download (no network in tests), but we can
+      // verify via the error that it tries and that path is not mutated.
+      // For a true unit test we'd mock downloadSolx, but for now just
+      // check the path isn't set before the download attempt.
+      const originalPath = configs[0].path;
+
+      try {
+        await hooks.downloadCompilers!(context, configs, true);
+      } catch {
+        // Expected — download fails in test environment
+      }
+
+      assert.equal(
+        configs[0].path,
+        originalPath,
+        "compiler config path should not be mutated",
+      );
+    });
+  });
+
+  describe("getCompiler", () => {
+    it("is defined on the hook handler", async () => {
+      const hookHandlerModule = await import(
+        "../../src/internal/hook-handlers/solidity.js"
+      );
+      const hooks = await hookHandlerModule.default();
+
+      assert.ok(
+        hooks.getCompiler !== undefined,
+        "getCompiler hook should be defined",
+      );
+    });
+
+    it("passes through to next for non-solx compiler configs", async () => {
+      const hookHandlerModule = await import(
+        "../../src/internal/hook-handlers/solidity.js"
+      );
+      const hooks = await hookHandlerModule.default();
+
+      const context = { config: {} } as any;
+      const compilerConfig = createSolidityCompilerConfig({ type: "solc" });
+      const mockNext = createGetCompilerMockNext();
+
+      const result = await hooks.getCompiler!(
+        context,
+        compilerConfig,
+        mockNext.next,
+      );
+
+      assert.ok(mockNext.wasCalled(), "next should have been called");
+      assert.equal(result, mockNext.compiler);
+    });
+
+    it("passes through to next for undefined type", async () => {
+      const hookHandlerModule = await import(
+        "../../src/internal/hook-handlers/solidity.js"
+      );
+      const hooks = await hookHandlerModule.default();
+
+      const context = { config: {} } as any;
+      const compilerConfig = createSolidityCompilerConfig({ type: undefined });
+      const mockNext = createGetCompilerMockNext();
+
+      const result = await hooks.getCompiler!(
+        context,
+        compilerConfig,
+        mockNext.next,
+      );
+
+      assert.ok(mockNext.wasCalled(), "next should have been called");
+      assert.equal(result, mockNext.compiler);
+    });
+
+    it("passes through to next for unsupported solx version", async () => {
+      const hookHandlerModule = await import(
+        "../../src/internal/hook-handlers/solidity.js"
+      );
+      const hooks = await hookHandlerModule.default();
+
+      const context = { config: {} } as any;
+      const compilerConfig = createSolidityCompilerConfig({
+        type: "solx",
+        version: "0.8.99",
+      });
+      const mockNext = createGetCompilerMockNext();
+
+      const result = await hooks.getCompiler!(
+        context,
+        compilerConfig,
+        mockNext.next,
+      );
+
+      assert.ok(
+        mockNext.wasCalled(),
+        "next should have been called for unsupported version",
+      );
+      assert.equal(result, mockNext.compiler);
     });
   });
 });

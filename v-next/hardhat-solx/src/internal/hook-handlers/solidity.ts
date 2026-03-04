@@ -1,68 +1,64 @@
-import type { SolxConfig } from "hardhat/types/config";
 import type { SolidityHooks } from "hardhat/types/hooks";
 
 import debug from "debug";
 
-import { downloadSolx } from "../downloader.js";
+import {
+  DEFAULT_SOLX_SETTINGS,
+  SOLIDITY_TO_SOLX_VERSION_MAP,
+} from "../constants.js";
+import { downloadSolx, getSolxBinaryPath } from "../downloader.js";
 import { SolxCompiler } from "../solx-compiler.js";
 
 const log = debug("hardhat:solx:hook-handlers:solidity");
 
-export default async (): Promise<Partial<SolidityHooks>> => {
-  let solxCompilerCache: SolxCompiler | undefined;
+export default async (): Promise<Partial<SolidityHooks>> => ({
+  downloadCompilers: async (_context, compilerConfigs, quiet) => {
+    const solxConfigs = compilerConfigs.filter((c) => c.type === "solx");
 
-  return {
-    downloadCompilers: async (context, compilerConfigs, quiet) => {
-      const solxConfigs = compilerConfigs.filter((c) => c.type === "solx");
+    if (solxConfigs.length === 0) {
+      return;
+    }
 
-      if (solxConfigs.length === 0) {
-        return;
+    // Collect unique solx versions to download
+    const solxVersions = new Set<string>();
+    for (const config of solxConfigs) {
+      const solxVersion = SOLIDITY_TO_SOLX_VERSION_MAP[config.version];
+      if (solxVersion !== undefined) {
+        solxVersions.add(solxVersion);
       }
+    }
 
-      const solxConfig: SolxConfig = context.config.solx;
-
+    for (const solxVersion of solxVersions) {
       if (!quiet) {
-        console.log(`Downloading solx ${solxConfig.version}`);
+        console.log(`Downloading solx ${solxVersion}`);
       }
 
-      const solxPath = await downloadSolx(solxConfig.version);
+      const solxPath = await downloadSolx(solxVersion);
+      log(`Downloaded solx ${solxVersion} to ${solxPath}`);
+    }
+  },
 
-      log(
-        `Downloaded solx ${solxConfig.version} to ${solxPath}, setting path on ${solxConfigs.length} solx compiler(s)`,
-      );
+  getCompiler: async (context, compilerConfig, next) => {
+    if (compilerConfig.type !== "solx") {
+      return next(context, compilerConfig);
+    }
 
-      // Set the compiler path on each solx-typed entry so the core build system
-      // uses getCompilerFromPath() with this binary.
-      for (const config of solxConfigs) {
-        config.path = solxPath;
-      }
-    },
+    const solxVersion = SOLIDITY_TO_SOLX_VERSION_MAP[compilerConfig.version];
+    if (solxVersion === undefined) {
+      // Should not happen — validated in config validation
+      return next(context, compilerConfig);
+    }
 
-    invokeSolc: async (context, compiler, solcInput, compilerConfig, next) => {
-      const solxConfig: SolxConfig = context.config.solx;
+    const binaryPath = await getSolxBinaryPath(solxVersion);
 
-      // Only intercept solx-typed compilations to inject plugin config settings
-      if (
-        compilerConfig.type !== "solx" ||
-        Object.keys(solxConfig.settings).length === 0
-      ) {
-        return next(context, compiler, solcInput, compilerConfig);
-      }
+    log(
+      `Creating SolxCompiler for Solidity ${compilerConfig.version} (solx ${solxVersion}) at ${binaryPath}`,
+    );
 
-      log(
-        `Using solx compiler with extra settings: ${JSON.stringify(solxConfig.settings)}`,
-      );
-
-      // Reuse the compiler path from the NativeCompiler the core already
-      // created, but compile with our SolxCompiler to inject extra settings.
-      if (solxCompilerCache === undefined) {
-        solxCompilerCache = new SolxCompiler(
-          compiler.compilerPath,
-          solxConfig.settings,
-        );
-      }
-
-      return solxCompilerCache.compile(solcInput);
-    },
-  };
-};
+    return new SolxCompiler(
+      compilerConfig.version,
+      binaryPath,
+      DEFAULT_SOLX_SETTINGS,
+    );
+  },
+});
