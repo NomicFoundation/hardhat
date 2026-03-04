@@ -44,7 +44,9 @@ export class SolcConfigSelector {
    */
   public selectBestSolcConfigForSingleRootGraph(
     subgraph: DependencyGraph,
-  ): { success: true; config: SolidityCompilerConfig } | CompilationJobCreationError {
+  ):
+    | { success: true; config: SolidityCompilerConfig }
+    | CompilationJobCreationError {
     const roots = subgraph.getRoots();
 
     assertHardhatInvariant(

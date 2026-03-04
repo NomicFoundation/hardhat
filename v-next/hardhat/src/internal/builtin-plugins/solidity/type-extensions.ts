@@ -20,8 +20,25 @@ declare module "../../../types/config.js" {
     | MultiVersionSolidityUserConfig
     | BuildProfilesSolidityUserConfig;
 
+  /**
+   * An interface with a key per compiler type.
+   * The types of the values don't matter; we use `true` as a convention.
+   *
+   * By default, only "solc" is provided. Plugins can extend this via
+   * declaration merging to add new compiler types (e.g. "solx").
+   */
+  export interface SolidityCompilerTypeDefinitions {
+    solc: true;
+  }
+
+  /**
+   * The different Solidity compiler types, derived from
+   * SolidityCompilerTypeDefinitions. Extensible via declaration merging.
+   */
+  export type SolidityCompilerType = keyof SolidityCompilerTypeDefinitions;
+
   export interface SolidityCompilerUserConfig {
-    type?: string;
+    type?: SolidityCompilerType;
     version: string;
     settings?: any;
     path?: string;
@@ -68,7 +85,7 @@ declare module "../../../types/config.js" {
   }
 
   export interface SolidityCompilerConfig {
-    type?: string;
+    type?: SolidityCompilerType;
     version: string;
     settings: any;
     path?: string;
