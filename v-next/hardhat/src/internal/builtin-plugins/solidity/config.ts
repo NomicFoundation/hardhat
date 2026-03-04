@@ -276,6 +276,7 @@ function resolveSolidityConfig(
         ),
       },
       npmFilesToBuild: [],
+      registeredCompilerTypes: ["solc"],
     };
   }
 
@@ -290,6 +291,7 @@ function resolveSolidityConfig(
         ),
       },
       npmFilesToBuild: solidityConfig.npmFilesToBuild ?? [],
+      registeredCompilerTypes: ["solc"],
     };
   }
 
@@ -319,6 +321,7 @@ function resolveSolidityConfig(
   return {
     profiles,
     npmFilesToBuild: solidityConfig.npmFilesToBuild ?? [],
+    registeredCompilerTypes: ["solc"],
   };
 }
 

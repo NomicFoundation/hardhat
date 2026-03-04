@@ -93,6 +93,20 @@ export interface ConfigHooks {
       nextResolveConfigurationVariable: ConfigurationVariableResolver,
     ) => Promise<HardhatConfig>,
   ) => Promise<HardhatConfig>;
+
+  /**
+   * Provide a handler for this hook to validate the resolved config.
+   *
+   * This hook runs after all plugins have resolved their config. Use it to
+   * validate cross-cutting concerns that require the fully resolved config
+   * (e.g., checking that all compiler types are registered).
+   *
+   * @param resolvedConfig The fully resolved config.
+   * @returns An array of validation errors.
+   */
+  validateResolvedConfig: (
+    resolvedConfig: HardhatConfig,
+  ) => Promise<HardhatUserConfigValidationError[]>;
 }
 
 /**

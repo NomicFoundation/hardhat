@@ -10,23 +10,7 @@ describe("Version string parsing", () => {
     assert.equal(parseVersionFromOutput(stdout), "0.8.28+commit.7893614a");
   });
 
-  it("parses plain semver and synthesizes +custom long version", () => {
-    const stdout = "0.8.28";
-    assert.equal(parseVersionFromOutput(stdout), "0.8.28+custom");
-  });
-
-  it("parses solx-style version output", () => {
-    const stdout = "solc v0.8.28, LLVM revision v1.0.1";
-    assert.equal(parseVersionFromOutput(stdout), "0.8.28+custom");
-  });
-
-  it("parses solx --version with multiline output", () => {
-    const stdout =
-      "Solidity compiler for the EraVM and EVM\nVersion: 0.8.28\nBuild timestamp: 2024-12-01";
-    assert.equal(parseVersionFromOutput(stdout), "0.8.28+custom");
-  });
-
-  it("prefers +commit format over plain semver when both present", () => {
+  it("prefers +commit format when present in multi-line output", () => {
     const stdout = "Version: 0.8.28+commit.7893614a (also 0.8.28)";
     assert.equal(parseVersionFromOutput(stdout), "0.8.28+commit.7893614a");
   });
@@ -37,8 +21,14 @@ describe("Version string parsing", () => {
     assert.equal(parseVersionFromOutput("version unknown"), null);
   });
 
-  it("handles version string with pre-release tag (no +commit)", () => {
-    const stdout = "0.8.28-alpha.1";
-    assert.equal(parseVersionFromOutput(stdout), "0.8.28+custom");
+  it("returns null for plain semver without +commit", () => {
+    assert.equal(parseVersionFromOutput("0.8.28"), null);
+  });
+
+  it("returns null for solx-style version output without +commit", () => {
+    assert.equal(
+      parseVersionFromOutput("solc v0.8.28, LLVM revision v1.0.1"),
+      null,
+    );
   });
 });

@@ -14,12 +14,15 @@ declare module "../../../../src/types/config.js" {
   }
 }
 
+import type { HardhatConfig } from "../../../../src/types/config.js";
+
 import { isSolcConfig } from "../../../../src/internal/builtin-plugins/solidity/build-system/build-system.js";
 import { missesSomeOfficialNativeBuilds } from "../../../../src/internal/builtin-plugins/solidity/build-system/solc-info.js";
 import {
   resolveSolidityUserConfig,
   validateSolidityUserConfig,
 } from "../../../../src/internal/builtin-plugins/solidity/config.js";
+import configHandlerFactory from "../../../../src/internal/builtin-plugins/solidity/hook-handlers/config.js";
 
 describe("solidity plugin config validation", () => {
   describe("sources paths", () => {
@@ -1056,5 +1059,115 @@ describe("isSolcConfig type guard", () => {
       settings: {},
     };
     assert.equal(isSolcConfig(config), false);
+  });
+});
+
+describe("validateResolvedConfig — compiler type registration", () => {
+  // eslint-disable-next-line @typescript-eslint/consistent-type-assertions -- test helper
+  const makeConfig = (
+    profiles: HardhatConfig["solidity"]["profiles"],
+    registeredCompilerTypes: string[],
+  ) =>
+    ({
+      solidity: {
+        profiles,
+        npmFilesToBuild: [],
+        registeredCompilerTypes,
+      },
+    }) as unknown as HardhatConfig;
+
+  const makeProfile = (
+    compilers: Array<{ version: string; type?: string }>,
+    overrides: Record<string, { version: string; type?: string }> = {},
+  ): HardhatConfig["solidity"]["profiles"][string] =>
+    // eslint-disable-next-line @typescript-eslint/consistent-type-assertions -- test helper
+    ({
+      compilers: compilers.map((c) => ({ ...c, settings: {} })),
+      overrides: Object.fromEntries(
+        Object.entries(overrides).map(([k, v]) => [k, { ...v, settings: {} }]),
+      ),
+      isolated: false,
+      preferWasm: false,
+    }) as HardhatConfig["solidity"]["profiles"][string];
+
+  it("should produce no errors when all compiler types are registered", async () => {
+    const handlers = await configHandlerFactory();
+    const config = makeConfig(
+      { default: makeProfile([{ version: "0.8.28" }]) },
+      ["solc"],
+    );
+    const errors = await handlers.validateResolvedConfig!(config);
+    assert.deepEqual(errors, []);
+  });
+
+  it("should produce an error for an unknown compiler type in compilers[]", async () => {
+    const handlers = await configHandlerFactory();
+    const config = makeConfig(
+      {
+        default: makeProfile([{ version: "0.8.28", type: "solx" }]),
+      },
+      ["solc"],
+    );
+    const errors = await handlers.validateResolvedConfig!(config);
+    assert.equal(errors.length, 1, "Should produce exactly one error");
+    assert.ok(
+      errors[0].message.includes('"solx"'),
+      "Error should mention the unknown type",
+    );
+    assert.deepEqual(errors[0].path, [
+      "solidity",
+      "profiles",
+      "default",
+      "compilers",
+      0,
+      "type",
+    ]);
+  });
+
+  it("should produce no errors when solx is registered", async () => {
+    const handlers = await configHandlerFactory();
+    const config = makeConfig(
+      {
+        default: makeProfile([{ version: "0.8.28", type: "solx" }]),
+      },
+      ["solc", "solx"],
+    );
+    const errors = await handlers.validateResolvedConfig!(config);
+    assert.deepEqual(errors, []);
+  });
+
+  it("should detect unknown types in overrides", async () => {
+    const handlers = await configHandlerFactory();
+    const config = makeConfig(
+      {
+        default: makeProfile([{ version: "0.8.28" }], {
+          "Contract.sol": { version: "0.8.28", type: "solx" },
+        }),
+      },
+      ["solc"],
+    );
+    const errors = await handlers.validateResolvedConfig!(config);
+    assert.equal(errors.length, 1, "Should produce exactly one error");
+    assert.deepEqual(errors[0].path, [
+      "solidity",
+      "profiles",
+      "default",
+      "overrides",
+      "Contract.sol",
+      "type",
+    ]);
+  });
+
+  it("should collect errors across multiple profiles", async () => {
+    const handlers = await configHandlerFactory();
+    const config = makeConfig(
+      {
+        default: makeProfile([{ version: "0.8.28", type: "solx" }]),
+        test: makeProfile([{ version: "0.8.28", type: "solx" }]),
+      },
+      ["solc"],
+    );
+    const errors = await handlers.validateResolvedConfig!(config);
+    assert.equal(errors.length, 2, "Should produce errors for both profiles");
   });
 });

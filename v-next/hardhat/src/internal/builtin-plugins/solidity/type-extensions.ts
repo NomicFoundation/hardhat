@@ -105,6 +105,7 @@ declare module "../../../types/config.js" {
   export interface SolidityConfig {
     profiles: Record<string, SolidityBuildProfileConfig>;
     npmFilesToBuild: string[];
+    registeredCompilerTypes: SolidityCompilerType[];
   }
 
   export interface HardhatConfig {
