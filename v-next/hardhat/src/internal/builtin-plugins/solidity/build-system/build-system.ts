@@ -1294,16 +1294,21 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
     }
 
     for (const job of runnableCompilationJobs) {
+      const compilerType = job.solcConfig.type ?? "solc";
       const solcVersion = job.solcConfig.version;
       const solcInput = await job.getSolcInput();
       const evmVersion =
         solcInput.settings.evmVersion ??
         `Check solc ${solcVersion}'s doc for its default evm version`;
 
-      let jobsPerVersion = jobsPerVersionAndEvmVersion.get(solcVersion);
+      // Group by compiler type + Solidity version to produce separate log
+      // lines for e.g. "solc 0.8.33" vs "solx 0.1.3 (Solidity 0.8.33)".
+      const groupKey = `${compilerType}\0${solcVersion}`;
+
+      let jobsPerVersion = jobsPerVersionAndEvmVersion.get(groupKey);
       if (jobsPerVersion === undefined) {
         jobsPerVersion = new Map();
-        jobsPerVersionAndEvmVersion.set(solcVersion, jobsPerVersion);
+        jobsPerVersionAndEvmVersion.set(groupKey, jobsPerVersion);
       }
 
       let jobsPerEvmVersion = jobsPerVersion.get(evmVersion);
@@ -1315,10 +1320,11 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
       jobsPerEvmVersion.push(job);
     }
 
-    for (const solcVersion of [...jobsPerVersionAndEvmVersion.keys()].sort()) {
+    for (const groupKey of [...jobsPerVersionAndEvmVersion.keys()].sort()) {
       /* eslint-disable-next-line @typescript-eslint/no-non-null-assertion --
       This is a valid key, just sorted */
-      const jobsPerEvmVersion = jobsPerVersionAndEvmVersion.get(solcVersion)!;
+      const jobsPerEvmVersion = jobsPerVersionAndEvmVersion.get(groupKey)!;
+      const [compilerType, solidityVersion] = groupKey.split("\0");
 
       for (const evmVersion of [...jobsPerEvmVersion.keys()].sort()) {
         /* eslint-disable-next-line @typescript-eslint/no-non-null-assertion --
@@ -1330,12 +1336,25 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
           0,
         );
 
+        // For solc, the compiler version is the Solidity version.
+        // For other compilers, extract the compiler's own version from the
+        // longVersion stored on the compilation job, and show the Solidity
+        // version separately.
+        let compilerLabel: string;
+        if (compilerType === "solc") {
+          compilerLabel = `solc ${solidityVersion}`;
+        } else {
+          const longVersion = jobs[0].solcLongVersion;
+          const compilerVersion = longVersion.split("+")[0];
+          compilerLabel = `${compilerType} ${compilerVersion} (Solidity ${solidityVersion})`;
+        }
+
         console.log(
           chalk.bold(
             `Compiled ${rootFiles} Solidity ${pluralize(
               options.scope === "contracts" ? "file" : "test file",
               rootFiles,
-            )} with solc ${solcVersion}`,
+            )} with ${compilerLabel}`,
           ),
           `(evm target: ${evmVersion})`,
         );
