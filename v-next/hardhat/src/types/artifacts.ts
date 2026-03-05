@@ -19,8 +19,8 @@ export type GetArtifactByName<ContractNameT extends string> =
     : Artifact;
 
 /**
- * A type type that represents the contract names (bare and fully qualified) of
- * all the artifacts that have been built in a project. This enables the
+ * A type that represents the contract names (bare and fully qualified) of all
+ * the artifacts that have been built in a project. This enables the
  * autocomplete of the TS Language Server to list the actual contracts, without
  * leading to a compilation error for general strings, so it doesn't fail
  * before `hardhat build` is run.
