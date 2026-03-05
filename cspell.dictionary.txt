@@ -104,6 +104,8 @@ schaable
 sokol
 solcjs
 SOLCJS
+solx
+Solx
 sourcify
 Sourcify
 SOURCIFY

@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/consistent-type-assertions -- test*/
 import type {
+  HardhatConfig,
   SolcConfig,
   SolidityCompilerConfig,
 } from "../../../../src/types/config.js";
@@ -13,8 +14,6 @@ declare module "../../../../src/types/config.js" {
     solx: true;
   }
 }
-
-import type { HardhatConfig } from "../../../../src/types/config.js";
 
 import { isSolcConfig } from "../../../../src/internal/builtin-plugins/solidity/build-system/build-system.js";
 import { missesSomeOfficialNativeBuilds } from "../../../../src/internal/builtin-plugins/solidity/build-system/solc-info.js";
@@ -509,7 +508,9 @@ describe("solidity plugin config validation", () => {
       );
     });
 
-    it("Should reject preferWasm on compiler with non-solc type", () => {
+    it("Should allow extra fields on non-solc compiler types (passthrough)", () => {
+      // Non-solc types use passthrough validation, allowing plugins to define
+      // their own fields. preferWasm is meaningless for non-solc but not rejected.
       const errors = validateSolidityUserConfig({
         solidity: {
           compilers: [
@@ -517,10 +518,7 @@ describe("solidity plugin config validation", () => {
           ],
         },
       });
-      assert.ok(
-        errors.length > 0,
-        "Should reject preferWasm on non-solc compiler type",
-      );
+      assert.deepEqual(errors, []);
     });
   });
 
@@ -885,7 +883,7 @@ describe("solidity plugin config resolution", () => {
       );
     });
 
-    it("should resolve compiler entry with non-solc type WITHOUT preferWasm", async () => {
+    it("should resolve compiler entry with non-solc type without preferWasm", async () => {
       const resolvedConfig = await resolveSolidityUserConfig(
         {
           solidity: {
@@ -899,7 +897,7 @@ describe("solidity plugin config resolution", () => {
       assert.equal(compiler.type, "solx");
       assert.ok(
         !("preferWasm" in compiler),
-        "Compiler with non-solc type should NOT have preferWasm field",
+        "Compiler with non-solc type should not have preferWasm field",
       );
     });
   });
@@ -982,6 +980,10 @@ describe("solidity plugin config resolution", () => {
         "preferWasm" in defaultProfile.compilers[0],
         "Existing configs should still resolve with preferWasm",
       );
+      // registeredCompilerTypes should be seeded with "solc"
+      assert.deepEqual(resolvedConfig.solidity.registeredCompilerTypes, [
+        "solc",
+      ]);
     });
 
     it("should resolve a simple version string config identically", async () => {
@@ -1003,6 +1005,9 @@ describe("solidity plugin config resolution", () => {
         "production" in resolvedConfig.solidity.profiles,
         "Production profile should exist",
       );
+      assert.deepEqual(resolvedConfig.solidity.registeredCompilerTypes, [
+        "solc",
+      ]);
     });
 
     it("should resolve a build profiles config identically", async () => {
@@ -1029,6 +1034,9 @@ describe("solidity plugin config resolution", () => {
       assert.equal(defaultProfile.compilers[0].type, undefined);
       assert.equal(prodProfile.compilers[0].version, "0.8.28");
       assert.equal(prodProfile.isolated, true);
+      assert.deepEqual(resolvedConfig.solidity.registeredCompilerTypes, [
+        "solc",
+      ]);
     });
   });
 });
@@ -1063,7 +1071,15 @@ describe("isSolcConfig type guard", () => {
 });
 
 describe("validateResolvedConfig — compiler type registration", () => {
-  // eslint-disable-next-line @typescript-eslint/consistent-type-assertions -- test helper
+  async function validateResolvedConfig(config: HardhatConfig) {
+    const handlers = await configHandlerFactory();
+    assert.ok(
+      handlers.validateResolvedConfig !== undefined,
+      "validateResolvedConfig should be defined",
+    );
+    return handlers.validateResolvedConfig(config);
+  }
+
   const makeConfig = (
     profiles: HardhatConfig["solidity"]["profiles"],
     registeredCompilerTypes: string[],
@@ -1080,7 +1096,6 @@ describe("validateResolvedConfig — compiler type registration", () => {
     compilers: Array<{ version: string; type?: string }>,
     overrides: Record<string, { version: string; type?: string }> = {},
   ): HardhatConfig["solidity"]["profiles"][string] =>
-    // eslint-disable-next-line @typescript-eslint/consistent-type-assertions -- test helper
     ({
       compilers: compilers.map((c) => ({ ...c, settings: {} })),
       overrides: Object.fromEntries(
@@ -1091,24 +1106,22 @@ describe("validateResolvedConfig — compiler type registration", () => {
     }) as HardhatConfig["solidity"]["profiles"][string];
 
   it("should produce no errors when all compiler types are registered", async () => {
-    const handlers = await configHandlerFactory();
     const config = makeConfig(
       { default: makeProfile([{ version: "0.8.28" }]) },
       ["solc"],
     );
-    const errors = await handlers.validateResolvedConfig!(config);
+    const errors = await validateResolvedConfig(config);
     assert.deepEqual(errors, []);
   });
 
   it("should produce an error for an unknown compiler type in compilers[]", async () => {
-    const handlers = await configHandlerFactory();
     const config = makeConfig(
       {
         default: makeProfile([{ version: "0.8.28", type: "solx" }]),
       },
       ["solc"],
     );
-    const errors = await handlers.validateResolvedConfig!(config);
+    const errors = await validateResolvedConfig(config);
     assert.equal(errors.length, 1, "Should produce exactly one error");
     assert.ok(
       errors[0].message.includes('"solx"'),
@@ -1125,19 +1138,17 @@ describe("validateResolvedConfig — compiler type registration", () => {
   });
 
   it("should produce no errors when solx is registered", async () => {
-    const handlers = await configHandlerFactory();
     const config = makeConfig(
       {
         default: makeProfile([{ version: "0.8.28", type: "solx" }]),
       },
       ["solc", "solx"],
     );
-    const errors = await handlers.validateResolvedConfig!(config);
+    const errors = await validateResolvedConfig(config);
     assert.deepEqual(errors, []);
   });
 
   it("should detect unknown types in overrides", async () => {
-    const handlers = await configHandlerFactory();
     const config = makeConfig(
       {
         default: makeProfile([{ version: "0.8.28" }], {
@@ -1146,7 +1157,7 @@ describe("validateResolvedConfig — compiler type registration", () => {
       },
       ["solc"],
     );
-    const errors = await handlers.validateResolvedConfig!(config);
+    const errors = await validateResolvedConfig(config);
     assert.equal(errors.length, 1, "Should produce exactly one error");
     assert.deepEqual(errors[0].path, [
       "solidity",
@@ -1159,7 +1170,6 @@ describe("validateResolvedConfig — compiler type registration", () => {
   });
 
   it("should collect errors across multiple profiles", async () => {
-    const handlers = await configHandlerFactory();
     const config = makeConfig(
       {
         default: makeProfile([{ version: "0.8.28", type: "solx" }]),
@@ -1167,7 +1177,7 @@ describe("validateResolvedConfig — compiler type registration", () => {
       },
       ["solc"],
     );
-    const errors = await handlers.validateResolvedConfig!(config);
+    const errors = await validateResolvedConfig(config);
     assert.equal(errors.length, 2, "Should produce errors for both profiles");
   });
 });

@@ -241,18 +241,18 @@ declare module "../../../types/hooks.js" {
     ) => Promise<CompilationJobCreationError | Map<string, FileBuildResult>>;
 
     /**
-     * Hook triggered to invoke a passed in Solc compiler on the
-     * Solc input generated for a given compilation job.
-     * This hook allows for manipulating the Solc input passed into the Solc
-     * compiler Hardhat has selected for the compilation job, and similarly to
-     * manipulate the Solc output.
+     * Hook triggered to invoke a compiler on the standard-json input
+     * generated for a given compilation job.
+     * This hook allows for manipulating the input passed into the compiler
+     * Hardhat has selected for the compilation job, and similarly to
+     * manipulate the output.
      *
      * @param context The hook context.
-     * @param compile The Solc compiler selected by Hardhat for this compilation
+     * @param compiler The compiler selected by Hardhat for this compilation
      * job.
-     * @param solcInput The solc input json constructed from the compilation
-     * job.
-     * @param solcConfig The configuration used to setup solc e.g. version.
+     * @param solcInput The standard-json input constructed from the
+     * compilation job.
+     * @param solcConfig The compiler configuration (version, type, etc.).
      * @param next A function to call the next handler for this hook, or the
      * default implementation if no more handlers exist.
      */
@@ -260,12 +260,12 @@ declare module "../../../types/hooks.js" {
       context: HookContext,
       compiler: Compiler,
       solcInput: CompilerInput,
-      compilerConfig: SolidityCompilerConfig,
+      solcConfig: SolidityCompilerConfig,
       next: (
         nextContext: HookContext,
         nextCompiler: Compiler,
         nextSolcInput: CompilerInput,
-        nextSolidityCompilerConfig: SolidityCompilerConfig,
+        nextSolcConfig: SolidityCompilerConfig,
       ) => Promise<CompilerOutput>,
     ): Promise<CompilerOutput>;
 
