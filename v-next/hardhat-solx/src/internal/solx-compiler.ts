@@ -7,10 +7,10 @@ import type {
 import { spawnCompile } from "hardhat/internal/solidity";
 
 export class SolxCompiler implements Compiler {
-  readonly version: string;
-  readonly longVersion: string;
-  readonly compilerPath: string;
-  readonly isSolcJs: boolean = false;
+  public readonly version: string;
+  public readonly longVersion: string;
+  public readonly compilerPath: string;
+  public readonly isSolcJs: boolean = false;
 
   readonly #extraSettings: Record<string, unknown>;
 

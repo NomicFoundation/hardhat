@@ -1,6 +1,4 @@
 /* eslint-disable @typescript-eslint/consistent-type-assertions -- test */
-import type { HardhatUserConfig } from "hardhat/types/config";
-
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 
@@ -650,5 +648,73 @@ describe("hardhat-solx production profile safeguard", () => {
     // Filter out non-production errors
     const prodErrors = errors.filter((e) => e.message.includes("production"));
     assert.deepEqual(prodErrors, []);
+  });
+
+  it("rejects type: 'solx' in production profile overrides", async () => {
+    const errors = await validateUserConfig({
+      solidity: {
+        profiles: {
+          default: {
+            compilers: [{ version: "0.8.33" }],
+          },
+          production: {
+            compilers: [{ version: "0.8.33" }],
+            overrides: {
+              "MyContract.sol": { version: "0.8.33", type: "solx" },
+            },
+          },
+        },
+      },
+    });
+    const prodErrors = errors.filter((e) => e.message.includes("production"));
+    assert.ok(
+      prodErrors.length > 0,
+      "Should reject solx in production overrides",
+    );
+    assert.ok(
+      prodErrors[0].path.includes("overrides"),
+      `Error path should include 'overrides', got: ${JSON.stringify(prodErrors[0].path)}`,
+    );
+  });
+});
+
+describe("hardhat-solx solx-specific field validation", () => {
+  it("rejects preferWasm on solx compiler", async () => {
+    const errors = await validateUserConfig({
+      solidity: {
+        compilers: [
+          { version: "0.8.33", type: "solx", preferWasm: true } as any,
+        ],
+      },
+    });
+    assert.ok(
+      errors.some((e) => e.message.includes("preferWasm")),
+      `Expected preferWasm error, got: ${errors.map((e) => e.message).join(", ")}`,
+    );
+  });
+
+  it("accepts preferWasm on solc compiler", async () => {
+    const errors = await validateUserConfig({
+      solidity: {
+        compilers: [{ version: "0.8.33", preferWasm: true }],
+      },
+    });
+    const preferWasmErrors = errors.filter((e) =>
+      e.message.includes("preferWasm"),
+    );
+    assert.deepEqual(preferWasmErrors, []);
+  });
+
+  it("does not flag preferWasm on compiler without type (defaults to solc)", async () => {
+    const errors = await validateUserConfig({
+      solidity: {
+        version: "0.8.33",
+        preferWasm: true,
+      },
+    });
+    const preferWasmErrors = errors.filter((e) =>
+      e.message.includes("preferWasm"),
+    );
+    assert.deepEqual(preferWasmErrors, []);
   });
 });

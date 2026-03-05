@@ -37,6 +37,7 @@ export async function validateUserConfig(
   const errors = validateUserConfigZodType(userConfig, solxUserConfigType);
 
   if (userConfig.solidity !== undefined) {
+    errors.push(...validateSolxCompilerFields(userConfig.solidity));
     errors.push(...validateEvmVersions(userConfig.solidity));
     errors.push(...validateSolidityVersions(userConfig.solidity));
     errors.push(...validateProductionProfile(userConfig));
@@ -131,6 +132,33 @@ function addTestProfile(resolvedConfig: HardhatConfig): void {
       ]),
     ),
   };
+}
+
+/**
+ * Validate that solx compiler entries don't contain solc-specific fields
+ * that passed through the core schema's .passthrough() on non-solc types.
+ */
+function validateSolxCompilerFields(
+  solidity: SolidityUserConfig,
+): HardhatUserConfigValidationError[] {
+  const errors: HardhatUserConfigValidationError[] = [];
+
+  for (const { path, entry } of iterateCompilerEntries(solidity)) {
+    if (entry.type !== "solx") {
+      continue;
+    }
+
+    // preferWasm is solc-specific and not applicable to solx
+    if ("preferWasm" in entry) {
+      errors.push({
+        path: [...path, "preferWasm"],
+        message:
+          'The "preferWasm" option is not supported for solx compilers. It only applies to solc.',
+      });
+    }
+  }
+
+  return errors;
 }
 
 function validateEvmVersions(
@@ -240,20 +268,38 @@ function validateProductionProfile(
   const errors: HardhatUserConfigValidationError[] = [];
   const production = solidity.profiles.production;
 
+  const solxInProductionMessage =
+    'Compiler type "solx" is not supported in the production build profile. Remove type: "solx" from production compilers, or set solx.dangerouslyAllowSolxInProduction in the plugin config.';
+
   if ("version" in production && production.type === "solx") {
     errors.push({
       path: ["solidity", "profiles", "production", "type"],
-      message:
-        'Compiler type "solx" is not supported in the production build profile. Remove type: "solx" from production compilers, or set solx.dangerouslyAllowSolxInProduction in the plugin config.',
+      message: solxInProductionMessage,
     });
   } else if ("compilers" in production) {
     for (const [i, compiler] of production.compilers.entries()) {
       if (compiler.type === "solx") {
         errors.push({
           path: ["solidity", "profiles", "production", "compilers", i, "type"],
-          message:
-            'Compiler type "solx" is not supported in the production build profile. Remove type: "solx" from production compilers, or set solx.dangerouslyAllowSolxInProduction in the plugin config.',
+          message: solxInProductionMessage,
         });
+      }
+    }
+    if (production.overrides !== undefined) {
+      for (const [key, override] of Object.entries(production.overrides)) {
+        if (override.type === "solx") {
+          errors.push({
+            path: [
+              "solidity",
+              "profiles",
+              "production",
+              "overrides",
+              key,
+              "type",
+            ],
+            message: solxInProductionMessage,
+          });
+        }
       }
     }
   }
@@ -344,6 +390,11 @@ function getAllCompilerVersions(solidity: SolidityUserConfig): string[] {
         for (const compiler of profile.compilers) {
           versions.push(compiler.version);
         }
+        if (profile.overrides !== undefined) {
+          for (const override of Object.values(profile.overrides)) {
+            versions.push(override.version);
+          }
+        }
       }
     }
     return versions;
@@ -352,7 +403,13 @@ function getAllCompilerVersions(solidity: SolidityUserConfig): string[] {
     return [solidity.version];
   }
   if ("compilers" in solidity) {
-    return solidity.compilers.map((c) => c.version);
+    const versions = solidity.compilers.map((c) => c.version);
+    if (solidity.overrides !== undefined) {
+      for (const override of Object.values(solidity.overrides)) {
+        versions.push(override.version);
+      }
+    }
+    return versions;
   }
   return [];
 }
