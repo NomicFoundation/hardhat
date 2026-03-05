@@ -497,15 +497,14 @@ export async function copyProjectFiles(
     }
   }
 
+  const matching = new Set(matchingRelativeWorkspacePaths);
+
   // Copy the template files to the workspace
   for (const relativeTemplatePath of template.files) {
     const relativeWorkspacePath =
       relativeTemplateToWorkspacePath(relativeTemplatePath);
 
-    if (
-      force === false &&
-      matchingRelativeWorkspacePaths.includes(relativeWorkspacePath)
-    ) {
+    if (force === false && matching.has(relativeWorkspacePath)) {
       continue;
     }
 
@@ -513,7 +512,7 @@ export async function copyProjectFiles(
 
     if (
       backupOverwrittenFiles === true &&
-      matchingRelativeWorkspacePaths.includes(relativeWorkspacePath)
+      matching.has(relativeWorkspacePath)
     ) {
       await move(
         absoluteWorkspacePath,
