@@ -128,6 +128,7 @@ export async function main(
           migrateToEsm: true,
           force: true,
           install: true,
+          backupOverwrittenFiles: true,
         });
       }
 

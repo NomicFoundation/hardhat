@@ -15,6 +15,7 @@ import {
   getAllFilesMatching,
   isDirectory,
   mkdir,
+  move,
   readJsonFile,
   writeJsonFile,
 } from "@nomicfoundation/hardhat-utils/fs";
@@ -56,6 +57,7 @@ export interface InitHardhatOptions {
   template?: string;
   force?: boolean;
   install?: boolean;
+  backupOverwrittenFiles?: boolean;
 }
 
 const log = debug("hardhat:cli:init");
@@ -120,7 +122,12 @@ export async function initHardhat(options?: InitHardhatOptions): Promise<void> {
 
     // Copy the template files to the workspace
     // Overwrite existing files only if the user opts-in to it
-    await copyProjectFiles(workspace, template, options?.force);
+    await copyProjectFiles(
+      workspace,
+      template,
+      options?.force,
+      options?.backupOverwrittenFiles,
+    );
 
     // Print the commands to install the project dependencies
     // Run them only if the user opts-in to it
@@ -419,6 +426,31 @@ export function relativeTemplateToWorkspacePath(file: string): string {
   return file;
 }
 
+// NOTE: This function is exported for testing purposes
+export function getBackupPath(filePath: string, n?: number): string {
+  const parsed = path.parse(filePath);
+  const suffix = n !== undefined ? `old-${n}` : "old";
+  if (parsed.ext === "") {
+    return `${filePath}.${suffix}`;
+  }
+  return path.join(parsed.dir, `${parsed.name}.${suffix}${parsed.ext}`);
+}
+
+// NOTE: This function is exported for testing purposes
+export async function findAvailableBackupPath(
+  filePath: string,
+): Promise<string> {
+  const backupPath = getBackupPath(filePath);
+  if (!(await exists(backupPath))) {
+    return backupPath;
+  }
+  let n = 2;
+  while (await exists(getBackupPath(filePath, n))) {
+    n++;
+  }
+  return getBackupPath(filePath, n);
+}
+
 /**
  * copyProjectFiles copies the template files to the workspace.
  *
@@ -435,6 +467,7 @@ export async function copyProjectFiles(
   workspace: string,
   template: Template,
   force?: boolean,
+  backupOverwrittenFiles?: boolean,
 ): Promise<void> {
   // Find all the files in the workspace that would have been overwritten by the template files
   const matchingRelativeWorkspacePaths = await getAllFilesMatching(
@@ -467,8 +500,19 @@ export async function copyProjectFiles(
       continue;
     }
 
-    const absoluteTemplatePath = path.join(template.path, relativeTemplatePath);
     const absoluteWorkspacePath = path.join(workspace, relativeWorkspacePath);
+
+    if (
+      backupOverwrittenFiles === true &&
+      matchingRelativeWorkspacePaths.includes(relativeWorkspacePath)
+    ) {
+      await move(
+        absoluteWorkspacePath,
+        await findAvailableBackupPath(absoluteWorkspacePath),
+      );
+    }
+
+    const absoluteTemplatePath = path.join(template.path, relativeTemplatePath);
 
     await ensureDir(path.dirname(absoluteWorkspacePath));
     await copy(absoluteTemplatePath, absoluteWorkspacePath);
