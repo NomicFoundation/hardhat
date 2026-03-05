@@ -54,6 +54,9 @@ import { HardhatEthersSigner } from "../signers/signers.js";
 
 const log = debug("hardhat:hardhat-ethers:provider");
 
+// The default number of confirmations when waiting for a transaction
+const DEFAULT_TRANSACTION_CONFIRMS = 1;
+
 interface ListenerItem {
   listener: Listener;
   once: boolean;
@@ -471,7 +474,7 @@ export class HardhatEthersProvider implements HardhatEthersProviderI {
     confirms?: number | undefined,
     timeout?: number | undefined,
   ): Promise<ethers.TransactionReceipt | null> {
-    const resolvedConfirms = confirms ?? 1;
+    const resolvedConfirms = confirms ?? DEFAULT_TRANSACTION_CONFIRMS;
 
     if (resolvedConfirms === 0) {
       return this.getTransactionReceipt(hash);
