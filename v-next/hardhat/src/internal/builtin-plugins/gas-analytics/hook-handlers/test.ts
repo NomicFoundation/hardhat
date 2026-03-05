@@ -1,8 +1,9 @@
 import type { HookContext, TestHooks } from "../../../../types/hooks.js";
 
 import { assertHardhatInvariant } from "@nomicfoundation/hardhat-errors";
+import { isObject } from "@nomicfoundation/hardhat-utils/lang";
 
-import { HardhatRuntimeEnvironmentImplementation } from "../../../core/hre.js";
+import { GasAnalyticsManagerImplementation } from "../gas-analytics-manager.js";
 
 export default async (): Promise<Partial<TestHooks>> => ({
   onTestRunStart: async (context, id, next) => {
@@ -22,37 +23,46 @@ export default async (): Promise<Partial<TestHooks>> => ({
 });
 
 export async function testRunStart(
-  hre: HookContext,
+  context: HookContext,
   id: string,
 ): Promise<void> {
-  if (hre.globalOptions.gasStats === true) {
+  if (context.globalOptions.gasStats === true) {
     assertHardhatInvariant(
-      hre instanceof HardhatRuntimeEnvironmentImplementation,
-      "Expected HRE to be an instance of HardhatRuntimeEnvironmentImplementation",
+      "_gasAnalytics" in context &&
+        isObject(context._gasAnalytics) &&
+        context._gasAnalytics instanceof GasAnalyticsManagerImplementation,
+      "Expected HookContext#_gasAnalytics to be an instance of GasAnalyticsManagerImplementation",
     );
-    await hre._gasAnalytics.clearGasMeasurements(id);
+    await context._gasAnalytics.clearGasMeasurements(id);
   }
 }
 
 export async function testWorkerDone(
-  hre: HookContext,
+  context: HookContext,
   id: string,
 ): Promise<void> {
-  if (hre.globalOptions.gasStats === true) {
+  if (context.globalOptions.gasStats === true) {
     assertHardhatInvariant(
-      hre instanceof HardhatRuntimeEnvironmentImplementation,
-      "Expected HRE to be an instance of HardhatRuntimeEnvironmentImplementation",
+      "_gasAnalytics" in context &&
+        isObject(context._gasAnalytics) &&
+        context._gasAnalytics instanceof GasAnalyticsManagerImplementation,
+      "Expected HookContext#_gasAnalytics to be an instance of GasAnalyticsManagerImplementation",
     );
-    await hre._gasAnalytics.saveGasMeasurements(id);
+    await context._gasAnalytics.saveGasMeasurements(id);
   }
 }
 
-export async function testRunDone(hre: HookContext, id: string): Promise<void> {
-  if (hre.globalOptions.gasStats === true) {
+export async function testRunDone(
+  context: HookContext,
+  id: string,
+): Promise<void> {
+  if (context.globalOptions.gasStats === true) {
     assertHardhatInvariant(
-      hre instanceof HardhatRuntimeEnvironmentImplementation,
-      "Expected HRE to be an instance of HardhatRuntimeEnvironmentImplementation",
+      "_gasAnalytics" in context &&
+        isObject(context._gasAnalytics) &&
+        context._gasAnalytics instanceof GasAnalyticsManagerImplementation,
+      "Expected HookContext#_gasAnalytics to be an instance of GasAnalyticsManagerImplementation",
     );
-    await hre._gasAnalytics.reportGasStats(id);
+    await context._gasAnalytics.reportGasStats(id);
   }
 }
