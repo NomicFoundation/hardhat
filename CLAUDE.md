@@ -24,4 +24,8 @@ When modifying a package, within the package run:
 2. pnpm build
 3. pnpm test
 
+## Scoped docs to read
+
+- If changing anything in ./scripts/, read ./scripts/README.md first.
+
 @.claude/local/extensions.md
