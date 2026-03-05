@@ -477,7 +477,7 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
     // Pre-fetch the long version and weather it is WASM for all the compiler
     // versions of each compiler type in use in this context.
 
-    const solcVersionToLongVersionPerCompilerType = new Map<
+    const solidityVersionToLongVersionPerCompilerType = new Map<
       /* compiler type */ string,
       Map</* short version */ string, /* long version */ string>
     >();
@@ -487,10 +487,13 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
       Map</* short version */ string, /* isWasm */ boolean>
     >();
 
-    for (const [solcConfig] of subgraphsWithConfig) {
-      const compilerType = solcConfig.type ?? "solc";
-      if (!solcVersionToLongVersionPerCompilerType.has(compilerType)) {
-        solcVersionToLongVersionPerCompilerType.set(compilerType, new Map());
+    for (const [compilerConfig] of subgraphsWithConfig) {
+      const compilerType = compilerConfig.type ?? "solc";
+      if (!solidityVersionToLongVersionPerCompilerType.has(compilerType)) {
+        solidityVersionToLongVersionPerCompilerType.set(
+          compilerType,
+          new Map(),
+        );
       }
 
       if (!versionIsWasmPerCompilerType.has(compilerType)) {
@@ -498,7 +501,7 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
       }
 
       const solcVersionToLongVersion =
-        solcVersionToLongVersionPerCompilerType.get(compilerType);
+        solidityVersionToLongVersionPerCompilerType.get(compilerType);
 
       assertHardhatInvariant(
         solcVersionToLongVersion !== undefined,
@@ -511,22 +514,22 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
         "versionIsWasm was just defined",
       );
 
-      let solcLongVersion = solcVersionToLongVersion.get(solcConfig.version);
+      let longVersion = solcVersionToLongVersion.get(compilerConfig.version);
 
-      if (solcLongVersion === undefined) {
+      if (longVersion === undefined) {
         const compiler = await this.#hooks.runHandlerChain(
           "solidity",
           "getCompiler",
-          [solcConfig],
+          [compilerConfig],
           async (_context, cfg) =>
             getCompiler(cfg.version, {
               preferWasm: resolvePreferWasm(cfg, buildProfile.preferWasm),
               compilerPath: cfg.path,
             }),
         );
-        solcLongVersion = compiler.longVersion;
-        solcVersionToLongVersion.set(solcConfig.version, solcLongVersion);
-        versionIsWasm.set(solcConfig.version, compiler.isSolcJs);
+        longVersion = compiler.longVersion;
+        solcVersionToLongVersion.set(compilerConfig.version, longVersion);
+        versionIsWasm.set(compilerConfig.version, compiler.isSolcJs);
       }
     }
 
@@ -538,24 +541,24 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
         const compilerType = config.type ?? "solc";
 
         const solcVersionToLongVersion =
-          solcVersionToLongVersionPerCompilerType.get(compilerType);
+          solidityVersionToLongVersionPerCompilerType.get(compilerType);
 
         assertHardhatInvariant(
           solcVersionToLongVersion !== undefined,
           "solcVersionToLongVersionPerCompilerType was just defined",
         );
 
-        const solcLongVersion = solcVersionToLongVersion.get(config.version);
+        const longVersion = solcVersionToLongVersion.get(config.version);
 
         assertHardhatInvariant(
-          solcLongVersion !== undefined,
-          "solcLongVersion should not be undefined",
+          longVersion !== undefined,
+          "longVersion should not be undefined",
         );
 
         const individualJob = new CompilationJobImplementation(
           subgraph,
           config,
-          solcLongVersion,
+          longVersion,
           this.#hooks,
           sharedContentHashes,
         );
@@ -593,7 +596,7 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
 
       assertHardhatInvariant(
         isWasm !== undefined,
-        `Version ${compilationJob.solcConfig.version} not present in isWasm map`,
+        `Compiler config ${compilationJob.solcConfig.type ?? "solc"} ${compilationJob.solcConfig.version} not present in isWasm map`,
       );
 
       // If there's no cache for the root file, or the compilation job changed, or using force flag, or isolated mode changed, compile it
@@ -691,24 +694,24 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
       const compilerType = solcConfig.type ?? "solc";
 
       const solcVersionToLongVersion =
-        solcVersionToLongVersionPerCompilerType.get(compilerType);
+        solidityVersionToLongVersionPerCompilerType.get(compilerType);
 
       assertHardhatInvariant(
         solcVersionToLongVersion !== undefined,
         `solcVersionToLongVersionPerCompilerType not present for compiler type ${compilerType}`,
       );
 
-      const solcLongVersion = solcVersionToLongVersion.get(solcConfig.version);
+      const longVersion = solcVersionToLongVersion.get(solcConfig.version);
 
       assertHardhatInvariant(
-        solcLongVersion !== undefined,
-        "solcLongVersion should not be undefined",
+        longVersion !== undefined,
+        "longVersion should not be undefined",
       );
 
       const runnableCompilationJob = new CompilationJobImplementation(
         subgraph,
         solcConfig,
-        solcLongVersion,
+        longVersion,
         this.#hooks,
         sharedContentHashes,
       );
@@ -773,7 +776,7 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
     );
 
     log(
-      `Compiling ${numberOfRootFiles} root files and ${numberOfFiles - numberOfRootFiles} dependency files with solc ${runnableCompilationJob.solcConfig.version} using ${compiler.compilerPath}`,
+      `Compiling ${numberOfRootFiles} root files and ${numberOfFiles - numberOfRootFiles} dependency files with ${runnableCompilationJob.solcConfig.type ?? "solc"} ${runnableCompilationJob.solcConfig.version} using ${compiler.compilerPath}`,
     );
 
     assertHardhatInvariant(
@@ -1100,8 +1103,10 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
   ): Promise<CompilerOutput> {
     const quiet = options?.quiet ?? false;
 
-    // We download the compiler for the build info as it may not be configured
-    // in the HH config, hence not downloaded with the other compilers
+    // Build info recompilation is always solc-only: build info files are
+    // produced by solc and must be recompiled with the same solc version.
+    // We download solc directly rather than going through the
+    // downloadCompilers hook, as this version may not be in the HH config.
     await downloadSolcCompilers(new Set([buildInfo.solcVersion]), quiet);
 
     const compilerConfig: SolidityCompilerConfig = {
