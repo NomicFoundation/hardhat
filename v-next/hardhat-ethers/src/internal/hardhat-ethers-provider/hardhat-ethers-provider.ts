@@ -468,12 +468,12 @@ export class HardhatEthersProvider implements HardhatEthersProviderI {
 
   public async waitForTransaction(
     hash: string,
-    _confirms?: number | undefined,
+    confirms?: number | undefined,
     timeout?: number | undefined,
   ): Promise<ethers.TransactionReceipt | null> {
-    const confirms = _confirms ?? 1;
+    const resolvedConfirms = confirms ?? 1;
 
-    if (confirms === 0) {
+    if (resolvedConfirms === 0) {
       return this.getTransactionReceipt(hash);
     }
 
