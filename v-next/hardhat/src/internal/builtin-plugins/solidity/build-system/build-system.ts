@@ -584,7 +584,7 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
 
       assertHardhatInvariant(
         isWasm !== undefined,
-        `Compiler config ${compilationJob.solcConfig.type ?? "solc"} ${compilationJob.solcConfig.version} not present in isWasm map`,
+        `Version ${compilationJob.solcConfig.version} not present in isWasm map`,
       );
 
       // If there's no cache for the root file, or the compilation job changed, or using force flag, or isolated mode changed, compile it
@@ -1094,25 +1094,13 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
 
     // Build info recompilation is always solc-only: build info files are
     // produced by solc and must be recompiled with the same solc version.
-    // We download solc directly rather than going through the
-    // downloadCompilers hook, as this version may not be in the HH config.
+    // We bypass both downloadCompilers and getCompiler hooks — this is a
+    // self-contained solc replay path, not plugin-configurable compilation.
     await downloadSolcCompilers(new Set([buildInfo.solcVersion]), quiet);
 
-    const compilerConfig: SolidityCompilerConfig = {
-      version: buildInfo.solcVersion,
-      settings: {},
-    };
-
-    const compiler = await this.#hooks.runHandlerChain(
-      "solidity",
-      "getCompiler",
-      [compilerConfig],
-      async (_context, cfg) =>
-        getCompiler(cfg.version, {
-          preferWasm: false,
-          compilerPath: cfg.path,
-        }),
-    );
+    const compiler = await getCompiler(buildInfo.solcVersion, {
+      preferWasm: false,
+    });
 
     return compiler.compile(buildInfo.input);
   }
@@ -1305,7 +1293,7 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
 
       // Group by compiler type + Solidity version to produce separate log
       // lines for e.g. "solc 0.8.33" vs "solx 0.1.3 (Solidity 0.8.33)".
-      const groupKey = `${compilerType}\0${solcVersion}`;
+      const groupKey = `${compilerType}#${solcVersion}`;
 
       let jobsPerVersion = jobsPerVersionAndEvmVersion.get(groupKey);
       if (jobsPerVersion === undefined) {
@@ -1326,7 +1314,7 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
       /* eslint-disable-next-line @typescript-eslint/no-non-null-assertion --
       This is a valid key, just sorted */
       const jobsPerEvmVersion = jobsPerVersionAndEvmVersion.get(groupKey)!;
-      const [compilerType, solidityVersion] = groupKey.split("\0");
+      const [compilerType, solidityVersion] = groupKey.split("#");
 
       for (const evmVersion of [...jobsPerEvmVersion.keys()].sort()) {
         /* eslint-disable-next-line @typescript-eslint/no-non-null-assertion --
