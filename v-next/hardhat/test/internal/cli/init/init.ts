@@ -81,11 +81,15 @@ describe("getWorkspace", () => {
 
 describe("getTemplate", () => {
   it("should throw if the provided template does not exist", async () => {
+    const templates = await getTemplates("hardhat-3");
+    const availableTemplates = templates.map((t) => `  - ${t.name}`).join("\n");
+
     await assertRejectsWithHardhatError(
       async () => getTemplate("hardhat-3", "non-existent-template"),
       HardhatError.ERRORS.CORE.GENERAL.TEMPLATE_NOT_FOUND,
       {
         template: "non-existent-template",
+        availableTemplates,
       },
     );
   });
@@ -608,6 +612,51 @@ describe("initHardhat", async () => {
         },
       );
     }
+  });
+});
+
+describe("non-interactive init with --template", async () => {
+  useTmpDir("nonInteractiveInit");
+
+  disableConsole();
+
+  it("should initialize the project non-interactively with a valid template", async () => {
+    await initHardhat({
+      hardhatVersion: "hardhat-3",
+      template: "mocha-ethers",
+      workspace: ".",
+      migrateToEsm: true,
+      force: true,
+      install: false,
+    });
+
+    assert.ok(await exists("package.json"), "package.json should exist");
+    assert.ok(
+      await exists("hardhat.config.ts"),
+      "hardhat.config.ts should exist",
+    );
+  });
+
+  it("should throw TEMPLATE_NOT_FOUND with available templates for an invalid template", async () => {
+    const templates = await getTemplates("hardhat-3");
+    const availableTemplates = templates.map((t) => `  - ${t.name}`).join("\n");
+
+    await assertRejectsWithHardhatError(
+      async () =>
+        initHardhat({
+          hardhatVersion: "hardhat-3",
+          template: "non-existent-template",
+          workspace: ".",
+          migrateToEsm: true,
+          force: true,
+          install: false,
+        }),
+      HardhatError.ERRORS.CORE.GENERAL.TEMPLATE_NOT_FOUND,
+      {
+        template: "non-existent-template",
+        availableTemplates,
+      },
+    );
   });
 });
 

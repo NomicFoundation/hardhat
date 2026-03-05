@@ -452,7 +452,10 @@ Please add the property "type" with the value "module" in your package.json to e
       },
       TEMPLATE_NOT_FOUND: {
         number: 16,
-        messageTemplate: `Template "{template}" not found`,
+        messageTemplate: `Template "{template}" not found.
+
+The available templates are:
+{availableTemplates}`,
         websiteTitle: "Template not found",
         websiteDescription: `The template you provided is not found. Please check the documentation to learn which templates are available.`,
       },

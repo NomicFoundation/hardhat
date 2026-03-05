@@ -94,6 +94,43 @@ export async function main(
 
     if (builtinGlobalOptions.init) {
       const { initHardhat } = await import("./init/init.js");
+
+      let templateName: string | undefined;
+      for (let i = 0; i < cliArguments.length; i++) {
+        if (usedCliArguments[i]) {
+          continue;
+        }
+
+        if (cliArguments[i] === "--template") {
+          usedCliArguments[i] = true;
+
+          if (
+            usedCliArguments[i + 1] === undefined ||
+            usedCliArguments[i + 1] === true
+          ) {
+            throw new HardhatError(
+              HardhatError.ERRORS.CORE.ARGUMENTS.MISSING_VALUE_FOR_ARGUMENT,
+              { argument: "--template" },
+            );
+          }
+
+          templateName = cliArguments[i + 1];
+          i++;
+          usedCliArguments[i] = true;
+        }
+      }
+
+      if (templateName !== undefined) {
+        return await initHardhat({
+          hardhatVersion: "hardhat-3",
+          template: templateName,
+          workspace: ".",
+          migrateToEsm: true,
+          force: true,
+          install: true,
+        });
+      }
+
       return await initHardhat();
     }
 

@@ -23,6 +23,7 @@ import {
 import { isCi } from "@nomicfoundation/hardhat-utils/ci";
 import chalk from "chalk";
 
+import { getTemplates } from "../../../src/internal/cli/init/template.js";
 import {
   main,
   parseGlobalOptions,
@@ -558,6 +559,50 @@ GLOBAL OPTIONS:
         async () => parseBuiltinGlobalOptions(cliArguments, usedCliArguments),
         HardhatError.ERRORS.CORE.ARGUMENTS.MISSING_CONFIG_FILE,
         {},
+      );
+    });
+  });
+
+  describe("--init --template", function () {
+    it("should throw an error when --template is provided without a value", async function () {
+      const command = "npx hardhat --init --template";
+
+      await assertRejectsWithHardhatError(
+        async () => runMain(command),
+        HardhatError.ERRORS.CORE.ARGUMENTS.MISSING_VALUE_FOR_ARGUMENT,
+        {
+          argument: "--template",
+        },
+      );
+    });
+
+    it("should throw an error when --template value is consumed by another flag", async function () {
+      const command = "npx hardhat --init --template --show-stack-traces";
+
+      await assertRejectsWithHardhatError(
+        async () => runMain(command),
+        HardhatError.ERRORS.CORE.ARGUMENTS.MISSING_VALUE_FOR_ARGUMENT,
+        {
+          argument: "--template",
+        },
+      );
+    });
+
+    it("should throw an error when --template value is an unknown template name", async function () {
+      const command = "npx hardhat --init --template unknown-template";
+
+      const templates = await getTemplates("hardhat-3");
+      const availableTemplates = templates
+        .map((t) => `  - ${t.name}`)
+        .join("\n");
+
+      await assertRejectsWithHardhatError(
+        async () => runMain(command),
+        HardhatError.ERRORS.CORE.GENERAL.TEMPLATE_NOT_FOUND,
+        {
+          template: "unknown-template",
+          availableTemplates,
+        },
       );
     });
   });

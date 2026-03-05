@@ -300,6 +300,7 @@ export async function getTemplate(
 
   throw new HardhatError(HardhatError.ERRORS.CORE.GENERAL.TEMPLATE_NOT_FOUND, {
     template,
+    availableTemplates: templates.map((t) => `  - ${t.name}`).join("\n"),
   });
 }
 
