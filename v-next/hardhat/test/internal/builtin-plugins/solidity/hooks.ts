@@ -1,4 +1,9 @@
-import type { SolidityCompilerConfig } from "../../../../src/types/config.js";
+import type {
+  ConfigurationVariableResolver,
+  HardhatConfig,
+  HardhatUserConfig,
+  SolidityCompilerConfig,
+} from "../../../../src/types/config.js";
 import type {
   HookContext,
   SolidityHooks,
@@ -22,6 +27,38 @@ import { beforeEach, describe, it } from "node:test";
 import { useFixtureProject } from "@nomicfoundation/hardhat-test-utils";
 
 import { createHardhatRuntimeEnvironment } from "../../../../src/hre.js";
+
+/**
+ * Creates a plugin that registers additional compiler types so they pass
+ * the registeredCompilerTypes post-validation.
+ */
+function createTypeRegistrationPlugin(types: string[]): HardhatPlugin {
+  return {
+    id: `test-register-types-${types.join("-")}`,
+    hookHandlers: {
+      config: async () => ({
+        default: async () => ({
+          resolveUserConfig: async (
+            userConfig: HardhatUserConfig,
+            resolveConfigurationVariable: ConfigurationVariableResolver,
+            next: (
+              nextUserConfig: HardhatUserConfig,
+              nextResolveConfigurationVariable: ConfigurationVariableResolver,
+            ) => Promise<HardhatConfig>,
+          ) => {
+            const resolved = await next(
+              userConfig,
+              resolveConfigurationVariable,
+            );
+            // eslint-disable-next-line @typescript-eslint/consistent-type-assertions -- test registers unregistered types
+            resolved.solidity.registeredCompilerTypes.push(...(types as any[]));
+            return resolved;
+          },
+        }),
+      }),
+    },
+  };
+}
 
 describe("solidity - hooks", () => {
   describe("invokeSolc", () => {
@@ -411,8 +448,8 @@ describe("solidity - hooks", () => {
                   _quiet: boolean,
                 ) => {
                   capturedConfigs = compilerConfigs;
-                  // Don't call next — we handle all downloads here
-                  // to prevent the built-in handler from running
+                  // downloadCompilers is a parallel hook (no next parameter),
+                  // so all registered handlers run concurrently.
                 },
               };
 
@@ -423,7 +460,7 @@ describe("solidity - hooks", () => {
       };
 
       const hre = await createHardhatRuntimeEnvironment({
-        plugins: [downloadPlugin],
+        plugins: [downloadPlugin, createTypeRegistrationPlugin(["solx"])],
         solidity: {
           compilers: [
             { version: "0.8.23" },
@@ -457,6 +494,7 @@ describe("solidity - hooks", () => {
       // versions should be downloaded. If it tried to download a non-existent
       // "solx" version via the solc downloader, the build would fail.
       const hre = await createHardhatRuntimeEnvironment({
+        plugins: [createTypeRegistrationPlugin(["solx"])],
         solidity: {
           compilers: [
             { version: "0.8.23" },
@@ -472,6 +510,133 @@ describe("solidity - hooks", () => {
         force: true,
         quiet: true,
       });
+    });
+  });
+
+  describe("getCompiler", () => {
+    useFixtureProject("solidity/simple-project");
+
+    it("should invoke getCompiler hook during build", async () => {
+      let getCompilerCalled = false;
+      let capturedConfig: SolidityCompilerConfig | undefined;
+
+      const getCompilerPlugin: HardhatPlugin = {
+        id: "test-get-compiler-plugin",
+        hookHandlers: {
+          solidity: async () => ({
+            default: async () => {
+              const handlers: Partial<SolidityHooks> = {
+                getCompiler: async (
+                  context: HookContext,
+                  compilerConfig: SolidityCompilerConfig,
+                  next: (
+                    nextContext: HookContext,
+                    nextCompilerConfig: SolidityCompilerConfig,
+                  ) => Promise<Compiler>,
+                ) => {
+                  getCompilerCalled = true;
+                  capturedConfig = compilerConfig;
+
+                  // Fall through to the default handler (solc)
+                  return next(context, compilerConfig);
+                },
+              };
+
+              return handlers;
+            },
+          }),
+        },
+      };
+
+      const hre = await createHardhatRuntimeEnvironment({
+        plugins: [getCompilerPlugin],
+        solidity: "0.8.23",
+      });
+
+      const roots = await hre.solidity.getRootFilePaths();
+      await hre.solidity.build(roots, {
+        force: true,
+        quiet: true,
+      });
+
+      assert.ok(getCompilerCalled, "The getCompiler hook should be called");
+      assert.equal(
+        capturedConfig?.version,
+        "0.8.23",
+        "Should receive the compiler config with the expected version",
+      );
+    });
+
+    it("should allow plugins to return a custom compiler", async () => {
+      // eslint-disable-next-line @typescript-eslint/consistent-type-assertions -- intentional fake for test
+      const fakeOutput: CompilerOutput = {
+        contracts: {},
+        sources: {},
+        errors: [],
+      } as any;
+
+      let customCompilerUsed = false;
+
+      // eslint-disable-next-line @typescript-eslint/consistent-type-assertions -- intentional mocking of compiler
+      const customCompiler: Compiler = {
+        version: "0.8.23",
+        longVersion: "0.8.23+custom",
+        compilerPath: "/mock/custom-compiler",
+        isSolcJs: false,
+        compile: async () => {
+          customCompilerUsed = true;
+          return fakeOutput;
+        },
+      } as any;
+
+      const customCompilerPlugin: HardhatPlugin = {
+        id: "test-custom-compiler-plugin",
+        hookHandlers: {
+          solidity: async () => ({
+            default: async () => {
+              const handlers: Partial<SolidityHooks> = {
+                getCompiler: async (
+                  _context: HookContext,
+                  compilerConfig: SolidityCompilerConfig,
+                  next: (
+                    nextContext: HookContext,
+                    nextCompilerConfig: SolidityCompilerConfig,
+                  ) => Promise<Compiler>,
+                ) => {
+                  // eslint-disable-next-line @typescript-eslint/consistent-type-assertions -- test uses unregistered type
+                  if ((compilerConfig.type as string) === "custom") {
+                    return customCompiler;
+                  }
+                  return next(_context, compilerConfig);
+                },
+              };
+
+              return handlers;
+            },
+          }),
+        },
+      };
+
+      const hre = await createHardhatRuntimeEnvironment({
+        plugins: [
+          customCompilerPlugin,
+          createTypeRegistrationPlugin(["custom"]),
+        ],
+        solidity: {
+          compilers: [{ type: "custom" as any, version: "0.8.23" }],
+        },
+      });
+
+      const roots = await hre.solidity.getRootFilePaths();
+      await hre.solidity.build(roots, {
+        force: true,
+        quiet: true,
+      });
+
+      assert.ok(
+        customCompilerUsed,
+        "The custom compiler should have been used for compilation",
+      );
     });
   });
 });

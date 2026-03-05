@@ -584,7 +584,7 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
 
       assertHardhatInvariant(
         isWasm !== undefined,
-        `Version ${compilationJob.solcConfig.version} not present in isWasm map`,
+        `Compiler config ${compilationJob.solcConfig.type ?? "solc"} ${compilationJob.solcConfig.version} not present in isWasm map`,
       );
 
       // If there's no cache for the root file, or the compilation job changed, or using force flag, or isolated mode changed, compile it
@@ -765,7 +765,7 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
     );
 
     log(
-      `Compiling ${numberOfRootFiles} root files and ${numberOfFiles - numberOfRootFiles} dependency files with solc ${runnableCompilationJob.solcConfig.version} using ${compiler.compilerPath}`,
+      `Compiling ${numberOfRootFiles} root files and ${numberOfFiles - numberOfRootFiles} dependency files with ${runnableCompilationJob.solcConfig.type ?? "solc"} ${runnableCompilationJob.solcConfig.version} using ${compiler.compilerPath}`,
     );
 
     assertHardhatInvariant(
@@ -1092,8 +1092,10 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
   ): Promise<CompilerOutput> {
     const quiet = options?.quiet ?? false;
 
-    // We download the compiler for the build info as it may not be configured
-    // in the HH config, hence not downloaded with the other compilers
+    // Build info recompilation is always solc-only: build info files are
+    // produced by solc and must be recompiled with the same solc version.
+    // We download solc directly rather than going through the
+    // downloadCompilers hook, as this version may not be in the HH config.
     await downloadSolcCompilers(new Set([buildInfo.solcVersion]), quiet);
 
     const compilerConfig: SolidityCompilerConfig = {
