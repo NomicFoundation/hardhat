@@ -1,6 +1,6 @@
 {
   "name": "@nomicfoundation/hardhat-toolbox-viem",
-  "version": "5.0.2",
+  "version": "5.0.3",
   "description": "Nomic Foundation's recommended bundle of Hardhat plugins",
   "homepage": "https://github.com/nomicfoundation/hardhat/tree/v-next/v-next/hardhat-toolbox-viem",
   "repository": {
@@ -51,7 +51,7 @@
     "@nomicfoundation/hardhat-node-test-reporter": "workspace:^3.0.0",
     "@nomicfoundation/hardhat-node-test-runner": "workspace:^3.0.0",
     "@nomicfoundation/hardhat-test-utils": "workspace:^",
-    "@nomicfoundation/hardhat-viem": "workspace:^3.0.2",
+    "@nomicfoundation/hardhat-viem": "workspace:^3.0.4",
     "@nomicfoundation/hardhat-viem-assertions": "workspace:^3.0.5",
     "@nomicfoundation/hardhat-verify": "workspace:^3.0.0",
     "@nomicfoundation/ignition-core": "workspace:^3.0.7",
@@ -63,7 +63,8 @@
     "rimraf": "^5.0.5",
     "tsx": "^4.19.3",
     "typescript": "~5.8.0",
-    "viem": "^2.43.0"
+    "viem": "^2.43.0",
+    "hardhat": "workspace:^3.0.0"
   },
   "peerDependencies": {
     "@nomicfoundation/hardhat-ignition": "workspace:^3.0.7",
@@ -71,7 +72,7 @@
     "@nomicfoundation/hardhat-keystore": "workspace:^3.0.0",
     "@nomicfoundation/hardhat-network-helpers": "workspace:^3.0.0",
     "@nomicfoundation/hardhat-node-test-runner": "workspace:^3.0.0",
-    "@nomicfoundation/hardhat-viem": "workspace:^3.0.2",
+    "@nomicfoundation/hardhat-viem": "workspace:^3.0.4",
     "@nomicfoundation/hardhat-viem-assertions": "workspace:^3.0.5",
     "@nomicfoundation/hardhat-verify": "workspace:^3.0.0",
     "@nomicfoundation/ignition-core": "workspace:^3.0.7",

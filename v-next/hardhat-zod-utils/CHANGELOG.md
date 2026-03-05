@@ -1,5 +1,11 @@
 # @nomicfoundation/hardhat-zod-utils
 
+## 3.0.3
+
+### Patch Changes
+
+- 19b691d: Fix typo in default error message [#8028](https://github.com/NomicFoundation/hardhat/pull/8028)
+
 ## 3.0.2
 
 ### Patch Changes

@@ -1,5 +1,11 @@
 # @nomicfoundation/hardhat-verify
 
+## 3.0.12
+
+### Patch Changes
+
+- 2cbf218: Make SolidityBuildSystem easier to work with ([#7988](https://github.com/NomicFoundation/hardhat/pull/7988))
+
 ## 3.0.11
 
 ### Patch Changes
