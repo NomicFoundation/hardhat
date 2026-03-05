@@ -1,8 +1,10 @@
+/* eslint-disable @typescript-eslint/consistent-type-assertions -- test */
+/* eslint-disable @typescript-eslint/no-non-null-assertion -- test */
 import type { SolidityCompilerConfig } from "hardhat/types/config";
 import type { CompilerInput, CompilerOutput } from "hardhat/types/solidity";
 
 import assert from "node:assert/strict";
-import { describe, it, mock } from "node:test";
+import { describe, it } from "node:test";
 
 // Helper to create a compiler config
 function createSolidityCompilerConfig(
@@ -46,17 +48,6 @@ function createGetCompilerMockNext() {
     compiler: mockCompiler,
   };
 }
-
-const mockInput: CompilerInput = {
-  language: "Solidity",
-  sources: {
-    "A.sol": { content: "pragma solidity ^0.8.0; contract A {}" },
-  },
-  settings: {
-    optimizer: {},
-    outputSelection: { "*": { "*": ["abi"] } },
-  },
-};
 
 describe("hardhat-solx solidity hook handler", () => {
   describe("downloadCompilers", () => {

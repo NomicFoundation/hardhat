@@ -19,7 +19,7 @@ import hardhatSolx from "@nomicfoundation/hardhat-solx";
 export default defineConfig({
   plugins: [hardhatSolx],
   solidity: {
-    version: "0.8.28",
+    version: "0.8.33",
   },
 });
 ```
@@ -40,19 +40,14 @@ hardhat build    # uses solc (default profile)
 
 ## Configuration
 
-The plugin works out of the box with sensible defaults. You can optionally customize the plugin config:
+The plugin works out of the box with sensible defaults. The only optional configuration is:
 
 ```typescript
 export default defineConfig({
   plugins: [hardhatSolx],
-  solidity: "0.8.28",
-  // Plugin config (controls solx binary version and compile-time settings)
+  solidity: "0.8.33",
   solx: {
-    version: "0.1.3",
-    settings: {
-      viaIR: true,
-      LLVMOptimization: "1",
-    },
+    dangerouslyAllowSolxInProduction: false, // default
   },
 });
 ```
@@ -61,9 +56,11 @@ export default defineConfig({
 
 | Option | Type | Default | Description |
 | --- | --- | --- | --- |
-| `version` | `string` | `"0.1.3"` | solx binary version to download |
-| `settings` | `Record<string, unknown>` | `{ viaIR: true, LLVMOptimization: "1" }` | Settings injected into the standard-json input at compile time |
 | `dangerouslyAllowSolxInProduction` | `boolean` | `false` | Allow compiler type `"solx"` in the production build profile |
+
+### Supported Solidity versions
+
+solx maps each Solidity version to a specific solx binary version internally. Currently supported Solidity versions: `0.8.30`, `0.8.33`.
 
 ### EVM version support
 
