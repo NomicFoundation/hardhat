@@ -1,6 +1,7 @@
 import type { SolidityHooks } from "hardhat/types/hooks";
 
 import debug from "debug";
+import { exists } from "@nomicfoundation/hardhat-utils/fs";
 
 import {
   DEFAULT_SOLX_SETTINGS,
@@ -29,6 +30,12 @@ export default async (): Promise<Partial<SolidityHooks>> => ({
     }
 
     for (const solxVersion of solxVersions) {
+      const binaryPath = await getSolxBinaryPath(solxVersion);
+      if (await exists(binaryPath)) {
+        log(`solx ${solxVersion} already cached at ${binaryPath}`);
+        continue;
+      }
+
       if (!quiet) {
         console.log(`Downloading solx ${solxVersion}`);
       }
@@ -55,10 +62,6 @@ export default async (): Promise<Partial<SolidityHooks>> => ({
       `Creating SolxCompiler for Solidity ${compilerConfig.version} (solx ${solxVersion}) at ${binaryPath}`,
     );
 
-    return new SolxCompiler(
-      solxVersion,
-      binaryPath,
-      DEFAULT_SOLX_SETTINGS,
-    );
+    return new SolxCompiler(solxVersion, binaryPath, DEFAULT_SOLX_SETTINGS);
   },
 });
