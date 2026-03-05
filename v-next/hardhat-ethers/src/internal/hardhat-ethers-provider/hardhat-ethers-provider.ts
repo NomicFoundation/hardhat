@@ -481,21 +481,29 @@ export class HardhatEthersProvider implements HardhatEthersProviderI {
     }
 
     return new Promise<ethers.TransactionReceipt | null>((resolve, reject) => {
+      let cancelled = false;
       let timeoutTimer: NodeJS.Timeout | undefined;
       let pollingTimeout: NodeJS.Timeout | undefined;
 
       if (timeout !== undefined && timeout > 0) {
         timeoutTimer = setTimeout(() => {
+          cancelled = true;
           clearTimeout(pollingTimeout);
           resolve(null);
         }, timeout);
       }
 
       const poll = async () => {
+        if (cancelled) {
+          return;
+        }
+
         try {
           const receipt = await this.getTransactionReceipt(hash);
 
           if (receipt !== null) {
+            cancelled = true;
+
             if (timeoutTimer !== undefined) {
               clearTimeout(timeoutTimer);
             }
@@ -512,6 +520,8 @@ export class HardhatEthersProvider implements HardhatEthersProviderI {
           pollingTimeout = setTimeout(poll, pollingInterval);
         } catch (e) {
           ensureError(e);
+
+          cancelled = true;
 
           if (timeoutTimer !== undefined) {
             clearTimeout(timeoutTimer);
