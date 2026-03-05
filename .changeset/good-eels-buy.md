@@ -2,4 +2,4 @@
 "hardhat": patch
 ---
 
-Add downloadCompilers parallel hook for extensible compiler downloads
+Add `downloadCompilers` and `getCompiler` hooks for extensible custom compiler support
