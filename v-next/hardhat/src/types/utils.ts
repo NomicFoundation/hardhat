@@ -57,3 +57,10 @@ export type RequireField<T, K extends keyof T> = T & {
 export type Result<ValueT, ErrorT> =
   | { readonly success: true; readonly value: ValueT }
   | { readonly success: false; readonly error: ErrorT };
+
+/**
+ * Returns the keys of T tht don't map to never.
+ */
+export type NonNeverKeys<T> = {
+  [K in keyof T]: T[K] extends never ? never : K;
+}[keyof T];
