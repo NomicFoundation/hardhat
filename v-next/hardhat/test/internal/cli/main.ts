@@ -588,6 +588,18 @@ GLOBAL OPTIONS:
       );
     });
 
+    it("should throw an error when --template is followed by an unknown flag", async function () {
+      const command = "npx hardhat --init --template --unknown-flag";
+
+      await assertRejectsWithHardhatError(
+        async () => runMain(command),
+        HardhatError.ERRORS.CORE.ARGUMENTS.MISSING_VALUE_FOR_ARGUMENT,
+        {
+          argument: "--template",
+        },
+      );
+    });
+
     it("should throw an error when --template value is an unknown template name", async function () {
       const command = "npx hardhat --init --template unknown-template";
 
