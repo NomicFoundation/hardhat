@@ -997,7 +997,7 @@ describe("hardhat ethers provider", () => {
       const receipt = await ethers.provider.waitForTransaction(
         "0x0000000000000000000000000000000000000000000000000000000000000000",
         1,
-        100,
+        1, // 1 millisecond timeout
       );
 
       assert.equal(receipt === null, true);
