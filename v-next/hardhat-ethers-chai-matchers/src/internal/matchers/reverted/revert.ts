@@ -53,7 +53,12 @@ export function supportRevert(
               await ethers.provider.getTransactionReceipt(hash);
 
             if (oneShotReceipt === null) {
-              assert(false, "Expected transaction to be reverted");
+              assert(
+                false,
+                "Expected transaction to be reverted",
+                "Expected transaction NOT to be reverted",
+              );
+
               return;
             }
 
@@ -62,6 +67,7 @@ export function supportRevert(
               "Expected transaction to be reverted",
               "Expected transaction NOT to be reverted",
             );
+
             return;
           }
 
