@@ -6,7 +6,6 @@ import type {
 } from "@nomicfoundation/edr";
 
 import { LogKind, CallKind, IncludeTraces } from "@nomicfoundation/edr";
-import { assertHardhatInvariant } from "@nomicfoundation/hardhat-errors";
 import { bytesToHexString } from "@nomicfoundation/hardhat-utils/hex";
 
 type NestedArray<T> = Array<T | NestedArray<T>>;
@@ -53,45 +52,46 @@ function formatOutputs(outputs: string | Uint8Array): string | undefined {
   }
 }
 
+function formatCallKindTag(kind: CallKind, colorizer: Colorizer): string {
+  switch (kind) {
+    case CallKind.Create:
+      return colorizer.yellow("[CREATE]");
+    case CallKind.StaticCall:
+      return colorizer.yellow("[STATICCALL]");
+    case CallKind.DelegateCall:
+      return colorizer.yellow("[DELEGATECALL]");
+    case CallKind.CallCode:
+      return colorizer.yellow("[CALLCODE]");
+    case CallKind.Call:
+      return colorizer.yellow("[CALL]");
+  }
+}
+
 function formatLog(log: LogTrace, colorizer: Colorizer): string[] {
   const { parameters } = log;
+  const tag = colorizer.yellow("[EVENT]");
   const lines = [];
   if (Array.isArray(parameters)) {
     const topics = parameters.map((topic) => bytesToHexString(topic));
     if (topics.length > 0) {
-      lines.push(`emit topic 0: ${colorizer.cyan(topics[0])}`);
+      lines.push(`${tag} topic 0: ${colorizer.cyan(topics[0])}`);
     }
     for (let i = 1; i < topics.length - 1; i++) {
-      lines.push(`     topic ${i}: ${colorizer.cyan(topics[i])}`);
+      lines.push(`        topic ${i}: ${colorizer.cyan(topics[i])}`);
     }
     if (topics.length > 1) {
-      lines.push(`        data: ${colorizer.cyan(topics[topics.length - 1])}`);
+      lines.push(
+        `           data: ${colorizer.cyan(topics[topics.length - 1])}`,
+      );
     }
   } else {
     lines.push(
-      `emit ${parameters.name}(${colorizer.cyan(parameters.arguments.join(", "))})`,
+      `${tag} ${parameters.name}(${colorizer.cyan(parameters.arguments.join(", "))})`,
     );
   }
   return lines;
 }
 
-function formatKind(kind: CallKind): string | undefined {
-  assertHardhatInvariant(
-    kind !== CallKind.Create,
-    "Unexpected call kind 'Create'",
-  );
-
-  switch (kind) {
-    case CallKind.Call:
-      return undefined;
-    case CallKind.CallCode:
-      return "callcode";
-    case CallKind.DelegateCall:
-      return "delegatecall";
-    case CallKind.StaticCall:
-      return "staticcall";
-  }
-}
 
 function formatTrace(
   trace: CallTrace,
@@ -120,26 +120,23 @@ function formatTrace(
   const formattedInputs = formatInputs(inputs, color);
   const formattedOutputs = formatOutputs(outputs);
 
+  const kindTag = formatCallKindTag(kind, colorizer);
   let openingLine: string;
   let closingLine: string | undefined;
   if (kind === CallKind.Create) {
-    openingLine = `[${gasUsed}] ${colorizer.yellow("→ new")} ${contract ?? "<unknown>"}@${address}`;
+    openingLine = `${kindTag} [${gasUsed}] ${colorizer.yellow("→ new")} ${contract ?? "<unknown>"}@${address}`;
     // TODO: Uncomment this when the formattedInputs starts containing
     // the address of where the contract was deployed instead of the code.
     // if (formattedInputs !== undefined) {
     //   openingLine = `${openingLine}@${formattedInputs}`;
     // }
   } else {
-    const formattedKind = formatKind(kind);
-    openingLine = `[${gasUsed}] ${color(contract ?? address)}`;
+    openingLine = `${kindTag} [${gasUsed}] ${color(contract ?? address)}`;
     if (formattedInputs !== undefined) {
       openingLine = `${openingLine}::${formattedInputs}`;
     }
     if (value !== 0n) {
       openingLine = `${openingLine} {value: ${value}}`;
-    }
-    if (formattedKind !== undefined) {
-      openingLine = `${openingLine} ${colorizer.yellow(`[${formattedKind}]`)}`;
     }
   }
   if (formattedOutputs !== undefined) {

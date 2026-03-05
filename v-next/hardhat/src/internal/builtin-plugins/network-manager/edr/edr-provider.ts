@@ -143,14 +143,42 @@ interface EdrProviderConfig {
   coverageConfig?: CoverageConfig;
   gasReportConfig?: GasReportConfig;
   includeCallTraces?: IncludeTraces;
+  connectionLabel?: string;
 }
 
 export class EdrProvider extends BaseProvider {
+  // Rotating palette for per-connection coloring of trace headers.
+  // Colors chosen for visual distinctness on both dark and light terminals.
+  static readonly #LABEL_COLORS: Array<(text: string) => string> = [
+    chalk.cyan,
+    chalk.magenta,
+    chalk.yellow,
+    chalk.green,
+    chalk.blue,
+    chalk.red,
+  ];
+
+  static readonly #labelColorMap = new Map<string, (text: string) => string>();
+
+  static #colorForLabel(label: string): (text: string) => string {
+    let color = EdrProvider.#labelColorMap.get(label);
+    if (color === undefined) {
+      const index =
+        EdrProvider.#labelColorMap.size % EdrProvider.#LABEL_COLORS.length;
+      color = EdrProvider.#LABEL_COLORS[index];
+      EdrProvider.#labelColorMap.set(label, color);
+    }
+    return color;
+  }
+
   readonly #jsonRpcRequestWrapper?: JsonRpcRequestWrapperFunction;
 
   #provider: Provider | undefined;
   #nextRequestId = 1;
   readonly #printLineFn: (line: string) => void;
+  readonly #connectionLabel: string;
+  readonly #labelColor: (text: string) => string;
+  readonly #tracedTxHashes = new Set<string>();
 
   /**
    * Creates a new instance of `EdrProvider`.
@@ -164,6 +192,7 @@ export class EdrProvider extends BaseProvider {
     coverageConfig,
     gasReportConfig,
     includeCallTraces,
+    connectionLabel,
   }: EdrProviderConfig): Promise<EdrProvider> {
     const printLineFn = loggerConfig.printLineFn ?? printLine;
     const replaceLastLineFn = loggerConfig.replaceLastLineFn ?? replaceLastLine;
@@ -215,6 +244,7 @@ export class EdrProvider extends BaseProvider {
       edrProvider = new EdrProvider(
         provider,
         printLineFn,
+        connectionLabel ?? "edr",
         jsonRpcRequestWrapper,
       );
     } catch (error) {
@@ -237,12 +267,15 @@ export class EdrProvider extends BaseProvider {
   private constructor(
     provider: Provider,
     printLineFn: (line: string) => void,
+    connectionLabel: string,
     jsonRpcRequestWrapper?: JsonRpcRequestWrapperFunction,
   ) {
     super();
 
     this.#provider = provider;
     this.#printLineFn = printLineFn;
+    this.#connectionLabel = connectionLabel;
+    this.#labelColor = EdrProvider.#colorForLabel(connectionLabel);
     this.#jsonRpcRequestWrapper = jsonRpcRequestWrapper;
   }
 
@@ -323,15 +356,52 @@ export class EdrProvider extends BaseProvider {
     );
   }
 
-  #outputCallTraces(edrResponse: Response): void {
-    try {
-      const callTraces = edrResponse.callTraces();
+  // Methods whose *successful* traces are redundant (simulations before the
+  // real tx). Failed traces are still shown because the subsequent
+  // eth_sendTransaction may never happen.
+  static readonly #TRACE_SUPPRESSED_METHODS = new Set(["eth_estimateGas"]);
 
-      if (callTraces.length > 0) {
-        const formatted = formatTraces(callTraces, "  ", chalk);
-        this.#printLineFn("  Call Traces:");
-        this.#printLineFn(formatted);
+  #outputCallTraces(
+    edrResponse: Response,
+    method: string,
+    txHash: string | undefined,
+    failed: boolean,
+  ): void {
+    try {
+      // Skip successful simulation-only methods — their trace will appear
+      // again in the subsequent eth_sendTransaction. Failed simulations
+      // are shown because the sendTransaction may never happen.
+      if (
+        !failed &&
+        EdrProvider.#TRACE_SUPPRESSED_METHODS.has(method)
+      ) {
+        return;
       }
+
+      const callTraces = edrResponse.callTraces();
+      if (callTraces.length === 0) {
+        return;
+      }
+
+      // Dedup: skip if we already traced this transaction
+      if (txHash !== undefined) {
+        if (this.#tracedTxHashes.has(txHash)) {
+          return;
+        }
+        this.#tracedTxHashes.add(txHash);
+      }
+
+      const formatted = formatTraces(callTraces, "  ", chalk);
+
+      // Visual framing: connection label is colored, rest is dimmed
+      const coloredLabel = this.#labelColor(`[${this.#connectionLabel}]`);
+      const dimMethod = chalk.dim(method);
+      const plainLabel = `[${this.#connectionLabel}] ${method}`;
+      const padding = Math.max(0, 56 - plainLabel.length);
+      this.#printLineFn(
+        `${chalk.dim("──")} ${coloredLabel} ${dimMethod} ${chalk.dim("─".repeat(padding))}`,
+      );
+      this.#printLineFn(formatted);
     } catch (e) {
       log("Failed to get call traces: %O", e);
     }
@@ -339,8 +409,10 @@ export class EdrProvider extends BaseProvider {
 
   async #handleEdrResponse(
     edrResponse: Response,
+    method: string,
   ): Promise<SuccessfulJsonRpcResponse> {
     let jsonRpcResponse: JsonRpcResponse;
+    let txHash: string | undefined;
 
     if (typeof edrResponse.data === "string") {
       jsonRpcResponse = JSON.parse(edrResponse.data);
@@ -351,6 +423,12 @@ export class EdrProvider extends BaseProvider {
     if (isFailedJsonRpcResponse(jsonRpcResponse)) {
       const responseError = jsonRpcResponse.error;
       let error;
+
+      // Extract tx hash for dedup from failed response
+      const errorData = responseError.data;
+      if (isEdrProviderErrorData(errorData)) {
+        txHash = errorData.transactionHash;
+      }
 
       const stackTrace = edrResponse.stackTrace();
 
@@ -392,14 +470,25 @@ export class EdrProvider extends BaseProvider {
         error.data = responseError.data;
       }
 
-      this.#outputCallTraces(edrResponse);
+      this.#outputCallTraces(edrResponse, method, txHash, true);
 
       /* eslint-disable-next-line no-restricted-syntax -- we may throw
       non-Hardaht errors inside of an EthereumProvider */
       throw error;
     }
 
-    this.#outputCallTraces(edrResponse);
+    // Extract tx hash for dedup from successful response
+    if (
+      method === "eth_sendTransaction" ||
+      method === "eth_sendRawTransaction"
+    ) {
+      txHash =
+        typeof jsonRpcResponse.result === "string"
+          ? jsonRpcResponse.result
+          : undefined;
+    }
+
+    this.#outputCallTraces(edrResponse, method, txHash, false);
 
     return jsonRpcResponse;
   }
@@ -452,7 +541,7 @@ export class EdrProvider extends BaseProvider {
       throw new UnknownError(error.message, error);
     }
 
-    return this.#handleEdrResponse(edrResponse);
+    return this.#handleEdrResponse(edrResponse, request.method);
   }
 }
 
