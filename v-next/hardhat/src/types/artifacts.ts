@@ -36,7 +36,18 @@ export type GetArtifactByName<ContractNameT extends string> =
  */
 export type ArtifactContractNames = keyof ArtifactMap extends never
   ? string
-  : NonNeverKeys<ArtifactMap> | (string & {});
+  : NonNeverKeys<ArtifactMap>;
+
+/**
+ * A type that represents a string that should match an artifact contract name,
+ * but it doesn't fail if the string is not a contract name. It's mostly used
+ * to offer autocompletion.
+ *
+ * @see {@link ArtifactContractNames}
+ */
+export type StringWithArtifactContractNamesAutocompletion =
+  | ArtifactContractNames
+  | (string & {});
 
 /**
  * The ArtifactManager is responsible for reading and writing artifacts from
@@ -55,7 +66,9 @@ export interface ArtifactManager {
    *   indicating which fully qualified names can be used instead.
    * @throws Throws an error if the artifact doesn't exist.
    */
-  readArtifact<ContractNameT extends string>(
+  readArtifact<
+    ContractNameT extends StringWithArtifactContractNamesAutocompletion,
+  >(
     contractNameOrFullyQualifiedName: ContractNameT,
   ): Promise<GetArtifactByName<ContractNameT>>;
 

@@ -9,8 +9,8 @@ import type { ethers as EthersT } from "ethers";
 import type {
   Abi,
   Artifact,
-  ArtifactContractNames,
   ArtifactManager,
+  StringWithArtifactContractNamesAutocompletion,
 } from "hardhat/types/artifacts";
 import type { NetworkConfig } from "hardhat/types/config";
 
@@ -83,7 +83,7 @@ export class HardhatHelpers {
   }
 
   public getContractFactory<A extends any[] = any[], I = EthersT.Contract>(
-    name: ArtifactContractNames,
+    name: StringWithArtifactContractNamesAutocompletion,
     signerOrOptions?: EthersT.Signer | FactoryOptions,
   ): Promise<EthersT.ContractFactory<A, I>>;
 
@@ -97,7 +97,7 @@ export class HardhatHelpers {
     A extends any[] = any[],
     I = EthersT.Contract,
   >(
-    nameOrAbi: ArtifactContractNames | any[] | Abi,
+    nameOrAbi: StringWithArtifactContractNamesAutocompletion | any[] | Abi,
     bytecodeOrFactoryOptions?:
       | (EthersT.Signer | FactoryOptions)
       | EthersT.BytesLike,
@@ -169,7 +169,7 @@ export class HardhatHelpers {
   }
 
   public async getContractAt(
-    nameOrAbi: ArtifactContractNames | Abi,
+    nameOrAbi: StringWithArtifactContractNamesAutocompletion | Abi,
     address: string | EthersT.Addressable,
     signer?: EthersT.Signer,
   ): Promise<EthersT.Contract> {
@@ -237,18 +237,18 @@ export class HardhatHelpers {
   }
 
   public async deployContract(
-    name: ArtifactContractNames,
+    name: StringWithArtifactContractNamesAutocompletion,
     args?: any[],
     signerOrOptions?: EthersT.Signer | DeployContractOptions,
   ): Promise<EthersT.Contract>;
 
   public async deployContract(
-    name: ArtifactContractNames,
+    name: StringWithArtifactContractNamesAutocompletion,
     signerOrOptions?: EthersT.Signer | DeployContractOptions,
   ): Promise<EthersT.Contract>;
 
   public async deployContract(
-    name: ArtifactContractNames,
+    name: StringWithArtifactContractNamesAutocompletion,
     argsOrSignerOrOptions?: any[] | EthersT.Signer | DeployContractOptions,
     signerOrOptions?: EthersT.Signer | DeployContractOptions,
   ): Promise<EthersT.Contract> {

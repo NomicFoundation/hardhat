@@ -2,7 +2,7 @@ import type * as ethers from "ethers";
 import type {
   Abi,
   Artifact,
-  ArtifactContractNames,
+  StringWithArtifactContractNamesAutocompletion,
 } from "hardhat/types/artifacts";
 
 export type HardhatEthers = typeof ethers & HardhatEthersHelpers;
@@ -31,7 +31,7 @@ export interface HardhatEthersHelpers {
   provider: HardhatEthersProvider;
 
   getContractFactory<A extends any[] = any[], I = ethers.Contract>(
-    name: ArtifactContractNames,
+    name: StringWithArtifactContractNamesAutocompletion,
     signerOrOptions?: ethers.Signer | FactoryOptions,
   ): Promise<ethers.ContractFactory<A, I>>;
   getContractFactory<A extends any[] = any[], I = ethers.Contract>(
@@ -46,7 +46,7 @@ export interface HardhatEthersHelpers {
   ): Promise<ethers.ContractFactory<A, I>>;
 
   getContractAt(
-    nameOrAbi: ArtifactContractNames | any[] | Abi,
+    nameOrAbi: StringWithArtifactContractNamesAutocompletion | any[] | Abi,
     address: string | ethers.Addressable,
     signer?: ethers.Signer,
   ): Promise<ethers.Contract>;
@@ -58,11 +58,11 @@ export interface HardhatEthersHelpers {
   ) => Promise<ethers.Contract>;
 
   deployContract(
-    name: ArtifactContractNames,
+    name: StringWithArtifactContractNamesAutocompletion,
     signerOrOptions?: ethers.Signer | DeployContractOptions,
   ): Promise<ethers.Contract>;
   deployContract(
-    name: ArtifactContractNames,
+    name: StringWithArtifactContractNamesAutocompletion,
     args: any[],
     signerOrOptions?: ethers.Signer | DeployContractOptions,
   ): Promise<ethers.Contract>;
