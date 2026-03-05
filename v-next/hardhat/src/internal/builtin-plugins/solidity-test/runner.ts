@@ -38,7 +38,7 @@ export interface RunOptions {
  * Despite the changes, the signature of the function should still be considered
  * a draft that may change in the future.
  *
- * TODO: Once the signature is finalised, give feedback to the EDR team.
+ * TODO: Once the signature is finalized, give feedback to the EDR team.
  */
 export function run(
   chainType: ChainType,

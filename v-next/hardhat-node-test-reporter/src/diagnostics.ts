@@ -8,7 +8,7 @@ export interface GlobalDiagnostics {
   cancelled: number;
   skipped: number;
   todo: number;
-  // eslint-disable-next-line @typescript-eslint/naming-convention -- keeping this alingned with the node:test event
+  // eslint-disable-next-line @typescript-eslint/naming-convention -- keeping this aligned with the node:test event
   duration_ms: number;
 }
 

@@ -5,3 +5,15 @@ export interface HardhatTestUserConfig {}
 /* eslint-disable-next-line @typescript-eslint/no-empty-interface -- Empty
 interface allow plugins to extend the Test configuration for Hardhat. */
 export interface HardhatTestConfig {}
+
+/**
+ * Summary of a test run, containing counts of test outcomes and optional
+ * failure output.
+ */
+export interface TestSummary {
+  failed: number;
+  passed: number;
+  skipped: number;
+  todo: number;
+  failureOutput?: string;
+}

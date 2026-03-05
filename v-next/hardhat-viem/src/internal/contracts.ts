@@ -9,7 +9,10 @@ import type {
   WalletClient,
 } from "../types.js";
 import type { PrefixedHexString } from "@nomicfoundation/hardhat-utils/hex";
-import type { ArtifactManager } from "hardhat/types/artifacts";
+import type {
+  ArtifactManager,
+  StringWithArtifactContractNamesAutocompletion,
+} from "hardhat/types/artifacts";
 import type { ChainDescriptorsConfig } from "hardhat/types/config";
 import type { EthereumProvider } from "hardhat/types/providers";
 import type { Abi as ViemAbi, Address as ViemAddress } from "viem";
@@ -22,7 +25,9 @@ import { getContractAddress, getContract } from "viem";
 
 import { getDefaultWalletClient, getPublicClient } from "./clients.js";
 
-export async function deployContract<ContractName extends string>(
+export async function deployContract<
+  ContractName extends StringWithArtifactContractNamesAutocompletion,
+>(
   provider: EthereumProvider,
   artifactManager: ArtifactManager,
   chainDescriptors: ChainDescriptorsConfig,
@@ -66,7 +71,7 @@ export async function deployContract<ContractName extends string>(
 
   let deploymentTxHash: PrefixedHexString;
   // If gasPrice is defined, then maxFeePerGas and maxPriorityFeePerGas
-  // must be undefined because it's a legaxy tx.
+  // must be undefined because it's a legacy tx.
   if (deployContractParameters.gasPrice !== undefined) {
     deploymentTxHash = await walletClient.deployContract({
       abi,
@@ -115,7 +120,9 @@ export async function deployContract<ContractName extends string>(
   return contract;
 }
 
-export async function sendDeploymentTransaction<ContractName extends string>(
+export async function sendDeploymentTransaction<
+  ContractName extends StringWithArtifactContractNamesAutocompletion,
+>(
   provider: EthereumProvider,
   artifactManager: ArtifactManager,
   chainDescriptors: ChainDescriptorsConfig,
@@ -142,7 +149,7 @@ export async function sendDeploymentTransaction<ContractName extends string>(
 
   let deploymentTxHash: PrefixedHexString;
   // If gasPrice is defined, then maxFeePerGas and maxPriorityFeePerGas
-  // must be undefined because it's a legaxy tx.
+  // must be undefined because it's a legacy tx.
   if (deployContractParameters.gasPrice !== undefined) {
     deploymentTxHash = await walletClient.deployContract({
       abi,
@@ -182,7 +189,9 @@ export async function sendDeploymentTransaction<ContractName extends string>(
   return { contract, deploymentTransaction: deploymentTx };
 }
 
-export async function getContractAt<ContractName extends string>(
+export async function getContractAt<
+  ContractName extends StringWithArtifactContractNamesAutocompletion,
+>(
   provider: EthereumProvider,
   artifactManager: ArtifactManager,
   chainDescriptors: ChainDescriptorsConfig,
@@ -208,7 +217,9 @@ export async function getContractAt<ContractName extends string>(
   );
 }
 
-function createContractInstance<ContractName extends string>(
+function createContractInstance<
+  ContractName extends StringWithArtifactContractNamesAutocompletion,
+>(
   _contractName: ContractName,
   publicClient: PublicClient,
   walletClient: WalletClient,

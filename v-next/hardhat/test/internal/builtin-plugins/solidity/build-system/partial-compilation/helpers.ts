@@ -236,7 +236,7 @@ export class TestProjectWrapper {
     );
 
     if (buildInfo === undefined) {
-      throw new Error(`Couldnt find build info with id ${buildInfoId}`);
+      throw new Error(`Couldn't find build info with id ${buildInfoId}`);
     }
 
     return buildInfo;

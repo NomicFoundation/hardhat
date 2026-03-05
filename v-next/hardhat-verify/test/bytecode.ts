@@ -254,6 +254,7 @@ describe("bytecode", () => {
         // deployed bytecode: real library address and immutable reference
         // at bytes 3 and 28 respectively
         const bytecode = buildBytecode(
+          /* cspell:disable-next-line */
           `deadbe${deployedLibraryAddress}efcafebabe${deployedImmutableReference}`,
           metadataSection,
         );
@@ -292,6 +293,7 @@ describe("bytecode", () => {
         const output = buildCompilerOutputBytecode(
           // compiled bytecode: placeholders in same positions
           buildBytecode(
+            /* cspell:disable-next-line */
             `deadbe${libraryPlaceholder}efcafebabe${immutablePlaceholder}`,
             metadataSection,
           ),

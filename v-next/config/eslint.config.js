@@ -489,7 +489,7 @@ export function createConfig(
       "no-restricted-syntax": [
         ...noRestrictedSyntaxRules,
         {
-          // This is a best effor selector that forbids every throw unless it's a `new HardhatError`,
+          // This is a best effort selector that forbids every throw unless it's a `new HardhatError`,
           // or throwing a variable within a catch clause.
           selector:
             "ThrowStatement:not(:has(ThrowStatement > NewExpression[callee.name='HardhatError']), CatchClause ThrowStatement:has(ThrowStatement > Identifier))",

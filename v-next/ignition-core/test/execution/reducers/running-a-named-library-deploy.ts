@@ -78,6 +78,7 @@ describe("DeploymentStateReducer", () => {
       networkInteractionId: 1,
       hash: "0xdeadbeef",
       receipt: {
+        /* cspell:disable-next-line */
         blockHash: "0xblockhash",
         blockNumber: 0,
         contractAddress: exampleAddress,

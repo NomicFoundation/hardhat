@@ -45,7 +45,7 @@ export function buildReleaseDescriptors(publishSummary, changelogs) {
 
 /**
  * Extracts the changelog entry for a specific version from raw changelog content.
- * Normalises major/minor/patch changes to "### Changes".
+ * Normalizes major/minor/patch changes to "### Changes".
  * Throws if the version header is not found.
  *
  * @param {string} changelog - Raw changelog file content

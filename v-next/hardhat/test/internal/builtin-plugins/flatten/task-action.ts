@@ -176,7 +176,7 @@ describe("flatten/task-action", () => {
   });
 
   describe("SPDX licenses and pragma abicoder directives", () => {
-    describe("Flatten files that dont contain SPDX licenses or pragma directives", () => {
+    describe("Flatten files that don't contain SPDX licenses or pragma directives", () => {
       useFixtureProject("flatten-task/contracts-no-spdx-no-pragma");
 
       it("should successfully flatten and compile the files", async function () {

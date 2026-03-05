@@ -858,6 +858,7 @@ class MockGetTransactionJsonRpcClient extends StubJsonRpcClient {
 
   public override async getLatestBlock(): Promise<Block> {
     return {
+      /* cspell:disable-next-line */
       hash: "0xblockhas",
       number: 34,
     };
@@ -867,8 +868,10 @@ class MockGetTransactionJsonRpcClient extends StubJsonRpcClient {
     _txHash: string,
   ): Promise<TransactionReceipt | undefined> {
     return {
+      /* cspell:disable-next-line */
       blockHash: "0xblockhash",
       blockNumber: 34,
+      /* cspell:disable-next-line */
       contractAddress: "0xcontractaddress",
       logs: [],
       status: TransactionReceiptStatus.SUCCESS,

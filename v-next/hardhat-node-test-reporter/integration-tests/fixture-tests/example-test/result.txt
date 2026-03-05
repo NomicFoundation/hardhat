@@ -23,8 +23,8 @@
 
   testing before each
     nested
-      [90m[32m✔[39m[90m neseted foo[39m
-      [90m[32m✔[39m[90m neseted foo 2[39m
+      [90m[32m✔[39m[90m nested foo[39m
+      [90m[32m✔[39m[90m nested foo 2[39m
 
 
   [34m+ todo test[39m
@@ -32,7 +32,7 @@
   [36m- skipped test[39m
 
 
-  [32m6 passing[39m[90m (153ms)[39m[31m[39m
+  [32m6 passing[39m[90m (119ms)[39m[31m[39m
 [31m  2 failing[39m[36m[39m
 [36m  1 skipped[39m[34m[39m
 [34m  1 todo[39m[90m[39m
@@ -42,9 +42,9 @@
        test with cause:
 
    [31mError: withCause[39m
-   [90m    at TestContext.<anonymous> (integration-tests/fixture-tests/example-test/test.ts:7:11)[39m
+   [90m    at TestContext.<anonymous> (integration-tests/fixture-tests/example-test/test.ts:8:11)[39m
      [90m[cause]: Error: cause[39m
-     [90m    at TestContext.<anonymous> (integration-tests/fixture-tests/example-test/test.ts:7:43)[39m
+     [90m    at TestContext.<anonymous> (integration-tests/fixture-tests/example-test/test.ts:8:43)[39m
 
   2) Foooo
        child
@@ -61,12 +61,12 @@
    [2m    3,[22m
    [2m  ][22m
    
-   [90m    at TestContext.<anonymous> (integration-tests/fixture-tests/example-test/test.ts:12:21)[39m
+   [90m    at TestContext.<anonymous> (integration-tests/fixture-tests/example-test/test.ts:14:21)[39m
      [90m[cause]: Error: cause[39m
-     [90m    at TestContext.<anonymous> (integration-tests/fixture-tests/example-test/test.ts:13:16)[39m
+     [90m    at TestContext.<anonymous> (integration-tests/fixture-tests/example-test/test.ts:15:16)[39m
 
   3) in describe:
 
    [31mError: before[39m
-   [90m    at SuiteContext.<anonymous> (integration-tests/fixture-tests/example-test/test.ts:51:11)[39m
+   [90m    at SuiteContext.<anonymous> (integration-tests/fixture-tests/example-test/test.ts:53:11)[39m
 

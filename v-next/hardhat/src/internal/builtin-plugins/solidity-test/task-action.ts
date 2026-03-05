@@ -1,6 +1,8 @@
 import type { RunOptions } from "./runner.js";
 import type { TestEvent } from "./types.js";
 import type { NewTaskActionFunction } from "../../../types/tasks.js";
+import type { TestSummary } from "../../../types/test.js";
+import type { Result } from "../../../types/utils.js";
 import type {
   Artifact as EdrArtifact,
   BuildInfoAndOutput,
@@ -19,6 +21,7 @@ import { resolveFromRoot } from "@nomicfoundation/hardhat-utils/path";
 import { createNonClosingWriter } from "@nomicfoundation/hardhat-utils/stream";
 
 import { getFullyQualifiedName } from "../../../utils/contract-names.js";
+import { errorResult, successfulResult } from "../../../utils/result.js";
 import { HardhatRuntimeEnvironmentImplementation } from "../../core/hre.js";
 import { isSupportedChainType } from "../../edr/chain-type.js";
 import { ArtifactManagerImplementation } from "../artifacts/artifact-manager.js";
@@ -46,7 +49,7 @@ interface TestActionArguments {
 const runSolidityTests: NewTaskActionFunction<TestActionArguments> = async (
   { testFiles, chainType, grep, noCompile, verbosity, testSummaryIndex },
   hre,
-) => {
+): Promise<Result<TestSummary, TestSummary>> => {
   assertHardhatInvariant(
     hre instanceof HardhatRuntimeEnvironmentImplementation,
     "Expected HRE to be an instance of HardhatRuntimeEnvironmentImplementation",
@@ -88,7 +91,7 @@ const runSolidityTests: NewTaskActionFunction<TestActionArguments> = async (
 
   // EDR needs all artifacts (contracts + tests)
   const edrArtifacts: Array<{
-    edrAtifact: EdrArtifact;
+    edrArtifact: EdrArtifact;
     userSourceName: string;
   }> = [];
   const buildInfos: BuildInfoAndOutput[] = [];
@@ -100,20 +103,20 @@ const runSolidityTests: NewTaskActionFunction<TestActionArguments> = async (
   }
 
   const sourceNameToUserSourceName = new Map(
-    edrArtifacts.map(({ userSourceName, edrAtifact }) => [
-      edrAtifact.id.source,
+    edrArtifacts.map(({ userSourceName, edrArtifact }) => [
+      edrArtifact.id.source,
       userSourceName,
     ]),
   );
 
-  edrArtifacts.forEach(({ userSourceName, edrAtifact }) => {
+  edrArtifacts.forEach(({ userSourceName, edrArtifact }) => {
     if (
       testRootPaths.includes(
         resolveFromRoot(hre.config.paths.root, userSourceName),
       ) &&
-      isTestSuiteArtifact(edrAtifact)
+      isTestSuiteArtifact(edrArtifact)
     ) {
-      warnDeprecatedTestFail(edrAtifact, sourceNameToUserSourceName);
+      warnDeprecatedTestFail(edrArtifact, sourceNameToUserSourceName);
     }
   });
 
@@ -123,8 +126,8 @@ const runSolidityTests: NewTaskActionFunction<TestActionArguments> = async (
         resolveFromRoot(hre.config.paths.root, userSourceName),
       ),
     )
-    .filter(({ edrAtifact }) => isTestSuiteArtifact(edrAtifact))
-    .map(({ edrAtifact }) => edrAtifact.id);
+    .filter(({ edrArtifact }) => isTestSuiteArtifact(edrArtifact))
+    .map(({ edrArtifact }) => edrArtifact.id);
 
   console.log("Running Solidity tests");
   console.log();
@@ -185,7 +188,7 @@ const runSolidityTests: NewTaskActionFunction<TestActionArguments> = async (
 
   const runStream = run(
     chainType,
-    edrArtifacts.map(({ edrAtifact }) => edrAtifact),
+    edrArtifacts.map(({ edrArtifact }) => edrArtifact),
     testSuiteIds,
     config,
     tracingConfig,
@@ -279,19 +282,13 @@ const runSolidityTests: NewTaskActionFunction<TestActionArguments> = async (
     async () => {},
   );
 
-  if (includesFailures || includesErrors) {
-    process.exitCode = 1;
-  }
-
   console.log();
 
-  return {
-    failed,
-    passed,
-    skipped,
-    todo: 0,
-    failureOutput,
-  };
+  const summary = { failed, passed, skipped, todo: 0, failureOutput };
+
+  return includesFailures || includesErrors
+    ? errorResult(summary)
+    : successfulResult(summary);
 };
 
 export default runSolidityTests;

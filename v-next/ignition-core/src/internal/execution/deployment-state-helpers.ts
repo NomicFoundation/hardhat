@@ -27,7 +27,7 @@ export async function loadDeploymentState(
 }
 
 /**
- * Ininitalizes the deployment state and records the run start message to the journal.
+ * Initializes the deployment state and records the run start message to the journal.
  *
  * @param chainId The chain ID.
  * @param deploymentLoader The deployment loader that will be used to record the message.

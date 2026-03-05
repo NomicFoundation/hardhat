@@ -150,7 +150,7 @@ export async function deployContract(
     }
   }
 
-  const encodecConstructorArgs = await encodeConstructorArgs(
+  const encodeConstructorArgsResult = await encodeConstructorArgs(
     // eslint-disable-next-line @typescript-eslint/consistent-type-assertions -- testing
     artifact.abi as JsonFragment[],
     constructorArgs,
@@ -162,7 +162,7 @@ export async function deployContract(
     params: [
       {
         from: deployer,
-        data: bytecode + encodecConstructorArgs,
+        data: bytecode + encodeConstructorArgsResult,
       },
     ],
   });

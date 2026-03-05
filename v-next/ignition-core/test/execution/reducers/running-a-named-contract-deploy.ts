@@ -98,6 +98,7 @@ describe("DeploymentStateReducer", () => {
       futureId: "future1",
       networkInteractionId: 1,
       transaction: {
+        /* cspell:disable-next-line */
         hash: "0xanother",
         fees: {
           maxFeePerGas: BigInt(20),
@@ -113,6 +114,7 @@ describe("DeploymentStateReducer", () => {
       networkInteractionId: 1,
       hash: "0xdeadbeef",
       receipt: {
+        /* cspell:disable-next-line */
         blockHash: "0xblockhash",
         blockNumber: 0,
         contractAddress: exampleAddress,
