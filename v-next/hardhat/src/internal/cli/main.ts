@@ -115,7 +115,8 @@ export async function main(
 
           if (
             usedCliArguments[i + 1] === undefined ||
-            usedCliArguments[i + 1] === true
+            usedCliArguments[i + 1] === true ||
+            cliArguments[i + 1] === undefined
           ) {
             throw new HardhatError(
               HardhatError.ERRORS.CORE.ARGUMENTS.MISSING_VALUE_FOR_ARGUMENT,
