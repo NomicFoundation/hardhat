@@ -79,13 +79,15 @@ const compilerUserConfigType = conditionalUnionType(
           ...baseCompilerFields,
           ...incompatibleVersionFields,
         })
-        .strict(),
+        .passthrough(),
     ],
   ],
   "Expected a valid compiler configuration",
 );
 
-// NOTE: This is only to match the setup present in ./type-extensions.ts
+// Note: this is only to match the setup present in ./type-extensions.ts.
+// preferWasm is allowed here for all types; it is only meaningful for solc
+// (type undefined or "solc") and silently ignored for other compiler types.
 const singleVersionSolcUserConfigType = z.object({
   ...baseCompilerFields,
   ...incompatibleVersionFields,
