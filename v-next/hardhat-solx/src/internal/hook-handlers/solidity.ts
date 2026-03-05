@@ -56,7 +56,7 @@ export default async (): Promise<Partial<SolidityHooks>> => ({
     );
 
     return new SolxCompiler(
-      compilerConfig.version,
+      solxVersion,
       binaryPath,
       DEFAULT_SOLX_SETTINGS,
     );

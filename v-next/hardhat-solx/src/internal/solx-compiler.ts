@@ -15,12 +15,12 @@ export class SolxCompiler implements Compiler {
   readonly #extraSettings: Record<string, unknown>;
 
   constructor(
-    version: string,
+    solxVersion: string,
     compilerPath: string,
     extraSettings: Record<string, unknown> = {},
   ) {
-    this.version = version;
-    this.longVersion = `${version}+solx`;
+    this.version = solxVersion;
+    this.longVersion = `${solxVersion}+solx`;
     this.compilerPath = compilerPath;
     this.#extraSettings = extraSettings;
   }
