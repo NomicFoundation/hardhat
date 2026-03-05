@@ -134,6 +134,30 @@ const pluginExample = {
 
 export default defineConfig({
   networks: {
+    network1: {
+      type: "edr-simulated",
+      chainType: "op",
+      chainId: 10,
+      forking: {
+        url: "https://mainnet.optimism.io",
+      },
+      ledgerAccounts: [
+        // Set your ledger address here
+        // "0x070Da0697e6B82F0ab3f5D0FD9210EAdF2Ba1516",
+      ],
+    },
+    network2: {
+      type: "edr-simulated",
+      chainType: "op",
+      chainId: 10,
+      forking: {
+        url: "https://mainnet.optimism.io",
+      },
+      ledgerAccounts: [
+        // Set your ledger address here
+        // "0x070Da0697e6B82F0ab3f5D0FD9210EAdF2Ba1516",
+      ],
+    },
     op: {
       type: "http",
       chainType: "op",
