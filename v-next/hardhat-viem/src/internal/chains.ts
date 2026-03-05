@@ -1,4 +1,8 @@
 import type { TestClientMode } from "../types.js";
+import type {
+  ChainDescriptorConfig,
+  ChainDescriptorsConfig,
+} from "hardhat/types/config";
 import type { ChainType } from "hardhat/types/network";
 import type { EthereumProvider } from "hardhat/types/providers";
 import type { Chain as ViemChain } from "viem";
@@ -27,6 +31,8 @@ const ANVIL_NODE_INFO_METHOD = "anvil_nodeInfo";
 export async function getChain<ChainTypeT extends ChainType | string>(
   provider: EthereumProvider,
   chainType: ChainTypeT,
+  chainDescriptors: ChainDescriptorsConfig,
+  networkName: string,
 ): Promise<ViemChain> {
   const cachedChain = chainCache.get(provider);
   if (cachedChain !== undefined) {
@@ -49,14 +55,7 @@ export async function getChain<ChainTypeT extends ChainType | string>(
         id: chainId,
       };
     } else if (chain === undefined) {
-      // If the chain couldn't be found and we can't detect the development
-      // network we throw an error.
-      throw new HardhatError(
-        HardhatError.ERRORS.HARDHAT_VIEM.GENERAL.NETWORK_NOT_FOUND,
-        {
-          chainId,
-        },
-      );
+      chain = resolveChain(chainId, networkName, chainDescriptors);
     } else {
       assertHardhatInvariant(
         false,
@@ -213,4 +212,66 @@ function isHardhatMetadata(value: unknown): value is HardhatMetadata {
       (isObject(value.forkedNetwork) &&
         typeof value.forkedNetwork.chainId === "number"))
   );
+}
+
+/**
+ * Resolves a viem chain for a given chain id using the provided chain
+ * descriptors. If a matching descriptor is found, the chain is enriched with
+ * the descriptor's name and block explorer. Otherwise, falls back to a minimal
+ * chain using the network name.
+ */
+export function resolveChain(
+  chainId: number,
+  networkName: string,
+  chainDescriptors: ChainDescriptorsConfig,
+): ViemChain {
+  const chainDescriptor = chainDescriptors.get(BigInt(chainId));
+  if (chainDescriptor === undefined) {
+    return createMinimalChain(chainId, networkName);
+  }
+
+  const chain = createMinimalChain(chainId, chainDescriptor.name);
+  const blockExplorer = getDefaultBlockExplorer(chainDescriptor);
+  if (blockExplorer !== undefined) {
+    chain.blockExplorers = {
+      default: blockExplorer,
+    };
+  }
+
+  return chain;
+}
+
+/**
+ * Creates a viem chain with the minimum fields required to satisfy the
+ * {@link ViemChain} type.
+ */
+export function createMinimalChain(id: number, name: string): ViemChain {
+  return {
+    id,
+    name,
+    nativeCurrency: { name: "Ether", symbol: "ETH", decimals: 18 },
+    rpcUrls: {
+      default: { http: [] },
+    },
+  };
+}
+
+/**
+ * Returns the default block explorer for a chain descriptor, preferring
+ * Etherscan over Blockscout. Returns `undefined` if neither is configured.
+ */
+export function getDefaultBlockExplorer(
+  chainDescriptor: ChainDescriptorConfig,
+): { name: string; url: string } | undefined {
+  const { etherscan, blockscout } = chainDescriptor.blockExplorers;
+
+  if (etherscan !== undefined) {
+    return { name: etherscan.name ?? "Etherscan", url: etherscan.url };
+  }
+
+  if (blockscout !== undefined) {
+    return { name: blockscout.name ?? "Blockscout", url: blockscout.url };
+  }
+
+  return undefined;
 }

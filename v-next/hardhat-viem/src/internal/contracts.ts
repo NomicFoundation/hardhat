@@ -13,6 +13,7 @@ import type {
   ArtifactManager,
   StringWithArtifactContractNamesAutocompletion,
 } from "hardhat/types/artifacts";
+import type { ChainDescriptorsConfig } from "hardhat/types/config";
 import type { EthereumProvider } from "hardhat/types/providers";
 import type { Abi as ViemAbi, Address as ViemAddress } from "viem";
 
@@ -29,6 +30,8 @@ export async function deployContract<
 >(
   provider: EthereumProvider,
   artifactManager: ArtifactManager,
+  chainDescriptors: ChainDescriptorsConfig,
+  networkName: string,
   contractName: ContractName,
   constructorArgs: readonly unknown[] = [],
   deployContractConfig: DeployContractConfig = {},
@@ -59,8 +62,10 @@ export async function deployContract<
   }
 
   const [publicClient, walletClient, { abi, bytecode }] = await Promise.all([
-    client?.public ?? getPublicClient(provider, "l1"),
-    client?.wallet ?? getDefaultWalletClient(provider, "l1"),
+    client?.public ??
+      getPublicClient(provider, "l1", chainDescriptors, networkName),
+    client?.wallet ??
+      getDefaultWalletClient(provider, "l1", chainDescriptors, networkName),
     getContractAbiAndBytecode(artifactManager, contractName, libraries),
   ]);
 
@@ -120,6 +125,8 @@ export async function sendDeploymentTransaction<
 >(
   provider: EthereumProvider,
   artifactManager: ArtifactManager,
+  chainDescriptors: ChainDescriptorsConfig,
+  networkName: string,
   contractName: ContractName,
   constructorArgs: readonly unknown[] = [],
   sendDeploymentTransactionConfig: SendDeploymentTransactionConfig = {},
@@ -133,8 +140,10 @@ export async function sendDeploymentTransaction<
     ...deployContractParameters
   } = sendDeploymentTransactionConfig;
   const [publicClient, walletClient, { abi, bytecode }] = await Promise.all([
-    client?.public ?? getPublicClient(provider, "l1"),
-    client?.wallet ?? getDefaultWalletClient(provider, "l1"),
+    client?.public ??
+      getPublicClient(provider, "l1", chainDescriptors, networkName),
+    client?.wallet ??
+      getDefaultWalletClient(provider, "l1", chainDescriptors, networkName),
     getContractAbiAndBytecode(artifactManager, contractName, libraries),
   ]);
 
@@ -185,14 +194,17 @@ export async function getContractAt<
 >(
   provider: EthereumProvider,
   artifactManager: ArtifactManager,
+  chainDescriptors: ChainDescriptorsConfig,
+  networkName: string,
   contractName: ContractName,
   address: ViemAddress,
   getContractAtConfig: GetContractAtConfig = {},
 ): Promise<ContractReturnType<ContractName>> {
   const [publicClient, walletClient, artifact] = await Promise.all([
-    getContractAtConfig.client?.public ?? getPublicClient(provider, "l1"),
+    getContractAtConfig.client?.public ??
+      getPublicClient(provider, "l1", chainDescriptors, networkName),
     getContractAtConfig.client?.wallet ??
-      getDefaultWalletClient(provider, "l1"),
+      getDefaultWalletClient(provider, "l1", chainDescriptors, networkName),
     artifactManager.readArtifact(contractName),
   ]);
 
