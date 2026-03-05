@@ -1,5 +1,12 @@
 # @nomicfoundation/hardhat-node-test-runner
 
+## 3.0.10
+
+### Patch Changes
+
+- 4ff11c1: Return typed `Result` from test runners and telemetry tasks ([#8015](https://github.com/NomicFoundation/hardhat/pull/8015)).
+- 2cbf218: Add `onTestRunStart`, `onTestWorkerDone`, and `onTestRunDone` test hooks ([#8001](https://github.com/NomicFoundation/hardhat/pull/8001))
+
 ## 3.0.9
 
 ### Patch Changes

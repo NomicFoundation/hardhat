@@ -1,5 +1,23 @@
 # hardhat
 
+## 3.1.11
+
+### Patch Changes
+
+- 2cbf218: Bumped EDR version to [`0.12.0-next.27`](https://github.com/NomicFoundation/edr/releases/tag/%40nomicfoundation%2Fedr%400.12.0-next.27)
+
+  BREAKING CHANGE: Memory capture used to be enabled by default on geth, but has since been flipped https://github.com/ethereum/go-ethereum/pull/23558 and is now disabled by default. We have followed suit and disabled it by default as well. If you were relying on memory capture, you will need to explicitly enable it by setting the `enableMemory` option to true in your tracer configuration.
+
+- bc193be: Use concrete value types for contract names in hardhat-viem and hardhat-ethers
+- 2cbf218: Make SolidityBuildSystem easier to work with ([#7988](https://github.com/NomicFoundation/hardhat/pull/7988))
+- 19b691d: Fix typo in assertion message [#8028](https://github.com/NomicFoundation/hardhat/pull/8028)
+- 2cbf218: Expose `Result` type for task action success/failure signaling.
+- 2cbf218: Fixed the acceptance of relative paths to `node_modules` in npm remappings ([#8007](https://github.com/NomicFoundation/hardhat/pull/8007))
+- 2cbf218: Implement a global banner logic in Hardhat 3 [#8021](https://github.com/NomicFoundation/hardhat/pull/8021)
+- 4ff11c1: Return typed `Result` from test runners and telemetry tasks ([#8015](https://github.com/NomicFoundation/hardhat/pull/8015)).
+- 2cbf218: Show fs paths and better error messages when a Solidity file can't be compiled with any configured compiler ([#7988](https://github.com/NomicFoundation/hardhat/pull/7988))
+- 2cbf218: Add `onTestRunStart`, `onTestWorkerDone`, and `onTestRunDone` test hooks ([#8001](https://github.com/NomicFoundation/hardhat/pull/8001))
+
 ## 3.1.10
 
 ### Patch Changes

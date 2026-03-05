@@ -1,5 +1,11 @@
 # @nomicfoundation/hardhat-toolbox-viem
 
+## 5.0.3
+
+### Patch Changes
+
+- 13918b4: Add support for custom chains not in viem's built-in chain list, thanks @daanporon! ([#7763](https://github.com/NomicFoundation/hardhat/issues/7763))
+
 ## 5.0.2
 
 ### Patch Changes
