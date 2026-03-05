@@ -30,12 +30,12 @@
     {
       "package": "@nomicfoundation/hardhat-viem",
       "peer": "hardhat",
-      "reason": "It now uses ArtifactContractNames"
+      "reason": "It now uses StringWithArtifactContractNamesAutocompletion"
     },
     {
-      "package": "@nomicfoundation/hardhat-viem",
+      "package": "@nomicfoundation/hardhat-ethers",
       "peer": "hardhat",
-      "reason": "It now uses ArtifactContractNames"
+      "reason": "It now uses StringWithArtifactContractNamesAutocompletion"
     }
   ]
 }
