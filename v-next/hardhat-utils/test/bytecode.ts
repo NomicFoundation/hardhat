@@ -1,3 +1,4 @@
+// cSpell:ignore xbytecodebytecodebytecode placeholderplaceholderplaceholderp xnotanaddress
 import type { Artifact, LibraryAddresses } from "../src/internal/bytecode.js";
 
 import assert from "node:assert/strict";

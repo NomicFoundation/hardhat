@@ -90,7 +90,7 @@ export type InstallationName = string;
 
 /**
  * This interface represents a graph of all the npm packages that the Hardhat
- * project uses, including the Hardhat projecct itself, and their remappings.
+ * project uses, including the Hardhat project itself, and their remappings.
  *
  * This class guarantees that there's a single instance of any npm package per
  * each version. That means that, even if you have multiple installations of
@@ -103,7 +103,7 @@ export type InstallationName = string;
  * than expected, because:
  *  - Processing a remapping may require loading a new npm package, and this
  *    interface ensures its uniqueness.
- *  - Loading an npm package requires processing its remappigns.
+ *  - Loading an npm package requires processing its remappings.
  *  - Selecting the best user remapping for an import can require processing it
  *    and loading its npm package.
  *

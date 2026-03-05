@@ -88,7 +88,7 @@ const runSolidityTests: NewTaskActionFunction<TestActionArguments> = async (
 
   // EDR needs all artifacts (contracts + tests)
   const edrArtifacts: Array<{
-    edrAtifact: EdrArtifact;
+    edrArtifact: EdrArtifact;
     userSourceName: string;
   }> = [];
   const buildInfos: BuildInfoAndOutput[] = [];
@@ -100,20 +100,20 @@ const runSolidityTests: NewTaskActionFunction<TestActionArguments> = async (
   }
 
   const sourceNameToUserSourceName = new Map(
-    edrArtifacts.map(({ userSourceName, edrAtifact }) => [
-      edrAtifact.id.source,
+    edrArtifacts.map(({ userSourceName, edrArtifact }) => [
+      edrArtifact.id.source,
       userSourceName,
     ]),
   );
 
-  edrArtifacts.forEach(({ userSourceName, edrAtifact }) => {
+  edrArtifacts.forEach(({ userSourceName, edrArtifact }) => {
     if (
       testRootPaths.includes(
         resolveFromRoot(hre.config.paths.root, userSourceName),
       ) &&
-      isTestSuiteArtifact(edrAtifact)
+      isTestSuiteArtifact(edrArtifact)
     ) {
-      warnDeprecatedTestFail(edrAtifact, sourceNameToUserSourceName);
+      warnDeprecatedTestFail(edrArtifact, sourceNameToUserSourceName);
     }
   });
 
@@ -123,8 +123,8 @@ const runSolidityTests: NewTaskActionFunction<TestActionArguments> = async (
         resolveFromRoot(hre.config.paths.root, userSourceName),
       ),
     )
-    .filter(({ edrAtifact }) => isTestSuiteArtifact(edrAtifact))
-    .map(({ edrAtifact }) => edrAtifact.id);
+    .filter(({ edrArtifact }) => isTestSuiteArtifact(edrArtifact))
+    .map(({ edrArtifact }) => edrArtifact.id);
 
   console.log("Running Solidity tests");
   console.log();
@@ -185,7 +185,7 @@ const runSolidityTests: NewTaskActionFunction<TestActionArguments> = async (
 
   const runStream = run(
     chainType,
-    edrArtifacts.map(({ edrAtifact }) => edrAtifact),
+    edrArtifacts.map(({ edrArtifact }) => edrArtifact),
     testSuiteIds,
     config,
     tracingConfig,

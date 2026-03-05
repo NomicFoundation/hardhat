@@ -157,7 +157,7 @@ export function assertNoWarningsOrErrors(
   assert.equal(
     reconciliationResult.reconciliationFailures.length,
     0,
-    `Unreconcilied futures found: \n${JSON.stringify(
+    `Unreconciled futures found: \n${JSON.stringify(
       reconciliationResult.reconciliationFailures,
       undefined,
       2,

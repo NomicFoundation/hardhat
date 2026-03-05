@@ -95,7 +95,7 @@ for (const entry of entries) {
     const start = lines.findIndex((l) => l.startsWith("Node.js"));
     const output = lines.slice(start + 1).join("\n");
 
-    // We're saving the actual outptut in case one needs to access it. It is .gitignored.
+    // We're saving the actual output in case one needs to access it. It is .gitignored.
     writeFileSync(entryPath + "/result.actual.txt", output);
     // First, we try to access node version specific result file. If it doesn't
     // exist, we fallback to the generic result file.

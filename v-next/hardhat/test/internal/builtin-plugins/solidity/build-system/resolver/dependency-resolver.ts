@@ -2041,9 +2041,9 @@ fo/=barr/`,
       });
 
       describe("Edge cases", () => {
-        it("Should handle seemgly conflicting remappings in different remappings.txt files", async () => {
+        it("Should handle seemingly conflicting remappings in different remappings.txt files", async () => {
           const localTemplate: TestProjectTemplate = {
-            name: "seemgly-conflicting-remappings",
+            name: "seemingly-conflicting-remappings",
             version: "1.0.0",
             files: {
               "contracts/A.sol": `A`,

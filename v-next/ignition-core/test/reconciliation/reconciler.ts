@@ -103,7 +103,7 @@ describe("Reconciliation", () => {
     );
   });
 
-  it("should flag as unreconsiliable a future that has changed type", async () => {
+  it("should flag as unreconcilable a future that has changed type", async () => {
     const moduleDefinition = buildModule("Module1", (m) => {
       const library1 = m.library("Library1", { id: "Example" });
 
@@ -193,7 +193,7 @@ describe("Reconciliation", () => {
       assert.deepStrictEqual(reconiliationResult.reconciliationFailures, []);
     });
 
-    it("should flag as unreconsiliable a changed from where the history indicates a different from", async () => {
+    it("should flag as unreconcilable a changed from where the history indicates a different from", async () => {
       const moduleDefinition = buildModule("Module1", (m) => {
         const account2 = m.getAccount(2);
         // from is accounts[2]
@@ -241,7 +241,7 @@ describe("Reconciliation", () => {
       assert.deepStrictEqual(reconiliationResult.reconciliationFailures, []);
     });
 
-    it("should flag as unreconsiliable a changed ModuleParameter<AccountRuntimeValue> where the history indicates a different account", async () => {
+    it("should flag as unreconcilable a changed ModuleParameter<AccountRuntimeValue> where the history indicates a different account", async () => {
       const moduleDefinition = buildModule("Module1", (m) => {
         const accountParam2 = m.getParameter("account2", m.getAccount(2));
         const contract1 = m.contract("Contract1", [accountParam2]);

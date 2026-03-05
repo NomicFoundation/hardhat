@@ -124,7 +124,7 @@ const buildProfilesSolidityUserConfigType = commonSolidityUserConfigType.extend(
   },
 );
 
-const soldityUserConfigType = conditionalUnionType(
+const solidityUserConfigType = conditionalUnionType(
   [
     [(data) => typeof data === "string", z.string()],
     [(data) => Array.isArray(data), z.array(z.string()).nonempty()],
@@ -159,7 +159,7 @@ const userConfigType = z.object({
       ).optional(),
     })
     .optional(),
-  solidity: soldityUserConfigType.optional(),
+  solidity: solidityUserConfigType.optional(),
 });
 
 export function validateSolidityUserConfig(

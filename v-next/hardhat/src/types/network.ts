@@ -10,7 +10,7 @@ import type { EthereumProvider } from "./providers.js";
 export type ChainType = GenericChainType | "l1" | "op";
 
 /**
- * The most generic chanin type.
+ * The most generic chain type.
  */
 export type GenericChainType = "generic";
 

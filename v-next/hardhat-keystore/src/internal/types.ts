@@ -14,7 +14,7 @@ export interface Keystore {
  * The KeystoreLoader is responsible for loading and saving the in-memory
  * keystore from and to the on-disk keystore file.
  *
- * As part of those tasks, it has responsilibty for:
+ * As part of those tasks, it has responsibility for:
  * - validating that the on-disk keystore file meets the expected structure
  *   during loading
  * - caching the in-memory keystore to reduce IO during loads

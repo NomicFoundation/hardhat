@@ -72,7 +72,7 @@ export type RunCompilationJobOptions = Pick<
  */
 export interface CompileBuildInfoOptions {
   /**
-   * If `true`, this option foces the build system to recompile the build info,
+   * If `true`, this option forces the build system to recompile the build info,
    * even if its output is cached.
    */
   force?: boolean;

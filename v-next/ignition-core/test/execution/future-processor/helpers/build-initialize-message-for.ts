@@ -304,6 +304,7 @@ describe("buildInitializeMessageFor", () => {
         maxFeePerGas: 100n,
       },
       receipt: {
+        /* cspell:disable-next-line */
         blockHash: "0xblock",
         blockNumber: 0,
         contractAddress: differentAddress,

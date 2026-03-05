@@ -1,3 +1,4 @@
+// cSpell:ignore Ozcs fooasd
 import type { TestProjectTemplate } from "./helpers.js";
 import type {
   Remapping,

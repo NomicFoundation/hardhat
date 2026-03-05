@@ -14,8 +14,13 @@ jobs:
     steps:
       - uses: actions/checkout@v5
 
-      - uses: streetsidesoftware/cspell-action@v7
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v4
         with:
-          incremental_files_only: ${{ github.event_name == 'pull_request' }}
-          config: cspell.yaml
-          report: typos
+          node-version: 24
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile --prefer-offline
+
+      - run: pnpm spellcheck

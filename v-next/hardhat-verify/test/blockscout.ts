@@ -48,6 +48,7 @@ describe("blockscout", () => {
     };
     const compilerVersion = "0.8.24+commit.e11b9ed9";
     const constructorArguments = "";
+    /* cspell:disable-next-line */
     const guid = "a7lpxkm9kpcpicx7daftmjifrfhiuhf5vqqnawhkfhzfrcpnxj";
 
     describe("constructor", () => {

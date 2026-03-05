@@ -60,7 +60,7 @@ export async function getBuildInfos(
  */
 export async function getEdrArtifacts(
   artifactManager: ArtifactManager,
-): Promise<Array<{ edrAtifact: EdrArtifact; userSourceName: string }>> {
+): Promise<Array<{ edrArtifact: EdrArtifact; userSourceName: string }>> {
   const fullyQualifiedNames = await artifactManager.getAllFullyQualifiedNames();
 
   const artifacts = await Promise.all(
@@ -140,7 +140,7 @@ export async function getEdrArtifacts(
     // from an artifact id between the `run` call and the events emitted by the
     // test runner.
     return {
-      edrAtifact: {
+      edrArtifact: {
         id,
         contract,
       },

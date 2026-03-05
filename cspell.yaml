@@ -1,4 +1,0 @@
-ignorePaths:
-  - .github/config/regression-tests.yml
-  - pnpm-lock.yaml
-  - v-next/hardhat-vendored/src
