@@ -246,7 +246,8 @@ export class CompilationJobImplementation implements CompilationJob {
 
     const jobHash = await createNonCryptographicHashId(preimage);
 
-    return `solc-${this.solcConfig.version.replaceAll(".", "_")}-${jobHash}`;
+    const compilerType = this.solcConfig.type ?? "solc";
+    return `${compilerType}-${this.solcConfig.version.replaceAll(".", "_")}-${jobHash}`;
   }
 
   #getSourceContentHash(sourceName: string, text: string): any {
