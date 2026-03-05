@@ -29,10 +29,10 @@ import { useFixtureProject } from "@nomicfoundation/hardhat-test-utils";
 import { createHardhatRuntimeEnvironment } from "../../../../src/hre.js";
 
 /**
- * Creates a plugin that registers additional compiler types so they pass
+ * Creates a mock plugin for testing that registers additional compiler types so they pass
  * the registeredCompilerTypes post-validation.
  */
-function createTypeRegistrationPlugin(types: string[]): HardhatPlugin {
+function createTypeRegistrationMockPlugin(types: string[]): HardhatPlugin {
   return {
     id: `test-register-types-${types.join("-")}`,
     hookHandlers: {
@@ -460,7 +460,7 @@ describe("solidity - hooks", () => {
       };
 
       const hre = await createHardhatRuntimeEnvironment({
-        plugins: [downloadPlugin, createTypeRegistrationPlugin(["solx"])],
+        plugins: [downloadPlugin, createTypeRegistrationMockPlugin(["solx"])],
         solidity: {
           compilers: [
             { version: "0.8.23" },
@@ -475,7 +475,7 @@ describe("solidity - hooks", () => {
         quiet: true,
       });
 
-      // Verify both configs are passed (the hook receives ALL configs)
+      // Verify both configs are passed (the hook receives all configs)
       assert.equal(
         capturedConfigs.filter((c) => c.type === undefined).length > 0,
         true,
@@ -494,7 +494,7 @@ describe("solidity - hooks", () => {
       // versions should be downloaded. If it tried to download a non-existent
       // "solx" version via the solc downloader, the build would fail.
       const hre = await createHardhatRuntimeEnvironment({
-        plugins: [createTypeRegistrationPlugin(["solx"])],
+        plugins: [createTypeRegistrationMockPlugin(["solx"])],
         solidity: {
           compilers: [
             { version: "0.8.23" },
@@ -504,7 +504,7 @@ describe("solidity - hooks", () => {
       });
 
       const roots = await hre.solidity.getRootFilePaths();
-      // This should NOT throw — the built-in handler should skip the solx
+      // This should not throw — the built-in handler should skip the solx
       // config and only download solc 0.8.23 (which is cached)
       await hre.solidity.build(roots, {
         force: true,
@@ -620,9 +620,10 @@ describe("solidity - hooks", () => {
       const hre = await createHardhatRuntimeEnvironment({
         plugins: [
           customCompilerPlugin,
-          createTypeRegistrationPlugin(["custom"]),
+          createTypeRegistrationMockPlugin(["custom"]),
         ],
         solidity: {
+          // eslint-disable-next-line @typescript-eslint/consistent-type-assertions -- test uses unregistered compiler type
           compilers: [{ type: "custom" as any, version: "0.8.23" }],
         },
       });
