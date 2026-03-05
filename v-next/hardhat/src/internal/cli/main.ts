@@ -131,8 +131,7 @@ export async function main(
 
       if (templateName !== undefined && listTemplates) {
         throw new HardhatError(
-          HardhatError.ERRORS.CORE.ARGUMENTS
-            .CANNOT_COMBINE_TEMPLATE_AND_TEMPLATES,
+          HardhatError.ERRORS.CORE.ARGUMENTS.CANNOT_COMBINE_TEMPLATE_AND_TEMPLATES,
         );
       }
 

@@ -292,7 +292,7 @@ GLOBAL OPTIONS:
   --coverage               Enables code coverage
   --gas-stats              Collects and displays gas usage statistics for all function calls during tests
   --help, -h               Show this message, or a task's help if its name is provided
-  --init                   Initializes a Hardhat project
+  --init                   Initializes a Hardhat project. Use \`--init --template <name>\` to initialize in non-interactive mode, and \`--init --templates\` to list the template names
   --network                The network to connect to
   --show-stack-traces      Show stack traces (always enabled on CI servers)
   --version                Show the version of hardhat
@@ -365,7 +365,7 @@ GLOBAL OPTIONS:
   --coverage               Enables code coverage
   --gas-stats              Collects and displays gas usage statistics for all function calls during tests
   --help, -h               Show this message, or a task's help if its name is provided
-  --init                   Initializes a Hardhat project
+  --init                   Initializes a Hardhat project. Use \`--init --template <name>\` to initialize in non-interactive mode, and \`--init --templates\` to list the template names
   --network                The network to connect to
   --show-stack-traces      Show stack traces (always enabled on CI servers)
   --version                Show the version of hardhat
@@ -405,7 +405,7 @@ GLOBAL OPTIONS:
   --coverage               Enables code coverage
   --gas-stats              Collects and displays gas usage statistics for all function calls during tests
   --help, -h               Show this message, or a task's help if its name is provided
-  --init                   Initializes a Hardhat project
+  --init                   Initializes a Hardhat project. Use \`--init --template <name>\` to initialize in non-interactive mode, and \`--init --templates\` to list the template names
   --network                The network to connect to
   --show-stack-traces      Show stack traces (always enabled on CI servers)
   --version                Show the version of hardhat
@@ -611,9 +611,7 @@ GLOBAL OPTIONS:
     it("should list available template names", async function () {
       const lines: string[] = [];
 
-      const cliArguments = "npx hardhat --init --templates"
-        .split(" ")
-        .slice(2);
+      const cliArguments = "npx hardhat --init --templates".split(" ").slice(2);
 
       await main(cliArguments, {
         print: (message) => {
