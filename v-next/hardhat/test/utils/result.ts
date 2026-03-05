@@ -8,7 +8,7 @@ import {
 } from "../../src/utils/result.js";
 
 describe("result", function () {
-  describe("successResult", function () {
+  describe("successfulResult", function () {
     it("should create a successful Result with the given value", function () {
       const result = successfulResult(42);
       assert.deepEqual(result, { success: true, value: 42 });

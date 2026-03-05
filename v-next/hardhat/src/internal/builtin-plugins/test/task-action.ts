@@ -4,13 +4,21 @@ import type {
   Task,
   TaskArguments,
 } from "../../../types/tasks.js";
+import type { TestSummary } from "../../../types/test.js";
+import type { Result } from "../../../types/utils.js";
 
 import {
   assertHardhatInvariant,
   HardhatError,
 } from "@nomicfoundation/hardhat-errors";
+import { isObject } from "@nomicfoundation/hardhat-utils/lang";
 import chalk, { type ChalkInstance } from "chalk";
 
+import {
+  errorResult,
+  isResult,
+  successfulResult,
+} from "../../../utils/result.js";
 import { HardhatRuntimeEnvironmentImplementation } from "../../core/hre.js";
 
 interface TestActionArguments {
@@ -21,10 +29,27 @@ interface TestActionArguments {
   verbosity: number;
 }
 
+// Old plugins may only return { failed, passed } without skipped/todo,
+// so we accept a partial shape and fill defaults in the coordinator.
+interface PartialTestSummary extends Omit<TestSummary, "skipped" | "todo"> {
+  skipped?: number;
+  todo?: number;
+}
+
+function isTestSummary(value: unknown): value is PartialTestSummary {
+  return (
+    isObject(value) &&
+    typeof value.failed === "number" &&
+    typeof value.passed === "number" &&
+    (value.skipped === undefined || typeof value.skipped === "number") &&
+    (value.todo === undefined || typeof value.todo === "number")
+  );
+}
+
 const runAllTests: NewTaskActionFunction<TestActionArguments> = async (
   { testFiles, chainType, grep, noCompile, verbosity },
   hre,
-) => {
+): Promise<Result<void, void>> => {
   // If this code is executed, it means the user has not specified a test runner.
   // If file paths are specified, we need to determine which test runner applies to each test file.
   // If no file paths are specified, each test runner will execute all tests located under its configured path in the Hardhat configuration.
@@ -49,18 +74,10 @@ const runAllTests: NewTaskActionFunction<TestActionArguments> = async (
     hre._coverage.disableReport();
   }
 
-  const testSummaries: Record<
-    string,
-    {
-      failed?: number;
-      passed?: number;
-      skipped?: number;
-      todo?: number;
-      failureOutput?: string;
-    }
-  > = {};
+  const testSummaries: Record<string, TestSummary> = {};
 
   let failureIndex = 1;
+  let hasFailures = false;
   for (const subtask of thisTask.subtasks.values()) {
     const files = getTestFilesForSubtask(subtask, testFiles, subtasksToFiles);
 
@@ -84,18 +101,45 @@ const runAllTests: NewTaskActionFunction<TestActionArguments> = async (
       args.verbosity = verbosity;
     }
 
-    const summaryId = subtask.id[subtask.id.length - 1];
-
     if (subtask.options.has("testSummaryIndex")) {
       args.testSummaryIndex = failureIndex;
+    }
 
-      testSummaries[summaryId] = await subtask.run(args);
-      failureIndex += testSummaries[summaryId].failed ?? 0;
-    } else if (summaryId === "mocha") {
-      // mocha doesn't use the testSummaryIndex, but it does return failure & success counts
-      testSummaries[summaryId] = await subtask.run(args);
-    } else {
-      await subtask.run(args);
+    const subtaskResult = await subtask.run(args);
+
+    const isSubtaskResult = isResult(
+      subtaskResult,
+      isTestSummary,
+      isTestSummary,
+    );
+    const summary = isSubtaskResult
+      ? subtaskResult.success
+        ? subtaskResult.value
+        : subtaskResult.error
+      : isTestSummary(subtaskResult)
+        ? subtaskResult
+        : undefined;
+
+    if (summary !== undefined) {
+      const summaryId = subtask.id[subtask.id.length - 1];
+      testSummaries[summaryId] = {
+        skipped: 0,
+        todo: 0,
+        ...summary,
+      };
+
+      if (subtask.options.has("testSummaryIndex")) {
+        failureIndex += summary.failed;
+      }
+    }
+
+    if (
+      (isSubtaskResult && !subtaskResult.success) ||
+      // Backwards compatibility: old plugins may not return a Result, so fall
+      // back to the process exit code to detect failures
+      (process.exitCode !== undefined && process.exitCode !== 0)
+    ) {
+      hasFailures = true;
     }
   }
 
@@ -106,19 +150,19 @@ const runAllTests: NewTaskActionFunction<TestActionArguments> = async (
   const outputLines: string[] = [];
 
   for (const [subtaskName, results] of Object.entries(testSummaries)) {
-    if (results.passed !== undefined && results.passed > 0) {
+    if (results.passed > 0) {
       passed.push([subtaskName, results.passed]);
     }
 
-    if (results.failed !== undefined && results.failed > 0) {
+    if (results.failed > 0) {
       failed.push([subtaskName, results.failed]);
     }
 
-    if (results.skipped !== undefined && results.skipped > 0) {
+    if (results.skipped > 0) {
       skipped.push([subtaskName, results.skipped]);
     }
 
-    if (results.todo !== undefined && results.todo > 0) {
+    if (results.todo > 0) {
       todo.push([subtaskName, results.todo]);
     }
 
@@ -176,9 +220,11 @@ const runAllTests: NewTaskActionFunction<TestActionArguments> = async (
     console.log();
   }
 
-  if (process.exitCode !== undefined && process.exitCode !== 0) {
+  if (hasFailures) {
     console.error("Test run failed");
   }
+
+  return hasFailures ? errorResult() : successfulResult();
 };
 
 function logSummaryLine(
