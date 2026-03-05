@@ -156,6 +156,15 @@ export async function initHardhat(options?: InitHardhatOptions): Promise<void> {
   }
 }
 
+export async function printTemplatesList(
+  hardhatVersion: "hardhat-2" | "hardhat-3",
+  print: (message: string) => void = console.log,
+): Promise<void> {
+  const templates = await getTemplates(hardhatVersion);
+  const lines = templates.map((t) => `  - ${t.name}`).join("\n");
+  print(`Available templates:\n${lines}`);
+}
+
 // generated based on the "DOS Rebel" font
 function printAsciiLogo() {
   const logoLines = `

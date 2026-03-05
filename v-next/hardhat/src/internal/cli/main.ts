@@ -93,12 +93,21 @@ export async function main(
     }
 
     if (builtinGlobalOptions.init) {
-      const { initHardhat } = await import("./init/init.js");
+      const { initHardhat, printTemplatesList } = await import(
+        "./init/init.js"
+      );
 
       let templateName: string | undefined;
+      let listTemplates = false;
+
       for (let i = 0; i < cliArguments.length; i++) {
         if (usedCliArguments[i]) {
           continue;
+        }
+
+        if (cliArguments[i] === "--templates") {
+          usedCliArguments[i] = true;
+          listTemplates = true;
         }
 
         if (cliArguments[i] === "--template") {
@@ -118,6 +127,17 @@ export async function main(
           i++;
           usedCliArguments[i] = true;
         }
+      }
+
+      if (templateName !== undefined && listTemplates) {
+        throw new HardhatError(
+          HardhatError.ERRORS.CORE.ARGUMENTS
+            .CANNOT_COMBINE_TEMPLATE_AND_TEMPLATES,
+        );
+      }
+
+      if (listTemplates) {
+        return await printTemplatesList("hardhat-3", print);
       }
 
       if (templateName !== undefined) {

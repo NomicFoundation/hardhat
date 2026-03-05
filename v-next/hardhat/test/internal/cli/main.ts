@@ -607,6 +607,61 @@ GLOBAL OPTIONS:
     });
   });
 
+  describe("--init --templates", function () {
+    it("should list available template names", async function () {
+      const lines: string[] = [];
+
+      const cliArguments = "npx hardhat --init --templates"
+        .split(" ")
+        .slice(2);
+
+      await main(cliArguments, {
+        print: (message) => {
+          lines.push(message);
+        },
+        rethrowErrors: true,
+        allowNonlocalHardhatInstallation: true,
+      });
+
+      const output = lines.join("\n");
+
+      assert.ok(
+        output.startsWith("Available templates:"),
+        "Output should start with 'Available templates:'",
+      );
+
+      const templates = await getTemplates("hardhat-3");
+      for (const t of templates) {
+        assert.ok(
+          output.includes(`  - ${t.name}`),
+          `Output should contain template name '${t.name}'`,
+        );
+      }
+    });
+
+    it("should throw when --template and --templates are used together", async function () {
+      const command = "npx hardhat --init --template mocha-ethers --templates";
+
+      await assertRejectsWithHardhatError(
+        async () => runMain(command),
+        HardhatError.ERRORS.CORE.ARGUMENTS
+          .CANNOT_COMBINE_TEMPLATE_AND_TEMPLATES,
+        {},
+      );
+    });
+
+    it("should throw when --templates and --template are used together (reversed order)", async function () {
+      const command = "npx hardhat --init --templates --template mocha-ethers";
+
+      await assertRejectsWithHardhatError(
+        async () => runMain(command),
+        HardhatError.ERRORS.CORE.ARGUMENTS
+          .CANNOT_COMBINE_TEMPLATE_AND_TEMPLATES,
+        {},
+      );
+    });
+  });
+
   describe("parseGlobalOptions", function () {
     /* The function "parseGlobalOptions" utilizes "parseOptions" for parsing,
      * similar to task options. Tests for "parseOptions" are primarily located

@@ -848,6 +848,16 @@ Please double check your arguments.`,
         websiteTitle: "Hidden options cannot be used from the CLI",
         websiteDescription: `You are trying to use a hidden option from the CLI, which is not allowed.`,
       },
+      CANNOT_COMBINE_TEMPLATE_AND_TEMPLATES: {
+        number: 513,
+        messageTemplate:
+          'The options "--template" and "--templates" cannot be used together. Use "--template <name>" to initialize a project with a specific template, or "--templates" to list the available templates.',
+        websiteTitle:
+          'The options "--template" and "--templates" cannot be used together',
+        websiteDescription: `The options "--template" and "--templates" cannot be used together.
+
+Use "--template <name>" to initialize a project with a specific template, or "--templates" to list the available templates.`,
+      },
     },
     BUILTIN_TASKS: {
       RUN_FILE_NOT_FOUND: {

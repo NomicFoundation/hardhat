@@ -30,6 +30,7 @@ import {
   getWorkspace,
   initHardhat,
   installProjectDependencies,
+  printTemplatesList,
   printWelcomeMessage,
   relativeTemplateToWorkspacePath,
   relativeWorkspaceToTemplatePath,
@@ -977,4 +978,30 @@ describe("shouldUpdateDependency", () => {
       );
     });
   }
+});
+
+describe("printTemplatesList", () => {
+  it("should print the available templates in a formatted list", async () => {
+    const messages: string[] = [];
+    const mockPrint = (message: string) => {
+      messages.push(message);
+    };
+
+    await printTemplatesList("hardhat-3", mockPrint);
+
+    const output = messages.join("\n");
+
+    assert.ok(
+      output.startsWith("Available templates:"),
+      "Output should start with 'Available templates:'",
+    );
+
+    const templates = await getTemplates("hardhat-3");
+    for (const template of templates) {
+      assert.ok(
+        output.includes(`  - ${template.name}`),
+        `Output should contain template name '${template.name}'`,
+      );
+    }
+  });
 });
