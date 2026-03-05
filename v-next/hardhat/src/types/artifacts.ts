@@ -60,7 +60,10 @@ export interface ArtifactManager {
    * @param contractNameOrFullyQualifiedName The name of the contract.
    *   It can be a contract bare contract name (e.g. "Token") if it's
    *   unique in your project, or a fully qualified contract name
-   *   (e.g. "contract/token.sol:Token") otherwise.
+   *   (e.g. "contract/token.sol:Token") otherwise. TypeScript's language server
+   *   autocompletes the names of the contracts that have already been built. If
+   *   your contract name isn't in the list, you can still use it, and/or run
+   *   `hardhat build` to get it in the list.
    *
    * @throws Throws an error if a non-unique contract name is used,
    *   indicating which fully qualified names can be used instead.

@@ -85,7 +85,10 @@ export interface HardhatViemHelpers<
    * returns the viem's contract instance.
    *
    * @param contractName The name of the contract to deploy. This is required
-   * to return the correct contract type.
+   * to return the correct contract type. TypeScript's language server
+   * autocompletes the names of the contracts that have already been built. If
+   * your contract name isn't in the list, you can still use it, and/or run
+   * `hardhat build` to get it in the list.
    * @param constructorArgs The arguments to pass to the contract's constructor.
    * @param deployContractConfig A configuration object. See
    * {@link DeployContractConfig} for more details.
@@ -104,7 +107,10 @@ export interface HardhatViemHelpers<
    * The function does not wait for the transaction to be mined.
    *
    * @param contractName The name of the contract to deploy. This is required
-   * to return the correct contract type.
+   * to return the correct contract type. TypeScript's language server
+   * autocompletes the names of the contracts that have already been built. If
+   * your contract name isn't in the list, you can still use it, and/or run
+   * `hardhat build` to get it in the list.
    * @param constructorArgs The arguments to pass to the contract's constructor.
    * @param sendDeploymentTransactionConfig A configuration object. See
    * {@link SendDeploymentTransactionConfig} for more details.
@@ -126,7 +132,10 @@ export interface HardhatViemHelpers<
    * address.
    *
    * @param contractName The name of the contract to get an instance of. This
-   * is required to return the correct contract type.
+   * is required to return the correct contract type. TypeScript's language
+   * server autocompletes the names of the contracts that have already been
+   * built. If your contract name isn't in the list, you can still use it,
+   * and/or run `hardhat build` to get it in the list.
    * @param address The address of the contract.
    * @param getContractAtConfig A configuration object. See
    * {@link GetContractAtConfig} for more details.
