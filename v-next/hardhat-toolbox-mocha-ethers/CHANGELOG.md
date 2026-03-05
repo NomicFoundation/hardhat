@@ -1,5 +1,12 @@
 # @nomicfoundation/hardhat-toolbox-mocha-ethers
 
+## 3.0.3
+
+### Patch Changes
+
+- 3d03bd6: Upgrade Chai to v6, while keeping compatibility with v5
+- 6674b00: Bump `hardhat-utils` major
+
 ## 3.0.2
 
 ### Patch Changes

@@ -248,13 +248,13 @@ jobs:
             npm publish $filename --tag latest --access public
           done
 
-  tag:
-    name: Push tags
-    needs: publish
+  github-release:
+    name: Create GitHub tags and releases
+    needs: [pack, publish]
     if: needs.pack.outputs.hasPackages == 'true'
     runs-on: ubuntu-latest
     permissions:
-      contents: write
+      contents: write # needed to create releases (no dedicated releases scope exists)
     steps:
       - name: Checkout Repo
         uses: actions/checkout@v5
@@ -277,3 +277,16 @@ jobs:
 
       - name: Push tags
         run: git push --follow-tags
+
+      - name: Download pnpm publish summary
+        uses: actions/download-artifact@v5
+        with:
+          name: pnpm-publish-summary.json
+          path: .
+
+      - name: Create GitHub Releases for each published package
+        env:
+          # The default token with content write permissions is used
+          # by the `gh` command line tool internally
+          GITHUB_TOKEN: ${{ github.token }}
+        run: node scripts/github-release/create-releases.mjs

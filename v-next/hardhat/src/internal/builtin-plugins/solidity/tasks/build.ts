@@ -110,7 +110,7 @@ async function buildForScope(
     scope,
   });
 
-  throwIfSolidityBuildFailed(results);
+  throwIfSolidityBuildFailed(solidity, results);
 
   // If we recompiled the entire project we cleanup the artifacts
   if (isFullCompilation) {

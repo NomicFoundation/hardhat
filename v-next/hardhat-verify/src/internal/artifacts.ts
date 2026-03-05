@@ -91,7 +91,7 @@ export async function getCompilerInput(
   );
 
   assertHardhatInvariant(
-    !("reason" in getCompilationJobsResult),
+    getCompilationJobsResult.success,
     "getCompilationJobs should not error",
   );
 

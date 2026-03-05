@@ -39,5 +39,47 @@ declare module "../../../types/hooks.js" {
         filePath: string,
       ) => Promise<string | undefined>,
     ) => Promise<string | undefined>;
+
+    /**
+     * This hook is triggered at the start of a test run, before tests execute.
+     *
+     * @param context The hook context.
+     * @param id A string identifier for the test runner (e.g., "solidity", "nodejs", "mocha").
+     * @param next A function to call the next handler for this hook, or the
+     * default implementation if no more handlers exist.
+     */
+    onTestRunStart: (
+      context: HookContext,
+      id: string,
+      next: (nextContext: HookContext, id: string) => Promise<void>,
+    ) => Promise<void>;
+
+    /**
+     * This hook is triggered when a test worker has finished executing.
+     *
+     * @param context The hook context.
+     * @param id A string identifier for the test runner (e.g., "solidity", "nodejs", "mocha").
+     * @param next A function to call the next handler for this hook, or the
+     * default implementation if no more handlers exist.
+     */
+    onTestWorkerDone: (
+      context: HookContext,
+      id: string,
+      next: (nextContext: HookContext, id: string) => Promise<void>,
+    ) => Promise<void>;
+
+    /**
+     * This hook is triggered at the end of a test run, after all tests have completed.
+     *
+     * @param context The hook context.
+     * @param id A string identifier for the test runner (e.g., "solidity", "nodejs", "mocha").
+     * @param next A function to call the next handler for this hook, or the
+     * default implementation if no more handlers exist.
+     */
+    onTestRunDone: (
+      context: HookContext,
+      id: string,
+      next: (nextContext: HookContext, id: string) => Promise<void>,
+    ) => Promise<void>;
   }
 }

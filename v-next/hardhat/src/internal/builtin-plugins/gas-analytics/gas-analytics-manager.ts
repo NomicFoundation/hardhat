@@ -1,10 +1,10 @@
 import type { GasAnalyticsManager, GasMeasurement } from "./types.js";
-import type { TableItemV2 } from "@nomicfoundation/hardhat-utils/format";
+import type { TableItem } from "@nomicfoundation/hardhat-utils/format";
 
 import crypto from "node:crypto";
 import path from "node:path";
 
-import { formatTableV2 } from "@nomicfoundation/hardhat-utils/format";
+import { formatTable } from "@nomicfoundation/hardhat-utils/format";
 import {
   ensureDir,
   getAllFilesMatching,
@@ -209,7 +209,7 @@ export class GasAnalyticsManagerImplementation implements GasAnalyticsManager {
   public _generateGasStatsReport(
     gasStatsByContract: GasStatsByContract,
   ): string {
-    const rows: TableItemV2[] = [];
+    const rows: TableItem[] = [];
 
     if (gasStatsByContract.size > 0) {
       rows.push({ type: "title", text: chalk.bold("Gas Usage Statistics") });
@@ -279,7 +279,7 @@ export class GasAnalyticsManagerImplementation implements GasAnalyticsManager {
       }
     }
 
-    return formatTableV2(rows);
+    return formatTable(rows);
   }
 }
 

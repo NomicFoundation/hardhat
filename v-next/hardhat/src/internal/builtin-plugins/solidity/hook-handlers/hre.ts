@@ -46,6 +46,14 @@ class LazySolidityBuildSystem implements SolidityBuildSystem {
     return buildSystem.getScope(fsPath);
   }
 
+  public isSuccessfulBuildResult(
+    buildResult: CompilationJobCreationError | Map<string, FileBuildResult>,
+  ): buildResult is Map<string, FileBuildResult> {
+    // Note: This duplicates the logic of the actual implementation because it's
+    // a synchronous method, so we can't import the implementation.
+    return buildResult instanceof Map;
+  }
+
   public async build(
     rootFiles: string[],
     options?: BuildOptions,

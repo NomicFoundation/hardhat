@@ -1,5 +1,20 @@
 # hardhat
 
+## 3.1.10
+
+### Patch Changes
+
+- ca26adb: Update `hardhat node` to always use the new `node` network (#7989)[https://github.com/NomicFoundation/hardhat/pull/7989]
+- 87623db: Introduce new inter-process mutex implementation ([7942](https://github.com/NomicFoundation/hardhat/pull/7942)).
+- 88e9cb5: Add a `SolidityHooks#readNpmPackageRemappings` hook
+- ec03a01: Allow overriding the type of the network configs `default` and `localhost` [#7805](https://github.com/NomicFoundation/hardhat/pull/7805)
+- 2c2e1f5: Throw better error messages when trying to use a Hardhat 2 plugin with Hardhat 3 [#7991](https://github.com/NomicFoundation/hardhat/pull/7991).
+- 90b5eec: Suggest installing hardhat-foundry when appropriate
+- 87623db: Make the solc downloader safe when run by multiple processes ([7946](https://github.com/NomicFoundation/hardhat/pull/7946)).
+- 726ff37: Update the `--coverage` table output to match the style used by `--gas-stats`. Thanks @jose-blockchain! ([#7733](https://github.com/NomicFoundation/hardhat/issues/7733))
+- f1e9b05: Added support for `inline actions` in tasks [7851](https://github.com/NomicFoundation/hardhat/pull/7851).
+- 73cb725: Expose `gasLimit` configuration for Solidity tests [#7996](https://github.com/NomicFoundation/hardhat/pull/7996)
+
 ## 3.1.9
 
 ### Patch Changes

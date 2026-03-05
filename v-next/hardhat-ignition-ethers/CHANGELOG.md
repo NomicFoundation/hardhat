@@ -1,5 +1,11 @@
 # Changelog
 
+## 3.0.8
+
+### Patch Changes
+
+- 6674b00: Bump `hardhat-utils` major
+
 ## 3.0.7
 
 ## 3.0.6
