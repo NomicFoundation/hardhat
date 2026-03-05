@@ -488,7 +488,9 @@ export class HardhatEthersProvider implements HardhatEthersProviderI {
       if (timeout !== undefined && timeout > 0) {
         timeoutTimer = setTimeout(() => {
           cancelled = true;
+
           clearTimeout(pollingTimeout);
+
           resolve(null);
         }, timeout);
       }
@@ -517,6 +519,7 @@ export class HardhatEthersProvider implements HardhatEthersProviderI {
           const pollingInterval = _isHardhatNetwork ? 50 : 500;
 
           clearTimeout(pollingTimeout);
+
           pollingTimeout = setTimeout(poll, pollingInterval);
         } catch (e) {
           ensureError(e);
