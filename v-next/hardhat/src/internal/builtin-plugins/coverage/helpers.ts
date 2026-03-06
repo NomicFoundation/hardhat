@@ -6,6 +6,8 @@ import path from "node:path";
 
 import { assertHardhatInvariant } from "@nomicfoundation/hardhat-errors";
 
+import { HardhatRuntimeEnvironmentImplementation } from "../../core/hre.js";
+
 import { CoverageManagerImplementation } from "./coverage-manager.js";
 import {
   testRunDone,
@@ -26,6 +28,17 @@ export function getCoverageManager(
     "Expected _coverage to be an instance of CoverageManagerImplementation",
   );
   return hookContextOrHre._coverage;
+}
+
+export function setCoverageManager(
+  hre: HardhatRuntimeEnvironment,
+  coverageManager: CoverageManager,
+): void {
+  assertHardhatInvariant(
+    hre instanceof HardhatRuntimeEnvironmentImplementation,
+    "Expected HRE to be an instance of HardhatRuntimeEnvironmentImplementation",
+  );
+  hre._coverage = coverageManager;
 }
 
 /**
