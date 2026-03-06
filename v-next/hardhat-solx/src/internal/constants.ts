@@ -1,3 +1,11 @@
+import type { SolidityCompilerType } from "hardhat/types/config";
+
+/**
+ * The compiler type identifier registered by this plugin.
+ * Typed as SolidityCompilerType for type-safe comparisons.
+ */
+export const SOLX_COMPILER_TYPE: SolidityCompilerType = "solx";
+
 export const SOLX_RELEASES_BASE_URL =
   "https://solx-releases-mirror.hardhat.org";
 
