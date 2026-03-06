@@ -424,20 +424,24 @@ describe("copyProjectFiles", () => {
       );
     });
   });
+
   describe("when force is true and backupOverwrittenFiles is true", () => {
     it("should backup existing files before overwriting", async () => {
       const [template] = await getTemplate("hardhat-3", "mocha-ethers");
       const workspaceFiles = template.files.map(
         relativeTemplateToWorkspacePath,
       );
+
       // Create template files with "original content" in the workspace
       for (const file of workspaceFiles) {
         const pathToFile = path.join(process.cwd(), file);
         await ensureDir(path.dirname(pathToFile));
         await writeUtf8File(pathToFile, "original content");
       }
+
       // Copy with backup enabled
       await copyProjectFiles(process.cwd(), template, true, true);
+
       // Check that template files exist with new content and backups exist with original content
       for (const file of workspaceFiles) {
         const pathToFile = path.join(process.cwd(), file);
@@ -458,12 +462,15 @@ describe("copyProjectFiles", () => {
         path.join(process.cwd(), ".gitignore"),
         "original content",
       );
+
       // Copy with backup enabled
       await copyProjectFiles(process.cwd(), template, true, true);
+
       // Check that .gitignore.old exists with original content
       const backupPath = path.join(process.cwd(), ".gitignore.old");
       assert.ok(await exists(backupPath), ".gitignore.old should exist");
       assert.equal(await readUtf8File(backupPath), "original content");
+
       // Check that .gitignore exists with new content
       assert.ok(
         await exists(path.join(process.cwd(), ".gitignore")),
@@ -477,12 +484,15 @@ describe("copyProjectFiles", () => {
 
     it("should not create backups for files that don't already exist", async () => {
       const [template] = await getTemplate("hardhat-3", "mocha-ethers");
+
       // Copy on an empty workspace with backup enabled
       await copyProjectFiles(process.cwd(), template, true, true);
+
       // Check that no .old files exist
       const workspaceFiles = template.files.map(
         relativeTemplateToWorkspacePath,
       );
+
       for (const file of workspaceFiles) {
         const backupPath = getBackupPath(path.join(process.cwd(), file));
         assert.ok(
