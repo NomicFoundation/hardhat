@@ -225,6 +225,7 @@ export async function resolveUserConfigToHardhatConfig(
     extendedUserConfig,
   );
 
+  // If user config is structurally invalid, we can't resolve — return early.
   if (userConfigValidationErrors.length > 0) {
     return {
       success: false,
@@ -251,6 +252,21 @@ export async function resolveUserConfigToHardhatConfig(
     },
     plugins: resolvedPlugins,
   };
+
+  // Validate the resolved config (post-resolution checks).
+  const resolvedConfigValidationResults = await hooks.runSequentialHandlers(
+    "config",
+    "validateResolvedConfig",
+    [config],
+  );
+  const resolvedConfigValidationErrors = resolvedConfigValidationResults.flat();
+
+  if (resolvedConfigValidationErrors.length > 0) {
+    return {
+      success: false,
+      userConfigValidationErrors: resolvedConfigValidationErrors,
+    };
+  }
 
   return { success: true, config, extendedUserConfig };
 }

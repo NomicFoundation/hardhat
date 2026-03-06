@@ -1,5 +1,5 @@
 import type {
-  SolcConfig,
+  SolidityCompilerConfig,
   SolidityBuildProfileConfig,
 } from "../../../../types/config.js";
 import type { CompilationJobCreationError } from "../../../../types/solidity/build-system.js";
@@ -44,7 +44,9 @@ export class SolcConfigSelector {
    */
   public selectBestSolcConfigForSingleRootGraph(
     subgraph: DependencyGraph,
-  ): { success: true; config: SolcConfig } | CompilationJobCreationError {
+  ):
+    | { success: true; config: SolidityCompilerConfig }
+    | CompilationJobCreationError {
     const roots = subgraph.getRoots();
 
     assertHardhatInvariant(
