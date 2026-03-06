@@ -403,7 +403,7 @@ describe("gas-analytics-manager", () => {
           contractMeasurements !== undefined,
           "Contract measurements should be defined",
         );
-        assert.equal(contractMeasurements.deployment, undefined);
+        assert.deepEqual(contractMeasurements.deployments, []);
         assert.equal(contractMeasurements.functions.size, 1);
 
         const transferMeasurements = contractMeasurements.functions.get(
@@ -435,12 +435,7 @@ describe("gas-analytics-manager", () => {
           contractMeasurements !== undefined,
           "Contract measurements should be defined",
         );
-        assert.ok(
-          contractMeasurements.deployment !== undefined,
-          "Deployment should be defined",
-        );
-        assert.equal(contractMeasurements.deployment.gas, 500000);
-        assert.equal(contractMeasurements.deployment.size, 2048);
+        assert.deepEqual(contractMeasurements.deployments, [500000]);
         assert.equal(contractMeasurements.functions.size, 0);
       });
 
@@ -476,12 +471,7 @@ describe("gas-analytics-manager", () => {
           "Contract measurements should be defined",
         );
 
-        assert.ok(
-          contractMeasurements.deployment !== undefined,
-          "Deployment should be defined",
-        );
-        assert.equal(contractMeasurements.deployment.gas, 500000);
-        assert.equal(contractMeasurements.deployment.size, 2048);
+        assert.deepEqual(contractMeasurements.deployments, [500000]);
 
         assert.equal(contractMeasurements.functions.size, 2);
         const transferMeasurements = contractMeasurements.functions.get(
@@ -534,7 +524,7 @@ describe("gas-analytics-manager", () => {
           tokenAMeasurements !== undefined,
           "TokenA measurements should be defined",
         );
-        assert.equal(tokenAMeasurements.deployment, undefined);
+        assert.deepEqual(tokenAMeasurements.deployments, []);
         assert.equal(tokenAMeasurements.functions.size, 1);
         const mintMeasurements =
           tokenAMeasurements.functions.get("mint(uint256)");
@@ -551,12 +541,7 @@ describe("gas-analytics-manager", () => {
           tokenBMeasurements !== undefined,
           "TokenB measurements should be defined",
         );
-        assert.ok(
-          tokenBMeasurements.deployment !== undefined,
-          "TokenB deployment should be defined",
-        );
-        assert.equal(tokenBMeasurements.deployment.gas, 600000);
-        assert.equal(tokenBMeasurements.deployment.size, 3072);
+        assert.deepEqual(tokenBMeasurements.deployments, [600000]);
         assert.equal(tokenBMeasurements.functions.size, 1);
         const burnMeasurements =
           tokenBMeasurements.functions.get("burn(uint256)");
@@ -656,7 +641,7 @@ describe("gas-analytics-manager", () => {
         assert.deepEqual(transfer2Measurements, [35000]);
       });
 
-      it("should only keep latest deployment measurement per contract", () => {
+      it("should aggregate deployment measurements per contract", () => {
         const manager = new GasAnalyticsManagerImplementation(tmpDir);
         manager.addGasMeasurement({
           type: "deployment",
@@ -681,12 +666,7 @@ describe("gas-analytics-manager", () => {
           contractMeasurements !== undefined,
           "Contract measurements should be defined",
         );
-        assert.ok(
-          contractMeasurements.deployment !== undefined,
-          "Deployment should be defined",
-        );
-        assert.equal(contractMeasurements.deployment.gas, 600000);
-        assert.equal(contractMeasurements.deployment.size, 3072);
+        assert.deepEqual(contractMeasurements.deployments, [500000, 600000]);
       });
     });
 
@@ -741,8 +721,20 @@ describe("gas-analytics-manager", () => {
         manager.addGasMeasurement({
           type: "deployment",
           contractFqn: "project/contracts/MyContract.sol:MyContract",
+          gas: 400000,
+          size: 2048,
+        });
+        manager.addGasMeasurement({
+          type: "deployment",
+          contractFqn: "project/contracts/MyContract.sol:MyContract",
           gas: 500000,
           size: 2048,
+        });
+        manager.addGasMeasurement({
+          type: "deployment",
+          contractFqn: "project/contracts/MyContract.sol:MyContract",
+          gas: 600000,
+          size: 3072,
         });
 
         const gasStats = manager._calculateGasStats();
@@ -759,8 +751,11 @@ describe("gas-analytics-manager", () => {
           contractStats.deployment !== undefined,
           "Deployment stats should be defined",
         );
-        assert.equal(contractStats.deployment.gas, 500000);
-        assert.equal(contractStats.deployment.size, 2048);
+        assert.equal(contractStats.deployment.min, 400000);
+        assert.equal(contractStats.deployment.max, 600000);
+        assert.equal(contractStats.deployment.avg, 500000);
+        assert.equal(contractStats.deployment.median, 500000);
+        assert.equal(contractStats.deployment.calls, 3);
       });
 
       it("should calculate stats for multiple contracts", () => {
@@ -945,7 +940,13 @@ describe("gas-analytics-manager", () => {
         });
 
         gasStats.set("project/contracts/MyContract.sol:MyContract", {
-          deployment: { gas: 500000, size: 2048 },
+          deployment: {
+            min: 400000,
+            max: 600000,
+            avg: 500000,
+            median: 500000,
+            calls: 3,
+          },
           functions: new Map([
             // Functions are added in non-alphabetical order to test sorting
             [
@@ -975,29 +976,29 @@ describe("gas-analytics-manager", () => {
         const report = manager._generateGasStatsReport(gasStats);
 
         const expectedReport = `
-╔═══════════════════════════════════════════════════════════════════════════════════════╗
-║                                 ${chalk.bold("Gas Usage Statistics")}                                  ║
-╚═══════════════════════════════════════════════════════════════════════════════════════╝
-╔═══════════════════════════════════════════════════════════════════════════════════════╗
-║ ${chalk.cyan.bold("contracts/MyContract.sol:MyContract")}                                                   ║
-╟─────────────────────────────────┬─────────────────┬─────────┬────────┬───────┬────────╢
-║ ${chalk.yellow("Function name")}                   │ ${chalk.yellow("Min")}             │ ${chalk.yellow("Average")} │ ${chalk.yellow("Median")} │ ${chalk.yellow("Max")}   │ ${chalk.yellow("#calls")} ║
-╟─────────────────────────────────┼─────────────────┼─────────┼────────┼───────┼────────╢
-║ balanceOf                       │ 15000           │ 15000   │ 15000  │ 15000 │ 1      ║
-║ transfer                        │ 20000           │ 25000   │ 25000  │ 30000 │ 3      ║
-╟─────────────────────────────────┼─────────────────┼─────────┴────────┴───────┴────────╢
-║ ${chalk.yellow("Deployment Cost")}                 │ ${chalk.yellow("Deployment Size")} │                                   ║
-╟─────────────────────────────────┼─────────────────┤                                   ║
-║ 500000                          │ 2048            │                                   ║
-╚═════════════════════════════════╧═════════════════╧═══════════════════════════════════╝
-╔═══════════════════════════════════════════════════════════════════════════════════════╗
-║ ${chalk.cyan.bold("contracts/TokenA.sol:TokenA")}                                                           ║
-╟─────────────────────────────────┬─────────────────┬─────────┬────────┬───────┬────────╢
-║ ${chalk.yellow("Function name")}                   │ ${chalk.yellow("Min")}             │ ${chalk.yellow("Average")} │ ${chalk.yellow("Median")} │ ${chalk.yellow("Max")}   │ ${chalk.yellow("#calls")} ║
-╟─────────────────────────────────┼─────────────────┼─────────┼────────┼───────┼────────╢
-║ transfer(address,uint256)       │ 22000           │ 25000   │ 25000  │ 28000 │ 2      ║
-║ transfer(address,uint256,bytes) │ 32000           │ 34000   │ 34000  │ 36000 │ 2      ║
-╚═════════════════════════════════╧═════════════════╧═════════╧════════╧═══════╧════════╝
+╔═════════════════════════════════════════════════════════════════════════════════════╗
+║                                ${chalk.bold("Gas Usage Statistics")}                                 ║
+╚═════════════════════════════════════════════════════════════════════════════════════╝
+╔═════════════════════════════════════════════════════════════════════════════════════╗
+║ ${chalk.cyan.bold("contracts/MyContract.sol:MyContract")}                                                 ║
+╟─────────────────────────────────┬────────┬─────────┬────────┬────────┬──────────────╢
+║ ${chalk.yellow("Function name")}                   │ ${chalk.yellow("Min")}    │ ${chalk.yellow("Average")} │ ${chalk.yellow("Median")} │ ${chalk.yellow("Max")}    │ ${chalk.yellow("#calls")}       ║
+╟─────────────────────────────────┼────────┼─────────┼────────┼────────┼──────────────╢
+║ balanceOf                       │ 15000  │ 15000   │ 15000  │ 15000  │ 1            ║
+║ transfer                        │ 20000  │ 25000   │ 25000  │ 30000  │ 3            ║
+╟─────────────────────────────────┼────────┼─────────┼────────┼────────┼──────────────╢
+║ ${chalk.yellow("Deployment")}                      │ ${chalk.yellow("Min")}    │ ${chalk.yellow("Average")} │ ${chalk.yellow("Median")} │ ${chalk.yellow("Max")}    │ ${chalk.yellow("#deployments")} ║
+╟─────────────────────────────────┼────────┼─────────┼────────┼────────┼──────────────╢
+║                                 │ 400000 │ 500000  │ 500000 │ 600000 │ 3            ║
+╚═════════════════════════════════╧════════╧═════════╧════════╧════════╧══════════════╝
+╔═════════════════════════════════════════════════════════════════════════════════════╗
+║ ${chalk.cyan.bold("contracts/TokenA.sol:TokenA")}                                                         ║
+╟─────────────────────────────────┬────────┬─────────┬────────┬────────┬──────────────╢
+║ ${chalk.yellow("Function name")}                   │ ${chalk.yellow("Min")}    │ ${chalk.yellow("Average")} │ ${chalk.yellow("Median")} │ ${chalk.yellow("Max")}    │ ${chalk.yellow("#calls")}       ║
+╟─────────────────────────────────┼────────┼─────────┼────────┼────────┼──────────────╢
+║ transfer(address,uint256)       │ 22000  │ 25000   │ 25000  │ 28000  │ 2            ║
+║ transfer(address,uint256,bytes) │ 32000  │ 34000   │ 34000  │ 36000  │ 2            ║
+╚═════════════════════════════════╧════════╧═════════╧════════╧════════╧══════════════╝
 `.trim();
 
         assert.equal(report, expectedReport);
