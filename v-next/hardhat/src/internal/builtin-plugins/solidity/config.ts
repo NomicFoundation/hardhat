@@ -10,6 +10,7 @@ import type {
   SolidityBuildProfileConfig,
   SolidityConfig,
   SolidityUserConfig,
+  CommonSolidityCompilerUserConfig,
 } from "../../../types/config.js";
 import type {
   HardhatConfigValidationError,
@@ -456,7 +457,7 @@ function resolveSolidityCompilerConfig(
     We need to cast here because compilerConfig has `never` type here, as this
     case is only accessible when there are other types of compilers registered
     through plugins. */
-    compilerConfig as unknown as SolidityCompilerUserConfig;
+    compilerConfig as unknown as CommonSolidityCompilerUserConfig;
 
   return {
     type: unknownCompilerConfig.type,
