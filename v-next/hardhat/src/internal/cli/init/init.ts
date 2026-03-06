@@ -428,36 +428,13 @@ export function relativeWorkspaceToTemplatePath(file: string): string {
   }
   return file;
 }
+
 export function relativeTemplateToWorkspacePath(file: string): string {
   if (path.basename(file) === "gitignore") {
     return path.join(path.dirname(file), ".gitignore");
   }
+
   return file;
-}
-
-// NOTE: This function is exported for testing purposes
-export function getBackupPath(filePath: string, n?: number): string {
-  const parsed = path.parse(filePath);
-  const suffix = n !== undefined ? `old-${n}` : "old";
-  if (parsed.ext === "") {
-    return `${filePath}.${suffix}`;
-  }
-  return path.join(parsed.dir, `${parsed.name}.${suffix}${parsed.ext}`);
-}
-
-// NOTE: This function is exported for testing purposes
-export async function findAvailableBackupPath(
-  filePath: string,
-): Promise<string> {
-  const backupPath = getBackupPath(filePath);
-  if (!(await exists(backupPath))) {
-    return backupPath;
-  }
-  let n = 2;
-  while (await exists(getBackupPath(filePath, n))) {
-    n++;
-  }
-  return getBackupPath(filePath, n);
 }
 
 /**
@@ -697,4 +674,34 @@ export function shouldUpdateDependency(
   return !semver.subset(workspaceRange, templateRange, {
     includePrerelease: true,
   });
+}
+
+// NOTE: This function is exported for testing purposes
+export async function findAvailableBackupPath(
+  filePath: string,
+): Promise<string> {
+  const backupPath = getBackupPath(filePath);
+
+  if (!(await exists(backupPath))) {
+    return backupPath;
+  }
+
+  let n = 2;
+  while (await exists(getBackupPath(filePath, n))) {
+    n++;
+  }
+
+  return getBackupPath(filePath, n);
+}
+
+// NOTE: This function is exported for testing purposes
+export function getBackupPath(filePath: string, n?: number): string {
+  const parsed = path.parse(filePath);
+  const suffix = n !== undefined ? `old-${n}` : "old";
+
+  if (parsed.ext === "") {
+    return `${filePath}.${suffix}`;
+  }
+
+  return path.join(parsed.dir, `${parsed.name}.${suffix}${parsed.ext}`);
 }
