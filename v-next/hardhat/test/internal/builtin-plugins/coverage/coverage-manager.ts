@@ -388,13 +388,16 @@ describe("CoverageManagerImplementation", () => {
 });
 
 describe("CoverageManagerImplementation - report data processing", () => {
-  //
-  // The following tests use fixture projects to validate coverage report generation.
-  // For each scenario, there is a .sol file containing a specific feature (e.g. if/else condition, while loop, etc.)
-  // and a .t.sol test file that verifies that feature.
-  // The result of the coverage processing is compared against the expected output defined in the same directory
-  // where these Solidity files are located.
-  //
+  disableConsole();
+
+  /*
+   * The following tests use fixture projects to validate coverage report
+   * generation. For each scenario, there is a .sol file containing a specific
+   * feature (e.g. if/else condition, while loop, etc.) and a .t.sol test file
+   * that verifies that feature. The result of the coverage processing is
+   * compared against the expected output defined in the same directory where
+   * these Solidity files are located.
+   */
   const testScenarios: CoverageTestScenario[] = [
     COVERAGE_TEST_SCENARIO_DO_WHILE_LOOP,
     COVERAGE_TEST_SCENARIO_FOR_LOOP,

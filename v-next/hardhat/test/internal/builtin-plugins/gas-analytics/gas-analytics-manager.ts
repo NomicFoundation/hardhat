@@ -4,6 +4,7 @@ import assert from "node:assert/strict";
 import path from "node:path";
 import { afterEach, before, describe, it } from "node:test";
 
+import { disableConsole } from "@nomicfoundation/hardhat-test-utils";
 import {
   emptyDir,
   getAllFilesMatching,
@@ -21,6 +22,8 @@ import {
 } from "../../../../src/internal/builtin-plugins/gas-analytics/gas-analytics-manager.js";
 
 describe("gas-analytics-manager", () => {
+  disableConsole();
+
   describe("GasAnalyticsManager", () => {
     let tmpDir: string;
     before(async () => {
