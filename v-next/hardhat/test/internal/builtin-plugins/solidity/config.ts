@@ -8,13 +8,6 @@ import type {
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 
-// Extend compiler type definitions for testing non-solc types
-declare module "../../../../src/types/config.js" {
-  interface SolidityCompilerTypeDefinitions {
-    solx: true;
-  }
-}
-
 import { isSolcConfig } from "../../../../src/internal/builtin-plugins/solidity/build-system/build-system.js";
 import { missesSomeOfficialNativeBuilds } from "../../../../src/internal/builtin-plugins/solidity/build-system/solc-info.js";
 import {
@@ -888,7 +881,7 @@ describe("solidity plugin config resolution", () => {
         {
           solidity: {
             compilers: [{ type: "solx", version: "0.8.28" }],
-          },
+          } as any,
         },
         otherResolvedConfig,
       );
@@ -910,7 +903,7 @@ describe("solidity plugin config resolution", () => {
         {
           solidity: {
             compilers: [{ type: "solx", version: "0.8.28" }],
-          },
+          } as any,
         },
         otherResolvedConfig,
       );
@@ -1065,7 +1058,7 @@ describe("isSolcConfig type guard", () => {
       type: "solx",
       version: "0.8.28",
       settings: {},
-    };
+    } as any;
     assert.equal(isSolcConfig(config), false);
   });
 });

@@ -413,11 +413,18 @@ function resolveSolidityCompilerConfig(
     return solcResolved;
   }
 
+  const unknownCompilerConfig =
+    /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions --
+    We need to cast here because compilerConfig has `never` type here, as this
+    case is only accessible when there are other types of compilers registered
+    through plugins. */
+    compilerConfig as unknown as SolidityCompilerUserConfig;
+
   return {
-    type: compilerConfig.type,
-    version: compilerConfig.version,
+    type: unknownCompilerConfig.type,
+    version: unknownCompilerConfig.version,
     settings: resolvedSettings,
-    path: compilerConfig.path,
+    path: unknownCompilerConfig.path,
   };
 }
 
