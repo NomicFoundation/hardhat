@@ -1,24 +1,21 @@
-// @ts-check
-
-/**
- * @typedef {{
- *   tagName: string,
- *   title: string,
- *   body: string,
- *   draft: boolean,
- *   latest: boolean,
- * }} ReleaseDescriptor
- */
+export interface ReleaseDescriptor {
+  tagName: string;
+  title: string;
+  body: string;
+  draft: boolean;
+  latest: boolean;
+}
 
 /**
  * Transforms a publish summary and changelogs into an array of release
  * descriptors.
- *
- * @param {{ publishedPackages: Array<{ name: string, version: string }>}} publishSummary
- * @param {Map<string, string>} changelogs - Map of package name → raw changelog content
- * @returns {ReleaseDescriptor[]}
  */
-export function buildReleaseDescriptors(publishSummary, changelogs) {
+export function buildReleaseDescriptors(
+  publishSummary: {
+    publishedPackages: Array<{ name: string; version: string }>;
+  },
+  changelogs: Map<string, string>,
+): ReleaseDescriptor[] {
   const descriptors = [];
 
   for (const { name, version } of publishSummary.publishedPackages) {
@@ -47,12 +44,8 @@ export function buildReleaseDescriptors(publishSummary, changelogs) {
  * Extracts the changelog entry for a specific version from raw changelog content.
  * Normalizes major/minor/patch changes to "### Changes".
  * Throws if the version header is not found.
- *
- * @param {string} changelog - Raw changelog file content
- * @param {string} version - The semver version string to look up
- * @returns {string} The trimmed changelog entry body
  */
-function _getChangelogEntry(changelog, version) {
+function _getChangelogEntry(changelog: string, version: string): string {
   const lines = changelog.split("\n");
   const headerIndex = lines.findIndex((line) => line === `## ${version}`);
 
@@ -60,10 +53,7 @@ function _getChangelogEntry(changelog, version) {
     throw new Error(`Changelog entry for version ${version} not found`);
   }
 
-  /**
-   * @type {string[]}
-   */
-  const entryLines = [];
+  const entryLines: string[] = [];
   let pushedChangesLine = false;
 
   for (let index = headerIndex + 1; index < lines.length; index++) {
@@ -104,12 +94,8 @@ function _getChangelogEntry(changelog, version) {
 /**
  * Builds the full release body from a changelog entry. The Hardhat package
  * has a placeholder summary line prefixed.
- *
- * @param {string} changelogEntry - The extracted changelog entry body
- * @param {boolean} isHardhat - Whether the package is the `hardhat` package
- * @returns {string}
  */
-function _buildReleaseBody(changelogEntry, isHardhat) {
+function _buildReleaseBody(changelogEntry: string, isHardhat: boolean): string {
   return [
     "This release [short summary of the changes].",
     "",

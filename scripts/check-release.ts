@@ -1,8 +1,6 @@
-// @ts-check
-
 import { appendFile } from "node:fs/promises";
 
-import { readPackage, isPackageReleasedToNpm } from "./lib/packages.mjs";
+import { readPackage, isPackageReleasedToNpm } from "./lib/packages.ts";
 
 /**
  * The function checks whether the version of hardhat from its package.json is available in the NPM registry

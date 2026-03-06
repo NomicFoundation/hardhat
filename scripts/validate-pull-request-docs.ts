@@ -1,4 +1,4 @@
-// @ts-check
+import process from "node:process";
 
 /**
  * A pull request is valid if:

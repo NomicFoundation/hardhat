@@ -1,5 +1,3 @@
-// @ts-check
-
 /**
  * A pull request is valid if:
  * - it is a release PR (i.e. it's head ref starts with "changeset-release/")
@@ -31,7 +29,7 @@ function hasNoChangesetNeededLabel() {
 
   const labels = JSON.parse(process.env.GITHUB_EVENT_PULL_REQUEST_LABELS);
 
-  return labels.some(l => l.name === CHANGESET_LABEL);
+  return labels.some((l) => l.name === CHANGESET_LABEL);
 }
 
 async function hasChangeset() {
@@ -40,10 +38,12 @@ async function hasChangeset() {
   }
 
   const { stdout } = await exec(
-    `git diff --name-only --diff-filter=A ${process.env.GITHUB_BASE_REF} -- ${changesetDir}`
+    `git diff --name-only --diff-filter=A ${process.env.GITHUB_BASE_REF} -- ${changesetDir}`,
   );
 
-  const changesets = stdout.trim().split("\n")
+  const changesets = stdout
+    .trim()
+    .split("\n")
     .filter((file) => file.endsWith(".md"));
 
   return changesets.length > 0;
