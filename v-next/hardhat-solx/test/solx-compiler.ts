@@ -1,10 +1,11 @@
-import type { SolxCompiler as SolxCompilerType } from "../src/internal/solx-compiler.js";
 import type { CompilerInput, CompilerOutput } from "hardhat/types/solidity";
 
 import assert from "node:assert/strict";
-import { before, beforeEach, describe, it, mock } from "node:test";
+import { beforeEach, describe, it } from "node:test";
 
-// Track calls to spawnCompile
+import { SolxCompiler } from "../src/internal/solx-compiler.js";
+
+// Track calls to the fake spawnCompile
 let spawnCompileCalls: Array<{
   command: string;
   args: string[];
@@ -12,28 +13,16 @@ let spawnCompileCalls: Array<{
 }> = [];
 const fakeOutput: CompilerOutput = { sources: {}, contracts: {} };
 
-// Mock spawnCompile before any dynamic imports of modules that use it
-mock.module("hardhat/internal/solidity", {
-  namedExports: {
-    spawnCompile: async (
-      command: string,
-      args: string[],
-      input: CompilerInput,
-    ) => {
-      spawnCompileCalls.push({ command, args, input });
-      return fakeOutput;
-    },
-  },
-});
+async function fakeSpawnCompile(
+  command: string,
+  args: string[],
+  input: CompilerInput,
+): Promise<CompilerOutput> {
+  spawnCompileCalls.push({ command, args, input });
+  return fakeOutput;
+}
 
 describe("SolxCompiler", () => {
-  let SolxCompiler: typeof SolxCompilerType;
-
-  before(async () => {
-    const mod = await import("../src/internal/solx-compiler.js");
-    SolxCompiler = mod.SolxCompiler;
-  });
-
   beforeEach(() => {
     spawnCompileCalls = [];
   });
@@ -48,7 +37,12 @@ describe("SolxCompiler", () => {
   });
 
   it("calls spawnCompile with correct binary path and args", async () => {
-    const compiler = new SolxCompiler("0.1.3", "/path/to/solx");
+    const compiler = new SolxCompiler(
+      "0.1.3",
+      "/path/to/solx",
+      {},
+      fakeSpawnCompile,
+    );
     const input: CompilerInput = {
       language: "Solidity",
       sources: { "A.sol": { content: "pragma solidity ^0.8.0;" } },
@@ -64,9 +58,12 @@ describe("SolxCompiler", () => {
   });
 
   it("merges extraSettings into input.settings", async () => {
-    const compiler = new SolxCompiler("0.1.3", "/path/to/solx", {
-      LLVMOptimization: "1",
-    });
+    const compiler = new SolxCompiler(
+      "0.1.3",
+      "/path/to/solx",
+      { LLVMOptimization: "1" },
+      fakeSpawnCompile,
+    );
     const input: CompilerInput = {
       language: "Solidity",
       sources: { "A.sol": { content: "pragma solidity ^0.8.0;" } },
@@ -87,9 +84,12 @@ describe("SolxCompiler", () => {
   });
 
   it("does not modify the original input object", async () => {
-    const compiler = new SolxCompiler("0.1.3", "/path/to/solx", {
-      LLVMOptimization: "1",
-    });
+    const compiler = new SolxCompiler(
+      "0.1.3",
+      "/path/to/solx",
+      { LLVMOptimization: "1" },
+      fakeSpawnCompile,
+    );
     const input: CompilerInput = {
       language: "Solidity",
       sources: { "A.sol": { content: "pragma solidity ^0.8.0;" } },
@@ -107,7 +107,12 @@ describe("SolxCompiler", () => {
   });
 
   it("returns the output from spawnCompile", async () => {
-    const compiler = new SolxCompiler("0.1.3", "/path/to/solx");
+    const compiler = new SolxCompiler(
+      "0.1.3",
+      "/path/to/solx",
+      {},
+      fakeSpawnCompile,
+    );
     const input: CompilerInput = {
       language: "Solidity",
       sources: { "A.sol": { content: "pragma solidity ^0.8.0;" } },
