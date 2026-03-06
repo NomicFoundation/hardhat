@@ -4,7 +4,7 @@ import type {
   CompilerOutput,
 } from "hardhat/types/solidity";
 
-import { spawnCompile } from "hardhat/internal/solidity";
+import { spawnCompile as defaultSpawnCompile } from "hardhat/internal/solidity";
 
 export class SolxCompiler implements Compiler {
   public readonly version: string;
@@ -13,16 +13,19 @@ export class SolxCompiler implements Compiler {
   public readonly isSolcJs: boolean = false;
 
   readonly #extraSettings: Record<string, unknown>;
+  readonly #spawnCompile: typeof defaultSpawnCompile;
 
   constructor(
     solxVersion: string,
     compilerPath: string,
     extraSettings: Record<string, unknown> = {},
+    spawnCompile: typeof defaultSpawnCompile = defaultSpawnCompile,
   ) {
     this.version = solxVersion;
     this.longVersion = `${solxVersion}+solx`;
     this.compilerPath = compilerPath;
     this.#extraSettings = extraSettings;
+    this.#spawnCompile = spawnCompile;
   }
 
   public async compile(input: CompilerInput): Promise<CompilerOutput> {
@@ -38,6 +41,6 @@ export class SolxCompiler implements Compiler {
       },
     };
 
-    return spawnCompile(this.compilerPath, args, modifiedInput);
+    return this.#spawnCompile(this.compilerPath, args, modifiedInput);
   }
 }

@@ -1,8 +1,10 @@
 # Hardhat Solx plugin
 
-This plugin enables the [solx](https://solx.zksync.io/) LLVM-based Solidity compiler for test builds in Hardhat 3.
+This plugin enables the [solx](https://github.com/nicholasgasior/solx) LLVM-based Solidity compiler for test builds in Hardhat 3.
 
-When installed, the plugin automatically creates a `test` build profile that uses solx instead of solc, with optimized default settings (`viaIR: true`, `LLVMOptimization: "1"`).
+The `solx` compiler is currently experimental and is not ready for production use-cases. The recommendation is to use the compiler for test builds and test execution locally, and continue to use `solc` for production use-cases (including with `hardhat-ignition` and in your CI). Care should be taken before enabling production compilation with `solx` on your project, see configuration flags further below.
+
+When installed, the plugin automatically creates a `test` build profile that uses solx instead of solc.
 
 ## Installation
 
@@ -54,9 +56,7 @@ export default defineConfig({
 
 ### Options
 
-| Option | Type | Default | Description |
-| --- | --- | --- | --- |
-| `dangerouslyAllowSolxInProduction` | `boolean` | `false` | Allow compiler type `"solx"` in the production build profile |
+- `dangerouslyAllowSolxInProduction` (`boolean`, default: `false`) — Allow compiler type `"solx"` in the production build profile. Note: it is not recommended to run solx in production builds or CI builds currently, as solx is still experimental.
 
 ### Supported Solidity versions
 
