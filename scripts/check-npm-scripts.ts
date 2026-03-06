@@ -29,8 +29,8 @@ for (const dir of dirs) {
     continue;
   }
 
-  // Same with the example project, we don't use the same scripts
-  if (dir.name === "example-project") {
+  // Same with the example projects, we don't use the same scripts
+  if (dir.name === "example-project" || dir.name === "example-project-solx") {
     continue;
   }
 

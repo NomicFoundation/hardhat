@@ -153,6 +153,27 @@ importers:
         specifier: ^2.43.0
         version: 2.43.5(typescript@5.8.3)(zod@3.25.76)
 
+  v-next/example-project-solx:
+    devDependencies:
+      '@nomicfoundation/hardhat-solx':
+        specifier: workspace:*
+        version: link:../hardhat-solx
+      '@types/node':
+        specifier: ^22.0.0
+        version: 22.18.7
+      hardhat:
+        specifier: workspace:^3.1.11
+        version: link:../hardhat
+      prettier:
+        specifier: 3.2.5
+        version: 3.2.5
+      rimraf:
+        specifier: ^5.0.5
+        version: 5.0.10
+      typescript:
+        specifier: ~5.8.0
+        version: 5.8.3
+
   v-next/hardhat:
     dependencies:
       '@nomicfoundation/edr':
