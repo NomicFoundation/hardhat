@@ -1,10 +1,7 @@
 import type { HardhatRuntimeEnvironmentHooks } from "../../../../types/hooks.js";
 
-import { assertHardhatInvariant } from "@nomicfoundation/hardhat-errors";
-
-import { HardhatRuntimeEnvironmentImplementation } from "../../../core/hre.js";
 import { CoverageManagerImplementation } from "../coverage-manager.js";
-import { getCoveragePath } from "../helpers.js";
+import { getCoveragePath, setCoverageManager } from "../helpers.js";
 
 export default async (): Promise<Partial<HardhatRuntimeEnvironmentHooks>> => ({
   created: async (context, hre) => {
@@ -12,12 +9,7 @@ export default async (): Promise<Partial<HardhatRuntimeEnvironmentHooks>> => ({
       const coveragePath = getCoveragePath(hre.config.paths.root);
       const coverageManager = new CoverageManagerImplementation(coveragePath);
 
-      assertHardhatInvariant(
-        hre instanceof HardhatRuntimeEnvironmentImplementation,
-        "Expected HRE to be an instance of HardhatRuntimeEnvironmentImplementation",
-      );
-
-      hre._coverage = coverageManager;
+      setCoverageManager(hre, coverageManager);
 
       // NOTE: We register this hook dynamically because we use the information about
       // the existence of onCoverageData hook handlers to determine whether coverage

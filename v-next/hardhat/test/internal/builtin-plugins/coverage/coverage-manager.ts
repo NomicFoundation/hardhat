@@ -24,6 +24,7 @@ import chalk from "chalk";
 
 import { createHardhatRuntimeEnvironment } from "../../../../src/hre.js";
 import { CoverageManagerImplementation } from "../../../../src/internal/builtin-plugins/coverage/coverage-manager.js";
+import { setCoverageManager } from "../../../../src/internal/builtin-plugins/coverage/helpers.js";
 import { COVERAGE_TEST_SCENARIO_DO_WHILE_LOOP } from "../../../fixture-projects/coverage/contracts/do-while-loop/coverage-edr-info.js";
 import { COVERAGE_TEST_SCENARIO_FOR_LOOP } from "../../../fixture-projects/coverage/contracts/for-loop/coverage-edr-info.js";
 import { COVERAGE_TEST_SCENARIO_FUNCTIONS } from "../../../fixture-projects/coverage/contracts/functions/coverage-edr-info.js";
@@ -425,9 +426,7 @@ describe("CoverageManagerImplementation - report data processing", () => {
 
     hre.globalOptions.coverage = true;
 
-    /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions
-    -- For the test we need to access to the hidden _coverage property */
-    (hre as any)._coverage = coverageManagerTmp;
+    setCoverageManager(hre, coverageManagerTmp);
 
     await hre.tasks.getTask(["compile"]).run({
       quiet: true,
@@ -492,9 +491,7 @@ describe("report generation", () => {
 
     hre.globalOptions.coverage = true;
 
-    /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions
-    -- For the test we need to access to the hidden _coverage property */
-    (hre as any)._coverage = coverageManagerTmp;
+    setCoverageManager(hre, coverageManagerTmp);
 
     await hre.tasks.getTask(["compile"]).run({
       quiet: true,
