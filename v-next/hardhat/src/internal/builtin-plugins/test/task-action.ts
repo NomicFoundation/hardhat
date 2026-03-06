@@ -74,6 +74,14 @@ const runAllTests: NewTaskActionFunction<TestActionArguments> = async (
     hre._coverage.disableReport();
   }
 
+  if (hre.globalOptions.gasStats === true) {
+    assertHardhatInvariant(
+      hre instanceof HardhatRuntimeEnvironmentImplementation,
+      "Expected HRE to be an instance of HardhatRuntimeEnvironmentImplementation",
+    );
+    hre._gasAnalytics.disableReport();
+  }
+
   const testSummaries: Record<string, TestSummary> = {};
 
   let failureIndex = 1;
@@ -217,6 +225,17 @@ const runAllTests: NewTaskActionFunction<TestActionArguments> = async (
     const ids = Array.from(thisTask.subtasks.keys());
     hre._coverage.enableReport();
     await hre._coverage.report(...ids);
+    console.log();
+  }
+
+  if (hre.globalOptions.gasStats === true) {
+    assertHardhatInvariant(
+      hre instanceof HardhatRuntimeEnvironmentImplementation,
+      "Expected HRE to be an instance of HardhatRuntimeEnvironmentImplementation",
+    );
+    const ids = Array.from(thisTask.subtasks.keys());
+    hre._gasAnalytics.enableReport();
+    await hre._gasAnalytics.reportGasStats(...ids);
     console.log();
   }
 

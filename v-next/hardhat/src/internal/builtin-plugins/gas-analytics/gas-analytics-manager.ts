@@ -50,6 +50,7 @@ interface ContractGasMeasurements {
 export class GasAnalyticsManagerImplementation implements GasAnalyticsManager {
   public gasMeasurements: GasMeasurement[] = [];
   readonly #gasStatsPath: string;
+  #reportEnabled = true;
 
   constructor(gasStatsRootPath: string) {
     this.#gasStatsPath = path.join(gasStatsRootPath, "gas-stats");
@@ -77,6 +78,10 @@ export class GasAnalyticsManagerImplementation implements GasAnalyticsManager {
   }
 
   public async reportGasStats(...ids: string[]): Promise<void> {
+    if (!this.#reportEnabled) {
+      return;
+    }
+
     await this._loadGasMeasurements(...ids);
 
     const gasStatsByContract = this._calculateGasStats();
@@ -86,6 +91,14 @@ export class GasAnalyticsManagerImplementation implements GasAnalyticsManager {
     console.log(report);
     console.log();
     gasStatsLog("Printed markdown report");
+  }
+
+  public enableReport(): void {
+    this.#reportEnabled = true;
+  }
+
+  public disableReport(): void {
+    this.#reportEnabled = false;
   }
 
   async #getGasMeasurementsPath(id: string): Promise<string> {
