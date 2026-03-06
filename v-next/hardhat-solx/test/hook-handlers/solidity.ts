@@ -6,6 +6,8 @@ import type { CompilerInput, CompilerOutput } from "hardhat/types/solidity";
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 
+import { assertRejectsWithHardhatError } from "@nomicfoundation/hardhat-test-utils";
+
 // Helper to create a compiler config
 function createSolidityCompilerConfig(
   overrides: Partial<SolidityCompilerConfig> = {},
@@ -174,7 +176,8 @@ describe("hardhat-solx solidity hook handler", () => {
       assert.equal(result, mockNext.compiler);
     });
 
-    it("passes through to next for unsupported solx version", async () => {
+    it("throws invariant error for unsupported solx version", async () => {
+      const { HardhatError } = await import("@nomicfoundation/hardhat-errors");
       const hookHandlerModule = await import(
         "../../src/internal/hook-handlers/solidity.js"
       );
@@ -187,17 +190,14 @@ describe("hardhat-solx solidity hook handler", () => {
       });
       const mockNext = createGetCompilerMockNext();
 
-      const result = await hooks.getCompiler!(
-        context,
-        compilerConfig,
-        mockNext.next,
+      await assertRejectsWithHardhatError(
+        hooks.getCompiler!(context, compilerConfig, mockNext.next),
+        HardhatError.ERRORS.CORE.INTERNAL.ASSERTION_ERROR,
+        {
+          message:
+            "No solx version mapping for Solidity 0.8.99 — this should have been caught by config validation",
+        },
       );
-
-      assert.ok(
-        mockNext.wasCalled(),
-        "next should have been called for unsupported version",
-      );
-      assert.equal(result, mockNext.compiler);
     });
   });
 });

@@ -1,11 +1,13 @@
 import type { SolidityHooks } from "hardhat/types/hooks";
 
+import { assertHardhatInvariant } from "@nomicfoundation/hardhat-errors";
 import { exists } from "@nomicfoundation/hardhat-utils/fs";
 import debug from "debug";
 
 import {
   DEFAULT_SOLX_SETTINGS,
   SOLIDITY_TO_SOLX_VERSION_MAP,
+  SOLX_COMPILER_TYPE,
 } from "../constants.js";
 import { downloadSolx, getSolxBinaryPath } from "../downloader.js";
 import { SolxCompiler } from "../solx-compiler.js";
@@ -14,7 +16,9 @@ const log = debug("hardhat:solx:hook-handlers:solidity");
 
 export default async (): Promise<Partial<SolidityHooks>> => ({
   downloadCompilers: async (_context, compilerConfigs, quiet) => {
-    const solxConfigs = compilerConfigs.filter((c) => c.type === "solx");
+    const solxConfigs = compilerConfigs.filter(
+      (c) => c.type === SOLX_COMPILER_TYPE,
+    );
 
     if (solxConfigs.length === 0) {
       return;
@@ -48,15 +52,15 @@ export default async (): Promise<Partial<SolidityHooks>> => ({
   },
 
   getCompiler: async (context, compilerConfig, next) => {
-    if (compilerConfig.type !== "solx") {
+    if (compilerConfig.type !== SOLX_COMPILER_TYPE) {
       return next(context, compilerConfig);
     }
 
     const solxVersion = SOLIDITY_TO_SOLX_VERSION_MAP[compilerConfig.version];
-    if (solxVersion === undefined) {
-      // Should not happen — validated in config validation
-      return next(context, compilerConfig);
-    }
+    assertHardhatInvariant(
+      solxVersion !== undefined,
+      `No solx version mapping for Solidity ${compilerConfig.version} — this should have been caught by config validation`,
+    );
 
     const binaryPath = await getSolxBinaryPath(solxVersion);
 
