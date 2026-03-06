@@ -7,10 +7,7 @@ import type {
 import type { TestSummary } from "../../../types/test.js";
 import type { Result } from "../../../types/utils.js";
 
-import {
-  assertHardhatInvariant,
-  HardhatError,
-} from "@nomicfoundation/hardhat-errors";
+import { HardhatError } from "@nomicfoundation/hardhat-errors";
 import { isObject } from "@nomicfoundation/hardhat-utils/lang";
 import chalk, { type ChalkInstance } from "chalk";
 
@@ -19,7 +16,8 @@ import {
   isResult,
   successfulResult,
 } from "../../../utils/result.js";
-import { HardhatRuntimeEnvironmentImplementation } from "../../core/hre.js";
+import { getCoverageManager } from "../coverage/helpers.js";
+import { getGasAnalyticsManager } from "../gas-analytics/helpers.js";
 
 interface TestActionArguments {
   testFiles: string[];
@@ -67,19 +65,11 @@ const runAllTests: NewTaskActionFunction<TestActionArguments> = async (
   }
 
   if (hre.globalOptions.coverage === true) {
-    assertHardhatInvariant(
-      hre instanceof HardhatRuntimeEnvironmentImplementation,
-      "Expected HRE to be an instance of HardhatRuntimeEnvironmentImplementation",
-    );
-    hre._coverage.disableReport();
+    getCoverageManager(hre).disableReport();
   }
 
   if (hre.globalOptions.gasStats === true) {
-    assertHardhatInvariant(
-      hre instanceof HardhatRuntimeEnvironmentImplementation,
-      "Expected HRE to be an instance of HardhatRuntimeEnvironmentImplementation",
-    );
-    hre._gasAnalytics.disableReport();
+    getGasAnalyticsManager(hre).disableReport();
   }
 
   const testSummaries: Record<string, TestSummary> = {};
@@ -218,24 +208,18 @@ const runAllTests: NewTaskActionFunction<TestActionArguments> = async (
   console.log();
 
   if (hre.globalOptions.coverage === true) {
-    assertHardhatInvariant(
-      hre instanceof HardhatRuntimeEnvironmentImplementation,
-      "Expected HRE to be an instance of HardhatRuntimeEnvironmentImplementation",
-    );
+    const coverage = getCoverageManager(hre);
     const ids = Array.from(thisTask.subtasks.keys());
-    hre._coverage.enableReport();
-    await hre._coverage.report(...ids);
+    coverage.enableReport();
+    await coverage.report(...ids);
     console.log();
   }
 
   if (hre.globalOptions.gasStats === true) {
-    assertHardhatInvariant(
-      hre instanceof HardhatRuntimeEnvironmentImplementation,
-      "Expected HRE to be an instance of HardhatRuntimeEnvironmentImplementation",
-    );
+    const gasAnalytics = getGasAnalyticsManager(hre);
     const ids = Array.from(thisTask.subtasks.keys());
-    hre._gasAnalytics.enableReport();
-    await hre._gasAnalytics.reportGasStats(...ids);
+    gasAnalytics.enableReport();
+    await gasAnalytics.reportGasStats(...ids);
     console.log();
   }
 
