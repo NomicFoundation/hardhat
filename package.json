@@ -11,11 +11,13 @@
     "@types/node": "^24.1.0",
     "cspell": "9.7.0",
     "prettier": "3.2.5",
-    "typescript": "~5.8.0"
+    "rimraf": "^5.0.5",
+    "typescript": "~5.8.0",
+    "verdaccio": "^6.0.0"
   },
   "scripts": {
     "build": "pnpm run --recursive --if-present build",
-    "clean": "pnpm run --recursive --if-present clean",
+    "clean": "pnpm run --recursive --if-present clean && rimraf .verdaccio",
     "test": "pnpm run --recursive --if-present test",
     "test:scripts": "node --test ./scripts/**/*.test.ts",
     "prettier:scripts": "prettier \"scripts/**/*.{ts,json}\"",
@@ -27,7 +29,11 @@
     "prelint:fix": "pnpm build",
     "lint:fix": "pnpm run --recursive --if-present lint:fix && pnpm lint:scripts:fix",
     "version-for-release": "pnpm changeset version && node scripts/bump-peers.ts apply && pnpm -w install --lockfile-only",
-    "spellcheck": "cspell --no-progress || (echo \"\\n\\n==== cspell failed ===\\n\\nIf you think a word is correctly spelled, please add it to cspell.dictionary.txt\\nTo ignore a word use the comments 'cSpell:ignore wooord' or 'cspell:disable-next-line'\"; exit 1)"
+    "spellcheck": "cspell --no-progress || (echo \"\\n\\n==== cspell failed ===\\n\\nIf you think a word is correctly spelled, please add it to cspell.dictionary.txt\\nTo ignore a word use the comments 'cSpell:ignore wooord' or 'cspell:disable-next-line'\"; exit 1)",
+    "verdaccio:help": "node ./scripts/verdaccio/install.ts",
+    "verdaccio:start": "node ./scripts/verdaccio/install.ts --start",
+    "verdaccio:publish": "node ./scripts/verdaccio/install.ts --publish",
+    "verdaccio:stop": "node ./scripts/verdaccio/install.ts --stop"
   },
   "pnpm": {
     "onlyBuiltDependencies": [
