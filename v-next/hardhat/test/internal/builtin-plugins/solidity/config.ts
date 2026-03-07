@@ -285,16 +285,16 @@ describe("solidity plugin config validation", () => {
         }),
         [
           {
-            message: "Expected boolean, received string",
-            path: ["solidity", "isolated"],
-          },
-          {
             message: "Expected string, received number",
             path: ["solidity", "compilers", 0, "version"],
           },
           {
             message: "Expected object, received array",
             path: ["solidity", "overrides"],
+          },
+          {
+            message: "Expected boolean, received string",
+            path: ["solidity", "isolated"],
           },
         ],
       );
@@ -332,16 +332,16 @@ describe("solidity plugin config validation", () => {
             path: ["solidity", "profiles", "default", "isolated"],
           },
           {
+            message: "Expected boolean, received string",
+            path: ["solidity", "profiles", "production", "isolated"],
+          },
+          {
             message: "This field is incompatible with `version`",
             path: ["solidity", "profiles", "production", "compilers"],
           },
           {
             message: "This field is incompatible with `version`",
             path: ["solidity", "profiles", "production", "overrides"],
-          },
-          {
-            message: "Expected boolean, received string",
-            path: ["solidity", "profiles", "production", "isolated"],
           },
         ],
       );
