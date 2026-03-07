@@ -58,10 +58,8 @@ const compilerUserConfigType = conditionalUnionType(
   [
     [
       (data) =>
-        !isObject(data) ||
-        !("type" in data) ||
-        data.type === undefined ||
-        data.type === "solc",
+        isObject(data) &&
+        (!("type" in data) || data.type === undefined || data.type === "solc"),
       z.object({
         ...baseCompilerFields,
         ...incompatibleVersionFields,
