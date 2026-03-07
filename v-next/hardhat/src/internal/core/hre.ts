@@ -13,6 +13,7 @@ import type {
   GlobalOptionDefinitions,
 } from "../../types/global-options.js";
 import type {
+  HardhatConfigValidationError,
   HardhatUserConfigValidationError,
   HookContext,
   HookManager,
@@ -96,6 +97,20 @@ export class HardhatRuntimeEnvironmentImplementation
     );
 
     if (!configResolutionResult.success) {
+      if (configResolutionResult.configValidationErrors !== undefined) {
+        throw new HardhatError(
+          HardhatError.ERRORS.CORE.GENERAL.INVALID_RESOLVED_CONFIG,
+          {
+            errors: `\t${configResolutionResult.configValidationErrors
+              .map(
+                (error) =>
+                  `* Resolved config error in config.${error.path.join(".")}: ${error.message}`,
+              )
+              .join("\n\t")}`,
+          },
+        );
+      }
+
       throw new HardhatError(HardhatError.ERRORS.CORE.GENERAL.INVALID_CONFIG, {
         errors: `\t${configResolutionResult.userConfigValidationErrors
           .map(
@@ -186,6 +201,29 @@ export async function resolveProjectRoot(
  * invoking relevant plugin hooks (both internal and external) to extend
  * and transform the config into a full HardhatConfig.
  *
+ * @example
+ * ```
+ * const resolutionResult = await resolveUserConfigToHardhatConfig(
+ *   userConfig,
+ *   hooks,
+ *   resolvedProjectRoot,
+ *   userProvidedConfigPath,
+ *   resolvedPlugins,
+ * );
+ *
+ * if (!resolutionResult.success) {
+ *   if (resolutionResult.userConfigValidationErrors !== undefined) {
+ *      // Handle the post-validation errors in the resolved config
+ *      throwError(resolutionResult.configValidationErrors);
+ *   }
+ *
+ *   // Handle the user config validation errors
+ *   throwError(resolutionResult.userConfigValidationErrors);
+ * }
+ *
+ * const config = resolutionResult.config;
+ * ```
+ *
  * @param hooks - The HookManager used to run config extension and validation
  * hooks.
  * @param inputUserConfig - The initial user provided Hardhat config object.
@@ -194,7 +232,12 @@ export async function resolveProjectRoot(
  * @param resolvedPlugins - The list of plugins, we do not want the plugins
  * overwriting them so we re-add them to the final HardhatConfig.
  * @returns Either an object containing the resolved HardhatConfig and the
- * extended version of the user config, or a list of validation errors.
+ * extended version of the user config, or the lists of validation errors. The
+ * `userConfigValidationErrors` array is always present, and contains any
+ * validation errors in the user config. It can be empty if there aren't any
+ * user validation error, but in that case, there are post-validation errors of
+ * the resolved config. See the example to learn how to properly use the result
+ * of this function.
  */
 export async function resolveUserConfigToHardhatConfig(
   inputUserConfig: HardhatUserConfig,
@@ -211,6 +254,7 @@ export async function resolveUserConfigToHardhatConfig(
   | {
       success: false;
       userConfigValidationErrors: HardhatUserConfigValidationError[];
+      configValidationErrors?: HardhatConfigValidationError[];
     }
 > {
   // extend user config:
@@ -264,7 +308,8 @@ export async function resolveUserConfigToHardhatConfig(
   if (resolvedConfigValidationErrors.length > 0) {
     return {
       success: false,
-      userConfigValidationErrors: resolvedConfigValidationErrors,
+      userConfigValidationErrors: [],
+      configValidationErrors: resolvedConfigValidationErrors,
     };
   }
 
