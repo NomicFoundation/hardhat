@@ -713,7 +713,7 @@ describe("gas-analytics-manager", () => {
         assert.equal(transferStats.max, 30000);
         assert.equal(transferStats.avg, 25000);
         assert.equal(transferStats.median, 25000);
-        assert.equal(transferStats.calls, 3);
+        assert.equal(transferStats.count, 3);
       });
 
       it("should calculate stats for deployment gas measurements", () => {
@@ -755,7 +755,7 @@ describe("gas-analytics-manager", () => {
         assert.equal(contractStats.deployment.max, 600000);
         assert.equal(contractStats.deployment.avg, 500000);
         assert.equal(contractStats.deployment.median, 500000);
-        assert.equal(contractStats.deployment.calls, 3);
+        assert.equal(contractStats.deployment.count, 3);
       });
 
       it("should calculate stats for multiple contracts", () => {
@@ -832,7 +832,7 @@ describe("gas-analytics-manager", () => {
         assert.equal(transferOverload1.max, 25000);
         assert.equal(transferOverload1.avg, 25000);
         assert.equal(transferOverload1.median, 25000);
-        assert.equal(transferOverload1.calls, 1);
+        assert.equal(transferOverload1.count, 1);
 
         const transferOverload2 = contractStats.functions.get(
           "transfer(address,uint256,bytes)",
@@ -845,7 +845,7 @@ describe("gas-analytics-manager", () => {
         assert.equal(transferOverload2.max, 35000);
         assert.equal(transferOverload2.avg, 35000);
         assert.equal(transferOverload2.median, 35000);
-        assert.equal(transferOverload2.calls, 1);
+        assert.equal(transferOverload2.count, 1);
       });
 
       it("should handle empty gas measurements", () => {
@@ -923,7 +923,7 @@ describe("gas-analytics-manager", () => {
                 max: 36000,
                 avg: 34000,
                 median: 34000,
-                calls: 2,
+                count: 2,
               },
             ],
             [
@@ -933,7 +933,7 @@ describe("gas-analytics-manager", () => {
                 max: 28000,
                 avg: 25000,
                 median: 25000,
-                calls: 2,
+                count: 2,
               },
             ],
           ]),
@@ -945,7 +945,7 @@ describe("gas-analytics-manager", () => {
             max: 600000,
             avg: 500000,
             median: 500000,
-            calls: 3,
+            count: 3,
           },
           functions: new Map([
             // Functions are added in non-alphabetical order to test sorting
@@ -956,7 +956,7 @@ describe("gas-analytics-manager", () => {
                 max: 30000,
                 avg: 25000,
                 median: 25000,
-                calls: 3,
+                count: 3,
               },
             ],
             [
@@ -966,7 +966,7 @@ describe("gas-analytics-manager", () => {
                 max: 15000,
                 avg: 15000,
                 median: 15000,
-                calls: 1,
+                count: 1,
               },
             ],
           ]),
@@ -1017,7 +1017,7 @@ describe("gas-analytics-manager", () => {
                 max: 25000,
                 avg: 25000,
                 median: 25000,
-                calls: 1,
+                count: 1,
               },
             ],
             [
@@ -1027,7 +1027,7 @@ describe("gas-analytics-manager", () => {
                 max: 23000,
                 avg: 23000,
                 median: 23000,
-                calls: 1,
+                count: 1,
               },
             ],
           ]),
@@ -1062,7 +1062,7 @@ describe("gas-analytics-manager", () => {
                 max: 35000,
                 avg: 35000,
                 median: 35000,
-                calls: 1,
+                count: 1,
               },
             ],
             [
@@ -1072,7 +1072,7 @@ describe("gas-analytics-manager", () => {
                 max: 25000,
                 avg: 25000,
                 median: 25000,
-                calls: 1,
+                count: 1,
               },
             ],
           ]),

@@ -35,7 +35,7 @@ interface GasStats {
   max: number;
   avg: number;
   median: number;
-  calls: number;
+  count: number;
 }
 
 type GasMeasurementsByContract = Map<string, ContractGasMeasurements>;
@@ -144,7 +144,7 @@ export class GasAnalyticsManagerImplementation implements GasAnalyticsManager {
           max: Math.max(...measurements.deployments),
           avg: Math.round(avg(measurements.deployments)),
           median: Math.round(median(measurements.deployments)),
-          calls: measurements.deployments.length,
+          count: measurements.deployments.length,
         };
       }
 
@@ -161,7 +161,7 @@ export class GasAnalyticsManagerImplementation implements GasAnalyticsManager {
           max: Math.max(...gasValues),
           avg: Math.round(avg(gasValues)),
           median: Math.round(median(gasValues)),
-          calls: gasValues.length,
+          count: gasValues.length,
         };
 
         contractGasStats.functions.set(
@@ -272,7 +272,7 @@ export class GasAnalyticsManagerImplementation implements GasAnalyticsManager {
             `${gasStats.avg}`,
             `${gasStats.median}`,
             `${gasStats.max}`,
-            `${gasStats.calls}`,
+            `${gasStats.count}`,
           ],
         });
       }
@@ -297,7 +297,7 @@ export class GasAnalyticsManagerImplementation implements GasAnalyticsManager {
             `${contractGasStats.deployment.avg}`,
             `${contractGasStats.deployment.median}`,
             `${contractGasStats.deployment.max}`,
-            `${contractGasStats.deployment.calls}`,
+            `${contractGasStats.deployment.count}`,
           ],
         });
       }
