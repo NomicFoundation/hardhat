@@ -11,9 +11,9 @@ import { isSolcConfig } from "../../../../src/internal/builtin-plugins/solidity/
 import { missesSomeOfficialNativeBuilds } from "../../../../src/internal/builtin-plugins/solidity/build-system/solc-info.js";
 import {
   resolveSolidityUserConfig,
+  validateSolidityConfig,
   validateSolidityUserConfig,
 } from "../../../../src/internal/builtin-plugins/solidity/config.js";
-import configHandlerFactory from "../../../../src/internal/builtin-plugins/solidity/hook-handlers/config.js";
 
 describe("solidity plugin config validation", () => {
   describe("sources paths", () => {
@@ -1076,15 +1076,6 @@ describe("isSolcConfig type guard", () => {
 });
 
 describe("validateResolvedConfig — compiler type registration", () => {
-  async function validateResolvedConfig(config: HardhatConfig) {
-    const handlers = await configHandlerFactory();
-    assert.ok(
-      handlers.validateResolvedConfig !== undefined,
-      "validateResolvedConfig should be defined",
-    );
-    return handlers.validateResolvedConfig(config);
-  }
-
   const makeConfig = (
     profiles: HardhatConfig["solidity"]["profiles"],
     registeredCompilerTypes: string[],
@@ -1115,7 +1106,7 @@ describe("validateResolvedConfig — compiler type registration", () => {
       { default: makeProfile([{ version: "0.8.28" }]) },
       ["solc"],
     );
-    const errors = await validateResolvedConfig(config);
+    const errors = validateSolidityConfig(config);
     assert.deepEqual(errors, []);
   });
 
@@ -1126,7 +1117,7 @@ describe("validateResolvedConfig — compiler type registration", () => {
       },
       ["solc"],
     );
-    const errors = await validateResolvedConfig(config);
+    const errors = validateSolidityConfig(config);
     assert.equal(errors.length, 1, "Should produce exactly one error");
     assert.ok(
       errors[0].message.includes('"solx"'),
@@ -1149,7 +1140,7 @@ describe("validateResolvedConfig — compiler type registration", () => {
       },
       ["solc", "solx"],
     );
-    const errors = await validateResolvedConfig(config);
+    const errors = validateSolidityConfig(config);
     assert.deepEqual(errors, []);
   });
 
@@ -1162,7 +1153,7 @@ describe("validateResolvedConfig — compiler type registration", () => {
       },
       ["solc"],
     );
-    const errors = await validateResolvedConfig(config);
+    const errors = validateSolidityConfig(config);
     assert.equal(errors.length, 1, "Should produce exactly one error");
     assert.deepEqual(errors[0].path, [
       "solidity",
@@ -1182,7 +1173,7 @@ describe("validateResolvedConfig — compiler type registration", () => {
       },
       ["solc"],
     );
-    const errors = await validateResolvedConfig(config);
+    const errors = validateSolidityConfig(config);
     assert.equal(errors.length, 2, "Should produce errors for both profiles");
   });
 });

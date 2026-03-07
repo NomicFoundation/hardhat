@@ -220,6 +220,45 @@ export function validateSolidityUserConfig(
   return result;
 }
 
+export function validateSolidityConfig(
+  resolvedConfig: HardhatConfig,
+): HardhatUserConfigValidationError[] {
+  const errors: HardhatUserConfigValidationError[] = [];
+  const registered = new Set(resolvedConfig.solidity.registeredCompilerTypes);
+
+  for (const [profileName, profile] of Object.entries(
+    resolvedConfig.solidity.profiles,
+  )) {
+    for (const [i, compiler] of profile.compilers.entries()) {
+      const type = compiler.type ?? "solc";
+      if (!registered.has(type)) {
+        errors.push({
+          path: ["solidity", "profiles", profileName, "compilers", i, "type"],
+          message: `Unknown compiler type "${type}". Registered types: ${[...registered].join(", ")}`,
+        });
+      }
+    }
+    for (const [sourceName, override] of Object.entries(profile.overrides)) {
+      const type = override.type ?? "solc";
+      if (!registered.has(type)) {
+        errors.push({
+          path: [
+            "solidity",
+            "profiles",
+            profileName,
+            "overrides",
+            sourceName,
+            "type",
+          ],
+          message: `Unknown compiler type "${type}". Registered types: ${[...registered].join(", ")}`,
+        });
+      }
+    }
+  }
+
+  return errors;
+}
+
 export async function resolveSolidityUserConfig(
   userConfig: HardhatUserConfig,
   resolvedConfig: HardhatConfig,
