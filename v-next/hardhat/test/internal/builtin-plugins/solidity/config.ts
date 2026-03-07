@@ -1,7 +1,6 @@
 /* eslint-disable @typescript-eslint/consistent-type-assertions -- test*/
 import type {
   HardhatConfig,
-  SolcConfig,
   SolidityCompilerConfig,
 } from "../../../../src/types/config.js";
 
@@ -692,8 +691,8 @@ describe("solidity plugin config resolution", () => {
       );
 
       const compilers = resolvedConfig.solidity.profiles.default.compilers;
-      assert.equal((compilers[0] as SolcConfig).preferWasm, true);
-      assert.equal((compilers[1] as SolcConfig).preferWasm, false);
+      assert.equal(compilers[0].preferWasm, true);
+      assert.equal(compilers[1].preferWasm, false);
     });
 
     it("should preserve per-compiler preferWasm in overrides when explicitly set", async () => {
@@ -710,10 +709,7 @@ describe("solidity plugin config resolution", () => {
       );
 
       const overrides = resolvedConfig.solidity.profiles.default.overrides;
-      assert.equal(
-        (overrides["contracts/Special.sol"] as SolcConfig).preferWasm,
-        true,
-      );
+      assert.equal(overrides["contracts/Special.sol"].preferWasm, true);
     });
   });
 
@@ -741,8 +737,8 @@ describe("solidity plugin config resolution", () => {
         // Production profile gets preferWasm: true for old versions
         const productionCompilers =
           resolvedConfig.solidity.profiles.production.compilers;
-        assert.equal((productionCompilers[0] as SolcConfig).preferWasm, true);
-        assert.equal((productionCompilers[1] as SolcConfig).preferWasm, true);
+        assert.equal(productionCompilers[0].preferWasm, true);
+        assert.equal(productionCompilers[1].preferWasm, true);
       });
 
       it("should leave preferWasm undefined in production profile for versions with official ARM64 builds", async () => {
@@ -761,14 +757,8 @@ describe("solidity plugin config resolution", () => {
         // Production profile gets preferWasm: undefined for versions with official builds
         const productionCompilers =
           resolvedConfig.solidity.profiles.production.compilers;
-        assert.equal(
-          (productionCompilers[0] as SolcConfig).preferWasm,
-          undefined,
-        );
-        assert.equal(
-          (productionCompilers[1] as SolcConfig).preferWasm,
-          undefined,
-        );
+        assert.equal(productionCompilers[0].preferWasm, undefined);
+        assert.equal(productionCompilers[1].preferWasm, undefined);
       });
 
       it("should leave preferWasm undefined in default profile for all versions", async () => {
@@ -787,8 +777,8 @@ describe("solidity plugin config resolution", () => {
         // Default profile gets preferWasm: undefined for all versions
         const defaultCompilers =
           resolvedConfig.solidity.profiles.default.compilers;
-        assert.equal((defaultCompilers[0] as SolcConfig).preferWasm, undefined);
-        assert.equal((defaultCompilers[1] as SolcConfig).preferWasm, undefined);
+        assert.equal(defaultCompilers[0].preferWasm, undefined);
+        assert.equal(defaultCompilers[1].preferWasm, undefined);
       });
 
       it("should allow explicit override even on ARM64 Linux", async () => {
@@ -805,8 +795,8 @@ describe("solidity plugin config resolution", () => {
         );
 
         const compilers = resolvedConfig.solidity.profiles.default.compilers;
-        assert.equal((compilers[0] as SolcConfig).preferWasm, false);
-        assert.equal((compilers[1] as SolcConfig).preferWasm, true);
+        assert.equal(compilers[0].preferWasm, false);
+        assert.equal(compilers[1].preferWasm, true);
       });
     },
   );
@@ -830,8 +820,8 @@ describe("solidity plugin config resolution", () => {
         );
 
         const compilers = resolvedConfig.solidity.profiles.default.compilers;
-        assert.equal((compilers[0] as SolcConfig).preferWasm, undefined);
-        assert.equal((compilers[1] as SolcConfig).preferWasm, undefined);
+        assert.equal(compilers[0].preferWasm, undefined);
+        assert.equal(compilers[1].preferWasm, undefined);
       });
     },
   );
