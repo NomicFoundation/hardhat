@@ -1,0 +1,53 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "End-to-End Test Definition",
+  "description": "Defines a single end-to-end test for the Hardhat test harness.",
+  "type": "object",
+  "required": ["type", "repo", "commit", "packageManager", "tags"],
+  "additionalProperties": false,
+  "properties": {
+    "$schema": { "type": "string" },
+    "type": { "type": "string", "enum": ["clone"] },
+    "repo": {
+      "type": "string",
+      "description": "GitHub repo in org/name format (e.g. OpenZeppelin/openzeppelin-contracts)"
+    },
+    "commit": {
+      "type": "string",
+      "description": "Full SHA or tag to checkout"
+    },
+    "packageManager": {
+      "type": "string",
+      "enum": ["npm"],
+      "description": "Package manager used by the repo (npm only for now)"
+    },
+    "preinstall": {
+      "type": "string",
+      "description": "Relative path to a shell script for patching the repo before install"
+    },
+    "install": {
+      "type": "string",
+      "description": "Relative path to a custom install script (overrides built-in Verdaccio flow)"
+    },
+    "commands": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "Commands to run after install (informational; for future automated runs)"
+    },
+    "tags": {
+      "type": "array",
+      "items": { "type": "string" },
+      "minItems": 1,
+      "description": "Tags for filtering (e.g. [\"solidity-compile\", \"solidity-test\"])"
+    },
+    "env": {
+      "type": "object",
+      "additionalProperties": { "type": "string" },
+      "description": "Environment variables to set during install/exec"
+    },
+    "submodules": {
+      "type": "boolean",
+      "description": "Clone with --recurse-submodules (default: false)"
+    }
+  }
+}

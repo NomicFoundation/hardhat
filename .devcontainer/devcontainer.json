@@ -11,7 +11,8 @@
   "waitFor": "postCreateCommand",
   "containerEnv": {
     "ALCHEMY_URL": "${localEnv:ALCHEMY_URL}",
-    "INFURA_URL": "${localEnv:INFURA_URL}"
+    "INFURA_URL": "${localEnv:INFURA_URL}",
+    "E2E_CLONE_DIR": "/tmp/end-to-end"
   },
   "customizations": {
     "vscode": {
