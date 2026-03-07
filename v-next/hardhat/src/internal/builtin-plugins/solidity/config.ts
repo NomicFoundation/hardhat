@@ -11,7 +11,10 @@ import type {
   SolidityConfig,
   SolidityUserConfig,
 } from "../../../types/config.js";
-import type { HardhatUserConfigValidationError } from "../../../types/hooks.js";
+import type {
+  HardhatConfigValidationError,
+  HardhatUserConfigValidationError,
+} from "../../../types/hooks.js";
 
 import { deepMerge, isObject } from "@nomicfoundation/hardhat-utils/lang";
 import { resolveFromRoot } from "@nomicfoundation/hardhat-utils/path";
@@ -222,8 +225,8 @@ export function validateSolidityUserConfig(
 
 export function validateSolidityConfig(
   resolvedConfig: HardhatConfig,
-): HardhatUserConfigValidationError[] {
-  const errors: HardhatUserConfigValidationError[] = [];
+): HardhatConfigValidationError[] {
+  const errors: HardhatConfigValidationError[] = [];
   const registered = new Set(resolvedConfig.solidity.registeredCompilerTypes);
 
   for (const [profileName, profile] of Object.entries(
