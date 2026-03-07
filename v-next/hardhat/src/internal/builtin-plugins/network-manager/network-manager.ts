@@ -353,6 +353,20 @@ export class NetworkManagerImplementation implements NetworkManager {
     );
 
     if (!configResolutionResult.success) {
+      if (configResolutionResult.configValidationErrors !== undefined) {
+        throw new HardhatError(
+          HardhatError.ERRORS.CORE.NETWORK.INVALID_CONFIG_OVERRIDE,
+          {
+            errors: `\t${configResolutionResult.configValidationErrors
+              .map(
+                (error) =>
+                  `* Error in resolved config ${error.path.join(".")}: ${error.message}`,
+              )
+              .join("\n\t")}`,
+          },
+        );
+      }
+
       throw new HardhatError(
         HardhatError.ERRORS.CORE.NETWORK.INVALID_CONFIG_OVERRIDE,
         {
