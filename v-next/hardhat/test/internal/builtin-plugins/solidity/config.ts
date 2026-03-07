@@ -578,6 +578,160 @@ describe("solidity plugin config validation", () => {
       );
     });
   });
+
+  describe("non-solc single-version config validation", () => {
+    it("Should accept a non-solc single-version config", () => {
+      assert.deepEqual(
+        validateSolidityUserConfig({
+          solidity: {
+            type: "solx",
+            version: "0.8.28",
+          },
+        }),
+        [],
+      );
+    });
+
+    it("Should allow extra fields on a non-solc single-version config (passthrough)", () => {
+      // Non-solc types use passthrough validation, so extra fields like
+      // preferWasm are not rejected (but are meaningless for non-solc)
+      assert.deepEqual(
+        validateSolidityUserConfig({
+          solidity: {
+            type: "solx",
+            version: "0.8.28",
+            preferWasm: true,
+          } as any,
+        }),
+        [],
+      );
+    });
+
+    it("Should accept settings and path on a non-solc single-version config", () => {
+      assert.deepEqual(
+        validateSolidityUserConfig({
+          solidity: {
+            type: "solx",
+            version: "0.8.28",
+            settings: { customOption: true },
+            path: "/path/to/solx",
+          },
+        }),
+        [],
+      );
+    });
+  });
+
+  describe("non-solc build profile validation", () => {
+    it("Should accept a non-solc single-version build profile", () => {
+      assert.deepEqual(
+        validateSolidityUserConfig({
+          solidity: {
+            profiles: {
+              default: {
+                type: "solx",
+                version: "0.8.28",
+              },
+            },
+          },
+        }),
+        [],
+      );
+    });
+
+    it("Should allow extra fields on a non-solc single-version build profile (passthrough)", () => {
+      // Non-solc build profiles use passthrough validation, so extra fields
+      // like preferWasm are not rejected (but are meaningless for non-solc)
+      assert.deepEqual(
+        validateSolidityUserConfig({
+          solidity: {
+            profiles: {
+              default: {
+                type: "solx",
+                version: "0.8.28",
+                preferWasm: true,
+              } as any,
+            },
+          },
+        }),
+        [],
+      );
+    });
+
+    it("Should accept isolated on a non-solc single-version build profile", () => {
+      assert.deepEqual(
+        validateSolidityUserConfig({
+          solidity: {
+            profiles: {
+              default: {
+                type: "solx",
+                version: "0.8.28",
+                isolated: true,
+              },
+            },
+          },
+        }),
+        [],
+      );
+    });
+
+    it("Should accept non-solc compilers in a multi-version build profile", () => {
+      assert.deepEqual(
+        validateSolidityUserConfig({
+          solidity: {
+            profiles: {
+              default: {
+                compilers: [
+                  { type: "solx", version: "0.8.28" },
+                  { type: "solx", version: "0.8.31" },
+                ],
+              },
+            },
+          },
+        }),
+        [],
+      );
+    });
+
+    it("Should accept mixed solc and non-solc compilers in a multi-version build profile", () => {
+      assert.deepEqual(
+        validateSolidityUserConfig({
+          solidity: {
+            profiles: {
+              default: {
+                compilers: [
+                  { version: "0.8.28" },
+                  { type: "solx", version: "0.8.31" },
+                ],
+              },
+            },
+          },
+        }),
+        [],
+      );
+    });
+
+    it("Should accept non-solc overrides in a multi-version build profile", () => {
+      assert.deepEqual(
+        validateSolidityUserConfig({
+          solidity: {
+            profiles: {
+              default: {
+                compilers: [{ version: "0.8.28" }],
+                overrides: {
+                  "contracts/Special.sol": {
+                    type: "solx",
+                    version: "0.8.31",
+                  },
+                },
+              },
+            },
+          },
+        }),
+        [],
+      );
+    });
+  });
 });
 
 describe("solidity plugin config resolution", () => {
