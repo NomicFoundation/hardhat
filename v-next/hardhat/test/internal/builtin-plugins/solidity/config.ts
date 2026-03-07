@@ -7,7 +7,7 @@ import type {
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 
-import { isSolcConfig } from "../../../../src/internal/builtin-plugins/solidity/build-system/build-system.js";
+import { isSolcSolidityCompilerConfig } from "../../../../src/internal/builtin-plugins/solidity/build-system/build-system.js";
 import { missesSomeOfficialNativeBuilds } from "../../../../src/internal/builtin-plugins/solidity/build-system/solc-info.js";
 import {
   resolveSolidityUserConfig,
@@ -1200,14 +1200,14 @@ describe("solidity plugin config resolution", () => {
   });
 });
 
-describe("isSolcConfig type guard", () => {
+describe("isSolcSolidityCompilerConfig type guard", () => {
   it("should return true for config with undefined type", () => {
     const config: SolidityCompilerConfig = {
       type: undefined,
       version: "0.8.28",
       settings: {},
     };
-    assert.equal(isSolcConfig(config), true);
+    assert.equal(isSolcSolidityCompilerConfig(config), true);
   });
 
   it("should return true for config with type 'solc'", () => {
@@ -1216,7 +1216,7 @@ describe("isSolcConfig type guard", () => {
       version: "0.8.28",
       settings: {},
     };
-    assert.equal(isSolcConfig(config), true);
+    assert.equal(isSolcSolidityCompilerConfig(config), true);
   });
 
   it("should return false for config with non-solc type", () => {
@@ -1225,7 +1225,7 @@ describe("isSolcConfig type guard", () => {
       version: "0.8.28",
       settings: {},
     } as any;
-    assert.equal(isSolcConfig(config), false);
+    assert.equal(isSolcSolidityCompilerConfig(config), false);
   });
 });
 

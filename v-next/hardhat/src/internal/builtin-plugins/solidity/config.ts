@@ -5,12 +5,12 @@ import type {
   HardhatConfig,
   MultiVersionSolidityUserConfig,
   SingleVersionSolidityUserConfig,
-  SolcConfig,
-  SolcUserConfig,
   SolidityBuildProfileConfig,
   SolidityConfig,
   SolidityUserConfig,
   CommonSolidityCompilerUserConfig,
+  SolcSolidityCompilerConfig,
+  SolcSolidityCompilerUserConfig,
 } from "../../../types/config.js";
 import type {
   HardhatConfigValidationError,
@@ -528,7 +528,7 @@ function resolveSolidityCompilerConfig(
     },
   };
 
-  if (production && isSolcUserConfig(compilerConfig)) {
+  if (production && isSolcSolidityCompilerUserConfig(compilerConfig)) {
     defaultSettings.optimizer = {
       enabled: true,
       runs: 200,
@@ -541,7 +541,7 @@ function resolveSolidityCompilerConfig(
   );
 
   // Resolve solc-specific preferWasm if this is a SolcUserConfig
-  if (isSolcUserConfig(compilerConfig)) {
+  if (isSolcSolidityCompilerUserConfig(compilerConfig)) {
     // Resolve per-compiler preferWasm:
     // If explicitly set, use that value.
     // Otherwise, for ARM64 Linux in production, default to true only for
@@ -553,7 +553,7 @@ function resolveSolidityCompilerConfig(
           ? true
           : undefined;
     }
-    const solcResolved: SolcConfig = {
+    const solcResolved: SolcSolidityCompilerConfig = {
       type: compilerConfig.type,
       version: compilerConfig.version,
       settings: resolvedSettings,
@@ -578,9 +578,9 @@ function resolveSolidityCompilerConfig(
   };
 }
 
-function isSolcUserConfig(
+function isSolcSolidityCompilerUserConfig(
   config: SolidityCompilerUserConfig,
-): config is SolcUserConfig {
+): config is SolcSolidityCompilerUserConfig {
   return config.type === undefined || config.type === "solc";
 }
 

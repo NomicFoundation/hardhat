@@ -68,6 +68,7 @@ declare module "../../../types/config.js" {
 
   /**
    * Deprecated: Use `SolcSolidityCompilerUserConfig` instead.
+   * @deprecated
    */
   export interface SolcUserConfig extends CommonSolidityCompilerUserConfig {
     // Note: This field is optional for backwards compatibility. No `type` means
@@ -105,6 +106,7 @@ declare module "../../../types/config.js" {
 
   /**
    * Deprecated: Use `SolcSingleVersionSolidityUserConfig` instead.
+   * @deprecated
    */
   export interface SingleVersionSolcUserConfig
     extends SolcSolidityCompilerUserConfig,
@@ -141,6 +143,7 @@ declare module "../../../types/config.js" {
   /**
    * Deprecated: Use `MultiVersionSolidityUserConfig` or
    * `MultiVersionBuildProfileUserConfig` instead.
+   * @deprecated
    */
   export interface MultiVersionSolcUserConfig {
     // Note: preferWasm is here for backwards compatibility. It can't be
@@ -214,6 +217,7 @@ declare module "../../../types/config.js" {
 
   /**
    * Deprecated: Use `SolcSolidityCompilerConfig` instead.
+   * @deprecated
    */
   export interface SolcConfig extends CommonSolidityCompilerConfig {
     // Note: This field is optional for backwards compatibility. No `type` means

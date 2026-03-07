@@ -2,8 +2,8 @@ import type { CompileCache } from "./cache.js";
 import type { DependencyGraphImplementation } from "./dependency-graph.js";
 import type { Artifact } from "../../../../types/artifacts.js";
 import type {
+  SolcSolidityCompilerConfig,
   SolidityCompilerConfig,
-  SolcConfig,
   SolidityConfig,
 } from "../../../../types/config.js";
 import type { HookManager } from "../../../../types/hooks.js";
@@ -83,11 +83,11 @@ import { shouldSuppressWarning } from "./warning-suppression.js";
 const log = debug("hardhat:core:solidity:build-system");
 
 /**
- * Returns true if the given compiler config is a SolcConfig.
+ * Returns true if the given compiler config is a SolcSolidityCompilerConfig.
  */
-export function isSolcConfig(
+export function isSolcSolidityCompilerConfig(
   config: SolidityCompilerConfig,
-): config is SolcConfig {
+): config is SolcSolidityCompilerConfig {
   return config.type === undefined || config.type === "solc";
 }
 
@@ -99,7 +99,7 @@ function resolvePreferWasm(
   compilerConfig: SolidityCompilerConfig,
   buildProfilePreferWasm: boolean,
 ): boolean {
-  if (isSolcConfig(compilerConfig)) {
+  if (isSolcSolidityCompilerConfig(compilerConfig)) {
     return compilerConfig.preferWasm ?? buildProfilePreferWasm;
   }
   return false;
