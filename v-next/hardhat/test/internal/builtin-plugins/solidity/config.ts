@@ -459,7 +459,7 @@ describe("solidity plugin config validation", () => {
   });
 
   describe("per-compiler preferWasm validation", () => {
-    it("Should accept preferWasm in SolcUserConfig", () => {
+    it("Should accept preferWasm in SolcSolidityCompilerUserConfig", () => {
       assert.deepEqual(
         validateSolidityUserConfig({
           solidity: {
@@ -473,7 +473,7 @@ describe("solidity plugin config validation", () => {
       );
     });
 
-    it("Should reject invalid preferWasm values in SolcUserConfig", () => {
+    it("Should reject invalid preferWasm values in SolcSolidityCompilerUserConfig", () => {
       assert.deepEqual(
         validateSolidityUserConfig({
           solidity: {
@@ -551,7 +551,7 @@ describe("solidity plugin config validation", () => {
   });
 
   describe("per-compiler path validation", () => {
-    it("Should accept path in SolcUserConfig", () => {
+    it("Should accept path in SolcSolidityCompilerUserConfig", () => {
       assert.deepEqual(
         validateSolidityUserConfig({
           solidity: {
@@ -562,7 +562,7 @@ describe("solidity plugin config validation", () => {
       );
     });
 
-    it("Should reject invalid path values in SolcUserConfig", () => {
+    it("Should reject invalid path values in SolcSolidityCompilerUserConfig", () => {
       assert.deepEqual(
         validateSolidityUserConfig({
           solidity: {
@@ -841,14 +841,14 @@ describe("solidity plugin config resolution", () => {
 
       const compiler = resolvedConfig.solidity.profiles.default.compilers[0];
       assert.equal(compiler.type, undefined);
-      // Should still be a SolcConfig with preferWasm field
+      // Should still be a SolcSolidityCompilerConfig with preferWasm field
       assert.ok(
         "preferWasm" in compiler,
-        "Compiler without type should resolve as SolcConfig with preferWasm",
+        "Compiler without type should resolve as SolcSolidityCompilerConfig with preferWasm",
       );
     });
 
-    it("should resolve compiler entry with type 'solc' as SolcConfig with preferWasm", async () => {
+    it("should resolve compiler entry with type 'solc' as SolcSolidityCompilerConfig with preferWasm", async () => {
       const resolvedConfig = await resolveSolidityUserConfig(
         {
           solidity: {
@@ -862,7 +862,7 @@ describe("solidity plugin config resolution", () => {
       assert.equal(compiler.type, "solc");
       assert.ok(
         "preferWasm" in compiler,
-        "Compiler with type 'solc' should resolve as SolcConfig with preferWasm",
+        "Compiler with type 'solc' should resolve as SolcSolidityCompilerConfig with preferWasm",
       );
     });
 
@@ -980,7 +980,7 @@ describe("solidity plugin config resolution", () => {
         defaultProfile.overrides["contracts/Special.sol"].type,
         undefined,
       );
-      // SolcConfig fields should be present
+      // SolcSolidityCompilerConfig fields should be present
       assert.ok(
         "preferWasm" in defaultProfile.compilers[0],
         "Existing configs should still resolve with preferWasm",
