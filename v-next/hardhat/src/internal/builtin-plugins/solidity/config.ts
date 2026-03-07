@@ -275,6 +275,17 @@ export function validateSolidityConfig(
   resolvedConfig: HardhatConfig,
 ): HardhatConfigValidationError[] {
   const errors: HardhatConfigValidationError[] = [];
+
+  errors.push(...validateRegisteredCompilerTypes(resolvedConfig));
+  errors.push(...validatePreferWasmRequiresSolc(resolvedConfig));
+
+  return errors;
+}
+
+function validateRegisteredCompilerTypes(
+  resolvedConfig: HardhatConfig,
+): HardhatConfigValidationError[] {
+  const errors: HardhatConfigValidationError[] = [];
   const registered = new Set(resolvedConfig.solidity.registeredCompilerTypes);
 
   for (const [profileName, profile] of Object.entries(
@@ -302,6 +313,59 @@ export function validateSolidityConfig(
             "type",
           ],
           message: `Unknown compiler type "${type}". Registered types: ${[...registered].join(", ")}`,
+        });
+      }
+    }
+  }
+
+  return errors;
+}
+
+function validatePreferWasmRequiresSolc(
+  resolvedConfig: HardhatConfig,
+): HardhatConfigValidationError[] {
+  const errors: HardhatConfigValidationError[] = [];
+
+  for (const [profileName, profile] of Object.entries(
+    resolvedConfig.solidity.profiles,
+  )) {
+    if (!profile.preferWasm) {
+      continue;
+    }
+
+    for (const [i, compiler] of profile.compilers.entries()) {
+      const type = compiler.type;
+      if (type !== undefined && type !== "solc") {
+        /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions
+        -- We need to cast because within Hardhat core the type of `type` is
+        `never`, as you can only get into this if with a plugin. */
+        const compilerType: string = (compiler as any).type;
+
+        errors.push({
+          path: ["solidity", "profiles", profileName, "compilers", i, "type"],
+          message: `Compiler type must be "solc" if \`preferWasm\` is \`true\` in the build profile, but found type "${compilerType}"`,
+        });
+      }
+    }
+
+    for (const [sourceName, override] of Object.entries(profile.overrides)) {
+      const type = override.type;
+      if (type !== undefined && type !== "solc") {
+        /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions
+        -- We need to cast because within Hardhat core the type of `type` is
+        `never`, as you can only get into this if with a plugin. */
+        const overrideType: string = (override as any).type;
+
+        errors.push({
+          path: [
+            "solidity",
+            "profiles",
+            profileName,
+            "overrides",
+            sourceName,
+            "type",
+          ],
+          message: `Compiler type must be "solc" if \`preferWasm\` is \`true\` in the build profile, but found type "${overrideType}"`,
         });
       }
     }
