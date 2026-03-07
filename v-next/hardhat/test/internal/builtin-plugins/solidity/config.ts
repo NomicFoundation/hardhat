@@ -883,6 +883,28 @@ describe("solidity plugin config resolution", () => {
         "Compiler with non-solc type should not have preferWasm field",
       );
     });
+
+    it("shouldn't enable the optimizer in non-solc production compilers", async () => {
+      const resolvedConfig = await resolveSolidityUserConfig(
+        {
+          solidity: {
+            profiles: {
+              default: {
+                version: "0.8.28",
+              },
+              production: {
+                type: "solx" as any,
+                version: "0.8.28",
+              },
+            },
+          },
+        },
+        otherResolvedConfig,
+      );
+
+      const compilers = resolvedConfig.solidity.profiles.production.compilers;
+      assert.equal(compilers[0].settings.optimizer, undefined);
+    });
   });
 
   describe("copyFromDefault preserves type field", () => {

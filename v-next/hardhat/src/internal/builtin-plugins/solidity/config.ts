@@ -73,8 +73,8 @@ const compilerUserConfigType = conditionalUnionType(
         typeof data.type === "string" &&
         data.type !== "solc",
       z.object({
-          ...baseCompilerFields,
-          ...incompatibleVersionFields,
+        ...baseCompilerFields,
+        ...incompatibleVersionFields,
       }),
     ],
   ],
@@ -374,7 +374,7 @@ function resolveSolidityCompilerConfig(
     },
   };
 
-  if (production) {
+  if (production && isSolcUserConfig(compilerConfig)) {
     defaultSettings.optimizer = {
       enabled: true,
       runs: 200,
