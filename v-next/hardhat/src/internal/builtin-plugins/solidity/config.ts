@@ -72,12 +72,10 @@ const compilerUserConfigType = conditionalUnionType(
         "type" in data &&
         typeof data.type === "string" &&
         data.type !== "solc",
-      z
-        .object({
+      z.object({
           ...baseCompilerFields,
           ...incompatibleVersionFields,
-        })
-        .passthrough(),
+      }),
     ],
   ],
   "Expected a valid compiler configuration",
