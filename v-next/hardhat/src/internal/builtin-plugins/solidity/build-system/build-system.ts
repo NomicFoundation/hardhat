@@ -596,7 +596,8 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
         cacheResult === undefined ||
         cacheResult.jobHash !== jobHash ||
         cacheResult.isolated !== isolated ||
-        cacheResult.wasm !== isWasm
+        cacheResult.wasm !== isWasm ||
+        cacheResult.compilerType !== compilerType
       ) {
         rootFilesToCompile.add(rootFile);
         continue;
@@ -1201,6 +1202,7 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
       this.#compileCache[rootFilePath] = {
         jobHash,
         isolated,
+        compilerType: individualJob.solcConfig.type ?? "solc",
         artifactPaths,
         buildInfoPath: emitArtifactsResult.buildInfoPath,
         buildInfoOutputPath: emitArtifactsResult.buildInfoOutputPath,
