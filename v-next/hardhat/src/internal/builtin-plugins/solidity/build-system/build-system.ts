@@ -662,6 +662,8 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
       // Note: This groups the subgraphs by solc config. It compares the configs
       // based on reference, and not by deep equality. It misses some merging
       // opportunities, but this is Hardhat v2's behavior and works well enough.
+      // Given that references are used, this comparision is naturally aware of
+      // the different compiler types, as the `type` is part of the config.
       for (const [config, subgraph] of subgraphsWithConfig) {
         const rootFile = getSingleRootFilePath(subgraph);
 
