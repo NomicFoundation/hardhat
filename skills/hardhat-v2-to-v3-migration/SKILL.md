@@ -585,7 +585,7 @@ Report any new blockers at https://github.com/NomicFoundation/hardhat/issues/720
 | Subtasks | `subtask("name", ...)` | Hooks system |
 | `extendConfig` | `extendConfig(fn)` | Hooks system |
 | `extendEnvironment` | `extendEnvironment(fn)` | Hooks system |
-| Network helpers | `require("hardhat-network-helpers")` | `const { networkHelpers } = await network.connect()` |
+| Network helpers | `require("@nomicfoundation/hardhat-network-helpers")` | `const { networkHelpers } = await network.connect()` |
 | Compilation command | `npx hardhat compile` | `npx hardhat build` |
 | Clean command | `npx hardhat clean` | `npx hardhat clean` |
 | Default network type | Implicit | `"edr-simulated"` with `chainType` |
