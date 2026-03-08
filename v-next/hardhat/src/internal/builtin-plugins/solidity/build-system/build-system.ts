@@ -500,12 +500,12 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
         versionIsWasmPerCompilerType.set(compilerType, new Map());
       }
 
-      const solcVersionToLongVersion =
+      const solidityVersionToLongVersion =
         solidityVersionToLongVersionPerCompilerType.get(compilerType);
 
       assertHardhatInvariant(
-        solcVersionToLongVersion !== undefined,
-        "solcVersionToLongVersion was just defined",
+        solidityVersionToLongVersion !== undefined,
+        "solidityVersionToLongVersion was just defined",
       );
 
       const versionIsWasm = versionIsWasmPerCompilerType.get(compilerType);
@@ -514,7 +514,9 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
         "versionIsWasm was just defined",
       );
 
-      let longVersion = solcVersionToLongVersion.get(compilerConfig.version);
+      let longVersion = solidityVersionToLongVersion.get(
+        compilerConfig.version,
+      );
 
       if (longVersion === undefined) {
         const compiler = await this.#hooks.runHandlerChain(
@@ -528,7 +530,7 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
             }),
         );
         longVersion = compiler.longVersion;
-        solcVersionToLongVersion.set(compilerConfig.version, longVersion);
+        solidityVersionToLongVersion.set(compilerConfig.version, longVersion);
         versionIsWasm.set(compilerConfig.version, compiler.isSolcJs);
       }
     }
@@ -540,15 +542,15 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
       subgraphsWithConfig.map(async ([config, subgraph]) => {
         const compilerType = config.type ?? "solc";
 
-        const solcVersionToLongVersion =
+        const solidityVersionToLongVersion =
           solidityVersionToLongVersionPerCompilerType.get(compilerType);
 
         assertHardhatInvariant(
-          solcVersionToLongVersion !== undefined,
-          "solcVersionToLongVersionPerCompilerType was just defined",
+          solidityVersionToLongVersion !== undefined,
+          "solidityVersionToLongVersion was just defined",
         );
 
-        const longVersion = solcVersionToLongVersion.get(config.version);
+        const longVersion = solidityVersionToLongVersion.get(config.version);
 
         assertHardhatInvariant(
           longVersion !== undefined,
@@ -690,18 +692,20 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
     }
 
     const compilationJobsPerFile = new Map<string, CompilationJob>();
-    for (const [solcConfig, subgraph] of subgraphsWithConfig) {
-      const compilerType = solcConfig.type ?? "solc";
+    for (const [compilerConfig, subgraph] of subgraphsWithConfig) {
+      const compilerType = compilerConfig.type ?? "solc";
 
-      const solcVersionToLongVersion =
+      const solidityVersionToLongVersion =
         solidityVersionToLongVersionPerCompilerType.get(compilerType);
 
       assertHardhatInvariant(
-        solcVersionToLongVersion !== undefined,
-        `solcVersionToLongVersionPerCompilerType not present for compiler type ${compilerType}`,
+        solidityVersionToLongVersion !== undefined,
+        `solidityVersionToLongVersionPerCompilerType not present for compiler type ${compilerType}`,
       );
 
-      const longVersion = solcVersionToLongVersion.get(solcConfig.version);
+      const longVersion = solidityVersionToLongVersion.get(
+        compilerConfig.version,
+      );
 
       assertHardhatInvariant(
         longVersion !== undefined,
@@ -710,7 +714,7 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
 
       const runnableCompilationJob = new CompilationJobImplementation(
         subgraph,
-        solcConfig,
+        compilerConfig,
         longVersion,
         this.#hooks,
         sharedContentHashes,
