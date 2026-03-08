@@ -112,6 +112,11 @@ export async function getBuildInfo(
     id: await compilationJob.getBuildId(),
     solcVersion: compilationJob.solcConfig.version,
     solcLongVersion: compilationJob.solcLongVersion,
+    // Defaulting to "solc" here is safe, as this won't alter the build info id.
+    // In practice this means that we can have two build infos with the same id,
+    // but one with `compilerType: "solc"` and the other one without it. That's
+    // not an issue as they are equivalent.
+    compilerType: compilationJob.solcConfig.type ?? "solc",
     userSourceNameMap:
       compilationJob.dependencyGraph.getRootsUserSourceNameMap(),
     input: await compilationJob.getSolcInput(),

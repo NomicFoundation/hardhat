@@ -236,15 +236,43 @@ export class CompilationJobImplementation implements CompilationJob {
     // Changing this shouldn't be taken lightly, as it makes reproducing
     // builds pretty difficult when upgrading Hardhat between versions that
     // change it.
-    const preimage = JSON.stringify({
+    const preimageObject: Record<string, unknown> = {
       format,
       solcLongVersion: this.solcLongVersion,
       smallerSolcInput,
-      solcConfig: this.solcConfig,
+      // We remove the type here for backwards compatibility, as we want
+      // `"solc"` and `undefined` to be equivalent. For that reason, we treat
+      // it as a separate field. See the `if` block below.
+      solcConfig: { ...this.solcConfig, type: undefined },
       userSourceNameMap: this.dependencyGraph.getRootsUserSourceNameMap(),
-    });
+    };
+
+    // We only set the compilerType if it's defined and not "solc". We could
+    // include it for "solc", but that would breack backwards compatibility.
+    if (this.solcConfig.type !== undefined && this.solcConfig.type !== "solc") {
+      preimageObject.compilerType = this.solcConfig.type;
+    }
+
+    const preimage = JSON.stringify(preimageObject);
 
     const jobHash = await createNonCryptographicHashId(preimage);
+
+    // We only include the compiler type in the build id if it's defined and
+    // not "solc". We could include "solc" but that would breack backwards
+    // compatibility.
+    if (this.solcConfig.type !== undefined && this.solcConfig.type !== "solc") {
+      /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions
+        -- We need to cast here because the type of `type` is `never`, we check
+        that it's not `undefined` or `"solc"` above, and those are the only
+        types present in Hardhat code. */
+      const compilerType = (this.solcConfig as any).type;
+
+      // We keep the solc prefix, as that's what we have historically used to
+      // signal that this is a solidity build. If we change it for the compiler
+      // type, every codepath that fetches them would need to know about all the
+      // posible compiler types.
+      return `solc-${this.solcConfig.version.replaceAll(".", "_")}-${compilerType}-${jobHash}`;
+    }
 
     return `solc-${this.solcConfig.version.replaceAll(".", "_")}-${jobHash}`;
   }

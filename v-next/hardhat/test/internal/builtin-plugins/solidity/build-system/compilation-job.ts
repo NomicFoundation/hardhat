@@ -369,7 +369,68 @@ describe("CompilationJobImplementation", () => {
           await compilationJob2.getBuildId(),
         );
       });
+
+      it("the compiler type changes", async () => {
+        const dependencyGraph1 = new DependencyGraphImplementation();
+        dependencyGraph1.addRootFile(rootFile.inputSourceName, rootFile);
+        dependencyGraph1.addDependency(rootFile, npmDependencyFile);
+        dependencyGraph1.addDependency(npmDependencyFile, rootFile);
+
+        const compilationJob1 = new CompilationJobImplementation(
+          dependencyGraph1,
+          solcConfig,
+          solcLongVersion,
+          hooks,
+        );
+
+        const compilationJob2 = new CompilationJobImplementation(
+          dependencyGraph1,
+          /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions
+          -- We need to cast here because in Hardhat core the type of `type`
+          doesn't accept other values than "solc" */
+          { ...solcConfig, type: "solx" as any },
+          solcLongVersion,
+          hooks,
+        );
+
+        assert.notEqual(
+          await compilationJob1.getBuildId(),
+          await compilationJob2.getBuildId(),
+        );
+      });
+
+      it("the compiler type changes between two non-solc types", async () => {
+        const dependencyGraph1 = new DependencyGraphImplementation();
+        dependencyGraph1.addRootFile(rootFile.inputSourceName, rootFile);
+        dependencyGraph1.addDependency(rootFile, npmDependencyFile);
+        dependencyGraph1.addDependency(npmDependencyFile, rootFile);
+
+        const compilationJob1 = new CompilationJobImplementation(
+          dependencyGraph1,
+          /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions
+          -- We need to cast here because in Hardhat core the type of `type`
+          doesn't accept other values than "solc" */
+          { ...solcConfig, type: "solx" as any },
+          solcLongVersion,
+          hooks,
+        );
+
+        const compilationJob2 = new CompilationJobImplementation(
+          dependencyGraph1,
+          /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions
+          -- Same as above */
+          { ...solcConfig, type: "foo" as any },
+          solcLongVersion,
+          hooks,
+        );
+
+        assert.notEqual(
+          await compilationJob1.getBuildId(),
+          await compilationJob2.getBuildId(),
+        );
+      });
     });
+
     describe("should not change when", () => {
       it("the version of one of the dependencies changes without it being reflected in the input source name", async () => {
         const newDependencyGraph = new DependencyGraphImplementation();
@@ -394,6 +455,37 @@ describe("CompilationJobImplementation", () => {
           await newCompilationJob.getBuildId(),
         );
       });
+      it("the compiler type is undefined vs not set vs solx", async () => {
+        const jobWithUndefined = new CompilationJobImplementation(
+          dependencyGraph,
+          {
+            ...solcConfig,
+            type: undefined,
+          },
+          solcLongVersion,
+          hooks,
+        );
+
+        const jobWithSolc = new CompilationJobImplementation(
+          dependencyGraph,
+          {
+            ...solcConfig,
+            type: "solc",
+          },
+          solcLongVersion,
+          hooks,
+        );
+
+        assert.equal(
+          await jobWithUndefined.getBuildId(),
+          await compilationJob.getBuildId(),
+        );
+
+        assert.equal(
+          await jobWithSolc.getBuildId(),
+          await compilationJob.getBuildId(),
+        );
+      });
       it("the order of the sources changes", async () => {
         const newDependencyGraph = new DependencyGraphImplementation();
         newDependencyGraph.addRootFile(rootFile.inputSourceName, rootFile);
@@ -409,6 +501,85 @@ describe("CompilationJobImplementation", () => {
           await compilationJob.getBuildId(),
           await newCompilationJob.getBuildId(),
         );
+      });
+    });
+
+    describe("build ID format", () => {
+      it("uses format `solc-<version>-<hash>` when type is undefined", async () => {
+        const job = new CompilationJobImplementation(
+          dependencyGraph,
+          {
+            ...solcConfig,
+            type: undefined,
+          },
+          solcLongVersion,
+          hooks,
+        );
+        const buildId = await job.getBuildId();
+        assert.match(buildId, /^solc-\d+_\d+_\d+-[0-9a-fA-F]+$/);
+      });
+
+      it("uses format `solc-<version>-<hash>` when type is 'solc'", async () => {
+        const job = new CompilationJobImplementation(
+          dependencyGraph,
+          {
+            ...solcConfig,
+            type: "solc",
+          },
+          solcLongVersion,
+          hooks,
+        );
+        const buildId = await job.getBuildId();
+        assert.match(buildId, /^solc-\d+_\d+_\d+-[0-9a-fA-F]+$/);
+      });
+
+      it("uses format `solc-<version>-<compilerType>-<hash>` when type is non-solc", async () => {
+        const job = new CompilationJobImplementation(
+          dependencyGraph,
+          {
+            ...solcConfig,
+            /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions --
+              Requires a cast because in Hardhat core the type of `type` doesn't
+              accept other values than "solc" */
+            type: "solx" as any,
+          },
+          solcLongVersion,
+          hooks,
+        );
+        const buildId = await job.getBuildId();
+        assert.match(buildId, /^solc-\d+_\d+_\d+-solx-[0-9a-fA-F]+$/);
+      });
+
+      it("includes compiler type in hash preimage", async () => {
+        const jobSolx = new CompilationJobImplementation(
+          dependencyGraph,
+          {
+            ...solcConfig,
+            /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions --
+              Requires a cast because in Hardhat core the type of `type` doesn't
+              accept other values than "solc" */
+            type: "solx" as any,
+          },
+          solcLongVersion,
+          hooks,
+        );
+        const jobFoo = new CompilationJobImplementation(
+          dependencyGraph,
+          {
+            ...solcConfig,
+            /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions --
+              same as above */
+            type: "foo" as any,
+          },
+          solcLongVersion,
+          hooks,
+        );
+        const solxBuildId = await jobSolx.getBuildId();
+        const fooBuildId = await jobFoo.getBuildId();
+        // Extract the hash part (last segment after the compiler type)
+        const solxHash = solxBuildId.split("-").slice(-1)[0];
+        const fooHash = fooBuildId.split("-").slice(-1)[0];
+        assert.notEqual(solxHash, fooHash);
       });
     });
   });
