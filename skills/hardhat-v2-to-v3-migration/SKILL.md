@@ -221,9 +221,9 @@ This is typically the most involved phase. Each V2 plugin must be mapped to its 
 
 | V2 Plugin | V3 Status | V3 Replacement |
 |---|---|---|
-| `@nomicfoundation/hardhat-ethers` | Replaced | Included in `@nomicfoundation/hardhat-toolbox-mocha-ethers` |
+| `@nomicfoundation/hardhat-ethers` | Available | Install directly or use `@nomicfoundation/hardhat-toolbox-mocha-ethers` (which bundles it for V3) |
 | `@nomicfoundation/hardhat-chai-matchers` | Replaced | `@nomicfoundation/hardhat-ethers-chai-matchers` (bundled by `@nomicfoundation/hardhat-toolbox-mocha-ethers`) |
-| `@nomicfoundation/hardhat-network-helpers` | Replaced | Now a plugin; helpers come from `network.connect()` |
+| `@nomicfoundation/hardhat-network-helpers` | Available | Install directly or use the toolbox bundle; helpers are used with V3's explicit `network.connect()` API |
 | `@nomicfoundation/hardhat-verify` | Available | Included in toolbox; see verification guide |
 | `@nomicfoundation/hardhat-ignition` | Available | Included in toolbox; see Ignition docs |
 | `hardhat-gas-reporter` | Built-in | Use built-in gas analytics via `--gas-stats` (e.g. `npx hardhat test --gas-stats`) |
