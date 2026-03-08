@@ -209,7 +209,7 @@ Key changes:
 - `chainType` is optional and falls back to `defaultChainType` (default `"generic"`), but it's recommended to set it explicitly (e.g. `"l1"`, `"op"`, or `"generic"`, especially for `edr-simulated` networks)
 - Environment variables use `configVariable()` instead of `process.env`
 - The default Hardhat network is now `"edr-simulated"` type
-- `provider.send("method")` is now `provider.request({ method: "method" })`
+- Prefer the EIP-1193-compliant `provider.request({ method: "method" })` instead of the deprecated `provider.send("method")`
 
 ---
 
