@@ -464,7 +464,10 @@ describe("solidity - hooks", () => {
         solidity: {
           compilers: [
             { version: "0.8.23" },
-            { type: "solx", version: "0.8.23" },
+            /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions --
+              Cast is necessary to test a compiler type that's not present in
+              Hardhat core. */
+            { type: "solx" as any, version: "0.8.23" },
           ],
         },
       });
@@ -482,7 +485,10 @@ describe("solidity - hooks", () => {
         "Should include solc configs (type undefined)",
       );
       assert.equal(
-        capturedConfigs.filter((c) => c.type === "solx").length > 0,
+        /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions --
+          Cast is necessary to test a compiler type that's not present in 
+          Hardhat core. */
+        capturedConfigs.filter((c) => (c.type as any) === "solx").length > 0,
         true,
         "Should include non-solc configs (type solx)",
       );
@@ -498,7 +504,14 @@ describe("solidity - hooks", () => {
         solidity: {
           compilers: [
             { version: "0.8.23" },
-            { type: "solx", version: "0.8.23", path: "/mock/path/to/solx" },
+            {
+              /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions --
+                Cast os necessary to test a compiler type that's not present in
+                Hardhat core. */
+              type: "solx" as any,
+              version: "0.8.23",
+              path: "/mock/path/to/solx",
+            },
           ],
         },
       });
