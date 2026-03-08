@@ -230,7 +230,7 @@ This is typically the most involved phase. Each V2 plugin must be mapped to its 
 | `hardhat-contract-sizer` | Not yet ported | Check migration blockers issue; may need custom task |
 | `hardhat-deploy` (wighawag) | V2 available | `hardhat-deploy` v2.x works with Hardhat V3 via rocketh |
 | `@openzeppelin/hardhat-upgrades` | Check status | Monitor OpenZeppelin repos for V3 support |
-| `solidity-coverage` | Replaced | Coverage is part of the V3 toolbox |
+| `solidity-coverage` | Replaced | Coverage is built into Hardhat v3 via the global `--coverage` flag (no plugin needed) |
 | `@typechain/hardhat` | Replaced | TypeChain is integrated into the Ethers toolbox |
 | `hardhat-docgen` / `solidity-docgen` | Not yet ported | Check migration blockers issue |
 | `@nomiclabs/hardhat-etherscan` | Deprecated | Use `@nomicfoundation/hardhat-verify` via toolbox |
