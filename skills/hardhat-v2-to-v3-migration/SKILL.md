@@ -222,7 +222,7 @@ This is typically the most involved phase. Each V2 plugin must be mapped to its 
 | V2 Plugin | V3 Status | V3 Replacement |
 |---|---|---|
 | `@nomicfoundation/hardhat-ethers` | Replaced | Included in `@nomicfoundation/hardhat-toolbox-mocha-ethers` |
-| `@nomicfoundation/hardhat-chai-matchers` | Replaced | Included in `@nomicfoundation/hardhat-toolbox-mocha-ethers` |
+| `@nomicfoundation/hardhat-chai-matchers` | Replaced | `@nomicfoundation/hardhat-ethers-chai-matchers` (bundled by `@nomicfoundation/hardhat-toolbox-mocha-ethers`) |
 | `@nomicfoundation/hardhat-network-helpers` | Replaced | Now a plugin; helpers come from `network.connect()` |
 | `@nomicfoundation/hardhat-verify` | Available | Included in toolbox; see verification guide |
 | `@nomicfoundation/hardhat-ignition` | Available | Included in toolbox; see Ignition docs |
