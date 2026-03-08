@@ -127,10 +127,10 @@ Then reinstall and verify no Hardhat V2 dependencies remain:
 
 ```bash
 npm install
-npx why hardhat
+npm why hardhat
 ```
 
-Repeat `npx why hardhat` until no Hardhat-related transitive dependencies remain.
+Repeat `npm why hardhat` (or `pnpm why hardhat` / `yarn why hardhat`) until no Hardhat-related transitive dependencies remain.
 
 ### 2.4 Install Hardhat V3
 
