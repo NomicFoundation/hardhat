@@ -226,7 +226,7 @@ This is typically the most involved phase. Each V2 plugin must be mapped to its 
 | `@nomicfoundation/hardhat-network-helpers` | Replaced | Now a plugin; helpers come from `network.connect()` |
 | `@nomicfoundation/hardhat-verify` | Available | Included in toolbox; see verification guide |
 | `@nomicfoundation/hardhat-ignition` | Available | Included in toolbox; see Ignition docs |
-| `hardhat-gas-reporter` | Planned built-in | V3 will include built-in gas reporting; check beta status page |
+| `hardhat-gas-reporter` | Built-in | Use built-in gas analytics via `--gas-stats` (e.g. `npx hardhat test --gas-stats`) |
 | `hardhat-contract-sizer` | Not yet ported | Check migration blockers issue; may need custom task |
 | `hardhat-deploy` (wighawag) | V2 available | `hardhat-deploy` v2.x works with Hardhat V3 via rocketh |
 | `@openzeppelin/hardhat-upgrades` | Check status | Monitor OpenZeppelin repos for V3 support |
@@ -299,9 +299,13 @@ Check the OpenZeppelin Hardhat Upgrades repository for V3 compatibility. If not 
 
 ### 3.5 hardhat-gas-reporter
 
-Hardhat V3 plans to include built-in gas reporting that works with both Solidity and TypeScript tests. Check the beta status page at https://hardhat.org/docs/learn-more/beta-status for current availability.
+Hardhat V3 includes built-in gas analytics. Remove `hardhat-gas-reporter` and use the `--gas-stats` flag instead:
 
-If not yet available, this is a known migration gap. Document it and monitor the blockers issue.
+```bash
+npx hardhat test --gas-stats
+```
+
+This outputs a table with min, average, median, max gas costs per function, plus deployment cost and size. See https://hardhat.org/docs/guides/gas-statistics for details.
 
 ### 3.6 hardhat-contract-sizer
 
@@ -558,7 +562,6 @@ Run a test deployment to a local or testnet to verify the deploy pipeline works 
 ### 6.5 Known Gaps to Monitor
 
 Track these items for future resolution:
-- Gas snapshots: still under development in V3
 - `hardhat-contract-sizer`: no official V3 port yet
 - `hardhat-docgen` / `solidity-docgen`: no official V3 port yet
 - Plugin APIs are still in beta; expect minor breaking changes
