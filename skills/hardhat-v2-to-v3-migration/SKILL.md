@@ -206,7 +206,7 @@ export default defineConfig({
 
 Key changes:
 - `type` is required: `"http"` for remote networks, `"edr-simulated"` for local
-- `chainType` is required: `"l1"`, `"op"`, or `"generic"`
+- `chainType` is optional and falls back to `defaultChainType` (default `"generic"`), but it's recommended to set it explicitly (e.g. `"l1"`, `"op"`, or `"generic"`, especially for `edr-simulated` networks)
 - Environment variables use `configVariable()` instead of `process.env`
 - The default Hardhat network is now `"edr-simulated"` type
 - `provider.send("method")` is now `provider.request({ method: "method" })`
