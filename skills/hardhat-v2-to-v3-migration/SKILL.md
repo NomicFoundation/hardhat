@@ -120,7 +120,7 @@ Remove these categories of packages from `package.json`:
 
 - `hardhat` (the V2 version)
 - `solidity-coverage`, `hardhat-gas-reporter`
-- Any packages starting with `hardhat-`, `@nomicfoundation/`, or `@nomiclabs/`
+- Hardhat plugin packages such as `hardhat-*`, `@nomicfoundation/hardhat-*`, or `@nomiclabs/hardhat-*`
 - `@typechain/*`, `typechain`
 
 Then reinstall and verify no Hardhat V2 dependencies remain:
