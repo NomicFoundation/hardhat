@@ -27,5 +27,3 @@ When modifying a package, within the package run:
 ## Scoped docs to read
 
 - If changing anything in ./scripts/, read ./scripts/README.md first.
-
-@.claude/local/extensions.md
