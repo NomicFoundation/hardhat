@@ -1,5 +1,3 @@
-// @ts-check
-
 import { exec as execSync } from "node:child_process";
 import { readdir, readFile } from "node:fs/promises";
 import path from "node:path";
@@ -53,7 +51,7 @@ function parseFrontMatter(markdown) {
 async function getAddingCommit(filePath) {
   try {
     const { stdout } = await exec(
-      `git log --diff-filter=A --follow --format=%h -- "${filePath}"`
+      `git log --diff-filter=A --follow --format=%h -- "${filePath}"`,
     );
     return stdout.trim() || null;
   } catch {

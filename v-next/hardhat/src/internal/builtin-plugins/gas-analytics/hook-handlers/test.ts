@@ -1,43 +1,68 @@
-import type { TestHooks } from "../../../../types/hooks.js";
+import type { HookContext, TestHooks } from "../../../../types/hooks.js";
 
 import { assertHardhatInvariant } from "@nomicfoundation/hardhat-errors";
+import { isObject } from "@nomicfoundation/hardhat-utils/lang";
 
-import { HardhatRuntimeEnvironmentImplementation } from "../../../core/hre.js";
+import { GasAnalyticsManagerImplementation } from "../gas-analytics-manager.js";
 
 export default async (): Promise<Partial<TestHooks>> => ({
   onTestRunStart: async (context, id, next) => {
     await next(context, id);
-
-    if (context.globalOptions.gasStats === true) {
-      assertHardhatInvariant(
-        context instanceof HardhatRuntimeEnvironmentImplementation,
-        "Expected context to be an instance of HardhatRuntimeEnvironmentImplementation",
-      );
-      await context._gasAnalytics.clearGasMeasurements(id);
-    }
+    await testRunStart(context, id);
   },
 
   onTestWorkerDone: async (context, id, next) => {
     await next(context, id);
-
-    if (context.globalOptions.gasStats === true) {
-      assertHardhatInvariant(
-        context instanceof HardhatRuntimeEnvironmentImplementation,
-        "Expected context to be an instance of HardhatRuntimeEnvironmentImplementation",
-      );
-      await context._gasAnalytics.saveGasMeasurements(id);
-    }
+    await testWorkerDone(context, id);
   },
 
   onTestRunDone: async (context, id, next) => {
     await next(context, id);
-
-    if (context.globalOptions.gasStats === true) {
-      assertHardhatInvariant(
-        context instanceof HardhatRuntimeEnvironmentImplementation,
-        "Expected context to be an instance of HardhatRuntimeEnvironmentImplementation",
-      );
-      await context._gasAnalytics.reportGasStats(id);
-    }
+    await testRunDone(context, id);
   },
 });
+
+export async function testRunStart(
+  context: HookContext,
+  id: string,
+): Promise<void> {
+  if (context.globalOptions.gasStats === true) {
+    assertHardhatInvariant(
+      "_gasAnalytics" in context &&
+        isObject(context._gasAnalytics) &&
+        context._gasAnalytics instanceof GasAnalyticsManagerImplementation,
+      "Expected HookContext#_gasAnalytics to be an instance of GasAnalyticsManagerImplementation",
+    );
+    await context._gasAnalytics.clearGasMeasurements(id);
+  }
+}
+
+export async function testWorkerDone(
+  context: HookContext,
+  id: string,
+): Promise<void> {
+  if (context.globalOptions.gasStats === true) {
+    assertHardhatInvariant(
+      "_gasAnalytics" in context &&
+        isObject(context._gasAnalytics) &&
+        context._gasAnalytics instanceof GasAnalyticsManagerImplementation,
+      "Expected HookContext#_gasAnalytics to be an instance of GasAnalyticsManagerImplementation",
+    );
+    await context._gasAnalytics.saveGasMeasurements(id);
+  }
+}
+
+export async function testRunDone(
+  context: HookContext,
+  id: string,
+): Promise<void> {
+  if (context.globalOptions.gasStats === true) {
+    assertHardhatInvariant(
+      "_gasAnalytics" in context &&
+        isObject(context._gasAnalytics) &&
+        context._gasAnalytics instanceof GasAnalyticsManagerImplementation,
+      "Expected HookContext#_gasAnalytics to be an instance of GasAnalyticsManagerImplementation",
+    );
+    await context._gasAnalytics.reportGasStats(id);
+  }
+}

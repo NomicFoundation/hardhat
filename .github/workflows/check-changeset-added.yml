@@ -24,15 +24,18 @@ jobs:
       - name: Checkout the repository
         uses: actions/checkout@v5
 
+      - name: Set up the environment
+        uses: ./.github/actions/setup-env
+
       # We need to fetch the base ref because the pull request check inspects the diff between the head and the base ref
       - run: git fetch origin "$GITHUB_BASE_REF":"$GITHUB_BASE_REF"
 
       - name: Check if merge group is valid
         if: github.event_name == 'merge_group'
-        run: node scripts/validate-merge-group.mjs
+        run: node scripts/validate-merge-group.ts
 
       - name: Check if PR has a changeset
         if: github.event_name == 'pull_request'
         env:
           GITHUB_EVENT_PULL_REQUEST_LABELS: ${{ toJson(github.event.pull_request.labels) }}
-        run: node scripts/validate-pull-request-changeset.mjs
+        run: node scripts/validate-pull-request-changeset.ts

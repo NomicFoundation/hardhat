@@ -1,5 +1,3 @@
-// @ts-check
-
 import { readdir, readFile } from "node:fs/promises";
 
 const packagesDir = "v-next";
@@ -16,7 +14,7 @@ export async function readAllReleasablePackages() {
         "template-package",
         "hardhat-test-utils",
         "hardhat-vendored",
-      ].includes(file)
+      ].includes(file),
   );
 
   return Promise.all(allPackageNames.map(readPackage));

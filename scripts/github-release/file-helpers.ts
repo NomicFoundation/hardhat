@@ -1,6 +1,4 @@
-// @ts-check
-
-/** @import { ReleaseDescriptor } from "./build-release-descriptors.mjs" */
+import type { ReleaseDescriptor } from "./build-release-descriptors.ts";
 
 import { readFile } from "node:fs/promises";
 import path from "node:path";
@@ -10,10 +8,10 @@ const PACKAGES_DIR = "v-next";
 /**
  * Reads and parses pnpm-publish-summary.json from the current directory.
  * Exits with a helpful error message if the file is not found.
- *
- * @returns {Promise<{ publishedPackages: Array<{ name: string, version: string }> }>}
  */
-export async function readPublishSummary() {
+export async function readPublishSummary(): Promise<{
+  publishedPackages: Array<{ name: string; version: string }>;
+}> {
   try {
     return JSON.parse(await readFile("pnpm-publish-summary.json", "utf8"));
   } catch {
@@ -29,11 +27,10 @@ export async function readPublishSummary() {
 
 /**
  * Reads the raw changelog contents for each published package.
- *
- * @param {{ publishedPackages: Array<{ name: string, version: string }>}} publishSummary
- * @returns {Promise<Map<string, string>>} Map of package name → raw changelog content
  */
-export async function readChangelogsForPublishedPackages(publishSummary) {
+export async function readChangelogsForPublishedPackages(publishSummary: {
+  publishedPackages: Array<{ name: string; version: string }>;
+}): Promise<Map<string, string>> {
   const changelogs = new Map();
 
   for (const { name } of publishSummary.publishedPackages) {
@@ -49,11 +46,10 @@ export async function readChangelogsForPublishedPackages(publishSummary) {
 
 /**
  * Builds the argument list for `gh release create` from a release descriptor.
- *
- * @param {ReleaseDescriptor} release
- * @returns {string[]}
  */
-export function buildGitHubCliReleaseArgs(release) {
+export function buildGitHubCliReleaseArgs(
+  release: ReleaseDescriptor,
+): string[] {
   const args = ["release", "create", release.tagName, "--notes", release.body];
 
   if (release.title) {
@@ -74,11 +70,8 @@ export function buildGitHubCliReleaseArgs(release) {
 /**
  * Returns the path to the CHANGELOG.md for a given package name.
  * Strips the npm scope (e.g. `@nomicfoundation/`) to get the directory name.
- *
- * @param {string} packageName - The npm package name (possibly scoped)
- * @returns {string}
  */
-function _getChangelogPath(packageName) {
+function _getChangelogPath(packageName: string): string {
   const unscopedName = packageName.replace(/^@[^/]+\//, "");
 
   return path.join(PACKAGES_DIR, unscopedName, "CHANGELOG.md");

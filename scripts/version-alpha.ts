@@ -1,13 +1,11 @@
-// @ts-check
-
 import { readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { exec } from "node:child_process";
 import { promisify } from "node:util";
 import { randomUUID } from "node:crypto";
 
-import { readAllNewChangsets } from "./lib/changesets.mjs";
-import { readPackage } from "./lib/packages.mjs";
+import { readAllNewChangsets } from "./lib/changesets.ts";
+import { readPackage } from "./lib/packages.ts";
 
 const execAsync = promisify(exec);
 
@@ -38,7 +36,10 @@ async function versionAlpha() {
 
   validateChangesets(changesets);
 
-  for (const packageName of ["@nomicfoundation/hardhat-ethers", "@nomicfoundation/hardhat-toolbox-viem"]) {
+  for (const packageName of [
+    "@nomicfoundation/hardhat-ethers",
+    "@nomicfoundation/hardhat-toolbox-viem",
+  ]) {
     if (shouldCreateChangeset(changesets, packageName)) {
       await createChangeset(packageName);
     }
@@ -70,7 +71,7 @@ function validateChangesets(changesets) {
     if (/: (major|minor)\s*$/m.test(frontMatter)) {
       validationFailed = true;
       console.log(
-        `Error: ${changesetPath}: No "major" or "minor" changesets are allowed in Alpha`
+        `Error: ${changesetPath}: No "major" or "minor" changesets are allowed in Alpha`,
       );
     }
   }
@@ -89,7 +90,11 @@ function shouldCreateChangeset(changesets, packageName) {
   }
 
   for (const { frontMatter } of changesets) {
-    if (frontMatter.split("\n").some((line) => line.startsWith(`"${packageName}": patch`))) {
+    if (
+      frontMatter
+        .split("\n")
+        .some((line) => line.startsWith(`"${packageName}": patch`))
+    ) {
       return false;
     }
   }
@@ -101,17 +106,14 @@ function shouldCreateChangeset(changesets, packageName) {
  * Creates a new patch changeset file for the package.
  */
 async function createChangeset(packageName) {
-  const changesetPath = path.join(
-    changesetDir,
-    `${randomUUID()}.md`
-  );
+  const changesetPath = path.join(changesetDir, `${randomUUID()}.md`);
 
   const releaseChangesetContent = [
-    '---',
+    "---",
     `"${packageName}": patch`,
-    '---',
-    '',
-  ].join('\n');
+    "---",
+    "",
+  ].join("\n");
 
   await writeFile(changesetPath, releaseChangesetContent);
 }
@@ -130,22 +132,19 @@ async function executeChangesetVersion() {
  * changelog based on the new changesets.
  */
 async function updateHardhatChangelog(hardhatVersion, changesets) {
-  const newChangelogSection = generateChangelogFrom(
-    hardhatVersion,
-    changesets
-  );
+  const newChangelogSection = generateChangelogFrom(hardhatVersion, changesets);
 
   const hardhatChangelogPath = path.join(
     packagesDir,
     "hardhat",
-    "CHANGELOG.md"
+    "CHANGELOG.md",
   );
 
   const currentChangelog = await readFile(hardhatChangelogPath, "utf-8");
 
   const newChangelog = currentChangelog.replace(
     "# hardhat\n",
-    newChangelogSection
+    newChangelogSection,
   );
 
   await writeFile(hardhatChangelogPath, newChangelog);
@@ -172,9 +171,9 @@ function generateChangesTextFrom(changesets) {
           (entry) =>
             `- ${
               commitHash !== null ? `${commitHash.slice(0, 7)}: ` : ""
-            }${entry}`
+            }${entry}`,
         )
-        .join("\n")
+        .join("\n"),
     )
     .join("\n");
 }

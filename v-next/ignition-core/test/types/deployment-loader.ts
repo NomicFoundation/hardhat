@@ -12,7 +12,7 @@ describe("DeploymentLoaderImpls", function () {
       const _implementation: ExactInterface<
         DeploymentLoader,
         // we omit readBuildInfo as it is a known addition to file deployment loader
-        // above the DeploylmentLoader interface
+        // above the DeploymentLoader interface
         Omit<FileDeploymentLoader, "readBuildInfo">
       > = new FileDeploymentLoader("./example");
 

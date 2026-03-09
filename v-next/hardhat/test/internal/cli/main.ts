@@ -684,7 +684,7 @@ GLOBAL OPTIONS:
       });
     }
 
-    it("should have a long name level behaviour (value is required)", async function () {
+    it("should have a long name level behavior (value is required)", async function () {
       const command = "npx hardhat task --verbosity 4";
 
       const cliArguments = command.split(" ").slice(2);
@@ -702,7 +702,7 @@ GLOBAL OPTIONS:
       });
     });
 
-    it("should have a short name level behaviour (grouped repetition is allowed)", async function () {
+    it("should have a short name level behavior (grouped repetition is allowed)", async function () {
       const command = "npx hardhat task -vvvv";
 
       const cliArguments = command.split(" ").slice(2);

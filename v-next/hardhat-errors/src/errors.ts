@@ -15,24 +15,24 @@ export type ErrorMessageTemplateValue =
   | ErrorMessageTemplateValue[]
   | { toString(): string };
 
-export type MessagetTemplateArguments<MessageTemplateT extends string> =
+export type MessageTemplateArguments<MessageTemplateT extends string> =
   MessageTemplateT extends `${string}{${infer Tag}}${infer Rest}`
     ? {
         [K in
           | Tag
-          | keyof MessagetTemplateArguments<Rest>]: ErrorMessageTemplateValue;
+          | keyof MessageTemplateArguments<Rest>]: ErrorMessageTemplateValue;
       }
     : {};
 
 export type HardhatErrorConstructorArguments<
   ErrorDescriptorT extends ErrorDescriptor,
-> = keyof MessagetTemplateArguments<
+> = keyof MessageTemplateArguments<
   ErrorDescriptorT["messageTemplate"]
 > extends never
   ? [ErrorDescriptorT, Error?]
   : [
       ErrorDescriptorT,
-      MessagetTemplateArguments<ErrorDescriptorT["messageTemplate"]>,
+      MessageTemplateArguments<ErrorDescriptorT["messageTemplate"]>,
       Error?,
     ];
 
@@ -53,7 +53,7 @@ export class HardhatError<
 
   readonly #descriptor: ErrorDescriptorT;
 
-  readonly #arguments: MessagetTemplateArguments<
+  readonly #arguments: MessageTemplateArguments<
     ErrorDescriptorT["messageTemplate"]
   >;
 
@@ -99,7 +99,7 @@ export class HardhatError<
       /* eslint-disable @typescript-eslint/consistent-type-assertions --
       Typescript inference get's lost here, but we know that if we didn't get
       arguments, it's because the error doesn't have any. */
-      this.#arguments = {} as MessagetTemplateArguments<
+      this.#arguments = {} as MessageTemplateArguments<
         ErrorDescriptorT["messageTemplate"]
       >;
     } else {
@@ -171,7 +171,7 @@ export class HardhatError<
     return this.#descriptor;
   }
 
-  public get messageArguments(): MessagetTemplateArguments<
+  public get messageArguments(): MessageTemplateArguments<
     ErrorDescriptorT["messageTemplate"]
   > {
     return this.#arguments;

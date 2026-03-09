@@ -192,7 +192,7 @@ export class ExecutionEngine {
    * This function polls the network every `_blockPollingInterval` milliseconds.
    *
    * @param previousBlock The previous block that we know of, to compare from
-   *  the one we get grom the network.
+   *  the one we get from the network.
    * @returns The new block.
    */
   private async _waitForNextBlock(previousBlock: Block): Promise<Block> {

@@ -1,5 +1,3 @@
-// @ts-check
-
 /**
  * A pull request is valid if:
  * - it is a release PR (i.e. it's head ref starts with "changeset-release/")

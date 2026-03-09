@@ -630,7 +630,7 @@ export class RemappedNpmPackagesGraphImplementation
     const targetWithoutNodeModules = target.substring("node_modules/".length);
 
     // If after doing that the prefix and target are the same, we skip it
-    // so that it doesn't even go unnecesarly go through a user remapping.
+    // so that it doesn't even go unnecessarily go through a user remapping.
     if (prefix === targetWithoutNodeModules) {
       return { success: true, value: undefined };
     }

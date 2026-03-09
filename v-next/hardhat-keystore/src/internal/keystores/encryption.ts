@@ -16,7 +16,7 @@ export const PASSWORD_NORMALIZATION_FORM = "NFKC" as const;
 // And: https://github.com/paulmillr/noble-hashes/blob/5cadc86d2cae1184607989817854813ecc7033a9/README.md
 // Parameters based on OWASP's cheat sheet: N=2^17 (128 MiB), r=8 (1024 bytes), p=1
 
-export const KEY_DERIVARION_ALGORITHM = "scrypt" as const;
+export const KEY_DERIVATION_ALGORITHM = "scrypt" as const;
 export const KEY_DERIVATION_PARAM_N = 131_072 as const;
 export const KEY_DERIVATION_PARAM_R = 8 as const;
 export const KEY_DERIVATION_PARAM_P = 1 as const;
@@ -39,13 +39,13 @@ export const DATA_ENCRYPTION_IV_LENGTH_BYTES = 12 as const;
 /**
  * This interface represents an encrypted keystore.
  *
- * Every data buffer here is represented as a hex string (withoyt "0x" prefix).
+ * Every data buffer here is represented as a hex string (without "0x" prefix).
  */
 export interface EncryptedKeystore {
   version: typeof KEYSTORE_VERSION;
   crypto: {
     masterKeyDerivation: {
-      algorithm: typeof KEY_DERIVARION_ALGORITHM;
+      algorithm: typeof KEY_DERIVATION_ALGORITHM;
       paramN: typeof KEY_DERIVATION_PARAM_N;
       paramP: typeof KEY_DERIVATION_PARAM_P;
       paramR: typeof KEY_DERIVATION_PARAM_R;
@@ -333,7 +333,7 @@ export function createEmptyEncryptedKeystore({
     version: KEYSTORE_VERSION,
     crypto: {
       masterKeyDerivation: {
-        algorithm: KEY_DERIVARION_ALGORITHM,
+        algorithm: KEY_DERIVATION_ALGORITHM,
         paramN: KEY_DERIVATION_PARAM_N,
         paramP: KEY_DERIVATION_PARAM_P,
         paramR: KEY_DERIVATION_PARAM_R,

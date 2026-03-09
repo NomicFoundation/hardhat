@@ -1,5 +1,7 @@
 import type { HardhatConfig } from "hardhat/types/config";
 import type { NewTaskActionFunction } from "hardhat/types/tasks";
+import type { TestSummary } from "hardhat/types/test";
+import type { Result } from "hardhat/types/utils";
 import type { MochaOptions } from "mocha";
 
 import { resolve as pathResolve } from "node:path";
@@ -8,6 +10,7 @@ import { HardhatError } from "@nomicfoundation/hardhat-errors";
 import { setGlobalOptionsAsEnvVariables } from "@nomicfoundation/hardhat-utils/env";
 import { getAllFilesMatching } from "@nomicfoundation/hardhat-utils/fs";
 import debug from "debug";
+import { errorResult, successfulResult } from "hardhat/utils/result";
 
 import { createPerformanceTracker } from "./performance.js";
 
@@ -63,7 +66,7 @@ let testsAlreadyRun = false;
 const testWithHardhat: NewTaskActionFunction<TestActionArguments> = async (
   { testFiles, bail, grep, noCompile },
   hre,
-) => {
+): Promise<Result<TestSummary, TestSummary>> => {
   // Set an environment variable that plugins can use to detect when a process is running tests
   process.env.HH_TEST = "true";
 
@@ -92,7 +95,12 @@ const testWithHardhat: NewTaskActionFunction<TestActionArguments> = async (
   perf.endPhase("Get test files");
 
   if (files.length === 0) {
-    return;
+    return successfulResult({
+      failed: 0,
+      passed: 0,
+      skipped: 0,
+      todo: 0,
+    });
   }
 
   const unhandledRejectionHookPath = "./unhandled-rejection-mocha-hook.js";
@@ -203,10 +211,6 @@ const testWithHardhat: NewTaskActionFunction<TestActionArguments> = async (
 
   perf.endPhase("Reporting");
 
-  if (testFailures > 0) {
-    process.exitCode = 1;
-  }
-
   console.log();
 
   perf.end();
@@ -214,7 +218,14 @@ const testWithHardhat: NewTaskActionFunction<TestActionArguments> = async (
   perf.logInto(performanceLog);
   perf.clear();
 
-  return { failed: testFailures, passed: total - testFailures };
+  const summary = {
+    failed: testFailures,
+    passed: total - testFailures,
+    skipped: 0,
+    todo: 0,
+  };
+
+  return testFailures > 0 ? errorResult(summary) : successfulResult(summary);
 };
 
 export default testWithHardhat;

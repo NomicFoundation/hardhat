@@ -82,8 +82,8 @@ jobs:
                 }
               }`;
             const vars = { owner: context.repo.owner, repo: context.repo.repo, number: Number(number) };
-            const qres = await github.graphql(query, vars);
-            const pr = qres.repository.pullRequest;
+            const res = await github.graphql(query, vars);
+            const pr = res.repository.pullRequest;
             if (pr.isDraft) return { already: true };
 
             // 2) Convert to draft
@@ -289,4 +289,4 @@ jobs:
           # The default token with content write permissions is used
           # by the `gh` command line tool internally
           GITHUB_TOKEN: ${{ github.token }}
-        run: node scripts/github-release/create-releases.mjs
+        run: node scripts/github-release/create-releases.ts

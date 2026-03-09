@@ -1,5 +1,12 @@
 # @nomicfoundation/hardhat-viem
 
+## 3.0.4
+
+### Patch Changes
+
+- bc193be: Use concrete value types for contract names in hardhat-viem and hardhat-ethers
+- 13918b4: Add support for custom chains not in viem's built-in chain list, thanks @daanporon! ([#7763](https://github.com/NomicFoundation/hardhat/issues/7763))
+
 ## 3.0.3
 
 ### Patch Changes

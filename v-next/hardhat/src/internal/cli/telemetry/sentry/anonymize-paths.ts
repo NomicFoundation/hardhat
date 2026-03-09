@@ -107,7 +107,7 @@ function anonymizeSinglePath(path: string): string {
     return normalizedPath;
   }
 
-  // We first get the index of the first /node_modules to desambiguate some
+  // We first get the index of the first /node_modules to disambiguate some
   // special cases below
   const nodeModulesIndex = normalizedPath.indexOf("/node_modules");
 

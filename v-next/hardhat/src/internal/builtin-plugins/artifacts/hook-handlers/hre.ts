@@ -1,6 +1,7 @@
 import type {
   ArtifactManager,
   GetArtifactByName,
+  StringWithArtifactContractNamesAutocompletion,
 } from "../../../../types/artifacts.js";
 import type { HardhatRuntimeEnvironmentHooks } from "../../../../types/hooks.js";
 
@@ -13,7 +14,9 @@ class LazyArtifactManager implements ArtifactManager {
     this.#artifactsPath = artifactsPath;
   }
 
-  public async readArtifact<ContractNameT extends string>(
+  public async readArtifact<
+    ContractNameT extends StringWithArtifactContractNamesAutocompletion,
+  >(
     contractNameOrFullyQualifiedName: ContractNameT,
   ): Promise<GetArtifactByName<ContractNameT>> {
     const artifactManager = await this.#getArtifactManager();

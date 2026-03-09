@@ -1,4 +1,5 @@
 import type { SolidityBuildInfo } from "./solidity/solidity-artifacts.js";
+import type { NonNeverKeys } from "./utils.js";
 
 /**
  * A map of bare contract names and fully qualified contract names to their
@@ -18,6 +19,37 @@ export type GetArtifactByName<ContractNameT extends string> =
     : Artifact;
 
 /**
+ * A type that represents the contract names (bare and fully qualified) of all
+ * the artifacts that have been built in a project. This enables the
+ * autocomplete of the TS Language Server to list the actual contracts, without
+ * leading to a compilation error for general strings, so it doesn't fail
+ * before `hardhat build` is run.
+ *
+ * This is meant to be used in functions like this:
+ * @example
+ * ```
+ * function doSomething<ContractNameT extends ArtifactContractNames>(
+ *   contractName: ContractNameT,
+ *   ...
+ * ): DoSomethingReturnType<ContractNameT> {
+ * }
+ */
+export type ArtifactContractNames = keyof ArtifactMap extends never
+  ? string
+  : NonNeverKeys<ArtifactMap>;
+
+/**
+ * A type that represents a string that should match an artifact contract name,
+ * but it doesn't fail if the string is not a contract name. It's mostly used
+ * to offer autocompletion.
+ *
+ * @see {@link ArtifactContractNames}
+ */
+export type StringWithArtifactContractNamesAutocompletion =
+  | ArtifactContractNames
+  | (string & {});
+
+/**
  * The ArtifactManager is responsible for reading and writing artifacts from
  * the Hardhat build system.
  */
@@ -28,13 +60,18 @@ export interface ArtifactManager {
    * @param contractNameOrFullyQualifiedName The name of the contract.
    *   It can be a contract bare contract name (e.g. "Token") if it's
    *   unique in your project, or a fully qualified contract name
-   *   (e.g. "contract/token.sol:Token") otherwise.
+   *   (e.g. "contract/token.sol:Token") otherwise. TypeScript's language server
+   *   autocompletes the names of the contracts that have already been built. If
+   *   your contract name isn't in the list, you can still use it, and/or run
+   *   `hardhat build` to get it in the list.
    *
    * @throws Throws an error if a non-unique contract name is used,
    *   indicating which fully qualified names can be used instead.
    * @throws Throws an error if the artifact doesn't exist.
    */
-  readArtifact<ContractNameT extends string>(
+  readArtifact<
+    ContractNameT extends StringWithArtifactContractNamesAutocompletion,
+  >(
     contractNameOrFullyQualifiedName: ContractNameT,
   ): Promise<GetArtifactByName<ContractNameT>>;
 
@@ -239,7 +276,7 @@ export interface LinkReferences {
  * is the id of the AST node that represents the variable.
  */
 export interface ImmutableReferences {
-  [immuatableId: string]: Array<{ start: number; length: number }>;
+  [immutableId: string]: Array<{ start: number; length: number }>;
 }
 
 /**

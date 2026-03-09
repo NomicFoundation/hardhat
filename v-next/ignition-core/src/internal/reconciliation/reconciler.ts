@@ -108,7 +108,7 @@ export class Reconciler {
   ): Promise<ReconciliationFailure[]> {
     // TODO: swap this out for linearization of execution state
     // once execution is fleshed out.
-    const futures = this._getFuturesInReverseTopoligicalOrder(module);
+    const futures = this._getFuturesInReverseTopologicalOrder(module);
 
     const failures = [];
 
@@ -146,7 +146,7 @@ export class Reconciler {
     return missing;
   }
 
-  private static _getFuturesInReverseTopoligicalOrder(
+  private static _getFuturesInReverseTopologicalOrder(
     module: IgnitionModule,
   ): Future[] {
     const futures = getFuturesFromModule(module);

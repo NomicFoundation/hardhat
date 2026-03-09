@@ -1,5 +1,3 @@
-// @ts-check
-
 import { execFileSync, execSync } from "node:child_process";
 import { readFileSync, writeFileSync, existsSync, readdirSync } from "node:fs";
 import { resolve, relative } from "node:path";
@@ -9,42 +7,37 @@ import { styleText } from "node:util";
 // Type Definitions
 // =============================================================================
 
-/**
- * @typedef {object} PeerBump
- * @property {string} package
- * @property {string} peer
- * @property {string} reason
- * @property {string} [version]
- */
+interface PeerBump {
+  package: string;
+  peer: string;
+  reason: string;
+  version?: string;
+}
 
-/**
- * @typedef {object} PeerBumpsConfig
- * @property {string[]} excludedFolders
- * @property {PeerBump[]} bumps
- */
+interface PeerBumpsConfig {
+  excludedFolders: string[];
+  bumps: PeerBump[];
+}
 
-/**
- * @typedef {object} PnpmPackage
- * @property {string} name
- * @property {string} version
- * @property {string} path
- */
+interface PnpmPackage {
+  name: string;
+  version: string;
+  path: string;
+}
 
-/**
- * @typedef {object} PackageJson
- * @property {string} [name]
- * @property {string} [version]
- * @property {Record<string, string>} [dependencies]
- * @property {Record<string, string>} [devDependencies]
- * @property {Record<string, string>} [peerDependencies]
- */
+interface PackageJson {
+  name?: string;
+  version?: string;
+  dependencies?: Record<string, string>;
+  devDependencies?: Record<string, string>;
+  peerDependencies?: Record<string, string>;
+}
 
-/**
- * @typedef {object} PackageModification
- * @property {string} packagePath
- * @property {PackageJson} packageJson
- * @property {Map<string, string>} peerChanges - peer name -> new version
- */
+interface PackageModification {
+  packagePath: string;
+  packageJson: PackageJson;
+  peerChanges: Map<string, string>;
+}
 
 // =============================================================================
 // Constants (must be before functions that use them, as const is not hoisted)
@@ -57,30 +50,21 @@ const PREFIX = "[bump-peers]";
 
 // Styling helpers for consistent formatting
 const fmt = {
-  /** @param {string} name */
-  pkg: (name) => styleText("bold", name),
-  /** @param {string} v */
-  version: (v) => styleText("green", v),
-  /** @param {string} text */
-  deemphasize: (text) => styleText("dim", text),
-  /** @param {string} text */
-  success: (text) => styleText("green", text),
+  pkg: (name: string) => styleText("bold", name),
+  version: (v: string) => styleText("green", v),
+  deemphasize: (text: string) => styleText("dim", text),
+  success: (text: string) => styleText("green", text),
 };
 
-/** @type {string | undefined} */
-let gitPath;
+let gitPath: string | undefined;
 
-/** @type {string | undefined} */
-let pnpmPath;
+let pnpmPath: string | undefined;
 
 // =============================================================================
 // Entry Point
 // =============================================================================
 
-/**
- * @returns {void}
- */
-function main() {
+function main(): void {
   const command = process.argv[2];
 
   try {
@@ -90,7 +74,7 @@ function main() {
       printUsage();
     }
   } catch (error) {
-    logError(/** @type {Error} */ (error).message);
+    logError((error as Error).message);
     process.exit(1);
   }
 }
@@ -99,10 +83,7 @@ function main() {
 // Commands
 // =============================================================================
 
-/**
- * @returns {void}
- */
-function apply() {
+function apply(): void {
   log("Starting peer dependency management");
 
   // Load and validate config
@@ -146,10 +127,7 @@ function apply() {
   log(fmt.success("Done! Review the changes and commit manually."));
 }
 
-/**
- * @returns {void}
- */
-function printUsage() {
+function printUsage(): void {
   console.log(`
 bump-peers - Manage peer dependency bumps in this pnpm monorepo
 
@@ -162,7 +140,7 @@ DESCRIPTION
 
 WORKFLOW
   1. Run \`pnpm changeset version --no-commit\`
-  2. Run \`node scripts/bump-peers.mjs apply\`
+  2. Run \`node scripts/bump-peers.ts apply\`
   3. Review changes and commit manually
 
 EDGE CASES
@@ -236,8 +214,8 @@ COMMANDS
   (none)    Print this usage information
 
 EXAMPLES
-  node scripts/bump-peers.mjs          # Print usage
-  node scripts/bump-peers.mjs apply    # Apply peer dependency fixes
+  node scripts/bump-peers.ts          # Print usage
+  node scripts/bump-peers.ts apply    # Apply peer dependency fixes
 `);
 }
 
@@ -245,15 +223,12 @@ EXAMPLES
 // Core Workflow Functions
 // =============================================================================
 
-/**
- * @param {PnpmPackage[]} packages
- * @returns {Map<string, PackageModification>}
- */
-function revertPeerDependencies(packages) {
+function revertPeerDependencies(
+  packages: PnpmPackage[],
+): Map<string, PackageModification> {
   logStep("Reverting peer dependency changes");
 
-  /** @type {Map<string, PackageModification>} */
-  const modifications = new Map();
+  const modifications: Map<string, PackageModification> = new Map();
 
   for (const pkg of packages) {
     const packageJson = readPackageJson(pkg.path);
@@ -277,9 +252,7 @@ function revertPeerDependencies(packages) {
       );
     }
 
-    const previousPackageJson = /** @type {PackageJson} */ (
-      JSON.parse(previousContent)
-    );
+    const previousPackageJson = JSON.parse(previousContent) as PackageJson;
 
     const previousPeerDeps = previousPackageJson.peerDependencies ?? {};
     let hasChanges = false;
@@ -352,19 +325,12 @@ function revertPeerDependencies(packages) {
   return modifications;
 }
 
-/**
- * @param {PeerBump[]} bumps
- * @param {Map<string, PnpmPackage>} packageMap
- * @param {string[]} excludedFolders
- * @param {Map<string, PackageModification>} modifications
- * @returns {void}
- */
 function applyIntentionalBumps(
-  bumps,
-  packageMap,
-  excludedFolders,
-  modifications,
-) {
+  bumps: PeerBump[],
+  packageMap: Map<string, PnpmPackage>,
+  excludedFolders: string[],
+  modifications: Map<string, PackageModification>,
+): void {
   if (bumps.length === 0) {
     logStep("No intentional bumps to apply");
     return;
@@ -412,8 +378,7 @@ function applyIntentionalBumps(
     }
 
     // Determine the version to use
-    /** @type {string} */
-    let targetVersion;
+    let targetVersion: string;
 
     if (bump.version !== undefined) {
       targetVersion = bump.version;
@@ -438,11 +403,9 @@ function applyIntentionalBumps(
   }
 }
 
-/**
- * @param {Map<string, PackageModification>} modifications
- * @returns {void}
- */
-function syncPeerToDevDependencies(modifications) {
+function syncPeerToDevDependencies(
+  modifications: Map<string, PackageModification>,
+): void {
   logStep("Syncing peerDependencies to devDependencies");
 
   let syncCount = 0;
@@ -488,11 +451,9 @@ function syncPeerToDevDependencies(modifications) {
   }
 }
 
-/**
- * @param {Map<string, PackageModification>} modifications
- * @returns {void}
- */
-function writeModifications(modifications) {
+function writeModifications(
+  modifications: Map<string, PackageModification>,
+): void {
   logStep("Writing package.json files");
 
   for (const [pkgName, modification] of modifications) {
@@ -505,10 +466,7 @@ function writeModifications(modifications) {
   }
 }
 
-/**
- * @returns {void}
- */
-function clearBumpsInConfig() {
+function clearBumpsInConfig(): void {
   logStep("Clearing bumps in config");
 
   const config = loadConfig();
@@ -524,22 +482,16 @@ function clearBumpsInConfig() {
 // Package Helpers
 // =============================================================================
 
-/**
- * @returns {PnpmPackage[]}
- */
-function getWorkspacePackages() {
+function getWorkspacePackages(): PnpmPackage[] {
   const output = pnpm(["ls", "-r", "--depth", "-1", "--json"]);
-  return /** @type {PnpmPackage[]} */ (JSON.parse(output));
+  return JSON.parse(output) as PnpmPackage[];
 }
 
-/**
- * @param {PnpmPackage[]} packages
- * @param {string[]} excludedFolders
- * @returns {PnpmPackage[]}
- */
-function filterPackages(packages, excludedFolders) {
-  /** @type {PnpmPackage[]} */
-  const result = [];
+function filterPackages(
+  packages: PnpmPackage[],
+  excludedFolders: string[],
+): PnpmPackage[] {
+  const result: PnpmPackage[] = [];
 
   for (const pkg of packages) {
     const relativePath = relative(ROOT_DIR, pkg.path);
@@ -564,13 +516,8 @@ function filterPackages(packages, excludedFolders) {
   return result;
 }
 
-/**
- * @param {PnpmPackage[]} packages
- * @returns {Map<string, PnpmPackage>}
- */
-function buildPackageMap(packages) {
-  /** @type {Map<string, PnpmPackage>} */
-  const map = new Map();
+function buildPackageMap(packages: PnpmPackage[]): Map<string, PnpmPackage> {
+  const map: Map<string, PnpmPackage> = new Map();
 
   for (const pkg of packages) {
     map.set(pkg.name, pkg);
@@ -579,40 +526,23 @@ function buildPackageMap(packages) {
   return map;
 }
 
-/**
- * @param {string} packagePath
- * @returns {PackageJson}
- */
-function readPackageJson(packagePath) {
+function readPackageJson(packagePath: string): PackageJson {
   const filePath = resolve(packagePath, "package.json");
   const content = readFileSync(filePath, "utf-8");
-  return /** @type {PackageJson} */ (JSON.parse(content));
+  return JSON.parse(content) as PackageJson;
 }
 
-/**
- * @param {string} packagePath
- * @param {PackageJson} json
- * @returns {void}
- */
-function writePackageJson(packagePath, json) {
+function writePackageJson(packagePath: string, json: PackageJson): void {
   const filePath = resolve(packagePath, "package.json");
   const content = JSON.stringify(json, null, 2) + "\n";
   writeFileSync(filePath, content);
 }
 
-/**
- * @param {string} version
- * @returns {boolean}
- */
-function isWorkspaceDependency(version) {
+function isWorkspaceDependency(version: string): boolean {
   return version.startsWith("workspace:");
 }
 
-/**
- * @param {string} version
- * @returns {string}
- */
-function buildWorkspaceVersion(version) {
+function buildWorkspaceVersion(version: string): string {
   return `workspace:^${version}`;
 }
 
@@ -620,10 +550,7 @@ function buildWorkspaceVersion(version) {
 // Git Helpers
 // =============================================================================
 
-/**
- * @returns {void}
- */
-function validateNoChangesets() {
+function validateNoChangesets(): void {
   const changesetDir = resolve(ROOT_DIR, ".changeset");
 
   if (!existsSync(changesetDir)) {
@@ -643,12 +570,7 @@ function validateNoChangesets() {
   }
 }
 
-/**
- * @param {string} ref
- * @param {string} filePath
- * @returns {string | null}
- */
-function getFileFromCommit(ref, filePath) {
+function getFileFromCommit(ref: string, filePath: string): string | null {
   try {
     return git(["show", `${ref}:${filePath}`]);
   } catch {
@@ -660,10 +582,7 @@ function getFileFromCommit(ref, filePath) {
 // Config Helpers
 // =============================================================================
 
-/**
- * @returns {PeerBumpsConfig}
- */
-function loadConfig() {
+function loadConfig(): PeerBumpsConfig {
   if (!existsSync(CONFIG_PATH)) {
     throw new Error(
       `Config file not found: ${CONFIG_FILE}\nCreate it with: { "excludedFolders": [], "bumps": [] }`,
@@ -671,8 +590,7 @@ function loadConfig() {
   }
 
   const content = readFileSync(CONFIG_PATH, "utf-8");
-  /** @type {unknown} */
-  let config;
+  let config: unknown;
 
   try {
     config = JSON.parse(content);
@@ -681,19 +599,15 @@ function loadConfig() {
   }
 
   validateConfigSchema(config);
-  return /** @type {PeerBumpsConfig} */ (config);
+  return config as PeerBumpsConfig;
 }
 
-/**
- * @param {unknown} config
- * @returns {void}
- */
-function validateConfigSchema(config) {
+function validateConfigSchema(config: unknown): void {
   if (typeof config !== "object" || config === null) {
     throw new Error(`${CONFIG_FILE} must be an object`);
   }
 
-  const obj = /** @type {Record<string, unknown>} */ (config);
+  const obj = config as Record<string, unknown>;
 
   if (!Array.isArray(obj.excludedFolders)) {
     throw new Error(`${CONFIG_FILE} must have an "excludedFolders" array`);
@@ -714,7 +628,7 @@ function validateConfigSchema(config) {
       throw new Error(`${CONFIG_FILE} bumps must be objects`);
     }
 
-    const bumpObj = /** @type {Record<string, unknown>} */ (bump);
+    const bumpObj = bump as Record<string, unknown>;
 
     if (typeof bumpObj.package !== "string") {
       throw new Error(
@@ -744,19 +658,11 @@ function validateConfigSchema(config) {
 // Shell Helpers
 // =============================================================================
 
-/**
- * @param {string} command
- * @returns {string}
- */
-function which(command) {
+function which(command: string): string {
   return execSync(`which ${command}`, { encoding: "utf-8" }).trim();
 }
 
-/**
- * @param {string[]} args
- * @returns {string}
- */
-function git(args) {
+function git(args: string[]): string {
   if (gitPath === undefined) {
     gitPath = which("git");
   }
@@ -766,11 +672,7 @@ function git(args) {
   }).trim();
 }
 
-/**
- * @param {string[]} args
- * @returns {string}
- */
-function pnpm(args) {
+function pnpm(args: string[]): string {
   if (pnpmPath === undefined) {
     pnpmPath = which("pnpm");
   }
@@ -784,27 +686,15 @@ function pnpm(args) {
 // Logging Helpers
 // =============================================================================
 
-/**
- * @param {string} msg
- * @returns {void}
- */
-function log(msg) {
+function log(msg: string): void {
   console.log(`${styleText("cyan", PREFIX)} ${msg}`);
 }
 
-/**
- * @param {string} step
- * @returns {void}
- */
-function logStep(step) {
+function logStep(step: string): void {
   console.log(styleText(["bold", "yellow"], `${PREFIX} === ${step} ===`));
 }
 
-/**
- * @param {string} msg
- * @returns {void}
- */
-function logError(msg) {
+function logError(msg: string): void {
   console.error(styleText("red", `${PREFIX} Error: ${msg}`));
 }
 

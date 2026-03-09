@@ -65,7 +65,7 @@ describe("getWorkspace", () => {
     });
   });
 
-  it("should throw if the provided workspace is within an already initlized hardhat project", async () => {
+  it("should throw if the provided workspace is within an already initialized hardhat project", async () => {
     await ensureDir("hardhat-project");
     await writeUtf8File("hardhat.config.ts", "");
     await assertRejectsWithHardhatError(

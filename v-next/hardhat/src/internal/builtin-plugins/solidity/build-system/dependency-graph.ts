@@ -25,7 +25,7 @@ export class DependencyGraphImplementation implements DependencyGraph {
 
   /**
    * Adds a root file to the graph. All the roots of the dependency graph must
-   * be added before any dependencry.
+   * be added before any dependency.
    *
    * @param userSourceName The source name used to identify the file, as it
    * would appear in the artifacts and used by the user. This is not always the

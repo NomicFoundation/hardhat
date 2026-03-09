@@ -14,7 +14,7 @@ const mockAddress2 = "0x0011223344556677889900112233445566778899";
 
 describe("Libraries handling", () => {
   describe("validateLibraryNames", () => {
-    it("Should not throw if all libraries are provided, no name is ambiguous, repreated or not recognized", () => {
+    it("Should not throw if all libraries are provided, no name is ambiguous, repeated or not recognized", () => {
       assert.doesNotThrow(() => {
         validateLibraryNames(deploymentFixturesArtifacts.WithLibrary, ["Lib"]);
       });
