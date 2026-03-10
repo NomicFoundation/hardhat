@@ -47,10 +47,14 @@ interface TestActionArguments {
   testSummaryIndex: number;
 }
 
+export interface SolidityTestRunResult extends TestRunResult {
+  suiteResults: SuiteResult[];
+}
+
 const runSolidityTests: NewTaskActionFunction<TestActionArguments> = async (
   { testFiles, chainType, grep, noCompile, verbosity, testSummaryIndex },
   hre,
-): Promise<Result<TestRunResult, TestRunResult>> => {
+): Promise<Result<SolidityTestRunResult, SolidityTestRunResult>> => {
   assertHardhatInvariant(
     hre instanceof HardhatRuntimeEnvironmentImplementation,
     "Expected HRE to be an instance of HardhatRuntimeEnvironmentImplementation",

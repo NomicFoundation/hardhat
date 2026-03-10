@@ -1,4 +1,6 @@
 import type { TaskOverrideActionFunction } from "../../../../../types/tasks.js";
+import type { Result } from "../../../../../types/utils.js";
+import type { SolidityTestRunResult } from "../../../solidity-test/task-action.js";
 import type { FunctionGasSnapshotCheckResult } from "../../function-gas-snapshots.js";
 import type { SnapshotCheatcodesCheckResult } from "../../snapshot-cheatcodes.js";
 import type { SuiteResult } from "@nomicfoundation/edr";
@@ -6,6 +8,7 @@ import type { SuiteResult } from "@nomicfoundation/edr";
 import { HardhatError } from "@nomicfoundation/hardhat-errors";
 import chalk from "chalk";
 
+import { errorResult } from "../../../../../utils/result.js";
 import {
   checkFunctionGasSnapshots,
   extractFunctionGasSnapshots,
@@ -36,9 +39,13 @@ export interface SnapshotCheckResult {
 const runSolidityTests: TaskOverrideActionFunction<
   GasAnalyticsTestActionArguments
 > = async (args, hre, runSuper) => {
-  const taskResult = await runSuper(args);
-  const suiteResults: SuiteResult[] = taskResult.suiteResults;
-  const testsPassed = process.exitCode !== 1;
+  const superResult: Result<SolidityTestRunResult, SolidityTestRunResult> =
+    await runSuper(args);
+  const testsPassed = superResult.success;
+  const solidityTestRunResult = testsPassed
+    ? superResult.value
+    : superResult.error;
+  const suiteResults = solidityTestRunResult.suiteResults;
   const rootPath = hre.config.paths.root;
 
   if (args.snapshot && args.snapshotCheck) {
@@ -66,12 +73,11 @@ const runSolidityTests: TaskOverrideActionFunction<
       snapshotCheckResult.snapshotCheatcodesCheck.passed;
   }
 
-  process.exitCode = testsPassed && snapshotCheckPassed ? 0 : 1;
+  if (!snapshotCheckPassed) {
+    return errorResult(solidityTestRunResult);
+  }
 
-  return {
-    ...taskResult,
-    suiteResults,
-  };
+  return superResult;
 };
 
 export async function handleSnapshot(

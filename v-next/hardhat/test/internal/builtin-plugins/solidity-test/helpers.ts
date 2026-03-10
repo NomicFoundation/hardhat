@@ -140,7 +140,7 @@ describe("solidityTestConfigToSolidityTestRunnerConfigArgs", () => {
     const args = await solidityTestConfigToSolidityTestRunnerConfigArgs({
       chainType: GENERIC_CHAIN_TYPE,
       projectRoot: process.cwd(),
-      config: { gasLimit: undefined },
+      config: { fuzz: { seed: "0x1234" }, gasLimit: undefined },
       verbosity: 1,
       generateGasReport: false,
     });
@@ -152,7 +152,7 @@ describe("solidityTestConfigToSolidityTestRunnerConfigArgs", () => {
     const args = await solidityTestConfigToSolidityTestRunnerConfigArgs({
       chainType: GENERIC_CHAIN_TYPE,
       projectRoot: process.cwd(),
-      config: { gasLimit: 12_000_000n },
+      config: { fuzz: { seed: "0x1234" }, gasLimit: 12_000_000n },
       verbosity: 1,
       generateGasReport: false,
     });

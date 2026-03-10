@@ -21,7 +21,7 @@ const hardhatPlugin: HardhatPlugin = {
         default: async (args, _hre, runSuper) => {
           // We don't need to do anything here, as the test task will forward
           // the arguments to its subtasks.
-          await runSuper(args);
+          return runSuper(args);
         },
       }))
       .build(),
