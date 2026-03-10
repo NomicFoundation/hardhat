@@ -22,6 +22,8 @@ v-next/hardhat - core logic and cli
 
 ## Rules
 
+**Package structure** — Exported code and types (via `package#exports`) live under `src/`, non-exported internals under `src/internal/`.
+
 **Lazy loading external packages** — Hardhat optimizes startup time. Follow this strictly:
 
 - Top-level imports allowed for: `node:fs`, `node:path`, `node:util`, `chalk`, `semver`, `debug` and `import type`
