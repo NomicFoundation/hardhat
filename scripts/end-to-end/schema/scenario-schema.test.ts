@@ -29,6 +29,17 @@ describe("isScenarioDefinition", () => {
     assert.equal(isScenarioDefinition(value), true);
   });
 
+  it("accepts bun as a package manager", () => {
+    const value = {
+      repo: "ensdomains/ens-contracts",
+      commit: "abc123",
+      packageManager: "bun",
+      tags: ["external-repo"],
+    };
+
+    assert.equal(isScenarioDefinition(value), true);
+  });
+
   it("rejects when repo is missing", () => {
     assert.equal(
       isScenarioDefinition({

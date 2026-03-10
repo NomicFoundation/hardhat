@@ -17,8 +17,8 @@
     },
     "packageManager": {
       "type": "string",
-      "enum": ["npm"],
-      "description": "Package manager used by the repo (npm only for now)"
+      "enum": ["npm", "bun"],
+      "description": "Package manager used by the repo"
     },
     "preinstall": {
       "type": "string",

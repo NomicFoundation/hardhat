@@ -1,7 +1,7 @@
 import { execFileSync } from "node:child_process";
 import { existsSync } from "node:fs";
 import { resolve } from "node:path";
-import { npmInstall } from "../helpers/install.ts";
+import { installDependencies } from "../helpers/install.ts";
 import { git, which, ROOT_DIR } from "../helpers/shell.ts";
 import { log, logStep } from "../helpers/log.ts";
 import { isVerdaccioRunning } from "../../verdaccio/helpers/shell.ts";
@@ -88,7 +88,7 @@ function initializeScenario(scenario: Scenario): void {
       definition.env,
     );
   } else {
-    npmInstall(workingDir, definition.packageManager, definition.env);
+    installDependencies(workingDir, definition.packageManager, definition.env);
   }
 }
 
