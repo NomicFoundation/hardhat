@@ -115,12 +115,12 @@ The exception to this is when we want to ensure that the messages look as expect
 
 ## T3: Don’t use the global HRE to test plugins
 
-In Hardhat v2 we used to tests plugins by importing `hardhat` and using the global instance of the Hardhat Runtime Environment that it created. In v3 we should avoid this and create the HRE explicitly, so that we can create multiple instances of it without resorting to hacky reset processes.
+In Hardhat v2 we used to test plugins by importing `hardhat` and using the global instance of the Hardhat Runtime Environment that it created. In v3 we should avoid this and create the HRE explicitly, so that we can create multiple instances of it without resorting to hacky reset processes.
 
 This can be done with:
 
 ```tsx
-import { createHardhatRuntimeEnvironment } from "@ignored/hardhat-vnext/hre";
+import { createHardhatRuntimeEnvironment } from "hardhat/hre";
 
 const { default: hardhatConfig } = await import("./my/hardhat.config.js");
 const hre = await createHardhatRuntimeEnvironment(hardhatConfig);
@@ -132,7 +132,7 @@ Most javascript test frameworks have functionality that can be used to mock the 
 
 Instead of doing that, design your code so that it can be mocked without having to resort to those techniques. For example, by using [IoC](https://en.wikipedia.org/wiki/Inversion_of_control).
 
-## T5: Prioritize integration test over excessive mocking
+## T5: Prioritize integration tests over excessive mocking
 
 Some parts of Hardhat have deep interconnections with each other, so testing them in isolation can be challenging. For example, initializing a `TaskManager` in isolation can be challenging.
 
@@ -158,7 +158,7 @@ Most of our internal dependencies should be `peerDependencies`, as we want to en
 
 Some exceptions are:
 
-- `hardhat-errors` should be used as a dependency. This is an exception to the rule, and was specially design to work as such.
+- `hardhat-errors` should be used as a dependency. This is an exception to the rule, and was specially designed to work as such.
 - `hardhat-utils` should be a dependency, as we can live with multiple versions/copies of it.
 - `hardhat-zod-utils` should be a dependency, for the same reason as above.
 - `hardhat-test-utils` should be a devDependency, as it’s only used for testing.
@@ -186,7 +186,7 @@ If they use another plugin, it should be installed as a peer dependency.
 
 We tend to name the interface as `TheInterface` while the implementation of that interface would be `TheInterfaceImplementation`.
 
-This changed to how we approached naming in v2, where our interfaces would often be prefixed with `I` as in `ITheInterface`.
+This is a change from how we approached naming in v2, where our interfaces would often be prefixed with `I` as in `ITheInterface`.
 
 # Error Guidelines
 
