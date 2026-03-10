@@ -3,6 +3,7 @@ import { resolve } from "node:path";
 import { fmt, log, logStep } from "./helpers/logging.ts";
 import {
   git,
+  isVerdaccioRunning,
   npm,
   pnpm,
   ROOT_DIR,
@@ -56,7 +57,7 @@ function ensureCleanWorkingTree(): void {
 }
 
 function ensureVerdaccioRunning(): void {
-  if (!existsSync(VERDACCIO_PID_FILE)) {
+  if (!isVerdaccioRunning()) {
     throw new Error(
       "Verdaccio is not running. Start it first with:\n" +
         "  pnpm verdaccio start",
@@ -66,6 +67,7 @@ function ensureVerdaccioRunning(): void {
   const pid = parseInt(readFileSync(VERDACCIO_PID_FILE, "utf-8").trim(), 10);
 
   try {
+    // This is a check that the process is running
     process.kill(pid, 0);
   } catch {
     throw new Error(
