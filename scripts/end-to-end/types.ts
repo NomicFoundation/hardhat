@@ -8,7 +8,7 @@ export interface Scenario {
 export interface ScenarioDefinition {
   repo: string;
   commit: string;
-  packageManager: "npm";
+  packageManager: "npm" | "bun";
   preinstall?: string;
   install?: string;
   tags: string[];
