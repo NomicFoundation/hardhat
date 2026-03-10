@@ -8,7 +8,7 @@ Test - pnpm test
 
 These single-file commands run from the package root (e.g. `v-next/hardhat`):
 
-Lint single file - `eslint path/to/file.ts`
+Lint single file - `pnpm exec eslint ./src/hre.ts`
 
 Test single file - `node --import tsx/esm --test --test-reporter=@nomicfoundation/hardhat-node-test-reporter path/to/test.ts`
 
