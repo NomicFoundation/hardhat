@@ -1,6 +1,6 @@
 import type { HardhatConfig } from "hardhat/types/config";
 import type { NewTaskActionFunction } from "hardhat/types/tasks";
-import type { TestSummary } from "hardhat/types/test";
+import type { TestRunResult } from "hardhat/types/test";
 import type { Result } from "hardhat/types/utils";
 import type { MochaOptions } from "mocha";
 
@@ -66,7 +66,7 @@ let testsAlreadyRun = false;
 const testWithHardhat: NewTaskActionFunction<TestActionArguments> = async (
   { testFiles, bail, grep, noCompile },
   hre,
-): Promise<Result<TestSummary, TestSummary>> => {
+): Promise<Result<TestRunResult, TestRunResult>> => {
   // Set an environment variable that plugins can use to detect when a process is running tests
   process.env.HH_TEST = "true";
 
@@ -96,10 +96,12 @@ const testWithHardhat: NewTaskActionFunction<TestActionArguments> = async (
 
   if (files.length === 0) {
     return successfulResult({
-      failed: 0,
-      passed: 0,
-      skipped: 0,
-      todo: 0,
+      summary: {
+        failed: 0,
+        passed: 0,
+        skipped: 0,
+        todo: 0,
+      },
     });
   }
 
@@ -218,14 +220,16 @@ const testWithHardhat: NewTaskActionFunction<TestActionArguments> = async (
   perf.logInto(performanceLog);
   perf.clear();
 
-  const summary = {
-    failed: testFailures,
-    passed: total - testFailures,
-    skipped: 0,
-    todo: 0,
+  const result: TestRunResult = {
+    summary: {
+      failed: testFailures,
+      passed: total - testFailures,
+      skipped: 0,
+      todo: 0,
+    },
   };
 
-  return testFailures > 0 ? errorResult(summary) : successfulResult(summary);
+  return testFailures > 0 ? errorResult(result) : successfulResult(result);
 };
 
 export default testWithHardhat;

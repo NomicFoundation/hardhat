@@ -46,6 +46,12 @@ function isTestSummary(value: unknown): value is PartialTestSummary {
   );
 }
 
+function isTestRunResult(
+  value: unknown,
+): value is { summary: PartialTestSummary } {
+  return isObject(value) && "summary" in value && isTestSummary(value.summary);
+}
+
 const runAllTests: NewTaskActionFunction<TestActionArguments> = async (
   { testFiles, chainType, grep, noCompile, verbosity },
   hre,
@@ -107,18 +113,29 @@ const runAllTests: NewTaskActionFunction<TestActionArguments> = async (
 
     const subtaskResult = await subtask.run(args);
 
-    const isSubtaskResult = isResult(
-      subtaskResult,
-      isTestSummary,
-      isTestSummary,
-    );
-    const summary = isSubtaskResult
-      ? subtaskResult.success
+    let summary: PartialTestSummary | undefined;
+    let subtaskFailed = false;
+
+    if (isResult(subtaskResult, isTestRunResult, isTestRunResult)) {
+      const testRunResult = subtaskResult.success
         ? subtaskResult.value
-        : subtaskResult.error
-      : isTestSummary(subtaskResult)
-        ? subtaskResult
-        : undefined;
+        : subtaskResult.error;
+      summary = testRunResult.summary;
+      subtaskFailed = !subtaskResult.success;
+    } else if (isResult(subtaskResult, isTestSummary, isTestSummary)) {
+      // Support plugins that return Result<TestSummary, TestSummary>
+      summary = subtaskResult.success
+        ? subtaskResult.value
+        : subtaskResult.error;
+      subtaskFailed = !subtaskResult.success;
+    } else if (isTestSummary(subtaskResult)) {
+      // Support plugins that return TestSummary directly
+      summary = subtaskResult;
+      subtaskFailed = process.exitCode !== undefined && process.exitCode !== 0;
+    } else {
+      // Fallback for plugins that don't return a summary at all
+      subtaskFailed = process.exitCode !== undefined && process.exitCode !== 0;
+    }
 
     if (summary !== undefined) {
       const summaryId = subtask.id[subtask.id.length - 1];
@@ -133,12 +150,7 @@ const runAllTests: NewTaskActionFunction<TestActionArguments> = async (
       }
     }
 
-    if (
-      (isSubtaskResult && !subtaskResult.success) ||
-      // Backwards compatibility: old plugins may not return a Result, so fall
-      // back to the process exit code to detect failures
-      (process.exitCode !== undefined && process.exitCode !== 0)
-    ) {
+    if (subtaskFailed) {
       hasFailures = true;
     }
   }

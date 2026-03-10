@@ -1,7 +1,7 @@
 import type { RunOptions } from "./runner.js";
 import type { TestEvent } from "./types.js";
 import type { NewTaskActionFunction } from "../../../types/tasks.js";
-import type { TestSummary } from "../../../types/test.js";
+import type { TestRunResult } from "../../../types/test.js";
 import type { Result } from "../../../types/utils.js";
 import type {
   Artifact as EdrArtifact,
@@ -49,7 +49,7 @@ interface TestActionArguments {
 const runSolidityTests: NewTaskActionFunction<TestActionArguments> = async (
   { testFiles, chainType, grep, noCompile, verbosity, testSummaryIndex },
   hre,
-): Promise<Result<TestSummary, TestSummary>> => {
+): Promise<Result<TestRunResult, TestRunResult>> => {
   assertHardhatInvariant(
     hre instanceof HardhatRuntimeEnvironmentImplementation,
     "Expected HRE to be an instance of HardhatRuntimeEnvironmentImplementation",
@@ -284,11 +284,13 @@ const runSolidityTests: NewTaskActionFunction<TestActionArguments> = async (
 
   console.log();
 
-  const summary = { failed, passed, skipped, todo: 0, failureOutput };
+  const result: TestRunResult = {
+    summary: { failed, passed, skipped, todo: 0, failureOutput },
+  };
 
   return includesFailures || includesErrors
-    ? errorResult(summary)
-    : successfulResult(summary);
+    ? errorResult(result)
+    : successfulResult(result);
 };
 
 export default runSolidityTests;
