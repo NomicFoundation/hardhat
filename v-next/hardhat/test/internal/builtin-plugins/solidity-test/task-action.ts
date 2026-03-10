@@ -187,7 +187,15 @@ describe("solidity-test/task-action", function () {
         .run({ noCompile: true });
       assert.deepEqual(result, {
         success: false,
-        error: { failed: 0, passed: 0, skipped: 0, todo: 0, failureOutput: "" },
+        error: {
+          summary: {
+            failed: 0,
+            passed: 0,
+            skipped: 0,
+            todo: 0,
+            failureOutput: "",
+          },
+        },
       });
     });
 
@@ -199,7 +207,15 @@ describe("solidity-test/task-action", function () {
         .run({ noCompile: true });
       assert.deepEqual(result, {
         success: true,
-        value: { failed: 0, passed: 0, skipped: 0, todo: 0, failureOutput: "" },
+        value: {
+          summary: {
+            failed: 0,
+            passed: 0,
+            skipped: 0,
+            todo: 0,
+            failureOutput: "",
+          },
+        },
       });
     });
 
