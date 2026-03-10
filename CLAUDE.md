@@ -6,6 +6,14 @@ Build - pnpm build
 
 Test - pnpm test
 
+These single-file commands run from the package root (e.g. `v-next/hardhat`):
+
+Lint single file - `eslint path/to/file.ts`
+
+Test single file - `node --import tsx/esm --test --test-reporter=@nomicfoundation/hardhat-node-test-reporter path/to/test.ts`
+
+Test single test - add `.only` to the test, then `node --import tsx/esm --test --test-only --test-reporter=@nomicfoundation/hardhat-node-test-reporter path/to/test.ts`
+
 ## Repository layout
 
 v-next/\* – publishable packages
@@ -25,7 +33,7 @@ v-next/hardhat - core logic and cli
 
 ## Development workflow
 
-When modifying a package, within the package run:
+After modifying a package, within the package run:
 
 1. pnpm lint
 2. pnpm build
