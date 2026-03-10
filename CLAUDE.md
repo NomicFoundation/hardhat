@@ -14,7 +14,14 @@ v-next/hardhat - core logic and cli
 
 ## Rules
 
-- Always update tests when changing behavior.
+**Lazy loading external packages** — Hardhat optimizes startup time. Follow this strictly:
+
+- Top-level imports allowed for: `node:fs`, `node:path`, `node:util`, `chalk`, `semver`, and `import type`
+- Everything else: use `await import()` inside the function that needs it
+
+**`hardhat-utils` first** — Before using `node:fs` or writing a utility, check `@nomicfoundation/hardhat-utils`. It covers fs, crypto, hex, error handling, and more.
+
+**Errors** — Only throw `HardhatError`. Never `throw new Error()`. Use `HardhatError.isHardhatError()` (not `instanceof`) and `ensureError()` in catch clauses. `./scripts` is exempt.
 
 ## Development workflow
 
