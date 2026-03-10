@@ -9,33 +9,41 @@ import { VERDACCIO_URL } from "../../verdaccio/helpers/shell.ts";
 import type { ScenarioDefinition } from "../types.ts";
 
 /**
- * Write .npmrc pointing at Verdaccio and run `npm install` for clone tests.
- * For init tests the setup command handles dependency installation.
+ * Configure the registry to point at Verdaccio and run `install` for
+ * the scenario's package manager.
  */
-export function npmInstall(
+export function installDependencies(
   workDir: string,
-  packageManager: "npm",
+  packageManager: ScenarioDefinition["packageManager"],
   env?: Record<string, string>,
 ): void {
-  writeNpmrc(workDir);
-
-  if (packageManager !== "npm") {
-    throw new Error("Only npm is supported as a package manager");
-  }
+  writeRegistryConfig(workDir, packageManager);
 
   logStep("Installing dependencies");
 
-  execFileSync(which("npm"), ["install"], {
-    cwd: workDir,
-    stdio: "inherit",
-    env: { ...process.env, ...env },
-  });
+  execFileSync(
+    which(packageManager),
+    // Required by bun as it may not pickup the cwd bunfig.toml
+    ["install", `--registry=${VERDACCIO_URL}`],
+    {
+      cwd: workDir,
+      stdio: "inherit",
+      env: { ...process.env, ...env },
+    },
+  );
 }
 
-function writeNpmrc(dir: string): void {
-  const npmrcPath = resolve(dir, ".npmrc");
-
-  writeFileSync(npmrcPath, `registry=${VERDACCIO_URL}\n`);
-
-  log(`Wrote .npmrc → ${VERDACCIO_URL}`);
+function writeRegistryConfig(
+  dir: string,
+  packageManager: ScenarioDefinition["packageManager"],
+): void {
+  if (packageManager === "bun") {
+    const bunfigPath = resolve(dir, "bunfig.toml");
+    writeFileSync(bunfigPath, `[install]\nregistry = "${VERDACCIO_URL}"\n`);
+    log(`Wrote bunfig.toml → ${VERDACCIO_URL}`);
+  } else {
+    const npmrcPath = resolve(dir, ".npmrc");
+    writeFileSync(npmrcPath, `registry=${VERDACCIO_URL}\n`);
+    log(`Wrote .npmrc → ${VERDACCIO_URL}`);
+  }
 }
