@@ -37,7 +37,7 @@ This has two practical implications:
 
 We should also avoid placing logic or type definitions in the barrel files, but just re-export things.
 
-The objective behind this rules are to be consistent within the codebase, spend less time thinking about how to import things, and avoid some performance issues that barrel files can cause.
+The objective behind these rules is to be consistent within the codebase, spend less time thinking about how to import things, and avoid some performance issues that barrel files can cause.
 
 ## A5: Public APIs and `src/internal/` folders
 
