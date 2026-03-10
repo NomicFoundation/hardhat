@@ -49,7 +49,7 @@ Each entry of the `bumps` array has an optional `version` field:
 5. If bumps are needed:
    - Update `.peer-bumps.json` with new entries at the end including a clear `reason` explaining why the bump is needed.
    - Verify that the branch's changesets include each `package` that requires a bump. A peer bump entry implies the package will be released, so it must have an associated changeset. Identify the branch's changesets by diffing `.changeset/` against the base branch. If a changeset is missing, inform the user.
-6. If no bumps are needed, inform the user that then can add the `no peer bump needed` label to the PR.
+6. If no bumps are needed, inform the user that they can add the `no peer bump needed` label to the PR.
 
 Do not modify changesets or other code — only update `.peer-bumps.json`.
 
