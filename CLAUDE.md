@@ -24,7 +24,7 @@ v-next/hardhat - core logic and cli
 
 **Lazy loading external packages** — Hardhat optimizes startup time. Follow this strictly:
 
-- Top-level imports allowed for: `node:fs`, `node:path`, `node:util`, `chalk`, `semver`, and `import type`
+- Top-level imports allowed for: `node:fs`, `node:path`, `node:util`, `chalk`, `semver`, `debug` and `import type`
 - Everything else: use `await import()` inside the function that needs it
 
 **`hardhat-utils` first** — Before using `node:fs` or writing a utility, check `@nomicfoundation/hardhat-utils`. It covers fs, crypto, hex, error handling, and more.
