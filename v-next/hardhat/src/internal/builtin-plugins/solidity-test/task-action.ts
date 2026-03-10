@@ -9,6 +9,7 @@ import type {
   ObservabilityConfig,
   SolidityTestRunnerConfigArgs,
   TracingConfigWithBuffers,
+  SuiteResult,
 } from "@nomicfoundation/edr";
 
 import { finished } from "node:stream/promises";
@@ -46,10 +47,14 @@ interface TestActionArguments {
   testSummaryIndex: number;
 }
 
+export interface SolidityTestRunResult extends TestRunResult {
+  suiteResults: SuiteResult[];
+}
+
 const runSolidityTests: NewTaskActionFunction<TestActionArguments> = async (
   { testFiles, chainType, grep, noCompile, verbosity, testSummaryIndex },
   hre,
-): Promise<Result<TestRunResult, TestRunResult>> => {
+): Promise<Result<SolidityTestRunResult, SolidityTestRunResult>> => {
   assertHardhatInvariant(
     hre instanceof HardhatRuntimeEnvironmentImplementation,
     "Expected HRE to be an instance of HardhatRuntimeEnvironmentImplementation",
@@ -161,7 +166,7 @@ const runSolidityTests: NewTaskActionFunction<TestActionArguments> = async (
     }
   }
 
-  const config: SolidityTestRunnerConfigArgs =
+  const testRunnerConfig: SolidityTestRunnerConfigArgs =
     await solidityTestConfigToSolidityTestRunnerConfigArgs({
       chainType,
       projectRoot: hre.config.paths.root,
@@ -190,7 +195,7 @@ const runSolidityTests: NewTaskActionFunction<TestActionArguments> = async (
     chainType,
     edrArtifacts.map(({ edrArtifact }) => edrArtifact),
     testSuiteIds,
-    config,
+    testRunnerConfig,
     tracingConfig,
     sourceNameToUserSourceName,
     options,
@@ -200,10 +205,11 @@ const runSolidityTests: NewTaskActionFunction<TestActionArguments> = async (
   let passed = 0;
   let skipped = 0;
   let failureOutput = "";
-
+  const suiteResults: SuiteResult[] = [];
   const testReporterStream = runStream
     .on("data", (event: TestEvent) => {
       if (event.type === "suite:done") {
+        suiteResults.push(event.data);
         if (event.data.testResults.some(({ status }) => status === "Failure")) {
           includesFailures = true;
         }
@@ -284,8 +290,9 @@ const runSolidityTests: NewTaskActionFunction<TestActionArguments> = async (
 
   console.log();
 
-  const result: TestRunResult = {
+  const result = {
     summary: { failed, passed, skipped, todo: 0, failureOutput },
+    suiteResults,
   };
 
   return includesFailures || includesErrors

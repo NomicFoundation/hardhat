@@ -185,18 +185,18 @@ describe("solidity-test/task-action", function () {
       const result = await hre.tasks
         .getTask(["test", "solidity"])
         .run({ noCompile: true });
-      assert.deepEqual(result, {
-        success: false,
-        error: {
-          summary: {
-            failed: 0,
-            passed: 0,
-            skipped: 0,
-            todo: 0,
-            failureOutput: "",
-          },
-        },
+      assert.equal(result.success, false);
+      assert.deepEqual(result.error.summary, {
+        failed: 0,
+        passed: 0,
+        skipped: 0,
+        todo: 0,
+        failureOutput: "",
       });
+      assert.ok(
+        Array.isArray(result.error.suiteResults),
+        "suiteResults should be an array",
+      );
     });
 
     it("should return a success result when all tests pass", async () => {
@@ -205,18 +205,18 @@ describe("solidity-test/task-action", function () {
       const result = await hre.tasks
         .getTask(["test", "solidity"])
         .run({ noCompile: true });
-      assert.deepEqual(result, {
-        success: true,
-        value: {
-          summary: {
-            failed: 0,
-            passed: 0,
-            skipped: 0,
-            todo: 0,
-            failureOutput: "",
-          },
-        },
+      assert.equal(result.success, true);
+      assert.deepEqual(result.value.summary, {
+        failed: 0,
+        passed: 0,
+        skipped: 0,
+        todo: 0,
+        failureOutput: "",
       });
+      assert.ok(
+        Array.isArray(result.value.suiteResults),
+        "suiteResults should be an array",
+      );
     });
 
     describe("when the contracts are in the optimism chain type", () => {
