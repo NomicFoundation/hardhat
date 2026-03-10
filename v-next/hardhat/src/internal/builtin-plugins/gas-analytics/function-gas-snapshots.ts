@@ -232,7 +232,7 @@ export function parseFunctionGasSnapshots(
         file: FUNCTION_GAS_SNAPSHOTS_FILE,
         line,
         expectedFormat:
-          "'ContractName:functionName (gas: value)' for standard tests or 'ContractName:functionName (runs: value, μ: value, ~: value)' for fuzz tests",
+          "'ContractName#functionName (gas: value)' for standard tests or 'ContractName#functionName (runs: value, μ: value, ~: value)' for fuzz tests",
       },
     );
   }
