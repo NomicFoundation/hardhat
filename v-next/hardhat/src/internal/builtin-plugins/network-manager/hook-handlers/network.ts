@@ -63,7 +63,7 @@ export default async (): Promise<Partial<NetworkHooks>> => {
 
       // We clone the request to avoid interfering with other hook handlers that
       // might be using the original request.
-      let request = await deepClone(jsonRpcRequest);
+      let request = jsonRpcRequest; // await deepClone(jsonRpcRequest);
 
       for (const handler of requestHandlers) {
         const newRequestOrResponse = await handler.handle(request);
