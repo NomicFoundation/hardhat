@@ -138,7 +138,7 @@ importers:
         specifier: foundry-rs/forge-std#v1.9.4
         version: https://codeload.github.com/foundry-rs/forge-std/tar.gz/1eea5bae12ae557d589f9f0f0edae2faa47cb262
       hardhat:
-        specifier: workspace:^3.1.11
+        specifier: workspace:^3.1.12
         version: link:../hardhat
       mocha:
         specifier: ^11.0.0
@@ -1642,7 +1642,7 @@ importers:
         specifier: foundry-rs/forge-std#v1.9.4
         version: https://codeload.github.com/foundry-rs/forge-std/tar.gz/1eea5bae12ae557d589f9f0f0edae2faa47cb262
       hardhat:
-        specifier: workspace:^3.1.11
+        specifier: workspace:^3.1.12
         version: link:../../..
       typescript:
         specifier: ~5.8.0
@@ -1709,7 +1709,7 @@ importers:
         specifier: foundry-rs/forge-std#v1.9.4
         version: https://codeload.github.com/foundry-rs/forge-std/tar.gz/1eea5bae12ae557d589f9f0f0edae2faa47cb262
       hardhat:
-        specifier: workspace:^3.1.11
+        specifier: workspace:^3.1.12
         version: link:../../..
       mocha:
         specifier: ^11.0.0
@@ -1724,7 +1724,7 @@ importers:
         specifier: ^22.8.5
         version: 22.18.7
       hardhat:
-        specifier: workspace:^3.1.11
+        specifier: workspace:^3.1.12
         version: link:../../..
       typescript:
         specifier: ~5.8.0

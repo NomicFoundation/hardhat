@@ -1,5 +1,11 @@
 # hardhat
 
+## 3.1.12
+
+### Patch Changes
+
+- f87a0aa: Improved performance by removing an unnecessary clone.
+
 ## 3.1.11
 
 ### Patch Changes
