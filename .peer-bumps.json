@@ -6,16 +6,5 @@
     "v-next/hardhat/templates",
     "v-next/config"
   ],
-  "bumps": [
-    {
-      "package": "@nomicfoundation/hardhat-mocha",
-      "peer": "hardhat",
-      "reason": "Now imports and uses the new TestRunResult type from hardhat/types/test"
-    },
-    {
-      "package": "@nomicfoundation/hardhat-node-test-runner",
-      "peer": "hardhat",
-      "reason": "Now imports and uses the new TestRunResult type from hardhat/types/test"
-    }
-  ]
+  "bumps": []
 }

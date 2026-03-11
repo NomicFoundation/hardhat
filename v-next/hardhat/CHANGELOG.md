@@ -1,5 +1,13 @@
 # hardhat
 
+## 3.1.12
+
+### Patch Changes
+
+- 01b41ee: Added support for function gas snapshots and snapshot cheatcodes in Solidity tests with `--snapshot` and `--snapshot-check` flags ([#7769](https://github.com/NomicFoundation/hardhat/issues/7769))
+- e37f96c: Add `TestRunResult` type that wraps `TestSummary`, allowing plugins to extend test results with additional data
+- bda5a0a: Bumped EDR version to [`0.12.0-next.28`](https://github.com/NomicFoundation/edr/releases/tag/%40nomicfoundation%2Fedr%400.12.0-next.28)
+
 ## 3.1.11
 
 ### Patch Changes
