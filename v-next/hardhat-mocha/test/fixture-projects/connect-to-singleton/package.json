@@ -1,0 +1,6 @@
+{
+  "type": "module",
+  "devDependencies": {
+    "@nomicfoundation/hardhat-test-utils": "workspace:*"
+  }
+}

@@ -43,7 +43,11 @@ describe("connectOnBefore ethers usage", function () {
   });
 
   describe("destructuring usage", () => {
-    const { ethers } = network.mocha.connectOnBefore();
+    const { ethers } = network.mocha.connectOnBefore({
+      network: "default",
+      chainType: "l1",
+    });
+
     let counter: Contract;
 
     before(async () => {

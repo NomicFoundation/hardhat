@@ -1,7 +1,6 @@
 {
   "$schema": "../../scripts/end-to-end/schema/scenario.schema.json",
   "description": "OpenZeppelin fork that uses connectToSingleton in the Mocha test suite",
-  "disabled": true,
   "tags": ["external-repo", "mocha"],
   "repo": "kanej/openzeppelin-contracts",
   "commit": "28699671dd173eb630643e0761024079bfa47c0e",
