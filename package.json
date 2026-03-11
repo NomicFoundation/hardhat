@@ -7,6 +7,7 @@
   "private": true,
   "packageManager": "pnpm@10.28.2",
   "devDependencies": {
+    "@changesets/changelog-github": "^0.6.0",
     "@changesets/cli": "^2.16.0",
     "@types/node": "^24.1.0",
     "cspell": "9.7.0",
