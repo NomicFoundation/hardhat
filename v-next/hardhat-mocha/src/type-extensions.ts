@@ -88,4 +88,38 @@ export interface MochaNetworkHelpers<
     networkOrParams?: NetworkConnectionParams<ChainTypeT> | string,
     closeOnAfter?: boolean,
   ): NetworkConnection<ChainTypeT>;
+
+  /**
+   * Returns a suite-wide singleton network connection proxy. The connection
+   * is created once via a Mocha `before` hook the first time a given
+   * network/chainType combination is requested. Subsequent calls with the
+   * same arguments return the same proxy.
+   *
+   * Multiple network/chainType combinations are supported — each gets its
+   * own memoized connection. There is no teardown; connections are left for
+   * garbage collection when the process exits.
+   *
+   * @example
+   * // In any test file:
+   * const { provider } = network.mocha.connectToSingleton();
+   *
+   * it("gets the block number", async function () {
+   *   const blockNumber = await provider.request({ method: "eth_blockNumber" });
+   * });
+   *
+   * @example
+   * // With a specific network name and chain type:
+   * const connection = network.mocha.connectToSingleton<"l1">("localhost", "l1");
+   *
+   * @param networkName - The network name from the Hardhat config to connect
+   * to. Omit to use the default network.
+   * @param chainType - The chain type to use for the connection. Omit to use
+   * the default chain type.
+   * @returns A proxy to the {@link NetworkConnection} that resolves lazily
+   * when its properties are accessed inside a test or hook.
+   */
+  connectToSingleton(
+    networkName?: string,
+    chainType?: ChainTypeT,
+  ): NetworkConnection<ChainTypeT>;
 }
