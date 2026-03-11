@@ -1,5 +1,12 @@
 # @nomicfoundation/hardhat-node-test-runner
 
+## 3.0.11
+
+### Patch Changes
+
+- 01b41ee: Added support for function gas snapshots and snapshot cheatcodes in Solidity tests with `--snapshot` and `--snapshot-check` flags ([#7769](https://github.com/NomicFoundation/hardhat/issues/7769))
+- e37f96c: Add `TestRunResult` type that wraps `TestSummary`, allowing plugins to extend test results with additional data
+
 ## 3.0.10
 
 ### Patch Changes

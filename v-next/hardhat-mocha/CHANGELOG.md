@@ -1,5 +1,11 @@
 # @nomicfoundation/hardhat-mocha
 
+## 3.0.13
+
+### Patch Changes
+
+- e37f96c: Add `TestRunResult` type that wraps `TestSummary`, allowing plugins to extend test results with additional data
+
 ## 3.0.12
 
 ### Patch Changes
