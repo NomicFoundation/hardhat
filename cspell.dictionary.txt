@@ -31,6 +31,7 @@ Defi
 dessant
 distros
 DISTROS
+destructures
 dorny
 dsari
 dtolnay
