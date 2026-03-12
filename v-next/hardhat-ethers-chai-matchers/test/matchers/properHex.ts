@@ -49,6 +49,7 @@ describe("properHex", () => {
   });
 
   it("should handle a negative case failing because of an invalid hex value", () => {
+    /* cspell:disable-next-line */
     const input = "0xabcdefg";
     expect(() => expect(input).to.not.be.properHex(8)).to.throw(
       AssertionError,

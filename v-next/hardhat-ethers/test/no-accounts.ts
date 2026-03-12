@@ -61,10 +61,10 @@ describe("hardhat-ethers plugin", () => {
           );
 
           if (receipt === null) {
-            assert.fail("receipt shoudn't be null");
+            assert.fail("receipt shouldn't be null");
           }
           if (receipt.contractAddress === null) {
-            assert.fail("receipt.contractAddress shoudn't be null");
+            assert.fail("receipt.contractAddress shouldn't be null");
           }
 
           const contract = await ethers.getContractAt(
@@ -90,10 +90,10 @@ describe("hardhat-ethers plugin", () => {
           );
 
           if (receipt === null) {
-            assert.fail("receipt shoudn't be null");
+            assert.fail("receipt shouldn't be null");
           }
           if (receipt.contractAddress === null) {
-            assert.fail("receipt.contractAddress shoudn't be null");
+            assert.fail("receipt.contractAddress shouldn't be null");
           }
 
           const signers = await ethers.getSigners();
@@ -168,7 +168,7 @@ async function deployGreeter(
 
   const receipt = await ethers.provider.getTransactionReceipt(txHash);
   if (receipt === null) {
-    assert.fail("receipt shoudn't be null");
+    assert.fail("receipt shouldn't be null");
   }
 
   assert.equal(receipt.status, 1, "The deployment transaction failed.");

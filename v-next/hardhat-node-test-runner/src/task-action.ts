@@ -1,6 +1,7 @@
 import type { HardhatConfig } from "hardhat/types/config";
 import type { NewTaskActionFunction } from "hardhat/types/tasks";
-import type { LastParameter } from "hardhat/types/utils";
+import type { TestRunResult, TestSummary } from "hardhat/types/test";
+import type { LastParameter, Result } from "hardhat/types/utils";
 
 import { pipeline } from "node:stream/promises";
 import { run } from "node:test";
@@ -10,6 +11,7 @@ import { hardhatTestReporter } from "@nomicfoundation/hardhat-node-test-reporter
 import { setGlobalOptionsAsEnvVariables } from "@nomicfoundation/hardhat-utils/env";
 import { getAllFilesMatching } from "@nomicfoundation/hardhat-utils/fs";
 import { createNonClosingWriter } from "@nomicfoundation/hardhat-utils/stream";
+import { errorResult, successfulResult } from "hardhat/utils/result";
 
 interface TestActionArguments {
   testFiles: string[];
@@ -56,7 +58,7 @@ async function getTestFiles(
 const testWithHardhat: NewTaskActionFunction<TestActionArguments> = async (
   { testFiles, only, grep, noCompile, testSummaryIndex },
   hre,
-) => {
+): Promise<Result<TestRunResult, TestRunResult>> => {
   // Set an environment variable that plugins can use to detect when a process is running tests
   process.env.HH_TEST = "true";
 
@@ -76,7 +78,14 @@ const testWithHardhat: NewTaskActionFunction<TestActionArguments> = async (
   const files = await getTestFiles(testFiles, hre.config);
 
   if (files.length === 0) {
-    return 0;
+    return successfulResult({
+      summary: {
+        passed: 0,
+        failed: 0,
+        skipped: 0,
+        todo: 0,
+      },
+    });
   }
 
   const imports = [];
@@ -100,13 +109,7 @@ const testWithHardhat: NewTaskActionFunction<TestActionArguments> = async (
     .map((href) => `--import "${href}"`)
     .join(" ");
 
-  async function runTests(): Promise<{
-    failed: number;
-    passed: number;
-    skipped: number;
-    todo: number;
-    failureOutput: string;
-  }> {
+  async function runTests(): Promise<TestSummary> {
     const nodeTestOptions: LastParameter<typeof run> = {
       files,
       only,
@@ -195,13 +198,13 @@ const testWithHardhat: NewTaskActionFunction<TestActionArguments> = async (
     async () => {},
   );
 
-  if (testResults.failed > 0) {
-    process.exitCode = 1;
-  }
-
   console.log();
 
-  return testResults;
+  const result: TestRunResult = { summary: testResults };
+
+  return testResults.failed > 0
+    ? errorResult(result)
+    : successfulResult(result);
 };
 
 export default testWithHardhat;

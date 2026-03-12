@@ -52,7 +52,7 @@ jobs:
         with:
           node-version: 24
       - name: Run check
-        run: node scripts/check-v-next-dependencies.js
+        run: node scripts/check-dependencies.ts
 
   check_npm_scripts:
     name: Check that the npm scripts are consistent
@@ -65,7 +65,7 @@ jobs:
         with:
           node-version: 24
       - name: Run check
-        run: node scripts/check-v-next-npm-scripts.js
+        run: node scripts/check-npm-scripts.ts
 
   check_infra_scripts_tests:
     name: Check that infrastructure script tests pass
@@ -77,6 +77,10 @@ jobs:
       - uses: ./.github/actions/setup-env
         with:
           node-version: 24
+      - name: Install root dependencies
+        run: pnpm install -w --frozen-lockfile --prefer-offline
+      - name: Lint scripts
+        run: pnpm lint:scripts
       - name: Run check
         run: pnpm test:scripts
 
@@ -110,7 +114,7 @@ jobs:
             ]
         run: |
           echo "filters<<EOF" >> $GITHUB_OUTPUT
-          node scripts/generate-filters.js |
+          node scripts/generate-filters.ts |
             yq -Po yaml 'with_entries(.key |= sub("^v-next/", ""))' |
             tee -a $GITHUB_OUTPUT
           echo "EOF" >> $GITHUB_OUTPUT

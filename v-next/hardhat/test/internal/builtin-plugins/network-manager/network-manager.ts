@@ -1283,6 +1283,7 @@ describe("NetworkManagerImplementation", () => {
               const validationErrors = await validateNetworkUserConfig(
                 httpConfig({
                   accounts: [
+                    /* cspell:disable-next-line */
                     "0xgggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggg",
                   ],
                 }),
@@ -1519,6 +1520,7 @@ describe("NetworkManagerImplementation", () => {
                     {
                       balance: "123",
                       privateKey:
+                        /* cspell:disable-next-line */
                         "0xgggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggg",
                     },
                   ],

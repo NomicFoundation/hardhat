@@ -95,9 +95,9 @@ export const conditionalUnionType = (
       return;
     }
 
-    const zodeType = matchingCase[1];
+    const zodType = matchingCase[1];
 
-    const parsedData = zodeType.safeParse(data);
+    const parsedData = zodType.safeParse(data);
     if (parsedData.error !== undefined) {
       for (const issue of parsedData.error.issues) {
         ctx.addIssue(issue);
@@ -115,12 +115,12 @@ export const conditionalUnionType = (
  * ```ts
  * const typeWithFoo = z.object({
  *   foo: z.string(),
- *   bar: unexpecteddFieldType("This field is incompatible with `foo`"),
+ *   bar: incompatibleFieldType("This field is incompatible with `foo`"),
  * });
  *
  * const typeWithBar = z.object({
  *   bar: z.string(),
- *   foo: unexpecteddFieldType("This field is incompatible with `bar`"),
+ *   foo: incompatibleFieldType("This field is incompatible with `bar`"),
  * });
  *
  * const union = conditionalUnionType(
@@ -135,7 +135,7 @@ export const conditionalUnionType = (
  * @param errorMessage The error message to display if the field is present.
  * @returns A Zod type that validates that a field of an object doesn't exist.
  */
-export const incompatibleFieldType = (errorMessage = "Unexpectedd field") =>
+export const incompatibleFieldType = (errorMessage = "Unexpected field") =>
   z
     .never({
       errorMap: () => ({

@@ -409,7 +409,7 @@ describe("CoverageManagerImplementation - report data processing", () => {
     COVERAGE_TEST_SCENARIO_WHILE_LOOP,
   ];
 
-  const coverageManagerTmp = new CoverageManagerImplementation("");
+  const coverageManagerTmp = new CoverageManagerImplementation("coverage");
   let hre: HardhatRuntimeEnvironment;
   let originalCoverageFlag: boolean;
 
@@ -452,23 +452,23 @@ describe("CoverageManagerImplementation - report data processing", () => {
   }
 
   it("should run coverage on multiple files, one is covered by tests, the other is not", async () => {
-    const testScenrario = COVERAGE_TEST_SCENARIO_MULTIPLE_FILES;
+    const testScenario = COVERAGE_TEST_SCENARIO_MULTIPLE_FILES;
 
     await hre.tasks.getTask(["test", "solidity"]).run({
       noCompile: true,
-      testFiles: [testScenrario.testFilePath1],
+      testFiles: [testScenario.testFilePath1],
     });
 
     const res = await coverageManagerTmp.getReport();
 
     assert.deepEqual(
-      res[testScenrario.sourceFilePath1],
-      testScenrario.expectedResult1,
+      res[testScenario.sourceFilePath1],
+      testScenario.expectedResult1,
     );
 
     assert.deepEqual(
-      res[testScenrario.sourceFilePath2],
-      testScenrario.expectedResult2,
+      res[testScenario.sourceFilePath2],
+      testScenario.expectedResult2,
     );
   });
 });

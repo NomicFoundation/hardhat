@@ -409,6 +409,7 @@ describe("send", () => {
         assertThrowsHardhatError(
           () =>
             buildModule("Module1", (m) => {
+              /* cspell:disable-next-line */
               m.send("id", "0xnot-an-address", 0n, "");
 
               return {};

@@ -25,7 +25,7 @@ export type LinkReferences = Record<
  * @beta
  */
 export interface ImmutableReferences {
-  [immuatableId: string]: Array<{ start: number; length: number }>;
+  [immutableId: string]: Array<{ start: number; length: number }>;
 }
 
 /**

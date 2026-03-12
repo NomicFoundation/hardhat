@@ -5,6 +5,8 @@ import type {
   PositionalArgumentDefinition,
 } from "./arguments.js";
 import type { HardhatRuntimeEnvironment } from "./hre.js";
+/* eslint-disable-next-line @typescript-eslint/no-unused-vars -- used in JSDoc {@link} */
+import type { Result } from "./utils.js";
 
 // We add the TaskManager to the HRE with a module augmentation to avoid
 // introducing a circular dependency that would look like this:
@@ -209,6 +211,10 @@ export interface NewTaskDefinitionBuilder<
    *
    * This method cannot be used together with {@link setInlineAction} on the same
    * task. Use one or the other.
+   *
+   * Task actions may return a {@link Result} to signal success or failure.
+   * If a task returns a failed `Result`, the CLI will set the process exit code
+   * to 1.
    */
   setAction(
     action: LazyActionObject<NewTaskActionFunction<TaskArgumentsT>>,
@@ -225,6 +231,10 @@ export interface NewTaskDefinitionBuilder<
    *
    * This method cannot be used together with {@link setAction} on the same
    * task. Use one or the other.
+   *
+   * Task actions may return a {@link Result} to signal success or failure.
+   * If a task returns a failed `Result`, the CLI will set the process exit code
+   * to 1.
    */
   setInlineAction(
     inlineAction: NewTaskActionFunction<TaskArgumentsT>,

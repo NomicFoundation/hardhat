@@ -1,5 +1,11 @@
 # @nomicfoundation/hardhat-utils
 
+## 4.0.1
+
+### Patch Changes
+
+- 01b41ee: Added support for function gas snapshots and snapshot cheatcodes in Solidity tests with `--snapshot` and `--snapshot-check` flags ([#7769](https://github.com/NomicFoundation/hardhat/issues/7769))
+
 ## 4.0.0
 
 ### Major Changes

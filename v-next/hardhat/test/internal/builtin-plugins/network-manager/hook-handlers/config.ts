@@ -856,6 +856,7 @@ describe("network-manager/hook-handlers/config", () => {
 
             it("should not allow invalid private keys", async () => {
               hardhatUserConfig.networks.localhost.accounts = [
+                /* cspell:disable-next-line */
                 "0xgggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggg",
               ];
 
@@ -1136,6 +1137,7 @@ describe("network-manager/hook-handlers/config", () => {
                 {
                   balance: "123",
                   privateKey:
+                    /* cspell:disable-next-line */
                     "0xgggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggg",
                 },
               ];

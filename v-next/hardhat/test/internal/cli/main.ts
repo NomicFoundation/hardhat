@@ -687,7 +687,7 @@ GLOBAL OPTIONS:
       });
     }
 
-    it("should have a long name level behaviour (value is required)", async function () {
+    it("should have a long name level behavior (value is required)", async function () {
       const command = "npx hardhat task --verbosity 4";
 
       const cliArguments = command.split(" ").slice(2);
@@ -705,7 +705,7 @@ GLOBAL OPTIONS:
       });
     });
 
-    it("should have a short name level behaviour (grouped repetition is allowed)", async function () {
+    it("should have a short name level behavior (grouped repetition is allowed)", async function () {
       const command = "npx hardhat task -vvvv";
 
       const cliArguments = command.split(" ").slice(2);
@@ -1768,6 +1768,57 @@ GLOBAL OPTIONS:
       const parsedArgs = parseRawArguments(cliArguments);
 
       assert.deepEqual(parsedArgs, ["task", "-a=value1"]);
+    });
+  });
+
+  describe("Result handling", function () {
+    useFixtureProject("cli/result");
+
+    afterEach(function () {
+      process.exitCode = undefined;
+      resetGlobalHardhatRuntimeEnvironment();
+    });
+
+    it("should set process.exitCode = 1 when task returns Result with success: false", async function () {
+      await runMain("npx hardhat failing-task");
+      assert.equal(process.exitCode, 1);
+    });
+
+    it("should override process.exitCode to 1 when task returns Result with success: false", async function () {
+      process.exitCode = 123;
+      await runMain("npx hardhat failing-task");
+      assert.equal(process.exitCode, 1);
+    });
+
+    it("should not set process.exitCode when task returns Result with success: true", async function () {
+      await runMain("npx hardhat succeeding-task");
+      assert.equal(process.exitCode, undefined);
+    });
+
+    it("should not override process.exitCode when task returns Result with success: true", async function () {
+      process.exitCode = 123;
+      await runMain("npx hardhat succeeding-task");
+      assert.equal(process.exitCode, 123);
+    });
+
+    it("should not set process.exitCode when task returns undefined", async function () {
+      await runMain("npx hardhat undefined-task");
+      assert.equal(process.exitCode, undefined);
+    });
+
+    it("should not set process.exitCode when task returns a plain object", async function () {
+      await runMain("npx hardhat plain-object-task");
+      assert.equal(process.exitCode, undefined);
+    });
+
+    it("should set process.exitCode = 1 when task returns Result with success: false and an error", async function () {
+      await runMain("npx hardhat failing-task-with-value");
+      assert.equal(process.exitCode, 1);
+    });
+
+    it("should not set process.exitCode when task returns Result with success: true and no value", async function () {
+      await runMain("npx hardhat succeeding-task-no-value");
+      assert.equal(process.exitCode, undefined);
     });
   });
 });

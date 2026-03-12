@@ -44,6 +44,7 @@ describe("future processor", () => {
         },
         {
           [exampleTxHash]: {
+            /* cspell:disable-next-line */
             blockHash: `0xblockhash-5`,
             blockNumber: 1,
             contractAddress: exampleAddress,

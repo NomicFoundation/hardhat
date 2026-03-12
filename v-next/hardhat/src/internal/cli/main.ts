@@ -28,6 +28,7 @@ import {
   type OptionDefinition,
   type PositionalArgumentDefinition,
 } from "../../types/arguments.js";
+import { isResult } from "../../utils/result.js";
 import { BUILTIN_GLOBAL_OPTIONS_DEFINITIONS } from "../builtin-global-options.js";
 import { builtinPlugins } from "../builtin-plugins/index.js";
 import {
@@ -217,7 +218,24 @@ export async function main(
 
     log(`Running task "${task.id.join(" ")}"`);
 
-    await Promise.all([task.run(taskArguments), sendTaskAnalytics(task.id)]);
+    const [taskResult] = await Promise.all([
+      task.run(taskArguments),
+      sendTaskAnalytics(task.id),
+    ]);
+
+    if (isResult(taskResult) && !taskResult.success) {
+      process.exitCode = 1;
+    }
+
+    if (!isCi() && process.stdout.isTTY === true) {
+      try {
+        const { BannerManager } = await import("./banner-manager.js");
+        const bannerManager = await BannerManager.getInstance();
+        await bannerManager.showBanner(200);
+      } catch (bannerError) {
+        log("Error showing banner", bannerError);
+      }
+    }
   } catch (error) {
     ensureError(error);
     printErrorMessages(error, builtinGlobalOptions?.showStackTraces);

@@ -395,7 +395,7 @@ export class EdrProvider extends BaseProvider {
       this.#outputCallTraces(edrResponse);
 
       /* eslint-disable-next-line no-restricted-syntax -- we may throw
-      non-Hardaht errors inside of an EthereumProvider */
+      non-Hardhat errors inside of an EthereumProvider */
       throw error;
     }
 

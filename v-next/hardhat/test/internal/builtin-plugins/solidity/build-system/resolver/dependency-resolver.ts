@@ -7,6 +7,7 @@ import type {
   ProjectResolvedFile,
   ResolvedFile,
 } from "../../../../../../src/types/solidity/resolved-file.js";
+import type { Result } from "../../../../../../src/types/utils.js";
 
 import assert from "node:assert/strict";
 import path from "node:path";
@@ -17,7 +18,6 @@ import { readUtf8File } from "@nomicfoundation/hardhat-utils/fs";
 import { ResolverImplementation } from "../../../../../../src/internal/builtin-plugins/solidity/build-system/resolver/dependency-resolver.js";
 import {
   type Resolver,
-  type Result,
   UserRemappingType,
 } from "../../../../../../src/internal/builtin-plugins/solidity/build-system/resolver/types.js";
 import {
@@ -2041,9 +2041,9 @@ fo/=barr/`,
       });
 
       describe("Edge cases", () => {
-        it("Should handle seemgly conflicting remappings in different remappings.txt files", async () => {
+        it("Should handle seemingly conflicting remappings in different remappings.txt files", async () => {
           const localTemplate: TestProjectTemplate = {
-            name: "seemgly-conflicting-remappings",
+            name: "seemingly-conflicting-remappings",
             version: "1.0.0",
             files: {
               "contracts/A.sol": `A`,

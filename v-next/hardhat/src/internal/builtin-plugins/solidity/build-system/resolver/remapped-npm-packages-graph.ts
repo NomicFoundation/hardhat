@@ -7,13 +7,13 @@ import type {
   ResolvedUserRemapping,
   UnresolvedNpmUserRemapping,
   RemappedNpmPackagesGraphJson,
-  Result,
 } from "./types.js";
 import type {
   ResolvedFile,
   ResolvedNpmPackage,
   UserRemappingError,
 } from "../../../../../types/solidity.js";
+import type { Result } from "../../../../../types/utils.js";
 
 import path from "node:path";
 
@@ -36,6 +36,32 @@ import { sourceNamePathJoin } from "./source-name-utils.js";
 import { UserRemappingType } from "./types.js";
 
 const HARDHAT_PROJECT_INPUT_SOURCE_NAME_ROOT = "project";
+
+/**
+ * Returns a normalized version of the path if it refers to a node_modules in
+ * the root directory (i.e. node_modules/...), or a `node_modules` directory
+ * in a parent directory (i.e. ../../node_modules/...).
+ *
+ * Otherwise returns `undefined`.
+ *
+ * @param pathToNormalize The path to normalize.
+ * @returns The normalized path (node_modules/...), or `undefined`.
+ */
+export function getNormalizeNodeModulesPath(
+  pathToNormalize: string,
+): string | undefined {
+  if (pathToNormalize.startsWith("node_modules/")) {
+    return pathToNormalize;
+  }
+
+  const normalized = path.posix.normalize(pathToNormalize);
+
+  if (!/^(?:\.\.\/)*node_modules\//.test(normalized)) {
+    return undefined;
+  }
+
+  return normalized.substring(normalized.indexOf("node_modules/"));
+}
 
 export type RemappingsReaderFunction = (
   packageName: string,
@@ -559,7 +585,7 @@ export class RemappedNpmPackagesGraphImplementation
     const prefix = remapping.prefix.endsWith("/")
       ? remapping.prefix
       : remapping.prefix + "/";
-    const target = remapping.target.endsWith("/")
+    let target = remapping.target.endsWith("/")
       ? remapping.target
       : remapping.target + "/";
 
@@ -568,12 +594,13 @@ export class RemappedNpmPackagesGraphImplementation
       path.dirname(sourceOfTheRemapping),
     );
 
-    // If the remapping's target starts with `node_modules/`, we treat
-    // it as trying to load an npm dependency, otherwise we treat it as a local
+    // If the remapping's target starts with `node_modules/`, we treat it as
+    // trying to load an npm dependency, otherwise we treat it as a local
     // remapping.
+    const normalizedNodeModulesTarget = getNormalizeNodeModulesPath(target);
 
     // Local remapping case
-    if (!target.startsWith("node_modules/")) {
+    if (normalizedNodeModulesTarget === undefined) {
       return {
         success: true,
         value: {
@@ -593,6 +620,9 @@ export class RemappedNpmPackagesGraphImplementation
           source: sourceOfTheRemapping,
         },
       };
+    } else {
+      // We update the target to the normalized version
+      target = normalizedNodeModulesTarget;
     }
 
     // If we are here the remapping is a npm remapping.
@@ -600,7 +630,7 @@ export class RemappedNpmPackagesGraphImplementation
     const targetWithoutNodeModules = target.substring("node_modules/".length);
 
     // If after doing that the prefix and target are the same, we skip it
-    // so that it doesn't even go unnecesarly go through a user remapping.
+    // so that it doesn't even go unnecessarily go through a user remapping.
     if (prefix === targetWithoutNodeModules) {
       return { success: true, value: undefined };
     }
