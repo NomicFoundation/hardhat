@@ -258,6 +258,8 @@ export class NetworkManagerImplementation implements NetworkManager {
           coverageConfig,
           gasReportConfig,
           includeCallTraces,
+          connectionLabel: `connection #${networkConnection.id} (${networkConnection.networkName})`,
+          networkName: networkConnection.networkName,
         });
       }
 

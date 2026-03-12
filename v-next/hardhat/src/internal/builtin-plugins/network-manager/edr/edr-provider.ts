@@ -23,7 +23,6 @@ import type {
   TracingConfigWithBuffers,
   AccountOverride,
   GasReportConfig,
-  IncludeTraces,
 } from "@nomicfoundation/edr";
 
 import {
@@ -32,6 +31,7 @@ import {
   l1GenesisState,
   l1HardforkFromString,
   ContractDecoder,
+  IncludeTraces,
 } from "@nomicfoundation/edr";
 import {
   assertHardhatInvariant,
@@ -143,14 +143,49 @@ interface EdrProviderConfig {
   coverageConfig?: CoverageConfig;
   gasReportConfig?: GasReportConfig;
   includeCallTraces?: IncludeTraces;
+  connectionLabel?: string;
+  networkName?: string;
 }
 
 export class EdrProvider extends BaseProvider {
+  // Rotating palette for per-connection coloring of trace headers.
+  // Colors chosen for visual distinctness on both dark and light terminals.
+  static readonly #LABEL_COLORS: Array<(text: string) => string> = [
+    chalk.cyan,
+    chalk.magenta,
+    chalk.blueBright,
+    chalk.whiteBright,
+    chalk.cyanBright,
+    chalk.magentaBright,
+  ];
+
+  // Keyed by *network name* (not connection label) so the map stays bounded
+  // by the number of distinct networks, not the number of connections.
+  static readonly #networkColorMap = new Map<
+    string,
+    (text: string) => string
+  >();
+
+  static #colorForNetwork(networkName: string): (text: string) => string {
+    let color = EdrProvider.#networkColorMap.get(networkName);
+    if (color === undefined) {
+      const index =
+        EdrProvider.#networkColorMap.size % EdrProvider.#LABEL_COLORS.length;
+      color = EdrProvider.#LABEL_COLORS[index];
+      EdrProvider.#networkColorMap.set(networkName, color);
+    }
+    return color;
+  }
+
   readonly #jsonRpcRequestWrapper?: JsonRpcRequestWrapperFunction;
 
   #provider: Provider | undefined;
   #nextRequestId = 1;
   readonly #printLineFn: (line: string) => void;
+  readonly #connectionLabel: string;
+  readonly #labelColor: (text: string) => string;
+  readonly #tracesEnabled: boolean;
+  readonly #tracedTxHashes = new Set<string>();
 
   /**
    * Creates a new instance of `EdrProvider`.
@@ -164,6 +199,8 @@ export class EdrProvider extends BaseProvider {
     coverageConfig,
     gasReportConfig,
     includeCallTraces,
+    connectionLabel,
+    networkName = "edr",
   }: EdrProviderConfig): Promise<EdrProvider> {
     const printLineFn = loggerConfig.printLineFn ?? printLine;
     const replaceLastLineFn = loggerConfig.replaceLastLineFn ?? replaceLastLine;
@@ -215,6 +252,10 @@ export class EdrProvider extends BaseProvider {
       edrProvider = new EdrProvider(
         provider,
         printLineFn,
+        connectionLabel ?? "edr",
+        networkName,
+        includeCallTraces !== undefined &&
+          includeCallTraces !== IncludeTraces.None,
         jsonRpcRequestWrapper,
       );
     } catch (error) {
@@ -237,13 +278,24 @@ export class EdrProvider extends BaseProvider {
   private constructor(
     provider: Provider,
     printLineFn: (line: string) => void,
+    connectionLabel: string,
+    networkName: string,
+    tracesEnabled: boolean,
     jsonRpcRequestWrapper?: JsonRpcRequestWrapperFunction,
   ) {
     super();
 
     this.#provider = provider;
     this.#printLineFn = printLineFn;
+    this.#connectionLabel = connectionLabel;
+    this.#labelColor = EdrProvider.#colorForNetwork(networkName);
+    this.#tracesEnabled = tracesEnabled;
     this.#jsonRpcRequestWrapper = jsonRpcRequestWrapper;
+
+    // Clear dedup state on snapshot revert so replayed txs are traced again
+    this.on(EDR_NETWORK_REVERT_SNAPSHOT_EVENT, () => {
+      this.#tracedTxHashes.clear();
+    });
   }
 
   public async request(
@@ -305,6 +357,7 @@ export class EdrProvider extends BaseProvider {
   public async close(): Promise<void> {
     // Clear the provider reference to help with garbage collection
     this.#provider = undefined;
+    this.#tracedTxHashes.clear();
   }
 
   public async addCompilationResult(
@@ -323,24 +376,63 @@ export class EdrProvider extends BaseProvider {
     );
   }
 
-  #outputCallTraces(edrResponse: Response): void {
-    try {
-      const callTraces = edrResponse.callTraces();
+  // Methods whose *successful* traces are redundant (simulations before the
+  // real tx). Failed traces are still shown because the subsequent
+  // eth_sendTransaction may never happen.
+  static readonly #TRACE_SUPPRESSED_METHODS = new Set(["eth_estimateGas"]);
 
-      if (callTraces.length > 0) {
-        const formatted = formatTraces(callTraces, "  ", chalk);
-        this.#printLineFn("  Call Traces:");
-        this.#printLineFn(formatted);
+  #outputCallTraces(
+    edrResponse: Response,
+    method: string,
+    txHash: string | undefined,
+    failed: boolean,
+  ): void {
+    try {
+      // Skip successful simulation-only methods — their trace will appear
+      // again in the subsequent eth_sendTransaction. Failed simulations
+      // are shown because the sendTransaction may never happen.
+      if (!failed && EdrProvider.#TRACE_SUPPRESSED_METHODS.has(method)) {
+        return;
       }
+
+      // Dedup: skip if we already traced this transaction.
+      // Prevents the same tx appearing multiple times from receipt polling.
+      // Checked before callTraces() to avoid an expensive native FFI call.
+      if (txHash !== undefined && this.#tracedTxHashes.has(txHash)) {
+        return;
+      }
+
+      const callTraces = edrResponse.callTraces();
+      if (callTraces.length === 0) {
+        return;
+      }
+
+      if (txHash !== undefined) {
+        this.#tracedTxHashes.add(txHash);
+      }
+
+      const coloredLabel = this.#labelColor(this.#connectionLabel);
+      const prefix = callTraces.length > 1 ? "Traces from" : "Trace from";
+      const coloredPrefix = this.#labelColor(prefix);
+      const styledMethod = failed ? chalk.red(method) : chalk.dim(method);
+      const header = `${coloredPrefix} ${coloredLabel}: ${styledMethod}`;
+
+      this.#printLineFn(
+        `${header}\n${formatTraces(callTraces, "  ", chalk)}`,
+      );
     } catch (e) {
+      ensureError(e);
       log("Failed to get call traces: %O", e);
     }
   }
 
   async #handleEdrResponse(
     edrResponse: Response,
+    method: string,
+    params?: unknown[],
   ): Promise<SuccessfulJsonRpcResponse> {
     let jsonRpcResponse: JsonRpcResponse;
+    let txHash: string | undefined;
 
     if (typeof edrResponse.data === "string") {
       jsonRpcResponse = JSON.parse(edrResponse.data);
@@ -351,6 +443,12 @@ export class EdrProvider extends BaseProvider {
     if (isFailedJsonRpcResponse(jsonRpcResponse)) {
       const responseError = jsonRpcResponse.error;
       let error;
+
+      // Extract tx hash for dedup from failed response
+      const errorData = responseError.data;
+      if (isEdrProviderErrorData(errorData)) {
+        txHash = errorData.transactionHash;
+      }
 
       const stackTrace = edrResponse.stackTrace();
 
@@ -392,14 +490,32 @@ export class EdrProvider extends BaseProvider {
         error.data = responseError.data;
       }
 
-      this.#outputCallTraces(edrResponse);
+      if (this.#tracesEnabled) {
+        this.#outputCallTraces(edrResponse, method, txHash, true);
+      }
 
       /* eslint-disable-next-line no-restricted-syntax -- we may throw
       non-Hardhat errors inside of an EthereumProvider */
       throw error;
     }
 
-    this.#outputCallTraces(edrResponse);
+    if (this.#tracesEnabled) {
+      // Extract tx hash for dedup from successful response
+      if (
+        method === "eth_sendTransaction" ||
+        method === "eth_sendRawTransaction"
+      ) {
+        txHash =
+          typeof jsonRpcResponse.result === "string"
+            ? jsonRpcResponse.result
+            : undefined;
+      } else if (method === "eth_getTransactionReceipt") {
+        // params[0] is the tx hash being queried — used to dedup receipt polling
+        txHash = typeof params?.[0] === "string" ? params[0] : undefined;
+      }
+
+      this.#outputCallTraces(edrResponse, method, txHash, false);
+    }
 
     return jsonRpcResponse;
   }
@@ -452,7 +568,11 @@ export class EdrProvider extends BaseProvider {
       throw new UnknownError(error.message, error);
     }
 
-    return this.#handleEdrResponse(edrResponse);
+    return this.#handleEdrResponse(
+      edrResponse,
+      request.method,
+      Array.isArray(request.params) ? request.params : undefined,
+    );
   }
 }
 
