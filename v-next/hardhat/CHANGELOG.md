@@ -1,5 +1,18 @@
 # hardhat
 
+## 3.1.13
+
+### Patch Changes
+
+- [#8054](https://github.com/NomicFoundation/hardhat/pull/8054) [`91e1945`](https://github.com/NomicFoundation/hardhat/commit/91e1945227db9fb55940dd8c15ec93ae3b12c533) Thanks [@alcuadrado](https://github.com/alcuadrado)! - Test 1: This will create an unintended bump in ethers of hardhat, so the entire "Updated dependencies" section will be removed
+
+- [#8054](https://github.com/NomicFoundation/hardhat/pull/8054) [`91e1945`](https://github.com/NomicFoundation/hardhat/commit/91e1945227db9fb55940dd8c15ec93ae3b12c533) Thanks [@alcuadrado](https://github.com/alcuadrado)! - Test 1: This will create an unintended bump in viem of hardhat, but that we'll reapply with a peer-bump
+
+- [#8054](https://github.com/NomicFoundation/hardhat/pull/8054) [`91e1945`](https://github.com/NomicFoundation/hardhat/commit/91e1945227db9fb55940dd8c15ec93ae3b12c533) Thanks [@alcuadrado](https://github.com/alcuadrado)! - Test 3: This will create an unintended bump in node-test-retunner of hardhat, which will be removed, but the entire "Updated dependencies" section will be kept because we also bump hardhat-node-test-reporter
+
+- Updated dependencies:
+  - @nomicfoundation/hardhat-vendored@3.0.2
+
 ## 3.1.12
 
 ### Patch Changes

@@ -1,6 +1,6 @@
 {
   "name": "hardhat",
-  "version": "3.1.12",
+  "version": "3.1.13",
   "description": "Hardhat is an extensible developer tool that helps smart contract developers increase productivity by reliably bringing together the tools they want.",
   "homepage": "https://github.com/nomicfoundation/hardhat/tree/v-next/v-next/hardhat",
   "repository": {
@@ -77,7 +77,7 @@
     "README.md"
   ],
   "devDependencies": {
-    "@nomicfoundation/hardhat-node-test-reporter": "workspace:^3.0.2",
+    "@nomicfoundation/hardhat-node-test-reporter": "workspace:^3.0.3",
     "@nomicfoundation/hardhat-test-utils": "workspace:^",
     "@types/adm-zip": "^0.5.5",
     "@types/debug": "^4.1.7",
@@ -95,7 +95,7 @@
     "@nomicfoundation/edr": "0.12.0-next.28",
     "@nomicfoundation/hardhat-errors": "workspace:^3.0.8",
     "@nomicfoundation/hardhat-utils": "workspace:^4.0.1",
-    "@nomicfoundation/hardhat-vendored": "workspace:^3.0.1",
+    "@nomicfoundation/hardhat-vendored": "workspace:^3.0.2",
     "@nomicfoundation/hardhat-zod-utils": "workspace:^3.0.3",
     "@nomicfoundation/solidity-analyzer": "^0.1.1",
     "@sentry/core": "^9.4.0",

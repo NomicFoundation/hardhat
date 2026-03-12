@@ -1,5 +1,14 @@
 # @nomicfoundation/hardhat-node-test-runner
 
+## 3.0.12
+
+### Patch Changes
+
+- [#8054](https://github.com/NomicFoundation/hardhat/pull/8054) [`91e1945`](https://github.com/NomicFoundation/hardhat/commit/91e1945227db9fb55940dd8c15ec93ae3b12c533) Thanks [@alcuadrado](https://github.com/alcuadrado)! - Test 3: This will create an unintended bump in node-test-retunner of hardhat, which will be removed, but the entire "Updated dependencies" section will be kept because we also bump hardhat-node-test-reporter
+
+- Updated dependencies:
+  - @nomicfoundation/hardhat-node-test-reporter@3.0.3
+
 ## 3.0.11
 
 ### Patch Changes

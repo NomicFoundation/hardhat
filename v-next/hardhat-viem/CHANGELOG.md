@@ -1,5 +1,14 @@
 # @nomicfoundation/hardhat-viem
 
+## 3.0.5
+
+### Patch Changes
+
+- [#8054](https://github.com/NomicFoundation/hardhat/pull/8054) [`91e1945`](https://github.com/NomicFoundation/hardhat/commit/91e1945227db9fb55940dd8c15ec93ae3b12c533) Thanks [@alcuadrado](https://github.com/alcuadrado)! - Test 1: This will create an unintended bump in viem of hardhat, but that we'll reapply with a peer-bump
+
+- Updated dependencies:
+  - hardhat@3.1.13
+
 ## 3.0.4
 
 ### Patch Changes

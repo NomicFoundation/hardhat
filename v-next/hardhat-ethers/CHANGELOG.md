@@ -1,5 +1,11 @@
 # @nomicfoundation/hardhat-ethers
 
+## 4.0.7
+
+### Patch Changes
+
+- [#8054](https://github.com/NomicFoundation/hardhat/pull/8054) [`91e1945`](https://github.com/NomicFoundation/hardhat/commit/91e1945227db9fb55940dd8c15ec93ae3b12c533) Thanks [@alcuadrado](https://github.com/alcuadrado)! - Test 1: This will create an unintended bump in ethers of hardhat, so the entire "Updated dependencies" section will be removed
+
 ## 4.0.6
 
 ### Patch Changes
