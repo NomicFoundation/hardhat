@@ -79,10 +79,11 @@ const runAllTests: NewTaskActionFunction<TestActionArguments> = async (
   }
 
   const testSummaries: Record<string, TestSummary> = {};
+  const ranSubtaskIds: string[] = [];
 
   let failureIndex = 1;
   let hasFailures = false;
-  for (const subtask of thisTask.subtasks.values()) {
+  for (const [subtaskKey, subtask] of thisTask.subtasks.entries()) {
     const files = getTestFilesForSubtask(subtask, testFiles, subtasksToFiles);
 
     if (files === undefined) {
@@ -90,6 +91,8 @@ const runAllTests: NewTaskActionFunction<TestActionArguments> = async (
       // but none are assigned to the current subtask, so it should be skipped
       continue;
     }
+
+    ranSubtaskIds.push(subtaskKey);
 
     const args: TaskArguments = {
       testFiles: files,
@@ -227,17 +230,15 @@ const runAllTests: NewTaskActionFunction<TestActionArguments> = async (
 
   if (hre.globalOptions.coverage === true) {
     const coverage = getCoverageManager(hre);
-    const ids = Array.from(thisTask.subtasks.keys());
     coverage.enableReport();
-    await coverage.report(...ids);
+    await coverage.report(...ranSubtaskIds);
     console.log();
   }
 
   if (hre.globalOptions.gasStats === true) {
     const gasAnalytics = getGasAnalyticsManager(hre);
-    const ids = Array.from(thisTask.subtasks.keys());
     gasAnalytics.enableReport();
-    await gasAnalytics.reportGasStats(...ids);
+    await gasAnalytics.reportGasStats(...ranSubtaskIds);
     console.log();
   }
 
