@@ -1,5 +1,11 @@
 # hardhat
 
+## 3.1.13
+
+### Patch Changes
+
+- [#8036](https://github.com/NomicFoundation/hardhat/pull/8036) [`954825a`](https://github.com/NomicFoundation/hardhat/commit/954825a35f5813625c4a72d8e887895d7a71e78b) Thanks [@schaable](https://github.com/schaable)! - Aggregate `--gas-stats` output when using multiple test runners, printing a single consolidated table at the end instead of separate tables per runner ([#7500](https://github.com/NomicFoundation/hardhat/issues/7500)).
+
 ## 3.1.12
 
 ### Patch Changes
