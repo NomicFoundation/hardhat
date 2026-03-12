@@ -1,3 +1,25 @@
+import os from "node:os";
+
+import semver from "semver";
+
+// The first solc version with official ARM64 Linux builds
+export const FIRST_OFFICIAL_ARM64_SOLC_VERSION = "0.8.31";
+
+/**
+ * Determines if a solc version has an official ARM64 Linux build.
+ */
+export function hasOfficialArm64Build(version: string): boolean {
+  return semver.gte(version, FIRST_OFFICIAL_ARM64_SOLC_VERSION);
+}
+
+/**
+ * Returns true if running on a platform that doesn't have official native
+ * solc builds for all versions (currently ARM64 Linux before 0.8.31).
+ */
+export function missesSomeOfficialNativeBuilds(): boolean {
+  return os.platform() === "linux" && os.arch() === "arm64";
+}
+
 const defaultEvmTargets: { [key: string]: string } = {
   "0.5.1": "byzantium",
   "0.5.2": "byzantium",

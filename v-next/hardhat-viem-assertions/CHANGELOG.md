@@ -1,5 +1,17 @@
 # @nomicfoundation/hardhat-viem-assertions
 
+## 3.0.7
+
+### Patch Changes
+
+- 13918b4: Add support for custom chains not in viem's built-in chain list, thanks @daanporon! ([#7763](https://github.com/NomicFoundation/hardhat/issues/7763))
+
+## 3.0.6
+
+### Patch Changes
+
+- 6674b00: Bump `hardhat-utils` major
+
 ## 3.0.5
 
 ### Patch Changes

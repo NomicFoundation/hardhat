@@ -152,13 +152,8 @@ export class CompilerDownloaderImplementation implements CompilerDownloader {
   readonly #platform: CompilerPlatform;
   readonly #compilersDir: string;
   readonly #downloadFunction: typeof download;
+  readonly #mutexCompilerList: MultiProcessMutex;
 
-  readonly #mutexCompiler = new MultiProcessMutex("compiler-download");
-  readonly #mutexCompilerList = new MultiProcessMutex("compiler-download-list");
-
-  /**
-   * Use CompilerDownloader.getConcurrencySafeDownloader instead
-   */
   constructor(
     platform: CompilerPlatform,
     compilersDir: string,
@@ -166,6 +161,9 @@ export class CompilerDownloaderImplementation implements CompilerDownloader {
   ) {
     this.#platform = platform;
     this.#compilersDir = compilersDir;
+    this.#mutexCompilerList = new MultiProcessMutex(
+      path.join(compilersDir, "compiler-download-list"),
+    );
     this.#downloadFunction = downloadFunction;
   }
 
@@ -200,11 +198,16 @@ export class CompilerDownloaderImplementation implements CompilerDownloader {
   }
 
   public async downloadCompiler(version: string): Promise<boolean> {
-    // Since only one process at a time can acquire the mutex, we avoid the risk of downloading the same compiler multiple times.
-    // This is because the mutex blocks access until a compiler has been fully downloaded, preventing any new process
-    // from checking whether that version of the compiler exists. Without mutex it might incorrectly
-    // return false, indicating that the compiler isn't present, even though it is currently being downloaded.
-    return this.#mutexCompiler.use(async () => {
+    // A per-version mutex ensures that only one process at a time can download a given compiler version,
+    // while still allowing different compiler versions to be downloaded in parallel.
+    // Without the mutex, a concurrent process might check whether a version exists, incorrectly
+    // find it missing (because another process is still downloading it), and start a redundant download.
+
+    const mutex = new MultiProcessMutex(
+      path.join(this.#compilersDir, `compiler-download-${version}`),
+    );
+
+    return mutex.use(async () => {
       const isCompilerDownloaded = await this.isCompilerDownloaded(version);
 
       if (isCompilerDownloaded === true) {

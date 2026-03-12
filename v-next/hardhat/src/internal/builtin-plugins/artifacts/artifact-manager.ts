@@ -1,6 +1,7 @@
 import type {
   ArtifactManager,
   GetArtifactByName,
+  StringWithArtifactContractNamesAutocompletion,
 } from "../../../types/artifacts.js";
 
 import { EOL } from "node:os";
@@ -47,7 +48,9 @@ export class ArtifactManagerImplementation implements ArtifactManager {
     this.#readFsData = readFsData ?? (() => this.#readFsDataFromFileSystem());
   }
 
-  public async readArtifact<ContractNameT extends string>(
+  public async readArtifact<
+    ContractNameT extends StringWithArtifactContractNamesAutocompletion,
+  >(
     contractNameOrFullyQualifiedName: ContractNameT,
   ): Promise<GetArtifactByName<ContractNameT>> {
     const artifactPath = await this.getArtifactPath(

@@ -10,7 +10,6 @@ import assert from "node:assert/strict";
 import path from "node:path";
 import { after, before, beforeEach, describe, it } from "node:test";
 
-import { latestSupportedSolidityVersion } from "@nomicfoundation/edr";
 import {
   disableConsole,
   useFixtureProject,
@@ -25,6 +24,7 @@ import chalk from "chalk";
 
 import { createHardhatRuntimeEnvironment } from "../../../../src/hre.js";
 import { CoverageManagerImplementation } from "../../../../src/internal/builtin-plugins/coverage/coverage-manager.js";
+import { setCoverageManager } from "../../../../src/internal/builtin-plugins/coverage/helpers.js";
 import { COVERAGE_TEST_SCENARIO_DO_WHILE_LOOP } from "../../../fixture-projects/coverage/contracts/do-while-loop/coverage-edr-info.js";
 import { COVERAGE_TEST_SCENARIO_FOR_LOOP } from "../../../fixture-projects/coverage/contracts/for-loop/coverage-edr-info.js";
 import { COVERAGE_TEST_SCENARIO_FUNCTIONS } from "../../../fixture-projects/coverage/contracts/functions/coverage-edr-info.js";
@@ -302,19 +302,33 @@ describe("CoverageManagerImplementation", () => {
   });
 
   it("should format the markdown report", async () => {
-    const actual = coverageManager.formatMarkdownReport(report);
+    const originalChalkLevel = chalk.level;
+    chalk.level = 0;
 
-    const expected = [
-      `| ${chalk.bold("Coverage Report")}     |        |             |                 |`,
-      "| ------------------- | ------ | ----------- | --------------- |",
-      `| ${chalk.yellow("File Path")}           | ${chalk.yellow("Line %")} | ${chalk.yellow("Statement %")} | ${chalk.yellow("Uncovered Lines")} |`,
-      "| contracts/test.sol  | 80.00  | 75.00       | 6               |",
-      "| contracts/other.sol | 0.00   | 0.00        | 1-2             |",
-      "| ------------------- | ------ | ----------- | --------------- |",
-      `| ${chalk.yellow("Total")}               | 57.14  | 50.00       |                 |`,
-    ].join("\n");
+    try {
+      const actual = coverageManager.formatMarkdownReport(report);
 
-    assert.equal(actual, expected);
+      assert.equal(
+        actual,
+        [
+          "╔══════════════════════════════════════════════════════════════╗",
+          "║                       Coverage Report                        ║",
+          "╚══════════════════════════════════════════════════════════════╝",
+          "╔══════════════════════════════════════════════════════════════╗",
+          "║ File Coverage                                                ║",
+          "╟─────────────────────┬────────┬─────────────┬─────────────────╢",
+          "║ File Path           │ Line % │ Statement % │ Uncovered Lines ║",
+          "╟─────────────────────┼────────┼─────────────┼─────────────────╢",
+          "║ contracts/test.sol  │ 80.00  │ 75.00       │ 6               ║",
+          "║ contracts/other.sol │ 0.00   │ 0.00        │ 1-2             ║",
+          "╟─────────────────────┼────────┼─────────────┼─────────────────╢",
+          "║ Total               │ 57.14  │ 50.00       │                 ║",
+          "╚═════════════════════╧════════╧═════════════╧═════════════════╝",
+        ].join("\n"),
+      );
+    } finally {
+      chalk.level = originalChalkLevel;
+    }
   });
 
   const expectedRelativePath: Array<[string, string]> = [
@@ -375,13 +389,16 @@ describe("CoverageManagerImplementation", () => {
 });
 
 describe("CoverageManagerImplementation - report data processing", () => {
-  //
-  // The following tests use fixture projects to validate coverage report generation.
-  // For each scenario, there is a .sol file containing a specific feature (e.g. if/else condition, while loop, etc.)
-  // and a .t.sol test file that verifies that feature.
-  // The result of the coverage processing is compared against the expected output defined in the same directory
-  // where these Solidity files are located.
-  //
+  disableConsole();
+
+  /*
+   * The following tests use fixture projects to validate coverage report
+   * generation. For each scenario, there is a .sol file containing a specific
+   * feature (e.g. if/else condition, while loop, etc.) and a .t.sol test file
+   * that verifies that feature. The result of the coverage processing is
+   * compared against the expected output defined in the same directory where
+   * these Solidity files are located.
+   */
   const testScenarios: CoverageTestScenario[] = [
     COVERAGE_TEST_SCENARIO_DO_WHILE_LOOP,
     COVERAGE_TEST_SCENARIO_FOR_LOOP,
@@ -396,7 +413,7 @@ describe("CoverageManagerImplementation - report data processing", () => {
     COVERAGE_TEST_SCENARIO_WHILE_LOOP,
   ];
 
-  const coverageManagerTmp = new CoverageManagerImplementation("");
+  const coverageManagerTmp = new CoverageManagerImplementation("coverage");
   let hre: HardhatRuntimeEnvironment;
   let originalCoverageFlag: boolean;
 
@@ -409,9 +426,7 @@ describe("CoverageManagerImplementation - report data processing", () => {
 
     hre.globalOptions.coverage = true;
 
-    /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions
-    -- For the test we need to access to the hidden _coverage property */
-    (hre as any)._coverage = coverageManagerTmp;
+    setCoverageManager(hre, coverageManagerTmp);
 
     await hre.tasks.getTask(["compile"]).run({
       quiet: true,
@@ -438,59 +453,24 @@ describe("CoverageManagerImplementation - report data processing", () => {
     });
   }
 
-  it("should should use the latesst supported Solidity version", async () => {
-    const version = await hre.hooks.runHandlerChain(
-      "solidity",
-      "preprocessProjectFileBeforeBuilding",
-      ["", "", "", "0.10.100"],
-      async (
-        nextContext,
-        nextInputSourceName,
-        nextFsPath,
-        nextFileContent,
-        nextSolcVersion,
-      ) => nextSolcVersion,
-    );
-
-    assert.equal(version, latestSupportedSolidityVersion());
-  });
-
-  it("should should use the selected Solidity version", async () => {
-    const supportedVersion = "0.8.28";
-    const version = await hre.hooks.runHandlerChain(
-      "solidity",
-      "preprocessProjectFileBeforeBuilding",
-      ["", "", "", supportedVersion],
-      async (
-        nextContext,
-        nextInputSourceName,
-        nextFsPath,
-        nextFileContent,
-        nextSolcVersion,
-      ) => nextSolcVersion,
-    );
-
-    assert.equal(version, supportedVersion);
-  });
-
   it("should run coverage on multiple files, one is covered by tests, the other is not", async () => {
-    const testScenrario = COVERAGE_TEST_SCENARIO_MULTIPLE_FILES;
+    const testScenario = COVERAGE_TEST_SCENARIO_MULTIPLE_FILES;
 
     await hre.tasks.getTask(["test", "solidity"]).run({
       noCompile: true,
-      testFiles: [testScenrario.testFilePath1],
+      testFiles: [testScenario.testFilePath1],
     });
 
     const res = await coverageManagerTmp.getReport();
 
     assert.deepEqual(
-      res[testScenrario.sourceFilePath1],
-      testScenrario.expectedResult1,
+      res[testScenario.sourceFilePath1],
+      testScenario.expectedResult1,
     );
 
     assert.deepEqual(
-      res[testScenrario.sourceFilePath2],
-      testScenrario.expectedResult2,
+      res[testScenario.sourceFilePath2],
+      testScenario.expectedResult2,
     );
   });
 });
@@ -511,9 +491,7 @@ describe("report generation", () => {
 
     hre.globalOptions.coverage = true;
 
-    /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions
-    -- For the test we need to access to the hidden _coverage property */
-    (hre as any)._coverage = coverageManagerTmp;
+    setCoverageManager(hre, coverageManagerTmp);
 
     await hre.tasks.getTask(["compile"]).run({
       quiet: true,

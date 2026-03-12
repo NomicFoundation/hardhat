@@ -459,6 +459,7 @@ describe("libraries", () => {
         },
       };
       const libraryAddress = "1234567890abcdef1234567890abcdef12345678";
+      /* cspell:disable-next-line */
       const bytecode = `aa${libraryAddress}bbccddeeff`;
       const expectedLibraries: SourceLibraries = {
         "contracts/Lib.sol": {
@@ -483,6 +484,7 @@ describe("libraries", () => {
       };
       const libAAddress = "1234567890abcdef1234567890abcdef12345678";
       const libBAddress = "abcdef1234567890abcdef1234567890abcdef12";
+      /* cspell:disable-next-line */
       const bytecode = `aabb${libAAddress}ccddee${libBAddress}ff`;
       const expectedLibraries: SourceLibraries = {
         "contracts/libs/A.sol": {
@@ -510,6 +512,7 @@ describe("libraries", () => {
       };
       const libAAddress = "1234567890abcdef1234567890abcdef12345678";
       const libBAddress = "abcdef1234567890abcdef1234567890abcdef12";
+      /* cspell:disable-next-line */
       const bytecode = `aabb${libAAddress}ccddee${libBAddress}ff`;
       const expectedLibraries: SourceLibraries = {
         "contracts/libs/A.sol": {

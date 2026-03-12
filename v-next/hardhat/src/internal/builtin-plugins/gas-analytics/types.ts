@@ -21,4 +21,7 @@ export interface GasAnalyticsManager {
   clearGasMeasurements(id: string): Promise<void>;
   saveGasMeasurements(id: string): Promise<void>;
   reportGasStats(...ids: string[]): Promise<void>;
+
+  enableReport(): void;
+  disableReport(): void;
 }

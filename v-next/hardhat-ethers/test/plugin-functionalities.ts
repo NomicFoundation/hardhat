@@ -18,6 +18,7 @@ import {
   assertIsSigner,
   initializeTestEthers,
   spawnTestRpcServer,
+  tryUntil,
 } from "./helpers/helpers.js";
 
 describe("Ethers plugin", () => {
@@ -28,6 +29,7 @@ describe("Ethers plugin", () => {
     // Declare all the artifacts that we need during the test
     ({ ethers, artifactManager } = await initializeTestEthers([
       { artifactName: "Greeter", fileName: "greeter" },
+      /* cspell:disable-next-line */
       { artifactName: "IGreeter", fileName: "igreeter" },
       { artifactName: "TestContractLib", fileName: "test-contract-lib" },
       { artifactName: "TestLibrary", fileName: "test-library" },
@@ -205,7 +207,7 @@ describe("Ethers plugin", () => {
           const response = await sig.sendTransaction(tx);
           const receipt = await response.wait();
           if (receipt === null) {
-            assert.fail("receipt shoudn't be null");
+            assert.fail("receipt shouldn't be null");
           }
           assert.equal(receipt.status, 1);
         });
@@ -719,12 +721,9 @@ describe("Ethers plugin", () => {
 
             await greeter.setGreeting("Hola");
 
-            // wait for 1.5 polling intervals for the event to fire
-            await new Promise((resolve) => setTimeout(resolve, 100));
+            await tryUntil(() => assert.equal(eventEmitted, true));
 
             await greeter.removeAllListeners();
-
-            assert.equal(eventEmitted, true);
           });
 
           describe("with hardhat's signer", () => {
@@ -948,11 +947,9 @@ describe("Ethers plugin", () => {
 
         await deployedGreeter.setGreeting("Hola");
 
-        // wait for 1.5 polling intervals for the event to fire
-        await new Promise((resolve) => setTimeout(resolve, 100));
+        await tryUntil(() => assert.equal(eventEmitted, true));
 
         deployedGreeter.removeAllListeners();
-        assert.equal(eventEmitted, true);
       });
     });
 
@@ -1047,10 +1044,10 @@ describe("Ethers plugin", () => {
         const receipt = await response.wait();
 
         if (receipt === null) {
-          assert.fail("receipt shoudn't be null");
+          assert.fail("receipt shouldn't be null");
         }
         if (receipt.contractAddress === null) {
-          assert.fail("receipt.contractAddress shoudn't be null");
+          assert.fail("receipt.contractAddress shouldn't be null");
         }
 
         let code = await ethers.provider.getCode(receipt.contractAddress);
@@ -1160,11 +1157,9 @@ describe("Ethers plugin", () => {
 
       await deployedGreeter.setGreeting("Hola");
 
-      // wait for the event to fire
-      await new Promise((resolve) => setTimeout(resolve, 100));
+      await tryUntil(() => assert.equal(emitted, true));
 
       await wsProvider.destroy();
-      assert.equal(emitted, true);
     });
   });
 });

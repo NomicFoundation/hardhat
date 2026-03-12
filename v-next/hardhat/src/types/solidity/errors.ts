@@ -91,6 +91,11 @@ export interface NpmRootFileOfUninstalledPackageError {
   type: RootResolutionErrorType.NPM_ROOT_FILE_OF_UNINSTALLED_PACKAGE;
   npmModule: string;
   installationName: string;
+  /**
+   * A boolean indicating if the Hardhat project has a foundry.toml file in its
+   * root.
+   */
+  projectHasFoundryToml?: boolean;
 }
 
 export interface NpmRootResolutionWithRemappingErrors {
@@ -109,6 +114,10 @@ export interface NpmRootFileWithIncorrectCasingError
   extends ResolvedFileReference {
   type: RootResolutionErrorType.NPM_ROOT_FILE_WITH_INCORRECT_CASING;
   npmModule: string;
+  /**
+   * The correct casing of the file, expressed as the relative fs path from the
+   * package's root, using forward slashes, and without a leading "./".
+   */
   correctCasing: string;
 }
 
@@ -216,6 +225,10 @@ export interface ImportInvalidCasingError extends ResolvedFileReference {
   type: ImportResolutionErrorType.IMPORT_INVALID_CASING;
   fromFsPath: string;
   importPath: string;
+  /**
+   * The correct casing of the file, expressed as the relative fs path from the
+   * package's root, using forward slashes, and without a leading "./".
+   */
   correctCasing: string;
 }
 
@@ -230,6 +243,11 @@ export interface ImportOfUninstalledPackageError {
   fromFsPath: string;
   importPath: string;
   installationName: string;
+  /**
+   * A boolean indicating weather the import is from a source file whose package
+   * has a foundry.toml file in its root.
+   */
+  importerPackageHasFoundryToml?: boolean;
 }
 
 export interface ImportWithRemappingErrorsError {
@@ -348,10 +366,14 @@ export interface ResolvedFileReference {
   //    package's input source name root, after applying the user remapping.
   //  - For an npm import, it's the npm-subpath. i.e. the module identifier
   //    without the package name.
+  //
+  // This never includes a leading "./".
   subpath: string;
 
   // The subpath after resolving package.exports
   //
   // Only present when actually using package.exports.
+  //
+  // This never includes a leading "./".
   packageExportsResolvedSubpath?: string;
 }

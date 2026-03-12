@@ -3,21 +3,38 @@
   "version": "0.0.0",
   "author": "Nomic Foundation",
   "license": "SEE LICENSE IN EACH PACKAGE'S LICENSE FILE",
+  "type": "module",
   "private": true,
   "packageManager": "pnpm@10.28.2",
   "devDependencies": {
+    "@changesets/changelog-github": "^0.6.0",
     "@changesets/cli": "^2.16.0",
-    "typescript": "~5.8.0"
+    "@types/node": "^24.1.0",
+    "cspell": "9.7.0",
+    "prettier": "3.2.5",
+    "rimraf": "^5.0.5",
+    "typescript": "~5.8.0",
+    "verdaccio": "^6.0.0"
   },
   "scripts": {
     "build": "pnpm run --recursive --if-present build",
-    "clean": "pnpm run --recursive --if-present clean",
+    "clean": "pnpm run --recursive --if-present clean && rimraf .verdaccio",
     "test": "pnpm run --recursive --if-present test",
+    "test:scripts": "node --test \"./scripts/**/*.test.ts\"",
+    "prettier:scripts": "prettier \"scripts/**/*.{ts,json}\"",
+    "tsc:scripts": "tsc --noEmit -p scripts/tsconfig.json",
+    "lint:scripts": "pnpm prettier:scripts --check && pnpm tsc:scripts",
+    "lint:scripts:fix": "pnpm prettier:scripts --write && pnpm tsc:scripts",
+    "lint:e2e": "prettier \"end-to-end/**/*.json\" --check",
+    "lint:e2e:fix": "prettier \"end-to-end/**/*.json\" --write",
     "prelint": "pnpm build",
-    "lint": "pnpm run --recursive --if-present lint",
+    "lint": "pnpm run --recursive --if-present lint && pnpm lint:scripts && pnpm lint:e2e",
     "prelint:fix": "pnpm build",
-    "lint:fix": "pnpm run --recursive --if-present lint:fix",
-    "version-for-release": "pnpm changeset version && node scripts/bump-peers.mjs apply && pnpm -w install --lockfile-only"
+    "lint:fix": "pnpm run --recursive --if-present lint:fix && pnpm lint:scripts:fix && pnpm lint:e2e:fix",
+    "version-for-release": "pnpm changeset version && node scripts/bump-peers.ts apply && pnpm -w install --lockfile-only",
+    "spellcheck": "cspell --no-progress || (echo \"\\n\\n==== cspell failed ===\\n\\nIf you think a word is correctly spelled, please add it to cspell.dictionary.txt\\nTo ignore a word use the comments 'cSpell:ignore wooord' or 'cspell:disable-next-line'\"; exit 1)",
+    "verdaccio": "node ./scripts/verdaccio/main.ts",
+    "e2e": "node ./scripts/end-to-end/main.ts"
   },
   "pnpm": {
     "onlyBuiltDependencies": [

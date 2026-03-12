@@ -25,6 +25,9 @@ jobs:
       - name: Checkout the repository
         uses: actions/checkout@v5
 
+      - name: Set up the environment
+        uses: ./.github/actions/setup-env
+
       # We need to fetch the base ref because the pull request check inspects the diff between the head and the base ref
       - run: git fetch origin "$GITHUB_BASE_REF":"$GITHUB_BASE_REF"
 
@@ -33,4 +36,4 @@ jobs:
         env:
           GITHUB_EVENT_PULL_REQUEST_LABELS: ${{ toJson(github.event.pull_request.labels) }}
           GITHUB_EVENT_PULL_REQUEST_BODY: ${{ github.event.pull_request.body }}
-        run: node scripts/validate-pull-request-docs.mjs
+        run: node scripts/validate-pull-request-docs.ts

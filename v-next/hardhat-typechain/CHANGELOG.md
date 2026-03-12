@@ -1,5 +1,17 @@
 # @nomicfoundation/hardhat-typechain
 
+## 3.0.4
+
+### Patch Changes
+
+- 2cbf218: Make SolidityBuildSystem easier to work with ([#7988](https://github.com/NomicFoundation/hardhat/pull/7988))
+
+## 3.0.3
+
+### Patch Changes
+
+- 6674b00: Bump `hardhat-utils` major
+
 ## 3.0.2
 
 ### Patch Changes

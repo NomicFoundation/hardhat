@@ -1,6 +1,7 @@
 import type { HardhatConfig } from "hardhat/types/config";
 import type { NewTaskActionFunction } from "hardhat/types/tasks";
-import type { LastParameter } from "hardhat/types/utils";
+import type { TestRunResult, TestSummary } from "hardhat/types/test";
+import type { LastParameter, Result } from "hardhat/types/utils";
 
 import { pipeline } from "node:stream/promises";
 import { run } from "node:test";
@@ -10,14 +11,7 @@ import { hardhatTestReporter } from "@nomicfoundation/hardhat-node-test-reporter
 import { setGlobalOptionsAsEnvVariables } from "@nomicfoundation/hardhat-utils/env";
 import { getAllFilesMatching } from "@nomicfoundation/hardhat-utils/fs";
 import { createNonClosingWriter } from "@nomicfoundation/hardhat-utils/stream";
-import {
-  markTestRunStart as initCoverage,
-  markTestRunDone as reportCoverage,
-} from "hardhat/internal/coverage";
-import {
-  markTestRunStart as initGasStats,
-  markTestRunDone as reportGasStats,
-} from "hardhat/internal/gas-analytics";
+import { errorResult, successfulResult } from "hardhat/utils/result";
 
 interface TestActionArguments {
   testFiles: string[];
@@ -64,7 +58,7 @@ async function getTestFiles(
 const testWithHardhat: NewTaskActionFunction<TestActionArguments> = async (
   { testFiles, only, grep, noCompile, testSummaryIndex },
   hre,
-) => {
+): Promise<Result<TestRunResult, TestRunResult>> => {
   // Set an environment variable that plugins can use to detect when a process is running tests
   process.env.HH_TEST = "true";
 
@@ -84,7 +78,14 @@ const testWithHardhat: NewTaskActionFunction<TestActionArguments> = async (
   const files = await getTestFiles(testFiles, hre.config);
 
   if (files.length === 0) {
-    return 0;
+    return successfulResult({
+      summary: {
+        passed: 0,
+        failed: 0,
+        skipped: 0,
+        todo: 0,
+      },
+    });
   }
 
   const imports = [];
@@ -92,33 +93,23 @@ const testWithHardhat: NewTaskActionFunction<TestActionArguments> = async (
   const tsx = new URL(import.meta.resolve("tsx/esm"));
   imports.push(tsx.href);
 
-  if (hre.globalOptions.coverage === true) {
-    const coverage = new URL(
-      import.meta.resolve("@nomicfoundation/hardhat-node-test-runner/coverage"),
-    );
-    imports.push(coverage.href);
-  }
-
-  if (hre.globalOptions.gasStats === true) {
-    const gasStats = new URL(
+  if (
+    hre.globalOptions.coverage === true ||
+    hre.globalOptions.gasStats === true
+  ) {
+    const testWorkerDone = new URL(
       import.meta.resolve(
-        "@nomicfoundation/hardhat-node-test-runner/gas-stats",
+        "@nomicfoundation/hardhat-node-test-runner/test-worker-done",
       ),
     );
-    imports.push(gasStats.href);
+    imports.push(testWorkerDone.href);
   }
 
   process.env.NODE_OPTIONS = imports
     .map((href) => `--import "${href}"`)
     .join(" ");
 
-  async function runTests(): Promise<{
-    failed: number;
-    passed: number;
-    skipped: number;
-    todo: number;
-    failureOutput: string;
-  }> {
+  async function runTests(): Promise<TestSummary> {
     const nodeTestOptions: LastParameter<typeof run> = {
       files,
       only,
@@ -191,22 +182,29 @@ const testWithHardhat: NewTaskActionFunction<TestActionArguments> = async (
     };
   }
 
-  await initCoverage("nodejs");
-  await initGasStats("nodejs");
+  await hre.hooks.runHandlerChain(
+    "test",
+    "onTestRunStart",
+    ["nodejs"],
+    async () => {},
+  );
 
   const testResults = await runTests();
 
-  // NOTE: This might print a coverage report.
-  await reportCoverage("nodejs");
-  await reportGasStats("nodejs");
-
-  if (testResults.failed > 0) {
-    process.exitCode = 1;
-  }
+  await hre.hooks.runHandlerChain(
+    "test",
+    "onTestRunDone",
+    ["nodejs"],
+    async () => {},
+  );
 
   console.log();
 
-  return testResults;
+  const result: TestRunResult = { summary: testResults };
+
+  return testResults.failed > 0
+    ? errorResult(result)
+    : successfulResult(result);
 };
 
 export default testWithHardhat;

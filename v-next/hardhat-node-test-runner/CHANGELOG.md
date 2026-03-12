@@ -1,5 +1,25 @@
 # @nomicfoundation/hardhat-node-test-runner
 
+## 3.0.11
+
+### Patch Changes
+
+- 01b41ee: Added support for function gas snapshots and snapshot cheatcodes in Solidity tests with `--snapshot` and `--snapshot-check` flags ([#7769](https://github.com/NomicFoundation/hardhat/issues/7769))
+- e37f96c: Add `TestRunResult` type that wraps `TestSummary`, allowing plugins to extend test results with additional data
+
+## 3.0.10
+
+### Patch Changes
+
+- 4ff11c1: Return typed `Result` from test runners and telemetry tasks ([#8015](https://github.com/NomicFoundation/hardhat/pull/8015)).
+- 2cbf218: Add `onTestRunStart`, `onTestWorkerDone`, and `onTestRunDone` test hooks ([#8001](https://github.com/NomicFoundation/hardhat/pull/8001))
+
+## 3.0.9
+
+### Patch Changes
+
+- 6674b00: Bump `hardhat-utils` major
+
 ## 3.0.8
 
 ### Patch Changes

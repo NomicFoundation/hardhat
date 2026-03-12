@@ -30,7 +30,12 @@ describe("clients", () => {
   describe("getPublicClient", () => {
     it("should return a public client", async () => {
       const provider = new MockEthereumProvider({ eth_chainId: "0x1" }); // mainnet
-      const client = await getPublicClient(provider, "l1");
+      const client = await getPublicClient(
+        provider,
+        "l1",
+        new Map(),
+        "mainnet",
+      );
 
       assert.equal(client.type, "publicClient");
       assert.equal(client.chain.id, 1);
@@ -46,7 +51,12 @@ describe("clients", () => {
 
     it("should return a public client extended with L2 actions for Optimism", async () => {
       const provider = new MockEthereumProvider({ eth_chainId: "0xa" }); // optimism
-      const client = await getPublicClient(provider, "op");
+      const client = await getPublicClient(
+        provider,
+        "op",
+        new Map(),
+        "optimism",
+      );
 
       assert.equal(client.type, "publicClient");
       assert.equal(client.chain.id, 10);
@@ -59,10 +69,16 @@ describe("clients", () => {
 
     it("should return a public client with custom parameters", async () => {
       const provider = new MockEthereumProvider({ eth_chainId: "0x1" }); // mainnet
-      const client = await getPublicClient(provider, "l1", {
-        pollingInterval: 1000,
-        cacheTime: 2000,
-      });
+      const client = await getPublicClient(
+        provider,
+        "l1",
+        new Map(),
+        "mainnet",
+        {
+          pollingInterval: 1000,
+          cacheTime: 2000,
+        },
+      );
 
       assert.equal(client.pollingInterval, 1000);
       assert.equal(client.cacheTime, 2000);
@@ -73,7 +89,12 @@ describe("clients", () => {
         eth_chainId: "0x7a69", // 31337
         hardhat_metadata: {}, // hardhat network
       });
-      const client = await getPublicClient(provider, "l1");
+      const client = await getPublicClient(
+        provider,
+        "l1",
+        new Map(),
+        "hardhat",
+      );
 
       assert.equal(client.pollingInterval, 50);
       assert.equal(client.cacheTime, 0);
@@ -83,7 +104,12 @@ describe("clients", () => {
         eth_chainId: "0x7a69", // 31337
         anvil_nodeInfo: {}, // anvil network
       });
-      const client2 = await getPublicClient(provider2, "l1");
+      const client2 = await getPublicClient(
+        provider2,
+        "l1",
+        new Map(),
+        "hardhat",
+      );
 
       assert.equal(client2.pollingInterval, 50);
       assert.equal(client2.cacheTime, 0);
@@ -97,7 +123,12 @@ describe("clients", () => {
         eth_chainId: "0x1", // mainnet
         eth_accounts: ["0x123", "0x456"],
       });
-      const clients = await getWalletClients(provider, "l1");
+      const clients = await getWalletClients(
+        provider,
+        "l1",
+        new Map(),
+        "mainnet",
+      );
 
       assert.ok(Array.isArray(clients), "should return an array of clients");
       assert.equal(
@@ -126,7 +157,12 @@ describe("clients", () => {
         eth_chainId: "0xa", // optimism
         eth_accounts: ["0x123", "0x456"],
       });
-      const clients = await getWalletClients(provider, "op");
+      const clients = await getWalletClients(
+        provider,
+        "op",
+        new Map(),
+        "optimism",
+      );
 
       assert.ok(Array.isArray(clients), "should return an array of clients");
       assert.equal(
@@ -152,7 +188,12 @@ describe("clients", () => {
         eth_chainId: "0x1", // mainnet
         eth_accounts: [],
       });
-      const clients = await getWalletClients(provider, "l1");
+      const clients = await getWalletClients(
+        provider,
+        "l1",
+        new Map(),
+        "mainnet",
+      );
 
       assert.ok(Array.isArray(clients), "should return an array of clients");
       assert.equal(
@@ -167,10 +208,16 @@ describe("clients", () => {
         eth_chainId: "0x1", // mainnet
         eth_accounts: ["0x123", "0x456"],
       });
-      const clients = await getWalletClients(provider, "l1", {
-        pollingInterval: 1000,
-        cacheTime: 2000,
-      });
+      const clients = await getWalletClients(
+        provider,
+        "l1",
+        new Map(),
+        "mainnet",
+        {
+          pollingInterval: 1000,
+          cacheTime: 2000,
+        },
+      );
 
       assert.ok(Array.isArray(clients), "should return an array of clients");
       assert.equal(
@@ -190,7 +237,12 @@ describe("clients", () => {
         hardhat_metadata: {}, // hardhat network
         eth_accounts: ["0x123", "0x456"],
       });
-      const clients = await getWalletClients(provider, "l1");
+      const clients = await getWalletClients(
+        provider,
+        "l1",
+        new Map(),
+        "hardhat",
+      );
 
       assert.ok(Array.isArray(clients), "should return an array of clients");
       assert.equal(
@@ -209,7 +261,12 @@ describe("clients", () => {
         anvil_nodeInfo: {}, // anvil network
         eth_accounts: ["0x123", "0x456"],
       });
-      const clients2 = await getWalletClients(provider2, "l1");
+      const clients2 = await getWalletClients(
+        provider2,
+        "l1",
+        new Map(),
+        "hardhat",
+      );
 
       assert.ok(Array.isArray(clients2), "should return an array of clients");
       assert.equal(
@@ -230,7 +287,13 @@ describe("clients", () => {
       const provider = new MockEthereumProvider({
         eth_chainId: "0x1", // mainnet
       });
-      const client = await getWalletClient(provider, "l1", "0x123");
+      const client = await getWalletClient(
+        provider,
+        "l1",
+        new Map(),
+        "mainnet",
+        "0x123",
+      );
 
       assert.equal(client.type, "walletClient");
       assert.equal(client.chain.id, 1);
@@ -248,7 +311,13 @@ describe("clients", () => {
       const provider = new MockEthereumProvider({
         eth_chainId: "0xa", // optimism
       });
-      const client = await getWalletClient(provider, "op", "0x123");
+      const client = await getWalletClient(
+        provider,
+        "op",
+        new Map(),
+        "optimism",
+        "0x123",
+      );
 
       assert.equal(client.type, "walletClient");
       assert.equal(client.chain.id, 10);
@@ -264,10 +333,14 @@ describe("clients", () => {
       const provider = new MockEthereumProvider({
         eth_chainId: "0x1", // mainnet
       });
-      const client = await getWalletClient(provider, "l1", "0x123", {
-        pollingInterval: 1000,
-        cacheTime: 2000,
-      });
+      const client = await getWalletClient(
+        provider,
+        "l1",
+        new Map(),
+        "mainnet",
+        "0x123",
+        { pollingInterval: 1000, cacheTime: 2000 },
+      );
 
       assert.equal(client.pollingInterval, 1000);
       assert.equal(client.cacheTime, 2000);
@@ -278,7 +351,13 @@ describe("clients", () => {
         eth_chainId: "0x7a69", // 31337
         hardhat_metadata: {}, // hardhat network
       });
-      const client = await getWalletClient(provider, "l1", "0x123");
+      const client = await getWalletClient(
+        provider,
+        "l1",
+        new Map(),
+        "hardhat",
+        "0x123",
+      );
 
       assert.equal(client.pollingInterval, 50);
       assert.equal(client.cacheTime, 0);
@@ -288,7 +367,13 @@ describe("clients", () => {
         eth_chainId: "0x7a69", // 31337
         anvil_nodeInfo: {}, // anvil network
       });
-      const client2 = await getWalletClient(provider2, "l1", "0x123");
+      const client2 = await getWalletClient(
+        provider2,
+        "l1",
+        new Map(),
+        "hardhat",
+        "0x123",
+      );
 
       assert.equal(client2.pollingInterval, 50);
       assert.equal(client2.cacheTime, 0);
@@ -302,7 +387,12 @@ describe("clients", () => {
         eth_chainId: "0x1", // mainnet
         eth_accounts: ["0x123", "0x456"],
       });
-      const client = await getDefaultWalletClient(provider, "l1");
+      const client = await getDefaultWalletClient(
+        provider,
+        "l1",
+        new Map(),
+        "mainnet",
+      );
 
       assert.equal(client.type, "walletClient");
       assert.equal(client.chain.id, 1);
@@ -315,7 +405,12 @@ describe("clients", () => {
         eth_chainId: "0xa", // optimism
         eth_accounts: ["0x123", "0x456"],
       });
-      const client = await getDefaultWalletClient(provider, "op");
+      const client = await getDefaultWalletClient(
+        provider,
+        "op",
+        new Map(),
+        "optimism",
+      );
 
       assert.equal(client.type, "walletClient");
       assert.equal(client.chain.id, 10);
@@ -330,7 +425,7 @@ describe("clients", () => {
       });
 
       await assertRejectsWithHardhatError(
-        getDefaultWalletClient(provider, "l1"),
+        getDefaultWalletClient(provider, "l1", new Map(), "mainnet"),
         HardhatError.ERRORS.HARDHAT_VIEM.GENERAL
           .DEFAULT_WALLET_CLIENT_NOT_FOUND,
         {
@@ -344,10 +439,13 @@ describe("clients", () => {
         eth_chainId: "0x1", // mainnet
         eth_accounts: ["0x123", "0x456"],
       });
-      const client = await getDefaultWalletClient(provider, "l1", {
-        pollingInterval: 1000,
-        cacheTime: 2000,
-      });
+      const client = await getDefaultWalletClient(
+        provider,
+        "l1",
+        new Map(),
+        "mainnet",
+        { pollingInterval: 1000, cacheTime: 2000 },
+      );
 
       assert.equal(client.pollingInterval, 1000);
       assert.equal(client.cacheTime, 2000);
@@ -359,7 +457,12 @@ describe("clients", () => {
         eth_accounts: ["0x123", "0x456"],
         hardhat_metadata: {}, // hardhat network
       });
-      const client = await getDefaultWalletClient(provider, "l1");
+      const client = await getDefaultWalletClient(
+        provider,
+        "l1",
+        new Map(),
+        "hardhat",
+      );
 
       assert.equal(client.pollingInterval, 50);
       assert.equal(client.cacheTime, 0);
@@ -370,7 +473,12 @@ describe("clients", () => {
         eth_accounts: ["0x123", "0x456"],
         anvil_nodeInfo: {}, // anvil network
       });
-      const client2 = await getDefaultWalletClient(provider2, "l1");
+      const client2 = await getDefaultWalletClient(
+        provider2,
+        "l1",
+        new Map(),
+        "hardhat",
+      );
 
       assert.equal(client2.pollingInterval, 50);
       assert.equal(client2.cacheTime, 0);
@@ -384,7 +492,12 @@ describe("clients", () => {
         eth_chainId: "0x7a69", // 31337 in hex
         hardhat_metadata: {}, // hardhat network
       });
-      const client = await getTestClient(provider, "generic");
+      const client = await getTestClient(
+        provider,
+        "generic",
+        new Map(),
+        "hardhat",
+      );
 
       assert.equal(client.type, "testClient");
       assert.equal(client.chain.id, 31337);
@@ -399,7 +512,12 @@ describe("clients", () => {
         eth_chainId: "0x7a69", // 31337 in hex
         anvil_nodeInfo: {}, // anvil network
       });
-      const client = await getTestClient(provider, "generic");
+      const client = await getTestClient(
+        provider,
+        "generic",
+        new Map(),
+        "anvil",
+      );
 
       assert.equal(client.type, "testClient");
       assert.equal(client.chain.id, 31337);
@@ -415,10 +533,13 @@ describe("clients", () => {
         hardhat_metadata: {}, // hardhat network
       });
 
-      const client = await getTestClient(provider, "generic", {
-        pollingInterval: 1000,
-        cacheTime: 2000,
-      });
+      const client = await getTestClient(
+        provider,
+        "generic",
+        new Map(),
+        "hardhat",
+        { pollingInterval: 1000, cacheTime: 2000 },
+      );
 
       assert.equal(client.pollingInterval, 1000);
       assert.equal(client.cacheTime, 2000);

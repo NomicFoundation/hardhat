@@ -567,6 +567,7 @@ describe("Anonymizer", () => {
         createTestEvent([hardhatFile, userHardhatConfigFile, userProjectFile], {
           type: "Error",
           value:
+            /* cspell:disable-next-line */
             "Cannot find module 'chai'\nRequire stack:\n- <user-path>/node_modules/@nomicfoundation/hardhat-chai-matchers/internal/add-ch…ndation/hardhat-chai-matchers/index.js\n- <user-path>/node_modules/@nomicfoundation/hardhat-toolbox/index.js\n- <user-path>",
         }),
       );

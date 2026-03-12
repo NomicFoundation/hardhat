@@ -2,6 +2,7 @@ import type {
   ArtifactManager,
   Artifact,
   GetArtifactByName,
+  StringWithArtifactContractNamesAutocompletion,
 } from "../../src/types/artifacts.js";
 
 import {
@@ -20,7 +21,9 @@ export class MockArtifactManager implements ArtifactManager {
     this.#artifacts.set(artifact.contractName, artifact);
   }
 
-  public async readArtifact<ContractNameT extends string>(
+  public async readArtifact<
+    ContractNameT extends StringWithArtifactContractNamesAutocompletion,
+  >(
     contractNameOrFullyQualifiedName: ContractNameT,
   ): Promise<GetArtifactByName<ContractNameT>> {
     const artifact = this.#artifacts.get(contractNameOrFullyQualifiedName);

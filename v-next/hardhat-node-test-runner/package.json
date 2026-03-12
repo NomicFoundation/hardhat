@@ -1,6 +1,6 @@
 {
   "name": "@nomicfoundation/hardhat-node-test-runner",
-  "version": "3.0.8",
+  "version": "3.0.11",
   "description": "A node:test runner",
   "homepage": "https://github.com/nomicfoundation/hardhat/tree/v-next/v-next/hardhat-node-test-runner",
   "repository": {
@@ -13,8 +13,7 @@
   "type": "module",
   "exports": {
     ".": "./dist/src/index.js",
-    "./coverage": "./dist/src/coverage.js",
-    "./gas-stats": "./dist/src/gas-stats.js"
+    "./test-worker-done": "./dist/src/test-worker-done.js"
   },
   "keywords": [
     "ethereum",
@@ -50,17 +49,18 @@
     "expect-type": "^1.2.1",
     "prettier": "3.2.5",
     "rimraf": "^5.0.5",
-    "typescript": "~5.8.0"
+    "typescript": "~5.8.0",
+    "hardhat": "workspace:^3.1.12"
   },
   "dependencies": {
-    "@nomicfoundation/hardhat-errors": "workspace:^3.0.2",
+    "@nomicfoundation/hardhat-errors": "workspace:^3.0.8",
     "@nomicfoundation/hardhat-node-test-reporter": "workspace:^3.0.2",
-    "@nomicfoundation/hardhat-utils": "workspace:^3.0.5",
-    "@nomicfoundation/hardhat-zod-utils": "workspace:^3.0.0",
+    "@nomicfoundation/hardhat-utils": "workspace:^4.0.1",
+    "@nomicfoundation/hardhat-zod-utils": "workspace:^3.0.3",
     "tsx": "^4.19.3",
     "zod": "^3.23.8"
   },
   "peerDependencies": {
-    "hardhat": "workspace:^3.0.0"
+    "hardhat": "workspace:^3.1.12"
   }
 }

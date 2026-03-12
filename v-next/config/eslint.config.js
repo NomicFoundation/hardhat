@@ -344,6 +344,24 @@ export function createConfig(
       },
     ],
     "use-isnan": "error",
+    "no-restricted-globals": [
+      "error",
+      {
+        name: "performance",
+        message:
+          "Import from 'node:perf_hooks' explicitly e.g. `import { performance } from \"node:perf_hooks\";`",
+      },
+      {
+        name: "fetch",
+        message:
+          'Consider using `request` from `hardhat-utils e.g. `import { getRequest } from "@nomicfoundation/hardhat-utils/request";`',
+      },
+      {
+        name: "structuredClone",
+        message:
+          'Avoid structuredClone, consider `deepClone` instead e.g. `import { deepClone } from "@nomicfoundation/hardhat-utils/lang";`',
+      },
+    ],
     "no-restricted-imports": [
       "error",
       {
@@ -471,7 +489,7 @@ export function createConfig(
       "no-restricted-syntax": [
         ...noRestrictedSyntaxRules,
         {
-          // This is a best effor selector that forbids every throw unless it's a `new HardhatError`,
+          // This is a best effort selector that forbids every throw unless it's a `new HardhatError`,
           // or throwing a variable within a catch clause.
           selector:
             "ThrowStatement:not(:has(ThrowStatement > NewExpression[callee.name='HardhatError']), CatchClause ThrowStatement:has(ThrowStatement > Identifier))",

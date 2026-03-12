@@ -66,7 +66,7 @@ async function spawnCompile(
       );
 
       const stdoutPipeline = subprocess.stdout.pipe(stdoutWriteStream);
-      // NOTE: Compiler warnings are NOT written to stder, they are returned via
+      // NOTE: Compiler warnings are NOT written to stderr, they are returned via
       // the `errors` field of the CompilerOutput instead
       const stderrPipeline = subprocess.stderr.pipe(
         createNonClosingWriter(process.stderr),

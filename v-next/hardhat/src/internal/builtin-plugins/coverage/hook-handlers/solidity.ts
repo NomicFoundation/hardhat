@@ -3,21 +3,14 @@ import type { CoverageMetadata } from "../types.js";
 
 import path from "node:path";
 
-import {
-  addStatementCoverageInstrumentation,
-  latestSupportedSolidityVersion,
-} from "@nomicfoundation/edr";
-import {
-  assertHardhatInvariant,
-  HardhatError,
-} from "@nomicfoundation/hardhat-errors";
+import { HardhatError } from "@nomicfoundation/hardhat-errors";
 import { ensureError } from "@nomicfoundation/hardhat-utils/error";
 import { readUtf8File } from "@nomicfoundation/hardhat-utils/fs";
 import { findClosestPackageRoot } from "@nomicfoundation/hardhat-utils/package";
 import debug from "debug";
-import { satisfies } from "semver";
 
-import { CoverageManagerImplementation } from "../coverage-manager.js";
+import { getCoverageManager } from "../helpers.js";
+import { instrumentSolidityFileForCompilationJob } from "../instrumentation.js";
 
 const log = debug("hardhat:core:coverage:hook-handlers:solidity");
 
@@ -40,19 +33,12 @@ export default async (): Promise<Partial<SolidityHooks>> => ({
 
     if (context.globalOptions.coverage && !isTestSource) {
       try {
-        const latestSupportedVersion = latestSupportedSolidityVersion();
-        if (!satisfies(solcVersion, `<=${latestSupportedVersion}`)) {
-          console.log(
-            `Solidity version ${solcVersion} is not yet supported for coverage instrumentation. Hardhat will try the latest supported version ${latestSupportedVersion} instead.`,
-          );
-          solcVersion = latestSupportedVersion;
-        }
-        const { source, metadata } = addStatementCoverageInstrumentation(
-          fileContent,
+        const { source, metadata } = instrumentSolidityFileForCompilationJob({
+          compilationJobSolcVersion: solcVersion,
           sourceName,
-          solcVersion,
-          COVERAGE_LIBRARY_PATH,
-        );
+          fileContent,
+          coverageLibraryPath: COVERAGE_LIBRARY_PATH,
+        });
 
         // TODO: Remove this once EDR starts returning line information as part
         // of the metadata.
@@ -91,13 +77,7 @@ export default async (): Promise<Partial<SolidityHooks>> => ({
           }
         }
 
-        assertHardhatInvariant(
-          "_coverage" in context &&
-            context._coverage instanceof CoverageManagerImplementation,
-          "Expected _coverage to be defined in the HookContext, as it's should be defined in the HRE",
-        );
-
-        await context._coverage.addMetadata(coverageMetadata);
+        await getCoverageManager(context).addMetadata(coverageMetadata);
 
         return await next(context, sourceName, fsPath, source, solcVersion);
       } catch (e) {

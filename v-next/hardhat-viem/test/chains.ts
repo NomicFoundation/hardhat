@@ -1,3 +1,9 @@
+import type {
+  ChainDescriptorConfig,
+  ChainDescriptorsConfig,
+} from "hardhat/types/config";
+import type { ChainType } from "hardhat/types/network";
+
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 
@@ -12,34 +18,90 @@ import {
   isHardhatNetwork,
   isAnvilNetwork,
   getMode,
+  resolveChain,
+  createMinimalChain,
+  getDefaultBlockExplorer,
 } from "../src/internal/chains.js";
 
 import { MockEthereumProvider } from "./utils.js";
 
+function createMockChainDescriptor(
+  name: string,
+  chainType: ChainType = "generic",
+  etherscanUrl?: string,
+  blockscoutUrl?: string,
+): ChainDescriptorConfig {
+  return {
+    name,
+    chainType,
+    blockExplorers: {
+      ...(etherscanUrl !== undefined
+        ? { etherscan: { name: "Explorer", url: etherscanUrl, apiUrl: "" } }
+        : {}),
+      ...(blockscoutUrl !== undefined
+        ? {
+            blockscout: {
+              name: "Blockscout Explorer",
+              url: blockscoutUrl,
+              apiUrl: "",
+            },
+          }
+        : {}),
+    },
+  };
+}
+
 describe("chains", () => {
   describe("getChain", () => {
-    it("should return the chain corresponding to the chain id", async () => {
+    it("should return the matching chain when the chain id exists in viem's chain list", async () => {
       const provider = new MockEthereumProvider({ eth_chainId: "0x1" }); // mainnet chain id
 
-      const chain = await getChain(provider, "generic");
+      const chain = await getChain(provider, "generic", new Map(), "mainnet");
 
       assert.deepEqual(chain, chains.mainnet);
       assert.equal(provider.callCount, 1);
     });
 
-    it("should return the hardhat chain if the network is hardhat and it's not a forked network", async () => {
+    it("should return the first matching chain when multiple chains share the same chain id", async () => {
+      // chain id 999 corresponds to hyperEvm, wanchainTestnet and also zoraTestnet
+      const provider = new MockEthereumProvider({ eth_chainId: "0x3e7" }); // 999 in hex
+
+      const chainId = await getChain(
+        provider,
+        "generic",
+        new Map(),
+        "hyperEvm",
+      );
+      assert.equal(chainId, chains.hyperEvm);
+    });
+
+    it("should return the Hardhat chain when the network is Hardhat and not forked", async () => {
       const provider = new MockEthereumProvider({
         eth_chainId: "0x7a69", // 31337 in hex
         hardhat_metadata: {},
       });
 
-      const chain = await getChain(provider, "generic");
+      const chain = await getChain(provider, "generic", new Map(), "hardhat");
 
       assert.deepEqual(chain, chains.hardhat);
       assert.equal(provider.callCount, 2);
     });
 
-    it("should return a forked chain with hardhat properties when hardhat is forked from a known network", async () => {
+    it("should return the Hardhat chain with a custom chain id", async () => {
+      const provider = new MockEthereumProvider({
+        eth_chainId: "0x3039", // 12345 in hex
+        hardhat_metadata: {},
+      });
+
+      const chain = await getChain(provider, "generic", new Map(), "hardhat");
+
+      assert.deepEqual(chain, {
+        ...chains.hardhat,
+        id: 12345,
+      });
+    });
+
+    it("should return a forked chain with Hardhat properties when forked from a known network", async () => {
       const provider = new MockEthereumProvider({
         eth_chainId: "0x7a69", // 31337 in hex
         hardhat_metadata: {
@@ -49,7 +111,7 @@ describe("chains", () => {
         },
       });
 
-      const chain = await getChain(provider, "generic");
+      const chain = await getChain(provider, "generic", new Map(), "hardhat");
 
       assert.deepEqual(chain, {
         ...chains.mainnet,
@@ -59,7 +121,7 @@ describe("chains", () => {
       assert.equal(provider.callCount, 2);
     });
 
-    it("should return the hardhat chain when forked from an unknown network", async () => {
+    it("should return the Hardhat chain when forked from an unknown chain id", async () => {
       const provider = new MockEthereumProvider({
         eth_chainId: "0x7a69", // 31337 in hex
         hardhat_metadata: {
@@ -69,7 +131,7 @@ describe("chains", () => {
         },
       });
 
-      const chain = await getChain(provider, "generic");
+      const chain = await getChain(provider, "generic", new Map(), "hardhat");
 
       assert.deepEqual(chain, {
         ...chains.hardhat,
@@ -78,67 +140,67 @@ describe("chains", () => {
       assert.equal(provider.callCount, 2);
     });
 
-    it("should return the foundry chain if the network is anvil", async () => {
+    it("should return the Anvil chain when the network is Anvil", async () => {
       const provider = new MockEthereumProvider({
         eth_chainId: "0x7a69", // 31337 in hex
         anvil_nodeInfo: {},
       });
 
-      const chain = await getChain(provider, "generic");
+      const chain = await getChain(provider, "generic", new Map(), "anvil");
 
       assert.deepEqual(chain, chains.anvil);
       assert.equal(provider.callCount, 2);
     });
 
-    it("should throw if it's not a dev network and there is no chain with that id", async () => {
-      const provider = new MockEthereumProvider({ eth_chainId: "0x0" }); // fake chain id 0
-
-      await assertRejectsWithHardhatError(
-        getChain(provider, "generic"),
-        HardhatError.ERRORS.HARDHAT_VIEM.GENERAL.NETWORK_NOT_FOUND,
-        { chainId: 0 },
-      );
-    });
-
-    it("should return the first chain that matches the chain id if there are multiple chains with the same id", async () => {
-      // chain id 999 corresponds to hyperEvm, wanchainTestnet and also zoraTestnet
-      const provider = new MockEthereumProvider({ eth_chainId: "0x3e7" }); // 999 in hex
-
-      const chainId = await getChain(provider, "generic");
-      assert.equal(chainId, chains.hyperEvm);
-    });
-
-    it("should return a hardhat chain with the custom chainId", async () => {
-      const provider = new MockEthereumProvider({
-        eth_chainId: "0x3039", // 12345 in hex
-        hardhat_metadata: {},
-      });
-
-      const chain = await getChain(provider, "generic");
-
-      assert.deepEqual(chain, {
-        ...chains.hardhat,
-        id: 12345,
-      });
-    });
-
-    it("should return an anvil chain with the custom chainId", async () => {
+    it("should return the Anvil chain with a custom chain id", async () => {
       const provider = new MockEthereumProvider({
         eth_chainId: "0x3039", // 12345 in hex
         anvil_nodeInfo: {},
       });
 
-      const chain = await getChain(provider, "generic");
+      const chain = await getChain(provider, "generic", new Map(), "anvil");
 
       assert.deepEqual(chain, {
         ...chains.anvil,
         id: 12345,
       });
     });
+
+    it("should return a custom chain from chainDescriptors when the chain id is not in viem's chain list", async () => {
+      const provider = new MockEthereumProvider({ eth_chainId: "0x2694" }); // 9876 in hex
+
+      const chainDescriptors: ChainDescriptorsConfig = new Map([
+        [9876n, createMockChainDescriptor("GCCNET")],
+      ]);
+
+      const chain = await getChain(
+        provider,
+        "generic",
+        chainDescriptors,
+        "gccnet",
+      );
+
+      assert.equal(chain.id, 9876);
+      assert.equal(chain.name, "GCCNET");
+    });
+
+    it("should fall back to a minimal chain with the network name when the chain id is not in viem's chain list and no descriptor matches", async () => {
+      const provider = new MockEthereumProvider({ eth_chainId: "0x2694" }); // 9876 in hex
+
+      const chain = await getChain(
+        provider,
+        "generic",
+        new Map(),
+        "adiTestnet",
+      );
+
+      assert.equal(chain.id, 9876);
+      assert.equal(chain.name, "adiTestnet");
+    });
   });
 
   describe("getChainId", () => {
-    it("should return the chainId", async () => {
+    it("should return the chain id", async () => {
       const provider = new MockEthereumProvider({ eth_chainId: "0x1" });
       const chainId = await getChainId(provider);
 
@@ -146,7 +208,7 @@ describe("chains", () => {
       assert.equal(provider.callCount, 1);
     });
 
-    it("should cache the chainId for the same provider", async () => {
+    it("should cache the chain id for the same provider", async () => {
       const provider = new MockEthereumProvider({ eth_chainId: "0x1" });
       const chainId1 = await getChainId(provider);
       // set different return values for the second call
@@ -196,7 +258,7 @@ describe("chains", () => {
   });
 
   describe("isDevelopmentNetwork", () => {
-    it("should return true for Hardhat and Anvil nodes", async () => {
+    it("should return true for Hardhat and Anvil networks", async () => {
       assert.ok(
         await isDevelopmentNetwork(
           new MockEthereumProvider({ hardhat_metadata: {} }),
@@ -212,7 +274,7 @@ describe("chains", () => {
       );
     });
 
-    it("should return false for other nodes", async () => {
+    it("should return false for non-development networks", async () => {
       assert.ok(
         !(await isDevelopmentNetwork(new MockEthereumProvider({}))),
         "chain id 1 should not be a development network",
@@ -221,7 +283,7 @@ describe("chains", () => {
   });
 
   describe("isHardhatNetwork", () => {
-    it("should return true if the network is hardhat", async () => {
+    it("should return true when the network is Hardhat", async () => {
       const provider = new MockEthereumProvider({ hardhat_metadata: {} });
       const isHardhat = await isHardhatNetwork(provider);
 
@@ -229,7 +291,7 @@ describe("chains", () => {
       assert.equal(provider.callCount, 1);
     });
 
-    it("should return false if the network is not hardhat", async () => {
+    it("should return false when the network is not Hardhat", async () => {
       const provider = new MockEthereumProvider({ anvil_nodeInfo: {} });
       const isHardhat = await isHardhatNetwork(provider);
 
@@ -251,7 +313,7 @@ describe("chains", () => {
       );
     });
 
-    it("should cache the response for the same provider", async () => {
+    it("should cache the result for the same provider", async () => {
       const provider = new MockEthereumProvider({ hardhat_metadata: {} });
       const isHardhat1 = await isHardhatNetwork(provider);
       // set different return values for the second call
@@ -299,7 +361,7 @@ describe("chains", () => {
   });
 
   describe("isAnvilNetwork", () => {
-    it("should return true if the network is anvil", async () => {
+    it("should return true when the network is Anvil", async () => {
       const provider = new MockEthereumProvider({ anvil_nodeInfo: {} });
       const isAnvil = await isAnvilNetwork(provider);
 
@@ -307,7 +369,7 @@ describe("chains", () => {
       assert.equal(provider.callCount, 1);
     });
 
-    it("should return false if the network is not anvil", async () => {
+    it("should return false when the network is not Anvil", async () => {
       const provider = new MockEthereumProvider({ hardhat_metadata: {} });
       const isAnvil = await isAnvilNetwork(provider);
 
@@ -329,7 +391,7 @@ describe("chains", () => {
       );
     });
 
-    it("should cache the response for the same provider", async () => {
+    it("should cache the result for the same provider", async () => {
       const provider = new MockEthereumProvider({ anvil_nodeInfo: {} });
       const isAnvil1 = await isAnvilNetwork(provider);
       // set different return values for the second call
@@ -377,7 +439,7 @@ describe("chains", () => {
   });
 
   describe("getMode", () => {
-    it("should return hardhat if the network is hardhat", async () => {
+    it("should return 'hardhat' when the network is Hardhat", async () => {
       const provider = new MockEthereumProvider({ hardhat_metadata: {} });
 
       const mode = await getMode(provider);
@@ -385,7 +447,7 @@ describe("chains", () => {
       assert.equal(mode, "hardhat");
     });
 
-    it("should return anvil if the network is anvil", async () => {
+    it("should return 'anvil' when the network is Anvil", async () => {
       const provider = new MockEthereumProvider({ anvil_nodeInfo: {} });
 
       const mode = await getMode(provider);
@@ -393,7 +455,7 @@ describe("chains", () => {
       assert.equal(mode, "anvil");
     });
 
-    it("should throw if the network is neither hardhat nor anvil", async () => {
+    it("should throw when the network is neither Hardhat nor Anvil", async () => {
       const provider = new MockEthereumProvider();
 
       await assertRejectsWithHardhatError(
@@ -402,6 +464,169 @@ describe("chains", () => {
           .UNSUPPORTED_DEVELOPMENT_NETWORK,
         {},
       );
+    });
+  });
+
+  describe("createMinimalChain", () => {
+    it("should return a chain with the correct id and name", () => {
+      const chain = createMinimalChain(42, "myChain");
+
+      assert.equal(chain.id, 42);
+      assert.equal(chain.name, "myChain");
+    });
+
+    it("should always set the default nativeCurrency", () => {
+      const chain = createMinimalChain(1, "test");
+
+      assert.deepEqual(chain.nativeCurrency, {
+        name: "Ether",
+        symbol: "ETH",
+        decimals: 18,
+      });
+    });
+
+    it("should always set empty rpcUrls", () => {
+      const chain = createMinimalChain(1, "test");
+
+      assert.deepEqual(chain.rpcUrls, { default: { http: [] } });
+    });
+  });
+
+  describe("getDefaultBlockExplorer", () => {
+    it("should return undefined when no block explorers are configured", () => {
+      const descriptor = createMockChainDescriptor("test");
+
+      assert.equal(getDefaultBlockExplorer(descriptor), undefined);
+    });
+
+    it("should return the etherscan explorer when etherscan is configured", () => {
+      const descriptor = createMockChainDescriptor(
+        "test",
+        "generic",
+        "https://etherscan.io",
+      );
+
+      assert.deepEqual(getDefaultBlockExplorer(descriptor), {
+        name: "Explorer",
+        url: "https://etherscan.io",
+      });
+    });
+
+    it("should default to 'Etherscan' when etherscan has no name", () => {
+      const descriptor: ChainDescriptorConfig = {
+        name: "test",
+        chainType: "generic",
+        blockExplorers: {
+          etherscan: { url: "https://etherscan.io", apiUrl: "" },
+        },
+      };
+
+      assert.deepEqual(getDefaultBlockExplorer(descriptor), {
+        name: "Etherscan",
+        url: "https://etherscan.io",
+      });
+    });
+
+    it("should return the blockscout explorer when blockscout is configured", () => {
+      const descriptor = createMockChainDescriptor(
+        "test",
+        "generic",
+        undefined,
+        "https://blockscout.com",
+      );
+
+      assert.deepEqual(getDefaultBlockExplorer(descriptor), {
+        name: "Blockscout Explorer",
+        url: "https://blockscout.com",
+      });
+    });
+
+    it("should default to 'Blockscout' when blockscout has no name", () => {
+      const descriptor: ChainDescriptorConfig = {
+        name: "test",
+        chainType: "generic",
+        blockExplorers: {
+          blockscout: { url: "https://blockscout.com", apiUrl: "" },
+        },
+      };
+
+      assert.deepEqual(getDefaultBlockExplorer(descriptor), {
+        name: "Blockscout",
+        url: "https://blockscout.com",
+      });
+    });
+
+    it("should prefer etherscan over blockscout when both are configured", () => {
+      const descriptor = createMockChainDescriptor(
+        "test",
+        "generic",
+        "https://etherscan.io",
+        "https://blockscout.com",
+      );
+
+      const explorer = getDefaultBlockExplorer(descriptor);
+
+      assert.equal(explorer?.url, "https://etherscan.io");
+    });
+  });
+
+  describe("resolveChain", () => {
+    it("should fall back to the network name when no descriptor matches the chain id", () => {
+      const chain = resolveChain(9999, "fallbackName", new Map());
+
+      assert.equal(chain.id, 9999);
+      assert.equal(chain.name, "fallbackName");
+    });
+
+    it("should use the descriptor name when a matching descriptor is found", () => {
+      const descriptors: ChainDescriptorsConfig = new Map([
+        [9999n, createMockChainDescriptor("DescriptorName")],
+      ]);
+
+      const chain = resolveChain(9999, "networkName", descriptors);
+
+      assert.equal(chain.name, "DescriptorName");
+    });
+
+    it("should include the block explorer from the descriptor when one is configured", () => {
+      const descriptors: ChainDescriptorsConfig = new Map([
+        [
+          9999n,
+          createMockChainDescriptor(
+            "test",
+            "generic",
+            "https://scan.example.com",
+          ),
+        ],
+      ]);
+
+      const chain = resolveChain(9999, "networkName", descriptors);
+
+      assert.equal(
+        chain.blockExplorers?.default.url,
+        "https://scan.example.com",
+      );
+    });
+
+    it("should leave blockExplorers undefined when the descriptor has no explorers", () => {
+      const descriptors: ChainDescriptorsConfig = new Map([
+        [9999n, createMockChainDescriptor("test")],
+      ]);
+
+      const chain = resolveChain(9999, "networkName", descriptors);
+
+      assert.equal(chain.blockExplorers, undefined);
+    });
+
+    it("should always include the minimal chain structure", () => {
+      const chain = resolveChain(9999, "networkName", new Map());
+
+      assert.deepEqual(chain.nativeCurrency, {
+        name: "Ether",
+        symbol: "ETH",
+        decimals: 18,
+      });
+      assert.deepEqual(chain.rpcUrls, { default: { http: [] } });
     });
   });
 });

@@ -110,7 +110,7 @@ describe("edr-provider", () => {
       assert.deepEqual(response, {
         failed: false,
         gas: 21000,
-        returnValue: "",
+        returnValue: "0x",
         structLogs: [],
       });
     });
@@ -150,7 +150,7 @@ describe("edr-provider", () => {
       assert.deepEqual(response, {
         failed: false,
         gas: 21000,
-        returnValue: "",
+        returnValue: "0x",
         structLogs: [],
       });
     });
@@ -609,7 +609,7 @@ describe("edr-provider", () => {
 
       assert.equal(providerConfig.fork?.chainOverrides?.length, 2);
 
-      // mainnet doesn't have harfork history, so it should be undefined
+      // mainnet doesn't have hardfork history, so it should be undefined
       const mainnetOverride = providerConfig.fork?.chainOverrides[0];
       assert.equal(mainnetOverride.name, "mainnet");
       assert.equal(mainnetOverride.hardforkActivationOverrides, undefined);

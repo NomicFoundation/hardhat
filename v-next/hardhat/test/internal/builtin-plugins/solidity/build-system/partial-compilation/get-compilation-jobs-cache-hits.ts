@@ -31,7 +31,7 @@ contract Foo {}`,
       quiet: true,
     });
 
-    assert(!("reason" in result), "getCompilationJobs should succeed");
+    assert(result.success, "getCompilationJobs should succeed");
     assert.equal(result.cacheHits.size, 1, "Should have one cache hit");
     assert.equal(
       result.compilationJobsPerFile.size,
@@ -60,7 +60,10 @@ contract Foo {}`,
 
     // First build to get original buildId
     const buildResult = await hre.solidity.build([filePath], { quiet: true });
-    assert(!("reason" in buildResult), "Build should succeed");
+    assert(
+      hre.solidity.isSuccessfulBuildResult(buildResult),
+      "Build should succeed",
+    );
     const fileBuildResult = buildResult.get(filePath);
     assert.equal(fileBuildResult?.type, FileBuildResultType.BUILD_SUCCESS);
     const originalBuildId = await fileBuildResult.compilationJob.getBuildId();
@@ -70,7 +73,7 @@ contract Foo {}`,
       quiet: true,
     });
 
-    assert(!("reason" in result), "getCompilationJobs should succeed");
+    assert(result.success, "getCompilationJobs should succeed");
     const cacheHitInfo = result.cacheHits.get(filePath);
 
     assert(cacheHitInfo !== undefined, "Should have cache hit info");
@@ -124,7 +127,7 @@ contract Foo { uint256 public value; }`,
       quiet: true,
     });
 
-    assert(!("reason" in result), "getCompilationJobs should succeed");
+    assert(result.success, "getCompilationJobs should succeed");
     assert(
       result.compilationJobsPerFile.has(fooPath),
       "Modified file should be in compilationJobsPerFile",
@@ -160,7 +163,7 @@ contract Foo {}`,
       force: true,
     });
 
-    assert(!("reason" in result), "getCompilationJobs should succeed");
+    assert(result.success, "getCompilationJobs should succeed");
     assert.equal(
       result.cacheHits.size,
       0,
@@ -192,7 +195,7 @@ contract Foo {}`,
       quiet: true,
     });
 
-    assert(!("reason" in result), "getCompilationJobs should succeed");
+    assert(result.success, "getCompilationJobs should succeed");
     assert.equal(
       result.cacheHits.size,
       0,
@@ -240,7 +243,7 @@ contract Base { uint256 public value; }`,
       quiet: true,
     });
 
-    assert(!("reason" in result), "getCompilationJobs should succeed");
+    assert(result.success, "getCompilationJobs should succeed");
     assert.equal(
       result.cacheHits.size,
       0,

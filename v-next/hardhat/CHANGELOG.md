@@ -1,5 +1,61 @@
 # hardhat
 
+## 3.1.12
+
+### Patch Changes
+
+- 01b41ee: Added support for function gas snapshots and snapshot cheatcodes in Solidity tests with `--snapshot` and `--snapshot-check` flags ([#7769](https://github.com/NomicFoundation/hardhat/issues/7769))
+- e37f96c: Add `TestRunResult` type that wraps `TestSummary`, allowing plugins to extend test results with additional data
+- bda5a0a: Bumped EDR version to [`0.12.0-next.28`](https://github.com/NomicFoundation/edr/releases/tag/%40nomicfoundation%2Fedr%400.12.0-next.28)
+
+## 3.1.11
+
+### Patch Changes
+
+- 2cbf218: Bumped EDR version to [`0.12.0-next.27`](https://github.com/NomicFoundation/edr/releases/tag/%40nomicfoundation%2Fedr%400.12.0-next.27)
+
+  BREAKING CHANGE: Memory capture used to be enabled by default on geth, but has since been flipped https://github.com/ethereum/go-ethereum/pull/23558 and is now disabled by default. We have followed suit and disabled it by default as well. If you were relying on memory capture, you will need to explicitly enable it by setting the `enableMemory` option to true in your tracer configuration.
+
+- bc193be: Use concrete value types for contract names in hardhat-viem and hardhat-ethers
+- 2cbf218: Make SolidityBuildSystem easier to work with ([#7988](https://github.com/NomicFoundation/hardhat/pull/7988))
+- 19b691d: Fix typo in assertion message [#8028](https://github.com/NomicFoundation/hardhat/pull/8028)
+- 2cbf218: Expose `Result` type for task action success/failure signaling.
+- 2cbf218: Fixed the acceptance of relative paths to `node_modules` in npm remappings ([#8007](https://github.com/NomicFoundation/hardhat/pull/8007))
+- 2cbf218: Implement a global banner logic in Hardhat 3 [#8021](https://github.com/NomicFoundation/hardhat/pull/8021)
+- 4ff11c1: Return typed `Result` from test runners and telemetry tasks ([#8015](https://github.com/NomicFoundation/hardhat/pull/8015)).
+- 2cbf218: Show fs paths and better error messages when a Solidity file can't be compiled with any configured compiler ([#7988](https://github.com/NomicFoundation/hardhat/pull/7988))
+- 2cbf218: Add `onTestRunStart`, `onTestWorkerDone`, and `onTestRunDone` test hooks ([#8001](https://github.com/NomicFoundation/hardhat/pull/8001))
+
+## 3.1.10
+
+### Patch Changes
+
+- ca26adb: Update `hardhat node` to always use the new `node` network (#7989)[https://github.com/NomicFoundation/hardhat/pull/7989]
+- 87623db: Introduce new inter-process mutex implementation ([7942](https://github.com/NomicFoundation/hardhat/pull/7942)).
+- 88e9cb5: Add a `SolidityHooks#readNpmPackageRemappings` hook
+- ec03a01: Allow overriding the type of the network configs `default` and `localhost` [#7805](https://github.com/NomicFoundation/hardhat/pull/7805)
+- 2c2e1f5: Throw better error messages when trying to use a Hardhat 2 plugin with Hardhat 3 [#7991](https://github.com/NomicFoundation/hardhat/pull/7991).
+- 90b5eec: Suggest installing hardhat-foundry when appropriate
+- 87623db: Make the solc downloader safe when run by multiple processes ([7946](https://github.com/NomicFoundation/hardhat/pull/7946)).
+- 726ff37: Update the `--coverage` table output to match the style used by `--gas-stats`. Thanks @jose-blockchain! ([#7733](https://github.com/NomicFoundation/hardhat/issues/7733))
+- f1e9b05: Added support for `inline actions` in tasks [7851](https://github.com/NomicFoundation/hardhat/pull/7851).
+- 73cb725: Expose `gasLimit` configuration for Solidity tests [#7996](https://github.com/NomicFoundation/hardhat/pull/7996)
+
+## 3.1.9
+
+### Patch Changes
+
+- 621d07e: Make the coverage work with versions of Solidity that aren't fully supported by EDR [#7982 ](https://github.com/NomicFoundation/hardhat/pull/7982)
+- 3e39a06: Round average and median gas usage in the gas analytics output
+- 78af2ed: Allow multiple parallel downloads of different compilers ([7946](https://github.com/NomicFoundation/hardhat/pull/7946)).
+
+## 3.1.8
+
+### Patch Changes
+
+- a6947fb: Use the official Linux ARM64 builds of solc in the `production` profile when available ([#7917](https://github.com/NomicFoundation/hardhat/pull/7917)).
+- fd42744: Fixed missing EIP-7212 precompile in Solidity Tests ([#7872](https://github.com/NomicFoundation/hardhat/issues/7872)).
+
 ## 3.1.7
 
 ### Patch Changes

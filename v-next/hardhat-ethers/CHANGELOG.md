@@ -1,5 +1,17 @@
 # @nomicfoundation/hardhat-ethers
 
+## 4.0.6
+
+### Patch Changes
+
+- bc193be: Use concrete value types for contract names in hardhat-viem and hardhat-ethers
+
+## 4.0.5
+
+### Patch Changes
+
+- 6674b00: Bump `hardhat-utils` major
+
 ## 4.0.4
 
 ### Patch Changes

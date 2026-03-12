@@ -12,11 +12,11 @@
     },
     "excludedFolders": {
       "type": "array",
-      "description": "Package folders to skip (relative to repo root). Useful for example projects, templates, or archived code.",
+      "description": "Package folders to skip (relative to repo root). Useful for example projects or templates.",
       "items": {
         "type": "string"
       },
-      "examples": [["archive", "v-next/example-project"]]
+      "examples": [["v-next/example-project"]]
     },
     "bumps": {
       "type": "array",

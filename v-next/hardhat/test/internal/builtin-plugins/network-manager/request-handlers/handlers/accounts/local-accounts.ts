@@ -373,6 +373,7 @@ describe("LocalAccountsHandler", () => {
       it("should throw if data string input is not JSON", async () => {
         const jsonRpcRequest = getJsonRpcRequest(1, "eth_signTypedData_v4", [
           "0xCD2a3d9F938E13CD947Ec05AbC7FE734Df8DD826",
+          /* cspell:disable-next-line */
           "}thisisnotvalidjson{",
         ]);
 

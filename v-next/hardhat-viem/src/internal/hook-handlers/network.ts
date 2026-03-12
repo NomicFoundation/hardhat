@@ -17,6 +17,8 @@ export default async (): Promise<Partial<NetworkHooks>> => {
         connection.chainType,
         connection.provider,
         context.artifacts,
+        context.config.chainDescriptors,
+        connection.networkName,
       );
 
       return connection;

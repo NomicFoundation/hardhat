@@ -12,6 +12,7 @@ import {
   HARDHAT_NAME,
   HARDHAT_WEBSITE_URL,
 } from "../../../src/internal/constants.js";
+import { UsingHardhat2PluginError } from "../../../src/internal/using-hardhat2-plugin-errors.js";
 
 const mockCoreErrorDescriptor = {
   number: 123,
@@ -170,6 +171,57 @@ describe("error-handler", () => {
           lines[4],
           `If you think this is a bug in Hardhat, please report it here: ${HARDHAT_WEBSITE_URL}report-bug`,
         );
+      });
+    });
+
+    describe("with a UsingHardhat2PluginError: independent of shouldShowStackTraces and the rest of the handling logic", () => {
+      it("should print the error message when callerRelativePath is available", () => {
+        const lines: Array<string | Error> = [];
+        const error = new UsingHardhat2PluginError();
+
+        printErrorMessages(error, false, (msg: string | Error) => {
+          lines.push(msg);
+        });
+
+        assert.equal(lines.length, 3);
+        assert.equal(lines[0], chalk.red.bold(`Hardhat 3 installation error:`));
+        assert.equal(lines[1], "");
+        assert.equal(lines[2], error.message);
+      });
+
+      it("should not print the stack trace even when shouldShowStackTraces is true", () => {
+        const lines: Array<string | Error> = [];
+        const error = new UsingHardhat2PluginError();
+
+        printErrorMessages(error, true, (msg: string | Error) => {
+          lines.push(msg);
+        });
+
+        // UsingHardhat2PluginError is handled separately and always prints
+        // the same output regardless of shouldShowStackTraces
+        assert.equal(lines.length, 3);
+        assert.equal(lines[0], chalk.red.bold(`Hardhat 3 installation error:`));
+        assert.equal(lines[1], "");
+        assert.equal(lines[2], error.message);
+      });
+
+      it("should print the stack trace when the callerRelativePath is not available", () => {
+        const lines: Array<string | Error> = [];
+        const error = new UsingHardhat2PluginError();
+
+        /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions 
+          -- Casting for testing purposes, as generating a failure of the logic
+          that gets the callerRelativePath is not trivial */
+        (error as any).callerRelativePath = undefined;
+
+        printErrorMessages(error, true, (msg: string | Error) => {
+          lines.push(msg);
+        });
+
+        assert.equal(lines.length, 3);
+        assert.equal(lines[0], chalk.red.bold(`Hardhat 3 installation error:`));
+        assert.equal(lines[1], "");
+        assert.equal(lines[2], error.stack);
       });
     });
   });

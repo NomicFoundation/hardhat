@@ -1,6 +1,7 @@
 import type {
   LazyActionObject,
   NewTaskActionFunction,
+  TaskOverrideActionFunction,
 } from "../../../../src/types/tasks.js";
 
 import assert from "node:assert/strict";
@@ -166,16 +167,16 @@ describe("Task builders", () => {
         const builder = new NewTaskDefinitionBuilderImplementation("task-id");
         const taskActionUrl = "./path/to/task-action.js";
 
-        const lazyAction: LazyActionObject<NewTaskActionFunction> = () =>
+        const action: LazyActionObject<NewTaskActionFunction> = () =>
           import(taskActionUrl);
 
-        const taskDefinition = builder.setAction(lazyAction).build();
+        const taskDefinition = builder.setAction(action).build();
 
         assert.deepEqual(taskDefinition, {
           type: TaskDefinitionType.NEW_TASK,
           id: ["task-id"],
           description: "",
-          action: lazyAction,
+          action,
           options: {},
           positionalArguments: [],
         });
@@ -1078,6 +1079,75 @@ describe("Task builders", () => {
         );
       });
     });
+
+    describe("actions", () => {
+      const action: LazyActionObject<NewTaskActionFunction> = async () => ({
+        default: () => {},
+      });
+      const inlineAction: NewTaskActionFunction = () => {};
+
+      it("should be valid with only inline action", () => {
+        const builder = new NewTaskDefinitionBuilderImplementation("task-id");
+
+        const result = builder.setInlineAction(inlineAction).build();
+
+        assert.equal(result.type, TaskDefinitionType.NEW_TASK);
+        assert.equal(result.inlineAction, inlineAction);
+        assert.equal(result.action, undefined);
+      });
+
+      it("should be invalid with action + inline action", () => {
+        const builder = new NewTaskDefinitionBuilderImplementation("task-id");
+
+        builder.setAction(action);
+
+        assertThrowsHardhatError(
+          () => builder.setInlineAction(inlineAction),
+          HardhatError.ERRORS.CORE.TASK_DEFINITIONS.ACTION_ALREADY_SET,
+          { task: "task-id" },
+        );
+      });
+
+      it("should be invalid with inline action + action", () => {
+        const builder = new NewTaskDefinitionBuilderImplementation("task-id");
+
+        builder.setInlineAction(inlineAction);
+
+        assertThrowsHardhatError(
+          () => builder.setAction(action),
+          HardhatError.ERRORS.CORE.TASK_DEFINITIONS.ACTION_ALREADY_SET,
+          { task: "task-id" },
+        );
+      });
+
+      it("should be invalid with double action", () => {
+        const builder = new NewTaskDefinitionBuilderImplementation("task-id");
+        const action2: LazyActionObject<NewTaskActionFunction> = async () => ({
+          default: () => {},
+        });
+
+        builder.setAction(action);
+
+        assertThrowsHardhatError(
+          () => builder.setAction(action2),
+          HardhatError.ERRORS.CORE.TASK_DEFINITIONS.ACTION_ALREADY_SET,
+          { task: "task-id" },
+        );
+      });
+
+      it("should be invalid with double inline action", () => {
+        const builder = new NewTaskDefinitionBuilderImplementation("task-id");
+        const inlineAction2: NewTaskActionFunction = () => {};
+
+        builder.setInlineAction(inlineAction);
+
+        assertThrowsHardhatError(
+          () => builder.setInlineAction(inlineAction2),
+          HardhatError.ERRORS.CORE.TASK_DEFINITIONS.ACTION_ALREADY_SET,
+          { task: "task-id" },
+        );
+      });
+    });
   });
 
   describe("TaskOverrideDefinitionBuilderImplementation", () => {
@@ -1143,16 +1213,16 @@ describe("Task builders", () => {
         );
         const taskActionUrl = "./path/to/task-action.js";
 
-        const lazyAction: LazyActionObject<NewTaskActionFunction> = () =>
+        const action: LazyActionObject<NewTaskActionFunction> = () =>
           import(taskActionUrl);
 
-        const taskDefinition = builder.setAction(lazyAction).build();
+        const taskDefinition = builder.setAction(action).build();
 
         assert.deepEqual(taskDefinition, {
           type: TaskDefinitionType.TASK_OVERRIDE,
           id: ["task-id"],
           description: undefined,
-          action: lazyAction,
+          action,
           options: {},
         });
       });
@@ -1689,6 +1759,87 @@ describe("Task builders", () => {
             type: ArgumentType.STRING,
             task: "task-id",
           },
+        );
+      });
+    });
+
+    describe("actions", () => {
+      const action: LazyActionObject<
+        TaskOverrideActionFunction
+      > = async () => ({
+        default: () => {},
+      });
+      const inlineAction: TaskOverrideActionFunction = () => {};
+
+      it("should be valid with only inline action", () => {
+        const builder = new TaskOverrideDefinitionBuilderImplementation(
+          "task-id",
+        );
+
+        const result = builder.setInlineAction(inlineAction).build();
+
+        assert.equal(result.type, TaskDefinitionType.TASK_OVERRIDE);
+        assert.equal(result.inlineAction, inlineAction);
+        assert.equal(result.action, undefined);
+      });
+
+      it("should be invalid with action + inline action", () => {
+        const builder = new TaskOverrideDefinitionBuilderImplementation(
+          "task-id",
+        );
+
+        builder.setAction(action);
+
+        assertThrowsHardhatError(
+          () => builder.setInlineAction(inlineAction),
+          HardhatError.ERRORS.CORE.TASK_DEFINITIONS.ACTION_ALREADY_SET,
+          { task: "task-id" },
+        );
+      });
+
+      it("should be invalid with inline action + action", () => {
+        const builder = new TaskOverrideDefinitionBuilderImplementation(
+          "task-id",
+        );
+
+        builder.setInlineAction(inlineAction);
+
+        assertThrowsHardhatError(
+          () => builder.setAction(action),
+          HardhatError.ERRORS.CORE.TASK_DEFINITIONS.ACTION_ALREADY_SET,
+          { task: "task-id" },
+        );
+      });
+
+      it("should be invalid with double action", () => {
+        const builder = new TaskOverrideDefinitionBuilderImplementation(
+          "task-id",
+        );
+        const action2 = async () => ({
+          default: () => {},
+        });
+
+        builder.setAction(action);
+
+        assertThrowsHardhatError(
+          () => builder.setAction(action2),
+          HardhatError.ERRORS.CORE.TASK_DEFINITIONS.ACTION_ALREADY_SET,
+          { task: "task-id" },
+        );
+      });
+
+      it("should be invalid with double inline action", () => {
+        const builder = new TaskOverrideDefinitionBuilderImplementation(
+          "task-id",
+        );
+        const inlineAction2 = () => {};
+
+        builder.setInlineAction(inlineAction);
+
+        assertThrowsHardhatError(
+          () => builder.setInlineAction(inlineAction2),
+          HardhatError.ERRORS.CORE.TASK_DEFINITIONS.ACTION_ALREADY_SET,
+          { task: "task-id" },
         );
       });
     });

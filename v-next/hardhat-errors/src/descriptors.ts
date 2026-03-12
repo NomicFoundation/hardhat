@@ -315,6 +315,19 @@ export const ERROR_CATEGORIES: {
       },
     },
   },
+  HARDHAT_FOUNDRY: {
+    min: 100000,
+    max: 109999,
+    pluginId: "hardhat-foundry",
+    websiteTitle: "Hardhat Foundry",
+    CATEGORIES: {
+      GENERAL: {
+        min: 100000,
+        max: 100099,
+        websiteSubTitle: "General errors",
+      },
+    },
+  },
 };
 
 export const ERRORS = {
@@ -694,6 +707,30 @@ Please double check your arguments.`,
 
 Please check you have the correct subtask.`,
       },
+      INLINE_ACTION_CANNOT_BE_USED_IN_PLUGINS: {
+        number: 417,
+        messageTemplate: `The task "{task}" defines an "inlineAction", which is not allowed in plugins.`,
+        websiteTitle: "Inline action not allowed in plugins",
+        websiteDescription: `Plugins are not allowed to use inline actions for tasks.
+
+Please define the action in a separate file and reference it.`,
+      },
+      ACTION_ALREADY_SET: {
+        number: 418,
+        messageTemplate: `The action for task "{task}" has already been set. You can only call "setAction" or "setInlineAction" once per task definition.`,
+        websiteTitle: "Task action already set",
+        websiteDescription: `A task definition can only have one action. You cannot call "setAction" or "setInlineAction" more than once on the same task builder.
+
+Please remove the duplicate call.`,
+      },
+      ACTION_AND_INLINE_ACTION_SET: {
+        number: 419,
+        messageTemplate: `Invalid task definition for task "{task}": both "action" and "inlineAction" are set.`,
+        websiteTitle: "Task defines both action and inline action",
+        websiteDescription: `A task definition cannot have both an "action" and an "inlineAction". Use one or the other.
+
+Please remove one of the two action definitions.`,
+      },
     },
     ARGUMENTS: {
       INVALID_VALUE_FOR_TYPE: {
@@ -1037,6 +1074,36 @@ Remaining test suites: {suites}`,
           "Unhandled EDR error while running Solidity tests: {error}",
         websiteTitle: "Unhandled EDR error in Solidity tests",
         websiteDescription: "Unhandled EDR error while running Solidity tests.",
+      },
+      INVALID_SNAPSHOT_FORMAT: {
+        number: 803,
+        messageTemplate:
+          "Invalid format in snapshot file {file} at line {line}. Expected format: {expectedFormat}.",
+        websiteTitle: "Invalid snapshot format",
+        websiteDescription:
+          "The snapshot file contains a line with an invalid format.",
+      },
+      SNAPSHOT_READ_ERROR: {
+        number: 804,
+        messageTemplate:
+          "Error reading snapshot file at {snapshotsPath}: {error}",
+        websiteTitle: "Error reading snapshot file",
+        websiteDescription: "There was an error reading the snapshot file.",
+      },
+      SNAPSHOT_WRITE_ERROR: {
+        number: 805,
+        messageTemplate:
+          "Error writing snapshot file at {snapshotsPath}: {error}",
+        websiteTitle: "Error writing snapshot file",
+        websiteDescription: "There was an error writing the snapshot file.",
+      },
+      MUTUALLY_EXCLUSIVE_SNAPSHOT_FLAGS: {
+        number: 806,
+        messageTemplate:
+          "The flags --snapshot and --snapshot-check are mutually exclusive.",
+        websiteTitle: "Mutually exclusive snapshot flags",
+        websiteDescription:
+          "The flags --snapshot and --snapshot-check are mutually exclusive. Please provide only one of them.",
       },
     },
     SOLIDITY: {
@@ -2891,6 +2958,35 @@ Please check that you are sending a "data" parameter with a JSON string or objec
         messageTemplate: `EIP-7702 transactions are currently not supported.`,
         websiteTitle: `EIP-7702 transactions are currently not supported`,
         websiteDescription: `EIP-7702 transactions are currently not supported.`,
+      },
+    },
+  },
+  HARDHAT_FOUNDRY: {
+    GENERAL: {
+      FORGE_NOT_INSTALLED: {
+        number: 100000,
+        messageTemplate: `Couldn't run \`forge\`. Please check that Foundry is installed and that \`forge\` is in your PATH.
+
+If you need to install Foundry, please go to https://getfoundry.sh`,
+        websiteTitle: "Forge not installed",
+        websiteDescription: `You tried to use the hardhat-foundry plugin, but Foundry is not installed or \`forge\` is not in your PATH.
+
+If you need to install Foundry, please go to https://getfoundry.sh`,
+      },
+      FORGE_REMAPPINGS_FAILED: {
+        number: 100001,
+        messageTemplate: `Running \`forge remappings\` in "{packagePath}" failed.
+
+Error: {stderr}`,
+        websiteTitle: "Forge remappings command failed",
+        websiteDescription: `The \`forge remappings\` command failed when trying to read remappings for a package.
+
+This could be due to:
+- An invalid foundry.toml configuration
+- Missing dependencies
+- Forge installation issues
+
+Check the error message for more details and verify your foundry.toml configuration.`,
       },
     },
   },

@@ -1,5 +1,18 @@
 # Changelog
 
+## 3.0.9
+
+### Patch Changes
+
+- 2cbf218: Fix an issue that prevented the verification of contracts using FQNs ([#8014](https://github.com/NomicFoundation/hardhat/pull/8014))
+- 13918b4: Add support for custom chains not in viem's built-in chain list, thanks @daanporon! ([#7763](https://github.com/NomicFoundation/hardhat/issues/7763))
+
+## 3.0.8
+
+### Patch Changes
+
+- 6674b00: Bump `hardhat-utils` major
+
 ## 3.0.7
 
 ## 3.0.6

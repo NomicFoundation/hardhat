@@ -15,6 +15,7 @@ process.on("unhandledRejection", (e: Error) => {
 
 process.on("exit", () => {
   if (showNotAwaitedError) {
+    console.log();
     console.log(
       chalk.red(
         [

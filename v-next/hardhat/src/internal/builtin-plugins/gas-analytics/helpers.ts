@@ -1,44 +1,86 @@
+import type { GasAnalyticsManager } from "./types.js";
+import type { HookContext } from "../../../types/hooks.js";
+import type { HardhatRuntimeEnvironment } from "../../../types/hre.js";
+
 import { assertHardhatInvariant } from "@nomicfoundation/hardhat-errors";
+import chalk from "chalk";
 
 import { HardhatRuntimeEnvironmentImplementation } from "../../core/hre.js";
 
+import { GasAnalyticsManagerImplementation } from "./gas-analytics-manager.js";
+import {
+  testRunDone,
+  testRunStart,
+  testWorkerDone,
+} from "./hook-handlers/test.js";
+
+export function getGasAnalyticsManager(
+  hookContextOrHre: HookContext | HardhatRuntimeEnvironment,
+): GasAnalyticsManager {
+  assertHardhatInvariant(
+    "_gasAnalytics" in hookContextOrHre &&
+      hookContextOrHre._gasAnalytics instanceof
+        GasAnalyticsManagerImplementation,
+    "Expected _gasAnalytics to be an instance of GasAnalyticsManagerImplementation",
+  );
+  return hookContextOrHre._gasAnalytics;
+}
+
+export function setGasAnalyticsManager(
+  hre: HardhatRuntimeEnvironment,
+  gasAnalyticsManager: GasAnalyticsManager,
+): void {
+  assertHardhatInvariant(
+    hre instanceof HardhatRuntimeEnvironmentImplementation,
+    "Expected HRE to be an instance of HardhatRuntimeEnvironmentImplementation",
+  );
+  hre._gasAnalytics = gasAnalyticsManager;
+}
+
 /**
- * NOTE: The following helpers interact with the global HRE instance only;
- * This is OK because:
- * - They are intended for the internal use only. They are exposed via the
- *   internal public API only.
- * - We know the HRE has been initialized by the time they are used.
+ * The following helpers are kept for backward compatibility with older versions
+ * of test runner plugins (hardhat-mocha, hardhat-node-test-runner) that import
+ * from "hardhat/internal/gas-analytics".
  */
 
 export async function markTestRunStart(id: string): Promise<void> {
   const { default: hre } = await import("../../../index.js");
-  if (hre.globalOptions.gasStats === true) {
-    assertHardhatInvariant(
-      hre instanceof HardhatRuntimeEnvironmentImplementation,
-      "Expected HRE to be an instance of HardhatRuntimeEnvironmentImplementation",
-    );
-    await hre._gasAnalytics.clearGasMeasurements(id);
-  }
+  await testRunStart(hre, id);
 }
 
 export async function markTestWorkerDone(id: string): Promise<void> {
   const { default: hre } = await import("../../../index.js");
-  if (hre.globalOptions.gasStats === true) {
-    assertHardhatInvariant(
-      hre instanceof HardhatRuntimeEnvironmentImplementation,
-      "Expected HRE to be an instance of HardhatRuntimeEnvironmentImplementation",
-    );
-    await hre._gasAnalytics.saveGasMeasurements(id);
-  }
+  await testWorkerDone(hre, id);
 }
 
 export async function markTestRunDone(id: string): Promise<void> {
   const { default: hre } = await import("../../../index.js");
-  if (hre.globalOptions.gasStats === true) {
-    assertHardhatInvariant(
-      hre instanceof HardhatRuntimeEnvironmentImplementation,
-      "Expected HRE to be an instance of HardhatRuntimeEnvironmentImplementation",
-    );
-    await hre._gasAnalytics.reportGasStats(id);
+  await testRunDone(hre, id);
+}
+
+export function formatSectionHeader(
+  sectionName: string,
+  {
+    changedLength,
+    addedLength,
+    removedLength,
+  }: {
+    changedLength: number;
+    addedLength: number;
+    removedLength: number;
+  },
+): string {
+  const parts: string[] = [];
+
+  if (changedLength > 0) {
+    parts.push(`${changedLength} changed`);
   }
+  if (addedLength > 0) {
+    parts.push(`${addedLength} added`);
+  }
+  if (removedLength > 0) {
+    parts.push(`${removedLength} removed`);
+  }
+
+  return `${sectionName}: ${chalk.gray(parts.join(", "))}`;
 }

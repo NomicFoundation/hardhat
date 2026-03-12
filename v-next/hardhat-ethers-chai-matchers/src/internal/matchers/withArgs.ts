@@ -1,6 +1,5 @@
-import { HardhatError } from "@nomicfoundation/hardhat-errors";
 import { toBigInt } from "@nomicfoundation/hardhat-utils/bigint";
-import { AssertionError } from "chai";
+import { assert as chaiAssert, AssertionError } from "chai";
 import { isAddressable } from "ethers/address";
 
 import { ASSERTION_ABORTED } from "../constants.js";
@@ -104,9 +103,7 @@ function validateInput(
 ): { emitCalled: boolean } {
   try {
     if (Boolean(this.__flags.negate)) {
-      throw new HardhatError(
-        HardhatError.ERRORS.CHAI_MATCHERS.GENERAL.WITH_ARGS_CANNOT_BE_COMBINED_WITH_NOT,
-      );
+      chaiAssert.fail("Do not combine .not. with .withArgs()");
     }
 
     const emitCalled = chaiUtils.flag(this, EMIT_CALLED) === true;
@@ -115,14 +112,14 @@ function validateInput(
       chaiUtils.flag(this, REVERTED_WITH_CUSTOM_ERROR_CALLED) === true;
 
     if (!emitCalled && !revertedWithCustomErrorCalled) {
-      throw new HardhatError(
-        HardhatError.ERRORS.CHAI_MATCHERS.GENERAL.WITH_ARGS_WRONG_COMBINATION,
+      chaiAssert.fail(
+        "withArgs can only be used in combination with a previous .emit or .revertedWithCustomError assertion",
       );
     }
 
     if (emitCalled && revertedWithCustomErrorCalled) {
-      throw new HardhatError(
-        HardhatError.ERRORS.CHAI_MATCHERS.GENERAL.WITH_ARGS_COMBINED_WITH_INCOMPATIBLE_ASSERTIONS,
+      chaiAssert.fail(
+        "withArgs called with both .emit and .revertedWithCustomError, but these assertions cannot be combined",
       );
     }
 

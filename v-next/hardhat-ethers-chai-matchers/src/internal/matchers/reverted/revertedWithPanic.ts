@@ -1,6 +1,7 @@
-import { HardhatError } from "@nomicfoundation/hardhat-errors";
 import { toBigInt } from "@nomicfoundation/hardhat-utils/bigint";
+import { ensureError } from "@nomicfoundation/hardhat-utils/error";
 import { numberToHexString } from "@nomicfoundation/hardhat-utils/hex";
+import { assert as chaiAssert } from "chai";
 
 import { REVERTED_WITH_PANIC_MATCHER } from "../../constants.js";
 import { buildAssert } from "../../utils/build-assert.js";
@@ -24,17 +25,22 @@ export function supportRevertedWithPanic(
         if (expectedCodeArg !== undefined) {
           expectedCode = toBigInt(expectedCodeArg);
         }
-      } catch {
+      } catch (cause) {
+        ensureError(cause);
+
         // if the input validation fails, we discard the subject since it could
         // potentially be a rejected promise
         Promise.resolve(this._obj).catch(() => {});
 
-        throw new HardhatError(
-          HardhatError.ERRORS.CHAI_MATCHERS.GENERAL.PANIC_CODE_EXPECTED,
-          {
-            panicCode: expectedCodeArg,
-          },
-        );
+        try {
+          chaiAssert.fail(
+            `Expected the given panic code to be a number-like value, but got "${expectedCodeArg}"`,
+          );
+        } catch (e) {
+          ensureError(e);
+          e.cause = cause;
+          throw e;
+        }
       }
 
       const code: bigint | undefined = expectedCode;

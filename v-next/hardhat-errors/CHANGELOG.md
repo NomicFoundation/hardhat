@@ -1,5 +1,19 @@
 # @nomicfoundation/hardhat-errors
 
+## 3.0.8
+
+### Patch Changes
+
+- 01b41ee: Added support for function gas snapshots and snapshot cheatcodes in Solidity tests with `--snapshot` and `--snapshot-check` flags ([#7769](https://github.com/NomicFoundation/hardhat/issues/7769))
+
+## 3.0.7
+
+### Patch Changes
+
+- 6674b00: Bump `hardhat-utils` major
+- 4cd63e9: Introduce the `@nomicfoundation/hardhat-foundry` plugin for Hardhat 3
+- f1e9b05: Added support for `inline actions` in tasks [7851](https://github.com/NomicFoundation/hardhat/pull/7851).
+
 ## 3.0.6
 
 ### Patch Changes

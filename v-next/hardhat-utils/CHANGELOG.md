@@ -1,5 +1,22 @@
 # @nomicfoundation/hardhat-utils
 
+## 4.0.1
+
+### Patch Changes
+
+- 01b41ee: Added support for function gas snapshots and snapshot cheatcodes in Solidity tests with `--snapshot` and `--snapshot-check` flags ([#7769](https://github.com/NomicFoundation/hardhat/issues/7769))
+
+## 4.0.0
+
+### Major Changes
+
+- 87623db: Introduce new inter-process mutex implementation ([7942](https://github.com/NomicFoundation/hardhat/pull/7942)).
+- 726ff37: Update the `--coverage` table output to match the style used by `--gas-stats`. Thanks @jose-blockchain! ([#7733](https://github.com/NomicFoundation/hardhat/issues/7733))
+
+### Patch Changes
+
+- 87623db: Fix two issues in the `download` function ([7942](https://github.com/NomicFoundation/hardhat/pull/7942)).
+
 ## 3.0.6
 
 ### Patch Changes

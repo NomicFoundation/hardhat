@@ -13,7 +13,6 @@ describe("Hardhat Node plugin", () => {
     ).default;
     const hre = await createHardhatRuntimeEnvironment(baseHhConfig);
 
-    const exitCode = process.exitCode;
     const nodeEnv = process.env.NODE_ENV;
     const hhTest = process.env.HH_TEST;
     try {
@@ -24,7 +23,6 @@ describe("Hardhat Node plugin", () => {
     } finally {
       process.env.HH_TEST = hhTest;
       process.env.NODE_ENV = nodeEnv;
-      process.exitCode = exitCode;
     }
   });
 
@@ -34,7 +32,6 @@ describe("Hardhat Node plugin", () => {
     ).default;
     const hre = await createHardhatRuntimeEnvironment(baseHhConfig);
 
-    const exitCode = process.exitCode;
     const nodeEnv = process.env.NODE_ENV;
     const hhTest = process.env.HH_TEST;
     try {
@@ -45,7 +42,6 @@ describe("Hardhat Node plugin", () => {
     } finally {
       process.env.HH_TEST = hhTest;
       process.env.NODE_ENV = nodeEnv;
-      process.exitCode = exitCode;
     }
   });
 });

@@ -15,7 +15,7 @@ export interface HardhatRuntimeEnvironment {
     readonly hardhat: string;
     readonly edr: string;
   };
-  // These fields are defined using module agumentation despite being part of
+  // These fields are defined using module augmentation despite being part of
   // Hardhat's core:
   // readonly hooks: HookManager;
   // readonly tasks: TaskManager;

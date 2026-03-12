@@ -28,7 +28,7 @@ import {
   HMAC_KEY_LENGTH_BITS,
   InvalidHmacError,
   HmacKeyDecryptionError,
-  KEY_DERIVARION_ALGORITHM,
+  KEY_DERIVATION_ALGORITHM,
   KEY_DERIVATION_PARAM_N,
   KEY_DERIVATION_PARAM_P,
   KEY_DERIVATION_PARAM_R,
@@ -326,7 +326,7 @@ describe("Keystore primitives", () => {
 
       assert.equal(emptyKeystore.version, KEYSTORE_VERSION);
       assert.deepEqual(emptyKeystore.crypto.masterKeyDerivation, {
-        algorithm: KEY_DERIVARION_ALGORITHM,
+        algorithm: KEY_DERIVATION_ALGORITHM,
         paramN: KEY_DERIVATION_PARAM_N,
         paramP: KEY_DERIVATION_PARAM_P,
         paramR: KEY_DERIVATION_PARAM_R,

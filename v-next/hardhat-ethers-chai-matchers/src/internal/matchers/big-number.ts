@@ -1,8 +1,7 @@
 import util from "node:util";
 
-import { HardhatError } from "@nomicfoundation/hardhat-errors";
 import { toBigInt } from "@nomicfoundation/hardhat-utils/bigint";
-import { AssertionError } from "chai";
+import { assert as chaiAssert, AssertionError } from "chai";
 import deepEqual from "deep-eql";
 
 import { isBigInt } from "../utils/bigint.js";
@@ -120,11 +119,9 @@ function overwriteBigNumberFunction(
       } else if (method === "lte") {
         return lhs <= rhs;
       } else {
-        throw new HardhatError(
-          HardhatError.ERRORS.CHAI_MATCHERS.GENERAL.UNKNOWN_COMPARISON_OPERATION,
-          {
-            method,
-          },
+        chaiAssert.fail(
+          // eslint-disable-next-line @typescript-eslint/consistent-type-assertions -- Unreachable
+          `Unknown comparison operation "${method as any}"`,
         );
       }
     }

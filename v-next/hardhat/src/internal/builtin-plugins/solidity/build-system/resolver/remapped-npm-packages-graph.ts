@@ -7,13 +7,13 @@ import type {
   ResolvedUserRemapping,
   UnresolvedNpmUserRemapping,
   RemappedNpmPackagesGraphJson,
-  Result,
 } from "./types.js";
 import type {
   ResolvedFile,
   ResolvedNpmPackage,
   UserRemappingError,
 } from "../../../../../types/solidity.js";
+import type { Result } from "../../../../../types/utils.js";
 
 import path from "node:path";
 
@@ -37,6 +37,43 @@ import { UserRemappingType } from "./types.js";
 
 const HARDHAT_PROJECT_INPUT_SOURCE_NAME_ROOT = "project";
 
+/**
+ * Returns a normalized version of the path if it refers to a node_modules in
+ * the root directory (i.e. node_modules/...), or a `node_modules` directory
+ * in a parent directory (i.e. ../../node_modules/...).
+ *
+ * Otherwise returns `undefined`.
+ *
+ * @param pathToNormalize The path to normalize.
+ * @returns The normalized path (node_modules/...), or `undefined`.
+ */
+export function getNormalizeNodeModulesPath(
+  pathToNormalize: string,
+): string | undefined {
+  if (pathToNormalize.startsWith("node_modules/")) {
+    return pathToNormalize;
+  }
+
+  const normalized = path.posix.normalize(pathToNormalize);
+
+  if (!/^(?:\.\.\/)*node_modules\//.test(normalized)) {
+    return undefined;
+  }
+
+  return normalized.substring(normalized.indexOf("node_modules/"));
+}
+
+export type RemappingsReaderFunction = (
+  packageName: string,
+  packageVersion: string,
+  packagePath: string,
+  defaultBehavior: (
+    name: string,
+    version: string,
+    path: string,
+  ) => Promise<Array<{ remappings: string[]; source: string }>>,
+) => Promise<Array<{ remappings: string[]; source: string }>>;
+
 export function isResolvedUserRemapping(
   remapping: Remapping | ResolvedUserRemapping,
 ): remapping is ResolvedUserRemapping {
@@ -54,6 +91,11 @@ export class RemappedNpmPackagesGraphImplementation
    * The Hardhat project itself.
    */
   readonly #hardhatProjectPackage: ResolvedNpmPackage;
+
+  /**
+   * The remappings reader function to use when reading package remappings.
+   */
+  readonly #remappingsReader: RemappingsReaderFunction;
 
   /**
    * This is a map of all the npm packages. Every package that has been
@@ -104,6 +146,12 @@ export class RemappedNpmPackagesGraphImplementation
 
   public static async create(
     projectRootPath: string,
+    remappingsReader: RemappingsReaderFunction = (
+      packageName,
+      packageVersion,
+      packagePath,
+      defaultBehavior,
+    ) => defaultBehavior(packageName, packageVersion, packagePath),
   ): Promise<RemappedNpmPackagesGraphImplementation> {
     const projectPackageJson = await readJsonFile<PackageJson>(
       path.join(projectRootPath, "package.json"),
@@ -117,11 +165,18 @@ export class RemappedNpmPackagesGraphImplementation
       inputSourceNameRoot: HARDHAT_PROJECT_INPUT_SOURCE_NAME_ROOT,
     };
 
-    return new RemappedNpmPackagesGraphImplementation(resolvedNpmPackage);
+    return new RemappedNpmPackagesGraphImplementation(
+      resolvedNpmPackage,
+      remappingsReader,
+    );
   }
 
-  private constructor(hardhatProjectPackage: ResolvedNpmPackage) {
+  private constructor(
+    hardhatProjectPackage: ResolvedNpmPackage,
+    remappingsReader: RemappingsReaderFunction,
+  ) {
     this.#hardhatProjectPackage = hardhatProjectPackage;
+    this.#remappingsReader = remappingsReader;
     this.#insertNewPackage(hardhatProjectPackage);
   }
 
@@ -397,41 +452,88 @@ export class RemappedNpmPackagesGraphImplementation
       UserRemappingError[]
     >
   > {
-    const remappingsTxtFiles = await getAllFilesMatching(
+    const allRemappings = await this.#remappingsReader(
+      npmPackage.name,
+      npmPackage.version,
       npmPackage.rootFsPath,
+      async (_packageName, _packageVersion, packagePath) =>
+        this.#defaultReadPackageRemappings(packagePath),
+    );
+
+    return this.#parseAndDeduplicateRemappings(npmPackage, allRemappings);
+  }
+
+  /**
+   * The default behavior of reading all the remappings.txt files in a package.
+   * @param packagePath The fs path to the root of the package.
+   * @returns An array with one entry per remappings.txt file, with the
+   * contents of the file and the fs path to the file.
+   */
+  async #defaultReadPackageRemappings(
+    packagePath: string,
+  ): Promise<Array<{ remappings: string[]; source: string }>> {
+    const remappingsTxtFiles = await getAllFilesMatching(
+      packagePath,
       (f) => path.basename(f) === "remappings.txt",
       (f) => !f.endsWith("node_modules"),
     );
 
-    const remappings = [];
-    const errors = [];
-
-    for (const remappingsTxtFsPath of remappingsTxtFiles) {
-      const packageRemappingsTxtContents =
-        await readUtf8File(remappingsTxtFsPath);
-
-      const rawUserRemappings = packageRemappingsTxtContents
+    const results: Array<{ remappings: string[]; source: string }> = [];
+    for (const file of remappingsTxtFiles) {
+      const contents = await readUtf8File(file);
+      const lines = contents
         .split("\n")
         .map((line) => line.trim())
-        .filter((line) => line !== "")
-        .filter((line) => !line.startsWith("#"));
+        .filter((line) => line !== "" && !line.startsWith("#"));
+      results.push({ remappings: lines, source: file });
+    }
 
-      for (const userRemapping of rawUserRemappings) {
-        const result = await this.#parseUserRemapping(
+    return results;
+  }
+
+  /**
+   * Parses and deduplicates by "context:prefix" all the remappings from the
+   * package.
+   *
+   * @param npmPackage The npm package.
+   * @param allRemappings An array with all the remappings.txt files in the
+   * package and their content.
+   * @returns A result with the parsed and deduplicated remappings, or an error
+   * if there was a problem parsing any of them.
+   */
+  #parseAndDeduplicateRemappings(
+    npmPackage: ResolvedNpmPackage,
+    allRemappings: Array<{ remappings: string[]; source: string }>,
+  ): Result<
+    Array<LocalUserRemapping | UnresolvedNpmUserRemapping>,
+    UserRemappingError[]
+  > {
+    const remappings: Array<LocalUserRemapping | UnresolvedNpmUserRemapping> =
+      [];
+    const errors: UserRemappingError[] = [];
+    const seen = new Set<string>(); // Track by "context:prefix"
+
+    for (const { remappings: remappingStrings, source } of allRemappings) {
+      for (const remappingString of remappingStrings) {
+        const result = this.#parseUserRemapping(
           npmPackage,
-          remappingsTxtFsPath,
-          userRemapping,
+          source,
+          remappingString,
         );
 
         if (!result.success) {
           errors.push(result.error);
-        } else {
-          // If parsing returned `undefined`, it means that it should be
-          // ignored.
-          if (result.value === undefined) {
-            continue;
-          }
+          continue;
+        }
 
+        if (result.value === undefined) {
+          continue;
+        }
+
+        // Deduplicate by (context + prefix) - first occurrence wins
+        const key = `${result.value.context}:${result.value.prefix}`;
+        if (!seen.has(key)) {
+          seen.add(key);
           remappings.push(result.value);
         }
       }
@@ -454,15 +556,13 @@ export class RemappedNpmPackagesGraphImplementation
    * @returns The parsed user remapping, or undefined if it should be ignored.
    * If the parsing and validation fails, an error is returned.
    */
-  async #parseUserRemapping(
+  #parseUserRemapping(
     npmPackage: ResolvedNpmPackage,
     sourceOfTheRemapping: string,
     remappingString: string,
-  ): Promise<
-    Result<
-      LocalUserRemapping | UnresolvedNpmUserRemapping | undefined,
-      UserRemappingError
-    >
+  ): Result<
+    LocalUserRemapping | UnresolvedNpmUserRemapping | undefined,
+    UserRemappingError
   > {
     // We first parse the remapping string and validate that it doesn't have
     // a context starting with `npm/`, and that the prefix and targets end in /.
@@ -485,7 +585,7 @@ export class RemappedNpmPackagesGraphImplementation
     const prefix = remapping.prefix.endsWith("/")
       ? remapping.prefix
       : remapping.prefix + "/";
-    const target = remapping.target.endsWith("/")
+    let target = remapping.target.endsWith("/")
       ? remapping.target
       : remapping.target + "/";
 
@@ -494,12 +594,13 @@ export class RemappedNpmPackagesGraphImplementation
       path.dirname(sourceOfTheRemapping),
     );
 
-    // If the remapping's target starts with `node_modules/`, we treat
-    // it as trying to load an npm dependency, otherwise we treat it as a local
+    // If the remapping's target starts with `node_modules/`, we treat it as
+    // trying to load an npm dependency, otherwise we treat it as a local
     // remapping.
+    const normalizedNodeModulesTarget = getNormalizeNodeModulesPath(target);
 
     // Local remapping case
-    if (!target.startsWith("node_modules/")) {
+    if (normalizedNodeModulesTarget === undefined) {
       return {
         success: true,
         value: {
@@ -519,6 +620,9 @@ export class RemappedNpmPackagesGraphImplementation
           source: sourceOfTheRemapping,
         },
       };
+    } else {
+      // We update the target to the normalized version
+      target = normalizedNodeModulesTarget;
     }
 
     // If we are here the remapping is a npm remapping.
@@ -526,7 +630,7 @@ export class RemappedNpmPackagesGraphImplementation
     const targetWithoutNodeModules = target.substring("node_modules/".length);
 
     // If after doing that the prefix and target are the same, we skip it
-    // so that it doesn't even go unnecesarly go through a user remapping.
+    // so that it doesn't even go unnecessarily go through a user remapping.
     if (prefix === targetWithoutNodeModules) {
       return { success: true, value: undefined };
     }
