@@ -4,6 +4,7 @@ import type { VerifyInfo, VerifyResult } from "./types/verify.js";
 
 import { HardhatError } from "@nomicfoundation/hardhat-errors";
 import { FileNotFoundError } from "@nomicfoundation/hardhat-utils/fs";
+import { findLastIndex } from "lodash-es";
 
 import { FileDeploymentLoader } from "./internal/deployment-loader/file-deployment-loader.js";
 import { loadDeploymentState } from "./internal/execution/deployment-state-helpers.js";
@@ -96,13 +97,36 @@ async function convertExStateToVerifyInfo(
     `Deployment execution state ${exState.id} should have a successful result to retrieve address`,
   );
 
+  const creationTxHash = getCreationTxHash(exState);
+
   const verifyInfo: VerifyInfo = {
     constructorArgs,
     libraries,
     address: exState.result.address,
     contract: `${artifact.sourceName}:${contractName}`,
-    creationTxHash: exState.result.creationTxHash,
+    creationTxHash,
   };
 
   return verifyInfo;
+}
+
+function getCreationTxHash(
+  exState: DeploymentExecutionState,
+): string | undefined {
+  const networkInteraction = exState.networkInteractions[0];
+
+  if (networkInteraction?.type !== "ONCHAIN_INTERACTION") {
+    return undefined;
+  }
+
+  const lastConfirmedIndex = findLastIndex(
+    networkInteraction.transactions,
+    (tx) => tx.receipt !== undefined,
+  );
+
+  if (lastConfirmedIndex === -1) {
+    return undefined;
+  }
+
+  return networkInteraction.transactions[lastConfirmedIndex].hash;
 }
