@@ -155,6 +155,120 @@ describe("ignition verify task", () => {
     }
   });
 
+  it("should verify multiple contracts on all enabled providers", async function () {
+    const verifyCalls: Array<{ provider: string; contract: string }> = [];
+
+    const mockVerifyContract = async (
+      args: VerifyContractArgs,
+      _hre: HardhatRuntimeEnvironment,
+    ) => {
+      if (args.contract === undefined) {
+        assert.fail("Expected contract to be passed");
+      }
+
+      if (args.provider !== undefined) {
+        verifyCalls.push({ provider: args.provider, contract: args.contract });
+      }
+
+      return true;
+    };
+
+    const mockGetVerificationInformation = async function* () {
+      yield {
+        address: "0x1111111111111111111111111111111111111111",
+        constructorArgs: [],
+        libraries: {},
+        contract: "contracts/Foo.sol:Foo",
+        creationTxHash:
+          "0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      };
+      yield {
+        address: "0x2222222222222222222222222222222222222222",
+        constructorArgs: [123],
+        libraries: {},
+        contract: "contracts/Bar.sol:Bar",
+        creationTxHash:
+          "0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      };
+    };
+
+    await internalVerifyAction(
+      { deploymentId: "test-deployment", force: false },
+      this.hre,
+      mockVerifyContract,
+      mockGetVerificationInformation,
+    );
+
+    // 2 contracts × 3 providers = 6 calls
+    assert.equal(verifyCalls.length, 6);
+
+    // Each contract should be verified on each provider
+    for (const contract of ["contracts/Foo.sol:Foo", "contracts/Bar.sol:Bar"]) {
+      for (const provider of ["etherscan", "blockscout", "sourcify"]) {
+        assert.isTrue(
+          verifyCalls.some(
+            (c) => c.provider === provider && c.contract === contract,
+          ),
+          `Expected ${contract} to be verified on ${provider}`,
+        );
+      }
+    }
+
+    // Both contracts should have "Verifying contract" log lines
+    const logCalls = consoleLogStub.getCalls().map((c) => c.args[0]);
+    assert.isTrue(
+      logCalls.some((log: string) =>
+        log.includes('Verifying contract "contracts/Foo.sol:Foo"'),
+      ),
+    );
+    assert.isTrue(
+      logCalls.some((log: string) =>
+        log.includes('Verifying contract "contracts/Bar.sol:Bar"'),
+      ),
+    );
+  });
+
+  it("should pass force flag through to each provider call", async function () {
+    const forceValues: boolean[] = [];
+
+    const mockVerifyContract = async (
+      args: VerifyContractArgs,
+      _hre: HardhatRuntimeEnvironment,
+    ) => {
+      if (args.force === undefined) {
+        assert.fail("Expected force to be passed");
+      }
+
+      forceValues.push(args.force);
+
+      return true;
+    };
+
+    const mockGetVerificationInformation = async function* () {
+      yield {
+        address: "0x1234567890123456789012345678901234567890",
+        constructorArgs: [],
+        libraries: {},
+        contract: "contracts/Foo.sol:Foo",
+        creationTxHash:
+          "0xabcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890",
+      };
+    };
+
+    await internalVerifyAction(
+      { deploymentId: "test-deployment", force: true },
+      this.hre,
+      mockVerifyContract,
+      mockGetVerificationInformation,
+    );
+
+    assert.equal(forceValues.length, 3);
+    assert.isTrue(
+      forceValues.every((f) => f === true),
+      "Expected all verify calls to have force: true",
+    );
+  });
+
   it("should skip contracts when artifacts cannot be resolved", async function () {
     const mockGetVerificationInformation = async function* () {
       yield "contracts/Foo.sol:Foo";
