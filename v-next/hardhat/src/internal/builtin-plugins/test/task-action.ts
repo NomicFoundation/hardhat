@@ -7,10 +7,7 @@ import type {
 import type { TestSummary } from "../../../types/test.js";
 import type { Result } from "../../../types/utils.js";
 
-import {
-  assertHardhatInvariant,
-  HardhatError,
-} from "@nomicfoundation/hardhat-errors";
+import { HardhatError } from "@nomicfoundation/hardhat-errors";
 import { isObject } from "@nomicfoundation/hardhat-utils/lang";
 import chalk, { type ChalkInstance } from "chalk";
 
@@ -19,7 +16,8 @@ import {
   isResult,
   successfulResult,
 } from "../../../utils/result.js";
-import { HardhatRuntimeEnvironmentImplementation } from "../../core/hre.js";
+import { getCoverageManager } from "../coverage/helpers.js";
+import { getGasAnalyticsManager } from "../gas-analytics/helpers.js";
 
 interface TestActionArguments {
   testFiles: string[];
@@ -73,18 +71,19 @@ const runAllTests: NewTaskActionFunction<TestActionArguments> = async (
   }
 
   if (hre.globalOptions.coverage === true) {
-    assertHardhatInvariant(
-      hre instanceof HardhatRuntimeEnvironmentImplementation,
-      "Expected HRE to be an instance of HardhatRuntimeEnvironmentImplementation",
-    );
-    hre._coverage.disableReport();
+    getCoverageManager(hre).disableReport();
+  }
+
+  if (hre.globalOptions.gasStats === true) {
+    getGasAnalyticsManager(hre).disableReport();
   }
 
   const testSummaries: Record<string, TestSummary> = {};
+  const ranSubtaskIds: string[] = [];
 
   let failureIndex = 1;
   let hasFailures = false;
-  for (const subtask of thisTask.subtasks.values()) {
+  for (const [subtaskKey, subtask] of thisTask.subtasks.entries()) {
     const files = getTestFilesForSubtask(subtask, testFiles, subtasksToFiles);
 
     if (files === undefined) {
@@ -92,6 +91,8 @@ const runAllTests: NewTaskActionFunction<TestActionArguments> = async (
       // but none are assigned to the current subtask, so it should be skipped
       continue;
     }
+
+    ranSubtaskIds.push(subtaskKey);
 
     const args: TaskArguments = {
       testFiles: files,
@@ -228,13 +229,16 @@ const runAllTests: NewTaskActionFunction<TestActionArguments> = async (
   console.log();
 
   if (hre.globalOptions.coverage === true) {
-    assertHardhatInvariant(
-      hre instanceof HardhatRuntimeEnvironmentImplementation,
-      "Expected HRE to be an instance of HardhatRuntimeEnvironmentImplementation",
-    );
-    const ids = Array.from(thisTask.subtasks.keys());
-    hre._coverage.enableReport();
-    await hre._coverage.report(...ids);
+    const coverage = getCoverageManager(hre);
+    coverage.enableReport();
+    await coverage.report(...ranSubtaskIds);
+    console.log();
+  }
+
+  if (hre.globalOptions.gasStats === true) {
+    const gasAnalytics = getGasAnalyticsManager(hre);
+    gasAnalytics.enableReport();
+    await gasAnalytics.reportGasStats(...ranSubtaskIds);
     console.log();
   }
 
