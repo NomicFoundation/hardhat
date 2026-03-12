@@ -364,7 +364,7 @@ describe("gas-analytics-manager", () => {
           .join("\n");
         assert.ok(
           output.includes("25000") && output.includes("35000"),
-          "Report should contain stats from both runners",
+          "Report should contain the numbers from both runners as they should be displayed as min/max for the same function call",
         );
       });
     });
