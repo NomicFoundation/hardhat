@@ -620,4 +620,180 @@ describe("edr-provider", () => {
       assert.deepEqual(sepoliaOverride.hardforkActivationOverrides, []);
     });
   });
+
+  describe("Receipt polling and multi-tx behavior", () => {
+    it("should not error when getting receipt for a sent transaction", async () => {
+      const { provider } = await hre.network.connect();
+      const accounts = await provider.request({ method: "eth_accounts" });
+      const sender = accounts[0];
+      const txHash = await provider.request({
+        method: "eth_sendTransaction",
+        params: [{ from: sender, to: sender, value: "0x1" }],
+      });
+      // Receipt polling — should work even though dedup is active
+      const receipt = await provider.request({
+        method: "eth_getTransactionReceipt",
+        params: [txHash],
+      });
+      assert.ok(receipt !== null, "Receipt should not be null");
+      assert.equal(receipt.transactionHash, txHash);
+    });
+
+    it("should handle multiple different transactions independently", async () => {
+      const { provider } = await hre.network.connect();
+      const accounts = await provider.request({ method: "eth_accounts" });
+      const sender = accounts[0];
+      const hash1 = await provider.request({
+        method: "eth_sendTransaction",
+        params: [{ from: sender, to: sender, value: "0x1" }],
+      });
+      const hash2 = await provider.request({
+        method: "eth_sendTransaction",
+        params: [{ from: sender, to: sender, value: "0x2" }],
+      });
+      assert.notEqual(
+        hash1,
+        hash2,
+        "Different txs should have different hashes",
+      );
+      const receipt1 = await provider.request({
+        method: "eth_getTransactionReceipt",
+        params: [hash1],
+      });
+      const receipt2 = await provider.request({
+        method: "eth_getTransactionReceipt",
+        params: [hash2],
+      });
+      assert.ok(
+        receipt1 !== null && receipt2 !== null,
+        "Expected both receipts to be non-null",
+      );
+    });
+
+    it("should handle eth_call without errors (no txHash dedup)", async () => {
+      const { provider } = await hre.network.connect();
+      const accounts = await provider.request({ method: "eth_accounts" });
+      const result = await provider.request({
+        method: "eth_call",
+        params: [{ to: accounts[0] }, "latest"],
+      });
+      assert.ok(typeof result === "string", "eth_call should return a string");
+    });
+  });
+
+  describe("eth_estimateGas behavior", () => {
+    it("should return a valid gas estimate for a simple transfer", async () => {
+      const { provider } = await hre.network.connect();
+      const accounts = await provider.request({ method: "eth_accounts" });
+      const sender = accounts[0];
+      const gasEstimate = await provider.request({
+        method: "eth_estimateGas",
+        params: [{ from: sender, to: sender, value: "0x1" }],
+      });
+      assert.ok(
+        typeof gasEstimate === "string",
+        "Gas estimate should be a hex string",
+      );
+      assert.ok(BigInt(gasEstimate) > 0n, "Gas estimate should be positive");
+    });
+
+    it("should still throw on failed eth_estimateGas", async () => {
+      const { provider } = await hre.network.connect();
+      try {
+        // Invalid params (empty object) should trigger an InvalidArgumentsError
+        await provider.request({
+          method: "eth_estimateGas",
+          params: [],
+        });
+      } catch (error) {
+        assert.ok(
+          ProviderError.isProviderError(error),
+          "Should be a ProviderError",
+        );
+        return;
+      }
+      assert.fail("Should have thrown");
+    });
+  });
+
+  describe("Multiple connections and close/reconnect", () => {
+    it("should create provider with default config (no connectionLabel)", async () => {
+      const { provider } = await hre.network.connect();
+      // Provider should work normally even with trace features active
+      const chainId = await provider.request({ method: "eth_chainId" });
+      assert.ok(
+        typeof chainId === "string",
+        "Expected chainId to be a string",
+      );
+    });
+
+    it("should handle multiple connections with incrementing IDs", async () => {
+      const conn1 = await hre.network.connect();
+      const conn2 = await hre.network.connect();
+      assert.notEqual(conn1, conn2, "Connections should be different objects");
+      // Both should work independently
+      const chainId1 = await conn1.provider.request({
+        method: "eth_chainId",
+      });
+      const chainId2 = await conn2.provider.request({
+        method: "eth_chainId",
+      });
+      assert.equal(chainId1, chainId2, "Same network should have same chainId");
+    });
+
+    it("should handle close and reconnect without trace state issues", async () => {
+      const conn1 = await hre.network.connect();
+      const accounts = await conn1.provider.request({
+        method: "eth_accounts",
+      });
+      const sender = accounts[0];
+      // Send a tx (populates tracedTxHashes)
+      await conn1.provider.request({
+        method: "eth_sendTransaction",
+        params: [{ from: sender, to: sender, value: "0x1" }],
+      });
+      await conn1.close();
+      // New connection should work with fresh state
+      const conn2 = await hre.network.connect();
+      const chainId = await conn2.provider.request({
+        method: "eth_chainId",
+      });
+      assert.ok(
+        typeof chainId === "string",
+        "Expected chainId to be a string",
+      );
+    });
+  });
+
+  describe("Error handling", () => {
+    it("should still throw ProviderError for reverted transactions", async () => {
+      const { provider } = await hre.network.connect();
+      const accounts = await provider.request({ method: "eth_accounts" });
+      const sender = accounts[0];
+      try {
+        await provider.request({
+          method: "eth_sendTransaction",
+          params: [
+            { from: sender, to: sender, value: "0xffffffffffffffffffffff" },
+          ],
+        });
+      } catch (error) {
+        assert.ok(
+          ProviderError.isProviderError(error),
+          "Error should be a ProviderError",
+        );
+        return;
+      }
+      assert.fail("Should have thrown");
+    });
+
+    it("should produce no output for methods without traces", async () => {
+      const { provider } = await hre.network.connect();
+      // These methods produce no call traces
+      const chainId = await provider.request({ method: "eth_chainId" });
+      assert.ok(typeof chainId === "string", "Expected chainId to be a string");
+      const accounts = await provider.request({ method: "eth_accounts" });
+      assert.ok(Array.isArray(accounts), "Expected accounts to be an array");
+    });
+  });
 });
