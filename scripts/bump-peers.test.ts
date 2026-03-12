@@ -4,7 +4,7 @@ import assert from "node:assert/strict";
 import { getLastChangelogEntry, cleanChangelogEntry } from "./bump-peers.ts";
 
 // Fixtures based on actual `pnpm changeset version` output with GITHUB_TOKEN
-// set, with added changesets for testing purpuses.
+// set, with added changesets for testing purposes.
 
 const HARDHAT_ETHERS_CHANGELOG = `# @nomicfoundation/hardhat-ethers
 
