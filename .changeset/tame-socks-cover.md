@@ -1,8 +1,9 @@
 ---
-"@nomicfoundation/hardhat-ignition": patch
-"@nomicfoundation/ignition-core": patch
+"@nomicfoundation/hardhat-ignition": minor
+"@nomicfoundation/ignition-core": minor
+"@nomicfoundation/hardhat-ignition-ethers": minor
+"@nomicfoundation/hardhat-ignition-ethers": minor
+"@nomicfoundation/ignition-ui": minor
 ---
 
-Added support for verifying on all enabled verification services ([#7967](https://github.com/NomicFoundation/hardhat/pull/7967)).
-
-The `SuccessfulDeploymentExecutionResult` type in `@nomicfoundation/ignition-core` now includes a `creationTxHash` field to support verification services that require it (e.g. Sourcify).
+Added support for verifying on all enabled verification services (e.g. Sourcify) ([#7538](https://github.com/NomicFoundation/hardhat/issues/7538)).
