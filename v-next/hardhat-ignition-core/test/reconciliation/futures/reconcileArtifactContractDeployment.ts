@@ -21,8 +21,6 @@ import {
 
 describe("Reconciliation - artifact contract", () => {
   const exampleAddress = "0x1F98431c8aD98523631AE4a59f267346ea31F984";
-  const exampleTxHash =
-    "0xeef10fc5170f669b86c4cd0444882a96087221325f8bf2f55d6188633aa7be7c";
 
   const exampleDeploymentState: DeploymentExecutionState = {
     id: "Example",
@@ -73,7 +71,6 @@ describe("Reconciliation - artifact contract", () => {
           result: {
             type: ExecutionResultType.SUCCESS,
             address: exampleAddress,
-            creationTxHash: exampleTxHash,
           },
         },
         {
@@ -231,7 +228,6 @@ describe("Reconciliation - artifact contract", () => {
           result: {
             type: ExecutionResultType.SUCCESS,
             address: exampleAddress,
-            creationTxHash: exampleTxHash,
           },
         },
         {
@@ -386,7 +382,6 @@ describe("Reconciliation - artifact contract", () => {
         result: {
           type: ExecutionResultType.SUCCESS,
           address: exampleAddress,
-          creationTxHash: exampleTxHash,
         },
       }),
       new ArtifactMapDeploymentLoader({

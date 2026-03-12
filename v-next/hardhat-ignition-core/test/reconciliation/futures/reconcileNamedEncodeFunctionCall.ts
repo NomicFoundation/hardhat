@@ -18,8 +18,6 @@ import {
 
 describe("Reconciliation - named encode function call", () => {
   const differentAddress = "0xBA12222222228d8Ba445958a75a0704d566BF2C8";
-  const exampleTxHash =
-    "0xeef10fc5170f669b86c4cd0444882a96087221325f8bf2f55d6188633aa7be7c";
 
   const exampleDeploymentState: DeploymentExecutionState = {
     id: "Example",
@@ -77,7 +75,6 @@ describe("Reconciliation - named encode function call", () => {
           result: {
             type: ExecutionResultType.SUCCESS,
             address: differentAddress,
-            creationTxHash: exampleTxHash,
           },
         },
         {
@@ -111,7 +108,6 @@ describe("Reconciliation - named encode function call", () => {
           result: {
             type: ExecutionResultType.SUCCESS,
             address: differentAddress,
-            creationTxHash: exampleTxHash,
           },
         },
         {
@@ -152,7 +148,6 @@ describe("Reconciliation - named encode function call", () => {
           result: {
             type: ExecutionResultType.SUCCESS,
             address: differentAddress,
-            creationTxHash: exampleTxHash,
           },
         },
         {
@@ -195,7 +190,6 @@ describe("Reconciliation - named encode function call", () => {
           result: {
             type: ExecutionResultType.SUCCESS,
             address: differentAddress,
-            creationTxHash: exampleTxHash,
           },
         },
         {
@@ -236,7 +230,6 @@ describe("Reconciliation - named encode function call", () => {
           result: {
             type: ExecutionResultType.SUCCESS,
             address: differentAddress,
-            creationTxHash: exampleTxHash,
           },
         },
         {
@@ -277,7 +270,6 @@ describe("Reconciliation - named encode function call", () => {
           result: {
             type: ExecutionResultType.SUCCESS,
             address: differentAddress,
-            creationTxHash: exampleTxHash,
           },
         },
         {

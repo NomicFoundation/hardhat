@@ -101,7 +101,6 @@ export class BasicStrategy implements ExecutionStrategy {
     return {
       type: ExecutionResultType.SUCCESS,
       address: contractAddress,
-      creationTxHash: tx.hash,
     };
   }
 

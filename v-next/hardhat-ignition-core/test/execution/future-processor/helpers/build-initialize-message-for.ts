@@ -339,7 +339,6 @@ describe("buildInitializeMessageFor", () => {
       result: {
         type: ExecutionResultType.SUCCESS,
         address: libraryAddress,
-        creationTxHash: "0x1234",
       },
     };
 
@@ -352,7 +351,6 @@ describe("buildInitializeMessageFor", () => {
       result: {
         type: ExecutionResultType.SUCCESS,
         address: differentAddress,
-        creationTxHash: "0x1234",
       },
     };
 

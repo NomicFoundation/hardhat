@@ -127,7 +127,6 @@ describe("DeploymentStateReducer", () => {
       result: {
         type: ExecutionResultType.SUCCESS,
         address: exampleAddress,
-        creationTxHash: "0x123",
       },
     };
 
@@ -332,7 +331,6 @@ describe("DeploymentStateReducer", () => {
         assert.deepStrictEqual(updatedDepExState.result, {
           type: ExecutionResultType.SUCCESS,
           address: exampleAddress,
-          creationTxHash: "0x123",
         });
       });
 

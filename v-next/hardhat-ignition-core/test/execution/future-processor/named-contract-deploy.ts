@@ -77,7 +77,6 @@ describe("future processor", () => {
       assert.deepStrictEqual(updatedExState.result, {
         type: ExecutionResultType.SUCCESS,
         address: exampleAddress,
-        creationTxHash: exampleTxHash,
       });
     });
   });
