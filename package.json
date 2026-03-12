@@ -20,7 +20,7 @@
     "build": "pnpm run --recursive --if-present build",
     "clean": "pnpm run --recursive --if-present clean && rimraf .verdaccio",
     "test": "pnpm run --recursive --if-present test",
-    "test:scripts": "node --test ./scripts/**/*.test.ts",
+    "test:scripts": "node --test \"./scripts/**/*.test.ts\"",
     "prettier:scripts": "prettier \"scripts/**/*.{ts,json}\"",
     "tsc:scripts": "tsc --noEmit -p scripts/tsconfig.json",
     "lint:scripts": "pnpm prettier:scripts --check && pnpm tsc:scripts",
