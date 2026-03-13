@@ -5,11 +5,12 @@ import type {
   HardhatConfig,
   MultiVersionSolidityUserConfig,
   SingleVersionSolidityUserConfig,
-  SolcConfig,
-  SolcUserConfig,
   SolidityBuildProfileConfig,
   SolidityConfig,
   SolidityUserConfig,
+  CommonSolidityCompilerUserConfig,
+  SolcSolidityCompilerConfig,
+  SolcSolidityCompilerUserConfig,
 } from "../../../types/config.js";
 import type { HardhatUserConfigValidationError } from "../../../types/hooks.js";
 
@@ -28,142 +29,177 @@ import {
   missesSomeOfficialNativeBuilds,
 } from "./build-system/solc-info.js";
 
-const sourcePathsType = conditionalUnionType(
-  [
-    [(data) => typeof data === "string", z.string()],
-    [(data) => Array.isArray(data), z.array(z.string()).nonempty()],
-  ],
-  "Expected a string or an array of strings",
-);
-
-const commonSolcUserConfigType = z.object({
-  isolated: z.boolean().optional(),
-});
-
-const baseCompilerFields = {
-  type: z.string().optional(),
-  version: z.string(),
-  settings: z.any().optional(),
-  path: z.string().optional(),
-};
-
+/**
+ * The top-level type SolidityUserConfig is a unition type too complex for
+ * TypeScript to handle properly. It accepts fields of different types of
+ * configurations. For example, it accepts `compilers` inside of a
+ * `SingleVersionSolidityUserConfig`.
+ *
+ * For this reason, we declare all the fields that shouldn't exist in the
+ * presence of another one as incompatible.
+ *
+ * This object has all the fields that are incompatible with `version`.
+ */
 const incompatibleVersionFields = {
   compilers: incompatibleFieldType("This field is incompatible with `version`"),
   overrides: incompatibleFieldType("This field is incompatible with `version`"),
   profiles: incompatibleFieldType("This field is incompatible with `version`"),
 };
 
+/**
+ * This is the equivalent of `incompatibleVersionFields`, but for the
+ * `profiles` field.
+ */
+const incompatibleProfileFields = {
+  type: incompatibleFieldType("This field is incompatible with `profiles`"),
+  version: incompatibleFieldType("This field is incompatible with `profiles`"),
+  compilers: incompatibleFieldType(
+    "This field is incompatible with `profiles`",
+  ),
+  overrides: incompatibleFieldType(
+    "This field is incompatible with `profiles`",
+  ),
+};
+
+/**
+ * This is the equivalent of `incompatibleVersionFields`, but for the
+ * `compilers` field.
+ */
+const incompatibleCompilerFields = {
+  type: incompatibleFieldType("This field is incompatible with `profiles`"),
+  version: incompatibleFieldType("This field is incompatible with `compilers`"),
+  profiles: incompatibleFieldType(
+    "This field is incompatible with `compilers`",
+  ),
+};
+
+const commonSolidityUserConfigFields = {
+  isolated: z.boolean().optional(),
+  npmFilesToBuild: z.array(z.string()).optional(),
+};
+
+const commonSolidityCompilerUserConfigFields = {
+  type: z.string().optional(),
+  version: z.string(),
+  settings: z.any().optional(),
+  path: z.string().optional(),
+};
+
+const solcSolidityCompilerUserConfigType = z.object({
+  ...commonSolidityCompilerUserConfigFields,
+  type: z.literal("solc").optional(),
+  preferWasm: z.boolean().optional(),
+});
+
+const otherSolidityCompilerUserConfigType = z.object(
+  commonSolidityCompilerUserConfigFields,
+);
+
 // Per-compiler config: preferWasm is only allowed for solc (type undefined or "solc")
-const compilerUserConfigType = conditionalUnionType(
+const solidityCompilerUserConfigType = conditionalUnionType(
   [
     [
       (data) =>
-        !isObject(data) ||
-        !("type" in data) ||
-        data.type === undefined ||
-        data.type === "solc",
-      z.object({
-        ...baseCompilerFields,
-        ...incompatibleVersionFields,
-        preferWasm: z.boolean().optional(),
-      }),
+        isObject(data) &&
+        (!("type" in data) || data.type === undefined || data.type === "solc"),
+      solcSolidityCompilerUserConfigType,
     ],
     [
-      (data) =>
-        isObject(data) &&
-        "type" in data &&
-        typeof data.type === "string" &&
-        data.type !== "solc",
-      z
-        .object({
-          ...baseCompilerFields,
-          ...incompatibleVersionFields,
-        })
-        .passthrough(),
+      (data) => isObject(data) && "type" in data && data.type !== "solc",
+      otherSolidityCompilerUserConfigType,
     ],
   ],
   "Expected a valid compiler configuration",
 );
 
-// Note: this is only to match the setup present in ./type-extensions.ts.
-// preferWasm is allowed here for all types; it is only meaningful for solc
-// (type undefined or "solc") and silently ignored for other compiler types.
-const singleVersionSolcUserConfigType = z.object({
-  ...baseCompilerFields,
-  ...incompatibleVersionFields,
-  isolated: z.boolean().optional(),
-  preferWasm: z.boolean().optional(),
-});
-
-const multiVersionSolcUserConfigType = commonSolcUserConfigType.extend({
-  compilers: z.array(compilerUserConfigType).nonempty(),
-  overrides: z.record(z.string(), compilerUserConfigType).optional(),
-  isolated: z.boolean().optional(),
-  preferWasm: z.boolean().optional(),
-  version: incompatibleFieldType("This field is incompatible with `compilers`"),
-  settings: incompatibleFieldType(
-    "This field is incompatible with `compilers`",
-  ),
-});
-
-const commonSolidityUserConfigType = z.object({
-  npmFilesToBuild: z.array(z.string()).optional(),
-});
-
-const singleVersionSolidityUserConfigType = singleVersionSolcUserConfigType
-  .merge(commonSolidityUserConfigType)
-  .extend({
-    compilers: incompatibleFieldType(
-      "This field is incompatible with `version`",
-    ),
-    overrides: incompatibleFieldType(
-      "This field is incompatible with `version`",
-    ),
-    profiles: incompatibleFieldType(
-      "This field is incompatible with `version`",
-    ),
+const solcSingleVersionSolidityUserConfigType =
+  solcSolidityCompilerUserConfigType.extend({
+    ...commonSolidityUserConfigFields,
+    ...incompatibleVersionFields,
   });
 
-const multiVersionSolidityUserConfigType = multiVersionSolcUserConfigType
-  .merge(commonSolidityUserConfigType)
-  .extend({
-    version: incompatibleFieldType(
-      "This field is incompatible with `compilers`",
-    ),
-    profiles: incompatibleFieldType(
-      "This field is incompatible with `compilers`",
-    ),
+const otherSingleVersionSolidityUserConfigType =
+  otherSolidityCompilerUserConfigType.extend({
+    ...commonSolidityUserConfigFields,
+    ...incompatibleVersionFields,
   });
 
-const buildProfilesSolidityUserConfigType = commonSolidityUserConfigType.extend(
-  {
-    profiles: z.record(
-      z.string(),
-      conditionalUnionType(
-        [
-          [
-            (data) => isObject(data) && "version" in data,
-            singleVersionSolcUserConfigType,
-          ],
-          [
-            (data) => isObject(data) && "compilers" in data,
-            multiVersionSolcUserConfigType,
-          ],
-        ],
-        "Expected an object configuring one or more versions of Solidity",
-      ),
-    ),
-    version: incompatibleFieldType(
-      "This field is incompatible with `profiles`",
-    ),
-    compilers: incompatibleFieldType(
-      "This field is incompatible with `profiles`",
-    ),
-    overrides: incompatibleFieldType(
-      "This field is incompatible with `profiles`",
-    ),
-  },
+const singleVersionSolidityUserConfigType = conditionalUnionType(
+  [
+    [
+      (data) =>
+        isObject(data) &&
+        (!("type" in data) || data.type === undefined || data.type === "solc"),
+      solcSingleVersionSolidityUserConfigType,
+    ],
+    [
+      (data) => isObject(data) && "type" in data && data.type !== "solc",
+      otherSingleVersionSolidityUserConfigType,
+    ],
+  ],
+  "Expected a valid single-version Solidity configuration",
 );
+
+const multiVersionSolidityUserConfigType = z.object({
+  preferWasm: z.boolean().optional(),
+  compilers: z.array(solidityCompilerUserConfigType).nonempty(),
+  overrides: z.record(z.string(), solidityCompilerUserConfigType).optional(),
+  ...commonSolidityUserConfigFields,
+  ...incompatibleCompilerFields,
+});
+
+// This defintion needs to be aligned with solidityCompilerUserConfigType.
+// The reason to duplicate it is that we can't `.extend()` a conditional union
+// type.
+const singleVersionBuildProfileUserConfigType = conditionalUnionType(
+  [
+    [
+      (data) =>
+        isObject(data) &&
+        (!("type" in data) || data.type === undefined || data.type === "solc"),
+      solcSolidityCompilerUserConfigType.extend({
+        isolated: z.boolean().optional(),
+        ...incompatibleVersionFields,
+      }),
+    ],
+    [
+      (data) => isObject(data) && "type" in data && data.type !== "solc",
+      otherSolidityCompilerUserConfigType.extend({
+        isolated: z.boolean().optional(),
+        ...incompatibleVersionFields,
+      }),
+    ],
+  ],
+  "Expected a valid compiler configuration",
+);
+
+const multiVersionBuildProfileUserConfigType = z.object({
+  preferWasm: z.boolean().optional(),
+  compilers: z.array(solidityCompilerUserConfigType).nonempty(),
+  overrides: z.record(z.string(), solidityCompilerUserConfigType).optional(),
+  isolated: z.boolean().optional(),
+  ...incompatibleCompilerFields,
+});
+
+const buildProfilesSolidityUserConfigType = z.object({
+  profiles: z.record(
+    z.string(),
+    conditionalUnionType(
+      [
+        [
+          (data) => isObject(data) && "version" in data,
+          singleVersionBuildProfileUserConfigType,
+        ],
+        [
+          (data) => isObject(data) && "compilers" in data,
+          multiVersionBuildProfileUserConfigType,
+        ],
+      ],
+      "Expected an object configuring one or more versions of Solidity",
+    ),
+  ),
+  ...incompatibleProfileFields,
+});
 
 const solidityUserConfigType = conditionalUnionType(
   [
@@ -183,6 +219,14 @@ const solidityUserConfigType = conditionalUnionType(
     ],
   ],
   "Expected a version string, an array of version strings, or an object configuring one or more versions of Solidity or multiple build profiles",
+);
+
+const sourcePathsType = conditionalUnionType(
+  [
+    [(data) => typeof data === "string", z.string()],
+    [(data) => Array.isArray(data), z.array(z.string()).nonempty()],
+  ],
+  "Expected a string or an array of strings",
 );
 
 const userConfigType = z.object({
@@ -378,7 +422,7 @@ function resolveSolidityCompilerConfig(
     },
   };
 
-  if (production) {
+  if (production && isSolcSolidityCompilerUserConfig(compilerConfig)) {
     defaultSettings.optimizer = {
       enabled: true,
       runs: 200,
@@ -390,8 +434,8 @@ function resolveSolidityCompilerConfig(
     compilerConfig.settings ?? {},
   );
 
-  // Resolve solc-specific preferWasm if this is a SolcUserConfig
-  if (isSolcUserConfig(compilerConfig)) {
+  // Resolve solc-specific preferWasm if this is a SolcSolidityCompilerUserConfig
+  if (isSolcSolidityCompilerUserConfig(compilerConfig)) {
     // Resolve per-compiler preferWasm:
     // If explicitly set, use that value.
     // Otherwise, for ARM64 Linux in production, default to true only for
@@ -403,7 +447,7 @@ function resolveSolidityCompilerConfig(
           ? true
           : undefined;
     }
-    const solcResolved: SolcConfig = {
+    const solcResolved: SolcSolidityCompilerConfig = {
       type: compilerConfig.type,
       version: compilerConfig.version,
       settings: resolvedSettings,
@@ -413,17 +457,24 @@ function resolveSolidityCompilerConfig(
     return solcResolved;
   }
 
+  const unknownCompilerConfig =
+    /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions --
+    We need to cast here because compilerConfig has `never` type here, as this
+    case is only accessible when there are other types of compilers registered
+    through plugins. */
+    compilerConfig as unknown as CommonSolidityCompilerUserConfig;
+
   return {
-    type: compilerConfig.type,
-    version: compilerConfig.version,
+    type: unknownCompilerConfig.type,
+    version: unknownCompilerConfig.version,
     settings: resolvedSettings,
-    path: compilerConfig.path,
+    path: unknownCompilerConfig.path,
   };
 }
 
-function isSolcUserConfig(
+export function isSolcSolidityCompilerUserConfig(
   config: SolidityCompilerUserConfig,
-): config is SolcUserConfig {
+): config is SolcSolidityCompilerUserConfig {
   return config.type === undefined || config.type === "solc";
 }
 
