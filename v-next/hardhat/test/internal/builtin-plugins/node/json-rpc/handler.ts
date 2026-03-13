@@ -64,6 +64,15 @@ describe("JSON-RPC handler", async function () {
       };
       throw err;
     },
+    nonProviderErrorWithRevertData: () => {
+      // Simulates SolidityError: a non-ProviderError with .data and .transactionHash
+      const err = new Error("revert Unauthorized");
+      // eslint-disable-next-line @typescript-eslint/consistent-type-assertions -- allow in test
+      (err as any).data = "0xdeadbeef";
+      // eslint-disable-next-line @typescript-eslint/consistent-type-assertions -- allow in test
+      (err as any).transactionHash = "0xabc123";
+      throw err;
+    },
   });
   const server = new JsonRpcServerImplementation({
     hostname,
@@ -297,6 +306,29 @@ describe("JSON-RPC handler", async function () {
     );
     assert.equal(rpcRes.error.data.txHash, "0xbeef");
     assert.equal(rpcRes.error.data.data, "0xabad1dea");
+  });
+
+  it("should preserve revert data from non-ProviderError errors", async function () {
+    // Simulates SolidityError which has .data and .transactionHash but is NOT a ProviderError
+    const rpcReq: JsonRpcRequest = {
+      jsonrpc: "2.0",
+      method: "nonProviderErrorWithRevertData",
+      id: 1,
+    };
+
+    const rpcRes = await postRawJsonRpc(hostname, port, JSON.stringify(rpcReq));
+
+    assert.ok(
+      isJsonRpcResponse(rpcRes) && isFailedJsonRpcResponse(rpcRes),
+      "Expected a failed JSON-RPC response",
+    );
+    assert.equal(rpcRes.error.code, InternalError.CODE);
+    assert.ok(
+      isObject(rpcRes.error.data),
+      "Expected error data to be an object",
+    );
+    assert.equal(rpcRes.error.data.txHash, "0xabc123");
+    assert.equal(rpcRes.error.data.data, "0xdeadbeef");
   });
 });
 

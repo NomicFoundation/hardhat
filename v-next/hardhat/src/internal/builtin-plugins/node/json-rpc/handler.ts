@@ -250,6 +250,12 @@ const _readWsRequest = (msg: string): JsonRpcRequest | JsonRpcRequest[] => {
 };
 
 const _handleError = (error: Error): JsonRpcResponse => {
+  // Extract revert data from the original error before potentially wrapping it.
+  // Non-ProviderError errors (e.g. SolidityError) carry .data and .transactionHash
+  // that would be lost when wrapped in InternalError below.
+  const txHash = extractTxHash(error);
+  const returnData = extractReturnData(error);
+
   // In case of non-hardhat error, treat it as internal and associate the appropriate error code.
   if (!ProviderError.isProviderError(error)) {
     error = new InternalError(undefined, error);
@@ -266,8 +272,8 @@ const _handleError = (error: Error): JsonRpcResponse => {
       message: error.message,
       data: {
         message: error.message,
-        txHash: extractTxHash(error),
-        data: extractReturnData(error),
+        txHash,
+        data: returnData,
       },
     },
   };
