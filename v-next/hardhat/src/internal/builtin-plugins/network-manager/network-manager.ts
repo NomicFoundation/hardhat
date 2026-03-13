@@ -113,7 +113,7 @@ export class NetworkManagerImplementation implements NetworkManager {
   public async createServer<
     ChainTypeT extends ChainType | string = DefaultChainType,
   >(
-    networkOrParams: NetworkConnectionParams<ChainTypeT> | string = "default",
+    networkOrParams?: NetworkConnectionParams<ChainTypeT> | string,
     _hostname?: string,
     port?: number,
   ): Promise<JsonRpcServer> {
@@ -440,12 +440,12 @@ export class NetworkManagerImplementation implements NetworkManager {
   }
 
   #ensureNetworkOrParamsIsNotHttpNetworkConfig(
-    networkOrParams: NetworkConnectionParams<string> | string,
+    networkOrParams?: NetworkConnectionParams<string> | string,
   ) {
     const networkName =
       typeof networkOrParams === "string"
         ? networkOrParams
-        : networkOrParams.network ?? this.#defaultNetwork;
+        : networkOrParams?.network ?? this.#defaultNetwork;
 
     const networkConfig = this.#networkConfigs[networkName];
 
