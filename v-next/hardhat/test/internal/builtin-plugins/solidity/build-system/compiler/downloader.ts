@@ -574,6 +574,30 @@ describe(
           assert.equal(compiler.version, "0.8.28");
         });
       });
+
+      describe("bug repro: old solc version missing from ARM64 build list", function () {
+        it("isCompilerDownloaded should not throw for 0.4.24 (no ARM64 binary exists)", async () => {
+          await downloader.updateCompilerListIfNeeded(new Set(["0.8.28"]));
+
+          // 0.4.24 has no native ARM64 binary — this should return false, not throw
+          const result = await downloader.isCompilerDownloaded("0.4.24");
+          assert.equal(result, false);
+        });
+
+        it("downloadCompiler should not throw for 0.4.24 (no ARM64 binary exists)", async () => {
+          await downloader.updateCompilerListIfNeeded(new Set(["0.8.28"]));
+
+          const result = await downloader.downloadCompiler("0.4.24");
+          assert.equal(result, false);
+        });
+
+        it("getCompiler should not throw for 0.4.24 (no ARM64 binary exists)", async () => {
+          await downloader.updateCompilerListIfNeeded(new Set(["0.8.28"]));
+
+          const result = await downloader.getCompiler("0.4.24");
+          assert.equal(result, undefined);
+        });
+      });
     });
   },
 );
