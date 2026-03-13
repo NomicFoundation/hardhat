@@ -2,7 +2,7 @@
 "@nomicfoundation/hardhat-ignition": minor
 "@nomicfoundation/ignition-core": minor
 "@nomicfoundation/hardhat-ignition-ethers": minor
-"@nomicfoundation/hardhat-ignition-ethers": minor
+"@nomicfoundation/hardhat-ignition-viem": minor
 "@nomicfoundation/ignition-ui": minor
 ---
 
