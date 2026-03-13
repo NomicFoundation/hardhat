@@ -6,5 +6,16 @@
     "v-next/hardhat/templates",
     "v-next/config"
   ],
-  "bumps": []
+  "bumps": [
+    {
+      "package": "@nomicfoundation/hardhat-ignition-viem",
+      "peer": "@nomicfoundation/hardhat-ignition",
+      "reason": "The usage of the new `getUserInterruptionsHandlers` helper from `@nomicfoundation/hardhat-ignition/helpers`"
+    },
+    {
+      "package": "@nomicfoundation/hardhat-ignition-ethers",
+      "peer": "@nomicfoundation/hardhat-ignition",
+      "reason": "The usage of the new `getUserInterruptionsHandlers` helper from `@nomicfoundation/hardhat-ignition/helpers`"
+    }
+  ]
 }
