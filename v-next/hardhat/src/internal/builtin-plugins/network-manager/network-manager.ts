@@ -110,8 +110,10 @@ export class NetworkManagerImplementation implements NetworkManager {
     return networkConnection as NetworkConnection<ChainTypeT>;
   }
 
-  public async createServer(
-    networkOrParams: NetworkConnectionParams | string = "default",
+  public async createServer<
+    ChainTypeT extends ChainType | string = DefaultChainType,
+  >(
+    networkOrParams: NetworkConnectionParams<ChainTypeT> | string = "default",
     _hostname?: string,
     port?: number,
   ): Promise<JsonRpcServer> {

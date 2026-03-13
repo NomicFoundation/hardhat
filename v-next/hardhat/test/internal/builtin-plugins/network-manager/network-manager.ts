@@ -851,12 +851,34 @@ describe("NetworkManagerImplementation", () => {
         "edrNetwork",
         "127.0.0.1",
       );
+
       const { address, port } = await server.listen();
+
       try {
         const { provider } = await networkManager.connect({
           network: "localhost",
           override: { url: `http://${address}:${port}` },
         });
+        await provider.request({ method: "eth_chainId" });
+      } finally {
+        await server.close();
+      }
+    });
+
+    it("connects to a network based on network parameters and returns a JsonRpcServer that wraps around it", async () => {
+      const server = await networkManager.createServer(
+        { network: "edrNetwork", chainType: "op" },
+        "127.0.0.1",
+      );
+
+      const { address, port } = await server.listen();
+
+      try {
+        const { provider } = await networkManager.connect({
+          network: "localhost",
+          override: { url: `http://${address}:${port}` },
+        });
+
         await provider.request({ method: "eth_chainId" });
       } finally {
         await server.close();
