@@ -7,8 +7,8 @@ import type {
 import { assertHardhatInvariant } from "@nomicfoundation/hardhat-errors";
 import { readBinaryFile } from "@nomicfoundation/hardhat-utils/fs";
 
-const BUILD_INFO_FORMAT =
-  /^solc-(?<major>\d+)_(?<minor>\d+)_(?<patch>\d+)-[0-9a-fA-F]*$/;
+export const BUILD_INFO_FORMAT: RegExp =
+  /^solc-(?<major>\d+)_(?<minor>\d+)_(?<patch>\d+)(?:-(?<compilerType>[a-zA-Z][a-zA-Z0-9]*))?-[0-9a-fA-F]*$/;
 
 /**
  * This function returns all the build infos and associated outputs.

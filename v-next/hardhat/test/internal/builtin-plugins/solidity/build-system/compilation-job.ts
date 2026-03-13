@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/consistent-type-assertions -- Tests use `as any` casts for non-solc compiler types that are not registered in the base type system */
 import type { SolidityCompilerConfig } from "../../../../../src/types/config.js";
 import type { HookContext } from "../../../../../src/types/hooks.js";
 
@@ -85,7 +86,6 @@ describe("CompilationJobImplementation", () => {
     solcLongVersion = "0.8.0-c7dfd78";
 
     hooks = new HookManagerImplementation(process.cwd(), []);
-    // eslint-disable-next-line @typescript-eslint/consistent-type-assertions -- We don't care about hooks in this context
     hooks.setContext({} as HookContext);
     compilationJob = new CompilationJobImplementation(
       dependencyGraph,
@@ -369,7 +369,37 @@ describe("CompilationJobImplementation", () => {
           await compilationJob2.getBuildId(),
         );
       });
+
+      it("the compiler type changes", async () => {
+        const newCompilationJob = new CompilationJobImplementation(
+          dependencyGraph,
+          { ...solcConfig, type: "solx" as any },
+          solcLongVersion,
+          hooks,
+        );
+        assert.notEqual(
+          await compilationJob.getBuildId(),
+          await newCompilationJob.getBuildId(),
+        );
+      });
+
+      it("the compiler type changes between two non-solc types", async () => {
+        const jobA = new CompilationJobImplementation(
+          dependencyGraph,
+          { ...solcConfig, type: "solx" as any },
+          solcLongVersion,
+          hooks,
+        );
+        const jobB = new CompilationJobImplementation(
+          dependencyGraph,
+          { ...solcConfig, type: "foo" as any },
+          solcLongVersion,
+          hooks,
+        );
+        assert.notEqual(await jobA.getBuildId(), await jobB.getBuildId());
+      });
     });
+
     describe("should not change when", () => {
       it("the version of one of the dependencies changes without it being reflected in the input source name", async () => {
         const newDependencyGraph = new DependencyGraphImplementation();
@@ -409,6 +439,82 @@ describe("CompilationJobImplementation", () => {
           await compilationJob.getBuildId(),
           await newCompilationJob.getBuildId(),
         );
+      });
+
+      it("the compiler type is undefined vs 'solc'", async () => {
+        const jobUndefined = new CompilationJobImplementation(
+          dependencyGraph,
+          { ...solcConfig, type: undefined },
+          solcLongVersion,
+          hooks,
+        );
+        const jobSolc = new CompilationJobImplementation(
+          dependencyGraph,
+          { ...solcConfig, type: "solc" },
+          solcLongVersion,
+          hooks,
+        );
+        assert.equal(
+          await jobUndefined.getBuildId(),
+          await jobSolc.getBuildId(),
+        );
+      });
+    });
+
+    describe("build ID format", () => {
+      it("should use the format solc-<version>-<hash> when the compiler type is undefined", async () => {
+        const buildId = await compilationJob.getBuildId();
+        assert.match(buildId, /^solc-\d+_\d+_\d+-[0-9a-f]+$/);
+      });
+
+      it("should use the format solc-<version>-<hash> when the compiler type is 'solc'", async () => {
+        const job = new CompilationJobImplementation(
+          dependencyGraph,
+          { ...solcConfig, type: "solc" },
+          solcLongVersion,
+          hooks,
+        );
+        const buildId = await job.getBuildId();
+        assert.match(buildId, /^solc-\d+_\d+_\d+-[0-9a-f]+$/);
+      });
+
+      it("should use the format solc-<version>-<compilerType>-<hash> for non-solc types", async () => {
+        const job = new CompilationJobImplementation(
+          dependencyGraph,
+          { ...solcConfig, type: "solx" as any },
+          solcLongVersion,
+          hooks,
+        );
+        const buildId = await job.getBuildId();
+        assert.match(buildId, /^solc-\d+_\d+_\d+-solx-[0-9a-f]+$/);
+      });
+
+      it("should include the compiler type in the hash preimage for non-solc types", async () => {
+        // Two different non-solc types should produce different hashes
+        // even with the same settings, because compilerType is part of the preimage
+        const jobSolx = new CompilationJobImplementation(
+          dependencyGraph,
+          { ...solcConfig, type: "solx" as any },
+          solcLongVersion,
+          hooks,
+        );
+        const jobFoo = new CompilationJobImplementation(
+          dependencyGraph,
+          { ...solcConfig, type: "foo" as any },
+          solcLongVersion,
+          hooks,
+        );
+        const solxId = await jobSolx.getBuildId();
+        const fooId = await jobFoo.getBuildId();
+
+        // Both should have the format with compiler type
+        assert.match(solxId, /^solc-\d+_\d+_\d+-solx-[0-9a-f]+$/);
+        assert.match(fooId, /^solc-\d+_\d+_\d+-foo-[0-9a-f]+$/);
+
+        // The hash portions should differ because compilerType is in the preimage
+        const solxHash = solxId.split("-").pop();
+        const fooHash = fooId.split("-").pop();
+        assert.notEqual(solxHash, fooHash);
       });
     });
   });

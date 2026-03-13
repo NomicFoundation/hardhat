@@ -236,17 +236,44 @@ export class CompilationJobImplementation implements CompilationJob {
     // Changing this shouldn't be taken lightly, as it makes reproducing
     // builds pretty difficult when upgrading Hardhat between versions that
     // change it.
-    const preimage = JSON.stringify({
+
+    const compilerType = this.solcConfig.type;
+
+    // We normalize solcConfig.type to `undefined` so that "solc" and undefined
+    // produce the same hash, for backwards compatibility.
+    const normalizedSolcConfig = { ...this.solcConfig, type: undefined };
+
+    const preimageObject: Record<string, unknown> = {
       format,
       solcLongVersion: this.solcLongVersion,
       smallerSolcInput,
-      solcConfig: this.solcConfig,
+      solcConfig: normalizedSolcConfig,
       userSourceNameMap: this.dependencyGraph.getRootsUserSourceNameMap(),
-    });
+    };
+
+    // Include compiler type in the preimage for non-solc types, so that
+    // different compiler types produce different build IDs.
+    if (compilerType !== undefined && compilerType !== "solc") {
+      preimageObject.compilerType = compilerType;
+    }
+
+    const preimage = JSON.stringify(preimageObject);
 
     const jobHash = await createNonCryptographicHashId(preimage);
 
-    return `solc-${this.solcConfig.version.replaceAll(".", "_")}-${jobHash}`;
+    const versionPart = this.solcConfig.version.replaceAll(".", "_");
+
+    // For non-solc compiler types, include the compiler type in the build ID.
+    // We keep the `solc-` prefix for all types to avoid breaking codepaths
+    // that look for it.
+    if (compilerType !== undefined && compilerType !== "solc") {
+      /* eslint-disable-next-line @typescript-eslint/restrict-template-expressions --
+        compilerType is `never` in the base type system (only "solc" is registered),
+        but plugins can extend SolidityCompilerConfigPerType to add new compiler types. */
+      return `solc-${versionPart}-${compilerType}-${jobHash}`;
+    }
+
+    return `solc-${versionPart}-${jobHash}`;
   }
 
   #getSourceContentHash(sourceName: string, text: string): any {

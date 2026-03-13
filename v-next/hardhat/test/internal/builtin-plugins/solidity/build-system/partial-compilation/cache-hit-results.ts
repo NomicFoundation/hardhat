@@ -1,7 +1,11 @@
+import type { CompileCache } from "../../../../../../src/internal/builtin-plugins/solidity/build-system/cache.js";
+
 import assert from "node:assert/strict";
 import { writeFile } from "node:fs/promises";
 import path from "node:path";
 import { describe, it } from "node:test";
+
+import { readJsonFile, writeJsonFile } from "@nomicfoundation/hardhat-utils/fs";
 
 import { FileBuildResultType } from "../../../../../../src/types/solidity/build-system.js";
 import { useTestProjectTemplate } from "../resolver/helpers.js";
@@ -161,6 +165,84 @@ contract Foo {}`,
         quiet: true,
         force: true,
       });
+      assert(
+        hre.solidity.isSuccessfulBuildResult(result),
+        "Build should succeed",
+      );
+
+      assert.equal(
+        result.get(filePath)?.type,
+        FileBuildResultType.BUILD_SUCCESS,
+      );
+    });
+
+    it("should return BUILD_SUCCESS when compilerType in cache differs", async () => {
+      await using project = await useTestProjectTemplate({
+        name: "test-project",
+        version: "1.0.0",
+        files: {
+          "contracts/Foo.sol": `// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.0;
+contract Foo {}`,
+        },
+      });
+
+      const hre = await getHRE(project);
+      const filePath = path.join(project.path, "contracts/Foo.sol");
+
+      // First build
+      await hre.solidity.build([filePath], { quiet: true });
+
+      // Tamper with the cache to simulate a different compiler type
+      const cachePath = path.join(project.path, "cache", "compile-cache.json");
+      const cache: CompileCache = await readJsonFile(cachePath);
+      for (const key of Object.keys(cache)) {
+        cache[key].compilerType = "different-compiler";
+      }
+      await writeJsonFile(cachePath, cache);
+
+      // Second build should be a cache miss due to compiler type mismatch
+      const result = await hre.solidity.build([filePath], { quiet: true });
+      assert(
+        hre.solidity.isSuccessfulBuildResult(result),
+        "Build should succeed",
+      );
+
+      assert.equal(
+        result.get(filePath)?.type,
+        FileBuildResultType.BUILD_SUCCESS,
+      );
+    });
+
+    it("should return BUILD_SUCCESS when compilerType is missing from cache (old format)", async () => {
+      await using project = await useTestProjectTemplate({
+        name: "test-project",
+        version: "1.0.0",
+        files: {
+          "contracts/Foo.sol": `// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.0;
+contract Foo {}`,
+        },
+      });
+
+      const hre = await getHRE(project);
+      const filePath = path.join(project.path, "contracts/Foo.sol");
+
+      // First build
+      await hre.solidity.build([filePath], { quiet: true });
+
+      // Remove compilerType from cache to simulate old cache format
+      const cachePath = path.join(project.path, "cache", "compile-cache.json");
+      const cache: Record<string, Record<string, unknown>> = await readJsonFile(
+        cachePath,
+      );
+      for (const key of Object.keys(cache)) {
+        delete cache[key].compilerType;
+      }
+      await writeJsonFile(cachePath, cache);
+
+      // Second build should be a cache miss due to missing compiler type
+      const result = await hre.solidity.build([filePath], { quiet: true });
       assert(
         hre.solidity.isSuccessfulBuildResult(result),
         "Build should succeed",
