@@ -290,6 +290,7 @@ GLOBAL OPTIONS:
   --config                 A Hardhat config file
   --coverage               Enables code coverage
   --gas-stats              Collects and displays gas usage statistics for all function calls during tests
+  --gas-stats-json         Write gas usage statistics to a JSON file at the specified path
   --help, -h               Show this message, or a task's help if its name is provided
   --init                   Initializes a Hardhat project
   --network                The network to connect to
@@ -363,6 +364,7 @@ GLOBAL OPTIONS:
   --config                 A Hardhat config file
   --coverage               Enables code coverage
   --gas-stats              Collects and displays gas usage statistics for all function calls during tests
+  --gas-stats-json         Write gas usage statistics to a JSON file at the specified path
   --help, -h               Show this message, or a task's help if its name is provided
   --init                   Initializes a Hardhat project
   --network                The network to connect to
@@ -403,6 +405,7 @@ GLOBAL OPTIONS:
   --config                 A Hardhat config file
   --coverage               Enables code coverage
   --gas-stats              Collects and displays gas usage statistics for all function calls during tests
+  --gas-stats-json         Write gas usage statistics to a JSON file at the specified path
   --help, -h               Show this message, or a task's help if its name is provided
   --init                   Initializes a Hardhat project
   --network                The network to connect to

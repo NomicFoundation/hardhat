@@ -6,5 +6,16 @@
     "v-next/hardhat/templates",
     "v-next/config"
   ],
-  "bumps": []
+  "bumps": [
+    {
+      "package": "@nomicfoundation/hardhat-mocha",
+      "peer": "hardhat",
+      "reason": "hardhat-mocha now reads hre.globalOptions.gasStatsJson, which is only present in the hardhat version that added the --gas-stats-json global option"
+    },
+    {
+      "package": "@nomicfoundation/hardhat-node-test-runner",
+      "peer": "hardhat",
+      "reason": "hardhat-node-test-runner now reads hre.globalOptions.gasStatsJson, which is only present in the hardhat version that added the --gas-stats-json global option"
+    }
+  ]
 }

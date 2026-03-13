@@ -1,4 +1,10 @@
-import type { GasAnalyticsManager, GasMeasurement } from "./types.js";
+import type {
+  ContractGasStatsJson,
+  GasAnalyticsManager,
+  GasMeasurement,
+  GasStatsJson,
+  GasStatsJsonEntry,
+} from "./types.js";
 import type { TableItem } from "@nomicfoundation/hardhat-utils/format";
 
 import crypto from "node:crypto";
@@ -15,6 +21,8 @@ import {
 import { findDuplicates } from "@nomicfoundation/hardhat-utils/lang";
 import chalk from "chalk";
 import debug from "debug";
+
+import { parseFullyQualifiedName } from "../../../utils/contract-names.js";
 
 const gasStatsLog = debug(
   "hardhat:core:gas-analytics:gas-analytics-manager:gas-stats",
@@ -92,6 +100,26 @@ export class GasAnalyticsManagerImplementation implements GasAnalyticsManager {
     console.log(report);
     console.log();
     gasStatsLog("Printed markdown report");
+  }
+
+  public async writeGasStatsJson(
+    outputPath: string,
+    ...ids: string[]
+  ): Promise<void> {
+    if (!this.#reportEnabled) {
+      return;
+    }
+
+    await this._loadGasMeasurements(...ids);
+
+    const gasStatsByContract = this._calculateGasStats();
+
+    const resolvedPath = path.resolve(outputPath);
+    await ensureDir(path.dirname(resolvedPath));
+
+    const json = this._generateGasStatsJson(gasStatsByContract);
+    await writeJsonFile(resolvedPath, json);
+    gasStatsLog("Written gas stats JSON to", resolvedPath);
   }
 
   public enableReport(): void {
@@ -304,6 +332,46 @@ export class GasAnalyticsManagerImplementation implements GasAnalyticsManager {
     }
 
     return formatTable(rows);
+  }
+
+  /**
+   * @private exposed for testing purposes only
+   */
+  public _generateGasStatsJson(
+    gasStatsByContract: GasStatsByContract,
+  ): GasStatsJson {
+    const sortedContracts = [...gasStatsByContract.entries()]
+      .map(([internalFqn, stats]) => ({
+        userFqn: getUserFqn(internalFqn),
+        stats,
+      }))
+      .sort((a, b) => a.userFqn.localeCompare(b.userFqn));
+
+    const contracts: Record<string, ContractGasStatsJson> = {};
+
+    for (const { userFqn, stats } of sortedContracts) {
+      const { sourceName, contractName } = parseFullyQualifiedName(userFqn);
+
+      const deployment: GasStatsJsonEntry | null =
+        stats.deployment !== undefined ? { ...stats.deployment } : null;
+
+      let functions: Record<string, GasStatsJsonEntry> | null = null;
+      if (stats.functions.size > 0) {
+        functions = {};
+        // Sort functions by removing trailing ) and comparing alphabetically.
+        // This ensures that overloaded functions with fewer params come first
+        // (e.g., foo(uint256) comes before foo(uint256,uint256)). In other
+        // scenarios, removing the trailing ) has no effect on the order.
+        const sortedFunctions = [...stats.functions.entries()].sort(
+          ([a], [b]) => a.split(")")[0].localeCompare(b.split(")")[0]),
+        );
+        functions = Object.fromEntries(sortedFunctions);
+      }
+
+      contracts[userFqn] = { sourceName, contractName, deployment, functions };
+    }
+
+    return { contracts };
   }
 }
 
