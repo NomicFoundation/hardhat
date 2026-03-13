@@ -117,6 +117,8 @@ export class NetworkManagerImplementation implements NetworkManager {
     _hostname?: string,
     port?: number,
   ): Promise<JsonRpcServer> {
+    this.#ensureNetworkOrParamsIsNotHttpNetworkConfig(networkOrParams);
+
     const insideDocker = await exists("/.dockerenv");
     const hostname = _hostname ?? (insideDocker ? "0.0.0.0" : "127.0.0.1");
 
@@ -435,5 +437,28 @@ export class NetworkManagerImplementation implements NetworkManager {
     }
 
     return path;
+  }
+
+  #ensureNetworkOrParamsIsNotHttpNetworkConfig(
+    networkOrParams: NetworkConnectionParams<string> | string,
+  ) {
+    const networkName =
+      typeof networkOrParams === "string"
+        ? networkOrParams
+        : networkOrParams.network ?? this.#defaultNetwork;
+
+    const networkConfig = this.#networkConfigs[networkName];
+
+    if (networkConfig === undefined || networkConfig.type === "edr-simulated") {
+      return;
+    }
+
+    throw new HardhatError(
+      HardhatError.ERRORS.CORE.NETWORK.CREATE_SERVER_UNSUPPORTED_NETWORK_TYPE,
+      {
+        networkName,
+        networkType: networkConfig.type,
+      },
+    );
   }
 }

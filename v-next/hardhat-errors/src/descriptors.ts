@@ -1050,6 +1050,14 @@ account, and its parameters are incompatible. You sent both gasPrice and authori
 
 Please double check your transactions' parameters.`,
       },
+      CREATE_SERVER_UNSUPPORTED_NETWORK_TYPE: {
+        number: 724,
+        messageTemplate:
+          'Cannot create a server for network "{networkName}" because it has type "{networkType}". Only "edr-simulated" networks are supported.',
+        websiteTitle: "Unsupported network type for createServer",
+        websiteDescription:
+          "The createServer method only supports 'edr-simulated' networks. HTTP networks cannot be used to create a local JSON-RPC server.",
+      },
     },
     SOLIDITY_TESTS: {
       BUILD_INFO_NOT_FOUND_FOR_CONTRACT: {

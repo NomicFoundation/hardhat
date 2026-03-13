@@ -846,6 +846,22 @@ describe("NetworkManagerImplementation", () => {
   });
 
   describe("createServer", function () {
+    it("should throw an error if the network type is not edr-simulated", async () => {
+      await assertRejectsWithHardhatError(
+        networkManager.createServer("localhost"),
+        HardhatError.ERRORS.CORE.NETWORK.CREATE_SERVER_UNSUPPORTED_NETWORK_TYPE,
+        { networkName: "localhost", networkType: "http" },
+      );
+    });
+
+    it("should throw an error if network parameters specify an http network", async () => {
+      await assertRejectsWithHardhatError(
+        networkManager.createServer({ network: "localhost" }),
+        HardhatError.ERRORS.CORE.NETWORK.CREATE_SERVER_UNSUPPORTED_NETWORK_TYPE,
+        { networkName: "localhost", networkType: "http" },
+      );
+    });
+
     it("connects to a network and returns a JsonRpcServer that wraps around it", async () => {
       const server = await networkManager.createServer(
         "edrNetwork",
