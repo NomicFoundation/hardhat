@@ -19,7 +19,7 @@ const verifyTask: NewTaskActionFunction<TaskVerifyArguments> = async (
   { deploymentId, force },
   hre: HardhatRuntimeEnvironment,
 ) => {
-  await internalVerifyAction(
+  await verify(
     { deploymentId, force },
     hre,
     verifyContract,
@@ -27,7 +27,8 @@ const verifyTask: NewTaskActionFunction<TaskVerifyArguments> = async (
   );
 };
 
-export async function internalVerifyAction(
+// Exported for testing
+export async function verify(
   { deploymentId, force }: TaskVerifyArguments,
   hre: HardhatRuntimeEnvironment,
   verifyContractFn: typeof verifyContract,
@@ -45,6 +46,7 @@ export async function internalVerifyAction(
 
   if (enabledProviders.length === 0) {
     console.warn(chalk.yellow("\n⚠️  No verification providers are enabled."));
+
     return;
   }
 
@@ -61,19 +63,20 @@ export async function internalVerifyAction(
   )) {
     if (typeof contractInfo === "string") {
       console.log(
-        `Could not resolve contract artifacts for contract "${contractInfo}". Skipping verification.`,
+        `Could not resolve contract artifacts for contract "${contractInfo}". Skipping verification.\n`,
       );
-      console.log("");
+
       continue;
     }
 
     console.log(
-      `Verifying contract "${contractInfo.contract}" for network ${connection.networkName}...`,
+      `\nVerifying contract "${contractInfo.contract}" for network ${connection.networkName}...`,
     );
 
     for (const provider of enabledProviders) {
       try {
         console.log(chalk.cyan.bold(`\n=== ${capitalize(provider)} ===`));
+
         await verifyContractFn(
           {
             ...contractInfo,
@@ -84,7 +87,9 @@ export async function internalVerifyAction(
         );
       } catch (error) {
         ensureError(error);
+
         console.error(chalk.red(error.message));
+        process.exitCode = 1;
       }
     }
   }

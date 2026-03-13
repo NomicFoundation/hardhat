@@ -115,7 +115,10 @@ async function convertExStateToVerifyInfo(
 function getCreationTxHash(
   exState: DeploymentExecutionState,
 ): string | undefined {
-  const networkInteraction = exState.networkInteractions[0];
+  // We know that for both create2 and the basic strategy
+  // the last confirmed transaction is where the deployment
+  // happened - and so is the creation transaction.
+  const networkInteraction = exState.networkInteractions.at(-1);
 
   if (networkInteraction?.type !== "ONCHAIN_INTERACTION") {
     return undefined;

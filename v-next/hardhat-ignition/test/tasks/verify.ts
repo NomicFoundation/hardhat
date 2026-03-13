@@ -1,17 +1,18 @@
 import type { VerifyContractArgs } from "@nomicfoundation/hardhat-verify/verify";
+import type { VerifyResult } from "@nomicfoundation/ignition-core";
 import type { VerificationProvidersConfig } from "hardhat/types/config";
 import type { HardhatRuntimeEnvironment } from "hardhat/types/hre";
 
 import { assert } from "chai";
-import chalk from "chalk";
 import sinon from "sinon";
 
-import { internalVerifyAction } from "../../src/internal/tasks/verify.js";
+import { verify } from "../../src/internal/tasks/verify.js";
 import { useEphemeralIgnitionProject } from "../test-helpers/use-ignition-project.js";
 
 describe("ignition verify task", () => {
   useEphemeralIgnitionProject("minimal");
 
+  // TODO: replace with disableConsole() once converted to `node:test`
   let consoleLogStub: sinon.SinonStub;
   let consoleWarnStub: sinon.SinonStub;
   let consoleErrorStub: sinon.SinonStub;
@@ -26,7 +27,18 @@ describe("ignition verify task", () => {
     consoleLogStub.restore();
     consoleWarnStub.restore();
     consoleErrorStub.restore();
+
+    process.exitCode = undefined;
   });
+
+  const exampleVerifyInfo: VerifyResult = {
+    address: "0x1234567890123456789012345678901234567890",
+    constructorArgs: [],
+    libraries: {},
+    contract: "contracts/Foo.sol:Foo",
+    creationTxHash:
+      "0xabcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890",
+  };
 
   it("should verify on all enabled providers", async function () {
     const verifyCallsByProvider: Array<keyof VerificationProvidersConfig> = [];
@@ -38,21 +50,15 @@ describe("ignition verify task", () => {
       if (args.provider !== undefined) {
         verifyCallsByProvider.push(args.provider);
       }
+
       return true;
     };
 
     const mockGetVerificationInformation = async function* () {
-      yield {
-        address: "0x1234567890123456789012345678901234567890",
-        constructorArgs: [],
-        libraries: {},
-        contract: "contracts/Foo.sol:Foo",
-        creationTxHash:
-          "0xabcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890",
-      };
+      yield exampleVerifyInfo;
     };
 
-    await internalVerifyAction(
+    await verify(
       { deploymentId: "test-deployment", force: false },
       this.hre,
       mockVerifyContract,
@@ -64,22 +70,7 @@ describe("ignition verify task", () => {
     assert.include(verifyCallsByProvider, "blockscout");
     assert.include(verifyCallsByProvider, "sourcify");
 
-    const logCalls = consoleLogStub.getCalls().map((c) => c.args[0]);
-    assert.isTrue(
-      logCalls.some((log: string) =>
-        log.includes(chalk.cyan.bold("\n=== Etherscan ===")),
-      ),
-    );
-    assert.isTrue(
-      logCalls.some((log: string) =>
-        log.includes(chalk.cyan.bold("\n=== Blockscout ===")),
-      ),
-    );
-    assert.isTrue(
-      logCalls.some((log: string) =>
-        log.includes(chalk.cyan.bold("\n=== Sourcify ===")),
-      ),
-    );
+    assert.equal(process.exitCode, undefined);
   });
 
   it("should continue verification on other providers when one fails", async function () {
@@ -91,25 +82,20 @@ describe("ignition verify task", () => {
     ) => {
       if (args.provider !== undefined) {
         verifyCallsByProvider.push(args.provider);
+
         if (args.provider === "blockscout") {
           throw new Error("Blockscout verification failed");
         }
       }
+
       return true;
     };
 
     const mockGetVerificationInformation = async function* () {
-      yield {
-        address: "0x1234567890123456789012345678901234567890",
-        constructorArgs: [],
-        libraries: {},
-        contract: "contracts/Foo.sol:Foo",
-        creationTxHash:
-          "0xabcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890",
-      };
+      yield exampleVerifyInfo;
     };
 
-    await internalVerifyAction(
+    await verify(
       { deploymentId: "test-deployment", force: false },
       this.hre,
       mockVerifyContract,
@@ -121,38 +107,34 @@ describe("ignition verify task", () => {
     assert.include(verifyCallsByProvider, "blockscout");
     assert.include(verifyCallsByProvider, "sourcify");
 
-    const errorCalls = consoleErrorStub.getCalls().map((c) => c.args[0]);
-    assert.isTrue(
-      errorCalls.some((err: string) =>
-        err.includes(chalk.red("Blockscout verification failed")),
-      ),
-    );
+    assert.equal(process.exitCode, 1);
   });
 
-  it("should warn when no providers are enabled", async function () {
-    const originalConfig = this.hre.config.verify;
-    (this.hre.config.verify as any) = {
-      etherscan: { enabled: false, apiKey: "" },
-      blockscout: { enabled: false },
-      sourcify: { enabled: false },
-    };
+  it("should not verify when no providers are enabled", async function () {
+    let verifyContractCalled = false;
 
-    try {
-      await internalVerifyAction(
-        { deploymentId: "test-deployment", force: false },
-        this.hre,
-        async () => true,
-        async function* () {},
-      );
+    await verify(
+      { deploymentId: "test-deployment", force: false },
+      {
+        ...this.hre,
+        config: {
+          ...this.hre.config,
+          verify: {
+            etherscan: { enabled: false, apiKey: "" as any },
+            blockscout: { enabled: false },
+            sourcify: { enabled: false },
+          },
+        },
+      },
+      async () => {
+        verifyContractCalled = true;
 
-      assert.isTrue(
-        consoleWarnStub.calledWith(
-          chalk.yellow("\n⚠️  No verification providers are enabled."),
-        ),
-      );
-    } finally {
-      this.hre.config.verify = originalConfig;
-    }
+        return true;
+      },
+      async function* () {},
+    );
+
+    assert.isFalse(verifyContractCalled);
   });
 
   it("should verify multiple contracts on all enabled providers", async function () {
@@ -192,7 +174,7 @@ describe("ignition verify task", () => {
       };
     };
 
-    await internalVerifyAction(
+    await verify(
       { deploymentId: "test-deployment", force: false },
       this.hre,
       mockVerifyContract,
@@ -203,29 +185,14 @@ describe("ignition verify task", () => {
     assert.equal(verifyCalls.length, 6);
 
     // Each contract should be verified on each provider
-    for (const contract of ["contracts/Foo.sol:Foo", "contracts/Bar.sol:Bar"]) {
-      for (const provider of ["etherscan", "blockscout", "sourcify"]) {
-        assert.isTrue(
-          verifyCalls.some(
-            (c) => c.provider === provider && c.contract === contract,
-          ),
-          `Expected ${contract} to be verified on ${provider}`,
-        );
-      }
-    }
-
-    // Both contracts should have "Verifying contract" log lines
-    const logCalls = consoleLogStub.getCalls().map((c) => c.args[0]);
-    assert.isTrue(
-      logCalls.some((log: string) =>
-        log.includes('Verifying contract "contracts/Foo.sol:Foo"'),
-      ),
-    );
-    assert.isTrue(
-      logCalls.some((log: string) =>
-        log.includes('Verifying contract "contracts/Bar.sol:Bar"'),
-      ),
-    );
+    assert.deepEqual(verifyCalls, [
+      { provider: "etherscan", contract: "contracts/Foo.sol:Foo" },
+      { provider: "blockscout", contract: "contracts/Foo.sol:Foo" },
+      { provider: "sourcify", contract: "contracts/Foo.sol:Foo" },
+      { provider: "etherscan", contract: "contracts/Bar.sol:Bar" },
+      { provider: "blockscout", contract: "contracts/Bar.sol:Bar" },
+      { provider: "sourcify", contract: "contracts/Bar.sol:Bar" },
+    ]);
   });
 
   it("should pass force flag through to each provider call", async function () {
@@ -245,17 +212,10 @@ describe("ignition verify task", () => {
     };
 
     const mockGetVerificationInformation = async function* () {
-      yield {
-        address: "0x1234567890123456789012345678901234567890",
-        constructorArgs: [],
-        libraries: {},
-        contract: "contracts/Foo.sol:Foo",
-        creationTxHash:
-          "0xabcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890",
-      };
+      yield exampleVerifyInfo;
     };
 
-    await internalVerifyAction(
+    await verify(
       { deploymentId: "test-deployment", force: true },
       this.hre,
       mockVerifyContract,
@@ -269,25 +229,24 @@ describe("ignition verify task", () => {
     );
   });
 
-  it("should skip contracts when artifacts cannot be resolved", async function () {
+  it("should not verify if contracts artifacts cannot be resolved", async function () {
+    let verifyContractCalled = false;
+
     const mockGetVerificationInformation = async function* () {
       yield "contracts/Foo.sol:Foo";
     };
 
-    await internalVerifyAction(
+    await verify(
       { deploymentId: "test-deployment", force: false },
       this.hre,
-      async () => true,
+      async () => {
+        verifyContractCalled = true;
+
+        return true;
+      },
       mockGetVerificationInformation,
     );
 
-    const logCalls = consoleLogStub.getCalls().map((c) => c.args[0]);
-    assert.isTrue(
-      logCalls.some(
-        (log: string) =>
-          log.includes("Could not resolve contract artifacts") &&
-          log.includes("contracts/Foo.sol:Foo"),
-      ),
-    );
+    assert.isFalse(verifyContractCalled);
   });
 });
