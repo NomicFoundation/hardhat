@@ -58,6 +58,7 @@ import pMap from "p-map";
 
 import { FileBuildResultType } from "../../../../types/solidity/build-system.js";
 import { DEFAULT_BUILD_PROFILE } from "../build-profiles.js";
+import { getSolcCompilerForConfig } from "../solidity-hooks.js";
 
 import {
   getArtifactsDeclarationFile,
@@ -89,20 +90,6 @@ export function isSolcSolidityCompilerConfig(
   config: SolidityCompilerConfig,
 ): config is SolcSolidityCompilerConfig {
   return config.type === undefined || config.type === "solc";
-}
-
-/**
- * Resolves the preferWasm setting for a given compiler config, falling back
- * to the build profile's preferWasm if not set on the compiler.
- */
-function resolvePreferWasm(
-  compilerConfig: SolidityCompilerConfig,
-  buildProfilePreferWasm: boolean,
-): boolean {
-  if (isSolcSolidityCompilerConfig(compilerConfig)) {
-    return compilerConfig.preferWasm ?? buildProfilePreferWasm;
-  }
-  return false;
 }
 
 // Compiler warnings to suppress from build output.
@@ -511,10 +498,7 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
           "getCompiler",
           [compilerConfig],
           async (_context, cfg) =>
-            getCompiler(cfg.version, {
-              preferWasm: resolvePreferWasm(cfg, buildProfile.preferWasm),
-              compilerPath: cfg.path,
-            }),
+            getSolcCompilerForConfig(cfg, buildProfile.preferWasm),
         );
         longVersion = compiler.longVersion;
         longVersionMap.set(compilerConfig.version, longVersion);
@@ -758,10 +742,7 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
       "getCompiler",
       [runnableCompilationJob.solcConfig],
       async (_context, cfg) =>
-        getCompiler(cfg.version, {
-          preferWasm: resolvePreferWasm(cfg, buildProfile.preferWasm),
-          compilerPath: cfg.path,
-        }),
+        getSolcCompilerForConfig(cfg, buildProfile.preferWasm),
     );
 
     log(

@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/consistent-type-assertions -- We use `as any` casts
+   for non-solc compiler configs in tests because "solx" is not registered in the base type system. */
 import type {
   ConfigurationVariableResolver,
   HardhatConfig,
@@ -464,7 +466,7 @@ describe("solidity - hooks", () => {
         solidity: {
           compilers: [
             { version: "0.8.23" },
-            { type: "solx", version: "0.8.23" },
+            { type: "solx", version: "0.8.23" } as any,
           ],
         },
       });
@@ -482,7 +484,7 @@ describe("solidity - hooks", () => {
         "Should include solc configs (type undefined)",
       );
       assert.equal(
-        capturedConfigs.filter((c) => c.type === "solx").length > 0,
+        capturedConfigs.filter((c) => (c as any).type === "solx").length > 0,
         true,
         "Should include non-solc configs (type solx)",
       );
@@ -498,7 +500,11 @@ describe("solidity - hooks", () => {
         solidity: {
           compilers: [
             { version: "0.8.23" },
-            { type: "solx", version: "0.8.23", path: "/mock/path/to/solx" },
+            {
+              type: "solx",
+              version: "0.8.23",
+              path: "/mock/path/to/solx",
+            } as any,
           ],
         },
       });
