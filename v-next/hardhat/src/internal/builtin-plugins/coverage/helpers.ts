@@ -1,5 +1,14 @@
+import type { CoverageManager } from "./types.js";
+import type { HookContext } from "../../../types/hooks.js";
+import type { HardhatRuntimeEnvironment } from "../../../types/hre.js";
+
 import path from "node:path";
 
+import { assertHardhatInvariant } from "@nomicfoundation/hardhat-errors";
+
+import { HardhatRuntimeEnvironmentImplementation } from "../../core/hre.js";
+
+import { CoverageManagerImplementation } from "./coverage-manager.js";
 import {
   testRunDone,
   testRunStart,
@@ -8,6 +17,28 @@ import {
 
 export function getCoveragePath(rootPath: string): string {
   return path.join(rootPath, "coverage");
+}
+
+export function getCoverageManager(
+  hookContextOrHre: HookContext | HardhatRuntimeEnvironment,
+): CoverageManager {
+  assertHardhatInvariant(
+    "_coverage" in hookContextOrHre &&
+      hookContextOrHre._coverage instanceof CoverageManagerImplementation,
+    "Expected _coverage to be an instance of CoverageManagerImplementation",
+  );
+  return hookContextOrHre._coverage;
+}
+
+export function setCoverageManager(
+  hre: HardhatRuntimeEnvironment,
+  coverageManager: CoverageManager,
+): void {
+  assertHardhatInvariant(
+    hre instanceof HardhatRuntimeEnvironmentImplementation,
+    "Expected HRE to be an instance of HardhatRuntimeEnvironmentImplementation",
+  );
+  hre._coverage = coverageManager;
 }
 
 /**
