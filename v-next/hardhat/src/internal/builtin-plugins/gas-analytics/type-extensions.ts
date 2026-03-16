@@ -2,6 +2,6 @@ import "../../../types/global-options.js";
 declare module "../../../types/global-options.js" {
   export interface GlobalOptions {
     gasStats: boolean;
-    gasStatsJson: string;
+    gasStatsJson: string | undefined;
   }
 }
