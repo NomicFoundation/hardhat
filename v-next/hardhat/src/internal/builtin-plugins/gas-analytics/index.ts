@@ -48,7 +48,7 @@ const hardhatPlugin: HardhatPlugin = {
       name: "gasStatsJson",
       description:
         "Write gas usage statistics to a JSON file at the specified path",
-      type: ArgumentType.STRING_WITHOUT_DEFAULT,
+      type: ArgumentType.FILE_WITHOUT_DEFAULT,
       defaultValue: undefined,
     }),
   ],
