@@ -1,6 +1,7 @@
 ---
 "@nomicfoundation/hardhat-node-test-runner": minor
 "@nomicfoundation/hardhat-mocha": minor
+"@nomicfoundation/hardhat-errors": minor
 "hardhat": minor
 ---
 

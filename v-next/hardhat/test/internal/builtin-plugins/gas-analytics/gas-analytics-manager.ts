@@ -7,7 +7,11 @@ import assert from "node:assert/strict";
 import path from "node:path";
 import { afterEach, before, describe, it } from "node:test";
 
-import { disableConsole } from "@nomicfoundation/hardhat-test-utils";
+import { HardhatError } from "@nomicfoundation/hardhat-errors";
+import {
+  assertRejectsWithHardhatError,
+  disableConsole,
+} from "@nomicfoundation/hardhat-test-utils";
 import {
   emptyDir,
   getAllFilesMatching,
@@ -1340,6 +1344,15 @@ describe("gas-analytics-manager", () => {
     describe("writeGasStatsJson", () => {
       afterEach(async () => {
         await emptyDir(tmpDir);
+      });
+
+      it("should throw if outputPath is a directory", async () => {
+        const manager = new GasAnalyticsManagerImplementation(tmpDir);
+        await assertRejectsWithHardhatError(
+          manager.writeGasStatsJson(tmpDir, "test-id"),
+          HardhatError.ERRORS.CORE.BUILTIN_TASKS.INVALID_FILE_PATH,
+          { path: tmpDir },
+        );
       });
 
       it("should write JSON file at the specified path", async () => {

@@ -10,10 +10,13 @@ import type { TableItem } from "@nomicfoundation/hardhat-utils/format";
 import crypto from "node:crypto";
 import path from "node:path";
 
+import { HardhatError } from "@nomicfoundation/hardhat-errors";
 import { formatTable } from "@nomicfoundation/hardhat-utils/format";
 import {
   ensureDir,
+  exists,
   getAllFilesMatching,
+  isDirectory,
   readJsonFile,
   remove,
   writeJsonFile,
@@ -115,6 +118,12 @@ export class GasAnalyticsManagerImplementation implements GasAnalyticsManager {
     const gasStatsByContract = this._calculateGasStats();
 
     const resolvedPath = path.resolve(outputPath);
+    if ((await exists(resolvedPath)) && (await isDirectory(resolvedPath))) {
+      throw new HardhatError(
+        HardhatError.ERRORS.CORE.BUILTIN_TASKS.INVALID_FILE_PATH,
+        { path: outputPath },
+      );
+    }
     await ensureDir(path.dirname(resolvedPath));
 
     const json = this._generateGasStatsJson(gasStatsByContract);
