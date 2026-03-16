@@ -6,7 +6,6 @@ import type {
 } from "@nomicfoundation/edr";
 
 import { LogKind, CallKind, IncludeTraces } from "@nomicfoundation/edr";
-import { assertHardhatInvariant } from "@nomicfoundation/hardhat-errors";
 import { bytesToHexString } from "@nomicfoundation/hardhat-utils/hex";
 
 type NestedArray<T> = Array<T | NestedArray<T>>;
@@ -55,42 +54,30 @@ function formatOutputs(outputs: string | Uint8Array): string | undefined {
 
 function formatLog(log: LogTrace, colorizer: Colorizer): string[] {
   const { parameters } = log;
+  const tag = colorizer.yellow("[event]");
   const lines = [];
+
   if (Array.isArray(parameters)) {
-    const topics = parameters.map((topic) => bytesToHexString(topic));
-    if (topics.length > 0) {
-      lines.push(`emit topic 0: ${colorizer.cyan(topics[0])}`);
+    const hexValues = parameters.map((bytes) => bytesToHexString(bytes));
+    const topicCount = hexValues.length - 1;
+
+    for (let i = 0; i < topicCount; i++) {
+      const prefix = i === 0 ? `${tag} topic 0` : `        topic ${i}`;
+      lines.push(`${prefix}: ${colorizer.cyan(hexValues[i])}`);
     }
-    for (let i = 1; i < topics.length - 1; i++) {
-      lines.push(`     topic ${i}: ${colorizer.cyan(topics[i])}`);
-    }
-    if (topics.length > 1) {
-      lines.push(`        data: ${colorizer.cyan(topics[topics.length - 1])}`);
+
+    if (hexValues.length > 0) {
+      const dataPrefix = topicCount > 0 ? "           data" : `${tag}    data`;
+      lines.push(
+        `${dataPrefix}: ${colorizer.cyan(hexValues[hexValues.length - 1])}`,
+      );
     }
   } else {
     lines.push(
-      `emit ${parameters.name}(${colorizer.cyan(parameters.arguments.join(", "))})`,
+      `${tag} ${parameters.name}(${colorizer.cyan(parameters.arguments.join(", "))})`,
     );
   }
   return lines;
-}
-
-function formatKind(kind: CallKind): string | undefined {
-  assertHardhatInvariant(
-    kind !== CallKind.Create,
-    "Unexpected call kind 'Create'",
-  );
-
-  switch (kind) {
-    case CallKind.Call:
-      return undefined;
-    case CallKind.CallCode:
-      return "callcode";
-    case CallKind.DelegateCall:
-      return "delegatecall";
-    case CallKind.StaticCall:
-      return "staticcall";
-  }
 }
 
 function formatTrace(
@@ -130,7 +117,6 @@ function formatTrace(
     //   openingLine = `${openingLine}@${formattedInputs}`;
     // }
   } else {
-    const formattedKind = formatKind(kind);
     openingLine = `[${gasUsed}] ${color(contract ?? address)}`;
     if (formattedInputs !== undefined) {
       openingLine = `${openingLine}::${formattedInputs}`;
@@ -138,8 +124,12 @@ function formatTrace(
     if (value !== 0n) {
       openingLine = `${openingLine} {value: ${value}}`;
     }
-    if (formattedKind !== undefined) {
-      openingLine = `${openingLine} ${colorizer.yellow(`[${formattedKind}]`)}`;
+    if (kind === CallKind.StaticCall) {
+      openingLine = `${openingLine} ${colorizer.yellow("[staticcall]")}`;
+    } else if (kind === CallKind.DelegateCall) {
+      openingLine = `${openingLine} ${colorizer.yellow("[delegatecall]")}`;
+    } else if (kind === CallKind.CallCode) {
+      openingLine = `${openingLine} ${colorizer.yellow("[callcode]")}`;
     }
   }
   if (formattedOutputs !== undefined) {
@@ -182,6 +172,11 @@ function formatNestedArray(
       const [label, ...children] = item;
 
       if (isTopLevel) {
+        // Blank line between top-level traces
+        if (i > 0) {
+          output += "\n";
+        }
+
         output += `${prefix}${label}\n`;
         output += formatNestedArray(children, prefix, false);
       } else {
