@@ -64,6 +64,11 @@ export default async (): Promise<Partial<SolidityHooks>> => ({
 
     const binaryPath = await getSolxBinaryPath(solxVersion);
 
+    assertHardhatInvariant(
+      await exists(binaryPath),
+      `solx binary not found at ${binaryPath} — downloadCompilers should have been called first`,
+    );
+
     log(
       `Creating SolxCompiler for Solidity ${compilerConfig.version} (solx ${solxVersion}) at ${binaryPath}`,
     );

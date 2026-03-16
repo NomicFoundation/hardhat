@@ -24,7 +24,12 @@ const DOWNLOAD_RETRY_DELAY_MS = 2000;
 export async function getSolxBinaryPath(solxVersion: string): Promise<string> {
   const assetName = getSolxAssetName(solxVersion);
   const globalCacheDir = await getCacheDir();
-  return path.join(globalCacheDir, `solx-v${solxVersion}`, assetName);
+  return path.join(
+    globalCacheDir,
+    "compilers-v3",
+    `solx-v${solxVersion}`,
+    assetName,
+  );
 }
 
 /**
@@ -40,24 +45,27 @@ export async function downloadSolx(solxVersion: string): Promise<string> {
     return binaryPath;
   }
 
-  // Use a mutex to prevent concurrent downloads of the same version
-  const mutex = new MultiProcessMutex(`solx-download-${solxVersion}`);
+  const globalCacheDir = await getCacheDir();
+  const mutex = new MultiProcessMutex(
+    path.join(globalCacheDir, `solx-download-${solxVersion}`),
+  );
+  const url = `${SOLX_RELEASES_BASE_URL}/${solxVersion}/${getSolxAssetName(solxVersion)}`;
+  log(`Downloading solx ${solxVersion} from ${url}`);
 
-  return mutex.use(async () => {
-    // Re-check after acquiring the mutex (another process may have downloaded it)
-    if (await exists(binaryPath)) {
-      log(
-        `Using cached solx binary at ${binaryPath} (downloaded by another process)`,
-      );
-      return binaryPath;
-    }
+  let lastError: Error | undefined;
 
-    const url = `${SOLX_RELEASES_BASE_URL}/${solxVersion}/${getSolxAssetName(solxVersion)}`;
-    log(`Downloading solx ${solxVersion} from ${url}`);
+  for (let attempt = 1; attempt <= DOWNLOAD_RETRY_COUNT; attempt++) {
+    // Use a mutex per retry iteration so other processes can proceed
+    // between retries
+    const result = await mutex.use(async () => {
+      // Check if another process downloaded it while we waited for the mutex
+      if (await exists(binaryPath)) {
+        log(
+          `Using cached solx binary at ${binaryPath} (downloaded by another process)`,
+        );
+        return binaryPath;
+      }
 
-    let lastError: Error | undefined;
-
-    for (let attempt = 1; attempt <= DOWNLOAD_RETRY_COUNT; attempt++) {
       try {
         await download(url, binaryPath);
 
@@ -74,22 +82,27 @@ export async function downloadSolx(solxVersion: string): Promise<string> {
         log(
           `Download attempt ${attempt}/${DOWNLOAD_RETRY_COUNT} failed: ${lastError.message}`,
         );
-
-        if (attempt < DOWNLOAD_RETRY_COUNT) {
-          await new Promise((resolve) =>
-            setTimeout(resolve, DOWNLOAD_RETRY_DELAY_MS),
-          );
-        }
+        return undefined;
       }
+    });
+
+    if (result !== undefined) {
+      return result;
     }
 
-    throw new HardhatError(
-      HardhatError.ERRORS.HARDHAT_SOLX.GENERAL.DOWNLOAD_FAILED,
-      {
-        version: solxVersion,
-        attempts: DOWNLOAD_RETRY_COUNT.toString(),
-        reason: lastError?.message ?? "unknown error",
-      },
-    );
-  });
+    if (attempt < DOWNLOAD_RETRY_COUNT) {
+      await new Promise((resolve) =>
+        setTimeout(resolve, DOWNLOAD_RETRY_DELAY_MS),
+      );
+    }
+  }
+
+  throw new HardhatError(
+    HardhatError.ERRORS.HARDHAT_SOLX.GENERAL.DOWNLOAD_FAILED,
+    {
+      version: solxVersion,
+      attempts: DOWNLOAD_RETRY_COUNT.toString(),
+      reason: lastError?.message ?? "unknown error",
+    },
+  );
 }

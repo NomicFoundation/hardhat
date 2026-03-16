@@ -31,7 +31,7 @@ export default defineConfig({
 Run tests using the solx-powered test profile:
 
 ```bash
-hardhat test --buildProfile test
+hardhat test --build-profile test
 ```
 
 The default profile continues to use solc as usual:
