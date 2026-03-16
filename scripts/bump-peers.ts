@@ -107,6 +107,14 @@ function apply(): void {
   // Revert automatic peer dependency bumps
   const modifications = revertPeerDependencies(packages);
 
+  // Snapshot reverted peers before intentional bumps are re-applied
+  const revertedPeers = new Map<string, Set<string>>();
+  for (const [pkgName, mod] of modifications) {
+    if (mod.peerChanges.size > 0) {
+      revertedPeers.set(pkgName, new Set(mod.peerChanges.keys()));
+    }
+  }
+
   // Apply intentional bumps
   applyIntentionalBumps(
     config.bumps,
@@ -114,6 +122,18 @@ function apply(): void {
     config.excludedFolders,
     modifications,
   );
+
+  // Remove re-applied bumps from reverted set
+  for (const bump of config.bumps) {
+    const peers = revertedPeers.get(bump.package);
+    if (peers !== undefined) {
+      peers.delete(bump.peer);
+      if (peers.size === 0) revertedPeers.delete(bump.package);
+    }
+  }
+
+  // Clean stale dependency references from CHANGELOGs
+  cleanChangelogs(revertedPeers, modifications);
 
   // Sync peer deps to dev deps
   syncPeerToDevDependencies(modifications);
@@ -137,6 +157,12 @@ DESCRIPTION
 
   1. Reverting all workspace peer dependency changes made by changesets
   2. Applying only intentional bumps declared in ${CONFIG_FILE}
+  3. Cleans up the "Updated dependencies" entry from the changelog when using
+    the GitHub changelog generator (i.e. process.env.GITHUB_TOKEN is set). This
+    does the following:
+      - Removes any reverted bumps from the list of dependencies
+      - Removes all the links from the "Updated dependencies" section, as
+        cleaning them up is too complex to be worth it.
 
 WORKFLOW
   1. Run \`pnpm changeset version --no-commit\`
@@ -479,6 +505,131 @@ function clearBumpsInConfig(): void {
 }
 
 // =============================================================================
+// Changelog Cleanup
+// =============================================================================
+
+function cleanChangelogs(
+  revertedPeers: Map<string, Set<string>>,
+  modifications: Map<string, PackageModification>,
+): void {
+  logStep("Cleaning CHANGELOGs");
+  if (process.env.GITHUB_TOKEN === undefined) {
+    log(fmt.deemphasize("  Skipping changelog cleanup: GITHUB_TOKEN not set"));
+    return;
+  }
+
+  // Collect all package paths that need changelog cleanup:
+  // 1. Packages in modifications (may have reverted peers)
+  // 2. All workspace packages (may have "Updated dependencies" sections to clean)
+  const packagesToClean = new Map<string, /* reverted peers */ Set<string>>();
+
+  // Add modified packages with their reverted peers
+  for (const [pkgName, mod] of modifications) {
+    const peers = revertedPeers.get(pkgName) ?? new Set<string>();
+    packagesToClean.set(mod.packagePath, peers);
+  }
+
+  // Also scan all workspace packages for "Updated dependencies" sections
+  const allPackages = getWorkspacePackages();
+  const changedFiles = new Set(
+    git(["diff", "--name-only", "HEAD", "--"])
+      .split("\n")
+      .filter((line) => line.length > 0),
+  );
+  for (const pkg of allPackages) {
+    if (packagesToClean.has(pkg.path)) {
+      continue;
+    }
+
+    // Normalize to POSIX separators so the comparison works on Windows,
+    // where relative() uses "\" but git always uses "/".
+    const relChangelog = relative(ROOT_DIR, resolve(pkg.path, "CHANGELOG.md"))
+      .split("\\")
+      .join("/");
+
+    // If the package's CHANGELOG hasn't been modified, we skip it.
+    if (!changedFiles.has(relChangelog)) {
+      continue;
+    }
+
+    packagesToClean.set(pkg.path, new Set<string>());
+  }
+
+  for (const [packagePath, peers] of packagesToClean) {
+    const changelogPath = resolve(packagePath, "CHANGELOG.md");
+    if (!existsSync(changelogPath)) continue;
+
+    const changelog = readFileSync(changelogPath, "utf-8");
+    const { entry, startIndex, endIndex } = getLastChangelogEntry(changelog);
+    if (entry === "") continue;
+
+    // Only process if the entry has "Updated dependencies" sections
+    if (!entry.includes("- Updated dependencies [")) continue;
+
+    const cleanedEntry = cleanChangelogEntry(entry, peers);
+
+    if (cleanedEntry !== entry) {
+      const newChangelog =
+        changelog.slice(0, startIndex) +
+        cleanedEntry +
+        changelog.slice(endIndex);
+      writeFileSync(changelogPath, newChangelog);
+      const pkgName = relative(ROOT_DIR, packagePath);
+      log(`  Cleaned CHANGELOG for ${fmt.pkg(pkgName)}`);
+    }
+  }
+}
+
+export function getLastChangelogEntry(changelog: string): {
+  entry: string;
+  startIndex: number;
+  endIndex: number;
+} {
+  const firstHeading = changelog.indexOf("\n## ");
+  if (firstHeading === -1) {
+    return { entry: "", startIndex: 0, endIndex: 0 };
+  }
+
+  const startIndex = firstHeading + 1; // skip the leading newline
+  const nextHeading = changelog.indexOf("\n## ", startIndex);
+  const endIndex = nextHeading === -1 ? changelog.length : nextHeading + 1;
+
+  return {
+    entry: changelog.slice(startIndex, endIndex),
+    startIndex,
+    endIndex,
+  };
+}
+
+export function cleanChangelogEntry(
+  entry: string,
+  revertedPeers: Set<string>,
+): string {
+  // Match "- Updated dependencies [<links>]:" blocks followed by indented dep lines.
+  // The leading \n is captured so it can be removed when the entire section is dropped.
+  const updatedDepsPattern =
+    /\n- Updated dependencies \[.*?\]:\n((?:  - .+\n)*)/gm;
+
+  return entry.replace(updatedDepsPattern, (_match, depBlock: string) => {
+    const depLines = depBlock.split("\n").filter((line) => line.length > 0);
+
+    const keptLines = depLines.filter((line) => {
+      // Extract package name from "  - @scope/pkg@version" or "  - pkg@version"
+      const depMatch = line.match(/^\s{2}- (.+)@/);
+      if (depMatch === null) return true;
+      return !revertedPeers.has(depMatch[1]);
+    });
+
+    if (keptLines.length === 0) {
+      // Remove the entire section including the preceding blank line
+      return "";
+    }
+
+    return `\n- Updated dependencies:\n${keptLines.join("\n")}\n`;
+  });
+}
+
+// =============================================================================
 // Package Helpers
 // =============================================================================
 
@@ -702,4 +853,6 @@ function logError(msg: string): void {
 // Run
 // =============================================================================
 
-main();
+if (import.meta.main) {
+  main();
+}

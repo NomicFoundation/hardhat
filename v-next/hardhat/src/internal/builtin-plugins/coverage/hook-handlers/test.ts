@@ -1,9 +1,6 @@
 import type { HookContext, TestHooks } from "../../../../types/hooks.js";
 
-import { assertHardhatInvariant } from "@nomicfoundation/hardhat-errors";
-import { isObject } from "@nomicfoundation/hardhat-utils/lang";
-
-import { CoverageManagerImplementation } from "../coverage-manager.js";
+import { getCoverageManager } from "../helpers.js";
 
 export default async (): Promise<Partial<TestHooks>> => ({
   onTestRunStart: async (context, id, next) => {
@@ -27,13 +24,7 @@ export async function testRunStart(
   id: string,
 ): Promise<void> {
   if (context.globalOptions.coverage === true) {
-    assertHardhatInvariant(
-      "_coverage" in context &&
-        isObject(context._coverage) &&
-        context._coverage instanceof CoverageManagerImplementation,
-      "Expected HookContext#_coverage to be an instance of CoverageManagerImplementation",
-    );
-    await context._coverage.clearData(id);
+    await getCoverageManager(context).clearData(id);
   }
 }
 
@@ -42,13 +33,7 @@ export async function testWorkerDone(
   id: string,
 ): Promise<void> {
   if (context.globalOptions.coverage === true) {
-    assertHardhatInvariant(
-      "_coverage" in context &&
-        isObject(context._coverage) &&
-        context._coverage instanceof CoverageManagerImplementation,
-      "Expected HookContext#_coverage to be an instance of CoverageManagerImplementation",
-    );
-    await context._coverage.saveData(id);
+    await getCoverageManager(context).saveData(id);
   }
 }
 
@@ -57,12 +42,6 @@ export async function testRunDone(
   id: string,
 ): Promise<void> {
   if (context.globalOptions.coverage === true) {
-    assertHardhatInvariant(
-      "_coverage" in context &&
-        isObject(context._coverage) &&
-        context._coverage instanceof CoverageManagerImplementation,
-      "Expected HookContext#_coverage to be an instance of CoverageManagerImplementation",
-    );
-    await context._coverage.report(id);
+    await getCoverageManager(context).report(id);
   }
 }

@@ -2,6 +2,7 @@ abicoder
 Abicoder
 accum
 addy
+alcuadrado
 anonymization
 APDU
 arrayified

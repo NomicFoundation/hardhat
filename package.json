@@ -7,6 +7,7 @@
   "private": true,
   "packageManager": "pnpm@10.28.2",
   "devDependencies": {
+    "@changesets/changelog-github": "^0.6.0",
     "@changesets/cli": "^2.16.0",
     "@types/node": "^24.1.0",
     "cspell": "9.7.0",
@@ -19,7 +20,7 @@
     "build": "pnpm run --recursive --if-present build",
     "clean": "pnpm run --recursive --if-present clean && rimraf .verdaccio",
     "test": "pnpm run --recursive --if-present test",
-    "test:scripts": "node --test ./scripts/**/*.test.ts",
+    "test:scripts": "node --test \"./scripts/**/*.test.ts\"",
     "prettier:scripts": "prettier \"scripts/**/*.{ts,json}\"",
     "tsc:scripts": "tsc --noEmit -p scripts/tsconfig.json",
     "lint:scripts": "pnpm prettier:scripts --check && pnpm tsc:scripts",

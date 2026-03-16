@@ -1,13 +1,15 @@
 import defaultChangelog from "@changesets/cli/changelog";
+import githubChangelog from "@changesets/changelog-github";
+import util from "node:util";
 
-export default {
-  getReleaseLine: async (changeset, type, changelogOpts) => {
-    return defaultChangelog.getReleaseLine(changeset, type, changelogOpts);
-  },
+const hasGithubToken = process.env.GITHUB_TOKEN !== undefined;
 
-  // We do not want dependency releases included in
-  // our changelogs e.g. "  - Updated dependencies [e5ff273]"
-  getDependencyReleaseLine: async () => {
-    return "";
-  },
-};
+if (!hasGithubToken) {
+  console.log(
+    util.styleText(["bold", "yellow"], "WARNING:"),
+    "GITHUB_TOKEN is not set using default changelog locally",
+  );
+  console.log();
+}
+
+export default hasGithubToken ? githubChangelog : defaultChangelog;
