@@ -5,6 +5,32 @@ declare module "hardhat/types/config" {
     solx: true;
   }
 
+  export interface SolxSolidityCompilerUserConfig
+    extends CommonSolidityCompilerUserConfig {
+    type: "solx";
+  }
+
+  export interface SolidityCompilerUserConfigPerType {
+    solx: SolxSolidityCompilerUserConfig;
+  }
+
+  export interface SolxSolidityCompilerConfig
+    extends CommonSolidityCompilerConfig {
+    type: "solx";
+  }
+
+  export interface SolidityCompilerConfigPerType {
+    solx: SolxSolidityCompilerConfig;
+  }
+
+  export interface SolxSingleVersionSolidityUserConfig
+    extends SolxSolidityCompilerUserConfig,
+      CommonSolidityUserConfig {}
+
+  export interface SingleVersionSolidityUserConfigPerType {
+    solx: SolxSingleVersionSolidityUserConfig;
+  }
+
   export interface SolxUserConfig {
     /**
      * Allow compiler type `"solx"` in the production build profile.
