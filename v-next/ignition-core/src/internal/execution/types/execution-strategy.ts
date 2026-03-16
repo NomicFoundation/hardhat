@@ -159,6 +159,11 @@ export type StaticCallStrategyGenerator = AsyncGenerator<
  * process of requestsing `OnchainInteraction`s, which differs whether if the request
  * has already being resolved or not. See below for more details.
  *
+ * A strategy that performs multiple transactions must ensure the last transaction
+ * encapsulates the semantic changes of the strategy. For example, a multi-sig
+ * strategy should ensure that the final transaction is the one that performs the
+ * deployment or create2 invocation.
+ *
  * There are two types of request, which follow a different protocol:
  *
  *   - `OnchainInteractionRequest`: This request is used to perform an onchain
