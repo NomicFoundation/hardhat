@@ -4,6 +4,7 @@ import { describe, it } from "node:test";
 
 import {
   resolveUserConfig,
+  validateResolvedConfig,
   validateUserConfig,
 } from "../src/internal/hook-handlers/config.js";
 
@@ -168,8 +169,8 @@ describe("hardhat-solx test profile creation (resolveUserConfig)", () => {
     assert.equal(testProfile.compilers[0].type, "solx");
     assert.deepEqual(
       testProfile.compilers[0].settings,
-      {},
-      "settings should be stripped for solx entries",
+      { outputSelection: undefined },
+      "settings should only keep outputSelection for solx entries",
     );
   });
 
@@ -223,7 +224,11 @@ describe("hardhat-solx test profile creation (resolveUserConfig)", () => {
     const override = testProfile.overrides["contracts/Special.sol"];
     assert.ok(override !== undefined, "override should exist in test profile");
     assert.equal(override.type, "solx", "0.8.30 is supported → type: solx");
-    assert.deepEqual(override.settings, {}, "settings stripped for solx");
+    assert.deepEqual(
+      override.settings,
+      { outputSelection: undefined },
+      "settings should only keep outputSelection for solx",
+    );
   });
 
   it("preserves user-defined test profile", async () => {
@@ -310,7 +315,7 @@ describe("hardhat-solx EVM version validation", () => {
     });
     assert.ok(errors.length > 0, "Should have validation errors");
     assert.ok(
-      errors.some((e) => e.message.includes("does not support EVM version")),
+      errors.some((e) => e.message.includes("EVM versions")),
       `Expected EVM version error, got: ${errors.map((e) => e.message).join(", ")}`,
     );
   });
@@ -420,9 +425,7 @@ describe("hardhat-solx EVM version validation", () => {
       },
     });
     // Filter to only EVM version errors (ignore plugin-is-useful, etc.)
-    const evmErrors = errors.filter((e) =>
-      e.message.includes("does not support EVM version"),
-    );
+    const evmErrors = errors.filter((e) => e.message.includes("EVM versions"));
     assert.deepEqual(evmErrors, []);
   });
 
@@ -463,7 +466,7 @@ describe("hardhat-solx Solidity version validation", () => {
       },
     });
     assert.ok(
-      errors.some((e) => e.message.includes("not supported by solx")),
+      errors.some((e) => e.message.includes("Solx only supports versions")),
       `Expected Solidity version error, got: ${errors.map((e) => e.message).join(", ")}`,
     );
   });
@@ -480,7 +483,7 @@ describe("hardhat-solx Solidity version validation", () => {
     });
     // Filter out the "plugin is useful" errors — here we only care about version validation
     const versionErrors = errors.filter((e) =>
-      e.message.includes("not supported by solx"),
+      e.message.includes("Solx only supports versions"),
     );
     assert.deepEqual(versionErrors, []);
   });
@@ -496,7 +499,7 @@ describe("hardhat-solx Solidity version validation", () => {
       },
     });
     const versionErrors = errors.filter((e) =>
-      e.message.includes("not supported by solx"),
+      e.message.includes("Solx only supports versions"),
     );
     assert.deepEqual(versionErrors, []);
   });
@@ -570,18 +573,41 @@ describe("hardhat-solx plugin-is-useful validation", () => {
   });
 });
 
-describe("hardhat-solx production profile safeguard", () => {
-  it("rejects type: 'solx' in production profile", async () => {
-    const errors = await validateUserConfig({
+describe("hardhat-solx production profile safeguard (resolved config)", () => {
+  function makeResolvedConfig(
+    profiles: Record<string, any>,
+    opts?: { dangerouslyAllowSolxInProduction?: boolean },
+  ): any {
+    return {
       solidity: {
-        profiles: {
-          default: { version: "0.8.33" },
-          production: {
-            compilers: [{ version: "0.8.33", type: "solx" }],
-          },
-        },
+        profiles,
+        npmFilesToBuild: [],
+        registeredCompilerTypes: ["solc", "solx"],
       },
-    });
+      solx: {
+        dangerouslyAllowSolxInProduction:
+          opts?.dangerouslyAllowSolxInProduction ?? false,
+      },
+    };
+  }
+
+  it("rejects type: 'solx' in production profile compilers", async () => {
+    const errors = await validateResolvedConfig(
+      makeResolvedConfig({
+        default: {
+          isolated: false,
+          preferWasm: false,
+          compilers: [{ version: "0.8.33", settings: {} }],
+          overrides: {},
+        },
+        production: {
+          isolated: false,
+          preferWasm: false,
+          compilers: [{ version: "0.8.33", type: "solx", settings: {} }],
+          overrides: {},
+        },
+      }),
+    );
     assert.ok(errors.length > 0, "Should have validation errors");
     assert.ok(
       errors.some((e) =>
@@ -591,81 +617,90 @@ describe("hardhat-solx production profile safeguard", () => {
     );
   });
 
-  it("rejects single-version solx in production profile", async () => {
-    const errors = await validateUserConfig({
-      solidity: {
-        profiles: {
-          default: { version: "0.8.33" },
-          production: { version: "0.8.33", type: "solx" },
-        },
-      },
-    });
-    assert.ok(errors.length > 0, "Should have validation errors");
-  });
-
   it("accepts type: 'solx' in production with dangerouslyAllowSolxInProduction", async () => {
-    const errors = await validateUserConfig({
-      solx: { dangerouslyAllowSolxInProduction: true },
-      solidity: {
-        profiles: {
-          default: { version: "0.8.33" },
+    const errors = await validateResolvedConfig(
+      makeResolvedConfig(
+        {
+          default: {
+            isolated: false,
+            preferWasm: false,
+            compilers: [{ version: "0.8.33", settings: {} }],
+            overrides: {},
+          },
           production: {
-            compilers: [{ version: "0.8.33", type: "solx" }],
+            isolated: false,
+            preferWasm: false,
+            compilers: [{ version: "0.8.33", type: "solx", settings: {} }],
+            overrides: {},
           },
         },
-      },
-    });
+        { dangerouslyAllowSolxInProduction: true },
+      ),
+    );
     assert.deepEqual(errors, []);
   });
 
   it("accepts type: 'solx' in non-production profiles", async () => {
-    const errors = await validateUserConfig({
-      solidity: {
-        profiles: {
-          default: {
-            compilers: [{ version: "0.8.33", type: "solx" }],
-          },
-          test: {
-            compilers: [{ version: "0.8.33", type: "solx" }],
-          },
+    const errors = await validateResolvedConfig(
+      makeResolvedConfig({
+        default: {
+          isolated: false,
+          preferWasm: false,
+          compilers: [{ version: "0.8.33", type: "solx", settings: {} }],
+          overrides: {},
         },
-      },
-    });
-    // Filter out non-production errors
+        test: {
+          isolated: false,
+          preferWasm: false,
+          compilers: [{ version: "0.8.33", type: "solx", settings: {} }],
+          overrides: {},
+        },
+      }),
+    );
     const prodErrors = errors.filter((e) => e.message.includes("production"));
     assert.deepEqual(prodErrors, []);
   });
 
   it("accepts production profile without type: 'solx'", async () => {
-    const errors = await validateUserConfig({
-      solidity: {
-        profiles: {
-          default: { version: "0.8.33" },
-          production: { version: "0.8.33" },
+    const errors = await validateResolvedConfig(
+      makeResolvedConfig({
+        default: {
+          isolated: false,
+          preferWasm: false,
+          compilers: [{ version: "0.8.33", settings: {} }],
+          overrides: {},
         },
-      },
-    });
-    // Filter out non-production errors
+        production: {
+          isolated: false,
+          preferWasm: false,
+          compilers: [{ version: "0.8.33", settings: {} }],
+          overrides: {},
+        },
+      }),
+    );
     const prodErrors = errors.filter((e) => e.message.includes("production"));
     assert.deepEqual(prodErrors, []);
   });
 
   it("rejects type: 'solx' in production profile overrides", async () => {
-    const errors = await validateUserConfig({
-      solidity: {
-        profiles: {
-          default: {
-            compilers: [{ version: "0.8.33" }],
-          },
-          production: {
-            compilers: [{ version: "0.8.33" }],
-            overrides: {
-              "MyContract.sol": { version: "0.8.33", type: "solx" },
-            },
+    const errors = await validateResolvedConfig(
+      makeResolvedConfig({
+        default: {
+          isolated: false,
+          preferWasm: false,
+          compilers: [{ version: "0.8.33", settings: {} }],
+          overrides: {},
+        },
+        production: {
+          isolated: false,
+          preferWasm: false,
+          compilers: [{ version: "0.8.33", settings: {} }],
+          overrides: {
+            "MyContract.sol": { version: "0.8.33", type: "solx", settings: {} },
           },
         },
-      },
-    });
+      }),
+    );
     const prodErrors = errors.filter((e) => e.message.includes("production"));
     assert.ok(
       prodErrors.length > 0,
@@ -675,46 +710,5 @@ describe("hardhat-solx production profile safeguard", () => {
       prodErrors[0].path.includes("overrides"),
       `Error path should include 'overrides', got: ${JSON.stringify(prodErrors[0].path)}`,
     );
-  });
-});
-
-describe("hardhat-solx solx-specific field validation", () => {
-  it("rejects preferWasm on solx compiler", async () => {
-    const errors = await validateUserConfig({
-      solidity: {
-        compilers: [
-          { version: "0.8.33", type: "solx", preferWasm: true } as any,
-        ],
-      },
-    });
-    assert.ok(
-      errors.some((e) => e.message.includes("preferWasm")),
-      `Expected preferWasm error, got: ${errors.map((e) => e.message).join(", ")}`,
-    );
-  });
-
-  it("accepts preferWasm on solc compiler", async () => {
-    const errors = await validateUserConfig({
-      solidity: {
-        compilers: [{ version: "0.8.33", preferWasm: true }],
-      },
-    });
-    const preferWasmErrors = errors.filter((e) =>
-      e.message.includes("preferWasm"),
-    );
-    assert.deepEqual(preferWasmErrors, []);
-  });
-
-  it("does not flag preferWasm on compiler without type (defaults to solc)", async () => {
-    const errors = await validateUserConfig({
-      solidity: {
-        version: "0.8.33",
-        preferWasm: true,
-      },
-    });
-    const preferWasmErrors = errors.filter((e) =>
-      e.message.includes("preferWasm"),
-    );
-    assert.deepEqual(preferWasmErrors, []);
   });
 });

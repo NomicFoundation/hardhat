@@ -2,20 +2,23 @@ import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 
 import { useFixtureProject } from "@nomicfoundation/hardhat-test-utils";
-import { createHardhatRuntimeEnvironment } from "hardhat/hre";
+import {
+  createHardhatRuntimeEnvironment,
+  importUserConfig,
+  resolveHardhatConfigPath,
+} from "hardhat/hre";
 
 describe("hardhat-solx integration", () => {
-  const projectFolder = "simple";
+  useFixtureProject("simple");
 
-  useFixtureProject(projectFolder);
+  async function createHre() {
+    const configPath = await resolveHardhatConfigPath();
+    const userConfig = await importUserConfig(configPath);
+    return createHardhatRuntimeEnvironment(userConfig);
+  }
 
   it("resolves plugin config through the HRE", async () => {
-    const baseHhConfig = (
-      await import(`./fixture-projects/${projectFolder}/hardhat.config.js`)
-    ).default;
-    const hre = await createHardhatRuntimeEnvironment(baseHhConfig);
-
-    // Verify the plugin config was resolved correctly
+    const hre = await createHre();
     assert.equal(hre.config.solx.dangerouslyAllowSolxInProduction, false);
   });
 
@@ -25,44 +28,35 @@ describe("hardhat-solx integration", () => {
       plugins: [(await import("../src/index.js")).default],
     });
 
-    // Verify defaults are applied
     assert.equal(hre.config.solx.dangerouslyAllowSolxInProduction, false);
   });
 
-  it("preserves compiler type 'solx' on compiler entries", async () => {
-    const baseHhConfig = (
-      await import(`./fixture-projects/${projectFolder}/hardhat.config.js`)
-    ).default;
-    const hre = await createHardhatRuntimeEnvironment(baseHhConfig);
+  it("default profile compilers use solc (no type or 'solc')", async () => {
+    const hre = await createHre();
 
-    // The compiler entry with type: "solx" should be preserved
     const defaultProfile = hre.config.solidity.profiles.default;
     assert.ok(defaultProfile !== undefined, "default profile should exist");
     assert.ok(
       defaultProfile.compilers.length > 0,
       "should have at least one compiler",
     );
-    assert.equal(
-      defaultProfile.compilers[0].type,
-      "solx",
-      "compiler type should be 'solx'",
+    // Default profile should keep solc (no type override from plugin)
+    const compilerType = defaultProfile.compilers[0].type;
+    assert.ok(
+      compilerType === undefined || compilerType === "solc",
+      `default profile compiler type should be solc, got: ${compilerType}`,
     );
   });
 
   it("includes 'test' build profile in resolved config", async () => {
-    const baseHhConfig = (
-      await import(`./fixture-projects/${projectFolder}/hardhat.config.js`)
-    ).default;
-    const hre = await createHardhatRuntimeEnvironment(baseHhConfig);
+    const hre = await createHre();
 
-    // The "test" build profile should exist (created by plugin's resolveUserConfig)
     const profileNames = Object.keys(hre.config.solidity.profiles);
     assert.ok(
       profileNames.includes("test"),
       `Expected "test" profile in: ${profileNames.join(", ")}`,
     );
 
-    // The test profile's compiler should have type: "solx"
     const testProfile = hre.config.solidity.profiles.test;
     assert.equal(
       testProfile.compilers[0].type,
@@ -72,10 +66,7 @@ describe("hardhat-solx integration", () => {
   });
 
   it("registers 'solx' as a compiler type", async () => {
-    const baseHhConfig = (
-      await import(`./fixture-projects/${projectFolder}/hardhat.config.js`)
-    ).default;
-    const hre = await createHardhatRuntimeEnvironment(baseHhConfig);
+    const hre = await createHre();
 
     assert.ok(
       hre.config.solidity.registeredCompilerTypes.includes("solx"),
