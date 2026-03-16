@@ -13,6 +13,7 @@ import type {
   GlobalOptionDefinitions,
 } from "../../types/global-options.js";
 import type {
+  HardhatConfigValidationError,
   HardhatUserConfigValidationError,
   HookContext,
   HookManager,
@@ -96,6 +97,20 @@ export class HardhatRuntimeEnvironmentImplementation
     );
 
     if (!configResolutionResult.success) {
+      if (configResolutionResult.configValidationErrors !== undefined) {
+        throw new HardhatError(
+          HardhatError.ERRORS.CORE.GENERAL.INVALID_RESOLVED_CONFIG,
+          {
+            errors: `\t${configResolutionResult.configValidationErrors
+              .map(
+                (error) =>
+                  `* Resolved config error in config.${error.path.join(".")}: ${error.message}`,
+              )
+              .join("\n\t")}`,
+          },
+        );
+      }
+
       throw new HardhatError(HardhatError.ERRORS.CORE.GENERAL.INVALID_CONFIG, {
         errors: `\t${configResolutionResult.userConfigValidationErrors
           .map(
@@ -211,6 +226,7 @@ export async function resolveUserConfigToHardhatConfig(
   | {
       success: false;
       userConfigValidationErrors: HardhatUserConfigValidationError[];
+      configValidationErrors?: HardhatConfigValidationError[];
     }
 > {
   // extend user config:
@@ -264,7 +280,8 @@ export async function resolveUserConfigToHardhatConfig(
   if (resolvedConfigValidationErrors.length > 0) {
     return {
       success: false,
-      userConfigValidationErrors: resolvedConfigValidationErrors,
+      userConfigValidationErrors: [],
+      configValidationErrors: resolvedConfigValidationErrors,
     };
   }
 

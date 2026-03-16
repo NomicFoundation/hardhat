@@ -1,5 +1,8 @@
 /* eslint-disable @typescript-eslint/consistent-type-assertions -- test*/
-import type { SolidityCompilerConfig } from "../../../../src/types/config.js";
+import type {
+  HardhatConfig,
+  SolidityCompilerConfig,
+} from "../../../../src/types/config.js";
 
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
@@ -8,6 +11,7 @@ import { isSolcSolidityCompilerConfig } from "../../../../src/internal/builtin-p
 import { missesSomeOfficialNativeBuilds } from "../../../../src/internal/builtin-plugins/solidity/build-system/solc-info.js";
 import {
   resolveSolidityUserConfig,
+  validateSolidityConfig,
   validateSolidityUserConfig,
 } from "../../../../src/internal/builtin-plugins/solidity/config.js";
 
@@ -1221,5 +1225,237 @@ describe("isSolcSolidityCompilerConfig type guard", () => {
       settings: {},
     };
     assert.equal(isSolcSolidityCompilerConfig(config), false);
+  });
+});
+
+describe("validateResolvedConfig", () => {
+  const makeConfig = (
+    profiles: HardhatConfig["solidity"]["profiles"],
+    registeredCompilerTypes: string[],
+  ) =>
+    ({
+      solidity: {
+        profiles,
+        npmFilesToBuild: [],
+        registeredCompilerTypes,
+      },
+    }) as unknown as HardhatConfig;
+
+  const makeProfile = (
+    compilers: Array<{ version: string; type?: string }>,
+    overrides: Record<string, { version: string; type?: string }> = {},
+    preferWasm: boolean = false,
+  ): HardhatConfig["solidity"]["profiles"][string] =>
+    ({
+      compilers: compilers.map((c) => ({ ...c, settings: {} })),
+      overrides: Object.fromEntries(
+        Object.entries(overrides).map(([k, v]) => [k, { ...v, settings: {} }]),
+      ),
+      isolated: false,
+      preferWasm,
+    }) as HardhatConfig["solidity"]["profiles"][string];
+
+  describe("compiler type registration", () => {
+    it("should produce no errors when all compiler types are registered", () => {
+      const config = makeConfig(
+        { default: makeProfile([{ version: "0.8.28" }]) },
+        ["solc"],
+      );
+      const errors = validateSolidityConfig(config);
+      assert.deepEqual(errors, []);
+    });
+
+    it("should produce an error for an unknown compiler type in compilers[]", () => {
+      const config = makeConfig(
+        {
+          default: makeProfile([{ version: "0.8.28", type: "solx" }]),
+        },
+        ["solc"],
+      );
+      assert.deepEqual(validateSolidityConfig(config), [
+        {
+          path: ["solidity", "profiles", "default", "compilers", 0, "type"],
+          message: `Unknown compiler type "solx". Registered types: solc`,
+        },
+      ]);
+    });
+
+    it("should produce no errors when solx is registered", () => {
+      const config = makeConfig(
+        {
+          default: makeProfile([{ version: "0.8.28", type: "solx" }]),
+        },
+        ["solc", "solx"],
+      );
+      const errors = validateSolidityConfig(config);
+      assert.deepEqual(errors, []);
+    });
+
+    it("should detect unknown types in overrides", () => {
+      const config = makeConfig(
+        {
+          default: makeProfile([{ version: "0.8.28" }], {
+            "Contract.sol": { version: "0.8.28", type: "solx" },
+          }),
+        },
+        ["solc"],
+      );
+      assert.deepEqual(validateSolidityConfig(config), [
+        {
+          path: [
+            "solidity",
+            "profiles",
+            "default",
+            "overrides",
+            "Contract.sol",
+            "type",
+          ],
+          message: `Unknown compiler type "solx". Registered types: solc`,
+        },
+      ]);
+    });
+
+    it("should collect errors across multiple profiles", () => {
+      const config = makeConfig(
+        {
+          default: makeProfile([{ version: "0.8.28", type: "solx" }]),
+          test: makeProfile([{ version: "0.8.28", type: "solx" }]),
+        },
+        ["solc"],
+      );
+      assert.deepEqual(validateSolidityConfig(config), [
+        {
+          path: ["solidity", "profiles", "default", "compilers", 0, "type"],
+          message: `Unknown compiler type "solx". Registered types: solc`,
+        },
+        {
+          path: ["solidity", "profiles", "test", "compilers", 0, "type"],
+          message: `Unknown compiler type "solx". Registered types: solc`,
+        },
+      ]);
+    });
+  });
+
+  describe("top-level preferWasm requires solc compilers", () => {
+    it("should produce no errors when preferWasm is true and all compilers are solc", () => {
+      const config = makeConfig(
+        {
+          default: makeProfile(
+            [{ version: "0.8.28" }, { version: "0.8.31", type: "solc" }],
+            {},
+            true,
+          ),
+        },
+        ["solc", "solx"],
+      );
+      const errors = validateSolidityConfig(config);
+      assert.deepEqual(errors, []);
+    });
+
+    it("should produce an error when preferWasm is true and a compiler has non-solc type", () => {
+      const config = makeConfig(
+        {
+          default: makeProfile([{ version: "0.8.28", type: "solx" }], {}, true),
+        },
+        ["solc", "solx"],
+      );
+      assert.deepEqual(validateSolidityConfig(config), [
+        {
+          path: ["solidity", "profiles", "default", "compilers", 0, "type"],
+          message: `Compiler type must be "solc" if \`preferWasm\` is \`true\` in the build profile, but found type "solx"`,
+        },
+      ]);
+    });
+
+    it("should produce an error when preferWasm is true and an override has non-solc type", () => {
+      const config = makeConfig(
+        {
+          default: makeProfile(
+            [{ version: "0.8.28" }],
+            { "Contract.sol": { version: "0.8.28", type: "solx" } },
+            true,
+          ),
+        },
+        ["solc", "solx"],
+      );
+      assert.deepEqual(validateSolidityConfig(config), [
+        {
+          path: [
+            "solidity",
+            "profiles",
+            "default",
+            "overrides",
+            "Contract.sol",
+            "type",
+          ],
+          message: `Compiler type must be "solc" if \`preferWasm\` is \`true\` in the build profile, but found type "solx"`,
+        },
+      ]);
+    });
+
+    it("should produce errors for both non-solc compilers and overrides when preferWasm is true", () => {
+      const config = makeConfig(
+        {
+          default: makeProfile(
+            [{ version: "0.8.28", type: "solx" }],
+            { "Contract.sol": { version: "0.8.28", type: "solx" } },
+            true,
+          ),
+        },
+        ["solc", "solx"],
+      );
+      assert.deepEqual(validateSolidityConfig(config), [
+        {
+          path: ["solidity", "profiles", "default", "compilers", 0, "type"],
+          message: `Compiler type must be "solc" if \`preferWasm\` is \`true\` in the build profile, but found type "solx"`,
+        },
+        {
+          path: [
+            "solidity",
+            "profiles",
+            "default",
+            "overrides",
+            "Contract.sol",
+            "type",
+          ],
+          message: `Compiler type must be "solc" if \`preferWasm\` is \`true\` in the build profile, but found type "solx"`,
+        },
+      ]);
+    });
+
+    it("should produce no errors when preferWasm is false even with non-solc compilers", () => {
+      const config = makeConfig(
+        {
+          default: makeProfile(
+            [{ version: "0.8.28", type: "solx" }],
+            { "Contract.sol": { version: "0.8.28", type: "solx" } },
+            false,
+          ),
+        },
+        ["solc", "solx"],
+      );
+      const errors = validateSolidityConfig(config);
+      assert.deepEqual(errors, []);
+    });
+
+    it("should only produce errors for profiles where preferWasm is true", () => {
+      const config = makeConfig(
+        {
+          default: makeProfile([{ version: "0.8.28", type: "solx" }], {}, true),
+          production: makeProfile(
+            [{ version: "0.8.28", type: "solx" }],
+            {},
+            false,
+          ),
+        },
+        ["solc", "solx"],
+      );
+      assert.deepEqual(validateSolidityConfig(config), [
+        {
+          path: ["solidity", "profiles", "default", "compilers", 0, "type"],
+          message: `Compiler type must be "solc" if \`preferWasm\` is \`true\` in the build profile, but found type "solx"`,
+        },
+      ]);
+    });
   });
 });

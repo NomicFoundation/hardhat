@@ -505,6 +505,14 @@ Please install Hardhat locally using pnpm, npm or yarn, and try again.`,
         websiteTitle: "Global option cannot be hidden",
         websiteDescription: `A global option was defined as hidden, but global options cannot be hidden.`,
       },
+      INVALID_RESOLVED_CONFIG: {
+        number: 24,
+        messageTemplate: `Your configuration is invalid once resolved:
+{errors}
+`,
+        websiteTitle: "Invalid resolved config",
+        websiteDescription: `The configuration you provided is seemingly valid, but once resolved it contains errors. Please check the documentation to learn how to configure Hardhat correctly.`,
+      },
     },
     INTERNAL: {
       ASSERTION_ERROR: {

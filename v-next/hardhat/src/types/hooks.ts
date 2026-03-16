@@ -106,7 +106,7 @@ export interface ConfigHooks {
    */
   validateResolvedConfig: (
     resolvedConfig: HardhatConfig,
-  ) => Promise<HardhatUserConfigValidationError[]>;
+  ) => Promise<HardhatConfigValidationError[]>;
 }
 
 /**
@@ -119,6 +119,29 @@ export interface HardhatUserConfigValidationError {
    *
    * For example, if `config.networks.localhost.url` is invalid, this array
    * would be `["networks", "localhost", "url"]`.
+   */
+  path: Array<string | number>;
+
+  /**
+   * The error message.
+   */
+  message: string;
+}
+
+/**
+ * A `HardhatConfig` validation error.
+ *
+ * This is the equivalent of `HardhatUserConfigValidationError` but for the
+ * resolved config.
+ */
+export interface HardhatConfigValidationError {
+  /**
+   * The path from the resolved config object to the value that originated this
+   * validation error.
+   *
+   * For example, if `config.solidity.profiles.foo.compilers[0].type` is
+   * invalid, this array would be
+   * `["solidity", "profiles", "foo", "compilers", 0, "type"]`.
    */
   path: Array<string | number>;
 
