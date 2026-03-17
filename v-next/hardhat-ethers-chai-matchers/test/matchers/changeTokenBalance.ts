@@ -833,7 +833,7 @@ describe(
               ),
             ).to.be.rejectedWith(
               Error,
-              /The subject of "changeTokenBalance" must be a transaction response/,
+              /The subject of "changeTokenBalances" must be a transaction response/,
             );
           });
 

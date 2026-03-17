@@ -17,7 +17,10 @@ import {
   CHANGE_TOKEN_BALANCE_MATCHER,
 } from "../constants.js";
 import { getAddressOf } from "../utils/account.js";
-import { assertIsNotNull } from "../utils/asserts.js";
+import {
+  assertIsNotNull,
+  assertIsTransactionResponse,
+} from "../utils/asserts.js";
 import { buildAssert } from "../utils/build-assert.js";
 import { preventAsyncMatcherChaining } from "../utils/prevent-chaining.js";
 
@@ -84,7 +87,13 @@ export function supportChangeTokenBalance(
       };
 
       const derivedPromise = Promise.all([
-        getBalanceChange(ethers, subject, token, account),
+        getBalanceChange(
+          ethers,
+          subject,
+          token,
+          account,
+          CHANGE_TOKEN_BALANCE_MATCHER,
+        ),
         getAddressOf(account),
         getTokenDescription(token),
       ]).then(checkBalanceChange);
@@ -123,7 +132,13 @@ export function supportChangeTokenBalance(
 
       const balanceChangesPromise = Promise.all(
         accounts.map((account) =>
-          getBalanceChange(ethers, subject, token, account),
+          getBalanceChange(
+            ethers,
+            subject,
+            token,
+            account,
+            CHANGE_TOKEN_BALANCES_MATCHER,
+          ),
         ),
       );
       const addressesPromise = Promise.all(accounts.map(getAddressOf));
@@ -221,20 +236,11 @@ export async function getBalanceChange(
   transaction: TransactionResponse | Promise<TransactionResponse>,
   token: Token,
   account: Addressable | string,
+  matcherName: string = CHANGE_TOKEN_BALANCE_MATCHER,
 ): Promise<bigint> {
   const txResponse = await transaction;
 
-  if (
-    txResponse === null ||
-    txResponse === undefined ||
-    typeof txResponse.wait !== "function"
-  ) {
-    chaiAssert.fail(
-      `The subject of "changeTokenBalance" must be a transaction response (or a promise of one). ` +
-        `Received something else (e.g. a BigInt from balanceOf()). ` +
-        `Use \`expect(await token.transfer(...)).to.changeTokenBalance(...)\` instead of \`expect(await token.balanceOf(...)).to.changeTokenBalance(...)\`.`,
-    );
-  }
+  assertIsTransactionResponse(txResponse, matcherName);
 
   const txReceipt = await txResponse.wait();
   assertIsNotNull(

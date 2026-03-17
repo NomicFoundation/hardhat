@@ -1,5 +1,6 @@
 import type { AssertWithSsfi, Ssfi } from "./ssfi.js";
 
+import { isObject } from "@nomicfoundation/hardhat-utils/lang";
 import { ensureError } from "@nomicfoundation/hardhat-utils/error";
 import { assert as chaiAssert } from "chai";
 import { keccak256 } from "ethers/crypto";
@@ -144,6 +145,25 @@ function innerAssertArgEqual(
     } else {
       new Assertion(actualArg, undefined, ssfi, true).equal(expectedArg);
     }
+  }
+}
+
+/**
+ * Asserts that the resolved value looks like a TransactionResponse
+ * (i.e. it is a non-null object with a `.wait()` method).
+ */
+export function assertIsTransactionResponse(
+  value: unknown,
+  matcherName: string,
+): void {
+  if (
+    !isObject(value) ||
+    typeof (value as any).wait !== "function"
+  ) {
+    chaiAssert.fail(
+      `The subject of "${matcherName}" must be a transaction response (or a promise of one) ` +
+        `but a different value was provided (e.g. the result of a read-only call).`,
+    );
   }
 }
 
