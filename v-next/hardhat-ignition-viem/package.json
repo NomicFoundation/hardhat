@@ -34,7 +34,7 @@
     "test": "node --import tsx/esm --test --test-reporter=@nomicfoundation/hardhat-node-test-reporter \"test/*.ts\" \"test/!(fixture-projects|helpers)/**/*.ts\"",
     "test:only": "node --import tsx/esm --test --test-only --test-reporter=@nomicfoundation/hardhat-node-test-reporter \"test/*.ts\" \"test/!(fixture-projects|helpers)/**/*.ts\"",
     "test:coverage": "c8 --reporter html --reporter text --all --exclude test --exclude \"src/**/{types,type-extensions}.ts\" --src src node --import tsx/esm --test --test-reporter=@nomicfoundation/hardhat-node-test-reporter \"test/*.ts\" \"test/!(fixture-projects|helpers)/**/*.ts\"",
-    "clean": "rimraf .nyc_output coverage dist artifacts cache tsconfig.tsbuildinfo ./test/fixture-projects/**/deployments ./test/fixture-projects/**/artifacts ./test/fixture-projects/**/cache ./test/fixture-projects/tmp",
+    "clean": "rimraf .nyc_output coverage dist artifacts cache tsconfig.tsbuildinfo ./test/fixture-projects/**/deployments ./test/fixture-projects/**/artifacts ./test/fixture-projects/**/cache ./test/fixture-projects/*-tmp-*-*-*-*-*",
     "prepack": "pnpm build",
     "test-build": "tsc --build tsconfig.json && node ./scripts/compile-test-fixture-project.js create2 && node ./scripts/compile-test-fixture-project.js minimal && tsc --build tsconfig.test.json",
     "pretest": "pnpm test-build",
