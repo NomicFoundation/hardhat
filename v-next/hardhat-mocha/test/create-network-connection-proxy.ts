@@ -230,8 +230,8 @@ describe("createNetworkConnectionProxy", () => {
       assertThrowsHardhatError(
         // eslint-disable-next-line @typescript-eslint/consistent-type-assertions -- testing proxy behavior with plain objects
         () => (proxy as any).then,
-        HardhatError.ERRORS.HARDHAT_MOCHA.CONNECT_ON_BEFORE
-          .AWAIT_CONNECT_ON_BEFORE,
+        HardhatError.ERRORS.HARDHAT_MOCHA.CONNECTION_PROXY
+          .AWAIT_CONNECTION_PROXY,
         {},
       );
     });
@@ -269,7 +269,7 @@ describe("createNetworkConnectionProxy", () => {
         () => {
           proxy.close = async () => {};
         },
-        HardhatError.ERRORS.HARDHAT_MOCHA.CONNECT_ON_BEFORE.USE_BEFORE_HOOK,
+        HardhatError.ERRORS.HARDHAT_MOCHA.CONNECTION_PROXY.USE_BEFORE_HOOK,
         {},
       );
     });
@@ -282,7 +282,7 @@ describe("createNetworkConnectionProxy", () => {
           // eslint-disable-next-line @typescript-eslint/no-unused-expressions -- trigger the has trap
           "id" in proxy;
         },
-        HardhatError.ERRORS.HARDHAT_MOCHA.CONNECT_ON_BEFORE.USE_BEFORE_HOOK,
+        HardhatError.ERRORS.HARDHAT_MOCHA.CONNECTION_PROXY.USE_BEFORE_HOOK,
         {},
       );
     });
@@ -294,7 +294,7 @@ describe("createNetworkConnectionProxy", () => {
         () => {
           Object.keys(proxy);
         },
-        HardhatError.ERRORS.HARDHAT_MOCHA.CONNECT_ON_BEFORE.USE_BEFORE_HOOK,
+        HardhatError.ERRORS.HARDHAT_MOCHA.CONNECTION_PROXY.USE_BEFORE_HOOK,
         {},
       );
     });
@@ -306,7 +306,7 @@ describe("createNetworkConnectionProxy", () => {
         () => {
           Object.getOwnPropertyDescriptor(proxy, "id");
         },
-        HardhatError.ERRORS.HARDHAT_MOCHA.CONNECT_ON_BEFORE.USE_BEFORE_HOOK,
+        HardhatError.ERRORS.HARDHAT_MOCHA.CONNECTION_PROXY.USE_BEFORE_HOOK,
         {},
       );
     });
@@ -317,8 +317,8 @@ describe("createNetworkConnectionProxy", () => {
       assertThrowsHardhatError(
         // eslint-disable-next-line @typescript-eslint/consistent-type-assertions -- testing `then` which is not part of the type
         () => (proxy as any).then,
-        HardhatError.ERRORS.HARDHAT_MOCHA.CONNECT_ON_BEFORE
-          .AWAIT_CONNECT_ON_BEFORE,
+        HardhatError.ERRORS.HARDHAT_MOCHA.CONNECTION_PROXY
+          .AWAIT_CONNECTION_PROXY,
         {},
       );
     });
@@ -648,7 +648,7 @@ describe("createNetworkConnectionProxy", () => {
           // eslint-disable-next-line @typescript-eslint/consistent-type-assertions -- intentionally allow set to test edge case
           (networkConfig as any).chainId = 1;
         },
-        HardhatError.ERRORS.HARDHAT_MOCHA.CONNECT_ON_BEFORE.USE_BEFORE_HOOK,
+        HardhatError.ERRORS.HARDHAT_MOCHA.CONNECTION_PROXY.USE_BEFORE_HOOK,
         {},
       );
     });
@@ -663,7 +663,7 @@ describe("createNetworkConnectionProxy", () => {
           // eslint-disable-next-line @typescript-eslint/no-unused-expressions -- trigger the has trap
           "chainId" in networkConfig;
         },
-        HardhatError.ERRORS.HARDHAT_MOCHA.CONNECT_ON_BEFORE.USE_BEFORE_HOOK,
+        HardhatError.ERRORS.HARDHAT_MOCHA.CONNECTION_PROXY.USE_BEFORE_HOOK,
         {},
       );
     });
@@ -677,7 +677,7 @@ describe("createNetworkConnectionProxy", () => {
         () => {
           Object.keys(networkConfig);
         },
-        HardhatError.ERRORS.HARDHAT_MOCHA.CONNECT_ON_BEFORE.USE_BEFORE_HOOK,
+        HardhatError.ERRORS.HARDHAT_MOCHA.CONNECTION_PROXY.USE_BEFORE_HOOK,
         {},
       );
     });
@@ -814,7 +814,7 @@ describe("createNetworkConnectionProxy", () => {
           // eslint-disable-next-line @typescript-eslint/consistent-type-assertions -- testing set on proxy
           (deep as any).name = "x";
         },
-        HardhatError.ERRORS.HARDHAT_MOCHA.CONNECT_ON_BEFORE.USE_BEFORE_HOOK,
+        HardhatError.ERRORS.HARDHAT_MOCHA.CONNECTION_PROXY.USE_BEFORE_HOOK,
         {},
       );
     });
@@ -829,7 +829,7 @@ describe("createNetworkConnectionProxy", () => {
           // eslint-disable-next-line @typescript-eslint/no-unused-expressions -- trigger the has trap
           "name" in deep;
         },
-        HardhatError.ERRORS.HARDHAT_MOCHA.CONNECT_ON_BEFORE.USE_BEFORE_HOOK,
+        HardhatError.ERRORS.HARDHAT_MOCHA.CONNECTION_PROXY.USE_BEFORE_HOOK,
         {},
       );
     });
@@ -843,7 +843,7 @@ describe("createNetworkConnectionProxy", () => {
         () => {
           Object.keys(deep);
         },
-        HardhatError.ERRORS.HARDHAT_MOCHA.CONNECT_ON_BEFORE.USE_BEFORE_HOOK,
+        HardhatError.ERRORS.HARDHAT_MOCHA.CONNECTION_PROXY.USE_BEFORE_HOOK,
         {},
       );
     });
@@ -857,7 +857,7 @@ describe("createNetworkConnectionProxy", () => {
         () => {
           Object.getOwnPropertyDescriptor(deep, "name");
         },
-        HardhatError.ERRORS.HARDHAT_MOCHA.CONNECT_ON_BEFORE.USE_BEFORE_HOOK,
+        HardhatError.ERRORS.HARDHAT_MOCHA.CONNECTION_PROXY.USE_BEFORE_HOOK,
         {},
       );
     });

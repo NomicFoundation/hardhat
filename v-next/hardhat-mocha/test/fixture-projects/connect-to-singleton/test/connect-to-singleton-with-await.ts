@@ -15,8 +15,7 @@ describe("connectToSingleton with await", function () {
       async () => {
         await network.mocha.connectToSingleton();
       },
-      HardhatError.ERRORS.HARDHAT_MOCHA.CONNECT_ON_BEFORE
-        .AWAIT_CONNECT_ON_BEFORE,
+      HardhatError.ERRORS.HARDHAT_MOCHA.CONNECTION_PROXY.AWAIT_CONNECTION_PROXY,
       {},
     );
   });

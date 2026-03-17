@@ -40,7 +40,7 @@ export function createNetworkConnectionProxy<
 
       if (prop === "then") {
         throw new HardhatError(
-          HardhatError.ERRORS.HARDHAT_MOCHA.CONNECT_ON_BEFORE.AWAIT_CONNECT_ON_BEFORE,
+          HardhatError.ERRORS.HARDHAT_MOCHA.CONNECTION_PROXY.AWAIT_CONNECTION_PROXY,
         );
       }
 
@@ -90,7 +90,7 @@ export function createNetworkConnectionProxy<
 
       if (resolved === null || resolved === undefined) {
         throw new HardhatError(
-          HardhatError.ERRORS.HARDHAT_MOCHA.CONNECT_ON_BEFORE.USE_BEFORE_HOOK,
+          HardhatError.ERRORS.HARDHAT_MOCHA.CONNECTION_PROXY.USE_BEFORE_HOOK,
         );
       }
 
@@ -102,7 +102,7 @@ export function createNetworkConnectionProxy<
 
       if (resolved === null || resolved === undefined) {
         throw new HardhatError(
-          HardhatError.ERRORS.HARDHAT_MOCHA.CONNECT_ON_BEFORE.USE_BEFORE_HOOK,
+          HardhatError.ERRORS.HARDHAT_MOCHA.CONNECTION_PROXY.USE_BEFORE_HOOK,
         );
       }
 
@@ -114,7 +114,7 @@ export function createNetworkConnectionProxy<
 
       if (resolved === null || resolved === undefined) {
         throw new HardhatError(
-          HardhatError.ERRORS.HARDHAT_MOCHA.CONNECT_ON_BEFORE.USE_BEFORE_HOOK,
+          HardhatError.ERRORS.HARDHAT_MOCHA.CONNECTION_PROXY.USE_BEFORE_HOOK,
         );
       }
 
@@ -126,7 +126,7 @@ export function createNetworkConnectionProxy<
 
       if (resolved === null || resolved === undefined) {
         throw new HardhatError(
-          HardhatError.ERRORS.HARDHAT_MOCHA.CONNECT_ON_BEFORE.USE_BEFORE_HOOK,
+          HardhatError.ERRORS.HARDHAT_MOCHA.CONNECTION_PROXY.USE_BEFORE_HOOK,
         );
       }
 
@@ -188,7 +188,7 @@ function createNestedProxyForPath(getTarget: () => unknown): any {
 
       if (target === null || target === undefined) {
         throw new HardhatError(
-          HardhatError.ERRORS.HARDHAT_MOCHA.CONNECT_ON_BEFORE.USE_BEFORE_HOOK,
+          HardhatError.ERRORS.HARDHAT_MOCHA.CONNECTION_PROXY.USE_BEFORE_HOOK,
         );
       }
 
@@ -200,7 +200,7 @@ function createNestedProxyForPath(getTarget: () => unknown): any {
 
       if (target === null || target === undefined) {
         throw new HardhatError(
-          HardhatError.ERRORS.HARDHAT_MOCHA.CONNECT_ON_BEFORE.USE_BEFORE_HOOK,
+          HardhatError.ERRORS.HARDHAT_MOCHA.CONNECTION_PROXY.USE_BEFORE_HOOK,
         );
       }
 
@@ -212,7 +212,7 @@ function createNestedProxyForPath(getTarget: () => unknown): any {
 
       if (target === null || target === undefined) {
         throw new HardhatError(
-          HardhatError.ERRORS.HARDHAT_MOCHA.CONNECT_ON_BEFORE.USE_BEFORE_HOOK,
+          HardhatError.ERRORS.HARDHAT_MOCHA.CONNECTION_PROXY.USE_BEFORE_HOOK,
         );
       }
 
@@ -224,7 +224,7 @@ function createNestedProxyForPath(getTarget: () => unknown): any {
 
       if (target === null || target === undefined) {
         throw new HardhatError(
-          HardhatError.ERRORS.HARDHAT_MOCHA.CONNECT_ON_BEFORE.USE_BEFORE_HOOK,
+          HardhatError.ERRORS.HARDHAT_MOCHA.CONNECTION_PROXY.USE_BEFORE_HOOK,
         );
       }
 
@@ -236,7 +236,7 @@ function createNestedProxyForPath(getTarget: () => unknown): any {
 
       if (target === null || target === undefined) {
         throw new HardhatError(
-          HardhatError.ERRORS.HARDHAT_MOCHA.CONNECT_ON_BEFORE.USE_BEFORE_HOOK,
+          HardhatError.ERRORS.HARDHAT_MOCHA.CONNECTION_PROXY.USE_BEFORE_HOOK,
         );
       }
 
@@ -256,67 +256,67 @@ function createNestedProxyForPath(getTarget: () => unknown): any {
 const defaultProxyHandlerTraps: Required<ProxyHandler<object>> = {
   apply() {
     throw new HardhatError(
-      HardhatError.ERRORS.HARDHAT_MOCHA.CONNECT_ON_BEFORE.UNSUPPORTED_OPERATION,
+      HardhatError.ERRORS.HARDHAT_MOCHA.CONNECTION_PROXY.UNSUPPORTED_OPERATION,
     );
   },
   construct() {
     throw new HardhatError(
-      HardhatError.ERRORS.HARDHAT_MOCHA.CONNECT_ON_BEFORE.UNSUPPORTED_OPERATION,
+      HardhatError.ERRORS.HARDHAT_MOCHA.CONNECTION_PROXY.UNSUPPORTED_OPERATION,
     );
   },
   defineProperty() {
     throw new HardhatError(
-      HardhatError.ERRORS.HARDHAT_MOCHA.CONNECT_ON_BEFORE.UNSUPPORTED_OPERATION,
+      HardhatError.ERRORS.HARDHAT_MOCHA.CONNECTION_PROXY.UNSUPPORTED_OPERATION,
     );
   },
   deleteProperty() {
     throw new HardhatError(
-      HardhatError.ERRORS.HARDHAT_MOCHA.CONNECT_ON_BEFORE.UNSUPPORTED_OPERATION,
+      HardhatError.ERRORS.HARDHAT_MOCHA.CONNECTION_PROXY.UNSUPPORTED_OPERATION,
     );
   },
   get() {
     throw new HardhatError(
-      HardhatError.ERRORS.HARDHAT_MOCHA.CONNECT_ON_BEFORE.UNSUPPORTED_OPERATION,
+      HardhatError.ERRORS.HARDHAT_MOCHA.CONNECTION_PROXY.UNSUPPORTED_OPERATION,
     );
   },
   getOwnPropertyDescriptor() {
     throw new HardhatError(
-      HardhatError.ERRORS.HARDHAT_MOCHA.CONNECT_ON_BEFORE.UNSUPPORTED_OPERATION,
+      HardhatError.ERRORS.HARDHAT_MOCHA.CONNECTION_PROXY.UNSUPPORTED_OPERATION,
     );
   },
   getPrototypeOf() {
     throw new HardhatError(
-      HardhatError.ERRORS.HARDHAT_MOCHA.CONNECT_ON_BEFORE.UNSUPPORTED_OPERATION,
+      HardhatError.ERRORS.HARDHAT_MOCHA.CONNECTION_PROXY.UNSUPPORTED_OPERATION,
     );
   },
   has() {
     throw new HardhatError(
-      HardhatError.ERRORS.HARDHAT_MOCHA.CONNECT_ON_BEFORE.UNSUPPORTED_OPERATION,
+      HardhatError.ERRORS.HARDHAT_MOCHA.CONNECTION_PROXY.UNSUPPORTED_OPERATION,
     );
   },
   isExtensible() {
     throw new HardhatError(
-      HardhatError.ERRORS.HARDHAT_MOCHA.CONNECT_ON_BEFORE.UNSUPPORTED_OPERATION,
+      HardhatError.ERRORS.HARDHAT_MOCHA.CONNECTION_PROXY.UNSUPPORTED_OPERATION,
     );
   },
   ownKeys() {
     throw new HardhatError(
-      HardhatError.ERRORS.HARDHAT_MOCHA.CONNECT_ON_BEFORE.UNSUPPORTED_OPERATION,
+      HardhatError.ERRORS.HARDHAT_MOCHA.CONNECTION_PROXY.UNSUPPORTED_OPERATION,
     );
   },
   preventExtensions() {
     throw new HardhatError(
-      HardhatError.ERRORS.HARDHAT_MOCHA.CONNECT_ON_BEFORE.UNSUPPORTED_OPERATION,
+      HardhatError.ERRORS.HARDHAT_MOCHA.CONNECTION_PROXY.UNSUPPORTED_OPERATION,
     );
   },
   set() {
     throw new HardhatError(
-      HardhatError.ERRORS.HARDHAT_MOCHA.CONNECT_ON_BEFORE.UNSUPPORTED_OPERATION,
+      HardhatError.ERRORS.HARDHAT_MOCHA.CONNECTION_PROXY.UNSUPPORTED_OPERATION,
     );
   },
   setPrototypeOf() {
     throw new HardhatError(
-      HardhatError.ERRORS.HARDHAT_MOCHA.CONNECT_ON_BEFORE.UNSUPPORTED_OPERATION,
+      HardhatError.ERRORS.HARDHAT_MOCHA.CONNECTION_PROXY.UNSUPPORTED_OPERATION,
     );
   },
 };
