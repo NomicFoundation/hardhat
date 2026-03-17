@@ -28,7 +28,7 @@ export interface SourceToLibraryToAddress {
 }
 
 /**
- * The information required to verify a contract on Etherscan.
+ * The information required to verify a contract.
  *
  * @beta
  */
@@ -37,6 +37,7 @@ export interface VerifyInfo {
   constructorArgs: SolidityParameterType[];
   libraries: Record<string, string>;
   contract: string;
+  creationTxHash?: string;
 }
 
 /**
