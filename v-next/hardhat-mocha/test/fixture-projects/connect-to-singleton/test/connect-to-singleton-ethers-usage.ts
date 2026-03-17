@@ -2,7 +2,10 @@ import assert from "node:assert/strict";
 import type { Contract } from "ethers";
 import { network } from "hardhat";
 
-const connection = network.mocha.connectToSingleton();
+const connection = network.mocha.connectToSingleton({
+  network: "default",
+  chainType: "l1",
+});
 
 describe("connectToSingleton ethers - direct usage", function () {
   const expectedDeploymentAddress =

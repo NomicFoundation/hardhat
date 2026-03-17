@@ -31,10 +31,8 @@ declare module "hardhat/types/test" {
 
 import "hardhat/types/network";
 declare module "hardhat/types/network" {
-  export interface NetworkManager<
-    ChainTypeT extends ChainType | string = DefaultChainType,
-  > {
-    mocha: MochaNetworkHelpers<ChainTypeT>;
+  export interface NetworkManager {
+    mocha: MochaNetworkHelpers;
   }
 }
 
@@ -45,9 +43,7 @@ export interface SingletonConnectionParams<
   chainType?: ChainTypeT;
 }
 
-export interface MochaNetworkHelpers<
-  ChainTypeT extends ChainType | string = DefaultChainType,
-> {
+export interface MochaNetworkHelpers {
   /**
    * A Mocha test suite helper that returns a proxy network connection
    * and adds a Mocha `before` hook to the surrounding `describe` block
@@ -91,7 +87,7 @@ export interface MochaNetworkHelpers<
    * @returns A proxy to the {@link NetworkConnection} that resolves lazily
    * when its properties are accessed inside a test or hook.
    */
-  connectOnBefore(
+  connectOnBefore<ChainTypeT extends ChainType | string = DefaultChainType>(
     networkOrParams?: NetworkConnectionParams<ChainTypeT> | string,
     closeOnAfter?: boolean,
   ): NetworkConnection<ChainTypeT>;
@@ -132,7 +128,7 @@ export interface MochaNetworkHelpers<
    * @returns A proxy to the {@link NetworkConnection} that resolves lazily
    * when its properties are accessed inside a test or hook.
    */
-  connectToSingleton(
+  connectToSingleton<ChainTypeT extends ChainType | string = DefaultChainType>(
     networkOrParams?: SingletonConnectionParams<ChainTypeT> | string,
   ): NetworkConnection<ChainTypeT>;
 }
