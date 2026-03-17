@@ -10,3 +10,6 @@
 # test coverage output
 coverage
 
+
+# ephemeral fixture project copies (useEphemeralFixtureProject)
+/test/fixture-projects/*-tmp-*-*-*-*-*/
