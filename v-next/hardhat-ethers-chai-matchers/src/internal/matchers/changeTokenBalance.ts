@@ -224,6 +224,18 @@ export async function getBalanceChange(
 ): Promise<bigint> {
   const txResponse = await transaction;
 
+  if (
+    txResponse === null ||
+    txResponse === undefined ||
+    typeof txResponse.wait !== "function"
+  ) {
+    chaiAssert.fail(
+      `The subject of "changeTokenBalance" must be a transaction response (or a promise of one). ` +
+        `Received something else (e.g. a BigInt from balanceOf()). ` +
+        `Use \`expect(await token.transfer(...)).to.changeTokenBalance(...)\` instead of \`expect(await token.balanceOf(...)).to.changeTokenBalance(...)\`.`,
+    );
+  }
+
   const txReceipt = await txResponse.wait();
   assertIsNotNull(
     txReceipt,
