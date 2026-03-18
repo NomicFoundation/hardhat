@@ -10,7 +10,7 @@
 # test coverage output
 coverage
 
-# all the tmp folders in the fixture projects
-/test/fixture-projects/tmp/
+# ephemeral fixture project copies (useEphemeralFixtureProject)
+/test/fixture-projects/*-tmp-*-*-*-*-*/
 
 /integration-tests/fixture-tests/*/result.actual.txt

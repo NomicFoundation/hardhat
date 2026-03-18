@@ -2,6 +2,7 @@ abicoder
 Abicoder
 accum
 addy
+alcuadrado
 anonymization
 APDU
 arrayified
@@ -47,6 +48,7 @@ hdkey
 hdpath
 heco
 hexlify
+htpasswd
 hoodi
 Hoodi
 Impls
@@ -124,6 +126,7 @@ unpad
 unpadded
 unparseable
 Unpayable
+unpublishing
 unreconciliable
 unrs
 Unstarted

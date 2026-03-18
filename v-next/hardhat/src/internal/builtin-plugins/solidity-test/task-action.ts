@@ -1,7 +1,7 @@
 import type { RunOptions } from "./runner.js";
 import type { TestEvent } from "./types.js";
 import type { NewTaskActionFunction } from "../../../types/tasks.js";
-import type { TestSummary } from "../../../types/test.js";
+import type { TestRunResult } from "../../../types/test.js";
 import type { Result } from "../../../types/utils.js";
 import type {
   Artifact as EdrArtifact,
@@ -9,22 +9,21 @@ import type {
   ObservabilityConfig,
   SolidityTestRunnerConfigArgs,
   TracingConfigWithBuffers,
+  SuiteResult,
 } from "@nomicfoundation/edr";
 
 import { finished } from "node:stream/promises";
 
-import {
-  assertHardhatInvariant,
-  HardhatError,
-} from "@nomicfoundation/hardhat-errors";
+import { HardhatError } from "@nomicfoundation/hardhat-errors";
 import { resolveFromRoot } from "@nomicfoundation/hardhat-utils/path";
 import { createNonClosingWriter } from "@nomicfoundation/hardhat-utils/stream";
 
 import { getFullyQualifiedName } from "../../../utils/contract-names.js";
 import { errorResult, successfulResult } from "../../../utils/result.js";
-import { HardhatRuntimeEnvironmentImplementation } from "../../core/hre.js";
 import { isSupportedChainType } from "../../edr/chain-type.js";
 import { ArtifactManagerImplementation } from "../artifacts/artifact-manager.js";
+import { getCoverageManager } from "../coverage/helpers.js";
+import { getGasAnalyticsManager } from "../gas-analytics/helpers.js";
 import { edrGasReportToHardhatGasMeasurements } from "../network-manager/edr/utils/convert-to-edr.js";
 
 import { getEdrArtifacts, getBuildInfos } from "./edr-artifacts.js";
@@ -46,15 +45,14 @@ interface TestActionArguments {
   testSummaryIndex: number;
 }
 
+export interface SolidityTestRunResult extends TestRunResult {
+  suiteResults: SuiteResult[];
+}
+
 const runSolidityTests: NewTaskActionFunction<TestActionArguments> = async (
   { testFiles, chainType, grep, noCompile, verbosity, testSummaryIndex },
   hre,
-): Promise<Result<TestSummary, TestSummary>> => {
-  assertHardhatInvariant(
-    hre instanceof HardhatRuntimeEnvironmentImplementation,
-    "Expected HRE to be an instance of HardhatRuntimeEnvironmentImplementation",
-  );
-
+): Promise<Result<SolidityTestRunResult, SolidityTestRunResult>> => {
   // Set an environment variable that plugins can use to detect when a process is running tests
   process.env.HH_TEST = "true";
 
@@ -138,6 +136,7 @@ const runSolidityTests: NewTaskActionFunction<TestActionArguments> = async (
   const solidityTestConfig = hre.config.test.solidity;
   let observabilityConfig: ObservabilityConfig | undefined;
   if (hre.globalOptions.coverage) {
+    const coverage = getCoverageManager(hre);
     observabilityConfig = {
       codeCoverage: {
         onCollectedCoverageCallback: async (coverageData: Uint8Array[]) => {
@@ -145,7 +144,7 @@ const runSolidityTests: NewTaskActionFunction<TestActionArguments> = async (
             Buffer.from(tag).toString("hex"),
           );
 
-          await hre._coverage.addData(tags);
+          await coverage.addData(tags);
         },
       },
     };
@@ -161,7 +160,7 @@ const runSolidityTests: NewTaskActionFunction<TestActionArguments> = async (
     }
   }
 
-  const config: SolidityTestRunnerConfigArgs =
+  const testRunnerConfig: SolidityTestRunnerConfigArgs =
     await solidityTestConfigToSolidityTestRunnerConfigArgs({
       chainType,
       projectRoot: hre.config.paths.root,
@@ -190,7 +189,7 @@ const runSolidityTests: NewTaskActionFunction<TestActionArguments> = async (
     chainType,
     edrArtifacts.map(({ edrArtifact }) => edrArtifact),
     testSuiteIds,
-    config,
+    testRunnerConfig,
     tracingConfig,
     sourceNameToUserSourceName,
     options,
@@ -200,10 +199,11 @@ const runSolidityTests: NewTaskActionFunction<TestActionArguments> = async (
   let passed = 0;
   let skipped = 0;
   let failureOutput = "";
-
+  const suiteResults: SuiteResult[] = [];
   const testReporterStream = runStream
     .on("data", (event: TestEvent) => {
       if (event.type === "suite:done") {
+        suiteResults.push(event.data);
         if (event.data.testResults.some(({ status }) => status === "Failure")) {
           includesFailures = true;
         }
@@ -226,8 +226,9 @@ const runSolidityTests: NewTaskActionFunction<TestActionArguments> = async (
           testContractFqns,
         );
 
+        const gasAnalytics = getGasAnalyticsManager(hre);
         for (const measurement of gasMeasurements) {
-          hre._gasAnalytics.addGasMeasurement(measurement);
+          gasAnalytics.addGasMeasurement(measurement);
         }
       }
     })
@@ -284,11 +285,14 @@ const runSolidityTests: NewTaskActionFunction<TestActionArguments> = async (
 
   console.log();
 
-  const summary = { failed, passed, skipped, todo: 0, failureOutput };
+  const result = {
+    summary: { failed, passed, skipped, todo: 0, failureOutput },
+    suiteResults,
+  };
 
   return includesFailures || includesErrors
-    ? errorResult(summary)
-    : successfulResult(summary);
+    ? errorResult(result)
+    : successfulResult(result);
 };
 
 export default runSolidityTests;

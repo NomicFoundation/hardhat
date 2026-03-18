@@ -4,6 +4,7 @@ import assert from "node:assert/strict";
 import path from "node:path";
 import { afterEach, before, describe, it } from "node:test";
 
+import { disableConsole } from "@nomicfoundation/hardhat-test-utils";
 import {
   emptyDir,
   getAllFilesMatching,
@@ -17,11 +18,12 @@ import {
   median,
   getUserFqn,
   getFunctionName,
-  findDuplicates,
   GasAnalyticsManagerImplementation,
 } from "../../../../src/internal/builtin-plugins/gas-analytics/gas-analytics-manager.js";
 
 describe("gas-analytics-manager", () => {
+  disableConsole();
+
   describe("GasAnalyticsManager", () => {
     let tmpDir: string;
     before(async () => {
@@ -222,6 +224,36 @@ describe("gas-analytics-manager", () => {
         assert.deepEqual(newManager.gasMeasurements[1], measurement2);
       });
 
+      it("should load gas measurements from multiple IDs", async () => {
+        const manager = new GasAnalyticsManagerImplementation(tmpDir);
+        const measurement1: GasMeasurement = {
+          type: "function",
+          contractFqn: "project/contracts/MyContract.sol:MyContract",
+          functionSig: "transfer(address,uint256)",
+          gas: 25000,
+        };
+        const measurement2: GasMeasurement = {
+          type: "function",
+          contractFqn: "project/contracts/MyContract.sol:MyContract",
+          functionSig: "approve(address,uint256)",
+          gas: 46000,
+        };
+
+        manager.addGasMeasurement(measurement1);
+        await manager.saveGasMeasurements("runner-1");
+
+        manager.gasMeasurements = [];
+        manager.addGasMeasurement(measurement2);
+        await manager.saveGasMeasurements("runner-2");
+
+        const newManager = new GasAnalyticsManagerImplementation(tmpDir);
+        await newManager._loadGasMeasurements("runner-1", "runner-2");
+
+        assert.equal(newManager.gasMeasurements.length, 2);
+        assert.deepEqual(newManager.gasMeasurements[0], measurement1);
+        assert.deepEqual(newManager.gasMeasurements[1], measurement2);
+      });
+
       it("should load gas measurements from multiple files", async () => {
         const manager = new GasAnalyticsManagerImplementation(tmpDir);
         const measurement1: GasMeasurement = {
@@ -251,6 +283,89 @@ describe("gas-analytics-manager", () => {
         assert.deepEqual(newManager.gasMeasurements[1], measurement2);
         assert.deepEqual(newManager.gasMeasurements[2], measurement1);
         assert.deepEqual(newManager.gasMeasurements[3], measurement2);
+      });
+    });
+
+    describe("reportGasStats", () => {
+      afterEach(async () => {
+        await emptyDir(tmpDir);
+      });
+
+      it("should not generate output when report is disabled", async (t) => {
+        const consoleMock = t.mock.method(console, "log");
+        const manager = new GasAnalyticsManagerImplementation(tmpDir);
+        manager.addGasMeasurement({
+          type: "function",
+          contractFqn: "project/contracts/MyContract.sol:MyContract",
+          functionSig: "transfer(address,uint256)",
+          gas: 25000,
+        });
+        await manager.saveGasMeasurements("test-id");
+
+        manager.disableReport();
+        await manager.reportGasStats("test-id");
+
+        assert.equal(consoleMock.mock.callCount(), 0);
+      });
+
+      it("should generate output after enableReport is called", async (t) => {
+        const consoleMock = t.mock.method(console, "log");
+        const manager = new GasAnalyticsManagerImplementation(tmpDir);
+        manager.addGasMeasurement({
+          type: "function",
+          contractFqn: "project/contracts/MyContract.sol:MyContract",
+          functionSig: "transfer(address,uint256)",
+          gas: 25000,
+        });
+        await manager.saveGasMeasurements("test-id");
+
+        manager.disableReport();
+        manager.enableReport();
+        await manager.reportGasStats("test-id");
+
+        assert.ok(
+          consoleMock.mock.callCount() > 0,
+          "Should have generated output",
+        );
+        const output = consoleMock.mock.calls
+          .map((call) => String(call.arguments[0] ?? ""))
+          .join("\n");
+        assert.ok(
+          output.includes("transfer"),
+          "Report should contain the function name",
+        );
+      });
+
+      it("should aggregate data from multiple runner IDs", async (t) => {
+        const consoleMock = t.mock.method(console, "log");
+        const manager = new GasAnalyticsManagerImplementation(tmpDir);
+
+        manager.addGasMeasurement({
+          type: "function",
+          contractFqn: "project/contracts/MyContract.sol:MyContract",
+          functionSig: "transfer(address,uint256)",
+          gas: 25000,
+        });
+        await manager.saveGasMeasurements("runner-1");
+
+        manager.gasMeasurements = [];
+        manager.addGasMeasurement({
+          type: "function",
+          contractFqn: "project/contracts/MyContract.sol:MyContract",
+          functionSig: "transfer(address,uint256)",
+          gas: 35000,
+        });
+        await manager.saveGasMeasurements("runner-2");
+
+        await manager.reportGasStats("runner-1", "runner-2");
+
+        const output = consoleMock.mock.calls
+          .map((call) => String(call.arguments[0] ?? ""))
+          .join("\n");
+        assert.ok(
+          output.includes("25000") && output.includes("35000"),
+          "Report should contain the numbers from both runners as they should be displayed as min/max for the same function call",
+        );
       });
     });
 
@@ -1053,31 +1168,6 @@ describe("gas-analytics-manager", () => {
 
       it("should handle simple names without parentheses", () => {
         assert.equal(getFunctionName("simple"), "simple");
-      });
-    });
-
-    describe("findDuplicates", () => {
-      it("should find duplicate strings", () => {
-        const result = findDuplicates(["a", "b", "a", "c", "b"]);
-        assert.deepEqual(result.sort(), ["a", "b"]);
-      });
-
-      it("should find duplicate numbers", () => {
-        const result = findDuplicates([1, 2, 1, 3, 2]);
-        assert.deepEqual(result.sort(), [1, 2]);
-      });
-
-      it("should return empty array when no duplicates", () => {
-        assert.deepEqual(findDuplicates(["a", "b", "c"]), []);
-        assert.deepEqual(findDuplicates([1, 2, 3]), []);
-      });
-
-      it("should handle empty array", () => {
-        assert.deepEqual(findDuplicates([]), []);
-      });
-
-      it("should handle single element", () => {
-        assert.deepEqual(findDuplicates(["a"]), []);
       });
     });
   });

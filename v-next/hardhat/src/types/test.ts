@@ -17,3 +17,11 @@ export interface TestSummary {
   todo: number;
   failureOutput?: string;
 }
+
+/**
+ * Result of a test run, wrapping a TestSummary. Plugins can extend this
+ * interface to include additional data (e.g., suite results).
+ */
+export interface TestRunResult {
+  summary: TestSummary;
+}

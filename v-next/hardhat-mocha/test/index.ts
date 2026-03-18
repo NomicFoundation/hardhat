@@ -24,7 +24,9 @@ describe("Hardhat Mocha plugin", () => {
 
       assert.deepEqual(result, {
         success: true,
-        value: { failed: 0, passed: 2, skipped: 0, todo: 0 },
+        value: {
+          summary: { failed: 0, passed: 2, skipped: 0, todo: 0 },
+        },
       });
     });
   });

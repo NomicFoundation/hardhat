@@ -1050,6 +1050,14 @@ account, and its parameters are incompatible. You sent both gasPrice and authori
 
 Please double check your transactions' parameters.`,
       },
+      CREATE_SERVER_UNSUPPORTED_NETWORK_TYPE: {
+        number: 724,
+        messageTemplate:
+          'Cannot create a server for network "{networkName}" because it has type "{networkType}". Only "edr-simulated" networks are supported.',
+        websiteTitle: "Unsupported network type for createServer",
+        websiteDescription:
+          "The createServer method only supports 'edr-simulated' networks. HTTP networks cannot be used to create a local JSON-RPC server.",
+      },
     },
     SOLIDITY_TESTS: {
       BUILD_INFO_NOT_FOUND_FOR_CONTRACT: {
@@ -1074,6 +1082,36 @@ Remaining test suites: {suites}`,
           "Unhandled EDR error while running Solidity tests: {error}",
         websiteTitle: "Unhandled EDR error in Solidity tests",
         websiteDescription: "Unhandled EDR error while running Solidity tests.",
+      },
+      INVALID_SNAPSHOT_FORMAT: {
+        number: 803,
+        messageTemplate:
+          "Invalid format in snapshot file {file} at line {line}. Expected format: {expectedFormat}.",
+        websiteTitle: "Invalid snapshot format",
+        websiteDescription:
+          "The snapshot file contains a line with an invalid format.",
+      },
+      SNAPSHOT_READ_ERROR: {
+        number: 804,
+        messageTemplate:
+          "Error reading snapshot file at {snapshotsPath}: {error}",
+        websiteTitle: "Error reading snapshot file",
+        websiteDescription: "There was an error reading the snapshot file.",
+      },
+      SNAPSHOT_WRITE_ERROR: {
+        number: 805,
+        messageTemplate:
+          "Error writing snapshot file at {snapshotsPath}: {error}",
+        websiteTitle: "Error writing snapshot file",
+        websiteDescription: "There was an error writing the snapshot file.",
+      },
+      MUTUALLY_EXCLUSIVE_SNAPSHOT_FLAGS: {
+        number: 806,
+        messageTemplate:
+          "The flags --snapshot and --snapshot-check are mutually exclusive.",
+        websiteTitle: "Mutually exclusive snapshot flags",
+        websiteDescription:
+          "The flags --snapshot and --snapshot-check are mutually exclusive. Please provide only one of them.",
       },
     },
     SOLIDITY: {

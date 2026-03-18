@@ -1,8 +1,11 @@
+import type { HardhatPlugin } from "../../../../src/types/plugins.js";
+
 import assert from "node:assert/strict";
 import { afterEach, describe, it } from "node:test";
 
 import { overrideTask, task } from "../../../../src/config.js";
 import { createHardhatRuntimeEnvironment } from "../../../../src/hre.js";
+import { getGasAnalyticsManager } from "../../../../src/internal/builtin-plugins/gas-analytics/helpers.js";
 import { ArgumentType } from "../../../../src/types/arguments.js";
 import { successfulResult, errorResult } from "../../../../src/utils/result.js";
 
@@ -34,7 +37,43 @@ describe("test/task-action", function () {
     process.exitCode = undefined;
   });
 
-  describe("subtask returning Result<TestSummary, TestSummary>", function () {
+  describe("subtask returning Result<TestRunResult, TestRunResult>", function () {
+    it("should return a successful result when the subtask returns a successful Result", async () => {
+      const hre = await createHardhatRuntimeEnvironment({
+        tasks: [
+          solidityNoOp,
+          mockRunner("runner-a", () =>
+            successfulResult({
+              summary: { passed: 3, failed: 0, skipped: 0, todo: 0 },
+            }),
+          ),
+        ],
+      });
+
+      const result = await hre.tasks.getTask("test").run({ noCompile: true });
+
+      assert.deepEqual(result, { success: true, value: undefined });
+    });
+
+    it("should return an error result when the subtask returns a failed Result", async () => {
+      const hre = await createHardhatRuntimeEnvironment({
+        tasks: [
+          solidityNoOp,
+          mockRunner("runner-a", () =>
+            errorResult({
+              summary: { passed: 1, failed: 2, skipped: 0, todo: 0 },
+            }),
+          ),
+        ],
+      });
+
+      const result = await hre.tasks.getTask("test").run({ noCompile: true });
+
+      assert.deepEqual(result, { success: false, error: undefined });
+    });
+  });
+
+  describe("subtask returning Result<TestSummary, TestSummary> (backwards compat)", function () {
     it("should return a successful result when the subtask returns a successful Result", async () => {
       const hre = await createHardhatRuntimeEnvironment({
         tasks: [
@@ -210,6 +249,105 @@ describe("test/task-action", function () {
       const result = await hre.tasks.getTask("test").run({ noCompile: true });
 
       assert.deepEqual(result, { success: false, error: undefined });
+    });
+
+    it("should return an error result when a TestRunResult subtask succeeds but a plain summary subtask fails", async () => {
+      const hre = await createHardhatRuntimeEnvironment({
+        tasks: [
+          solidityNoOp,
+          mockRunner("runner-a", () =>
+            successfulResult({
+              summary: { passed: 3, failed: 0, skipped: 0, todo: 0 },
+            }),
+          ),
+          mockRunner("runner-b", () => {
+            process.exitCode = 1;
+            return { passed: 2, failed: 1, skipped: 0, todo: 0 };
+          }),
+        ],
+      });
+
+      const result = await hre.tasks.getTask("test").run({ noCompile: true });
+
+      assert.deepEqual(result, { success: false, error: undefined });
+    });
+
+    it("should return a successful result when TestRunResult and TestSummary Result subtasks both succeed", async () => {
+      const hre = await createHardhatRuntimeEnvironment({
+        tasks: [
+          solidityNoOp,
+          mockRunner("runner-a", () =>
+            successfulResult({
+              summary: { passed: 3, failed: 0, skipped: 0, todo: 0 },
+            }),
+          ),
+          mockRunner("runner-b", () =>
+            successfulResult({ passed: 2, failed: 0, skipped: 0, todo: 0 }),
+          ),
+        ],
+      });
+
+      const result = await hre.tasks.getTask("test").run({ noCompile: true });
+
+      assert.deepEqual(result, { success: true, value: undefined });
+    });
+  });
+
+  describe("gas stats reporting only includes data from subtasks that ran", function () {
+    it("should not include stale data from a skipped runner in the gas stats report", async (t) => {
+      const consoleMock = t.mock.method(console, "log", () => {});
+
+      // Plugin that maps "runner-a-test.ts" → "runner-a", leaving "runner-b" unregistered
+      const fileMapperPlugin: HardhatPlugin = {
+        id: "test-file-mapper",
+        hookHandlers: {
+          test: async () => ({
+            default: async () => ({
+              registerFileForTestRunner: async (context, filePath, next) => {
+                if (filePath === "runner-a-test.ts") return "runner-a";
+                return next(context, filePath);
+              },
+            }),
+          }),
+        },
+      };
+
+      const hre = await createHardhatRuntimeEnvironment(
+        {
+          plugins: [fileMapperPlugin],
+          tasks: [
+            solidityNoOp,
+            mockRunner("runner-a", () => undefined),
+            mockRunner("runner-b", () => undefined),
+          ],
+        },
+        { gasStats: true },
+      );
+
+      // Simulate a stale previous run: runner-b has data saved to disk
+      const gasAnalytics = getGasAnalyticsManager(hre);
+      gasAnalytics.addGasMeasurement({
+        type: "function",
+        contractFqn: "project/contracts/MyContract.sol:MyContract",
+        functionSig: "staleFunctionFromRunnerB()",
+        gas: 99999,
+      });
+      await gasAnalytics.saveGasMeasurements("runner-b");
+
+      // Run only testFiles mapped to runner-a — runner-b is skipped
+      await hre.tasks.getTask("test").run({
+        noCompile: true,
+        testFiles: ["runner-a-test.ts"],
+      });
+
+      const output = consoleMock.mock.calls
+        .map((call) => String(call.arguments[0] ?? ""))
+        .join("\n");
+
+      assert.ok(
+        !output.includes("staleFunctionFromRunnerB"),
+        "Gas stats report should NOT include stale data from runner-b which was skipped",
+      );
     });
   });
 });

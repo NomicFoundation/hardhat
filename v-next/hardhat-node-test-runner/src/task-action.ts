@@ -1,6 +1,6 @@
 import type { HardhatConfig } from "hardhat/types/config";
 import type { NewTaskActionFunction } from "hardhat/types/tasks";
-import type { TestSummary } from "hardhat/types/test";
+import type { TestRunResult, TestSummary } from "hardhat/types/test";
 import type { LastParameter, Result } from "hardhat/types/utils";
 
 import { pipeline } from "node:stream/promises";
@@ -58,7 +58,7 @@ async function getTestFiles(
 const testWithHardhat: NewTaskActionFunction<TestActionArguments> = async (
   { testFiles, only, grep, noCompile, testSummaryIndex },
   hre,
-): Promise<Result<TestSummary, TestSummary>> => {
+): Promise<Result<TestRunResult, TestRunResult>> => {
   // Set an environment variable that plugins can use to detect when a process is running tests
   process.env.HH_TEST = "true";
 
@@ -79,10 +79,12 @@ const testWithHardhat: NewTaskActionFunction<TestActionArguments> = async (
 
   if (files.length === 0) {
     return successfulResult({
-      passed: 0,
-      failed: 0,
-      skipped: 0,
-      todo: 0,
+      summary: {
+        passed: 0,
+        failed: 0,
+        skipped: 0,
+        todo: 0,
+      },
     });
   }
 
@@ -107,13 +109,7 @@ const testWithHardhat: NewTaskActionFunction<TestActionArguments> = async (
     .map((href) => `--import "${href}"`)
     .join(" ");
 
-  async function runTests(): Promise<{
-    failed: number;
-    passed: number;
-    skipped: number;
-    todo: number;
-    failureOutput: string;
-  }> {
+  async function runTests(): Promise<TestSummary> {
     const nodeTestOptions: LastParameter<typeof run> = {
       files,
       only,
@@ -204,9 +200,11 @@ const testWithHardhat: NewTaskActionFunction<TestActionArguments> = async (
 
   console.log();
 
+  const result: TestRunResult = { summary: testResults };
+
   return testResults.failed > 0
-    ? errorResult(testResults)
-    : successfulResult(testResults);
+    ? errorResult(result)
+    : successfulResult(result);
 };
 
 export default testWithHardhat;
