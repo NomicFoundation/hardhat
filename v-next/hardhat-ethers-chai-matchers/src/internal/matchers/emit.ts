@@ -36,9 +36,7 @@ async function waitForPendingTransaction(
 
   if (typeof tx === "string") {
     if (!isHash(hash)) {
-      chaiAssert.fail(
-        `Expected a valid transaction hash, but got "${hash}"`,
-      );
+      chaiAssert.fail(`Expected a valid transaction hash, but got "${hash}"`);
     }
 
     // If the input is a raw string that is also a valid bytes32-encoded
