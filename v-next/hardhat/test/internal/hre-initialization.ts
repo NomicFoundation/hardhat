@@ -248,6 +248,7 @@ describe("HRE initialization", () => {
           config: configPath,
           coverage: false,
           gasStats: false,
+          gasStatsJson: undefined,
           help: false,
           init: false,
           showStackTraces: false,

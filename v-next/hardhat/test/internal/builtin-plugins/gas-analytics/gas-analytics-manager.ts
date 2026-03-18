@@ -1,10 +1,17 @@
-import type { GasMeasurement } from "../../../../src/internal/builtin-plugins/gas-analytics/types.js";
+import type {
+  GasMeasurement,
+  GasStatsJson,
+} from "../../../../src/internal/builtin-plugins/gas-analytics/types.js";
 
 import assert from "node:assert/strict";
 import path from "node:path";
 import { afterEach, before, describe, it } from "node:test";
 
-import { disableConsole } from "@nomicfoundation/hardhat-test-utils";
+import { HardhatError } from "@nomicfoundation/hardhat-errors";
+import {
+  assertRejectsWithHardhatError,
+  disableConsole,
+} from "@nomicfoundation/hardhat-test-utils";
 import {
   emptyDir,
   getAllFilesMatching,
@@ -20,6 +27,7 @@ import {
   getFunctionName,
   GasAnalyticsManagerImplementation,
 } from "../../../../src/internal/builtin-plugins/gas-analytics/gas-analytics-manager.js";
+import { getFullyQualifiedName } from "../../../../src/utils/contract-names.js";
 
 describe("gas-analytics-manager", () => {
   disableConsole();
@@ -1092,6 +1100,367 @@ describe("gas-analytics-manager", () => {
           mintUint256Line < mintBytesLine,
           "mint(uint256) should come before mint(uint256,bytes)",
         );
+      });
+    });
+
+    describe("_generateGasStatsJson", () => {
+      it("should return empty contracts object when no measurements", () => {
+        const manager = new GasAnalyticsManagerImplementation(tmpDir);
+        const result = manager._generateGasStatsJson(new Map());
+        assert.deepEqual(result, { contracts: {} });
+      });
+
+      it("should include both deployment and functions stats", () => {
+        const manager = new GasAnalyticsManagerImplementation(tmpDir);
+        manager.addGasMeasurement({
+          type: "deployment",
+          contractFqn: "project/contracts/MyContract.sol:MyContract",
+          gas: 500000,
+          size: 2048,
+        });
+        manager.addGasMeasurement({
+          type: "function",
+          contractFqn: "project/contracts/MyContract.sol:MyContract",
+          functionSig: "transfer(address,uint256)",
+          gas: 25000,
+        });
+        const stats = manager._calculateGasStats();
+        const result = manager._generateGasStatsJson(stats);
+
+        const contract =
+          result.contracts["contracts/MyContract.sol:MyContract"];
+        assert.ok(contract !== undefined, "contract entry should exist");
+        assert.equal(contract.sourceName, "contracts/MyContract.sol");
+        assert.equal(contract.contractName, "MyContract");
+        assert.deepEqual(contract.deployment, {
+          min: 500000,
+          max: 500000,
+          avg: 500000,
+          median: 500000,
+          count: 1,
+        });
+        assert.ok(contract.functions !== null, "functions should not be null");
+        assert.deepEqual(contract.functions.transfer, {
+          min: 25000,
+          max: 25000,
+          avg: 25000,
+          median: 25000,
+          count: 1,
+        });
+      });
+
+      it("should set deployment to null when contract has only function calls", () => {
+        const manager = new GasAnalyticsManagerImplementation(tmpDir);
+        manager.addGasMeasurement({
+          type: "function",
+          contractFqn: "project/contracts/Token.sol:Token",
+          functionSig: "balanceOf(address)",
+          gas: 15000,
+        });
+        const stats = manager._calculateGasStats();
+        const result = manager._generateGasStatsJson(stats);
+
+        const contract = result.contracts["contracts/Token.sol:Token"];
+        assert.ok(contract !== undefined, "contract entry should exist");
+        assert.equal(contract.deployment, null);
+        assert.ok(contract.functions !== null, "functions should not be null");
+      });
+
+      it("should set functions to null when contract has only deployments", () => {
+        const manager = new GasAnalyticsManagerImplementation(tmpDir);
+        manager.addGasMeasurement({
+          type: "deployment",
+          contractFqn: "project/contracts/Factory.sol:Factory",
+          gas: 300000,
+          size: 1024,
+        });
+        const stats = manager._calculateGasStats();
+        const result = manager._generateGasStatsJson(stats);
+
+        const contract = result.contracts["contracts/Factory.sol:Factory"];
+        assert.ok(contract !== undefined, "contract entry should exist");
+        assert.ok(
+          contract.deployment !== null,
+          "deployment should not be null",
+        );
+        assert.equal(contract.functions, null);
+      });
+
+      it("should sort contracts alphabetically by user-friendly FQN", () => {
+        const manager = new GasAnalyticsManagerImplementation(tmpDir);
+        manager.addGasMeasurement({
+          type: "deployment",
+          contractFqn: "project/contracts/ZContract.sol:ZContract",
+          gas: 100000,
+          size: 512,
+        });
+        manager.addGasMeasurement({
+          type: "deployment",
+          contractFqn: "project/contracts/AContract.sol:AContract",
+          gas: 200000,
+          size: 512,
+        });
+        const stats = manager._calculateGasStats();
+        const result = manager._generateGasStatsJson(stats);
+
+        const keys = Object.keys(result.contracts);
+        assert.equal(keys[0], "contracts/AContract.sol:AContract");
+        assert.equal(keys[1], "contracts/ZContract.sol:ZContract");
+      });
+
+      it("should sort functions alphabetically within a contract", () => {
+        const manager = new GasAnalyticsManagerImplementation(tmpDir);
+        manager.addGasMeasurement({
+          type: "function",
+          contractFqn: "project/contracts/Token.sol:Token",
+          functionSig: "transfer(address,uint256)",
+          gas: 25000,
+        });
+        manager.addGasMeasurement({
+          type: "function",
+          contractFqn: "project/contracts/Token.sol:Token",
+          functionSig: "approve(address,uint256)",
+          gas: 46000,
+        });
+        const stats = manager._calculateGasStats();
+        const result = manager._generateGasStatsJson(stats);
+
+        const tokenContract = result.contracts["contracts/Token.sol:Token"];
+        assert.ok(tokenContract !== undefined, "token contract should exist");
+        assert.ok(
+          tokenContract.functions !== null,
+          "functions should not be null",
+        );
+        const fns = Object.keys(tokenContract.functions);
+        assert.equal(fns[0], "approve");
+        assert.equal(fns[1], "transfer");
+      });
+
+      it("should use full signatures as keys for overloaded functions", () => {
+        const manager = new GasAnalyticsManagerImplementation(tmpDir);
+        manager.addGasMeasurement({
+          type: "function",
+          contractFqn: "project/contracts/Token.sol:Token",
+          functionSig: "transfer(address,uint256)",
+          gas: 25000,
+        });
+        manager.addGasMeasurement({
+          type: "function",
+          contractFqn: "project/contracts/Token.sol:Token",
+          functionSig: "transfer(address,uint256,bytes)",
+          gas: 35000,
+        });
+        const stats = manager._calculateGasStats();
+        const result = manager._generateGasStatsJson(stats);
+
+        const overloadedContract =
+          result.contracts["contracts/Token.sol:Token"];
+        assert.ok(overloadedContract !== undefined, "contract should exist");
+        assert.ok(
+          overloadedContract.functions !== null,
+          "functions should not be null",
+        );
+        assert.ok(
+          "transfer(address,uint256)" in overloadedContract.functions,
+          "overloaded function should use full signature",
+        );
+        assert.ok(
+          "transfer(address,uint256,bytes)" in overloadedContract.functions,
+          "overloaded function should use full signature",
+        );
+      });
+
+      it("should strip project/ prefix from contract keys via getUserFqn", () => {
+        const manager = new GasAnalyticsManagerImplementation(tmpDir);
+        manager.addGasMeasurement({
+          type: "deployment",
+          contractFqn: "project/contracts/MyContract.sol:MyContract",
+          gas: 100000,
+          size: 512,
+        });
+        const stats = manager._calculateGasStats();
+        const result = manager._generateGasStatsJson(stats);
+
+        assert.ok(
+          "contracts/MyContract.sol:MyContract" in result.contracts,
+          "key should not have project/ prefix",
+        );
+        assert.ok(
+          !("project/contracts/MyContract.sol:MyContract" in result.contracts),
+          "key with project/ prefix should not exist",
+        );
+      });
+
+      it("should strip npm package version from contract keys", () => {
+        const manager = new GasAnalyticsManagerImplementation(tmpDir);
+        manager.addGasMeasurement({
+          type: "function",
+          contractFqn:
+            "npm/@openzeppelin/contracts@5.0.0/token/ERC20/ERC20.sol:ERC20",
+          functionSig: "approve(address,uint256)",
+          gas: 46200,
+        });
+        const stats = manager._calculateGasStats();
+        const result = manager._generateGasStatsJson(stats);
+
+        const key = "@openzeppelin/contracts/token/ERC20/ERC20.sol:ERC20";
+        assert.ok(key in result.contracts, "key should not have npm version");
+        const erc20Contract = result.contracts[key];
+        assert.ok(erc20Contract !== undefined, "ERC20 contract should exist");
+        assert.equal(
+          erc20Contract.sourceName,
+          "@openzeppelin/contracts/token/ERC20/ERC20.sol",
+        );
+        assert.equal(erc20Contract.contractName, "ERC20");
+      });
+
+      it("should match artifact format — FQN key equals getFullyQualifiedName(sourceName, contractName)", () => {
+        const sourceName = "contracts/MyToken.sol";
+        const contractName = "MyToken";
+        const internalFqn = `project/${sourceName}:${contractName}`;
+
+        const manager = new GasAnalyticsManagerImplementation(tmpDir);
+        manager.addGasMeasurement({
+          type: "deployment",
+          contractFqn: internalFqn,
+          gas: 250000,
+          size: 1024,
+        });
+        const stats = manager._calculateGasStats();
+        const result = manager._generateGasStatsJson(stats);
+
+        const expectedKey = getFullyQualifiedName(sourceName, contractName);
+        const contract = result.contracts[expectedKey];
+
+        assert.ok(
+          contract !== undefined,
+          `contract should exist at key ${expectedKey}`,
+        );
+        assert.equal(contract.sourceName, sourceName);
+        assert.equal(contract.contractName, contractName);
+      });
+    });
+
+    describe("writeGasStatsJson", () => {
+      afterEach(async () => {
+        await emptyDir(tmpDir);
+      });
+
+      it("should throw if outputPath is a directory", async () => {
+        const manager = new GasAnalyticsManagerImplementation(tmpDir);
+        await assertRejectsWithHardhatError(
+          manager.writeGasStatsJson(tmpDir, "test-id"),
+          HardhatError.ERRORS.CORE.BUILTIN_TASKS.INVALID_FILE_PATH,
+          { path: tmpDir },
+        );
+      });
+
+      it("should write JSON file at the specified path", async () => {
+        const manager = new GasAnalyticsManagerImplementation(tmpDir);
+        manager.addGasMeasurement({
+          type: "function",
+          contractFqn: "project/contracts/MyContract.sol:MyContract",
+          functionSig: "transfer(address,uint256)",
+          gas: 25000,
+        });
+        await manager.saveGasMeasurements("test-id");
+
+        const outputPath = path.join(tmpDir, "gas-output.json");
+        await manager.writeGasStatsJson(outputPath, "test-id");
+
+        const json = await readJsonFile<GasStatsJson>(outputPath);
+        assert.ok(
+          "contracts/MyContract.sol:MyContract" in json.contracts,
+          "output should contain the contract",
+        );
+        const writtenContract =
+          json.contracts["contracts/MyContract.sol:MyContract"];
+        assert.ok(
+          writtenContract !== undefined,
+          "contract should exist in output",
+        );
+        assert.ok(
+          writtenContract.functions !== null,
+          "functions should not be null",
+        );
+        assert.deepEqual(writtenContract.functions.transfer, {
+          min: 25000,
+          max: 25000,
+          avg: 25000,
+          median: 25000,
+          count: 1,
+        });
+      });
+
+      it("should create parent directories if they do not exist", async () => {
+        const manager = new GasAnalyticsManagerImplementation(tmpDir);
+        manager.addGasMeasurement({
+          type: "deployment",
+          contractFqn: "project/contracts/MyContract.sol:MyContract",
+          gas: 500000,
+          size: 2048,
+        });
+        await manager.saveGasMeasurements("test-id");
+
+        const outputPath = path.join(
+          tmpDir,
+          "nested",
+          "deep",
+          "gas-output.json",
+        );
+        await manager.writeGasStatsJson(outputPath, "test-id");
+
+        const json = await readJsonFile<GasStatsJson>(outputPath);
+        assert.ok(
+          "contracts/MyContract.sol:MyContract" in json.contracts,
+          "written JSON should contain the contract",
+        );
+      });
+
+      it("should resolve a relative path against process.cwd()", async () => {
+        const manager = new GasAnalyticsManagerImplementation(tmpDir);
+        manager.addGasMeasurement({
+          type: "function",
+          contractFqn: "project/contracts/MyContract.sol:MyContract",
+          functionSig: "transfer(address,uint256)",
+          gas: 25000,
+        });
+        await manager.saveGasMeasurements("test-id");
+
+        const originalCwd = process.cwd();
+        process.chdir(tmpDir);
+        try {
+          await manager.writeGasStatsJson("relative-output.json", "test-id");
+        } finally {
+          process.chdir(originalCwd);
+        }
+
+        const expectedPath = path.join(tmpDir, "relative-output.json");
+        const json = await readJsonFile<GasStatsJson>(expectedPath);
+        assert.ok(
+          "contracts/MyContract.sol:MyContract" in json.contracts,
+          "output should contain the contract",
+        );
+      });
+
+      it("should not write file when report is disabled", async () => {
+        const manager = new GasAnalyticsManagerImplementation(tmpDir);
+        manager.addGasMeasurement({
+          type: "function",
+          contractFqn: "project/contracts/MyContract.sol:MyContract",
+          functionSig: "transfer(address,uint256)",
+          gas: 25000,
+        });
+        await manager.saveGasMeasurements("test-id");
+
+        manager.disableReport();
+        const outputPath = path.join(tmpDir, "should-not-exist.json");
+        await manager.writeGasStatsJson(outputPath, "test-id");
+
+        const files = await getAllFilesMatching(tmpDir, (f) =>
+          f.endsWith("should-not-exist.json"),
+        );
+        assert.equal(files.length, 0, "file should not have been written");
       });
     });
   });
