@@ -77,7 +77,7 @@ export function createConnectToSingleton(
             ? { network: networkName, chainType }
             : undefined;
 
-        // The setting of connection promise has to happen syncronously
+        // The setting of connection promise has to happen synchronously
         // to avoid race conditions with other suites' before hooks,
         // hence the then that sets resolved.
         entry.connectPromise = networkManager
