@@ -8,15 +8,15 @@ Hardhat 3 changed the default `gas` configuration for the hardhat network from a
 
 This causes two problems:
 
-**1. Performance regression** — benchmarks on 10,000 transactions using HH3 hardhat-ethers in both cases, only varying the `gas` config passed to `createHardhatRuntimeEnvironment` — `gas: 16_777_216n` (fixed, skips estimation) vs default `gas: "auto"` (triggers estimation). Median ms/tx, slowdown = auto median / fixed median. **Note:** this benchmark was developed with Claude Code and run locally on a single machine — results are indicative but should be validated independently (see [Appendix C](#appendix-c-benchmark-details) for full results and methodology):
+**1. Performance regression** — benchmarks on 10,000 transactions using HH3 hardhat-ethers in both cases, only varying the `gas` config passed to `createHardhatRuntimeEnvironment` — `gas: 16_777_216n` (fixed, skips estimation) vs default `gas: "auto"` (triggers estimation). The benchmark covers different transaction types to exercise different `eth_estimateGas` behaviors: a plain ETH transfer (simplest case), simple and complex contract calls (varying gas profiles), and contract deployments. Median ms/tx, slowdown = auto median / fixed median. **Note:** this benchmark was developed with Claude Code and run locally on a single machine — results are indicative but should be validated independently (see [Appendix C](#appendix-c-benchmark-details) for full results and methodology):
 
 | Scenario | Fixed gas (median) | Auto gas (median) | Overhead | Slowdown |
 |---|---:|---:|---:|---:|
-| Plain ETH transfers | 1.88 ms/tx | 2.35 ms/tx | +0.47 ms | **1.25x** |
-| Simple contract call (`inc()`) | 1.95 ms/tx | 2.46 ms/tx | +0.51 ms | **1.26x** |
-| Two-event emission (`emitsTwoEvents()`) | 1.98 ms/tx | 2.56 ms/tx | +0.59 ms | **1.30x** |
-| Heavy contract (`heavyWrite(50)`) | 5.83 ms/tx | 9.10 ms/tx | +3.27 ms | **1.56x** |
-| Contract deployments | 2.44 ms/tx | 2.95 ms/tx | +0.51 ms | **1.21x** |
+| Plain ETH transfers | 1.89 ms/tx | 2.26 ms/tx | +0.37 ms | **1.19x** |
+| Simple contract call (`inc()`) | 1.86 ms/tx | 2.33 ms/tx | +0.47 ms | **1.25x** |
+| Two-event emission (`emitsTwoEvents()`) | 1.87 ms/tx | 2.31 ms/tx | +0.44 ms | **1.24x** |
+| Heavy contract (`heavyWrite(50)`) | 5.08 ms/tx | 7.97 ms/tx | +2.89 ms | **1.57x** |
+| Contract deployments | 2.38 ms/tx | 2.94 ms/tx | +0.56 ms | **1.23x** |
 
 **2. Correctness issue** — the estimated gas can be insufficient for unchecked inner calls (e.g., ERC-4337 patterns), causing silent state change failures that break tests which passed in HH2 (see [Section 2](#2-correctness-issue) and [Appendix D](#appendix-d-correctness-issue--unchecked-inner-calls)).
 
@@ -33,7 +33,7 @@ The hardhat-ethers signer calls `eth_estimateGas` before every transaction unles
 
 Note that EDR's `eth_sendTransaction` does not require a gas limit — when the `gas` field is missing from the RPC request, it defaults to `block_gas_limit()` and executes the transaction as-is (see [Appendix B, Step 6](#step-6-the-actual-transaction-eth_sendtransaction)). The estimation round-trip is added by the ethers signer before the RPC request is sent.
 
-This is a **silent behavioral change**: a user migrating from HH2 to HH3 with the same `hardhat.config.ts` (no explicit `gas` setting) will see every transaction trigger 2-23 additional EVM executions (see [Appendix B](#appendix-b-how-gas-estimation-works-in-edr)), increasing test suite execution time by 21-56% per transaction depending on complexity (see [Appendix C](#appendix-c-benchmark-details)). The user's config didn't change — the default did — making the slowdown invisible and hard to diagnose.
+This is a **silent behavioral change**: a user migrating from HH2 to HH3 with the same `hardhat.config.ts` (no explicit `gas` setting) will see every transaction trigger 2-23 additional EVM executions (see [Appendix B](#appendix-b-how-gas-estimation-works-in-edr)), increasing test suite execution time by 19-57% per transaction depending on complexity (see [Appendix C](#appendix-c-benchmark-details)). The user's config didn't change — the default did — making the slowdown invisible and hard to diagnose.
 
 ---
 
@@ -74,7 +74,7 @@ export default {
 
 ## 5. Takeaways
 
-This issue originated from a single config default changing from a fixed number to `"auto"`. That one-line difference altered which Hardhat code paths get executed on every transaction — the ethers signer now calls `eth_estimateGas` before `eth_sendTransaction`, where it previously skipped estimation entirely and sent transactions directly with a cached gas limit. This introduced both a 21-56% performance regression and a correctness bug that breaks tests relying on unchecked inner calls.
+This issue originated from a single config default changing from a fixed number to `"auto"`. That one-line difference altered which Hardhat code paths get executed on every transaction — the ethers signer now calls `eth_estimateGas` before `eth_sendTransaction`, where it previously skipped estimation entirely and sent transactions directly with a cached gas limit. This introduced both a 19-57% performance regression and a correctness bug that breaks tests relying on unchecked inner calls.
 
 HH2 and HH3 can use the same version of EDR, but the surface area of EDR that each version exercises is different. HH2's fixed gas default meant that `eth_estimateGas` was effectively dead code for the hardhat network — never called, never tested in that context. HH3 activates it on every transaction, exposing behaviors (like the binary search converging on insufficient gas for unchecked inner calls) that were always present in EDR but never triggered in practice.
 
@@ -346,62 +346,62 @@ node --import tsx/esm benchmark/gas-estimation.ts 10000
 
 |  | Median | Avg | p95 | Total |
 |---|---:|---:|---:|---:|
-| Fixed gas | 1.88 ms/tx | 2.04 ms/tx | 2.56 ms/tx | 20,363 ms |
-| Auto gas (estimateGas) | 2.35 ms/tx | 2.62 ms/tx | 3.35 ms/tx | 26,186 ms |
-| **Overhead (median)** | **+0.47 ms** | | | |
+| Fixed gas | 1.89 ms/tx | 2.06 ms/tx | 2.72 ms/tx | 20,610 ms |
+| Auto gas (estimateGas) | 2.26 ms/tx | 2.35 ms/tx | 2.81 ms/tx | 23,461 ms |
+| **Overhead (median)** | **+0.37 ms** | | | |
 
-**1.25x slower.** Simplest possible transaction (21K gas).
+**1.19x slower.** Simplest possible transaction (21K gas).
 
 #### 2) Contract calls — inc()
 
 |  | Median | Avg | p95 | Total |
 |---|---:|---:|---:|---:|
-| Fixed gas | 1.95 ms/tx | 2.16 ms/tx | 2.77 ms/tx | 21,582 ms |
-| Auto gas (estimateGas) | 2.46 ms/tx | 2.76 ms/tx | 3.81 ms/tx | 27,591 ms |
-| **Overhead (median)** | **+0.51 ms** | | | |
+| Fixed gas | 1.86 ms/tx | 1.93 ms/tx | 2.41 ms/tx | 19,315 ms |
+| Auto gas (estimateGas) | 2.33 ms/tx | 2.43 ms/tx | 3.05 ms/tx | 24,277 ms |
+| **Overhead (median)** | **+0.47 ms** | | | |
 
-**1.26x slower.** Single storage write + event emission (~26K gas).
+**1.25x slower.** Single storage write + event emission (~26K gas).
 
 #### 3) Contract calls — emitsTwoEvents()
 
 |  | Median | Avg | p95 | Total |
 |---|---:|---:|---:|---:|
-| Fixed gas | 1.98 ms/tx | 2.23 ms/tx | 3.24 ms/tx | 22,272 ms |
-| Auto gas (estimateGas) | 2.56 ms/tx | 2.86 ms/tx | 3.80 ms/tx | 28,604 ms |
-| **Overhead (median)** | **+0.59 ms** | | | |
+| Fixed gas | 1.87 ms/tx | 2.08 ms/tx | 2.76 ms/tx | 20,789 ms |
+| Auto gas (estimateGas) | 2.31 ms/tx | 2.46 ms/tx | 2.95 ms/tx | 24,587 ms |
+| **Overhead (median)** | **+0.44 ms** | | | |
 
-**1.30x slower.** Two event emissions, no storage writes.
+**1.24x slower.** Two event emissions, no storage writes.
 
 #### 4) Heavy contract — heavyWrite(50)
 
 |  | Median | Avg | p95 | Total |
 |---|---:|---:|---:|---:|
-| Fixed gas | 5.83 ms/tx | 7.61 ms/tx | 17.84 ms/tx | 76,146 ms |
-| Auto gas (estimateGas) | 9.10 ms/tx | 12.20 ms/tx | 30.87 ms/tx | 122,015 ms |
-| **Overhead (median)** | **+3.27 ms** | | | |
+| Fixed gas | 5.08 ms/tx | 7.13 ms/tx | 18.05 ms/tx | 71,341 ms |
+| Auto gas (estimateGas) | 7.97 ms/tx | 10.67 ms/tx | 23.48 ms/tx | 106,703 ms |
+| **Overhead (median)** | **+2.89 ms** | | | |
 
-**1.56x slower.** 50 storage writes + 50 event emissions per call (~1M gas). The highest overhead of all scenarios. Note the large gap between median and p95 (5.83 vs 17.84 for fixed, 9.10 vs 30.87 for auto).
+**1.57x slower.** 50 storage writes + 50 event emissions per call (~1M gas). The highest overhead of all scenarios. Note the large gap between median and p95 (5.08 vs 18.05 for fixed, 7.97 vs 23.48 for auto).
 
 #### 5) Contract deployments
 
 |  | Median | Avg | p95 | Total |
 |---|---:|---:|---:|---:|
-| Fixed gas | 2.44 ms/tx | 2.74 ms/tx | 3.95 ms/tx | 27,403 ms |
-| Auto gas (estimateGas) | 2.95 ms/tx | 3.25 ms/tx | 4.62 ms/tx | 32,497 ms |
-| **Overhead (median)** | **+0.51 ms** | | | |
+| Fixed gas | 2.38 ms/tx | 2.63 ms/tx | 3.76 ms/tx | 26,266 ms |
+| Auto gas (estimateGas) | 2.94 ms/tx | 3.26 ms/tx | 4.63 ms/tx | 32,565 ms |
+| **Overhead (median)** | **+0.56 ms** | | | |
 
-**1.21x slower.** Deploying a small contract (~77K gas).
+**1.23x slower.** Deploying a small contract (~77K gas).
 
 ### Summary chart
 
 ```
 Median overhead per tx (ms)       Slowdown (median ratio)
 
-Plain transfers    |==          +0.47ms     1.25x
-inc()              |==          +0.51ms     1.26x
-emitsTwoEvents()   |==          +0.59ms     1.30x
-heavyWrite(50)     |========    +3.27ms     1.56x
-Deployments        |==          +0.51ms     1.21x
+Plain transfers    |=           +0.37ms     1.19x
+inc()              |==          +0.47ms     1.25x
+emitsTwoEvents()   |==          +0.44ms     1.24x
+heavyWrite(50)     |=======     +2.89ms     1.57x
+Deployments        |==          +0.56ms     1.23x
 ```
 
 ---

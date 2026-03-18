@@ -1,4 +1,7 @@
 /**
+ * WARNING: This file was created entirely by Claude Code and has only been
+ * poorly reviewed. Use with care and validate results independently.
+ *
  * Benchmark: gas estimation vs fixed gas limit
  *
  * Measures the overhead of eth_estimateGas on every transaction
@@ -160,100 +163,86 @@ function buildResult(label: string, timings: number[]): Result {
   };
 }
 
-async function benchContractCalls(
+type Ethers = Awaited<ReturnType<typeof createEthers>>["ethers"];
+
+async function runBench<T>(
+  label: string,
+  gasConfig: "auto" | bigint,
+  setup: (ethers: Ethers) => Promise<T>,
+  action: (ctx: T) => Promise<unknown>,
+): Promise<Result> {
+  const { ethers } = await createEthers(gasConfig);
+  const ctx = await setup(ethers);
+
+  for (let i = 0; i < WARMUP; i++) {
+    await action(ctx);
+  }
+
+  const timings: number[] = [];
+  for (let i = 0; i < TX_COUNT; i++) {
+    const t0 = performance.now();
+    await action(ctx);
+    timings.push(performance.now() - t0);
+  }
+
+  return buildResult(label, timings);
+}
+
+function benchContractCalls(
   label: string,
   gasConfig: "auto" | bigint,
   method: "inc" | "emitsTwoEvents" = "inc",
 ): Promise<Result> {
-  const { ethers } = await createEthers(gasConfig);
-  const contract = await deployExample(ethers);
-
-  for (let i = 0; i < WARMUP; i++) {
-    await contract[method]();
-  }
-
-  const timings: number[] = [];
-  for (let i = 0; i < TX_COUNT; i++) {
-    const t0 = performance.now();
-    await contract[method]();
-    timings.push(performance.now() - t0);
-  }
-
-  return buildResult(label, timings);
+  return runBench(
+    label,
+    gasConfig,
+    (ethers) => deployExample(ethers),
+    (contract) => contract[method](),
+  );
 }
 
-async function benchPlainTransfers(
+function benchPlainTransfers(
   label: string,
   gasConfig: "auto" | bigint,
 ): Promise<Result> {
-  const { ethers } = await createEthers(gasConfig);
-  const [sender, receiver] = await ethers.getSigners();
-
-  for (let i = 0; i < WARMUP; i++) {
-    await sender.sendTransaction({ to: receiver, value: 1n });
-  }
-
-  const timings: number[] = [];
-  for (let i = 0; i < TX_COUNT; i++) {
-    const t0 = performance.now();
-    await sender.sendTransaction({ to: receiver, value: 1n });
-    timings.push(performance.now() - t0);
-  }
-
-  return buildResult(label, timings);
+  return runBench(
+    label,
+    gasConfig,
+    (ethers) => ethers.getSigners(),
+    ([sender, receiver]) => sender.sendTransaction({ to: receiver, value: 1n }),
+  );
 }
 
-async function benchDeployments(
+function benchDeployments(
   label: string,
   gasConfig: "auto" | bigint,
 ): Promise<Result> {
-  const { ethers } = await createEthers(gasConfig);
-  const signer = await ethers.provider.getSigner(0);
-
-  for (let i = 0; i < WARMUP; i++) {
-    const f = new ContractFactory(
-      EXAMPLE_CONTRACT.abi,
-      EXAMPLE_CONTRACT.deploymentBytecode,
-      signer,
-    );
-    await f.deploy();
-  }
-
-  const timings: number[] = [];
-  for (let i = 0; i < TX_COUNT; i++) {
-    const t0 = performance.now();
-    const f = new ContractFactory(
-      EXAMPLE_CONTRACT.abi,
-      EXAMPLE_CONTRACT.deploymentBytecode,
-      signer,
-    );
-    await f.deploy();
-    timings.push(performance.now() - t0);
-  }
-
-  return buildResult(label, timings);
+  return runBench(
+    label,
+    gasConfig,
+    (ethers) => ethers.provider.getSigner(0),
+    (signer) => {
+      const f = new ContractFactory(
+        EXAMPLE_CONTRACT.abi,
+        EXAMPLE_CONTRACT.deploymentBytecode,
+        signer,
+      );
+      return f.deploy();
+    },
+  );
 }
 
-async function benchHeavyWrite(
+function benchHeavyWrite(
   label: string,
   gasConfig: "auto" | bigint,
   slotsPerCall: number,
 ): Promise<Result> {
-  const { ethers } = await createEthers(gasConfig);
-  const contract = await deployHeavy(ethers);
-
-  for (let i = 0; i < WARMUP; i++) {
-    await contract.heavyWrite(slotsPerCall);
-  }
-
-  const timings: number[] = [];
-  for (let i = 0; i < TX_COUNT; i++) {
-    const t0 = performance.now();
-    await contract.heavyWrite(slotsPerCall);
-    timings.push(performance.now() - t0);
-  }
-
-  return buildResult(label, timings);
+  return runBench(
+    label,
+    gasConfig,
+    (ethers) => deployHeavy(ethers),
+    (contract) => contract.heavyWrite(slotsPerCall),
+  );
 }
 
 // ---------------------------------------------------------------------------
