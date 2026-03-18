@@ -1,5 +1,13 @@
 # @nomicfoundation/hardhat-errors
 
+## 3.0.9
+
+### Patch Changes
+
+- 0a2a4a9: Added `connectToSingleton` helper to support single network per Mocha test suite patterns ([#7965](https://github.com/NomicFoundation/hardhat/issues/7965))
+- 9de7bdb: Added `connectOnBefore` helper to improve performance in Mocha test suites ([#7965](https://github.com/NomicFoundation/hardhat/issues/7965))
+- 0e8abcf: Added guard against `http` network configs in `network.createServer(...)`
+
 ## 3.0.8
 
 ### Patch Changes

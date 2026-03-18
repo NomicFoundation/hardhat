@@ -1,5 +1,11 @@
 # Changelog
 
+## 3.1.0
+
+### Minor Changes
+
+- 481b221: Added support for verifying on all enabled verification services (e.g. Sourcify) ([#7538](https://github.com/NomicFoundation/hardhat/issues/7538)).
+
 ## 3.0.9
 
 ### Patch Changes

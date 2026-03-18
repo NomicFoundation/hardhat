@@ -1,5 +1,20 @@
 # @nomicfoundation/hardhat-mocha
 
+## 3.0.14
+
+### Patch Changes
+
+- 0a2a4a9: Added `connectToSingleton` helper to support single network per Mocha test suite patterns ([#7965](https://github.com/NomicFoundation/hardhat/issues/7965))
+- 9de7bdb: Added `connectOnBefore` helper to improve performance in Mocha test suites ([#7965](https://github.com/NomicFoundation/hardhat/issues/7965))
+- Updated dependencies [0a2a4a9]
+- Updated dependencies [9de7bdb]
+- Updated dependencies [c03f647]
+- Updated dependencies [4461d1e]
+- Updated dependencies [0e8abcf]
+- Updated dependencies [954825a]
+  - @nomicfoundation/hardhat-errors@3.0.9
+  - hardhat@3.1.13
+
 ## 3.0.13
 
 ### Patch Changes

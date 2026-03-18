@@ -1,5 +1,25 @@
 # Changelog
 
+## 3.1.0
+
+### Minor Changes
+
+- 481b221: Added support for verifying on all enabled verification services (e.g. Sourcify) ([#7538](https://github.com/NomicFoundation/hardhat/issues/7538)).
+
+### Patch Changes
+
+- Updated dependencies [0a2a4a9]
+- Updated dependencies [9de7bdb]
+- Updated dependencies [c03f647]
+- Updated dependencies [4461d1e]
+- Updated dependencies [0e8abcf]
+- Updated dependencies [954825a]
+- Updated dependencies [481b221]
+  - @nomicfoundation/hardhat-errors@3.0.9
+  - hardhat@3.1.13
+  - @nomicfoundation/ignition-core@3.1.0
+  - @nomicfoundation/ignition-ui@3.1.0
+
 ## 3.0.9
 
 ### Patch Changes

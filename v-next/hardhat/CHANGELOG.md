@@ -1,5 +1,18 @@
 # hardhat
 
+## 3.1.13
+
+### Patch Changes
+
+- c03f647: Fixed bug to preserve revert data in JSON-RPC responses for non-ProviderErrors ([8061](https://github.com/NomicFoundation/hardhat/pull/8061)).
+- 4461d1e: Updated `network.createServer` signature to type non-generic chainTypes
+- 0e8abcf: Added guard against `http` network configs in `network.createServer(...)`
+- 954825a: Aggregate `--gas-stats` output when using multiple test runners, printing a single consolidated table at the end instead of separate tables per runner ([#7500](https://github.com/NomicFoundation/hardhat/issues/7500)).
+- Updated dependencies [0a2a4a9]
+- Updated dependencies [9de7bdb]
+- Updated dependencies [0e8abcf]
+  - @nomicfoundation/hardhat-errors@3.0.9
+
 ## 3.1.12
 
 ### Patch Changes
