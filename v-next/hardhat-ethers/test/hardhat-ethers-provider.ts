@@ -19,6 +19,7 @@ import {
   assertIsNotNull,
   assertWithin,
   initializeTestEthers,
+  sleep,
 } from "./helpers/helpers.js";
 
 describe("hardhat ethers provider", () => {
@@ -1001,6 +1002,62 @@ describe("hardhat ethers provider", () => {
       );
 
       assert.equal(receipt === null, true);
+    });
+
+    it("should wait for the specified number of confirmations before resolving", async () => {
+      const confirms = 3;
+      const signer = await ethers.provider.getSigner(0);
+
+      // disable automining so we control block production
+      await ethereumProvider.request({
+        method: "evm_setAutomine",
+        params: [false],
+      });
+
+      const tx = await signer.sendTransaction({ to: signer.address });
+
+      let resolved = false;
+      const waitPromise = ethers.provider
+        .waitForTransaction(tx.hash, confirms)
+        .then((r) => {
+          resolved = true;
+          return r;
+        });
+
+      // mine the transaction into a block (1 confirmation)
+      await ethereumProvider.request({ method: "hardhat_mine" });
+
+      // give the polling loop time to check
+      await sleep(100);
+      assert.equal(
+        resolved,
+        false,
+        "should not resolve with only 1 confirmation",
+      );
+
+      // mine a second block (2 confirmations)
+      await ethereumProvider.request({ method: "hardhat_mine" });
+      await sleep(100);
+      assert.equal(
+        resolved,
+        false,
+        "should not resolve with only 2 confirmations",
+      );
+
+      // mine a third block (3 confirmations) — should now resolve
+      await ethereumProvider.request({ method: "hardhat_mine" });
+
+      const receipt = await waitPromise;
+      assert.equal(resolved, true);
+      assertIsNotNull(receipt);
+      assert.equal(receipt.hash, tx.hash);
+      assert.equal(receipt.status, 1);
+
+      // restore automining
+      await ethereumProvider.request({
+        method: "evm_setAutomine",
+        params: [true],
+      });
     });
   });
 

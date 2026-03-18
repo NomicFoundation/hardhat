@@ -505,16 +505,25 @@ export class HardhatEthersProvider implements HardhatEthersProviderI {
         try {
           const receipt = await this.getTransactionReceipt(hash);
 
-          if (receipt !== null) {
-            cancelled = true;
+          // Wait for the required confirmation depth before resolving,
+          // so callers relying on confirmations for reorg safety aren't
+          // given a receipt that could still be reverted.
+          if (receipt !== null && receipt.blockNumber !== null) {
+            const latestBlockNumber = await this.getBlockNumber();
+            const confirmations = latestBlockNumber - receipt.blockNumber + 1;
 
-            if (timeoutTimer !== undefined) {
-              clearTimeout(timeoutTimer);
+            if (confirmations >= resolvedConfirms) {
+              cancelled = true;
+
+              if (timeoutTimer !== undefined) {
+                clearTimeout(timeoutTimer);
+              }
+
+              clearTimeout(pollingTimeout);
+              resolve(receipt);
+
+              return;
             }
-
-            resolve(receipt);
-
-            return;
           }
 
           clearTimeout(pollingTimeout);
