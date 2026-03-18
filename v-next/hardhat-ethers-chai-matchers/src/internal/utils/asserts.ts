@@ -153,13 +153,10 @@ function innerAssertArgEqual(
  * (i.e. it is a non-null object with a `.wait()` method).
  */
 export function assertIsTransactionResponse(
-  value: unknown,
+  txResponse: unknown,
   matcherName: string,
 ): void {
-  if (
-    !isObject(value) ||
-    typeof (value as any).wait !== "function"
-  ) {
+  if (!isObject(txResponse) || typeof txResponse.wait !== "function") {
     chaiAssert.fail(
       `The subject of "${matcherName}" must be a transaction response (or a promise of one) ` +
         `but a different value was provided (e.g. the result of a read-only call).`,

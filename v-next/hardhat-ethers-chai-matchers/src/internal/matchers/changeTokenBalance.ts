@@ -236,7 +236,7 @@ export async function getBalanceChange(
   transaction: TransactionResponse | Promise<TransactionResponse>,
   token: Token,
   account: Addressable | string,
-  matcherName: string = CHANGE_TOKEN_BALANCE_MATCHER,
+  matcherName: string,
 ): Promise<bigint> {
   const txResponse = await transaction;
 
