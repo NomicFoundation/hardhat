@@ -21,7 +21,7 @@ const gasStatsLog = debug(
 );
 
 interface ContractGasStats {
-  deployment?: { gas: number; size: number };
+  deployment?: GasStats;
   functions: Map<
     string, // function name or signature (if overloaded)
     GasStats
@@ -35,13 +35,13 @@ interface GasStats {
   max: number;
   avg: number;
   median: number;
-  calls: number;
+  count: number;
 }
 
 type GasMeasurementsByContract = Map<string, ContractGasMeasurements>;
 
 interface ContractGasMeasurements {
-  deployment?: { gas: number; size: number };
+  deployments: number[];
   functions: Map<
     string, // functionSig
     number[]
@@ -138,10 +138,13 @@ export class GasAnalyticsManagerImplementation implements GasAnalyticsManager {
         functions: new Map(),
       };
 
-      if (measurements.deployment !== undefined) {
+      if (measurements.deployments.length > 0) {
         contractGasStats.deployment = {
-          gas: measurements.deployment.gas,
-          size: measurements.deployment.size,
+          min: Math.min(...measurements.deployments),
+          max: Math.max(...measurements.deployments),
+          avg: Math.round(avg(measurements.deployments)),
+          median: Math.round(median(measurements.deployments)),
+          count: measurements.deployments.length,
         };
       }
 
@@ -158,7 +161,7 @@ export class GasAnalyticsManagerImplementation implements GasAnalyticsManager {
           max: Math.max(...gasValues),
           avg: Math.round(avg(gasValues)),
           median: Math.round(median(gasValues)),
-          calls: gasValues.length,
+          count: gasValues.length,
         };
 
         contractGasStats.functions.set(
@@ -185,6 +188,7 @@ export class GasAnalyticsManagerImplementation implements GasAnalyticsManager {
       );
       if (contractMeasurements === undefined) {
         contractMeasurements = {
+          deployments: [],
           functions: new Map(),
         };
         measurementsByContract.set(
@@ -194,10 +198,7 @@ export class GasAnalyticsManagerImplementation implements GasAnalyticsManager {
       }
 
       if (currentMeasurement.type === "deployment") {
-        contractMeasurements.deployment = {
-          gas: currentMeasurement.gas,
-          size: currentMeasurement.size,
-        };
+        contractMeasurements.deployments.push(currentMeasurement.gas);
       } else {
         let measurements = contractMeasurements.functions.get(
           currentMeasurement.functionSig,
@@ -271,7 +272,7 @@ export class GasAnalyticsManagerImplementation implements GasAnalyticsManager {
             `${gasStats.avg}`,
             `${gasStats.median}`,
             `${gasStats.max}`,
-            `${gasStats.calls}`,
+            `${gasStats.count}`,
           ],
         });
       }
@@ -279,15 +280,24 @@ export class GasAnalyticsManagerImplementation implements GasAnalyticsManager {
       if (contractGasStats.deployment !== undefined) {
         rows.push({
           type: "header",
-          cells: ["Deployment Cost", "Deployment Size"].map((s) =>
-            chalk.yellow(s),
-          ),
+          cells: [
+            "Deployment",
+            "Min",
+            "Average",
+            "Median",
+            "Max",
+            "#deployments",
+          ].map((s) => chalk.yellow(s)),
         });
         rows.push({
           type: "row",
           cells: [
-            `${contractGasStats.deployment.gas}`,
-            `${contractGasStats.deployment.size}`,
+            "",
+            `${contractGasStats.deployment.min}`,
+            `${contractGasStats.deployment.avg}`,
+            `${contractGasStats.deployment.median}`,
+            `${contractGasStats.deployment.max}`,
+            `${contractGasStats.deployment.count}`,
           ],
         });
       }
