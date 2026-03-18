@@ -2129,7 +2129,7 @@ Please try again later.`,
         websiteTitle:
           "Used network connection before the Mocha `before` hook ran",
         websiteDescription:
-          "You tried to use a `connectOnBefore` network connection proxy before the Mocha `before` hook has run. Make sure you only use the value inside `it`, `before`, `beforeEach`, or other Mocha hooks.",
+          "You tried to use a network connection proxy (created by helpers like `connectOnBefore` or `connectToSingleton`) before the Mocha `before` hook has run. Make sure you only use the value inside `it`, `before`, `beforeEach`, or other Mocha hooks.",
       },
       AWAIT_CONNECTION_PROXY: {
         number: 30101,
