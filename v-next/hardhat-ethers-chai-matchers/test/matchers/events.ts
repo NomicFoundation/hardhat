@@ -897,6 +897,28 @@ describe(".to.emit (contract events)", { timeout: 60000 }, () => {
       await expect(tx.hash).to.emit(contract, "WithoutArgs");
     });
 
+    it("With an invalid transaction hash string", async () => {
+      await assertRejects(
+        () => expect("0x123").to.emit(contract, "WithoutArgs"),
+        (e) =>
+          e.message.includes(
+            'Expected a valid transaction hash, but got "0x123"',
+          ),
+        "Expected invalid transaction hash error message",
+      );
+    });
+
+    it("With a bytes32-encoded string that is not a real tx hash", async () => {
+      await expect(
+        expect(
+          "0x3230323400000000000000000000000000000000000000000000000000000000",
+        ).to.emit(contract, "WithoutArgs"),
+      ).to.be.eventually.rejectedWith(
+        AssertionError,
+        "Transaction's receipt cannot be fetched from the network",
+      );
+    });
+
     describe("When event is overloaded", () => {
       it("should fail when the event name is ambiguous", async () => {
         await expect(

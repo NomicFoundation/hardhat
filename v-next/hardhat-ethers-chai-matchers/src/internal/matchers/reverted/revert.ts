@@ -1,5 +1,6 @@
 import type { HardhatEthers } from "@nomicfoundation/hardhat-ethers/types";
 
+import { isHash } from "@nomicfoundation/hardhat-utils/eth";
 import { numberToHexString } from "@nomicfoundation/hardhat-utils/hex";
 import { assert as chaiAssert } from "chai";
 
@@ -39,7 +40,7 @@ export function supportRevert(
         if (isTransactionResponse(value) || typeof value === "string") {
           const hash = typeof value === "string" ? value : value.hash;
 
-          if (!isValidTransactionHash(hash)) {
+          if (!isHash(hash)) {
             chaiAssert.fail(
               `Expected a valid transaction hash, but got "${hash}"`,
             );
@@ -167,10 +168,6 @@ function isTransactionReceipt(x: unknown): x is { status: number } {
   }
 
   return false;
-}
-
-function isValidTransactionHash(x: string): boolean {
-  return /0x[0-9a-fA-F]{64}/.test(x);
 }
 
 function isBytes32String(v: string): boolean {
