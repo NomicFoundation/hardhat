@@ -1,0 +1,9 @@
+{
+  "$schema": "../../scripts/end-to-end/schema/scenario.schema.json",
+  "tags": ["external-repo"],
+  "repo": "kanej/openzeppelin-contracts",
+  "commit": "0d44b8d9e07c9cd9f729a714bc4272e7a217c497",
+  "packageManager": "npm",
+  "submodules": true,
+  "preinstall": "./preinstall.sh"
+}
