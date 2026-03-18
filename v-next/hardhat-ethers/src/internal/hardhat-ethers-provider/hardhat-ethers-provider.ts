@@ -480,6 +480,8 @@ export class HardhatEthersProvider implements HardhatEthersProviderI {
       return this.getTransactionReceipt(hash);
     }
 
+    const pollingInterval = (await this.#isHardhatNetwork()) ? 50 : 500;
+
     return new Promise<ethers.TransactionReceipt | null>((resolve, reject) => {
       let cancelled = false;
       let timeoutTimer: NodeJS.Timeout | undefined;
@@ -514,9 +516,6 @@ export class HardhatEthersProvider implements HardhatEthersProviderI {
 
             return;
           }
-
-          const _isHardhatNetwork = await this.#isHardhatNetwork();
-          const pollingInterval = _isHardhatNetwork ? 50 : 500;
 
           clearTimeout(pollingTimeout);
 
