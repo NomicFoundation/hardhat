@@ -10,6 +10,7 @@ export interface ScenarioDefinition {
   repo: string;
   commit: string;
   packageManager: "npm" | "bun";
+  defaultCommand: string;
   preinstall?: string;
   install?: string;
   tags: string[];
