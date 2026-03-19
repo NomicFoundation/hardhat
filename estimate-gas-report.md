@@ -1,14 +1,14 @@
 # HH2 to HH3: Gas Estimation Default Change — Performance and Correctness Impact
 
-**Related issue:** [EDR #1283](https://github.com/NomicFoundation/edr/issues/1283) — OpenZeppelin Contracts test failures due to gas limit behavior change
-
 ## Executive Summary
 
-Hardhat 3 changed the default `gas` configuration for the hardhat network from a fixed value (16,777,216 in HH2) to `"auto"`. This means every `signer.sendTransaction(tx)` that omits an explicit `gasLimit` now triggers a full `eth_estimateGas` round-trip — **up to 23 EVM executions per transaction instead of 1** (see [Appendix B](#appendix-b-how-gas-estimation-works-in-edr)). This is a silent behavioral change: users migrating from HH2 with the same config get different behavior.
+Hardhat 3 changed the default `gas` configuration for the hardhat network from a fixed value (`167,777,216` - `0x1000000` in HH2) to `"auto"`. This means every `signer.sendTransaction(tx)` that omits an explicit `gasLimit` now triggers a full `eth_estimateGas` round-trip — **up to 23 EVM executions per transaction instead of 1** (see [Appendix B](#appendix-b-how-gas-estimation-works-in-edr)). This is a silent behavioral change: users migrating from HH2 with the same config get different behavior.
 
 This causes two problems:
 
-**1. Performance regression** — benchmarks on 10,000 transactions using HH3 hardhat-ethers in both cases, only varying the `gas` config passed to `createHardhatRuntimeEnvironment` — `gas: 16_777_216n` (fixed, skips estimation) vs default `gas: "auto"` (triggers estimation). The benchmark covers different transaction types to exercise different `eth_estimateGas` behaviors: a plain ETH transfer (simplest case), simple and complex contract calls (varying gas profiles), and contract deployments. Median ms/tx, slowdown = auto median / fixed median. **Note:** this benchmark was developed with Claude Code and run locally on a single machine — results are indicative but should be validated independently (see [Appendix C](#appendix-c-benchmark-details) for full results and methodology):
+**1. Performance regression** — every transaction that doesn't have an explicit gas limit is now slower because the ethers signer runs `eth_estimateGas` (which executes the transaction multiple times internally) before actually sending it. In HH2 this never happened with the default config — transactions were sent directly with a fixed gas limit.
+
+To measure the impact, I benchmarked different transaction types (plain transfers, simple and complex contract calls, deployments) to cover different `eth_estimateGas` behaviors. Both runs use HH3 hardhat-ethers — only the `gas` config differs: `16_777_216n` (fixed, skips estimation) vs `"auto"` (default, triggers estimation). Slowdown = auto median / fixed median:
 
 | Scenario | Fixed gas (median) | Auto gas (median) | Overhead | Slowdown |
 |---|---:|---:|---:|---:|
@@ -18,7 +18,9 @@ This causes two problems:
 | Heavy contract (`heavyWrite(50)`) | 5.08 ms/tx | 7.97 ms/tx | +2.89 ms | **1.57x** |
 | Contract deployments | 2.38 ms/tx | 2.94 ms/tx | +0.56 ms | **1.23x** |
 
-**2. Correctness issue** — the estimated gas can be insufficient for unchecked inner calls (e.g., ERC-4337 patterns), causing silent state change failures that break tests which passed in HH2 (see [Section 2](#2-correctness-issue) and [Appendix D](#appendix-d-correctness-issue--unchecked-inner-calls)).
+*This benchmark was developed with Claude Code and run locally on a single machine — results are indicative but should be validated independently. See [Appendix C](#appendix-c-benchmark-details) for full results and methodology.*
+
+**2. Correctness issue** — in HH2, transactions were sent with the [EIP-7825](https://eips.ethereum.org/EIPS/eip-7825) gas limit cap (16,777,216), which provided generous headroom for all internal calls to succeed. In HH3, the estimated minimum gas is used instead, which can be insufficient for unchecked inner calls (e.g., ERC-4337 patterns) — causing silent state change failures that break tests which passed in HH2 (see [Section 2](#2-correctness-issue) and [Appendix D](#appendix-d-correctness-issue--unchecked-inner-calls)).
 
 ---
 
@@ -76,13 +78,13 @@ export default {
 
 This issue originated from a single config default changing from a fixed number to `"auto"`. That one-line difference altered which Hardhat code paths get executed on every transaction — the ethers signer now calls `eth_estimateGas` before `eth_sendTransaction`, where it previously skipped estimation entirely and sent transactions directly with a cached gas limit. This introduced both a 19-57% performance regression and a correctness bug that breaks tests relying on unchecked inner calls.
 
-HH2 and HH3 can use the same version of EDR, but the surface area of EDR that each version exercises is different. HH2's fixed gas default meant that `eth_estimateGas` was effectively dead code for the hardhat network — never called, never tested in that context. HH3 activates it on every transaction, exposing behaviors (like the binary search converging on insufficient gas for unchecked inner calls) that were always present in EDR but never triggered in practice.
+HH2 and HH3 can use the same version of EDR, but the surface area of EDR that each version exercises is different. With the default configuration, HH2's fixed gas default meant that `eth_estimateGas` was never called for the hardhat network — effectively dead code in that context. HH3 activates it on every transaction, exposing behaviors (like the binary search converging on insufficient gas for unchecked inner calls) that were always present in EDR but never triggered in practice.
 
 This is worth keeping in mind as HH3 evolves: changes to defaults, plugin wiring, or config resolution can shift which code paths are hit at the Hardhat and EDR layers, with consequences that may not be obvious from the change itself.
 
 ### Personal note
 
-This issue makes me wonder if we should have a way to benchmark HH2 vs HH3 against the test suites of high-profile repositories like OpenZeppelin Contracts. We don't have that today, but if a single config default change can silently introduce this kind of regression, there might be other cases we haven't noticed yet. Having a comparison suite that catches performance and behavioral differences before users do could save us from discovering them through bug reports.
+This issue makes me wonder if we should have a way to benchmark HH2 vs HH3 against the test suites of high-profile repositories like OpenZeppelin Contracts. I think we don't have that today, but if a single config default change can silently introduce this kind of regression, there might be other cases we haven't noticed yet. Having a comparison suite that catches performance and behavioral differences before users do could save us from discovering them through bug reports.
 
 ---
 
