@@ -13,6 +13,11 @@ import { exists, isBinaryFile } from "@nomicfoundation/hardhat-utils/fs";
 import { getCacheDir } from "@nomicfoundation/hardhat-utils/global-dir";
 import debug from "debug";
 
+import {
+  hasArm64MirrorBuild,
+  hasOfficialArm64Build,
+} from "../solc-info.js";
+
 import { NativeCompiler, SolcJsCompiler } from "./compiler.js";
 import {
   CompilerDownloaderImplementation,
@@ -28,6 +33,23 @@ async function getGlobalCompilersCacheDir(): Promise<string> {
 
 const log = debug("hardhat:core:solidity:build-system:compiler");
 
+/**
+ * Returns true if a native (non-WASM) build exists for the given version
+ * on the current platform. On non-ARM64 platforms every version has a native
+ * build; on ARM64 Linux only versions in the community mirror (>= 0.5.0) or
+ * with official builds (>= 0.8.31) do.
+ */
+function hasNativeBuildForPlatform(
+  version: string,
+  platform: CompilerPlatform,
+): boolean {
+  if (platform !== CompilerPlatform.LINUX_ARM64) {
+    return true;
+  }
+
+  return hasOfficialArm64Build(version) || hasArm64MirrorBuild(version);
+}
+
 export async function downloadSolcCompilers(
   versions: Set<string>,
   quiet: boolean,
@@ -40,9 +62,20 @@ export async function downloadSolcCompilers(
       await getGlobalCompilersCacheDir(),
     );
 
-    await mainCompilerDownloader.updateCompilerListIfNeeded(versions);
+    // Only attempt native downloads for versions that have a native build
+    // on this platform. On ARM64 Linux, older versions (< 0.5.0) have no
+    // native binary anywhere and would cause the downloader to throw.
+    const nativeVersions = [...versions].filter((v) =>
+      hasNativeBuildForPlatform(v, platform),
+    );
 
-    for (const version of versions) {
+    if (nativeVersions.length > 0) {
+      await mainCompilerDownloader.updateCompilerListIfNeeded(
+        new Set(nativeVersions),
+      );
+    }
+
+    for (const version of nativeVersions) {
       if (!(await mainCompilerDownloader.isCompilerDownloaded(version))) {
         if (!quiet) {
           console.log(`Downloading solc ${version}`);
@@ -155,15 +188,18 @@ async function getCompilerFromVersion(
 ) {
   if (!preferWasm) {
     const platform = CompilerDownloaderImplementation.getCompilerPlatform();
-    const compilerDownloader = new CompilerDownloaderImplementation(
-      platform,
-      await getGlobalCompilersCacheDir(),
-    );
 
-    const compiler = await compilerDownloader.getCompiler(version);
+    if (hasNativeBuildForPlatform(version, platform)) {
+      const compilerDownloader = new CompilerDownloaderImplementation(
+        platform,
+        await getGlobalCompilersCacheDir(),
+      );
 
-    if (compiler !== undefined) {
-      return compiler;
+      const compiler = await compilerDownloader.getCompiler(version);
+
+      if (compiler !== undefined) {
+        return compiler;
+      }
     }
   }
 

@@ -575,29 +575,39 @@ describe(
         });
       });
 
-      describe("bug repro: old solc version missing from ARM64 build list", function () {
-        it("isCompilerDownloaded should not throw for 0.4.24 (no ARM64 binary exists)", async () => {
+      describe("versions missing from the native build list", function () {
+        it("isCompilerDownloaded should throw for a version not in the native build list", async () => {
           await downloader.updateCompilerListIfNeeded(new Set(["0.8.28"]));
 
-          // 0.4.24 has no native ARM64 binary — this should return false, not throw
-          const result = await downloader.isCompilerDownloaded("0.4.24");
-          assert.equal(result, false);
+          await assertRejectsWithHardhatError(
+            () => downloader.isCompilerDownloaded("0.4.24"),
+            HardhatError.ERRORS.CORE.SOLIDITY.INVALID_SOLC_VERSION,
+            { version: "0.4.24" },
+          );
         });
 
-        it("downloadCompiler should not throw for 0.4.24 (no ARM64 binary exists)", async () => {
+        it("downloadCompiler should throw for a version not in the native build list", async () => {
           await downloader.updateCompilerListIfNeeded(new Set(["0.8.28"]));
 
-          const result = await downloader.downloadCompiler("0.4.24");
-          assert.equal(result, false);
+          await assertRejectsWithHardhatError(
+            () => downloader.downloadCompiler("0.4.24"),
+            HardhatError.ERRORS.CORE.SOLIDITY.INVALID_SOLC_VERSION,
+            { version: "0.4.24" },
+          );
         });
 
-        it("getCompiler should not throw for 0.4.24 (no ARM64 binary exists)", async () => {
+        it("getCompiler should throw for a version not in the native build list", async () => {
           await downloader.updateCompilerListIfNeeded(new Set(["0.8.28"]));
 
-          const result = await downloader.getCompiler("0.4.24");
-          assert.equal(result, undefined);
+          await assertRejectsWithHardhatError(
+            () => downloader.getCompiler("0.4.24"),
+            HardhatError.ERRORS.CORE.SOLIDITY.INVALID_SOLC_VERSION,
+            { version: "0.4.24" },
+          );
         });
+
       });
     });
+
   },
 );
