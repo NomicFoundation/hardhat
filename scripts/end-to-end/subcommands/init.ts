@@ -3,7 +3,7 @@ import { existsSync } from "node:fs";
 import { resolve } from "node:path";
 import { installDependencies } from "../helpers/install.ts";
 import { git, which, ROOT_DIR } from "../helpers/shell.ts";
-import { log, logStep } from "../helpers/log.ts";
+import { log, logStep, logWarning } from "../helpers/log.ts";
 import { isVerdaccioRunning } from "../../verdaccio/helpers/shell.ts";
 import { loadScenario } from "../helpers/directory.ts";
 import { start as verdaccioStart } from "../../verdaccio/start.ts";
@@ -16,6 +16,12 @@ export async function init(
   scenarioPath: string,
 ): Promise<void> {
   const scenario = loadScenario(e2eCloneDirectory, scenarioPath);
+
+  if (scenario.definition.disabled === true) {
+    logWarning(`Scenario "${scenario.id}" is disabled, skipping`);
+
+    return;
+  }
 
   const runTemporaryVerdaccioInstance = !isVerdaccioRunning();
 

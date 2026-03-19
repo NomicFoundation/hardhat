@@ -46,6 +46,11 @@
     "submodules": {
       "type": "boolean",
       "description": "Initialize git submodules recursively (default: false)"
+    },
+    "disabled": {
+      "type": "boolean",
+      "const": true,
+      "description": "Set to true to skip this scenario during end-to-end runs"
     }
   }
 }
