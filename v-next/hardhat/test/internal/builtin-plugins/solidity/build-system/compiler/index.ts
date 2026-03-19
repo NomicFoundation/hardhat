@@ -4,6 +4,7 @@ import assert from "node:assert/strict";
 import { after, before, beforeEach, describe, it } from "node:test";
 
 import { getTmpDir, useTmpDir } from "@nomicfoundation/hardhat-test-utils";
+import { remove } from "@nomicfoundation/hardhat-utils/fs";
 import {
   resetMockCacheDir,
   setMockCacheDir,
@@ -347,8 +348,9 @@ contract A {}
           setMockCacheDir(testCacheDir);
         });
 
-        after(function () {
+        after(async function () {
           resetMockCacheDir();
+          await remove(testCacheDir);
         });
 
         it("should fall back to WASM when no native ARM64 build exists for 0.4.x", async () => {
