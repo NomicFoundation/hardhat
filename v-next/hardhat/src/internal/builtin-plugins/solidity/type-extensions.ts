@@ -310,6 +310,40 @@ declare module "../../../types/hooks.js" {
 
   export interface SolidityHooks {
     /**
+     * Hook triggered to download compilers needed for compilation.
+     * Each handler should download compilers it is responsible for.
+     * Runs in parallel — all registered handlers execute concurrently.
+     *
+     * @param context The hook context.
+     * @param compilerConfigs All compiler configurations from all build profiles.
+     * @param quiet Whether to suppress download progress output.
+     */
+    downloadCompilers: (
+      context: HookContext,
+      compilerConfigs: SolidityCompilerConfig[],
+      quiet: boolean,
+    ) => Promise<void>;
+
+    /**
+     * Hook to obtain a Compiler instance for a given compiler configuration.
+     * The default handler returns a solc compiler. Plugins can intercept to
+     * return their own compiler (e.g. SolxCompiler for type: "solx").
+     *
+     * @param context The hook context.
+     * @param compilerConfig The compiler configuration to get a compiler for.
+     * @param next A function to call the next handler for this hook.
+     * @returns A Compiler instance.
+     */
+    getCompiler: (
+      context: HookContext,
+      compilerConfig: SolidityCompilerConfig,
+      next: (
+        nextContext: HookContext,
+        nextCompilerConfig: SolidityCompilerConfig,
+      ) => Promise<Compiler>,
+    ) => Promise<Compiler>;
+
+    /**
      * Hook triggered during the cleanup process of Solidity compilation artifacts.
      * This hook runs after unused artifacts and build-info files have been removed.
      *
