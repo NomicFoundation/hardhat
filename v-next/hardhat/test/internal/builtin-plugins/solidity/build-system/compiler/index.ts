@@ -1,9 +1,13 @@
 import type { CompilerInput } from "../../../../../../src/types/solidity.js";
 
 import assert from "node:assert/strict";
-import { before, beforeEach, describe, it } from "node:test";
+import { after, before, beforeEach, describe, it } from "node:test";
 
-import { useTmpDir } from "@nomicfoundation/hardhat-test-utils";
+import { getTmpDir, useTmpDir } from "@nomicfoundation/hardhat-test-utils";
+import {
+  resetMockCacheDir,
+  setMockCacheDir,
+} from "@nomicfoundation/hardhat-utils/global-dir";
 
 import {
   NativeCompiler,
@@ -285,7 +289,16 @@ contract A {}
           CompilerPlatform.LINUX_ARM64,
       },
       function () {
-        useTmpDir("arm64-wasm-fallback");
+        let testCacheDir: string;
+
+        before(async function () {
+          testCacheDir = await getTmpDir("arm64-wasm-fallback");
+          setMockCacheDir(testCacheDir);
+        });
+
+        after(function () {
+          resetMockCacheDir();
+        });
 
         it("should fall back to WASM when no native ARM64 build exists for 0.4.x", async () => {
           const version = "0.4.24";
