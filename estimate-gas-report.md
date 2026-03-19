@@ -329,7 +329,7 @@ Each invocation:
 
 ### Methodology
 
-- **Tool:** Custom benchmark script at `v-next/hardhat-ethers/benchmark/gas-estimation.ts`
+- **Tool:** Custom benchmark script at [`v-next/hardhat-ethers/benchmark/gas-estimation.ts`](./v-next/hardhat-ethers/benchmark/gas-estimation.ts)
 - **Environment:** EDR in-process (same as normal HH3 TS/JS tests)
 - **Iterations:** 10,000 transactions per scenario, 5 warmup
 - **Measurement:** Each transaction is timed individually. Results report **median** (primary metric — resistant to GC/JIT outliers), **average**, and **p95** (tail latency)
