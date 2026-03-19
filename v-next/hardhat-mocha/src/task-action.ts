@@ -123,7 +123,8 @@ const testWithHardhat: NewTaskActionFunction<TestActionArguments> = async (
 
     if (
       hre.globalOptions.coverage === true ||
-      hre.globalOptions.gasStats === true
+      hre.globalOptions.gasStats === true ||
+      hre.globalOptions.gasStatsJson !== undefined
     ) {
       const testWorkerDone = new URL(
         import.meta.resolve("@nomicfoundation/hardhat-mocha/test-worker-done"),

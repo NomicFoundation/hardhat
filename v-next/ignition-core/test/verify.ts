@@ -44,6 +44,8 @@ describe("verify", () => {
       contract: "contracts/Lock.sol:Lock",
       constructorArgs: [1987909200],
       libraries: {},
+      creationTxHash:
+        "0x785b3940e12d7876bd3dfc01b906ebd9faf7438a0e35eda5323ac3c6c5ca0b9e",
     };
 
     const deploymentDir = path.join(__dirname, "mocks", "verify", "success");
@@ -62,6 +64,8 @@ describe("verify", () => {
       contract: "contracts/Lock.sol:Lock",
       constructorArgs: [1987909200],
       libraries: {},
+      creationTxHash:
+        "0x3e7e2d599c58beb63d59e67288b4a9d3d5233cd71b42eea0c9ec6fc92021b3fd",
     };
 
     const deploymentDir = path.join(

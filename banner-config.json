@@ -1,8 +1,6 @@
 {
-  "enabled": true,
-  "formattedMessages": [
-    "\u001B[1mPlease complete the 2026 Solidity Survey\u001B[22m:\n\n    https://solidity.survey-research.net/solidity-survey\n"
-  ],
+  "enabled": false,
+  "formattedMessages": [],
   "minSecondsBetweenDisplays": 18000,
   "minSecondsBetweenRequests": 86400
 }

@@ -62,8 +62,8 @@ export interface NetworkManager {
    *
    * @return A `JsonRpcServer` instance that can be started with {@link JsonRpcServer.listen}.
    */
-  createServer(
-    networkOrParams?: NetworkConnectionParams | string,
+  createServer<ChainTypeT extends ChainType | string = DefaultChainType>(
+    networkOrParams?: NetworkConnectionParams<ChainTypeT> | string,
     hostname?: string,
     port?: number,
   ): Promise<JsonRpcServer>;

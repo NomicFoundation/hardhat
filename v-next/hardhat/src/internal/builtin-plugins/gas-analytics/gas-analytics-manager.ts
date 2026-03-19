@@ -1,13 +1,22 @@
-import type { GasAnalyticsManager, GasMeasurement } from "./types.js";
+import type {
+  ContractGasStatsJson,
+  GasAnalyticsManager,
+  GasMeasurement,
+  GasStatsJson,
+  GasStatsJsonEntry,
+} from "./types.js";
 import type { TableItem } from "@nomicfoundation/hardhat-utils/format";
 
 import crypto from "node:crypto";
 import path from "node:path";
 
+import { HardhatError } from "@nomicfoundation/hardhat-errors";
 import { formatTable } from "@nomicfoundation/hardhat-utils/format";
 import {
   ensureDir,
+  exists,
   getAllFilesMatching,
+  isDirectory,
   readJsonFile,
   remove,
   writeJsonFile,
@@ -16,12 +25,14 @@ import { findDuplicates } from "@nomicfoundation/hardhat-utils/lang";
 import chalk from "chalk";
 import debug from "debug";
 
+import { parseFullyQualifiedName } from "../../../utils/contract-names.js";
+
 const gasStatsLog = debug(
   "hardhat:core:gas-analytics:gas-analytics-manager:gas-stats",
 );
 
 interface ContractGasStats {
-  deployment?: { gas: number; size: number };
+  deployment?: GasStats;
   functions: Map<
     string, // function name or signature (if overloaded)
     GasStats
@@ -35,13 +46,13 @@ interface GasStats {
   max: number;
   avg: number;
   median: number;
-  calls: number;
+  count: number;
 }
 
 type GasMeasurementsByContract = Map<string, ContractGasMeasurements>;
 
 interface ContractGasMeasurements {
-  deployment?: { gas: number; size: number };
+  deployments: number[];
   functions: Map<
     string, // functionSig
     number[]
@@ -94,6 +105,32 @@ export class GasAnalyticsManagerImplementation implements GasAnalyticsManager {
     gasStatsLog("Printed markdown report");
   }
 
+  public async writeGasStatsJson(
+    outputPath: string,
+    ...ids: string[]
+  ): Promise<void> {
+    if (!this.#reportEnabled) {
+      return;
+    }
+
+    await this._loadGasMeasurements(...ids);
+
+    const gasStatsByContract = this._calculateGasStats();
+
+    const resolvedPath = path.resolve(outputPath);
+    if ((await exists(resolvedPath)) && (await isDirectory(resolvedPath))) {
+      throw new HardhatError(
+        HardhatError.ERRORS.CORE.BUILTIN_TASKS.INVALID_FILE_PATH,
+        { path: outputPath },
+      );
+    }
+    await ensureDir(path.dirname(resolvedPath));
+
+    const json = this._generateGasStatsJson(gasStatsByContract);
+    await writeJsonFile(resolvedPath, json);
+    gasStatsLog("Written gas stats JSON to", resolvedPath);
+  }
+
   public enableReport(): void {
     this.#reportEnabled = true;
   }
@@ -138,10 +175,13 @@ export class GasAnalyticsManagerImplementation implements GasAnalyticsManager {
         functions: new Map(),
       };
 
-      if (measurements.deployment !== undefined) {
+      if (measurements.deployments.length > 0) {
         contractGasStats.deployment = {
-          gas: measurements.deployment.gas,
-          size: measurements.deployment.size,
+          min: Math.min(...measurements.deployments),
+          max: Math.max(...measurements.deployments),
+          avg: Math.round(avg(measurements.deployments)),
+          median: Math.round(median(measurements.deployments)),
+          count: measurements.deployments.length,
         };
       }
 
@@ -158,7 +198,7 @@ export class GasAnalyticsManagerImplementation implements GasAnalyticsManager {
           max: Math.max(...gasValues),
           avg: Math.round(avg(gasValues)),
           median: Math.round(median(gasValues)),
-          calls: gasValues.length,
+          count: gasValues.length,
         };
 
         contractGasStats.functions.set(
@@ -185,6 +225,7 @@ export class GasAnalyticsManagerImplementation implements GasAnalyticsManager {
       );
       if (contractMeasurements === undefined) {
         contractMeasurements = {
+          deployments: [],
           functions: new Map(),
         };
         measurementsByContract.set(
@@ -194,10 +235,7 @@ export class GasAnalyticsManagerImplementation implements GasAnalyticsManager {
       }
 
       if (currentMeasurement.type === "deployment") {
-        contractMeasurements.deployment = {
-          gas: currentMeasurement.gas,
-          size: currentMeasurement.size,
-        };
+        contractMeasurements.deployments.push(currentMeasurement.gas);
       } else {
         let measurements = contractMeasurements.functions.get(
           currentMeasurement.functionSig,
@@ -271,7 +309,7 @@ export class GasAnalyticsManagerImplementation implements GasAnalyticsManager {
             `${gasStats.avg}`,
             `${gasStats.median}`,
             `${gasStats.max}`,
-            `${gasStats.calls}`,
+            `${gasStats.count}`,
           ],
         });
       }
@@ -279,21 +317,70 @@ export class GasAnalyticsManagerImplementation implements GasAnalyticsManager {
       if (contractGasStats.deployment !== undefined) {
         rows.push({
           type: "header",
-          cells: ["Deployment Cost", "Deployment Size"].map((s) =>
-            chalk.yellow(s),
-          ),
+          cells: [
+            "Deployment",
+            "Min",
+            "Average",
+            "Median",
+            "Max",
+            "#deployments",
+          ].map((s) => chalk.yellow(s)),
         });
         rows.push({
           type: "row",
           cells: [
-            `${contractGasStats.deployment.gas}`,
-            `${contractGasStats.deployment.size}`,
+            "",
+            `${contractGasStats.deployment.min}`,
+            `${contractGasStats.deployment.avg}`,
+            `${contractGasStats.deployment.median}`,
+            `${contractGasStats.deployment.max}`,
+            `${contractGasStats.deployment.count}`,
           ],
         });
       }
     }
 
     return formatTable(rows);
+  }
+
+  /**
+   * @private exposed for testing purposes only
+   */
+  public _generateGasStatsJson(
+    gasStatsByContract: GasStatsByContract,
+  ): GasStatsJson {
+    const sortedContracts = [...gasStatsByContract.entries()]
+      .map(([internalFqn, stats]) => ({
+        userFqn: getUserFqn(internalFqn),
+        stats,
+      }))
+      .sort((a, b) => a.userFqn.localeCompare(b.userFqn));
+
+    const contracts: Record<string, ContractGasStatsJson> = {};
+
+    for (const { userFqn, stats } of sortedContracts) {
+      const { sourceName, contractName } = parseFullyQualifiedName(userFqn);
+
+      const deployment: GasStatsJsonEntry | null =
+        stats.deployment !== undefined ? { ...stats.deployment } : null;
+
+      let functions: Record<string, GasStatsJsonEntry> | null = null;
+      if (stats.functions.size > 0) {
+        functions = {};
+        // Sort functions by removing trailing ) and comparing alphabetically.
+        // This ensures that overloaded functions with fewer params come first
+        // (e.g., foo(uint256) comes before foo(uint256,uint256)). In other
+        // scenarios, removing the trailing ) has no effect on the order.
+        const sortedFunctions = [...stats.functions.entries()].sort(
+          ([a], [b]) => a.split(")")[0].localeCompare(b.split(")")[0]),
+        );
+        functions = Object.fromEntries(sortedFunctions);
+      }
+
+      contracts[userFqn] = { sourceName, contractName, deployment, functions };
+    }
+
+    return { contracts };
   }
 }
 

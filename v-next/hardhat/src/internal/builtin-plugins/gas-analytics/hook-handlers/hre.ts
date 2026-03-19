@@ -5,7 +5,10 @@ import { setGasAnalyticsManager } from "../helpers.js";
 
 export default async (): Promise<Partial<HardhatRuntimeEnvironmentHooks>> => ({
   created: async (context, hre) => {
-    if (context.globalOptions.gasStats) {
+    if (
+      context.globalOptions.gasStats ||
+      context.globalOptions.gasStatsJson !== undefined
+    ) {
       const gasAnalyticsManager = new GasAnalyticsManagerImplementation(
         hre.config.paths.cache,
       );
