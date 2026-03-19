@@ -9,6 +9,7 @@ describe("isScenarioDefinition", () => {
       repo: "OpenZeppelin/openzeppelin-contracts",
       commit: "abc123",
       packageManager: "npm",
+      defaultCommand: "npx hardhat compile",
       tags: ["solidity-compile"],
     };
 
@@ -21,6 +22,7 @@ describe("isScenarioDefinition", () => {
       repo: "OpenZeppelin/openzeppelin-contracts",
       commit: "abc123",
       packageManager: "npm",
+      defaultCommand: "npx hardhat compile",
       preinstall: "./preinstall.sh",
       install: "./install.sh",
       tags: ["solidity-compile"],
@@ -38,6 +40,7 @@ describe("isScenarioDefinition", () => {
       repo: "ensdomains/ens-contracts",
       commit: "abc123",
       packageManager: "bun",
+      defaultCommand: "npx hardhat compile",
       tags: ["external-repo"],
     };
 
@@ -50,6 +53,7 @@ describe("isScenarioDefinition", () => {
       repo: "org/repo",
       commit: "abc123",
       packageManager: "npm",
+      defaultCommand: "npx hardhat compile",
       tags: ["test"],
       disabled: true,
     };
@@ -66,6 +70,19 @@ describe("isScenarioDefinition", () => {
         packageManager: "npm",
         tags: [],
         disabled: false,
+      }),
+      false,
+    );
+  });
+
+  it("rejects when defaultCommand is missing", () => {
+    assert.equal(
+      isScenarioDefinition({
+        description: "test",
+        repo: "org/repo",
+        commit: "abc",
+        packageManager: "npm",
+        tags: [],
       }),
       false,
     );

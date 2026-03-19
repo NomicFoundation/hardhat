@@ -3,7 +3,14 @@
   "title": "End-to-End Test Definition",
   "description": "Defines a single end-to-end test for the Hardhat test harness.",
   "type": "object",
-  "required": ["description", "repo", "commit", "packageManager", "tags"],
+  "required": [
+    "description",
+    "repo",
+    "commit",
+    "packageManager",
+    "defaultCommand",
+    "tags"
+  ],
   "additionalProperties": false,
   "properties": {
     "$schema": { "type": "string" },
@@ -23,6 +30,10 @@
       "type": "string",
       "enum": ["npm", "bun"],
       "description": "Package manager used by the repo"
+    },
+    "defaultCommand": {
+      "type": "string",
+      "description": "Default command to run when --command is not provided to exec"
     },
     "preinstall": {
       "type": "string",
