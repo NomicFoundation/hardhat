@@ -3,6 +3,7 @@ import type {
   ProjectPathsUserConfig,
   TestPathsUserConfig,
 } from "../../../src/types/config.js";
+import type { HardhatRuntimeEnvironment } from "../../../src/types/hre.js";
 import type { HardhatPlugin } from "../../../src/types/plugins.js";
 import type {
   EmptyTaskDefinition,
@@ -13,6 +14,9 @@ import type {
 
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
+
+import { HardhatError } from "@nomicfoundation/hardhat-errors";
+import { assertRejectsWithHardhatError } from "@nomicfoundation/hardhat-test-utils";
 
 import {
   validatePositionalArguments,
@@ -25,6 +29,9 @@ import {
   collectValidationErrorsForUserConfig,
   validatePaths,
 } from "../../../src/internal/core/config-validation.js";
+import { resolveProjectRoot } from "../../../src/internal/core/hre.js";
+import { resolvePluginList } from "../../../src/internal/core/plugins/resolve-plugin-list.js";
+import { createHardhatRuntimeEnvironment } from "../../../src/internal/hre-initialization.js";
 import {
   type PositionalArgumentDefinition,
   type OptionDefinition,
@@ -1924,5 +1931,128 @@ describe("config validation", function () {
         },
       ]);
     });
+  });
+});
+
+describe("resolved config validation", function () {
+  async function createHreWithPlugin(
+    config: HardhatUserConfig,
+    plugin: HardhatPlugin,
+  ): Promise<HardhatRuntimeEnvironment> {
+    const resolvedProjectRoot = await resolveProjectRoot(undefined);
+    const resolvedPlugins = await resolvePluginList(resolvedProjectRoot, [
+      plugin,
+    ]);
+    return createHardhatRuntimeEnvironment(config, {}, resolvedProjectRoot, {
+      resolvedPlugins,
+    });
+  }
+
+  it("should throw INVALID_RESOLVED_CONFIG when validateResolvedConfig returns errors", async function () {
+    const mockPlugin: HardhatPlugin = {
+      id: "mock-resolved-config-validator",
+      hookHandlers: {
+        config: async () => ({
+          default: async () => ({
+            validateResolvedConfig: async (_resolvedConfig) => [
+              { path: ["foo", "bar"], message: "bar must be positive" },
+            ],
+          }),
+        }),
+      },
+    };
+
+    await assertRejectsWithHardhatError(
+      createHreWithPlugin({}, mockPlugin),
+      HardhatError.ERRORS.CORE.GENERAL.INVALID_RESOLVED_CONFIG,
+      {
+        errors:
+          "\t* Resolved config error in config.foo.bar: bar must be positive",
+      },
+    );
+  });
+
+  it("should throw INVALID_RESOLVED_CONFIG with multiple errors formatted correctly", async function () {
+    const mockPlugin: HardhatPlugin = {
+      id: "mock-resolved-config-validator-multi",
+      hookHandlers: {
+        config: async () => ({
+          default: async () => ({
+            validateResolvedConfig: async (_resolvedConfig) => [
+              {
+                path: [
+                  "solidity",
+                  "profiles",
+                  "default",
+                  "compilers",
+                  0,
+                  "type",
+                ],
+                message: "unknown compiler type",
+              },
+              { path: ["networks", "localhost"], message: "invalid url" },
+            ],
+          }),
+        }),
+      },
+    };
+
+    await assertRejectsWithHardhatError(
+      createHreWithPlugin({}, mockPlugin),
+      HardhatError.ERRORS.CORE.GENERAL.INVALID_RESOLVED_CONFIG,
+      {
+        errors:
+          "\t* Resolved config error in config.solidity.profiles.default.compilers.0.type: unknown compiler type\n\t* Resolved config error in config.networks.localhost: invalid url",
+      },
+    );
+  });
+
+  it("should throw INVALID_CONFIG for user config errors even if validateResolvedConfig would also fail", async function () {
+    const mockPlugin: HardhatPlugin = {
+      id: "mock-both-validators",
+      hookHandlers: {
+        config: async () => ({
+          default: async () => ({
+            validateUserConfig: async (_userConfig) => [
+              { path: ["foo"], message: "foo is required" },
+            ],
+            validateResolvedConfig: async (_resolvedConfig) => [
+              { path: ["bar"], message: "bar is invalid" },
+            ],
+          }),
+        }),
+      },
+    };
+
+    await assertRejectsWithHardhatError(
+      createHreWithPlugin({}, mockPlugin),
+      HardhatError.ERRORS.CORE.GENERAL.INVALID_CONFIG,
+      {
+        errors: "\t* Config error in config.foo: foo is required",
+      },
+    );
+  });
+
+  it("should still throw INVALID_CONFIG for user config validation errors", async function () {
+    const mockPlugin: HardhatPlugin = {
+      id: "mock-user-config-validator",
+      hookHandlers: {
+        config: async () => ({
+          default: async () => ({
+            validateUserConfig: async (_userConfig) => [
+              { path: ["baz"], message: "baz is invalid" },
+            ],
+          }),
+        }),
+      },
+    };
+
+    await assertRejectsWithHardhatError(
+      createHreWithPlugin({}, mockPlugin),
+      HardhatError.ERRORS.CORE.GENERAL.INVALID_CONFIG,
+      {
+        errors: "\t* Config error in config.baz: baz is invalid",
+      },
+    );
   });
 });

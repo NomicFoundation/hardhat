@@ -1,4 +1,4 @@
-import type { SolcConfig } from "../../../types/config.js";
+import type { SolidityCompilerConfig } from "../../../types/config.js";
 import type {
   BuildOptions,
   CompilationJobCreationError,
@@ -13,6 +13,26 @@ import type {
 
 import "../../../types/config.js";
 declare module "../../../types/config.js" {
+  /**
+   * An interface with a key per compiler type.
+   * The types of the values don't matter; we use `true` as a convention.
+   *
+   * By default, only "solc" is provided. Plugins can extend this via
+   * declaration merging to add new compiler types (e.g. "solx").
+   */
+  export interface SolidityCompilerTypeDefinitions {
+    solc: true;
+  }
+
+  /**
+   * The different Solidity compiler types, derived from
+   * SolidityCompilerTypeDefinitions. Extensible via declaration merging.
+   */
+  export type SolidityCompilerType = keyof SolidityCompilerTypeDefinitions;
+
+  /**
+   * The type of `userConfig.solidity`.
+   */
   export type SolidityUserConfig =
     | string
     | string[]
@@ -20,68 +40,241 @@ declare module "../../../types/config.js" {
     | MultiVersionSolidityUserConfig
     | BuildProfilesSolidityUserConfig;
 
-  export interface SolcUserConfig {
-    version: string;
-    settings?: any;
-    path?: string;
-    preferWasm?: boolean;
-  }
-
-  export interface SingleVersionSolcUserConfig extends SolcUserConfig {
-    isolated?: boolean;
-    preferWasm?: boolean;
-  }
-
-  export interface MultiVersionSolcUserConfig {
-    isolated?: boolean;
-    preferWasm?: boolean;
-    compilers: SolcUserConfig[];
-    overrides?: Record<string, SolcUserConfig>;
-  }
-
+  /**
+   * Fields that all the object-typed variants of SolidityUserConfig share.
+   *
+   * Note: All the variants of SolidityUserConfig except for the string and
+   * array of strings MUST extend this interface. This is especially relevant
+   * for plugins creating their own `SingleVersionSolidityUserConfig` variant.
+   */
   export interface CommonSolidityUserConfig {
+    isolated?: boolean;
     npmFilesToBuild?: string[];
   }
 
-  export interface SingleVersionSolidityUserConfig
-    extends SingleVersionSolcUserConfig,
+  /**
+   * Fields that all the SolidityCompilerUserConfig variants share.
+   *
+   * Note: All the types of SolidityCompilerUserConfig MUST extend this
+   * interface. This is especially relevant for plugins creating their own
+   * `SolidityCompilerUserConfig` variant.
+   */
+  export interface CommonSolidityCompilerUserConfig {
+    type?: SolidityCompilerType;
+    version: string;
+    settings?: any;
+    path?: string;
+  }
+
+  /**
+   * Deprecated: Use `SolcSolidityCompilerUserConfig` instead.
+   * @deprecated
+   */
+  export interface SolcUserConfig extends CommonSolidityCompilerUserConfig {
+    // Note: This field is optional for backwards compatibility. No `type` means
+    // "solc" across all of Hardhat.
+    type?: "solc";
+    preferWasm?: boolean;
+  }
+
+  /**
+   * Solc-specific SolidityCompilerUserConfig.
+   */
+  /* eslint-disable-next-line @typescript-eslint/no-empty-interface -- Defined
+    in SolcUserConfig for backwards compatibility */
+  export interface SolcSolidityCompilerUserConfig extends SolcUserConfig {}
+
+  /**
+   * A map from compiler type to its SolidityCompilerUserConfig type.
+   *
+   * Note: The types MUST extend `CommonSolidityCompilerUserConfig`.
+   */
+  export interface SolidityCompilerUserConfigPerType {
+    solc: SolcSolidityCompilerUserConfig;
+  }
+
+  /**
+   * The type of all the compiler user configs.
+   */
+  export type SolidityCompilerUserConfig =
+    | {
+        [type in keyof SolidityCompilerUserConfigPerType]: SolidityCompilerUserConfigPerType[type];
+      }[keyof SolidityCompilerUserConfigPerType]
+    // SolcSolidityCompilerUserConfig when the type isn't present
+    | (Omit<SolcSolidityCompilerUserConfig, "type"> &
+        Partial<Pick<SolcSolidityCompilerUserConfig, "type">>);
+
+  /**
+   * Deprecated: Use `SolcSingleVersionSolidityUserConfig` instead.
+   * @deprecated
+   */
+  export interface SingleVersionSolcUserConfig
+    extends SolcSolidityCompilerUserConfig,
       CommonSolidityUserConfig {}
 
+  /**
+   * Solc-specific SingleVersionSolidityUserConfig.
+   */
+  /* eslint-disable-next-line @typescript-eslint/no-empty-interface -- Defined
+    in SingleVersionSolcUserConfig for backwards compatibility */
+  export interface SolcSingleVersionSolidityUserConfig
+    extends SingleVersionSolcUserConfig {}
+
+  /**
+   * A map from compiler type to its SingleVersionSolidityUserConfig type.
+   *
+   * Note: The types MUST extend `CommonSolidityUserConfig`.
+   */
+  export interface SingleVersionSolidityUserConfigPerType {
+    solc: SolcSingleVersionSolidityUserConfig;
+  }
+
+  /**
+   * The type of all the single version user configs.
+   */
+  export type SingleVersionSolidityUserConfig =
+    | {
+        [type in keyof SingleVersionSolidityUserConfigPerType]: SingleVersionSolidityUserConfigPerType[type];
+      }[keyof SingleVersionSolidityUserConfigPerType]
+    // SolcSingleVersionSolidityUserConfig when the type isn't present
+    | (Omit<SolcSingleVersionSolidityUserConfig, "type"> &
+        Partial<Pick<SolcSingleVersionSolidityUserConfig, "type">>);
+
+  /**
+   * Deprecated: Use `MultiVersionSolidityUserConfig` or
+   * `MultiVersionBuildProfileUserConfig` instead.
+   * @deprecated
+   */
+  export interface MultiVersionSolcUserConfig {
+    // Note: preferWasm is here for backwards compatibility. It can't be
+    // defined or not dependent on the type, as there isn't a top-level type.
+    // Instead, we post-validate the resolved config to make sure that it's
+    // only `true` if all the `compilers` and `overrides` have type `solc`.
+    preferWasm?: boolean;
+    // Note: Duplicated wrt CommonSolidityUserConfig for backwards compatibility
+    isolated?: boolean;
+    compilers: SolidityCompilerUserConfig[];
+    overrides?: Record<string, SolidityCompilerUserConfig>;
+  }
+
+  /**
+   * The type of a multi-version SolidityUserConfig.
+   *
+   * Partially defined in `MultiVersionSolcUserConfig` for backwards
+   * compatibility.
+   */
   export interface MultiVersionSolidityUserConfig
     extends MultiVersionSolcUserConfig,
       CommonSolidityUserConfig {}
 
+  /**
+   * The type of a single-version build profile user config.
+   */
+  export type SingleVersionBuildProfileUserConfig =
+    SolidityCompilerUserConfig & {
+      isolated?: boolean;
+    };
+
+  /**
+   * The type of a multi-version build profile user config.
+   */
+  /* eslint-disable-next-line @typescript-eslint/no-empty-interface -- Defined
+    in `MultiVersionSolcUserConfig` for backwards compatibility. */
+  export interface MultiVersionBuildProfileUserConfig
+    extends MultiVersionSolcUserConfig {}
+
+  /**
+   * The type of the build profile version of the SolidityUserConfig.
+   */
   export interface BuildProfilesSolidityUserConfig
     extends CommonSolidityUserConfig {
     profiles: Record<
       string,
-      SingleVersionSolcUserConfig | MultiVersionSolcUserConfig
+      SingleVersionBuildProfileUserConfig | MultiVersionBuildProfileUserConfig
     >;
   }
 
+  /**
+   * Extension of HardhatUserConfig with the `solidity` property.
+   */
   export interface HardhatUserConfig {
     solidity?: SolidityUserConfig;
   }
 
-  export interface SolcConfig {
+  /**
+   * Common fields of a SolidityCompilerConfig.
+   *
+   * Note: All the types of SolidityCompiler config MUST extend this interface.
+   * This is especially relevant for plugins creating their own
+   * `SolidityCompilerConfig` variant.
+   */
+  export interface CommonSolidityCompilerConfig {
+    type?: SolidityCompilerType;
     version: string;
     settings: any;
     path?: string;
+  }
+
+  /**
+   * Deprecated: Use `SolcSolidityCompilerConfig` instead.
+   * @deprecated
+   */
+  export interface SolcConfig extends CommonSolidityCompilerConfig {
+    // Note: This field is optional for backwards compatibility. No `type` means
+    // "solc" across all of Hardhat.
+    type?: "solc";
     preferWasm?: boolean;
   }
 
+  /**
+   * The type of a solc-specific SolidityCompilerConfig.
+   */
+  /* eslint-disable-next-line @typescript-eslint/no-empty-interface -- Defined
+    in SolcConfig for backwards compatibility */
+  export interface SolcSolidityCompilerConfig extends SolcConfig {}
+
+  /**
+   * A map from compiler type to its `SolidityCompilerConfig` type. Note that
+   * the types MUST extend `CommonSolidityCompilerConfig`.
+   */
+  export interface SolidityCompilerConfigPerType {
+    solc: SolcSolidityCompilerConfig;
+  }
+
+  /**
+   * The type of all the compiler configs.
+   */
+  export type SolidityCompilerConfig =
+    | {
+        [type in keyof SolidityCompilerConfigPerType]: SolidityCompilerConfigPerType[type] & {
+          type: type;
+        };
+      }[keyof SolidityCompilerConfigPerType]
+    | (Omit<SolcSolidityCompilerConfig, "type"> &
+        Partial<Pick<SolcSolidityCompilerConfig, "type">>);
+
+  /**
+   * The type of a resolved build profile config.
+   */
   export interface SolidityBuildProfileConfig {
     isolated: boolean;
     preferWasm: boolean;
-    compilers: SolcConfig[];
-    overrides: Record<string, SolcConfig>;
+    compilers: SolidityCompilerConfig[];
+    overrides: Record<string, SolidityCompilerConfig>;
   }
 
+  /**
+   * Resolved Solidity config.
+   */
   export interface SolidityConfig {
     profiles: Record<string, SolidityBuildProfileConfig>;
     npmFilesToBuild: string[];
+    registeredCompilerTypes: SolidityCompilerType[];
   }
 
+  /**
+   * An extension of HardhatConfig with the `solidity` property.
+   */
   export interface HardhatConfig {
     solidity: SolidityConfig;
   }
@@ -166,7 +359,7 @@ declare module "../../../types/hooks.js" {
     ): Promise<string>;
 
     /**
-     * Hook triggered within the compilation job when its' solc input is first constructed.
+     * Hook triggered within the compilation job when its solc input is first constructed.
      *
      * @param context The hook context.
      * @param solcInput The solc input that will be passed to solc.
@@ -215,18 +408,18 @@ declare module "../../../types/hooks.js" {
     ) => Promise<CompilationJobCreationError | Map<string, FileBuildResult>>;
 
     /**
-     * Hook triggered to invoke a passed in Solc compiler on the
-     * Solc input generated for a given compilation job.
-     * This hook allows for manipulating the Solc input passed into the Solc
-     * compiler Hardhat has selected for the compilation job, and similarly to
-     * manipulate the Solc output.
+     * Hook triggered to invoke a compiler on the standard-json input
+     * generated for a given compilation job.
+     * This hook allows for manipulating the input passed into the compiler
+     * Hardhat has selected for the compilation job, and similarly to
+     * manipulate the output.
      *
      * @param context The hook context.
-     * @param compile The Solc compiler selected by Hardhat for this compilation
+     * @param compiler The compiler selected by Hardhat for this compilation
      * job.
-     * @param solcInput The solc input json constructed from the compilation
-     * job.
-     * @param solcConfig The configuration used to setup solc e.g. version.
+     * @param solcInput The standard-json input constructed from the
+     * compilation job.
+     * @param solcConfig The compiler configuration (version, type, etc.).
      * @param next A function to call the next handler for this hook, or the
      * default implementation if no more handlers exist.
      */
@@ -234,12 +427,12 @@ declare module "../../../types/hooks.js" {
       context: HookContext,
       compiler: Compiler,
       solcInput: CompilerInput,
-      solcConfig: SolcConfig,
+      solcConfig: SolidityCompilerConfig,
       next: (
         nextContext: HookContext,
         nextCompiler: Compiler,
         nextSolcInput: CompilerInput,
-        nextSolcConfig: SolcConfig,
+        nextSolcConfig: SolidityCompilerConfig,
       ) => Promise<CompilerOutput>,
     ): Promise<CompilerOutput>;
 

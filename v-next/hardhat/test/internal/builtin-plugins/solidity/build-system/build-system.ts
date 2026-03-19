@@ -96,6 +96,7 @@ describe(
         },
       },
       npmFilesToBuild: [],
+      registeredCompilerTypes: ["solc"],
     };
 
     before(async () => {

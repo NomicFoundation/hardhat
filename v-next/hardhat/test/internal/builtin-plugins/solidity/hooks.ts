@@ -1,4 +1,4 @@
-import type { SolcConfig } from "../../../../src/types/config.js";
+import type { SolidityCompilerConfig } from "../../../../src/types/config.js";
 import type {
   HookContext,
   SolidityHooks,
@@ -60,12 +60,12 @@ describe("solidity - hooks", () => {
                   context: HookContext,
                   compiler: Compiler,
                   solcInput: CompilerInput,
-                  solcConfig: SolcConfig,
+                  solcConfig: SolidityCompilerConfig,
                   next: (
                     nextContext: HookContext,
                     nextCompiler: Compiler,
                     nextSolcInput: CompilerInput,
-                    nextSolcConfig: SolcConfig,
+                    nextSolidityCompilerConfig: SolidityCompilerConfig,
                   ) => Promise<CompilerOutput>,
                 ) => {
                   passedCompiler = compiler;
