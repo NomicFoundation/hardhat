@@ -1,5 +1,15 @@
 # @nomicfoundation/hardhat-mocha
 
+## 3.0.14
+
+### Patch Changes
+
+- [#8064](https://github.com/NomicFoundation/hardhat/pull/8064) [`392fc38`](https://github.com/NomicFoundation/hardhat/commit/392fc388556e9ec3ca1309db0ffb2ded24439ee2) Thanks [@schaable](https://github.com/schaable)! - Add `--gas-stats-json <path>` global option to write gas usage statistics to a JSON file ([#7990](https://github.com/NomicFoundation/hardhat/issues/7990)).
+
+- Updated dependencies:
+  - hardhat@3.2.0
+  - @nomicfoundation/hardhat-errors@3.0.9
+
 ## 3.0.13
 
 ### Patch Changes
