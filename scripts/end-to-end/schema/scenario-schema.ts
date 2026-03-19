@@ -19,7 +19,8 @@ export function isScenarioDefinition(
     (obj.env === undefined || isStringRecord(obj.env)) &&
     (obj.preinstall === undefined || typeof obj.preinstall === "string") &&
     (obj.install === undefined || typeof obj.install === "string") &&
-    (obj.submodules === undefined || typeof obj.submodules === "boolean")
+    (obj.submodules === undefined || typeof obj.submodules === "boolean") &&
+    (obj.disabled === undefined || obj.disabled === true)
   );
 }
 

@@ -15,4 +15,5 @@ export interface ScenarioDefinition {
   tags: string[];
   env?: Record<string, string>;
   submodules?: boolean;
+  disabled?: true;
 }

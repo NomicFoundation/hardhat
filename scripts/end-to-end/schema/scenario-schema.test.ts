@@ -26,6 +26,7 @@ describe("isScenarioDefinition", () => {
       tags: ["solidity-compile"],
       env: { FOO: "bar" },
       submodules: true,
+      disabled: true,
     };
 
     assert.equal(isScenarioDefinition(value), true);
@@ -41,6 +42,33 @@ describe("isScenarioDefinition", () => {
     };
 
     assert.equal(isScenarioDefinition(value), true);
+  });
+
+  it("accepts a scenario with disabled: true", () => {
+    const value = {
+      description: "A disabled scenario",
+      repo: "org/repo",
+      commit: "abc123",
+      packageManager: "npm",
+      tags: ["test"],
+      disabled: true,
+    };
+
+    assert.equal(isScenarioDefinition(value), true);
+  });
+
+  it("rejects disabled: false", () => {
+    assert.equal(
+      isScenarioDefinition({
+        description: "test",
+        repo: "org/repo",
+        commit: "abc",
+        packageManager: "npm",
+        tags: [],
+        disabled: false,
+      }),
+      false,
+    );
   });
 
   it("rejects when description is missing", () => {
