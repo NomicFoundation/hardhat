@@ -33,7 +33,7 @@ import {
 } from "./build-system/solc-info.js";
 
 /**
- * The top-level type SolidityUserConfig is a unition type too complex for
+ * The top-level type SolidityUserConfig is a union type too complex for
  * TypeScript to handle properly. It accepts fields of different types of
  * configurations. For example, it accepts `compilers` inside of a
  * `SingleVersionSolidityUserConfig`.
@@ -69,7 +69,7 @@ const incompatibleProfileFields = {
  * `compilers` field.
  */
 const incompatibleCompilerFields = {
-  type: incompatibleFieldType("This field is incompatible with `profiles`"),
+  type: incompatibleFieldType("This field is incompatible with `compilers`"),
   version: incompatibleFieldType("This field is incompatible with `compilers`"),
   profiles: incompatibleFieldType(
     "This field is incompatible with `compilers`",
@@ -151,7 +151,7 @@ const multiVersionSolidityUserConfigType = z.object({
   ...incompatibleCompilerFields,
 });
 
-// This defintion needs to be aligned with solidityCompilerUserConfigType.
+// This definition needs to be aligned with solidityCompilerUserConfigType.
 // The reason to duplicate it is that we can't `.extend()` a conditional union
 // type.
 const singleVersionBuildProfileUserConfigType = conditionalUnionType(
