@@ -31,10 +31,10 @@ async function getGlobalCompilersCacheDir(): Promise<string> {
 const log = debug("hardhat:core:solidity:build-system:compiler");
 
 /**
- * Returns true if a native (non-WASM) build exists for the given version
- * on the current platform. On non-ARM64 platforms every version has a native
- * build; on ARM64 Linux only versions in the community mirror (>= 0.5.0) or
- * with official builds (>= 0.8.31) do.
+ * Returns true if a platform-specific build exists for the given version
+ * on the given compiler platform. On non-ARM64 platforms (including WASM)
+ * every version is assumed to have a build; on ARM64 Linux only versions
+ * in the community mirror (>= 0.5.0) or with official builds (>= 0.8.31) do.
  *
  * Exported only for testing purposes.
  */
