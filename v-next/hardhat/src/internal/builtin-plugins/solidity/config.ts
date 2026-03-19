@@ -22,6 +22,7 @@ import { z } from "zod";
 
 import { DEFAULT_BUILD_PROFILES } from "./build-profiles.js";
 import {
+  hasArm64MirrorBuild,
   hasOfficialArm64Build,
   missesSomeOfficialNativeBuilds,
 } from "./build-system/solc-info.js";
@@ -343,14 +344,20 @@ function resolveSolcConfig(
 
   // Resolve per-compiler preferWasm:
   // If explicitly set, use that value.
-  // Otherwise, for ARM64 Linux in production, default to true only for
-  // versions without official ARM64 builds.
+  // Otherwise, for ARM64 Linux:
+  //   - Versions below the mirror threshold (< 0.5.0) always use WASM,
+  //     since no native ARM64 build exists anywhere.
+  //   - In production, versions without official ARM64 builds
+  //     also default to WASM.
   let resolvedPreferWasm: boolean | undefined = solcConfig.preferWasm;
   if (resolvedPreferWasm === undefined && missesSomeOfficialNativeBuilds()) {
-    resolvedPreferWasm =
-      production && !hasOfficialArm64Build(solcConfig.version)
-        ? true
-        : undefined;
+    const version = solcConfig.version;
+
+    if (!hasOfficialArm64Build(version) && !hasArm64MirrorBuild(version)) {
+      resolvedPreferWasm = true;
+    } else if (production && !hasOfficialArm64Build(version)) {
+      resolvedPreferWasm = true;
+    }
   }
 
   return {

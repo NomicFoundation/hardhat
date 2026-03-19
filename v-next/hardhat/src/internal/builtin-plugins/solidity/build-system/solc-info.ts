@@ -5,11 +5,26 @@ import semver from "semver";
 // The first solc version with official ARM64 Linux builds
 export const FIRST_OFFICIAL_ARM64_SOLC_VERSION = "0.8.31";
 
+// The lowest solc version available in the frozen ARM64 mirror repo
+// (https://github.com/NomicFoundation/solc-linux-arm64-mirror/tree/main/public/linux/aarch64)
+export const FIRST_ARM64_MIRROR_SOLC_VERSION = "0.5.0";
+
 /**
  * Determines if a solc version has an official ARM64 Linux build.
  */
 export function hasOfficialArm64Build(version: string): boolean {
   return semver.gte(version, FIRST_OFFICIAL_ARM64_SOLC_VERSION);
+}
+
+/**
+ * Determines if a solc version has a native ARM64 Linux build available
+ * in the community mirror (versions 0.5.0–0.8.30).
+ */
+export function hasArm64MirrorBuild(version: string): boolean {
+  return (
+    semver.gte(version, FIRST_ARM64_MIRROR_SOLC_VERSION) === true &&
+    semver.lt(version, FIRST_OFFICIAL_ARM64_SOLC_VERSION) === true
+  );
 }
 
 /**
