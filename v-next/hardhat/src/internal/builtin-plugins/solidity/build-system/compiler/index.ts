@@ -13,10 +13,7 @@ import { exists, isBinaryFile } from "@nomicfoundation/hardhat-utils/fs";
 import { getCacheDir } from "@nomicfoundation/hardhat-utils/global-dir";
 import debug from "debug";
 
-import {
-  hasArm64MirrorBuild,
-  hasOfficialArm64Build,
-} from "../solc-info.js";
+import { hasArm64MirrorBuild, hasOfficialArm64Build } from "../solc-info.js";
 
 import { NativeCompiler, SolcJsCompiler } from "./compiler.js";
 import {
@@ -38,8 +35,10 @@ const log = debug("hardhat:core:solidity:build-system:compiler");
  * on the current platform. On non-ARM64 platforms every version has a native
  * build; on ARM64 Linux only versions in the community mirror (>= 0.5.0) or
  * with official builds (>= 0.8.31) do.
+ *
+ * Exported only for testing purposes.
  */
-function hasNativeBuildForPlatform(
+export function hasNativeBuildForPlatform(
   version: string,
   platform: CompilerPlatform,
 ): boolean {

@@ -20,6 +20,7 @@ import {
 import {
   downloadSolcCompilers,
   getCompiler,
+  hasNativeBuildForPlatform,
 } from "../../../../../../src/internal/builtin-plugins/solidity/build-system/compiler/index.js";
 import {
   hasArm64MirrorBuild,
@@ -277,6 +278,56 @@ contract A {}
         assert.ok(
           output.errors.length > 0,
           "Errors should contain some errors",
+        );
+      });
+    });
+
+    describe("hasNativeBuildForPlatform", function () {
+      it("returns true for all versions on non-ARM64 platforms", () => {
+        for (const platform of [
+          CompilerPlatform.LINUX,
+          CompilerPlatform.MACOS,
+          CompilerPlatform.WINDOWS,
+          CompilerPlatform.WASM,
+        ]) {
+          assert.equal(hasNativeBuildForPlatform("0.4.0", platform), true);
+          assert.equal(hasNativeBuildForPlatform("0.4.24", platform), true);
+          assert.equal(hasNativeBuildForPlatform("0.5.0", platform), true);
+          assert.equal(hasNativeBuildForPlatform("0.8.28", platform), true);
+          assert.equal(hasNativeBuildForPlatform("0.8.31", platform), true);
+        }
+      });
+
+      it("returns false for versions below 0.5.0 on ARM64", () => {
+        assert.equal(
+          hasNativeBuildForPlatform("0.4.0", CompilerPlatform.LINUX_ARM64),
+          false,
+        );
+        assert.equal(
+          hasNativeBuildForPlatform("0.4.24", CompilerPlatform.LINUX_ARM64),
+          false,
+        );
+      });
+
+      it("returns true for mirror-range versions on ARM64", () => {
+        assert.equal(
+          hasNativeBuildForPlatform("0.5.0", CompilerPlatform.LINUX_ARM64),
+          true,
+        );
+        assert.equal(
+          hasNativeBuildForPlatform("0.8.30", CompilerPlatform.LINUX_ARM64),
+          true,
+        );
+      });
+
+      it("returns true for official ARM64 versions on ARM64", () => {
+        assert.equal(
+          hasNativeBuildForPlatform("0.8.31", CompilerPlatform.LINUX_ARM64),
+          true,
+        );
+        assert.equal(
+          hasNativeBuildForPlatform("0.9.0", CompilerPlatform.LINUX_ARM64),
+          true,
         );
       });
     });
