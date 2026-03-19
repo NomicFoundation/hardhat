@@ -5,6 +5,7 @@ import { isScenarioDefinition } from "./scenario-schema.ts";
 describe("isScenarioDefinition", () => {
   it("accepts a minimal valid scenario", () => {
     const value = {
+      description: "Compile OpenZeppelin contracts",
       repo: "OpenZeppelin/openzeppelin-contracts",
       commit: "abc123",
       packageManager: "npm",
@@ -16,6 +17,7 @@ describe("isScenarioDefinition", () => {
 
   it("accepts a scenario with all optional fields", () => {
     const value = {
+      description: "Compile OpenZeppelin contracts with all options",
       repo: "OpenZeppelin/openzeppelin-contracts",
       commit: "abc123",
       packageManager: "npm",
@@ -31,6 +33,7 @@ describe("isScenarioDefinition", () => {
 
   it("accepts bun as a package manager", () => {
     const value = {
+      description: "ENS contracts with bun",
       repo: "ensdomains/ens-contracts",
       commit: "abc123",
       packageManager: "bun",
@@ -40,9 +43,22 @@ describe("isScenarioDefinition", () => {
     assert.equal(isScenarioDefinition(value), true);
   });
 
+  it("rejects when description is missing", () => {
+    assert.equal(
+      isScenarioDefinition({
+        repo: "org/repo",
+        commit: "abc",
+        packageManager: "npm",
+        tags: [],
+      }),
+      false,
+    );
+  });
+
   it("rejects when repo is missing", () => {
     assert.equal(
       isScenarioDefinition({
+        description: "test",
         commit: "abc",
         packageManager: "npm",
         tags: [],

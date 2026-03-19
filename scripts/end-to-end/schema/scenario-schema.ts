@@ -10,6 +10,7 @@ export function isScenarioDefinition(
   const obj = value as Record<string, unknown>;
 
   return (
+    typeof obj.description === "string" &&
     typeof obj.repo === "string" &&
     typeof obj.commit === "string" &&
     (obj.packageManager === "npm" || obj.packageManager === "bun") &&

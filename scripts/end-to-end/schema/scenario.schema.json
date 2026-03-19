@@ -3,10 +3,14 @@
   "title": "End-to-End Test Definition",
   "description": "Defines a single end-to-end test for the Hardhat test harness.",
   "type": "object",
-  "required": ["repo", "commit", "packageManager", "tags"],
+  "required": ["description", "repo", "commit", "packageManager", "tags"],
   "additionalProperties": false,
   "properties": {
     "$schema": { "type": "string" },
+    "description": {
+      "type": "string",
+      "description": "Short human-readable summary of what this scenario tests"
+    },
     "repo": {
       "type": "string",
       "description": "GitHub repo in org/name format (e.g. OpenZeppelin/openzeppelin-contracts)"

@@ -6,6 +6,7 @@ export interface Scenario {
 }
 
 export interface ScenarioDefinition {
+  description: string;
   repo: string;
   commit: string;
   packageManager: "npm" | "bun";
