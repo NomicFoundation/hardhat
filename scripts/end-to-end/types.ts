@@ -6,12 +6,15 @@ export interface Scenario {
 }
 
 export interface ScenarioDefinition {
+  description: string;
   repo: string;
   commit: string;
-  packageManager: "npm";
+  packageManager: "npm" | "bun" | "yarn";
+  defaultCommand: string;
   preinstall?: string;
   install?: string;
   tags: string[];
   env?: Record<string, string>;
   submodules?: boolean;
+  disabled?: true;
 }

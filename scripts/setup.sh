@@ -8,3 +8,9 @@ sudo apt install -y libudev-dev
 
 # aha and wkhtmltoimage (included in the wkhtmltopdf package) are used in the integration tests of the node:test reporter
 sudo apt install -y aha wkhtmltopdf
+
+# Used for performance measurement
+cargo install hyperfine
+
+# Make sure bun is available at the cli
+npm install -g bun
