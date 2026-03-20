@@ -33,6 +33,7 @@ import {
   solidityTestConfigToRunOptions,
   solidityTestConfigToSolidityTestRunnerConfigArgs,
 } from "./helpers.js";
+import { getTestFunctionOverrides } from "./inline-config.js";
 import { testReporter } from "./reporter.js";
 import { run } from "./runner.js";
 
@@ -93,11 +94,16 @@ const runSolidityTests: NewTaskActionFunction<TestActionArguments> = async (
     userSourceName: string;
   }> = [];
   const buildInfos: BuildInfoAndOutput[] = [];
+  const testsBuildInfos: BuildInfoAndOutput[] = [];
   for (const scope of ["contracts", "tests"] as const) {
     const artifactsDir = await hre.solidity.getArtifactsDirectory(scope);
     const artifactManager = new ArtifactManagerImplementation(artifactsDir);
     edrArtifacts.push(...(await getEdrArtifacts(artifactManager)));
-    buildInfos.push(...(await getBuildInfos(artifactManager)));
+    const scopeBuildInfos = await getBuildInfos(artifactManager);
+    buildInfos.push(...scopeBuildInfos);
+    if (scope === "tests") {
+      testsBuildInfos.push(...scopeBuildInfos);
+    }
   }
 
   const sourceNameToUserSourceName = new Map(
@@ -160,6 +166,8 @@ const runSolidityTests: NewTaskActionFunction<TestActionArguments> = async (
     }
   }
 
+  const testFunctionOverrides = getTestFunctionOverrides(testsBuildInfos);
+
   const testRunnerConfig: SolidityTestRunnerConfigArgs =
     await solidityTestConfigToSolidityTestRunnerConfigArgs({
       chainType,
@@ -172,6 +180,7 @@ const runSolidityTests: NewTaskActionFunction<TestActionArguments> = async (
       generateGasReport:
         hre.globalOptions.gasStats ||
         hre.globalOptions.gasStatsJson !== undefined,
+      testFunctionOverrides,
     });
   const tracingConfig: TracingConfigWithBuffers = {
     buildInfos,
