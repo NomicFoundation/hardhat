@@ -13,7 +13,9 @@ export function isScenarioDefinition(
     typeof obj.description === "string" &&
     typeof obj.repo === "string" &&
     typeof obj.commit === "string" &&
-    (obj.packageManager === "npm" || obj.packageManager === "bun") &&
+    (obj.packageManager === "npm" ||
+      obj.packageManager === "bun" ||
+      obj.packageManager === "yarn") &&
     typeof obj.defaultCommand === "string" &&
     Array.isArray(obj.tags) &&
     obj.tags.every((t: unknown) => typeof t === "string") &&

@@ -47,6 +47,19 @@ describe("isScenarioDefinition", () => {
     assert.equal(isScenarioDefinition(value), true);
   });
 
+  it("accepts yarn as a package manager", () => {
+    const value = {
+      description: "Lido finance with yarn",
+      repo: "ChristopherDedominici/core",
+      commit: "abc123",
+      packageManager: "yarn",
+      defaultCommand: "yarn run test",
+      tags: ["external-repo"],
+    };
+
+    assert.equal(isScenarioDefinition(value), true);
+  });
+
   it("accepts a scenario with disabled: true", () => {
     const value = {
       description: "A disabled scenario",
@@ -112,7 +125,7 @@ describe("isScenarioDefinition", () => {
     );
   });
 
-  it("rejects when packageManager is not 'npm'", () => {
+  it("rejects an unsupported packageManager", () => {
     assert.equal(
       isScenarioDefinition({
         repo: "org/repo",
