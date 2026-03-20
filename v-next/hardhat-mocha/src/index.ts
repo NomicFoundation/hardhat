@@ -33,6 +33,7 @@ const hardhatPlugin: HardhatPlugin = {
   ],
   hookHandlers: {
     config: () => import("./hookHandlers/config.js"),
+    hre: () => import("./hookHandlers/hre.js"),
     test: () => import("./hookHandlers/test.js"),
   },
   npmPackage: "@nomicfoundation/hardhat-mocha",

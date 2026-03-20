@@ -5,9 +5,11 @@ import { isScenarioDefinition } from "./scenario-schema.ts";
 describe("isScenarioDefinition", () => {
   it("accepts a minimal valid scenario", () => {
     const value = {
+      description: "Compile OpenZeppelin contracts",
       repo: "OpenZeppelin/openzeppelin-contracts",
       commit: "abc123",
       packageManager: "npm",
+      defaultCommand: "npx hardhat compile",
       tags: ["solidity-compile"],
     };
 
@@ -16,22 +18,81 @@ describe("isScenarioDefinition", () => {
 
   it("accepts a scenario with all optional fields", () => {
     const value = {
+      description: "Compile OpenZeppelin contracts with all options",
       repo: "OpenZeppelin/openzeppelin-contracts",
       commit: "abc123",
       packageManager: "npm",
+      defaultCommand: "npx hardhat compile",
       preinstall: "./preinstall.sh",
       install: "./install.sh",
       tags: ["solidity-compile"],
       env: { FOO: "bar" },
       submodules: true,
+      disabled: true,
     };
 
     assert.equal(isScenarioDefinition(value), true);
   });
 
-  it("rejects when repo is missing", () => {
+  it("accepts bun as a package manager", () => {
+    const value = {
+      description: "ENS contracts with bun",
+      repo: "ensdomains/ens-contracts",
+      commit: "abc123",
+      packageManager: "bun",
+      defaultCommand: "npx hardhat compile",
+      tags: ["external-repo"],
+    };
+
+    assert.equal(isScenarioDefinition(value), true);
+  });
+
+  it("accepts yarn as a package manager", () => {
+    const value = {
+      description: "Lido finance with yarn",
+      repo: "ChristopherDedominici/core",
+      commit: "abc123",
+      packageManager: "yarn",
+      defaultCommand: "yarn run test",
+      tags: ["external-repo"],
+    };
+
+    assert.equal(isScenarioDefinition(value), true);
+  });
+
+  it("accepts a scenario with disabled: true", () => {
+    const value = {
+      description: "A disabled scenario",
+      repo: "org/repo",
+      commit: "abc123",
+      packageManager: "npm",
+      defaultCommand: "npx hardhat compile",
+      tags: ["test"],
+      disabled: true,
+    };
+
+    assert.equal(isScenarioDefinition(value), true);
+  });
+
+  it("rejects disabled: false", () => {
     assert.equal(
       isScenarioDefinition({
+        description: "test",
+        repo: "org/repo",
+        commit: "abc",
+        packageManager: "npm",
+        tags: [],
+        disabled: false,
+      }),
+      false,
+    );
+  });
+
+  it("rejects when defaultCommand is missing", () => {
+    assert.equal(
+      isScenarioDefinition({
+        description: "test",
+        repo: "org/repo",
         commit: "abc",
         packageManager: "npm",
         tags: [],
@@ -40,7 +101,31 @@ describe("isScenarioDefinition", () => {
     );
   });
 
-  it("rejects when packageManager is not 'npm'", () => {
+  it("rejects when description is missing", () => {
+    assert.equal(
+      isScenarioDefinition({
+        repo: "org/repo",
+        commit: "abc",
+        packageManager: "npm",
+        tags: [],
+      }),
+      false,
+    );
+  });
+
+  it("rejects when repo is missing", () => {
+    assert.equal(
+      isScenarioDefinition({
+        description: "test",
+        commit: "abc",
+        packageManager: "npm",
+        tags: [],
+      }),
+      false,
+    );
+  });
+
+  it("rejects an unsupported packageManager", () => {
     assert.equal(
       isScenarioDefinition({
         repo: "org/repo",
