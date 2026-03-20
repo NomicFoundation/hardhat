@@ -5,6 +5,7 @@ import type {
   OverrideEventContract,
 } from "../helpers/contracts.js";
 import type { HardhatEthers } from "@nomicfoundation/hardhat-ethers/types";
+import type { EthereumProvider } from "hardhat/types/providers";
 
 import { before, beforeEach, describe, it } from "node:test";
 
@@ -896,6 +897,28 @@ describe(".to.emit (contract events)", { timeout: 60000 }, () => {
       await expect(tx.hash).to.emit(contract, "WithoutArgs");
     });
 
+    it("With an invalid transaction hash string", async () => {
+      await assertRejects(
+        () => expect("0x123").to.emit(contract, "WithoutArgs"),
+        (e) =>
+          e.message.includes(
+            'Expected a valid transaction hash, but got "0x123"',
+          ),
+        "Expected invalid transaction hash error message",
+      );
+    });
+
+    it("With a bytes32-encoded string that is not a real tx hash", async () => {
+      await expect(
+        expect(
+          "0x3230323400000000000000000000000000000000000000000000000000000000",
+        ).to.emit(contract, "WithoutArgs"),
+      ).to.be.eventually.rejectedWith(
+        AssertionError,
+        "Transaction's receipt cannot be fetched from the network",
+      );
+    });
+
     describe("When event is overloaded", () => {
       it("should fail when the event name is ambiguous", async () => {
         await expect(
@@ -917,6 +940,60 @@ describe(".to.emit (contract events)", { timeout: 60000 }, () => {
           overrideEventContract,
           "simpleEvent()",
         );
+      });
+    });
+
+    describe("When automining is disabled", () => {
+      let provider: EthereumProvider;
+
+      before(async () => {
+        ({ provider } = await initEnvironment("events"));
+      });
+
+      it("should wait for the tx to be mined and detect the event", async () => {
+        await provider.request({
+          method: "evm_setAutomine",
+          params: [false],
+        });
+
+        try {
+          const tx = contract.emitWithoutArgs();
+
+          const emitPromise = expect(tx).to.emit(contract, "WithoutArgs");
+
+          await provider.request({ method: "hardhat_mine", params: [] });
+
+          await emitPromise;
+        } finally {
+          await provider.request({
+            method: "evm_setAutomine",
+            params: [true],
+          });
+        }
+      });
+
+      it("should wait for the tx to be mined and verify event args", async () => {
+        await provider.request({
+          method: "evm_setAutomine",
+          params: [false],
+        });
+
+        try {
+          const tx = contract.emitUint(1);
+
+          const emitPromise = expect(tx)
+            .to.emit(contract, "WithUintArg")
+            .withArgs(1);
+
+          await provider.request({ method: "hardhat_mine", params: [] });
+
+          await emitPromise;
+        } finally {
+          await provider.request({
+            method: "evm_setAutomine",
+            params: [true],
+          });
+        }
       });
     });
   }
