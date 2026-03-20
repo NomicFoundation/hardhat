@@ -74,6 +74,16 @@ describe("INTEGRATION: changeEtherBalance matcher", { timeout: 60000 }, () => {
           ).to.changeEtherBalance(ethers, sender, "-200");
         });
 
+        it("subject is not a transaction response (e.g. BigInt from getBalance)", async () => {
+          const balance = await ethers.provider.getBalance(sender);
+          await expect(
+            expect(balance).to.changeEtherBalance(ethers, sender, -200),
+          ).to.be.rejectedWith(
+            Error,
+            /The subject of "changeEtherBalance" must be a transaction response/,
+          );
+        });
+
         it("should fail when block contains more than one transaction", async () => {
           await provider.request({
             method: "evm_setAutomine",

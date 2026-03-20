@@ -287,6 +287,20 @@ describe("INTEGRATION: changeEtherBalances matcher", { timeout: 60000 }, () => {
           );
         });
 
+        it("subject is not a transaction response (e.g. BigInt from getBalance)", async () => {
+          const balance = await ethers.provider.getBalance(sender);
+          await expect(
+            expect(balance).to.changeEtherBalances(
+              ethers,
+              [sender, receiver],
+              [-200, 200],
+            ),
+          ).to.be.rejectedWith(
+            Error,
+            /The subject of "changeEtherBalances" must be a transaction response/,
+          );
+        });
+
         it("arrays have different length", async () => {
           expect(() =>
             expect(
