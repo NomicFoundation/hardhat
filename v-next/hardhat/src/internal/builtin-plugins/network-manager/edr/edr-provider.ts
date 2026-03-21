@@ -290,6 +290,7 @@ export class EdrProvider extends BaseProvider {
   }
 
   public async close(): Promise<void> {
+    this.removeAllListeners();
     // Clear the provider reference to help with garbage collection
     this.#provider = undefined;
   }
