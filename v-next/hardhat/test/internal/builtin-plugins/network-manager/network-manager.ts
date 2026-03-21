@@ -160,6 +160,38 @@ describe("NetworkManagerImplementation", () => {
       });
     });
 
+    it("should return the same networkConfig field references for two connect() calls without overrides", async () => {
+      const conn1 = await networkManager.connect();
+      const conn2 = await networkManager.connect();
+
+      assert.equal(conn1.networkConfig.type, conn2.networkConfig.type);
+
+      for (const key of Object.keys(conn1.networkConfig)) {
+        /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions --
+          we know the type of the network config object. It may have discrepancies
+          between the two connections, but we the assertion above ensures that. */
+        const networkConfigKey = key as keyof NetworkConfig;
+        assert.equal(
+          conn1.networkConfig[networkConfigKey],
+          conn2.networkConfig[networkConfigKey],
+          `The networkConfig field ${key} should have the same reference in both connections`,
+        );
+      }
+    });
+
+    it("should return the same networkConfig reference for two connect() calls that have the chaintype defined in the config", async () => {
+      const conn1 = await networkManager.connect({
+        network: "edrNetwork",
+        chainType: OPTIMISM_CHAIN_TYPE,
+      });
+      const conn2 = await networkManager.connect({
+        network: "edrNetwork",
+        chainType: OPTIMISM_CHAIN_TYPE,
+      });
+
+      assert.equal(conn1.networkConfig, conn2.networkConfig);
+    });
+
     it("should connect to the specified network and default chain type if none are provided and the network doesn't have a chain type", async () => {
       const networkConnection = await networkManager.connect({
         network: "customNetwork",
@@ -843,6 +875,65 @@ describe("NetworkManagerImplementation", () => {
       assertPluginPropertiesCopied(networkConnection.networkConfig, {
         pluginAddedProperties: ["my-value"],
       });
+    });
+  });
+
+  describe("connect should not re-resolve config when no overrides are provided", () => {
+    let resolveUserConfigCallCount: number;
+
+    const resolutionCountingPlugin: HardhatPlugin = {
+      id: "resolution-counting-plugin",
+      hookHandlers: {
+        config: async () => ({
+          default: async () => {
+            const handlers: Partial<ConfigHooks> = {
+              resolveUserConfig: async (userConfig, rCV, next) => {
+                resolveUserConfigCallCount++;
+                return next(userConfig, rCV);
+              },
+            };
+            return handlers;
+          },
+        }),
+      },
+    };
+
+    beforeEach(async () => {
+      resolveUserConfigCallCount = 0;
+      hre = await createHardhatRuntimeEnvironment({
+        plugins: [resolutionCountingPlugin],
+      });
+
+      networkManager = new NetworkManagerImplementation(
+        "localhost",
+        GENERIC_CHAIN_TYPE,
+        hre.config.networks,
+        hre.hooks,
+        hre.artifacts,
+        { networks: {} },
+        hre.config.chainDescriptors,
+        hre.globalOptions.config,
+        hre.config.paths.root,
+      );
+    });
+
+    it("should not call resolveUserConfig when connecting without overrides", async () => {
+      await networkManager.connect();
+      await networkManager.connect();
+      // Note: this is 1 and not 0 because there's the HRE creation's config
+      // resolution
+      assert.equal(resolveUserConfigCallCount, 1);
+    });
+
+    it("should call resolveUserConfig when connecting with overrides", async () => {
+      await networkManager.connect({
+        network: "localhost",
+        override: { timeout: 5000 },
+      });
+
+      // Note: this is 2 and not 1 because there's the HRE creation's config
+      // resolution
+      assert.equal(resolveUserConfigCallCount, 2);
     });
   });
 

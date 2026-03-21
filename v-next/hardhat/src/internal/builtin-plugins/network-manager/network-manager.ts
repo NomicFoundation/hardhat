@@ -332,15 +332,30 @@ export class NetworkManagerImplementation implements NetworkManager {
    */
   async #resolveNetworkConfig<ChainTypeT extends ChainType | string>(
     resolvedNetworkName: string,
-    networkConfigOverride: NetworkConfigOverride | undefined = {},
+    networkConfigOverride: NetworkConfigOverride = {},
     resolvedChainType: ChainTypeT,
   ): Promise<NetworkConfig> {
     const existingNetworkConfig = this.#networkConfigs[resolvedNetworkName];
-    if (
-      Object.keys(networkConfigOverride).length === 0 &&
-      resolvedChainType === existingNetworkConfig.chainType
-    ) {
+
+    const hasNoOverrides = Object.keys(networkConfigOverride).length === 0;
+    const isChainTypeUnchanged =
+      resolvedChainType === existingNetworkConfig.chainType;
+    const isChainTypeDefault =
+      existingNetworkConfig.chainType === undefined &&
+      resolvedChainType === this.#defaultChainType;
+
+    if (hasNoOverrides && isChainTypeUnchanged) {
       return existingNetworkConfig;
+    }
+
+    if (hasNoOverrides && isChainTypeDefault) {
+      return {
+        ...existingNetworkConfig,
+        /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions --
+          TypeScript can't follow this case, but we are just providing the
+          default */
+        chainType: resolvedChainType as ChainType,
+      };
     }
 
     if (
