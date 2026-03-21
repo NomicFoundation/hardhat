@@ -21,7 +21,7 @@ import type {
   JsonRpcRequest,
   JsonRpcResponse,
 } from "../../../types/providers.js";
-import type { GasReportConfig } from "@nomicfoundation/edr";
+import type { ContractDecoder, GasReportConfig } from "@nomicfoundation/edr";
 
 import {
   HardhatError,
@@ -57,6 +57,7 @@ export class NetworkManagerImplementation implements NetworkManager {
   readonly #projectRoot: string;
 
   #nextConnectionId = 0;
+  #contractDecoder: ContractDecoder | undefined;
 
   constructor(
     defaultNetwork: string,
@@ -233,6 +234,26 @@ export class NetworkManagerImplementation implements NetworkManager {
           };
         }
 
+        // We load the build infos and their outputs to create a contract
+        // decoder when the first provider is created. Successive providers will
+        // reuse the same decoder as a performance optimization.
+        //
+        // The trade-off here is that if you create an EDR provider, then
+        // compile new contracts, and create a new provider, the new contracts
+        // won't be loaded.
+        //
+        // Even without this optimization, we already had the problem of new
+        // contracts not being visible to existing providers.
+        //
+        // In practice, most workflows compile everything before creating
+        // any network connection.
+        if (this.#contractDecoder === undefined) {
+          this.#contractDecoder = await EdrProvider.createContractDecoder({
+            buildInfos: await this.#getBuildInfosAndOutputsAsBuffers(),
+            ignoreContracts: false,
+          });
+        }
+
         return EdrProvider.create({
           chainDescriptors: this.#chainDescriptors,
           // The resolvedNetworkConfig can have its chainType set to `undefined`
@@ -249,10 +270,7 @@ export class NetworkManagerImplementation implements NetworkManager {
             chainType: resolvedChainType as ChainType,
           },
           jsonRpcRequestWrapper,
-          tracingConfig: {
-            buildInfos: await this.#getBuildInfosAndOutputsAsBuffers(),
-            ignoreContracts: false,
-          },
+          contractDecoder: this.#contractDecoder,
           coverageConfig,
           gasReportConfig,
         });
