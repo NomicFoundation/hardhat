@@ -21,17 +21,10 @@ import type {
   Provider,
   ProviderConfig,
   TracingConfigWithBuffers,
-  AccountOverride,
   GasReportConfig,
 } from "@nomicfoundation/edr";
 
-import {
-  opGenesisState,
-  opHardforkFromString,
-  l1GenesisState,
-  l1HardforkFromString,
-  ContractDecoder,
-} from "@nomicfoundation/edr";
+import { ContractDecoder } from "@nomicfoundation/edr";
 import {
   assertHardhatInvariant,
   HardhatError,
@@ -41,14 +34,9 @@ import { ensureError } from "@nomicfoundation/hardhat-utils/error";
 import { numberToHexString } from "@nomicfoundation/hardhat-utils/hex";
 import { deepEqual } from "@nomicfoundation/hardhat-utils/lang";
 import debug from "debug";
-import { hexToBytes } from "ethereum-cryptography/utils";
-import { addr } from "micro-eth-signer";
 
 import { sendErrorTelemetry } from "../../../cli/telemetry/sentry/reporter.js";
-import {
-  EDR_NETWORK_REVERT_SNAPSHOT_EVENT,
-  OPTIMISM_CHAIN_TYPE,
-} from "../../../constants.js";
+import { EDR_NETWORK_REVERT_SNAPSHOT_EVENT } from "../../../constants.js";
 import { hardhatChainTypeToEdrChainType } from "../../../edr/chain-type.js";
 import { getGlobalEdrContext } from "../../../edr/context.js";
 import { DEFAULT_HD_ACCOUNTS_CONFIG_PARAMS } from "../accounts/constants.js";
@@ -60,6 +48,7 @@ import {
   UnknownError,
 } from "../provider-errors.js";
 
+import { getGenesisStateAndOwnedAccounts } from "./genesis-state.js";
 import { EdrProviderStackTraceGenerationError } from "./stack-traces/stack-trace-generation-errors.js";
 import { createSolidityErrorWithStackTrace } from "./stack-traces/stack-trace-solidity-errors.js";
 import { isEdrProviderErrorData } from "./type-validation.js";
@@ -69,7 +58,6 @@ import {
   hardhatMiningIntervalToEdrMiningInterval,
   hardhatMempoolOrderToEdrMineOrdering,
   hardhatHardforkToEdrSpecId,
-  hardhatAccountsToEdrOwnedAccounts,
   hardhatForkingConfigToEdrForkConfig,
 } from "./utils/convert-to-edr.js";
 import { printLine, replaceLastLine } from "./utils/logger.js";
@@ -440,42 +428,12 @@ export async function getProviderConfig(
     networkConfig.chainType,
   );
 
-  const ownedAccounts = await hardhatAccountsToEdrOwnedAccounts(
+  const { genesisState, ownedAccounts } = await getGenesisStateAndOwnedAccounts(
     networkConfig.accounts,
+    networkConfig.forking,
+    networkConfig.chainType,
+    specId,
   );
-
-  const genesisState: Map<Uint8Array, AccountOverride> = new Map(
-    ownedAccounts.map(({ secretKey, balance }) => {
-      const address = hexToBytes(addr.fromPrivateKey(secretKey));
-      const accountOverride: AccountOverride = {
-        address,
-        balance: BigInt(balance),
-        code: new Uint8Array(), // Empty account code, removing potential delegation code when forking
-      };
-
-      return [address, accountOverride];
-    }),
-  );
-
-  const chainGenesisState =
-    networkConfig.forking !== undefined
-      ? [] // TODO: Add support for overriding remote fork state when the local fork is different
-      : networkConfig.chainType === OPTIMISM_CHAIN_TYPE
-        ? opGenesisState(opHardforkFromString(specId))
-        : l1GenesisState(l1HardforkFromString(specId));
-
-  for (const account of chainGenesisState) {
-    const existingOverride = genesisState.get(account.address);
-    if (existingOverride !== undefined) {
-      // Favor the genesis state specified by the user
-      account.balance = account.balance ?? existingOverride.balance;
-      account.nonce = account.nonce ?? existingOverride.nonce;
-      account.code = account.code ?? existingOverride.code;
-      account.storage = account.storage ?? existingOverride.storage;
-    } else {
-      genesisState.set(account.address, account);
-    }
-  }
 
   return {
     allowBlocksWithSameTimestamp: networkConfig.allowBlocksWithSameTimestamp,
