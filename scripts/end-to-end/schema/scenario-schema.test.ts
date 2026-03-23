@@ -133,6 +133,8 @@ describe("isScenarioDefinition", () => {
         commit: "abc",
         packageManager: "pnpm",
         tags: [],
+        description: "a scenario",
+        defaultCommand: "npx hardhat test",
       }),
       false,
     );
