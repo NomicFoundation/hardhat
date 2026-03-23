@@ -59,11 +59,19 @@ function writeRegistryConfig(
       existing = readFileSync(yarnrcPath, "utf-8");
     } catch {}
 
+    // Strip any previously written registry settings so repeated
+    // init calls stay idempotent.
+    const cleaned = existing
+      .replace(/^npmRegistryServer:.*\n?/m, "")
+      .replace(/^unsafeHttpWhitelist:\n(?:\s+-.*\n?)*/m, "");
+
     const registryConfig = `npmRegistryServer: "${VERDACCIO_URL}"\nunsafeHttpWhitelist:\n  - "localhost"\n  - "127.0.0.1"\n`;
 
     writeFileSync(
       yarnrcPath,
-      existing ? `${existing.trimEnd()}\n\n${registryConfig}` : registryConfig,
+      cleaned.trim()
+        ? `${cleaned.trimEnd()}\n\n${registryConfig}`
+        : registryConfig,
     );
 
     log(`Wrote .yarnrc.yml → ${VERDACCIO_URL}`);
