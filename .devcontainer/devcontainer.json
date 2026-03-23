@@ -1,11 +1,10 @@
 {
   "name": "Hardhat",
-  "image": "mcr.microsoft.com/devcontainers/base:bullseye",
+  "image": "mcr.microsoft.com/devcontainers/base:trixie",
   "features": {
     "ghcr.io/devcontainers/features/node:1": {
       "version": "24"
-    },
-    "ghcr.io/devcontainers/features/rust:1": {}
+    }
   },
   "onCreateCommand": "scripts/setup.sh",
   "postCreateCommand": "pnpm install --frozen-lockfile",
