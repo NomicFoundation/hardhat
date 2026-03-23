@@ -1,4 +1,4 @@
-import type { Artifact, BuildInfo } from "../../../../types/artifacts.js";
+import type { Artifact } from "../../../../types/artifacts.js";
 import type { CompilationJob } from "../../../../types/solidity/compilation-job.js";
 import type {
   CompilerOutput,
@@ -107,11 +107,16 @@ declare module "hardhat/types/artifacts" {
 export async function getBuildInfo(
   compilationJob: CompilationJob,
 ): Promise<SolidityBuildInfo> {
-  const buildInfo: Required<BuildInfo> = {
+  // Defaulting to "solc" is safe here: if it's already "solc" or undefined,
+  // this doesn't alter the build info id.
+  const compilerType = compilationJob.solcConfig.type ?? "solc";
+
+  const buildInfo: SolidityBuildInfo = {
     _format: "hh3-sol-build-info-1",
     id: await compilationJob.getBuildId(),
     solcVersion: compilationJob.solcConfig.version,
     solcLongVersion: compilationJob.solcLongVersion,
+    compilerType,
     userSourceNameMap:
       compilationJob.dependencyGraph.getRootsUserSourceNameMap(),
     input: await compilationJob.getSolcInput(),

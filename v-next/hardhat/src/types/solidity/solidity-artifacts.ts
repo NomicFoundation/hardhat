@@ -14,6 +14,12 @@ export interface SolidityBuildInfo {
   /**
    * The id of the build, which is derived from the rest of the data,
    * guaranteeing that it's unique and deterministic.
+   *
+   * When `compilerType` is present and is not "solc", the format is:
+   *   `solc-<major>_<minor>_<patch>-<compiler-type>-<job-hash>`
+   *
+   * Otherwise (i.e. solc or undefined), the format is:
+   *   `solc-<major>_<minor>_<patch>-<job-hash>`
    */
   readonly id: string;
 
@@ -26,6 +32,16 @@ export interface SolidityBuildInfo {
    * The long solc version used to compile the build.
    */
   readonly solcLongVersion: string;
+
+  /**
+   * The compiler type used for this build. If absent or undefined, it means
+   * "solc" was used.
+   *
+   * Note: This is typed as `string` rather than `SolidityCompilerType` because
+   * the build info may come from a different Hardhat setup where the compiler
+   * type may not be registered in the current type definitions.
+   */
+  readonly compilerType?: string;
 
   /**
    * A mapping from user source names to input source names, for the root
