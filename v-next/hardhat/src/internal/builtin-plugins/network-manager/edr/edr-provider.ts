@@ -167,7 +167,7 @@ export class EdrProvider extends BaseProvider {
 
     // We use a WeakRef to the provider to prevent the subscriptionCallback
     // below from creating a cycle and leaking the provider.
-    let edrProviderWeakRef: WeakRef<EdrProvider>;
+    let edrProviderWeakRef: WeakRef<EdrProvider> | undefined;
 
     // We need to catch errors here, as the provider creation can panic unexpectedly,
     // and we want to make sure such a crash is propagated as a ProviderError.
@@ -195,7 +195,7 @@ export class EdrProvider extends BaseProvider {
         },
         {
           subscriptionCallback: (event: SubscriptionEvent) => {
-            const deferredProvider = edrProviderWeakRef.deref();
+            const deferredProvider = edrProviderWeakRef?.deref();
             if (deferredProvider !== undefined) {
               deferredProvider.onSubscriptionEvent(event);
             }
