@@ -29,6 +29,7 @@ import {
 } from "@nomicfoundation/hardhat-errors";
 import { exists, readBinaryFile } from "@nomicfoundation/hardhat-utils/fs";
 import { deepMerge } from "@nomicfoundation/hardhat-utils/lang";
+import { AsyncMutex } from "@nomicfoundation/hardhat-utils/synchronization";
 
 import { resolveUserConfigToHardhatConfig } from "../../core/hre.js";
 import { isSupportedChainType } from "../../edr/chain-type.js";
@@ -57,6 +58,7 @@ export class NetworkManagerImplementation implements NetworkManager {
   readonly #projectRoot: string;
 
   #nextConnectionId = 0;
+  readonly #contractDecoderMutex = new AsyncMutex();
   #contractDecoder: ContractDecoder | undefined;
 
   constructor(
@@ -248,11 +250,25 @@ export class NetworkManagerImplementation implements NetworkManager {
         // In practice, most workflows compile everything before creating
         // any network connection.
         if (this.#contractDecoder === undefined) {
-          this.#contractDecoder = await EdrProvider.createContractDecoder({
-            buildInfos: await this.#getBuildInfosAndOutputsAsBuffers(),
-            ignoreContracts: false,
+          // We want to ensure that only one contract decoder is created so we
+          // protect the initialization with a mutex.
+          await this.#contractDecoderMutex.exclusiveRun(async () => {
+            // We check again if the decoder is undefined because another async
+            // execution context could have already initialized it while we were
+            // waiting for the mutex.
+            if (this.#contractDecoder === undefined) {
+              this.#contractDecoder = await EdrProvider.createContractDecoder({
+                buildInfos: await this.#getBuildInfosAndOutputsAsBuffers(),
+                ignoreContracts: false,
+              });
+            }
           });
         }
+
+        assertHardhatInvariant(
+          this.#contractDecoder !== undefined,
+          "Contract decoder should have been initialized before creating the provider",
+        );
 
         return EdrProvider.create({
           chainDescriptors: this.#chainDescriptors,
