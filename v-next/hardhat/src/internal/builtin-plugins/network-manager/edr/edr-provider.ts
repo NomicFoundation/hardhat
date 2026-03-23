@@ -195,9 +195,9 @@ export class EdrProvider extends BaseProvider {
         },
         {
           subscriptionCallback: (event: SubscriptionEvent) => {
-            const deferedProvider = edrProviderWeakRef.deref();
-            if (deferedProvider !== undefined) {
-              deferedProvider.onSubscriptionEvent(event);
+            const deferredProvider = edrProviderWeakRef.deref();
+            if (deferredProvider !== undefined) {
+              deferredProvider.onSubscriptionEvent(event);
             }
           },
         },
