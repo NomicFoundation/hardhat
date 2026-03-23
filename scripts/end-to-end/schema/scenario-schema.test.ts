@@ -83,6 +83,7 @@ describe("isScenarioDefinition", () => {
         packageManager: "npm",
         tags: [],
         disabled: false,
+        defaultCommand: "npx hardhat test",
       }),
       false,
     );
