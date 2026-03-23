@@ -19,11 +19,18 @@ export default async (): Promise<Partial<TestHooks>> => ({
   },
 });
 
+function isGasStatsEnabled(context: HookContext): boolean {
+  return (
+    context.globalOptions.gasStats === true ||
+    context.globalOptions.gasStatsJson !== undefined
+  );
+}
+
 export async function testRunStart(
   context: HookContext,
   id: string,
 ): Promise<void> {
-  if (context.globalOptions.gasStats === true) {
+  if (isGasStatsEnabled(context)) {
     await getGasAnalyticsManager(context).clearGasMeasurements(id);
   }
 }
@@ -32,7 +39,7 @@ export async function testWorkerDone(
   context: HookContext,
   id: string,
 ): Promise<void> {
-  if (context.globalOptions.gasStats === true) {
+  if (isGasStatsEnabled(context)) {
     await getGasAnalyticsManager(context).saveGasMeasurements(id);
   }
 }
@@ -43,5 +50,11 @@ export async function testRunDone(
 ): Promise<void> {
   if (context.globalOptions.gasStats === true) {
     await getGasAnalyticsManager(context).reportGasStats(id);
+  }
+  if (context.globalOptions.gasStatsJson !== undefined) {
+    await getGasAnalyticsManager(context).writeGasStatsJson(
+      context.globalOptions.gasStatsJson,
+      id,
+    );
   }
 }

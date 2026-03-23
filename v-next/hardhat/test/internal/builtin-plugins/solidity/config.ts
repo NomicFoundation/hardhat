@@ -866,6 +866,28 @@ describe("solidity plugin config resolution", () => {
     () => {
       const otherResolvedConfig = { paths: { root: process.cwd() } } as any;
 
+      it("should default preferWasm to true for versions below the ARM64 mirror threshold in all profiles", async () => {
+        const resolvedConfig = await resolveSolidityUserConfig(
+          {
+            solidity: {
+              compilers: [
+                { version: "0.4.24" }, // No native ARM64 build anywhere
+              ],
+            },
+          },
+          otherResolvedConfig,
+        );
+
+        // Both default and production profiles should force WASM for < 0.5.0
+        const defaultCompilers =
+          resolvedConfig.solidity.profiles.default.compilers;
+        assert.equal(defaultCompilers[0].preferWasm, true);
+
+        const productionCompilers =
+          resolvedConfig.solidity.profiles.production.compilers;
+        assert.equal(productionCompilers[0].preferWasm, true);
+      });
+
       it("should default preferWasm to true in production profile for versions without official ARM64 builds", async () => {
         const resolvedConfig = await resolveSolidityUserConfig(
           {
@@ -906,12 +928,12 @@ describe("solidity plugin config resolution", () => {
         assert.equal(productionCompilers[1].preferWasm, undefined);
       });
 
-      it("should leave preferWasm undefined in default profile for all versions", async () => {
+      it("should leave preferWasm undefined in default profile for versions with native builds", async () => {
         const resolvedConfig = await resolveSolidityUserConfig(
           {
             solidity: {
               compilers: [
-                { version: "0.8.28" }, // No official ARM64 build
+                { version: "0.8.28" }, // In mirror range — has native build
                 { version: "0.8.31" }, // Has official ARM64 build
               ],
             },
@@ -919,7 +941,7 @@ describe("solidity plugin config resolution", () => {
           otherResolvedConfig,
         );
 
-        // Default profile gets preferWasm: undefined for all versions
+        // Default profile gets preferWasm: undefined for versions that have native builds
         const defaultCompilers =
           resolvedConfig.solidity.profiles.default.compilers;
         assert.equal(defaultCompilers[0].preferWasm, undefined);

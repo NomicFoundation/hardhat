@@ -74,7 +74,10 @@ const runAllTests: NewTaskActionFunction<TestActionArguments> = async (
     getCoverageManager(hre).disableReport();
   }
 
-  if (hre.globalOptions.gasStats === true) {
+  if (
+    hre.globalOptions.gasStats === true ||
+    hre.globalOptions.gasStatsJson !== undefined
+  ) {
     getGasAnalyticsManager(hre).disableReport();
   }
 
@@ -235,11 +238,24 @@ const runAllTests: NewTaskActionFunction<TestActionArguments> = async (
     console.log();
   }
 
-  if (hre.globalOptions.gasStats === true) {
+  if (
+    hre.globalOptions.gasStats === true ||
+    hre.globalOptions.gasStatsJson !== undefined
+  ) {
     const gasAnalytics = getGasAnalyticsManager(hre);
     gasAnalytics.enableReport();
-    await gasAnalytics.reportGasStats(...ranSubtaskIds);
-    console.log();
+
+    if (hre.globalOptions.gasStats === true) {
+      await gasAnalytics.reportGasStats(...ranSubtaskIds);
+      console.log();
+    }
+
+    if (hre.globalOptions.gasStatsJson !== undefined) {
+      await gasAnalytics.writeGasStatsJson(
+        hre.globalOptions.gasStatsJson,
+        ...ranSubtaskIds,
+      );
+    }
   }
 
   if (hasFailures) {

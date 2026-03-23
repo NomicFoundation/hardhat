@@ -1,5 +1,13 @@
 # @nomicfoundation/hardhat-errors
 
+## 3.0.9
+
+### Patch Changes
+
+- [#8060](https://github.com/NomicFoundation/hardhat/pull/8060) [`0e8abcf`](https://github.com/NomicFoundation/hardhat/commit/0e8abcf376b7b3618261512c98ae5dcfef716216) Thanks [@kanej](https://github.com/kanej)! - Added guard against `http` network configs in `network.createServer(...)`
+
+- [#8064](https://github.com/NomicFoundation/hardhat/pull/8064) [`392fc38`](https://github.com/NomicFoundation/hardhat/commit/392fc388556e9ec3ca1309db0ffb2ded24439ee2) Thanks [@schaable](https://github.com/schaable)! - Add `--gas-stats-json <path>` global option to write gas usage statistics to a JSON file ([#7990](https://github.com/NomicFoundation/hardhat/issues/7990)).
+
 ## 3.0.8
 
 ### Patch Changes

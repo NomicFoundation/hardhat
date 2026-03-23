@@ -574,6 +574,38 @@ describe(
           assert.equal(compiler.version, "0.8.28");
         });
       });
+
+      describe("versions missing from the native build list", function () {
+        it("isCompilerDownloaded should throw for a version not in the native build list", async () => {
+          await downloader.updateCompilerListIfNeeded(new Set(["0.8.28"]));
+
+          await assertRejectsWithHardhatError(
+            () => downloader.isCompilerDownloaded("0.4.24"),
+            HardhatError.ERRORS.CORE.SOLIDITY.INVALID_SOLC_VERSION,
+            { version: "0.4.24" },
+          );
+        });
+
+        it("downloadCompiler should throw for a version not in the native build list", async () => {
+          await downloader.updateCompilerListIfNeeded(new Set(["0.8.28"]));
+
+          await assertRejectsWithHardhatError(
+            () => downloader.downloadCompiler("0.4.24"),
+            HardhatError.ERRORS.CORE.SOLIDITY.INVALID_SOLC_VERSION,
+            { version: "0.4.24" },
+          );
+        });
+
+        it("getCompiler should throw for a version not in the native build list", async () => {
+          await downloader.updateCompilerListIfNeeded(new Set(["0.8.28"]));
+
+          await assertRejectsWithHardhatError(
+            () => downloader.getCompiler("0.4.24"),
+            HardhatError.ERRORS.CORE.SOLIDITY.INVALID_SOLC_VERSION,
+            { version: "0.4.24" },
+          );
+        });
+      });
     });
   },
 );

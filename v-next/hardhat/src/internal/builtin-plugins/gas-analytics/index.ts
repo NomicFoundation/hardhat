@@ -1,6 +1,7 @@
 import type { HardhatPlugin } from "../../../types/plugins.js";
 
-import { globalFlag, overrideTask } from "../../core/config.js";
+import { ArgumentType } from "../../../types/arguments.js";
+import { globalFlag, globalOption, overrideTask } from "../../core/config.js";
 
 import "./type-extensions.js";
 
@@ -42,6 +43,13 @@ const hardhatPlugin: HardhatPlugin = {
       name: "gasStats",
       description:
         "Collects and displays gas usage statistics for all function calls during tests",
+    }),
+    globalOption({
+      name: "gasStatsJson",
+      description:
+        "Write gas usage statistics to a JSON file at the specified path",
+      type: ArgumentType.FILE_WITHOUT_DEFAULT,
+      defaultValue: undefined,
     }),
   ],
   hookHandlers: {

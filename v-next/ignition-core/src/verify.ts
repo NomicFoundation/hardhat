@@ -4,6 +4,7 @@ import type { VerifyInfo, VerifyResult } from "./types/verify.js";
 
 import { HardhatError } from "@nomicfoundation/hardhat-errors";
 import { FileNotFoundError } from "@nomicfoundation/hardhat-utils/fs";
+import { findLastIndex } from "lodash-es";
 
 import { FileDeploymentLoader } from "./internal/deployment-loader/file-deployment-loader.js";
 import { loadDeploymentState } from "./internal/execution/deployment-state-helpers.js";
@@ -96,6 +97,8 @@ async function convertExStateToVerifyInfo(
     `Deployment execution state ${exState.id} should have a successful result to retrieve address`,
   );
 
+  const creationTxHash = getCreationTxHash(exState);
+
   const verifyInfo: VerifyInfo = {
     constructorArgs,
     libraries,
@@ -103,7 +106,32 @@ async function convertExStateToVerifyInfo(
     contract: contractName.includes(":")
       ? contractName
       : `${artifact.sourceName}:${contractName}`,
+    creationTxHash,
   };
 
   return verifyInfo;
+}
+
+function getCreationTxHash(
+  exState: DeploymentExecutionState,
+): string | undefined {
+  // We know that for both create2 and the basic strategy
+  // the last confirmed transaction is where the deployment
+  // happened - and so is the creation transaction.
+  const networkInteraction = exState.networkInteractions.at(-1);
+
+  if (networkInteraction?.type !== "ONCHAIN_INTERACTION") {
+    return undefined;
+  }
+
+  const lastConfirmedIndex = findLastIndex(
+    networkInteraction.transactions,
+    (tx) => tx.receipt !== undefined,
+  );
+
+  if (lastConfirmedIndex === -1) {
+    return undefined;
+  }
+
+  return networkInteraction.transactions[lastConfirmedIndex].hash;
 }
