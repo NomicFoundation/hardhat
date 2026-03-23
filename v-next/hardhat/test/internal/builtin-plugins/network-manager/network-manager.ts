@@ -35,6 +35,7 @@ import {
   resolveEdrNetwork,
   resolveHttpNetwork,
 } from "../../../../src/internal/builtin-plugins/network-manager/config-resolution.js";
+import { EdrProvider } from "../../../../src/internal/builtin-plugins/network-manager/edr/edr-provider.js";
 import {
   getCurrentHardfork,
   getHardforks,
@@ -2512,8 +2513,8 @@ describe("NetworkManagerImplementation", () => {
           for (const hardfork of Object.values(OpHardforkName)) {
             const validationErrors = await validateNetworkUserConfig({
               ...edrConfig({ hardfork }),
-              /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions 
-              -- Type assertion needed because changing defaultChainType requires module 
+              /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions
+              -- Type assertion needed because changing defaultChainType requires module
               augmentation, which can't be done in test files */
               defaultChainType: OPTIMISM_CHAIN_TYPE as any,
             });
@@ -2556,8 +2557,8 @@ describe("NetworkManagerImplementation", () => {
             ...edrConfig({
               hardfork: L1HardforkName.OSAKA,
             }),
-            /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions 
-            -- Type assertion needed because changing defaultChainType requires module 
+            /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions
+            -- Type assertion needed because changing defaultChainType requires module
             augmentation, which can't be done in test files */
             defaultChainType: OPTIMISM_CHAIN_TYPE as any,
           });
@@ -2957,6 +2958,26 @@ describe("NetworkManagerImplementation", () => {
           ]);
         });
       });
+    });
+  });
+
+  describe("ContractDecoder caching", () => {
+    it("should create the ContractDecoder only once across multiple EDR connections", async (t) => {
+      const spy = t.mock.method(EdrProvider, "createContractDecoder");
+
+      await networkManager.connect({
+        network: "edrNetwork",
+      });
+
+      await networkManager.connect({
+        network: "edrNetwork",
+      });
+
+      assert.equal(
+        spy.mock.callCount(),
+        1,
+        "createContractDecoder should be called exactly once",
+      );
     });
   });
 });
