@@ -179,7 +179,7 @@ describe("NetworkManagerImplementation", () => {
       }
     });
 
-    it("should return the same networkConfig reference for two connect() calls that have the chaintype defined in the config", async () => {
+    it("should return the same networkConfig reference for two connect() calls that have the chain type defined in the config", async () => {
       const conn1 = await networkManager.connect({
         network: "edrNetwork",
         chainType: OPTIMISM_CHAIN_TYPE,
