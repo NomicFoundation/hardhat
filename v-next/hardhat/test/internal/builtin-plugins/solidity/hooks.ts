@@ -52,7 +52,7 @@ function createTypeRegistrationMockPlugin(types: string[]): HardhatPlugin {
               userConfig,
               resolveConfigurationVariable,
             );
-            // eslint-disable-next-line @typescript-eslint/consistent-type-assertions -- test registers unregistered types
+             
             resolved.solidity.registeredCompilerTypes.push(...(types as any[]));
             return resolved;
           },
@@ -68,7 +68,7 @@ describe("solidity - hooks", () => {
 
     const expectedSolidityVersion = "0.8.23";
 
-    // eslint-disable-next-line @typescript-eslint/consistent-type-assertions -- intentional fake for test
+     
     const fakeOutput: CompilerOutput = {} as any;
 
     let hre: HardhatRuntimeEnvironment;
@@ -82,7 +82,7 @@ describe("solidity - hooks", () => {
       passedSolcInput = undefined;
       returnedSolcOutput = undefined;
 
-      // eslint-disable-next-line @typescript-eslint/consistent-type-assertions -- intentional mocking of compiler
+       
       const fakeCompiler: Compiler = {
         compile: () => {
           return fakeOutput;
@@ -574,7 +574,7 @@ describe("solidity - hooks", () => {
     });
 
     it("should allow plugins to return a custom compiler", async () => {
-      // eslint-disable-next-line @typescript-eslint/consistent-type-assertions -- intentional fake for test
+       
       const fakeOutput: CompilerOutput = {
         contracts: {},
         sources: {},
@@ -583,7 +583,7 @@ describe("solidity - hooks", () => {
 
       let customCompilerUsed = false;
 
-      // eslint-disable-next-line @typescript-eslint/consistent-type-assertions -- intentional mocking of compiler
+       
       const customCompiler: Compiler = {
         version: "0.8.23",
         longVersion: "0.8.23+custom",
@@ -609,7 +609,7 @@ describe("solidity - hooks", () => {
                     nextCompilerConfig: SolidityCompilerConfig,
                   ) => Promise<Compiler>,
                 ) => {
-                  // eslint-disable-next-line @typescript-eslint/consistent-type-assertions -- test uses unregistered type
+                   
                   if ((compilerConfig.type as string) === "custom") {
                     return customCompiler;
                   }
@@ -629,7 +629,7 @@ describe("solidity - hooks", () => {
           createTypeRegistrationMockPlugin(["custom"]),
         ],
         solidity: {
-          // eslint-disable-next-line @typescript-eslint/consistent-type-assertions -- test uses unregistered compiler type
+           
           compilers: [{ type: "custom" as any, version: "0.8.23" }],
         },
       });

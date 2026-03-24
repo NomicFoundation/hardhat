@@ -30,6 +30,12 @@ const noForkingConfigCacheMarkerObject = {};
  * in practice this should rarely happen, except when using network config
  * overrides that generate the same config. These cases should be the minority
  * within a test suite.
+ *
+ * Note: the main reason that we don't use the entire NetworkConfig as cache
+ * key is that EDR initialization path recreates the NetworkConfig object to
+ * override some properties like `allowUnlimitedContractSize`, leading to a
+ * different NetworkConfig reference, despite keeping the references of most
+ * of its properties (including the accounts and forking config) the same.
  */
 const genesisStateAndAccountsCache: WeakMap<
   EdrNetworkAccountsConfig,
