@@ -264,21 +264,22 @@ export class HardhatEthersSigner implements HardhatEthersSignerI {
 
     // Make sure the from matches the sender
     if (resolvedTx.from !== null && resolvedTx.from !== undefined) {
-      const _from = resolvedTx.from;
-      promises.push(
-        (async () => {
-          const from = await resolveAddress(_from, this.provider);
-          assertArgument(
-            from !== null &&
-              from !== undefined &&
-              from.toLowerCase() === this.address.toLowerCase(),
-            "from address mismatch",
-            "transaction",
-            tx,
-          );
-          resolvedTx.from = from;
-        })(),
-      );
+      // Note: We remove this codepath so that Hardhat handles it in the provider
+      // const _from = resolvedTx.from;
+      // promises.push(
+      //   (async () => {
+      //     const from = await resolveAddress(_from, this.provider);
+      //     assertArgument(
+      //       from !== null &&
+      //         from !== undefined &&
+      //         from.toLowerCase() === this.address.toLowerCase(),
+      //       "from address mismatch",
+      //       "transaction",
+      //       tx,
+      //     );
+      //     resolvedTx.from = from;
+      //   })(),
+      // );
     } else {
       resolvedTx.from = this.address;
     }
@@ -287,14 +288,15 @@ export class HardhatEthersSigner implements HardhatEthersSignerI {
       if (this.#gasLimit !== undefined) {
         resolvedTx.gasLimit = this.#gasLimit;
       } else {
-        promises.push(
-          (async () => {
-            resolvedTx.gasLimit = await this.provider.estimateGas({
-              ...resolvedTx,
-              from: this.address,
-            });
-          })(),
-        );
+        // Note: We remove this codepath so that Hardhat handles it in the provider
+        // promises.push(
+        //   (async () => {
+        //     resolvedTx.gasLimit = await this.provider.estimateGas({
+        //       ...resolvedTx,
+        //       from: this.address,
+        //     });
+        //   })(),
+        // );
       }
     }
 
