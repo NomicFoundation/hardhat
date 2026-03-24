@@ -169,7 +169,7 @@ describe("NetworkManagerImplementation", () => {
       for (const key of Object.keys(conn1.networkConfig)) {
         /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions --
           we know the type of the network config object. It may have discrepancies
-          between the two connections, but we the assertion above ensures that. */
+          between the two connections, but the assertion above ensures that this is safe. */
         const networkConfigKey = key as keyof NetworkConfig;
         assert.equal(
           conn1.networkConfig[networkConfigKey],
