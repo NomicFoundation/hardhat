@@ -2,4 +2,4 @@
 "hardhat": patch
 ---
 
-Optimize the initilization of EDR Network Connections by caching their genesis state.
+Optimize the initialization of EDR Network Connections by caching their genesis state.
