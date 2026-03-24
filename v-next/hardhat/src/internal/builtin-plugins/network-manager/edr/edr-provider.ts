@@ -135,7 +135,7 @@ interface EdrProviderConfig {
   chainDescriptors: ChainDescriptorsConfig;
   networkConfig: RequireField<EdrNetworkConfig, "chainType">;
   loggerConfig?: LoggerConfig;
-  tracingConfig?: TracingConfigWithBuffers;
+  contractDecoder: ContractDecoder;
   jsonRpcRequestWrapper?: JsonRpcRequestWrapperFunction;
   coverageConfig?: CoverageConfig;
   gasReportConfig?: GasReportConfig;
@@ -147,6 +147,12 @@ export class EdrProvider extends BaseProvider {
   #provider: Provider | undefined;
   #nextRequestId = 1;
 
+  public static async createContractDecoder(
+    tracingConfig: TracingConfigWithBuffers,
+  ): Promise<ContractDecoder> {
+    return ContractDecoder.withContracts(tracingConfig);
+  }
+
   /**
    * Creates a new instance of `EdrProvider`.
    */
@@ -154,7 +160,7 @@ export class EdrProvider extends BaseProvider {
     chainDescriptors,
     networkConfig,
     loggerConfig = { enabled: false },
-    tracingConfig = {},
+    contractDecoder,
     jsonRpcRequestWrapper,
     coverageConfig,
     gasReportConfig,
@@ -174,8 +180,6 @@ export class EdrProvider extends BaseProvider {
     // We need to catch errors here, as the provider creation can panic unexpectedly,
     // and we want to make sure such a crash is propagated as a ProviderError.
     try {
-      const contractDecoder = ContractDecoder.withContracts(tracingConfig);
-
       const context = await getGlobalEdrContext();
       const provider = await context.createProvider(
         hardhatChainTypeToEdrChainType(networkConfig.chainType),
