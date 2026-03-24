@@ -58,6 +58,7 @@ import pMap from "p-map";
 
 import { FileBuildResultType } from "../../../../types/solidity/build-system.js";
 import { DEFAULT_BUILD_PROFILE } from "../build-profiles.js";
+import { getSolcCompilerForConfig } from "../solidity-hooks.js";
 
 import {
   getArtifactsDeclarationFile,
@@ -89,20 +90,6 @@ export function isSolcSolidityCompilerConfig(
   config: SolidityCompilerConfig,
 ): config is SolcSolidityCompilerConfig {
   return config.type === undefined || config.type === "solc";
-}
-
-/**
- * Resolves the preferWasm setting for a given compiler config, falling back
- * to the build profile's preferWasm if not set on the compiler.
- */
-function resolvePreferWasm(
-  compilerConfig: SolidityCompilerConfig,
-  buildProfilePreferWasm: boolean,
-): boolean {
-  if (isSolcSolidityCompilerConfig(compilerConfig)) {
-    return compilerConfig.preferWasm ?? buildProfilePreferWasm;
-  }
-  return false;
 }
 
 // Compiler warnings to suppress from build output.
@@ -506,13 +493,13 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
       let longVersion = longVersionMap.get(compilerConfig.version);
 
       if (longVersion === undefined) {
-        const compiler = await getCompiler(compilerConfig.version, {
-          preferWasm: resolvePreferWasm(
-            compilerConfig,
-            buildProfile.preferWasm,
-          ),
-          compilerPath: compilerConfig.path,
-        });
+        const compiler = await this.#hooks.runHandlerChain(
+          "solidity",
+          "getCompiler",
+          [compilerConfig],
+          async (_context, cfg) =>
+            getSolcCompilerForConfig(cfg, buildProfile.preferWasm),
+        );
         longVersion = compiler.longVersion;
         longVersionMap.set(compilerConfig.version, longVersion);
         isWasmMap.set(compilerConfig.version, compiler.isSolcJs);
@@ -750,19 +737,16 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
 
     const { buildProfile } = this.#getBuildProfile(options?.buildProfile);
 
-    const compiler = await getCompiler(
-      runnableCompilationJob.solcConfig.version,
-      {
-        preferWasm: resolvePreferWasm(
-          runnableCompilationJob.solcConfig,
-          buildProfile.preferWasm,
-        ),
-        compilerPath: runnableCompilationJob.solcConfig.path,
-      },
+    const compiler = await this.#hooks.runHandlerChain(
+      "solidity",
+      "getCompiler",
+      [runnableCompilationJob.solcConfig],
+      async (_context, cfg) =>
+        getSolcCompilerForConfig(cfg, buildProfile.preferWasm),
     );
 
     log(
-      `Compiling ${numberOfRootFiles} root files and ${numberOfFiles - numberOfRootFiles} dependency files with solc ${runnableCompilationJob.solcConfig.version} using ${compiler.compilerPath}`,
+      `Compiling ${numberOfRootFiles} root files and ${numberOfFiles - numberOfRootFiles} dependency files with ${runnableCompilationJob.solcConfig.type ?? "solc"} ${runnableCompilationJob.solcConfig.version} using ${compiler.compilerPath}`,
     );
 
     assertHardhatInvariant(
@@ -1089,8 +1073,10 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
   ): Promise<CompilerOutput> {
     const quiet = options?.quiet ?? false;
 
-    // We download the compiler for the build info as it may not be configured
-    // in the HH config, hence not downloaded with the other compilers
+    // Build info recompilation is always solc-only: build info files are
+    // produced by solc and must be recompiled with the same solc version.
+    // We bypass both downloadCompilers and getCompiler hooks — this is a
+    // self-contained solc replay path, not plugin-configurable compilation.
     await downloadSolcCompilers(new Set([buildInfo.solcVersion]), quiet);
 
     const compiler = await getCompiler(buildInfo.solcVersion, {
@@ -1107,20 +1093,17 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
       return;
     }
 
-    await downloadSolcCompilers(this.#getAllCompilerVersions(), quiet);
+    const allSolidityCompilerConfigs = this.#getAllSolidityCompilerConfigs();
+    await this.#hooks.runParallelHandlers("solidity", "downloadCompilers", [
+      allSolidityCompilerConfigs,
+      quiet,
+    ]);
     this.#configuredCompilersDownloaded = true;
   }
 
-  #getAllCompilerVersions(): Set<string> {
-    return new Set(
-      Object.values(this.#options.solidityConfig.profiles)
-        .map((profile) => [
-          ...profile.compilers.map((compiler) => compiler.version),
-          ...Object.values(profile.overrides).map(
-            (override) => override.version,
-          ),
-        ])
-        .flat(1),
+  #getAllSolidityCompilerConfigs(): SolidityCompilerConfig[] {
+    return Object.values(this.#options.solidityConfig.profiles).flatMap(
+      (profile) => [...profile.compilers, ...Object.values(profile.overrides)],
     );
   }
 
@@ -1282,16 +1265,21 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
     }
 
     for (const job of runnableCompilationJobs) {
+      const compilerType = job.solcConfig.type ?? "solc";
       const solcVersion = job.solcConfig.version;
       const solcInput = await job.getSolcInput();
       const evmVersion =
         solcInput.settings.evmVersion ??
         `Check solc ${solcVersion}'s doc for its default evm version`;
 
-      let jobsPerVersion = jobsPerVersionAndEvmVersion.get(solcVersion);
+      // Group by compiler type + Solidity version to produce separate log
+      // lines for e.g. "solc 0.8.33" vs "solx 0.1.3 (Solidity 0.8.33)".
+      const groupKey = `${compilerType}#${solcVersion}`;
+
+      let jobsPerVersion = jobsPerVersionAndEvmVersion.get(groupKey);
       if (jobsPerVersion === undefined) {
         jobsPerVersion = new Map();
-        jobsPerVersionAndEvmVersion.set(solcVersion, jobsPerVersion);
+        jobsPerVersionAndEvmVersion.set(groupKey, jobsPerVersion);
       }
 
       let jobsPerEvmVersion = jobsPerVersion.get(evmVersion);
@@ -1303,10 +1291,11 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
       jobsPerEvmVersion.push(job);
     }
 
-    for (const solcVersion of [...jobsPerVersionAndEvmVersion.keys()].sort()) {
+    for (const groupKey of [...jobsPerVersionAndEvmVersion.keys()].sort()) {
       /* eslint-disable-next-line @typescript-eslint/no-non-null-assertion --
       This is a valid key, just sorted */
-      const jobsPerEvmVersion = jobsPerVersionAndEvmVersion.get(solcVersion)!;
+      const jobsPerEvmVersion = jobsPerVersionAndEvmVersion.get(groupKey)!;
+      const [compilerType, solidityVersion] = groupKey.split("#");
 
       for (const evmVersion of [...jobsPerEvmVersion.keys()].sort()) {
         /* eslint-disable-next-line @typescript-eslint/no-non-null-assertion --
@@ -1318,12 +1307,25 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
           0,
         );
 
+        // For solc, the compiler version is the Solidity version.
+        // For other compilers, extract the compiler's own version from the
+        // longVersion stored on the compilation job, and show the Solidity
+        // version separately.
+        let compilerLabel: string;
+        if (compilerType === "solc") {
+          compilerLabel = `solc ${solidityVersion}`;
+        } else {
+          const longVersion = jobs[0].solcLongVersion;
+          const compilerVersion = longVersion.split("+")[0];
+          compilerLabel = `${compilerType} ${compilerVersion} (Solidity ${solidityVersion})`;
+        }
+
         console.log(
           chalk.bold(
             `Compiled ${rootFiles} Solidity ${pluralize(
               options.scope === "contracts" ? "file" : "test file",
               rootFiles,
-            )} with solc ${solcVersion}`,
+            )} with ${compilerLabel}`,
           ),
           `(evm target: ${evmVersion})`,
         );
