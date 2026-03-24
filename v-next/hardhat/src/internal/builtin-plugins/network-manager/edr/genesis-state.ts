@@ -11,6 +11,7 @@ import {
   opHardforkFromString,
   type AccountOverride,
 } from "@nomicfoundation/edr";
+import { AsyncMutex } from "@nomicfoundation/hardhat-utils/synchronization";
 import { hexToBytes } from "ethereum-cryptography/utils";
 import { addr } from "micro-eth-signer/address";
 
@@ -54,6 +55,8 @@ const genesisStateAndAccountsCache: WeakMap<
   >
 > = new WeakMap();
 
+const genesisStateAndAccountsCacheMutex = new AsyncMutex();
+
 export async function getGenesisStateAndOwnedAccounts(
   accountsConfig: EdrNetworkAccountsConfig,
   forkingConfig: EdrNetworkForkingConfig | undefined,
@@ -73,36 +76,50 @@ export async function getGenesisStateAndOwnedAccounts(
     return cached;
   }
 
-  const result = await createGenesisStateAndOwnedAccounts(
-    accountsConfig,
-    forkingConfig,
-    chainType,
-    specId,
-  );
+  return genesisStateAndAccountsCacheMutex.exclusiveRun(async () => {
+    // We need to check again inside the mutex callback in case another async
+    // operation initialized it while we were waiting to acquire the mutex
+    const cachedAfterWaiting = genesisStateAndAccountsCache
+      .get(accountsConfig)
+      ?.get(forkingConfig ?? noForkingConfigCacheMarkerObject)
+      ?.get(chainType)
+      ?.get(specId);
 
-  let secondLevelCacheMap = genesisStateAndAccountsCache.get(accountsConfig);
-  if (secondLevelCacheMap === undefined) {
-    secondLevelCacheMap = new WeakMap();
-    genesisStateAndAccountsCache.set(accountsConfig, secondLevelCacheMap);
-  }
+    if (cachedAfterWaiting !== undefined) {
+      return cachedAfterWaiting;
+    }
 
-  const forkingConfigCacheKey =
-    forkingConfig ?? noForkingConfigCacheMarkerObject;
-  let thirdLevelCacheMap = secondLevelCacheMap.get(forkingConfigCacheKey);
-  if (thirdLevelCacheMap === undefined) {
-    thirdLevelCacheMap = new Map();
-    secondLevelCacheMap.set(forkingConfigCacheKey, thirdLevelCacheMap);
-  }
+    const result = await createGenesisStateAndOwnedAccounts(
+      accountsConfig,
+      forkingConfig,
+      chainType,
+      specId,
+    );
 
-  let fourthLevelCacheMap = thirdLevelCacheMap.get(chainType);
-  if (fourthLevelCacheMap === undefined) {
-    fourthLevelCacheMap = new Map();
-    thirdLevelCacheMap.set(chainType, fourthLevelCacheMap);
-  }
+    let secondLevelCacheMap = genesisStateAndAccountsCache.get(accountsConfig);
+    if (secondLevelCacheMap === undefined) {
+      secondLevelCacheMap = new WeakMap();
+      genesisStateAndAccountsCache.set(accountsConfig, secondLevelCacheMap);
+    }
 
-  fourthLevelCacheMap.set(specId, result);
+    const forkingConfigCacheKey =
+      forkingConfig ?? noForkingConfigCacheMarkerObject;
+    let thirdLevelCacheMap = secondLevelCacheMap.get(forkingConfigCacheKey);
+    if (thirdLevelCacheMap === undefined) {
+      thirdLevelCacheMap = new Map();
+      secondLevelCacheMap.set(forkingConfigCacheKey, thirdLevelCacheMap);
+    }
 
-  return result;
+    let fourthLevelCacheMap = thirdLevelCacheMap.get(chainType);
+    if (fourthLevelCacheMap === undefined) {
+      fourthLevelCacheMap = new Map();
+      thirdLevelCacheMap.set(chainType, fourthLevelCacheMap);
+    }
+
+    fourthLevelCacheMap.set(specId, result);
+
+    return result;
+  });
 }
 
 async function createGenesisStateAndOwnedAccounts(
