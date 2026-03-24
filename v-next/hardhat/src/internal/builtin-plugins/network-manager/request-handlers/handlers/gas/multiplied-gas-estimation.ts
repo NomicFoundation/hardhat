@@ -36,7 +36,16 @@ export abstract class MultipliedGasEstimation {
         "realEstimation should be a string",
       );
 
+      console.log(
+        ">>>>>>>>> Using MultipliedGasEstimation",
+        this.#gasMultiplier,
+      );
+
       if (this.#gasMultiplier === 1) {
+        console.log(
+          ">>>>>>>>>       MultipliedGasEstimation has multiplier 1",
+          this.#gasMultiplier,
+        );
         return realEstimation;
       }
 

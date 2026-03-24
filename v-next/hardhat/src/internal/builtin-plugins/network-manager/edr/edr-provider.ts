@@ -25,6 +25,8 @@ import type {
   GasReportConfig,
 } from "@nomicfoundation/edr";
 
+import util from "node:util";
+
 import {
   opGenesisState,
   opHardforkFromString,
@@ -405,6 +407,19 @@ export class EdrProvider extends BaseProvider {
   }
 
   async #handleRequest(request: JsonRpcRequest): Promise<JsonRpcResponse> {
+    if (
+      request.method === "eth_sendTransaction" ||
+      request.method === "eth_call" ||
+      request.method === "eth_estimateGas"
+    ) {
+      console.log(
+        util.styleText(["green", "bold"], "< " + request.method),
+        request.params,
+      );
+    } else {
+      console.log(util.styleText(["green", "bold"], "< " + request.method));
+    }
+
     assertHardhatInvariant(
       this.#provider !== undefined,
       "The provider is not defined",

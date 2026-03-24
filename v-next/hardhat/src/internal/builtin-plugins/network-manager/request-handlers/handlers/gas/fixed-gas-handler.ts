@@ -31,6 +31,7 @@ export class FixedGasHandler implements RequestHandler {
     const [tx] = params;
 
     if (isObject(tx) && tx.gas === undefined) {
+      console.log(">>>>>>>>> Using FixedGasHandler");
       tx.gas = this.#gas;
     }
 

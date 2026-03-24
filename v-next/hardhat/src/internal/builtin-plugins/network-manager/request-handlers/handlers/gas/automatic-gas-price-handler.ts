@@ -58,6 +58,8 @@ export class AutomaticGasPriceHandler implements RequestHandler {
       return jsonRpcRequest;
     }
 
+    console.log(">>>>>>>>> Using AutomaticGasPriceHandler");
+
     let suggestedEip1559Values = await this.#suggestEip1559FeePriceValues();
 
     // eth_feeHistory failed, so we send a legacy one

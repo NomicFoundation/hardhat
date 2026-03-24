@@ -43,6 +43,7 @@ export class AutomaticGasHandler
     const [tx] = params;
 
     if (isObject(tx) && tx.gas === undefined) {
+      console.log(">>>>>>>>> Using AutomaticGasHandler");
       tx.gas = await this.getMultipliedGasEstimation(params);
     }
 

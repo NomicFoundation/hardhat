@@ -37,6 +37,7 @@ export class FixedGasPriceHandler implements RequestHandler {
       tx.maxFeePerGas === undefined &&
       tx.maxPriorityFeePerGas === undefined
     ) {
+      console.log(">>>>>>>>> Using FixedGasPriceHandler");
       tx.gasPrice = this.#gasPrice;
     }
 

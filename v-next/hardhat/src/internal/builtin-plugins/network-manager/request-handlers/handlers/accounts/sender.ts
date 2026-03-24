@@ -34,6 +34,7 @@ export abstract class SenderHandler implements RequestHandler {
       method === "eth_call" ||
       method === "eth_estimateGas"
     ) {
+      console.log(">>>>>>>>> Using SenderHandler");
       const [tx] = params;
 
       if (isObject(tx) && tx.from === undefined) {
