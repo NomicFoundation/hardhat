@@ -579,5 +579,20 @@ describe("http-provider", () => {
         {},
       );
     });
+
+    it("should remove all listeners after closing", async () => {
+      const provider = await HttpProvider.create({
+        url: "http://localhost",
+        networkName: "exampleNetwork",
+        timeout: 20_000,
+      });
+
+      provider.on("notification", () => {});
+      assert.equal(provider.listenerCount("notification"), 1);
+
+      await provider.close();
+
+      assert.equal(provider.listenerCount("notification"), 0);
+    });
   });
 });

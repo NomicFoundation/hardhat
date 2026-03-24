@@ -165,6 +165,10 @@ export class EdrProvider extends BaseProvider {
 
     let edrProvider: EdrProvider;
 
+    // We use a WeakRef to the provider to prevent the subscriptionCallback
+    // below from creating a cycle and leaking the provider.
+    let edrProviderWeakRef: WeakRef<EdrProvider> | undefined;
+
     // We need to catch errors here, as the provider creation can panic unexpectedly,
     // and we want to make sure such a crash is propagated as a ProviderError.
     try {
@@ -191,13 +195,17 @@ export class EdrProvider extends BaseProvider {
         },
         {
           subscriptionCallback: (event: SubscriptionEvent) => {
-            edrProvider.onSubscriptionEvent(event);
+            const deferredProvider = edrProviderWeakRef?.deref();
+            if (deferredProvider !== undefined) {
+              deferredProvider.onSubscriptionEvent(event);
+            }
           },
         },
         contractDecoder,
       );
 
       edrProvider = new EdrProvider(provider, jsonRpcRequestWrapper);
+      edrProviderWeakRef = new WeakRef(edrProvider);
     } catch (error) {
       ensureError(error);
 
@@ -282,6 +290,7 @@ export class EdrProvider extends BaseProvider {
   }
 
   public async close(): Promise<void> {
+    this.removeAllListeners();
     // Clear the provider reference to help with garbage collection
     this.#provider = undefined;
   }
