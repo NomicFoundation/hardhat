@@ -39,7 +39,7 @@ describe("getGenesisStateAndOwnedAccounts", () => {
     assert.equal(result1, result2);
   });
 
-  it("should return different results (by reference) if any of the parameters change, even the change is only by reference (same values)", async () => {
+  it("should return different results (by reference) if any of the parameters change, even if the change is only by reference (same values)", async () => {
     const result1 = await getGenesisStateAndOwnedAccounts(
       accounts,
       undefined,
