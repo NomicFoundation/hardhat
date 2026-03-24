@@ -1,4 +1,4 @@
-import { defineConfig } from "cspell";
+import { defineConfig } from "./cspell.dictionary.txt";
 
 export default defineConfig({
   version: "0.2",
