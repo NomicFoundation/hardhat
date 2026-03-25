@@ -8,12 +8,13 @@ import util from "node:util";
 
 import { isHash } from "@nomicfoundation/hardhat-utils/eth";
 import { assert as chaiAssert, AssertionError } from "chai";
-import { decodeBytes32String } from "ethers/abi";
 
 import { ASSERTION_ABORTED, EMIT_MATCHER } from "../constants.js";
 import { assertArgsArraysEqual, assertIsNotNull } from "../utils/asserts.js";
 import { buildAssert } from "../utils/build-assert.js";
 import { preventAsyncMatcherChaining } from "../utils/prevent-chaining.js";
+
+import { parseBytes32String } from "./reverted/utils.js";
 
 export const EMIT_CALLED = "emitAssertionCalled";
 
@@ -247,7 +248,7 @@ const tryAssertArgsArraysEqual = (
 
 function isBytes32String(v: string): boolean {
   try {
-    decodeBytes32String(v);
+    parseBytes32String(v);
     return true;
   } catch {
     return false;
