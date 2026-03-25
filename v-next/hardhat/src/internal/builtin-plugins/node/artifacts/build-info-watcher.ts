@@ -2,6 +2,7 @@ import type { FSWatcher } from "chokidar";
 
 import path from "node:path";
 
+import { watch } from "chokidar";
 import debug from "debug";
 
 export type BuildInfoWatcher = FSWatcher;
@@ -59,8 +60,6 @@ export async function watchBuildInfo(
   buildInfoDirPath: string,
   handler: BuildInfoHandler,
 ): Promise<BuildInfoWatcher> {
-  const { watch } = await import("chokidar");
-
   // NOTE: Deleting the build info directory while it is being watched will
   // effectively cause the watcher to stop working.
   // NOTE: We use chokidar's `awaitWriteFinish` option because we are certain

@@ -29,6 +29,7 @@ import {
   getHardhatVersion,
   getLatestHardhatVersion,
 } from "../../utils/package.js";
+import { BannerManager } from "../banner-manager.js";
 import { sendProjectTypeAnalytics } from "../telemetry/analytics/analytics.js";
 import { sendErrorTelemetry } from "../telemetry/sentry/reporter.js";
 
@@ -133,7 +134,6 @@ export async function initHardhat(options?: InitHardhatOptions): Promise<void> {
     showStarOnGitHubMessage();
 
     try {
-      const { BannerManager } = await import("../banner-manager.js");
       const bannerManager = await BannerManager.getInstance();
       await bannerManager.showBanner();
     } catch (bannerError) {

@@ -1,5 +1,7 @@
 import { HardhatError } from "@nomicfoundation/hardhat-errors";
 import { bytesToHexString } from "@nomicfoundation/hardhat-utils/bytes";
+import { mnemonicToSeedSync } from "ethereum-cryptography/bip39";
+import { HDKey } from "ethereum-cryptography/hdkey";
 
 const HD_PATH_REGEX = /^m(:?\/\d+'?)+\/?$/;
 
@@ -47,9 +49,6 @@ async function deriveKeyFromMnemonicAndPath(
   hdPath: string,
   passphrase: string,
 ): Promise<string | undefined> {
-  const { mnemonicToSeedSync } = await import("ethereum-cryptography/bip39");
-  const { HDKey } = await import("ethereum-cryptography/hdkey");
-
   // NOTE: If mnemonic has space or newline at the beginning or end, it will be trimmed.
   // This is because mnemonic containing them may generate different private keys.
   const trimmedMnemonic = mnemonic.trim();
