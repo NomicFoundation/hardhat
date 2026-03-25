@@ -39,7 +39,7 @@ Use `await import` only if one of these conditions is met:
 5. The import has to happen at a certain point in time (mostly used for import side-effects, e.g. `await imports(...)` without doing anything with the imported module)
 6. If there's a comment justifying it, and the imported module is cached (i.e. not running `await import(...)` every time, but instead doing something like `if (cachedModule === undefined) { cachedModule = await import(...) }`)
 
-The only accepted imports in the `index.ts` file of plugins (both built-in and external) are their `type-extension`, types from `hardhat`, and `hardhat/config`, and potentially a simple file with constants. Everything else should be imported by a callback registered in the plugin object.
+The only accepted imports in the `index.ts` file of plugins (both built-in and external) are their `type-extension`, types and `enums` from `hardhat`, and `hardhat/config`, and potentially a simple file with constants. They can also import files that follow these same rules and restrictions. Everything else should be imported by a callback registered in the plugin object.
 
 Test files are free to use `await import` freely.
 

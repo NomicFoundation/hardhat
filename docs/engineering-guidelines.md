@@ -14,7 +14,7 @@ The intention behind the current separation of part of `hardhat` into the `core/
 
 The entry-point of the plugins are meant to only export a description of the plugin, and not implement any functionality. Please don’t import anything in those files.
 
-The only accepted imports in the `index.ts` file of plugins (both built-in and external) are their `type-extension`, types from `hardhat`, and `hardhat/config`, and potentially a simple file with constants. Everything else should be imported by a callback registered in the plugin object.
+The only accepted imports in the `index.ts` file of plugins (both built-in and external) are their `type-extension`, types and `enums` from `hardhat`, and `hardhat/config`, and potentially a simple file with constants. They can also import files that follow these same rules and restrictions. Everything else should be imported by a callback registered in the plugin object.
 
 ## A3: Always initialize the HRE using the `hre-initialization` module inside of `hardhat`
 
