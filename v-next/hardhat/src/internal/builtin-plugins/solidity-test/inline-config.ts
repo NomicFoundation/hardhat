@@ -271,7 +271,7 @@ export function validateInlineOverrides(overrides: RawInlineOverride[]): void {
     );
 
     // Validate key
-    if (!(key in KEY_TYPES)) {
+    if (!Object.hasOwn(KEY_TYPES, key)) {
       throw new HardhatError(
         HardhatError.ERRORS.CORE.SOLIDITY_TESTS.INLINE_CONFIG_INVALID_KEY,
         {
