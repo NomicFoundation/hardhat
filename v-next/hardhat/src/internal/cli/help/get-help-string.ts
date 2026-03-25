@@ -1,6 +1,8 @@
 import type { GlobalOptionDefinitions } from "../../../types/global-options.js";
 import type { Task } from "../../../types/tasks.js";
 
+import chalk from "chalk";
+
 import {
   GLOBAL_NAME_PADDING,
   parseOptions,
@@ -15,8 +17,6 @@ export async function getHelpString(
   task: Task,
   globalOptionDefinitions: GlobalOptionDefinitions,
 ): Promise<string> {
-  const { default: chalk } = await import("chalk");
-
   const { options, positionalArguments } = parseOptions(task);
 
   const subtasks = parseSubtasks(task);
