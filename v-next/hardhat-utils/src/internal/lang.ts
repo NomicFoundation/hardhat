@@ -4,7 +4,7 @@ import rfdc from "rfdc";
 import { isObject } from "../lang.js";
 
 let clone: ReturnType<typeof rfdc> | null = null;
-export async function getDeepCloneFunction(): Promise<<T>(input: T) => T> {
+export function getDeepCloneFunction(): <T>(input: T) => T {
   if (clone === null) {
     clone = rfdc();
   }
@@ -60,9 +60,9 @@ let cachedCustomEqual: ((a: unknown, b: unknown) => boolean) | undefined;
  *
  * @param x The first value to compare.
  * @param y The second value to compare.
- * @returns A promise that resolves to true if the values are deeply equal, false otherwise.
+ * @returns True if the values are deeply equal, false otherwise.
  */
-export async function customFastEqual<T>(x: T, y: T): Promise<boolean> {
+export function customFastEqual<T>(x: T, y: T): boolean {
   if (cachedCustomEqual !== undefined) {
     return cachedCustomEqual(x, y);
   }
