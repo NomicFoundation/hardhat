@@ -4,7 +4,15 @@ import HardhatSolxPlugin from "../../../src/index.js";
 
 const config: HardhatUserConfig = {
   solidity: {
-    compilers: [{ version: "0.8.33" }],
+    profiles: {
+      default: {
+        version: "0.8.33",
+      },
+      solx: {
+        type: "solx",
+        version: "0.8.33",
+      },
+    },
   },
   plugins: [HardhatSolxPlugin],
 };

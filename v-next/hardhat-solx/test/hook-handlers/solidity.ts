@@ -8,6 +8,8 @@ import { describe, it } from "node:test";
 
 import { assertRejectsWithHardhatError } from "@nomicfoundation/hardhat-test-utils";
 
+import { parseSolxVersion } from "../../src/internal/hook-handlers/solidity.js";
+
 // Helper to create a compiler config
 function createSolidityCompilerConfig(
   overrides: Partial<SolidityCompilerConfig> = {},
@@ -50,6 +52,33 @@ function createGetCompilerMockNext() {
     compiler: mockCompiler,
   };
 }
+
+describe("parseSolxVersion", () => {
+  it("parses version from stable release output", () => {
+    assert.equal(
+      parseSolxVersion(
+        "solx, LLVM-based Solidity compiler for the EVM v0.1.3, LLVM revision: v1.0.2, LLVM build: a33d492",
+      ),
+      "0.1.3",
+    );
+  });
+
+  it("parses version from nightly build output", () => {
+    assert.equal(
+      parseSolxVersion(
+        "solx v0.1.4, LLVM-based Solidity compiler for the EVM, Front end: solc, LLVM build: 12f24e07",
+      ),
+      "0.1.4",
+    );
+  });
+
+  it("parses pre-release version", () => {
+    assert.equal(
+      parseSolxVersion("solx v0.2.0-alpha.1, LLVM-based Solidity compiler"),
+      "0.2.0-alpha.1",
+    );
+  });
+});
 
 describe("hardhat-solx solidity hook handler", () => {
   describe("downloadCompilers", () => {
@@ -198,6 +227,94 @@ describe("hardhat-solx solidity hook handler", () => {
             "No solx version mapping for Solidity 0.8.99 — this should have been caught by config validation",
         },
       );
+    });
+
+    it("throws invariant error when path does not exist", async () => {
+      const { HardhatError } = await import("@nomicfoundation/hardhat-errors");
+      const hookHandlerModule = await import(
+        "../../src/internal/hook-handlers/solidity.js"
+      );
+      const hooks = await hookHandlerModule.default();
+
+      const context = { config: {} } as any;
+      const compilerConfig = createSolidityCompilerConfig({
+        type: "solx",
+        version: "0.8.33",
+        path: "/nonexistent/path/to/solx",
+      });
+      const mockNext = createGetCompilerMockNext();
+
+      await assertRejectsWithHardhatError(
+        hooks.getCompiler!(context, compilerConfig, mockNext.next),
+        HardhatError.ERRORS.CORE.INTERNAL.ASSERTION_ERROR,
+        {
+          message:
+            "solx binary not found at /nonexistent/path/to/solx — the configured path does not exist",
+        },
+      );
+    });
+
+    it("returns SolxCompiler with version from binary when path is provided", async () => {
+      const { getSolxBinaryPath } = await import(
+        "../../src/internal/downloader.js"
+      );
+      const { exists } = await import("@nomicfoundation/hardhat-utils/fs");
+
+      // Use the cached solx binary if available, skip otherwise
+      const cachedPath = await getSolxBinaryPath("0.1.3");
+      if (!(await exists(cachedPath))) {
+        return;
+      }
+
+      const hookHandlerModule = await import(
+        "../../src/internal/hook-handlers/solidity.js"
+      );
+      const hooks = await hookHandlerModule.default();
+
+      const context = { config: {} } as any;
+      const compilerConfig = createSolidityCompilerConfig({
+        type: "solx",
+        version: "0.8.33",
+        path: cachedPath,
+      });
+      const mockNext = createGetCompilerMockNext();
+
+      const compiler = await hooks.getCompiler!(
+        context,
+        compilerConfig,
+        mockNext.next,
+      );
+
+      assert.ok(
+        !mockNext.wasCalled(),
+        "next should NOT have been called for solx type",
+      );
+      assert.equal(compiler.compilerPath, cachedPath);
+      // Version should be parsed from the binary, not from config
+      assert.equal(compiler.version, "0.1.3");
+      assert.equal(compiler.longVersion, "0.1.3+solx");
+    });
+  });
+
+  describe("downloadCompilers with path override", () => {
+    it("skips download when config has custom path", async () => {
+      const hookHandlerModule = await import(
+        "../../src/internal/hook-handlers/solidity.js"
+      );
+      const hooks = await hookHandlerModule.default();
+
+      const context = { config: {} } as any;
+
+      const configs: SolidityCompilerConfig[] = [
+        createSolidityCompilerConfig({
+          type: "solx",
+          version: "0.8.33",
+          path: "/custom/path/to/solx",
+        }),
+      ];
+
+      // Should not throw — download is skipped for configs with path
+      await hooks.downloadCompilers!(context, configs, true);
     });
   });
 });

@@ -31,13 +31,13 @@ export class SolxCompiler implements Compiler {
   public async compile(input: CompilerInput): Promise<CompilerOutput> {
     const args = ["--standard-json", "--no-import-callback"];
 
-    // Merge extra settings into the standard-json input's settings object.
-    // This is how solx-specific settings like LLVMOptimization are passed.
+    // Merge default solx settings with user settings. User settings take
+    // precedence, allowing overrides of viaIR, LLVMOptimization, etc.
     const modifiedInput: CompilerInput = {
       ...input,
       settings: {
-        ...input.settings,
         ...this.#extraSettings,
+        ...input.settings,
       },
     };
 

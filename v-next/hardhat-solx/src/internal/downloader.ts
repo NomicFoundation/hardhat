@@ -2,9 +2,14 @@ import path from "node:path";
 
 import { HardhatError } from "@nomicfoundation/hardhat-errors";
 import { ensureError } from "@nomicfoundation/hardhat-utils/error";
-import { chmod, exists } from "@nomicfoundation/hardhat-utils/fs";
+import {
+  chmod,
+  exists,
+  readBinaryFile,
+  remove,
+} from "@nomicfoundation/hardhat-utils/fs";
 import { getCacheDir } from "@nomicfoundation/hardhat-utils/global-dir";
-import { download } from "@nomicfoundation/hardhat-utils/request";
+import { download, getRequest } from "@nomicfoundation/hardhat-utils/request";
 import { MultiProcessMutex } from "@nomicfoundation/hardhat-utils/synchronization";
 import debug from "debug";
 
@@ -33,10 +38,71 @@ export async function getSolxBinaryPath(solxVersion: string): Promise<string> {
 }
 
 /**
+ * Verifies the SHA-256 checksum of a downloaded binary against a `.sha256`
+ * sidecar file on the mirror. If the sidecar file is not available (e.g. for
+ * stable releases), verification is skipped. If it is available and the
+ * checksum doesn't match, the downloaded file is deleted and false is returned.
+ */
+async function verifyChecksum(
+  binaryPath: string,
+  checksumUrl: string,
+): Promise<boolean> {
+  try {
+    const response = await getRequest(checksumUrl);
+
+    if (response.statusCode < 200 || response.statusCode >= 300) {
+      log(
+        `No .sha256 sidecar file at ${checksumUrl} (status ${response.statusCode}), skipping verification`,
+      );
+      return true;
+    }
+
+    // The sidecar file contains the hex-encoded SHA-256 hash, possibly with
+    // a filename suffix (like sha256sum output). We only need the hash part.
+    const text = (await response.body.text()).trim();
+    const expectedHash = text.split(/\s+/)[0].toLowerCase();
+
+    const { sha256 } = await import("@nomicfoundation/hardhat-utils/crypto");
+    const { bytesToHexString } = await import(
+      "@nomicfoundation/hardhat-utils/hex"
+    );
+
+    const binaryContents = await readBinaryFile(binaryPath);
+    const actualHash = bytesToHexString(await sha256(binaryContents))
+      .slice(2) // remove 0x prefix
+      .toLowerCase();
+
+    if (expectedHash !== actualHash) {
+      log(
+        `SHA-256 mismatch for ${binaryPath}: expected ${expectedHash}, got ${actualHash}`,
+      );
+      await remove(binaryPath);
+      return false;
+    }
+
+    log(`SHA-256 checksum verified for ${binaryPath}`);
+    return true;
+  } catch (error) {
+    ensureError(error);
+    log(
+      `Could not verify checksum from ${checksumUrl}: ${error.message}, skipping verification`,
+    );
+    return true;
+  }
+}
+
+/**
  * Downloads the solx binary for the given version if not already cached.
  * Returns the path to the binary on disk.
+ *
+ * @param solxVersion - The solx version to download (e.g. "0.1.3")
+ * @param downloadFunction - Optional injectable download function for testing.
+ *   Defaults to the real `download` from `@nomicfoundation/hardhat-utils/request`.
  */
-export async function downloadSolx(solxVersion: string): Promise<string> {
+export async function downloadSolx(
+  solxVersion: string,
+  downloadFunction: typeof download = download,
+): Promise<string> {
   const binaryPath = await getSolxBinaryPath(solxVersion);
 
   // Return cached binary if it already exists
@@ -49,7 +115,8 @@ export async function downloadSolx(solxVersion: string): Promise<string> {
   const mutex = new MultiProcessMutex(
     path.join(globalCacheDir, `solx-download-${solxVersion}`),
   );
-  const url = `${SOLX_RELEASES_BASE_URL}/${solxVersion}/${getSolxAssetName(solxVersion)}`;
+  const assetName = getSolxAssetName(solxVersion);
+  const url = `${SOLX_RELEASES_BASE_URL}/${assetName}`;
   log(`Downloading solx ${solxVersion} from ${url}`);
 
   let lastError: Error | undefined;
@@ -67,7 +134,15 @@ export async function downloadSolx(solxVersion: string): Promise<string> {
       }
 
       try {
-        await download(url, binaryPath);
+        await downloadFunction(url, binaryPath);
+
+        // Verify SHA-256 checksum if a sidecar file is available
+        const checksumUrl = `${SOLX_RELEASES_BASE_URL}/${assetName}.sha256`;
+        const checksumValid = await verifyChecksum(binaryPath, checksumUrl);
+        if (!checksumValid) {
+          lastError = new Error("SHA-256 checksum verification failed");
+          return undefined;
+        }
 
         // Set executable permission on Unix
         if (process.platform !== "win32") {

@@ -24,7 +24,17 @@ describe("hardhat-solx integration", () => {
 
   it("resolves plugin config with defaults when not specified", async () => {
     const hre = await createHardhatRuntimeEnvironment({
-      solidity: "0.8.33",
+      solidity: {
+        profiles: {
+          default: {
+            version: "0.8.33",
+          },
+          solx: {
+            type: "solx",
+            version: "0.8.33",
+          },
+        },
+      },
       plugins: [(await import("../src/index.js")).default],
     });
 
@@ -40,7 +50,6 @@ describe("hardhat-solx integration", () => {
       defaultProfile.compilers.length > 0,
       "should have at least one compiler",
     );
-    // Default profile should keep solc (no type override from plugin)
     const compilerType = defaultProfile.compilers[0].type;
     assert.ok(
       compilerType === undefined || compilerType === "solc",
@@ -48,20 +57,20 @@ describe("hardhat-solx integration", () => {
     );
   });
 
-  it("includes 'test' build profile in resolved config", async () => {
+  it("includes 'solx' build profile in resolved config", async () => {
     const hre = await createHre();
 
     const profileNames = Object.keys(hre.config.solidity.profiles);
     assert.ok(
-      profileNames.includes("test"),
-      `Expected "test" profile in: ${profileNames.join(", ")}`,
+      profileNames.includes("solx"),
+      `Expected "solx" profile in: ${profileNames.join(", ")}`,
     );
 
-    const testProfile = hre.config.solidity.profiles.test;
+    const solxProfile = hre.config.solidity.profiles.solx;
     assert.equal(
-      testProfile.compilers[0].type,
+      solxProfile.compilers[0].type,
       "solx",
-      "test profile compiler should have type: 'solx'",
+      "solx profile compiler should have type: 'solx'",
     );
   });
 

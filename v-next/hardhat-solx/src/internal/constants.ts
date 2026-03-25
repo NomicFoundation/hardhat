@@ -16,7 +16,7 @@ export const SUPPORTED_SOLX_EVM_VERSIONS: readonly string[] = [
 ] as const;
 
 export const DEFAULT_SOLX_SETTINGS: Record<string, unknown> = {
-  viaIR: true,
+  viaIR: false,
   LLVMOptimization: "1",
 };
 
@@ -25,6 +25,5 @@ export const DEFAULT_SOLX_SETTINGS: Record<string, unknown> = {
  * Only stable solx releases are included.
  */
 export const SOLIDITY_TO_SOLX_VERSION_MAP: Record<string, string> = {
-  "0.8.30": "0.1.2",
   "0.8.33": "0.1.3",
 };
