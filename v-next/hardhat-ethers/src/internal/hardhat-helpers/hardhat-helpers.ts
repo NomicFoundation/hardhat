@@ -4,7 +4,7 @@ import type {
   Libraries,
 } from "../../types.js";
 import type { HardhatEthersProvider } from "../hardhat-ethers-provider/hardhat-ethers-provider.js";
-import type { HardhatEthersSigner } from "../signers/signers.js";
+import { HardhatEthersSigner } from "../signers/signers.js";
 import type { ethers as EthersT } from "ethers";
 import type {
   Abi,
@@ -68,11 +68,7 @@ export class HardhatHelpers {
   }
 
   public async getSigner(address: string): Promise<HardhatEthersSigner> {
-    const { HardhatEthersSigner: SignerWithAddressImpl } = await import(
-      "../signers/signers.js"
-    );
-
-    const signerWithAddress = await SignerWithAddressImpl.create(
+    const signerWithAddress = await HardhatEthersSigner.create(
       this.#provider,
       this.#networkName,
       this.#networkConfig,
