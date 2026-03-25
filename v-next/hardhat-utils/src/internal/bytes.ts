@@ -1,3 +1,4 @@
+// cSpell:ignore ABCAB ABCA BCAB
 /**
  * Builds the LPS (Longest Prefix Suffix) table used by the Knuth-Morris-Pratt
  * string search algorithm. For each index `i` in the pattern, `lps[i]` holds

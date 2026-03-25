@@ -1,3 +1,4 @@
+// cSpell:ignore aabbccdd
 import type { RawInlineOverride } from "../../../../src/internal/builtin-plugins/solidity-test/inline-config.js";
 
 import assert from "node:assert/strict";
