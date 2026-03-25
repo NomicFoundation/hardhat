@@ -130,7 +130,7 @@ export class CompilationJobImplementation implements CompilationJob {
     // from other files (e.g. new Foo()), and it won't output its bytecode if
     // it's not asked for. This would prevent EDR from doing any runtime
     // analysis.
-    const outputSelection = await deepClone(settings.outputSelection ?? {});
+    const outputSelection = deepClone(settings.outputSelection ?? {});
     outputSelection["*"] ??= {};
     outputSelection["*"][""] ??= [];
     outputSelection["*"]["*"] ??= [];

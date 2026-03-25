@@ -224,7 +224,7 @@ export function resolveCoinbase(
 export async function resolveChainDescriptors(
   chainDescriptors: ChainDescriptorsUserConfig | undefined,
 ): Promise<ChainDescriptorsConfig> {
-  const resolvedChainDescriptors: ChainDescriptorsConfig = await deepClone(
+  const resolvedChainDescriptors: ChainDescriptorsConfig = deepClone(
     DEFAULT_CHAIN_DESCRIPTORS,
   );
 

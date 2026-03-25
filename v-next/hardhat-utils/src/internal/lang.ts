@@ -1,15 +1,10 @@
-import type rfdcT from "rfdc";
+import rfdc from "rfdc";
 
 import { isObject } from "../lang.js";
 
-let clone: ReturnType<typeof rfdcT> | null = null;
-export async function getDeepCloneFunction(): Promise<<T>(input: T) => T> {
-  const { default: rfdc } = await import("rfdc");
+const clone = rfdc();
 
-  if (clone === null) {
-    clone = rfdc();
-  }
-
+export function getDeepCloneFunction(): <T>(input: T) => T {
   return clone;
 }
 

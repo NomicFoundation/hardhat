@@ -17,7 +17,7 @@ describe("lang", () => {
   describe("deepClone", () => {
     it("Should clone an object", async () => {
       const obj = { a: 1, b: 2, c: { d: 3 } };
-      const clonedObj = await deepClone(obj);
+      const clonedObj = deepClone(obj);
 
       assert.deepEqual(clonedObj, obj);
       assert.notEqual(clonedObj, obj);
@@ -27,7 +27,7 @@ describe("lang", () => {
 
     it("Should clone an array", async () => {
       const arr = [1, 2, [3]];
-      const clonedArr = await deepClone(arr);
+      const clonedArr = deepClone(arr);
 
       assert.deepEqual(clonedArr, arr);
       assert.notEqual(clonedArr, arr);
@@ -37,7 +37,7 @@ describe("lang", () => {
 
     it("Should clone a string", async () => {
       const str = "hello";
-      const clonedStr = await deepClone(str);
+      const clonedStr = deepClone(str);
 
       assert.equal(clonedStr, str);
       expectTypeOf(clonedStr).toBeString();
@@ -45,7 +45,7 @@ describe("lang", () => {
 
     it("Should clone a number", async () => {
       const num = 42;
-      const clonedNum = await deepClone(num);
+      const clonedNum = deepClone(num);
 
       assert.equal(clonedNum, num);
       expectTypeOf(clonedNum).toBeNumber();
@@ -53,7 +53,7 @@ describe("lang", () => {
 
     it("Should clone null", async () => {
       const n = null;
-      const clonedN = await deepClone(n);
+      const clonedN = deepClone(n);
 
       assert.equal(clonedN, n);
       expectTypeOf(clonedN).toBeNull();
@@ -61,7 +61,7 @@ describe("lang", () => {
 
     it("Should clone undefined", async () => {
       const u = undefined;
-      const clonedU = await deepClone(u);
+      const clonedU = deepClone(u);
 
       assert.equal(clonedU, u);
       expectTypeOf(clonedU).toBeUndefined();
@@ -69,7 +69,7 @@ describe("lang", () => {
 
     it("Should reference a function", async () => {
       const fn = () => {};
-      const clonedFn = await deepClone(fn);
+      const clonedFn = deepClone(fn);
 
       assert.equal(clonedFn, fn);
       expectTypeOf(clonedFn).toEqualTypeOf<typeof fn>();
@@ -77,7 +77,7 @@ describe("lang", () => {
 
     it("Should clone a Date", async () => {
       const date = new Date();
-      const clonedDate = await deepClone(date);
+      const clonedDate = deepClone(date);
 
       assert.deepEqual(clonedDate, date);
       assert.notEqual(clonedDate, date);
@@ -89,7 +89,7 @@ describe("lang", () => {
         ["a", 1],
         ["b", 2],
       ]);
-      const clonedMap = await deepClone(map);
+      const clonedMap = deepClone(map);
 
       assert.deepEqual(clonedMap, map);
       assert.notEqual(clonedMap, map);
@@ -98,7 +98,7 @@ describe("lang", () => {
 
     it("Should clone a Set", async () => {
       const set = new Set([1, 2]);
-      const clonedSet = await deepClone(set);
+      const clonedSet = deepClone(set);
 
       assert.deepEqual(clonedSet, set);
       assert.notEqual(clonedSet, set);
@@ -107,7 +107,7 @@ describe("lang", () => {
 
     it("Should clone a Buffer", async () => {
       const buffer = Buffer.from("test");
-      const clonedBuffer = await deepClone(buffer);
+      const clonedBuffer = deepClone(buffer);
 
       const expected: { [key: number]: number } = {};
       for (let i = 0; i < buffer.length; i++) {
@@ -124,7 +124,7 @@ describe("lang", () => {
         return arguments;
       }
       const args = testFunc(1, "2", false);
-      const clonedArgs = await deepClone(args);
+      const clonedArgs = deepClone(args);
 
       assert.deepEqual(clonedArgs, { "0": 1, "1": "2", "2": false });
       expectTypeOf(clonedArgs).toHaveProperty("0").toBeNumber();
