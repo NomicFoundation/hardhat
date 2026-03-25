@@ -2,6 +2,7 @@ import type { ConfigHooks } from "../../../../types/hooks.js";
 
 import {
   resolveSolidityUserConfig,
+  validateSolidityConfig,
   validateSolidityUserConfig,
 } from "../config.js";
 
@@ -21,6 +22,8 @@ export default async (): Promise<Partial<ConfigHooks>> => {
 
       return resolveSolidityUserConfig(userConfig, resolvedConfig);
     },
+    validateResolvedConfig: async (resolvedConfig) =>
+      validateSolidityConfig(resolvedConfig),
   };
 
   return handlers;

@@ -1,9 +1,14 @@
 import type { CompilerInput } from "../../../../../../src/types/solidity.js";
 
 import assert from "node:assert/strict";
-import { before, beforeEach, describe, it } from "node:test";
+import { after, before, beforeEach, describe, it } from "node:test";
 
-import { useTmpDir } from "@nomicfoundation/hardhat-test-utils";
+import { getTmpDir, useTmpDir } from "@nomicfoundation/hardhat-test-utils";
+import { remove } from "@nomicfoundation/hardhat-utils/fs";
+import {
+  resetMockCacheDir,
+  setMockCacheDir,
+} from "@nomicfoundation/hardhat-utils/global-dir";
 
 import {
   NativeCompiler,
@@ -13,6 +18,15 @@ import {
   CompilerDownloaderImplementation as CompilerDownloader,
   CompilerPlatform,
 } from "../../../../../../src/internal/builtin-plugins/solidity/build-system/compiler/downloader.js";
+import {
+  downloadSolcCompilers,
+  getCompiler,
+  hasNativeBuildForPlatform,
+} from "../../../../../../src/internal/builtin-plugins/solidity/build-system/compiler/index.js";
+import {
+  hasArm64MirrorBuild,
+  hasOfficialArm64Build,
+} from "../../../../../../src/internal/builtin-plugins/solidity/build-system/solc-info.js";
 import { spawn } from "../../../../../../src/internal/cli/init/subprocess.js";
 
 const solcVersion = "0.6.6";
@@ -268,5 +282,92 @@ contract A {}
         );
       });
     });
+
+    describe("hasNativeBuildForPlatform", function () {
+      it("returns true for all versions on non-ARM64 platforms", () => {
+        for (const platform of [
+          CompilerPlatform.LINUX,
+          CompilerPlatform.MACOS,
+          CompilerPlatform.WINDOWS,
+          CompilerPlatform.WASM,
+        ]) {
+          assert.equal(hasNativeBuildForPlatform("0.4.0", platform), true);
+          assert.equal(hasNativeBuildForPlatform("0.4.24", platform), true);
+          assert.equal(hasNativeBuildForPlatform("0.5.0", platform), true);
+          assert.equal(hasNativeBuildForPlatform("0.8.28", platform), true);
+          assert.equal(hasNativeBuildForPlatform("0.8.31", platform), true);
+        }
+      });
+
+      it("returns false for versions below 0.5.0 on ARM64", () => {
+        assert.equal(
+          hasNativeBuildForPlatform("0.4.0", CompilerPlatform.LINUX_ARM64),
+          false,
+        );
+        assert.equal(
+          hasNativeBuildForPlatform("0.4.24", CompilerPlatform.LINUX_ARM64),
+          false,
+        );
+      });
+
+      it("returns true for mirror-range versions on ARM64", () => {
+        assert.equal(
+          hasNativeBuildForPlatform("0.5.0", CompilerPlatform.LINUX_ARM64),
+          true,
+        );
+        assert.equal(
+          hasNativeBuildForPlatform("0.8.30", CompilerPlatform.LINUX_ARM64),
+          true,
+        );
+      });
+
+      it("returns true for official ARM64 versions on ARM64", () => {
+        assert.equal(
+          hasNativeBuildForPlatform("0.8.31", CompilerPlatform.LINUX_ARM64),
+          true,
+        );
+        assert.equal(
+          hasNativeBuildForPlatform("0.9.0", CompilerPlatform.LINUX_ARM64),
+          true,
+        );
+      });
+    });
+
+    describe(
+      "ARM64 WASM fallback for old versions",
+      {
+        skip:
+          CompilerDownloader.getCompilerPlatform() !==
+          CompilerPlatform.LINUX_ARM64,
+      },
+      function () {
+        let testCacheDir: string;
+
+        before(async function () {
+          testCacheDir = await getTmpDir("arm64-wasm-fallback");
+          setMockCacheDir(testCacheDir);
+        });
+
+        after(async function () {
+          resetMockCacheDir();
+          await remove(testCacheDir);
+        });
+
+        it("should fall back to WASM when no native ARM64 build exists for 0.4.x", async () => {
+          const version = "0.4.24";
+
+          // Verify our precondition: 0.4.24 has no native ARM64 build
+          assert.equal(hasOfficialArm64Build(version), false);
+          assert.equal(hasArm64MirrorBuild(version), false);
+
+          // Use the high-level download + get functions that automatically
+          // skip native on ARM64 for old versions and fall back to WASM.
+          await downloadSolcCompilers(new Set([version]), true);
+          const compiler = await getCompiler(version, { preferWasm: false });
+
+          assert.ok(compiler.isSolcJs, "Should be a WASM compiler");
+        });
+      },
+    );
   },
 );

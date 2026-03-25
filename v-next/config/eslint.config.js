@@ -449,6 +449,14 @@ export function createConfig(
       import: importPlugin,
     },
     rules: {
+      "no-restricted-syntax": [
+        ...noRestrictedSyntaxRules,
+        {
+          selector: "TSModuleDeclaration[declare=true]",
+          message:
+            "Type extensions (declare module) in test files pollute other tests and production code. Use type assertions/casts instead of test-level type extensions.",
+        },
+      ],
       "import/no-extraneous-dependencies": [
         "error",
         {

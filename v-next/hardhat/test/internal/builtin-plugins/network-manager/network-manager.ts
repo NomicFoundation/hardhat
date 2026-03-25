@@ -35,6 +35,7 @@ import {
   resolveEdrNetwork,
   resolveHttpNetwork,
 } from "../../../../src/internal/builtin-plugins/network-manager/config-resolution.js";
+import { EdrProvider } from "../../../../src/internal/builtin-plugins/network-manager/edr/edr-provider.js";
 import {
   getCurrentHardfork,
   getHardforks,
@@ -157,6 +158,38 @@ describe("NetworkManagerImplementation", () => {
         ...networks.localhost,
         chainType: GENERIC_CHAIN_TYPE,
       });
+    });
+
+    it("should return the same networkConfig field references for two connect() calls without overrides", async () => {
+      const conn1 = await networkManager.connect();
+      const conn2 = await networkManager.connect();
+
+      assert.equal(conn1.networkConfig.type, conn2.networkConfig.type);
+
+      for (const key of Object.keys(conn1.networkConfig)) {
+        /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions --
+          we know the type of the network config object. It may have discrepancies
+          between the two connections, but the assertion above ensures that this is safe. */
+        const networkConfigKey = key as keyof NetworkConfig;
+        assert.equal(
+          conn1.networkConfig[networkConfigKey],
+          conn2.networkConfig[networkConfigKey],
+          `The networkConfig field ${key} should have the same reference in both connections`,
+        );
+      }
+    });
+
+    it("should return the same networkConfig reference for two connect() calls that have the chain type defined in the config", async () => {
+      const conn1 = await networkManager.connect({
+        network: "edrNetwork",
+        chainType: OPTIMISM_CHAIN_TYPE,
+      });
+      const conn2 = await networkManager.connect({
+        network: "edrNetwork",
+        chainType: OPTIMISM_CHAIN_TYPE,
+      });
+
+      assert.equal(conn1.networkConfig, conn2.networkConfig);
     });
 
     it("should connect to the specified network and default chain type if none are provided and the network doesn't have a chain type", async () => {
@@ -842,6 +875,151 @@ describe("NetworkManagerImplementation", () => {
       assertPluginPropertiesCopied(networkConnection.networkConfig, {
         pluginAddedProperties: ["my-value"],
       });
+    });
+  });
+
+  describe("connect should not re-resolve config when no overrides are provided", () => {
+    let resolveUserConfigCallCount: number;
+
+    const resolutionCountingPlugin: HardhatPlugin = {
+      id: "resolution-counting-plugin",
+      hookHandlers: {
+        config: async () => ({
+          default: async () => {
+            const handlers: Partial<ConfigHooks> = {
+              resolveUserConfig: async (userConfig, rCV, next) => {
+                resolveUserConfigCallCount++;
+                return next(userConfig, rCV);
+              },
+            };
+            return handlers;
+          },
+        }),
+      },
+    };
+
+    beforeEach(async () => {
+      resolveUserConfigCallCount = 0;
+      hre = await createHardhatRuntimeEnvironment({
+        plugins: [resolutionCountingPlugin],
+      });
+
+      networkManager = new NetworkManagerImplementation(
+        "localhost",
+        GENERIC_CHAIN_TYPE,
+        hre.config.networks,
+        hre.hooks,
+        hre.artifacts,
+        { networks: {} },
+        hre.config.chainDescriptors,
+        hre.globalOptions.config,
+        hre.config.paths.root,
+      );
+    });
+
+    it("should not call resolveUserConfig when connecting without overrides", async () => {
+      await networkManager.connect();
+      await networkManager.connect();
+      // Note: this is 1 and not 0 because there's the HRE creation's config
+      // resolution
+      assert.equal(resolveUserConfigCallCount, 1);
+    });
+
+    it("should call resolveUserConfig when connecting with overrides", async () => {
+      await networkManager.connect({
+        network: "localhost",
+        override: { timeout: 5000 },
+      });
+
+      // Note: this is 2 and not 1 because there's the HRE creation's config
+      // resolution
+      assert.equal(resolveUserConfigCallCount, 2);
+    });
+  });
+
+  describe("connect when resolved config validation fails", () => {
+    const resolvedConfigValidatorPlugin: HardhatPlugin = {
+      id: "resolved-config-validator-plugin",
+      hookHandlers: {
+        config: async () => ({
+          default: async () => {
+            const handlers: Partial<ConfigHooks> = {
+              validateResolvedConfig: async (resolvedConfig) => {
+                // Only return errors when timeout has been overridden to 99999,
+                // so that HRE creation succeeds but the network-manager override
+                // path triggers the error.
+                const localhost = resolvedConfig.networks.localhost;
+                if (
+                  localhost !== undefined &&
+                  localhost.type === "http" &&
+                  localhost.timeout === 99999
+                ) {
+                  return [
+                    {
+                      path: ["networks", "localhost", "custom"],
+                      message: "custom is invalid",
+                    },
+                  ];
+                }
+                return [];
+              },
+            };
+            return handlers;
+          },
+        }),
+      },
+    };
+
+    beforeEach(async () => {
+      hre = await createHardhatRuntimeEnvironment({
+        plugins: [resolvedConfigValidatorPlugin],
+      });
+
+      userNetworks = {
+        localhost: {
+          type: "http",
+          url: "http://localhost:8545",
+        },
+      };
+
+      networks = {
+        localhost: resolveHttpNetwork(
+          {
+            type: "http",
+            url: "http://localhost:8545",
+          },
+          (varOrStr) => resolveConfigurationVariable(hre.hooks, varOrStr),
+        ),
+      };
+
+      chainDescriptors = await resolveChainDescriptors(undefined);
+
+      networkManager = new NetworkManagerImplementation(
+        "localhost",
+        GENERIC_CHAIN_TYPE,
+        networks,
+        hre.hooks,
+        hre.artifacts,
+        { networks: userNetworks },
+        chainDescriptors,
+        hre.globalOptions.config,
+        hre.config.paths.root,
+      );
+    });
+
+    it("should throw INVALID_CONFIG_OVERRIDE when resolved config validation returns errors", async () => {
+      await assertRejectsWithHardhatError(
+        networkManager.connect({
+          network: "localhost",
+          override: {
+            timeout: 99999,
+          },
+        }),
+        HardhatError.ERRORS.CORE.NETWORK.INVALID_CONFIG_OVERRIDE,
+        {
+          errors: `\t* Error in resolved config networks.localhost.custom: custom is invalid`,
+        },
+      );
     });
   });
 
@@ -2512,8 +2690,8 @@ describe("NetworkManagerImplementation", () => {
           for (const hardfork of Object.values(OpHardforkName)) {
             const validationErrors = await validateNetworkUserConfig({
               ...edrConfig({ hardfork }),
-              /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions 
-              -- Type assertion needed because changing defaultChainType requires module 
+              /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions
+              -- Type assertion needed because changing defaultChainType requires module
               augmentation, which can't be done in test files */
               defaultChainType: OPTIMISM_CHAIN_TYPE as any,
             });
@@ -2556,8 +2734,8 @@ describe("NetworkManagerImplementation", () => {
             ...edrConfig({
               hardfork: L1HardforkName.OSAKA,
             }),
-            /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions 
-            -- Type assertion needed because changing defaultChainType requires module 
+            /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions
+            -- Type assertion needed because changing defaultChainType requires module
             augmentation, which can't be done in test files */
             defaultChainType: OPTIMISM_CHAIN_TYPE as any,
           });
@@ -2957,6 +3135,26 @@ describe("NetworkManagerImplementation", () => {
           ]);
         });
       });
+    });
+  });
+
+  describe("ContractDecoder caching", () => {
+    it("should create the ContractDecoder only once across multiple EDR connections", async (t) => {
+      const spy = t.mock.method(EdrProvider, "createContractDecoder");
+
+      await networkManager.connect({
+        network: "edrNetwork",
+      });
+
+      await networkManager.connect({
+        network: "edrNetwork",
+      });
+
+      assert.equal(
+        spy.mock.callCount(),
+        1,
+        "createContractDecoder should be called exactly once",
+      );
     });
   });
 });

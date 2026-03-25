@@ -93,6 +93,20 @@ export interface ConfigHooks {
       nextResolveConfigurationVariable: ConfigurationVariableResolver,
     ) => Promise<HardhatConfig>,
   ) => Promise<HardhatConfig>;
+
+  /**
+   * Provide a handler for this hook to validate the resolved config.
+   *
+   * This hook runs after all plugins have resolved their config. Use it to
+   * validate cross-cutting concerns that require the fully resolved config
+   * (e.g., checking that all compiler types are registered).
+   *
+   * @param resolvedConfig The fully resolved config.
+   * @returns An array of validation errors.
+   */
+  validateResolvedConfig: (
+    resolvedConfig: HardhatConfig,
+  ) => Promise<HardhatConfigValidationError[]>;
 }
 
 /**
@@ -105,6 +119,29 @@ export interface HardhatUserConfigValidationError {
    *
    * For example, if `config.networks.localhost.url` is invalid, this array
    * would be `["networks", "localhost", "url"]`.
+   */
+  path: Array<string | number>;
+
+  /**
+   * The error message.
+   */
+  message: string;
+}
+
+/**
+ * A `HardhatConfig` validation error.
+ *
+ * This is the equivalent of `HardhatUserConfigValidationError` but for the
+ * resolved config.
+ */
+export interface HardhatConfigValidationError {
+  /**
+   * The path from the resolved config object to the value that originated this
+   * validation error.
+   *
+   * For example, if `config.solidity.profiles.foo.compilers[0].type` is
+   * invalid, this array would be
+   * `["solidity", "profiles", "foo", "compilers", 0, "type"]`.
    */
   path: Array<string | number>;
 

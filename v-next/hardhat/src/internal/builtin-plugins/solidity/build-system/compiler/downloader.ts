@@ -246,11 +246,6 @@ export class CompilerDownloaderImplementation implements CompilerDownloader {
   public async getCompiler(version: string): Promise<Compiler | undefined> {
     const build = await this.#getCompilerBuild(version);
 
-    assertHardhatInvariant(
-      build !== undefined,
-      `Trying to get a compiler ${version} before it was downloaded`,
-    );
-
     const compilerPath = this.#getCompilerBinaryPathFromBuild(build);
 
     assertHardhatInvariant(

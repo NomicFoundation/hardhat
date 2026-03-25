@@ -21,7 +21,7 @@ import type {
   JsonRpcRequest,
   JsonRpcResponse,
 } from "../../../types/providers.js";
-import type { GasReportConfig } from "@nomicfoundation/edr";
+import type { ContractDecoder, GasReportConfig } from "@nomicfoundation/edr";
 
 import {
   HardhatError,
@@ -29,6 +29,7 @@ import {
 } from "@nomicfoundation/hardhat-errors";
 import { exists, readBinaryFile } from "@nomicfoundation/hardhat-utils/fs";
 import { deepMerge } from "@nomicfoundation/hardhat-utils/lang";
+import { AsyncMutex } from "@nomicfoundation/hardhat-utils/synchronization";
 
 import { resolveUserConfigToHardhatConfig } from "../../core/hre.js";
 import { isSupportedChainType } from "../../edr/chain-type.js";
@@ -57,6 +58,8 @@ export class NetworkManagerImplementation implements NetworkManager {
   readonly #projectRoot: string;
 
   #nextConnectionId = 0;
+  readonly #contractDecoderMutex = new AsyncMutex();
+  #contractDecoder: ContractDecoder | undefined;
 
   constructor(
     defaultNetwork: string,
@@ -233,6 +236,40 @@ export class NetworkManagerImplementation implements NetworkManager {
           };
         }
 
+        // We load the build infos and their outputs to create a contract
+        // decoder when the first provider is created. Successive providers will
+        // reuse the same decoder as a performance optimization.
+        //
+        // The trade-off here is that if you create an EDR provider, then
+        // compile new contracts, and create a new provider, the new contracts
+        // won't be loaded.
+        //
+        // Even without this optimization, we already had the problem of new
+        // contracts not being visible to existing providers.
+        //
+        // In practice, most workflows compile everything before creating
+        // any network connection.
+        if (this.#contractDecoder === undefined) {
+          // We want to ensure that only one contract decoder is created so we
+          // protect the initialization with a mutex.
+          await this.#contractDecoderMutex.exclusiveRun(async () => {
+            // We check again if the decoder is undefined because another async
+            // execution context could have already initialized it while we were
+            // waiting for the mutex.
+            if (this.#contractDecoder === undefined) {
+              this.#contractDecoder = await EdrProvider.createContractDecoder({
+                buildInfos: await this.#getBuildInfosAndOutputsAsBuffers(),
+                ignoreContracts: false,
+              });
+            }
+          });
+        }
+
+        assertHardhatInvariant(
+          this.#contractDecoder !== undefined,
+          "Contract decoder should have been initialized before creating the provider",
+        );
+
         return EdrProvider.create({
           chainDescriptors: this.#chainDescriptors,
           // The resolvedNetworkConfig can have its chainType set to `undefined`
@@ -249,10 +286,7 @@ export class NetworkManagerImplementation implements NetworkManager {
             chainType: resolvedChainType as ChainType,
           },
           jsonRpcRequestWrapper,
-          tracingConfig: {
-            buildInfos: await this.#getBuildInfosAndOutputsAsBuffers(),
-            ignoreContracts: false,
-          },
+          contractDecoder: this.#contractDecoder,
           coverageConfig,
           gasReportConfig,
         });
@@ -298,15 +332,30 @@ export class NetworkManagerImplementation implements NetworkManager {
    */
   async #resolveNetworkConfig<ChainTypeT extends ChainType | string>(
     resolvedNetworkName: string,
-    networkConfigOverride: NetworkConfigOverride | undefined = {},
+    networkConfigOverride: NetworkConfigOverride = {},
     resolvedChainType: ChainTypeT,
   ): Promise<NetworkConfig> {
     const existingNetworkConfig = this.#networkConfigs[resolvedNetworkName];
-    if (
-      Object.keys(networkConfigOverride).length === 0 &&
-      resolvedChainType === existingNetworkConfig.chainType
-    ) {
+
+    const hasNoOverrides = Object.keys(networkConfigOverride).length === 0;
+    const isChainTypeUnchanged =
+      resolvedChainType === existingNetworkConfig.chainType;
+    const isChainTypeDefault =
+      existingNetworkConfig.chainType === undefined &&
+      resolvedChainType === this.#defaultChainType;
+
+    if (hasNoOverrides && isChainTypeUnchanged) {
       return existingNetworkConfig;
+    }
+
+    if (hasNoOverrides && isChainTypeDefault) {
+      return {
+        ...existingNetworkConfig,
+        /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions --
+          TypeScript can't follow this case, but we are just providing the
+          default */
+        chainType: resolvedChainType as ChainType,
+      };
     }
 
     if (
@@ -357,6 +406,20 @@ export class NetworkManagerImplementation implements NetworkManager {
     );
 
     if (!configResolutionResult.success) {
+      if (configResolutionResult.configValidationErrors !== undefined) {
+        throw new HardhatError(
+          HardhatError.ERRORS.CORE.NETWORK.INVALID_CONFIG_OVERRIDE,
+          {
+            errors: `\t${configResolutionResult.configValidationErrors
+              .map(
+                (error) =>
+                  `* Error in resolved config ${error.path.join(".")}: ${error.message}`,
+              )
+              .join("\n\t")}`,
+          },
+        );
+      }
+
       throw new HardhatError(
         HardhatError.ERRORS.CORE.NETWORK.INVALID_CONFIG_OVERRIDE,
         {

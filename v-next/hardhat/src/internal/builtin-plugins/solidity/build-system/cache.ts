@@ -17,6 +17,7 @@ export type CompileCache = Record<string, CompileCacheEntry>;
 export interface CompileCacheEntry {
   jobHash: string;
   isolated: boolean;
+  compilerType: string;
   buildInfoPath: string;
   buildInfoOutputPath: string;
   artifactPaths: string[];

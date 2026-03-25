@@ -41,6 +41,7 @@ const hardhatPlugin: HardhatPlugin = {
   hookHandlers: {
     config: () => import("./hook-handlers/config.js"),
     hre: () => import("./hook-handlers/hre.js"),
+    solidity: () => import("./hook-handlers/solidity.js"),
   },
   tasks: [
     {

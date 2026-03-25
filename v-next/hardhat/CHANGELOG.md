@@ -1,5 +1,28 @@
 # hardhat
 
+## 3.2.0
+
+### Minor Changes
+
+- [#8064](https://github.com/NomicFoundation/hardhat/pull/8064) [`392fc38`](https://github.com/NomicFoundation/hardhat/commit/392fc388556e9ec3ca1309db0ffb2ded24439ee2) Thanks [@schaable](https://github.com/schaable)! - Add `--gas-stats-json <path>` global option to write gas usage statistics to a JSON file ([#7990](https://github.com/NomicFoundation/hardhat/issues/7990)).
+
+### Patch Changes
+
+- [#8061](https://github.com/NomicFoundation/hardhat/pull/8061) [`c03f647`](https://github.com/NomicFoundation/hardhat/commit/c03f6476cc62ae31e745e0e1a72371d3cba8e9dc) Thanks [@ChristopherDedominici](https://github.com/ChristopherDedominici)! - Fixed bug to preserve revert data in JSON-RPC responses for non-ProviderErrors ([8061](https://github.com/NomicFoundation/hardhat/pull/8061)).
+
+- [#8060](https://github.com/NomicFoundation/hardhat/pull/8060) [`4461d1e`](https://github.com/NomicFoundation/hardhat/commit/4461d1e760c42e186c4b64e4332ca2c6333b86bf) Thanks [@kanej](https://github.com/kanej)! - Updated `network.createServer` signature to type non-generic chainTypes
+
+- [#8038](https://github.com/NomicFoundation/hardhat/pull/8038) [`465d00d`](https://github.com/NomicFoundation/hardhat/commit/465d00d6f67b72752ffa54a88ee90027667f0030) Thanks [@schaable](https://github.com/schaable)! - Aggregate deployment gas statistics (min, avg, median, max, count) instead of showing only the last deployment cost and size ([#8037](https://github.com/NomicFoundation/hardhat/issues/8037))
+
+- [#8060](https://github.com/NomicFoundation/hardhat/pull/8060) [`0e8abcf`](https://github.com/NomicFoundation/hardhat/commit/0e8abcf376b7b3618261512c98ae5dcfef716216) Thanks [@kanej](https://github.com/kanej)! - Added guard against `http` network configs in `network.createServer(...)`
+
+- [#8036](https://github.com/NomicFoundation/hardhat/pull/8036) [`954825a`](https://github.com/NomicFoundation/hardhat/commit/954825a35f5813625c4a72d8e887895d7a71e78b) Thanks [@schaable](https://github.com/schaable)! - Aggregate `--gas-stats` output when using multiple test runners, printing a single consolidated table at the end instead of separate tables per runner ([#7500](https://github.com/NomicFoundation/hardhat/issues/7500)).
+
+- [#8062](https://github.com/NomicFoundation/hardhat/pull/8062) [`45963d4`](https://github.com/NomicFoundation/hardhat/commit/45963d4ef98f505e7f1e40414ead94baaa566d79) Thanks [@ChristopherDedominici](https://github.com/ChristopherDedominici)! - Fixed compiler download for old versions in ARM64 ([8062](https://github.com/NomicFoundation/hardhat/pull/8062)).
+
+- Updated dependencies:
+  - @nomicfoundation/hardhat-errors@3.0.9
+
 ## 3.1.12
 
 ### Patch Changes
