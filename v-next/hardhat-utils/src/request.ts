@@ -7,6 +7,8 @@ import { open } from "node:fs/promises";
 import querystring from "node:querystring";
 import stream from "node:stream/promises";
 
+import { MockAgent, request } from "undici";
+
 import { ensureError } from "./error.js";
 import {
   DownloadError,
@@ -88,8 +90,6 @@ export async function getRequest(
   requestOptions: RequestOptions = {},
   dispatcherOrDispatcherOptions?: UndiciT.Dispatcher | DispatcherOptions,
 ): Promise<HttpResponse> {
-  const { request } = await import("undici");
-
   try {
     const baseRequestOptions = await getBaseRequestOptions(
       url,
@@ -128,8 +128,6 @@ export async function postJsonRequest(
   requestOptions: RequestOptions = {},
   dispatcherOrDispatcherOptions?: UndiciT.Dispatcher | DispatcherOptions,
 ): Promise<HttpResponse> {
-  const { request } = await import("undici");
-
   try {
     const { headers, ...baseRequestOptions } = await getBaseRequestOptions(
       url,
@@ -173,8 +171,6 @@ export async function postFormRequest(
   requestOptions: RequestOptions = {},
   dispatcherOrDispatcherOptions?: UndiciT.Dispatcher | DispatcherOptions,
 ): Promise<HttpResponse> {
-  const { request } = await import("undici");
-
   try {
     const { headers, ...baseRequestOptions } = await getBaseRequestOptions(
       url,
@@ -324,8 +320,6 @@ export async function getTestDispatcher(
     timeout?: number;
   } = {},
 ): Promise<TestDispatcher> {
-  const { MockAgent } = await import("undici");
-
   const baseOptions = getBaseDispatcherOptions(options.timeout, true);
   return new MockAgent(baseOptions);
 }

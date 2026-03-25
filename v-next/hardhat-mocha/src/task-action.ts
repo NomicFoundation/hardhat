@@ -11,6 +11,7 @@ import { setGlobalOptionsAsEnvVariables } from "@nomicfoundation/hardhat-utils/e
 import { getAllFilesMatching } from "@nomicfoundation/hardhat-utils/fs";
 import debug from "debug";
 import { errorResult, successfulResult } from "hardhat/utils/result";
+import Mocha from "mocha";
 
 import { createPerformanceTracker } from "./performance.js";
 
@@ -140,8 +141,6 @@ const testWithHardhat: NewTaskActionFunction<TestActionArguments> = async (
     // Import the handler directly when not running in parallel mode
     await import(unhandledRejectionHookPath);
   }
-
-  const { default: Mocha } = await import("mocha");
 
   const mochaConfig: MochaOptions = { ...hre.config.test.mocha };
 

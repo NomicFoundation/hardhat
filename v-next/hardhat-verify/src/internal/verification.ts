@@ -146,8 +146,7 @@ Explorer: ${instance.getContractUrl(address)}`);
     return true;
   }
 
-  const supportedSolcVersions =
-    await resolveSupportedSolcVersions(buildProfile);
+  const supportedSolcVersions = resolveSupportedSolcVersions(buildProfile);
 
   const deployedBytecode = await Bytecode.getDeployedContractBytecode(
     resolvedProvider,
@@ -155,7 +154,7 @@ Explorer: ${instance.getContractUrl(address)}`);
     networkName,
   );
 
-  const compatibleSolcVersions = await filterVersionsByRange(
+  const compatibleSolcVersions = filterVersionsByRange(
     supportedSolcVersions,
     deployedBytecode.solcVersion,
   );

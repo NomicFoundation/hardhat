@@ -1,11 +1,10 @@
-import type rfdcT from "rfdc";
+import { createCustomEqual } from "fast-equals";
+import rfdc from "rfdc";
 
 import { isObject } from "../lang.js";
 
-let clone: ReturnType<typeof rfdcT> | null = null;
+let clone: ReturnType<typeof rfdc> | null = null;
 export async function getDeepCloneFunction(): Promise<<T>(input: T) => T> {
-  const { default: rfdc } = await import("rfdc");
-
   if (clone === null) {
     clone = rfdc();
   }
@@ -67,8 +66,6 @@ export async function customFastEqual<T>(x: T, y: T): Promise<boolean> {
   if (cachedCustomEqual !== undefined) {
     return cachedCustomEqual(x, y);
   }
-
-  const { createCustomEqual } = await import("fast-equals");
 
   cachedCustomEqual = createCustomEqual({
     createCustomConfig: (defaultConfig) => ({

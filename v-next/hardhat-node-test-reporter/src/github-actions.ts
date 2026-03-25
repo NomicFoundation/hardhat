@@ -3,6 +3,8 @@ import type { TestEventData } from "./types.js";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
+import * as core from "@actions/core";
+
 import { formatError } from "./error-formatting.js";
 import { cleanupTestFailError } from "./node-test-error-utils.js";
 
@@ -22,8 +24,6 @@ export async function annotatePR(
   if (location === undefined) {
     return;
   }
-
-  const core = await import("@actions/core");
 
   core.error(formatError(error), {
     file: location.file,

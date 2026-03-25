@@ -6,6 +6,8 @@ import path from "node:path";
 
 import { assertHardhatInvariant } from "@nomicfoundation/hardhat-errors";
 import debug from "debug";
+import { runTypeChain } from "typechain";
+import { outputTransformers as typechainOutputTransformers } from "typechain/dist/codegen/outputTransformers/index.js";
 
 const log = debug("hardhat:typechain:generate-types");
 
@@ -22,14 +24,8 @@ export async function generateTypes(
     return;
   }
 
-  const { runTypeChain } = await import("typechain");
-
-  const { outputTransformers } = await import(
-    "typechain/dist/codegen/outputTransformers/index.js"
-  );
-
-  removePrettierTransformerIfPresent(outputTransformers);
-  addCompiledFilesTransformerIfAbsent(outputTransformers);
+  removePrettierTransformerIfPresent(typechainOutputTransformers);
+  addCompiledFilesTransformerIfAbsent(typechainOutputTransformers);
 
   // Normalize paths to use forward slashes for TypeChain compatibility on Windows
   // This is necessary because TypeChain expects forward-slash paths,

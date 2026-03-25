@@ -5,6 +5,8 @@ import type UndiciT from "undici";
 import crypto from "node:crypto";
 import path from "node:path";
 
+import { Agent, Dispatcher, Pool, ProxyAgent } from "undici";
+
 import { mkdir } from "../fs.js";
 import { isObject } from "../lang.js";
 import {
@@ -40,7 +42,6 @@ export async function getBaseRequestOptions(
   headers: Record<string, string>;
   throwOnError: true;
 }> {
-  const { Dispatcher } = await import("undici");
   const dispatcher =
     dispatcherOrDispatcherOptions instanceof Dispatcher
       ? dispatcherOrDispatcherOptions
@@ -90,8 +91,6 @@ export async function getProxyDispatcher(
   proxy: string,
   options: Omit<UndiciT.ProxyAgent.Options, "uri">,
 ): Promise<UndiciT.ProxyAgent> {
-  const { ProxyAgent } = await import("undici");
-
   return new ProxyAgent({
     uri: proxy,
     ...options,
@@ -102,8 +101,6 @@ export async function getPoolDispatcher(
   requestUrl: string,
   options: UndiciT.Pool.Options,
 ): Promise<UndiciT.Pool> {
-  const { Pool } = await import("undici");
-
   const parsedUrl = new URL(requestUrl);
   return new Pool(parsedUrl.origin, options);
 }
@@ -111,8 +108,6 @@ export async function getPoolDispatcher(
 export async function getBasicDispatcher(
   options: UndiciT.Agent.Options,
 ): Promise<UndiciT.Agent> {
-  const { Agent } = await import("undici");
-
   return new Agent(options);
 }
 
