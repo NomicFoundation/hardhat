@@ -222,6 +222,7 @@ export class NetworkManagerImplementation implements NetworkManager {
         if (shouldEnableGasStats) {
           gasReportConfig = {
             onCollectedGasReportCallback: async (gasReport) => {
+              console.log({ gasReport });
               const gasMeasurements =
                 edrGasReportToHardhatGasMeasurements(gasReport);
 
