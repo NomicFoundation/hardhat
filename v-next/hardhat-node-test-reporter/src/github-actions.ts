@@ -1,12 +1,14 @@
 import type { TestEventData } from "./types.js";
+import type * as GithubActionsCoreT from "@actions/core";
 
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
-import * as core from "@actions/core";
-
 import { formatError } from "./error-formatting.js";
 import { cleanupTestFailError } from "./node-test-error-utils.js";
+
+// We don't load github actions core on local runs
+let core: typeof GithubActionsCoreT | undefined;
 
 export async function annotatePR(
   event: TestEventData["test:fail"],
@@ -16,6 +18,10 @@ export async function annotatePR(
     process.env.NO_GITHUB_ACTIONS_ANNOTATIONS !== undefined
   ) {
     return;
+  }
+
+  if (core === undefined) {
+    core = await import("@actions/core");
   }
 
   const error = event.details.error;
