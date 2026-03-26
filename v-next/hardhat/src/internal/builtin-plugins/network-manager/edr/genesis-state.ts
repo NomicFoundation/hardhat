@@ -15,12 +15,12 @@ import {
 import { AsyncMutex } from "@nomicfoundation/hardhat-utils/synchronization";
 import { hexToBytes } from "ethereum-cryptography/utils";
 
-// micro-eth-signer is known to be slow to load, so we lazy load it
-let microEthSignerAddress: typeof MicroEthSignerAddressT | undefined;
-
 import { OPTIMISM_CHAIN_TYPE } from "../../../constants.js";
 
 import { hardhatAccountsToEdrOwnedAccounts } from "./utils/convert-to-edr.js";
+
+// micro-eth-signer is known to be slow to load, so we lazy load it
+let microEthSignerAddress: typeof MicroEthSignerAddressT | undefined;
 
 const noForkingConfigCacheMarkerObject = {};
 
