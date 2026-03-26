@@ -39,10 +39,10 @@ import { ChainId } from "../chain-id/chain-id.js";
 
 const EXTRA_ENTROPY = false;
 export class LocalAccountsHandler extends ChainId implements RequestHandler {
-  readonly #addressToPrivateKey: Map<string, Uint8Array> = new Map();
-  readonly #addresses: string[] = [];
   readonly #localAccountsHexPrivateKeys: string[];
-  #initialized = false;
+
+  #addressToPrivateKey: Map<string, Uint8Array> | undefined;
+  #addresses: string[] | undefined;
 
   constructor(
     provider: EthereumProvider,
@@ -53,20 +53,31 @@ export class LocalAccountsHandler extends ChainId implements RequestHandler {
     this.#localAccountsHexPrivateKeys = localAccountsHexPrivateKeys;
   }
 
-  async #ensureInitialized(): Promise<void> {
-    if (this.#initialized) {
-      return;
+  async #getAddressesAndPrivateKeysMap(): Promise<{
+    addresses: string[];
+    addressToPrivateKey: Map<string, Uint8Array>;
+  }> {
+    if (
+      this.#addresses === undefined ||
+      this.#addressToPrivateKey === undefined
+    ) {
+      const { addresses, addressToPrivateKey } =
+        await this.#initializeAddressesFromPrivateKeys(
+          this.#localAccountsHexPrivateKeys,
+        );
+      this.#addresses = addresses;
+      this.#addressToPrivateKey = addressToPrivateKey;
     }
 
-    await this.#initializePrivateKeys(this.#localAccountsHexPrivateKeys);
-    this.#initialized = true;
+    return {
+      addresses: this.#addresses,
+      addressToPrivateKey: this.#addressToPrivateKey,
+    };
   }
 
   public async handle(
     jsonRpcRequest: JsonRpcRequest,
   ): Promise<JsonRpcRequest | JsonRpcResponse> {
-    await this.#ensureInitialized();
-
     const response = await this.#resolveRequest(jsonRpcRequest);
     if (response !== null) {
       return response;
@@ -84,9 +95,8 @@ export class LocalAccountsHandler extends ChainId implements RequestHandler {
       jsonRpcRequest.method === "eth_accounts" ||
       jsonRpcRequest.method === "eth_requestAccounts"
     ) {
-      return this.#createJsonRpcResponse(jsonRpcRequest.id, [
-        ...this.#addresses,
-      ]);
+      const { addresses } = await this.#getAddressesAndPrivateKeysMap();
+      return this.#createJsonRpcResponse(jsonRpcRequest.id, [...addresses]);
     }
 
     const params = getRequestParams(jsonRpcRequest);
@@ -108,7 +118,7 @@ export class LocalAccountsHandler extends ChainId implements RequestHandler {
             );
           }
 
-          const privateKey = this.#getPrivateKeyForAddress(address);
+          const privateKey = await this.#getPrivateKeyForAddress(address);
           return this.#createJsonRpcResponse(
             jsonRpcRequest.id,
             microEthSignerTypedData.personal.sign(
@@ -138,7 +148,7 @@ export class LocalAccountsHandler extends ChainId implements RequestHandler {
             );
           }
 
-          const privateKey = this.#getPrivateKeyForAddress(address);
+          const privateKey = await this.#getPrivateKeyForAddress(address);
           return this.#createJsonRpcResponse(
             jsonRpcRequest.id,
             microEthSignerTypedData.personal.sign(
@@ -172,7 +182,7 @@ export class LocalAccountsHandler extends ChainId implements RequestHandler {
       }
 
       // if we don't manage the address, the method is forwarded
-      const privateKey = this.#getPrivateKeyForAddressOrNull(address);
+      const privateKey = await this.#getPrivateKeyForAddressOrNull(address);
       if (privateKey !== null) {
         if (microEthSignerTypedData === undefined) {
           microEthSignerTypedData = await import("micro-eth-signer/typed-data");
@@ -254,7 +264,7 @@ export class LocalAccountsHandler extends ChainId implements RequestHandler {
         txRequest.nonce = await this.#getNonce(txRequest.from);
       }
 
-      const privateKey = this.#getPrivateKeyForAddress(txRequest.from);
+      const privateKey = await this.#getPrivateKeyForAddress(txRequest.from);
 
       const chainId = await this.getChainId();
 
@@ -269,7 +279,9 @@ export class LocalAccountsHandler extends ChainId implements RequestHandler {
     }
   }
 
-  async #initializePrivateKeys(localAccountsHexPrivateKeys: string[]) {
+  async #initializeAddressesFromPrivateKeys(
+    localAccountsHexPrivateKeys: string[],
+  ) {
     if (microEthSigner === undefined) {
       microEthSigner = await import("micro-eth-signer");
     }
@@ -278,15 +290,21 @@ export class LocalAccountsHandler extends ChainId implements RequestHandler {
       hexStringToBytes(h),
     );
 
+    const addresses = [];
+    const addressToPrivateKey = new Map<string, Uint8Array>();
     for (const pk of privateKeys) {
       const address = microEthSigner.addr.fromPrivateKey(pk).toLowerCase();
-      this.#addressToPrivateKey.set(address, pk);
-      this.#addresses.push(address);
+      addressToPrivateKey.set(address, pk);
+      addresses.push(address);
     }
+
+    return { addresses, addressToPrivateKey };
   }
 
-  #getPrivateKeyForAddress(address: Uint8Array): Uint8Array {
-    const pk = this.#addressToPrivateKey.get(bytesToHexString(address));
+  async #getPrivateKeyForAddress(address: Uint8Array): Promise<Uint8Array> {
+    const { addressToPrivateKey } = await this.#getAddressesAndPrivateKeysMap();
+
+    const pk = addressToPrivateKey.get(bytesToHexString(address));
 
     if (pk === undefined) {
       throw new HardhatError(
@@ -300,9 +318,11 @@ export class LocalAccountsHandler extends ChainId implements RequestHandler {
     return pk;
   }
 
-  #getPrivateKeyForAddressOrNull(address: Uint8Array): Uint8Array | null {
+  async #getPrivateKeyForAddressOrNull(
+    address: Uint8Array,
+  ): Promise<Uint8Array | null> {
     try {
-      return this.#getPrivateKeyForAddress(address);
+      return await this.#getPrivateKeyForAddress(address);
     } catch {
       return null;
     }
