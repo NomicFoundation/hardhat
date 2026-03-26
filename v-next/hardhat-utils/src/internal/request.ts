@@ -1,11 +1,9 @@
 import type { DispatcherOptions, RequestOptions } from "../request.js";
 import type EventEmitter from "node:events";
-import type UndiciT from "undici";
+import type * as UndiciT from "undici";
 
 import crypto from "node:crypto";
 import path from "node:path";
-
-import { Agent, Dispatcher, Pool, ProxyAgent } from "undici";
 
 import { mkdir } from "../fs.js";
 import { isObject } from "../lang.js";
@@ -18,6 +16,10 @@ import {
   RequestTimeoutError,
   ResponseStatusCodeError,
 } from "../request.js";
+
+// We don't load undici on startup because this package is transitively imported
+// from too many places and it's too complex to optimize case by case.
+let undici: typeof UndiciT | undefined;
 
 export async function generateTempFilePath(filePath: string): Promise<string> {
   const { dir, ext, name } = path.parse(filePath);
@@ -42,8 +44,12 @@ export async function getBaseRequestOptions(
   headers: Record<string, string>;
   throwOnError: true;
 }> {
+  if (undici === undefined) {
+    undici = await import("undici");
+  }
+
   const dispatcher =
-    dispatcherOrDispatcherOptions instanceof Dispatcher
+    dispatcherOrDispatcherOptions instanceof undici.Dispatcher
       ? dispatcherOrDispatcherOptions
       : await getDispatcher(requestUrl, dispatcherOrDispatcherOptions);
 
@@ -91,7 +97,11 @@ export async function getProxyDispatcher(
   proxy: string,
   options: Omit<UndiciT.ProxyAgent.Options, "uri">,
 ): Promise<UndiciT.ProxyAgent> {
-  return new ProxyAgent({
+  if (undici === undefined) {
+    undici = await import("undici");
+  }
+
+  return new undici.ProxyAgent({
     uri: proxy,
     ...options,
   });
@@ -101,14 +111,22 @@ export async function getPoolDispatcher(
   requestUrl: string,
   options: UndiciT.Pool.Options,
 ): Promise<UndiciT.Pool> {
+  if (undici === undefined) {
+    undici = await import("undici");
+  }
+
   const parsedUrl = new URL(requestUrl);
-  return new Pool(parsedUrl.origin, options);
+  return new undici.Pool(parsedUrl.origin, options);
 }
 
 export async function getBasicDispatcher(
   options: UndiciT.Agent.Options,
 ): Promise<UndiciT.Agent> {
-  return new Agent(options);
+  if (undici === undefined) {
+    undici = await import("undici");
+  }
+
+  return new undici.Agent(options);
 }
 
 export function getBaseDispatcherOptions(
