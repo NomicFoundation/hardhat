@@ -38,24 +38,22 @@ export default async (): Promise<Partial<NetworkHooks>> => {
         nextJsonRpcRequest: JsonRpcRequest,
       ) => Promise<JsonRpcResponse>,
     ) {
-      const requestHandlers = await initializationMutex.exclusiveRun(
-        async () => {
-          let handlersPerConnection =
+      let requestHandlers = requestHandlersPerConnection.get(networkConnection);
+      if (requestHandlers === undefined) {
+        requestHandlers = await initializationMutex.exclusiveRun(async () => {
+          // We check again in case another execution of this function initialized the handlers while we were waiting for the mutex.
+          const handlerPerConnectionAfterWaiting =
             requestHandlersPerConnection.get(networkConnection);
-
-          if (handlersPerConnection === undefined) {
-            handlersPerConnection =
-              await createHandlersArray(networkConnection);
-
-            requestHandlersPerConnection.set(
-              networkConnection,
-              handlersPerConnection,
-            );
+          if (handlerPerConnectionAfterWaiting !== undefined) {
+            return handlerPerConnectionAfterWaiting;
           }
 
-          return handlersPerConnection;
-        },
-      );
+          const result = await createHandlersArray(networkConnection);
+          requestHandlersPerConnection.set(networkConnection, result);
+
+          return result;
+        });
+      }
 
       // We previously cloned here, but the performance impact is significant.
       // TODO: ensure the passed in request is not mutated by adapting the
