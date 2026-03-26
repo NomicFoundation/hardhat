@@ -17,35 +17,43 @@ import { getRequestParams } from "../../../json-rpc.js";
  * The class also provides a mechanism to retrieve the sender account, which must be implemented by subclasses.
  */
 export abstract class SenderHandler implements RequestHandler {
+  readonly #methods: ReadonlySet<string> = new Set([
+    "eth_sendTransaction",
+    "eth_call",
+    "eth_estimateGas",
+  ]);
+
   protected readonly provider: EthereumProvider;
 
   constructor(provider: EthereumProvider) {
     this.provider = provider;
   }
 
+  public isSupportedMethod(jsonRpcRequest: JsonRpcRequest): boolean {
+    return this.#methods.has(jsonRpcRequest.method);
+  }
+
   public async handle(
     jsonRpcRequest: JsonRpcRequest,
   ): Promise<JsonRpcRequest | JsonRpcResponse> {
+    if (!this.isSupportedMethod(jsonRpcRequest)) {
+      return jsonRpcRequest;
+    }
+
     const method = jsonRpcRequest.method;
     const params = getRequestParams(jsonRpcRequest);
 
-    if (
-      method === "eth_sendTransaction" ||
-      method === "eth_call" ||
-      method === "eth_estimateGas"
-    ) {
-      const [tx] = params;
+    const [tx] = params;
 
-      if (isObject(tx) && tx.from === undefined) {
-        const senderAccount = await this.getSender();
+    if (isObject(tx) && tx.from === undefined) {
+      const senderAccount = await this.getSender();
 
-        if (senderAccount !== undefined) {
-          tx.from = senderAccount;
-        } else if (method === "eth_sendTransaction") {
-          throw new HardhatError(
-            HardhatError.ERRORS.CORE.NETWORK.NO_REMOTE_ACCOUNT_AVAILABLE,
-          );
-        }
+      if (senderAccount !== undefined) {
+        tx.from = senderAccount;
+      } else if (method === "eth_sendTransaction") {
+        throw new HardhatError(
+          HardhatError.ERRORS.CORE.NETWORK.NO_REMOTE_ACCOUNT_AVAILABLE,
+        );
       }
     }
 

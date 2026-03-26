@@ -14,16 +14,22 @@ import { getRequestParams } from "../../../json-rpc.js";
  * For `eth_sendTransaction` requests, it sets the gasPrice field with the value provided via the class constructor, if it hasn't been specified already.
  */
 export class FixedGasPriceHandler implements RequestHandler {
+  readonly #methods: ReadonlySet<string> = new Set(["eth_sendTransaction"]);
+
   readonly #gasPrice: PrefixedHexString;
 
   constructor(gasPrice: PrefixedHexString) {
     this.#gasPrice = gasPrice;
   }
 
+  public isSupportedMethod(jsonRpcRequest: JsonRpcRequest): boolean {
+    return this.#methods.has(jsonRpcRequest.method);
+  }
+
   public async handle(
     jsonRpcRequest: JsonRpcRequest,
   ): Promise<JsonRpcRequest | JsonRpcResponse> {
-    if (jsonRpcRequest.method !== "eth_sendTransaction") {
+    if (!this.isSupportedMethod(jsonRpcRequest)) {
       return jsonRpcRequest;
     }
 

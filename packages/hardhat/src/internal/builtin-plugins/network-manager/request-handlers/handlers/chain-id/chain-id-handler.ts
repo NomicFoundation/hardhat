@@ -25,17 +25,25 @@ export class ChainIdValidatorHandler extends ChainId implements RequestHandler {
     this.#expectedChainId = expectedChainId;
   }
 
-  public async handle(
-    jsonRpcRequest: JsonRpcRequest,
-  ): Promise<JsonRpcRequest | JsonRpcResponse> {
+  public isSupportedMethod(jsonRpcRequest: JsonRpcRequest): boolean {
+    if (this.#alreadyValidated) {
+      return false;
+    }
+
     if (
       jsonRpcRequest.method === "eth_chainId" ||
       jsonRpcRequest.method === "net_version"
     ) {
-      return jsonRpcRequest;
+      return false;
     }
 
-    if (this.#alreadyValidated) {
+    return true;
+  }
+
+  public async handle(
+    jsonRpcRequest: JsonRpcRequest,
+  ): Promise<JsonRpcRequest | JsonRpcResponse> {
+    if (!this.isSupportedMethod(jsonRpcRequest)) {
       return jsonRpcRequest;
     }
 

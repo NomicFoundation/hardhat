@@ -25,6 +25,8 @@ export class AutomaticGasHandler
   extends MultipliedGasEstimation
   implements RequestHandler
 {
+  readonly #methods: ReadonlySet<string> = new Set(["eth_sendTransaction"]);
+
   constructor(
     provider: EthereumProvider,
     gasMultiplier: number = DEFAULT_GAS_MULTIPLIER,
@@ -32,10 +34,14 @@ export class AutomaticGasHandler
     super(provider, gasMultiplier);
   }
 
+  public isSupportedMethod(jsonRpcRequest: JsonRpcRequest): boolean {
+    return this.#methods.has(jsonRpcRequest.method);
+  }
+
   public async handle(
     jsonRpcRequest: JsonRpcRequest,
   ): Promise<JsonRpcRequest | JsonRpcResponse> {
-    if (jsonRpcRequest.method !== "eth_sendTransaction") {
+    if (!this.isSupportedMethod(jsonRpcRequest)) {
       return jsonRpcRequest;
     }
 

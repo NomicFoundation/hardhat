@@ -27,6 +27,7 @@ export class HDWalletHandler extends LocalAccountsHandler {
 
     return new HDWalletHandler(provider, privateKeys);
   }
+
   private constructor(provider: EthereumProvider, privateKeys: string[]) {
     super(provider, privateKeys);
   }
