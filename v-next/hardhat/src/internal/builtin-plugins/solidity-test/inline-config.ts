@@ -177,7 +177,9 @@ export function getTestFunctionOverrides(
  * Returns true if the build info bytes contain either of the inline config
  * prefixes.
  */
-export function buildInfoContainsInlineConfig(buildInfoBytes: Uint8Array): boolean {
+export function buildInfoContainsInlineConfig(
+  buildInfoBytes: Uint8Array,
+): boolean {
   return (
     bytesIncludesUtf8String(buildInfoBytes, HARDHAT_CONFIG_PREFIX) ||
     bytesIncludesUtf8String(buildInfoBytes, FORGE_CONFIG_PREFIX)
