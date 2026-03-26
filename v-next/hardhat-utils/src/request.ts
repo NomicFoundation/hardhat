@@ -1,7 +1,7 @@
 import type EventEmitter from "node:events";
 import type { FileHandle } from "node:fs/promises";
 import type { ParsedUrlQueryInput } from "node:querystring";
-import type UndiciT from "undici";
+import type * as UndiciT from "undici";
 
 import { open } from "node:fs/promises";
 import querystring from "node:querystring";
@@ -32,6 +32,10 @@ export const DEFAULT_USER_AGENT = "Hardhat";
 export type Dispatcher = UndiciT.Dispatcher;
 export type TestDispatcher = UndiciT.MockAgent;
 export type Interceptable = UndiciT.Interceptable;
+
+// We don't load undici on startup because this package is transitively imported
+// from too many places and it's too complex to optimize case by case.
+let undici: typeof UndiciT | undefined;
 
 /**
  * Options to configure the dispatcher.
@@ -88,7 +92,9 @@ export async function getRequest(
   requestOptions: RequestOptions = {},
   dispatcherOrDispatcherOptions?: UndiciT.Dispatcher | DispatcherOptions,
 ): Promise<HttpResponse> {
-  const { request } = await import("undici");
+  if (undici === undefined) {
+    undici = await import("undici");
+  }
 
   try {
     const baseRequestOptions = await getBaseRequestOptions(
@@ -96,7 +102,7 @@ export async function getRequest(
       requestOptions,
       dispatcherOrDispatcherOptions,
     );
-    return await request(url, {
+    return await undici.request(url, {
       method: "GET",
       ...baseRequestOptions,
     });
@@ -128,7 +134,9 @@ export async function postJsonRequest(
   requestOptions: RequestOptions = {},
   dispatcherOrDispatcherOptions?: UndiciT.Dispatcher | DispatcherOptions,
 ): Promise<HttpResponse> {
-  const { request } = await import("undici");
+  if (undici === undefined) {
+    undici = await import("undici");
+  }
 
   try {
     const { headers, ...baseRequestOptions } = await getBaseRequestOptions(
@@ -136,7 +144,7 @@ export async function postJsonRequest(
       requestOptions,
       dispatcherOrDispatcherOptions,
     );
-    return await request(url, {
+    return await undici.request(url, {
       method: "POST",
       ...baseRequestOptions,
       headers: {
@@ -173,7 +181,9 @@ export async function postFormRequest(
   requestOptions: RequestOptions = {},
   dispatcherOrDispatcherOptions?: UndiciT.Dispatcher | DispatcherOptions,
 ): Promise<HttpResponse> {
-  const { request } = await import("undici");
+  if (undici === undefined) {
+    undici = await import("undici");
+  }
 
   try {
     const { headers, ...baseRequestOptions } = await getBaseRequestOptions(
@@ -181,7 +191,7 @@ export async function postFormRequest(
       requestOptions,
       dispatcherOrDispatcherOptions,
     );
-    return await request(url, {
+    return await undici.request(url, {
       method: "POST",
       ...baseRequestOptions,
       headers: {
@@ -324,10 +334,12 @@ export async function getTestDispatcher(
     timeout?: number;
   } = {},
 ): Promise<TestDispatcher> {
-  const { MockAgent } = await import("undici");
+  if (undici === undefined) {
+    undici = await import("undici");
+  }
 
   const baseOptions = getBaseDispatcherOptions(options.timeout, true);
-  return new MockAgent(baseOptions);
+  return new undici.MockAgent(baseOptions);
 }
 
 /**

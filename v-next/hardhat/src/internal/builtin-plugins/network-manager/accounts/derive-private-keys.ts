@@ -1,5 +1,14 @@
+import type * as Bip39T from "ethereum-cryptography/bip39";
+import type { HDKey as HDKeyT } from "ethereum-cryptography/hdkey";
+
 import { HardhatError } from "@nomicfoundation/hardhat-errors";
 import { bytesToHexString } from "@nomicfoundation/hardhat-utils/bytes";
+
+// ethereum-cryptography/bip39 is known to be slow to load, so we lazy load it
+let mnemonicToSeedSync: typeof Bip39T.mnemonicToSeedSync | undefined;
+
+// ethereum-cryptography/hdkey is known to be slow to load, so we lazy load it
+let HDKey: typeof HDKeyT | undefined;
 
 const HD_PATH_REGEX = /^m(:?\/\d+'?)+\/?$/;
 
@@ -47,12 +56,25 @@ async function deriveKeyFromMnemonicAndPath(
   hdPath: string,
   passphrase: string,
 ): Promise<string | undefined> {
-  const { mnemonicToSeedSync } = await import("ethereum-cryptography/bip39");
-  const { HDKey } = await import("ethereum-cryptography/hdkey");
-
   // NOTE: If mnemonic has space or newline at the beginning or end, it will be trimmed.
   // This is because mnemonic containing them may generate different private keys.
   const trimmedMnemonic = mnemonic.trim();
+
+  if (mnemonicToSeedSync === undefined) {
+    const { mnemonicToSeedSync: importedMnemonicToSeedSync } = await import(
+      "ethereum-cryptography/bip39"
+    );
+
+    mnemonicToSeedSync = importedMnemonicToSeedSync;
+  }
+
+  if (HDKey === undefined) {
+    const { HDKey: ImportedHDKey } = await import(
+      "ethereum-cryptography/hdkey"
+    );
+
+    HDKey = ImportedHDKey;
+  }
 
   const seed = mnemonicToSeedSync(trimmedMnemonic, passphrase);
 

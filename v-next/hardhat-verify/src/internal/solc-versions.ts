@@ -1,6 +1,7 @@
 import type { SolidityBuildProfileConfig } from "hardhat/types/config";
 
 import { HardhatError } from "@nomicfoundation/hardhat-errors";
+import semver from "semver";
 
 // TODO: Consider splitting this into two steps: collecting compiler versions
 // and validating them. Version collection could be delegated to a helper
@@ -19,10 +20,10 @@ import { HardhatError } from "@nomicfoundation/hardhat-errors";
  * `compilers` and `overrides`.
  * @throws HardhatError if any version is not supported by Etherscan.
  */
-export async function resolveSupportedSolcVersions({
+export function resolveSupportedSolcVersions({
   compilers,
   overrides,
-}: SolidityBuildProfileConfig): Promise<string[]> {
+}: SolidityBuildProfileConfig): string[] {
   const solcVersions = compilers.map(({ version }) => version);
   if (overrides !== undefined) {
     for (const { version } of Object.values(overrides)) {
@@ -33,7 +34,6 @@ export async function resolveSupportedSolcVersions({
   // Etherscan only supports solidity versions higher than or equal to v0.4.11.
   // See https://etherscan.io/solcversions
   const SUPPORTED_SOLC_VERSION_RANGE = ">=0.4.11";
-  const semver = await import("semver");
   const unsupportedSolcVersions = solcVersions.filter(
     (version) => !semver.satisfies(version, SUPPORTED_SOLC_VERSION_RANGE),
   );
@@ -57,11 +57,9 @@ export async function resolveSupportedSolcVersions({
  * @param range A semver range string (e.g. ">=0.4.11")
  * @returns An array of versions that satisfy the range.
  */
-export async function filterVersionsByRange(
+export function filterVersionsByRange(
   versions: string[],
   range: string,
-): Promise<string[]> {
-  const semver = await import("semver");
-
+): string[] {
   return versions.filter((version) => semver.satisfies(version, range));
 }

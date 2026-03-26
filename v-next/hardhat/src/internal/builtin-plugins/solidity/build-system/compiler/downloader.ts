@@ -25,6 +25,7 @@ import {
 import { getPrefixedHexString } from "@nomicfoundation/hardhat-utils/hex";
 import { download } from "@nomicfoundation/hardhat-utils/request";
 import { MultiProcessMutex } from "@nomicfoundation/hardhat-utils/synchronization";
+import AdmZip from "adm-zip";
 import debug from "debug";
 
 import { NativeCompiler, SolcJsCompiler } from "./compiler.js";
@@ -469,8 +470,6 @@ export class CompilerDownloaderImplementation implements CompilerDownloader {
       downloadPath.endsWith(".zip")
     ) {
       // some window builds are zipped, some are not
-      const { default: AdmZip } = await import("adm-zip");
-
       const solcFolder = path.join(this.#compilersDir, build.version);
       await ensureDir(solcFolder);
 

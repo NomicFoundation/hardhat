@@ -3,6 +3,8 @@ import type { ArtifactManager } from "hardhat/types/artifacts";
 import type { NetworkConfig } from "hardhat/types/config";
 import type { EthereumProvider } from "hardhat/types/providers";
 
+import * as ethers from "ethers";
+
 import { HardhatEthersProvider } from "./hardhat-ethers-provider/hardhat-ethers-provider.js";
 import { HardhatHelpers } from "./hardhat-helpers/hardhat-helpers.js";
 
@@ -12,8 +14,6 @@ export async function initializeEthers(
   networkConfig: NetworkConfig,
   artifactManager: ArtifactManager,
 ): Promise<HardhatEthers> {
-  const ethers = await import("ethers");
-
   const provider = new HardhatEthersProvider(
     ethereumProvider,
     networkName,

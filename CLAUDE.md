@@ -24,14 +24,24 @@ v-next/hardhat - core logic and cli
 
 **Package structure** — Exported code and types (via `package#exports`) live under `src/`, non-exported internals under `src/internal/`.
 
-**Lazy loading external packages** — Hardhat optimizes startup time. Follow this strictly:
-
-- Top-level imports allowed for: `node:path`, `node:util`, `chalk`, `semver`, `debug` and `import type`
-- Everything else: use `await import()` inside the function that needs it
-
 **`hardhat-utils` first** — Before using `node:fs` or writing a utility, check `@nomicfoundation/hardhat-utils`. It covers fs, crypto, hex, error handling, and more.
 
 **Errors** — Only throw `HardhatError`. Never `throw new Error()`. Use `HardhatError.isHardhatError()` (not `instanceof`) and `ensureError()` in catch clauses. `./scripts` is exempt.
+
+### Using imports correctly in Hardhat 3
+
+Use `await import` only if one of these conditions is met:
+
+1. The file with the import is part of the `hardhat` package, is always imported at startup (i.e. imported by `hardhat`'s `src/internal/cli/main.ts` or `src/index.ts`, directly or transitively), and the imported module isn't always used (e.g. `./init/init.js` in `hardhat`'s `main.ts`)
+2. The import path is dynamic (e.g. the user config path)
+3. The file is dynamically loaded by a wrapper that exports the same interface that loads it on first access (mostly used for HRE extensions, e.g. `src/internal/builtin-plugins/network-manager/hook-handlers/hre.ts` in `hardhat`)
+4. The dynamic import is used to avoid a circular dependency (e.g. importing the `HRE` at runtime)
+5. The import has to happen at a certain point in time (mostly used for import side-effects, e.g. `await import(...)` without doing anything with the imported module)
+6. If there's a comment justifying it, and the imported module is cached (i.e. not running `await import(...)` every time, but instead doing something like `if (cachedModule === undefined) { cachedModule = await import(...) }`). Some code duplication in this case is acceptable if that avoids adding unnecessary async logic (e.g. avoid `const module = await getModule()` to avoid repeating just a few conditionals).
+
+The only accepted imports in the `index.ts` file of plugins (both built-in and external) are their `type-extension`, types and `enums` from `hardhat`, and `hardhat/config`, and potentially a simple file with constants. They can also import files that follow these same rules and restrictions. Everything else should be imported by a callback registered in the plugin object.
+
+Test files are free to use `await import` freely.
 
 ## Development workflow
 

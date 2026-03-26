@@ -1,5 +1,6 @@
 import type { JsonFragment } from "@ethersproject/abi";
 
+import { Interface } from "@ethersproject/abi";
 import { HardhatError } from "@nomicfoundation/hardhat-errors";
 import { ensureError } from "@nomicfoundation/hardhat-utils/error";
 import { getUnprefixedHexString } from "@nomicfoundation/hardhat-utils/hex";
@@ -23,8 +24,6 @@ export async function encodeConstructorArgs(
   contract: string,
 ): Promise<string> {
   // TODO: consider replacing with @metamask/abi-utils or micro-eth-signer
-  const { Interface } = await import("@ethersproject/abi");
-
   const contractInterface = new Interface(abi);
 
   try {

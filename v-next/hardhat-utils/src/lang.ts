@@ -11,7 +11,7 @@ import {
  * @returns The deep clone of the provided value.
  */
 export async function deepClone<T>(value: T): Promise<T> {
-  const _deepClone = await getDeepCloneFunction();
+  const _deepClone = getDeepCloneFunction();
 
   return _deepClone<T>(value);
 }

@@ -4,7 +4,6 @@ import type {
   Libraries,
 } from "../../types.js";
 import type { HardhatEthersProvider } from "../hardhat-ethers-provider/hardhat-ethers-provider.js";
-import type { HardhatEthersSigner } from "../signers/signers.js";
 import type { ethers as EthersT } from "ethers";
 import type {
   Abi,
@@ -18,6 +17,9 @@ import {
   assertHardhatInvariant,
   HardhatError,
 } from "@nomicfoundation/hardhat-errors";
+import { Contract, ContractFactory, isAddress, isAddressable } from "ethers";
+
+import { HardhatEthersSigner } from "../signers/signers.js";
 
 interface Link {
   sourceName: string;
@@ -68,11 +70,7 @@ export class HardhatHelpers {
   }
 
   public async getSigner(address: string): Promise<HardhatEthersSigner> {
-    const { HardhatEthersSigner: SignerWithAddressImpl } = await import(
-      "../signers/signers.js"
-    );
-
-    const signerWithAddress = await SignerWithAddressImpl.create(
+    const signerWithAddress = await HardhatEthersSigner.create(
       this.#provider,
       this.#networkName,
       this.#networkConfig,
@@ -179,8 +177,6 @@ export class HardhatHelpers {
       return this.getContractAtFromArtifact(artifact, address, signer);
     }
 
-    const ethers = await import("ethers");
-
     if (signer === undefined) {
       const signers = await this.getSigners();
       signer = signers[0];
@@ -192,13 +188,13 @@ export class HardhatHelpers {
       signer !== undefined ? signer : this.#provider;
 
     let resolvedAddress;
-    if (ethers.isAddressable(address)) {
+    if (isAddressable(address)) {
       resolvedAddress = await address.getAddress();
     } else {
       resolvedAddress = address;
     }
 
-    return new ethers.Contract(resolvedAddress, nameOrAbi, signerOrProvider);
+    return new Contract(resolvedAddress, nameOrAbi, signerOrProvider);
   }
 
   public async getContractAtFromArtifact(
@@ -206,8 +202,6 @@ export class HardhatHelpers {
     address: string | EthersT.Addressable,
     signer?: EthersT.Signer,
   ): Promise<EthersT.Contract> {
-    const ethers = await import("ethers");
-
     if (!this.#isArtifact(artifact)) {
       throw new HardhatError(
         HardhatError.ERRORS.HARDHAT_ETHERS.GENERAL.INVALID_ARTIFACT_FOR_FACTORY,
@@ -220,13 +214,13 @@ export class HardhatHelpers {
     }
 
     let resolvedAddress;
-    if (ethers.isAddressable(address)) {
+    if (isAddressable(address)) {
       resolvedAddress = await address.getAddress();
     } else {
       resolvedAddress = address;
     }
 
-    let contract = new ethers.Contract(resolvedAddress, artifact.abi, signer);
+    let contract = new Contract(resolvedAddress, artifact.abi, signer);
 
     if (contract.runner === null) {
       // eslint-disable-next-line @typescript-eslint/consistent-type-assertions -- EthersT.Contract overlaps with EthersT.BaseContract
@@ -315,8 +309,6 @@ export class HardhatHelpers {
   }
 
   async #collectLibrariesAndLink(artifact: Artifact, libraries: Libraries) {
-    const ethers = await import("ethers");
-
     const neededLibraries: Array<{
       sourceName: string;
       libName: string;
@@ -334,13 +326,13 @@ export class HardhatHelpers {
       libraries,
     )) {
       let resolvedAddress: string;
-      if (ethers.isAddressable(linkedLibraryAddress)) {
+      if (isAddressable(linkedLibraryAddress)) {
         resolvedAddress = await linkedLibraryAddress.getAddress();
       } else {
         resolvedAddress = linkedLibraryAddress;
       }
 
-      if (!ethers.isAddress(resolvedAddress)) {
+      if (!isAddress(resolvedAddress)) {
         throw new HardhatError(
           HardhatError.ERRORS.HARDHAT_ETHERS.GENERAL.INVALID_ADDRESS_TO_LINK_CONTRACT_TO_LIBRARY,
           {
@@ -465,8 +457,6 @@ export class HardhatHelpers {
     bytecode: EthersT.BytesLike,
     signer?: EthersT.Signer,
   ): Promise<EthersT.ContractFactory<A, I>> {
-    const { ContractFactory } = await import("ethers");
-
     if (signer === undefined) {
       // const signers = await hre.ethers.getSigners();
       const signers = await this.getSigners();
