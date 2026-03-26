@@ -1,0 +1,5 @@
+---
+"hardhat" patch
+---
+
+Optimize imports.
