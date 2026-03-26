@@ -6,5 +6,11 @@
     "v-next/hardhat/templates",
     "v-next/config"
   ],
-  "bumps": []
+  "bumps": [
+    {
+      "package": "@nomicfoundation/hardhat-ethers-chai-matchers",
+      "peer": "@nomicfoundation/hardhat-ethers",
+      "reason": "Requires waitForTransaction implementation from hardhat-ethers for non-automining network support (#7952)"
+    }
+  ]
 }

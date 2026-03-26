@@ -6,12 +6,15 @@ import type { Transaction } from "ethers/transaction";
 
 import util from "node:util";
 
+import { isHash } from "@nomicfoundation/hardhat-utils/eth";
 import { assert as chaiAssert, AssertionError } from "chai";
 
 import { ASSERTION_ABORTED, EMIT_MATCHER } from "../constants.js";
 import { assertArgsArraysEqual, assertIsNotNull } from "../utils/asserts.js";
 import { buildAssert } from "../utils/build-assert.js";
 import { preventAsyncMatcherChaining } from "../utils/prevent-chaining.js";
+
+import { parseBytes32String } from "./reverted/utils.js";
 
 export const EMIT_CALLED = "emitAssertionCalled";
 
@@ -32,7 +35,20 @@ async function waitForPendingTransaction(
     chaiAssert.fail(`"${JSON.stringify(tx)}" is not a valid transaction`);
   }
 
-  return provider.getTransactionReceipt(hash);
+  if (typeof tx === "string") {
+    if (!isHash(hash)) {
+      chaiAssert.fail(`Expected a valid transaction hash, but got "${hash}"`);
+    }
+
+    // If the input is a raw string that is also a valid bytes32-encoded
+    // string, it might not be a real tx hash. Do a one-shot check to
+    // avoid polling forever.
+    if (isBytes32String(hash)) {
+      return provider.getTransactionReceipt(hash);
+    }
+  }
+
+  return provider.waitForTransaction(hash);
 }
 
 export function supportEmit(
@@ -229,3 +245,12 @@ const tryAssertArgsArraysEqual = (
     } emitted "${eventName}" events`,
   );
 };
+
+function isBytes32String(v: string): boolean {
+  try {
+    parseBytes32String(v);
+    return true;
+  } catch {
+    return false;
+  }
+}
