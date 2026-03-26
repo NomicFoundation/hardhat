@@ -54,6 +54,9 @@ import { HardhatEthersSigner } from "../signers/signers.js";
 
 const log = debug("hardhat:hardhat-ethers:provider");
 
+// The default number of confirmations when waiting for a transaction
+const DEFAULT_TRANSACTION_CONFIRMS = 1;
+
 interface ListenerItem {
   listener: Listener;
   once: boolean;
@@ -467,16 +470,80 @@ export class HardhatEthersProvider implements HardhatEthersProviderI {
   }
 
   public async waitForTransaction(
-    _hash: string,
-    _confirms?: number | undefined,
-    _timeout?: number | undefined,
+    hash: string,
+    confirms?: number | undefined,
+    timeout?: number | undefined,
   ): Promise<ethers.TransactionReceipt | null> {
-    throw new HardhatError(
-      HardhatError.ERRORS.HARDHAT_ETHERS.GENERAL.METHOD_NOT_IMPLEMENTED,
-      {
-        method: "HardhatEthersProvider.waitForTransaction",
-      },
-    );
+    const resolvedConfirms = confirms ?? DEFAULT_TRANSACTION_CONFIRMS;
+
+    if (resolvedConfirms === 0) {
+      return this.getTransactionReceipt(hash);
+    }
+
+    const pollingInterval = (await this.#isHardhatNetwork()) ? 50 : 500;
+
+    return new Promise<ethers.TransactionReceipt | null>((resolve, reject) => {
+      let cancelled = false;
+      let timeoutTimer: NodeJS.Timeout | undefined;
+      let pollingTimeout: NodeJS.Timeout | undefined;
+
+      if (timeout !== undefined && timeout > 0) {
+        timeoutTimer = setTimeout(() => {
+          cancelled = true;
+
+          clearTimeout(pollingTimeout);
+
+          resolve(null);
+        }, timeout);
+      }
+
+      const poll = async () => {
+        if (cancelled) {
+          return;
+        }
+
+        try {
+          const receipt = await this.getTransactionReceipt(hash);
+
+          // Wait for the required confirmation depth before resolving,
+          // so callers relying on confirmations for reorg safety aren't
+          // given a receipt that could still be reverted.
+          if (receipt !== null && receipt.blockNumber !== null) {
+            const latestBlockNumber = await this.getBlockNumber();
+            const confirmations = latestBlockNumber - receipt.blockNumber + 1;
+
+            if (confirmations >= resolvedConfirms) {
+              cancelled = true;
+
+              if (timeoutTimer !== undefined) {
+                clearTimeout(timeoutTimer);
+              }
+
+              clearTimeout(pollingTimeout);
+              resolve(receipt);
+
+              return;
+            }
+          }
+
+          clearTimeout(pollingTimeout);
+
+          pollingTimeout = setTimeout(poll, pollingInterval);
+        } catch (e) {
+          ensureError(e);
+
+          cancelled = true;
+
+          if (timeoutTimer !== undefined) {
+            clearTimeout(timeoutTimer);
+          }
+
+          reject(e);
+        }
+      };
+
+      void poll();
+    });
   }
 
   public async waitForBlock(
