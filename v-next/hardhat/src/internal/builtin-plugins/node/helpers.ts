@@ -2,6 +2,7 @@ import type { BuildInfo } from "../../../types/artifacts.js";
 import type { EdrNetworkAccountsConfig } from "../../../types/config.js";
 import type { SolidityBuildInfoOutput } from "../../../types/solidity.js";
 import type { EdrProvider } from "../network-manager/edr/edr-provider.js";
+import type * as MicroEthSignerT from "micro-eth-signer";
 
 import path from "node:path";
 
@@ -11,7 +12,9 @@ import {
 } from "@nomicfoundation/hardhat-utils/fs";
 import { hexStringToBytes } from "@nomicfoundation/hardhat-utils/hex";
 import chalk from "chalk";
-import { addr } from "micro-eth-signer";
+
+// micro-eth-signer is known to be slow to load, so we lazy load it
+let microEthSigner: typeof MicroEthSignerT | undefined;
 
 import { sendErrorTelemetry } from "../../cli/telemetry/sentry/reporter.js";
 import { isDefaultEdrNetworkHDAccountsConfig } from "../network-manager/edr/edr-provider.js";
@@ -48,8 +51,12 @@ export async function formatEdrNetworkConfigAccounts(
     maxPrefixLength = privateKeyPrefix.length;
   }
 
+  if (microEthSigner === undefined) {
+    microEthSigner = await import("micro-eth-signer");
+  }
+
   for (const [index, account] of accounts.entries()) {
-    const address = addr
+    const address = microEthSigner.addr
       .fromPrivateKey(hexStringToBytes(await account.privateKey.getHexString()))
       .toLowerCase();
     const balance = (BigInt(account.balance) / 10n ** 18n).toString(10);

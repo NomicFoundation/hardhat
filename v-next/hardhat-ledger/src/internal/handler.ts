@@ -5,6 +5,9 @@ import type {
   JsonRpcRequest,
   JsonRpcResponse,
 } from "hardhat/types/providers";
+import type * as MicroEthSignerT from "micro-eth-signer";
+import type * as MicroEthSignerTypedDataT from "micro-eth-signer/typed-data";
+import type * as MicroEthSignerUtilsT from "micro-eth-signer/utils";
 
 import {
   DisconnectedDevice,
@@ -38,9 +41,6 @@ import {
   validateParams,
 } from "@nomicfoundation/hardhat-zod-utils/rpc";
 import debug from "debug";
-import { Transaction } from "micro-eth-signer";
-import * as typed from "micro-eth-signer/typed-data";
-import { add0x, initSig } from "micro-eth-signer/utils";
 
 import * as cache from "./cache.js";
 import { createTx } from "./create-tx.js";
@@ -53,6 +53,11 @@ import { getRequestParams } from "./rpc-helpers.js";
 const APP_NOT_OPEN_STATUS_CODE = 0x6511;
 
 const log = debug("hardhat:hardhat-ledger:handler");
+
+// micro-eth-signer is known to be slow to load, so we lazy load it
+let microEthSigner: typeof MicroEthSignerT | undefined;
+let microEthSignerTypedData: typeof MicroEthSignerTypedDataT | undefined;
+let microEthSignerUtils: typeof MicroEthSignerUtilsT | undefined;
 
 interface RetryState {
   reconnection: number;
@@ -576,6 +581,10 @@ export class LedgerHandler {
   }
 
   async #toRpcSig(sig: Signature): Promise<string> {
+    if (microEthSignerUtils === undefined) {
+      microEthSignerUtils = await import("micro-eth-signer/utils");
+    }
+
     const recovery = this.#calculateSigRecovery(sig.v - 27);
 
     assertHardhatInvariant(
@@ -583,7 +592,7 @@ export class LedgerHandler {
       `Invalid recovery value: ${recovery}. It should be either 0 or 1.`,
     );
 
-    const nobleSig = initSig(
+    const nobleSig = microEthSignerUtils.initSig(
       { r: toBigInt(`0x${sig.r}`), s: toBigInt(`0x${sig.s}`) },
       recovery,
     );
@@ -591,7 +600,7 @@ export class LedgerHandler {
     const hex64 = nobleSig.toCompactHex();
     const vByte = recovery === 0 ? "1b" : "1c";
 
-    return add0x(hex64 + vByte);
+    return microEthSignerUtils.add0x(hex64 + vByte);
   }
 
   #calculateSigRecovery(v: number): number {
@@ -660,12 +669,16 @@ export class LedgerHandler {
       );
     }
 
+    if (microEthSignerTypedData === undefined) {
+      microEthSignerTypedData = await import("micro-eth-signer/typed-data");
+    }
+
     const { types, domain, message, primaryType } = typedMessage;
 
     /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions
     -- A type assertion is necessary because there is no type overlap between the `domain` imported from `@ledgerhq`
     and the parameter type expected by the function imported from `micro-eth-signer`. */
-    const enc = typed.encoder(types, domain as any);
+    const enc = microEthSignerTypedData.encoder(types, domain as any);
 
     /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions
     -- A type assertion is necessary because there is no type overlap between the `domain` imported from `@ledgerhq`
@@ -765,7 +778,11 @@ export class LedgerHandler {
       "chainId should be defined",
     );
 
-    const unsignedTx = createTx(txRequest, this.#chainId);
+    if (microEthSigner === undefined) {
+      microEthSigner = await import("micro-eth-signer");
+    }
+
+    const unsignedTx = await createTx(txRequest, this.#chainId);
 
     const txToSign = unsignedTx.toHex(false).substring(2);
 
@@ -780,7 +797,7 @@ export class LedgerHandler {
       return this.#eth.signTransaction(path, txToSign, resolution);
     });
 
-    const signedTx = new Transaction(unsignedTx.type, {
+    const signedTx = new microEthSigner.Transaction(unsignedTx.type, {
       ...unsignedTx.raw,
       r: toBigInt(normalizeHexString(signature.r)),
       s: toBigInt(normalizeHexString(signature.s)),
