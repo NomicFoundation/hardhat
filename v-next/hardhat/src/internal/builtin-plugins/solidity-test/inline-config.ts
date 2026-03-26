@@ -298,13 +298,13 @@ export function validateInlineOverrides(overrides: RawInlineOverride[]): void {
     const expectedType = KEY_TYPES[key];
     if (expectedType === "number") {
       const n = Number(rawValue);
-      if (!Number.isInteger(n) || n <= 0) {
+      if (!Number.isInteger(n) || n < 0) {
         throw new HardhatError(
           HardhatError.ERRORS.CORE.SOLIDITY_TESTS.INLINE_CONFIG_INVALID_VALUE,
           {
             value: rawValue,
             key: rawKey,
-            expectedType: "positive integer",
+            expectedType: "non-negative integer",
             functionFqn,
           },
         );

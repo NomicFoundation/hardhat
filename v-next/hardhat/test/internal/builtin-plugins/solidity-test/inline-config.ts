@@ -427,7 +427,7 @@ describe("inline-config", () => {
         {
           value: "abc",
           key: "fuzz.runs",
-          expectedType: "positive integer",
+          expectedType: "non-negative integer",
           functionFqn: getFunctionFqn("test/MyTest.sol", "MyTest", "testFoo"),
         },
       );
@@ -443,26 +443,16 @@ describe("inline-config", () => {
         {
           value: "-1",
           key: "fuzz.runs",
-          expectedType: "positive integer",
+          expectedType: "non-negative integer",
           functionFqn: getFunctionFqn("test/MyTest.sol", "MyTest", "testFoo"),
         },
       );
     });
 
-    it("should throw INVALID_VALUE for zero", () => {
-      assertThrowsHardhatError(
-        () =>
-          validateInlineOverrides([
-            makeRawOverride({ key: "fuzz.runs", rawValue: "0" }),
-          ]),
-        HardhatError.ERRORS.CORE.SOLIDITY_TESTS.INLINE_CONFIG_INVALID_VALUE,
-        {
-          value: "0",
-          key: "fuzz.runs",
-          expectedType: "positive integer",
-          functionFqn: getFunctionFqn("test/MyTest.sol", "MyTest", "testFoo"),
-        },
-      );
+    it("should accept zero", () => {
+      validateInlineOverrides([
+        makeRawOverride({ key: "fuzz.runs", rawValue: "0" }),
+      ]);
     });
 
     it("should throw INVALID_VALUE for float", () => {
@@ -475,7 +465,7 @@ describe("inline-config", () => {
         {
           value: "1.5",
           key: "fuzz.runs",
-          expectedType: "positive integer",
+          expectedType: "non-negative integer",
           functionFqn: getFunctionFqn("test/MyTest.sol", "MyTest", "testFoo"),
         },
       );
