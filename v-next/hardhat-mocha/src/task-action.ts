@@ -141,7 +141,7 @@ const testWithHardhat: NewTaskActionFunction<TestActionArguments> = async (
     // Import the handler directly when not running in parallel mode.
     // This must be a dynamic import because it's loaded for its side-effects
     // at this specific point in the mocha setup flow.
-    await import("./unhandled-rejection-mocha-hook.js");
+    await import(unhandledRejectionHookPath);
   }
 
   const mochaConfig: MochaOptions = { ...hre.config.test.mocha };
