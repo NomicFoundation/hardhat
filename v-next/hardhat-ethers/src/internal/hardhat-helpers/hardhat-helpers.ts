@@ -4,7 +4,6 @@ import type {
   Libraries,
 } from "../../types.js";
 import type { HardhatEthersProvider } from "../hardhat-ethers-provider/hardhat-ethers-provider.js";
-import { HardhatEthersSigner } from "../signers/signers.js";
 import type { ethers as EthersT } from "ethers";
 import type {
   Abi,
@@ -18,6 +17,8 @@ import {
   assertHardhatInvariant,
   HardhatError,
 } from "@nomicfoundation/hardhat-errors";
+
+import { HardhatEthersSigner } from "../signers/signers.js";
 
 interface Link {
   sourceName: string;
