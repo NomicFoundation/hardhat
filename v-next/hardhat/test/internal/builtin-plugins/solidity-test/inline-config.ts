@@ -471,6 +471,73 @@ describe("inline-config", () => {
       );
     });
 
+    it("should throw INVALID_VALUE for scientific notation", () => {
+      assertThrowsHardhatError(
+        () =>
+          validateInlineOverrides([
+            makeRawOverride({ key: "fuzz.runs", rawValue: "1e3" }),
+          ]),
+        HardhatError.ERRORS.CORE.SOLIDITY_TESTS.INLINE_CONFIG_INVALID_VALUE,
+        {
+          value: "1e3",
+          key: "fuzz.runs",
+          expectedType: "non-negative integer",
+          functionFqn: getFunctionFqn("test/MyTest.sol", "MyTest", "testFoo"),
+        },
+      );
+    });
+
+    it("should throw INVALID_VALUE for hex literal", () => {
+      assertThrowsHardhatError(
+        () =>
+          validateInlineOverrides([
+            makeRawOverride({ key: "fuzz.runs", rawValue: "0x10" }),
+          ]),
+        HardhatError.ERRORS.CORE.SOLIDITY_TESTS.INLINE_CONFIG_INVALID_VALUE,
+        {
+          value: "0x10",
+          key: "fuzz.runs",
+          expectedType: "non-negative integer",
+          functionFqn: getFunctionFqn("test/MyTest.sol", "MyTest", "testFoo"),
+        },
+      );
+    });
+
+    it("should throw INVALID_VALUE for leading zeros", () => {
+      assertThrowsHardhatError(
+        () =>
+          validateInlineOverrides([
+            makeRawOverride({ key: "fuzz.runs", rawValue: "007" }),
+          ]),
+        HardhatError.ERRORS.CORE.SOLIDITY_TESTS.INLINE_CONFIG_INVALID_VALUE,
+        {
+          value: "007",
+          key: "fuzz.runs",
+          expectedType: "non-negative integer",
+          functionFqn: getFunctionFqn("test/MyTest.sol", "MyTest", "testFoo"),
+        },
+      );
+    });
+
+    it("should throw INVALID_VALUE for value beyond MAX_SAFE_INTEGER", () => {
+      assertThrowsHardhatError(
+        () =>
+          validateInlineOverrides([
+            makeRawOverride({
+              key: "fuzz.runs",
+              rawValue: "9007199254740992",
+            }),
+          ]),
+        HardhatError.ERRORS.CORE.SOLIDITY_TESTS.INLINE_CONFIG_INVALID_VALUE,
+        {
+          value: "9007199254740992",
+          key: "fuzz.runs",
+          expectedType: "non-negative integer",
+          functionFqn: getFunctionFqn("test/MyTest.sol", "MyTest", "testFoo"),
+        },
+      );
+    });
+
     it("should throw INVALID_VALUE for non-boolean on boolean key", () => {
       assertThrowsHardhatError(
         () =>

@@ -297,8 +297,10 @@ export function validateInlineOverrides(overrides: RawInlineOverride[]): void {
     // Validate value type
     const expectedType = KEY_TYPES[key];
     if (expectedType === "number") {
-      const n = Number(rawValue);
-      if (!Number.isInteger(n) || n < 0) {
+      if (
+        !/^(0|[1-9]\d*)$/.test(rawValue) ||
+        !Number.isSafeInteger(Number(rawValue))
+      ) {
         throw new HardhatError(
           HardhatError.ERRORS.CORE.SOLIDITY_TESTS.INLINE_CONFIG_INVALID_VALUE,
           {
