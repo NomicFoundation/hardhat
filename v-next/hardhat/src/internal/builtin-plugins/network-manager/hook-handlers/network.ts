@@ -9,7 +9,6 @@ import type {
 } from "../../../../types/providers.js";
 import type { RequestHandler } from "../request-handlers/types.js";
 
-import { deepClone } from "@nomicfoundation/hardhat-utils/lang";
 import { AsyncMutex } from "@nomicfoundation/hardhat-utils/synchronization";
 
 import { isJsonRpcResponse } from "../json-rpc.js";
@@ -61,21 +60,22 @@ export default async (): Promise<Partial<NetworkHooks>> => {
         },
       );
 
-      // We clone the request to avoid interfering with other hook handlers that
-      // might be using the original request.
-      let request = await deepClone(jsonRpcRequest);
+      // We previously cloned here, but the performance impact is significant.
+      // TODO: ensure the passed in request is not mutated by adapting the
+      // handlers being applied here. See https://github.com/NomicFoundation/hardhat/issues/8090
+      let updatedRequest = jsonRpcRequest;
 
       for (const handler of requestHandlers) {
-        const newRequestOrResponse = await handler.handle(request);
+        const newRequestOrResponse = await handler.handle(updatedRequest);
 
         if (isJsonRpcResponse(newRequestOrResponse)) {
           return newRequestOrResponse;
         }
 
-        request = newRequestOrResponse;
+        updatedRequest = newRequestOrResponse;
       }
 
-      return next(context, networkConnection, request);
+      return next(context, networkConnection, updatedRequest);
     },
 
     async closeConnection<ChainTypeT extends ChainType | string>(
