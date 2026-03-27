@@ -100,9 +100,9 @@ const runSolidityTests: NewTaskActionFunction<TestActionArguments> = async (
     edrArtifactsWithMetadata.push(
       ...(await buildEdrArtifactsWithMetadata(artifactManager)),
     );
-    const scopeBuildInfosAndOutputs =
-      await getBuildInfosAndOutputs(artifactManager);
-    allBuildInfosAndOutputs.push(...scopeBuildInfosAndOutputs);
+    allBuildInfosAndOutputs.push(
+      ...(await getBuildInfosAndOutputs(artifactManager)),
+    );
   }
 
   const sourceNameToUserSourceName = new Map(
