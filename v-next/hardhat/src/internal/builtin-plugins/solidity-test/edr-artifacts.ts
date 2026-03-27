@@ -7,6 +7,12 @@ import type {
 import { assertHardhatInvariant } from "@nomicfoundation/hardhat-errors";
 import { readBinaryFile } from "@nomicfoundation/hardhat-utils/fs";
 
+export interface EdrArtifactWithMetadata {
+  edrArtifact: EdrArtifact;
+  userSourceName: string;
+  buildInfoId: string;
+}
+
 export const BUILD_INFO_FORMAT: RegExp =
   /^solc-(?<major>\d+)_(?<minor>\d+)_(?<patch>\d+)(?:-(?<compilerType>[a-zA-Z][a-zA-Z0-9]*))?-[0-9a-fA-F]*$/;
 
@@ -16,7 +22,7 @@ export const BUILD_INFO_FORMAT: RegExp =
  * @param artifactManager The artifact manager.
  * @returns The build infos in the Hardhat v3 format as expected by the EDR.
  */
-export async function getBuildInfos(
+export async function getBuildInfosAndOutputs(
   artifactManager: ArtifactManager,
 ): Promise<BuildInfoAndOutput[]> {
   const buildIds = await artifactManager.getAllBuildInfoIds();
@@ -58,11 +64,9 @@ export async function getBuildInfos(
  * @param artifactManager The artifact manager.
  * @returns The artifacts in the format expected by the EDR.
  */
-export async function getEdrArtifacts(
+export async function buildEdrArtifactsWithMetadata(
   artifactManager: ArtifactManager,
-): Promise<
-  Array<{ edrArtifact: EdrArtifact; userSourceName: string; buildInfoId: string }>
-> {
+): Promise<EdrArtifactWithMetadata[]> {
   const fullyQualifiedNames = await artifactManager.getAllFullyQualifiedNames();
 
   const artifacts = await Promise.all(

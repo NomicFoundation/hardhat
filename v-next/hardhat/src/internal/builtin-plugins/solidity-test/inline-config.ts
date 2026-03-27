@@ -61,7 +61,7 @@ interface SourceMetadata {
  * dependency). A deduplication set prevents processing the same source twice.
  */
 export function getTestFunctionOverrides(
-  buildInfos: BuildInfoAndOutput[],
+  buildInfosAndOutputs: BuildInfoAndOutput[],
 ): TestFunctionOverride[] {
   const allRawOverrides: RawInlineOverride[] = [];
   const sourceMetadata = new Map<string, SourceMetadata>(); // inputSourceName -> metadata
@@ -70,13 +70,13 @@ export function getTestFunctionOverrides(
   // Extract raw overrides and collect metadata for each source file.
   // We parse buildInfo first (smaller) to check source names, and only parse
   // the larger output if there are unprocessed sources.
-  for (const entry of buildInfos) {
-    if (!buildInfoContainsInlineConfig(entry.buildInfo)) {
+  for (const buildInfoAndOutput of buildInfosAndOutputs) {
+    if (!buildInfoContainsInlineConfig(buildInfoAndOutput.buildInfo)) {
       continue;
     }
 
     const buildInfo: SolidityBuildInfo = JSON.parse(
-      bytesToUtf8String(entry.buildInfo),
+      bytesToUtf8String(buildInfoAndOutput.buildInfo),
     );
 
     const inputSourceNames = Object.keys(buildInfo.input.sources);
@@ -89,7 +89,7 @@ export function getTestFunctionOverrides(
     }
 
     const buildInfoOutput: SolidityBuildInfoOutput = JSON.parse(
-      bytesToUtf8String(entry.output),
+      bytesToUtf8String(buildInfoAndOutput.output),
     );
 
     const solcVersion = buildInfo.solcVersion;
