@@ -1,5 +1,17 @@
 # Changelog
 
+## 3.1.1
+
+### Patch Changes
+
+- [#8088](https://github.com/NomicFoundation/hardhat/pull/8088) [`23c0d36`](https://github.com/NomicFoundation/hardhat/commit/23c0d3658f29305bf0adbbce4644a54d7ef22550) Thanks [@alcuadrado](https://github.com/alcuadrado)! - Optimize imports.
+
+- Updated dependencies:
+  - @nomicfoundation/hardhat-utils@4.0.2
+  - @nomicfoundation/ignition-core@3.1.1
+  - @nomicfoundation/hardhat-errors@3.0.10
+  - @nomicfoundation/ignition-ui@3.1.1
+
 ## 3.1.0
 
 ### Minor Changes
