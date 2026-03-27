@@ -1,5 +1,33 @@
 # hardhat
 
+## 3.2.1
+
+### Patch Changes
+
+- [#8008](https://github.com/NomicFoundation/hardhat/pull/8008) [`6fb3c27`](https://github.com/NomicFoundation/hardhat/commit/6fb3c27c58ece8cf2ba30ff9664cd00f4c925502) Thanks [@marianfe](https://github.com/marianfe)! - Introduce multi-compiler abstraction that allows plugins to define new Solidity compiler types ([#8008](https://github.com/NomicFoundation/hardhat/pull/8008)).
+
+- [#8077](https://github.com/NomicFoundation/hardhat/pull/8077) [`4581395`](https://github.com/NomicFoundation/hardhat/commit/45813957cb9220e9d781c5344f3829801a64359a) Thanks [@alcuadrado](https://github.com/alcuadrado)! - Optimize the initialization of EDR Network Connections by caching their genesis state.
+
+- [#8077](https://github.com/NomicFoundation/hardhat/pull/8077) [`4581395`](https://github.com/NomicFoundation/hardhat/commit/45813957cb9220e9d781c5344f3829801a64359a) Thanks [@alcuadrado](https://github.com/alcuadrado)! - Fix a bug where `network.connect()` re-resolved the config when not needed.
+
+- [#8009](https://github.com/NomicFoundation/hardhat/pull/8009) [`83b412e`](https://github.com/NomicFoundation/hardhat/commit/83b412ef7d0e09261855185d0967e4da827fbaad) Thanks [@marianfe](https://github.com/marianfe)! - Add `SolidityHooks#downloadCompilers` and `SolidityHooks#getCompiler` hooks for extensible custom compiler support ([#8009](https://github.com/NomicFoundation/hardhat/pull/8009))
+
+- [#8091](https://github.com/NomicFoundation/hardhat/pull/8091) [`c89cb91`](https://github.com/NomicFoundation/hardhat/commit/c89cb9183a684040a6a5ebbf1446db513f1ca95f) Thanks [@kanej](https://github.com/kanej)! - Improved performance of the network stack by removing a clone of the http request ([#8046](https://github.com/NomicFoundation/hardhat/issues/8046))
+
+- [#8088](https://github.com/NomicFoundation/hardhat/pull/8088) [`23c0d36`](https://github.com/NomicFoundation/hardhat/commit/23c0d3658f29305bf0adbbce4644a54d7ef22550) Thanks [@alcuadrado](https://github.com/alcuadrado)! - Optimize imports.
+
+- [#8074](https://github.com/NomicFoundation/hardhat/pull/8074) [`8984862`](https://github.com/NomicFoundation/hardhat/commit/89848629d9d139ad8a3cb23077c97557beab421a) Thanks [@alcuadrado](https://github.com/alcuadrado)! - Optimize the initialization of EDR Network Connections by only processing the build outputs once.
+
+- [#8082](https://github.com/NomicFoundation/hardhat/pull/8082) [`72a033d`](https://github.com/NomicFoundation/hardhat/commit/72a033dc163a6f4b8a9cd87eb918084f4bafe5b6) Thanks [@popescuoctavian](https://github.com/popescuoctavian)! - Bumped EDR version to [`0.12.0-next.29`](https://github.com/NomicFoundation/edr/releases/tag/%40nomicfoundation%2Fedr%400.12.0-next.29)
+
+- [#8008](https://github.com/NomicFoundation/hardhat/pull/8008) [`57d1075`](https://github.com/NomicFoundation/hardhat/commit/57d10751c101fc00aeab2b588d23003c597edc40) Thanks [@marianfe](https://github.com/marianfe)! - Introduce the `ConfigHooks#validateResolvedConfig` hook and the `HardhatConfigValidationError` type to be able to run global validations on the resolved config ([#8008](https://github.com/NomicFoundation/hardhat/pull/8008)).
+
+- [#8079](https://github.com/NomicFoundation/hardhat/pull/8079) [`759983b`](https://github.com/NomicFoundation/hardhat/commit/759983be975c043e963ca8b3d7874467e8b078d2) Thanks [@alcuadrado](https://github.com/alcuadrado)! - Optimize the network connections to prevent memory leaks.
+
+- Updated dependencies:
+  - @nomicfoundation/hardhat-utils@4.0.2
+  - @nomicfoundation/hardhat-errors@3.0.10
+
 ## 3.2.0
 
 ### Minor Changes

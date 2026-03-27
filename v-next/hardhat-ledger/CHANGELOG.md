@@ -1,5 +1,15 @@
 # @nomicfoundation/hardhat-ledger
 
+## 3.0.4
+
+### Patch Changes
+
+- [#8088](https://github.com/NomicFoundation/hardhat/pull/8088) [`3e61d58`](https://github.com/NomicFoundation/hardhat/commit/3e61d586821edc211e0fbeec304e7bedf1b20242) Thanks [@alcuadrado](https://github.com/alcuadrado)! - Optimize imports.
+
+- Updated dependencies:
+  - @nomicfoundation/hardhat-utils@4.0.2
+  - @nomicfoundation/hardhat-errors@3.0.10
+
 ## 3.0.3
 
 ### Patch Changes

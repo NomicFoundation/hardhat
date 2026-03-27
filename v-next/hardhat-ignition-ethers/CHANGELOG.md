@@ -1,5 +1,12 @@
 # Changelog
 
+## 3.1.1
+
+### Patch Changes
+
+- Updated dependencies:
+  - @nomicfoundation/hardhat-errors@3.0.10
+
 ## 3.1.0
 
 ### Minor Changes

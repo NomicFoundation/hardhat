@@ -1,5 +1,11 @@
 # @nomicfoundation/hardhat-node-test-reporter
 
+## 3.0.3
+
+### Patch Changes
+
+- [#8088](https://github.com/NomicFoundation/hardhat/pull/8088) [`23c0d36`](https://github.com/NomicFoundation/hardhat/commit/23c0d3658f29305bf0adbbce4644a54d7ef22550) Thanks [@alcuadrado](https://github.com/alcuadrado)! - Optimize imports.
+
 ## 3.0.2
 
 ### Patch Changes

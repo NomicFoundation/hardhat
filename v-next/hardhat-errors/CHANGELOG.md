@@ -1,5 +1,14 @@
 # @nomicfoundation/hardhat-errors
 
+## 3.0.10
+
+### Patch Changes
+
+- [#8008](https://github.com/NomicFoundation/hardhat/pull/8008) [`57d1075`](https://github.com/NomicFoundation/hardhat/commit/57d10751c101fc00aeab2b588d23003c597edc40) Thanks [@marianfe](https://github.com/marianfe)! - Introduce the `ConfigHooks#validateResolvedConfig` hook and the `HardhatConfigValidationError` type to be able to run global validations on the resolved config ([#8008](https://github.com/NomicFoundation/hardhat/pull/8008)).
+
+- Updated dependencies:
+  - @nomicfoundation/hardhat-utils@4.0.2
+
 ## 3.0.9
 
 ### Patch Changes
