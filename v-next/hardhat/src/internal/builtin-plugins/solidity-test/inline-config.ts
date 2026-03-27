@@ -250,7 +250,7 @@ export function extractInlineConfigFromAst(
  * Validates a list of raw inline overrides, checking for:
  * - Valid keys
  * - No duplicate keys for the same function
- * - Values of the expected type (numbers must be positive integers, booleans
+ * - Values of the expected type (numbers must be non-negative integers, booleans
  *   must be "true" or "false")
  *
  * Throws a HardhatError if any validation fails.
