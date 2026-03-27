@@ -180,6 +180,51 @@ describe("inline-config", () => {
         fuzz: { runs: 10, maxTestRejects: 500 },
       });
     });
+
+    it("should skip build infos not referenced by testSuiteArtifacts", () => {
+      const bi = makeBuildInfo(
+        "test/MyTest.sol",
+        "/// hardhat-config: fuzz.runs = 10",
+        {
+          MyTest: {
+            methodIdentifiers: { "testFuzz()": "aabbccdd" },
+            functions: [
+              {
+                name: "testFuzz",
+                documentation: " hardhat-config: fuzz.runs = 10",
+              },
+            ],
+          },
+        },
+        "0.8.23",
+        "other-build-info-id",
+      );
+      const artifacts = [makeTestSuiteArtifact("test/MyTest.sol", "MyTest")];
+      assert.deepEqual(getTestFunctionOverrides(artifacts, [bi]), []);
+    });
+
+    it("should skip sources in build info not present in testSuiteArtifacts", () => {
+      const biWithExtra = makeBuildInfo(
+        "test/MyTest.sol",
+        "/// hardhat-config: fuzz.runs = 10",
+        {
+          MyTest: {
+            methodIdentifiers: { "testFuzz()": "aabbccdd" },
+            functions: [
+              {
+                name: "testFuzz",
+                documentation: " hardhat-config: fuzz.runs = 10",
+              },
+            ],
+          },
+        },
+      );
+      // Pass an artifact for a different source than the one in the build info
+      const artifacts = [
+        makeTestSuiteArtifact("test/OtherTest.sol", "OtherTest"),
+      ];
+      assert.deepEqual(getTestFunctionOverrides(artifacts, [biWithExtra]), []);
+    });
   });
 
   describe("buildInfoContainsInlineConfig", () => {
