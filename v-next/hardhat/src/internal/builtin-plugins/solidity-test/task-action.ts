@@ -92,6 +92,7 @@ const runSolidityTests: NewTaskActionFunction<TestActionArguments> = async (
   const edrArtifacts: Array<{
     edrArtifact: EdrArtifact;
     userSourceName: string;
+    buildInfoId: string;
   }> = [];
   const buildInfos: BuildInfoAndOutput[] = [];
   const testsBuildInfos: BuildInfoAndOutput[] = [];

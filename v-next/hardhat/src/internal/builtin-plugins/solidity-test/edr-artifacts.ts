@@ -60,7 +60,9 @@ export async function getBuildInfos(
  */
 export async function getEdrArtifacts(
   artifactManager: ArtifactManager,
-): Promise<Array<{ edrArtifact: EdrArtifact; userSourceName: string }>> {
+): Promise<
+  Array<{ edrArtifact: EdrArtifact; userSourceName: string; buildInfoId: string }>
+> {
   const fullyQualifiedNames = await artifactManager.getAllFullyQualifiedNames();
 
   const artifacts = await Promise.all(
@@ -145,6 +147,7 @@ export async function getEdrArtifacts(
         contract,
       },
       userSourceName: artifact.sourceName,
+      buildInfoId: artifact.buildInfoId,
     };
   });
 }
