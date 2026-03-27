@@ -10,15 +10,20 @@ export function isScenarioDefinition(
   const obj = value as Record<string, unknown>;
 
   return (
+    typeof obj.description === "string" &&
     typeof obj.repo === "string" &&
     typeof obj.commit === "string" &&
-    obj.packageManager === "npm" &&
+    (obj.packageManager === "npm" ||
+      obj.packageManager === "bun" ||
+      obj.packageManager === "yarn") &&
+    typeof obj.defaultCommand === "string" &&
     Array.isArray(obj.tags) &&
     obj.tags.every((t: unknown) => typeof t === "string") &&
     (obj.env === undefined || isStringRecord(obj.env)) &&
     (obj.preinstall === undefined || typeof obj.preinstall === "string") &&
     (obj.install === undefined || typeof obj.install === "string") &&
-    (obj.submodules === undefined || typeof obj.submodules === "boolean")
+    (obj.submodules === undefined || typeof obj.submodules === "boolean") &&
+    (obj.disabled === undefined || obj.disabled === true)
   );
 }
 

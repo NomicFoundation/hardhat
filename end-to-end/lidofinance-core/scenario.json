@@ -1,0 +1,10 @@
+{
+  "$schema": "../../scripts/end-to-end/schema/scenario.schema.json",
+  "description": "Lido finance core contracts fork to Hardhat 3",
+  "tags": ["external-repo", "mocha"],
+  "repo": "ChristopherDedominici/core",
+  "commit": "ef5307d1b4c6a0373eb897511c8d2d7c3948159b",
+  "packageManager": "yarn",
+  "submodules": false,
+  "defaultCommand": "yarn run test"
+}

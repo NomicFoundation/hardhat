@@ -20,7 +20,7 @@ COMMANDS
 OPTIONS
   --e2e-clone-dir <path>   Override clone directory (default: $E2E_CLONE_DIR or "/tmp/end-to-end")
   --scenario <path>        The scenario folder or file to work on (default: $E2E_SCENARIO)
-  --command <cmd>          Command to run (required with \`exec\`)
+  --command <cmd>          Command to run (optional with \`exec\`, falls back to scenario defaultCommand)
 
 VERDACCIO
   If Verdaccio is already running it will be used as-is.
@@ -48,10 +48,6 @@ async function main(): Promise<void> {
     if (initFlag) {
       await init(e2eCloneDirectory, scenarioPath);
     } else if (execFlag) {
-      if (command === undefined) {
-        throw new Error("`exec` requires --command <cmd>");
-      }
-
       await exec(e2eCloneDirectory, scenarioPath, command);
     } else if (cleanFlag) {
       clean(e2eCloneDirectory, scenarioPath);

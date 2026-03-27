@@ -1,8 +1,11 @@
 {
   "$schema": "../../scripts/end-to-end/schema/scenario.schema.json",
-  "tags": ["external-repo"],
+  "description": "A fork of OpenZeppelin's Hardhat 3 branch including their Mocha test suite.",
+  "tags": ["external-repo", "mocha"],
   "repo": "kanej/openzeppelin-contracts",
-  "commit": "4ba2af18cad98904fb0a8d64a958fa91d56298c5",
+  "commit": "7ac01cb4d3cac6bdb06ab76ca1a52317e883d65e",
   "packageManager": "npm",
-  "submodules": true
+  "submodules": true,
+  "preinstall": "./preinstall.sh",
+  "defaultCommand": "npx hardhat test mocha"
 }
