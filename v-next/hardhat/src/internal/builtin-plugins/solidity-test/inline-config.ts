@@ -1,10 +1,10 @@
 import type {
-  SolidityBuildInfo,
-  SolidityBuildInfoOutput,
-} from "../../../types/solidity/solidity-artifacts.js";
+  BuildInfoAndOutput,
+  EdrArtifactWithMetadata,
+} from "./edr-artifacts.js";
+import type { SolidityBuildInfoOutput } from "../../../types/solidity/solidity-artifacts.js";
 import type {
   ArtifactId,
-  BuildInfoAndOutput,
   TestFunctionConfigOverride,
   TestFunctionOverride,
 } from "@nomicfoundation/edr";
@@ -48,11 +48,6 @@ export interface RawInlineOverride {
   rawValue: string;
 }
 
-interface SourceMetadata {
-  solcVersion: string;
-  contracts: Record<string, Record<string, string>>; // contractName -> methodIdentifiers
-}
-
 /**
  * Extracts per-test inline configuration overrides from the NatSpec comments
  * in the solc AST.
@@ -61,30 +56,35 @@ interface SourceMetadata {
  * dependency). A deduplication set prevents processing the same source twice.
  */
 export function getTestFunctionOverrides(
+  testSuiteArtifacts: EdrArtifactWithMetadata[],
   buildInfosAndOutputs: BuildInfoAndOutput[],
 ): TestFunctionOverride[] {
   const allRawOverrides: RawInlineOverride[] = [];
-  const sourceMetadata = new Map<string, SourceMetadata>(); // inputSourceName -> metadata
+  const methodIdentifiersByContract = new Map<string, Record<string, string>>();
   const processedSources = new Set<string>();
 
+  // Build lookup structures so we can skip irrelevant build infos
+  const testSuiteBuildInfoIds = new Set<string>();
+  const testSuiteSources = new Set<string>();
+  const artifactIdsByFqn = new Map<string, ArtifactId>();
+  for (const { edrArtifact, buildInfoId } of testSuiteArtifacts) {
+    testSuiteBuildInfoIds.add(buildInfoId);
+    testSuiteSources.add(edrArtifact.id.source);
+    const fqn = getFullyQualifiedName(
+      edrArtifact.id.source,
+      edrArtifact.id.name,
+    );
+    artifactIdsByFqn.set(fqn, edrArtifact.id);
+  }
+  const filteredBuildInfosAndOutputs = buildInfosAndOutputs.filter((bio) =>
+    testSuiteBuildInfoIds.has(bio.buildInfoId),
+  );
+
   // Extract raw overrides and collect metadata for each source file.
-  // We parse buildInfo first (smaller) to check source names, and only parse
-  // the larger output if there are unprocessed sources.
-  for (const buildInfoAndOutput of buildInfosAndOutputs) {
+  // Only build infos referenced by testSuiteArtifacts are processed, and we
+  // only parse the output to get ASTs and method identifiers.
+  for (const buildInfoAndOutput of filteredBuildInfosAndOutputs) {
     if (!buildInfoContainsInlineConfig(buildInfoAndOutput.buildInfo)) {
-      continue;
-    }
-
-    const buildInfo: SolidityBuildInfo = JSON.parse(
-      bytesToUtf8String(buildInfoAndOutput.buildInfo),
-    );
-
-    const inputSourceNames = Object.keys(buildInfo.input.sources);
-    const newSourceNames = inputSourceNames.filter(
-      (name) => !processedSources.has(name),
-    );
-
-    if (newSourceNames.length === 0) {
       continue;
     }
 
@@ -92,34 +92,44 @@ export function getTestFunctionOverrides(
       bytesToUtf8String(buildInfoAndOutput.output),
     );
 
-    const solcVersion = buildInfo.solcVersion;
-
-    for (const inputSourceName of newSourceNames) {
+    for (const inputSourceName of Object.keys(buildInfoOutput.output.sources)) {
+      if (!testSuiteSources.has(inputSourceName)) {
+        continue;
+      }
+      if (processedSources.has(inputSourceName)) {
+        continue;
+      }
       processedSources.add(inputSourceName);
 
       const source = buildInfoOutput.output.sources[inputSourceName];
       const overrides = extractInlineConfigFromAst(source.ast, inputSourceName);
       allRawOverrides.push(...overrides);
 
-      const contracts: Record<string, Record<string, string>> = {};
       for (const [contractName, contractOutput] of Object.entries(
         buildInfoOutput.output.contracts?.[inputSourceName] ?? {},
       )) {
-        contracts[contractName] = contractOutput.evm?.methodIdentifiers ?? {};
+        const fqn = getFullyQualifiedName(inputSourceName, contractName);
+        methodIdentifiersByContract.set(
+          fqn,
+          contractOutput.evm?.methodIdentifiers ?? {},
+        );
       }
-      sourceMetadata.set(inputSourceName, { solcVersion, contracts });
     }
   }
 
   validateInlineOverrides(allRawOverrides);
 
-  // Group overrides by (inputSourceName, contractName, functionName)
-  const grouped = new Map<string, RawInlineOverride[]>();
+  // Group overrides by function FQN ("source.sol:Contract#function")
+  const overridesByFunction = new Map<string, RawInlineOverride[]>();
   for (const override of allRawOverrides) {
-    const groupKey = `${override.inputSourceName}|${override.contractName}|${override.functionName}`;
-    const existing = grouped.get(groupKey);
+    const functionFqn = getFunctionFqn(
+      override.inputSourceName,
+      override.contractName,
+      override.functionName,
+    );
+    const existing = overridesByFunction.get(functionFqn);
     if (existing === undefined) {
-      grouped.set(groupKey, [override]);
+      overridesByFunction.set(functionFqn, [override]);
     } else {
       existing.push(override);
     }
@@ -127,39 +137,28 @@ export function getTestFunctionOverrides(
 
   // Build TestFunctionOverride objects
   const testFunctionOverrides: TestFunctionOverride[] = [];
-  for (const [groupKey, overrides] of grouped.entries()) {
-    const [inputSourceName, contractName, functionName] = groupKey.split("|");
-    const meta = sourceMetadata.get(inputSourceName);
+  for (const [functionFqn, overrides] of overridesByFunction.entries()) {
+    const [contractFqn, functionName] = functionFqn.split("#");
+
+    const artifactId = artifactIdsByFqn.get(contractFqn);
     assertHardhatInvariant(
-      meta !== undefined,
-      `Missing source metadata for "${inputSourceName}"`,
+      artifactId !== undefined,
+      `Missing artifact id for "${contractFqn}"`,
     );
 
-    const methodIdentifiers = meta.contracts[contractName];
+    const methodIdentifiers = methodIdentifiersByContract.get(contractFqn);
     assertHardhatInvariant(
       methodIdentifiers !== undefined,
-      `Missing method identifiers for contract "${contractName}" in "${inputSourceName}"`,
+      `Missing method identifiers for "${contractFqn}"`,
     );
 
     const selector = resolveFunctionSelector(methodIdentifiers, functionName);
     if (selector === undefined) {
       throw new HardhatError(
         HardhatError.ERRORS.CORE.SOLIDITY_TESTS.INLINE_CONFIG_UNRESOLVED_SELECTOR,
-        {
-          functionFqn: getFunctionFqn(
-            inputSourceName,
-            contractName,
-            functionName,
-          ),
-        },
+        { functionFqn },
       );
     }
-
-    const artifactId: ArtifactId = {
-      name: contractName,
-      source: inputSourceName,
-      solcVersion: meta.solcVersion,
-    };
 
     testFunctionOverrides.push({
       identifier: {

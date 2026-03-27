@@ -1,11 +1,15 @@
 import type { Artifact, ArtifactManager } from "../../../types/artifacts.js";
 import type {
-  BuildInfoAndOutput,
+  BuildInfoAndOutput as EdrBuildInfoAndOutput,
   Artifact as EdrArtifact,
 } from "@nomicfoundation/edr";
 
 import { assertHardhatInvariant } from "@nomicfoundation/hardhat-errors";
 import { readBinaryFile } from "@nomicfoundation/hardhat-utils/fs";
+
+export interface BuildInfoAndOutput extends EdrBuildInfoAndOutput {
+  buildInfoId: string;
+}
 
 export interface EdrArtifactWithMetadata {
   edrArtifact: EdrArtifact;
@@ -25,13 +29,13 @@ export const BUILD_INFO_FORMAT: RegExp =
 export async function getBuildInfosAndOutputs(
   artifactManager: ArtifactManager,
 ): Promise<BuildInfoAndOutput[]> {
-  const buildIds = await artifactManager.getAllBuildInfoIds();
+  const buildInfoIds = await artifactManager.getAllBuildInfoIds();
 
   return Promise.all(
-    Array.from(buildIds).map(async (buildId) => {
-      const buildInfoPath = await artifactManager.getBuildInfoPath(buildId);
+    Array.from(buildInfoIds).map(async (buildInfoId) => {
+      const buildInfoPath = await artifactManager.getBuildInfoPath(buildInfoId);
       const buildInfoOutputPath =
-        await artifactManager.getBuildInfoOutputPath(buildId);
+        await artifactManager.getBuildInfoOutputPath(buildInfoId);
 
       // This is only safe because of how we currently interact with getBuildInfos
       // i.e. we call it immediately after a build which should ensure both
@@ -51,6 +55,7 @@ export async function getBuildInfosAndOutputs(
       const output = await readBinaryFile(buildInfoOutputPath);
 
       return {
+        buildInfoId,
         buildInfo,
         output,
       };

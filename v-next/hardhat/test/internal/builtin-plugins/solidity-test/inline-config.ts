@@ -1,4 +1,5 @@
 // cSpell:ignore aabbccdd
+import type { EdrArtifactWithMetadata } from "../../../../src/internal/builtin-plugins/solidity-test/edr-artifacts.js";
 import type { RawInlineOverride } from "../../../../src/internal/builtin-plugins/solidity-test/inline-config.js";
 
 import assert from "node:assert/strict";
@@ -33,7 +34,8 @@ describe("inline-config", () => {
           },
         },
       );
-      assert.deepEqual(getTestFunctionOverrides([bi]), []);
+      const artifacts = [makeTestSuiteArtifact("test/MyTest.sol", "MyTest")];
+      assert.deepEqual(getTestFunctionOverrides(artifacts, [bi]), []);
     });
 
     it("should deduplicate when same source appears in multiple build infos", () => {
@@ -67,7 +69,8 @@ describe("inline-config", () => {
           },
         },
       );
-      const overrides = getTestFunctionOverrides([bi1, bi2]);
+      const artifacts = [makeTestSuiteArtifact("test/MyTest.sol", "MyTest")];
+      const overrides = getTestFunctionOverrides(artifacts, [bi1, bi2]);
       assert.equal(overrides.length, 1);
     });
 
@@ -88,7 +91,10 @@ describe("inline-config", () => {
         },
         "0.8.20",
       );
-      const overrides = getTestFunctionOverrides([bi]);
+      const artifacts = [
+        makeTestSuiteArtifact("test/MyTest.sol", "MyTest", "0.8.20"),
+      ];
+      const overrides = getTestFunctionOverrides(artifacts, [bi]);
       assert.deepEqual(overrides[0].identifier.contractArtifact, {
         name: "MyTest",
         source: "test/MyTest.sol",
@@ -112,8 +118,9 @@ describe("inline-config", () => {
           },
         },
       );
+      const artifacts = [makeTestSuiteArtifact("test/MyTest.sol", "MyTest")];
       assertThrowsHardhatError(
-        () => getTestFunctionOverrides([bi]),
+        () => getTestFunctionOverrides(artifacts, [bi]),
         HardhatError.ERRORS.CORE.SOLIDITY_TESTS
           .INLINE_CONFIG_UNRESOLVED_SELECTOR,
         {
@@ -142,7 +149,8 @@ describe("inline-config", () => {
           },
         },
       );
-      const overrides = getTestFunctionOverrides([bi]);
+      const artifacts = [makeTestSuiteArtifact("test/MyTest.sol", "MyTest")];
+      const overrides = getTestFunctionOverrides(artifacts, [bi]);
       assert.equal(overrides.length, 1);
       assert.equal(overrides[0].identifier.functionSelector, "0xaabbccdd");
       assert.deepEqual(overrides[0].config, { fuzz: { runs: 50 } });
@@ -165,7 +173,8 @@ describe("inline-config", () => {
           },
         },
       );
-      const overrides = getTestFunctionOverrides([bi]);
+      const artifacts = [makeTestSuiteArtifact("test/MyTest.sol", "MyTest")];
+      const overrides = getTestFunctionOverrides(artifacts, [bi]);
       assert.equal(overrides.length, 1);
       assert.deepEqual(overrides[0].config, {
         fuzz: { runs: 10, maxTestRejects: 500 },
@@ -765,6 +774,32 @@ function makeRawOverride(
   };
 }
 
+function makeTestSuiteArtifact(
+  inputSourceName: string,
+  contractName: string,
+  solcVersion = "0.8.23",
+  buildInfoId = "test-build-info-id",
+): EdrArtifactWithMetadata {
+  return {
+    edrArtifact: {
+      id: {
+        name: contractName,
+        solcVersion,
+        source: inputSourceName,
+      },
+      contract: {
+        abi: "[]",
+        bytecode: "",
+        linkReferences: {},
+        deployedBytecode: "",
+        deployedLinkReferences: {},
+      },
+    },
+    userSourceName: inputSourceName,
+    buildInfoId,
+  };
+}
+
 function makeBuildInfo(
   inputSourceName: string,
   sourceContent: string,
@@ -779,7 +814,8 @@ function makeBuildInfo(
     }
   >,
   solcVersion = "0.8.23",
-): { buildInfo: Uint8Array; output: Uint8Array } {
+  buildInfoId = "test-build-info-id",
+): { buildInfo: Uint8Array; output: Uint8Array; buildInfoId: string } {
   const buildInfoJson = {
     _format: "hh3-sol-build-info-1",
     id: "test-build-info",
@@ -843,5 +879,6 @@ function makeBuildInfo(
   return {
     buildInfo: utf8StringToBytes(JSON.stringify(buildInfoJson)),
     output: utf8StringToBytes(JSON.stringify(outputJson)),
+    buildInfoId,
   };
 }
