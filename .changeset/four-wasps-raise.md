@@ -4,4 +4,4 @@
 "hardhat": minor
 ---
 
-Add support for per-test configuration in solidity tests ([#7355](https://github.com/NomicFoundation/hardhat/issues/7355))
+Add support for per-test inline configuration in solidity tests.
