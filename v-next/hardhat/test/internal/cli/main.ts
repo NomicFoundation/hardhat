@@ -23,6 +23,7 @@ import {
 import { isCi } from "@nomicfoundation/hardhat-utils/ci";
 import chalk from "chalk";
 
+import { getTemplates } from "../../../src/internal/cli/init/template.js";
 import {
   main,
   parseGlobalOptions,
@@ -292,7 +293,7 @@ GLOBAL OPTIONS:
   --gas-stats              Collects and displays gas usage statistics for all function calls during tests
   --gas-stats-json         Write gas usage statistics to a JSON file at the specified path
   --help, -h               Show this message, or a task's help if its name is provided
-  --init                   Initializes a Hardhat project
+  --init                   Initializes a Hardhat project. Use \`--init --template <name>\` to initialize in non-interactive mode, and \`--init --templates\` to list the template names
   --network                The network to connect to
   --show-stack-traces      Show stack traces (always enabled on CI servers)
   --version                Show the version of hardhat
@@ -366,7 +367,7 @@ GLOBAL OPTIONS:
   --gas-stats              Collects and displays gas usage statistics for all function calls during tests
   --gas-stats-json         Write gas usage statistics to a JSON file at the specified path
   --help, -h               Show this message, or a task's help if its name is provided
-  --init                   Initializes a Hardhat project
+  --init                   Initializes a Hardhat project. Use \`--init --template <name>\` to initialize in non-interactive mode, and \`--init --templates\` to list the template names
   --network                The network to connect to
   --show-stack-traces      Show stack traces (always enabled on CI servers)
   --version                Show the version of hardhat
@@ -407,7 +408,7 @@ GLOBAL OPTIONS:
   --gas-stats              Collects and displays gas usage statistics for all function calls during tests
   --gas-stats-json         Write gas usage statistics to a JSON file at the specified path
   --help, -h               Show this message, or a task's help if its name is provided
-  --init                   Initializes a Hardhat project
+  --init                   Initializes a Hardhat project. Use \`--init --template <name>\` to initialize in non-interactive mode, and \`--init --templates\` to list the template names
   --network                The network to connect to
   --show-stack-traces      Show stack traces (always enabled on CI servers)
   --version                Show the version of hardhat
@@ -560,6 +561,115 @@ GLOBAL OPTIONS:
       await assertRejectsWithHardhatError(
         async () => parseBuiltinGlobalOptions(cliArguments, usedCliArguments),
         HardhatError.ERRORS.CORE.ARGUMENTS.MISSING_CONFIG_FILE,
+        {},
+      );
+    });
+  });
+
+  describe("--init --template", function () {
+    it("should throw an error when --template is provided without a value", async function () {
+      const command = "npx hardhat --init --template";
+
+      await assertRejectsWithHardhatError(
+        async () => runMain(command),
+        HardhatError.ERRORS.CORE.ARGUMENTS.MISSING_VALUE_FOR_ARGUMENT,
+        {
+          argument: "--template",
+        },
+      );
+    });
+
+    it("should throw an error when --template value is consumed by another flag", async function () {
+      const command = "npx hardhat --init --template --show-stack-traces";
+
+      await assertRejectsWithHardhatError(
+        async () => runMain(command),
+        HardhatError.ERRORS.CORE.ARGUMENTS.MISSING_VALUE_FOR_ARGUMENT,
+        {
+          argument: "--template",
+        },
+      );
+    });
+
+    it("should throw an error when --template is followed by an unknown flag", async function () {
+      const command = "npx hardhat --init --template --unknown-flag";
+
+      await assertRejectsWithHardhatError(
+        async () => runMain(command),
+        HardhatError.ERRORS.CORE.ARGUMENTS.MISSING_VALUE_FOR_ARGUMENT,
+        {
+          argument: "--template",
+        },
+      );
+    });
+
+    it("should throw an error when --template value is an unknown template name", async function () {
+      const command = "npx hardhat --init --template unknown-template";
+
+      const templates = await getTemplates("hardhat-3");
+      const availableTemplates = templates
+        .map((t) => `  - ${t.name}`)
+        .join("\n");
+
+      await assertRejectsWithHardhatError(
+        async () => runMain(command),
+        HardhatError.ERRORS.CORE.GENERAL.TEMPLATE_NOT_FOUND,
+        {
+          template: "unknown-template",
+          availableTemplates,
+        },
+      );
+    });
+  });
+
+  describe("--init --templates", function () {
+    it("should list available template names", async function () {
+      const lines: string[] = [];
+
+      const cliArguments = "npx hardhat --init --templates".split(" ").slice(2);
+
+      await main(cliArguments, {
+        print: (message) => {
+          lines.push(message);
+        },
+        rethrowErrors: true,
+        allowNonlocalHardhatInstallation: true,
+      });
+
+      const output = lines.join("\n");
+
+      assert.ok(
+        output.startsWith("Available templates:"),
+        "Output should start with 'Available templates:'",
+      );
+
+      const templates = await getTemplates("hardhat-3");
+      for (const t of templates) {
+        assert.ok(
+          output.includes(`  - ${t.name}`),
+          `Output should contain template name '${t.name}'`,
+        );
+      }
+    });
+
+    it("should throw when --template and --templates are used together", async function () {
+      const command = "npx hardhat --init --template mocha-ethers --templates";
+
+      await assertRejectsWithHardhatError(
+        async () => runMain(command),
+        HardhatError.ERRORS.CORE.ARGUMENTS
+          .CANNOT_COMBINE_TEMPLATE_AND_TEMPLATES,
+        {},
+      );
+    });
+
+    it("should throw when --templates and --template are used together (reversed order)", async function () {
+      const command = "npx hardhat --init --templates --template mocha-ethers";
+
+      await assertRejectsWithHardhatError(
+        async () => runMain(command),
+        HardhatError.ERRORS.CORE.ARGUMENTS
+          .CANNOT_COMBINE_TEMPLATE_AND_TEMPLATES,
         {},
       );
     });

@@ -452,7 +452,10 @@ Please add the property "type" with the value "module" in your package.json to e
       },
       TEMPLATE_NOT_FOUND: {
         number: 16,
-        messageTemplate: `Template "{template}" not found`,
+        messageTemplate: `Template "{template}" not found.
+
+The available templates are:
+{availableTemplates}`,
         websiteTitle: "Template not found",
         websiteDescription: `The template you provided is not found. Please check the documentation to learn which templates are available.`,
       },
@@ -852,6 +855,16 @@ Please double check your arguments.`,
           'The option "{option}" is hidden and cannot be used from the CLI.',
         websiteTitle: "Hidden options cannot be used from the CLI",
         websiteDescription: `You are trying to use a hidden option from the CLI, which is not allowed.`,
+      },
+      CANNOT_COMBINE_TEMPLATE_AND_TEMPLATES: {
+        number: 513,
+        messageTemplate:
+          'The options "--template" and "--templates" cannot be used together. Use "--init --template <name>" to initialize a project with a specific template, or "--init --templates" to list the available templates.',
+        websiteTitle:
+          'The options "--template" and "--templates" cannot be used together',
+        websiteDescription: `The options "--template" and "--templates" cannot be used together.
+
+Use "--init --template <name>" to initialize a project with a specific template, or "--init --templates" to list the available templates.`,
       },
     },
     BUILTIN_TASKS: {

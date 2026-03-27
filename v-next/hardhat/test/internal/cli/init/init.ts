@@ -23,11 +23,14 @@ import {
 
 import {
   copyProjectFiles,
+  findAvailableBackupPath,
+  getBackupPath,
   validatePackageJson,
   getTemplate,
   getWorkspace,
   initHardhat,
   installProjectDependencies,
+  printTemplatesList,
   printWelcomeMessage,
   relativeTemplateToWorkspacePath,
   relativeWorkspaceToTemplatePath,
@@ -81,11 +84,15 @@ describe("getWorkspace", () => {
 
 describe("getTemplate", () => {
   it("should throw if the provided template does not exist", async () => {
+    const templates = await getTemplates("hardhat-3");
+    const availableTemplates = templates.map((t) => `  - ${t.name}`).join("\n");
+
     await assertRejectsWithHardhatError(
       async () => getTemplate("hardhat-3", "non-existent-template"),
       HardhatError.ERRORS.CORE.GENERAL.TEMPLATE_NOT_FOUND,
       {
         template: "non-existent-template",
+        availableTemplates,
       },
     );
   });
@@ -277,6 +284,71 @@ describe("relativeTemplateToWorkspacePath", () => {
   });
 });
 
+describe("getBackupPath", () => {
+  it("should add .old before the extension for simple files", () => {
+    assert.equal(getBackupPath("foo.ts"), "foo.old.ts");
+  });
+
+  it("should add .old before the extension for files with multiple dots", () => {
+    assert.equal(getBackupPath("hardhat.config.ts"), "hardhat.config.old.ts");
+  });
+
+  it("should append .old for dotfiles without extension", () => {
+    assert.equal(getBackupPath(".gitignore"), ".gitignore.old");
+  });
+
+  it("should handle files in directories", () => {
+    assert.equal(
+      getBackupPath(path.join("dir", "file.js")),
+      path.join("dir", "file.old.js"),
+    );
+  });
+
+  it("should use old-N suffix when n is provided", () => {
+    assert.equal(getBackupPath("foo.ts", 2), "foo.old-2.ts");
+    assert.equal(
+      getBackupPath("hardhat.config.ts", 3),
+      "hardhat.config.old-3.ts",
+    );
+  });
+
+  it("should use old-N suffix for dotfiles when n is provided", () => {
+    assert.equal(getBackupPath(".gitignore", 2), ".gitignore.old-2");
+  });
+});
+
+describe("findAvailableBackupPath", () => {
+  useTmpDir("findAvailableBackupPath");
+
+  it("should return .old path when no backup exists yet", async () => {
+    const filePath = path.join(process.cwd(), "file.ts");
+    const result = await findAvailableBackupPath(filePath);
+    assert.equal(result, path.join(process.cwd(), "file.old.ts"));
+  });
+
+  it("should return .old-2 path when .old already exists", async () => {
+    const filePath = path.join(process.cwd(), "file.ts");
+    await writeUtf8File(path.join(process.cwd(), "file.old.ts"), "backup1");
+    const result = await findAvailableBackupPath(filePath);
+    assert.equal(result, path.join(process.cwd(), "file.old-2.ts"));
+  });
+
+  it("should return .old-3 path when .old and .old-2 already exist", async () => {
+    const filePath = path.join(process.cwd(), "file.ts");
+    await writeUtf8File(path.join(process.cwd(), "file.old.ts"), "backup1");
+    await writeUtf8File(path.join(process.cwd(), "file.old-2.ts"), "backup2");
+    const result = await findAvailableBackupPath(filePath);
+    assert.equal(result, path.join(process.cwd(), "file.old-3.ts"));
+  });
+
+  it("should handle dotfiles with existing backups", async () => {
+    const filePath = path.join(process.cwd(), ".gitignore");
+    await writeUtf8File(path.join(process.cwd(), ".gitignore.old"), "backup1");
+    const result = await findAvailableBackupPath(filePath);
+    assert.equal(result, path.join(process.cwd(), ".gitignore.old-2"));
+  });
+});
+
 describe("copyProjectFiles", () => {
   useTmpDir("copyProjectFiles");
 
@@ -350,6 +422,84 @@ describe("copyProjectFiles", () => {
         !(await exists(path.join(process.cwd(), "gitignore"))),
         "gitignore should NOT exist",
       );
+    });
+  });
+
+  describe("when force is true and backupOverwrittenFiles is true", () => {
+    it("should backup existing files before overwriting", async () => {
+      const [template] = await getTemplate("hardhat-3", "mocha-ethers");
+      const workspaceFiles = template.files.map(
+        relativeTemplateToWorkspacePath,
+      );
+
+      // Create template files with "original content" in the workspace
+      for (const file of workspaceFiles) {
+        const pathToFile = path.join(process.cwd(), file);
+        await ensureDir(path.dirname(pathToFile));
+        await writeUtf8File(pathToFile, "original content");
+      }
+
+      // Copy with backup enabled
+      await copyProjectFiles(process.cwd(), template, true, true);
+
+      // Check that template files exist with new content and backups exist with original content
+      for (const file of workspaceFiles) {
+        const pathToFile = path.join(process.cwd(), file);
+        const backupPath = getBackupPath(pathToFile);
+        assert.notEqual(await readUtf8File(pathToFile), "original content");
+        assert.ok(
+          await exists(backupPath),
+          `Backup ${backupPath} should exist`,
+        );
+        assert.equal(await readUtf8File(backupPath), "original content");
+      }
+    });
+
+    it("should backup .gitignore to .gitignore.old", async () => {
+      const [template] = await getTemplate("hardhat-3", "mocha-ethers");
+      // Create .gitignore with original content
+      await writeUtf8File(
+        path.join(process.cwd(), ".gitignore"),
+        "original content",
+      );
+
+      // Copy with backup enabled
+      await copyProjectFiles(process.cwd(), template, true, true);
+
+      // Check that .gitignore.old exists with original content
+      const backupPath = path.join(process.cwd(), ".gitignore.old");
+      assert.ok(await exists(backupPath), ".gitignore.old should exist");
+      assert.equal(await readUtf8File(backupPath), "original content");
+
+      // Check that .gitignore exists with new content
+      assert.ok(
+        await exists(path.join(process.cwd(), ".gitignore")),
+        ".gitignore should exist",
+      );
+      assert.notEqual(
+        await readUtf8File(path.join(process.cwd(), ".gitignore")),
+        "original content",
+      );
+    });
+
+    it("should not create backups for files that don't already exist", async () => {
+      const [template] = await getTemplate("hardhat-3", "mocha-ethers");
+
+      // Copy on an empty workspace with backup enabled
+      await copyProjectFiles(process.cwd(), template, true, true);
+
+      // Check that no .old files exist
+      const workspaceFiles = template.files.map(
+        relativeTemplateToWorkspacePath,
+      );
+
+      for (const file of workspaceFiles) {
+        const backupPath = getBackupPath(path.join(process.cwd(), file));
+        assert.ok(
+          !(await exists(backupPath)),
+          `Backup ${backupPath} should NOT exist`,
+        );
+      }
     });
   });
 });
@@ -611,6 +761,72 @@ describe("initHardhat", async () => {
   });
 });
 
+describe("non-interactive init with --template", async () => {
+  useTmpDir("nonInteractiveInit");
+
+  disableConsole();
+
+  it("should initialize the project non-interactively with a valid template", async () => {
+    await initHardhat({
+      hardhatVersion: "hardhat-3",
+      template: "mocha-ethers",
+      workspace: ".",
+      migrateToEsm: true,
+      force: true,
+      install: false,
+    });
+
+    assert.ok(await exists("package.json"), "package.json should exist");
+    assert.ok(
+      await exists("hardhat.config.ts"),
+      "hardhat.config.ts should exist",
+    );
+  });
+
+  it("should backup existing files when using backupOverwrittenFiles", async () => {
+    // Use .gitignore instead of hardhat.config.ts to avoid triggering the
+    // "already initialized" check in getWorkspace
+    await writeUtf8File(".gitignore", "original");
+
+    await initHardhat({
+      hardhatVersion: "hardhat-3",
+      template: "mocha-ethers",
+      workspace: ".",
+      migrateToEsm: true,
+      force: true,
+      install: false,
+      backupOverwrittenFiles: true,
+    });
+
+    assert.ok(await exists(".gitignore"), ".gitignore should exist");
+    assert.notEqual(await readUtf8File(".gitignore"), "original");
+    assert.ok(await exists(".gitignore.old"), ".gitignore.old should exist");
+    assert.equal(await readUtf8File(".gitignore.old"), "original");
+  });
+
+  it("should throw TEMPLATE_NOT_FOUND with available templates for an invalid template", async () => {
+    const templates = await getTemplates("hardhat-3");
+    const availableTemplates = templates.map((t) => `  - ${t.name}`).join("\n");
+
+    await assertRejectsWithHardhatError(
+      async () =>
+        initHardhat({
+          hardhatVersion: "hardhat-3",
+          template: "non-existent-template",
+          workspace: ".",
+          migrateToEsm: true,
+          force: true,
+          install: false,
+        }),
+      HardhatError.ERRORS.CORE.GENERAL.TEMPLATE_NOT_FOUND,
+      {
+        template: "non-existent-template",
+        availableTemplates,
+      },
+    );
+  });
+});
+
 describe("shouldUpdateDependency", () => {
   const testCases = [
     {
@@ -772,4 +988,30 @@ describe("shouldUpdateDependency", () => {
       );
     });
   }
+});
+
+describe("printTemplatesList", () => {
+  it("should print the available templates in a formatted list", async () => {
+    const messages: string[] = [];
+    const mockPrint = (message: string) => {
+      messages.push(message);
+    };
+
+    await printTemplatesList("hardhat-3", mockPrint);
+
+    const output = messages.join("\n");
+
+    assert.ok(
+      output.startsWith("Available templates:"),
+      "Output should start with 'Available templates:'",
+    );
+
+    const templates = await getTemplates("hardhat-3");
+    for (const template of templates) {
+      assert.ok(
+        output.includes(`  - ${template.name}`),
+        `Output should contain template name '${template.name}'`,
+      );
+    }
+  });
 });

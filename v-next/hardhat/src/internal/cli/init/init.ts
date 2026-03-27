@@ -15,6 +15,7 @@ import {
   getAllFilesMatching,
   isDirectory,
   mkdir,
+  move,
   readJsonFile,
   writeJsonFile,
 } from "@nomicfoundation/hardhat-utils/fs";
@@ -57,6 +58,7 @@ export interface InitHardhatOptions {
   template?: string;
   force?: boolean;
   install?: boolean;
+  backupOverwrittenFiles?: boolean;
 }
 
 const log = debug("hardhat:cli:init");
@@ -121,7 +123,12 @@ export async function initHardhat(options?: InitHardhatOptions): Promise<void> {
 
     // Copy the template files to the workspace
     // Overwrite existing files only if the user opts-in to it
-    await copyProjectFiles(workspace, template, options?.force);
+    await copyProjectFiles(
+      workspace,
+      template,
+      options?.force,
+      options?.backupOverwrittenFiles,
+    );
 
     // Print the commands to install the project dependencies
     // Run them only if the user opts-in to it
@@ -147,6 +154,15 @@ export async function initHardhat(options?: InitHardhatOptions): Promise<void> {
 
     throw e;
   }
+}
+
+export async function printTemplatesList(
+  hardhatVersion: "hardhat-2" | "hardhat-3",
+  print: (message: string) => void = console.log,
+): Promise<void> {
+  const templates = await getTemplates(hardhatVersion);
+  const lines = templates.map((t) => `  - ${t.name}`).join("\n");
+  print(`Available templates:\n${lines}`);
 }
 
 // generated based on the "DOS Rebel" font
@@ -300,6 +316,7 @@ export async function getTemplate(
 
   throw new HardhatError(HardhatError.ERRORS.CORE.GENERAL.TEMPLATE_NOT_FOUND, {
     template,
+    availableTemplates: templates.map((t) => `  - ${t.name}`).join("\n"),
   });
 }
 
@@ -411,10 +428,12 @@ export function relativeWorkspaceToTemplatePath(file: string): string {
   }
   return file;
 }
+
 export function relativeTemplateToWorkspacePath(file: string): string {
   if (path.basename(file) === "gitignore") {
     return path.join(path.dirname(file), ".gitignore");
   }
+
   return file;
 }
 
@@ -434,6 +453,7 @@ export async function copyProjectFiles(
   workspace: string,
   template: Template,
   force?: boolean,
+  backupOverwrittenFiles?: boolean,
 ): Promise<void> {
   // Find all the files in the workspace that would have been overwritten by the template files
   const matchingRelativeWorkspacePaths = await getAllFilesMatching(
@@ -454,20 +474,30 @@ export async function copyProjectFiles(
     }
   }
 
+  const matching = new Set(matchingRelativeWorkspacePaths);
+
   // Copy the template files to the workspace
   for (const relativeTemplatePath of template.files) {
     const relativeWorkspacePath =
       relativeTemplateToWorkspacePath(relativeTemplatePath);
 
-    if (
-      force === false &&
-      matchingRelativeWorkspacePaths.includes(relativeWorkspacePath)
-    ) {
+    if (force === false && matching.has(relativeWorkspacePath)) {
       continue;
     }
 
-    const absoluteTemplatePath = path.join(template.path, relativeTemplatePath);
     const absoluteWorkspacePath = path.join(workspace, relativeWorkspacePath);
+
+    if (
+      backupOverwrittenFiles === true &&
+      matching.has(relativeWorkspacePath)
+    ) {
+      await move(
+        absoluteWorkspacePath,
+        await findAvailableBackupPath(absoluteWorkspacePath),
+      );
+    }
+
+    const absoluteTemplatePath = path.join(template.path, relativeTemplatePath);
 
     await ensureDir(path.dirname(absoluteWorkspacePath));
     await copy(absoluteTemplatePath, absoluteWorkspacePath);
@@ -644,4 +674,34 @@ export function shouldUpdateDependency(
   return !semver.subset(workspaceRange, templateRange, {
     includePrerelease: true,
   });
+}
+
+// NOTE: This function is exported for testing purposes
+export async function findAvailableBackupPath(
+  filePath: string,
+): Promise<string> {
+  const backupPath = getBackupPath(filePath);
+
+  if (!(await exists(backupPath))) {
+    return backupPath;
+  }
+
+  let n = 2;
+  while (await exists(getBackupPath(filePath, n))) {
+    n++;
+  }
+
+  return getBackupPath(filePath, n);
+}
+
+// NOTE: This function is exported for testing purposes
+export function getBackupPath(filePath: string, n?: number): string {
+  const parsed = path.parse(filePath);
+  const suffix = n !== undefined ? `old-${n}` : "old";
+
+  if (parsed.ext === "") {
+    return `${filePath}.${suffix}`;
+  }
+
+  return path.join(parsed.dir, `${parsed.name}.${suffix}${parsed.ext}`);
 }
