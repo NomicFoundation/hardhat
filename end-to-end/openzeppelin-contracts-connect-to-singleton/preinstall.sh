@@ -1,1 +1,0 @@
-rm package-lock.json
