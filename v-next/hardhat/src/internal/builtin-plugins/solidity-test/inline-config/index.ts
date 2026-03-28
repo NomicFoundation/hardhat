@@ -4,10 +4,7 @@ import type {
   EdrArtifactWithMetadata,
 } from "../edr-artifacts.js";
 import type { RawInlineOverride as RawInlineOverrideType } from "./types.js";
-import type {
-  ArtifactId,
-  TestFunctionOverride,
-} from "@nomicfoundation/edr";
+import type { ArtifactId, TestFunctionOverride } from "@nomicfoundation/edr";
 
 import {
   HardhatError,
@@ -141,10 +138,7 @@ function buildTestFunctionOverrides(
   // Group overrides by function. When the AST provides a functionSelector
   // (public/external functions in solc >= 0.6.0), use it to distinguish
   // overloaded functions. Otherwise fall back to function name only.
-  const overridesByFunction = new Map<
-    string,
-    RawInlineOverrideType[]
-  >();
+  const overridesByFunction = new Map<string, RawInlineOverrideType[]>();
   for (const override of overrides) {
     const functionFqn = getFunctionFqn(
       override.inputSourceName,
@@ -186,8 +180,7 @@ function buildTestFunctionOverrides(
     if (firstOverride.functionSelector !== undefined) {
       selector = `0x${firstOverride.functionSelector}`;
     } else {
-      const methodIdentifiers =
-        methodIdentifiersByContract.get(contractFqn);
+      const methodIdentifiers = methodIdentifiersByContract.get(contractFqn);
       assertHardhatInvariant(
         methodIdentifiers !== undefined,
         `Missing method identifiers for "${contractFqn}"`,
@@ -201,8 +194,7 @@ function buildTestFunctionOverrides(
 
     if (selector === undefined) {
       throw new HardhatError(
-        HardhatError.ERRORS.CORE.SOLIDITY_TESTS
-          .INLINE_CONFIG_UNRESOLVED_SELECTOR,
+        HardhatError.ERRORS.CORE.SOLIDITY_TESTS.INLINE_CONFIG_UNRESOLVED_SELECTOR,
         { functionFqn },
       );
     }

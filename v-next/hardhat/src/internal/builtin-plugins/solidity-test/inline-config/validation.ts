@@ -62,8 +62,7 @@ export function validateInlineOverrides(overrides: RawInlineOverride[]): void {
           .join(", ");
 
         throw new HardhatError(
-          HardhatError.ERRORS.CORE.SOLIDITY_TESTS
-            .INLINE_CONFIG_INVALID_KEY_FOR_TEST_TYPE,
+          HardhatError.ERRORS.CORE.SOLIDITY_TESTS.INLINE_CONFIG_INVALID_KEY_FOR_TEST_TYPE,
           {
             key: rawKey,
             functionFqn,
@@ -75,9 +74,10 @@ export function validateInlineOverrides(overrides: RawInlineOverride[]): void {
     }
 
     // Check for duplicates (include selector to allow same key on overloaded functions)
-    const functionId = functionSelector !== undefined
-      ? `${functionFqn}#${functionSelector}`
-      : functionFqn;
+    const functionId =
+      functionSelector !== undefined
+        ? `${functionFqn}#${functionSelector}`
+        : functionFqn;
     const dedupeKey = `${functionId}-${key}`;
     if (seen.has(dedupeKey)) {
       throw new HardhatError(

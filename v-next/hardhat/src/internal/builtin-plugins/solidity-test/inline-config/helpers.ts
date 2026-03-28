@@ -1,13 +1,15 @@
 import type { RawInlineOverride } from "./types.js";
 import type { TestFunctionConfigOverride } from "@nomicfoundation/edr";
 
-import {
-  bytesIncludesUtf8String,
-} from "@nomicfoundation/hardhat-utils/bytes";
+import { bytesIncludesUtf8String } from "@nomicfoundation/hardhat-utils/bytes";
 
 import { getFullyQualifiedName } from "../../../../utils/contract-names.js";
 
-import { HARDHAT_CONFIG_PREFIX, FORGE_CONFIG_PREFIX, KEY_TYPES } from "./constants.js";
+import {
+  HARDHAT_CONFIG_PREFIX,
+  FORGE_CONFIG_PREFIX,
+  KEY_TYPES,
+} from "./constants.js";
 
 /**
  * Returns true if the build info bytes contain either of the inline config
