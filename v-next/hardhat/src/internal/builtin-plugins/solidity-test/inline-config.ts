@@ -18,7 +18,10 @@ import {
   bytesIncludesUtf8String,
 } from "@nomicfoundation/hardhat-utils/bytes";
 import { isObject } from "@nomicfoundation/hardhat-utils/lang";
-import { kebabToCamelCase } from "@nomicfoundation/hardhat-utils/string";
+import {
+  kebabToCamelCase,
+  snakeToCamelCase,
+} from "@nomicfoundation/hardhat-utils/string";
 
 import { getFullyQualifiedName } from "../../../utils/contract-names.js";
 
@@ -486,7 +489,7 @@ export function parseInlineConfigLine(
     }
   }
 
-  parsedKey = kebabToCamelCase(parsedKey);
+  parsedKey = snakeToCamelCase(kebabToCamelCase(parsedKey));
 
   return {
     inputSourceName,

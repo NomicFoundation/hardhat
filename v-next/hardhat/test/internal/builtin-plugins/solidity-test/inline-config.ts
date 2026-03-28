@@ -783,6 +783,18 @@ describe("inline-config", () => {
       assert.equal(result?.key, "fuzz.maxTestRejects");
     });
 
+    it("should convert snake_case keys to camelCase", () => {
+      const result = parse(" hardhat-config: fuzz.max_test_rejects = 50");
+      assert.notEqual(result, undefined);
+      assert.equal(result?.key, "fuzz.maxTestRejects");
+    });
+
+    it("should convert snake_case keys to camelCase for forge-config", () => {
+      const result = parse(" forge-config: invariant.fail_on_revert = true");
+      assert.notEqual(result, undefined);
+      assert.equal(result?.key, "invariant.failOnRevert");
+    });
+
     it("should strip leading whitespace and asterisk", () => {
       const result = parse(" * hardhat-config: fuzz.runs = 10");
       assert.notEqual(result, undefined);

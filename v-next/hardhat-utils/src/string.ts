@@ -42,6 +42,16 @@ export function kebabToCamelCase(str: string): string {
 }
 
 /**
+ * Converts a snake_case string to camelCase.
+ *
+ * @param str The snake_case string to convert.
+ * @returns The camelCase string.
+ */
+export function snakeToCamelCase(str: string): string {
+  return str.replace(/_./g, (match) => match.charAt(1).toUpperCase());
+}
+
+/**
  * Converts a camelCase string to snake_case.
  *
  * @param str The camelCase string to convert.
