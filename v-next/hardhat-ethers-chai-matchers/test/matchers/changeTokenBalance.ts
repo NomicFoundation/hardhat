@@ -733,6 +733,21 @@ describe(
             );
           });
 
+          it("subject is not a transaction response (e.g. BigInt from balanceOf)", async () => {
+            const balance = await mockToken.balanceOf(sender.address);
+            await expect(
+              expect(balance).to.changeTokenBalance(
+                ethers,
+                mockToken,
+                sender,
+                -50,
+              ),
+            ).to.be.rejectedWith(
+              Error,
+              /The subject of "changeTokenBalance" must be a transaction response/,
+            );
+          });
+
           it("tx is not the only one in the block", async () => {
             await provider.request({
               method: "evm_setAutomine",
@@ -806,6 +821,22 @@ describe(
               "The given contract instance is not an ERC20 token",
             );
           });
+
+          it("subject is not a transaction response (e.g. BigInt from balanceOf)", async () => {
+            const balance = await mockToken.balanceOf(sender.address);
+            await expect(
+              expect(balance).to.changeTokenBalances(
+                ethers,
+                mockToken,
+                [sender, receiver],
+                [-50, 50],
+              ),
+            ).to.be.rejectedWith(
+              Error,
+              /The subject of "changeTokenBalances" must be a transaction response/,
+            );
+          });
+
           it("arrays have different length", async () => {
             expect(() =>
               expect(
