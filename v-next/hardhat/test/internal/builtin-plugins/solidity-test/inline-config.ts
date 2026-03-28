@@ -597,6 +597,7 @@ describe("inline-config", () => {
         () =>
           validateInlineOverrides([
             makeRawOverride({
+              functionName: "invariantCheck",
               key: "invariant.failOnRevert",
               rawValue: "yes",
             }),
@@ -606,9 +607,89 @@ describe("inline-config", () => {
           value: "yes",
           key: "invariant.failOnRevert",
           expectedType: "boolean",
+          functionFqn: getFunctionFqn(
+            "test/MyTest.sol",
+            "MyTest",
+            "invariantCheck",
+          ),
+        },
+      );
+    });
+
+    it("should throw INVALID_KEY_FOR_TEST_TYPE for invariant key on fuzz test", () => {
+      assertThrowsHardhatError(
+        () =>
+          validateInlineOverrides([
+            makeRawOverride({
+              key: "invariant.runs",
+              rawValue: "10",
+            }),
+          ]),
+        HardhatError.ERRORS.CORE.SOLIDITY_TESTS
+          .INLINE_CONFIG_INVALID_KEY_FOR_TEST_TYPE,
+        {
+          key: "invariant.runs",
+          testType: "fuzz",
+          validKeys:
+            "fuzz.runs, fuzz.maxTestRejects, fuzz.showLogs, fuzz.timeout, allowInternalExpectRevert",
           functionFqn: getFunctionFqn("test/MyTest.sol", "MyTest", "testFoo"),
         },
       );
+    });
+
+    it("should throw INVALID_KEY_FOR_TEST_TYPE for fuzz key on invariant test", () => {
+      assertThrowsHardhatError(
+        () =>
+          validateInlineOverrides([
+            makeRawOverride({
+              functionName: "invariantCheck",
+              key: "fuzz.runs",
+              rawValue: "10",
+            }),
+          ]),
+        HardhatError.ERRORS.CORE.SOLIDITY_TESTS
+          .INLINE_CONFIG_INVALID_KEY_FOR_TEST_TYPE,
+        {
+          key: "fuzz.runs",
+          testType: "invariant",
+          validKeys:
+            "invariant.runs, invariant.depth, invariant.failOnRevert, invariant.callOverride, invariant.timeout, allowInternalExpectRevert",
+          functionFqn: getFunctionFqn(
+            "test/MyTest.sol",
+            "MyTest",
+            "invariantCheck",
+          ),
+        },
+      );
+    });
+
+    it("should accept top-level key on fuzz test", () => {
+      validateInlineOverrides([
+        makeRawOverride({
+          key: "allowInternalExpectRevert",
+          rawValue: "true",
+        }),
+      ]);
+    });
+
+    it("should accept top-level key on invariant test", () => {
+      validateInlineOverrides([
+        makeRawOverride({
+          functionName: "invariantCheck",
+          key: "allowInternalExpectRevert",
+          rawValue: "true",
+        }),
+      ]);
+    });
+
+    it("should accept invariant key on invariant test", () => {
+      validateInlineOverrides([
+        makeRawOverride({
+          functionName: "invariantCheck",
+          key: "invariant.runs",
+          rawValue: "10",
+        }),
+      ]);
     });
   });
 

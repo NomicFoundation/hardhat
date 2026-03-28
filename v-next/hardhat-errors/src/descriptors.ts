@@ -1171,6 +1171,13 @@ Remaining test suites: {suites}`,
         websiteDescription:
           "An inline config comment was found on a function that does not have a function selector. This usually means the function is internal or private, and therefore cannot be run as a test.",
       },
+      INLINE_CONFIG_INVALID_KEY_FOR_TEST_TYPE: {
+        number: 813,
+        messageTemplate: `The inline config key "{key}" in {functionFqn} is not valid for {testType} tests. Valid keys for {testType} tests are: {validKeys}`,
+        websiteTitle: "Inline config key not valid for test type",
+        websiteDescription:
+          "An inline config key was used that does not apply to the type of test function it was attached to. Fuzz test functions (test*) only accept fuzz.* keys and top-level keys, while invariant test functions (invariant*) only accept invariant.* keys and top-level keys.",
+      },
     },
     SOLIDITY: {
       PROJECT_ROOT_RESOLUTION_ERROR: {

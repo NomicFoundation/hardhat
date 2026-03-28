@@ -291,6 +291,36 @@ export function validateInlineOverrides(overrides: RawInlineOverride[]): void {
       );
     }
 
+    // Validate key matches test type
+    const dotIndex = key.indexOf(".");
+    if (dotIndex !== -1) {
+      const keyCategory = key.slice(0, dotIndex);
+      const isFuzzTest = functionName.startsWith("test");
+      const isInvariantTest = functionName.startsWith("invariant");
+
+      if (
+        (isFuzzTest && keyCategory === "invariant") ||
+        (isInvariantTest && keyCategory === "fuzz")
+      ) {
+        const testType = isFuzzTest ? "fuzz" : "invariant";
+        const validPrefix = isFuzzTest ? "fuzz." : "invariant.";
+        const validKeys = Object.keys(KEY_TYPES)
+          .filter((k) => k.startsWith(validPrefix) || !k.includes("."))
+          .join(", ");
+
+        throw new HardhatError(
+          HardhatError.ERRORS.CORE.SOLIDITY_TESTS
+            .INLINE_CONFIG_INVALID_KEY_FOR_TEST_TYPE,
+          {
+            key: rawKey,
+            functionFqn,
+            testType,
+            validKeys,
+          },
+        );
+      }
+    }
+
     // Check for duplicates
     const dedupeKey = `${functionFqn}-${key}`;
     if (seen.has(dedupeKey)) {
