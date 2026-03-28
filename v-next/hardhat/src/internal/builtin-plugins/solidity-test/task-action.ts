@@ -1,13 +1,13 @@
-import type { RunOptions } from "./runner.js";
+import type {
+  BuildInfoAndOutput,
+  EdrArtifactWithMetadata,
+} from "./edr-artifacts.js";
 import type { TestEvent } from "./types.js";
 import type { NewTaskActionFunction } from "../../../types/tasks.js";
 import type { TestRunResult } from "../../../types/test.js";
 import type { Result } from "../../../types/utils.js";
 import type {
-  Artifact as EdrArtifact,
-  BuildInfoAndOutput,
   ObservabilityConfig,
-  SolidityTestRunnerConfigArgs,
   TracingConfigWithBuffers,
   SuiteResult,
 } from "@nomicfoundation/edr";
@@ -26,13 +26,17 @@ import { getCoverageManager } from "../coverage/helpers.js";
 import { getGasAnalyticsManager } from "../gas-analytics/helpers.js";
 import { edrGasReportToHardhatGasMeasurements } from "../network-manager/edr/utils/convert-to-edr.js";
 
-import { getEdrArtifacts, getBuildInfos } from "./edr-artifacts.js";
+import {
+  buildEdrArtifactsWithMetadata,
+  getBuildInfosAndOutputs,
+} from "./edr-artifacts.js";
 import {
   isTestSuiteArtifact,
   warnDeprecatedTestFail,
   solidityTestConfigToRunOptions,
   solidityTestConfigToSolidityTestRunnerConfigArgs,
 } from "./helpers.js";
+import { getTestFunctionOverrides } from "./inline-config/index.js";
 import { testReporter } from "./reporter.js";
 import { run } from "./runner.js";
 
@@ -88,26 +92,27 @@ const runSolidityTests: NewTaskActionFunction<TestActionArguments> = async (
   console.log();
 
   // EDR needs all artifacts (contracts + tests)
-  const edrArtifacts: Array<{
-    edrArtifact: EdrArtifact;
-    userSourceName: string;
-  }> = [];
-  const buildInfos: BuildInfoAndOutput[] = [];
+  const edrArtifactsWithMetadata: EdrArtifactWithMetadata[] = [];
+  const allBuildInfosAndOutputs: BuildInfoAndOutput[] = [];
   for (const scope of ["contracts", "tests"] as const) {
     const artifactsDir = await hre.solidity.getArtifactsDirectory(scope);
     const artifactManager = new ArtifactManagerImplementation(artifactsDir);
-    edrArtifacts.push(...(await getEdrArtifacts(artifactManager)));
-    buildInfos.push(...(await getBuildInfos(artifactManager)));
+    edrArtifactsWithMetadata.push(
+      ...(await buildEdrArtifactsWithMetadata(artifactManager)),
+    );
+    allBuildInfosAndOutputs.push(
+      ...(await getBuildInfosAndOutputs(artifactManager)),
+    );
   }
 
   const sourceNameToUserSourceName = new Map(
-    edrArtifacts.map(({ userSourceName, edrArtifact }) => [
+    edrArtifactsWithMetadata.map(({ userSourceName, edrArtifact }) => [
       edrArtifact.id.source,
       userSourceName,
     ]),
   );
 
-  edrArtifacts.forEach(({ userSourceName, edrArtifact }) => {
+  edrArtifactsWithMetadata.forEach(({ userSourceName, edrArtifact }) => {
     if (
       testRootPaths.includes(
         resolveFromRoot(hre.config.paths.root, userSourceName),
@@ -118,14 +123,17 @@ const runSolidityTests: NewTaskActionFunction<TestActionArguments> = async (
     }
   });
 
-  const testSuiteIds = edrArtifacts
+  const testSuiteArtifacts = edrArtifactsWithMetadata
     .filter(({ userSourceName }) =>
       testRootPaths.includes(
         resolveFromRoot(hre.config.paths.root, userSourceName),
       ),
     )
-    .filter(({ edrArtifact }) => isTestSuiteArtifact(edrArtifact))
-    .map(({ edrArtifact }) => edrArtifact.id);
+    .filter(({ edrArtifact }) => isTestSuiteArtifact(edrArtifact));
+
+  const testSuiteIds = testSuiteArtifacts.map(
+    ({ edrArtifact }) => edrArtifact.id,
+  );
 
   console.log("Running Solidity tests");
   console.log();
@@ -160,7 +168,12 @@ const runSolidityTests: NewTaskActionFunction<TestActionArguments> = async (
     }
   }
 
-  const testRunnerConfig: SolidityTestRunnerConfigArgs =
+  const testFunctionOverrides = getTestFunctionOverrides(
+    testSuiteArtifacts,
+    allBuildInfosAndOutputs,
+  );
+
+  const testRunnerConfig =
     await solidityTestConfigToSolidityTestRunnerConfigArgs({
       chainType,
       projectRoot: hre.config.paths.root,
@@ -172,13 +185,16 @@ const runSolidityTests: NewTaskActionFunction<TestActionArguments> = async (
       generateGasReport:
         hre.globalOptions.gasStats ||
         hre.globalOptions.gasStatsJson !== undefined,
+      testFunctionOverrides,
     });
   const tracingConfig: TracingConfigWithBuffers = {
-    buildInfos,
+    buildInfos: allBuildInfosAndOutputs.map(({ buildInfo, output }) => ({
+      buildInfo,
+      output,
+    })),
     ignoreContracts: false,
   };
-  const options: RunOptions =
-    solidityTestConfigToRunOptions(solidityTestConfig);
+  const runOptions = solidityTestConfigToRunOptions(solidityTestConfig);
 
   await hre.hooks.runHandlerChain(
     "test",
@@ -189,12 +205,12 @@ const runSolidityTests: NewTaskActionFunction<TestActionArguments> = async (
 
   const runStream = run(
     chainType,
-    edrArtifacts.map(({ edrArtifact }) => edrArtifact),
+    edrArtifactsWithMetadata.map(({ edrArtifact }) => edrArtifact),
     testSuiteIds,
     testRunnerConfig,
     tracingConfig,
     sourceNameToUserSourceName,
-    options,
+    runOptions,
   );
 
   let failed = 0;

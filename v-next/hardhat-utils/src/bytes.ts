@@ -1,3 +1,5 @@
+import { buildLpsTable } from "./internal/bytes.js";
+
 /**
  * Checks if a value is an instance of Uint8Array.
  *
@@ -45,6 +47,62 @@ export function equalsBytes(x: Uint8Array, y: Uint8Array): boolean {
  */
 export function utf8StringToBytes(utf8String: string): Uint8Array {
   return new TextEncoder().encode(utf8String);
+}
+
+/**
+ * Converts a Uint8Array of UTF-8 encoded bytes into a string.
+ *
+ * @param bytes The UTF-8 encoded byte array to convert.
+ * @returns The decoded UTF-8 string.
+ */
+export function bytesToUtf8String(bytes: Uint8Array): string {
+  return new TextDecoder().decode(bytes);
+}
+
+/**
+ * Checks whether a Uint8Array contains the UTF-8 byte sequence of a given
+ * string. Searches the raw bytes without allocating a full string for the
+ * haystack. Uses the Knuth-Morris-Pratt (KMP) algorithm for efficient
+ * searching.
+ *
+ * @param haystack The Uint8Array to search in.
+ * @param needle The string whose UTF-8 encoding to search for.
+ * @returns True if the needle's byte sequence is found in the haystack.
+ */
+export function bytesIncludesUtf8String(
+  haystack: Uint8Array,
+  needle: string,
+): boolean {
+  if (needle.length === 0) {
+    return true;
+  }
+
+  const needleBytes = utf8StringToBytes(needle);
+  const needleLen = needleBytes.length;
+  const haystackLen = haystack.length;
+  if (needleLen > haystackLen) {
+    return false;
+  }
+
+  const lps = buildLpsTable(needleBytes);
+
+  let haystackI = 0;
+  let needleI = 0;
+  while (haystackI < haystackLen) {
+    if (haystack[haystackI] === needleBytes[needleI]) {
+      haystackI++;
+      needleI++;
+      if (needleI === needleLen) {
+        return true;
+      }
+    } else if (needleI > 0) {
+      needleI = lps[needleI - 1];
+    } else {
+      haystackI++;
+    }
+  }
+
+  return false;
 }
 
 export { bytesToBigInt, bytesToNumber, numberToBytes } from "./number.js";

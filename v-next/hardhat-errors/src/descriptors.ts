@@ -1129,6 +1129,55 @@ Remaining test suites: {suites}`,
         websiteDescription:
           "The flags --snapshot and --snapshot-check are mutually exclusive. Please provide only one of them.",
       },
+      INLINE_CONFIG_INVALID_KEY: {
+        number: 807,
+        messageTemplate: `Invalid inline config key "{key}" in {functionFqn}. Valid keys are: {validKeys}`,
+        websiteTitle: "Invalid inline config key",
+        websiteDescription:
+          "An unrecognized key was used in an inline config comment.",
+      },
+      INLINE_CONFIG_DUPLICATE_KEY: {
+        number: 808,
+        messageTemplate: `Duplicate inline config key "{key}" in {functionFqn}`,
+        websiteTitle: "Duplicate inline config key",
+        websiteDescription:
+          "The same configuration key was specified more than once for the same test function.",
+      },
+      INLINE_CONFIG_INVALID_VALUE: {
+        number: 809,
+        messageTemplate: `Invalid value "{value}" for inline config key "{key}" in {functionFqn}. Expected a {expectedType}.`,
+        websiteTitle: "Invalid inline config value",
+        websiteDescription:
+          "The value provided for an inline config key could not be parsed as the expected type.",
+      },
+      INLINE_CONFIG_UNSUPPORTED_PROFILE: {
+        number: 810,
+        messageTemplate: `Unsupported profile "{profile}" in {functionFqn}. Only the "default" profile (or no profile) is supported.`,
+        websiteTitle: "Unsupported profile",
+        websiteDescription:
+          "An inline config comment used a non-default profile, which is not supported by Hardhat.",
+      },
+      INLINE_CONFIG_INVALID_SYNTAX: {
+        number: 811,
+        messageTemplate: `Malformed inline config in {functionFqn}. Expected "key = value" but found "{line}".`,
+        websiteTitle: "Invalid inline config syntax",
+        websiteDescription:
+          "An inline config comment was found but its syntax could not be parsed.",
+      },
+      INLINE_CONFIG_UNRESOLVED_SELECTOR: {
+        number: 812,
+        messageTemplate: `Inline config found in {functionFqn}, but no matching function selector was found. Only public or external functions can have inline configuration.`,
+        websiteTitle: "Unresolved function selector for inline config",
+        websiteDescription:
+          "An inline config comment was found on a function that does not have a function selector. This usually means the function is internal or private, and therefore cannot be run as a test.",
+      },
+      INLINE_CONFIG_INVALID_KEY_FOR_TEST_TYPE: {
+        number: 813,
+        messageTemplate: `The inline config key "{key}" in {functionFqn} is not valid for {testType} tests. Valid keys for {testType} tests are: {validKeys}`,
+        websiteTitle: "Inline config key not valid for test type",
+        websiteDescription:
+          "An inline config key was used that does not apply to the type of test function it was attached to. Fuzz test functions (test*) only accept fuzz.* keys and top-level keys, while invariant test functions (invariant*) only accept invariant.* keys and top-level keys.",
+      },
     },
     SOLIDITY: {
       PROJECT_ROOT_RESOLUTION_ERROR: {
