@@ -225,6 +225,45 @@ describe("inline-config", () => {
       ];
       assert.deepEqual(getTestFunctionOverrides(artifacts, [biWithExtra]), []);
     });
+
+    it("should produce separate overrides for overloaded functions", () => {
+      const bi = makeBuildInfo(
+        "test/MyTest.sol",
+        "/// hardhat-config: fuzz.runs = 10\n/// hardhat-config: fuzz.runs = 20",
+        {
+          MyTest: {
+            methodIdentifiers: {
+              "testFuzz()": "aabbccdd",
+              "testFuzz(uint256)": "11223344",
+            },
+            functions: [
+              {
+                name: "testFuzz",
+                functionSelector: "aabbccdd",
+                documentation: " hardhat-config: fuzz.runs = 10",
+              },
+              {
+                name: "testFuzz",
+                functionSelector: "11223344",
+                documentation: " hardhat-config: fuzz.runs = 20",
+              },
+            ],
+          },
+        },
+      );
+      const artifacts = [makeTestSuiteArtifact("test/MyTest.sol", "MyTest")];
+      const result = getTestFunctionOverrides(artifacts, [bi]);
+      assert.equal(result.length, 2);
+
+      const selectors = result.map((r) => r.identifier.functionSelector).sort();
+      assert.deepEqual(selectors, ["0x11223344", "0xaabbccdd"]);
+
+      const bySelector = new Map(
+        result.map((r) => [r.identifier.functionSelector, r.config]),
+      );
+      assert.deepEqual(bySelector.get("0xaabbccdd"), { fuzz: { runs: 10 } });
+      assert.deepEqual(bySelector.get("0x11223344"), { fuzz: { runs: 20 } });
+    });
   });
 
   describe("buildInfoContainsInlineConfig", () => {
@@ -341,6 +380,33 @@ describe("inline-config", () => {
       assert.equal(result[0].functionName, "testFoo");
       assert.equal(result[0].key, "fuzz.runs");
       assert.equal(result[0].rawValue, "10");
+      assert.equal(result[0].functionSelector, undefined);
+    });
+
+    it("should extract functionSelector from AST when present", () => {
+      const ast = {
+        nodeType: "SourceUnit",
+        nodes: [
+          {
+            nodeType: "ContractDefinition",
+            name: "MyTest",
+            nodes: [
+              {
+                nodeType: "FunctionDefinition",
+                name: "testFoo",
+                functionSelector: "aabbccdd",
+                documentation: {
+                  nodeType: "StructuredDocumentation",
+                  text: " hardhat-config: fuzz.runs = 10",
+                },
+              },
+            ],
+          },
+        ],
+      };
+      const result = extractInlineConfigFromAst(ast, "test/MyTest.sol");
+      assert.equal(result.length, 1);
+      assert.equal(result[0].functionSelector, "aabbccdd");
     });
 
     it("should extract overrides from invariant functions", () => {
@@ -948,6 +1014,7 @@ function makeBuildInfo(
       functions: Array<{
         name: string;
         documentation?: string | null;
+        functionSelector?: string;
       }>;
     }
   >,
@@ -977,6 +1044,9 @@ function makeBuildInfo(
       nodes: contract.functions.map((fn) => ({
         nodeType: "FunctionDefinition",
         name: fn.name,
+        ...(fn.functionSelector !== undefined
+          ? { functionSelector: fn.functionSelector }
+          : {}),
         documentation:
           fn.documentation !== undefined && fn.documentation !== null
             ? {

@@ -51,6 +51,7 @@ export interface RawInlineOverride {
   inputSourceName: string;
   contractName: string;
   functionName: string;
+  functionSelector?: string; // from AST, hex without 0x prefix
   key: string; // parsed camelCase key, without profile prefix
   rawKey: string; // original key as written by the user, for error messages
   rawValue: string;
@@ -127,7 +128,9 @@ export function getTestFunctionOverrides(
 
   validateInlineOverrides(allRawOverrides);
 
-  // Group overrides by function FQN ("source.sol:Contract#function")
+  // Group overrides by function. When the AST provides a functionSelector
+  // (public/external functions in solc >= 0.6.0), use it to distinguish
+  // overloaded functions. Otherwise fall back to function name only.
   const overridesByFunction = new Map<string, RawInlineOverride[]>();
   for (const override of allRawOverrides) {
     const functionFqn = getFunctionFqn(
@@ -135,9 +138,13 @@ export function getTestFunctionOverrides(
       override.contractName,
       override.functionName,
     );
-    const existing = overridesByFunction.get(functionFqn);
+    const groupKey =
+      override.functionSelector !== undefined
+        ? `${functionFqn}#${override.functionSelector}`
+        : functionFqn;
+    const existing = overridesByFunction.get(groupKey);
     if (existing === undefined) {
-      overridesByFunction.set(functionFqn, [override]);
+      overridesByFunction.set(groupKey, [override]);
     } else {
       existing.push(override);
     }
@@ -145,8 +152,14 @@ export function getTestFunctionOverrides(
 
   // Build TestFunctionOverride objects
   const testFunctionOverrides: TestFunctionOverride[] = [];
-  for (const [functionFqn, overrides] of overridesByFunction.entries()) {
-    const [contractFqn, functionName] = functionFqn.split("#");
+  for (const [_groupKey, overrides] of overridesByFunction.entries()) {
+    const firstOverride = overrides[0];
+    const functionFqn = getFunctionFqn(
+      firstOverride.inputSourceName,
+      firstOverride.contractName,
+      firstOverride.functionName,
+    );
+    const contractFqn = `${firstOverride.inputSourceName}:${firstOverride.contractName}`;
 
     const artifactId = artifactIdsByFqn.get(contractFqn);
     assertHardhatInvariant(
@@ -154,16 +167,29 @@ export function getTestFunctionOverrides(
       `Missing artifact id for "${contractFqn}"`,
     );
 
-    const methodIdentifiers = methodIdentifiersByContract.get(contractFqn);
-    assertHardhatInvariant(
-      methodIdentifiers !== undefined,
-      `Missing method identifiers for "${contractFqn}"`,
-    );
+    // Use the AST-provided selector when available, otherwise fall back to
+    // resolving via methodIdentifiers.
+    let selector: string | undefined;
+    if (firstOverride.functionSelector !== undefined) {
+      selector = `0x${firstOverride.functionSelector}`;
+    } else {
+      const methodIdentifiers =
+        methodIdentifiersByContract.get(contractFqn);
+      assertHardhatInvariant(
+        methodIdentifiers !== undefined,
+        `Missing method identifiers for "${contractFqn}"`,
+      );
 
-    const selector = resolveFunctionSelector(methodIdentifiers, functionName);
+      selector = resolveFunctionSelector(
+        methodIdentifiers,
+        firstOverride.functionName,
+      );
+    }
+
     if (selector === undefined) {
       throw new HardhatError(
-        HardhatError.ERRORS.CORE.SOLIDITY_TESTS.INLINE_CONFIG_UNRESOLVED_SELECTOR,
+        HardhatError.ERRORS.CORE.SOLIDITY_TESTS
+          .INLINE_CONFIG_UNRESOLVED_SELECTOR,
         { functionFqn },
       );
     }
@@ -231,6 +257,11 @@ export function extractInlineConfigFromAst(
         continue;
       }
 
+      const fnSelector =
+        typeof member.functionSelector === "string"
+          ? member.functionSelector
+          : undefined;
+
       const docText = extractDocText(member.documentation);
       if (docText === undefined) {
         continue;
@@ -244,6 +275,7 @@ export function extractInlineConfigFromAst(
           fnName,
         );
         if (parsed !== undefined) {
+          parsed.functionSelector = fnSelector;
           results.push(parsed);
         }
       }
@@ -269,6 +301,7 @@ export function validateInlineOverrides(overrides: RawInlineOverride[]): void {
     inputSourceName,
     contractName,
     functionName,
+    functionSelector,
     rawKey,
     rawValue,
     key,
@@ -321,8 +354,11 @@ export function validateInlineOverrides(overrides: RawInlineOverride[]): void {
       }
     }
 
-    // Check for duplicates
-    const dedupeKey = `${functionFqn}-${key}`;
+    // Check for duplicates (include selector to allow same key on overloaded functions)
+    const functionId = functionSelector !== undefined
+      ? `${functionFqn}#${functionSelector}`
+      : functionFqn;
+    const dedupeKey = `${functionId}-${key}`;
     if (seen.has(dedupeKey)) {
       throw new HardhatError(
         HardhatError.ERRORS.CORE.SOLIDITY_TESTS.INLINE_CONFIG_DUPLICATE_KEY,
