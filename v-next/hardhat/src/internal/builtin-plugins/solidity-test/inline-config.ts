@@ -39,6 +39,11 @@ const KEY_TYPES: Record<string, "number" | "boolean"> = {
   allowInternalExpectRevert: "boolean",
 };
 
+/** Top-level key categories (e.g. "fuzz", "invariant", "allowInternalExpectRevert"). */
+const TOP_LEVEL_KEYS = [
+  ...new Set(Object.keys(KEY_TYPES).map((k) => k.split(".")[0])),
+];
+
 export interface RawInlineOverride {
   inputSourceName: string;
   contractName: string;
@@ -463,8 +468,7 @@ export function parseInlineConfigLine(
     const firstDot = rawKey.indexOf(".");
     if (firstDot !== -1) {
       const firstSegment = rawKey.slice(0, firstDot);
-      const topLevelKeys = Object.keys(KEY_TYPES).map((k) => k.split(".")[0]);
-      if (!topLevelKeys.includes(firstSegment)) {
+      if (!TOP_LEVEL_KEYS.includes(firstSegment)) {
         // It's a profile. Validate it.
         const profile = firstSegment;
         if (profile !== "default") {
