@@ -36,7 +36,7 @@ import {
   solidityTestConfigToRunOptions,
   solidityTestConfigToSolidityTestRunnerConfigArgs,
 } from "./helpers.js";
-import { getTestFunctionOverrides } from "./inline-config.js";
+import { getTestFunctionOverrides } from "./inline-config/index.js";
 import { testReporter } from "./reporter.js";
 import { run } from "./runner.js";
 
