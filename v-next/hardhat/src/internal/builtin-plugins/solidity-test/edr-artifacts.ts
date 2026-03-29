@@ -17,38 +17,46 @@ export const BUILD_INFO_FORMAT: RegExp =
  * @returns The build infos in the Hardhat v3 format as expected by the EDR.
  */
 export async function getBuildInfos(
-  artifactManager: ArtifactManager,
+  artifactManager: ArtifactManager
 ): Promise<BuildInfoAndOutput[]> {
   const buildIds = await artifactManager.getAllBuildInfoIds();
 
   return Promise.all(
     Array.from(buildIds).map(async (buildId) => {
-      const buildInfoPath = await artifactManager.getBuildInfoPath(buildId);
-      const buildInfoOutputPath =
-        await artifactManager.getBuildInfoOutputPath(buildId);
-
       // This is only safe because of how we currently interact with getBuildInfos
       // i.e. we call it immediately after a build which should ensure both
       // the build info and build info output exist. If the usage pattern of this
       // function changes, these invariants might not hold anymore and should be
       // transformed into other errors instead.
-      assertHardhatInvariant(
-        buildInfoPath !== undefined,
-        "buildInfoPath should not be undefined",
-      );
-      assertHardhatInvariant(
-        buildInfoOutputPath !== undefined,
-        "buildInfoOutputPath should not be undefined",
-      );
+      const [buildInfo, output] = await Promise.all([
+        async () => {
+          const buildInfoPath = await artifactManager.getBuildInfoPath(buildId);
 
-      const buildInfo = await readBinaryFile(buildInfoPath);
-      const output = await readBinaryFile(buildInfoOutputPath);
+          assertHardhatInvariant(
+            buildInfoPath !== undefined,
+            "buildInfoPath should not be undefined"
+          );
+
+          return readBinaryFile(buildInfoPath);
+        },
+        async () => {
+          const buildInfoOutputPath =
+            await artifactManager.getBuildInfoOutputPath(buildId);
+
+          assertHardhatInvariant(
+            buildInfoOutputPath !== undefined,
+            "buildInfoOutputPath should not be undefined"
+          );
+
+          return readBinaryFile(buildInfoOutputPath);
+        },
+      ]);
 
       return {
         buildInfo,
         output,
       };
-    }),
+    })
   );
 }
 
