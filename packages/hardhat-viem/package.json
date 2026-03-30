@@ -2,7 +2,7 @@
   "name": "@nomicfoundation/hardhat-viem",
   "version": "3.0.4",
   "description": "Hardhat plugin for viem",
-  "homepage": "https://github.com/nomicfoundation/hardhat/tree/main/packages/hardhat-viem",
+  "homepage": "https://github.com/NomicFoundation/hardhat/tree/main/packages/hardhat-viem",
   "repository": {
     "type": "git",
     "url": "https://github.com/NomicFoundation/hardhat",

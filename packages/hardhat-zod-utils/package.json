@@ -2,7 +2,7 @@
   "name": "@nomicfoundation/hardhat-zod-utils",
   "version": "3.0.3",
   "description": "Utilities to use Zod to validate Hardhat plugins' config",
-  "homepage": "https://github.com/nomicfoundation/hardhat/tree/main/packages/hardhat-zod-utils",
+  "homepage": "https://github.com/NomicFoundation/hardhat/tree/main/packages/hardhat-zod-utils",
   "repository": {
     "type": "git",
     "url": "https://github.com/NomicFoundation/hardhat",

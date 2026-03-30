@@ -2,7 +2,7 @@
   "name": "@nomicfoundation/hardhat-mocha",
   "version": "3.0.15",
   "description": "A mocha test runner",
-  "homepage": "https://github.com/nomicfoundation/hardhat/tree/main/packages/hardhat-mocha",
+  "homepage": "https://github.com/NomicFoundation/hardhat/tree/main/packages/hardhat-mocha",
   "repository": {
     "type": "git",
     "url": "https://github.com/NomicFoundation/hardhat",

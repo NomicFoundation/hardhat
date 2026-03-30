@@ -2,7 +2,7 @@
   "name": "@nomicfoundation/hardhat-errors",
   "version": "3.0.10",
   "description": "The different errors that Hardhat can throw",
-  "homepage": "https://github.com/nomicfoundation/hardhat/tree/main/packages/hardhat-errors",
+  "homepage": "https://github.com/NomicFoundation/hardhat/tree/main/packages/hardhat-errors",
   "repository": {
     "type": "git",
     "url": "https://github.com/NomicFoundation/hardhat",

@@ -2,7 +2,7 @@
   "name": "@nomicfoundation/hardhat-typechain",
   "version": "3.0.5",
   "description": "Hardhat plugin to support typechain",
-  "homepage": "https://github.com/nomicfoundation/hardhat/tree/main/packages/hardhat-typechain",
+  "homepage": "https://github.com/NomicFoundation/hardhat/tree/main/packages/hardhat-typechain",
   "repository": {
     "type": "git",
     "url": "https://github.com/NomicFoundation/hardhat",

@@ -3,7 +3,7 @@
   "private": true,
   "version": "2.0.2",
   "description": "Test utilities used to develop and test Hardhat",
-  "homepage": "https://github.com/nomicfoundation/hardhat/tree/main/packages/hardhat-test-utils",
+  "homepage": "https://github.com/NomicFoundation/hardhat/tree/main/packages/hardhat-test-utils",
   "repository": {
     "type": "git",
     "url": "https://github.com/NomicFoundation/hardhat",
