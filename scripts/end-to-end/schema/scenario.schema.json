@@ -3,10 +3,21 @@
   "title": "End-to-End Test Definition",
   "description": "Defines a single end-to-end test for the Hardhat test harness.",
   "type": "object",
-  "required": ["repo", "commit", "packageManager", "tags"],
+  "required": [
+    "description",
+    "repo",
+    "commit",
+    "packageManager",
+    "defaultCommand",
+    "tags"
+  ],
   "additionalProperties": false,
   "properties": {
     "$schema": { "type": "string" },
+    "description": {
+      "type": "string",
+      "description": "Short human-readable summary of what this scenario tests"
+    },
     "repo": {
       "type": "string",
       "description": "GitHub repo in org/name format (e.g. OpenZeppelin/openzeppelin-contracts)"
@@ -17,8 +28,12 @@
     },
     "packageManager": {
       "type": "string",
-      "enum": ["npm"],
-      "description": "Package manager used by the repo (npm only for now)"
+      "enum": ["npm", "bun", "yarn"],
+      "description": "Package manager used by the repo"
+    },
+    "defaultCommand": {
+      "type": "string",
+      "description": "Default command to run when --command is not provided to exec"
     },
     "preinstall": {
       "type": "string",
@@ -42,6 +57,11 @@
     "submodules": {
       "type": "boolean",
       "description": "Initialize git submodules recursively (default: false)"
+    },
+    "disabled": {
+      "type": "boolean",
+      "const": true,
+      "description": "Set to true to skip this scenario during end-to-end runs"
     }
   }
 }

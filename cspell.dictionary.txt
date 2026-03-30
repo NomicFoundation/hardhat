@@ -2,6 +2,7 @@ abicoder
 Abicoder
 accum
 addy
+alcuadrado
 anonymization
 APDU
 arrayified
@@ -103,6 +104,8 @@ schaable
 sokol
 solcjs
 SOLCJS
+solx
+Solx
 sourcify
 Sourcify
 SOURCIFY

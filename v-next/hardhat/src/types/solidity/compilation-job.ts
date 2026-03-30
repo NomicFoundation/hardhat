@@ -1,9 +1,9 @@
 import type { CompilerInput } from "./compiler-io.js";
 import type { DependencyGraph } from "./dependency-graph.js";
-import type { SolcConfig } from "../config.js";
+import type { SolidityCompilerConfig } from "../config.js";
 
 /**
- * A compilation job to be run using solc.
+ * A compilation job to be run.
  */
 export interface CompilationJob {
   /**
@@ -13,12 +13,12 @@ export interface CompilationJob {
   dependencyGraph: DependencyGraph;
 
   /**
-   * The solc config to use.
+   * The compiler config to use.
    */
-  solcConfig: SolcConfig;
+  solcConfig: SolidityCompilerConfig;
 
   /**
-   * The long version of the solc compiler to be used.
+   * The long version of the compiler to be used.
    */
   solcLongVersion: string;
 

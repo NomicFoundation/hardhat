@@ -1,8 +1,11 @@
+import type { HardhatPlugin } from "../../../../src/types/plugins.js";
+
 import assert from "node:assert/strict";
 import { afterEach, describe, it } from "node:test";
 
 import { overrideTask, task } from "../../../../src/config.js";
 import { createHardhatRuntimeEnvironment } from "../../../../src/hre.js";
+import { getGasAnalyticsManager } from "../../../../src/internal/builtin-plugins/gas-analytics/helpers.js";
 import { ArgumentType } from "../../../../src/types/arguments.js";
 import { successfulResult, errorResult } from "../../../../src/utils/result.js";
 
@@ -287,6 +290,64 @@ describe("test/task-action", function () {
       const result = await hre.tasks.getTask("test").run({ noCompile: true });
 
       assert.deepEqual(result, { success: true, value: undefined });
+    });
+  });
+
+  describe("gas stats reporting only includes data from subtasks that ran", function () {
+    it("should not include stale data from a skipped runner in the gas stats report", async (t) => {
+      const consoleMock = t.mock.method(console, "log", () => {});
+
+      // Plugin that maps "runner-a-test.ts" → "runner-a", leaving "runner-b" unregistered
+      const fileMapperPlugin: HardhatPlugin = {
+        id: "test-file-mapper",
+        hookHandlers: {
+          test: async () => ({
+            default: async () => ({
+              registerFileForTestRunner: async (context, filePath, next) => {
+                if (filePath === "runner-a-test.ts") return "runner-a";
+                return next(context, filePath);
+              },
+            }),
+          }),
+        },
+      };
+
+      const hre = await createHardhatRuntimeEnvironment(
+        {
+          plugins: [fileMapperPlugin],
+          tasks: [
+            solidityNoOp,
+            mockRunner("runner-a", () => undefined),
+            mockRunner("runner-b", () => undefined),
+          ],
+        },
+        { gasStats: true },
+      );
+
+      // Simulate a stale previous run: runner-b has data saved to disk
+      const gasAnalytics = getGasAnalyticsManager(hre);
+      gasAnalytics.addGasMeasurement({
+        type: "function",
+        contractFqn: "project/contracts/MyContract.sol:MyContract",
+        functionSig: "staleFunctionFromRunnerB()",
+        gas: 99999,
+      });
+      await gasAnalytics.saveGasMeasurements("runner-b");
+
+      // Run only testFiles mapped to runner-a — runner-b is skipped
+      await hre.tasks.getTask("test").run({
+        noCompile: true,
+        testFiles: ["runner-a-test.ts"],
+      });
+
+      const output = consoleMock.mock.calls
+        .map((call) => String(call.arguments[0] ?? ""))
+        .join("\n");
+
+      assert.ok(
+        !output.includes("staleFunctionFromRunnerB"),
+        "Gas stats report should NOT include stale data from runner-b which was skipped",
+      );
     });
   });
 });

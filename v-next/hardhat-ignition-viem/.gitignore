@@ -145,3 +145,6 @@ package-lock.json
 
 artifacts
 cache
+
+# ephemeral fixture project copies (useEphemeralFixtureProject)
+/test/fixture-projects/*-tmp-*-*-*-*-*/

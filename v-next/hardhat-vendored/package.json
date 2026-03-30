@@ -31,7 +31,7 @@
     "build": "tsc --build .",
     "postbuild": "node dist/src/copy-assets.js",
     "prepublishOnly": "pnpm build",
-    "clean": "rimraf dist"
+    "clean": "rimraf dist ./test/fixture-projects/*-tmp-*-*-*-*-*"
   },
   "files": [
     "dist/src/",

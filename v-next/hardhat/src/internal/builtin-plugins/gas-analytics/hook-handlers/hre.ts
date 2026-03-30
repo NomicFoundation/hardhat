@@ -1,23 +1,19 @@
 import type { HardhatRuntimeEnvironmentHooks } from "../../../../types/hooks.js";
 
-import { assertHardhatInvariant } from "@nomicfoundation/hardhat-errors";
-
-import { HardhatRuntimeEnvironmentImplementation } from "../../../core/hre.js";
 import { GasAnalyticsManagerImplementation } from "../gas-analytics-manager.js";
+import { setGasAnalyticsManager } from "../helpers.js";
 
 export default async (): Promise<Partial<HardhatRuntimeEnvironmentHooks>> => ({
   created: async (context, hre) => {
-    if (context.globalOptions.gasStats) {
+    if (
+      context.globalOptions.gasStats ||
+      context.globalOptions.gasStatsJson !== undefined
+    ) {
       const gasAnalyticsManager = new GasAnalyticsManagerImplementation(
         hre.config.paths.cache,
       );
 
-      assertHardhatInvariant(
-        hre instanceof HardhatRuntimeEnvironmentImplementation,
-        "Expected HRE to be an instance of HardhatRuntimeEnvironmentImplementation",
-      );
-
-      hre._gasAnalytics = gasAnalyticsManager;
+      setGasAnalyticsManager(hre, gasAnalyticsManager);
 
       // NOTE: We register this hook dynamically to avoid a circular dependency
       // between gas-analytics and network-manager plugins. The network-manager

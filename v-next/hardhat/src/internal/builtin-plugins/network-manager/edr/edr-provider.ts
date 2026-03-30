@@ -21,18 +21,11 @@ import type {
   Provider,
   ProviderConfig,
   TracingConfigWithBuffers,
-  AccountOverride,
   GasReportConfig,
   IncludeTraces,
 } from "@nomicfoundation/edr";
 
-import {
-  opGenesisState,
-  opHardforkFromString,
-  l1GenesisState,
-  l1HardforkFromString,
-  ContractDecoder,
-} from "@nomicfoundation/edr";
+import { ContractDecoder } from "@nomicfoundation/edr";
 import {
   assertHardhatInvariant,
   HardhatError,
@@ -43,14 +36,9 @@ import { numberToHexString } from "@nomicfoundation/hardhat-utils/hex";
 import { deepEqual } from "@nomicfoundation/hardhat-utils/lang";
 import chalk from "chalk";
 import debug from "debug";
-import { hexToBytes } from "ethereum-cryptography/utils";
-import { addr } from "micro-eth-signer";
 
 import { sendErrorTelemetry } from "../../../cli/telemetry/sentry/reporter.js";
-import {
-  EDR_NETWORK_REVERT_SNAPSHOT_EVENT,
-  OPTIMISM_CHAIN_TYPE,
-} from "../../../constants.js";
+import { EDR_NETWORK_REVERT_SNAPSHOT_EVENT } from "../../../constants.js";
 import { hardhatChainTypeToEdrChainType } from "../../../edr/chain-type.js";
 import { getGlobalEdrContext } from "../../../edr/context.js";
 import { DEFAULT_HD_ACCOUNTS_CONFIG_PARAMS } from "../accounts/constants.js";
@@ -62,6 +50,7 @@ import {
   UnknownError,
 } from "../provider-errors.js";
 
+import { getGenesisStateAndOwnedAccounts } from "./genesis-state.js";
 import { EdrProviderStackTraceGenerationError } from "./stack-traces/stack-trace-generation-errors.js";
 import { createSolidityErrorWithStackTrace } from "./stack-traces/stack-trace-solidity-errors.js";
 import { isEdrProviderErrorData } from "./type-validation.js";
@@ -71,7 +60,6 @@ import {
   hardhatMiningIntervalToEdrMiningInterval,
   hardhatMempoolOrderToEdrMineOrdering,
   hardhatHardforkToEdrSpecId,
-  hardhatAccountsToEdrOwnedAccounts,
   hardhatForkingConfigToEdrForkConfig,
 } from "./utils/convert-to-edr.js";
 import { printLine, replaceLastLine } from "./utils/logger.js";
@@ -138,7 +126,7 @@ interface EdrProviderConfig {
   chainDescriptors: ChainDescriptorsConfig;
   networkConfig: RequireField<EdrNetworkConfig, "chainType">;
   loggerConfig?: LoggerConfig;
-  tracingConfig?: TracingConfigWithBuffers;
+  contractDecoder: ContractDecoder;
   jsonRpcRequestWrapper?: JsonRpcRequestWrapperFunction;
   coverageConfig?: CoverageConfig;
   gasReportConfig?: GasReportConfig;
@@ -152,6 +140,12 @@ export class EdrProvider extends BaseProvider {
   #nextRequestId = 1;
   readonly #printLineFn: (line: string) => void;
 
+  public static async createContractDecoder(
+    tracingConfig: TracingConfigWithBuffers,
+  ): Promise<ContractDecoder> {
+    return ContractDecoder.withContracts(tracingConfig);
+  }
+
   /**
    * Creates a new instance of `EdrProvider`.
    */
@@ -159,7 +153,7 @@ export class EdrProvider extends BaseProvider {
     chainDescriptors,
     networkConfig,
     loggerConfig = { enabled: false },
-    tracingConfig = {},
+    contractDecoder,
     jsonRpcRequestWrapper,
     coverageConfig,
     gasReportConfig,
@@ -178,11 +172,13 @@ export class EdrProvider extends BaseProvider {
 
     let edrProvider: EdrProvider;
 
+    // We use a WeakRef to the provider to prevent the subscriptionCallback
+    // below from creating a cycle and leaking the provider.
+    let edrProviderWeakRef: WeakRef<EdrProvider> | undefined;
+
     // We need to catch errors here, as the provider creation can panic unexpectedly,
     // and we want to make sure such a crash is propagated as a ProviderError.
     try {
-      const contractDecoder = ContractDecoder.withContracts(tracingConfig);
-
       const context = await getGlobalEdrContext();
       const provider = await context.createProvider(
         hardhatChainTypeToEdrChainType(networkConfig.chainType),
@@ -206,7 +202,10 @@ export class EdrProvider extends BaseProvider {
         },
         {
           subscriptionCallback: (event: SubscriptionEvent) => {
-            edrProvider.onSubscriptionEvent(event);
+            const deferredProvider = edrProviderWeakRef?.deref();
+            if (deferredProvider !== undefined) {
+              deferredProvider.onSubscriptionEvent(event);
+            }
           },
         },
         contractDecoder,
@@ -217,6 +216,7 @@ export class EdrProvider extends BaseProvider {
         printLineFn,
         jsonRpcRequestWrapper,
       );
+      edrProviderWeakRef = new WeakRef(edrProvider);
     } catch (error) {
       ensureError(error);
 
@@ -303,6 +303,7 @@ export class EdrProvider extends BaseProvider {
   }
 
   public async close(): Promise<void> {
+    this.removeAllListeners();
     // Clear the provider reference to help with garbage collection
     this.#provider = undefined;
   }
@@ -468,42 +469,12 @@ export async function getProviderConfig(
     networkConfig.chainType,
   );
 
-  const ownedAccounts = await hardhatAccountsToEdrOwnedAccounts(
+  const { genesisState, ownedAccounts } = await getGenesisStateAndOwnedAccounts(
     networkConfig.accounts,
+    networkConfig.forking,
+    networkConfig.chainType,
+    specId,
   );
-
-  const genesisState: Map<Uint8Array, AccountOverride> = new Map(
-    ownedAccounts.map(({ secretKey, balance }) => {
-      const address = hexToBytes(addr.fromPrivateKey(secretKey));
-      const accountOverride: AccountOverride = {
-        address,
-        balance: BigInt(balance),
-        code: new Uint8Array(), // Empty account code, removing potential delegation code when forking
-      };
-
-      return [address, accountOverride];
-    }),
-  );
-
-  const chainGenesisState =
-    networkConfig.forking !== undefined
-      ? [] // TODO: Add support for overriding remote fork state when the local fork is different
-      : networkConfig.chainType === OPTIMISM_CHAIN_TYPE
-        ? opGenesisState(opHardforkFromString(specId))
-        : l1GenesisState(l1HardforkFromString(specId));
-
-  for (const account of chainGenesisState) {
-    const existingOverride = genesisState.get(account.address);
-    if (existingOverride !== undefined) {
-      // Favor the genesis state specified by the user
-      account.balance = account.balance ?? existingOverride.balance;
-      account.nonce = account.nonce ?? existingOverride.nonce;
-      account.code = account.code ?? existingOverride.code;
-      account.storage = account.storage ?? existingOverride.storage;
-    } else {
-      genesisState.set(account.address, account);
-    }
-  }
 
   return {
     allowBlocksWithSameTimestamp: networkConfig.allowBlocksWithSameTimestamp,

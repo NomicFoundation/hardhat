@@ -1,6 +1,9 @@
 {
   "$schema": "https://unpkg.com/@changesets/config@1.6.0/schema.json",
-  "changelog": "../scripts/custom-changelog.ts",
+  "changelog": [
+    "../scripts/custom-changelog.ts",
+    { "repo": "NomicFoundation/hardhat" }
+  ],
   "commit": false,
   "linked": [],
   "access": "public",
