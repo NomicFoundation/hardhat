@@ -1,6 +1,6 @@
 import { readdir, readFile } from "node:fs/promises";
 
-const packagesDir = "v-next";
+const packagesDir = "packages";
 
 /**
  * Read all the package.json files of the packages that we release to npm.
@@ -21,7 +21,7 @@ export async function readAllReleasablePackages() {
 }
 
 export async function readPackage(name) {
-  return JSON.parse(await readFile(`./v-next/${name}/package.json`, "utf-8"));
+  return JSON.parse(await readFile(`./packages/${name}/package.json`, "utf-8"));
 }
 
 export async function getLatestPackageVersionFromNpm(name) {
