@@ -2,7 +2,7 @@
   "name": "@nomicfoundation/hardhat-verify",
   "version": "3.0.13",
   "description": "Hardhat plugin for verifying contracts",
-  "homepage": "https://github.com/nomicfoundation/hardhat/tree/v-next/v-next/hardhat-verify",
+  "homepage": "https://github.com/nomicfoundation/hardhat/tree/main/packages/hardhat-verify",
   "repository": {
     "type": "git",
     "url": "https://github.com/NomicFoundation/hardhat",

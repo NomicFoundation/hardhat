@@ -2,7 +2,7 @@
   "name": "@nomicfoundation/config",
   "version": "0.0.1",
   "description": "Shared ESLint config for the Hardhat monorepo",
-  "homepage": "https://github.com/nomicfoundation/hardhat/tree/v-next/v-next/config",
+  "homepage": "https://github.com/nomicfoundation/hardhat/tree/main/packages/config",
   "repository": {
     "type": "git",
     "url": "https://github.com/NomicFoundation/hardhat",

@@ -2,7 +2,7 @@
   "name": "hardhat",
   "version": "3.3.0",
   "description": "Hardhat is an extensible developer tool that helps smart contract developers increase productivity by reliably bringing together the tools they want.",
-  "homepage": "https://github.com/nomicfoundation/hardhat/tree/v-next/v-next/hardhat",
+  "homepage": "https://hardhat.org",
   "repository": {
     "type": "git",
     "url": "https://github.com/NomicFoundation/hardhat",

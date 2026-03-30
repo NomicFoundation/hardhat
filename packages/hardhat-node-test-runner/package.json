@@ -2,7 +2,7 @@
   "name": "@nomicfoundation/hardhat-node-test-runner",
   "version": "3.0.12",
   "description": "A node:test runner",
-  "homepage": "https://github.com/nomicfoundation/hardhat/tree/v-next/v-next/hardhat-node-test-runner",
+  "homepage": "https://github.com/nomicfoundation/hardhat/tree/main/packages/hardhat-node-test-runner",
   "repository": {
     "type": "git",
     "url": "https://github.com/NomicFoundation/hardhat",

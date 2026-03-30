@@ -2,7 +2,7 @@
   "name": "@nomicfoundation/hardhat-toolbox-mocha-ethers",
   "version": "3.0.3",
   "description": "Nomic Foundation's recommended bundle of Hardhat plugins",
-  "homepage": "https://github.com/nomicfoundation/hardhat/tree/v-next/v-next/hardhat-toolbox-mocha-ethers",
+  "homepage": "https://github.com/nomicfoundation/hardhat/tree/main/packages/hardhat-toolbox-mocha-ethers",
   "repository": {
     "type": "git",
     "url": "https://github.com/NomicFoundation/hardhat",

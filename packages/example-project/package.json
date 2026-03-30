@@ -3,7 +3,7 @@
   "private": true,
   "version": "3.0.1",
   "description": "Example project using Hardhat v3",
-  "homepage": "https://github.com/nomicfoundation/hardhat/tree/v-next/v-next/example-project",
+  "homepage": "https://github.com/nomicfoundation/hardhat/tree/main/packages/example-project",
   "repository": {
     "type": "git",
     "url": "https://github.com/NomicFoundation/hardhat",
