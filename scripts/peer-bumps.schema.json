@@ -16,7 +16,7 @@
       "items": {
         "type": "string"
       },
-      "examples": [["v-next/example-project"]]
+      "examples": [["packages/example-project"]]
     },
     "bumps": {
       "type": "array",

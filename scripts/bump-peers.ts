@@ -211,7 +211,7 @@ CONFIGURATION
   Create ${CONFIG_FILE} in the repository root:
 
   {
-    "excludedFolders": ["v-next/example-project"],
+    "excludedFolders": ["packages/example-project"],
     "bumps": [
       {
         "package": "@nomicfoundation/hardhat-ignition-ethers",
