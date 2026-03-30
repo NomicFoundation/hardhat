@@ -22,8 +22,23 @@ describe("inline-config - validation", () => {
       validateInlineOverrides([
         makeRawOverride({ key: "fuzz.showLogs", rawValue: "true" }),
       ]);
+
       validateInlineOverrides([
         makeRawOverride({ key: "fuzz.showLogs", rawValue: "false" }),
+      ]);
+    });
+
+    it("should accept case-insensitive boolean values", () => {
+      validateInlineOverrides([
+        makeRawOverride({ key: "fuzz.showLogs", rawValue: "True" }),
+      ]);
+
+      validateInlineOverrides([
+        makeRawOverride({ key: "fuzz.showLogs", rawValue: "FALSE" }),
+      ]);
+
+      validateInlineOverrides([
+        makeRawOverride({ key: "fuzz.showLogs", rawValue: "TRUE" }),
       ]);
     });
 

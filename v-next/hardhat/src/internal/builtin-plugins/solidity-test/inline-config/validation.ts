@@ -105,7 +105,8 @@ export function validateInlineOverrides(overrides: RawInlineOverride[]): void {
         );
       }
     } else {
-      if (rawValue !== "true" && rawValue !== "false") {
+      const lowerValue = rawValue.toLowerCase();
+      if (lowerValue !== "true" && lowerValue !== "false") {
         throw new HardhatError(
           HardhatError.ERRORS.CORE.SOLIDITY_TESTS.INLINE_CONFIG_INVALID_VALUE,
           {

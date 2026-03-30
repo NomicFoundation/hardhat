@@ -60,7 +60,7 @@ export function buildConfigOverride(
     const parsed =
       expectedType === "number"
         ? Number(override.rawValue)
-        : override.rawValue === "true";
+        : override.rawValue.toLowerCase() === "true";
 
     const dotIndex = override.key.indexOf(".");
     if (dotIndex === -1) {

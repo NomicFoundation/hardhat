@@ -99,5 +99,21 @@ describe("inline-config - helpers", () => {
         { fuzz: { showLogs: false } },
       );
     });
+
+    it("should parse case-insensitive boolean values", () => {
+      assert.deepEqual(
+        buildConfigOverride([
+          makeRawOverride({ key: "fuzz.showLogs", rawValue: "True" }),
+        ]),
+        { fuzz: { showLogs: true } },
+      );
+
+      assert.deepEqual(
+        buildConfigOverride([
+          makeRawOverride({ key: "fuzz.showLogs", rawValue: "FALSE" }),
+        ]),
+        { fuzz: { showLogs: false } },
+      );
+    });
   });
 });
