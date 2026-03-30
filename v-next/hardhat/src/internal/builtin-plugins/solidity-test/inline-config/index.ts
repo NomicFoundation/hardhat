@@ -45,7 +45,7 @@ interface CollectedOverrides {
 
 /**
  * Extracts per-test inline configuration overrides from the NatSpec comments
- * in the solc AST. If only extracts them from the build info where each
+ * in the solc AST. It only extracts them from the build info where each
  * test artifact's file was compiled as a root file.
  */
 export function getTestFunctionOverrides(
