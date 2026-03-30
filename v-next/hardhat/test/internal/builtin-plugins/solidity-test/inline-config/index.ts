@@ -240,5 +240,109 @@ describe("inline-config", () => {
       assert.deepEqual(bySelector.get("0xaabbccdd"), { fuzz: { runs: 10 } });
       assert.deepEqual(bySelector.get("0x11223344"), { fuzz: { runs: 20 } });
     });
+
+    it("should not duplicate overrides when same source is a root in multiple build infos", () => {
+      const bi1 = makeBuildInfo(
+        "test/MyTest.sol",
+        "/// hardhat-config: fuzz.runs = 10",
+        {
+          MyTest: {
+            methodIdentifiers: { "testFuzz()": "aabbccdd" },
+            functions: [
+              {
+                name: "testFuzz",
+                documentation: " hardhat-config: fuzz.runs = 10",
+              },
+            ],
+          },
+        },
+        "0.8.23",
+        "bi-1",
+      );
+      const bi2 = makeBuildInfo(
+        "test/MyTest.sol",
+        "/// hardhat-config: fuzz.runs = 10",
+        {
+          MyTest: {
+            methodIdentifiers: { "testFuzz()": "aabbccdd" },
+            functions: [
+              {
+                name: "testFuzz",
+                documentation: " hardhat-config: fuzz.runs = 10",
+              },
+            ],
+          },
+        },
+        "0.8.23",
+        "bi-2",
+      );
+      // Artifact only points to bi-1
+      const artifacts = [
+        makeTestSuiteArtifact("test/MyTest.sol", "MyTest", "0.8.23", "bi-1"),
+      ];
+      const overrides = getTestFunctionOverrides(artifacts, [bi1, bi2]);
+      assert.equal(overrides.length, 1);
+      assert.deepEqual(overrides[0].config, { fuzz: { runs: 10 } });
+    });
+
+    it("should handle multiple contracts in a single source file", () => {
+      const bi = makeBuildInfo(
+        "test/Multi.sol",
+        "/// hardhat-config: fuzz.runs = 10\n/// hardhat-config: fuzz.runs = 20",
+        {
+          ContractA: {
+            methodIdentifiers: { "testA()": "aaaaaaaa" },
+            functions: [
+              {
+                name: "testA",
+                documentation: " hardhat-config: fuzz.runs = 10",
+              },
+            ],
+          },
+          ContractB: {
+            methodIdentifiers: { "testB()": "bbbbbbbb" },
+            functions: [
+              {
+                name: "testB",
+                documentation: " hardhat-config: fuzz.runs = 20",
+              },
+            ],
+          },
+        },
+      );
+      const artifacts = [
+        makeTestSuiteArtifact("test/Multi.sol", "ContractA"),
+        makeTestSuiteArtifact("test/Multi.sol", "ContractB"),
+      ];
+      const result = getTestFunctionOverrides(artifacts, [bi]);
+      assert.equal(result.length, 2);
+
+      const bySelector = new Map(
+        result.map((r) => [r.identifier.functionSelector, r]),
+      );
+      const overrideA = bySelector.get("0xaaaaaaaa");
+      assert.ok(
+        overrideA !== undefined,
+        "Override for ContractA should be found",
+      );
+      assert.deepEqual(overrideA.config, { fuzz: { runs: 10 } });
+      assert.deepEqual(overrideA.identifier.contractArtifact, {
+        name: "ContractA",
+        source: "test/Multi.sol",
+        solcVersion: "0.8.23",
+      });
+
+      const overrideB = bySelector.get("0xbbbbbbbb");
+      assert.ok(
+        overrideB !== undefined,
+        "Override for ContractB should be found",
+      );
+      assert.deepEqual(overrideB.config, { fuzz: { runs: 20 } });
+      assert.deepEqual(overrideB.identifier.contractArtifact, {
+        name: "ContractB",
+        source: "test/Multi.sol",
+        solcVersion: "0.8.23",
+      });
+    });
   });
 });

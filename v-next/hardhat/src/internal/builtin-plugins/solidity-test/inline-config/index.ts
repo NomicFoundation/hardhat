@@ -157,20 +157,31 @@ function collectRawOverrides(
       bytesToUtf8String(buildInfoAndOutput.output),
     );
 
-    for (const inputSourceName of artifactsBySource.keys()) {
+    for (const [
+      inputSourceName,
+      sourceArtifacts,
+    ] of artifactsBySource.entries()) {
+      const contractNames = new Set(
+        sourceArtifacts.map((a) => a.edrArtifact.id.name),
+      );
+
       const source = buildInfoOutput.output.sources[inputSourceName];
-      const extracted = extractInlineConfigFromAst(source.ast, inputSourceName);
+      const extracted = extractInlineConfigFromAst(
+        source.ast,
+        inputSourceName,
+        contractNames,
+      );
       overrides.push(...extracted);
 
-      for (const artifact of artifactsBySource.get(inputSourceName) ?? []) {
+      for (const artifact of sourceArtifacts) {
         const contractName = artifact.edrArtifact.id.name;
         const fqn = getFullyQualifiedName(inputSourceName, contractName);
 
-        const methodsIdentifiers =
+        const methodIdentifiers =
           buildInfoOutput.output.contracts?.[inputSourceName][contractName]?.evm
             ?.methodIdentifiers;
 
-        methodIdentifiersByContract.set(fqn, methodsIdentifiers ?? {});
+        methodIdentifiersByContract.set(fqn, methodIdentifiers ?? {});
       }
     }
   }

@@ -47,7 +47,11 @@ describe("inline-config - parsing", () => {
   describe("extractInlineConfigFromAst", () => {
     it("should return empty for non-SourceUnit AST", () => {
       assert.deepEqual(
-        extractInlineConfigFromAst({ nodeType: "Other" }, "test/MyTest.sol"),
+        extractInlineConfigFromAst(
+          { nodeType: "Other" },
+          "test/MyTest.sol",
+          new Set(["MyTest"]),
+        ),
         [],
       );
     });
@@ -57,7 +61,10 @@ describe("inline-config - parsing", () => {
         nodeType: "SourceUnit",
         nodes: [{ nodeType: "PragmaDirective" }],
       };
-      assert.deepEqual(extractInlineConfigFromAst(ast, "test/MyTest.sol"), []);
+      assert.deepEqual(
+        extractInlineConfigFromAst(ast, "test/MyTest.sol", new Set(["MyTest"])),
+        [],
+      );
     });
 
     it("should skip non-test and non-invariant functions", () => {
@@ -80,7 +87,10 @@ describe("inline-config - parsing", () => {
           },
         ],
       };
-      assert.deepEqual(extractInlineConfigFromAst(ast, "test/MyTest.sol"), []);
+      assert.deepEqual(
+        extractInlineConfigFromAst(ast, "test/MyTest.sol", new Set(["MyTest"])),
+        [],
+      );
     });
 
     it("should skip functions without documentation", () => {
@@ -100,7 +110,10 @@ describe("inline-config - parsing", () => {
           },
         ],
       };
-      assert.deepEqual(extractInlineConfigFromAst(ast, "test/MyTest.sol"), []);
+      assert.deepEqual(
+        extractInlineConfigFromAst(ast, "test/MyTest.sol", new Set(["MyTest"])),
+        [],
+      );
     });
 
     it("should extract overrides from test functions", () => {
@@ -123,7 +136,11 @@ describe("inline-config - parsing", () => {
           },
         ],
       };
-      const result = extractInlineConfigFromAst(ast, "test/MyTest.sol");
+      const result = extractInlineConfigFromAst(
+        ast,
+        "test/MyTest.sol",
+        new Set(["MyTest"]),
+      );
       assert.equal(result.length, 1);
       assert.equal(result[0].contractName, "MyTest");
       assert.equal(result[0].functionName, "testFoo");
@@ -153,7 +170,11 @@ describe("inline-config - parsing", () => {
           },
         ],
       };
-      const result = extractInlineConfigFromAst(ast, "test/MyTest.sol");
+      const result = extractInlineConfigFromAst(
+        ast,
+        "test/MyTest.sol",
+        new Set(["MyTest"]),
+      );
       assert.equal(result.length, 1);
       assert.equal(result[0].functionSelector, "aabbccdd");
     });
@@ -178,7 +199,11 @@ describe("inline-config - parsing", () => {
           },
         ],
       };
-      const result = extractInlineConfigFromAst(ast, "test/MyTest.sol");
+      const result = extractInlineConfigFromAst(
+        ast,
+        "test/MyTest.sol",
+        new Set(["MyTest"]),
+      );
       assert.equal(result.length, 1);
       assert.equal(result[0].functionName, "invariantCheck");
       assert.equal(result[0].key, "invariant.runs");
@@ -204,7 +229,11 @@ describe("inline-config - parsing", () => {
           },
         ],
       };
-      const result = extractInlineConfigFromAst(ast, "test/MyTest.sol");
+      const result = extractInlineConfigFromAst(
+        ast,
+        "test/MyTest.sol",
+        new Set(["MyTest"]),
+      );
       assert.equal(result.length, 1);
       assert.equal(result[0].key, "fuzz.runs");
     });
@@ -229,10 +258,57 @@ describe("inline-config - parsing", () => {
           },
         ],
       };
-      const result = extractInlineConfigFromAst(ast, "test/MyTest.sol");
+      const result = extractInlineConfigFromAst(
+        ast,
+        "test/MyTest.sol",
+        new Set(["MyTest"]),
+      );
       assert.equal(result.length, 1);
       assert.equal(result[0].key, "fuzz.runs");
       assert.equal(result[0].rawValue, "5");
+    });
+
+    it("should skip contracts not in the contractNames set", () => {
+      const ast = {
+        nodeType: "SourceUnit",
+        nodes: [
+          {
+            nodeType: "ContractDefinition",
+            name: "MyTest",
+            nodes: [
+              {
+                nodeType: "FunctionDefinition",
+                name: "testFoo",
+                documentation: {
+                  nodeType: "StructuredDocumentation",
+                  text: " hardhat-config: fuzz.runs = 10",
+                },
+              },
+            ],
+          },
+          {
+            nodeType: "ContractDefinition",
+            name: "OtherTest",
+            nodes: [
+              {
+                nodeType: "FunctionDefinition",
+                name: "testBar",
+                documentation: {
+                  nodeType: "StructuredDocumentation",
+                  text: " hardhat-config: fuzz.runs = 20",
+                },
+              },
+            ],
+          },
+        ],
+      };
+      const result = extractInlineConfigFromAst(
+        ast,
+        "test/MyTest.sol",
+        new Set(["MyTest"]),
+      );
+      assert.equal(result.length, 1);
+      assert.equal(result[0].contractName, "MyTest");
     });
   });
 

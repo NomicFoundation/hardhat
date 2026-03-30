@@ -21,6 +21,7 @@ import { getFunctionFqn } from "./helpers.js";
 export function extractInlineConfigFromAst(
   ast: unknown,
   inputSourceName: string,
+  contractNames: Set<string>,
 ): RawInlineOverride[] {
   if (!isObject(ast) || ast.nodeType !== "SourceUnit") {
     return [];
@@ -35,6 +36,10 @@ export function extractInlineConfigFromAst(
 
     const contractName = node.name;
     if (typeof contractName !== "string") {
+      continue;
+    }
+
+    if (!contractNames.has(contractName)) {
       continue;
     }
 
