@@ -74,12 +74,17 @@ function collectRawOverrides(
   //
   // The last part is important, as a test file can be present in multiple build
   // infos in the presence of partial recompilations
+  //
+  // At the same time, the same root file could have produced multiple test
+  // artifacts, so we need a two-level map to avoid processing the root files
+  // multiple times.
 
   // Build lookup structures for fast access
   const artifactsGroupedByBuildInfo = new Map<
-    string,
-    EdrArtifactWithMetadata[]
+    /* buildInfoId */ string,
+    Map</* inputSourceName */ string, EdrArtifactWithMetadata[]>
   >();
+
   const artifactIdsByFqn = new Map<string, ArtifactId>();
   const buildInfoAndOutputById: Map<string, BuildInfoAndOutput> = new Map(
     buildInfosAndOutputs.map((bio) => [bio.buildInfoId, bio]),
@@ -92,28 +97,48 @@ function collectRawOverrides(
     );
 
     const buildInfoId = edrArtifactWithMetadata.buildInfoId;
-    const artifactIdsForBuildInfo =
-      artifactsGroupedByBuildInfo.get(buildInfoId);
-    if (artifactIdsForBuildInfo === undefined) {
-      artifactsGroupedByBuildInfo.set(buildInfoId, [edrArtifactWithMetadata]);
-    } else {
-      artifactIdsForBuildInfo.push(edrArtifactWithMetadata);
+    let artifactsBySource = artifactsGroupedByBuildInfo.get(buildInfoId);
+
+    if (artifactsBySource === undefined) {
+      artifactsBySource = new Map();
+      artifactsGroupedByBuildInfo.set(buildInfoId, artifactsBySource);
     }
 
+    let artifacts = artifactsBySource.get(
+      edrArtifactWithMetadata.edrArtifact.id.source,
+    );
+    if (artifacts === undefined) {
+      artifacts = [];
+      artifactsBySource.set(
+        edrArtifactWithMetadata.edrArtifact.id.source,
+        artifacts,
+      );
+    }
+
+    artifacts.push(edrArtifactWithMetadata);
     artifactIdsByFqn.set(fqn, edrArtifactWithMetadata.edrArtifact.id);
   }
 
   for (const [
     buildInfoId,
-    artifacts,
+    artifactsBySource,
   ] of artifactsGroupedByBuildInfo.entries()) {
     const buildInfoAndOutput = buildInfoAndOutputById.get(buildInfoId);
     if (buildInfoAndOutput === undefined) {
       // We can throw for this error for the first artifact with this build info
       // as all of them have the same problem.
+      const artifacts = artifactsBySource.values().next().value;
+
+      assertHardhatInvariant(
+        artifacts !== undefined && artifacts.length > 0,
+        "An artifact must be present for the build info",
+      );
+
+      const anyArtifact = artifacts[0];
+
       const fqn = getFullyQualifiedName(
-        artifacts[0].userSourceName,
-        artifacts[0].edrArtifact.id.name,
+        anyArtifact.userSourceName,
+        anyArtifact.edrArtifact.id.name,
       );
 
       throw new HardhatError(
@@ -132,21 +157,20 @@ function collectRawOverrides(
       bytesToUtf8String(buildInfoAndOutput.output),
     );
 
-    for (const artifact of artifacts) {
-      const inputSourceName = artifact.edrArtifact.id.source;
-
+    for (const inputSourceName of artifactsBySource.keys()) {
       const source = buildInfoOutput.output.sources[inputSourceName];
       const extracted = extractInlineConfigFromAst(source.ast, inputSourceName);
       overrides.push(...extracted);
 
-      for (const [contractName, contractOutput] of Object.entries(
-        buildInfoOutput.output.contracts?.[inputSourceName] ?? {},
-      )) {
+      for (const artifact of artifactsBySource.get(inputSourceName) ?? []) {
+        const contractName = artifact.edrArtifact.id.name;
         const fqn = getFullyQualifiedName(inputSourceName, contractName);
-        methodIdentifiersByContract.set(
-          fqn,
-          contractOutput.evm?.methodIdentifiers ?? {},
-        );
+
+        const methodsIdentifiers =
+          buildInfoOutput.output.contracts?.[inputSourceName][contractName]?.evm
+            ?.methodIdentifiers;
+
+        methodIdentifiersByContract.set(fqn, methodsIdentifiers ?? {});
       }
     }
   }
