@@ -6,7 +6,7 @@
   "repository": {
     "type": "git",
     "url": "https://github.com/NomicFoundation/hardhat",
-    "directory": "v-next/hardhat-toolbox-mocha-ethers"
+    "directory": "packages/hardhat-toolbox-mocha-ethers"
   },
   "author": "Nomic Foundation",
   "license": "MIT",

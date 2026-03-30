@@ -7,7 +7,7 @@
   "repository": {
     "type": "git",
     "url": "https://github.com/NomicFoundation/hardhat",
-    "directory": "v-next/hardhat-test-utils"
+    "directory": "packages/hardhat-test-utils"
   },
   "author": "Nomic Foundation",
   "license": "MIT",
