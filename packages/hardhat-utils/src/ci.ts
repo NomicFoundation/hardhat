@@ -1,5 +1,5 @@
 /**
- * IMPORTANT: A copy of this function exists in `v-next/hardhat-node-test-reporter/src/ci.ts`.
+ * IMPORTANT: A copy of this function exists in `packages/hardhat-node-test-reporter/src/ci.ts`.
  * If you change this function, you must also change the copy.
  */
 

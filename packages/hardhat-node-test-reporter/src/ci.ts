@@ -1,5 +1,5 @@
 /**
- * Copied from `v-next/hardhat-utils/src/ci.ts` to prevent a circular dependency.
+ * Copied from `packages/hardhat-utils/src/ci.ts` to prevent a circular dependency.
  * IMPORTANT: If you change this function, you must also change the original.
  */
 
