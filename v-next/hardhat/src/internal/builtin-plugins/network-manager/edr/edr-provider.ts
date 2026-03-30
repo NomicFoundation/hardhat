@@ -15,6 +15,7 @@ import type {
 import type { RequireField } from "../../../../types/utils.js";
 import type { DefaultHDAccountsConfigParams } from "../accounts/constants.js";
 import type { JsonRpcRequestWrapperFunction } from "../network-manager.js";
+import type { TraceOutputManager } from "./utils/trace-output.js";
 import type {
   SubscriptionEvent,
   Response,
@@ -22,10 +23,9 @@ import type {
   ProviderConfig,
   TracingConfigWithBuffers,
   GasReportConfig,
-  IncludeTraces,
 } from "@nomicfoundation/edr";
 
-import { ContractDecoder } from "@nomicfoundation/edr";
+import { ContractDecoder, IncludeTraces } from "@nomicfoundation/edr";
 import {
   assertHardhatInvariant,
   HardhatError,
@@ -34,7 +34,6 @@ import { toSeconds } from "@nomicfoundation/hardhat-utils/date";
 import { ensureError } from "@nomicfoundation/hardhat-utils/error";
 import { numberToHexString } from "@nomicfoundation/hardhat-utils/hex";
 import { deepEqual } from "@nomicfoundation/hardhat-utils/lang";
-import chalk from "chalk";
 import debug from "debug";
 
 import { sendErrorTelemetry } from "../../../cli/telemetry/sentry/reporter.js";
@@ -63,7 +62,6 @@ import {
   hardhatForkingConfigToEdrForkConfig,
 } from "./utils/convert-to-edr.js";
 import { printLine, replaceLastLine } from "./utils/logger.js";
-import { formatTraces } from "./utils/trace-formatters.js";
 
 const log = debug("hardhat:core:hardhat-network:provider");
 
@@ -131,6 +129,9 @@ interface EdrProviderConfig {
   coverageConfig?: CoverageConfig;
   gasReportConfig?: GasReportConfig;
   includeCallTraces?: IncludeTraces;
+  connectionId: number;
+  networkName: string;
+  verbosity: number;
 }
 
 export class EdrProvider extends BaseProvider {
@@ -138,7 +139,7 @@ export class EdrProvider extends BaseProvider {
 
   #provider: Provider | undefined;
   #nextRequestId = 1;
-  readonly #printLineFn: (line: string) => void;
+  readonly #traceOutput: TraceOutputManager | undefined;
 
   public static async createContractDecoder(
     tracingConfig: TracingConfigWithBuffers,
@@ -158,6 +159,9 @@ export class EdrProvider extends BaseProvider {
     coverageConfig,
     gasReportConfig,
     includeCallTraces,
+    verbosity,
+    connectionId,
+    networkName,
   }: EdrProviderConfig): Promise<EdrProvider> {
     const printLineFn = loggerConfig.printLineFn ?? printLine;
     const replaceLastLineFn = loggerConfig.replaceLastLineFn ?? replaceLastLine;
@@ -211,9 +215,26 @@ export class EdrProvider extends BaseProvider {
         contractDecoder,
       );
 
+      const tracesEnabled =
+        includeCallTraces !== undefined &&
+        includeCallTraces !== IncludeTraces.None;
+
+      let traceOutput: TraceOutputManager | undefined;
+      if (tracesEnabled) {
+        const { TraceOutputManager: TraceOutputManagerImpl } = await import(
+          "./utils/trace-output.js"
+        );
+        traceOutput = new TraceOutputManagerImpl(
+          printLineFn,
+          connectionId,
+          networkName,
+          verbosity,
+        );
+      }
+
       edrProvider = new EdrProvider(
         provider,
-        printLineFn,
+        traceOutput,
         jsonRpcRequestWrapper,
       );
       edrProviderWeakRef = new WeakRef(edrProvider);
@@ -236,14 +257,22 @@ export class EdrProvider extends BaseProvider {
    */
   private constructor(
     provider: Provider,
-    printLineFn: (line: string) => void,
+    traceOutput: TraceOutputManager | undefined,
     jsonRpcRequestWrapper?: JsonRpcRequestWrapperFunction,
   ) {
     super();
 
     this.#provider = provider;
-    this.#printLineFn = printLineFn;
+    this.#traceOutput = traceOutput;
     this.#jsonRpcRequestWrapper = jsonRpcRequestWrapper;
+
+    // After a snapshot revert, the same transactions may run again.
+    // Reset traced hashes so their traces are printed a second time.
+    if (this.#traceOutput !== undefined) {
+      this.on(EDR_NETWORK_REVERT_SNAPSHOT_EVENT, () => {
+        this.#traceOutput?.clearTracedHashes();
+      });
+    }
   }
 
   public async request(
@@ -306,6 +335,7 @@ export class EdrProvider extends BaseProvider {
     this.removeAllListeners();
     // Clear the provider reference to help with garbage collection
     this.#provider = undefined;
+    this.#traceOutput?.clearTracedHashes();
   }
 
   public async addCompilationResult(
@@ -324,24 +354,13 @@ export class EdrProvider extends BaseProvider {
     );
   }
 
-  #outputCallTraces(edrResponse: Response): void {
-    try {
-      const callTraces = edrResponse.callTraces();
-
-      if (callTraces.length > 0) {
-        const formatted = formatTraces(callTraces, "  ", chalk);
-        this.#printLineFn("  Call Traces:");
-        this.#printLineFn(formatted);
-      }
-    } catch (e) {
-      log("Failed to get call traces: %O", e);
-    }
-  }
-
   async #handleEdrResponse(
     edrResponse: Response,
+    method: string,
+    params?: unknown[],
   ): Promise<SuccessfulJsonRpcResponse> {
     let jsonRpcResponse: JsonRpcResponse;
+    let txHash: string | undefined;
 
     if (typeof edrResponse.data === "string") {
       jsonRpcResponse = JSON.parse(edrResponse.data);
@@ -352,6 +371,12 @@ export class EdrProvider extends BaseProvider {
     if (isFailedJsonRpcResponse(jsonRpcResponse)) {
       const responseError = jsonRpcResponse.error;
       let error;
+
+      // Grab the tx hash so trace deduplication can recognize this transaction later
+      const errorData = responseError.data;
+      if (isEdrProviderErrorData(errorData)) {
+        txHash = errorData.transactionHash;
+      }
 
       const stackTrace = edrResponse.stackTrace();
 
@@ -393,14 +418,32 @@ export class EdrProvider extends BaseProvider {
         error.data = responseError.data;
       }
 
-      this.#outputCallTraces(edrResponse);
+      this.#traceOutput?.outputCallTraces(edrResponse, method, txHash, true);
 
       /* eslint-disable-next-line no-restricted-syntax -- we may throw
       non-Hardhat errors inside of an EthereumProvider */
       throw error;
     }
 
-    this.#outputCallTraces(edrResponse);
+    if (this.#traceOutput !== undefined) {
+      // Output call traces for successful responses. The tx hash is resolved
+      // from the response/params so the trace manager can deduplicate.
+
+      if (
+        method === "eth_sendTransaction" ||
+        method === "eth_sendRawTransaction"
+      ) {
+        txHash =
+          typeof jsonRpcResponse.result === "string"
+            ? jsonRpcResponse.result
+            : undefined;
+      } else if (method === "eth_getTransactionReceipt") {
+        // params[0] is the tx hash being queried — used to dedup receipt polling
+        txHash = typeof params?.[0] === "string" ? params[0] : undefined;
+      }
+
+      this.#traceOutput.outputCallTraces(edrResponse, method, txHash, false);
+    }
 
     return jsonRpcResponse;
   }
@@ -453,7 +496,11 @@ export class EdrProvider extends BaseProvider {
       throw new UnknownError(error.message, error);
     }
 
-    return this.#handleEdrResponse(edrResponse);
+    return this.#handleEdrResponse(
+      edrResponse,
+      request.method,
+      Array.isArray(request.params) ? request.params : undefined,
+    );
   }
 }
 

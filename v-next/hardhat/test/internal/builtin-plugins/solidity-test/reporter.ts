@@ -189,6 +189,7 @@ debug log
     1) failing test
       Call Traces:
         [100] Foo
+
         [90] Bar
           └─ [80] Baz
 
@@ -273,6 +274,7 @@ debug log
     1) failing test
       Call Traces:
         [100] Foo
+
         [90] Bar
           └─ [80] Baz
 
@@ -470,6 +472,7 @@ debug log
     <red>1) failing test</red>
       Call Traces:
         [100] <green>Foo</green>
+
         [90] <green>Bar</green>
           └─ [80] <green>Baz</green>
 
