@@ -3,7 +3,7 @@ import type {
   BuildInfoAndOutput,
   EdrArtifactWithMetadata,
 } from "../edr-artifacts.js";
-import type { RawInlineOverride as RawInlineOverrideType } from "./types.js";
+import type { RawInlineOverride } from "./types.js";
 import type { ArtifactId, TestFunctionOverride } from "@nomicfoundation/edr";
 
 import {
@@ -38,7 +38,7 @@ export {
 export { validateInlineOverrides } from "./validation.js";
 
 interface CollectedOverrides {
-  overrides: RawInlineOverrideType[];
+  overrides: RawInlineOverride[];
   artifactIdsByFqn: Map<string, ArtifactId>;
   methodIdentifiersByContract: Map<string, Record<string, string>>;
 }
@@ -68,31 +68,68 @@ function collectRawOverrides(
   testSuiteArtifacts: EdrArtifactWithMetadata[],
   buildInfosAndOutputs: BuildInfoAndOutput[],
 ): CollectedOverrides {
-  const overrides: RawInlineOverrideType[] = [];
+  const overrides: RawInlineOverride[] = [];
   const methodIdentifiersByContract = new Map<string, Record<string, string>>();
-  const processedSources = new Set<string>();
 
-  // Build lookup structures so we can skip irrelevant build infos
-  const testSuiteBuildInfoIds = new Set<string>();
-  const testSuiteSources = new Set<string>();
+  // Note: We group the artifacts by their build info, so that we only process
+  // the relevant build infos, and only the root files of each of them.
+  //
+  // The last part is important, as a test file can be present in multiple build
+  // infos in the presence of partial recompilations
+
+  // Build lookup structures for fast access
+  const artifactsGroupedByBuildInfo = new Map<
+    string,
+    EdrArtifactWithMetadata[]
+  >();
   const artifactIdsByFqn = new Map<string, ArtifactId>();
-  for (const { edrArtifact, buildInfoId } of testSuiteArtifacts) {
-    testSuiteBuildInfoIds.add(buildInfoId);
-    testSuiteSources.add(edrArtifact.id.source);
-    const fqn = getFullyQualifiedName(
-      edrArtifact.id.source,
-      edrArtifact.id.name,
-    );
-    artifactIdsByFqn.set(fqn, edrArtifact.id);
-  }
-  const filteredBuildInfosAndOutputs = buildInfosAndOutputs.filter((bio) =>
-    testSuiteBuildInfoIds.has(bio.buildInfoId),
+  const buildInfoAndOutputById: Map<string, BuildInfoAndOutput> = new Map(
+    buildInfosAndOutputs.map((bio) => [bio.buildInfoId, bio]),
   );
 
-  // Extract raw overrides and collect metadata for each source file.
-  // Only build infos referenced by testSuiteArtifacts are processed, and we
-  // only parse the output to get ASTs and method identifiers.
-  for (const buildInfoAndOutput of filteredBuildInfosAndOutputs) {
+  for (const edrArtifactWithMetadata of testSuiteArtifacts) {
+    const fqn = getFullyQualifiedName(
+      edrArtifactWithMetadata.edrArtifact.id.source,
+      edrArtifactWithMetadata.edrArtifact.id.name,
+    );
+
+    const buildInfoId = edrArtifactWithMetadata.buildInfoId;
+    const artifactIdsForBuildInfo =
+      artifactsGroupedByBuildInfo.get(buildInfoId);
+    if (artifactIdsForBuildInfo === undefined) {
+      artifactsGroupedByBuildInfo.set(buildInfoId, [edrArtifactWithMetadata]);
+    } else {
+      artifactIdsForBuildInfo.push(edrArtifactWithMetadata);
+    }
+
+    artifactIdsByFqn.set(fqn, edrArtifactWithMetadata.edrArtifact.id);
+
+    if (!artifactsGroupedByBuildInfo.has(buildInfoId)) {
+      artifactsGroupedByBuildInfo.set(buildInfoId, []);
+    }
+  }
+
+  for (const [
+    buildInfoId,
+    artifacts,
+  ] of artifactsGroupedByBuildInfo.entries()) {
+    const buildInfoAndOutput = buildInfoAndOutputById.get(buildInfoId);
+    if (buildInfoAndOutput === undefined) {
+      // We can throw for this error for the first artifact with this build info
+      // as all of them have the same problem.
+      const fqn = getFullyQualifiedName(
+        artifacts[0].userSourceName,
+        artifacts[0].edrArtifact.id.name,
+      );
+
+      throw new HardhatError(
+        HardhatError.ERRORS.CORE.SOLIDITY_TESTS.BUILD_INFO_NOT_FOUND_FOR_CONTRACT,
+        {
+          fqn,
+        },
+      );
+    }
+
     if (!buildInfoContainsInlineConfig(buildInfoAndOutput.buildInfo)) {
       continue;
     }
@@ -101,14 +138,8 @@ function collectRawOverrides(
       bytesToUtf8String(buildInfoAndOutput.output),
     );
 
-    for (const inputSourceName of Object.keys(buildInfoOutput.output.sources)) {
-      if (!testSuiteSources.has(inputSourceName)) {
-        continue;
-      }
-      if (processedSources.has(inputSourceName)) {
-        continue;
-      }
-      processedSources.add(inputSourceName);
+    for (const artifact of artifacts) {
+      const inputSourceName = artifact.edrArtifact.id.source;
 
       const source = buildInfoOutput.output.sources[inputSourceName];
       const extracted = extractInlineConfigFromAst(source.ast, inputSourceName);
@@ -138,7 +169,7 @@ function buildTestFunctionOverrides(
   // Group overrides by function. When the AST provides a functionSelector
   // (public/external functions in solc >= 0.6.0), use it to distinguish
   // overloaded functions. Otherwise fall back to function name only.
-  const overridesByFunction = new Map<string, RawInlineOverrideType[]>();
+  const overridesByFunction = new Map<string, RawInlineOverride[]>();
   for (const override of overrides) {
     const functionFqn = getFunctionFqn(
       override.inputSourceName,

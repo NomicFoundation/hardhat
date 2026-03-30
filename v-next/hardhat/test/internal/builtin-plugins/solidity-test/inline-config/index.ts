@@ -172,7 +172,7 @@ describe("inline-config", () => {
       });
     });
 
-    it("should skip build infos not referenced by testSuiteArtifacts", () => {
+    it("should throw BUILD_INFO_NOT_FOUND when artifact references missing build info", () => {
       const bi = makeBuildInfo(
         "test/MyTest.sol",
         "/// hardhat-config: fuzz.runs = 10",
@@ -190,31 +190,16 @@ describe("inline-config", () => {
         "0.8.23",
         "other-build-info-id",
       );
-      const artifacts = [makeTestSuiteArtifact("test/MyTest.sol", "MyTest")];
-      assert.deepEqual(getTestFunctionOverrides(artifacts, [bi]), []);
-    });
 
-    it("should skip sources in build info not present in testSuiteArtifacts", () => {
-      const biWithExtra = makeBuildInfo(
-        "test/MyTest.sol",
-        "/// hardhat-config: fuzz.runs = 10",
+      const artifacts = [makeTestSuiteArtifact("test/MyTest.sol", "MyTest")];
+      assertThrowsHardhatError(
+        () => getTestFunctionOverrides(artifacts, [bi]),
+        HardhatError.ERRORS.CORE.SOLIDITY_TESTS
+          .BUILD_INFO_NOT_FOUND_FOR_CONTRACT,
         {
-          MyTest: {
-            methodIdentifiers: { "testFuzz()": "aabbccdd" },
-            functions: [
-              {
-                name: "testFuzz",
-                documentation: " hardhat-config: fuzz.runs = 10",
-              },
-            ],
-          },
+          fqn: "test/MyTest.sol:MyTest",
         },
       );
-      // Pass an artifact for a different source than the one in the build info
-      const artifacts = [
-        makeTestSuiteArtifact("test/OtherTest.sol", "OtherTest"),
-      ];
-      assert.deepEqual(getTestFunctionOverrides(artifacts, [biWithExtra]), []);
     });
 
     it("should produce separate overrides for overloaded functions", () => {
