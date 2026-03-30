@@ -15,6 +15,7 @@ import type {
 import type { RequireField } from "../../../../types/utils.js";
 import type { DefaultHDAccountsConfigParams } from "../accounts/constants.js";
 import type { JsonRpcRequestWrapperFunction } from "../network-manager.js";
+import type { TraceOutputManager } from "./utils/trace-output.js";
 import type {
   SubscriptionEvent,
   Response,
@@ -24,7 +25,7 @@ import type {
   GasReportConfig,
 } from "@nomicfoundation/edr";
 
-import { ContractDecoder } from "@nomicfoundation/edr";
+import { ContractDecoder, IncludeTraces } from "@nomicfoundation/edr";
 import {
   assertHardhatInvariant,
   HardhatError,
@@ -127,6 +128,10 @@ interface EdrProviderConfig {
   jsonRpcRequestWrapper?: JsonRpcRequestWrapperFunction;
   coverageConfig?: CoverageConfig;
   gasReportConfig?: GasReportConfig;
+  includeCallTraces?: IncludeTraces;
+  connectionId: number;
+  networkName: string;
+  verbosity: number;
 }
 
 export class EdrProvider extends BaseProvider {
@@ -134,6 +139,7 @@ export class EdrProvider extends BaseProvider {
 
   #provider: Provider | undefined;
   #nextRequestId = 1;
+  readonly #traceOutput: TraceOutputManager | undefined;
 
   public static async createContractDecoder(
     tracingConfig: TracingConfigWithBuffers,
@@ -152,6 +158,10 @@ export class EdrProvider extends BaseProvider {
     jsonRpcRequestWrapper,
     coverageConfig,
     gasReportConfig,
+    includeCallTraces,
+    verbosity,
+    connectionId,
+    networkName,
   }: EdrProviderConfig): Promise<EdrProvider> {
     const printLineFn = loggerConfig.printLineFn ?? printLine;
     const replaceLastLineFn = loggerConfig.replaceLastLineFn ?? replaceLastLine;
@@ -161,6 +171,7 @@ export class EdrProvider extends BaseProvider {
       coverageConfig,
       gasReportConfig,
       chainDescriptors,
+      includeCallTraces,
     );
 
     let edrProvider: EdrProvider;
@@ -204,7 +215,28 @@ export class EdrProvider extends BaseProvider {
         contractDecoder,
       );
 
-      edrProvider = new EdrProvider(provider, jsonRpcRequestWrapper);
+      const tracesEnabled =
+        includeCallTraces !== undefined &&
+        includeCallTraces !== IncludeTraces.None;
+
+      let traceOutput: TraceOutputManager | undefined;
+      if (tracesEnabled) {
+        const { TraceOutputManager: TraceOutputManagerImpl } = await import(
+          "./utils/trace-output.js"
+        );
+        traceOutput = new TraceOutputManagerImpl(
+          printLineFn,
+          connectionId,
+          networkName,
+          verbosity,
+        );
+      }
+
+      edrProvider = new EdrProvider(
+        provider,
+        traceOutput,
+        jsonRpcRequestWrapper,
+      );
       edrProviderWeakRef = new WeakRef(edrProvider);
     } catch (error) {
       ensureError(error);
@@ -225,12 +257,22 @@ export class EdrProvider extends BaseProvider {
    */
   private constructor(
     provider: Provider,
+    traceOutput: TraceOutputManager | undefined,
     jsonRpcRequestWrapper?: JsonRpcRequestWrapperFunction,
   ) {
     super();
 
     this.#provider = provider;
+    this.#traceOutput = traceOutput;
     this.#jsonRpcRequestWrapper = jsonRpcRequestWrapper;
+
+    // After a snapshot revert, the same transactions may run again.
+    // Reset traced hashes so their traces are printed a second time.
+    if (this.#traceOutput !== undefined) {
+      this.on(EDR_NETWORK_REVERT_SNAPSHOT_EVENT, () => {
+        this.#traceOutput?.clearTracedHashes();
+      });
+    }
   }
 
   public async request(
@@ -293,6 +335,7 @@ export class EdrProvider extends BaseProvider {
     this.removeAllListeners();
     // Clear the provider reference to help with garbage collection
     this.#provider = undefined;
+    this.#traceOutput?.clearTracedHashes();
   }
 
   public async addCompilationResult(
@@ -313,8 +356,11 @@ export class EdrProvider extends BaseProvider {
 
   async #handleEdrResponse(
     edrResponse: Response,
+    method: string,
+    params?: unknown[],
   ): Promise<SuccessfulJsonRpcResponse> {
     let jsonRpcResponse: JsonRpcResponse;
+    let txHash: string | undefined;
 
     if (typeof edrResponse.data === "string") {
       jsonRpcResponse = JSON.parse(edrResponse.data);
@@ -325,6 +371,12 @@ export class EdrProvider extends BaseProvider {
     if (isFailedJsonRpcResponse(jsonRpcResponse)) {
       const responseError = jsonRpcResponse.error;
       let error;
+
+      // Grab the tx hash so trace deduplication can recognize this transaction later
+      const errorData = responseError.data;
+      if (isEdrProviderErrorData(errorData)) {
+        txHash = errorData.transactionHash;
+      }
 
       const stackTrace = edrResponse.stackTrace();
 
@@ -366,9 +418,31 @@ export class EdrProvider extends BaseProvider {
         error.data = responseError.data;
       }
 
+      this.#traceOutput?.outputCallTraces(edrResponse, method, txHash, true);
+
       /* eslint-disable-next-line no-restricted-syntax -- we may throw
       non-Hardhat errors inside of an EthereumProvider */
       throw error;
+    }
+
+    if (this.#traceOutput !== undefined) {
+      // Output call traces for successful responses. The tx hash is resolved
+      // from the response/params so the trace manager can deduplicate.
+
+      if (
+        method === "eth_sendTransaction" ||
+        method === "eth_sendRawTransaction"
+      ) {
+        txHash =
+          typeof jsonRpcResponse.result === "string"
+            ? jsonRpcResponse.result
+            : undefined;
+      } else if (method === "eth_getTransactionReceipt") {
+        // params[0] is the tx hash being queried — used to dedup receipt polling
+        txHash = typeof params?.[0] === "string" ? params[0] : undefined;
+      }
+
+      this.#traceOutput.outputCallTraces(edrResponse, method, txHash, false);
     }
 
     return jsonRpcResponse;
@@ -422,7 +496,11 @@ export class EdrProvider extends BaseProvider {
       throw new UnknownError(error.message, error);
     }
 
-    return this.#handleEdrResponse(edrResponse);
+    return this.#handleEdrResponse(
+      edrResponse,
+      request.method,
+      Array.isArray(request.params) ? request.params : undefined,
+    );
   }
 }
 
@@ -431,6 +509,7 @@ export async function getProviderConfig(
   coverageConfig: CoverageConfig | undefined,
   gasReportConfig: GasReportConfig | undefined,
   chainDescriptors: ChainDescriptorsConfig,
+  includeCallTraces?: IncludeTraces,
 ): Promise<ProviderConfig> {
   const specId = hardhatHardforkToEdrSpecId(
     networkConfig.hardfork,
@@ -477,6 +556,7 @@ export async function getProviderConfig(
     observability: {
       codeCoverage: coverageConfig,
       gasReport: gasReportConfig,
+      includeCallTraces,
     },
     ownedAccounts: ownedAccounts.map((account) => account.secretKey),
     precompileOverrides: [],

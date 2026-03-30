@@ -41,7 +41,6 @@ interface TestActionArguments {
   chainType: string;
   grep?: string;
   noCompile: boolean;
-  verbosity: number;
   testSummaryIndex: number;
 }
 
@@ -50,11 +49,13 @@ export interface SolidityTestRunResult extends TestRunResult {
 }
 
 const runSolidityTests: NewTaskActionFunction<TestActionArguments> = async (
-  { testFiles, chainType, grep, noCompile, verbosity, testSummaryIndex },
+  { testFiles, chainType, grep, noCompile, testSummaryIndex },
   hre,
 ): Promise<Result<SolidityTestRunResult, SolidityTestRunResult>> => {
   // Set an environment variable that plugins can use to detect when a process is running tests
   process.env.HH_TEST = "true";
+
+  const verbosity = hre.globalOptions.verbosity;
 
   // Sets the NODE_ENV environment variable to "test" so the code can detect that tests are running
   // This is done by other JS/TS test frameworks like vitest

@@ -38,6 +38,7 @@ import { JsonRpcServerImplementation } from "../node/json-rpc/server.js";
 import { EdrProvider } from "./edr/edr-provider.js";
 import { getHardforks } from "./edr/types/hardfork.js";
 import { edrGasReportToHardhatGasMeasurements } from "./edr/utils/convert-to-edr.js";
+import { verbosityToIncludeTraces } from "./edr/utils/trace-formatters.js";
 import { HttpProvider } from "./http-provider.js";
 import { NetworkConnectionImplementation } from "./network-connection.js";
 
@@ -56,6 +57,7 @@ export class NetworkManagerImplementation implements NetworkManager {
   readonly #chainDescriptors: Readonly<ChainDescriptorsConfig>;
   readonly #userProvidedConfigPath: Readonly<string | undefined>;
   readonly #projectRoot: string;
+  readonly #verbosity: number;
 
   #nextConnectionId = 0;
   readonly #contractDecoderMutex = new AsyncMutex();
@@ -71,6 +73,7 @@ export class NetworkManagerImplementation implements NetworkManager {
     chainDescriptors: ChainDescriptorsConfig,
     userProvidedConfigPath: string | undefined,
     projectRoot: string,
+    verbosity: number,
   ) {
     this.#defaultNetwork = defaultNetwork;
     this.#defaultChainType = defaultChainType;
@@ -81,6 +84,7 @@ export class NetworkManagerImplementation implements NetworkManager {
     this.#chainDescriptors = chainDescriptors;
     this.#userProvidedConfigPath = userProvidedConfigPath;
     this.#projectRoot = projectRoot;
+    this.#verbosity = verbosity;
   }
 
   public async connect<
@@ -270,6 +274,8 @@ export class NetworkManagerImplementation implements NetworkManager {
           "Contract decoder should have been initialized before creating the provider",
         );
 
+        const includeCallTraces = verbosityToIncludeTraces(this.#verbosity);
+
         return EdrProvider.create({
           chainDescriptors: this.#chainDescriptors,
           // The resolvedNetworkConfig can have its chainType set to `undefined`
@@ -289,6 +295,10 @@ export class NetworkManagerImplementation implements NetworkManager {
           contractDecoder: this.#contractDecoder,
           coverageConfig,
           gasReportConfig,
+          includeCallTraces,
+          connectionId: networkConnection.id,
+          networkName: networkConnection.networkName,
+          verbosity: this.#verbosity,
         });
       }
 
