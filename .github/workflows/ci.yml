@@ -1,4 +1,4 @@
-name: vNext CI
+name: CI
 
 on:
   merge_group:
