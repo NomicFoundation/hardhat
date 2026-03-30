@@ -7,7 +7,7 @@ import { logStep } from "../helpers/log.ts";
 export async function exec(
   e2eCloneDirectory: string,
   scenarioPath: string,
-  command: string,
+  command: string | undefined,
 ): Promise<void> {
   const scenario = loadScenario(e2eCloneDirectory, scenarioPath);
 
@@ -15,7 +15,9 @@ export async function exec(
     await init(e2eCloneDirectory, scenarioPath);
   }
 
-  runCommand(command, scenario.workingDir, scenario.definition.env);
+  const resolvedCommand = command ?? scenario.definition.defaultCommand;
+
+  runCommand(resolvedCommand, scenario.workingDir, scenario.definition.env);
 }
 
 function runCommand(

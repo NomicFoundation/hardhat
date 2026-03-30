@@ -14,7 +14,7 @@ The intention behind the current separation of part of `hardhat` into the `core/
 
 The entry-point of the plugins are meant to only export a description of the plugin, and not implement any functionality. Please don’t import anything in those files.
 
-The only accepted imports are: their `type-extension.ts`, hardhat types, and the `"/config"` module from hardhat.
+The only accepted imports in the `index.ts` file of plugins (both built-in and external) are their `type-extension`, types and `enums` from `hardhat`, and `hardhat/config`, and potentially a simple file with constants. They can also import files that follow these same rules and restrictions. Everything else should be imported by a callback registered in the plugin object.
 
 ## A3: Always initialize the HRE using the `hre-initialization` module inside of `hardhat`
 
@@ -92,12 +92,18 @@ This is also valid for tests, where things can easily become super brittle by us
 
 ## GC3: top-level imports vs dynamic imports
 
-Hardhat v3’s plugin system was designed so that plugin hooks and task actions are lazy loaded. This means that within them, we can use top-level imports, and we aren’t restricted to dynamic imports, like we were in v2.
+Hardhat 3's plugin system already handles lazy loading — plugins place business logic behind dynamic imports. Dependencies, conditional dependencies, hook handler factories, and task actions are all dynamically imported. This means most imports should be top-level imports, except for a few cases:
 
-Please apply your own criteria when:
+Use `await import` only if one of these conditions is met:
 
-- Importing dependencies known to load slowly.
-- The import is in a file that’s always loaded (e.g. it gets loaded if you run `pnpm hardhat --help`).
+1. The file with the import is part of the `hardhat` package, is always imported at startup (i.e. imported by `hardhat`'s `src/internal/cli/main.ts` or `src/index.ts`, directly or transitively), and the imported module isn't always used (e.g. `./init/init.js` in `hardhat`'s `main.ts`)
+2. The import path is dynamic (e.g. the user config path)
+3. The file is dynamically loaded by a wrapper that exports the same interface that loads it on first access (mostly used for HRE extensions, e.g. `src/internal/builtin-plugins/network-manager/hook-handlers/hre.ts` in `hardhat`)
+4. The dynamic import is used to avoid a circular dependency (e.g. importing the `HRE` at runtime)
+5. The import has to happen at a certain point in time (mostly used for import side-effects, e.g. `await import(...)` without doing anything with the imported module)
+6. If there's a comment justifying it, and the imported module is cached (i.e. not running `await import(...)` every time, but instead doing something like `if (cachedModule === undefined) { cachedModule = await import(...) }`). Some code duplication in this case is acceptable if that avoids adding unnecessary async logic (e.g. avoid `const module = await getModule()` to avoid repeating just a few conditionals).
+
+Test files are free to use `await import` freely.
 
 # Testing guidelines
 

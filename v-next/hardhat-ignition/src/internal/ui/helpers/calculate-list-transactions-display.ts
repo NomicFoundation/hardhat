@@ -1,6 +1,7 @@
 import type { ListTransactionsResult } from "@nomicfoundation/ignition-core";
 
 import { HardhatError } from "@nomicfoundation/hardhat-errors";
+import json5 from "json5";
 
 export async function calculateListTransactionsDisplay(
   deploymentId: string,
@@ -34,11 +35,7 @@ export async function calculateListTransactionsDisplay(
     }
 
     if (transaction.params !== undefined) {
-      const {
-        default: { stringify },
-      } = await import("json5");
-
-      text += `  - Params: ${stringify(
+      text += `  - Params: ${json5.stringify(
         transaction.params,
         transactionDisplaySerializeReplacer,
       )}\n`;

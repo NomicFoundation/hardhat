@@ -1,8 +1,11 @@
 import type { HookContext, HookManager } from "../../types/hooks.js";
 import type { UserInterruptionManager } from "../../types/user-interruptions.js";
 
+import { createInterface } from "node:readline";
+
 import { assertHardhatInvariant } from "@nomicfoundation/hardhat-errors";
 import { AsyncMutex } from "@nomicfoundation/hardhat-utils/synchronization";
+import chalk from "chalk";
 
 export class UserInterruptionManagerImplementation
   implements UserInterruptionManager
@@ -68,7 +71,6 @@ async function defaultDisplayMessage(
   interruptor: string,
   message: string,
 ) {
-  const chalk = (await import("chalk")).default;
   console.log(chalk.blue(`[${interruptor}]`) + ` ${message}`);
 }
 
@@ -77,8 +79,6 @@ async function defaultRequestInput(
   interruptor: string,
   inputDescription: string,
 ): Promise<string> {
-  const { createInterface } = await import("node:readline");
-  const chalk = (await import("chalk")).default;
   const rl = createInterface({
     input: process.stdin,
     output: process.stdout,
@@ -100,8 +100,6 @@ async function defaultRequestSecretInput(
   interruptor: string,
   inputDescription: string,
 ): Promise<string> {
-  const { createInterface } = await import("node:readline");
-  const chalk = (await import("chalk")).default;
   const rl = createInterface({
     input: process.stdin,
     output: process.stdout,

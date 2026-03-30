@@ -1,0 +1,10 @@
+{
+  "$schema": "../../scripts/end-to-end/schema/scenario.schema.json",
+  "description": "OpenZeppelin contracts on Hardhat 2 (mocha test suite)",
+  "tags": ["external-repo", "hh2"],
+  "repo": "OpenZeppelin/openzeppelin-contracts",
+  "commit": "45f032d1bcf1a88b7bc90154d7eef76c87bf9d45",
+  "packageManager": "npm",
+  "submodules": true,
+  "defaultCommand": "npx hardhat test"
+}

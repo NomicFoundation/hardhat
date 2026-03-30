@@ -1,4 +1,5 @@
 import type { RpcTransactionRequest } from "@nomicfoundation/hardhat-zod-utils/rpc";
+import type * as MicroEthSignerT from "micro-eth-signer";
 
 import {
   assertHardhatInvariant,
@@ -10,14 +11,24 @@ import {
   bytesToHexString,
   bytesToNumber,
 } from "@nomicfoundation/hardhat-utils/bytes";
-import { addr, Transaction } from "micro-eth-signer";
+
+// micro-eth-signer is known to be slow to load, so we lazy load it
+let microEthSigner: typeof MicroEthSignerT | undefined;
 
 const STRICT_MODE = false;
 
-export function createTx(
+export async function createTx(
   txRequest: RpcTransactionRequest,
   chainId: bigint,
-): Transaction<"eip7702" | "eip1559" | "eip2930" | "legacy"> {
+): Promise<
+  MicroEthSignerT.Transaction<"eip7702" | "eip1559" | "eip2930" | "legacy">
+> {
+  if (microEthSigner === undefined) {
+    microEthSigner = await import("micro-eth-signer");
+  }
+
+  const { addr, Transaction } = microEthSigner;
+
   const checksummedAddress = addr.addChecksum(
     bytesToHexString(txRequest.to ?? new Uint8Array()),
     true,

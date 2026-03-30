@@ -1,4 +1,4 @@
-import { writeFileSync } from "node:fs";
+import { readFileSync, writeFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { execFileSync } from "node:child_process";
 
@@ -9,33 +9,77 @@ import { VERDACCIO_URL } from "../../verdaccio/helpers/shell.ts";
 import type { ScenarioDefinition } from "../types.ts";
 
 /**
- * Write .npmrc pointing at Verdaccio and run `npm install` for clone tests.
- * For init tests the setup command handles dependency installation.
+ * Configure the registry to point at Verdaccio and run `install` for
+ * the scenario's package manager.
  */
-export function npmInstall(
+export function installDependencies(
   workDir: string,
-  packageManager: "npm",
+  packageManager: ScenarioDefinition["packageManager"],
   env?: Record<string, string>,
 ): void {
-  writeNpmrc(workDir);
+  writeRegistryConfig(workDir, packageManager);
 
-  if (packageManager !== "npm") {
-    throw new Error("Only npm is supported as a package manager");
+  if (packageManager === "yarn") {
+    logStep("Enabling corepack for yarn");
+
+    execFileSync(which("corepack"), ["enable", "yarn"], {
+      cwd: workDir,
+      stdio: "inherit",
+    });
   }
 
   logStep("Installing dependencies");
 
-  execFileSync(which("npm"), ["install"], {
+  const installArgs =
+    packageManager === "yarn"
+      ? ["install"]
+      : // Required by bun as it may not pickup the cwd bunfig.toml
+        ["install", `--registry=${VERDACCIO_URL}`];
+
+  execFileSync(which(packageManager), installArgs, {
     cwd: workDir,
     stdio: "inherit",
-    env: { ...process.env, ...env },
+    env: { ...process.env, ...env, COREPACK_ENABLE_DOWNLOAD_PROMPT: "0" },
   });
 }
 
-function writeNpmrc(dir: string): void {
-  const npmrcPath = resolve(dir, ".npmrc");
+function writeRegistryConfig(
+  dir: string,
+  packageManager: ScenarioDefinition["packageManager"],
+): void {
+  if (packageManager === "bun") {
+    const bunfigPath = resolve(dir, "bunfig.toml");
+    writeFileSync(bunfigPath, `[install]\nregistry = "${VERDACCIO_URL}"\n`);
+    log(`Wrote bunfig.toml → ${VERDACCIO_URL}`);
+  } else if (packageManager === "yarn") {
+    const yarnrcPath = resolve(dir, ".yarnrc.yml");
 
-  writeFileSync(npmrcPath, `registry=${VERDACCIO_URL}\n`);
+    let existing = "";
+    try {
+      existing = readFileSync(yarnrcPath, "utf-8");
+    } catch {}
 
-  log(`Wrote .npmrc → ${VERDACCIO_URL}`);
+    // Strip any previously written registry settings so repeated
+    // init calls stay idempotent.
+    const cleaned = existing
+      .replace(/^npmRegistryServer:.*\n?/m, "")
+      .replace(/^unsafeHttpWhitelist:\n(?:\s+-.*\n?)*/m, "");
+
+    const registryConfig = `npmRegistryServer: "${VERDACCIO_URL}"\nunsafeHttpWhitelist:\n  - "localhost"\n  - "127.0.0.1"\n`;
+
+    writeFileSync(
+      yarnrcPath,
+      cleaned.trim()
+        ? `${cleaned.trimEnd()}\n\n${registryConfig}`
+        : registryConfig,
+    );
+
+    log(`Wrote .yarnrc.yml → ${VERDACCIO_URL}`);
+  } else {
+    const npmrcPath = resolve(dir, ".npmrc");
+
+    writeFileSync(npmrcPath, `registry=${VERDACCIO_URL}\n`);
+
+    log(`Wrote .npmrc → ${VERDACCIO_URL}`);
+  }
 }

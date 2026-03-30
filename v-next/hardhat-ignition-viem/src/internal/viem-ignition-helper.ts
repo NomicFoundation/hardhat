@@ -44,6 +44,7 @@ import {
   deploy,
   isContractFuture,
 } from "@nomicfoundation/ignition-core";
+import { getContract } from "viem";
 
 export class ViemIgnitionHelperImpl<ChainTypeT extends ChainType | string>
   implements ViemIgnitionHelper
@@ -347,8 +348,7 @@ export class ViemIgnitionHelperImpl<ChainTypeT extends ChainType | string>
       );
     }
 
-    const viem = await import("viem");
-    const contract = viem.getContract({
+    const contract = getContract({
       address: ViemIgnitionHelperImpl.#ensureAddressFormat(
         deployedContract.address,
       ),

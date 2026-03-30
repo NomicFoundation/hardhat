@@ -18,6 +18,7 @@ import {
 } from "@nomicfoundation/hardhat-utils/fs";
 import { deploy } from "@nomicfoundation/ignition-core";
 import chalk from "chalk";
+import json5 from "json5";
 import Prompt from "prompts";
 
 import { HardhatArtifactResolver } from "../../helpers/hardhat-artifact-resolver.js";
@@ -276,11 +277,7 @@ async function resolveParametersString(
   paramString: string,
 ): Promise<DeploymentParameters> {
   try {
-    const {
-      default: { parse },
-    } = await import("json5");
-
-    return await parse(paramString, bigintReviver);
+    return await json5.parse(paramString, bigintReviver);
   } catch (e) {
     if (HardhatError.isHardhatError(e)) {
       throw e;

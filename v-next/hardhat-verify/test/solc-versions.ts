@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 
 import { HardhatError } from "@nomicfoundation/hardhat-errors";
-import { assertRejectsWithHardhatError } from "@nomicfoundation/hardhat-test-utils";
+import { assertThrowsHardhatError } from "@nomicfoundation/hardhat-test-utils";
 
 import {
   resolveSupportedSolcVersions,
@@ -34,7 +34,7 @@ describe("solc-versions", () => {
       const expected = ["0.8.18", "0.7.2", "0.4.11"];
 
       const supportedSolcVersions =
-        await resolveSupportedSolcVersions(solidityConfig);
+        resolveSupportedSolcVersions(solidityConfig);
 
       assert.deepEqual(supportedSolcVersions, expected);
     });
@@ -58,7 +58,7 @@ describe("solc-versions", () => {
       const expected = ["0.5.5", "0.6.4"];
 
       const supportedSolcVersions =
-        await resolveSupportedSolcVersions(solidityConfig);
+        resolveSupportedSolcVersions(solidityConfig);
 
       assert.deepEqual(supportedSolcVersions, expected);
     });
@@ -91,7 +91,7 @@ describe("solc-versions", () => {
       const expected = ["0.8.18", "0.7.2", "0.5.5", "0.6.4"];
 
       const supportedSolcVersions =
-        await resolveSupportedSolcVersions(solidityConfig);
+        resolveSupportedSolcVersions(solidityConfig);
 
       assert.deepEqual(supportedSolcVersions, expected);
     });
@@ -116,7 +116,7 @@ describe("solc-versions", () => {
       const expected = ["0.8.18", "0.8.18"];
 
       const supportedSolcVersions =
-        await resolveSupportedSolcVersions(solidityConfig);
+        resolveSupportedSolcVersions(solidityConfig);
 
       assert.deepEqual(supportedSolcVersions, expected);
     });
@@ -143,8 +143,8 @@ describe("solc-versions", () => {
         preferWasm: false,
       };
 
-      await assertRejectsWithHardhatError(
-        resolveSupportedSolcVersions(solidityConfig),
+      assertThrowsHardhatError(
+        () => resolveSupportedSolcVersions(solidityConfig),
         HardhatError.ERRORS.HARDHAT_VERIFY.GENERAL.SOLC_VERSION_NOT_SUPPORTED,
         {
           unsupportedSolcVersions: ["0.4.10"],
@@ -174,8 +174,8 @@ describe("solc-versions", () => {
         preferWasm: false,
       };
 
-      await assertRejectsWithHardhatError(
-        resolveSupportedSolcVersions(solidityConfig),
+      assertThrowsHardhatError(
+        () => resolveSupportedSolcVersions(solidityConfig),
         HardhatError.ERRORS.HARDHAT_VERIFY.GENERAL.SOLC_VERSION_NOT_SUPPORTED,
         {
           unsupportedSolcVersions: ["0.3.5"],
@@ -189,7 +189,7 @@ describe("solc-versions", () => {
       const versions = ["0.8.18", "0.7.2", "0.4.11", "0.3.5"];
       const range = ">=0.4.11";
 
-      const filteredVersions = await filterVersionsByRange(versions, range);
+      const filteredVersions = filterVersionsByRange(versions, range);
 
       assert.deepEqual(filteredVersions, ["0.8.18", "0.7.2", "0.4.11"]);
     });
@@ -198,7 +198,7 @@ describe("solc-versions", () => {
       const versions = ["0.3.5", "0.2.1"];
       const range = ">=0.4.11";
 
-      const filteredVersions = await filterVersionsByRange(versions, range);
+      const filteredVersions = filterVersionsByRange(versions, range);
 
       assert.deepEqual(filteredVersions, []);
     });
