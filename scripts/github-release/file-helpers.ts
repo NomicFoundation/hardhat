@@ -3,7 +3,7 @@ import type { ReleaseDescriptor } from "./build-release-descriptors.ts";
 import { readFile } from "node:fs/promises";
 import path from "node:path";
 
-const PACKAGES_DIR = "v-next";
+const PACKAGES_DIR = "packages";
 
 /**
  * Reads and parses pnpm-publish-summary.json from the current directory.
@@ -18,7 +18,7 @@ export async function readPublishSummary(): Promise<{
     console.error(
       "Could not read pnpm-publish-summary.json.\n\n" +
         "It should be generated in the CI, to generate it locally run:\n" +
-        '  pnpm publish --filter "./v-next/**" -r --no-git-checks --access public --report-summary --dry-run',
+        '  pnpm publish --filter "./packages/**" -r --no-git-checks --access public --report-summary --dry-run',
     );
 
     process.exit(1);
