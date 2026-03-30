@@ -336,9 +336,6 @@ export class EdrProvider extends BaseProvider {
     // Clear the provider reference to help with garbage collection
     this.#provider = undefined;
     this.#traceOutput?.clearTracedHashes();
-    // Detach the snapshot-revert listener so nothing keeps a reference
-    // to this instance and it can be garbage collected.
-    this.removeAllListeners(EDR_NETWORK_REVERT_SNAPSHOT_EVENT);
   }
 
   public async addCompilationResult(
