@@ -358,15 +358,15 @@ SyntaxError: <user-path>:45:12
 
     assert.equal(
       anonymizeUserPaths(
-        "Something happened at file file:///workspaces/hardhat/v-next/hardhat/test/internal/cli/telemetry/sentry/anonymizer.ts and at file /workspaces/hardhat/v-next/some-other-file.js",
+        "Something happened at file file:///workspaces/hardhat/packages/hardhat/test/internal/cli/telemetry/sentry/anonymizer.ts and at file /workspaces/hardhat/packages/some-other-file.js",
       ),
       "Something happened at file file://<user-path> and at file <user-path>",
     );
 
     assert.equal(
       anonymizeUserPaths(
-        "Something happened at file file:///workspaces/hardhat/v-next/hardhat/test/internal/cli/telemetry/sentry/anonymizer.ts and\n" +
-          "something else happened at file /workspaces/hardhat/v-next/some-other-file.js",
+        "Something happened at file file:///workspaces/hardhat/packages/hardhat/test/internal/cli/telemetry/sentry/anonymizer.ts and\n" +
+          "something else happened at file /workspaces/hardhat/packages/some-other-file.js",
       ),
       "Something happened at file file://<user-path> and\n" +
         "something else happened at file <user-path>",
