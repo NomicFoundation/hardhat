@@ -14,6 +14,7 @@ import type {
 import type { DeploymentLoader } from "../../../deployment-loader/types.js";
 import type { DeploymentState } from "../../types/deployment-state.js";
 
+import { Interface } from "ethers";
 import { isAddress } from "ethers/address";
 
 import {
@@ -308,7 +309,6 @@ export async function resolveEncodeFunctionCallResult(
 ): Promise<string> {
   const artifact = await deploymentLoader.loadArtifact(artifactId);
 
-  const { Interface } = await import("ethers");
   const iface = new Interface(artifact.abi);
 
   return iface.encodeFunctionData(functionName, args);

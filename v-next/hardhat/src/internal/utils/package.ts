@@ -7,6 +7,7 @@ import {
   findDependencyPackageJson,
   readClosestPackageJson,
 } from "@nomicfoundation/hardhat-utils/package";
+import { getRequest } from "@nomicfoundation/hardhat-utils/request";
 
 let cachedHardhatVersion: string | undefined;
 let cachedLatestHardhatVersion: string | undefined;
@@ -50,8 +51,6 @@ export async function getEdrVersion(): Promise<string> {
 }
 
 export async function getLatestHardhatVersion(): Promise<string> {
-  const { getRequest } = await import("@nomicfoundation/hardhat-utils/request");
-
   if (cachedLatestHardhatVersion !== undefined) {
     return cachedLatestHardhatVersion;
   }

@@ -7,7 +7,7 @@ import { camelToSnakeCase } from "./string.js";
  * with each option adhering to its definition in the globalOptionDefinitions.
  */
 export function setGlobalOptionsAsEnvVariables<
-  T extends Record<keyof T, string | boolean | number>,
+  T extends Record<keyof T, string | boolean | number | undefined>,
 >(globalOptions: T): void {
   for (const [name, value] of Object.entries(globalOptions)) {
     const envName = getEnvVariableNameFromGlobalOption(name);

@@ -1,0 +1,11 @@
+{
+  "$schema": "../../scripts/end-to-end/schema/scenario.schema.json",
+  "description": "ENS contracts main branch (vite test suite)",
+  "tags": ["external-repo"],
+  "repo": "ensdomains/ens-contracts",
+  "commit": "25466afe2b358b2925e50728c57bce8db6cee10e",
+  "packageManager": "bun",
+  "preinstall": "./preinstall.sh",
+  "submodules": true,
+  "defaultCommand": "bun run test"
+}

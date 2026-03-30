@@ -1,6 +1,6 @@
 {
   "name": "@nomicfoundation/hardhat-mocha",
-  "version": "3.0.13",
+  "version": "3.0.14",
   "description": "A mocha test runner",
   "homepage": "https://github.com/nomicfoundation/hardhat/tree/v-next/v-next/hardhat-mocha",
   "repository": {
@@ -32,7 +32,7 @@
     "pretest:only": "pnpm build",
     "build": "tsc --build .",
     "prepublishOnly": "pnpm build",
-    "clean": "rimraf dist"
+    "clean": "rimraf dist ./test/fixture-projects/*-tmp-*-*-*-*-*"
   },
   "files": [
     "dist/src/",
@@ -53,11 +53,11 @@
     "prettier": "3.2.5",
     "rimraf": "^5.0.5",
     "typescript": "~5.8.0",
-    "hardhat": "workspace:^3.1.12",
+    "hardhat": "workspace:^3.2.0",
     "mocha": "^11.0.0"
   },
   "dependencies": {
-    "@nomicfoundation/hardhat-errors": "workspace:^3.0.8",
+    "@nomicfoundation/hardhat-errors": "workspace:^3.0.9",
     "@nomicfoundation/hardhat-utils": "workspace:^4.0.1",
     "@nomicfoundation/hardhat-zod-utils": "workspace:^3.0.3",
     "chalk": "^5.3.0",
@@ -66,7 +66,7 @@
     "zod": "^3.23.8"
   },
   "peerDependencies": {
-    "hardhat": "workspace:^3.1.12",
+    "hardhat": "workspace:^3.2.0",
     "mocha": "^11.0.0"
   }
 }

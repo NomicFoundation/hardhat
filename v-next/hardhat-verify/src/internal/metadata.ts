@@ -1,6 +1,7 @@
 import util from "node:util";
 
 import { bytesToHexString } from "@nomicfoundation/hardhat-utils/bytes";
+import { decode } from "cbor2";
 import debug from "debug";
 
 const log = debug("hardhat:hardhat-verify:metadata");
@@ -82,8 +83,6 @@ export function getMetadataSectionBytesLength(bytecode: Uint8Array): number {
  * version field. The function throws if the metadata cannot be decoded.
  */
 async function decodeSolcMetadata(bytecode: Uint8Array): Promise<unknown> {
-  const { decode } = await import("cbor2");
-
   const metadataSectionBytesLength = getMetadataSectionBytesLength(bytecode);
   const metadataPayload = bytecode.slice(
     -metadataSectionBytesLength,

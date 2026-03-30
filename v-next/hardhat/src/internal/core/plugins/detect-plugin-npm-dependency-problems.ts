@@ -1,4 +1,5 @@
 import type { HardhatPlugin } from "../../../types/plugins.js";
+import type { satisfies as SatisfiesT } from "semver";
 
 import path from "node:path";
 
@@ -8,6 +9,10 @@ import {
   findDependencyPackageJson,
   type PackageJson,
 } from "@nomicfoundation/hardhat-utils/package";
+
+// semver is slow to load, and this file is loaded by HookManager, so we lazy
+// load it.
+let satisfies: typeof SatisfiesT | undefined;
 
 /**
  * Validate that a plugin is installed and that its peer dependencies are
@@ -84,7 +89,9 @@ export async function detectPluginNpmDependencyProblems(
 
     const installedVersion = dependencyPackageJson.version;
 
-    const { satisfies } = await import("semver");
+    if (satisfies === undefined) {
+      ({ satisfies } = await import("semver"));
+    }
 
     if (!satisfies(installedVersion, versionSpec.replace("workspace:", ""))) {
       throw new HardhatError(

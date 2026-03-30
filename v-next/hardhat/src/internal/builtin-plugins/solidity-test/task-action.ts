@@ -170,7 +170,9 @@ const runSolidityTests: NewTaskActionFunction<TestActionArguments> = async (
       verbosity,
       observability: observabilityConfig,
       testPattern: grep,
-      generateGasReport: hre.globalOptions.gasStats,
+      generateGasReport:
+        hre.globalOptions.gasStats ||
+        hre.globalOptions.gasStatsJson !== undefined,
     });
   const tracingConfig: TracingConfigWithBuffers = {
     buildInfos,

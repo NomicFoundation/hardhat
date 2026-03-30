@@ -3,13 +3,12 @@ import type { Template } from "./template.js";
 import { HardhatError } from "@nomicfoundation/hardhat-errors";
 import { shortenPath } from "@nomicfoundation/hardhat-utils/path";
 import chalk from "chalk";
+import enquirer from "enquirer";
 
 export async function promptForHardhatVersion(): Promise<
   "hardhat-2" | "hardhat-3"
 > {
   ensureTTY();
-
-  const { default: enquirer } = await import("enquirer");
 
   const hardhatVersionResponse = await enquirer.prompt<{
     hardhatVersion: "hardhat-2" | "hardhat-3";
@@ -40,8 +39,6 @@ export async function promptForHardhatVersion(): Promise<
 export async function promptForWorkspace(): Promise<string> {
   ensureTTY();
 
-  const { default: enquirer } = await import("enquirer");
-
   const workspaceResponse = await enquirer.prompt<{ workspace: string }>([
     {
       name: "workspace",
@@ -58,8 +55,6 @@ export async function promptForMigrateToEsm(
   absolutePathToPackageJson: string,
 ): Promise<boolean> {
   ensureTTY();
-
-  const { default: enquirer } = await import("enquirer");
 
   const migrateToEsmResponse = await enquirer.prompt<{ migrateToEsm: boolean }>(
     [
@@ -79,8 +74,6 @@ export async function promptForTemplate(
   templates: Template[],
 ): Promise<string> {
   ensureTTY();
-
-  const { default: enquirer } = await import("enquirer");
 
   const templateResponse = await enquirer.prompt<{ template: string }>([
     {
@@ -102,8 +95,6 @@ export async function promptForTemplate(
 export async function promptForForce(files: string[]): Promise<boolean> {
   ensureTTY();
 
-  const { default: enquirer } = await import("enquirer");
-
   const forceResponse = await enquirer.prompt<{ force: boolean }>([
     {
       name: "force",
@@ -121,8 +112,6 @@ export async function promptForInstall(
 ): Promise<boolean> {
   ensureTTY();
 
-  const { default: enquirer } = await import("enquirer");
-
   const installResponse = await enquirer.prompt<{ install: boolean }>([
     {
       name: "install",
@@ -139,8 +128,6 @@ export async function promptForUpdate(
   safelyFormattedCommand: string,
 ): Promise<boolean> {
   ensureTTY();
-
-  const { default: enquirer } = await import("enquirer");
 
   const updateResponse = await enquirer.prompt<{ update: boolean }>([
     {

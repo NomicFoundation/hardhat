@@ -470,6 +470,17 @@ describe("edr-provider", () => {
         {},
       );
     });
+
+    it("should remove all listeners after closing", async () => {
+      const connection = await hre.network.connect();
+
+      connection.provider.on("notification", () => {});
+      assert.equal(connection.provider.listenerCount("notification"), 1);
+
+      await connection.provider.close();
+
+      assert.equal(connection.provider.listenerCount("notification"), 0);
+    });
   });
 
   describe("isDefaultEdrNetworkHDAccountsConfig", () => {

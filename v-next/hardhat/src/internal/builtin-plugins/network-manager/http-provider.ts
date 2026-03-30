@@ -161,6 +161,7 @@ export class HttpProvider extends BaseProvider {
   }
 
   public async close(): Promise<void> {
+    this.removeAllListeners();
     if (this.#dispatcher !== undefined) {
       // See https://github.com/nodejs/undici/discussions/3522#discussioncomment-10498734
       await this.#dispatcher.close();

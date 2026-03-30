@@ -43,18 +43,28 @@ export function setGasAnalyticsManager(
  * from "hardhat/internal/gas-analytics".
  */
 
+// Dynamically import the HRE when calling the helpers
+let cachedHre: HardhatRuntimeEnvironment | undefined;
+async function getHre(): Promise<HardhatRuntimeEnvironment> {
+  if (cachedHre === undefined) {
+    const { default: hre } = await import("../../../index.js");
+    cachedHre = hre;
+  }
+  return cachedHre;
+}
+
 export async function markTestRunStart(id: string): Promise<void> {
-  const { default: hre } = await import("../../../index.js");
+  const hre = await getHre();
   await testRunStart(hre, id);
 }
 
 export async function markTestWorkerDone(id: string): Promise<void> {
-  const { default: hre } = await import("../../../index.js");
+  const hre = await getHre();
   await testWorkerDone(hre, id);
 }
 
 export async function markTestRunDone(id: string): Promise<void> {
-  const { default: hre } = await import("../../../index.js");
+  const hre = await getHre();
   await testRunDone(hre, id);
 }
 
