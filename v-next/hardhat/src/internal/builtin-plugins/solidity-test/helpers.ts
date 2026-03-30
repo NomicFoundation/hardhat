@@ -8,6 +8,7 @@ import type {
   PathPermission,
   Artifact,
   ObservabilityConfig,
+  TestFunctionOverride,
 } from "@nomicfoundation/edr";
 
 import {
@@ -37,6 +38,7 @@ interface SolidityTestConfigParams {
   observability?: ObservabilityConfig;
   testPattern?: string;
   generateGasReport: boolean;
+  testFunctionOverrides?: TestFunctionOverride[];
 }
 
 export function solidityTestConfigToRunOptions(
@@ -54,6 +56,7 @@ export async function solidityTestConfigToSolidityTestRunnerConfigArgs({
   observability,
   testPattern,
   generateGasReport,
+  testFunctionOverrides,
 }: SolidityTestConfigParams): Promise<SolidityTestRunnerConfigArgs> {
   const fsPermissions: PathPermission[] | undefined = [
     config.fsPermissions?.readWriteFile?.map((p) => ({
@@ -148,6 +151,7 @@ export async function solidityTestConfigToSolidityTestRunnerConfigArgs({
     collectStackTraces: shouldAlwaysCollectStackTraces
       ? CollectStackTraces.Always
       : CollectStackTraces.OnFailure,
+    testFunctionOverrides,
   };
 }
 

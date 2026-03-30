@@ -5,6 +5,7 @@ import {
   pluralize,
   capitalize,
   kebabToCamelCase,
+  snakeToCamelCase,
   camelToSnakeCase,
   camelToKebabCase,
 } from "../src/string.js";
@@ -47,6 +48,17 @@ describe("string", () => {
       assert.equal(
         kebabToCamelCase("kebab-c-a-s-e-s-t-r-i-n-g"),
         "kebabCASESTRING",
+      );
+    });
+  });
+
+  describe("snakeToCamelCase", () => {
+    it("Should convert a snake_case string to camelCase", () => {
+      assert.equal(snakeToCamelCase("snakecasestring"), "snakecasestring");
+      assert.equal(snakeToCamelCase("snake_case_string"), "snakeCaseString");
+      assert.equal(
+        snakeToCamelCase("snake_c_a_s_e_s_t_r_i_n_g"),
+        "snakeCASESTRING",
       );
     });
   });

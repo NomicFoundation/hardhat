@@ -1,11 +1,21 @@
 import type { Artifact, ArtifactManager } from "../../../types/artifacts.js";
 import type {
-  BuildInfoAndOutput,
+  BuildInfoAndOutput as EdrBuildInfoAndOutput,
   Artifact as EdrArtifact,
 } from "@nomicfoundation/edr";
 
 import { assertHardhatInvariant } from "@nomicfoundation/hardhat-errors";
 import { readBinaryFile } from "@nomicfoundation/hardhat-utils/fs";
+
+export interface BuildInfoAndOutput extends EdrBuildInfoAndOutput {
+  buildInfoId: string;
+}
+
+export interface EdrArtifactWithMetadata {
+  edrArtifact: EdrArtifact;
+  userSourceName: string;
+  buildInfoId: string;
+}
 
 export const BUILD_INFO_FORMAT: RegExp =
   /^solc-(?<major>\d+)_(?<minor>\d+)_(?<patch>\d+)(?:-(?<compilerType>[a-zA-Z][a-zA-Z0-9]*))?-[0-9a-fA-F]*$/;
@@ -16,16 +26,16 @@ export const BUILD_INFO_FORMAT: RegExp =
  * @param artifactManager The artifact manager.
  * @returns The build infos in the Hardhat v3 format as expected by the EDR.
  */
-export async function getBuildInfos(
+export async function getBuildInfosAndOutputs(
   artifactManager: ArtifactManager,
 ): Promise<BuildInfoAndOutput[]> {
-  const buildIds = await artifactManager.getAllBuildInfoIds();
+  const buildInfoIds = await artifactManager.getAllBuildInfoIds();
 
   return Promise.all(
-    Array.from(buildIds).map(async (buildId) => {
-      const buildInfoPath = await artifactManager.getBuildInfoPath(buildId);
+    Array.from(buildInfoIds).map(async (buildInfoId) => {
+      const buildInfoPath = await artifactManager.getBuildInfoPath(buildInfoId);
       const buildInfoOutputPath =
-        await artifactManager.getBuildInfoOutputPath(buildId);
+        await artifactManager.getBuildInfoOutputPath(buildInfoId);
 
       // This is only safe because of how we currently interact with getBuildInfos
       // i.e. we call it immediately after a build which should ensure both
@@ -45,6 +55,7 @@ export async function getBuildInfos(
       const output = await readBinaryFile(buildInfoOutputPath);
 
       return {
+        buildInfoId,
         buildInfo,
         output,
       };
@@ -58,9 +69,9 @@ export async function getBuildInfos(
  * @param artifactManager The artifact manager.
  * @returns The artifacts in the format expected by the EDR.
  */
-export async function getEdrArtifacts(
+export async function buildEdrArtifactsWithMetadata(
   artifactManager: ArtifactManager,
-): Promise<Array<{ edrArtifact: EdrArtifact; userSourceName: string }>> {
+): Promise<EdrArtifactWithMetadata[]> {
   const fullyQualifiedNames = await artifactManager.getAllFullyQualifiedNames();
 
   const artifacts = await Promise.all(
@@ -145,6 +156,7 @@ export async function getEdrArtifacts(
         contract,
       },
       userSourceName: artifact.sourceName,
+      buildInfoId: artifact.buildInfoId,
     };
   });
 }
