@@ -2,7 +2,7 @@
 
 > ⚠️ This package is an internal Hardhat component and it's not meant to be used directly.
 
-This package includes Hardhat 3's `node:test` reporter used by the [`hardhat-node-test-runner`](https://github.com/NomicFoundation/hardhat/tree/v-next/v-next/hardhat-node-test-runner) plugin.
+This package includes Hardhat 3's `node:test` reporter used by the [`hardhat-node-test-runner`](https://hardhat.org/docs/plugins/hardhat-node-test-runner) plugin.
 
 ## Reporter style
 

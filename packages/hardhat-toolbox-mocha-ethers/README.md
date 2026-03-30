@@ -31,24 +31,23 @@ With this toolbox, you can:
 
 - Use [ethers.js](https://docs.ethers.io/) as the connection library for interacting with the network
 - Write Solidity tests using Hardhat's built-in test runner
-- Write TypeScript tests using [Mocha](https://mochajs.org/) and our [chai matchers plugin](https://hardhat.org/plugins/nomicfoundation-hardhat-ethers-chai-matchers).
-- Verify contracts with [hardhat-verify](https://hardhat.org/plugins/nomicfoundation-hardhat-verify)
+- Write TypeScript tests using [Mocha](https://mochajs.org/) and our [chai matchers plugin](https://hardhat.org/docs/plugins/hardhat-ethers-chai-matchers).
+- Verify contracts with [hardhat-verify](https://hardhat.org/docs/plugins/hardhat-verify)
 - Deploy contracts using [Hardhat Ignition](https://hardhat.org/ignition)
 
 ## Bundled plugins
 
 When you install `@nomicfoundation/hardhat-toolbox-mocha-ethers`, these plugins are automatically installed as peer dependencies:
 
-- [`@nomicfoundation/hardhat-ethers`](https://github.com/NomicFoundation/hardhat/tree/v-next/v-next/hardhat-ethers)
-- [`@nomicfoundation/hardhat-ethers-chai-matchers`](https://github.com/NomicFoundation/hardhat/tree/v-next/v-next/hardhat-ethers-chai-matchers)
-- [`@nomicfoundation/hardhat-ignition`](https://github.com/NomicFoundation/hardhat/tree/v-next/v-next/hardhat-ignition)
-- [`@nomicfoundation/hardhat-ignition-ethers`](https://github.com/NomicFoundation/hardhat/tree/v-next/v-next/hardhat-ignition-ethers)
-- [`@nomicfoundation/hardhat-keystore`](https://github.com/NomicFoundation/hardhat/tree/v-next/v-next/hardhat-keystore)
-- [`@nomicfoundation/hardhat-mocha`](https://github.com/NomicFoundation/hardhat/tree/v-next/v-next/hardhat-mocha)
-- [`@nomicfoundation/hardhat-network-helpers`](https://github.com/NomicFoundation/hardhat/tree/v-next/v-next/hardhat-network-helpers)
-- [`@nomicfoundation/hardhat-typechain`](https://github.com/NomicFoundation/hardhat/tree/v-next/v-next/hardhat-typechain)
-- [`@nomicfoundation/hardhat-verify`](https://github.com/NomicFoundation/hardhat/tree/v-next/v-next/hardhat-verify)
-- [`@nomicfoundation/ignition-core`](https://github.com/NomicFoundation/hardhat/tree/v-next/v-next/ignition-core)
+- [`@nomicfoundation/hardhat-ethers`](https://hardhat.org/docs/plugins/hardhat-ethers)
+- [`@nomicfoundation/hardhat-ethers-chai-matchers`](https://hardhat.org/docs/plugins/hardhat-ethers-chai-matchers)
+- [`@nomicfoundation/hardhat-ignition`](https://hardhat.org/docs/plugins/hardhat-ignition)
+- [`@nomicfoundation/hardhat-ignition-ethers`](https://hardhat.org/docs/plugins/hardhat-ignition-ethers)
+- [`@nomicfoundation/hardhat-keystore`](https://hardhat.org/docs/plugins/hardhat-keystore)
+- [`@nomicfoundation/hardhat-mocha`](https://hardhat.org/docs/plugins/hardhat-mocha)
+- [`@nomicfoundation/hardhat-network-helpers`](https://hardhat.org/docs/plugins/hardhat-network-helpers)
+- [`@nomicfoundation/hardhat-typechain`](https://hardhat.org/docs/plugins/hardhat-typechain)
+- [`@nomicfoundation/hardhat-verify`](https://hardhat.org/docs/plugins/hardhat-verify)
 
 ## Explicitly installing plugins
 

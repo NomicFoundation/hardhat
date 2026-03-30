@@ -31,22 +31,22 @@ With this toolbox, you can:
 
 - Use [viem](https://viem.sh/) as the connection library for interacting with the network
 - Write Solidity tests using Hardhat's built-in test runner
-- Write TypeScript tests using the [Node.js test runner](https://nodejs.org/api/test.html) and our [viem assertions plugin](https://github.com/NomicFoundation/hardhat/tree/v-next/v-next/hardhat-viem-assertions).
-- Verify contracts with [hardhat-verify](https://github.com/NomicFoundation/hardhat/tree/v-next/v-next/hardhat-verify)
+- Write TypeScript tests using the [Node.js test runner](https://nodejs.org/api/test.html) and our [viem assertions plugin](https://hardhat.org/docs/plugins/hardhat-viem-assertions).
+- Verify contracts with [hardhat-verify](https://hardhat.org/docs/plugins/hardhat-verify)
 - Deploy contracts using [Hardhat Ignition](https://hardhat.org/ignition)
 
 ## Bundled plugins
 
 When you install `@nomicfoundation/hardhat-toolbox-viem`, these plugins are automatically installed as peer dependencies:
 
-- [`@nomicfoundation/hardhat-ignition`](https://github.com/NomicFoundation/hardhat/tree/v-next/v-next/hardhat-ignition)
-- [`@nomicfoundation/hardhat-ignition-viem`](https://github.com/NomicFoundation/hardhat/tree/v-next/v-next/hardhat-ignition-viem)
-- [`@nomicfoundation/hardhat-keystore`](https://github.com/NomicFoundation/hardhat/tree/v-next/v-next/hardhat-keystore)
-- [`@nomicfoundation/hardhat-network-helpers`](https://github.com/NomicFoundation/hardhat/tree/v-next/v-next/hardhat-network-helpers)
-- [`@nomicfoundation/hardhat-node-test-runner`](https://github.com/NomicFoundation/hardhat/tree/v-next/v-next/hardhat-node-test-runner)
-- [`@nomicfoundation/hardhat-viem`](https://github.com/NomicFoundation/hardhat/tree/v-next/v-next/hardhat-viem)
-- [`@nomicfoundation/hardhat-viem-assertions`](https://github.com/NomicFoundation/hardhat/tree/v-next/v-next/hardhat-viem-assertions)
-- [`@nomicfoundation/hardhat-verify`](https://github.com/NomicFoundation/hardhat/tree/v-next/v-next/hardhat-verify)
+- [`@nomicfoundation/hardhat-ignition`](https://hardhat.org/docs/plugins/hardhat-ignition)
+- [`@nomicfoundation/hardhat-ignition-viem`](https://hardhat.org/docs/plugins/hardhat-ignition-viem)
+- [`@nomicfoundation/hardhat-keystore`](https://hardhat.org/docs/plugins/hardhat-keystore)
+- [`@nomicfoundation/hardhat-network-helpers`](https://hardhat.org/docs/plugins/hardhat-network-helpers)
+- [`@nomicfoundation/hardhat-node-test-runner`](https://hardhat.org/docs/plugins/hardhat-node-test-runner)
+- [`@nomicfoundation/hardhat-viem`](https://hardhat.org/docs/plugins/hardhat-viem)
+- [`@nomicfoundation/hardhat-viem-assertions`](https://hardhat.org/docs/plugins/hardhat-viem-assertions)
+- [`@nomicfoundation/hardhat-verify`](https://hardhat.org/docs/plugins/hardhat-verify)
 
 ## Explicitly installing plugins
 
