@@ -66,7 +66,7 @@ export async function internalVerifyAction(
     } catch (error) {
       ensureError(error);
       // It would be nice to use printErrorMessages
-      // from v-next/hardhat/src/internal/cli/error-handler.ts
+      // from packages/hardhat/src/internal/cli/error-handler.ts
       // for consistent error formatting
       console.error(chalk.red(error.message));
       errorOccurred = true;

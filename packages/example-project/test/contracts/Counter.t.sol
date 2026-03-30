@@ -6,7 +6,7 @@ import "forge-std/Test.sol";
 
 /**
  * This test contract is intentionally duplicated from
- * v-next/example-project/contracts/Counter.t.sol to test gas
+ * packages/example-project/contracts/Counter.t.sol to test gas
  * snapshot functionality in the hardhat gas analytics plugin.
  */
 contract CounterTest is Test {

@@ -57,8 +57,8 @@ export function shouldSuppressWarning(
 ): boolean {
   // Compute relative path from project root to test directory.
   // Example:
-  // absoluteSolidityTestsPath: /workspaces/hardhat-4/v-next/example-project/test/contracts
-  // absoluteProjectRoot:       /workspaces/hardhat-4/v-next/example-project
+  // absoluteSolidityTestsPath: /workspaces/hardhat-4/packages/example-project/test/contracts
+  // absoluteProjectRoot:       /workspaces/hardhat-4/packages/example-project
   // relativeTestPath:          test/contracts/ - note the addition of the `/`
   // to avoid partial matches, e.g.: test/contractsUtils/
   const relativeTestPath = path.join(
