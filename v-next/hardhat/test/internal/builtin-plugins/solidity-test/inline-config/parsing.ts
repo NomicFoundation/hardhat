@@ -298,6 +298,24 @@ describe("inline-config - parsing", () => {
       );
     });
 
+    it("should strip default profile from hardhat-config", () => {
+      const result = parse(" hardhat-config: default.fuzz.runs = 100");
+
+      assert.equal(result?.key, "fuzz.runs");
+    });
+
+    it("should throw UNSUPPORTED_PROFILE for non-default hardhat-config profile", () => {
+      assertThrowsHardhatError(
+        () => parse(" hardhat-config: ci.fuzz.runs = 100"),
+        HardhatError.ERRORS.CORE.SOLIDITY_TESTS
+          .INLINE_CONFIG_UNSUPPORTED_PROFILE,
+        {
+          profile: "ci",
+          functionFqn: getFunctionFqn("test/MyTest.sol", "MyTest", "testFn"),
+        },
+      );
+    });
+
     it("should throw INVALID_SYNTAX when = is missing", () => {
       assertThrowsHardhatError(
         () => parse("hardhat-config: fuzz.runs 10"),

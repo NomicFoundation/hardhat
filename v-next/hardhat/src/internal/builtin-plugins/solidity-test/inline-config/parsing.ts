@@ -122,14 +122,11 @@ export function parseInlineConfigLine(
   );
 
   let keyValueSegment: string;
-  let isForgeConfig: boolean;
 
   if (trimmedLine.startsWith(HARDHAT_CONFIG_PREFIX)) {
     keyValueSegment = trimmedLine.slice(HARDHAT_CONFIG_PREFIX.length).trim();
-    isForgeConfig = false;
   } else if (trimmedLine.startsWith(FORGE_CONFIG_PREFIX)) {
     keyValueSegment = trimmedLine.slice(FORGE_CONFIG_PREFIX.length).trim();
-    isForgeConfig = true;
   } else {
     return undefined;
   }
@@ -149,27 +146,25 @@ export function parseInlineConfigLine(
   let parsedKey = rawKey;
   const rawValue = keyValueSegment.slice(eqIndex + 1).trim();
 
-  if (isForgeConfig) {
-    // Detect profile prefix: if the first dot-segment is NOT a known top-level
-    // category, treat it as a profile name.
-    const firstDot = rawKey.indexOf(".");
-    if (firstDot !== -1) {
-      const firstSegment = rawKey.slice(0, firstDot);
-      if (!TOP_LEVEL_KEYS.includes(firstSegment)) {
-        // It's a profile. Validate it.
-        const profile = firstSegment;
-        if (profile !== "default") {
-          throw new HardhatError(
-            HardhatError.ERRORS.CORE.SOLIDITY_TESTS.INLINE_CONFIG_UNSUPPORTED_PROFILE,
-            {
-              profile,
-              functionFqn,
-            },
-          );
-        }
-        // Strip the "default." prefix
-        parsedKey = rawKey.slice(firstDot + 1);
+  // Detect profile prefix: if the first dot-segment is NOT a known top-level
+  // category, treat it as a profile name.
+  const firstDot = rawKey.indexOf(".");
+  if (firstDot !== -1) {
+    const firstSegment = rawKey.slice(0, firstDot);
+    if (!TOP_LEVEL_KEYS.includes(firstSegment)) {
+      // It's a profile. Validate it.
+      const profile = firstSegment;
+      if (profile !== "default") {
+        throw new HardhatError(
+          HardhatError.ERRORS.CORE.SOLIDITY_TESTS.INLINE_CONFIG_UNSUPPORTED_PROFILE,
+          {
+            profile,
+            functionFqn,
+          },
+        );
       }
+      // Strip the "default." prefix
+      parsedKey = rawKey.slice(firstDot + 1);
     }
   }
 
