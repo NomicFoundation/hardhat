@@ -101,10 +101,6 @@ function collectRawOverrides(
     }
 
     artifactIdsByFqn.set(fqn, edrArtifactWithMetadata.edrArtifact.id);
-
-    if (!artifactsGroupedByBuildInfo.has(buildInfoId)) {
-      artifactsGroupedByBuildInfo.set(buildInfoId, []);
-    }
   }
 
   for (const [
