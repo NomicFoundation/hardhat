@@ -60,6 +60,22 @@ export class ArtifactManagerImplementation implements ArtifactManager {
     return readJsonFile(artifactPath);
   }
 
+  public async tryToReadArtifact<
+    ContractNameT extends StringWithArtifactContractNamesAutocompletion,
+  >(
+    contractNameOrFullyQualifiedName: ContractNameT,
+  ): Promise<GetArtifactByName<ContractNameT> | undefined> {
+    const artifactPath = await this.tryToGetArtifactPath(
+      contractNameOrFullyQualifiedName,
+    );
+
+    if (artifactPath === undefined) {
+      return undefined;
+    }
+
+    return readJsonFile(artifactPath);
+  }
+
   public async getArtifactPath(
     contractNameOrFullyQualifiedName: string,
   ): Promise<string> {
@@ -78,25 +94,35 @@ export class ArtifactManagerImplementation implements ArtifactManager {
     return artifactPath;
   }
 
+  public async tryToGetArtifactPath(
+    contractNameOrFullyQualifiedName: string,
+  ): Promise<string | undefined> {
+    const fqn = await this.#tryToGetFullyQualifiedName(
+      contractNameOrFullyQualifiedName,
+    );
+
+    if (typeof fqn === "string") {
+      const { fullyQualifiedNameToArtifactPath } = await this.#getFsData();
+
+      const artifactPath = fullyQualifiedNameToArtifactPath.get(fqn);
+      assertHardhatInvariant(
+        artifactPath !== undefined,
+        "Artifact path should be defined",
+      );
+
+      return artifactPath;
+    }
+
+    return undefined;
+  }
+
   public async artifactExists(
     contractNameOrFullyQualifiedName: string,
   ): Promise<boolean> {
-    try {
-      // This throw if the artifact doesn't exist
-      await this.getArtifactPath(contractNameOrFullyQualifiedName);
-
-      return true;
-    } catch (error) {
-      if (HardhatError.isHardhatError(error)) {
-        if (
-          error.number === HardhatError.ERRORS.CORE.ARTIFACTS.NOT_FOUND.number
-        ) {
-          return false;
-        }
-      }
-
-      throw error;
-    }
+    const artifactPath = await this.tryToGetArtifactPath(
+      contractNameOrFullyQualifiedName,
+    );
+    return artifactPath !== undefined;
   }
 
   public async getBuildInfoId(
@@ -159,6 +185,32 @@ export class ArtifactManagerImplementation implements ArtifactManager {
   async #getFullyQualifiedName(
     contractNameOrFullyQualifiedName: string,
   ): Promise<string> {
+    const fqn = await this.#tryToGetFullyQualifiedName(
+      contractNameOrFullyQualifiedName,
+    );
+
+    if (typeof fqn === "string") {
+      return fqn;
+    }
+
+    const { allFullyQualifiedNames, bareNameToFullyQualifiedNameMap } = fqn;
+
+    this.#throwNotFoundError(
+      contractNameOrFullyQualifiedName,
+      bareNameToFullyQualifiedNameMap.keys(),
+      allFullyQualifiedNames,
+    );
+  }
+
+  async #tryToGetFullyQualifiedName(
+    contractNameOrFullyQualifiedName: string,
+  ): Promise<
+    | string
+    | {
+        allFullyQualifiedNames: ReadonlySet<string>;
+        bareNameToFullyQualifiedNameMap: Map<string, ReadonlySet<string>>;
+      }
+  > {
     const { bareNameToFullyQualifiedNameMap, allFullyQualifiedNames } =
       await this.#getFsData();
 
@@ -167,11 +219,10 @@ export class ArtifactManagerImplementation implements ArtifactManager {
         return contractNameOrFullyQualifiedName;
       }
 
-      this.#throwNotFoundError(
-        contractNameOrFullyQualifiedName,
-        bareNameToFullyQualifiedNameMap.keys(),
+      return {
         allFullyQualifiedNames,
-      );
+        bareNameToFullyQualifiedNameMap,
+      };
     }
 
     const fqns = bareNameToFullyQualifiedNameMap.get(
@@ -179,11 +230,10 @@ export class ArtifactManagerImplementation implements ArtifactManager {
     );
 
     if (fqns === undefined || fqns.size === 0) {
-      this.#throwNotFoundError(
-        contractNameOrFullyQualifiedName,
-        bareNameToFullyQualifiedNameMap.keys(),
+      return {
+        bareNameToFullyQualifiedNameMap,
         allFullyQualifiedNames,
-      );
+      };
     }
 
     if (fqns.size !== 1) {
