@@ -14,23 +14,23 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  is-v-next:
+  is-v3:
     runs-on: ubuntu-latest
     outputs:
-      is_v_next: ${{ steps.check.outputs.folder_exists }}
+      is_v3: ${{ steps.check.outputs.version_starts_with_3 }}
       scripts_changed: ${{ steps.scripts-filter.outputs.scripts }}
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v5
 
-      - name: Check if the folder v-next exists
+      - name: Check if we are in v3
         id: check
         run: |
-          if [ -d "./v-next" ]; then
-            echo "folder_exists=true" >> $GITHUB_OUTPUT
+          if jq -e '.version | startswith("3")' packages/hardhat/package.json > /dev/null; then
+            echo "version_starts_with_3=true" >> "$GITHUB_OUTPUT"
           else
-            echo "folder_exists=false" >> $GITHUB_OUTPUT
+            echo "version_starts_with_3=false" >> "$GITHUB_OUTPUT"
           fi
 
       - name: Check if scripts have changed
@@ -43,8 +43,8 @@ jobs:
 
   check_dependencies:
     name: Check dependency versions
-    needs: is-v-next
-    if: ${{ needs.is-v-next.outputs.is_v_next == 'true' }}
+    needs: is-v3
+    if: ${{ needs.is-v3.outputs.is_v3 == 'true' }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
@@ -56,8 +56,8 @@ jobs:
 
   check_npm_scripts:
     name: Check that the npm scripts are consistent
-    needs: is-v-next
-    if: ${{ needs.is-v-next.outputs.is_v_next == 'true' }}
+    needs: is-v3
+    if: ${{ needs.is-v3.outputs.is_v3 == 'true' }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
@@ -69,8 +69,8 @@ jobs:
 
   check_infra_scripts_tests:
     name: Check that infrastructure script tests pass
-    needs: is-v-next
-    if: ${{ needs.is-v-next.outputs.is_v_next == 'true' && needs.is-v-next.outputs.scripts_changed == 'true' }}
+    needs: is-v3
+    if: ${{ needs.is-v3.outputs.is_v3 == 'true' && needs.is-v3.outputs.scripts_changed == 'true' }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
@@ -86,8 +86,8 @@ jobs:
 
   list-packages:
     name: List packages
-    needs: is-v-next
-    if: ${{ needs.is-v-next.outputs.is_v_next == 'true' }}
+    needs: is-v3
+    if: ${{ needs.is-v3.outputs.is_v3 == 'true' }}
     runs-on: ubuntu-latest
     outputs:
       packages: ${{ steps.filter.outputs.changes }}
