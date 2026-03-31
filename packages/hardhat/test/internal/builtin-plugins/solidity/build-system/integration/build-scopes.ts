@@ -62,7 +62,7 @@ describe("build system - build task - behavior on build scope", function () {
       it("compiles and generates artifacts for all contracts and tests", async () => {
         await using project =
           await useTestProjectTemplate(basicProjectTemplate);
-        const hre = await project.getHRE();
+        const hre = await project.getHRE(solidityCompilationConfig);
 
         await hre.tasks.getTask("build").run();
 
@@ -97,7 +97,7 @@ describe("build system - build task - behavior on build scope", function () {
       it("performs cleanup on both contracts and tests artifacts and build infos", async () => {
         await using project =
           await useTestProjectTemplate(basicProjectTemplate);
-        const hre = await project.getHRE();
+        const hre = await project.getHRE(solidityCompilationConfig);
 
         // Create test build info and artifact file that should be cleaned up
         const contractsArtifactsPath =
@@ -155,7 +155,7 @@ describe("build system - build task - behavior on build scope", function () {
       it("identifies when a file is a contract", async () => {
         await using project =
           await useTestProjectTemplate(basicProjectTemplate);
-        const hre = await project.getHRE();
+        const hre = await project.getHRE(solidityCompilationConfig);
         process.chdir(project.path);
 
         await hre.tasks.getTask("build").run({ files: ["contracts/Foo.sol"] });
@@ -171,7 +171,7 @@ describe("build system - build task - behavior on build scope", function () {
       it("identifies when a file is a test", async () => {
         await using project =
           await useTestProjectTemplate(basicProjectTemplate);
-        const hre = await project.getHRE();
+        const hre = await project.getHRE(solidityCompilationConfig);
         process.chdir(project.path);
 
         await hre.tasks
@@ -205,7 +205,7 @@ describe("build system - build task - behavior on build scope", function () {
   describe("compiling with the --no-test flag", function () {
     it("compiles and generates artifacts for contracts, but not tests", async () => {
       await using project = await useTestProjectTemplate(basicProjectTemplate);
-      const hre = await project.getHRE();
+      const hre = await project.getHRE(solidityCompilationConfig);
 
       await hre.tasks.getTask("build").run({ noTests: true });
 
@@ -249,7 +249,7 @@ describe("build system - build task - behavior on build scope", function () {
 
     it("performs cleanup on contract artifacts, but not tests", async () => {
       await using project = await useTestProjectTemplate(basicProjectTemplate);
-      const hre = await project.getHRE();
+      const hre = await project.getHRE(solidityCompilationConfig);
 
       // Create test build info and artifact file that should be cleaned up
       const contractsArtifactsPath =
@@ -306,7 +306,7 @@ describe("build system - build task - behavior on build scope", function () {
   describe("compiling with the --no-contracts flag", function () {
     it("compiles and generates artifacts for tests, but not contracts", async () => {
       await using project = await useTestProjectTemplate(basicProjectTemplate);
-      const hre = await project.getHRE();
+      const hre = await project.getHRE(solidityCompilationConfig);
 
       await hre.tasks.getTask("build").run({ noContracts: true });
 
@@ -350,7 +350,7 @@ describe("build system - build task - behavior on build scope", function () {
 
     it("performs cleanup on tests artifacts, but not contracts", async () => {
       await using project = await useTestProjectTemplate(basicProjectTemplate);
-      const hre = await project.getHRE();
+      const hre = await project.getHRE(solidityCompilationConfig);
 
       // Create test build info and artifact file that should be cleaned up
       const contractsArtifactsPath =
@@ -407,7 +407,7 @@ describe("build system - build task - behavior on build scope", function () {
       it("Should throw if a test file isn't recognized", async () => {
         await using project =
           await useTestProjectTemplate(basicProjectTemplate);
-        const hre = await project.getHRE();
+        const hre = await project.getHRE(solidityCompilationConfig);
 
         const previousCwd = process.cwd();
         process.chdir(project.path);
@@ -436,7 +436,7 @@ describe("build system - build task - behavior on build scope", function () {
       it("Should throw if a contract isn't recognized", async () => {
         await using project =
           await useTestProjectTemplate(basicProjectTemplate);
-        const hre = await project.getHRE();
+        const hre = await project.getHRE(solidityCompilationConfig);
 
         const previousCwd = process.cwd();
         process.chdir(project.path);
@@ -457,7 +457,7 @@ describe("build system - build task - behavior on build scope", function () {
       it("Should throw if neither is recognized", async () => {
         await using project =
           await useTestProjectTemplate(basicProjectTemplate);
-        const hre = await project.getHRE();
+        const hre = await project.getHRE(solidityCompilationConfig);
 
         const previousCwd = process.cwd();
         process.chdir(project.path);
