@@ -1764,6 +1764,7 @@ describe("validateResolvedConfig", () => {
         profiles,
         npmFilesToBuild: [],
         registeredCompilerTypes,
+        splitTestsCompilation: false,
       },
     }) as unknown as HardhatConfig;
 
