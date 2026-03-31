@@ -81,6 +81,7 @@ const incompatibleCompilerFields = {
 const commonSolidityUserConfigFields = {
   isolated: z.boolean().optional(),
   npmFilesToBuild: z.array(z.string()).optional(),
+  splitTestsCompilation: z.boolean().optional(),
 };
 
 const commonSolidityCompilerUserConfigFields = {
@@ -209,6 +210,7 @@ const buildProfilesSolidityUserConfigType = z.object({
       "Expected an object configuring one or more versions of Solidity",
     ),
   ),
+  ...commonSolidityUserConfigFields,
   ...incompatibleProfileFields,
 });
 
@@ -437,6 +439,7 @@ function resolveSolidityConfig(
       },
       npmFilesToBuild: [],
       registeredCompilerTypes: ["solc"],
+      splitTestsCompilation: false,
     };
   }
 
@@ -457,6 +460,7 @@ function resolveSolidityConfig(
       },
       npmFilesToBuild: solidityConfig.npmFilesToBuild ?? [],
       registeredCompilerTypes: ["solc"],
+      splitTestsCompilation: solidityConfig.splitTestsCompilation ?? false,
     };
   }
 
@@ -488,6 +492,7 @@ function resolveSolidityConfig(
     profiles,
     npmFilesToBuild: solidityConfig.npmFilesToBuild ?? [],
     registeredCompilerTypes: ["solc"],
+    splitTestsCompilation: solidityConfig.splitTestsCompilation ?? false,
   };
 }
 
