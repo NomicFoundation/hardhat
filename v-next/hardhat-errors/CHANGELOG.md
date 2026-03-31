@@ -1,5 +1,16 @@
 # @nomicfoundation/hardhat-errors
 
+## 3.0.10
+
+### Patch Changes
+
+- [#8073](https://github.com/NomicFoundation/hardhat/pull/8073) [`dfe4ffe`](https://github.com/NomicFoundation/hardhat/commit/dfe4ffeb57b97419ae0cca8929c9bd9c25912dbe) Thanks [@schaable](https://github.com/schaable)! - Add support for per-test inline configuration in solidity tests.
+
+- [#8008](https://github.com/NomicFoundation/hardhat/pull/8008) [`57d1075`](https://github.com/NomicFoundation/hardhat/commit/57d10751c101fc00aeab2b588d23003c597edc40) Thanks [@marianfe](https://github.com/marianfe)! - Introduce the `ConfigHooks#validateResolvedConfig` hook and the `HardhatConfigValidationError` type to be able to run global validations on the resolved config ([#8008](https://github.com/NomicFoundation/hardhat/pull/8008)).
+
+- Updated dependencies:
+  - @nomicfoundation/hardhat-utils@4.0.2
+
 ## 3.0.9
 
 ### Patch Changes

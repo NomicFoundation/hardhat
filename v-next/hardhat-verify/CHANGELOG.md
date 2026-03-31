@@ -1,5 +1,15 @@
 # @nomicfoundation/hardhat-verify
 
+## 3.0.13
+
+### Patch Changes
+
+- [#8088](https://github.com/NomicFoundation/hardhat/pull/8088) [`23c0d36`](https://github.com/NomicFoundation/hardhat/commit/23c0d3658f29305bf0adbbce4644a54d7ef22550) Thanks [@alcuadrado](https://github.com/alcuadrado)! - Optimize imports.
+
+- Updated dependencies:
+  - @nomicfoundation/hardhat-utils@4.0.2
+  - @nomicfoundation/hardhat-errors@3.0.10
+
 ## 3.0.12
 
 ### Patch Changes
