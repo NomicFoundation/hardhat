@@ -1,0 +1,60 @@
+{
+  "name": "@nomicfoundation/ignition-ui",
+  "version": "3.1.1",
+  "type": "module",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/NomicFoundation/hardhat",
+    "directory": "packages/ignition-ui"
+  },
+  "scripts": {
+    "predev": "pnpm regenerate-deployment-example",
+    "dev": "vite --force",
+    "build": "tsc --build .",
+    "pretest": "pnpm build",
+    "test": "mocha --loader=ts-node/esm --recursive \"test/**/*.ts\"",
+    "test:coverage": "nyc mocha --loader=ts-node/esm --recursive \"test/**/*.ts\"",
+    "regenerate-deployment-example": "node ./scripts/generate-example-deployment-json.js",
+    "lint": "pnpm prettier --check && pnpm eslint",
+    "lint:fix": "pnpm prettier --write && pnpm eslint --fix",
+    "prettier": "prettier \"**/*.{ts,js,md,json}\"",
+    "eslint": "eslint \"src/**/*.ts\" \"test/**/*.ts\"",
+    "preview": "vite preview",
+    "clean": "rimraf ./dist ./tsconfig.node.tsbuildinfo ./tsconfig.tsbuildinfo",
+    "prepack": "pnpm build && vite build"
+  },
+  "files": [
+    "dist/",
+    "src/",
+    "CHANGELOG.md",
+    "README.md"
+  ],
+  "devDependencies": {
+    "@fontsource/roboto": "^5.0.8",
+    "@nomicfoundation/ignition-core": "workspace:^3.1.1",
+    "@types/chai": "^5.2.3",
+    "@types/chai-as-promised": "^8.0.1",
+    "@types/mocha": ">=10.0.10",
+    "@types/react": "^18.0.28",
+    "@types/react-dom": "^18.0.11",
+    "@types/styled-components": "5.1.26",
+    "@vitejs/plugin-react": "^4.0.0",
+    "chai": "^6.2.2",
+    "chai-as-promised": "^8.0.0",
+    "eslint": "9.25.1",
+    "mermaid": "10.9.3",
+    "mocha": "^11.0.0",
+    "prettier": "3.2.5",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "react-router-dom": "6.11.0",
+    "react-tooltip": "^5.21.4",
+    "rimraf": "^5.0.5",
+    "styled-components": "5.3.10",
+    "svg-pan-zoom": "^3.6.1",
+    "ts-node": "10.9.2",
+    "typescript": "~5.8.0",
+    "vite": "^5.0.0",
+    "vite-plugin-singlefile": "^2.0.1"
+  }
+}
