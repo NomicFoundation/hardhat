@@ -376,7 +376,6 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
               compilationResult,
               emitArtifactsResult,
               buildProfile.isolated,
-              options.scope,
             );
           }),
         );
@@ -1229,7 +1228,6 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
     result: CompilationResult,
     emitArtifactsResult: EmitArtifactsResult,
     isolated: boolean,
-    scope: BuildScope,
   ): Promise<void> {
     for (const [userSourceName, root] of result.compilationJob.dependencyGraph
       .getRoots()
@@ -1251,12 +1249,6 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
       );
 
       const typeFilePath = emitArtifactsResult.typeFilePaths.get(rootFilePath);
-
-      // Type declaration file is not generated for solidity tests
-      assertHardhatInvariant(
-        scope === "tests" || typeFilePath !== undefined,
-        `No type file found on map for contract ${rootFilePath}`,
-      );
 
       const jobHash = await individualJob.getBuildId();
 
