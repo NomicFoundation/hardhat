@@ -1022,6 +1022,12 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
   }
 
   public async getArtifactsDirectory(scope: BuildScope): Promise<string> {
+    // In unified mode, both scopes point to the main artifacts directory
+    // because contract and test artifacts live together.
+    if (!this.#options.solidityConfig.splitTestsCompilation) {
+      return this.#options.artifactsPath;
+    }
+
     return scope === "contracts"
       ? this.#options.artifactsPath
       : path.join(this.#options.cachePath, "test-artifacts");
