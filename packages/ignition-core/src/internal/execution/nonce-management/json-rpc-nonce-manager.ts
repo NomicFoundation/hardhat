@@ -3,6 +3,13 @@ import type { JsonRpcClient } from "../jsonrpc-client.js";
 import { HardhatError } from "@nomicfoundation/hardhat-errors";
 
 /**
+ * Incremental backoff delays (in ms) used when waiting for the node's
+ * mempool to reflect recently submitted transactions. The first entry is
+ * 0 so an immediate re-check is performed before any waiting.
+ */
+const MEMPOOL_SYNC_RETRY_DELAYS_MS = [0, 200, 400, 600];
+
+/**
  * This interface is meant to be used to fetch new nonces for transactions.
  */
 
@@ -47,15 +54,36 @@ export class JsonRpcNonceManager implements NonceManager {
         ? this._maxUsedNonce[sender] + 1
         : pendingCount;
 
-    if (expectedNonce !== pendingCount) {
-      throw new HardhatError(
-        HardhatError.ERRORS.IGNITION.EXECUTION.INVALID_NONCE,
-        {
-          sender,
-          expectedNonce,
-          pendingCount,
-        },
-      );
+    // Nonces are validated against the node's pending transaction count.
+    // Because the node's mempool can lag behind transactions already
+    // submitted by Ignition, a strict equality check would cause false
+    // failures during normal operation. Instead we heuristically distinguish
+    // three cases:
+    //  - pendingCount === expectedNonce: states appear in sync — proceed
+    //    normally.
+    //  - pendingCount > expectedNonce: the node reports more pending
+    //    transactions than Ignition expects for this account. This often
+    //    happens when other transactions have been sent from the same
+    //    account, but can also be caused by provider or node inconsistencies.
+    //    We treat this as a hard error because Ignition cannot safely
+    //    reconcile the discrepancy.
+    //  - pendingCount < expectedNonce: the node may not have caught up with
+    //    transactions Ignition believes should exist. We retry for a short,
+    //    bounded period and surface an error if the gap persists, which may
+    //    indicate a dropped transaction, provider lag, or another mismatch
+    //    between Ignition's view and the node's state.
+    if (pendingCount !== expectedNonce) {
+      const resolvedCount =
+        pendingCount < expectedNonce
+          ? await this._waitForMempoolSync(sender, expectedNonce)
+          : pendingCount;
+
+      if (resolvedCount !== expectedNonce) {
+        throw new HardhatError(
+          HardhatError.ERRORS.IGNITION.EXECUTION.INVALID_NONCE,
+          { sender, expectedNonce, pendingCount: resolvedCount },
+        );
+      }
     }
 
     // The nonce hasn't been used yet, but we update as
@@ -67,5 +95,31 @@ export class JsonRpcNonceManager implements NonceManager {
 
   public revertNonce(sender: string): void {
     this._maxUsedNonce[sender] -= 1;
+  }
+
+  /**
+   * Retries the pending transaction count check with incremental backoff.
+   * Returns the last observed count.
+   */
+  private async _waitForMempoolSync(
+    sender: string,
+    expectedNonce: number,
+  ): Promise<number> {
+    let pendingCount = 0;
+
+    for (const delay of MEMPOOL_SYNC_RETRY_DELAYS_MS) {
+      await new Promise((resolve) => setTimeout(resolve, delay));
+
+      pendingCount = await this._jsonRpcClient.getTransactionCount(
+        sender,
+        "pending",
+      );
+
+      if (pendingCount >= expectedNonce) {
+        break;
+      }
+    }
+
+    return pendingCount;
   }
 }
