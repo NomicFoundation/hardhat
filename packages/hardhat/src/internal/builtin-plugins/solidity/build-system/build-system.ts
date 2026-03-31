@@ -174,10 +174,11 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
     options: { scope?: BuildScope } = {},
   ): Promise<string[]> {
     const scope = options.scope ?? "contracts";
+    const unified = !this.#options.solidityConfig.splitTestsCompilation;
 
     switch (scope) {
-      case "contracts":
-        const localFilesToCompile = (
+      case "contracts": {
+        const localContractFiles = (
           await Promise.all(
             this.#options.soliditySourcesPaths.map((dir) =>
               getAllFilesMatching(
@@ -193,8 +194,36 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
             npmModuleToNpmRootPath,
           );
 
-        return [...localFilesToCompile, ...npmFilesToBuild];
-      case "tests":
+        if (!unified) {
+          return [...localContractFiles, ...npmFilesToBuild];
+        }
+
+        // In unified mode, contracts scope returns all roots: contracts,
+        // tests, and npm files.
+        const testFiles = (
+          await Promise.all([
+            getAllFilesMatching(this.#options.solidityTestsPath, (f) =>
+              f.endsWith(".sol"),
+            ),
+            ...this.#options.soliditySourcesPaths.map(async (dir) => {
+              return getAllFilesMatching(dir, (f) => f.endsWith(".t.sol"));
+            }),
+          ])
+        ).flat(1);
+
+        // Remove duplicates in case there is an intersection between
+        // the tests.solidity paths and the sources paths
+        return Array.from(
+          new Set([...localContractFiles, ...npmFilesToBuild, ...testFiles]),
+        );
+      }
+      case "tests": {
+        if (unified) {
+          throw new HardhatError(
+            HardhatError.ERRORS.CORE.SOLIDITY.SPLIT_TESTS_COMPILATION_DISABLED,
+          );
+        }
+
         let rootFilePaths = (
           await Promise.all([
             getAllFilesMatching(this.#options.solidityTestsPath, (f) =>
@@ -210,6 +239,7 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
         // the tests.solidity paths and the sources paths
         rootFilePaths = Array.from(new Set(rootFilePaths));
         return rootFilePaths;
+      }
     }
   }
 
