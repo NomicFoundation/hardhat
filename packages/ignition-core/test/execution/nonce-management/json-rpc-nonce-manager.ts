@@ -45,13 +45,13 @@ describe("JsonRpcNonceManager", () => {
       assert.equal(nonce, 3);
     });
 
-    it("should throw INVALID_NONCE when pendingCount > expectedNonce (external tx)", async () => {
+    it("should throw NONCE_TOO_HIGH when pendingCount > expectedNonce (external tx)", async () => {
       const client = createMockClient([5]);
       const manager = new JsonRpcNonceManager(client, { "0xSender": 2 });
 
       await assertRejectsWithHardhatError(
         manager.getNextNonce("0xSender"),
-        HardhatError.ERRORS.IGNITION.EXECUTION.INVALID_NONCE,
+        HardhatError.ERRORS.IGNITION.EXECUTION.NONCE_TOO_HIGH,
         { sender: "0xSender", expectedNonce: 3, pendingCount: 5 },
       );
     });
@@ -66,14 +66,14 @@ describe("JsonRpcNonceManager", () => {
       assert.equal(nonce, 3);
     });
 
-    it("should throw INVALID_NONCE after retries exhausted (dropped tx)", async () => {
+    it("should throw NONCE_TOO_LOW after retries exhausted (dropped tx)", async () => {
       // All calls return a count below expectedNonce
       const client = createMockClient([1, 1, 1, 1, 1]);
       const manager = new JsonRpcNonceManager(client, { "0xSender": 2 });
 
       await assertRejectsWithHardhatError(
         manager.getNextNonce("0xSender"),
-        HardhatError.ERRORS.IGNITION.EXECUTION.INVALID_NONCE,
+        HardhatError.ERRORS.IGNITION.EXECUTION.NONCE_TOO_LOW,
         { sender: "0xSender", expectedNonce: 3, pendingCount: 1 },
       );
     });

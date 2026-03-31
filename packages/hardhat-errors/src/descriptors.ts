@@ -1659,12 +1659,19 @@ Please review the error message and try again.`,
         websiteTitle: "Waiting for nonce",
         websiteDescription: `Waiting for confirmations for transactions sent from the sender`,
       },
-      INVALID_NONCE: {
+      NONCE_TOO_HIGH: {
         number: 10404,
         messageTemplate:
-          "The next nonce for {sender} should be {expectedNonce}, but is {pendingCount}. Please make sure not to send transactions from {sender} while running this deployment and try again.",
-        websiteTitle: "Invalid nonce",
-        websiteDescription: `The next nonce for the sender is not what Hardhat Ignition expected`,
+          "The next nonce for {sender} should be {expectedNonce}, but the node reports {pendingCount}. This usually means a transaction was sent from {sender} outside of Hardhat Ignition. Please make sure not to send transactions from {sender} while running this deployment and try again.",
+        websiteTitle: "Nonce too high",
+        websiteDescription: `The node reports more pending transactions than Hardhat Ignition expected for the sender`,
+      },
+      NONCE_TOO_LOW: {
+        number: 10411,
+        messageTemplate:
+          "The next nonce for {sender} should be {expectedNonce}, but the node reports {pendingCount} after retries. This may indicate a dropped transaction or the node's mempool has not caught up. Please try running the deployment again.",
+        websiteTitle: "Nonce too low",
+        websiteDescription: `The node reports fewer pending transactions than Hardhat Ignition expected for the sender`,
       },
       BASE_FEE_EXCEEDS_GAS_LIMIT: {
         number: 10405,

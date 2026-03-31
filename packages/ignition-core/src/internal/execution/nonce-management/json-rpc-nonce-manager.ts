@@ -79,10 +79,16 @@ export class JsonRpcNonceManager implements NonceManager {
           : pendingCount;
 
       if (resolvedCount !== expectedNonce) {
-        throw new HardhatError(
-          HardhatError.ERRORS.IGNITION.EXECUTION.INVALID_NONCE,
-          { sender, expectedNonce, pendingCount: resolvedCount },
-        );
+        const errorDescriptor =
+          resolvedCount > expectedNonce
+            ? HardhatError.ERRORS.IGNITION.EXECUTION.NONCE_TOO_HIGH
+            : HardhatError.ERRORS.IGNITION.EXECUTION.NONCE_TOO_LOW;
+
+        throw new HardhatError(errorDescriptor, {
+          sender,
+          expectedNonce,
+          pendingCount: resolvedCount,
+        });
       }
     }
 
