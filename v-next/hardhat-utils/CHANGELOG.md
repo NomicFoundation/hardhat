@@ -1,5 +1,15 @@
 # @nomicfoundation/hardhat-utils
 
+## 4.0.2
+
+### Patch Changes
+
+- [#7983](https://github.com/NomicFoundation/hardhat/pull/7983) [`8e194d0`](https://github.com/NomicFoundation/hardhat/commit/8e194d0899bf9a74d9cacf84e289e41ed3966c14) Thanks [@ChristopherDedominici](https://github.com/ChristopherDedominici)! - Added `--verbosity` (and `-v`, `-vv`, and the other shorthands) to all tasks, including TypeScript tests ([7983](https://github.com/NomicFoundation/hardhat/pull/7983)), ([7963](https://github.com/NomicFoundation/hardhat/issues/7963)).
+
+- [#8073](https://github.com/NomicFoundation/hardhat/pull/8073) [`dfe4ffe`](https://github.com/NomicFoundation/hardhat/commit/dfe4ffeb57b97419ae0cca8929c9bd9c25912dbe) Thanks [@schaable](https://github.com/schaable)! - Add support for per-test inline configuration in solidity tests.
+
+- [#8088](https://github.com/NomicFoundation/hardhat/pull/8088) [`23c0d36`](https://github.com/NomicFoundation/hardhat/commit/23c0d3658f29305bf0adbbce4644a54d7ef22550) Thanks [@alcuadrado](https://github.com/alcuadrado)! - Optimize imports.
+
 ## 4.0.1
 
 ### Patch Changes

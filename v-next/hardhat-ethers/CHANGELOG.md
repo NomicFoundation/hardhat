@@ -1,5 +1,17 @@
 # @nomicfoundation/hardhat-ethers
 
+## 4.0.7
+
+### Patch Changes
+
+- [#7997](https://github.com/NomicFoundation/hardhat/pull/7997) [`df7f24a`](https://github.com/NomicFoundation/hardhat/commit/df7f24a27d01c5b49379c7a1b12b507d734395d7) Thanks [@ChristopherDedominici](https://github.com/ChristopherDedominici)! - Added `HardhatEthersProvider.waitForTransaction` to provide polling support for `non-automining` networks ([#7952](https://github.com/NomicFoundation/hardhat/issues/7952)).
+
+- [#8088](https://github.com/NomicFoundation/hardhat/pull/8088) [`23c0d36`](https://github.com/NomicFoundation/hardhat/commit/23c0d3658f29305bf0adbbce4644a54d7ef22550) Thanks [@alcuadrado](https://github.com/alcuadrado)! - Optimize imports.
+
+- Updated dependencies:
+  - @nomicfoundation/hardhat-utils@4.0.2
+  - @nomicfoundation/hardhat-errors@3.0.10
+
 ## 4.0.6
 
 ### Patch Changes
