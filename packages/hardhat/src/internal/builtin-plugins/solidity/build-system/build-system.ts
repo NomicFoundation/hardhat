@@ -922,8 +922,12 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
 
       artifactsPerFile.set(formatRootPath(userSourceName, root), paths);
 
-      // Write the type declaration file, only for contracts
-      if (scope === "contracts") {
+      const isTestRoot = unified
+        ? (await this.getScope(root.fsPath)) === "tests"
+        : false;
+
+      // Write the type declaration file for contract roots only.
+      if (scope === "contracts" && !isTestRoot) {
         const artifactsDeclarationFilePath = path.join(
           fileFolder,
           "artifacts.d.ts",
