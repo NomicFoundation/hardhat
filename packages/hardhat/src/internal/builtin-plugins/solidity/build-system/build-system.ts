@@ -223,6 +223,15 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
     rootFilePaths: string[],
     _options?: BuildOptions,
   ): Promise<CompilationJobCreationError | Map<string, FileBuildResult>> {
+    if (
+      !this.#options.solidityConfig.splitTestsCompilation &&
+      _options?.scope === "tests"
+    ) {
+      throw new HardhatError(
+        HardhatError.ERRORS.CORE.SOLIDITY.SPLIT_TESTS_COMPILATION_DISABLED,
+      );
+    }
+
     return this.#hooks.runHandlerChain(
       "solidity",
       "build",
@@ -423,6 +432,15 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
     rootFilePaths: string[],
     options?: GetCompilationJobsOptions,
   ): Promise<CompilationJobCreationError | GetCompilationJobsResult> {
+    if (
+      !this.#options.solidityConfig.splitTestsCompilation &&
+      options?.scope === "tests"
+    ) {
+      throw new HardhatError(
+        HardhatError.ERRORS.CORE.SOLIDITY.SPLIT_TESTS_COMPILATION_DISABLED,
+      );
+    }
+
     await this.#downloadConfiguredCompilers(options?.quiet);
 
     const dependencyGraph = await buildDependencyGraph(
@@ -816,6 +834,13 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
     options: { scope?: BuildScope } = {},
   ): Promise<EmitArtifactsResult> {
     const scope = options.scope ?? "contracts";
+    const unified = !this.#options.solidityConfig.splitTestsCompilation;
+
+    if (unified && scope === "tests") {
+      throw new HardhatError(
+        HardhatError.ERRORS.CORE.SOLIDITY.SPLIT_TESTS_COMPILATION_DISABLED,
+      );
+    }
 
     const artifactsPerFile = new Map<string, string[]>();
     const typeFilePaths = new Map<string, string>();
@@ -972,9 +997,18 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
     rootFilePaths: string[],
     options: { scope?: BuildScope } = {},
   ): Promise<void> {
-    log(`Cleaning up artifacts`);
-
     const scope = options.scope ?? "contracts";
+
+    if (
+      !this.#options.solidityConfig.splitTestsCompilation &&
+      scope === "tests"
+    ) {
+      throw new HardhatError(
+        HardhatError.ERRORS.CORE.SOLIDITY.SPLIT_TESTS_COMPILATION_DISABLED,
+      );
+    }
+
+    log(`Cleaning up artifacts`);
     const artifactsDirectory = await this.getArtifactsDirectory(scope);
 
     const userSourceNames = rootFilePaths.map((rootFilePath) => {
