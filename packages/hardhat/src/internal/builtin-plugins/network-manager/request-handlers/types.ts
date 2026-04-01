@@ -14,6 +14,16 @@ import type {
  *
  */
 export interface RequestHandler {
+  /**
+   * A guard to ensure the request is supported by the handler.
+   * If the handler does not support the request, then it can be safely
+   * skipped.
+   *
+   * @param jsonRpcRequest - The JSON-RPC request to check.
+   * @returns true if the method will be processed by the handler, false otherwise.
+   */
+  isSupportedMethod(jsonRpcRequest: JsonRpcRequest): boolean;
+
   handle(
     jsonRpcRequest: JsonRpcRequest,
   ): Promise<JsonRpcRequest | JsonRpcResponse>;

@@ -65,6 +65,10 @@ export default async (): Promise<Partial<NetworkHooks>> => {
       let updatedRequest = jsonRpcRequest;
 
       for (const handler of requestHandlers) {
+        if (!handler.isSupportedMethod(updatedRequest)) {
+          continue;
+        }
+
         const newRequestOrResponse = await handler.handle(updatedRequest);
 
         if (isJsonRpcResponse(newRequestOrResponse)) {

@@ -39,6 +39,15 @@ import { ChainId } from "../chain-id/chain-id.js";
 
 const EXTRA_ENTROPY = false;
 export class LocalAccountsHandler extends ChainId implements RequestHandler {
+  readonly #methods: ReadonlySet<string> = new Set([
+    "eth_accounts",
+    "eth_requestAccounts",
+    "eth_sign",
+    "personal_sign",
+    "eth_signTypedData_v4",
+    "eth_sendTransaction",
+  ]);
+
   readonly #localAccountsHexPrivateKeys: string[];
 
   #addressToPrivateKey: Map<string, Uint8Array> | undefined;
@@ -51,6 +60,27 @@ export class LocalAccountsHandler extends ChainId implements RequestHandler {
     super(provider);
 
     this.#localAccountsHexPrivateKeys = localAccountsHexPrivateKeys;
+  }
+
+  public isSupportedMethod(jsonRpcRequest: JsonRpcRequest): boolean {
+    return this.#methods.has(jsonRpcRequest.method);
+  }
+
+  public async handle(
+    jsonRpcRequest: JsonRpcRequest,
+  ): Promise<JsonRpcRequest | JsonRpcResponse> {
+    if (!this.isSupportedMethod(jsonRpcRequest)) {
+      return jsonRpcRequest;
+    }
+
+    const response = await this.#resolveRequest(jsonRpcRequest);
+    if (response !== null) {
+      return response;
+    }
+
+    await this.#modifyRequest(jsonRpcRequest);
+
+    return jsonRpcRequest;
   }
 
   async #getAddressesAndPrivateKeysMap(): Promise<{
@@ -73,19 +103,6 @@ export class LocalAccountsHandler extends ChainId implements RequestHandler {
       addresses: this.#addresses,
       addressToPrivateKey: this.#addressToPrivateKey,
     };
-  }
-
-  public async handle(
-    jsonRpcRequest: JsonRpcRequest,
-  ): Promise<JsonRpcRequest | JsonRpcResponse> {
-    const response = await this.#resolveRequest(jsonRpcRequest);
-    if (response !== null) {
-      return response;
-    }
-
-    await this.#modifyRequest(jsonRpcRequest);
-
-    return jsonRpcRequest;
   }
 
   async #resolveRequest(

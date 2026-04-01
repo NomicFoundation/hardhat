@@ -19,6 +19,8 @@ import { getRequestParams } from "../../../json-rpc.js";
  * It ensures that gas prices are set correctly.
  */
 export class AutomaticGasPriceHandler implements RequestHandler {
+  readonly #methods: ReadonlySet<string> = new Set(["eth_sendTransaction"]);
+
   readonly #provider: EthereumProvider;
 
   // We pay the max base fee that can be required if the next
@@ -36,10 +38,14 @@ export class AutomaticGasPriceHandler implements RequestHandler {
   #nodeHasFeeHistory?: boolean;
   #nodeSupportsEIP1559?: boolean;
 
+  public isSupportedMethod(jsonRpcRequest: JsonRpcRequest): boolean {
+    return this.#methods.has(jsonRpcRequest.method);
+  }
+
   public async handle(
     jsonRpcRequest: JsonRpcRequest,
   ): Promise<JsonRpcRequest | JsonRpcResponse> {
-    if (jsonRpcRequest.method !== "eth_sendTransaction") {
+    if (!this.isSupportedMethod(jsonRpcRequest)) {
       return jsonRpcRequest;
     }
 
