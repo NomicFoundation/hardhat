@@ -3092,9 +3092,17 @@ solx supports: linux/x64, linux/arm64, darwin (macOS), windows/x64.`,
         number: 110001,
         messageTemplate: `Failed to download solx {version} after {attempts} attempts: {reason}`,
         websiteTitle: "solx download failed",
-        websiteDescription: `The solx compiler binary could not be downloaded from GitHub releases.
+        websiteDescription: `The solx compiler binary could not be downloaded from the solx releases mirror used by Hardhat.
 
-Check your internet connection and verify that the requested solx version exists.`,
+Check your internet connection, ensure that the solx releases mirror (https://solx-releases-mirror.hardhat.org) is reachable from your environment, and verify that the requested solx version exists.`,
+      },
+      BINARY_NOT_FOUND: {
+        number: 110002,
+        messageTemplate: `solx binary not found at {path}`,
+        websiteTitle: "solx binary not found",
+        websiteDescription: `The configured custom path for the solx binary does not exist.
+
+Verify that the path in your Hardhat config points to a valid solx binary.`,
       },
     },
   },

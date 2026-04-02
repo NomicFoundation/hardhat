@@ -229,7 +229,7 @@ describe("hardhat-solx solidity hook handler", () => {
       );
     });
 
-    it("throws invariant error when path does not exist", async () => {
+    it("throws HardhatError when path does not exist", async () => {
       const { HardhatError } = await import("@nomicfoundation/hardhat-errors");
       const hookHandlerModule = await import(
         "../../src/internal/hook-handlers/solidity.js"
@@ -246,10 +246,9 @@ describe("hardhat-solx solidity hook handler", () => {
 
       await assertRejectsWithHardhatError(
         hooks.getCompiler!(context, compilerConfig, mockNext.next),
-        HardhatError.ERRORS.CORE.INTERNAL.ASSERTION_ERROR,
+        HardhatError.ERRORS.HARDHAT_SOLX.GENERAL.BINARY_NOT_FOUND,
         {
-          message:
-            "solx binary not found at /nonexistent/path/to/solx — the configured path does not exist",
+          path: "/nonexistent/path/to/solx",
         },
       );
     });

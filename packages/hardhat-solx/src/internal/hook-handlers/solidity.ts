@@ -3,7 +3,10 @@ import type { SolidityHooks } from "hardhat/types/hooks";
 import { execFile } from "node:child_process";
 import { promisify } from "node:util";
 
-import { assertHardhatInvariant } from "@nomicfoundation/hardhat-errors";
+import {
+  HardhatError,
+  assertHardhatInvariant,
+} from "@nomicfoundation/hardhat-errors";
 import { exists } from "@nomicfoundation/hardhat-utils/fs";
 import debug from "debug";
 
@@ -87,10 +90,12 @@ export default async (): Promise<Partial<SolidityHooks>> => ({
 
     // Honor custom path — skip version lookup and download
     if (compilerConfig.path !== undefined) {
-      assertHardhatInvariant(
-        await exists(compilerConfig.path),
-        `solx binary not found at ${compilerConfig.path} — the configured path does not exist`,
-      );
+      if (!(await exists(compilerConfig.path))) {
+        throw new HardhatError(
+          HardhatError.ERRORS.HARDHAT_SOLX.GENERAL.BINARY_NOT_FOUND,
+          { path: compilerConfig.path },
+        );
+      }
 
       const customSolxVersion = await getSolxVersionFromBinary(
         compilerConfig.path,

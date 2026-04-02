@@ -346,7 +346,7 @@ describe("hardhat-solx Solidity version validation", () => {
         profiles: {
           solx: {
             compilers: [
-              { version: "0.8.34", type: "solx", path: "/tmp/solx-nightly" },
+              { version: "0.8.35", type: "solx", path: "/tmp/solx-nightly" },
             ],
           },
         },
@@ -356,6 +356,25 @@ describe("hardhat-solx Solidity version validation", () => {
       e.message.includes("Solx only supports versions"),
     );
     assert.deepEqual(versionErrors, []);
+  });
+
+  it("rejects unsupported version when path is empty string", async () => {
+    const errors = await validateUserConfig({
+      solidity: {
+        profiles: {
+          solx: {
+            compilers: [{ version: "0.8.35", type: "solx", path: "" }],
+          },
+        },
+      },
+    });
+    const versionErrors = errors.filter((e) =>
+      e.message.includes("Solx only supports versions"),
+    );
+    assert.ok(
+      versionErrors.length > 0,
+      "Expected version validation error for empty path",
+    );
   });
 });
 

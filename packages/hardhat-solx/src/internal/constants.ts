@@ -26,4 +26,5 @@ export const DEFAULT_SOLX_SETTINGS: Record<string, unknown> = {
  */
 export const SOLIDITY_TO_SOLX_VERSION_MAP: Record<string, string> = {
   "0.8.33": "0.1.3",
+  "0.8.34": "0.1.4",
 };

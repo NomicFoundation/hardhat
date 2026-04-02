@@ -25,14 +25,14 @@ export default defineConfig({
       },
       solx: {
         type: "solx",
-        version: "0.8.33",
+        version: "0.8.34",
       },
     },
   },
 });
 ```
 
-The `default` profile uses solc as usual. The `solx` profile uses the solx compiler — identified by `type: "solx"`. Your `.sol` files should have compatible pragmas, for example `pragma solidity ^0.8.29;`. Strict pragmas for unsupported Solidity versions, for example `pragma solidity 0.8.28;`, will currently not compile with this hardhat-solx plugin. See more details below for the currently supported Solidity versions and EVM versions.
+The `default` profile uses solc as usual. The `solx` profile uses the solx compiler, identified by `type: "solx"`. Your `.sol` files should have compatible pragmas, for example `pragma solidity ^0.8.29;`. Strict pragmas for unsupported Solidity versions, for example `pragma solidity 0.8.28;`, will currently not compile with this hardhat-solx plugin. See more details below for the currently supported Solidity versions and EVM versions.
 
 ## Usage
 
@@ -61,12 +61,12 @@ export default defineConfig({
   solidity: {
     profiles: {
       default: {
-        compilers: [{ version: "0.8.33" }, { version: "0.8.20" }],
+        compilers: [{ version: "0.8.34" }, { version: "0.8.20" }],
       },
       solx: {
         compilers: [
-          { type: "solx", version: "0.8.33" },
-          { version: "0.8.20" }, // uses solc — solx doesn't support this version
+          { type: "solx", version: "0.8.34" },
+          { version: "0.8.20" }, // uses solc, solx doesn't support this version
         ],
       },
     },
@@ -76,7 +76,7 @@ export default defineConfig({
 
 ### Options
 
-- `dangerouslyAllowSolxInProduction` (`boolean`, default: `false`) — Allow compiler type `"solx"` in build profiles other than `solx`. By default, using `type: "solx"` in any other profile (e.g. `default`, `production`) will produce a validation error.
+- `dangerouslyAllowSolxInProduction` (`boolean`, default: `false`), allows compiler type `"solx"` in build profiles other than `solx`. By default, using `type: "solx"` in any other profile (e.g. `default`, `production`) will produce a validation error.
 
 ```typescript
 export default defineConfig({
@@ -85,7 +85,7 @@ export default defineConfig({
     profiles: {
       default: {
         type: "solx", // returns a validation error.
-        version: "0.8.33",
+        version: "0.8.34",
       },
     },
   },
@@ -97,7 +97,7 @@ export default defineConfig({
 
 ### Supported Solidity versions
 
-solx maps each Solidity version to a specific solx binary version internally. Currently supported: `0.8.33` (solx 0.1.3).
+solx maps each Solidity version to a specific solx binary version internally. Currently supported: `0.8.33` (solx 0.1.3), `0.8.34` (solx 0.1.4).
 
 ### EVM version support
 

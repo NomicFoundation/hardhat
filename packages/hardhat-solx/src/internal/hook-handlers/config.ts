@@ -51,7 +51,9 @@ const solxSolidityCompilerUserConfigType = z
   })
   .passthrough()
   .refine(
-    (data) => "path" in data || SUPPORTED_VERSIONS.includes(data.version),
+    (data) =>
+      (typeof data.path === "string" && data.path.length > 0) ||
+      SUPPORTED_VERSIONS.includes(data.version),
     {
       message: `Solx only supports versions: ${SUPPORTED_VERSIONS.join(", ")}`,
       path: ["version"],

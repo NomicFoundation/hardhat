@@ -179,5 +179,6 @@ export async function downloadSolx(
       attempts: DOWNLOAD_RETRY_COUNT.toString(),
       reason: lastError?.message ?? "unknown error",
     },
+    lastError,
   );
 }
