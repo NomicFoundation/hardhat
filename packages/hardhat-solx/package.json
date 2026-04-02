@@ -2,11 +2,11 @@
   "name": "@nomicfoundation/hardhat-solx",
   "version": "2.0.0",
   "description": "Hardhat plugin for using solx compiler in test builds",
-  "homepage": "https://github.com/nomicfoundation/hardhat/tree/v-next/v-next/hardhat-solx",
+  "homepage": "https://github.com/NomicFoundation/hardhat/tree/main/packages/hardhat-solx",
   "repository": {
     "type": "git",
     "url": "https://github.com/NomicFoundation/hardhat",
-    "directory": "v-next/hardhat-solx"
+    "directory": "packages/hardhat-solx"
   },
   "author": "Nomic Foundation",
   "license": "MIT",
