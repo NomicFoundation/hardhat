@@ -40,9 +40,37 @@ export class MockArtifactManager implements ArtifactManager {
     return artifact as GetArtifactByName<ContractNameT>;
   }
 
+  public async tryToReadArtifact<
+    ContractNameT extends StringWithArtifactContractNamesAutocompletion,
+  >(
+    contractNameOrFullyQualifiedName: ContractNameT,
+  ): Promise<GetArtifactByName<ContractNameT> | undefined> {
+    const artifact = this.#artifacts.get(contractNameOrFullyQualifiedName);
+
+    if (artifact === undefined) {
+      return undefined;
+    }
+
+    /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions --
+    We are asserting that the artifact is of the correct type, which won't be
+    really used during tests. */
+    return artifact as GetArtifactByName<ContractNameT>;
+  }
+
   public async getArtifactPath(
     _contractNameOrFullyQualifiedName: string,
   ): Promise<string> {
+    throw new HardhatError(
+      HardhatError.ERRORS.CORE.INTERNAL.NOT_IMPLEMENTED_ERROR,
+      {
+        message: "Not implemented in MockArtifactManager",
+      },
+    );
+  }
+
+  public async tryToGetArtifactPath(
+    _contractNameOrFullyQualifiedName: string,
+  ): Promise<string | undefined> {
     throw new HardhatError(
       HardhatError.ERRORS.CORE.INTERNAL.NOT_IMPLEMENTED_ERROR,
       {

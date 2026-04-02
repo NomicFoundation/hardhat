@@ -49,9 +49,37 @@ export class MockArtifactManager implements ArtifactManager {
     return artifact;
   }
 
+  public async tryToReadArtifact<ContractNameT extends string>(
+    contractNameOrFullyQualifiedName: ContractNameT,
+  ): Promise<GetArtifactByName<ContractNameT> | undefined> {
+    const artifactFileName = this.#artifactsPaths.get(
+      contractNameOrFullyQualifiedName,
+    );
+
+    if (artifactFileName === undefined) {
+      return undefined;
+    }
+
+    const artifact = (await import(`./artifacts/${artifactFileName}.ts`))
+      .CONTRACT;
+
+    return artifact;
+  }
+
   public async getArtifactPath(
     _contractNameOrFullyQualifiedName: string,
   ): Promise<string> {
+    throw new HardhatError(
+      HardhatError.ERRORS.CORE.INTERNAL.NOT_IMPLEMENTED_ERROR,
+      {
+        message: "Not implemented in MockArtifactManager",
+      },
+    );
+  }
+
+  public async tryToGetArtifactPath(
+    contractNameOrFullyQualifiedName: string,
+  ): Promise<string | undefined> {
     throw new HardhatError(
       HardhatError.ERRORS.CORE.INTERNAL.NOT_IMPLEMENTED_ERROR,
       {

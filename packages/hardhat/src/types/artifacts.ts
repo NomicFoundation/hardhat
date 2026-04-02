@@ -76,6 +76,27 @@ export interface ArtifactManager {
   ): Promise<GetArtifactByName<ContractNameT>>;
 
   /**
+   * Tries to read an artifact, returning `undefined` if it doesn't exist.
+   *
+   * Use this instead of `readArtifact` if you want to avoid constructing an error when the artifact doesn't exist, which can be expensive if it happens often.
+   *
+   * @param contractNameOrFullyQualifiedName The name of the contract.
+   *   It can be a contract bare contract name (e.g. "Token") if it's
+   *   unique in your project, or a fully qualified contract name
+   *   (e.g. "contract/token.sol:Token") otherwise. TypeScript's language server
+   *   autocompletes the names of the contracts that have already been built. If
+   *   your contract name isn't in the list, you can still use it, and/or run
+   *   `hardhat build` to get it in the list.
+   * @throws Throws an error if a non-unique contract name is used,
+   *   indicating which fully qualified names can be used instead.
+   */
+  tryToReadArtifact<
+    ContractNameT extends StringWithArtifactContractNamesAutocompletion,
+  >(
+    contractNameOrFullyQualifiedName: ContractNameT,
+  ): Promise<GetArtifactByName<ContractNameT> | undefined>;
+
+  /**
    * Returns the absolute path to the given artifact.
    *
    * @param contractNameOrFullyQualifiedName The name or fully qualified name
@@ -85,6 +106,20 @@ export interface ArtifactManager {
    * @throws Throws an error if the artifact doesn't exist.
    */
   getArtifactPath(contractNameOrFullyQualifiedName: string): Promise<string>;
+
+  /**
+   * Tries to get the absolute path to the given artifact, returning `undefined` if it doesn't exist.
+   *
+   * Use this instead of `getArtifactPath` if you want to avoid constructing an error when the artifact doesn't exist, which can be expensive if it happens often.
+   *
+   * @param contractNameOrFullyQualifiedName The name or fully qualified name
+   * of the contract.
+   * @throws Throws an error if a non-unique contract name is used,
+   *   indicating which fully qualified names can be used instead.
+   */
+  tryToGetArtifactPath(
+    contractNameOrFullyQualifiedName: string,
+  ): Promise<string | undefined>;
 
   /**
    * Returns true if an artifact exists.

@@ -23,11 +23,29 @@ class LazyArtifactManager implements ArtifactManager {
     return artifactManager.readArtifact(contractNameOrFullyQualifiedName);
   }
 
+  public async tryToReadArtifact<
+    ContractNameT extends StringWithArtifactContractNamesAutocompletion,
+  >(
+    contractNameOrFullyQualifiedName: ContractNameT,
+  ): Promise<GetArtifactByName<ContractNameT> | undefined> {
+    const artifactManager = await this.#getArtifactManager();
+    return artifactManager.tryToReadArtifact(contractNameOrFullyQualifiedName);
+  }
+
   public async getArtifactPath(
     contractNameOrFullyQualifiedName: string,
   ): Promise<string> {
     const artifactManager = await this.#getArtifactManager();
     return artifactManager.getArtifactPath(contractNameOrFullyQualifiedName);
+  }
+
+  public async tryToGetArtifactPath(
+    contractNameOrFullyQualifiedName: string,
+  ): Promise<string | undefined> {
+    const artifactManager = await this.#getArtifactManager();
+    return artifactManager.tryToGetArtifactPath(
+      contractNameOrFullyQualifiedName,
+    );
   }
 
   public async artifactExists(
