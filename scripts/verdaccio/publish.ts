@@ -32,7 +32,7 @@ export function publish(changes: boolean, noGitChecks: boolean): void {
     filterDirs = detectChangedPackages();
 
     if (filterDirs.length === 0) {
-      log("No packages with uncommitted changes found under v-next/.");
+      log("No packages with uncommitted changes found under packages/.");
       return;
     }
 
@@ -80,7 +80,7 @@ function ensureVerdaccioRunning(): void {
 function detectChangedPackages(): string[] {
   logStep("Detecting changed packages");
 
-  const status = git(["status", "--porcelain", "--", "v-next/"]);
+  const status = git(["status", "--porcelain", "--", "packages/"]);
 
   if (status === "") {
     return [];
@@ -90,11 +90,11 @@ function detectChangedPackages(): string[] {
 
   for (const line of status.split("\n")) {
     // git() trims the output, so we can't rely on fixed column offsets.
-    // Instead, find the "v-next/" prefix and extract the package dir.
-    const match = line.match(/v-next\/([^/]+)/);
+    // Instead, find the "packages/" prefix and extract the package dir.
+    const match = line.match(/packages\/([^/]+)/);
 
     if (match !== null) {
-      dirs.add(`v-next/${match[1]}`);
+      dirs.add(`packages/${match[1]}`);
     }
   }
 
@@ -152,7 +152,7 @@ function publishPackages(filterDirs?: string[]): void {
   const filterArgs =
     filterDirs !== undefined
       ? filterDirs.flatMap((dir) => ["--filter", `./${dir}`])
-      : ["--filter", "./v-next/**"];
+      : ["--filter", "./packages/**"];
 
   pnpm(
     [

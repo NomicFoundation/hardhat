@@ -1,9 +1,0 @@
-{
-  "name": "hardhat-project",
-  "private": "true",
-  "type": "module",
-  "dependencies": {
-    "hardhat": "*",
-    "@nomicfoundation/hardhat-ethers": "*"
-  }
-}

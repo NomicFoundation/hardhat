@@ -2,9 +2,9 @@
   "$schema": "./scripts/peer-bumps.schema.json",
   "excludedFolders": [
     "archive",
-    "v-next/example-project",
-    "v-next/hardhat/templates",
-    "v-next/config"
+    "packages/example-project",
+    "packages/hardhat/templates",
+    "packages/config"
   ],
   "bumps": [
     {
@@ -13,9 +13,14 @@
       "reason": "It depends on the new SolidityHooks#downloadCompilers and SolidityHooks#getCompiler hooks"
     },
     {
-      "package": "@nomicfoundation/hardhat-ethers-chai-matchers",
-      "peer": "@nomicfoundation/hardhat-ethers",
-      "reason": "Requires waitForTransaction implementation from hardhat-ethers for non-automining network support (#7952)"
+      "package": "@nomicfoundation/hardhat-ignition-viem",
+      "peer": "@nomicfoundation/hardhat-ignition",
+      "reason": "The usage of the new `getUserInterruptionsHandlers` helper from `@nomicfoundation/hardhat-ignition/helpers`"
+    },
+    {
+      "package": "@nomicfoundation/hardhat-ignition-ethers",
+      "peer": "@nomicfoundation/hardhat-ignition",
+      "reason": "The usage of the new `getUserInterruptionsHandlers` helper from `@nomicfoundation/hardhat-ignition/helpers`"
     }
   ]
 }

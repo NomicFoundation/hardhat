@@ -5,7 +5,7 @@ description: Analyze the current branch for required peer dependency bumps. Use 
 
 ## Background
 
-When referring to packages we mean only internal packages in `./v-next/*`. Exported code and types live under `./v-next/<package>/src`, while non-exported internals live under `./v-next/<package>/src/internal`.
+When referring to packages we mean only internal packages in `./packages/*`. Exported code and types live under `./packages/<package>/src`, while non-exported internals live under `./packages/<package>/src/internal`.
 
 An API change is a change to or removal of publicly exported functions, types, or interfaces reachable through the `exports` field in the package's `package.json`. The concern is whether the change could break the build or runtime behavior of existing consuming code.
 

@@ -10,7 +10,7 @@ import { readPackage } from "./lib/packages.ts";
 const execAsync = promisify(exec);
 
 const changesetDir = ".changeset";
-const packagesDir = "v-next";
+const packagesDir = "packages";
 
 /**
  * This script applies changesets based on changesets pre-release versioning.

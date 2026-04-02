@@ -1,0 +1,190 @@
+import type { RunOptions } from "./runner.js";
+import type { Abi } from "../../../types/artifacts.js";
+import type { ChainType } from "../../../types/network.js";
+import type { SolidityTestConfig } from "../../../types/test.js";
+import type { Colorizer } from "../../utils/colorizer.js";
+import type {
+  SolidityTestRunnerConfigArgs,
+  PathPermission,
+  Artifact,
+  ObservabilityConfig,
+  TestFunctionOverride,
+} from "@nomicfoundation/edr";
+
+import {
+  opGenesisState,
+  l1GenesisState,
+  FsAccessPermission,
+  CollectStackTraces,
+  opHardforkFromString,
+  l1HardforkFromString,
+} from "@nomicfoundation/edr";
+import { hexStringToBytes } from "@nomicfoundation/hardhat-utils/hex";
+import chalk from "chalk";
+
+import { DEFAULT_VERBOSITY, OPTIMISM_CHAIN_TYPE } from "../../constants.js";
+import { resolveHardfork } from "../network-manager/config-resolution.js";
+import { hardhatHardforkToEdrSpecId } from "../network-manager/edr/utils/convert-to-edr.js";
+import { verbosityToIncludeTraces } from "../network-manager/edr/utils/trace-formatters.js";
+
+import { formatArtifactId } from "./formatters.js";
+
+interface SolidityTestConfigParams {
+  chainType: ChainType;
+  projectRoot: string;
+  hardfork?: string;
+  config: SolidityTestConfig;
+  verbosity: number;
+  observability?: ObservabilityConfig;
+  testPattern?: string;
+  generateGasReport: boolean;
+  testFunctionOverrides?: TestFunctionOverride[];
+}
+
+export function solidityTestConfigToRunOptions(
+  config: SolidityTestConfig,
+): RunOptions {
+  return config;
+}
+
+export async function solidityTestConfigToSolidityTestRunnerConfigArgs({
+  chainType,
+  projectRoot,
+  hardfork,
+  config,
+  verbosity,
+  observability,
+  testPattern,
+  generateGasReport,
+  testFunctionOverrides,
+}: SolidityTestConfigParams): Promise<SolidityTestRunnerConfigArgs> {
+  const fsPermissions: PathPermission[] | undefined = [
+    config.fsPermissions?.readWriteFile?.map((p) => ({
+      access: FsAccessPermission.ReadWriteFile,
+      path: p,
+    })) ?? [],
+    config.fsPermissions?.readFile?.map((p) => ({
+      access: FsAccessPermission.ReadFile,
+      path: p,
+    })) ?? [],
+    config.fsPermissions?.writeFile?.map((p) => ({
+      access: FsAccessPermission.WriteFile,
+      path: p,
+    })) ?? [],
+    config.fsPermissions?.dangerouslyReadWriteDirectory?.map((p) => ({
+      access: FsAccessPermission.DangerouslyReadWriteDirectory,
+      path: p,
+    })) ?? [],
+    config.fsPermissions?.readDirectory?.map((p) => ({
+      access: FsAccessPermission.ReadDirectory,
+      path: p,
+    })) ?? [],
+    config.fsPermissions?.dangerouslyWriteDirectory?.map((p) => ({
+      access: FsAccessPermission.DangerouslyWriteDirectory,
+      path: p,
+    })) ?? [],
+  ].flat(1);
+
+  const hexToBytes = (hex: string | undefined) =>
+    hex !== undefined ? hexStringToBytes(hex) : undefined;
+
+  const sender = hexToBytes(config.from);
+  const txOrigin = hexToBytes(config.txOrigin);
+  const blockCoinbase = hexToBytes(config.coinbase);
+
+  const resolvedHardfork = hardhatHardforkToEdrSpecId(
+    resolveHardfork(hardfork, chainType),
+    chainType,
+  );
+
+  const localPredeploys =
+    chainType === OPTIMISM_CHAIN_TYPE
+      ? opGenesisState(opHardforkFromString(resolvedHardfork))
+      : l1GenesisState(l1HardforkFromString(resolvedHardfork));
+
+  const includeTraces = verbosityToIncludeTraces(verbosity);
+
+  const blockGasLimit =
+    config.blockGasLimit === false ? undefined : config.blockGasLimit;
+  const disableBlockGasLimit = config.blockGasLimit === false;
+
+  const blockDifficulty = config.prevRandao;
+
+  let ethRpcUrl: string | undefined;
+  if (config.forking?.url !== undefined) {
+    ethRpcUrl = await config.forking.url.get();
+  }
+
+  const forkBlockNumber = config.forking?.blockNumber;
+
+  let rpcEndpoints: Record<string, string> | undefined;
+  if (config.forking?.rpcEndpoints !== undefined) {
+    rpcEndpoints = {};
+    for (const [name, configValue] of Object.entries(
+      config.forking.rpcEndpoints,
+    )) {
+      rpcEndpoints[name] = await configValue.get();
+    }
+  }
+
+  const shouldAlwaysCollectStackTraces = verbosity > DEFAULT_VERBOSITY;
+
+  return {
+    projectRoot,
+    hardfork: resolvedHardfork,
+    ...config,
+    fsPermissions,
+    localPredeploys,
+    sender,
+    txOrigin,
+    blockCoinbase,
+    observability,
+    testPattern,
+    includeTraces,
+    blockGasLimit,
+    disableBlockGasLimit,
+    blockDifficulty,
+    ethRpcUrl,
+    forkBlockNumber,
+    rpcEndpoints,
+    generateGasReport,
+    collectStackTraces: shouldAlwaysCollectStackTraces
+      ? CollectStackTraces.Always
+      : CollectStackTraces.OnFailure,
+    testFunctionOverrides,
+  };
+}
+
+export function isTestSuiteArtifact(artifact: Artifact): boolean {
+  const abi: Abi = JSON.parse(artifact.contract.abi);
+  return abi.some(({ type, name }) => {
+    if (type === "function" && typeof name === "string") {
+      return name.startsWith("test") || name.startsWith("invariant");
+    }
+    return false;
+  });
+}
+
+export function warnDeprecatedTestFail(
+  artifact: Artifact,
+  sourceNameToUserSourceName: Map<string, string>,
+  colorizer: Colorizer = chalk,
+): void {
+  const abi: Abi = JSON.parse(artifact.contract.abi);
+
+  abi.forEach(({ type, name }) => {
+    if (
+      type === "function" &&
+      typeof name === "string" &&
+      name.startsWith("testFail")
+    ) {
+      const formattedLocation = formatArtifactId(
+        artifact.id,
+        sourceNameToUserSourceName,
+      );
+      const warningMessage = `${colorizer.yellow("Warning")}: ${name} The support for the prefix \`testFail*\` has been removed. Consider using \`vm.expectRevert()\` for testing reverts in ${formattedLocation}\n`;
+
+      console.warn(warningMessage);
+    }
+  });
+}

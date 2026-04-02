@@ -1,8 +1,0 @@
-{
-  "name": "default-ts-project",
-  "private": "true",
-  "type": "module",
-  "dependencies": {
-    "hardhat": "*"
-  }
-}
