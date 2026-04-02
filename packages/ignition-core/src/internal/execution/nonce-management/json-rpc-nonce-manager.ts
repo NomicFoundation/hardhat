@@ -8,7 +8,10 @@ import { HardhatError } from "@nomicfoundation/hardhat-errors";
  * 0 so an immediate re-check is performed before any waiting. Subsequent
  * retries wait 50 ms each, up to a maximum total wait of 1 second.
  */
-const MEMPOOL_SYNC_RETRY_DELAYS_MS = [0, ...Array.from({ length: 20 }, () => 50)];
+const MEMPOOL_SYNC_RETRY_DELAYS_MS = [
+  0,
+  ...Array.from({ length: 20 }, () => 50),
+];
 
 /**
  * This interface is meant to be used to fetch new nonces for transactions.
