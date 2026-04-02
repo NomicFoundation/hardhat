@@ -1,6 +1,6 @@
 {
   "name": "@nomicfoundation/hardhat-toolbox-mocha-ethers",
-  "version": "3.0.3",
+  "version": "3.0.4",
   "description": "Nomic Foundation's recommended bundle of Hardhat plugins",
   "homepage": "https://github.com/NomicFoundation/hardhat/tree/main/packages/hardhat-toolbox-mocha-ethers",
   "repository": {
@@ -51,10 +51,10 @@
     "@nomicfoundation/hardhat-keystore": "workspace:^3.0.0",
     "@nomicfoundation/hardhat-mocha": "workspace:^3.0.0",
     "@nomicfoundation/hardhat-network-helpers": "workspace:^3.0.0",
-    "@nomicfoundation/hardhat-node-test-reporter": "workspace:^3.0.0",
+    "@nomicfoundation/hardhat-node-test-reporter": "workspace:^3.0.4",
     "@nomicfoundation/hardhat-test-utils": "workspace:^",
     "@nomicfoundation/hardhat-typechain": "workspace:^3.0.0",
-    "@nomicfoundation/hardhat-utils": "workspace:^4.0.0",
+    "@nomicfoundation/hardhat-utils": "workspace:^4.0.3",
     "@nomicfoundation/hardhat-verify": "workspace:^3.0.0",
     "@nomicfoundation/ignition-core": "workspace:^3.0.0",
     "@types/chai": "^5.2.3",

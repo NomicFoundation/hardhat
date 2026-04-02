@@ -1,7 +1,7 @@
 {
   "name": "@nomicfoundation/hardhat-solx",
   "private": true,
-  "version": "2.0.0",
+  "version": "3.0.0",
   "description": "Hardhat plugin for using solx compiler in test builds",
   "homepage": "https://github.com/NomicFoundation/hardhat/tree/main/packages/hardhat-solx",
   "repository": {
@@ -45,7 +45,7 @@
     "README.md"
   ],
   "devDependencies": {
-    "@nomicfoundation/hardhat-node-test-reporter": "workspace:^3.0.0",
+    "@nomicfoundation/hardhat-node-test-reporter": "workspace:^3.0.4",
     "@nomicfoundation/hardhat-test-utils": "workspace:^",
     "@types/debug": "^4.1.7",
     "@types/node": "^22.0.0",
@@ -55,16 +55,16 @@
     "rimraf": "^5.0.5",
     "tsx": "^4.19.3",
     "typescript": "~5.8.0",
-    "hardhat": "workspace:^3.1.6"
+    "hardhat": "workspace:^3.3.1"
   },
   "dependencies": {
-    "@nomicfoundation/hardhat-errors": "workspace:^3.0.3",
-    "@nomicfoundation/hardhat-utils": "workspace:^3.0.5",
-    "@nomicfoundation/hardhat-zod-utils": "workspace:^3.0.0",
+    "@nomicfoundation/hardhat-errors": "workspace:^3.0.11",
+    "@nomicfoundation/hardhat-utils": "workspace:^4.0.3",
+    "@nomicfoundation/hardhat-zod-utils": "workspace:^3.0.4",
     "debug": "^4.3.2",
     "zod": "^3.23.8"
   },
   "peerDependencies": {
-    "hardhat": "workspace:^3.1.6"
+    "hardhat": "workspace:^3.3.1"
   }
 }
