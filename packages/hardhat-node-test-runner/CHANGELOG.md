@@ -1,5 +1,17 @@
 # @nomicfoundation/hardhat-node-test-runner
 
+## 3.0.13
+
+### Patch Changes
+
+- [#8096](https://github.com/NomicFoundation/hardhat/pull/8096) [`7fb721b`](https://github.com/NomicFoundation/hardhat/commit/7fb721bb2b1c521d0073a156f361c60a049e8fdf) Thanks [@alcuadrado](https://github.com/alcuadrado)! - [chore] Move to packages/ folder.
+
+- Updated dependencies:
+  - @nomicfoundation/hardhat-errors@3.0.11
+  - @nomicfoundation/hardhat-node-test-reporter@3.0.4
+  - @nomicfoundation/hardhat-utils@4.0.3
+  - @nomicfoundation/hardhat-zod-utils@3.0.4
+
 ## 3.0.12
 
 ### Patch Changes

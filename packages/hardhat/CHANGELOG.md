@@ -1,5 +1,21 @@
 # hardhat
 
+## 3.3.1
+
+### Patch Changes
+
+- [#8103](https://github.com/NomicFoundation/hardhat/pull/8103) [`14b335a`](https://github.com/NomicFoundation/hardhat/commit/14b335a06a10caf4149b6a40241c0eab8d1788c4) Thanks [@kanej](https://github.com/kanej)! - Improved network handler performance through additional metadata to allow early skipping ([#8103](https://github.com/NomicFoundation/hardhat/pull/8103))
+
+- [#8102](https://github.com/NomicFoundation/hardhat/pull/8102) [`d5f8394`](https://github.com/NomicFoundation/hardhat/commit/d5f8394aaabe4f2bd083264d15419d26235f51f2) Thanks [@kanej](https://github.com/kanej)! - Improved performance of network handler initialization ([#8102](https://github.com/NomicFoundation/hardhat/pull/8102))
+
+- [#8096](https://github.com/NomicFoundation/hardhat/pull/8096) [`7fb721b`](https://github.com/NomicFoundation/hardhat/commit/7fb721bb2b1c521d0073a156f361c60a049e8fdf) Thanks [@alcuadrado](https://github.com/alcuadrado)! - [chore] Move to packages/ folder.
+
+- Updated dependencies:
+  - @nomicfoundation/hardhat-errors@3.0.11
+  - @nomicfoundation/hardhat-utils@4.0.3
+  - @nomicfoundation/hardhat-vendored@3.0.2
+  - @nomicfoundation/hardhat-zod-utils@3.0.4
+
 ## 3.3.0
 
 ### Minor Changes
