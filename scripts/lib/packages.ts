@@ -13,6 +13,7 @@ export async function readAllReleasablePackages() {
         "example-project",
         "template-package",
         "hardhat-test-utils",
+        "hardhat-solx",
       ].includes(file),
   );
 

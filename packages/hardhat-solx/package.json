@@ -1,5 +1,6 @@
 {
   "name": "@nomicfoundation/hardhat-solx",
+  "private": true,
   "version": "2.0.0",
   "description": "Hardhat plugin for using solx compiler in test builds",
   "homepage": "https://github.com/NomicFoundation/hardhat/tree/main/packages/hardhat-solx",
