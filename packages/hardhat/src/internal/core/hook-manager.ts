@@ -18,9 +18,27 @@ import { AsyncMutex } from "@nomicfoundation/hardhat-utils/synchronization";
 
 import { detectPluginNpmDependencyProblems } from "./plugins/detect-plugin-npm-dependency-problems.js";
 
-export class HookManagerImplementation implements HookManager {
-  readonly #mutex: AsyncMutex = new AsyncMutex();
+class StaticHookHandlers {
+  public readonly mutex: AsyncMutex = new AsyncMutex();
 
+  #categories: Map<
+    keyof HardhatHooks,
+    Partial<HardhatHooks[keyof HardhatHooks]>
+  > = new Map();
+
+  public get(hookCategoryName: keyof HardhatHooks) {
+    return this.#categories.get(hookCategoryName);
+  }
+
+  public set(
+    hookCategoryName: keyof HardhatHooks,
+    hookCategory: Partial<HardhatHooks[keyof HardhatHooks]>,
+  ) {
+    this.#categories.set(hookCategoryName, hookCategory);
+  }
+}
+
+export class HookManagerImplementation implements HookManager {
   readonly #projectRoot: string;
 
   readonly #pluginsInReverseOrder: HardhatPlugin[];
@@ -34,10 +52,8 @@ export class HookManagerImplementation implements HookManager {
   /**
    * The initialized handler categories for each plugin.
    */
-  readonly #staticHookHandlerCategories: Map<
-    string,
-    Map<keyof HardhatHooks, Partial<HardhatHooks[keyof HardhatHooks]>>
-  > = new Map();
+  readonly #staticHookHandlerCategories: Map<string, StaticHookHandlers> =
+    new Map();
 
   /**
    * A map of the dynamically registered handler categories.
@@ -220,12 +236,10 @@ export class HookManagerImplementation implements HookManager {
     hookCategoryName: HookCategoryNameT,
     hookName: HookNameT,
   ): Promise<Array<HardhatHooks[HookCategoryNameT][HookNameT]>> {
-    const pluginHooks = await this.#getPluginHooks(hookCategoryName, hookName);
-
-    const dynamicHooks = await this.#getDynamicHooks(
-      hookCategoryName,
-      hookName,
-    );
+    const [pluginHooks, dynamicHooks] = await Promise.all([
+      this.#getPluginHooks(hookCategoryName, hookName),
+      this.#getDynamicHooks(hookCategoryName, hookName),
+    ]);
 
     return [...dynamicHooks, ...pluginHooks];
   }
@@ -276,22 +290,37 @@ export class HookManagerImplementation implements HookManager {
   ): Promise<Array<HardhatHooks[HookCategoryNameT][HookNameT]>> {
     const categories: Array<
       Partial<HardhatHooks[HookCategoryNameT]> | undefined
-    > = await this.#mutex.exclusiveRun(async () => {
-      return Promise.all(
-        this.#pluginsInReverseOrder.map(async (plugin) => {
-          const existingCategory = this.#staticHookHandlerCategories
-            .get(plugin.id)
-            ?.get(hookCategoryName);
+    > = await Promise.all(
+      this.#pluginsInReverseOrder.map(async (plugin) => {
+        let staticPluginHandlers = this.#staticHookHandlerCategories.get(
+          plugin.id,
+        );
 
+        if (staticPluginHandlers === undefined) {
+          staticPluginHandlers = new StaticHookHandlers();
+          this.#staticHookHandlerCategories.set(
+            plugin.id,
+            staticPluginHandlers,
+          );
+        }
+
+        const existingCategory = staticPluginHandlers.get(hookCategoryName);
+        if (existingCategory !== undefined) {
+          return existingCategory as Partial<HardhatHooks[HookCategoryNameT]>;
+        }
+
+        const hookHandlerCategoryFactory =
+          plugin.hookHandlers?.[hookCategoryName];
+
+        if (hookHandlerCategoryFactory === undefined) {
+          return undefined;
+        }
+
+        return staticPluginHandlers.mutex.exclusiveRun(async () => {
+          // Recheck whether another execution of this function has already initialized the category while we were waiting for the lock, to avoid initializing it multiple times.
+          const existingCategory = staticPluginHandlers.get(hookCategoryName);
           if (existingCategory !== undefined) {
             return existingCategory as Partial<HardhatHooks[HookCategoryNameT]>;
-          }
-
-          const hookHandlerCategoryFactory =
-            plugin.hookHandlers?.[hookCategoryName];
-
-          if (hookHandlerCategoryFactory === undefined) {
-            return;
           }
 
           let factory;
@@ -321,19 +350,12 @@ export class HookManagerImplementation implements HookManager {
             `Plugin ${plugin.id} doesn't export a valid factory for category ${hookCategoryName}, it didn't return an object`,
           );
 
-          if (!this.#staticHookHandlerCategories.has(plugin.id)) {
-            this.#staticHookHandlerCategories.set(plugin.id, new Map());
-          }
-
-          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion -- Defined right above
-          this.#staticHookHandlerCategories
-            .get(plugin.id)!
-            .set(hookCategoryName, hookCategory);
+          staticPluginHandlers.set(hookCategoryName, hookCategory);
 
           return hookCategory;
-        }),
-      );
-    });
+        });
+      }),
+    );
 
     return categories.flatMap((category) => {
       const handler = category?.[hookName];
