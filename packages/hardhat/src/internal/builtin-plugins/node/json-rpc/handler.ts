@@ -256,8 +256,13 @@ const _handleError = (error: Error): JsonRpcResponse => {
   const txHash = extractTxHash(error);
   const returnData = extractReturnData(error);
 
-  // In case of non-hardhat error, treat it as internal and associate the appropriate error code.
-  if (!ProviderError.isProviderError(error)) {
+  // Check if this is a revert error (code 3) matching the geth/anvil convention.
+  const isRevertError =
+    "code" in error && typeof error.code === "number" && error.code === 3;
+
+  // In case of non-hardhat error that is not a revert, treat it as internal
+  // and associate the appropriate error code.
+  if (!ProviderError.isProviderError(error) && !isRevertError) {
     error = new InternalError(undefined, error);
   }
 
@@ -270,11 +275,12 @@ const _handleError = (error: Error): JsonRpcResponse => {
           ? error.code
           : InternalError.CODE,
       message: error.message,
-      data: {
-        message: error.message,
-        txHash,
-        data: returnData,
-      },
+      // For revert errors (code 3), use the raw hex data to match geth/anvil format.
+      // For other errors, use the object format for backward compatibility.
+      data:
+        isRevertError && returnData !== undefined
+          ? returnData
+          : { message: error.message, txHash, data: returnData },
     },
   };
 
