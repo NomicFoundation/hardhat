@@ -7,6 +7,7 @@ import { after, before, describe, it } from "node:test";
 import { exists } from "@nomicfoundation/hardhat-utils/fs";
 import { isObject } from "@nomicfoundation/hardhat-utils/lang";
 
+import { SolidityError } from "../../../../../src/internal/builtin-plugins/network-manager/edr/stack-traces/stack-trace-solidity-errors.js";
 import {
   isFailedJsonRpcResponse,
   isJsonRpcResponse,
@@ -65,8 +66,10 @@ describe("JSON-RPC handler", async function () {
       throw err;
     },
     nonProviderErrorWithRevertData: () => {
-      // Simulates SolidityError: a non-ProviderError with .data and .transactionHash
+      // Simulates SolidityError: a non-ProviderError with .code=3, .data, and .transactionHash
       const err = new Error("revert Unauthorized");
+      // eslint-disable-next-line @typescript-eslint/consistent-type-assertions -- allow in test
+      (err as any).code = SolidityError.CODE;
       // eslint-disable-next-line @typescript-eslint/consistent-type-assertions -- allow in test
       (err as any).data = "0xdeadbeef";
       // eslint-disable-next-line @typescript-eslint/consistent-type-assertions -- allow in test
@@ -308,8 +311,8 @@ describe("JSON-RPC handler", async function () {
     assert.equal(rpcRes.error.data.data, "0xabad1dea");
   });
 
-  it("should preserve revert data from non-ProviderError errors", async function () {
-    // Simulates SolidityError which has .data and .transactionHash but is NOT a ProviderError
+  it("should return revert data in geth/anvil format for code-3 errors", async function () {
+    // Simulates SolidityError which has .code=3, .data, and .transactionHash
     const rpcReq: JsonRpcRequest = {
       jsonrpc: "2.0",
       method: "nonProviderErrorWithRevertData",
@@ -322,13 +325,10 @@ describe("JSON-RPC handler", async function () {
       isJsonRpcResponse(rpcRes) && isFailedJsonRpcResponse(rpcRes),
       "Expected a failed JSON-RPC response",
     );
-    assert.equal(rpcRes.error.code, InternalError.CODE);
-    assert.ok(
-      isObject(rpcRes.error.data),
-      "Expected error data to be an object",
-    );
-    assert.equal(rpcRes.error.data.txHash, "0xabc123");
-    assert.equal(rpcRes.error.data.data, "0xdeadbeef");
+    assert.equal(rpcRes.error.code, SolidityError.CODE);
+    assert.equal(rpcRes.error.message, "revert Unauthorized");
+    // Data should be the raw hex string, matching geth/anvil format
+    assert.equal(rpcRes.error.data, "0xdeadbeef");
   });
 });
 
