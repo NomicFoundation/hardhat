@@ -67,7 +67,7 @@ describe("gas-analytics-manager", () => {
           type: "deployment",
           contractFqn: "project/contracts/MyContract.sol:MyContract",
           gas: 500000,
-          size: 2048,
+          runtimeSize: 2048,
         };
 
         manager.addGasMeasurement(deploymentMeasurement);
@@ -90,7 +90,7 @@ describe("gas-analytics-manager", () => {
           type: "deployment",
           contractFqn: "project/contracts/MyContract.sol:MyContract",
           gas: 500000,
-          size: 2048,
+          runtimeSize: 2048,
         };
 
         manager.addGasMeasurement(measurement1);
@@ -115,7 +115,7 @@ describe("gas-analytics-manager", () => {
           type: "deployment",
           contractFqn: "project/contracts/MyContract.sol:MyContract",
           gas: 500000,
-          size: 2048,
+          runtimeSize: 2048,
         };
 
         manager.addGasMeasurement(measurement1);
@@ -154,7 +154,7 @@ describe("gas-analytics-manager", () => {
           type: "deployment",
           contractFqn: "project/contracts/MyContract.sol:MyContract",
           gas: 500000,
-          size: 2048,
+          runtimeSize: 2048,
         };
 
         manager.addGasMeasurement(measurement1);
@@ -179,7 +179,7 @@ describe("gas-analytics-manager", () => {
           type: "deployment",
           contractFqn: "project/contracts/MyContract.sol:MyContract",
           gas: 500000,
-          size: 2048,
+          runtimeSize: 2048,
         };
 
         manager.addGasMeasurement(measurement1);
@@ -217,7 +217,7 @@ describe("gas-analytics-manager", () => {
           type: "deployment",
           contractFqn: "project/contracts/MyContract.sol:MyContract",
           gas: 500000,
-          size: 2048,
+          runtimeSize: 2048,
         };
         manager.addGasMeasurement(measurement1);
         manager.addGasMeasurement(measurement2);
@@ -274,7 +274,7 @@ describe("gas-analytics-manager", () => {
           type: "deployment",
           contractFqn: "project/contracts/MyContract.sol:MyContract",
           gas: 500000,
-          size: 2048,
+          runtimeSize: 2048,
         };
         manager.addGasMeasurement(measurement1);
         manager.addGasMeasurement(measurement2);
@@ -430,7 +430,7 @@ describe("gas-analytics-manager", () => {
           type: "deployment",
           contractFqn: "project/contracts/MyContract.sol:MyContract",
           gas: 500000,
-          size: 2048,
+          runtimeSize: 2048,
         });
 
         const result = manager._aggregateGasMeasurements();
@@ -444,6 +444,7 @@ describe("gas-analytics-manager", () => {
           "Contract measurements should be defined",
         );
         assert.deepEqual(contractMeasurements.deployments, [500000]);
+        assert.equal(contractMeasurements.deploymentRuntimeSize, 2048);
         assert.equal(contractMeasurements.functions.size, 0);
       });
 
@@ -453,7 +454,7 @@ describe("gas-analytics-manager", () => {
           type: "deployment",
           contractFqn: "project/contracts/MyContract.sol:MyContract",
           gas: 500000,
-          size: 2048,
+          runtimeSize: 2048,
         });
         manager.addGasMeasurement({
           type: "function",
@@ -480,6 +481,7 @@ describe("gas-analytics-manager", () => {
         );
 
         assert.deepEqual(contractMeasurements.deployments, [500000]);
+        assert.equal(contractMeasurements.deploymentRuntimeSize, 2048);
 
         assert.equal(contractMeasurements.functions.size, 2);
         const transferMeasurements = contractMeasurements.functions.get(
@@ -512,7 +514,7 @@ describe("gas-analytics-manager", () => {
           type: "deployment",
           contractFqn: "project/contracts/TokenB.sol:TokenB",
           gas: 600000,
-          size: 3072,
+          runtimeSize: 3072,
         });
         manager.addGasMeasurement({
           type: "function",
@@ -550,6 +552,7 @@ describe("gas-analytics-manager", () => {
           "TokenB measurements should be defined",
         );
         assert.deepEqual(tokenBMeasurements.deployments, [600000]);
+        assert.equal(tokenBMeasurements.deploymentRuntimeSize, 3072);
         assert.equal(tokenBMeasurements.functions.size, 1);
         const burnMeasurements =
           tokenBMeasurements.functions.get("burn(uint256)");
@@ -655,13 +658,13 @@ describe("gas-analytics-manager", () => {
           type: "deployment",
           contractFqn: "project/contracts/MyContract.sol:MyContract",
           gas: 500000,
-          size: 2048,
+          runtimeSize: 2048,
         });
         manager.addGasMeasurement({
           type: "deployment",
           contractFqn: "project/contracts/MyContract.sol:MyContract",
           gas: 600000,
-          size: 3072,
+          runtimeSize: 3072,
         });
 
         const result = manager._aggregateGasMeasurements();
@@ -675,6 +678,7 @@ describe("gas-analytics-manager", () => {
           "Contract measurements should be defined",
         );
         assert.deepEqual(contractMeasurements.deployments, [500000, 600000]);
+        assert.equal(contractMeasurements.deploymentRuntimeSize, 2048);
       });
     });
 
@@ -730,19 +734,19 @@ describe("gas-analytics-manager", () => {
           type: "deployment",
           contractFqn: "project/contracts/MyContract.sol:MyContract",
           gas: 400000,
-          size: 2048,
+          runtimeSize: 2048,
         });
         manager.addGasMeasurement({
           type: "deployment",
           contractFqn: "project/contracts/MyContract.sol:MyContract",
           gas: 500000,
-          size: 2048,
+          runtimeSize: 2048,
         });
         manager.addGasMeasurement({
           type: "deployment",
           contractFqn: "project/contracts/MyContract.sol:MyContract",
           gas: 600000,
-          size: 3072,
+          runtimeSize: 3072,
         });
 
         const gasStats = manager._calculateGasStats();
@@ -764,6 +768,7 @@ describe("gas-analytics-manager", () => {
         assert.equal(contractStats.deployment.avg, 500000);
         assert.equal(contractStats.deployment.median, 500000);
         assert.equal(contractStats.deployment.count, 3);
+        assert.equal(contractStats.deployment.runtimeSize, 2048);
       });
 
       it("should calculate stats for multiple contracts", () => {
@@ -954,6 +959,7 @@ describe("gas-analytics-manager", () => {
             avg: 500000,
             median: 500000,
             count: 3,
+            runtimeSize: 2048,
           },
           functions: new Map([
             // Functions are added in non-alphabetical order to test sorting
@@ -998,7 +1004,9 @@ describe("gas-analytics-manager", () => {
 ║ ${chalk.yellow("Deployment")}                      │ ${chalk.yellow("Min")}    │ ${chalk.yellow("Average")} │ ${chalk.yellow("Median")} │ ${chalk.yellow("Max")}    │ ${chalk.yellow("#deployments")} ║
 ╟─────────────────────────────────┼────────┼─────────┼────────┼────────┼──────────────╢
 ║                                 │ 400000 │ 500000  │ 500000 │ 600000 │ 3            ║
-╚═════════════════════════════════╧════════╧═════════╧════════╧════════╧══════════════╝
+╟─────────────────────────────────┼────────┼─────────┴────────┴────────┴──────────────╢
+║ ${chalk.yellow("Bytecode size")}                   │ 2048   │                                          ║
+╚═════════════════════════════════╧════════╧══════════════════════════════════════════╝
 ╔═════════════════════════════════════════════════════════════════════════════════════╗
 ║ ${chalk.cyan.bold("contracts/TokenA.sol:TokenA")}                                                         ║
 ╟─────────────────────────────────┬────────┬─────────┬────────┬────────┬──────────────╢
@@ -1116,7 +1124,7 @@ describe("gas-analytics-manager", () => {
           type: "deployment",
           contractFqn: "project/contracts/MyContract.sol:MyContract",
           gas: 500000,
-          size: 2048,
+          runtimeSize: 2048,
         });
         manager.addGasMeasurement({
           type: "function",
@@ -1138,6 +1146,7 @@ describe("gas-analytics-manager", () => {
           avg: 500000,
           median: 500000,
           count: 1,
+          runtimeSize: 2048,
         });
         assert.ok(contract.functions !== null, "functions should not be null");
         assert.deepEqual(contract.functions.transfer, {
@@ -1172,7 +1181,7 @@ describe("gas-analytics-manager", () => {
           type: "deployment",
           contractFqn: "project/contracts/Factory.sol:Factory",
           gas: 300000,
-          size: 1024,
+          runtimeSize: 1024,
         });
         const stats = manager._calculateGasStats();
         const result = manager._generateGasStatsJson(stats);
@@ -1192,13 +1201,13 @@ describe("gas-analytics-manager", () => {
           type: "deployment",
           contractFqn: "project/contracts/ZContract.sol:ZContract",
           gas: 100000,
-          size: 512,
+          runtimeSize: 512,
         });
         manager.addGasMeasurement({
           type: "deployment",
           contractFqn: "project/contracts/AContract.sol:AContract",
           gas: 200000,
-          size: 512,
+          runtimeSize: 512,
         });
         const stats = manager._calculateGasStats();
         const result = manager._generateGasStatsJson(stats);
@@ -1276,7 +1285,7 @@ describe("gas-analytics-manager", () => {
           type: "deployment",
           contractFqn: "project/contracts/MyContract.sol:MyContract",
           gas: 100000,
-          size: 512,
+          runtimeSize: 512,
         });
         const stats = manager._calculateGasStats();
         const result = manager._generateGasStatsJson(stats);
@@ -1324,7 +1333,7 @@ describe("gas-analytics-manager", () => {
           type: "deployment",
           contractFqn: internalFqn,
           gas: 250000,
-          size: 1024,
+          runtimeSize: 1024,
         });
         const stats = manager._calculateGasStats();
         const result = manager._generateGasStatsJson(stats);
@@ -1398,7 +1407,7 @@ describe("gas-analytics-manager", () => {
           type: "deployment",
           contractFqn: "project/contracts/MyContract.sol:MyContract",
           gas: 500000,
-          size: 2048,
+          runtimeSize: 2048,
         });
         await manager.saveGasMeasurements("test-id");
 
