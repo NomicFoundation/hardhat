@@ -1027,6 +1027,29 @@ describe("NetworkManagerImplementation", () => {
     });
   });
 
+  describe("connect", () => {
+    it("should create a connection but emit a deprecation warning", async (t) => {
+      const emitWarning = t.mock.method(process, "emitWarning", () => {});
+
+      const connectConn = await networkManager.connect("myNetwork");
+      const createConn = await networkManager.create("myNetwork");
+
+      assert.equal(connectConn.networkName, createConn.networkName);
+      assert.equal(connectConn.chainType, createConn.chainType);
+      assert.equal(connectConn.chainType, OPTIMISM_CHAIN_TYPE);
+
+      assert.equal(emitWarning.mock.calls.length, 1);
+      assert.deepEqual(emitWarning.mock.calls[0].arguments, [
+        "hre.network.connect() is deprecated and will be removed in a future version. " +
+          "Use hre.network.create() or hre.network.getOrCreate() instead.",
+        {
+          type: "DeprecationWarning",
+          code: "HH_DEPRECATED_NETWORK_CONNECT",
+        },
+      ]);
+    });
+  });
+
   describe("createServer", function () {
     it("should throw an error if the network type is not edr-simulated", async () => {
       await assertRejectsWithHardhatError(

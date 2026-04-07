@@ -59,6 +59,8 @@ export class NetworkManagerImplementation implements NetworkManager {
   readonly #projectRoot: string;
   readonly #verbosity: number;
 
+  static #connectDeprecationWarned = false;
+
   #nextConnectionId = 0;
   readonly #contractDecoderMutex = new AsyncMutex();
   #contractDecoder: ContractDecoder | undefined;
@@ -113,6 +115,26 @@ export class NetworkManagerImplementation implements NetworkManager {
     /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions
     -- Cast to NetworkConnection<ChainTypeT> because we know it's valid */
     return networkConnection as NetworkConnection<ChainTypeT>;
+  }
+
+  public async connect<
+    ChainTypeT extends ChainType | string = DefaultChainType,
+  >(
+    networkOrParams?: NetworkConnectionParams<ChainTypeT> | string,
+  ): Promise<NetworkConnection<ChainTypeT>> {
+    if (NetworkManagerImplementation.#connectDeprecationWarned === false) {
+      NetworkManagerImplementation.#connectDeprecationWarned = true;
+      process.emitWarning(
+        "hre.network.connect() is deprecated and will be removed in a future version. " +
+          "Use hre.network.create() or hre.network.getOrCreate() instead.",
+        {
+          type: "DeprecationWarning",
+          code: "HH_DEPRECATED_NETWORK_CONNECT",
+        },
+      );
+    }
+
+    return this.create(networkOrParams);
   }
 
   public async createServer<
