@@ -87,7 +87,7 @@ await verifyContract(
 
 ## Advanced Usage for Plugin Authors
 
-If you're building a Hardhat plugin that needs direct access to the Etherscan API (for example, to verify proxy contracts or make custom API calls), you can access the Etherscan instance through `network.connect()`.
+If you're building a Hardhat plugin that needs direct access to the Etherscan API (for example, to verify proxy contracts or make custom API calls), you can access the Etherscan instance through `network.create()`.
 
 ### Accessing the Etherscan Instance
 
@@ -95,7 +95,7 @@ If you're building a Hardhat plugin that needs direct access to the Etherscan AP
 import type { HardhatRuntimeEnvironment } from "hardhat/types";
 
 export async function myCustomVerificationTask(hre: HardhatRuntimeEnvironment) {
-  const { verification } = await hre.network.connect();
+  const { verification } = await hre.network.create();
 
   // Access Etherscan instance
   const etherscan = verification.etherscan;
@@ -131,7 +131,7 @@ export async function myCustomVerificationTask(hre: HardhatRuntimeEnvironment) {
 For API endpoints not covered by the standard methods, use `customApiCall()`:
 
 ```typescript
-const { verification } = await hre.network.connect();
+const { verification } = await hre.network.create();
 
 // Make a custom API call (apikey and chainid are added automatically)
 const response = await verification.etherscan.customApiCall({

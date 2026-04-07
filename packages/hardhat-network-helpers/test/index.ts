@@ -21,7 +21,7 @@ describe("hardhat-network-helpers plugin initialization", () => {
         plugins: [hardhatNetworkHelpersPlugin],
       });
 
-      ({ networkHelpers } = await hre.network.connect());
+      ({ networkHelpers } = await hre.network.create());
     });
 
     it("should correctly set up the network-helpers class", async () => {
@@ -73,7 +73,7 @@ describe("hardhat-network-helpers plugin initialization", () => {
         ],
       });
 
-      ({ networkHelpers } = await hre.network.connect({
+      ({ networkHelpers } = await hre.network.create({
         network: "non-test",
       }));
     });

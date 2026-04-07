@@ -9,7 +9,7 @@ import { EIP1193JsonRpcClient } from "../../src/internal/execution/jsonrpc-clien
 
 export async function createConnection(): Promise<NetworkConnection> {
   const hre = await createHre();
-  const connection = await hre.network.connect();
+  const connection = await hre.network.create();
 
   await connection.provider.request({
     method: "evm_setAutomine",
@@ -32,7 +32,7 @@ export async function createHre(): Promise<HardhatRuntimeEnvironment> {
     process.cwd(),
   );
 
-  const connection = await hre.network.connect();
+  const connection = await hre.network.create();
 
   await connection.provider.request({
     method: "evm_setAutomine",
@@ -55,7 +55,7 @@ export async function createClient(
   connection: NetworkConnection;
 }> {
   const hre = await createHre();
-  const connection = await hre.network.connect();
+  const connection = await hre.network.create();
   const client = new EIP1193JsonRpcClient(connection.provider, config);
   return {
     client,

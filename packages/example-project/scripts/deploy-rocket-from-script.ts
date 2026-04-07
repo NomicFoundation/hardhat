@@ -2,7 +2,7 @@ import hre from "hardhat";
 
 import apolloModule from "../ignition/modules/Apollo.js";
 
-const { ignition } = await hre.network.connect();
+const { ignition } = await hre.network.create();
 
 const { apollo } = await ignition.deploy(apolloModule);
 

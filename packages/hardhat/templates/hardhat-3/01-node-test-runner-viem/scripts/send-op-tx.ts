@@ -1,6 +1,6 @@
 import { network } from "hardhat";
 
-const { viem } = await network.connect({
+const { viem } = await network.create({
   network: "hardhatOp",
   chainType: "op",
 });

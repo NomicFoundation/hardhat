@@ -110,7 +110,7 @@ export async function verifyContract(
     );
   }
 
-  const connection = await network.connect();
+  const connection = await network.create();
   const { networkName } = connection;
   const resolvedProvider = provider ?? connection.provider;
 

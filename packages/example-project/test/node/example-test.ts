@@ -4,7 +4,7 @@ import hre from "hardhat";
 
 describe("Example EDR based test", () => {
   it("should work get the block number from the EDR Network", async () => {
-    const connection = await hre.network.connect();
+    const connection = await hre.network.create();
 
     const blockNumberAtStart = await connection.provider.request({
       method: "eth_blockNumber",
@@ -24,7 +24,7 @@ describe("Example EDR based test", () => {
   });
 
   it("should show stack traces when a transaction reverts", async () => {
-    const connection = await hre.network.connect();
+    const connection = await hre.network.create();
 
     const Revert = await connection.ethers.getContractFactory("Revert");
     const revert = await Revert.deploy();

@@ -54,7 +54,7 @@ const taskDeploy: NewTaskActionFunction<TaskDeployArguments> = async (
   },
   hre: HardhatRuntimeEnvironment,
 ): Promise<DeploymentResult | null> => {
-  const connection = await hre.network.connect();
+  const connection = await hre.network.create();
 
   const chainId = Number(
     await connection.provider.request({

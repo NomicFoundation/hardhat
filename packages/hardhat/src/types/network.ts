@@ -49,7 +49,15 @@ export interface NetworkConnectionParams<
 }
 
 export interface NetworkManager {
-  connect<ChainTypeT extends ChainType | string = DefaultChainType>(
+  /**
+   * Creates a new network connection based on the provided parameters.
+   *
+   * @param networkOrParams The network name or connection parameters. When
+   * omitted, the default network is used.
+   *
+   * @returns A new {@link NetworkConnection} for the specified network.
+   */
+  create<ChainTypeT extends ChainType | string = DefaultChainType>(
     networkOrParams?: NetworkConnectionParams<ChainTypeT> | string,
   ): Promise<NetworkConnection<ChainTypeT>>;
 

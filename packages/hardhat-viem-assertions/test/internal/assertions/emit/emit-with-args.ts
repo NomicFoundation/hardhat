@@ -32,7 +32,7 @@ describe("emitWithArgs", () => {
   });
 
   beforeEach(async () => {
-    ({ provider, viem } = await hre.network.connect());
+    ({ provider, viem } = await hre.network.create());
   });
 
   it("should check that the event was emitted with the correct single argument", async () => {

@@ -12,12 +12,12 @@ export default async (): Promise<Partial<HardhatRuntimeEnvironmentHooks>> => ({
     let networkManager: NetworkManager | undefined;
 
     hre.network = {
-      async connect(networkConnectionParams) {
+      async create(networkConnectionParams) {
         if (networkManager === undefined) {
           networkManager = await createNetworkManager(hre, context);
         }
 
-        return networkManager.connect(networkConnectionParams);
+        return networkManager.create(networkConnectionParams);
       },
       async createServer(...params) {
         if (networkManager === undefined) {

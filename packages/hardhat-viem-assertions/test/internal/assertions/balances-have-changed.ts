@@ -17,7 +17,7 @@ describe("balancesHaveChanged", () => {
       plugins: [hardhatViem, hardhatViemAssertions],
     });
 
-    ({ viem } = await hre.network.connect());
+    ({ viem } = await hre.network.create());
   });
 
   it("should check that a single balances has changed", async () => {

@@ -33,7 +33,7 @@ Here is an example of using the `emit` matcher:
 import { expect } from "chai";
 import { network } from "hardhat";
 
-const { ethers } = await network.connect();
+const { ethers } = await network.create();
 
 it("some test", async function () {
   const contract = await ethers.deployContract("SomeContract");

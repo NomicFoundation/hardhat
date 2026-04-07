@@ -30,7 +30,7 @@ This plugin adds a `viem` property to each Network Connection:
 ```ts
 import { network } from "hardhat";
 
-const { viem } = await hre.network.connect();
+const { viem } = await network.create();
 
 const publicClient = await viem.getPublicClient();
 console.log(await publicClient.getBlockNumber());

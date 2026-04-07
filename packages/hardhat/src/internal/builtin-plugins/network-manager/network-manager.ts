@@ -87,9 +87,7 @@ export class NetworkManagerImplementation implements NetworkManager {
     this.#verbosity = verbosity;
   }
 
-  public async connect<
-    ChainTypeT extends ChainType | string = DefaultChainType,
-  >(
+  public async create<ChainTypeT extends ChainType | string = DefaultChainType>(
     networkOrParams?: NetworkConnectionParams<ChainTypeT> | string,
   ): Promise<NetworkConnection<ChainTypeT>> {
     let networkName: string | undefined;
@@ -129,7 +127,7 @@ export class NetworkManagerImplementation implements NetworkManager {
     const insideDocker = await exists("/.dockerenv");
     const hostname = _hostname ?? (insideDocker ? "0.0.0.0" : "127.0.0.1");
 
-    const { provider } = await this.connect(networkOrParams);
+    const { provider } = await this.create(networkOrParams);
 
     return new JsonRpcServerImplementation({
       hostname,
@@ -387,7 +385,7 @@ export class NetworkManagerImplementation implements NetworkManager {
       throw new HardhatError(
         HardhatError.ERRORS.CORE.NETWORK.INVALID_CONFIG_OVERRIDE,
         {
-          errors: `\t* The chainType cannot be specified in config overrides. Pass it at the top level instead: hre.network.connect({ chainType: 'op' })`,
+          errors: `\t* The chainType cannot be specified in config overrides. Pass it at the top level instead: hre.network.create({ chainType: 'op' })`,
         },
       );
     }

@@ -82,7 +82,7 @@ Usage Example with Viem:
 import hre from "hardhat";
 import { stringToHex } from "viem";
 
-const { viem } = await hre.network.connect("yourNetworkName");
+const { viem } = await hre.network.create("yourNetworkName");
 
 const ledgerAddress = "0x..."; // Your ledger address
 
@@ -101,7 +101,7 @@ Usage Example with the provider:
 ```typescript
 import hre from "hardhat";
 
-const { provider, ethers } = await hre.network.connect("yourNetworkName");
+const { provider, ethers } = await hre.network.create("yourNetworkName");
 
 const ledgerAddress = "0x..."; // Your ledger address
 

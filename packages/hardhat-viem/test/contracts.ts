@@ -33,7 +33,7 @@ describe("contracts", () => {
 
     describe("deployContract", () => {
       it("should be able to deploy a contract without constructor args", async () => {
-        const networkConnection = await hre.network.connect();
+        const networkConnection = await hre.network.create();
         const contract = await networkConnection.viem.deployContract(
           "WithoutConstructorArgs",
         );
@@ -44,7 +44,7 @@ describe("contracts", () => {
       });
 
       it("should be able to deploy a contract with constructor args", async () => {
-        const networkConnection = await hre.network.connect();
+        const networkConnection = await hre.network.create();
         const [defaultWalletClient] =
           await networkConnection.viem.getWalletClients();
         const contract = await networkConnection.viem.deployContract(
@@ -64,7 +64,7 @@ describe("contracts", () => {
       });
 
       it("should be able to deploy a contract with a different wallet client", async () => {
-        const networkConnection = await hre.network.connect();
+        const networkConnection = await hre.network.create();
         const [_, secondWalletClient] =
           await networkConnection.viem.getWalletClients();
         const contract = await networkConnection.viem.deployContract(
@@ -78,7 +78,7 @@ describe("contracts", () => {
       });
 
       it("should be able to deploy a contract with initial ETH", async () => {
-        const networkConnection = await hre.network.connect();
+        const networkConnection = await hre.network.create();
         const publicClient = await networkConnection.viem.getPublicClient();
         const [defaultWalletClient] =
           await networkConnection.viem.getWalletClients();
@@ -113,7 +113,7 @@ describe("contracts", () => {
       });
 
       it("should be able to deploy a contract with normal library linked", async () => {
-        const networkConnection = await hre.network.connect();
+        const networkConnection = await hre.network.create();
         const normalLibContract =
           await networkConnection.viem.deployContract("NormalLib");
 
@@ -132,7 +132,7 @@ describe("contracts", () => {
       });
 
       it("should be able to deploy a contract with constructor library linked", async () => {
-        const networkConnection = await hre.network.connect();
+        const networkConnection = await hre.network.create();
         const ctorLibContract = await networkConnection.viem.deployContract(
           "contracts/WithLibs.sol:ConstructorLib",
         );
@@ -152,7 +152,7 @@ describe("contracts", () => {
       });
 
       it("should be able to deploy a contract with both normal and constructor libraries linked", async () => {
-        const networkConnection = await hre.network.connect();
+        const networkConnection = await hre.network.create();
         const [ctorLibContract, normalLibContract] = await Promise.all([
           networkConnection.viem.deployContract(
             "contracts/WithLibs.sol:ConstructorLib",
@@ -197,7 +197,7 @@ describe("contracts", () => {
           },
         });
 
-        const networkConnection = await hre.network.connect({
+        const networkConnection = await hre.network.create({
           network: "edrOptimism",
           chainType: "op",
         });
@@ -211,7 +211,7 @@ describe("contracts", () => {
       });
 
       it("should throw an error if the contract address can't be retrieved", async (t) => {
-        const networkConnection = await hre.network.connect();
+        const networkConnection = await hre.network.create();
         const publicClient = await networkConnection.viem.getPublicClient();
         const [walletClient] = await networkConnection.viem.getWalletClients();
 
@@ -275,7 +275,7 @@ describe("contracts", () => {
 
         hre.hooks.registerHandlers("network", networkHooks);
 
-        const networkConnection = await hre.network.connect();
+        const networkConnection = await hre.network.create();
 
         await assertRejectsWithHardhatError(
           networkConnection.viem.deployContract("WithoutConstructorArgs"),
@@ -298,7 +298,7 @@ describe("contracts", () => {
       // for tests.
       // TODO: analyze why this test is failing in the ci
       it.skip("should wait for confirmations", { timeout: 500 }, async () => {
-        const networkConnection = await hre.network.connect();
+        const networkConnection = await hre.network.create();
         const publicClient = await networkConnection.viem.getPublicClient();
         const testClient = await networkConnection.viem.getTestClient();
         // We wait for twice the polling interval to ensure the client has
@@ -345,7 +345,7 @@ describe("contracts", () => {
       });
 
       it("should throw if the confirmations parameter is less than 0", async () => {
-        const networkConnection = await hre.network.connect();
+        const networkConnection = await hre.network.create();
 
         await assertRejectsWithHardhatError(
           networkConnection.viem.deployContract("WithoutConstructorArgs", [], {
@@ -359,7 +359,7 @@ describe("contracts", () => {
       });
 
       it("should throw if the confirmations parameter is 0", async () => {
-        const networkConnection = await hre.network.connect();
+        const networkConnection = await hre.network.create();
 
         await assertRejectsWithHardhatError(
           networkConnection.viem.deployContract("WithoutConstructorArgs", [], {
@@ -374,7 +374,7 @@ describe("contracts", () => {
       });
 
       it("should throw if there are any missing libraries", async () => {
-        const networkConnection = await hre.network.connect();
+        const networkConnection = await hre.network.create();
 
         await assertRejectsWithHardhatError(
           networkConnection.viem.deployContract("OnlyNormalLib"),
@@ -391,7 +391,7 @@ describe("contracts", () => {
       });
 
       it("should throw if there are libraries that are not needed", async () => {
-        const networkConnection = await hre.network.connect();
+        const networkConnection = await hre.network.create();
         const constructorLibContract =
           await networkConnection.viem.deployContract(
             "contracts/WithLibs.sol:ConstructorLib",
@@ -437,7 +437,7 @@ describe("contracts", () => {
       });
 
       it("should throw if the provided library names are ambiguous", async () => {
-        const networkConnection = await hre.network.connect();
+        const networkConnection = await hre.network.create();
         const constructorLibConstructorLibContract =
           await networkConnection.viem.deployContract(
             "contracts/ConstructorLib.sol:ConstructorLib",
@@ -511,7 +511,7 @@ describe("contracts", () => {
       });
 
       it("should throw if the provided library names are overlapping", async () => {
-        const networkConnection = await hre.network.connect();
+        const networkConnection = await hre.network.create();
         const constructorLibContract =
           await networkConnection.viem.deployContract(
             "contracts/WithLibs.sol:ConstructorLib",
@@ -540,7 +540,7 @@ describe("contracts", () => {
       });
 
       it("should throw if the provided library addresses are invalid", async () => {
-        const networkConnection = await hre.network.connect();
+        const networkConnection = await hre.network.create();
 
         await assertRejectsWithHardhatError(
           networkConnection.viem.deployContract("OnlyNormalLib", [], {
@@ -563,7 +563,7 @@ describe("contracts", () => {
 
     describe("sendDeploymentTransaction", () => {
       it("should return the contract and the deployment transaction", async () => {
-        const networkConnection = await hre.network.connect();
+        const networkConnection = await hre.network.create();
         const publicClient = await networkConnection.viem.getPublicClient();
         const { contract, deploymentTransaction } =
           await networkConnection.viem.sendDeploymentTransaction(
@@ -592,7 +592,7 @@ describe("contracts", () => {
       });
 
       it("should return the contract with linked libraries and the deployment transaction", async () => {
-        const networkConnection = await hre.network.connect();
+        const networkConnection = await hre.network.create();
         const publicClient = await networkConnection.viem.getPublicClient();
         const normalLib =
           await networkConnection.viem.sendDeploymentTransaction(
