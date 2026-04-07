@@ -280,10 +280,9 @@ const _handleError = (error: Error): JsonRpcResponse => {
       message: error.message,
       // For revert errors (code 3), use the raw hex data to match geth/anvil format.
       // For other errors, use the object format for backward compatibility.
-      data:
-        isRevertError && returnData !== undefined
-          ? returnData
-          : { message: error.message, txHash, data: returnData },
+      data: isRevertError
+        ? (returnData ?? "0x")
+        : { message: error.message, txHash, data: returnData },
     },
   };
 

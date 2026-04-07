@@ -1,5 +1,6 @@
 import type { Hex } from "viem";
 
+import { assertHardhatInvariant } from "@nomicfoundation/hardhat-errors";
 import { ensureError } from "@nomicfoundation/hardhat-utils/error";
 import {
   ContractFunctionExecutionError,
@@ -30,11 +31,14 @@ export function extractRevertError(error: unknown): {
 
   ensureError(cause, ContractFunctionRevertedError);
 
-  const data = cause.raw ?? "0x";
+  assertHardhatInvariant(
+    cause.raw !== undefined,
+    `Expected raw revert data on ContractFunctionRevertedError, but got none. Error: "${cause.message}"`,
+  );
 
   return {
     name: error.name,
     message: cause.message,
-    data,
+    data: cause.raw,
   };
 }

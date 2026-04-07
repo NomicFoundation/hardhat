@@ -300,7 +300,7 @@ function getMessageFromLastStackTraceEntry(
  * properly detect and handle revert errors via the error cause chain.
  **/
 export class SolidityError extends Error {
-  public static readonly CODE: number = 3;
+  public static readonly CODE = 3;
   public readonly code: number = SolidityError.CODE;
 
   constructor(

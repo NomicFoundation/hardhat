@@ -76,6 +76,22 @@ describe("JSON-RPC handler", async function () {
       (err as any).transactionHash = "0xabc123";
       throw err;
     },
+    nonProviderErrorWithDataButNoCode3: () => {
+      // A non-ProviderError with .data and .transactionHash but WITHOUT .code=3
+      const err = new Error("some error with data");
+      // eslint-disable-next-line @typescript-eslint/consistent-type-assertions -- allow in test
+      (err as any).data = "0xcafe";
+      // eslint-disable-next-line @typescript-eslint/consistent-type-assertions -- allow in test
+      (err as any).transactionHash = "0xdef456";
+      throw err;
+    },
+    revertErrorWithNoData: () => {
+      // Simulates a bare revert() with code=3 but no data
+      const err = new Error("revert");
+      // eslint-disable-next-line @typescript-eslint/consistent-type-assertions -- allow in test
+      (err as any).code = SolidityError.CODE;
+      throw err;
+    },
   });
   const server = new JsonRpcServerImplementation({
     hostname,
@@ -329,6 +345,45 @@ describe("JSON-RPC handler", async function () {
     assert.equal(rpcRes.error.message, "revert Unauthorized");
     // Data should be the raw hex string, matching geth/anvil format
     assert.equal(rpcRes.error.data, "0xdeadbeef");
+  });
+
+  it("should wrap non-ProviderError with data but without code 3 as InternalError", async function () {
+    const rpcReq: JsonRpcRequest = {
+      jsonrpc: "2.0",
+      method: "nonProviderErrorWithDataButNoCode3",
+      id: 1,
+    };
+
+    const rpcRes = await postRawJsonRpc(hostname, port, JSON.stringify(rpcReq));
+
+    assert.ok(
+      isJsonRpcResponse(rpcRes) && isFailedJsonRpcResponse(rpcRes),
+      "Expected a failed JSON-RPC response",
+    );
+    assert.equal(rpcRes.error.code, InternalError.CODE);
+    assert.ok(
+      isObject(rpcRes.error.data),
+      "Expected error data to be an object",
+    );
+    assert.equal(rpcRes.error.data.txHash, "0xdef456");
+    assert.equal(rpcRes.error.data.data, "0xcafe");
+  });
+
+  it("should fall back to object format for code-3 errors with no return data", async function () {
+    const rpcReq: JsonRpcRequest = {
+      jsonrpc: "2.0",
+      method: "revertErrorWithNoData",
+      id: 1,
+    };
+
+    const rpcRes = await postRawJsonRpc(hostname, port, JSON.stringify(rpcReq));
+
+    assert.ok(
+      isJsonRpcResponse(rpcRes) && isFailedJsonRpcResponse(rpcRes),
+      "Expected a failed JSON-RPC response",
+    );
+    assert.equal(rpcRes.error.code, SolidityError.CODE);
+    assert.equal(rpcRes.error.data, "0x");
   });
 });
 
