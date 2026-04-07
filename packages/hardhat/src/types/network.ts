@@ -62,6 +62,21 @@ export interface NetworkManager {
   ): Promise<NetworkConnection<ChainTypeT>>;
 
   /**
+   * Creates a new network connection based on the provided parameters.
+   *
+   * @param networkOrParams The network name or connection parameters. When
+   * omitted, the default network is used.
+   *
+   * @returns A new {@link NetworkConnection} for the specified network.
+   *
+   * @deprecated Use {@link NetworkManager.create} or
+   * {@link NetworkManager.createOrGet}
+   */
+  connect<ChainTypeT extends ChainType | string = DefaultChainType>(
+    networkOrParams?: NetworkConnectionParams<ChainTypeT> | string,
+  ): Promise<NetworkConnection<ChainTypeT>>;
+
+  /**
    * Spawns an Ethereum JSON-RPC server listening on HTTP and Websocket.
    *
    * @param networkOrParams The network name or connection parameters.

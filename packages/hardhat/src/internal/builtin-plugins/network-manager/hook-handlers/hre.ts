@@ -19,6 +19,15 @@ export default async (): Promise<Partial<HardhatRuntimeEnvironmentHooks>> => ({
 
         return networkManager.create(networkConnectionParams);
       },
+
+      async connect(networkConnectionParams) {
+        if (networkManager === undefined) {
+          networkManager = await createNetworkManager(hre, context);
+        }
+
+        return networkManager.create(networkConnectionParams);
+      },
+
       async createServer(...params) {
         if (networkManager === undefined) {
           networkManager = await createNetworkManager(hre, context);

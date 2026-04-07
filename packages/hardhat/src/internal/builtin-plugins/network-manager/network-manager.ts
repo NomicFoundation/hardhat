@@ -115,6 +115,14 @@ export class NetworkManagerImplementation implements NetworkManager {
     return networkConnection as NetworkConnection<ChainTypeT>;
   }
 
+  public async connect<
+    ChainTypeT extends ChainType | string = DefaultChainType,
+  >(
+    networkOrParams?: NetworkConnectionParams<ChainTypeT> | string,
+  ): Promise<NetworkConnection<ChainTypeT>> {
+    return this.create(networkOrParams);
+  }
+
   public async createServer<
     ChainTypeT extends ChainType | string = DefaultChainType,
   >(

@@ -1027,6 +1027,17 @@ describe("NetworkManagerImplementation", () => {
     });
   });
 
+  describe("connect", () => {
+    it("should behave the same as create", async () => {
+      const connectConn = await networkManager.connect("myNetwork");
+      const createConn = await networkManager.create("myNetwork");
+
+      assert.equal(connectConn.networkName, createConn.networkName);
+      assert.equal(connectConn.chainType, createConn.chainType);
+      assert.equal(connectConn.chainType, OPTIMISM_CHAIN_TYPE);
+    });
+  });
+
   describe("createServer", function () {
     it("should throw an error if the network type is not edr-simulated", async () => {
       await assertRejectsWithHardhatError(
