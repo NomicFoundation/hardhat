@@ -21,6 +21,16 @@
       "package": "@nomicfoundation/hardhat-ignition-ethers",
       "peer": "@nomicfoundation/hardhat-ignition",
       "reason": "The usage of the new `getUserInterruptionsHandlers` helper from `@nomicfoundation/hardhat-ignition/helpers`"
+    },
+    {
+      "package": "@nomicfoundation/hardhat-ignition",
+      "peer": "hardhat",
+      "reason": "Switched from deprecated `hre.network.connect()` to new `hre.network.create()` in deploy, track-tx, transactions, and verify tasks"
+    },
+    {
+      "package": "@nomicfoundation/hardhat-verify",
+      "peer": "hardhat",
+      "reason": "Switched from deprecated `network.connect()` to new `network.create()` in verification logic and updated API docs"
     }
   ]
 }
