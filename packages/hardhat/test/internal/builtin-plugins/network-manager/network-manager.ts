@@ -1038,6 +1038,107 @@ describe("NetworkManagerImplementation", () => {
     });
   });
 
+  describe("getOrCreate", () => {
+    it("should use the default network when none is provided", async () => {
+      const conn = await networkManager.getOrCreate();
+
+      assert.equal(conn.networkName, "localhost");
+    });
+
+    it("should use the default chain type when none is provided", async () => {
+      const conn = await networkManager.getOrCreate();
+
+      assert.equal(conn.chainType, GENERIC_CHAIN_TYPE);
+    });
+
+    it("should return the same connection for repeated calls with no arguments", async () => {
+      const conn1 = await networkManager.getOrCreate();
+      const conn2 = await networkManager.getOrCreate();
+
+      assert.equal(conn1, conn2);
+    });
+
+    it("should return the same connection for repeated calls with the same network", async () => {
+      const conn1 = await networkManager.getOrCreate("customNetwork");
+      const conn2 = await networkManager.getOrCreate("customNetwork");
+
+      assert.equal(conn1, conn2);
+    });
+
+    it("should return the same connection for repeated calls with the same network and chainType", async () => {
+      const conn1 = await networkManager.getOrCreate({
+        network: "myNetwork",
+        chainType: OPTIMISM_CHAIN_TYPE,
+      });
+      const conn2 = await networkManager.getOrCreate({
+        network: "myNetwork",
+        chainType: OPTIMISM_CHAIN_TYPE,
+      });
+
+      assert.equal(conn1, conn2);
+    });
+
+    it("should return different connections for different networks", async () => {
+      const conn1 = await networkManager.getOrCreate("localhost");
+      const conn2 = await networkManager.getOrCreate("customNetwork");
+
+      assert.notEqual(conn1, conn2);
+    });
+
+    it("should return the same connection when the config chainType matches an explicit chainType", async () => {
+      // myNetwork has chainType: OPTIMISM_CHAIN_TYPE from the config
+      const connImplicit = await networkManager.getOrCreate("myNetwork");
+      const connExplicit = await networkManager.getOrCreate({
+        network: "myNetwork",
+        chainType: OPTIMISM_CHAIN_TYPE,
+      });
+
+      assert.equal(connImplicit.chainType, OPTIMISM_CHAIN_TYPE);
+      assert.equal(connImplicit, connExplicit);
+    });
+
+    it("should return different connections when the config chainType differs from an explicit chainType", async () => {
+      // myNetwork has chainType: OPTIMISM_CHAIN_TYPE from the config
+      const connDefault = await networkManager.getOrCreate("myNetwork");
+      const connGeneric = await networkManager.getOrCreate({
+        network: "myNetwork",
+        chainType: GENERIC_CHAIN_TYPE,
+      });
+
+      assert.equal(connDefault.chainType, OPTIMISM_CHAIN_TYPE);
+      assert.equal(connGeneric.chainType, GENERIC_CHAIN_TYPE);
+      assert.notEqual(connDefault, connGeneric);
+    });
+
+    it("should return different connections for the same network with different chainTypes", async () => {
+      const conn1 = await networkManager.getOrCreate({
+        network: "myNetwork",
+        chainType: OPTIMISM_CHAIN_TYPE,
+      });
+      const conn2 = await networkManager.getOrCreate({
+        network: "myNetwork",
+        chainType: GENERIC_CHAIN_TYPE,
+      });
+
+      assert.notEqual(conn1, conn2);
+    });
+
+    it("should throw an error if an override is provided", async () => {
+      await assertRejectsWithHardhatError(
+        /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions
+        -- Cast to simulate a JS caller bypassing the type system */
+        networkManager.getOrCreate({
+          network: "localhost",
+          override: { url: "http://localhost:8545" },
+        } as any),
+        HardhatError.ERRORS.CORE.NETWORK.INVALID_CONFIG_OVERRIDE,
+        {
+          errors: "\t* Config overrides are not supported by getOrCreate.",
+        },
+      );
+    });
+  });
+
   describe("createServer", function () {
     it("should throw an error if the network type is not edr-simulated", async () => {
       await assertRejectsWithHardhatError(
