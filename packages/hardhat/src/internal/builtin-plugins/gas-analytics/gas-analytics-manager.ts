@@ -1,5 +1,6 @@
 import type {
   ContractGasStatsJson,
+  DeploymentGasStatsJsonEntry,
   GasAnalyticsManager,
   GasMeasurement,
   GasStatsJson,
@@ -10,7 +11,10 @@ import type { TableItem } from "@nomicfoundation/hardhat-utils/format";
 import crypto from "node:crypto";
 import path from "node:path";
 
-import { HardhatError } from "@nomicfoundation/hardhat-errors";
+import {
+  HardhatError,
+  assertHardhatInvariant,
+} from "@nomicfoundation/hardhat-errors";
 import { formatTable } from "@nomicfoundation/hardhat-utils/format";
 import {
   ensureDir,
@@ -31,8 +35,12 @@ const gasStatsLog = debug(
   "hardhat:core:gas-analytics:gas-analytics-manager:gas-stats",
 );
 
+interface DeploymentGasStats extends GasStats {
+  runtimeSize: number;
+}
+
 interface ContractGasStats {
-  deployment?: GasStats;
+  deployment?: DeploymentGasStats;
   functions: Map<
     string, // function name or signature (if overloaded)
     GasStats
@@ -53,6 +61,7 @@ type GasMeasurementsByContract = Map<string, ContractGasMeasurements>;
 
 interface ContractGasMeasurements {
   deployments: number[];
+  deploymentRuntimeSize?: number;
   functions: Map<
     string, // functionSig
     number[]
@@ -176,12 +185,18 @@ export class GasAnalyticsManagerImplementation implements GasAnalyticsManager {
       };
 
       if (measurements.deployments.length > 0) {
+        assertHardhatInvariant(
+          measurements.deploymentRuntimeSize !== undefined,
+          "deploymentRuntimeSize must be set when deployments exist",
+        );
+
         contractGasStats.deployment = {
           min: Math.min(...measurements.deployments),
           max: Math.max(...measurements.deployments),
           avg: Math.round(avg(measurements.deployments)),
           median: Math.round(median(measurements.deployments)),
           count: measurements.deployments.length,
+          runtimeSize: measurements.deploymentRuntimeSize,
         };
       }
 
@@ -236,6 +251,10 @@ export class GasAnalyticsManagerImplementation implements GasAnalyticsManager {
 
       if (currentMeasurement.type === "deployment") {
         contractMeasurements.deployments.push(currentMeasurement.gas);
+        if (contractMeasurements.deploymentRuntimeSize === undefined) {
+          contractMeasurements.deploymentRuntimeSize =
+            currentMeasurement.runtimeSize;
+        }
       } else {
         let measurements = contractMeasurements.functions.get(
           currentMeasurement.functionSig,
@@ -337,6 +356,13 @@ export class GasAnalyticsManagerImplementation implements GasAnalyticsManager {
             `${contractGasStats.deployment.count}`,
           ],
         });
+        rows.push({
+          type: "header",
+          cells: [
+            chalk.yellow("Bytecode size"),
+            `${contractGasStats.deployment.runtimeSize}`,
+          ],
+        });
       }
     }
 
@@ -361,7 +387,7 @@ export class GasAnalyticsManagerImplementation implements GasAnalyticsManager {
     for (const { userFqn, stats } of sortedContracts) {
       const { sourceName, contractName } = parseFullyQualifiedName(userFqn);
 
-      const deployment: GasStatsJsonEntry | null =
+      const deployment: DeploymentGasStatsJsonEntry | null =
         stats.deployment !== undefined ? { ...stats.deployment } : null;
 
       let functions: Record<string, GasStatsJsonEntry> | null = null;

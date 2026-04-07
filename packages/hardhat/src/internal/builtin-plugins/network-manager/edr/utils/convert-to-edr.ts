@@ -404,7 +404,7 @@ export function edrGasReportToHardhatGasMeasurements(
           contractFqn,
           type: "deployment",
           gas: Number(deployment.gas),
-          size: Number(deployment.size),
+          runtimeSize: Number(deployment.runtimeSize),
         });
       }
     }
