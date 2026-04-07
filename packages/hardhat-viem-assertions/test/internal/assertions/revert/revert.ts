@@ -62,8 +62,9 @@ describe("revert", () => {
         contract.read.revertWithCustomError(), // A custom error
       ),
       (error) =>
-        error.message ===
-        `The function was expected to revert with a non custom error, but it instead reverted with a custom error. VM Exception while processing transaction: reverted with custom error 'CustomError()'`,
+        error.message.includes(
+          `The function was expected to revert with a non custom error, but it instead reverted with a custom error. The contract function "revertWithCustomError" reverted.`,
+        ),
     );
   });
 
