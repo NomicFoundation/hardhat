@@ -10,6 +10,7 @@ import type WebSocket from "ws";
 import { ensureError } from "@nomicfoundation/hardhat-utils/error";
 import { isObject } from "@nomicfoundation/hardhat-utils/lang";
 
+import { SolidityError } from "../../network-manager/edr/stack-traces/stack-trace-solidity-errors.js";
 import {
   isJsonRpcRequest,
   isJsonRpcResponse,
@@ -258,7 +259,9 @@ const _handleError = (error: Error): JsonRpcResponse => {
 
   // Check if this is a revert error (code 3) matching the geth/anvil convention.
   const isRevertError =
-    "code" in error && typeof error.code === "number" && error.code === 3;
+    "code" in error &&
+    typeof error.code === "number" &&
+    error.code === SolidityError.CODE;
 
   // In case of non-hardhat error that is not a revert, treat it as internal
   // and associate the appropriate error code.
