@@ -2607,6 +2607,17 @@ describe("NetworkManagerImplementation", () => {
           );
 
           assertValidationErrors(validationErrors, []);
+
+          const validationErrorsBigint = await validateNetworkUserConfig(
+            edrConfig({
+              forking: {
+                url: "https://someurl.com",
+                blockNumber: 123n,
+              },
+            }),
+          );
+
+          assertValidationErrors(validationErrorsBigint, []);
         });
 
         it("should not validate an invalid network config", async () => {
