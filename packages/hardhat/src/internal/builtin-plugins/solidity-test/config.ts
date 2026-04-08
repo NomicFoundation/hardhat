@@ -69,8 +69,8 @@ const solidityTestUserConfigType = z.object({
       url: z.optional(sensitiveUrlSchema),
       blockNumber: z.optional(
         unionType(
-          [z.number().int().positive().safe(), z.bigint().positive()],
-          "Expected a positive safe int or a positive bigint",
+          [z.number().int().nonnegative().safe(), z.bigint().nonnegative()],
+          "Expected a nonnegative safe int or a nonnegative bigint",
         ),
       ),
       rpcEndpoints: z.record(sensitiveStringSchema).optional(),
