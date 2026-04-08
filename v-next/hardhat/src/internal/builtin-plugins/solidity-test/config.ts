@@ -19,6 +19,7 @@ import {
   conditionalUnionType,
   sensitiveStringSchema,
   sensitiveUrlSchema,
+  unionType,
   validateUserConfigZodType,
 } from "@nomicfoundation/hardhat-zod-utils";
 import { z } from "zod";
@@ -66,7 +67,12 @@ const solidityTestUserConfigType = z.object({
   forking: z
     .object({
       url: z.optional(sensitiveUrlSchema),
-      blockNumber: z.bigint().optional(),
+      blockNumber: z.optional(
+        unionType(
+          [z.number().int().positive().safe(), z.bigint().positive()],
+          "Expected a positive safe int or a positive bigint",
+        ),
+      ),
       rpcEndpoints: z.record(sensitiveStringSchema).optional(),
     })
     .optional(),
@@ -122,6 +128,10 @@ export function resolveSolidityTestForkingConfig(
 
   return {
     ...forkingUserConfig,
+    blockNumber:
+      forkingUserConfig.blockNumber !== undefined
+        ? BigInt(forkingUserConfig.blockNumber)
+        : undefined,
     url:
       forkingUserConfig.url !== undefined
         ? resolveConfigurationVariable(forkingUserConfig.url)

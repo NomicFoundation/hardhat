@@ -195,6 +195,29 @@ describe("solidityTestConfigToSolidityTestRunnerConfigArgs", () => {
     assert.deepEqual(args.rpcEndpoints, { a: "b" });
   });
 
+  it("accepts a number blockNumber in forking config and converts it to bigint", async () => {
+    const userForkingConfig = {
+      url: "an_url",
+      blockNumber: 123,
+      rpcEndpoints: { a: "b" },
+    };
+
+    const resolvedForkingConfig = resolveSolidityTestForkingConfig(
+      userForkingConfig,
+      configVarResolver,
+    );
+
+    const args = await solidityTestConfigToSolidityTestRunnerConfigArgs({
+      chainType: GENERIC_CHAIN_TYPE,
+      projectRoot: process.cwd(),
+      config: { fuzz: { seed: "0x1234" }, forking: resolvedForkingConfig },
+      verbosity: 1,
+      generateGasReport: false,
+    });
+
+    assert.equal(args.forkBlockNumber, 123n);
+  });
+
   it("sets generateGasReport to true", async () => {
     const args = await solidityTestConfigToSolidityTestRunnerConfigArgs({
       chainType: GENERIC_CHAIN_TYPE,

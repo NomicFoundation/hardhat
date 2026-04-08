@@ -2649,7 +2649,8 @@ describe("NetworkManagerImplementation", () => {
           assertValidationErrors(validationErrors, [
             {
               path: ["networks", "hardhat", "forking", "blockNumber"],
-              message: "Expected number, received string",
+              message:
+                "Expected a positive safe int or a positive bigint",
             },
           ]);
 

@@ -69,7 +69,7 @@ declare module "../../../types/test.js" {
 
   export interface SolidityTestForkingUserConfig {
     url?: SensitiveString;
-    blockNumber?: bigint;
+    blockNumber?: number | bigint;
     rpcEndpoints?: Record<string, SensitiveString>;
   }
 

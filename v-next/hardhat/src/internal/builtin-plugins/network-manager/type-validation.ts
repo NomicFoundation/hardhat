@@ -45,6 +45,10 @@ const nonnegativeIntSchema = z.number().int().nonnegative();
 const nonnegativeBigIntSchema = z.bigint().nonnegative();
 
 const blockNumberSchema = nonnegativeIntSchema;
+const forkingBlockNumberSchema = unionType(
+  [z.number().int().positive().safe(), z.bigint().positive()],
+  "Expected a positive safe int or a positive bigint",
+);
 const chainIdSchema = nonnegativeIntSchema;
 
 const chainTypeUserConfigSchema = unionType(
@@ -267,7 +271,7 @@ const edrNetworkAccountsUserConfigSchema = conditionalUnionType(
 const edrNetworkForkingUserConfigSchema = z.object({
   enabled: z.optional(z.boolean()),
   url: sensitiveUrlSchema,
-  blockNumber: z.optional(blockNumberSchema),
+  blockNumber: z.optional(forkingBlockNumberSchema),
   httpHeaders: z.optional(z.record(z.string())),
 });
 

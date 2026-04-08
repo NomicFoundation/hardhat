@@ -147,7 +147,7 @@ declare module "../../../../types/config.js" {
   export interface EdrNetworkForkingUserConfig {
     enabled?: boolean;
     url: SensitiveString;
-    blockNumber?: number;
+    blockNumber?: number | bigint;
     httpHeaders?: Record<string, string>;
   }
 

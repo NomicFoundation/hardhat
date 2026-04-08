@@ -517,6 +517,26 @@ describe("config-resolution", () => {
       );
     });
 
+    it("should accept a bigint blockNumber and resolve it correctly", async () => {
+      const userForkingConfig = {
+        enabled: true,
+        url: "http://localhost:8545",
+        blockNumber: 1234n,
+      };
+      const cacheDir = "cache-dir";
+      const forkingConfig = resolveForkingConfig(
+        userForkingConfig,
+        cacheDir,
+        configVarResolver,
+      );
+
+      assert.ok(
+        isEdrNetworkForkingConfig(forkingConfig),
+        "forkingConfig is not an EdrNetworkForkingConfig",
+      );
+      assert.equal(forkingConfig.blockNumber, 1234n);
+    });
+
     it("should use the default values for the optional fields if they are not provided", async () => {
       const userForkingConfig = {
         url: "http://localhost:8545",
