@@ -1097,6 +1097,7 @@ Please double check your transactions' parameters.`,
         websiteDescription: `Build info not found for contract while compiling Solidity test contracts.`,
       },
       RUNNER_TIMEOUT: {
+        // [DEPRECATED]
         number: 801,
         messageTemplate: `Runner timed out after {duration} ms.
 

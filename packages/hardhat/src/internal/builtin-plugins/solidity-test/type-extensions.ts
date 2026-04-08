@@ -31,7 +31,6 @@ declare module "../../../types/test.js" {
   }
 
   export interface SolidityTestConfigBase {
-    timeout?: number;
     fsPermissions?: {
       readWriteFile?: string[];
       readFile?: string[];

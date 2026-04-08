@@ -17,13 +17,6 @@ import { getGlobalEdrContext } from "../../edr/context.js";
 
 import { formatArtifactId } from "./formatters.js";
 
-export interface RunOptions {
-  /**
-   * The maximum time in milliseconds to wait for all the test suites to finish.
-   */
-  timeout?: number;
-}
-
 /**
  * Run all the given solidity tests and returns the stream of results.
  *
@@ -47,7 +40,6 @@ export function run(
   testRunnerConfig: SolidityTestRunnerConfigArgs,
   tracingConfig: TracingConfigWithBuffers,
   sourceNameToUserSourceName: Map<string, string>,
-  options?: RunOptions,
 ): TestsStream {
   const stream = new ReadableStream<TestEvent>({
     async start(controller) {
@@ -62,21 +54,6 @@ export function run(
           formatArtifactId(id, sourceNameToUserSourceName),
         ),
       );
-
-      let timeout: NodeJS.Timeout | undefined;
-      if (options?.timeout !== undefined) {
-        timeout = setTimeout(() => {
-          controller.error(
-            new HardhatError(
-              HardhatError.ERRORS.CORE.SOLIDITY_TESTS.RUNNER_TIMEOUT,
-              {
-                duration: options.timeout,
-                suites: Array.from(remainingSuites).join(", "),
-              },
-            ),
-          );
-        }, options.timeout);
-      }
 
       // TODO: Add support for predeploys once EDR supports them.
       try {
@@ -96,8 +73,6 @@ export function run(
               formatArtifactId(suiteResult.id, sourceNameToUserSourceName),
             );
             if (remainingSuites.size === 0) {
-              clearTimeout(timeout);
-
               if (runCompleted) {
                 controller.close();
               }
@@ -115,8 +90,6 @@ export function run(
         }
       } catch (error) {
         ensureError(error);
-
-        clearTimeout(timeout);
 
         controller.error(
           new HardhatError(

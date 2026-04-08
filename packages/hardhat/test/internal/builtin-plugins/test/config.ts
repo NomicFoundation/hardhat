@@ -19,7 +19,7 @@ describe("test/config", function () {
   it("should keep the existing `test` config  provided", async () => {
     const existingTestConfig = {
       solidity: {
-        timeout: 123,
+        isolate: true,
       },
     };
 
@@ -29,8 +29,8 @@ describe("test/config", function () {
     });
 
     assert.equal(
-      hre.config.test.solidity.timeout,
-      existingTestConfig.solidity.timeout,
+      hre.config.test.solidity.isolate,
+      existingTestConfig.solidity.isolate,
     );
   });
 });
