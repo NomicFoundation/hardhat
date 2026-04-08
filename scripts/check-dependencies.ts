@@ -63,13 +63,13 @@ function main() {
 
 function getAllPackageJsonPaths() {
   const packageNames = fs.readdirSync(
-    path.join(import.meta.dirname, "..", "v-next"),
+    path.join(import.meta.dirname, "..", "packages"),
   );
 
   const packageJsons = packageNames
     .filter((p) => !IGNORED_PACKAGE_FOLDERS.has(p))
     .map((p) =>
-      path.join(import.meta.dirname, "..", "v-next", p, "package.json"),
+      path.join(import.meta.dirname, "..", "packages", p, "package.json"),
     );
 
   return packageJsons;

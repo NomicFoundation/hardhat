@@ -3,13 +3,13 @@ import path from "node:path";
 
 const templatePackageJson = JSON.parse(
   fs.readFileSync(
-    path.join(import.meta.dirname, "../v-next/template-package/package.json"),
+    path.join(import.meta.dirname, "../packages/template-package/package.json"),
     "utf-8",
   ),
 );
 
-const vNextDir = path.resolve(import.meta.dirname, "../v-next");
-const dirs = fs.readdirSync(vNextDir, { withFileTypes: true });
+const packagesDir = path.resolve(import.meta.dirname, "../packages");
+const dirs = fs.readdirSync(packagesDir, { withFileTypes: true });
 
 let errorsFound = false;
 
@@ -64,7 +64,7 @@ for (const dir of dirs) {
     continue;
   }
 
-  const packageJsonPath = path.resolve(vNextDir, dir.name, "package.json");
+  const packageJsonPath = path.resolve(packagesDir, dir.name, "package.json");
   const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, "utf-8"));
 
   for (const scriptName in templatePackageJson.scripts) {

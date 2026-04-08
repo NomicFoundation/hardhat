@@ -1,0 +1,34 @@
+{
+  "name": "template-mocha-ethers",
+  "private": true,
+  "version": "0.0.1",
+  "description": "A TypeScript Hardhat project using Mocha and Ethers.js",
+  "type": "module",
+  "devDependencies": {
+    "hardhat": "workspace:^3.3.0",
+    "@nomicfoundation/hardhat-toolbox-mocha-ethers": "workspace:^3.0.3",
+    "@nomicfoundation/hardhat-ethers": "workspace:^4.0.7",
+    "@nomicfoundation/hardhat-ignition": "workspace:^3.1.1",
+    "@types/chai": "^5.2.3",
+    "@types/chai-as-promised": "^8.0.1",
+    "@types/mocha": ">=10.0.10",
+    "@types/node": "^22.8.5",
+    "chai": "^6.2.2",
+    "ethers": "^6.14.0",
+    "forge-std": "foundry-rs/forge-std#v1.9.4",
+    "mocha": "^11.0.0",
+    "typescript": "~5.8.0"
+  },
+  "peerDependencies": {
+    "@nomicfoundation/hardhat-ethers": "workspace:^4.0.7",
+    "@nomicfoundation/hardhat-ethers-chai-matchers": "workspace:^3.0.4",
+    "@nomicfoundation/hardhat-ignition": "workspace:^3.1.1",
+    "@nomicfoundation/hardhat-ignition-ethers": "workspace:^3.1.1",
+    "@nomicfoundation/hardhat-keystore": "workspace:^3.0.5",
+    "@nomicfoundation/hardhat-mocha": "workspace:^3.0.15",
+    "@nomicfoundation/hardhat-network-helpers": "workspace:^3.0.4",
+    "@nomicfoundation/hardhat-typechain": "workspace:^3.0.5",
+    "@nomicfoundation/hardhat-verify": "workspace:^3.0.13",
+    "@nomicfoundation/ignition-core": "workspace:^3.1.1"
+  }
+}

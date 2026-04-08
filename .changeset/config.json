@@ -15,15 +15,7 @@
     "@nomicfoundation/template-package",
     "template-*"
   ],
-  "fixed": [
-    [
-      "@nomicfoundation/hardhat-ignition",
-      "@nomicfoundation/hardhat-ignition-ethers",
-      "@nomicfoundation/hardhat-ignition-viem",
-      "@nomicfoundation/ignition-core",
-      "@nomicfoundation/ignition-ui"
-    ]
-  ],
+  "fixed": [],
   "___experimentalUnsafeOptions_WILL_CHANGE_IN_PATCH": {
     "onlyUpdatePeerDependentsWhenOutOfRange": true
   }
