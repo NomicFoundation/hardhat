@@ -63,7 +63,7 @@
     "rimraf": "^5.0.5",
     "tsx": "^4.19.3",
     "typescript": "~5.8.0",
-    "viem": "^2.43.0",
+    "viem": "^2.47.6",
     "hardhat": "workspace:^3.0.0"
   },
   "peerDependencies": {
@@ -77,6 +77,6 @@
     "@nomicfoundation/hardhat-verify": "workspace:^3.0.0",
     "@nomicfoundation/ignition-core": "workspace:^3.0.7",
     "hardhat": "workspace:^3.0.0",
-    "viem": "^2.43.0"
+    "viem": "^2.47.6"
   }
 }
