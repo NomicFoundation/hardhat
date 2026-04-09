@@ -289,7 +289,11 @@ describe("format", () => {
 
     it("Should render section header with subtitle on a second line", () => {
       const result = formatTable([
-        { type: "section-header", text: "Contract Name", subtitle: "(via Proxy)" },
+        {
+          type: "section-header",
+          text: "Contract Name",
+          subtitle: "(via Proxy)",
+        },
         { type: "header", cells: ["Function", "Gas"] },
         { type: "row", cells: ["transfer", "25000"] },
       ]);
