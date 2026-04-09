@@ -31,6 +31,56 @@
       "package": "@nomicfoundation/hardhat-verify",
       "peer": "hardhat",
       "reason": "Switched from deprecated `network.connect()` to new `network.create()` in verification logic and updated API docs"
+    },
+    {
+      "package": "@nomicfoundation/hardhat-ethers-chai-matchers",
+      "peer": "hardhat",
+      "reason": "Conservative bump for `connect()` deprecation and `create()`/`getOrCreate()` network API changes"
+    },
+    {
+      "package": "@nomicfoundation/hardhat-toolbox-mocha-ethers",
+      "peer": "hardhat",
+      "reason": "Conservative bump for `connect()` deprecation and `create()`/`getOrCreate()` network API changes"
+    },
+    {
+      "package": "@nomicfoundation/hardhat-ignition-ethers",
+      "peer": "hardhat",
+      "reason": "Conservative bump for `connect()` deprecation and `create()`/`getOrCreate()` network API changes"
+    },
+    {
+      "package": "@nomicfoundation/hardhat-network-helpers",
+      "peer": "hardhat",
+      "reason": "Conservative bump for `connect()` deprecation and `create()`/`getOrCreate()` network API changes"
+    },
+    {
+      "package": "@nomicfoundation/hardhat-viem-assertions",
+      "peer": "hardhat",
+      "reason": "Conservative bump for `connect()` deprecation and `create()`/`getOrCreate()` network API changes"
+    },
+    {
+      "package": "@nomicfoundation/hardhat-ignition-viem",
+      "peer": "hardhat",
+      "reason": "Conservative bump for `connect()` deprecation and `create()`/`getOrCreate()` network API changes"
+    },
+    {
+      "package": "@nomicfoundation/hardhat-toolbox-viem",
+      "peer": "hardhat",
+      "reason": "Conservative bump for `connect()` deprecation and `create()`/`getOrCreate()` network API changes"
+    },
+    {
+      "package": "@nomicfoundation/hardhat-ethers",
+      "peer": "hardhat",
+      "reason": "Conservative bump for `connect()` deprecation and `create()`/`getOrCreate()` network API changes"
+    },
+    {
+      "package": "@nomicfoundation/hardhat-ledger",
+      "peer": "hardhat",
+      "reason": "Conservative bump for `connect()` deprecation and `create()`/`getOrCreate()` network API changes"
+    },
+    {
+      "package": "@nomicfoundation/hardhat-viem",
+      "peer": "hardhat",
+      "reason": "Conservative bump for `connect()` deprecation and `create()`/`getOrCreate()` network API changes"
     }
   ]
 }
