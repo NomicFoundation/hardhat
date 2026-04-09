@@ -10,6 +10,13 @@ export interface GasStatsJsonEntry {
 }
 
 /**
+ * Gas statistics for a deployment, including bytecode size.
+ */
+export interface DeploymentGasStatsJsonEntry extends GasStatsJsonEntry {
+  runtimeSize: number;
+}
+
+/**
  * Gas statistics for a single contract in the JSON output.
  * `deployment` is null when the contract was never deployed during the test run
  * (e.g. deployed by a factory or via forking). `functions` is null when the
@@ -18,7 +25,7 @@ export interface GasStatsJsonEntry {
 export interface ContractGasStatsJson {
   sourceName: string;
   contractName: string;
-  deployment: GasStatsJsonEntry | null;
+  deployment: DeploymentGasStatsJsonEntry | null;
   functions: Record<string, GasStatsJsonEntry> | null;
 }
 
@@ -43,7 +50,7 @@ interface FunctionGasMeasurement extends BaseGasMeasurement {
 
 interface DeploymentGasMeasurement extends BaseGasMeasurement {
   type: "deployment";
-  size: number;
+  runtimeSize: number;
 }
 
 export type GasMeasurement = FunctionGasMeasurement | DeploymentGasMeasurement;
