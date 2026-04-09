@@ -2,7 +2,7 @@ import { describe, it } from "node:test";
 
 import { network } from "hardhat";
 
-describe("Counter", async function () {
+describe("Proxies", async function () {
   const { viem } = await network.connect();
 
   it("Should track the proxied calls to Impl1 and Impl2 as separate, despite using the same proxy", async function () {
