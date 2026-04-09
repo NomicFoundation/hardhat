@@ -20,16 +20,16 @@ import {
 } from "@nomicfoundation/hardhat-utils/fs";
 import chalk from "chalk";
 
+import { GasAnalyticsManagerImplementation } from "../../../../src/internal/builtin-plugins/gas-analytics/gas-analytics-manager.js";
 import {
   avg,
-  median,
-  getUserFqn,
-  getFunctionName,
-  makeGroupKey,
   getDisplayKey,
+  getFunctionName,
   getProxyLabel,
-  GasAnalyticsManagerImplementation,
-} from "../../../../src/internal/builtin-plugins/gas-analytics/gas-analytics-manager.js";
+  getUserFqn,
+  makeGroupKey,
+  median,
+} from "../../../../src/internal/builtin-plugins/gas-analytics/helpers.js";
 import { getFullyQualifiedName } from "../../../../src/utils/contract-names.js";
 
 describe("gas-analytics-manager", () => {

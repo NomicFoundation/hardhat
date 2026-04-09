@@ -31,6 +31,16 @@ import debug from "debug";
 
 import { parseFullyQualifiedName } from "../../../utils/contract-names.js";
 
+import {
+  avg,
+  getDisplayKey,
+  getFunctionName,
+  getProxyLabel,
+  getUserFqn,
+  makeGroupKey,
+  median,
+} from "./helpers.js";
+
 const gasStatsLog = debug(
   "hardhat:core:gas-analytics:gas-analytics-manager:gas-stats",
 );
@@ -429,19 +439,6 @@ export class GasAnalyticsManagerImplementation implements GasAnalyticsManager {
   }
 }
 
-export function avg(values: number[]): number {
-  return values.reduce((a, c) => a + c, 0) / values.length;
-}
-
-export function median(values: number[]): number {
-  const sorted = [...values].sort((a, b) => a - b);
-  const mid = Math.floor(sorted.length / 2);
-
-  return sorted.length % 2 === 1
-    ? sorted[mid]
-    : (sorted[mid - 1] + sorted[mid]) / 2;
-}
-
 function getSortedContractEntries(
   gasStatsByContract: GasStatsByContract,
 ): Array<{
@@ -459,66 +456,4 @@ function getSortedContractEntries(
       return { userFqn, displayKey, proxyLabel, stats };
     })
     .sort((a, b) => a.displayKey.localeCompare(b.displayKey));
-}
-
-export function getUserFqn(inputFqn: string): string {
-  if (inputFqn.startsWith("project/")) {
-    return inputFqn.slice("project/".length);
-  }
-
-  if (inputFqn.startsWith("npm/")) {
-    const withoutPrefix = inputFqn.slice("npm/".length);
-    // Match "<pkg>@<version>/<rest>", where <pkg> may be scoped (@scope/pkg)
-    const match = withoutPrefix.match(/^(@?[^@/]+(?:\/[^@/]+)*)@[^/]+\/(.*)$/);
-    if (match !== null) {
-      return `${match[1]}/${match[2]}`;
-    }
-    return withoutPrefix;
-  }
-
-  return inputFqn;
-}
-
-export function getFunctionName(signature: string): string {
-  return signature.split("(")[0];
-}
-
-/**
- * Builds a deterministic string key for grouping gas measurements by
- * (contractFqn, proxyChain). Uses null-byte separators to avoid collisions.
- */
-export function makeGroupKey(
-  contractFqn: string,
-  proxyChain: string[],
-): string {
-  if (proxyChain.length === 0) {
-    return contractFqn;
-  }
-  return contractFqn + "\0" + proxyChain.join("\0");
-}
-
-/**
- * Returns a human-readable proxy label like `"(via Proxy2 → Proxy)"`,
- * or `undefined` for direct calls. Strips the last element (the
- * implementation) and converts internal FQNs to user-friendly format.
- */
-export function getProxyLabel(proxyChain: string[]): string | undefined {
-  const proxies = proxyChain.slice(0, -1).map(getUserFqn);
-  if (proxies.length === 0) {
-    return undefined;
-  }
-  return `(via ${proxies.join(" → ")})`;
-}
-
-/**
- * Returns a display key for a contract entry, appending the proxy label
- * when the call went through a proxy chain. Used for table headers and
- * JSON object keys.
- */
-export function getDisplayKey(userFqn: string, proxyChain: string[]): string {
-  const label = getProxyLabel(proxyChain);
-  if (label === undefined) {
-    return userFqn;
-  }
-  return `${userFqn} ${label}`;
 }
