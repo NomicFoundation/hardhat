@@ -1,6 +1,11 @@
 import type { EdrArtifactWithMetadata } from "../../../../../src/internal/builtin-plugins/solidity-test/edr-artifacts.js";
 import type { RawInlineOverride } from "../../../../../src/internal/builtin-plugins/solidity-test/inline-config/index.js";
 
+import { randomUUID } from "node:crypto";
+import { writeFileSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
+
 import { utf8StringToBytes } from "@nomicfoundation/hardhat-utils/bytes";
 
 export function makeRawOverride(
@@ -57,7 +62,12 @@ export function makeBuildInfo(
   >,
   solcVersion = "0.8.23",
   buildInfoId = "test-build-info-id",
-): { buildInfo: Uint8Array; output: Uint8Array; buildInfoId: string } {
+): {
+  buildInfo: Uint8Array;
+  output: Uint8Array;
+  buildInfoId: string;
+  buildInfoOutputPath: string;
+} {
   const buildInfoJson = {
     _format: "hh3-sol-build-info-1",
     id: "test-build-info",
@@ -121,9 +131,14 @@ export function makeBuildInfo(
     },
   };
 
+  const outputJsonString = JSON.stringify(outputJson);
+  const buildInfoOutputPath = join(tmpdir(), `${randomUUID()}.json`);
+  writeFileSync(buildInfoOutputPath, outputJsonString);
+
   return {
     buildInfo: utf8StringToBytes(JSON.stringify(buildInfoJson)),
-    output: utf8StringToBytes(JSON.stringify(outputJson)),
+    output: utf8StringToBytes(outputJsonString),
     buildInfoId,
+    buildInfoOutputPath,
   };
 }
