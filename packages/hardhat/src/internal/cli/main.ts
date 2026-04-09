@@ -236,6 +236,20 @@ export async function main(
         log("Error showing banner", bannerError);
       }
     }
+
+    const deprecatedConnectWasCalled = Boolean(
+      "wasConnectCalled" in hre.network &&
+        hre.network.wasConnectCalled !== undefined &&
+        typeof hre.network.wasConnectCalled === "function" &&
+        hre.network.wasConnectCalled(),
+    );
+
+    if (deprecatedConnectWasCalled) {
+      console.warn(
+        "WARNING: hre.network.connect() is deprecated and will be removed in a future version. " +
+          "Use hre.network.create() or hre.network.getOrCreate() instead.",
+      );
+    }
   } catch (error) {
     ensureError(error);
     printErrorMessages(error, builtinGlobalOptions?.showStackTraces);

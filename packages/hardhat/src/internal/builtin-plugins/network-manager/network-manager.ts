@@ -60,7 +60,7 @@ export class NetworkManagerImplementation implements NetworkManager {
   readonly #projectRoot: string;
   readonly #verbosity: number;
 
-  static #connectDeprecationWarned = false;
+  #connectCalled = false;
 
   #nextConnectionId = 0;
   readonly #contractDecoderMutex = new AsyncMutex();
@@ -129,17 +129,7 @@ export class NetworkManagerImplementation implements NetworkManager {
   >(
     networkOrParams?: NetworkConnectionParams<ChainTypeT> | string,
   ): Promise<NetworkConnection<ChainTypeT>> {
-    if (NetworkManagerImplementation.#connectDeprecationWarned === false) {
-      NetworkManagerImplementation.#connectDeprecationWarned = true;
-      process.emitWarning(
-        "hre.network.connect() is deprecated and will be removed in a future version. " +
-          "Use hre.network.create() or hre.network.getOrCreate() instead.",
-        {
-          type: "DeprecationWarning",
-          code: "HH_DEPRECATED_NETWORK_CONNECT",
-        },
-      );
-    }
+    this.#connectCalled = true;
 
     return this.create(networkOrParams);
   }
@@ -227,6 +217,17 @@ export class NetworkManagerImplementation implements NetworkManager {
       port,
       provider,
     });
+  }
+
+  /**
+   * Returns whether the deprecated `connect` method has been called on this
+   * instance. It is not on the public NetworkManager interface as it is only
+   * used by the CLI to print a deprecation warning at exit.
+   *
+   * @returns whether the deprecated `connect` method has ever been called
+   */
+  public wasConnectCalled(): boolean {
+    return this.#connectCalled;
   }
 
   async #initializeNetworkConnection<ChainTypeT extends ChainType | string>(

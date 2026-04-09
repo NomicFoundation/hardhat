@@ -44,6 +44,18 @@ export default async (): Promise<Partial<HardhatRuntimeEnvironmentHooks>> => ({
         return networkManager.createServer(...params);
       },
     };
+
+    // To avoid adding `wasConnectCalled` to the public interface of
+    // `NetworkManager`, we add this pass through method that is only
+    // called from the `main` function.
+    Object.defineProperty(hre.network, "wasConnectCalled", {
+      value: () =>
+        networkManager !== undefined &&
+        "wasConnectCalled" in networkManager &&
+        typeof networkManager.wasConnectCalled === "function" &&
+        networkManager.wasConnectCalled(),
+      enumerable: false,
+    });
   },
 });
 
