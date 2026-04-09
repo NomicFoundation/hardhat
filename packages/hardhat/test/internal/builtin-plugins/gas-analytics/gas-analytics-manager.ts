@@ -29,7 +29,7 @@ import {
   getUserFqn,
   makeGroupKey,
   median,
-} from "../../../../src/internal/builtin-plugins/gas-analytics/helpers.js";
+} from "../../../../src/internal/builtin-plugins/gas-analytics/helpers/utils.js";
 import { getFullyQualifiedName } from "../../../../src/utils/contract-names.js";
 
 describe("gas-analytics-manager", () => {

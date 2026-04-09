@@ -17,7 +17,7 @@ import {
   parseFullyQualifiedName,
 } from "../../../utils/contract-names.js";
 
-import { formatSectionHeader, getUserFqn } from "./helpers.js";
+import { formatSectionHeader, getUserFqn } from "./helpers/utils.js";
 
 export const FUNCTION_GAS_SNAPSHOTS_FILE = ".gas-snapshot";
 

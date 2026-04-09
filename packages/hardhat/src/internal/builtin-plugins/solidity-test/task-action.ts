@@ -23,7 +23,7 @@ import { errorResult, successfulResult } from "../../../utils/result.js";
 import { isSupportedChainType } from "../../edr/chain-type.js";
 import { ArtifactManagerImplementation } from "../artifacts/artifact-manager.js";
 import { getCoverageManager } from "../coverage/helpers.js";
-import { getGasAnalyticsManager } from "../gas-analytics/helpers.js";
+import { getGasAnalyticsManager } from "../gas-analytics/helpers/accessors.js";
 import { edrGasReportToHardhatGasMeasurements } from "../network-manager/edr/utils/convert-to-edr.js";
 
 import {

@@ -18,7 +18,7 @@ import {
   parseFullyQualifiedName,
 } from "../../../utils/contract-names.js";
 
-import { formatSectionHeader, getUserFqn } from "./helpers.js";
+import { formatSectionHeader, getUserFqn } from "./helpers/utils.js";
 
 export const SNAPSHOT_CHEATCODES_DIR = "snapshots";
 

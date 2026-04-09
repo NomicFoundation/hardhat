@@ -1,18 +1,4 @@
-import type { GasAnalyticsManager } from "./types.js";
-import type { HookContext } from "../../../types/hooks.js";
-import type { HardhatRuntimeEnvironment } from "../../../types/hre.js";
-
-import { assertHardhatInvariant } from "@nomicfoundation/hardhat-errors";
 import chalk from "chalk";
-
-import { HardhatRuntimeEnvironmentImplementation } from "../../core/hre.js";
-
-import { GasAnalyticsManagerImplementation } from "./gas-analytics-manager.js";
-import {
-  testRunDone,
-  testRunStart,
-  testWorkerDone,
-} from "./hook-handlers/test.js";
 
 /**
  * Converts an internal FQN (e.g. `"project/contracts/Foo.sol:Foo"` or
@@ -98,29 +84,6 @@ export function median(values: number[]): number {
     : (sorted[mid - 1] + sorted[mid]) / 2;
 }
 
-export function getGasAnalyticsManager(
-  hookContextOrHre: HookContext | HardhatRuntimeEnvironment,
-): GasAnalyticsManager {
-  assertHardhatInvariant(
-    "_gasAnalytics" in hookContextOrHre &&
-      hookContextOrHre._gasAnalytics instanceof
-        GasAnalyticsManagerImplementation,
-    "Expected _gasAnalytics to be an instance of GasAnalyticsManagerImplementation",
-  );
-  return hookContextOrHre._gasAnalytics;
-}
-
-export function setGasAnalyticsManager(
-  hre: HardhatRuntimeEnvironment,
-  gasAnalyticsManager: GasAnalyticsManager,
-): void {
-  assertHardhatInvariant(
-    hre instanceof HardhatRuntimeEnvironmentImplementation,
-    "Expected HRE to be an instance of HardhatRuntimeEnvironmentImplementation",
-  );
-  hre._gasAnalytics = gasAnalyticsManager;
-}
-
 export function formatSectionHeader(
   sectionName: string,
   {
@@ -146,36 +109,4 @@ export function formatSectionHeader(
   }
 
   return `${sectionName}: ${chalk.gray(parts.join(", "))}`;
-}
-
-// -- Backward compatibility helpers --
-
-/**
- * The following helpers are kept for backward compatibility with older versions
- * of test runner plugins (hardhat-mocha, hardhat-node-test-runner) that import
- * from "hardhat/internal/gas-analytics".
- */
-
-let cachedHre: HardhatRuntimeEnvironment | undefined;
-async function getHre(): Promise<HardhatRuntimeEnvironment> {
-  if (cachedHre === undefined) {
-    const { default: hre } = await import("../../../index.js");
-    cachedHre = hre;
-  }
-  return cachedHre;
-}
-
-export async function markTestRunStart(id: string): Promise<void> {
-  const hre = await getHre();
-  await testRunStart(hre, id);
-}
-
-export async function markTestWorkerDone(id: string): Promise<void> {
-  const hre = await getHre();
-  await testWorkerDone(hre, id);
-}
-
-export async function markTestRunDone(id: string): Promise<void> {
-  const hre = await getHre();
-  await testRunDone(hre, id);
 }

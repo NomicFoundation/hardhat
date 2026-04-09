@@ -5,7 +5,7 @@ import { afterEach, describe, it } from "node:test";
 
 import { overrideTask, task } from "../../../../src/config.js";
 import { createHardhatRuntimeEnvironment } from "../../../../src/hre.js";
-import { getGasAnalyticsManager } from "../../../../src/internal/builtin-plugins/gas-analytics/helpers.js";
+import { getGasAnalyticsManager } from "../../../../src/internal/builtin-plugins/gas-analytics/helpers/accessors.js";
 import { ArgumentType } from "../../../../src/types/arguments.js";
 import { successfulResult, errorResult } from "../../../../src/utils/result.js";
 

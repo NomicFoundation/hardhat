@@ -39,7 +39,7 @@ import {
   getUserFqn,
   makeGroupKey,
   median,
-} from "./helpers.js";
+} from "./helpers/utils.js";
 
 const gasStatsLog = debug(
   "hardhat:core:gas-analytics:gas-analytics-manager:gas-stats",
