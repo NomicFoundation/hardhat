@@ -98,6 +98,7 @@ packages:
     publish: $authenticated
     unpublish: $authenticated
     proxy: npmjs
+max_body_size: 100mb
 log:
 ${logConfig}
 `;
