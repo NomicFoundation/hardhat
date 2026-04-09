@@ -18,3 +18,7 @@ sudo apt install -y hyperfine
 
 # Make sure bun is available at the cli
 npm install -g bun
+
+# Install forge
+curl -L https://foundry.paradigm.xyz | bash
+~/.foundry/bin/foundryup
