@@ -73,6 +73,17 @@ describe("JSON-RPC handler", async function () {
       (err as any).transactionHash = "0xdef456";
       throw err;
     },
+    revertWithDataAndTxHash: () => {
+      // Simulates a SolidityError (code 3) with both revert data and txHash
+      const err = new Error("execution reverted");
+      // eslint-disable-next-line @typescript-eslint/consistent-type-assertions -- allow in test
+      (err as any).code = 3;
+      // eslint-disable-next-line @typescript-eslint/consistent-type-assertions -- allow in test
+      (err as any).data = "0xdeadbeef";
+      // eslint-disable-next-line @typescript-eslint/consistent-type-assertions -- allow in test
+      (err as any).transactionHash = "0xabc123";
+      throw err;
+    },
   });
   const server = new JsonRpcServerImplementation({
     hostname,
@@ -328,6 +339,37 @@ describe("JSON-RPC handler", async function () {
     );
     assert.equal(rpcRes.error.data.txHash, "0xdef456");
     assert.equal(rpcRes.error.data.data, "0xcafe");
+  });
+
+  it("should preserve code 3, revert data, and txHash for revert errors over HTTP", async function () {
+    const rpcReq: JsonRpcRequest = {
+      jsonrpc: "2.0",
+      method: "revertWithDataAndTxHash",
+      id: 1,
+    };
+
+    const rpcRes = await postRawJsonRpc(hostname, port, JSON.stringify(rpcReq));
+
+    assert.ok(
+      isJsonRpcResponse(rpcRes) && isFailedJsonRpcResponse(rpcRes),
+      "Expected a failed JSON-RPC response",
+    );
+    assert.equal(rpcRes.error.code, 3, "Revert errors must use code 3");
+    assert.equal(
+      rpcRes.error.message,
+      "execution reverted",
+      "Revert error must not be wrapped as InternalError",
+    );
+    assert.ok(
+      isObject(rpcRes.error.data),
+      "Expected error data to be an object",
+    );
+    assert.equal(
+      rpcRes.error.data.data,
+      "0xdeadbeef",
+      "error.data.data must contain the raw revert hex",
+    );
+    assert.equal(rpcRes.error.data.txHash, "0xabc123");
   });
 });
 

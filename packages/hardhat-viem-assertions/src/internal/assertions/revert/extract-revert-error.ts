@@ -16,7 +16,7 @@ import {
  * in its `raw` property.
  *
  * @param error - The thrown viem `Error` object.
- * @returns The `0x` hex string representing the revert data.
+ * @returns An object with the error `name`, `message`, and `data` (`0x`-prefixed hex revert data).
  *
  * @throws If the error is not the expected viem revert error structure.
  */
