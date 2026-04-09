@@ -331,6 +331,7 @@ describe("test/task-action", function () {
         contractFqn: "project/contracts/MyContract.sol:MyContract",
         functionSig: "staleFunctionFromRunnerB()",
         gas: 99999,
+        proxyChain: [],
       });
       await gasAnalytics.saveGasMeasurements("runner-b");
 

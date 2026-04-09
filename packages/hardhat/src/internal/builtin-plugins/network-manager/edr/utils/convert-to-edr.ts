@@ -418,6 +418,7 @@ export function edrGasReportToHardhatGasMeasurements(
             type: "function",
             functionSig,
             gas: Number(call.gas),
+            proxyChain: call.proxyChain,
           });
         }
       }

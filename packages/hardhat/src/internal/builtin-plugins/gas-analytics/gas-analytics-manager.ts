@@ -40,6 +40,7 @@ interface DeploymentGasStats extends GasStats {
 }
 
 interface ContractGasStats {
+  proxyChain: string[];
   deployment?: DeploymentGasStats;
   functions: Map<
     string, // function name or signature (if overloaded)
@@ -60,6 +61,7 @@ interface GasStats {
 type GasMeasurementsByContract = Map<string, ContractGasMeasurements>;
 
 interface ContractGasMeasurements {
+  proxyChain: string[];
   deployments: number[];
   deploymentRuntimeSize?: number;
   functions: Map<
@@ -179,8 +181,9 @@ export class GasAnalyticsManagerImplementation implements GasAnalyticsManager {
     const gasStatsByContract: GasStatsByContract = new Map();
     const measurementsByContract = this._aggregateGasMeasurements();
 
-    for (const [contractFqn, measurements] of measurementsByContract) {
+    for (const [groupKey, measurements] of measurementsByContract) {
       const contractGasStats: ContractGasStats = {
+        proxyChain: measurements.proxyChain,
         functions: new Map(),
       };
 
@@ -222,7 +225,20 @@ export class GasAnalyticsManagerImplementation implements GasAnalyticsManager {
         );
       }
 
-      gasStatsByContract.set(contractFqn, contractGasStats);
+      gasStatsByContract.set(groupKey, contractGasStats);
+    }
+
+    // Duplicate deployment stats from direct-call groups to proxied groups
+    for (const [groupKey, stats] of gasStatsByContract) {
+      if (stats.proxyChain.length > 0 && stats.deployment === undefined) {
+        // Extract contractFqn from the groupKey (everything before the first \0)
+        const contractFqn = groupKey.split("\0")[0];
+        const directKey = makeGroupKey(contractFqn, []);
+        const directStats = gasStatsByContract.get(directKey);
+        if (directStats?.deployment !== undefined) {
+          stats.deployment = directStats.deployment;
+        }
+      }
     }
 
     return gasStatsByContract;
@@ -235,18 +251,20 @@ export class GasAnalyticsManagerImplementation implements GasAnalyticsManager {
     const measurementsByContract: GasMeasurementsByContract = new Map();
 
     for (const currentMeasurement of this.gasMeasurements) {
-      let contractMeasurements = measurementsByContract.get(
-        currentMeasurement.contractFqn,
-      );
+      const proxyChain =
+        currentMeasurement.type === "function"
+          ? currentMeasurement.proxyChain
+          : [];
+      const groupKey = makeGroupKey(currentMeasurement.contractFqn, proxyChain);
+
+      let contractMeasurements = measurementsByContract.get(groupKey);
       if (contractMeasurements === undefined) {
         contractMeasurements = {
+          proxyChain,
           deployments: [],
           functions: new Map(),
         };
-        measurementsByContract.set(
-          currentMeasurement.contractFqn,
-          contractMeasurements,
-        );
+        measurementsByContract.set(groupKey, contractMeasurements);
       }
 
       if (currentMeasurement.type === "deployment") {
@@ -286,15 +304,16 @@ export class GasAnalyticsManagerImplementation implements GasAnalyticsManager {
       rows.push({ type: "title", text: chalk.bold("Gas Usage Statistics") });
     }
 
-    // Sort contracts alphabetically for consistent output
-    const sortedContracts = [...gasStatsByContract.entries()].sort(([a], [b]) =>
-      a.localeCompare(b),
-    );
-
-    for (const [contractFqn, contractGasStats] of sortedContracts) {
+    const sortedContracts = getSortedContractEntries(gasStatsByContract);
+    for (const {
+      userFqn,
+      proxyLabel,
+      stats: contractGasStats,
+    } of sortedContracts) {
       rows.push({
         type: "section-header",
-        text: chalk.cyan.bold(getUserFqn(contractFqn)),
+        text: chalk.cyan.bold(userFqn),
+        subtitle: proxyLabel !== undefined ? chalk.cyan(proxyLabel) : undefined,
       });
 
       if (contractGasStats.functions.size > 0) {
@@ -375,16 +394,10 @@ export class GasAnalyticsManagerImplementation implements GasAnalyticsManager {
   public _generateGasStatsJson(
     gasStatsByContract: GasStatsByContract,
   ): GasStatsJson {
-    const sortedContracts = [...gasStatsByContract.entries()]
-      .map(([internalFqn, stats]) => ({
-        userFqn: getUserFqn(internalFqn),
-        stats,
-      }))
-      .sort((a, b) => a.userFqn.localeCompare(b.userFqn));
-
+    const sortedContracts = getSortedContractEntries(gasStatsByContract);
     const contracts: Record<string, ContractGasStatsJson> = {};
 
-    for (const { userFqn, stats } of sortedContracts) {
+    for (const { userFqn, displayKey, stats } of sortedContracts) {
       const { sourceName, contractName } = parseFullyQualifiedName(userFqn);
 
       const deployment: DeploymentGasStatsJsonEntry | null =
@@ -403,7 +416,13 @@ export class GasAnalyticsManagerImplementation implements GasAnalyticsManager {
         functions = Object.fromEntries(sortedFunctions);
       }
 
-      contracts[userFqn] = { sourceName, contractName, deployment, functions };
+      contracts[displayKey] = {
+        sourceName,
+        contractName,
+        proxyChain: stats.proxyChain.map(getUserFqn),
+        deployment,
+        functions,
+      };
     }
 
     return { contracts };
@@ -421,6 +440,25 @@ export function median(values: number[]): number {
   return sorted.length % 2 === 1
     ? sorted[mid]
     : (sorted[mid - 1] + sorted[mid]) / 2;
+}
+
+function getSortedContractEntries(
+  gasStatsByContract: GasStatsByContract,
+): Array<{
+  userFqn: string;
+  displayKey: string;
+  proxyLabel: string | undefined;
+  stats: ContractGasStats;
+}> {
+  return [...gasStatsByContract.entries()]
+    .map(([groupKey, stats]) => {
+      const contractFqn = groupKey.split("\0")[0];
+      const userFqn = getUserFqn(contractFqn);
+      const displayKey = getDisplayKey(userFqn, stats.proxyChain);
+      const proxyLabel = getProxyLabel(stats.proxyChain);
+      return { userFqn, displayKey, proxyLabel, stats };
+    })
+    .sort((a, b) => a.displayKey.localeCompare(b.displayKey));
 }
 
 export function getUserFqn(inputFqn: string): string {
@@ -443,4 +481,44 @@ export function getUserFqn(inputFqn: string): string {
 
 export function getFunctionName(signature: string): string {
   return signature.split("(")[0];
+}
+
+/**
+ * Builds a deterministic string key for grouping gas measurements by
+ * (contractFqn, proxyChain). Uses null-byte separators to avoid collisions.
+ */
+export function makeGroupKey(
+  contractFqn: string,
+  proxyChain: string[],
+): string {
+  if (proxyChain.length === 0) {
+    return contractFqn;
+  }
+  return contractFqn + "\0" + proxyChain.join("\0");
+}
+
+/**
+ * Returns a human-readable proxy label like `"(via Proxy2 → Proxy)"`,
+ * or `undefined` for direct calls. Strips the last element (the
+ * implementation) and converts internal FQNs to user-friendly format.
+ */
+export function getProxyLabel(proxyChain: string[]): string | undefined {
+  const proxies = proxyChain.slice(0, -1).map(getUserFqn);
+  if (proxies.length === 0) {
+    return undefined;
+  }
+  return `(via ${proxies.join(" → ")})`;
+}
+
+/**
+ * Returns a display key for a contract entry, appending the proxy label
+ * when the call went through a proxy chain. Used for table headers and
+ * JSON object keys.
+ */
+export function getDisplayKey(userFqn: string, proxyChain: string[]): string {
+  const label = getProxyLabel(proxyChain);
+  if (label === undefined) {
+    return userFqn;
+  }
+  return `${userFqn} ${label}`;
 }
