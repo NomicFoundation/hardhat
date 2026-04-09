@@ -10,7 +10,6 @@ import type WebSocket from "ws";
 import { ensureError } from "@nomicfoundation/hardhat-utils/error";
 import { isObject } from "@nomicfoundation/hardhat-utils/lang";
 
-import { SolidityError } from "../../network-manager/edr/stack-traces/stack-trace-solidity-errors.js";
 import {
   isJsonRpcRequest,
   isJsonRpcResponse,
@@ -22,6 +21,7 @@ import {
   InvalidRequestError,
   ProviderError,
 } from "../../network-manager/provider-errors.js";
+import { REVERT_ERROR_CODE } from "../../network-manager/revert-error-code.js";
 
 export class JsonRpcHandler {
   readonly #provider: EthereumProvider;
@@ -261,7 +261,7 @@ const _handleError = (error: Error): JsonRpcResponse => {
   const isRevertError =
     "code" in error &&
     typeof error.code === "number" &&
-    error.code === SolidityError.CODE;
+    error.code === REVERT_ERROR_CODE;
 
   // In case of non-hardhat error that is not a revert, treat it as internal
   // and associate the appropriate error code.

@@ -9,6 +9,8 @@ import { assertHardhatInvariant } from "@nomicfoundation/hardhat-errors";
 import { bytesToHexString } from "@nomicfoundation/hardhat-utils/bytes";
 import { panicErrorCodeToMessage } from "@nomicfoundation/hardhat-utils/panic-errors";
 
+import { REVERT_ERROR_CODE } from "../../revert-error-code.js";
+
 import {
   StackTraceEntryType,
   CONSTRUCTOR_FUNCTION_NAME,
@@ -300,8 +302,7 @@ function getMessageFromLastStackTraceEntry(
  * properly detect and handle revert errors via the error cause chain.
  **/
 export class SolidityError extends Error {
-  public static readonly CODE = 3;
-  public readonly code: number = SolidityError.CODE;
+  public readonly code: number = REVERT_ERROR_CODE;
 
   constructor(
     message: string,
