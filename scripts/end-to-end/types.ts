@@ -9,7 +9,7 @@ export interface ScenarioDefinition {
   description: string;
   repo: string;
   commit: string;
-  packageManager: "npm" | "bun" | "yarn";
+  packageManager: "npm" | "bun" | "pnpm" | "yarn";
   defaultCommand: string;
   preinstall?: string;
   install?: string;
