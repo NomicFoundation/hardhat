@@ -80,7 +80,7 @@
     "sinon": "^14.0.0",
     "ts-node": "10.9.2",
     "typescript": "~5.8.0",
-    "viem": "^2.43.0",
+    "viem": "^2.47.6",
     "@nomicfoundation/hardhat-verify": "workspace:^3.0.0"
   },
   "dependencies": {
