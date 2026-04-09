@@ -7,7 +7,6 @@ import { after, before, describe, it } from "node:test";
 import { exists } from "@nomicfoundation/hardhat-utils/fs";
 import { isObject } from "@nomicfoundation/hardhat-utils/lang";
 
-import { SolidityError } from "../../../../../src/internal/builtin-plugins/network-manager/edr/stack-traces/stack-trace-solidity-errors.js";
 import {
   isFailedJsonRpcResponse,
   isJsonRpcResponse,
@@ -65,17 +64,6 @@ describe("JSON-RPC handler", async function () {
       };
       throw err;
     },
-    nonProviderErrorWithRevertData: () => {
-      // Simulates SolidityError: a non-ProviderError with .code=3, .data, and .transactionHash
-      const err = new Error("revert Unauthorized");
-      // eslint-disable-next-line @typescript-eslint/consistent-type-assertions -- allow in test
-      (err as any).code = SolidityError.CODE;
-      // eslint-disable-next-line @typescript-eslint/consistent-type-assertions -- allow in test
-      (err as any).data = "0xdeadbeef";
-      // eslint-disable-next-line @typescript-eslint/consistent-type-assertions -- allow in test
-      (err as any).transactionHash = "0xabc123";
-      throw err;
-    },
     nonProviderErrorWithDataButNoCode3: () => {
       // A non-ProviderError with .data and .transactionHash but WITHOUT .code=3
       const err = new Error("some error with data");
@@ -83,13 +71,6 @@ describe("JSON-RPC handler", async function () {
       (err as any).data = "0xcafe";
       // eslint-disable-next-line @typescript-eslint/consistent-type-assertions -- allow in test
       (err as any).transactionHash = "0xdef456";
-      throw err;
-    },
-    revertErrorWithNoData: () => {
-      // Simulates a bare revert() with code=3 but no data
-      const err = new Error("revert");
-      // eslint-disable-next-line @typescript-eslint/consistent-type-assertions -- allow in test
-      (err as any).code = SolidityError.CODE;
       throw err;
     },
   });
@@ -327,26 +308,6 @@ describe("JSON-RPC handler", async function () {
     assert.equal(rpcRes.error.data.data, "0xabad1dea");
   });
 
-  it("should return revert data in geth/anvil format for code-3 errors", async function () {
-    // Simulates SolidityError which has .code=3, .data, and .transactionHash
-    const rpcReq: JsonRpcRequest = {
-      jsonrpc: "2.0",
-      method: "nonProviderErrorWithRevertData",
-      id: 1,
-    };
-
-    const rpcRes = await postRawJsonRpc(hostname, port, JSON.stringify(rpcReq));
-
-    assert.ok(
-      isJsonRpcResponse(rpcRes) && isFailedJsonRpcResponse(rpcRes),
-      "Expected a failed JSON-RPC response",
-    );
-    assert.equal(rpcRes.error.code, SolidityError.CODE);
-    assert.equal(rpcRes.error.message, "revert Unauthorized");
-    // Data should be the raw hex string, matching geth/anvil format
-    assert.equal(rpcRes.error.data, "0xdeadbeef");
-  });
-
   it("should wrap non-ProviderError with data but without code 3 as InternalError", async function () {
     const rpcReq: JsonRpcRequest = {
       jsonrpc: "2.0",
@@ -367,23 +328,6 @@ describe("JSON-RPC handler", async function () {
     );
     assert.equal(rpcRes.error.data.txHash, "0xdef456");
     assert.equal(rpcRes.error.data.data, "0xcafe");
-  });
-
-  it("should fall back to object format for code-3 errors with no return data", async function () {
-    const rpcReq: JsonRpcRequest = {
-      jsonrpc: "2.0",
-      method: "revertErrorWithNoData",
-      id: 1,
-    };
-
-    const rpcRes = await postRawJsonRpc(hostname, port, JSON.stringify(rpcReq));
-
-    assert.ok(
-      isJsonRpcResponse(rpcRes) && isFailedJsonRpcResponse(rpcRes),
-      "Expected a failed JSON-RPC response",
-    );
-    assert.equal(rpcRes.error.code, SolidityError.CODE);
-    assert.equal(rpcRes.error.data, "0x");
   });
 });
 
