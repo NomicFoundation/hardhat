@@ -4,7 +4,7 @@ pragma solidity ^0.8.0;
 import {Test} from "forge-std/Test.sol";
 import "../../contracts/Proxies.sol";
 
-contract CounterTest is Test {
+contract ProxiesTest is Test {
   function test_ShouldTrackProxiedCallsToImpl1AndImpl2AsSeparate() public {
     Impl1 impl1 = new Impl1();
     Impl2 impl2 = new Impl2();
