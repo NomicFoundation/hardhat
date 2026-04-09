@@ -42,6 +42,9 @@ contract Proxy is BaseProxy {
 }
 
 contract Proxy2 is BaseProxy {
+  // `implementation` occupies slot 0 so that when Proxy's code runs via
+  // delegatecall in Proxy2's storage context, reading slot 0 returns the
+  // actual implementation address.
   address implementation;
   address proxy1;
 
