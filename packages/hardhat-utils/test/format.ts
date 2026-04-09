@@ -286,5 +286,53 @@ describe("format", () => {
         ].join("\n"),
       );
     });
+
+    it("Should render section header with subtitle on a second line", () => {
+      const result = formatTable([
+        { type: "section-header", text: "Contract Name", subtitle: "(via Proxy)" },
+        { type: "header", cells: ["Function", "Gas"] },
+        { type: "row", cells: ["transfer", "25000"] },
+      ]);
+
+      assert.equal(
+        result,
+        [
+          "╔══════════════════╗",
+          "║ Contract Name    ║",
+          "║   (via Proxy)    ║",
+          "╟──────────┬───────╢",
+          "║ Function │ Gas   ║",
+          "╟──────────┼───────╢",
+          "║ transfer │ 25000 ║",
+          "╚══════════╧═══════╝",
+        ].join("\n"),
+      );
+    });
+
+    it("Should expand table when subtitle is wider than content", () => {
+      const result = formatTable([
+        {
+          type: "section-header",
+          text: "Impl",
+          subtitle: "(via Proxy2 → Proxy1)",
+        },
+        { type: "header", cells: ["A", "B"] },
+        { type: "row", cells: ["1", "2"] },
+      ]);
+
+      assert.equal(
+        result,
+        [
+          "╔═════════════════════════╗",
+          "║ Impl                    ║",
+          "║   (via Proxy2 → Proxy1) ║",
+          "╟───┬─────────────────────╢",
+          "║ A │ B                   ║",
+          "╟───┼─────────────────────╢",
+          "║ 1 │ 2                   ║",
+          "╚═══╧═════════════════════╝",
+        ].join("\n"),
+      );
+    });
   });
 });

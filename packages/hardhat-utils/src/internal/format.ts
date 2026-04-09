@@ -59,6 +59,13 @@ export function getHeadingWidth(items: TableItem[]): number {
     if (item.type === "section-header" || item.type === "title") {
       headingWidth = Math.max(headingWidth, getStringWidth(item.text) + 2);
     }
+    if (item.type === "section-header" && item.subtitle !== undefined) {
+      // +4 accounts for "║ " prefix (2) and "  " indent (2)
+      headingWidth = Math.max(
+        headingWidth,
+        getStringWidth(item.subtitle) + 4,
+      );
+    }
   }
   return headingWidth;
 }
