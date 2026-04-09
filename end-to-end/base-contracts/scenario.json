@@ -1,0 +1,11 @@
+{
+  "$schema": "../../scripts/end-to-end/schema/scenario.schema.json",
+  "description": "Base contracts main branch (Foundry Solidity test suite)",
+  "tags": ["external-repo"],
+  "repo": "popescuoctavian/base-contracts",
+  "commit": "8f365822e412f90a57b80ba6571815bb1152fe79",
+  "packageManager": "pnpm",
+  "submodules": true,
+  "preinstall": "./preinstall.sh",
+  "defaultCommand": "pnpm hardhat test solidity"
+}
