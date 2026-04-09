@@ -21,6 +21,11 @@
       "package": "@nomicfoundation/hardhat-ignition-ethers",
       "peer": "@nomicfoundation/hardhat-ignition",
       "reason": "The usage of the new `getUserInterruptionsHandlers` helper from `@nomicfoundation/hardhat-ignition/helpers`"
+    },
+    {
+      "package": "@nomicfoundation/hardhat-viem-assertions",
+      "peer": "hardhat",
+      "reason": "The rewritten `extractRevertError` now relies on viem parsing a code-3 JSON-RPC error with raw hex data, which requires the new SolidityError code-3 behavior from hardhat's JSON-RPC handler"
     }
   ]
 }
