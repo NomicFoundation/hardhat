@@ -1,0 +1,5 @@
+{
+  "name": "hardhat-duplicate-remappings-regression",
+  "private": true,
+  "type": "module"
+}

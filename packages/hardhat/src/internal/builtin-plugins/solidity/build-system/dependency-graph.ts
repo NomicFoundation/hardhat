@@ -205,13 +205,15 @@ export class DependencyGraphImplementation implements DependencyGraph {
   }
 
   public getAllRemappings(): readonly string[] {
-    return this.#dependenciesMap
-      .values()
-      .flatMap((dependencies) =>
-        dependencies.values().flatMap((remappings) => remappings.values()),
-      )
-      .toArray()
-      .sort();
+    return [
+      ...new Set(
+        this.#dependenciesMap
+          .values()
+          .flatMap((dependencies) =>
+            dependencies.values().flatMap((remappings) => remappings.values()),
+          ),
+      ),
+    ].sort();
   }
 
   public toJSON(): DependencyGraphImplementationJson {
