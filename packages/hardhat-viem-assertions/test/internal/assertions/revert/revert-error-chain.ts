@@ -9,16 +9,19 @@ import { useEphemeralFixtureProject } from "@nomicfoundation/hardhat-test-utils"
 import { ensureError } from "@nomicfoundation/hardhat-utils/error";
 import hardhatViem from "@nomicfoundation/hardhat-viem";
 import { createHardhatRuntimeEnvironment } from "hardhat/hre";
-import { ContractFunctionExecutionError } from "viem";
+import {
+  ContractFunctionExecutionError,
+  ContractFunctionRevertedError,
+} from "viem";
 
 import hardhatViemAssertions from "../../../../src/index.js";
 
 describe("revert error cause chain", () => {
+  useEphemeralFixtureProject("hardhat-project");
+
   describe("in-process hardhat network", () => {
     let hre: HardhatRuntimeEnvironment;
     let viem: HardhatViemHelpers;
-
-    useEphemeralFixtureProject("hardhat-project");
 
     before(async () => {
       hre = await createHardhatRuntimeEnvironment({
@@ -96,8 +99,6 @@ describe("revert error cause chain", () => {
     let address: string;
     let port: number;
 
-    useEphemeralFixtureProject("hardhat-project");
-
     before(async () => {
       hre = await createHardhatRuntimeEnvironment({
         solidity: "0.8.24",
@@ -162,6 +163,13 @@ describe("revert error cause chain", () => {
       assert.ok(
         errorWithCode3 !== undefined,
         "Expected to find an error with code 3 in the cause chain",
+      );
+
+      const cause = caughtError.cause;
+      ensureError(cause, ContractFunctionRevertedError);
+      assert.ok(
+        "raw" in cause && cause.raw !== undefined,
+        "Expected raw revert data to be present on ContractFunctionRevertedError",
       );
     });
   });
