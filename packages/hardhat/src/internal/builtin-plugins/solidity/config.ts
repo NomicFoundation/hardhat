@@ -32,6 +32,7 @@ import {
   hasOfficialArm64Build,
   missesSomeOfficialNativeBuilds,
 } from "./build-system/solc-info.js";
+import { DEFAULT_OUTPUT_SELECTION } from "./constants.js";
 
 /**
  * The top-level type SolidityUserConfig is a union type too complex for
@@ -515,18 +516,7 @@ function resolveSolidityCompilerConfig(
   production: boolean = false,
 ): SolidityCompilerConfig {
   const defaultSettings: SolidityCompilerConfig["settings"] = {
-    outputSelection: {
-      "*": {
-        "": ["ast"],
-        "*": [
-          "abi",
-          "evm.bytecode",
-          "evm.deployedBytecode",
-          "evm.methodIdentifiers",
-          "metadata",
-        ],
-      },
-    },
+    outputSelection: DEFAULT_OUTPUT_SELECTION,
   };
 
   if (production && isSolcSolidityCompilerUserConfig(compilerConfig)) {
