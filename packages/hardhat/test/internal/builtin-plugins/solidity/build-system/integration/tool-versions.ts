@@ -22,7 +22,10 @@ async function readBuildInfo(
   contractName: string,
 ): Promise<SolidityBuildInfo> {
   const buildInfoId = await hre.artifacts.getBuildInfoId(contractName);
-  assert.ok(buildInfoId !== undefined, "Expected a build info id for Foo");
+  assert.ok(
+    buildInfoId !== undefined,
+    `Expected a build info id for ${contractName}`,
+  );
 
   const buildInfoPath = await hre.artifacts.getBuildInfoPath(buildInfoId);
   assert.ok(buildInfoPath !== undefined, "Expected build info path to exist");
