@@ -2,6 +2,7 @@ import type { HardhatRuntimeEnvironment } from "../../../../../../src/types/hre.
 import type { GetCompilationJobsResult } from "../../../../../../src/types/solidity.js";
 
 import assert from "node:assert/strict";
+import path from "node:path";
 import { before, describe, it } from "node:test";
 
 import { useFixtureProject } from "@nomicfoundation/hardhat-test-utils";
@@ -22,7 +23,7 @@ async function getCompilationJobs(
 ) {
   const allRootFiles = await hre.solidity.getRootFilePaths();
   const selectedRootFiles = rootFileNames.map((name) => {
-    const match = allRootFiles.find((f) => f.endsWith(`/${name}`));
+    const match = allRootFiles.find((f) => f.endsWith(`${path.sep}${name}`));
     assert.ok(match !== undefined, `Root file not found: ${name}`);
     return match;
   });
