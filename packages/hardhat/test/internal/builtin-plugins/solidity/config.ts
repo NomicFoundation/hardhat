@@ -723,6 +723,66 @@ describe("solidity plugin config validation", () => {
       );
     });
   });
+
+  describe("includeBuildInfoVersions validation", () => {
+    it("Should accept includeBuildInfoVersions boolean in single-version build profile", () => {
+      assert.deepEqual(
+        validateSolidityUserConfig({
+          solidity: {
+            profiles: {
+              default: {
+                version: "0.8.28",
+                includeBuildInfoVersions: true,
+              },
+            },
+          },
+        }),
+        [],
+      );
+    });
+
+    it("Should accept includeBuildInfoVersions boolean in multi-version build profile", () => {
+      assert.deepEqual(
+        validateSolidityUserConfig({
+          solidity: {
+            profiles: {
+              default: {
+                compilers: [{ version: "0.8.28" }],
+                includeBuildInfoVersions: false,
+              },
+            },
+          },
+        }),
+        [],
+      );
+    });
+
+    it("Should reject non-boolean includeBuildInfoVersions in build profiles", () => {
+      assert.deepEqual(
+        validateSolidityUserConfig({
+          solidity: {
+            profiles: {
+              default: {
+                version: "0.8.28",
+                includeBuildInfoVersions: "yes",
+              },
+            },
+          },
+        }),
+        [
+          {
+            message: "Expected boolean, received string",
+            path: [
+              "solidity",
+              "profiles",
+              "default",
+              "includeBuildInfoVersions",
+            ],
+          },
+        ],
+      );
+    });
+  });
 });
 
 describe("solidity plugin config resolution", () => {
@@ -1217,6 +1277,139 @@ describe("solidity plugin config resolution", () => {
       assert.deepEqual(resolvedConfig.solidity.registeredCompilerTypes, [
         "solc",
       ]);
+    });
+  });
+
+  describe("includeBuildInfoVersions resolution", function () {
+    const otherResolvedConfig = { paths: { root: process.cwd() } } as any;
+
+    it("defaults to true for the production profile when using a string config", async () => {
+      const resolvedConfig = await resolveSolidityUserConfig(
+        { solidity: "0.8.28" },
+        otherResolvedConfig,
+      );
+
+      assert.equal(
+        resolvedConfig.solidity.profiles.default.includeBuildInfoVersions,
+        false,
+      );
+      assert.equal(
+        resolvedConfig.solidity.profiles.production.includeBuildInfoVersions,
+        true,
+      );
+    });
+
+    it("defaults to true for the production profile when using an array config", async () => {
+      const resolvedConfig = await resolveSolidityUserConfig(
+        { solidity: ["0.8.28"] },
+        otherResolvedConfig,
+      );
+
+      assert.equal(
+        resolvedConfig.solidity.profiles.default.includeBuildInfoVersions,
+        false,
+      );
+      assert.equal(
+        resolvedConfig.solidity.profiles.production.includeBuildInfoVersions,
+        true,
+      );
+    });
+
+    it("defaults to true for the production profile when using a single-version config", async () => {
+      const resolvedConfig = await resolveSolidityUserConfig(
+        { solidity: { version: "0.8.28" } },
+        otherResolvedConfig,
+      );
+
+      assert.equal(
+        resolvedConfig.solidity.profiles.default.includeBuildInfoVersions,
+        false,
+      );
+      assert.equal(
+        resolvedConfig.solidity.profiles.production.includeBuildInfoVersions,
+        true,
+      );
+    });
+
+    it("defaults to true for the production profile when using a multi-version config", async () => {
+      const resolvedConfig = await resolveSolidityUserConfig(
+        { solidity: { compilers: [{ version: "0.8.28" }] } },
+        otherResolvedConfig,
+      );
+
+      assert.equal(
+        resolvedConfig.solidity.profiles.default.includeBuildInfoVersions,
+        false,
+      );
+      assert.equal(
+        resolvedConfig.solidity.profiles.production.includeBuildInfoVersions,
+        true,
+      );
+    });
+
+    it("defaults to true for the production profile when using build profiles config", async () => {
+      const resolvedConfig = await resolveSolidityUserConfig(
+        {
+          solidity: {
+            profiles: {
+              default: { version: "0.8.28" },
+            },
+          },
+        },
+        otherResolvedConfig,
+      );
+
+      assert.equal(
+        resolvedConfig.solidity.profiles.default.includeBuildInfoVersions,
+        false,
+      );
+      assert.equal(
+        resolvedConfig.solidity.profiles.production.includeBuildInfoVersions,
+        true,
+      );
+    });
+
+    it("honors explicit false on the production profile", async () => {
+      const resolvedConfig = await resolveSolidityUserConfig(
+        {
+          solidity: {
+            profiles: {
+              default: { version: "0.8.28" },
+              production: {
+                version: "0.8.28",
+                includeBuildInfoVersions: false,
+              },
+            },
+          },
+        },
+        otherResolvedConfig,
+      );
+
+      assert.equal(
+        resolvedConfig.solidity.profiles.production.includeBuildInfoVersions,
+        false,
+      );
+    });
+
+    it("honors explicit true on a non-production profile", async () => {
+      const resolvedConfig = await resolveSolidityUserConfig(
+        {
+          solidity: {
+            profiles: {
+              default: {
+                version: "0.8.28",
+                includeBuildInfoVersions: true,
+              },
+            },
+          },
+        },
+        otherResolvedConfig,
+      );
+
+      assert.equal(
+        resolvedConfig.solidity.profiles.default.includeBuildInfoVersions,
+        true,
+      );
     });
   });
 });

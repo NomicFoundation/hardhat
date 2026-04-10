@@ -173,15 +173,17 @@ declare module "../../../types/config.js" {
   export type SingleVersionBuildProfileUserConfig =
     SolidityCompilerUserConfig & {
       isolated?: boolean;
+      includeBuildInfoVersions?: boolean;
     };
 
   /**
    * The type of a multi-version build profile user config.
+   * Mostly defined in `MultiVersionSolcUserConfig` for backwards compatibility
    */
-  /* eslint-disable-next-line @typescript-eslint/no-empty-interface -- Defined
-    in `MultiVersionSolcUserConfig` for backwards compatibility. */
   export interface MultiVersionBuildProfileUserConfig
-    extends MultiVersionSolcUserConfig {}
+    extends MultiVersionSolcUserConfig {
+    includeBuildInfoVersions?: boolean;
+  }
 
   /**
    * The type of the build profile version of the SolidityUserConfig.
@@ -259,6 +261,7 @@ declare module "../../../types/config.js" {
   export interface SolidityBuildProfileConfig {
     isolated: boolean;
     preferWasm: boolean;
+    includeBuildInfoVersions?: boolean;
     compilers: SolidityCompilerConfig[];
     overrides: Record<string, SolidityCompilerConfig>;
   }
