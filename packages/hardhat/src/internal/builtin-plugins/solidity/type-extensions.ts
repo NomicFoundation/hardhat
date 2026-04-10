@@ -44,12 +44,24 @@ declare module "../../../types/config.js" {
    * Fields that all the object-typed variants of SolidityUserConfig share.
    *
    * Note: All the variants of SolidityUserConfig except for the string and
-   * array of strings MUST extend this interface. This is especially relevant
-   * for plugins creating their own `SingleVersionSolidityUserConfig` variant.
+   * array of strings MUST extend this interface. For plugins creating their
+   * own `SingleVersionSolidityUserConfig` variant, see
+   * {@link CommonSingleVersionSolidityUserConfig}.
    */
   export interface CommonSolidityUserConfig {
     isolated?: boolean;
     npmFilesToBuild?: string[];
+  }
+
+  /**
+   * Common fields for every SingleVersionSolidityUserConfig variant.
+   *
+   * NOTE: All the variants of SingleVersionSolidityUserConfig must extend this
+   * interface.
+   */
+  export interface CommonSingleVersionSolidityUserConfig
+    extends CommonSolidityUserConfig {
+    toolVersionsInBuildInfo?: boolean;
   }
 
   /**
@@ -110,7 +122,7 @@ declare module "../../../types/config.js" {
    */
   export interface SingleVersionSolcUserConfig
     extends SolcSolidityCompilerUserConfig,
-      CommonSolidityUserConfig {}
+      CommonSingleVersionSolidityUserConfig {}
 
   /**
    * Solc-specific SingleVersionSolidityUserConfig.
@@ -123,7 +135,7 @@ declare module "../../../types/config.js" {
   /**
    * A map from compiler type to its SingleVersionSolidityUserConfig type.
    *
-   * Note: The types MUST extend `CommonSolidityUserConfig`.
+   * Note: The types MUST extend `CommonSingleVersionSolidityUserConfig`.
    */
   export interface SingleVersionSolidityUserConfigPerType {
     solc: SolcSingleVersionSolidityUserConfig;
@@ -132,16 +144,13 @@ declare module "../../../types/config.js" {
   /**
    * The type of all the single version user configs.
    */
-  export type SingleVersionSolidityUserConfig = (
+  export type SingleVersionSolidityUserConfig =
     | {
         [type in keyof SingleVersionSolidityUserConfigPerType]: SingleVersionSolidityUserConfigPerType[type];
       }[keyof SingleVersionSolidityUserConfigPerType]
     // SolcSingleVersionSolidityUserConfig when the type isn't present
     | (Omit<SolcSingleVersionSolidityUserConfig, "type"> &
-        Partial<Pick<SolcSingleVersionSolidityUserConfig, "type">>)
-  ) & {
-    toolVersionsInBuildInfo?: boolean;
-  };
+        Partial<Pick<SolcSingleVersionSolidityUserConfig, "type">>);
 
   /**
    * Deprecated: Use `MultiVersionSolidityUserConfig` or

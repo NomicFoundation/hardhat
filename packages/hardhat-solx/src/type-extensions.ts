@@ -25,7 +25,7 @@ declare module "hardhat/types/config" {
 
   export interface SolxSingleVersionSolidityUserConfig
     extends SolxSolidityCompilerUserConfig,
-      CommonSolidityUserConfig {}
+      CommonSingleVersionSolidityUserConfig {}
 
   export interface SingleVersionSolidityUserConfigPerType {
     solx: SolxSingleVersionSolidityUserConfig;
