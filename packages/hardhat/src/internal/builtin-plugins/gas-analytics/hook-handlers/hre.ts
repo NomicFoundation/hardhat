@@ -1,7 +1,7 @@
 import type { HardhatRuntimeEnvironmentHooks } from "../../../../types/hooks.js";
 
 import { GasAnalyticsManagerImplementation } from "../gas-analytics-manager.js";
-import { setGasAnalyticsManager } from "../helpers.js";
+import { setGasAnalyticsManager } from "../helpers/accessors.js";
 
 export default async (): Promise<Partial<HardhatRuntimeEnvironmentHooks>> => ({
   created: async (context, hre) => {

@@ -25,6 +25,7 @@ export interface DeploymentGasStatsJsonEntry extends GasStatsJsonEntry {
 export interface ContractGasStatsJson {
   sourceName: string;
   contractName: string;
+  proxyChain: string[];
   deployment: DeploymentGasStatsJsonEntry | null;
   functions: Record<string, GasStatsJsonEntry> | null;
 }
@@ -46,6 +47,7 @@ interface BaseGasMeasurement {
 interface FunctionGasMeasurement extends BaseGasMeasurement {
   type: "function";
   functionSig: string;
+  proxyChain: string[];
 }
 
 interface DeploymentGasMeasurement extends BaseGasMeasurement {

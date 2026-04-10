@@ -20,13 +20,16 @@ import {
 } from "@nomicfoundation/hardhat-utils/fs";
 import chalk from "chalk";
 
+import { GasAnalyticsManagerImplementation } from "../../../../src/internal/builtin-plugins/gas-analytics/gas-analytics-manager.js";
 import {
   avg,
-  median,
-  getUserFqn,
+  getDisplayKey,
   getFunctionName,
-  GasAnalyticsManagerImplementation,
-} from "../../../../src/internal/builtin-plugins/gas-analytics/gas-analytics-manager.js";
+  getProxyLabel,
+  getUserFqn,
+  makeGroupKey,
+  median,
+} from "../../../../src/internal/builtin-plugins/gas-analytics/helpers/utils.js";
 import { getFullyQualifiedName } from "../../../../src/utils/contract-names.js";
 
 describe("gas-analytics-manager", () => {
@@ -53,6 +56,7 @@ describe("gas-analytics-manager", () => {
           contractFqn: "project/contracts/MyContract.sol:MyContract",
           functionSig: "transfer(address,uint256)",
           gas: 25000,
+          proxyChain: [],
         };
 
         manager.addGasMeasurement(functionMeasurement);
@@ -85,6 +89,7 @@ describe("gas-analytics-manager", () => {
           contractFqn: "project/contracts/MyContract.sol:MyContract",
           functionSig: "transfer(address,uint256)",
           gas: 25000,
+          proxyChain: [],
         };
         const measurement2: GasMeasurement = {
           type: "deployment",
@@ -110,6 +115,7 @@ describe("gas-analytics-manager", () => {
           contractFqn: "project/contracts/MyContract.sol:MyContract",
           functionSig: "transfer(address,uint256)",
           gas: 25000,
+          proxyChain: [],
         };
         const measurement2: GasMeasurement = {
           type: "deployment",
@@ -149,6 +155,7 @@ describe("gas-analytics-manager", () => {
           contractFqn: "project/contracts/MyContract.sol:MyContract",
           functionSig: "transfer(address,uint256)",
           gas: 25000,
+          proxyChain: [],
         };
         const measurement2: GasMeasurement = {
           type: "deployment",
@@ -174,6 +181,7 @@ describe("gas-analytics-manager", () => {
           contractFqn: "project/contracts/MyContract.sol:MyContract",
           functionSig: "transfer(address,uint256)",
           gas: 25000,
+          proxyChain: [],
         };
         const measurement2: GasMeasurement = {
           type: "deployment",
@@ -212,6 +220,7 @@ describe("gas-analytics-manager", () => {
           contractFqn: "project/contracts/MyContract.sol:MyContract",
           functionSig: "transfer(address,uint256)",
           gas: 25000,
+          proxyChain: [],
         };
         const measurement2: GasMeasurement = {
           type: "deployment",
@@ -239,12 +248,14 @@ describe("gas-analytics-manager", () => {
           contractFqn: "project/contracts/MyContract.sol:MyContract",
           functionSig: "transfer(address,uint256)",
           gas: 25000,
+          proxyChain: [],
         };
         const measurement2: GasMeasurement = {
           type: "function",
           contractFqn: "project/contracts/MyContract.sol:MyContract",
           functionSig: "approve(address,uint256)",
           gas: 46000,
+          proxyChain: [],
         };
 
         manager.addGasMeasurement(measurement1);
@@ -269,6 +280,7 @@ describe("gas-analytics-manager", () => {
           contractFqn: "project/contracts/MyContract.sol:MyContract",
           functionSig: "transfer(address,uint256)",
           gas: 25000,
+          proxyChain: [],
         };
         const measurement2: GasMeasurement = {
           type: "deployment",
@@ -307,6 +319,7 @@ describe("gas-analytics-manager", () => {
           contractFqn: "project/contracts/MyContract.sol:MyContract",
           functionSig: "transfer(address,uint256)",
           gas: 25000,
+          proxyChain: [],
         });
         await manager.saveGasMeasurements("test-id");
 
@@ -324,6 +337,7 @@ describe("gas-analytics-manager", () => {
           contractFqn: "project/contracts/MyContract.sol:MyContract",
           functionSig: "transfer(address,uint256)",
           gas: 25000,
+          proxyChain: [],
         });
         await manager.saveGasMeasurements("test-id");
 
@@ -353,6 +367,7 @@ describe("gas-analytics-manager", () => {
           contractFqn: "project/contracts/MyContract.sol:MyContract",
           functionSig: "transfer(address,uint256)",
           gas: 25000,
+          proxyChain: [],
         });
         await manager.saveGasMeasurements("runner-1");
 
@@ -362,6 +377,7 @@ describe("gas-analytics-manager", () => {
           contractFqn: "project/contracts/MyContract.sol:MyContract",
           functionSig: "transfer(address,uint256)",
           gas: 35000,
+          proxyChain: [],
         });
         await manager.saveGasMeasurements("runner-2");
 
@@ -393,12 +409,14 @@ describe("gas-analytics-manager", () => {
           contractFqn: "project/contracts/MyContract.sol:MyContract",
           functionSig: "transfer(address,uint256)",
           gas: 25000,
+          proxyChain: [],
         });
         manager.addGasMeasurement({
           type: "function",
           contractFqn: "project/contracts/MyContract.sol:MyContract",
           functionSig: "transfer(address,uint256)",
           gas: 30000,
+          proxyChain: [],
         });
 
         const result = manager._aggregateGasMeasurements();
@@ -461,12 +479,14 @@ describe("gas-analytics-manager", () => {
           contractFqn: "project/contracts/MyContract.sol:MyContract",
           functionSig: "transfer(address,uint256)",
           gas: 25000,
+          proxyChain: [],
         });
         manager.addGasMeasurement({
           type: "function",
           contractFqn: "project/contracts/MyContract.sol:MyContract",
           functionSig: "balanceOf(address)",
           gas: 15000,
+          proxyChain: [],
         });
 
         const result = manager._aggregateGasMeasurements();
@@ -509,6 +529,7 @@ describe("gas-analytics-manager", () => {
           contractFqn: "project/contracts/TokenA.sol:TokenA",
           functionSig: "mint(uint256)",
           gas: 50000,
+          proxyChain: [],
         });
         manager.addGasMeasurement({
           type: "deployment",
@@ -521,6 +542,7 @@ describe("gas-analytics-manager", () => {
           contractFqn: "project/contracts/TokenB.sol:TokenB",
           functionSig: "burn(uint256)",
           gas: 30000,
+          proxyChain: [],
         });
 
         const result = manager._aggregateGasMeasurements();
@@ -570,18 +592,21 @@ describe("gas-analytics-manager", () => {
           contractFqn: "project/contracts/MyContract.sol:MyContract",
           functionSig: "transfer(address,uint256)",
           gas: 25000,
+          proxyChain: [],
         });
         manager.addGasMeasurement({
           type: "function",
           contractFqn: "project/contracts/MyContract.sol:MyContract",
           functionSig: "transfer(address,uint256)",
           gas: 30000,
+          proxyChain: [],
         });
         manager.addGasMeasurement({
           type: "function",
           contractFqn: "project/contracts/MyContract.sol:MyContract",
           functionSig: "transfer(address,uint256)",
           gas: 20000,
+          proxyChain: [],
         });
 
         const result = manager._aggregateGasMeasurements();
@@ -613,12 +638,14 @@ describe("gas-analytics-manager", () => {
           contractFqn: "project/contracts/MyContract.sol:MyContract",
           functionSig: "transfer(address,uint256)",
           gas: 25000,
+          proxyChain: [],
         });
         manager.addGasMeasurement({
           type: "function",
           contractFqn: "project/contracts/MyContract.sol:MyContract",
           functionSig: "transfer(address,uint256,bytes)",
           gas: 35000,
+          proxyChain: [],
         });
 
         const result = manager._aggregateGasMeasurements();
@@ -680,6 +707,80 @@ describe("gas-analytics-manager", () => {
         assert.deepEqual(contractMeasurements.deployments, [500000, 600000]);
         assert.equal(contractMeasurements.deploymentRuntimeSize, 2048);
       });
+
+      it("should group proxied function calls separately from direct calls", () => {
+        const manager = new GasAnalyticsManagerImplementation(tmpDir);
+        const proxyChain = [
+          "project/contracts/Proxies.sol:Proxy",
+          "project/contracts/Impl.sol:Impl",
+        ];
+        manager.addGasMeasurement({
+          type: "function",
+          contractFqn: "project/contracts/Impl.sol:Impl",
+          functionSig: "foo()",
+          gas: 10000,
+          proxyChain: [],
+        });
+        manager.addGasMeasurement({
+          type: "function",
+          contractFqn: "project/contracts/Impl.sol:Impl",
+          functionSig: "foo()",
+          gas: 20000,
+          proxyChain,
+        });
+
+        const result = manager._aggregateGasMeasurements();
+
+        assert.equal(result.size, 2);
+        const directKey = makeGroupKey("project/contracts/Impl.sol:Impl", []);
+        const proxiedKey = makeGroupKey(
+          "project/contracts/Impl.sol:Impl",
+          proxyChain,
+        );
+        const directMeasurements = result.get(directKey);
+        const proxiedMeasurements = result.get(proxiedKey);
+        assert.ok(
+          directMeasurements !== undefined,
+          "Direct measurements should be defined",
+        );
+        assert.ok(
+          proxiedMeasurements !== undefined,
+          "Proxied measurements should be defined",
+        );
+        assert.deepEqual(directMeasurements.functions.get("foo()"), [10000]);
+        assert.deepEqual(proxiedMeasurements.functions.get("foo()"), [20000]);
+        assert.deepEqual(directMeasurements.proxyChain, []);
+        assert.deepEqual(proxiedMeasurements.proxyChain, proxyChain);
+      });
+
+      it("should group different proxy chains separately", () => {
+        const manager = new GasAnalyticsManagerImplementation(tmpDir);
+        manager.addGasMeasurement({
+          type: "function",
+          contractFqn: "project/contracts/Impl.sol:Impl",
+          functionSig: "foo()",
+          gas: 10000,
+          proxyChain: [
+            "project/contracts/Proxies.sol:Proxy",
+            "project/contracts/Impl.sol:Impl",
+          ],
+        });
+        manager.addGasMeasurement({
+          type: "function",
+          contractFqn: "project/contracts/Impl.sol:Impl",
+          functionSig: "foo()",
+          gas: 30000,
+          proxyChain: [
+            "project/contracts/Proxies.sol:Proxy2",
+            "project/contracts/Proxies.sol:Proxy",
+            "project/contracts/Impl.sol:Impl",
+          ],
+        });
+
+        const result = manager._aggregateGasMeasurements();
+
+        assert.equal(result.size, 2);
+      });
     });
 
     describe("_calculateGasStats", () => {
@@ -690,18 +791,21 @@ describe("gas-analytics-manager", () => {
           contractFqn: "project/contracts/MyContract.sol:MyContract",
           functionSig: "transfer(address,uint256)",
           gas: 25000,
+          proxyChain: [],
         });
         manager.addGasMeasurement({
           type: "function",
           contractFqn: "project/contracts/MyContract.sol:MyContract",
           functionSig: "transfer(address,uint256)",
           gas: 30000,
+          proxyChain: [],
         });
         manager.addGasMeasurement({
           type: "function",
           contractFqn: "project/contracts/MyContract.sol:MyContract",
           functionSig: "transfer(address,uint256)",
           gas: 20000,
+          proxyChain: [],
         });
 
         const gasStats = manager._calculateGasStats();
@@ -778,12 +882,14 @@ describe("gas-analytics-manager", () => {
           contractFqn: "project/contracts/TokenA.sol:TokenA",
           functionSig: "mint(uint256)",
           gas: 50000,
+          proxyChain: [],
         });
         manager.addGasMeasurement({
           type: "function",
           contractFqn: "project/contracts/TokenB.sol:TokenB",
           functionSig: "burn(uint256)",
           gas: 30000,
+          proxyChain: [],
         });
 
         const gasStats = manager._calculateGasStats();
@@ -814,12 +920,14 @@ describe("gas-analytics-manager", () => {
           contractFqn: "project/contracts/MyContract.sol:MyContract",
           functionSig: "transfer(address,uint256)",
           gas: 25000,
+          proxyChain: [],
         });
         manager.addGasMeasurement({
           type: "function",
           contractFqn: "project/contracts/MyContract.sol:MyContract",
           functionSig: "transfer(address,uint256,bytes)",
           gas: 35000,
+          proxyChain: [],
         });
 
         const gasStats = manager._calculateGasStats();
@@ -876,24 +984,28 @@ describe("gas-analytics-manager", () => {
           contractFqn: "project/contracts/MyContract.sol:MyContract",
           functionSig: "transfer(address,uint256)",
           gas: 33330,
+          proxyChain: [],
         });
         manager.addGasMeasurement({
           type: "function",
           contractFqn: "project/contracts/MyContract.sol:MyContract",
           functionSig: "transfer(address,uint256)",
           gas: 33334,
+          proxyChain: [],
         });
         manager.addGasMeasurement({
           type: "function",
           contractFqn: "project/contracts/MyContract.sol:MyContract",
           functionSig: "transfer(address,uint256)",
           gas: 33335,
+          proxyChain: [],
         });
         manager.addGasMeasurement({
           type: "function",
           contractFqn: "project/contracts/MyContract.sol:MyContract",
           functionSig: "transfer(address,uint256)",
           gas: 33340,
+          proxyChain: [],
         });
 
         const gasStats = manager._calculateGasStats();
@@ -909,6 +1021,62 @@ describe("gas-analytics-manager", () => {
         );
         assert.equal(transferStats.avg, 33335);
         assert.equal(transferStats.median, 33335);
+      });
+
+      it("should duplicate deployment stats to proxied groups", () => {
+        const manager = new GasAnalyticsManagerImplementation(tmpDir);
+        const proxyChain = [
+          "project/contracts/Proxies.sol:Proxy",
+          "project/contracts/Impl.sol:Impl",
+        ];
+        manager.addGasMeasurement({
+          type: "deployment",
+          contractFqn: "project/contracts/Impl.sol:Impl",
+          gas: 500000,
+          runtimeSize: 2048,
+        });
+        manager.addGasMeasurement({
+          type: "function",
+          contractFqn: "project/contracts/Impl.sol:Impl",
+          functionSig: "foo()",
+          gas: 10000,
+          proxyChain: [],
+        });
+        manager.addGasMeasurement({
+          type: "function",
+          contractFqn: "project/contracts/Impl.sol:Impl",
+          functionSig: "foo()",
+          gas: 20000,
+          proxyChain,
+        });
+
+        const gasStats = manager._calculateGasStats();
+
+        const directKey = makeGroupKey("project/contracts/Impl.sol:Impl", []);
+        const proxiedKey = makeGroupKey(
+          "project/contracts/Impl.sol:Impl",
+          proxyChain,
+        );
+
+        const directStats = gasStats.get(directKey);
+        const proxiedStats = gasStats.get(proxiedKey);
+        assert.ok(directStats !== undefined, "Direct stats should be defined");
+        assert.ok(
+          proxiedStats !== undefined,
+          "Proxied stats should be defined",
+        );
+
+        assert.ok(
+          directStats.deployment !== undefined,
+          "Direct deployment should be defined",
+        );
+        assert.ok(
+          proxiedStats.deployment !== undefined,
+          "Proxied deployment should be defined",
+        );
+        assert.equal(proxiedStats.deployment.min, 500000);
+        assert.equal(proxiedStats.deployment.runtimeSize, 2048);
+        assert.deepEqual(proxiedStats.proxyChain, proxyChain);
       });
     });
 
@@ -926,6 +1094,7 @@ describe("gas-analytics-manager", () => {
         const gasStats = new Map();
         // Contracts are added in non-alphabetical order to test sorting
         gasStats.set("project/contracts/TokenA.sol:TokenA", {
+          proxyChain: [],
           deployment: undefined,
           functions: new Map([
             // Functions are added in non-alphabetical order to test sorting
@@ -953,6 +1122,7 @@ describe("gas-analytics-manager", () => {
         });
 
         gasStats.set("project/contracts/MyContract.sol:MyContract", {
+          proxyChain: [],
           deployment: {
             min: 400000,
             max: 600000,
@@ -1024,6 +1194,7 @@ describe("gas-analytics-manager", () => {
         const manager = new GasAnalyticsManagerImplementation(tmpDir);
         const gasStats = new Map();
         gasStats.set("project/contracts/TestContract.sol:TestContract", {
+          proxyChain: [],
           deployment: undefined,
           functions: new Map([
             [
@@ -1069,6 +1240,7 @@ describe("gas-analytics-manager", () => {
         const manager = new GasAnalyticsManagerImplementation(tmpDir);
         const gasStats = new Map();
         gasStats.set("project/contracts/TestContract.sol:TestContract", {
+          proxyChain: [],
           deployment: undefined,
           functions: new Map([
             [
@@ -1131,6 +1303,7 @@ describe("gas-analytics-manager", () => {
           contractFqn: "project/contracts/MyContract.sol:MyContract",
           functionSig: "transfer(address,uint256)",
           gas: 25000,
+          proxyChain: [],
         });
         const stats = manager._calculateGasStats();
         const result = manager._generateGasStatsJson(stats);
@@ -1165,6 +1338,7 @@ describe("gas-analytics-manager", () => {
           contractFqn: "project/contracts/Token.sol:Token",
           functionSig: "balanceOf(address)",
           gas: 15000,
+          proxyChain: [],
         });
         const stats = manager._calculateGasStats();
         const result = manager._generateGasStatsJson(stats);
@@ -1224,12 +1398,14 @@ describe("gas-analytics-manager", () => {
           contractFqn: "project/contracts/Token.sol:Token",
           functionSig: "transfer(address,uint256)",
           gas: 25000,
+          proxyChain: [],
         });
         manager.addGasMeasurement({
           type: "function",
           contractFqn: "project/contracts/Token.sol:Token",
           functionSig: "approve(address,uint256)",
           gas: 46000,
+          proxyChain: [],
         });
         const stats = manager._calculateGasStats();
         const result = manager._generateGasStatsJson(stats);
@@ -1252,12 +1428,14 @@ describe("gas-analytics-manager", () => {
           contractFqn: "project/contracts/Token.sol:Token",
           functionSig: "transfer(address,uint256)",
           gas: 25000,
+          proxyChain: [],
         });
         manager.addGasMeasurement({
           type: "function",
           contractFqn: "project/contracts/Token.sol:Token",
           functionSig: "transfer(address,uint256,bytes)",
           gas: 35000,
+          proxyChain: [],
         });
         const stats = manager._calculateGasStats();
         const result = manager._generateGasStatsJson(stats);
@@ -1308,6 +1486,7 @@ describe("gas-analytics-manager", () => {
             "npm/@openzeppelin/contracts@5.0.0/token/ERC20/ERC20.sol:ERC20",
           functionSig: "approve(address,uint256)",
           gas: 46200,
+          proxyChain: [],
         });
         const stats = manager._calculateGasStats();
         const result = manager._generateGasStatsJson(stats);
@@ -1348,6 +1527,58 @@ describe("gas-analytics-manager", () => {
         assert.equal(contract.sourceName, sourceName);
         assert.equal(contract.contractName, contractName);
       });
+
+      it("should include proxyChain in JSON output and use display key", () => {
+        const manager = new GasAnalyticsManagerImplementation(tmpDir);
+        manager.addGasMeasurement({
+          type: "deployment",
+          contractFqn: "project/contracts/Impl.sol:Impl",
+          gas: 500000,
+          runtimeSize: 2048,
+        });
+        manager.addGasMeasurement({
+          type: "function",
+          contractFqn: "project/contracts/Impl.sol:Impl",
+          functionSig: "foo()",
+          gas: 10000,
+          proxyChain: [],
+        });
+        manager.addGasMeasurement({
+          type: "function",
+          contractFqn: "project/contracts/Impl.sol:Impl",
+          functionSig: "foo()",
+          gas: 20000,
+          proxyChain: [
+            "project/contracts/Proxies.sol:Proxy",
+            "project/contracts/Impl.sol:Impl",
+          ],
+        });
+
+        const stats = manager._calculateGasStats();
+        const result = manager._generateGasStatsJson(stats);
+
+        const directContract = result.contracts["contracts/Impl.sol:Impl"];
+        assert.ok(directContract !== undefined, "direct entry should exist");
+        assert.deepEqual(directContract.proxyChain, []);
+        assert.equal(directContract.sourceName, "contracts/Impl.sol");
+        assert.equal(directContract.contractName, "Impl");
+
+        const proxiedContract =
+          result.contracts[
+            "contracts/Impl.sol:Impl (via contracts/Proxies.sol:Proxy)"
+          ];
+        assert.ok(proxiedContract !== undefined, "proxied entry should exist");
+        assert.deepEqual(proxiedContract.proxyChain, [
+          "contracts/Proxies.sol:Proxy",
+          "contracts/Impl.sol:Impl",
+        ]);
+        assert.equal(proxiedContract.sourceName, "contracts/Impl.sol");
+        assert.equal(proxiedContract.contractName, "Impl");
+        assert.ok(
+          proxiedContract.deployment !== null,
+          "proxied entry should have duplicated deployment stats",
+        );
+      });
     });
 
     describe("writeGasStatsJson", () => {
@@ -1371,6 +1602,7 @@ describe("gas-analytics-manager", () => {
           contractFqn: "project/contracts/MyContract.sol:MyContract",
           functionSig: "transfer(address,uint256)",
           gas: 25000,
+          proxyChain: [],
         });
         await manager.saveGasMeasurements("test-id");
 
@@ -1433,6 +1665,7 @@ describe("gas-analytics-manager", () => {
           contractFqn: "project/contracts/MyContract.sol:MyContract",
           functionSig: "transfer(address,uint256)",
           gas: 25000,
+          proxyChain: [],
         });
         await manager.saveGasMeasurements("test-id");
 
@@ -1459,6 +1692,7 @@ describe("gas-analytics-manager", () => {
           contractFqn: "project/contracts/MyContract.sol:MyContract",
           functionSig: "transfer(address,uint256)",
           gas: 25000,
+          proxyChain: [],
         });
         await manager.saveGasMeasurements("test-id");
 
@@ -1531,6 +1765,115 @@ describe("gas-analytics-manager", () => {
       it("should return input as-is for other formats", () => {
         assert.equal(getUserFqn("other/format"), "other/format");
         assert.equal(getUserFqn("simple"), "simple");
+      });
+    });
+
+    describe("makeGroupKey", () => {
+      it("should return contractFqn for empty proxyChain", () => {
+        assert.equal(
+          makeGroupKey("project/contracts/A.sol:A", []),
+          "project/contracts/A.sol:A",
+        );
+      });
+
+      it("should include proxyChain in key separated by null bytes", () => {
+        assert.equal(
+          makeGroupKey("project/contracts/A.sol:A", ["Proxy", "A"]),
+          "project/contracts/A.sol:A\0Proxy\0A",
+        );
+      });
+
+      it("should produce different keys for different proxy chains", () => {
+        const key1 = makeGroupKey("project/contracts/A.sol:A", ["Proxy", "A"]);
+        const key2 = makeGroupKey("project/contracts/A.sol:A", [
+          "Proxy2",
+          "Proxy",
+          "A",
+        ]);
+        assert.notEqual(key1, key2);
+      });
+    });
+
+    describe("getDisplayKey", () => {
+      it("should return userFqn for empty proxyChain", () => {
+        assert.equal(
+          getDisplayKey("contracts/A.sol:A", []),
+          "contracts/A.sol:A",
+        );
+      });
+
+      it("should strip implementation and format single proxy", () => {
+        assert.equal(
+          getDisplayKey("contracts/Impl.sol:Impl", [
+            "project/contracts/Proxies.sol:Proxy",
+            "project/contracts/Impl.sol:Impl",
+          ]),
+          "contracts/Impl.sol:Impl (via contracts/Proxies.sol:Proxy)",
+        );
+      });
+
+      it("should strip implementation and format multiple proxies", () => {
+        assert.equal(
+          getDisplayKey("contracts/Impl.sol:Impl", [
+            "project/contracts/Proxies.sol:Proxy2",
+            "project/contracts/Proxies.sol:Proxy",
+            "project/contracts/Impl.sol:Impl",
+          ]),
+          "contracts/Impl.sol:Impl (via contracts/Proxies.sol:Proxy2 → contracts/Proxies.sol:Proxy)",
+        );
+      });
+
+      it("should return userFqn when proxyChain has only the implementation", () => {
+        assert.equal(
+          getDisplayKey("contracts/Impl.sol:Impl", [
+            "project/contracts/Impl.sol:Impl",
+          ]),
+          "contracts/Impl.sol:Impl",
+        );
+      });
+    });
+
+    describe("getProxyLabel", () => {
+      it("should return undefined for empty proxyChain", () => {
+        assert.equal(getProxyLabel([]), undefined);
+      });
+
+      it("should return undefined when only implementation in chain", () => {
+        assert.equal(
+          getProxyLabel(["project/contracts/Impl.sol:Impl"]),
+          undefined,
+        );
+      });
+
+      it("should format single proxy and strip project/ prefix", () => {
+        assert.equal(
+          getProxyLabel([
+            "project/contracts/Proxies.sol:Proxy",
+            "project/contracts/Impl.sol:Impl",
+          ]),
+          "(via contracts/Proxies.sol:Proxy)",
+        );
+      });
+
+      it("should format multiple proxies and strip project/ prefix", () => {
+        assert.equal(
+          getProxyLabel([
+            "project/contracts/Proxies.sol:Proxy2",
+            "project/contracts/Proxies.sol:Proxy",
+            "project/contracts/Impl.sol:Impl",
+          ]),
+          "(via contracts/Proxies.sol:Proxy2 → contracts/Proxies.sol:Proxy)",
+        );
+      });
+
+      it("should strip npm package version from proxy names", () => {
+        assert.equal(
+          getProxyLabel([
+            "npm/@openzeppelin/contracts@5.0.0/proxy/Proxy.sol:Proxy",
+            "project/contracts/Impl.sol:Impl",
+          ]),
+          "(via @openzeppelin/contracts/proxy/Proxy.sol:Proxy)",
+        );
       });
     });
 

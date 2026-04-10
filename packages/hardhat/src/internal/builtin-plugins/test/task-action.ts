@@ -17,7 +17,7 @@ import {
   successfulResult,
 } from "../../../utils/result.js";
 import { getCoverageManager } from "../coverage/helpers.js";
-import { getGasAnalyticsManager } from "../gas-analytics/helpers.js";
+import { getGasAnalyticsManager } from "../gas-analytics/helpers/accessors.js";
 
 interface TestActionArguments {
   testFiles: string[];

@@ -31,6 +31,16 @@ import debug from "debug";
 
 import { parseFullyQualifiedName } from "../../../utils/contract-names.js";
 
+import {
+  avg,
+  getDisplayKey,
+  getFunctionName,
+  getProxyLabel,
+  getUserFqn,
+  makeGroupKey,
+  median,
+} from "./helpers/utils.js";
+
 const gasStatsLog = debug(
   "hardhat:core:gas-analytics:gas-analytics-manager:gas-stats",
 );
@@ -40,6 +50,7 @@ interface DeploymentGasStats extends GasStats {
 }
 
 interface ContractGasStats {
+  proxyChain: string[];
   deployment?: DeploymentGasStats;
   functions: Map<
     string, // function name or signature (if overloaded)
@@ -60,6 +71,7 @@ interface GasStats {
 type GasMeasurementsByContract = Map<string, ContractGasMeasurements>;
 
 interface ContractGasMeasurements {
+  proxyChain: string[];
   deployments: number[];
   deploymentRuntimeSize?: number;
   functions: Map<
@@ -179,8 +191,9 @@ export class GasAnalyticsManagerImplementation implements GasAnalyticsManager {
     const gasStatsByContract: GasStatsByContract = new Map();
     const measurementsByContract = this._aggregateGasMeasurements();
 
-    for (const [contractFqn, measurements] of measurementsByContract) {
+    for (const [groupKey, measurements] of measurementsByContract) {
       const contractGasStats: ContractGasStats = {
+        proxyChain: measurements.proxyChain,
         functions: new Map(),
       };
 
@@ -222,7 +235,20 @@ export class GasAnalyticsManagerImplementation implements GasAnalyticsManager {
         );
       }
 
-      gasStatsByContract.set(contractFqn, contractGasStats);
+      gasStatsByContract.set(groupKey, contractGasStats);
+    }
+
+    // Duplicate deployment stats from direct-call groups to proxied groups
+    for (const [groupKey, stats] of gasStatsByContract) {
+      if (stats.proxyChain.length > 0 && stats.deployment === undefined) {
+        // Extract contractFqn from the groupKey (everything before the first \0)
+        const contractFqn = groupKey.split("\0")[0];
+        const directKey = makeGroupKey(contractFqn, []);
+        const directStats = gasStatsByContract.get(directKey);
+        if (directStats?.deployment !== undefined) {
+          stats.deployment = directStats.deployment;
+        }
+      }
     }
 
     return gasStatsByContract;
@@ -235,18 +261,20 @@ export class GasAnalyticsManagerImplementation implements GasAnalyticsManager {
     const measurementsByContract: GasMeasurementsByContract = new Map();
 
     for (const currentMeasurement of this.gasMeasurements) {
-      let contractMeasurements = measurementsByContract.get(
-        currentMeasurement.contractFqn,
-      );
+      const proxyChain =
+        currentMeasurement.type === "function"
+          ? currentMeasurement.proxyChain
+          : [];
+      const groupKey = makeGroupKey(currentMeasurement.contractFqn, proxyChain);
+
+      let contractMeasurements = measurementsByContract.get(groupKey);
       if (contractMeasurements === undefined) {
         contractMeasurements = {
+          proxyChain,
           deployments: [],
           functions: new Map(),
         };
-        measurementsByContract.set(
-          currentMeasurement.contractFqn,
-          contractMeasurements,
-        );
+        measurementsByContract.set(groupKey, contractMeasurements);
       }
 
       if (currentMeasurement.type === "deployment") {
@@ -286,15 +314,16 @@ export class GasAnalyticsManagerImplementation implements GasAnalyticsManager {
       rows.push({ type: "title", text: chalk.bold("Gas Usage Statistics") });
     }
 
-    // Sort contracts alphabetically for consistent output
-    const sortedContracts = [...gasStatsByContract.entries()].sort(([a], [b]) =>
-      a.localeCompare(b),
-    );
-
-    for (const [contractFqn, contractGasStats] of sortedContracts) {
+    const sortedContracts = getSortedContractEntries(gasStatsByContract);
+    for (const {
+      userFqn,
+      proxyLabel,
+      stats: contractGasStats,
+    } of sortedContracts) {
       rows.push({
         type: "section-header",
-        text: chalk.cyan.bold(getUserFqn(contractFqn)),
+        text: chalk.cyan.bold(userFqn),
+        subtitle: proxyLabel !== undefined ? chalk.cyan(proxyLabel) : undefined,
       });
 
       if (contractGasStats.functions.size > 0) {
@@ -375,16 +404,10 @@ export class GasAnalyticsManagerImplementation implements GasAnalyticsManager {
   public _generateGasStatsJson(
     gasStatsByContract: GasStatsByContract,
   ): GasStatsJson {
-    const sortedContracts = [...gasStatsByContract.entries()]
-      .map(([internalFqn, stats]) => ({
-        userFqn: getUserFqn(internalFqn),
-        stats,
-      }))
-      .sort((a, b) => a.userFqn.localeCompare(b.userFqn));
-
+    const sortedContracts = getSortedContractEntries(gasStatsByContract);
     const contracts: Record<string, ContractGasStatsJson> = {};
 
-    for (const { userFqn, stats } of sortedContracts) {
+    for (const { userFqn, displayKey, stats } of sortedContracts) {
       const { sourceName, contractName } = parseFullyQualifiedName(userFqn);
 
       const deployment: DeploymentGasStatsJsonEntry | null =
@@ -403,44 +426,34 @@ export class GasAnalyticsManagerImplementation implements GasAnalyticsManager {
         functions = Object.fromEntries(sortedFunctions);
       }
 
-      contracts[userFqn] = { sourceName, contractName, deployment, functions };
+      contracts[displayKey] = {
+        sourceName,
+        contractName,
+        proxyChain: stats.proxyChain.map(getUserFqn),
+        deployment,
+        functions,
+      };
     }
 
     return { contracts };
   }
 }
 
-export function avg(values: number[]): number {
-  return values.reduce((a, c) => a + c, 0) / values.length;
-}
-
-export function median(values: number[]): number {
-  const sorted = [...values].sort((a, b) => a - b);
-  const mid = Math.floor(sorted.length / 2);
-
-  return sorted.length % 2 === 1
-    ? sorted[mid]
-    : (sorted[mid - 1] + sorted[mid]) / 2;
-}
-
-export function getUserFqn(inputFqn: string): string {
-  if (inputFqn.startsWith("project/")) {
-    return inputFqn.slice("project/".length);
-  }
-
-  if (inputFqn.startsWith("npm/")) {
-    const withoutPrefix = inputFqn.slice("npm/".length);
-    // Match "<pkg>@<version>/<rest>", where <pkg> may be scoped (@scope/pkg)
-    const match = withoutPrefix.match(/^(@?[^@/]+(?:\/[^@/]+)*)@[^/]+\/(.*)$/);
-    if (match !== null) {
-      return `${match[1]}/${match[2]}`;
-    }
-    return withoutPrefix;
-  }
-
-  return inputFqn;
-}
-
-export function getFunctionName(signature: string): string {
-  return signature.split("(")[0];
+function getSortedContractEntries(
+  gasStatsByContract: GasStatsByContract,
+): Array<{
+  userFqn: string;
+  displayKey: string;
+  proxyLabel: string | undefined;
+  stats: ContractGasStats;
+}> {
+  return [...gasStatsByContract.entries()]
+    .map(([groupKey, stats]) => {
+      const contractFqn = groupKey.split("\0")[0];
+      const userFqn = getUserFqn(contractFqn);
+      const displayKey = getDisplayKey(userFqn, stats.proxyChain);
+      const proxyLabel = getProxyLabel(stats.proxyChain);
+      return { userFqn, displayKey, proxyLabel, stats };
+    })
+    .sort((a, b) => a.displayKey.localeCompare(b.displayKey));
 }

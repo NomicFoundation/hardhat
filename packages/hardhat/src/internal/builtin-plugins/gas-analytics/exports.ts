@@ -2,4 +2,4 @@ export {
   markTestRunStart,
   markTestRunDone,
   markTestWorkerDone,
-} from "./helpers.js";
+} from "./helpers/compat.js";
