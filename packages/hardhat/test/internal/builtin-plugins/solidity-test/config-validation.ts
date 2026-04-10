@@ -20,14 +20,14 @@ describe("config validation", () => {
       {
         test: {
           solidity: {
-            timeout: 5000,
+            isolate: true,
           },
         },
       },
       solidityTestPlugin,
     );
 
-    assert.equal(hre.config.test.solidity.timeout, 5000);
+    assert.equal(hre.config.test.solidity.isolate, true);
   });
 
   it("should not throw when the `test.solidity` config is not set by the user", async () => {
@@ -45,7 +45,7 @@ describe("config validation", () => {
         /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions
           -- intentionally violating the types for the test */
         solidity: {
-          timeout: "not a number",
+          isolate: "not a boolean",
         } as any,
       },
     };
@@ -58,7 +58,7 @@ describe("config validation", () => {
       HardhatError.ERRORS.CORE.GENERAL.INVALID_CONFIG,
       {
         errors:
-          "\t* Config error in config.test.solidity.timeout: Expected number, received string",
+          "\t* Config error in config.test.solidity.isolate: Expected boolean, received string",
       },
     );
   });

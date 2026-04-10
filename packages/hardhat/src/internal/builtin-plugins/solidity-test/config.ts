@@ -29,7 +29,6 @@ export const DEFAULT_FUZZ_SEED =
   "0x7727ea51af0441c20da14dcd68a15dac8c9ebd589c5be8fa8c87c1d3720450bc";
 
 const solidityTestUserConfigType = z.object({
-  timeout: z.number().optional(),
   fsPermissions: z
     .object({
       readWriteFile: z.array(z.string()).optional(),
