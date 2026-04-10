@@ -24,7 +24,7 @@ const taskTransactions: NewTaskActionFunction<TrackTxArguments> = async (
 
   await verifyArtifactsVersion(deploymentDir);
 
-  const connection = await hre.network.connect();
+  const connection = await hre.network.create();
 
   const output = await trackTransaction(
     deploymentDir,

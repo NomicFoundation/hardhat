@@ -20,7 +20,7 @@ describe("JSON-RPC server", function () {
     const hostname = (await exists("/.dockerenv")) ? "0.0.0.0" : "127.0.0.1";
     const port = 8545;
 
-    const connection = await hre.network.connect();
+    const connection = await hre.network.create();
     const server = new JsonRpcServerImplementation({
       hostname,
       port,

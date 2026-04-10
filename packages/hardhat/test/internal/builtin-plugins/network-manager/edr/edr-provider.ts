@@ -38,7 +38,7 @@ describe("edr-provider", () => {
 
   describe("EdrProvider#request", () => {
     it("should return the expected response when the method is web3_clientVersion", async () => {
-      const { provider } = await hre.network.connect();
+      const { provider } = await hre.network.create();
 
       const response = await provider.request({
         method: "web3_clientVersion",
@@ -56,7 +56,7 @@ describe("edr-provider", () => {
       { timeout: 1000 },
       async () => {
         let eventEmitted = false;
-        const { provider } = await hre.network.connect();
+        const { provider } = await hre.network.create();
 
         const eventPromise = once(
           provider,
@@ -80,7 +80,7 @@ describe("edr-provider", () => {
     );
 
     it("should return the expected response when the method is debug_traceTransaction", async () => {
-      const { provider } = await hre.network.connect();
+      const { provider } = await hre.network.create();
 
       const accounts = await provider.request({
         method: "eth_accounts",
@@ -116,7 +116,7 @@ describe("edr-provider", () => {
     });
 
     it("should return the expected response when the method is debug_traceCall", async () => {
-      const { provider } = await hre.network.connect();
+      const { provider } = await hre.network.create();
 
       const accounts = await provider.request({
         method: "eth_accounts",
@@ -156,7 +156,7 @@ describe("edr-provider", () => {
     });
 
     it("should throw a ProviderError if the params are invalid", async () => {
-      const { provider } = await hre.network.connect();
+      const { provider } = await hre.network.create();
 
       try {
         await provider.request({
@@ -175,7 +175,7 @@ describe("edr-provider", () => {
     });
 
     it("should throw a ProviderError for any other type of failed response", async () => {
-      const { provider } = await hre.network.connect();
+      const { provider } = await hre.network.create();
 
       const accounts = await provider.request({
         method: "eth_accounts",
@@ -215,7 +215,7 @@ describe("edr-provider", () => {
       });
 
       it("should return account proof on local network", async () => {
-        const { provider } = await hre.network.connect();
+        const { provider } = await hre.network.create();
 
         const accounts = await provider.request({
           method: "eth_accounts",
@@ -263,7 +263,7 @@ describe("edr-provider", () => {
       });
 
       it("should return storage proof for contract on local network", async () => {
-        const { provider } = await hre.network.connect();
+        const { provider } = await hre.network.create();
 
         // Define arbitrary address and storage key
         const contractAddress = "0x1234567890123456789012345678901234567890";
@@ -326,7 +326,7 @@ describe("edr-provider", () => {
           },
         });
 
-        const { provider } = await forkedHre.network.connect("edrOptimism");
+        const { provider } = await forkedHre.network.create("edrOptimism");
 
         try {
           // WETH Optimism address
@@ -371,7 +371,7 @@ describe("edr-provider", () => {
           },
         });
 
-        const { provider } = await forkedHre.network.connect("edrOptimism");
+        const { provider } = await forkedHre.network.create("edrOptimism");
 
         try {
           const accounts = await provider.request({ method: "eth_accounts" });
@@ -417,7 +417,7 @@ describe("edr-provider", () => {
         const notificationEventResults: string[] = [];
         const messageEventResults: string[] = [];
 
-        const { provider } = await hre.network.connect();
+        const { provider } = await hre.network.create();
 
         const notificationEventPromise = new Promise<void>((resolve) => {
           provider.on("notification", ({ result }) => {
@@ -458,7 +458,7 @@ describe("edr-provider", () => {
 
   describe("EdrProvider#close", () => {
     it("should not allow to make requests after closing", async () => {
-      const connection = await hre.network.connect();
+      const connection = await hre.network.create();
 
       await connection.provider.close();
 
@@ -472,7 +472,7 @@ describe("edr-provider", () => {
     });
 
     it("should remove all listeners after closing", async () => {
-      const connection = await hre.network.connect();
+      const connection = await hre.network.create();
 
       connection.provider.on("notification", () => {});
       assert.equal(connection.provider.listenerCount("notification"), 1);

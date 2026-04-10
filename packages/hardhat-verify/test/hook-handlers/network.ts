@@ -19,7 +19,7 @@ describe("hook-handlers/network", () => {
       const hre = await createHardhatRuntimeEnvironment({
         plugins: [hardhatVerify],
       });
-      connection = await hre.network.connect();
+      connection = await hre.network.create();
     });
 
     it("should extend connection with verification property", () => {
@@ -100,8 +100,8 @@ describe("hook-handlers/network", () => {
       const hre = await createHardhatRuntimeEnvironment({
         plugins: [hardhatVerify],
       });
-      const connection1 = await hre.network.connect();
-      const connection2 = await hre.network.connect();
+      const connection1 = await hre.network.create();
+      const connection2 = await hre.network.create();
 
       assert.notEqual(
         connection1.verification,

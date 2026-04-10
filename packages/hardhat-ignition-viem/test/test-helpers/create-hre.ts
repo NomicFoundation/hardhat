@@ -10,7 +10,7 @@ import hardhatIgnitionViem from "../../src/index.js";
 
 export async function createConnection(): Promise<NetworkConnection> {
   const hre = await createHre();
-  const connection = await hre.network.connect();
+  const connection = await hre.network.create();
 
   await connection.provider.request({
     method: "evm_setAutomine",

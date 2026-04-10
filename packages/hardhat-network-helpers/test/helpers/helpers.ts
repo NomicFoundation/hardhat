@@ -18,7 +18,7 @@ export async function initializeNetwork<
   const hre = await createHardhatRuntimeEnvironment({
     networks: { default: { type: "edr-simulated", ...config } },
   });
-  const connection = await hre.network.connect<ChainTypeT>();
+  const connection = await hre.network.create<ChainTypeT>();
 
   const provider = connection.provider;
 

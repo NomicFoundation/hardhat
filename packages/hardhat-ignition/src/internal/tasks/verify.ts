@@ -56,7 +56,7 @@ export async function verify(
     deploymentId,
   );
 
-  const connection = await hre.network.connect();
+  const connection = await hre.network.create();
 
   for await (const contractInfo of getVerificationInformationFn(
     deploymentDir,

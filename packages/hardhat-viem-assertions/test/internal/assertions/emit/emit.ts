@@ -29,7 +29,7 @@ describe("emit", () => {
   });
 
   beforeEach(async () => {
-    ({ viem } = await hre.network.connect());
+    ({ viem } = await hre.network.create());
   });
 
   it("should check that the event was emitted", async () => {

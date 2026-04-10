@@ -15,7 +15,7 @@ describe("Mocha test", () => {
 
 describe("Mocha test with chai-matchers", () => {
   before(async () => {
-    await hre.network.connect();
+    await hre.network.create();
   });
 
   it("should import variables from the chai-matchers package", () => {
@@ -30,7 +30,7 @@ describe("Mocha test with chai-matchers", () => {
 
 describe("Rocket test", () => {
   it("should launch the Apollo 11 rocket", async () => {
-    const connection = await hre.network.connect();
+    const connection = await hre.network.create();
 
     const Rocket = await connection.ethers.getContractFactory("Rocket");
     const rocket = await Rocket.deploy("Apollo 11");
@@ -43,7 +43,7 @@ describe("Rocket test", () => {
 
 describe("Matchers without automining", () => {
   it("emit should wait for the tx to be mined", async () => {
-    const { ethers, provider } = await hre.network.connect();
+    const { ethers, provider } = await hre.network.create();
 
     const Rocket = await ethers.getContractFactory("Rocket");
     const rocket = await Rocket.deploy("Apollo 11");
@@ -62,7 +62,7 @@ describe("Matchers without automining", () => {
   });
 
   it("revert should wait for the tx to be mined", async () => {
-    const { ethers, provider } = await hre.network.connect();
+    const { ethers, provider } = await hre.network.create();
 
     const FailingContract = await ethers.getContractFactory("FailingContract");
     const failing = await FailingContract.deploy();

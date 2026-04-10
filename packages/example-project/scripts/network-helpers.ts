@@ -5,6 +5,6 @@
 
 import hre from "hardhat";
 
-const { networkHelpers } = await hre.network.connect();
+const { networkHelpers } = await hre.network.create();
 
 await networkHelpers.mine();

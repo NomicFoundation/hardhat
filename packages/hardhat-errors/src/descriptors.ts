@@ -1067,7 +1067,7 @@ Try using another mnemonic or deriving less keys.`,
         messageTemplate: "The provider has been closed.",
         websiteTitle: "Provider closed",
         websiteDescription:
-          "The provider your are trying to use has been closed. Please create a new one using hre.network.connect() and try again.",
+          "The provider you are trying to use has been closed. Please create a new one using hre.network.create() and try again.",
       },
       INCOMPATIBLE_EIP7702_FIELDS: {
         number: 723,
@@ -2232,7 +2232,7 @@ Please ensure you're using one of the supported networks.`,
 To resolve this, make sure to add an account to the specified network in the Hardhat config. Alternatively, you can set a custom wallet client by passing it as a parameter in the relevant function:
 
 \`\`\`ts
-const networkConnection = await hre.network.connect(...);
+const networkConnection = await hre.network.create(...);
 const walletClient = await networkConnection.viem.getWalletClient(address);
 
 await networkConnection.viem.deployContract(contractName, constructorArgs, { walletClient });

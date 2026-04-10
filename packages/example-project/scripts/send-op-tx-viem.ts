@@ -3,7 +3,7 @@ import { network } from "hardhat";
 async function sendL2Transaction(networkConfigName: string) {
   console.log("Sending transaction using network", networkConfigName);
 
-  const { viem, networkConfig } = await network.connect({
+  const { viem, networkConfig } = await network.create({
     network: networkConfigName,
     chainType: "op",
   });

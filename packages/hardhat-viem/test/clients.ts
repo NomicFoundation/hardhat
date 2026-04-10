@@ -556,7 +556,7 @@ describe("clients", () => {
     });
 
     it("should be able to query the blockchain using the public client", async () => {
-      const networkConnection = await hre.network.connect();
+      const networkConnection = await hre.network.create();
 
       const publicClient = await networkConnection.viem.getPublicClient();
       const blockNumber = await publicClient.getBlockNumber();
@@ -565,7 +565,7 @@ describe("clients", () => {
     });
 
     it("should be able to query the blockchain using the wallet client", async () => {
-      const networkConnection = await hre.network.connect();
+      const networkConnection = await hre.network.create();
 
       const publicClient = await networkConnection.viem.getPublicClient();
       const [fromWalletClient, toWalletClient] =
@@ -605,7 +605,7 @@ describe("clients", () => {
     });
 
     it("should be able to query the blockchain using the test client", async () => {
-      const networkConnection = await hre.network.connect();
+      const networkConnection = await hre.network.create();
       const publicClient = await networkConnection.viem.getPublicClient();
       const testClient = await networkConnection.viem.getTestClient();
 
@@ -627,7 +627,7 @@ describe("clients", () => {
         },
       });
 
-      const { viem } = await hre.network.connect({
+      const { viem } = await hre.network.create({
         network: "edrOptimism",
         chainType: "op",
       });

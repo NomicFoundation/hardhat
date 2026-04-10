@@ -30,7 +30,7 @@ export async function initializeTestEthers(
   const network =
     config.networks?.localhost !== undefined ? "localhost" : "default";
 
-  const connection = await hre.network.connect(network);
+  const connection = await hre.network.create(network);
 
   const provider = connection.provider;
   const networkName = connection.networkName;

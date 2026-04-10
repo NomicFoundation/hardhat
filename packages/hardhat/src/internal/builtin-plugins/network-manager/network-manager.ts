@@ -12,6 +12,7 @@ import type {
   DefaultChainType,
   JsonRpcServer,
   NetworkConnection,
+  CachedNetworkConnectionParams,
   NetworkConnectionParams,
   NetworkManager,
 } from "../../../types/network.js";
@@ -59,9 +60,17 @@ export class NetworkManagerImplementation implements NetworkManager {
   readonly #projectRoot: string;
   readonly #verbosity: number;
 
+  #connectCalled = false;
+
   #nextConnectionId = 0;
   readonly #contractDecoderMutex = new AsyncMutex();
   #contractDecoder: ContractDecoder | undefined;
+
+  readonly #getOrCreateMutex = new AsyncMutex();
+  readonly #getOrCreateCache = new Map<
+    string,
+    Map<string, NetworkConnection<ChainType | string>>
+  >();
 
   constructor(
     defaultNetwork: string,
@@ -87,9 +96,7 @@ export class NetworkManagerImplementation implements NetworkManager {
     this.#verbosity = verbosity;
   }
 
-  public async connect<
-    ChainTypeT extends ChainType | string = DefaultChainType,
-  >(
+  public async create<ChainTypeT extends ChainType | string = DefaultChainType>(
     networkOrParams?: NetworkConnectionParams<ChainTypeT> | string,
   ): Promise<NetworkConnection<ChainTypeT>> {
     let networkName: string | undefined;
@@ -117,6 +124,80 @@ export class NetworkManagerImplementation implements NetworkManager {
     return networkConnection as NetworkConnection<ChainTypeT>;
   }
 
+  public async connect<
+    ChainTypeT extends ChainType | string = DefaultChainType,
+  >(
+    networkOrParams?: NetworkConnectionParams<ChainTypeT> | string,
+  ): Promise<NetworkConnection<ChainTypeT>> {
+    this.#connectCalled = true;
+
+    return this.create(networkOrParams);
+  }
+
+  public async getOrCreate<
+    ChainTypeT extends ChainType | string = DefaultChainType,
+  >(
+    networkOrParams?: CachedNetworkConnectionParams<ChainTypeT> | string,
+  ): Promise<NetworkConnection<ChainTypeT>> {
+    let network: string | undefined;
+    let chainType: ChainTypeT | undefined;
+
+    if (typeof networkOrParams === "string") {
+      network = networkOrParams;
+    } else if (networkOrParams !== undefined) {
+      network = networkOrParams.network;
+      chainType = networkOrParams.chainType;
+
+      if ("override" in networkOrParams) {
+        throw new HardhatError(
+          HardhatError.ERRORS.CORE.NETWORK.INVALID_CONFIG_OVERRIDE,
+          {
+            errors: "\t* Config overrides are not supported by getOrCreate.",
+          },
+        );
+      }
+    }
+
+    const { resolvedNetworkName, resolvedChainType } =
+      this.#resolveNetworkAndChainType(network, chainType);
+
+    const cached = this.#getOrCreateCache
+      .get(resolvedNetworkName)
+      ?.get(resolvedChainType);
+    if (cached !== undefined) {
+      /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions
+      -- Cast is safe: the cache keys guarantee the chain type matches */
+      return cached as NetworkConnection<ChainTypeT>;
+    }
+
+    return this.#getOrCreateMutex.exclusiveRun(async () => {
+      // Double-check after acquiring the mutex — another call may have
+      // populated the cache while we were waiting.
+      const cachedAfterWaiting = this.#getOrCreateCache
+        .get(resolvedNetworkName)
+        ?.get(resolvedChainType);
+      if (cachedAfterWaiting !== undefined) {
+        /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions
+        -- Cast is safe: the cache keys guarantee the chain type matches */
+        return cachedAfterWaiting as NetworkConnection<ChainTypeT>;
+      }
+
+      const connection = await this.create({
+        network: resolvedNetworkName,
+        chainType: resolvedChainType,
+      });
+
+      let networkCache = this.#getOrCreateCache.get(resolvedNetworkName);
+      if (networkCache === undefined) {
+        networkCache = new Map();
+        this.#getOrCreateCache.set(resolvedNetworkName, networkCache);
+      }
+      networkCache.set(resolvedChainType, connection);
+
+      return connection;
+    });
+  }
+
   public async createServer<
     ChainTypeT extends ChainType | string = DefaultChainType,
   >(
@@ -129,7 +210,7 @@ export class NetworkManagerImplementation implements NetworkManager {
     const insideDocker = await exists("/.dockerenv");
     const hostname = _hostname ?? (insideDocker ? "0.0.0.0" : "127.0.0.1");
 
-    const { provider } = await this.connect(networkOrParams);
+    const { provider } = await this.create(networkOrParams);
 
     return new JsonRpcServerImplementation({
       hostname,
@@ -138,30 +219,24 @@ export class NetworkManagerImplementation implements NetworkManager {
     });
   }
 
+  /**
+   * Returns whether the deprecated `connect` method has been called on this
+   * instance. It is not on the public NetworkManager interface as it is only
+   * used by the CLI to print a deprecation warning at exit.
+   *
+   * @returns whether the deprecated `connect` method has ever been called
+   */
+  public wasConnectCalled(): boolean {
+    return this.#connectCalled;
+  }
+
   async #initializeNetworkConnection<ChainTypeT extends ChainType | string>(
     networkName?: string,
     chainType?: ChainTypeT,
     networkConfigOverride?: NetworkConfigOverride,
   ): Promise<NetworkConnection<ChainTypeT>> {
-    const resolvedNetworkName = networkName ?? this.#defaultNetwork;
-    const existingNetworkConfig = this.#networkConfigs[resolvedNetworkName];
-
-    if (existingNetworkConfig === undefined) {
-      throw new HardhatError(
-        HardhatError.ERRORS.CORE.NETWORK.NETWORK_NOT_FOUND,
-        {
-          networkName: resolvedNetworkName,
-        },
-      );
-    }
-
-    /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions --
-     * Type assertion is safe: defaultChainType ensures non-undefined, and the
-     * resolved value will be ChainTypeT (if provided) or a fallback that
-     * satisfies the ChainType | string constraint */
-    const resolvedChainType = (chainType ??
-      existingNetworkConfig.chainType ??
-      this.#defaultChainType) as ChainTypeT;
+    const { resolvedNetworkName, resolvedChainType } =
+      this.#resolveNetworkAndChainType(networkName, chainType);
 
     const resolvedNetworkConfig = await this.#resolveNetworkConfig(
       resolvedNetworkName,
@@ -287,9 +362,7 @@ export class NetworkManagerImplementation implements NetworkManager {
             allowUnlimitedContractSize: shouldEnableCoverage
               ? true
               : resolvedNetworkConfig.allowUnlimitedContractSize,
-            /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions --
-            This case is safe because we have a check above */
-            chainType: resolvedChainType as ChainType,
+            chainType: resolvedChainType,
           },
           jsonRpcRequestWrapper,
           contractDecoder: this.#contractDecoder,
@@ -387,7 +460,7 @@ export class NetworkManagerImplementation implements NetworkManager {
       throw new HardhatError(
         HardhatError.ERRORS.CORE.NETWORK.INVALID_CONFIG_OVERRIDE,
         {
-          errors: `\t* The chainType cannot be specified in config overrides. Pass it at the top level instead: hre.network.connect({ chainType: 'op' })`,
+          errors: `\t* The chainType cannot be specified in config overrides. Pass it at the top level instead: hre.network.create({ chainType: 'op' })`,
         },
       );
     }
@@ -472,6 +545,36 @@ export class NetworkManagerImplementation implements NetworkManager {
     );
 
     return resolvedNetworkConfigOverride;
+  }
+
+  #resolveNetworkAndChainType<
+    ChainTypeT extends ChainType | string = DefaultChainType,
+  >(
+    network: string | undefined,
+    chainType: ChainTypeT | undefined,
+  ): { resolvedNetworkName: string; resolvedChainType: ChainTypeT } {
+    const resolvedNetworkName = network ?? this.#defaultNetwork;
+    const existingNetworkConfig = this.#networkConfigs[resolvedNetworkName];
+
+    if (existingNetworkConfig === undefined) {
+      throw new HardhatError(
+        HardhatError.ERRORS.CORE.NETWORK.NETWORK_NOT_FOUND,
+        {
+          networkName: resolvedNetworkName,
+        },
+      );
+    }
+
+    const resolvedChainType =
+      chainType ?? existingNetworkConfig.chainType ?? this.#defaultChainType;
+
+    return {
+      resolvedNetworkName,
+      /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions
+      -- The cast is safe because the fallback values are valid chain
+      types that match the caller's expected type at runtime. */
+      resolvedChainType: resolvedChainType as ChainTypeT,
+    };
   }
 
   async #getBuildInfosAndOutputsAsBuffers(): Promise<

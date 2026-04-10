@@ -150,9 +150,9 @@ describe("NetworkManagerImplementation", () => {
     );
   });
 
-  describe("connect", () => {
-    it("should connect to the default network and chain type if none are provided", async () => {
-      const networkConnection = await networkManager.connect();
+  describe("create", () => {
+    it("should create using the default network and chain type if none are provided", async () => {
+      const networkConnection = await networkManager.create();
       assert.equal(networkConnection.networkName, "localhost");
       assert.equal(networkConnection.chainType, GENERIC_CHAIN_TYPE);
       assert.deepEqual(networkConnection.networkConfig, {
@@ -161,9 +161,9 @@ describe("NetworkManagerImplementation", () => {
       });
     });
 
-    it("should return the same networkConfig field references for two connect() calls without overrides", async () => {
-      const conn1 = await networkManager.connect();
-      const conn2 = await networkManager.connect();
+    it("should return the same networkConfig field references for two create() calls without overrides", async () => {
+      const conn1 = await networkManager.create();
+      const conn2 = await networkManager.create();
 
       assert.equal(conn1.networkConfig.type, conn2.networkConfig.type);
 
@@ -180,12 +180,12 @@ describe("NetworkManagerImplementation", () => {
       }
     });
 
-    it("should return the same networkConfig reference for two connect() calls that have the chain type defined in the config", async () => {
-      const conn1 = await networkManager.connect({
+    it("should return the same networkConfig reference for two create() calls that have the chain type defined in the config", async () => {
+      const conn1 = await networkManager.create({
         network: "edrNetwork",
         chainType: OPTIMISM_CHAIN_TYPE,
       });
-      const conn2 = await networkManager.connect({
+      const conn2 = await networkManager.create({
         network: "edrNetwork",
         chainType: OPTIMISM_CHAIN_TYPE,
       });
@@ -194,7 +194,7 @@ describe("NetworkManagerImplementation", () => {
     });
 
     it("should connect to the specified network and default chain type if none are provided and the network doesn't have a chain type", async () => {
-      const networkConnection = await networkManager.connect({
+      const networkConnection = await networkManager.create({
         network: "customNetwork",
       });
       assert.equal(networkConnection.networkName, "customNetwork");
@@ -206,7 +206,7 @@ describe("NetworkManagerImplementation", () => {
     });
 
     it("should connect to the specified network and use it's chain type if none is provided and the network has a chain type", async () => {
-      const networkConnection = await networkManager.connect({
+      const networkConnection = await networkManager.create({
         network: "myNetwork",
       });
       assert.equal(networkConnection.networkName, "myNetwork");
@@ -215,7 +215,7 @@ describe("NetworkManagerImplementation", () => {
     });
 
     it("should connect to the specified network and chain type", async () => {
-      const networkConnection = await networkManager.connect({
+      const networkConnection = await networkManager.create({
         network: "myNetwork",
         chainType: OPTIMISM_CHAIN_TYPE,
       });
@@ -229,7 +229,7 @@ describe("NetworkManagerImplementation", () => {
         chainId: 1234, // optional in the resolved config
         timeout: 30_000, // specific to http networks
       };
-      let networkConnection = await networkManager.connect({
+      let networkConnection = await networkManager.create({
         network: "myNetwork",
         chainType: OPTIMISM_CHAIN_TYPE,
         override: httpConfigOverride,
@@ -243,7 +243,7 @@ describe("NetworkManagerImplementation", () => {
 
       // Overriding the url is handled differently
       // so we need to test it separately
-      networkConnection = await networkManager.connect({
+      networkConnection = await networkManager.create({
         network: "myNetwork",
         chainType: OPTIMISM_CHAIN_TYPE,
         override: {
@@ -266,7 +266,7 @@ describe("NetworkManagerImplementation", () => {
           },
         },
       };
-      const networkConnection = await networkManager.connect({
+      const networkConnection = await networkManager.create({
         network: "edrNetwork",
         chainType: OPTIMISM_CHAIN_TYPE,
         override: edrConfigOverride,
@@ -291,7 +291,7 @@ describe("NetworkManagerImplementation", () => {
 
     it("should throw an error if the specified network doesn't exist", async () => {
       await assertRejectsWithHardhatError(
-        networkManager.connect({ network: "unknownNetwork" }),
+        networkManager.create({ network: "unknownNetwork" }),
         HardhatError.ERRORS.CORE.NETWORK.NETWORK_NOT_FOUND,
         { networkName: "unknownNetwork" },
       );
@@ -299,7 +299,7 @@ describe("NetworkManagerImplementation", () => {
 
     it("should throw an error if the specified network config override tries to change the network's type", async () => {
       await assertRejectsWithHardhatError(
-        networkManager.connect({
+        networkManager.create({
           network: "myNetwork",
           chainType: OPTIMISM_CHAIN_TYPE,
           /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions
@@ -315,7 +315,7 @@ describe("NetworkManagerImplementation", () => {
       );
 
       await assertRejectsWithHardhatError(
-        networkManager.connect({
+        networkManager.create({
           network: "myNetwork",
           chainType: OPTIMISM_CHAIN_TYPE,
           /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions
@@ -333,7 +333,7 @@ describe("NetworkManagerImplementation", () => {
 
     it("should throw an error if the specified network config override is invalid", async () => {
       await assertRejectsWithHardhatError(
-        networkManager.connect({
+        networkManager.create({
           network: "myNetwork",
           chainType: OPTIMISM_CHAIN_TYPE,
           /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions
@@ -351,7 +351,7 @@ describe("NetworkManagerImplementation", () => {
 
     it("should throw an error if the specified network config override tries to change the chainType", async () => {
       await assertRejectsWithHardhatError(
-        networkManager.connect({
+        networkManager.create({
           network: "edrNetwork",
           override: {
             /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions
@@ -361,7 +361,7 @@ describe("NetworkManagerImplementation", () => {
         }),
         HardhatError.ERRORS.CORE.NETWORK.INVALID_CONFIG_OVERRIDE,
         {
-          errors: `\t* The chainType cannot be specified in config overrides. Pass it at the top level instead: hre.network.connect({ chainType: 'op' })`,
+          errors: `\t* The chainType cannot be specified in config overrides. Pass it at the top level instead: hre.network.create({ chainType: 'op' })`,
         },
       );
     });
@@ -369,7 +369,7 @@ describe("NetworkManagerImplementation", () => {
     describe("connecting with different chainType and hardfork configurations", () => {
       describe("network with no chainType or hardfork in config", () => {
         it("should connect with default chainType and latest hardfork", async () => {
-          const connection = await hre.network.connect({});
+          const connection = await hre.network.create({});
 
           assert.equal(connection.chainType, GENERIC_CHAIN_TYPE);
           assert.equal(connection.networkConfig.type, "edr-simulated");
@@ -381,7 +381,7 @@ describe("NetworkManagerImplementation", () => {
         });
 
         it("should connect with specified chainType and its latest hardfork", async () => {
-          const connection = await hre.network.connect({
+          const connection = await hre.network.create({
             chainType: OPTIMISM_CHAIN_TYPE,
           });
 
@@ -395,7 +395,7 @@ describe("NetworkManagerImplementation", () => {
         });
 
         it("should connect with specified chainType and hardfork override", async () => {
-          const connection = await hre.network.connect({
+          const connection = await hre.network.create({
             chainType: OPTIMISM_CHAIN_TYPE,
             override: {
               hardfork: OpHardforkName.HOLOCENE,
@@ -413,7 +413,7 @@ describe("NetworkManagerImplementation", () => {
 
         it("should throw an error when overriding with invalid hardfork for the chainType", async () => {
           await assertRejectsWithHardhatError(
-            hre.network.connect({
+            hre.network.create({
               chainType: OPTIMISM_CHAIN_TYPE,
               override: {
                 hardfork: L1HardforkName.LONDON,
@@ -431,7 +431,7 @@ describe("NetworkManagerImplementation", () => {
           );
 
           await assertRejectsWithHardhatError(
-            hre.network.connect({
+            hre.network.create({
               override: {
                 hardfork: OpHardforkName.HOLOCENE,
               },
@@ -462,7 +462,7 @@ describe("NetworkManagerImplementation", () => {
         });
 
         it("should connect with default chainType and configured hardfork", async () => {
-          const connection = await hre.network.connect({});
+          const connection = await hre.network.create({});
 
           assert.equal(connection.chainType, GENERIC_CHAIN_TYPE);
           assert.equal(connection.networkConfig.type, "edr-simulated");
@@ -474,7 +474,7 @@ describe("NetworkManagerImplementation", () => {
         });
 
         it("should connect with overridden valid hardfork for same chainType", async () => {
-          const connection = await hre.network.connect({
+          const connection = await hre.network.create({
             override: {
               hardfork: L1HardforkName.SHANGHAI,
             },
@@ -491,7 +491,7 @@ describe("NetworkManagerImplementation", () => {
 
         it("should throw an error when overriding with invalid hardfork", async () => {
           await assertRejectsWithHardhatError(
-            hre.network.connect({
+            hre.network.create({
               override: {
                 hardfork: OpHardforkName.HOLOCENE,
               },
@@ -510,7 +510,7 @@ describe("NetworkManagerImplementation", () => {
 
         it("should throw an error when changing chainType without overriding hardfork", async () => {
           await assertRejectsWithHardhatError(
-            hre.network.connect({
+            hre.network.create({
               chainType: OPTIMISM_CHAIN_TYPE,
             }),
             HardhatError.ERRORS.CORE.NETWORK.INVALID_CONFIG_OVERRIDE,
@@ -539,7 +539,7 @@ describe("NetworkManagerImplementation", () => {
         });
 
         it("should connect with configured chainType and its latest hardfork", async () => {
-          const connection = await hre.network.connect({});
+          const connection = await hre.network.create({});
 
           assert.equal(connection.chainType, OPTIMISM_CHAIN_TYPE);
           assert.equal(connection.networkConfig.type, "edr-simulated");
@@ -551,7 +551,7 @@ describe("NetworkManagerImplementation", () => {
         });
 
         it("should connect with valid hardfork override for configured chainType", async () => {
-          const connection = await hre.network.connect({
+          const connection = await hre.network.create({
             override: {
               hardfork: OpHardforkName.HOLOCENE,
             },
@@ -568,7 +568,7 @@ describe("NetworkManagerImplementation", () => {
 
         it("should throw an error when overriding with invalid hardfork for configured chainType", async () => {
           await assertRejectsWithHardhatError(
-            hre.network.connect({
+            hre.network.create({
               override: {
                 hardfork: L1HardforkName.LONDON,
               },
@@ -586,7 +586,7 @@ describe("NetworkManagerImplementation", () => {
         });
 
         it("should connect when changing to different chainType with its latest hardfork", async () => {
-          const connection = await hre.network.connect({
+          const connection = await hre.network.create({
             chainType: GENERIC_CHAIN_TYPE,
           });
 
@@ -614,7 +614,7 @@ describe("NetworkManagerImplementation", () => {
         });
 
         it("should connect with configured chainType and hardfork", async () => {
-          const connection = await hre.network.connect({});
+          const connection = await hre.network.create({});
 
           assert.equal(connection.chainType, OPTIMISM_CHAIN_TYPE);
           assert.equal(connection.networkConfig.type, "edr-simulated");
@@ -626,7 +626,7 @@ describe("NetworkManagerImplementation", () => {
         });
 
         it("should connect with valid hardfork override for configured chainType", async () => {
-          const connection = await hre.network.connect({
+          const connection = await hre.network.create({
             override: {
               hardfork: OpHardforkName.FJORD,
             },
@@ -640,7 +640,7 @@ describe("NetworkManagerImplementation", () => {
 
         it("should throw an error when overriding with invalid hardfork for configured chainType", async () => {
           await assertRejectsWithHardhatError(
-            hre.network.connect({
+            hre.network.create({
               override: {
                 hardfork: L1HardforkName.LONDON,
               },
@@ -659,7 +659,7 @@ describe("NetworkManagerImplementation", () => {
 
         it("should throw an error when changing chainType without hardfork override", async () => {
           await assertRejectsWithHardhatError(
-            hre.network.connect({
+            hre.network.create({
               chainType: GENERIC_CHAIN_TYPE,
             }),
             HardhatError.ERRORS.CORE.NETWORK.INVALID_CONFIG_OVERRIDE,
@@ -688,7 +688,7 @@ describe("NetworkManagerImplementation", () => {
 
         hre.hooks.registerHandlers("network", networkHooks);
 
-        await networkManager.connect();
+        await networkManager.create();
 
         hre.hooks.unregisterHandlers("network", networkHooks);
 
@@ -698,7 +698,7 @@ describe("NetworkManagerImplementation", () => {
 
     describe("types", () => {
       it("should create a NetworkConnection with the default chain type when no chain type is provided", async () => {
-        const networkConnection = await networkManager.connect({
+        const networkConnection = await networkManager.create({
           network: "localhost",
         });
         expectTypeOf(networkConnection).toEqualTypeOf<
@@ -707,7 +707,7 @@ describe("NetworkManagerImplementation", () => {
       });
 
       it("should create a NetworkConnection with the provided chain type", async () => {
-        const networkConnection = await networkManager.connect({
+        const networkConnection = await networkManager.create({
           network: "localhost",
           chainType: L1_CHAIN_TYPE,
         });
@@ -842,7 +842,7 @@ describe("NetworkManagerImplementation", () => {
     });
 
     it("should keep extensions to network config that plugins have added", async () => {
-      const networkConnection = await networkManager.connect({
+      const networkConnection = await networkManager.create({
         network: "pluginExtendedNetwork",
       });
 
@@ -852,7 +852,7 @@ describe("NetworkManagerImplementation", () => {
     });
 
     it("should re-extend config when a user override is provided", async () => {
-      const networkConnection = await networkManager.connect({
+      const networkConnection = await networkManager.create({
         network: "pluginExtendedNetwork",
         override: {
           timeout: 12,
@@ -865,7 +865,7 @@ describe("NetworkManagerImplementation", () => {
     });
 
     it("should re-extend config based on user provided values", async () => {
-      const networkConnection = await networkManager.connect({
+      const networkConnection = await networkManager.create({
         network: "pluginExtendedNetwork",
         /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions
         -- to enable the test of plugin extension. */
@@ -921,15 +921,15 @@ describe("NetworkManagerImplementation", () => {
     });
 
     it("should not call resolveUserConfig when connecting without overrides", async () => {
-      await networkManager.connect();
-      await networkManager.connect();
+      await networkManager.create();
+      await networkManager.create();
       // Note: this is 1 and not 0 because there's the HRE creation's config
       // resolution
       assert.equal(resolveUserConfigCallCount, 1);
     });
 
     it("should call resolveUserConfig when connecting with overrides", async () => {
-      await networkManager.connect({
+      await networkManager.create({
         network: "localhost",
         override: { timeout: 5000 },
       });
@@ -1013,7 +1013,7 @@ describe("NetworkManagerImplementation", () => {
 
     it("should throw INVALID_CONFIG_OVERRIDE when resolved config validation returns errors", async () => {
       await assertRejectsWithHardhatError(
-        networkManager.connect({
+        networkManager.create({
           network: "localhost",
           override: {
             timeout: 99999,
@@ -1022,6 +1022,130 @@ describe("NetworkManagerImplementation", () => {
         HardhatError.ERRORS.CORE.NETWORK.INVALID_CONFIG_OVERRIDE,
         {
           errors: `\t* Error in resolved config networks.localhost.custom: custom is invalid`,
+        },
+      );
+    });
+  });
+
+  describe("connect", () => {
+    it("should behave the same as create", async () => {
+      const connectConn = await networkManager.connect("myNetwork");
+      const createConn = await networkManager.create("myNetwork");
+
+      assert.equal(connectConn.networkName, createConn.networkName);
+      assert.equal(connectConn.chainType, createConn.chainType);
+      assert.equal(connectConn.chainType, OPTIMISM_CHAIN_TYPE);
+    });
+
+    it("should record that connect was called", async () => {
+      /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions 
+         -- Accessing internal method not on the NetworkManager interface */
+      const impl = networkManager as unknown as NetworkManagerImplementation;
+
+      assert.equal(impl.wasConnectCalled(), false);
+
+      await networkManager.connect("myNetwork");
+
+      assert.equal(impl.wasConnectCalled(), true);
+    });
+  });
+
+  describe("getOrCreate", () => {
+    it("should use the default network when none is provided", async () => {
+      const conn = await networkManager.getOrCreate();
+
+      assert.equal(conn.networkName, "localhost");
+    });
+
+    it("should use the default chain type when none is provided", async () => {
+      const conn = await networkManager.getOrCreate();
+
+      assert.equal(conn.chainType, GENERIC_CHAIN_TYPE);
+    });
+
+    it("should return the same connection for repeated calls with no arguments", async () => {
+      const conn1 = await networkManager.getOrCreate();
+      const conn2 = await networkManager.getOrCreate();
+
+      assert.equal(conn1, conn2);
+    });
+
+    it("should return the same connection for repeated calls with the same network", async () => {
+      const conn1 = await networkManager.getOrCreate("customNetwork");
+      const conn2 = await networkManager.getOrCreate("customNetwork");
+
+      assert.equal(conn1, conn2);
+    });
+
+    it("should return the same connection for repeated calls with the same network and chainType", async () => {
+      const conn1 = await networkManager.getOrCreate({
+        network: "myNetwork",
+        chainType: OPTIMISM_CHAIN_TYPE,
+      });
+      const conn2 = await networkManager.getOrCreate({
+        network: "myNetwork",
+        chainType: OPTIMISM_CHAIN_TYPE,
+      });
+
+      assert.equal(conn1, conn2);
+    });
+
+    it("should return different connections for different networks", async () => {
+      const conn1 = await networkManager.getOrCreate("localhost");
+      const conn2 = await networkManager.getOrCreate("customNetwork");
+
+      assert.notEqual(conn1, conn2);
+    });
+
+    it("should return the same connection when the config chainType matches an explicit chainType", async () => {
+      // myNetwork has chainType: OPTIMISM_CHAIN_TYPE from the config
+      const connImplicit = await networkManager.getOrCreate("myNetwork");
+      const connExplicit = await networkManager.getOrCreate({
+        network: "myNetwork",
+        chainType: OPTIMISM_CHAIN_TYPE,
+      });
+
+      assert.equal(connImplicit.chainType, OPTIMISM_CHAIN_TYPE);
+      assert.equal(connImplicit, connExplicit);
+    });
+
+    it("should return different connections when the config chainType differs from an explicit chainType", async () => {
+      // myNetwork has chainType: OPTIMISM_CHAIN_TYPE from the config
+      const connDefault = await networkManager.getOrCreate("myNetwork");
+      const connGeneric = await networkManager.getOrCreate({
+        network: "myNetwork",
+        chainType: GENERIC_CHAIN_TYPE,
+      });
+
+      assert.equal(connDefault.chainType, OPTIMISM_CHAIN_TYPE);
+      assert.equal(connGeneric.chainType, GENERIC_CHAIN_TYPE);
+      assert.notEqual(connDefault, connGeneric);
+    });
+
+    it("should return different connections for the same network with different chainTypes", async () => {
+      const conn1 = await networkManager.getOrCreate({
+        network: "myNetwork",
+        chainType: OPTIMISM_CHAIN_TYPE,
+      });
+      const conn2 = await networkManager.getOrCreate({
+        network: "myNetwork",
+        chainType: GENERIC_CHAIN_TYPE,
+      });
+
+      assert.notEqual(conn1, conn2);
+    });
+
+    it("should throw an error if an override is provided", async () => {
+      await assertRejectsWithHardhatError(
+        /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions
+        -- Cast to simulate a JS caller bypassing the type system */
+        networkManager.getOrCreate({
+          network: "localhost",
+          override: { url: "http://localhost:8545" },
+        } as any),
+        HardhatError.ERRORS.CORE.NETWORK.INVALID_CONFIG_OVERRIDE,
+        {
+          errors: "\t* Config overrides are not supported by getOrCreate.",
         },
       );
     });
@@ -1053,7 +1177,7 @@ describe("NetworkManagerImplementation", () => {
       const { address, port } = await server.listen();
 
       try {
-        const { provider } = await networkManager.connect({
+        const { provider } = await networkManager.create({
           network: "localhost",
           override: { url: `http://${address}:${port}` },
         });
@@ -1072,7 +1196,7 @@ describe("NetworkManagerImplementation", () => {
       const { address, port } = await server.listen();
 
       try {
-        const { provider } = await networkManager.connect({
+        const { provider } = await networkManager.create({
           network: "localhost",
           override: { url: `http://${address}:${port}` },
         });
@@ -1095,7 +1219,7 @@ describe("NetworkManagerImplementation", () => {
 
       hre.hooks.registerHandlers("network", networkHooks);
 
-      const networkConnection = await networkManager.connect();
+      const networkConnection = await networkManager.create();
       await networkConnection.close();
 
       hre.hooks.unregisterHandlers("network", networkHooks);
@@ -1122,7 +1246,7 @@ describe("NetworkManagerImplementation", () => {
 
       hre.hooks.registerHandlers("network", networkHooks);
 
-      const connection = await networkManager.connect();
+      const connection = await networkManager.create();
       // This will fail because we don't have a local node running
       // but we don't care about the result, we just want to trigger the hook
       try {
@@ -3146,11 +3270,11 @@ describe("NetworkManagerImplementation", () => {
     it("should create the ContractDecoder only once across multiple EDR connections", async (t) => {
       const spy = t.mock.method(EdrProvider, "createContractDecoder");
 
-      await networkManager.connect({
+      await networkManager.create({
         network: "edrNetwork",
       });
 
-      await networkManager.connect({
+      await networkManager.create({
         network: "edrNetwork",
       });
 

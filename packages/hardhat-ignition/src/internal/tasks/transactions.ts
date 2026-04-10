@@ -32,7 +32,7 @@ const taskTransactions: NewTaskActionFunction<
   );
 
   // TODO: HH3 revisit looking up the network name for display
-  const networkName = (await hre.network.connect()).networkName;
+  const networkName = (await hre.network.create()).networkName;
 
   console.log(
     await calculateListTransactionsDisplay(

@@ -94,7 +94,7 @@ const printConfig = task("config", "Print the config")
 const printAccounts = task("accounts", "Print the accounts")
   .setAction(async () => ({
     default: async ({}, hre) => {
-      const { provider } = await hre.network.connect();
+      const { provider } = await hre.network.create();
       console.log(await provider.request({ method: "eth_accounts" }));
     },
   }))

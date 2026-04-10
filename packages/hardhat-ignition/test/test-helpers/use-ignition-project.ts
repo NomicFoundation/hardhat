@@ -110,7 +110,7 @@ export function useEphemeralIgnitionProject(fixtureProjectName: string): void {
       projectPath,
     );
 
-    const connection = await hre.network.connect();
+    const connection = await hre.network.create();
 
     await connection.provider.request({
       method: "evm_setAutomine",
@@ -173,7 +173,7 @@ export function useFileIgnitionProject(
       deploymentId,
     );
 
-    const connection = await hre.network.connect();
+    const connection = await hre.network.create();
 
     await connection.provider.request({
       method: "evm_setAutomine",
