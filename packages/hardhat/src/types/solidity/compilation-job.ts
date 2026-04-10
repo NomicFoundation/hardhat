@@ -1,6 +1,6 @@
 import type { CompilerInput } from "./compiler-io.js";
 import type { DependencyGraph } from "./dependency-graph.js";
-import type { BuildInfoVersions } from "./solidity-artifacts.js";
+import type { ToolVersions } from "./solidity-artifacts.js";
 import type { SolidityCompilerConfig } from "../config.js";
 
 /**
@@ -27,7 +27,7 @@ export interface CompilationJob {
    * The versions to include in the build info, if any.
    * When present, these versions influence the build id.
    */
-  buildInfoVersions?: BuildInfoVersions;
+  toolVersions?: ToolVersions;
 
   /**
    * Returns the solc input to be used.

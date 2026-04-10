@@ -31,10 +31,10 @@ async function readBuildInfo(
 }
 
 describe(
-  "build info versions",
+  "tool versions in build info",
   { skip: process.env.HARDHAT_DISABLE_SLOW_TESTS === "true" },
   function () {
-    it("should include versions in build info when includeBuildInfoVersions is true", async () => {
+    it("should include versions in build info when toolVersionsInBuildInfo is true", async () => {
       await using project = await useTestProjectTemplate(projectTemplate);
       const hre = await project.getHRE(
         {
@@ -42,7 +42,7 @@ describe(
             profiles: {
               default: {
                 version: "0.8.28",
-                includeBuildInfoVersions: true,
+                toolVersionsInBuildInfo: true,
               },
             },
           },
@@ -58,7 +58,7 @@ describe(
       assert.deepEqual(buildInfo.versions, { hardhat: hardhatVersion });
     });
 
-    it("should not include versions in build info when includeBuildInfoVersions is false", async () => {
+    it("should not include versions in build info when toolVersionsInBuildInfo is false", async () => {
       await using project = await useTestProjectTemplate(projectTemplate);
       const hre = await project.getHRE(
         {
@@ -66,7 +66,7 @@ describe(
             profiles: {
               default: {
                 version: "0.8.28",
-                includeBuildInfoVersions: false,
+                toolVersionsInBuildInfo: false,
               },
             },
           },
@@ -108,7 +108,7 @@ describe(
             profiles: {
               default: {
                 version: "0.8.28",
-                includeBuildInfoVersions: true,
+                toolVersionsInBuildInfo: true,
               },
             },
           },
@@ -126,7 +126,7 @@ describe(
             profiles: {
               default: {
                 version: "0.8.28",
-                includeBuildInfoVersions: false,
+                toolVersionsInBuildInfo: false,
               },
             },
           },
@@ -140,7 +140,7 @@ describe(
       assert.notEqual(
         buildInfoA.id,
         buildInfoB.id,
-        "Build IDs should differ when includeBuildInfoVersions changes",
+        "Build IDs should differ when toolVersionsInBuildInfo changes",
       );
     });
   },

@@ -399,7 +399,7 @@ describe("CompilationJobImplementation", () => {
         assert.notEqual(await jobA.getBuildId(), await jobB.getBuildId());
       });
 
-      it("buildInfoVersions is added", async () => {
+      it("toolVersions is added", async () => {
         const newCompilationJob = new CompilationJobImplementation(
           dependencyGraph,
           solcConfig,
@@ -414,7 +414,7 @@ describe("CompilationJobImplementation", () => {
         );
       });
 
-      it("the hardhat version in buildInfoVersions changes", async () => {
+      it("the hardhat version in toolVersions changes", async () => {
         const jobA = new CompilationJobImplementation(
           dependencyGraph,
           solcConfig,
@@ -476,7 +476,7 @@ describe("CompilationJobImplementation", () => {
         );
       });
 
-      it("buildInfoVersions is undefined (not passed vs explicitly undefined)", async () => {
+      it("toolVersions is undefined (not passed vs explicitly undefined)", async () => {
         const jobA = new CompilationJobImplementation(
           dependencyGraph,
           solcConfig,

@@ -4,7 +4,7 @@ import type { CompilerInput, CompilerOutput } from "./compiler-io.js";
  * A record with the versions of the different tools used to create a
  * build info.
  */
-export interface BuildInfoVersions {
+export interface ToolVersions {
   readonly hardhat: string;
 }
 
@@ -55,9 +55,9 @@ export interface SolidityBuildInfo {
    * Versions of the different tools used to create this build info.
    *
    * Not present if the build profile used to create this build info
-   * had `includeBuildInfoVersions` as `false`.
+   * had `toolVersionsInBuildInfo` as `false`.
    */
-  readonly versions?: BuildInfoVersions;
+  readonly versions?: ToolVersions;
 
   /**
    * A mapping from user source names to input source names, for the root

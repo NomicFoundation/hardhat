@@ -724,15 +724,15 @@ describe("solidity plugin config validation", () => {
     });
   });
 
-  describe("includeBuildInfoVersions validation", () => {
-    it("Should accept includeBuildInfoVersions boolean in single-version build profile", () => {
+  describe("toolVersionsInBuildInfo validation", () => {
+    it("Should accept toolVersionsInBuildInfo boolean in single-version build profile", () => {
       assert.deepEqual(
         validateSolidityUserConfig({
           solidity: {
             profiles: {
               default: {
                 version: "0.8.28",
-                includeBuildInfoVersions: true,
+                toolVersionsInBuildInfo: true,
               },
             },
           },
@@ -741,14 +741,14 @@ describe("solidity plugin config validation", () => {
       );
     });
 
-    it("Should accept includeBuildInfoVersions boolean in multi-version build profile", () => {
+    it("Should accept toolVersionsInBuildInfo boolean in multi-version build profile", () => {
       assert.deepEqual(
         validateSolidityUserConfig({
           solidity: {
             profiles: {
               default: {
                 compilers: [{ version: "0.8.28" }],
-                includeBuildInfoVersions: false,
+                toolVersionsInBuildInfo: false,
               },
             },
           },
@@ -757,14 +757,14 @@ describe("solidity plugin config validation", () => {
       );
     });
 
-    it("Should reject non-boolean includeBuildInfoVersions in build profiles", () => {
+    it("Should reject non-boolean toolVersionsInBuildInfo in build profiles", () => {
       assert.deepEqual(
         validateSolidityUserConfig({
           solidity: {
             profiles: {
               default: {
                 version: "0.8.28",
-                includeBuildInfoVersions: "yes",
+                toolVersionsInBuildInfo: "yes",
               },
             },
           },
@@ -776,7 +776,7 @@ describe("solidity plugin config validation", () => {
               "solidity",
               "profiles",
               "default",
-              "includeBuildInfoVersions",
+              "toolVersionsInBuildInfo",
             ],
           },
         ],
@@ -1280,7 +1280,7 @@ describe("solidity plugin config resolution", () => {
     });
   });
 
-  describe("includeBuildInfoVersions resolution", function () {
+  describe("toolVersionsInBuildInfo resolution", function () {
     const otherResolvedConfig = { paths: { root: process.cwd() } } as any;
 
     it("defaults to true for the production profile when using a string config", async () => {
@@ -1290,11 +1290,11 @@ describe("solidity plugin config resolution", () => {
       );
 
       assert.equal(
-        resolvedConfig.solidity.profiles.default.includeBuildInfoVersions,
+        resolvedConfig.solidity.profiles.default.toolVersionsInBuildInfo,
         false,
       );
       assert.equal(
-        resolvedConfig.solidity.profiles.production.includeBuildInfoVersions,
+        resolvedConfig.solidity.profiles.production.toolVersionsInBuildInfo,
         true,
       );
     });
@@ -1306,11 +1306,11 @@ describe("solidity plugin config resolution", () => {
       );
 
       assert.equal(
-        resolvedConfig.solidity.profiles.default.includeBuildInfoVersions,
+        resolvedConfig.solidity.profiles.default.toolVersionsInBuildInfo,
         false,
       );
       assert.equal(
-        resolvedConfig.solidity.profiles.production.includeBuildInfoVersions,
+        resolvedConfig.solidity.profiles.production.toolVersionsInBuildInfo,
         true,
       );
     });
@@ -1322,11 +1322,11 @@ describe("solidity plugin config resolution", () => {
       );
 
       assert.equal(
-        resolvedConfig.solidity.profiles.default.includeBuildInfoVersions,
+        resolvedConfig.solidity.profiles.default.toolVersionsInBuildInfo,
         false,
       );
       assert.equal(
-        resolvedConfig.solidity.profiles.production.includeBuildInfoVersions,
+        resolvedConfig.solidity.profiles.production.toolVersionsInBuildInfo,
         true,
       );
     });
@@ -1338,11 +1338,11 @@ describe("solidity plugin config resolution", () => {
       );
 
       assert.equal(
-        resolvedConfig.solidity.profiles.default.includeBuildInfoVersions,
+        resolvedConfig.solidity.profiles.default.toolVersionsInBuildInfo,
         false,
       );
       assert.equal(
-        resolvedConfig.solidity.profiles.production.includeBuildInfoVersions,
+        resolvedConfig.solidity.profiles.production.toolVersionsInBuildInfo,
         true,
       );
     });
@@ -1360,11 +1360,11 @@ describe("solidity plugin config resolution", () => {
       );
 
       assert.equal(
-        resolvedConfig.solidity.profiles.default.includeBuildInfoVersions,
+        resolvedConfig.solidity.profiles.default.toolVersionsInBuildInfo,
         false,
       );
       assert.equal(
-        resolvedConfig.solidity.profiles.production.includeBuildInfoVersions,
+        resolvedConfig.solidity.profiles.production.toolVersionsInBuildInfo,
         true,
       );
     });
@@ -1377,7 +1377,7 @@ describe("solidity plugin config resolution", () => {
               default: { version: "0.8.28" },
               production: {
                 version: "0.8.28",
-                includeBuildInfoVersions: false,
+                toolVersionsInBuildInfo: false,
               },
             },
           },
@@ -1386,7 +1386,7 @@ describe("solidity plugin config resolution", () => {
       );
 
       assert.equal(
-        resolvedConfig.solidity.profiles.production.includeBuildInfoVersions,
+        resolvedConfig.solidity.profiles.production.toolVersionsInBuildInfo,
         false,
       );
     });
@@ -1398,7 +1398,7 @@ describe("solidity plugin config resolution", () => {
             profiles: {
               default: {
                 version: "0.8.28",
-                includeBuildInfoVersions: true,
+                toolVersionsInBuildInfo: true,
               },
             },
           },
@@ -1407,7 +1407,7 @@ describe("solidity plugin config resolution", () => {
       );
 
       assert.equal(
-        resolvedConfig.solidity.profiles.default.includeBuildInfoVersions,
+        resolvedConfig.solidity.profiles.default.toolVersionsInBuildInfo,
         true,
       );
     });

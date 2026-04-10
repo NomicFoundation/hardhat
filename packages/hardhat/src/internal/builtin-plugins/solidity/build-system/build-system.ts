@@ -22,7 +22,7 @@ import type {
   CacheHitInfo,
 } from "../../../../types/solidity/build-system.js";
 import type {
-  BuildInfoVersions,
+  ToolVersions,
   CompilationJob,
   Compiler,
   CompilerOutput,
@@ -438,9 +438,9 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
 
     log(`Using build profile ${buildProfileName}`);
 
-    let buildInfoVersions: BuildInfoVersions | undefined;
-    if (buildProfile.includeBuildInfoVersions === true) {
-      buildInfoVersions = { hardhat: await getHardhatVersion() };
+    let toolVersions: ToolVersions | undefined;
+    if (buildProfile.toolVersionsInBuildInfo === true) {
+      toolVersions = { hardhat: await getHardhatVersion() };
     }
 
     const solcConfigSelector = new SolcConfigSelector(
@@ -540,7 +540,7 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
           longVersion,
           this.#hooks,
           sharedContentHashes,
-          buildInfoVersions,
+          toolVersions,
         );
 
         await individualJob.getBuildId(); // precompute
@@ -695,7 +695,7 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
         longVersion,
         this.#hooks,
         sharedContentHashes,
-        buildInfoVersions,
+        toolVersions,
       );
 
       for (const [userSourceName, root] of subgraph.getRoots().entries()) {

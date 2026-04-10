@@ -173,7 +173,7 @@ declare module "../../../types/config.js" {
   export type SingleVersionBuildProfileUserConfig =
     SolidityCompilerUserConfig & {
       isolated?: boolean;
-      includeBuildInfoVersions?: boolean;
+      toolVersionsInBuildInfo?: boolean;
     };
 
   /**
@@ -182,7 +182,7 @@ declare module "../../../types/config.js" {
    */
   export interface MultiVersionBuildProfileUserConfig
     extends MultiVersionSolcUserConfig {
-    includeBuildInfoVersions?: boolean;
+    toolVersionsInBuildInfo?: boolean;
   }
 
   /**
@@ -261,7 +261,7 @@ declare module "../../../types/config.js" {
   export interface SolidityBuildProfileConfig {
     isolated: boolean;
     preferWasm: boolean;
-    includeBuildInfoVersions?: boolean;
+    toolVersionsInBuildInfo?: boolean;
     compilers: SolidityCompilerConfig[];
     overrides: Record<string, SolidityCompilerConfig>;
   }

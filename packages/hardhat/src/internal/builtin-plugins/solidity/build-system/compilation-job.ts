@@ -5,7 +5,7 @@ import type { HookManager } from "../../../../types/hooks.js";
 import type { CompilationJob } from "../../../../types/solidity/compilation-job.js";
 import type { CompilerInput } from "../../../../types/solidity/compiler-io.js";
 import type { DependencyGraph } from "../../../../types/solidity/dependency-graph.js";
-import type { BuildInfoVersions } from "../../../../types/solidity/solidity-artifacts.js";
+import type { ToolVersions } from "../../../../types/solidity/solidity-artifacts.js";
 
 import { createHash } from "node:crypto";
 
@@ -25,7 +25,7 @@ export class CompilationJobImplementation implements CompilationJob {
   public readonly dependencyGraph: DependencyGraph;
   public readonly solcConfig: SolidityCompilerConfig;
   public readonly solcLongVersion: string;
-  public readonly buildInfoVersions?: BuildInfoVersions;
+  public readonly toolVersions?: ToolVersions;
 
   readonly #hooks: HookManager;
   // This map is shared across compilation jobs and is meant to store content hashes of source files
@@ -41,14 +41,14 @@ export class CompilationJobImplementation implements CompilationJob {
     solcLongVersion: string,
     hooks: HookManager,
     sharedContentHashes: Map<string, string> = new Map(),
-    buildInfoVersions?: BuildInfoVersions,
+    toolVersions?: ToolVersions,
   ) {
     this.dependencyGraph = dependencyGraph;
     this.solcConfig = solcConfig;
     this.solcLongVersion = solcLongVersion;
     this.#hooks = hooks;
     this.#sharedContentHashes = sharedContentHashes;
-    this.buildInfoVersions = buildInfoVersions;
+    this.toolVersions = toolVersions;
   }
 
   public async getSolcInput(): Promise<CompilerInput> {
@@ -257,10 +257,10 @@ export class CompilationJobImplementation implements CompilationJob {
       preimageObject.compilerType = compilerType;
     }
 
-    // Include build info versions in the preimage when present, so that
+    // Include tool versions in the preimage when present, so that
     // different tool versions produce different build IDs.
-    if (this.buildInfoVersions !== undefined) {
-      preimageObject.versions = this.buildInfoVersions;
+    if (this.toolVersions !== undefined) {
+      preimageObject.versions = this.toolVersions;
     }
 
     const preimage = JSON.stringify(preimageObject);

@@ -164,7 +164,7 @@ const singleVersionBuildProfileUserConfigType = conditionalUnionType(
         (!("type" in data) || data.type === undefined || data.type === "solc"),
       solcSolidityCompilerUserConfigType.extend({
         isolated: z.boolean().optional(),
-        includeBuildInfoVersions: z.boolean().optional(),
+        toolVersionsInBuildInfo: z.boolean().optional(),
         ...incompatibleVersionFields,
       }),
     ],
@@ -172,7 +172,7 @@ const singleVersionBuildProfileUserConfigType = conditionalUnionType(
       (data) => isObject(data) && "type" in data && data.type !== "solc",
       otherSolidityCompilerUserConfigType.extend({
         isolated: z.boolean().optional(),
-        includeBuildInfoVersions: z.boolean().optional(),
+        toolVersionsInBuildInfo: z.boolean().optional(),
         ...incompatibleVersionFields,
       }),
     ],
@@ -185,7 +185,7 @@ const multiVersionBuildProfileUserConfigType = z.object({
   compilers: z.array(solidityCompilerUserConfigType).nonempty(),
   overrides: z.record(z.string(), solidityCompilerUserConfigType).optional(),
   isolated: z.boolean().optional(),
-  includeBuildInfoVersions: z.boolean().optional(),
+  toolVersionsInBuildInfo: z.boolean().optional(),
   ...incompatibleCompilerFields,
 });
 
@@ -461,7 +461,7 @@ function resolveSolidityConfig(
     profiles[profileName] = resolveBuildProfileConfig(
       profile,
       profileName === "production",
-      profile.includeBuildInfoVersions,
+      profile.toolVersionsInBuildInfo,
     );
   }
 
@@ -488,7 +488,7 @@ function resolveBuildProfileConfig(
     | SingleVersionSolidityUserConfig
     | MultiVersionSolidityUserConfig,
   production: boolean = false,
-  includeBuildInfoVersions?: boolean,
+  toolVersionsInBuildInfo?: boolean,
 ): SolidityBuildProfileConfig {
   if ("version" in solidityConfig) {
     return {
@@ -496,7 +496,7 @@ function resolveBuildProfileConfig(
       overrides: {},
       isolated: solidityConfig.isolated ?? production,
       preferWasm: solidityConfig.preferWasm ?? false,
-      includeBuildInfoVersions: includeBuildInfoVersions ?? production,
+      toolVersionsInBuildInfo: toolVersionsInBuildInfo ?? production,
     };
   }
 
@@ -514,7 +514,7 @@ function resolveBuildProfileConfig(
     ),
     isolated: solidityConfig.isolated ?? production,
     preferWasm: solidityConfig.preferWasm ?? false,
-    includeBuildInfoVersions: includeBuildInfoVersions ?? production,
+    toolVersionsInBuildInfo: toolVersionsInBuildInfo ?? production,
   };
 }
 
