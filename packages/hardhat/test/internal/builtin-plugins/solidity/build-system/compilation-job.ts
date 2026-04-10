@@ -398,6 +398,41 @@ describe("CompilationJobImplementation", () => {
         );
         assert.notEqual(await jobA.getBuildId(), await jobB.getBuildId());
       });
+
+      it("buildInfoVersions is added", async () => {
+        const newCompilationJob = new CompilationJobImplementation(
+          dependencyGraph,
+          solcConfig,
+          solcLongVersion,
+          hooks,
+          new Map(),
+          { hardhat: "3.0.0" },
+        );
+        assert.notEqual(
+          await compilationJob.getBuildId(),
+          await newCompilationJob.getBuildId(),
+        );
+      });
+
+      it("the hardhat version in buildInfoVersions changes", async () => {
+        const jobA = new CompilationJobImplementation(
+          dependencyGraph,
+          solcConfig,
+          solcLongVersion,
+          hooks,
+          new Map(),
+          { hardhat: "3.0.0" },
+        );
+        const jobB = new CompilationJobImplementation(
+          dependencyGraph,
+          solcConfig,
+          solcLongVersion,
+          hooks,
+          new Map(),
+          { hardhat: "3.1.0" },
+        );
+        assert.notEqual(await jobA.getBuildId(), await jobB.getBuildId());
+      });
     });
 
     describe("should not change when", () => {
@@ -439,6 +474,24 @@ describe("CompilationJobImplementation", () => {
           await compilationJob.getBuildId(),
           await newCompilationJob.getBuildId(),
         );
+      });
+
+      it("buildInfoVersions is undefined (not passed vs explicitly undefined)", async () => {
+        const jobA = new CompilationJobImplementation(
+          dependencyGraph,
+          solcConfig,
+          solcLongVersion,
+          hooks,
+        );
+        const jobB = new CompilationJobImplementation(
+          dependencyGraph,
+          solcConfig,
+          solcLongVersion,
+          hooks,
+          new Map(),
+          undefined,
+        );
+        assert.equal(await jobA.getBuildId(), await jobB.getBuildId());
       });
 
       it("the compiler type is undefined vs 'solc'", async () => {
