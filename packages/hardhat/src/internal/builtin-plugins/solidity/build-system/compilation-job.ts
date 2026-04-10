@@ -16,6 +16,7 @@ import {
   ResolvedFileType,
   type ResolvedFile,
 } from "../../../../types/solidity.js";
+import { DEFAULT_OUTPUT_SELECTION } from "../constants.js";
 
 import { getEvmVersionFromSolcVersion } from "./solc-info.js";
 
@@ -130,19 +131,14 @@ export class CompilationJobImplementation implements CompilationJob {
     // from other files (e.g. new Foo()), and it won't output its bytecode if
     // it's not asked for. This would prevent EDR from doing any runtime
     // analysis.
-    const outputSelection = await deepClone(settings.outputSelection ?? {});
+    const outputSelection: CompilerInput["settings"]["outputSelection"] =
+      await deepClone(settings.outputSelection ?? {});
     outputSelection["*"] ??= {};
     outputSelection["*"][""] ??= [];
     outputSelection["*"]["*"] ??= [];
 
-    outputSelection["*"][""].push("ast");
-    outputSelection["*"]["*"].push(
-      "abi",
-      "evm.bytecode",
-      "evm.deployedBytecode",
-      "evm.methodIdentifiers",
-      "metadata",
-    );
+    outputSelection["*"][""].push(...DEFAULT_OUTPUT_SELECTION["*"][""]);
+    outputSelection["*"]["*"].push(...DEFAULT_OUTPUT_SELECTION["*"]["*"]);
 
     const sources: { [sourceName: string]: { content: string } } = {};
 
