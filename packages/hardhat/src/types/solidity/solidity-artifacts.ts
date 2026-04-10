@@ -1,6 +1,14 @@
 import type { CompilerInput, CompilerOutput } from "./compiler-io.js";
 
 /**
+ * A record with the versions of the different tools used to create a
+ * build info.
+ */
+export interface BuildInfoVersions {
+  readonly hardhat: string;
+}
+
+/**
  * A SolidityBuildInfo is a file that contains all the information of a solc
  * run. It includes all the necessary information to recreate that exact same
  * run, and all of its output.
@@ -42,6 +50,14 @@ export interface SolidityBuildInfo {
    * type may not be registered in the current type definitions.
    */
   readonly compilerType?: string;
+
+  /**
+   * Versions of the different tools used to create this build info.
+   *
+   * Not present if the build profile used to create this build info
+   * had `includeBuildInfoVersions` as `false`.
+   */
+  readonly versions?: BuildInfoVersions;
 
   /**
    * A mapping from user source names to input source names, for the root
