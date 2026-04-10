@@ -275,6 +275,8 @@ declare module "../../../types/config.js" {
   export interface SolidityBuildProfileConfig {
     isolated: boolean;
     preferWasm: boolean;
+    // Note: This is optional for backwards compatibility.
+    // If `undefined` is present, it's equivalent to `false`.
     toolVersionsInBuildInfo?: boolean;
     compilers: SolidityCompilerConfig[];
     overrides: Record<string, SolidityCompilerConfig>;
