@@ -132,13 +132,16 @@ declare module "../../../types/config.js" {
   /**
    * The type of all the single version user configs.
    */
-  export type SingleVersionSolidityUserConfig =
+  export type SingleVersionSolidityUserConfig = (
     | {
         [type in keyof SingleVersionSolidityUserConfigPerType]: SingleVersionSolidityUserConfigPerType[type];
       }[keyof SingleVersionSolidityUserConfigPerType]
     // SolcSingleVersionSolidityUserConfig when the type isn't present
     | (Omit<SolcSingleVersionSolidityUserConfig, "type"> &
-        Partial<Pick<SolcSingleVersionSolidityUserConfig, "type">>);
+        Partial<Pick<SolcSingleVersionSolidityUserConfig, "type">>)
+  ) & {
+    toolVersionsInBuildInfo?: boolean;
+  };
 
   /**
    * Deprecated: Use `MultiVersionSolidityUserConfig` or
@@ -165,7 +168,9 @@ declare module "../../../types/config.js" {
    */
   export interface MultiVersionSolidityUserConfig
     extends MultiVersionSolcUserConfig,
-      CommonSolidityUserConfig {}
+      CommonSolidityUserConfig {
+    toolVersionsInBuildInfo?: boolean;
+  }
 
   /**
    * The type of a single-version build profile user config.

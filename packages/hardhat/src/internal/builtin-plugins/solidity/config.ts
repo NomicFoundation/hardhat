@@ -120,12 +120,14 @@ const solidityCompilerUserConfigType = conditionalUnionType(
 const solcSingleVersionSolidityUserConfigType =
   solcSolidityCompilerUserConfigType.extend({
     ...commonSolidityUserConfigFields,
+    toolVersionsInBuildInfo: z.boolean().optional(),
     ...incompatibleVersionFields,
   });
 
 const otherSingleVersionSolidityUserConfigType =
   otherSolidityCompilerUserConfigType.extend({
     ...commonSolidityUserConfigFields,
+    toolVersionsInBuildInfo: z.boolean().optional(),
     ...incompatibleVersionFields,
   });
 
@@ -150,6 +152,7 @@ const multiVersionSolidityUserConfigType = z.object({
   compilers: z.array(solidityCompilerUserConfigType).nonempty(),
   overrides: z.record(z.string(), solidityCompilerUserConfigType).optional(),
   ...commonSolidityUserConfigFields,
+  toolVersionsInBuildInfo: z.boolean().optional(),
   ...incompatibleCompilerFields,
 });
 
@@ -441,10 +444,15 @@ function resolveSolidityConfig(
   if ("version" in solidityConfig || "compilers" in solidityConfig) {
     return {
       profiles: {
-        default: resolveBuildProfileConfig(solidityConfig),
+        default: resolveBuildProfileConfig(
+          solidityConfig,
+          false,
+          solidityConfig.toolVersionsInBuildInfo,
+        ),
         production: resolveBuildProfileConfig(
           copyFromDefault(solidityConfig),
           true,
+          solidityConfig.toolVersionsInBuildInfo,
         ),
       },
       npmFilesToBuild: solidityConfig.npmFilesToBuild ?? [],
