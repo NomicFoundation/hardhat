@@ -714,7 +714,7 @@ describe("DependencyGraphImplementation", () => {
       assert.deepEqual(mergedGraph.toJSON(), expectedJson);
     });
 
-    it("Should deduplicate remappings across edges after merge", () => {
+    it("should deduplicate remappings across edges after merge", () => {
       const root1 = createProjectResolvedFile("root1.sol");
       const root2 = createProjectResolvedFile("root2.sol");
       const dep = createProjectResolvedFile("dep.sol");
@@ -731,7 +731,7 @@ describe("DependencyGraphImplementation", () => {
       assert.deepEqual(mergedGraph.getAllRemappings(), ["r1"]);
     });
 
-    it("Should deduplicate remappings in the same edges after merge", () => {
+    it("should deduplicate remappings in the same edge after merge", () => {
       const root1 = createProjectResolvedFile("root1.sol");
       const dep = createProjectResolvedFile("dep.sol");
 
