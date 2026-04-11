@@ -106,12 +106,34 @@ jobs:
         with:
           script: |
             const { number } = ${{ steps.find.outputs.result }};
-            await github.rest.issues.createComment({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
+            const owner = context.repo.owner;
+            const repo = context.repo.repo;
+            const body = `${{ steps.docs.outputs.comment_body }}`;
+            const marker = '## Documentation PRs to merge';
+
+            const { data: comments } = await github.rest.issues.listComments({
+              owner,
+              repo,
               issue_number: number,
-              body: `${{ steps.docs.outputs.comment_body }}`
             });
+
+            const existing = comments.find(c => c.body.startsWith(marker));
+
+            if (existing) {
+              await github.rest.issues.updateComment({
+                owner,
+                repo,
+                comment_id: existing.id,
+                body,
+              });
+            } else {
+              await github.rest.issues.createComment({
+                owner,
+                repo,
+                issue_number: number,
+                body,
+              });
+            }
 
   pack:
     name: Generate tarballs for publishing
