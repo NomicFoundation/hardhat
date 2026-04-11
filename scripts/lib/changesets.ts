@@ -1,9 +1,9 @@
-import { exec as execSync } from "node:child_process";
+import { exec as execCb } from "node:child_process";
 import { readdir, readFile } from "node:fs/promises";
 import path from "node:path";
 import { promisify } from "node:util";
 
-const exec = promisify(execSync);
+const exec = promisify(execCb);
 
 const changesetDir = ".changeset";
 
@@ -49,7 +49,7 @@ export function parseFrontMatter(markdown) {
 }
 
 const DOCS_URL_PATTERN =
-  /^#\s*docs:\s*(https?:\/\/github\.com\/NomicFoundation\/hardhat-website\/pull\/\d+)/i;
+  /^\s*#\s*docs:\s*(https?:\/\/github\.com\/NomicFoundation\/hardhat-website\/pull\/\d+)/i;
 
 export function extractDocsUrlsFromFrontMatter(frontMatter) {
   if (frontMatter === null) return [];

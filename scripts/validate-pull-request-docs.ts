@@ -1,4 +1,4 @@
-import { exec as execSync } from "node:child_process";
+import { exec as execCb } from "node:child_process";
 import { readFile } from "node:fs/promises";
 import process from "node:process";
 import { promisify } from "node:util";
@@ -19,7 +19,7 @@ import {
  * (those must go in changeset frontmatters instead).
  */
 
-const exec = promisify(execSync);
+const exec = promisify(execCb);
 
 const SKIP_LABEL = "no docs needed";
 const changesetDir = ".changeset";
