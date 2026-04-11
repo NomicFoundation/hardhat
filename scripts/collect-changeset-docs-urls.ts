@@ -38,7 +38,8 @@ async function collectDocsUrls() {
 
   if (hasDocs) {
     const lines = ["## Documentation PRs to merge"];
-    for (const url of allUrls) {
+    const sortedUrls = Array.from(allUrls).sort();
+    for (const url of sortedUrls) {
       lines.push(`- ${url}`);
     }
     const commentBody = lines.join("\n");
