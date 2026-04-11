@@ -34,6 +34,10 @@ jobs:
       - name: Install Dependencies
         run: pnpm install --frozen-lockfile
 
+      - name: Collect docs URLs from changesets
+        id: docs
+        run: node scripts/collect-changeset-docs-urls.ts
+
       - name: Create release Pull Request
         id: pr
         env:
@@ -94,11 +98,6 @@ jobs:
                 }
               }`;
             await github.graphql(mutation, { prId: pr.id });
-
-      - name: Collect docs URLs from changesets
-        if: steps.pr.outputs.hasChangesets == 'true'
-        id: docs
-        run: node scripts/collect-changeset-docs-urls.ts
 
       - name: Post docs comment on release PR
         if: steps.pr.outputs.hasChangesets == 'true' && steps.docs.outputs.has_docs == 'true'
