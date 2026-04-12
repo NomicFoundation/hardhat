@@ -82,9 +82,8 @@ const testWithHardhat: NewTaskActionFunction<TestActionArguments> = async (
   perf.startPhase("Build");
 
   if (!noCompile) {
-    await hre.tasks.getTask("build").run({
-      noTests: true,
-    });
+    const noTests = hre.config.solidity.splitTestsCompilation;
+    await hre.tasks.getTask("build").run({ noTests });
     console.log();
   }
 
