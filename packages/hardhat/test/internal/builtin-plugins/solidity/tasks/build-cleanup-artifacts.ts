@@ -89,7 +89,7 @@ contract AddedByHook {}`,
         // Run full build
         await hre.tasks.getTask("build").run({
           force: true,
-          noTests: true,
+
           quiet: true,
         });
 
@@ -145,7 +145,7 @@ contract Filter {}`,
 
         await hreNoFilter.tasks.getTask("build").run({
           force: true,
-          noTests: true,
+
           quiet: true,
         });
 
@@ -212,7 +212,7 @@ contract Filter {}`,
         // Run full build with filtering
         await hreWithFilter.tasks.getTask("build").run({
           force: true,
-          noTests: true,
+
           quiet: true,
         });
 
@@ -260,7 +260,7 @@ contract Third {}`,
         // Run full build
         await hre.tasks.getTask("build").run({
           force: true,
-          noTests: true,
+
           quiet: true,
         });
 
@@ -306,7 +306,7 @@ contract Two {}`,
 
         await hre.tasks.getTask("build").run({
           force: true,
-          noTests: true,
+
           quiet: true,
         });
 
@@ -326,7 +326,7 @@ contract Two {}`,
         // Run partial build with only One.sol
         await hre.tasks.getTask("build").run({
           force: true,
-          noTests: true,
+
           quiet: true,
           files: [path.join(project.path, "contracts/One.sol")],
         });
@@ -370,7 +370,7 @@ contract ToDelete {}`,
 
         await hre.tasks.getTask("build").run({
           force: true,
-          noTests: true,
+
           quiet: true,
         });
 
@@ -401,7 +401,7 @@ contract ToDelete {}`,
         // Rebuild
         await hre.tasks.getTask("build").run({
           force: true,
-          noTests: true,
+
           quiet: true,
         });
 
