@@ -1,3 +1,4 @@
+import type { HardhatRuntimeEnvironment } from "../../../../src/types/hre.js";
 import type { HardhatPlugin } from "../../../../src/types/plugins.js";
 
 import assert from "node:assert/strict";
@@ -290,6 +291,68 @@ describe("test/task-action", function () {
       const result = await hre.tasks.getTask("test").run({ noCompile: true });
 
       assert.deepEqual(result, { success: true, value: undefined });
+    });
+  });
+
+  describe("build invocation", function () {
+    function buildArgCaptor() {
+      const buildArgs: any[] = [];
+      const buildOverride = overrideTask("build")
+        .setAction(async () => {
+          return {
+            default: (args: any) => {
+              buildArgs.push(args);
+              return { contractRootPaths: [], testRootPaths: [] };
+            },
+          };
+        })
+        .build();
+      return { buildArgs, buildOverride };
+    }
+
+    async function createTestHre(
+      buildOverride: ReturnType<typeof buildArgCaptor>["buildOverride"],
+      splitTestsCompilation: boolean,
+    ): Promise<HardhatRuntimeEnvironment> {
+      return createHardhatRuntimeEnvironment({
+        ...(splitTestsCompilation
+          ? {
+              solidity: {
+                version: "0.8.28",
+                splitTestsCompilation: true,
+              },
+            }
+          : {}),
+        tasks: [
+          solidityNoOp,
+          buildOverride,
+          mockRunner("runner-a", () =>
+            successfulResult({
+              summary: { passed: 1, failed: 0, skipped: 0, todo: 0 },
+            }),
+          ),
+        ],
+      });
+    }
+
+    it("should call build without noTests when splitTestsCompilation is false", async () => {
+      const { buildArgs, buildOverride } = buildArgCaptor();
+      const hre = await createTestHre(buildOverride, false);
+
+      await hre.tasks.getTask("test").run({ noCompile: false });
+
+      assert.equal(buildArgs.length, 1);
+      assert.equal(buildArgs[0].noTests, false);
+    });
+
+    it("should call build with noTests when splitTestsCompilation is true", async () => {
+      const { buildArgs, buildOverride } = buildArgCaptor();
+      const hre = await createTestHre(buildOverride, true);
+
+      await hre.tasks.getTask("test").run({ noCompile: false });
+
+      assert.equal(buildArgs.length, 1);
+      assert.equal(buildArgs[0].noTests, true);
     });
   });
 
