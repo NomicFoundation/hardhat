@@ -49,9 +49,9 @@ function hasDocsLinkInPRBody() {
     throw new Error("GITHUB_EVENT_PULL_REQUEST_BODY is not defined");
   }
 
-  return prBody
-    .toLowerCase()
-    .includes("github.com/nomicfoundation/hardhat-website/pull");
+  return /github\.com\/nomicfoundation\/hardhat-website\/pull\/\d+/i.test(
+    prBody,
+  );
 }
 
 function hasIssueLinkInPRBody() {
@@ -61,9 +61,9 @@ function hasIssueLinkInPRBody() {
     throw new Error("GITHUB_EVENT_PULL_REQUEST_BODY is not defined");
   }
 
-  return prBody
-    .toLowerCase()
-    .includes("github.com/nomicfoundation/hardhat-website/issues");
+  return /github\.com\/nomicfoundation\/hardhat-website\/issues\/\d+/i.test(
+    prBody,
+  );
 }
 
 async function hasDocsLinkInChangesets() {
