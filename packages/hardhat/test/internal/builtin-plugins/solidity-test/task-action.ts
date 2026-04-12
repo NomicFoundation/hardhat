@@ -459,14 +459,14 @@ describe("solidity-test/task-action", function () {
     });
 
     it("should throw when a selected test file exists but has not been compiled", async () => {
-      const unbuiltConfig = {
+      const notBuildConfig = {
         ...hardhatConfig,
         paths: { tests: { solidity: "test" } },
       };
-      const unbuiltHre = await createHardhatRuntimeEnvironment(unbuiltConfig);
+      const notBuiltHre = await createHardhatRuntimeEnvironment(notBuildConfig);
 
       try {
-        await unbuiltHre.tasks.getTask(["test", "solidity"]).run({
+        await notBuiltHre.tasks.getTask(["test", "solidity"]).run({
           noCompile: true,
           testFiles: ["./test/not-in-test-path.t.sol"],
         });

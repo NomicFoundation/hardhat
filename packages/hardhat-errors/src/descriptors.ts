@@ -1210,7 +1210,7 @@ Run \`hardhat build\` to compile your project before running tests with \`--no-c
 
 Double check the files that you are providing to the \`test solidity\` task`,
         websiteTitle: "Invalid Solidity test files",
-        websiteDescription: `You ran the \`test solidity\` task  files that aren't clasified as Solidity tests..`,
+        websiteDescription: `You ran the \`test solidity\` task with files that aren't classified as Solidity tests.`,
       },
     },
     SOLIDITY: {

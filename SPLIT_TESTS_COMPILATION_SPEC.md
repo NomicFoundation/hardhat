@@ -566,6 +566,7 @@ Rewrite the high-level build task to implement the new unified-mode semantics.
 ### Changes
 
 1. `packages/hardhat/src/internal/builtin-plugins/solidity/tasks/build.ts`
+
    - Add mode-independent validation before the `splitTestsCompilation` branch:
      - if `--no-contracts` and any explicit file is a contract, throw `INCOMPATIBLE_FILES_WITH_BUILD_FLAGS`
      - if `--no-tests` and any explicit file is a test, throw `INCOMPATIBLE_FILES_WITH_BUILD_FLAGS`
@@ -661,6 +662,7 @@ Update the Solidity test runner for unified builds while preserving selected tes
 ### Changes
 
 1. `packages/hardhat/src/internal/builtin-plugins/solidity-test/task-action.ts`
+
    - Before branching on `splitTestsCompilation`, validate that all provided `testFiles` are classified as tests by `getScope()`, throwing `SELECTED_FILES_ARENT_SOLIDITY_TESTS` if not
    - Branch on `hre.config.solidity.splitTestsCompilation`
    - Unified mode:
