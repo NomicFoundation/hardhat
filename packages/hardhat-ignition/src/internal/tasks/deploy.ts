@@ -154,9 +154,10 @@ const taskDeploy: NewTaskActionFunction<TaskDeployArguments> = async (
     );
   }
 
+  const noTests = hre.config.solidity.splitTestsCompilation;
   await hre.tasks.getTask("build").run({
     quiet: true,
-    noTests: true,
+    noTests,
     defaultBuildProfile: "production",
   });
 
