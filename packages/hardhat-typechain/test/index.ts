@@ -462,6 +462,57 @@ describe("hardhat-typechain", () => {
     });
   });
 
+  describe("npm-dependency artifacts are classified as contracts in unified mode", () => {
+    useFixtureProject("unified-mode-npm");
+
+    before(async () => {
+      await remove(`${process.cwd()}/types`);
+
+      const hre = await createHardhatRuntimeEnvironment({
+        solidity: {
+          version: "0.8.28",
+          splitTestsCompilation: false,
+          npmFilesToBuild: ["@fake/lib/Token.sol"],
+        },
+        plugins: [hardhatTypechain],
+      });
+
+      await hre.tasks.getTask("clean").run();
+      await hre.tasks.getTask("build").run();
+    });
+
+    it("should generate types for the npm-dependency artifact", async () => {
+      assert.equal(
+        await exists(
+          path.join(
+            process.cwd(),
+            "types",
+            "ethers-contracts",
+            "@fake",
+            "lib",
+            "Token.ts",
+          ),
+        ),
+        true,
+      );
+    });
+
+    it("should generate types for the local contract artifact", async () => {
+      assert.equal(
+        await exists(
+          path.join(
+            process.cwd(),
+            "types",
+            "ethers-contracts",
+            "contracts",
+            "A.ts",
+          ),
+        ),
+        true,
+      );
+    });
+  });
+
   describe("clean hook removes the types folder", () => {
     describe("with default outDir", () => {
       const projectFolder = "generate-types";
