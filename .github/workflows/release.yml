@@ -19,6 +19,7 @@ jobs:
     permissions:
       pull-requests: write # This allows us to create pull requests
       contents: write
+      issues: write # Needed for posting/updating docs comments on release PRs
     steps:
       - name: Checkout Repo
         uses: actions/checkout@v5
