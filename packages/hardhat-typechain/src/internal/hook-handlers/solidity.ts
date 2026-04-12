@@ -5,6 +5,8 @@ import type {
   FileBuildResult,
 } from "hardhat/types/solidity";
 
+import path from "node:path";
+
 import { generateTypes } from "../generate-types.js";
 
 export default async (): Promise<Partial<SolidityHooks>> => {
@@ -37,11 +39,42 @@ export default async (): Promise<Partial<SolidityHooks>> => {
       // Get all artifact paths and generate types
       const allArtifactPaths = await context.artifacts.getAllArtifactPaths();
 
+      let artifactPaths = Array.from(allArtifactPaths);
+
+      // When splitTestsCompilation is disabled, contract and test artifacts
+      // live in the same directory. Filter out test artifacts so TypeChain
+      // only generates types for contracts.
+      if (!context.config.solidity.splitTestsCompilation) {
+        const artifactsRoot = context.config.paths.artifacts;
+        const projectRoot = context.config.paths.root;
+
+        const filtered: string[] = [];
+        for (const artifactPath of artifactPaths) {
+          // Derive the source file path from the artifact path.
+          // TODO: Reconstructing the path shouldn't be necessary
+          const relativeFromArtifacts = path.relative(
+            artifactsRoot,
+            artifactPath,
+          );
+
+          const parts = relativeFromArtifacts.split(path.sep);
+          const sourceRelative = parts.slice(0, -1).join(path.sep);
+          const sourcePath = path.resolve(projectRoot, sourceRelative);
+
+          const scope = await context.solidity.getScope(sourcePath);
+          if (scope === "contracts") {
+            filtered.push(artifactPath);
+          }
+        }
+
+        artifactPaths = filtered;
+      }
+
       await generateTypes(
         context.config.paths.root,
         context.config.typechain,
         context.globalOptions.noTypechain,
-        Array.from(allArtifactPaths),
+        artifactPaths,
       );
 
       return result;
