@@ -3,6 +3,7 @@ import type {
   EdrArtifactWithMetadata,
 } from "./edr-artifacts.js";
 import type { TestEvent } from "./types.js";
+import type { SolidityBuildSystem } from "../../../types/solidity.js";
 import type { NewTaskActionFunction } from "../../../types/tasks.js";
 import type { TestRunResult } from "../../../types/test.js";
 import type { Result } from "../../../types/utils.js";
@@ -15,6 +16,7 @@ import type {
 import { finished } from "node:stream/promises";
 
 import { HardhatError } from "@nomicfoundation/hardhat-errors";
+import { exists } from "@nomicfoundation/hardhat-utils/fs";
 import { resolveFromRoot } from "@nomicfoundation/hardhat-utils/path";
 import { createNonClosingWriter } from "@nomicfoundation/hardhat-utils/stream";
 
@@ -59,6 +61,15 @@ const runSolidityTests: NewTaskActionFunction<TestActionArguments> = async (
   process.env.HH_TEST = "true";
 
   const verbosity = hre.globalOptions.verbosity;
+  const resolvedTestFilesArgument = testFiles.map((f) =>
+    resolveFromRoot(hre.config.paths.root, f),
+  );
+
+  await validateThatProvidedFilesAreTests(
+    hre.solidity,
+    testFiles,
+    resolvedTestFilesArgument,
+  );
 
   // Sets the NODE_ENV environment variable to "test" so the code can detect that tests are running
   // This is done by other JS/TS test frameworks like vitest
@@ -75,27 +86,62 @@ const runSolidityTests: NewTaskActionFunction<TestActionArguments> = async (
     );
   }
 
-  // Run the build task for contract files if needed
-  if (noCompile !== true) {
-    await hre.tasks.getTask("build").run({
-      noTests: true,
-    });
-  }
-
-  // Run the build task for test files
-  const { testRootPaths }: { testRootPaths: string[] } = await hre.tasks
-    .getTask("build")
-    .run({
-      files: testFiles,
-      noContracts: true,
-    });
-  console.log();
-
-  // EDR needs all artifacts (contracts + tests)
+  let testRootPathsToRun: string[];
   const edrArtifactsWithMetadata: EdrArtifactWithMetadata[] = [];
   const allBuildInfosAndOutputs: BuildInfoAndOutput[] = [];
-  for (const scope of ["contracts", "tests"] as const) {
-    const artifactsDir = await hre.solidity.getArtifactsDirectory(scope);
+
+  if (hre.config.solidity.splitTestsCompilation) {
+    if (noCompile !== true) {
+      await hre.tasks.getTask("build").run({
+        noTests: true,
+      });
+    }
+
+    ({ testRootPaths: testRootPathsToRun } = await hre.tasks
+      .getTask("build")
+      .run({
+        files: testFiles,
+        noContracts: true,
+      }));
+    console.log();
+
+    for (const scope of ["contracts", "tests"] as const) {
+      const artifactsDir = await hre.solidity.getArtifactsDirectory(scope);
+      const artifactManager = new ArtifactManagerImplementation(artifactsDir);
+      edrArtifactsWithMetadata.push(
+        ...(await buildEdrArtifactsWithMetadata(artifactManager)),
+      );
+      allBuildInfosAndOutputs.push(
+        ...(await getBuildInfosAndOutputs(artifactManager)),
+      );
+    }
+  } else {
+    if (noCompile !== true) {
+      ({ testRootPaths: testRootPathsToRun } = await hre.tasks
+        .getTask("build")
+        .run({
+          files: testFiles,
+        }));
+    } else {
+      if (resolvedTestFilesArgument.length > 0) {
+        testRootPathsToRun = resolvedTestFilesArgument;
+      } else {
+        testRootPathsToRun = [];
+        const allRoots = await hre.solidity.getRootFilePaths({
+          scope: "contracts",
+        });
+
+        for (const root of allRoots) {
+          if ((await hre.solidity.getScope(root)) === "tests") {
+            testRootPathsToRun.push(root);
+          }
+        }
+      }
+    }
+    console.log();
+
+    // Load artifacts from a single directory
+    const artifactsDir = await hre.solidity.getArtifactsDirectory("contracts");
     const artifactManager = new ArtifactManagerImplementation(artifactsDir);
     edrArtifactsWithMetadata.push(
       ...(await buildEdrArtifactsWithMetadata(artifactManager)),
@@ -103,6 +149,31 @@ const runSolidityTests: NewTaskActionFunction<TestActionArguments> = async (
     allBuildInfosAndOutputs.push(
       ...(await getBuildInfosAndOutputs(artifactManager)),
     );
+
+    // When noCompile, validate selected test roots have compiled artifacts
+    if (noCompile === true) {
+      const compiledSources = new Set(
+        edrArtifactsWithMetadata.map(({ userSourceName }) =>
+          resolveFromRoot(hre.config.paths.root, userSourceName),
+        ),
+      );
+
+      const notCompiledFiles: string[] = [];
+      for (const root of testRootPathsToRun) {
+        if (!compiledSources.has(root) && (await exists(root))) {
+          notCompiledFiles.push(root);
+        }
+      }
+
+      if (notCompiledFiles.length > 0) {
+        throw new HardhatError(
+          HardhatError.ERRORS.CORE.SOLIDITY_TESTS.SELECTED_TEST_FILES_NOT_COMPILED,
+          {
+            files: notCompiledFiles.map((f) => `- ${f}`).join("\n"),
+          },
+        );
+      }
+    }
   }
 
   const sourceNameToUserSourceName = new Map(
@@ -114,7 +185,7 @@ const runSolidityTests: NewTaskActionFunction<TestActionArguments> = async (
 
   edrArtifactsWithMetadata.forEach(({ userSourceName, edrArtifact }) => {
     if (
-      testRootPaths.includes(
+      testRootPathsToRun.includes(
         resolveFromRoot(hre.config.paths.root, userSourceName),
       ) &&
       isTestSuiteArtifact(edrArtifact)
@@ -125,7 +196,7 @@ const runSolidityTests: NewTaskActionFunction<TestActionArguments> = async (
 
   const testSuiteArtifacts = edrArtifactsWithMetadata
     .filter(({ userSourceName }) =>
-      testRootPaths.includes(
+      testRootPathsToRun.includes(
         resolveFromRoot(hre.config.paths.root, userSourceName),
       ),
     )
@@ -309,5 +380,37 @@ const runSolidityTests: NewTaskActionFunction<TestActionArguments> = async (
     ? errorResult(result)
     : successfulResult(result);
 };
+
+/**
+ * Validates that the test files provided by the user, resolved in this case,
+ * are actually test files.
+ *
+ * @param solidity The solidity build system
+ * @param testFiles The test files, as provided by the user
+ * @param resolvedTestFilesArgument The resolved testFiles
+ */
+async function validateThatProvidedFilesAreTests(
+  solidity: SolidityBuildSystem,
+  testFiles: string[],
+  resolvedTestFilesArgument: string[],
+) {
+  const nonTests = [];
+  for (let i = 0; i < resolvedTestFilesArgument.length; i++) {
+    const rootPath = resolvedTestFilesArgument[i];
+    const scope = await solidity.getScope(rootPath);
+    if (scope !== "tests") {
+      nonTests.push(testFiles[i]);
+    }
+  }
+
+  if (nonTests.length > 0) {
+    throw new HardhatError(
+      HardhatError.ERRORS.CORE.SOLIDITY_TESTS.SELECTED_FILES_ARE_NOT_SOLIDITY_TESTS,
+      {
+        files: nonTests.map((f) => `- ${f}`).join("\n"),
+      },
+    );
+  }
+}
 
 export default runSolidityTests;
