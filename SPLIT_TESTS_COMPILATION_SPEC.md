@@ -596,6 +596,9 @@ Rewrite the high-level build task to implement the new unified-mode semantics.
   - split mode preserves the current unused-file error when explicit files fall only in a disabled scope
   - other split-mode regressions for current behavior
 - Run `pnpm test` in `packages/hardhat`
+- **Known failures after Phase 4:** 18 tests fail because two callers still use `build({ files, noContracts: true })`, which is now invalid in unified mode. All 18 originate from:
+  - `solidity-test/task-action.ts` (6 failures) — fixed in Phase 6
+  - `CoverageManagerImplementation` (12 failures) — also fixed in Phase 6, since coverage delegates to the solidity-test runner
 
 ## Phase 5: Other Built-In Task Callers
 
