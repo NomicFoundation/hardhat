@@ -378,6 +378,7 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
               compilationResult,
               emitArtifactsResult,
               buildProfile.isolated,
+              options.scope,
             );
           }),
         );
@@ -636,6 +637,26 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
         cacheResult.isolated !== isolated ||
         cacheResult.compilerType !== compilerType ||
         cacheResult.wasm !== isWasm
+      ) {
+        rootFilesToCompile.add(rootFile);
+        continue;
+      }
+
+      // Validate output layout: if the cached layout doesn't match the
+      // expected layout for the current config, treat it as a miss.
+      // Pre-existing cache entries without these fields are also treated
+      // as misses.
+      const expectedLayout = await this.#getExpectedOutputLayout(
+        rootFile,
+        options?.scope ?? "contracts",
+      );
+
+      if (
+        cacheResult.artifactsDirectory === undefined ||
+        cacheResult.emitsTypeDeclarations === undefined ||
+        cacheResult.artifactsDirectory !== expectedLayout.artifactsDirectory ||
+        cacheResult.emitsTypeDeclarations !==
+          expectedLayout.emitsTypeDeclarations
       ) {
         rootFilesToCompile.add(rootFile);
         continue;
@@ -1225,11 +1246,40 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
     return `${error.type}: ${error.message}`.replace(/[:\s]*$/g, "").trim();
   }
 
+  async #getExpectedOutputLayout(
+    rootFilePath: string,
+    scope: BuildScope,
+  ): Promise<{ artifactsDirectory: string; emitsTypeDeclarations: boolean }> {
+    const artifactsDirectory = await this.getArtifactsDirectory(scope);
+
+    const unified = !this.#options.solidityConfig.splitTestsCompilation;
+
+    // In unified mode, test roots under contracts scope don't emit type
+    // declarations. In split mode, the scope alone determines this.
+    let emitsTypeDeclarations: boolean;
+    if (scope === "contracts") {
+      if (unified) {
+        const parsed = parseRootPath(rootFilePath);
+        const isTestRoot = isNpmParsedRootPath(parsed)
+          ? false
+          : (await this.getScope(parsed.fsPath)) === "tests";
+        emitsTypeDeclarations = !isTestRoot;
+      } else {
+        emitsTypeDeclarations = true;
+      }
+    } else {
+      emitsTypeDeclarations = false;
+    }
+
+    return { artifactsDirectory, emitsTypeDeclarations };
+  }
+
   async #cacheCompilationResult(
     indexedIndividualJobs: Map<string, CompilationJob>,
     result: CompilationResult,
     emitArtifactsResult: EmitArtifactsResult,
     isolated: boolean,
+    scope: BuildScope,
   ): Promise<void> {
     for (const [userSourceName, root] of result.compilationJob.dependencyGraph
       .getRoots()
@@ -1254,6 +1304,11 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
 
       const jobHash = await individualJob.getBuildId();
 
+      const expectedLayout = await this.#getExpectedOutputLayout(
+        rootFilePath,
+        scope,
+      );
+
       this.#compileCache[rootFilePath] = {
         jobHash,
         isolated,
@@ -1263,6 +1318,8 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
         buildInfoOutputPath: emitArtifactsResult.buildInfoOutputPath,
         typeFilePath,
         wasm: result.compiler.isSolcJs,
+        artifactsDirectory: expectedLayout.artifactsDirectory,
+        emitsTypeDeclarations: expectedLayout.emitsTypeDeclarations,
       };
     }
   }
