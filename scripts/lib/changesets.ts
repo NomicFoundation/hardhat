@@ -36,7 +36,7 @@ export async function readAllNewChangsets() {
   return changesets;
 }
 
-export function parseFrontMatter(markdown) {
+export function parseFrontMatter(markdown: string) {
   const match = markdown.match(/^---\n([\s\S]*?)\n---\n([\s\S]*)$/);
   if (!match) {
     return { frontMatter: null, content: markdown };
@@ -51,7 +51,7 @@ export function parseFrontMatter(markdown) {
 const DOCS_URL_PATTERN =
   /^\s*#\s*docs:\s*(https?:\/\/github\.com\/NomicFoundation\/hardhat-website\/pull\/\d+)/i;
 
-export function extractDocsUrlsFromFrontMatter(frontMatter) {
+export function extractDocsUrlsFromFrontMatter(frontMatter: null | string) {
   if (frontMatter === null) return [];
   const urls = [];
   for (const line of frontMatter.split("\n")) {
@@ -61,7 +61,7 @@ export function extractDocsUrlsFromFrontMatter(frontMatter) {
   return urls;
 }
 
-async function getAddingCommit(filePath) {
+async function getAddingCommit(filePath: string) {
   try {
     const { stdout } = await exec(
       `git log --diff-filter=A --follow --format=%h -- "${filePath}"`,
