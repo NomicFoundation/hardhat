@@ -87,8 +87,8 @@ const runSolidityTests: NewTaskActionFunction<TestActionArguments> = async (
   }
 
   let testRootPathsToRun: string[];
-  const edrArtifactsWithMetadata: EdrArtifactWithMetadata[] = [];
-  const allBuildInfosAndOutputs: BuildInfoAndOutput[] = [];
+  let edrArtifactsWithMetadata: EdrArtifactWithMetadata[];
+  let allBuildInfosAndOutputs: BuildInfoAndOutput[];
 
   if (hre.config.solidity.splitTestsCompilation) {
     if (noCompile !== true) {
@@ -105,16 +105,8 @@ const runSolidityTests: NewTaskActionFunction<TestActionArguments> = async (
       }));
     console.log();
 
-    for (const scope of ["contracts", "tests"] as const) {
-      const artifactsDir = await hre.solidity.getArtifactsDirectory(scope);
-      const artifactManager = new ArtifactManagerImplementation(artifactsDir);
-      edrArtifactsWithMetadata.push(
-        ...(await buildEdrArtifactsWithMetadata(artifactManager)),
-      );
-      allBuildInfosAndOutputs.push(
-        ...(await getBuildInfosAndOutputs(artifactManager)),
-      );
-    }
+    ({ edrArtifactsWithMetadata, allBuildInfosAndOutputs } =
+      await loadArtifacts(hre.solidity, ["contracts", "tests"]));
   } else {
     if (noCompile !== true) {
       ({ testRootPaths: testRootPathsToRun } = await hre.tasks
@@ -140,15 +132,8 @@ const runSolidityTests: NewTaskActionFunction<TestActionArguments> = async (
     }
     console.log();
 
-    // Load artifacts from a single directory
-    const artifactsDir = await hre.solidity.getArtifactsDirectory("contracts");
-    const artifactManager = new ArtifactManagerImplementation(artifactsDir);
-    edrArtifactsWithMetadata.push(
-      ...(await buildEdrArtifactsWithMetadata(artifactManager)),
-    );
-    allBuildInfosAndOutputs.push(
-      ...(await getBuildInfosAndOutputs(artifactManager)),
-    );
+    ({ edrArtifactsWithMetadata, allBuildInfosAndOutputs } =
+      await loadArtifacts(hre.solidity, ["contracts"]));
 
     // When noCompile, validate selected test roots have compiled artifacts
     if (noCompile === true) {
@@ -411,6 +396,28 @@ async function validateThatProvidedFilesAreTests(
       },
     );
   }
+}
+
+async function loadArtifacts(
+  solidity: SolidityBuildSystem,
+  scopes: Array<"contracts" | "tests">,
+): Promise<{
+  edrArtifactsWithMetadata: EdrArtifactWithMetadata[];
+  allBuildInfosAndOutputs: BuildInfoAndOutput[];
+}> {
+  const edrArtifactsWithMetadata: EdrArtifactWithMetadata[] = [];
+  const allBuildInfosAndOutputs: BuildInfoAndOutput[] = [];
+  for (const scope of scopes) {
+    const artifactsDir = await solidity.getArtifactsDirectory(scope);
+    const artifactManager = new ArtifactManagerImplementation(artifactsDir);
+    edrArtifactsWithMetadata.push(
+      ...(await buildEdrArtifactsWithMetadata(artifactManager)),
+    );
+    allBuildInfosAndOutputs.push(
+      ...(await getBuildInfosAndOutputs(artifactManager)),
+    );
+  }
+  return { edrArtifactsWithMetadata, allBuildInfosAndOutputs };
 }
 
 export default runSolidityTests;
