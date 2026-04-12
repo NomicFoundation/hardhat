@@ -168,24 +168,18 @@ const runSolidityTests: NewTaskActionFunction<TestActionArguments> = async (
     ]),
   );
 
-  edrArtifactsWithMetadata.forEach(({ userSourceName, edrArtifact }) => {
-    if (
-      testRootPathsToRun.includes(
-        resolveFromRoot(hre.config.paths.root, userSourceName),
-      ) &&
-      isTestSuiteArtifact(edrArtifact)
-    ) {
-      warnDeprecatedTestFail(edrArtifact, sourceNameToUserSourceName);
-    }
-  });
-
+  const testRootPathsSet = new Set(testRootPathsToRun);
   const testSuiteArtifacts = edrArtifactsWithMetadata
     .filter(({ userSourceName }) =>
-      testRootPathsToRun.includes(
+      testRootPathsSet.has(
         resolveFromRoot(hre.config.paths.root, userSourceName),
       ),
     )
     .filter(({ edrArtifact }) => isTestSuiteArtifact(edrArtifact));
+
+  for (const { edrArtifact } of testSuiteArtifacts) {
+    warnDeprecatedTestFail(edrArtifact, sourceNameToUserSourceName);
+  }
 
   const testSuiteIds = testSuiteArtifacts.map(
     ({ edrArtifact }) => edrArtifact.id,
