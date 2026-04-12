@@ -72,7 +72,7 @@ async function hasDocsLinkInChangesets() {
   }
 
   const { stdout } = await exec(
-    `git diff --name-only --diff-filter=A ${process.env.GITHUB_BASE_REF} -- ${changesetDir}`,
+    `git diff --name-only --diff-filter=d ${process.env.GITHUB_BASE_REF} -- ${changesetDir}`,
   );
 
   const changesetFiles = stdout
