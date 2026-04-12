@@ -21,10 +21,7 @@ async function collectDocsUrls() {
   const allUrls = new Set();
 
   for (const file of files) {
-    const content = await readFile(
-      path.join(changesetDir, file),
-      "utf-8",
-    );
+    const content = await readFile(path.join(changesetDir, file), "utf-8");
     const { frontMatter } = parseFrontMatter(content);
     const urls = extractDocsUrlsFromFrontMatter(frontMatter);
     for (const url of urls) {
