@@ -100,15 +100,19 @@ jobs:
               }`;
             await github.graphql(mutation, { prId: pr.id });
 
-      - name: Post docs comment on release PR
-        if: steps.pr.outputs.hasChangesets == 'true' && steps.docs.outputs.has_docs == 'true'
+      - name: Sync docs comment on release PR
+        if: steps.pr.outputs.hasChangesets == 'true'
         uses: actions/github-script@v7
+        env:
+          HAS_DOCS: ${{ steps.docs.outputs.has_docs }}
+          COMMENT_BODY: ${{ steps.docs.outputs.comment_body }}
         with:
           script: |
             const { number } = ${{ steps.find.outputs.result }};
             const owner = context.repo.owner;
             const repo = context.repo.repo;
-            const body = `${{ steps.docs.outputs.comment_body }}`;
+            const hasDocs = process.env.HAS_DOCS === "true";
+            const body = process.env.COMMENT_BODY;
             const marker = '## Documentation PRs to merge';
 
             const { data: comments } = await github.rest.issues.listComments({
@@ -119,19 +123,25 @@ jobs:
 
             const existing = comments.find(c => c.body.startsWith(marker));
 
-            if (existing) {
+            if (hasDocs && existing) {
               await github.rest.issues.updateComment({
                 owner,
                 repo,
                 comment_id: existing.id,
                 body,
               });
-            } else {
+            } else if (hasDocs) {
               await github.rest.issues.createComment({
                 owner,
                 repo,
                 issue_number: number,
                 body,
+              });
+            } else if (existing) {
+              await github.rest.issues.deleteComment({
+                owner,
+                repo,
+                comment_id: existing.id,
               });
             }
 
