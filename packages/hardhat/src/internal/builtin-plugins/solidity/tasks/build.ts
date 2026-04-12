@@ -400,15 +400,13 @@ async function partitionRootPathsByScope(
  * If it's a relative path it's resolved from the CWD.
  */
 function normalizedRootPaths(files: string[]): string[] {
-  const normalizedPaths = files.map((f) => {
+  return files.map((f) => {
     if (isNpmRootPath(f)) {
       return f;
     }
 
     return resolveFromRoot(process.cwd(), f);
   });
-
-  return normalizedPaths;
 }
 
 export default buildAction;
