@@ -1,3 +1,5 @@
+import type { HardhatRuntimeEnvironment, TaskArguments } from "hardhat/types";
+
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 
@@ -6,6 +8,7 @@ import {
   assertRejectsWithHardhatError,
   useFixtureProject,
 } from "@nomicfoundation/hardhat-test-utils";
+import { ensureError } from "@nomicfoundation/hardhat-utils/error";
 import { overrideTask } from "hardhat/config";
 
 import HardhatMochaPlugin from "../src/index.js";
@@ -73,6 +76,21 @@ describe("Hardhat Mocha plugin", () => {
       return { buildArgs, buildOverride };
     }
 
+    async function runMochaIgnoringEsmReRunErrors(
+      hre: HardhatRuntimeEnvironment,
+      args: TaskArguments = {},
+    ) {
+      try {
+        await hre.tasks.getTask(["test", "mocha"]).run(args);
+      } catch (error) {
+        ensureError(error);
+        assert.match(
+          error.message,
+          /ESM and you've programmatically run your tests twice/i,
+        );
+      }
+    }
+
     it("should call build without noTests when splitTestsCompilation is false", async () => {
       const { createHardhatRuntimeEnvironment } = await import("hardhat/hre");
 
@@ -82,11 +100,7 @@ describe("Hardhat Mocha plugin", () => {
         tasks: [buildOverride],
       });
 
-      // The task may throw because of the ESM re-run guard, but we only
-      // care about the build invocation args captured before that point.
-      try {
-        await hre.tasks.getTask(["test", "mocha"]).run({});
-      } catch {}
+      await runMochaIgnoringEsmReRunErrors(hre);
 
       assert.equal(buildArgs.length, 1);
       assert.equal(buildArgs[0].noTests, false);
@@ -105,9 +119,7 @@ describe("Hardhat Mocha plugin", () => {
         tasks: [buildOverride],
       });
 
-      try {
-        await hre.tasks.getTask(["test", "mocha"]).run({});
-      } catch {}
+      await runMochaIgnoringEsmReRunErrors(hre);
 
       assert.equal(buildArgs.length, 1);
       assert.equal(buildArgs[0].noTests, true);
@@ -122,9 +134,7 @@ describe("Hardhat Mocha plugin", () => {
         tasks: [buildOverride],
       });
 
-      try {
-        await hre.tasks.getTask(["test", "mocha"]).run({ noCompile: true });
-      } catch {}
+      await runMochaIgnoringEsmReRunErrors(hre, { noCompile: true });
 
       assert.equal(buildArgs.length, 0);
     });
