@@ -24,7 +24,10 @@ export function isAddress(value: unknown): value is PrefixedHexString {
  * @returns True if the value is an Ethereum address with a valid checksum, false otherwise.
  */
 export async function isValidChecksumAddress(value: unknown): Promise<boolean> {
-  return await (isAddress(value) && isValidChecksum(value));
+  if (!isAddress(value)) {
+    return false;
+  }
+  return await isValidChecksum(value);
 }
 
 /**

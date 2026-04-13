@@ -2,6 +2,7 @@ import type {
   DeployConfig,
   IgnitionModule,
 } from "@nomicfoundation/ignition-core";
+import type {} from "mocha";
 import type { HardhatRuntimeEnvironment } from "hardhat/types/hre";
 import type { NetworkConnection } from "hardhat/types/network";
 import type {
@@ -28,7 +29,6 @@ import { waitForPendingTxs } from "./wait-for-pending-txs.js";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
-import "mocha";
 declare module "mocha" {
   interface Context {
     hre: HardhatRuntimeEnvironment;

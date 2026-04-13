@@ -82,10 +82,10 @@ describe(".to.emit (contract events)", { timeout: 60000 }, () => {
     it("should fail when matcher is called with too many arguments", async () => {
       await assertRejects(
         async () =>
-          // @ts-expect-error -- force error scenario: emit should not be called with more than two arguments
           await expect(contract.emitUint(1)).not.to.emit(
             contract,
             "WithoutArgs",
+            // @ts-expect-error -- force error scenario: emit should not be called with more than two arguments
             1,
           ),
         (e) =>
