@@ -1360,6 +1360,18 @@ When \`splitTestsCompilation\` is \`false\`, contracts and tests are compiled to
 
 Set \`solidity.splitTestsCompilation\` to \`true\` in your Hardhat config to enable this build scope.`,
       },
+      INCOMPATIBLE_FILES_WITH_BUILD_FLAGS: {
+        number: 917,
+        messageTemplate: `Some of the files you are trying to build are incompatible with the \`--no-contracts\` or \`--no-tests\` flag you provided:
+
+{files}
+
+Try re-running without these files, or without the flag.`,
+        websiteTitle: "Incompatible files with build flags",
+        websiteDescription: `You are trying to build a list of files while using \`--no-contracts\` or \`--no-tests\`, but some of those files are incompatible with the flag you provided.
+
+For example, you may be trying to build a test file with \`--no-tests\`, which isn't a valid operation.`,
+      },
     },
     ARTIFACTS: {
       NOT_FOUND: {
