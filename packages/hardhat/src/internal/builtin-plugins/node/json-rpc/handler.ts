@@ -9,6 +9,7 @@ import type WebSocket from "ws";
 
 import { ensureError } from "@nomicfoundation/hardhat-utils/error";
 import { isObject } from "@nomicfoundation/hardhat-utils/lang";
+import debug from "debug";
 
 import {
   isJsonRpcRequest,
@@ -22,6 +23,8 @@ import {
   ProviderError,
 } from "../../network-manager/provider-errors.js";
 import { REVERT_ERROR_CODE } from "../../network-manager/revert-error-code.js";
+
+const log = debug("hardhat:node:json-rpc");
 
 export class JsonRpcHandler {
   readonly #provider: EthereumProvider;
@@ -123,11 +126,18 @@ export class JsonRpcHandler {
 
       // Clear any active subscriptions for the closed websocket connection.
       isClosed = true;
-      subscriptions.forEach(async (subscriptionId) => {
-        await this.#provider.request({
-          method: "eth_unsubscribe",
-          params: [subscriptionId],
-        });
+      Promise.all(
+        subscriptions.map(async (subscriptionId) => {
+          await this.#provider.request({
+            method: "eth_unsubscribe",
+            params: [subscriptionId],
+          });
+        }),
+      ).catch((error: unknown) => {
+        log(
+          "Failed to request eth_unsubscribe when websocket is closed",
+          error,
+        );
       });
     });
   };
