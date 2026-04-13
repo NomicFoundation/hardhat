@@ -124,7 +124,7 @@ Consequences:
 
 - `getAllArtifactPaths()` includes test artifacts
 - `getAllFullyQualifiedNames()` includes test artifacts
-- bare-name artifact lookup can become ambiguous if a test contract and a contract share the same name. Ambiguos names still type to `never` in the generated `artifacts.d.ts`
+- bare-name artifact lookup can become ambiguous if a test contract and a contract share the same name. Ambiguous names still type to `never` in the generated `artifacts.d.ts`
 - plugins using `context.artifacts` must no longer assume that "artifacts path" means "contracts only"
 
 Test artifacts still do not receive TypeScript support:
@@ -478,9 +478,11 @@ Implement the new root-discovery, artifact-layout, cleanup, and low-level scope 
      - `preprocessSolcInputBeforeBuilding`
 
 4. `packages/hardhat/src/internal/builtin-plugins/solidity/hook-handlers/hre.ts`
+
    - No changes needed — the existing `solidityConfig` field in `SolidityBuildSystemOptions` already carries the resolved `splitTestsCompilation` value
 
 5. New `HardhatError`
+
    - Add an error code for calling `getRootFilePaths({ scope: "tests" })` when unified compilation is enabled
    - Use the first free code number in the `CORE.SOLIDITY` category in `packages/hardhat-errors/src/descriptors.ts`
 
