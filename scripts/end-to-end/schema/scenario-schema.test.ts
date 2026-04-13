@@ -60,6 +60,19 @@ describe("isScenarioDefinition", () => {
     assert.equal(isScenarioDefinition(value), true);
   });
 
+  it("accepts pnpm as a package manager", () => {
+    const value = {
+      description: "Uniswap V4 core with pnpm",
+      repo: "ChristopherDedominici/core",
+      commit: "abc123",
+      packageManager: "pnpm",
+      defaultCommand: "pnpm run test",
+      tags: ["external-repo"],
+    };
+
+    assert.equal(isScenarioDefinition(value), true);
+  });
+
   it("accepts a scenario with disabled: true", () => {
     const value = {
       description: "A disabled scenario",
