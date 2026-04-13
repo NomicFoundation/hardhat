@@ -105,4 +105,69 @@ describe("ArtifactManagerImplementation", () => {
       );
     });
   });
+
+  describe("artifactExists", () => {
+    it("should return true for an existing bare name", async () => {
+      const result = await artifactManager.artifactExists("Counter");
+      assert.equal(result, true);
+    });
+
+    it("should return true for an existing fully-qualified name", async () => {
+      const result = await artifactManager.artifactExists(
+        "contracts/Counter.sol:Counter",
+      );
+      assert.equal(result, true);
+    });
+
+    it("should return false for a missing bare name", async () => {
+      const result = await artifactManager.artifactExists("NonExistent");
+      assert.equal(result, false);
+    });
+
+    it("should return false for a missing fully-qualified name", async () => {
+      const result = await artifactManager.artifactExists(
+        "contracts/NonExistent.sol:NonExistent",
+      );
+      assert.equal(result, false);
+
+      const result2 = await artifactManager.artifactExists(
+        "contracts/Counter.sol:NonExistent",
+      );
+      assert.equal(result2, false);
+    });
+  });
+});
+
+describe("ArtifactManagerImplementation - duplicate bare names", () => {
+  useFixtureProject("artifacts/duplicate-names-project");
+
+  let hre: HardhatRuntimeEnvironment;
+  let artifactManager: ArtifactManagerImplementation;
+  before(async () => {
+    hre = await createHardhatRuntimeEnvironment({});
+
+    await hre.tasks.getTask(["build"]).run({});
+
+    artifactManager = new ArtifactManagerImplementation(
+      hre.config.paths.artifacts,
+    );
+  });
+
+  describe("artifactExists", () => {
+    it("should return true and not throw when multiple artifacts share the same bare name", async () => {
+      const result = await artifactManager.artifactExists("Foo");
+      assert.equal(result, true);
+    });
+
+    it("should return true for each fully-qualified name individually", async () => {
+      const resultA = await artifactManager.artifactExists(
+        "contracts/a/Foo.sol:Foo",
+      );
+      const resultB = await artifactManager.artifactExists(
+        "contracts/b/Foo.sol:Foo",
+      );
+      assert.equal(resultA, true);
+      assert.equal(resultB, true);
+    });
+  });
 });

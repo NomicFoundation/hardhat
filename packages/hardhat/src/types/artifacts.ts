@@ -89,11 +89,11 @@ export interface ArtifactManager {
   /**
    * Returns true if an artifact exists.
    *
-   * This function doesn't throw if the name is not unique.
+   * This function doesn't throw if the name is not unique, this means that
+   * this method may return `true`, and a successive call to `readArtifact` can
+   * throw because of a duplicated name.
    *
    * @param contractNameOrFullyQualifiedName Contract or fully qualified name.
-   * @throws Throws an error if a non-unique contract name is used,
-   *   indicating which fully qualified names can be used instead.
    */
   artifactExists(contractNameOrFullyQualifiedName: string): Promise<boolean>;
 
@@ -120,7 +120,8 @@ export interface ArtifactManager {
    * If it does return an id, it's not guaranteed that the build info is
    * present.
    *
-   * @param contractNameOrFullyQualifiedName Contract or fully qualified name, whose artifact must exist.
+   * @param contractNameOrFullyQualifiedName Contract or fully qualified name,
+   *  whose artifact must exist.
    * @throws Throws an error if a non-unique contract name is used,
    *   indicating which fully qualified names can be used instead.
    * @throws Throws an error if the artifact doesn't exist.
