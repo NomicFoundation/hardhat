@@ -12,9 +12,9 @@ describe("deploy - build invocation", function () {
     const buildArgs: any[] = [];
     const buildOverride = overrideTask("build")
       .setAction(async () => ({
-        default: async (args: any) => {
+        default: async (args: any, _hre, runSuper) => {
           buildArgs.push(args);
-          return { contractRootPaths: [], testRootPaths: [] };
+          return runSuper(args);
         },
       }))
       .build();
@@ -51,18 +51,9 @@ describe("deploy - build invocation", function () {
       projectPath,
     );
 
-    // The deploy task continues after build and may fail looking for artifacts;
-    // we only care about the build invocation args captured before that point.
-    try {
-      await hre.tasks.getTask(["ignition", "deploy"]).run({
-        modulePath: path.join(
-          projectPath,
-          "ignition",
-          "modules",
-          "MyModule.js",
-        ),
-      });
-    } catch {}
+    await hre.tasks.getTask(["ignition", "deploy"]).run({
+      modulePath: path.join(projectPath, "ignition", "modules", "MyModule.js"),
+    });
 
     assert.equal(buildArgs.length, 1);
     assert.equal(buildArgs[0].noTests, false);
@@ -92,16 +83,9 @@ describe("deploy - build invocation", function () {
       projectPath,
     );
 
-    try {
-      await hre.tasks.getTask(["ignition", "deploy"]).run({
-        modulePath: path.join(
-          projectPath,
-          "ignition",
-          "modules",
-          "MyModule.js",
-        ),
-      });
-    } catch {}
+    await hre.tasks.getTask(["ignition", "deploy"]).run({
+      modulePath: path.join(projectPath, "ignition", "modules", "MyModule.js"),
+    });
 
     assert.equal(buildArgs.length, 1);
     assert.equal(buildArgs[0].noTests, true);
