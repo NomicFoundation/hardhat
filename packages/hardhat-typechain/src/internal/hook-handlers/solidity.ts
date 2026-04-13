@@ -1,6 +1,7 @@
 import type { HookContext, SolidityHooks } from "hardhat/types/hooks";
 import type {
   BuildOptions,
+  BuildScope,
   CompilationJobCreationError,
   FileBuildResult,
 } from "hardhat/types/solidity";
@@ -36,38 +37,18 @@ export default async (): Promise<Partial<SolidityHooks>> => {
       // Clear cache to ensure fresh data after compilation
       await context.artifacts.clearCache();
 
-      // Get all artifact paths and generate types
-      const allArtifactPaths = await context.artifacts.getAllArtifactPaths();
+      let artifactPaths: string[];
 
-      let artifactPaths = Array.from(allArtifactPaths);
-
-      // When splitTestsCompilation is disabled, contract and test artifacts
-      // live in the same directory. Filter out test artifacts so TypeChain
-      // only generates types for contracts.
-      if (!context.config.solidity.splitTestsCompilation) {
-        const artifactsRoot = context.config.paths.artifacts;
-        const projectRoot = context.config.paths.root;
-
-        const filtered: string[] = [];
-        for (const artifactPath of artifactPaths) {
-          // Derive the source file path from the artifact path.
-          // TODO: Reconstructing the path shouldn't be necessary
-          const relativeFromArtifacts = path.relative(
-            artifactsRoot,
-            artifactPath,
-          );
-
-          const parts = relativeFromArtifacts.split(path.sep);
-          const sourceRelative = parts.slice(0, -1).join(path.sep);
-          const sourcePath = path.resolve(projectRoot, sourceRelative);
-
-          const scope = await context.solidity.getScope(sourcePath);
-          if (scope === "contracts") {
-            filtered.push(artifactPath);
-          }
-        }
-
-        artifactPaths = filtered;
+      if (context.config.solidity.splitTestsCompilation) {
+        artifactPaths = Array.from(
+          await context.artifacts.getAllArtifactPaths(),
+        );
+      } else {
+        // Contracts and tests share the artifacts folder.
+        // Filter out test artifacts using each artifact's sourceName (derived
+        // from its fully qualified name), which is the project-relative or npm
+        // source identifier.
+        artifactPaths = await getContractArtifactPaths(context);
       }
 
       await generateTypes(
@@ -83,3 +64,34 @@ export default async (): Promise<Partial<SolidityHooks>> => {
 
   return handlers;
 };
+
+async function getContractArtifactPaths(
+  context: HookContext,
+): Promise<string[]> {
+  const fqns = await context.artifacts.getAllFullyQualifiedNames();
+  const projectRoot = context.config.paths.root;
+
+  const scopeBySource = new Map<string, BuildScope>();
+  const contractFqns: string[] = [];
+
+  for (const fqn of fqns) {
+    const sourceName = fqn.slice(0, fqn.lastIndexOf(":"));
+
+    let scope = scopeBySource.get(sourceName);
+    if (scope === undefined) {
+      const fsPath = path.resolve(projectRoot, sourceName);
+
+      // npm files will be classified as "contracts" because that's the default
+      scope = await context.solidity.getScope(fsPath);
+      scopeBySource.set(sourceName, scope);
+    }
+
+    if (scope === "contracts") {
+      contractFqns.push(fqn);
+    }
+  }
+
+  return Promise.all(
+    contractFqns.map((fqn) => context.artifacts.getArtifactPath(fqn)),
+  );
+}
