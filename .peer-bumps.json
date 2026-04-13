@@ -81,6 +81,11 @@
       "package": "@nomicfoundation/hardhat-viem",
       "peer": "hardhat",
       "reason": "Conservative bump for `connect()` deprecation and `create()`/`getOrCreate()` network API changes"
+    },
+    {
+      "package": "@nomicfoundation/hardhat-solx",
+      "peer": "hardhat",
+      "reason": "It depends on the new CommonSingleVersionSolidityUserConfig type"
     }
   ]
 }

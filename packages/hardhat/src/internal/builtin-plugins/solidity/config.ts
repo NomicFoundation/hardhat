@@ -120,12 +120,14 @@ const solidityCompilerUserConfigType = conditionalUnionType(
 const solcSingleVersionSolidityUserConfigType =
   solcSolidityCompilerUserConfigType.extend({
     ...commonSolidityUserConfigFields,
+    toolVersionsInBuildInfo: z.boolean().optional(),
     ...incompatibleVersionFields,
   });
 
 const otherSingleVersionSolidityUserConfigType =
   otherSolidityCompilerUserConfigType.extend({
     ...commonSolidityUserConfigFields,
+    toolVersionsInBuildInfo: z.boolean().optional(),
     ...incompatibleVersionFields,
   });
 
@@ -150,6 +152,7 @@ const multiVersionSolidityUserConfigType = z.object({
   compilers: z.array(solidityCompilerUserConfigType).nonempty(),
   overrides: z.record(z.string(), solidityCompilerUserConfigType).optional(),
   ...commonSolidityUserConfigFields,
+  toolVersionsInBuildInfo: z.boolean().optional(),
   ...incompatibleCompilerFields,
 });
 
@@ -164,6 +167,7 @@ const singleVersionBuildProfileUserConfigType = conditionalUnionType(
         (!("type" in data) || data.type === undefined || data.type === "solc"),
       solcSolidityCompilerUserConfigType.extend({
         isolated: z.boolean().optional(),
+        toolVersionsInBuildInfo: z.boolean().optional(),
         ...incompatibleVersionFields,
       }),
     ],
@@ -171,6 +175,7 @@ const singleVersionBuildProfileUserConfigType = conditionalUnionType(
       (data) => isObject(data) && "type" in data && data.type !== "solc",
       otherSolidityCompilerUserConfigType.extend({
         isolated: z.boolean().optional(),
+        toolVersionsInBuildInfo: z.boolean().optional(),
         ...incompatibleVersionFields,
       }),
     ],
@@ -183,6 +188,7 @@ const multiVersionBuildProfileUserConfigType = z.object({
   compilers: z.array(solidityCompilerUserConfigType).nonempty(),
   overrides: z.record(z.string(), solidityCompilerUserConfigType).optional(),
   isolated: z.boolean().optional(),
+  toolVersionsInBuildInfo: z.boolean().optional(),
   ...incompatibleCompilerFields,
 });
 
@@ -438,10 +444,15 @@ function resolveSolidityConfig(
   if ("version" in solidityConfig || "compilers" in solidityConfig) {
     return {
       profiles: {
-        default: resolveBuildProfileConfig(solidityConfig),
+        default: resolveBuildProfileConfig(
+          solidityConfig,
+          false,
+          solidityConfig.toolVersionsInBuildInfo,
+        ),
         production: resolveBuildProfileConfig(
           copyFromDefault(solidityConfig),
           true,
+          solidityConfig.toolVersionsInBuildInfo,
         ),
       },
       npmFilesToBuild: solidityConfig.npmFilesToBuild ?? [],
@@ -458,6 +469,7 @@ function resolveSolidityConfig(
     profiles[profileName] = resolveBuildProfileConfig(
       profile,
       profileName === "production",
+      profile.toolVersionsInBuildInfo,
     );
   }
 
@@ -484,6 +496,7 @@ function resolveBuildProfileConfig(
     | SingleVersionSolidityUserConfig
     | MultiVersionSolidityUserConfig,
   production: boolean = false,
+  toolVersionsInBuildInfo?: boolean,
 ): SolidityBuildProfileConfig {
   if ("version" in solidityConfig) {
     return {
@@ -491,6 +504,7 @@ function resolveBuildProfileConfig(
       overrides: {},
       isolated: solidityConfig.isolated ?? production,
       preferWasm: solidityConfig.preferWasm ?? false,
+      toolVersionsInBuildInfo: toolVersionsInBuildInfo ?? production,
     };
   }
 
@@ -508,6 +522,7 @@ function resolveBuildProfileConfig(
     ),
     isolated: solidityConfig.isolated ?? production,
     preferWasm: solidityConfig.preferWasm ?? false,
+    toolVersionsInBuildInfo: toolVersionsInBuildInfo ?? production,
   };
 }
 

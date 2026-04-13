@@ -44,12 +44,24 @@ declare module "../../../types/config.js" {
    * Fields that all the object-typed variants of SolidityUserConfig share.
    *
    * Note: All the variants of SolidityUserConfig except for the string and
-   * array of strings MUST extend this interface. This is especially relevant
-   * for plugins creating their own `SingleVersionSolidityUserConfig` variant.
+   * array of strings MUST extend this interface. For plugins creating their
+   * own `SingleVersionSolidityUserConfig` variant, see
+   * {@link CommonSingleVersionSolidityUserConfig}.
    */
   export interface CommonSolidityUserConfig {
     isolated?: boolean;
     npmFilesToBuild?: string[];
+  }
+
+  /**
+   * Common fields for every SingleVersionSolidityUserConfig variant.
+   *
+   * NOTE: All the variants of SingleVersionSolidityUserConfig must extend this
+   * interface.
+   */
+  export interface CommonSingleVersionSolidityUserConfig
+    extends CommonSolidityUserConfig {
+    toolVersionsInBuildInfo?: boolean;
   }
 
   /**
@@ -110,7 +122,7 @@ declare module "../../../types/config.js" {
    */
   export interface SingleVersionSolcUserConfig
     extends SolcSolidityCompilerUserConfig,
-      CommonSolidityUserConfig {}
+      CommonSingleVersionSolidityUserConfig {}
 
   /**
    * Solc-specific SingleVersionSolidityUserConfig.
@@ -123,7 +135,7 @@ declare module "../../../types/config.js" {
   /**
    * A map from compiler type to its SingleVersionSolidityUserConfig type.
    *
-   * Note: The types MUST extend `CommonSolidityUserConfig`.
+   * Note: The types MUST extend `CommonSingleVersionSolidityUserConfig`.
    */
   export interface SingleVersionSolidityUserConfigPerType {
     solc: SolcSingleVersionSolidityUserConfig;
@@ -165,7 +177,9 @@ declare module "../../../types/config.js" {
    */
   export interface MultiVersionSolidityUserConfig
     extends MultiVersionSolcUserConfig,
-      CommonSolidityUserConfig {}
+      CommonSolidityUserConfig {
+    toolVersionsInBuildInfo?: boolean;
+  }
 
   /**
    * The type of a single-version build profile user config.
@@ -173,15 +187,17 @@ declare module "../../../types/config.js" {
   export type SingleVersionBuildProfileUserConfig =
     SolidityCompilerUserConfig & {
       isolated?: boolean;
+      toolVersionsInBuildInfo?: boolean;
     };
 
   /**
    * The type of a multi-version build profile user config.
+   * Mostly defined in `MultiVersionSolcUserConfig` for backwards compatibility
    */
-  /* eslint-disable-next-line @typescript-eslint/no-empty-interface -- Defined
-    in `MultiVersionSolcUserConfig` for backwards compatibility. */
   export interface MultiVersionBuildProfileUserConfig
-    extends MultiVersionSolcUserConfig {}
+    extends MultiVersionSolcUserConfig {
+    toolVersionsInBuildInfo?: boolean;
+  }
 
   /**
    * The type of the build profile version of the SolidityUserConfig.
@@ -259,6 +275,9 @@ declare module "../../../types/config.js" {
   export interface SolidityBuildProfileConfig {
     isolated: boolean;
     preferWasm: boolean;
+    // Note: This is optional for backwards compatibility.
+    // If `undefined` is present, it's equivalent to `false`.
+    toolVersionsInBuildInfo?: boolean;
     compilers: SolidityCompilerConfig[];
     overrides: Record<string, SolidityCompilerConfig>;
   }

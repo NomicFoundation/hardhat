@@ -22,6 +22,7 @@ import type {
   CacheHitInfo,
 } from "../../../../types/solidity/build-system.js";
 import type {
+  ToolVersions,
   CompilationJob,
   Compiler,
   CompilerOutput,
@@ -57,6 +58,7 @@ import debug from "debug";
 import pMap from "p-map";
 
 import { FileBuildResultType } from "../../../../types/solidity/build-system.js";
+import { getHardhatVersion } from "../../../utils/package.js";
 import { DEFAULT_BUILD_PROFILE } from "../build-profiles.js";
 import { getSolcCompilerForConfig } from "../solidity-hooks.js";
 
@@ -436,6 +438,11 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
 
     log(`Using build profile ${buildProfileName}`);
 
+    let toolVersions: ToolVersions | undefined;
+    if (buildProfile.toolVersionsInBuildInfo === true) {
+      toolVersions = { hardhat: await getHardhatVersion() };
+    }
+
     const solcConfigSelector = new SolcConfigSelector(
       buildProfileName,
       buildProfile,
@@ -533,6 +540,7 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
           longVersion,
           this.#hooks,
           sharedContentHashes,
+          toolVersions,
         );
 
         await individualJob.getBuildId(); // precompute
@@ -687,6 +695,7 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
         longVersion,
         this.#hooks,
         sharedContentHashes,
+        toolVersions,
       );
 
       for (const [userSourceName, root] of subgraph.getRoots().entries()) {
