@@ -185,7 +185,7 @@ contract Foo {}`,
   });
 
   describe("toggling splitTestsCompilation", () => {
-    it("should invalidate cache when switching from split to unified", async () => {
+    it("should cache-hit contract roots when switching from split to unified (layout unchanged)", async () => {
       await using project = await useTestProjectTemplate({
         name: "test-project",
         version: "1.0.0",
@@ -229,6 +229,10 @@ contract Foo {}`,
       assert(
         hreUnified.solidity.isSuccessfulBuildResult(unifiedResult),
         "Unified mode build should succeed",
+      );
+      assert.equal(
+        unifiedResult.get(filePath)?.type,
+        FileBuildResultType.CACHE_HIT,
       );
     });
 
@@ -309,14 +313,14 @@ contract Foo {}`,
       // First build to populate cache
       await hre.solidity.build([filePath], { quiet: true });
 
-      // Remove the new fields from cache to simulate old format
+      // Remove only artifactsDirectory to simulate partial old format; the
+      // next test covers the missing-emitsTypeDeclarations case.
       const cachePath = path.join(project.path, "cache", CACHE_FILE);
       const cache: Record<string, Record<string, unknown>> = await readJsonFile(
         cachePath,
       );
       for (const key of Object.keys(cache)) {
         delete cache[key].artifactsDirectory;
-        delete cache[key].emitsTypeDeclarations;
       }
       await writeJsonFile(cachePath, cache);
 
@@ -329,7 +333,7 @@ contract Foo {}`,
       assert.equal(
         result.get(filePath)?.type,
         FileBuildResultType.BUILD_SUCCESS,
-        "Should recompile when output layout fields are missing from cache",
+        "Should recompile when artifactsDirectory is missing from cache",
       );
     });
 
