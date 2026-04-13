@@ -533,7 +533,7 @@ GLOBAL OPTIONS:
       const usedCliArguments = new Array(cliArguments.length).fill(false);
 
       await assertRejectsWithHardhatError(
-        async () => parseBuiltinGlobalOptions(cliArguments, usedCliArguments),
+        async () => await parseBuiltinGlobalOptions(cliArguments, usedCliArguments),
         HardhatError.ERRORS.CORE.ARGUMENTS.CANNOT_COMBINE_INIT_AND_CONFIG_PATH,
         {},
       );
@@ -546,7 +546,7 @@ GLOBAL OPTIONS:
       const usedCliArguments = new Array(cliArguments.length).fill(false);
 
       await assertRejectsWithHardhatError(
-        async () => parseBuiltinGlobalOptions(cliArguments, usedCliArguments),
+        async () => await parseBuiltinGlobalOptions(cliArguments, usedCliArguments),
         HardhatError.ERRORS.CORE.ARGUMENTS.DUPLICATED_NAME,
         {
           name: "--config",
@@ -561,7 +561,7 @@ GLOBAL OPTIONS:
       const usedCliArguments = new Array(cliArguments.length).fill(false);
 
       await assertRejectsWithHardhatError(
-        async () => parseBuiltinGlobalOptions(cliArguments, usedCliArguments),
+        async () => await parseBuiltinGlobalOptions(cliArguments, usedCliArguments),
         HardhatError.ERRORS.CORE.ARGUMENTS.MISSING_CONFIG_FILE,
         {},
       );

@@ -39,7 +39,7 @@ export default async (): Promise<Partial<NetworkHooks>> => {
       ) {
         // Allow these methods to pass through untouched.
         // The ledger handler calls them directly, so intercepting them here would lead to infinite recursion.
-        return next(context, networkConnection, jsonRpcRequest);
+        return await next(context, networkConnection, jsonRpcRequest);
       }
 
       const ledgerHandler = await initializationMutex.exclusiveRun(async () => {
@@ -104,7 +104,7 @@ export default async (): Promise<Partial<NetworkHooks>> => {
         return newRequestOrResponse;
       }
 
-      return next(context, networkConnection, newRequestOrResponse);
+      return await next(context, networkConnection, newRequestOrResponse);
     },
 
     async closeConnection<ChainTypeT extends ChainType | string>(
@@ -119,7 +119,7 @@ export default async (): Promise<Partial<NetworkHooks>> => {
         ledgerHandlerPerConnection.delete(networkConnection);
       }
 
-      return next(context, networkConnection);
+      return await next(context, networkConnection);
     },
   };
 

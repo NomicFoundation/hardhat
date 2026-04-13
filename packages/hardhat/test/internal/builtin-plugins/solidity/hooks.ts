@@ -248,7 +248,7 @@ describe("solidity - hooks", () => {
                     // Filter to only first file
                     modifiedRootFilePaths = rootFilePaths.slice(0, 1);
 
-                    return next(context, modifiedRootFilePaths, {
+                    return await next(context, modifiedRootFilePaths, {
                       ...options,
                       force: true,
                     });
@@ -542,7 +542,7 @@ describe("solidity - hooks", () => {
                   capturedConfig = compilerConfig;
 
                   // Fall through to the default handler (solc)
-                  return next(context, compilerConfig);
+                  return await next(context, compilerConfig);
                 },
               };
 
@@ -608,7 +608,7 @@ describe("solidity - hooks", () => {
                   if ((compilerConfig.type as string) === "custom") {
                     return customCompiler;
                   }
-                  return next(_context, compilerConfig);
+                  return await next(_context, compilerConfig);
                 },
               };
 

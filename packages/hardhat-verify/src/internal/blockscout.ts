@@ -415,7 +415,7 @@ export class Blockscout implements VerificationProvider {
     if (blockscoutResponse.isPending()) {
       await sleep(this.pollingIntervalMs);
 
-      return this.pollVerificationStatus(guid, contractAddress, contractName);
+      return await this.pollVerificationStatus(guid, contractAddress, contractName);
     }
 
     if (blockscoutResponse.isAlreadyVerified()) {

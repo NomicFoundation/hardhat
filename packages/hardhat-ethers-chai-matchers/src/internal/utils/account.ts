@@ -12,7 +12,7 @@ export async function getAddressOf(
   }
 
   if (isAddressable(account)) {
-    return account.getAddress();
+    return await account.getAddress();
   }
 
   chaiAssert.fail(`Expected string or addressable, but got "${account}"`);

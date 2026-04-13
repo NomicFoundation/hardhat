@@ -27,7 +27,7 @@ export async function setupErrorTelemetryIfEnabled(): Promise<void> {
 
 export async function sendErrorTelemetry(error: Error): Promise<boolean> {
   const instance = await Reporter.getInstance();
-  return instance.reportErrorViaSubprocess(error);
+  return await instance.reportErrorViaSubprocess(error);
 }
 
 export function setCliHardhatConfigPath(configPath: string): void {

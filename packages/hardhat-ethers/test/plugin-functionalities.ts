@@ -107,7 +107,7 @@ describe("Ethers plugin", () => {
             if (method === "eth_accounts") {
               throw new Error("the method has been deprecated: eth_accounts");
             }
-            return originalSend.call(this, method, params);
+            return await originalSend.call(this, method, params);
           };
 
           const sigs = await ethers.getSigners();

@@ -161,7 +161,7 @@ describe("HardhatError helpers", () => {
   describe("assertRejectsWithHardhatError", () => {
     it("should throw if the function doesn't return a promise that rejects", async () => {
       await assert.rejects(async () =>
-        assertRejectsWithHardhatError(
+        await assertRejectsWithHardhatError(
           async () => {},
           HardhatError.ERRORS.CORE.TASK_DEFINITIONS.INVALID_ACTION,
           { task: "bar" },
@@ -171,7 +171,7 @@ describe("HardhatError helpers", () => {
 
     it("should throw the promise that rejects", async () => {
       await assert.rejects(async () =>
-        assertRejectsWithHardhatError(
+        await assertRejectsWithHardhatError(
           Promise.resolve(1),
           HardhatError.ERRORS.CORE.TASK_DEFINITIONS.INVALID_ACTION,
           { task: "bar" },

@@ -50,7 +50,7 @@ describe("ignition helper mutual exclusivity", () => {
           plugins: [fakeHardhatIgnitionViemPlugin, hardhatIgnitionEthersPlugin],
         });
 
-        return hre.network.create();
+        return await hre.network.create();
       },
       HardhatError.ERRORS.IGNITION.INTERNAL
         .ONLY_ONE_IGNITION_EXTENSION_PLUGIN_ALLOWED,

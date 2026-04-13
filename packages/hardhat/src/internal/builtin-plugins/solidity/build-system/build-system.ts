@@ -201,7 +201,7 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
               f.endsWith(".sol"),
             ),
             ...this.#options.soliditySourcesPaths.map(async (dir) => {
-              return getAllFilesMatching(dir, (f) => f.endsWith(".t.sol"));
+              return await getAllFilesMatching(dir, (f) => f.endsWith(".t.sol"));
             }),
           ])
         ).flat(1);
@@ -223,12 +223,12 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
     rootFilePaths: string[],
     _options?: BuildOptions,
   ): Promise<CompilationJobCreationError | Map<string, FileBuildResult>> {
-    return this.#hooks.runHandlerChain(
+    return await this.#hooks.runHandlerChain(
       "solidity",
       "build",
       [rootFilePaths, _options],
       async (_context, nextRootFilePaths, nextOptions) =>
-        this.#build(nextRootFilePaths, nextOptions),
+        await this.#build(nextRootFilePaths, nextOptions),
     );
   }
 
@@ -277,7 +277,7 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
       // internally in each compilation job
       await Promise.all(
         runnableCompilationJobs.map(async (runnableCompilationJob) =>
-          runnableCompilationJob.getBuildId(),
+          await runnableCompilationJob.getBuildId(),
         ),
       );
 
@@ -505,7 +505,7 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
           "getCompiler",
           [compilerConfig],
           async (_context, cfg) =>
-            getSolcCompilerForConfig(cfg, buildProfile.preferWasm),
+            await getSolcCompilerForConfig(cfg, buildProfile.preferWasm),
         );
         longVersion = compiler.longVersion;
         longVersionMap.set(compilerConfig.version, longVersion);
@@ -751,7 +751,7 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
       "getCompiler",
       [runnableCompilationJob.solcConfig],
       async (_context, cfg) =>
-        getSolcCompilerForConfig(cfg, buildProfile.preferWasm),
+        await getSolcCompilerForConfig(cfg, buildProfile.preferWasm),
     );
 
     log(
@@ -770,7 +770,7 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
       "invokeSolc",
       [compiler, input, runnableCompilationJob.solcConfig],
       async (_context, nextCompiler, nextSolcInput) => {
-        return nextCompiler.compile(nextSolcInput);
+        return await nextCompiler.compile(nextSolcInput);
       },
     );
 
@@ -1092,7 +1092,7 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
       preferWasm: false,
     });
 
-    return compiler.compile(buildInfo.input);
+    return await compiler.compile(buildInfo.input);
   }
 
   async #downloadConfiguredCompilers(quiet = false): Promise<void> {

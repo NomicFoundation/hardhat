@@ -133,8 +133,8 @@ export class ResolverImplementation implements Resolver {
   public async resolveProjectFile(
     absoluteFilePath: string,
   ): Promise<Result<ProjectResolvedFile, ProjectRootResolutionError>> {
-    return this.#mutex.exclusiveRun(async () => {
-      return this.#resolveProjectFile(absoluteFilePath);
+    return await this.#mutex.exclusiveRun(async () => {
+      return await this.#resolveProjectFile(absoluteFilePath);
     });
   }
 
@@ -146,8 +146,8 @@ export class ResolverImplementation implements Resolver {
       NpmRootResolutionError
     >
   > {
-    return this.#mutex.exclusiveRun(async () => {
-      return this.#resolveNpmDependencyFileAsRoot(npmModule);
+    return await this.#mutex.exclusiveRun(async () => {
+      return await this.#resolveNpmDependencyFileAsRoot(npmModule);
     });
   }
 
@@ -160,8 +160,8 @@ export class ResolverImplementation implements Resolver {
       ImportResolutionError
     >
   > {
-    return this.#mutex.exclusiveRun(async () =>
-      this.#resolveImport(from, importPath),
+    return await this.#mutex.exclusiveRun(async () =>
+      await this.#resolveImport(from, importPath),
     );
   }
 
@@ -495,7 +495,7 @@ export class ResolverImplementation implements Resolver {
         };
       }
 
-      return this.#resolveRelativeImport({
+      return await this.#resolveRelativeImport({
         from,
         importPath,
         directImport,
@@ -504,7 +504,7 @@ export class ResolverImplementation implements Resolver {
       if (bestUserRemapping !== undefined) {
         // If the import isn't relative, and there's a user remapping, we
         // prioritize that.
-        return this.#resolveUserRemappedImport({
+        return await this.#resolveUserRemappedImport({
           from,
           importPath,
           directImport,
@@ -576,7 +576,7 @@ export class ResolverImplementation implements Resolver {
 
     const relativeFsPath = sourceNamePathToFsPath(relativeSourceNamePath);
 
-    return this.#commonImportResolution({
+    return await this.#commonImportResolution({
       from,
       importPath,
       npmPackage: from.package,
@@ -639,7 +639,7 @@ export class ResolverImplementation implements Resolver {
 
     const relativeFsPath = sourceNamePathToFsPath(relativeSourceNamePath);
 
-    return this.#commonImportResolution({
+    return await this.#commonImportResolution({
       from,
       importPath,
       npmPackage: targetNpmPackage,
@@ -796,7 +796,7 @@ export class ResolverImplementation implements Resolver {
     const relativePath = resolvedSubpath ?? subpath;
     const relativeFsPathWithinPackage = sourceNamePathToFsPath(relativePath);
 
-    return this.#commonImportResolution({
+    return await this.#commonImportResolution({
       from,
       importPath,
       npmPackage: dependency,

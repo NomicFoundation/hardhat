@@ -308,7 +308,7 @@ export class EthersIgnitionHelperImpl<ChainTypeT extends ChainType | string>
     );
 
     if ("artifact" in future) {
-      return connection.ethers.getContractAt(
+      return await connection.ethers.getContractAt(
         // The abi meets the abi spec and we assume we can convert to
         // an acceptable Ethers abi
         future.artifact.abi,
@@ -316,7 +316,7 @@ export class EthersIgnitionHelperImpl<ChainTypeT extends ChainType | string>
       );
     }
 
-    return connection.ethers.getContractAt(
+    return await connection.ethers.getContractAt(
       future.contractName,
       deployedContract.address,
     );

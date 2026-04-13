@@ -323,7 +323,7 @@ export class TestChainHelper {
       );
     }
 
-    return mineBlock(this._connection);
+    return await mineBlock(this._connection);
   }
 
   public async clearMempool(pendingTxToAwait: number = 0): Promise<void> {
@@ -335,11 +335,11 @@ export class TestChainHelper {
       );
     }
 
-    return clearPendingTransactionsFromMemoryPool(this._connection);
+    return await clearPendingTransactionsFromMemoryPool(this._connection);
   }
 
   public async setNextBlockBaseFeePerGas(fee: bigint): Promise<void> {
-    return this._connection.networkHelpers.setNextBlockBaseFeePerGas(fee);
+    return await this._connection.networkHelpers.setNextBlockBaseFeePerGas(fee);
   }
 
   /**
@@ -366,7 +366,7 @@ class ProxyProvider extends EventEmitter implements EthereumProvider {
       throw new Error("Killing deploy process");
     }
 
-    return this.#provider.request(requestArguments);
+    return await this.#provider.request(requestArguments);
   }
 
   public async close(): Promise<void> {
@@ -375,7 +375,7 @@ class ProxyProvider extends EventEmitter implements EthereumProvider {
       throw new Error("Killing deploy process");
     }
 
-    return this.#provider.close();
+    return await this.#provider.close();
   }
 
   public async send(method: string, params?: unknown[]): Promise<any> {
@@ -384,7 +384,7 @@ class ProxyProvider extends EventEmitter implements EthereumProvider {
       throw new Error("Killing deploy process");
     }
 
-    return this.#provider.send(method, params);
+    return await this.#provider.send(method, params);
   }
 
   public async sendAsync(jsonRpcRequest: any, callback: any): Promise<any> {

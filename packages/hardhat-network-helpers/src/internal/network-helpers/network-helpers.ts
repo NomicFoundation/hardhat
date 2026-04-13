@@ -64,7 +64,7 @@ export class NetworkHelpers<ChainTypeT extends ChainType | string>
 
   public async dropTransaction(txHash: string): Promise<boolean> {
     await this.throwIfNotDevelopmentNetwork();
-    return dropTransaction(this.#provider, txHash);
+    return await dropTransaction(this.#provider, txHash);
   }
 
   public async getStorageAt(
@@ -73,12 +73,12 @@ export class NetworkHelpers<ChainTypeT extends ChainType | string>
     block: NumberLike | BlockTag = "latest",
   ): Promise<string> {
     await this.throwIfNotDevelopmentNetwork();
-    return getStorageAt(this.#provider, address, index, block);
+    return await getStorageAt(this.#provider, address, index, block);
   }
 
   public async impersonateAccount(address: string): Promise<void> {
     await this.throwIfNotDevelopmentNetwork();
-    return impersonateAccount(this.#provider, address);
+    return await impersonateAccount(this.#provider, address);
   }
 
   public async loadFixture<T>(fixture: Fixture<T, ChainTypeT>): Promise<T> {
@@ -101,49 +101,49 @@ export class NetworkHelpers<ChainTypeT extends ChainType | string>
     options: { interval?: NumberLike } = { interval: 1 },
   ): Promise<void> {
     await this.throwIfNotDevelopmentNetwork();
-    return mine(this.#provider, blocks, options);
+    return await mine(this.#provider, blocks, options);
   }
 
   public async mineUpTo(blockNumber: NumberLike): Promise<void> {
     await this.throwIfNotDevelopmentNetwork();
-    return mineUpTo(this.#provider, blockNumber, this.time);
+    return await mineUpTo(this.#provider, blockNumber, this.time);
   }
 
   public async setBalance(address: string, balance: NumberLike): Promise<void> {
     await this.throwIfNotDevelopmentNetwork();
-    return setBalance(this.#provider, address, balance);
+    return await setBalance(this.#provider, address, balance);
   }
 
   public async setBlockGasLimit(blockGasLimit: NumberLike): Promise<void> {
     await this.throwIfNotDevelopmentNetwork();
-    return setBlockGasLimit(this.#provider, blockGasLimit);
+    return await setBlockGasLimit(this.#provider, blockGasLimit);
   }
 
   public async setCode(address: string, code: string): Promise<void> {
     await this.throwIfNotDevelopmentNetwork();
-    return setCode(this.#provider, address, code);
+    return await setCode(this.#provider, address, code);
   }
 
   public async setCoinbase(address: string): Promise<void> {
     await this.throwIfNotDevelopmentNetwork();
-    return setCoinbase(this.#provider, address);
+    return await setCoinbase(this.#provider, address);
   }
 
   public async setNextBlockBaseFeePerGas(
     baseFeePerGas: NumberLike,
   ): Promise<void> {
     await this.throwIfNotDevelopmentNetwork();
-    return setNextBlockBaseFeePerGas(this.#provider, baseFeePerGas);
+    return await setNextBlockBaseFeePerGas(this.#provider, baseFeePerGas);
   }
 
   public async setNonce(address: string, nonce: NumberLike): Promise<void> {
     await this.throwIfNotDevelopmentNetwork();
-    return setNonce(this.#provider, address, nonce);
+    return await setNonce(this.#provider, address, nonce);
   }
 
   public async setPrevRandao(prevRandao: NumberLike): Promise<void> {
     await this.throwIfNotDevelopmentNetwork();
-    return setPrevRandao(this.#provider, prevRandao);
+    return await setPrevRandao(this.#provider, prevRandao);
   }
 
   public async setStorageAt(
@@ -152,17 +152,17 @@ export class NetworkHelpers<ChainTypeT extends ChainType | string>
     value: NumberLike,
   ): Promise<void> {
     await this.throwIfNotDevelopmentNetwork();
-    return setStorageAt(this.#provider, address, index, value);
+    return await setStorageAt(this.#provider, address, index, value);
   }
 
   public async stopImpersonatingAccount(address: string): Promise<void> {
     await this.throwIfNotDevelopmentNetwork();
-    return stopImpersonatingAccount(this.#provider, address);
+    return await stopImpersonatingAccount(this.#provider, address);
   }
 
   public async takeSnapshot(): Promise<SnapshotRestorer> {
     await this.throwIfNotDevelopmentNetwork();
-    return takeSnapshot(this.#provider);
+    return await takeSnapshot(this.#provider);
   }
 
   public async throwIfNotDevelopmentNetwork(): Promise<void> {

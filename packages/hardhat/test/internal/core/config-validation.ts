@@ -1943,7 +1943,7 @@ describe("resolved config validation", function () {
     const resolvedPlugins = await resolvePluginList(resolvedProjectRoot, [
       plugin,
     ]);
-    return createHardhatRuntimeEnvironment(config, {}, resolvedProjectRoot, {
+    return await createHardhatRuntimeEnvironment(config, {}, resolvedProjectRoot, {
       resolvedPlugins,
     });
   }

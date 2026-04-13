@@ -193,7 +193,7 @@ export class HardhatRuntimeEnvironmentImplementation
 export async function resolveProjectRoot(
   absolutePathWithinProject: string | undefined,
 ): Promise<string> {
-  return findClosestPackageRoot(absolutePathWithinProject ?? process.cwd());
+  return await findClosestPackageRoot(absolutePathWithinProject ?? process.cwd());
 }
 
 /**
@@ -292,7 +292,7 @@ async function runUserConfigExtensions(
   hooks: HookManager,
   config: HardhatUserConfig,
 ): Promise<HardhatUserConfig> {
-  return hooks.runHandlerChain(
+  return await hooks.runHandlerChain(
     "config",
     "extendUserConfig",
     [config],
@@ -320,7 +320,7 @@ async function resolveUserConfig(
     paths: resolvePaths(projectRoot, configPath, config.paths),
   } as HardhatConfig;
 
-  return hooks.runHandlerChain(
+  return await hooks.runHandlerChain(
     "config",
     "resolveUserConfig",
     [config, (variable) => resolveConfigurationVariable(hooks, variable)],

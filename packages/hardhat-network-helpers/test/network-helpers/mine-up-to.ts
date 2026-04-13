@@ -31,7 +31,7 @@ describe("network-helpers - mineUpTo", () => {
     const initialHeight = await networkHelpers.time.latestBlock();
 
     await assertRejectsWithHardhatError(
-      async () => networkHelpers.mineUpTo(initialHeight),
+      async () => await networkHelpers.mineUpTo(initialHeight),
       HardhatError.ERRORS.NETWORK_HELPERS.GENERAL
         .BLOCK_NUMBER_SMALLER_THAN_CURRENT,
       {

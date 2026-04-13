@@ -429,7 +429,7 @@ export class Etherscan implements VerificationProvider {
     if (etherscanResponse.isPending()) {
       await sleep(this.pollingIntervalMs);
 
-      return this.pollVerificationStatus(guid, contractAddress, contractName);
+      return await this.pollVerificationStatus(guid, contractAddress, contractName);
     }
 
     if (etherscanResponse.isAlreadyVerified()) {
@@ -661,12 +661,12 @@ export class LazyEtherscanImpl implements LazyEtherscan {
 
   public async isVerified(address: string): Promise<boolean> {
     const etherscan = await this.#getEtherscan();
-    return etherscan.isVerified(address);
+    return await etherscan.isVerified(address);
   }
 
   public async verify(args: EtherscanVerifyArgs): Promise<string> {
     const etherscan = await this.#getEtherscan();
-    return etherscan.verify(args);
+    return await etherscan.verify(args);
   }
 
   public async pollVerificationStatus(
@@ -675,7 +675,7 @@ export class LazyEtherscanImpl implements LazyEtherscan {
     contractName: string,
   ): Promise<{ success: boolean; message: string }> {
     const etherscan = await this.#getEtherscan();
-    return etherscan.pollVerificationStatus(
+    return await etherscan.pollVerificationStatus(
       guid,
       contractAddress,
       contractName,
@@ -687,6 +687,6 @@ export class LazyEtherscanImpl implements LazyEtherscan {
     options?: EtherscanCustomApiCallOptions,
   ): Promise<EtherscanResponseBody> {
     const etherscan = await this.#getEtherscan();
-    return etherscan.customApiCall(params, options);
+    return await etherscan.customApiCall(params, options);
   }
 }

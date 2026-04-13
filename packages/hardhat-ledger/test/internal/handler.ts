@@ -305,7 +305,7 @@ describe("LedgerHandler", () => {
           if (createCallCount <= 2) {
             throw new TransportError("No Ledger device found", "NoDeviceFound");
           }
-          return originalCreate(...args);
+          return await originalCreate(...args);
         };
 
         ledgerHandler = new LedgerHandler(

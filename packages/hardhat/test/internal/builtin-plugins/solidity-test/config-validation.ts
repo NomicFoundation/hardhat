@@ -75,7 +75,7 @@ async function _createHardhatRuntimeEnvironmentWithOnlyBuiltinPlugin(
     builtinPlugin,
   ]);
 
-  return createHardhatRuntimeEnvironment(config, {}, resolvedProjectRoot, {
+  return await createHardhatRuntimeEnvironment(config, {}, resolvedProjectRoot, {
     resolvedPlugins,
   });
 }

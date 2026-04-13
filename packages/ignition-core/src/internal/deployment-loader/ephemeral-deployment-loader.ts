@@ -99,7 +99,7 @@ export class EphemeralDeploymentLoader implements DeploymentLoader {
           `Unable to load artifact, underlying resolver returned undefined for ${saved.contractName}`,
         );
 
-        return fileArtifact;
+        return await fileArtifact;
       }
     }
   }

@@ -27,7 +27,7 @@ async function checkIfSubprocessWasExecuted() {
   // within a specified number of attempts, an error is thrown, indicating a failure in subprocess execution.
   const MAX_COUNTER = 20;
 
-  return new Promise((resolve, reject) => {
+  return await new Promise((resolve, reject) => {
     let counter = 0;
 
     const intervalId = setInterval(async () => {
@@ -143,7 +143,7 @@ describe("subprocess", () => {
 
     await assert.rejects(
       async () =>
-        spawnDetachedSubProcess(pathToSubprocessFile, [], { env1: "env1" }),
+        await spawnDetachedSubProcess(pathToSubprocessFile, [], { env1: "env1" }),
       new SubprocessFileNotFoundError(pathToSubprocessFile),
     );
   });
@@ -153,7 +153,7 @@ describe("subprocess", () => {
 
     await assert.rejects(
       async () =>
-        spawnDetachedSubProcess(pathToSubprocessFile, [], { env1: "env1" }),
+        await spawnDetachedSubProcess(pathToSubprocessFile, [], { env1: "env1" }),
       new SubprocessPathIsDirectoryError(pathToSubprocessFile),
     );
   });

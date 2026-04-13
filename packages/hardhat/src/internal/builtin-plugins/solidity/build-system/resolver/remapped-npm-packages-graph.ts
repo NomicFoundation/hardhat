@@ -457,7 +457,7 @@ export class RemappedNpmPackagesGraphImplementation
       npmPackage.version,
       npmPackage.rootFsPath,
       async (_packageName, _packageVersion, packagePath) =>
-        this.#defaultReadPackageRemappings(packagePath),
+        await this.#defaultReadPackageRemappings(packagePath),
     );
 
     return this.#parseAndDeduplicateRemappings(npmPackage, allRemappings);

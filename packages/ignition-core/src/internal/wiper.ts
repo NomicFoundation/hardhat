@@ -53,7 +53,7 @@ export class Wiper {
       futureId,
     };
 
-    return applyNewMessage(
+    return await applyNewMessage(
       wipeMessage,
       deploymentState,
       this._deploymentLoader,

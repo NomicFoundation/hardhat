@@ -20,7 +20,7 @@ const hardhatPlugin: HardhatPlugin = {
         description: "Commands to run when the console starts",
         defaultValue: [],
       })
-      .setAction(async () => import("./task-action.js"))
+      .setAction(async () => await import("./task-action.js"))
       .build(),
   ],
   dependencies: () => [import("../solidity/index.js")],

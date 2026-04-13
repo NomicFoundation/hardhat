@@ -67,7 +67,7 @@ describe("Plugins - detect npm dependency problems", () => {
 
       await assertRejectsWithHardhatError(
         async () =>
-          detectPluginNpmDependencyProblems(
+          await detectPluginNpmDependencyProblems(
             nonInstalledPackageProjectFixture,
             plugin,
             originalError,
@@ -87,7 +87,7 @@ describe("Plugins - detect npm dependency problems", () => {
 
       await assertRejectsWithHardhatError(
         async () =>
-          detectPluginNpmDependencyProblems(
+          await detectPluginNpmDependencyProblems(
             nonInstalledPackageProjectFixture,
             {
               ...pluginWithNpmPackageUndefined,
@@ -159,7 +159,7 @@ describe("Plugins - detect npm dependency problems", () => {
 
       await assertRejectsWithHardhatError(
         async () =>
-          detectPluginNpmDependencyProblems(
+          await detectPluginNpmDependencyProblems(
             peerDepWithWrongVersionFixture,
             plugin,
             originalError,

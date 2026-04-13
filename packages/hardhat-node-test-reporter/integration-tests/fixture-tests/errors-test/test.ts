@@ -10,7 +10,7 @@ test("aggregate error in top level test", async () => {
   );
   const promise2 = Promise.reject(new Error("Promise 2 failed"));
 
-  return Promise.any([promise1, promise2]);
+  return await Promise.any([promise1, promise2]);
 });
 
 // TODO: We're commenting out this test case because https://nodejs.org/en/blog/release/v22.16.0

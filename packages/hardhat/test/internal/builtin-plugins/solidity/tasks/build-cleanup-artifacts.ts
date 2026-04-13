@@ -63,7 +63,7 @@ contract AddedByHook {}`,
                     );
 
                     // Add extra file to the build
-                    return next(
+                    return await next(
                       context,
                       [...rootFilePaths, extraFile],
                       options,
@@ -190,7 +190,7 @@ contract Filter {}`,
                     const filteredPaths = rootFilePaths.filter(
                       (p) => !p.includes("Filter"),
                     );
-                    return next(context, filteredPaths, options);
+                    return await next(context, filteredPaths, options);
                   },
                 };
 

@@ -480,7 +480,7 @@ describe("http-provider", () => {
             result: expectedChainId,
           };
         } else {
-          return fetch(request);
+          return await fetch(request);
         }
       };
 

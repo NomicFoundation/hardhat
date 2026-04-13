@@ -32,12 +32,12 @@ export class Time<ChainTypeT extends ChainType | string> implements TimeI {
 
   public async increase(amountInSeconds: NumberLike): Promise<number> {
     await this.#networkHelpers.throwIfNotDevelopmentNetwork();
-    return increase(this.#provider, this.#networkHelpers, amountInSeconds);
+    return await increase(this.#provider, this.#networkHelpers, amountInSeconds);
   }
 
   public async increaseTo(timestamp: NumberLike | Date): Promise<void> {
     await this.#networkHelpers.throwIfNotDevelopmentNetwork();
-    return increaseTo(
+    return await increaseTo(
       this.#provider,
       this.#networkHelpers,
       timestamp,
@@ -47,18 +47,18 @@ export class Time<ChainTypeT extends ChainType | string> implements TimeI {
 
   public async latest(): Promise<number> {
     await this.#networkHelpers.throwIfNotDevelopmentNetwork();
-    return latest(this.#provider);
+    return await latest(this.#provider);
   }
 
   public async latestBlock(): Promise<number> {
     await this.#networkHelpers.throwIfNotDevelopmentNetwork();
-    return latestBlock(this.#provider);
+    return await latestBlock(this.#provider);
   }
 
   public async setNextBlockTimestamp(
     timestamp: NumberLike | Date,
   ): Promise<void> {
     await this.#networkHelpers.throwIfNotDevelopmentNetwork();
-    return setNextBlockTimestamp(this.#provider, timestamp, this.duration);
+    return await setNextBlockTimestamp(this.#provider, timestamp, this.duration);
   }
 }

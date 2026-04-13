@@ -124,10 +124,10 @@ export async function getCompiler(
 ): Promise<Compiler> {
   if (compilerPath !== undefined) {
     // If a compiler path is provided, it means the user is using a custom compiler
-    return getCompilerFromPath(version, compilerPath);
+    return await getCompilerFromPath(version, compilerPath);
   } else {
     // Otherwise we get or download the compiler for the specific version
-    return getCompilerFromVersion(version, { preferWasm });
+    return await getCompilerFromVersion(version, { preferWasm });
   }
 }
 

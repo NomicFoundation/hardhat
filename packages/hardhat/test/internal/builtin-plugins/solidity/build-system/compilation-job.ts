@@ -301,7 +301,7 @@ describe("CompilationJobImplementation", () => {
             next,
           ) => {
             solcInput.sources.test = { content: "test" };
-            return next(context, solcInput);
+            return await next(context, solcInput);
           },
         });
         assert.notEqual(
@@ -327,7 +327,7 @@ describe("CompilationJobImplementation", () => {
             solcVersion,
             next,
           ) => {
-            return next(context, inputSourceName, fsPath, "test", solcVersion);
+            return await next(context, inputSourceName, fsPath, "test", solcVersion);
           },
         });
         assert.notEqual(
@@ -667,7 +667,7 @@ describe("CompilationJobImplementation", () => {
             next,
           ) => {
             solcInput.sources.test = { content };
-            return next(context, solcInput);
+            return await next(context, solcInput);
           },
         });
       });
@@ -707,7 +707,7 @@ describe("CompilationJobImplementation", () => {
             solcVersion,
             next,
           ) => {
-            return next(
+            return await next(
               context,
               name ?? inputSourceName,
               path ?? fsPath,

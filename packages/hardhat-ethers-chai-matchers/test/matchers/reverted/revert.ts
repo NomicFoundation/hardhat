@@ -50,7 +50,7 @@ describe("INTEGRATION: Revert", { timeout: 60000 }, () => {
 
     // helpers
     const expectAssertionError = async (x: Promise<void>, message: string) => {
-      return expect(x).to.be.eventually.rejectedWith(AssertionError, message);
+      return await expect(x).to.be.eventually.rejectedWith(AssertionError, message);
     };
 
     describe("with a string as its subject", () => {

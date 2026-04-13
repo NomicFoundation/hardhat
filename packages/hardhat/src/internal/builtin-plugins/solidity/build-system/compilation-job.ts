@@ -92,7 +92,7 @@ export class CompilationJobImplementation implements CompilationJob {
         // instrument the project file content when coverage feature is enabled.
         // We pass some additional data via the chain - i.e. the input source name and solc
         // version - but we expect any handlers to pass them on as-is without modification.
-        return this.#hooks.runHandlerChain(
+        return await this.#hooks.runHandlerChain(
           "solidity",
           "preprocessProjectFileBeforeBuilding",
           [file.inputSourceName, file.fsPath, file.content.text, solcVersion],

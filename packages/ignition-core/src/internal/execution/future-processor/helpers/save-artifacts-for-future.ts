@@ -18,14 +18,14 @@ export async function saveArtifactsForFuture(
     case FutureType.NAMED_ARTIFACT_CONTRACT_DEPLOYMENT:
     case FutureType.NAMED_ARTIFACT_LIBRARY_DEPLOYMENT:
     case FutureType.NAMED_ARTIFACT_CONTRACT_AT:
-      return _storeArtifactAndBuildInfoAgainstDeployment(future, {
+      return await _storeArtifactAndBuildInfoAgainstDeployment(future, {
         artifactResolver,
         deploymentLoader,
       });
     case FutureType.CONTRACT_DEPLOYMENT:
     case FutureType.LIBRARY_DEPLOYMENT:
     case FutureType.CONTRACT_AT:
-      return deploymentLoader.storeUserProvidedArtifact(
+      return await deploymentLoader.storeUserProvidedArtifact(
         future.id,
         future.artifact,
       );

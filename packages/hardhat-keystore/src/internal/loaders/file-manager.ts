@@ -20,7 +20,7 @@ export class FileManagerImpl implements FileManager {
     // First write to a temporary file, then move it to minimize the risk of file corruption
     const tmpPath = `${absolutePathToFile}.tmp`;
     await writeJsonFile(tmpPath, keystoreFile);
-    return move(tmpPath, absolutePathToFile);
+    return await move(tmpPath, absolutePathToFile);
   }
 
   public readJsonFile(absolutePathToFile: string): Promise<EncryptedKeystore> {

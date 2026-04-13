@@ -87,7 +87,7 @@ export const DEFAULT_EDR_NETWORK_HD_ACCOUNTS_CONFIG_PARAMS: EdrNetworkDefaultHDA
 export async function isDefaultEdrNetworkHDAccountsConfig(
   accounts: EdrNetworkHDAccountsConfig,
 ): Promise<boolean> {
-  return deepEqual(
+  return await deepEqual(
     {
       ...accounts,
       mnemonic: await accounts.mnemonic.get(),
@@ -325,7 +325,7 @@ export class EdrProvider extends BaseProvider {
         typeof jsonRpcResponse.result === "string",
         "Invalid client version response",
       );
-      return clientVersion(jsonRpcResponse.result);
+      return await clientVersion(jsonRpcResponse.result);
     } else {
       return jsonRpcResponse.result;
     }
@@ -496,7 +496,7 @@ export class EdrProvider extends BaseProvider {
       throw new UnknownError(error.message, error);
     }
 
-    return this.#handleEdrResponse(
+    return await this.#handleEdrResponse(
       edrResponse,
       request.method,
       Array.isArray(request.params) ? request.params : undefined,

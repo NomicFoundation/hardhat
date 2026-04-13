@@ -26,7 +26,7 @@ export async function checkIfSubprocessWasExecuted(
   // within a specified number of attempts, an error is thrown, indicating a failure in subprocess execution.
   const MAX_COUNTER = 100;
 
-  return new Promise((resolve, reject) => {
+  return await new Promise((resolve, reject) => {
     let counter = 0;
 
     const intervalId = setInterval(async () => {

@@ -44,7 +44,7 @@ describe("network-helpers - setCode", () => {
   describe("accepted parameter types for code", () => {
     it("should not accept strings that are not 0x-prefixed", async () => {
       await assertRejectsWithHardhatError(
-        async () => networkHelpers.setCode(recipient, "a1a2a3"),
+        async () => await networkHelpers.setCode(recipient, "a1a2a3"),
         HardhatError.ERRORS.NETWORK_HELPERS.GENERAL.INVALID_HEX_STRING,
         { value: "a1a2a3" },
       );
@@ -52,7 +52,7 @@ describe("network-helpers - setCode", () => {
 
     it("should not accept invalid addresses", async () => {
       await assertRejectsWithHardhatError(
-        async () => networkHelpers.setCode("0x123", "0xaaa"),
+        async () => await networkHelpers.setCode("0x123", "0xaaa"),
         HardhatError.ERRORS.NETWORK_HELPERS.GENERAL.INVALID_ADDRESS,
         {
           value: "0x123",

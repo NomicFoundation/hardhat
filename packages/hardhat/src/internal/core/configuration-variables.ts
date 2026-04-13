@@ -118,8 +118,8 @@ export class LazyResolvedConfigurationVariable extends BaseResolvedConfiguration
     const mutex = LazyResolvedConfigurationVariable.#mutexes.get(this.#hooks);
     assertHardhatInvariant(mutex !== undefined, "Mutex must be defined");
 
-    return mutex.exclusiveRun(async () =>
-      this.#hooks.runHandlerChain(
+    return await mutex.exclusiveRun(async () =>
+      await this.#hooks.runHandlerChain(
         "configurationVariables",
         "fetchValue",
         [this.#variable],

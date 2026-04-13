@@ -59,7 +59,7 @@ describe("time - setNextBlockTimestamp", () => {
 
     // eslint-disable-next-line no-restricted-syntax -- only used in test to verify error not thrown by Hardhat
     await assert.rejects(async () =>
-      time.setNextBlockTimestamp(initialTimestamp),
+      await time.setNextBlockTimestamp(initialTimestamp),
     );
   });
 
@@ -68,7 +68,7 @@ describe("time - setNextBlockTimestamp", () => {
 
     // eslint-disable-next-line no-restricted-syntax -- only used in test to verify error not thrown by Hardhat
     await assert.rejects(async () =>
-      time.setNextBlockTimestamp(initialTimestamp - 1),
+      await time.setNextBlockTimestamp(initialTimestamp - 1),
     );
   });
 

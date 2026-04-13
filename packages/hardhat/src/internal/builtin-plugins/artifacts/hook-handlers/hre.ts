@@ -20,62 +20,62 @@ class LazyArtifactManager implements ArtifactManager {
     contractNameOrFullyQualifiedName: ContractNameT,
   ): Promise<GetArtifactByName<ContractNameT>> {
     const artifactManager = await this.#getArtifactManager();
-    return artifactManager.readArtifact(contractNameOrFullyQualifiedName);
+    return await artifactManager.readArtifact(contractNameOrFullyQualifiedName);
   }
 
   public async getArtifactPath(
     contractNameOrFullyQualifiedName: string,
   ): Promise<string> {
     const artifactManager = await this.#getArtifactManager();
-    return artifactManager.getArtifactPath(contractNameOrFullyQualifiedName);
+    return await artifactManager.getArtifactPath(contractNameOrFullyQualifiedName);
   }
 
   public async artifactExists(
     contractNameOrFullyQualifiedName: string,
   ): Promise<boolean> {
     const artifactManager = await this.#getArtifactManager();
-    return artifactManager.artifactExists(contractNameOrFullyQualifiedName);
+    return await artifactManager.artifactExists(contractNameOrFullyQualifiedName);
   }
 
   public async getAllFullyQualifiedNames(): Promise<ReadonlySet<string>> {
     const artifactManager = await this.#getArtifactManager();
-    return artifactManager.getAllFullyQualifiedNames();
+    return await artifactManager.getAllFullyQualifiedNames();
   }
 
   public async getAllArtifactPaths(): Promise<ReadonlySet<string>> {
     const artifactManager = await this.#getArtifactManager();
-    return artifactManager.getAllArtifactPaths();
+    return await artifactManager.getAllArtifactPaths();
   }
 
   public async getBuildInfoId(
     contractNameOrFullyQualifiedName: string,
   ): Promise<string | undefined> {
     const artifactManager = await this.#getArtifactManager();
-    return artifactManager.getBuildInfoId(contractNameOrFullyQualifiedName);
+    return await artifactManager.getBuildInfoId(contractNameOrFullyQualifiedName);
   }
 
   public async getAllBuildInfoIds(): Promise<ReadonlySet<string>> {
     const artifactManager = await this.#getArtifactManager();
-    return artifactManager.getAllBuildInfoIds();
+    return await artifactManager.getAllBuildInfoIds();
   }
 
   public async getBuildInfoPath(
     buildInfoId: string,
   ): Promise<string | undefined> {
     const artifactManager = await this.#getArtifactManager();
-    return artifactManager.getBuildInfoPath(buildInfoId);
+    return await artifactManager.getBuildInfoPath(buildInfoId);
   }
 
   public async getBuildInfoOutputPath(
     buildInfoId: string,
   ): Promise<string | undefined> {
     const artifactManager = await this.#getArtifactManager();
-    return artifactManager.getBuildInfoOutputPath(buildInfoId);
+    return await artifactManager.getBuildInfoOutputPath(buildInfoId);
   }
 
   public async clearCache(): Promise<void> {
     const artifactManager = await this.#getArtifactManager();
-    return artifactManager.clearCache();
+    return await artifactManager.clearCache();
   }
 
   async #getArtifactManager(): Promise<ArtifactManager> {

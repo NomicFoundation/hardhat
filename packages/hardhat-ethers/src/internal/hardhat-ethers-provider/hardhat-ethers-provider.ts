@@ -116,7 +116,7 @@ export class HardhatEthersProvider implements HardhatEthersProviderI {
   public destroy(): void {}
 
   public async send(method: string, params?: any[]): Promise<any> {
-    return this.#hardhatProvider.request({
+    return await this.#hardhatProvider.request({
       method,
       params,
     });
@@ -143,7 +143,7 @@ export class HardhatEthersProvider implements HardhatEthersProviderI {
           },
         );
       }
-      return HardhatEthersSigner.create(
+      return await HardhatEthersSigner.create(
         this,
         this.#networkName,
         this.#networkConfig,
@@ -152,7 +152,7 @@ export class HardhatEthersProvider implements HardhatEthersProviderI {
     }
 
     if (typeof address === "string") {
-      return HardhatEthersSigner.create(
+      return await HardhatEthersSigner.create(
         this,
         this.#networkName,
         this.#networkConfig,
@@ -477,12 +477,12 @@ export class HardhatEthersProvider implements HardhatEthersProviderI {
     const resolvedConfirms = confirms ?? DEFAULT_TRANSACTION_CONFIRMS;
 
     if (resolvedConfirms === 0) {
-      return this.getTransactionReceipt(hash);
+      return await this.getTransactionReceipt(hash);
     }
 
     const pollingInterval = (await this.#isHardhatNetwork()) ? 50 : 500;
 
-    return new Promise<ethers.TransactionReceipt | null>((resolve, reject) => {
+    return await new Promise<ethers.TransactionReceipt | null>((resolve, reject) => {
       let cancelled = false;
       let timeoutTimer: NodeJS.Timeout | undefined;
       let pollingTimeout: NodeJS.Timeout | undefined;
@@ -741,14 +741,14 @@ export class HardhatEthersProvider implements HardhatEthersProviderI {
     event: ProviderEvent,
     listener: Listener,
   ): Promise<this> {
-    return this.on(event, listener);
+    return await this.on(event, listener);
   }
 
   public async removeListener(
     event: ProviderEvent,
     listener: Listener,
   ): Promise<this> {
-    return this.off(event, listener);
+    return await this.off(event, listener);
   }
 
   public toJSON() {
@@ -883,7 +883,7 @@ export class HardhatEthersProvider implements HardhatEthersProviderI {
     includeTransactions: boolean,
   ): Promise<any> {
     if (isHexString(block, 32)) {
-      return this.#hardhatProvider.request({
+      return await this.#hardhatProvider.request({
         method: "eth_getBlockByHash",
         params: [block, includeTransactions],
       });
@@ -894,7 +894,7 @@ export class HardhatEthersProvider implements HardhatEthersProviderI {
       blockTag = await blockTag;
     }
 
-    return this.#hardhatProvider.request({
+    return await this.#hardhatProvider.request({
       method: "eth_getBlockByNumber",
       params: [blockTag, includeTransactions],
     });

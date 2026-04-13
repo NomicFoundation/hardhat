@@ -14,5 +14,5 @@ export async function listDeployments(
     return [];
   }
 
-  return readdir(deploymentDir);
+  return await readdir(deploymentDir);
 }

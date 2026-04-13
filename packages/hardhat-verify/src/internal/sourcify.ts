@@ -303,7 +303,7 @@ export class Sourcify implements VerificationProvider {
     if (verificationStatus.isPending()) {
       await sleep(this.pollingIntervalMs);
 
-      return this.pollVerificationStatus(guid, contractAddress, contractName);
+      return await this.pollVerificationStatus(guid, contractAddress, contractName);
     }
 
     if (verificationStatus.isAlreadyVerified()) {
