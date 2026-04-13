@@ -88,6 +88,7 @@ const buildAction: NewTaskActionFunction<BuildActionArguments> = async (
       );
 
       contractRootPaths.push(...contractBuildResults.contractRootPaths);
+      testRootPaths.push(...contractBuildResults.testRootPaths);
     }
 
     const shouldBuildTests =
@@ -111,6 +112,7 @@ const buildAction: NewTaskActionFunction<BuildActionArguments> = async (
         "The tests scope should build no contract in split test compilation mode",
       );
 
+      contractRootPaths.push(...testBuildResults.contractRootPaths);
       testRootPaths.push(...testBuildResults.testRootPaths);
     }
 
@@ -189,15 +191,24 @@ async function runSolidityBuild({
 
   throwIfSolidityBuildFailed(solidity, results);
 
+  // We use the result keys in case a hook added or removed root files
+  const builtRootPaths = [...results.keys()];
+
   if (isFullBuild) {
-    // We use the result keys in case a hook added more root files
-    const builtRootPaths = [...results.keys()];
     await solidity.cleanupArtifacts(builtRootPaths, {
       scope,
     });
   }
 
-  return { contractRootPaths, testRootPaths };
+  const preBuildRoots = new Set([...contractRootPaths, ...testRootPaths]);
+  if (
+    builtRootPaths.length === preBuildRoots.size &&
+    builtRootPaths.every((p) => preBuildRoots.has(p))
+  ) {
+    return { contractRootPaths, testRootPaths };
+  }
+
+  return partitionRootPathsByScope(solidity, builtRootPaths);
 }
 
 /**

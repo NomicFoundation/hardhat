@@ -1,3 +1,15 @@
+import type {
+  HookContext,
+  SolidityHooks,
+} from "../../../../../../src/types/hooks.js";
+import type { HardhatPlugin } from "../../../../../../src/types/plugins.js";
+import type {
+  BuildOptions,
+  BuildScope,
+  CompilationJobCreationError,
+  FileBuildResult,
+} from "../../../../../../src/types/solidity/build-system.js";
+
 import assert from "node:assert/strict";
 import path from "node:path";
 import { describe, it } from "node:test";
@@ -11,6 +23,48 @@ import {
 } from "@nomicfoundation/hardhat-utils/fs";
 
 import { useTestProjectTemplate } from "../resolver/helpers.js";
+
+/**
+ * Creates a plugin that installs a `solidity.build` hook adding `extraFile`
+ * to the root file paths. If `onlyForScope` is provided, the file is only
+ * added when the build is invoked for that scope.
+ */
+function makeBuildHookAddingPlugin(
+  extraFile: string,
+  onlyForScope?: BuildScope,
+): HardhatPlugin {
+  return {
+    id: "test-build-hook-adding-plugin",
+    hookHandlers: {
+      solidity: async () => ({
+        default: async () => {
+          const handlers: Partial<SolidityHooks> = {
+            build: async (
+              context: HookContext,
+              rootFilePaths: string[],
+              options: BuildOptions | undefined,
+              next: (
+                nextContext: HookContext,
+                nextRootFilePaths: string[],
+                nextOptions: BuildOptions | undefined,
+              ) => Promise<
+                CompilationJobCreationError | Map<string, FileBuildResult>
+              >,
+            ) => {
+              const shouldAdd =
+                onlyForScope === undefined || options?.scope === onlyForScope;
+              const nextRoots = shouldAdd
+                ? [...rootFilePaths, extraFile]
+                : rootFilePaths;
+              return next(context, nextRoots, options);
+            },
+          };
+          return handlers;
+        },
+      }),
+    },
+  };
+}
 
 const basicProjectTemplate = {
   name: "test",
@@ -155,6 +209,38 @@ describe("build system - build task - behavior on build scope", function () {
         assert.equal(await exists(testBuildInfoPath), false);
         assert.equal(await exists(contractArtifactPath), false);
         assert.equal(await exists(testArtifactPath), false);
+      });
+
+      it("includes a hook-added contract root in the returned contractRootPaths", async () => {
+        await using project = await useTestProjectTemplate({
+          ...basicProjectTemplate,
+          name: "test-split-hook-adds-contract",
+          files: {
+            ...basicProjectTemplate.files,
+            "extra/AddedByHook.sol": `// SPDX-License-Identifier: UNLICENSED
+              pragma solidity ^0.8.0;
+              contract AddedByHook {}`,
+          },
+        });
+        const extraFile = path.join(project.path, "extra/AddedByHook.sol");
+        const hre = await project.getHRE({
+          ...solidityCompilationConfig,
+          plugins: [makeBuildHookAddingPlugin(extraFile, "contracts")],
+        });
+
+        const result: {
+          contractRootPaths: string[];
+          testRootPaths: string[];
+        } = await hre.tasks.getTask("build").run();
+
+        assert.ok(
+          result.contractRootPaths.some((r) => r === extraFile),
+          "Expected hook-added AddedByHook.sol in contractRootPaths",
+        );
+        assert.ok(
+          !result.testRootPaths.some((r) => r === extraFile),
+          "Did not expect hook-added contract in testRootPaths",
+        );
       });
     });
 
@@ -652,6 +738,38 @@ describe("build system - splitTestsCompilation: false - build task", function ()
       assert.ok(
         result.testRootPaths.some((r) => r.endsWith("OtherFooTest.sol")),
         "Expected OtherFooTest.sol in testRootPaths",
+      );
+    });
+
+    it("includes a hook-added contract root in the returned contractRootPaths", async () => {
+      await using project = await useTestProjectTemplate({
+        ...basicProjectTemplate,
+        name: "test-unified-hook-adds-contract",
+        files: {
+          ...basicProjectTemplate.files,
+          "extra/AddedByHook.sol": `// SPDX-License-Identifier: UNLICENSED
+            pragma solidity ^0.8.0;
+            contract AddedByHook {}`,
+        },
+      });
+      const extraFile = path.join(project.path, "extra/AddedByHook.sol");
+      const hre = await project.getHRE({
+        ...unifiedTestsCompilationConfig,
+        plugins: [makeBuildHookAddingPlugin(extraFile)],
+      });
+
+      const result: {
+        contractRootPaths: string[];
+        testRootPaths: string[];
+      } = await hre.tasks.getTask("build").run();
+
+      assert.ok(
+        result.contractRootPaths.some((r) => r === extraFile),
+        "Expected hook-added AddedByHook.sol in contractRootPaths",
+      );
+      assert.ok(
+        !result.testRootPaths.some((r) => r === extraFile),
+        "Did not expect hook-added contract in testRootPaths",
       );
     });
   });
