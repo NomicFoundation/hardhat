@@ -10,6 +10,7 @@ import {
 } from "@nomicfoundation/hardhat-test-utils";
 import { ensureError } from "@nomicfoundation/hardhat-utils/error";
 import { overrideTask } from "hardhat/config";
+import { createHardhatRuntimeEnvironment } from "hardhat/hre";
 
 import HardhatMochaPlugin from "../src/index.js";
 
@@ -117,9 +118,23 @@ describe("Hardhat Mocha plugin", () => {
       assert.equal(buildArgs[0].noTests, true);
     });
 
-    it("should skip compilation when noCompile is true regardless of splitTestsCompilation", async () => {
-      const { createHardhatRuntimeEnvironment } = await import("hardhat/hre");
+    it("should skip compilation when noCompile is true with splitTestsCompilation", async () => {
+      const { buildArgs, buildOverride } = buildArgCaptor();
+      const hre = await createHardhatRuntimeEnvironment({
+        solidity: {
+          version: "0.8.28",
+          splitTestsCompilation: true,
+        },
+        plugins: [HardhatMochaPlugin],
+        tasks: [buildOverride],
+      });
 
+      await runMochaIgnoringEsmReRunErrors(hre, { noCompile: true });
+
+      assert.equal(buildArgs.length, 0);
+    });
+
+    it("should skip compilation when noCompile is true without splitTestsCompilation", async () => {
       const { buildArgs, buildOverride } = buildArgCaptor();
       const hre = await createHardhatRuntimeEnvironment({
         plugins: [HardhatMochaPlugin],
