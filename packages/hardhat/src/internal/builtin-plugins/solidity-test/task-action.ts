@@ -373,7 +373,7 @@ async function validateThatProvidedFilesAreTests(
   testFiles: string[],
   resolvedTestFilesArgument: string[],
 ) {
-  const nonTests = [];
+  const nonTests: string[] = [];
   for (let i = 0; i < resolvedTestFilesArgument.length; i++) {
     const rootPath = resolvedTestFilesArgument[i];
     const scope = await solidity.getScope(rootPath);
