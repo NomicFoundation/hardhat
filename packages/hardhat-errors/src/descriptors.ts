@@ -1212,6 +1212,16 @@ Double-check the files that you are providing to the \`test solidity\` task`,
         websiteTitle: "Invalid Solidity test files",
         websiteDescription: `You ran the \`test solidity\` task with files that aren't classified as Solidity tests.`,
       },
+      SELECTED_TEST_FILES_DO_NOT_EXIST: {
+        number: 816,
+        messageTemplate: `The following Solidity test files do not exist:
+
+{files}
+
+Double-check the paths you are providing to the \`test solidity\` task.`,
+        websiteTitle: "Selected Solidity test files do not exist",
+        websiteDescription: `You ran the \`test solidity\` task with files that do not exist on disk.`,
+      },
     },
     SOLIDITY: {
       PROJECT_ROOT_RESOLUTION_ERROR: {

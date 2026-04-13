@@ -145,7 +145,7 @@ const runSolidityTests: NewTaskActionFunction<TestActionArguments> = async (
 
       const notCompiledFiles: string[] = [];
       for (const root of testRootPathsToRun) {
-        if (!compiledSources.has(root) && (await exists(root))) {
+        if (!compiledSources.has(root)) {
           notCompiledFiles.push(root);
         }
       }
@@ -373,6 +373,21 @@ async function validateThatProvidedFilesAreTests(
   testFiles: string[],
   resolvedTestFilesArgument: string[],
 ) {
+  const existsResults = await Promise.all(
+    resolvedTestFilesArgument.map((rootPath) => exists(rootPath)),
+  );
+
+  const missing: string[] = testFiles.filter((_, i) => !existsResults[i]);
+
+  if (missing.length > 0) {
+    throw new HardhatError(
+      HardhatError.ERRORS.CORE.SOLIDITY_TESTS.SELECTED_TEST_FILES_DO_NOT_EXIST,
+      {
+        files: missing.map((f) => `- ${f}`).join("\n"),
+      },
+    );
+  }
+
   const scopes = await Promise.all(
     resolvedTestFilesArgument.map((rootPath) => solidity.getScope(rootPath)),
   );

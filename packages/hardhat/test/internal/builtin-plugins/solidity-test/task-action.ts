@@ -483,6 +483,19 @@ describe("solidity-test/task-action", function () {
         );
       }
     });
+
+    it("should throw when a selected test file does not exist on disk", async () => {
+      hre = await createHardhatRuntimeEnvironment(hardhatConfigPartialTests);
+      await assertRejectsWithHardhatError(
+        hre.tasks.getTask(["test", "solidity"]).run({
+          noCompile: true,
+          testFiles: ["./test/contracts/partial/DoesNotExist.t.sol"],
+        }),
+        HardhatError.ERRORS.CORE.SOLIDITY_TESTS
+          .SELECTED_TEST_FILES_DO_NOT_EXIST,
+        { files: "- ./test/contracts/partial/DoesNotExist.t.sol" },
+      );
+    });
   });
 
   it("should support EIP-7212 precompile at address 0x100", async () => {
