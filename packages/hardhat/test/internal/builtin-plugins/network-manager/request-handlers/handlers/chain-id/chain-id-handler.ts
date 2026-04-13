@@ -101,6 +101,8 @@ describe("ChainIdValidatorHandler", () => {
       1,
     );
 
-    await assertRejects(() => chainIdValidatorHandler.handle(jsonRpcRequest));
+    await assertRejects(
+      async () => await chainIdValidatorHandler.handle(jsonRpcRequest),
+    );
   });
 });

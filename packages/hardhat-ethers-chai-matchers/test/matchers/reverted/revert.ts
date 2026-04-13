@@ -50,7 +50,10 @@ describe("INTEGRATION: Revert", { timeout: 60000 }, () => {
 
     // helpers
     const expectAssertionError = async (x: Promise<void>, message: string) => {
-      return await expect(x).to.be.eventually.rejectedWith(AssertionError, message);
+      return await expect(x).to.be.eventually.rejectedWith(
+        AssertionError,
+        message,
+      );
     };
 
     describe("with a string as its subject", () => {
@@ -80,7 +83,7 @@ describe("INTEGRATION: Revert", { timeout: 60000 }, () => {
 
       it("invalid string", async () => {
         await assertRejects(
-          () => expect("0x123").to.be.revert(ethers),
+          async () => await expect("0x123").to.be.revert(ethers),
           (e) =>
             e.message.includes(
               'Expected a valid transaction hash, but got "0x123"',
@@ -89,7 +92,7 @@ describe("INTEGRATION: Revert", { timeout: 60000 }, () => {
         );
 
         await assertRejects(
-          () => expect("0x123").to.not.be.revert(ethers),
+          async () => await expect("0x123").to.not.be.revert(ethers),
           (e) =>
             e.message.includes(
               'Expected a valid transaction hash, but got "0x123"',
@@ -122,7 +125,8 @@ describe("INTEGRATION: Revert", { timeout: 60000 }, () => {
 
       it("promise of an invalid string", async () => {
         await assertRejects(
-          () => expect(Promise.resolve("0x123")).to.be.revert(ethers),
+          async () =>
+            await expect(Promise.resolve("0x123")).to.be.revert(ethers),
           (e) =>
             e.message.includes(
               'Expected a valid transaction hash, but got "0x123"',
@@ -131,7 +135,8 @@ describe("INTEGRATION: Revert", { timeout: 60000 }, () => {
         );
 
         await assertRejects(
-          () => expect(Promise.resolve("0x123")).to.not.be.revert(ethers),
+          async () =>
+            await expect(Promise.resolve("0x123")).to.not.be.revert(ethers),
           (e) =>
             e.message.includes(
               'Expected a valid transaction hash, but got "0x123"',
@@ -192,8 +197,8 @@ describe("INTEGRATION: Revert", { timeout: 60000 }, () => {
 
       it("reverted: should throw if chained to another non-chainable method", () => {
         assertThrows(
-          () =>
-            expect(matchers.revertsWith("bar"))
+          async () =>
+            await expect(matchers.revertsWith("bar"))
               .to.be.revertedWith("bar")
               .and.to.be.revert(ethers),
           (e) =>
@@ -206,8 +211,8 @@ describe("INTEGRATION: Revert", { timeout: 60000 }, () => {
 
       it("revertedWith: should throw if chained to another non-chainable method", () => {
         assertThrows(
-          () =>
-            expect(matchers.revertWithCustomErrorWithInt(1))
+          async () =>
+            await expect(matchers.revertWithCustomErrorWithInt(1))
               .to.be.revertedWithCustomError(matchers, "CustomErrorWithInt")
               .and.to.be.revertedWith("an error message"),
           (e) =>
@@ -220,8 +225,8 @@ describe("INTEGRATION: Revert", { timeout: 60000 }, () => {
 
       it("revertedWithCustomError: should throw if chained to another non-chainable method", () => {
         assertThrows(
-          () =>
-            expect(matchers.revertsWithoutReason())
+          async () =>
+            await expect(matchers.revertsWithoutReason())
               .to.be.revertedWithoutReason(ethers)
               .and.to.be.revertedWithCustomError(matchers, "SomeCustomError"),
           (e) =>
@@ -234,8 +239,8 @@ describe("INTEGRATION: Revert", { timeout: 60000 }, () => {
 
       it("revertedWithoutReason: should throw if chained to another non-chainable method", () => {
         assertThrows(
-          () =>
-            expect(matchers.panicAssert())
+          async () =>
+            await expect(matchers.panicAssert())
               .to.be.revertedWithPanic()
               .and.to.be.revertedWithoutReason(ethers),
           (e) =>
@@ -250,12 +255,13 @@ describe("INTEGRATION: Revert", { timeout: 60000 }, () => {
         const [sender, receiver] = await ethers.getSigners();
 
         assertThrows(
-          () =>
-            expect(() =>
-              sender.sendTransaction({
-                to: receiver,
-                value: 200,
-              }),
+          async () =>
+            await expect(
+              async () =>
+                await sender.sendTransaction({
+                  to: receiver,
+                  value: 200,
+                }),
             )
               .to.changeEtherBalance(ethers, sender, "-200")
               .and.to.be.revertedWithPanic(),
@@ -320,7 +326,8 @@ describe("INTEGRATION: Revert", { timeout: 60000 }, () => {
           matchers,
           method: "succeeds",
           args: [],
-          successfulAssert: (x) => expect(x).to.not.be.revert(ethers),
+          successfulAssert: async (x) =>
+            await expect(x).to.not.be.revert(ethers),
         });
       });
 
@@ -329,7 +336,7 @@ describe("INTEGRATION: Revert", { timeout: 60000 }, () => {
           matchers,
           method: "succeeds",
           args: [],
-          failedAssert: (x) => expect(x).to.be.revert(ethers),
+          failedAssert: async (x) => await expect(x).to.be.revert(ethers),
           failedAssertReason: "Expected transaction to be reverted",
         });
       });
@@ -341,7 +348,7 @@ describe("INTEGRATION: Revert", { timeout: 60000 }, () => {
           matchers,
           method: "revertsWithoutReason",
           args: [],
-          successfulAssert: (x) => expect(x).to.be.revert(ethers),
+          successfulAssert: async (x) => await expect(x).to.be.revert(ethers),
         });
       });
 
@@ -350,7 +357,7 @@ describe("INTEGRATION: Revert", { timeout: 60000 }, () => {
           matchers,
           method: "revertsWithoutReason",
           args: [],
-          failedAssert: (x) => expect(x).not.to.be.revert(ethers),
+          failedAssert: async (x) => await expect(x).not.to.be.revert(ethers),
           failedAssertReason: "Expected transaction NOT to be reverted",
         });
       });
@@ -362,7 +369,7 @@ describe("INTEGRATION: Revert", { timeout: 60000 }, () => {
           matchers,
           method: "revertsWith",
           args: ["some reason"],
-          successfulAssert: (x) => expect(x).to.be.revert(ethers),
+          successfulAssert: async (x) => await expect(x).to.be.revert(ethers),
         });
       });
 
@@ -371,7 +378,7 @@ describe("INTEGRATION: Revert", { timeout: 60000 }, () => {
           matchers,
           method: "revertsWith",
           args: ["some reason"],
-          failedAssert: (x) => expect(x).not.to.be.revert(ethers),
+          failedAssert: async (x) => await expect(x).not.to.be.revert(ethers),
           failedAssertReason:
             "Expected transaction NOT to be reverted, but it reverted with reason 'some reason'",
         });
@@ -384,7 +391,7 @@ describe("INTEGRATION: Revert", { timeout: 60000 }, () => {
           matchers,
           method: "panicAssert",
           args: [],
-          successfulAssert: (x) => expect(x).to.be.revert(ethers),
+          successfulAssert: async (x) => await expect(x).to.be.revert(ethers),
         });
       });
 
@@ -393,7 +400,7 @@ describe("INTEGRATION: Revert", { timeout: 60000 }, () => {
           matchers,
           method: "panicAssert",
           args: [],
-          failedAssert: (x) => expect(x).not.to.be.revert(ethers),
+          failedAssert: async (x) => await expect(x).not.to.be.revert(ethers),
           failedAssertReason:
             "Expected transaction NOT to be reverted, but it reverted with panic code 0x1 (Assertion error)",
         });
@@ -406,7 +413,7 @@ describe("INTEGRATION: Revert", { timeout: 60000 }, () => {
           matchers,
           method: "revertWithSomeCustomError",
           args: [],
-          successfulAssert: (x) => expect(x).to.be.revert(ethers),
+          successfulAssert: async (x) => await expect(x).to.be.revert(ethers),
         });
       });
 
@@ -415,7 +422,7 @@ describe("INTEGRATION: Revert", { timeout: 60000 }, () => {
           matchers,
           method: "revertWithSomeCustomError",
           args: [],
-          failedAssert: (x) => expect(x).not.to.be.revert(ethers),
+          failedAssert: async (x) => await expect(x).not.to.be.revert(ethers),
           failedAssertReason: "Expected transaction NOT to be reverted",
         });
       });

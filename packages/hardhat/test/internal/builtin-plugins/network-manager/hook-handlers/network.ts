@@ -59,8 +59,15 @@ describe("network hook handler", () => {
     const concurrentCalls = 10;
 
     const results = await Promise.all(
-      Array.from({ length: concurrentCalls }, (_, i) =>
-        handlers.onRequest(context, connection, createRequestWithId(i), next),
+      Array.from(
+        { length: concurrentCalls },
+        async (_, i) =>
+          await handlers.onRequest(
+            context,
+            connection,
+            createRequestWithId(i),
+            next,
+          ),
       ),
     );
 

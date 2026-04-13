@@ -46,8 +46,8 @@ describe("INTEGRATION: Reverted without reason", { timeout: 60000 }, () => {
         await runSuccessfulAsserts({
           matchers,
           method: "succeeds",
-          successfulAssert: (x) =>
-            expect(x).not.to.be.revertedWithoutReason(ethers),
+          successfulAssert: async (x) =>
+            await expect(x).not.to.be.revertedWithoutReason(ethers),
         });
       });
 
@@ -55,7 +55,8 @@ describe("INTEGRATION: Reverted without reason", { timeout: 60000 }, () => {
         await runFailedAsserts({
           matchers,
           method: "succeeds",
-          failedAssert: (x) => expect(x).to.be.revertedWithoutReason(ethers),
+          failedAssert: async (x) =>
+            await expect(x).to.be.revertedWithoutReason(ethers),
           failedAssertReason:
             "Expected transaction to be reverted without a reason, but it didn't revert",
         });
@@ -68,8 +69,8 @@ describe("INTEGRATION: Reverted without reason", { timeout: 60000 }, () => {
           matchers,
           method: "revertsWithoutReason",
           args: [],
-          successfulAssert: (x) =>
-            expect(x).to.be.revertedWithoutReason(ethers),
+          successfulAssert: async (x) =>
+            await expect(x).to.be.revertedWithoutReason(ethers),
         });
       });
 
@@ -78,8 +79,8 @@ describe("INTEGRATION: Reverted without reason", { timeout: 60000 }, () => {
           matchers,
           method: "revertsWithoutReason",
           args: [],
-          failedAssert: (x) =>
-            expect(x).to.not.be.revertedWithoutReason(ethers),
+          failedAssert: async (x) =>
+            await expect(x).to.not.be.revertedWithoutReason(ethers),
           failedAssertReason:
             "Expected transaction NOT to be reverted without a reason, but it was",
         });
@@ -92,8 +93,8 @@ describe("INTEGRATION: Reverted without reason", { timeout: 60000 }, () => {
           matchers,
           method: "revertsWith",
           args: ["some reason"],
-          successfulAssert: (x) =>
-            expect(x).to.not.be.revertedWithoutReason(ethers),
+          successfulAssert: async (x) =>
+            await expect(x).to.not.be.revertedWithoutReason(ethers),
         });
       });
 
@@ -102,7 +103,8 @@ describe("INTEGRATION: Reverted without reason", { timeout: 60000 }, () => {
           matchers,
           method: "revertsWith",
           args: ["some reason"],
-          failedAssert: (x) => expect(x).to.be.revertedWithoutReason(ethers),
+          failedAssert: async (x) =>
+            await expect(x).to.be.revertedWithoutReason(ethers),
           failedAssertReason:
             "Expected transaction to be reverted without a reason, but it reverted with reason 'some reason'",
         });
@@ -114,8 +116,8 @@ describe("INTEGRATION: Reverted without reason", { timeout: 60000 }, () => {
         await runSuccessfulAsserts({
           matchers,
           method: "panicAssert",
-          successfulAssert: (x) =>
-            expect(x).to.not.be.revertedWithoutReason(ethers),
+          successfulAssert: async (x) =>
+            await expect(x).to.not.be.revertedWithoutReason(ethers),
         });
       });
 
@@ -123,7 +125,8 @@ describe("INTEGRATION: Reverted without reason", { timeout: 60000 }, () => {
         await runFailedAsserts({
           matchers,
           method: "panicAssert",
-          failedAssert: (x) => expect(x).to.be.revertedWithoutReason(ethers),
+          failedAssert: async (x) =>
+            await expect(x).to.be.revertedWithoutReason(ethers),
           failedAssertReason:
             "Expected transaction to be reverted without a reason, but it reverted with panic code 0x1 (Assertion error)",
         });
@@ -135,8 +138,8 @@ describe("INTEGRATION: Reverted without reason", { timeout: 60000 }, () => {
         await runSuccessfulAsserts({
           matchers,
           method: "revertWithSomeCustomError",
-          successfulAssert: (x) =>
-            expect(x).to.not.be.revertedWithoutReason(ethers),
+          successfulAssert: async (x) =>
+            await expect(x).to.not.be.revertedWithoutReason(ethers),
         });
       });
 
@@ -144,7 +147,8 @@ describe("INTEGRATION: Reverted without reason", { timeout: 60000 }, () => {
         await runFailedAsserts({
           matchers,
           method: "revertWithSomeCustomError",
-          failedAssert: (x) => expect(x).to.be.revertedWithoutReason(ethers),
+          failedAssert: async (x) =>
+            await expect(x).to.be.revertedWithoutReason(ethers),
           failedAssertReason:
             "Expected transaction to be reverted without a reason, but it reverted with a custom error",
         });

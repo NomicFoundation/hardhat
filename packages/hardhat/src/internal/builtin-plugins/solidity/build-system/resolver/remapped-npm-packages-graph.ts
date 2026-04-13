@@ -146,12 +146,12 @@ export class RemappedNpmPackagesGraphImplementation
 
   public static async create(
     projectRootPath: string,
-    remappingsReader: RemappingsReaderFunction = (
+    remappingsReader: RemappingsReaderFunction = async (
       packageName,
       packageVersion,
       packagePath,
       defaultBehavior,
-    ) => defaultBehavior(packageName, packageVersion, packagePath),
+    ) => await defaultBehavior(packageName, packageVersion, packagePath),
   ): Promise<RemappedNpmPackagesGraphImplementation> {
     const projectPackageJson = await readJsonFile<PackageJson>(
       path.join(projectRootPath, "package.json"),

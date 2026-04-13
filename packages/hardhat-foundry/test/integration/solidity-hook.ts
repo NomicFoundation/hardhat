@@ -111,7 +111,7 @@ describe("hardhat-foundry integration", () => {
       const filePath = "./contracts/Main.sol".replace(/\//g, path.sep);
 
       await assertRejectsWithHardhatError(
-        () => hre.tasks.getTask("build").run({ quiet: true }),
+        async () => await hre.tasks.getTask("build").run({ quiet: true }),
         HardhatError.ERRORS.CORE.SOLIDITY.IMPORT_RESOLUTION_ERROR,
         {
           filePath,

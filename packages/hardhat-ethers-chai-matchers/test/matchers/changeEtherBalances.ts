@@ -66,19 +66,21 @@ describe("INTEGRATION: changeEtherBalances matcher", { timeout: 60000 }, () => {
     describe("Transaction Callback", () => {
       describe("Change balances, one account, one contract", () => {
         it("should pass when all expected balance changes are equal to actual values", async () => {
-          await expect(() =>
-            sender.sendTransaction({
-              to: contract,
-              value: 200,
-            }),
+          await expect(
+            async () =>
+              await sender.sendTransaction({
+                to: contract,
+                value: 200,
+              }),
           ).to.changeEtherBalances(ethers, [sender, contract], [-200, 200]);
         });
       });
 
       describe("Change balances, contract forwards ether sent", () => {
         it("should pass when contract function forwards all tx ether", async () => {
-          await expect(() =>
-            contract.transferTo(receiver.address, { value: 200 }),
+          await expect(
+            async () =>
+              await contract.transferTo(receiver.address, { value: 200 }),
           ).to.changeEtherBalances(
             ethers,
             [sender, contract, receiver],
@@ -89,22 +91,24 @@ describe("INTEGRATION: changeEtherBalances matcher", { timeout: 60000 }, () => {
 
       describe("Change balance, multiple accounts", () => {
         it("should pass when all expected balance changes are equal to actual values", async () => {
-          await expect(() =>
-            sender.sendTransaction({
-              to: receiver.address,
-              gasPrice: 1,
-              value: 200,
-            }),
+          await expect(
+            async () =>
+              await sender.sendTransaction({
+                to: receiver.address,
+                gasPrice: 1,
+                value: 200,
+              }),
           ).to.changeEtherBalances(ethers, [sender, receiver], ["-200", 200]);
         });
 
         it("should pass when given addresses as strings", async () => {
-          await expect(() =>
-            sender.sendTransaction({
-              to: receiver.address,
-              gasPrice: 1,
-              value: 200,
-            }),
+          await expect(
+            async () =>
+              await sender.sendTransaction({
+                to: receiver.address,
+                gasPrice: 1,
+                value: 200,
+              }),
           ).to.changeEtherBalances(
             ethers,
             [sender.address, receiver.address],
@@ -113,22 +117,24 @@ describe("INTEGRATION: changeEtherBalances matcher", { timeout: 60000 }, () => {
         });
 
         it("should pass when given native BigInt", async () => {
-          await expect(() =>
-            sender.sendTransaction({
-              to: receiver.address,
-              gasPrice: 1,
-              value: 200,
-            }),
+          await expect(
+            async () =>
+              await sender.sendTransaction({
+                to: receiver.address,
+                gasPrice: 1,
+                value: 200,
+              }),
           ).to.changeEtherBalances(ethers, [sender, receiver], [-200n, 200n]);
         });
 
         it("should pass when given a predicate", async () => {
-          await expect(() =>
-            sender.sendTransaction({
-              to: receiver.address,
-              gasPrice: 1,
-              value: 200,
-            }),
+          await expect(
+            async () =>
+              await sender.sendTransaction({
+                to: receiver.address,
+                gasPrice: 1,
+                value: 200,
+              }),
           ).to.changeEtherBalances(
             ethers,
             [sender, receiver],
@@ -139,12 +145,13 @@ describe("INTEGRATION: changeEtherBalances matcher", { timeout: 60000 }, () => {
 
         it("should fail when the predicate returns false", async () => {
           await expect(
-            expect(() =>
-              sender.sendTransaction({
-                to: receiver.address,
-                gasPrice: 1,
-                value: 200,
-              }),
+            expect(
+              async () =>
+                await sender.sendTransaction({
+                  to: receiver.address,
+                  gasPrice: 1,
+                  value: 200,
+                }),
             ).to.changeEtherBalances(
               ethers,
               [sender, receiver],
@@ -159,12 +166,13 @@ describe("INTEGRATION: changeEtherBalances matcher", { timeout: 60000 }, () => {
 
         it("should fail when the predicate returns true and the assertion is negated", async () => {
           await expect(
-            expect(() =>
-              sender.sendTransaction({
-                to: receiver.address,
-                gasPrice: 1,
-                value: 200,
-              }),
+            expect(
+              async () =>
+                await sender.sendTransaction({
+                  to: receiver.address,
+                  gasPrice: 1,
+                  value: 200,
+                }),
             ).to.not.changeEtherBalances(
               ethers,
               [sender, receiver],
@@ -178,12 +186,13 @@ describe("INTEGRATION: changeEtherBalances matcher", { timeout: 60000 }, () => {
         });
 
         it("should take into account transaction fee (legacy tx)", async () => {
-          await expect(() =>
-            sender.sendTransaction({
-              to: receiver.address,
-              gasPrice: 1,
-              value: 200,
-            }),
+          await expect(
+            async () =>
+              await sender.sendTransaction({
+                to: receiver.address,
+                gasPrice: 1,
+                value: 200,
+              }),
           ).to.changeEtherBalances(
             ethers,
             [sender, receiver, contract],
@@ -193,13 +202,14 @@ describe("INTEGRATION: changeEtherBalances matcher", { timeout: 60000 }, () => {
         });
 
         it("should take into account transaction fee (1559 tx)", async () => {
-          await expect(() =>
-            sender.sendTransaction({
-              to: receiver.address,
-              maxFeePerGas: 1,
-              maxPriorityFeePerGas: 1,
-              value: 200,
-            }),
+          await expect(
+            async () =>
+              await sender.sendTransaction({
+                to: receiver.address,
+                maxFeePerGas: 1,
+                maxPriorityFeePerGas: 1,
+                value: 200,
+              }),
           ).to.changeEtherBalances(
             ethers,
             [sender, receiver, contract],
@@ -209,28 +219,34 @@ describe("INTEGRATION: changeEtherBalances matcher", { timeout: 60000 }, () => {
         });
 
         it("should pass when given a single address", async () => {
-          await expect(() =>
-            sender.sendTransaction({ to: receiver.address, value: 200 }),
+          await expect(
+            async () =>
+              await sender.sendTransaction({
+                to: receiver.address,
+                value: 200,
+              }),
           ).to.changeEtherBalances(ethers, [sender], [-200]);
         });
 
         it("should pass when negated and numbers don't match", async () => {
-          await expect(() =>
-            sender.sendTransaction({
-              to: receiver.address,
-              gasPrice: 1,
-              value: 200,
-            }),
+          await expect(
+            async () =>
+              await sender.sendTransaction({
+                to: receiver.address,
+                gasPrice: 1,
+                value: 200,
+              }),
           ).to.not.changeEtherBalances(
             ethers,
             [sender, receiver],
             [-(txGasFees + 201), 200],
           );
-          await expect(() =>
-            sender.sendTransaction({
-              to: receiver.address,
-              value: 200,
-            }),
+          await expect(
+            async () =>
+              await sender.sendTransaction({
+                to: receiver.address,
+                value: 200,
+              }),
           ).to.not.changeEtherBalances(
             ethers,
             [sender, receiver],
@@ -243,24 +259,26 @@ describe("INTEGRATION: changeEtherBalances matcher", { timeout: 60000 }, () => {
 
         it("should throw when expected balance change value was different from an actual for any wallet", async () => {
           await expect(
-            expect(() =>
-              sender.sendTransaction({
-                to: receiver.address,
-                gasPrice: 1,
-                value: 200,
-              }),
+            expect(
+              async () =>
+                await sender.sendTransaction({
+                  to: receiver.address,
+                  gasPrice: 1,
+                  value: 200,
+                }),
             ).to.changeEtherBalances(ethers, [sender, receiver], [-200, 201]),
           ).to.be.eventually.rejectedWith(
             AssertionError,
             `Expected the ether balance of ${receiver.address} (the 2nd address in the list) to change by 201 wei, but it changed by 200 wei`,
           );
           await expect(
-            expect(() =>
-              sender.sendTransaction({
-                to: receiver.address,
-                gasPrice: 1,
-                value: 200,
-              }),
+            expect(
+              async () =>
+                await sender.sendTransaction({
+                  to: receiver.address,
+                  gasPrice: 1,
+                  value: 200,
+                }),
             ).to.changeEtherBalances(ethers, [sender, receiver], [-201, 200]),
           ).to.be.eventually.rejectedWith(
             AssertionError,
@@ -270,12 +288,13 @@ describe("INTEGRATION: changeEtherBalances matcher", { timeout: 60000 }, () => {
 
         it("should throw in negative case when expected balance changes value were equal to an actual", async () => {
           await expect(
-            expect(() =>
-              sender.sendTransaction({
-                to: receiver.address,
-                gasPrice: 1,
-                value: 200,
-              }),
+            expect(
+              async () =>
+                await sender.sendTransaction({
+                  to: receiver.address,
+                  gasPrice: 1,
+                  value: 200,
+                }),
             ).to.not.changeEtherBalances(
               ethers,
               [sender, receiver],
@@ -288,26 +307,28 @@ describe("INTEGRATION: changeEtherBalances matcher", { timeout: 60000 }, () => {
         });
 
         it("arrays have different length", async () => {
-          expect(() =>
-            expect(
-              sender.sendTransaction({
-                to: receiver.address,
-                gasPrice: 1,
-                value: 200,
-              }),
-            ).to.changeEtherBalances(ethers, [sender], ["-200", 200]),
+          expect(
+            async () =>
+              await expect(
+                sender.sendTransaction({
+                  to: receiver.address,
+                  gasPrice: 1,
+                  value: 200,
+                }),
+              ).to.changeEtherBalances(ethers, [sender], ["-200", 200]),
           ).to.throw(
             Error,
             "The number of accounts (1) is different than the number of expected balance changes (2)",
           );
-          expect(() =>
-            expect(
-              sender.sendTransaction({
-                to: receiver.address,
-                gasPrice: 1,
-                value: 200,
-              }),
-            ).to.changeEtherBalances(ethers, [sender, receiver], ["-200"]),
+          expect(
+            async () =>
+              await expect(
+                sender.sendTransaction({
+                  to: receiver.address,
+                  gasPrice: 1,
+                  value: 200,
+                }),
+              ).to.changeEtherBalances(ethers, [sender, receiver], ["-200"]),
           ).to.throw(
             Error,
             "The number of accounts (2) is different than the number of expected balance changes (1)",
@@ -319,12 +340,13 @@ describe("INTEGRATION: changeEtherBalances matcher", { timeout: 60000 }, () => {
         const receiverBalanceBefore =
           await ethers.provider.getBalance(receiver);
 
-        await expect(() =>
-          sender.sendTransaction({
-            to: receiver.address,
-            gasPrice: 1,
-            value: 200,
-          }),
+        await expect(
+          async () =>
+            await sender.sendTransaction({
+              to: receiver.address,
+              gasPrice: 1,
+              value: 200,
+            }),
         ).to.changeEtherBalances(ethers, [sender, receiver], [-200, 200]);
 
         const receiverBalanceAfter = await ethers.provider.getBalance(receiver);
@@ -349,8 +371,8 @@ describe("INTEGRATION: changeEtherBalances matcher", { timeout: 60000 }, () => {
 
       it("should throw if chained to another non-chainable method", () => {
         assertThrows(
-          () =>
-            expect(
+          async () =>
+            await expect(
               sender.sendTransaction({
                 to: contract,
                 value: 200,
@@ -491,11 +513,12 @@ describe("INTEGRATION: changeEtherBalances matcher", { timeout: 60000 }, () => {
       // smoke test for stack traces
       it("includes test file", async () => {
         try {
-          await expect(() =>
-            sender.sendTransaction({
-              to: receiver.address,
-              value: 200,
-            }),
+          await expect(
+            async () =>
+              await sender.sendTransaction({
+                to: receiver.address,
+                value: 200,
+              }),
           ).to.changeEtherBalances(ethers, [sender, receiver], [-100, 100]);
         } catch (e) {
           expect(util.inspect(e)).to.include(

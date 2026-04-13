@@ -429,7 +429,11 @@ export class Etherscan implements VerificationProvider {
     if (etherscanResponse.isPending()) {
       await sleep(this.pollingIntervalMs);
 
-      return await this.pollVerificationStatus(guid, contractAddress, contractName);
+      return await this.pollVerificationStatus(
+        guid,
+        contractAddress,
+        contractName,
+      );
     }
 
     if (etherscanResponse.isAlreadyVerified()) {

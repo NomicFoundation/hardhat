@@ -5,7 +5,7 @@ import type { HardhatPlugin } from "hardhat/types/plugins";
 const hardhatNetworkHelpersPlugin: HardhatPlugin = {
   id: "hardhat-network-helpers",
   hookHandlers: {
-    network: () => import("./internal/hook-handlers/network.js"),
+    network: async () => await import("./internal/hook-handlers/network.js"),
   },
   npmPackage: "@nomicfoundation/hardhat-network-helpers",
 };

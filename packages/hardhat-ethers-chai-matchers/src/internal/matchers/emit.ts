@@ -130,7 +130,7 @@ export function supportEmit(
         chaiUtils.flag(this, "contract", contract);
       };
 
-      const derivedPromise = promise.then(() => {
+      const derivedPromise = promise.then(async () => {
         // abort if the assertion chain was aborted, for example because
         // a `.not` was combined with a `.withArgs`
         if (chaiUtils.flag(this, ASSERTION_ABORTED) === true) {
@@ -141,15 +141,16 @@ export function supportEmit(
           chaiAssert.fail("contract.runner.provider shouldn't be null");
         }
 
-        return waitForPendingTransaction(tx, contract.runner.provider).then(
-          (receipt) => {
-            assertIsNotNull(
-              receipt,
-              "Transaction's receipt cannot be fetched from the network",
-            );
-            return onSuccess(receipt);
-          },
-        );
+        return await waitForPendingTransaction(
+          tx,
+          contract.runner.provider,
+        ).then((receipt) => {
+          assertIsNotNull(
+            receipt,
+            "Transaction's receipt cannot be fetched from the network",
+          );
+          return onSuccess(receipt);
+        });
       });
 
       chaiUtils.flag(this, EMIT_CALLED, true);

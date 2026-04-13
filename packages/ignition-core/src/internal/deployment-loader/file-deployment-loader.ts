@@ -66,14 +66,14 @@ export class FileDeploymentLoader implements DeploymentLoader {
     return this._journal.read();
   }
 
-  public storeNamedArtifact(
+  public async storeNamedArtifact(
     futureId: string,
     _contractName: string,
     artifact: Artifact,
   ): Promise<void> {
     // For a file deployment we don't differentiate between
     // named contracts (from HH) and anonymous contracts passed in by the user
-    return this.storeUserProvidedArtifact(futureId, artifact);
+    return await this.storeUserProvidedArtifact(futureId, artifact);
   }
 
   public async storeUserProvidedArtifact(

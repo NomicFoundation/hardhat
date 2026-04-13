@@ -9,7 +9,7 @@ const hardhatIgnitionViemPlugin: HardhatPlugin = {
     import("@nomicfoundation/hardhat-viem"),
   ],
   hookHandlers: {
-    network: () => import("./internal/hook-handlers/network.js"),
+    network: async () => await import("./internal/hook-handlers/network.js"),
   },
   npmPackage: "@nomicfoundation/hardhat-ignition-viem",
 };

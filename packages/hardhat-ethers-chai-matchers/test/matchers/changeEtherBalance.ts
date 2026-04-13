@@ -66,11 +66,12 @@ describe("INTEGRATION: changeEtherBalance matcher", { timeout: 60000 }, () => {
     describe("Transaction Callback (legacy tx)", () => {
       describe("Change balance, one account", () => {
         it("should pass when expected balance change is passed as string and is equal to an actual", async () => {
-          await expect(() =>
-            sender.sendTransaction({
-              to: receiver.address,
-              value: 200,
-            }),
+          await expect(
+            async () =>
+              await sender.sendTransaction({
+                to: receiver.address,
+                value: 200,
+              }),
           ).to.changeEtherBalance(ethers, sender, "-200");
         });
 
@@ -90,12 +91,13 @@ describe("INTEGRATION: changeEtherBalance matcher", { timeout: 60000 }, () => {
           await provider.request({ method: "evm_setAutomine", params: [true] });
 
           await expect(
-            expect(() =>
-              sender.sendTransaction({
-                to: receiver.address,
-                value: 200,
-                gasLimit: 30_000,
-              }),
+            expect(
+              async () =>
+                await sender.sendTransaction({
+                  to: receiver.address,
+                  value: 200,
+                  gasLimit: 30_000,
+                }),
             ).to.changeEtherBalance(ethers, sender, -200, {
               includeFee: true,
             }),
@@ -105,29 +107,32 @@ describe("INTEGRATION: changeEtherBalance matcher", { timeout: 60000 }, () => {
         });
 
         it("should pass when given an address as a string", async () => {
-          await expect(() =>
-            sender.sendTransaction({
-              to: receiver.address,
-              value: 200,
-            }),
+          await expect(
+            async () =>
+              await sender.sendTransaction({
+                to: receiver.address,
+                value: 200,
+              }),
           ).to.changeEtherBalance(ethers, sender.address, "-200");
         });
 
         it("should pass when given a native bigint", async () => {
-          await expect(() =>
-            sender.sendTransaction({
-              to: receiver.address,
-              value: 200,
-            }),
+          await expect(
+            async () =>
+              await sender.sendTransaction({
+                to: receiver.address,
+                value: 200,
+              }),
           ).to.changeEtherBalance(ethers, sender, -200n);
         });
 
         it("should pass when given a predicate", async () => {
-          await expect(() =>
-            sender.sendTransaction({
-              to: receiver.address,
-              value: 200,
-            }),
+          await expect(
+            async () =>
+              await sender.sendTransaction({
+                to: receiver.address,
+                value: 200,
+              }),
           ).to.changeEtherBalance(
             ethers,
             sender,
@@ -136,33 +141,36 @@ describe("INTEGRATION: changeEtherBalance matcher", { timeout: 60000 }, () => {
         });
 
         it("should pass when expected balance change is passed as int and is equal to an actual", async () => {
-          await expect(() =>
-            sender.sendTransaction({
-              to: receiver.address,
-              value: 200,
-            }),
+          await expect(
+            async () =>
+              await sender.sendTransaction({
+                to: receiver.address,
+                value: 200,
+              }),
           ).to.changeEtherBalance(ethers, receiver, 200);
         });
 
         it("should take into account transaction fee", async () => {
-          await expect(() =>
-            sender.sendTransaction({
-              to: receiver.address,
-              gasPrice: 1,
-              value: 200,
-            }),
+          await expect(
+            async () =>
+              await sender.sendTransaction({
+                to: receiver.address,
+                gasPrice: 1,
+                value: 200,
+              }),
           ).to.changeEtherBalance(ethers, sender, -(txGasFees + 200), {
             includeFee: true,
           });
         });
 
         it("should take into account transaction fee when given a predicate", async () => {
-          await expect(() =>
-            sender.sendTransaction({
-              to: receiver.address,
-              gasPrice: 1,
-              value: 200,
-            }),
+          await expect(
+            async () =>
+              await sender.sendTransaction({
+                to: receiver.address,
+                gasPrice: 1,
+                value: 200,
+              }),
           ).to.changeEtherBalance(
             ethers,
             sender,
@@ -174,33 +182,36 @@ describe("INTEGRATION: changeEtherBalance matcher", { timeout: 60000 }, () => {
         });
 
         it("should ignore fee if receiver's wallet is being checked and includeFee was set", async () => {
-          await expect(() =>
-            sender.sendTransaction({
-              to: receiver.address,
-              gasPrice: 1,
-              value: 200,
-            }),
+          await expect(
+            async () =>
+              await sender.sendTransaction({
+                to: receiver.address,
+                gasPrice: 1,
+                value: 200,
+              }),
           ).to.changeEtherBalance(ethers, receiver, 200, {
             includeFee: true,
           });
         });
 
         it("should take into account transaction fee by default", async () => {
-          await expect(() =>
-            sender.sendTransaction({
-              to: receiver.address,
-              gasPrice: 1,
-              value: 200,
-            }),
+          await expect(
+            async () =>
+              await sender.sendTransaction({
+                to: receiver.address,
+                gasPrice: 1,
+                value: 200,
+              }),
           ).to.changeEtherBalance(ethers, sender, -200);
         });
 
         it("should pass on negative case when expected balance does not satisfy the predicate", async () => {
-          await expect(() =>
-            sender.sendTransaction({
-              to: receiver.address,
-              value: 200,
-            }),
+          await expect(
+            async () =>
+              await sender.sendTransaction({
+                to: receiver.address,
+                value: 200,
+              }),
           ).to.not.changeEtherBalance(
             ethers,
             receiver,
@@ -210,12 +221,13 @@ describe("INTEGRATION: changeEtherBalance matcher", { timeout: 60000 }, () => {
 
         it("should throw when fee was not calculated correctly", async () => {
           await expect(
-            expect(() =>
-              sender.sendTransaction({
-                to: receiver.address,
-                gasPrice: 1,
-                value: 200,
-              }),
+            expect(
+              async () =>
+                await sender.sendTransaction({
+                  to: receiver.address,
+                  gasPrice: 1,
+                  value: 200,
+                }),
             ).to.changeEtherBalance(ethers, sender, -200, {
               includeFee: true,
             }),
@@ -229,11 +241,12 @@ describe("INTEGRATION: changeEtherBalance matcher", { timeout: 60000 }, () => {
 
         it("should throw when expected balance change value was different from an actual", async () => {
           await expect(
-            expect(() =>
-              sender.sendTransaction({
-                to: receiver.address,
-                value: 200,
-              }),
+            expect(
+              async () =>
+                await sender.sendTransaction({
+                  to: receiver.address,
+                  value: 200,
+                }),
             ).to.changeEtherBalance(ethers, sender, "-500"),
           ).to.be.eventually.rejectedWith(
             AssertionError,
@@ -243,11 +256,12 @@ describe("INTEGRATION: changeEtherBalance matcher", { timeout: 60000 }, () => {
 
         it("should throw when actual balance change value does not satisfy the predicate", async () => {
           await expect(
-            expect(() =>
-              sender.sendTransaction({
-                to: receiver.address,
-                value: 200,
-              }),
+            expect(
+              async () =>
+                await sender.sendTransaction({
+                  to: receiver.address,
+                  value: 200,
+                }),
             ).to.changeEtherBalance(
               ethers,
               sender,
@@ -261,11 +275,12 @@ describe("INTEGRATION: changeEtherBalance matcher", { timeout: 60000 }, () => {
 
         it("should throw in negative case when expected balance change value was equal to an actual", async () => {
           await expect(
-            expect(() =>
-              sender.sendTransaction({
-                to: receiver.address,
-                value: 200,
-              }),
+            expect(
+              async () =>
+                await sender.sendTransaction({
+                  to: receiver.address,
+                  value: 200,
+                }),
             ).to.not.changeEtherBalance(ethers, sender, "-200"),
           ).to.be.eventually.rejectedWith(
             AssertionError,
@@ -275,11 +290,12 @@ describe("INTEGRATION: changeEtherBalance matcher", { timeout: 60000 }, () => {
 
         it("should throw in negative case when expected balance change value satisfies the predicate", async () => {
           await expect(
-            expect(() =>
-              sender.sendTransaction({
-                to: receiver.address,
-                value: 200,
-              }),
+            expect(
+              async () =>
+                await sender.sendTransaction({
+                  to: receiver.address,
+                  value: 200,
+                }),
             ).to.not.changeEtherBalance(
               ethers,
               sender,
@@ -292,19 +308,21 @@ describe("INTEGRATION: changeEtherBalance matcher", { timeout: 60000 }, () => {
         });
 
         it("should pass when given zero value tx", async () => {
-          await expect(() =>
-            sender.sendTransaction({ to: receiver.address, value: 0 }),
+          await expect(
+            async () =>
+              await sender.sendTransaction({ to: receiver.address, value: 0 }),
           ).to.changeEtherBalance(ethers, sender, 0);
         });
 
         it("shouldn't run the transaction twice", async () => {
           const receiverBalanceBefore: bigint =
             await ethers.provider.getBalance(receiver);
-          await expect(() =>
-            sender.sendTransaction({
-              to: receiver.address,
-              value: 200,
-            }),
+          await expect(
+            async () =>
+              await sender.sendTransaction({
+                to: receiver.address,
+                value: 200,
+              }),
           ).to.changeEtherBalance(ethers, sender, -200);
           const receiverBalanceAfter: bigint =
             await ethers.provider.getBalance(receiver);
@@ -316,17 +334,18 @@ describe("INTEGRATION: changeEtherBalance matcher", { timeout: 60000 }, () => {
 
       describe("Change balance, one contract", () => {
         it("should pass when expected balance change is passed as int and is equal to an actual", async () => {
-          await expect(async () =>
-            await sender.sendTransaction({
-              to: contract,
-              value: 200,
-            }),
+          await expect(
+            async () =>
+              await sender.sendTransaction({
+                to: contract,
+                value: 200,
+              }),
           ).to.changeEtherBalance(ethers, contract, 200);
         });
 
         it("should pass when calling function that returns half the sent ether", async () => {
-          await expect(async () =>
-            await contract.returnHalf({ value: 200 }),
+          await expect(
+            async () => await contract.returnHalf({ value: 200 }),
           ).to.changeEtherBalance(ethers, sender, -100);
         });
       });
@@ -335,73 +354,79 @@ describe("INTEGRATION: changeEtherBalance matcher", { timeout: 60000 }, () => {
     describe("Transaction Callback (1559 tx)", () => {
       describe("Change balance, one account", () => {
         it("should pass when expected balance change is passed as string and is equal to an actual", async () => {
-          await expect(() =>
-            sender.sendTransaction({
-              to: receiver.address,
-              maxFeePerGas: 2,
-              maxPriorityFeePerGas: 1,
-              value: 200,
-            }),
+          await expect(
+            async () =>
+              await sender.sendTransaction({
+                to: receiver.address,
+                maxFeePerGas: 2,
+                maxPriorityFeePerGas: 1,
+                value: 200,
+              }),
           ).to.changeEtherBalance(ethers, sender, "-200");
         });
 
         it("should pass when expected balance change is passed as int and is equal to an actual", async () => {
-          await expect(() =>
-            sender.sendTransaction({
-              to: receiver.address,
-              maxFeePerGas: 2,
-              maxPriorityFeePerGas: 1,
-              value: 200,
-            }),
+          await expect(
+            async () =>
+              await sender.sendTransaction({
+                to: receiver.address,
+                maxFeePerGas: 2,
+                maxPriorityFeePerGas: 1,
+                value: 200,
+              }),
           ).to.changeEtherBalance(ethers, receiver, 200);
         });
 
         it("should take into account transaction fee", async () => {
-          await expect(() =>
-            sender.sendTransaction({
-              to: receiver.address,
-              maxFeePerGas: 2,
-              maxPriorityFeePerGas: 1,
-              value: 200,
-            }),
+          await expect(
+            async () =>
+              await sender.sendTransaction({
+                to: receiver.address,
+                maxFeePerGas: 2,
+                maxPriorityFeePerGas: 1,
+                value: 200,
+              }),
           ).to.changeEtherBalance(ethers, sender, -(txGasFees + 200), {
             includeFee: true,
           });
         });
 
         it("should ignore fee if receiver's wallet is being checked and includeFee was set", async () => {
-          await expect(() =>
-            sender.sendTransaction({
-              to: receiver.address,
-              maxFeePerGas: 2,
-              maxPriorityFeePerGas: 1,
-              value: 200,
-            }),
+          await expect(
+            async () =>
+              await sender.sendTransaction({
+                to: receiver.address,
+                maxFeePerGas: 2,
+                maxPriorityFeePerGas: 1,
+                value: 200,
+              }),
           ).to.changeEtherBalance(ethers, receiver, 200, {
             includeFee: true,
           });
         });
 
         it("should take into account transaction fee by default", async () => {
-          await expect(() =>
-            sender.sendTransaction({
-              to: receiver.address,
-              maxFeePerGas: 2,
-              maxPriorityFeePerGas: 1,
-              value: 200,
-            }),
-          ).to.changeEtherBalance(ethers, sender, -200);
-        });
-
-        it("should throw when fee was not calculated correctly", async () => {
           await expect(
-            expect(() =>
-              sender.sendTransaction({
+            async () =>
+              await sender.sendTransaction({
                 to: receiver.address,
                 maxFeePerGas: 2,
                 maxPriorityFeePerGas: 1,
                 value: 200,
               }),
+          ).to.changeEtherBalance(ethers, sender, -200);
+        });
+
+        it("should throw when fee was not calculated correctly", async () => {
+          await expect(
+            expect(
+              async () =>
+                await sender.sendTransaction({
+                  to: receiver.address,
+                  maxFeePerGas: 2,
+                  maxPriorityFeePerGas: 1,
+                  value: 200,
+                }),
             ).to.changeEtherBalance(ethers, sender, -200, {
               includeFee: true,
             }),
@@ -415,13 +440,14 @@ describe("INTEGRATION: changeEtherBalance matcher", { timeout: 60000 }, () => {
 
         it("should throw when expected balance change value was different from an actual", async () => {
           await expect(
-            expect(() =>
-              sender.sendTransaction({
-                to: receiver.address,
-                maxFeePerGas: 2,
-                maxPriorityFeePerGas: 1,
-                value: 200,
-              }),
+            expect(
+              async () =>
+                await sender.sendTransaction({
+                  to: receiver.address,
+                  maxFeePerGas: 2,
+                  maxPriorityFeePerGas: 1,
+                  value: 200,
+                }),
             ).to.changeEtherBalance(ethers, sender, "-500"),
           ).to.be.eventually.rejectedWith(
             AssertionError,
@@ -431,13 +457,14 @@ describe("INTEGRATION: changeEtherBalance matcher", { timeout: 60000 }, () => {
 
         it("should throw in negative case when expected balance change value was equal to an actual", async () => {
           await expect(
-            expect(() =>
-              sender.sendTransaction({
-                to: receiver.address,
-                maxFeePerGas: 2,
-                maxPriorityFeePerGas: 1,
-                value: 200,
-              }),
+            expect(
+              async () =>
+                await sender.sendTransaction({
+                  to: receiver.address,
+                  maxFeePerGas: 2,
+                  maxPriorityFeePerGas: 1,
+                  value: 200,
+                }),
             ).to.not.changeEtherBalance(ethers, sender, "-200"),
           ).to.be.eventually.rejectedWith(
             AssertionError,
@@ -448,13 +475,14 @@ describe("INTEGRATION: changeEtherBalance matcher", { timeout: 60000 }, () => {
 
       describe("Change balance, one contract", () => {
         it("should pass when expected balance change is passed as int and is equal to an actual", async () => {
-          await expect(async () =>
-            await sender.sendTransaction({
-              to: contract,
-              maxFeePerGas: 2,
-              maxPriorityFeePerGas: 1,
-              value: 200,
-            }),
+          await expect(
+            async () =>
+              await sender.sendTransaction({
+                to: contract,
+                maxFeePerGas: 2,
+                maxPriorityFeePerGas: 1,
+                value: 200,
+              }),
           ).to.changeEtherBalance(ethers, contract, 200);
         });
 
@@ -466,23 +494,21 @@ describe("INTEGRATION: changeEtherBalance matcher", { timeout: 60000 }, () => {
             value: 200,
           };
           const gas: bigint = await ethers.provider.estimateGas(tx);
-          await expect(() => sender.sendTransaction(tx)).to.changeEtherBalance(
-            ethers,
-            sender,
-            -(gas + 200n),
-            {
-              includeFee: true,
-            },
-          );
+          await expect(
+            async () => await sender.sendTransaction(tx),
+          ).to.changeEtherBalance(ethers, sender, -(gas + 200n), {
+            includeFee: true,
+          });
         });
 
         it("should pass when calling function that returns half the sent ether", async () => {
-          await expect(async () =>
-            await contract.returnHalf({
-              value: 200,
-              maxFeePerGas: 2,
-              maxPriorityFeePerGas: 1,
-            }),
+          await expect(
+            async () =>
+              await contract.returnHalf({
+                value: 200,
+                maxFeePerGas: 2,
+                maxPriorityFeePerGas: 1,
+              }),
           ).to.changeEtherBalance(ethers, sender, -100);
         });
       });
@@ -491,13 +517,14 @@ describe("INTEGRATION: changeEtherBalance matcher", { timeout: 60000 }, () => {
         const receiverBalanceBefore: bigint =
           await ethers.provider.getBalance(receiver);
 
-        await expect(() =>
-          sender.sendTransaction({
-            to: receiver.address,
-            maxFeePerGas: 2,
-            maxPriorityFeePerGas: 1,
-            value: 200,
-          }),
+        await expect(
+          async () =>
+            await sender.sendTransaction({
+              to: receiver.address,
+              maxFeePerGas: 2,
+              maxPriorityFeePerGas: 1,
+              value: 200,
+            }),
         ).to.changeEtherBalance(ethers, sender, -200);
 
         const receiverBalanceAfter: bigint =
@@ -621,8 +648,8 @@ describe("INTEGRATION: changeEtherBalance matcher", { timeout: 60000 }, () => {
 
         it("should throw if chained to another non-chainable method", () => {
           assertThrows(
-            () =>
-              expect(
+            async () =>
+              await expect(
                 sender.sendTransaction({
                   to: receiver.address,
                   value: 200,
@@ -644,11 +671,12 @@ describe("INTEGRATION: changeEtherBalance matcher", { timeout: 60000 }, () => {
       // smoke test for stack traces
       it("includes test file", async () => {
         try {
-          await expect(() =>
-            sender.sendTransaction({
-              to: receiver.address,
-              value: 200,
-            }),
+          await expect(
+            async () =>
+              await sender.sendTransaction({
+                to: receiver.address,
+                value: 200,
+              }),
           ).to.changeEtherBalance(ethers, sender, -100);
         } catch (e) {
           expect(util.inspect(e)).to.include(

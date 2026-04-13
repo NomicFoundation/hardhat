@@ -137,8 +137,8 @@ describe("deploy with ethers result", () => {
       });
 
       await assertRejectsWithHardhatError(
-        () => {
-          return connection.ignition.deploy(badModuleDefinition);
+        async () => {
+          return await connection.ignition.deploy(badModuleDefinition);
         },
         HardhatError.ERRORS.CORE.ARTIFACTS.NOT_FOUND,
         {

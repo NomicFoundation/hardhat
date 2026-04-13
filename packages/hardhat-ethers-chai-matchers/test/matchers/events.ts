@@ -81,9 +81,13 @@ describe(".to.emit (contract events)", { timeout: 60000 }, () => {
 
     it("should fail when matcher is called with too many arguments", async () => {
       await assertRejects(
-        () =>
+        async () =>
           // @ts-expect-error -- force error scenario: emit should not be called with more than two arguments
-          expect(contract.emitUint(1)).not.to.emit(contract, "WithoutArgs", 1),
+          await expect(contract.emitUint(1)).not.to.emit(
+            contract,
+            "WithoutArgs",
+            1,
+          ),
         (e) =>
           e.message.includes(
             "The .emit matcher expects two arguments: the contract and the event name. Arguments should be asserted with the .withArgs helper.",
@@ -116,18 +120,20 @@ describe(".to.emit (contract events)", { timeout: 60000 }, () => {
 
     describe(".withArgs", () => {
       it("should fail when used with .not.", async () => {
-        expect(() =>
-          expect(contract.emitUint(1))
-            .not.to.emit(contract, "WithUintArg")
-            .withArgs(1),
+        expect(
+          async () =>
+            await expect(contract.emitUint(1))
+              .not.to.emit(contract, "WithUintArg")
+              .withArgs(1),
         ).to.throw(Error, "Do not combine .not. with .withArgs()");
       });
 
       it("should fail when used with .not, subject is a rejected promise", async () => {
-        expect(() =>
-          expect(matchers.revertsWithoutReason())
-            .not.to.emit(contract, "WithUintArg")
-            .withArgs(1),
+        expect(
+          async () =>
+            await expect(matchers.revertsWithoutReason())
+              .not.to.emit(contract, "WithUintArg")
+              .withArgs(1),
         ).to.throw(Error, "Do not combine .not. with .withArgs()");
       });
 
@@ -899,7 +905,7 @@ describe(".to.emit (contract events)", { timeout: 60000 }, () => {
 
     it("With an invalid transaction hash string", async () => {
       await assertRejects(
-        () => expect("0x123").to.emit(contract, "WithoutArgs"),
+        async () => await expect("0x123").to.emit(contract, "WithoutArgs"),
         (e) =>
           e.message.includes(
             'Expected a valid transaction hash, but got "0x123"',

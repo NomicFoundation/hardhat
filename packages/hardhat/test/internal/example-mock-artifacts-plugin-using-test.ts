@@ -29,8 +29,8 @@ describe("createMockHardhatRuntimeEnvironment", () => {
       tasks: [
         task("hello-artifact-using-world", "Test artifact loading")
           .setAction(async () => ({
-            default: (_args, hre) => {
-              return hre.artifacts.readArtifact("MyContract");
+            default: async (_args, hre) => {
+              return await hre.artifacts.readArtifact("MyContract");
             },
           }))
           .build(),

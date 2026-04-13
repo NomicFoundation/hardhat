@@ -186,8 +186,8 @@ async function _getTransactionWithRetry(
     );
 
     const transactions = await Promise.all(
-      params.onchainInteraction.transactions.map((tx) =>
-        params.jsonRpcClient.getTransaction(tx.hash),
+      params.onchainInteraction.transactions.map(
+        async (tx) => await params.jsonRpcClient.getTransaction(tx.hash),
       ),
     );
 

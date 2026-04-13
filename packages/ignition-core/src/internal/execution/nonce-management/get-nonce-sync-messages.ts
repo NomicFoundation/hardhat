@@ -135,7 +135,7 @@ export async function getNonceSyncMessages(
       networkInteractionId,
     } of pendingIgnitionTransactions) {
       const fetchedTransactions = await Promise.all(
-        transactions.map((tx) => jsonRpcClient.getTransaction(tx)),
+        transactions.map(async (tx) => await jsonRpcClient.getTransaction(tx)),
       );
 
       // If at least one transaction for the future is still in the mempool,

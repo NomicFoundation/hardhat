@@ -218,13 +218,13 @@ export class LedgerHandler {
 
         const path = await this.#derivePath(address);
 
-        const signature = await this.#withConfirmation(() => {
+        const signature = await this.#withConfirmation(async () => {
           assertHardhatInvariant(
             this.#eth !== undefined,
             "Ledger handler should have initialized the eth instance",
           );
 
-          return this.#eth.signPersonalMessage(
+          return await this.#eth.signPersonalMessage(
             path,
             bytesToHexString(data).replace("0x", ""),
           );
@@ -626,13 +626,13 @@ export class LedgerHandler {
 
         const path = await this.#derivePath(address);
 
-        const signature = await this.#withConfirmation(() => {
+        const signature = await this.#withConfirmation(async () => {
           assertHardhatInvariant(
             this.#eth !== undefined,
             "Ledger handler should have initialized the eth instance",
           );
 
-          return this.#eth.signPersonalMessage(
+          return await this.#eth.signPersonalMessage(
             path,
             bytesToHexString(data).replace("0x", ""),
           );
@@ -700,7 +700,11 @@ export class LedgerHandler {
       try {
         return await this.#eth.signEIP712Message(path, typedMessage);
       } catch (_error) {
-        return await this.#eth.signEIP712HashedMessage(path, domainHash, structHash);
+        return await this.#eth.signEIP712HashedMessage(
+          path,
+          domainHash,
+          structHash,
+        );
       }
     });
 
@@ -788,13 +792,13 @@ export class LedgerHandler {
 
     const resolution = await ledgerService.resolveTransaction(txToSign, {}, {});
 
-    const signature = await this.#withConfirmation(() => {
+    const signature = await this.#withConfirmation(async () => {
       assertHardhatInvariant(
         this.#eth !== undefined,
         "Ledger handler should have initialized the eth instance",
       );
 
-      return this.#eth.signTransaction(path, txToSign, resolution);
+      return await this.#eth.signTransaction(path, txToSign, resolution);
     });
 
     const signedTx = new microEthSigner.Transaction(unsignedTx.type, {

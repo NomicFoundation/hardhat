@@ -67,7 +67,8 @@ describe("hardhat-network-helpers plugin initialization", () => {
             // enabling the simulation of a non-test network.
             id: "mocked-web3-client-version",
             hookHandlers: {
-              network: () => import("./helpers/mocked-web3-client-version.js"),
+              network: async () =>
+                await import("./helpers/mocked-web3-client-version.js"),
             },
           },
         ],
@@ -80,7 +81,7 @@ describe("hardhat-network-helpers plugin initialization", () => {
 
     it("should throw when using a method from the network-helpers class", async () => {
       await assertRejectsWithHardhatError(
-        () => networkHelpers.takeSnapshot(),
+        async () => await networkHelpers.takeSnapshot(),
         HardhatError.ERRORS.NETWORK_HELPERS.GENERAL
           .CAN_ONLY_BE_USED_WITH_HARDHAT_NETWORK_VERSIONED,
         {
@@ -92,7 +93,7 @@ describe("hardhat-network-helpers plugin initialization", () => {
 
     it("should throw when using a method from the time class", async () => {
       await assertRejectsWithHardhatError(
-        () => networkHelpers.time.latest(),
+        async () => await networkHelpers.time.latest(),
         HardhatError.ERRORS.NETWORK_HELPERS.GENERAL
           .CAN_ONLY_BE_USED_WITH_HARDHAT_NETWORK_VERSIONED,
         {

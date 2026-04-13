@@ -66,11 +66,12 @@ describe("handle multiple connections", () => {
       let nonceSender = await sender.getNonce();
       let nonceSender2 = await sender2.getNonce();
 
-      await expect(() =>
-        sender.sendTransaction({
-          to: receiver.address,
-          value: 200,
-        }),
+      await expect(
+        async () =>
+          await sender.sendTransaction({
+            to: receiver.address,
+            value: 200,
+          }),
       ).to.changeEtherBalance(ethers, sender, "-200");
 
       // Only the sender nonce should be changed
@@ -81,11 +82,12 @@ describe("handle multiple connections", () => {
       nonceSender = await sender.getNonce();
       nonceSender2 = await sender2.getNonce();
 
-      await expect(() =>
-        sender2.sendTransaction({
-          to: receiver2.address,
-          value: 200,
-        }),
+      await expect(
+        async () =>
+          await sender2.sendTransaction({
+            to: receiver2.address,
+            value: 200,
+          }),
       ).to.changeEtherBalance(ethers2, sender2, "-200");
 
       // Only the sender2 nonce should be changed

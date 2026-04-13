@@ -51,8 +51,8 @@ describe("INTEGRATION: Reverted with", { timeout: 60000 }, () => {
         await runSuccessfulAsserts({
           matchers,
           method: "succeeds",
-          successfulAssert: (x) =>
-            expect(x).not.to.be.revertedWith("some reason"),
+          successfulAssert: async (x) =>
+            await expect(x).not.to.be.revertedWith("some reason"),
         });
       });
 
@@ -60,7 +60,8 @@ describe("INTEGRATION: Reverted with", { timeout: 60000 }, () => {
         await runFailedAsserts({
           matchers,
           method: "succeeds",
-          failedAssert: (x) => expect(x).to.be.revertedWith("some reason"),
+          failedAssert: async (x) =>
+            await expect(x).to.be.revertedWith("some reason"),
           failedAssertReason:
             "Expected transaction to be reverted with reason 'some reason', but it didn't revert",
         });
@@ -72,8 +73,8 @@ describe("INTEGRATION: Reverted with", { timeout: 60000 }, () => {
         await runSuccessfulAsserts({
           matchers,
           method: "revertsWithoutReason",
-          successfulAssert: (x) =>
-            expect(x).to.not.be.revertedWith("some reason"),
+          successfulAssert: async (x) =>
+            await expect(x).to.not.be.revertedWith("some reason"),
         });
       });
 
@@ -81,7 +82,8 @@ describe("INTEGRATION: Reverted with", { timeout: 60000 }, () => {
         await runFailedAsserts({
           matchers,
           method: "revertsWithoutReason",
-          failedAssert: (x) => expect(x).to.be.revertedWith("some reason"),
+          failedAssert: async (x) =>
+            await expect(x).to.be.revertedWith("some reason"),
           failedAssertReason:
             "Expected transaction to be reverted with reason 'some reason', but it reverted without a reason",
         });
@@ -94,21 +96,22 @@ describe("INTEGRATION: Reverted with", { timeout: 60000 }, () => {
           matchers,
           method: "revertsWith",
           args: ["some reason"],
-          successfulAssert: (x) => expect(x).to.be.revertedWith("some reason"),
+          successfulAssert: async (x) =>
+            await expect(x).to.be.revertedWith("some reason"),
         });
         await runSuccessfulAsserts({
           matchers,
           method: "revertsWith",
           args: ["regular expression reason"],
-          successfulAssert: (x) =>
-            expect(x).to.be.revertedWith(/regular .* reason/),
+          successfulAssert: async (x) =>
+            await expect(x).to.be.revertedWith(/regular .* reason/),
         });
         await runSuccessfulAsserts({
           matchers,
           method: "revertsWith",
           args: ["some reason"],
-          successfulAssert: (x) =>
-            expect(x).to.not.be.revertedWith("another reason"),
+          successfulAssert: async (x) =>
+            await expect(x).to.not.be.revertedWith("another reason"),
         });
       });
 
@@ -117,7 +120,8 @@ describe("INTEGRATION: Reverted with", { timeout: 60000 }, () => {
           matchers,
           method: "revertsWith",
           args: ["some reason"],
-          failedAssert: (x) => expect(x).to.not.be.revertedWith("some reason"),
+          failedAssert: async (x) =>
+            await expect(x).to.not.be.revertedWith("some reason"),
           failedAssertReason:
             "Expected transaction NOT to be reverted with reason 'some reason', but it was",
         });
@@ -128,7 +132,8 @@ describe("INTEGRATION: Reverted with", { timeout: 60000 }, () => {
           matchers,
           method: "revertsWith",
           args: ["another reason"],
-          failedAssert: (x) => expect(x).to.be.revertedWith("some reason"),
+          failedAssert: async (x) =>
+            await expect(x).to.be.revertedWith("some reason"),
           failedAssertReason:
             "Expected transaction to be reverted with reason 'some reason', but it reverted with reason 'another reason'",
         });
@@ -139,8 +144,8 @@ describe("INTEGRATION: Reverted with", { timeout: 60000 }, () => {
           matchers,
           method: "revertsWith",
           args: ["another regular expression reason"],
-          failedAssert: (x) =>
-            expect(x).to.be.revertedWith(/some regular .* reason/),
+          failedAssert: async (x) =>
+            await expect(x).to.be.revertedWith(/some regular .* reason/),
           failedAssertReason:
             "Expected transaction to be reverted with reason 'some regular .* reason', but it reverted with reason 'another regular expression reason'",
         });
@@ -152,8 +157,8 @@ describe("INTEGRATION: Reverted with", { timeout: 60000 }, () => {
         await runSuccessfulAsserts({
           matchers,
           method: "panicAssert",
-          successfulAssert: (x) =>
-            expect(x).to.not.be.revertedWith("some reason"),
+          successfulAssert: async (x) =>
+            await expect(x).to.not.be.revertedWith("some reason"),
         });
       });
 
@@ -161,7 +166,8 @@ describe("INTEGRATION: Reverted with", { timeout: 60000 }, () => {
         await runFailedAsserts({
           matchers,
           method: "panicAssert",
-          failedAssert: (x) => expect(x).to.be.revertedWith("some reason"),
+          failedAssert: async (x) =>
+            await expect(x).to.be.revertedWith("some reason"),
           failedAssertReason:
             "Expected transaction to be reverted with reason 'some reason', but it reverted with panic code 0x1 (Assertion error)",
         });
@@ -173,8 +179,8 @@ describe("INTEGRATION: Reverted with", { timeout: 60000 }, () => {
         await runSuccessfulAsserts({
           matchers,
           method: "revertWithSomeCustomError",
-          successfulAssert: (x) =>
-            expect(x).to.not.be.revertedWith("some reason"),
+          successfulAssert: async (x) =>
+            await expect(x).to.not.be.revertedWith("some reason"),
         });
       });
 
@@ -182,7 +188,8 @@ describe("INTEGRATION: Reverted with", { timeout: 60000 }, () => {
         await runFailedAsserts({
           matchers,
           method: "revertWithSomeCustomError",
-          failedAssert: (x) => expect(x).to.be.revertedWith("some reason"),
+          failedAssert: async (x) =>
+            await expect(x).to.be.revertedWith("some reason"),
           failedAssertReason:
             "Expected transaction to be reverted with reason 'some reason', but it reverted with a custom error",
         });
@@ -201,7 +208,7 @@ describe("INTEGRATION: Reverted with", { timeout: 60000 }, () => {
 
         assertThrows(
           // @ts-expect-error -- force error scenario: reason should be a string or a regular expression
-          () => expect(hash).to.be.revertedWith(10),
+          async () => await expect(hash).to.be.revertedWith(10),
           (e) =>
             e.message.includes(
               "Expected the revert reason to be a string or a regular expression",
@@ -215,7 +222,7 @@ describe("INTEGRATION: Reverted with", { timeout: 60000 }, () => {
 
         assertThrows(
           // @ts-expect-error -- force error scenario: reason should be a string or a regular expression
-          () => expect(tx).to.be.revertedWith(10),
+          async () => await expect(tx).to.be.revertedWith(10),
           (e) =>
             e.message.includes(
               "Expected the revert reason to be a string or a regular expression",

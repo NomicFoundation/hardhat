@@ -11,9 +11,9 @@ import "./type-extensions/hre.js";
 const hardhatPlugin: HardhatPlugin = {
   id: "builtin:network-manager",
   hookHandlers: {
-    config: () => import("./hook-handlers/config.js"),
-    hre: () => import("./hook-handlers/hre.js"),
-    network: () => import("./hook-handlers/network.js"),
+    config: async () => await import("./hook-handlers/config.js"),
+    hre: async () => await import("./hook-handlers/hre.js"),
+    network: async () => await import("./hook-handlers/network.js"),
   },
   globalOptions: [
     globalOption({

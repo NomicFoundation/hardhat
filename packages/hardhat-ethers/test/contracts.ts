@@ -116,9 +116,9 @@ describe("contracts", () => {
     const contract = await factory.deploy();
 
     let listener: any;
-    const eventPromise = new Promise((resolve) => {
+    const eventPromise = new Promise(async (resolve) => {
       listener = resolve;
-      return contract.on("Inc", resolve);
+      return await contract.on("Inc", resolve);
     });
 
     await contract.inc();
@@ -139,8 +139,8 @@ describe("contracts", () => {
 
     const contract = await factory.deploy();
 
-    const eventPromise = new Promise((resolve) => {
-      return contract.once("Inc", resolve);
+    const eventPromise = new Promise(async (resolve) => {
+      return await contract.once("Inc", resolve);
     });
 
     await contract.inc();
@@ -162,9 +162,9 @@ describe("contracts", () => {
     const contractEvent = contract.getEvent("Inc");
 
     let listener: any;
-    const eventPromise = new Promise((resolve) => {
+    const eventPromise = new Promise(async (resolve) => {
       listener = resolve;
-      return contract.on(contractEvent, resolve);
+      return await contract.on(contractEvent, resolve);
     });
 
     await contract.inc();
@@ -186,9 +186,9 @@ describe("contracts", () => {
     const contract = await factory.deploy();
 
     let listener: any;
-    const eventPromise = new Promise((resolve) => {
+    const eventPromise = new Promise(async (resolve) => {
       listener = resolve;
-      return contract.on("IncBy", resolve);
+      return await contract.on("IncBy", resolve);
     });
 
     await contract.incBy();
@@ -211,12 +211,12 @@ describe("contracts", () => {
 
     let listener: any;
     let listenerTriggered = false;
-    const eventPromise = new Promise<void>((resolve) => {
+    const eventPromise = new Promise<void>(async (resolve) => {
       listener = () => {
         listenerTriggered = true;
         resolve();
       };
-      return contract.on("IncBy", listener);
+      return await contract.on("IncBy", listener);
     });
 
     // call a function that doesn't trigger IncBy
@@ -243,15 +243,15 @@ describe("contracts", () => {
     const contract = await factory.deploy();
 
     let listenerInc: any;
-    const incEventPromise = new Promise<void>((resolve) => {
+    const incEventPromise = new Promise<void>(async (resolve) => {
       listenerInc = resolve;
-      return contract.on("Inc", listenerInc);
+      return await contract.on("Inc", listenerInc);
     });
 
     let listenerAnotherEvent: any;
-    const anotherEventPromise = new Promise<void>((resolve) => {
+    const anotherEventPromise = new Promise<void>(async (resolve) => {
       listenerAnotherEvent = resolve;
-      return contract.on("AnotherEvent", listenerAnotherEvent);
+      return await contract.on("AnotherEvent", listenerAnotherEvent);
     });
 
     // call a function that doesn't trigger IncBy
@@ -276,14 +276,14 @@ describe("contracts", () => {
 
     let listenerInc: any;
     let timesCalled = 0;
-    const incEventPromise = new Promise<void>((resolve) => {
+    const incEventPromise = new Promise<void>(async (resolve) => {
       listenerInc = () => {
         timesCalled++;
         if (timesCalled === 2) {
           resolve();
         }
       };
-      return contract.on("Inc", listenerInc);
+      return await contract.on("Inc", listenerInc);
     });
 
     await contract.incTwice();

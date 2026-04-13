@@ -97,7 +97,11 @@ class LazySolidityBuildSystem implements SolidityBuildSystem {
     options: { scope?: BuildScope } = {},
   ): Promise<EmitArtifactsResult> {
     const buildSystem = await this.#getBuildSystem();
-    return await buildSystem.emitArtifacts(compilationJob, compilerOutput, options);
+    return await buildSystem.emitArtifacts(
+      compilationJob,
+      compilerOutput,
+      options,
+    );
   }
 
   public async cleanupArtifacts(

@@ -218,7 +218,7 @@ describe("main", function () {
         const command = "npx hardhat task-default-3 nonExistingTask";
 
         await assertRejectsWithHardhatError(
-          () => runMain(command),
+          async () => await runMain(command),
           HardhatError.ERRORS.CORE.TASK_DEFINITIONS.UNRECOGNIZED_SUBTASK,
           {
             task: "task-default-3",
@@ -235,7 +235,7 @@ describe("main", function () {
         const command = "npx hardhat test-task --opt <value>";
 
         await assertRejectsWithHardhatError(
-          () => runMain(command),
+          async () => await runMain(command),
           HardhatError.ERRORS.CORE.ARGUMENTS.NO_HIDDEN_OPTION_CLI,
           {
             option: "--opt",
@@ -247,7 +247,7 @@ describe("main", function () {
         const command = "npx hardhat test-task --flag";
 
         await assertRejectsWithHardhatError(
-          () => runMain(command),
+          async () => await runMain(command),
           HardhatError.ERRORS.CORE.ARGUMENTS.NO_HIDDEN_OPTION_CLI,
           {
             option: "--flag",
@@ -328,7 +328,7 @@ Usage: hardhat [GLOBAL OPTIONS] empty-task <SUBTASK> [SUBTASK OPTIONS] [--] [SUB
           const command = "npx hardhat task-default-3 nonExistingTask --help";
 
           await assertRejectsWithHardhatError(
-            () => runMain(command),
+            async () => await runMain(command),
             HardhatError.ERRORS.CORE.TASK_DEFINITIONS.UNRECOGNIZED_SUBTASK,
             {
               task: "task-default-3",
@@ -533,7 +533,8 @@ GLOBAL OPTIONS:
       const usedCliArguments = new Array(cliArguments.length).fill(false);
 
       await assertRejectsWithHardhatError(
-        async () => await parseBuiltinGlobalOptions(cliArguments, usedCliArguments),
+        async () =>
+          await parseBuiltinGlobalOptions(cliArguments, usedCliArguments),
         HardhatError.ERRORS.CORE.ARGUMENTS.CANNOT_COMBINE_INIT_AND_CONFIG_PATH,
         {},
       );
@@ -546,7 +547,8 @@ GLOBAL OPTIONS:
       const usedCliArguments = new Array(cliArguments.length).fill(false);
 
       await assertRejectsWithHardhatError(
-        async () => await parseBuiltinGlobalOptions(cliArguments, usedCliArguments),
+        async () =>
+          await parseBuiltinGlobalOptions(cliArguments, usedCliArguments),
         HardhatError.ERRORS.CORE.ARGUMENTS.DUPLICATED_NAME,
         {
           name: "--config",
@@ -561,7 +563,8 @@ GLOBAL OPTIONS:
       const usedCliArguments = new Array(cliArguments.length).fill(false);
 
       await assertRejectsWithHardhatError(
-        async () => await parseBuiltinGlobalOptions(cliArguments, usedCliArguments),
+        async () =>
+          await parseBuiltinGlobalOptions(cliArguments, usedCliArguments),
         HardhatError.ERRORS.CORE.ARGUMENTS.MISSING_CONFIG_FILE,
         {},
       );

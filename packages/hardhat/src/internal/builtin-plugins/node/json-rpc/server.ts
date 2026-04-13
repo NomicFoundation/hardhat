@@ -37,8 +37,8 @@ export class JsonRpcServerImplementation implements JsonRpcServer {
     this.#wsServer.on("connection", handler.handleWs);
   }
 
-  public listen = (): Promise<{ address: string; port: number }> => {
-    return new Promise((resolve) => {
+  public listen = async (): Promise<{ address: string; port: number }> => {
+    return await new Promise((resolve) => {
       log(`Starting JSON-RPC server on port ${this.#config.port}`);
       this.#httpServer.listen(this.#config.port, this.#config.hostname, () => {
         // We get the address and port directly from the server in order to handle random port allocation with `0`.

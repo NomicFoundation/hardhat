@@ -122,8 +122,9 @@ export function supportChangeTokenBalance(
       validateInput(this._obj, token, accounts, balanceChanges);
 
       const balanceChangesPromise = Promise.all(
-        accounts.map((account) =>
-          getBalanceChange(ethers, subject, token, account),
+        accounts.map(
+          async (account) =>
+            await getBalanceChange(ethers, subject, token, account),
         ),
       );
       const addressesPromise = Promise.all(accounts.map(getAddressOf));

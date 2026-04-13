@@ -132,20 +132,20 @@ export class HardhatEthersSigner implements HardhatEthersSignerI {
     return auth;
   }
 
-  public getNonce(blockTag?: BlockTag | undefined): Promise<number> {
-    return this.provider.getTransactionCount(this.address, blockTag);
+  public async getNonce(blockTag?: BlockTag | undefined): Promise<number> {
+    return await this.provider.getTransactionCount(this.address, blockTag);
   }
 
-  public populateCall(
+  public async populateCall(
     tx: TransactionRequest,
   ): Promise<ethers.TransactionLike<string>> {
-    return populate(this, tx);
+    return await populate(this, tx);
   }
 
-  public populateTransaction(
+  public async populateTransaction(
     tx: TransactionRequest,
   ): Promise<ethers.TransactionLike<string>> {
-    return this.populateCall(tx);
+    return await this.populateCall(tx);
   }
 
   public async estimateGas(tx: TransactionRequest): Promise<bigint> {
@@ -156,8 +156,8 @@ export class HardhatEthersSigner implements HardhatEthersSignerI {
     return await this.provider.call(await this.populateCall(tx));
   }
 
-  public resolveName(name: string): Promise<string | null> {
-    return this.provider.resolveName(name);
+  public async resolveName(name: string): Promise<string | null> {
+    return await this.provider.resolveName(name);
   }
 
   public async signTransaction(_tx: TransactionRequest): Promise<string> {
@@ -208,10 +208,10 @@ export class HardhatEthersSigner implements HardhatEthersSignerI {
     });
   }
 
-  public signMessage(message: string | Uint8Array): Promise<string> {
+  public async signMessage(message: string | Uint8Array): Promise<string> {
     const resolvedMessage =
       typeof message === "string" ? toUtf8Bytes(message) : message;
-    return this.provider.send("personal_sign", [
+    return await this.provider.send("personal_sign", [
       hexlify(resolvedMessage),
       this.address.toLowerCase(),
     ]);
@@ -341,7 +341,7 @@ export class HardhatEthersSigner implements HardhatEthersSignerI {
       }
 
       if (Array.isArray(accounts)) {
-        return await Promise.all(accounts.map((acc) => acc.get()));
+        return await Promise.all(accounts.map(async (acc) => await acc.get()));
       }
 
       if ("mnemonic" in accounts) {
@@ -351,7 +351,9 @@ export class HardhatEthersSigner implements HardhatEthersSignerI {
 
     if (type === "edr-simulated") {
       if (Array.isArray(accounts)) {
-        return await Promise.all(accounts.map((acc) => acc.privateKey.get()));
+        return await Promise.all(
+          accounts.map(async (acc) => await acc.privateKey.get()),
+        );
       }
 
       if ("mnemonic" in accounts) {

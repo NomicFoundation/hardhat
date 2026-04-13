@@ -6,9 +6,9 @@ import { globalFlag } from "hardhat/config";
 const hardhatTypechain: HardhatPlugin = {
   id: "hardhat-typechain",
   hookHandlers: {
-    config: () => import("./internal/hook-handlers/config.js"),
-    solidity: () => import("./internal/hook-handlers/solidity.js"),
-    clean: () => import("./internal/hook-handlers/clean.js"),
+    config: async () => await import("./internal/hook-handlers/config.js"),
+    solidity: async () => await import("./internal/hook-handlers/solidity.js"),
+    clean: async () => await import("./internal/hook-handlers/clean.js"),
   },
   npmPackage: "@nomicfoundation/hardhat-typechain",
   dependencies: () => [import("@nomicfoundation/hardhat-ethers")],

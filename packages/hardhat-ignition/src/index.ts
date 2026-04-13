@@ -11,7 +11,7 @@ const hardhatIgnitionPlugin: HardhatPlugin = {
   id: PLUGIN_ID,
   npmPackage: "@nomicfoundation/hardhat-ignition",
   hookHandlers: {
-    config: () => import("./internal/hook-handlers/config.js"),
+    config: async () => await import("./internal/hook-handlers/config.js"),
   },
   dependencies: () => [import("@nomicfoundation/hardhat-verify")],
   tasks: [
@@ -63,7 +63,7 @@ const hardhatIgnitionPlugin: HardhatPlugin = {
         description:
           "Write deployment information to disk when deploying to the in-memory network",
       })
-      .setAction(() => import("./internal/tasks/deploy.js"))
+      .setAction(async () => await import("./internal/tasks/deploy.js"))
       .build(),
     task(["ignition", "status"], "Show the current status of a deployment")
       .addPositionalArgument({
@@ -71,10 +71,10 @@ const hardhatIgnitionPlugin: HardhatPlugin = {
         type: ArgumentType.STRING,
         description: "The id of the deployment to show",
       })
-      .setAction(() => import("./internal/tasks/status.js"))
+      .setAction(async () => await import("./internal/tasks/status.js"))
       .build(),
     task(["ignition", "deployments"], "List all deployment IDs")
-      .setAction(() => import("./internal/tasks/deployments.js"))
+      .setAction(async () => await import("./internal/tasks/deployments.js"))
       .build(),
     task(
       ["ignition", "transactions"],
@@ -85,7 +85,7 @@ const hardhatIgnitionPlugin: HardhatPlugin = {
         type: ArgumentType.STRING,
         description: "The id of the deployment to show transactions for",
       })
-      .setAction(() => import("./internal/tasks/transactions.js"))
+      .setAction(async () => await import("./internal/tasks/transactions.js"))
       .build(),
     task(["ignition", "wipe"], "Reset a deployment's future to allow rerunning")
       .addPositionalArgument({
@@ -98,7 +98,7 @@ const hardhatIgnitionPlugin: HardhatPlugin = {
         type: ArgumentType.STRING,
         description: "The id of the future to wipe",
       })
-      .setAction(() => import("./internal/tasks/wipe.js"))
+      .setAction(async () => await import("./internal/tasks/wipe.js"))
       .build(),
     task(["ignition", "visualize"], "Visualize a module as an HTML report")
       .addPositionalArgument({
@@ -110,7 +110,7 @@ const hardhatIgnitionPlugin: HardhatPlugin = {
         name: "noOpen",
         description: "Disables opening report in browser",
       })
-      .setAction(() => import("./internal/tasks/visualize.js"))
+      .setAction(async () => await import("./internal/tasks/visualize.js"))
       .build(),
 
     task(
@@ -126,7 +126,7 @@ const hardhatIgnitionPlugin: HardhatPlugin = {
         name: "force",
         description: "Force verification",
       })
-      .setAction(() => import("./internal/tasks/verify.js"))
+      .setAction(async () => await import("./internal/tasks/verify.js"))
       .build(),
     task(
       ["ignition", "track-tx"],
@@ -142,7 +142,7 @@ const hardhatIgnitionPlugin: HardhatPlugin = {
         type: ArgumentType.STRING,
         description: "The id of the deployment to add the tx to",
       })
-      .setAction(() => import("./internal/tasks/track-tx.js"))
+      .setAction(async () => await import("./internal/tasks/track-tx.js"))
       .build(),
     task(
       ["ignition", "migrate"],
@@ -153,7 +153,7 @@ const hardhatIgnitionPlugin: HardhatPlugin = {
         type: ArgumentType.STRING,
         description: "The id of the deployment to migrate",
       })
-      .setAction(() => import("./internal/tasks/migrate.js"))
+      .setAction(async () => await import("./internal/tasks/migrate.js"))
       .build(),
   ],
 };

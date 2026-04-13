@@ -179,11 +179,12 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
       case "contracts":
         const localFilesToCompile = (
           await Promise.all(
-            this.#options.soliditySourcesPaths.map((dir) =>
-              getAllFilesMatching(
-                dir,
-                (f) => f.endsWith(".sol") && !f.endsWith(".t.sol"),
-              ),
+            this.#options.soliditySourcesPaths.map(
+              async (dir) =>
+                await getAllFilesMatching(
+                  dir,
+                  (f) => f.endsWith(".sol") && !f.endsWith(".t.sol"),
+                ),
             ),
           )
         ).flat(1);
@@ -201,7 +202,9 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
               f.endsWith(".sol"),
             ),
             ...this.#options.soliditySourcesPaths.map(async (dir) => {
-              return await getAllFilesMatching(dir, (f) => f.endsWith(".t.sol"));
+              return await getAllFilesMatching(dir, (f) =>
+                f.endsWith(".t.sol"),
+              );
             }),
           ])
         ).flat(1);
@@ -276,8 +279,9 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
       // NOTE: We precompute the build ids in parallel here, which are cached
       // internally in each compilation job
       await Promise.all(
-        runnableCompilationJobs.map(async (runnableCompilationJob) =>
-          await runnableCompilationJob.getBuildId(),
+        runnableCompilationJobs.map(
+          async (runnableCompilationJob) =>
+            await runnableCompilationJob.getBuildId(),
         ),
       );
 
@@ -362,8 +366,9 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
         );
 
         const errors = await Promise.all(
-          (result.compilerOutput.errors ?? []).map((error) =>
-            this.remapCompilerError(result.compilationJob, error, true),
+          (result.compilerOutput.errors ?? []).map(
+            async (error) =>
+              await this.remapCompilerError(result.compilationJob, error, true),
           ),
         );
 

@@ -193,7 +193,9 @@ export class HardhatRuntimeEnvironmentImplementation
 export async function resolveProjectRoot(
   absolutePathWithinProject: string | undefined,
 ): Promise<string> {
-  return await findClosestPackageRoot(absolutePathWithinProject ?? process.cwd());
+  return await findClosestPackageRoot(
+    absolutePathWithinProject ?? process.cwd(),
+  );
 }
 
 /**

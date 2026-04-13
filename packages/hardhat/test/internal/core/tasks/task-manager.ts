@@ -1920,7 +1920,7 @@ describe("TaskManagerImplementation", () => {
                   .build(),
                 new TaskOverrideDefinitionBuilderImplementation("task1")
                   .addOption({ name: "arg1", defaultValue: "default" })
-                  .setAction(() => import(actionUrl))
+                  .setAction(async () => await import(actionUrl))
                   .build(),
               ],
             },
@@ -1945,11 +1945,11 @@ describe("TaskManagerImplementation", () => {
               id: "plugin1",
               tasks: [
                 new NewTaskDefinitionBuilderImplementation("task1")
-                  .setAction(() => import(invalidUrl))
+                  .setAction(async () => await import(invalidUrl))
                   .build(),
                 new TaskOverrideDefinitionBuilderImplementation("task1")
                   .addOption({ name: "arg1", defaultValue: "default" })
-                  .setAction(() => import(validActionUrl))
+                  .setAction(async () => await import(validActionUrl))
                   .build(),
               ],
             },
@@ -2471,7 +2471,7 @@ describe("TaskManagerImplementation", () => {
                 id: "plugin1",
                 tasks: [
                   new NewTaskDefinitionBuilderImplementation("task1")
-                    .setAction(() => import(invalidUrl))
+                    .setAction(async () => await import(invalidUrl))
                     .build(),
                 ],
                 npmPackage: null,
@@ -2509,7 +2509,9 @@ describe("TaskManagerImplementation", () => {
                 npmPackage: "non-installed-package",
                 tasks: [
                   new NewTaskDefinitionBuilderImplementation("task1")
-                    .setAction(() => import(nonInstalledPackageActionUrl))
+                    .setAction(
+                      async () => await import(nonInstalledPackageActionUrl),
+                    )
                     .build(),
                 ],
               },
@@ -2545,7 +2547,9 @@ describe("TaskManagerImplementation", () => {
                 npmPackage: "non-installed-package",
                 tasks: [
                   new TaskOverrideDefinitionBuilderImplementation("task1")
-                    .setAction(() => import(nonInstalledPackageActionUrl))
+                    .setAction(
+                      async () => await import(nonInstalledPackageActionUrl),
+                    )
                     .build(),
                 ],
               },
@@ -2573,7 +2577,7 @@ describe("TaskManagerImplementation", () => {
                 id: "plugin1",
                 tasks: [
                   new NewTaskDefinitionBuilderImplementation("task1")
-                    .setAction(() => import(actionUrl))
+                    .setAction(async () => await import(actionUrl))
                     .build(),
                 ],
               },
@@ -2603,7 +2607,7 @@ describe("TaskManagerImplementation", () => {
                 id: "plugin1",
                 tasks: [
                   new NewTaskDefinitionBuilderImplementation("task1")
-                    .setAction(() => import(actionUrl))
+                    .setAction(async () => await import(actionUrl))
                     .build(),
                 ],
               },

@@ -160,50 +160,54 @@ describe("HardhatError helpers", () => {
 
   describe("assertRejectsWithHardhatError", () => {
     it("should throw if the function doesn't return a promise that rejects", async () => {
-      await assert.rejects(async () =>
-        await assertRejectsWithHardhatError(
-          async () => {},
-          HardhatError.ERRORS.CORE.TASK_DEFINITIONS.INVALID_ACTION,
-          { task: "bar" },
-        ),
+      await assert.rejects(
+        async () =>
+          await assertRejectsWithHardhatError(
+            async () => {},
+            HardhatError.ERRORS.CORE.TASK_DEFINITIONS.INVALID_ACTION,
+            { task: "bar" },
+          ),
       );
     });
 
     it("should throw the promise that rejects", async () => {
-      await assert.rejects(async () =>
-        await assertRejectsWithHardhatError(
-          Promise.resolve(1),
-          HardhatError.ERRORS.CORE.TASK_DEFINITIONS.INVALID_ACTION,
-          { task: "bar" },
-        ),
+      await assert.rejects(
+        async () =>
+          await assertRejectsWithHardhatError(
+            Promise.resolve(1),
+            HardhatError.ERRORS.CORE.TASK_DEFINITIONS.INVALID_ACTION,
+            { task: "bar" },
+          ),
       );
     });
 
     it("asserts the error of the rejection", async () => {
-      await assert.rejects(() =>
-        assertRejectsWithHardhatError(
-          async () => {
-            throw new HardhatError(
-              HardhatError.ERRORS.CORE.TASK_DEFINITIONS.UNRECOGNIZED_TASK_OPTION,
-              { option: "foo", task: "bar" },
-            );
-          },
-          HardhatError.ERRORS.CORE.TASK_DEFINITIONS.UNRECOGNIZED_TASK_OPTION,
-          { option: "foo2", task: "bar" },
-        ),
+      await assert.rejects(
+        async () =>
+          await assertRejectsWithHardhatError(
+            async () => {
+              throw new HardhatError(
+                HardhatError.ERRORS.CORE.TASK_DEFINITIONS.UNRECOGNIZED_TASK_OPTION,
+                { option: "foo", task: "bar" },
+              );
+            },
+            HardhatError.ERRORS.CORE.TASK_DEFINITIONS.UNRECOGNIZED_TASK_OPTION,
+            { option: "foo2", task: "bar" },
+          ),
       );
 
-      await assert.rejects(() =>
-        assertRejectsWithHardhatError(
-          Promise.reject(
-            new HardhatError(
-              HardhatError.ERRORS.CORE.TASK_DEFINITIONS.UNRECOGNIZED_TASK_OPTION,
-              { option: "foo", task: "bar" },
+      await assert.rejects(
+        async () =>
+          await assertRejectsWithHardhatError(
+            Promise.reject(
+              new HardhatError(
+                HardhatError.ERRORS.CORE.TASK_DEFINITIONS.UNRECOGNIZED_TASK_OPTION,
+                { option: "foo", task: "bar" },
+              ),
             ),
+            HardhatError.ERRORS.CORE.TASK_DEFINITIONS.UNRECOGNIZED_TASK_OPTION,
+            { option: "foo2", task: "bar" },
           ),
-          HardhatError.ERRORS.CORE.TASK_DEFINITIONS.UNRECOGNIZED_TASK_OPTION,
-          { option: "foo2", task: "bar" },
-        ),
       );
 
       await assertRejectsWithHardhatError(

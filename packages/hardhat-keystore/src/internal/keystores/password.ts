@@ -24,8 +24,10 @@ export function getPasswordHandlers(
 } {
   if (isDevKeystore) {
     return {
-      setUpPassword: () => setUpPasswordForDevKeystore(devPasswordFilePath),
-      askPassword: () => askPasswordForDevKeystore(devPasswordFilePath),
+      setUpPassword: async () =>
+        await setUpPasswordForDevKeystore(devPasswordFilePath),
+      askPassword: async () =>
+        await askPasswordForDevKeystore(devPasswordFilePath),
       setNewPassword: () => {
         throw new HardhatError(
           HardhatError.ERRORS.HARDHAT_KEYSTORE.GENERAL.CANNOT_CHANGED_PASSWORD_FOR_DEV_KEYSTORE,
@@ -35,9 +37,11 @@ export function getPasswordHandlers(
   }
 
   return {
-    setUpPassword: () => setUpPassword(requestSecretInput, consoleLog),
-    askPassword: () => askPassword(requestSecretInput),
-    setNewPassword: () => setNewPassword(requestSecretInput, consoleLog),
+    setUpPassword: async () =>
+      await setUpPassword(requestSecretInput, consoleLog),
+    askPassword: async () => await askPassword(requestSecretInput),
+    setNewPassword: async () =>
+      await setNewPassword(requestSecretInput, consoleLog),
   };
 }
 
@@ -78,7 +82,10 @@ export async function setNewPassword(
 export async function askPassword(
   requestSecretInput: KeystoreRequestSecretInput,
 ): Promise<string> {
-  return await requestSecretInput(PLUGIN_ID, UserDisplayMessages.enterPasswordMsg());
+  return await requestSecretInput(
+    PLUGIN_ID,
+    UserDisplayMessages.enterPasswordMsg(),
+  );
 }
 
 export async function askPasswordForDevKeystore(

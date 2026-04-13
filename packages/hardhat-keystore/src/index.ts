@@ -10,9 +10,9 @@ import { PLUGIN_ID } from "./internal/constants.js";
 const hardhatKeystorePlugin: HardhatPlugin = {
   id: PLUGIN_ID,
   hookHandlers: {
-    config: () => import("./internal/hook-handlers/config.js"),
-    configurationVariables: () =>
-      import("./internal/hook-handlers/configuration-variables.js"),
+    config: async () => await import("./internal/hook-handlers/config.js"),
+    configurationVariables: async () =>
+      await import("./internal/hook-handlers/configuration-variables.js"),
   },
   tasks: [
     emptyTask("keystore", "Store keys in an encrypted storage").build(),
@@ -35,7 +35,7 @@ const hardhatKeystorePlugin: HardhatPlugin = {
         description:
           "Use the development keystore instead of the production one",
       })
-      .setAction(() => import("./internal/tasks/set.js"))
+      .setAction(async () => await import("./internal/tasks/set.js"))
       .build(),
 
     task(["keystore", "get"], "Get a value given a key")
@@ -49,7 +49,7 @@ const hardhatKeystorePlugin: HardhatPlugin = {
         type: ArgumentType.STRING,
         description: "Specify the key to retrieve the value for",
       })
-      .setAction(() => import("./internal/tasks/get.js"))
+      .setAction(async () => await import("./internal/tasks/get.js"))
       .build(),
 
     task(["keystore", "list"], "List all keys in the keystore")
@@ -58,7 +58,7 @@ const hardhatKeystorePlugin: HardhatPlugin = {
         description:
           "Use the development keystore instead of the production one",
       })
-      .setAction(() => import("./internal/tasks/list.js"))
+      .setAction(async () => await import("./internal/tasks/list.js"))
       .build(),
 
     task(["keystore", "delete"], "Delete a key from the keystore")
@@ -77,7 +77,7 @@ const hardhatKeystorePlugin: HardhatPlugin = {
         description:
           "Force to not throw an error if the key does not exist during deletion.",
       })
-      .setAction(() => import("./internal/tasks/delete.js"))
+      .setAction(async () => await import("./internal/tasks/delete.js"))
       .build(),
 
     task(["keystore", "rename"], "Rename a key in the keystore")
@@ -100,7 +100,7 @@ const hardhatKeystorePlugin: HardhatPlugin = {
         name: "force",
         description: "Force overwrite if the new key already exists.",
       })
-      .setAction(() => import("./internal/tasks/rename.js"))
+      .setAction(async () => await import("./internal/tasks/rename.js"))
       .build(),
 
     task(["keystore", "path"], "Display the path where the keystore is stored")
@@ -109,7 +109,7 @@ const hardhatKeystorePlugin: HardhatPlugin = {
         description:
           "Use the development keystore instead of the production one",
       })
-      .setAction(() => import("./internal/tasks/path.js"))
+      .setAction(async () => await import("./internal/tasks/path.js"))
       .build(),
 
     task(
@@ -121,7 +121,9 @@ const hardhatKeystorePlugin: HardhatPlugin = {
         description:
           "Use the development keystore instead of the production one",
       })
-      .setAction(() => import("./internal/tasks/change-password.js"))
+      .setAction(
+        async () => await import("./internal/tasks/change-password.js"),
+      )
       .build(),
   ],
   npmPackage: "@nomicfoundation/hardhat-keystore",

@@ -336,8 +336,8 @@ describe("hardhat-typechain", () => {
       await hre.tasks.getTask("clean").run();
 
       // Build should throw due to compilation error
-      await assertRejects(async () =>
-        await hre.tasks.getTask("build").run({ quiet: true }),
+      await assertRejects(
+        async () => await hre.tasks.getTask("build").run({ quiet: true }),
       );
 
       // Types should NOT be generated

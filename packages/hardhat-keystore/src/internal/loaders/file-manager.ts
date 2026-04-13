@@ -9,8 +9,8 @@ import {
 } from "@nomicfoundation/hardhat-utils/fs";
 
 export class FileManagerImpl implements FileManager {
-  public fileExists(absolutePath: string): Promise<boolean> {
-    return exists(absolutePath);
+  public async fileExists(absolutePath: string): Promise<boolean> {
+    return await exists(absolutePath);
   }
 
   public async writeJsonFile(
@@ -23,7 +23,9 @@ export class FileManagerImpl implements FileManager {
     return await move(tmpPath, absolutePathToFile);
   }
 
-  public readJsonFile(absolutePathToFile: string): Promise<EncryptedKeystore> {
-    return readJsonFile(absolutePathToFile);
+  public async readJsonFile(
+    absolutePathToFile: string,
+  ): Promise<EncryptedKeystore> {
+    return await readJsonFile(absolutePathToFile);
   }
 }

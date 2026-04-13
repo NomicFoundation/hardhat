@@ -72,7 +72,9 @@ describe("assertions", () => {
     it("should throw if the address is not a valid checksum address", async () => {
       await assertRejectsWithHardhatError(
         async () =>
-          await assertValidAddress("0xCF5609B003B2776699EEA1233F7C82D5695CC9AA"),
+          await assertValidAddress(
+            "0xCF5609B003B2776699EEA1233F7C82D5695CC9AA",
+          ),
         HardhatError.ERRORS.NETWORK_HELPERS.GENERAL.INVALID_CHECKSUM_ADDRESS,
         {
           value: "0xCF5609B003B2776699EEA1233F7C82D5695CC9AA",

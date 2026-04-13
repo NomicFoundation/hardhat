@@ -28,6 +28,7 @@ import { waitForPendingTxs } from "./wait-for-pending-txs.js";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
+import "mocha";
 declare module "mocha" {
   interface Context {
     hre: HardhatRuntimeEnvironment;
@@ -197,11 +198,11 @@ export function useFileIgnitionProject(
 
     await ensureDir(deploymentDir);
 
-    this.runControlledDeploy = (
+    this.runControlledDeploy = async (
       ignitionModule: IgnitionModule,
       chainUpdates: (c: TestChainHelper) => Promise<void> = async () => {},
     ) => {
-      return runDeploy(
+      return await runDeploy(
         deploymentDir,
         ignitionModule,
         { hre, connection, config: testConfig },
@@ -236,7 +237,7 @@ async function runDeploy(
     config?: Partial<DeployConfig>;
   },
   chainUpdates: (c: TestChainHelper) => Promise<void> = async () => {},
-): Promise<ReturnType<TestIgnitionHelper["deploy"]>> {
+): ReturnType<TestIgnitionHelper["deploy"]> {
   const { ignitionHelper, kill: killFn } = setupIgnitionHelperRiggedToThrow(
     hre,
     connection,

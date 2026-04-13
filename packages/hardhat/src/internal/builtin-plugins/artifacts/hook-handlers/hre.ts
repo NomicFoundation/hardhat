@@ -27,14 +27,18 @@ class LazyArtifactManager implements ArtifactManager {
     contractNameOrFullyQualifiedName: string,
   ): Promise<string> {
     const artifactManager = await this.#getArtifactManager();
-    return await artifactManager.getArtifactPath(contractNameOrFullyQualifiedName);
+    return await artifactManager.getArtifactPath(
+      contractNameOrFullyQualifiedName,
+    );
   }
 
   public async artifactExists(
     contractNameOrFullyQualifiedName: string,
   ): Promise<boolean> {
     const artifactManager = await this.#getArtifactManager();
-    return await artifactManager.artifactExists(contractNameOrFullyQualifiedName);
+    return await artifactManager.artifactExists(
+      contractNameOrFullyQualifiedName,
+    );
   }
 
   public async getAllFullyQualifiedNames(): Promise<ReadonlySet<string>> {
@@ -51,7 +55,9 @@ class LazyArtifactManager implements ArtifactManager {
     contractNameOrFullyQualifiedName: string,
   ): Promise<string | undefined> {
     const artifactManager = await this.#getArtifactManager();
-    return await artifactManager.getBuildInfoId(contractNameOrFullyQualifiedName);
+    return await artifactManager.getBuildInfoId(
+      contractNameOrFullyQualifiedName,
+    );
   }
 
   public async getAllBuildInfoIds(): Promise<ReadonlySet<string>> {

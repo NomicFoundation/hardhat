@@ -327,7 +327,13 @@ describe("CompilationJobImplementation", () => {
             solcVersion,
             next,
           ) => {
-            return await next(context, inputSourceName, fsPath, "test", solcVersion);
+            return await next(
+              context,
+              inputSourceName,
+              fsPath,
+              "test",
+              solcVersion,
+            );
           },
         });
         assert.notEqual(

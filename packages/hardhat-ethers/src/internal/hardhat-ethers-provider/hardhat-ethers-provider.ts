@@ -482,68 +482,70 @@ export class HardhatEthersProvider implements HardhatEthersProviderI {
 
     const pollingInterval = (await this.#isHardhatNetwork()) ? 50 : 500;
 
-    return await new Promise<ethers.TransactionReceipt | null>((resolve, reject) => {
-      let cancelled = false;
-      let timeoutTimer: NodeJS.Timeout | undefined;
-      let pollingTimeout: NodeJS.Timeout | undefined;
+    return await new Promise<ethers.TransactionReceipt | null>(
+      (resolve, reject) => {
+        let cancelled = false;
+        let timeoutTimer: NodeJS.Timeout | undefined;
+        let pollingTimeout: NodeJS.Timeout | undefined;
 
-      if (timeout !== undefined && timeout > 0) {
-        timeoutTimer = setTimeout(() => {
-          cancelled = true;
+        if (timeout !== undefined && timeout > 0) {
+          timeoutTimer = setTimeout(() => {
+            cancelled = true;
 
-          clearTimeout(pollingTimeout);
+            clearTimeout(pollingTimeout);
 
-          resolve(null);
-        }, timeout);
-      }
-
-      const poll = async () => {
-        if (cancelled) {
-          return;
+            resolve(null);
+          }, timeout);
         }
 
-        try {
-          const receipt = await this.getTransactionReceipt(hash);
+        const poll = async () => {
+          if (cancelled) {
+            return;
+          }
 
-          // Wait for the required confirmation depth before resolving,
-          // so callers relying on confirmations for reorg safety aren't
-          // given a receipt that could still be reverted.
-          if (receipt !== null && receipt.blockNumber !== null) {
-            const latestBlockNumber = await this.getBlockNumber();
-            const confirmations = latestBlockNumber - receipt.blockNumber + 1;
+          try {
+            const receipt = await this.getTransactionReceipt(hash);
 
-            if (confirmations >= resolvedConfirms) {
-              cancelled = true;
+            // Wait for the required confirmation depth before resolving,
+            // so callers relying on confirmations for reorg safety aren't
+            // given a receipt that could still be reverted.
+            if (receipt !== null && receipt.blockNumber !== null) {
+              const latestBlockNumber = await this.getBlockNumber();
+              const confirmations = latestBlockNumber - receipt.blockNumber + 1;
 
-              if (timeoutTimer !== undefined) {
-                clearTimeout(timeoutTimer);
+              if (confirmations >= resolvedConfirms) {
+                cancelled = true;
+
+                if (timeoutTimer !== undefined) {
+                  clearTimeout(timeoutTimer);
+                }
+
+                clearTimeout(pollingTimeout);
+                resolve(receipt);
+
+                return;
               }
-
-              clearTimeout(pollingTimeout);
-              resolve(receipt);
-
-              return;
             }
+
+            clearTimeout(pollingTimeout);
+
+            pollingTimeout = setTimeout(poll, pollingInterval);
+          } catch (e) {
+            ensureError(e);
+
+            cancelled = true;
+
+            if (timeoutTimer !== undefined) {
+              clearTimeout(timeoutTimer);
+            }
+
+            reject(e);
           }
+        };
 
-          clearTimeout(pollingTimeout);
-
-          pollingTimeout = setTimeout(poll, pollingInterval);
-        } catch (e) {
-          ensureError(e);
-
-          cancelled = true;
-
-          if (timeoutTimer !== undefined) {
-            clearTimeout(timeoutTimer);
-          }
-
-          reject(e);
-        }
-      };
-
-      void poll();
-    });
+        void poll();
+      },
+    );
   }
 
   public async waitForBlock(

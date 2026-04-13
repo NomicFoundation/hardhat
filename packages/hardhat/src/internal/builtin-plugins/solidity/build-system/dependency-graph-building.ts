@@ -22,13 +22,13 @@ export async function buildDependencyGraph(
   hookManager: HookManager,
 ): Promise<DependencyGraphImplementation> {
   // Create the wrapper function that captures the hook manager
-  const remappingsReader: RemappingsReaderFunction = (
+  const remappingsReader: RemappingsReaderFunction = async (
     packageName,
     packageVersion,
     packagePath,
     defaultBehavior,
   ) =>
-    hookManager.runHandlerChain(
+    await hookManager.runHandlerChain(
       "solidity",
       "readNpmPackageRemappings",
       [packageName, packageVersion, packagePath],

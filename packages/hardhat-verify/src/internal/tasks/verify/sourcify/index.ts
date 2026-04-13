@@ -13,7 +13,7 @@ const verifySourcifyTask: NewTaskDefinition = extendWithSourcifyArgs(
   ),
   false,
 )
-  .setAction(() => import("./task-action.js"))
+  .setAction(async () => await import("./task-action.js"))
   .build();
 
 export default verifySourcifyTask;

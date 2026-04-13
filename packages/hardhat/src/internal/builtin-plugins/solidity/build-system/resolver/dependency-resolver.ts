@@ -160,8 +160,8 @@ export class ResolverImplementation implements Resolver {
       ImportResolutionError
     >
   > {
-    return await this.#mutex.exclusiveRun(async () =>
-      await this.#resolveImport(from, importPath),
+    return await this.#mutex.exclusiveRun(
+      async () => await this.#resolveImport(from, importPath),
     );
   }
 

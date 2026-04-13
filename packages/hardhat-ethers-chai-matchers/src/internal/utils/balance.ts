@@ -12,10 +12,12 @@ export interface BalanceChangeOptions {
   includeFee?: boolean;
 }
 
-export function getAddresses(
+export async function getAddresses(
   accounts: Array<Addressable | string>,
 ): Promise<string[]> {
-  return Promise.all(accounts.map((account) => getAddressOf(account)));
+  return await Promise.all(
+    accounts.map(async (account) => await getAddressOf(account)),
+  );
 }
 
 export async function getBalances(

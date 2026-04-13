@@ -9,8 +9,8 @@ import verifySourcifyTask from "./internal/tasks/verify/sourcify/index.js";
 const hardhatPlugin: HardhatPlugin = {
   id: "hardhat-verify",
   hookHandlers: {
-    config: () => import("./internal/hook-handlers/config.js"),
-    network: () => import("./internal/hook-handlers/network.js"),
+    config: async () => await import("./internal/hook-handlers/config.js"),
+    network: async () => await import("./internal/hook-handlers/network.js"),
   },
   tasks: [
     verifyTask,

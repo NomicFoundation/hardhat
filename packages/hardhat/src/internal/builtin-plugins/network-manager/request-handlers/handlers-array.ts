@@ -90,7 +90,7 @@ export async function createHandlersArray<
 
     if (Array.isArray(accounts)) {
       const resolvedAccounts = await Promise.all(
-        accounts.map((acc) => acc.getHexString()),
+        accounts.map(async (acc) => await acc.getHexString()),
       );
 
       requestHandlers.push(

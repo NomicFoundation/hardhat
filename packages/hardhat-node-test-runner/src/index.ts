@@ -36,12 +36,12 @@ const hardhatPlugin: HardhatPlugin = {
         defaultValue: 0,
         hidden: true,
       })
-      .setAction(() => import("./task-action.js"))
+      .setAction(async () => await import("./task-action.js"))
       .build(),
   ],
   hookHandlers: {
-    config: () => import("./hookHandlers/config.js"),
-    test: () => import("./hookHandlers/test.js"),
+    config: async () => await import("./hookHandlers/config.js"),
+    test: async () => await import("./hookHandlers/test.js"),
   },
   npmPackage: "@nomicfoundation/hardhat-node-test-runner",
 };

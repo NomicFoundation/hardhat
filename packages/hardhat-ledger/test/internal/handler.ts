@@ -221,7 +221,7 @@ describe("LedgerHandler", () => {
       );
 
       await assertRejectsWithHardhatError(
-        () => ledgerHandler.init(),
+        async () => await ledgerHandler.init(),
         HardhatError.ERRORS.HARDHAT_LEDGER.GENERAL.CONNECTION_ERROR,
         {
           error,
@@ -254,7 +254,7 @@ describe("LedgerHandler", () => {
       );
 
       await assertRejectsWithHardhatError(
-        () => ledgerHandler.init(),
+        async () => await ledgerHandler.init(),
         HardhatError.ERRORS.HARDHAT_LEDGER.GENERAL.CONNECTION_ERROR,
         {
           error,
@@ -378,7 +378,7 @@ describe("LedgerHandler", () => {
         mockedDisplayInfo.clear();
 
         await assertRejectsWithHardhatError(
-          () => ledgerHandler.init(),
+          async () => await ledgerHandler.init(),
           HardhatError.ERRORS.HARDHAT_LEDGER.GENERAL.CONNECTION_ERROR,
           {
             error: transportError,
@@ -1138,7 +1138,7 @@ describe("LedgerHandler", () => {
         );
 
         await assertRejectsWithHardhatError(
-          () => ledgerHandler.handle(request),
+          async () => await ledgerHandler.handle(request),
           HardhatError.ERRORS.HARDHAT_LEDGER.GENERAL.ERROR_WHILE_DERIVING_PATH,
           {
             path: "m/44'/60'/0'/0/0",
@@ -1172,7 +1172,7 @@ describe("LedgerHandler", () => {
         );
 
         await assertRejectsWithHardhatError(
-          () => ledgerHandler.handle(request),
+          async () => await ledgerHandler.handle(request),
           HardhatError.ERRORS.HARDHAT_LEDGER.GENERAL
             .CANNOT_FIND_VALID_DERIVATION_PATH,
           {
@@ -1279,7 +1279,7 @@ describe("LedgerHandler", () => {
         ]);
 
         await assertRejects(
-          () => ledgerHandler.handle(request),
+          async () => await ledgerHandler.handle(request),
           (error) => error instanceof DisconnectedDevice,
           "Expected DisconnectedDevice error after exhausted retries",
         );
@@ -1641,7 +1641,7 @@ describe("LedgerHandler", () => {
         ]);
 
         await assertRejectsWithHardhatError(
-          () => ledgerHandler.handle(request),
+          async () => await ledgerHandler.handle(request),
           HardhatError.ERRORS.HARDHAT_LEDGER.GENERAL.LOCKED_DEVICE,
           {},
         );
@@ -1932,7 +1932,7 @@ describe("LedgerHandler", () => {
         ]);
 
         await assertRejectsWithHardhatError(
-          () => ledgerHandler.handle(request),
+          async () => await ledgerHandler.handle(request),
           HardhatError.ERRORS.HARDHAT_LEDGER.GENERAL.LOCKED_DEVICE,
           {},
         );

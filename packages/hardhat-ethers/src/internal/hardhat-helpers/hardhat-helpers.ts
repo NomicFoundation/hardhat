@@ -63,7 +63,7 @@ export class HardhatHelpers {
     }
 
     const signersWithAddress = await Promise.all(
-      accounts.map((account) => this.getSigner(account)),
+      accounts.map(async (account) => await this.getSigner(account)),
     );
 
     return signersWithAddress;

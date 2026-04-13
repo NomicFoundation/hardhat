@@ -9,7 +9,7 @@ const verifyTask: NewTaskDefinition = extendWithSourcifyArgs(
     task("verify", "Verify a contract on all supported explorers"),
   ),
 )
-  .setAction(() => import("./task-action.js"))
+  .setAction(async () => await import("./task-action.js"))
   .build();
 
 export default verifyTask;

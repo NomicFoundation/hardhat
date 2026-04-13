@@ -6,8 +6,8 @@ const hardhatSolxPlugin: HardhatPlugin = {
   id: "hardhat-solx",
   npmPackage: "@nomicfoundation/hardhat-solx",
   hookHandlers: {
-    config: () => import("./internal/hook-handlers/config.js"),
-    solidity: () => import("./internal/hook-handlers/solidity.js"),
+    config: async () => await import("./internal/hook-handlers/config.js"),
+    solidity: async () => await import("./internal/hook-handlers/solidity.js"),
   },
 };
 

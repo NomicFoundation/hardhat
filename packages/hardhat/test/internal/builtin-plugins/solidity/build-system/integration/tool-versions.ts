@@ -30,7 +30,7 @@ async function readBuildInfo(
   const buildInfoPath = await hre.artifacts.getBuildInfoPath(buildInfoId);
   assert.ok(buildInfoPath !== undefined, "Expected build info path to exist");
 
-  return readJsonFile<SolidityBuildInfo>(buildInfoPath);
+  return await readJsonFile<SolidityBuildInfo>(buildInfoPath);
 }
 
 describe(

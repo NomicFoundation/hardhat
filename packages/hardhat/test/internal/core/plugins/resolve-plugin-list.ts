@@ -236,7 +236,8 @@ describe("Plugins - resolve plugin list", () => {
       };
 
       await assertRejectsWithHardhatError(
-        async () => await resolvePluginList(notInstalledPackageFixture, [plugin]),
+        async () =>
+          await resolvePluginList(notInstalledPackageFixture, [plugin]),
         HardhatError.ERRORS.CORE.PLUGINS.PLUGIN_NOT_INSTALLED,
         {
           pluginId: "example",
@@ -271,7 +272,7 @@ describe("Plugins - resolve plugin list - conditional dependencies", () => {
     conditionalDependencies: [
       {
         condition: () => [mod(B)],
-        plugin: () => mod(D),
+        plugin: async () => await mod(D),
       },
     ],
   };
@@ -281,7 +282,7 @@ describe("Plugins - resolve plugin list - conditional dependencies", () => {
     conditionalDependencies: [
       {
         condition: () => [mod(E), mod(G)],
-        plugin: () => mod(F),
+        plugin: async () => await mod(F),
       },
     ],
   };
@@ -309,7 +310,7 @@ describe("Plugins - resolve plugin list - conditional dependencies", () => {
     conditionalDependencies: [
       {
         condition: () => [mod(D)],
-        plugin: () => mod(G),
+        plugin: async () => await mod(G),
       },
     ],
   };
@@ -319,7 +320,7 @@ describe("Plugins - resolve plugin list - conditional dependencies", () => {
     conditionalDependencies: [
       {
         condition: () => [import(`${"nonexistant"}`)],
-        plugin: () => mod(G),
+        plugin: async () => await mod(G),
       },
     ],
   };
@@ -333,7 +334,7 @@ describe("Plugins - resolve plugin list - conditional dependencies", () => {
     conditionalDependencies: [
       {
         condition: () => [mod(G)],
-        plugin: () => mod(F),
+        plugin: async () => await mod(F),
       },
     ],
   };
@@ -343,7 +344,7 @@ describe("Plugins - resolve plugin list - conditional dependencies", () => {
     conditionalDependencies: [
       {
         condition: () => [mod(B)],
-        plugin: () => mod(G),
+        plugin: async () => await mod(G),
       },
     ],
   };
@@ -353,11 +354,11 @@ describe("Plugins - resolve plugin list - conditional dependencies", () => {
     conditionalDependencies: [
       {
         condition: () => [mod(G)],
-        plugin: () => mod(C),
+        plugin: async () => await mod(C),
       },
       {
         condition: () => [mod(B)],
-        plugin: () => mod(F),
+        plugin: async () => await mod(F),
       },
     ],
   };
@@ -367,15 +368,15 @@ describe("Plugins - resolve plugin list - conditional dependencies", () => {
     conditionalDependencies: [
       {
         condition: () => [mod(G)],
-        plugin: () => mod(L),
+        plugin: async () => await mod(L),
       },
       {
         condition: () => [mod(L)],
-        plugin: () => mod(M),
+        plugin: async () => await mod(M),
       },
       {
         condition: () => [mod(M)],
-        plugin: () => mod(F),
+        plugin: async () => await mod(F),
       },
     ],
   };
@@ -385,7 +386,7 @@ describe("Plugins - resolve plugin list - conditional dependencies", () => {
     conditionalDependencies: [
       {
         condition: () => [mod(B)],
-        plugin: () => mod(G),
+        plugin: async () => await mod(G),
       },
     ],
   };
@@ -395,7 +396,7 @@ describe("Plugins - resolve plugin list - conditional dependencies", () => {
     conditionalDependencies: [
       {
         condition: () => [mod(B)],
-        plugin: () => mod(G),
+        plugin: async () => await mod(G),
       },
     ],
   };

@@ -33,11 +33,12 @@ export async function balancesHaveChanged<
   const blockNrAfterTx = receipt.blockNumber;
 
   const beforeBalances = await Promise.all(
-    changes.map(({ address }) =>
-      publicClient.getBalance({
-        address,
-        blockNumber: blockNrAfterTx - 1n,
-      }),
+    changes.map(
+      async ({ address }) =>
+        await publicClient.getBalance({
+          address,
+          blockNumber: blockNrAfterTx - 1n,
+        }),
     ),
   );
 

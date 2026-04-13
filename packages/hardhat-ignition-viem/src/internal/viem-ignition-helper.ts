@@ -340,7 +340,7 @@ export class ViemIgnitionHelperImpl<ChainTypeT extends ChainType | string>
     }
   }
 
-  #convertHardhatContractToViemContract(
+  async #convertHardhatContractToViemContract(
     connection: NetworkConnection<ChainTypeT>,
     future:
       | NamedArtifactContractDeploymentFuture<string>
@@ -348,7 +348,7 @@ export class ViemIgnitionHelperImpl<ChainTypeT extends ChainType | string>
       | NamedArtifactContractAtFuture<string>,
     deployedContract: { address: string },
   ): Promise<GetContractReturnType> {
-    return connection.viem.getContractAt(
+    return await connection.viem.getContractAt(
       future.contractName,
       ViemIgnitionHelperImpl.#ensureAddressFormat(deployedContract.address),
     );

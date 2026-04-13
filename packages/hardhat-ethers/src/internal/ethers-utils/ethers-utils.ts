@@ -112,7 +112,7 @@ export async function resolveProperties<T>(value: {
   const keys = Object.keys(value);
   const results = await Promise.all(
     // eslint-disable-next-line @typescript-eslint/consistent-type-assertions -- this code is a verbatim copy of ethers
-    keys.map((k) => Promise.resolve(value[k as keyof T])),
+    keys.map(async (k) => await Promise.resolve(value[k as keyof T])),
   );
 
   return results.reduce(

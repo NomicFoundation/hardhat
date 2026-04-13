@@ -52,13 +52,16 @@ describe("INTEGRATION: Reverted with panic", { timeout: 60000 }, () => {
         await runSuccessfulAsserts({
           matchers,
           method: "succeeds",
-          successfulAssert: (x) => expect(x).not.to.be.revertedWithPanic(),
+          successfulAssert: async (x) =>
+            await expect(x).not.to.be.revertedWithPanic(),
         });
         await runSuccessfulAsserts({
           matchers,
           method: "succeeds",
-          successfulAssert: (x) =>
-            expect(x).not.to.be.revertedWithPanic(PANIC_CODES.ASSERTION_ERROR),
+          successfulAssert: async (x) =>
+            await expect(x).not.to.be.revertedWithPanic(
+              PANIC_CODES.ASSERTION_ERROR,
+            ),
         });
       });
 
@@ -66,15 +69,17 @@ describe("INTEGRATION: Reverted with panic", { timeout: 60000 }, () => {
         await runFailedAsserts({
           matchers,
           method: "succeeds",
-          failedAssert: (x) => expect(x).to.be.revertedWithPanic(),
+          failedAssert: async (x) => await expect(x).to.be.revertedWithPanic(),
           failedAssertReason:
             "Expected transaction to be reverted with some panic code, but it didn't revert",
         });
         await runFailedAsserts({
           matchers,
           method: "succeeds",
-          failedAssert: (x) =>
-            expect(x).to.be.revertedWithPanic(PANIC_CODES.ASSERTION_ERROR),
+          failedAssert: async (x) =>
+            await expect(x).to.be.revertedWithPanic(
+              PANIC_CODES.ASSERTION_ERROR,
+            ),
           failedAssertReason:
             "Expected transaction to be reverted with panic code 0x1 (Assertion error), but it didn't revert",
         });
@@ -86,14 +91,17 @@ describe("INTEGRATION: Reverted with panic", { timeout: 60000 }, () => {
         await runSuccessfulAsserts({
           matchers,
           method: "revertsWithoutReason",
-          successfulAssert: (x) => expect(x).to.not.be.revertedWithPanic(),
+          successfulAssert: async (x) =>
+            await expect(x).to.not.be.revertedWithPanic(),
         });
 
         await runSuccessfulAsserts({
           matchers,
           method: "revertsWithoutReason",
-          successfulAssert: (x) =>
-            expect(x).to.not.be.revertedWithPanic(PANIC_CODES.ASSERTION_ERROR),
+          successfulAssert: async (x) =>
+            await expect(x).to.not.be.revertedWithPanic(
+              PANIC_CODES.ASSERTION_ERROR,
+            ),
         });
       });
 
@@ -101,7 +109,7 @@ describe("INTEGRATION: Reverted with panic", { timeout: 60000 }, () => {
         await runFailedAsserts({
           matchers,
           method: "revertsWithoutReason",
-          failedAssert: (x) => expect(x).to.be.revertedWithPanic(),
+          failedAssert: async (x) => await expect(x).to.be.revertedWithPanic(),
           failedAssertReason:
             "Expected transaction to be reverted with some panic code, but it reverted without a reason",
         });
@@ -109,8 +117,10 @@ describe("INTEGRATION: Reverted with panic", { timeout: 60000 }, () => {
         await runFailedAsserts({
           matchers,
           method: "revertsWithoutReason",
-          failedAssert: (x) =>
-            expect(x).to.be.revertedWithPanic(PANIC_CODES.ASSERTION_ERROR),
+          failedAssert: async (x) =>
+            await expect(x).to.be.revertedWithPanic(
+              PANIC_CODES.ASSERTION_ERROR,
+            ),
           failedAssertReason:
             "Expected transaction to be reverted with panic code 0x1 (Assertion error), but it reverted without a reason",
         });
@@ -123,14 +133,17 @@ describe("INTEGRATION: Reverted with panic", { timeout: 60000 }, () => {
           matchers,
           method: "revertsWith",
           args: ["some reason"],
-          successfulAssert: (x) => expect(x).to.not.be.revertedWithPanic(),
+          successfulAssert: async (x) =>
+            await expect(x).to.not.be.revertedWithPanic(),
         });
         await runSuccessfulAsserts({
           matchers,
           method: "revertsWith",
           args: ["some reason"],
-          successfulAssert: (x) =>
-            expect(x).to.not.be.revertedWithPanic(PANIC_CODES.ASSERTION_ERROR),
+          successfulAssert: async (x) =>
+            await expect(x).to.not.be.revertedWithPanic(
+              PANIC_CODES.ASSERTION_ERROR,
+            ),
         });
       });
 
@@ -139,7 +152,7 @@ describe("INTEGRATION: Reverted with panic", { timeout: 60000 }, () => {
           matchers,
           method: "revertsWith",
           args: ["some reason"],
-          failedAssert: (x) => expect(x).to.be.revertedWithPanic(),
+          failedAssert: async (x) => await expect(x).to.be.revertedWithPanic(),
           failedAssertReason:
             "Expected transaction to be reverted with some panic code, but it reverted with reason 'some reason'",
         });
@@ -147,8 +160,10 @@ describe("INTEGRATION: Reverted with panic", { timeout: 60000 }, () => {
           matchers,
           method: "revertsWith",
           args: ["some reason"],
-          failedAssert: (x) =>
-            expect(x).to.be.revertedWithPanic(PANIC_CODES.ASSERTION_ERROR),
+          failedAssert: async (x) =>
+            await expect(x).to.be.revertedWithPanic(
+              PANIC_CODES.ASSERTION_ERROR,
+            ),
           failedAssertReason:
             "Expected transaction to be reverted with panic code 0x1 (Assertion error), but it reverted with reason 'some reason'",
         });
@@ -160,13 +175,16 @@ describe("INTEGRATION: Reverted with panic", { timeout: 60000 }, () => {
         await runSuccessfulAsserts({
           matchers,
           method: "panicAssert",
-          successfulAssert: (x) => expect(x).to.be.revertedWithPanic(),
+          successfulAssert: async (x) =>
+            await expect(x).to.be.revertedWithPanic(),
         });
         await runSuccessfulAsserts({
           matchers,
           method: "panicAssert",
-          successfulAssert: (x) =>
-            expect(x).to.be.revertedWithPanic(PANIC_CODES.ASSERTION_ERROR),
+          successfulAssert: async (x) =>
+            await expect(x).to.be.revertedWithPanic(
+              PANIC_CODES.ASSERTION_ERROR,
+            ),
         });
       });
 
@@ -174,7 +192,8 @@ describe("INTEGRATION: Reverted with panic", { timeout: 60000 }, () => {
         await runFailedAsserts({
           matchers,
           method: "panicAssert",
-          failedAssert: (x) => expect(x).to.not.be.revertedWithPanic(),
+          failedAssert: async (x) =>
+            await expect(x).to.not.be.revertedWithPanic(),
           failedAssertReason:
             "Expected transaction NOT to be reverted with some panic code, but it reverted with panic code 0x1 (Assertion error)",
         });
@@ -182,8 +201,10 @@ describe("INTEGRATION: Reverted with panic", { timeout: 60000 }, () => {
         await runFailedAsserts({
           matchers,
           method: "panicAssert",
-          failedAssert: (x) =>
-            expect(x).to.not.be.revertedWithPanic(PANIC_CODES.ASSERTION_ERROR),
+          failedAssert: async (x) =>
+            await expect(x).to.not.be.revertedWithPanic(
+              PANIC_CODES.ASSERTION_ERROR,
+            ),
           failedAssertReason:
             "Expected transaction NOT to be reverted with panic code 0x1 (Assertion error), but it was",
         });
@@ -191,8 +212,10 @@ describe("INTEGRATION: Reverted with panic", { timeout: 60000 }, () => {
         await runFailedAsserts({
           matchers,
           method: "panicAssert",
-          failedAssert: (x) =>
-            expect(x).to.be.revertedWithPanic(PANIC_CODES.ARITHMETIC_OVERFLOW),
+          failedAssert: async (x) =>
+            await expect(x).to.be.revertedWithPanic(
+              PANIC_CODES.ARITHMETIC_OVERFLOW,
+            ),
           failedAssertReason:
             "Expected transaction to be reverted with panic code 0x11 (Arithmetic operation overflowed outside of an unchecked block), but it reverted with panic code 0x1 (Assertion error)",
         });
@@ -204,14 +227,17 @@ describe("INTEGRATION: Reverted with panic", { timeout: 60000 }, () => {
         await runSuccessfulAsserts({
           matchers,
           method: "revertWithSomeCustomError",
-          successfulAssert: (x) => expect(x).to.not.be.revertedWithPanic(),
+          successfulAssert: async (x) =>
+            await expect(x).to.not.be.revertedWithPanic(),
         });
 
         await runSuccessfulAsserts({
           matchers,
           method: "revertWithSomeCustomError",
-          successfulAssert: (x) =>
-            expect(x).to.not.be.revertedWithPanic(PANIC_CODES.ASSERTION_ERROR),
+          successfulAssert: async (x) =>
+            await expect(x).to.not.be.revertedWithPanic(
+              PANIC_CODES.ASSERTION_ERROR,
+            ),
         });
       });
 
@@ -219,7 +245,7 @@ describe("INTEGRATION: Reverted with panic", { timeout: 60000 }, () => {
         await runFailedAsserts({
           matchers,
           method: "revertWithSomeCustomError",
-          failedAssert: (x) => expect(x).to.be.revertedWithPanic(),
+          failedAssert: async (x) => await expect(x).to.be.revertedWithPanic(),
           failedAssertReason:
             "Expected transaction to be reverted with some panic code, but it reverted with a custom error",
         });
@@ -227,8 +253,10 @@ describe("INTEGRATION: Reverted with panic", { timeout: 60000 }, () => {
         await runFailedAsserts({
           matchers,
           method: "revertWithSomeCustomError",
-          failedAssert: (x) =>
-            expect(x).to.be.revertedWithPanic(PANIC_CODES.ASSERTION_ERROR),
+          failedAssert: async (x) =>
+            await expect(x).to.be.revertedWithPanic(
+              PANIC_CODES.ASSERTION_ERROR,
+            ),
           failedAssertReason:
             "Expected transaction to be reverted with panic code 0x1 (Assertion error), but it reverted with a custom error",
         });
@@ -240,7 +268,8 @@ describe("INTEGRATION: Reverted with panic", { timeout: 60000 }, () => {
         await runSuccessfulAsserts({
           matchers,
           method: "succeeds",
-          successfulAssert: (x) => expect(x).not.to.be.revertedWithPanic(1),
+          successfulAssert: async (x) =>
+            await expect(x).not.to.be.revertedWithPanic(1),
         });
       });
 
@@ -248,7 +277,8 @@ describe("INTEGRATION: Reverted with panic", { timeout: 60000 }, () => {
         await runSuccessfulAsserts({
           matchers,
           method: "succeeds",
-          successfulAssert: (x) => expect(x).not.to.be.revertedWithPanic(1n),
+          successfulAssert: async (x) =>
+            await expect(x).not.to.be.revertedWithPanic(1n),
         });
       });
 
@@ -256,7 +286,8 @@ describe("INTEGRATION: Reverted with panic", { timeout: 60000 }, () => {
         await runSuccessfulAsserts({
           matchers,
           method: "succeeds",
-          successfulAssert: (x) => expect(x).not.to.be.revertedWithPanic("1"),
+          successfulAssert: async (x) =>
+            await expect(x).not.to.be.revertedWithPanic("1"),
         });
       });
     });
@@ -272,7 +303,7 @@ describe("INTEGRATION: Reverted with panic", { timeout: 60000 }, () => {
         const { hash } = await mineSuccessfulTransaction(provider, ethers);
 
         assertThrows(
-          () => expect(hash).to.be.revertedWithPanic("invalid"),
+          async () => await expect(hash).to.be.revertedWithPanic("invalid"),
           (e) =>
             e.message.includes(
               'Expected the given panic code to be a number-like value, but got "invalid"',
@@ -285,7 +316,7 @@ describe("INTEGRATION: Reverted with panic", { timeout: 60000 }, () => {
         const tx = matchers.revertsWithoutReason();
 
         assertThrows(
-          () => expect(tx).to.be.revertedWithPanic("invalid"),
+          async () => await expect(tx).to.be.revertedWithPanic("invalid"),
           (e) =>
             e.message.includes(
               'Expected the given panic code to be a number-like value, but got "invalid"',

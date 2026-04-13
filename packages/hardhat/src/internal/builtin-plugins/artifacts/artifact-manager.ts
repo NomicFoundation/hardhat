@@ -45,7 +45,8 @@ export class ArtifactManagerImplementation implements ArtifactManager {
 
   constructor(artifactsPath: string, readFsData?: () => Promise<FsData>) {
     this.#artifactsPath = artifactsPath;
-    this.#readFsData = readFsData ?? (() => this.#readFsDataFromFileSystem());
+    this.#readFsData =
+      readFsData ?? (async () => await this.#readFsDataFromFileSystem());
   }
 
   public async readArtifact<

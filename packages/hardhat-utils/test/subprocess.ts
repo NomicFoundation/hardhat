@@ -143,7 +143,9 @@ describe("subprocess", () => {
 
     await assert.rejects(
       async () =>
-        await spawnDetachedSubProcess(pathToSubprocessFile, [], { env1: "env1" }),
+        await spawnDetachedSubProcess(pathToSubprocessFile, [], {
+          env1: "env1",
+        }),
       new SubprocessFileNotFoundError(pathToSubprocessFile),
     );
   });
@@ -153,7 +155,9 @@ describe("subprocess", () => {
 
     await assert.rejects(
       async () =>
-        await spawnDetachedSubProcess(pathToSubprocessFile, [], { env1: "env1" }),
+        await spawnDetachedSubProcess(pathToSubprocessFile, [], {
+          env1: "env1",
+        }),
       new SubprocessPathIsDirectoryError(pathToSubprocessFile),
     );
   });

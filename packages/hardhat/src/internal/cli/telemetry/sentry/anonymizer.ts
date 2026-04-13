@@ -323,7 +323,9 @@ export class Anonymizer {
 
   async #anonymizeExceptions(exceptions: Exception[]): Promise<Exception[]> {
     const anonymizedExceptions = await Promise.all(
-      exceptions.map((exception) => this.#anonymizeException(exception)),
+      exceptions.map(
+        async (exception) => await this.#anonymizeException(exception),
+      ),
     );
     return anonymizedExceptions;
   }

@@ -233,7 +233,7 @@ describe("LocalAccountsHandler", () => {
         ]);
 
         await assertRejectsWithHardhatError(
-          () => localAccountsHandler.handle(jsonRpcRequest),
+          async () => await localAccountsHandler.handle(jsonRpcRequest),
           HardhatError.ERRORS.CORE.NETWORK.NOT_LOCAL_ACCOUNT,
           {
             account: "0x000006d4548a3ac17d72b372ae1e416bf65b8ead",
@@ -378,7 +378,7 @@ describe("LocalAccountsHandler", () => {
         ]);
 
         await assertRejectsWithHardhatError(
-          () => localAccountsHandler.handle(jsonRpcRequest),
+          async () => await localAccountsHandler.handle(jsonRpcRequest),
           HardhatError.ERRORS.CORE.NETWORK
             .ETHSIGN_TYPED_DATA_V4_INVALID_DATA_PARAM,
           {},
@@ -391,7 +391,7 @@ describe("LocalAccountsHandler", () => {
         ]);
 
         await assertRejectsWithHardhatError(
-          () => localAccountsHandler.handle(jsonRpcRequest),
+          async () => await localAccountsHandler.handle(jsonRpcRequest),
           HardhatError.ERRORS.CORE.NETWORK.ETHSIGN_MISSING_DATA_PARAM,
           {},
         );
@@ -508,7 +508,7 @@ describe("LocalAccountsHandler", () => {
           ]);
 
           await assertRejectsWithHardhatError(
-            () => localAccountsHandler.handle(jsonRpcRequest),
+            async () => await localAccountsHandler.handle(jsonRpcRequest),
             HardhatError.ERRORS.CORE.NETWORK
               .DATA_FIELD_CANNOT_BE_NULL_WITH_NULL_ADDRESS,
             {},
@@ -694,7 +694,7 @@ describe("LocalAccountsHandler", () => {
       ]);
 
       await assertRejectsWithHardhatError(
-        () => localAccountsHandler.handle(jsonRpcRequest),
+        async () => await localAccountsHandler.handle(jsonRpcRequest),
         HardhatError.ERRORS.CORE.NETWORK
           .DATA_FIELD_CANNOT_BE_NULL_WITH_NULL_ADDRESS,
         {},
@@ -724,7 +724,7 @@ describe("LocalAccountsHandler", () => {
       ]);
 
       await assertRejectsWithHardhatError(
-        () => localAccountsHandler.handle(jsonRpcRequest),
+        async () => await localAccountsHandler.handle(jsonRpcRequest),
         HardhatError.ERRORS.CORE.NETWORK.INCOMPATIBLE_EIP7702_FIELDS,
         {},
       );
@@ -861,7 +861,7 @@ describe("LocalAccountsHandler", () => {
       ]);
 
       await assertRejectsWithHardhatError(
-        () => localAccountsHandler.handle(jsonRpcRequest),
+        async () => await localAccountsHandler.handle(jsonRpcRequest),
         HardhatError.ERRORS.CORE.NETWORK.MISSING_TX_PARAM_TO_SIGN_LOCALLY,
         { param: "gas" },
       );
@@ -878,7 +878,7 @@ describe("LocalAccountsHandler", () => {
       ]);
 
       await assertRejectsWithHardhatError(
-        () => localAccountsHandler.handle(jsonRpcRequest),
+        async () => await localAccountsHandler.handle(jsonRpcRequest),
         HardhatError.ERRORS.CORE.NETWORK.MISSING_FEE_PRICE_FIELDS,
         {},
       );
@@ -908,13 +908,13 @@ describe("LocalAccountsHandler", () => {
       ]);
 
       await assertRejectsWithHardhatError(
-        () => localAccountsHandler.handle(jsonRpcRequest1),
+        async () => await localAccountsHandler.handle(jsonRpcRequest1),
         HardhatError.ERRORS.CORE.NETWORK.INCOMPATIBLE_FEE_PRICE_FIELDS,
         {},
       );
 
       await assertRejectsWithHardhatError(
-        () => localAccountsHandler.handle(jsonRpcRequest2),
+        async () => await localAccountsHandler.handle(jsonRpcRequest2),
         HardhatError.ERRORS.CORE.NETWORK.INCOMPATIBLE_FEE_PRICE_FIELDS,
         {},
       );
@@ -942,13 +942,13 @@ describe("LocalAccountsHandler", () => {
       ]);
 
       await assertRejectsWithHardhatError(
-        () => localAccountsHandler.handle(jsonRpcRequest1),
+        async () => await localAccountsHandler.handle(jsonRpcRequest1),
         HardhatError.ERRORS.CORE.NETWORK.MISSING_TX_PARAM_TO_SIGN_LOCALLY,
         { param: "maxPriorityFeePerGas" },
       );
 
       await assertRejectsWithHardhatError(
-        () => localAccountsHandler.handle(jsonRpcRequest2),
+        async () => await localAccountsHandler.handle(jsonRpcRequest2),
         HardhatError.ERRORS.CORE.NETWORK.MISSING_TX_PARAM_TO_SIGN_LOCALLY,
         { param: "maxFeePerGas" },
       );
@@ -967,7 +967,7 @@ describe("LocalAccountsHandler", () => {
       ]);
 
       await assertRejectsWithHardhatError(
-        () => localAccountsHandler.handle(jsonRpcRequest),
+        async () => await localAccountsHandler.handle(jsonRpcRequest),
         HardhatError.ERRORS.CORE.NETWORK.NOT_LOCAL_ACCOUNT,
         { account: "0x000006d4548a3ac17d72b372ae1e416bf65b8ead" },
       );

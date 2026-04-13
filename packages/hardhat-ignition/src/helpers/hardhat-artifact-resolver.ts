@@ -34,7 +34,7 @@ export class HardhatArtifactResolver implements ArtifactResolver {
     return await readJsonFile<BuildInfo>(buildInfoPath);
   }
 
-  public loadArtifact(contractName: string): Promise<Artifact> {
-    return this.#artifactManager.readArtifact(contractName);
+  public async loadArtifact(contractName: string): Promise<Artifact> {
+    return await this.#artifactManager.readArtifact(contractName);
   }
 }

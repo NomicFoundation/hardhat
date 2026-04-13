@@ -73,8 +73,8 @@ export class EthereumMockedProvider
     return ret;
   }
 
-  public send(_method: string, _params?: unknown[]): Promise<unknown> {
-    return Promise.resolve(null);
+  public async send(_method: string, _params?: unknown[]): Promise<unknown> {
+    return await Promise.resolve(null);
   }
 
   public sendAsync(

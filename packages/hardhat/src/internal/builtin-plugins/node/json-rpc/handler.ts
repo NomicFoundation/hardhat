@@ -53,8 +53,8 @@ export class JsonRpcHandler {
     // the following code block could be safely removed.
     if (Array.isArray(jsonHttpRequest)) {
       const responses = await Promise.all(
-        jsonHttpRequest.map((singleReq: unknown) =>
-          this.#handleRequest(singleReq),
+        jsonHttpRequest.map(
+          async (singleReq: unknown) => await this.#handleRequest(singleReq),
         ),
       );
 
@@ -104,7 +104,9 @@ export class JsonRpcHandler {
 
         rpcResp = Array.isArray(rpcReq)
           ? await Promise.all(
-              rpcReq.map((req) => this.#handleWsRequest(req, subscriptions)),
+              rpcReq.map(
+                async (req) => await this.#handleWsRequest(req, subscriptions),
+              ),
             )
           : await this.#handleWsRequest(rpcReq, subscriptions);
       } catch (error) {

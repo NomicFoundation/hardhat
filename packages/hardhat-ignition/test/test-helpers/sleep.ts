@@ -1,2 +1,2 @@
-export const sleep = (timeout: number): Promise<void> =>
-  new Promise((res) => setTimeout(res, timeout));
+export const sleep = async (timeout: number): Promise<void> =>
+  await new Promise((res) => setTimeout(res, timeout));

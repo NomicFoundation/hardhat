@@ -14,10 +14,10 @@ const hardhatPlugin: HardhatPlugin = {
     }),
   ],
   hookHandlers: {
-    clean: () => import("./hook-handlers/clean.js"),
-    hre: () => import("./hook-handlers/hre.js"),
-    solidity: () => import("./hook-handlers/solidity.js"),
-    test: () => import("./hook-handlers/test.js"),
+    clean: async () => await import("./hook-handlers/clean.js"),
+    hre: async () => await import("./hook-handlers/hre.js"),
+    solidity: async () => await import("./hook-handlers/solidity.js"),
+    test: async () => await import("./hook-handlers/test.js"),
   },
   npmPackage: "hardhat",
 };

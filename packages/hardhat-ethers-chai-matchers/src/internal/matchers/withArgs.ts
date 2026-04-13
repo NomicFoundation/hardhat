@@ -67,9 +67,9 @@ export function supportWithArgs(
     const resolveArgument = (arg: any) =>
       isAddressable(arg) ? arg.getAddress() : arg;
 
-    const onSuccess = (resolvedExpectedArgs: any[]) => {
+    const onSuccess = async (resolvedExpectedArgs: any[]) => {
       if (emitCalled) {
-        return emitWithArgs(
+        return await emitWithArgs(
           this,
           Assertion,
           chaiUtils,
@@ -77,7 +77,7 @@ export function supportWithArgs(
           onSuccess,
         );
       } else {
-        return revertedWithCustomErrorWithArgs(
+        return await revertedWithCustomErrorWithArgs(
           this,
           Assertion,
           chaiUtils,
@@ -88,7 +88,7 @@ export function supportWithArgs(
     };
 
     const promise = (this.then === undefined ? Promise.resolve() : this)
-      .then(() => Promise.all(expectedArgs.map(resolveArgument)))
+      .then(async () => await Promise.all(expectedArgs.map(resolveArgument)))
       .then(onSuccess);
 
     this.then = promise.then.bind(promise);

@@ -20,11 +20,11 @@ export abstract class BaseProvider
   ): Promise<SuccessfulJsonRpcResponse["result"]>;
   public abstract close(): Promise<void>;
 
-  public send(
+  public async send(
     method: string,
     params?: unknown[],
   ): Promise<SuccessfulJsonRpcResponse["result"]> {
-    return this.request({ method, params });
+    return await this.request({ method, params });
   }
 
   public sendAsync(

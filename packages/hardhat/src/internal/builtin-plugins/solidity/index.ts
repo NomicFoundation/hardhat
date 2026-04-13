@@ -39,9 +39,9 @@ const hardhatPlugin: HardhatPlugin = {
   id: "builtin:solidity",
   dependencies: () => [import("../artifacts/index.js")],
   hookHandlers: {
-    config: () => import("./hook-handlers/config.js"),
-    hre: () => import("./hook-handlers/hre.js"),
-    solidity: () => import("./hook-handlers/solidity.js"),
+    config: async () => await import("./hook-handlers/config.js"),
+    hre: async () => await import("./hook-handlers/hre.js"),
+    solidity: async () => await import("./hook-handlers/solidity.js"),
   },
   tasks: [
     {

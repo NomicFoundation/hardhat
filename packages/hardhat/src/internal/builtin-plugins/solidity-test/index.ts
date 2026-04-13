@@ -9,8 +9,8 @@ import "./type-extensions.js";
 const hardhatPlugin: HardhatPlugin = {
   id: "builtin:solidity-tests",
   hookHandlers: {
-    config: () => import("./hook-handlers/config.js"),
-    test: () => import("./hook-handlers/test.js"),
+    config: async () => await import("./hook-handlers/config.js"),
+    test: async () => await import("./hook-handlers/test.js"),
   },
   tasks: [
     task(["test", "solidity"], "Run the Solidity tests")

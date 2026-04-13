@@ -8,7 +8,7 @@ import "./type-extensions.js";
 const hardhatPlugin: HardhatPlugin = {
   id: "builtin:test",
   hookHandlers: {
-    config: () => import("./hook-handlers/config.js"),
+    config: async () => await import("./hook-handlers/config.js"),
   },
   tasks: [
     task("test", "Run all tests")

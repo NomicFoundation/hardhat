@@ -120,23 +120,26 @@ describe("integration tests for the keystore tasks", () => {
 
       it("should display the value on a `npx hardhat keystore get`", async () => {
         await _assertConsoleOutputMatchesFor(
-          () =>
-            hre.tasks.getTask(["keystore", "get"]).run({ dev, key: "myKey1" }),
+          async () =>
+            await hre.tasks
+              .getTask(["keystore", "get"])
+              .run({ dev, key: "myKey1" }),
           "myValue1\n",
         );
       });
 
       it("should display the list of keys on `npx hardhat keystore list`", async () => {
         await _assertConsoleOutputMatchesFor(
-          () => hre.tasks.getTask(["keystore", "list"]).run({ dev }),
+          async () =>
+            await hre.tasks.getTask(["keystore", "list"]).run({ dev }),
           `Keys in the ${getKeystoreType(dev)} keystore:\nmyKey1\nmyKey2\n\n`,
         );
       });
 
       it("should display the delete the key on `npx hardhat keystore delete myKey1`", async () => {
         await _assertConsoleOutputMatchesFor(
-          () =>
-            hre.tasks
+          async () =>
+            await hre.tasks
               .getTask(["keystore", "delete"])
               .run({ dev, key: "myKey1" }),
           `Key "myKey1" deleted from the ${getKeystoreType(dev)} keystore\n`,
@@ -145,8 +148,8 @@ describe("integration tests for the keystore tasks", () => {
 
       it("should set a value on a `npx hardhat keystore set`", async () => {
         await _assertConsoleOutputMatchesFor(
-          () =>
-            hre.tasks
+          async () =>
+            await hre.tasks
               .getTask(["keystore", "set"])
               .run({ dev, key: "myNewKey" }),
           `Key "myNewKey" set in the ${getKeystoreType(dev)} keystore\n`,
@@ -155,7 +158,8 @@ describe("integration tests for the keystore tasks", () => {
 
       it("should show the keystore path", async () => {
         await _assertConsoleOutputMatchesFor(
-          () => hre.tasks.getTask(["keystore", "path"]).run({ dev }),
+          async () =>
+            await hre.tasks.getTask(["keystore", "path"]).run({ dev }),
           `${keystoreFilePath}\n`,
         );
       });
@@ -165,8 +169,10 @@ describe("integration tests for the keystore tasks", () => {
         { skip: !dev },
         async () => {
           await assertRejectsWithHardhatError(
-            () =>
-              hre.tasks.getTask(["keystore", "change-password"]).run({ dev }),
+            async () =>
+              await hre.tasks
+                .getTask(["keystore", "change-password"])
+                .run({ dev }),
             HardhatError.ERRORS.HARDHAT_KEYSTORE.GENERAL
               .CANNOT_CHANGED_PASSWORD_FOR_DEV_KEYSTORE,
             {},
@@ -194,7 +200,8 @@ describe("integration tests for the keystore tasks", () => {
         });
 
         await _assertConsoleOutputMatchesFor(
-          () => tmpHre.tasks.getTask(["keystore", "change-password"]).run(),
+          async () =>
+            await tmpHre.tasks.getTask(["keystore", "change-password"]).run(),
           "Unlock the production keystore using your current password before proceeding with the password change.\n" +
             "Change your password.\n" +
             "The password must have at least 8 characters.\n" +
@@ -216,16 +223,18 @@ describe("integration tests for the keystore tasks", () => {
 
         // Check that the keystore with the new password is working as expected
         await _assertConsoleOutputMatchesFor(
-          () =>
-            tmpHre.tasks.getTask(["keystore", "get"]).run({ key: "myKey1" }),
+          async () =>
+            await tmpHre.tasks
+              .getTask(["keystore", "get"])
+              .run({ key: "myKey1" }),
           "myValue1\n",
         );
       });
 
       it("should rename a key on `npx hardhat keystore rename myKey1 renamedKey`", async () => {
         await _assertConsoleOutputMatchesFor(
-          () =>
-            hre.tasks
+          async () =>
+            await hre.tasks
               .getTask(["keystore", "rename"])
               .run({ dev, oldKey: "myKey1", newKey: "renamedKey" }),
           `Key "myKey1" renamed to "renamedKey" in the ${getKeystoreType(dev)} keystore\n`,

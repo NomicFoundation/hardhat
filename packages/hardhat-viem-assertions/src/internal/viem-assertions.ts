@@ -61,7 +61,13 @@ export class HardhatViemAssertionsImpl<
     eventName: EventName,
     args: any[],
   ): Promise<void> {
-    return await emitWithArgs(this.#viem, contractFn, contract, eventName, args);
+    return await emitWithArgs(
+      this.#viem,
+      contractFn,
+      contract,
+      eventName,
+      args,
+    );
   }
 
   public async revert(

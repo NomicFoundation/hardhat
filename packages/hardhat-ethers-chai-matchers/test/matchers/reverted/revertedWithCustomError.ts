@@ -55,8 +55,8 @@ describe("INTEGRATION: Reverted with custom error", { timeout: 60000 }, () => {
         await runSuccessfulAsserts({
           matchers,
           method: "succeeds",
-          successfulAssert: (x) =>
-            expect(x).not.to.be.revertedWithCustomError(
+          successfulAssert: async (x) =>
+            await expect(x).not.to.be.revertedWithCustomError(
               matchers,
               "SomeCustomError",
             ),
@@ -67,8 +67,8 @@ describe("INTEGRATION: Reverted with custom error", { timeout: 60000 }, () => {
         await runFailedAsserts({
           matchers,
           method: "succeeds",
-          failedAssert: (x) =>
-            expect(x).to.be.revertedWithCustomError(
+          failedAssert: async (x) =>
+            await expect(x).to.be.revertedWithCustomError(
               matchers,
               "SomeCustomError",
             ),
@@ -83,8 +83,8 @@ describe("INTEGRATION: Reverted with custom error", { timeout: 60000 }, () => {
         await runSuccessfulAsserts({
           matchers,
           method: "revertsWithoutReason",
-          successfulAssert: (x) =>
-            expect(x).to.not.be.revertedWithCustomError(
+          successfulAssert: async (x) =>
+            await expect(x).to.not.be.revertedWithCustomError(
               matchers,
               "SomeCustomError",
             ),
@@ -95,8 +95,8 @@ describe("INTEGRATION: Reverted with custom error", { timeout: 60000 }, () => {
         await runFailedAsserts({
           matchers,
           method: "revertsWithoutReason",
-          failedAssert: (x) =>
-            expect(x).to.be.revertedWithCustomError(
+          failedAssert: async (x) =>
+            await expect(x).to.be.revertedWithCustomError(
               matchers,
               "SomeCustomError",
             ),
@@ -112,8 +112,8 @@ describe("INTEGRATION: Reverted with custom error", { timeout: 60000 }, () => {
           matchers,
           method: "revertsWith",
           args: ["some reason"],
-          successfulAssert: (x) =>
-            expect(x).to.not.be.revertedWithCustomError(
+          successfulAssert: async (x) =>
+            await expect(x).to.not.be.revertedWithCustomError(
               matchers,
               "SomeCustomError",
             ),
@@ -125,8 +125,8 @@ describe("INTEGRATION: Reverted with custom error", { timeout: 60000 }, () => {
           matchers,
           method: "revertsWith",
           args: ["some reason"],
-          failedAssert: (x) =>
-            expect(x).to.be.revertedWithCustomError(
+          failedAssert: async (x) =>
+            await expect(x).to.be.revertedWithCustomError(
               matchers,
               "SomeCustomError",
             ),
@@ -141,8 +141,8 @@ describe("INTEGRATION: Reverted with custom error", { timeout: 60000 }, () => {
         await runSuccessfulAsserts({
           matchers,
           method: "panicAssert",
-          successfulAssert: (x) =>
-            expect(x).to.not.be.revertedWithCustomError(
+          successfulAssert: async (x) =>
+            await expect(x).to.not.be.revertedWithCustomError(
               matchers,
               "SomeCustomError",
             ),
@@ -153,8 +153,8 @@ describe("INTEGRATION: Reverted with custom error", { timeout: 60000 }, () => {
         await runFailedAsserts({
           matchers,
           method: "panicAssert",
-          failedAssert: (x) =>
-            expect(x).to.be.revertedWithCustomError(
+          failedAssert: async (x) =>
+            await expect(x).to.be.revertedWithCustomError(
               matchers,
               "SomeCustomError",
             ),
@@ -169,8 +169,8 @@ describe("INTEGRATION: Reverted with custom error", { timeout: 60000 }, () => {
         await runSuccessfulAsserts({
           matchers,
           method: "revertWithSomeCustomError",
-          successfulAssert: (x) =>
-            expect(x).to.be.revertedWithCustomError(
+          successfulAssert: async (x) =>
+            await expect(x).to.be.revertedWithCustomError(
               matchers,
               "SomeCustomError",
             ),
@@ -179,8 +179,8 @@ describe("INTEGRATION: Reverted with custom error", { timeout: 60000 }, () => {
         await runSuccessfulAsserts({
           matchers,
           method: "revertWithAnotherCustomError",
-          successfulAssert: (x) =>
-            expect(x).to.not.be.revertedWithCustomError(
+          successfulAssert: async (x) =>
+            await expect(x).to.not.be.revertedWithCustomError(
               matchers,
               "SomeCustomError",
             ),
@@ -191,8 +191,8 @@ describe("INTEGRATION: Reverted with custom error", { timeout: 60000 }, () => {
         await runFailedAsserts({
           matchers,
           method: "revertWithSomeCustomError",
-          failedAssert: (x) =>
-            expect(x).to.not.be.revertedWithCustomError(
+          failedAssert: async (x) =>
+            await expect(x).to.not.be.revertedWithCustomError(
               matchers,
               "SomeCustomError",
             ),
@@ -205,8 +205,8 @@ describe("INTEGRATION: Reverted with custom error", { timeout: 60000 }, () => {
         await runFailedAsserts({
           matchers,
           method: "revertWithAnotherCustomError",
-          failedAssert: (x) =>
-            expect(x).to.be.revertedWithCustomError(
+          failedAssert: async (x) =>
+            await expect(x).to.be.revertedWithCustomError(
               matchers,
               "SomeCustomError",
             ),
@@ -219,8 +219,8 @@ describe("INTEGRATION: Reverted with custom error", { timeout: 60000 }, () => {
         await runFailedAsserts({
           matchers,
           method: "revertWithAnotherContractCustomError",
-          failedAssert: (x) =>
-            expect(x).to.be.revertedWithCustomError(
+          failedAssert: async (x) =>
+            await expect(x).to.be.revertedWithCustomError(
               matchers,
               "SomeCustomError",
             ),
@@ -381,10 +381,11 @@ describe("INTEGRATION: Reverted with custom error", { timeout: 60000 }, () => {
       });
 
       it("should fail when used with .not.", async () => {
-        expect(() =>
-          expect(matchers.revertWithSomeCustomError())
-            .to.not.be.revertedWithCustomError(matchers, "SomeCustomError")
-            .withArgs(1),
+        expect(
+          async () =>
+            await expect(matchers.revertWithSomeCustomError())
+              .to.not.be.revertedWithCustomError(matchers, "SomeCustomError")
+              .withArgs(1),
         ).to.throw(Error, "Do not combine .not. with .withArgs()");
       });
 
@@ -460,7 +461,7 @@ describe("INTEGRATION: Reverted with custom error", { timeout: 60000 }, () => {
 
         assertThrows(
           // @ts-expect-error -- force error scenario: reason should be a string or a regular expression
-          () => expect(hash).to.be.revertedWith(10),
+          async () => await expect(hash).to.be.revertedWith(10),
           (e) =>
             e.message.includes(
               "Expected the revert reason to be a string or a regular expression",
@@ -471,8 +472,8 @@ describe("INTEGRATION: Reverted with custom error", { timeout: 60000 }, () => {
 
       it("the contract is not specified", async () => {
         assertThrows(
-          () =>
-            expect(
+          async () =>
+            await expect(
               matchers.revertWithSomeCustomError(),
               // @ts-expect-error -- force error scenario: contract should be specified
             ).to.be.revertedWithCustomError("SomeCustomError"),
@@ -486,8 +487,8 @@ describe("INTEGRATION: Reverted with custom error", { timeout: 60000 }, () => {
 
       it("the contract doesn't have a custom error with that name", async () => {
         assertThrows(
-          () =>
-            expect(
+          async () =>
+            await expect(
               matchers.revertWithSomeCustomError(),
             ).to.be.revertedWithCustomError(matchers, "SomeCustomErrorTwo"),
           (e) =>
@@ -524,8 +525,8 @@ describe("INTEGRATION: Reverted with custom error", { timeout: 60000 }, () => {
 
       it("extra arguments", async () => {
         assertThrows(
-          () =>
-            expect(
+          async () =>
+            await expect(
               matchers.revertWithSomeCustomError(),
             ).to.be.revertedWithCustomError(
               matchers,

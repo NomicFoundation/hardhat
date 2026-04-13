@@ -29,11 +29,11 @@ export class MockEthereumProvider
     throw new Error("Method not supported");
   }
 
-  public close(): Promise<void> {
-    return Promise.resolve();
+  public async close(): Promise<void> {
+    return await Promise.resolve();
   }
 
-  public send(): Promise<any> {
+  public async send(): Promise<any> {
     throw new Error("Method not implemented.");
   }
   public sendAsync(): void {

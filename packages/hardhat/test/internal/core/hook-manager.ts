@@ -408,7 +408,8 @@ describe("HookManager", () => {
         const examplePlugin: HardhatPlugin = {
           id: "example",
           hookHandlers: {
-            config: () => import("./fixture-plugins/config-plugin.js"),
+            config: async () =>
+              await import("./fixture-plugins/config-plugin.js"),
           },
         };
 
@@ -440,7 +441,7 @@ describe("HookManager", () => {
         const examplePlugin: HardhatPlugin = {
           id: "example",
           hookHandlers: {
-            config: () => import(nonExistentImport),
+            config: async () => await import(nonExistentImport),
           },
           npmPackage: null,
         };

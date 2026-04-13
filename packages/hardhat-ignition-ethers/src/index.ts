@@ -9,7 +9,7 @@ const hardhatIgnitionEthersPlugin: HardhatPlugin = {
     import("@nomicfoundation/hardhat-ethers"),
   ],
   hookHandlers: {
-    network: () => import("./internal/hook-handlers/network.js"),
+    network: async () => await import("./internal/hook-handlers/network.js"),
   },
   npmPackage: "@nomicfoundation/hardhat-ignition-ethers",
 };

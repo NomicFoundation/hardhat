@@ -43,7 +43,9 @@ describe("time - increaseTo", () => {
     const initialTimestamp = await time.latest();
 
     // eslint-disable-next-line no-restricted-syntax -- only used in test to verify error not thrown by Hardhat
-    await assert.rejects(async () => await time.increaseTo(initialTimestamp - 1));
+    await assert.rejects(
+      async () => await time.increaseTo(initialTimestamp - 1),
+    );
   });
 
   describe("accepted parameter types for timestamp", () => {

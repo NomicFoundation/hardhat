@@ -38,10 +38,10 @@ export class MockEthereumProvider
     throw new Error("Method not supported");
   }
 
-  public close(): Promise<void> {
+  public async close(): Promise<void> {
     throw new Error("Method not implemented.");
   }
-  public send(): Promise<any> {
+  public async send(): Promise<any> {
     throw new Error("Method not implemented.");
   }
   public sendAsync(): void {

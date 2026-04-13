@@ -116,7 +116,11 @@ export class NetworkManagerImplementation implements NetworkManager {
       "newConnection",
       [],
       async (_context) =>
-        await this.#initializeNetworkConnection(networkName, chainType, override),
+        await this.#initializeNetworkConnection(
+          networkName,
+          chainType,
+          override,
+        ),
     );
 
     /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions
@@ -252,11 +256,11 @@ export class NetworkManagerImplementation implements NetworkManager {
     const createProvider = async (
       networkConnection: NetworkConnectionImplementation<ChainTypeT>,
     ): Promise<EthereumProvider> => {
-      const jsonRpcRequestWrapper: JsonRpcRequestWrapperFunction = (
+      const jsonRpcRequestWrapper: JsonRpcRequestWrapperFunction = async (
         request,
         defaultBehavior,
       ) =>
-        hookManager.runHandlerChain(
+        await hookManager.runHandlerChain(
           "network",
           "onRequest",
           [networkConnection, request],

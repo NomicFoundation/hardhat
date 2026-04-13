@@ -111,7 +111,7 @@ describe(
         it("with a function that returns a promise of a TxResponse", async () => {
           await runAllAsserts(
             ethers,
-            () => sender.sendTransaction({ to: receiver.address }),
+            async () => await sender.sendTransaction({ to: receiver.address }),
             mockToken,
             [sender, receiver],
             [0, 0],
@@ -136,8 +136,8 @@ describe(
             sender.sendTransaction({ to: receiver.address }),
           ).to.changeTokenBalance(ethers, mockToken, sender.address, 0);
 
-          await expect(() =>
-            sender.sendTransaction({ to: receiver.address }),
+          await expect(
+            async () => await sender.sendTransaction({ to: receiver.address }),
           ).to.changeTokenBalances(
             ethers,
             mockToken,
@@ -146,8 +146,8 @@ describe(
           );
 
           // mixing signers and addresses
-          await expect(() =>
-            sender.sendTransaction({ to: receiver.address }),
+          await expect(
+            async () => await sender.sendTransaction({ to: receiver.address }),
           ).to.changeTokenBalances(
             ethers,
             mockToken,
@@ -170,8 +170,8 @@ describe(
             (diff: bigint) => diff > 0n,
           );
 
-          await expect(() =>
-            sender.sendTransaction({ to: receiver.address }),
+          await expect(
+            async () => await sender.sendTransaction({ to: receiver.address }),
           ).to.not.changeTokenBalances(
             ethers,
             mockToken,
@@ -179,8 +179,8 @@ describe(
             [0, 1],
           );
 
-          await expect(() =>
-            sender.sendTransaction({ to: receiver.address }),
+          await expect(
+            async () => await sender.sendTransaction({ to: receiver.address }),
           ).to.not.changeTokenBalances(
             ethers,
             mockToken,
@@ -188,8 +188,8 @@ describe(
             [1, 0],
           );
 
-          await expect(() =>
-            sender.sendTransaction({ to: receiver.address }),
+          await expect(
+            async () => await sender.sendTransaction({ to: receiver.address }),
           ).to.not.changeTokenBalances(
             ethers,
             mockToken,
@@ -309,8 +309,8 @@ describe(
 
       describe("Transaction Callback", () => {
         it("should pass when given predicate", async () => {
-          await expect(() =>
-            mockToken.transfer(receiver.address, 75),
+          await expect(
+            async () => await mockToken.transfer(receiver.address, 75),
           ).to.changeTokenBalances(
             ethers,
             mockToken,
@@ -387,7 +387,7 @@ describe(
         it("with a function that returns a promise of a TxResponse", async () => {
           await runAllAsserts(
             ethers,
-            () => mockToken.transfer(receiver.address, 200),
+            async () => await mockToken.transfer(receiver.address, 200),
             mockToken,
             [sender, receiver],
             [-200, 200],
@@ -410,8 +410,8 @@ describe(
             receiver.address,
           );
 
-          await expect(() =>
-            mockToken.transfer(receiver.address, 50),
+          await expect(
+            async () => await mockToken.transfer(receiver.address, 50),
           ).to.changeTokenBalance(ethers, mockToken, receiver, 50);
 
           const receiverBalanceChange =
@@ -426,8 +426,8 @@ describe(
             receiver.address,
           );
 
-          await expect(() =>
-            mockToken.transfer(receiver.address, 50),
+          await expect(
+            async () => await mockToken.transfer(receiver.address, 50),
           ).to.changeTokenBalances(
             ethers,
             mockToken,
@@ -655,8 +655,8 @@ describe(
 
           it("changeTokenBalance: Should throw if chained to another non-chainable method", () => {
             assertThrows(
-              () =>
-                expect(contract.emitWithoutArgs())
+              async () =>
+                await expect(contract.emitWithoutArgs())
                   .to.emit(contract, "WithoutArgs")
                   .and.to.changeTokenBalance(ethers, mockToken, receiver, 0),
               (e) =>
@@ -669,8 +669,8 @@ describe(
 
           it("changeTokenBalances: should throw if chained to another non-chainable method", () => {
             assertThrows(
-              () =>
-                expect(matchers.revertWithCustomErrorWithInt(1))
+              async () =>
+                await expect(matchers.revertWithCustomErrorWithInt(1))
                   .to.be.revert(ethers)
                   .and.to.changeTokenBalances(
                     ethers,
@@ -692,8 +692,8 @@ describe(
         describe(CHANGE_TOKEN_BALANCE_MATCHER, () => {
           it("token is not specified", async () => {
             assertThrows(
-              () =>
-                expect(
+              async () =>
+                await expect(
                   mockToken.transfer(receiver.address, 50),
                   // @ts-expect-error -- force error scenario: token should be specified
                 ).to.changeTokenBalance(ethers, receiver, 50),
@@ -706,8 +706,8 @@ describe(
 
             // if an address is used (receiver.address)
             assertThrows(
-              () =>
-                expect(
+              async () =>
+                await expect(
                   mockToken.transfer(receiver.address, 50),
                   // @ts-expect-error -- force error scenario: token should be specified
                 ).to.changeTokenBalance(ethers, receiver.address, 50),
@@ -723,10 +723,11 @@ describe(
             const NotAToken = await ethers.getContractFactory("NotAToken");
             const notAToken = await NotAToken.deploy();
 
-            expect(() =>
-              expect(
-                mockToken.transfer(receiver.address, 50),
-              ).to.changeTokenBalance(ethers, notAToken, sender, -50),
+            expect(
+              async () =>
+                await expect(
+                  mockToken.transfer(receiver.address, 50),
+                ).to.changeTokenBalance(ethers, notAToken, sender, -50),
             ).to.throw(
               Error,
               "The given contract instance is not an ERC20 token",
@@ -775,8 +776,8 @@ describe(
         describe(CHANGE_TOKEN_BALANCES_MATCHER, () => {
           it("token is not specified", async () => {
             assertThrows(
-              () =>
-                expect(
+              async () =>
+                await expect(
                   mockToken.transfer(receiver.address, 50),
                   // @ts-expect-error -- force error scenario: token should be specified
                 ).to.changeTokenBalances(ethers, [sender, receiver], [-50, 50]),
@@ -792,39 +793,47 @@ describe(
             const NotAToken = await ethers.getContractFactory("NotAToken");
             const notAToken = await NotAToken.deploy();
 
-            expect(() =>
-              expect(
-                mockToken.transfer(receiver.address, 50),
-              ).to.changeTokenBalances(
-                ethers,
-                notAToken,
-                [sender, receiver],
-                [-50, 50],
-              ),
+            expect(
+              async () =>
+                await expect(
+                  mockToken.transfer(receiver.address, 50),
+                ).to.changeTokenBalances(
+                  ethers,
+                  notAToken,
+                  [sender, receiver],
+                  [-50, 50],
+                ),
             ).to.throw(
               Error,
               "The given contract instance is not an ERC20 token",
             );
           });
           it("arrays have different length", async () => {
-            expect(() =>
-              expect(
-                mockToken.transfer(receiver.address, 50),
-              ).to.changeTokenBalances(ethers, mockToken, [sender], [-50, 50]),
+            expect(
+              async () =>
+                await expect(
+                  mockToken.transfer(receiver.address, 50),
+                ).to.changeTokenBalances(
+                  ethers,
+                  mockToken,
+                  [sender],
+                  [-50, 50],
+                ),
             ).to.throw(
               Error,
               "The number of accounts (1) is different than the number of expected balance changes (2)",
             );
 
-            expect(() =>
-              expect(
-                mockToken.transfer(receiver.address, 50),
-              ).to.changeTokenBalances(
-                ethers,
-                mockToken,
-                [sender, receiver],
-                [-50],
-              ),
+            expect(
+              async () =>
+                await expect(
+                  mockToken.transfer(receiver.address, 50),
+                ).to.changeTokenBalances(
+                  ethers,
+                  mockToken,
+                  [sender, receiver],
+                  [-50],
+                ),
             ).to.throw(
               Error,
               "The number of accounts (2) is different than the number of expected balance changes (1)",
@@ -832,13 +841,16 @@ describe(
           });
 
           it("arrays have different length, subject is a rejected promise", async () => {
-            expect(() =>
-              expect(matchers.revertsWithoutReason()).to.changeTokenBalances(
-                ethers,
-                mockToken,
-                [sender],
-                [-50, 50],
-              ),
+            expect(
+              async () =>
+                await expect(
+                  matchers.revertsWithoutReason(),
+                ).to.changeTokenBalances(
+                  ethers,
+                  mockToken,
+                  [sender],
+                  [-50, 50],
+                ),
             ).to.throw(
               Error,
               "The number of accounts (1) is different than the number of expected balance changes (2)",

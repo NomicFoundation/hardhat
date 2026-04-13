@@ -307,8 +307,8 @@ describe("hook-handlers - configuration variables - fetchValue", () => {
 
       it("should throw an error if the keystore is executed in test mode and the key is not in the development keystore", async () => {
         await assertRejectsWithHardhatError(
-          () =>
-            hre.hooks.runHandlerChain(
+          async () =>
+            await hre.hooks.runHandlerChain(
               "configurationVariables",
               "fetchValue",
               [exampleConfigurationVariable3],
@@ -327,8 +327,8 @@ describe("hook-handlers - configuration variables - fetchValue", () => {
         await remove(configurationVariableDevKeystoreFilePath);
 
         await assertRejectsWithHardhatError(
-          () =>
-            hre.hooks.runHandlerChain(
+          async () =>
+            await hre.hooks.runHandlerChain(
               "configurationVariables",
               "fetchValue",
               [exampleConfigurationVariable3],

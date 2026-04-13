@@ -1,7 +1,7 @@
 import type { NetworkConnection } from "hardhat/types/network";
 
-const sleep = (timeout: number) =>
-  new Promise((res) => setTimeout(res, timeout));
+const sleep = async (timeout: number) =>
+  await new Promise((res) => setTimeout(res, timeout));
 
 /**
  * Wait until there are at least `expectedCount` transactions in the mempool

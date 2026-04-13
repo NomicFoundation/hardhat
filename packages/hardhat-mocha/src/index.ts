@@ -28,12 +28,12 @@ const hardhatPlugin: HardhatPlugin = {
         name: "noCompile",
         description: "Don't compile the project before running the tests",
       })
-      .setAction(() => import("./task-action.js"))
+      .setAction(async () => await import("./task-action.js"))
       .build(),
   ],
   hookHandlers: {
-    config: () => import("./hookHandlers/config.js"),
-    test: () => import("./hookHandlers/test.js"),
+    config: async () => await import("./hookHandlers/config.js"),
+    test: async () => await import("./hookHandlers/test.js"),
   },
   npmPackage: "@nomicfoundation/hardhat-mocha",
 };

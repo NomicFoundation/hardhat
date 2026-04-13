@@ -167,8 +167,8 @@ describe("Task builders", () => {
         const builder = new NewTaskDefinitionBuilderImplementation("task-id");
         const taskActionUrl = "./path/to/task-action.js";
 
-        const action: LazyActionObject<NewTaskActionFunction> = () =>
-          import(taskActionUrl);
+        const action: LazyActionObject<NewTaskActionFunction> = async () =>
+          await import(taskActionUrl);
 
         const taskDefinition = builder.setAction(action).build();
 
@@ -1213,8 +1213,8 @@ describe("Task builders", () => {
         );
         const taskActionUrl = "./path/to/task-action.js";
 
-        const action: LazyActionObject<NewTaskActionFunction> = () =>
-          import(taskActionUrl);
+        const action: LazyActionObject<NewTaskActionFunction> = async () =>
+          await import(taskActionUrl);
 
         const taskDefinition = builder.setAction(action).build();
 

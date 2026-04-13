@@ -78,8 +78,8 @@ describe("solidity-test/task-action", function () {
     it("should throw if a file is provided but is not considered a test", async () => {
       hre = await createHardhatRuntimeEnvironment(hardhatConfigPartialTests);
       await assertRejectsWithHardhatError(
-        () =>
-          hre.tasks.getTask(["test", "solidity"]).run({
+        async () =>
+          await hre.tasks.getTask(["test", "solidity"]).run({
             noCompile: true,
             testFiles: ["./test/not-in-test-path.t.sol"],
           }),
@@ -107,8 +107,8 @@ describe("solidity-test/task-action", function () {
     it("should throw if a file is provided but is not considered a test", async () => {
       hre = await createHardhatRuntimeEnvironment(hardhatConfigPartialTests);
       await assertRejectsWithHardhatError(
-        () =>
-          hre.tasks.getTask(["test"]).run({
+        async () =>
+          await hre.tasks.getTask(["test"]).run({
             noCompile: true,
             testFiles: ["./test/not-in-test-path.t.sol"],
           }),
@@ -255,10 +255,10 @@ describe("solidity-test/task-action", function () {
             overrideTask("build")
               .setAction(async () => {
                 return {
-                  default: (args, _hre, runSuper) => {
+                  default: async (args, _hre, runSuper) => {
                     buildArgs.push(args);
 
-                    return runSuper(args);
+                    return await runSuper(args);
                   },
                 };
               })

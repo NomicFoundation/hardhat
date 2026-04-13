@@ -193,7 +193,7 @@ export class HookManagerImplementation implements HookManager {
     }
 
     return await Promise.all(
-      handlers.map((handler) => (handler as any)(...handlerParams)),
+      handlers.map(async (handler) => await (handler as any)(...handlerParams)),
     );
   }
 

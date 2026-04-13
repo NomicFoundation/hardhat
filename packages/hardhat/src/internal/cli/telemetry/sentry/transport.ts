@@ -35,7 +35,7 @@ export function createDetachedProcessTransport(
   getConfigPath: () => string | undefined,
 ): Transport {
   return {
-    send: (envelope) => {
+    send: async (envelope) => {
       const verbose = log.enabled;
 
       // **Synchronously** spawn a detached subprocess here
@@ -75,10 +75,10 @@ export function createDetachedProcessTransport(
 
       subprocess.unref();
 
-      return Promise.resolve({ statusCode: 200 });
+      return await Promise.resolve({ statusCode: 200 });
     },
-    flush: (_timeout) => {
-      return Promise.resolve(true);
+    flush: async (_timeout) => {
+      return await Promise.resolve(true);
     },
   };
 }

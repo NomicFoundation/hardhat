@@ -24,8 +24,8 @@ export function initializeViem<ChainTypeT extends ChainType | string>(
   networkName: string,
 ): HardhatViemHelpers<ChainTypeT> {
   return {
-    getPublicClient: (publicClientConfig) =>
-      getPublicClient(
+    getPublicClient: async (publicClientConfig) =>
+      await getPublicClient(
         provider,
         chainType,
         chainDescriptors,
@@ -33,8 +33,8 @@ export function initializeViem<ChainTypeT extends ChainType | string>(
         publicClientConfig,
       ),
 
-    getWalletClients: (walletClientConfig) =>
-      getWalletClients(
+    getWalletClients: async (walletClientConfig) =>
+      await getWalletClients(
         provider,
         chainType,
         chainDescriptors,
@@ -42,8 +42,8 @@ export function initializeViem<ChainTypeT extends ChainType | string>(
         walletClientConfig,
       ),
 
-    getWalletClient: (address, walletClientConfig) =>
-      getWalletClient(
+    getWalletClient: async (address, walletClientConfig) =>
+      await getWalletClient(
         provider,
         chainType,
         chainDescriptors,
@@ -52,8 +52,8 @@ export function initializeViem<ChainTypeT extends ChainType | string>(
         walletClientConfig,
       ),
 
-    getTestClient: (testClientConfig) =>
-      getTestClient(
+    getTestClient: async (testClientConfig) =>
+      await getTestClient(
         provider,
         chainType,
         chainDescriptors,
@@ -61,8 +61,12 @@ export function initializeViem<ChainTypeT extends ChainType | string>(
         testClientConfig,
       ),
 
-    deployContract: (contractName, constructorArgs, deployContractConfig) =>
-      deployContract(
+    deployContract: async (
+      contractName,
+      constructorArgs,
+      deployContractConfig,
+    ) =>
+      await deployContract(
         provider,
         artifactManager,
         chainDescriptors,
@@ -72,12 +76,12 @@ export function initializeViem<ChainTypeT extends ChainType | string>(
         deployContractConfig,
       ),
 
-    sendDeploymentTransaction: (
+    sendDeploymentTransaction: async (
       contractName,
       constructorArgs,
       sendDeploymentTransactionConfig,
     ) =>
-      sendDeploymentTransaction(
+      await sendDeploymentTransaction(
         provider,
         artifactManager,
         chainDescriptors,
@@ -87,8 +91,8 @@ export function initializeViem<ChainTypeT extends ChainType | string>(
         sendDeploymentTransactionConfig,
       ),
 
-    getContractAt: (contractName, address, getContractAtConfig) =>
-      getContractAt(
+    getContractAt: async (contractName, address, getContractAtConfig) =>
+      await getContractAt(
         provider,
         artifactManager,
         chainDescriptors,
