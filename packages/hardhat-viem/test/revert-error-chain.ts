@@ -7,17 +7,16 @@ import { after, before, beforeEach, describe, it } from "node:test";
 
 import { useEphemeralFixtureProject } from "@nomicfoundation/hardhat-test-utils";
 import { ensureError } from "@nomicfoundation/hardhat-utils/error";
-import hardhatViem from "@nomicfoundation/hardhat-viem";
 import { createHardhatRuntimeEnvironment } from "hardhat/hre";
 import {
   ContractFunctionExecutionError,
   ContractFunctionRevertedError,
 } from "viem";
 
-import hardhatViemAssertions from "../../../../src/index.js";
+import hardhatViem from "@nomicfoundation/hardhat-viem";
 
 describe("revert error cause chain", () => {
-  useEphemeralFixtureProject("hardhat-project");
+  useEphemeralFixtureProject("default-ts-project");
 
   describe("in-process hardhat network", () => {
     let hre: HardhatRuntimeEnvironment;
@@ -25,8 +24,7 @@ describe("revert error cause chain", () => {
 
     before(async () => {
       hre = await createHardhatRuntimeEnvironment({
-        solidity: "0.8.24",
-        plugins: [hardhatViem, hardhatViemAssertions],
+        plugins: [hardhatViem],
       });
 
       await hre.tasks.getTask("build").run({});
@@ -101,8 +99,7 @@ describe("revert error cause chain", () => {
 
     before(async () => {
       hre = await createHardhatRuntimeEnvironment({
-        solidity: "0.8.24",
-        plugins: [hardhatViem, hardhatViemAssertions],
+        plugins: [hardhatViem],
         networks: {
           localhost: { type: "http", url: "http://127.0.0.1:0" },
         },
