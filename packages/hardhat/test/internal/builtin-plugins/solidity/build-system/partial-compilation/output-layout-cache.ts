@@ -293,6 +293,63 @@ contract FooTest {}`,
         "Test root should be recompiled after switching to unified mode",
       );
     });
+
+    it("should invalidate test root cache when switching from unified to split", async () => {
+      await using project = await useTestProjectTemplate({
+        name: "test-project",
+        version: "1.0.0",
+        files: {
+          "contracts/Foo.sol": `// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.0;
+contract Foo {}`,
+          "test/FooTest.sol": `// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.0;
+contract FooTest {}`,
+        },
+      });
+
+      const contractPath = path.join(project.path, "contracts/Foo.sol");
+      const testPath = path.join(project.path, "test/FooTest.sol");
+
+      // Build test in unified mode (default scope: "contracts")
+      const hreUnified = await getHREWithSplitConfig(project.path, false);
+      await hreUnified.solidity.build([contractPath, testPath], {
+        quiet: true,
+      });
+
+      // Verify cache hit in unified mode
+      const unifiedResult2 = await hreUnified.solidity.build(
+        [contractPath, testPath],
+        { quiet: true },
+      );
+      assert(
+        hreUnified.solidity.isSuccessfulBuildResult(unifiedResult2),
+        "Unified mode second build should succeed",
+      );
+      assert.equal(
+        unifiedResult2.get(testPath)?.type,
+        FileBuildResultType.CACHE_HIT,
+      );
+
+      // Switch to split mode and build the test with scope: "tests"
+      // The test root should be a cache miss because:
+      // - artifactsDirectory changed (from artifacts to cache/test-artifacts)
+      // - emitsTypeDeclarations is still false
+      const hreSplit = await getHREWithSplitConfig(project.path, true);
+      const splitResult = await hreSplit.solidity.build([testPath], {
+        quiet: true,
+        scope: "tests",
+      });
+      assert(
+        hreSplit.solidity.isSuccessfulBuildResult(splitResult),
+        "Split mode build should succeed",
+      );
+      assert.equal(
+        splitResult.get(testPath)?.type,
+        FileBuildResultType.BUILD_SUCCESS,
+        "Test root should be recompiled after switching to split mode",
+      );
+    });
   });
 
   describe("pre-existing cache entries without output layout fields", () => {
