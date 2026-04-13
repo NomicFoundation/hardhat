@@ -37,7 +37,7 @@ describe(
   "tool versions in build info",
   { skip: process.env.HARDHAT_DISABLE_SLOW_TESTS === "true" },
   function () {
-    it("should include versions in build info when toolVersionsInBuildInfo is true", async () => {
+    it("should include toolVersions in build info when toolVersionsInBuildInfo is true", async () => {
       await using project = await useTestProjectTemplate(projectTemplate);
       const hre = await project.getHRE(
         {
@@ -58,10 +58,10 @@ describe(
       const buildInfo = await readBuildInfo(hre, "Foo");
 
       const hardhatVersion = await getHardhatVersion();
-      assert.deepEqual(buildInfo.versions, { hardhat: hardhatVersion });
+      assert.deepEqual(buildInfo.toolVersions, { hardhat: hardhatVersion });
     });
 
-    it("should not include versions in build info when toolVersionsInBuildInfo is false", async () => {
+    it("should not include toolVersions in build info when toolVersionsInBuildInfo is false", async () => {
       await using project = await useTestProjectTemplate(projectTemplate);
       const hre = await project.getHRE(
         {
@@ -82,13 +82,13 @@ describe(
       const buildInfo = await readBuildInfo(hre, "Foo");
 
       assert.equal(
-        buildInfo.versions,
+        buildInfo.toolVersions,
         undefined,
-        "Expected versions to not be present",
+        "Expected toolVersions to not be present",
       );
     });
 
-    it("should include versions in build info for the production profile by default", async () => {
+    it("should include toolVersions in build info for the production profile by default", async () => {
       await using project = await useTestProjectTemplate(projectTemplate);
       const hre = await project.getHRE(
         { solidity: "0.8.28" },
@@ -100,10 +100,10 @@ describe(
       const buildInfo = await readBuildInfo(hre, "Foo");
 
       const hardhatVersion = await getHardhatVersion();
-      assert.deepEqual(buildInfo.versions, { hardhat: hardhatVersion });
+      assert.deepEqual(buildInfo.toolVersions, { hardhat: hardhatVersion });
     });
 
-    it("should produce different build ids with and without versions", async () => {
+    it("should produce different build ids with and without toolVersions", async () => {
       await using projectA = await useTestProjectTemplate(projectTemplate);
       const hreA = await projectA.getHRE(
         {

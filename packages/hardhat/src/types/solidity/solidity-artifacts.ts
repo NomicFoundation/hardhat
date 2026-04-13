@@ -57,7 +57,7 @@ export interface SolidityBuildInfo {
    * Not present if the build profile used to create this build info
    * had `toolVersionsInBuildInfo` as `false`.
    */
-  readonly versions?: ToolVersions;
+  readonly toolVersions?: ToolVersions;
 
   /**
    * A mapping from user source names to input source names, for the root

@@ -260,7 +260,7 @@ export class CompilationJobImplementation implements CompilationJob {
     // Include tool versions in the preimage when present, so that
     // different tool versions produce different build IDs.
     if (this.toolVersions !== undefined) {
-      preimageObject.versions = this.toolVersions;
+      preimageObject.toolVersions = this.toolVersions;
     }
 
     const preimage = JSON.stringify(preimageObject);

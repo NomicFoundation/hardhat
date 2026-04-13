@@ -118,7 +118,7 @@ export async function getBuildInfo(
     solcLongVersion: compilationJob.solcLongVersion,
     compilerType,
     ...(compilationJob.toolVersions !== undefined
-      ? { versions: compilationJob.toolVersions }
+      ? { toolVersions: compilationJob.toolVersions }
       : {}),
     userSourceNameMap:
       compilationJob.dependencyGraph.getRootsUserSourceNameMap(),
