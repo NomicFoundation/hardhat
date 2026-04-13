@@ -373,14 +373,11 @@ async function validateThatProvidedFilesAreTests(
   testFiles: string[],
   resolvedTestFilesArgument: string[],
 ) {
-  const nonTests: string[] = [];
-  for (let i = 0; i < resolvedTestFilesArgument.length; i++) {
-    const rootPath = resolvedTestFilesArgument[i];
-    const scope = await solidity.getScope(rootPath);
-    if (scope !== "tests") {
-      nonTests.push(testFiles[i]);
-    }
-  }
+  const scopes = await Promise.all(
+    resolvedTestFilesArgument.map((rootPath) => solidity.getScope(rootPath)),
+  );
+
+  const nonTests: string[] = testFiles.filter((_, i) => scopes[i] !== "tests");
 
   if (nonTests.length > 0) {
     throw new HardhatError(
