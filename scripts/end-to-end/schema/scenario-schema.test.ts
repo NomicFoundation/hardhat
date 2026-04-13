@@ -144,7 +144,7 @@ describe("isScenarioDefinition", () => {
       isScenarioDefinition({
         repo: "org/repo",
         commit: "abc",
-        packageManager: "pnpm",
+        packageManager: "volt",
         tags: [],
         description: "a scenario",
         defaultCommand: "npx hardhat test",
