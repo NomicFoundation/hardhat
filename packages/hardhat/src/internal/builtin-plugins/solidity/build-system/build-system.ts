@@ -178,6 +178,8 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
     const scope = options.scope ?? "contracts";
     const unified = !this.#options.solidityConfig.splitTestsCompilation;
 
+    this.#ensureSplitCompilationModeIfTestsScope(scope);
+
     switch (scope) {
       case "contracts": {
         const localContractFiles = (
@@ -220,12 +222,6 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
         );
       }
       case "tests": {
-        if (unified) {
-          throw new HardhatError(
-            HardhatError.ERRORS.CORE.SOLIDITY.SPLIT_TESTS_COMPILATION_DISABLED,
-          );
-        }
-
         let rootFilePaths = (
           await Promise.all([
             getAllFilesMatching(this.#options.solidityTestsPath, (f) =>
@@ -253,21 +249,14 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
 
   public async build(
     rootFilePaths: string[],
-    _options?: BuildOptions,
+    options?: BuildOptions,
   ): Promise<CompilationJobCreationError | Map<string, FileBuildResult>> {
-    if (
-      !this.#options.solidityConfig.splitTestsCompilation &&
-      _options?.scope === "tests"
-    ) {
-      throw new HardhatError(
-        HardhatError.ERRORS.CORE.SOLIDITY.SPLIT_TESTS_COMPILATION_DISABLED,
-      );
-    }
+    this.#ensureSplitCompilationModeIfTestsScope(options?.scope);
 
     return this.#hooks.runHandlerChain(
       "solidity",
       "build",
-      [rootFilePaths, _options],
+      [rootFilePaths, options],
       async (_context, nextRootFilePaths, nextOptions) =>
         this.#build(nextRootFilePaths, nextOptions),
     );
@@ -275,25 +264,27 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
 
   async #build(
     rootFilePaths: string[],
-    _options?: BuildOptions,
+    options?: BuildOptions,
   ): Promise<CompilationJobCreationError | Map<string, FileBuildResult>> {
-    const options: Required<BuildOptions> = {
+    const resolvedOptions: Required<BuildOptions> = {
       buildProfile: DEFAULT_BUILD_PROFILE,
       concurrency: Math.max(os.cpus().length - 1, 1),
       force: false,
       isolated: false,
       quiet: false,
       scope: "contracts",
-      ..._options,
+      ...options,
     };
 
-    await this.#downloadConfiguredCompilers(options.quiet);
+    await this.#downloadConfiguredCompilers(resolvedOptions.quiet);
 
-    const { buildProfile } = this.#getBuildProfile(options.buildProfile);
+    const { buildProfile } = this.#getBuildProfile(
+      resolvedOptions.buildProfile,
+    );
 
     const compilationJobsResult = await this.getCompilationJobs(
       rootFilePaths,
-      options,
+      resolvedOptions,
     );
 
     if (!compilationJobsResult.success) {
@@ -301,7 +292,7 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
     }
 
     const spinner = createSpinner({
-      text: `Compiling your Solidity ${options.scope}...`,
+      text: `Compiling your Solidity ${resolvedOptions.scope}...`,
       enabled: true,
     });
     spinner.start();
@@ -327,7 +318,7 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
         async (runnableCompilationJob) => {
           const { output, compiler } = await this.runCompilationJob(
             runnableCompilationJob,
-            options,
+            resolvedOptions,
           );
 
           return {
@@ -337,7 +328,7 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
           };
         },
         {
-          concurrency: options.concurrency,
+          concurrency: resolvedOptions.concurrency,
           // An error when running the compiler is not a compilation failure, but
           // a fatal failure trying to run it, so we just throw on the first error
           stopOnError: true,
@@ -362,7 +353,7 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
             const emitArtifactsResult = await this.emitArtifacts(
               compilationResult.compilationJob,
               compilationResult.compilerOutput,
-              options,
+              resolvedOptions,
             );
 
             const { artifactsPerFile } = emitArtifactsResult;
@@ -378,7 +369,7 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
               compilationResult,
               emitArtifactsResult,
               buildProfile.isolated,
-              options.scope,
+              resolvedOptions.scope,
             );
           }),
         );
@@ -446,10 +437,10 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
         });
       }
 
-      if (!options.quiet) {
+      if (!resolvedOptions.quiet) {
         if (isSuccessfulBuild) {
           await this.#printCompilationResult(runnableCompilationJobs, {
-            scope: options.scope,
+            scope: resolvedOptions.scope,
           });
         }
       }
@@ -464,14 +455,7 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
     rootFilePaths: string[],
     options?: GetCompilationJobsOptions,
   ): Promise<CompilationJobCreationError | GetCompilationJobsResult> {
-    if (
-      !this.#options.solidityConfig.splitTestsCompilation &&
-      options?.scope === "tests"
-    ) {
-      throw new HardhatError(
-        HardhatError.ERRORS.CORE.SOLIDITY.SPLIT_TESTS_COMPILATION_DISABLED,
-      );
-    }
+    this.#ensureSplitCompilationModeIfTestsScope(options?.scope);
 
     await this.#downloadConfiguredCompilers(options?.quiet);
 
@@ -886,13 +870,10 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
     options: { scope?: BuildScope } = {},
   ): Promise<EmitArtifactsResult> {
     const scope = options.scope ?? "contracts";
-    const unified = !this.#options.solidityConfig.splitTestsCompilation;
 
-    if (unified && scope === "tests") {
-      throw new HardhatError(
-        HardhatError.ERRORS.CORE.SOLIDITY.SPLIT_TESTS_COMPILATION_DISABLED,
-      );
-    }
+    this.#ensureSplitCompilationModeIfTestsScope(scope);
+
+    const unified = !this.#options.solidityConfig.splitTestsCompilation;
 
     const artifactsPerFile = new Map<string, string[]>();
     const typeFilePaths = new Map<string, string>();
@@ -1061,14 +1042,7 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
   ): Promise<void> {
     const scope = options.scope ?? "contracts";
 
-    if (
-      !this.#options.solidityConfig.splitTestsCompilation &&
-      scope === "tests"
-    ) {
-      throw new HardhatError(
-        HardhatError.ERRORS.CORE.SOLIDITY.SPLIT_TESTS_COMPILATION_DISABLED,
-      );
-    }
+    this.#ensureSplitCompilationModeIfTestsScope(scope);
 
     log(`Cleaning up artifacts`);
     const artifactsDirectory = await this.getArtifactsDirectory(scope);
@@ -1464,6 +1438,17 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
           `(evm target: ${evmVersion})`,
         );
       }
+    }
+  }
+
+  #ensureSplitCompilationModeIfTestsScope(scope: BuildScope = "contracts") {
+    if (
+      scope === "tests" &&
+      !this.#options.solidityConfig.splitTestsCompilation
+    ) {
+      throw new HardhatError(
+        HardhatError.ERRORS.CORE.SOLIDITY.SPLIT_TESTS_COMPILATION_DISABLED,
+      );
     }
   }
 }
