@@ -63,8 +63,8 @@ const buildAction: NewTaskActionFunction<BuildActionArguments> = async (
   }
 
   if (hre.config.solidity.splitTestsCompilation) {
-    const contractRootPaths = [];
-    const testRootPaths = [];
+    const contractRootPaths: string[] = [];
+    const testRootPaths: string[] = [];
 
     const shouldBuildContracts =
       !args.noContracts &&
