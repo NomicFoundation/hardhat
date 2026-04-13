@@ -62,7 +62,7 @@ const runSolidityTests: NewTaskActionFunction<TestActionArguments> = async (
 
   const verbosity = hre.globalOptions.verbosity;
   const resolvedTestFilesArgument = testFiles.map((f) =>
-    resolveFromRoot(hre.config.paths.root, f),
+    resolveFromRoot(process.cwd(), f),
   );
 
   await validateThatProvidedFilesAreTests(
