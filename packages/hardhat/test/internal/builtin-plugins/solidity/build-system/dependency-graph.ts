@@ -713,5 +713,43 @@ describe("DependencyGraphImplementation", () => {
 
       assert.deepEqual(mergedGraph.toJSON(), expectedJson);
     });
+
+    it("should deduplicate remappings across edges after merge", () => {
+      const root1 = createProjectResolvedFile("root1.sol");
+      const root2 = createProjectResolvedFile("root2.sol");
+      const dep = createProjectResolvedFile("dep.sol");
+
+      dependencyGraph.addRootFile(root1.inputSourceName, root1);
+      dependencyGraph.addDependency(root1, dep, "r1");
+
+      const otherDependencyGraph = new DependencyGraphImplementation();
+      otherDependencyGraph.addRootFile(root2.inputSourceName, root2);
+      otherDependencyGraph.addDependency(root2, dep, "r1");
+
+      const mergedGraph = dependencyGraph.merge(otherDependencyGraph);
+
+      assert.deepEqual(mergedGraph.getAllRemappings(), ["r1"]);
+    });
+
+    it("should deduplicate remappings in the same edge after merge", () => {
+      const root1 = createProjectResolvedFile("root1.sol");
+      const dep = createProjectResolvedFile("dep.sol");
+
+      dependencyGraph.addRootFile(root1.inputSourceName, root1);
+      dependencyGraph.addDependency(root1, dep, "r1");
+
+      const otherDependencyGraph = new DependencyGraphImplementation();
+      otherDependencyGraph.addRootFile(root1.inputSourceName, root1);
+      otherDependencyGraph.addDependency(root1, dep, "r1");
+
+      const mergedGraph = dependencyGraph.merge(otherDependencyGraph);
+
+      const dependencies = mergedGraph.getDependencies(root1);
+      assert.equal(dependencies.size, 1);
+
+      const dependency = [...dependencies.values()][0];
+      assert.equal(dependency.file, dep);
+      assert.deepEqual([...dependency.remappings], ["r1"]);
+    });
   });
 });

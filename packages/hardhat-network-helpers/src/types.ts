@@ -25,7 +25,7 @@ export interface NetworkHelpers<
    * @returns `true` if successful, otherwise `false`.
    *
    * @example
-   * const { networkHelpers } = await hre.network.connect();
+   * const { networkHelpers } = await hre.network.create();
    * const success = await networkHelpers.dropTransaction('0x123...');
    */
   dropTransaction(txHash: string): Promise<boolean>;
@@ -39,7 +39,7 @@ export interface NetworkHelpers<
    * @returns A promise that resolves to a string containing the hexadecimal code retrieved.
    *
    * @example
-   * const { networkHelpers } = await hre.network.connect();
+   * const { networkHelpers } = await hre.network.create();
    * const storageData = await networkHelpers.getStorageAt("0x123...", 0);
    */
   getStorageAt(
@@ -55,7 +55,7 @@ export interface NetworkHelpers<
    * @returns A promise that resolves once the account is impersonated.
    *
    * @example
-   * const { networkHelpers } = await hre.network.connect();
+   * const { networkHelpers } = await hre.network.create();
    * await networkHelpers.impersonateAccount("0x123...");
    */
   impersonateAccount(address: string): Promise<void>;
@@ -93,12 +93,12 @@ export interface NetworkHelpers<
    *
    * @example
    * // Mine 1 block (default behavior)
-   * const { networkHelpers } = await hre.network.connect();
+   * const { networkHelpers } = await hre.network.create();
    * await networkHelpers.mine();
    *
    * @example
    * // Mine 10 blocks with an interval of 60 seconds between each block
-   * const { networkHelpers } = await hre.network.connect();
+   * const { networkHelpers } = await hre.network.create();
    * await networkHelpers.mine(10, { interval: 60 });
    */
   mine(blocks?: NumberLike, options?: { interval?: NumberLike }): Promise<void>;
@@ -110,7 +110,7 @@ export interface NetworkHelpers<
    * @returns A promise that resolves once the required blocks have been mined.
    *
    * @example
-   * const { networkHelpers } = await hre.network.connect();
+   * const { networkHelpers } = await hre.network.create();
    * await networkHelpers.mineUpTo(150); // Mines until block with block number 150
    */
   mineUpTo(blockNumber: NumberLike): Promise<void>;
@@ -123,7 +123,7 @@ export interface NetworkHelpers<
    * @returns A promise that resolves once the balance has been set.
    *
    * @example
-   * const { networkHelpers } = await hre.network.connect();
+   * const { networkHelpers } = await hre.network.create();
    * await networkHelpers.setBalance("0x123...", 1000000000000000000n); // Sets 1 ETH
    */
   setBalance(address: string, balance: NumberLike): Promise<void>;
@@ -135,7 +135,7 @@ export interface NetworkHelpers<
    * @returns A promise that resolves once the gas limit has been set.
    *
    * @example
-   * const { networkHelpers } = await hre.network.connect();
+   * const { networkHelpers } = await hre.network.create();
    * await networkHelpers.setBlockGasLimit(1000000); // Set block gas limit to 1,000,000
    */
   setBlockGasLimit(blockGasLimit: NumberLike): Promise<void>;
@@ -148,7 +148,7 @@ export interface NetworkHelpers<
    * @returns A promise that resolves once the code is set.
    *
    * @example
-   * const { networkHelpers } = await hre.network.connect();
+   * const { networkHelpers } = await hre.network.create();
    * await networkHelpers.setCode("0x123...", "0x6001600101...");
    */
   setCode(address: string, code: string): Promise<void>;
@@ -160,7 +160,7 @@ export interface NetworkHelpers<
    * @returns A promise that resolves once the coinbase address has been set.
    *
    * @example
-   * const { networkHelpers } = await hre.network.connect();
+   * const { networkHelpers } = await hre.network.create();
    * await networkHelpers.setCoinbase("0x123...");
    */
   setCoinbase(address: string): Promise<void>;
@@ -172,7 +172,7 @@ export interface NetworkHelpers<
    * @returns A promise that resolves once the base fee is set.
    *
    * @example
-   * const { networkHelpers } = await hre.network.connect();
+   * const { networkHelpers } = await hre.network.create();
    * await networkHelpers.setNextBlockBaseFeePerGas(1000000); // Set base fee to 1,000,000
    */
   setNextBlockBaseFeePerGas(baseFeePerGas: NumberLike): Promise<void>;
@@ -185,7 +185,7 @@ export interface NetworkHelpers<
    * @returns A promise that resolves once the nonce is set.
    *
    * @example
-   * const { networkHelpers } = await hre.network.connect();
+   * const { networkHelpers } = await hre.network.create();
    * await networkHelpers.setNonce("0x123...", 10); // Set the nonce of the account to 10
    */
   setNonce(address: string, nonce: NumberLike): Promise<void>;
@@ -197,7 +197,7 @@ export interface NetworkHelpers<
    * @returns A promise that resolves once the PREVRANDAO value is set.
    *
    * @example
-   * const { networkHelpers } = await hre.network.connect();
+   * const { networkHelpers } = await hre.network.create();
    * await networkHelpers.setPrevRandao(123456789); // Set the PREVRANDAO value
    */
   setPrevRandao(prevRandao: NumberLike): Promise<void>;
@@ -211,7 +211,7 @@ export interface NetworkHelpers<
    * @returns A promise that resolves once the storage value is set.
    *
    * @example
-   * const { networkHelpers } = await hre.network.connect();
+   * const { networkHelpers } = await hre.network.create();
    * await networkHelpers.setStorageAt("0x123...", 0, 0x0000...);
    */
   setStorageAt(
@@ -227,7 +227,7 @@ export interface NetworkHelpers<
    * @returns A promise that resolves once the impersonation is stopped.
    *
    * @example
-   * const { networkHelpers } = await hre.network.connect();
+   * const { networkHelpers } = await hre.network.create();
    * await networkHelpers.stopImpersonatingAccount("0x123...");
    */
   stopImpersonatingAccount(address: string): Promise<void>;
@@ -237,7 +237,7 @@ export interface NetworkHelpers<
    * @returns A promise that resolves to a `SnapshotRestorer` object, which contains a `restore` method to reset the network to this snapshot.
    *
    * @example
-   * const { networkHelpers } = await hre.network.connect();
+   * const { networkHelpers } = await hre.network.create();
    * const snapshot = await networkHelpers.takeSnapshot();
    * await snapshot.restore(); // Restores the blockchain state
    */
@@ -254,7 +254,7 @@ export interface Time {
    * @return The timestamp of the mined block.
    *
    * @example
-   * const { networkHelpers } = await hre.network.connect();
+   * const { networkHelpers } = await hre.network.create();
    * await networkHelpers.time.increase(12);
    */
   increase(amountInSeconds: NumberLike): Promise<number>;
@@ -266,7 +266,7 @@ export interface Time {
    * @return A promise that resolves when the block is successfully mined.
    *
    * @example
-   * const { networkHelpers } = await hre.network.connect();
+   * const { networkHelpers } = await hre.network.create();
    * networkHelpers.time.increaseTo(1700000000);
    */
   increaseTo(timestamp: NumberLike | Date): Promise<void>;
@@ -277,7 +277,7 @@ export interface Time {
    * @return The timestamp of the latest block.
    *
    * @example
-   * const { networkHelpers } = await hre.network.connect();
+   * const { networkHelpers } = await hre.network.create();
    * const timestamp = await networkHelpers.time.latest();
    */
   latest(): Promise<number>;
@@ -288,7 +288,7 @@ export interface Time {
    * @returns A promise that resolves to the latest block number.
    *
    * @example
-   * const { networkHelpers } = await hre.network.connect();
+   * const { networkHelpers } = await hre.network.create();
    * const blockNumber = await networkHelpers.time.latestBlock();
    */
   latestBlock(): Promise<number>;
@@ -299,7 +299,7 @@ export interface Time {
    * @param timestamp Can be `Date` or Epoch seconds. Must be greater than the latest block's timestamp.
    *
    * @example
-   * const { networkHelpers } = await hre.network.connect();
+   * const { networkHelpers } = await hre.network.create();
    * networkHelpers.time.setNextBlockTimestamp(1700000000);
    */
   setNextBlockTimestamp(timestamp: NumberLike | Date): Promise<void>;
@@ -312,7 +312,7 @@ export interface Duration {
    * @returns The equivalent duration in seconds.
    *
    * @example
-   * const { networkHelpers } = await hre.network.connect();
+   * const { networkHelpers } = await hre.network.create();
    * const seconds = networkHelpers.time.duration.years(1);
    */
   years(n: number): number;
@@ -324,7 +324,7 @@ export interface Duration {
    * @returns The equivalent duration in seconds.
    *
    * @example
-   * const { networkHelpers } = await hre.network.connect();
+   * const { networkHelpers } = await hre.network.create();
    * const seconds = networkHelpers.time.duration.weeks(1);
    */
   weeks(n: number): number;
@@ -336,7 +336,7 @@ export interface Duration {
    * @returns The equivalent duration in seconds.
    *
    * @example
-   * const { networkHelpers } = await hre.network.connect();
+   * const { networkHelpers } = await hre.network.create();
    * const seconds = networkHelpers.time.duration.days(1);
    */
   days(n: number): number;
@@ -348,7 +348,7 @@ export interface Duration {
    * @returns The equivalent duration in seconds.
    *
    * @example
-   * const { networkHelpers } = await hre.network.connect();
+   * const { networkHelpers } = await hre.network.create();
    * const seconds = networkHelpers.time.duration.hours(1);
    */
   hours(n: number): number;
@@ -360,7 +360,7 @@ export interface Duration {
    * @returns The equivalent duration in seconds.
    *
    * @example
-   * const { networkHelpers } = await hre.network.connect();
+   * const { networkHelpers } = await hre.network.create();
    * const seconds = networkHelpers.time.duration.minutes(1);
    */
   minutes(n: number): number;
@@ -372,7 +372,7 @@ export interface Duration {
    * @returns The same number of seconds.
    *
    * @example
-   * const { networkHelpers } = await hre.network.connect();
+   * const { networkHelpers } = await hre.network.create();
    * const seconds = networkHelpers.time.duration.seconds(1);
    */
   seconds(n: number): number;
@@ -384,7 +384,7 @@ export interface Duration {
    * @returns The equivalent duration in seconds.
    *
    * @example
-   * const { networkHelpers } = await hre.network.connect();
+   * const { networkHelpers } = await hre.network.create();
    * const seconds = networkHelpers.time.duration.millis(1500); // Returns 1
    */
   millis(n: number): number;

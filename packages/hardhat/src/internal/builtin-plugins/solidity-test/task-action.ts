@@ -23,7 +23,7 @@ import { errorResult, successfulResult } from "../../../utils/result.js";
 import { isSupportedChainType } from "../../edr/chain-type.js";
 import { ArtifactManagerImplementation } from "../artifacts/artifact-manager.js";
 import { getCoverageManager } from "../coverage/helpers.js";
-import { getGasAnalyticsManager } from "../gas-analytics/helpers.js";
+import { getGasAnalyticsManager } from "../gas-analytics/helpers/accessors.js";
 import { edrGasReportToHardhatGasMeasurements } from "../network-manager/edr/utils/convert-to-edr.js";
 
 import {
@@ -33,7 +33,6 @@ import {
 import {
   isTestSuiteArtifact,
   warnDeprecatedTestFail,
-  solidityTestConfigToRunOptions,
   solidityTestConfigToSolidityTestRunnerConfigArgs,
 } from "./helpers.js";
 import { getTestFunctionOverrides } from "./inline-config/index.js";
@@ -195,8 +194,6 @@ const runSolidityTests: NewTaskActionFunction<TestActionArguments> = async (
     })),
     ignoreContracts: false,
   };
-  const runOptions = solidityTestConfigToRunOptions(solidityTestConfig);
-
   await hre.hooks.runHandlerChain(
     "test",
     "onTestRunStart",
@@ -211,7 +208,6 @@ const runSolidityTests: NewTaskActionFunction<TestActionArguments> = async (
     testRunnerConfig,
     tracingConfig,
     sourceNameToUserSourceName,
-    runOptions,
   );
 
   let failed = 0;

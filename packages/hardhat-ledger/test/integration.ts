@@ -53,7 +53,7 @@ describe("LedgerHandler", () => {
         },
       });
 
-      const { provider } = await hre.network.connect();
+      const { provider } = await hre.network.create();
 
       const res = await provider.request({ method: "eth_accounts" });
 
@@ -76,7 +76,7 @@ describe("LedgerHandler", () => {
         },
       });
 
-      const { provider } = await hre.network.connect();
+      const { provider } = await hre.network.create();
 
       const res = await provider.request({ method: "eth_accounts" });
 
@@ -94,7 +94,7 @@ describe("LedgerHandler", () => {
         },
       });
 
-      const { provider } = await hre.network.connect();
+      const { provider } = await hre.network.create();
 
       const res = await provider.request({ method: "eth_accounts" });
 
@@ -119,12 +119,12 @@ describe("LedgerHandler", () => {
       },
     });
 
-    const { provider: firsProvider } =
-      await hre.network.connect("firstConnection");
+    const { provider: firstProvider } =
+      await hre.network.create("firstConnection");
     const { provider: secondProvider } =
-      await hre.network.connect("secondConnection");
+      await hre.network.create("secondConnection");
 
-    const firstRes = await firsProvider.request({ method: "eth_accounts" });
+    const firstRes = await firstProvider.request({ method: "eth_accounts" });
     assert.deepEqual(firstRes, [
       ...HARDHAT_ACCOUNTS_ADDRESSES,
       ...LEDGER_ADDRESSES,

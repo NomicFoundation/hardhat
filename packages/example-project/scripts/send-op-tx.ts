@@ -1,6 +1,6 @@
 import { network } from "hardhat";
 
-const { provider } = await network.connect({
+const { provider } = await network.create({
   network: "op",
   chainType: "op",
 });

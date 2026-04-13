@@ -81,12 +81,12 @@ export type EtherscanCustomApiCallOptions =
  *
  * This interface is designed for plugin authors who need direct access
  * to Etherscan's verification API beyond the standard verification
- * workflow. It can be accessed through `network.connect()` in the
+ * workflow. It can be accessed through `network.create()` in the
  * Hardhat Runtime Environment.
  *
  * @example
  * ```typescript
- * const { verification } = await hre.network.connect();
+ * const { verification } = await hre.network.create();
  * const etherscan = verification.etherscan;
  *
  * // Use Etherscan methods

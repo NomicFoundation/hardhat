@@ -3,7 +3,7 @@ import assert from "node:assert";
 
 const BALANCE_TO_SEND = 1000000000000000000n;
 
-const { provider, ethers } = await hre.network.connect("edrOp");
+const { provider, ethers } = await hre.network.create("edrOp");
 
 const signers = await ethers.getSigners();
 

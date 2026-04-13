@@ -30,7 +30,7 @@ This plugin adds a `networkHelpers` property to each network connection:
 ```ts
 import { network } from "hardhat";
 
-const { networkHelpers } = await network.connect();
+const { networkHelpers } = await network.create();
 
 // immediately mine a new block
 await networkHelpers.mine();
@@ -64,11 +64,11 @@ Example:
 
 ```ts
 // Mine 1 block (default behavior)
-const { networkHelpers } = await hre.network.connect();
+const { networkHelpers } = await hre.network.create();
 await networkHelpers.mine();
 
 // Mine 10 blocks with an interval of 60 seconds between each block
-const { networkHelpers } = await hre.network.connect();
+const { networkHelpers } = await hre.network.create();
 await networkHelpers.mine(10, { interval: 60 });
 ```
 
@@ -91,7 +91,7 @@ Returns: A promise that resolves once the required blocks have been mined.
 Example:
 
 ```ts
-const { networkHelpers } = await hre.network.connect();
+const { networkHelpers } = await hre.network.create();
 await networkHelpers.mineUpTo(150); // Mines until block with block number 150
 ```
 
@@ -118,7 +118,7 @@ Returns: A promise that resolves to a string containing the hexadecimal code ret
 Example:
 
 ```ts
-const { networkHelpers } = await hre.network.connect();
+const { networkHelpers } = await hre.network.create();
 const storageData = await networkHelpers.getStorageAt("0x123...", 0);
 ```
 
@@ -141,7 +141,7 @@ Returns: A promise that resolves once the account is impersonated.
 Example:
 
 ```ts
-const { networkHelpers } = await hre.network.connect();
+const { networkHelpers } = await hre.network.create();
 await networkHelpers.impersonateAccount("0x123...");
 ```
 
@@ -165,7 +165,7 @@ Returns: A promise that resolves once the balance has been set.
 Example:
 
 ```ts
-const { networkHelpers } = await hre.network.connect();
+const { networkHelpers } = await hre.network.create();
 await networkHelpers.setBalance("0x123...", 1000000000000000000n); // Sets 1 ETH
 ```
 
@@ -189,7 +189,7 @@ Returns: A promise that resolves once the code is set.
 Example:
 
 ```ts
-const { networkHelpers } = await hre.network.connect();
+const { networkHelpers } = await hre.network.create();
 await networkHelpers.setCode("0x123...", "0x6001600101...");
 ```
 
@@ -213,7 +213,7 @@ Returns: A promise that resolves once the nonce is set.
 Example:
 
 ```ts
-const { networkHelpers } = await hre.network.connect();
+const { networkHelpers } = await hre.network.create();
 await networkHelpers.setNonce("0x123...", 10); // Set the nonce of the account to 10
 ```
 
@@ -238,7 +238,7 @@ Returns: A promise that resolves once the storage value is set.
 Example:
 
 ```ts
-const { networkHelpers } = await hre.network.connect();
+const { networkHelpers } = await hre.network.create();
 await networkHelpers.setStorageAt("0x123...", 0, 0x0000...);
 ```
 
@@ -261,7 +261,7 @@ Returns: A promise that resolves once the impersonation is stopped.
 Example:
 
 ```ts
-const { networkHelpers } = await hre.network.connect();
+const { networkHelpers } = await hre.network.create();
 await networkHelpers.stopImpersonatingAccount("0x123...");
 ```
 
@@ -282,7 +282,7 @@ Returns: A promise that resolves to a `SnapshotRestorer` object, which contains 
 Example:
 
 ```ts
-const { networkHelpers } = await hre.network.connect();
+const { networkHelpers } = await hre.network.create();
 const snapshot = await networkHelpers.takeSnapshot();
 await snapshot.restore(); // Restores the blockchain state
 ```
@@ -365,7 +365,7 @@ Returns: `true` if successful, otherwise `false`.
 Example:
 
 ```ts
-const { networkHelpers } = await hre.network.connect();
+const { networkHelpers } = await hre.network.create();
 const success = await networkHelpers.dropTransaction("0x123...");
 ```
 
@@ -388,7 +388,7 @@ Returns: A promise that resolves once the gas limit has been set.
 Example:
 
 ```ts
-const { networkHelpers } = await hre.network.connect();
+const { networkHelpers } = await hre.network.create();
 await networkHelpers.setBlockGasLimit(1000000); // Set block gas limit to 1,000,000
 ```
 
@@ -411,7 +411,7 @@ Returns: A promise that resolves once the coinbase address has been set.
 Example:
 
 ```ts
-const { networkHelpers } = await hre.network.connect();
+const { networkHelpers } = await hre.network.create();
 await networkHelpers.setCoinbase("0x123...");
 ```
 
@@ -434,7 +434,7 @@ Returns: A promise that resolves once the base fee is set.
 Example:
 
 ```ts
-const { networkHelpers } = await hre.network.connect();
+const { networkHelpers } = await hre.network.create();
 await networkHelpers.setNextBlockBaseFeePerGas(1000000); // Set base fee to 1,000,000
 ```
 
@@ -457,7 +457,7 @@ Returns: A promise that resolves once the PREVRANDAO value is set.
 Example:
 
 ```ts
-const { networkHelpers } = await hre.network.connect();
+const { networkHelpers } = await hre.network.create();
 await networkHelpers.setPrevRandao(123456789); // Set the PREVRANDAO value
 ```
 
@@ -482,7 +482,7 @@ Returns: A promise that resolves to the timestamp of the mined block.
 Example:
 
 ```ts
-const { networkHelpers } = await hre.network.connect();
+const { networkHelpers } = await hre.network.create();
 await networkHelpers.time.increase(12);
 ```
 
@@ -505,7 +505,7 @@ Returns: A promise that resolves when the block is successfully mined.
 Example:
 
 ```ts
-const { networkHelpers } = await hre.network.connect();
+const { networkHelpers } = await hre.network.create();
 networkHelpers.time.increaseTo(1700000000);
 ```
 
@@ -524,7 +524,7 @@ Returns: The timestamp of the latest block.
 Example:
 
 ```ts
-const { networkHelpers } = await hre.network.connect();
+const { networkHelpers } = await hre.network.create();
 const timestamp = await networkHelpers.time.latest();
 ```
 
@@ -543,7 +543,7 @@ Returns: A promise that resolves to the latest block number.
 Example:
 
 ```ts
-const { networkHelpers } = await hre.network.connect();
+const { networkHelpers } = await hre.network.create();
 const blockNumber = await networkHelpers.time.latestBlock();
 ```
 
@@ -564,7 +564,7 @@ Parameters:
 Example:
 
 ```ts
-const { networkHelpers } = await hre.network.connect();
+const { networkHelpers } = await hre.network.create();
 networkHelpers.time.setNextBlockTimestamp(1700000000);
 ```
 
@@ -589,7 +589,7 @@ Returns: The equivalent duration in seconds.
 Example:
 
 ```ts
-const { networkHelpers } = await hre.network.connect();
+const { networkHelpers } = await hre.network.create();
 const seconds = networkHelpers.time.duration.years(1);
 ```
 
@@ -612,7 +612,7 @@ Returns: The equivalent duration in seconds.
 Example:
 
 ```ts
-const { networkHelpers } = await hre.network.connect();
+const { networkHelpers } = await hre.network.create();
 const seconds = networkHelpers.time.duration.weeks(1);
 ```
 
@@ -635,7 +635,7 @@ Returns: The equivalent duration in seconds.
 Example:
 
 ```ts
-const { networkHelpers } = await hre.network.connect();
+const { networkHelpers } = await hre.network.create();
 const seconds = networkHelpers.time.duration.days(1);
 ```
 
@@ -658,7 +658,7 @@ Returns: The equivalent duration in seconds.
 Example:
 
 ```ts
-const { networkHelpers } = await hre.network.connect();
+const { networkHelpers } = await hre.network.create();
 const seconds = networkHelpers.time.duration.hours(1);
 ```
 
@@ -681,7 +681,7 @@ Returns: The equivalent duration in seconds.
 Example:
 
 ```ts
-const { networkHelpers } = await hre.network.connect();
+const { networkHelpers } = await hre.network.create();
 const seconds = networkHelpers.time.duration.minutes(1);
 ```
 
@@ -704,7 +704,7 @@ Returns: The same number of seconds.
 Example:
 
 ```ts
-const { networkHelpers } = await hre.network.connect();
+const { networkHelpers } = await hre.network.create();
 const seconds = networkHelpers.time.duration.seconds(1);
 ```
 
@@ -727,6 +727,6 @@ Returns: The equivalent duration in seconds.
 Example:
 
 ```ts
-const { networkHelpers } = await hre.network.connect();
+const { networkHelpers } = await hre.network.create();
 const seconds = networkHelpers.time.duration.millis(1500); // Returns 1
 ```

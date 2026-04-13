@@ -5,7 +5,7 @@
 
 import hre from "hardhat";
 
-const { ethers } = await hre.network.connect();
+const { ethers } = await hre.network.create();
 
 // ethers functionalities
 ethers.isAddress("0x1234567890123456789012345678901234567890");

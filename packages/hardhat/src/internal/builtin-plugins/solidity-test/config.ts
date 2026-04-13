@@ -19,6 +19,7 @@ import {
   conditionalUnionType,
   sensitiveStringSchema,
   sensitiveUrlSchema,
+  unionType,
   validateUserConfigZodType,
 } from "@nomicfoundation/hardhat-zod-utils";
 import { z } from "zod";
@@ -28,7 +29,6 @@ export const DEFAULT_FUZZ_SEED =
   "0x7727ea51af0441c20da14dcd68a15dac8c9ebd589c5be8fa8c87c1d3720450bc";
 
 const solidityTestUserConfigType = z.object({
-  timeout: z.number().optional(),
   fsPermissions: z
     .object({
       readWriteFile: z.array(z.string()).optional(),
@@ -66,7 +66,12 @@ const solidityTestUserConfigType = z.object({
   forking: z
     .object({
       url: z.optional(sensitiveUrlSchema),
-      blockNumber: z.bigint().optional(),
+      blockNumber: z.optional(
+        unionType(
+          [z.number().int().nonnegative().safe(), z.bigint().nonnegative()],
+          "Expected a nonnegative safe int or a nonnegative bigint",
+        ),
+      ),
       rpcEndpoints: z.record(sensitiveStringSchema).optional(),
     })
     .optional(),
@@ -122,6 +127,10 @@ export function resolveSolidityTestForkingConfig(
 
   return {
     ...forkingUserConfig,
+    blockNumber:
+      forkingUserConfig.blockNumber !== undefined
+        ? BigInt(forkingUserConfig.blockNumber)
+        : undefined,
     url:
       forkingUserConfig.url !== undefined
         ? resolveConfigurationVariable(forkingUserConfig.url)

@@ -1,4 +1,3 @@
-import type { RunOptions } from "./runner.js";
 import type { Abi } from "../../../types/artifacts.js";
 import type { ChainType } from "../../../types/network.js";
 import type { SolidityTestConfig } from "../../../types/test.js";
@@ -39,12 +38,6 @@ interface SolidityTestConfigParams {
   testPattern?: string;
   generateGasReport: boolean;
   testFunctionOverrides?: TestFunctionOverride[];
-}
-
-export function solidityTestConfigToRunOptions(
-  config: SolidityTestConfig,
-): RunOptions {
-  return config;
 }
 
 export async function solidityTestConfigToSolidityTestRunnerConfigArgs({

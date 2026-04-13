@@ -15,7 +15,7 @@ describe("hardhat-ethers-chai-matchers plugin correctly initialized", () => {
 
     const hre = await createHardhatRuntimeEnvironment(hardhatConfig.default);
 
-    await hre.network.connect();
+    await hre.network.create();
 
     const result = await hre.tasks.getTask(["test", "mocha"]).run({
       testFiles: ["./test/test.ts"],

@@ -30,7 +30,7 @@ You don't need to do anything else to use this plugin. The `viem` object added b
 Here is an example of using the `balancesHaveChanged` assertion:
 
 ```ts
-const { viem } = await hre.network.connect();
+const { viem } = await hre.network.create();
 
 const [bobWalletClient, aliceWalletClient] = await viem.getWalletClients();
 

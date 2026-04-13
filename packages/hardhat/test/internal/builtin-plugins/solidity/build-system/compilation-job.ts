@@ -541,10 +541,16 @@ describe("CompilationJobImplementation", () => {
         "*": {
           "*": [
             "abi",
-            "evm.bytecode",
-            "evm.deployedBytecode",
+            "evm.bytecode.linkReferences",
+            "evm.bytecode.object",
+            "evm.bytecode.opcodes",
+            "evm.bytecode.sourceMap",
+            "evm.deployedBytecode.immutableReferences",
+            "evm.deployedBytecode.linkReferences",
+            "evm.deployedBytecode.object",
+            "evm.deployedBytecode.opcodes",
+            "evm.deployedBytecode.sourceMap",
             "evm.methodIdentifiers",
-            "metadata",
             "storageLayout",
           ],
           "": ["ast"],
@@ -560,7 +566,13 @@ describe("CompilationJobImplementation", () => {
           settings: {
             outputSelection: {
               "*": {
-                "*": ["storageLayout", "storageLayout", "abi", "abi"],
+                "*": [
+                  "storageLayout",
+                  "evm.bytecode.object",
+                  "storageLayout",
+                  "abi",
+                  "abi",
+                ],
               },
             },
           },
@@ -573,10 +585,16 @@ describe("CompilationJobImplementation", () => {
         "*": {
           "*": [
             "abi",
-            "evm.bytecode",
-            "evm.deployedBytecode",
+            "evm.bytecode.linkReferences",
+            "evm.bytecode.object",
+            "evm.bytecode.opcodes",
+            "evm.bytecode.sourceMap",
+            "evm.deployedBytecode.immutableReferences",
+            "evm.deployedBytecode.linkReferences",
+            "evm.deployedBytecode.object",
+            "evm.deployedBytecode.opcodes",
+            "evm.deployedBytecode.sourceMap",
             "evm.methodIdentifiers",
-            "metadata",
             "storageLayout",
           ],
           "": ["ast"],

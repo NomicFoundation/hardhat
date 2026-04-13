@@ -19,7 +19,7 @@ describe("hook-handlers/network", () => {
       const hre = await createHardhatRuntimeEnvironment({
         plugins: [HardhatViem],
       });
-      connection = await hre.network.connect();
+      connection = await hre.network.create();
     });
 
     it("should be extended with viem", () => {

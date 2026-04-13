@@ -37,11 +37,11 @@ describe("handle multiple connections", () => {
       },
     });
 
-    ({ ethers } = await hre.network.connect({
+    ({ ethers } = await hre.network.create({
       network: "test1",
     }));
 
-    ({ ethers: ethers2 } = await hre.network.connect({
+    ({ ethers: ethers2 } = await hre.network.create({
       network: "test2",
     }));
   });

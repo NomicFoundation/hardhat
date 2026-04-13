@@ -30,7 +30,7 @@ This plugin adds an `ethers` property to each network connection:
 ```ts
 import { network } from "hardhat";
 
-const { ethers } = await network.connect();
+const { ethers } = await network.create();
 
 const counter = await ethers.deployContract("Counter");
 await counter.inc();
@@ -41,7 +41,7 @@ This object has the same API as [ethers.js](https://docs.ethers.org/), with some
 
 ### Provider
 
-The plugin adds a `provider` property to the `ethers` object: an [ethers.js provider](https://docs.ethers.org/v6/single-page/#api_providers__Provider) connected to the network selected by `network.connect()`.
+The plugin adds a `provider` property to the `ethers` object: an [ethers.js provider](https://docs.ethers.org/v6/single-page/#api_providers__Provider) connected to the network selected by `network.create()`.
 
 ```ts
 const blockNumber = await ethers.provider.getBlockNumber();
@@ -84,10 +84,10 @@ An [ethers.js provider](https://docs.ethers.org/v6/single-page/#api_providers__P
 
 ```ts
 // the network selected with --network option if specified, or the default network otherwise
-const { ethers } = await network.connect();
+const { ethers } = await network.create();
 
 // a specific network from the config
-const { ethers } = await network.connect("mainnet");
+const { ethers } = await network.create("mainnet");
 ```
 
 ### `deployContract`

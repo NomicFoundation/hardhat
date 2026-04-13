@@ -1,7 +1,7 @@
 import { expect } from "chai";
 import { network } from "hardhat";
 
-const { ethers, networkHelpers } = await network.connect();
+const { ethers, networkHelpers } = await network.create();
 
 // chai matchers should be available
 expect("0x0000010AB").to.not.hexEqual("0x0010abc");

@@ -31,7 +31,6 @@ declare module "../../../types/test.js" {
   }
 
   export interface SolidityTestConfigBase {
-    timeout?: number;
     fsPermissions?: {
       readWriteFile?: string[];
       readFile?: string[];
@@ -69,7 +68,7 @@ declare module "../../../types/test.js" {
 
   export interface SolidityTestForkingUserConfig {
     url?: SensitiveString;
-    blockNumber?: bigint;
+    blockNumber?: number | bigint;
     rpcEndpoints?: Record<string, SensitiveString>;
   }
 

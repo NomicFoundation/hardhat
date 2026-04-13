@@ -18,7 +18,7 @@ describe("hardhat-ethers plugin initialization", () => {
       plugins: [hardhatEthersPlugin],
     });
 
-    ({ ethers } = await hre.network.connect());
+    ({ ethers } = await hre.network.create());
   });
 
   it("should correctly set up ethers functionalities", async () => {

@@ -46,7 +46,7 @@ describe("verification", () => {
       });
 
       it("should verify a contract with no constructor arguments or libraries", async () => {
-        const { provider } = await hre.network.connect();
+        const { provider } = await hre.network.create();
         const address = await deployContract("Counter", [], {}, hre, provider);
 
         const result = await verifyContract(
@@ -64,7 +64,7 @@ describe("verification", () => {
 
       it("should verify a contract with constructor arguments", async () => {
         const constructorArgs = [0, true];
-        const { provider } = await hre.network.connect();
+        const { provider } = await hre.network.create();
         const address = await deployContract(
           "CounterWithArgs",
           [0, true],
@@ -88,7 +88,7 @@ describe("verification", () => {
       });
 
       it("should verify a contract with libraries", async () => {
-        const { provider } = await hre.network.connect();
+        const { provider } = await hre.network.create();
         const libAddress = await deployContract(
           "CounterLib",
           [],
@@ -121,7 +121,7 @@ describe("verification", () => {
 
       it("should verify a contract with constructor arguments and libraries", async () => {
         const constructorArgs = [0, true];
-        const { provider } = await hre.network.connect();
+        const { provider } = await hre.network.create();
         const libAddress = await deployContract(
           "CounterLib",
           [],
@@ -163,7 +163,7 @@ describe("verification", () => {
             },
           },
         });
-        const { provider } = await localHre.network.connect();
+        const { provider } = await localHre.network.create();
         const address = await deployContract(
           "Counter",
           [],

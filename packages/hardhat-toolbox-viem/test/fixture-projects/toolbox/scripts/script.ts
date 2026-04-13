@@ -1,6 +1,6 @@
 import { network } from "hardhat";
 
-const { networkHelpers, viem } = await network.connect();
+const { networkHelpers, viem } = await network.create();
 
 // network helpers should be available
 await networkHelpers.mine();

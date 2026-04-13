@@ -48,9 +48,57 @@ export interface NetworkConnectionParams<
   override?: NetworkConfigOverride;
 }
 
+export interface CachedNetworkConnectionParams<
+  ChainTypeT extends ChainType | string = DefaultChainType,
+> extends NetworkConnectionParams<ChainTypeT> {
+  override?: never;
+}
+
 export interface NetworkManager {
+  /**
+   * Creates a new network connection based on the provided parameters.
+   *
+   * @param networkOrParams The network name or connection parameters. When
+   * omitted, the default network is used.
+   *
+   * @returns A new {@link NetworkConnection} for the specified network.
+   */
+  create<ChainTypeT extends ChainType | string = DefaultChainType>(
+    networkOrParams?: NetworkConnectionParams<ChainTypeT> | string,
+  ): Promise<NetworkConnection<ChainTypeT>>;
+
+  /**
+   * Creates a new network connection based on the provided parameters.
+   *
+   * @deprecated Use {@link NetworkManager.create} or
+   * {@link NetworkManager.getOrCreate} instead.
+   *
+   * - {@link NetworkManager.create} always creates a new network instance.
+   * - {@link NetworkManager.getOrCreate} returns an existing instance if one exists.
+   *
+   * `connect` will be removed in a future version of Hardhat.
+   *
+   * @param networkOrParams The network name or connection parameters. When
+   * omitted, the default network is used.
+   *
+   * @returns A new {@link NetworkConnection} for the specified network.
+   */
   connect<ChainTypeT extends ChainType | string = DefaultChainType>(
     networkOrParams?: NetworkConnectionParams<ChainTypeT> | string,
+  ): Promise<NetworkConnection<ChainTypeT>>;
+
+  /**
+   * Returns an existing network connection if one was previously created
+   * with the same network name and chain type. Creates a new one otherwise.
+   *
+   * @param networkOrParams The network name or connection parameters. When
+   * omitted, the default network is used. Overrides are not supported.
+   *
+   * @returns A {@link NetworkConnection} for the specified network, cached
+   * by network name and chain type.
+   */
+  getOrCreate<ChainTypeT extends ChainType | string = DefaultChainType>(
+    networkOrParams?: CachedNetworkConnectionParams<ChainTypeT> | string,
   ): Promise<NetworkConnection<ChainTypeT>>;
 
   /**

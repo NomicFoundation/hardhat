@@ -17,6 +17,7 @@ export interface TableTitle {
 export interface TableSectionHeader {
   type: "section-header";
   text: string;
+  subtitle?: string;
 }
 
 export interface TableHeader {
@@ -138,6 +139,15 @@ export function formatTable(items: TableItem[]): string {
         tableWidth - 2 + (headerActualLength - headerDisplayWidth),
       );
       lines.push("║ " + paddedHeader + " ║");
+      if (current.subtitle !== undefined) {
+        const subtitleText = "  " + current.subtitle;
+        const subtitleDisplayWidth = getStringWidth(subtitleText);
+        const subtitleActualLength = subtitleText.length;
+        const paddedSubtitle = subtitleText.padEnd(
+          tableWidth - 2 + (subtitleActualLength - subtitleDisplayWidth),
+        );
+        lines.push("║ " + paddedSubtitle + " ║");
+      }
       inSection = true;
     } else if (current.type === "header") {
       const currentCellCount = current.cells.length;

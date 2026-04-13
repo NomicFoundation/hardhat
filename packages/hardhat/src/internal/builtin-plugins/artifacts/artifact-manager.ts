@@ -81,22 +81,16 @@ export class ArtifactManagerImplementation implements ArtifactManager {
   public async artifactExists(
     contractNameOrFullyQualifiedName: string,
   ): Promise<boolean> {
-    try {
-      // This throw if the artifact doesn't exist
-      await this.getArtifactPath(contractNameOrFullyQualifiedName);
+    const { bareNameToFullyQualifiedNameMap, allFullyQualifiedNames } =
+      await this.#getFsData();
 
-      return true;
-    } catch (error) {
-      if (HardhatError.isHardhatError(error)) {
-        if (
-          error.number === HardhatError.ERRORS.CORE.ARTIFACTS.NOT_FOUND.number
-        ) {
-          return false;
-        }
-      }
-
-      throw error;
+    if (this.#isFullyQualifiedName(contractNameOrFullyQualifiedName)) {
+      return allFullyQualifiedNames.has(contractNameOrFullyQualifiedName);
     }
+
+    return bareNameToFullyQualifiedNameMap.has(
+      contractNameOrFullyQualifiedName,
+    );
   }
 
   public async getBuildInfoId(

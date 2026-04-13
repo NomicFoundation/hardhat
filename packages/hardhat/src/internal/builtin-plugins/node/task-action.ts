@@ -106,10 +106,10 @@ const nodeAction: NewTaskActionFunction<NodeActionArguments> = async (
     );
   }
 
-  // NOTE: This is where we initialize the network; the connect method returns
+  // NOTE: This is where we initialize the network; the create method returns
   // a fully resolved networkConfig object which might be useful for display
   const { networkConfig, provider } =
-    await hre.network.connect(connectionParams);
+    await hre.network.create(connectionParams);
 
   assertHardhatInvariant(
     provider instanceof EdrProvider,

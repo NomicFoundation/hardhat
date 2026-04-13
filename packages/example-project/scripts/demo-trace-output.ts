@@ -23,8 +23,8 @@ import hre from "hardhat";
 // ═══════════════════════════════════════════════════════════════════════
 //  Setup: two connections to two independent EDR-simulated networks
 // ═══════════════════════════════════════════════════════════════════════
-const connA = await hre.network.connect("default");
-const connB = await hre.network.connect("node");
+const connA = await hre.network.create("default");
+const connB = await hre.network.create("node");
 
 const [counterA, counterB, revertContract] = await Promise.all([
   connA.viem.deployContract("Counter", []),

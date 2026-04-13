@@ -3,7 +3,7 @@ import { parseEther } from "viem";
 
 async function testL2Extensions() {
   // This network connection has access to an optimism-specific viem api
-  const optimism = await hre.network.connect({
+  const optimism = await hre.network.create({
     network: "localhost",
     chainType: "op",
   });
@@ -12,7 +12,7 @@ async function testL2Extensions() {
   console.log("L1 base fee:", l1BaseFee);
 
   // This one doesn't
-  const mainnet = await hre.network.connect({
+  const mainnet = await hre.network.create({
     network: "localhost",
     chainType: "l1",
   });
@@ -26,7 +26,7 @@ async function testL2Extensions() {
 }
 
 async function testClients() {
-  const networkConnection = await hre.network.connect();
+  const networkConnection = await hre.network.create();
 
   const publicClient = await networkConnection.viem.getPublicClient();
   const [fromWalletClient, toWalletClient] =
@@ -72,7 +72,7 @@ async function testClients() {
 }
 
 async function testContracts() {
-  const networkConnection = await hre.network.connect();
+  const networkConnection = await hre.network.create();
   const counter = await networkConnection.viem.deployContract("Counter");
 
   console.log("Deployed contract at address", counter.address);

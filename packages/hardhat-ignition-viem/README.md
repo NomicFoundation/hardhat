@@ -31,7 +31,7 @@ This plugin adds an `ignition` property to each network connection:
 import { network } from "hardhat";
 import Counter from "../ignition/modules/Counter.js";
 
-const { ignition } = await network.connect();
+const { ignition } = await network.create();
 const { counter } = await ignition.deploy(Counter);
 
 await counter.write.inc();
