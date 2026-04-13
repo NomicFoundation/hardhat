@@ -161,9 +161,11 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
       return "tests";
     }
 
-    for (const sourcesPath of this.#options.soliditySourcesPaths) {
-      if (fsPath.startsWith(sourcesPath) && fsPath.endsWith(".t.sol")) {
-        return "tests";
+    if (fsPath.endsWith(".t.sol")) {
+      for (const sourcesPath of this.#options.soliditySourcesPaths) {
+        if (fsPath.startsWith(sourcesPath)) {
+          return "tests";
+        }
       }
     }
 
