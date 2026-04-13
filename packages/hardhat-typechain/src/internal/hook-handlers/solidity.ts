@@ -81,7 +81,20 @@ async function getContractArtifactPaths(
     if (scope === undefined) {
       const fsPath = path.resolve(projectRoot, sourceName);
 
-      // npm files will be classified as "contracts" because that's the default
+      // npm files will be classified as "contracts" because their sourceName is
+      // not an existing file, and "contracts" is the default.
+      //
+      // If the package name clashed with
+      // ```ts
+      //  path.relative(
+      //    context.config.paths.root,
+      //    context.config.paths.tests.solidity
+      //  )
+      // ```
+      //
+      // They could be misclassified as test files. This is highly improbable,
+      // so we don't check it. You could read the artifact and see if the
+      // inputSourceName starts with `npm/` to rule this out.
       scope = await context.solidity.getScope(fsPath);
       scopeBySource.set(sourceName, scope);
     }
