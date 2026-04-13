@@ -1,3 +1,5 @@
+/_ cSpell:disable _/
+
 # Spec: `splitTestsCompilation` Config Field
 
 ## Overview
