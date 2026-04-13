@@ -1,5 +1,5 @@
 {
   "name": "hardhat-project",
-  "private": "true",
+  "private": true,
   "type": "module"
 }

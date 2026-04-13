@@ -472,7 +472,7 @@ describe("hardhat-typechain", () => {
         solidity: {
           version: "0.8.28",
           splitTestsCompilation: false,
-          npmFilesToBuild: ["@fake/lib/Token.sol"],
+          npmFilesToBuild: ["@fake/lib/Token.sol", "test-lib/Helper.sol"],
         },
         plugins: [hardhatTypechain],
       });
@@ -491,6 +491,21 @@ describe("hardhat-typechain", () => {
             "@fake",
             "lib",
             "Token.ts",
+          ),
+        ),
+        true,
+      );
+    });
+
+    it("should generate types for an unscoped npm package whose name starts with the tests dir name", async () => {
+      assert.equal(
+        await exists(
+          path.join(
+            process.cwd(),
+            "types",
+            "ethers-contracts",
+            "test-lib",
+            "Helper.ts",
           ),
         ),
         true,
