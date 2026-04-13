@@ -18,8 +18,6 @@ describe("Hardhat Mocha plugin", () => {
     useFixtureProject("test-project");
 
     it("should work", async () => {
-      const { createHardhatRuntimeEnvironment } = await import("hardhat/hre");
-
       const hardhatConfig = await import(
         "./fixture-projects/test-project/hardhat.config.js"
       );
@@ -41,8 +39,6 @@ describe("Hardhat Mocha plugin", () => {
     useFixtureProject("invalid-mocha-config");
 
     it("should fail", async () => {
-      const { createHardhatRuntimeEnvironment } = await import("hardhat/hre");
-
       const errors =
         "\t* Config error in config.test.mocha.delay: Expected boolean, received number";
 
@@ -92,8 +88,6 @@ describe("Hardhat Mocha plugin", () => {
     }
 
     it("should call build without noTests when splitTestsCompilation is false", async () => {
-      const { createHardhatRuntimeEnvironment } = await import("hardhat/hre");
-
       const { buildArgs, buildOverride } = buildArgCaptor();
       const hre = await createHardhatRuntimeEnvironment({
         plugins: [HardhatMochaPlugin],
@@ -107,8 +101,6 @@ describe("Hardhat Mocha plugin", () => {
     });
 
     it("should call build with noTests when splitTestsCompilation is true", async () => {
-      const { createHardhatRuntimeEnvironment } = await import("hardhat/hre");
-
       const { buildArgs, buildOverride } = buildArgCaptor();
       const hre = await createHardhatRuntimeEnvironment({
         solidity: {
