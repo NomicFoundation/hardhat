@@ -1,10 +1,9 @@
 import assert from "node:assert/strict";
-import path from "node:path";
+import { EOL } from "node:os";
 import { describe, it } from "node:test";
 
 import { HardhatError } from "@nomicfoundation/hardhat-errors";
 import { assertRejectsWithHardhatError } from "@nomicfoundation/hardhat-test-utils";
-import { exists } from "@nomicfoundation/hardhat-utils/fs";
 
 import { useTestProjectTemplate } from "../resolver/helpers.js";
 
@@ -128,7 +127,7 @@ describe("artifact API in unified mode", function () {
       HardhatError.ERRORS.CORE.ARTIFACTS.MULTIPLE_FOUND,
       {
         contractName: "Foo",
-        candidates: "contracts/Foo.sol:Foo\ntest/Foo.sol:Foo",
+        candidates: `contracts/Foo.sol:Foo${EOL}test/Foo.sol:Foo`,
       },
     );
   });

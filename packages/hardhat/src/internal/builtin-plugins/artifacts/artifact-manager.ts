@@ -191,7 +191,7 @@ export class ArtifactManagerImplementation implements ArtifactManager {
         HardhatError.ERRORS.CORE.ARTIFACTS.MULTIPLE_FOUND,
         {
           contractName: contractNameOrFullyQualifiedName,
-          candidates: Array.from(fqns).join(EOL),
+          candidates: Array.from(fqns).sort().join(EOL),
         },
       );
     }
