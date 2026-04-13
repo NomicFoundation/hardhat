@@ -584,7 +584,8 @@ describe("build system - splitTestsCompilation: false", function () {
         scope: "contracts",
       });
       const contractRoots = roots.filter(
-        (r) => !r.endsWith(".t.sol") && !r.includes("/test/"),
+        (r) =>
+          !r.endsWith(".t.sol") && !r.includes(path.sep + "test" + path.sep),
       );
       const result = await hre.solidity.getCompilationJobs(contractRoots, {
         scope: "contracts",
