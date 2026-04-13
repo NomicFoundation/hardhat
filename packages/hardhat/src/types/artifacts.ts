@@ -89,7 +89,9 @@ export interface ArtifactManager {
   /**
    * Returns true if an artifact exists.
    *
-   * This function doesn't throw if the name is not unique.
+   * This function doesn't throw if the name is not unique, this means that
+   * this method may return `true`, and a succesive call to `readArtifact` can
+   * throw because of a duplicated name.
    *
    * @param contractNameOrFullyQualifiedName Contract or fully qualified name.
    */
