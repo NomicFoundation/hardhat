@@ -71,11 +71,7 @@ describe("Hardhat Node plugin", () => {
         tasks: [buildOverride],
       });
 
-      // The task may throw because of the ESM re-run guard, but we only
-      // care about the build invocation args captured before that point.
-      try {
-        await hre.tasks.getTask(["test", "nodejs"]).run({});
-      } catch {}
+      await hre.tasks.getTask(["test", "nodejs"]).run({});
 
       assert.equal(buildArgs.length, 1);
       assert.equal(buildArgs[0].noTests, false);
@@ -92,24 +88,36 @@ describe("Hardhat Node plugin", () => {
         tasks: [buildOverride],
       });
 
-      try {
-        await hre.tasks.getTask(["test", "nodejs"]).run({});
-      } catch {}
+      await hre.tasks.getTask(["test", "nodejs"]).run({});
 
       assert.equal(buildArgs.length, 1);
       assert.equal(buildArgs[0].noTests, true);
     });
 
-    it("should skip compilation when noCompile is true regardless of splitTestsCompilation", async () => {
+    it("should skip compilation when noCompile is true without splitTestsCompilation", async () => {
       const { buildArgs, buildOverride } = buildArgCaptor();
       const hre = await createHardhatRuntimeEnvironment({
         plugins: [HardhatNodeTestRunnerPlugin],
         tasks: [buildOverride],
       });
 
-      try {
-        await hre.tasks.getTask(["test", "nodejs"]).run({ noCompile: true });
-      } catch {}
+      await hre.tasks.getTask(["test", "nodejs"]).run({ noCompile: true });
+
+      assert.equal(buildArgs.length, 0);
+    });
+
+    it("should skip compilation when noCompile is true with splitTestsCompilation", async () => {
+      const { buildArgs, buildOverride } = buildArgCaptor();
+      const hre = await createHardhatRuntimeEnvironment({
+        solidity: {
+          version: "0.8.28",
+          splitTestsCompilation: true,
+        },
+        plugins: [HardhatNodeTestRunnerPlugin],
+        tasks: [buildOverride],
+      });
+
+      await hre.tasks.getTask(["test", "nodejs"]).run({ noCompile: true });
 
       assert.equal(buildArgs.length, 0);
     });
