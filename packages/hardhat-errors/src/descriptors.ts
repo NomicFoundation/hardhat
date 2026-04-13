@@ -356,7 +356,6 @@ You can learn how to use Hardhat by reading the [Getting Started guide](/getting
       },
       DUPLICATED_PLUGIN_ID: {
         number: 2,
-        shouldBeReported: true,
         messageTemplate:
           'Duplicated plugin id "{id}" found. Did you install multiple versions of the same plugin?',
         websiteTitle: "Duplicated plugin id",
@@ -1501,7 +1500,6 @@ Please use the fully qualified name of the contract to disambiguate it.`,
       },
       UNKNOWN_TRANSACTION_TYPE: {
         number: 10110,
-        shouldBeReported: true,
         messageTemplate: `Unknown transaction type: "{type}"`,
         websiteTitle:
           "Hardhat Ignition was unable to display an unknown transaction type",
@@ -1530,7 +1528,6 @@ Please use the fully qualified name of the contract to disambiguate it.`,
       },
       VISUALIZATION_TEMPLATE_DIR_NOT_FOUND: {
         number: 10114,
-        shouldBeReported: true,
         messageTemplate: `Unable to find template directory: "{templateDir}"`,
         websiteTitle: "Visualization template directory not found",
         websiteDescription: "Visualization template directory not found",
@@ -2845,7 +2842,6 @@ Please check the returned message for details.`,
       CONTRACT_VERIFICATION_UNEXPECTED_RESPONSE: {
         number: 80025,
         messageTemplate: `The block explorer API returned an unexpected message: "{message}". Please report this issue to the Hardhat team.`,
-        shouldBeReported: true,
         websiteTitle: "Unexpected API response during contract verification",
         websiteDescription: `The block explorer API returned a message that doesn't match the expected format. This may indicate a change in the API or an issue with the request.
 
