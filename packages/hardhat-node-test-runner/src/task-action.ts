@@ -115,6 +115,7 @@ const testWithHardhat: NewTaskActionFunction<TestActionArguments> = async (
       files,
       only,
       concurrency: false,
+      isolation: "none",
     };
 
     if (grep !== undefined && grep !== "") {
