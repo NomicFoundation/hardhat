@@ -13,7 +13,7 @@ import {
   ContractFunctionRevertedError,
 } from "viem";
 
-import hardhatViem from "@nomicfoundation/hardhat-viem";
+import hardhatViem from "../src/index.js";
 
 describe("revert error cause chain", () => {
   useEphemeralFixtureProject("default-ts-project");
