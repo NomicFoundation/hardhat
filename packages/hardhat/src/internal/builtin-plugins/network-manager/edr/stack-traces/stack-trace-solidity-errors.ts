@@ -9,6 +9,8 @@ import { assertHardhatInvariant } from "@nomicfoundation/hardhat-errors";
 import { bytesToHexString } from "@nomicfoundation/hardhat-utils/bytes";
 import { panicErrorCodeToMessage } from "@nomicfoundation/hardhat-utils/panic-errors";
 
+import { REVERT_ERROR_CODE } from "../../revert-error-code.js";
+
 import {
   StackTraceEntryType,
   CONSTRUCTOR_FUNCTION_NAME,
@@ -293,11 +295,15 @@ function getMessageFromLastStackTraceEntry(
 }
 
 /**
- * Note: This error class MUST NOT extend ProviderError, as libraries use the
- * code property to detect if they are dealing with a JSON-RPC error, and take
- * control of errors.
+ * Note: This error class does not extend ProviderError because it carries
+ * Solidity-specific data (stackTrace) that ProviderError does not model.
+ * It does carry `code = 3` to match the de facto standard used by geth and
+ * anvil for execution revert errors, allowing libraries like viem to
+ * properly detect and handle revert errors via the error cause chain.
  **/
 export class SolidityError extends Error {
+  public readonly code: number = REVERT_ERROR_CODE;
+
   constructor(
     message: string,
     public readonly stackTrace: SolidityStackTrace,
@@ -305,6 +311,7 @@ export class SolidityError extends Error {
     public readonly transactionHash?: string,
   ) {
     super(message);
+    this.name = "SolidityError";
 
     Object.defineProperty(this, Symbol.for("nodejs.util.inspect.custom"), {
       value: () =>

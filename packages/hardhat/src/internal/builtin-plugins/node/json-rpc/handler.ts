@@ -21,6 +21,7 @@ import {
   InvalidRequestError,
   ProviderError,
 } from "../../network-manager/provider-errors.js";
+import { REVERT_ERROR_CODE } from "../../network-manager/revert-error-code.js";
 
 export class JsonRpcHandler {
   readonly #provider: EthereumProvider;
@@ -256,8 +257,15 @@ const _handleError = (error: Error): JsonRpcResponse => {
   const txHash = extractTxHash(error);
   const returnData = extractReturnData(error);
 
-  // In case of non-hardhat error, treat it as internal and associate the appropriate error code.
-  if (!ProviderError.isProviderError(error)) {
+  // Check if this is a revert error (code 3) matching the geth/anvil convention.
+  const isRevertError =
+    "code" in error &&
+    typeof error.code === "number" &&
+    error.code === REVERT_ERROR_CODE;
+
+  // In case of non-hardhat error that is not a revert, treat it as internal
+  // and associate the appropriate error code.
+  if (!ProviderError.isProviderError(error) && !isRevertError) {
     error = new InternalError(undefined, error);
   }
 
