@@ -77,7 +77,11 @@ describe("createSolidityErrorWithStackTrace", () => {
         sourceReference: dummySourceReference,
       };
 
-      const error = createSolidityErrorWithStackTrace("fallback", [entry], "0x");
+      const error = createSolidityErrorWithStackTrace(
+        "fallback",
+        [entry],
+        "0x",
+      );
       assert.equal(
         error.message,
         "VM Exception while processing transaction: cheatcode 'broadcast(address)' is not supported",
@@ -95,7 +99,11 @@ describe("createSolidityErrorWithStackTrace", () => {
         },
       };
 
-      const error = createSolidityErrorWithStackTrace("fallback", [entry], "0x");
+      const error = createSolidityErrorWithStackTrace(
+        "fallback",
+        [entry],
+        "0x",
+      );
       assert.equal(
         error.message,
         "VM Exception while processing transaction: Cheatcode 'broadcast(address)' is not supported by Hardhat.",
@@ -113,7 +121,11 @@ describe("createSolidityErrorWithStackTrace", () => {
         },
       };
 
-      const error = createSolidityErrorWithStackTrace("fallback", [entry], "0x");
+      const error = createSolidityErrorWithStackTrace(
+        "fallback",
+        [entry],
+        "0x",
+      );
       assert.equal(
         error.message,
         "VM Exception while processing transaction: Cheatcode 'someNewCheatcode(uint256)' is not yet available in this version of Hardhat.",

@@ -3,10 +3,7 @@ import type { SolidityStackTraceEntry } from "../../../../src/internal/builtin-p
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 
-import {
-  CheatcodeErrorCode,
-  StackTraceEntryType,
-} from "@nomicfoundation/edr";
+import { CheatcodeErrorCode, StackTraceEntryType } from "@nomicfoundation/edr";
 
 import { getMessageFromLastStackTraceEntry } from "../../../../src/internal/builtin-plugins/solidity-test/stack-trace-solidity-errors.js";
 
