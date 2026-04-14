@@ -114,7 +114,7 @@ const testWithHardhat: NewTaskActionFunction<TestActionArguments> = async (
     const nodeTestOptions: LastParameter<typeof run> = {
       files,
       only,
-      concurrency: true, // uses `os.availableParallelism() - 1`
+      concurrency: false,
     };
 
     if (grep !== undefined && grep !== "") {
