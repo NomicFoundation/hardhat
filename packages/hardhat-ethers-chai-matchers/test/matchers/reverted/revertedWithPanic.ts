@@ -7,7 +7,7 @@ import { before, beforeEach, describe, it } from "node:test";
 import util from "node:util";
 
 import {
-  assertThrows,
+  assertRejects,
   useEphemeralFixtureProject,
 } from "@nomicfoundation/hardhat-test-utils";
 import { AssertionError, expect } from "chai";
@@ -302,7 +302,7 @@ describe("INTEGRATION: Reverted with panic", { timeout: 60000 }, () => {
       it("non-number as expectation", async () => {
         const { hash } = await mineSuccessfulTransaction(provider, ethers);
 
-        assertThrows(
+        await assertRejects(
           async () => await expect(hash).to.be.revertedWithPanic("invalid"),
           (e) =>
             e.message.includes(
@@ -315,7 +315,7 @@ describe("INTEGRATION: Reverted with panic", { timeout: 60000 }, () => {
       it("non-number as expectation, subject is a rejected promise", async () => {
         const tx = matchers.revertsWithoutReason();
 
-        assertThrows(
+        await assertRejects(
           async () => await expect(tx).to.be.revertedWithPanic("invalid"),
           (e) =>
             e.message.includes(

@@ -11,7 +11,7 @@ import { before, beforeEach, describe, it } from "node:test";
 import util from "node:util";
 
 import {
-  assertThrows,
+  assertRejects,
   useEphemeralFixtureProject,
 } from "@nomicfoundation/hardhat-test-utils";
 import { expect, AssertionError } from "chai";
@@ -646,8 +646,8 @@ describe("INTEGRATION: changeEtherBalance matcher", { timeout: 60000 }, () => {
           );
         });
 
-        it("should throw if chained to another non-chainable method", () => {
-          assertThrows(
+        it("should throw if chained to another non-chainable method", async () => {
+          await assertRejects(
             async () =>
               await expect(
                 sender.sendTransaction({

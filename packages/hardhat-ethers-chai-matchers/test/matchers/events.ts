@@ -120,21 +120,23 @@ describe(".to.emit (contract events)", { timeout: 60000 }, () => {
 
     describe(".withArgs", () => {
       it("should fail when used with .not.", async () => {
-        expect(
+        await assertRejects(
           async () =>
             await expect(contract.emitUint(1))
               .not.to.emit(contract, "WithUintArg")
               .withArgs(1),
-        ).to.throw(Error, "Do not combine .not. with .withArgs()");
+          (e) => e.message.includes("Do not combine .not. with .withArgs()"),
+        );
       });
 
       it("should fail when used with .not, subject is a rejected promise", async () => {
-        expect(
+        await assertRejects(
           async () =>
             await expect(matchers.revertsWithoutReason())
               .not.to.emit(contract, "WithUintArg")
               .withArgs(1),
-        ).to.throw(Error, "Do not combine .not. with .withArgs()");
+          (e) => e.message.includes("Do not combine .not. with .withArgs()"),
+        );
       });
 
       it("should fail if withArgs is called on its own", async () => {

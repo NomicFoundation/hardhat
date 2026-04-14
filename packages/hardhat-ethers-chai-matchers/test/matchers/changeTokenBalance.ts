@@ -17,7 +17,7 @@ import { afterEach, before, beforeEach, describe, it } from "node:test";
 import util from "node:util";
 
 import {
-  assertThrows,
+  assertRejects,
   useEphemeralFixtureProject,
 } from "@nomicfoundation/hardhat-test-utils";
 import { AssertionError, expect } from "chai";
@@ -653,8 +653,8 @@ describe(
             );
           });
 
-          it("changeTokenBalance: Should throw if chained to another non-chainable method", () => {
-            assertThrows(
+          it("changeTokenBalance: Should throw if chained to another non-chainable method", async () => {
+            await assertRejects(
               async () =>
                 await expect(contract.emitWithoutArgs())
                   .to.emit(contract, "WithoutArgs")
@@ -667,8 +667,8 @@ describe(
             );
           });
 
-          it("changeTokenBalances: should throw if chained to another non-chainable method", () => {
-            assertThrows(
+          it("changeTokenBalances: should throw if chained to another non-chainable method", async () => {
+            await assertRejects(
               async () =>
                 await expect(matchers.revertWithCustomErrorWithInt(1))
                   .to.be.revert(ethers)
@@ -691,7 +691,7 @@ describe(
       describe("validation errors", () => {
         describe(CHANGE_TOKEN_BALANCE_MATCHER, () => {
           it("token is not specified", async () => {
-            assertThrows(
+            await assertRejects(
               async () =>
                 await expect(
                   mockToken.transfer(receiver.address, 50),
@@ -705,7 +705,7 @@ describe(
             );
 
             // if an address is used (receiver.address)
-            assertThrows(
+            await assertRejects(
               async () =>
                 await expect(
                   mockToken.transfer(receiver.address, 50),
@@ -723,14 +723,15 @@ describe(
             const NotAToken = await ethers.getContractFactory("NotAToken");
             const notAToken = await NotAToken.deploy();
 
-            expect(
+            await assertRejects(
               async () =>
                 await expect(
                   mockToken.transfer(receiver.address, 50),
                 ).to.changeTokenBalance(ethers, notAToken, sender, -50),
-            ).to.throw(
-              Error,
-              "The given contract instance is not an ERC20 token",
+              (e) =>
+                e.message.includes(
+                  "The given contract instance is not an ERC20 token",
+                ),
             );
           });
 
@@ -775,7 +776,7 @@ describe(
 
         describe(CHANGE_TOKEN_BALANCES_MATCHER, () => {
           it("token is not specified", async () => {
-            assertThrows(
+            await assertRejects(
               async () =>
                 await expect(
                   mockToken.transfer(receiver.address, 50),
@@ -793,7 +794,7 @@ describe(
             const NotAToken = await ethers.getContractFactory("NotAToken");
             const notAToken = await NotAToken.deploy();
 
-            expect(
+            await assertRejects(
               async () =>
                 await expect(
                   mockToken.transfer(receiver.address, 50),
@@ -803,13 +804,14 @@ describe(
                   [sender, receiver],
                   [-50, 50],
                 ),
-            ).to.throw(
-              Error,
-              "The given contract instance is not an ERC20 token",
+              (e) =>
+                e.message.includes(
+                  "The given contract instance is not an ERC20 token",
+                ),
             );
           });
           it("arrays have different length", async () => {
-            expect(
+            await assertRejects(
               async () =>
                 await expect(
                   mockToken.transfer(receiver.address, 50),
@@ -819,12 +821,13 @@ describe(
                   [sender],
                   [-50, 50],
                 ),
-            ).to.throw(
-              Error,
-              "The number of accounts (1) is different than the number of expected balance changes (2)",
+              (e) =>
+                e.message.includes(
+                  "The number of accounts (1) is different than the number of expected balance changes (2)",
+                ),
             );
 
-            expect(
+            await assertRejects(
               async () =>
                 await expect(
                   mockToken.transfer(receiver.address, 50),
@@ -834,14 +837,15 @@ describe(
                   [sender, receiver],
                   [-50],
                 ),
-            ).to.throw(
-              Error,
-              "The number of accounts (2) is different than the number of expected balance changes (1)",
+              (e) =>
+                e.message.includes(
+                  "The number of accounts (2) is different than the number of expected balance changes (1)",
+                ),
             );
           });
 
           it("arrays have different length, subject is a rejected promise", async () => {
-            expect(
+            await assertRejects(
               async () =>
                 await expect(
                   matchers.revertsWithoutReason(),
@@ -851,9 +855,10 @@ describe(
                   [sender],
                   [-50, 50],
                 ),
-            ).to.throw(
-              Error,
-              "The number of accounts (1) is different than the number of expected balance changes (2)",
+              (e) =>
+                e.message.includes(
+                  "The number of accounts (1) is different than the number of expected balance changes (2)",
+                ),
             );
           });
 

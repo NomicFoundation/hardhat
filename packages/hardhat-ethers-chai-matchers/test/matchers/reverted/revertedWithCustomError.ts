@@ -7,7 +7,7 @@ import { before, beforeEach, describe, it } from "node:test";
 import util from "node:util";
 
 import {
-  assertThrows,
+  assertRejects,
   useEphemeralFixtureProject,
 } from "@nomicfoundation/hardhat-test-utils";
 import { AssertionError, expect } from "chai";
@@ -381,12 +381,13 @@ describe("INTEGRATION: Reverted with custom error", { timeout: 60000 }, () => {
       });
 
       it("should fail when used with .not.", async () => {
-        expect(
+        await assertRejects(
           async () =>
             await expect(matchers.revertWithSomeCustomError())
               .to.not.be.revertedWithCustomError(matchers, "SomeCustomError")
               .withArgs(1),
-        ).to.throw(Error, "Do not combine .not. with .withArgs()");
+          (e) => e.message.includes("Do not combine .not. with .withArgs()"),
+        );
       });
 
       it("should fail if withArgs is called on its own", async () => {
@@ -459,7 +460,7 @@ describe("INTEGRATION: Reverted with custom error", { timeout: 60000 }, () => {
       it("non-string as expectation", async () => {
         const { hash } = await mineSuccessfulTransaction(provider, ethers);
 
-        assertThrows(
+        await assertRejects(
           // @ts-expect-error -- force error scenario: reason should be a string or a regular expression
           async () => await expect(hash).to.be.revertedWith(10),
           (e) =>
@@ -471,7 +472,7 @@ describe("INTEGRATION: Reverted with custom error", { timeout: 60000 }, () => {
       });
 
       it("the contract is not specified", async () => {
-        assertThrows(
+        await assertRejects(
           async () =>
             await expect(
               matchers.revertWithSomeCustomError(),
@@ -486,7 +487,7 @@ describe("INTEGRATION: Reverted with custom error", { timeout: 60000 }, () => {
       });
 
       it("the contract doesn't have a custom error with that name", async () => {
-        assertThrows(
+        await assertRejects(
           async () =>
             await expect(
               matchers.revertWithSomeCustomError(),
@@ -524,7 +525,7 @@ describe("INTEGRATION: Reverted with custom error", { timeout: 60000 }, () => {
       });
 
       it("extra arguments", async () => {
-        assertThrows(
+        await assertRejects(
           async () =>
             await expect(
               matchers.revertWithSomeCustomError(),

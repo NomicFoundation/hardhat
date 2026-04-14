@@ -7,7 +7,7 @@ import { before, beforeEach, describe, it } from "node:test";
 import util from "node:util";
 
 import {
-  assertThrows,
+  assertRejects,
   useEphemeralFixtureProject,
 } from "@nomicfoundation/hardhat-test-utils";
 import { AssertionError, expect } from "chai";
@@ -206,7 +206,7 @@ describe("INTEGRATION: Reverted with", { timeout: 60000 }, () => {
       it("non-string as expectation", async () => {
         const { hash } = await mineSuccessfulTransaction(provider, ethers);
 
-        assertThrows(
+        await assertRejects(
           // @ts-expect-error -- force error scenario: reason should be a string or a regular expression
           async () => await expect(hash).to.be.revertedWith(10),
           (e) =>
@@ -220,7 +220,7 @@ describe("INTEGRATION: Reverted with", { timeout: 60000 }, () => {
       it("non-string as expectation, subject is a rejected promise", async () => {
         const tx = matchers.revertsWithoutReason();
 
-        assertThrows(
+        await assertRejects(
           // @ts-expect-error -- force error scenario: reason should be a string or a regular expression
           async () => await expect(tx).to.be.revertedWith(10),
           (e) =>

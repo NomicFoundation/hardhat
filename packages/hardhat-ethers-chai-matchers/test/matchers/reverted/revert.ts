@@ -8,7 +8,6 @@ import util from "node:util";
 
 import {
   assertRejects,
-  assertThrows,
   useEphemeralFixtureProject,
 } from "@nomicfoundation/hardhat-test-utils";
 import { AssertionError, expect } from "chai";
@@ -195,8 +194,8 @@ describe("INTEGRATION: Revert", { timeout: 60000 }, () => {
         );
       });
 
-      it("reverted: should throw if chained to another non-chainable method", () => {
-        assertThrows(
+      it("reverted: should throw if chained to another non-chainable method", async () => {
+        await assertRejects(
           async () =>
             await expect(matchers.revertsWith("bar"))
               .to.be.revertedWith("bar")
@@ -209,8 +208,8 @@ describe("INTEGRATION: Revert", { timeout: 60000 }, () => {
         );
       });
 
-      it("revertedWith: should throw if chained to another non-chainable method", () => {
-        assertThrows(
+      it("revertedWith: should throw if chained to another non-chainable method", async () => {
+        await assertRejects(
           async () =>
             await expect(matchers.revertWithCustomErrorWithInt(1))
               .to.be.revertedWithCustomError(matchers, "CustomErrorWithInt")
@@ -223,8 +222,8 @@ describe("INTEGRATION: Revert", { timeout: 60000 }, () => {
         );
       });
 
-      it("revertedWithCustomError: should throw if chained to another non-chainable method", () => {
-        assertThrows(
+      it("revertedWithCustomError: should throw if chained to another non-chainable method", async () => {
+        await assertRejects(
           async () =>
             await expect(matchers.revertsWithoutReason())
               .to.be.revertedWithoutReason(ethers)
@@ -237,8 +236,8 @@ describe("INTEGRATION: Revert", { timeout: 60000 }, () => {
         );
       });
 
-      it("revertedWithoutReason: should throw if chained to another non-chainable method", () => {
-        assertThrows(
+      it("revertedWithoutReason: should throw if chained to another non-chainable method", async () => {
+        await assertRejects(
           async () =>
             await expect(matchers.panicAssert())
               .to.be.revertedWithPanic()
@@ -254,7 +253,7 @@ describe("INTEGRATION: Revert", { timeout: 60000 }, () => {
       it("revertedWithPanic: should throw if chained to another non-chainable method", async () => {
         const [sender, receiver] = await ethers.getSigners();
 
-        assertThrows(
+        await assertRejects(
           async () =>
             await expect(
               async () =>

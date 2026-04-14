@@ -11,7 +11,7 @@ import { before, beforeEach, describe, it } from "node:test";
 import util from "node:util";
 
 import {
-  assertThrows,
+  assertRejects,
   useEphemeralFixtureProject,
 } from "@nomicfoundation/hardhat-test-utils";
 import { expect, AssertionError } from "chai";
@@ -307,7 +307,7 @@ describe("INTEGRATION: changeEtherBalances matcher", { timeout: 60000 }, () => {
         });
 
         it("arrays have different length", async () => {
-          expect(
+          await assertRejects(
             async () =>
               await expect(
                 sender.sendTransaction({
@@ -316,11 +316,12 @@ describe("INTEGRATION: changeEtherBalances matcher", { timeout: 60000 }, () => {
                   value: 200,
                 }),
               ).to.changeEtherBalances(ethers, [sender], ["-200", 200]),
-          ).to.throw(
-            Error,
-            "The number of accounts (1) is different than the number of expected balance changes (2)",
+            (e) =>
+              e.message.includes(
+                "The number of accounts (1) is different than the number of expected balance changes (2)",
+              ),
           );
-          expect(
+          await assertRejects(
             async () =>
               await expect(
                 sender.sendTransaction({
@@ -329,9 +330,10 @@ describe("INTEGRATION: changeEtherBalances matcher", { timeout: 60000 }, () => {
                   value: 200,
                 }),
               ).to.changeEtherBalances(ethers, [sender, receiver], ["-200"]),
-          ).to.throw(
-            Error,
-            "The number of accounts (2) is different than the number of expected balance changes (1)",
+            (e) =>
+              e.message.includes(
+                "The number of accounts (2) is different than the number of expected balance changes (1)",
+              ),
           );
         });
       });
@@ -369,8 +371,8 @@ describe("INTEGRATION: changeEtherBalances matcher", { timeout: 60000 }, () => {
         });
       });
 
-      it("should throw if chained to another non-chainable method", () => {
-        assertThrows(
+      it("should throw if chained to another non-chainable method", async () => {
+        await assertRejects(
           async () =>
             await expect(
               sender.sendTransaction({
