@@ -5,8 +5,10 @@ import { describe, it } from "node:test";
 
 import { CheatcodeErrorCode, StackTraceEntryType } from "@nomicfoundation/edr";
 
-import { SolidityCallSite } from "../../../../../../src/internal/builtin-plugins/network-manager/edr/stack-traces/stack-trace-solidity-errors.js";
-import { getMessageFromLastStackTraceEntry } from "../../../../../../src/internal/builtin-plugins/solidity-test/stack-trace-solidity-errors.js";
+import {
+  createSolidityErrorWithStackTrace,
+  SolidityCallSite,
+} from "../../../../../../src/internal/builtin-plugins/network-manager/edr/stack-traces/stack-trace-solidity-errors.js";
 
 describe("SolidityCallSite", function () {
   describe("toString", function () {
@@ -59,7 +61,7 @@ describe("SolidityCallSite", function () {
   });
 });
 
-describe("getMessageFromLastStackTraceEntry", () => {
+describe("createSolidityErrorWithStackTrace", () => {
   const dummySourceReference = {
     sourceName: "Test.t.sol",
     sourceContent: "",
@@ -75,9 +77,10 @@ describe("getMessageFromLastStackTraceEntry", () => {
         sourceReference: dummySourceReference,
       };
 
+      const error = createSolidityErrorWithStackTrace("fallback", [entry], "0x");
       assert.equal(
-        getMessageFromLastStackTraceEntry(entry),
-        "cheatcode 'broadcast(address)' is not supported",
+        error.message,
+        "VM Exception while processing transaction: cheatcode 'broadcast(address)' is not supported",
       );
     });
 
@@ -92,9 +95,10 @@ describe("getMessageFromLastStackTraceEntry", () => {
         },
       };
 
+      const error = createSolidityErrorWithStackTrace("fallback", [entry], "0x");
       assert.equal(
-        getMessageFromLastStackTraceEntry(entry),
-        "Cheatcode 'broadcast(address)' is not supported by Hardhat.",
+        error.message,
+        "VM Exception while processing transaction: Cheatcode 'broadcast(address)' is not supported by Hardhat.",
       );
     });
 
@@ -109,9 +113,10 @@ describe("getMessageFromLastStackTraceEntry", () => {
         },
       };
 
+      const error = createSolidityErrorWithStackTrace("fallback", [entry], "0x");
       assert.equal(
-        getMessageFromLastStackTraceEntry(entry),
-        "Cheatcode 'someNewCheatcode(uint256)' is not yet available in this version of Hardhat.",
+        error.message,
+        "VM Exception while processing transaction: Cheatcode 'someNewCheatcode(uint256)' is not yet available in this version of Hardhat.",
       );
     });
   });
