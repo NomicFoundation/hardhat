@@ -1,5 +1,5 @@
 /**
- * @file This file exists to workaround an issue in `@ledgerhq/errors`, beecause
+ * @file This file exists to workaround an issue in `@ledgerhq/errors`, because
  * its ESM build is broken.
  *
  * See: https://github.com/LedgerHQ/ledger-live/issues/15967
