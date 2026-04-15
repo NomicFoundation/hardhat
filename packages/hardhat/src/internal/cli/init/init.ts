@@ -567,14 +567,23 @@ export async function installProjectDependencies(
       console.log();
       console.log(commandString);
 
-      await spawn(commandString, [], {
-        cwd: workspace,
-        // We need to run with `shell: true` for this to work on powershell, but
-        // we already enclosed every dependency identifier in quotes, so this
-        // is safe.
-        shell: true,
-        stdio: "inherit",
-      });
+      try {
+        await spawn(commandString, [], {
+          cwd: workspace,
+          // We need to run with `shell: true` for this to work on powershell, but
+          // we already enclosed every dependency identifier in quotes, so this
+          // is safe.
+          shell: true,
+          stdio: "inherit",
+        });
+      } catch (error) {
+        ensureError(error);
+
+        throw new HardhatError(
+          HardhatError.ERRORS.CORE.INIT.FAILED_TO_INSTALL_DEPENDENCIES,
+          error,
+        );
+      }
 
       console.log(`✨ ${chalk.cyan(`Dependencies installed`)} ✨`);
     }
