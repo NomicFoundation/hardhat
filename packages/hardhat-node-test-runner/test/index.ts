@@ -1,47 +1,55 @@
 import assert from "node:assert/strict";
+import path from "node:path";
 import { describe, it } from "node:test";
+import { fileURLToPath } from "node:url";
 
-import { useFixtureProject } from "@nomicfoundation/hardhat-test-utils";
-import { createHardhatRuntimeEnvironment } from "hardhat/hre";
+import { runHardhatTest } from "./helpers/run-hardhat.js";
+
+// The `test nodejs` task sets `HH_TEST=true` and defaults `NODE_ENV=test`
+// before invoking `node:test`'s `run()`. Historically these assertions were
+// made in-process by calling the task directly from inside the test, but the
+// task now runs test files with `isolation: "none"` (same-process execution
+// for perf/consistency). That means calling the task from a process that is
+// itself already a `node --test` session nests `node:test` within
+// `node:test`, which hangs on Node 24 and errors on Node 22.
+//
+// Instead, each scenario below spawns a fresh Hardhat CLI against a fixture
+// project whose own test file makes the assertions. A non-zero exit from the
+// child means the inner assertions failed; we surface stdout/stderr so CI
+// logs stay actionable.
+
+const FIXTURES_DIR = fileURLToPath(
+  new URL("./fixture-projects", import.meta.url),
+);
 
 describe("Hardhat Node plugin", () => {
-  useFixtureProject("test-project");
+  it("sets HH_TEST=true and defaults NODE_ENV to 'test' when it was unset", async () => {
+    const { exitCode, stdout, stderr } = await runHardhatTest(
+      path.join(FIXTURES_DIR, "env-assertions-unset"),
+      // Explicitly clear NODE_ENV so the child starts without it. The parent
+      // process may have NODE_ENV set (e.g. tsx sets it, or the outer
+      // `node --test` harness sets it) — we mustn't let that leak through
+      // and short-circuit the `??=` in the task.
+      { NODE_ENV: undefined },
+    );
 
-  it("should set the NODE_ENV variable if undefined and HH_TEST always", async () => {
-    const baseHhConfig = (
-      await import("./fixture-projects/test-project/hardhat.config.js")
-    ).default;
-    const hre = await createHardhatRuntimeEnvironment(baseHhConfig);
-
-    const nodeEnv = process.env.NODE_ENV;
-    const hhTest = process.env.HH_TEST;
-    try {
-      delete process.env.NODE_ENV;
-      await hre.tasks.getTask(["test", "nodejs"]).run({ noCompile: true });
-      assert.equal(process.env.NODE_ENV, "test");
-      assert.equal(process.env.HH_TEST, "true");
-    } finally {
-      process.env.HH_TEST = hhTest;
-      process.env.NODE_ENV = nodeEnv;
-    }
+    assert.equal(
+      exitCode,
+      0,
+      `hardhat test nodejs failed (exit ${String(exitCode)}):\n--- stdout ---\n${stdout}\n--- stderr ---\n${stderr}`,
+    );
   });
 
-  it("should not set the NODE_ENV variable if defined before", async () => {
-    const baseHhConfig = (
-      await import("./fixture-projects/test-project/hardhat.config.js")
-    ).default;
-    const hre = await createHardhatRuntimeEnvironment(baseHhConfig);
+  it("does not overwrite NODE_ENV when it is already defined", async () => {
+    const { exitCode, stdout, stderr } = await runHardhatTest(
+      path.join(FIXTURES_DIR, "env-assertions-preserve"),
+      { NODE_ENV: "HELLO" },
+    );
 
-    const nodeEnv = process.env.NODE_ENV;
-    const hhTest = process.env.HH_TEST;
-    try {
-      process.env.NODE_ENV = "HELLO";
-      await hre.tasks.getTask(["test", "nodejs"]).run({ noCompile: true });
-      assert.equal(process.env.NODE_ENV, "HELLO");
-      assert.equal(process.env.HH_TEST, "true");
-    } finally {
-      process.env.HH_TEST = hhTest;
-      process.env.NODE_ENV = nodeEnv;
-    }
+    assert.equal(
+      exitCode,
+      0,
+      `hardhat test nodejs failed (exit ${String(exitCode)}):\n--- stdout ---\n${stdout}\n--- stderr ---\n${stderr}`,
+    );
   });
 });
