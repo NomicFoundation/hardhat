@@ -25,10 +25,12 @@ import type {
   InternalFunctionCallStackEntry,
   ContractCallRunOutOfGasError,
   CheatcodeErrorStackTraceEntry,
+  CheatcodeErrorDetails,
 } from "@nomicfoundation/edr";
 
 import {
   StackTraceEntryType,
+  CheatcodeErrorCode,
   stackTraceEntryTypeToString,
   FALLBACK_FUNCTION_NAME,
   RECEIVE_FUNCTION_NAME,
@@ -42,6 +44,7 @@ import {
 export {
   SourceReference,
   StackTraceEntryType,
+  CheatcodeErrorCode,
   stackTraceEntryTypeToString,
   FALLBACK_FUNCTION_NAME,
   RECEIVE_FUNCTION_NAME,
@@ -77,6 +80,7 @@ export type {
   ContractTooLargeErrorStackTraceEntry,
   InternalFunctionCallStackEntry,
   ContractCallRunOutOfGasError,
+  CheatcodeErrorDetails,
 };
 
 export type SolidityStackTraceEntry =

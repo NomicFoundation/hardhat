@@ -13,6 +13,7 @@ import { REVERT_ERROR_CODE } from "../../revert-error-code.js";
 
 import {
   StackTraceEntryType,
+  CheatcodeErrorCode,
   CONSTRUCTOR_FUNCTION_NAME,
   PRECOMPILE_FUNCTION_NAME,
   UNKNOWN_FUNCTION_NAME,
@@ -268,8 +269,24 @@ function getMessageFromLastStackTraceEntry(
       return `VM Exception while processing transaction: ${panicMessage}`;
 
     case StackTraceEntryType.CUSTOM_ERROR:
-    case StackTraceEntryType.CHEATCODE_ERROR:
       return `VM Exception while processing transaction: ${stackTraceEntry.message}`;
+
+    case StackTraceEntryType.CHEATCODE_ERROR: {
+      let message = stackTraceEntry.message;
+
+      if (stackTraceEntry.details !== undefined) {
+        switch (stackTraceEntry.details.code) {
+          case CheatcodeErrorCode.UnsupportedCheatcode:
+            message = `Cheatcode '${stackTraceEntry.details.cheatcode}' is not supported by Hardhat.`;
+            break;
+          case CheatcodeErrorCode.MissingCheatcode:
+            message = `Cheatcode '${stackTraceEntry.details.cheatcode}' is not yet available in this version of Hardhat.`;
+            break;
+        }
+      }
+
+      return `VM Exception while processing transaction: ${message}`;
+    }
 
     case StackTraceEntryType.OTHER_EXECUTION_ERROR:
       // TODO: What if there was returnData?
