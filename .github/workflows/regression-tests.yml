@@ -73,6 +73,7 @@ defaults:
 jobs:
   inputs:
     name: Parse inputs
+    timeout-minutes: 60
     runs-on: ubuntu-latest
     outputs:
       ref: ${{ steps.checkout.outputs.commit }}
@@ -114,6 +115,7 @@ jobs:
     name: Build EDR
     needs: [inputs]
     if: needs.inputs.outputs.edr-ref != ''
+    timeout-minutes: 60
     runs-on: ${{ matrix.runner }}
     strategy:
       fail-fast: false
@@ -168,6 +170,7 @@ jobs:
   publish-edr:
     name: Publish EDR
     needs: [inputs, build-edr]
+    timeout-minutes: 60
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -216,6 +219,7 @@ jobs:
     name: Build and publish Hardhat
     needs: [inputs, publish-edr]
     if: (!cancelled() && needs.inputs.outputs.hardhat-ref != 'next' && !startsWith(needs.inputs.outputs.hardhat-ref, '3') && needs.inputs.outputs.edr-ref == '' || needs.publish-edr.result == 'success')
+    timeout-minutes: 60
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -280,6 +284,7 @@ jobs:
     name: Run the test command
     needs: [inputs, build-and-publish-hardhat]
     if: (!cancelled() && (needs.inputs.outputs.hardhat-ref == 'next' || startsWith(needs.inputs.outputs.hardhat-ref, '3')) || needs.build-and-publish-hardhat.result == 'success')
+    timeout-minutes: 60
     runs-on: ${{ matrix.runner }}
     strategy:
       fail-fast: false
@@ -512,6 +517,7 @@ jobs:
     name: Summarize the test results
     if: (!cancelled())
     needs: [inputs, test]
+    timeout-minutes: 60
     runs-on: ubuntu-latest
     steps:
       - name: Download the results

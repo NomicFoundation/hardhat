@@ -19,6 +19,7 @@ on:
 jobs:
   check-peer-bumps:
     name: Check that PR has peer bump entries
+    timeout-minutes: 60
     runs-on: ubuntu-latest
     steps:
       - name: Checkout the repository

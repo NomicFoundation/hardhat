@@ -20,6 +20,7 @@ on:
 jobs:
   check-links-to-docs:
     name: Check that PR links to documentation
+    timeout-minutes: 60
     runs-on: ubuntu-latest
     steps:
       - name: Checkout the repository

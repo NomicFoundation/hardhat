@@ -15,6 +15,7 @@ concurrency:
 
 jobs:
   is-v3:
+    timeout-minutes: 60
     runs-on: ubuntu-latest
     outputs:
       is_v3: ${{ steps.check.outputs.version_starts_with_3 }}
@@ -45,6 +46,7 @@ jobs:
     name: Check dependency versions
     needs: is-v3
     if: ${{ needs.is-v3.outputs.is_v3 == 'true' }}
+    timeout-minutes: 60
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
@@ -58,6 +60,7 @@ jobs:
     name: Check that the npm scripts are consistent
     needs: is-v3
     if: ${{ needs.is-v3.outputs.is_v3 == 'true' }}
+    timeout-minutes: 60
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
@@ -71,6 +74,7 @@ jobs:
     name: Check that infrastructure script tests pass
     needs: is-v3
     if: ${{ needs.is-v3.outputs.is_v3 == 'true' && needs.is-v3.outputs.scripts_changed == 'true' }}
+    timeout-minutes: 60
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
@@ -88,6 +92,7 @@ jobs:
     name: List packages
     needs: is-v3
     if: ${{ needs.is-v3.outputs.is_v3 == 'true' }}
+    timeout-minutes: 60
     runs-on: ubuntu-latest
     outputs:
       packages: ${{ steps.filter.outputs.changes }}
@@ -139,6 +144,7 @@ jobs:
         package: ["hardhat"]
 
     name: "[${{ matrix.package }}] bundle"
+    timeout-minutes: 60
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -167,6 +173,7 @@ jobs:
     if: ${{ !cancelled() }}
 
     name: bundle
+    timeout-minutes: 60
     runs-on: ubuntu-latest
 
     permissions:
@@ -223,6 +230,7 @@ jobs:
         package: ${{ fromJson(needs.list-packages.outputs.packages) }}
 
     name: "[${{ matrix.package }}] lint"
+    timeout-minutes: 60
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -246,6 +254,7 @@ jobs:
     if: ${{ !cancelled() }}
 
     name: lint
+    timeout-minutes: 60
     runs-on: ubuntu-latest
 
     steps:
@@ -275,6 +284,7 @@ jobs:
             node: 24.0.0
 
     name: "[${{ matrix.package }}] ci on ${{ matrix.os }} (Node ${{ matrix.node }})"
+    timeout-minutes: 60
     runs-on: ${{ matrix.os }}
     defaults:
       run:
@@ -300,6 +310,7 @@ jobs:
     if: ${{ !cancelled() }}
 
     name: ci
+    timeout-minutes: 60
     runs-on: ubuntu-latest
 
     steps:
@@ -326,6 +337,7 @@ jobs:
         node: [22, 24]
 
     name: "[hardhat-node-test-reporter] ci on ${{ matrix.os }} (Node ${{ matrix.node }})"
+    timeout-minutes: 60
     runs-on: ${{ matrix.os }}
     defaults:
       run:
@@ -358,6 +370,7 @@ jobs:
         node: [22.0.0, 24.0.0]
 
     name: "[hardhat-ethers-chai-v5-matchers] ci on ${{ matrix.os }} (Node ${{ matrix.node }})"
+    timeout-minutes: 60
     runs-on: ${{ matrix.os }}
     defaults:
       run:

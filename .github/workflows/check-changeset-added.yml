@@ -19,6 +19,7 @@ on:
 jobs:
   check-if-changeset:
     name: Check that PR has a changeset
+    timeout-minutes: 60
     runs-on: ubuntu-latest
     steps:
       - name: Checkout the repository
