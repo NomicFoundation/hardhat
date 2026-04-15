@@ -27,6 +27,7 @@ defaults:
 jobs:
   cache:
     name: Cache
+    timeout-minutes: 60
     runs-on: ${{ matrix.runner }}
     strategy:
       fail-fast: false

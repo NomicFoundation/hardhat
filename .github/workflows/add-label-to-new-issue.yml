@@ -8,6 +8,7 @@ on:
 
 jobs:
   label-new-issue:
+    timeout-minutes: 60
     runs-on: ubuntu-latest
     permissions:
       issues: write
