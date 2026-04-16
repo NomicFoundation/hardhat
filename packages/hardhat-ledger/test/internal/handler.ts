@@ -1,16 +1,9 @@
-import type Eth from "@ledgerhq/hw-app-eth";
+import type { Eth } from "../../src/internal/cjs-imports.js";
 
 import assert from "node:assert/strict";
 import path from "node:path";
 import { after, before, beforeEach, describe, it } from "node:test";
 
-import {
-  DisconnectedDevice,
-  DisconnectedDeviceDuringOperation,
-  LockedDeviceError,
-  TransportStatusError,
-} from "@ledgerhq/errors";
-import { TransportError } from "@ledgerhq/hw-transport";
 import {
   assertHardhatInvariant,
   HardhatError,
@@ -27,6 +20,13 @@ import {
 } from "@nomicfoundation/hardhat-utils/fs";
 import { numberToHexString } from "@nomicfoundation/hardhat-utils/hex";
 
+import {
+  DisconnectedDevice,
+  DisconnectedDeviceDuringOperation,
+  LockedDeviceError,
+  TransportError,
+  TransportStatusError,
+} from "../../src/internal/cjs-imports.js";
 import { LedgerHandler } from "../../src/internal/handler.js";
 import { createJsonRpcRequest } from "../helpers/create-json-rpc-request.js";
 import { mockedDisplayInfo } from "../helpers/display-info-mock.js";
@@ -107,7 +107,7 @@ const signature =
 
 describe("LedgerHandler", () => {
   let ethereumMockedProvider: EthereumMockedProvider;
-  let eth: typeof Eth.default;
+  let eth: typeof Eth;
   let ledgerHandler: LedgerHandler;
 
   before(async () => {
