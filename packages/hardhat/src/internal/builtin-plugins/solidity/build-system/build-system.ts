@@ -155,7 +155,7 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
 
   public async getScope(fsPath: string): Promise<BuildScope> {
     if (
-      fsPath.startsWith(this.#options.solidityTestsPath) &&
+      fsPath.startsWith(this.#options.solidityTestsPath + path.sep) &&
       fsPath.endsWith(".sol")
     ) {
       return "tests";
@@ -163,7 +163,7 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
 
     if (fsPath.endsWith(".t.sol")) {
       for (const sourcesPath of this.#options.soliditySourcesPaths) {
-        if (fsPath.startsWith(sourcesPath)) {
+        if (fsPath.startsWith(sourcesPath + path.sep)) {
           return "tests";
         }
       }
@@ -1122,7 +1122,7 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
 
     // Get all the reachable build info files
     const buildInfoFiles = await getAllFilesMatching(buildInfosDir, (f) =>
-      f.startsWith(buildInfosDir),
+      f.startsWith(buildInfosDir + path.sep),
     );
 
     for (const buildInfoFile of buildInfoFiles) {

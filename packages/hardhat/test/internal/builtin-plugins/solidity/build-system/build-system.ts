@@ -410,3 +410,105 @@ describe(
     });
   },
 );
+
+describe("SolidityBuildSystemImplementation.getScope", () => {
+  const projectRoot = path.join(path.sep, "project");
+  const solidityTestsPath = path.join(projectRoot, "tests");
+  const soliditySourcesPaths = [path.join(projectRoot, "contracts")];
+
+  function makeBuildSystem(): SolidityBuildSystemImplementation {
+    const hooks = new HookManagerImplementation(projectRoot, []);
+    // eslint-disable-next-line @typescript-eslint/consistent-type-assertions -- hooks context is irrelevant for getScope
+    hooks.setContext({} as HookContext);
+    const solidityConfig: SolidityConfig = {
+      profiles: {
+        default: {
+          compilers: [],
+          overrides: {},
+          isolated: false,
+          preferWasm: false,
+        },
+      },
+      npmFilesToBuild: [],
+      registeredCompilerTypes: ["solc"],
+      splitTestsCompilation: false,
+    };
+    return new SolidityBuildSystemImplementation(hooks, {
+      solidityConfig,
+      projectRoot,
+      soliditySourcesPaths,
+      artifactsPath: path.join(projectRoot, "artifacts"),
+      cachePath: path.join(projectRoot, "cache"),
+      solidityTestsPath,
+    });
+  }
+
+  const solidity = makeBuildSystem();
+
+  it("returns 'tests' for a .sol file directly inside solidityTestsPath", async () => {
+    assert.equal(
+      await solidity.getScope(path.join(solidityTestsPath, "Foo.sol")),
+      "tests",
+    );
+  });
+
+  it("returns 'tests' for a .sol file nested inside solidityTestsPath", async () => {
+    assert.equal(
+      await solidity.getScope(path.join(solidityTestsPath, "sub", "Foo.sol")),
+      "tests",
+    );
+  });
+
+  it("returns 'contracts' for a file in a directory whose name is a prefix of solidityTestsPath", async () => {
+    assert.equal(
+      await solidity.getScope(path.join(projectRoot, "tests-extra", "Foo.sol")),
+      "contracts",
+    );
+  });
+
+  it("returns 'contracts' for a plain .sol file inside a sources path", async () => {
+    assert.equal(
+      await solidity.getScope(path.join(soliditySourcesPaths[0], "Foo.sol")),
+      "contracts",
+    );
+  });
+
+  it("returns 'tests' for a .t.sol file inside a sources path", async () => {
+    assert.equal(
+      await solidity.getScope(path.join(soliditySourcesPaths[0], "Foo.t.sol")),
+      "tests",
+    );
+  });
+
+  it("returns 'tests' for a .t.sol file nested inside a sources path", async () => {
+    assert.equal(
+      await solidity.getScope(
+        path.join(soliditySourcesPaths[0], "sub", "Foo.t.sol"),
+      ),
+      "tests",
+    );
+  });
+
+  it("returns 'contracts' for a .t.sol file in a directory whose name is a prefix of a sources path", async () => {
+    assert.equal(
+      await solidity.getScope(
+        path.join(projectRoot, "contracts-extra", "Foo.t.sol"),
+      ),
+      "contracts",
+    );
+  });
+
+  it("returns 'contracts' for a .t.sol file outside any sources path", async () => {
+    assert.equal(
+      await solidity.getScope(path.join(projectRoot, "elsewhere", "Foo.t.sol")),
+      "contracts",
+    );
+  });
+
+  it("returns 'contracts' for a .sol file outside any sources or tests path", async () => {
+    assert.equal(
+      await solidity.getScope(path.join(projectRoot, "elsewhere", "Foo.sol")),
+      "contracts",
+    );
+  });
+});
