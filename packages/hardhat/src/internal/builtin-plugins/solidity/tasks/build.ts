@@ -259,7 +259,6 @@ async function getRootsToBuild({
  * full unified build.
  *
  * Note: The files array should be normalized already.
- * @returns
  */
 async function getRootsToBuildInUnifiedMode({
   files,
