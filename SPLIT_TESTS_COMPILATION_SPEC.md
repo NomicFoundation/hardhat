@@ -164,7 +164,16 @@ This keeps cache hits fast:
 
 The high-level build task becomes mode-dependent.
 
-When `splitTestsCompilation === false`:
+#### Mode-independent validation
+
+Before branching on `splitTestsCompilation`, the build task validates that explicit files are compatible with `--no-tests` / `--no-contracts`:
+
+- If `--no-contracts` is set and any explicit file is a contract, throw `INCOMPATIBLE_FILES_WITH_BUILD_FLAGS`
+- If `--no-tests` is set and any explicit file is a test, throw `INCOMPATIBLE_FILES_WITH_BUILD_FLAGS`
+
+This validation applies identically in both modes. It uses a new `HardhatError` (`INCOMPATIBLE_FILES_WITH_BUILD_FLAGS`) rather than the old `UNRECOGNIZED_FILES_NOT_COMPILED` or `FILES_WITH_SCOPE_FILTERS_NOT_SUPPORTED` errors.
+
+#### When `splitTestsCompilation === false`
 
 - `build` uses a single compilation pass
 - the pass runs with `scope: "contracts"`
@@ -207,16 +216,25 @@ Behavior by input mode when `splitTestsCompilation === false`:
    - `onCleanUpArtifacts` does not run
    - Any stale artifacts or stale build-info files remain, exactly like any other partial build
 
-5. Explicit `files` cannot be combined with `--no-tests` or `--no-contracts`
+5. Explicit `files` with `--no-tests`
 
-   - If `files.length > 0` and either `--no-tests` or `--no-contracts` is used, the task throws
+   - Compatible contract files build normally as a partial build; test files in the file list would have been caught by the mode-independent validation above
+   - This is a partial build (no cleanup)
+   - The `--no-tests` flag also filters out test roots from the resolved set, so it is meaningful even when explicit files are provided
 
-When `splitTestsCompilation === true`:
+6. Explicit `files` with `--no-contracts`
+
+   - Compatible test files build normally as a partial build; contract files in the file list would have been caught by the mode-independent validation above
+   - This is a partial build (no cleanup)
+   - The `--no-contracts` flag also filters out contract roots from the resolved set, so it is meaningful even when explicit files are provided
+
+#### When `splitTestsCompilation === true`
 
 - current behavior is preserved
 - The task builds contracts and tests in two separate passes
 - `--no-tests` and `--no-contracts` skip a scope exactly as they do today
-- Otherwise, explicit `files` are routed to the matching scope with `getScope()`
+- explicit `files` are routed to the matching scope with `getScope()`
+- explicit `files` can be combined with `--no-tests` or `--no-contracts` when compatible (e.g., contract files with `--no-tests`); incompatible combinations are caught by the mode-independent validation above
 - Scope-specific cleanup remains unchanged
 
 Both modes return:
@@ -552,21 +570,28 @@ Rewrite the high-level build task to implement the new unified-mode semantics.
 ### Changes
 
 1. `packages/hardhat/src/internal/builtin-plugins/solidity/tasks/build.ts`
+   - Add mode-independent validation before the `splitTestsCompilation` branch:
+     - if `--no-contracts` and any explicit file is a contract, throw `INCOMPATIBLE_FILES_WITH_BUILD_FLAGS`
+     - if `--no-tests` and any explicit file is a test, throw `INCOMPATIBLE_FILES_WITH_BUILD_FLAGS`
    - Branch on `splitTestsCompilation`
    - Unified mode:
      - full build when no `files` and no scope-skipping flags
      - exact partial build when explicit `files` are provided
+     - explicit `files` can be combined with `--no-tests` or `--no-contracts` when the files are compatible with the flag; the flag still filters the resolved root set
      - synthetic partial build of all contracts for `--no-tests`: call `getRootFilePaths({ scope: "contracts" })` to get all roots, filter to contract roots using `getScope()`, and pass them as `rootFilePaths` to `build()`
      - synthetic partial build of all tests for `--no-contracts`: call `getRootFilePaths({ scope: "contracts" })` to get all roots, filter to test roots using `getScope()`, and pass them as `rootFilePaths` to `build()`
      - all low-level `solidity.build()` and `solidity.cleanupArtifacts()` calls use `scope: "contracts"`, even when the selected roots are all tests
      - the task must never call low-level Solidity build-system APIs with `scope: "tests"` in unified mode
-     - reject `files` combined with `--no-tests` or `--no-contracts`
      - cleanup runs only for the full unified build
    - Split mode:
      - preserve the current two-pass behavior
      - preserve the current explicit-file routing behavior
-     - preserve the current unused-file validation after scope routing
+     - explicit `files` can be combined with `--no-tests` or `--no-contracts` when the files are compatible with the flag; incompatible combinations are caught by the mode-independent validation
    - Return `{ contractRootPaths, testRootPaths }` from the roots actually built, partitioning them with `getScope()`
+
+2. `packages/hardhat-errors/src/descriptors.ts`
+   - Replace `FILES_WITH_SCOPE_FILTERS_NOT_SUPPORTED` with `INCOMPATIBLE_FILES_WITH_BUILD_FLAGS` (same error number 917)
+   - `UNRECOGNIZED_FILES_NOT_COMPILED` (915) is no longer used in build.ts (still used by the solidity-test runner, addressed in Phase 6)
 
 ### Validation
 
@@ -580,11 +605,15 @@ Rewrite the high-level build task to implement the new unified-mode semantics.
   - "includes test artifacts in duplicate-name detection": replace direct `getRootFilePaths` + `build` + `cleanupArtifacts` calls with `hre.tasks.getTask("build").run()`
   - "passes mixed contract and test artifact paths to onCleanUpArtifacts": replace direct `getRootFilePaths` + `build` + `cleanupArtifacts` calls with `hre.tasks.getTask("build").run()` and use an inline plugin to register an `onCleanUpArtifacts` handler that asserts on the received artifact paths
 - Add tests for:
+  - mode-independent: explicit contract files + `--no-contracts` throws `INCOMPATIBLE_FILES_WITH_BUILD_FLAGS`
+  - mode-independent: explicit test files + `--no-tests` throws `INCOMPATIBLE_FILES_WITH_BUILD_FLAGS`
+  - mode-independent: mixed files + `--no-contracts` throws for the contract files
+  - mode-independent: mixed files + `--no-tests` throws for the test files
   - unified full build compiles contracts and tests together
   - unified explicit-file builds compile exactly the provided files
   - unified explicit-file builds still use low-level `scope: "contracts"`
-  - unified explicit `files` + `--no-tests` throws
-  - unified explicit `files` + `--no-contracts` throws
+  - unified explicit contract files + `--no-tests` succeeds (partial build, contracts only)
+  - unified explicit test files + `--no-contracts` succeeds (partial build, tests only)
   - unified `--no-tests` behaves like a partial build over all contracts
   - unified `--no-contracts` behaves like a partial build over all tests
   - unified `--no-contracts` still uses low-level `scope: "contracts"`
@@ -593,13 +622,14 @@ Rewrite the high-level build task to implement the new unified-mode semantics.
   - unified mode partitions returned `contractRootPaths` and `testRootPaths` with `getScope()` from the actual roots built
   - split mode preserves explicit contract-file builds with `--no-tests`
   - split mode preserves explicit test-file builds with `--no-contracts`
-  - split mode preserves the current unused-file error when explicit files fall only in a disabled scope
+  - split mode: explicit test files only (no flags) skips the contracts scope entirely
   - other split-mode regressions for current behavior
 - Run `pnpm test` in `packages/hardhat`
+- **Known failures after Phase 4:** 2 tests fail because the solidity-test runner calls `build({ files: testFiles, noContracts: true })` with a file that `getScope()` classifies as a contract (not in the configured test path). The mode-independent validation catches this as an incompatible combination and throws `INCOMPATIBLE_FILES_WITH_BUILD_FLAGS` (917), but the tests expect the old `UNRECOGNIZED_FILES_NOT_COMPILED` (915). Both originate from `solidity-test/task-action.ts` and are fixed in Phase 6 when the solidity-test runner is updated.
 
 ## Phase 5: Other Built-In Task Callers
 
-Update the built-in tasks that currently call `build({ noTests: true })`.
+Update the built-in tasks that currently call `build({ noTests: true })`. While `build({ noTests: true })` is technically valid after Phase 4 (it produces a partial contracts-only build), these callers need a full unified build with cleanup — not a partial build — so they must drop `noTests` in unified mode.
 
 ### Changes
 
@@ -630,7 +660,7 @@ Update the built-in tasks that currently call `build({ noTests: true })`.
 
 ## Phase 6: Solidity Test Runner
 
-Update the Solidity test runner for unified builds while preserving selected test execution.
+Update the Solidity test runner for unified builds while preserving selected test execution. Note: the solidity-test runner currently uses `build({ files, noContracts: true })`, which is valid after Phase 4 (it produces a partial test-only build). However, in unified mode the runner should perform a full build instead, so this change is still needed for the correct full-build semantics.
 
 ### Changes
 
