@@ -253,7 +253,7 @@ function detectChangedSinceRelease(): string[] {
       continue;
     }
 
-    const { name } = readPackageInfo(packageDir);
+    const { name, version } = readPackageInfo(packageDir);
 
     // Find the latest existing release tag for this package
     const releaseTag = findLatestReleaseTag(name);
@@ -265,9 +265,33 @@ function detectChangedSinceRelease(): string[] {
       continue;
     }
 
-    // Diff against the release tag, excluding files that a prior version
-    // bump or changeset would modify (package.json, CHANGELOG.md).
-    // If only those files changed, there are no real code changes.
+    const tagVersion = releaseTag.slice(name.length + 1); // "hardhat@3.3.0" → "3.3.0"
+
+    if (version !== tagVersion) {
+      // Version already bumped from a prior run. Only re-bump if there
+      // are new uncommitted changes beyond the version bump itself.
+      const uncommittedDiff = git([
+        "diff",
+        "--name-only",
+        "HEAD",
+        "--",
+        packageDir,
+        `:!${packageDir}/package.json`,
+        `:!${packageDir}/CHANGELOG.md`,
+      ]);
+
+      if (uncommittedDiff !== "") {
+        log(
+          `  ${fmt.pkg(name)} ${fmt.deemphasize("(new changes since last bump)")}`,
+        );
+        changedDirs.push(packageDir);
+      }
+
+      continue;
+    }
+
+    // Version matches the release tag — check for any changes since release,
+    // excluding files that a prior changeset would modify.
     const diff = git([
       "diff",
       "--name-only",
