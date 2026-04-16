@@ -1,5 +1,5 @@
 import { start } from "./start.ts";
-import { publish } from "./publish.ts";
+import { publish, sinceReleasePublish } from "./publish.ts";
 import { stop } from "./stop.ts";
 import { logError } from "./helpers/logging.ts";
 
@@ -39,6 +39,8 @@ OPTIONS
   --no-git-checks      Skip the clean working tree check (use with publish)
   --changes            Re-publish only packages with uncommitted changes (use with publish)
                        Implies --no-git-checks
+  --since-release      Detect packages changed since their release tag, bump their
+                       patch version, and publish (use with publish)
 
 EXAMPLES
   pnpm verdaccio start
@@ -69,12 +71,17 @@ async function main(): Promise<void> {
   const noGitChecks = args.includes("--no-git-checks");
   const background = args.includes("--background");
   const changes = args.includes("--changes");
+  const sinceRelease = args.includes("--since-release");
 
   try {
     if (command === "start") {
       await start(background);
     } else if (command === "publish") {
-      publish(changes, noGitChecks);
+      if (sinceRelease) {
+        sinceReleasePublish();
+      } else {
+        publish(changes, noGitChecks);
+      }
     } else if (command === "stop") {
       stop();
     } else {

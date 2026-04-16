@@ -1,4 +1,4 @@
-import { existsSync, readFileSync } from "node:fs";
+import { existsSync, readFileSync, readdirSync, writeFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { fmt, log, logStep } from "./helpers/logging.ts";
 import {
@@ -205,4 +205,112 @@ function reportPublished(): void {
       `\n  ${summary.publishedPackages.length} package(s) published to ${VERDACCIO_URL}`,
     ),
   );
+}
+
+const EXCLUDED_PACKAGES = [
+  "config",
+  "example-project",
+  "template-package",
+  "hardhat-test-utils",
+  "hardhat-solx",
+];
+
+/**
+ * Detect packages that changed since their last release tag, bump their
+ * patch version, and publish them to Verdaccio. This avoids the npm proxy
+ * problem where pnpm publish skips versions that already exist on npm.
+ */
+export function sinceReleasePublish(): void {
+  ensureVerdaccioRunning();
+
+  const changedDirs = detectChangedSinceRelease();
+
+  if (changedDirs.length === 0) {
+    log("No packages changed since their last release.");
+    return;
+  }
+
+  bumpPatchVersions(changedDirs);
+  publishPackages(changedDirs);
+  reportPublished();
+}
+
+function detectChangedSinceRelease(): string[] {
+  logStep("Detecting packages changed since release");
+
+  const packagesDir = resolve(ROOT_DIR, "packages");
+  const changedDirs: string[] = [];
+
+  for (const entry of readdirSync(packagesDir, { withFileTypes: true })) {
+    if (!entry.isDirectory() || EXCLUDED_PACKAGES.includes(entry.name)) {
+      continue;
+    }
+
+    const packageDir = `packages/${entry.name}`;
+    const pkgJsonPath = resolve(ROOT_DIR, packageDir, "package.json");
+
+    if (!existsSync(pkgJsonPath)) {
+      continue;
+    }
+
+    const { name, version } = readPackageInfo(packageDir);
+    const releaseTag = `${name}@${version}`;
+
+    // Check if the tag exists
+    let tagExists: boolean;
+    try {
+      git(["rev-parse", "--verify", `refs/tags/${releaseTag}`]);
+      tagExists = true;
+    } catch {
+      tagExists = false;
+    }
+
+    if (!tagExists) {
+      // No release tag — treat as changed (new package or first release)
+      log(`  ${fmt.pkg(name)} ${fmt.deemphasize("(no release tag)")}`);
+      changedDirs.push(packageDir);
+      continue;
+    }
+
+    // Diff against the release tag (includes uncommitted changes)
+    const diff = git(["diff", "--name-only", releaseTag, "--", packageDir]);
+
+    if (diff !== "") {
+      log(
+        `  ${fmt.pkg(name)} ${fmt.deemphasize(`(changed since ${version})`)}`,
+      );
+      changedDirs.push(packageDir);
+    }
+  }
+
+  if (changedDirs.length === 0) {
+    return [];
+  }
+
+  log(
+    fmt.success(`\n  ${changedDirs.length} package(s) changed since release`),
+  );
+
+  return changedDirs;
+}
+
+function bumpPatchVersions(packageDirs: string[]): void {
+  logStep("Bumping patch versions");
+
+  for (const dir of packageDirs) {
+    const pkgJsonPath = resolve(ROOT_DIR, dir, "package.json");
+    const pkgJson = JSON.parse(readFileSync(pkgJsonPath, "utf-8"));
+    const oldVersion: string = pkgJson.version;
+
+    const parts = oldVersion.split(".");
+    parts[parts.length - 1] = String(Number(parts[parts.length - 1]) + 1);
+    const newVersion = parts.join(".");
+
+    pkgJson.version = newVersion;
+    writeFileSync(pkgJsonPath, JSON.stringify(pkgJson, null, 2) + "\n");
+
+    log(
+      `  ${fmt.pkg(pkgJson.name)} ${fmt.deemphasize(oldVersion)} → ${fmt.version(newVersion)}`,
+    );
+  }
 }
