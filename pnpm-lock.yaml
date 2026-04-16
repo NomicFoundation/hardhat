@@ -1043,7 +1043,7 @@ importers:
         specifier: workspace:^3.0.3
         version: link:../hardhat-errors
       '@nomicfoundation/hardhat-utils':
-        specifier: workspace:^3.0.5
+        specifier: workspace:^4.0.2
         version: link:../hardhat-utils
       '@nomicfoundation/hardhat-zod-utils':
         specifier: workspace:^3.0.0
@@ -1074,7 +1074,7 @@ importers:
         specifier: 9.25.1
         version: 9.25.1
       hardhat:
-        specifier: workspace:^3.1.6
+        specifier: workspace:^3.3.0
         version: link:../hardhat
       prettier:
         specifier: 3.2.5
