@@ -17,7 +17,7 @@ interface BuildActionArguments {
   force: boolean;
   files: string[];
   quiet: boolean;
-  defaultBuildProfile: string | undefined;
+  defaultBuildProfile: string;
   noTests: boolean;
   noContracts: boolean;
 }
