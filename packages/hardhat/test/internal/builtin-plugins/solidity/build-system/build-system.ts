@@ -98,6 +98,7 @@ describe(
       },
       npmFilesToBuild: [],
       registeredCompilerTypes: ["solc"],
+      splitTestsCompilation: false,
     };
 
     before(async () => {
