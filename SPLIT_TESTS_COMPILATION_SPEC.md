@@ -1,3 +1,5 @@
+<!-- cspell:disable -->
+
 # Spec: `splitTestsCompilation` Config Field
 
 ## Overview
@@ -264,24 +266,20 @@ When `splitTestsCompilation === true`:
 
 ### Solidity Test Runner (`hardhat test solidity`)
 
+Before branching on `splitTestsCompilation`, the runner validates that all provided `testFiles` are classified as tests by `getScope()`, throwing `SELECTED_FILES_ARENT_SOLIDITY_TESTS` if any are not. This validation runs in both modes.
+
 When `splitTestsCompilation === false`:
 
 - `noCompile === true` skips compilation entirely
-- `noCompile !== true` performs one full unified build
-- `testFiles` only controls which tests are executed
-- partial Solidity test runs may still compile all Solidity tests as a temporary limitation
-- the runner must compute the selected test roots independently from the build return value
+- `noCompile !== true` calls `build({ files: testFiles })` once, without `noTests` or `noContracts` — a full build when `testFiles` is empty, a partial build of the specified files otherwise
+- `testFiles` controls both which files are compiled and which tests are executed
+- the runner uses `testRootPaths` from the build return value to determine which tests to run
 - when `noCompile === true`, selected test roots must still be validated against the compiled artifacts available on disk
-- if a selected Solidity test file exists but has not been compiled, the task throws a `HardhatError`
+- if a selected Solidity test file exists but has not been compiled, the task throws `SELECTED_TEST_FILES_NOT_COMPILED`
 - only the selected test roots are used for:
   - deciding which suites to execute
   - deprecated-test warnings
 - artifacts and build info are read from a single directory: `getArtifactsDirectory("contracts")`
-
-Important distinction in unified mode:
-
-- compiled test roots: all test roots produced by the unified build
-- executed test roots: the tests requested by the user, or all test roots when no specific `testFiles` are provided
 
 When `splitTestsCompilation === true`, current behavior is preserved:
 
@@ -570,6 +568,7 @@ Rewrite the high-level build task to implement the new unified-mode semantics.
 ### Changes
 
 1. `packages/hardhat/src/internal/builtin-plugins/solidity/tasks/build.ts`
+
    - Add mode-independent validation before the `splitTestsCompilation` branch:
      - if `--no-contracts` and any explicit file is a contract, throw `INCOMPATIBLE_FILES_WITH_BUILD_FLAGS`
      - if `--no-tests` and any explicit file is a test, throw `INCOMPATIBLE_FILES_WITH_BUILD_FLAGS`
@@ -591,7 +590,7 @@ Rewrite the high-level build task to implement the new unified-mode semantics.
 
 2. `packages/hardhat-errors/src/descriptors.ts`
    - Replace `FILES_WITH_SCOPE_FILTERS_NOT_SUPPORTED` with `INCOMPATIBLE_FILES_WITH_BUILD_FLAGS` (same error number 917)
-   - `UNRECOGNIZED_FILES_NOT_COMPILED` (915) is no longer used in build.ts (still used by the solidity-test runner, addressed in Phase 6)
+   - `UNRECOGNIZED_FILES_NOT_COMPILED` (915) is no longer used in build.ts. After Phase 6, it is no longer used anywhere — the solidity-test runner replaces it with `SELECTED_FILES_ARENT_SOLIDITY_TESTS` (815)
 
 ### Validation
 
@@ -625,7 +624,7 @@ Rewrite the high-level build task to implement the new unified-mode semantics.
   - split mode: explicit test files only (no flags) skips the contracts scope entirely
   - other split-mode regressions for current behavior
 - Run `pnpm test` in `packages/hardhat`
-- **Known failures after Phase 4:** 2 tests fail because the solidity-test runner calls `build({ files: testFiles, noContracts: true })` with a file that `getScope()` classifies as a contract (not in the configured test path). The mode-independent validation catches this as an incompatible combination and throws `INCOMPATIBLE_FILES_WITH_BUILD_FLAGS` (917), but the tests expect the old `UNRECOGNIZED_FILES_NOT_COMPILED` (915). Both originate from `solidity-test/task-action.ts` and are fixed in Phase 6 when the solidity-test runner is updated.
+- **Known failures after Phase 4:** 2 tests fail because the solidity-test runner calls `build({ files: testFiles, noContracts: true })` with a file that `getScope()` classifies as a contract (not in the configured test path). The mode-independent validation catches this as an incompatible combination and throws `INCOMPATIBLE_FILES_WITH_BUILD_FLAGS` (917), but the tests expect the old `UNRECOGNIZED_FILES_NOT_COMPILED` (915). Both originate from `solidity-test/task-action.ts`. Phase 6 resolves this by adding an early `getScope()`-based validation in the solidity-test runner that throws `SELECTED_FILES_ARENT_SOLIDITY_TESTS` (815) before the build call, so neither 917 nor 915 fires for this case.
 
 ## Phase 5: Other Built-In Task Callers
 
@@ -660,22 +659,27 @@ Update the built-in tasks that currently call `build({ noTests: true })`. While 
 
 ## Phase 6: Solidity Test Runner
 
-Update the Solidity test runner for unified builds while preserving selected test execution. Note: the solidity-test runner currently uses `build({ files, noContracts: true })`, which is valid after Phase 4 (it produces a partial test-only build). However, in unified mode the runner should perform a full build instead, so this change is still needed for the correct full-build semantics.
+Update the Solidity test runner for unified builds while preserving selected test execution. Note: the solidity-test runner currently uses `build({ files, noContracts: true })`, which is valid after Phase 4 (it produces a partial test-only build). In unified mode the runner drops `noContracts` and passes `files: testFiles` to build, performing selective compilation without scope flags.
 
 ### Changes
 
 1. `packages/hardhat/src/internal/builtin-plugins/solidity-test/task-action.ts`
+
+   - Before branching on `splitTestsCompilation`, validate that all provided `testFiles` are classified as tests by `getScope()`, throwing `SELECTED_FILES_ARENT_SOLIDITY_TESTS` if not
    - Branch on `hre.config.solidity.splitTestsCompilation`
    - Unified mode:
-     - if `noCompile !== true`, call `build()` once without `noTests` or `noContracts`
-     - compute selected test roots independently from the build return value
+     - if `noCompile !== true`, call `build({ files: testFiles })` once, without `noTests` or `noContracts`
+     - use `testRootPaths` from the build return value to determine which tests to run
      - when `noCompile === true`, validate that every selected Solidity test root has compiled artifacts available
-     - throw a `HardhatError` if a selected Solidity test file exists but was not compiled
+     - throw `SELECTED_TEST_FILES_NOT_COMPILED` if a selected Solidity test file exists but was not compiled
      - use selected test roots for suite execution and deprecated-test warnings
      - read artifacts and build info from the main artifacts directory only
-     - accept the temporary limitation that selected runs may still compile all Solidity tests
    - Split mode:
      - preserve the current two-build behavior
+
+2. `packages/hardhat-errors/src/descriptors.ts`
+   - Add `SELECTED_TEST_FILES_NOT_COMPILED` (814) — thrown when `noCompile` is set and selected test files have not been compiled
+   - Add `SELECTED_FILES_ARENT_SOLIDITY_TESTS` (815) — thrown when non-test files are passed as test files
 
 ### Validation
 
@@ -683,12 +687,13 @@ Update the Solidity test runner for unified builds while preserving selected tes
 - Run `pnpm build` in `packages/hardhat`
 - Run existing Solidity test runner tests: `packages/hardhat/test/internal/builtin-plugins/solidity-test/task-action.ts`
 - Add tests for:
-  - unified mode performs one build
+  - early validation throws `SELECTED_FILES_ARENT_SOLIDITY_TESTS` for non-test files in both modes
+  - unified mode performs one build via `build({ files: testFiles })`
   - unified mode reads artifacts from a single directory
   - unified mode executes only the selected test files
-  - a non-selected failing test may be compiled but is not executed
+  - unified mode compiles only the selected test files (selective compilation)
   - deprecated-test warnings are emitted only for selected tests
-  - unified `noCompile === true` throws a `HardhatError` when a selected Solidity test file exists but has not been compiled
+  - unified `noCompile === true` throws `SELECTED_TEST_FILES_NOT_COMPILED` when a selected Solidity test file exists but has not been compiled
   - `noCompile === true` works in both modes
   - split-mode behavior remains unchanged
 - Run `pnpm test` in `packages/hardhat`
