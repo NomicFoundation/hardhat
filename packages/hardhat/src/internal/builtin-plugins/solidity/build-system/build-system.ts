@@ -155,15 +155,17 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
 
   public async getScope(fsPath: string): Promise<BuildScope> {
     if (
-      fsPath.startsWith(this.#options.solidityTestsPath) &&
+      fsPath.startsWith(this.#options.solidityTestsPath + path.sep) &&
       fsPath.endsWith(".sol")
     ) {
       return "tests";
     }
 
-    for (const sourcesPath of this.#options.soliditySourcesPaths) {
-      if (fsPath.startsWith(sourcesPath) && fsPath.endsWith(".t.sol")) {
-        return "tests";
+    if (fsPath.endsWith(".t.sol")) {
+      for (const sourcesPath of this.#options.soliditySourcesPaths) {
+        if (fsPath.startsWith(sourcesPath + path.sep)) {
+          return "tests";
+        }
       }
     }
 
@@ -174,10 +176,13 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
     options: { scope?: BuildScope } = {},
   ): Promise<string[]> {
     const scope = options.scope ?? "contracts";
+    const unified = !this.#options.solidityConfig.splitTestsCompilation;
+
+    this.#ensureSplitCompilationModeIfTestsScope(scope);
 
     switch (scope) {
-      case "contracts":
-        const localFilesToCompile = (
+      case "contracts": {
+        const localContractFiles = (
           await Promise.all(
             this.#options.soliditySourcesPaths.map((dir) =>
               getAllFilesMatching(
@@ -193,8 +198,30 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
             npmModuleToNpmRootPath,
           );
 
-        return [...localFilesToCompile, ...npmFilesToBuild];
-      case "tests":
+        if (!unified) {
+          return [...localContractFiles, ...npmFilesToBuild];
+        }
+
+        // In unified mode, contracts scope returns all roots: contracts,
+        // tests, and npm files.
+        const testFiles = (
+          await Promise.all([
+            getAllFilesMatching(this.#options.solidityTestsPath, (f) =>
+              f.endsWith(".sol"),
+            ),
+            ...this.#options.soliditySourcesPaths.map(async (dir) => {
+              return getAllFilesMatching(dir, (f) => f.endsWith(".t.sol"));
+            }),
+          ])
+        ).flat(1);
+
+        // Remove duplicates in case there is an intersection between
+        // the tests.solidity paths and the sources paths
+        return Array.from(
+          new Set([...localContractFiles, ...npmFilesToBuild, ...testFiles]),
+        );
+      }
+      case "tests": {
         let rootFilePaths = (
           await Promise.all([
             getAllFilesMatching(this.#options.solidityTestsPath, (f) =>
@@ -210,6 +237,7 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
         // the tests.solidity paths and the sources paths
         rootFilePaths = Array.from(new Set(rootFilePaths));
         return rootFilePaths;
+      }
     }
   }
 
@@ -221,12 +249,14 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
 
   public async build(
     rootFilePaths: string[],
-    _options?: BuildOptions,
+    options?: BuildOptions,
   ): Promise<CompilationJobCreationError | Map<string, FileBuildResult>> {
+    this.#ensureSplitCompilationModeIfTestsScope(options?.scope);
+
     return this.#hooks.runHandlerChain(
       "solidity",
       "build",
-      [rootFilePaths, _options],
+      [rootFilePaths, options],
       async (_context, nextRootFilePaths, nextOptions) =>
         this.#build(nextRootFilePaths, nextOptions),
     );
@@ -234,25 +264,27 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
 
   async #build(
     rootFilePaths: string[],
-    _options?: BuildOptions,
+    options?: BuildOptions,
   ): Promise<CompilationJobCreationError | Map<string, FileBuildResult>> {
-    const options: Required<BuildOptions> = {
+    const resolvedOptions: Required<BuildOptions> = {
       buildProfile: DEFAULT_BUILD_PROFILE,
       concurrency: Math.max(os.cpus().length - 1, 1),
       force: false,
       isolated: false,
       quiet: false,
       scope: "contracts",
-      ..._options,
+      ...options,
     };
 
-    await this.#downloadConfiguredCompilers(options.quiet);
+    await this.#downloadConfiguredCompilers(resolvedOptions.quiet);
 
-    const { buildProfile } = this.#getBuildProfile(options.buildProfile);
+    const { buildProfile } = this.#getBuildProfile(
+      resolvedOptions.buildProfile,
+    );
 
     const compilationJobsResult = await this.getCompilationJobs(
       rootFilePaths,
-      options,
+      resolvedOptions,
     );
 
     if (!compilationJobsResult.success) {
@@ -260,7 +292,7 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
     }
 
     const spinner = createSpinner({
-      text: `Compiling your Solidity ${options.scope}...`,
+      text: `Compiling your Solidity ${resolvedOptions.scope}...`,
       enabled: true,
     });
     spinner.start();
@@ -286,7 +318,7 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
         async (runnableCompilationJob) => {
           const { output, compiler } = await this.runCompilationJob(
             runnableCompilationJob,
-            options,
+            resolvedOptions,
           );
 
           return {
@@ -296,7 +328,7 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
           };
         },
         {
-          concurrency: options.concurrency,
+          concurrency: resolvedOptions.concurrency,
           // An error when running the compiler is not a compilation failure, but
           // a fatal failure trying to run it, so we just throw on the first error
           stopOnError: true,
@@ -321,7 +353,7 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
             const emitArtifactsResult = await this.emitArtifacts(
               compilationResult.compilationJob,
               compilationResult.compilerOutput,
-              options,
+              resolvedOptions,
             );
 
             const { artifactsPerFile } = emitArtifactsResult;
@@ -337,7 +369,7 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
               compilationResult,
               emitArtifactsResult,
               buildProfile.isolated,
-              options.scope,
+              resolvedOptions.scope,
             );
           }),
         );
@@ -405,10 +437,10 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
         });
       }
 
-      if (!options.quiet) {
+      if (!resolvedOptions.quiet) {
         if (isSuccessfulBuild) {
           await this.#printCompilationResult(runnableCompilationJobs, {
-            scope: options.scope,
+            scope: resolvedOptions.scope,
           });
         }
       }
@@ -423,6 +455,8 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
     rootFilePaths: string[],
     options?: GetCompilationJobsOptions,
   ): Promise<CompilationJobCreationError | GetCompilationJobsResult> {
+    this.#ensureSplitCompilationModeIfTestsScope(options?.scope);
+
     await this.#downloadConfiguredCompilers(options?.quiet);
 
     const dependencyGraph = await buildDependencyGraph(
@@ -587,6 +621,26 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
         cacheResult.isolated !== isolated ||
         cacheResult.compilerType !== compilerType ||
         cacheResult.wasm !== isWasm
+      ) {
+        rootFilesToCompile.add(rootFile);
+        continue;
+      }
+
+      // Validate output layout: if the cached layout doesn't match the
+      // expected layout for the current config, treat it as a miss.
+      // Pre-existing cache entries without these fields are also treated
+      // as misses.
+      const expectedLayout = await this.#getExpectedOutputLayout(
+        rootFile,
+        options?.scope ?? "contracts",
+      );
+
+      if (
+        cacheResult.artifactsDirectory === undefined ||
+        cacheResult.emitsTypeDeclarations === undefined ||
+        cacheResult.artifactsDirectory !== expectedLayout.artifactsDirectory ||
+        cacheResult.emitsTypeDeclarations !==
+          expectedLayout.emitsTypeDeclarations
       ) {
         rootFilesToCompile.add(rootFile);
         continue;
@@ -817,6 +871,10 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
   ): Promise<EmitArtifactsResult> {
     const scope = options.scope ?? "contracts";
 
+    this.#ensureSplitCompilationModeIfTestsScope(scope);
+
+    const unified = !this.#options.solidityConfig.splitTestsCompilation;
+
     const artifactsPerFile = new Map<string, string[]>();
     const typeFilePaths = new Map<string, string>();
     const buildId = await runnableCompilationJob.getBuildId();
@@ -867,8 +925,15 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
 
       artifactsPerFile.set(formatRootPath(userSourceName, root), paths);
 
-      // Write the type declaration file, only for contracts
-      if (scope === "contracts") {
+      // In split mode, test roots are never part of a "contracts"-scoped pass,
+      // so the scope guard below is sufficient. In unified mode, both contract
+      // and test roots share the same pass, so we check individually.
+      const isTestRoot = unified
+        ? (await this.getScope(root.fsPath)) === "tests"
+        : false;
+
+      // Write the type declaration file for contract roots only.
+      if (scope === "contracts" && !isTestRoot) {
         const artifactsDeclarationFilePath = path.join(
           fileFolder,
           "artifacts.d.ts",
@@ -963,6 +1028,12 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
   }
 
   public async getArtifactsDirectory(scope: BuildScope): Promise<string> {
+    // In unified mode, both scopes point to the main artifacts directory
+    // because contract and test artifacts live together.
+    if (!this.#options.solidityConfig.splitTestsCompilation) {
+      return this.#options.artifactsPath;
+    }
+
     return scope === "contracts"
       ? this.#options.artifactsPath
       : path.join(this.#options.cachePath, "test-artifacts");
@@ -972,9 +1043,11 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
     rootFilePaths: string[],
     options: { scope?: BuildScope } = {},
   ): Promise<void> {
-    log(`Cleaning up artifacts`);
-
     const scope = options.scope ?? "contracts";
+
+    this.#ensureSplitCompilationModeIfTestsScope(scope);
+
+    log(`Cleaning up artifacts`);
     const artifactsDirectory = await this.getArtifactsDirectory(scope);
 
     const userSourceNames = rootFilePaths.map((rootFilePath) => {
@@ -1026,7 +1099,7 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
 
     // Get all the reachable build info files
     const buildInfoFiles = await getAllFilesMatching(buildInfosDir, (f) =>
-      f.startsWith(buildInfosDir),
+      f.startsWith(buildInfosDir + path.sep),
     );
 
     for (const buildInfoFile of buildInfoFiles) {
@@ -1150,6 +1223,34 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
     return `${error.type}: ${error.message}`.replace(/[:\s]*$/g, "").trim();
   }
 
+  async #getExpectedOutputLayout(
+    rootFilePath: string,
+    scope: BuildScope,
+  ): Promise<{ artifactsDirectory: string; emitsTypeDeclarations: boolean }> {
+    const artifactsDirectory = await this.getArtifactsDirectory(scope);
+
+    const unified = !this.#options.solidityConfig.splitTestsCompilation;
+
+    // In unified mode, test roots under contracts scope don't emit type
+    // declarations. In split mode, the scope alone determines this.
+    let emitsTypeDeclarations: boolean;
+    if (scope === "contracts") {
+      if (unified) {
+        const parsed = parseRootPath(rootFilePath);
+        const isTestRoot = isNpmParsedRootPath(parsed)
+          ? false
+          : (await this.getScope(parsed.fsPath)) === "tests";
+        emitsTypeDeclarations = !isTestRoot;
+      } else {
+        emitsTypeDeclarations = true;
+      }
+    } else {
+      emitsTypeDeclarations = false;
+    }
+
+    return { artifactsDirectory, emitsTypeDeclarations };
+  }
+
   async #cacheCompilationResult(
     indexedIndividualJobs: Map<string, CompilationJob>,
     result: CompilationResult,
@@ -1178,13 +1279,12 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
 
       const typeFilePath = emitArtifactsResult.typeFilePaths.get(rootFilePath);
 
-      // Type declaration file is not generated for solidity tests
-      assertHardhatInvariant(
-        scope === "tests" || typeFilePath !== undefined,
-        `No type file found on map for contract ${rootFilePath}`,
-      );
-
       const jobHash = await individualJob.getBuildId();
+
+      const expectedLayout = await this.#getExpectedOutputLayout(
+        rootFilePath,
+        scope,
+      );
 
       this.#compileCache[rootFilePath] = {
         jobHash,
@@ -1195,6 +1295,8 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
         buildInfoOutputPath: emitArtifactsResult.buildInfoOutputPath,
         typeFilePath,
         wasm: result.compiler.isSolcJs,
+        artifactsDirectory: expectedLayout.artifactsDirectory,
+        emitsTypeDeclarations: expectedLayout.emitsTypeDeclarations,
       };
     }
   }
@@ -1339,6 +1441,17 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
           `(evm target: ${evmVersion})`,
         );
       }
+    }
+  }
+
+  #ensureSplitCompilationModeIfTestsScope(scope: BuildScope = "contracts") {
+    if (
+      scope === "tests" &&
+      !this.#options.solidityConfig.splitTestsCompilation
+    ) {
+      throw new HardhatError(
+        HardhatError.ERRORS.CORE.SOLIDITY.SPLIT_TESTS_COMPILATION_DISABLED,
+      );
     }
   }
 }

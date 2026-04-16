@@ -3,6 +3,10 @@ import type {
   EdrArtifactWithMetadata,
 } from "./edr-artifacts.js";
 import type { TestEvent } from "./types.js";
+import type {
+  BuildScope,
+  SolidityBuildSystem,
+} from "../../../types/solidity.js";
 import type { NewTaskActionFunction } from "../../../types/tasks.js";
 import type { TestRunResult } from "../../../types/test.js";
 import type { Result } from "../../../types/utils.js";
@@ -15,6 +19,7 @@ import type {
 import { finished } from "node:stream/promises";
 
 import { HardhatError } from "@nomicfoundation/hardhat-errors";
+import { exists } from "@nomicfoundation/hardhat-utils/fs";
 import { resolveFromRoot } from "@nomicfoundation/hardhat-utils/path";
 import { createNonClosingWriter } from "@nomicfoundation/hardhat-utils/stream";
 
@@ -60,6 +65,18 @@ const runSolidityTests: NewTaskActionFunction<TestActionArguments> = async (
 
   const verbosity = hre.globalOptions.verbosity;
 
+  // NOTE: The resolution from CWD mimics what `build` does. It's important for
+  // both tasks to be aligned.
+  const resolvedTestFilesArgument = testFiles.map((f) =>
+    resolveFromRoot(process.cwd(), f),
+  );
+
+  await validateThatProvidedFilesAreTests(
+    hre.solidity,
+    testFiles,
+    resolvedTestFilesArgument,
+  );
+
   // Sets the NODE_ENV environment variable to "test" so the code can detect that tests are running
   // This is done by other JS/TS test frameworks like vitest
   process.env.NODE_ENV ??= "test";
@@ -75,34 +92,79 @@ const runSolidityTests: NewTaskActionFunction<TestActionArguments> = async (
     );
   }
 
-  // Run the build task for contract files if needed
-  if (noCompile !== true) {
-    await hre.tasks.getTask("build").run({
-      noTests: true,
-    });
-  }
+  let testRootPathsToRun: string[];
+  let edrArtifactsWithMetadata: EdrArtifactWithMetadata[];
+  let allBuildInfosAndOutputs: BuildInfoAndOutput[];
 
-  // Run the build task for test files
-  const { testRootPaths }: { testRootPaths: string[] } = await hre.tasks
-    .getTask("build")
-    .run({
-      files: testFiles,
-      noContracts: true,
-    });
-  console.log();
+  if (hre.config.solidity.splitTestsCompilation) {
+    if (noCompile !== true) {
+      await hre.tasks.getTask("build").run({
+        noTests: true,
+      });
+    }
 
-  // EDR needs all artifacts (contracts + tests)
-  const edrArtifactsWithMetadata: EdrArtifactWithMetadata[] = [];
-  const allBuildInfosAndOutputs: BuildInfoAndOutput[] = [];
-  for (const scope of ["contracts", "tests"] as const) {
-    const artifactsDir = await hre.solidity.getArtifactsDirectory(scope);
-    const artifactManager = new ArtifactManagerImplementation(artifactsDir);
-    edrArtifactsWithMetadata.push(
-      ...(await buildEdrArtifactsWithMetadata(artifactManager)),
-    );
-    allBuildInfosAndOutputs.push(
-      ...(await getBuildInfosAndOutputs(artifactManager)),
-    );
+    ({ testRootPaths: testRootPathsToRun } = await hre.tasks
+      .getTask("build")
+      .run({
+        files: testFiles,
+        noContracts: true,
+      }));
+    console.log();
+
+    ({ edrArtifactsWithMetadata, allBuildInfosAndOutputs } =
+      await loadArtifacts(hre.solidity, ["contracts", "tests"]));
+  } else {
+    if (noCompile !== true) {
+      ({ testRootPaths: testRootPathsToRun } = await hre.tasks
+        .getTask("build")
+        .run({
+          files: testFiles,
+        }));
+    } else {
+      if (resolvedTestFilesArgument.length > 0) {
+        testRootPathsToRun = resolvedTestFilesArgument;
+      } else {
+        testRootPathsToRun = [];
+        const allRoots = await hre.solidity.getRootFilePaths({
+          scope: "contracts",
+        });
+
+        for (const root of allRoots) {
+          if ((await hre.solidity.getScope(root)) === "tests") {
+            testRootPathsToRun.push(root);
+          }
+        }
+      }
+    }
+    console.log();
+
+    ({ edrArtifactsWithMetadata, allBuildInfosAndOutputs } =
+      await loadArtifacts(hre.solidity, ["contracts"]));
+
+    // When noCompile, validate selected test roots have compiled artifacts
+    if (noCompile === true) {
+      const compiledSources = new Set(
+        edrArtifactsWithMetadata.map(({ userSourceName }) =>
+          resolveFromRoot(hre.config.paths.root, userSourceName),
+        ),
+      );
+
+      const notCompiledFiles: string[] = [];
+      for (const root of testRootPathsToRun) {
+        if (!compiledSources.has(root)) {
+          notCompiledFiles.push(root);
+        }
+      }
+
+      if (notCompiledFiles.length > 0) {
+        throw new HardhatError(
+          HardhatError.ERRORS.CORE.SOLIDITY_TESTS.SELECTED_TEST_FILES_NOT_COMPILED,
+          {
+            files: notCompiledFiles.map((f) => `- ${f}`).join("\n"),
+          },
+        );
+      }
+    }
   }
 
   const sourceNameToUserSourceName = new Map(
@@ -112,24 +174,18 @@ const runSolidityTests: NewTaskActionFunction<TestActionArguments> = async (
     ]),
   );
 
-  edrArtifactsWithMetadata.forEach(({ userSourceName, edrArtifact }) => {
-    if (
-      testRootPaths.includes(
-        resolveFromRoot(hre.config.paths.root, userSourceName),
-      ) &&
-      isTestSuiteArtifact(edrArtifact)
-    ) {
-      warnDeprecatedTestFail(edrArtifact, sourceNameToUserSourceName);
-    }
-  });
-
+  const testRootPathsSet = new Set(testRootPathsToRun);
   const testSuiteArtifacts = edrArtifactsWithMetadata
     .filter(({ userSourceName }) =>
-      testRootPaths.includes(
+      testRootPathsSet.has(
         resolveFromRoot(hre.config.paths.root, userSourceName),
       ),
     )
     .filter(({ edrArtifact }) => isTestSuiteArtifact(edrArtifact));
+
+  for (const { edrArtifact } of testSuiteArtifacts) {
+    warnDeprecatedTestFail(edrArtifact, sourceNameToUserSourceName);
+  }
 
   const testSuiteIds = testSuiteArtifacts.map(
     ({ edrArtifact }) => edrArtifact.id,
@@ -309,5 +365,71 @@ const runSolidityTests: NewTaskActionFunction<TestActionArguments> = async (
     ? errorResult(result)
     : successfulResult(result);
 };
+
+/**
+ * Validates that the test files provided by the user, resolved in this case,
+ * are actually test files.
+ *
+ * @param solidity The solidity build system
+ * @param testFiles The test files, as provided by the user
+ * @param resolvedTestFilesArgument The resolved testFiles
+ */
+async function validateThatProvidedFilesAreTests(
+  solidity: SolidityBuildSystem,
+  testFiles: string[],
+  resolvedTestFilesArgument: string[],
+) {
+  const existsResults = await Promise.all(
+    resolvedTestFilesArgument.map((rootPath) => exists(rootPath)),
+  );
+
+  const missing: string[] = testFiles.filter((_, i) => !existsResults[i]);
+
+  if (missing.length > 0) {
+    throw new HardhatError(
+      HardhatError.ERRORS.CORE.SOLIDITY_TESTS.SELECTED_TEST_FILES_DO_NOT_EXIST,
+      {
+        files: missing.map((f) => `- ${f}`).join("\n"),
+      },
+    );
+  }
+
+  const scopes = await Promise.all(
+    resolvedTestFilesArgument.map((rootPath) => solidity.getScope(rootPath)),
+  );
+
+  const nonTests: string[] = testFiles.filter((_, i) => scopes[i] !== "tests");
+
+  if (nonTests.length > 0) {
+    throw new HardhatError(
+      HardhatError.ERRORS.CORE.SOLIDITY_TESTS.SELECTED_FILES_ARE_NOT_SOLIDITY_TESTS,
+      {
+        files: nonTests.map((f) => `- ${f}`).join("\n"),
+      },
+    );
+  }
+}
+
+async function loadArtifacts(
+  solidity: SolidityBuildSystem,
+  scopes: BuildScope[],
+): Promise<{
+  edrArtifactsWithMetadata: EdrArtifactWithMetadata[];
+  allBuildInfosAndOutputs: BuildInfoAndOutput[];
+}> {
+  const edrArtifactsWithMetadata: EdrArtifactWithMetadata[] = [];
+  const allBuildInfosAndOutputs: BuildInfoAndOutput[] = [];
+  for (const scope of scopes) {
+    const artifactsDir = await solidity.getArtifactsDirectory(scope);
+    const artifactManager = new ArtifactManagerImplementation(artifactsDir);
+    edrArtifactsWithMetadata.push(
+      ...(await buildEdrArtifactsWithMetadata(artifactManager)),
+    );
+    allBuildInfosAndOutputs.push(
+      ...(await getBuildInfosAndOutputs(artifactManager)),
+    );
+  }
+  return { edrArtifactsWithMetadata, allBuildInfosAndOutputs };
+}
 
 export default runSolidityTests;

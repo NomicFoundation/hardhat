@@ -31,5 +31,9 @@ export default defineConfig({
     "**/artifacts/**/*.json",
     "**/artifacts/**/*.d.ts",
     "**/build-info/**/*",
+    "packages/*/artifacts",
+    "packages/*/cache",
+    "packages/*/test/fixture-projects/**/artifacts",
+    "packages/*/test/fixture-projects/**/cache",
   ],
 });

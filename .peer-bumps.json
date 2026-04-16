@@ -86,6 +86,26 @@
       "package": "@nomicfoundation/hardhat-solx",
       "peer": "hardhat",
       "reason": "It depends on the new CommonSingleVersionSolidityUserConfig type"
+    },
+    {
+      "package": "@nomicfoundation/hardhat-node-test-runner",
+      "peer": "hardhat",
+      "reason": "splitTestsCompilation update"
+    },
+    {
+      "package": "@nomicfoundation/hardhat-typechain",
+      "peer": "hardhat",
+      "reason": "splitTestsCompilation update"
+    },
+    {
+      "package": "@nomicfoundation/hardhat-ignition",
+      "peer": "hardhat",
+      "reason": "splitTestsCompilation update"
+    },
+    {
+      "package": "@nomicfoundation/hardhat-mocha",
+      "peer": "hardhat",
+      "reason": "splitTestsCompilation update"
     }
   ]
 }

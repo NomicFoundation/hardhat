@@ -22,7 +22,8 @@ const visualizeTask: NewTaskActionFunction<TaskVisualizeArguments> = async (
   { noOpen, modulePath }: { noOpen: boolean; modulePath: string },
   hre: HardhatRuntimeEnvironment,
 ) => {
-  await hre.tasks.getTask("build").run({ noTests: true, quiet: true });
+  const noTests = hre.config.solidity.splitTestsCompilation;
+  await hre.tasks.getTask("build").run({ noTests, quiet: true });
 
   const userModule = await loadModule(hre.config.paths.ignition, modulePath);
 
