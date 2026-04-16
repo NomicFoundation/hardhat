@@ -1,5 +1,19 @@
 # Changelog
 
+## 3.1.2
+
+### Patch Changes
+
+- [#6763](https://github.com/NomicFoundation/hardhat/pull/6763) [`f65cdc3`](https://github.com/NomicFoundation/hardhat/commit/f65cdc338b44d7349b89a5a8a839d719f73b97ec) Thanks [@zoeyTM](https://github.com/zoeyTM)! - Fixed Hardhat Ignition + Ledger UI interactions by integrating Hardhat 3's user interruptions flow with Hardhat Ignition's UI ([#6682](https://github.com/NomicFoundation/hardhat/issues/6682))
+
+- [#8096](https://github.com/NomicFoundation/hardhat/pull/8096) [`7fb721b`](https://github.com/NomicFoundation/hardhat/commit/7fb721bb2b1c521d0073a156f361c60a049e8fdf) Thanks [@alcuadrado](https://github.com/alcuadrado)! - [chore] Move to packages/ folder.
+
+- [#8116](https://github.com/NomicFoundation/hardhat/pull/8116) [`88787e1`](https://github.com/NomicFoundation/hardhat/commit/88787e172a3d90652d0ffaf73e31857f6ed875cc) Thanks [@kanej](https://github.com/kanej)! - Deprecate the `hre.network.connect()` method in favour of `hre.network.create()`, exactly the same method but more clearly indicating that it will create a new connection.
+
+- Updated dependencies:
+  - @nomicfoundation/hardhat-errors@3.0.11
+  - @nomicfoundation/hardhat-utils@4.0.3
+
 ## 3.1.1
 
 ### Patch Changes

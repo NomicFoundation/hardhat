@@ -1,5 +1,13 @@
 # @nomicfoundation/hardhat-utils
 
+## 4.0.3
+
+### Patch Changes
+
+- [#8096](https://github.com/NomicFoundation/hardhat/pull/8096) [`7fb721b`](https://github.com/NomicFoundation/hardhat/commit/7fb721bb2b1c521d0073a156f361c60a049e8fdf) Thanks [@alcuadrado](https://github.com/alcuadrado)! - [chore] Move to packages/ folder.
+
+- [#8119](https://github.com/NomicFoundation/hardhat/pull/8119) [`ff5a97e`](https://github.com/NomicFoundation/hardhat/commit/ff5a97e32468b0f841dc8a530ba8c2aac91a5c22) Thanks [@schaable](https://github.com/schaable)! - Show proxy chain information in --gas-stats and --gas-stats-json output
+
 ## 4.0.2
 
 ### Patch Changes
