@@ -16,5 +16,16 @@
 # Typechain output
 /types
 
+# Environment files
+.env
+.env.*
+!.env.example
+
 # Hardhat coverage reports
 /coverage
+
+# Gas snapshot files
+/.gas-snapshot
+
+# Snapshot cheatcodes output
+/snapshots
