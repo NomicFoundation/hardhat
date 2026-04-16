@@ -13,6 +13,7 @@
     "@nomicfoundation/config",
     "@nomicfoundation/example-project",
     "@nomicfoundation/template-package",
+    "@nomicfoundation/hardhat-solx",
     "template-*"
   ],
   "fixed": [],
