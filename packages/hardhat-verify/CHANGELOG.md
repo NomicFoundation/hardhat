@@ -1,5 +1,21 @@
 # @nomicfoundation/hardhat-verify
 
+## 3.0.14
+
+### Patch Changes
+
+- [#8148](https://github.com/NomicFoundation/hardhat/pull/8148) [`49ec5d0`](https://github.com/NomicFoundation/hardhat/commit/49ec5d0cd4ddfaa97ec1fe1838d781cc41e53d72) Thanks [@alcuadrado](https://github.com/alcuadrado)! - Don't report HardhatErrors that aren't bugs
+
+- [#8096](https://github.com/NomicFoundation/hardhat/pull/8096) [`7fb721b`](https://github.com/NomicFoundation/hardhat/commit/7fb721bb2b1c521d0073a156f361c60a049e8fdf) Thanks [@alcuadrado](https://github.com/alcuadrado)! - [chore] Move to packages/ folder.
+
+- [#8116](https://github.com/NomicFoundation/hardhat/pull/8116) [`88787e1`](https://github.com/NomicFoundation/hardhat/commit/88787e172a3d90652d0ffaf73e31857f6ed875cc) Thanks [@kanej](https://github.com/kanej)! - Deprecate the `hre.network.connect()` method in favour of `hre.network.create()`, exactly the same method but more clearly indicating that it will create a new connection.
+
+- Updated dependencies:
+  - hardhat@3.4.0
+  - @nomicfoundation/hardhat-errors@3.0.11
+  - @nomicfoundation/hardhat-utils@4.0.3
+  - @nomicfoundation/hardhat-zod-utils@3.0.4
+
 ## 3.0.13
 
 ### Patch Changes

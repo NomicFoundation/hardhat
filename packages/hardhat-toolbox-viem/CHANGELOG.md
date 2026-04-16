@@ -1,5 +1,18 @@
 # @nomicfoundation/hardhat-toolbox-viem
 
+## 5.0.4
+
+### Patch Changes
+
+- [#8104](https://github.com/NomicFoundation/hardhat/pull/8104) [`e27a7ad`](https://github.com/NomicFoundation/hardhat/commit/e27a7ad584b01392afc9294f739d731ab6e78f06) Thanks [@ChristopherDedominici](https://github.com/ChristopherDedominici)! - Use code 3 for JSON-RPC revert error codes to align with standard node behavior and preserve error causes in viem/ethers.
+
+- [#8096](https://github.com/NomicFoundation/hardhat/pull/8096) [`7fb721b`](https://github.com/NomicFoundation/hardhat/commit/7fb721bb2b1c521d0073a156f361c60a049e8fdf) Thanks [@alcuadrado](https://github.com/alcuadrado)! - [chore] Move to packages/ folder.
+
+- [#8116](https://github.com/NomicFoundation/hardhat/pull/8116) [`88787e1`](https://github.com/NomicFoundation/hardhat/commit/88787e172a3d90652d0ffaf73e31857f6ed875cc) Thanks [@kanej](https://github.com/kanej)! - Deprecate the `hre.network.connect()` method in favour of `hre.network.create()`, exactly the same method but more clearly indicating that it will create a new connection.
+
+- Updated dependencies:
+  - hardhat@3.4.0
+
 ## 5.0.3
 
 ### Patch Changes

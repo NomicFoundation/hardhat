@@ -1,5 +1,19 @@
 # @nomicfoundation/hardhat-typechain
 
+## 3.0.6
+
+### Patch Changes
+
+- [#8127](https://github.com/NomicFoundation/hardhat/pull/8127) [`4fe12fe`](https://github.com/NomicFoundation/hardhat/commit/4fe12feefe3b868b6b651a708155c75849988c2d) Thanks [@alcuadrado](https://github.com/alcuadrado)! - Update to the new splitTestsCompilation setting
+
+- [#8096](https://github.com/NomicFoundation/hardhat/pull/8096) [`7fb721b`](https://github.com/NomicFoundation/hardhat/commit/7fb721bb2b1c521d0073a156f361c60a049e8fdf) Thanks [@alcuadrado](https://github.com/alcuadrado)! - [chore] Move to packages/ folder.
+
+- Updated dependencies:
+  - hardhat@3.4.0
+  - @nomicfoundation/hardhat-errors@3.0.11
+  - @nomicfoundation/hardhat-utils@4.0.3
+  - @nomicfoundation/hardhat-zod-utils@3.0.4
+
 ## 3.0.5
 
 ### Patch Changes

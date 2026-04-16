@@ -1,5 +1,59 @@
 # hardhat
 
+## 3.4.0
+
+### Minor Changes
+
+- [#8116](https://github.com/NomicFoundation/hardhat/pull/8116) [`88787e1`](https://github.com/NomicFoundation/hardhat/commit/88787e172a3d90652d0ffaf73e31857f6ed875cc) Thanks [@kanej](https://github.com/kanej)! - Add `getOrCreate` to the network API
+
+- [#8127](https://github.com/NomicFoundation/hardhat/pull/8127) [`353cf86`](https://github.com/NomicFoundation/hardhat/commit/353cf86d83f43aba998d63acf646bec5e3355512) Thanks [@alcuadrado](https://github.com/alcuadrado)! - Make the split of contracts and solidity tests compilation optional, and controlled with a new `splitTestsCompilation` config field.
+
+### Patch Changes
+
+- [#8105](https://github.com/NomicFoundation/hardhat/pull/8105) [`00e9695`](https://github.com/NomicFoundation/hardhat/commit/00e9695909deef9b08105bc44549f98571df7ef3) Thanks [@marianfe](https://github.com/marianfe)! - Add Solidity 0.8.34 to the default EVM targets table (osaka) ([#8105](https://github.com/NomicFoundation/hardhat/pull/8105))
+
+- [#8108](https://github.com/NomicFoundation/hardhat/pull/8108) [`5404ac8`](https://github.com/NomicFoundation/hardhat/commit/5404ac83fc3d04bfadca9ffad412dff955ee5035) Thanks [@schaable](https://github.com/schaable)! - Display contract runtime bytecode size in the gas stats table and JSON output
+
+- [#8104](https://github.com/NomicFoundation/hardhat/pull/8104) [`e27a7ad`](https://github.com/NomicFoundation/hardhat/commit/e27a7ad584b01392afc9294f739d731ab6e78f06) Thanks [@ChristopherDedominici](https://github.com/ChristopherDedominici)! - Use code 3 for JSON-RPC revert error codes to align with standard node behavior and preserve error causes in viem/ethers.
+
+- [#8103](https://github.com/NomicFoundation/hardhat/pull/8103) [`14b335a`](https://github.com/NomicFoundation/hardhat/commit/14b335a06a10caf4149b6a40241c0eab8d1788c4) Thanks [@kanej](https://github.com/kanej)! - Improved network handler performance through additional metadata to allow early skipping ([#8103](https://github.com/NomicFoundation/hardhat/pull/8103))
+
+- [#8148](https://github.com/NomicFoundation/hardhat/pull/8148) [`49ec5d0`](https://github.com/NomicFoundation/hardhat/commit/49ec5d0cd4ddfaa97ec1fe1838d781cc41e53d72) Thanks [@alcuadrado](https://github.com/alcuadrado)! - Don't report HardhatErrors that aren't bugs
+
+- [#8102](https://github.com/NomicFoundation/hardhat/pull/8102) [`d5f8394`](https://github.com/NomicFoundation/hardhat/commit/d5f8394aaabe4f2bd083264d15419d26235f51f2) Thanks [@kanej](https://github.com/kanej)! - Improved performance of network handler initialization ([#8102](https://github.com/NomicFoundation/hardhat/pull/8102))
+
+- [#8141](https://github.com/NomicFoundation/hardhat/pull/8141) [`63c68c1`](https://github.com/NomicFoundation/hardhat/commit/63c68c1968209731fcac636bcd336fecf4e444c5) Thanks [@ChristopherDedominici](https://github.com/ChristopherDedominici)! - Added support for EDR structured Solidity test cheatcode errors.
+
+- [#8123](https://github.com/NomicFoundation/hardhat/pull/8123) [`cf3933b`](https://github.com/NomicFoundation/hardhat/commit/cf3933bbc7bee5f34cf5b480d9f20820362b1d23) Thanks [@alcuadrado](https://github.com/alcuadrado)! - Add a `toolVersionsInBuildInfo` setting to the Solidity config, which is `true` by default in the `production` build profile. When enabled, the version of Hardhat is included in the Build Info files.
+
+  NOTE: This change can lead to build info ids changing despite the compilation output's bytecodes being identical, especially when using the `production` build profile.
+
+- [#8143](https://github.com/NomicFoundation/hardhat/pull/8143) [`f74cec9`](https://github.com/NomicFoundation/hardhat/commit/f74cec9451958b85c9702ef77ee7eb6d963cd84b) Thanks [@ChristopherDedominici](https://github.com/ChristopherDedominici)! - Update `.gitignore` files in the sample projects to ignore snapshots and env files.
+
+- [#8096](https://github.com/NomicFoundation/hardhat/pull/8096) [`7fb721b`](https://github.com/NomicFoundation/hardhat/commit/7fb721bb2b1c521d0073a156f361c60a049e8fdf) Thanks [@alcuadrado](https://github.com/alcuadrado)! - [chore] Move to packages/ folder.
+
+- [#8116](https://github.com/NomicFoundation/hardhat/pull/8116) [`88787e1`](https://github.com/NomicFoundation/hardhat/commit/88787e172a3d90652d0ffaf73e31857f6ed875cc) Thanks [@kanej](https://github.com/kanej)! - Deprecate the `hre.network.connect()` method in favour of `hre.network.create()`, exactly the same method but more clearly indicating that it will create a new connection.
+
+- [#8119](https://github.com/NomicFoundation/hardhat/pull/8119) [`ff5a97e`](https://github.com/NomicFoundation/hardhat/commit/ff5a97e32468b0f841dc8a530ba8c2aac91a5c22) Thanks [@schaable](https://github.com/schaable)! - Show proxy chain information in --gas-stats and --gas-stats-json output
+
+- [#8114](https://github.com/NomicFoundation/hardhat/pull/8114) [`6eeb144`](https://github.com/NomicFoundation/hardhat/commit/6eeb144c6aa47c46322798762422560896bb65a1) Thanks [@ChristopherDedominici](https://github.com/ChristopherDedominici)! - Updated forking configurations to support number and bigint.
+
+- [#8121](https://github.com/NomicFoundation/hardhat/pull/8121) [`0f1038c`](https://github.com/NomicFoundation/hardhat/commit/0f1038c9b91b0e5f61ecc402837d003fa9baf07f) Thanks [@alcuadrado](https://github.com/alcuadrado)! - Update the default outputSelection setting of solc to decrease the artifacts size.
+
+  NOTE: This change can lead to build info ids changing, despite compilation output's bytecodes being identical.
+
+- [#8122](https://github.com/NomicFoundation/hardhat/pull/8122) [`edfa548`](https://github.com/NomicFoundation/hardhat/commit/edfa548e48076d7f127523354c173b48ed9494a7) Thanks [@alcuadrado](https://github.com/alcuadrado)! - Optimize `hre.artifacts.artifactExists()`
+
+- [#8115](https://github.com/NomicFoundation/hardhat/pull/8115) [`935a043`](https://github.com/NomicFoundation/hardhat/commit/935a043bd34cfb91593b5485c9b672282109c699) Thanks [@ChristopherDedominici](https://github.com/ChristopherDedominici)! - Breaking change: removed `timeout` option for Solidity tests in `hardhat.config.ts` file.
+
+- [#8120](https://github.com/NomicFoundation/hardhat/pull/8120) [`688870c`](https://github.com/NomicFoundation/hardhat/commit/688870c7900ba729f27af563d0c2d03f4f70146e) Thanks [@alcuadrado](https://github.com/alcuadrado)! - Fix remappings duplication
+
+- Updated dependencies:
+  - @nomicfoundation/hardhat-errors@3.0.11
+  - @nomicfoundation/hardhat-utils@4.0.3
+  - @nomicfoundation/hardhat-vendored@3.0.2
+  - @nomicfoundation/hardhat-zod-utils@3.0.4
+
 ## 3.3.0
 
 ### Minor Changes
