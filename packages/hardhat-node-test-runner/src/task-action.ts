@@ -88,27 +88,14 @@ const testWithHardhat: NewTaskActionFunction<TestActionArguments> = async (
     });
   }
 
-  const imports = [];
-
-  const tsx = new URL(import.meta.resolve("tsx/esm"));
-  imports.push(tsx.href);
-
-  if (
+  const needsTestWorkerDone =
     hre.globalOptions.coverage === true ||
     hre.globalOptions.gasStats === true ||
-    hre.globalOptions.gasStatsJson !== undefined
-  ) {
-    const testWorkerDone = new URL(
-      import.meta.resolve(
-        "@nomicfoundation/hardhat-node-test-runner/test-worker-done",
-      ),
-    );
-    imports.push(testWorkerDone.href);
-  }
+    hre.globalOptions.gasStatsJson !== undefined;
 
-  process.env.NODE_OPTIONS = imports
-    .map((href) => `--import "${href}"`)
-    .join(" ");
+  if (needsTestWorkerDone) {
+    await import("@nomicfoundation/hardhat-node-test-runner/test-worker-done");
+  }
 
   async function runTests(): Promise<TestSummary> {
     const nodeTestOptions: LastParameter<typeof run> = {
