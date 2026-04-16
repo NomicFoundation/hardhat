@@ -64,6 +64,9 @@ const runSolidityTests: NewTaskActionFunction<TestActionArguments> = async (
   process.env.HH_TEST = "true";
 
   const verbosity = hre.globalOptions.verbosity;
+
+  // NOTE: The resolution from CWD mimics what `build` does. It's important for
+  // both tasks to be aligned.
   const resolvedTestFilesArgument = testFiles.map((f) =>
     resolveFromRoot(process.cwd(), f),
   );
