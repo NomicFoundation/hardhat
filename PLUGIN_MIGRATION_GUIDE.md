@@ -117,7 +117,7 @@ The arrays reflect the roots actually built, partitioned using `getScope()`.
 
 ### Plugin pattern for calling `build`
 
-If your plugin calls `build` and previously passed `noTests: true`, update it to branch on the config. When `splitTestsCompilation` is `false` there is no cheap "contracts-only" pass to fall back to — skipping tests would require an extra partial build — so the flag is only meaningful in split mode:
+If your plugin calls `build` with `noTests: true`, update it to branch on the config. In unified mode (`splitTestsCompilation: false`), passing `noTests: true` turns the build into a partial build — cleanup and `artifacts.d.ts` regeneration are skipped. Since tests are compiled in the same pass as contracts anyway, there is no performance benefit to excluding them, and the plugin loses full-build semantics it likely depends on.
 
 ```typescript
 // Before
