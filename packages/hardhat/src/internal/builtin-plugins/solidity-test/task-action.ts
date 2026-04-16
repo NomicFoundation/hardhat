@@ -3,7 +3,10 @@ import type {
   EdrArtifactWithMetadata,
 } from "./edr-artifacts.js";
 import type { TestEvent } from "./types.js";
-import type { SolidityBuildSystem } from "../../../types/solidity.js";
+import type {
+  BuildScope,
+  SolidityBuildSystem,
+} from "../../../types/solidity.js";
 import type { NewTaskActionFunction } from "../../../types/tasks.js";
 import type { TestRunResult } from "../../../types/test.js";
 import type { Result } from "../../../types/utils.js";
@@ -61,6 +64,9 @@ const runSolidityTests: NewTaskActionFunction<TestActionArguments> = async (
   process.env.HH_TEST = "true";
 
   const verbosity = hre.globalOptions.verbosity;
+
+  // NOTE: The resolution from CWD mimics what `build` does. It's important for
+  // both tasks to be aligned.
   const resolvedTestFilesArgument = testFiles.map((f) =>
     resolveFromRoot(process.cwd(), f),
   );
@@ -406,7 +412,7 @@ async function validateThatProvidedFilesAreTests(
 
 async function loadArtifacts(
   solidity: SolidityBuildSystem,
-  scopes: Array<"contracts" | "tests">,
+  scopes: BuildScope[],
 ): Promise<{
   edrArtifactsWithMetadata: EdrArtifactWithMetadata[];
   allBuildInfosAndOutputs: BuildInfoAndOutput[];
