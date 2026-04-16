@@ -3,7 +3,10 @@ import type {
   EdrArtifactWithMetadata,
 } from "./edr-artifacts.js";
 import type { TestEvent } from "./types.js";
-import type { SolidityBuildSystem } from "../../../types/solidity.js";
+import type {
+  BuildScope,
+  SolidityBuildSystem,
+} from "../../../types/solidity.js";
 import type { NewTaskActionFunction } from "../../../types/tasks.js";
 import type { TestRunResult } from "../../../types/test.js";
 import type { Result } from "../../../types/utils.js";
@@ -406,7 +409,7 @@ async function validateThatProvidedFilesAreTests(
 
 async function loadArtifacts(
   solidity: SolidityBuildSystem,
-  scopes: Array<"contracts" | "tests">,
+  scopes: BuildScope[],
 ): Promise<{
   edrArtifactsWithMetadata: EdrArtifactWithMetadata[];
   allBuildInfosAndOutputs: BuildInfoAndOutput[];
