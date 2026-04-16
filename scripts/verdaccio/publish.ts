@@ -258,56 +258,61 @@ function detectChangedSinceRelease(): string[] {
     // Find the latest existing release tag for this package
     const releaseTag = findLatestReleaseTag(name);
 
-    if (releaseTag === undefined) {
-      // No release tag — treat as changed (new package or first release)
-      log(`  ${fmt.pkg(name)} ${fmt.deemphasize("(no release tag)")}`);
-      changedDirs.push(packageDir);
-      continue;
-    }
+    const tagVersion =
+      releaseTag !== undefined
+        ? releaseTag.slice(name.length + 1) // "hardhat@3.3.0" → "3.3.0"
+        : undefined;
 
-    const tagVersion = releaseTag.slice(name.length + 1); // "hardhat@3.3.0" → "3.3.0"
+    const excludePatterns = [
+      `:!${packageDir}/package.json`,
+      `:!${packageDir}/CHANGELOG.md`,
+    ];
 
-    if (version !== tagVersion) {
-      // Version already bumped from a prior run. Only re-bump if there
-      // are new uncommitted changes beyond the version bump itself.
-      const uncommittedDiff = git([
+    const hasCodeChangesSinceRelease =
+      releaseTag !== undefined &&
+      git([
+        "diff",
+        "--name-only",
+        releaseTag,
+        "--",
+        packageDir,
+        ...excludePatterns,
+      ]) !== "";
+
+    const hasUncommittedCodeChanges =
+      git([
         "diff",
         "--name-only",
         "HEAD",
         "--",
         packageDir,
-        `:!${packageDir}/package.json`,
-        `:!${packageDir}/CHANGELOG.md`,
-      ]);
+        ...excludePatterns,
+      ]) !== "";
 
-      if (uncommittedDiff !== "") {
-        log(
-          `  ${fmt.pkg(name)} ${fmt.deemphasize("(new changes since last bump)")}`,
-        );
-        changedDirs.push(packageDir);
-      }
-
+    if (
+      !shouldPublishSinceLastRelease(
+        tagVersion,
+        version,
+        hasCodeChangesSinceRelease,
+        hasUncommittedCodeChanges,
+      )
+    ) {
       continue;
     }
 
-    // Version matches the release tag — check for any changes since release,
-    // excluding files that a prior changeset would modify.
-    const diff = git([
-      "diff",
-      "--name-only",
-      releaseTag,
-      "--",
-      packageDir,
-      `:!${packageDir}/package.json`,
-      `:!${packageDir}/CHANGELOG.md`,
-    ]);
-
-    if (diff !== "") {
+    if (tagVersion === undefined) {
+      log(`  ${fmt.pkg(name)} ${fmt.deemphasize("(no release tag)")}`);
+    } else if (version !== tagVersion) {
+      log(
+        `  ${fmt.pkg(name)} ${fmt.deemphasize("(new changes since last bump)")}`,
+      );
+    } else {
       log(
         `  ${fmt.pkg(name)} ${fmt.deemphasize(`(changed since ${releaseTag})`)}`,
       );
-      changedDirs.push(packageDir);
     }
+
+    changedDirs.push(packageDir);
   }
 
   if (changedDirs.length === 0) {
@@ -343,6 +348,31 @@ function findLatestReleaseTag(packageName: string): string | undefined {
   } catch {
     return undefined;
   }
+}
+
+/**
+ * Pure decision function for --use-local / --since-release: should a
+ * package be bumped and published to Verdaccio?
+ *
+ * - No release tag → always publish (new package)
+ * - Already bumped (version differs from tag) → only if new uncommitted changes
+ * - Not bumped (version matches tag) → if code changed since release
+ */
+export function shouldPublishSinceLastRelease(
+  releaseTagVersion: string | undefined,
+  currentVersion: string,
+  hasCodeChangesSinceRelease: boolean,
+  hasUncommittedCodeChanges: boolean,
+): boolean {
+  if (releaseTagVersion === undefined) {
+    return true;
+  }
+
+  if (currentVersion !== releaseTagVersion) {
+    return hasUncommittedCodeChanges;
+  }
+
+  return hasCodeChangesSinceRelease;
 }
 
 function bumpPatchVersions(packageDirs: string[]): void {
