@@ -8,11 +8,13 @@ export async function exec(
   e2eCloneDirectory: string,
   scenarioPath: string,
   command: string | undefined,
+  useLocal: boolean,
+  forcePublish: boolean,
 ): Promise<void> {
   const scenario = loadScenario(e2eCloneDirectory, scenarioPath);
 
   if (!existsSync(scenario.workingDir)) {
-    await init(e2eCloneDirectory, scenarioPath);
+    await init(e2eCloneDirectory, scenarioPath, useLocal, forcePublish);
   }
 
   const resolvedCommand = command ?? scenario.definition.defaultCommand;

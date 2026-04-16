@@ -24,7 +24,23 @@ export function isScenarioDefinition(
     (obj.preinstall === undefined || typeof obj.preinstall === "string") &&
     (obj.install === undefined || typeof obj.install === "string") &&
     (obj.submodules === undefined || typeof obj.submodules === "boolean") &&
-    (obj.disabled === undefined || obj.disabled === true)
+    (obj.disabled === undefined || obj.disabled === true) &&
+    (obj.benchmark === undefined || isBenchmarkConfig(obj.benchmark))
+  );
+}
+
+function isBenchmarkConfig(value: unknown): value is { defaultRuns?: number } {
+  if (typeof value !== "object" || value === null) {
+    return false;
+  }
+
+  const obj = value as Record<string, unknown>;
+
+  return (
+    obj.defaultRuns === undefined ||
+    (typeof obj.defaultRuns === "number" &&
+      Number.isInteger(obj.defaultRuns) &&
+      obj.defaultRuns >= 1)
   );
 }
 
