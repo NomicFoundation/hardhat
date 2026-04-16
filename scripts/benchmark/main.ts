@@ -1,0 +1,157 @@
+import { init as e2eInit } from "../end-to-end/subcommands/init.ts";
+import { exec as e2eExec } from "../end-to-end/subcommands/exec.ts";
+import { loadScenario } from "../end-to-end/helpers/directory.ts";
+import { resolveAndValidateArgs } from "./helpers/args.ts";
+import { fmt, log, logStep, logError, logWarning } from "./helpers/log.ts";
+
+const USAGE = `
+scripts/benchmark/main.ts — Benchmark Hardhat scenarios with hyperfine
+
+DESCRIPTION
+  Initializes an e2e scenario and benchmarks a command using hyperfine.
+  Use --use-local to detect changed packages, publish them to Verdaccio,
+  and pin the scenario to those versions before benchmarking.
+
+OPTIONS
+  --scenario <path>     Scenario folder or scenario.json (required)
+  --command <cmd>       Command to benchmark (default: scenario's defaultCommand)
+  --use-local           Detect packages changed since their release tag, bump
+                        versions, publish to Verdaccio, and pin scenario deps to
+                        the published versions
+  --force-publish       Allow publishing to an already-running Verdaccio instance
+  --precompile          Run "npx hardhat compile" in the scenario before
+                        benchmarking (useful for warming up compilation caches)
+  --prepare <cmd>       Execute CMD before each timing run. Forwarded to
+                        hyperfine's --prepare flag. Useful for clearing disk
+                        caches or resetting state between runs
+  --warmup <n>          Warmup runs before benchmarking (default: 0). Forwarded
+                        to hyperfine's --warmup flag. Useful for filling disk
+                        caches for I/O-heavy programs
+  --runs <n>            Number of benchmark runs (default: scenario's
+                        benchmark.defaultRuns or 10). Forwarded to hyperfine's
+                        --runs flag
+  --ignore-failure      Ignore non-zero exit codes of the benchmarked command.
+                        Forwarded to hyperfine's --ignore-failure flag
+  --show-output         Print stdout and stderr of the benchmarked command.
+                        Forwarded to hyperfine's --show-output flag
+  --e2e-clone-dir <p>   Override clone directory (default: same as pnpm e2e)
+
+EXAMPLES
+  pnpm bench --scenario ./end-to-end/uniswap-v4-core --runs 1
+  pnpm bench --scenario ./end-to-end/uniswap-v4-core --use-local --precompile
+  pnpm bench --scenario ./end-to-end/openzeppelin-contracts --command "npx hardhat compile"
+`;
+
+async function main(): Promise<void> {
+  const benchArgs = resolveAndValidateArgs(process.argv.slice(2));
+
+  if (benchArgs === undefined) {
+    console.log(USAGE);
+    return;
+  }
+
+  const {
+    scenarioPath,
+    command,
+    useLocal,
+    forcePublish,
+    precompile,
+    prepare,
+    ignoreFailure,
+    showOutput,
+    warmup,
+    e2eCloneDirectory,
+  } = benchArgs;
+
+  const scenario = loadScenario(e2eCloneDirectory, scenarioPath);
+
+  if (scenario.definition.disabled === true) {
+    logWarning(`Scenario "${scenario.id}" is disabled`);
+    return;
+  }
+
+  const benchCommand = command ?? scenario.definition.defaultCommand;
+  const runs =
+    benchArgs.runs ?? scenario.definition.benchmark?.defaultRuns ?? 10;
+
+  try {
+    logStep("Setting up scenario");
+    await e2eInit(e2eCloneDirectory, scenarioPath, useLocal, forcePublish);
+
+    if (precompile) {
+      logStep("Precompiling (npx hardhat compile)");
+      await e2eExec(
+        e2eCloneDirectory,
+        scenarioPath,
+        "npx hardhat compile",
+        false,
+        false,
+      );
+    }
+
+    logStep("Running benchmark");
+    const hyperfineCommand = buildHyperfineCommand(
+      benchCommand,
+      warmup,
+      runs,
+      prepare,
+      ignoreFailure,
+      showOutput,
+    );
+
+    log(`Benchmarking: ${fmt.pkg(benchCommand)}`);
+    log(`Warmup: ${warmup}, Runs: ${runs}`);
+
+    await e2eExec(
+      e2eCloneDirectory,
+      scenarioPath,
+      hyperfineCommand,
+      false,
+      false,
+    );
+
+    log(fmt.success("Benchmark complete"));
+  } catch (error) {
+    if (!(error instanceof Error)) {
+      throw error;
+    }
+
+    logError(error.message);
+    process.exit(1);
+  }
+}
+
+function buildHyperfineCommand(
+  command: string,
+  warmup: number,
+  runs: number,
+  prepare: string | undefined,
+  ignoreFailure: boolean,
+  showOutput: boolean,
+): string {
+  const parts: string[] = ["hyperfine"];
+
+  if (warmup > 0) {
+    parts.push("--warmup", String(warmup));
+  }
+
+  parts.push("--runs", String(runs));
+
+  if (prepare !== undefined) {
+    parts.push("--prepare", `'${prepare}'`);
+  }
+
+  if (ignoreFailure) {
+    parts.push("--ignore-failure");
+  }
+
+  if (showOutput) {
+    parts.push("--show-output");
+  }
+
+  parts.push(`'${command}'`);
+
+  return parts.join(" ");
+}
+
+await main();

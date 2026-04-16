@@ -62,6 +62,18 @@
       "type": "boolean",
       "const": true,
       "description": "Set to true to skip this scenario during end-to-end runs"
+    },
+    "benchmark": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "defaultRuns": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "Default number of hyperfine benchmark runs for this scenario"
+        }
+      },
+      "description": "Benchmark configuration for pnpm bench"
     }
   }
 }

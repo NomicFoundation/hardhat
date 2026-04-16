@@ -34,7 +34,8 @@
     "version-for-release": "pnpm changeset version && node scripts/bump-peers.ts apply && pnpm -w install --lockfile-only",
     "spellcheck": "cspell --no-progress || (echo \"\\n\\n==== cspell failed ===\\n\\nIf you think a word is correctly spelled, please add it to cspell.dictionary.txt\\nTo ignore a word use the comments 'cSpell:ignore wooord' or 'cspell:disable-next-line'\"; exit 1)",
     "verdaccio": "node ./scripts/verdaccio/main.ts",
-    "e2e": "node ./scripts/end-to-end/main.ts"
+    "e2e": "node ./scripts/end-to-end/main.ts",
+    "bench": "node ./scripts/benchmark/main.ts"
   },
   "pnpm": {
     "onlyBuiltDependencies": [
