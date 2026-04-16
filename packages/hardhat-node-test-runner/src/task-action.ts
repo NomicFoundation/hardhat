@@ -87,15 +87,6 @@ const testWithHardhat: NewTaskActionFunction<TestActionArguments> = async (
     });
   }
 
-  const needsTestWorkerDone =
-    hre.globalOptions.coverage === true ||
-    hre.globalOptions.gasStats === true ||
-    hre.globalOptions.gasStatsJson !== undefined;
-
-  if (needsTestWorkerDone) {
-    await import("@nomicfoundation/hardhat-node-test-runner/test-worker-done");
-  }
-
   async function runTests(): Promise<TestSummary> {
     const nodeTestOptions: LastParameter<typeof run> = {
       files,
@@ -178,6 +169,13 @@ const testWithHardhat: NewTaskActionFunction<TestActionArguments> = async (
   );
 
   const testResults = await runTests();
+
+  await hre.hooks.runHandlerChain(
+    "test",
+    "onTestWorkerDone",
+    ["nodejs"],
+    async () => {},
+  );
 
   await hre.hooks.runHandlerChain(
     "test",
