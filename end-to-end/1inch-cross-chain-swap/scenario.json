@@ -1,0 +1,15 @@
+{
+  "$schema": "../../scripts/end-to-end/schema/scenario.schema.json",
+  "description": "1inch Network Fusion Atomic Swaps fork to Hardhat 3.",
+  "tags": [
+    "external-repo"
+  ],
+  "repo": "anaPerezGhiglia/1inch-cross-chain-swap",
+  "commit": "52b679b54744872bff8d92941299addb13de790a",
+  "packageManager": "yarn",
+  "submodules": true,
+  "defaultCommand": "FOUNDRY_PROFILE=default npx hardhat test solidity",
+  "benchmark": {
+    "defaultRuns": 9
+  }
+}
