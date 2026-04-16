@@ -42,7 +42,7 @@ When `splitTestsCompilation` is `false`, tests are compiled together with contra
 
 When `splitTestsCompilation` is `false`, this returns **all** build roots — contract roots, test roots, and npm roots — together.
 
-When `splitTestsCompilation` is `true`, it returns contract roots only (unchanged).
+When `splitTestsCompilation` is `true`, it returns contract roots and npm roots only (unchanged).
 
 ### `getArtifactsDirectory(scope)`
 
