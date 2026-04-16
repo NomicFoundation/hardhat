@@ -43,7 +43,13 @@ export interface BuildOptions {
   quiet?: boolean;
 
   /**
-   * Whether to compile contracts or tests. Defaults to contracts
+   * Whether to compile contracts or tests. Defaults to contracts.
+   *
+   * When `solidity.splitTestsCompilation` is `false` (the default), only
+   * `"contracts"` is accepted.
+   *
+   * When `solidity.splitTestsCompilation` is `true`, both scopes are valid
+   * and produce separate compilation passes.
    */
   scope?: BuildScope;
 }
@@ -272,6 +278,16 @@ export interface SolidityBuildSystem {
    * The root files are either absolute paths or
    * `npm:<package-name>/<file-path>` URIs.
    *
+   * When `solidity.splitTestsCompilation` is `false`, contracts and tests are
+   * compiled together and `scope: "contracts"` returns every build root:
+   * contract roots, test roots, and `npmFilesToBuild` roots.
+   *
+   * Calling this method with `scope: "tests"` in this mode is a logic error and
+   * throws a `HardhatError`.
+   *
+   * When `solidity.splitTestsCompilation` is `true`, `scope: "contracts"`
+   * returns only contract roots and `scope: "tests"` returns only test roots.
+   *
    * @returns An array of root file paths.
    */
   getRootFilePaths(options?: { scope?: BuildScope }): Promise<string[]>;
@@ -283,6 +299,15 @@ export interface SolidityBuildSystem {
 
   /**
    * Builds the provided files, generating their compilation artifacts.
+   *
+   * When `solidity.splitTestsCompilation` is `false`, this method rejects
+   * `scope: "tests"` as a logic error and throws a `HardhatError`
+   *
+   * In this mode, callers must use `scope: "contracts"` and contracts and tests
+   * are built together, emitting their artifacts into the same directory.
+   *
+   * When `solidity.splitTestsCompilation` is `true`, both scopes are valid
+   * and are built into separate artifact directories.
    *
    * @param rootFilePaths The files to build, which can be either absolute paths
    * or `npm:<package-name>/<file-path>` URIs.
@@ -312,6 +337,9 @@ export interface SolidityBuildSystem {
    * Note that if `options.mergeCompilationJobs` is true, the same instance of
    * can be returned for multiple files, so you should deduplicate the results
    * before using them.
+   *
+   * When `solidity.splitTestsCompilation` is `false`, this method rejects
+   * `scope: "tests"` as a logic error and throws a `HardhatError`.
    *
    * @param rootFilePaths The files to analyze, which can be either absolute
    * paths or `npm:<package-name>/<file-path>` URIs.
@@ -358,6 +386,13 @@ export interface SolidityBuildSystem {
   /**
    * Emits the artifacts of the given compilation job.
    *
+   * When `solidity.splitTestsCompilation` is `false`, this method rejects
+   * `scope: "tests"` as a logic error and throws a `HardhatError`
+   *
+   * Artifacts for both contracts and tests are emitted under the main artifacts
+   * directory when built with `scope: "contracts"` and `splitTestsCompilation`
+   * `false`.
+   *
    * @param compilationJob The compilation job to emit the artifacts of.
    * @param compilerOutput The result of running the compilation job.
    * @returns A map from user source name to the absolute paths of the
@@ -379,7 +414,25 @@ export interface SolidityBuildSystem {
    * This method should only be used after a complete build has succeeded, as
    * it relies on the build system to have generated all the necessary artifact
    * files.
-
+   *
+   * When `solidity.splitTestsCompilation` is `false`, this method rejects
+   * `scope: "tests"` as a logic error and throws a `HardhatError`. Cleanup in
+   * this mode operates on the main artifacts directory using `scope:
+   * "contracts"`.
+   *
+   * What is considered a complete build changes according to
+   * `splitTestsCompilation`:
+   *  - When it's `true`
+   *    - A full "contracts" build is run when `--no-contracts` isn't used, and
+   *      no explicit contract `files` are provided (i.e. you can still provide
+   *      explicit test `files`).
+   *    - A full "tests" build is run when `--no-tests` isn't used, and no
+   *      explicit test files `files` are provided (i.e. you can still provide
+   *      explicit contract `files`)
+   *  - When it's `false`
+   *    - A full build is when `files`, `--no-contracts`, nor `--no-tests` are
+   *      used.
+   *
    * @param rootFilePaths All the root files of the project.
    */
   cleanupArtifacts(
@@ -405,7 +458,17 @@ export interface SolidityBuildSystem {
   ): Promise<CompilerOutput>;
 
   /**
-   * Gets the artifacts directory for a given target (contracts/tests)
+   * Gets the artifacts directory for a given target (contracts/tests).
+   *
+   * When `solidity.splitTestsCompilation` is `false`, both scopes return the
+   * main artifacts directory, because contracts and tests share it.
+   *
+   * Unlike the other scope-aware methods, this one does not throw on that mode,
+   * as it's a read-only method that can be helpful for plugins.
+   *
+   * When `solidity.splitTestsCompilation` is `true`, `scope: "contracts"`
+   * returns the main artifacts directory and `scope: "tests"` returns a
+   * separate test-artifacts directory under the cache path.
    */
   getArtifactsDirectory(scope: BuildScope): Promise<string>;
 }

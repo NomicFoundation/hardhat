@@ -575,6 +575,10 @@ Rewrite the high-level build task to implement the new unified-mode semantics.
 - Run existing scope and cleanup tests:
   - `packages/hardhat/test/internal/builtin-plugins/solidity/build-system/integration/build-scopes.ts`
   - `packages/hardhat/test/internal/builtin-plugins/solidity/tasks/build-cleanup-artifacts.ts`
+- Update Phase 2 tests that call build-system APIs directly to go through the build task instead:
+  - "skips per-source artifacts.d.ts for test roots in unified contracts-scope builds": replace direct `getRootFilePaths` + `build` calls with `hre.tasks.getTask("build").run()`
+  - "includes test artifacts in duplicate-name detection": replace direct `getRootFilePaths` + `build` + `cleanupArtifacts` calls with `hre.tasks.getTask("build").run()`
+  - "passes mixed contract and test artifact paths to onCleanUpArtifacts": replace direct `getRootFilePaths` + `build` + `cleanupArtifacts` calls with `hre.tasks.getTask("build").run()` and use an inline plugin to register an `onCleanUpArtifacts` handler that asserts on the received artifact paths
 - Add tests for:
   - unified full build compiles contracts and tests together
   - unified explicit-file builds compile exactly the provided files

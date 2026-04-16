@@ -1346,6 +1346,20 @@ Solidity test files must be placed in your test directory, or in your contracts 
         
 Solidity test files must be placed in your test directory, or in your contracts directory and end in .t.sol.`,
       },
+      SPLIT_TESTS_COMPILATION_DISABLED: {
+        number: 916,
+        messageTemplate: `A method of the SolidityBuildSystem was called with \`scope: "tests"\`, but \`splitTestsCompilation\` is disabled in your config.
+
+When \`splitTestsCompilation\` is \`false\`, contracts and tests are compiled together under \`scope: "contracts"\`, so \`scope: "tests"\` is not a valid option.
+
+Set \`solidity.splitTestsCompilation\` to \`true\` in your Hardhat config to enable this build scope.`,
+        websiteTitle: "Split tests compilation is disabled",
+        websiteDescription: `The Solidity build system was called with \`scope: "tests"\`, but \`splitTestsCompilation\` is disabled in your config.
+
+When \`splitTestsCompilation\` is \`false\`, contracts and tests are compiled together under \`scope: "contracts"\`, so \`scope: "tests"\` is not a valid option.
+
+Set \`solidity.splitTestsCompilation\` to \`true\` in your Hardhat config to enable this build scope.`,
+      },
     },
     ARTIFACTS: {
       NOT_FOUND: {
