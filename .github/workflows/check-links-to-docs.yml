@@ -16,6 +16,7 @@ on:
       - labeled
       - unlabeled
       - edited
+      - ready_for_review
 
 jobs:
   check-links-to-docs:

@@ -15,6 +15,7 @@ on:
       - reopened
       - labeled
       - unlabeled
+      - ready_for_review
 
 jobs:
   check-peer-bumps:
