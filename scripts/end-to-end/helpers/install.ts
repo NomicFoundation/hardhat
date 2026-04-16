@@ -39,7 +39,12 @@ export function installDependencies(
   execFileSync(which(packageManager), installArgs, {
     cwd: workDir,
     stdio: "inherit",
-    env: { ...process.env, ...env, COREPACK_ENABLE_DOWNLOAD_PROMPT: "0" },
+    env: {
+      ...process.env,
+      ...env,
+      COREPACK_ENABLE_DOWNLOAD_PROMPT: "0",
+      npm_config_minimum_release_age: "0",
+    },
   });
 }
 

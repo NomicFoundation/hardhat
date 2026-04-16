@@ -253,31 +253,34 @@ function detectChangedSinceRelease(): string[] {
       continue;
     }
 
-    const { name, version } = readPackageInfo(packageDir);
-    const releaseTag = `${name}@${version}`;
+    const { name } = readPackageInfo(packageDir);
 
-    // Check if the tag exists
-    let tagExists: boolean;
-    try {
-      git(["rev-parse", "--verify", `refs/tags/${releaseTag}`]);
-      tagExists = true;
-    } catch {
-      tagExists = false;
-    }
+    // Find the latest existing release tag for this package
+    const releaseTag = findLatestReleaseTag(name);
 
-    if (!tagExists) {
+    if (releaseTag === undefined) {
       // No release tag — treat as changed (new package or first release)
       log(`  ${fmt.pkg(name)} ${fmt.deemphasize("(no release tag)")}`);
       changedDirs.push(packageDir);
       continue;
     }
 
-    // Diff against the release tag (includes uncommitted changes)
-    const diff = git(["diff", "--name-only", releaseTag, "--", packageDir]);
+    // Diff against the release tag, excluding files that a prior version
+    // bump or changeset would modify (package.json, CHANGELOG.md).
+    // If only those files changed, there are no real code changes.
+    const diff = git([
+      "diff",
+      "--name-only",
+      releaseTag,
+      "--",
+      packageDir,
+      `:!${packageDir}/package.json`,
+      `:!${packageDir}/CHANGELOG.md`,
+    ]);
 
     if (diff !== "") {
       log(
-        `  ${fmt.pkg(name)} ${fmt.deemphasize(`(changed since ${version})`)}`,
+        `  ${fmt.pkg(name)} ${fmt.deemphasize(`(changed since ${releaseTag})`)}`,
       );
       changedDirs.push(packageDir);
     }
@@ -292,6 +295,30 @@ function detectChangedSinceRelease(): string[] {
   );
 
   return changedDirs;
+}
+
+/**
+ * Find the latest release tag for a package by listing all tags matching
+ * `<name>@*` and picking the most recent by version sort.
+ */
+function findLatestReleaseTag(packageName: string): string | undefined {
+  try {
+    const tags = git([
+      "tag",
+      "--list",
+      `${packageName}@*`,
+      "--sort=-v:refname",
+    ]);
+
+    if (tags === "") {
+      return undefined;
+    }
+
+    // First line is the latest tag
+    return tags.split("\n")[0];
+  } catch {
+    return undefined;
+  }
 }
 
 function bumpPatchVersions(packageDirs: string[]): void {
