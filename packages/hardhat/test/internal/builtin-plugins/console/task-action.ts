@@ -14,6 +14,7 @@ import { ensureError } from "@nomicfoundation/hardhat-utils/error";
 import { exists, remove } from "@nomicfoundation/hardhat-utils/fs";
 import debug from "debug";
 
+import { overrideTask } from "../../../../src/config.js";
 import consoleAction from "../../../../src/internal/builtin-plugins/console/task-action.js";
 import { createHardhatRuntimeEnvironment } from "../../../../src/internal/hre-initialization.js";
 
@@ -149,6 +150,71 @@ describe("console/task-action", function () {
         hre,
       );
       assert.equal(replServer.lastError, undefined);
+    });
+  });
+
+  describe("build invocation", function () {
+    useFixtureProject("run-js-script");
+
+    function buildArgCaptor() {
+      const buildArgs: any[] = [];
+      const buildOverride = overrideTask("build")
+        .setAction(async () => {
+          return {
+            default: (args: any) => {
+              buildArgs.push(args);
+              return { contractRootPaths: [], testRootPaths: [] };
+            },
+          };
+        })
+        .build();
+      return { buildArgs, buildOverride };
+    }
+
+    it("should call build without noTests when splitTestsCompilation is false", async function () {
+      const { buildArgs, buildOverride } = buildArgCaptor();
+      const testHre = await createHardhatRuntimeEnvironment({
+        tasks: [buildOverride],
+      });
+
+      await consoleAction(
+        {
+          commands: [".exit"],
+          history: "",
+          noCompile: false,
+          options,
+        },
+        testHre,
+      );
+
+      assert.equal(buildArgs.length, 1);
+      assert.equal(buildArgs[0].noTests, false);
+      assert.equal(buildArgs[0].quiet, true);
+    });
+
+    it("should call build with noTests when splitTestsCompilation is true", async function () {
+      const { buildArgs, buildOverride } = buildArgCaptor();
+      const testHre = await createHardhatRuntimeEnvironment({
+        solidity: {
+          version: "0.8.28",
+          splitTestsCompilation: true,
+        },
+        tasks: [buildOverride],
+      });
+
+      await consoleAction(
+        {
+          commands: [".exit"],
+          history: "",
+          noCompile: false,
+          options,
+        },
+        testHre,
+      );
+
+      assert.equal(buildArgs.length, 1);
+      assert.equal(buildArgs[0].noTests, true);
+      assert.equal(buildArgs[0].quiet, true);
     });
   });
 

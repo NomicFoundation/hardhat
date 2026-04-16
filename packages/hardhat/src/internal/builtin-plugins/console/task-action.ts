@@ -42,7 +42,8 @@ const consoleAction: NewTaskActionFunction<ConsoleActionArguments> = async (
     }
 
     if (!noCompile) {
-      await hre.tasks.getTask("build").run({ noTests: true, quiet: true });
+      const noTests = hre.config.solidity.splitTestsCompilation;
+      await hre.tasks.getTask("build").run({ noTests, quiet: true });
     }
 
     return await new Promise<REPLServer>(async (resolve) => {

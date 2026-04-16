@@ -25,7 +25,8 @@ const runScriptWithHardhat: NewTaskActionFunction<RunActionArguments> = async (
   }
 
   if (!noCompile) {
-    await hre.tasks.getTask("build").run({ quiet: true, noTests: true });
+    const noTests = hre.config.solidity.splitTestsCompilation;
+    await hre.tasks.getTask("build").run({ quiet: true, noTests });
     console.log();
   }
 
