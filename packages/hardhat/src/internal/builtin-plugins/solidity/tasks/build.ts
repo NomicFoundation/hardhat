@@ -34,7 +34,7 @@ const buildAction: NewTaskActionFunction<BuildActionArguments> = async (
   const buildProfile =
     hre.globalOptions.buildProfile ?? args.defaultBuildProfile;
 
-  const files = normalizedRootPaths(args.files);
+  const files = normalizeRootPaths(args.files);
 
   const partitionedFiles = await partitionRootPathsByScope(hre.solidity, files);
 
@@ -398,7 +398,7 @@ async function partitionRootPathsByScope(
  * If a file is an npm root path or absolute file path, it's returned as is.
  * If it's a relative path it's resolved from the CWD.
  */
-function normalizedRootPaths(files: string[]): string[] {
+function normalizeRootPaths(files: string[]): string[] {
   return files.map((f) => {
     if (isNpmRootPath(f)) {
       return f;
