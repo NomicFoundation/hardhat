@@ -1191,6 +1191,36 @@ Remaining test suites: {suites}`,
         websiteDescription:
           "An inline config key was used that does not apply to the type of test function it was attached to. Fuzz test functions (test*) only accept fuzz.* keys and top-level keys, while invariant test functions (invariant*) only accept invariant.* keys and top-level keys.",
       },
+      SELECTED_TEST_FILES_NOT_COMPILED: {
+        number: 814,
+        messageTemplate: `The following Solidity test files have not been compiled:
+
+{files}
+
+Run \`hardhat build\` to compile your project before running tests with \`--no-compile\`.`,
+        websiteTitle: "Selected Solidity test files not compiled",
+        websiteDescription: `You ran Solidity tests with \`--no-compile\`, but some of the selected test files have not been compiled yet. Run \`hardhat build\` first, or remove the \`--no-compile\` flag.`,
+      },
+      SELECTED_FILES_ARE_NOT_SOLIDITY_TESTS: {
+        number: 815,
+        messageTemplate: `Trying to run these files as Solidity tests, but they aren't:
+
+{files}
+
+Double-check the files that you are providing to the \`test solidity\` task.`,
+        websiteTitle: "Invalid Solidity test files",
+        websiteDescription: `You ran the \`test solidity\` task with files that aren't classified as Solidity tests.`,
+      },
+      SELECTED_TEST_FILES_DO_NOT_EXIST: {
+        number: 816,
+        messageTemplate: `The following Solidity test files do not exist:
+
+{files}
+
+Double-check the paths you are providing to the \`test solidity\` task.`,
+        websiteTitle: "Selected Solidity test files do not exist",
+        websiteDescription: `You ran the \`test solidity\` task with files that do not exist on disk.`,
+      },
     },
     SOLIDITY: {
       PROJECT_ROOT_RESOLUTION_ERROR: {
@@ -1344,6 +1374,32 @@ Solidity test files must be placed in your test directory, or in your contracts 
         websiteDescription: `Hardhat failed to build your contracts and/or tests because you passed a file as parameter, but it wasn't recognized neither as a valid contract nor test.
         
 Solidity test files must be placed in your test directory, or in your contracts directory and end in .t.sol.`,
+      },
+      SPLIT_TESTS_COMPILATION_DISABLED: {
+        number: 916,
+        messageTemplate: `A method of the SolidityBuildSystem was called with \`scope: "tests"\`, but \`splitTestsCompilation\` is disabled in your config.
+
+When \`splitTestsCompilation\` is \`false\`, contracts and tests are compiled together under \`scope: "contracts"\`, so \`scope: "tests"\` is not a valid option.
+
+Set \`solidity.splitTestsCompilation\` to \`true\` in your Hardhat config to enable this build scope.`,
+        websiteTitle: "Split tests compilation is disabled",
+        websiteDescription: `The Solidity build system was called with \`scope: "tests"\`, but \`splitTestsCompilation\` is disabled in your config.
+
+When \`splitTestsCompilation\` is \`false\`, contracts and tests are compiled together under \`scope: "contracts"\`, so \`scope: "tests"\` is not a valid option.
+
+Set \`solidity.splitTestsCompilation\` to \`true\` in your Hardhat config to enable this build scope.`,
+      },
+      INCOMPATIBLE_FILES_WITH_BUILD_FLAGS: {
+        number: 917,
+        messageTemplate: `Some of the files you are trying to build are incompatible with the \`--no-contracts\` or \`--no-tests\` flag you provided:
+
+{files}
+
+Try re-running without these files, or without the flag.`,
+        websiteTitle: "Incompatible files with build flags",
+        websiteDescription: `You are trying to build a list of files while using \`--no-contracts\` or \`--no-tests\`, but some of those files are incompatible with the flag you provided.
+
+For example, you may be trying to build a test file with \`--no-tests\`, which isn't a valid operation.`,
       },
     },
     ARTIFACTS: {

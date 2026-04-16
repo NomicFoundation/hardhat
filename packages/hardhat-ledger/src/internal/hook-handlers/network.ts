@@ -1,3 +1,4 @@
+import type { LedgerHandler as LedgerHandlerT } from "../handler.js";
 import type { HookContext, NetworkHooks } from "hardhat/types/hooks";
 import type { ChainType, NetworkConnection } from "hardhat/types/network";
 import type { JsonRpcRequest, JsonRpcResponse } from "hardhat/types/providers";
@@ -5,8 +6,11 @@ import type { JsonRpcRequest, JsonRpcResponse } from "hardhat/types/providers";
 import { assertHardhatInvariant } from "@nomicfoundation/hardhat-errors";
 import { AsyncMutex } from "@nomicfoundation/hardhat-utils/synchronization";
 
-import { LedgerHandler } from "../handler.js";
 import { isFailedJsonRpcResponse, isJsonRpcResponse } from "../rpc-helpers.js";
+
+// The ledger packages have been problematic in the past, leading to errors
+// and slowdowns, even when not being used, so we lazy load them now.
+let LedgerHandler: typeof LedgerHandlerT | undefined;
 
 export default async (): Promise<Partial<NetworkHooks>> => {
   // This map is essential for managing multiple network connections in Hardhat V3.
@@ -16,7 +20,7 @@ export default async (): Promise<Partial<NetworkHooks>> => {
   // See the "closeConnection" function at the end of the file for more details.
   const ledgerHandlerPerConnection: WeakMap<
     NetworkConnection<ChainType | string>,
-    LedgerHandler
+    LedgerHandlerT
   > = new WeakMap();
 
   const initializationMutex = new AsyncMutex();
@@ -42,11 +46,21 @@ export default async (): Promise<Partial<NetworkHooks>> => {
         return next(context, networkConnection, jsonRpcRequest);
       }
 
+      if (LedgerHandler === undefined) {
+        const handlerModule = await import("../handler.js");
+        LedgerHandler = handlerModule.LedgerHandler;
+      }
+
       const ledgerHandler = await initializationMutex.exclusiveRun(async () => {
         let handlerPerConnection =
           ledgerHandlerPerConnection.get(networkConnection);
 
         if (handlerPerConnection === undefined) {
+          assertHardhatInvariant(
+            LedgerHandler !== undefined,
+            "LedgerHandler should have been imported",
+          );
+
           handlerPerConnection = new LedgerHandler(
             networkConnection.provider,
             {

@@ -8,11 +8,6 @@
   ],
   "bumps": [
     {
-      "package": "@nomicfoundation/hardhat-solx",
-      "peer": "hardhat",
-      "reason": "It depends on the new SolidityHooks#downloadCompilers and SolidityHooks#getCompiler hooks"
-    },
-    {
       "package": "@nomicfoundation/hardhat-ignition-viem",
       "peer": "@nomicfoundation/hardhat-ignition",
       "reason": "The usage of the new `getUserInterruptionsHandlers` helper from `@nomicfoundation/hardhat-ignition/helpers`"
@@ -83,9 +78,24 @@
       "reason": "Conservative bump for `connect()` deprecation and `create()`/`getOrCreate()` network API changes"
     },
     {
-      "package": "@nomicfoundation/hardhat-solx",
+      "package": "@nomicfoundation/hardhat-node-test-runner",
       "peer": "hardhat",
-      "reason": "It depends on the new CommonSingleVersionSolidityUserConfig type"
+      "reason": "splitTestsCompilation update"
+    },
+    {
+      "package": "@nomicfoundation/hardhat-typechain",
+      "peer": "hardhat",
+      "reason": "splitTestsCompilation update"
+    },
+    {
+      "package": "@nomicfoundation/hardhat-ignition",
+      "peer": "hardhat",
+      "reason": "splitTestsCompilation update"
+    },
+    {
+      "package": "@nomicfoundation/hardhat-mocha",
+      "peer": "hardhat",
+      "reason": "splitTestsCompilation update"
     }
   ]
 }

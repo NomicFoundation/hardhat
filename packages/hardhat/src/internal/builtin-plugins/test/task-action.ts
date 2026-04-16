@@ -64,9 +64,8 @@ const runAllTests: NewTaskActionFunction<TestActionArguments> = async (
   const thisTask = hre.tasks.getTask("test");
 
   if (!noCompile) {
-    await hre.tasks.getTask("build").run({
-      noTests: true,
-    });
+    const noTests = hre.config.solidity.splitTestsCompilation;
+    await hre.tasks.getTask("build").run({ noTests });
   }
 
   if (hre.globalOptions.coverage === true) {

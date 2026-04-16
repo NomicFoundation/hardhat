@@ -355,7 +355,14 @@ describe("hardhat-typechain", () => {
         `./fixture-projects/${projectFolder}/hardhat.config.js`
       );
 
-      const hre = await createHardhatRuntimeEnvironment(hardhatConfig.default);
+      // scope: "tests" requires splitTestsCompilation: true
+      const hre = await createHardhatRuntimeEnvironment({
+        ...hardhatConfig.default,
+        solidity: {
+          ...hardhatConfig.default.solidity,
+          splitTestsCompilation: true,
+        },
+      });
 
       await hre.tasks.getTask("clean").run();
 
@@ -368,6 +375,156 @@ describe("hardhat-typechain", () => {
 
       // Types should NOT be generated for test scope builds
       assert.equal(await exists(`${process.cwd()}/types`), false);
+    });
+  });
+
+  describe("types are not generated for test artifacts when splitTestsCompilation is false", () => {
+    const projectFolder = "unified-mode";
+
+    useFixtureProject(projectFolder);
+
+    before(async () => {
+      await remove(`${process.cwd()}/types`);
+
+      const hardhatConfig = await import(
+        `./fixture-projects/${projectFolder}/hardhat.config.js`
+      );
+
+      const hre = await createHardhatRuntimeEnvironment(hardhatConfig.default);
+
+      await hre.tasks.getTask("clean").run();
+      await hre.tasks.getTask("build").run();
+    });
+
+    it("should generate types for contract artifacts", async () => {
+      assert.equal(await exists(`${process.cwd()}/types`), true);
+
+      // Contract A should have types generated
+      assert.equal(
+        await exists(
+          path.join(process.cwd(), "types", "ethers-contracts", "A.ts"),
+        ),
+        true,
+      );
+    });
+
+    it("should not generate types for .t.sol test artifacts", async () => {
+      // ATest from contracts/A.t.sol should NOT have types
+      assert.equal(
+        await exists(
+          path.join(process.cwd(), "types", "ethers-contracts", "ATest.ts"),
+        ),
+        false,
+      );
+    });
+
+    it("should not generate types for test directory artifacts", async () => {
+      // BTest from test/BTest.sol should NOT have types
+      assert.equal(
+        await exists(
+          path.join(process.cwd(), "types", "ethers-contracts", "BTest.ts"),
+        ),
+        false,
+      );
+    });
+
+    it("should classify artifacts using getScope, not artifact-path heuristics", async () => {
+      // The A.t.sol test file imports A.sol, so A.sol's contract artifact
+      // appears under contracts/A.sol/ (a contract path). The filter must
+      // use getScope() on the source file, not a path-based heuristic.
+      // A.sol is a contract, so its type should be generated.
+      assert.equal(
+        await exists(
+          path.join(
+            process.cwd(),
+            "types",
+            "ethers-contracts",
+            "factories",
+            "A__factory.ts",
+          ),
+        ),
+        true,
+      );
+
+      // ATest is a test (from .t.sol), so its factory should NOT exist
+      assert.equal(
+        await exists(
+          path.join(
+            process.cwd(),
+            "types",
+            "ethers-contracts",
+            "factories",
+            "ATest__factory.ts",
+          ),
+        ),
+        false,
+      );
+    });
+  });
+
+  describe("npm-dependency artifacts are classified as contracts in unified mode", () => {
+    useFixtureProject("unified-mode-npm");
+
+    before(async () => {
+      await remove(`${process.cwd()}/types`);
+
+      const hre = await createHardhatRuntimeEnvironment({
+        solidity: {
+          version: "0.8.28",
+          splitTestsCompilation: false,
+          npmFilesToBuild: ["@fake/lib/Token.sol", "test-lib/Helper.sol"],
+        },
+        plugins: [hardhatTypechain],
+      });
+
+      await hre.tasks.getTask("clean").run();
+      await hre.tasks.getTask("build").run();
+    });
+
+    it("should generate types for the npm-dependency artifact", async () => {
+      assert.equal(
+        await exists(
+          path.join(
+            process.cwd(),
+            "types",
+            "ethers-contracts",
+            "@fake",
+            "lib",
+            "Token.ts",
+          ),
+        ),
+        true,
+      );
+    });
+
+    it("should generate types for an unscoped npm package whose name starts with the tests dir name", async () => {
+      assert.equal(
+        await exists(
+          path.join(
+            process.cwd(),
+            "types",
+            "ethers-contracts",
+            "test-lib",
+            "Helper.ts",
+          ),
+        ),
+        true,
+      );
+    });
+
+    it("should generate types for the local contract artifact", async () => {
+      assert.equal(
+        await exists(
+          path.join(
+            process.cwd(),
+            "types",
+            "ethers-contracts",
+            "contracts",
+            "A.ts",
+          ),
+        ),
+        true,
+      );
     });
   });
 

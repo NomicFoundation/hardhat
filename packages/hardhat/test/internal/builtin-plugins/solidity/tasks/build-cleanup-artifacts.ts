@@ -13,7 +13,11 @@ import assert from "node:assert/strict";
 import path from "node:path";
 import { describe, it } from "node:test";
 
-import { exists, remove } from "@nomicfoundation/hardhat-utils/fs";
+import {
+  exists,
+  readUtf8File,
+  remove,
+} from "@nomicfoundation/hardhat-utils/fs";
 
 import { createHardhatRuntimeEnvironment } from "../../../../../src/hre.js";
 import { useTestProjectTemplate } from "../build-system/resolver/helpers.js";
@@ -89,7 +93,7 @@ contract AddedByHook {}`,
         // Run full build
         await hre.tasks.getTask("build").run({
           force: true,
-          noTests: true,
+
           quiet: true,
         });
 
@@ -145,7 +149,7 @@ contract Filter {}`,
 
         await hreNoFilter.tasks.getTask("build").run({
           force: true,
-          noTests: true,
+
           quiet: true,
         });
 
@@ -212,7 +216,7 @@ contract Filter {}`,
         // Run full build with filtering
         await hreWithFilter.tasks.getTask("build").run({
           force: true,
-          noTests: true,
+
           quiet: true,
         });
 
@@ -260,7 +264,7 @@ contract Third {}`,
         // Run full build
         await hre.tasks.getTask("build").run({
           force: true,
-          noTests: true,
+
           quiet: true,
         });
 
@@ -306,7 +310,7 @@ contract Two {}`,
 
         await hre.tasks.getTask("build").run({
           force: true,
-          noTests: true,
+
           quiet: true,
         });
 
@@ -326,7 +330,7 @@ contract Two {}`,
         // Run partial build with only One.sol
         await hre.tasks.getTask("build").run({
           force: true,
-          noTests: true,
+
           quiet: true,
           files: [path.join(project.path, "contracts/One.sol")],
         });
@@ -370,7 +374,7 @@ contract ToDelete {}`,
 
         await hre.tasks.getTask("build").run({
           force: true,
-          noTests: true,
+
           quiet: true,
         });
 
@@ -401,7 +405,7 @@ contract ToDelete {}`,
         // Rebuild
         await hre.tasks.getTask("build").run({
           force: true,
-          noTests: true,
+
           quiet: true,
         });
 
@@ -416,5 +420,146 @@ contract ToDelete {}`,
         );
       });
     });
+  });
+});
+
+const unifiedCleanupProjectTemplate = {
+  name: "test",
+  version: "1.0.0",
+  files: {
+    "contracts/Foo.sol": `// SPDX-License-Identifier: UNLICENSED
+pragma solidity ^0.8.0;
+
+contract Foo {
+    uint256 x;
+}`,
+    "contracts/Foo.t.sol": `// SPDX-License-Identifier: UNLICENSED
+pragma solidity ^0.8.0;
+
+import "./Foo.sol";
+
+contract FooTest {
+    Foo foo;
+
+    constructor() {
+        foo = new Foo();
+    }
+
+    function test_Assertion() public view {
+        assert(address(foo) != address(0));
+    }
+}`,
+    "test/OtherFooTest.sol": `// SPDX-License-Identifier: UNLICENSED
+pragma solidity ^0.8.0;
+
+import "../contracts/Foo.sol";
+
+contract OtherFooTest {
+    Foo foo;
+
+    constructor() {
+        foo = new Foo();
+    }
+
+    function test_Assertion() public view {
+        assert(address(foo) != address(0));
+    }
+}`,
+  },
+};
+
+const unifiedTestsCompilationConfig = {
+  solidity: {
+    version: "0.8.28",
+    splitTestsCompilation: false,
+  },
+};
+
+describe("build task - unified mode cleanup", () => {
+  it("includes test artifacts in duplicate-name detection", async () => {
+    const duplicateNameTemplate = {
+      name: "test",
+      version: "1.0.0",
+      files: {
+        "contracts/Foo.sol": `// SPDX-License-Identifier: UNLICENSED\npragma solidity ^0.8.0;\ncontract Foo {}`,
+        "test/Foo.sol": `// SPDX-License-Identifier: UNLICENSED\npragma solidity ^0.8.0;\ncontract Foo {}`,
+      },
+    };
+
+    await using project = await useTestProjectTemplate(duplicateNameTemplate);
+    const hre = await project.getHRE(unifiedTestsCompilationConfig);
+
+    await hre.tasks.getTask("build").run();
+
+    const artifactsPath = await hre.solidity.getArtifactsDirectory("contracts");
+
+    // The top-level artifacts.d.ts should exist and contain the duplicate
+    const topLevelDts = path.join(artifactsPath, "artifacts.d.ts");
+    assert.equal(await exists(topLevelDts), true);
+    const dtsContent = await readUtf8File(topLevelDts);
+    assert.ok(
+      dtsContent.includes('"Foo"'),
+      "Expected top-level artifacts.d.ts to include the duplicated contract name Foo from both test and contract artifacts",
+    );
+  });
+
+  it("passes mixed contract and test artifact paths to onCleanUpArtifacts", async () => {
+    await using project = await useTestProjectTemplate(
+      unifiedCleanupProjectTemplate,
+    );
+
+    const receivedArtifactPaths: string[] = [];
+
+    const hookCapturingPlugin: HardhatPlugin = {
+      id: "test-capture-cleanup-hook",
+      hookHandlers: {
+        solidity: async () => ({
+          default: async () => {
+            const handlers: Partial<SolidityHooks> = {
+              onCleanUpArtifacts: async (
+                _context: HookContext,
+                artifactPaths: string[],
+                next: (
+                  nextContext: HookContext,
+                  nextArtifactPaths: string[],
+                ) => Promise<void>,
+              ) => {
+                receivedArtifactPaths.push(...artifactPaths);
+                return next(_context, artifactPaths);
+              },
+            };
+
+            return handlers;
+          },
+        }),
+      },
+    };
+
+    const hre = await createHardhatRuntimeEnvironment(
+      {
+        plugins: [hookCapturingPlugin],
+        ...unifiedTestsCompilationConfig,
+      },
+      {},
+      project.path,
+    );
+
+    await hre.tasks.getTask("build").run();
+
+    // Should include both contract and test artifacts
+    assert.ok(
+      receivedArtifactPaths.some(
+        (p) => p.includes("Foo.sol") && !p.includes(".t.sol"),
+      ),
+      "Expected contract artifact path in onCleanUpArtifacts",
+    );
+    assert.ok(
+      receivedArtifactPaths.some((p) => p.includes("Foo.t.sol")),
+      "Expected test artifact path (Foo.t.sol) in onCleanUpArtifacts",
+    );
+    assert.ok(
+      receivedArtifactPaths.some((p) => p.includes("OtherFooTest.sol")),
+      "Expected test artifact path (OtherFooTest.sol) in onCleanUpArtifacts",
+    );
   });
 });

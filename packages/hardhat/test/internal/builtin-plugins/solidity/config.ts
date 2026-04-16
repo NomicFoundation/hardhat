@@ -841,6 +841,103 @@ describe("solidity plugin config validation", () => {
       );
     });
   });
+
+  describe("splitTestsCompilation validation", () => {
+    it("Should accept splitTestsCompilation: true in a single-version config", () => {
+      assert.deepEqual(
+        validateSolidityUserConfig({
+          solidity: {
+            version: "0.8.28",
+            splitTestsCompilation: true,
+          },
+        }),
+        [],
+      );
+    });
+
+    it("Should accept splitTestsCompilation: false in a single-version config", () => {
+      assert.deepEqual(
+        validateSolidityUserConfig({
+          solidity: {
+            version: "0.8.28",
+            splitTestsCompilation: false,
+          },
+        }),
+        [],
+      );
+    });
+
+    it("Should accept omitted splitTestsCompilation", () => {
+      assert.deepEqual(
+        validateSolidityUserConfig({
+          solidity: {
+            version: "0.8.28",
+          },
+        }),
+        [],
+      );
+    });
+
+    it("Should reject invalid non-boolean splitTestsCompilation values", () => {
+      assert.deepEqual(
+        validateSolidityUserConfig({
+          solidity: {
+            version: "0.8.28",
+            splitTestsCompilation: "yes",
+          } as any,
+        }),
+        [
+          {
+            path: ["solidity", "splitTestsCompilation"],
+            message: "Expected boolean, received string",
+          },
+        ],
+      );
+
+      assert.deepEqual(
+        validateSolidityUserConfig({
+          solidity: {
+            version: "0.8.28",
+            splitTestsCompilation: 1,
+          } as any,
+        }),
+        [
+          {
+            path: ["solidity", "splitTestsCompilation"],
+            message: "Expected boolean, received number",
+          },
+        ],
+      );
+    });
+
+    it("Should accept splitTestsCompilation in a multi-version config", () => {
+      assert.deepEqual(
+        validateSolidityUserConfig({
+          solidity: {
+            compilers: [{ version: "0.8.28" }],
+            splitTestsCompilation: true,
+          },
+        }),
+        [],
+      );
+    });
+
+    it("Should accept splitTestsCompilation in a build-profiles config", () => {
+      assert.deepEqual(
+        validateSolidityUserConfig({
+          solidity: {
+            profiles: {
+              default: {
+                version: "0.8.28",
+              },
+            },
+            splitTestsCompilation: true,
+          },
+        }),
+        [],
+      );
+    });
+  });
 });
 
 describe("solidity plugin config resolution", () => {
@@ -853,6 +950,78 @@ describe("solidity plugin config resolution", () => {
   it.todo("should resolve a MultiVersionSolidityUserConfig value", () => {});
 
   it.todo("should resolve a BuildProfilesSolidityUserConfig value", () => {});
+
+  describe("splitTestsCompilation resolution", () => {
+    const otherResolvedConfig = { paths: { root: process.cwd() } } as any;
+
+    it("should default splitTestsCompilation to false for a string config", async () => {
+      const resolvedConfig = await resolveSolidityUserConfig(
+        { solidity: "0.8.28" },
+        otherResolvedConfig,
+      );
+      assert.equal(resolvedConfig.solidity.splitTestsCompilation, false);
+    });
+
+    it("should default splitTestsCompilation to false for a string-array config", async () => {
+      const resolvedConfig = await resolveSolidityUserConfig(
+        { solidity: ["0.8.28"] },
+        otherResolvedConfig,
+      );
+      assert.equal(resolvedConfig.solidity.splitTestsCompilation, false);
+    });
+
+    it("should default splitTestsCompilation to false when omitted from an object config", async () => {
+      const resolvedConfig = await resolveSolidityUserConfig(
+        { solidity: { version: "0.8.28" } },
+        otherResolvedConfig,
+      );
+      assert.equal(resolvedConfig.solidity.splitTestsCompilation, false);
+    });
+
+    it("should resolve splitTestsCompilation: true from a single-version config", async () => {
+      const resolvedConfig = await resolveSolidityUserConfig(
+        { solidity: { version: "0.8.28", splitTestsCompilation: true } },
+        otherResolvedConfig,
+      );
+      assert.equal(resolvedConfig.solidity.splitTestsCompilation, true);
+    });
+
+    it("should resolve splitTestsCompilation: false from a single-version config", async () => {
+      const resolvedConfig = await resolveSolidityUserConfig(
+        { solidity: { version: "0.8.28", splitTestsCompilation: false } },
+        otherResolvedConfig,
+      );
+      assert.equal(resolvedConfig.solidity.splitTestsCompilation, false);
+    });
+
+    it("should resolve splitTestsCompilation from a multi-version config", async () => {
+      const resolvedConfig = await resolveSolidityUserConfig(
+        {
+          solidity: {
+            compilers: [{ version: "0.8.28" }],
+            splitTestsCompilation: true,
+          },
+        },
+        otherResolvedConfig,
+      );
+      assert.equal(resolvedConfig.solidity.splitTestsCompilation, true);
+    });
+
+    it("should resolve splitTestsCompilation from a build-profiles config", async () => {
+      const resolvedConfig = await resolveSolidityUserConfig(
+        {
+          solidity: {
+            profiles: {
+              default: { version: "0.8.28" },
+            },
+            splitTestsCompilation: true,
+          },
+        },
+        otherResolvedConfig,
+      );
+      assert.equal(resolvedConfig.solidity.splitTestsCompilation, true);
+    });
+  });
 
   describe("profile-level preferWasm setting resolution", function () {
     const otherResolvedConfig = { paths: { root: process.cwd() } } as any;
@@ -1595,6 +1764,7 @@ describe("validateResolvedConfig", () => {
         profiles,
         npmFilesToBuild: [],
         registeredCompilerTypes,
+        splitTestsCompilation: false,
       },
     }) as unknown as HardhatConfig;
 

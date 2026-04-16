@@ -51,6 +51,16 @@ declare module "../../../types/config.js" {
   export interface CommonSolidityUserConfig {
     isolated?: boolean;
     npmFilesToBuild?: string[];
+    /**
+     * Controls whether Solidity test files are compiled in a separate pass
+     * from contract files.
+     *
+     * When `false` (the default), contracts and tests are compiled together
+     * in a single pass.
+     *
+     * When `true`, contracts and tests are compiled separately.
+     */
+    splitTestsCompilation?: boolean;
   }
 
   /**
@@ -289,6 +299,7 @@ declare module "../../../types/config.js" {
     profiles: Record<string, SolidityBuildProfileConfig>;
     npmFilesToBuild: string[];
     registeredCompilerTypes: SolidityCompilerType[];
+    splitTestsCompilation: boolean;
   }
 
   /**

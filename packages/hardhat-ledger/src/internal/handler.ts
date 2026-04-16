@@ -1,5 +1,5 @@
+import type { EIP712Message, TransportT } from "./cjs-imports.js";
 import type { Paths, Signature, LedgerOptions } from "./types.js";
-import type { EIP712Message } from "@ledgerhq/types-live";
 import type {
   EthereumProvider,
   JsonRpcRequest,
@@ -9,16 +9,6 @@ import type * as MicroEthSignerT from "micro-eth-signer";
 import type * as MicroEthSignerTypedDataT from "micro-eth-signer/typed-data";
 import type * as MicroEthSignerUtilsT from "micro-eth-signer/utils";
 
-import {
-  DisconnectedDevice,
-  DisconnectedDeviceDuringOperation,
-  LockedDeviceError,
-  TransportError,
-  TransportStatusError,
-} from "@ledgerhq/errors";
-import { isEIP712Message } from "@ledgerhq/evm-tools/lib/index";
-import Eth, { ledgerService } from "@ledgerhq/hw-app-eth";
-import TransportNodeHid from "@ledgerhq/hw-transport-node-hid";
 import {
   assertHardhatInvariant,
   HardhatError,
@@ -43,6 +33,17 @@ import {
 import debug from "debug";
 
 import * as cache from "./cache.js";
+import {
+  DisconnectedDevice,
+  DisconnectedDeviceDuringOperation,
+  Eth,
+  isEIP712Message,
+  ledgerService,
+  LockedDeviceError,
+  Transport,
+  TransportError,
+  TransportStatusError,
+} from "./cjs-imports.js";
 import { createTx } from "./create-tx.js";
 import { getYParity } from "./get-y-parity.js";
 import { PLUGIN_NAME } from "./plugin-name.js";
@@ -74,13 +75,13 @@ export class LedgerHandler {
 
   readonly #provider: EthereumProvider;
   readonly #displayMessage: (message: string) => Promise<void>;
-  readonly #ethConstructor: typeof Eth.default;
-  readonly #transportNodeHid: typeof TransportNodeHid.default;
+  readonly #ethConstructor: typeof Eth;
+  readonly #transportNodeHid: TransportT;
   readonly #cachePath: string | undefined;
   readonly #delayBeforeRetry: (seconds: number) => Promise<void>;
   readonly #maxDeviceNotReadyRetries: number;
 
-  #eth: Eth.default | undefined;
+  #eth: InstanceType<typeof Eth> | undefined;
   #chainId: bigint | undefined;
 
   public readonly options: LedgerOptions;
@@ -93,16 +94,15 @@ export class LedgerHandler {
     displayMessage: (interruptor: string, message: string) => Promise<void>,
     customConfig?: {
       // Allows passing a custom config, primarily used for testing
-      ethConstructor?: typeof Eth.default;
-      transportNodeHid?: typeof TransportNodeHid.default;
+      ethConstructor?: typeof Eth;
+      transportNodeHid?: TransportT;
       cachePath?: string;
       delayBeforeRetry?: (seconds: number) => Promise<void>;
       maxDeviceNotReadyRetries?: number;
     },
   ) {
-    this.#ethConstructor = customConfig?.ethConstructor ?? Eth.default;
-    this.#transportNodeHid =
-      customConfig?.transportNodeHid ?? TransportNodeHid.default;
+    this.#ethConstructor = customConfig?.ethConstructor ?? Eth;
+    this.#transportNodeHid = customConfig?.transportNodeHid ?? Transport;
     this.#cachePath = customConfig?.cachePath;
     this.#delayBeforeRetry = customConfig?.delayBeforeRetry ?? sleep;
     this.#maxDeviceNotReadyRetries =

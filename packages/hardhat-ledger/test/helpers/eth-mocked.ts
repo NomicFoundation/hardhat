@@ -1,6 +1,8 @@
-import type Eth from "@ledgerhq/hw-app-eth";
-import type { LedgerEthTransactionResolution } from "@ledgerhq/hw-app-eth/lib/services/types.js";
-import type { EIP712Message } from "@ledgerhq/types-live";
+import type {
+  EIP712Message,
+  Eth,
+  LedgerEthTransactionResolution,
+} from "../../src/internal/cjs-imports.js";
 
 import assert from "node:assert/strict";
 
@@ -84,7 +86,7 @@ export interface MockCallState {
 
 export function getEthMocked(
   methodsConfig: MethodsConfig,
-): [typeof Eth.default, Map<string, MockCallState>] {
+): [typeof Eth, Map<string, MockCallState>] {
   const calls = new Map<string, MockCallState>();
 
   for (const method of [
@@ -269,7 +271,7 @@ export function getEthMocked(
 
         return this.#methodsConfig.signTransaction.result;
       }
-    } as unknown as typeof Eth.default,
+    } as unknown as typeof Eth,
     calls,
   ];
 }
