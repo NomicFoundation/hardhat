@@ -1,12 +1,14 @@
-import type {
-  SolidityStackTraceEntry,
-  StackTraceEntryType,
-} from "../../../../../../src/internal/builtin-plugins/network-manager/edr/stack-traces/solidity-stack-trace.js";
+import type { SolidityStackTraceEntry } from "../../../../../../src/internal/builtin-plugins/network-manager/edr/stack-traces/solidity-stack-trace.js";
 
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 
-import { SolidityCallSite } from "../../../../../../src/internal/builtin-plugins/network-manager/edr/stack-traces/stack-trace-solidity-errors.js";
+import { CheatcodeErrorCode, StackTraceEntryType } from "@nomicfoundation/edr";
+
+import {
+  createSolidityErrorWithStackTrace,
+  SolidityCallSite,
+} from "../../../../../../src/internal/builtin-plugins/network-manager/edr/stack-traces/stack-trace-solidity-errors.js";
 
 describe("SolidityCallSite", function () {
   describe("toString", function () {
@@ -55,6 +57,79 @@ describe("SolidityCallSite", function () {
       const _test2 = (entryType: StackTraceEntryType) => {
         hhEntryType(entryType);
       };
+    });
+  });
+});
+
+describe("createSolidityErrorWithStackTrace", () => {
+  const dummySourceReference = {
+    sourceName: "Test.t.sol",
+    sourceContent: "",
+    line: 1,
+    range: [0, 0],
+  };
+
+  describe("CHEATCODE_ERROR", () => {
+    it("returns the raw message when details is undefined", () => {
+      const entry: SolidityStackTraceEntry = {
+        type: StackTraceEntryType.CHEATCODE_ERROR,
+        message: "cheatcode 'broadcast(address)' is not supported",
+        sourceReference: dummySourceReference,
+      };
+
+      const error = createSolidityErrorWithStackTrace(
+        "fallback",
+        [entry],
+        "0x",
+      );
+      assert.equal(
+        error.message,
+        "VM Exception while processing transaction: cheatcode 'broadcast(address)' is not supported",
+      );
+    });
+
+    it("returns a Hardhat-specific message for unsupported cheatcodes", () => {
+      const entry: SolidityStackTraceEntry = {
+        type: StackTraceEntryType.CHEATCODE_ERROR,
+        message: "cheatcode 'broadcast(address)' is not supported",
+        sourceReference: dummySourceReference,
+        details: {
+          code: CheatcodeErrorCode.UnsupportedCheatcode,
+          cheatcode: "broadcast(address)",
+        },
+      };
+
+      const error = createSolidityErrorWithStackTrace(
+        "fallback",
+        [entry],
+        "0x",
+      );
+      assert.equal(
+        error.message,
+        "VM Exception while processing transaction: Cheatcode 'broadcast(address)' is not supported by Hardhat.",
+      );
+    });
+
+    it("returns a Hardhat-specific message for missing cheatcodes", () => {
+      const entry: SolidityStackTraceEntry = {
+        type: StackTraceEntryType.CHEATCODE_ERROR,
+        message: "unknown cheatcode with selector '0x12345678'",
+        sourceReference: dummySourceReference,
+        details: {
+          code: CheatcodeErrorCode.MissingCheatcode,
+          cheatcode: "someNewCheatcode(uint256)",
+        },
+      };
+
+      const error = createSolidityErrorWithStackTrace(
+        "fallback",
+        [entry],
+        "0x",
+      );
+      assert.equal(
+        error.message,
+        "VM Exception while processing transaction: Cheatcode 'someNewCheatcode(uint256)' is not yet available in this version of Hardhat.",
+      );
     });
   });
 });

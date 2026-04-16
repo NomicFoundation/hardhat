@@ -2,7 +2,10 @@ import type { SolidityStackTraceEntry } from "../network-manager/edr/stack-trace
 
 import { panicErrorCodeToMessage } from "@nomicfoundation/hardhat-utils/panic-errors";
 
-import { StackTraceEntryType } from "../network-manager/edr/stack-traces/solidity-stack-trace.js";
+import {
+  StackTraceEntryType,
+  CheatcodeErrorCode,
+} from "../network-manager/edr/stack-traces/solidity-stack-trace.js";
 
 export function getMessageFromLastStackTraceEntry(
   stackTraceEntry: SolidityStackTraceEntry,
@@ -64,8 +67,18 @@ export function getMessageFromLastStackTraceEntry(
     case StackTraceEntryType.CUSTOM_ERROR:
       return stackTraceEntry.message;
 
-    case StackTraceEntryType.CHEATCODE_ERROR:
+    case StackTraceEntryType.CHEATCODE_ERROR: {
+      if (stackTraceEntry.details !== undefined) {
+        switch (stackTraceEntry.details.code) {
+          case CheatcodeErrorCode.UnsupportedCheatcode:
+            return `Cheatcode '${stackTraceEntry.details.cheatcode}' is not supported by Hardhat.`;
+          case CheatcodeErrorCode.MissingCheatcode:
+            return `Cheatcode '${stackTraceEntry.details.cheatcode}' is not yet available in this version of Hardhat.`;
+        }
+      }
+
       return stackTraceEntry.message;
+    }
 
     case StackTraceEntryType.CONTRACT_TOO_LARGE_ERROR:
       return "Trying to deploy a contract whose code is too large";
