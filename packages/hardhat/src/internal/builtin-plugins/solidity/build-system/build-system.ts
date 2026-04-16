@@ -925,6 +925,9 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
 
       artifactsPerFile.set(formatRootPath(userSourceName, root), paths);
 
+      // In split mode, test roots are never part of a "contracts"-scoped pass,
+      // so the scope guard below is sufficient. In unified mode, both contract
+      // and test roots share the same pass, so we check individually.
       const isTestRoot = unified
         ? (await this.getScope(root.fsPath)) === "tests"
         : false;
