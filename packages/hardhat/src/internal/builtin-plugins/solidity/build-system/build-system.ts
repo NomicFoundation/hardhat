@@ -3,6 +3,7 @@ import type { DependencyGraphImplementation } from "./dependency-graph.js";
 import type { Artifact } from "../../../../types/artifacts.js";
 import type {
   SolidityCompilerConfig,
+  SolidityCompilerType,
   SolcSolidityCompilerConfig,
   SolidityConfig,
 } from "../../../../types/config.js";
@@ -1155,17 +1156,37 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
   ): Promise<CompilerOutput> {
     const quiet = options?.quiet ?? false;
 
-    // Build info recompilation is always solc-only: build info files are
-    // produced by solc and must be recompiled with the same solc version.
-    // We bypass both downloadCompilers and getCompiler hooks — this is a
-    // self-contained solc replay path, not plugin-configurable compilation.
-    await downloadSolcCompilers(new Set([buildInfo.solcVersion]), quiet);
+    // Use the compiler type from the build info if present, otherwise
+    // default to "solc".
+    const compilerType = (buildInfo.compilerType ??
+      "solc") as SolidityCompilerType;
 
-    const compiler = await getCompiler(buildInfo.solcVersion, {
-      preferWasm: false,
-    });
+    const compilerConfig: SolidityCompilerConfig = {
+      type: compilerType,
+      version: buildInfo.solcVersion,
+      settings: buildInfo.input.settings,
+    } as any;
 
-    return compiler.compile(buildInfo.input);
+    await this.#hooks.runParallelHandlers("solidity", "downloadCompilers", [
+      [compilerConfig],
+      quiet,
+    ]);
+
+    const compiler = await this.#hooks.runHandlerChain(
+      "solidity",
+      "getCompiler",
+      [compilerConfig],
+      async (_context, cfg) => getSolcCompilerForConfig(cfg, false),
+    );
+
+    return this.#hooks.runHandlerChain(
+      "solidity",
+      "invokeSolc",
+      [compiler, buildInfo.input, compilerConfig],
+      async (_context, nextCompiler, nextSolcInput) => {
+        return nextCompiler.compile(nextSolcInput);
+      },
+    );
   }
 
   async #downloadConfiguredCompilers(quiet = false): Promise<void> {
