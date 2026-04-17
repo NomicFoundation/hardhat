@@ -103,8 +103,8 @@ function writeFakeMetadata(
 }
 
 /**
- * Drops root effective-uid to "nobody" (65534) so filesystem permission checks
- * are enforced. Returns a function that restores the original euid.
+ * Drops root effective UID to "nobody" (65534) so filesystem permission checks
+ * are enforced. Returns a function that restores the original effective UID.
  *
  * Needed because root bypasses POSIX permission bits — chmod 0o555 won't
  * prevent unlink when running as root (common in WSL2/devcontainers).
