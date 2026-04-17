@@ -9,6 +9,7 @@ import { readBinaryFile } from "@nomicfoundation/hardhat-utils/fs";
 
 export interface BuildInfoAndOutput extends EdrBuildInfoAndOutput {
   buildInfoId: string;
+  buildInfoOutputPath: string;
 }
 
 export interface EdrArtifactWithMetadata {
@@ -58,6 +59,7 @@ export async function getBuildInfosAndOutputs(
         buildInfoId,
         buildInfo,
         output,
+        buildInfoOutputPath,
       };
     }),
   );

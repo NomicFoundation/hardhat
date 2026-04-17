@@ -28,7 +28,7 @@
     },
     "packageManager": {
       "type": "string",
-      "enum": ["npm", "bun", "yarn"],
+      "enum": ["npm", "bun", "pnpm", "yarn"],
       "description": "Package manager used by the repo"
     },
     "defaultCommand": {

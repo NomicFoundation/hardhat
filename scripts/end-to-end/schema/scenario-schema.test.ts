@@ -60,6 +60,19 @@ describe("isScenarioDefinition", () => {
     assert.equal(isScenarioDefinition(value), true);
   });
 
+  it("accepts pnpm as a package manager", () => {
+    const value = {
+      description: "Base contracts with pnpm",
+      repo: "popescuoctavian/base-contracts",
+      commit: "abc123",
+      packageManager: "pnpm",
+      defaultCommand: "pnpm exec hardhat test solidity",
+      tags: ["external-repo"],
+    };
+
+    assert.equal(isScenarioDefinition(value), true);
+  });
+
   it("accepts a scenario with disabled: true", () => {
     const value = {
       description: "A disabled scenario",
@@ -131,7 +144,7 @@ describe("isScenarioDefinition", () => {
       isScenarioDefinition({
         repo: "org/repo",
         commit: "abc",
-        packageManager: "pnpm",
+        packageManager: "pip",
         tags: [],
         description: "a scenario",
         defaultCommand: "npx hardhat test",

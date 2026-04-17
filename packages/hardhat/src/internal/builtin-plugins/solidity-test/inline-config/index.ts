@@ -10,7 +10,7 @@ import {
   HardhatError,
   assertHardhatInvariant,
 } from "@nomicfoundation/hardhat-errors";
-import { bytesToUtf8String } from "@nomicfoundation/hardhat-utils/bytes";
+import { readJsonFileAsStream } from "@nomicfoundation/hardhat-utils/fs";
 
 import { getFullyQualifiedName } from "../../../../utils/contract-names.js";
 
@@ -48,11 +48,11 @@ interface CollectedOverrides {
  * in the solc AST. It only extracts them from the build info where each
  * test artifact's file was compiled as a root file.
  */
-export function getTestFunctionOverrides(
+export async function getTestFunctionOverrides(
   testSuiteArtifacts: EdrArtifactWithMetadata[],
   buildInfosAndOutputs: BuildInfoAndOutput[],
-): TestFunctionOverride[] {
-  const allRawOverrides = collectRawOverrides(
+): Promise<TestFunctionOverride[]> {
+  const allRawOverrides = await collectRawOverrides(
     testSuiteArtifacts,
     buildInfosAndOutputs,
   );
@@ -62,10 +62,10 @@ export function getTestFunctionOverrides(
   return buildTestFunctionOverrides(allRawOverrides);
 }
 
-function collectRawOverrides(
+async function collectRawOverrides(
   testSuiteArtifacts: EdrArtifactWithMetadata[],
   buildInfosAndOutputs: BuildInfoAndOutput[],
-): CollectedOverrides {
+): Promise<CollectedOverrides> {
   const overrides: RawInlineOverride[] = [];
   const methodIdentifiersByContract = new Map<string, Record<string, string>>();
 
@@ -153,8 +153,8 @@ function collectRawOverrides(
       continue;
     }
 
-    const buildInfoOutput: SolidityBuildInfoOutput = JSON.parse(
-      bytesToUtf8String(buildInfoAndOutput.output),
+    const buildInfoOutput = await readJsonFileAsStream<SolidityBuildInfoOutput>(
+      buildInfoAndOutput.buildInfoOutputPath,
     );
 
     for (const [

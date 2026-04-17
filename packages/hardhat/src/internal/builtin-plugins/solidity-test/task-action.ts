@@ -224,7 +224,7 @@ const runSolidityTests: NewTaskActionFunction<TestActionArguments> = async (
     }
   }
 
-  const testFunctionOverrides = getTestFunctionOverrides(
+  const testFunctionOverrides = await getTestFunctionOverrides(
     testSuiteArtifacts,
     allBuildInfosAndOutputs,
   );
