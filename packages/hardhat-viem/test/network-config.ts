@@ -19,7 +19,7 @@ interface InitResult {
   networkConfig: NetworkConfig;
 }
 
-describe("gas config behavior", () => {
+describe("network config behavior", () => {
   useEphemeralFixtureProject("default-ts-project");
 
   let hre: HardhatRuntimeEnvironment;
@@ -35,7 +35,7 @@ describe("gas config behavior", () => {
   });
 
   describe("in-process hardhat network", () => {
-    defineGasConfigTests(async () => {
+    defineNetworkConfigTests(async () => {
       const conn = await hre.network.create();
       return {
         viem: conn.viem,
@@ -59,7 +59,7 @@ describe("gas config behavior", () => {
       await server.close();
     });
 
-    defineGasConfigTests(async () => {
+    defineNetworkConfigTests(async () => {
       const conn = await hre.network.create({
         network: "localhost",
         override: { url: `http://${address}:${port}` },
@@ -73,7 +73,7 @@ describe("gas config behavior", () => {
   });
 });
 
-function defineGasConfigTests(initViem: () => Promise<InitResult>) {
+function defineNetworkConfigTests(initViem: () => Promise<InitResult>) {
   describe("gas: auto (default)", () => {
     let viem: HardhatViemHelpers;
 
