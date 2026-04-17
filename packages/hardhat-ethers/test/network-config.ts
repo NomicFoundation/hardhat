@@ -16,9 +16,9 @@ interface InitResult {
   networkConfig: NetworkConfig;
 }
 
-describe("gas config behavior", () => {
+describe("network config behavior", () => {
   describe("in-process hardhat network", () => {
-    defineGasConfigTests(() => initializeTestEthers(ARTIFACTS));
+    defineNetworkConfigTests(() => initializeTestEthers(ARTIFACTS));
   });
 
   describe("local http node", () => {
@@ -34,7 +34,7 @@ describe("gas config behavior", () => {
       await server.close();
     });
 
-    defineGasConfigTests(() =>
+    defineNetworkConfigTests(() =>
       initializeTestEthers(ARTIFACTS, {
         networks: {
           localhost: { type: "http", url: `http://${address}:${port}` },
@@ -44,7 +44,7 @@ describe("gas config behavior", () => {
   });
 });
 
-function defineGasConfigTests(initEthers: () => Promise<InitResult>) {
+function defineNetworkConfigTests(initEthers: () => Promise<InitResult>) {
   describe("gas: auto (default)", () => {
     let ethers: HardhatEthers;
 
@@ -251,6 +251,26 @@ function defineGasConfigTests(initEthers: () => Promise<InitResult>) {
         assert.equal(tx.maxFeePerGas, 20_000_000_000n);
         assert.equal(tx.maxPriorityFeePerGas, 1_000_000_000n);
       });
+    });
+  });
+
+  describe("from config", () => {
+    let ethers: HardhatEthers;
+
+    before(async () => {
+      ({ ethers } = await initEthers());
+    });
+
+    it("default signer sends from its own address", async () => {
+      const [firstSigner, secondSigner] = await ethers.getSigners();
+      const tx = await firstSigner.sendTransaction({ to: secondSigner });
+      assert.equal(tx.from, firstSigner.address);
+    });
+
+    it("non-first signer sends from its own address", async () => {
+      const [firstSigner, secondSigner] = await ethers.getSigners();
+      const tx = await secondSigner.sendTransaction({ to: firstSigner });
+      assert.equal(tx.from, secondSigner.address);
     });
   });
 

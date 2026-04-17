@@ -19,7 +19,7 @@ interface InitResult {
   networkConfig: NetworkConfig;
 }
 
-describe("gas config behavior", () => {
+describe("network config behavior", () => {
   useEphemeralFixtureProject("default-ts-project");
 
   let hre: HardhatRuntimeEnvironment;
@@ -35,7 +35,7 @@ describe("gas config behavior", () => {
   });
 
   describe("in-process hardhat network", () => {
-    defineGasConfigTests(async () => {
+    defineNetworkConfigTests(async () => {
       const conn = await hre.network.create();
       return {
         viem: conn.viem,
@@ -59,7 +59,7 @@ describe("gas config behavior", () => {
       await server.close();
     });
 
-    defineGasConfigTests(async () => {
+    defineNetworkConfigTests(async () => {
       const conn = await hre.network.create({
         network: "localhost",
         override: { url: `http://${address}:${port}` },
@@ -73,7 +73,7 @@ describe("gas config behavior", () => {
   });
 });
 
-function defineGasConfigTests(initViem: () => Promise<InitResult>) {
+function defineNetworkConfigTests(initViem: () => Promise<InitResult>) {
   describe("gas: auto (default)", () => {
     let viem: HardhatViemHelpers;
 
@@ -364,6 +364,42 @@ function defineGasConfigTests(initViem: () => Promise<InitResult>) {
         assert.equal(tx.maxFeePerGas, 20_000_000_000n);
         assert.equal(tx.maxPriorityFeePerGas, 1_000_000_000n);
       });
+    });
+  });
+
+  describe("from config", () => {
+    let viem: HardhatViemHelpers;
+
+    before(async () => {
+      ({ viem } = await initViem());
+    });
+
+    it("default wallet client sends from its own address", async () => {
+      const publicClient = await viem.getPublicClient();
+      const [firstClient, secondClient] = await viem.getWalletClients();
+      const hash = await firstClient.sendTransaction({
+        to: secondClient.account.address,
+        value: 0n,
+      });
+      const tx = await publicClient.getTransaction({ hash });
+      assert.equal(
+        tx.from.toLowerCase(),
+        firstClient.account.address.toLowerCase(),
+      );
+    });
+
+    it("non-first wallet client sends from its own address", async () => {
+      const publicClient = await viem.getPublicClient();
+      const [firstClient, secondClient] = await viem.getWalletClients();
+      const hash = await secondClient.sendTransaction({
+        to: firstClient.account.address,
+        value: 0n,
+      });
+      const tx = await publicClient.getTransaction({ hash });
+      assert.equal(
+        tx.from.toLowerCase(),
+        secondClient.account.address.toLowerCase(),
+      );
     });
   });
 
