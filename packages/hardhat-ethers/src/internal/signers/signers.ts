@@ -15,7 +15,6 @@ import type {
 
 import { HardhatError } from "@nomicfoundation/hardhat-errors";
 import {
-  assertArgument,
   computeAddress,
   getAddress,
   hexlify,
@@ -252,26 +251,7 @@ export class HardhatEthersSigner implements HardhatEthersSignerI {
 
     const promises: Array<Promise<void>> = [];
 
-    // Make sure the from matches the sender
-    if (resolvedTx.from !== null && resolvedTx.from !== undefined) {
-      const _from = resolvedTx.from;
-      promises.push(
-        (async () => {
-          const from = await resolveAddress(_from, this.provider);
-          assertArgument(
-            from !== null &&
-              from !== undefined &&
-              from.toLowerCase() === this.address.toLowerCase(),
-            "from address mismatch",
-            "transaction",
-            tx,
-          );
-          resolvedTx.from = from;
-        })(),
-      );
-    } else {
-      resolvedTx.from = this.address;
-    }
+    resolvedTx.from = this.address;
 
     // The address may be an ENS name or Addressable
     if (resolvedTx.to !== null && resolvedTx.to !== undefined) {
