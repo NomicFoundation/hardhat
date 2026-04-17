@@ -42,7 +42,6 @@ type SignerAccounts =
     };
 
 export class HardhatEthersSigner implements HardhatEthersSignerI {
-  readonly #gasLimit: bigint | undefined;
   readonly #signerAccounts: SignerAccounts;
   #cachedPrivateKey: string | undefined;
 
@@ -60,29 +59,21 @@ export class HardhatEthersSigner implements HardhatEthersSignerI {
     this.networkName = networkName;
     this.networkConfig = networkConfig;
 
-    let gasLimit: bigint | undefined;
-
-    if (networkConfig.gas !== "auto") {
-      gasLimit = networkConfig.gas;
-    }
-
     const signerAccounts: SignerAccounts =
       networkConfig.type === "http"
         ? { type: "http", accounts: networkConfig.accounts }
         : { type: "edr-simulated", accounts: networkConfig.accounts };
 
-    return new HardhatEthersSigner(address, provider, signerAccounts, gasLimit);
+    return new HardhatEthersSigner(address, provider, signerAccounts);
   }
 
   private constructor(
     address: string,
     provider: ethers.JsonRpcProvider | HardhatEthersProvider,
     signerAccounts: SignerAccounts,
-    gasLimit?: bigint | undefined,
   ) {
     this.address = getAddress(address);
     this.provider = provider;
-    this.#gasLimit = gasLimit;
 
     this.#signerAccounts = signerAccounts;
   }
@@ -94,7 +85,6 @@ export class HardhatEthersSigner implements HardhatEthersSignerI {
       this.address,
       provider,
       this.#signerAccounts,
-      this.#gasLimit,
     );
   }
 
@@ -281,21 +271,6 @@ export class HardhatEthersSigner implements HardhatEthersSignerI {
       );
     } else {
       resolvedTx.from = this.address;
-    }
-
-    if (resolvedTx.gasLimit === null || resolvedTx.gasLimit === undefined) {
-      if (this.#gasLimit !== undefined) {
-        resolvedTx.gasLimit = this.#gasLimit;
-      } else {
-        promises.push(
-          (async () => {
-            resolvedTx.gasLimit = await this.provider.estimateGas({
-              ...resolvedTx,
-              from: this.address,
-            });
-          })(),
-        );
-      }
     }
 
     // The address may be an ENS name or Addressable
