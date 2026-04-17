@@ -367,6 +367,36 @@ function defineNetworkConfigTests(initViem: () => Promise<InitResult>) {
     });
   });
 
+  describe("from config", () => {
+    let viem: HardhatViemHelpers;
+
+    before(async () => {
+      ({ viem } = await initViem());
+    });
+
+    it("default wallet client sends from its own address", async () => {
+      const publicClient = await viem.getPublicClient();
+      const [firstClient, secondClient] = await viem.getWalletClients();
+      const hash = await firstClient.sendTransaction({
+        to: secondClient.account.address,
+        value: 0n,
+      });
+      const tx = await publicClient.getTransaction({ hash });
+      assert.equal(tx.from.toLowerCase(), firstClient.account.address.toLowerCase());
+    });
+
+    it("non-first wallet client sends from its own address", async () => {
+      const publicClient = await viem.getPublicClient();
+      const [firstClient, secondClient] = await viem.getWalletClients();
+      const hash = await secondClient.sendTransaction({
+        to: firstClient.account.address,
+        value: 0n,
+      });
+      const tx = await publicClient.getTransaction({ hash });
+      assert.equal(tx.from.toLowerCase(), secondClient.account.address.toLowerCase());
+    });
+  });
+
   describe("non-interference with RPC calls", () => {
     let viem: HardhatViemHelpers;
     let provider: EthereumProvider;
