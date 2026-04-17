@@ -16,9 +16,9 @@ interface InitResult {
   networkConfig: NetworkConfig;
 }
 
-describe("gas config behavior", () => {
+describe("network config behavior", () => {
   describe("in-process hardhat network", () => {
-    defineGasConfigTests(() => initializeTestEthers(ARTIFACTS));
+    defineNetworkConfigTests(() => initializeTestEthers(ARTIFACTS));
   });
 
   describe("local http node", () => {
@@ -34,7 +34,7 @@ describe("gas config behavior", () => {
       await server.close();
     });
 
-    defineGasConfigTests(() =>
+    defineNetworkConfigTests(() =>
       initializeTestEthers(ARTIFACTS, {
         networks: {
           localhost: { type: "http", url: `http://${address}:${port}` },
@@ -44,7 +44,7 @@ describe("gas config behavior", () => {
   });
 });
 
-function defineGasConfigTests(initEthers: () => Promise<InitResult>) {
+function defineNetworkConfigTests(initEthers: () => Promise<InitResult>) {
   describe("gas: auto (default)", () => {
     let ethers: HardhatEthers;
 
