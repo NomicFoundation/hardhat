@@ -1,0 +1,16 @@
+{
+  "$schema": "../../scripts/end-to-end/schema/scenario.schema.json",
+  "description": "UniswapX contracts fork to Hardhat 3.",
+  "tags": [
+    "external-repo"
+  ],
+  "repo": "popescuoctavian/UniswapX",
+  "commit": "e4ed16b4e6894d36b7a19b985333dc254ebbf9d2",
+  "packageManager": "npm",
+  "submodules": true,
+  "preinstall": "./preinstall-foundry.sh",
+  "defaultCommand": "npx hardhat test solidity",
+  "benchmark": {
+    "defaultRuns": 3
+  }
+}
