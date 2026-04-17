@@ -1775,6 +1775,20 @@ npx hardhat ignition track-tx <txHash> <deploymentId> --network <networkName>`,
         websiteTitle: "Transaction lost",
         websiteDescription: `An error occurred while trying to send a transaction`,
       },
+      NONCE_TOO_HIGH: {
+        number: 10411,
+        messageTemplate:
+          "The next nonce for {sender} should be {expectedNonce}, but the node reports {pendingCount}. This usually means a transaction was sent from {sender} outside of Hardhat Ignition. Please make sure not to send transactions from {sender} while running this deployment and try again.",
+        websiteTitle: "Nonce too high",
+        websiteDescription: `The node reports more pending transactions than Hardhat Ignition expected for the sender`,
+      },
+      NONCE_TOO_LOW: {
+        number: 10412,
+        messageTemplate:
+          "The next nonce for {sender} should be {expectedNonce}, but the node reports {pendingCount} after retries. This may indicate a dropped transaction or the node's mempool has not caught up. Please try running the deployment again.",
+        websiteTitle: "Nonce too low",
+        websiteDescription: `The node reports fewer pending transactions than Hardhat Ignition expected for the sender`,
+      },
     },
     RECONCILIATION: {
       INVALID_EXECUTION_STATUS: {

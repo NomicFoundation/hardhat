@@ -74,7 +74,7 @@ describe("execution - error on user transaction sent", () => {
           "0x2827d72f957f8c222974e724765629a79689e177729fad094065ad220f35e5e7",
         );
       }),
-      HardhatError.ERRORS.IGNITION.EXECUTION.INVALID_NONCE,
+      HardhatError.ERRORS.IGNITION.EXECUTION.NONCE_TOO_HIGH,
       {
         sender: "0x3c44cdddb6a900fa2b585dd299e03d12fa4293bc",
         expectedNonce: 1,
