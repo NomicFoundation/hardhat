@@ -254,6 +254,26 @@ function defineNetworkConfigTests(initEthers: () => Promise<InitResult>) {
     });
   });
 
+  describe("from config", () => {
+    let ethers: HardhatEthers;
+
+    before(async () => {
+      ({ ethers } = await initEthers());
+    });
+
+    it("default signer sends from its own address", async () => {
+      const [firstSigner, secondSigner] = await ethers.getSigners();
+      const tx = await firstSigner.sendTransaction({ to: secondSigner });
+      assert.equal(tx.from, firstSigner.address);
+    });
+
+    it("non-first signer sends from its own address", async () => {
+      const [firstSigner, secondSigner] = await ethers.getSigners();
+      const tx = await secondSigner.sendTransaction({ to: firstSigner });
+      assert.equal(tx.from, secondSigner.address);
+    });
+  });
+
   describe("non-interference with explicit gas-related calls", () => {
     let ethers: HardhatEthers;
     let provider: EthereumProvider;
