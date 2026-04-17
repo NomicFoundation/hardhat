@@ -7,7 +7,7 @@ import type { EthereumProvider } from "hardhat/types/providers";
 import assert from "node:assert/strict";
 import { after, before, describe, it } from "node:test";
 
-import { useFixtureProject } from "@nomicfoundation/hardhat-test-utils";
+import { useEphemeralFixtureProject } from "@nomicfoundation/hardhat-test-utils";
 import { createHardhatRuntimeEnvironment } from "hardhat/hre";
 import { encodeFunctionData } from "viem";
 
@@ -20,7 +20,7 @@ interface InitResult {
 }
 
 describe("gas config behavior", () => {
-  useFixtureProject("default-ts-project");
+  useEphemeralFixtureProject("default-ts-project");
 
   let hre: HardhatRuntimeEnvironment;
 
