@@ -102,6 +102,29 @@ function writeFakeMetadata(
   fs.writeFileSync(lockPath, JSON.stringify(metadata), "utf8");
 }
 
+/**
+ * Drops root effective-uid to "nobody" (65534) so filesystem permission checks
+ * are enforced. Returns a function that restores the original euid.
+ *
+ * Needed because root bypasses POSIX permission bits — chmod 0o555 won't
+ * prevent unlink when running as root (common in WSL2/devcontainers).
+ * No-op when not running as root.
+ */
+function dropRootPrivileges(): () => void {
+  if (
+    process.geteuid !== undefined &&
+    process.geteuid() === 0 &&
+    process.seteuid !== undefined
+  ) {
+    process.seteuid(65534);
+    return () => {
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion -- guarded by the outer check
+      process.seteuid!(0);
+    };
+  }
+  return () => {};
+}
+
 describe("MultiProcessMutex", () => {
   const getTmpDir = useTmpDir("multi-process-mutex");
 
@@ -528,6 +551,7 @@ describe("MultiProcessMutex", () => {
       });
 
       fs.chmodSync(parentDir, 0o555);
+      const restorePrivileges = dropRootPrivileges();
 
       try {
         const mutex = new MultiProcessMutex(lockPath, 500, 50);
@@ -547,6 +571,7 @@ describe("MultiProcessMutex", () => {
           },
         );
       } finally {
+        restorePrivileges();
         fs.chmodSync(parentDir, 0o755);
         fs.rmSync(lockPath, { force: true });
       }
@@ -835,6 +860,7 @@ describe("MultiProcessMutex", () => {
 
       // Make parent read-only to prevent unlinkSync from removing the lock file
       fs.chmodSync(parentDir, 0o555);
+      const restorePrivileges = dropRootPrivileges();
 
       try {
         await assert.rejects(release(), (error: unknown) => {
@@ -845,6 +871,7 @@ describe("MultiProcessMutex", () => {
           return true;
         });
       } finally {
+        restorePrivileges();
         fs.chmodSync(parentDir, 0o755);
         fs.rmSync(lockPath, { force: true });
       }
@@ -891,6 +918,7 @@ describe("MultiProcessMutex", () => {
 
       // Make parent read-only so unlinkSync in tryUnlockingStaleLock fails with EACCES
       fs.chmodSync(parentDir, 0o555);
+      const restorePrivileges = dropRootPrivileges();
 
       try {
         const mutex = new MultiProcessMutex(lockPath, 500, 50);
@@ -911,6 +939,7 @@ describe("MultiProcessMutex", () => {
           },
         );
       } finally {
+        restorePrivileges();
         fs.chmodSync(parentDir, 0o755);
         fs.rmSync(lockPath, { force: true });
       }
