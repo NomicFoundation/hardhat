@@ -1,8 +1,8 @@
-import type * as SentryReproterT from "../sentry/reporter.js";
+import type * as SentryReporterT from "../sentry/reporter.js";
 
 // Sentry's reporter loads a large number of modules, so we only load it if
 // needed.
-let sentryReporterModule: typeof SentryReproterT | undefined;
+let sentryReporterModule: typeof SentryReporterT | undefined;
 
 // We cache the `setCliHardhatConfigPath` to avoid loading the reporter just
 // for this setting. We load it and set the config path if needed.
