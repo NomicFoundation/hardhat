@@ -8,7 +8,7 @@ import type { TestResult } from "@nomicfoundation/edr";
 
 import { bytesToHexString } from "@nomicfoundation/hardhat-utils/hex";
 
-import { sendErrorTelemetry } from "../../cli/telemetry/sentry/reporter.js";
+import { sendErrorTelemetry } from "../../cli/telemetry/error-reporter/reporter.js";
 import { DEFAULT_COLORIZER } from "../../utils/colorizer.js";
 import { SolidityTestStackTraceGenerationError } from "../network-manager/edr/stack-traces/stack-trace-generation-errors.js";
 import { encodeStackTraceEntry } from "../network-manager/edr/stack-traces/stack-trace-solidity-errors.js";
