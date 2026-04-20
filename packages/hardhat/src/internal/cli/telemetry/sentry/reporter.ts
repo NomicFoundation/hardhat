@@ -111,11 +111,12 @@ class Reporter {
       return false;
     }
 
-    const { captureException } = await import("@sentry/core");
+    const { captureException, flush } = await import("@sentry/core");
 
     log("Capturing exception");
 
     captureException(error);
+    await flush();
 
     return true;
   }
