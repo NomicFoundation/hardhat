@@ -158,6 +158,12 @@ export class CoverageManagerImplementation implements CoverageManager {
     log("Printed markdown report");
   }
 
+  // These two methods must stay pure state setters. The lazy wrapper in
+  // hook-handlers/hre.ts mirrors the flag via a closure and applies only the
+  // final state on construction, so any side effect here (logs, timestamps,
+  // etc.) would be silently dropped for calls made before the first async
+  // method invocation. If that constraint ever needs to change, promote the
+  // signatures to async on the CoverageManager interface.
   public enableReport(): void {
     this.#reportEnabled = true;
   }
