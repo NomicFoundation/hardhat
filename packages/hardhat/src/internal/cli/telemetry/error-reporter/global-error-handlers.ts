@@ -13,18 +13,25 @@ function createUnhandledErrorListener(isPromiseRejection: boolean) {
   async function listener(error: Error | unknown) {
     log(description, error);
 
-    if (error instanceof Error) {
-      await sendErrorTelemetry(error);
-    } else {
-      const msg =
-        isObject(error) &&
-        "message" in error &&
-        typeof error.message === "string"
-          ? error.message
-          : "Unknown error";
+    const telemetryError =
+      error instanceof Error
+        ? error
+        : new Error(
+            isObject(error) &&
+              "message" in error &&
+              typeof error.message === "string"
+              ? error.message
+              : "Unknown error",
+            { cause: error },
+          );
 
-      const wrappedError = new Error(msg, { cause: error });
-      await sendErrorTelemetry(wrappedError);
+    try {
+      await sendErrorTelemetry(telemetryError);
+    } catch (telemetryErrorReportingError) {
+      log(
+        "Failed to send telemetry for unhandled error",
+        telemetryErrorReportingError,
+      );
     }
 
     console.error();
