@@ -28,7 +28,7 @@ function createUnhandledErrorListener(isPromiseRejection: boolean) {
 }
 
 /**
- * Setups global error handlers that report unhandled errors and promise
+ * Sets up global error handlers that report unhandled errors and promise
  * rejections if authorized by the user.
  */
 export function setupGlobalUnhandledErrorHandlers(): void {
