@@ -49,8 +49,7 @@ import { sendTaskAnalytics } from "./telemetry/analytics/analytics.js";
 import {
   sendErrorTelemetry,
   setCliHardhatConfigPath,
-  setupErrorTelemetryIfEnabled,
-} from "./telemetry/sentry/reporter.js";
+} from "./telemetry/error-reporter/reporter.js";
 import { printVersionMessage } from "./version.js";
 
 export interface MainOptions {
@@ -64,7 +63,6 @@ export async function main(
   rawArguments: string[],
   options: MainOptions = {},
 ): Promise<void> {
-  await setupErrorTelemetryIfEnabled();
   const print = options.print ?? console.log;
 
   const log = debug("hardhat:core:cli:main");
