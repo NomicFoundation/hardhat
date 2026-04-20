@@ -27,7 +27,7 @@ export async function sendErrorTelemetry(error: Error): Promise<void> {
 }
 
 /**
- * Set's the config path used in the Hardhat CLI. This is used for better
+ * Sets the config path used in the Hardhat CLI. This is used for better
  * anonymization of errors.
  */
 export function setCliHardhatConfigPath(configPath: string): void {
