@@ -254,7 +254,7 @@ function defineGasConfigTests(initEthers: () => Promise<InitResult>) {
     });
   });
 
-  describe("non-interference with RPC calls", () => {
+  describe("non-interference with explicit gas-related calls", () => {
     let ethers: HardhatEthers;
     let provider: EthereumProvider;
 
