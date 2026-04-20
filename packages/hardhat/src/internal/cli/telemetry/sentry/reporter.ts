@@ -19,12 +19,10 @@ const log = debug("hardhat:cli:telemetry:sentry:reporter");
 export const SENTRY_DSN =
   "https://572b03708e298427cc72fc26dac1e8b2@o385026.ingest.us.sentry.io/4508780138856448"; // PROD
 
-// TODO: This could be done in a more elegant way, but for now, we just
-// initialize the entire reporter so that it sets the global error handlers.
-export async function setupErrorTelemetryIfEnabled(): Promise<void> {
-  await Reporter.getInstance(true);
-}
-
+/**
+ * @deprecated Use packages/hardhat/src/internal/cli/telemetry/error-reporter/reporter.ts
+ *   instead.
+ */
 export async function sendErrorTelemetry(error: Error): Promise<boolean> {
   const instance = await Reporter.getInstance();
   return instance.reportErrorViaSubprocess(error);
