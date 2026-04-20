@@ -12,8 +12,7 @@
   "license": "MIT",
   "type": "module",
   "exports": {
-    ".": "./dist/src/index.js",
-    "./test-worker-done": "./dist/src/test-worker-done.js"
+    ".": "./dist/src/index.js"
   },
   "keywords": [
     "ethereum",

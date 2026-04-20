@@ -59,6 +59,25 @@ describe("Hardhat Node plugin", () => {
   });
 
   describe("build invocation", () => {
+    // These tests only check that the `build` task is called with the
+    // right `noTests` argument. They don't need to actually run any tests.
+    //
+    // We use an empty fixture project (no test files inside its `test/`
+    // folder) so the `test nodejs` task exits early after running `build`,
+    // without trying to run any tests itself.
+    //
+    // If we let it try to run tests, two things would go wrong:
+    //   1. We're already inside a `node --test` run, and the task would
+    //      call `node:test` again in the same process — that hangs
+    //   2. Without this fixture, the task would look for tests in this
+    //      package's own `test/` folder and end up running the fixture
+    //      files in `test/fixture-projects/`, some of which only work
+    //      under very specific env vars.
+    const buildInvocationProjectRoot = path.join(
+      FIXTURES_DIR,
+      "build-invocation",
+    );
+
     function buildArgCaptor() {
       const buildArgs: any[] = [];
       const buildOverride = overrideTask("build")
@@ -76,10 +95,14 @@ describe("Hardhat Node plugin", () => {
 
     it("should call build without noTests when splitTestsCompilation is false", async () => {
       const { buildArgs, buildOverride } = buildArgCaptor();
-      const hre = await createHardhatRuntimeEnvironment({
-        plugins: [HardhatNodeTestRunnerPlugin],
-        tasks: [buildOverride],
-      });
+      const hre = await createHardhatRuntimeEnvironment(
+        {
+          plugins: [HardhatNodeTestRunnerPlugin],
+          tasks: [buildOverride],
+        },
+        {},
+        buildInvocationProjectRoot,
+      );
 
       await hre.tasks.getTask(["test", "nodejs"]).run({});
 
@@ -89,14 +112,18 @@ describe("Hardhat Node plugin", () => {
 
     it("should call build with noTests when splitTestsCompilation is true", async () => {
       const { buildArgs, buildOverride } = buildArgCaptor();
-      const hre = await createHardhatRuntimeEnvironment({
-        solidity: {
-          version: "0.8.28",
-          splitTestsCompilation: true,
+      const hre = await createHardhatRuntimeEnvironment(
+        {
+          solidity: {
+            version: "0.8.28",
+            splitTestsCompilation: true,
+          },
+          plugins: [HardhatNodeTestRunnerPlugin],
+          tasks: [buildOverride],
         },
-        plugins: [HardhatNodeTestRunnerPlugin],
-        tasks: [buildOverride],
-      });
+        {},
+        buildInvocationProjectRoot,
+      );
 
       await hre.tasks.getTask(["test", "nodejs"]).run({});
 
@@ -106,10 +133,14 @@ describe("Hardhat Node plugin", () => {
 
     it("should skip compilation when noCompile is true without splitTestsCompilation", async () => {
       const { buildArgs, buildOverride } = buildArgCaptor();
-      const hre = await createHardhatRuntimeEnvironment({
-        plugins: [HardhatNodeTestRunnerPlugin],
-        tasks: [buildOverride],
-      });
+      const hre = await createHardhatRuntimeEnvironment(
+        {
+          plugins: [HardhatNodeTestRunnerPlugin],
+          tasks: [buildOverride],
+        },
+        {},
+        buildInvocationProjectRoot,
+      );
 
       await hre.tasks.getTask(["test", "nodejs"]).run({ noCompile: true });
 
@@ -118,14 +149,18 @@ describe("Hardhat Node plugin", () => {
 
     it("should skip compilation when noCompile is true with splitTestsCompilation", async () => {
       const { buildArgs, buildOverride } = buildArgCaptor();
-      const hre = await createHardhatRuntimeEnvironment({
-        solidity: {
-          version: "0.8.28",
-          splitTestsCompilation: true,
+      const hre = await createHardhatRuntimeEnvironment(
+        {
+          solidity: {
+            version: "0.8.28",
+            splitTestsCompilation: true,
+          },
+          plugins: [HardhatNodeTestRunnerPlugin],
+          tasks: [buildOverride],
         },
-        plugins: [HardhatNodeTestRunnerPlugin],
-        tasks: [buildOverride],
-      });
+        {},
+        buildInvocationProjectRoot,
+      );
 
       await hre.tasks.getTask(["test", "nodejs"]).run({ noCompile: true });
 
