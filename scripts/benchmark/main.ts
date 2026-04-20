@@ -15,10 +15,14 @@ DESCRIPTION
 OPTIONS
   --scenario <path>     Scenario folder or scenario.json (required)
   --command <cmd>       Command to benchmark (default: scenario's defaultCommand)
+  --init                Force (re-)initialization of the scenario even if it is
+                        already set up. Without this flag, an existing scenario
+                        setup is reused and only (re-)initialized on demand
   --use-local           Detect packages changed since their release tag, bump
                         versions, publish to Verdaccio, and pin scenario deps to
-                        the published versions
-  --force-publish       Allow publishing to an already-running Verdaccio instance
+                        the published versions. Only applies when init runs
+  --force-publish       Allow publishing to an already-running Verdaccio instance.
+                        Only applies when init runs
   --precompile          Run "npx hardhat compile" in the scenario before
                         benchmarking (useful for warming up compilation caches)
   --prepare <cmd>       Execute CMD before each timing run. Forwarded to
@@ -53,6 +57,7 @@ async function main(): Promise<void> {
   const {
     scenarioPath,
     command,
+    init,
     useLocal,
     forcePublish,
     precompile,
@@ -75,8 +80,10 @@ async function main(): Promise<void> {
     benchArgs.runs ?? scenario.definition.benchmark?.defaultRuns ?? 10;
 
   try {
-    logStep("Setting up scenario");
-    await e2eInit(e2eCloneDirectory, scenarioPath, useLocal, forcePublish);
+    if (init) {
+      logStep("Initializing scenario");
+      await e2eInit(e2eCloneDirectory, scenarioPath, useLocal, forcePublish);
+    }
 
     if (precompile) {
       logStep("Precompiling (npx hardhat compile)");
@@ -84,8 +91,8 @@ async function main(): Promise<void> {
         e2eCloneDirectory,
         scenarioPath,
         "npx hardhat compile",
-        false,
-        false,
+        useLocal,
+        forcePublish,
       );
     }
 
@@ -106,8 +113,8 @@ async function main(): Promise<void> {
       e2eCloneDirectory,
       scenarioPath,
       hyperfineCommand,
-      false,
-      false,
+      useLocal,
+      forcePublish,
     );
 
     log(fmt.success("Benchmark complete"));
