@@ -1,4 +1,4 @@
-import { ensureError } from "@nomicfoundation/hardhat-utils/error";
+import { isObject } from "@nomicfoundation/hardhat-utils/lang";
 import debug from "debug";
 
 import { sendErrorTelemetry } from "./reporter.js";
@@ -13,8 +13,19 @@ function createUnhandledErrorListener(isPromiseRejection: boolean) {
   async function listener(error: Error | unknown) {
     log(description, error);
 
-    ensureError(error);
-    await sendErrorTelemetry(error);
+    if (error instanceof Error) {
+      await sendErrorTelemetry(error);
+    } else {
+      const msg =
+        isObject(error) &&
+        "message" in error &&
+        typeof error.message === "string"
+          ? error.message
+          : "Unknown error";
+
+      const wrappedError = new Error(msg, { cause: error });
+      await sendErrorTelemetry(wrappedError);
+    }
 
     console.error();
     console.error(`${description}:`);
