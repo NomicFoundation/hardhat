@@ -18,8 +18,8 @@ function createUnhandledErrorListener(isPromiseRejection: boolean) {
         ? error
         : new Error(
             isObject(error) &&
-              "message" in error &&
-              typeof error.message === "string"
+            "message" in error &&
+            typeof error.message === "string"
               ? error.message
               : "Unknown error",
             { cause: error },
