@@ -5,6 +5,7 @@ import { DEFAULT_CLONE_DIR } from "../../end-to-end/helpers/args.ts";
 export interface BenchArgs {
   scenarioPath: string;
   command: string | undefined;
+  init: boolean;
   useLocal: boolean;
   forcePublish: boolean;
   precompile: boolean;
@@ -26,6 +27,7 @@ export function resolveAndValidateArgs(args: string[]): BenchArgs | undefined {
 
   const scenarioPath = normalizeScenarioPath(scenarioPathRaw);
   const command = getArgValue(args, "--command");
+  const init = args.includes("--init");
   const useLocal = args.includes("--use-local");
   const forcePublish = args.includes("--force-publish");
   const precompile = args.includes("--precompile");
@@ -65,6 +67,7 @@ export function resolveAndValidateArgs(args: string[]): BenchArgs | undefined {
   return {
     scenarioPath,
     command,
+    init,
     useLocal,
     forcePublish,
     precompile,
