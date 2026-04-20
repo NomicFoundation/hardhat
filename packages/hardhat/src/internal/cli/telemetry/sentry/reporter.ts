@@ -57,9 +57,7 @@ class Reporter {
     this.#hardhatConfigPath = configPath;
   }
 
-  public static async getInstance(
-    shouldSetupErrorHandlers = false,
-  ): Promise<Reporter> {
+  public static async getInstance(): Promise<Reporter> {
     if (this.#instance !== undefined) {
       return this.#instance;
     }
@@ -94,7 +92,6 @@ class Reporter {
       ),
       release,
       environment,
-      installGlobalHandlers: shouldSetupErrorHandlers,
     });
 
     setExtra("nodeVersion", process.version);

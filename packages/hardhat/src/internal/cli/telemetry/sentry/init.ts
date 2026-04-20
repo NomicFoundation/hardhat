@@ -1,10 +1,6 @@
 /* This file is inspired by https://github.com/getsentry/sentry-javascript/blob/9.4.0/packages/node/src/sdk/index.ts */
 
-import type {
-  Client,
-  ServerRuntimeClientOptions,
-  Transport,
-} from "@sentry/core";
+import type { ServerRuntimeClientOptions, Transport } from "@sentry/core";
 
 import os from "node:os";
 import path from "node:path";
@@ -18,14 +14,11 @@ import {
   ServerRuntimeClient,
   stackParserFromStackParserOptions,
 } from "@sentry/core";
-import debug from "debug";
 
 import { GENERIC_SERVER_NAME } from "./constants.js";
 import { nodeContextIntegration } from "./vendor/integrations/context.js";
 import { contextLinesIntegration } from "./vendor/integrations/contextlines.js";
 import { createGetModuleFromFilename } from "./vendor/utils/module.js";
-
-const log = debug("hardhat:core:sentry:init");
 
 interface GlobalCustomSentryReporterOptions {
   /**
@@ -49,12 +42,6 @@ interface GlobalCustomSentryReporterOptions {
    * See the transport module for the different options.
    */
   transport: Transport;
-
-  /**
-   * If `true`, the global unhandled rejection and uncaught exception handlers
-   * will be installed.
-   */
-  installGlobalHandlers?: boolean;
 }
 
 /**
@@ -72,12 +59,9 @@ interface GlobalCustomSentryReporterOptions {
  * The reason that this uses the global instance of sentry (by calling
  * initAndBind), is that using the client directly doesn't work with the linked
  * errors integration.
- *
- * Calling `init` also has an option to set global unhandled rejection and
- * uncaught exception handlers.
  */
 export function init(options: GlobalCustomSentryReporterOptions): void {
-  const client = initAndBind<ServerRuntimeClient, ServerRuntimeClientOptions>(
+  initAndBind<ServerRuntimeClient, ServerRuntimeClientOptions>(
     ServerRuntimeClient,
     {
       dsn: options.dsn,
@@ -113,48 +97,4 @@ export function init(options: GlobalCustomSentryReporterOptions): void {
       ),
     },
   );
-
-  setupGlobalUnhandledErrorHandlers(client);
-}
-
-function createUnhandledErrorListener(
-  client: Client,
-  isPromiseRejection: boolean,
-) {
-  const description = isPromiseRejection
-    ? "Unhandled promise rejection"
-    : "Uncaught exception";
-
-  async function listener(error: Error | unknown) {
-    log(description, error);
-
-    client.captureException(error, {
-      captureContext: {
-        level: "fatal",
-      },
-      mechanism: {
-        handled: false,
-        type: "onuncaughtexception",
-      },
-    });
-
-    await client.flush(100);
-    await client.close(100);
-
-    console.error();
-    console.error(`${description}:`);
-    console.error();
-    console.error(error);
-
-    process.exit(1);
-  }
-
-  return listener;
-}
-
-function setupGlobalUnhandledErrorHandlers(client: Client) {
-  log("Setting up global unhandled error handlers");
-
-  process.on("uncaughtException", createUnhandledErrorListener(client, false));
-  process.on("unhandledRejection", createUnhandledErrorListener(client, true));
 }
