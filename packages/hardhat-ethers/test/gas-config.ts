@@ -1,159 +1,286 @@
-// This test suite generates different gas configuration
-// combinations and runs some common tests for all of them.
-
 import type { HardhatEthers } from "../src/types.js";
 import type { NetworkConfig } from "hardhat/types/config";
+import type { JsonRpcServer } from "hardhat/types/network";
+import type { EthereumProvider } from "hardhat/types/providers";
 
 import assert from "node:assert/strict";
-import { before, describe, it } from "node:test";
+import { after, before, describe, it } from "node:test";
 
-import { initializeTestEthers } from "./helpers/helpers.js";
+import { initializeTestEthers, spawnTestRpcServer } from "./helpers/helpers.js";
 
-type GasLimitValue = "default" | "auto" | bigint;
-type ConnectedNetwork = "default" | "localhost";
+const ARTIFACTS = [{ artifactName: "Example", fileName: "gas-config" }];
 
-interface Combination {
-  hardhatGasLimit: GasLimitValue;
-  localhostGasLimit: GasLimitValue;
-  connectedNetwork: ConnectedNetwork;
-}
-
-function generateCombinations(): Combination[] {
-  const result: Combination[] = [];
-
-  const hardhatGasLimitValues: GasLimitValue[] = [
-    // TODO: enable when V3 is ready: when blockGasLimit is implemented
-    // "default",
-    "auto",
-    1_000_000n,
-  ];
-  const localhostGasLimitValues: GasLimitValue[] = [
-    // TODO: enable when V3 is ready: when blockGasLimit is implemented
-    // "default",
-    "auto",
-    1_000_000n,
-  ];
-
-  const connectedNetworkValues: ConnectedNetwork[] = ["default", "localhost"];
-
-  for (const hardhatGasLimit of hardhatGasLimitValues) {
-    for (const localhostGasLimit of localhostGasLimitValues) {
-      for (const connectedNetwork of connectedNetworkValues) {
-        result.push({
-          hardhatGasLimit,
-          localhostGasLimit,
-          connectedNetwork,
-        });
-      }
-    }
-  }
-
-  return result;
+interface InitResult {
+  ethers: HardhatEthers;
+  provider: EthereumProvider;
+  networkConfig: NetworkConfig;
 }
 
 describe("gas config behavior", () => {
-  let ethers: HardhatEthers;
-  let networkConfig: NetworkConfig;
+  describe("in-process hardhat network", () => {
+    defineGasConfigTests(() => initializeTestEthers(ARTIFACTS));
+  });
 
-  for (const {
-    hardhatGasLimit,
-    localhostGasLimit,
-    connectedNetwork,
-  } of generateCombinations()) {
-    describe(`hardhat gas limit: ${hardhatGasLimit} | localhostGasLimit: ${localhostGasLimit} | connectedNetwork: ${connectedNetwork}`, () => {
+  describe("local http node", () => {
+    let server: JsonRpcServer;
+    let port: number;
+    let address: string;
+
+    before(async () => {
+      ({ server, port, address } = await spawnTestRpcServer());
+    });
+
+    after(async () => {
+      await server.close();
+    });
+
+    defineGasConfigTests(() =>
+      initializeTestEthers(ARTIFACTS, {
+        networks: {
+          localhost: { type: "http", url: `http://${address}:${port}` },
+        },
+      }),
+    );
+  });
+});
+
+function defineGasConfigTests(initEthers: () => Promise<InitResult>) {
+  describe("gas: auto (default)", () => {
+    let ethers: HardhatEthers;
+
+    before(async () => {
+      ({ ethers } = await initEthers());
+    });
+
+    it("plain transaction uses estimated gas", async () => {
+      const [signer] = await ethers.getSigners();
+      const estimate = await signer.estimateGas({ to: signer });
+      const tx = await signer.sendTransaction({ to: signer });
+
+      assert.equal(tx.gasLimit, estimate);
+    });
+
+    it("contract deployment uses estimated gas", async () => {
+      const [signer] = await ethers.getSigners();
+      const factory = await ethers.getContractFactory("Example");
+      const deployTx = await factory.getDeployTransaction();
+      const estimate = await signer.estimateGas(deployTx);
+
+      const example = await ethers.deployContract("Example");
+      const deploymentTx = example.deploymentTransaction();
+
+      assert.equal(deploymentTx?.gasLimit, estimate);
+    });
+
+    it("contract call uses estimated gas", async () => {
+      const [signer] = await ethers.getSigners();
+      const example = await ethers.deployContract("Example");
+      const estimate = await signer.estimateGas({
+        to: example,
+        data: example.interface.encodeFunctionData("f"),
+      });
+      const tx = await example.f();
+
+      assert.equal(tx.gasLimit, estimate);
+    });
+
+    it("explicit gasLimit overrides auto estimation", async () => {
+      const [signer] = await ethers.getSigners();
+      const tx = await signer.sendTransaction({
+        to: signer,
+        gasLimit: 500_000,
+      });
+
+      assert.equal(tx.gasLimit, 500_000n);
+    });
+  });
+
+  describe("gas: fixed value", () => {
+    let ethers: HardhatEthers;
+    let networkConfig: NetworkConfig;
+
+    before(async () => {
+      ({ ethers, networkConfig } = await initEthers());
+      networkConfig.gas = 1_000_000n;
+    });
+
+    it("plain transaction uses fixed gas", async () => {
+      const [signer] = await ethers.getSigners();
+      const tx = await signer.sendTransaction({ to: signer });
+
+      assert.equal(tx.gasLimit, 1_000_000n);
+    });
+
+    it("contract deployment uses fixed gas", async () => {
+      const example = await ethers.deployContract("Example");
+      const deploymentTx = example.deploymentTransaction();
+
+      assert.equal(deploymentTx?.gasLimit, 1_000_000n);
+    });
+
+    it("contract call uses fixed gas", async () => {
+      const example = await ethers.deployContract("Example");
+      const tx = await example.f();
+
+      assert.equal(tx.gasLimit, 1_000_000n);
+    });
+
+    it("explicit gasLimit overrides fixed config", async () => {
+      const [signer] = await ethers.getSigners();
+      const tx = await signer.sendTransaction({
+        to: signer,
+        gasLimit: 500_000,
+      });
+
+      assert.equal(tx.gasLimit, 500_000n);
+    });
+  });
+
+  describe("gasMultiplier", () => {
+    const GAS_MULTIPLIER = 1.5;
+    let ethers: HardhatEthers;
+    let networkConfig: NetworkConfig;
+
+    before(async () => {
+      ({ ethers, networkConfig } = await initEthers());
+      networkConfig.gasMultiplier = GAS_MULTIPLIER;
+    });
+
+    it("plain transaction gas is multiplied", async () => {
+      const [signer] = await ethers.getSigners();
+      const estimate = await signer.estimateGas({ to: signer });
+      const tx = await signer.sendTransaction({ to: signer });
+
+      const expected = BigInt(Math.floor(Number(estimate) * GAS_MULTIPLIER));
+      assert.equal(tx.gasLimit, expected);
+    });
+
+    it("contract deployment gas is multiplied", async () => {
+      const [signer] = await ethers.getSigners();
+      const factory = await ethers.getContractFactory("Example");
+      const deployTx = await factory.getDeployTransaction();
+      const estimate = await signer.estimateGas(deployTx);
+
+      const example = await ethers.deployContract("Example");
+      const deploymentTx = example.deploymentTransaction();
+
+      const expected = BigInt(Math.floor(Number(estimate) * GAS_MULTIPLIER));
+      assert.equal(deploymentTx?.gasLimit, expected);
+    });
+
+    it("contract call gas is multiplied", async () => {
+      const [signer] = await ethers.getSigners();
+      const example = await ethers.deployContract("Example");
+      const estimate = await signer.estimateGas({
+        to: example,
+        data: example.interface.encodeFunctionData("f"),
+      });
+      const tx = await example.f();
+
+      const expected = BigInt(Math.floor(Number(estimate) * GAS_MULTIPLIER));
+      assert.equal(tx.gasLimit, expected);
+    });
+
+    it("explicit gasLimit is not multiplied", async () => {
+      const [signer] = await ethers.getSigners();
+      const tx = await signer.sendTransaction({
+        to: signer,
+        gasLimit: 500_000,
+      });
+
+      assert.equal(tx.gasLimit, 500_000n);
+    });
+  });
+
+  describe("gasPrice config", () => {
+    describe("auto gasPrice (default)", () => {
+      let ethers: HardhatEthers;
+
       before(async () => {
-        ({ ethers, networkConfig } = await initializeTestEthers([
-          { artifactName: "Example", fileName: "gas-config" },
-        ]));
-
-        if (hardhatGasLimit !== "default" && connectedNetwork === "default") {
-          networkConfig.gas = hardhatGasLimit;
-        }
-
-        if (
-          localhostGasLimit !== "default" &&
-          connectedNetwork === "localhost"
-        ) {
-          networkConfig.gas = localhostGasLimit;
-        }
+        ({ ethers } = await initEthers());
       });
 
-      // for some combinations there will be a default gas limit that is used
-      // when no explicit gas limit is set by the user; in those cases, we
-      // assert that the tx indeed uses that gas limit; if not, then
-      // the result of an estimateGas call should be used
-      let defaultGasLimit: bigint | undefined;
-      if (
-        (connectedNetwork === "default" && hardhatGasLimit === 1_000_000n) ||
-        (connectedNetwork === "localhost" && localhostGasLimit === 1_000_000n)
-      ) {
-        defaultGasLimit = 1_000_000n;
-      } else if (
-        (connectedNetwork === "default" && hardhatGasLimit === "default") ||
-        (connectedNetwork === "localhost" && localhostGasLimit === "default")
-      ) {
-        // expect the block gas limit to be used as the default gas limit
-        defaultGasLimit = 60_000_000n;
-      }
-
-      it("plain transaction, default gas limit", async () => {
-        const expectedGasLimit = defaultGasLimit ?? 21_001n;
-
+      it("EIP-1559 fields are populated", async () => {
         const [signer] = await ethers.getSigners();
-        const tx = await signer.sendTransaction({
-          to: signer,
-        });
+        const tx = await signer.sendTransaction({ to: signer });
 
-        assert.equal(tx.gasLimit, expectedGasLimit);
-      });
-
-      it("plain transaction, explicit gas limit", async () => {
-        const [signer] = await ethers.getSigners();
-
-        const tx = await signer.sendTransaction({
-          to: signer,
-          gasLimit: 500_000,
-        });
-
-        assert.equal(tx.gasLimit, 500_000n);
-      });
-
-      it("contract deployment, default gas limit", async () => {
-        const expectedGasLimit = defaultGasLimit ?? 76_985n;
-
-        const example: any = await ethers.deployContract("Example");
-        const deploymentTx = await example.deploymentTransaction();
-
-        assert.equal(deploymentTx.gasLimit, expectedGasLimit);
-      });
-
-      it("contract deployment, explicit gas limit", async () => {
-        const Example: any = await ethers.getContractFactory("Example");
-        const example = await Example.deploy({
-          gasLimit: 500_000,
-        });
-        const deploymentTx = await example.deploymentTransaction();
-
-        assert.equal(deploymentTx.gasLimit, 500_000n);
-      });
-
-      it("contract call, default gas limit", async () => {
-        const expectedGasLimit = defaultGasLimit ?? 21_186n;
-
-        const example: any = await ethers.deployContract("Example");
-        const tx = await example.f();
-
-        assert.equal(tx.gasLimit, expectedGasLimit);
-      });
-
-      it("contract call, explicit gas limit", async () => {
-        const example: any = await ethers.deployContract("Example");
-        const tx = await example.f({
-          gasLimit: 500_000,
-        });
-
-        assert.equal(tx.gasLimit, 500_000n);
+        assert.equal(tx.type, 2);
+        assert.notEqual(tx.maxFeePerGas, null);
+        assert.notEqual(tx.maxPriorityFeePerGas, null);
       });
     });
-  }
-});
+
+    describe("fixed gasPrice", () => {
+      let ethers: HardhatEthers;
+      let networkConfig: NetworkConfig;
+      const FIXED_GAS_PRICE = 10_000_000_000n; // 10 gwei
+
+      before(async () => {
+        ({ ethers, networkConfig } = await initEthers());
+        networkConfig.gasPrice = FIXED_GAS_PRICE;
+      });
+
+      it("legacy gasPrice is used", async () => {
+        const [signer] = await ethers.getSigners();
+        const tx = await signer.sendTransaction({ to: signer });
+
+        assert.equal(tx.type, 0);
+        assert.equal(tx.gasPrice, FIXED_GAS_PRICE);
+      });
+
+      it("explicit gasPrice overrides config", async () => {
+        const [signer] = await ethers.getSigners();
+        const userGasPrice = 20_000_000_000n;
+        const tx = await signer.sendTransaction({
+          to: signer,
+          gasPrice: userGasPrice,
+        });
+
+        assert.equal(tx.gasPrice, userGasPrice);
+      });
+
+      it("explicit maxFeePerGas overrides config", async () => {
+        const [signer] = await ethers.getSigners();
+        const tx = await signer.sendTransaction({
+          to: signer,
+          maxFeePerGas: 20_000_000_000n,
+          maxPriorityFeePerGas: 1_000_000_000n,
+        });
+
+        assert.equal(tx.type, 2);
+        assert.equal(tx.maxFeePerGas, 20_000_000_000n);
+        assert.equal(tx.maxPriorityFeePerGas, 1_000_000_000n);
+      });
+    });
+  });
+
+  describe("non-interference with explicit gas-related calls", () => {
+    let ethers: HardhatEthers;
+    let provider: EthereumProvider;
+
+    before(async () => {
+      let networkConfig: NetworkConfig;
+      ({ ethers, provider, networkConfig } = await initEthers());
+      networkConfig.gas = 1_000_000n;
+      networkConfig.gasPrice = 10_000_000_000n;
+    });
+
+    it("estimateGas returns real estimate, not fixed config value", async () => {
+      const [signer] = await ethers.getSigners();
+      const estimate = await signer.estimateGas({ to: signer });
+
+      assert.notEqual(estimate, 1_000_000n);
+      assert.ok(estimate > 0n, "estimate should be greater than 0");
+    });
+
+    it("eth_gasPrice returns real gas price, not fixed config value", async () => {
+      const gasPrice = await provider.request({
+        method: "eth_gasPrice",
+      });
+
+      assert.ok(typeof gasPrice === "string", "gasPrice should be a string");
+      assert.ok(BigInt(gasPrice) > 0n, "gasPrice should be greater than 0");
+      assert.notEqual(BigInt(gasPrice), 10_000_000_000n);
+    });
+  });
+}
