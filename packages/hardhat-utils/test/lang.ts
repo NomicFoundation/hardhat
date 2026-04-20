@@ -5,6 +5,7 @@ import { expectTypeOf } from "expect-type";
 
 import {
   bindAllMethods,
+  createLazyLoader,
   deepClone,
   deepEqual,
   deepMerge,
@@ -841,6 +842,76 @@ describe("lang", () => {
       bindAllMethods(obj);
       const boundFoo = obj.foo;
       assert.equal(boundFoo(), "bar");
+    });
+  });
+
+  describe("createLazyLoader", () => {
+    it("Should invoke the factory only once across multiple sequential calls", async () => {
+      let calls = 0;
+      const load = createLazyLoader(async () => {
+        calls++;
+        return 42;
+      });
+
+      assert.equal(await load(), 42);
+      assert.equal(await load(), 42);
+      assert.equal(await load(), 42);
+      assert.equal(calls, 1);
+    });
+
+    it("Should return the same cached reference on subsequent calls", async () => {
+      const obj = { x: 1 };
+      const load = createLazyLoader(async () => obj);
+
+      const first = await load();
+      const second = await load();
+      assert.equal(first, second);
+      assert.equal(first, obj);
+    });
+
+    it("Should share a single in-flight promise between concurrent first callers", async () => {
+      let calls = 0;
+      let resolveFactory: (value: string) => void = () => {};
+      const load = createLazyLoader<string>(
+        async () =>
+          new Promise<string>((resolve) => {
+            calls++;
+            resolveFactory = resolve;
+          }),
+      );
+
+      const [p1, p2, p3] = [load(), load(), load()];
+      resolveFactory("ok");
+
+      assert.deepEqual(await Promise.all([p1, p2, p3]), ["ok", "ok", "ok"]);
+      assert.equal(calls, 1);
+    });
+
+    it("Should retry the factory after a rejection", async () => {
+      let calls = 0;
+      const load = createLazyLoader(async () => {
+        calls++;
+        if (calls === 1) {
+          throw new Error("boom");
+        }
+        return "ok";
+      });
+
+      await assert.rejects(load(), /boom/);
+      assert.equal(await load(), "ok");
+      assert.equal(calls, 2);
+    });
+
+    it("Should cache an undefined value and not re-invoke the factory", async () => {
+      let calls = 0;
+      const load = createLazyLoader<undefined>(async () => {
+        calls++;
+        return undefined;
+      });
+
+      assert.equal(await load(), undefined);
+      assert.equal(await load(), undefined);
+      assert.equal(calls, 1);
     });
   });
 });

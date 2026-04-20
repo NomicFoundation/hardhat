@@ -119,6 +119,48 @@ export function bindAllMethods<ObjectT extends object>(obj: ObjectT): void {
   }
 }
 
+/**
+ * Creates a lazy loader that invokes the factory on first call, caches the
+ * resolved value, and returns it on subsequent calls.
+ *
+ * @remarks
+ * - Concurrent first callers share the same in-flight promise, so the factory
+ * runs at most once per successful load.
+ * - If the factory rejects, the rejection is propagated to all pending callers
+ * and the loader resets, so the next call retries the factory.
+ *
+ * @param factory The async function that produces the value to cache.
+ * @returns A function that resolves to the cached value, invoking the factory
+ * only on the first call.
+ */
+export function createLazyLoader<T>(
+  factory: () => Promise<T>,
+): () => Promise<T> {
+  let holder: { value: T } | undefined;
+  let loading: Promise<T> | undefined;
+
+  return async () => {
+    if (holder !== undefined) {
+      return holder.value;
+    }
+
+    if (loading === undefined) {
+      loading = factory().then(
+        (value) => {
+          holder = { value };
+          return value;
+        },
+        (error: unknown) => {
+          loading = undefined;
+          throw error;
+        },
+      );
+    }
+
+    return loading;
+  };
+}
+
 export function findDuplicates<T>(arr: T[]): Set<T> {
   const seen = new Set<T>();
   const duplicates = new Set<T>();
