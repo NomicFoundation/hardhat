@@ -126,11 +126,11 @@ class LazySolidityBuildSystem implements SolidityBuildSystem {
   }
 
   async #getBuildSystem(): Promise<SolidityBuildSystem> {
-    const { SolidityBuildSystemImplementation } = await import(
-      "../build-system/build-system.js"
-    );
-
     if (this.#buildSystem === undefined) {
+      const { SolidityBuildSystemImplementation } = await import(
+        "../build-system/build-system.js"
+      );
+
       this.#buildSystem = new SolidityBuildSystemImplementation(
         this.#hooks,
         this.#options,
