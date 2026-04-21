@@ -1,5 +1,8 @@
 // NOTE: We don't use the `semver` package because it's slow to load, and this
 // is always run during the initialization of the CLI.
+//
+// NOTE: This file shouldn't import any non-builtin dependency, as it's imported
+// before enabling source maps support. TODO: Change chalk to util.styleText
 
 import { styleText } from "@nomicfoundation/hardhat-utils/style";
 
