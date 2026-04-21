@@ -16,16 +16,13 @@ import {
   DEFAULT_NETWORK_NAME,
   GENERIC_CHAIN_TYPE,
 } from "../../../constants.js";
-import {
-  resolveChainDescriptors,
-  resolveEdrNetwork,
-  resolveHttpNetwork,
-} from "../config-resolution.js";
-import { validateNetworkUserConfig } from "../type-validation.js";
 
 export default async (): Promise<Partial<ConfigHooks>> => ({
   extendUserConfig,
-  validateUserConfig: validateNetworkUserConfig,
+  validateUserConfig: async (userConfig) => {
+    const { validateNetworkUserConfig } = await import("../type-validation.js");
+    return validateNetworkUserConfig(userConfig);
+  },
   resolveUserConfig,
 });
 
@@ -121,6 +118,9 @@ export async function resolveUserConfig(
     nextResolveConfigurationVariable: ConfigurationVariableResolver,
   ) => Promise<HardhatConfig>,
 ): Promise<HardhatConfig> {
+  const { resolveChainDescriptors, resolveEdrNetwork, resolveHttpNetwork } =
+    await import("../config-resolution.js");
+
   const resolvedConfig = await next(userConfig, resolveConfigurationVariable);
 
   const resolvedDefaultChainType: ChainType =

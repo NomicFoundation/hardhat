@@ -36,7 +36,7 @@ import { DEFAULT_CHAIN_DESCRIPTORS } from "./chain-descriptors.js";
 import {
   DEFAULT_EDR_NETWORK_HD_ACCOUNTS_CONFIG_PARAMS,
   EDR_NETWORK_DEFAULT_COINBASE,
-} from "./edr/edr-provider.js";
+} from "./edr/edr-constants.js";
 import { getCurrentHardfork } from "./edr/types/hardfork.js";
 import { isHttpNetworkHdAccountsUserConfig } from "./type-validation.js";
 

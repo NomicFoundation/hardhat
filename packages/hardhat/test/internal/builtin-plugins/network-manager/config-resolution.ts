@@ -35,7 +35,7 @@ import {
 import {
   DEFAULT_EDR_NETWORK_HD_ACCOUNTS_CONFIG_PARAMS,
   EDR_NETWORK_DEFAULT_COINBASE,
-} from "../../../../src/internal/builtin-plugins/network-manager/edr/edr-provider.js";
+} from "../../../../src/internal/builtin-plugins/network-manager/edr/edr-constants.js";
 import {
   L1HardforkName,
   getCurrentHardfork,
