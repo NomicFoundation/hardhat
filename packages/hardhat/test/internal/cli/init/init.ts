@@ -2,11 +2,13 @@ import type { Template } from "../../../../src/internal/cli/init/template.js";
 import type { PackageJson } from "@nomicfoundation/hardhat-utils/package";
 
 import assert from "node:assert/strict";
+import fsPromises from "node:fs/promises";
 import path from "node:path";
-import { describe, it } from "node:test";
+import { describe, it, mock } from "node:test";
 
 import { HardhatError } from "@nomicfoundation/hardhat-errors";
 import {
+  assertRejects,
   assertRejectsWithHardhatError,
   disableConsole,
   useTmpDir,
@@ -14,6 +16,7 @@ import {
 import {
   ensureDir,
   exists,
+  createFile,
   readJsonFile,
   readUtf8File,
   remove,
@@ -349,6 +352,60 @@ describe("copyProjectFiles", () => {
       assert.ok(
         !(await exists(path.join(process.cwd(), "gitignore"))),
         "gitignore should NOT exist",
+      );
+    });
+
+    it("Regression test: should not scan unrelated workspace files to detect overwrites", async () => {
+      const [template] = await getTemplate("hardhat-3", "mocha-ethers");
+      const unrelatedDirPath = path.join(process.cwd(), "unrelated");
+      const unrelatedFilePath = path.join(unrelatedDirPath, "ignored.txt");
+      await ensureDir(unrelatedDirPath);
+      await createFile(unrelatedFilePath);
+
+      const originalReaddir = fsPromises.readdir;
+      const readdirMock = mock.method(
+        fsPromises,
+        "readdir",
+        async (...args: Parameters<typeof originalReaddir>) => {
+          if (args[0] === process.cwd() && args[1]?.withFileTypes === true) {
+            throw new Error(
+              "copyProjectFiles should not scan the workspace recursively",
+            );
+          }
+
+          return await Reflect.apply(originalReaddir, fsPromises, args);
+        },
+      );
+
+      try {
+        await copyProjectFiles(process.cwd(), template, false);
+
+        const oneCopiedTemplateFile = path.join(
+          process.cwd(),
+          relativeTemplateToWorkspacePath(template.files[0]),
+        );
+        assert.ok(
+          await exists(oneCopiedTemplateFile),
+          `expected template file ${oneCopiedTemplateFile} to be copied without walking the workspace`,
+        );
+      } finally {
+        readdirMock.mock.restore();
+      }
+    });
+
+    it("Regression test: should still throw if a directory clashes with a destination file", async () => {
+      const [template] = await getTemplate("hardhat-3", "mocha-ethers");
+      const pathWithDirectoryClash = path.join(
+        process.cwd(),
+        "hardhat.config.ts",
+      );
+
+      await ensureDir(pathWithDirectoryClash);
+
+      await assertRejects(
+        copyProjectFiles(process.cwd(), template, false),
+        (error) => error.name === "IsDirectoryError",
+        "expected copyProjectFiles to reject with IsDirectoryError",
       );
     });
   });

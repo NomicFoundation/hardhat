@@ -12,7 +12,6 @@ import {
   copy,
   ensureDir,
   exists,
-  getAllFilesMatching,
   isDirectory,
   mkdir,
   readJsonFile,
@@ -435,17 +434,36 @@ export async function copyProjectFiles(
   template: Template,
   force?: boolean,
 ): Promise<void> {
-  // Find all the files in the workspace that would have been overwritten by the template files
-  const matchingRelativeWorkspacePaths = await getAllFilesMatching(
-    workspace,
-    (file) => {
-      const relativeWorkspacePath = path.relative(workspace, file);
-      const relativeTemplatePath = relativeWorkspaceToTemplatePath(
-        relativeWorkspacePath,
-      );
-      return template.files.includes(relativeTemplatePath);
-    },
-  ).then((files) => files.map((f) => path.relative(workspace, f)));
+  // Find all the paths in the template that clash with an existing one in the
+  // workspace
+  const matchingRelativeWorkspacePaths = (
+    await Promise.all(
+      template.files.map(async (relativeTemplatePath) => {
+        const relativeWorkspacePath =
+          relativeTemplateToWorkspacePath(relativeTemplatePath);
+
+        const absoluteWorkspacePath = path.join(
+          workspace,
+          relativeWorkspacePath,
+        );
+
+        if (!(await exists(absoluteWorkspacePath))) {
+          return undefined;
+        }
+
+        // We ignore directories in this clash detection
+        if (await isDirectory(absoluteWorkspacePath)) {
+          return undefined;
+        }
+
+        return relativeWorkspacePath;
+      }),
+    )
+  ).filter((relativeWorkspacePath) => relativeWorkspacePath !== undefined);
+
+  const matchingRelativeWorkspacePathsSet = new Set(
+    matchingRelativeWorkspacePaths,
+  );
 
   // Ask the user for permission to overwrite existing files if needed
   if (matchingRelativeWorkspacePaths.length !== 0) {
@@ -461,7 +479,7 @@ export async function copyProjectFiles(
 
     if (
       force === false &&
-      matchingRelativeWorkspacePaths.includes(relativeWorkspacePath)
+      matchingRelativeWorkspacePathsSet.has(relativeWorkspacePath)
     ) {
       continue;
     }
