@@ -106,6 +106,24 @@ describe("ArtifactManagerImplementation", () => {
     });
   });
 
+  describe("getAllBuildInfoIds", () => {
+    it("should return all build info ids", async () => {
+      const buildInfoId = await artifactManager.getBuildInfoId("Counter");
+
+      assert.ok(
+        buildInfoId !== undefined,
+        "Expected build info id to be defined",
+      );
+
+      const buildInfoIds = await artifactManager.getAllBuildInfoIds();
+
+      assert.ok(
+        buildInfoIds.has(buildInfoId),
+        `Expected build info ids to include ${buildInfoId}`,
+      );
+    });
+  });
+
   describe("artifactExists", () => {
     it("should return true for an existing bare name", async () => {
       const result = await artifactManager.artifactExists("Counter");

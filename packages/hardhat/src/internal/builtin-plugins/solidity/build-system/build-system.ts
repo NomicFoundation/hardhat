@@ -44,6 +44,7 @@ import {
   getAllDirectoriesMatching,
   getAllFilesMatching,
   move,
+  readdir,
   readJsonFile,
   remove,
   writeJsonFile,
@@ -1120,10 +1121,11 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
       reachableBuildInfoIds.filter((id) => id !== undefined),
     );
 
-    // Get all the reachable build info files
-    const buildInfoFiles = await getAllFilesMatching(buildInfosDir, (f) =>
-      f.startsWith(buildInfosDir + path.sep),
-    );
+    const buildInfoFiles = !(await exists(buildInfosDir))
+      ? []
+      : (await readdir(buildInfosDir)).map((entry) =>
+          path.join(buildInfosDir, entry),
+        );
 
     for (const buildInfoFile of buildInfoFiles) {
       const basename = path.basename(buildInfoFile);
