@@ -31,7 +31,7 @@ import {
 } from "../../utils/package.js";
 import { BannerManager } from "../banner-manager.js";
 import { sendProjectTypeAnalytics } from "../telemetry/analytics/analytics.js";
-import { sendErrorTelemetry } from "../telemetry/sentry/reporter.js";
+import { sendErrorTelemetry } from "../telemetry/error-reporter/reporter.js";
 
 import {
   getDevDependenciesInstallationCommand,
