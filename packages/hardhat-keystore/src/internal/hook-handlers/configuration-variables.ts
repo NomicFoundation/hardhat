@@ -29,7 +29,7 @@ export default async (): Promise<Partial<ConfigurationVariableHooks>> => {
       // If we are in CI, the keystore should not be used
       // or even initialized
       if (isCi()) {
-        return next(context, variable);
+        return await next(context, variable);
       }
 
       // First try to get the value from the development keystore
@@ -58,7 +58,7 @@ export default async (): Promise<Partial<ConfigurationVariableHooks>> => {
         return value;
       }
 
-      return next(context, variable);
+      return await next(context, variable);
     },
   };
 
@@ -112,7 +112,7 @@ export default async (): Promise<Partial<ConfigurationVariableHooks>> => {
       return undefined;
     }
 
-    return keystore.readValue(variable.name, masterKey);
+    return await keystore.readValue(variable.name, masterKey);
   }
 
   return handlers;

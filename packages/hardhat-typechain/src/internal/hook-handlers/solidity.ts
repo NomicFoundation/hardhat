@@ -104,7 +104,7 @@ async function getContractArtifactPaths(
     }
   }
 
-  return Promise.all(
+  return await Promise.all(
     contractFqns.map((fqn) => context.artifacts.getArtifactPath(fqn)),
   );
 }

@@ -28,7 +28,7 @@ export async function sendErrorTelemetry(
   hint?: { unhandled?: boolean; mechanismType?: string },
 ): Promise<boolean> {
   const instance = await Reporter.getInstance();
-  return instance.reportErrorViaSubprocess(error, hint);
+  return await instance.reportErrorViaSubprocess(error, hint);
 }
 
 export function setCliHardhatConfigPath(configPath: string): void {

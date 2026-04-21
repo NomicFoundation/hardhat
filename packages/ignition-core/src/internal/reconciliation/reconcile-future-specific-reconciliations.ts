@@ -35,25 +35,25 @@ export async function reconcileFutureSpecificReconciliations(
 ): Promise<ReconciliationFutureResult> {
   switch (future.type) {
     case FutureType.NAMED_ARTIFACT_CONTRACT_DEPLOYMENT:
-      return reconcileNamedContractDeployment(
+      return await reconcileNamedContractDeployment(
         future,
         executionState as DeploymentExecutionState,
         context,
       );
     case FutureType.CONTRACT_DEPLOYMENT:
-      return reconcileArtifactContractDeployment(
+      return await reconcileArtifactContractDeployment(
         future,
         executionState as DeploymentExecutionState,
         context,
       );
     case FutureType.NAMED_ARTIFACT_LIBRARY_DEPLOYMENT:
-      return reconcileNamedLibraryDeployment(
+      return await reconcileNamedLibraryDeployment(
         future,
         executionState as DeploymentExecutionState,
         context,
       );
     case FutureType.LIBRARY_DEPLOYMENT:
-      return reconcileArtifactLibraryDeployment(
+      return await reconcileArtifactLibraryDeployment(
         future,
         executionState as DeploymentExecutionState,
         context,
@@ -77,13 +77,13 @@ export async function reconcileFutureSpecificReconciliations(
         context,
       );
     case FutureType.NAMED_ARTIFACT_CONTRACT_AT:
-      return reconcileNamedContractAt(
+      return await reconcileNamedContractAt(
         future,
         executionState as ContractAtExecutionState,
         context,
       );
     case FutureType.CONTRACT_AT: {
-      return reconcileArtifactContractAt(
+      return await reconcileArtifactContractAt(
         future,
         executionState as ContractAtExecutionState,
         context,

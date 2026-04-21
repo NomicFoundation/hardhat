@@ -184,22 +184,22 @@ export async function replayStrategy(
 > {
   switch (executionState.type) {
     case ExecutionSateType.DEPLOYMENT_EXECUTION_STATE:
-      return replayExecutionStrategyWithOnchainInteractions(
+      return await replayExecutionStrategyWithOnchainInteractions(
         executionState,
         strategy,
       );
     case ExecutionSateType.CALL_EXECUTION_STATE:
-      return replayExecutionStrategyWithOnchainInteractions(
+      return await replayExecutionStrategyWithOnchainInteractions(
         executionState,
         strategy,
       );
     case ExecutionSateType.SEND_DATA_EXECUTION_STATE:
-      return replayExecutionStrategyWithOnchainInteractions(
+      return await replayExecutionStrategyWithOnchainInteractions(
         executionState,
         strategy,
       );
     case ExecutionSateType.STATIC_CALL_EXECUTION_STATE:
-      return replayStaticCallExecutionStrategy(executionState, strategy);
+      return await replayStaticCallExecutionStrategy(executionState, strategy);
   }
 }
 

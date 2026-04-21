@@ -85,7 +85,7 @@ export default async (): Promise<Partial<SolidityHooks>> => ({
 
   getCompiler: async (context, compilerConfig, next) => {
     if (compilerConfig.type !== SOLX_COMPILER_TYPE) {
-      return next(context, compilerConfig);
+      return await next(context, compilerConfig);
     }
 
     // Honor custom path — skip version lookup and download

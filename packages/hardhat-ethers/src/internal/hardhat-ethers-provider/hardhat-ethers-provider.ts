@@ -116,7 +116,7 @@ export class HardhatEthersProvider implements HardhatEthersProviderI {
   public destroy(): void {}
 
   public async send(method: string, params?: any[]): Promise<any> {
-    return this.#hardhatProvider.request({
+    return await this.#hardhatProvider.request({
       method,
       params,
     });
@@ -143,7 +143,7 @@ export class HardhatEthersProvider implements HardhatEthersProviderI {
           },
         );
       }
-      return HardhatEthersSigner.create(
+      return await HardhatEthersSigner.create(
         this,
         this.#networkName,
         this.#networkConfig,
@@ -152,7 +152,7 @@ export class HardhatEthersProvider implements HardhatEthersProviderI {
     }
 
     if (typeof address === "string") {
-      return HardhatEthersSigner.create(
+      return await HardhatEthersSigner.create(
         this,
         this.#networkName,
         this.#networkConfig,
@@ -477,73 +477,75 @@ export class HardhatEthersProvider implements HardhatEthersProviderI {
     const resolvedConfirms = confirms ?? DEFAULT_TRANSACTION_CONFIRMS;
 
     if (resolvedConfirms === 0) {
-      return this.getTransactionReceipt(hash);
+      return await this.getTransactionReceipt(hash);
     }
 
     const pollingInterval = (await this.#isHardhatNetwork()) ? 50 : 500;
 
-    return new Promise<ethers.TransactionReceipt | null>((resolve, reject) => {
-      let cancelled = false;
-      let timeoutTimer: NodeJS.Timeout | undefined;
-      let pollingTimeout: NodeJS.Timeout | undefined;
+    return await new Promise<ethers.TransactionReceipt | null>(
+      (resolve, reject) => {
+        let cancelled = false;
+        let timeoutTimer: NodeJS.Timeout | undefined;
+        let pollingTimeout: NodeJS.Timeout | undefined;
 
-      if (timeout !== undefined && timeout > 0) {
-        timeoutTimer = setTimeout(() => {
-          cancelled = true;
+        if (timeout !== undefined && timeout > 0) {
+          timeoutTimer = setTimeout(() => {
+            cancelled = true;
 
-          clearTimeout(pollingTimeout);
+            clearTimeout(pollingTimeout);
 
-          resolve(null);
-        }, timeout);
-      }
-
-      const poll = async () => {
-        if (cancelled) {
-          return;
+            resolve(null);
+          }, timeout);
         }
 
-        try {
-          const receipt = await this.getTransactionReceipt(hash);
+        const poll = async () => {
+          if (cancelled) {
+            return;
+          }
 
-          // Wait for the required confirmation depth before resolving,
-          // so callers relying on confirmations for reorg safety aren't
-          // given a receipt that could still be reverted.
-          if (receipt !== null && receipt.blockNumber !== null) {
-            const latestBlockNumber = await this.getBlockNumber();
-            const confirmations = latestBlockNumber - receipt.blockNumber + 1;
+          try {
+            const receipt = await this.getTransactionReceipt(hash);
 
-            if (confirmations >= resolvedConfirms) {
-              cancelled = true;
+            // Wait for the required confirmation depth before resolving,
+            // so callers relying on confirmations for reorg safety aren't
+            // given a receipt that could still be reverted.
+            if (receipt !== null && receipt.blockNumber !== null) {
+              const latestBlockNumber = await this.getBlockNumber();
+              const confirmations = latestBlockNumber - receipt.blockNumber + 1;
 
-              if (timeoutTimer !== undefined) {
-                clearTimeout(timeoutTimer);
+              if (confirmations >= resolvedConfirms) {
+                cancelled = true;
+
+                if (timeoutTimer !== undefined) {
+                  clearTimeout(timeoutTimer);
+                }
+
+                clearTimeout(pollingTimeout);
+                resolve(receipt);
+
+                return;
               }
-
-              clearTimeout(pollingTimeout);
-              resolve(receipt);
-
-              return;
             }
+
+            clearTimeout(pollingTimeout);
+
+            pollingTimeout = setTimeout(poll, pollingInterval);
+          } catch (e) {
+            ensureError(e);
+
+            cancelled = true;
+
+            if (timeoutTimer !== undefined) {
+              clearTimeout(timeoutTimer);
+            }
+
+            reject(e);
           }
+        };
 
-          clearTimeout(pollingTimeout);
-
-          pollingTimeout = setTimeout(poll, pollingInterval);
-        } catch (e) {
-          ensureError(e);
-
-          cancelled = true;
-
-          if (timeoutTimer !== undefined) {
-            clearTimeout(timeoutTimer);
-          }
-
-          reject(e);
-        }
-      };
-
-      void poll();
-    });
+        void poll();
+      },
+    );
   }
 
   public async waitForBlock(
@@ -741,14 +743,14 @@ export class HardhatEthersProvider implements HardhatEthersProviderI {
     event: ProviderEvent,
     listener: Listener,
   ): Promise<this> {
-    return this.on(event, listener);
+    return await this.on(event, listener);
   }
 
   public async removeListener(
     event: ProviderEvent,
     listener: Listener,
   ): Promise<this> {
-    return this.off(event, listener);
+    return await this.off(event, listener);
   }
 
   public toJSON() {
@@ -883,7 +885,7 @@ export class HardhatEthersProvider implements HardhatEthersProviderI {
     includeTransactions: boolean,
   ): Promise<any> {
     if (isHexString(block, 32)) {
-      return this.#hardhatProvider.request({
+      return await this.#hardhatProvider.request({
         method: "eth_getBlockByHash",
         params: [block, includeTransactions],
       });
@@ -894,7 +896,7 @@ export class HardhatEthersProvider implements HardhatEthersProviderI {
       blockTag = await blockTag;
     }
 
-    return this.#hardhatProvider.request({
+    return await this.#hardhatProvider.request({
       method: "eth_getBlockByNumber",
       params: [blockTag, includeTransactions],
     });

@@ -104,7 +104,7 @@ describe("network-helpers - mine", () => {
 
   it("should throw because the string is not 0x-prefixed", async () => {
     await assertRejectsWithHardhatError(
-      async () => networkHelpers.mine("3"),
+      async () => await networkHelpers.mine("3"),
       HardhatError.ERRORS.NETWORK_HELPERS.GENERAL
         .ONLY_ALLOW_0X_PREFIXED_STRINGS,
       {},
@@ -137,7 +137,7 @@ describe("network-helpers - mine", () => {
   it("should throw because the string is not 0x-prefixed", async () => {
     await assertRejectsWithHardhatError(
       async () =>
-        networkHelpers.mine(100, {
+        await networkHelpers.mine(100, {
           interval: "3",
         }),
       HardhatError.ERRORS.NETWORK_HELPERS.GENERAL

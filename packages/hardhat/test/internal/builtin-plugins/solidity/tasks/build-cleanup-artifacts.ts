@@ -67,7 +67,7 @@ contract AddedByHook {}`,
                     );
 
                     // Add extra file to the build
-                    return next(
+                    return await next(
                       context,
                       [...rootFilePaths, extraFile],
                       options,
@@ -194,7 +194,7 @@ contract Filter {}`,
                     const filteredPaths = rootFilePaths.filter(
                       (p) => !p.includes("Filter"),
                     );
-                    return next(context, filteredPaths, options);
+                    return await next(context, filteredPaths, options);
                   },
                 };
 
@@ -525,7 +525,7 @@ describe("build task - unified mode cleanup", () => {
                 ) => Promise<void>,
               ) => {
                 receivedArtifactPaths.push(...artifactPaths);
-                return next(_context, artifactPaths);
+                return await next(_context, artifactPaths);
               },
             };
 

@@ -17,7 +17,7 @@ import { createHardhatRuntimeEnvironment } from "../../../../../../src/internal/
 export async function getHRE(
   project: TestProject,
 ): Promise<HardhatRuntimeEnvironment> {
-  return createHardhatRuntimeEnvironment(
+  return await createHardhatRuntimeEnvironment(
     {
       solidity: {
         profiles: {
@@ -103,7 +103,7 @@ export class TestProjectWrapper {
       .filter((filePath) => !filePath.endsWith(".output.json"))
       .map((basename) => path.join(this.buildInfosBasePath(), basename));
 
-    return Promise.all(
+    return await Promise.all(
       filePaths.map(async (filePath) => {
         const modificationTime = await this.getModificationTime(filePath);
         const buildId = path.basename(filePath).replace(".json", "");
@@ -132,7 +132,7 @@ export class TestProjectWrapper {
       .filter((filePath) => filePath.endsWith(".output.json"))
       .map((basename) => path.join(this.buildInfosBasePath(), basename));
 
-    return Promise.all(
+    return await Promise.all(
       filePaths.map(async (filePath) => ({
         path: filePath,
         modificationTime: await this.getModificationTime(filePath),
@@ -146,7 +146,7 @@ export class TestProjectWrapper {
   }
 
   public async getArtifactFolders(): Promise<string[]> {
-    return readdir(this.artifactsBasePath());
+    return await readdir(this.artifactsBasePath());
   }
 
   public async getArtifacts(): Promise<Record<string, FileDetail[]>> {

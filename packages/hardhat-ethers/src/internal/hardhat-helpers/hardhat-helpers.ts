@@ -104,7 +104,7 @@ export class HardhatHelpers {
     if (typeof nameOrAbi === "string") {
       const artifact = await this.#artifactManager.readArtifact(nameOrAbi);
 
-      return this.getContractFactoryFromArtifact<A, I>(
+      return await this.getContractFactoryFromArtifact<A, I>(
         artifact,
         // eslint-disable-next-line @typescript-eslint/consistent-type-assertions -- bytecodeOrFactoryOptions overlaps with one of the following types
         bytecodeOrFactoryOptions as EthersT.Signer | FactoryOptions | undefined,
@@ -117,7 +117,7 @@ export class HardhatHelpers {
       "bytecode should be a string",
     );
 
-    return this.#getContractFactoryByAbiAndBytecode(
+    return await this.#getContractFactoryByAbiAndBytecode(
       nameOrAbi,
       bytecodeOrFactoryOptions,
       signer,
@@ -159,7 +159,7 @@ export class HardhatHelpers {
       libraries,
     );
 
-    return this.#getContractFactoryByAbiAndBytecode(
+    return await this.#getContractFactoryByAbiAndBytecode(
       artifact.abi,
       linkedBytecode,
       signer,
@@ -174,7 +174,7 @@ export class HardhatHelpers {
     if (typeof nameOrAbi === "string") {
       const artifact = await this.#artifactManager.readArtifact(nameOrAbi);
 
-      return this.getContractAtFromArtifact(artifact, address, signer);
+      return await this.getContractAtFromArtifact(artifact, address, signer);
     }
 
     if (signer === undefined) {
@@ -266,14 +266,14 @@ export class HardhatHelpers {
     }
 
     const factory = await this.getContractFactory(name, signerOrOptions);
-    return factory.deploy(...args, overrides);
+    return await factory.deploy(...args, overrides);
   }
 
   public async getImpersonatedSigner(
     address: string,
   ): Promise<HardhatEthersSigner> {
     await this.#provider.send("hardhat_impersonateAccount", [address]);
-    return this.getSigner(address);
+    return await this.getSigner(address);
   }
 
   #isArtifact(artifact: any): artifact is Artifact {

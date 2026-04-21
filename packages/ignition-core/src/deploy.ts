@@ -149,7 +149,7 @@ export async function deploy<
     executionEventListener,
   );
 
-  return deployer.deploy(
+  return await deployer.deploy(
     ignitionModule,
     deploymentParameters,
     accounts,

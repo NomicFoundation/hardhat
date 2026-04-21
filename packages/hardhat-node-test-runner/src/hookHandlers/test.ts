@@ -26,7 +26,7 @@ export default async (): Promise<Partial<TestHooks>> => {
         return "nodejs";
       }
 
-      return next(context, filePath);
+      return await next(context, filePath);
     },
   };
 

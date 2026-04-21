@@ -35,5 +35,5 @@ export async function populate(
     pop.from = signer.getAddress();
   }
 
-  return resolveProperties(pop);
+  return await resolveProperties(pop);
 }

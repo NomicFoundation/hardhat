@@ -32,7 +32,7 @@ const hardhatPlugin: HardhatPlugin = {
         name: "noCompile",
         description: "Do not compile the project before running the tests",
       })
-      .setAction(async () => import("./task-action.js"))
+      .setAction(async () => await import("./task-action.js"))
       .build(),
   ],
   dependencies: () => [import("../solidity/index.js")],

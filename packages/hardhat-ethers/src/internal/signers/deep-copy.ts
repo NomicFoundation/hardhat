@@ -34,7 +34,7 @@ export async function deepCopy<T = any>(value: T): Promise<T> {
   }
 
   if (Array.isArray(value)) {
-    return deepClone(value);
+    return await deepClone(value);
   }
 
   if (isObject(value)) {

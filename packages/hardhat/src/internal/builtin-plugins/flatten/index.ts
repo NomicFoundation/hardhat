@@ -14,7 +14,7 @@ const hardhatPlugin: HardhatPlugin = {
         description: "An optional list of files to flatten",
         type: ArgumentType.FILE,
       })
-      .setAction(async () => import("./task-action.js"))
+      .setAction(async () => await import("./task-action.js"))
       .build(),
   ],
 };

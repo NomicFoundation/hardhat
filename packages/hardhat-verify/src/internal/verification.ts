@@ -359,7 +359,7 @@ export async function createVerificationProviderInstance({
     dispatcher,
   });
 
-  return ProviderClass.create(createOptions);
+  return await ProviderClass.create(createOptions);
 }
 
 async function attemptVerification(

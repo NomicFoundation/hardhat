@@ -59,7 +59,7 @@ describe("network-helpers - impersonateAccount", () => {
 
   it("should throw because the address is not valid", async () => {
     await assertRejectsWithHardhatError(
-      async () => networkHelpers.setBalance("0xaa", 1),
+      async () => await networkHelpers.setBalance("0xaa", 1),
       HardhatError.ERRORS.NETWORK_HELPERS.GENERAL.INVALID_ADDRESS,
       {
         value: "0xaa",

@@ -183,7 +183,7 @@ export class FutureProcessor {
   ): Promise<JournalMessage | undefined> {
     switch (nextAction) {
       case NextAction.RUN_STRATEGY:
-        return runStrategy(exState, this._executionStrategy);
+        return await runStrategy(exState, this._executionStrategy);
 
       case NextAction.SEND_TRANSACTION:
         assertIgnitionInvariant(
@@ -191,7 +191,7 @@ export class FutureProcessor {
           `Unexpected transaction request in StaticCallExecutionState ${exState.id}`,
         );
 
-        return sendTransaction(
+        return await sendTransaction(
           exState,
           this._executionStrategy,
           this._jsonRpcClient,
@@ -201,7 +201,7 @@ export class FutureProcessor {
         );
 
       case NextAction.QUERY_STATIC_CALL:
-        return queryStaticCall(exState, this._jsonRpcClient);
+        return await queryStaticCall(exState, this._jsonRpcClient);
 
       case NextAction.MONITOR_ONCHAIN_INTERACTION:
         assertIgnitionInvariant(
@@ -209,7 +209,7 @@ export class FutureProcessor {
           `Unexpected transaction request in StaticCallExecutionState ${exState.id}`,
         );
 
-        return monitorOnchainInteraction({
+        return await monitorOnchainInteraction({
           exState,
           jsonRpcClient: this._jsonRpcClient,
           transactionTrackingTimer: this._transactionTrackingTimer,

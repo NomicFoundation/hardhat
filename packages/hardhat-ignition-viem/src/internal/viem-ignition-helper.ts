@@ -308,7 +308,7 @@ export class ViemIgnitionHelperImpl<ChainTypeT extends ChainType | string>
       `Expected contract future but got ${future.id} with type ${future.type} instead`,
     );
 
-    return this.#convertContractFutureToViemContract(
+    return await this.#convertContractFutureToViemContract(
       connection,
       future,
       deployedContract,
@@ -324,7 +324,7 @@ export class ViemIgnitionHelperImpl<ChainTypeT extends ChainType | string>
       case FutureType.NAMED_ARTIFACT_CONTRACT_DEPLOYMENT:
       case FutureType.NAMED_ARTIFACT_LIBRARY_DEPLOYMENT:
       case FutureType.NAMED_ARTIFACT_CONTRACT_AT:
-        return this.#convertHardhatContractToViemContract(
+        return await this.#convertHardhatContractToViemContract(
           connection,
           future,
           deployedContract,
@@ -332,7 +332,7 @@ export class ViemIgnitionHelperImpl<ChainTypeT extends ChainType | string>
       case FutureType.CONTRACT_DEPLOYMENT:
       case FutureType.LIBRARY_DEPLOYMENT:
       case FutureType.CONTRACT_AT:
-        return this.#convertArtifactToViemContract(
+        return await this.#convertArtifactToViemContract(
           connection,
           future,
           deployedContract,

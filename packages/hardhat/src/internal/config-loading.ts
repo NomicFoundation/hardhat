@@ -34,15 +34,15 @@ export async function resolveHardhatConfigPath(
   userProvidedPath?: string,
 ): Promise<string> {
   if (userProvidedPath !== undefined) {
-    return normalizeConfigPath(userProvidedPath);
+    return await normalizeConfigPath(userProvidedPath);
   }
 
   if (process.env.HARDHAT_CONFIG !== undefined) {
     log("Using config file path from the HARDHAT_CONFIG env var");
-    return normalizeConfigPath(process.env.HARDHAT_CONFIG);
+    return await normalizeConfigPath(process.env.HARDHAT_CONFIG);
   }
 
-  return findClosestHardhatConfig();
+  return await findClosestHardhatConfig();
 }
 
 /**

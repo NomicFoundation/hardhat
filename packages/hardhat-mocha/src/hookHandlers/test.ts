@@ -26,7 +26,7 @@ export default async (): Promise<Partial<TestHooks>> => {
         return "mocha";
       }
 
-      return next(context, filePath);
+      return await next(context, filePath);
     },
   };
 

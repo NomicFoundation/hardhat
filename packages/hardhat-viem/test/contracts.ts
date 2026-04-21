@@ -267,7 +267,7 @@ describe("contracts", () => {
               result: [],
             };
           }
-          return next(context, netConn, jsonRpcRequest);
+          return await next(context, netConn, jsonRpcRequest);
         };
         const networkHooks: Partial<NetworkHooks> = {
           onRequest,
