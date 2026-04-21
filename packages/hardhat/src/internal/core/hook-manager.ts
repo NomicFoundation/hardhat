@@ -96,6 +96,10 @@ export class HookManagerImplementation implements HookManager {
       for (const hookCategoryName of Object.keys(plugin.hookHandlers) as Array<
         keyof HardhatHooks
       >) {
+        if (plugin.hookHandlers[hookCategoryName] === undefined) {
+          continue;
+        }
+
         let pluginsForCategory =
           this.#pluginsByHookCategory.get(hookCategoryName);
 
