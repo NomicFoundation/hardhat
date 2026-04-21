@@ -10,6 +10,10 @@ function createUnhandledErrorListener(isPromiseRejection: boolean) {
     ? "Unhandled promise rejection"
     : "Uncaught exception";
 
+  const mechanismType = isPromiseRejection
+    ? "onunhandledrejection"
+    : "onuncaughtexception";
+
   async function listener(error: Error | unknown) {
     log(description, error);
 
@@ -26,7 +30,10 @@ function createUnhandledErrorListener(isPromiseRejection: boolean) {
           );
 
     try {
-      await sendErrorTelemetry(telemetryError);
+      await sendErrorTelemetry(telemetryError, {
+        unhandled: true,
+        mechanismType,
+      });
     } catch (telemetryErrorReportingError) {
       log(
         "Failed to send telemetry for unhandled error",
