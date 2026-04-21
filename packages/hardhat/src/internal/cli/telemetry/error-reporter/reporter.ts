@@ -13,8 +13,22 @@ let cliHardhatConfigPath: string | undefined;
  *
  * While this function is async, it's expected to always complete quickly,
  * delegating the actual reporting to a subprocess.
+ *
+ * @param error - The error to report.
+ * @param hint - Optional metadata describing how the error was captured, used
+ *   to tag the event in Sentry so unhandled crashes can be distinguished from
+ *   errors caught and reported by the CLI.
+ * @param hint.unhandled - Whether the error reached a global handler without
+ *   being caught (e.g. an uncaught exception or unhandled promise rejection).
+ *   Defaults to `false` (i.e. the error was handled).
+ * @param hint.mechanismType - The Sentry mechanism type, used as a tag on the
+ *   event. Common values are `"onuncaughtexception"`, `"onunhandledrejection"`,
+ *   `"instrument"`, and `"generic"`. Defaults to `"generic"`.
  */
-export async function sendErrorTelemetry(error: Error): Promise<void> {
+export async function sendErrorTelemetry(
+  error: Error,
+  hint?: { unhandled?: boolean; mechanismType?: string },
+): Promise<void> {
   if (sentryReporterModule === undefined) {
     sentryReporterModule = await import("../sentry/reporter.js");
   }
@@ -23,7 +37,7 @@ export async function sendErrorTelemetry(error: Error): Promise<void> {
     sentryReporterModule.setCliHardhatConfigPath(cliHardhatConfigPath);
   }
 
-  await sentryReporterModule.sendErrorTelemetry(error);
+  await sentryReporterModule.sendErrorTelemetry(error, hint);
 }
 
 /**

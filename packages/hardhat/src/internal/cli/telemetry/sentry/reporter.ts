@@ -23,9 +23,12 @@ export const SENTRY_DSN =
  * @deprecated Use packages/hardhat/src/internal/cli/telemetry/error-reporter/reporter.ts
  *   instead.
  */
-export async function sendErrorTelemetry(error: Error): Promise<boolean> {
+export async function sendErrorTelemetry(
+  error: Error,
+  hint?: { unhandled?: boolean; mechanismType?: string },
+): Promise<boolean> {
   const instance = await Reporter.getInstance();
-  return instance.reportErrorViaSubprocess(error);
+  return instance.reportErrorViaSubprocess(error, hint);
 }
 
 export function setCliHardhatConfigPath(configPath: string): void {
@@ -103,7 +106,10 @@ class Reporter {
     this.#instance = undefined;
   }
 
-  public async reportErrorViaSubprocess(error: Error): Promise<boolean> {
+  public async reportErrorViaSubprocess(
+    error: Error,
+    hint?: { unhandled?: boolean; mechanismType?: string },
+  ): Promise<boolean> {
     if (!(await this.#shouldBeReported(error))) {
       log("Error not send: this type of error should not be reported");
       return false;
@@ -113,7 +119,17 @@ class Reporter {
 
     log("Capturing exception");
 
-    captureException(error);
+    captureException(
+      error,
+      hint !== undefined
+        ? {
+            mechanism: {
+              type: hint.mechanismType ?? "generic",
+              handled: hint.unhandled !== true,
+            },
+          }
+        : undefined,
+    );
     await flush();
 
     return true;
