@@ -1093,7 +1093,7 @@ describe("HookManager", () => {
                   extendUserConfig: async (
                     config: HardhatUserConfig,
                     next: (c: HardhatUserConfig) => Promise<HardhatUserConfig>,
-                  ) => next(config),
+                  ) => await next(config),
                   validateUserConfig: async (): Promise<
                     HardhatUserConfigValidationError[]
                   > => [],
