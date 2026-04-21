@@ -201,7 +201,7 @@ describe("Plugins - resolve plugin list", () => {
     const copy = { id: "dup" };
 
     await assertRejectsWithHardhatError(
-      async () => resolvePluginList(installedPackageFixture, [a, copy]),
+      async () => await resolvePluginList(installedPackageFixture, [a, copy]),
       HardhatError.ERRORS.CORE.GENERAL.DUPLICATED_PLUGIN_ID,
       {
         id: "dup",
@@ -218,7 +218,7 @@ describe("Plugins - resolve plugin list", () => {
       };
 
       await assertRejectsWithHardhatError(
-        async () => resolvePluginList(installedPackageFixture, [plugin]),
+        async () => await resolvePluginList(installedPackageFixture, [plugin]),
         HardhatError.ERRORS.CORE.PLUGINS.PLUGIN_DEPENDENCY_FAILED_LOAD,
         { pluginId: plugin.id },
       );
@@ -236,7 +236,8 @@ describe("Plugins - resolve plugin list", () => {
       };
 
       await assertRejectsWithHardhatError(
-        async () => resolvePluginList(notInstalledPackageFixture, [plugin]),
+        async () =>
+          await resolvePluginList(notInstalledPackageFixture, [plugin]),
         HardhatError.ERRORS.CORE.PLUGINS.PLUGIN_NOT_INSTALLED,
         {
           pluginId: "example",

@@ -24,7 +24,7 @@ export function isAddress(value: unknown): value is PrefixedHexString {
  * @returns True if the value is an Ethereum address with a valid checksum, false otherwise.
  */
 export async function isValidChecksumAddress(value: unknown): Promise<boolean> {
-  return isAddress(value) && isValidChecksum(value);
+  return await (isAddress(value) && isValidChecksum(value));
 }
 
 /**
@@ -55,7 +55,7 @@ export function toEvmWord(value: bigint | number): PrefixedHexString {
  */
 export async function generateHashBytes(): Promise<Uint8Array> {
   const hashGenerator = await getHashGenerator();
-  return hashGenerator.next();
+  return await hashGenerator.next();
 }
 
 /**

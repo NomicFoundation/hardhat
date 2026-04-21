@@ -50,7 +50,7 @@ async function assertFlattenedFilesResult(flattened: string) {
 }
 
 async function createHRE() {
-  return createHardhatRuntimeEnvironment({}, {}, process.cwd());
+  return await createHardhatRuntimeEnvironment({}, {}, process.cwd());
 }
 
 describe("flatten/task-action", () => {

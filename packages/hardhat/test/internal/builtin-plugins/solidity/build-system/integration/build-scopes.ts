@@ -56,7 +56,7 @@ function makeBuildHookAddingPlugin(
               const nextRoots = shouldAdd
                 ? [...rootFilePaths, extraFile]
                 : rootFilePaths;
-              return next(context, nextRoots, options);
+              return await next(context, nextRoots, options);
             },
           };
           return handlers;

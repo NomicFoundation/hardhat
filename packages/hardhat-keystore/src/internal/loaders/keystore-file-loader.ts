@@ -36,7 +36,7 @@ export class KeystoreFileLoader implements KeystoreLoader {
       return true;
     }
 
-    return this.#fileManager.fileExists(this.#keystoreFilePath);
+    return await this.#fileManager.fileExists(this.#keystoreFilePath);
   }
 
   public async loadKeystore(): Promise<Keystore> {

@@ -158,7 +158,7 @@ export async function trackTransaction(
           // case 2: the user sent a different transaction that replaced ours
           // so we check their transaction for the required number of confirmations
           else {
-            return checkConfirmations(
+            return await checkConfirmations(
               exState,
               networkInteraction,
               transaction,
@@ -181,7 +181,7 @@ export async function trackTransaction(
 
           // case 4: the user sent a different transaction that replaced ours
           // so we check their transaction for the required number of confirmations
-          return checkConfirmations(
+          return await checkConfirmations(
             exState,
             networkInteraction,
             transaction,

@@ -51,7 +51,7 @@ describe("network-helpers - setStorageAt", () => {
 
   it("should throw because the address is not valid", async () => {
     await assertRejectsWithHardhatError(
-      async () => networkHelpers.setStorageAt("0xaa", "0x1", "0xbeef"),
+      async () => await networkHelpers.setStorageAt("0xaa", "0x1", "0xbeef"),
       HardhatError.ERRORS.NETWORK_HELPERS.GENERAL.INVALID_ADDRESS,
       {
         value: "0xaa",

@@ -32,7 +32,7 @@ describe("build profile", function () {
               default: async (args, _hre, runSuper) => {
                 defaultBuildProfile = args.defaultBuildProfile;
 
-                return runSuper(args);
+                return await runSuper(args);
               },
             }))
             .build(),

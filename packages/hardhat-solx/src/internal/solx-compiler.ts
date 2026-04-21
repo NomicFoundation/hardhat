@@ -41,6 +41,6 @@ export class SolxCompiler implements Compiler {
       },
     };
 
-    return this.#spawnCompile(this.compilerPath, args, modifiedInput);
+    return await this.#spawnCompile(this.compilerPath, args, modifiedInput);
   }
 }

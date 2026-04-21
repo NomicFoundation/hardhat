@@ -224,7 +224,11 @@ export class HttpProvider extends BaseProvider {
           retryCount,
         );
         if (this.#shouldRetryRequest(retryAfterSeconds, retryCount)) {
-          return this.#retry(jsonRpcRequest, retryAfterSeconds, retryCount);
+          return await this.#retry(
+            jsonRpcRequest,
+            retryAfterSeconds,
+            retryCount,
+          );
         }
 
         // eslint-disable-next-line no-restricted-syntax -- allow throwing ProviderError
@@ -269,7 +273,7 @@ export class HttpProvider extends BaseProvider {
     retryCount: number,
   ) {
     await sleep(retryAfterSeconds);
-    return this.#fetchJsonRpcResponse(request, retryCount + 1);
+    return await this.#fetchJsonRpcResponse(request, retryCount + 1);
   }
 }
 

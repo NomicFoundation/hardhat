@@ -94,7 +94,7 @@ export default async (): Promise<Partial<SolidityHooks>> => ({
         );
       }
     } else {
-      return next(context, sourceName, fsPath, fileContent, solcVersion);
+      return await next(context, sourceName, fsPath, fileContent, solcVersion);
     }
   },
   preprocessSolcInputBeforeBuilding: async (context, solcInput, next) => {
@@ -121,6 +121,6 @@ export default async (): Promise<Partial<SolidityHooks>> => ({
       solcInput.sources[COVERAGE_LIBRARY_PATH] = { content };
     }
 
-    return next(context, solcInput);
+    return await next(context, solcInput);
   },
 });

@@ -38,7 +38,7 @@ export class HardhatViemAssertionsImpl<
       amount: bigint;
     }>,
   ): Promise<void> {
-    return balancesHaveChanged(this.#viem, resolvedTxHash, changes);
+    return await balancesHaveChanged(this.#viem, resolvedTxHash, changes);
   }
 
   public async emit<
@@ -49,7 +49,7 @@ export class HardhatViemAssertionsImpl<
     contract: ContractReturnType<ContractName>,
     eventName: EventName,
   ): Promise<void> {
-    return emit(this.#viem, contractFn, contract, eventName);
+    return await emit(this.#viem, contractFn, contract, eventName);
   }
 
   public async emitWithArgs<
@@ -61,20 +61,26 @@ export class HardhatViemAssertionsImpl<
     eventName: EventName,
     args: any[],
   ): Promise<void> {
-    return emitWithArgs(this.#viem, contractFn, contract, eventName, args);
+    return await emitWithArgs(
+      this.#viem,
+      contractFn,
+      contract,
+      eventName,
+      args,
+    );
   }
 
   public async revert(
     contractFn: Promise<ReadContractReturnType | WriteContractReturnType>,
   ): Promise<void> {
-    return revert(contractFn);
+    return await revert(contractFn);
   }
 
   public async revertWith(
     contractFn: Promise<ReadContractReturnType | WriteContractReturnType>,
     expectedRevertReason: string,
   ): Promise<void> {
-    return revertWith(contractFn, expectedRevertReason);
+    return await revertWith(contractFn, expectedRevertReason);
   }
 
   public async revertWithCustomError<ContractName extends keyof ContractAbis>(
@@ -82,7 +88,7 @@ export class HardhatViemAssertionsImpl<
     contract: ContractReturnType<ContractName>,
     customErrorName: string,
   ): Promise<void> {
-    return revertWithCustomError(contractFn, contract, customErrorName);
+    return await revertWithCustomError(contractFn, contract, customErrorName);
   }
 
   public async revertWithCustomErrorWithArgs<
@@ -93,7 +99,7 @@ export class HardhatViemAssertionsImpl<
     customErrorName: string,
     args: any[],
   ): Promise<void> {
-    return revertWithCustomErrorWithArgs(
+    return await revertWithCustomErrorWithArgs(
       contractFn,
       contract,
       customErrorName,

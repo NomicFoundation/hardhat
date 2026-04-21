@@ -1943,9 +1943,14 @@ describe("resolved config validation", function () {
     const resolvedPlugins = await resolvePluginList(resolvedProjectRoot, [
       plugin,
     ]);
-    return createHardhatRuntimeEnvironment(config, {}, resolvedProjectRoot, {
-      resolvedPlugins,
-    });
+    return await createHardhatRuntimeEnvironment(
+      config,
+      {},
+      resolvedProjectRoot,
+      {
+        resolvedPlugins,
+      },
+    );
   }
 
   it("should throw INVALID_RESOLVED_CONFIG when validateResolvedConfig returns errors", async function () {

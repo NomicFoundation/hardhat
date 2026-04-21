@@ -162,7 +162,7 @@ async function getTxFees(
   txResponse: TransactionResponse,
   options?: BalanceChangeOptions,
 ): Promise<bigint[]> {
-  return Promise.all(
+  return await Promise.all(
     accounts.map(async (account) => {
       if (
         options?.includeFee !== true &&

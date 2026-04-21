@@ -60,7 +60,7 @@ export async function sendTaskAnalytics(taskId: string[]): Promise<boolean> {
     },
   };
 
-  return sendAnalytics(taskAnalyticsEvent);
+  return await sendAnalytics(taskAnalyticsEvent);
 }
 
 export async function sendProjectTypeAnalytics(
@@ -75,7 +75,7 @@ export async function sendProjectTypeAnalytics(
     },
   };
 
-  return sendAnalytics(initAnalyticsEvent);
+  return await sendAnalytics(initAnalyticsEvent);
 }
 
 // Return a boolean for testing purposes to confirm whether analytics were sent based on the consent value and not in CI environments

@@ -103,7 +103,7 @@ describe("network-helpers - dropTransaction", () => {
 
   it(`should throw because the transaction hash is invalid`, async function () {
     await assertRejectsWithHardhatError(
-      async () => networkHelpers.dropTransaction("0xaaa"),
+      async () => await networkHelpers.dropTransaction("0xaaa"),
       HardhatError.ERRORS.NETWORK_HELPERS.GENERAL.INVALID_TX_HASH,
       {
         value: "0xaaa",

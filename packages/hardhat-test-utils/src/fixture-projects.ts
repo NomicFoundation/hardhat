@@ -82,5 +82,5 @@ async function getFixtureProjectPath(
     throw new Error(`Fixture project ${projectName} doesn't exist`);
   }
 
-  return getRealPath(projectPath);
+  return await getRealPath(projectPath);
 }

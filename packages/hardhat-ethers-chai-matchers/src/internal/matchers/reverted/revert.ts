@@ -146,7 +146,7 @@ export function supportRevert(
 }
 
 async function waitForTransactionReceipt(ethers: HardhatEthers, hash: string) {
-  return ethers.provider.waitForTransaction(hash);
+  return await ethers.provider.waitForTransaction(hash);
 }
 
 function isTransactionResponse(x: unknown): x is { hash: string } {

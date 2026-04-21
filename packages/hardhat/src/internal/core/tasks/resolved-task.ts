@@ -185,12 +185,12 @@ export class ResolvedTask implements Task {
         nextTaskArguments,
         this.#hre,
         async (newTaskArguments: TaskArguments) => {
-          return next(newTaskArguments, currentIndex - 1);
+          return await next(newTaskArguments, currentIndex - 1);
         },
       );
     };
 
-    return next(validatedTaskArguments);
+    return await next(validatedTaskArguments);
   }
 
   /**

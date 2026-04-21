@@ -6,7 +6,7 @@ import { validateLedgerUserConfig } from "../config/validate-ledger-user-config.
 export default async (): Promise<Partial<ConfigHooks>> => {
   const handlers: Partial<ConfigHooks> = {
     validateUserConfig: async (userConfig) =>
-      validateLedgerUserConfig(userConfig),
+      await validateLedgerUserConfig(userConfig),
     resolveUserConfig: async (
       userConfig,
       resolveConfigurationVariable,

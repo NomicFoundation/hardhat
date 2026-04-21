@@ -139,7 +139,7 @@ export async function sendEnvelopeToSentryBackend(
   dsn: string,
   envelope: Envelope,
 ): Promise<TransportMakeRequestResponse> {
-  return sendSerializedEnvelopeToSentryBackend(
+  return await sendSerializedEnvelopeToSentryBackend(
     dsn,
     serializeEnvelope(envelope),
   );

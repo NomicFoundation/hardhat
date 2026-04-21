@@ -14,7 +14,7 @@ describe("deploy - build invocation", function () {
       .setAction(async () => ({
         default: async (args: any, _hre, runSuper) => {
           buildArgs.push(args);
-          return runSuper(args);
+          return await runSuper(args);
         },
       }))
       .build();

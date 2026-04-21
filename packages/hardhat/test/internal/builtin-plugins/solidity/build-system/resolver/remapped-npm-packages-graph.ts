@@ -2051,7 +2051,7 @@ d/=../node_modules/d/`,
         defaultBehavior,
       ) => {
         hookCalls.push({ name, version, path: packagePath });
-        return defaultBehavior(name, version, packagePath);
+        return await defaultBehavior(name, version, packagePath);
       };
 
       const graph = await RemappedNpmPackagesGraphImplementation.create(
@@ -2121,7 +2121,7 @@ d/=../node_modules/d/`,
         defaultBehavior,
       ) => {
         hookCalls.push({ name, version, path: packagePath });
-        return defaultBehavior(name, version, packagePath);
+        return await defaultBehavior(name, version, packagePath);
       };
 
       const graph = await RemappedNpmPackagesGraphImplementation.create(

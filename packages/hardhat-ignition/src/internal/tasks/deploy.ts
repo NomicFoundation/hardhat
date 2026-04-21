@@ -274,7 +274,7 @@ async function resolveParametersFromModuleName(
   const configFilename = `${moduleName}.config.json`;
 
   return files.includes(configFilename)
-    ? readDeploymentParameters(path.resolve(ignitionPath, configFilename))
+    ? await readDeploymentParameters(path.resolve(ignitionPath, configFilename))
     : undefined;
 }
 
@@ -283,7 +283,7 @@ async function resolveParametersFromFileName(
 ): Promise<DeploymentParameters> {
   const filepath = path.resolve(process.cwd(), fileName);
 
-  return readDeploymentParameters(filepath);
+  return await readDeploymentParameters(filepath);
 }
 
 async function resolveParametersString(

@@ -69,7 +69,7 @@ export async function getAllFilesMatching(
           directoryFilter === undefined ||
           (await directoryFilter(absolutePathToFile))
         ) {
-          return getAllFilesMatching(
+          return await getAllFilesMatching(
             absolutePathToFile,
             matches,
             directoryFilter,
@@ -120,7 +120,7 @@ export async function getAllDirectoriesMatching(
         return absolutePathToFile;
       }
 
-      return getAllDirectoriesMatching(absolutePathToFile, matches);
+      return await getAllDirectoriesMatching(absolutePathToFile, matches);
     }),
   );
 

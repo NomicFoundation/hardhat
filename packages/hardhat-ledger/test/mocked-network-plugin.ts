@@ -32,7 +32,7 @@ const mockedNetworkPlugin: HardhatPlugin = {
             };
           }
 
-          return next(context, networkConnection, jsonRpcRequest);
+          return await next(context, networkConnection, jsonRpcRequest);
         },
       }),
     }),

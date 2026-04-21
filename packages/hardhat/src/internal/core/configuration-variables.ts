@@ -118,24 +118,25 @@ export class LazyResolvedConfigurationVariable extends BaseResolvedConfiguration
     const mutex = LazyResolvedConfigurationVariable.#mutexes.get(this.#hooks);
     assertHardhatInvariant(mutex !== undefined, "Mutex must be defined");
 
-    return mutex.exclusiveRun(async () =>
-      this.#hooks.runHandlerChain(
-        "configurationVariables",
-        "fetchValue",
-        [this.#variable],
-        async (_context, v) => {
-          const value = process.env[v.name];
+    return await mutex.exclusiveRun(
+      async () =>
+        await this.#hooks.runHandlerChain(
+          "configurationVariables",
+          "fetchValue",
+          [this.#variable],
+          async (_context, v) => {
+            const value = process.env[v.name];
 
-          if (typeof value !== "string") {
-            throw new HardhatError(
-              HardhatError.ERRORS.CORE.GENERAL.ENV_VAR_NOT_FOUND,
-              { name: v.name },
-            );
-          }
+            if (typeof value !== "string") {
+              throw new HardhatError(
+                HardhatError.ERRORS.CORE.GENERAL.ENV_VAR_NOT_FOUND,
+                { name: v.name },
+              );
+            }
 
-          return value;
-        },
-      ),
+            return value;
+          },
+        ),
     );
   }
 }

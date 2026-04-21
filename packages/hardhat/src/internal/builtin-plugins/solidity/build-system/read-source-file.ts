@@ -6,11 +6,11 @@ export function readSourceFileFactory(
   hooks: HookManager,
 ): (absPath: string) => Promise<string> {
   return async (factoryAbsPath: string) => {
-    return hooks.runHandlerChain(
+    return await hooks.runHandlerChain(
       "solidity",
       "readSourceFile",
       [factoryAbsPath],
-      async (_context, absPath) => readUtf8File(absPath),
+      async (_context, absPath) => await readUtf8File(absPath),
     );
   };
 }

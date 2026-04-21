@@ -195,7 +195,7 @@ export class CompilerDownloaderImplementation implements CompilerDownloader {
 
     const downloadPath = this.#getCompilerBinaryPathFromBuild(build);
 
-    return exists(downloadPath);
+    return await exists(downloadPath);
   }
 
   public async downloadCompiler(version: string): Promise<boolean> {
@@ -208,7 +208,7 @@ export class CompilerDownloaderImplementation implements CompilerDownloader {
       path.join(this.#compilersDir, `compiler-download-${version}`),
     );
 
-    return mutex.use(async () => {
+    return await mutex.use(async () => {
       const isCompilerDownloaded = await this.isCompilerDownloaded(version);
 
       if (isCompilerDownloaded === true) {
@@ -240,7 +240,7 @@ export class CompilerDownloaderImplementation implements CompilerDownloader {
         }
       }
 
-      return this.#postProcessCompilerDownload(build, downloadPath);
+      return await this.#postProcessCompilerDownload(build, downloadPath);
     });
   }
 
@@ -295,7 +295,7 @@ export class CompilerDownloaderImplementation implements CompilerDownloader {
   }
 
   async #readCompilerList(listPath: string): Promise<CompilerList> {
-    return readJsonFile(listPath);
+    return await readJsonFile(listPath);
   }
 
   #getCompilerDownloadPathFromBuild(build: CompilerBuild): string {

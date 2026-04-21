@@ -63,77 +63,77 @@ async function _validateFuture(
 ): Promise<string[]> {
   switch (future.type) {
     case FutureType.CONTRACT_DEPLOYMENT:
-      return validateArtifactContractDeployment(
+      return await validateArtifactContractDeployment(
         future,
         artifactLoader,
         deploymentParameters,
         accounts,
       );
     case FutureType.LIBRARY_DEPLOYMENT:
-      return validateArtifactLibraryDeployment(
+      return await validateArtifactLibraryDeployment(
         future,
         artifactLoader,
         deploymentParameters,
         accounts,
       );
     case FutureType.CONTRACT_AT:
-      return validateArtifactContractAt(
+      return await validateArtifactContractAt(
         future,
         artifactLoader,
         deploymentParameters,
         accounts,
       );
     case FutureType.NAMED_ARTIFACT_CONTRACT_DEPLOYMENT:
-      return validateNamedContractDeployment(
+      return await validateNamedContractDeployment(
         future,
         artifactLoader,
         deploymentParameters,
         accounts,
       );
     case FutureType.NAMED_ARTIFACT_LIBRARY_DEPLOYMENT:
-      return validateNamedLibraryDeployment(
+      return await validateNamedLibraryDeployment(
         future,
         artifactLoader,
         deploymentParameters,
         accounts,
       );
     case FutureType.NAMED_ARTIFACT_CONTRACT_AT:
-      return validateNamedContractAt(
+      return await validateNamedContractAt(
         future,
         artifactLoader,
         deploymentParameters,
         accounts,
       );
     case FutureType.CONTRACT_CALL:
-      return validateNamedContractCall(
+      return await validateNamedContractCall(
         future,
         artifactLoader,
         deploymentParameters,
         accounts,
       );
     case FutureType.STATIC_CALL:
-      return validateNamedStaticCall(
+      return await validateNamedStaticCall(
         future,
         artifactLoader,
         deploymentParameters,
         accounts,
       );
     case FutureType.ENCODE_FUNCTION_CALL:
-      return validateNamedEncodeFunctionCall(
+      return await validateNamedEncodeFunctionCall(
         future,
         artifactLoader,
         deploymentParameters,
         accounts,
       );
     case FutureType.READ_EVENT_ARGUMENT:
-      return validateReadEventArgument(
+      return await validateReadEventArgument(
         future,
         artifactLoader,
         deploymentParameters,
         accounts,
       );
     case FutureType.SEND_DATA:
-      return validateSendData(
+      return await validateSendData(
         future,
         artifactLoader,
         deploymentParameters,

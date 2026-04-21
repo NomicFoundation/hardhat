@@ -12,7 +12,7 @@ export async function resolvePluginList(
   projectRoot: string,
   userConfigPluginList: HardhatPlugin[] = [],
 ): Promise<HardhatPlugin[]> {
-  return reverseTopologicalSort(projectRoot, userConfigPluginList);
+  return await reverseTopologicalSort(projectRoot, userConfigPluginList);
 }
 
 /**

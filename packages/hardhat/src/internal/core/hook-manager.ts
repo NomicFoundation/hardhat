@@ -124,7 +124,7 @@ export class HookManagerImplementation implements HookManager {
       return result;
     };
 
-    return next(...handlerParams);
+    return await next(...handlerParams);
   }
 
   public async runSequentialHandlers<
@@ -192,7 +192,7 @@ export class HookManagerImplementation implements HookManager {
       handlerParams = params;
     }
 
-    return Promise.all(
+    return await Promise.all(
       handlers.map((handler) => (handler as any)(...handlerParams)),
     );
   }
@@ -277,7 +277,7 @@ export class HookManagerImplementation implements HookManager {
     const categories: Array<
       Partial<HardhatHooks[HookCategoryNameT]> | undefined
     > = await this.#mutex.exclusiveRun(async () => {
-      return Promise.all(
+      return await Promise.all(
         this.#pluginsInReverseOrder.map(async (plugin) => {
           const existingCategory = this.#staticHookHandlerCategories
             .get(plugin.id)

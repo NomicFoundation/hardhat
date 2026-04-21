@@ -46,7 +46,7 @@ export async function getSolcCompilerForConfig(
   compilerConfig: SolidityCompilerConfig,
   buildProfilePreferWasm: boolean,
 ): Promise<Compiler> {
-  return getCompiler(compilerConfig.version, {
+  return await getCompiler(compilerConfig.version, {
     preferWasm: resolvePreferWasm(compilerConfig, buildProfilePreferWasm),
     compilerPath: compilerConfig.path,
   });

@@ -16,7 +16,7 @@ export default async (): Promise<Partial<NetworkHooks>> => {
         isInitialized = true;
       }
 
-      return next(context);
+      return await next(context);
     },
   };
 

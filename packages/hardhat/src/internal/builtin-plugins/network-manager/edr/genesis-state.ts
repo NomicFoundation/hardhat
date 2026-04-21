@@ -79,7 +79,7 @@ export async function getGenesisStateAndOwnedAccounts(
     return cached;
   }
 
-  return genesisStateAndAccountsCacheMutex.exclusiveRun(async () => {
+  return await genesisStateAndAccountsCacheMutex.exclusiveRun(async () => {
     // We need to check again inside the mutex callback in case another async
     // operation initialized it while we were waiting to acquire the mutex
     const cachedAfterWaiting = genesisStateAndAccountsCache

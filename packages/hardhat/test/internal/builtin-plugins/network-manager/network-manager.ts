@@ -682,7 +682,7 @@ describe("NetworkManagerImplementation", () => {
         const networkHooks: Partial<NetworkHooks> = {
           newConnection: async (context, next) => {
             hookCalled = true;
-            return next(context);
+            return await next(context);
           },
         };
 
@@ -891,7 +891,7 @@ describe("NetworkManagerImplementation", () => {
             const handlers: Partial<ConfigHooks> = {
               resolveUserConfig: async (userConfig, rCV, next) => {
                 resolveUserConfigCallCount++;
-                return next(userConfig, rCV);
+                return await next(userConfig, rCV);
               },
             };
             return handlers;
@@ -1238,7 +1238,7 @@ describe("NetworkManagerImplementation", () => {
         next,
       ) => {
         hookCalled = true;
-        return next(context, networkConnection, jsonRpcRequest);
+        return await next(context, networkConnection, jsonRpcRequest);
       };
       const networkHooks: Partial<NetworkHooks> = {
         onRequest,
