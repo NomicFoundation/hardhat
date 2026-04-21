@@ -8,8 +8,12 @@
   "commit": "cd6622442c298ae89c4d92bcbc93a0faca4fbfae",
   "packageManager": "pnpm",
   "submodules": true,
-  "defaultCommand": "npx hardhat test solidity",
+  "defaultCommand": "npx hardhat test solidity --no-compile",
   "benchmark": {
-    "defaultRuns": 55
+    "runs": {
+      "coldCompile": 13,
+      "warmCompile": 77,
+      "defaultCommand": 69
+    }
   }
 }

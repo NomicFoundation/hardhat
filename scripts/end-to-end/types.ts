@@ -18,6 +18,11 @@ export interface ScenarioDefinition {
   submodules?: boolean;
   disabled?: true;
   benchmark?: {
-    defaultRuns?: number;
+    skip?: true;
+    runs?: {
+      defaultCommand?: number;
+      coldCompile?: number;
+      warmCompile?: number;
+    };
   };
 }

@@ -67,13 +67,34 @@
       "type": "object",
       "additionalProperties": false,
       "properties": {
-        "defaultRuns": {
-          "type": "integer",
-          "minimum": 1,
-          "description": "Default number of hyperfine benchmark runs for this scenario"
+        "skip": {
+          "type": "boolean",
+          "const": true,
+          "description": "Set to true to skip this scenario in the regression benchmark"
+        },
+        "runs": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "defaultCommand": {
+              "type": "integer",
+              "minimum": 1,
+              "description": "Number of hyperfine runs for the scenario's defaultCommand"
+            },
+            "coldCompile": {
+              "type": "integer",
+              "minimum": 1,
+              "description": "Number of hyperfine runs for `npx hardhat compile` with the cache cleared before each run"
+            },
+            "warmCompile": {
+              "type": "integer",
+              "minimum": 1,
+              "description": "Number of hyperfine runs for `npx hardhat compile` against a warm cache"
+            }
+          }
         }
       },
-      "description": "Benchmark configuration for pnpm bench"
+      "description": "Benchmark configuration for pnpm bench and pnpm bench:regression"
     }
   }
 }

@@ -29,7 +29,14 @@ export function isScenarioDefinition(
   );
 }
 
-function isBenchmarkConfig(value: unknown): value is { defaultRuns?: number } {
+function isBenchmarkConfig(value: unknown): value is {
+  skip?: true;
+  runs?: {
+    defaultCommand?: number;
+    coldCompile?: number;
+    warmCompile?: number;
+  };
+} {
   if (typeof value !== "object" || value === null) {
     return false;
   }
@@ -37,10 +44,33 @@ function isBenchmarkConfig(value: unknown): value is { defaultRuns?: number } {
   const obj = value as Record<string, unknown>;
 
   return (
-    obj.defaultRuns === undefined ||
-    (typeof obj.defaultRuns === "number" &&
-      Number.isInteger(obj.defaultRuns) &&
-      obj.defaultRuns >= 1)
+    (obj.skip === undefined || obj.skip === true) &&
+    (obj.runs === undefined || isBenchmarkRunsConfig(obj.runs))
+  );
+}
+
+function isBenchmarkRunsConfig(value: unknown): value is {
+  defaultCommand?: number;
+  coldCompile?: number;
+  warmCompile?: number;
+} {
+  if (typeof value !== "object" || value === null) {
+    return false;
+  }
+
+  const obj = value as Record<string, unknown>;
+
+  return (
+    isPositiveIntegerOrUndefined(obj.defaultCommand) &&
+    isPositiveIntegerOrUndefined(obj.coldCompile) &&
+    isPositiveIntegerOrUndefined(obj.warmCompile)
+  );
+}
+
+function isPositiveIntegerOrUndefined(value: unknown): boolean {
+  return (
+    value === undefined ||
+    (typeof value === "number" && Number.isInteger(value) && value >= 1)
   );
 }
 
