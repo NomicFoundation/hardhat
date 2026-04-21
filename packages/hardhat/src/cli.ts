@@ -1,10 +1,6 @@
 #!/usr/bin/env node
 
 import { printNodeJsVersionWarningIfNecessary } from "./internal/cli/node-version.js";
-import { setupGlobalUnhandledErrorHandlers } from "./internal/cli/telemetry/error-reporter/global-error-handlers.js";
-
-// We set up the global unhandled errors first
-setupGlobalUnhandledErrorHandlers();
 
 // We enable the sourcemaps before loading main, so that everything except this
 // small file is loaded with sourcemaps enabled.
