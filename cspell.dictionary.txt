@@ -29,6 +29,7 @@ dedup
 defi
 Defi
 dessant
+dirents
 distros
 DISTROS
 dorny
