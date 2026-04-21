@@ -9,6 +9,10 @@
   "preinstall": "./preinstall.sh",
   "defaultCommand": "npx hardhat test mocha",
   "benchmark": {
-    "defaultRuns": 3
+    "runs": {
+      "coldCompile": 3,
+      "warmCompile": 19,
+      "defaultCommand": 3
+    }
   }
 }

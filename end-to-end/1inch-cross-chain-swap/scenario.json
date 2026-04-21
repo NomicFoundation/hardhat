@@ -4,12 +4,16 @@
   "tags": [
     "external-repo"
   ],
-  "repo": "anaPerezGhiglia/1inch-cross-chain-swap",
-  "commit": "52b679b54744872bff8d92941299addb13de790a",
+  "repo": "Wodann/1inch-cross-chain-swap",
+  "commit": "690f7f6bbc826ab3d58995e4bc5bf01694222086",
   "packageManager": "yarn",
   "submodules": true,
-  "defaultCommand": "FOUNDRY_PROFILE=default npx hardhat test solidity",
+  "defaultCommand": "FOUNDRY_PROFILE=default npx hardhat test solidity --no-compile",
   "benchmark": {
-    "defaultRuns": 9
+    "runs": {
+      "coldCompile": 1,
+      "warmCompile": 1,
+      "defaultCommand": 9
+    }
   }
 }

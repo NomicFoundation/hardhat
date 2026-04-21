@@ -1,20 +1,20 @@
 {
   "$schema": "../../scripts/end-to-end/schema/scenario.schema.json",
-  "description": "UniswapX contracts fork to Hardhat 3.",
+  "description": "Lido Dual Governance Smart contracts fork to Hardhat 3.",
   "tags": [
     "external-repo"
   ],
-  "repo": "popescuoctavian/UniswapX",
-  "commit": "e4ed16b4e6894d36b7a19b985333dc254ebbf9d2",
+  "repo": "popescuoctavian/dual-governance",
+  "commit": "ef72db01b9b69fddc7fefae9da160e465921ec42",
   "packageManager": "npm",
   "submodules": true,
   "preinstall": "./preinstall.sh",
   "defaultCommand": "npx hardhat test solidity --no-compile",
   "benchmark": {
     "runs": {
-      "coldCompile": 3,
-      "warmCompile": 37,
-      "defaultCommand": 3
+      "coldCompile": 1,
+      "warmCompile": 1,
+      "defaultCommand": 15
     }
   }
 }

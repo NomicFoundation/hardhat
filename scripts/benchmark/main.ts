@@ -1,7 +1,8 @@
+import { pathToFileURL } from "node:url";
 import { init as e2eInit } from "../end-to-end/subcommands/init.ts";
 import { exec as e2eExec } from "../end-to-end/subcommands/exec.ts";
 import { loadScenario } from "../end-to-end/helpers/directory.ts";
-import { resolveAndValidateArgs } from "./helpers/args.ts";
+import { resolveAndValidateArgs, type BenchArgs } from "./helpers/args.ts";
 import { fmt, log, logStep, logError, logWarning } from "./helpers/log.ts";
 
 const USAGE = `
@@ -32,12 +33,14 @@ OPTIONS
                         to hyperfine's --warmup flag. Useful for filling disk
                         caches for I/O-heavy programs
   --runs <n>            Number of benchmark runs (default: scenario's
-                        benchmark.defaultRuns or 10). Forwarded to hyperfine's
-                        --runs flag
+                        benchmark.runs.defaultCommand or 10). Forwarded to
+                        hyperfine's --runs flag
   --ignore-failure      Ignore non-zero exit codes of the benchmarked command.
                         Forwarded to hyperfine's --ignore-failure flag
   --show-output         Print stdout and stderr of the benchmarked command.
                         Forwarded to hyperfine's --show-output flag
+  --export-json <path>  Write hyperfine's JSON report to PATH. Forwarded to
+                        hyperfine's --export-json flag
   --e2e-clone-dir <p>   Override clone directory (default: same as pnpm e2e)
 
 EXAMPLES
@@ -46,14 +49,7 @@ EXAMPLES
   pnpm bench --scenario ./end-to-end/openzeppelin-contracts --command "npx hardhat compile"
 `;
 
-async function main(): Promise<void> {
-  const benchArgs = resolveAndValidateArgs(process.argv.slice(2));
-
-  if (benchArgs === undefined) {
-    console.log(USAGE);
-    return;
-  }
-
+export async function runBenchmark(benchArgs: BenchArgs): Promise<void> {
   const {
     scenarioPath,
     command,
@@ -65,6 +61,7 @@ async function main(): Promise<void> {
     ignoreFailure,
     showOutput,
     warmup,
+    exportJson,
     e2eCloneDirectory,
   } = benchArgs;
 
@@ -77,47 +74,59 @@ async function main(): Promise<void> {
 
   const benchCommand = command ?? scenario.definition.defaultCommand;
   const runs =
-    benchArgs.runs ?? scenario.definition.benchmark?.defaultRuns ?? 10;
+    benchArgs.runs ?? scenario.definition.benchmark?.runs?.defaultCommand ?? 10;
 
-  try {
-    if (init) {
-      logStep("Initializing scenario");
-      await e2eInit(e2eCloneDirectory, scenarioPath, useLocal, forcePublish);
-    }
+  if (init) {
+    logStep("Initializing scenario");
+    await e2eInit(e2eCloneDirectory, scenarioPath, useLocal, forcePublish);
+  }
 
-    if (precompile) {
-      logStep("Precompiling (npx hardhat compile)");
-      await e2eExec(
-        e2eCloneDirectory,
-        scenarioPath,
-        "npx hardhat compile",
-        useLocal,
-        forcePublish,
-      );
-    }
-
-    logStep("Running benchmark");
-    const hyperfineCommand = buildHyperfineCommand(
-      benchCommand,
-      warmup,
-      runs,
-      prepare,
-      ignoreFailure,
-      showOutput,
-    );
-
-    log(`Benchmarking: ${fmt.pkg(benchCommand)}`);
-    log(`Warmup: ${warmup}, Runs: ${runs}`);
-
+  if (precompile) {
+    logStep("Precompiling (npx hardhat compile)");
     await e2eExec(
       e2eCloneDirectory,
       scenarioPath,
-      hyperfineCommand,
+      "npx hardhat compile",
       useLocal,
       forcePublish,
     );
+  }
 
-    log(fmt.success("Benchmark complete"));
+  logStep("Running benchmark");
+  const hyperfineCommand = buildHyperfineCommand(
+    benchCommand,
+    warmup,
+    runs,
+    prepare,
+    ignoreFailure,
+    showOutput,
+    exportJson,
+  );
+
+  log(`Benchmarking: ${fmt.pkg(benchCommand)}`);
+  log(`Warmup: ${warmup}, Runs: ${runs}`);
+
+  await e2eExec(
+    e2eCloneDirectory,
+    scenarioPath,
+    hyperfineCommand,
+    useLocal,
+    forcePublish,
+  );
+
+  log(fmt.success("Benchmark complete"));
+}
+
+async function cliMain(): Promise<void> {
+  const benchArgs = resolveAndValidateArgs(process.argv.slice(2));
+
+  if (benchArgs === undefined) {
+    console.log(USAGE);
+    return;
+  }
+
+  try {
+    await runBenchmark(benchArgs);
   } catch (error) {
     if (!(error instanceof Error)) {
       throw error;
@@ -135,6 +144,7 @@ function buildHyperfineCommand(
   prepare: string | undefined,
   ignoreFailure: boolean,
   showOutput: boolean,
+  exportJson: string | undefined,
 ): string {
   const parts: string[] = ["hyperfine"];
 
@@ -156,9 +166,15 @@ function buildHyperfineCommand(
     parts.push("--show-output");
   }
 
+  if (exportJson !== undefined) {
+    parts.push("--export-json", `'${exportJson}'`);
+  }
+
   parts.push(`'${command}'`);
 
   return parts.join(" ");
 }
 
-await main();
+if (import.meta.url === pathToFileURL(process.argv[1]).href) {
+  await cliMain();
+}

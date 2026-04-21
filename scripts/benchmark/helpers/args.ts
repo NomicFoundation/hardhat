@@ -14,6 +14,7 @@ export interface BenchArgs {
   showOutput: boolean;
   warmup: number;
   runs: number | undefined;
+  exportJson: string | undefined;
   e2eCloneDirectory: string;
 }
 
@@ -52,6 +53,8 @@ export function resolveAndValidateArgs(args: string[]): BenchArgs | undefined {
     throw new Error("--runs must be a positive integer");
   }
 
+  const exportJson = getArgValue(args, "--export-json");
+
   let e2eCloneDirectory =
     getArgValue(args, "--e2e-clone-dir") ?? process.env.E2E_CLONE_DIR;
 
@@ -76,6 +79,7 @@ export function resolveAndValidateArgs(args: string[]): BenchArgs | undefined {
     showOutput,
     warmup,
     runs,
+    exportJson,
     e2eCloneDirectory,
   };
 }
