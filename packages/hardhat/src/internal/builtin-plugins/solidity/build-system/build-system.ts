@@ -1121,6 +1121,8 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
       reachableBuildInfoIds.filter((id) => id !== undefined),
     );
 
+    // The build-info directory is expected to be flat: every build-info file
+    // lives directly under it, so a non-recursive `readdir` is enough.
     const buildInfoFiles = !(await exists(buildInfosDir))
       ? []
       : (await readdir(buildInfosDir)).map((entry) =>

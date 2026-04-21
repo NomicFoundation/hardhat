@@ -119,6 +119,8 @@ export class ArtifactManagerImplementation implements ArtifactManager {
       return new Set();
     }
 
+    // The build-info directory is expected to be flat: every build-info file
+    // lives directly under it, so a non-recursive `readdir` is enough.
     const buildInfoIds = (await readdir(buildInfosDir))
       .filter(
         (entry) => entry.endsWith(".json") && !entry.endsWith(".output.json"),
