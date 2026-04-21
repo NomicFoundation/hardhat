@@ -177,22 +177,13 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
   ): Promise<string[]> {
     const scope = options.scope ?? "contracts";
     const unified = !this.#options.solidityConfig.splitTestsCompilation;
+    const { localContractFiles, sourceTestFiles } =
+      await this.#getSoliditySourcesRootFilePaths();
 
     this.#ensureSplitCompilationModeIfTestsScope(scope);
 
     switch (scope) {
       case "contracts": {
-        const localContractFiles = (
-          await Promise.all(
-            this.#options.soliditySourcesPaths.map((dir) =>
-              getAllFilesMatching(
-                dir,
-                (f) => f.endsWith(".sol") && !f.endsWith(".t.sol"),
-              ),
-            ),
-          )
-        ).flat(1);
-
         const npmFilesToBuild =
           this.#options.solidityConfig.npmFilesToBuild.map(
             npmModuleToNpmRootPath,
@@ -204,18 +195,12 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
 
         // In unified mode, contracts scope returns all roots: contracts,
         // tests, and npm files.
-        const testFiles = (
-          await Promise.all([
-            getAllFilesMatching(this.#options.solidityTestsPath, (f) =>
-              f.endsWith(".sol"),
-            ),
-            ...this.#options.soliditySourcesPaths.map(async (dir) => {
-              return await getAllFilesMatching(dir, (f) =>
-                f.endsWith(".t.sol"),
-              );
-            }),
-          ])
-        ).flat(1);
+        const testFiles = [
+          ...(await getAllFilesMatching(this.#options.solidityTestsPath, (f) =>
+            f.endsWith(".sol"),
+          )),
+          ...sourceTestFiles,
+        ];
 
         // Remove duplicates in case there is an intersection between
         // the tests.solidity paths and the sources paths
@@ -224,18 +209,12 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
         );
       }
       case "tests": {
-        let rootFilePaths = (
-          await Promise.all([
-            getAllFilesMatching(this.#options.solidityTestsPath, (f) =>
-              f.endsWith(".sol"),
-            ),
-            ...this.#options.soliditySourcesPaths.map(async (dir) => {
-              return await getAllFilesMatching(dir, (f) =>
-                f.endsWith(".t.sol"),
-              );
-            }),
-          ])
-        ).flat(1);
+        let rootFilePaths = [
+          ...(await getAllFilesMatching(this.#options.solidityTestsPath, (f) =>
+            f.endsWith(".sol"),
+          )),
+          ...sourceTestFiles,
+        ];
 
         // NOTE: We remove duplicates in case there is an intersection between
         // the tests.solidity paths and the sources paths
@@ -243,6 +222,45 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
         return rootFilePaths;
       }
     }
+  }
+
+  /**
+   * Returns all the root files from the different solidity sources dirs in the
+   * config, partitioned in test and files, according to their extensions.
+   */
+  async #getSoliditySourcesRootFilePaths(): Promise<{
+    localContractFiles: string[];
+    sourceTestFiles: string[];
+  }> {
+    const sourceFileGroups = await Promise.all(
+      this.#options.soliditySourcesPaths.map(async (dir) => {
+        const localSolidityFiles = await getAllFilesMatching(dir, (f) =>
+          f.endsWith(".sol"),
+        );
+
+        const localContractFiles: string[] = [];
+        const sourceTestFiles: string[] = [];
+
+        for (const file of localSolidityFiles) {
+          if (file.endsWith(".t.sol")) {
+            sourceTestFiles.push(file);
+          } else {
+            localContractFiles.push(file);
+          }
+        }
+
+        return { localContractFiles, sourceTestFiles };
+      }),
+    );
+
+    return {
+      localContractFiles: sourceFileGroups.flatMap(
+        ({ localContractFiles }) => localContractFiles,
+      ),
+      sourceTestFiles: sourceFileGroups.flatMap(
+        ({ sourceTestFiles }) => sourceTestFiles,
+      ),
+    };
   }
 
   public isSuccessfulBuildResult(

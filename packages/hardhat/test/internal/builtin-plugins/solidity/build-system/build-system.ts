@@ -7,6 +7,7 @@ import type {
 } from "../../../../../src/types/solidity.js";
 
 import assert from "node:assert/strict";
+import fsPromises from "node:fs/promises";
 import path from "node:path";
 import { before, beforeEach, describe, it, mock } from "node:test";
 
@@ -17,6 +18,8 @@ import {
   useFixtureProject,
 } from "@nomicfoundation/hardhat-test-utils";
 import {
+  createFile,
+  ensureDir,
   exists,
   getAllFilesMatching,
   readJsonFile,
@@ -510,5 +513,83 @@ describe("SolidityBuildSystemImplementation.getScope", () => {
       await solidity.getScope(path.join(projectRoot, "elsewhere", "Foo.sol")),
       "contracts",
     );
+  });
+});
+
+describe("SolidityBuildSystemImplementation.getRootFilePaths", () => {
+  it("Regression test: walks each sources path only once in unified mode", async () => {
+    const projectRoot = await getTmpDir("solidity-build-system-root-files");
+    const contractsPath = path.join(projectRoot, "contracts");
+    const testsPath = path.join(projectRoot, "tests");
+
+    await ensureDir(contractsPath);
+    await ensureDir(testsPath);
+    await createFile(path.join(contractsPath, "Foo.sol"));
+    await createFile(path.join(contractsPath, "Foo.t.sol"));
+    await createFile(path.join(testsPath, "Bar.sol"));
+
+    const hooks = new HookManagerImplementation(projectRoot, []);
+    // eslint-disable-next-line @typescript-eslint/consistent-type-assertions -- hooks context is irrelevant for getRootFilePaths
+    hooks.setContext({} as HookContext);
+
+    const solidity = new SolidityBuildSystemImplementation(hooks, {
+      solidityConfig: {
+        profiles: {
+          default: {
+            compilers: [],
+            overrides: {},
+            isolated: false,
+            preferWasm: false,
+          },
+        },
+        npmFilesToBuild: [],
+        registeredCompilerTypes: ["solc"],
+        splitTestsCompilation: false,
+      },
+      projectRoot,
+      soliditySourcesPaths: [contractsPath],
+      artifactsPath: path.join(projectRoot, "artifacts"),
+      cachePath: path.join(projectRoot, "cache"),
+      solidityTestsPath: testsPath,
+    });
+
+    const originalReaddir = fsPromises.readdir;
+    let contractsPathReads = 0;
+
+    const readdirMock = mock.method(
+      fsPromises,
+      "readdir",
+      async (...args: Parameters<typeof originalReaddir>) => {
+        if (args[0] === contractsPath && args[1]?.withFileTypes === true) {
+          contractsPathReads += 1;
+        }
+
+        return await Reflect.apply(originalReaddir, fsPromises, args);
+      },
+    );
+
+    try {
+      const rootFilePaths = await solidity.getRootFilePaths();
+
+      assert.equal(
+        contractsPathReads,
+        1,
+        "expected unified root discovery to walk each sources path only once",
+      );
+      assert.ok(
+        rootFilePaths.some((file) => file.endsWith("Foo.sol")),
+        "expected roots to include Foo.sol",
+      );
+      assert.ok(
+        rootFilePaths.some((file) => file.endsWith("Foo.t.sol")),
+        "expected unified roots to include Foo.t.sol",
+      );
+      assert.ok(
+        rootFilePaths.some((file) => file.endsWith("Bar.sol")),
+        "expected unified roots to include tests/Bar.sol",
+      );
+    } finally {
+      readdirMock.mock.restore();
+    }
   });
 });
