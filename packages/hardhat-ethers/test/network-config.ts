@@ -272,6 +272,28 @@ function defineNetworkConfigTests(initEthers: () => Promise<InitResult>) {
       const tx = await secondSigner.sendTransaction({ to: firstSigner });
       assert.equal(tx.from, secondSigner.address);
     });
+
+    it("respects explicit from matching the signer", async () => {
+      const [firstSigner, secondSigner] = await ethers.getSigners();
+      const tx = await firstSigner.sendTransaction({
+        to: secondSigner,
+        from: firstSigner.address,
+      });
+      assert.equal(tx.from, firstSigner.address);
+    });
+
+    it("throws when explicit from doesn't match the signer", async () => {
+      const [firstSigner, secondSigner] = await ethers.getSigners();
+
+      // eslint-disable-next-line no-restricted-syntax -- it tests a non Hardhat error
+      await assert.rejects(
+        firstSigner.sendTransaction({
+          to: firstSigner,
+          from: secondSigner.address,
+        }),
+        /from address mismatch/,
+      );
+    });
   });
 
   describe("non-interference with explicit gas-related calls", () => {

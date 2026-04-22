@@ -382,7 +382,10 @@ function defineNetworkConfigTests(initViem: () => Promise<InitResult>) {
         value: 0n,
       });
       const tx = await publicClient.getTransaction({ hash });
-      assert.equal(tx.from.toLowerCase(), firstClient.account.address.toLowerCase());
+      assert.equal(
+        tx.from.toLowerCase(),
+        firstClient.account.address.toLowerCase(),
+      );
     });
 
     it("non-first wallet client sends from its own address", async () => {
@@ -393,7 +396,10 @@ function defineNetworkConfigTests(initViem: () => Promise<InitResult>) {
         value: 0n,
       });
       const tx = await publicClient.getTransaction({ hash });
-      assert.equal(tx.from.toLowerCase(), secondClient.account.address.toLowerCase());
+      assert.equal(
+        tx.from.toLowerCase(),
+        secondClient.account.address.toLowerCase(),
+      );
     });
   });
 
