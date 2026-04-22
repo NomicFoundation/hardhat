@@ -1205,8 +1205,12 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
     );
   }
 
+  #isFatalError(error: CompilerOutputError): boolean {
+    return error.type !== "Warning" && error.severity === "error";
+  }
+
   #hasCompilationErrors(output: CompilerOutput): boolean {
-    return output.errors?.some((x: any) => x.severity === "error") ?? false;
+    return output.errors?.some((e) => this.#isFatalError(e)) ?? false;
   }
 
   /**
@@ -1319,7 +1323,7 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
     console.log();
 
     for (const error of filteredErrors) {
-      if (error.severity === "error") {
+      if (this.#isFatalError(error)) {
         const errorMessage: string =
           this.#getFormattedInternalCompilerErrorMessage(error) ??
           error.formattedMessage ??
