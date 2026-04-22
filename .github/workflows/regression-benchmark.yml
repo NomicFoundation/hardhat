@@ -1,0 +1,76 @@
+name: Regression Benchmark
+
+on:
+  # Deliberately do not run on merge_group
+  push:
+    branches:
+      - "main"
+  pull_request:
+    # Include `labeled` / `unlabeled` so the workflow fires when the
+    # `ci:perf` label is added or removed.
+    types: [opened, synchronize, reopened, labeled, unlabeled]
+    branches:
+      - "**"
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  # Don't cancel in-progress jobs on main so baselines aren't lost mid-run
+  cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
+
+jobs:
+  regression-benchmark:
+    name: Regression benchmark
+    environment: github-action-benchmark
+    # TODO: configure a self-hosted runner for stable benchmark measurements;
+    # the shared GitHub runners produce noisy results that will generate false
+    # positives against the configured alert-threshold.
+    runs-on: [self-hosted]
+    # Only run for pushes to main, workflow_dispatch, or PRs that carry the
+    # `ci:perf` label. The fork-safety guard keeps untrusted forks off the
+    # self-hosted runner.
+    if: >
+      (github.event_name != 'pull_request' ||
+        contains(github.event.pull_request.labels.*.name, 'ci:perf')) &&
+      (github.ref == 'refs/heads/main' ||
+        github.repository == github.event.pull_request.head.repo.full_name)
+    timeout-minutes: 180
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          persist-credentials: false
+
+      - uses: ./.github/actions/setup-env
+
+      - name: Install hyperfine
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y hyperfine
+
+      - name: Install packages
+        run: pnpm install --frozen-lockfile --prefer-offline
+
+      - name: Build
+        run: pnpm build
+
+      - name: Run regression benchmark
+        run: pnpm bench:regression --output regression-report.json
+
+      - name: Store benchmark result
+        uses: benchmark-action/github-action-benchmark@4bdcce38c94cec68da58d012ac24b7b1155efe8b # v1.20.7
+        with:
+          tool: customSmallerIsBetter
+          output-file-path: regression-report.json
+          # TODO: replace with the results repo, e.g.
+          # github.com/nomic-foundation-automation/hardhat-regression-results
+          gh-repository: github.com/TODO/hardhat-regression-results
+          gh-pages-branch: main
+          benchmark-data-dir-path: hardhat-regression
+          github-token: ${{ secrets.BENCHMARK_GITHUB_TOKEN }}
+          # Only push baseline on main-branch pushes; PRs only compare
+          auto-push: ${{ github.ref == 'refs/heads/main' && github.event_name != 'pull_request' }}
+          alert-threshold: "110%"
+          # Only fail on PRs; don't break CI on main
+          fail-on-alert: ${{ github.event_name == 'pull_request' }}
+          summary-always: true
+          max-items-in-chart: 50
