@@ -9,12 +9,12 @@
   "packageManager": "npm",
   "submodules": true,
   "preinstall": "./preinstall.sh",
-  "defaultCommand": "npx hardhat test solidity --no-compile",
+  "defaultCommand": "npx hardhat test solidity --grep=\"^(test_|testFuzz_)\"",
   "benchmark": {
     "runs": {
       "coldCompile": 1,
       "warmCompile": 1,
-      "defaultCommand": 15
+      "defaultCommand": 3
     }
   }
 }
