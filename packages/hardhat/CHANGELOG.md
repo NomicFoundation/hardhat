@@ -1,5 +1,20 @@
 # hardhat
 
+## 3.4.1
+
+### Patch Changes
+
+- [#8142](https://github.com/NomicFoundation/hardhat/pull/8142) [`a997091`](https://github.com/NomicFoundation/hardhat/commit/a997091fe104cc4c96abadae8895d8068cff0201) Thanks [@ChristopherDedominici](https://github.com/ChristopherDedominici)! - Make `node:test` sequential by default and run test files in the same process (`isolation: "none"`).
+
+- [#8173](https://github.com/NomicFoundation/hardhat/pull/8173) [`1a01f9b`](https://github.com/NomicFoundation/hardhat/commit/1a01f9ba842311bec890c1e59e4b52345b1ef74f) Thanks [@alcuadrado](https://github.com/alcuadrado)! - Improve error reporter
+
+- [#8176](https://github.com/NomicFoundation/hardhat/pull/8176) [`13e46b2`](https://github.com/NomicFoundation/hardhat/commit/13e46b2e5a481a964dfd88041277e026308208b7) Thanks [@kanej](https://github.com/kanej)! - Fixed compilation error check to ignore ambiguous warnings ([#8176](https://github.com/NomicFoundation/hardhat/pull/8176))
+
+- [#8179](https://github.com/NomicFoundation/hardhat/pull/8179) [`d16d82a`](https://github.com/NomicFoundation/hardhat/commit/d16d82abfd5c9fa044cb508468cd4b50a5fcfd8a) Thanks [@alcuadrado](https://github.com/alcuadrado)! - Await all returned promises for better debuggability
+
+- Updated dependencies:
+  - @nomicfoundation/hardhat-utils@4.0.4
+
 ## 3.4.0
 
 ### Minor Changes

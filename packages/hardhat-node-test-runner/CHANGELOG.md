@@ -1,5 +1,17 @@
 # @nomicfoundation/hardhat-node-test-runner
 
+## 3.0.14
+
+### Patch Changes
+
+- [#8179](https://github.com/NomicFoundation/hardhat/pull/8179) [`d16d82a`](https://github.com/NomicFoundation/hardhat/commit/d16d82abfd5c9fa044cb508468cd4b50a5fcfd8a) Thanks [@alcuadrado](https://github.com/alcuadrado)! - Await all returned promises for better debuggability
+
+- [#8142](https://github.com/NomicFoundation/hardhat/pull/8142) [`a997091`](https://github.com/NomicFoundation/hardhat/commit/a997091fe104cc4c96abadae8895d8068cff0201) Thanks [@ChristopherDedominici](https://github.com/ChristopherDedominici)! - Make `node:test` sequential by default and run test files in the same process (`isolation: "none"`).
+
+- Updated dependencies:
+  - @nomicfoundation/hardhat-node-test-reporter@3.0.5
+  - @nomicfoundation/hardhat-utils@4.0.4
+
 ## 3.0.13
 
 ### Patch Changes
