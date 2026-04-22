@@ -37,11 +37,11 @@ import {
 } from "../../../../src/internal/builtin-plugins/network-manager/config-resolution.js";
 import { EdrProvider } from "../../../../src/internal/builtin-plugins/network-manager/edr/edr-provider.js";
 import {
-  getCurrentHardfork,
   getHardforks,
   L1HardforkName,
   OpHardforkName,
 } from "../../../../src/internal/builtin-plugins/network-manager/edr/types/hardfork.js";
+import { getCurrentHardfork } from "../../../../src/internal/builtin-plugins/network-manager/edr/utils/current-hardfork.js";
 import { NetworkManagerImplementation } from "../../../../src/internal/builtin-plugins/network-manager/network-manager.js";
 import { validateNetworkUserConfig } from "../../../../src/internal/builtin-plugins/network-manager/type-validation.js";
 import {

@@ -37,7 +37,7 @@ import {
   DEFAULT_EDR_NETWORK_HD_ACCOUNTS_CONFIG_PARAMS,
   EDR_NETWORK_DEFAULT_COINBASE,
 } from "./edr/edr-constants.js";
-import { getCurrentHardfork } from "./edr/types/hardfork.js";
+import { getCurrentHardfork } from "./edr/utils/current-hardfork.js";
 import { isHttpNetworkHdAccountsUserConfig } from "./type-validation.js";
 
 export function resolveHttpNetwork(
