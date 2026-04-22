@@ -14,7 +14,7 @@ describe("hardhat-solx integration", () => {
   async function createHre() {
     const configPath = await resolveHardhatConfigPath();
     const userConfig = await importUserConfig(configPath);
-    return createHardhatRuntimeEnvironment(userConfig);
+    return await createHardhatRuntimeEnvironment(userConfig);
   }
 
   it("resolves plugin config through the HRE", async () => {

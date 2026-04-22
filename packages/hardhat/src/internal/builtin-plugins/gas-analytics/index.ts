@@ -22,7 +22,7 @@ const hardhatPlugin: HardhatPlugin = {
         default: async (args, _hre, runSuper) => {
           // We don't need to do anything here, as the test task will forward
           // the arguments to its subtasks.
-          return runSuper(args);
+          return await runSuper(args);
         },
       }))
       .build(),
@@ -35,7 +35,9 @@ const hardhatPlugin: HardhatPlugin = {
         name: "snapshotCheck",
         description: "Check the snapshots match the stored values",
       })
-      .setAction(async () => import("./tasks/solidity-test/task-action.js"))
+      .setAction(
+        async () => await import("./tasks/solidity-test/task-action.js"),
+      )
       .build(),
   ],
   globalOptions: [

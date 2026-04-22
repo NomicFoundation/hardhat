@@ -33,7 +33,7 @@ export async function buildDependencyGraph(
       "readNpmPackageRemappings",
       [packageName, packageVersion, packagePath],
       async (_context, name, version, path) =>
-        defaultBehavior(name, version, path),
+        await defaultBehavior(name, version, path),
     );
 
   const resolver = await ResolverImplementation.create(

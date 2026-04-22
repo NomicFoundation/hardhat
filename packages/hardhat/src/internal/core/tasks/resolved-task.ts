@@ -175,22 +175,22 @@ export class ResolvedTask implements Task {
       if (currentIndex === 0) {
         /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions --
         We know that the first action in the array is a NewTaskActionFunction */
-        return (actionFn as NewTaskActionFunction)(
+        return await (actionFn as NewTaskActionFunction)(
           nextTaskArguments,
           this.#hre,
         );
       }
 
-      return actionFn(
+      return await actionFn(
         nextTaskArguments,
         this.#hre,
         async (newTaskArguments: TaskArguments) => {
-          return next(newTaskArguments, currentIndex - 1);
+          return await next(newTaskArguments, currentIndex - 1);
         },
       );
     };
 
-    return next(validatedTaskArguments);
+    return await next(validatedTaskArguments);
   }
 
   /**

@@ -143,7 +143,7 @@ export async function getDefaultWalletClient<
     );
   }
 
-  return getWalletClient(
+  return await getWalletClient(
     provider,
     chainType,
     chainDescriptors,

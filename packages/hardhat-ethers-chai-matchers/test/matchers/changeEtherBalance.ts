@@ -316,17 +316,18 @@ describe("INTEGRATION: changeEtherBalance matcher", { timeout: 60000 }, () => {
 
       describe("Change balance, one contract", () => {
         it("should pass when expected balance change is passed as int and is equal to an actual", async () => {
-          await expect(async () =>
-            sender.sendTransaction({
-              to: contract,
-              value: 200,
-            }),
+          await expect(
+            async () =>
+              await sender.sendTransaction({
+                to: contract,
+                value: 200,
+              }),
           ).to.changeEtherBalance(ethers, contract, 200);
         });
 
         it("should pass when calling function that returns half the sent ether", async () => {
-          await expect(async () =>
-            contract.returnHalf({ value: 200 }),
+          await expect(
+            async () => await contract.returnHalf({ value: 200 }),
           ).to.changeEtherBalance(ethers, sender, -100);
         });
       });
@@ -448,13 +449,14 @@ describe("INTEGRATION: changeEtherBalance matcher", { timeout: 60000 }, () => {
 
       describe("Change balance, one contract", () => {
         it("should pass when expected balance change is passed as int and is equal to an actual", async () => {
-          await expect(async () =>
-            sender.sendTransaction({
-              to: contract,
-              maxFeePerGas: 2,
-              maxPriorityFeePerGas: 1,
-              value: 200,
-            }),
+          await expect(
+            async () =>
+              await sender.sendTransaction({
+                to: contract,
+                maxFeePerGas: 2,
+                maxPriorityFeePerGas: 1,
+                value: 200,
+              }),
           ).to.changeEtherBalance(ethers, contract, 200);
         });
 
@@ -477,12 +479,13 @@ describe("INTEGRATION: changeEtherBalance matcher", { timeout: 60000 }, () => {
         });
 
         it("should pass when calling function that returns half the sent ether", async () => {
-          await expect(async () =>
-            contract.returnHalf({
-              value: 200,
-              maxFeePerGas: 2,
-              maxPriorityFeePerGas: 1,
-            }),
+          await expect(
+            async () =>
+              await contract.returnHalf({
+                value: 200,
+                maxFeePerGas: 2,
+                maxPriorityFeePerGas: 1,
+              }),
           ).to.changeEtherBalance(ethers, sender, -100);
         });
       });

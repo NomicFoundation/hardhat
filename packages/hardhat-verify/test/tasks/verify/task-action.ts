@@ -61,7 +61,7 @@ describe("verify/task-action", () => {
     });
 
     it("should set process.exitCode to 0 when verification is successful", async () => {
-      const verifyContract = async () => Promise.resolve(true);
+      const verifyContract = async () => await Promise.resolve(true);
 
       await internalVerifyAction(
         {
@@ -100,7 +100,7 @@ describe("verify/task-action", () => {
       }) => {
         if (provider === "etherscan") {
           console.log("Verification successful for Etherscan");
-          return Promise.resolve(true);
+          return await Promise.resolve(true);
         }
         throw new Error(`Verification failed for provider: ${provider}`);
       };
@@ -166,7 +166,7 @@ describe("verify/task-action", () => {
           constructorArgs: [],
         },
         localHre,
-        async () => Promise.resolve(true),
+        async () => await Promise.resolve(true),
       );
 
       assert.equal(process.exitCode, 0);

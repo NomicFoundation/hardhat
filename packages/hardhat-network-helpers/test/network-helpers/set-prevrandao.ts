@@ -63,7 +63,7 @@ describe("network-helpers - setPrevRandao", () => {
 
     it("should not accept strings that are not 0x-prefixed", async () => {
       await assertRejectsWithHardhatError(
-        async () => networkHelpers.setPrevRandao("3"),
+        async () => await networkHelpers.setPrevRandao("3"),
         HardhatError.ERRORS.NETWORK_HELPERS.GENERAL
           .ONLY_ALLOW_0X_PREFIXED_STRINGS,
         {},

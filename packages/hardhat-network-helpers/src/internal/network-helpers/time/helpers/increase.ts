@@ -20,5 +20,5 @@ export async function increase<ChainTypeT extends ChainType | string>(
 
   await networkHelpers.mine();
 
-  return networkHelpers.time.latest();
+  return await networkHelpers.time.latest();
 }

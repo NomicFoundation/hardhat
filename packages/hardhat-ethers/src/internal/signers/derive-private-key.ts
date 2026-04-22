@@ -22,7 +22,7 @@ export async function derivePrivateKeys(
   const mnemonic = await accounts.mnemonic.get();
   const passphrase = await accounts.passphrase.get();
 
-  return derivePrivateKeysImpl(
+  return await derivePrivateKeysImpl(
     mnemonic,
     accounts.path,
     accounts.initialIndex,

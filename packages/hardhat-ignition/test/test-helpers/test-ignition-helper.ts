@@ -127,7 +127,7 @@ export class TestIgnitionHelper {
       transport: custom(this._connection.provider),
     });
 
-    return this._toViemContracts(
+    return await this._toViemContracts(
       this._hre,
       ignitionModule,
       result,

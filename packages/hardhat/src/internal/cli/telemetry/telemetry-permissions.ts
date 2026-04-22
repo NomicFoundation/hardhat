@@ -35,7 +35,7 @@ export async function isTelemetryAllowed(
     return process.env.HARDHAT_TEST_TELEMETRY_ENABLED === "true" ? true : false;
   }
 
-  return isTelemetryEnabled(telemetryConfigFilePath);
+  return await isTelemetryEnabled(telemetryConfigFilePath);
 }
 
 /**

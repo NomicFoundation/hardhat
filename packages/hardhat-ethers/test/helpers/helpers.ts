@@ -96,7 +96,7 @@ export function assertIsSigner(
 }
 
 export async function sleep(timeout: number): Promise<void> {
-  return new Promise((resolve) => setTimeout(resolve, timeout));
+  return await new Promise((resolve) => setTimeout(resolve, timeout));
 }
 
 export async function tryUntil(f: () => any): Promise<void> {

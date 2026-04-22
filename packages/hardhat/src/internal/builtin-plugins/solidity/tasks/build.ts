@@ -119,7 +119,7 @@ const buildAction: NewTaskActionFunction<BuildActionArguments> = async (
     return { contractRootPaths, testRootPaths };
   }
 
-  return runSolidityBuild({
+  return await runSolidityBuild({
     buildProfile,
     files,
     force: args.force,
@@ -208,7 +208,7 @@ async function runSolidityBuild({
     return { contractRootPaths, testRootPaths };
   }
 
-  return partitionRootPathsByScope(solidity, builtRootPaths);
+  return await partitionRootPathsByScope(solidity, builtRootPaths);
 }
 
 /**
@@ -237,7 +237,7 @@ async function getRootsToBuild({
   isFullBuild: boolean;
 }> {
   if (isUnifiedModeOrScope === true) {
-    return getRootsToBuildInUnifiedMode({
+    return await getRootsToBuildInUnifiedMode({
       files,
       noContracts,
       noTests,
@@ -245,7 +245,7 @@ async function getRootsToBuild({
     });
   }
 
-  return getRootsToBuildForScope({
+  return await getRootsToBuildForScope({
     files,
     scope: isUnifiedModeOrScope,
     solidity,

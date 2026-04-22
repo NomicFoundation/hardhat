@@ -44,7 +44,7 @@ describe("network-helpers - setBalance", () => {
 
   it("should throw because the address is invalid", async function () {
     await assertRejectsWithHardhatError(
-      async () => networkHelpers.setBalance("0xCF", 1),
+      async () => await networkHelpers.setBalance("0xCF", 1),
       HardhatError.ERRORS.NETWORK_HELPERS.GENERAL.INVALID_ADDRESS,
       {
         value: "0xCF",

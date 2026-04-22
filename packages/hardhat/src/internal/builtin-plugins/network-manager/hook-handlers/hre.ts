@@ -17,7 +17,7 @@ export default async (): Promise<Partial<HardhatRuntimeEnvironmentHooks>> => ({
           networkManager = await createNetworkManager(hre, context);
         }
 
-        return networkManager.create(networkConnectionParams);
+        return await networkManager.create(networkConnectionParams);
       },
 
       async connect(networkConnectionParams) {
@@ -25,7 +25,7 @@ export default async (): Promise<Partial<HardhatRuntimeEnvironmentHooks>> => ({
           networkManager = await createNetworkManager(hre, context);
         }
 
-        return networkManager.connect(networkConnectionParams);
+        return await networkManager.connect(networkConnectionParams);
       },
 
       async getOrCreate(networkOrParams) {
@@ -33,7 +33,7 @@ export default async (): Promise<Partial<HardhatRuntimeEnvironmentHooks>> => ({
           networkManager = await createNetworkManager(hre, context);
         }
 
-        return networkManager.getOrCreate(networkOrParams);
+        return await networkManager.getOrCreate(networkOrParams);
       },
 
       async createServer(...params) {
@@ -41,7 +41,7 @@ export default async (): Promise<Partial<HardhatRuntimeEnvironmentHooks>> => ({
           networkManager = await createNetworkManager(hre, context);
         }
 
-        return networkManager.createServer(...params);
+        return await networkManager.createServer(...params);
       },
     };
 

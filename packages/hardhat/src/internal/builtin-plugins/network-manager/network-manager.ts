@@ -116,7 +116,11 @@ export class NetworkManagerImplementation implements NetworkManager {
       "newConnection",
       [],
       async (_context) =>
-        this.#initializeNetworkConnection(networkName, chainType, override),
+        await this.#initializeNetworkConnection(
+          networkName,
+          chainType,
+          override,
+        ),
     );
 
     /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions
@@ -131,7 +135,7 @@ export class NetworkManagerImplementation implements NetworkManager {
   ): Promise<NetworkConnection<ChainTypeT>> {
     this.#connectCalled = true;
 
-    return this.create(networkOrParams);
+    return await this.create(networkOrParams);
   }
 
   public async getOrCreate<
@@ -170,7 +174,7 @@ export class NetworkManagerImplementation implements NetworkManager {
       return cached as NetworkConnection<ChainTypeT>;
     }
 
-    return this.#getOrCreateMutex.exclusiveRun(async () => {
+    return await this.#getOrCreateMutex.exclusiveRun(async () => {
       // Double-check after acquiring the mutex — another call may have
       // populated the cache while we were waiting.
       const cachedAfterWaiting = this.#getOrCreateCache
@@ -260,7 +264,7 @@ export class NetworkManagerImplementation implements NetworkManager {
           "network",
           "onRequest",
           [networkConnection, request],
-          async (_context, _connection, req) => defaultBehavior(req),
+          async (_context, _connection, req) => await defaultBehavior(req),
         );
 
       if (resolvedNetworkConfig.type === "edr-simulated") {
@@ -351,7 +355,7 @@ export class NetworkManagerImplementation implements NetworkManager {
 
         const includeCallTraces = verbosityToIncludeTraces(this.#verbosity);
 
-        return EdrProvider.create({
+        return await EdrProvider.create({
           chainDescriptors: this.#chainDescriptors,
           // The resolvedNetworkConfig can have its chainType set to `undefined`
           // so we default to the default chain type here.
@@ -375,7 +379,7 @@ export class NetworkManagerImplementation implements NetworkManager {
         });
       }
 
-      return HttpProvider.create({
+      return await HttpProvider.create({
         url: await resolvedNetworkConfig.url.getUrl(),
         networkName: resolvedNetworkName,
         extraHeaders: resolvedNetworkConfig.httpHeaders,
@@ -384,7 +388,7 @@ export class NetworkManagerImplementation implements NetworkManager {
       });
     };
 
-    return NetworkConnectionImplementation.create(
+    return await NetworkConnectionImplementation.create(
       this.#nextConnectionId++,
       resolvedNetworkName,
       resolvedChainType,

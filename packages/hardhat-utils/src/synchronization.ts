@@ -615,7 +615,7 @@ export class AsyncMutex {
       };
     }
 
-    return new Promise<() => Promise<void>>((resolve) => {
+    return await new Promise<() => Promise<void>>((resolve) => {
       this.#queue.push(() => {
         resolve(this.#acquire());
       });

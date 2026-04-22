@@ -20,7 +20,7 @@ export default async (): Promise<Partial<ConfigHooks>> => {
         resolveConfigurationVariable,
       );
 
-      return resolveSolidityUserConfig(userConfig, resolvedConfig);
+      return await resolveSolidityUserConfig(userConfig, resolvedConfig);
     },
     validateResolvedConfig: async (resolvedConfig) =>
       validateSolidityConfig(resolvedConfig),

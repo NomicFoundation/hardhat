@@ -21,8 +21,8 @@ export class UserInterruptionManagerImplementation
     interruptor: string,
     message: string,
   ): Promise<void> {
-    return this.#mutex.exclusiveRun(async () => {
-      return this.#hooks.runHandlerChain(
+    return await this.#mutex.exclusiveRun(async () => {
+      return await this.#hooks.runHandlerChain(
         "userInterruptions",
         "displayMessage",
         [interruptor, message],
@@ -35,8 +35,8 @@ export class UserInterruptionManagerImplementation
     interruptor: string,
     inputDescription: string,
   ): Promise<string> {
-    return this.#mutex.exclusiveRun(async () => {
-      return this.#hooks.runHandlerChain(
+    return await this.#mutex.exclusiveRun(async () => {
+      return await this.#hooks.runHandlerChain(
         "userInterruptions",
         "requestInput",
         [interruptor, inputDescription],
@@ -49,8 +49,8 @@ export class UserInterruptionManagerImplementation
     interruptor: string,
     inputDescription: string,
   ): Promise<string> {
-    return this.#mutex.exclusiveRun(async () => {
-      return this.#hooks.runHandlerChain(
+    return await this.#mutex.exclusiveRun(async () => {
+      return await this.#hooks.runHandlerChain(
         "userInterruptions",
         "requestSecretInput",
         [interruptor, inputDescription],
@@ -62,7 +62,7 @@ export class UserInterruptionManagerImplementation
   public async uninterrupted<ReturnT>(
     f: () => ReturnT,
   ): Promise<Awaited<ReturnT>> {
-    return this.#mutex.exclusiveRun(f);
+    return await this.#mutex.exclusiveRun(f);
   }
 }
 
@@ -84,7 +84,7 @@ async function defaultRequestInput(
     output: process.stdout,
   });
 
-  return new Promise<string>((resolve) => {
+  return await new Promise<string>((resolve) => {
     rl.question(
       chalk.blue(`[${interruptor}]`) + ` ${inputDescription}: `,
       (answer) => {
@@ -138,7 +138,7 @@ async function defaultRequestSecretInput(
     }
   };
 
-  return new Promise<string>((resolve) => {
+  return await new Promise<string>((resolve) => {
     rl.question(
       chalk.blue(`[${interruptor}]`) + ` ${inputDescription}: `,
       (answer) => {

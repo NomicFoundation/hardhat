@@ -19,12 +19,12 @@ export async function createMockHardhatRuntimeEnvironment(
 ): Promise<HardhatRuntimeEnvironment & { artifacts: MockArtifactManager }> {
   /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions --
   We know that the mockArtifactPlugin sets `hre.artifacts` to `MockArtifactManager */
-  return createHardhatRuntimeEnvironment(
+  return await (createHardhatRuntimeEnvironment(
     { ...config, plugins: [mockArtifactsPlugin, ...(config.plugins ?? [])] },
     userProvidedGlobalOptions,
     projectRoot,
     unsafeOptions,
-  ) as Promise<HardhatRuntimeEnvironment & { artifacts: MockArtifactManager }>;
+  ) as Promise<HardhatRuntimeEnvironment & { artifacts: MockArtifactManager }>);
 }
 
 const mockArtifactsPlugin: HardhatPlugin = {

@@ -359,7 +359,7 @@ export class Anonymizer {
   async #anonymizeFrames(frames: StackFrame[]): Promise<StackFrame[]> {
     const anonymizedFrames = await Promise.all(
       frames.map(async (frame) => {
-        return this.#anonymizeFrame(frame);
+        return await this.#anonymizeFrame(frame);
       }),
     );
     return anonymizedFrames;

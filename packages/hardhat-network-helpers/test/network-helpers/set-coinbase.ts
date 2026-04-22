@@ -46,7 +46,7 @@ describe("network-helpers - setCoinbase", () => {
 
   it(`should throw because the address is invalid`, async () => {
     await assertRejectsWithHardhatError(
-      async () => networkHelpers.setCoinbase("0x123"),
+      async () => await networkHelpers.setCoinbase("0x123"),
       HardhatError.ERRORS.NETWORK_HELPERS.GENERAL.INVALID_ADDRESS,
       { value: "0x123" },
     );

@@ -230,7 +230,7 @@ export class LedgerHandler {
           );
         });
 
-        return this.#toRpcSig(signature);
+        return await this.#toRpcSig(signature);
       }
     }
   }
@@ -292,7 +292,7 @@ export class LedgerHandler {
           );
           await this.#delayBeforeRetry(delay);
 
-          return this.init(retryAttempts + 1);
+          return await this.init(retryAttempts + 1);
         }
 
         // Give up - either not a retryable error or exhausted retries
@@ -375,7 +375,7 @@ export class LedgerHandler {
         await this.#resetConnection();
         await this.init();
 
-        return this.#derivePath(addressToFindAsBuffer, {
+        return await this.#derivePath(addressToFindAsBuffer, {
           ...retryState,
           reconnection: retryState.reconnection + 1,
         });
@@ -394,7 +394,7 @@ export class LedgerHandler {
           LedgerHandler.DEVICE_NOT_READY_RETRY_DELAY_SECONDS,
         );
 
-        return this.#derivePath(addressToFindAsBuffer, {
+        return await this.#derivePath(addressToFindAsBuffer, {
           ...retryState,
           deviceNotReady: retryState.deviceNotReady + 1,
         });
@@ -541,7 +541,7 @@ export class LedgerHandler {
         await this.#resetConnection();
         await this.init();
 
-        return this.#withConfirmation(func, {
+        return await this.#withConfirmation(func, {
           ...retryState,
           reconnection: retryState.reconnection + 1,
         });
@@ -560,7 +560,7 @@ export class LedgerHandler {
           LedgerHandler.DEVICE_NOT_READY_RETRY_DELAY_SECONDS,
         );
 
-        return this.#withConfirmation(func, {
+        return await this.#withConfirmation(func, {
           ...retryState,
           deviceNotReady: retryState.deviceNotReady + 1,
         });
@@ -638,7 +638,7 @@ export class LedgerHandler {
           );
         });
 
-        return this.#toRpcSig(signature);
+        return await this.#toRpcSig(signature);
       }
     }
   }
@@ -700,11 +700,15 @@ export class LedgerHandler {
       try {
         return await this.#eth.signEIP712Message(path, typedMessage);
       } catch (_error) {
-        return this.#eth.signEIP712HashedMessage(path, domainHash, structHash);
+        return await this.#eth.signEIP712HashedMessage(
+          path,
+          domainHash,
+          structHash,
+        );
       }
     });
 
-    return this.#toRpcSig(signature);
+    return await this.#toRpcSig(signature);
   }
 
   async #ethSendTransaction(params: any[]): Promise<{

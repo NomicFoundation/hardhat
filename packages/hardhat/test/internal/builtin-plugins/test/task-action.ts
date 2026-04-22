@@ -314,7 +314,7 @@ describe("test/task-action", function () {
       buildOverride: ReturnType<typeof buildArgCaptor>["buildOverride"],
       splitTestsCompilation: boolean,
     ): Promise<HardhatRuntimeEnvironment> {
-      return createHardhatRuntimeEnvironment({
+      return await createHardhatRuntimeEnvironment({
         ...(splitTestsCompilation
           ? {
               solidity: {
@@ -368,7 +368,7 @@ describe("test/task-action", function () {
             default: async () => ({
               registerFileForTestRunner: async (context, filePath, next) => {
                 if (filePath === "runner-a-test.ts") return "runner-a";
-                return next(context, filePath);
+                return await next(context, filePath);
               },
             }),
           }),

@@ -51,7 +51,7 @@ export async function setUpPassword(
   consoleLog(UserDisplayMessages.passwordRequirementsMessage());
   consoleLog("");
 
-  return createPassword(requestSecretInput, consoleLog);
+  return await createPassword(requestSecretInput, consoleLog);
 }
 
 export async function setUpPasswordForDevKeystore(
@@ -72,19 +72,22 @@ export async function setNewPassword(
   consoleLog(UserDisplayMessages.passwordRequirementsMessage());
   consoleLog("");
 
-  return createPassword(requestSecretInput, consoleLog);
+  return await createPassword(requestSecretInput, consoleLog);
 }
 
 export async function askPassword(
   requestSecretInput: KeystoreRequestSecretInput,
 ): Promise<string> {
-  return requestSecretInput(PLUGIN_ID, UserDisplayMessages.enterPasswordMsg());
+  return await requestSecretInput(
+    PLUGIN_ID,
+    UserDisplayMessages.enterPasswordMsg(),
+  );
 }
 
 export async function askPasswordForDevKeystore(
   devPasswordFilePath: string,
 ): Promise<string> {
-  return readUtf8File(devPasswordFilePath);
+  return await readUtf8File(devPasswordFilePath);
 }
 
 async function createPassword(

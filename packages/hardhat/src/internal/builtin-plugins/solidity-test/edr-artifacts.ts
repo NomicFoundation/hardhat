@@ -31,7 +31,7 @@ export async function getBuildInfosAndOutputs(
 ): Promise<BuildInfoAndOutput[]> {
   const buildInfoIds = await artifactManager.getAllBuildInfoIds();
 
-  return Promise.all(
+  return await Promise.all(
     Array.from(buildInfoIds).map(async (buildInfoId) => {
       const buildInfoPath = await artifactManager.getBuildInfoPath(buildInfoId);
       const buildInfoOutputPath =
@@ -76,7 +76,7 @@ export async function buildEdrArtifactsWithMetadata(
 
   const artifacts = await Promise.all(
     Array.from(fullyQualifiedNames).map(async (fullyQualifiedName) => {
-      return artifactManager.readArtifact(fullyQualifiedName);
+      return await artifactManager.readArtifact(fullyQualifiedName);
     }),
   );
 

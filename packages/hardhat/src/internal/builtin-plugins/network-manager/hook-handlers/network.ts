@@ -78,7 +78,7 @@ export default async (): Promise<Partial<NetworkHooks>> => {
         updatedRequest = newRequestOrResponse;
       }
 
-      return next(context, networkConnection, updatedRequest);
+      return await next(context, networkConnection, updatedRequest);
     },
 
     async closeConnection<ChainTypeT extends ChainType | string>(
@@ -93,7 +93,7 @@ export default async (): Promise<Partial<NetworkHooks>> => {
         requestHandlersPerConnection.delete(networkConnection);
       }
 
-      return next(context, networkConnection);
+      return await next(context, networkConnection);
     },
   };
 

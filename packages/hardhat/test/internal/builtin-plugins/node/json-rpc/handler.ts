@@ -378,7 +378,7 @@ async function postRawJsonRpc(
   port: number,
   rawBody: string,
 ): Promise<unknown> {
-  return new Promise((resolve, reject) => {
+  return await new Promise((resolve, reject) => {
     const req = http.request(
       {
         hostname,

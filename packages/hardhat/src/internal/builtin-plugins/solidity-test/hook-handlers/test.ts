@@ -15,7 +15,7 @@ export default async (): Promise<Partial<TestHooks>> => {
         return "solidity";
       }
 
-      return next(context, filePath);
+      return await next(context, filePath);
     },
   };
 

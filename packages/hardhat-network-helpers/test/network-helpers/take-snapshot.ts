@@ -55,7 +55,7 @@ describe("network-helpers - takeSnapshot", () => {
     await snapshot1.restore();
 
     await assertRejectsWithHardhatError(
-      async () => snapshot2.restore(),
+      async () => await snapshot2.restore(),
       HardhatError.ERRORS.NETWORK_HELPERS.GENERAL.INVALID_SNAPSHOT,
       {},
     );
