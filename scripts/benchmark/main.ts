@@ -1,4 +1,3 @@
-import { pathToFileURL } from "node:url";
 import { init as e2eInit } from "../end-to-end/subcommands/init.ts";
 import { exec as e2eExec } from "../end-to-end/subcommands/exec.ts";
 import { loadScenario } from "../end-to-end/helpers/directory.ts";
@@ -175,6 +174,4 @@ function buildHyperfineCommand(
   return parts.join(" ");
 }
 
-if (import.meta.url === pathToFileURL(process.argv[1]).href) {
-  await cliMain();
-}
+await cliMain();
