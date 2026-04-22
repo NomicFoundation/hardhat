@@ -40,9 +40,9 @@ import {
   resolveGlobalOptions,
 } from "./global-options.js";
 import { HookManagerImplementation } from "./hook-manager.js";
+import { LazyUserInterruptionManager } from "./lazy-user-interruptions.js";
 import { resolvePluginList } from "./plugins/resolve-plugin-list.js";
 import { TaskManagerImplementation } from "./tasks/task-manager.js";
-import { UserInterruptionManagerImplementation } from "./user-interruptions.js";
 
 export class HardhatRuntimeEnvironmentImplementation
   implements HardhatRuntimeEnvironment
@@ -134,7 +134,7 @@ export class HardhatRuntimeEnvironmentImplementation
 
     // Set the HookContext in the hook manager so that non-config hooks can
     // use it
-    const interruptions = new UserInterruptionManagerImplementation(hooks);
+    const interruptions = new LazyUserInterruptionManager(hooks);
 
     const hre = new HardhatRuntimeEnvironmentImplementation(
       extendedUserConfig,
