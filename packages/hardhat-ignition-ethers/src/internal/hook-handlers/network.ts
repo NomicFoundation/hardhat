@@ -1,9 +1,119 @@
-import type { HookContext, NetworkHooks } from "hardhat/types/hooks";
+import type {
+  EthersIgnitionHelper,
+  IgnitionModuleResultsTToEthersContracts,
+} from "../../types.js";
+import type { EthersIgnitionHelperImpl } from "../ethers-ignition-helper.js";
+import type {
+  DeployConfig,
+  DeploymentParameters,
+  IgnitionModule,
+  IgnitionModuleResult,
+  StrategyConfig,
+} from "@nomicfoundation/ignition-core";
+import type { ArtifactManager } from "hardhat/types/artifacts";
+import type { HardhatConfig } from "hardhat/types/config";
+import type {
+  HookContext,
+  HookManager,
+  NetworkHooks,
+} from "hardhat/types/hooks";
 import type { ChainType, NetworkConnection } from "hardhat/types/network";
+import type { UserInterruptionManager } from "hardhat/types/user-interruptions";
 
 import { HardhatError } from "@nomicfoundation/hardhat-errors";
 
-import { EthersIgnitionHelperImpl } from "../ethers-ignition-helper.js";
+class LazyEthersIgnitionHelper<ChainTypeT extends ChainType | string>
+  implements EthersIgnitionHelper
+{
+  public type: "ethers" = "ethers";
+
+  readonly #hardhatConfig: HardhatConfig;
+  readonly #artifactsManager: ArtifactManager;
+  readonly #connection: NetworkConnection<ChainTypeT>;
+  readonly #userInterruptions: UserInterruptionManager;
+  readonly #hooks: HookManager;
+  readonly #config: Partial<DeployConfig> | undefined;
+
+  #ethersIgnitionHelper: EthersIgnitionHelperImpl<ChainTypeT> | undefined;
+
+  constructor(
+    hardhatConfig: HardhatConfig,
+    artifactsManager: ArtifactManager,
+    connection: NetworkConnection<ChainTypeT>,
+    userInterruptions: UserInterruptionManager,
+    hooks: HookManager,
+    config?: Partial<DeployConfig> | undefined,
+  ) {
+    this.#hardhatConfig = hardhatConfig;
+    this.#artifactsManager = artifactsManager;
+    this.#connection = connection;
+    this.#userInterruptions = userInterruptions;
+    this.#hooks = hooks;
+    this.#config = config;
+  }
+
+  public async deploy<
+    ModuleIdT extends string,
+    ContractNameT extends string,
+    IgnitionModuleResultsT extends IgnitionModuleResult<ContractNameT>,
+    StrategyT extends keyof StrategyConfig = "basic",
+  >(
+    ignitionModule: IgnitionModule<
+      ModuleIdT,
+      ContractNameT,
+      IgnitionModuleResultsT
+    >,
+    options?: {
+      parameters?: DeploymentParameters | string;
+      config?: Partial<DeployConfig>;
+      defaultSender?: string;
+      strategy?: StrategyT;
+      strategyConfig?: StrategyConfig[StrategyT];
+      deploymentId?: string;
+      displayUi?: boolean;
+    },
+  ): Promise<
+    IgnitionModuleResultsTToEthersContracts<
+      ContractNameT,
+      IgnitionModuleResultsT
+    >
+  > {
+    const ethersIgnitionHelper = await this.#getEthersIgnitionHelper();
+    return ethersIgnitionHelper.deploy(ignitionModule, options);
+  }
+
+  public getResolvedConfig(
+    perDeployConfig: Partial<DeployConfig>,
+  ): Partial<DeployConfig> {
+    // Note: This duplicates the logic of the actual implementation because it's
+    // a synchronous method, so we can't import the implementation.
+    return {
+      ...this.#config,
+      ...perDeployConfig,
+    };
+  }
+
+  async #getEthersIgnitionHelper(): Promise<
+    EthersIgnitionHelperImpl<ChainTypeT>
+  > {
+    if (this.#ethersIgnitionHelper === undefined) {
+      const { EthersIgnitionHelperImpl } = await import(
+        "../ethers-ignition-helper.js"
+      );
+
+      this.#ethersIgnitionHelper = new EthersIgnitionHelperImpl(
+        this.#hardhatConfig,
+        this.#artifactsManager,
+        this.#connection,
+        this.#userInterruptions,
+        this.#hooks,
+        this.#config,
+      );
+    }
+
+    return this.#ethersIgnitionHelper;
+  }
+}
 
 export default async (): Promise<Partial<NetworkHooks>> => {
   const handlers: Partial<NetworkHooks> = {
@@ -21,7 +131,7 @@ export default async (): Promise<Partial<NetworkHooks>> => {
         );
       }
 
-      connection.ignition = new EthersIgnitionHelperImpl(
+      connection.ignition = new LazyEthersIgnitionHelper<ChainTypeT>(
         context.config,
         context.artifacts,
         connection,
