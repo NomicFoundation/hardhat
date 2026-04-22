@@ -2,7 +2,7 @@ import type {
   EthersIgnitionHelper,
   IgnitionModuleResultsTToEthersContracts,
 } from "../../types.js";
-import type { EthersIgnitionHelperImpl } from "../ethers-ignition-helper.js";
+import type { EthersIgnitionHelperImpl as EthersIgnitionHelperImplT } from "../ethers-ignition-helper.js";
 import type {
   DeployConfig,
   DeploymentParameters,
@@ -22,6 +22,8 @@ import type { UserInterruptionManager } from "hardhat/types/user-interruptions";
 
 import { HardhatError } from "@nomicfoundation/hardhat-errors";
 
+let EthersIgnitionHelperImpl: typeof EthersIgnitionHelperImplT | undefined;
+
 class LazyEthersIgnitionHelper<ChainTypeT extends ChainType | string>
   implements EthersIgnitionHelper
 {
@@ -34,7 +36,7 @@ class LazyEthersIgnitionHelper<ChainTypeT extends ChainType | string>
   readonly #hooks: HookManager;
   readonly #config: Partial<DeployConfig> | undefined;
 
-  #ethersIgnitionHelper: EthersIgnitionHelperImpl<ChainTypeT> | undefined;
+  #ethersIgnitionHelper: EthersIgnitionHelperImplT<ChainTypeT> | undefined;
 
   constructor(
     hardhatConfig: HardhatConfig,
@@ -79,7 +81,7 @@ class LazyEthersIgnitionHelper<ChainTypeT extends ChainType | string>
     >
   > {
     const ethersIgnitionHelper = await this.#getEthersIgnitionHelper();
-    return ethersIgnitionHelper.deploy(ignitionModule, options);
+    return await ethersIgnitionHelper.deploy(ignitionModule, options);
   }
 
   public getResolvedConfig(
@@ -94,13 +96,20 @@ class LazyEthersIgnitionHelper<ChainTypeT extends ChainType | string>
   }
 
   async #getEthersIgnitionHelper(): Promise<
-    EthersIgnitionHelperImpl<ChainTypeT>
+    EthersIgnitionHelperImplT<ChainTypeT>
   > {
-    if (this.#ethersIgnitionHelper === undefined) {
-      const { EthersIgnitionHelperImpl } = await import(
+    // Note: `await import` must run BEFORE the instance cache check so that
+    // concurrent callers share a single microtask-dedupe point — otherwise
+    // each suspended caller re-enters the branch and constructs its own
+    // impl, so callers end up holding different impl instances and state,
+    // which can cause concurrency issues.
+    if (EthersIgnitionHelperImpl === undefined) {
+      ({ EthersIgnitionHelperImpl } = await import(
         "../ethers-ignition-helper.js"
-      );
+      ));
+    }
 
+    if (this.#ethersIgnitionHelper === undefined) {
       this.#ethersIgnitionHelper = new EthersIgnitionHelperImpl(
         this.#hardhatConfig,
         this.#artifactsManager,

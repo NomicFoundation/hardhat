@@ -1,11 +1,15 @@
-import type { UserInterruptionManagerImplementation } from "./user-interruptions.js";
+import type { UserInterruptionManagerImplementation as UserInterruptionManagerImplementationT } from "./user-interruptions.js";
 import type { HookManager } from "../../types/hooks.js";
 import type { UserInterruptionManager } from "../../types/user-interruptions.js";
+
+let UserInterruptionManagerImplementation:
+  | typeof UserInterruptionManagerImplementationT
+  | undefined;
 
 export class LazyUserInterruptionManager implements UserInterruptionManager {
   readonly #hooks: HookManager;
 
-  #userInterruptionManager: UserInterruptionManagerImplementation | undefined;
+  #userInterruptionManager: UserInterruptionManagerImplementationT | undefined;
 
   constructor(hooks: HookManager) {
     this.#hooks = hooks;
@@ -16,7 +20,7 @@ export class LazyUserInterruptionManager implements UserInterruptionManager {
     message: string,
   ): Promise<void> {
     const userInterruptionManager = await this.#getUserInterruptionManager();
-    return userInterruptionManager.displayMessage(interruptor, message);
+    return await userInterruptionManager.displayMessage(interruptor, message);
   }
 
   public async requestInput(
@@ -24,7 +28,10 @@ export class LazyUserInterruptionManager implements UserInterruptionManager {
     inputDescription: string,
   ): Promise<string> {
     const userInterruptionManager = await this.#getUserInterruptionManager();
-    return userInterruptionManager.requestInput(interruptor, inputDescription);
+    return await userInterruptionManager.requestInput(
+      interruptor,
+      inputDescription,
+    );
   }
 
   public async requestSecretInput(
@@ -32,7 +39,7 @@ export class LazyUserInterruptionManager implements UserInterruptionManager {
     inputDescription: string,
   ): Promise<string> {
     const userInterruptionManager = await this.#getUserInterruptionManager();
-    return userInterruptionManager.requestSecretInput(
+    return await userInterruptionManager.requestSecretInput(
       interruptor,
       inputDescription,
     );
@@ -42,15 +49,22 @@ export class LazyUserInterruptionManager implements UserInterruptionManager {
     f: () => ReturnT,
   ): Promise<Awaited<ReturnT>> {
     const userInterruptionManager = await this.#getUserInterruptionManager();
-    return userInterruptionManager.uninterrupted(f);
+    return await userInterruptionManager.uninterrupted(f);
   }
 
-  async #getUserInterruptionManager(): Promise<UserInterruptionManagerImplementation> {
-    if (this.#userInterruptionManager === undefined) {
-      const { UserInterruptionManagerImplementation } = await import(
+  async #getUserInterruptionManager(): Promise<UserInterruptionManagerImplementationT> {
+    // Note: `await import` must run BEFORE the instance cache check so that
+    // concurrent callers share a single microtask-dedupe point — otherwise
+    // each suspended caller re-enters the branch and constructs its own
+    // impl, so callers end up holding different impl instances and state,
+    // which can cause concurrency issues.
+    if (UserInterruptionManagerImplementation === undefined) {
+      ({ UserInterruptionManagerImplementation } = await import(
         "./user-interruptions.js"
-      );
+      ));
+    }
 
+    if (this.#userInterruptionManager === undefined) {
       this.#userInterruptionManager = new UserInterruptionManagerImplementation(
         this.#hooks,
       );

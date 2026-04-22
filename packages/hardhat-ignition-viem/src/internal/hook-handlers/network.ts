@@ -2,7 +2,7 @@ import type {
   IgnitionModuleResultsToViemContracts,
   ViemIgnitionHelper,
 } from "../../types.js";
-import type { ViemIgnitionHelperImpl } from "../viem-ignition-helper.js";
+import type { ViemIgnitionHelperImpl as ViemIgnitionHelperImplT } from "../viem-ignition-helper.js";
 import type {
   DeployConfig,
   DeploymentParameters,
@@ -22,6 +22,8 @@ import type { UserInterruptionManager } from "hardhat/types/user-interruptions";
 
 import { HardhatError } from "@nomicfoundation/hardhat-errors";
 
+let ViemIgnitionHelperImpl: typeof ViemIgnitionHelperImplT | undefined;
+
 class LazyViemIgnitionHelper<ChainTypeT extends ChainType | string>
   implements ViemIgnitionHelper
 {
@@ -34,7 +36,7 @@ class LazyViemIgnitionHelper<ChainTypeT extends ChainType | string>
   readonly #hooks: HookManager;
   readonly #config: Partial<DeployConfig> | undefined;
 
-  #viemIgnitionHelper: ViemIgnitionHelperImpl<ChainTypeT> | undefined;
+  #viemIgnitionHelper: ViemIgnitionHelperImplT<ChainTypeT> | undefined;
 
   constructor(
     hardhatConfig: HardhatConfig,
@@ -76,7 +78,7 @@ class LazyViemIgnitionHelper<ChainTypeT extends ChainType | string>
     IgnitionModuleResultsToViemContracts<ContractNameT, IgnitionModuleResultsT>
   > {
     const viemIgnitionHelper = await this.#getViemIgnitionHelper();
-    return viemIgnitionHelper.deploy(ignitionModule, options);
+    return await viemIgnitionHelper.deploy(ignitionModule, options);
   }
 
   public getResolvedConfig(
@@ -90,12 +92,17 @@ class LazyViemIgnitionHelper<ChainTypeT extends ChainType | string>
     };
   }
 
-  async #getViemIgnitionHelper(): Promise<ViemIgnitionHelperImpl<ChainTypeT>> {
-    if (this.#viemIgnitionHelper === undefined) {
-      const { ViemIgnitionHelperImpl } = await import(
-        "../viem-ignition-helper.js"
-      );
+  async #getViemIgnitionHelper(): Promise<ViemIgnitionHelperImplT<ChainTypeT>> {
+    // Note: `await import` must run BEFORE the instance cache check so that
+    // concurrent callers share a single microtask-dedupe point — otherwise
+    // each suspended caller re-enters the branch and constructs its own
+    // impl, so callers end up holding different impl instances and state,
+    // which can cause concurrency issues.
+    if (ViemIgnitionHelperImpl === undefined) {
+      ({ ViemIgnitionHelperImpl } = await import("../viem-ignition-helper.js"));
+    }
 
+    if (this.#viemIgnitionHelper === undefined) {
       this.#viemIgnitionHelper = new ViemIgnitionHelperImpl(
         this.#hardhatConfig,
         this.#artifactsManager,
