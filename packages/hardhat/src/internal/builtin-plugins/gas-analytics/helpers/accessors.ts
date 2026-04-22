@@ -5,16 +5,14 @@ import type { GasAnalyticsManager } from "../types.js";
 import { assertHardhatInvariant } from "@nomicfoundation/hardhat-errors";
 
 import { HardhatRuntimeEnvironmentImplementation } from "../../../core/hre.js";
-import { GasAnalyticsManagerImplementation } from "../gas-analytics-manager.js";
 
 export function getGasAnalyticsManager(
   hookContextOrHre: HookContext | HardhatRuntimeEnvironment,
 ): GasAnalyticsManager {
   assertHardhatInvariant(
-    "_gasAnalytics" in hookContextOrHre &&
-      hookContextOrHre._gasAnalytics instanceof
-        GasAnalyticsManagerImplementation,
-    "Expected _gasAnalytics to be an instance of GasAnalyticsManagerImplementation",
+    hookContextOrHre instanceof HardhatRuntimeEnvironmentImplementation &&
+      hookContextOrHre._gasAnalytics !== undefined,
+    "Expected _gasAnalytics to be installed on the HRE",
   );
   return hookContextOrHre._gasAnalytics;
 }
