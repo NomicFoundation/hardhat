@@ -252,7 +252,10 @@ export class HardhatEthersSigner implements HardhatEthersSignerI {
 
     const promises: Array<Promise<void>> = [];
 
-    // Make sure the from matches the sender
+    // Mirror stock ethers: ENS-resolve `from` and assert it matches the
+    // signer. Hardhat can be pointed at mainnet/testnets via --network, where
+    // ENS works and users expect ethers-compatible `from` handling. Don't
+    // "simplify" this by letting the node handle the mismatch.
     if (resolvedTx.from !== null && resolvedTx.from !== undefined) {
       const _from = resolvedTx.from;
       promises.push(
