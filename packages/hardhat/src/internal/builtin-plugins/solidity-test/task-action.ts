@@ -27,7 +27,7 @@ import { getFullyQualifiedName } from "../../../utils/contract-names.js";
 import { errorResult, successfulResult } from "../../../utils/result.js";
 import { isSupportedChainType } from "../../edr/chain-type.js";
 import { ArtifactManagerImplementation } from "../artifacts/artifact-manager.js";
-import { getCoverageManager } from "../coverage/helpers.js";
+import { getCoverageManager } from "../coverage/helpers/accessors.js";
 import { getGasAnalyticsManager } from "../gas-analytics/helpers/accessors.js";
 import { edrGasReportToHardhatGasMeasurements } from "../network-manager/edr/utils/convert-to-edr.js";
 

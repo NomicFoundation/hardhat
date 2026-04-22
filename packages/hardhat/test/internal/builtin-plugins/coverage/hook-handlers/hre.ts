@@ -6,7 +6,7 @@ import { assertThrowsHardhatError } from "@nomicfoundation/hardhat-test-utils";
 
 import { createHardhatRuntimeEnvironment } from "../../../../../src/hre.js";
 import { CoverageManagerImplementation } from "../../../../../src/internal/builtin-plugins/coverage/coverage-manager.js";
-import { getCoverageManager } from "../../../../../src/internal/builtin-plugins/coverage/helpers.js";
+import { getCoverageManager } from "../../../../../src/internal/builtin-plugins/coverage/helpers/accessors.js";
 
 describe("coverage/hook-handlers/hre — lazy-loading", () => {
   describe("when --coverage is not set", () => {

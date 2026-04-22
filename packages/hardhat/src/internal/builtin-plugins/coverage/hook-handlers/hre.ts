@@ -1,7 +1,7 @@
 import type { HardhatRuntimeEnvironmentHooks } from "../../../../types/hooks.js";
 import type { CoverageManagerImplementation as CoverageManagerImplementationT } from "../coverage-manager.js";
 
-import { getCoveragePath, setCoverageManager } from "../helpers.js";
+import { getCoveragePath, setCoverageManager } from "../helpers/accessors.js";
 
 let CoverageManagerImplementation:
   | typeof CoverageManagerImplementationT

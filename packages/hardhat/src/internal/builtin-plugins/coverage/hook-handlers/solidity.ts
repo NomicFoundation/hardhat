@@ -9,7 +9,7 @@ import { readUtf8File } from "@nomicfoundation/hardhat-utils/fs";
 import { findClosestPackageRoot } from "@nomicfoundation/hardhat-utils/package";
 import debug from "debug";
 
-import { getCoverageManager } from "../helpers.js";
+import { getCoverageManager } from "../helpers/accessors.js";
 import { instrumentSolidityFileForCompilationJob } from "../instrumentation.js";
 
 const log = debug("hardhat:core:coverage:hook-handlers:solidity");

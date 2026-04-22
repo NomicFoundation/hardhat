@@ -24,7 +24,7 @@ import chalk from "chalk";
 
 import { createHardhatRuntimeEnvironment } from "../../../../src/hre.js";
 import { CoverageManagerImplementation } from "../../../../src/internal/builtin-plugins/coverage/coverage-manager.js";
-import { setCoverageManager } from "../../../../src/internal/builtin-plugins/coverage/helpers.js";
+import { setCoverageManager } from "../../../../src/internal/builtin-plugins/coverage/helpers/accessors.js";
 import { COVERAGE_TEST_SCENARIO_DO_WHILE_LOOP } from "../../../fixture-projects/coverage/contracts/do-while-loop/coverage-edr-info.js";
 import { COVERAGE_TEST_SCENARIO_FOR_LOOP } from "../../../fixture-projects/coverage/contracts/for-loop/coverage-edr-info.js";
 import { COVERAGE_TEST_SCENARIO_FUNCTIONS } from "../../../fixture-projects/coverage/contracts/functions/coverage-edr-info.js";
