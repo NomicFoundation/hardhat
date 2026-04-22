@@ -1,5 +1,16 @@
 # @nomicfoundation/hardhat-ethers
 
+## 4.0.9
+
+### Patch Changes
+
+- [#8179](https://github.com/NomicFoundation/hardhat/pull/8179) [`d16d82a`](https://github.com/NomicFoundation/hardhat/commit/d16d82abfd5c9fa044cb508468cd4b50a5fcfd8a) Thanks [@alcuadrado](https://github.com/alcuadrado)! - Await all returned promises for better debuggability
+
+- [#8153](https://github.com/NomicFoundation/hardhat/pull/8153) [`e21950e`](https://github.com/NomicFoundation/hardhat/commit/e21950e68dbd778ce0c4cfcad8c71dfeb4f9cad1) Thanks [@schaable](https://github.com/schaable)! - Fix gas config fields (gas, gasMultiplier, gasPrice) not being applied when sending transactions through the HardhatEthersSigner
+
+- Updated dependencies:
+  - @nomicfoundation/hardhat-utils@4.0.4
+
 ## 4.0.8
 
 ### Patch Changes

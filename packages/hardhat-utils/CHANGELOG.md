@@ -1,5 +1,11 @@
 # @nomicfoundation/hardhat-utils
 
+## 4.0.4
+
+### Patch Changes
+
+- [#8179](https://github.com/NomicFoundation/hardhat/pull/8179) [`d16d82a`](https://github.com/NomicFoundation/hardhat/commit/d16d82abfd5c9fa044cb508468cd4b50a5fcfd8a) Thanks [@alcuadrado](https://github.com/alcuadrado)! - Await all returned promises for better debuggability
+
 ## 4.0.3
 
 ### Patch Changes
