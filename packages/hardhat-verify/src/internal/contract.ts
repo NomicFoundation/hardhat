@@ -58,9 +58,9 @@ export class ContractInformationResolver {
     deployedBytecode: Bytecode,
   ): Promise<ContractInformation> {
     if (contract !== undefined) {
-      return this.#resolveByFqn(contract, deployedBytecode);
+      return await this.#resolveByFqn(contract, deployedBytecode);
     } else {
-      return this.#resolveByBytecodeLookup(deployedBytecode);
+      return await this.#resolveByBytecodeLookup(deployedBytecode);
     }
   }
 

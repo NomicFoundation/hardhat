@@ -321,7 +321,7 @@ export function createConfig(
     "no-new-wrappers": "error",
     "no-only-tests/no-only-tests": "error",
     "no-return-await": "off",
-    "@typescript-eslint/return-await": "error",
+    "@typescript-eslint/return-await": ["error", "always"],
     "no-sequences": "error",
     "no-sparse-arrays": "error",
     "no-template-curly-in-string": "error",

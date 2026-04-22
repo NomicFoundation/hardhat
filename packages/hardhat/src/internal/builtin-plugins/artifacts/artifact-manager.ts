@@ -57,7 +57,7 @@ export class ArtifactManagerImplementation implements ArtifactManager {
       contractNameOrFullyQualifiedName,
     );
 
-    return readJsonFile(artifactPath);
+    return await readJsonFile(artifactPath);
   }
 
   public async getArtifactPath(

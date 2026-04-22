@@ -46,11 +46,11 @@ import { printErrorMessages } from "./error-handler.js";
 import { getGlobalHelpString } from "./help/get-global-help-string.js";
 import { getHelpString } from "./help/get-help-string.js";
 import { sendTaskAnalytics } from "./telemetry/analytics/analytics.js";
+import { setupGlobalUnhandledErrorHandlers } from "./telemetry/error-reporter/global-error-handlers.js";
 import {
   sendErrorTelemetry,
   setCliHardhatConfigPath,
-  setupErrorTelemetryIfEnabled,
-} from "./telemetry/sentry/reporter.js";
+} from "./telemetry/error-reporter/reporter.js";
 import { printVersionMessage } from "./version.js";
 
 export interface MainOptions {
@@ -64,7 +64,9 @@ export async function main(
   rawArguments: string[],
   options: MainOptions = {},
 ): Promise<void> {
-  await setupErrorTelemetryIfEnabled();
+  // We set up the global unhandled errors before running any functionality
+  setupGlobalUnhandledErrorHandlers();
+
   const print = options.print ?? console.log;
 
   const log = debug("hardhat:core:cli:main");

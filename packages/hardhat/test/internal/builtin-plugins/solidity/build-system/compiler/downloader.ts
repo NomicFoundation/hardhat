@@ -230,7 +230,7 @@ describe(
           process.cwd(),
           async (url, destination, requestOptions, dispatcherOptions) => {
             if (stopMocking) {
-              return download(
+              return await download(
                 url,
                 destination,
                 requestOptions,
@@ -240,7 +240,7 @@ describe(
 
             if (!hasDownloadedOnce) {
               hasDownloadedOnce = true;
-              return download(
+              return await download(
                 url,
                 destination,
                 requestOptions,

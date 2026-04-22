@@ -281,7 +281,7 @@ export async function hardhatAccountsToEdrOwnedAccounts(
     balance: account.balance,
   }));
 
-  return Promise.all(accountPromises);
+  return await Promise.all(accountPromises);
 }
 
 export async function normalizeEdrNetworkAccountsConfig(

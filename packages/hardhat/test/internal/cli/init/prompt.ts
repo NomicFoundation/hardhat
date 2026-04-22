@@ -14,7 +14,7 @@ describe("promptForWorkspace", () => {
   it("should fail if the user is not in an interactive shell", async () => {
     if (!process.stdout.isTTY) {
       await assertRejectsWithHardhatError(
-        async () => promptForWorkspace(),
+        async () => await promptForWorkspace(),
         HardhatError.ERRORS.CORE.GENERAL.NOT_IN_INTERACTIVE_SHELL,
         {},
       );
@@ -26,7 +26,7 @@ describe("promptForTemplate", () => {
   it("should fail if the user is not in an interactive shell", async () => {
     if (!process.stdout.isTTY) {
       await assertRejectsWithHardhatError(
-        async () => promptForTemplate([]),
+        async () => await promptForTemplate([]),
         HardhatError.ERRORS.CORE.GENERAL.NOT_IN_INTERACTIVE_SHELL,
         {},
       );
@@ -38,7 +38,7 @@ describe("promptForForce", () => {
   it("should fail if the user is not in an interactive shell", async () => {
     if (!process.stdout.isTTY) {
       await assertRejectsWithHardhatError(
-        async () => promptForForce([]),
+        async () => await promptForForce([]),
         HardhatError.ERRORS.CORE.GENERAL.NOT_IN_INTERACTIVE_SHELL,
         {},
       );
@@ -50,7 +50,7 @@ describe("promptForInstall", () => {
   it("should fail if the user is not in an interactive shell", async () => {
     if (!process.stdout.isTTY) {
       await assertRejectsWithHardhatError(
-        async () => promptForInstall("foo"),
+        async () => await promptForInstall("foo"),
         HardhatError.ERRORS.CORE.GENERAL.NOT_IN_INTERACTIVE_SHELL,
         {},
       );

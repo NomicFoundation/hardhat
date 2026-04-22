@@ -67,7 +67,7 @@ export class Bytecode {
       );
     }
 
-    return Bytecode.#parse(deployedBytecode);
+    return await Bytecode.#parse(deployedBytecode);
   }
 
   public hasVersionRange(): boolean {

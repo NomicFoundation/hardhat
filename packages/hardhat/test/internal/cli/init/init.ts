@@ -56,7 +56,7 @@ describe("getWorkspace", () => {
       await writeUtf8File(filePath, "some content");
 
       await assertRejectsWithHardhatError(
-        async () => getWorkspace(filePath),
+        async () => await getWorkspace(filePath),
         HardhatError.ERRORS.CORE.GENERAL.WORKSPACE_MUST_BE_A_DIRECTORY,
         {
           workspace: path.resolve(filePath),
@@ -69,7 +69,7 @@ describe("getWorkspace", () => {
     await ensureDir("hardhat-project");
     await writeUtf8File("hardhat.config.ts", "");
     await assertRejectsWithHardhatError(
-      async () => getWorkspace("hardhat-project"),
+      async () => await getWorkspace("hardhat-project"),
       HardhatError.ERRORS.CORE.GENERAL.HARDHAT_PROJECT_ALREADY_CREATED,
       {
         hardhatProjectRootPath: path.join(process.cwd(), "hardhat.config.ts"),
@@ -82,7 +82,7 @@ describe("getWorkspace", () => {
 describe("getTemplate", () => {
   it("should throw if the provided template does not exist", async () => {
     await assertRejectsWithHardhatError(
-      async () => getTemplate("hardhat-3", "non-existent-template"),
+      async () => await getTemplate("hardhat-3", "non-existent-template"),
       HardhatError.ERRORS.CORE.GENERAL.TEMPLATE_NOT_FOUND,
       {
         template: "non-existent-template",
@@ -145,7 +145,7 @@ describe("validatePackageJson", () => {
 
     await assertRejectsWithHardhatError(
       async () =>
-        validatePackageJson(
+        await validatePackageJson(
           process.cwd(),
           {
             name: "package-name",

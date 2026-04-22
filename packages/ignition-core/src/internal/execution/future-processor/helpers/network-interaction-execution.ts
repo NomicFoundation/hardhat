@@ -38,7 +38,7 @@ export async function runStaticCall(
   client: JsonRpcClient,
   staticCall: StaticCall,
 ): Promise<RawStaticCallResult> {
-  return client.call(
+  return await client.call(
     {
       from: staticCall.from,
       to: staticCall.to,

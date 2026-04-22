@@ -65,7 +65,7 @@ export async function createHardhatRuntimeEnvironment(
     unsafeOptions.globalOptionDefinitions = globalOptionDefinitions;
   }
 
-  return HardhatRuntimeEnvironmentImplementation.create(
+  return await HardhatRuntimeEnvironmentImplementation.create(
     config,
     userProvidedGlobalOptions,
     resolvedProjectRoot,

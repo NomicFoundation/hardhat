@@ -5,7 +5,6 @@ import type { LastParameter, Result } from "hardhat/types/utils";
 
 import { pipeline } from "node:stream/promises";
 import { run } from "node:test";
-import { URL } from "node:url";
 
 import { hardhatTestReporter } from "@nomicfoundation/hardhat-node-test-reporter";
 import { setGlobalOptionsAsEnvVariables } from "@nomicfoundation/hardhat-utils/env";
@@ -46,7 +45,7 @@ async function getTestFiles(
     return testFiles;
   }
 
-  return getAllFilesMatching(
+  return await getAllFilesMatching(
     config.paths.tests.nodejs,
     (f) => isJavascriptFile(f) || isTypescriptFile(f),
   );
@@ -87,33 +86,12 @@ const testWithHardhat: NewTaskActionFunction<TestActionArguments> = async (
     });
   }
 
-  const imports = [];
-
-  const tsx = new URL(import.meta.resolve("tsx/esm"));
-  imports.push(tsx.href);
-
-  if (
-    hre.globalOptions.coverage === true ||
-    hre.globalOptions.gasStats === true ||
-    hre.globalOptions.gasStatsJson !== undefined
-  ) {
-    const testWorkerDone = new URL(
-      import.meta.resolve(
-        "@nomicfoundation/hardhat-node-test-runner/test-worker-done",
-      ),
-    );
-    imports.push(testWorkerDone.href);
-  }
-
-  process.env.NODE_OPTIONS = imports
-    .map((href) => `--import "${href}"`)
-    .join(" ");
-
   async function runTests(): Promise<TestSummary> {
     const nodeTestOptions: LastParameter<typeof run> = {
       files,
       only,
-      concurrency: true, // uses `os.availableParallelism() - 1`
+      concurrency: false,
+      isolation: "none",
     };
 
     if (grep !== undefined && grep !== "") {
@@ -190,6 +168,13 @@ const testWithHardhat: NewTaskActionFunction<TestActionArguments> = async (
   );
 
   const testResults = await runTests();
+
+  await hre.hooks.runHandlerChain(
+    "test",
+    "onTestWorkerDone",
+    ["nodejs"],
+    async () => {},
+  );
 
   await hre.hooks.runHandlerChain(
     "test",

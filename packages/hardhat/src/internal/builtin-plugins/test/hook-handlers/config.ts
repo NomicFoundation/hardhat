@@ -14,7 +14,7 @@ export default async (): Promise<Partial<ConfigHooks>> => {
         resolveConfigurationVariable,
       );
 
-      return resolveTestUserConfig(userConfig, resolvedConfig);
+      return await resolveTestUserConfig(userConfig, resolvedConfig);
     },
   };
 

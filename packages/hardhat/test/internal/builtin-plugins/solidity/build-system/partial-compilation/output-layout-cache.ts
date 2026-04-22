@@ -22,7 +22,7 @@ async function getHREWithSplitConfig(
   projectPath: string,
   splitTestsCompilation: boolean,
 ) {
-  return createHardhatRuntimeEnvironment(
+  return await createHardhatRuntimeEnvironment(
     {
       solidity: {
         profiles: {

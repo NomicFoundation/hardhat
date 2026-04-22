@@ -43,7 +43,7 @@ export function resetExecMock(): void {
  */
 export async function hasFoundryConfig(packagePath: string): Promise<boolean> {
   const foundryTomlPath = path.join(packagePath, "foundry.toml");
-  return exists(foundryTomlPath);
+  return await exists(foundryTomlPath);
 }
 
 /**

@@ -34,12 +34,12 @@ describe("time - increase", () => {
 
   it("should throw if given zero number of seconds", async () => {
     // eslint-disable-next-line no-restricted-syntax -- only used in test to verify error not thrown by Hardhat
-    await assert.rejects(async () => time.increase(0));
+    await assert.rejects(async () => await time.increase(0));
   });
 
   it("should throw if given a negative number of seconds", async () => {
     await assertRejectsWithHardhatError(
-      async () => time.increase(-1),
+      async () => await time.increase(-1),
       HardhatError.ERRORS.NETWORK_HELPERS.GENERAL
         .CANNOT_CONVERT_NEGATIVE_NUMBER_TO_RPC_QUANTITY,
       {

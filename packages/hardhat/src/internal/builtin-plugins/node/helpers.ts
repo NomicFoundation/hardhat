@@ -16,7 +16,7 @@ import chalk from "chalk";
 // micro-eth-signer is known to be slow to load, so we lazy load it
 let microEthSigner: typeof MicroEthSignerT | undefined;
 
-import { sendErrorTelemetry } from "../../cli/telemetry/sentry/reporter.js";
+import { sendErrorTelemetry } from "../../cli/telemetry/error-reporter/reporter.js";
 import { isDefaultEdrNetworkHDAccountsConfig } from "../network-manager/edr/edr-constants.js";
 import { normalizeEdrNetworkAccountsConfig } from "../network-manager/edr/utils/convert-to-edr.js";
 

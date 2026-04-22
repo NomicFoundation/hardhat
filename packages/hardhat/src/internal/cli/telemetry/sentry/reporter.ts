@@ -19,15 +19,16 @@ const log = debug("hardhat:cli:telemetry:sentry:reporter");
 export const SENTRY_DSN =
   "https://572b03708e298427cc72fc26dac1e8b2@o385026.ingest.us.sentry.io/4508780138856448"; // PROD
 
-// TODO: This could be done in a more elegant way, but for now, we just
-// initialize the entire reporter so that it sets the global error handlers.
-export async function setupErrorTelemetryIfEnabled(): Promise<void> {
-  await Reporter.getInstance(true);
-}
-
-export async function sendErrorTelemetry(error: Error): Promise<boolean> {
+/**
+ * @deprecated Use packages/hardhat/src/internal/cli/telemetry/error-reporter/reporter.ts
+ *   instead.
+ */
+export async function sendErrorTelemetry(
+  error: Error,
+  hint?: { unhandled?: boolean; mechanismType?: string },
+): Promise<boolean> {
   const instance = await Reporter.getInstance();
-  return instance.reportErrorViaSubprocess(error);
+  return await instance.reportErrorViaSubprocess(error, hint);
 }
 
 export function setCliHardhatConfigPath(configPath: string): void {
@@ -57,9 +58,7 @@ class Reporter {
     this.#hardhatConfigPath = configPath;
   }
 
-  public static async getInstance(
-    shouldSetupErrorHandlers = false,
-  ): Promise<Reporter> {
+  public static async getInstance(): Promise<Reporter> {
     if (this.#instance !== undefined) {
       return this.#instance;
     }
@@ -94,7 +93,6 @@ class Reporter {
       ),
       release,
       environment,
-      installGlobalHandlers: shouldSetupErrorHandlers,
     });
 
     setExtra("nodeVersion", process.version);
@@ -108,17 +106,31 @@ class Reporter {
     this.#instance = undefined;
   }
 
-  public async reportErrorViaSubprocess(error: Error): Promise<boolean> {
+  public async reportErrorViaSubprocess(
+    error: Error,
+    hint?: { unhandled?: boolean; mechanismType?: string },
+  ): Promise<boolean> {
     if (!(await this.#shouldBeReported(error))) {
       log("Error not send: this type of error should not be reported");
       return false;
     }
 
-    const { captureException } = await import("@sentry/core");
+    const { captureException, flush } = await import("@sentry/core");
 
     log("Capturing exception");
 
-    captureException(error);
+    captureException(
+      error,
+      hint !== undefined
+        ? {
+            mechanism: {
+              type: hint.mechanismType ?? "generic",
+              handled: hint.unhandled !== true,
+            },
+          }
+        : undefined,
+    );
+    await flush();
 
     return true;
   }

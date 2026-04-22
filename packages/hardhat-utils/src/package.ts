@@ -158,7 +158,7 @@ export async function findDependencyPackageJson(
     const packageJsonPath = path.join(lookupPath, ...pathToTest);
 
     if (await exists(packageJsonPath)) {
-      return getRealPath(packageJsonPath);
+      return await getRealPath(packageJsonPath);
     }
   }
 }

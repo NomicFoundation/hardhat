@@ -122,7 +122,7 @@ export async function useTestProjectTemplate(
       return hre;
     },
     [Symbol.asyncDispose]: async () => {
-      return project.clean();
+      return await project.clean();
     },
   };
 

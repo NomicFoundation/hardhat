@@ -102,7 +102,7 @@ export class HardhatEthersSigner implements HardhatEthersSignerI {
 
     const wallet = new Wallet(privateKey, this.provider);
 
-    return wallet.authorize(auth);
+    return await wallet.authorize(auth);
   }
 
   public async populateAuthorization(
@@ -139,11 +139,11 @@ export class HardhatEthersSigner implements HardhatEthersSignerI {
   }
 
   public async estimateGas(tx: TransactionRequest): Promise<bigint> {
-    return this.provider.estimateGas(await this.populateCall(tx));
+    return await this.provider.estimateGas(await this.populateCall(tx));
   }
 
   public async call(tx: TransactionRequest): Promise<string> {
-    return this.provider.call(await this.populateCall(tx));
+    return await this.provider.call(await this.populateCall(tx));
   }
 
   public resolveName(name: string): Promise<string | null> {
@@ -176,7 +176,7 @@ export class HardhatEthersSigner implements HardhatEthersSignerI {
     // for a response, and we need the actual transaction, so we poll
     // for it; it should show up very quickly
 
-    return new Promise((resolve) => {
+    return await new Promise((resolve) => {
       const timeouts = [1000, 100];
       const checkTx = async () => {
         // Try getting the transaction
@@ -224,7 +224,7 @@ export class HardhatEthersSigner implements HardhatEthersSignerI {
       },
     );
 
-    return this.provider.send("eth_signTypedData_v4", [
+    return await this.provider.send("eth_signTypedData_v4", [
       this.address.toLowerCase(),
       JSON.stringify(
         TypedDataEncoder.getPayload(populated.domain, types, populated.value),
@@ -290,7 +290,7 @@ export class HardhatEthersSigner implements HardhatEthersSignerI {
 
     const hexTx = getRpcTransaction(resolvedTx);
 
-    return this.provider.send("eth_sendTransaction", [hexTx]);
+    return await this.provider.send("eth_sendTransaction", [hexTx]);
   }
 
   async #getPrivateKey(): Promise<string | undefined> {
@@ -316,21 +316,21 @@ export class HardhatEthersSigner implements HardhatEthersSignerI {
       }
 
       if (Array.isArray(accounts)) {
-        return Promise.all(accounts.map((acc) => acc.get()));
+        return await Promise.all(accounts.map((acc) => acc.get()));
       }
 
       if ("mnemonic" in accounts) {
-        return derivePrivateKeys(accounts);
+        return await derivePrivateKeys(accounts);
       }
     }
 
     if (type === "edr-simulated") {
       if (Array.isArray(accounts)) {
-        return Promise.all(accounts.map((acc) => acc.privateKey.get()));
+        return await Promise.all(accounts.map((acc) => acc.privateKey.get()));
       }
 
       if ("mnemonic" in accounts) {
-        return derivePrivateKeys(accounts);
+        return await derivePrivateKeys(accounts);
       }
     }
 

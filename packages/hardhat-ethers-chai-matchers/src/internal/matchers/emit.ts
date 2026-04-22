@@ -44,11 +44,11 @@ async function waitForPendingTransaction(
     // string, it might not be a real tx hash. Do a one-shot check to
     // avoid polling forever.
     if (isBytes32String(hash)) {
-      return provider.getTransactionReceipt(hash);
+      return await provider.getTransactionReceipt(hash);
     }
   }
 
-  return provider.waitForTransaction(hash);
+  return await provider.waitForTransaction(hash);
 }
 
 export function supportEmit(

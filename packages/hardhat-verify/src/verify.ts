@@ -9,5 +9,5 @@ export async function verifyContract(
   verifyContractArgs: VerifyContractArgs,
   hre: HardhatRuntimeEnvironment,
 ): Promise<boolean> {
-  return verify(verifyContractArgs, hre);
+  return await verify(verifyContractArgs, hre);
 }

@@ -23,7 +23,7 @@ export async function getBalances(
   accounts: Array<Addressable | string>,
   blockNumber: number,
 ): Promise<bigint[]> {
-  return Promise.all(
+  return await Promise.all(
     accounts.map(async (account) => {
       const address = await getAddressOf(account);
 

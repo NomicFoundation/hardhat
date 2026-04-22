@@ -33,7 +33,7 @@ import { ensureError } from "@nomicfoundation/hardhat-utils/error";
 import { numberToHexString } from "@nomicfoundation/hardhat-utils/hex";
 import debug from "debug";
 
-import { sendErrorTelemetry } from "../../../cli/telemetry/sentry/reporter.js";
+import { sendErrorTelemetry } from "../../../cli/telemetry/error-reporter/reporter.js";
 import { EDR_NETWORK_REVERT_SNAPSHOT_EVENT } from "../../../constants.js";
 import { hardhatChainTypeToEdrChainType } from "../../../edr/chain-type.js";
 import { getGlobalEdrContext } from "../../../edr/context.js";

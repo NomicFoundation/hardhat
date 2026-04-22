@@ -38,12 +38,12 @@ class LazySolidityBuildSystem implements SolidityBuildSystem {
     options: { scope?: BuildScope } = {},
   ): Promise<string[]> {
     const buildSystem = await this.#getBuildSystem();
-    return buildSystem.getRootFilePaths(options);
+    return await buildSystem.getRootFilePaths(options);
   }
 
   public async getScope(fsPath: string): Promise<BuildScope> {
     const buildSystem = await this.#getBuildSystem();
-    return buildSystem.getScope(fsPath);
+    return await buildSystem.getScope(fsPath);
   }
 
   public isSuccessfulBuildResult(
@@ -59,7 +59,7 @@ class LazySolidityBuildSystem implements SolidityBuildSystem {
     options?: BuildOptions,
   ): Promise<CompilationJobCreationError | Map<string, FileBuildResult>> {
     const buildSystem = await this.#getBuildSystem();
-    return buildSystem.build(rootFiles, options);
+    return await buildSystem.build(rootFiles, options);
   }
 
   public async getCompilationJobs(
@@ -67,7 +67,7 @@ class LazySolidityBuildSystem implements SolidityBuildSystem {
     options?: GetCompilationJobsOptions,
   ): Promise<CompilationJobCreationError | GetCompilationJobsResult> {
     const buildSystem = await this.#getBuildSystem();
-    return buildSystem.getCompilationJobs(rootFiles, options);
+    return await buildSystem.getCompilationJobs(rootFiles, options);
   }
 
   public async runCompilationJob(
@@ -75,7 +75,7 @@ class LazySolidityBuildSystem implements SolidityBuildSystem {
     options?: RunCompilationJobOptions,
   ): Promise<RunCompilationJobResult> {
     const buildSystem = await this.#getBuildSystem();
-    return buildSystem.runCompilationJob(compilationJob, options);
+    return await buildSystem.runCompilationJob(compilationJob, options);
   }
 
   public async remapCompilerError(
@@ -84,7 +84,7 @@ class LazySolidityBuildSystem implements SolidityBuildSystem {
     shouldShortenPaths?: boolean,
   ): Promise<CompilerOutputError> {
     const buildSystem = await this.#getBuildSystem();
-    return buildSystem.remapCompilerError(
+    return await buildSystem.remapCompilerError(
       compilationJob,
       error,
       shouldShortenPaths,
@@ -97,7 +97,11 @@ class LazySolidityBuildSystem implements SolidityBuildSystem {
     options: { scope?: BuildScope } = {},
   ): Promise<EmitArtifactsResult> {
     const buildSystem = await this.#getBuildSystem();
-    return buildSystem.emitArtifacts(compilationJob, compilerOutput, options);
+    return await buildSystem.emitArtifacts(
+      compilationJob,
+      compilerOutput,
+      options,
+    );
   }
 
   public async cleanupArtifacts(
@@ -105,7 +109,7 @@ class LazySolidityBuildSystem implements SolidityBuildSystem {
     options: { scope?: BuildScope } = {},
   ): Promise<void> {
     const buildSystem = await this.#getBuildSystem();
-    return buildSystem.cleanupArtifacts(rootFilePaths, options);
+    return await buildSystem.cleanupArtifacts(rootFilePaths, options);
   }
 
   public async compileBuildInfo(
@@ -113,12 +117,12 @@ class LazySolidityBuildSystem implements SolidityBuildSystem {
     options?: CompileBuildInfoOptions,
   ): Promise<CompilerOutput> {
     const buildSystem = await this.#getBuildSystem();
-    return buildSystem.compileBuildInfo(buildInfo, options);
+    return await buildSystem.compileBuildInfo(buildInfo, options);
   }
 
   public async getArtifactsDirectory(scope: BuildScope): Promise<string> {
     const buildSystem = await this.#getBuildSystem();
-    return buildSystem.getArtifactsDirectory(scope);
+    return await buildSystem.getArtifactsDirectory(scope);
   }
 
   async #getBuildSystem(): Promise<SolidityBuildSystem> {

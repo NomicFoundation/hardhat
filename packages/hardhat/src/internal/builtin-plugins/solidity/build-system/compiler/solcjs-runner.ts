@@ -6,7 +6,7 @@ async function readStream(
 ): Promise<string> {
   stream.setEncoding(encoding);
 
-  return new Promise((resolve, reject) => {
+  return await new Promise((resolve, reject) => {
     let data = "";
 
     stream.on("data", (chunk) => (data += chunk.toString(encoding)));
