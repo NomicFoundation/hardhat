@@ -27,7 +27,7 @@ export const DEFAULT_EDR_NETWORK_HD_ACCOUNTS_CONFIG_PARAMS: EdrNetworkDefaultHDA
 export async function isDefaultEdrNetworkHDAccountsConfig(
   accounts: EdrNetworkHDAccountsConfig,
 ): Promise<boolean> {
-  return deepEqual(
+  return await deepEqual(
     {
       ...accounts,
       mnemonic: await accounts.mnemonic.get(),

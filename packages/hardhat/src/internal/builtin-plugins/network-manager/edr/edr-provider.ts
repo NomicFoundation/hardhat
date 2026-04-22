@@ -266,7 +266,7 @@ export class EdrProvider extends BaseProvider {
         typeof jsonRpcResponse.result === "string",
         "Invalid client version response",
       );
-      return clientVersion(jsonRpcResponse.result);
+      return await clientVersion(jsonRpcResponse.result);
     } else {
       return jsonRpcResponse.result;
     }
@@ -437,7 +437,7 @@ export class EdrProvider extends BaseProvider {
       throw new UnknownError(error.message, error);
     }
 
-    return this.#handleEdrResponse(
+    return await this.#handleEdrResponse(
       edrResponse,
       request.method,
       Array.isArray(request.params) ? request.params : undefined,
