@@ -1,3 +1,4 @@
+// cSpell:ignore APFS ambig AMBIG Ambig
 import type { Dirent } from "node:fs";
 
 import assert from "node:assert/strict";
