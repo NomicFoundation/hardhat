@@ -334,7 +334,7 @@ jobs:
         os: [ubuntu-latest, ubuntu-24.04-arm, macos-latest, windows-latest]
         # We run the tests for `hardhat-node-test-reporter` with the latest
         # versions of Node (the testing output relying on recent changes)
-        node: [22.13.0, 24.0.0]
+        node: [22, 24]
 
     name: "[hardhat-node-test-reporter] ci on ${{ matrix.os }} (Node ${{ matrix.node }})"
     timeout-minutes: 60
