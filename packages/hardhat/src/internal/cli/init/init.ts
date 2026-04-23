@@ -49,6 +49,10 @@ import {
 import { spawn } from "./subprocess.js";
 import { getTemplates } from "./template.js";
 
+export interface NonInteractiveInitHardhat3Options {
+  template: string;
+}
+
 export interface InitHardhatOptions {
   hardhatVersion?: "hardhat-2" | "hardhat-3";
   workspace?: string;
@@ -59,6 +63,55 @@ export interface InitHardhatOptions {
 }
 
 const log = debug("hardhat:cli:init");
+
+export async function initHardhat3NonInteractive(
+  options: NonInteractiveInitHardhat3Options,
+): Promise<void> {
+  const [template, projectTypeAnalyticsPromise] = await getTemplate(
+    "hardhat-3",
+    options.template,
+    true,
+  );
+
+  const workspace = process.cwd();
+
+  try {
+    const configFilePath = await findClosestHardhatConfig(workspace);
+
+    throw new HardhatError(
+      HardhatError.ERRORS.CORE.GENERAL.HARDHAT_PROJECT_ALREADY_CREATED,
+      {
+        hardhatProjectRootPath: configFilePath,
+      },
+    );
+  } catch (err) {
+    if (
+      !HardhatError.isHardhatError(
+        err,
+        HardhatError.ERRORS.CORE.GENERAL.NO_CONFIG_FILE_FOUND,
+      )
+    ) {
+      throw err;
+    }
+  }
+
+  await assertNoNonInteractiveClashes(workspace, template);
+
+  console.log("Initializing project...");
+
+  await validatePackageJson(workspace, template.packageJson, true);
+
+  await copyProjectFilesNonInteractive(workspace, template);
+
+  console.log("Installing dependencies...");
+
+  await Promise.all([
+    installProjectDependencies(workspace, template, true, true),
+    projectTypeAnalyticsPromise,
+  ]);
+
+  console.log("Project initialized");
+}
 
 /**
  * initHardhat implements the project initialization wizard flow.
@@ -274,6 +327,7 @@ export async function getWorkspace(workspace?: string): Promise<string> {
 export async function getTemplate(
   hardhatVersion: "hardhat-2" | "hardhat-3",
   template?: string,
+  includeAvailableTemplatesInErrors = false,
 ): Promise<[Template, Promise<boolean>]> {
   const templates = await getTemplates(hardhatVersion);
 
@@ -297,9 +351,38 @@ export async function getTemplate(
   // we wait for the GA hit before throwing
   await projectTypeAnalyticsPromise;
 
-  throw new HardhatError(HardhatError.ERRORS.CORE.GENERAL.TEMPLATE_NOT_FOUND, {
-    template,
-  });
+  if (!includeAvailableTemplatesInErrors) {
+    throw new HardhatError(
+      HardhatError.ERRORS.CORE.GENERAL.TEMPLATE_NOT_FOUND,
+      {
+        template,
+      },
+    );
+  }
+
+  const availableTemplates = templates.map((t) => `  - ${t.name}`).join("\n");
+  throw new HardhatError(
+    HardhatError.ERRORS.CORE.GENERAL.TEMPLATE_NOT_FOUND_WITH_LIST_OF_OPTIONS,
+    {
+      template,
+      availableTemplates,
+    },
+  );
+}
+
+/**
+ * Prints the list of available templates for the specified Hardhat version.
+ *
+ * @param hardhatVersion The version of Hardhat whose template's should be
+ *  printed.
+ */
+export async function printTemplatesList(
+  hardhatVersion: "hardhat-2" | "hardhat-3",
+  print: (message: string) => void = console.log,
+): Promise<void> {
+  const templates = await getTemplates(hardhatVersion);
+  const lines = templates.map((t) => `  - ${t.name}`).join("\n");
+  print(`Available templates:\n${lines}`);
 }
 
 /**
@@ -492,6 +575,74 @@ export async function copyProjectFiles(
   }
 
   console.log(`✨ ${chalk.cyan(`Template files copied`)} ✨`);
+}
+
+// NOTE: This function is exported for testing purposes
+export async function assertNoNonInteractiveClashes(
+  workspace: string,
+  template: Template,
+): Promise<void> {
+  const clashes: string[] = [];
+
+  for (const relativeTemplatePath of template.files) {
+    const relativeWorkspacePath =
+      relativeTemplateToWorkspacePath(relativeTemplatePath);
+
+    if (
+      relativeWorkspacePath === "package.json" ||
+      relativeWorkspacePath === "README.md" ||
+      path.basename(relativeWorkspacePath) === ".gitignore"
+    ) {
+      continue;
+    }
+
+    if (await exists(path.join(workspace, relativeWorkspacePath))) {
+      clashes.push(relativeWorkspacePath);
+    }
+  }
+
+  if (clashes.length === 0) {
+    return;
+  }
+
+  throw new HardhatError(
+    HardhatError.ERRORS.CORE.GENERAL.NON_INTERACTIVE_INIT_WOULD_OVERWRITE_FILES,
+    {
+      files: clashes.map((f) => `  - ${f}`).join("\n"),
+    },
+  );
+}
+
+// NOTE: This function is exported for testing purposes
+export async function copyProjectFilesNonInteractive(
+  workspace: string,
+  template: Template,
+): Promise<void> {
+  for (const relativeTemplatePath of template.files) {
+    const relativeWorkspacePath =
+      relativeTemplateToWorkspacePath(relativeTemplatePath);
+    let absoluteWorkspacePath = path.join(workspace, relativeWorkspacePath);
+
+    if (path.basename(relativeWorkspacePath) === ".gitignore") {
+      if (await exists(absoluteWorkspacePath)) {
+        continue;
+      }
+    } else if (
+      relativeWorkspacePath === "README.md" &&
+      (await exists(absoluteWorkspacePath))
+    ) {
+      absoluteWorkspacePath = path.join(workspace, "HARDHAT.md");
+      if (await exists(absoluteWorkspacePath)) {
+        continue;
+      }
+    }
+
+    await ensureDir(path.dirname(absoluteWorkspacePath));
+    await copy(
+      path.join(template.path, relativeTemplatePath),
+      absoluteWorkspacePath,
+    );
+  }
 }
 
 /**

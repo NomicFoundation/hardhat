@@ -25,11 +25,14 @@ import {
 } from "@nomicfoundation/hardhat-utils/fs";
 
 import {
+  assertNoNonInteractiveClashes,
   copyProjectFiles,
+  copyProjectFilesNonInteractive,
   validatePackageJson,
   getTemplate,
   getWorkspace,
   initHardhat,
+  initHardhat3NonInteractive,
   installProjectDependencies,
   printWelcomeMessage,
   relativeTemplateToWorkspacePath,
@@ -829,4 +832,394 @@ describe("shouldUpdateDependency", () => {
       );
     });
   }
+});
+
+describe("initHardhat3NonInteractive", async () => {
+  describe("templates", async () => {
+    useTmpDir("initHardhat3NonInteractiveTemplates");
+
+    disableConsole();
+
+    const templates = await getTemplates("hardhat-3");
+
+    for (const template of templates) {
+      // NOTE: This test uses network to access the npm registry
+      it(
+        `should initialize the project using the ${template.name} template in an empty folder`,
+        {
+          skip:
+            process.env.HARDHAT_DISABLE_SLOW_TESTS === "true" ||
+            process.env.GITHUB_EVENT_NAME === "push" ||
+            process.env.GITHUB_EVENT_NAME === "merge_group" ||
+            process.env.GITHUB_HEAD_REF?.startsWith("changeset-release/"),
+        },
+        async () => {
+          await writeUtf8File(
+            ".npmrc",
+            'minimum-release-age-exclude[]="hardhat"\nminimum-release-age-exclude[]="@nomicfoundation/*"',
+          );
+          await initHardhat3NonInteractive({ template: template.name });
+          assert.ok(await exists("package.json"), "package.json should exist");
+          const pkg: PackageJson = await readJsonFile(
+            path.join(process.cwd(), "package.json"),
+          );
+          assert.equal(pkg.type, "module");
+          const workspaceFiles = template.files.map(
+            relativeTemplateToWorkspacePath,
+          );
+          for (const file of workspaceFiles) {
+            const pathToFile = path.join(process.cwd(), file);
+            assert.ok(await exists(pathToFile), `File ${file} should exist`);
+          }
+          assert.ok(
+            !(await exists("HARDHAT.md")),
+            "HARDHAT.md should not exist when there was no pre-existing README.md",
+          );
+        },
+      );
+    }
+  });
+
+  describe("unknown template", () => {
+    useTmpDir("initHardhat3NonInteractiveUnknownTemplate");
+
+    it("should throw with the list of available templates", async () => {
+      const templates = await getTemplates("hardhat-3");
+      const availableTemplates = templates
+        .map((t) => `  - ${t.name}`)
+        .join("\n");
+
+      await assertRejectsWithHardhatError(
+        async () =>
+          await initHardhat3NonInteractive({ template: "non-existent" }),
+        HardhatError.ERRORS.CORE.GENERAL
+          .TEMPLATE_NOT_FOUND_WITH_LIST_OF_OPTIONS,
+        {
+          template: "non-existent",
+          availableTemplates,
+        },
+      );
+    });
+  });
+
+  describe("overwrite protection", () => {
+    useTmpDir("initHardhat3NonInteractiveOverwrite");
+
+    disableConsole();
+
+    it("should refuse to overwrite a pre-existing template file", async () => {
+      await writeUtf8File("tsconfig.json", "pre-existing");
+
+      await assertRejectsWithHardhatError(
+        async () =>
+          await initHardhat3NonInteractive({ template: "mocha-ethers" }),
+        HardhatError.ERRORS.CORE.GENERAL
+          .NON_INTERACTIVE_INIT_WOULD_OVERWRITE_FILES,
+        {
+          files: "  - tsconfig.json",
+        },
+      );
+
+      assert.equal(
+        await readUtf8File("tsconfig.json"),
+        "pre-existing",
+        "tsconfig.json should not have been modified",
+      );
+    });
+
+    it("should reject when the workspace is already a Hardhat project", async () => {
+      await writeUtf8File("hardhat.config.js", "");
+
+      await assertRejectsWithHardhatError(
+        async () =>
+          await initHardhat3NonInteractive({ template: "mocha-ethers" }),
+        HardhatError.ERRORS.CORE.GENERAL.HARDHAT_PROJECT_ALREADY_CREATED,
+        {
+          hardhatProjectRootPath: path.join(process.cwd(), "hardhat.config.js"),
+        },
+      );
+    });
+  });
+
+  describe("exceptions to overwrite protection", () => {
+    useTmpDir("initHardhat3NonInteractiveExceptions");
+
+    disableConsole();
+
+    it(
+      "should allow a pre-existing package.json and preserve its extra keys",
+      {
+        skip:
+          process.env.HARDHAT_DISABLE_SLOW_TESTS === "true" ||
+          process.env.GITHUB_EVENT_NAME === "push" ||
+          process.env.GITHUB_EVENT_NAME === "merge_group" ||
+          process.env.GITHUB_HEAD_REF?.startsWith("changeset-release/"),
+      },
+      async () => {
+        await writeJsonFile("package.json", {
+          name: "user-chosen-name",
+          type: "module",
+        });
+        await writeUtf8File(
+          ".npmrc",
+          'minimum-release-age-exclude[]="hardhat"\nminimum-release-age-exclude[]="@nomicfoundation/*"',
+        );
+
+        await initHardhat3NonInteractive({ template: "mocha-ethers" });
+
+        const pkg: PackageJson = await readJsonFile(
+          path.join(process.cwd(), "package.json"),
+        );
+        assert.equal(pkg.name, "user-chosen-name");
+        assert.equal(pkg.type, "module");
+      },
+    );
+
+    it(
+      "should preserve a pre-existing .gitignore",
+      {
+        skip:
+          process.env.HARDHAT_DISABLE_SLOW_TESTS === "true" ||
+          process.env.GITHUB_EVENT_NAME === "push" ||
+          process.env.GITHUB_EVENT_NAME === "merge_group" ||
+          process.env.GITHUB_HEAD_REF?.startsWith("changeset-release/"),
+      },
+      async () => {
+        await writeUtf8File(".gitignore", "user-gitignore-marker");
+        await writeUtf8File(
+          ".npmrc",
+          'minimum-release-age-exclude[]="hardhat"\nminimum-release-age-exclude[]="@nomicfoundation/*"',
+        );
+
+        await initHardhat3NonInteractive({ template: "mocha-ethers" });
+
+        assert.equal(
+          await readUtf8File(".gitignore"),
+          "user-gitignore-marker",
+          ".gitignore should not have been overwritten",
+        );
+      },
+    );
+
+    it(
+      "should redirect the template README.md to HARDHAT.md when README.md exists",
+      {
+        skip:
+          process.env.HARDHAT_DISABLE_SLOW_TESTS === "true" ||
+          process.env.GITHUB_EVENT_NAME === "push" ||
+          process.env.GITHUB_EVENT_NAME === "merge_group" ||
+          process.env.GITHUB_HEAD_REF?.startsWith("changeset-release/"),
+      },
+      async () => {
+        await writeUtf8File("README.md", "user readme");
+        await writeUtf8File(
+          ".npmrc",
+          'minimum-release-age-exclude[]="hardhat"\nminimum-release-age-exclude[]="@nomicfoundation/*"',
+        );
+
+        const [template] = await getTemplate("hardhat-3", "mocha-ethers");
+        const templateReadme = await readUtf8File(
+          path.join(template.path, "README.md"),
+        );
+
+        await initHardhat3NonInteractive({ template: "mocha-ethers" });
+
+        assert.equal(await readUtf8File("README.md"), "user readme");
+        assert.ok(await exists("HARDHAT.md"), "HARDHAT.md should exist");
+        assert.equal(await readUtf8File("HARDHAT.md"), templateReadme);
+      },
+    );
+
+    it(
+      "should preserve both README.md and HARDHAT.md when both pre-exist",
+      {
+        skip:
+          process.env.HARDHAT_DISABLE_SLOW_TESTS === "true" ||
+          process.env.GITHUB_EVENT_NAME === "push" ||
+          process.env.GITHUB_EVENT_NAME === "merge_group" ||
+          process.env.GITHUB_HEAD_REF?.startsWith("changeset-release/"),
+      },
+      async () => {
+        await writeUtf8File("README.md", "user readme");
+        await writeUtf8File("HARDHAT.md", "user hardhat md");
+        await writeUtf8File(
+          ".npmrc",
+          'minimum-release-age-exclude[]="hardhat"\nminimum-release-age-exclude[]="@nomicfoundation/*"',
+        );
+
+        await initHardhat3NonInteractive({ template: "mocha-ethers" });
+
+        assert.equal(await readUtf8File("README.md"), "user readme");
+        assert.equal(await readUtf8File("HARDHAT.md"), "user hardhat md");
+      },
+    );
+  });
+
+  describe("progress output", () => {
+    useTmpDir("initHardhat3NonInteractiveOutput");
+
+    it(
+      "should print the progress sequence on success",
+      {
+        skip:
+          process.env.HARDHAT_DISABLE_SLOW_TESTS === "true" ||
+          process.env.GITHUB_EVENT_NAME === "push" ||
+          process.env.GITHUB_EVENT_NAME === "merge_group" ||
+          process.env.GITHUB_HEAD_REF?.startsWith("changeset-release/"),
+      },
+      async () => {
+        await writeUtf8File(
+          ".npmrc",
+          'minimum-release-age-exclude[]="hardhat"\nminimum-release-age-exclude[]="@nomicfoundation/*"',
+        );
+
+        const logLines: string[] = [];
+        const originalLog = console.log;
+        console.log = (...args: unknown[]) => {
+          logLines.push(args.map((a) => String(a)).join(" "));
+        };
+
+        try {
+          await initHardhat3NonInteractive({ template: "mocha-ethers" });
+        } finally {
+          console.log = originalLog;
+        }
+
+        assert.equal(logLines[0], "Initializing project...");
+        const installingIdx = logLines.indexOf("Installing dependencies...");
+        assert.ok(
+          installingIdx > 0,
+          "should have 'Installing dependencies...' after the initial line",
+        );
+        assert.equal(logLines[logLines.length - 1], "Project initialized");
+      },
+    );
+  });
+});
+
+describe("assertNoNonInteractiveClashes / copyProjectFilesNonInteractive", () => {
+  useTmpDir("copyProjectFilesNonInteractive");
+
+  async function buildFixtureTemplate(): Promise<Template> {
+    const templateDir = path.join(process.cwd(), "__template_fixture__");
+    await ensureDir(templateDir);
+    await writeUtf8File(
+      path.join(templateDir, "hardhat.config.ts"),
+      "template-hardhat-config",
+    );
+    await writeUtf8File(
+      path.join(templateDir, "README.md"),
+      "template-readme",
+    );
+    await writeUtf8File(
+      path.join(templateDir, "gitignore"),
+      "template-gitignore",
+    );
+
+    return {
+      name: "fixture",
+      packageJson: { name: "fixture", version: "0.0.1", type: "module" },
+      path: templateDir,
+      files: ["hardhat.config.ts", "README.md", "gitignore"],
+    };
+  }
+
+  it("should copy all files in an empty workspace", async () => {
+    const template = await buildFixtureTemplate();
+    const workspace = path.join(process.cwd(), "workspace");
+    await ensureDir(workspace);
+
+    await assertNoNonInteractiveClashes(workspace, template);
+    await copyProjectFilesNonInteractive(workspace, template);
+
+    assert.equal(
+      await readUtf8File(path.join(workspace, "hardhat.config.ts")),
+      "template-hardhat-config",
+    );
+    assert.equal(
+      await readUtf8File(path.join(workspace, "README.md")),
+      "template-readme",
+    );
+    assert.equal(
+      await readUtf8File(path.join(workspace, ".gitignore")),
+      "template-gitignore",
+    );
+    assert.ok(
+      !(await exists(path.join(workspace, "HARDHAT.md"))),
+      "HARDHAT.md should not exist",
+    );
+  });
+
+  it("should preserve a pre-existing .gitignore", async () => {
+    const template = await buildFixtureTemplate();
+    const workspace = path.join(process.cwd(), "workspace-gitignore");
+    await ensureDir(workspace);
+    await writeUtf8File(path.join(workspace, ".gitignore"), "user-gitignore");
+
+    await assertNoNonInteractiveClashes(workspace, template);
+    await copyProjectFilesNonInteractive(workspace, template);
+
+    assert.equal(
+      await readUtf8File(path.join(workspace, ".gitignore")),
+      "user-gitignore",
+    );
+  });
+
+  it("should redirect README.md to HARDHAT.md when README.md pre-exists", async () => {
+    const template = await buildFixtureTemplate();
+    const workspace = path.join(process.cwd(), "workspace-readme");
+    await ensureDir(workspace);
+    await writeUtf8File(path.join(workspace, "README.md"), "user-readme");
+
+    await assertNoNonInteractiveClashes(workspace, template);
+    await copyProjectFilesNonInteractive(workspace, template);
+
+    assert.equal(
+      await readUtf8File(path.join(workspace, "README.md")),
+      "user-readme",
+    );
+    assert.equal(
+      await readUtf8File(path.join(workspace, "HARDHAT.md")),
+      "template-readme",
+    );
+  });
+
+  it("should skip README copy when both README.md and HARDHAT.md pre-exist", async () => {
+    const template = await buildFixtureTemplate();
+    const workspace = path.join(process.cwd(), "workspace-both");
+    await ensureDir(workspace);
+    await writeUtf8File(path.join(workspace, "README.md"), "user-readme");
+    await writeUtf8File(path.join(workspace, "HARDHAT.md"), "user-hardhat-md");
+
+    await assertNoNonInteractiveClashes(workspace, template);
+    await copyProjectFilesNonInteractive(workspace, template);
+
+    assert.equal(
+      await readUtf8File(path.join(workspace, "README.md")),
+      "user-readme",
+    );
+    assert.equal(
+      await readUtf8File(path.join(workspace, "HARDHAT.md")),
+      "user-hardhat-md",
+    );
+  });
+
+  it("should throw a clash error for a pre-existing non-exempt file", async () => {
+    const template = await buildFixtureTemplate();
+    const workspace = path.join(process.cwd(), "workspace-clash");
+    await ensureDir(workspace);
+    await writeUtf8File(
+      path.join(workspace, "hardhat.config.ts"),
+      "user-config",
+    );
+
+    await assertRejectsWithHardhatError(
+      async () => await assertNoNonInteractiveClashes(workspace, template),
+      HardhatError.ERRORS.CORE.GENERAL
+        .NON_INTERACTIVE_INIT_WOULD_OVERWRITE_FILES,
+      {
+        files: "  - hardhat.config.ts",
+      },
+    );
+  });
 });
