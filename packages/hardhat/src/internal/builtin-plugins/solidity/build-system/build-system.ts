@@ -177,11 +177,12 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
     options: { scope?: BuildScope } = {},
   ): Promise<string[]> {
     const scope = options.scope ?? "contracts";
+
+    this.#ensureSplitCompilationModeIfTestsScope(scope);
+
     const unified = !this.#options.solidityConfig.splitTestsCompilation;
     const { localContractFiles, sourceTestFiles } =
       await this.#getSoliditySourcesRootFilePaths();
-
-    this.#ensureSplitCompilationModeIfTestsScope(scope);
 
     switch (scope) {
       case "contracts": {
