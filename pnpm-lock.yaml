@@ -947,9 +947,6 @@ importers:
       '@actions/core':
         specifier: ^1.10.1
         version: 1.11.1
-      '@nomicfoundation/hardhat-utils':
-        specifier: workspace:^4.0.3
-        version: link:../hardhat-utils
       jest-diff:
         specifier: ^29.7.0
         version: 29.7.0
