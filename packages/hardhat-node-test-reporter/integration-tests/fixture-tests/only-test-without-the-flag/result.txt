@@ -1,5 +1,5 @@
 
-  [90m[32m✔[90m test[39m
+  [32m✔[39m [90mtest[39m
 
   [31m1) test only[39m
 
@@ -8,10 +8,10 @@
 
   describe
     [31m3) it only[39m
-    [90m[32m✔[90m it[39m
+    [32m✔[39m [90mit[39m
 
 
-  [32m2 passing[39m[90m (67ms)[39m[31m
+  [32m2 passing[39m[90m (60ms)[39m[31m
   3 failing[39m
   [34mℹ[39m 'only' and 'runOnly' require the --test-only command-line option.
 

@@ -35,10 +35,10 @@ for dir in $dirs; do
   # we should either add a more robust way of detecting such tests or version
   # all the test result files.
   result_file_name="result"
-  if [ "$dir" == "integration-tests/fixture-tests/nested-test" ]; then
-    node_major_version="$(node --version | cut -d. -f1)"
-    result_file_name="result.$node_major_version"
-  fi
+  # if [ "$dir" == "integration-tests/fixture-tests/nested-test" ]; then
+  #   node_major_version="$(node --version | cut -d. -f1)"
+  #   result_file_name="result.$node_major_version"
+  # fi
 
   result_txt="$dir/$result_file_name.txt"
   result_html="$dir/$result_file_name.html"

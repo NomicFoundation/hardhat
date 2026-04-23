@@ -1,9 +1,9 @@
   imported tests
-    [90m[32m✔[90m should pass[39m
+    [32m✔[39m [90mshould pass[39m
     [31m1) should fail[39m
 
 
-  [32m1 passing[39m[90m (420ms)[39m[31m
+  [32m1 passing[39m[90m (412ms)[39m[31m
   1 failing[39m
 
   1) imported tests

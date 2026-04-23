@@ -55,7 +55,7 @@ export function formatTestPass(passData: TestEventData["test:pass"]): string {
     // TODO: show todo reason
     msg = styleText("blue", `+ ${passData.name}`);
   } else {
-    msg = styleText("gray", `${SUCCESS_SYMBOL()} ${passData.name}`);
+    msg = `${SUCCESS_SYMBOL()} ${styleText("gray", passData.name)}`;
   }
 
   return indent(msg, nestingToIndentationLength(passData.nesting));

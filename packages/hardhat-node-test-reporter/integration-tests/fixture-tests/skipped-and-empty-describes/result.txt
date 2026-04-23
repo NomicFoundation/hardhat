@@ -1,8 +1,8 @@
   Top-level describe 1
-    [90m[32m✔[90m Non-skipped test 1[39m
+    [32m✔[39m [90mNon-skipped test 1[39m
     Empty describe inside a top-level one
     Non-empty describe inside a top-level one
-      [90m[32m✔[90m Non-skipped test 2[39m
+      [32m✔[39m [90mNon-skipped test 2[39m
       Empty describe inside a non-empty top-level one
 
     [36m- Skipped describe inside a top-level one[39m
@@ -15,11 +15,11 @@
   Empty top-level describe 2, right next to the other
 
   Non-empty-non-skipped-describe
-    [90m[32m✔[90m Non-skipped test[39m
+    [32m✔[39m [90mNon-skipped test[39m
     Inside Non-empty-non-skipped-describe
-      [90m[32m✔[90m Non-skipped test[39m
+      [32m✔[39m [90mNon-skipped test[39m
 
 
-  [32m4 passing[39m[90m (60ms)[39m[36m
+  [32m4 passing[39m[90m (62ms)[39m[36m
   1 skipped[39m
 

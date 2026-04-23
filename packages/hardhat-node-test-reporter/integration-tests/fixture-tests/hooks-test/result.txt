@@ -3,8 +3,8 @@
     [31m2) should pass, too[39m
 
   after
-    [90m[32m✔[90m should pass[39m
-    [90m[32m✔[90m should pass, too[39m
+    [32m✔[39m [90mshould pass[39m
+    [32m✔[39m [90mshould pass, too[39m
 
   [31m3) after[39m
 
@@ -39,7 +39,7 @@
     [31m9) level 1[39m
 
 
-  [32m2 passing[39m[90m (294ms)[39m[31m
+  [32m2 passing[39m[90m (309ms)[39m[31m
   4 failing[39m[90m
   8 cancelled[39m
 
