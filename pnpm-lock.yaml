@@ -481,6 +481,9 @@ importers:
       '@nomicfoundation/ignition-ui':
         specifier: workspace:^3.1.2
         version: link:../ignition-ui
+      chalk:
+        specifier: ^5.3.0
+        version: 5.6.2
       debug:
         specifier: ^4.3.2
         version: 4.4.3(supports-color@5.5.0)
