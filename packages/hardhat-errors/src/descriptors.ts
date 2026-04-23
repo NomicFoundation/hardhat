@@ -525,6 +525,24 @@ Please install Hardhat locally using pnpm, npm or yarn, and try again.`,
         websiteTitle: "Invalid resolved config",
         websiteDescription: `The configuration you provided is seemingly valid, but once resolved it contains errors. Please check the documentation to learn how to configure Hardhat correctly.`,
       },
+      TEMPLATE_NOT_FOUND_WITH_LIST_OF_OPTIONS: {
+        number: 25,
+        messageTemplate: `Template "{template}" not found.
+
+The available templates are:
+{availableTemplates}`,
+        websiteTitle: "Template not found",
+        websiteDescription: `The template you provided is not found. Please check the documentation to learn which templates are available.`,
+      },
+      NON_INTERACTIVE_INIT_WOULD_OVERWRITE_FILES: {
+        number: 26,
+        messageTemplate: `The following files already exist in the current working directory, preventing the initialization of a new Hardhat project:
+{files}
+
+Remove them or move them to a different place and try again.`,
+        websiteTitle: "Non-interactive init failed due to existing files",
+        websiteDescription: `The non-interactive project initialization refuses to overwrite existing files. Remove the conflicting files and retry.`,
+      },
     },
     INTERNAL: {
       ASSERTION_ERROR: {
@@ -864,6 +882,16 @@ Please double check your arguments.`,
           'The option "{option}" is hidden and cannot be used from the CLI.',
         websiteTitle: "Hidden options cannot be used from the CLI",
         websiteDescription: `You are trying to use a hidden option from the CLI, which is not allowed.`,
+      },
+      CANNOT_COMBINE_TEMPLATE_AND_TEMPLATES: {
+        number: 513,
+        messageTemplate:
+          'The options "--template" and "--templates" cannot be used together. Use "--init --template <name>" to initialize a project with a specific template, or "--init --templates" to list the available templates.',
+        websiteTitle:
+          'The options "--template" and "--templates" cannot be used together',
+        websiteDescription: `The options "--template" and "--templates" cannot be used together.
+
+Use "--init --template <name>" to initialize a project with a specific template, or "--init --templates" to list the available templates.`,
       },
     },
     BUILTIN_TASKS: {
