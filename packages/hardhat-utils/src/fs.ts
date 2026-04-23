@@ -1,5 +1,4 @@
 import type { JsonTypes, ParsedElementInfo } from "@streamparser/json-node";
-import type { Dirent } from "node:fs";
 import type { FileHandle } from "node:fs/promises";
 
 import fsPromises from "node:fs/promises";
@@ -21,6 +20,10 @@ import {
   IsDirectoryError,
   DirectoryNotEmptyError,
 } from "./errors/fs.js";
+import {
+  isDirectoryDirentAware,
+  readdirWithFileTypesOrEmpty,
+} from "./internal/fs.js";
 
 /**
  * Determines the canonical pathname for a given path, resolving any symbolic
@@ -882,54 +885,6 @@ export async function isBinaryFile(
 
   // Heuristic: if more than ~30% of bytes are non-printable, assume binary
   return nonPrintable / bytesRead > 0.3;
-}
-
-/**
- * Like `readdirOrEmpty`, but returns `Dirent` entries to know if an entry is a
- * directory or not without an extra `lstat` syscall.
- */
-async function readdirWithFileTypesOrEmpty(dirFrom: string): Promise<Dirent[]> {
-  try {
-    return await fsPromises.readdir(dirFrom, { withFileTypes: true });
-  } catch (e) {
-    ensureNodeErrnoExceptionError(e);
-
-    if (e.code === "ENOENT") {
-      return [];
-    }
-
-    if (e.code === "ENOTDIR") {
-      throw new NotADirectoryError(dirFrom, e);
-    }
-
-    throw new FileSystemAccessError(e.message, e);
-  }
-}
-
-/**
- * Determines if a dirent refers to a directory, falling back to `lstat` only
- * when the dirent type is unknown.
- */
-async function isDirectoryDirentAware(
-  absolutePath: string,
-  dirent: Dirent,
-): Promise<boolean> {
-  if (dirent.isDirectory()) {
-    return true;
-  }
-
-  if (
-    dirent.isFile() ||
-    dirent.isSymbolicLink() ||
-    dirent.isBlockDevice() ||
-    dirent.isCharacterDevice() ||
-    dirent.isFIFO() ||
-    dirent.isSocket()
-  ) {
-    return false;
-  }
-
-  return await isDirectory(absolutePath);
 }
 
 export {
