@@ -495,17 +495,24 @@ export async function readdir(absolutePathToDir: string): Promise<string[]> {
 }
 
 /**
- * Wrapper around `readdir` that returns an empty array if the directory doesn't exist.
+ * Reads a directory and returns its content as an array of strings, returning
+ * an empty array if the directory doesn't exist.
  *
- * @see readdir
+ * @param absolutePathToDir The path to the directory.
+ * @returns An array of strings with the names of the files and directories in the directory, and an empty array if the directory doesn't exist.
+ * @throws NotADirectoryError if the path is not a directory.
+ * @throws FileSystemAccessError for any other error.
  */
-async function readdirOrEmpty(dirFrom: string): Promise<string[]> {
+export async function readdirOrEmpty(
+  absolutePathToDir: string,
+): Promise<string[]> {
   try {
-    return await readdir(dirFrom);
+    return await readdir(absolutePathToDir);
   } catch (error) {
     if (error instanceof FileNotFoundError) {
       return [];
     }
+
     throw error;
   }
 }

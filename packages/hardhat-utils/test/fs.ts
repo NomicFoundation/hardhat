@@ -34,6 +34,7 @@ import {
   readJsonFileAsStream,
   writeJsonFileAsStream,
   mkdtemp,
+  readdirOrEmpty,
 } from "../src/fs.js";
 
 import { useTmpDir } from "./helpers/fs.js";
@@ -1080,6 +1081,52 @@ describe("File system utils", () => {
       const invalidPath = "\0";
 
       await assert.rejects(readdir(invalidPath), {
+        name: "FileSystemAccessError",
+      });
+    });
+  });
+
+  describe("readdirOrEmpty", () => {
+    it("Should return the files in a directory", async () => {
+      const dirPath = path.join(getTmpDir(), "dir");
+      await mkdir(dirPath);
+
+      const files = ["file1.txt", "file2.txt", "file3.json"];
+      for (const file of files) {
+        await createFile(path.join(dirPath, file));
+      }
+
+      const subDirPath = path.join(dirPath, "subdir");
+      await mkdir(subDirPath);
+      await createFile(path.join(subDirPath, "file4.txt"));
+
+      // should include the subdir but not its content as it's not recursive
+      assert.deepEqual(
+        new Set(await readdirOrEmpty(dirPath)),
+        new Set(["file1.txt", "file2.txt", "file3.json", "subdir"]),
+      );
+    });
+
+    it("Should return an empty array if the directory doesn't exist", async () => {
+      const dirPath = path.join(getTmpDir(), "not-exists");
+
+      assert.deepEqual(await readdirOrEmpty(dirPath), []);
+    });
+
+    it("Should throw NotADirectoryError if the path is not a directory", async () => {
+      const filePath = path.join(getTmpDir(), "file");
+      await createFile(filePath);
+
+      await assert.rejects(readdirOrEmpty(filePath), {
+        name: "NotADirectoryError",
+        message: `Path ${filePath} is not a directory`,
+      });
+    });
+
+    it("Should throw FileSystemAccessError if a different error is thrown", async () => {
+      const invalidPath = "\0";
+
+      await assert.rejects(readdirOrEmpty(invalidPath), {
         name: "FileSystemAccessError",
       });
     });
