@@ -193,7 +193,7 @@ export class HookManagerImplementation implements HookManager {
     // handlerParams and the `next` closure, and call the default implementation
     // directly.
     if (handlers.length === 0) {
-      return defaultImplementation(...handlerParams) as any;
+      return (await defaultImplementation(...handlerParams)) as any;
     }
 
     const numberOfHandlers = handlers.length;
