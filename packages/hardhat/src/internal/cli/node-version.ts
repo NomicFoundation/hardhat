@@ -1,9 +1,9 @@
 // NOTE: We don't use the `semver` package because it's slow to load, and this
 // is always run during the initialization of the CLI.
 
-import chalk from "chalk";
+import { styleText } from "@nomicfoundation/hardhat-utils/style";
 
-export const MIN_SUPPORTED_NODE_VERSION: number[] = [22, 10, 0];
+export const MIN_SUPPORTED_NODE_VERSION: number[] = [22, 13, 0];
 
 export function isNodeVersionSupported(): boolean {
   try {
@@ -42,8 +42,11 @@ export function isNodeVersionSupported(): boolean {
 export function printNodeJsVersionWarningIfNecessary(): void {
   if (!isNodeVersionSupported()) {
     console.log(
-      chalk.bold(`\n${chalk.yellow("WARNING:")} You are using Node.js ${process.versions.node} which is not supported by Hardhat.
-Please upgrade to ${MIN_SUPPORTED_NODE_VERSION.join(".")} or a later LTS version (even major version number)\n`),
+      styleText(
+        "bold",
+        `\n${styleText("yellow", "WARNING:")} You are using Node.js ${process.versions.node} which is not supported by Hardhat.
+Please upgrade to ${MIN_SUPPORTED_NODE_VERSION.join(".")} or a later LTS version (even major version number)\n`,
+      ),
     );
     return;
   }

@@ -35,6 +35,7 @@
     "./request": "./dist/src/request.js",
     "./string": "./dist/src/string.js",
     "./stream": "./dist/src/stream.js",
+    "./style": "./dist/src/style.js",
     "./subprocess": "./dist/src/subprocess.js",
     "./synchronization": "./dist/src/synchronization.js",
     "./spinner": "./dist/src/spinner.js"
