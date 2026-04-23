@@ -12,8 +12,8 @@
       [31m8) should match strings[39m
 
 
-  [32m0 passing[39m[90m (161ms)[39m[31m[39m
-[31m  8 failing[39m
+  [32m0 passing[39m[90m (66ms)[39m[31m
+  8 failing[39m
 
   1) assert
        equal
@@ -71,10 +71,10 @@
        equal
          should compare numbers and strings:
 
-   [31mAssertionError: Expected values to be strictly equal:[39m
-   [31m[39m
-   [31m1 !== '1'[39m
-   [31m[39m
+   [31mAssertionError: Expected values to be strictly equal:
+   
+   1 !== '1'
+   [39m
    [90m    at TestContext.<anonymous> (integration-tests/fixture-tests/assert-test/assert.ts:19:14)[39m
 
   6) assert
@@ -129,9 +129,9 @@
        match
          should match strings:
 
-   [31mAssertionError: The input did not match the regular expression /world/. Input:[39m
-   [31m[39m
-   [31m'hello'[39m
-   [31m[39m
+   [31mAssertionError: The input did not match the regular expression /world/. Input:
+   
+   'hello'
+   [39m
    [90m    at TestContext.<anonymous> (integration-tests/fixture-tests/assert-test/assert.ts:38:14)[39m
 

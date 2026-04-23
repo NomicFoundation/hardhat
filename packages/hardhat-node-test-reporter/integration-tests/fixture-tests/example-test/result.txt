@@ -1,7 +1,7 @@
 1
 2
   Foooo
-    [90m[32m✔[39m[90m test[39m
+    [90m[32m✔[90m test[39m
     [31m1) test with cause[39m
     child
       [31m2) asdasd[39m
@@ -9,12 +9,12 @@
   a
     aa
       aaa
-        [90m[32m✔[39m[90m aaaa[39m
+        [90m[32m✔[90m aaaa[39m
 
   top level test
-    [90m[32m✔[39m[90m bar[39m
+    [90m[32m✔[90m bar[39m
 
-  [90m[32m✔[39m[90m top level test[39m
+  [90m[32m✔[90m top level test[39m
 
   in describe
     [90m3) foo[39m
@@ -23,8 +23,8 @@
 
   testing before each
     nested
-      [90m[32m✔[39m[90m nested foo[39m
-      [90m[32m✔[39m[90m nested foo 2[39m
+      [90m[32m✔[90m nested foo[39m
+      [90m[32m✔[90m nested foo 2[39m
 
 
   [34m+ todo test[39m
@@ -32,11 +32,11 @@
   [36m- skipped test[39m
 
 
-  [32m6 passing[39m[90m (119ms)[39m[31m[39m
-[31m  2 failing[39m[36m[39m
-[36m  1 skipped[39m[34m[39m
-[34m  1 todo[39m[90m[39m
-[90m  1 cancelled[39m
+  [32m6 passing[39m[90m (67ms)[39m[31m
+  2 failing[39m[36m
+  1 skipped[39m[34m
+  1 todo[39m[90m
+  1 cancelled[39m
 
   1) Foooo
        test with cause:
