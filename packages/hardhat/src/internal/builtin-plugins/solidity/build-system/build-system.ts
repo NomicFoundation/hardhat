@@ -226,8 +226,9 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
   }
 
   /**
-   * Returns all the root files from the different solidity sources dirs in the
-   * config, partitioned in test and files, according to their extensions.
+   * Returns all the root files from the different solidity source dirs in the
+   * config, partitioned into contract files and test files according to their
+   * extensions.
    */
   async #getSoliditySourcesRootFilePaths(): Promise<{
     localContractFiles: string[];
