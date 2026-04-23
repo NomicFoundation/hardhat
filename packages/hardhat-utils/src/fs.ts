@@ -94,7 +94,8 @@ export class TrueCasePathResolver {
    *
    * @param from The absolute path of the directory to start the search from.
    * @param relativePath The relative path to get the true case of.
-   * @returns The true case of the relative path.
+   * @returns The true case of the relative path. Returns an empty string if
+   * relativePath points to from.
    * @throws FileNotFoundError if the starting directory or the relative path
    *  doesn't exist or is ambiguous.
    * @throws NotADirectoryError if the starting directory, or an intermediate
@@ -105,9 +106,23 @@ export class TrueCasePathResolver {
     from: string,
     relativePath: string,
   ): Promise<string> {
+    if (path.normalize(relativePath) === ".") {
+      return "";
+    }
+
     const absoluteFrom = path.resolve(from);
     const resolved = await this.#resolveFrom(absoluteFrom, relativePath);
-    return path.relative(absoluteFrom, resolved);
+    const resolvedRelativePath = path.relative(absoluteFrom, resolved);
+
+    if (
+      resolvedRelativePath === ".." ||
+      resolvedRelativePath.startsWith(`..${path.sep}`) ||
+      path.isAbsolute(resolvedRelativePath)
+    ) {
+      throw new FileNotFoundError(path.resolve(absoluteFrom, relativePath));
+    }
+
+    return resolvedRelativePath;
   }
 
   /**

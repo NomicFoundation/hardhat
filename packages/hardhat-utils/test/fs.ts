@@ -660,6 +660,57 @@ describe("File system utils", () => {
       );
     });
 
+    it("Should return an empty path when resolving the starting directory itself", async () => {
+      const resolver = new TrueCasePathResolver();
+
+      assert.equal(await resolver.getFileTrueCase(getTmpDir(), ""), "");
+      assert.equal(await resolver.getFileTrueCase(getTmpDir(), "."), "");
+      assert.equal(
+        await resolver.getFileTrueCase(getTmpDir(), path.join("dir", "..")),
+        "",
+      );
+    });
+
+    it("Should resolve relative paths with parent segments that stay within the starting directory", async () => {
+      const mixedCaseFilePath = path.join(getTmpDir(), "mixedCaseFile");
+      const mixedCaseDirPath = path.join(getTmpDir(), "mixedCaseDir");
+
+      await createFile(mixedCaseFilePath);
+      await mkdir(mixedCaseDirPath);
+
+      const resolver = new TrueCasePathResolver();
+
+      assert.equal(
+        await resolver.getFileTrueCase(
+          getTmpDir(),
+          path.join("mixedCaseDir", "..", "mixedcasefile"),
+        ),
+        "mixedCaseFile",
+      );
+    });
+
+    it("Should throw FileNotFoundError if the resolved path escapes the starting directory", async () => {
+      const rootPath = path.join(getTmpDir(), "root");
+      const nestedPath = path.join(rootPath, "nested");
+      const secretPath = path.join(getTmpDir(), "secret");
+
+      await mkdir(nestedPath);
+      await createFile(secretPath);
+
+      const resolver = new TrueCasePathResolver();
+
+      await assert.rejects(
+        resolver.getFileTrueCase(
+          rootPath,
+          path.join("nested", "..", "..", "secret"),
+        ),
+        {
+          name: "FileNotFoundError",
+          message: `File ${secretPath} not found`,
+        },
+      );
+    });
+
     it("Should cache directory listings across calls to the same resolver", async () => {
       const filePath = path.join(getTmpDir(), "cachedFile");
       await createFile(filePath);
