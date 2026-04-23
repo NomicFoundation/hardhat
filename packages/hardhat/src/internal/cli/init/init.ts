@@ -373,7 +373,7 @@ export async function getTemplate(
 /**
  * Prints the list of available templates for the specified Hardhat version.
  *
- * @param hardhatVersion The version of Hardhat whose template's should be
+ * @param hardhatVersion The version of Hardhat whose templates should be
  *  printed.
  */
 export async function printTemplatesList(
