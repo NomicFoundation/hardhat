@@ -1107,10 +1107,7 @@ describe("assertNoNonInteractiveClashes / copyProjectFilesNonInteractive", () =>
       path.join(templateDir, "hardhat.config.ts"),
       "template-hardhat-config",
     );
-    await writeUtf8File(
-      path.join(templateDir, "README.md"),
-      "template-readme",
-    );
+    await writeUtf8File(path.join(templateDir, "README.md"), "template-readme");
     await writeUtf8File(
       path.join(templateDir, "gitignore"),
       "template-gitignore",
