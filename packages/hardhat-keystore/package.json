@@ -60,7 +60,6 @@
     "@nomicfoundation/hardhat-zod-utils": "workspace:^3.0.4",
     "@noble/ciphers": "1.2.1",
     "@noble/hashes": "1.7.1",
-    "chalk": "^5.3.0",
     "debug": "^4.3.2",
     "zod": "^3.23.8"
   },

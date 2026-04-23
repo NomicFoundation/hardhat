@@ -60,7 +60,6 @@
     "@nomicfoundation/hardhat-errors": "workspace:^3.0.11",
     "@nomicfoundation/hardhat-utils": "workspace:^4.0.3",
     "@nomicfoundation/hardhat-zod-utils": "workspace:^3.0.4",
-    "chalk": "^5.3.0",
     "debug": "^4.3.2",
     "tsx": "^4.19.3",
     "zod": "^3.23.8"
