@@ -7,8 +7,8 @@
   "repo": "anaPerezGhiglia/uniswap-v4-core",
   "commit": "ab2b22eef19e0abe29d67420dde81b5d54455ae5",
   "packageManager": "pnpm",
-  "submodules": false,
-  "defaultCommand": "npx hardhat test solidity --no-compile",
+  "submodules": true,
+  "defaultCommand": "npx hardhat test solidity",
   "benchmark": {
     "runs": {
       "coldCompile": 3,
