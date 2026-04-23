@@ -21,7 +21,14 @@ import type {
   CompilerOutputError,
 } from "../../../../types/solidity/compiler-io.js";
 import type { SolidityBuildInfo } from "../../../../types/solidity.js";
-import type { SolidityBuildSystemOptions } from "../build-system/build-system.js";
+import type {
+  SolidityBuildSystemOptions,
+  SolidityBuildSystemImplementation as SolidityBuildSystemImplementationT,
+} from "../build-system/build-system.js";
+
+let SolidityBuildSystemImplementation:
+  | typeof SolidityBuildSystemImplementationT
+  | undefined;
 
 class LazySolidityBuildSystem implements SolidityBuildSystem {
   readonly #hooks: HookManager;
@@ -126,9 +133,11 @@ class LazySolidityBuildSystem implements SolidityBuildSystem {
   }
 
   async #getBuildSystem(): Promise<SolidityBuildSystem> {
-    const { SolidityBuildSystemImplementation } = await import(
-      "../build-system/build-system.js"
-    );
+    if (SolidityBuildSystemImplementation === undefined) {
+      const buildSystemModule = await import("../build-system/build-system.js");
+      SolidityBuildSystemImplementation =
+        buildSystemModule.SolidityBuildSystemImplementation;
+    }
 
     if (this.#buildSystem === undefined) {
       this.#buildSystem = new SolidityBuildSystemImplementation(

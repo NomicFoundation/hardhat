@@ -1075,4 +1075,299 @@ describe("HookManager", () => {
       });
     });
   });
+
+  describe("caching", () => {
+    it("Should invoke each plugin's hook-category factory at most once per HookManager, across multiple hook names and run methods", async () => {
+      let categoryFactoryCalls = 0;
+      let defaultFactoryCalls = 0;
+
+      const plugin: HardhatPlugin = {
+        id: "counter",
+        hookHandlers: {
+          config: async () => {
+            categoryFactoryCalls++;
+            return {
+              default: async () => {
+                defaultFactoryCalls++;
+                return {
+                  extendUserConfig: async (
+                    config: HardhatUserConfig,
+                    next: (c: HardhatUserConfig) => Promise<HardhatUserConfig>,
+                  ) => await next(config),
+                  validateUserConfig: async (): Promise<
+                    HardhatUserConfigValidationError[]
+                  > => [],
+                };
+              },
+            };
+          },
+        },
+      };
+
+      const manager = new HookManagerImplementation(projectRoot, [plugin]);
+
+      // Exercise multiple hook names within the same category via different
+      // run methods. None of these should re-invoke the factory.
+      for (let i = 0; i < 3; i++) {
+        await manager.runHandlerChain(
+          "config",
+          "extendUserConfig",
+          [{}],
+          async (c) => c,
+        );
+        await manager.runSequentialHandlers("config", "validateUserConfig", [
+          {},
+        ]);
+        await manager.runParallelHandlers("config", "validateUserConfig", [{}]);
+        await manager.hasHandlers("config", "extendUserConfig");
+      }
+
+      assert.equal(categoryFactoryCalls, 1);
+      assert.equal(defaultFactoryCalls, 1);
+    });
+
+    it("Should include a newly registered dynamic handler on the next call", async () => {
+      const manager = new HookManagerImplementation(projectRoot, []);
+
+      const beforeRegister = await manager.runSequentialHandlers(
+        "config",
+        "validateUserConfig",
+        [{}],
+      );
+      assert.deepEqual(beforeRegister, []);
+
+      manager.registerHandlers("config", {
+        validateUserConfig: async (): Promise<
+          HardhatUserConfigValidationError[]
+        > => [{ path: [], message: "added" }],
+      });
+
+      const afterRegister = await manager.runSequentialHandlers(
+        "config",
+        "validateUserConfig",
+        [{}],
+      );
+      assert.deepEqual(afterRegister, [[{ path: [], message: "added" }]]);
+    });
+
+    it("Should stop returning a handler after it is unregistered", async () => {
+      const manager = new HookManagerImplementation(projectRoot, []);
+
+      const handlerCategory = {
+        validateUserConfig: async (): Promise<
+          HardhatUserConfigValidationError[]
+        > => [{ path: [], message: "x" }],
+      };
+
+      manager.registerHandlers("config", handlerCategory);
+      const withHandler = await manager.runSequentialHandlers(
+        "config",
+        "validateUserConfig",
+        [{}],
+      );
+      assert.equal(withHandler.length, 1);
+
+      manager.unregisterHandlers("config", handlerCategory);
+      const withoutHandler = await manager.runSequentialHandlers(
+        "config",
+        "validateUserConfig",
+        [{}],
+      );
+      assert.deepEqual(withoutHandler, []);
+    });
+
+    it("Should reflect dynamic registration and unregister in hasHandlers", async () => {
+      const manager = new HookManagerImplementation(projectRoot, []);
+
+      assert.equal(
+        await manager.hasHandlers("config", "validateUserConfig"),
+        false,
+      );
+
+      const handlerCategory = {
+        validateUserConfig: async (): Promise<
+          HardhatUserConfigValidationError[]
+        > => [],
+      };
+
+      manager.registerHandlers("config", handlerCategory);
+      assert.equal(
+        await manager.hasHandlers("config", "validateUserConfig"),
+        true,
+      );
+
+      manager.unregisterHandlers("config", handlerCategory);
+      assert.equal(
+        await manager.hasHandlers("config", "validateUserConfig"),
+        false,
+      );
+    });
+
+    it("Should build an empty result for a category provided by no plugin and no dynamic registration", async () => {
+      const manager = new HookManagerImplementation(projectRoot, []);
+
+      assert.equal(
+        await manager.hasHandlers("config", "validateUserConfig"),
+        false,
+      );
+
+      const sequential = await manager.runSequentialHandlers(
+        "config",
+        "validateUserConfig",
+        [{}],
+      );
+      assert.deepEqual(sequential, []);
+
+      const parallel = await manager.runParallelHandlers(
+        "config",
+        "validateUserConfig",
+        [{}],
+      );
+      assert.deepEqual(parallel, []);
+
+      const chain = await manager.runHandlerChain(
+        "config",
+        "extendUserConfig",
+        [{}],
+        async (c) => c,
+      );
+      assert.deepEqual(chain, {});
+    });
+
+    // These tests exercise what happens when registerHandlers runs while a
+    // handler chain is already in flight. The interesting interleavings all
+    // require the in-flight chain to be *suspended* at a specific point
+    // (inside a handler, or inside the plugin's category factory) at the
+    // moment the register happens — otherwise Node's single-threaded,
+    // run-to-completion semantics collapse the interleaving and the test
+    // exercises nothing.
+    //
+    // To make this deterministic, each test uses two hand-built promises:
+    //
+    //   - A "started" promise, resolved by the handler/factory at the moment
+    //     it begins executing. The test awaits this to know the suspension
+    //     point has been reached before it triggers the race.
+    //   - A "gate" promise that the handler/factory awaits. The test holds
+    //     the resolver and releases it after performing the racing action
+    //     (e.g. registerHandlers). That lets the suspended code resume and
+    //     lets the chain finish.
+    //
+    // Concretely: the test starts the run (which returns a promise but does
+    // not yet resolve), awaits "started" so it knows execution has reached
+    // the suspension point, calls registerHandlers, then resolves the gate,
+    // then awaits the original run promise. The assertions then check what
+    // the in-flight call saw vs. what a subsequent call sees.
+    describe("Race conditions related tests", () => {
+      it("Should not affect an in-flight handler chain when a new handler is registered mid-execution", async () => {
+        let signalStarted!: () => void;
+        const started = new Promise<void>((resolve) => {
+          signalStarted = resolve;
+        });
+
+        let unblock!: () => void;
+        const gate = new Promise<void>((resolve) => {
+          unblock = resolve;
+        });
+
+        const manager = new HookManagerImplementation(projectRoot, []);
+
+        manager.registerHandlers("config", {
+          validateUserConfig: async () => {
+            signalStarted();
+            await gate;
+            return [{ path: [], message: "original" }];
+          },
+        });
+
+        const runPromise = manager.runSequentialHandlers(
+          "config",
+          "validateUserConfig",
+          [{}],
+        );
+
+        // Wait until the in-flight handler has started executing.
+        await started;
+
+        // Register an additional handler while the chain is running.
+        manager.registerHandlers("config", {
+          validateUserConfig: async (): Promise<
+            HardhatUserConfigValidationError[]
+          > => [{ path: [], message: "added-midway" }],
+        });
+
+        unblock();
+        const result = await runPromise;
+
+        // The in-flight call saw a frozen handler list at the time of
+        // resolution, so the "added-midway" handler must not appear.
+        assert.deepEqual(result, [[{ path: [], message: "original" }]]);
+
+        // But a subsequent call picks up the new handler.
+        const next = await manager.runSequentialHandlers(
+          "config",
+          "validateUserConfig",
+          [{}],
+        );
+        assert.equal(next.length, 2);
+      });
+
+      it("Should include a handler registered while the static categories are still resolving", async () => {
+        let signalFactoryEntered!: () => void;
+        const factoryEntered = new Promise<void>((resolve) => {
+          signalFactoryEntered = resolve;
+        });
+
+        let unblockFactory!: () => void;
+        const factoryGate = new Promise<void>((resolve) => {
+          unblockFactory = resolve;
+        });
+
+        const slowPlugin: HardhatPlugin = {
+          id: "slow-factory",
+          hookHandlers: {
+            config: async () => {
+              signalFactoryEntered();
+              await factoryGate;
+              return {
+                default: async () => ({
+                  validateUserConfig: async (): Promise<
+                    HardhatUserConfigValidationError[]
+                  > => [{ path: [], message: "from-static" }],
+                }),
+              };
+            },
+          },
+        };
+
+        const manager = new HookManagerImplementation(projectRoot, [
+          slowPlugin,
+        ]);
+
+        const runPromise = manager.runSequentialHandlers(
+          "config",
+          "validateUserConfig",
+          [{}],
+        );
+
+        // Wait until the factory is suspended, so the subsequent register
+        // happens while the chain is still resolving static categories.
+        await factoryEntered;
+
+        manager.registerHandlers("config", {
+          validateUserConfig: async (): Promise<
+            HardhatUserConfigValidationError[]
+          > => [{ path: [], message: "from-dynamic" }],
+        });
+
+        unblockFactory();
+        const result = await runPromise;
+
+        // The in-flight call must observe the dynamic registration that
+        // happened during the static-categories await, because the dynamic
+        // map is read after that await. Both handlers should be present.
+        const messages = result.flat().map((e) => e.message);
+        assert.deepEqual(messages.sort(), ["from-dynamic", "from-static"]);
+      });
+    });
+  });
 });
