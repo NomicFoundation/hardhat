@@ -171,22 +171,6 @@ export class HookManagerImplementation implements HookManager {
         hookName,
       ));
 
-    // Fast path for the common case of no registered handlers: skip building
-    // handlerParams and the `next` closure, and call the default implementation
-    // directly.
-    if (handlers.length === 0) {
-      if (hookCategoryName !== "config") {
-        assertHardhatInvariant(
-          this.#context !== undefined,
-          "Context must be set before running non-config hooks",
-        );
-
-        return defaultImplementation(this.#context, ...params) as any;
-      }
-
-      return defaultImplementation(...(params as any)) as any;
-    }
-
     let handlerParams: Parameters<typeof defaultImplementation>;
     if (hookCategoryName !== "config") {
       assertHardhatInvariant(
@@ -197,6 +181,13 @@ export class HookManagerImplementation implements HookManager {
       handlerParams = [this.#context, ...params] as any;
     } else {
       handlerParams = params as any;
+    }
+
+    // Fast path for the common case of no registered handlers: skip building
+    // handlerParams and the `next` closure, and call the default implementation
+    // directly.
+    if (handlers.length === 0) {
+      return defaultImplementation(...handlerParams) as any;
     }
 
     const numberOfHandlers = handlers.length;
