@@ -1,12 +1,10 @@
 import type { ResolvedNpmPackage } from "../../../../../types/solidity.js";
 import type { Result } from "../../../../../types/utils.js";
+import type { TrueCasePathResolver } from "@nomicfoundation/hardhat-utils/fs";
 
 import { assertHardhatInvariant } from "@nomicfoundation/hardhat-errors";
 import { ensureError } from "@nomicfoundation/hardhat-utils/error";
-import {
-  FileNotFoundError,
-  getFileTrueCase,
-} from "@nomicfoundation/hardhat-utils/fs";
+import { FileNotFoundError } from "@nomicfoundation/hardhat-utils/fs";
 import { exports } from "resolve.exports";
 
 export enum PathValidationErrorType {
@@ -15,6 +13,7 @@ export enum PathValidationErrorType {
 }
 
 export async function validateFsPath(
+  resolver: TrueCasePathResolver,
   from: string,
   relative: string,
 ): Promise<
@@ -26,7 +25,7 @@ export async function validateFsPath(
 > {
   let trueCaseFsPath: string;
   try {
-    trueCaseFsPath = await getFileTrueCase(from, relative);
+    trueCaseFsPath = await resolver.getFileTrueCase(from, relative);
   } catch (error) {
     ensureError(error, FileNotFoundError);
 
