@@ -1128,13 +1128,15 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
     const buildInfoFiles = await readdirOrEmpty(buildInfosDir);
 
     for (const buildInfoFile of buildInfoFiles) {
-      // We ignore files that don't have .json extension
-      const jsonIndex = buildInfoFile.indexOf(".json");
-      if (jsonIndex === -1) {
+      let id: string | undefined;
+
+      if (buildInfoFile.endsWith(".output.json")) {
+        id = buildInfoFile.slice(0, -".output.json".length);
+      } else if (buildInfoFile.endsWith(".json")) {
+        id = buildInfoFile.slice(0, -".json".length);
+      } else {
         continue;
       }
-
-      const id = buildInfoFile.substring(0, jsonIndex);
 
       if (!reachableBuildInfoIdsSet.has(id)) {
         await remove(path.join(buildInfosDir, buildInfoFile));
