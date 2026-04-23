@@ -310,7 +310,8 @@ async function runScenario(
   const warmExport = path.join(scenarioTmpDir, "warm.json");
   const defaultExport = path.join(scenarioTmpDir, "default.json");
 
-  await runBenchmark(
+  await runPhase(
+    "compile (cold)",
     buildBenchArgs(scenario.scenarioJsonPath, args, {
       init: true,
       command: "npx hardhat compile",
@@ -320,7 +321,8 @@ async function runScenario(
     }),
   );
 
-  await runBenchmark(
+  await runPhase(
+    "compile (warm)",
     buildBenchArgs(scenario.scenarioJsonPath, args, {
       init: false,
       command: "npx hardhat compile",
@@ -330,7 +332,8 @@ async function runScenario(
     }),
   );
 
-  await runBenchmark(
+  await runPhase(
+    "default command",
     buildBenchArgs(scenario.scenarioJsonPath, args, {
       init: false,
       command: undefined,
@@ -345,6 +348,65 @@ async function runScenario(
     toEntry(scenario.id, "compile (warm)", readHyperfineResult(warmExport)),
     toEntry(scenario.id, "default command", readHyperfineResult(defaultExport)),
   ];
+}
+
+async function runPhase(label: string, benchArgs: BenchArgs): Promise<void> {
+  try {
+    await runBenchmark(benchArgs);
+  } catch (error) {
+    const original = error instanceof Error ? error.message : String(error);
+    throw new Error(
+      `${label} phase failed: ${original}\n  Reproduce with: ${buildReproCommand(benchArgs)}`,
+    );
+  }
+}
+
+function buildReproCommand(benchArgs: BenchArgs): string {
+  const parts: string[] = [
+    "pnpm bench",
+    "--scenario",
+    shellQuote(benchArgs.scenarioPath),
+  ];
+
+  if (benchArgs.init) {
+    parts.push("--init");
+
+    if (benchArgs.useLocal) {
+      parts.push("--use-local");
+    }
+
+    if (benchArgs.forcePublish) {
+      parts.push("--force-publish");
+    }
+  }
+
+  if (benchArgs.command !== undefined) {
+    parts.push("--command", shellQuote(benchArgs.command));
+  }
+
+  if (benchArgs.prepare !== undefined) {
+    parts.push("--prepare", shellQuote(benchArgs.prepare));
+  }
+
+  if (benchArgs.runs !== undefined) {
+    parts.push("--runs", String(benchArgs.runs));
+  }
+
+  parts.push(
+    "--e2e-clone-dir",
+    shellQuote(benchArgs.e2eCloneDirectory),
+    "--show-output",
+  );
+
+  return parts.join(" ");
+}
+
+function shellQuote(value: string): string {
+  if (/^[\w@./:=-]+$/.test(value)) {
+    return value;
+  }
+
+  return `'${value.replace(/'/g, `'\\''`)}'`;
 }
 
 function buildBenchArgs(
