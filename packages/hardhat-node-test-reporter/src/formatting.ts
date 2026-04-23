@@ -4,8 +4,8 @@ import type { TestEventData } from "./types.js";
 import { formatError } from "./error-formatting.js";
 import { styleText } from "./style.js";
 
-export const INFO_SYMBOL: string = styleText("blue", "\u2139");
-export const SUCCESS_SYMBOL: string = styleText("green", "✔");
+export const INFO_SYMBOL = (): string => styleText("blue", "\u2139");
+export const SUCCESS_SYMBOL = (): string => styleText("green", "✔");
 
 export interface Failure {
   index: number;
@@ -55,7 +55,7 @@ export function formatTestPass(passData: TestEventData["test:pass"]): string {
     // TODO: show todo reason
     msg = styleText("blue", `+ ${passData.name}`);
   } else {
-    msg = styleText("gray", `${SUCCESS_SYMBOL} ${passData.name}`);
+    msg = styleText("gray", `${SUCCESS_SYMBOL()} ${passData.name}`);
   }
 
   return indent(msg, nestingToIndentationLength(passData.nesting));
@@ -154,7 +154,7 @@ export function formatUnusedDiagnostics(
       }
       return message;
     })
-    .map((message) => `  ${INFO_SYMBOL} ${message}`);
+    .map((message) => `  ${INFO_SYMBOL()} ${message}`);
   return Array.from(new Set(messages)).join("\n");
 }
 
