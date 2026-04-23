@@ -1,6 +1,6 @@
 import type { HookContext, TestHooks } from "../../../../types/hooks.js";
 
-import { getCoverageManager } from "../helpers.js";
+import { getCoverageManager } from "../helpers/accessors.js";
 
 export default async (): Promise<Partial<TestHooks>> => ({
   onTestRunStart: async (context, id, next) => {
