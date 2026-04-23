@@ -159,7 +159,13 @@ export class HookManagerImplementation implements HookManager {
     params: InitialChainedHookParams<HookCategoryNameT, HookT>,
     defaultImplementation: LastParameter<HookT>,
   ): Promise<Awaited<Return<HardhatHooks[HookCategoryNameT][HookNameT]>>> {
-    // Synchronous fast path for already cached handlers
+    // Synchronous fast path for already cached handlers. This duplicates
+    // the check inside #getHandlersInChainedRunningOrder on purpose:
+    // calling that async method introduces a microtask tick even on a
+    // cache hit, whereas a direct Map lookup stays on the current tick.
+    // That tick matters here because runHandlerChain is on every hook's
+    // hot path, and this path pairs with the empty-handlers shortcut
+    // below to dispatch straight to defaultImplementation with no awaits.
     const cachedHandlers = this.#chainedHandlers
       .get(hookCategoryName)
       ?.get(hookName as string);
