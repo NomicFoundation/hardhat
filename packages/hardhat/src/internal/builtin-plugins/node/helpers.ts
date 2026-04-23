@@ -17,7 +17,7 @@ import chalk from "chalk";
 let microEthSigner: typeof MicroEthSignerT | undefined;
 
 import { sendErrorTelemetry } from "../../cli/telemetry/error-reporter/reporter.js";
-import { isDefaultEdrNetworkHDAccountsConfig } from "../network-manager/edr/edr-provider.js";
+import { isDefaultEdrNetworkHDAccountsConfig } from "../network-manager/edr/edr-constants.js";
 import { normalizeEdrNetworkAccountsConfig } from "../network-manager/edr/utils/convert-to-edr.js";
 
 export async function formatEdrNetworkConfigAccounts(

@@ -1,12 +1,6 @@
 import type { ChainType } from "../../../../../types/network.js";
 
-import { l1HardforkLatest, opLatestHardfork } from "@nomicfoundation/edr";
-
 import { OPTIMISM_CHAIN_TYPE } from "../../../../constants.js";
-import {
-  edrL1HardforkToHardhatL1HardforkName,
-  edrOpHardforkToHardhatOpHardforkName,
-} from "../utils/convert-to-edr.js";
 
 export enum L1HardforkName {
   FRONTIER = "chainstart",
@@ -51,9 +45,9 @@ export function getHardforks(chainType: ChainType): string[] {
 }
 
 export function getCurrentHardfork(chainType: ChainType): string {
-  return chainType === OPTIMISM_CHAIN_TYPE
-    ? edrOpHardforkToHardhatOpHardforkName(opLatestHardfork())
-    : edrL1HardforkToHardhatL1HardforkName(l1HardforkLatest());
+  const order =
+    chainType === OPTIMISM_CHAIN_TYPE ? OP_HARDFORK_ORDER : L1_HARDFORK_ORDER;
+  return order[order.length - 1];
 }
 
 /**

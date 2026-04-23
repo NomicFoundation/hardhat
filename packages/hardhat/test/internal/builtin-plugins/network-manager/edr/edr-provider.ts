@@ -18,9 +18,11 @@ import { numberToHexString } from "@nomicfoundation/hardhat-utils/hex";
 import { createHardhatRuntimeEnvironment } from "../../../../../src/hre.js";
 import {
   DEFAULT_EDR_NETWORK_HD_ACCOUNTS_CONFIG_PARAMS,
+  isDefaultEdrNetworkHDAccountsConfig,
+} from "../../../../../src/internal/builtin-plugins/network-manager/edr/edr-constants.js";
+import {
   EdrProvider,
   getProviderConfig,
-  isDefaultEdrNetworkHDAccountsConfig,
 } from "../../../../../src/internal/builtin-plugins/network-manager/edr/edr-provider.js";
 import {
   InvalidArgumentsError,

@@ -3,7 +3,7 @@ import type { EdrNetworkHDAccountsConfig } from "../../../../src/types/config.js
 import assert from "node:assert/strict";
 import { before, describe, it } from "node:test";
 
-import { DEFAULT_EDR_NETWORK_HD_ACCOUNTS_CONFIG_PARAMS } from "../../../../src/internal/builtin-plugins/network-manager/edr/edr-provider.js";
+import { DEFAULT_EDR_NETWORK_HD_ACCOUNTS_CONFIG_PARAMS } from "../../../../src/internal/builtin-plugins/network-manager/edr/edr-constants.js";
 import {
   formatEdrNetworkConfigAccounts,
   getPublicPrivateKeysWarning,

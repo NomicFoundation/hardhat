@@ -61,7 +61,7 @@ import {
   DEFAULT_EDR_NETWORK_BALANCE,
   EDR_NETWORK_DEFAULT_PRIVATE_KEYS,
   isDefaultEdrNetworkHDAccountsConfig,
-} from "../edr-provider.js";
+} from "../edr-constants.js";
 import { L1HardforkName, OpHardforkName } from "../types/hardfork.js";
 
 import { getL1HardforkName, getOpHardforkName } from "./hardfork.js";
