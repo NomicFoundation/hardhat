@@ -14,7 +14,7 @@ import {
 import {
   exists,
   getAllFilesMatching,
-  readdir,
+  readdirOrEmpty,
   readJsonFile,
 } from "@nomicfoundation/hardhat-utils/fs";
 
@@ -115,17 +115,14 @@ export class ArtifactManagerImplementation implements ArtifactManager {
   public async getAllBuildInfoIds(): Promise<ReadonlySet<string>> {
     const buildInfosDir = path.join(this.#artifactsPath, BUILD_INFO_DIR_NAME);
 
-    if (!(await exists(buildInfosDir))) {
-      return new Set();
-    }
-
     // The build-info directory is expected to be flat: every build-info file
     // lives directly under it, so a non-recursive `readdir` is enough.
-    const buildInfoIds = (await readdir(buildInfosDir))
-      .filter(
-        (entry) => entry.endsWith(".json") && !entry.endsWith(".output.json"),
-      )
-      .map((entry) => path.basename(entry, ".json"));
+    const buildInfoFiles = await readdirOrEmpty(buildInfosDir);
+
+    const jsonExtensionLength = ".json".length;
+    const buildInfoIds = buildInfoFiles
+      .filter((f) => f.endsWith(".json") && !f.endsWith(".output.json"))
+      .map((entry) => entry.slice(0, entry.length - jsonExtensionLength));
 
     return new Set(buildInfoIds);
   }

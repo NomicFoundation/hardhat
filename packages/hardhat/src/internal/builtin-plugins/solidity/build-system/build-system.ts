@@ -44,12 +44,12 @@ import {
   getAllDirectoriesMatching,
   getAllFilesMatching,
   move,
-  readdir,
   readJsonFile,
   remove,
   writeJsonFile,
   writeJsonFileAsStream,
   writeUtf8File,
+  readdirOrEmpty,
 } from "@nomicfoundation/hardhat-utils/fs";
 import { shortenPath } from "@nomicfoundation/hardhat-utils/path";
 import { createSpinner } from "@nomicfoundation/hardhat-utils/spinner";
@@ -1124,19 +1124,13 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
 
     // The build-info directory is expected to be flat: every build-info file
     // lives directly under it, so a non-recursive `readdir` is enough.
-    const buildInfoFiles = !(await exists(buildInfosDir))
-      ? []
-      : (await readdir(buildInfosDir)).map((entry) =>
-          path.join(buildInfosDir, entry),
-        );
+    const buildInfoFiles = await readdirOrEmpty(buildInfosDir);
 
     for (const buildInfoFile of buildInfoFiles) {
-      const basename = path.basename(buildInfoFile);
-
-      const id = basename.substring(0, basename.indexOf("."));
+      const id = buildInfoFile.substring(0, buildInfoFile.indexOf("."));
 
       if (!reachableBuildInfoIdsSet.has(id)) {
-        await remove(buildInfoFile);
+        await remove(path.join(buildInfosDir, buildInfoFile));
       }
     }
 

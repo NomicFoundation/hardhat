@@ -5,7 +5,7 @@ import {
   exists,
   getAllFilesMatching,
   isDirectory,
-  readdir,
+  readdirOrEmpty,
   readJsonFile,
 } from "@nomicfoundation/hardhat-utils/fs";
 import {
@@ -40,11 +40,7 @@ export async function getTemplates(
   const packageRoot = await findClosestPackageRoot(import.meta.url);
   const pathToTemplates = path.join(packageRoot, "templates", templatesDir);
 
-  if (!(await exists(pathToTemplates))) {
-    return [];
-  }
-
-  const pathsToTemplates = await readdir(pathToTemplates);
+  const pathsToTemplates = await readdirOrEmpty(pathToTemplates);
   pathsToTemplates.sort();
 
   const templates = await Promise.all(

@@ -7,6 +7,7 @@ import { ensureError } from "@nomicfoundation/hardhat-utils/error";
 import {
   FileNotFoundError,
   readdir,
+  readdirOrEmpty,
   readJsonFile,
   remove,
   writeJsonFile,
@@ -116,9 +117,8 @@ async function deleteOrphanedSnapshotFiles(
   snapshotsDir: string,
   currentGroups: Set<string>,
 ): Promise<void> {
-  let dirEntries: string[];
   try {
-    dirEntries = await readdir(snapshotsDir);
+    const dirEntries = await readdirOrEmpty(snapshotsDir);
 
     for (const entry of dirEntries) {
       if (entry.endsWith(".json")) {
@@ -131,10 +131,6 @@ async function deleteOrphanedSnapshotFiles(
     }
   } catch (error) {
     ensureError(error);
-    // Directory doesn't exist yet, nothing to clean up
-    if (error instanceof FileNotFoundError) {
-      return;
-    }
     throw new HardhatError(
       HardhatError.ERRORS.CORE.SOLIDITY_TESTS.SNAPSHOT_WRITE_ERROR,
       { snapshotsPath: snapshotsDir, error: error.message },
