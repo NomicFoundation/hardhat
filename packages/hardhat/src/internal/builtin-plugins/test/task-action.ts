@@ -9,7 +9,7 @@ import type { Result } from "../../../types/utils.js";
 
 import { HardhatError } from "@nomicfoundation/hardhat-errors";
 import { isObject } from "@nomicfoundation/hardhat-utils/lang";
-import chalk, { type ChalkInstance } from "chalk";
+import { colorize } from "@nomicfoundation/hardhat-utils/style";
 
 import {
   errorResult,
@@ -194,19 +194,19 @@ const runAllTests: NewTaskActionFunction<TestActionArguments> = async (
   }
 
   if (passed.length > 0) {
-    logSummaryLine("passing", passed, chalk.green);
+    logSummaryLine("passing", passed, colorize("green"));
   }
 
   if (failed.length > 0) {
-    logSummaryLine("failing", failed, chalk.red);
+    logSummaryLine("failing", failed, colorize("red"));
   }
 
   if (skipped.length > 0) {
-    logSummaryLine("skipped", skipped, chalk.cyan);
+    logSummaryLine("skipped", skipped, colorize("cyan"));
   }
 
   if (todo.length > 0) {
-    logSummaryLine("todo", todo, chalk.blue);
+    logSummaryLine("todo", todo, colorize("blue"));
   }
 
   if (outputLines.length > 0) {
@@ -262,7 +262,7 @@ const runAllTests: NewTaskActionFunction<TestActionArguments> = async (
 function logSummaryLine(
   label: string,
   items: Array<[string, number]>,
-  color: ChalkInstance = chalk.white,
+  color: (text: string) => string = colorize("white"),
 ): void {
   let total = 0;
   const str = items

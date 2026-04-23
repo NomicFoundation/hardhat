@@ -4,12 +4,13 @@ import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 
 import { CallKind, IncludeTraces, LogKind } from "@nomicfoundation/edr";
-import chalk from "chalk";
+import { styleText } from "@nomicfoundation/hardhat-utils/style";
 
 import {
   formatTraces,
   verbosityToIncludeTraces,
 } from "../../../../../../src/internal/builtin-plugins/network-manager/edr/utils/trace-formatters.js";
+import { DEFAULT_COLORIZER } from "../../../../../../src/internal/utils/colorizer.js";
 
 function makeCallTrace(overrides: Partial<CallTrace> = {}): CallTrace {
   const trace: CallTrace = {
@@ -167,19 +168,19 @@ describe("formatTraces", () => {
     ];
 
     const expected = `
-[127552] ${chalk.green("FailingCounterTest")}::${chalk.green("setUp")}()
-  ├─ [0] ${chalk.green("console")}::${chalk.green("log")}("Setting up") ${chalk.yellow("[staticcall]")}
-  ├─ [68915] ${chalk.yellow("→ new")} Counter@0x373b22261122919Ad39F55ac0475dd0f82Bd2499
-  │    └─ ${chalk.green("←")} 344 bytes of code
-  └─ [0] ${chalk.green("console")}::${chalk.green("log")}("Counter set up") ${chalk.yellow("[staticcall]")}
+[127552] ${styleText("green", "FailingCounterTest")}::${styleText("green", "setUp")}()
+  ├─ [0] ${styleText("green", "console")}::${styleText("green", "log")}("Setting up") ${styleText("yellow", "[staticcall]")}
+  ├─ [68915] ${styleText("yellow", "→ new")} Counter@0x373b22261122919Ad39F55ac0475dd0f82Bd2499
+  │    └─ ${styleText("green", "←")} 344 bytes of code
+  └─ [0] ${styleText("green", "console")}::${styleText("green", "log")}("Counter set up") ${styleText("yellow", "[staticcall]")}
 
-[32272] ${chalk.green("FailingCounterTest")}::${chalk.green("testFailFuzzInc")}(1)
-  ├─ [0] ${chalk.green("console")}::${chalk.green("log")}("Fuzz testing inc fail") ${chalk.yellow("[staticcall]")}
-  ├─ [22397] ${chalk.green("Counter")}::${chalk.green("inc")}()
-  └─ [402] ${chalk.green("Counter")}::${chalk.green("x")}() ${chalk.yellow("[staticcall]")}
-       └─ ${chalk.green("←")} 1`.replace("\n", "");
+[32272] ${styleText("green", "FailingCounterTest")}::${styleText("green", "testFailFuzzInc")}(1)
+  ├─ [0] ${styleText("green", "console")}::${styleText("green", "log")}("Fuzz testing inc fail") ${styleText("yellow", "[staticcall]")}
+  ├─ [22397] ${styleText("green", "Counter")}::${styleText("green", "inc")}()
+  └─ [402] ${styleText("green", "Counter")}::${styleText("green", "x")}() ${styleText("yellow", "[staticcall]")}
+       └─ ${styleText("green", "←")} 1`.replace("\n", "");
 
-    const actual = formatTraces(traces, "", chalk);
+    const actual = formatTraces(traces, "", DEFAULT_COLORIZER);
 
     assert.equal(expected, actual);
   });
@@ -189,7 +190,7 @@ describe("formatTraces", () => {
 
     const expected = "";
 
-    const actual = formatTraces(traces, "  ", chalk);
+    const actual = formatTraces(traces, "  ", DEFAULT_COLORIZER);
 
     assert.equal(expected, actual);
   });
@@ -206,14 +207,14 @@ describe("formatLog via formatTraces", () => {
       ],
     });
 
-    const actual = formatTraces([trace], "", chalk);
+    const actual = formatTraces([trace], "", DEFAULT_COLORIZER);
 
     assert.ok(
-      actual.includes(chalk.yellow("[event]")),
+      actual.includes(styleText("yellow", "[event]")),
       "should contain yellow [event] tag",
     );
     assert.ok(
-      actual.includes(`Transfer(${chalk.cyan('"from", "to", "100"')})`),
+      actual.includes(`Transfer(${styleText("cyan", '"from", "to", "100"')})`),
       "should contain event name with cyan args",
     );
   });
@@ -251,7 +252,7 @@ describe("formatLog via formatTraces", () => {
   for (const { name, params, includes, excludes } of rawEventCases) {
     it(`should format a raw event with ${name}`, () => {
       const trace = makeCallTrace({ children: [makeLogTrace(params)] });
-      const actual = formatTraces([trace], "", chalk);
+      const actual = formatTraces([trace], "", DEFAULT_COLORIZER);
 
       for (const s of includes) {
         assert.ok(actual.includes(s), `should contain "${s}"`);
@@ -285,10 +286,13 @@ describe("formatTrace call kind tags", () => {
   for (const { kind, name, tag } of kindTagCases) {
     it(`should ${tag !== undefined ? `append ${tag}` : "append no tag"} for CallKind.${name}`, () => {
       const trace = makeCallTrace({ kind });
-      const actual = formatTraces([trace], "", chalk);
+      const actual = formatTraces([trace], "", DEFAULT_COLORIZER);
 
       if (tag !== undefined) {
-        assert.ok(actual.includes(chalk.yellow(tag)), `should contain ${tag}`);
+        assert.ok(
+          actual.includes(styleText("yellow", tag)),
+          `should contain ${tag}`,
+        );
       }
 
       for (const other of allTags) {
@@ -305,10 +309,10 @@ describe("formatTrace call kind tags", () => {
       contract: "MyToken",
       address: "0x1234",
     });
-    const actual = formatTraces([trace], "", chalk);
+    const actual = formatTraces([trace], "", DEFAULT_COLORIZER);
 
     assert.ok(
-      actual.includes(chalk.yellow("→ new")),
+      actual.includes(styleText("yellow", "→ new")),
       "should contain → new prefix",
     );
     assert.ok(
@@ -331,29 +335,29 @@ describe("formatTrace outputs and coloring", () => {
     {
       name: "should show [Revert] for failed trace",
       overrides: { success: false, outputs: "EvmError: Revert" },
-      includes: [chalk.red("[Revert]"), "EvmError: Revert"],
+      includes: [styleText("red", "[Revert]"), "EvmError: Revert"],
     },
     {
       name: "should show ← arrow for normal output",
       overrides: { outputs: "42" },
-      includes: [chalk.green("←"), "42"],
+      includes: [styleText("green", "←"), "42"],
     },
     {
       name: "should use red for failed traces",
       overrides: { success: false, contract: "FailContract" },
-      includes: [chalk.red("FailContract")],
+      includes: [styleText("red", "FailContract")],
     },
     {
       name: "should use blue for cheatcode traces",
       overrides: { isCheatcode: true, contract: "CheatContract" },
-      includes: [chalk.blue("CheatContract")],
+      includes: [styleText("blue", "CheatContract")],
     },
   ];
 
   for (const { name, overrides, includes } of cases) {
     it(name, () => {
       const trace = makeCallTrace(overrides);
-      const actual = formatTraces([trace], "", chalk);
+      const actual = formatTraces([trace], "", DEFAULT_COLORIZER);
       for (const s of includes) {
         assert.ok(actual.includes(s), `should contain "${s}"`);
       }

@@ -19,9 +19,9 @@ import {
   l1HardforkFromString,
 } from "@nomicfoundation/edr";
 import { hexStringToBytes } from "@nomicfoundation/hardhat-utils/hex";
-import chalk from "chalk";
 
 import { DEFAULT_VERBOSITY, OPTIMISM_CHAIN_TYPE } from "../../constants.js";
+import { DEFAULT_COLORIZER } from "../../utils/colorizer.js";
 import { resolveHardfork } from "../network-manager/config-resolution.js";
 import { hardhatHardforkToEdrSpecId } from "../network-manager/edr/utils/convert-to-edr.js";
 import { verbosityToIncludeTraces } from "../network-manager/edr/utils/trace-formatters.js";
@@ -161,7 +161,7 @@ export function isTestSuiteArtifact(artifact: Artifact): boolean {
 export function warnDeprecatedTestFail(
   artifact: Artifact,
   sourceNameToUserSourceName: Map<string, string>,
-  colorizer: Colorizer = chalk,
+  colorizer: Colorizer = DEFAULT_COLORIZER,
 ): void {
   const abi: Abi = JSON.parse(artifact.contract.abi);
 

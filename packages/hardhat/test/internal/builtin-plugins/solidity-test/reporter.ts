@@ -26,7 +26,7 @@ const noopColorizer = {
   red: (text: string) => text,
   yellow: (text: string) => text,
   cyan: (text: string) => text,
-  grey: (text: string) => text,
+  gray: (text: string) => text,
   dim: (text: string) => text,
 };
 
@@ -36,7 +36,7 @@ const tagColorizer = {
   red: (text: string) => `<red>${text}</red>`,
   yellow: (text: string) => `<yellow>${text}</yellow>`,
   cyan: (text: string) => `<cyan>${text}</cyan>`,
-  grey: (text: string) => `<grey>${text}</grey>`,
+  gray: (text: string) => `<gray>${text}</gray>`,
   dim: (text: string) => `<dim>${text}</dim>`,
 };
 
@@ -476,7 +476,7 @@ debug log
         [90] <green>Bar</green>
           └─ [80] <green>Baz</green>
 
-    <green>✔</green> <grey>successful test</grey>
+    <green>✔</green> <gray>successful test</gray>
 
 
   <green>1 passing</green>

@@ -7,9 +7,9 @@ import type { Colorizer } from "../../utils/colorizer.js";
 import type { TestResult } from "@nomicfoundation/edr";
 
 import { bytesToHexString } from "@nomicfoundation/hardhat-utils/hex";
-import chalk from "chalk";
 
 import { sendErrorTelemetry } from "../../cli/telemetry/sentry/reporter.js";
+import { DEFAULT_COLORIZER } from "../../utils/colorizer.js";
 import { SolidityTestStackTraceGenerationError } from "../network-manager/edr/stack-traces/stack-trace-generation-errors.js";
 import { encodeStackTraceEntry } from "../network-manager/edr/stack-traces/stack-trace-solidity-errors.js";
 import { formatTraces } from "../network-manager/edr/utils/trace-formatters.js";
@@ -55,7 +55,7 @@ export async function* testReporter(
   sourceNameToUserSourceName: Map<string, string>,
   verbosity: number,
   testSummaryIndex: number = 0,
-  colorizer: Colorizer = chalk,
+  colorizer: Colorizer = DEFAULT_COLORIZER,
 ): TestReporterResult {
   let runSuccessCount = 0;
   let runFailureCount = testSummaryIndex === 0 ? 1 : testSummaryIndex;
@@ -97,7 +97,7 @@ export async function* testReporter(
         if (suiteResult.warnings.length > 0) {
           indenter.inc();
           for (const warning of suiteResult.warnings) {
-            yield indenter.t`${colorizer.yellow("Warning")}${colorizer.grey(`: ${warning}`)}\n`;
+            yield indenter.t`${colorizer.yellow("Warning")}${colorizer.gray(`: ${warning}`)}\n`;
           }
           indenter.dec();
           yield "\n";
@@ -137,7 +137,7 @@ export async function* testReporter(
 
           switch (status) {
             case "Success": {
-              let successOutput = `${colorizer.green("✔")} ${colorizer.grey(name)}`;
+              let successOutput = `${colorizer.green("✔")} ${colorizer.gray(name)}`;
               if (details !== "") {
                 successOutput += colorizer.dim(details);
               }
@@ -287,7 +287,7 @@ export async function* testReporter(
             }
           }
           if (stackTraceStack.length > 0) {
-            yield* output(`${colorizer.grey(stackTraceStack.join("\n"))}\n`);
+            yield* output(`${colorizer.gray(stackTraceStack.join("\n"))}\n`);
           }
           yield* output("\n");
           break;
@@ -296,13 +296,13 @@ export async function* testReporter(
             new SolidityTestStackTraceGenerationError(stackTrace.errorMessage),
           );
           yield* output(
-            indenter.t`Stack Trace Warning: ${colorizer.grey(stackTrace.errorMessage)}\n`,
+            indenter.t`Stack Trace Warning: ${colorizer.gray(stackTrace.errorMessage)}\n`,
           );
           break;
         case "UnsafeToReplay":
           if (stackTrace.globalForkLatest === true) {
             yield* output(
-              indenter.t`Stack Trace Warning: ${colorizer.grey("The test is not safe to replay because a fork url without a fork block number was provided.")}\n`,
+              indenter.t`Stack Trace Warning: ${colorizer.gray("The test is not safe to replay because a fork url without a fork block number was provided.")}\n`,
             );
             yield* output(
               indenter.t`Try rerunning your tests with -vvv or above.\n`,
@@ -310,7 +310,7 @@ export async function* testReporter(
           }
           if (stackTrace.impureCheatcodes.length > 0) {
             yield* output(
-              indenter.t`Stack Trace Warning: ${colorizer.grey(`The test is not safe to replay because it uses impure cheatcodes: ${stackTrace.impureCheatcodes.join(", ")}`)}\n`,
+              indenter.t`Stack Trace Warning: ${colorizer.gray(`The test is not safe to replay because it uses impure cheatcodes: ${stackTrace.impureCheatcodes.join(", ")}`)}\n`,
             );
             yield* output(
               indenter.t`Try rerunning your tests with -vvv or above.\n`,
@@ -335,7 +335,7 @@ export async function* testReporter(
           for (const [key, value] of Object.entries(counterexample)) {
             const counterExampleDetails = `${key}: ${Buffer.isBuffer(value) ? bytesToHexString(value) : value}`;
             yield* output(
-              indenter.t`${colorizer.grey(counterExampleDetails)}\n`,
+              indenter.t`${colorizer.gray(counterExampleDetails)}\n`,
             );
           }
           indenter.dec();
