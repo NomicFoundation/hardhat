@@ -8,7 +8,7 @@
   "commit": "19277969b5e67b5b55968422b4cba4029544807c",
   "packageManager": "yarn",
   "submodules": false,
-  "defaultCommand": "npx hardhat test solidity --no-compile",
+  "defaultCommand": "npx hardhat test solidity",
   "benchmark": {
     "runs": {
       "coldCompile": 5,
