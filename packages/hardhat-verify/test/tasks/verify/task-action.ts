@@ -14,7 +14,7 @@ import {
 } from "node:test";
 
 import { useEphemeralFixtureProject } from "@nomicfoundation/hardhat-test-utils";
-import chalk from "chalk";
+import { styleText } from "@nomicfoundation/hardhat-utils/style";
 import { createHardhatRuntimeEnvironment } from "hardhat/hre";
 
 import { internalVerifyAction } from "../../../src/internal/tasks/verify/task-action.js";
@@ -118,7 +118,7 @@ describe("verify/task-action", () => {
       assert.equal(consoleLogSpy.mock.callCount(), 4);
       assert.equal(
         consoleLogSpy.mock.calls[0].arguments[0],
-        chalk.cyan.bold(`\n=== Etherscan ===`),
+        styleText(["cyan", "bold"], `\n=== Etherscan ===`),
       );
       assert.equal(
         consoleLogSpy.mock.calls[1].arguments[0],
@@ -126,20 +126,20 @@ describe("verify/task-action", () => {
       );
       assert.equal(
         consoleLogSpy.mock.calls[2].arguments[0],
-        chalk.cyan.bold(`\n=== Blockscout ===`),
+        styleText(["cyan", "bold"], `\n=== Blockscout ===`),
       );
       assert.equal(consoleErrorSpy.mock.callCount(), 2);
       assert.equal(
         consoleErrorSpy.mock.calls[0].arguments[0],
-        chalk.red("Verification failed for provider: blockscout"),
+        styleText("red", "Verification failed for provider: blockscout"),
       );
       assert.equal(
         consoleLogSpy.mock.calls[3].arguments[0],
-        chalk.cyan.bold(`\n=== Sourcify ===`),
+        styleText(["cyan", "bold"], `\n=== Sourcify ===`),
       );
       assert.equal(
         consoleErrorSpy.mock.calls[1].arguments[0],
-        chalk.red("Verification failed for provider: sourcify"),
+        styleText("red", "Verification failed for provider: sourcify"),
       );
     });
 
@@ -173,7 +173,7 @@ describe("verify/task-action", () => {
       assert.equal(consoleWarnSpy.mock.callCount(), 1);
       assert.equal(
         consoleWarnSpy.mock.calls[0].arguments[0],
-        chalk.yellow("\n⚠️  No verification providers are enabled."),
+        styleText("yellow", "\n⚠️  No verification providers are enabled."),
       );
     });
   });

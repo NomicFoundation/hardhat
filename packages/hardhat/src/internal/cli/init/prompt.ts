@@ -2,7 +2,7 @@ import type { Template } from "./template.js";
 
 import { HardhatError } from "@nomicfoundation/hardhat-errors";
 import { shortenPath } from "@nomicfoundation/hardhat-utils/path";
-import chalk from "chalk";
+import { styleText } from "@nomicfoundation/hardhat-utils/style";
 import enquirer from "enquirer";
 
 export async function promptForHardhatVersion(): Promise<
@@ -116,7 +116,7 @@ export async function promptForInstall(
     {
       name: "install",
       type: "confirm",
-      message: `You need to install the necessary dependencies using the following command:\n${chalk.italic(safelyFormattedCommand)}\n\nDo you want to run it now?`,
+      message: `You need to install the necessary dependencies using the following command:\n${styleText("italic", safelyFormattedCommand)}\n\nDo you want to run it now?`,
       initial: true,
     },
   ]);
@@ -133,7 +133,7 @@ export async function promptForUpdate(
     {
       name: "update",
       type: "confirm",
-      message: `You need to update the following dependencies using the following command:\n${chalk.italic(safelyFormattedCommand)}\n\nDo you want to run it now?`,
+      message: `You need to update the following dependencies using the following command:\n${styleText("italic", safelyFormattedCommand)}\n\nDo you want to run it now?`,
       initial: true,
     },
   ]);

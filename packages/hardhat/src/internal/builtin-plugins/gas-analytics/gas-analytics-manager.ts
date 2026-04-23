@@ -26,7 +26,7 @@ import {
   writeJsonFile,
 } from "@nomicfoundation/hardhat-utils/fs";
 import { findDuplicates } from "@nomicfoundation/hardhat-utils/lang";
-import chalk from "chalk";
+import { styleText } from "@nomicfoundation/hardhat-utils/style";
 import debug from "debug";
 
 import { parseFullyQualifiedName } from "../../../utils/contract-names.js";
@@ -311,7 +311,10 @@ export class GasAnalyticsManagerImplementation implements GasAnalyticsManager {
     const rows: TableItem[] = [];
 
     if (gasStatsByContract.size > 0) {
-      rows.push({ type: "title", text: chalk.bold("Gas Usage Statistics") });
+      rows.push({
+        type: "title",
+        text: styleText("bold", "Gas Usage Statistics"),
+      });
     }
 
     const sortedContracts = getSortedContractEntries(gasStatsByContract);
@@ -322,8 +325,9 @@ export class GasAnalyticsManagerImplementation implements GasAnalyticsManager {
     } of sortedContracts) {
       rows.push({
         type: "section-header",
-        text: chalk.cyan.bold(userFqn),
-        subtitle: proxyLabel !== undefined ? chalk.cyan(proxyLabel) : undefined,
+        text: styleText(["cyan", "bold"], userFqn),
+        subtitle:
+          proxyLabel !== undefined ? styleText("cyan", proxyLabel) : undefined,
       });
 
       if (contractGasStats.functions.size > 0) {
@@ -336,7 +340,7 @@ export class GasAnalyticsManagerImplementation implements GasAnalyticsManager {
             "Median",
             "Max",
             "#calls",
-          ].map((s) => chalk.yellow(s)),
+          ].map((s) => styleText("yellow", s)),
         });
       }
 
@@ -372,7 +376,7 @@ export class GasAnalyticsManagerImplementation implements GasAnalyticsManager {
             "Median",
             "Max",
             "#deployments",
-          ].map((s) => chalk.yellow(s)),
+          ].map((s) => styleText("yellow", s)),
         });
         rows.push({
           type: "row",
@@ -388,7 +392,7 @@ export class GasAnalyticsManagerImplementation implements GasAnalyticsManager {
         rows.push({
           type: "header",
           cells: [
-            chalk.yellow("Bytecode size"),
+            styleText("yellow", "Bytecode size"),
             `${contractGasStats.deployment.runtimeSize}`,
           ],
         });

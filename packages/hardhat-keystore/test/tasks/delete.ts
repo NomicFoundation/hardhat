@@ -9,7 +9,7 @@ import { fileURLToPath } from "node:url";
 import { HardhatError } from "@nomicfoundation/hardhat-errors";
 import { assertRejectsWithHardhatError } from "@nomicfoundation/hardhat-test-utils";
 import { remove as removeFile } from "@nomicfoundation/hardhat-utils/fs";
-import chalk from "chalk";
+import { styleText } from "@nomicfoundation/hardhat-utils/style";
 
 import { decryptSecret } from "../../src/internal/keystores/encryption.js";
 import { KeystoreFileLoader } from "../../src/internal/loaders/keystore-file-loader.js";
@@ -131,7 +131,7 @@ describe("tasks - delete", () => {
         it("should display a message that the keystore is not set", async () => {
           assertOutputIncludes(
             mockConsoleLog,
-            `No ${getKeystoreType(dev)} keystore found. Please set one up using ${chalk.blue.italic(`npx hardhat keystore set {key}${dev === true ? " --dev" : ""}`)} `,
+            `No ${getKeystoreType(dev)} keystore found. Please set one up using ${styleText(["blue", "italic"], `npx hardhat keystore set {key}${dev === true ? " --dev" : ""}`)} `,
           );
         });
 
@@ -168,7 +168,8 @@ describe("tasks - delete", () => {
         it("should display a message that the key is not found", async () => {
           assertOutputIncludes(
             mockConsoleLog,
-            chalk.red(
+            styleText(
+              "red",
               `Key "unknown" not found in the ${getKeystoreType(dev)} keystore`,
             ),
           );

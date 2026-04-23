@@ -9,7 +9,7 @@ import { fileURLToPath } from "node:url";
 import { HardhatError } from "@nomicfoundation/hardhat-errors";
 import { assertRejectsWithHardhatError } from "@nomicfoundation/hardhat-test-utils";
 import { readUtf8File, remove } from "@nomicfoundation/hardhat-utils/fs";
-import chalk from "chalk";
+import { styleText } from "@nomicfoundation/hardhat-utils/style";
 
 import {
   decryptSecret,
@@ -132,8 +132,9 @@ describe("tasks - set", () => {
         it("should warn that the key already exists", async () => {
           assertOutputIncludes(
             mockConsoleLog,
-            chalk.yellow(
-              `The key "key" already exists in the ${getKeystoreType(dev)} keystore. Use the ${chalk.blue.italic("--force")} flag to overwrite it.`,
+            styleText(
+              "yellow",
+              `The key "key" already exists in the ${getKeystoreType(dev)} keystore. Use the ${styleText(["blue", "italic"], "--force")} flag to overwrite it.`,
             ),
           );
         });
@@ -213,7 +214,8 @@ describe("tasks - set", () => {
         it("should display a message that the key is not valid", async () => {
           assertOutputIncludes(
             mockConsoleLog,
-            chalk.red(
+            styleText(
+              "red",
               `Invalid value for key: "1key". Keys can only have alphanumeric characters and underscores, and they cannot start with a number.`,
             ),
           );
@@ -241,7 +243,7 @@ describe("tasks - set", () => {
         it("should display a message that a value cannot be empty", async () => {
           assertOutputIncludes(
             mockConsoleLog,
-            chalk.red("The value cannot be empty."),
+            styleText("red", "The value cannot be empty."),
           );
         });
 

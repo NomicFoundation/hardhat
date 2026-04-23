@@ -9,7 +9,7 @@ import { fileURLToPath } from "node:url";
 import { HardhatError } from "@nomicfoundation/hardhat-errors";
 import { assertRejectsWithHardhatError } from "@nomicfoundation/hardhat-test-utils";
 import { remove } from "@nomicfoundation/hardhat-utils/fs";
-import chalk from "chalk";
+import { styleText } from "@nomicfoundation/hardhat-utils/style";
 
 import { KeystoreFileLoader } from "../../src/internal/loaders/keystore-file-loader.js";
 import { get } from "../../src/internal/tasks/get.js";
@@ -121,7 +121,7 @@ describe("tasks - get", () => {
         it("should display a message that the keystore is not set", async () => {
           assertOutputIncludes(
             mockConsoleLog,
-            `No ${getKeystoreType(dev)} keystore found. Please set one up using ${chalk.blue.italic(`npx hardhat keystore set {key}${dev === true ? " --dev" : ""}`)} `,
+            `No ${getKeystoreType(dev)} keystore found. Please set one up using ${styleText(["blue", "italic"], `npx hardhat keystore set {key}${dev === true ? " --dev" : ""}`)} `,
           );
         });
 

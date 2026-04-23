@@ -5,7 +5,7 @@ import {
   HardhatError,
   HardhatPluginError,
 } from "@nomicfoundation/hardhat-errors";
-import chalk from "chalk";
+import { styleText } from "@nomicfoundation/hardhat-utils/style";
 
 import { printErrorMessages } from "../../../src/internal/cli/error-handler.js";
 import {
@@ -42,7 +42,7 @@ describe("error-handler", () => {
         assert.equal(lines.length, 3);
         assert.equal(
           lines[0],
-          `${chalk.red.bold(`Error ${error.errorCode}:`)} ${error.formattedMessage}`,
+          `${styleText(["red", "bold"], `Error ${error.errorCode}:`)} ${error.formattedMessage}`,
         );
         assert.equal(lines[1], "");
         assert.equal(
@@ -62,7 +62,7 @@ describe("error-handler", () => {
         assert.equal(lines.length, 3);
         assert.equal(
           lines[0],
-          `${chalk.red.bold(`Error ${error.errorCode}:`)} ${error.formattedMessage}`,
+          `${styleText(["red", "bold"], `Error ${error.errorCode}:`)} ${error.formattedMessage}`,
         );
         assert.equal(lines[1], "");
         assert.equal(lines[2], error);
@@ -81,7 +81,7 @@ describe("error-handler", () => {
         assert.equal(lines.length, 3);
         assert.equal(
           lines[0],
-          `${chalk.red.bold(`Error ${error.errorCode} in plugin ${error.pluginId}:`)} ${error.formattedMessage}`,
+          `${styleText(["red", "bold"], `Error ${error.errorCode} in plugin ${error.pluginId}:`)} ${error.formattedMessage}`,
         );
         assert.equal(lines[1], "");
         assert.equal(
@@ -101,7 +101,7 @@ describe("error-handler", () => {
         assert.equal(lines.length, 3);
         assert.equal(
           lines[0],
-          `${chalk.red.bold(`Error ${error.errorCode} in plugin ${error.pluginId}:`)} ${error.formattedMessage}`,
+          `${styleText(["red", "bold"], `Error ${error.errorCode} in plugin ${error.pluginId}:`)} ${error.formattedMessage}`,
         );
         assert.equal(lines[1], "");
         assert.equal(lines[2], error);
@@ -123,7 +123,7 @@ describe("error-handler", () => {
         assert.equal(lines.length, 3);
         assert.equal(
           lines[0],
-          `${chalk.red.bold(`Error in community plugin ${error.pluginId}:`)} ${error.message}`,
+          `${styleText(["red", "bold"], `Error in community plugin ${error.pluginId}:`)} ${error.message}`,
         );
         assert.equal(lines[1], "");
         assert.equal(
@@ -146,7 +146,7 @@ describe("error-handler", () => {
         assert.equal(lines.length, 3);
         assert.equal(
           lines[0],
-          `${chalk.red.bold(`Error in community plugin ${error.pluginId}:`)} ${error.message}`,
+          `${styleText(["red", "bold"], `Error in community plugin ${error.pluginId}:`)} ${error.message}`,
         );
         assert.equal(lines[1], "");
         assert.equal(lines[2], error);
@@ -163,7 +163,10 @@ describe("error-handler", () => {
         });
 
         assert.equal(lines.length, 5);
-        assert.equal(lines[0], chalk.red.bold(`An unexpected error occurred:`));
+        assert.equal(
+          lines[0],
+          styleText(["red", "bold"], `An unexpected error occurred:`),
+        );
         assert.equal(lines[1], "");
         assert.equal(lines[2], error);
         assert.equal(lines[3], "");
@@ -184,7 +187,10 @@ describe("error-handler", () => {
         });
 
         assert.equal(lines.length, 3);
-        assert.equal(lines[0], chalk.red.bold(`Hardhat 3 installation error:`));
+        assert.equal(
+          lines[0],
+          styleText(["red", "bold"], `Hardhat 3 installation error:`),
+        );
         assert.equal(lines[1], "");
         assert.equal(lines[2], error.message);
       });
@@ -200,7 +206,10 @@ describe("error-handler", () => {
         // UsingHardhat2PluginError is handled separately and always prints
         // the same output regardless of shouldShowStackTraces
         assert.equal(lines.length, 3);
-        assert.equal(lines[0], chalk.red.bold(`Hardhat 3 installation error:`));
+        assert.equal(
+          lines[0],
+          styleText(["red", "bold"], `Hardhat 3 installation error:`),
+        );
         assert.equal(lines[1], "");
         assert.equal(lines[2], error.message);
       });
@@ -219,7 +228,10 @@ describe("error-handler", () => {
         });
 
         assert.equal(lines.length, 3);
-        assert.equal(lines[0], chalk.red.bold(`Hardhat 3 installation error:`));
+        assert.equal(
+          lines[0],
+          styleText(["red", "bold"], `Hardhat 3 installation error:`),
+        );
         assert.equal(lines[1], "");
         assert.equal(lines[2], error.stack);
       });

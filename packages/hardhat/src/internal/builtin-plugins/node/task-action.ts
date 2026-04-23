@@ -9,7 +9,7 @@ import {
   HardhatError,
 } from "@nomicfoundation/hardhat-errors";
 import { ensureDir, exists } from "@nomicfoundation/hardhat-utils/fs";
-import chalk from "chalk";
+import { styleText } from "@nomicfoundation/hardhat-utils/style";
 import debug from "debug";
 
 import { isSupportedChainType } from "../../edr/chain-type.js";
@@ -143,7 +143,8 @@ const nodeAction: NewTaskActionFunction<NodeActionArguments> = async (
   const { port: actualPort, address: actualHostname } = await server.listen();
 
   console.log(
-    chalk.green(
+    styleText(
+      "green",
       `Started HTTP and WebSocket JSON-RPC server at http://${actualHostname}:${actualPort}/`,
     ),
   );

@@ -11,7 +11,7 @@ import {
   remove,
   writeJsonFile,
 } from "@nomicfoundation/hardhat-utils/fs";
-import chalk from "chalk";
+import { styleText } from "@nomicfoundation/hardhat-utils/style";
 
 import {
   getFullyQualifiedName,
@@ -375,7 +375,8 @@ export function logSnapshotCheatcodesSection(
   if (isFirstTimeWrite) {
     logger();
     logger(
-      chalk.green(
+      styleText(
+        "green",
         "  No existing snapshots found. Snapshot cheatcodes written successfully",
       ),
     );
@@ -395,7 +396,7 @@ export function logSnapshotCheatcodesSection(
       "\n",
     );
     for (const line of addedLines) {
-      logger(chalk.green(`    + ${line}`));
+      logger(styleText("green", `    + ${line}`));
     }
   }
 
@@ -406,7 +407,7 @@ export function logSnapshotCheatcodesSection(
       "\n",
     );
     for (const line of removedLines) {
-      logger(chalk.red(`    - ${line}`));
+      logger(styleText("red", `    - ${line}`));
     }
   }
 
@@ -422,7 +423,7 @@ export function printSnapshotCheatcodeChanges(
     const isLast = i === changes.length - 1;
 
     logger(`  ${change.group}#${change.name}`);
-    logger(chalk.grey(`    (in ${change.source})`));
+    logger(styleText("gray", `    (in ${change.source})`));
 
     const diff = change.actual - change.expected;
     const formattedDiff = diff > 0 ? `Δ+${diff}` : `Δ${diff}`;
@@ -437,13 +438,13 @@ export function printSnapshotCheatcodeChanges(
 
     // Color: green for decrease (improvement), red for increase (regression)
     const formattedGasChange =
-      diff < 0 ? chalk.green(gasChange) : chalk.red(gasChange);
+      diff < 0 ? styleText("green", gasChange) : styleText("red", gasChange);
 
-    logger(chalk.grey(`    Expected: ${change.expected}`));
+    logger(styleText("gray", `    Expected: ${change.expected}`));
     logger(
-      chalk.grey(`    Actual:   ${change.actual} (`) +
+      styleText("gray", `    Actual:   ${change.actual} (`) +
         formattedGasChange +
-        chalk.grey(")"),
+        styleText("gray", ")"),
     );
 
     if (!isLast) {

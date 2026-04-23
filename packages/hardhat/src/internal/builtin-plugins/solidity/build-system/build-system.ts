@@ -53,7 +53,7 @@ import {
 import { shortenPath } from "@nomicfoundation/hardhat-utils/path";
 import { createSpinner } from "@nomicfoundation/hardhat-utils/spinner";
 import { pluralize } from "@nomicfoundation/hardhat-utils/string";
-import chalk from "chalk";
+import { styleText } from "@nomicfoundation/hardhat-utils/style";
 import debug from "debug";
 import pMap from "p-map";
 
@@ -1321,13 +1321,14 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
           error.message;
 
         console.error(
-          errorMessage.replace(/^\w+:/, (t) => chalk.red.bold(t)).trimEnd() +
-            "\n",
+          errorMessage
+            .replace(/^\w+:/, (t) => styleText(["red", "bold"], t))
+            .trimEnd() + "\n",
         );
       } else {
         console.warn(
           (error.formattedMessage ?? error.message)
-            .replace(/^\w+:/, (t) => chalk.yellow.bold(t))
+            .replace(/^\w+:/, (t) => styleText(["yellow", "bold"], t))
             .trimEnd() + "\n",
         );
       }
@@ -1339,7 +1340,8 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
 
     if (hasConsoleErrors) {
       console.error(
-        chalk.red(
+        styleText(
+          "red",
           `The console.log call you made isn't supported. See https://hardhat.org/console-log for the list of supported methods.`,
         ),
       );
@@ -1432,7 +1434,8 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
         }
 
         console.log(
-          chalk.bold(
+          styleText(
+            "bold",
             `Compiled ${rootFiles} Solidity ${pluralize(
               options.scope === "contracts" ? "file" : "test file",
               rootFiles,

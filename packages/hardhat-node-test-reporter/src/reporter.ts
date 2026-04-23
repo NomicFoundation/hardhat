@@ -7,7 +7,7 @@ import type {
   TestRunOptions,
 } from "./types.js";
 
-import chalk from "chalk";
+import { styleText } from "@nomicfoundation/hardhat-utils/style";
 
 import { processGlobalDiagnostics } from "./diagnostics.js";
 import {
@@ -298,7 +298,10 @@ export function hardhatTestReporter(
           break;
         }
         case "test:coverage": {
-          yield chalk.red("\nTest coverage not supported by this reporter\n");
+          yield styleText(
+            "red",
+            "\nTest coverage not supported by this reporter\n",
+          );
           break;
         }
         default: {

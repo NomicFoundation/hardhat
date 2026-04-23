@@ -6,7 +6,7 @@ import type { SnapshotCheatcodesCheckResult } from "../../snapshot-cheatcodes.js
 import type { SuiteResult } from "@nomicfoundation/edr";
 
 import { HardhatError } from "@nomicfoundation/hardhat-errors";
-import chalk from "chalk";
+import { styleText } from "@nomicfoundation/hardhat-utils/style";
 
 import { errorResult } from "../../../../../utils/result.js";
 import {
@@ -103,7 +103,7 @@ export function logSnapshotResult(
   logger: typeof console.log = console.log,
 ): void {
   if (result.functionGasSnapshotsWritten) {
-    logger(chalk.green("Function gas snapshots written successfully"));
+    logger(styleText("green", "Function gas snapshots written successfully"));
     logger();
   }
 }
@@ -133,8 +133,8 @@ export function logSnapshotCheckResult(
 ): void {
   logger(
     functionGasSnapshotsCheck.passed && snapshotCheatcodesCheck.passed
-      ? chalk.green("Snapshot check passed")
-      : chalk.red("Snapshot check failed"),
+      ? styleText("green", "Snapshot check passed")
+      : styleText("red", "Snapshot check failed"),
   );
 
   const functionGasHasOutput =
@@ -164,7 +164,12 @@ export function logSnapshotCheckResult(
   logSnapshotCheatcodesSection(snapshotCheatcodesCheck, logger);
 
   if (!functionGasSnapshotsCheck.passed || !snapshotCheatcodesCheck.passed) {
-    logger(chalk.yellow("To update snapshots, run your tests with --snapshot"));
+    logger(
+      styleText(
+        "yellow",
+        "To update snapshots, run your tests with --snapshot",
+      ),
+    );
     logger();
   }
 }

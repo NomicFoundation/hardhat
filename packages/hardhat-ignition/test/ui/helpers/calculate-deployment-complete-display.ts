@@ -7,9 +7,9 @@ import type {
   ValidationErrorDeploymentResult,
 } from "@nomicfoundation/ignition-core";
 
+import { styleText } from "@nomicfoundation/hardhat-utils/style";
 import { DeploymentResultType } from "@nomicfoundation/ignition-core";
 import { assert } from "chai";
-import chalk from "chalk";
 
 import { calculateDeploymentCompleteDisplay } from "../../../src/internal/ui/helpers/calculate-deployment-complete-display.js";
 import { UiFutureStatusType } from "../../../src/internal/ui/types.js";
@@ -39,7 +39,7 @@ describe("ui - calculate deployment complete display", () => {
       const expectedText = testFormat(`
         [ MyModule ] successfully deployed 🚀
 
-        ${chalk.bold("Deployed Addresses")}
+        ${styleText("bold", "Deployed Addresses")}
 
         MyModule#Token - 0x1F98431c8aD98523631AE4a59f267346ea31F984
         MyModule#AnotherToken - 0x0011223344556677889900112233445566778899`);
@@ -75,9 +75,9 @@ describe("ui - calculate deployment complete display", () => {
       const expectedText = testFormat(`
         [ MyModule ] successfully deployed 🚀
 
-        ${chalk.bold("Deployed Addresses")}
+        ${styleText("bold", "Deployed Addresses")}
 
-        ${chalk.italic("No contracts were deployed")}`);
+        ${styleText("italic", "No contracts were deployed")}`);
 
       const result: DeploymentResult = {
         type: DeploymentResultType.SUCCESSFUL_DEPLOYMENT,
@@ -99,9 +99,9 @@ describe("ui - calculate deployment complete display", () => {
       const expectedText = testFormat(`
         [ MyModule ] Nothing new to deploy based on previous execution stored in test
 
-        ${chalk.bold("Deployed Addresses")}
+        ${styleText("bold", "Deployed Addresses")}
 
-        ${chalk.italic("No contracts were deployed")}`);
+        ${styleText("italic", "No contracts were deployed")}`);
 
       const result: DeploymentResult = {
         type: DeploymentResultType.SUCCESSFUL_DEPLOYMENT,
@@ -207,7 +207,7 @@ describe("ui - calculate deployment complete display", () => {
          - MyModule#MyContract
          - MyModule#AnotherContract
 
-        Use the ${chalk.italic("wipe")} task to reset them.`);
+        Use the ${styleText("italic", "wipe")} task to reset them.`);
 
       const result: PreviousRunErrorDeploymentResult = {
         type: DeploymentResultType.PREVIOUS_RUN_ERROR,

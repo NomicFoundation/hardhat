@@ -5,7 +5,7 @@ import type { REPLServer } from "node:repl";
 import repl from "node:repl";
 
 import { resolveFromRoot } from "@nomicfoundation/hardhat-utils/path";
-import chalk from "chalk";
+import { styleText } from "@nomicfoundation/hardhat-utils/style";
 import debug from "debug";
 
 const log = debug("hardhat:core:tasks:console");
@@ -25,7 +25,7 @@ const consoleAction: NewTaskActionFunction<ConsoleActionArguments> = async (
   const handlers: Partial<HardhatHooks["userInterruptions"]> = {
     requestSecretInput: async () => {
       console.error(
-        chalk.red("Secrets are not yet supported in the console task"),
+        styleText("red", "Secrets are not yet supported in the console task"),
       );
       process.exit(1);
     },

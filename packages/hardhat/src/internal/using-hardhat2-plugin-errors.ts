@@ -2,7 +2,7 @@ import { fileURLToPath } from "node:url";
 
 import { CustomError } from "@nomicfoundation/hardhat-utils/error";
 import { shortenPath } from "@nomicfoundation/hardhat-utils/path";
-import chalk from "chalk";
+import { styleText } from "@nomicfoundation/hardhat-utils/style";
 
 export class UsingHardhat2PluginError extends CustomError {
   public readonly callerRelativePath: string | undefined;
@@ -13,7 +13,7 @@ export class UsingHardhat2PluginError extends CustomError {
     if (callerPath !== undefined) {
       message = `You are trying to use a Hardhat 2 plugin in a Hardhat 3 project.
 
-This file is part of a Hardhat 2 plugin calling an API that was removed in Hardhat 3: ${chalk.bold(callerPath)}
+This file is part of a Hardhat 2 plugin calling an API that was removed in Hardhat 3: ${styleText("bold", callerPath)}
 
 Please read https://hardhat.org/migrate-from-hardhat2 to learn how to migrate your project to Hardhat 3.
 `;

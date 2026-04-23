@@ -18,7 +18,7 @@ import {
   writeJsonFile,
   writeUtf8File,
 } from "@nomicfoundation/hardhat-utils/fs";
-import chalk from "chalk";
+import { styleText } from "@nomicfoundation/hardhat-utils/style";
 import debug from "debug";
 
 import { getProcessedCoverageInfo } from "./process-coverage.js";
@@ -435,18 +435,18 @@ export class CoverageManagerImplementation implements CoverageManager {
 
     rows.push({
       type: "title",
-      text: chalk.bold("Coverage Report"),
+      text: styleText("bold", "Coverage Report"),
     });
 
     rows.push({
       type: "section-header",
-      text: chalk.bold("File Coverage"),
+      text: styleText("bold", "File Coverage"),
     });
 
     rows.push({
       type: "header",
       cells: ["File Path", "Line %", "Statement %", "Uncovered Lines"].map(
-        (s) => chalk.yellow(s),
+        (s) => styleText("yellow", s),
       ),
     });
 
@@ -500,7 +500,7 @@ export class CoverageManagerImplementation implements CoverageManager {
     rows.push({
       type: "header",
       cells: [
-        chalk.yellow("Total"),
+        styleText("yellow", "Total"),
         this.formatCoverage(totalLineCoverage),
         this.formatCoverage(totalStatementCoverage),
         "",

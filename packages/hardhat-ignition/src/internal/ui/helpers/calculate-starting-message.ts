@@ -1,4 +1,4 @@
-import chalk from "chalk";
+import { styleText } from "@nomicfoundation/hardhat-utils/style";
 
 /**
  * Display the temporary starting message. Note this does not print a newline.
@@ -12,12 +12,11 @@ export function calculateStartingMessage({
   moduleName: string | null;
   deploymentDir: string | undefined | null;
 }): string {
-  const warningMessage = chalk.yellow(
-    chalk.bold(
-      `You are running Hardhat Ignition against an in-process instance of Hardhat Network.
+  const warningMessage = styleText(
+    ["yellow", "bold"],
+    `You are running Hardhat Ignition against an in-process instance of Hardhat Network.
 This will execute the deployment, but the results will be lost.
 You can use --network <network-name> to deploy to a different network.`,
-    ),
   );
 
   const startingMessage = `Hardhat Ignition starting for [ ${

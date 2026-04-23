@@ -1,10 +1,11 @@
-import chalk from "chalk";
+import { styleText } from "@nomicfoundation/hardhat-utils/style";
 
 import { getKeystoreType } from "../utils/get-keystore-type.js";
 
 export class UserDisplayMessages {
   public static displayInvalidKeyErrorMessage(key: string): string {
-    return chalk.red(
+    return styleText(
+      "red",
       `Invalid value for key: "${key}". Keys can only have alphanumeric characters and underscores, and they cannot start with a number.`,
     );
   }
@@ -13,8 +14,9 @@ export class UserDisplayMessages {
     key: string,
     dev: boolean,
   ): string {
-    return chalk.yellow(
-      `The key "${key}" already exists in the ${getKeystoreType(dev)} keystore. Use the ${chalk.blue.italic("--force")} flag to overwrite it.`,
+    return styleText(
+      "yellow",
+      `The key "${key}" already exists in the ${getKeystoreType(dev)} keystore. Use the ${styleText(["blue", "italic"], "--force")} flag to overwrite it.`,
     );
   }
 
@@ -35,7 +37,8 @@ export class UserDisplayMessages {
     key: string,
     dev: boolean,
   ): string {
-    return chalk.red(
+    return styleText(
+      "red",
       `Key "${key}" not found in the ${getKeystoreType(dev)} keystore`,
     );
   }
@@ -64,11 +67,11 @@ export class UserDisplayMessages {
   }
 
   public static displayNoKeystoreSetErrorMessage(dev: boolean): string {
-    return `No ${getKeystoreType(dev)} keystore found. Please set one up using ${chalk.blue.italic(`npx hardhat keystore set {key}${dev === true ? " --dev" : ""}`)} `;
+    return `No ${getKeystoreType(dev)} keystore found. Please set one up using ${styleText(["blue", "italic"], `npx hardhat keystore set {key}${dev === true ? " --dev" : ""}`)} `;
   }
 
   public static displaySecretCannotBeEmptyErrorMessage(): string {
-    return chalk.red("The value cannot be empty.");
+    return styleText("red", "The value cannot be empty.");
   }
 
   public static displayValueInfoMessage(value: string): string {

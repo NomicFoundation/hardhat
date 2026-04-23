@@ -4,7 +4,7 @@ import type {
   Statement,
 } from "./types.js";
 
-import chalk from "chalk";
+import { styleText } from "@nomicfoundation/hardhat-utils/style";
 
 // Use constants for the Uint8Array to improve memory usage (1 byte vs 8 bytes per item)
 const STATUS_NOT_EXECUTED = 0; // equivalent to false
@@ -399,7 +399,7 @@ function printStatementsForDebugging(
     console.debug(counter++ + " ---");
 
     for (let i = statement.startUtf16; i < statement.endUtf16; i++) {
-      process.stdout.write(chalk.gray(fileContent[i]));
+      process.stdout.write(styleText("gray", fileContent[i]));
     }
 
     console.debug();
@@ -413,7 +413,7 @@ function printStatementsForDebugging(
     console.debug(counter++ + " ---");
 
     for (let i = statement.startUtf16; i < statement.endUtf16; i++) {
-      process.stdout.write(chalk.gray(fileContent[i]));
+      process.stdout.write(styleText("gray", fileContent[i]));
     }
 
     console.debug();
@@ -432,11 +432,11 @@ function printCharacterCoverageForDebugging(
 ): void {
   for (let i = 0; i < characterCoverage.length; i++) {
     if (characterCoverage[i] === STATUS_IGNORED) {
-      process.stdout.write(chalk.gray(fileContent[i]));
+      process.stdout.write(styleText("gray", fileContent[i]));
     } else if (characterCoverage[i] === STATUS_EXECUTED) {
-      process.stdout.write(chalk.green(fileContent[i]));
+      process.stdout.write(styleText("green", fileContent[i]));
     } else {
-      process.stdout.write(chalk.red(fileContent[i]));
+      process.stdout.write(styleText("red", fileContent[i]));
     }
   }
 }
