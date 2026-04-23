@@ -1,9 +1,8 @@
 import type { GlobalDiagnostics } from "./diagnostics.js";
 import type { TestEventData } from "./types.js";
 
-import { styleText } from "@nomicfoundation/hardhat-utils/style";
-
 import { formatError } from "./error-formatting.js";
+import { styleText } from "./style.js";
 
 export const INFO_SYMBOL: string = styleText("blue", "\u2139");
 export const SUCCESS_SYMBOL: string = styleText("green", "✔");

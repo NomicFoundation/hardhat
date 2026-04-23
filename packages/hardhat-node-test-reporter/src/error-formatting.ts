@@ -2,7 +2,6 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { stripVTControlCharacters } from "node:util";
 
-import { styleText } from "@nomicfoundation/hardhat-utils/style";
 import { diff as getDiff } from "jest-diff";
 
 import { isCi } from "./ci.js";
@@ -11,6 +10,7 @@ import {
   cleanupTestFailError,
   isTestFileExecutionFailureError,
 } from "./node-test-error-utils.js";
+import { styleText } from "./style.js";
 
 const AGGREGATE_ERROR_INNER_ERROR_INDENT = 2;
 const ERROR_CAUSE_INDENT = 2;

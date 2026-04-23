@@ -7,8 +7,6 @@ import type {
   TestRunOptions,
 } from "./types.js";
 
-import { styleText } from "@nomicfoundation/hardhat-utils/style";
-
 import { processGlobalDiagnostics } from "./diagnostics.js";
 import {
   formatFailureReason,
@@ -29,6 +27,7 @@ import {
   getTestRunOptions,
   isTopLevelFilePassEvent,
 } from "./node-test-utils.js";
+import { styleText } from "./style.js";
 
 export const SLOW_TEST_THRESHOLD = 75;
 
