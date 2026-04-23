@@ -4,7 +4,7 @@
   "tags": [
     "external-repo"
   ],
-  "repo": "Wodann/1inch-cross-chain-swap",
+  "repo": "Wodann/cross-chain-swap",
   "commit": "690f7f6bbc826ab3d58995e4bc5bf01694222086",
   "packageManager": "yarn",
   "submodules": true,
