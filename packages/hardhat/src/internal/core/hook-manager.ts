@@ -404,50 +404,63 @@ export class HookManagerImplementation implements HookManager {
       }
 
       const resolved = await Promise.all(
-        plugins.map(async (plugin) => {
-          const hookHandlerCategoryFactory =
-            plugin.hookHandlers?.[hookCategoryName];
-
-          assertHardhatInvariant(
-            hookHandlerCategoryFactory !== undefined,
-            "#pluginsByHookCategory only contains plugins with this hook category",
-          );
-
-          let factory;
-          try {
-            factory = (await hookHandlerCategoryFactory()).default;
-          } catch (error) {
-            ensureError(error);
-
-            await detectPluginNpmDependencyProblems(
-              this.#projectRoot,
-              plugin,
-              error,
-            );
-
-            throw error;
-          }
-
-          assertHardhatInvariant(
-            typeof factory === "function",
-            `Plugin ${plugin.id} doesn't export a hook factory for category ${hookCategoryName}`,
-          );
-
-          const hookCategory = await factory();
-
-          assertHardhatInvariant(
-            hookCategory !== null && typeof hookCategory === "object",
-            `Plugin ${plugin.id} doesn't export a valid factory for category ${hookCategoryName}, it didn't return an object`,
-          );
-
-          return hookCategory;
-        }),
+        plugins.map(
+          async (plugin) =>
+            await this.#getPluginStaticHookCategory(plugin, hookCategoryName),
+        ),
       );
 
       this.#resolvedStaticCategories.set(hookCategoryName, resolved);
 
       return resolved;
     });
+  }
+
+  /**
+   * Returns the hook category object for a plugin that has the hook category
+   * defined.
+   *
+   * @param plugin A plugin that MUST have the given hook category defined.
+   * @param hookCategoryName The name of the hook category.
+   * @returns The hook category object.
+   */
+  async #getPluginStaticHookCategory<
+    HookCategoryNameT extends keyof HardhatHooks,
+  >(
+    plugin: HardhatPlugin,
+    hookCategoryName: HookCategoryNameT,
+  ): Promise<Partial<HardhatHooks[HookCategoryNameT]>> {
+    const hookHandlerCategoryFactory = plugin.hookHandlers?.[hookCategoryName];
+
+    assertHardhatInvariant(
+      hookHandlerCategoryFactory !== undefined,
+      "#pluginsByHookCategory only contains plugins with this hook category",
+    );
+
+    let factory;
+    try {
+      factory = (await hookHandlerCategoryFactory()).default;
+    } catch (error) {
+      ensureError(error);
+
+      await detectPluginNpmDependencyProblems(this.#projectRoot, plugin, error);
+
+      throw error;
+    }
+
+    assertHardhatInvariant(
+      typeof factory === "function",
+      `Plugin ${plugin.id} doesn't export a hook factory for category ${hookCategoryName}`,
+    );
+
+    const hookCategory = await factory();
+
+    assertHardhatInvariant(
+      hookCategory !== null && typeof hookCategory === "object",
+      `Plugin ${plugin.id} doesn't export a valid factory for category ${hookCategoryName}, it didn't return an object`,
+    );
+
+    return hookCategory;
   }
 
   #invalidateResolvedHandlersCache<
