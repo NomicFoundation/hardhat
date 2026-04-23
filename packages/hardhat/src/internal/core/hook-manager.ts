@@ -370,7 +370,7 @@ export class HookManagerImplementation implements HookManager {
       hookName,
     );
 
-    const sequential = chained.slice().reverse();
+    const sequential = chained.toReversed();
 
     handlersByName.set(hookName as string, sequential);
 
