@@ -106,7 +106,7 @@ export async function initHardhat3NonInteractive(
   console.log("Installing dependencies...");
 
   await Promise.all([
-    installProjectDependencies(workspace, template, true, true),
+    installProjectDependencies(workspace, template, true, true, false),
     projectTypeAnalyticsPromise,
   ]);
 
@@ -655,12 +655,14 @@ export async function copyProjectFilesNonInteractive(
  * @param template The template to use for the project initialization.
  * @param install Whether to install the project dependencies.
  * @param update Whether to update the project dependencies.
+ * @param formatSuccessMessage Whether to format the success message or not.
  */
 export async function installProjectDependencies(
   workspace: string,
   template: Template,
   install?: boolean,
   update?: boolean,
+  formatSuccessMessage = true,
 ): Promise<void> {
   const pathToWorkspacePackageJson = path.join(workspace, "package.json");
 
@@ -727,7 +729,11 @@ export async function installProjectDependencies(
         stdio: "inherit",
       });
 
-      console.log(`✨ ${chalk.cyan(`Dependencies installed`)} ✨`);
+      if (formatSuccessMessage) {
+        console.log(`✨ ${chalk.cyan(`Dependencies installed`)} ✨`);
+      } else {
+        console.log(`Dependencies installed`);
+      }
     }
   }
 
