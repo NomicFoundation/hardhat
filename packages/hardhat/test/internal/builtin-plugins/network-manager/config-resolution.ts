@@ -36,8 +36,10 @@ import {
   DEFAULT_EDR_NETWORK_HD_ACCOUNTS_CONFIG_PARAMS,
   EDR_NETWORK_DEFAULT_COINBASE,
 } from "../../../../src/internal/builtin-plugins/network-manager/edr/edr-constants.js";
-import { L1HardforkName } from "../../../../src/internal/builtin-plugins/network-manager/edr/types/hardfork.js";
-import { getCurrentHardfork } from "../../../../src/internal/builtin-plugins/network-manager/edr/utils/current-hardfork.js";
+import {
+  L1HardforkName,
+  getCurrentHardfork,
+} from "../../../../src/internal/builtin-plugins/network-manager/edr/types/hardfork.js";
 import {
   isEdrNetworkForkingConfig,
   isEdrNetworkHdAccountsConfig,

@@ -37,8 +37,8 @@ import {
   L1HardforkName,
   isValidHardforkName,
   getHardforks,
+  getCurrentHardfork,
 } from "./edr/types/hardfork.js";
-import { getCurrentHardfork } from "./edr/utils/current-hardfork.js";
 
 const nonnegativeNumberSchema = z.number().nonnegative();
 const nonnegativeIntSchema = z.number().int().nonnegative();

@@ -44,6 +44,12 @@ export function getHardforks(chainType: ChainType): string[] {
     : L1_HARDFORK_ORDER;
 }
 
+export function getCurrentHardfork(chainType: ChainType): string {
+  const order =
+    chainType === OPTIMISM_CHAIN_TYPE ? OP_HARDFORK_ORDER : L1_HARDFORK_ORDER;
+  return order[order.length - 1];
+}
+
 /**
  * Check if `hardforkA` is greater than or equal to `hardforkB`,
  * that is, if it includes all its changes.
