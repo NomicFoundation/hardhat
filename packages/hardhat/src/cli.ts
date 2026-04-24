@@ -1,6 +1,9 @@
 #!/usr/bin/env node
 
-import { exitIfNodeVersionNotSupported } from "./internal/cli/node-version.js";
+import {
+  exitIfNodeVersionNotSupported,
+  warnIfUnofficialRuntime,
+} from "./internal/cli/node-version.js";
 
 // We enable the sourcemaps before loading main, so that everything except this
 // small file is loaded with sourcemaps enabled.
@@ -10,6 +13,10 @@ process.setSourceMapsEnabled(true);
 // unsupported js syntax or Node API elsewhere, we get to exit with a clear
 // error before crashing.
 exitIfNodeVersionNotSupported();
+
+// Bun and Deno are not officially supported yet. We warn the user so they
+// know some functionality may not work as expected.
+warnIfUnofficialRuntime();
 
 // eslint-disable-next-line no-restricted-syntax -- Allow top-level await here
 const { main } = await import("./internal/cli/main.js");

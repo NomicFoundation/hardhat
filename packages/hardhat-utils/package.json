@@ -33,6 +33,7 @@
     "./panic-errors": "./dist/src/panic-errors.js",
     "./path": "./dist/src/path.js",
     "./request": "./dist/src/request.js",
+    "./runtime": "./dist/src/runtime.js",
     "./string": "./dist/src/string.js",
     "./stream": "./dist/src/stream.js",
     "./subprocess": "./dist/src/subprocess.js",
