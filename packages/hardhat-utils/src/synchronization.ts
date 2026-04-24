@@ -3,8 +3,7 @@ import * as fs from "node:fs";
 import * as os from "node:os";
 import * as path from "node:path";
 
-import debug from "debug";
-
+import { createDebug } from "./debug.js";
 import { ensureError, ensureNodeErrnoExceptionError } from "./error.js";
 import {
   BaseMultiProcessMutexError,
@@ -30,7 +29,7 @@ export {
   StaleMultiProcessMutexError,
 } from "./errors/synchronization.js";
 
-const log = debug("hardhat:util:multi-process-mutex");
+const log = createDebug("hardhat:util:multi-process-mutex");
 
 const PROCESS_SESSION_ID = randomUUID();
 const DEFAULT_TIMEOUT_MS = 60_000;

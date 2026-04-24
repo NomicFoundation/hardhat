@@ -2,15 +2,15 @@ import type { AnalyticsFile } from "./types.js";
 
 import path from "node:path";
 
+import { createDebug } from "@nomicfoundation/hardhat-utils/debug";
 import {
   exists,
   readJsonFile,
   writeJsonFile,
 } from "@nomicfoundation/hardhat-utils/fs";
 import { getTelemetryDir } from "@nomicfoundation/hardhat-utils/global-dir";
-import debug from "debug";
 
-const log = debug("hardhat:cli:telemetry:analytics:utils");
+const log = createDebug("hardhat:cli:telemetry:analytics:utils");
 
 const ANALYTICS_FILE_NAME = "analytics.json";
 

@@ -68,7 +68,6 @@
   "devDependencies": {
     "@nomicfoundation/hardhat-node-test-reporter": "workspace:^3.0.5",
     "@types/bn.js": "^5.1.5",
-    "@types/debug": "^4.1.7",
     "@types/node": "^22.0.0",
     "c8": "^9.1.0",
     "eslint": "9.25.1",
@@ -80,7 +79,6 @@
   },
   "dependencies": {
     "@streamparser/json-node": "^0.0.22",
-    "debug": "^4.3.2",
     "env-paths": "^2.2.0",
     "ethereum-cryptography": "^2.2.1",
     "fast-equals": "^5.4.0",

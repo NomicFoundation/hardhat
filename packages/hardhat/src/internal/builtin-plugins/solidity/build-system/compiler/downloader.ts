@@ -11,6 +11,7 @@ import {
 } from "@nomicfoundation/hardhat-errors";
 import { bytesToHexString } from "@nomicfoundation/hardhat-utils/bytes";
 import { sha256 } from "@nomicfoundation/hardhat-utils/crypto";
+import { createDebug } from "@nomicfoundation/hardhat-utils/debug";
 import { ensureError } from "@nomicfoundation/hardhat-utils/error";
 import {
   chmod,
@@ -26,11 +27,10 @@ import { getPrefixedHexString } from "@nomicfoundation/hardhat-utils/hex";
 import { download } from "@nomicfoundation/hardhat-utils/request";
 import { MultiProcessMutex } from "@nomicfoundation/hardhat-utils/synchronization";
 import AdmZip from "adm-zip";
-import debug from "debug";
 
 import { NativeCompiler, SolcJsCompiler } from "./compiler.js";
 
-const log = debug("hardhat:solidity:downloader");
+const log = createDebug("hardhat:solidity:downloader");
 
 const COMPILER_REPOSITORY_URL = "https://binaries.soliditylang.org";
 const DEFAULT_COMPILER_DOWNLOAD_RETRY_COUNT = 3;

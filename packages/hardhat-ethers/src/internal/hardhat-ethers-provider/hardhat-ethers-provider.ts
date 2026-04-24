@@ -23,10 +23,10 @@ import {
   assertHardhatInvariant,
   HardhatError,
 } from "@nomicfoundation/hardhat-errors";
+import { createDebug } from "@nomicfoundation/hardhat-utils/debug";
 import { ensureError } from "@nomicfoundation/hardhat-utils/error";
 import { numberToHexString } from "@nomicfoundation/hardhat-utils/hex";
 import { deepEqual } from "@nomicfoundation/hardhat-utils/lang";
-import debug from "debug";
 import {
   Block,
   FeeData,
@@ -52,7 +52,7 @@ import {
 } from "../ethers-utils/ethers-utils.js";
 import { HardhatEthersSigner } from "../signers/signers.js";
 
-const log = debug("hardhat:hardhat-ethers:provider");
+const log = createDebug("hardhat:hardhat-ethers:provider");
 
 // The default number of confirmations when waiting for a transaction
 const DEFAULT_TRANSACTION_CONFIRMS = 1;

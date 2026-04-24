@@ -6,8 +6,8 @@ import type {
 
 import os from "node:os";
 
+import { createDebug } from "@nomicfoundation/hardhat-utils/debug";
 import { spawnDetachedSubProcess } from "@nomicfoundation/hardhat-utils/subprocess";
-import debug from "debug";
 
 import { getHardhatVersion } from "../../../utils/package.js";
 import {
@@ -17,7 +17,7 @@ import {
 
 import { getAnalyticsClientId } from "./utils.js";
 
-const log = debug("hardhat:cli:telemetry:analytics");
+const log = createDebug("hardhat:cli:telemetry:analytics");
 
 const SESSION_ID = Math.random().toString();
 const ENGAGEMENT_TIME_MSEC = "10000";

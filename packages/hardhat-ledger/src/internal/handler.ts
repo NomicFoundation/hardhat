@@ -14,6 +14,7 @@ import {
   HardhatError,
 } from "@nomicfoundation/hardhat-errors";
 import { toBigInt } from "@nomicfoundation/hardhat-utils/bigint";
+import { createDebug } from "@nomicfoundation/hardhat-utils/debug";
 import { ensureError } from "@nomicfoundation/hardhat-utils/error";
 import { isAddress } from "@nomicfoundation/hardhat-utils/eth";
 import {
@@ -30,7 +31,6 @@ import {
   rpcTransactionRequest,
   validateParams,
 } from "@nomicfoundation/hardhat-zod-utils/rpc";
-import debug from "debug";
 
 import * as cache from "./cache.js";
 import {
@@ -53,7 +53,7 @@ import { getRequestParams } from "./rpc-helpers.js";
 // This is not a standard ISO 7816-4 code, but a Ledger-specific error meaning "no app context".
 const APP_NOT_OPEN_STATUS_CODE = 0x6511;
 
-const log = debug("hardhat:hardhat-ledger:handler");
+const log = createDebug("hardhat:hardhat-ledger:handler");
 
 // micro-eth-signer is known to be slow to load, so we lazy load it
 let microEthSigner: typeof MicroEthSignerT | undefined;

@@ -7,10 +7,10 @@ import type {
 import { spawn } from "node:child_process";
 import { fileURLToPath } from "node:url";
 
+import { createDebug } from "@nomicfoundation/hardhat-utils/debug";
 import { createTransport, serializeEnvelope } from "@sentry/core";
-import debug from "debug";
 
-const log = debug("hardhat:core:sentry:transport");
+const log = createDebug("hardhat:core:sentry:transport");
 
 /**
  * Creates a detached process transport.

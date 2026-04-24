@@ -1,9 +1,9 @@
+import { createDebug } from "@nomicfoundation/hardhat-utils/debug";
 import { isObject } from "@nomicfoundation/hardhat-utils/lang";
-import debug from "debug";
 
 import { sendErrorTelemetry } from "./reporter.js";
 
-const log = debug("hardhat:core:telemetry:global-error-handlers");
+const log = createDebug("hardhat:core:telemetry:global-error-handlers");
 
 function createUnhandledErrorListener(isPromiseRejection: boolean) {
   const description = isPromiseRejection

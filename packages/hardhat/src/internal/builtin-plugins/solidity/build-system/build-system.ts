@@ -38,6 +38,7 @@ import {
   assertHardhatInvariant,
   HardhatError,
 } from "@nomicfoundation/hardhat-errors";
+import { createDebug } from "@nomicfoundation/hardhat-utils/debug";
 import {
   exists,
   ensureDir,
@@ -54,7 +55,6 @@ import { shortenPath } from "@nomicfoundation/hardhat-utils/path";
 import { createSpinner } from "@nomicfoundation/hardhat-utils/spinner";
 import { pluralize } from "@nomicfoundation/hardhat-utils/string";
 import chalk from "chalk";
-import debug from "debug";
 import pMap from "p-map";
 
 import { FileBuildResultType } from "../../../../types/solidity/build-system.js";
@@ -83,7 +83,7 @@ import {
 import { SolcConfigSelector } from "./solc-config-selection.js";
 import { shouldSuppressWarning } from "./warning-suppression.js";
 
-const log = debug("hardhat:core:solidity:build-system");
+const log = createDebug("hardhat:core:solidity:build-system");
 
 /**
  * Returns true if the given compiler config is a SolcSolidityCompilerConfig.

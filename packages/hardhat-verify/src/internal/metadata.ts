@@ -1,10 +1,10 @@
 import util from "node:util";
 
 import { bytesToHexString } from "@nomicfoundation/hardhat-utils/bytes";
+import { createDebug } from "@nomicfoundation/hardhat-utils/debug";
 import { decode } from "cbor2";
-import debug from "debug";
 
-const log = debug("hardhat:hardhat-verify:metadata");
+const log = createDebug("hardhat:hardhat-verify:metadata");
 
 export const METADATA_LENGTH_FIELD_SIZE = 2;
 

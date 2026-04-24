@@ -49,7 +49,6 @@
     "@nomicfoundation/hardhat-node-test-reporter": "workspace:^3.0.5",
     "@nomicfoundation/hardhat-test-utils": "workspace:^",
     "@types/chai": "^5.2.3",
-    "@types/debug": "^4.1.7",
     "@types/deep-eql": "^4.0.2",
     "@types/mocha": ">=10.0.10",
     "@types/node": "^22.0.0",

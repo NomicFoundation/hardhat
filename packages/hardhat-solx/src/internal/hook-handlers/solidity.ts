@@ -7,8 +7,8 @@ import {
   HardhatError,
   assertHardhatInvariant,
 } from "@nomicfoundation/hardhat-errors";
+import { createDebug } from "@nomicfoundation/hardhat-utils/debug";
 import { exists } from "@nomicfoundation/hardhat-utils/fs";
-import debug from "debug";
 
 import {
   DEFAULT_SOLX_SETTINGS,
@@ -18,7 +18,7 @@ import {
 import { downloadSolx, getSolxBinaryPath } from "../downloader.js";
 import { SolxCompiler } from "../solx-compiler.js";
 
-const log = debug("hardhat:solx:hook-handlers:solidity");
+const log = createDebug("hardhat:solx:hook-handlers:solidity");
 
 const execFileAsync = promisify(execFile);
 

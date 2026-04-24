@@ -8,9 +8,9 @@ import {
   assertHardhatInvariant,
   HardhatError,
 } from "@nomicfoundation/hardhat-errors";
+import { createDebug } from "@nomicfoundation/hardhat-utils/debug";
 import { ensureDir, exists } from "@nomicfoundation/hardhat-utils/fs";
 import chalk from "chalk";
-import debug from "debug";
 
 import { isSupportedChainType } from "../../edr/chain-type.js";
 import { BUILD_INFO_DIR_NAME } from "../artifacts/artifact-manager.js";
@@ -23,7 +23,7 @@ import {
 } from "./helpers.js";
 import { JsonRpcServerImplementation } from "./json-rpc/server.js";
 
-const log = debug("hardhat:core:tasks:node");
+const log = createDebug("hardhat:core:tasks:node");
 
 interface NodeActionArguments {
   hostname?: string;

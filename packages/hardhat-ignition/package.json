@@ -64,7 +64,6 @@
     "@nomicfoundation/hardhat-test-utils": "workspace:^",
     "@types/chai": "^5.2.3",
     "@types/chai-as-promised": "^8.0.1",
-    "@types/debug": "^4.1.7",
     "@types/mocha": ">=10.0.10",
     "@types/node": "^22.0.0",
     "@types/prompts": "^2.4.2",
@@ -89,7 +88,6 @@
     "@nomicfoundation/ignition-ui": "workspace:^3.1.2",
     "@nomicfoundation/hardhat-utils": "workspace:^4.0.4",
     "chalk": "^5.3.0",
-    "debug": "^4.3.2",
     "prompts": "^2.4.2",
     "json5": "^2.2.3"
   },

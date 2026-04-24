@@ -23,6 +23,7 @@ import type {
 
 import { HardhatError } from "@nomicfoundation/hardhat-errors";
 import { toBigInt } from "@nomicfoundation/hardhat-utils/bigint";
+import { createDebug } from "@nomicfoundation/hardhat-utils/debug";
 import { ensureError } from "@nomicfoundation/hardhat-utils/error";
 import { sleep } from "@nomicfoundation/hardhat-utils/lang";
 import {
@@ -31,9 +32,8 @@ import {
   postFormRequest,
   shouldUseProxy,
 } from "@nomicfoundation/hardhat-utils/request";
-import debug from "debug";
 
-const log = debug("hardhat:hardhat-verify:blockscout");
+const log = createDebug("hardhat:hardhat-verify:blockscout");
 
 export const BLOCKSCOUT_PROVIDER_NAME: keyof VerificationProvidersConfig =
   "blockscout";

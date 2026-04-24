@@ -4,11 +4,11 @@ import type { REPLServer } from "node:repl";
 
 import repl from "node:repl";
 
+import { createDebug } from "@nomicfoundation/hardhat-utils/debug";
 import { resolveFromRoot } from "@nomicfoundation/hardhat-utils/path";
 import chalk from "chalk";
-import debug from "debug";
 
-const log = debug("hardhat:core:tasks:console");
+const log = createDebug("hardhat:core:tasks:console");
 
 interface ConsoleActionArguments {
   commands: string[];

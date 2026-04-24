@@ -2,6 +2,7 @@ import type { BuildInfo } from "../../../types/artifacts.js";
 import type { EdrNetworkAccountsConfig } from "../../../types/config.js";
 import type { SolidityBuildInfoOutput } from "../../../types/solidity.js";
 import type { EdrProvider } from "../network-manager/edr/edr-provider.js";
+import type { DebugLogger } from "@nomicfoundation/hardhat-utils/debug";
 import type * as MicroEthSignerT from "micro-eth-signer";
 
 import path from "node:path";
@@ -94,7 +95,7 @@ export async function formatEdrNetworkConfigAccounts(
 export function createBuildInfoUploadHandlerFrom(
   buildInfoDirPath: string,
   provider: EdrProvider,
-  log: debug.Debugger,
+  log: DebugLogger,
 ): (buildId: string) => Promise<void> {
   const buildInfoHandler = async (buildId: string) => {
     try {

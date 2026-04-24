@@ -1,6 +1,6 @@
 import type { ConfigHooks } from "hardhat/types/hooks";
 
-import debug from "debug";
+import { createDebug } from "@nomicfoundation/hardhat-utils/debug";
 
 import {
   getDevKeystoreFilePath,
@@ -8,7 +8,7 @@ import {
   getKeystoreFilePath,
 } from "../utils/get-keystore-file-path.js";
 
-const log = debug("hardhat:keystore:hooks:config");
+const log = createDebug("hardhat:keystore:hooks:config");
 
 export default async (): Promise<Partial<ConfigHooks>> => {
   const handlers: Partial<ConfigHooks> = {
