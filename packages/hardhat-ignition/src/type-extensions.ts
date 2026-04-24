@@ -2,7 +2,6 @@ import type {
   DeployConfig,
   StrategyConfig,
 } from "@nomicfoundation/ignition-core";
-import "hardhat/types/config";
 
 export type * from "@nomicfoundation/hardhat-verify";
 

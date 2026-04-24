@@ -1,4 +1,3 @@
-import "hardhat/types/network";
 import type { NetworkHelpers } from "./types.js";
 
 declare module "hardhat/types/network" {

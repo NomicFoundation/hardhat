@@ -1,4 +1,3 @@
-import "hardhat/types/config";
 import type { TypechainConfig, TypechainUserConfig } from "./types.js";
 
 export type * from "@nomicfoundation/hardhat-ethers";
@@ -13,7 +12,6 @@ declare module "hardhat/types/config" {
   }
 }
 
-import "hardhat/types/global-options";
 declare module "hardhat/types/global-options" {
   interface GlobalOptions {
     noTypechain: boolean;

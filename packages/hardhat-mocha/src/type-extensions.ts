@@ -1,5 +1,3 @@
-import "hardhat/types/config";
-
 import type { MochaOptions } from "mocha";
 
 declare module "hardhat/types/config" {
@@ -12,7 +10,6 @@ declare module "hardhat/types/config" {
   }
 }
 
-import "hardhat/types/test";
 declare module "hardhat/types/test" {
   export interface HardhatTestUserConfig {
     mocha?: MochaOptions;
