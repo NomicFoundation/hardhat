@@ -19,6 +19,29 @@ concurrency:
   cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
 
 jobs:
+  tests:
+    name: Validate Hardhat works correctly
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5
+        with:
+          persist-credentials: false
+
+      - uses: socketdev/action@4337a545deecc20f19a909e52db7a2f6ba292f42 # v1
+        with:
+          mode: firewall
+
+      - uses: ./.github/actions/setup-env
+
+      - name: Install packages
+        run: pnpm install --frozen-lockfile --prefer-offline
+
+      - name: Build
+        run: pnpm build
+
+      - name: Run tests
+        run: pnpm test
+
   regression-benchmark:
     name: Regression benchmark
     environment: github-action-benchmark
@@ -34,11 +57,16 @@ jobs:
         contains(github.event.pull_request.labels.*.name, 'ci:perf')) &&
       (github.ref == 'refs/heads/main' ||
         github.repository == github.event.pull_request.head.repo.full_name)
+    needs: tests
     timeout-minutes: 180
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5
         with:
           persist-credentials: false
+
+      - uses: socketdev/action@4337a545deecc20f19a909e52db7a2f6ba292f42 # v1
+        with:
+          mode: firewall
 
       - uses: ./.github/actions/setup-env
 
@@ -54,7 +82,7 @@ jobs:
         run: pnpm build
 
       - name: Run regression benchmark
-        run: pnpm bench:regression --output regression-report.json
+        run: pnpm bench:regression --use-local --output regression-report.json
 
       - name: Store benchmark result
         uses: benchmark-action/github-action-benchmark@4bdcce38c94cec68da58d012ac24b7b1155efe8b # v1.20.7
