@@ -1,6 +1,8 @@
 import "hardhat/types/config";
 import type { TypechainConfig, TypechainUserConfig } from "./types.js";
 
+export type * from "@nomicfoundation/hardhat-ethers";
+
 declare module "hardhat/types/config" {
   export interface HardhatUserConfig {
     typechain?: TypechainUserConfig;

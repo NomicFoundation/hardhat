@@ -1,5 +1,7 @@
 import type { HardhatEthers } from "@nomicfoundation/hardhat-ethers/types";
 
+export type * from "@nomicfoundation/hardhat-ethers";
+
 // We use declare global instead of declare module "chai", because that's what
 // @types/chai does.
 declare global {
