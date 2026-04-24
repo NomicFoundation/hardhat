@@ -1,6 +1,6 @@
 import type { HardhatPlugin } from "hardhat/types/plugins";
 
-import "./internal/type-extensions.js";
+export type * from "./internal/type-extensions.js";
 
 import { emptyTask, task } from "hardhat/config";
 import { ArgumentType } from "hardhat/types/arguments";

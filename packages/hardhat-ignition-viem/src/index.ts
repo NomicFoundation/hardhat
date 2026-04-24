@@ -1,6 +1,6 @@
 import type { HardhatPlugin } from "hardhat/types/plugins";
 
-import "./type-extensions.js";
+export type * from "./type-extensions.js";
 
 const hardhatIgnitionViemPlugin: HardhatPlugin = {
   id: "hardhat-ignition-viem",

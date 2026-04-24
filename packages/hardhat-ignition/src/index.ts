@@ -5,7 +5,7 @@ import { ArgumentType } from "hardhat/types/arguments";
 
 import { PLUGIN_ID } from "./internal/constants.js";
 
-import "./type-extensions.js";
+export type * from "./type-extensions.js";
 
 const hardhatIgnitionPlugin: HardhatPlugin = {
   id: PLUGIN_ID,

@@ -4,7 +4,7 @@ import { ArgumentType } from "hardhat/types/arguments";
 
 import { task } from "../../core/config.js";
 
-import "./type-extensions.js";
+export type * from "./type-extensions.js";
 
 const hardhatPlugin: HardhatPlugin = {
   id: "builtin:solidity-tests",
