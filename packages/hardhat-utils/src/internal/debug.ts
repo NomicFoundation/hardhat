@@ -5,36 +5,33 @@ export const NOOP: DebugLogger = Object.assign(
   { enabled: false },
 );
 
-/**
- * Wraps text with ANSI colour codes. Returns the text unchanged when `color`
- * is `undefined`.
- */
-export function colorize(
-  text: string,
-  color: number | undefined,
-  bold: boolean = false,
-): string {
-  if (color === undefined) {
-    return text;
-  }
-
-  const ESC = "\x1b";
-  const style = bold ? ";1" : "";
-  return `${ESC}[3${color}${style}m${text}${ESC}[0m`;
+interface ParsedPatterns {
+  include: RegExp[];
+  exclude: RegExp[];
 }
+
+let cached: { env: string; parsed: ParsedPatterns } | undefined;
 
 /**
  * Parses a `DEBUG`-style pattern string into include/exclude regex lists.
  * Patterns prefixed with `-` go into `exclude`; everything else into `include`.
+ *
+ * Results are memoized against the last-seen `env` string, since
+ * `process.env.DEBUG` is effectively constant within a process and
+ * `createDebug` is called many times at startup.
  */
-export function parsePatterns(env: string): {
-  include: RegExp[];
-  exclude: RegExp[];
-} {
+export function parsePatterns(env: string): ParsedPatterns {
+  if (cached !== undefined && cached.env === env) {
+    return cached.parsed;
+  }
+
   const include: RegExp[] = [];
   const exclude: RegExp[] = [];
 
-  for (const raw of env.split(/[\s,]+/).filter((s) => s !== "")) {
+  for (const raw of env.split(/[\s,]+/)) {
+    if (raw === "") {
+      continue;
+    }
     if (raw.startsWith("-")) {
       exclude.push(namespaceToRegExp(raw.slice(1)));
     } else {
@@ -42,7 +39,9 @@ export function parsePatterns(env: string): {
     }
   }
 
-  return { include, exclude };
+  const parsed: ParsedPatterns = { include, exclude };
+  cached = { env, parsed };
+  return parsed;
 }
 
 /**
@@ -62,10 +61,16 @@ function namespaceToRegExp(namespace: string): RegExp {
  * Checks whether a namespace is enabled under the given `DEBUG` pattern string.
  */
 export function isEnabled(namespace: string, env: string): boolean {
-  const { include, exclude } = parsePatterns(env);
-  const matches = (pattern: RegExp) => pattern.test(namespace);
+  if (env === "") {
+    return false;
+  }
 
-  return !exclude.some(matches) && include.some(matches);
+  const { include, exclude } = parsePatterns(env);
+
+  return (
+    !exclude.some((p) => p.test(namespace)) &&
+    include.some((p) => p.test(namespace))
+  );
 }
 
 /**

@@ -1,12 +1,6 @@
 import { formatWithOptions } from "node:util";
 
-import {
-  NOOP,
-  colorize,
-  isEnabled,
-  selectColor,
-  useColors,
-} from "./internal/debug.js";
+import { NOOP, isEnabled, selectColor, useColors } from "./internal/debug.js";
 
 /**
  * A logger function returned by {@link createDebug}.
@@ -62,7 +56,12 @@ export function createDebug(namespace: string): DebugLogger {
 
   const colors = useColors();
   const color = colors ? selectColor(namespace) : undefined;
-  const prefix = colorize(`  ${namespace}`, color, true);
+  const prefix =
+    color !== undefined
+      ? `\x1b[3${color};1m  ${namespace}\x1b[0m`
+      : `  ${namespace}`;
+  const suffixOpen = color !== undefined ? `\x1b[3${color}m` : "";
+  const suffixClose = color !== undefined ? `\x1b[0m` : "";
   let prev = 0;
 
   const logger = (format: unknown, ...args: unknown[]): void => {
@@ -70,10 +69,14 @@ export function createDebug(namespace: string): DebugLogger {
     const diff = prev === 0 ? 0 : now - prev;
     prev = now;
 
-    const body = formatWithOptions({ colors }, format, ...args);
-    const suffix = colorize(`+${diff}ms`, color);
+    const body =
+      args.length === 0 && typeof format === "string"
+        ? format
+        : formatWithOptions({ colors }, format, ...args);
 
-    process.stderr.write(`${prefix} ${body} ${suffix}\n`);
+    process.stderr.write(
+      `${prefix} ${body} ${suffixOpen}+${diff}ms${suffixClose}\n`,
+    );
   };
 
   return Object.assign(logger, { enabled: true });

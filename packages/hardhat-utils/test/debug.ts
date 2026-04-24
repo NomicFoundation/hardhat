@@ -10,7 +10,6 @@ import {
 import { createDebug } from "../src/debug.js";
 import {
   NOOP,
-  colorize,
   isEnabled,
   parsePatterns,
   selectColor,
@@ -159,7 +158,7 @@ describe("debug", () => {
       assert.match(chunks.join(""), /saved 42 \/tmp\/a/);
     });
 
-    it("emits ANSI escape codes when stderr is a TTY", (t) => {
+    it("wraps the prefix in a bold ANSI sequence and the elapsed-diff suffix in a non-bold one when stderr is a TTY", (t) => {
       process.env.DEBUG = "hardhat:foo";
       setIsTTY(true);
       const chunks = captureStderr(t);
@@ -167,7 +166,10 @@ describe("debug", () => {
       const log = createDebug("hardhat:foo");
       log("x");
 
-      assert.match(chunks.join(""), /\x1b\[/);
+      assert.match(
+        chunks.join(""),
+        /^\x1b\[3[1-6];1m {2}hardhat:foo\x1b\[0m x \x1b\[3[1-6]m\+0ms\x1b\[0m\n$/,
+      );
     });
 
     it("omits ANSI escape codes when DEBUG_COLORS=no", (t) => {
@@ -342,21 +344,6 @@ describe("debug", () => {
       setIsTTY(true);
       process.env.DEBUG_COLORS = "false";
       assert.equal(useColors(), false);
-    });
-  });
-
-  describe("colorize", () => {
-    it("returns the text unchanged when color is undefined", () => {
-      assert.equal(colorize("text", undefined), "text");
-      assert.equal(colorize("text", undefined, true), "text");
-    });
-
-    it("wraps the text with ANSI codes when color is provided", () => {
-      assert.equal(colorize("text", 6), "\x1b[36mtext\x1b[0m");
-    });
-
-    it("applies bold when bold=true", () => {
-      assert.equal(colorize("text", 6, true), "\x1b[36;1mtext\x1b[0m");
     });
   });
 
