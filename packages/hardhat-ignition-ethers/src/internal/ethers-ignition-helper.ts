@@ -1,4 +1,3 @@
-import "@nomicfoundation/hardhat-ethers";
 import type {
   EthersIgnitionHelper,
   IgnitionModuleResultsTToEthersContracts,
@@ -19,7 +18,6 @@ import type { HardhatConfig } from "hardhat/types/config";
 import type { HookManager, UserInterruptionHooks } from "hardhat/types/hooks";
 import type { ChainType, NetworkConnection } from "hardhat/types/network";
 import type { UserInterruptionManager } from "hardhat/types/user-interruptions";
-import "@nomicfoundation/hardhat-ignition";
 
 import path from "node:path";
 
