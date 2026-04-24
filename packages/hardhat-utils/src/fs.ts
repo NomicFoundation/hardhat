@@ -20,6 +20,10 @@ import {
   IsDirectoryError,
   DirectoryNotEmptyError,
 } from "./errors/fs.js";
+import {
+  isDirectoryDirentAware,
+  readdirWithFileTypesOrEmpty,
+} from "./internal/fs.js";
 
 /**
  * Determines the canonical pathname for a given path, resolving any symbolic
@@ -59,12 +63,12 @@ export async function getAllFilesMatching(
   matches?: (absolutePathToFile: string) => Promise<boolean> | boolean,
   directoryFilter?: (absolutePathToDir: string) => Promise<boolean> | boolean,
 ): Promise<string[]> {
-  const dirContent = await readdirOrEmpty(dirFrom);
+  const dirContent = await readdirWithFileTypesOrEmpty(dirFrom);
 
   const results = await Promise.all(
-    dirContent.map(async (file) => {
-      const absolutePathToFile = path.join(dirFrom, file);
-      if (await isDirectory(absolutePathToFile)) {
+    dirContent.map(async (dirent) => {
+      const absolutePathToFile = path.join(dirFrom, dirent.name);
+      if (await isDirectoryDirentAware(absolutePathToFile, dirent)) {
         if (
           directoryFilter === undefined ||
           (await directoryFilter(absolutePathToFile))
@@ -107,12 +111,12 @@ export async function getAllDirectoriesMatching(
   dirFrom: string,
   matches?: (absolutePathToDir: string) => Promise<boolean> | boolean,
 ): Promise<string[]> {
-  const dirContent = await readdirOrEmpty(dirFrom);
+  const dirContent = await readdirWithFileTypesOrEmpty(dirFrom);
 
   const results = await Promise.all(
-    dirContent.map(async (file) => {
-      const absolutePathToFile = path.join(dirFrom, file);
-      if (!(await isDirectory(absolutePathToFile))) {
+    dirContent.map(async (dirent) => {
+      const absolutePathToFile = path.join(dirFrom, dirent.name);
+      if (!(await isDirectoryDirentAware(absolutePathToFile, dirent))) {
         return [];
       }
 
@@ -494,17 +498,24 @@ export async function readdir(absolutePathToDir: string): Promise<string[]> {
 }
 
 /**
- * Wrapper around `readdir` that returns an empty array if the directory doesn't exist.
+ * Reads a directory and returns its content as an array of strings, returning
+ * an empty array if the directory doesn't exist.
  *
- * @see readdir
+ * @param absolutePathToDir The path to the directory.
+ * @returns An array of strings with the names of the files and directories in the directory, and an empty array if the directory doesn't exist.
+ * @throws NotADirectoryError if the path is not a directory.
+ * @throws FileSystemAccessError for any other error.
  */
-async function readdirOrEmpty(dirFrom: string): Promise<string[]> {
+export async function readdirOrEmpty(
+  absolutePathToDir: string,
+): Promise<string[]> {
   try {
-    return await readdir(dirFrom);
+    return await readdir(absolutePathToDir);
   } catch (error) {
     if (error instanceof FileNotFoundError) {
       return [];
     }
+
     throw error;
   }
 }

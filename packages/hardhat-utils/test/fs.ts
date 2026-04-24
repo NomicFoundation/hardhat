@@ -1,3 +1,5 @@
+import type { Dirent } from "node:fs";
+
 import assert from "node:assert/strict";
 import fsPromises from "node:fs/promises";
 import path from "node:path";
@@ -32,9 +34,34 @@ import {
   readJsonFileAsStream,
   writeJsonFileAsStream,
   mkdtemp,
+  readdirOrEmpty,
 } from "../src/fs.js";
 
 import { useTmpDir } from "./helpers/fs.js";
+
+function withUnknownDirentType(dirent: Dirent): Dirent {
+  const cloned: Dirent = Object.create(dirent);
+  cloned.isDirectory = () => false;
+  cloned.isFile = () => false;
+  cloned.isSymbolicLink = () => false;
+  cloned.isBlockDevice = () => false;
+  cloned.isCharacterDevice = () => false;
+  cloned.isFIFO = () => false;
+  cloned.isSocket = () => false;
+  return cloned;
+}
+
+function withKnownFileDirentType(dirent: Dirent): Dirent {
+  const cloned: Dirent = Object.create(dirent);
+  cloned.isDirectory = () => false;
+  cloned.isFile = () => true;
+  cloned.isSymbolicLink = () => false;
+  cloned.isBlockDevice = () => false;
+  cloned.isCharacterDevice = () => false;
+  cloned.isFIFO = () => false;
+  cloned.isSocket = () => false;
+  return cloned;
+}
 
 describe("File system utils", () => {
   const getTmpDir = useTmpDir("fs");
@@ -209,6 +236,78 @@ describe("File system utils", () => {
       );
     });
 
+    it("Should recurse into directories when the dirent type is unknown", async (t) => {
+      const originalReaddir = fsPromises.readdir;
+      const originalLstat = fsPromises.lstat;
+
+      const unknownDirPath = path.join(getTmpDir(), "dir-with-files");
+      const knownFilePath = path.join(getTmpDir(), "file-1.txt");
+      const lstatPaths: string[] = [];
+
+      t.mock.method(fsPromises, "readdir", async (...args: any[]) => {
+        const [absolutePathToDir, options] = args;
+        const dirents: Dirent[] = await Reflect.apply(
+          originalReaddir,
+          fsPromises,
+          args,
+        );
+
+        if (
+          absolutePathToDir !== getTmpDir() ||
+          options?.withFileTypes !== true
+        ) {
+          return dirents;
+        }
+
+        return dirents.map((dirent) => {
+          if (dirent.name === path.basename(unknownDirPath)) {
+            return withUnknownDirentType(dirent);
+          }
+
+          if (dirent.name === path.basename(knownFilePath)) {
+            return withKnownFileDirentType(dirent);
+          }
+
+          return dirent;
+        });
+      });
+
+      t.mock.method(fsPromises, "lstat", async (...args: any[]) => {
+        lstatPaths.push(String(args[0]));
+        return await Reflect.apply(originalLstat, fsPromises, args);
+      });
+
+      const files = await getAllFilesMatching(getTmpDir());
+
+      assert.deepEqual(
+        new Set(files),
+        new Set([
+          path.join(getTmpDir(), "file-1.txt"),
+          path.join(getTmpDir(), "file-2.txt"),
+          path.join(getTmpDir(), "file-3.json"),
+          path.join(getTmpDir(), "dir-with-files", "inner-file-1.json"),
+          path.join(getTmpDir(), "dir-with-files", "inner-file-2.txt"),
+          path.join(getTmpDir(), "dir-with-extension.txt", "inner-file-3.txt"),
+          path.join(getTmpDir(), "dir-with-extension.txt", "inner-file-4.json"),
+          path.join(getTmpDir(), "dir-WithCasing", "file-WithCASING"),
+          path.join(
+            getTmpDir(),
+            "dir-with-files",
+            "dir-within-dir",
+            "file-deep",
+          ),
+        ]),
+      );
+      assert.ok(
+        lstatPaths.includes(unknownDirPath),
+        `expected lstat to be used for unknown dirent path ${unknownDirPath}`,
+      );
+      assert.ok(
+        !lstatPaths.includes(knownFilePath),
+        `expected lstat to not be used for known file path ${knownFilePath}`,
+      );
+    });
+
     it("Should throw NotADirectoryError if the path is not a directory", async () => {
       const dirPath = path.join(getTmpDir(), "file-1.txt");
 
@@ -359,6 +458,58 @@ describe("File system utils", () => {
         getTmpDir(),
         async (d) => (await getAllFilesMatching(d)).length !== 0,
         [path.join(getTmpDir(), "dir-with-files")],
+      );
+    });
+
+    it("Should match directories when the dirent type is unknown", async (t) => {
+      const originalReaddir = fsPromises.readdir;
+      const originalLstat = fsPromises.lstat;
+
+      const unknownDirPath = path.join(getTmpDir(), "dir-with-files");
+      const lstatPaths: string[] = [];
+
+      t.mock.method(fsPromises, "readdir", async (...args: any[]) => {
+        const [absolutePathToDir, options] = args;
+        const dirents: Dirent[] = await Reflect.apply(
+          originalReaddir,
+          fsPromises,
+          args,
+        );
+
+        if (
+          absolutePathToDir !== getTmpDir() ||
+          options?.withFileTypes !== true
+        ) {
+          return dirents;
+        }
+
+        return dirents.map((dirent) =>
+          dirent.name === path.basename(unknownDirPath)
+            ? withUnknownDirentType(dirent)
+            : dirent,
+        );
+      });
+
+      t.mock.method(fsPromises, "lstat", async (...args: any[]) => {
+        lstatPaths.push(String(args[0]));
+        return await Reflect.apply(originalLstat, fsPromises, args);
+      });
+
+      const dirs = await getAllDirectoriesMatching(getTmpDir());
+
+      assert.deepEqual(
+        new Set(dirs),
+        new Set([
+          path.join(getTmpDir(), "dir-empty"),
+          path.join(getTmpDir(), "dir-with-files"),
+          path.join(getTmpDir(), "dir-with-subdir"),
+          path.join(getTmpDir(), "dir-with-extension.txt"),
+          path.join(getTmpDir(), "dir-WithCasing"),
+        ]),
+      );
+      assert.ok(
+        lstatPaths.includes(unknownDirPath),
+        `expected lstat to be used for unknown dirent path ${unknownDirPath}`,
       );
     });
   });
@@ -930,6 +1081,52 @@ describe("File system utils", () => {
       const invalidPath = "\0";
 
       await assert.rejects(readdir(invalidPath), {
+        name: "FileSystemAccessError",
+      });
+    });
+  });
+
+  describe("readdirOrEmpty", () => {
+    it("Should return the files in a directory", async () => {
+      const dirPath = path.join(getTmpDir(), "dir");
+      await mkdir(dirPath);
+
+      const files = ["file1.txt", "file2.txt", "file3.json"];
+      for (const file of files) {
+        await createFile(path.join(dirPath, file));
+      }
+
+      const subDirPath = path.join(dirPath, "subdir");
+      await mkdir(subDirPath);
+      await createFile(path.join(subDirPath, "file4.txt"));
+
+      // should include the subdir but not its content as it's not recursive
+      assert.deepEqual(
+        new Set(await readdirOrEmpty(dirPath)),
+        new Set(["file1.txt", "file2.txt", "file3.json", "subdir"]),
+      );
+    });
+
+    it("Should return an empty array if the directory doesn't exist", async () => {
+      const dirPath = path.join(getTmpDir(), "not-exists");
+
+      assert.deepEqual(await readdirOrEmpty(dirPath), []);
+    });
+
+    it("Should throw NotADirectoryError if the path is not a directory", async () => {
+      const filePath = path.join(getTmpDir(), "file");
+      await createFile(filePath);
+
+      await assert.rejects(readdirOrEmpty(filePath), {
+        name: "NotADirectoryError",
+        message: `Path ${filePath} is not a directory`,
+      });
+    });
+
+    it("Should throw FileSystemAccessError if a different error is thrown", async () => {
+      const invalidPath = "\0";
+
+      await assert.rejects(readdirOrEmpty(invalidPath), {
         name: "FileSystemAccessError",
       });
     });

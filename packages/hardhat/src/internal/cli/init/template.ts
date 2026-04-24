@@ -5,7 +5,7 @@ import {
   exists,
   getAllFilesMatching,
   isDirectory,
-  readdir,
+  readdirOrEmpty,
   readJsonFile,
 } from "@nomicfoundation/hardhat-utils/fs";
 import {
@@ -40,11 +40,7 @@ export async function getTemplates(
   const packageRoot = await findClosestPackageRoot(import.meta.url);
   const pathToTemplates = path.join(packageRoot, "templates", templatesDir);
 
-  if (!(await exists(pathToTemplates))) {
-    return [];
-  }
-
-  const pathsToTemplates = await readdir(pathToTemplates);
+  const pathsToTemplates = await readdirOrEmpty(pathToTemplates);
   pathsToTemplates.sort();
 
   const templates = await Promise.all(
@@ -65,27 +61,26 @@ export async function getTemplates(
 
       const packageJson: PackageJson =
         await readJsonFile<PackageJson>(pathToPackageJson);
-      const files = await getAllFilesMatching(pathToTemplate, (f) => {
-        // Ignore the package.json file because it is handled separately
-        if (f === pathToPackageJson) {
-          return false;
-        }
-        // .gitignore files are expected to be called gitignore in the templates
-        // because npm ignores .gitignore files during npm pack (see https://github.com/npm/npm/issues/3763)
-        if (path.basename(f) === ".gitignore") {
-          return false;
-        }
-        // We should ignore all the files according to the .gitignore rules
-        // However, for simplicity, we just ignore the node_modules folder
-        // If we needed to implement a more complex ignore logic, we could
-        // use recently introduced glob from node:fs/promises
-        if (
-          path.relative(pathToTemplate, f).split(path.sep)[0] === "node_modules"
-        ) {
-          return false;
-        }
-        return true;
-      }).then((fs) => fs.map((f) => path.relative(pathToTemplate, f)));
+
+      const matchingFiles = await getAllFilesMatching(
+        pathToTemplate,
+        (f) => {
+          // Ignore the package.json file because it is handled separately
+          if (f === pathToPackageJson) {
+            return false;
+          }
+
+          // .gitignore files are expected to be called gitignore in the templates
+          // because npm ignores .gitignore files during npm pack (see https://github.com/npm/npm/issues/3763)
+          if (path.basename(f) === ".gitignore") {
+            return false;
+          }
+          return true;
+        },
+        (dir) => path.basename(dir) !== "node_modules",
+      );
+
+      const files = matchingFiles.map((f) => path.relative(pathToTemplate, f));
 
       return {
         name,
