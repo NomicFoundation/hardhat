@@ -1,6 +1,3 @@
-// NOTE: We export the built-in plugin types to load their type extensions
-export type * from "../internal/builtin-plugins/index.js";
-
 /**
  * A configuration variable to be fetched at runtime from
  * different sources, depending on the user's setup.
