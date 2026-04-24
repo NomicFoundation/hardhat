@@ -22,10 +22,10 @@ jobs:
   regression-benchmark:
     name: Regression benchmark
     environment: github-action-benchmark
-    # TODO: configure a self-hosted runner for stable benchmark measurements;
-    # the shared GitHub runners produce noisy results that will generate false
-    # positives against the configured alert-threshold.
-    runs-on: [self-hosted]
+    # Use a self-hosted runner for stable benchmark measurements; the shared
+    # GitHub runners produce noisy results that will generate false positives
+    # against the configured alert-threshold.
+    runs-on: self-hosted
     # Only run for pushes to main, workflow_dispatch, or PRs that carry the
     # `ci:perf` label. The fork-safety guard keeps untrusted forks off the
     # self-hosted runner.
@@ -61,9 +61,7 @@ jobs:
         with:
           tool: customSmallerIsBetter
           output-file-path: regression-report.json
-          # TODO: replace with the results repo, e.g.
-          # github.com/nomic-foundation-automation/hardhat-regression-results
-          gh-repository: github.com/TODO/hardhat-regression-results
+          gh-repository: github.com/nomic-foundation-automation/hardhat-benchmark-results
           gh-pages-branch: main
           benchmark-data-dir-path: hardhat-regression
           github-token: ${{ secrets.BENCHMARK_GITHUB_TOKEN }}
