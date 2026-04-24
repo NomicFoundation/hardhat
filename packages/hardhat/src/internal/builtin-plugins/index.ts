@@ -14,21 +14,21 @@ import solidityTest from "./solidity-test/index.js";
 import telemetry from "./telemetry/index.js";
 import test from "./test/index.js";
 
-// Note: When importing a plugin, you have to export its types, so that its
-// type extensions, if any, also get loaded.
+// NOTE: We export the built-in plugin types to have a centralized way to
+// re-export them and force their type extensions to be loaded.
 export type * from "./artifacts/index.js";
-export type * from "./solidity/index.js";
-export type * from "./test/index.js";
-export type * from "./solidity-test/index.js";
-export type * from "./gas-analytics/index.js";
-export type * from "./network-manager/index.js";
 export type * from "./clean/index.js";
 export type * from "./console/index.js";
-export type * from "./run/index.js";
-export type * from "./node/index.js";
-export type * from "./flatten/index.js";
 export type * from "./coverage/index.js";
+export type * from "./flatten/index.js";
+export type * from "./gas-analytics/index.js";
+export type * from "./network-manager/index.js";
+export type * from "./node/index.js";
+export type * from "./run/index.js";
+export type * from "./solidity/index.js";
+export type * from "./solidity-test/index.js";
 export type * from "./telemetry/index.js";
+export type * from "./test/index.js";
 
 // This array should be kept in order, respecting the dependencies between the
 // plugins.
