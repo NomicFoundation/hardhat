@@ -1,4 +1,4 @@
-interface RuntimeInfo {
+export interface RuntimeInfo {
   runtime: "bun" | "deno" | "node";
   version: string;
 }
