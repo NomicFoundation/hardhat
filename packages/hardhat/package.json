@@ -72,7 +72,6 @@
     "src/",
     "templates/",
     "console.sol",
-    "coverage.sol",
     "CHANGELOG.md",
     "LICENSE",
     "README.md"
@@ -93,7 +92,7 @@
     "typescript": "~5.8.0"
   },
   "dependencies": {
-    "@nomicfoundation/edr": "0.12.0-next.29",
+    "@nomicfoundation/edr": "0.12.0-next.32",
     "@nomicfoundation/hardhat-errors": "workspace:^3.0.11",
     "@nomicfoundation/hardhat-utils": "workspace:^4.0.4",
     "@nomicfoundation/hardhat-vendored": "workspace:^3.0.2",

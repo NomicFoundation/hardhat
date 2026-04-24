@@ -3,19 +3,15 @@ import type { CoverageMetadata } from "../types.js";
 
 import path from "node:path";
 
+import { getCoverageLibrary } from "@nomicfoundation/edr/coverage";
 import { HardhatError } from "@nomicfoundation/hardhat-errors";
 import { ensureError } from "@nomicfoundation/hardhat-utils/error";
-import { readUtf8File } from "@nomicfoundation/hardhat-utils/fs";
-import { findClosestPackageRoot } from "@nomicfoundation/hardhat-utils/package";
 import debug from "debug";
 
 import { getCoverageManager } from "../helpers/accessors.js";
 import { instrumentSolidityFileForCompilationJob } from "../instrumentation.js";
 
 const log = debug("hardhat:core:coverage:hook-handlers:solidity");
-
-const COVERAGE_LIBRARY_PATH =
-  "__hardhat_coverage_library_a3e9cfe2-41b4-4a1f-ad9e-ac62dd82979e.sol";
 
 export default async (): Promise<Partial<SolidityHooks>> => ({
   preprocessProjectFileBeforeBuilding: async (
@@ -37,7 +33,6 @@ export default async (): Promise<Partial<SolidityHooks>> => ({
           compilationJobSolcVersion: solcVersion,
           sourceName,
           fileContent,
-          coverageLibraryPath: COVERAGE_LIBRARY_PATH,
         });
 
         // TODO: Remove this once EDR starts returning line information as part
@@ -99,14 +94,16 @@ export default async (): Promise<Partial<SolidityHooks>> => ({
   },
   preprocessSolcInputBeforeBuilding: async (context, solcInput, next) => {
     if (context.globalOptions.coverage) {
+      const coverageLib = getCoverageLibrary();
+
       // NOTE: We check for a source name clash here. It could happen if the user
       // wanted to compile a source with our highly unlikely name by chance or
       // if we accidentally tried to preprocess the same solc input twice.
-      if (solcInput.sources[COVERAGE_LIBRARY_PATH] !== undefined) {
+      if (solcInput.sources[coverageLib.filename] !== undefined) {
         throw new HardhatError(
           HardhatError.ERRORS.CORE.COVERAGE.IMPORT_PATH_ALREADY_DEFINED,
           {
-            importPath: COVERAGE_LIBRARY_PATH,
+            importPath: coverageLib.filename,
           },
         );
       }
@@ -114,11 +111,9 @@ export default async (): Promise<Partial<SolidityHooks>> => ({
       // NOTE: We add the coverage.sol straight into sources here. The alternative
       // would be to do it during the resolution phase. However, we decided this
       // is a simpler solution, at least for now.
-      const packageRoot = await findClosestPackageRoot(import.meta.url);
-      const coverageSolPath = path.join(packageRoot, "coverage.sol");
-
-      const content = await readUtf8File(coverageSolPath);
-      solcInput.sources[COVERAGE_LIBRARY_PATH] = { content };
+      solcInput.sources[coverageLib.filename] = {
+        content: coverageLib.content,
+      };
     }
 
     return await next(context, solcInput);
