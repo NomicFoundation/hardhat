@@ -3,7 +3,7 @@ import { isObject } from "@nomicfoundation/hardhat-utils/lang";
 
 import { sendErrorTelemetry } from "./reporter.js";
 
-const log = createDebug("hardhat:core:telemetry:global-error-handlers");
+const log = createDebug("hardhat:core:cli:telemetry:global-error-handlers");
 
 function createUnhandledErrorListener(isPromiseRejection: boolean) {
   const description = isPromiseRejection

@@ -7,7 +7,7 @@ import { HardhatError } from "@nomicfoundation/hardhat-errors";
 import { createDebug } from "@nomicfoundation/hardhat-utils/debug";
 import { exists } from "@nomicfoundation/hardhat-utils/fs";
 
-const debug = createDebug("hardhat-ignition:modules");
+const debug = createDebug("hardhat:ignition:modules");
 
 const MODULES_FOLDER = "modules";
 

@@ -18,7 +18,7 @@ import { overrideTask } from "../../../../src/config.js";
 import consoleAction from "../../../../src/internal/builtin-plugins/console/task-action.js";
 import { createHardhatRuntimeEnvironment } from "../../../../src/internal/hre-initialization.js";
 
-const log = createDebug("hardhat:test:console:task-action");
+const log = createDebug("hardhat:core:tasks:console:test");
 
 describe("console/task-action", function () {
   let hre: HardhatRuntimeEnvironment;

@@ -59,7 +59,7 @@ export interface InitHardhatOptions {
   install?: boolean;
 }
 
-const log = createDebug("hardhat:cli:init");
+const log = createDebug("hardhat:core:cli:init");
 
 /**
  * initHardhat implements the project initialization wizard flow.

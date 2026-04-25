@@ -8,7 +8,7 @@ import {
   getKeystoreFilePath,
 } from "../utils/get-keystore-file-path.js";
 
-const log = createDebug("hardhat:keystore:hooks:config");
+const log = createDebug("hardhat:keystore:hook-handlers:config");
 
 export default async (): Promise<Partial<ConfigHooks>> => {
   const handlers: Partial<ConfigHooks> = {

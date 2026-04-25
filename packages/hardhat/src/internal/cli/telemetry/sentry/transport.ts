@@ -10,7 +10,7 @@ import { fileURLToPath } from "node:url";
 import { createDebug } from "@nomicfoundation/hardhat-utils/debug";
 import { createTransport, serializeEnvelope } from "@sentry/core";
 
-const log = createDebug("hardhat:core:sentry:transport");
+const log = createDebug("hardhat:core:cli:telemetry:sentry:transport");
 
 /**
  * Creates a detached process transport.

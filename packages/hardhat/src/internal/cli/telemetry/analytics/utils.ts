@@ -10,7 +10,7 @@ import {
 } from "@nomicfoundation/hardhat-utils/fs";
 import { getTelemetryDir } from "@nomicfoundation/hardhat-utils/global-dir";
 
-const log = createDebug("hardhat:cli:telemetry:analytics:utils");
+const log = createDebug("hardhat:core:cli:telemetry:analytics:utils");
 
 const ANALYTICS_FILE_NAME = "analytics.json";
 

@@ -17,7 +17,7 @@ import {
 
 import { getAnalyticsClientId } from "./utils.js";
 
-const log = createDebug("hardhat:cli:telemetry:analytics");
+const log = createDebug("hardhat:core:cli:telemetry:analytics");
 
 const SESSION_ID = Math.random().toString();
 const ENGAGEMENT_TIME_MSEC = "10000";

@@ -53,7 +53,7 @@ import { getRequestParams } from "./rpc-helpers.js";
 // This is not a standard ISO 7816-4 code, but a Ledger-specific error meaning "no app context".
 const APP_NOT_OPEN_STATUS_CODE = 0x6511;
 
-const log = createDebug("hardhat:hardhat-ledger:handler");
+const log = createDebug("hardhat:ledger:handler");
 
 // micro-eth-signer is known to be slow to load, so we lazy load it
 let microEthSigner: typeof MicroEthSignerT | undefined;

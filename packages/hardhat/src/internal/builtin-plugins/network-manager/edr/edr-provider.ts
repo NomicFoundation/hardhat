@@ -59,7 +59,7 @@ import {
 } from "./utils/convert-to-edr.js";
 import { printLine, replaceLastLine } from "./utils/logger.js";
 
-const log = createDebug("hardhat:core:hardhat-network:provider");
+const log = createDebug("hardhat:core:network-manager:edr:provider");
 
 interface EdrProviderConfig {
   chainDescriptors: ChainDescriptorsConfig;

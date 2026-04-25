@@ -9,7 +9,7 @@ import {
   sendEnvelopeToSentryBackend,
 } from "./transport.js";
 
-const log = createDebug("hardhat:core:sentry:subprocess");
+const log = createDebug("hardhat:core:cli:telemetry:sentry:subprocess");
 
 const serializedEnvelope = process.argv[2];
 const configPath = process.argv[3] !== "" ? process.argv[3] : undefined;

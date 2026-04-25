@@ -37,7 +37,7 @@ import {
   shouldUseProxy,
 } from "@nomicfoundation/hardhat-utils/request";
 
-const log = createDebug("hardhat:hardhat-verify:etherscan");
+const log = createDebug("hardhat:verify:etherscan");
 
 export const ETHERSCAN_PROVIDER_NAME: keyof VerificationProvidersConfig =
   "etherscan";

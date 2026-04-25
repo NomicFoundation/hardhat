@@ -194,6 +194,26 @@ We tend to name the interface as `TheInterface` while the implementation of that
 
 This is a change from how we approached naming in v2, where our interfaces would often be prefixed with `I` as in `ITheInterface`.
 
+## N2: `createDebug` namespaces
+
+Pick the namespace passed to `createDebug(...)` from one of two shapes, based on which package the file lives in:
+
+| Where | Shape | Example |
+| --- | --- | --- |
+| Inside `packages/hardhat/` (built-in plugins, CLI, telemetry, …) | `hardhat:core:<area>[:<sub>...]` | `hardhat:core:cli:main` |
+| Any other workspace package | `hardhat:<plugin>[:<sub>...]` | `hardhat:ethers:provider` |
+
+`<plugin>` is the package name with the `hardhat-` prefix stripped (`hardhat-ethers` → `ethers`, `hardhat-ignition` → `ignition`, `ignition-core` → `ignition-core`).
+
+Sub-segments mirror the file path inside the package, but compressed: drop the `internal` segment and fold a directory + basename into a single descriptor when they describe the same concept (e.g. `hardhat-ethers-provider/hardhat-ethers-provider.ts` → `:provider`). Keep segments that let users filter a related family of loggers together — in particular keep `hook-handlers` so a user can do `DEBUG='hardhat:*:hook-handlers:*'` to see every plugin's hook-handler logs at once.
+
+Two examples end-to-end:
+
+- `packages/hardhat/src/internal/builtin-plugins/network-manager/edr/edr-provider.ts` → `hardhat:core:network-manager:edr:provider`.
+- `packages/hardhat-ethers/src/internal/hardhat-ethers-provider/hardhat-ethers-provider.ts` → `hardhat:ethers:provider`.
+
+Namespaces are diagnostic strings, not part of any public API. Feel free to rename them when the repo layout changes.
+
 # Error Guidelines
 
 ## E1: Use `HardhatError` in `hardhat` and Nomic plugins
