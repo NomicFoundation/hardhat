@@ -73,20 +73,37 @@ export function isEnabled(namespace: string, env: string): boolean {
   );
 }
 
+// `debug@4`'s 76-colour 256-palette with the red and red-orange families
+// stripped, so red stays reserved for error output.
+export const COLORS: readonly number[] = [
+  20, 21, 26, 27, 32, 33, 38, 39, 40, 41, 42, 43, 44, 45, 56, 57, 62, 63, 68,
+  69, 74, 75, 76, 77, 78, 79, 80, 81, 92, 93, 98, 99, 112, 113, 128, 129, 134,
+  135, 148, 149, 178, 179, 184, 185, 201, 214, 215, 220, 221,
+];
+
 /**
- * Picks an ANSI colour for a namespace, deterministic from its characters.
+ * Picks an ANSI 256-colour code for a namespace, deterministic from its
+ * characters.
  *
- * Uses a djb2-style string hash folded into a 32-bit signed int, matching the
- * `debug` package's behaviour.
+ * Uses a 32-bit FNV-1a hash followed by an xorshift finalizer. The finalizer
+ * improves bit avalanche so the low bits used by `% COLORS.length`
+ * distribute Hardhat's namespaces more evenly across the palette.
  */
 export function selectColor(namespace: string): number {
-  const COLORS = [6, 2, 3, 4, 5, 1];
-  let hash = 0;
+  let hash = 0x811c9dc5;
 
   for (let i = 0; i < namespace.length; i++) {
-    // eslint-disable-next-line no-bitwise -- djb2 hash
-    hash = ((hash << 5) - hash + namespace.charCodeAt(i)) | 0;
+    // eslint-disable-next-line no-bitwise -- FNV-1a hash
+    hash ^= namespace.charCodeAt(i);
+    hash = Math.imul(hash, 0x01000193);
   }
+
+  // xorshift finalizer for better avalanche on the low bits
+  /* eslint-disable no-bitwise -- xorshift finalizer */
+  hash ^= hash >>> 16;
+  hash = Math.imul(hash, 0x85ebca6b);
+  hash ^= hash >>> 13;
+  /* eslint-enable no-bitwise */
 
   return COLORS[Math.abs(hash) % COLORS.length];
 }

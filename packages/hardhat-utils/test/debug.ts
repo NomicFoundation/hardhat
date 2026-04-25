@@ -9,6 +9,7 @@ import {
 
 import { createDebug } from "../src/debug.js";
 import {
+  COLORS,
   NOOP,
   isEnabled,
   parsePatterns,
@@ -168,7 +169,7 @@ describe("debug", () => {
 
       assert.match(
         chunks.join(""),
-        /^\x1b\[3[1-6];1m {2}hardhat:foo\x1b\[0m x \x1b\[3[1-6]m\+0ms\x1b\[0m\n$/,
+        /^\x1b\[38;5;\d+;1m {2}hardhat:foo\x1b\[0m x \x1b\[38;5;\d+m\+0ms\x1b\[0m\n$/,
       );
     });
 
@@ -298,14 +299,70 @@ describe("debug", () => {
     });
 
     it("returns a value from the palette", () => {
-      const palette = [1, 2, 3, 4, 5, 6];
       for (const namespace of ["hardhat:foo", "hardhat:noisy", ""]) {
         const color = selectColor(namespace);
         assert.ok(
-          palette.includes(color),
+          COLORS.includes(color),
           `color ${color} for "${namespace}" must be in the palette`,
         );
       }
+    });
+
+    it("distributes the live monorepo namespaces with at most 2 per colour", () => {
+      const namespaces = [
+        "hardhat-ignition:modules",
+        "hardhat-ignition:onchain-interaction-monitor",
+        "hardhat:cli:init",
+        "hardhat:cli:telemetry:analytics",
+        "hardhat:cli:telemetry:analytics:utils",
+        "hardhat:cli:telemetry:sentry:reporter",
+        "hardhat:cli:telemetry:telemetry-permissions",
+        "hardhat:core:cli:main",
+        "hardhat:core:config-loading",
+        "hardhat:core:coverage:coverage-manager",
+        "hardhat:core:coverage:hook-handlers:solidity",
+        "hardhat:core:gas-analytics:gas-analytics-manager:gas-stats",
+        "hardhat:core:hardhat-network:provider",
+        "hardhat:core:sentry:subprocess",
+        "hardhat:core:sentry:transport",
+        "hardhat:core:solidity:build-system",
+        "hardhat:core:solidity:build-system:compiler",
+        "hardhat:core:tasks:console",
+        "hardhat:core:tasks:node",
+        "hardhat:core:tasks:node:artifacts",
+        "hardhat:core:tasks:node:json-rpc:server",
+        "hardhat:core:telemetry:global-error-handlers",
+        "hardhat:hardhat-ethers:provider",
+        "hardhat:hardhat-ledger:handler",
+        "hardhat:hardhat-verify:blockscout",
+        "hardhat:hardhat-verify:etherscan",
+        "hardhat:hardhat-verify:metadata",
+        "hardhat:keystore:hooks:config",
+        "hardhat:mocha:performance",
+        "hardhat:solidity:downloader",
+        "hardhat:solx:downloader",
+        "hardhat:solx:hook-handlers:config",
+        "hardhat:solx:hook-handlers:solidity",
+        "hardhat:typechain:generate-types",
+        "hardhat:util:banner-manager",
+        "hardhat:util:multi-process-mutex",
+      ];
+
+      const counts = new Map<number, number>();
+      for (const ns of namespaces) {
+        const color = selectColor(ns);
+        counts.set(color, (counts.get(color) ?? 0) + 1);
+      }
+
+      const max = Math.max(...counts.values());
+      assert.ok(
+        max <= 3,
+        `expected at most 3 namespaces per colour, got max ${max}`,
+      );
+      assert.ok(
+        counts.size >= 25,
+        `expected at least 25 distinct colours, got ${counts.size}`,
+      );
     });
   });
 

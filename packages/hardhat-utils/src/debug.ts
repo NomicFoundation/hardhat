@@ -58,9 +58,9 @@ export function createDebug(namespace: string): DebugLogger {
   const color = colors ? selectColor(namespace) : undefined;
   const prefix =
     color !== undefined
-      ? `\x1b[3${color};1m  ${namespace}\x1b[0m`
+      ? `\x1b[38;5;${color};1m  ${namespace}\x1b[0m`
       : `  ${namespace}`;
-  const suffixOpen = color !== undefined ? `\x1b[3${color}m` : "";
+  const suffixOpen = color !== undefined ? `\x1b[38;5;${color}m` : "";
   const suffixClose = color !== undefined ? `\x1b[0m` : "";
   let prev = 0;
 
