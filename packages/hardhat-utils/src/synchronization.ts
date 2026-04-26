@@ -621,3 +621,152 @@ export class AsyncMutex {
     });
   }
 }
+
+type SharedPromiseExecutionResult<ValueT> =
+  | { success: true; value: ValueT }
+  | { success: false; error: Error | unknown };
+
+type SharedPromiseCachedResult<ValueT> =
+  | ValueT
+  | Promise<SharedPromiseExecutionResult<ValueT>>;
+
+/**
+ * A class that deduplicates the concurrent computations of an asynchronous
+ * operation based on a string key, by sharing the same Promise for all
+ * concurrent calls.
+ *
+ * This class is useful when the operation is expensive, or you need to
+ * guarantee that it's only executed once per key.
+ *
+ * For this cache to work correctly, the operation has to be either idempotent,
+ * or virtually idempotent (e.g. reading the same file multiple times in a very
+ * short time, in a context where it shouldn't be changed).
+ *
+ * The results of the first operation run per key are cached during the lifetime
+ * of the class, or until the `delete` or `clear` methods are called.
+ *
+ * Note that you should always use the same function/operation per cache key. If
+ * you call `getOrCompute` with the same key but different functions, the
+ * first function will be used for all the calls.
+ *
+ * Notes on async stack traces: This class is designed to preserve as much as
+ * possible of the producer async stack trace, including the place where the
+ * first `getOrCompute` computation is started and where the producer throws. To
+ * achieve this, you should provide an async lambda of the shape
+ * `async () => await myFunction()`, instead of directly passing `myFunction`.
+ * You should also try to immediately await the calls to `getOrCompute`.
+ *
+ * Concurrent callers for the same in-flight computation receive the same
+ * original thrown value, so their own `getOrCompute` call site won't
+ * necessarily be present in the error stack.
+ *
+ * Notes on concurrency: For non-reentrant calls, `getOrCompute` stores the
+ * in-flight promise in the cache before returning control to the event loop.
+ * Subsequent calls with the same key observe that promise and await the same
+ * computation instead of invoking their own function.
+ *
+ * This guarantee only applies while the cache entry remains installed. Calling
+ * `delete` or `clear` during an in-flight computation lets later callers start
+ * a new computation, and the older in-flight result won't repopulate the cache.
+ *
+ * The producer function is invoked before the in-flight promise is stored, so it
+ * should not synchronously call `getOrCompute` with the same key.
+ */
+export class SharedPromiseCache<ValueT> {
+  readonly #cache = new Map<string, SharedPromiseCachedResult<ValueT>>();
+
+  /**
+   * Returns the cached value associated to the key, or computes it if needed,
+   * guaranteeing that it's only computed once per key.
+   *
+   * @param key The cache key associated to the value.
+   * @param fn The function that computes the value when it's not cached. Please
+   * read the class docs to understand the requirements it should meet.
+   * @returns The value.
+   * @throws The original value thrown or rejected by the function. Concurrent
+   * callers for the same in-flight computation observe the same thrown value, so
+   * their stack reflects the original computation, not necessarily each
+   * awaiting call site.
+   */
+  public async getOrCompute(
+    key: string,
+    fn: () => Promise<ValueT>,
+  ): Promise<ValueT> {
+    if (this.#cache.has(key)) {
+      /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions 
+      -- As we may need to cache `undefined` values, we can't just `get` and
+      check for not `undefined`, so we need to assert here. */
+      const cached = this.#cache.get(key) as SharedPromiseCachedResult<ValueT>;
+
+      if (!(cached instanceof Promise)) {
+        return cached;
+      }
+
+      const cachedResult = await cached;
+
+      if (this.#cache.get(key) === cached) {
+        if (cachedResult.success) {
+          this.#cache.set(key, cachedResult.value);
+        } else {
+          this.#cache.delete(key);
+        }
+      }
+
+      if (cachedResult.success) {
+        return cachedResult.value;
+      }
+
+      throw cachedResult.error;
+    }
+
+    const promise: Promise<SharedPromiseExecutionResult<ValueT>> =
+      (async () => {
+        try {
+          const value = await fn();
+          return { success: true, value };
+        } catch (error) {
+          return { success: false, error };
+        }
+      })();
+
+    this.#cache.set(key, promise);
+
+    const result = await promise;
+
+    // If the promise that we just awaited is the one that's cached, we replace
+    // it with the actual value if it succeeded, or remove it if it failed.
+    if (this.#cache.get(key) === promise) {
+      if (result.success) {
+        this.#cache.set(key, result.value);
+      } else {
+        this.#cache.delete(key);
+      }
+    }
+
+    if (result.success) {
+      return result.value;
+    }
+
+    throw result.error;
+  }
+
+  /**
+   * Deletes the cached value associated to the key, if any. Note that this does
+   * not cancel any ongoing operation, so if there's a concurrent call to
+   * `getOrCompute` with the same key, it will still wait for the original
+   * operation to complete.
+   *
+   * @param key The cache key to delete.
+   */
+  public delete(key: string): void {
+    this.#cache.delete(key);
+  }
+
+  /**
+   * Clears the cache, removing all the stored values, but without cancelling
+   * any ongoing operation.
+   */
+  public clear(): void {
+    this.#cache.clear();
+  }
+}
