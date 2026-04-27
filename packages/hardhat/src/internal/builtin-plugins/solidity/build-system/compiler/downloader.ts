@@ -30,7 +30,9 @@ import AdmZip from "adm-zip";
 
 import { NativeCompiler, SolcJsCompiler } from "./compiler.js";
 
-const log = createDebug("hardhat:solidity:downloader");
+const log = createDebug(
+  "hardhat:core:solidity:build-system:compiler:downloader",
+);
 
 const COMPILER_REPOSITORY_URL = "https://binaries.soliditylang.org";
 const DEFAULT_COMPILER_DOWNLOAD_RETRY_COUNT = 3;

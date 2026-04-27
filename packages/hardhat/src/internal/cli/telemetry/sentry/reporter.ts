@@ -12,7 +12,7 @@ import { UsingHardhat2PluginError } from "../../../using-hardhat2-plugin-errors.
 import { getHardhatVersion } from "../../../utils/package.js";
 import { isTelemetryAllowed } from "../telemetry-permissions.js";
 
-const log = createDebug("hardhat:cli:telemetry:sentry:reporter");
+const log = createDebug("hardhat:core:cli:telemetry:sentry:reporter");
 
 // export const SENTRY_DSN =
 //   "https://d578a176729662a28e7a8da268d36912@o385026.ingest.us.sentry.io/4507685793103872"; // DEV

@@ -11,7 +11,7 @@ import { getTelemetryDir } from "@nomicfoundation/hardhat-utils/global-dir";
 
 import { sendTelemetryConfigAnalytics } from "./analytics/analytics.js";
 
-const log = createDebug("hardhat:cli:telemetry:telemetry-permissions");
+const log = createDebug("hardhat:core:cli:telemetry:permissions");
 
 interface TelemetryConfig {
   enabled: boolean;

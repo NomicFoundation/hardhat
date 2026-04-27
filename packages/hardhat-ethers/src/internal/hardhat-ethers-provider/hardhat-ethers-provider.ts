@@ -52,7 +52,7 @@ import {
 } from "../ethers-utils/ethers-utils.js";
 import { HardhatEthersSigner } from "../signers/signers.js";
 
-const log = createDebug("hardhat:hardhat-ethers:provider");
+const log = createDebug("hardhat:ethers:provider");
 
 // The default number of confirmations when waiting for a transaction
 const DEFAULT_TRANSACTION_CONFIRMS = 1;

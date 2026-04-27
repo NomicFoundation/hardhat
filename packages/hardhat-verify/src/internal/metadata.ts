@@ -4,7 +4,7 @@ import { bytesToHexString } from "@nomicfoundation/hardhat-utils/bytes";
 import { createDebug } from "@nomicfoundation/hardhat-utils/debug";
 import { decode } from "cbor2";
 
-const log = createDebug("hardhat:hardhat-verify:metadata");
+const log = createDebug("hardhat:verify:metadata");
 
 export const METADATA_LENGTH_FIELD_SIZE = 2;
 

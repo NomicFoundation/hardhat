@@ -23,7 +23,9 @@ import { assertIgnitionInvariant } from "../../../utils/assertions.js";
 import { JournalMessageType } from "../../types/messages.js";
 import { NetworkInteractionType } from "../../types/network-interaction.js";
 
-const debug = createDebug("hardhat-ignition:onchain-interaction-monitor");
+const debug = createDebug(
+  "hardhat:ignition-core:execution:future-processor:handlers:monitor-onchain-interaction",
+);
 
 /**
  * Checks the transactions of the latest network interaction of the execution state,

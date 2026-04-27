@@ -5,7 +5,7 @@ import chalk from "chalk";
 
 import { formatTraces } from "./trace-formatters.js";
 
-const log = createDebug("hardhat:core:hardhat-network:provider");
+const log = createDebug("hardhat:core:network-manager:edr:trace-output");
 
 // Rotating palette for per-connection coloring of trace headers.
 const LABEL_COLORS: Array<(text: string) => string> = [

@@ -12,7 +12,7 @@ import { getCacheDir } from "@nomicfoundation/hardhat-utils/global-dir";
 import { isObject } from "@nomicfoundation/hardhat-utils/lang";
 import { getRequest } from "@nomicfoundation/hardhat-utils/request";
 
-const log = createDebug("hardhat:util:banner-manager");
+const log = createDebug("hardhat:core:cli:banner-manager");
 
 interface BannerConfig {
   enabled: boolean;

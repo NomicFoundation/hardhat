@@ -33,7 +33,7 @@ import {
   shouldUseProxy,
 } from "@nomicfoundation/hardhat-utils/request";
 
-const log = createDebug("hardhat:hardhat-verify:blockscout");
+const log = createDebug("hardhat:verify:blockscout");
 
 export const BLOCKSCOUT_PROVIDER_NAME: keyof VerificationProvidersConfig =
   "blockscout";

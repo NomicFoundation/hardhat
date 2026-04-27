@@ -30,7 +30,7 @@ type PerformancePhase =
   | "Test execution"
   | "Reporting";
 
-const performanceScope = "hardhat:mocha:performance";
+const performanceScope = "hardhat:mocha:task-action:performance";
 const performanceLog = createDebug(performanceScope);
 const perf = createPerformanceTracker<PerformancePhase>(
   performanceScope,
