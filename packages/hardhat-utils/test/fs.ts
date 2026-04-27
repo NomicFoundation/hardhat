@@ -900,6 +900,30 @@ describe("File system utils", () => {
       });
     });
 
+    it("Should throw FileNotFoundError when relativePath is '.' and the starting directory doesn't exist", async () => {
+      const missingDir = path.join(getTmpDir(), "missing");
+
+      const resolver = new TrueCasePathResolver();
+
+      await assert.rejects(resolver.getFileTrueCase(missingDir, "."), {
+        name: "FileNotFoundError",
+      });
+      await assert.rejects(resolver.getFileTrueCase(missingDir, ""), {
+        name: "FileNotFoundError",
+      });
+    });
+
+    it("Should throw NotADirectoryError when relativePath is '.' and the starting directory is a file", async () => {
+      const filePath = path.join(getTmpDir(), "fileAsFrom");
+      await createFile(filePath);
+
+      const resolver = new TrueCasePathResolver();
+
+      await assert.rejects(resolver.getFileTrueCase(filePath, "."), {
+        name: "NotADirectoryError",
+      });
+    });
+
     it("Should throw FileSystemAccessError if a different error is thrown", async () => {
       const linkPath = path.join(getTmpDir(), "link");
       await fsPromises.symlink(linkPath, linkPath);

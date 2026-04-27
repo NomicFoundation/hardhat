@@ -106,11 +106,16 @@ export class TrueCasePathResolver {
     from: string,
     relativePath: string,
   ): Promise<string> {
+    const absoluteFrom = path.resolve(from);
+
     if (path.normalize(relativePath) === ".") {
+      // There's no casing to resolve, but we still read `from` so that callers
+      // get the documented FileNotFoundError / NotADirectoryError if it
+      // doesn't exist or isn't a directory.
+      await this.#getDirEntries(absoluteFrom);
       return "";
     }
 
-    const absoluteFrom = path.resolve(from);
     const resolved = await this.#resolveFrom(absoluteFrom, relativePath);
     const resolvedRelativePath = path.relative(absoluteFrom, resolved);
 
