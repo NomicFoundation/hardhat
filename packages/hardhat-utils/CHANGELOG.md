@@ -1,5 +1,13 @@
 # @nomicfoundation/hardhat-utils
 
+## 4.0.5
+
+### Patch Changes
+
+- [#8187](https://github.com/NomicFoundation/hardhat/pull/8187) [`8f6a418`](https://github.com/NomicFoundation/hardhat/commit/8f6a418203e78b699ca1a4d9b498d13a428e71f6) Thanks [@ChristopherDedominici](https://github.com/ChristopherDedominici)! - Improved the logic for handling `Node.js` versions that fall below the minimum requirement.
+
+- [#8180](https://github.com/NomicFoundation/hardhat/pull/8180) [`4122faa`](https://github.com/NomicFoundation/hardhat/commit/4122faa3da2b588d83f2c94574f04ae2abd2e723) Thanks [@alcuadrado](https://github.com/alcuadrado)! - Optimize file system traversal helpers
+
 ## 4.0.4
 
 ### Patch Changes
