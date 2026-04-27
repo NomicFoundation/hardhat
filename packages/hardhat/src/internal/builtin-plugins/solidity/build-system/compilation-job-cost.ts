@@ -5,11 +5,11 @@ import type { CompilationJob } from "../../../../types/solidity.js";
 const APPROXIMATE_AVERAGE_SIZE_OF_SOLIDITY_FILES = 10_000;
 
 export function estimateCompilationJobCost(job: CompilationJob): number {
-  let totalBytes = 0;
+  let totalChars = 0;
   let fileCount = 0;
 
   for (const file of job.dependencyGraph.getAllFiles()) {
-    totalBytes += file.content.text.length;
+    totalChars += file.content.text.length;
     fileCount += 1;
   }
 
@@ -37,7 +37,7 @@ export function estimateCompilationJobCost(job: CompilationJob): number {
   const fileOverhead = APPROXIMATE_AVERAGE_SIZE_OF_SOLIDITY_FILES * fileCount;
 
   return (
-    (totalBytes + fileOverhead) *
+    (totalChars + fileOverhead) *
     viaIRMultiplier *
     optimizerMultiplier *
     runsMultiplier

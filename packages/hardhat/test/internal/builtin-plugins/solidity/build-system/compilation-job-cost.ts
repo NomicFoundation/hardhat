@@ -25,7 +25,7 @@ import { ResolvedFileType } from "../../../../../src/types/solidity.js";
 const FILE_OVERHEAD = 10_000;
 
 function expectedCost(opts: {
-  totalBytes: number;
+  totalChars: number;
   fileCount: number;
   viaIR?: boolean;
   optimizer?: boolean;
@@ -42,7 +42,7 @@ function expectedCost(opts: {
     : 1.0;
 
   return (
-    (opts.totalBytes + FILE_OVERHEAD * opts.fileCount) *
+    (opts.totalChars + FILE_OVERHEAD * opts.fileCount) *
     viaIRMul *
     optMul *
     runsMul
@@ -89,19 +89,19 @@ describe("estimateCompilationJobCost", () => {
       assert.equal(estimateCompilationJobCost(makeJob([])), 0);
     });
 
-    it("computes (bytes + overhead) for a single file", () => {
+    it("computes (chars + overhead) for a single file", () => {
       const text = "a".repeat(500);
       assert.equal(
         estimateCompilationJobCost(makeJob([text])),
-        expectedCost({ totalBytes: 500, fileCount: 1 }),
+        expectedCost({ totalChars: 500, fileCount: 1 }),
       );
     });
 
-    it("sums file bytes and applies per-file overhead", () => {
+    it("sums file chars and applies per-file overhead", () => {
       const texts = ["a".repeat(300), "b".repeat(700), "c".repeat(1000)];
       assert.equal(
         estimateCompilationJobCost(makeJob(texts)),
-        expectedCost({ totalBytes: 2000, fileCount: 3 }),
+        expectedCost({ totalChars: 2000, fileCount: 3 }),
       );
     });
 
@@ -110,13 +110,13 @@ describe("estimateCompilationJobCost", () => {
       assert.equal(cost, FILE_OVERHEAD * 3);
     });
 
-    it("makes many small files cost more than one large file with the same total bytes", () => {
-      const totalBytes = 1000;
+    it("makes many small files cost more than one large file with the same total chars", () => {
+      const totalChars = 1000;
       const oneLarge = estimateCompilationJobCost(
-        makeJob(["x".repeat(totalBytes)]),
+        makeJob(["x".repeat(totalChars)]),
       );
       const manySmall = estimateCompilationJobCost(
-        makeJob(Array.from({ length: 10 }, () => "x".repeat(totalBytes / 10))),
+        makeJob(Array.from({ length: 10 }, () => "x".repeat(totalChars / 10))),
       );
       assert.ok(
         manySmall > oneLarge,
@@ -129,7 +129,7 @@ describe("estimateCompilationJobCost", () => {
     it("treats absent settings as all defaults (no viaIR and no optimizer)", () => {
       const text = "abc";
       const absent = estimateCompilationJobCost(makeJob([text], undefined));
-      assert.equal(absent, expectedCost({ totalBytes: 3, fileCount: 1 }));
+      assert.equal(absent, expectedCost({ totalChars: 3, fileCount: 1 }));
     });
 
     it("ignores `runs` when the optimizer is disabled", () => {
@@ -186,7 +186,7 @@ describe("estimateCompilationJobCost", () => {
       assert.equal(
         cost,
         expectedCost({
-          totalBytes: 100,
+          totalChars: 100,
           fileCount: 1,
           optimizer: true,
           runs: 1,
