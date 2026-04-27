@@ -797,7 +797,11 @@ export async function installProjectDependencies({
         stdio: "inherit",
       });
 
-      console.log(`✨ ${chalk.cyan(`Dependencies updated`)} ✨`);
+      if (formatSuccessMessage) {
+        console.log(`✨ ${chalk.cyan(`Dependencies updated`)} ✨`);
+      } else {
+        console.log("Dependencies updated");
+      }
     }
   }
 }
