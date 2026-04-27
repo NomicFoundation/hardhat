@@ -101,6 +101,9 @@ class Reporter {
     error: Error,
     hint?: { unhandled?: boolean; mechanismType?: string },
   ): Promise<boolean> {
+    if (!this.#telemetryEnabled) {
+      return false;
+    }
     const { captureException, flush } = await import("@sentry/core");
 
     log("Capturing exception");
