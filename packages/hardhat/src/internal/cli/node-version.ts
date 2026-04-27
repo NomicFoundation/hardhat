@@ -59,17 +59,3 @@ export function exitIfNodeVersionNotSupported(): void {
     process.exit(1);
   }
 }
-
-export function warnIfUnofficialRuntime(): void {
-  const info = getRuntimeInfo();
-
-  if (info === undefined || info.runtime === "node") {
-    return;
-  }
-
-  const runtimeName = info.runtime === "bun" ? "Bun" : "Deno";
-
-  process.stderr.write(
-    `\nWARNING: You are running Hardhat on ${runtimeName} ${info.version}. ${runtimeName} is not officially supported yet, so some functionality may not work as expected.\n\n`,
-  );
-}

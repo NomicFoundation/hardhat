@@ -5,7 +5,6 @@ import {
   exitIfNodeVersionNotSupported,
   isNodeVersionSupported,
   MIN_SUPPORTED_NODE_VERSION,
-  warnIfUnofficialRuntime,
 } from "../../../src/internal/cli/node-version.js";
 
 let originalNodeVersion: string;
@@ -193,54 +192,6 @@ describe("Node version", () => {
         writeMock.mock.callCount(),
         0,
         "process.stderr.write should not be called on Bun",
-      );
-    });
-  });
-
-  describe("warnIfUnofficialRuntime", () => {
-    it("does nothing on Node.js", (t) => {
-      const writeMock = t.mock.method(process.stderr, "write", () => true);
-
-      warnIfUnofficialRuntime();
-
-      assert.equal(
-        writeMock.mock.callCount(),
-        0,
-        "process.stderr.write should not be called on Node.js",
-      );
-    });
-
-    it("writes a warning mentioning Bun when running on Bun", (t) => {
-      t.after(() => {
-        Object.defineProperty(process.versions, "bun", {
-          value: undefined,
-          configurable: true,
-        });
-      });
-
-      Object.defineProperty(process.versions, "bun", {
-        value: "1.1.0",
-        writable: false,
-        configurable: true,
-      });
-      const writeMock = t.mock.method(process.stderr, "write", () => true);
-
-      warnIfUnofficialRuntime();
-
-      assert.equal(
-        writeMock.mock.callCount(),
-        1,
-        "process.stderr.write should be called exactly once",
-      );
-
-      const message = String(writeMock.mock.calls[0].arguments[0]);
-      assert.ok(
-        message.includes("Bun"),
-        `warning should mention Bun: ${message}`,
-      );
-      assert.ok(
-        message.includes("1.1.0"),
-        `warning should include the Bun version: ${message}`,
       );
     });
   });
