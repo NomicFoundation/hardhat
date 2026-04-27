@@ -7,7 +7,17 @@ declare const globalThis: {
   Deno?: unknown;
 };
 
-const ORIGINAL_VERSIONS = process.versions;
+function getOriginalVersionsDescriptor(): PropertyDescriptor {
+  const descriptor = Object.getOwnPropertyDescriptor(process, "versions");
+
+  if (descriptor === undefined) {
+    throw new Error("process.versions descriptor not found");
+  }
+
+  return descriptor;
+}
+
+const ORIGINAL_VERSIONS_DESCRIPTOR = getOriginalVersionsDescriptor();
 const HAS_ORIGINAL_DENO = "Deno" in globalThis;
 const ORIGINAL_DENO = globalThis.Deno;
 
@@ -20,11 +30,7 @@ function setProcessVersions(versions: Record<string, string>): void {
 }
 
 function restoreProcessVersions(): void {
-  Object.defineProperty(process, "versions", {
-    value: ORIGINAL_VERSIONS,
-    configurable: true,
-    writable: true,
-  });
+  Object.defineProperty(process, "versions", ORIGINAL_VERSIONS_DESCRIPTOR);
 }
 
 function setDeno(deno: unknown): void {
