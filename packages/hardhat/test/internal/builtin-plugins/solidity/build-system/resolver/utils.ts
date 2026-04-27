@@ -42,6 +42,26 @@ describe("Resolver utils", () => {
       );
     });
 
+    it("Should return an error if the path traverses through a file", async () => {
+      const fileName = "not-a-dir.txt";
+      const absolutePath = path.join(dir, fileName);
+      await writeUtf8File(absolutePath, "txt");
+
+      assert.deepEqual(
+        await validateFsPath(
+          new TrueCasePathResolver(),
+          dir,
+          path.join(fileName, "child.sol"),
+        ),
+        {
+          success: false,
+          error: {
+            type: PathValidationErrorType.DOES_NOT_EXIST,
+          },
+        },
+      );
+    });
+
     it("Should return an error if the path exists with a different casing", async () => {
       const relativePathIncorrect = "FILE.txt";
       const relativePathCorrect = "file.txt";
