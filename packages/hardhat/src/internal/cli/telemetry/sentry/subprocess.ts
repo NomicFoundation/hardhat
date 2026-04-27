@@ -38,30 +38,22 @@ const envelope = JSON.parse(serializedEnvelope);
 
 const anonymizer = new Anonymizer(configPath);
 
-const filteredEnvelope =
-  anonymizer.filterOutEventsWithExceptionsNotRaisedByHardhat(envelope);
+const anonymizeResult = await anonymizer.anonymizeEventsFromEnvelope(envelope);
 
-if (filteredEnvelope[1].length === 0) {
-  log("The events weren't raised by Hardhat, so we don't report them");
+if (!anonymizeResult.success) {
+  log("Failed to anonymize envelope", anonymizeResult.error);
+  captureMessage(anonymizeResult.error);
 } else {
-  const anonymizeResult =
-    await anonymizer.anonymizeEventsFromEnvelope(filteredEnvelope);
+  try {
+    log("Sending received envelope to Sentry");
 
-  if (!anonymizeResult.success) {
-    log("Failed to anonymize envelope", anonymizeResult.error);
-    captureMessage(anonymizeResult.error);
-  } else {
-    try {
-      log("Sending received envelope to Sentry");
+    await sendEnvelopeToSentryBackend(dsn, anonymizeResult.envelope);
 
-      await sendEnvelopeToSentryBackend(dsn, anonymizeResult.envelope);
+    log("Successfully sent received envelope to Sentry");
+  } catch (e) {
+    log("Failed to send received envelope to Sentry", e);
 
-      log("Successfully sent received envelope to Sentry");
-    } catch (e) {
-      log("Failed to send received envelope to Sentry", e);
-
-      captureException(e);
-    }
+    captureException(e);
   }
 }
 
