@@ -32,7 +32,7 @@ export interface DebugLogger {
  *
  * @example
  * ```ts
- * const log = createDebug("hardhat:core:foo");
+ * const log = createDebug("hardhat:utils:foo");
  * log("Starting up");
  * log("Received %O", payload);
  * log("Saved data", id, filePath);

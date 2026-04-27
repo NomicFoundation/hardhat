@@ -18,7 +18,7 @@ import { performance } from "node:perf_hooks";
  *   | "Build"
  *   | "Reporting";
  *
- * const performanceScope = "hardhat:mocha:performance";
+ * const performanceScope = "hardhat:mocha:task-action:performance";
  * const performanceLog = debug(performanceScope);
  * const perf = createPerformanceTracker<PerformancePhase>(
  *   performanceScope,
@@ -99,7 +99,7 @@ export interface PerformanceTracker<PhaseT extends string> {
  * its sub-phases.
  *
  * @param scope - A namespace prefix for performance marks (e.g.
- *   "hardhat:mocha:performance").
+ *   "hardhat:mocha:task-action:performance").
  * @param trackerName - The display name for the overarching measure
  *   (e.g. "Mocha test task").
  * @returns A new {@link PerformanceTracker} instance.

@@ -29,7 +29,7 @@ export {
   StaleMultiProcessMutexError,
 } from "./errors/synchronization.js";
 
-const log = createDebug("hardhat:util:multi-process-mutex");
+const log = createDebug("hardhat:utils:synchronization");
 
 const PROCESS_SESSION_ID = randomUUID();
 const DEFAULT_TIMEOUT_MS = 60_000;
