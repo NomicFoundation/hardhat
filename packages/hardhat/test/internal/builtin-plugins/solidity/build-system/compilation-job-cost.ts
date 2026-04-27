@@ -8,7 +8,10 @@ import type { ResolvedNpmPackage } from "../../../../../src/types/solidity.js";
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 
-import { estimateCompilationJobCost } from "../../../../../src/internal/builtin-plugins/solidity/build-system/compilation-job-cost.js";
+import {
+  estimateCompilationJobCost,
+  sortCompilationJobsByDescendingCost,
+} from "../../../../../src/internal/builtin-plugins/solidity/build-system/compilation-job-cost.js";
 import { CompilationJobImplementation } from "../../../../../src/internal/builtin-plugins/solidity/build-system/compilation-job.js";
 import { DependencyGraphImplementation } from "../../../../../src/internal/builtin-plugins/solidity/build-system/dependency-graph.js";
 import { HookManagerImplementation } from "../../../../../src/internal/core/hook-manager.js";
@@ -321,5 +324,32 @@ describe("estimateCompilationJobCost", () => {
         estimateCompilationJobCost(job),
       );
     });
+  });
+});
+
+describe("sortCompilationJobsByDescendingCost", () => {
+  // Three jobs with clearly-separated costs, one per multiplier "tier":
+  //   cheap    ≈ 10_000  (no settings)
+  //   medium   ≈ 14_000  (optimizer on, default runs)
+  //   expensive ≈ 60_000 (viaIR on)
+  // The gaps are wide enough to survive constants tuning.
+  const cheap = makeJob(["a"]);
+  const medium = makeJob(["a"], { optimizer: { enabled: true } });
+  const expensive = makeJob(["a"], { viaIR: true });
+
+  it("returns jobs in descending cost order", () => {
+    const sorted = sortCompilationJobsByDescendingCost([
+      cheap,
+      expensive,
+      medium,
+    ]);
+    assert.deepEqual(sorted, [expensive, medium, cheap]);
+  });
+
+  it("does not mutate the input array", () => {
+    const input = [cheap, expensive, medium];
+    const before = [...input];
+    sortCompilationJobsByDescendingCost(input);
+    assert.deepEqual(input, before);
   });
 });

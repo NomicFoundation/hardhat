@@ -43,3 +43,16 @@ export function estimateCompilationJobCost(job: CompilationJob): number {
     runsMultiplier
   );
 }
+
+/**
+ * Returns a new array containing the given compilation jobs sorted by their
+ * estimated cost in descending order. The input array is not mutated.
+ */
+export function sortCompilationJobsByDescendingCost(
+  compilationJobs: CompilationJob[],
+): CompilationJob[] {
+  return compilationJobs
+    .map((job) => ({ job, cost: estimateCompilationJobCost(job) }))
+    .sort((a, b) => b.cost - a.cost)
+    .map(({ job }) => job);
+}
