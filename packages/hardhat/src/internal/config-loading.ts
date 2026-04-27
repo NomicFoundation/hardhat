@@ -4,13 +4,13 @@ import path from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 
 import { HardhatError } from "@nomicfoundation/hardhat-errors";
+import { createDebug } from "@nomicfoundation/hardhat-utils/debug";
 import { ensureError } from "@nomicfoundation/hardhat-utils/error";
 import { exists, findUp, getRealPath } from "@nomicfoundation/hardhat-utils/fs";
 import { isObject } from "@nomicfoundation/hardhat-utils/lang";
 import { resolveFromRoot } from "@nomicfoundation/hardhat-utils/path";
-import debug from "debug";
 
-const log = debug("hardhat:core:config-loading");
+const log = createDebug("hardhat:core:config-loading");
 
 /**
  * This cache stores any `.ts` files compiled using `tsImport`.

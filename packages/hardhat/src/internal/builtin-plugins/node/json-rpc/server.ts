@@ -5,12 +5,12 @@ import type { AddressInfo } from "node:net";
 
 import http from "node:http";
 
-import debug from "debug";
+import { createDebug } from "@nomicfoundation/hardhat-utils/debug";
 import { WebSocketServer } from "ws";
 
 import { JsonRpcHandler } from "./handler.js";
 
-const log = debug("hardhat:core:tasks:node:json-rpc:server");
+const log = createDebug("hardhat:core:tasks:node:json-rpc:server");
 
 export interface JsonRpcServerConfig {
   hostname: string;

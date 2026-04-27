@@ -1,11 +1,11 @@
 import type { Response } from "@nomicfoundation/edr";
 
+import { createDebug } from "@nomicfoundation/hardhat-utils/debug";
 import chalk from "chalk";
-import debug from "debug";
 
 import { formatTraces } from "./trace-formatters.js";
 
-const log = debug("hardhat:core:hardhat-network:provider");
+const log = createDebug("hardhat:core:hardhat-network:provider");
 
 // Rotating palette for per-connection coloring of trace headers.
 const LABEL_COLORS: Array<(text: string) => string> = [

@@ -7,6 +7,7 @@ import {
   assertHardhatInvariant,
   HardhatError,
 } from "@nomicfoundation/hardhat-errors";
+import { createDebug } from "@nomicfoundation/hardhat-utils/debug";
 import { ensureError } from "@nomicfoundation/hardhat-utils/error";
 import {
   copy,
@@ -19,7 +20,6 @@ import {
 } from "@nomicfoundation/hardhat-utils/fs";
 import { resolveFromRoot } from "@nomicfoundation/hardhat-utils/path";
 import chalk from "chalk";
-import debug from "debug";
 import * as semver from "semver";
 
 import { findClosestHardhatConfig } from "../../config-loading.js";
@@ -58,7 +58,7 @@ export interface InitHardhatOptions {
   install?: boolean;
 }
 
-const log = debug("hardhat:cli:init");
+const log = createDebug("hardhat:cli:init");
 
 /**
  * initHardhat implements the project initialization wizard flow.

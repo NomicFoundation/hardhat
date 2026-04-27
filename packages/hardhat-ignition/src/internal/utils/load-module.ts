@@ -4,10 +4,10 @@ import path from "node:path";
 import { pathToFileURL } from "node:url";
 
 import { HardhatError } from "@nomicfoundation/hardhat-errors";
+import { createDebug } from "@nomicfoundation/hardhat-utils/debug";
 import { exists } from "@nomicfoundation/hardhat-utils/fs";
-import setupDebug from "debug";
 
-const debug = setupDebug("hardhat-ignition:modules");
+const debug = createDebug("hardhat-ignition:modules");
 
 const MODULES_FOLDER = "modules";
 

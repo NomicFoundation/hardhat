@@ -1,6 +1,6 @@
 /* eslint-disable no-restricted-syntax -- Allow top-level await */
+import { createDebug } from "@nomicfoundation/hardhat-utils/debug";
 import { captureMessage, close, captureException } from "@sentry/core";
-import debug from "debug";
 
 import { Anonymizer } from "./anonymizer.js";
 import { init } from "./init.js";
@@ -9,7 +9,7 @@ import {
   sendEnvelopeToSentryBackend,
 } from "./transport.js";
 
-const log = debug("hardhat:core:sentry:subprocess");
+const log = createDebug("hardhat:core:sentry:subprocess");
 
 const serializedEnvelope = process.argv[2];
 const configPath = process.argv[3] !== "" ? process.argv[3] : undefined;

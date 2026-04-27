@@ -4,6 +4,7 @@ import type {
 } from "../../types/global-options.js";
 import type { HardhatRuntimeEnvironment } from "../../types/hre.js";
 import type { Task, TaskArguments } from "../../types/tasks.js";
+import type { DebugLogger } from "@nomicfoundation/hardhat-utils/debug";
 
 import { fileURLToPath } from "node:url";
 
@@ -12,6 +13,7 @@ import {
   assertHardhatInvariant,
 } from "@nomicfoundation/hardhat-errors";
 import { isCi } from "@nomicfoundation/hardhat-utils/ci";
+import { createDebug } from "@nomicfoundation/hardhat-utils/debug";
 import { ensureError } from "@nomicfoundation/hardhat-utils/error";
 import { getRealPath } from "@nomicfoundation/hardhat-utils/fs";
 import {
@@ -20,7 +22,6 @@ import {
   readClosestPackageJson,
 } from "@nomicfoundation/hardhat-utils/package";
 import { kebabToCamelCase } from "@nomicfoundation/hardhat-utils/string";
-import debug from "debug";
 import { register } from "tsx/esm/api";
 
 import {
@@ -69,7 +70,7 @@ export async function main(
 
   const print = options.print ?? console.log;
 
-  const log = debug("hardhat:core:cli:main");
+  const log = createDebug("hardhat:core:cli:main");
 
   let builtinGlobalOptions;
   let configPath;
@@ -752,7 +753,7 @@ npm pkg set type="module"
  */
 async function isHardhatInstalledLocallyOrLinked(
   configPath: string,
-  log: debug.Debugger,
+  log: DebugLogger,
 ) {
   try {
     // Based on Node.js resolution algorithm find the real path

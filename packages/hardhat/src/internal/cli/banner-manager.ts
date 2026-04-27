@@ -2,6 +2,7 @@ import type { Dispatcher } from "@nomicfoundation/hardhat-utils/request";
 
 import path from "node:path";
 
+import { createDebug } from "@nomicfoundation/hardhat-utils/debug";
 import {
   readJsonFile,
   writeJsonFile,
@@ -10,9 +11,8 @@ import {
 import { getCacheDir } from "@nomicfoundation/hardhat-utils/global-dir";
 import { isObject } from "@nomicfoundation/hardhat-utils/lang";
 import { getRequest } from "@nomicfoundation/hardhat-utils/request";
-import debug from "debug";
 
-const log = debug("hardhat:util:banner-manager");
+const log = createDebug("hardhat:util:banner-manager");
 
 interface BannerConfig {
   enabled: boolean;

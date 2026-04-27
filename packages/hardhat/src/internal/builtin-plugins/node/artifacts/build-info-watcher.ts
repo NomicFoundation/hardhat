@@ -2,13 +2,13 @@ import type { FSWatcher } from "chokidar";
 
 import path from "node:path";
 
+import { createDebug } from "@nomicfoundation/hardhat-utils/debug";
 import { watch } from "chokidar";
-import debug from "debug";
 
 export type BuildInfoWatcher = FSWatcher;
 export type BuildInfoHandler = (buildId: string) => Promise<void>;
 
-const log = debug("hardhat:core:tasks:node:artifacts");
+const log = createDebug("hardhat:core:tasks:node:artifacts");
 
 const STABILITY_THRESHOLD = 250;
 const POLL_INTERVAL = 50;

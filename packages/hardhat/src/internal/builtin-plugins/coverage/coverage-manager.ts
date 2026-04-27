@@ -8,6 +8,7 @@ import type { TableItem } from "@nomicfoundation/hardhat-utils/format";
 
 import path from "node:path";
 
+import { createDebug } from "@nomicfoundation/hardhat-utils/debug";
 import { formatTable } from "@nomicfoundation/hardhat-utils/format";
 import {
   ensureDir,
@@ -19,12 +20,11 @@ import {
   writeUtf8File,
 } from "@nomicfoundation/hardhat-utils/fs";
 import chalk from "chalk";
-import debug from "debug";
 
 import { getProcessedCoverageInfo } from "./process-coverage.js";
 import { generateHtmlReport } from "./reports/html.js";
 
-const log = debug("hardhat:core:coverage:coverage-manager");
+const log = createDebug("hardhat:core:coverage:coverage-manager");
 
 const MAX_COLUMN_WIDTH = 80;
 

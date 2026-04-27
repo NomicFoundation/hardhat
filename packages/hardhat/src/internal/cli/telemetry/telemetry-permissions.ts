@@ -1,17 +1,17 @@
 import path from "node:path";
 
 import { isCi } from "@nomicfoundation/hardhat-utils/ci";
+import { createDebug } from "@nomicfoundation/hardhat-utils/debug";
 import {
   exists,
   readJsonFile,
   writeJsonFile,
 } from "@nomicfoundation/hardhat-utils/fs";
 import { getTelemetryDir } from "@nomicfoundation/hardhat-utils/global-dir";
-import debug from "debug";
 
 import { sendTelemetryConfigAnalytics } from "./analytics/analytics.js";
 
-const log = debug("hardhat:cli:telemetry:telemetry-permissions");
+const log = createDebug("hardhat:cli:telemetry:telemetry-permissions");
 
 interface TelemetryConfig {
   enabled: boolean;

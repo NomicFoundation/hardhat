@@ -43,7 +43,6 @@
   "devDependencies": {
     "@nomicfoundation/hardhat-node-test-reporter": "workspace:^3.0.5",
     "@nomicfoundation/hardhat-test-utils": "workspace:^",
-    "@types/debug": "^4.1.7",
     "@types/node": "^22.0.0",
     "c8": "^9.1.0",
     "eslint": "9.25.1",
@@ -61,7 +60,6 @@
     "@noble/ciphers": "1.2.1",
     "@noble/hashes": "1.7.1",
     "chalk": "^5.3.0",
-    "debug": "^4.3.2",
     "zod": "^3.23.8"
   },
   "peerDependencies": {

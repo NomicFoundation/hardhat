@@ -29,9 +29,9 @@ import {
   HardhatError,
 } from "@nomicfoundation/hardhat-errors";
 import { toSeconds } from "@nomicfoundation/hardhat-utils/date";
+import { createDebug } from "@nomicfoundation/hardhat-utils/debug";
 import { ensureError } from "@nomicfoundation/hardhat-utils/error";
 import { numberToHexString } from "@nomicfoundation/hardhat-utils/hex";
-import debug from "debug";
 
 import { sendErrorTelemetry } from "../../../cli/telemetry/error-reporter/reporter.js";
 import { EDR_NETWORK_REVERT_SNAPSHOT_EVENT } from "../../../constants.js";
@@ -59,7 +59,7 @@ import {
 } from "./utils/convert-to-edr.js";
 import { printLine, replaceLastLine } from "./utils/logger.js";
 
-const log = debug("hardhat:core:hardhat-network:provider");
+const log = createDebug("hardhat:core:hardhat-network:provider");
 
 interface EdrProviderConfig {
   chainDescriptors: ChainDescriptorsConfig;

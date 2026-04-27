@@ -194,9 +194,6 @@ importers:
       chokidar:
         specifier: ^4.0.3
         version: 4.0.3
-      debug:
-        specifier: ^4.3.2
-        version: 4.4.3(supports-color@5.5.0)
       enquirer:
         specifier: ^2.3.0
         version: 2.4.1
@@ -234,9 +231,6 @@ importers:
       '@types/adm-zip':
         specifier: ^0.5.5
         version: 0.5.7
-      '@types/debug':
-        specifier: ^4.1.7
-        version: 4.1.12
       '@types/node':
         specifier: ^22.0.0
         version: 22.18.7
@@ -307,9 +301,6 @@ importers:
       '@nomicfoundation/hardhat-utils':
         specifier: workspace:^4.0.4
         version: link:../hardhat-utils
-      debug:
-        specifier: ^4.3.2
-        version: 4.4.3(supports-color@5.5.0)
       ethereum-cryptography:
         specifier: ^2.2.1
         version: 2.2.1
@@ -323,9 +314,6 @@ importers:
       '@nomicfoundation/hardhat-test-utils':
         specifier: workspace:^
         version: link:../hardhat-test-utils
-      '@types/debug':
-        specifier: ^4.1.7
-        version: 4.1.12
       '@types/node':
         specifier: ^22.0.0
         version: 22.18.7
@@ -384,9 +372,6 @@ importers:
       '@types/chai':
         specifier: ^5.2.3
         version: 5.2.3
-      '@types/debug':
-        specifier: ^4.1.7
-        version: 4.1.12
       '@types/deep-eql':
         specifier: ^4.0.2
         version: 4.0.2
@@ -487,9 +472,6 @@ importers:
       chalk:
         specifier: ^5.3.0
         version: 5.6.2
-      debug:
-        specifier: ^4.3.2
-        version: 4.4.3(supports-color@5.5.0)
       json5:
         specifier: ^2.2.3
         version: 2.2.3
@@ -515,9 +497,6 @@ importers:
       '@types/chai-as-promised':
         specifier: ^8.0.1
         version: 8.0.2
-      '@types/debug':
-        specifier: ^4.1.7
-        version: 4.1.12
       '@types/mocha':
         specifier: '>=10.0.10'
         version: 10.0.10
@@ -718,9 +697,6 @@ importers:
       chalk:
         specifier: ^5.3.0
         version: 5.6.2
-      debug:
-        specifier: ^4.3.2
-        version: 4.4.3(supports-color@5.5.0)
       zod:
         specifier: ^3.23.8
         version: 3.25.76
@@ -731,9 +707,6 @@ importers:
       '@nomicfoundation/hardhat-test-utils':
         specifier: workspace:^
         version: link:../hardhat-test-utils
-      '@types/debug':
-        specifier: ^4.1.7
-        version: 4.1.12
       '@types/node':
         specifier: ^22.0.0
         version: 22.18.7
@@ -769,10 +742,10 @@ importers:
         version: 6.25.0
       '@ledgerhq/evm-tools':
         specifier: ^1.7.7
-        version: 1.7.7(debug@4.4.3)
+        version: 1.7.7
       '@ledgerhq/hw-app-eth':
         specifier: ^6.45.19
-        version: 6.45.19(debug@4.4.3)
+        version: 6.45.19
       '@ledgerhq/hw-transport':
         specifier: ^6.31.11
         version: 6.31.11
@@ -791,9 +764,6 @@ importers:
       '@nomicfoundation/hardhat-zod-utils':
         specifier: workspace:^3.0.4
         version: link:../hardhat-zod-utils
-      debug:
-        specifier: ^4.3.2
-        version: 4.4.3(supports-color@5.5.0)
       micro-eth-signer:
         specifier: ^0.14.0
         version: 0.14.0
@@ -810,9 +780,6 @@ importers:
       '@nomicfoundation/hardhat-test-utils':
         specifier: workspace:^
         version: link:../hardhat-test-utils
-      '@types/debug':
-        specifier: ^4.1.7
-        version: 4.1.12
       '@types/node':
         specifier: ^22.0.0
         version: 22.18.7
@@ -855,9 +822,6 @@ importers:
       chalk:
         specifier: ^5.3.0
         version: 5.6.2
-      debug:
-        specifier: ^4.3.2
-        version: 4.4.3(supports-color@5.5.0)
       tsx:
         specifier: ^4.19.3
         version: 4.20.6
@@ -871,9 +835,6 @@ importers:
       '@nomicfoundation/hardhat-test-utils':
         specifier: workspace:^
         version: link:../hardhat-test-utils
-      '@types/debug':
-        specifier: ^4.1.7
-        version: 4.1.12
       '@types/mocha':
         specifier: '>=10.0.10'
         version: 10.0.10
@@ -920,9 +881,6 @@ importers:
       '@nomicfoundation/hardhat-test-utils':
         specifier: workspace:^
         version: link:../hardhat-test-utils
-      '@types/debug':
-        specifier: ^4.1.7
-        version: 4.1.12
       '@types/node':
         specifier: ^22.0.0
         version: 22.18.7
@@ -1048,9 +1006,6 @@ importers:
       '@nomicfoundation/hardhat-zod-utils':
         specifier: workspace:^3.0.4
         version: link:../hardhat-zod-utils
-      debug:
-        specifier: ^4.3.2
-        version: 4.4.3(supports-color@5.5.0)
       zod:
         specifier: ^3.23.8
         version: 3.25.76
@@ -1061,9 +1016,6 @@ importers:
       '@nomicfoundation/hardhat-test-utils':
         specifier: workspace:^
         version: link:../hardhat-test-utils
-      '@types/debug':
-        specifier: ^4.1.7
-        version: 4.1.12
       '@types/node':
         specifier: ^22.0.0
         version: 22.18.7
@@ -1287,9 +1239,6 @@ importers:
       '@typechain/ethers-v6':
         specifier: ^0.5.0
         version: 0.5.1(ethers@6.15.0)(typechain@8.3.2(typescript@5.8.3))(typescript@5.8.3)
-      debug:
-        specifier: ^4.3.2
-        version: 4.4.3(supports-color@5.5.0)
       typechain:
         specifier: ^8.3.1
         version: 8.3.2(typescript@5.8.3)
@@ -1306,9 +1255,6 @@ importers:
       '@nomicfoundation/hardhat-test-utils':
         specifier: workspace:^
         version: link:../hardhat-test-utils
-      '@types/debug':
-        specifier: ^4.1.7
-        version: 4.1.12
       '@types/node':
         specifier: ^22.0.0
         version: 22.18.7
@@ -1345,9 +1291,6 @@ importers:
       '@streamparser/json-node':
         specifier: ^0.0.22
         version: 0.0.22
-      debug:
-        specifier: ^4.3.2
-        version: 4.4.3(supports-color@5.5.0)
       env-paths:
         specifier: ^2.2.0
         version: 2.2.1
@@ -1373,9 +1316,6 @@ importers:
       '@types/bn.js':
         specifier: ^5.1.5
         version: 5.2.0
-      '@types/debug':
-        specifier: ^4.1.7
-        version: 4.1.12
       '@types/node':
         specifier: ^22.0.0
         version: 22.18.7
@@ -1409,9 +1349,6 @@ importers:
       '@types/bn.js':
         specifier: ^5.1.5
         version: 5.2.0
-      '@types/debug':
-        specifier: ^4.1.7
-        version: 4.1.12
       '@types/node':
         specifier: ^22.0.0
         version: 22.18.7
@@ -1457,9 +1394,6 @@ importers:
       chalk:
         specifier: ^5.3.0
         version: 5.6.2
-      debug:
-        specifier: ^4.3.2
-        version: 4.4.3(supports-color@5.5.0)
       semver:
         specifier: ^7.6.3
         version: 7.7.4
@@ -1473,9 +1407,6 @@ importers:
       '@nomicfoundation/hardhat-test-utils':
         specifier: workspace:^
         version: link:../hardhat-test-utils
-      '@types/debug':
-        specifier: ^4.1.7
-        version: 4.1.12
       '@types/node':
         specifier: ^22.0.0
         version: 22.18.7
@@ -1790,9 +1721,6 @@ importers:
       cbor2:
         specifier: ^1.9.0
         version: 1.12.0
-      debug:
-        specifier: ^4.3.2
-        version: 4.4.3(supports-color@5.5.0)
       ethers:
         specifier: ^6.14.0
         version: 6.15.0
@@ -1821,9 +1749,6 @@ importers:
       '@types/chai-as-promised':
         specifier: ^8.0.1
         version: 8.0.2
-      '@types/debug':
-        specifier: ^4.1.7
-        version: 4.1.12
       '@types/lodash-es':
         specifier: ^4.17.12
         version: 4.17.12
@@ -8440,10 +8365,10 @@ snapshots:
       '@jridgewell/resolve-uri': 3.1.2
       '@jridgewell/sourcemap-codec': 1.5.5
 
-  '@ledgerhq/cryptoassets-evm-signatures@13.6.3(debug@4.4.3)':
+  '@ledgerhq/cryptoassets-evm-signatures@13.6.3':
     dependencies:
       '@ledgerhq/live-env': 2.17.0
-      axios: 1.11.0(debug@4.4.3)
+      axios: 1.11.0
     transitivePeerDependencies:
       - debug
 
@@ -8454,12 +8379,12 @@ snapshots:
       rxjs: 7.8.2
       semver: 7.7.4
 
-  '@ledgerhq/domain-service@1.2.44(debug@4.4.3)':
+  '@ledgerhq/domain-service@1.2.44':
     dependencies:
       '@ledgerhq/errors': 6.25.0
       '@ledgerhq/logs': 6.13.0
       '@ledgerhq/types-live': 6.85.0
-      axios: 1.11.0(debug@4.4.3)
+      axios: 1.11.0
       eip55: 2.1.1
       react: 18.3.1
       react-dom: 18.3.1(react@18.3.1)
@@ -8468,31 +8393,31 @@ snapshots:
 
   '@ledgerhq/errors@6.25.0': {}
 
-  '@ledgerhq/evm-tools@1.7.7(debug@4.4.3)':
+  '@ledgerhq/evm-tools@1.7.7':
     dependencies:
       '@ethersproject/constants': 5.8.0
       '@ethersproject/hash': 5.8.0
-      '@ledgerhq/cryptoassets-evm-signatures': 13.6.3(debug@4.4.3)
+      '@ledgerhq/cryptoassets-evm-signatures': 13.6.3
       '@ledgerhq/live-env': 2.17.0
-      axios: 1.11.0(debug@4.4.3)
+      axios: 1.11.0
       crypto-js: 4.2.0
     transitivePeerDependencies:
       - debug
 
-  '@ledgerhq/hw-app-eth@6.45.19(debug@4.4.3)':
+  '@ledgerhq/hw-app-eth@6.45.19':
     dependencies:
       '@ethersproject/abi': 5.8.0
       '@ethersproject/rlp': 5.8.0
       '@ethersproject/transactions': 5.8.0
-      '@ledgerhq/cryptoassets-evm-signatures': 13.6.3(debug@4.4.3)
-      '@ledgerhq/domain-service': 1.2.44(debug@4.4.3)
+      '@ledgerhq/cryptoassets-evm-signatures': 13.6.3
+      '@ledgerhq/domain-service': 1.2.44
       '@ledgerhq/errors': 6.25.0
-      '@ledgerhq/evm-tools': 1.7.7(debug@4.4.3)
+      '@ledgerhq/evm-tools': 1.7.7
       '@ledgerhq/hw-transport': 6.31.11
       '@ledgerhq/hw-transport-mocker': 6.29.11
       '@ledgerhq/logs': 6.13.0
       '@ledgerhq/types-live': 6.85.0
-      axios: 1.11.0(debug@4.4.3)
+      axios: 1.11.0
       bignumber.js: 9.3.0
       semver: 7.7.4
     transitivePeerDependencies:
@@ -9597,9 +9522,9 @@ snapshots:
 
   aws4@1.13.2: {}
 
-  axios@1.11.0(debug@4.4.3):
+  axios@1.11.0:
     dependencies:
-      follow-redirects: 1.15.9(debug@4.4.3)
+      follow-redirects: 1.15.9
       form-data: 4.0.4
       proxy-from-env: 1.1.0
     transitivePeerDependencies:
@@ -10894,9 +10819,7 @@ snapshots:
 
   flatted@3.3.3: {}
 
-  follow-redirects@1.15.9(debug@4.4.3):
-    optionalDependencies:
-      debug: 4.4.3
+  follow-redirects@1.15.9: {}
 
   for-each@0.3.5:
     dependencies:

@@ -4,15 +4,15 @@ import type { CoverageMetadata } from "../types.js";
 import path from "node:path";
 
 import { HardhatError } from "@nomicfoundation/hardhat-errors";
+import { createDebug } from "@nomicfoundation/hardhat-utils/debug";
 import { ensureError } from "@nomicfoundation/hardhat-utils/error";
 import { readUtf8File } from "@nomicfoundation/hardhat-utils/fs";
 import { findClosestPackageRoot } from "@nomicfoundation/hardhat-utils/package";
-import debug from "debug";
 
 import { getCoverageManager } from "../helpers/accessors.js";
 import { instrumentSolidityFileForCompilationJob } from "../instrumentation.js";
 
-const log = debug("hardhat:core:coverage:hook-handlers:solidity");
+const log = createDebug("hardhat:core:coverage:hook-handlers:solidity");
 
 const COVERAGE_LIBRARY_PATH =
   "__hardhat_coverage_library_a3e9cfe2-41b4-4a1f-ad9e-ac62dd82979e.sol";

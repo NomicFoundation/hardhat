@@ -15,6 +15,7 @@ import {
   HardhatError,
   assertHardhatInvariant,
 } from "@nomicfoundation/hardhat-errors";
+import { createDebug } from "@nomicfoundation/hardhat-utils/debug";
 import { formatTable } from "@nomicfoundation/hardhat-utils/format";
 import {
   ensureDir,
@@ -27,7 +28,6 @@ import {
 } from "@nomicfoundation/hardhat-utils/fs";
 import { findDuplicates } from "@nomicfoundation/hardhat-utils/lang";
 import chalk from "chalk";
-import debug from "debug";
 
 import { parseFullyQualifiedName } from "../../../utils/contract-names.js";
 
@@ -41,7 +41,7 @@ import {
   median,
 } from "./helpers/utils.js";
 
-const gasStatsLog = debug(
+const gasStatsLog = createDebug(
   "hardhat:core:gas-analytics:gas-analytics-manager:gas-stats",
 );
 

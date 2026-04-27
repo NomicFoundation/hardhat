@@ -10,15 +10,15 @@ import {
   getTmpDir,
   useFixtureProject,
 } from "@nomicfoundation/hardhat-test-utils";
+import { createDebug } from "@nomicfoundation/hardhat-utils/debug";
 import { ensureError } from "@nomicfoundation/hardhat-utils/error";
 import { exists, remove } from "@nomicfoundation/hardhat-utils/fs";
-import debug from "debug";
 
 import { overrideTask } from "../../../../src/config.js";
 import consoleAction from "../../../../src/internal/builtin-plugins/console/task-action.js";
 import { createHardhatRuntimeEnvironment } from "../../../../src/internal/hre-initialization.js";
 
-const log = debug("hardhat:test:console:task-action");
+const log = createDebug("hardhat:test:console:task-action");
 
 describe("console/task-action", function () {
   let hre: HardhatRuntimeEnvironment;
