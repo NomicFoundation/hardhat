@@ -59,9 +59,12 @@ interface DirEntries {
  *
  * This class caches successful resolutions internally, and may do some
  * duplicate work when multiple concurrent lookups for the same path are made
- * before the first one finishes, but it avoids caching failed lookups and stale
- * results after `clear()`. If profiling shows that this work duplication is a
- * problem, we can either cache in-flight operations, or add a mutex.
+ * before the first one finishes. It does not cache failed resolutions as
+ * negative result entries, but it does cache directory listings, so filesystem
+ * changes may not be observed until `clear()` is called. After `clear()`,
+ * previously cached directory and resolution data is discarded. If profiling
+ * shows that this work duplication is a problem, we can either cache in-flight
+ * operations, or add a mutex.
  */
 export class TrueCasePathResolver {
   /**
