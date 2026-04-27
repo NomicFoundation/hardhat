@@ -10,7 +10,6 @@ describe("Instrumentation version selection", () => {
     const { instrumentationVersion } = instrumentSolidityFileForCompilationJob({
       sourceName: "Foo.sol",
       compilationJobSolcVersion: "100.0.0",
-      coverageLibraryPath: "coverage.sol",
       fileContent: "",
     });
 
@@ -23,7 +22,6 @@ describe("Instrumentation version selection", () => {
     const { instrumentationVersion } = instrumentSolidityFileForCompilationJob({
       sourceName: "Foo.sol",
       compilationJobSolcVersion: supportedVersion,
-      coverageLibraryPath: "coverage.sol",
       fileContent: "",
     });
 
