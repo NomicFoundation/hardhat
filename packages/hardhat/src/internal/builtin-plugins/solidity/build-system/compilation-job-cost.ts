@@ -2,7 +2,7 @@ import type { CompilationJob } from "../../../../types/solidity.js";
 
 // This doesn't need to be exact, it's used to account for the per-file
 // overhead, so that many small files don't look free
-const APPROXIMATE_AVARAGE_SIZE_OF_SOLIDITY_FILES = 10_000;
+const APPROXIMATE_AVERAGE_SIZE_OF_SOLIDITY_FILES = 10_000;
 
 export function estimateCompilationJobCost(job: CompilationJob): number {
   let totalBytes = 0;
@@ -34,7 +34,7 @@ export function estimateCompilationJobCost(job: CompilationJob): number {
     ? 1 + Math.min(0.12, Math.log10(Math.max(1, optimizerRuns)) * 0.04)
     : 1.0;
 
-  const fileOverhead = APPROXIMATE_AVARAGE_SIZE_OF_SOLIDITY_FILES * fileCount;
+  const fileOverhead = APPROXIMATE_AVERAGE_SIZE_OF_SOLIDITY_FILES * fileCount;
 
   return (
     (totalBytes + fileOverhead) *
