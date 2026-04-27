@@ -450,7 +450,14 @@ describe("installProjectDependencies", async () => {
           ".npmrc",
           'minimum-release-age-exclude[]="hardhat"\nminimum-release-age-exclude[]="@nomicfoundation/*"',
         );
-        await installProjectDependencies(process.cwd(), template, true, false);
+        await installProjectDependencies({
+          workspace: {
+            workspace: process.cwd(),
+            template,
+            install: true,
+            update: false,
+          },
+        });
         assert.ok(await exists("node_modules"), "node_modules should exist");
         const dependencies = Object.keys(
           template.packageJson.devDependencies ?? {},
@@ -472,7 +479,14 @@ describe("installProjectDependencies", async () => {
   it("should not install any template dependencies if the user opts-out of the installation", async () => {
     const [template] = await getTemplate("hardhat-3", "mocha-ethers");
     await writeUtf8File("package.json", JSON.stringify({ type: "module" }));
-    await installProjectDependencies(process.cwd(), template, false, false);
+    await installProjectDependencies({
+      workspace: {
+        workspace: process.cwd(),
+        template,
+        install: false,
+        update: false,
+      },
+    });
     assert.ok(!(await exists("node_modules")), "node_modules should not exist");
   });
 
@@ -495,7 +509,14 @@ describe("installProjectDependencies", async () => {
         ".npmrc",
         'minimum-release-age-exclude[]="hardhat"\nminimum-release-age-exclude[]="@nomicfoundation/*"',
       );
-      await installProjectDependencies(process.cwd(), template, false, true);
+      await installProjectDependencies({
+        workspace: {
+          workspace: process.cwd(),
+          template,
+          install: false,
+          update: true,
+        },
+      });
       assert.ok(await exists("node_modules"), "node_modules should exist");
       const dependencies = Object.keys(
         template.packageJson.devDependencies ?? {},
@@ -544,7 +565,14 @@ describe("installProjectDependencies", async () => {
           devDependencies: { "fake-dependency": "1.2.3" }, // <-- specific version
         }),
       );
-      await installProjectDependencies(process.cwd(), template, false, true);
+      await installProjectDependencies({
+        workspace: {
+          workspace: process.cwd(),
+          template,
+          install: false,
+          update: true,
+        },
+      });
 
       assert.ok(
         !(await exists("node_modules")),
@@ -577,7 +605,14 @@ describe("installProjectDependencies", async () => {
           devDependencies: { "fake-dependency": "^1.2.3" }, // <-- version range
         }),
       );
-      await installProjectDependencies(process.cwd(), template, false, true);
+      await installProjectDependencies({
+        workspace: {
+          workspace: process.cwd(),
+          template,
+          install: false,
+          update: true,
+        },
+      });
 
       assert.ok(
         !(await exists("node_modules")),

@@ -106,7 +106,13 @@ export async function initHardhat3NonInteractive(
   console.log("Installing dependencies...");
 
   await Promise.all([
-    installProjectDependencies(workspace, template, true, true, false),
+    installProjectDependencies({
+      workspace,
+      template,
+      install: true,
+      update: true,
+      formatSuccessMessage: false,
+    }),
     projectTypeAnalyticsPromise,
   ]);
 
@@ -179,7 +185,11 @@ export async function initHardhat(options?: InitHardhatOptions): Promise<void> {
     // Run them only if the user opts-in to it
     // Concurrently, await the analytics hit
     await Promise.all([
-      installProjectDependencies(workspace, template, options?.install),
+      installProjectDependencies({
+        workspace,
+        template,
+        install: options?.install,
+      }),
       projectTypeAnalyticsPromise,
     ]);
 
@@ -661,13 +671,19 @@ export async function copyProjectFilesNonInteractive(
  * @param update Whether to update the project dependencies.
  * @param formatSuccessMessage Whether to format the success message or not.
  */
-export async function installProjectDependencies(
-  workspace: string,
-  template: Template,
-  install?: boolean,
-  update?: boolean,
+export async function installProjectDependencies({
+  workspace,
+  template,
+  install,
+  update,
   formatSuccessMessage = true,
-): Promise<void> {
+}: {
+  workspace: string;
+  template: Template;
+  install?: boolean;
+  update?: boolean;
+  formatSuccessMessage?: boolean;
+}): Promise<void> {
   const pathToWorkspacePackageJson = path.join(workspace, "package.json");
 
   const workspacePkg: PackageJson = await readJsonFile(
