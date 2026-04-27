@@ -451,12 +451,10 @@ describe("installProjectDependencies", async () => {
           'minimum-release-age-exclude[]="hardhat"\nminimum-release-age-exclude[]="@nomicfoundation/*"',
         );
         await installProjectDependencies({
-          workspace: {
-            workspace: process.cwd(),
-            template,
-            install: true,
-            update: false,
-          },
+          workspace: process.cwd(),
+          template,
+          install: true,
+          update: false,
         });
         assert.ok(await exists("node_modules"), "node_modules should exist");
         const dependencies = Object.keys(
@@ -480,12 +478,10 @@ describe("installProjectDependencies", async () => {
     const [template] = await getTemplate("hardhat-3", "mocha-ethers");
     await writeUtf8File("package.json", JSON.stringify({ type: "module" }));
     await installProjectDependencies({
-      workspace: {
-        workspace: process.cwd(),
-        template,
-        install: false,
-        update: false,
-      },
+      workspace: process.cwd(),
+      template,
+      install: false,
+      update: false,
     });
     assert.ok(!(await exists("node_modules")), "node_modules should not exist");
   });
@@ -510,12 +506,10 @@ describe("installProjectDependencies", async () => {
         'minimum-release-age-exclude[]="hardhat"\nminimum-release-age-exclude[]="@nomicfoundation/*"',
       );
       await installProjectDependencies({
-        workspace: {
-          workspace: process.cwd(),
-          template,
-          install: false,
-          update: true,
-        },
+        workspace: process.cwd(),
+        template,
+        install: false,
+        update: true,
       });
       assert.ok(await exists("node_modules"), "node_modules should exist");
       const dependencies = Object.keys(
@@ -566,12 +560,10 @@ describe("installProjectDependencies", async () => {
         }),
       );
       await installProjectDependencies({
-        workspace: {
-          workspace: process.cwd(),
-          template,
-          install: false,
-          update: true,
-        },
+        workspace: process.cwd(),
+        template,
+        install: false,
+        update: true,
       });
 
       assert.ok(
@@ -606,12 +598,10 @@ describe("installProjectDependencies", async () => {
         }),
       );
       await installProjectDependencies({
-        workspace: {
-          workspace: process.cwd(),
-          template,
-          install: false,
-          update: true,
-        },
+        workspace: process.cwd(),
+        template,
+        install: false,
+        update: true,
       });
 
       assert.ok(
