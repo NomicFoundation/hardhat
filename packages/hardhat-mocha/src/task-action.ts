@@ -6,7 +6,7 @@ import type { MochaOptions } from "mocha";
 
 import { resolve as pathResolve } from "node:path";
 
-import { HardhatError, HardhatPluginError } from "@nomicfoundation/hardhat-errors";
+import { HardhatError } from "@nomicfoundation/hardhat-errors";
 import { setGlobalOptionsAsEnvVariables } from "@nomicfoundation/hardhat-utils/env";
 import { getAllFilesMatching } from "@nomicfoundation/hardhat-utils/fs";
 import debug from "debug";
@@ -145,13 +145,6 @@ const testWithHardhat: NewTaskActionFunction<TestActionArguments> = async (
   }
 
   const mochaConfig: MochaOptions = { ...hre.config.test.mocha };
-
-  if (invert && (grep === undefined || grep === "")) {
-    throw new HardhatPluginError(
-      "@nomicfoundation/hardhat-mocha",
-      "--invert requires --grep to be specified",
-    );
-  }
 
   if (grep !== undefined && grep !== "") {
     mochaConfig.grep = grep;
