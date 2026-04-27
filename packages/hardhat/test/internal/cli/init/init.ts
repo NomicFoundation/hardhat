@@ -41,6 +41,14 @@ import {
 } from "../../../../src/internal/cli/init/init.js";
 import { getTemplates } from "../../../../src/internal/cli/init/template.js";
 
+// TODO: The push and merge_group checks should be limited to events associated
+// with a release PR merge.
+const skipNetworkSlowTests =
+  process.env.HARDHAT_DISABLE_SLOW_TESTS === "true" ||
+  process.env.GITHUB_EVENT_NAME === "push" ||
+  process.env.GITHUB_EVENT_NAME === "merge_group" ||
+  process.env.GITHUB_HEAD_REF?.startsWith("changeset-release/") === true;
+
 // NOTE: This uses network to access the npm registry
 describe("printWelcomeMessage", () => {
   disableConsole();
@@ -428,12 +436,7 @@ describe("installProjectDependencies", async () => {
     it(
       `should install all the ${template.name} template dependencies in an empty project if the user opts-in to the installation`,
       {
-        skip:
-          process.env.HARDHAT_DISABLE_SLOW_TESTS === "true" ||
-          process.env.GITHUB_EVENT_NAME === "push" || // TODO: This check should be limited to push events associated with a release PR merge
-          process.env.GITHUB_EVENT_NAME === "merge_group" || // TODO: This check should be limited to merge_group events associated with a release PR merge
-          process.env.GITHUB_HEAD_REF === "chore/remove-pre-release-config" || // TODO: remove this line after release
-          process.env.GITHUB_HEAD_REF?.startsWith("changeset-release/"),
+        skip: skipNetworkSlowTests,
       },
       async () => {
         await writeUtf8File("package.json", JSON.stringify({ type: "module" }));
@@ -476,11 +479,7 @@ describe("installProjectDependencies", async () => {
   it(
     "should install any existing template dependencies that are out of date if the user opts-in to the update",
     {
-      skip:
-        process.env.HARDHAT_DISABLE_SLOW_TESTS === "true" ||
-        process.env.GITHUB_EVENT_NAME === "push" || // TODO: This check should be limited to push events associated with a release PR merge
-        process.env.GITHUB_EVENT_NAME === "merge_group" || // TODO: This check should be limited to merge_group events associated with a release PR merge
-        process.env.GITHUB_HEAD_REF?.startsWith("changeset-release/"),
+      skip: skipNetworkSlowTests,
     },
     async () => {
       const [template] = await getTemplate("hardhat-3", "mocha-ethers");
@@ -847,11 +846,7 @@ describe("initHardhat3NonInteractive", async () => {
       it(
         `should initialize the project using the ${template.name} template in an empty folder`,
         {
-          skip:
-            process.env.HARDHAT_DISABLE_SLOW_TESTS === "true" ||
-            process.env.GITHUB_EVENT_NAME === "push" ||
-            process.env.GITHUB_EVENT_NAME === "merge_group" ||
-            process.env.GITHUB_HEAD_REF?.startsWith("changeset-release/"),
+          skip: skipNetworkSlowTests,
         },
         async () => {
           await writeUtf8File(
@@ -949,11 +944,7 @@ describe("initHardhat3NonInteractive", async () => {
     it(
       "should allow a pre-existing package.json and preserve its extra keys",
       {
-        skip:
-          process.env.HARDHAT_DISABLE_SLOW_TESTS === "true" ||
-          process.env.GITHUB_EVENT_NAME === "push" ||
-          process.env.GITHUB_EVENT_NAME === "merge_group" ||
-          process.env.GITHUB_HEAD_REF?.startsWith("changeset-release/"),
+        skip: skipNetworkSlowTests,
       },
       async () => {
         await writeJsonFile("package.json", {
@@ -978,11 +969,7 @@ describe("initHardhat3NonInteractive", async () => {
     it(
       "should preserve a pre-existing .gitignore",
       {
-        skip:
-          process.env.HARDHAT_DISABLE_SLOW_TESTS === "true" ||
-          process.env.GITHUB_EVENT_NAME === "push" ||
-          process.env.GITHUB_EVENT_NAME === "merge_group" ||
-          process.env.GITHUB_HEAD_REF?.startsWith("changeset-release/"),
+        skip: skipNetworkSlowTests,
       },
       async () => {
         await writeUtf8File(".gitignore", "user-gitignore-marker");
@@ -1004,11 +991,7 @@ describe("initHardhat3NonInteractive", async () => {
     it(
       "should redirect the template README.md to HARDHAT.md when README.md exists",
       {
-        skip:
-          process.env.HARDHAT_DISABLE_SLOW_TESTS === "true" ||
-          process.env.GITHUB_EVENT_NAME === "push" ||
-          process.env.GITHUB_EVENT_NAME === "merge_group" ||
-          process.env.GITHUB_HEAD_REF?.startsWith("changeset-release/"),
+        skip: skipNetworkSlowTests,
       },
       async () => {
         await writeUtf8File("README.md", "user readme");
@@ -1033,11 +1016,7 @@ describe("initHardhat3NonInteractive", async () => {
     it(
       "should preserve both README.md and HARDHAT.md when both pre-exist",
       {
-        skip:
-          process.env.HARDHAT_DISABLE_SLOW_TESTS === "true" ||
-          process.env.GITHUB_EVENT_NAME === "push" ||
-          process.env.GITHUB_EVENT_NAME === "merge_group" ||
-          process.env.GITHUB_HEAD_REF?.startsWith("changeset-release/"),
+        skip: skipNetworkSlowTests,
       },
       async () => {
         await writeUtf8File("README.md", "user readme");
@@ -1061,11 +1040,7 @@ describe("initHardhat3NonInteractive", async () => {
     it(
       "should print the progress sequence on success",
       {
-        skip:
-          process.env.HARDHAT_DISABLE_SLOW_TESTS === "true" ||
-          process.env.GITHUB_EVENT_NAME === "push" ||
-          process.env.GITHUB_EVENT_NAME === "merge_group" ||
-          process.env.GITHUB_HEAD_REF?.startsWith("changeset-release/"),
+        skip: skipNetworkSlowTests,
       },
       async () => {
         await writeUtf8File(
