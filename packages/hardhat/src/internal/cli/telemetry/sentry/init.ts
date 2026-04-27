@@ -3,9 +3,10 @@
 import type { ServerRuntimeClientOptions, Transport } from "@sentry/core";
 
 import os from "node:os";
-import path from "node:path";
 
+import { getRuntimeInfo } from "@nomicfoundation/hardhat-utils/runtime";
 import {
+  applySdkMetadata,
   createStackParser,
   functionToStringIntegration,
   initAndBind,
@@ -61,40 +62,48 @@ interface GlobalCustomSentryReporterOptions {
  * errors integration.
  */
 export function init(options: GlobalCustomSentryReporterOptions): void {
+  const runtimeInfo = getRuntimeInfo();
+  const runtime = {
+    name: runtimeInfo?.runtime ?? "unknown",
+    version: runtimeInfo?.version ?? "unknown",
+  };
+
+  const sentryOptions: ServerRuntimeClientOptions = {
+    dsn: options.dsn,
+    environment: options.environment,
+    serverName: GENERIC_SERVER_NAME,
+    release: options.release,
+    runtime,
+    initialScope: {
+      contexts: {
+        os: {
+          name: os.type(),
+          build: os.release(),
+          version: os.version(),
+        },
+        device: {
+          arch: os.arch(),
+        },
+        runtime,
+      },
+    },
+    transport: () => options.transport,
+    integrations: [
+      functionToStringIntegration(),
+      contextLinesIntegration(),
+      linkedErrorsIntegration(),
+      nodeContextIntegration(),
+    ],
+    platform: "javascript",
+    stackParser: stackParserFromStackParserOptions(
+      createStackParser(nodeStackLineParser(createGetModuleFromFilename())),
+    ),
+  };
+
+  applySdkMetadata(sentryOptions, "core");
+
   initAndBind<ServerRuntimeClient, ServerRuntimeClientOptions>(
     ServerRuntimeClient,
-    {
-      dsn: options.dsn,
-      environment: options.environment,
-      serverName: GENERIC_SERVER_NAME,
-      release: options.release,
-      initialScope: {
-        contexts: {
-          os: {
-            name: os.type(),
-            build: os.release(),
-            version: os.version(),
-          },
-          device: {
-            arch: os.arch(),
-          },
-          runtime: {
-            name: path.basename(process.title),
-            version: process.version,
-          },
-        },
-      },
-      transport: () => options.transport,
-      integrations: [
-        functionToStringIntegration(),
-        contextLinesIntegration(),
-        linkedErrorsIntegration(),
-        nodeContextIntegration(),
-      ],
-      platform: process.platform,
-      stackParser: stackParserFromStackParserOptions(
-        createStackParser(nodeStackLineParser(createGetModuleFromFilename())),
-      ),
-    },
+    sentryOptions,
   );
 }
