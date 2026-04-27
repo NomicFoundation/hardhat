@@ -340,7 +340,7 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
         ),
       );
 
-      // We sort the compilation jobs in decreased order of estimated
+      // We sort the compilation jobs in descending order of estimated
       // compilation cost. This way we can use this algorithm:
       // https://en.wikipedia.org/wiki/Longest-processing-time-first_scheduling
       //
