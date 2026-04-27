@@ -1,5 +1,5 @@
 /**
- * @file This files has a set of helpers that depend on the codebase. They
+ * @file This file has a set of helpers that depend on the codebase. They
  * inspect the stack frames to look for known folders, files, or function names.
  *
  * As such, they are somewhat fragile and need to be periodically reevaluated,
@@ -13,7 +13,7 @@ import { type StackFrame, includesAny } from "./helpers.js";
  * source tree instead of from an installed `node_modules/hardhat` package.
  */
 export function isRunningInsideHardhatMonorepo(): boolean {
-  // If if this file is in `/packages/hardhat/`, as opposed to
+  // If this file is in `/packages/hardhat/`, as opposed to
   // `node_modules/hardhat/`, then we're running inside the monorepo.
   return import.meta.url.includes("/packages/hardhat/");
 }

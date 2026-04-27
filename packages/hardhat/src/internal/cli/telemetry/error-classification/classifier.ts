@@ -60,7 +60,7 @@ import {
 /**
  * Classifies the error based on a set of heuristics.
  *
- * This classification is later used to select different criteria to decided if
+ * This classification is later used to select different criteria to decide if
  * the error should be reported or not, and in some cases, how to display it in
  * the CLI.
  *
