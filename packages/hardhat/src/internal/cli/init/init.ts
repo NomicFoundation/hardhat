@@ -321,7 +321,11 @@ export async function getWorkspace(workspace?: string): Promise<string> {
  *
  * NOTE: This function is exported for testing purposes
  *
+ * @param hardhatVersion The version of Hardhat whose templates should be considered.
  * @param template The name of the template to use for the project initialization.
+ * @param includeAvailableTemplatesInErrors When true, a missing template throws
+ *   `TEMPLATE_NOT_FOUND_WITH_LIST_OF_OPTIONS` (which lists the available
+ *   templates) instead of the bare `TEMPLATE_NOT_FOUND`.
  * @returns A tuple with two elements: the template and a promise with the analytics hit.
  */
 export async function getTemplate(
