@@ -2,9 +2,13 @@
 // is always run during the initialization of the CLI.
 //
 // NOTE: This file shouldn't import any non-builtin dependency, as it's imported
-// before enabling source maps support. TODO: Change chalk to util.styleText
+// before enabling source maps support.
+//
+// EXCEPTION: we share `getRuntimeInfo` with the rest of the codebase instead
+// of duplicating it. The helper has no transitive dependencies, so the risk of
+// an unreadable stack trace from its import graph is negligible.
 
-import chalk from "chalk";
+import { getRuntimeInfo } from "@nomicfoundation/hardhat-utils/runtime";
 
 export const MIN_SUPPORTED_NODE_VERSION: number[] = [22, 10, 0];
 
@@ -14,10 +18,6 @@ export function isNodeVersionSupported(): boolean {
     const major = parseInt(majorStr, 10);
     const minor = parseInt(minorStr, 10);
     const patch = parseInt(patchStr, 10);
-
-    if (major % 2 === 1) {
-      return false;
-    }
 
     if (major < MIN_SUPPORTED_NODE_VERSION[0]) {
       return false;
@@ -42,12 +42,20 @@ export function isNodeVersionSupported(): boolean {
   return true;
 }
 
-export function printNodeJsVersionWarningIfNecessary(): void {
-  if (!isNodeVersionSupported()) {
-    console.log(
-      chalk.bold(`\n${chalk.yellow("WARNING:")} You are using Node.js ${process.versions.node} which is not supported by Hardhat.
-Please upgrade to ${MIN_SUPPORTED_NODE_VERSION.join(".")} or a later LTS version (even major version number)\n`),
-    );
+export function exitIfNodeVersionNotSupported(): void {
+  // Only enforce the Node.js version when we're actually running on Node.js.
+  // Bun and Deno emulate `process.versions.node`, so checking it there would
+  // incorrectly reject users on those runtimes.
+  if (getRuntimeInfo()?.runtime !== "node") {
     return;
+  }
+
+  if (!isNodeVersionSupported()) {
+    console.error(
+      `\nERROR: You are using Node.js ${process.versions.node} which is not supported by Hardhat.\n` +
+        `Please upgrade to Node.js ${MIN_SUPPORTED_NODE_VERSION.join(".")} or later.\n`,
+    );
+
+    process.exit(1);
   }
 }

@@ -1,0 +1,86 @@
+import assert from "node:assert/strict";
+import { afterEach, describe, it } from "node:test";
+
+import { getRuntimeInfo } from "../src/runtime.js";
+
+declare const globalThis: {
+  Deno?: unknown;
+};
+
+function getOriginalVersionsDescriptor(): PropertyDescriptor {
+  const descriptor = Object.getOwnPropertyDescriptor(process, "versions");
+
+  if (descriptor === undefined) {
+    throw new Error("process.versions descriptor not found");
+  }
+
+  return descriptor;
+}
+
+const ORIGINAL_VERSIONS_DESCRIPTOR = getOriginalVersionsDescriptor();
+const HAS_ORIGINAL_DENO = "Deno" in globalThis;
+const ORIGINAL_DENO = globalThis.Deno;
+
+function setProcessVersions(versions: Record<string, string>): void {
+  Object.defineProperty(process, "versions", {
+    value: versions,
+    configurable: true,
+    writable: true,
+  });
+}
+
+function restoreProcessVersions(): void {
+  Object.defineProperty(process, "versions", ORIGINAL_VERSIONS_DESCRIPTOR);
+}
+
+function setDeno(deno: unknown): void {
+  globalThis.Deno = deno;
+}
+
+function restoreDeno(): void {
+  if (HAS_ORIGINAL_DENO) {
+    globalThis.Deno = ORIGINAL_DENO;
+  } else {
+    delete globalThis.Deno;
+  }
+}
+
+describe("runtime", () => {
+  describe("getRuntimeInfo", () => {
+    afterEach(() => {
+      restoreProcessVersions();
+      restoreDeno();
+    });
+
+    it("detects Node.js", () => {
+      setProcessVersions({ node: "22.10.0" });
+      assert.deepEqual(getRuntimeInfo(), {
+        runtime: "node",
+        version: "22.10.0",
+      });
+    });
+
+    it("detects Bun even when process.versions.node is also defined", () => {
+      setProcessVersions({ node: "22.10.0", bun: "1.1.0" });
+      assert.deepEqual(getRuntimeInfo(), {
+        runtime: "bun",
+        version: "1.1.0",
+      });
+    });
+
+    it("detects Deno", () => {
+      setDeno({ version: { deno: "2.1.0" } });
+      // Deno also emulates process.versions.node
+      setProcessVersions({ node: "22.10.0" });
+      assert.deepEqual(getRuntimeInfo(), {
+        runtime: "deno",
+        version: "2.1.0",
+      });
+    });
+
+    it("returns undefined when no known runtime is detected", () => {
+      setProcessVersions({});
+      assert.equal(getRuntimeInfo(), undefined);
+    });
+  });
+});
