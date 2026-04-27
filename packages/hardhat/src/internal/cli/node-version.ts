@@ -51,9 +51,9 @@ export function exitIfNodeVersionNotSupported(): void {
   }
 
   if (!isNodeVersionSupported()) {
-    process.stderr.write(
+    console.error(
       `\nERROR: You are using Node.js ${process.versions.node} which is not supported by Hardhat.\n` +
-        `Please upgrade to Node.js ${MIN_SUPPORTED_NODE_VERSION.join(".")} or later.\n\n`,
+        `Please upgrade to Node.js ${MIN_SUPPORTED_NODE_VERSION.join(".")} or later.\n`,
     );
 
     process.exit(1);
