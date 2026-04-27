@@ -1,5 +1,26 @@
 # hardhat
 
+## 3.4.2
+
+### Patch Changes
+
+- [#8177](https://github.com/NomicFoundation/hardhat/pull/8177) [`7cab964`](https://github.com/NomicFoundation/hardhat/commit/7cab96452b81d0f96053ec26a038f3bc13e62d1b) Thanks [@alcuadrado](https://github.com/alcuadrado)! - Optimize the `HookManager` and the `coverage` plugin
+
+- [#8187](https://github.com/NomicFoundation/hardhat/pull/8187) [`8f6a418`](https://github.com/NomicFoundation/hardhat/commit/8f6a418203e78b699ca1a4d9b498d13a428e71f6) Thanks [@ChristopherDedominici](https://github.com/ChristopherDedominici)! - Improved the logic for handling `Node.js` versions that fall below the minimum requirement.
+
+- [#8183](https://github.com/NomicFoundation/hardhat/pull/8183) [`88f8d59`](https://github.com/NomicFoundation/hardhat/commit/88f8d59a947bd0a2045effd84d518d9e5a109e6d) Thanks [@schaable](https://github.com/schaable)! - Speed up startup by loading the coverage manager only when --coverage is set.
+
+- [#8183](https://github.com/NomicFoundation/hardhat/pull/8183) [`82208ba`](https://github.com/NomicFoundation/hardhat/commit/82208baeba7847820810b1d3c7b2aa149f9688c0) Thanks [@schaable](https://github.com/schaable)! - Speed up HRE creation by loading user-interruption support only when it's first used.
+
+- [#8175](https://github.com/NomicFoundation/hardhat/pull/8175) [`eeea0aa`](https://github.com/NomicFoundation/hardhat/commit/eeea0aa3ebde0eca139bcdf74794252cad68500d) Thanks [@ChristopherDedominici](https://github.com/ChristopherDedominici)! - Restructure the imports of the network-manager.
+
+- [#8183](https://github.com/NomicFoundation/hardhat/pull/8183) [`baa9c9a`](https://github.com/NomicFoundation/hardhat/commit/baa9c9a5f9fc1a18afc23cb0bf1c5831dccd13c5) Thanks [@schaable](https://github.com/schaable)! - Speed up startup by loading the gas-analytics manager only when --gas-stats or --gas-stats-json is set.
+
+- [#8180](https://github.com/NomicFoundation/hardhat/pull/8180) [`4122faa`](https://github.com/NomicFoundation/hardhat/commit/4122faa3da2b588d83f2c94574f04ae2abd2e723) Thanks [@alcuadrado](https://github.com/alcuadrado)! - Optimize file system traversal helpers
+
+- Updated dependencies:
+  - @nomicfoundation/hardhat-utils@4.0.5
+
 ## 3.4.1
 
 ### Patch Changes

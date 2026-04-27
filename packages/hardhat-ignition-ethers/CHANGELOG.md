@@ -1,5 +1,11 @@
 # Changelog
 
+## 3.1.4
+
+### Patch Changes
+
+- [#8183](https://github.com/NomicFoundation/hardhat/pull/8183) [`0bf369e`](https://github.com/NomicFoundation/hardhat/commit/0bf369e598f3c0b9bfcd52c354300d1a15550c64) Thanks [@schaable](https://github.com/schaable)! - Speed up non-Ignition workflows by deferring Ignition loading until the first deploy.
+
 ## 3.1.3
 
 ### Patch Changes
