@@ -699,12 +699,8 @@ export class SharedPromiseCache<ValueT> {
     key: string,
     fn: () => Promise<ValueT>,
   ): Promise<ValueT> {
-    if (this.#cache.has(key)) {
-      /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions 
-      -- As we may need to cache `undefined` values, we can't just `get` and
-      check for not `undefined`, so we need to assert here. */
-      const cached = this.#cache.get(key) as SharedPromiseCachedResult<ValueT>;
-
+    const cached = this.#cache.get(key);
+    if (cached !== undefined) {
       if (!(cached instanceof Promise)) {
         return cached.value;
       }
