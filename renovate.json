@@ -13,13 +13,13 @@
   ],
   "packageRules": [
     {
-      "description": "Ignore pnpm workspace protocol dependencies (Renovate's npm manager already skips these natively; rule kept for explicit documentation of intent)",
+      "description": "Ignore pnpm workspace: protocol deps. Renovate skips them natively — rule kept for explicit intent.",
       "matchManagers": ["npm"],
       "matchCurrentValue": "/^workspace:/",
       "enabled": false
     },
     {
-      "description": "Ignore every peerDependencies, including external packages. peerDeps are a compatibility contract with consumers, not an installed dependency — bumping them is a deliberate API decision (e.g. 'this plugin now requires ethers 7+') and should be done manually alongside the corresponding plugin major.",
+      "description": "peerDependencies are a compatibility contract with consumers, not an installed dep. Bumping them is a deliberate API decision tied to a plugin major.",
       "matchManagers": ["npm"],
       "matchDepTypes": ["peerDependencies"],
       "enabled": false
@@ -36,7 +36,7 @@
       "groupName": "npm minor/patch"
     },
     {
-      "description": "npm: pre-1.0 packages treat 0.x→0.y as breaking (semver convention, ^0.x.y resolves like ~0.x.y); ungroup from minor/patch so they land as individual PRs",
+      "description": "npm: ungroup pre-1.0 minors — ^0.x.y resolves like ~0.x.y, so 0.x→0.y is breaking and needs its own PR.",
       "matchManagers": ["npm"],
       "matchCurrentVersion": "<1.0.0",
       "matchUpdateTypes": ["minor"],
@@ -48,36 +48,36 @@
       "groupName": "github-actions"
     },
     {
-      "description": "Node majors: block automatic bumps across every surface — .nvmrc (nvm), engines.node and @types/node (npm), actions/setup-node node-version (github-actions). Node majors are upgraded manually and only to even LTS releases (e.g. 24 → 26).",
+      "description": "Block Node major bumps across every surface (.nvmrc, engines.node, @types/node, actions/setup-node's node-version). Bumped manually, only to even LTS releases.",
       "matchDepNames": ["node", "@types/node"],
       "matchUpdateTypes": ["major"],
       "enabled": false
     },
     {
-      "description": "@tsconfig/nodeXX: the Node major version is encoded in the package name (@tsconfig/node22 → @tsconfig/node24 means switching Node 22 → 24). Renovate proposes those as 'replacement' updates; block them alongside the rest of the Node-major lockdown.",
+      "description": "@tsconfig/nodeXX: the Node major lives in the package name (node22 → node24 = Node 22 → 24). Renovate models these as 'replacement' updates — block them alongside the Node-major lockdown above.",
       "matchPackageNames": ["/^@tsconfig\\/node\\d+$/"],
       "matchUpdateTypes": ["replacement"],
       "enabled": false
     },
     {
-      "description": "typescript: no automatic major bumps. TS majors cascade to typescript-eslint, plugin matrices, and consumers of Hardhat's TS-aware APIs — bump manually when the ecosystem catches up.",
+      "description": "Block typescript majors. TS majors cascade to typescript-eslint and consumers of Hardhat's TS-aware APIs — bump manually when the ecosystem catches up.",
       "matchPackageNames": ["typescript"],
       "matchUpdateTypes": ["major"],
       "enabled": false
     },
     {
-      "description": "Public API surfaces re-exported by Hardhat plugins — chai (via hardhat-chai-matchers), ethers (via hardhat-ethers), viem (via hardhat-viem). Major bumps propagate breaking changes to downstream user code, so they're bumped manually as a coordinated change. Minor/patch within the current major still flow through.",
-      "matchPackageNames": ["chai", "@types/chai", "@types/chai-as-promised", "ethers", "viem"],
+      "description": "Each of these is declared as a peerDependency in at least one workspace package, and also appears as a dep/devDep in others. Block majors so the internal dep/devDep entries can't drift past the peerDep contract — major bumps need to be coordinated across both surfaces.",
+      "matchPackageNames": ["chai", "@types/chai", "@types/chai-as-promised", "ethers", "viem", "eslint", "mocha", "zod"],
       "matchUpdateTypes": ["major"],
       "enabled": false
     },
     {
-      "description": "@nomicfoundation/edr: tightly coupled to Hardhat releases and rides a -next.N prerelease cadence. Bumped manually alongside Hardhat changesets, not on Renovate's schedule.",
+      "description": "@nomicfoundation/edr: tightly coupled to Hardhat releases",
       "matchPackageNames": ["@nomicfoundation/edr"],
       "enabled": false
     },
     {
-      "description": "vite + @vitejs/plugin-react: group together — plugin-react has a peer-dependency on vite, so landing one without the other breaks the build.",
+      "description": "Group vite + @vitejs/plugin-react. plugin-react has a peer-dep on vite — landing one without the other breaks the build.",
       "matchPackageNames": ["vite", "@vitejs/plugin-react"],
       "groupName": "vite"
     }
