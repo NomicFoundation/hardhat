@@ -13,6 +13,12 @@
   ],
   "packageRules": [
     {
+      "description": "Ignore pnpm workspace protocol dependencies (Renovate's npm manager already skips these natively; rule kept for explicit documentation of intent)",
+      "matchManagers": ["npm"],
+      "matchCurrentValue": "/^workspace:/",
+      "enabled": false
+    },
+    {
       "description": "Extra cooldown for majors",
       "matchUpdateTypes": ["major"],
       "minimumReleaseAge": "30 days"
