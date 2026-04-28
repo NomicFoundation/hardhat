@@ -54,6 +54,12 @@
       "enabled": false
     },
     {
+      "description": "chai + @types/chai + @types/chai-as-promised: no automatic major bumps. chai is a public API surface via @nomicfoundation/hardhat-chai-matchers — a chai major propagates breaking matcher behaviour to downstream test suites, so it's bumped manually as a coordinated change.",
+      "matchPackageNames": ["chai", "@types/chai", "@types/chai-as-promised"],
+      "matchUpdateTypes": ["major"],
+      "enabled": false
+    },
+    {
       "description": "@nomicfoundation/edr: tightly coupled to Hardhat releases and rides a -next.N prerelease cadence. Bumped manually alongside Hardhat changesets, not on Renovate's schedule.",
       "matchPackageNames": ["@nomicfoundation/edr"],
       "enabled": false
