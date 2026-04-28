@@ -188,9 +188,6 @@ importers:
       adm-zip:
         specifier: ^0.4.16
         version: 0.4.16
-      chalk:
-        specifier: ^5.3.0
-        version: 5.6.2
       chokidar:
         specifier: ^4.0.3
         version: 4.0.3
@@ -469,9 +466,6 @@ importers:
       '@nomicfoundation/ignition-ui':
         specifier: workspace:^3.1.2
         version: link:../ignition-ui
-      chalk:
-        specifier: ^5.3.0
-        version: 5.6.2
       json5:
         specifier: ^2.2.3
         version: 2.2.3
@@ -694,9 +688,6 @@ importers:
       '@nomicfoundation/hardhat-zod-utils':
         specifier: workspace:^3.0.4
         version: link:../hardhat-zod-utils
-      chalk:
-        specifier: ^5.3.0
-        version: 5.6.2
       zod:
         specifier: ^3.23.8
         version: 3.25.76
@@ -819,9 +810,6 @@ importers:
       '@nomicfoundation/hardhat-zod-utils':
         specifier: workspace:^3.0.4
         version: link:../hardhat-zod-utils
-      chalk:
-        specifier: ^5.3.0
-        version: 5.6.2
       tsx:
         specifier: ^4.19.3
         version: 4.20.6
@@ -914,9 +902,6 @@ importers:
       '@actions/core':
         specifier: ^1.10.1
         version: 1.11.1
-      chalk:
-        specifier: ^5.3.0
-        version: 5.6.2
       jest-diff:
         specifier: ^29.7.0
         version: 29.7.0
@@ -1391,9 +1376,6 @@ importers:
       cbor2:
         specifier: ^1.9.0
         version: 1.12.0
-      chalk:
-        specifier: ^5.3.0
-        version: 5.6.2
       semver:
         specifier: ^7.6.3
         version: 7.7.4
