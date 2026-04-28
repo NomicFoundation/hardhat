@@ -5,6 +5,12 @@
   "schedule": ["before 9am on Monday"],
   "minimumReleaseAge": "7 days",
   "internalChecksFilter": "strict",
+  "ignorePaths": [
+    "e2e/fixture-projects/**",
+    "**/test/fixture-projects/**",
+    "**/test-integrations/fixture-projects/**",
+    "packages/hardhat/templates/**"
+  ],
   "packageRules": [
     {
       "description": "Extra cooldown for majors",
@@ -30,10 +36,32 @@
       "groupName": "github-actions"
     },
     {
-      "description": "@types/node and @tsconfig/nodeXX: no automatic Node version bumps — Node majors are upgraded manually and only to even LTS releases (e.g. 24 → 26). For @types/node this blocks majors only (minor/patch within the current major flow through). For @tsconfig/nodeXX the Node major is encoded in the package name (@tsconfig/node22 → @tsconfig/node24), and Renovate proposes those as 'replacement' updates.",
-      "matchPackageNames": ["@types/node", "/^@tsconfig\\/node\\d+$/"],
-      "matchUpdateTypes": ["major", "replacement"],
+      "description": "Node majors: block automatic bumps across every surface — .nvmrc (nvm), engines.node and @types/node (npm), actions/setup-node node-version (github-actions). Node majors are upgraded manually and only to even LTS releases (e.g. 24 → 26).",
+      "matchDepNames": ["node", "@types/node"],
+      "matchUpdateTypes": ["major"],
       "enabled": false
+    },
+    {
+      "description": "@tsconfig/nodeXX: the Node major version is encoded in the package name (@tsconfig/node22 → @tsconfig/node24 means switching Node 22 → 24). Renovate proposes those as 'replacement' updates; block them alongside the rest of the Node-major lockdown.",
+      "matchPackageNames": ["/^@tsconfig\\/node\\d+$/"],
+      "matchUpdateTypes": ["replacement"],
+      "enabled": false
+    },
+    {
+      "description": "typescript: no automatic major bumps. TS majors cascade to typescript-eslint, plugin matrices, and consumers of Hardhat's TS-aware APIs — bump manually when the ecosystem catches up.",
+      "matchPackageNames": ["typescript"],
+      "matchUpdateTypes": ["major"],
+      "enabled": false
+    },
+    {
+      "description": "@nomicfoundation/edr: tightly coupled to Hardhat releases and rides a -next.N prerelease cadence. Bumped manually alongside Hardhat changesets, not on Renovate's schedule.",
+      "matchPackageNames": ["@nomicfoundation/edr"],
+      "enabled": false
+    },
+    {
+      "description": "vite + @vitejs/plugin-react: group together — plugin-react has a peer-dependency on vite, so landing one without the other breaks the build.",
+      "matchPackageNames": ["vite", "@vitejs/plugin-react"],
+      "groupName": "vite"
     }
   ],
   "labels": ["dependencies"],
