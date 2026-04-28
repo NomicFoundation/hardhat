@@ -19,6 +19,12 @@
       "enabled": false
     },
     {
+      "description": "Ignore every peerDependencies, including external packages. peerDeps are a compatibility contract with consumers, not an installed dependency — bumping them is a deliberate API decision (e.g. 'this plugin now requires ethers 7+') and should be done manually alongside the corresponding plugin major.",
+      "matchManagers": ["npm"],
+      "matchDepTypes": ["peerDependencies"],
+      "enabled": false
+    },
+    {
       "description": "Extra cooldown for majors",
       "matchUpdateTypes": ["major"],
       "minimumReleaseAge": "30 days"
