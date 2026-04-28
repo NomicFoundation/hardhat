@@ -749,9 +749,9 @@ export class SharedPromiseCache<ValueT> {
 
   /**
    * Deletes the cached value associated to the key, if any. Note that this does
-   * not cancel any ongoing operation, so if there's a concurrent call to
-   * `getOrCompute` with the same key, it will still wait for the original
-   * operation to complete.
+   * not cancel any ongoing operation. Callers that already observed the
+   * in-flight promise will still wait for the original operation to complete,
+   * but callers that start after the deletion may start a new computation.
    *
    * @param key The cache key to delete.
    */
