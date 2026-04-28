@@ -24,7 +24,10 @@ import type { Result } from "../../../../../types/utils.js";
 import path from "node:path";
 
 import { assertHardhatInvariant } from "@nomicfoundation/hardhat-errors";
-import { exists } from "@nomicfoundation/hardhat-utils/fs";
+import {
+  exists,
+  TrueCasePathResolver,
+} from "@nomicfoundation/hardhat-utils/fs";
 import { AsyncMutex } from "@nomicfoundation/hardhat-utils/synchronization";
 import { analyze } from "@nomicfoundation/solidity-analyzer";
 
@@ -81,6 +84,9 @@ export class ResolverImplementation implements Resolver {
    * the same logic we use for imports.
    */
   readonly #fakeRootFile: ProjectResolvedFile;
+
+  readonly #trueCasePathResolver: TrueCasePathResolver =
+    new TrueCasePathResolver();
 
   /**
    * Creates a new resolver.
@@ -221,6 +227,7 @@ export class ResolverImplementation implements Resolver {
     }
 
     const pathValidation = await validateFsPath(
+      this.#trueCasePathResolver,
       this.#projectRoot,
       relativeFilePath,
     );
@@ -839,6 +846,7 @@ export class ResolverImplementation implements Resolver {
     >
   > {
     const pathValidation = await validateFsPath(
+      this.#trueCasePathResolver,
       npmPackage.rootFsPath,
       relativeFsPathWithinPackage,
     );
