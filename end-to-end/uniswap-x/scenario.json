@@ -9,7 +9,7 @@
   "packageManager": "npm",
   "submodules": true,
   "preinstall": "./preinstall.sh",
-  "defaultCommand": "npx hardhat test solidity --no-compile",
+  "defaultCommand": "npx hardhat test solidity",
   "benchmark": {
     "runs": {
       "coldCompile": 3,
