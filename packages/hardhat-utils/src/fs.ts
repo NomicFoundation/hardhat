@@ -173,13 +173,9 @@ export class TrueCasePathResolver {
     const segments = path
       .normalize(relativePath)
       .split(path.sep)
-      .filter((s) => s.length > 0);
+      .filter((s) => s.length > 0 || s === ".");
 
     for (const requestedName of segments) {
-      if (requestedName === ".") {
-        continue;
-      }
-
       if (requestedName === "..") {
         currentPath = path.join(currentPath, requestedName);
         continue;
