@@ -70,7 +70,7 @@ jobs:
       - name: Run check
         run: node scripts/check-npm-scripts.ts
 
-  renovate-config-check:
+  check_renovate_config:
     name: Check Renovate config
     timeout-minutes: 60
     runs-on: ubuntu-latest
