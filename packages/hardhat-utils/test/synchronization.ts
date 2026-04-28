@@ -1670,6 +1670,47 @@ describe("SharedPromiseCache", () => {
     assert.equal(calls, 2);
   });
 
+  it("should not delete a newer cache entry when an old in-flight computation fails after delete", async () => {
+    const cache = new SharedPromiseCache<string>();
+    const oldDeferred = Promise.withResolvers<string>();
+    const newDeferred = Promise.withResolvers<string>();
+    const cause = new Error("old failure");
+    let oldCalls = 0;
+    let newCalls = 0;
+    let finalCalls = 0;
+
+    const oldResult = cache.getOrCompute("key", async () => {
+      oldCalls++;
+      return await oldDeferred.promise;
+    });
+
+    cache.delete("key");
+
+    const newResult = cache.getOrCompute("key", async () => {
+      newCalls++;
+      return await newDeferred.promise;
+    });
+
+    newDeferred.resolve("new");
+    assert.equal(await newResult, "new");
+
+    oldDeferred.reject(cause);
+    await assert.rejects(oldResult, (error) => {
+      assert.equal(error, cause);
+      return true;
+    });
+
+    const finalResult = await cache.getOrCompute("key", async () => {
+      finalCalls++;
+      return "final";
+    });
+
+    assert.equal(finalResult, "new");
+    assert.equal(oldCalls, 1);
+    assert.equal(newCalls, 1);
+    assert.equal(finalCalls, 0);
+  });
+
   it("should preserve the producer async stack when awaited directly", async () => {
     const cache = new SharedPromiseCache<string>();
 
