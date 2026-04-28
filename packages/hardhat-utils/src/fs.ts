@@ -388,10 +388,7 @@ export async function getAllDirectoriesMatching(
  * @throws FileNotFoundError if the starting directory or the relative path doesn't exist.
  * @throws NotADirectoryError if the starting directory is not a directory.
  * @throws FileSystemAccessError for any other error.
- * @deprecated Creates a fresh {@link TrueCasePathResolver} per call, so it
- *  provides no caching across invocations. For hot paths that resolve many
- *  paths against the same directories, instantiate a `TrueCasePathResolver`
- *  once and reuse it.
+ * @deprecated Use {@link TrueCasePathResolver} instead.
  */
 export async function getFileTrueCase(
   from: string,
