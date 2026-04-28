@@ -1335,6 +1335,29 @@ describe("SharedPromiseCache", () => {
     assert.equal(calls, 1);
   });
 
+  it("should store the in-flight promise before invoking the producer", async () => {
+    const cache = new SharedPromiseCache<string>();
+    let outerCalls = 0;
+    let reentrantCalls = 0;
+    let reentrantResult: Promise<string> | undefined;
+
+    const result = await cache.getOrCompute("key", async () => {
+      outerCalls++;
+      reentrantResult = cache.getOrCompute("key", async () => {
+        reentrantCalls++;
+        return "reentrant";
+      });
+
+      return "outer";
+    });
+
+    assert.equal(result, "outer");
+    assert.ok(reentrantResult !== undefined, "Expected a reentrant result");
+    assert.equal(await reentrantResult, "outer");
+    assert.equal(outerCalls, 1);
+    assert.equal(reentrantCalls, 0);
+  });
+
   it("should ignore later functions for concurrent calls with the same key, only using the first one", async () => {
     const cache = new SharedPromiseCache<string>();
     const deferred = Promise.withResolvers<string>();
