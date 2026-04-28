@@ -1,9 +1,10 @@
-import type { Colorizer } from "../../../../utils/colorizer.js";
 import type {
   LogTrace,
   CallTrace,
   DecodedTraceParameters,
 } from "@nomicfoundation/edr";
+
+import { styleText } from "node:util";
 
 import { LogKind, CallKind, IncludeTraces } from "@nomicfoundation/edr";
 import { bytesToHexString } from "@nomicfoundation/hardhat-utils/hex";
@@ -23,9 +24,10 @@ export function verbosityToIncludeTraces(verbosity: number): IncludeTraces {
 export function formatTraces(
   traces: CallTrace[],
   prefix: string,
-  colorizer: Colorizer,
+  // Allow passing a custom colorize function for testing purposes
+  colorize: typeof styleText = styleText,
 ): string {
-  const lines = traces.map((trace) => formatTrace(trace, colorizer));
+  const lines = traces.map((trace) => formatTrace(trace, colorize));
   const formattedTraces = formatNestedArray(lines, prefix);
   // Remove the trailing newline
   return formattedTraces.slice(0, -1);
@@ -52,9 +54,13 @@ function formatOutputs(outputs: string | Uint8Array): string | undefined {
   }
 }
 
-function formatLog(log: LogTrace, colorizer: Colorizer): string[] {
+function formatLog(
+  log: LogTrace,
+  // Allow passing a custom colorize function for testing purposes
+  colorize: typeof styleText,
+): string[] {
   const { parameters } = log;
-  const tag = colorizer.yellow("[event]");
+  const tag = colorize("yellow", "[event]");
   const lines = [];
 
   if (Array.isArray(parameters)) {
@@ -63,18 +69,18 @@ function formatLog(log: LogTrace, colorizer: Colorizer): string[] {
 
     for (let i = 0; i < topicCount; i++) {
       const prefix = i === 0 ? `${tag} topic 0` : `        topic ${i}`;
-      lines.push(`${prefix}: ${colorizer.cyan(hexValues[i])}`);
+      lines.push(`${prefix}: ${colorize("cyan", hexValues[i])}`);
     }
 
     if (hexValues.length > 0) {
       const dataPrefix = topicCount > 0 ? "           data" : `${tag}    data`;
       lines.push(
-        `${dataPrefix}: ${colorizer.cyan(hexValues[hexValues.length - 1])}`,
+        `${dataPrefix}: ${colorize("cyan", hexValues[hexValues.length - 1])}`,
       );
     }
   } else {
     lines.push(
-      `${tag} ${parameters.name}(${colorizer.cyan(parameters.arguments.join(", "))})`,
+      `${tag} ${parameters.name}(${colorize("cyan", parameters.arguments.join(", "))})`,
     );
   }
   return lines;
@@ -82,7 +88,7 @@ function formatLog(log: LogTrace, colorizer: Colorizer): string[] {
 
 function formatTrace(
   trace: CallTrace,
-  colorizer: Colorizer,
+  colorize: typeof styleText,
 ): NestedArray<string> {
   const {
     success,
@@ -95,14 +101,8 @@ function formatTrace(
     isCheatcode,
     outputs,
   } = trace;
-  let color;
-  if (isCheatcode) {
-    color = colorizer.blue;
-  } else if (success) {
-    color = colorizer.green;
-  } else {
-    color = colorizer.red;
-  }
+  const colorName = isCheatcode ? "blue" : success ? "green" : "red";
+  const color = (text: string) => colorize(colorName, text);
 
   const formattedInputs = formatInputs(inputs, color);
   const formattedOutputs = formatOutputs(outputs);
@@ -110,7 +110,7 @@ function formatTrace(
   let openingLine: string;
   let closingLine: string | undefined;
   if (kind === CallKind.Create) {
-    openingLine = `[${gasUsed}] ${colorizer.yellow("→ new")} ${contract ?? "<unknown>"}@${address}`;
+    openingLine = `[${gasUsed}] ${colorize("yellow", "→ new")} ${contract ?? "<unknown>"}@${address}`;
     // TODO: Uncomment this when the formattedInputs starts containing
     // the address of where the contract was deployed instead of the code.
     // if (formattedInputs !== undefined) {
@@ -125,11 +125,11 @@ function formatTrace(
       openingLine = `${openingLine} {value: ${value}}`;
     }
     if (kind === CallKind.StaticCall) {
-      openingLine = `${openingLine} ${colorizer.yellow("[staticcall]")}`;
+      openingLine = `${openingLine} ${colorize("yellow", "[staticcall]")}`;
     } else if (kind === CallKind.DelegateCall) {
-      openingLine = `${openingLine} ${colorizer.yellow("[delegatecall]")}`;
+      openingLine = `${openingLine} ${colorize("yellow", "[delegatecall]")}`;
     } else if (kind === CallKind.CallCode) {
-      openingLine = `${openingLine} ${colorizer.yellow("[callcode]")}`;
+      openingLine = `${openingLine} ${colorize("yellow", "[callcode]")}`;
     }
   }
   if (formattedOutputs !== undefined) {
@@ -147,9 +147,9 @@ function formatTrace(
   lines.push(openingLine);
   for (const child of trace.children) {
     if (child.kind === LogKind.Log) {
-      lines.push(formatLog(child, colorizer));
+      lines.push(formatLog(child, colorize));
     } else {
-      lines.push(formatTrace(child, colorizer));
+      lines.push(formatTrace(child, colorize));
     }
   }
   if (closingLine !== undefined) {
