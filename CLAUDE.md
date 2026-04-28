@@ -54,3 +54,10 @@ After modifying a package, within the package run:
 ## Scoped docs to read
 
 - If changing anything in ./scripts/, read ./scripts/README.md first.
+
+## Renovate Config
+
+When editing `renovate.json`, validate locally before pushing (CI runs the same checks via the `check_renovate_config` job in `ci.yml`):
+
+- **Schema check:** `npx --yes --package renovate -- renovate-config-validator renovate.json`
+- **Full extraction dry-run:** `LOG_LEVEL=debug npx --yes renovate --platform=local --dry-run=full` — confirms each dep shows the expected `skipReason` / `updates`. Catches gotchas like `matchPackageNames` failing to match git-source deps (where `packageName` is the URL, not the `package.json` key — use `matchDepNames` for those).

@@ -1,0 +1,100 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": ["config:recommended", "helpers:pinGitHubActionDigests"],
+  "timezone": "UTC",
+  "schedule": ["before 9am on Monday"],
+  "minimumReleaseAge": "7 days",
+  "internalChecksFilter": "strict",
+  "ignorePaths": [
+    "**/fixture-projects/**",
+    "packages/hardhat/templates/**"
+  ],
+  "packageRules": [
+    {
+      "description": "Ignore pnpm workspace: protocol deps. Renovate skips them natively — rule kept for explicit intent.",
+      "matchManagers": ["npm"],
+      "matchCurrentValue": "/^workspace:/",
+      "enabled": false
+    },
+    {
+      "description": "peerDependencies are a compatibility contract with consumers, not an installed dep. Bumping them is a deliberate API decision tied to a plugin major.",
+      "matchManagers": ["npm"],
+      "matchDepTypes": ["peerDependencies"],
+      "enabled": false
+    },
+    {
+      "description": "Extra cooldown for majors",
+      "matchUpdateTypes": ["major"],
+      "minimumReleaseAge": "30 days"
+    },
+    {
+      "description": "npm: group minor/patch; majors stay individual",
+      "matchManagers": ["npm"],
+      "matchUpdateTypes": ["minor", "patch"],
+      "groupName": "npm minor/patch"
+    },
+    {
+      "description": "npm: ungroup pre-1.0 minors — ^0.x.y resolves like ~0.x.y, so 0.x→0.y is breaking and needs its own PR.",
+      "matchManagers": ["npm"],
+      "matchCurrentVersion": "<1.0.0",
+      "matchUpdateTypes": ["minor"],
+      "groupName": null
+    },
+    {
+      "description": "github-actions: group everything, including majors",
+      "matchManagers": ["github-actions"],
+      "groupName": "github-actions"
+    },
+    {
+      "description": "Block Node major bumps across every surface (.nvmrc, engines.node, @types/node, actions/setup-node's node-version). Bumped manually, only to even LTS releases.",
+      "matchDepNames": ["node", "@types/node"],
+      "matchUpdateTypes": ["major"],
+      "enabled": false
+    },
+    {
+      "description": "@tsconfig/nodeXX: the Node major lives in the package name (node22 → node24 = Node 22 → 24). Renovate models these as 'replacement' updates — block them alongside the Node-major lockdown above.",
+      "matchPackageNames": ["/^@tsconfig\\/node\\d+$/"],
+      "matchUpdateTypes": ["replacement"],
+      "enabled": false
+    },
+    {
+      "description": "Block typescript majors. TS majors cascade to typescript-eslint and consumers of Hardhat's TS-aware APIs — bump manually when the ecosystem catches up.",
+      "matchPackageNames": ["typescript"],
+      "matchUpdateTypes": ["major"],
+      "enabled": false
+    },
+    {
+      "description": "Each of these is declared as a peerDependency in at least one workspace package, and also appears as a dep/devDep in others. Block majors so the internal dep/devDep entries can't drift past the peerDep contract — major bumps need to be coordinated across both surfaces.",
+      "matchPackageNames": ["chai", "@types/chai", "@types/chai-as-promised", "ethers", "viem", "eslint", "mocha", "zod"],
+      "matchUpdateTypes": ["major"],
+      "enabled": false
+    },
+    {
+      "description": "@nomicfoundation/edr: tightly coupled to Hardhat releases",
+      "matchPackageNames": ["@nomicfoundation/edr"],
+      "enabled": false
+    },
+    {
+      "description": "Group vite + @vitejs/plugin-react. plugin-react has a peer-dep on vite — landing one without the other breaks the build.",
+      "matchPackageNames": ["vite", "@vitejs/plugin-react"],
+      "groupName": "vite"
+    },
+    {
+      "description": "Group @ledgerhq/* — they version in lockstep upstream and have inter-package deps.",
+      "matchPackageNames": ["/^@ledgerhq\\//"],
+      "groupName": "ledgerhq"
+    },
+    {
+      "description": "Group the eslint ecosystem so the plugins, resolvers, typescript-eslint, and globals land together rather than spread across the npm minor/patch group.",
+      "matchPackageNames": ["eslint", "typescript-eslint", "globals", "/^eslint-/", "/^@eslint-community\\//"],
+      "groupName": "eslint-stack"
+    }
+  ],
+  "labels": ["dependencies", "no docs needed", "no peer bump needed"],
+  "configMigration": true,
+  "dependencyDashboard": false,
+  "osvVulnerabilityAlerts": true,
+  "vulnerabilityAlerts": {
+    "enabled": true
+  }
+}
