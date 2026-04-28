@@ -1,5 +1,7 @@
 import type { CompilationJob } from "../../../../types/solidity.js";
 
+import { SOLC_DEFAULT_OPTIMIZER_RUNS } from "../constants.js";
+
 // This doesn't need to be exact, it's used to account for the per-file
 // overhead, so that many small files don't look free
 const APPROXIMATE_AVERAGE_SIZE_OF_SOLIDITY_FILES = 10_000;
@@ -16,7 +18,8 @@ export function estimateCompilationJobCost(job: CompilationJob): number {
   const settings = job.solcConfig.settings ?? {};
   const viaIR = settings.viaIR === true;
   const optimizerEnabled = settings.optimizer?.enabled === true;
-  const optimizerRuns: number = settings.optimizer?.runs ?? 200; // default is 200
+  const optimizerRuns: number =
+    settings.optimizer?.runs ?? SOLC_DEFAULT_OPTIMIZER_RUNS;
 
   const viaIRMultiplier = viaIR === true ? 6.0 : 1.0;
   const optimizerMultiplier = optimizerEnabled ? 1.4 : 1.0;
