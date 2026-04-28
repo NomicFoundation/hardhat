@@ -632,8 +632,8 @@ type SharedPromiseExecutionResult<ValueT> =
   | { success: false; error: Error | unknown };
 
 type SharedPromiseCachedResult<ValueT> =
-  // We wrapped the resolved Promise to distinguish the case where ValueT is
-  // itself a Promise.
+  // We wrapped the resolved value so that we can distingush not-cached from
+  // `undefined` cached values, and between Promise and value.
   | SharedPromiseSuccessfulExecutionResult<ValueT>
   | Promise<SharedPromiseExecutionResult<ValueT>>;
 
