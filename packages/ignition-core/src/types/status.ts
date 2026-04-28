@@ -7,7 +7,7 @@ import type {
 /**
  * The information of a deployed contract.
  *
- * @beta
+ * @public
  */
 export interface GenericContractInfo extends DeployedContract {
   sourceName: string;
@@ -18,7 +18,7 @@ export interface GenericContractInfo extends DeployedContract {
  * The result of requesting the status of a deployment. It lists the futures
  * broken down by their status, and includes the deployed contracts.
  *
- * @beta
+ * @public
  */
 export interface StatusResult
   extends Omit<ExecutionErrorDeploymentResult, "type"> {

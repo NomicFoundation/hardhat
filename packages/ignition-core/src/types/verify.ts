@@ -3,7 +3,7 @@ import type { SolidityParameterType } from "./module.js";
 /**
  * The configuration info needed to verify a contract on Etherscan on a given chain.
  *
- * @beta
+ * @public
  */
 export interface ChainConfig {
   network: string;
@@ -19,7 +19,7 @@ export interface ChainConfig {
  * Used to verify contracts with libraries that cannot be derived from the bytecode.
  * i.e. contracts that use libraries in their constructor
  *
- * @beta
+ * @public
  */
 export interface SourceToLibraryToAddress {
   [sourceName: string]: {
@@ -30,7 +30,7 @@ export interface SourceToLibraryToAddress {
 /**
  * The information required to verify a contract.
  *
- * @beta
+ * @public
  */
 export interface VerifyInfo {
   address: string;
@@ -46,6 +46,6 @@ export interface VerifyInfo {
  * Alternatively, it returns the contract name if the contract used
  * external artifacts that could not be resolved for verification.
  *
- * @beta
+ * @public
  */
 export type VerifyResult = VerifyInfo | string;

@@ -72,7 +72,7 @@ const CREATE_X_PRESIGNED_DEPLOYER_ADDRESS =
  *   ...
  * }
  *
- * @beta
+ * @public
  */
 export class Create2Strategy implements ExecutionStrategy {
   public readonly name: string = "create2";

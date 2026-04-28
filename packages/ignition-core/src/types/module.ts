@@ -4,7 +4,7 @@ import type { Abi, Artifact } from "./artifact.js";
  * Base argument type that smart contracts can receive in their constructors
  * and functions.
  *
- * @beta
+ * @public
  */
 export type BaseArgumentType =
   | number
@@ -20,7 +20,7 @@ export type BaseArgumentType =
 /**
  * Argument type that smart contracts can receive in their constructors and functions.
  *
- * @beta
+ * @public
  */
 export type ArgumentType =
   | BaseArgumentType
@@ -30,7 +30,7 @@ export type ArgumentType =
 /**
  * The different future types supported by Ignition.
  *
- * @beta
+ * @public
  */
 export enum FutureType {
   NAMED_ARTIFACT_CONTRACT_DEPLOYMENT = "NAMED_ARTIFACT_CONTRACT_DEPLOYMENT",
@@ -49,7 +49,7 @@ export enum FutureType {
 /**
  * The unit of execution in an Ignition deploy.
  *
- * @beta
+ * @public
  */
 export type Future =
   | NamedArtifactContractDeploymentFuture<string>
@@ -68,7 +68,7 @@ export type Future =
  * A future representing a contract. Either an existing one or one
  * that will be deployed.
  *
- * @beta
+ * @public
  */
 export type ContractFuture<ContractNameT extends string> =
   | NamedArtifactContractDeploymentFuture<ContractNameT>
@@ -82,7 +82,7 @@ export type ContractFuture<ContractNameT extends string> =
  * A future representing only contracts that can be called off-chain (i.e. not libraries).
  * Either an existing one or one that will be deployed.
  *
- * @beta
+ * @public
  */
 export type CallableContractFuture<ContractNameT extends string> =
   | NamedArtifactContractDeploymentFuture<ContractNameT>
@@ -93,7 +93,7 @@ export type CallableContractFuture<ContractNameT extends string> =
 /**
  * A future representing a deployment.
  *
- * @beta
+ * @public
  */
 export type DeploymentFuture<ContractNameT extends string> =
   | NamedArtifactContractDeploymentFuture<ContractNameT>
@@ -104,7 +104,7 @@ export type DeploymentFuture<ContractNameT extends string> =
 /**
  * A future representing a call. Either a static one or one that modifies contract state
  *
- * @beta
+ * @public
  */
 export type FunctionCallFuture<
   ContractNameT extends string,
@@ -116,7 +116,7 @@ export type FunctionCallFuture<
 /**
  * A future that can be resolved to a standard Ethereum address.
  *
- * @beta
+ * @public
  */
 export type AddressResolvableFuture =
   | ContractFuture<string>
@@ -126,7 +126,7 @@ export type AddressResolvableFuture =
 /**
  * A future representing the deployment of a contract that belongs to this project.
  *
- * @beta
+ * @public
  */
 export interface NamedArtifactContractDeploymentFuture<
   ContractNameT extends string,
@@ -150,7 +150,7 @@ export interface NamedArtifactContractDeploymentFuture<
  * A future representing the deployment of a contract that we only know its artifact.
  * It may not belong to this project, and we may struggle to type.
  *
- * @beta
+ * @public
  */
 export interface ContractDeploymentFuture<AbiT extends Abi = Abi> {
   type: FutureType.CONTRACT_DEPLOYMENT;
@@ -172,7 +172,7 @@ export interface ContractDeploymentFuture<AbiT extends Abi = Abi> {
 /**
  * A future representing the deployment of a library that belongs to this project
  *
- * @beta
+ * @public
  */
 export interface NamedArtifactLibraryDeploymentFuture<
   LibraryNameT extends string,
@@ -190,7 +190,7 @@ export interface NamedArtifactLibraryDeploymentFuture<
  * A future representing the deployment of a library that we only know its artifact.
  * It may not belong to this project, and we may struggle to type.
  *
- * @beta
+ * @public
  */
 export interface LibraryDeploymentFuture<AbiT extends Abi = Abi> {
   type: FutureType.LIBRARY_DEPLOYMENT;
@@ -206,7 +206,7 @@ export interface LibraryDeploymentFuture<AbiT extends Abi = Abi> {
 /**
  * A future representing the calling of a contract function that modifies on-chain state
  *
- * @beta
+ * @public
  */
 export interface ContractCallFuture<
   ContractNameT extends string,
@@ -230,7 +230,7 @@ export interface ContractCallFuture<
 /**
  * A future representing the static calling of a contract function that does not modify state
  *
- * @beta
+ * @public
  */
 export interface StaticCallFuture<
   ContractNameT extends string,
@@ -250,7 +250,7 @@ export interface StaticCallFuture<
 /**
  * A future representing the encoding of a contract function call
  *
- * @beta
+ * @public
  */
 export interface EncodeFunctionCallFuture<
   ContractNameT extends string,
@@ -268,7 +268,7 @@ export interface EncodeFunctionCallFuture<
 /**
  * A future representing a previously deployed contract at a known address that belongs to this project.
  *
- * @beta
+ * @public
  */
 export interface NamedArtifactContractAtFuture<ContractNameT extends string> {
   type: FutureType.NAMED_ARTIFACT_CONTRACT_AT;
@@ -286,7 +286,7 @@ export interface NamedArtifactContractAtFuture<ContractNameT extends string> {
  * A future representing a previously deployed contract at a known address with a given artifact.
  * It may not belong to this project, and we may struggle to type.
  *
- * @beta
+ * @public
  */
 export interface ContractAtFuture<AbiT extends Abi = Abi> {
   type: FutureType.CONTRACT_AT;
@@ -305,7 +305,7 @@ export interface ContractAtFuture<AbiT extends Abi = Abi> {
  * A future that represents reading an argument of an event emitted by the
  * transaction that executed another future.
  *
- * @beta
+ * @public
  */
 export interface ReadEventArgumentFuture {
   type: FutureType.READ_EVENT_ARGUMENT;
@@ -326,7 +326,7 @@ export interface ReadEventArgumentFuture {
 /**
  * A future that represents sending arbitrary data to the EVM.
  *
- * @beta
+ * @public
  */
 export interface SendDataFuture {
   type: FutureType.SEND_DATA;
@@ -346,14 +346,14 @@ export interface SendDataFuture {
 /**
  * Base type of module parameters's values.
  *
- * @beta
+ * @public
  */
 export type BaseSolidityParameterType = number | bigint | string | boolean;
 
 /**
  * Types that can be passed across the Solidity ABI boundary.
  *
- * @beta
+ * @public
  */
 export type SolidityParameterType =
   | BaseSolidityParameterType
@@ -363,14 +363,14 @@ export type SolidityParameterType =
 /**
  * Type of module parameters's values.
  *
- * @beta
+ * @public
  */
 export type ModuleParameterType = SolidityParameterType | AccountRuntimeValue;
 
 /**
  * The different runtime values supported by Ignition.
  *
- * @beta
+ * @public
  */
 export enum RuntimeValueType {
   ACCOUNT = "ACCOUNT",
@@ -380,7 +380,7 @@ export enum RuntimeValueType {
 /**
  * A value that's only available during deployment.
  *
- * @beta
+ * @public
  */
 export type RuntimeValue =
   | AccountRuntimeValue
@@ -389,7 +389,7 @@ export type RuntimeValue =
 /**
  * A local account.
  *
- * @beta
+ * @public
  */
 export interface AccountRuntimeValue {
   type: RuntimeValueType.ACCOUNT;
@@ -399,7 +399,7 @@ export interface AccountRuntimeValue {
 /**
  * A module parameter.
  *
- * @beta
+ * @public
  */
 export interface ModuleParameterRuntimeValue<
   ParamTypeT extends ModuleParameterType,
@@ -413,7 +413,7 @@ export interface ModuleParameterRuntimeValue<
 /**
  * An object containing the parameters passed into the module.
  *
- * @beta
+ * @public
  */
 export interface ModuleParameters {
   [parameterName: string]: SolidityParameterType;
@@ -422,7 +422,7 @@ export interface ModuleParameters {
 /**
  * The results of deploying a module must be a dictionary of contract futures
  *
- * @beta
+ * @public
  */
 export interface IgnitionModuleResult<ContractNameT extends string> {
   [name: string]: ContractFuture<ContractNameT>;
@@ -431,7 +431,7 @@ export interface IgnitionModuleResult<ContractNameT extends string> {
 /**
  * A recipe for deploying and configuring contracts.
  *
- * @beta
+ * @public
  */
 export interface IgnitionModule<
   ModuleIdT extends string = string,

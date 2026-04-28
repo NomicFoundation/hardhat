@@ -32,7 +32,7 @@ import {
  * @param artifactResolver - the artifact resolver to use when loading artifacts
  * for a future
  *
- * @beta
+ * @public
  */
 export async function listTransactions(
   deploymentDir: string,

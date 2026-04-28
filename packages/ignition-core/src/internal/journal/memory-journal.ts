@@ -7,7 +7,7 @@ import { emitExecutionEvent } from "./utils/emitExecutionEvent.js";
 /**
  * An in-memory journal.
  *
- * @beta
+ * @public
  */
 export class MemoryJournal implements Journal {
   private readonly _messages: JournalMessage[] = [];
