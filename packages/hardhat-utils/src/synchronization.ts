@@ -707,13 +707,7 @@ export class SharedPromiseCache<ValueT> {
 
       const cachedResult = await cached;
 
-      if (this.#cache.get(key) === cached) {
-        if (cachedResult.success) {
-          this.#cache.set(key, { success: true, value: cachedResult.value });
-        } else {
-          this.#cache.delete(key);
-        }
-      }
+      this.#updateResolvedPromiseCache(key, cached, cachedResult);
 
       if (cachedResult.success) {
         return cachedResult.value;
@@ -722,6 +716,10 @@ export class SharedPromiseCache<ValueT> {
       throw cachedResult.error;
     }
 
+    // Don't update `this.#cache` from inside this IIFE — doing so would let a
+    // resolution overwrite a concurrent `delete()`/`clear()`. The cache write
+    // is deferred to `#updateResolvedPromiseCache`, which gates on reference
+    // equality.
     const promise: Promise<SharedPromiseExecutionResult<ValueT>> =
       (async () => {
         try {
@@ -736,15 +734,7 @@ export class SharedPromiseCache<ValueT> {
 
     const result = await promise;
 
-    // If the promise that we just awaited is the one that's cached, we replace
-    // it with the actual value if it succeeded, or remove it if it failed.
-    if (this.#cache.get(key) === promise) {
-      if (result.success) {
-        this.#cache.set(key, { success: true, value: result.value });
-      } else {
-        this.#cache.delete(key);
-      }
-    }
+    this.#updateResolvedPromiseCache(key, promise, result);
 
     if (result.success) {
       return result.value;
@@ -771,5 +761,29 @@ export class SharedPromiseCache<ValueT> {
    */
   public clear(): void {
     this.#cache.clear();
+  }
+
+  /**
+   * Updates the cache if needed once a promise got resolved.
+   *
+   * @param key The cache key.
+   * @param promise The promise that got resolved.
+   * @param result The result of the resolved promise.
+   */
+  #updateResolvedPromiseCache(
+    key: string,
+    promise: Promise<SharedPromiseExecutionResult<ValueT>>,
+    result: SharedPromiseExecutionResult<ValueT>,
+  ): void {
+    // We only update the cache if the cached promise is still the one that got
+    // resolved, which may not always be the case. The reason is that the
+    // resolved promise may have been deleted and/or replaced in the cache.
+    if (this.#cache.get(key) === promise) {
+      if (result.success) {
+        this.#cache.set(key, { success: true, value: result.value });
+      } else {
+        this.#cache.delete(key);
+      }
+    }
   }
 }
