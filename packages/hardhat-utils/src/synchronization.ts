@@ -629,7 +629,7 @@ interface SharedPromiseSuccessfulExecutionResult<ValueT> {
 
 type SharedPromiseExecutionResult<ValueT> =
   | SharedPromiseSuccessfulExecutionResult<ValueT>
-  | { success: false; error: Error | unknown };
+  | { success: false; error: unknown };
 
 type SharedPromiseCachedResult<ValueT> =
   // We wrapped the resolved value so that we can distinguish not-cached from
