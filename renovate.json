@@ -54,8 +54,8 @@
       "enabled": false
     },
     {
-      "description": "chai + @types/chai + @types/chai-as-promised: no automatic major bumps. chai is a public API surface via @nomicfoundation/hardhat-chai-matchers — a chai major propagates breaking matcher behaviour to downstream test suites, so it's bumped manually as a coordinated change.",
-      "matchPackageNames": ["chai", "@types/chai", "@types/chai-as-promised"],
+      "description": "Public API surfaces re-exported by Hardhat plugins — chai (via hardhat-chai-matchers), ethers (via hardhat-ethers), viem (via hardhat-viem). Major bumps propagate breaking changes to downstream user code, so they're bumped manually as a coordinated change. Minor/patch within the current major still flow through.",
+      "matchPackageNames": ["chai", "@types/chai", "@types/chai-as-promised", "ethers", "viem"],
       "matchUpdateTypes": ["major"],
       "enabled": false
     },
