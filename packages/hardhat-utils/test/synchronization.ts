@@ -1358,6 +1358,40 @@ describe("SharedPromiseCache", () => {
     assert.equal(reentrantCalls, 0);
   });
 
+  it("should share producer failures with same-key reentrant calls", async () => {
+    const cache = new SharedPromiseCache<string>();
+    const cause = new Error("failure");
+    let outerCalls = 0;
+    let reentrantCalls = 0;
+    let reentrantResult: Promise<string> | undefined;
+
+    const result = assert.rejects(
+      cache.getOrCompute("key", async () => {
+        outerCalls++;
+        reentrantResult = cache.getOrCompute("key", async () => {
+          reentrantCalls++;
+          return "reentrant";
+        });
+
+        throw cause;
+      }),
+      (error) => {
+        assert.equal(error, cause);
+        return true;
+      },
+    );
+
+    await result;
+
+    assert.ok(reentrantResult !== undefined, "Expected a reentrant result");
+    await assert.rejects(reentrantResult, (error) => {
+      assert.equal(error, cause);
+      return true;
+    });
+    assert.equal(outerCalls, 1);
+    assert.equal(reentrantCalls, 0);
+  });
+
   it("should ignore later functions for concurrent calls with the same key, only using the first one", async () => {
     const cache = new SharedPromiseCache<string>();
     const deferred = Promise.withResolvers<string>();
