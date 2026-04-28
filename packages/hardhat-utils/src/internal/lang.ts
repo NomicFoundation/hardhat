@@ -1,11 +1,12 @@
-import { createCustomEqual } from "fast-equals";
-import rfdc from "rfdc";
-
 import { isObject } from "../lang.js";
 
-let clone: ReturnType<typeof rfdc> | null = null;
-export function getDeepCloneFunction(): <T>(input: T) => T {
+// We don't load rfdc and fast-equals on startup because they add unnecessary
+// overhead when this module is transitively imported but deep clone/equal
+// are not used.
+let clone: (<T>(input: T) => T) | null = null;
+export async function getDeepCloneFunction(): Promise<<T>(input: T) => T> {
   if (clone === null) {
+    const { default: rfdc } = await import("rfdc");
     clone = rfdc();
   }
 
@@ -62,10 +63,12 @@ let cachedCustomEqual: ((a: unknown, b: unknown) => boolean) | undefined;
  * @param y The second value to compare.
  * @returns True if the values are deeply equal, false otherwise.
  */
-export function customFastEqual<T>(x: T, y: T): boolean {
+export async function customFastEqual<T>(x: T, y: T): Promise<boolean> {
   if (cachedCustomEqual !== undefined) {
     return cachedCustomEqual(x, y);
   }
+
+  const { createCustomEqual } = await import("fast-equals");
 
   cachedCustomEqual = createCustomEqual({
     createCustomConfig: (defaultConfig) => ({

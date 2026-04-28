@@ -1,13 +1,9 @@
-import type { JsonTypes, ParsedElementInfo } from "@streamparser/json-node";
 import type { FileHandle } from "node:fs/promises";
 
 import fsPromises from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import { pipeline } from "node:stream/promises";
-
-import { JSONParser } from "@streamparser/json-node";
-import { JsonStreamStringify } from "json-stream-stringify";
 
 import { ensureError, ensureNodeErrnoExceptionError } from "./error.js";
 import {
@@ -233,6 +229,10 @@ export async function readJsonFileAsStream<T>(
 
     const fileReadStream = fileHandle.createReadStream();
 
+    // Lazy-load @streamparser/json-node to avoid paying its import cost at
+    // startup — this function is only used for very large JSON files.
+    const { JSONParser } = await import("@streamparser/json-node");
+
     // NOTE: We set a separator to disable self-closing to be able to use the parser
     // in the stream.pipeline context; see https://github.com/juanjoDiaz/streamparser-json/issues/47
     const jsonParser = new JSONParser({
@@ -242,10 +242,8 @@ export async function readJsonFileAsStream<T>(
     const result: T | undefined = await pipeline(
       fileReadStream,
       jsonParser,
-      async (
-        elements: AsyncIterable<ParsedElementInfo.ParsedElementInfo>,
-      ): Promise<any | undefined> => {
-        let value: JsonTypes.JsonPrimitive | JsonTypes.JsonStruct | undefined;
+      async (elements: AsyncIterable<{ value: any }>): Promise<any | undefined> => {
+        let value: unknown;
         for await (const element of elements) {
           value = element.value;
         }
@@ -333,6 +331,10 @@ export async function writeJsonFileAsStream<T>(
 
   try {
     fileHandle = await fsPromises.open(absolutePathToFile, "w");
+
+    // Lazy-load json-stream-stringify to avoid paying its import cost at
+    // startup — this function is only used for very large JSON objects.
+    const { JsonStreamStringify } = await import("json-stream-stringify");
 
     const jsonStream = new JsonStreamStringify(object);
     const fileWriteStream = fileHandle.createWriteStream();

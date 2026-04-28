@@ -1,5 +1,11 @@
-import { keccak256 as keccak256Impl } from "ethereum-cryptography/keccak";
-import { sha256 as sha256Impl } from "ethereum-cryptography/sha256";
+// We don't load ethereum-cryptography on startup because it's slow to
+// initialize and this module is transitively imported from many places.
+let keccak256Impl:
+  | typeof import("ethereum-cryptography/keccak").keccak256
+  | undefined;
+let sha256Impl:
+  | typeof import("ethereum-cryptography/sha256").sha256
+  | undefined;
 
 /**
  * Computes the Keccak-256 hash of the input bytes.
@@ -8,6 +14,11 @@ import { sha256 as sha256Impl } from "ethereum-cryptography/sha256";
  * @returns The Keccak-256 hash of the input bytes.
  */
 export async function keccak256(bytes: Uint8Array): Promise<Uint8Array> {
+  if (keccak256Impl === undefined) {
+    ({ keccak256: keccak256Impl } = await import(
+      "ethereum-cryptography/keccak"
+    ));
+  }
   return keccak256Impl(bytes);
 }
 
@@ -18,6 +29,9 @@ export async function keccak256(bytes: Uint8Array): Promise<Uint8Array> {
  * @returns The SHA-256 hash of the input bytes.
  */
 export async function sha256(bytes: Uint8Array): Promise<Uint8Array> {
+  if (sha256Impl === undefined) {
+    ({ sha256: sha256Impl } = await import("ethereum-cryptography/sha256"));
+  }
   return sha256Impl(bytes);
 }
 
