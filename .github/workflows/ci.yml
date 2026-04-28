@@ -325,7 +325,7 @@ jobs:
         run: pnpm run --if-present test
 
   ci-aggregate:
-    needs: [ci, hardhat-node-test-reporter, hardhat-ethers-chai-v5-matchers]
+    needs: [ci, hardhat-node-test-reporter, hardhat-ethers-chai-v5-matchers, check_renovate_config]
 
     if: ${{ !cancelled() }}
 
@@ -337,8 +337,9 @@ jobs:
       - env:
           ci_result: ${{ needs.ci.result }}
           reporter_result: ${{ needs.hardhat-node-test-reporter.result }}
+          renovate_result: ${{ needs.check_renovate_config.result }}
         run: |
-          if [[ "$ci_result" == "failure" || "$reporter_result" == "failure" ]]; then
+          if [[ "$ci_result" == "failure" || "$reporter_result" == "failure" || "$renovate_result" == "failure" ]]; then
             exit 1
           fi
         shell: bash
