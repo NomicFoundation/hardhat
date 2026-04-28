@@ -1,12 +1,12 @@
 import type { GlobalDiagnostics } from "./diagnostics.js";
 import type { TestEventData } from "./types.js";
 
-import chalk from "chalk";
+import { styleText } from "node:util";
 
 import { formatError } from "./error-formatting.js";
 
-export const INFO_SYMBOL: string = chalk.blue("\u2139");
-export const SUCCESS_SYMBOL: string = chalk.green("✔");
+export const INFO_SYMBOL: string = styleText("blue", "\u2139");
+export const SUCCESS_SYMBOL: string = styleText("green", "✔");
 
 export interface Failure {
   index: number;
@@ -35,7 +35,7 @@ export function formatTestContext(
     }
 
     if (isSkipped && i === contextStack.length - 1) {
-      contextFragments.push(chalk.cyan(`- ${parentTest.name}`));
+      contextFragments.push(styleText("cyan", `- ${parentTest.name}`));
     } else {
       contextFragments.push(parentTest.name);
     }
@@ -51,12 +51,12 @@ export function formatTestPass(passData: TestEventData["test:pass"]): string {
 
   if (passData.skip === true || typeof passData.skip === "string") {
     // TODO: show skip reason
-    msg = chalk.cyan(`- ${passData.name}`);
+    msg = styleText("cyan", `- ${passData.name}`);
   } else if (passData.todo === true || typeof passData.todo === "string") {
     // TODO: show todo reason
-    msg = chalk.blue(`+ ${passData.name}`);
+    msg = styleText("blue", `+ ${passData.name}`);
   } else {
-    msg = chalk.gray(`${SUCCESS_SYMBOL} ${passData.name}`);
+    msg = SUCCESS_SYMBOL + styleText("gray", ` ${passData.name}`);
   }
 
   return indent(msg, nestingToIndentationLength(passData.nesting));
@@ -64,7 +64,7 @@ export function formatTestPass(passData: TestEventData["test:pass"]): string {
 
 export function formatTestCancelledByParentFailure(failure: Failure): string {
   return indent(
-    chalk.grey(
+    styleText("grey",
       `${formatFailureIndex(failure.index)}) ${failure.testFail.name}`,
     ),
     nestingToIndentationLength(failure.testFail.nesting),
@@ -73,7 +73,7 @@ export function formatTestCancelledByParentFailure(failure: Failure): string {
 
 export function formatTestFailure(failure: Failure): string {
   return indent(
-    chalk.red(`${formatFailureIndex(failure.index)}) ${failure.testFail.name}`),
+    styleText("red", `${formatFailureIndex(failure.index)}) ${failure.testFail.name}`),
     nestingToIndentationLength(failure.testFail.nesting),
   );
 }
@@ -89,7 +89,7 @@ ${indent(formatError(failure.testFail.details.error), 3)}`;
 }
 
 export function formatSlowTestInfo(durationMs: number): string {
-  return ` ${chalk.red(chalk.italic(`(${Math.floor(durationMs)}ms)`))}`;
+  return ` ${styleText(["red", "italic"], `(${Math.floor(durationMs)}ms)`)}`;
 }
 
 export function formatGlobalDiagnostics(
@@ -98,27 +98,23 @@ export function formatGlobalDiagnostics(
   let result = "  ";
 
   result +=
-    chalk.green(`${diagnostics.pass} passing`) +
-    chalk.gray(` (${Math.floor(diagnostics.duration_ms)}ms)`);
+    styleText("green", `${diagnostics.pass} passing`) +
+    styleText("gray", ` (${Math.floor(diagnostics.duration_ms)}ms)`);
 
   if (diagnostics.fail > 0) {
-    result += chalk.red(`
-  ${diagnostics.fail} failing`);
+    result += "\n" + styleText("red", `  ${diagnostics.fail} failing`);
   }
 
   if (diagnostics.skipped > 0) {
-    result += chalk.cyan(`
-  ${diagnostics.skipped} skipped`);
+    result += "\n" + styleText("cyan", `  ${diagnostics.skipped} skipped`);
   }
 
   if (diagnostics.todo > 0) {
-    result += chalk.blue(`
-  ${diagnostics.todo} todo`);
+    result += "\n" + styleText("blue", `  ${diagnostics.todo} todo`);
   }
 
   if (diagnostics.cancelled > 0) {
-    result += chalk.gray(`
-  ${diagnostics.cancelled} cancelled`);
+    result += "\n" + styleText("gray", `  ${diagnostics.cancelled} cancelled`);
   }
 
   return result;

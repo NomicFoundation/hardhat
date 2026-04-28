@@ -7,7 +7,7 @@ import { randomBytes } from "node:crypto";
 
 import { HardhatError } from "@nomicfoundation/hardhat-errors";
 import { readUtf8File, writeUtf8File } from "@nomicfoundation/hardhat-utils/fs";
-import chalk from "chalk";
+import { styleText } from "node:util";
 
 import { PLUGIN_ID } from "../constants.js";
 import { UserDisplayMessages } from "../ui/user-display-messages.js";
@@ -106,7 +106,7 @@ async function createPassword(
 
     if (!PASSWORD_REGEX.test(password)) {
       password = undefined;
-      consoleLog(chalk.red(UserDisplayMessages.passwordRequirementsError()));
+      consoleLog(styleText("red", UserDisplayMessages.passwordRequirementsError()));
     }
   }
 
@@ -118,7 +118,7 @@ async function createPassword(
     );
 
     if (password !== confirmPassword) {
-      consoleLog(chalk.red(UserDisplayMessages.passwordsDoNotMatchError()));
+      consoleLog(styleText("red", UserDisplayMessages.passwordsDoNotMatchError()));
       confirmPassword = undefined;
     }
   }

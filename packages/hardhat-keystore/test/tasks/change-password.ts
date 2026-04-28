@@ -10,7 +10,7 @@ import { fileURLToPath } from "node:url";
 import { HardhatError } from "@nomicfoundation/hardhat-errors";
 import { assertRejectsWithHardhatError } from "@nomicfoundation/hardhat-test-utils";
 import { writeJsonFile } from "@nomicfoundation/hardhat-utils/fs";
-import chalk from "chalk";
+import { styleText } from "node:util";
 
 import { KeystoreFileLoader } from "../../src/internal/loaders/keystore-file-loader.js";
 import { changePassword } from "../../src/internal/tasks/change-password.js";
@@ -117,7 +117,7 @@ describe("tasks - change-password", () => {
       it("should display a message that the keystore is not set", async () => {
         assertOutputIncludes(
           mockConsoleLog,
-          `No production keystore found. Please set one up using ${chalk.blue.italic("npx hardhat keystore set {key}")} `,
+          `No production keystore found. Please set one up using ${styleText(["blue", "italic"], "npx hardhat keystore set {key}")} `,
         );
       });
     });

@@ -8,7 +8,7 @@ import { ensureError } from "@nomicfoundation/hardhat-utils/error";
 import { capitalize } from "@nomicfoundation/hardhat-utils/string";
 import { verifyContract } from "@nomicfoundation/hardhat-verify/verify";
 import { getVerificationInformation } from "@nomicfoundation/ignition-core";
-import chalk from "chalk";
+import { styleText } from "node:util";
 
 interface TaskVerifyArguments {
   deploymentId: string;
@@ -45,7 +45,7 @@ export async function verify(
   );
 
   if (enabledProviders.length === 0) {
-    console.warn(chalk.yellow("\n⚠️  No verification providers are enabled."));
+    console.warn(styleText("yellow", "\n⚠️  No verification providers are enabled."));
 
     return;
   }
@@ -75,7 +75,7 @@ export async function verify(
 
     for (const provider of enabledProviders) {
       try {
-        console.log(chalk.cyan.bold(`\n=== ${capitalize(provider)} ===`));
+        console.log(styleText(["cyan", "bold"], `\n=== ${capitalize(provider)} ===`));
 
         await verifyContractFn(
           {
@@ -88,7 +88,7 @@ export async function verify(
       } catch (error) {
         ensureError(error);
 
-        console.error(chalk.red(error.message));
+        console.error(styleText("red", error.message));
         process.exitCode = 1;
       }
     }
