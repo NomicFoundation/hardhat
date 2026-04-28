@@ -1,8 +1,7 @@
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { stripVTControlCharacters } from "node:util";
+import { stripVTControlCharacters, styleText } from "node:util";
 
-import { styleText } from "node:util";
 import { diff as getDiff } from "jest-diff";
 
 import { isCi } from "./ci.js";
@@ -50,7 +49,8 @@ interface StackLine {
 
 export function formatError(error: Error): string {
   if (isTestFileExecutionFailureError(error)) {
-    return styleText("red",
+    return styleText(
+      "red",
       `Test file execution failed (exit code ${error.exitCode}).`,
     );
   }
@@ -190,7 +190,8 @@ export function formatSingleError(
   }
   const stack = stackLines.map(formatStackLine).join("\n");
 
-  let formattedError = depth === 0 ? styleText("red", message) : styleText("grey", message);
+  let formattedError =
+    depth === 0 ? styleText("red", message) : styleText("grey", message);
   if (diff !== undefined) {
     formattedError += `\n${diff}\n`;
   }

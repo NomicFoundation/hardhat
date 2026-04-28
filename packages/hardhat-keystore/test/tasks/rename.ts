@@ -5,11 +5,11 @@ import assert from "node:assert/strict";
 import path from "node:path";
 import { after, beforeEach, describe, it, mock } from "node:test";
 import { fileURLToPath } from "node:url";
+import { styleText } from "node:util";
 
 import { HardhatError } from "@nomicfoundation/hardhat-errors";
 import { assertRejectsWithHardhatError } from "@nomicfoundation/hardhat-test-utils";
 import { remove as removeFile } from "@nomicfoundation/hardhat-utils/fs";
-import { styleText } from "node:util";
 
 import { decryptSecret } from "../../src/internal/keystores/encryption.js";
 import { KeystoreFileLoader } from "../../src/internal/loaders/keystore-file-loader.js";

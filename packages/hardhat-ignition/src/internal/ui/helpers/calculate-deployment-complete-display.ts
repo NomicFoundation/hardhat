@@ -7,9 +7,10 @@ import type {
   ValidationErrorDeploymentResult,
 } from "@nomicfoundation/ignition-core";
 
+import { styleText } from "node:util";
+
 import { assertHardhatInvariant } from "@nomicfoundation/hardhat-errors";
 import { DeploymentResultType } from "@nomicfoundation/ignition-core";
-import { styleText } from "node:util";
 
 import { pathFromCwd } from "./cwd-relative-path.js";
 import { wasAnythingExecuted } from "./was-anything-executed.js";

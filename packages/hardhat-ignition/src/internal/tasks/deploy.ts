@@ -6,6 +6,7 @@ import type { HardhatRuntimeEnvironment } from "hardhat/types/hre";
 import type { NewTaskActionFunction } from "hardhat/types/tasks";
 
 import path from "node:path";
+import { styleText } from "node:util";
 
 import { HardhatError } from "@nomicfoundation/hardhat-errors";
 import {
@@ -17,7 +18,6 @@ import {
   writeJsonFile,
 } from "@nomicfoundation/hardhat-utils/fs";
 import { deploy } from "@nomicfoundation/ignition-core";
-import { styleText } from "node:util";
 import json5 from "json5";
 import Prompt from "prompts";
 

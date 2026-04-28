@@ -1,5 +1,6 @@
-import { assert } from "chai";
 import { styleText } from "node:util";
+
+import { assert } from "chai";
 
 import { calculateStartingMessage } from "../../../src/internal/ui/helpers/calculate-starting-message.js";
 

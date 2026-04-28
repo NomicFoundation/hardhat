@@ -1,7 +1,8 @@
 import type { UiState } from "../types.js";
 
-import { assertHardhatInvariant } from "@nomicfoundation/hardhat-errors";
 import { styleText } from "node:util";
+
+import { assertHardhatInvariant } from "@nomicfoundation/hardhat-errors";
 
 import { pathFromCwd } from "./cwd-relative-path.js";
 
@@ -15,14 +16,16 @@ export function calculateDeployingModulePanel(state: UiState): string {
       state.deploymentDir !== null && state.deploymentDir !== undefined,
       "Deployment dir is undefined",
     );
-    deployingMessage += `${styleText("bold",
+    deployingMessage += `${styleText(
+      "bold",
       `Resuming existing deployment from ${pathFromCwd(state.deploymentDir)}`,
     )}
 
 `;
   }
 
-  deployingMessage += `${styleText("bold",
+  deployingMessage += `${styleText(
+    "bold",
     `Deploying [ ${state.moduleName ?? "unknown"} ]${_calculateStrategySuffix(
       state,
     )}`,
@@ -30,7 +33,8 @@ export function calculateDeployingModulePanel(state: UiState): string {
 `;
 
   if (state.warnings.length > 0) {
-    deployingMessage += `\n${styleText("yellow",
+    deployingMessage += `\n${styleText(
+      "yellow",
       "Warning - previously executed futures are not in the module:",
     )}\n`;
 

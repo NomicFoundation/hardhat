@@ -6,11 +6,11 @@ import assert from "node:assert/strict";
 import path from "node:path";
 import { beforeEach, describe, it, mock } from "node:test";
 import { fileURLToPath } from "node:url";
+import { styleText } from "node:util";
 
 import { HardhatError } from "@nomicfoundation/hardhat-errors";
 import { assertRejectsWithHardhatError } from "@nomicfoundation/hardhat-test-utils";
 import { writeJsonFile } from "@nomicfoundation/hardhat-utils/fs";
-import { styleText } from "node:util";
 
 import { KeystoreFileLoader } from "../../src/internal/loaders/keystore-file-loader.js";
 import { changePassword } from "../../src/internal/tasks/change-password.js";

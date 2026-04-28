@@ -17,7 +17,8 @@ process.on("exit", () => {
   if (showNotAwaitedError) {
     console.log();
     console.log(
-      styleText("red",
+      styleText(
+        "red",
         [
           'Error: Missing "await" on async assert/expect.',
           "",

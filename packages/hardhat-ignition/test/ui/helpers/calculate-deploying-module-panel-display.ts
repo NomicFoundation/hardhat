@@ -1,9 +1,9 @@
 import type { UiState } from "../../../src/internal/ui/types.js";
 
 import path from "node:path";
+import { styleText } from "node:util";
 
 import { assert } from "chai";
-import { styleText } from "node:util";
 
 import { calculateDeployingModulePanel } from "../../../src/internal/ui/helpers/calculate-deploying-module-panel.js";
 import { UiStateDeploymentStatus } from "../../../src/internal/ui/types.js";
@@ -31,7 +31,7 @@ describe("ui - calculate starting message display", () => {
     const expectedText = testFormat(`
     Hardhat Ignition 🚀
 
-    ${styleText("bold",`Deploying [ ExampleModule ]`)}
+    ${styleText("bold", `Deploying [ ExampleModule ]`)}
     `);
 
     const actualText = calculateDeployingModulePanel(exampleState);
@@ -43,7 +43,7 @@ describe("ui - calculate starting message display", () => {
     const expectedText = testFormat(`
     Hardhat Ignition 🚀
 
-    ${styleText("bold",`Deploying [ ExampleModule ] with strategy create2`)}
+    ${styleText("bold", `Deploying [ ExampleModule ] with strategy create2`)}
     `);
 
     const actualText = calculateDeployingModulePanel({
@@ -58,14 +58,15 @@ describe("ui - calculate starting message display", () => {
     const expectedText = testFormat(`
     Hardhat Ignition 🚀
 
-    ${styleText("bold",`Deploying [ ExampleModule ]`)}
+    ${styleText("bold", `Deploying [ ExampleModule ]`)}
 
-    ${styleText("yellow",
+    ${styleText(
+      "yellow",
       "Warning - previously executed futures are not in the module:",
     )}
-    ${styleText("yellow"," - MyModule#Contract1")}
-    ${styleText("yellow"," - MyModule#Contract1.call1")}
-    ${styleText("yellow"," - MyModule#Contract2")}
+    ${styleText("yellow", " - MyModule#Contract1")}
+    ${styleText("yellow", " - MyModule#Contract1.call1")}
+    ${styleText("yellow", " - MyModule#Contract2")}
     `);
 
     const actualText = calculateDeployingModulePanel({
@@ -84,9 +85,9 @@ describe("ui - calculate starting message display", () => {
     const expectedText = testFormat(`
     Hardhat Ignition 🚀
 
-    ${styleText("bold",`Resuming existing deployment from /users/example`)}
+    ${styleText("bold", `Resuming existing deployment from /users/example`)}
 
-    ${styleText("bold",`Deploying [ ExampleModule ]`)}
+    ${styleText("bold", `Deploying [ ExampleModule ]`)}
     `);
 
     const actualText = calculateDeployingModulePanel({
@@ -101,11 +102,12 @@ describe("ui - calculate starting message display", () => {
     const expectedText = testFormat(`
     Hardhat Ignition 🚀
 
-    ${styleText("bold",
+    ${styleText(
+      "bold",
       `Resuming existing deployment from .${path.sep}ignition${path.sep}deployments${path.sep}foo`,
     )}
 
-    ${styleText("bold",`Deploying [ ExampleModule ]`)}
+    ${styleText("bold", `Deploying [ ExampleModule ]`)}
     `);
 
     const actualText = calculateDeployingModulePanel({

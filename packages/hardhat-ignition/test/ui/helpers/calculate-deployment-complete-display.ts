@@ -7,9 +7,10 @@ import type {
   ValidationErrorDeploymentResult,
 } from "@nomicfoundation/ignition-core";
 
+import { styleText } from "node:util";
+
 import { DeploymentResultType } from "@nomicfoundation/ignition-core";
 import { assert } from "chai";
-import { styleText } from "node:util";
 
 import { calculateDeploymentCompleteDisplay } from "../../../src/internal/ui/helpers/calculate-deployment-complete-display.js";
 import { UiFutureStatusType } from "../../../src/internal/ui/types.js";

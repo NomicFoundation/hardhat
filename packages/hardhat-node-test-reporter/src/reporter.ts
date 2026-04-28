@@ -298,7 +298,9 @@ export function hardhatTestReporter(
           break;
         }
         case "test:coverage": {
-          yield "\n" + styleText("red", "Test coverage not supported by this reporter") + "\n";
+          yield "\n" +
+            styleText("red", "Test coverage not supported by this reporter") +
+            "\n";
           break;
         }
         default: {

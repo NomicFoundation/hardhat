@@ -12,8 +12,9 @@ export function calculateStartingMessage({
   moduleName: string | null;
   deploymentDir: string | undefined | null;
 }): string {
-  const warningMessage = styleText(["yellow", "bold"],
-      `You are running Hardhat Ignition against an in-process instance of Hardhat Network.
+  const warningMessage = styleText(
+    ["yellow", "bold"],
+    `You are running Hardhat Ignition against an in-process instance of Hardhat Network.
 This will execute the deployment, but the results will be lost.
 You can use --network <network-name> to deploy to a different network.`,
   );

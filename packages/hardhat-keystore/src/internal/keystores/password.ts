@@ -4,10 +4,10 @@ import type {
 } from "../types.js";
 
 import { randomBytes } from "node:crypto";
+import { styleText } from "node:util";
 
 import { HardhatError } from "@nomicfoundation/hardhat-errors";
 import { readUtf8File, writeUtf8File } from "@nomicfoundation/hardhat-utils/fs";
-import { styleText } from "node:util";
 
 import { PLUGIN_ID } from "../constants.js";
 import { UserDisplayMessages } from "../ui/user-display-messages.js";
@@ -106,7 +106,9 @@ async function createPassword(
 
     if (!PASSWORD_REGEX.test(password)) {
       password = undefined;
-      consoleLog(styleText("red", UserDisplayMessages.passwordRequirementsError()));
+      consoleLog(
+        styleText("red", UserDisplayMessages.passwordRequirementsError()),
+      );
     }
   }
 
@@ -118,7 +120,9 @@ async function createPassword(
     );
 
     if (password !== confirmPassword) {
-      consoleLog(styleText("red", UserDisplayMessages.passwordsDoNotMatchError()));
+      consoleLog(
+        styleText("red", UserDisplayMessages.passwordsDoNotMatchError()),
+      );
       confirmPassword = undefined;
     }
   }

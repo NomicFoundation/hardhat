@@ -3,12 +3,12 @@ import type { HardhatRuntimeEnvironment } from "hardhat/types/hre";
 import type { NewTaskActionFunction } from "hardhat/types/tasks";
 
 import path from "node:path";
+import { styleText } from "node:util";
 
 import { ensureError } from "@nomicfoundation/hardhat-utils/error";
 import { capitalize } from "@nomicfoundation/hardhat-utils/string";
 import { verifyContract } from "@nomicfoundation/hardhat-verify/verify";
 import { getVerificationInformation } from "@nomicfoundation/ignition-core";
-import { styleText } from "node:util";
 
 interface TaskVerifyArguments {
   deploymentId: string;
@@ -45,7 +45,9 @@ export async function verify(
   );
 
   if (enabledProviders.length === 0) {
-    console.warn(styleText("yellow", "\n⚠️  No verification providers are enabled."));
+    console.warn(
+      styleText("yellow", "\n⚠️  No verification providers are enabled."),
+    );
 
     return;
   }
@@ -75,7 +77,9 @@ export async function verify(
 
     for (const provider of enabledProviders) {
       try {
-        console.log(styleText(["cyan", "bold"], `\n=== ${capitalize(provider)} ===`));
+        console.log(
+          styleText(["cyan", "bold"], `\n=== ${capitalize(provider)} ===`),
+        );
 
         await verifyContractFn(
           {
