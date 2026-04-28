@@ -30,9 +30,9 @@
       "groupName": "github-actions"
     },
     {
-      "description": "@types/node: no automatic major bumps — Node majors are upgraded manually and only to even LTS releases (e.g. 24 → 26). Minor/patch within the current major flow through normally.",
-      "matchPackageNames": ["@types/node"],
-      "matchUpdateTypes": ["major"],
+      "description": "@types/node and @tsconfig/nodeXX: no automatic Node version bumps — Node majors are upgraded manually and only to even LTS releases (e.g. 24 → 26). For @types/node this blocks majors only (minor/patch within the current major flow through). For @tsconfig/nodeXX the Node major is encoded in the package name (@tsconfig/node22 → @tsconfig/node24), and Renovate proposes those as 'replacement' updates.",
+      "matchPackageNames": ["@types/node", "/^@tsconfig\\/node\\d+$/"],
+      "matchUpdateTypes": ["major", "replacement"],
       "enabled": false
     }
   ],
