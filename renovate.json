@@ -6,9 +6,7 @@
   "minimumReleaseAge": "7 days",
   "internalChecksFilter": "strict",
   "ignorePaths": [
-    "e2e/fixture-projects/**",
-    "**/test/fixture-projects/**",
-    "**/test-integrations/fixture-projects/**",
+    "**/fixture-projects/**",
     "packages/hardhat/templates/**"
   ],
   "packageRules": [
