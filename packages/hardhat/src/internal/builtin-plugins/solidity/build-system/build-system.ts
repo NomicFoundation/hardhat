@@ -71,6 +71,7 @@ import {
   getDuplicatedContractNamesDeclarationFile,
 } from "./artifacts.js";
 import { loadCache, saveCache } from "./cache.js";
+import { sortCompilationJobsByDescendingCost } from "./compilation-job-cost.js";
 import { CompilationJobImplementation } from "./compilation-job.js";
 import { downloadSolcCompilers, getCompiler } from "./compiler/index.js";
 import { buildDependencyGraph } from "./dependency-graph-building.js";
@@ -339,8 +340,18 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
         ),
       );
 
-      const results: CompilationResult[] = await pMap(
+      // We sort the compilation jobs in descending order of estimated
+      // compilation cost. This way we can use this algorithm:
+      // https://en.wikipedia.org/wiki/Longest-processing-time-first_scheduling
+      //
+      // Note that it works because pMap schedules the jobs in the order they
+      // are in the array.
+      const sortedCompilationJobs = sortCompilationJobsByDescendingCost(
         runnableCompilationJobs,
+      );
+
+      const results: CompilationResult[] = await pMap(
+        sortedCompilationJobs,
         async (runnableCompilationJob) => {
           const { output, compiler } = await this.runCompilationJob(
             runnableCompilationJob,
