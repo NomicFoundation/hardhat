@@ -622,12 +622,19 @@ export class AsyncMutex {
   }
 }
 
+interface SharedPromiseSuccessfulExecutionResult<ValueT> {
+  success: true;
+  value: ValueT;
+}
+
 type SharedPromiseExecutionResult<ValueT> =
-  | { success: true; value: ValueT }
+  | SharedPromiseSuccessfulExecutionResult<ValueT>
   | { success: false; error: Error | unknown };
 
 type SharedPromiseCachedResult<ValueT> =
-  | ValueT
+  // We wrapped the resolved Promise to distinguish the case where ValueT is
+  // itself a Promise.
+  | SharedPromiseSuccessfulExecutionResult<ValueT>
   | Promise<SharedPromiseExecutionResult<ValueT>>;
 
 /**
@@ -699,14 +706,14 @@ export class SharedPromiseCache<ValueT> {
       const cached = this.#cache.get(key) as SharedPromiseCachedResult<ValueT>;
 
       if (!(cached instanceof Promise)) {
-        return cached;
+        return cached.value;
       }
 
       const cachedResult = await cached;
 
       if (this.#cache.get(key) === cached) {
         if (cachedResult.success) {
-          this.#cache.set(key, cachedResult.value);
+          this.#cache.set(key, { success: true, value: cachedResult.value });
         } else {
           this.#cache.delete(key);
         }
@@ -737,7 +744,7 @@ export class SharedPromiseCache<ValueT> {
     // it with the actual value if it succeeded, or remove it if it failed.
     if (this.#cache.get(key) === promise) {
       if (result.success) {
-        this.#cache.set(key, result.value);
+        this.#cache.set(key, { success: true, value: result.value });
       } else {
         this.#cache.delete(key);
       }
