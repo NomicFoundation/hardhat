@@ -1365,29 +1365,28 @@ describe("SharedPromiseCache", () => {
     let reentrantCalls = 0;
     let reentrantResult: Promise<string> | undefined;
 
-    const result = assert.rejects(
-      cache.getOrCompute("key", async () => {
-        outerCalls++;
-        reentrantResult = cache.getOrCompute("key", async () => {
-          reentrantCalls++;
-          return "reentrant";
-        });
+    const result = cache.getOrCompute("key", async () => {
+      outerCalls++;
+      reentrantResult = cache.getOrCompute("key", async () => {
+        reentrantCalls++;
+        return "reentrant";
+      });
 
-        throw cause;
-      }),
-      (error) => {
+      throw cause;
+    });
+    assert.ok(reentrantResult !== undefined, "Expected a reentrant result");
+
+    await Promise.all([
+      assert.rejects(result, (error) => {
         assert.equal(error, cause);
         return true;
-      },
-    );
+      }),
+      assert.rejects(reentrantResult, (error) => {
+        assert.equal(error, cause);
+        return true;
+      }),
+    ]);
 
-    await result;
-
-    assert.ok(reentrantResult !== undefined, "Expected a reentrant result");
-    await assert.rejects(reentrantResult, (error) => {
-      assert.equal(error, cause);
-      return true;
-    });
     assert.equal(outerCalls, 1);
     assert.equal(reentrantCalls, 0);
   });
@@ -1694,11 +1693,12 @@ describe("SharedPromiseCache", () => {
     newDeferred.resolve("new");
     assert.equal(await newResult, "new");
 
-    oldDeferred.reject(cause);
-    await assert.rejects(oldResult, (error) => {
+    const oldFailure = assert.rejects(oldResult, (error) => {
       assert.equal(error, cause);
       return true;
     });
+    oldDeferred.reject(cause);
+    await oldFailure;
 
     const finalResult = await cache.getOrCompute("key", async () => {
       finalCalls++;
