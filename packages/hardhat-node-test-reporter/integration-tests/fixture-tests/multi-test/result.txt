@@ -1,9 +1,9 @@
   imported tests
-    [90m[32m✔[39m[90m should pass[39m
+    [32m✔[39m[90m should pass[39m
     [31m1) should fail[39m
 
 
-  [32m1 passing[39m[90m (230ms)[39m[31m[39m
+  [32m1 passing[39m[90m (414ms)[39m
 [31m  1 failing[39m
 
   1) imported tests
@@ -16,6 +16,6 @@
    [32m- 2[39m
    [31m+ 1[39m
    
-   [90m    at fail (integration-tests/fixture-tests/multi-test/fail.ts:9:10)[39m
-   [90m    at TestContext.<anonymous> (integration-tests/fixture-tests/multi-test/import.ts:12:5)[39m
+   [90m    at fail (integration-tests/fixture-tests/multi-test/fail.ts:9:10)
+       at TestContext.<anonymous> (integration-tests/fixture-tests/multi-test/import.ts:12:5)[39m
 

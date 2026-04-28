@@ -5,8 +5,13 @@ import { styleText } from "node:util";
 
 import { formatError } from "./error-formatting.js";
 
-export const INFO_SYMBOL: string = styleText("blue", "\u2139");
-export const SUCCESS_SYMBOL: string = styleText("green", "✔");
+export function getInfoSymbol(): string {
+  return styleText("blue", "\u2139");
+}
+
+export function getSuccessSymbol(): string {
+  return styleText("green", "✔");
+}
 
 export interface Failure {
   index: number;
@@ -56,7 +61,7 @@ export function formatTestPass(passData: TestEventData["test:pass"]): string {
     // TODO: show todo reason
     msg = styleText("blue", `+ ${passData.name}`);
   } else {
-    msg = SUCCESS_SYMBOL + styleText("gray", ` ${passData.name}`);
+    msg = getSuccessSymbol() + styleText("gray", ` ${passData.name}`);
   }
 
   return indent(msg, nestingToIndentationLength(passData.nesting));
@@ -64,7 +69,8 @@ export function formatTestPass(passData: TestEventData["test:pass"]): string {
 
 export function formatTestCancelledByParentFailure(failure: Failure): string {
   return indent(
-    styleText("grey",
+    styleText(
+      "grey",
       `${formatFailureIndex(failure.index)}) ${failure.testFail.name}`,
     ),
     nestingToIndentationLength(failure.testFail.nesting),
@@ -73,7 +79,10 @@ export function formatTestCancelledByParentFailure(failure: Failure): string {
 
 export function formatTestFailure(failure: Failure): string {
   return indent(
-    styleText("red", `${formatFailureIndex(failure.index)}) ${failure.testFail.name}`),
+    styleText(
+      "red",
+      `${formatFailureIndex(failure.index)}) ${failure.testFail.name}`,
+    ),
     nestingToIndentationLength(failure.testFail.nesting),
   );
 }
@@ -135,7 +144,7 @@ export function formatUnusedDiagnostics(
       }
       return message;
     })
-    .map((message) => `  ${INFO_SYMBOL} ${message}`);
+    .map((message) => `  ${getInfoSymbol()} ${message}`);
   return Array.from(new Set(messages)).join("\n");
 }
 
