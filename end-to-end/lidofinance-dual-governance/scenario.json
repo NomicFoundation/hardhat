@@ -12,8 +12,8 @@
   "defaultCommand": "npx hardhat test solidity --grep=\"^(test_|testFuzz_)\"",
   "benchmark": {
     "runs": {
-      "coldCompile": 1,
-      "warmCompile": 1,
+      "coldCompile": 3,
+      "warmCompile": 83,
       "defaultCommand": 3
     }
   }

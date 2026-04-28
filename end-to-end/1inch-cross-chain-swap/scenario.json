@@ -11,8 +11,8 @@
   "defaultCommand": "FOUNDRY_PROFILE=default npx hardhat test solidity --no-compile",
   "benchmark": {
     "runs": {
-      "coldCompile": 1,
-      "warmCompile": 1,
+      "coldCompile": 3,
+      "warmCompile": 97,
       "defaultCommand": 9
     }
   }
