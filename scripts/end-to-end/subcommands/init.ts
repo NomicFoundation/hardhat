@@ -208,11 +208,7 @@ function clone(scenarioWorkingDir: string, repo: string): void {
   );
 }
 
-function fetch(
-  scenarioWorkingDir: string,
-  repo: string,
-  commit: string,
-): void {
+function fetch(scenarioWorkingDir: string, repo: string, commit: string): void {
   logStep(`Fetching ${repo}`);
 
   // Fetch the specific commit by SHA so that the checkout below succeeds even
