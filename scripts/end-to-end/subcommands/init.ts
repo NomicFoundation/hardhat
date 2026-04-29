@@ -90,7 +90,7 @@ function setupScenario(scenario: Scenario): void {
     }
   } else {
     // Re-init flow
-    fetch(workingDir, definition.repo);
+    fetch(workingDir, definition.repo, definition.commit);
     checkout(workingDir, definition.commit);
     clean(workingDir);
 
@@ -208,10 +208,18 @@ function clone(scenarioWorkingDir: string, repo: string): void {
   );
 }
 
-function fetch(scenarioWorkingDir: string, repo: string): void {
+function fetch(
+  scenarioWorkingDir: string,
+  repo: string,
+  commit: string,
+): void {
   logStep(`Fetching ${repo}`);
 
-  git(["fetch", "origin"], scenarioWorkingDir);
+  // Fetch the specific commit by SHA so that the checkout below succeeds even
+  // if the commit is no longer the tip of any branch (e.g. after a force-push
+  // that orphaned the previously-fetched commits, or when the SHA points at
+  // an intermediate commit on a long-lived branch).
+  git(["fetch", "origin", commit], scenarioWorkingDir);
 }
 
 function updateSubmodules(scenarioWorkingDir: string): void {
