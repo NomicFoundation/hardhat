@@ -85,6 +85,8 @@ jobs:
         run: pnpm build
 
       - name: Run regression benchmark
+        env:
+          ALCHEMY_URL: ${{ secrets.ALCHEMY_URL }}
         run: pnpm bench:regression --use-local --output regression-report.json
 
       - name: Store benchmark result
