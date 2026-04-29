@@ -45,7 +45,9 @@ export function resolveSupportedSolcVersions({
 
   const unsupportedSolcVersions = solcVersions.filter((version) => {
     const parsed = parseVersion(version);
-    return parsed === undefined || lowerThan(parsed, MIN_SUPPORTED_SOLC_VERSION);
+    return (
+      parsed === undefined || lowerThan(parsed, MIN_SUPPORTED_SOLC_VERSION)
+    );
   });
   if (unsupportedSolcVersions.length > 0) {
     throw new HardhatError(
