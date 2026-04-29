@@ -47,9 +47,7 @@ export type CompileWrapper = (input: string) => string;
 export default function wrapper(solc: Solc): SolcWrapper {
   const version = bindVersion(solc);
   const rawVersion = version();
-  const match = rawVersion.match(/^(\d+\.\d+\.\d+)/);
-  assertHardhatInvariant(match !== null, `Invalid solc version: ${rawVersion}`);
-  const parsedVersion = parseVersion(match[1]);
+  const parsedVersion = parseVersion(rawVersion);
   assertHardhatInvariant(
     parsedVersion !== undefined,
     `Invalid solc version: ${rawVersion}`,

@@ -171,10 +171,12 @@ export class NativeCompiler implements Compiler {
     // If solcVersion is not defined or <= 0.6.8, do not add extra args.
     if (this.version !== undefined) {
       const parsed = parseVersion(this.version);
-      assertHardhatInvariant(
-        parsed !== undefined,
-        `Invalid solc version: ${this.version}`,
-      );
+      if (parsed === undefined) {
+        throw new HardhatError(
+          HardhatError.ERRORS.CORE.SOLIDITY.INVALID_SOLC_VERSION,
+          { version: this.version },
+        );
+      }
       if (greaterThanOrEqual(parsed, NO_IMPORT_CALLBACK_MIN_VERSION)) {
         // version >= 0.8.22
         args.push("--no-import-callback");

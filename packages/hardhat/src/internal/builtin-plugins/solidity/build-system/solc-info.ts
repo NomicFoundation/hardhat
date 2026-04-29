@@ -2,7 +2,7 @@ import type { SemverVersion } from "@nomicfoundation/hardhat-utils/fast-semver";
 
 import os from "node:os";
 
-import { assertHardhatInvariant } from "@nomicfoundation/hardhat-errors";
+import { HardhatError } from "@nomicfoundation/hardhat-errors";
 import {
   greaterThanOrEqual,
   lowerThan,
@@ -21,10 +21,12 @@ export const FIRST_ARM64_MIRROR_SOLC_VERSION: SemverVersion = [0, 5, 0];
  */
 export function hasOfficialArm64Build(version: string): boolean {
   const parsed = parseVersion(version);
-  assertHardhatInvariant(
-    parsed !== undefined,
-    `Invalid solc version: ${version}`,
-  );
+  if (parsed === undefined) {
+    throw new HardhatError(
+      HardhatError.ERRORS.CORE.SOLIDITY.INVALID_SOLC_VERSION,
+      { version },
+    );
+  }
   return greaterThanOrEqual(parsed, FIRST_OFFICIAL_ARM64_SOLC_VERSION);
 }
 
@@ -34,10 +36,12 @@ export function hasOfficialArm64Build(version: string): boolean {
  */
 export function hasArm64MirrorBuild(version: string): boolean {
   const parsed = parseVersion(version);
-  assertHardhatInvariant(
-    parsed !== undefined,
-    `Invalid solc version: ${version}`,
-  );
+  if (parsed === undefined) {
+    throw new HardhatError(
+      HardhatError.ERRORS.CORE.SOLIDITY.INVALID_SOLC_VERSION,
+      { version },
+    );
+  }
   return (
     greaterThanOrEqual(parsed, FIRST_ARM64_MIRROR_SOLC_VERSION) &&
     lowerThan(parsed, FIRST_OFFICIAL_ARM64_SOLC_VERSION)
