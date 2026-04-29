@@ -484,6 +484,24 @@ describe("solidity-test/task-action", function () {
       }
     });
 
+    it("should not throw when noCompile is true and no testFiles are provided, even if the tests path covers uncompiled files", async () => {
+      // tests path "test" includes `not-in-test-path.t.sol`, which the
+      // before-hook build (scoped to `test/contracts`) never compiled. Without
+      // user-provided testFiles, the task must skip the "compiled artifacts"
+      // validation and just run whichever compiled tests it finds.
+      const notBuildConfig = {
+        ...hardhatConfig,
+        paths: { tests: { solidity: "test" } },
+      };
+      const notBuiltHre = await createHardhatRuntimeEnvironment(notBuildConfig);
+
+      const result = await notBuiltHre.tasks
+        .getTask(["test", "solidity"])
+        .run({ noCompile: true });
+
+      assert.equal(result.success, true);
+    });
+
     it("should throw when a selected test file does not exist on disk", async () => {
       hre = await createHardhatRuntimeEnvironment(hardhatConfigPartialTests);
       await assertRejectsWithHardhatError(
