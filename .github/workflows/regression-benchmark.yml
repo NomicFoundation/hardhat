@@ -27,6 +27,7 @@ jobs:
         with:
           persist-credentials: false
 
+      # cspell:disable-next-line
       - uses: socketdev/action@4337a545deecc20f19a909e52db7a2f6ba292f42 # v1
         with:
           mode: firewall
@@ -67,6 +68,7 @@ jobs:
           fetch-depth: 0
           fetch-tags: true
 
+      # cspell:disable-next-line
       - uses: socketdev/action@4337a545deecc20f19a909e52db7a2f6ba292f42 # v1
         with:
           mode: firewall
