@@ -51,7 +51,6 @@
     "@nomicfoundation/hardhat-node-test-reporter": "workspace:^3.0.5",
     "@nomicfoundation/hardhat-test-utils": "workspace:^",
     "@types/node": "^22.0.0",
-    "@types/semver": "^7.5.8",
     "c8": "^9.1.0",
     "eslint": "9.25.1",
     "expect-type": "^1.2.1",
@@ -67,7 +66,6 @@
     "@nomicfoundation/hardhat-utils": "workspace:^4.0.4",
     "@nomicfoundation/hardhat-zod-utils": "workspace:^3.0.4",
     "cbor2": "^1.9.0",
-    "semver": "^7.6.3",
     "zod": "^3.23.8"
   },
   "peerDependencies": {

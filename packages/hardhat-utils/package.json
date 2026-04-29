@@ -23,6 +23,7 @@
     "./env": "./dist/src/env.js",
     "./error": "./dist/src/error.js",
     "./eth": "./dist/src/eth.js",
+    "./fast-semver": "./dist/src/fast-semver.js",
     "./format": "./dist/src/format.js",
     "./fs": "./dist/src/fs.js",
     "./global-dir": "./dist/src/global-dir.js",

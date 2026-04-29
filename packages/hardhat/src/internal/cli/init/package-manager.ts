@@ -1,6 +1,8 @@
+import type { SemverVersion } from "@nomicfoundation/hardhat-utils/fast-semver";
+
 import { execSync } from "node:child_process";
 
-import semver from "semver";
+import { parseVersion } from "@nomicfoundation/hardhat-utils/fast-semver";
 
 type PackageManager = "npm" | "yarn" | "pnpm" | "bun" | "deno";
 
@@ -156,7 +158,7 @@ export async function installsPeerDependenciesByDefault(
         config,
       );
       // If we couldn't retrieve the npm version, we assume it is higher than 7
-      if (npmVersion === undefined || npmVersion.major >= 7) {
+      if (npmVersion === undefined || npmVersion[0] >= 7) {
         // If legacy-peer-deps hasn't been explicitly set to true,
         // peer dependencies are installed by default
         if (legacyPeerDeps !== "true") {
@@ -177,7 +179,7 @@ export async function installsPeerDependenciesByDefault(
         config,
       );
       // If we couldn't retrieve the pnpm version, we assume it is higher than 8
-      if (pnpmVersion === undefined || pnpmVersion.major >= 8) {
+      if (pnpmVersion === undefined || pnpmVersion[0] >= 8) {
         // If auto-install-peers hasn't been explicitly set to false,
         // peer dependencies are installed by default
         if (autoInstallPeers !== "false") {
@@ -207,16 +209,16 @@ async function getVersion(
   workspace: string,
   packageManager: PackageManager,
   version?: string,
-): Promise<semver.SemVer | undefined> {
+): Promise<SemverVersion | undefined> {
   if (version !== undefined) {
-    return semver.parse(version) ?? undefined;
+    return parseVersion(version.trim());
   }
   try {
     const versionString = execSync(`${packageManager} --version`, {
       cwd: workspace,
       encoding: "utf8",
     });
-    return semver.parse(versionString) ?? undefined;
+    return parseVersion(versionString.trim());
   } catch (_error) {
     return undefined;
   }

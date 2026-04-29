@@ -1,7 +1,19 @@
+import type { InferredSolcVersion } from "./metadata.js";
+import type { SemverVersion } from "@nomicfoundation/hardhat-utils/fast-semver";
 import type { SolidityBuildProfileConfig } from "hardhat/types/config";
 
 import { HardhatError } from "@nomicfoundation/hardhat-errors";
-import semver from "semver";
+import {
+  equals,
+  greaterThanOrEqual,
+  lowerThan,
+  lowerThanOrEqual,
+  parseVersion,
+} from "@nomicfoundation/hardhat-utils/fast-semver";
+
+// Etherscan only supports solidity versions higher than or equal to v0.4.11.
+// See https://etherscan.io/solcversions
+const MIN_SUPPORTED_SOLC_VERSION: SemverVersion = [0, 4, 11];
 
 // TODO: Consider splitting this into two steps: collecting compiler versions
 // and validating them. Version collection could be delegated to a helper
@@ -31,12 +43,12 @@ export function resolveSupportedSolcVersions({
     }
   }
 
-  // Etherscan only supports solidity versions higher than or equal to v0.4.11.
-  // See https://etherscan.io/solcversions
-  const SUPPORTED_SOLC_VERSION_RANGE = ">=0.4.11";
-  const unsupportedSolcVersions = solcVersions.filter(
-    (version) => !semver.satisfies(version, SUPPORTED_SOLC_VERSION_RANGE),
-  );
+  const unsupportedSolcVersions = solcVersions.filter((version) => {
+    const parsed = parseVersion(version);
+    return (
+      parsed === undefined || lowerThan(parsed, MIN_SUPPORTED_SOLC_VERSION)
+    );
+  });
   if (unsupportedSolcVersions.length > 0) {
     throw new HardhatError(
       HardhatError.ERRORS.HARDHAT_VERIFY.GENERAL.SOLC_VERSION_NOT_SUPPORTED,
@@ -50,16 +62,32 @@ export function resolveSupportedSolcVersions({
 }
 
 /**
- * Filters the given versions, returning only those that satisfy the provided
- * semver range.
+ * Filters the given versions, returning only those compatible with the
+ * `InferredSolcVersion` extracted from the deployed bytecode.
  *
- * @param versions An array of version strings (e.g. ["0.8.17", "0.4.25"])
- * @param range A semver range string (e.g. ">=0.4.11")
- * @returns An array of versions that satisfy the range.
+ * @param versions An array of version strings (e.g. `["0.8.17", "0.4.25"]`).
+ * @param inferred The version inferred from the deployed bytecode metadata.
+ * @returns The subset of `versions` that fall within the inferred constraint.
  */
-export function filterVersionsByRange(
+export function filterVersionsByInferred(
   versions: string[],
-  range: string,
+  inferred: InferredSolcVersion,
 ): string[] {
-  return versions.filter((version) => semver.satisfies(version, range));
+  return versions.filter((version) => {
+    const parsed = parseVersion(version);
+    if (parsed === undefined) {
+      return false;
+    }
+    switch (inferred.type) {
+      case "exact":
+        return equals(parsed, inferred.version);
+      case "lessThan":
+        return lowerThan(parsed, inferred.bound);
+      case "between":
+        return (
+          greaterThanOrEqual(parsed, inferred.min) &&
+          lowerThanOrEqual(parsed, inferred.max)
+        );
+    }
+  });
 }
