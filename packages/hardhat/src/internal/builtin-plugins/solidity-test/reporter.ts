@@ -3,11 +3,11 @@ import type {
   TestReporterResult,
   TestStatus,
 } from "./types.js";
-import type { Colorizer } from "../../utils/colorizer.js";
 import type { TestResult } from "@nomicfoundation/edr";
 
+import { styleText } from "node:util";
+
 import { bytesToHexString } from "@nomicfoundation/hardhat-utils/hex";
-import chalk from "chalk";
 
 import { sendErrorTelemetry } from "../../cli/telemetry/error-reporter/reporter.js";
 import { SolidityTestStackTraceGenerationError } from "../network-manager/edr/stack-traces/stack-trace-generation-errors.js";
@@ -55,7 +55,8 @@ export async function* testReporter(
   sourceNameToUserSourceName: Map<string, string>,
   verbosity: number,
   testSummaryIndex: number = 0,
-  colorizer: Colorizer = chalk,
+  // Allow passing a custom colorize function for testing purposes
+  colorize: typeof styleText = styleText,
 ): TestReporterResult {
   let runSuccessCount = 0;
   let runFailureCount = testSummaryIndex === 0 ? 1 : testSummaryIndex;
@@ -97,7 +98,7 @@ export async function* testReporter(
         if (suiteResult.warnings.length > 0) {
           indenter.inc();
           for (const warning of suiteResult.warnings) {
-            yield indenter.t`${colorizer.yellow("Warning")}${colorizer.grey(`: ${warning}`)}\n`;
+            yield indenter.t`${colorize("yellow", "Warning")}${colorize("grey", `: ${warning}`)}\n`;
           }
           indenter.dec();
           yield "\n";
@@ -137,9 +138,9 @@ export async function* testReporter(
 
           switch (status) {
             case "Success": {
-              let successOutput = `${colorizer.green("✔")} ${colorizer.grey(name)}`;
+              let successOutput = `${colorize("green", "✔")} ${colorize("grey", name)}`;
               if (details !== "") {
-                successOutput += colorizer.dim(details);
+                successOutput += colorize("dim", details);
               }
               yield indenter.t`${successOutput}\n`;
               suiteSuccessCount++;
@@ -153,7 +154,7 @@ export async function* testReporter(
             }
             case "Failure": {
               failures.push({ testResult, contractName: suiteResult.id.name });
-              yield indenter.t`${colorizer.red(`${runFailureCount}) ${name}`)}\n`;
+              yield indenter.t`${colorize("red", `${runFailureCount}) ${name}`)}\n`;
               runFailureCount++;
               if (verbosity >= 3) {
                 printExecutionTraces = true;
@@ -164,7 +165,7 @@ export async function* testReporter(
               break;
             }
             case "Skipped": {
-              yield indenter.t`${colorizer.cyan(`- ${name}`)}\n`;
+              yield indenter.t`${colorize("cyan", `- ${name}`)}\n`;
               suiteSkippedCount++;
               break;
             }
@@ -194,7 +195,7 @@ export async function* testReporter(
               indenter.inc();
               yield indenter.t`Call Traces:\n`;
               indenter.inc();
-              yield `${formatTraces(callTraces, indenter.prefix(), colorizer)}\n`;
+              yield `${formatTraces(callTraces, indenter.prefix(), colorize)}\n`;
               indenter.dec();
               indenter.dec();
               if (testIndex < suiteResult.testResults.length - 1) {
@@ -226,12 +227,12 @@ export async function* testReporter(
     yield "\n";
     yield "\n";
 
-    yield indenter.t`${colorizer.green(`${runSuccessCount} passing`)}\n`;
+    yield indenter.t`${colorize("green", `${runSuccessCount} passing`)}\n`;
     if (failures.length > 0) {
-      yield indenter.t`${colorizer.red(`${failures.length} failing`)}\n`;
+      yield indenter.t`${colorize("red", `${failures.length} failing`)}\n`;
     }
     if (runSkippedCount > 0) {
-      yield indenter.t`${colorizer.cyan(`${runSkippedCount} skipped`)}\n`;
+      yield indenter.t`${colorize("cyan", `${runSkippedCount} skipped`)}\n`;
     }
   }
 
@@ -273,7 +274,7 @@ export async function* testReporter(
             ? "FFI is disabled; set `test.solidity.ffi` to `true` in your Hardhat config to allow tests to call external commands"
             : failure.reason ?? "Unknown error";
       }
-      yield* output(indenter.t`${colorizer.red(`Error: ${reason}`)}\n`);
+      yield* output(indenter.t`${colorize("red", `Error: ${reason}`)}\n`);
       // eslint-disable-next-line @typescript-eslint/switch-exhaustiveness-check -- Ignore Cases not matched: undefined
       switch (stackTrace?.kind) {
         case "StackTrace":
@@ -287,7 +288,7 @@ export async function* testReporter(
             }
           }
           if (stackTraceStack.length > 0) {
-            yield* output(`${colorizer.grey(stackTraceStack.join("\n"))}\n`);
+            yield* output(`${colorize("grey", stackTraceStack.join("\n"))}\n`);
           }
           yield* output("\n");
           break;
@@ -296,13 +297,13 @@ export async function* testReporter(
             new SolidityTestStackTraceGenerationError(stackTrace.errorMessage),
           );
           yield* output(
-            indenter.t`Stack Trace Warning: ${colorizer.grey(stackTrace.errorMessage)}\n`,
+            indenter.t`Stack Trace Warning: ${colorize("grey", stackTrace.errorMessage)}\n`,
           );
           break;
         case "UnsafeToReplay":
           if (stackTrace.globalForkLatest === true) {
             yield* output(
-              indenter.t`Stack Trace Warning: ${colorizer.grey("The test is not safe to replay because a fork url without a fork block number was provided.")}\n`,
+              indenter.t`Stack Trace Warning: ${colorize("grey", "The test is not safe to replay because a fork url without a fork block number was provided.")}\n`,
             );
             yield* output(
               indenter.t`Try rerunning your tests with -vvv or above.\n`,
@@ -310,7 +311,7 @@ export async function* testReporter(
           }
           if (stackTrace.impureCheatcodes.length > 0) {
             yield* output(
-              indenter.t`Stack Trace Warning: ${colorizer.grey(`The test is not safe to replay because it uses impure cheatcodes: ${stackTrace.impureCheatcodes.join(", ")}`)}\n`,
+              indenter.t`Stack Trace Warning: ${colorize("grey", `The test is not safe to replay because it uses impure cheatcodes: ${stackTrace.impureCheatcodes.join(", ")}`)}\n`,
             );
             yield* output(
               indenter.t`Try rerunning your tests with -vvv or above.\n`,
@@ -335,7 +336,7 @@ export async function* testReporter(
           for (const [key, value] of Object.entries(counterexample)) {
             const counterExampleDetails = `${key}: ${Buffer.isBuffer(value) ? bytesToHexString(value) : value}`;
             yield* output(
-              indenter.t`${colorizer.grey(counterExampleDetails)}\n`,
+              indenter.t`${colorize("grey", counterExampleDetails)}\n`,
             );
           }
           indenter.dec();

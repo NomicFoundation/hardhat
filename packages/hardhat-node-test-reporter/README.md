@@ -54,7 +54,7 @@ This reporter is designed to work well with GitHub Actions. By default, it will 
 
 This reporter will colour the output by default in terminals that support it. You can forcefully disable this feature by setting the `FORCE_COLOR` environment variable to `0` (or passing a `--no-color` flag). Similarly, you can forcefully enable this feature by setting the `FORCE_COLOR` environment variable to `1` (or passing a `--color` flag).
 
-The behavior is inherited from the [`chalk` package](https://github.com/chalk/chalk?tab=readme-ov-file#supportscolor).
+The behavior is inherited from Node.js's [`styleText`](https://nodejs.org/api/util.html#utilstyletextformat-text-options) utility.
 
 #### Colour Legend
 

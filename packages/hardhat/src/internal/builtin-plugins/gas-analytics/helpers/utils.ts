@@ -1,4 +1,4 @@
-import chalk from "chalk";
+import { styleText } from "node:util";
 
 /**
  * Converts an internal FQN (e.g. `"project/contracts/Foo.sol:Foo"` or
@@ -108,5 +108,5 @@ export function formatSectionHeader(
     parts.push(`${removedLength} removed`);
   }
 
-  return `${sectionName}: ${chalk.gray(parts.join(", "))}`;
+  return `${sectionName}: ${styleText("gray", parts.join(", "))}`;
 }

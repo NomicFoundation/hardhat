@@ -7,9 +7,10 @@ import type {
   ValidationErrorDeploymentResult,
 } from "@nomicfoundation/ignition-core";
 
+import { styleText } from "node:util";
+
 import { assertHardhatInvariant } from "@nomicfoundation/hardhat-errors";
 import { DeploymentResultType } from "@nomicfoundation/ignition-core";
-import chalk from "chalk";
 
 import { pathFromCwd } from "./cwd-relative-path.js";
 import { wasAnythingExecuted } from "./was-anything-executed.js";
@@ -72,7 +73,7 @@ function _displaySuccessfulDeployment(
 
   let text = `[ ${moduleName} ] ${fillerText}
 
-${chalk.bold("Deployed Addresses")}
+${styleText("bold", "Deployed Addresses")}
 
 `;
 
@@ -83,7 +84,7 @@ ${chalk.bold("Deployed Addresses")}
       .map((contract) => `${contract.id} - ${contract.address}`)
       .join("\n");
   } else {
-    text += `${chalk.italic("No contracts were deployed")}`;
+    text += `${styleText("italic", "No contracts were deployed")}`;
   }
 
   return text;
@@ -151,7 +152,7 @@ function _displayPreviousRunErrors(
     .map((futureId) => ` - ${futureId}`)
     .join("\n");
 
-  text += `\n\nUse the ${chalk.italic("wipe")} task to reset them.`;
+  text += `\n\nUse the ${styleText("italic", "wipe")} task to reset them.`;
 
   return text;
 }

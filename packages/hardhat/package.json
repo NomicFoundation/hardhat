@@ -100,7 +100,6 @@
     "@nomicfoundation/solidity-analyzer": "^0.1.1",
     "@sentry/core": "^9.4.0",
     "adm-zip": "^0.4.16",
-    "chalk": "^5.3.0",
     "chokidar": "^4.0.3",
     "enquirer": "^2.3.0",
     "ethereum-cryptography": "^2.2.1",

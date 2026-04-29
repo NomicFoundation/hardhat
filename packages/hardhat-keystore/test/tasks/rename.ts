@@ -5,11 +5,11 @@ import assert from "node:assert/strict";
 import path from "node:path";
 import { after, beforeEach, describe, it, mock } from "node:test";
 import { fileURLToPath } from "node:url";
+import { styleText } from "node:util";
 
 import { HardhatError } from "@nomicfoundation/hardhat-errors";
 import { assertRejectsWithHardhatError } from "@nomicfoundation/hardhat-test-utils";
 import { remove as removeFile } from "@nomicfoundation/hardhat-utils/fs";
-import chalk from "chalk";
 
 import { decryptSecret } from "../../src/internal/keystores/encryption.js";
 import { KeystoreFileLoader } from "../../src/internal/loaders/keystore-file-loader.js";
@@ -158,7 +158,7 @@ describe("tasks - rename", () => {
         it("should display a message that the keystore is not set", async () => {
           assertOutputIncludes(
             mockConsoleLog,
-            `No ${getKeystoreType(dev)} keystore found. Please set one up using ${chalk.blue.italic(`npx hardhat keystore set {key}${dev === true ? " --dev" : ""}`)} `,
+            `No ${getKeystoreType(dev)} keystore found. Please set one up using ${styleText(["blue", "italic"], `npx hardhat keystore set {key}${dev === true ? " --dev" : ""}`)} `,
           );
         });
 
@@ -196,7 +196,8 @@ describe("tasks - rename", () => {
         it("should display a message that the key is not found", async () => {
           assertOutputIncludes(
             mockConsoleLog,
-            chalk.red(
+            styleText(
+              "red",
               `Key "unknown" not found in the ${getKeystoreType(dev)} keystore`,
             ),
           );
@@ -240,7 +241,8 @@ describe("tasks - rename", () => {
         it("should display a message that the old key is not valid", async () => {
           assertOutputIncludes(
             mockConsoleLog,
-            chalk.red(
+            styleText(
+              "red",
               `Invalid value for key: "1invalidKey". Keys can only have alphanumeric characters and underscores, and they cannot start with a number.`,
             ),
           );
@@ -273,7 +275,8 @@ describe("tasks - rename", () => {
         it("should display a message that the new key is not valid", async () => {
           assertOutputIncludes(
             mockConsoleLog,
-            chalk.red(
+            styleText(
+              "red",
               `Invalid value for key: "1invalidKey". Keys can only have alphanumeric characters and underscores, and they cannot start with a number.`,
             ),
           );
@@ -309,9 +312,12 @@ describe("tasks - rename", () => {
         it("should display a message that the new key already exists", async () => {
           assertOutputIncludes(
             mockConsoleLog,
-            chalk.yellow(
-              `The key "existingKey" already exists in the ${getKeystoreType(dev)} keystore. Use the ${chalk.blue.italic("--force")} flag to overwrite it.`,
-            ),
+            styleText(
+              "yellow",
+              `The key "existingKey" already exists in the ${getKeystoreType(dev)} keystore. Use the `,
+            ) +
+              styleText(["blue", "italic"], "--force") +
+              styleText("yellow", " flag to overwrite it."),
           );
         });
 

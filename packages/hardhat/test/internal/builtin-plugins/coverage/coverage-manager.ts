@@ -20,7 +20,6 @@ import {
   readUtf8File,
   remove,
 } from "@nomicfoundation/hardhat-utils/fs";
-import chalk from "chalk";
 
 import { createHardhatRuntimeEnvironment } from "../../../../src/hre.js";
 import { CoverageManagerImplementation } from "../../../../src/internal/builtin-plugins/coverage/coverage-manager.js";
@@ -302,8 +301,8 @@ describe("CoverageManagerImplementation", () => {
   });
 
   it("should format the markdown report", async () => {
-    const originalChalkLevel = chalk.level;
-    chalk.level = 0;
+    const originalNoColor = process.env.NO_COLOR;
+    process.env.NO_COLOR = "1";
 
     try {
       const actual = coverageManager.formatMarkdownReport(report);
@@ -327,7 +326,11 @@ describe("CoverageManagerImplementation", () => {
         ].join("\n"),
       );
     } finally {
-      chalk.level = originalChalkLevel;
+      if (originalNoColor === undefined) {
+        delete process.env.NO_COLOR;
+      } else {
+        process.env.NO_COLOR = originalNoColor;
+      }
     }
   });
 
