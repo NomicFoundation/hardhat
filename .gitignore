@@ -118,3 +118,7 @@ pnpm-publish-summary.json
 
 # Personal Claude files
 .claude/local/
+
+# Ignored for now, should be reconsidered if we want codex-specific settings.
+# The reason to ignore it is that codex creates a .codex file if the folder doesn't exist.
+/.codex
