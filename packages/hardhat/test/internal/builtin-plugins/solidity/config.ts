@@ -945,8 +945,9 @@ describe("solidity plugin config validation", () => {
 });
 
 describe("solidity plugin config resolution", () => {
+  const otherResolvedConfig = { paths: { root: process.cwd() } } as any;
+
   it("should resolve a config with a single version string", async () => {
-    const otherResolvedConfig = { paths: { root: process.cwd() } } as any;
     const resolvedConfig = await resolveSolidityUserConfig(
       { solidity: "0.8.28" },
       otherResolvedConfig,
@@ -976,7 +977,6 @@ describe("solidity plugin config resolution", () => {
   });
 
   it("should resolve a config with multiple version strings", async () => {
-    const otherResolvedConfig = { paths: { root: process.cwd() } } as any;
     const resolvedConfig = await resolveSolidityUserConfig(
       { solidity: ["0.8.28", "0.7.0"] },
       otherResolvedConfig,
@@ -1012,7 +1012,6 @@ describe("solidity plugin config resolution", () => {
   });
 
   it("should resolve a SingleVersionSolidityUserConfig value", async () => {
-    const otherResolvedConfig = { paths: { root: process.cwd() } } as any;
     const resolvedConfig = await resolveSolidityUserConfig(
       { solidity: { version: "0.8.28" } },
       otherResolvedConfig,
@@ -1042,7 +1041,6 @@ describe("solidity plugin config resolution", () => {
   });
 
   it("should resolve a MultiVersionSolidityUserConfig value", async () => {
-    const otherResolvedConfig = { paths: { root: process.cwd() } } as any;
     const resolvedConfig = await resolveSolidityUserConfig(
       {
         solidity: {
@@ -1082,7 +1080,6 @@ describe("solidity plugin config resolution", () => {
   });
 
   it("should resolve a BuildProfilesSolidityUserConfig value", async () => {
-    const otherResolvedConfig = { paths: { root: process.cwd() } } as any;
     const resolvedConfig = await resolveSolidityUserConfig(
       {
         solidity: {
