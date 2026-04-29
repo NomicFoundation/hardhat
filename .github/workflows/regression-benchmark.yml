@@ -6,9 +6,9 @@ on:
     branches:
       - "main"
   pull_request:
-    # Include `labeled` / `unlabeled` so the workflow fires when the
-    # `ci:perf` label is added or removed.
-    types: [opened, synchronize, reopened, labeled, unlabeled]
+    # Include `labeled` so the workflow fires when the `ci:perf`
+    # label is added.
+    types: [opened, synchronize, reopened, labeled]
     branches:
       - "**"
   workflow_dispatch:
@@ -48,10 +48,11 @@ jobs:
     # Use a self-hosted runner for stable benchmark measurements; the shared
     # GitHub runners produce noisy results that will generate false positives
     # against the configured alert-threshold.
-    runs-on: self-hosted
+    runs-on: hardhat-linux-amd64-self-hosted
     # Only run for pushes to main, workflow_dispatch, or PRs that carry the
-    # `ci:perf` label. The fork-safety guard keeps untrusted forks off the
-    # self-hosted runner.
+    # `ci:perf` label.
+    #
+    # The fork-safety guard keeps untrusted forks off the self-hosted runner.
     if: >
       (github.event_name != 'pull_request' ||
         contains(github.event.pull_request.labels.*.name, 'ci:perf')) &&
