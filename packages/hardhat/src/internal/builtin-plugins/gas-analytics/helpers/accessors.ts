@@ -2,7 +2,7 @@
 // handler and task-actions that may run on every `hardhat test` invocation
 // regardless of whether the feature is enabled. It must stay lightweight:
 // do not add top-level imports that pull in the gas-analytics-manager module
-// graph (chalk, debug, node:crypto, file-system traversal, etc.), or the
+// graph (debug, node:crypto, file-system traversal, etc.), or the
 // `--gas-stats` lazy-load is silently defeated for every caller.
 // If a new helper needs a heavy dependency, put it in a sibling file
 // (e.g. `helpers/utils.ts`) so the accessors file's import cost stays flat.
