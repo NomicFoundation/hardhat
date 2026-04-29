@@ -61,7 +61,7 @@ export async function init(
       await upgradeLocalDependencies(scenario);
     }
 
-    installScenarioDeps(scenario);
+    installScenarioDeps(scenario, useLocal);
   } finally {
     if (startedVerdaccio) {
       verdaccioStop();
@@ -113,7 +113,10 @@ function setupScenario(scenario: Scenario): void {
  * Install dependencies using the scenario's package manager or custom
  * install script.
  */
-function installScenarioDeps(scenario: Scenario): void {
+function installScenarioDeps(
+  scenario: Scenario,
+  allowLockfileUpdates: boolean,
+): void {
   const { scenarioDir, workingDir, definition } = scenario;
 
   if (definition.install !== undefined) {
@@ -124,7 +127,12 @@ function installScenarioDeps(scenario: Scenario): void {
       definition.env,
     );
   } else {
-    installDependencies(workingDir, definition.packageManager, definition.env);
+    installDependencies(
+      workingDir,
+      definition.packageManager,
+      allowLockfileUpdates,
+      definition.env,
+    );
   }
 }
 

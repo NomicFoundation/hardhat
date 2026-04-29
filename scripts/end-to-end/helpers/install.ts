@@ -15,6 +15,7 @@ import type { ScenarioDefinition } from "../types.ts";
 export function installDependencies(
   workDir: string,
   packageManager: ScenarioDefinition["packageManager"],
+  allowLockfileUpdates: boolean,
   env?: Record<string, string>,
 ): void {
   writeRegistryConfig(workDir, packageManager);
@@ -35,6 +36,18 @@ export function installDependencies(
       ? ["install"]
       : // Required by bun as it may not pickup the cwd bunfig.toml
         ["install", `--registry=${VERDACCIO_URL}`];
+
+  if (allowLockfileUpdates) {
+    // --use-local patches package.json to versions published in Verdaccio,
+    // which drifts the lockfile. Override CI's default frozen-lockfile
+    // behaviour so the install can update it. npm install does not freeze
+    // the lockfile (only `npm ci` does), so it needs no flag.
+    if (packageManager === "pnpm" || packageManager === "bun") {
+      installArgs.push("--no-frozen-lockfile");
+    } else if (packageManager === "yarn") {
+      installArgs.push("--no-immutable");
+    }
+  }
 
   execFileSync(which(packageManager), installArgs, {
     cwd: workDir,
