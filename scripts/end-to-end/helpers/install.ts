@@ -70,6 +70,11 @@ function writeRegistryConfig(
     writeFileSync(bunfigPath, `[install]\nregistry = "${VERDACCIO_URL}"\n`);
     log(`Wrote bunfig.toml → ${VERDACCIO_URL}`);
   } else if (packageManager === "yarn") {
+    // Yarn Classic (v1) reads .npmrc; Yarn Berry reads .yarnrc.yml.
+    // corepack picks the version from package.json#packageManager, so we
+    // don't know which one we'll get — write both.
+    writeNpmrc(dir);
+
     const yarnrcPath = resolve(dir, ".yarnrc.yml");
 
     let existing = "";
@@ -94,10 +99,14 @@ function writeRegistryConfig(
 
     log(`Wrote .yarnrc.yml → ${VERDACCIO_URL}`);
   } else {
-    const npmrcPath = resolve(dir, ".npmrc");
-
-    writeFileSync(npmrcPath, `registry=${VERDACCIO_URL}\n`);
-
-    log(`Wrote .npmrc → ${VERDACCIO_URL}`);
+    writeNpmrc(dir);
   }
+}
+
+function writeNpmrc(dir: string): void {
+  const npmrcPath = resolve(dir, ".npmrc");
+
+  writeFileSync(npmrcPath, `registry=${VERDACCIO_URL}\n`);
+
+  log(`Wrote .npmrc → ${VERDACCIO_URL}`);
 }
