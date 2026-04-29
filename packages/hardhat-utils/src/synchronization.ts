@@ -755,6 +755,10 @@ export class SharedPromiseCache<ValueT> {
    * Use this for synchronous fast-path lookups; if the result is `undefined`
    * and you still want to compute the value, fall through to `getOrCompute`.
    *
+   * Note that if `ValueT` includes `undefined` as a valid value, you won't be
+   * able to distinguish between a cached `undefined` and a missing/in-flight
+   * entry, but that's an intentional tradeoff to keep this method simple.
+   *
    * @param key The cache key.
    * @returns The cached value, or `undefined` if the key is missing or
    * in-flight.
@@ -768,9 +772,9 @@ export class SharedPromiseCache<ValueT> {
   }
 
   /**
-   * Iterates over the entries that are already resolved, yielding
+   * Iterates over the entries that are successfully resolved, yielding
    * `[key, value]` pairs. In-flight entries are skipped because their value
-   * is not yet known.
+   * is not yet known, and failed ones are removed from the cache.
    *
    * Producers are never invoked.
    */
