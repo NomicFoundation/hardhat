@@ -1902,10 +1902,7 @@ describe("SharedPromiseCache", () => {
         async () => await deferred.promise,
       );
 
-      assert.deepEqual(
-        [...cache.resolvedEntries()],
-        [["resolved", "value"]],
-      );
+      assert.deepEqual([...cache.resolvedEntries()], [["resolved", "value"]]);
 
       deferred.resolve("late");
       await inFlight;
@@ -1926,10 +1923,7 @@ describe("SharedPromiseCache", () => {
         }),
       );
 
-      assert.deepEqual(
-        [...cache.resolvedEntries()],
-        [["good", "ok"]],
-      );
+      assert.deepEqual([...cache.resolvedEntries()], [["good", "ok"]]);
     });
 
     it("should not invoke any producer", async () => {
