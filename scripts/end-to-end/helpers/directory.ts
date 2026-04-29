@@ -2,6 +2,7 @@ import path, { basename, dirname, resolve } from "node:path";
 import type { Scenario, ScenarioDefinition } from "../types.ts";
 import { isScenarioDefinition } from "../schema/scenario-schema.ts";
 import { readFileSync } from "node:fs";
+import { resolveEnv } from "./env.ts";
 
 export function loadScenario(
   e2eCloneDirectory: string,
@@ -14,6 +15,10 @@ export function loadScenario(
     scenarioFilePath,
   );
   const definition = _readScenarioJson(scenarioFilePath);
+
+  if (definition.env !== undefined) {
+    definition.env = resolveEnv(definition.env, scenarioFilePath);
+  }
 
   return {
     id,

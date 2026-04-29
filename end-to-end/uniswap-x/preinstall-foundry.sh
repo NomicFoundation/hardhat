@@ -1,8 +1,3 @@
-if [ -z "${FOUNDRY_RPC_URL}" ]; then
-  echo "Error: FOUNDRY_RPC_URL is not set" >&2
-  exit 1
-fi
-
 # CaliburEntry.sol has `pragma solidity 0.8.29;` (exact) and requires `via_ir`,
 # which conflicts with the main project's pinned 0.8.30 / no-via_ir settings.
 # Build calibur in isolation so CaliburEntry's artifact is produced on disk.
