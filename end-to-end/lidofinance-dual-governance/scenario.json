@@ -8,7 +8,9 @@
   "commit": "ef72db01b9b69fddc7fefae9da160e465921ec42",
   "packageManager": "npm",
   "submodules": true,
-  "preinstall": "./preinstall.sh",
+  "env": {
+    "MAINNET_RPC_URL": "${localEnv:ALCHEMY_URL}"
+  },
   "defaultCommand": "npx hardhat test solidity --grep=\"^(test_|testFuzz_)\"",
   "benchmark": {
     "runs": {
