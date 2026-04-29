@@ -141,9 +141,10 @@ const runSolidityTests: NewTaskActionFunction<TestActionArguments> = async (
     ({ edrArtifactsWithMetadata, allBuildInfosAndOutputs } =
       await loadArtifacts(hre.solidity, ["contracts"]));
 
-    // When noCompile, validate selected test roots have compiled artifacts when
-    // they are provided by the user, otherwise we know we have all the compiled
-    // artifacts already so we can skip this validation
+    // When noCompile is enabled, only validate compiled artifacts for test roots
+    // explicitly selected by the user. If no files were specified, skip
+    // validating every discovered test root and run whatever compiled test
+    // suites are available.
     if (noCompile === true && testFiles.length > 0) {
       const compiledSources = new Set(
         edrArtifactsWithMetadata.map(({ userSourceName }) =>
