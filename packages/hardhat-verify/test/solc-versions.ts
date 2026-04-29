@@ -182,6 +182,32 @@ describe("solc-versions", () => {
         },
       );
     });
+
+    it("should treat malformed versions as unsupported", async () => {
+      const solidityConfig = {
+        compilers: [
+          {
+            version: "0.8.18",
+            settings: {},
+          },
+          {
+            version: "not-a-version",
+            settings: {},
+          },
+        ],
+        overrides: {},
+        isolated: false,
+        preferWasm: false,
+      };
+
+      assertThrowsHardhatError(
+        () => resolveSupportedSolcVersions(solidityConfig),
+        HardhatError.ERRORS.HARDHAT_VERIFY.GENERAL.SOLC_VERSION_NOT_SUPPORTED,
+        {
+          unsupportedSolcVersions: ["not-a-version"],
+        },
+      );
+    });
   });
 
   describe("filterVersionsByInferred", () => {
@@ -262,6 +288,34 @@ describe("solc-versions", () => {
             max: [0, 5, 8],
           }),
           [],
+        );
+      });
+    });
+
+    describe("malformed versions", () => {
+      it("should silently filter out malformed versions for any inferred type", () => {
+        const mixed = ["0.5.9", "not-a-version", "0.8", "0.4.11"];
+        assert.deepEqual(
+          filterVersionsByInferred(mixed, {
+            type: "exact",
+            version: [0, 5, 9],
+          }),
+          ["0.5.9"],
+        );
+        assert.deepEqual(
+          filterVersionsByInferred(mixed, {
+            type: "lessThan",
+            bound: [0, 5, 0],
+          }),
+          ["0.4.11"],
+        );
+        assert.deepEqual(
+          filterVersionsByInferred(mixed, {
+            type: "between",
+            min: [0, 4, 0],
+            max: [0, 6, 0],
+          }),
+          ["0.5.9", "0.4.11"],
         );
       });
     });

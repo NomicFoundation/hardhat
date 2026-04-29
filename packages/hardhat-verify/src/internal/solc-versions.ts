@@ -2,10 +2,7 @@ import type { InferredSolcVersion } from "./metadata.js";
 import type { SemverVersion } from "@nomicfoundation/hardhat-utils/fast-semver";
 import type { SolidityBuildProfileConfig } from "hardhat/types/config";
 
-import {
-  HardhatError,
-  assertHardhatInvariant,
-} from "@nomicfoundation/hardhat-errors";
+import { HardhatError } from "@nomicfoundation/hardhat-errors";
 import {
   equals,
   greaterThanOrEqual,
@@ -48,11 +45,7 @@ export function resolveSupportedSolcVersions({
 
   const unsupportedSolcVersions = solcVersions.filter((version) => {
     const parsed = parseVersion(version);
-    assertHardhatInvariant(
-      parsed !== undefined,
-      `Invalid solc version: ${version}`,
-    );
-    return lowerThan(parsed, MIN_SUPPORTED_SOLC_VERSION);
+    return parsed === undefined || lowerThan(parsed, MIN_SUPPORTED_SOLC_VERSION);
   });
   if (unsupportedSolcVersions.length > 0) {
     throw new HardhatError(
@@ -80,10 +73,9 @@ export function filterVersionsByInferred(
 ): string[] {
   return versions.filter((version) => {
     const parsed = parseVersion(version);
-    assertHardhatInvariant(
-      parsed !== undefined,
-      `Invalid solc version: ${version}`,
-    );
+    if (parsed === undefined) {
+      return false;
+    }
     switch (inferred.type) {
       case "exact":
         return equals(parsed, inferred.version);
