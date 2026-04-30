@@ -31,23 +31,11 @@ export function installDependencies(
 
   logStep("Installing dependencies");
 
-  const installArgs =
-    packageManager === "yarn"
-      ? ["install"]
-      : // Required by bun as it may not pickup the cwd bunfig.toml
-        ["install", `--registry=${VERDACCIO_URL}`];
-
-  if (allowLockfileUpdates) {
-    // --use-local patches package.json to versions published in Verdaccio,
-    // which drifts the lockfile. Override CI's default frozen-lockfile
-    // behaviour so the install can update it. npm install does not freeze
-    // the lockfile (only `npm ci` does), so it needs no flag.
-    if (packageManager === "pnpm" || packageManager === "bun") {
-      installArgs.push("--no-frozen-lockfile");
-    } else if (packageManager === "yarn") {
-      installArgs.push("--no-immutable");
-    }
-  }
+  const installArgs = getInstallArgs(
+    packageManager,
+    allowLockfileUpdates,
+    VERDACCIO_URL,
+  );
 
   execFileSync(which(packageManager), installArgs, {
     cwd: workDir,
@@ -64,6 +52,39 @@ export function installDependencies(
       npm_config_registry: VERDACCIO_URL,
     },
   });
+}
+
+/**
+ * Build the package-manager-specific `install` args for a Verdaccio-backed
+ * install.
+ *
+ * `--use-local` patches the scenario's package.json, drifting the lockfile.
+ * Since CI defaults to frozen-lockfile mode for pnpm and Yarn Berry, we allow
+ * lockfile updates.
+ */
+export function getInstallArgs(
+  packageManager: ScenarioDefinition["packageManager"],
+  allowLockfileUpdates: boolean,
+  registryUrl: string,
+): string[] {
+  // bun doesn't reliably read cwd `bunfig.toml`, so it needs the `--registry` CLI flag.
+  // npm & pnpm don't strictly need `--registry` but we pass it for redundancy.
+  // yarn is excluded because it rejects `--registry` as a CLI flag.
+  const args =
+    packageManager === "yarn"
+      ? ["install"]
+      : ["install", `--registry=${registryUrl}`];
+
+  if (allowLockfileUpdates) {
+    // npm install never freezes (only `npm ci` does), so it doesn't need any flag.
+    if (packageManager === "pnpm" || packageManager === "bun") {
+      args.push("--no-frozen-lockfile");
+    } else if (packageManager === "yarn") {
+      args.push("--no-immutable");
+    }
+  }
+
+  return args;
 }
 
 function writeRegistryConfig(

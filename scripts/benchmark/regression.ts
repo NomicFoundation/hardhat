@@ -12,6 +12,13 @@ import {
   UseLocal,
   init as e2eInit,
 } from "../end-to-end/subcommands/init.ts";
+import { isVerdaccioRunning } from "../verdaccio/helpers/shell.ts";
+import {
+  publish as verdaccioPublish,
+  sinceReleasePublish,
+} from "../verdaccio/publish.ts";
+import { start as verdaccioStart } from "../verdaccio/start.ts";
+import { stop as verdaccioStop } from "../verdaccio/stop.ts";
 
 const USAGE = `
 scripts/benchmark/regression.ts — Multi-scenario regression benchmark
@@ -39,9 +46,15 @@ OPTIONS
   --output <path>       Required. Aggregated JSON destination
   --scenarios <csv>     Filter by scenario id (directory basename)
   --tag <tag>           Filter by a tag present in scenario.json tags
-  --use-local           Forwarded to the per-scenario init step
-  --force-checkout      Forwarded to the per-scenario init step
-  --force-publish       Forwarded to the per-scenario init step
+  --use-local           Detect packages changed since their release tag, bump
+                        versions, publish to Verdaccio, and pin scenario deps to
+                        the published versions.
+                        If Verdaccio is already running, an error is thrown unless
+                        --force-publish is also passed.
+  --force-checkout      Force git checkouts even if there are uncommitted changes
+                        in the scenario working directory
+  --force-publish       Allow publishing to an already-running Verdaccio instance,
+                        potentially overwriting its current contents
   --e2e-clone-dir <p>   Override clone directory (default: same as pnpm e2e)
   --fail-fast           Abort on the first scenario failure
 
@@ -126,22 +139,70 @@ async function main(): Promise<void> {
   const results: BenchmarkEntry[] = [];
   const failures: string[] = [];
 
-  for (const scenario of scenarios) {
-    logStep(`Scenario: ${fmt.pkg(scenario.id)}`);
+  // Launch Verdaccio once so that:
+  // 1. all scenarios share the same registry contents — bumped versions
+  //    remain available throughout the run, and
+  // 2. pacote's metadata cache (~/.npm/_cacache, keyed by registry URL)
+  //    never gets out of sync with the registry's actual contents.
+  //
+  // Per-scenario init() detects the already-running Verdaccio and skips
+  // its own start/publish/stop.
+  const verdaccioAlreadyRunning = isVerdaccioRunning();
 
-    try {
-      const entries = await runScenario(scenario, args);
-      results.push(...entries);
-    } catch (error) {
-      const message = error instanceof Error ? error.message : String(error);
-      logError(`Scenario "${scenario.id}" failed: ${message}`);
-      failures.push(scenario.id);
+  if (
+    verdaccioAlreadyRunning &&
+    args.useLocal === UseLocal.Yes &&
+    args.forcePublish === ForcePublish.No
+  ) {
+    throw new Error(
+      "A Verdaccio instance is already running. Using --use-local would\n" +
+        "  override packages in the running registry.\n\n" +
+        "  Add --force-publish to proceed, or stop the running instance first:\n" +
+        "    pnpm verdaccio stop",
+    );
+  }
 
-      if (args.failFast) {
-        writeOutput(args.output, results);
-        process.exit(1);
+  if (!verdaccioAlreadyRunning) {
+    await verdaccioStart(true);
+  }
+
+  const startedVerdaccio = !verdaccioAlreadyRunning;
+  let failFastExit = false;
+
+  try {
+    if (startedVerdaccio || args.forcePublish === ForcePublish.Yes) {
+      if (args.useLocal === UseLocal.Yes) {
+        sinceReleasePublish();
+      } else {
+        verdaccioPublish(false, true);
       }
     }
+
+    for (const scenario of scenarios) {
+      logStep(`Scenario: ${fmt.pkg(scenario.id)}`);
+
+      try {
+        const entries = await runScenario(scenario, args);
+        results.push(...entries);
+      } catch (error) {
+        const message = error instanceof Error ? error.message : String(error);
+        logError(`Scenario "${scenario.id}" failed: ${message}`);
+        failures.push(scenario.id);
+
+        if (args.failFast) {
+          failFastExit = true;
+          break;
+        }
+      }
+    }
+  } finally {
+    if (startedVerdaccio) {
+      verdaccioStop();
+    }
+  }
+
+  if (failFastExit) {
+    process.exit(1);
   }
 
   writeOutput(args.output, results);
@@ -334,7 +395,8 @@ async function runScenario(
     scenario.scenarioJsonPath,
     args.useLocal,
     args.forceCheckout,
-    args.forcePublish,
+    // always skip per-scenario publish — we publish once globally up-front
+    ForcePublish.No,
   );
 
   await runPhase(
