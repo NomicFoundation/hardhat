@@ -56,7 +56,7 @@ describe("inline-config - validation", () => {
           key: "fuzz.nonexistent",
           functionFqn: getFunctionFqn("test/MyTest.sol", "MyTest", "testFoo"),
           validKeys:
-            "fuzz.runs, fuzz.maxTestRejects, fuzz.showLogs, fuzz.timeout, invariant.runs, invariant.depth, invariant.failOnRevert, invariant.callOverride, invariant.timeout, allowInternalExpectRevert",
+            "fuzz.runs, fuzz.maxTestRejects, fuzz.showLogs, fuzz.timeout, invariant.runs, invariant.depth, invariant.failOnRevert, invariant.callOverride, invariant.timeout, allowInternalExpectRevert, isolate, evmVersion",
         },
       );
     });
@@ -236,7 +236,7 @@ describe("inline-config - validation", () => {
           key: "invariant.runs",
           testType: "fuzz",
           validKeys:
-            "fuzz.runs, fuzz.maxTestRejects, fuzz.showLogs, fuzz.timeout, allowInternalExpectRevert",
+            "fuzz.runs, fuzz.maxTestRejects, fuzz.showLogs, fuzz.timeout, allowInternalExpectRevert, isolate, evmVersion",
           functionFqn: getFunctionFqn("test/MyTest.sol", "MyTest", "testFoo"),
         },
       );
@@ -258,7 +258,7 @@ describe("inline-config - validation", () => {
           key: "fuzz.runs",
           testType: "invariant",
           validKeys:
-            "invariant.runs, invariant.depth, invariant.failOnRevert, invariant.callOverride, invariant.timeout, allowInternalExpectRevert",
+            "invariant.runs, invariant.depth, invariant.failOnRevert, invariant.callOverride, invariant.timeout, allowInternalExpectRevert, isolate, evmVersion",
           functionFqn: getFunctionFqn(
             "test/MyTest.sol",
             "MyTest",
@@ -295,6 +295,60 @@ describe("inline-config - validation", () => {
           rawValue: "10",
         }),
       ]);
+    });
+
+    it("should accept double-quoted string values", () => {
+      validateInlineOverrides([
+        makeRawOverride({ key: "evmVersion", rawValue: '"cancun"' }),
+      ]);
+    });
+
+    it("should throw INVALID_VALUE for unquoted string", () => {
+      assertThrowsHardhatError(
+        () =>
+          validateInlineOverrides([
+            makeRawOverride({ key: "evmVersion", rawValue: "cancun" }),
+          ]),
+        HardhatError.ERRORS.CORE.SOLIDITY_TESTS.INLINE_CONFIG_INVALID_VALUE,
+        {
+          value: "cancun",
+          key: "evmVersion",
+          expectedType: "non-empty double-quoted string",
+          functionFqn: getFunctionFqn("test/MyTest.sol", "MyTest", "testFoo"),
+        },
+      );
+    });
+
+    it("should throw INVALID_VALUE for single-quoted string", () => {
+      assertThrowsHardhatError(
+        () =>
+          validateInlineOverrides([
+            makeRawOverride({ key: "evmVersion", rawValue: "'cancun'" }),
+          ]),
+        HardhatError.ERRORS.CORE.SOLIDITY_TESTS.INLINE_CONFIG_INVALID_VALUE,
+        {
+          value: "'cancun'",
+          key: "evmVersion",
+          expectedType: "non-empty double-quoted string",
+          functionFqn: getFunctionFqn("test/MyTest.sol", "MyTest", "testFoo"),
+        },
+      );
+    });
+
+    it("should throw INVALID_VALUE for empty quoted string", () => {
+      assertThrowsHardhatError(
+        () =>
+          validateInlineOverrides([
+            makeRawOverride({ key: "evmVersion", rawValue: '""' }),
+          ]),
+        HardhatError.ERRORS.CORE.SOLIDITY_TESTS.INLINE_CONFIG_INVALID_VALUE,
+        {
+          value: '""',
+          key: "evmVersion",
+          expectedType: "non-empty double-quoted string",
+          functionFqn: getFunctionFqn("test/MyTest.sol", "MyTest", "testFoo"),
+        },
+      );
     });
   });
 });

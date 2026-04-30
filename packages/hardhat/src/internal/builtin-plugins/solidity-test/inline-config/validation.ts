@@ -1,6 +1,9 @@
 import type { RawInlineOverride } from "./types.js";
 
-import { HardhatError } from "@nomicfoundation/hardhat-errors";
+import {
+  HardhatError,
+  assertHardhatInvariant,
+} from "@nomicfoundation/hardhat-errors";
 
 import { KEY_TYPES } from "./constants.js";
 import { getFunctionFqn } from "./helpers.js";
@@ -9,8 +12,9 @@ import { getFunctionFqn } from "./helpers.js";
  * Validates a list of raw inline overrides, checking for:
  * - Valid keys
  * - No duplicate keys for the same function
- * - Values of the expected type (numbers must be non-negative integers, booleans
- *   must be "true" or "false")
+ * - Values of the expected type (numbers must be non-negative integers,
+ *   booleans must be "true" or "false", strings must be a non-empty
+ *   double-quoted literal)
  *
  * Throws a HardhatError if any validation fails.
  */
@@ -104,7 +108,7 @@ export function validateInlineOverrides(overrides: RawInlineOverride[]): void {
           },
         );
       }
-    } else {
+    } else if (expectedType === "boolean") {
       const lowerValue = rawValue.toLowerCase();
       if (lowerValue !== "true" && lowerValue !== "false") {
         throw new HardhatError(
@@ -117,6 +121,23 @@ export function validateInlineOverrides(overrides: RawInlineOverride[]): void {
           },
         );
       }
+    } else if (expectedType === "string") {
+      if (!/^"[^"\n]+"$/.test(rawValue)) {
+        throw new HardhatError(
+          HardhatError.ERRORS.CORE.SOLIDITY_TESTS.INLINE_CONFIG_INVALID_VALUE,
+          {
+            value: rawValue,
+            key: rawKey,
+            expectedType: "non-empty double-quoted string",
+            functionFqn,
+          },
+        );
+      }
+    } else {
+      assertHardhatInvariant(
+        false,
+        `Unhandled inline config value type for key ${key}`,
+      );
     }
   }
 }
