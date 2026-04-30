@@ -6,6 +6,12 @@ import { runBenchmark } from "./main.ts";
 import type { BenchArgs } from "./helpers/args.ts";
 import { DEFAULT_CLONE_DIR } from "../end-to-end/helpers/args.ts";
 import { fmt, log, logError, logStep, logWarning } from "./helpers/log.ts";
+import {
+  ForceCheckout,
+  ForcePublish,
+  UseLocal,
+  init as e2eInit,
+} from "../end-to-end/subcommands/init.ts";
 
 const USAGE = `
 scripts/benchmark/regression.ts — Multi-scenario regression benchmark
@@ -33,8 +39,9 @@ OPTIONS
   --output <path>       Required. Aggregated JSON destination
   --scenarios <csv>     Filter by scenario id (directory basename)
   --tag <tag>           Filter by a tag present in scenario.json tags
-  --use-local           Forwarded to the first phase's init call
-  --force-publish       Forwarded to the first phase's init call
+  --use-local           Forwarded to the per-scenario init step
+  --force-checkout      Forwarded to the per-scenario init step
+  --force-publish       Forwarded to the per-scenario init step
   --e2e-clone-dir <p>   Override clone directory (default: same as pnpm e2e)
   --fail-fast           Abort on the first scenario failure
 
@@ -50,8 +57,9 @@ interface RegressionArgs {
   output: string;
   scenarios: string[] | undefined;
   tag: string | undefined;
-  useLocal: boolean;
-  forcePublish: boolean;
+  useLocal: UseLocal;
+  forceCheckout: ForceCheckout;
+  forcePublish: ForcePublish;
   e2eCloneDirectory: string;
   failFast: boolean;
 }
@@ -169,8 +177,17 @@ function resolveArgs(argv: string[]): RegressionArgs | undefined {
       : undefined;
 
   const tag = getArgValue(argv, "--tag");
-  const useLocal = argv.includes("--use-local");
-  const forcePublish = argv.includes("--force-publish");
+
+  const useLocal = argv.includes("--use-local") ? UseLocal.Yes : UseLocal.No;
+
+  const forceCheckout = argv.includes("--force-checkout")
+    ? ForceCheckout.Yes
+    : ForceCheckout.No;
+
+  const forcePublish = argv.includes("--force-publish")
+    ? ForcePublish.Yes
+    : ForcePublish.No;
+
   const failFast = argv.includes("--fail-fast");
 
   const e2eCloneDirectory =
@@ -183,6 +200,7 @@ function resolveArgs(argv: string[]): RegressionArgs | undefined {
     scenarios,
     tag,
     useLocal,
+    forceCheckout,
     forcePublish,
     e2eCloneDirectory,
     failFast,
@@ -310,10 +328,18 @@ async function runScenario(
   const warmExport = path.join(scenarioTmpDir, "warm.json");
   const defaultExport = path.join(scenarioTmpDir, "default.json");
 
+  logStep("Initializing scenario");
+  await e2eInit(
+    args.e2eCloneDirectory,
+    scenario.scenarioJsonPath,
+    args.useLocal,
+    args.forceCheckout,
+    args.forcePublish,
+  );
+
   await runPhase(
     "compile (cold)",
     buildBenchArgs(scenario.scenarioJsonPath, args, {
-      init: true,
       command: "npx hardhat compile",
       prepare: "npx hardhat clean",
       runs: runs.coldCompile,
@@ -324,7 +350,6 @@ async function runScenario(
   await runPhase(
     "compile (warm)",
     buildBenchArgs(scenario.scenarioJsonPath, args, {
-      init: false,
       command: "npx hardhat compile",
       prepare: undefined,
       runs: runs.warmCompile,
@@ -335,7 +360,6 @@ async function runScenario(
   await runPhase(
     "default command",
     buildBenchArgs(scenario.scenarioJsonPath, args, {
-      init: false,
       command: undefined,
       prepare: undefined,
       runs: runs.defaultCommand,
@@ -367,18 +391,6 @@ function buildReproCommand(benchArgs: BenchArgs): string {
     "--scenario",
     shellQuote(benchArgs.scenarioPath),
   ];
-
-  if (benchArgs.init) {
-    parts.push("--init");
-
-    if (benchArgs.useLocal) {
-      parts.push("--use-local");
-    }
-
-    if (benchArgs.forcePublish) {
-      parts.push("--force-publish");
-    }
-  }
 
   if (benchArgs.command !== undefined) {
     parts.push("--command", shellQuote(benchArgs.command));
@@ -413,7 +425,6 @@ function buildBenchArgs(
   scenarioPath: string,
   args: RegressionArgs,
   phase: {
-    init: boolean;
     command: string | undefined;
     prepare: string | undefined;
     runs: number;
@@ -423,9 +434,10 @@ function buildBenchArgs(
   return {
     scenarioPath,
     command: phase.command,
-    init: phase.init,
-    useLocal: phase.init ? args.useLocal : false,
-    forcePublish: phase.init ? args.forcePublish : false,
+    init: false,
+    useLocal: UseLocal.No,
+    forcePublish: ForcePublish.No,
+    forceCheckout: ForceCheckout.No,
     precompile: false,
     prepare: phase.prepare,
     ignoreFailure: false,

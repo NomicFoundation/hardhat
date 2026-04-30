@@ -21,6 +21,7 @@ OPTIONS
   --use-local           Detect packages changed since their release tag, bump
                         versions, publish to Verdaccio, and pin scenario deps to
                         the published versions. Only applies when init runs
+  --force-checkout      Force git checkouts even if there are uncommitted changes in the scenario working directory
   --force-publish       Allow publishing to an already-running Verdaccio instance.
                         Only applies when init runs
   --precompile          Run "npx hardhat compile" in the scenario before
@@ -54,6 +55,7 @@ export async function runBenchmark(benchArgs: BenchArgs): Promise<void> {
     command,
     init,
     useLocal,
+    forceCheckout,
     forcePublish,
     precompile,
     prepare,
@@ -77,7 +79,13 @@ export async function runBenchmark(benchArgs: BenchArgs): Promise<void> {
 
   if (init) {
     logStep("Initializing scenario");
-    await e2eInit(e2eCloneDirectory, scenarioPath, useLocal, forcePublish);
+    await e2eInit(
+      e2eCloneDirectory,
+      scenarioPath,
+      useLocal,
+      forceCheckout,
+      forcePublish,
+    );
   }
 
   if (precompile) {
@@ -87,6 +95,7 @@ export async function runBenchmark(benchArgs: BenchArgs): Promise<void> {
       scenarioPath,
       "npx hardhat compile",
       useLocal,
+      forceCheckout,
       forcePublish,
     );
   }
@@ -110,6 +119,7 @@ export async function runBenchmark(benchArgs: BenchArgs): Promise<void> {
     scenarioPath,
     hyperfineCommand,
     useLocal,
+    forceCheckout,
     forcePublish,
   );
 
