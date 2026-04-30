@@ -495,14 +495,7 @@ export default async function createHandlers() {
         });
       }
 
-      for (const extension of [
-        ".ts",
-        ".mts",
-        ".cts",
-        ".TS",
-        ".MTS",
-        ".CTS",
-      ]) {
+      for (const extension of [".ts", ".mts", ".cts", ".TS", ".MTS", ".CTS"]) {
         it(`classifies ERR_UNKNOWN_FILE_EXTENSION for ${extension} files`, () => {
           assert.equal(
             classifyError(
@@ -699,10 +692,7 @@ export default async function createHandlers() {
         Object.assign(a, { cause: b });
         Object.assign(b, { cause: a });
 
-        assert.equal(
-          classifyError(a, true),
-          ErrorCategory.UNEXPECTED_ERROR,
-        );
+        assert.equal(classifyError(a, true), ErrorCategory.UNEXPECTED_ERROR);
       });
     });
 

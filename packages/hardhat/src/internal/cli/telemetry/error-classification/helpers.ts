@@ -40,7 +40,10 @@ export function createErrorContext(error: Error): ErrorContext {
     error,
     errorChain,
     lowercaseMessageByError: new Map(
-      errorChain.map((candidate) => [candidate, candidate.message.toLowerCase()]),
+      errorChain.map((candidate) => [
+        candidate,
+        candidate.message.toLowerCase(),
+      ]),
     ),
     stackFramesByError,
     allStackFrames: errorChain.flatMap(
