@@ -685,6 +685,18 @@ export default async function createHandlers() {
           ErrorCategory.FILESYSTEM_INTERACTION_ERROR,
         );
       });
+
+      it("doesn't loop on cyclic cause chains when reading Node error codes", () => {
+        const a = errorWithStack("Error", "a");
+        const b = errorWithStack("Error", "b");
+        Object.assign(a, { cause: b });
+        Object.assign(b, { cause: a });
+
+        assert.equal(
+          classifyError(a, true),
+          ErrorCategory.UNEXPECTED_ERROR,
+        );
+      });
     });
 
     describe("precedence and fallback", () => {

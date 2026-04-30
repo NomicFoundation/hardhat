@@ -78,15 +78,26 @@ export function includesAny(
 
 /**
  * Returns a Node-style `code` string from an error or any Error cause.
+ *
+ * Traversal stops when a cause is not an Error, a cycle is detected, or
+ * `maxCauseDepth` is reached.
  */
-export function getNodeErrorCode(error: Error): string | undefined {
-  if ("code" in error && typeof error.code === "string") {
-    return error.code;
-  }
+export function getNodeErrorCode(
+  error: Error,
+  maxCauseDepth = 10,
+): string | undefined {
+  const seen = new Set<Error>();
+  let current: Error | undefined = error;
+  let depth = 0;
 
-  const cause = getCause(error);
-  if (cause !== undefined) {
-    return getNodeErrorCode(cause);
+  while (current !== undefined && depth < maxCauseDepth && !seen.has(current)) {
+    if ("code" in current && typeof current.code === "string") {
+      return current.code;
+    }
+
+    seen.add(current);
+    current = getCause(current);
+    depth++;
   }
 }
 
