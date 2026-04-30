@@ -24,6 +24,7 @@ declare module "../../../types/test.js" {
     dictionaryWeight?: number;
     includeStorage?: boolean;
     includePushBytes?: boolean;
+    showLogs?: boolean;
   }
 
   export interface SolidityTestFuzzConfig extends SolidityTestFuzzConfigBase {
