@@ -14,7 +14,7 @@ export function stringifyArgs(obj: any): string {
 export async function settle<T>(
   promise: Promise<T>,
 ): Promise<{ ok: true; value: T } | { ok: false; error: unknown }> {
-  return promise.then(
+  return await promise.then(
     (value) => ({ ok: true, value }) as const,
     (error: unknown) => ({ ok: false, error }) as const,
   );
