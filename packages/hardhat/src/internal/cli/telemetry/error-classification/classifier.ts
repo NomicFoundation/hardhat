@@ -1,4 +1,7 @@
-import { HardhatError } from "@nomicfoundation/hardhat-errors";
+import {
+  HardhatError,
+  assertHardhatInvariant,
+} from "@nomicfoundation/hardhat-errors";
 import {
   DirectoryNotEmptyError,
   FileAlreadyExistsError,
@@ -508,15 +511,19 @@ function isFilesystemInteractionError(
 
 function isUnknownEdrError(error: Error, context: ErrorContext): boolean {
   const errorIndex = context.errorChain.indexOf(error);
-  const errorChain =
-    errorIndex === -1 ? [error] : context.errorChain.slice(errorIndex);
+  assertHardhatInvariant(
+    errorIndex !== -1,
+    "isUnknownEdrError must be called with an error from the error chain",
+  );
 
   return (
     ProviderError.isProviderError(error) &&
     (error.code === UnknownError.CODE || error.name === "UnknownError") &&
-    errorChain.some((candidate) =>
-      (context.stackFramesByError.get(candidate) ?? []).some(isEdrFrame),
-    )
+    context.errorChain
+      .slice(errorIndex)
+      .some((candidate) =>
+        (context.stackFramesByError.get(candidate) ?? []).some(isEdrFrame),
+      )
   );
 }
 
