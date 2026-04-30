@@ -69,10 +69,20 @@ export function buildModule<
 function _checkForDuplicateModuleIds(
   ignitionModule: IgnitionModule<string, string, IgnitionModuleResult<string>>,
 ): void {
-  const duplicateModuleIds = [
+  const allIds = [
     ignitionModule.id,
     ...Array.from(ignitionModule.submodules).map((submodule) => submodule.id),
-  ].filter((id, index, array) => array.indexOf(id) !== index);
+  ];
+
+  const seen = new Set<string>();
+  const duplicateModuleIds: string[] = [];
+  for (const id of allIds) {
+    if (seen.has(id)) {
+      duplicateModuleIds.push(id);
+    } else {
+      seen.add(id);
+    }
+  }
 
   if (duplicateModuleIds.length === 0) {
     return;
