@@ -270,8 +270,8 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          approver=$(gh api "/repos/${{ github.repository }}/actions/runs/${{ github.run_id }}/approvals" --jq '.[0].user.login // empty' 2>/dev/null || true)
-          echo "login=${approver:-${{ github.actor }}}" >> "$GITHUB_OUTPUT"
+          approver=$(gh api "/repos/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}/approvals" --jq '.[0].user.login // empty' 2>/dev/null || true)
+          echo "login=${approver:-$GITHUB_ACTOR}" >> "$GITHUB_OUTPUT"
 
       - name: Notify deployment approved
         continue-on-error: true
