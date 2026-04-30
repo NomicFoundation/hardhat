@@ -5,6 +5,7 @@ on:
   push:
     branches:
       - main
+  pull_request: # TEMP: for testing the Slack notification job below; revert before merge
 
 defaults:
   run:
@@ -13,6 +14,7 @@ defaults:
 jobs:
   pr:
     name: Conditionally create a release PR
+    if: github.event_name != 'pull_request' # TEMP: prevent release pipeline from firing on PR test trigger
     timeout-minutes: 60
     runs-on: ubuntu-latest
     outputs:
@@ -396,3 +398,106 @@ jobs:
           # by the `gh` command line tool internally
           GITHUB_TOKEN: ${{ github.token }}
         run: node scripts/github-release/create-releases.ts
+
+  # TEMP: fires both Slack notifications on PR push so we can verify the webhook end-to-end. Revert before merge.
+  test-slack-notifications:
+    name: TEST Slack notifications
+    if: github.event_name == 'pull_request'
+    timeout-minutes: 5
+    runs-on: ubuntu-latest
+    permissions:
+      actions: read # for the approvals API call (will return empty on PR; tests fallback to github.actor)
+    steps:
+      - name: Notify pre-deploy
+        continue-on-error: true
+        uses: slackapi/slack-github-action@91efab103c0de0a537f72a35f6b8cda0ee76bf0a # v2.1.1
+        with:
+          webhook: ${{ secrets.PUBLISHING_NOTIFICATIONS_SLACK_WEBHOOK_URL }}
+          webhook-type: incoming-webhook
+          payload: |
+            {
+              "text": "TESTTESTTEST Deployment review requested by ${{ github.actor }}",
+              "blocks": [
+                {
+                  "type": "section",
+                  "text": {
+                    "type": "mrkdwn",
+                    "text": "*TESTTESTTEST Deployment review requested by ${{ github.actor }}*"
+                  }
+                },
+                {
+                  "type": "section",
+                  "text": {
+                    "type": "mrkdwn",
+                    "text": "<${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|${{ github.workflow }} #${{ github.run_number }}> / Publish packages"
+                  }
+                },
+                {
+                  "type": "section",
+                  "text": {
+                    "type": "mrkdwn",
+                    "text": "`npm-publish` waiting for review"
+                  }
+                },
+                {
+                  "type": "context",
+                  "elements": [
+                    {
+                      "type": "mrkdwn",
+                      "text": "${{ github.repository }}"
+                    }
+                  ]
+                }
+              ]
+            }
+
+      - name: Get approver
+        id: approver
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          approver=$(gh api "/repos/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}/approvals" --jq '.[0].user.login // empty' 2>/dev/null || true)
+          echo "login=${approver:-$GITHUB_ACTOR}" >> "$GITHUB_OUTPUT"
+
+      - name: Notify deployment approved
+        continue-on-error: true
+        uses: slackapi/slack-github-action@91efab103c0de0a537f72a35f6b8cda0ee76bf0a # v2.1.1
+        with:
+          webhook: ${{ secrets.PUBLISHING_NOTIFICATIONS_SLACK_WEBHOOK_URL }}
+          webhook-type: incoming-webhook
+          payload: |
+            {
+              "text": "TESTTESTTEST Deployment review approved by ${{ steps.approver.outputs.login }}",
+              "blocks": [
+                {
+                  "type": "section",
+                  "text": {
+                    "type": "mrkdwn",
+                    "text": "*TESTTESTTEST Deployment review approved by ${{ steps.approver.outputs.login }}*\n:rocket: Publishing packages now"
+                  }
+                },
+                {
+                  "type": "section",
+                  "text": {
+                    "type": "mrkdwn",
+                    "text": "<${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|${{ github.workflow }} #${{ github.run_number }}>"
+                  }
+                },
+                {
+                  "type": "section",
+                  "text": {
+                    "type": "mrkdwn",
+                    "text": "Publish packages • `npm-publish`"
+                  }
+                },
+                {
+                  "type": "context",
+                  "elements": [
+                    {
+                      "type": "mrkdwn",
+                      "text": "${{ github.repository }}"
+                    }
+                  ]
+                }
+              ]
+            }
