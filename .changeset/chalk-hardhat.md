@@ -1,5 +1,5 @@
 ---
-"@nomicfoundation/hardhat": patch
+"hardhat": patch
 ---
 
 Replace `chalk` with `util.styleText`.
