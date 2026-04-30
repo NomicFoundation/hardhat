@@ -1,6 +1,6 @@
 {
   "name": "@nomicfoundation/hardhat-vendored",
-  "version": "3.0.2",
+  "version": "3.0.3",
   "description": "Internal dependencies used by Hardhat that have been vendored to prevent bloating the main package",
   "homepage": "https://github.com/NomicFoundation/hardhat/tree/main/packages/hardhat-vendored",
   "repository": {
@@ -42,7 +42,7 @@
     "VENDORED.md"
   ],
   "devDependencies": {
-    "@nomicfoundation/hardhat-node-test-reporter": "workspace:^3.0.4",
+    "@nomicfoundation/hardhat-node-test-reporter": "workspace:^3.0.6",
     "@types/bn.js": "^5.1.5",
     "@types/node": "^22.0.0",
     "c8": "^9.1.0",

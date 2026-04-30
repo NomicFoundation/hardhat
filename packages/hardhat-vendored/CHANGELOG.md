@@ -1,5 +1,11 @@
 # @nomicfoundation/hardhat-vendored
 
+## 3.0.3
+
+### Patch Changes
+
+- [#8207](https://github.com/NomicFoundation/hardhat/pull/8207) [`d594209`](https://github.com/NomicFoundation/hardhat/commit/d59420968bffca83e1ad2712c6881d19cc7e1a99) Thanks [@alcuadrado](https://github.com/alcuadrado)! - Improved performance by replacing the debug logging library with a lightweight in-tree implementation.
+
 ## 3.0.2
 
 ### Patch Changes

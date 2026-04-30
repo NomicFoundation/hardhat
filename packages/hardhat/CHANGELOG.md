@@ -1,5 +1,34 @@
 # hardhat
 
+## 3.4.3
+
+### Patch Changes
+
+- [#8196](https://github.com/NomicFoundation/hardhat/pull/8196) [`b669814`](https://github.com/NomicFoundation/hardhat/commit/b6698146abc87aaa6b2b2f18c830a01dba9b6daa) Thanks [@alcuadrado](https://github.com/alcuadrado)! - Improve error messages in common failures
+
+- [#8196](https://github.com/NomicFoundation/hardhat/pull/8196) [`73436aa`](https://github.com/NomicFoundation/hardhat/commit/73436aaa1ddac805f8d855627b5b40ad69cf7d2e) Thanks [@alcuadrado](https://github.com/alcuadrado)! - Export missing error types
+
+- [#8195](https://github.com/NomicFoundation/hardhat/pull/8195) [`79205cc`](https://github.com/NomicFoundation/hardhat/commit/79205cc7dc5c89e88438ac0db8fd812720d07df2) Thanks [@ChristopherDedominici](https://github.com/ChristopherDedominici)! - Replace `chalk` with `util.styleText`.
+
+- [#8224](https://github.com/NomicFoundation/hardhat/pull/8224) [`3614c02`](https://github.com/NomicFoundation/hardhat/commit/3614c0241250ad210a1eb608e9a39482d34b6ce7) Thanks [@schaable](https://github.com/schaable)! - Add a `fuzz.showLogs` option to the Solidity test config to display `console.log` output from fuzz tests.
+
+- [#8218](https://github.com/NomicFoundation/hardhat/pull/8218) [`32f2b59`](https://github.com/NomicFoundation/hardhat/commit/32f2b5970e870a38db5e4e5b184038faf6052a0f) Thanks [@alcuadrado](https://github.com/alcuadrado)! - Fix `hardhat test solidity --no-compile` failing with `SELECTED_TEST_FILES_NOT_COMPILED` when no test files are specified.
+
+- [#8139](https://github.com/NomicFoundation/hardhat/pull/8139) [`536b745`](https://github.com/NomicFoundation/hardhat/commit/536b745d041a252601d6feebdbf7d9473accd78c) Thanks [@anaPerezGhiglia](https://github.com/anaPerezGhiglia)! - Bumped EDR version to [`0.12.0-next.31`](https://github.com/NomicFoundation/edr/releases/tag/%40nomicfoundation%2Fedr%400.12.0-next.31)
+
+- [#8199](https://github.com/NomicFoundation/hardhat/pull/8199) [`2cb91f1`](https://github.com/NomicFoundation/hardhat/commit/2cb91f12e7a43e9f883a3451fafc7b7283511c05) Thanks [@alcuadrado](https://github.com/alcuadrado)! - Add LPT scheduling to the Solidity build system
+
+- [#8219](https://github.com/NomicFoundation/hardhat/pull/8219) [`2cad309`](https://github.com/NomicFoundation/hardhat/commit/2cad309eb8d35fcc5d2aba5d75a5af4d63d50508) Thanks [@schaable](https://github.com/schaable)! - Improved performance by replacing the semver dependency with a lightweight in-tree implementation.
+
+- [#8207](https://github.com/NomicFoundation/hardhat/pull/8207) [`d594209`](https://github.com/NomicFoundation/hardhat/commit/d59420968bffca83e1ad2712c6881d19cc7e1a99) Thanks [@alcuadrado](https://github.com/alcuadrado)! - Improved performance by replacing the debug logging library with a lightweight in-tree implementation.
+
+- [#8189](https://github.com/NomicFoundation/hardhat/pull/8189) [`b5ca1ae`](https://github.com/NomicFoundation/hardhat/commit/b5ca1aee1eb2571ec23f54ac8a9b2c39a90361c6) Thanks [@alcuadrado](https://github.com/alcuadrado)! - Introduce a TrueCasePathResolver class to optimize repeated filesystem casing resolution
+
+- Updated dependencies:
+  - @nomicfoundation/hardhat-utils@4.1.0
+  - @nomicfoundation/hardhat-errors@3.0.12
+  - @nomicfoundation/hardhat-vendored@3.0.3
+
 ## 3.4.2
 
 ### Patch Changes

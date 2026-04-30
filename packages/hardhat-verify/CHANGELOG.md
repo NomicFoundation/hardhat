@@ -1,5 +1,19 @@
 # @nomicfoundation/hardhat-verify
 
+## 3.0.16
+
+### Patch Changes
+
+- [#8219](https://github.com/NomicFoundation/hardhat/pull/8219) [`2cad309`](https://github.com/NomicFoundation/hardhat/commit/2cad309eb8d35fcc5d2aba5d75a5af4d63d50508) Thanks [@schaable](https://github.com/schaable)! - Improved performance by replacing the semver dependency with a lightweight in-tree implementation.
+
+- [#8195](https://github.com/NomicFoundation/hardhat/pull/8195) [`79205cc`](https://github.com/NomicFoundation/hardhat/commit/79205cc7dc5c89e88438ac0db8fd812720d07df2) Thanks [@ChristopherDedominici](https://github.com/ChristopherDedominici)! - Replace `chalk` with `util.styleText`.
+
+- [#8207](https://github.com/NomicFoundation/hardhat/pull/8207) [`d594209`](https://github.com/NomicFoundation/hardhat/commit/d59420968bffca83e1ad2712c6881d19cc7e1a99) Thanks [@alcuadrado](https://github.com/alcuadrado)! - Improved performance by replacing the debug logging library with a lightweight in-tree implementation.
+
+- Updated dependencies:
+  - @nomicfoundation/hardhat-utils@4.1.0
+  - @nomicfoundation/hardhat-errors@3.0.12
+
 ## 3.0.15
 
 ### Patch Changes
