@@ -126,6 +126,11 @@ export const ERROR_CATEGORIES: {
         max: 1399,
         websiteSubTitle: "Hardhat coverage errors",
       },
+      INIT: {
+        min: 1400,
+        max: 1499,
+        websiteSubTitle: "Initialization errors",
+      },
     },
   },
   IGNITION: {
@@ -589,6 +594,23 @@ Please install a version of the peer dependency that meets the plugin's requirem
         messageTemplate: `Parameter "{paramName}" of hook "{hookCategoryName}#{hookName}" is not allowed to be modified`,
         websiteTitle: "Unexpected hook parameter modification",
         websiteDescription: `The parameter is not allowed to be modified`,
+      },
+      FAILED_TO_LOAD_HOOK_HANDLER_FACTORY: {
+        number: 302,
+        messageTemplate:
+          'Plugin "{pluginId}" hook factory for "{hookCategoryName}" threw an error while being loaded.',
+        websiteTitle: "Plugin hook factory failed during loading",
+        websiteDescription: `The loading of a plugin's hook factory failed while being imported`,
+      },
+      FAILED_TO_RUN_HOOK_HANDLER_FACTORY: {
+        number: 303,
+        messageTemplate: `Plugin "{pluginId}" hook factory for "{hookCategoryName}" threw an error while being run.
+
+This is probably a bug in the plugin. Please report it to the plugin author if it keeps happening.`,
+        websiteTitle: "Plugin hook factory failed during evaluation",
+        websiteDescription: `A plugin threw an error while one of its HookHandlerFactories was being run.
+
+This is probably a bug in the plugin. Please report it to the plugin author if it keeps happening.`,
       },
     },
     TASK_DEFINITIONS: {
@@ -1454,6 +1476,16 @@ Please use the fully qualified name of the contract to disambiguate it.`,
         messageTemplate: `The import path "{importPath}" is already defined in the compilation sources`,
         websiteTitle: "Import path already defined in compilation sources",
         websiteDescription: `The import path is already defined in the compilation sources`,
+      },
+    },
+    INIT: {
+      FAILED_TO_INSTALL_DEPENDENCIES: {
+        number: 1400,
+        messageTemplate: `Failed to install the project dependencies.
+
+Please try again. If it persists, please open an issue in the Hardhat repository.`,
+        websiteTitle: "Failed to install the project dependencies",
+        websiteDescription: `The project initialization failed to install the required dependencies`,
       },
     },
   },
