@@ -1122,8 +1122,6 @@ describe("solidity plugin config resolution", () => {
   });
 
   describe("splitTestsCompilation resolution", () => {
-    const otherResolvedConfig = { paths: { root: process.cwd() } } as any;
-
     it("should default splitTestsCompilation to false for a string config", async () => {
       const resolvedConfig = await resolveSolidityUserConfig(
         { solidity: "0.8.28" },
@@ -1194,8 +1192,6 @@ describe("solidity plugin config resolution", () => {
   });
 
   describe("profile-level preferWasm setting resolution", function () {
-    const otherResolvedConfig = { paths: { root: process.cwd() } } as any;
-
     it("resolves to false when build profile is production and preferWasm is not specified", async () => {
       const resolvedConfig = await resolveSolidityUserConfig(
         {
@@ -1277,8 +1273,6 @@ describe("solidity plugin config resolution", () => {
   });
 
   describe("per-compiler preferWasm resolution", () => {
-    const otherResolvedConfig = { paths: { root: process.cwd() } } as any;
-
     it("should preserve per-compiler preferWasm when explicitly set", async () => {
       const resolvedConfig = await resolveSolidityUserConfig(
         {
@@ -1321,8 +1315,6 @@ describe("solidity plugin config resolution", () => {
       skip: !missesSomeOfficialNativeBuilds(),
     },
     () => {
-      const otherResolvedConfig = { paths: { root: process.cwd() } } as any;
-
       it("should default preferWasm to true for versions below the ARM64 mirror threshold in all profiles", async () => {
         const resolvedConfig = await resolveSolidityUserConfig(
           {
@@ -1431,8 +1423,6 @@ describe("solidity plugin config resolution", () => {
       skip: missesSomeOfficialNativeBuilds(),
     },
     () => {
-      const otherResolvedConfig = { paths: { root: process.cwd() } } as any;
-
       it("should leave preferWasm undefined when not on ARM64 Linux", async () => {
         const resolvedConfig = await resolveSolidityUserConfig(
           {
@@ -1451,8 +1441,6 @@ describe("solidity plugin config resolution", () => {
   );
 
   describe("config resolution with type discriminator", () => {
-    const otherResolvedConfig = { paths: { root: process.cwd() } } as any;
-
     it("should resolve compiler entry without type with type undefined (backward compat)", async () => {
       const resolvedConfig = await resolveSolidityUserConfig(
         {
@@ -1510,8 +1498,6 @@ describe("solidity plugin config resolution", () => {
   });
 
   describe("shouldn't enable the optimizer in non-solc production compilers", () => {
-    const otherResolvedConfig = { paths: { root: process.cwd() } } as any;
-
     it("should not add optimizer defaults for non-solc compilers in production", async () => {
       const resolvedConfig = await resolveSolidityUserConfig(
         {
@@ -1540,8 +1526,6 @@ describe("solidity plugin config resolution", () => {
   });
 
   describe("copyFromDefault preserves type field", () => {
-    const otherResolvedConfig = { paths: { root: process.cwd() } } as any;
-
     it("should preserve type on auto-generated production profile", async () => {
       const resolvedConfig = await resolveSolidityUserConfig(
         {
@@ -1583,8 +1567,6 @@ describe("solidity plugin config resolution", () => {
   });
 
   describe("backward compatibility", () => {
-    const otherResolvedConfig = { paths: { root: process.cwd() } } as any;
-
     it("should resolve an existing multi-version config identically (no type field)", async () => {
       const resolvedConfig = await resolveSolidityUserConfig(
         {
@@ -1678,8 +1660,6 @@ describe("solidity plugin config resolution", () => {
   });
 
   describe("toolVersionsInBuildInfo resolution", function () {
-    const otherResolvedConfig = { paths: { root: process.cwd() } } as any;
-
     it("defaults to true for the production profile when using a string config", async () => {
       const resolvedConfig = await resolveSolidityUserConfig(
         { solidity: "0.8.28" },
