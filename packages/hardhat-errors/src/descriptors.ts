@@ -1483,7 +1483,7 @@ Please use the fully qualified name of the contract to disambiguate it.`,
         number: 1400,
         messageTemplate: `Failed to install the project dependencies.
 
-Please take a look at the error, and try again. If it persists, please open an issue in the Hardhat repository.`,
+Please try again. If it persists, please open an issue in the Hardhat repository.`,
         websiteTitle: "Failed to install the project dependencies",
         websiteDescription: `The project initialization failed to install the required dependencies`,
       },
