@@ -214,6 +214,10 @@ const HH3_MIGRATION_MARKERS = [
 /**
  * Classifies Hardhat 2 to Hardhat 3 migration failures by checking for known
  * migration error types and message patterns anywhere in the cause chain.
+ *
+ * This is temporary, and will be removed once the HH2 to HH3 migration by the
+ * community is in a solid state. The matcher is broad, but right now mostly
+ * correct.
  */
 function isHH3MigrationError(
   context: ErrorContext,
