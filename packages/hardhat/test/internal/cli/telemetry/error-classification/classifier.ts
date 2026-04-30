@@ -417,6 +417,9 @@ export default async function createHandlers() {
         "ReferenceError: require is not defined in ES module scope",
         "ReferenceError: module is not defined in ES module scope",
         "ReferenceError: exports is not defined in ES module scope",
+        "ReferenceError: __dirname is not defined in ES module scope",
+        "ReferenceError: __filename is not defined in ES module scope",
+        "SyntaxError: Cannot use import statement outside a module",
       ]) {
         it(`classifies ${message}`, () => {
           assert.equal(

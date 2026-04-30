@@ -171,9 +171,8 @@ const ERROR_CATEGORY_MATCHERS: ErrorCategoryMatcher[] = [
 ];
 
 const ESM_MIGRATION_MARKERS = [
-  "require is not defined in es module scope",
-  "module is not defined in es module scope",
-  "exports is not defined in es module scope",
+  "is not defined in es module scope",
+  "cannot use import statement outside a module",
 ];
 
 /**
