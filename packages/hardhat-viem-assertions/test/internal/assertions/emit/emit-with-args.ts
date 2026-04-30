@@ -14,6 +14,7 @@ import { createHardhatRuntimeEnvironment } from "hardhat/hre";
 
 import hardhatViemAssertions from "../../../../src/index.js";
 import { anyValue } from "../../../../src/internal/predicates.js";
+import { errorIncludesTestFile } from "../../../helpers/error-includes-test-file.js";
 import { isExpectedError } from "../../../helpers/is-expected-error.js";
 
 describe("emitWithArgs", () => {
@@ -461,6 +462,55 @@ describe("emitWithArgs", () => {
         writeSettled,
         true,
         "emitWithArgs must await contractFn before throwing on ambiguous overloaded events",
+      );
+    });
+
+    it("should keep the stack frame of the test when throwing due to a reversion", async () => {
+      const contract = await viem.deployContract("Events");
+
+      const writePromise = contract.write.reverts();
+
+      try {
+        await viem.assertions.emitWithArgs(
+          writePromise,
+          contract,
+          "CustomErrorWithInt",
+          [1n],
+        );
+      } catch (error) {
+        assert.equal(
+          errorIncludesTestFile(error, import.meta.filename),
+          true,
+          "emitWithArgs must keep the stack frame of the test",
+        );
+
+        return;
+      }
+    });
+
+    it("should keep the stack frame of the test when throwing due to an ABI mismatch", async () => {
+      const contract = await viem.deployContract("Events");
+
+      const writePromise = contract.write.reverts();
+
+      try {
+        await viem.assertions.emitWithArgs(
+          writePromise,
+          contract,
+          "NonExistingEvent",
+          [1n],
+        );
+      } catch (error) {
+        assert.equal(
+          errorIncludesTestFile(error, import.meta.filename),
+          true,
+          "emitWithArgs must keep the stack frame of the test",
+        );
+        return;
+      }
+
+      assert.fail(
+        "emitWithArgs should have thrown due to the event not existing in the ABI",
       );
     });
   });

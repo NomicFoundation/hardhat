@@ -12,6 +12,7 @@ import hardhatViem from "@nomicfoundation/hardhat-viem";
 import { createHardhatRuntimeEnvironment } from "hardhat/hre";
 
 import hardhatViemAssertions from "../../../../src/index.js";
+import { errorIncludesTestFile } from "../../../helpers/error-includes-test-file.js";
 import { isExpectedError } from "../../../helpers/is-expected-error.js";
 
 describe("emit", () => {
@@ -125,6 +126,48 @@ describe("emit", () => {
       writeSettled,
       true,
       "emit must await contractFn before throwing when the event is not in the ABI, otherwise the tx leaks into the next test",
+    );
+  });
+
+  it("should keep the stack frame of the test when throwing due to a reversion", async () => {
+    const contract = await viem.deployContract("Events");
+
+    const writePromise = contract.write.reverts();
+
+    try {
+      await viem.assertions.emit(writePromise, contract, "WithoutArgs");
+    } catch (error) {
+      assert.equal(
+        errorIncludesTestFile(error, import.meta.filename),
+        true,
+        "emit must keep the stack frame of the test",
+      );
+      return;
+    }
+
+    assert.fail(
+      "emit should have thrown due to the transaction reverting, but it did not",
+    );
+  });
+
+  it("should keep the stack frame of the test when throwing due to an ABI mismatch", async () => {
+    const contract = await viem.deployContract("Events");
+
+    const writePromise = contract.write.reverts();
+
+    try {
+      await viem.assertions.emit(writePromise, contract, "NonExistingEvent");
+    } catch (error) {
+      assert.equal(
+        errorIncludesTestFile(error, import.meta.filename),
+        true,
+        "emit must keep the stack frame of the test",
+      );
+      return;
+    }
+
+    assert.fail(
+      "emit should have thrown due to the event not existing in the ABI",
     );
   });
 });
