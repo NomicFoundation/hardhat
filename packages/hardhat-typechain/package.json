@@ -1,6 +1,6 @@
 {
   "name": "@nomicfoundation/hardhat-typechain",
-  "version": "3.0.7",
+  "version": "3.0.8",
   "description": "Hardhat plugin to support typechain",
   "homepage": "https://github.com/NomicFoundation/hardhat/tree/main/packages/hardhat-typechain",
   "repository": {
@@ -45,7 +45,7 @@
     "README.md"
   ],
   "devDependencies": {
-    "@nomicfoundation/hardhat-node-test-reporter": "workspace:^3.0.5",
+    "@nomicfoundation/hardhat-node-test-reporter": "workspace:^3.0.6",
     "@nomicfoundation/hardhat-test-utils": "workspace:^",
     "@types/node": "^22.0.0",
     "c8": "^9.1.0",
@@ -60,8 +60,8 @@
     "ethers": "^6.14.0"
   },
   "dependencies": {
-    "@nomicfoundation/hardhat-errors": "workspace:^3.0.11",
-    "@nomicfoundation/hardhat-utils": "workspace:^4.0.4",
+    "@nomicfoundation/hardhat-errors": "workspace:^3.0.12",
+    "@nomicfoundation/hardhat-utils": "workspace:^4.1.0",
     "@nomicfoundation/hardhat-zod-utils": "workspace:^3.0.4",
     "@typechain/ethers-v6": "^0.5.0",
     "typechain": "^8.3.1",

@@ -1,6 +1,6 @@
 {
   "name": "@nomicfoundation/hardhat-node-test-reporter",
-  "version": "3.0.5",
+  "version": "3.0.6",
   "description": "A node:test reporter",
   "homepage": "https://github.com/NomicFoundation/hardhat/tree/main/packages/hardhat-node-test-reporter",
   "repository": {
