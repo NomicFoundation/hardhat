@@ -203,7 +203,7 @@ function getFrameOrigin(location: string): FrameOrigin {
 
   if (
     startsWithAny(location, "/", "file://", "[eval]") ||
-    location.match(/^[A-Za-z]:\//) !== null
+    /^[A-Za-z]:\//.test(location)
   ) {
     return FrameOrigin.USER_PROJECT;
   }
