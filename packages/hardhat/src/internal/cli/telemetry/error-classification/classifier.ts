@@ -219,13 +219,12 @@ function isHH3MigrationError(
   context: ErrorContext,
 ): ErrorCategory.HH2_TO_HH3_MIGRATION_ERROR | undefined {
   if (
-    context.errorChain.some((candidate) =>
-      hasErrorClassName(candidate, UsingHardhat2PluginError),
-    ) ||
-    context.errorChain.some((candidate) =>
-      /You are trying to use a Hardhat 2 plugin in a Hardhat 3 project/i.test(
-        candidate.message,
-      ),
+    context.errorChain.some(
+      (candidate) =>
+        hasErrorClassName(candidate, UsingHardhat2PluginError) ||
+        /You are trying to use a Hardhat 2 plugin in a Hardhat 3 project/i.test(
+          candidate.message,
+        ),
     )
   ) {
     return ErrorCategory.HH2_TO_HH3_MIGRATION_ERROR;
