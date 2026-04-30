@@ -1,9 +1,7 @@
 {
   "$schema": "../../scripts/end-to-end/schema/scenario.schema.json",
   "description": "Aave v4 fork to Hardhat 3.",
-  "tags": [
-    "external-repo"
-  ],
+  "tags": ["external-repo"],
   "repo": "anaPerezGhiglia/aave-v4",
   "commit": "95534d58cf54d60c6415c0efd7fb3a0eac6539d1",
   "packageManager": "yarn",

@@ -1,9 +1,7 @@
 {
   "$schema": "../../scripts/end-to-end/schema/scenario.schema.json",
   "description": "1inch Aqua Protocol fork to Hardhat 3.",
-  "tags": [
-    "external-repo"
-  ],
+  "tags": ["external-repo"],
   "repo": "anaPerezGhiglia/aqua",
   "commit": "19277969b5e67b5b55968422b4cba4029544807c",
   "packageManager": "yarn",

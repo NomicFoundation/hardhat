@@ -1,9 +1,7 @@
 {
   "$schema": "../../scripts/end-to-end/schema/scenario.schema.json",
   "description": "Lido Dual Governance Smart contracts fork to Hardhat 3.",
-  "tags": [
-    "external-repo"
-  ],
+  "tags": ["external-repo"],
   "repo": "popescuoctavian/dual-governance",
   "commit": "ef72db01b9b69fddc7fefae9da160e465921ec42",
   "packageManager": "npm",
