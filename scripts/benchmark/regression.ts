@@ -142,7 +142,7 @@ async function main(): Promise<void> {
   // Launch Verdaccio once so that:
   // 1. all scenarios share the same registry contents — bumped versions
   //    remain available throughout the run, and
-  // 2. pacote's metadata cache (~/.npm/_cacache, keyed by registry URL)
+  // 2. pacote's metadata cache (`~/.npm/_cacache`, keyed by registry URL)
   //    never gets out of sync with the registry's actual contents.
   //
   // Per-scenario init() detects the already-running Verdaccio and skips
