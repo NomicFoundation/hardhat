@@ -1,8 +1,10 @@
+import type { AbiHolder } from "../../abi-types.js";
 import type {
-  ContractAbis,
-  ContractReturnType,
-} from "@nomicfoundation/hardhat-viem/types";
-import type { ReadContractReturnType, WriteContractReturnType } from "viem";
+  Abi,
+  ContractErrorName,
+  ReadContractReturnType,
+  WriteContractReturnType,
+} from "viem";
 
 import assert from "node:assert/strict";
 
@@ -15,11 +17,12 @@ import { isKnownErrorSelector, isPanicErrorSelector } from "./error-string.js";
 import { extractRevertError } from "./extract-revert-error.js";
 
 export async function handleRevertWithCustomError<
-  ContractName extends keyof ContractAbis,
+  TContract extends AbiHolder<Abi>,
+  TErrorName extends ContractErrorName<TContract["abi"]>,
 >(
   contractFn: Promise<ReadContractReturnType | WriteContractReturnType>,
-  contract: ContractReturnType<ContractName>,
-  customErrorName: string,
+  contract: TContract,
+  customErrorName: TErrorName,
 ): Promise<unknown[]> {
   try {
     await contractFn;
@@ -89,9 +92,9 @@ export async function handleRevertWithCustomError<
   );
 }
 
-function throwIfErrorIsNotInContract<ContractName extends keyof ContractAbis>(
-  contract: ContractReturnType<ContractName>,
-  customErrorName: string,
+function throwIfErrorIsNotInContract<TContract extends AbiHolder<Abi>>(
+  contract: TContract,
+  customErrorName: ContractErrorName<TContract["abi"]>,
 ) {
   const contractAbi = Array.isArray(contract.abi)
     ? contract.abi

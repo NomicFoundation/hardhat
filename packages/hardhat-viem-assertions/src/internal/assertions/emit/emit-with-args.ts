@@ -1,10 +1,8 @@
-import type {
-  ContractAbis,
-  ContractReturnType,
-  HardhatViemHelpers,
-} from "@nomicfoundation/hardhat-viem/types";
+import type { AbiHolder, EventArgsOf } from "../../abi-types.js";
+import type { HardhatViemHelpers } from "@nomicfoundation/hardhat-viem/types";
 import type { ChainType } from "hardhat/types/network";
 import type {
+  Abi,
   AbiEvent,
   ContractEventName,
   ReadContractReturnType,
@@ -21,15 +19,15 @@ import { isArgumentMatch } from "../../predicates.js";
 import { handleEmit } from "./core.js";
 
 export async function emitWithArgs<
-  ContractName extends keyof ContractAbis,
-  EventName extends ContractEventName<ContractAbis[ContractName]>,
+  TContract extends AbiHolder<Abi>,
+  TEventName extends ContractEventName<TContract["abi"]>,
   ChainTypeT extends ChainType | string = "generic",
 >(
   viem: HardhatViemHelpers<ChainTypeT>,
   contractFn: Promise<ReadContractReturnType | WriteContractReturnType>,
-  contract: ContractReturnType<ContractName>,
-  eventName: EventName,
-  expectedArgs: any[],
+  contract: TContract,
+  eventName: TEventName,
+  expectedArgs: EventArgsOf<TContract["abi"], TEventName>,
 ): Promise<void> {
   // Settle `contractFn` first so the tx doesn't leak into the next test, but
   // defer rethrowing so ABI errors still take precedence over tx reverts.

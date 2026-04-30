@@ -1,8 +1,10 @@
+import type { AbiHolder, ErrorArgsOf } from "../../abi-types.js";
 import type {
-  ContractAbis,
-  ContractReturnType,
-} from "@nomicfoundation/hardhat-viem/types";
-import type { ReadContractReturnType, WriteContractReturnType } from "viem";
+  Abi,
+  ContractErrorName,
+  ReadContractReturnType,
+  WriteContractReturnType,
+} from "viem";
 
 import assert from "node:assert/strict";
 
@@ -12,12 +14,13 @@ import { isArgumentMatch } from "../../predicates.js";
 import { handleRevertWithCustomError } from "./handle-revert-with-custom-error.js";
 
 export async function revertWithCustomErrorWithArgs<
-  ContractName extends keyof ContractAbis,
+  TContract extends AbiHolder<Abi>,
+  TErrorName extends ContractErrorName<TContract["abi"]>,
 >(
   contractFn: Promise<ReadContractReturnType | WriteContractReturnType>,
-  contract: ContractReturnType<ContractName>,
-  customErrorName: string,
-  expectedArgs: any[],
+  contract: TContract,
+  customErrorName: TErrorName,
+  expectedArgs: ErrorArgsOf<TContract["abi"], TErrorName>,
 ): Promise<void> {
   const errorArgs = await handleRevertWithCustomError(
     contractFn,
