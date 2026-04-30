@@ -271,7 +271,15 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          approver=$(gh api "/repos/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}/approvals" --jq '.[0].user.login // empty' 2>/dev/null || true)
+          err=$(mktemp)
+          if approver=$(gh api "/repos/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}/approvals" --jq '.[0].user.login // empty' 2>"$err"); then
+            if [[ -z "$approver" ]]; then
+              echo "::warning::Approvals API returned no approver; falling back to github.actor=${GITHUB_ACTOR}"
+            fi
+          else
+            echo "::warning::Approvals API call failed: $(<"$err"); falling back to github.actor=${GITHUB_ACTOR}"
+            approver=
+          fi
           echo "login=${approver:-$GITHUB_ACTOR}" >> "$GITHUB_OUTPUT"
 
       - name: Notify deployment approved
