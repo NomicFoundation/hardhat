@@ -2,6 +2,7 @@ import type { HardhatViemHelpers } from "@nomicfoundation/hardhat-viem/types";
 import type { HardhatRuntimeEnvironment } from "hardhat/types/hre";
 import type { EthereumProvider } from "hardhat/types/providers";
 
+import assert from "node:assert/strict";
 import { before, beforeEach, describe, it } from "node:test";
 
 import {
@@ -377,6 +378,89 @@ describe("emitWithArgs", () => {
             'Expected: ["1","<predicate>"]',
             'Emitted: ["1","2"]',
           ].every((msg) => error.message.includes(msg)),
+      );
+    });
+  });
+
+  describe("contractFn promise lifecycle", () => {
+    it("awaits contractFn before throwing on argument count mismatch", async () => {
+      const contract = await viem.deployContract("Events");
+
+      const writePromise = contract.write.emitInt([1n]);
+      let writeSettled = false;
+      writePromise.then(
+        () => {
+          writeSettled = true;
+        },
+        () => {
+          writeSettled = true;
+        },
+      );
+
+      await assertRejects(
+        viem.assertions.emitWithArgs(
+          writePromise,
+          contract,
+          "WithIntArg",
+          // WithIntArg has 1 input, intentionally pass 2 to trigger the
+          // synchronous ABI shape check.
+          [1n, 2n],
+        ),
+        (error) =>
+          isExpectedError(
+            error,
+            `Event "WithIntArg" with argument count 2 not found in the contract ABI`,
+            false,
+            true,
+          ),
+      );
+
+      assert.equal(
+        writeSettled,
+        true,
+        "emitWithArgs must await contractFn before throwing on argument count mismatch, otherwise the tx leaks into the next test",
+      );
+    });
+
+    it("awaits contractFn before throwing on ambiguous overloaded event", async () => {
+      const contract = await viem.deployContract("Events");
+
+      const writePromise = contract.write.emitSameEventDifferentArgs2([
+        1n,
+        "x",
+      ]);
+      let writeSettled = false;
+      writePromise.then(
+        () => {
+          writeSettled = true;
+        },
+        () => {
+          writeSettled = true;
+        },
+      );
+
+      await assertRejects(
+        viem.assertions.emitWithArgs(
+          writePromise,
+          contract,
+          "SameEventDifferentArgs",
+          // Two overloads of SameEventDifferentArgs accept 2 inputs, so this
+          // hits the "multiple events ... not supported" synchronous check.
+          [1n, 2n],
+        ),
+        (error) =>
+          isExpectedError(
+            error,
+            `There are multiple events named "SameEventDifferentArgs" that accepts 2 input arguments. This scenario is currently not supported.`,
+            false,
+            true,
+          ),
+      );
+
+      assert.equal(
+        writeSettled,
+        true,
+        "emitWithArgs must await contractFn before throwing on ambiguous overloaded events",
       );
     });
   });

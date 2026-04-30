@@ -1,6 +1,7 @@
 import type { HardhatViemHelpers } from "@nomicfoundation/hardhat-viem/types";
 import type { HardhatRuntimeEnvironment } from "hardhat/types/hre";
 
+import assert from "node:assert/strict";
 import { before, beforeEach, describe, it } from "node:test";
 
 import {
@@ -92,6 +93,38 @@ describe("emit", () => {
           false,
           true,
         ),
+    );
+  });
+
+  it("awaits contractFn before throwing on missing event name", async () => {
+    const contract = await viem.deployContract("Events");
+
+    const writePromise = contract.write.doNotEmit();
+    let writeSettled = false;
+    writePromise.then(
+      () => {
+        writeSettled = true;
+      },
+      () => {
+        writeSettled = true;
+      },
+    );
+
+    await assertRejects(
+      viem.assertions.emit(writePromise, contract, "NotExists"),
+      (error) =>
+        isExpectedError(
+          error,
+          `Event "NotExists" not found in the contract ABI`,
+          false,
+          true,
+        ),
+    );
+
+    assert.equal(
+      writeSettled,
+      true,
+      "emit must await contractFn before throwing when the event is not in the ABI, otherwise the tx leaks into the next test",
     );
   });
 });
