@@ -185,18 +185,13 @@ const ESM_MIGRATION_MARKERS = [
 function isESMMigrationError(
   context: ErrorContext,
 ): ErrorCategory.CJS_TO_ESM_MIGRATION_ERROR | undefined {
-  for (const marker of ESM_MIGRATION_MARKERS) {
-    if (context.lowercaseMessage.includes(marker)) {
+  for (const lowercaseMessage of context.lowercaseMessageByError.values()) {
+    if (
+      includesAny(lowercaseMessage, ...ESM_MIGRATION_MARKERS) ||
+      /require\(\) of es module/.test(lowercaseMessage)
+    ) {
       return ErrorCategory.CJS_TO_ESM_MIGRATION_ERROR;
     }
-  }
-
-  if (
-    context.errorChain.some((candidate) =>
-      /require\(\) of ES Module/i.test(candidate.message),
-    )
-  ) {
-    return ErrorCategory.CJS_TO_ESM_MIGRATION_ERROR;
   }
 }
 
@@ -214,6 +209,9 @@ const HH3_MIGRATION_MARKERS = [
   'the requested module "hardhat/types/runtime" does not provide an export named',
 ];
 
+const HH2_PLUGIN_ERROR_MARKER =
+  "you are trying to use a hardhat 2 plugin in a hardhat 3 project";
+
 /**
  * Classifies Hardhat 2 to Hardhat 3 migration failures by checking for known
  * migration error types and message patterns anywhere in the cause chain.
@@ -229,16 +227,16 @@ function isHH3MigrationError(
     context.errorChain.some(
       (candidate) =>
         hasErrorClassName(candidate, UsingHardhat2PluginError) ||
-        /You are trying to use a Hardhat 2 plugin in a Hardhat 3 project/i.test(
-          candidate.message,
+        (context.lowercaseMessageByError.get(candidate) ?? "").includes(
+          HH2_PLUGIN_ERROR_MARKER,
         ),
     )
   ) {
     return ErrorCategory.HH2_TO_HH3_MIGRATION_ERROR;
   }
 
-  for (const marker of HH3_MIGRATION_MARKERS) {
-    if (context.lowercaseMessage.includes(marker)) {
+  for (const lowercaseMessage of context.lowercaseMessageByError.values()) {
+    if (includesAny(lowercaseMessage, ...HH3_MIGRATION_MARKERS)) {
       return ErrorCategory.HH2_TO_HH3_MIGRATION_ERROR;
     }
   }
@@ -290,7 +288,12 @@ function isTypescriptSupportError(
 
       return (
         code !== "ERR_UNKNOWN_FILE_EXTENSION" ||
-        includesAny(candidate.message, ".ts", ".mts", ".cts")
+        includesAny(
+          context.lowercaseMessageByError.get(candidate),
+          ".ts",
+          ".mts",
+          ".cts",
+        )
       );
     })
   ) {
@@ -419,7 +422,7 @@ function isProviderInteractionError(
     isUnknownEdrError(context.errorChain[0], context) &&
     context.errorChain[1] !== undefined &&
     includesAny(
-      context.errorChain[1].message.toLowerCase(),
+      context.lowercaseMessageByError.get(context.errorChain[1]),
       ...PROVIDER_INTERACTION_ERROR_WRAPPED_IN_UNKNOWN_EDR_ERROR_MARKERS,
     )
   ) {
@@ -463,7 +466,9 @@ function isNetworkInteractionError(
     context.errorChain.some((candidate) =>
       hasErrorClassName(candidate, RequestError),
     ) ||
-    context.lowercaseMessage.includes("fetch failed")
+    (context.lowercaseMessageByError.get(context.error) ?? "").includes(
+      "fetch failed",
+    )
   ) {
     return ErrorCategory.NETWORK_INTERACTION_ERROR;
   }
@@ -477,9 +482,9 @@ function isRuntimeEnvironmentError(
   context: ErrorContext,
 ): ErrorCategory.RUNTIME_ENVIRONMENT_ERROR | undefined {
   if (
-    context.errorChain.some((candidate) =>
+    Array.from(context.lowercaseMessageByError.values()).some((message) =>
       includesAny(
-        candidate.message.toLowerCase(),
+        message,
         "toreversed is not a function",
         "flatmap is not a function",
         "crypto is not defined",

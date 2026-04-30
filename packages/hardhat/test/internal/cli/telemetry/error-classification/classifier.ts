@@ -495,7 +495,14 @@ export default async function createHandlers() {
         });
       }
 
-      for (const extension of [".ts", ".mts", ".cts"]) {
+      for (const extension of [
+        ".ts",
+        ".mts",
+        ".cts",
+        ".TS",
+        ".MTS",
+        ".CTS",
+      ]) {
         it(`classifies ERR_UNKNOWN_FILE_EXTENSION for ${extension} files`, () => {
           assert.equal(
             classifyError(

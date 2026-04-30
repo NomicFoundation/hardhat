@@ -19,7 +19,7 @@ export interface StackFrame {
 export interface ErrorContext {
   error: Error;
   errorChain: Error[];
-  lowercaseMessage: string;
+  lowercaseMessageByError: Map<Error, string>;
   stackFramesByError: Map<Error, StackFrame[]>;
   allStackFrames: StackFrame[];
 }
@@ -39,7 +39,9 @@ export function createErrorContext(error: Error): ErrorContext {
   return {
     error,
     errorChain,
-    lowercaseMessage: error.message.toLowerCase(),
+    lowercaseMessageByError: new Map(
+      errorChain.map((candidate) => [candidate, candidate.message.toLowerCase()]),
+    ),
     stackFramesByError,
     allStackFrames: errorChain.flatMap(
       (candidate) => stackFramesByError.get(candidate) ?? [],
