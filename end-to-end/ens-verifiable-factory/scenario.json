@@ -1,9 +1,7 @@
 {
   "$schema": "../../scripts/end-to-end/schema/scenario.schema.json",
   "description": "ENS verifiable factory contract fork to Hardhat 3.",
-  "tags": [
-    "external-repo"
-  ],
+  "tags": ["external-repo"],
   "repo": "anaPerezGhiglia/ensdomains-verifiable-factory",
   "commit": "cd6622442c298ae89c4d92bcbc93a0faca4fbfae",
   "packageManager": "pnpm",

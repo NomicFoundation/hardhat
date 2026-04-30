@@ -1,9 +1,7 @@
 {
   "$schema": "../../scripts/end-to-end/schema/scenario.schema.json",
   "description": "1inch Network Fusion Atomic Swaps fork to Hardhat 3.",
-  "tags": [
-    "external-repo"
-  ],
+  "tags": ["external-repo"],
   "repo": "Wodann/cross-chain-swap",
   "commit": "690f7f6bbc826ab3d58995e4bc5bf01694222086",
   "packageManager": "yarn",
