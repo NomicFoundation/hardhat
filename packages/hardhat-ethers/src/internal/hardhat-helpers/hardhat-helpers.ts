@@ -27,6 +27,11 @@ interface Link {
   address: string;
 }
 
+interface NeededLibrary {
+  sourceName: string;
+  libName: string;
+}
+
 export class HardhatHelpers {
   readonly #provider: HardhatEthersProvider;
   readonly #networkName: string;
@@ -309,15 +314,26 @@ export class HardhatHelpers {
   }
 
   async #collectLibrariesAndLink(artifact: Artifact, libraries: Libraries) {
-    const neededLibraries: Array<{
-      sourceName: string;
-      libName: string;
-    }> = [];
+    const neededLibraries: NeededLibrary[] = [];
+    const neededLibrariesByName = new Map<string, NeededLibrary[]>();
+    const neededLibrariesByFqn = new Map<string, NeededLibrary>();
+
     for (const [sourceName, sourceLibraries] of Object.entries(
       artifact.linkReferences,
     )) {
       for (const libName of Object.keys(sourceLibraries)) {
-        neededLibraries.push({ sourceName, libName });
+        const neededLibrary = { sourceName, libName };
+        const libraryFqn = `${sourceName}:${libName}`;
+
+        neededLibraries.push(neededLibrary);
+        neededLibrariesByFqn.set(libraryFqn, neededLibrary);
+
+        const sameNameLibraries = neededLibrariesByName.get(libName);
+        if (sameNameLibraries === undefined) {
+          neededLibrariesByName.set(libName, [neededLibrary]);
+        } else {
+          sameNameLibraries.push(neededLibrary);
+        }
       }
     }
 
@@ -343,12 +359,12 @@ export class HardhatHelpers {
         );
       }
 
-      const matchingNeededLibraries = neededLibraries.filter((lib) => {
-        return (
-          lib.libName === linkedLibraryName ||
-          `${lib.sourceName}:${lib.libName}` === linkedLibraryName
-        );
-      });
+      const matchingNeededLibraryByFqn =
+        neededLibrariesByFqn.get(linkedLibraryName);
+      const matchingNeededLibraries =
+        matchingNeededLibraryByFqn !== undefined
+          ? [matchingNeededLibraryByFqn]
+          : neededLibrariesByName.get(linkedLibraryName) ?? [];
 
       if (matchingNeededLibraries.length === 0) {
         let detailedMessage: string;
@@ -433,20 +449,36 @@ export class HardhatHelpers {
   }
 
   #linkBytecode(artifact: Artifact, libraries: Link[]): string {
-    let bytecode = artifact.bytecode;
+    const replacements: Array<{
+      start: number;
+      length: number;
+      value: string;
+    }> = [];
 
-    // TODO: measure performance impact
     for (const { sourceName, libraryName, address } of libraries) {
       const linkReferences = artifact.linkReferences[sourceName][libraryName];
       for (const { start, length } of linkReferences) {
-        bytecode =
-          bytecode.substr(0, 2 + start * 2) +
-          address.substr(2) +
-          bytecode.substr(2 + (start + length) * 2);
+        replacements.push({
+          start: 2 + start * 2,
+          length: length * 2,
+          value: address.slice(2),
+        });
       }
     }
 
-    return bytecode;
+    replacements.sort((a, b) => a.start - b.start);
+
+    const bytecodeParts: string[] = [];
+    let position = 0;
+
+    for (const { start, length, value } of replacements) {
+      bytecodeParts.push(artifact.bytecode.slice(position, start), value);
+      position = start + length;
+    }
+
+    bytecodeParts.push(artifact.bytecode.slice(position));
+
+    return bytecodeParts.join("");
   }
 
   async #getContractFactoryByAbiAndBytecode<

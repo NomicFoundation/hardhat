@@ -29,6 +29,11 @@ export interface LibraryAddresses {
   [contractName: string]: PrefixedHexString;
 }
 
+interface LibraryLinksIndex {
+  byName: Map<string, LibraryLink[]>;
+  byFqn: Map<string, LibraryLink>;
+}
+
 /**
  * Check that the provided library addresses are valid Ethereum addresses.
  * If any of them are not, an InvalidLibraryAddressError is thrown.
@@ -61,13 +66,15 @@ export function checkAmbiguousOrUnnecessaryLinks(
 ): void {
   const ambiguousLibraries: Record<string, LibraryLink[]> = {};
   const unnecessaryLibraries: string[] = [];
+  const neededLibrariesIndex = indexLibraryLinks(neededLibraries);
 
   for (const providedLibraryName of Object.keys(providedLibraries)) {
-    const matchingLibraries = neededLibraries.filter(
-      ({ libraryName, libraryFqn }) =>
-        libraryName === providedLibraryName ||
-        libraryFqn === providedLibraryName,
-    );
+    const matchingLibraryByFqn =
+      neededLibrariesIndex.byFqn.get(providedLibraryName);
+    const matchingLibraries =
+      matchingLibraryByFqn !== undefined
+        ? [matchingLibraryByFqn]
+        : neededLibrariesIndex.byName.get(providedLibraryName) ?? [];
 
     if (matchingLibraries.length > 1) {
       ambiguousLibraries[providedLibraryName] = matchingLibraries;
@@ -83,6 +90,24 @@ export function checkAmbiguousOrUnnecessaryLinks(
   if (unnecessaryLibraries.length > 0) {
     throw new UnnecessaryLibraryError(unnecessaryLibraries);
   }
+}
+
+function indexLibraryLinks(neededLibraries: LibraryLink[]): LibraryLinksIndex {
+  const byName = new Map<string, LibraryLink[]>();
+  const byFqn = new Map<string, LibraryLink>();
+
+  for (const neededLibrary of neededLibraries) {
+    byFqn.set(neededLibrary.libraryFqn, neededLibrary);
+
+    const sameNameLibraries = byName.get(neededLibrary.libraryName);
+    if (sameNameLibraries === undefined) {
+      byName.set(neededLibrary.libraryName, [neededLibrary]);
+    } else {
+      sameNameLibraries.push(neededLibrary);
+    }
+  }
+
+  return { byName, byFqn };
 }
 
 /**
