@@ -17,11 +17,53 @@ import {
 import { stop as verdaccioStop } from "../../verdaccio/stop.ts";
 import type { Scenario } from "../types.ts";
 
+export const ForceCheckout = {
+  Yes: "Yes",
+  No: "No",
+} as const;
+
+/**
+ * Enum for whether to force checkout in git operations.
+ *
+ * Used to avoid mixing boolean flags with different semantics
+ * (e.g. --force-publish).
+ */
+export type ForceCheckout = (typeof ForceCheckout)[keyof typeof ForceCheckout];
+
+export const ForcePublish = {
+  Yes: "Yes",
+  No: "No",
+} as const;
+
+/**
+ * Enum for whether to force publish packages to an already-running
+ * Verdaccio instance.
+ *
+ * Used to avoid mixing boolean flags with different semantics
+ * (e.g. --force-checkout).
+ */
+export type ForcePublish = (typeof ForcePublish)[keyof typeof ForcePublish];
+
+export const UseLocal = {
+  Yes: "Yes",
+  No: "No",
+} as const;
+
+/**
+ * Enum for whether to detect local package changes, publish to Verdaccio, and
+ * pin scenario dependencies to the published versions. Only applies when init runs.
+ *
+ * Used to avoid mixing boolean flags with different semantics
+ * (e.g. --force-checkout).
+ */
+export type UseLocal = (typeof UseLocal)[keyof typeof UseLocal];
+
 export async function init(
   e2eCloneDirectory: string,
   scenarioPath: string,
-  useLocal: boolean,
-  forcePublish: boolean,
+  useLocal: UseLocal,
+  forceCheckout: ForceCheckout,
+  forcePublish: ForcePublish,
 ): Promise<void> {
   const scenario = loadScenario(e2eCloneDirectory, scenarioPath);
 
@@ -33,7 +75,11 @@ export async function init(
 
   const verdaccioAlreadyRunning = isVerdaccioRunning();
 
-  if (useLocal && verdaccioAlreadyRunning && !forcePublish) {
+  if (
+    useLocal === UseLocal.Yes &&
+    verdaccioAlreadyRunning &&
+    forcePublish === ForcePublish.No
+  ) {
     throw new Error(
       "A Verdaccio instance is already running. Using --use-local would\n" +
         "  override packages in the running registry.\n\n" +
@@ -48,20 +94,20 @@ export async function init(
     await verdaccioStart(true);
   }
 
-  if (useLocal) {
+  if (useLocal === UseLocal.Yes) {
     sinceReleasePublish();
-  } else if (forcePublish || startedVerdaccio) {
+  } else if (forcePublish === ForcePublish.Yes || startedVerdaccio) {
     verdaccioPublish(false, true);
   }
 
   try {
-    setupScenario(scenario);
+    setupScenario(scenario, forceCheckout);
 
-    if (useLocal) {
+    if (useLocal === UseLocal.Yes) {
       await upgradeLocalDependencies(scenario);
     }
 
-    installScenarioDeps(scenario, useLocal);
+    installScenarioDeps(scenario, useLocal === UseLocal.Yes);
   } finally {
     if (startedVerdaccio) {
       verdaccioStop();
@@ -76,14 +122,14 @@ export async function init(
  * Clone/setup a scenario repo and run preinstall scripts.
  * Idempotent: reuses existing checkouts (fetch + checkout + clean).
  */
-function setupScenario(scenario: Scenario): void {
+function setupScenario(scenario: Scenario, forceCheckout: ForceCheckout): void {
   const { scenarioDir, workingDir, definition } = scenario;
   const submodules = definition.submodules ?? false;
 
   if (!existsSync(workingDir)) {
     // Fresh clone flow
     clone(workingDir, definition.repo);
-    checkout(workingDir, definition.commit);
+    checkout(workingDir, definition.commit, forceCheckout);
 
     if (submodules) {
       updateSubmodules(workingDir);
@@ -91,7 +137,7 @@ function setupScenario(scenario: Scenario): void {
   } else {
     // Re-init flow
     fetch(workingDir, definition.repo, definition.commit);
-    checkout(workingDir, definition.commit);
+    checkout(workingDir, definition.commit, forceCheckout);
     clean(workingDir);
 
     if (submodules) {
@@ -224,10 +270,18 @@ function updateSubmodules(scenarioWorkingDir: string): void {
   git(["submodule", "update", "--init", "--recursive"], scenarioWorkingDir);
 }
 
-function checkout(scenarioWorkingDir: string, commit: string): void {
+function checkout(
+  scenarioWorkingDir: string,
+  commit: string,
+  force: ForceCheckout,
+): void {
   logStep(`Checking out ${commit}`);
 
-  git(["checkout", commit], scenarioWorkingDir);
+  const args = ["checkout", commit];
+  if (force === ForceCheckout.Yes) {
+    args.push("--force");
+  }
+  git(args, scenarioWorkingDir);
 }
 
 function clean(scenarioWorkingDir: string): void {

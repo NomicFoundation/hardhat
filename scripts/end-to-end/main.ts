@@ -24,6 +24,7 @@ OPTIONS
   --use-local              Detect packages changed since their release tag, bump versions,
                            publish to Verdaccio, and pin scenario deps to the published versions.
                            Errors if Verdaccio is already running without --force-publish
+  --force-checkout         Force git checkouts even if there are uncommitted changes in the scenario working directory
   --force-publish          Allow publishing to an already-running Verdaccio instance
 
 VERDACCIO
@@ -47,18 +48,26 @@ async function main(): Promise<void> {
     scenarioPath,
     command,
     useLocal,
+    forceCheckout,
     forcePublish,
   } = resolveAndValidateArgs(process.argv.slice(2));
 
   try {
     if (initFlag) {
-      await init(e2eCloneDirectory, scenarioPath, useLocal, forcePublish);
+      await init(
+        e2eCloneDirectory,
+        scenarioPath,
+        useLocal,
+        forceCheckout,
+        forcePublish,
+      );
     } else if (execFlag) {
       await exec(
         e2eCloneDirectory,
         scenarioPath,
         command,
         useLocal,
+        forceCheckout,
         forcePublish,
       );
     } else if (cleanFlag) {

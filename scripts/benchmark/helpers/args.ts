@@ -1,13 +1,19 @@
 import { log } from "node:console";
 import { normalizeScenarioPath } from "../../end-to-end/helpers/directory.ts";
 import { DEFAULT_CLONE_DIR } from "../../end-to-end/helpers/args.ts";
+import {
+  ForceCheckout,
+  ForcePublish,
+  UseLocal,
+} from "../../end-to-end/subcommands/init.ts";
 
 export interface BenchArgs {
   scenarioPath: string;
   command: string | undefined;
   init: boolean;
-  useLocal: boolean;
-  forcePublish: boolean;
+  useLocal: UseLocal;
+  forceCheckout: ForceCheckout;
+  forcePublish: ForcePublish;
   precompile: boolean;
   prepare: string | undefined;
   ignoreFailure: boolean;
@@ -29,8 +35,16 @@ export function resolveAndValidateArgs(args: string[]): BenchArgs | undefined {
   const scenarioPath = normalizeScenarioPath(scenarioPathRaw);
   const command = getArgValue(args, "--command");
   const init = args.includes("--init");
-  const useLocal = args.includes("--use-local");
-  const forcePublish = args.includes("--force-publish");
+  const useLocal = args.includes("--use-local") ? UseLocal.Yes : UseLocal.No;
+
+  const forceCheckout = args.includes("--force-checkout")
+    ? ForceCheckout.Yes
+    : ForceCheckout.No;
+
+  const forcePublish = args.includes("--force-publish")
+    ? ForcePublish.Yes
+    : ForcePublish.No;
+
   const precompile = args.includes("--precompile");
   const prepare = getArgValue(args, "--prepare");
   const ignoreFailure = args.includes("--ignore-failure");
@@ -72,6 +86,7 @@ export function resolveAndValidateArgs(args: string[]): BenchArgs | undefined {
     command,
     init,
     useLocal,
+    forceCheckout,
     forcePublish,
     precompile,
     prepare,
