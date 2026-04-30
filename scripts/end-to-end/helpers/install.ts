@@ -70,10 +70,14 @@ function writeRegistryConfig(
     writeFileSync(bunfigPath, `[install]\nregistry = "${VERDACCIO_URL}"\n`);
     log(`Wrote bunfig.toml → ${VERDACCIO_URL}`);
   } else if (packageManager === "yarn") {
-    // Yarn Classic (v1) reads .npmrc; Yarn Berry reads .yarnrc.yml.
-    // corepack picks the version from package.json#packageManager, so we
-    // don't know which one we'll get — write both.
-    writeNpmrc(dir);
+    // Yarn Classic (v1) reads project .yarnrc (legacy non-YAML), which
+    // outranks any user-level .yarnrc/.npmrc on the runner. Yarn Berry
+    // reads .yarnrc.yml. corepack picks the version from
+    // package.json#packageManager, so we don't know which one we'll get —
+    // write both.
+    const yarnrcLegacyPath = resolve(dir, ".yarnrc");
+    writeFileSync(yarnrcLegacyPath, `registry "${VERDACCIO_URL}"\n`);
+    log(`Wrote .yarnrc → ${VERDACCIO_URL}`);
 
     const yarnrcPath = resolve(dir, ".yarnrc.yml");
 
@@ -99,14 +103,10 @@ function writeRegistryConfig(
 
     log(`Wrote .yarnrc.yml → ${VERDACCIO_URL}`);
   } else {
-    writeNpmrc(dir);
+    const npmrcPath = resolve(dir, ".npmrc");
+
+    writeFileSync(npmrcPath, `registry=${VERDACCIO_URL}\n`);
+
+    log(`Wrote .npmrc → ${VERDACCIO_URL}`);
   }
-}
-
-function writeNpmrc(dir: string): void {
-  const npmrcPath = resolve(dir, ".npmrc");
-
-  writeFileSync(npmrcPath, `registry=${VERDACCIO_URL}\n`);
-
-  log(`Wrote .npmrc → ${VERDACCIO_URL}`);
 }
