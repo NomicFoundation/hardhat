@@ -23,9 +23,11 @@ OPTIONS
   --command <cmd>          Command to run (optional with \`exec\`, falls back to scenario defaultCommand)
   --use-local              Detect packages changed since their release tag, bump versions,
                            publish to Verdaccio, and pin scenario deps to the published versions.
-                           Errors if Verdaccio is already running without --force-publish
+                           If Verdaccio is already running, publish is skipped (the existing
+                           registry contents are reused) unless --force-publish is also passed.
   --force-checkout         Force git checkouts even if there are uncommitted changes in the scenario working directory
-  --force-publish          Allow publishing to an already-running Verdaccio instance
+  --force-publish          Allow publishing to an already-running Verdaccio instance, potentially
+                           overwriting its current contents
 
 VERDACCIO
   If Verdaccio is already running it will be used as-is.

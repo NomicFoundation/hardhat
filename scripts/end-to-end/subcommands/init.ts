@@ -80,24 +80,27 @@ export async function init(
     verdaccioAlreadyRunning &&
     forcePublish === ForcePublish.No
   ) {
-    throw new Error(
-      "A Verdaccio instance is already running. Using --use-local would\n" +
-        "  override packages in the running registry.\n\n" +
-        "  Add --force-publish to proceed, or stop the running instance first:\n" +
+    log(
+      "A Verdaccio instance is already running. Skipping --use-local's\n" +
+        "  bump-and-publish step — the scenario will use whatever the running\n" +
+        "  registry already contains.\n\n" +
+        "  To force a fresh bump-and-publish to the running instance, pass\n" +
+        "  --force-publish. Or stop the running instance first:\n" +
         "    pnpm verdaccio stop",
     );
   }
 
-  const startedVerdaccio = !verdaccioAlreadyRunning;
-
-  if (startedVerdaccio) {
+  if (!verdaccioAlreadyRunning) {
     await verdaccioStart(true);
   }
 
-  if (useLocal === UseLocal.Yes) {
-    sinceReleasePublish();
-  } else if (forcePublish === ForcePublish.Yes || startedVerdaccio) {
-    verdaccioPublish(false, true);
+  const startedVerdaccio = !verdaccioAlreadyRunning;
+  if (startedVerdaccio || forcePublish === ForcePublish.Yes) {
+    if (useLocal === UseLocal.Yes) {
+      sinceReleasePublish();
+    } else {
+      verdaccioPublish(false, true);
+    }
   }
 
   try {
