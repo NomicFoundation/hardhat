@@ -223,23 +223,27 @@ const EXCLUDED_PACKAGES = [
 export function sinceReleasePublish(): void {
   ensureVerdaccioRunning();
 
-  const changedDirs = detectChangedSinceRelease();
+  const { toBump, toPublishOnly } = detectChangedSinceRelease();
 
-  if (changedDirs.length === 0) {
+  if (toBump.length === 0 && toPublishOnly.length === 0) {
     log("No packages changed since their last release.");
     return;
   }
 
-  bumpPatchVersions(changedDirs);
-  publishPackages(changedDirs);
+  bumpPatchVersions(toBump);
+  publishPackages([...toBump, ...toPublishOnly]);
   reportPublished();
 }
 
-function detectChangedSinceRelease(): string[] {
+function detectChangedSinceRelease(): {
+  toBump: string[];
+  toPublishOnly: string[];
+} {
   logStep("Detecting packages changed since release");
 
   const packagesDir = resolve(ROOT_DIR, "packages");
-  const changedDirs: string[] = [];
+  const toBump: string[] = [];
+  const toPublishOnly: string[] = [];
 
   for (const entry of readdirSync(packagesDir, { withFileTypes: true })) {
     if (!entry.isDirectory() || EXCLUDED_PACKAGES.includes(entry.name)) {
@@ -279,51 +283,38 @@ function detectChangedSinceRelease(): string[] {
         ...excludePatterns,
       ]) !== "";
 
-    const hasUncommittedCodeChanges =
-      git([
-        "diff",
-        "--name-only",
-        "HEAD",
-        "--",
-        packageDir,
-        ...excludePatterns,
-      ]) !== "";
+    const action = decidePublishAction(
+      tagVersion,
+      version,
+      hasCodeChangesSinceRelease,
+    );
 
-    if (
-      !shouldPublishSinceLastRelease(
-        tagVersion,
-        version,
-        hasCodeChangesSinceRelease,
-        hasUncommittedCodeChanges,
-      )
-    ) {
+    if (action === "skip") {
       continue;
     }
 
-    if (tagVersion === undefined) {
-      log(`  ${fmt.pkg(name)} ${fmt.deemphasize("(no release tag)")}`);
-    } else if (version !== tagVersion) {
-      log(
-        `  ${fmt.pkg(name)} ${fmt.deemphasize("(new changes since last bump)")}`,
-      );
+    if (action === "bump") {
+      const reason =
+        tagVersion === undefined
+          ? "(no release tag)"
+          : `(changed since ${releaseTag})`;
+      log(`  ${fmt.pkg(name)} ${fmt.deemphasize(reason)}`);
+      toBump.push(packageDir);
     } else {
       log(
-        `  ${fmt.pkg(name)} ${fmt.deemphasize(`(changed since ${releaseTag})`)}`,
+        `  ${fmt.pkg(name)} ${fmt.deemphasize(`(already bumped to ${version})`)}`,
       );
+      toPublishOnly.push(packageDir);
     }
-
-    changedDirs.push(packageDir);
   }
 
-  if (changedDirs.length === 0) {
-    return [];
+  const total = toBump.length + toPublishOnly.length;
+
+  if (total > 0) {
+    log(fmt.success(`\n  ${total} package(s) changed since release`));
   }
 
-  log(
-    fmt.success(`\n  ${changedDirs.length} package(s) changed since release`),
-  );
-
-  return changedDirs;
+  return { toBump, toPublishOnly };
 }
 
 /**
@@ -351,28 +342,31 @@ function findLatestReleaseTag(packageName: string): string | undefined {
 }
 
 /**
- * Pure decision function for --use-local / --since-release: should a
- * package be bumped and published to Verdaccio?
+ * Pure decision function for --use-local / --since-release: what action
+ * should be taken for a given package?
  *
- * - No release tag → always publish (new package)
- * - Already bumped (version differs from tag) → only if new uncommitted changes
- * - Not bumped (version matches tag) → if code changed since release
+ * - No release tag → bump (new package)
+ * - Already bumped (version differs from tag) → publish current version
+ *   without bumping (Verdaccio storage is wiped per run, so we always
+ *   need to (re)publish, but the on-disk version was already bumped on a
+ *   prior run and shouldn't compound)
+ * - Not bumped + code changed since release → bump
+ * - Not bumped + no code changes → skip
  */
-export function shouldPublishSinceLastRelease(
+export function decidePublishAction(
   releaseTagVersion: string | undefined,
   currentVersion: string,
   hasCodeChangesSinceRelease: boolean,
-  hasUncommittedCodeChanges: boolean,
-): boolean {
+): "bump" | "publish" | "skip" {
   if (releaseTagVersion === undefined) {
-    return true;
+    return "bump";
   }
 
   if (currentVersion !== releaseTagVersion) {
-    return hasUncommittedCodeChanges;
+    return "publish";
   }
 
-  return hasCodeChangesSinceRelease;
+  return hasCodeChangesSinceRelease ? "bump" : "skip";
 }
 
 function bumpPatchVersions(packageDirs: string[]): void {
