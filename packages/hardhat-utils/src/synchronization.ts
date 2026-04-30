@@ -748,6 +748,45 @@ export class SharedPromiseCache<ValueT> {
   }
 
   /**
+   * Returns the cached value associated to the key without invoking any
+   * producer. If the entry is in-flight, the value is not yet available and
+   * this method returns `undefined` exactly as it would for a missing key.
+   *
+   * Use this for synchronous fast-path lookups; if the result is `undefined`
+   * and you still want to compute the value, fall through to `getOrCompute`.
+   *
+   * Note that if `ValueT` includes `undefined` as a valid value, you won't be
+   * able to distinguish between a cached `undefined` and a missing/in-flight
+   * entry, but that's an intentional tradeoff to keep this method simple.
+   *
+   * @param key The cache key.
+   * @returns The cached value, or `undefined` if the key is missing or
+   * in-flight.
+   */
+  public peek(key: string): ValueT | undefined {
+    const cached = this.#cache.get(key);
+    if (cached === undefined || cached instanceof Promise) {
+      return undefined;
+    }
+    return cached.value;
+  }
+
+  /**
+   * Iterates over the entries that are successfully resolved, yielding
+   * `[key, value]` pairs. In-flight entries are skipped because their value
+   * is not yet known, and failed ones are removed from the cache.
+   *
+   * Producers are never invoked.
+   */
+  public *resolvedEntries(): IterableIterator<[string, ValueT]> {
+    for (const [key, cached] of this.#cache) {
+      if (!(cached instanceof Promise)) {
+        yield [key, cached.value];
+      }
+    }
+  }
+
+  /**
    * Deletes the cached value associated to the key, if any. Note that this does
    * not cancel any ongoing operation. Callers that already observed the
    * in-flight promise will still wait for the original operation to complete,

@@ -1802,4 +1802,145 @@ describe("SharedPromiseCache", () => {
     assert.equal(secondErrorValue, originalError);
     assert.equal(firstErrorValue, secondErrorValue);
   });
+
+  describe("peek", () => {
+    it("should return undefined for a missing key", () => {
+      const cache = new SharedPromiseCache<string>();
+      assert.equal(cache.peek("missing"), undefined);
+    });
+
+    it("should return the value for a resolved entry", async () => {
+      const cache = new SharedPromiseCache<string>();
+      await cache.getOrCompute("key", async () => "value");
+
+      assert.equal(cache.peek("key"), "value");
+    });
+
+    it("should return undefined for an in-flight entry", async () => {
+      const cache = new SharedPromiseCache<string>();
+      const deferred = Promise.withResolvers<string>();
+
+      // Kick off the computation but don't await it; the entry is in-flight.
+      const inFlight = cache.getOrCompute(
+        "key",
+        async () => await deferred.promise,
+      );
+
+      assert.equal(cache.peek("key"), undefined);
+
+      deferred.resolve("value");
+      await inFlight;
+
+      // Once resolved, peek now sees the value.
+      assert.equal(cache.peek("key"), "value");
+    });
+
+    it("should not invoke the producer", async () => {
+      const cache = new SharedPromiseCache<string>();
+      let calls = 0;
+
+      // Seed the cache with a resolved entry first so peek has something
+      // to return; verify the producer count never increases.
+      await cache.getOrCompute("key", async () => {
+        calls++;
+        return "value";
+      });
+
+      cache.peek("key");
+      cache.peek("missing");
+
+      assert.equal(calls, 1);
+    });
+
+    it("should return undefined after a failed computation", async () => {
+      const cache = new SharedPromiseCache<string>();
+
+      await assert.rejects(
+        cache.getOrCompute("key", async () => {
+          throw new Error("fail");
+        }),
+      );
+
+      assert.equal(cache.peek("key"), undefined);
+    });
+
+    it("should reflect cached undefined values", async () => {
+      const cache = new SharedPromiseCache<string | undefined>();
+      await cache.getOrCompute("key", async () => undefined);
+
+      // The entry is resolved with `undefined` as the value. `peek` cannot
+      // distinguish that from a missing key, but documenting this here makes
+      // the behavior explicit.
+      assert.equal(cache.peek("key"), undefined);
+    });
+  });
+
+  describe("resolvedEntries", () => {
+    it("should yield nothing for an empty cache", () => {
+      const cache = new SharedPromiseCache<string>();
+      assert.deepEqual([...cache.resolvedEntries()], []);
+    });
+
+    it("should yield resolved entries", async () => {
+      const cache = new SharedPromiseCache<string>();
+      await cache.getOrCompute("a", async () => "1");
+      await cache.getOrCompute("b", async () => "2");
+
+      assert.deepEqual([...cache.resolvedEntries()].sort(), [
+        ["a", "1"],
+        ["b", "2"],
+      ]);
+    });
+
+    it("should skip in-flight entries", async () => {
+      const cache = new SharedPromiseCache<string>();
+      await cache.getOrCompute("resolved", async () => "value");
+
+      const deferred = Promise.withResolvers<string>();
+      const inFlight = cache.getOrCompute(
+        "in-flight",
+        async () => await deferred.promise,
+      );
+
+      assert.deepEqual([...cache.resolvedEntries()], [["resolved", "value"]]);
+
+      deferred.resolve("late");
+      await inFlight;
+
+      // Once the in-flight entry resolves, it shows up.
+      assert.deepEqual([...cache.resolvedEntries()].sort(), [
+        ["in-flight", "late"],
+        ["resolved", "value"],
+      ]);
+    });
+
+    it("should not include entries whose computation failed", async () => {
+      const cache = new SharedPromiseCache<string>();
+      await cache.getOrCompute("good", async () => "ok");
+      await assert.rejects(
+        cache.getOrCompute("bad", async () => {
+          throw new Error("fail");
+        }),
+      );
+
+      assert.deepEqual([...cache.resolvedEntries()], [["good", "ok"]]);
+    });
+
+    it("should not invoke any producer", async () => {
+      const cache = new SharedPromiseCache<string>();
+      let calls = 0;
+      await cache.getOrCompute("key", async () => {
+        calls++;
+        return "value";
+      });
+
+      // Iterate twice; producer count must stay at 1.
+      const first = [...cache.resolvedEntries()];
+      const second = [...cache.resolvedEntries()];
+
+      assert.deepEqual(first, [["key", "value"]]);
+      assert.deepEqual(second, [["key", "value"]]);
+      assert.equal(calls, 1);
+    });
+  });
 });
