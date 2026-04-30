@@ -57,6 +57,11 @@ export function installDependencies(
       ...env,
       COREPACK_ENABLE_DOWNLOAD_PROMPT: "0",
       npm_config_minimum_release_age: "0",
+      // Yarn Classic doesn't honor project .yarnrc for `registry` on the
+      // GitHub Actions runner, so force the registry via env var. This is
+      // the highest-priority npm config source, so it overrides any
+      // user/global .npmrc that might be present.
+      npm_config_registry: VERDACCIO_URL,
     },
   });
 }
@@ -70,15 +75,8 @@ function writeRegistryConfig(
     writeFileSync(bunfigPath, `[install]\nregistry = "${VERDACCIO_URL}"\n`);
     log(`Wrote bunfig.toml → ${VERDACCIO_URL}`);
   } else if (packageManager === "yarn") {
-    // Yarn Classic (v1) reads project .yarnrc (legacy non-YAML), which
-    // outranks any user-level .yarnrc/.npmrc on the runner. Yarn Berry
-    // reads .yarnrc.yml. corepack picks the version from
-    // package.json#packageManager, so we don't know which one we'll get —
-    // write both.
-    const yarnrcLegacyPath = resolve(dir, ".yarnrc");
-    writeFileSync(yarnrcLegacyPath, `registry "${VERDACCIO_URL}"\n`);
-    log(`Wrote .yarnrc → ${VERDACCIO_URL}`);
-
+    // Yarn Berry reads `.yarnrc.yml`. Yarn Classic doesn't read it, but the
+    // `npm_config_registry` env var passed at install time covers Classic.
     const yarnrcPath = resolve(dir, ".yarnrc.yml");
 
     let existing = "";
