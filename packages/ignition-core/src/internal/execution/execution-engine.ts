@@ -114,13 +114,14 @@ export class ExecutionEngine {
     );
 
     const futures = getFuturesFromModule(module);
+    const futuresById = new Map(futures.map((f) => [f.id, f]));
 
     for (const batch of batches) {
       await this._emitBeginNextBatchEvent();
 
       // TODO: consider changing batcher to return futures rather than ids
       const executionBatch = batch.map((futureId) =>
-        this._lookupFuture(futures, futureId),
+        this._lookupFuture(futuresById, futureId),
       );
 
       deploymentState = await this._executeBatch(
@@ -280,8 +281,11 @@ export class ExecutionEngine {
   /**
    * Returns a future by its id.
    */
-  private _lookupFuture(futures: Future[], futureId: string): Future {
-    const future = futures.find((f) => f.id === futureId);
+  private _lookupFuture(
+    futuresById: Map<string, Future>,
+    futureId: string,
+  ): Future {
+    const future = futuresById.get(futureId);
 
     assertIgnitionInvariant(
       future !== undefined,
