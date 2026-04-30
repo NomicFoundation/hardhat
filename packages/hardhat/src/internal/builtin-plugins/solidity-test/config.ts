@@ -61,6 +61,7 @@ const solidityTestUserConfigType = z.object({
       dictionaryWeight: z.number().optional(),
       includeStorage: z.boolean().optional(),
       includePushBytes: z.boolean().optional(),
+      showLogs: z.boolean().optional(),
     })
     .optional(),
   forking: z
