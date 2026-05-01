@@ -1,3 +1,4 @@
+// cSpell:ignore cacache <-- NPM's content-addressable cache
 import { mkdirSync, readFileSync, readdirSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import path from "node:path";
