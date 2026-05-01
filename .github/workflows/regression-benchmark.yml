@@ -59,6 +59,7 @@ jobs:
         contains(github.event.pull_request.labels.*.name, 'ci:perf')) &&
       (github.ref == 'refs/heads/main' ||
         github.repository == github.event.pull_request.head.repo.full_name)
+
     needs: tests
     timeout-minutes: 180
     steps:
@@ -99,7 +100,7 @@ jobs:
           gh-repository: github.com/nomic-foundation-automation/hardhat-benchmark-results
           gh-pages-branch: main
           benchmark-data-dir-path: hardhat-regression
-          github-token: ${{ secrets.BENCHMARK_GITHUB_TOKEN }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
           # Only push baseline on main-branch pushes; PRs only compare
           auto-push: ${{ github.ref == 'refs/heads/main' && github.event_name != 'pull_request' }}
           alert-threshold: "110%"
