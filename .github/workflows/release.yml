@@ -20,6 +20,7 @@ jobs:
     permissions:
       pull-requests: write # This allows us to create pull requests
       contents: write
+      issues: write # Needed for posting/updating docs comments on release PRs
     steps:
       - name: Checkout Repo
         uses: actions/checkout@v5
@@ -34,6 +35,10 @@ jobs:
 
       - name: Install Dependencies
         run: pnpm install --frozen-lockfile
+
+      - name: Collect docs URLs from changesets
+        id: docs
+        run: node scripts/collect-changeset-docs-urls.ts
 
       - name: Create release Pull Request
         id: pr
@@ -95,6 +100,51 @@ jobs:
                 }
               }`;
             await github.graphql(mutation, { prId: pr.id });
+
+      - name: Sync docs comment on release PR
+        if: steps.pr.outputs.hasChangesets == 'true'
+        uses: actions/github-script@v7
+        env:
+          HAS_DOCS: ${{ steps.docs.outputs.has_docs }}
+          COMMENT_BODY: ${{ steps.docs.outputs.comment_body }}
+        with:
+          script: |
+            const { number } = ${{ steps.find.outputs.result }};
+            const owner = context.repo.owner;
+            const repo = context.repo.repo;
+            const hasDocs = process.env.HAS_DOCS === "true";
+            const body = process.env.COMMENT_BODY;
+            const marker = '## Documentation PRs to merge';
+
+            const { data: comments } = await github.rest.issues.listComments({
+              owner,
+              repo,
+              issue_number: number,
+            });
+
+            const existing = comments.find(c => c.body.startsWith(marker));
+
+            if (hasDocs && existing) {
+              await github.rest.issues.updateComment({
+                owner,
+                repo,
+                comment_id: existing.id,
+                body,
+              });
+            } else if (hasDocs) {
+              await github.rest.issues.createComment({
+                owner,
+                repo,
+                issue_number: number,
+                body,
+              });
+            } else if (existing) {
+              await github.rest.issues.deleteComment({
+                owner,
+                repo,
+                comment_id: existing.id,
+              });
+            }
 
   pack:
     name: Generate tarballs for publishing
