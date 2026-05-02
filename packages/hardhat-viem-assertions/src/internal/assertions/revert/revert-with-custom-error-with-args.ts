@@ -1,4 +1,4 @@
-import type { AbiHolder, ErrorArgsOf } from "../../abi-types.js";
+import type { AbiHolder, ErrorArgsOf } from "../../../abi-types.js";
 import type {
   Abi,
   ContractErrorName,

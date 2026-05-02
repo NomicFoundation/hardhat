@@ -1,4 +1,4 @@
-import type { AbiHolder } from "../../abi-types.js";
+import type { AbiHolder } from "../../../abi-types.js";
 import type {
   Abi,
   ContractErrorName,

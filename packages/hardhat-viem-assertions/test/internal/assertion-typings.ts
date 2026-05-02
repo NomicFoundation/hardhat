@@ -4,7 +4,9 @@ import type { ReadContractReturnType, WriteContractReturnType } from "viem";
 
 import { describe, it } from "node:test";
 
-// Type-only checks. Bodies never run; `tsc --build` validates them.
+// Type-only checks. The `describe`/`it` blocks run under `node --test`, but
+// each assertion is wrapped in a `void (() => ...)` IIFE that never runs,
+// so they’re only checked by `tsc --build`.
 //
 // We use IIFEs rather than `expectTypeOf(...).toBeCallableWith(...)` because
 // these helpers are generic, and `toBeCallableWith` doesn't support it (see

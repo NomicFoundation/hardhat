@@ -1,8 +1,4 @@
-import type {
-  AbiHolder,
-  ErrorArgsOf,
-  EventArgsOf,
-} from "./internal/abi-types.js";
+import type { AbiHolder, ErrorArgsOf, EventArgsOf } from "./abi-types.js";
 import type {
   Abi,
   Address,

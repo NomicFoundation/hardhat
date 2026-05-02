@@ -1,4 +1,4 @@
-import type { AbiHolder, ErrorArgsOf, EventArgsOf } from "./abi-types.js";
+import type { AbiHolder, ErrorArgsOf, EventArgsOf } from "../abi-types.js";
 import type { HardhatViemAssertions } from "../types.js";
 import type { HardhatViemHelpers } from "@nomicfoundation/hardhat-viem/types";
 import type { ChainType } from "hardhat/types/network";
