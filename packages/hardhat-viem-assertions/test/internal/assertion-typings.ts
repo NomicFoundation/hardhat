@@ -4,16 +4,15 @@ import type { ReadContractReturnType, WriteContractReturnType } from "viem";
 
 import { describe, it } from "node:test";
 
-// Type-only checks. Bodies are never executed; the only thing that matters is
-// whether `tsc --build` accepts the calls (or rejects the ones marked
-// `@ts-expect-error`).
+// Type-only checks. Bodies never run; `tsc --build` validates them.
 //
-// We construct the contract type from a `const` ABI tuple here rather than via
-// `viem.deployContract("Foo")` because the test fixture has no
-// typegen-augmented `ArtifactMap` — without it `contract.abi` collapses to the
-// generic `Abi` and there's nothing to narrow against. End users get the
-// concrete ABI either through codegen, `parseAbi`, or by importing an ABI
-// constant.
+// We use IIFEs rather than `expectTypeOf(...).toBeCallableWith(...)` because
+// these helpers are generic, and `toBeCallableWith` doesn't support it (see
+// https://github.com/mmkal/expect-type#limitations).
+//
+// The contract type is built from a `const` ABI tuple because this fixture
+// has no typegen; end users get the same shape via codegen, `parseAbi`, or
+// an imported ABI constant.
 
 const _abi = [
   {
@@ -85,6 +84,22 @@ describe("assertion typings", () => {
         // @ts-expect-error -- second arg is a string, not a bigint or predicate
         [1n, "two"],
       ));
+
+    void (() =>
+      assertions.emitWithArgs(
+        fn,
+        contract,
+        "WithTwoUintArgs",
+        // @ts-expect-error -- only one arg, ABI declares two
+        [1n],
+      ));
+
+    void (() =>
+      assertions.emitWithArgs(fn, contract, "WithTwoUintArgs", [
+        1n,
+        // @ts-expect-error -- predicate types its arg as string, ABI says bigint
+        (v: string) => v.length > 0,
+      ]));
   });
 
   it("revertWithCustomError accepts only error names declared on the ABI", () => {
@@ -118,6 +133,27 @@ describe("assertion typings", () => {
         "CustomErrorWithUintAndString",
         // @ts-expect-error -- second arg is a bigint, not a string
         [1n, 2n],
+      ));
+
+    void (() =>
+      assertions.revertWithCustomErrorWithArgs(
+        fn,
+        contract,
+        "CustomErrorWithUintAndString",
+        // @ts-expect-error -- only one arg, error declares two
+        [1n],
+      ));
+
+    void (() =>
+      assertions.revertWithCustomErrorWithArgs(
+        fn,
+        contract,
+        "CustomErrorWithUintAndString",
+        [
+          // @ts-expect-error -- predicate types its arg as string, ABI says uint256
+          (v: string) => v.length > 0,
+          "test",
+        ],
       ));
   });
 });
