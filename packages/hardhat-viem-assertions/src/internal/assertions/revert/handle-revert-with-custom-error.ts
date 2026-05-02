@@ -18,11 +18,10 @@ import { extractRevertError } from "./extract-revert-error.js";
 
 export async function handleRevertWithCustomError<
   TContract extends AbiHolder<Abi>,
-  TErrorName extends ContractErrorName<TContract["abi"]>,
 >(
   contractFn: Promise<ReadContractReturnType | WriteContractReturnType>,
   contract: TContract,
-  customErrorName: TErrorName,
+  customErrorName: ContractErrorName<TContract["abi"]>,
 ): Promise<unknown[]> {
   try {
     await contractFn;

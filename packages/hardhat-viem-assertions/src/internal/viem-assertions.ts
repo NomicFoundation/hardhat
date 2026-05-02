@@ -40,13 +40,10 @@ export class HardhatViemAssertionsImpl<
     return await balancesHaveChanged(this.#viem, resolvedTxHash, changes);
   }
 
-  public async emit<
-    TContract extends AbiHolder<Abi>,
-    TEventName extends ContractEventName<TContract["abi"]>,
-  >(
+  public async emit<TContract extends AbiHolder<Abi>>(
     contractFn: Promise<ReadContractReturnType | WriteContractReturnType>,
     contract: TContract,
-    eventName: TEventName,
+    eventName: ContractEventName<TContract["abi"]>,
   ): Promise<void> {
     return await emit(this.#viem, contractFn, contract, eventName);
   }
@@ -82,13 +79,10 @@ export class HardhatViemAssertionsImpl<
     return await revertWith(contractFn, expectedRevertReason);
   }
 
-  public async revertWithCustomError<
-    TContract extends AbiHolder<Abi>,
-    TErrorName extends ContractErrorName<TContract["abi"]>,
-  >(
+  public async revertWithCustomError<TContract extends AbiHolder<Abi>>(
     contractFn: Promise<ReadContractReturnType | WriteContractReturnType>,
     contract: TContract,
-    customErrorName: TErrorName,
+    customErrorName: ContractErrorName<TContract["abi"]>,
   ): Promise<void> {
     return await revertWithCustomError(contractFn, contract, customErrorName);
   }

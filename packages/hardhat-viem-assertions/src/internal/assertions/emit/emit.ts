@@ -12,13 +12,12 @@ import { handleEmit } from "./core.js";
 
 export async function emit<
   TContract extends AbiHolder<Abi>,
-  TEventName extends ContractEventName<TContract["abi"]>,
   ChainTypeT extends ChainType | string = "generic",
 >(
   viem: HardhatViemHelpers<ChainTypeT>,
   contractFn: Promise<ReadContractReturnType | WriteContractReturnType>,
   contract: TContract,
-  eventName: TEventName,
+  eventName: ContractEventName<TContract["abi"]>,
 ): Promise<void> {
   await handleEmit(viem, contractFn, contract, eventName);
 }

@@ -17,13 +17,12 @@ import { settle } from "../../helpers.js";
 
 export async function handleEmit<
   TContract extends AbiHolder<Abi>,
-  TEventName extends ContractEventName<TContract["abi"]>,
   ChainTypeT extends ChainType | string = "generic",
 >(
   viem: HardhatViemHelpers<ChainTypeT>,
   contractFn: Promise<ReadContractReturnType | WriteContractReturnType>,
   contract: TContract,
-  eventName: TEventName,
+  eventName: ContractEventName<TContract["abi"]>,
 ): Promise<Array<{ args?: Record<string, any> }>> {
   // Settle `contractFn` first so the tx doesn't leak into the next test, but
   // defer rethrowing so ABI errors still take precedence over tx reverts.
