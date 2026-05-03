@@ -1,3 +1,4 @@
+// cSpell:ignore APFS ambig AMBIG Ambig
 import type { Dirent } from "node:fs";
 
 import assert from "node:assert/strict";
@@ -19,6 +20,7 @@ import {
   getChangeTime,
   getFileTrueCase,
   getRealPath,
+  TrueCasePathResolver,
   isDirectory,
   mkdir,
   move,
@@ -624,6 +626,311 @@ describe("File system utils", () => {
       await fsPromises.symlink(linkPath, linkPath);
 
       await assert.rejects(getFileTrueCase(linkPath, "file"), {
+        name: "FileSystemAccessError",
+      });
+    });
+  });
+
+  describe("TrueCasePathResolver", () => {
+    it("Should return the true case of files and directories", async () => {
+      const mixedCaseFilePath = path.join(getTmpDir(), "mixedCaseFile");
+      const mixedCaseDirPath = path.join(getTmpDir(), "mixedCaseDir");
+      const mixedCaseFile2Path = path.join(mixedCaseDirPath, "mixedCaseFile2");
+
+      await createFile(mixedCaseFilePath);
+      await mkdir(mixedCaseDirPath);
+      await createFile(mixedCaseFile2Path);
+
+      const resolver = new TrueCasePathResolver();
+
+      assert.equal(
+        await resolver.getFileTrueCase(getTmpDir(), "mixedcasefile"),
+        "mixedCaseFile",
+      );
+      assert.equal(
+        await resolver.getFileTrueCase(getTmpDir(), "MIXEDCASEDIR"),
+        "mixedCaseDir",
+      );
+      assert.equal(
+        await resolver.getFileTrueCase(
+          getTmpDir(),
+          path.join("mixedcasedir", "MIXEDCASEFILE2"),
+        ),
+        path.join("mixedCaseDir", "mixedCaseFile2"),
+      );
+    });
+
+    it("Should return an empty path when resolving the starting directory itself", async () => {
+      const resolver = new TrueCasePathResolver();
+
+      assert.equal(await resolver.getFileTrueCase(getTmpDir(), ""), "");
+      assert.equal(await resolver.getFileTrueCase(getTmpDir(), "."), "");
+      assert.equal(
+        await resolver.getFileTrueCase(getTmpDir(), path.join("dir", "..")),
+        "",
+      );
+    });
+
+    it("Should resolve relative paths with parent segments that stay within the starting directory", async () => {
+      const mixedCaseFilePath = path.join(getTmpDir(), "mixedCaseFile");
+      const mixedCaseDirPath = path.join(getTmpDir(), "mixedCaseDir");
+
+      await createFile(mixedCaseFilePath);
+      await mkdir(mixedCaseDirPath);
+
+      const resolver = new TrueCasePathResolver();
+
+      assert.equal(
+        await resolver.getFileTrueCase(
+          getTmpDir(),
+          path.join("mixedCaseDir", "..", "mixedcasefile"),
+        ),
+        "mixedCaseFile",
+      );
+    });
+
+    it("Should throw FileNotFoundError if the resolved path escapes the starting directory", async () => {
+      const rootPath = path.join(getTmpDir(), "root");
+      const nestedPath = path.join(rootPath, "nested");
+      const secretPath = path.join(getTmpDir(), "secret");
+
+      await mkdir(nestedPath);
+      await createFile(secretPath);
+
+      const resolver = new TrueCasePathResolver();
+
+      await assert.rejects(
+        resolver.getFileTrueCase(
+          rootPath,
+          path.join("nested", "..", "..", "secret"),
+        ),
+        {
+          name: "FileNotFoundError",
+          message: `File ${secretPath} not found`,
+        },
+      );
+    });
+
+    it("Should cache directory listings across calls to the same resolver", async () => {
+      const filePath = path.join(getTmpDir(), "cachedFile");
+      await createFile(filePath);
+
+      const resolver = new TrueCasePathResolver();
+
+      assert.equal(
+        await resolver.getFileTrueCase(getTmpDir(), "cachedFile"),
+        "cachedFile",
+      );
+
+      // Remove the file behind the resolver's back; because both the
+      // directory listing and the result are cached, subsequent lookups
+      // should still succeed.
+      await remove(filePath);
+
+      assert.equal(
+        await resolver.getFileTrueCase(getTmpDir(), "cachedFile"),
+        "cachedFile",
+      );
+      assert.equal(
+        await resolver.getFileTrueCase(getTmpDir(), "CACHEDFILE"),
+        "cachedFile",
+      );
+
+      resolver.clear();
+
+      await assert.rejects(
+        resolver.getFileTrueCase(getTmpDir(), "cachedFile"),
+        { name: "FileNotFoundError" },
+      );
+    });
+
+    it("Should cache resolutions separately for different trusted starting directories", async (t) => {
+      const root = path.join(getTmpDir(), "root");
+      const trustedFrom = path.join(root, "B"); // Note that it's uppercase
+
+      // We mock `readdir` so that it mimics a case-insensitive filesystem where
+      // root/b/foo.ts exists - Note the lowercase b.
+      let numberOfCallsToReaddir = 0;
+      t.mock.method(fsPromises, "readdir", async (...args: any[]) => {
+        numberOfCallsToReaddir++;
+        const dirPath = path.normalize(String(args[0]));
+
+        if (dirPath === path.normalize(trustedFrom)) {
+          return ["foo.ts"];
+        }
+
+        if (dirPath === path.normalize(root)) {
+          return ["b"];
+        }
+
+        if (dirPath === path.normalize(path.join(root, "b"))) {
+          return ["foo.ts"];
+        }
+
+        throw Object.assign(new Error(`Unexpected readdir: ${dirPath}`), {
+          code: "ENOENT",
+        });
+      });
+
+      const resolver = new TrueCasePathResolver();
+
+      // Resolving from root/B, it readdirs root/B.
+      assert.equal(
+        await resolver.getFileTrueCase(trustedFrom, "foo.ts"),
+        "foo.ts",
+      );
+      assert.equal(numberOfCallsToReaddir, 1);
+
+      // Resolving from root, it readdirs root and root/b, not using the cache,
+      // because the trusted starting directory is different.
+      assert.equal(
+        await resolver.getFileTrueCase(root, path.join("B", "foo.ts")),
+        path.join("b", "foo.ts"),
+      );
+      assert.equal(numberOfCallsToReaddir, 3);
+    });
+
+    it("Should not resolve the true casing of the trusted starting directory", async (t) => {
+      const trustedFrom = path.join(getTmpDir(), "a", "B");
+
+      // We mock `readdir` so that only the trusted starting directory can be
+      // read. If the resolver tries to read any ancestor of `from`, this test
+      // fails.
+      let numberOfCallsToReaddir = 0;
+      t.mock.method(fsPromises, "readdir", async (...args: any[]) => {
+        numberOfCallsToReaddir++;
+        const dirPath = path.normalize(String(args[0]));
+
+        if (dirPath === path.normalize(trustedFrom)) {
+          return ["foo.ts"];
+        }
+
+        throw Object.assign(new Error(`Unexpected readdir: ${dirPath}`), {
+          code: "EACCES",
+        });
+      });
+
+      const resolver = new TrueCasePathResolver();
+
+      // Resolving from a/B only readdirs a/B, trusting the casing of `from`.
+      assert.equal(
+        await resolver.getFileTrueCase(trustedFrom, "foo.ts"),
+        "foo.ts",
+      );
+      assert.equal(numberOfCallsToReaddir, 1);
+    });
+
+    it("Should not throw when a previous call threw and the path now exists", async () => {
+      const resolver = new TrueCasePathResolver();
+
+      await assert.rejects(
+        resolver.getFileTrueCase(getTmpDir(), "laterCreated"),
+        { name: "FileNotFoundError" },
+      );
+
+      await createFile(path.join(getTmpDir(), "laterCreated"));
+
+      // The directory listing from the first call is cached, so without
+      // `clear()` the new file is invisible.
+      await assert.rejects(
+        resolver.getFileTrueCase(getTmpDir(), "laterCreated"),
+        { name: "FileNotFoundError" },
+      );
+
+      resolver.clear();
+
+      assert.equal(
+        await resolver.getFileTrueCase(getTmpDir(), "laterCreated"),
+        "laterCreated",
+      );
+    });
+
+    it("Should throw FileNotFoundError when the case-folded name is ambiguous", async function () {
+      // This test requires a case-sensitive filesystem in the tmp dir.
+      // macOS APFS and Windows NTFS default to case-insensitive, so two
+      // entries differing only in case can't coexist there.
+      if (process.platform !== "linux") {
+        return;
+      }
+
+      await createFile(path.join(getTmpDir(), "ambig"));
+      await createFile(path.join(getTmpDir(), "AMBIG"));
+
+      const resolver = new TrueCasePathResolver();
+
+      // Exact matches still work.
+      assert.equal(
+        await resolver.getFileTrueCase(getTmpDir(), "ambig"),
+        "ambig",
+      );
+      assert.equal(
+        await resolver.getFileTrueCase(getTmpDir(), "AMBIG"),
+        "AMBIG",
+      );
+
+      // A spelling that folds to the ambiguous key is rejected.
+      await assert.rejects(resolver.getFileTrueCase(getTmpDir(), "Ambig"), {
+        name: "FileNotFoundError",
+      });
+    });
+
+    it("Should throw NotADirectoryError if an intermediate segment is not a directory", async () => {
+      const filePath = path.join(getTmpDir(), "file");
+      await createFile(filePath);
+
+      const resolver = new TrueCasePathResolver();
+
+      await assert.rejects(
+        resolver.getFileTrueCase(getTmpDir(), path.join("file", "child.ts")),
+        {
+          name: "NotADirectoryError",
+          message: `Path ${filePath} is not a directory`,
+        },
+      );
+    });
+
+    it("Should throw NotADirectoryError if the starting directory is not a directory", async () => {
+      const filePath = path.join(getTmpDir(), "file");
+      await createFile(filePath);
+
+      const resolver = new TrueCasePathResolver();
+
+      await assert.rejects(resolver.getFileTrueCase(filePath, "asd"), {
+        name: "NotADirectoryError",
+      });
+    });
+
+    it("Should throw FileNotFoundError when relativePath is '.' and the starting directory doesn't exist", async () => {
+      const missingDir = path.join(getTmpDir(), "missing");
+
+      const resolver = new TrueCasePathResolver();
+
+      await assert.rejects(resolver.getFileTrueCase(missingDir, "."), {
+        name: "FileNotFoundError",
+      });
+      await assert.rejects(resolver.getFileTrueCase(missingDir, ""), {
+        name: "FileNotFoundError",
+      });
+    });
+
+    it("Should throw NotADirectoryError when relativePath is '.' and the starting directory is a file", async () => {
+      const filePath = path.join(getTmpDir(), "fileAsFrom");
+      await createFile(filePath);
+
+      const resolver = new TrueCasePathResolver();
+
+      await assert.rejects(resolver.getFileTrueCase(filePath, "."), {
+        name: "NotADirectoryError",
+      });
+    });
+
+    it("Should throw FileSystemAccessError if a different error is thrown", async () => {
+      const linkPath = path.join(getTmpDir(), "link");
+      await fsPromises.symlink(linkPath, linkPath);
+
+      const resolver = new TrueCasePathResolver();
+
+      await assert.rejects(resolver.getFileTrueCase(linkPath, "file"), {
         name: "FileSystemAccessError",
       });
     });

@@ -15,6 +15,8 @@ import assert from "node:assert/strict";
 
 import { parseEventLogs } from "viem";
 
+import { settle } from "../../helpers.js";
+
 export async function handleEmit<
   ContractName extends keyof ContractAbis,
   EventName extends ContractEventName<ContractAbis[ContractName]>,
@@ -25,6 +27,10 @@ export async function handleEmit<
   contract: ContractReturnType<ContractName>,
   eventName: EventName,
 ): Promise<Array<{ args?: Record<string, any> }>> {
+  // Settle `contractFn` first so the tx doesn't leak into the next test, but
+  // defer rethrowing so ABI errors still take precedence over tx reverts.
+  const contractFnResult = await settle(contractFn);
+
   const abiEvents: AbiEvent[] = contract.abi.filter(
     (item): item is AbiEvent =>
       item.type === "event" && item.name === eventName,
@@ -35,7 +41,10 @@ export async function handleEmit<
     `Event "${eventName}" not found in the contract ABI`,
   );
 
-  await contractFn;
+  if (contractFnResult.ok === false) {
+    // eslint-disable-next-line no-restricted-syntax -- propagate the original tx-revert error
+    throw contractFnResult.error;
+  }
 
   const publicClient = await viem.getPublicClient();
 

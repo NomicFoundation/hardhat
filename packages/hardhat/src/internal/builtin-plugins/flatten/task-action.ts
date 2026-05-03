@@ -1,7 +1,8 @@
 import type { NewTaskActionFunction } from "../../../types/tasks.js";
 
+import { styleText } from "node:util";
+
 import { resolveFromRoot } from "@nomicfoundation/hardhat-utils/path";
-import chalk from "chalk";
 
 import {
   ResolvedFileType,
@@ -108,7 +109,8 @@ const flattenAction: NewTaskActionFunction<FlattenActionArguments> = async (
 
   if (filesWithoutLicenses.length > 0) {
     warn(
-      chalk.yellow(
+      styleText(
+        "yellow",
         `\nThe following file(s) do NOT specify SPDX licenses: ${filesWithoutLicenses.join(
           ", ",
         )}`,
@@ -118,7 +120,8 @@ const flattenAction: NewTaskActionFunction<FlattenActionArguments> = async (
 
   if (pragmaDirective !== "" && filesWithoutPragmaDirectives.length > 0) {
     warn(
-      chalk.yellow(
+      styleText(
+        "yellow",
         `\nPragma abicoder directives are defined in some files, but they are not defined in the following ones: ${filesWithoutPragmaDirectives.join(
           ", ",
         )}`,
@@ -128,7 +131,8 @@ const flattenAction: NewTaskActionFunction<FlattenActionArguments> = async (
 
   if (filesWithDifferentPragmaDirectives.length > 0) {
     warn(
-      chalk.yellow(
+      styleText(
+        "yellow",
         `\nThe flattened file is using the pragma abicoder directive '${pragmaDirective}' but these files have a different pragma abicoder directive: ${filesWithDifferentPragmaDirectives.join(
           ", ",
         )}`,

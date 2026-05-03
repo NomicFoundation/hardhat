@@ -1,6 +1,6 @@
 import type { StatusResult } from "@nomicfoundation/ignition-core";
 
-import chalk from "chalk";
+import { styleText } from "node:util";
 
 export function calculateDeploymentStatusDisplay(
   deploymentId: string,
@@ -25,9 +25,9 @@ function _calculateSuccess(deploymentId: string, statusResult: StatusResult) {
   let successText = `Deployment ${deploymentId} (chainId: ${statusResult.chainId}) was successful\n\n`;
 
   if (Object.values(statusResult.contracts).length === 0) {
-    successText += chalk.italic("No contracts were deployed");
+    successText += styleText("italic", "No contracts were deployed");
   } else {
-    successText += `${chalk.bold("Deployed Addresses")}\n\n`;
+    successText += `${styleText("bold", "Deployed Addresses")}\n\n`;
 
     successText += Object.values(statusResult.contracts)
       .map((contract) => `${contract.id} - ${contract.address}`)

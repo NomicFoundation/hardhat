@@ -1,6 +1,6 @@
 {
   "name": "hardhat",
-  "version": "3.4.2",
+  "version": "3.4.3",
   "description": "Hardhat is an extensible developer tool that helps smart contract developers increase productivity by reliably bringing together the tools they want.",
   "homepage": "https://hardhat.org",
   "repository": {
@@ -78,7 +78,7 @@
     "README.md"
   ],
   "devDependencies": {
-    "@nomicfoundation/hardhat-node-test-reporter": "workspace:^3.0.5",
+    "@nomicfoundation/hardhat-node-test-reporter": "workspace:^3.0.6",
     "@nomicfoundation/hardhat-test-utils": "workspace:^",
     "@types/adm-zip": "^0.5.5",
     "@types/node": "^22.0.0",
@@ -92,15 +92,14 @@
     "typescript": "~5.8.0"
   },
   "dependencies": {
-    "@nomicfoundation/edr": "0.12.0-next.29",
-    "@nomicfoundation/hardhat-errors": "workspace:^3.0.11",
-    "@nomicfoundation/hardhat-utils": "workspace:^4.0.5",
-    "@nomicfoundation/hardhat-vendored": "workspace:^3.0.2",
+    "@nomicfoundation/edr": "0.12.0-next.31",
+    "@nomicfoundation/hardhat-errors": "workspace:^3.0.12",
+    "@nomicfoundation/hardhat-utils": "workspace:^4.1.0",
+    "@nomicfoundation/hardhat-vendored": "workspace:^3.0.3",
     "@nomicfoundation/hardhat-zod-utils": "workspace:^3.0.4",
     "@nomicfoundation/solidity-analyzer": "^0.1.1",
     "@sentry/core": "^9.4.0",
     "adm-zip": "^0.4.16",
-    "chalk": "^5.3.0",
     "chokidar": "^4.0.3",
     "enquirer": "^2.3.0",
     "ethereum-cryptography": "^2.2.1",

@@ -13,6 +13,7 @@ import type {
 import assert from "node:assert/strict";
 import { afterEach, before, describe, it } from "node:test";
 import { pathToFileURL } from "node:url";
+import { styleText } from "node:util";
 
 import { HardhatError } from "@nomicfoundation/hardhat-errors";
 import {
@@ -21,7 +22,6 @@ import {
   useFixtureProject,
 } from "@nomicfoundation/hardhat-test-utils";
 import { isCi } from "@nomicfoundation/hardhat-utils/ci";
-import chalk from "chalk";
 
 import {
   main,
@@ -312,7 +312,7 @@ To get help for a specific task run: npx hardhat <TASK> [SUBTASK] --help`;
           const command = "npx hardhat empty-task --help";
           const lines = await runMain(command);
 
-          const expected = `${chalk.bold("empty task description")}
+          const expected = `${styleText("bold", "empty task description")}
 
 Usage: hardhat [GLOBAL OPTIONS] empty-task <SUBTASK> [SUBTASK OPTIONS] [--] [SUBTASK POSITIONAL ARGUMENTS]
 `;
@@ -345,7 +345,7 @@ Usage: hardhat [GLOBAL OPTIONS] empty-task <SUBTASK> [SUBTASK OPTIONS] [--] [SUB
           const command = "npx hardhat test-task --help";
           const lines = await runMain(command);
 
-          const expected = `${chalk.bold("description")}
+          const expected = `${styleText("bold", "description")}
 
 Usage: hardhat [GLOBAL OPTIONS] test-task [--opt <STRING>] [--] pos1 [pos2] [var1]
 
@@ -386,7 +386,7 @@ GLOBAL OPTIONS:
         const command = "npx hardhat task --help";
         const lines = await runMain(command);
 
-        const expected = `${chalk.bold("A task that uses arg1")}
+        const expected = `${styleText("bold", "A task that uses arg1")}
 
 Usage: hardhat [GLOBAL OPTIONS] task [--arg-1 <STRING>] [--arg-4] [--arg-5 <LEVEL>] [--] arg2 arg3
 

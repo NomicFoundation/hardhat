@@ -16,6 +16,7 @@ import {
 } from "hardhat/utils/contract-names";
 
 import { getBuildInfoAndOutput } from "./artifacts.js";
+import { formatInferredSolcVersion } from "./metadata.js";
 
 export interface ContractInformation {
   compilerInput: CompilerInput;
@@ -113,9 +114,12 @@ export class ContractInformationResolver {
       buildInfoAndOutput.buildInfo.solcVersion,
     );
     if (!isSolcVersionCompatible) {
+      const formattedSolcVersion = formatInferredSolcVersion(
+        deployedBytecode.solcVersion,
+      );
       const versionDetails = deployedBytecode.hasVersionRange()
-        ? `a Solidity version in the range ${deployedBytecode.solcVersion}`
-        : `the Solidity version ${deployedBytecode.solcVersion}`;
+        ? `a Solidity version in the range ${formattedSolcVersion}`
+        : `the Solidity version ${formattedSolcVersion}`;
 
       throw new HardhatError(
         HardhatError.ERRORS.HARDHAT_VERIFY.GENERAL.BUILD_INFO_SOLC_VERSION_MISMATCH,

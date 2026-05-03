@@ -1,7 +1,8 @@
 import type { StatusResult } from "@nomicfoundation/ignition-core";
 
+import { styleText } from "node:util";
+
 import { assert } from "chai";
-import chalk from "chalk";
 
 import { calculateDeploymentStatusDisplay } from "../../../src/internal/ui/helpers/calculate-deployment-status-display.js";
 
@@ -26,7 +27,7 @@ describe("ui - calculate deployment status display", () => {
       const expectedText = testFormat(`
         Deployment deployment-01 (chainId: 1) was successful
 
-        ${chalk.bold("Deployed Addresses")}
+        ${styleText("bold", "Deployed Addresses")}
 
         MyModule#Token - 0x1F98431c8aD98523631AE4a59f267346ea31F984
         MyModule#AnotherToken - 0x0011223344556677889900112233445566778899`);
@@ -64,7 +65,7 @@ describe("ui - calculate deployment status display", () => {
       const expectedText = testFormat(`
         Deployment deployment-01 (chainId: 1) was successful
 
-        ${chalk.italic("No contracts were deployed")}`);
+        ${styleText("italic", "No contracts were deployed")}`);
 
       const statusResult: StatusResult = {
         ...exampleStatusResult,

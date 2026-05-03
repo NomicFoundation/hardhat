@@ -24,6 +24,10 @@ contract Events {
 
   function doNotEmit() public {}
 
+  function reverts() public {
+    revert("Intentional revert for testing purposes");
+  }
+
   function emitWithoutArgs() public {
     emit WithoutArgs();
   }

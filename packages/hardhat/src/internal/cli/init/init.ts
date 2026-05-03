@@ -2,6 +2,7 @@ import type { Template } from "./template.js";
 import type { PackageJson } from "@nomicfoundation/hardhat-utils/package";
 
 import path from "node:path";
+import { styleText } from "node:util";
 
 import {
   assertHardhatInvariant,
@@ -19,7 +20,6 @@ import {
   writeJsonFile,
 } from "@nomicfoundation/hardhat-utils/fs";
 import { resolveFromRoot } from "@nomicfoundation/hardhat-utils/path";
-import chalk from "chalk";
 import * as semver from "semver";
 
 import { findClosestHardhatConfig } from "../../config-loading.js";
@@ -165,7 +165,7 @@ function printAsciiLogo() {
   // logo doesn't fit
   process.stdout.write("\x1b[?7l");
 
-  console.log(chalk.blue(logoLines));
+  console.log(styleText("blue", logoLines));
 
   // Re-enable auto-wapping
   process.stdout.write("\x1b[?7h");
@@ -176,7 +176,7 @@ export async function printWelcomeMessage(): Promise<void> {
   const hardhatVersion = await getHardhatVersion();
 
   console.log(
-    chalk.cyan(`👷 Welcome to ${HARDHAT_NAME} v${hardhatVersion} 👷\n`),
+    styleText("cyan", `👷 Welcome to ${HARDHAT_NAME} v${hardhatVersion} 👷\n`),
   );
 
   // Warn the user if they are using an outdated version of Hardhat
@@ -184,7 +184,8 @@ export async function printWelcomeMessage(): Promise<void> {
     const latestHardhatVersion = await getLatestHardhatVersion();
     if (hardhatVersion !== latestHardhatVersion) {
       console.warn(
-        chalk.yellow.bold(
+        styleText(
+          ["yellow", "bold"],
           `⚠️ You are using an outdated version of Hardhat. The latest version is v${latestHardhatVersion}. Please consider upgrading to the latest version before continuing with the project initialization. ⚠️\n`,
         ),
       );
@@ -197,7 +198,8 @@ export async function printWelcomeMessage(): Promise<void> {
       log("Couldn't report error to sentry: %O", e);
     }
     console.warn(
-      chalk.yellow.bold(
+      styleText(
+        ["yellow", "bold"],
         `⚠️ We couldn't check if you are using the latest version of Hardhat. Please consider upgrading to the latest version if you are not using it yet. ⚠️\n`,
       ),
     );
@@ -491,7 +493,7 @@ export async function copyProjectFiles(
     await copy(absoluteTemplatePath, absoluteWorkspacePath);
   }
 
-  console.log(`✨ ${chalk.cyan(`Template files copied`)} ✨`);
+  console.log(`✨ ${styleText("cyan", `Template files copied`)} ✨`);
 }
 
 /**
@@ -567,16 +569,25 @@ export async function installProjectDependencies(
       console.log();
       console.log(commandString);
 
-      await spawn(commandString, [], {
-        cwd: workspace,
-        // We need to run with `shell: true` for this to work on powershell, but
-        // we already enclosed every dependency identifier in quotes, so this
-        // is safe.
-        shell: true,
-        stdio: "inherit",
-      });
+      try {
+        await spawn(commandString, [], {
+          cwd: workspace,
+          // We need to run with `shell: true` for this to work on powershell, but
+          // we already enclosed every dependency identifier in quotes, so this
+          // is safe.
+          shell: true,
+          stdio: "inherit",
+        });
+      } catch (error) {
+        ensureError(error);
 
-      console.log(`✨ ${chalk.cyan(`Dependencies installed`)} ✨`);
+        throw new HardhatError(
+          HardhatError.ERRORS.CORE.INIT.FAILED_TO_INSTALL_DEPENDENCIES,
+          error,
+        );
+      }
+
+      console.log(`✨ ${styleText("cyan", `Dependencies installed`)} ✨`);
     }
   }
 
@@ -611,26 +622,40 @@ export async function installProjectDependencies(
       console.log();
       console.log(commandString);
 
-      await spawn(commandString, [], {
-        cwd: workspace,
-        // We need to run with `shell: true` for this to work on powershell, but
-        // we already enclosed every dependency identifier in quotes, so this
-        // is safe.
-        shell: true,
-        stdio: "inherit",
-      });
+      try {
+        await spawn(commandString, [], {
+          cwd: workspace,
+          // We need to run with `shell: true` for this to work on powershell, but
+          // we already enclosed every dependency identifier in quotes, so this
+          // is safe.
+          shell: true,
+          stdio: "inherit",
+        });
+      } catch (error) {
+        ensureError(error);
 
-      console.log(`✨ ${chalk.cyan(`Dependencies updated`)} ✨`);
+        throw new HardhatError(
+          HardhatError.ERRORS.CORE.INIT.FAILED_TO_INSTALL_DEPENDENCIES,
+          error,
+        );
+      }
+
+      console.log(`✨ ${styleText("cyan", `Dependencies updated`)} ✨`);
     }
   }
 }
 
 function showStarOnGitHubMessage() {
   console.log(
-    chalk.cyan("Give Hardhat a star on Github if you're enjoying it! ⭐️✨"),
+    styleText(
+      "cyan",
+      "Give Hardhat a star on GitHub if you're enjoying it! ⭐️✨",
+    ),
   );
   console.log();
-  console.log(chalk.cyan("     https://github.com/NomicFoundation/hardhat"));
+  console.log(
+    styleText("cyan", "     https://github.com/NomicFoundation/hardhat"),
+  );
 }
 
 // NOTE: This function is exported for testing purposes only.

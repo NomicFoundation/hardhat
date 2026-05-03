@@ -6,6 +6,7 @@ import type { HardhatRuntimeEnvironment } from "hardhat/types/hre";
 import type { NewTaskActionFunction } from "hardhat/types/tasks";
 
 import path from "node:path";
+import { styleText } from "node:util";
 
 import { HardhatError } from "@nomicfoundation/hardhat-errors";
 import {
@@ -17,7 +18,6 @@ import {
   writeJsonFile,
 } from "@nomicfoundation/hardhat-utils/fs";
 import { deploy } from "@nomicfoundation/ignition-core";
-import chalk from "chalk";
 import json5 from "json5";
 import Prompt from "prompts";
 
@@ -247,7 +247,7 @@ const taskDeploy: NewTaskActionFunction<TaskDeployArguments> = async (
 
     if (result.type === "SUCCESSFUL_DEPLOYMENT" && verify) {
       console.log("");
-      console.log(chalk.bold("Verifying deployed contracts"));
+      console.log(styleText("bold", "Verifying deployed contracts"));
       console.log("");
 
       await hre.tasks.getTask(["ignition", "verify"]).run({ deploymentId });

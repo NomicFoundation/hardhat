@@ -31,6 +31,253 @@ let streamParserJson: typeof StreamParserJson | undefined;
 // used by writeJsonFileAsStream for very large JSON objects.
 let jsonStreamStringify: typeof JsonStreamStringify | undefined;
 
+const AMBIGUOUS_CASING_DIR_ENTRY = Symbol("ambiguous");
+
+type CaseFoldedEntry = string | typeof AMBIGUOUS_CASING_DIR_ENTRY;
+
+/**
+ * The entries in a directory, which stores their exact name, and also a
+ * case-folded mapping to support case-insensitive lookups.
+ */
+interface DirEntries {
+  /**
+   * The exact names present in the directory, as returned by `readdir`.
+   */
+  readonly exactNames: Set<string>;
+
+  /**
+   * Case-folded key -> the actual on-disk spelling, or
+   * AMBIGUOUS_CASING_DIR_ENTRY when multiple entries in the directory fold to
+   * the same key.
+   */
+  readonly caseFoldedNames: Map<string, CaseFoldedEntry>;
+}
+
+/**
+ * Resolves paths to their true (on-disk) casing, caching directory listings
+ * and resolutions so repeated lookups against the same directories don't re-hit
+ * the filesystem.
+ *
+ * Intended to be used in hot paths where the same `from` directories are seen
+ * over and over.
+ *
+ * Does not resolve symbolic links.
+ *
+ * This class caches successful resolutions internally, and may do some
+ * duplicate work when multiple concurrent lookups for the same path are made
+ * before the first one finishes. It does not cache failed resolutions as
+ * negative result entries, but it does cache directory listings, so filesystem
+ * changes may not be observed until `clear()` is called. After `clear()`,
+ * previously cached directory and resolution data is discarded. If profiling
+ * shows that this work duplication is a problem, we can either cache in-flight
+ * operations, or add a mutex.
+ */
+export class TrueCasePathResolver {
+  /**
+   * A cache of DirEntries for the directories we've seen, keyed by their
+   * normalized absolute path as read. For example, if the same physical
+   * directory is read as `/a/foo` and `/a/Foo`, each path gets its own entry.
+   */
+  readonly #dirCache = new Map<string, DirEntries>();
+
+  /**
+   * A cache of successful resolutions, grouped by their `from` trusted starting
+   * directory.
+   *
+   * The outer key is the normalized absolute `from` path, and the inner key is
+   * the normalized `relativePath`.
+   *
+   * This keeps paths like `/a/B` + `foo.ts` distinct from `/a` + `B/foo.ts`,
+   * even if they point to the same location.
+   */
+  readonly #resultCache = new Map<string, Map<string, string>>();
+
+  /**
+   * Determines the true-case path of a given relative path from a specified
+   * directory, without resolving symbolic links.
+   *
+   * Note that the casing of the `from` path is not checked against the
+   * filesystem, and is trusted as-is. This avoids unnecessary directory
+   * listings for every ancestor of `from`, which can result in permission
+   * errors for directories that are otherwise accessible.
+   *
+   * @param from The absolute path of the directory to start the search from.
+   * @param relativePath The relative path to get the true case of.
+   * @returns The true case of the relative path. Returns an empty string if
+   * relativePath points to from.
+   * @throws FileNotFoundError if the starting directory or the relative path
+   *  doesn't exist or is ambiguous.
+   * @throws NotADirectoryError if the starting directory, or an intermediate
+   *  segment, is not a directory.
+   * @throws FileSystemAccessError for any other error.
+   */
+  public async getFileTrueCase(
+    from: string,
+    relativePath: string,
+  ): Promise<string> {
+    const absoluteFrom = path.resolve(from);
+
+    if (path.normalize(relativePath) === ".") {
+      // There's no casing to resolve, but we still read `from` so that callers
+      // get the documented FileNotFoundError / NotADirectoryError if it
+      // doesn't exist or isn't a directory.
+      await this.#getDirEntries(absoluteFrom);
+      return "";
+    }
+
+    const resolved = await this.#resolveFrom(absoluteFrom, relativePath);
+    const resolvedRelativePath = path.relative(absoluteFrom, resolved);
+
+    if (
+      resolvedRelativePath === ".." ||
+      resolvedRelativePath.startsWith(`..${path.sep}`) ||
+      path.isAbsolute(resolvedRelativePath)
+    ) {
+      throw new FileNotFoundError(path.resolve(absoluteFrom, relativePath));
+    }
+
+    return resolvedRelativePath;
+  }
+
+  /**
+   * Clears all cached directory listings and resolutions.
+   */
+  public clear(): void {
+    this.#dirCache.clear();
+    this.#resultCache.clear();
+  }
+
+  async #resolveFrom(from: string, relativePath: string): Promise<string> {
+    const fromCacheKey = this.#getResultFromCacheKey(from);
+    const relativePathCacheKey =
+      this.#getResultRelativePathCacheKey(relativePath);
+
+    const cached = this.#resultCache
+      .get(fromCacheKey)
+      ?.get(relativePathCacheKey);
+
+    if (cached !== undefined) {
+      return cached;
+    }
+
+    const resolved = await this.#doResolveFrom(from, relativePath);
+
+    let resultsFromCache = this.#resultCache.get(fromCacheKey);
+    if (resultsFromCache === undefined) {
+      resultsFromCache = new Map<string, string>();
+      this.#resultCache.set(fromCacheKey, resultsFromCache);
+    }
+
+    resultsFromCache.set(relativePathCacheKey, resolved);
+
+    return resolved;
+  }
+
+  async #doResolveFrom(from: string, relativePath: string): Promise<string> {
+    let currentPath = from;
+
+    const segments = path
+      .normalize(relativePath)
+      .split(path.sep)
+      .filter((s) => s.length > 0 || s === ".");
+
+    for (const requestedName of segments) {
+      if (requestedName === "..") {
+        currentPath = path.join(currentPath, requestedName);
+        continue;
+      }
+
+      const entries = await this.#getDirEntries(currentPath);
+      const actualName = this.#lookupChild(entries, requestedName);
+
+      if (actualName === undefined) {
+        throw new FileNotFoundError(path.resolve(from, relativePath));
+      }
+
+      currentPath = path.join(currentPath, actualName);
+    }
+
+    return currentPath;
+  }
+
+  async #getDirEntries(dirPath: string): Promise<DirEntries> {
+    const cacheKey = this.#getDirCacheKey(dirPath);
+    const cached = this.#dirCache.get(cacheKey);
+    if (cached !== undefined) {
+      return cached;
+    }
+
+    const entries = await this.#readDirEntries(dirPath);
+    this.#dirCache.set(cacheKey, entries);
+
+    return entries;
+  }
+
+  async #readDirEntries(dirPath: string): Promise<DirEntries> {
+    const names = await readdir(dirPath);
+
+    const exactNames = new Set<string>();
+    const caseFoldedNames = new Map<string, CaseFoldedEntry>();
+
+    for (const name of names) {
+      exactNames.add(name);
+
+      const folded = this.#caseFold(name);
+      const previous = caseFoldedNames.get(folded);
+      if (previous === undefined) {
+        caseFoldedNames.set(folded, name);
+      } else if (previous !== name) {
+        caseFoldedNames.set(folded, AMBIGUOUS_CASING_DIR_ENTRY);
+      }
+    }
+
+    return { exactNames, caseFoldedNames };
+  }
+
+  #lookupChild(entries: DirEntries, requestedName: string): string | undefined {
+    if (entries.exactNames.has(requestedName)) {
+      return requestedName;
+    }
+
+    const candidate = entries.caseFoldedNames.get(
+      this.#caseFold(requestedName),
+    );
+
+    if (candidate === undefined || candidate === AMBIGUOUS_CASING_DIR_ENTRY) {
+      return undefined;
+    }
+
+    return candidate;
+  }
+
+  #getResultFromCacheKey(from: string): string {
+    return path.normalize(from);
+  }
+
+  #getResultRelativePathCacheKey(relativePath: string): string {
+    return path.normalize(relativePath);
+  }
+
+  #getDirCacheKey(dirPath: string): string {
+    return path.normalize(dirPath);
+  }
+
+  /**
+   * Returns a case-folded version of the given name, which can be thought of as
+   * a "normalized uppercase" form. This is used to implement case-insensitive
+   * comparisons.
+   *
+   * This is not an exact match with what every filesystem would do, but a good
+   * enough approximation for our purposes.
+   *
+   * @param name The name to fold.
+   * @returns The case-folded version of the name.
+   */
+  #caseFold(name: string): string {
+    return name.normalize("NFC").toUpperCase();
+  }
+}
+
 /**
  * Determines the canonical pathname for a given path, resolving any symbolic
  * links, and returns it.
@@ -147,34 +394,13 @@ export async function getAllDirectoriesMatching(
  * @throws FileNotFoundError if the starting directory or the relative path doesn't exist.
  * @throws NotADirectoryError if the starting directory is not a directory.
  * @throws FileSystemAccessError for any other error.
+ * @deprecated Use {@link TrueCasePathResolver} instead.
  */
 export async function getFileTrueCase(
   from: string,
   relativePath: string,
 ): Promise<string> {
-  const dirEntries = await readdirOrEmpty(from);
-
-  const segments = relativePath.split(path.sep);
-  const nextDir = segments[0];
-  const nextDirLowerCase = nextDir.toLowerCase();
-
-  for (const dirEntry of dirEntries) {
-    if (dirEntry.toLowerCase() === nextDirLowerCase) {
-      if (segments.length === 1) {
-        return dirEntry;
-      }
-
-      return path.join(
-        dirEntry,
-        await getFileTrueCase(
-          path.join(from, dirEntry),
-          path.relative(nextDir, relativePath),
-        ),
-      );
-    }
-  }
-
-  throw new FileNotFoundError(path.join(from, relativePath));
+  return await new TrueCasePathResolver().getFileTrueCase(from, relativePath);
 }
 
 /**

@@ -1,5 +1,15 @@
 # @nomicfoundation/hardhat-ledger
 
+## 3.0.7
+
+### Patch Changes
+
+- [#8207](https://github.com/NomicFoundation/hardhat/pull/8207) [`d594209`](https://github.com/NomicFoundation/hardhat/commit/d59420968bffca83e1ad2712c6881d19cc7e1a99) Thanks [@alcuadrado](https://github.com/alcuadrado)! - Improved performance by replacing the debug logging library with a lightweight in-tree implementation.
+
+- Updated dependencies:
+  - @nomicfoundation/hardhat-utils@4.1.0
+  - @nomicfoundation/hardhat-errors@3.0.12
+
 ## 3.0.6
 
 ### Patch Changes

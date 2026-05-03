@@ -2,10 +2,10 @@ import type { HookContext, HookManager } from "../../types/hooks.js";
 import type { UserInterruptionManager } from "../../types/user-interruptions.js";
 
 import { createInterface } from "node:readline";
+import { styleText } from "node:util";
 
 import { assertHardhatInvariant } from "@nomicfoundation/hardhat-errors";
 import { AsyncMutex } from "@nomicfoundation/hardhat-utils/synchronization";
-import chalk from "chalk";
 
 export class UserInterruptionManagerImplementation
   implements UserInterruptionManager
@@ -71,7 +71,7 @@ async function defaultDisplayMessage(
   interruptor: string,
   message: string,
 ) {
-  console.log(chalk.blue(`[${interruptor}]`) + ` ${message}`);
+  console.log(styleText("blue", `[${interruptor}]`) + ` ${message}`);
 }
 
 async function defaultRequestInput(
@@ -86,7 +86,7 @@ async function defaultRequestInput(
 
   return await new Promise<string>((resolve) => {
     rl.question(
-      chalk.blue(`[${interruptor}]`) + ` ${inputDescription}: `,
+      styleText("blue", `[${interruptor}]`) + ` ${inputDescription}: `,
       (answer) => {
         resolve(answer);
         rl.close();
@@ -140,7 +140,7 @@ async function defaultRequestSecretInput(
 
   return await new Promise<string>((resolve) => {
     rl.question(
-      chalk.blue(`[${interruptor}]`) + ` ${inputDescription}: `,
+      styleText("blue", `[${interruptor}]`) + ` ${inputDescription}: `,
       (answer) => {
         resolve(answer);
         rl.close();

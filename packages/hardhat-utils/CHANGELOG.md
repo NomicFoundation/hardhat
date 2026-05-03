@@ -1,5 +1,21 @@
 # @nomicfoundation/hardhat-utils
 
+## 4.1.0
+
+### Minor Changes
+
+- [#8205](https://github.com/NomicFoundation/hardhat/pull/8205) [`99a4556`](https://github.com/NomicFoundation/hardhat/commit/99a4556698e1d0776951fb160641f5e2529b68ee) Thanks [@alcuadrado](https://github.com/alcuadrado)! - Introduce the SharedPromiseCache synchronization primitive
+
+### Patch Changes
+
+- [#8219](https://github.com/NomicFoundation/hardhat/pull/8219) [`2cad309`](https://github.com/NomicFoundation/hardhat/commit/2cad309eb8d35fcc5d2aba5d75a5af4d63d50508) Thanks [@schaable](https://github.com/schaable)! - Improved performance by replacing the semver dependency with a lightweight in-tree implementation.
+
+- [#8196](https://github.com/NomicFoundation/hardhat/pull/8196) [`73436aa`](https://github.com/NomicFoundation/hardhat/commit/73436aaa1ddac805f8d855627b5b40ad69cf7d2e) Thanks [@alcuadrado](https://github.com/alcuadrado)! - Export missing error types
+
+- [#8207](https://github.com/NomicFoundation/hardhat/pull/8207) [`d594209`](https://github.com/NomicFoundation/hardhat/commit/d59420968bffca83e1ad2712c6881d19cc7e1a99) Thanks [@alcuadrado](https://github.com/alcuadrado)! - Improved performance by replacing the debug logging library with a lightweight in-tree implementation.
+
+- [#8189](https://github.com/NomicFoundation/hardhat/pull/8189) [`b5ca1ae`](https://github.com/NomicFoundation/hardhat/commit/b5ca1aee1eb2571ec23f54ac8a9b2c39a90361c6) Thanks [@alcuadrado](https://github.com/alcuadrado)! - Introduce a TrueCasePathResolver class to optimize repeated filesystem casing resolution
+
 ## 4.0.5
 
 ### Patch Changes

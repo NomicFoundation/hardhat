@@ -4,7 +4,7 @@ import type { PackageJson } from "@nomicfoundation/hardhat-utils/package";
 import assert from "node:assert/strict";
 import fsPromises from "node:fs/promises";
 import path from "node:path";
-import { describe, it, mock } from "node:test";
+import { afterEach, beforeEach, describe, it, mock } from "node:test";
 
 import { HardhatError } from "@nomicfoundation/hardhat-errors";
 import {
@@ -581,6 +581,77 @@ describe("installProjectDependencies", async () => {
         !(await exists("node_modules")),
         "no modules should have been installed",
       );
+    },
+  );
+
+  describe(
+    "when the package manager spawn fails",
+    {
+      skip:
+        process.platform === "win32"
+          ? "this test relies on a POSIX shell to override the package manager"
+          : false,
+    },
+    () => {
+      let originalPath: string | undefined;
+      let originalUserAgent: string | undefined;
+
+      beforeEach(async () => {
+        // Put a fake `npm` that always exits non-zero first in PATH so the
+        // installation spawn fails deterministically, without needing the
+        // network or a real package manager.
+        const fakeBinDir = path.join(process.cwd(), "fake-bin");
+        await ensureDir(fakeBinDir);
+        const fakeNpmPath = path.join(fakeBinDir, "npm");
+        await writeUtf8File(fakeNpmPath, "#!/bin/sh\nexit 1\n");
+        await fsPromises.chmod(fakeNpmPath, 0o755);
+
+        originalPath = process.env.PATH;
+        originalUserAgent = process.env.npm_config_user_agent;
+        process.env.PATH = `${fakeBinDir}${path.delimiter}${originalPath ?? ""}`;
+        // Force the package manager detection to fall back to npm so the spawn
+        // resolves to our stub.
+        delete process.env.npm_config_user_agent;
+      });
+
+      afterEach(() => {
+        if (originalPath === undefined) {
+          delete process.env.PATH;
+        } else {
+          process.env.PATH = originalPath;
+        }
+        if (originalUserAgent !== undefined) {
+          process.env.npm_config_user_agent = originalUserAgent;
+        }
+      });
+
+      it("should wrap installation failures in a HardhatError", async () => {
+        const [template] = await getTemplate("hardhat-3", "mocha-ethers");
+        await writeUtf8File("package.json", JSON.stringify({ type: "module" }));
+
+        await assertRejectsWithHardhatError(
+          installProjectDependencies(process.cwd(), template, true, false),
+          HardhatError.ERRORS.CORE.INIT.FAILED_TO_INSTALL_DEPENDENCIES,
+          {},
+        );
+      });
+
+      it("should wrap update failures in a HardhatError", async () => {
+        const [template] = await getTemplate("hardhat-3", "mocha-ethers");
+        await writeUtf8File(
+          "package.json",
+          JSON.stringify({
+            type: "module",
+            devDependencies: { hardhat: "0.0.0" },
+          }),
+        );
+
+        await assertRejectsWithHardhatError(
+          installProjectDependencies(process.cwd(), template, false, true),
+          HardhatError.ERRORS.CORE.INIT.FAILED_TO_INSTALL_DEPENDENCIES,
+          {},
+        );
+      });
     },
   );
 });

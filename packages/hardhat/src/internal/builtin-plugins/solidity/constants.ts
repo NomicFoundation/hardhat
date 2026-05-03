@@ -19,3 +19,6 @@ export const DEFAULT_OUTPUT_SELECTION: CompilerInput["settings"]["outputSelectio
       ],
     },
   };
+
+// This is the default that solc uses, which we also use during resolution
+export const SOLC_DEFAULT_OPTIMIZER_RUNS = 200;

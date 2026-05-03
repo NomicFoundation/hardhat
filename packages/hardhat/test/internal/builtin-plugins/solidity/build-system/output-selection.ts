@@ -1,16 +1,21 @@
 import type { CompilerOutput } from "../../../../../src/types/solidity.js";
+import type { SemverVersion } from "@nomicfoundation/hardhat-utils/fast-semver";
 
 import assert from "node:assert/strict";
 import path from "node:path";
 import { describe, it } from "node:test";
 
-import { gte } from "semver";
+import { assertHardhatInvariant } from "@nomicfoundation/hardhat-errors";
+import {
+  greaterThanOrEqual,
+  parseVersion,
+} from "@nomicfoundation/hardhat-utils/fast-semver";
 
 import { createHardhatRuntimeEnvironment } from "../../../../../src/internal/hre-initialization.js";
 
 import { useTestProjectTemplate } from "./resolver/helpers.js";
 
-const FIRST_VERSION_WITH_IMMUTABLE_REFERENCES = "0.6.5";
+const FIRST_VERSION_WITH_IMMUTABLE_REFERENCES: SemverVersion = [0, 6, 5];
 
 const CONTRACTS: Record<string, string> = {
   // Oldest version supported by hardhat
@@ -155,8 +160,13 @@ describe(
           "Expected evm.methodIdentifiers in output",
         );
 
-        const supportsImmutables = gte(
-          version,
+        const parsedVersion = parseVersion(version);
+        assertHardhatInvariant(
+          parsedVersion !== undefined,
+          `Invalid solc version: ${version}`,
+        );
+        const supportsImmutables = greaterThanOrEqual(
+          parsedVersion,
           FIRST_VERSION_WITH_IMMUTABLE_REFERENCES,
         );
 

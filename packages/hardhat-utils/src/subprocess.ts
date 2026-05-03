@@ -6,6 +6,8 @@ import {
 } from "./errors/subprocess.js";
 import { exists, isDirectory } from "./fs.js";
 
+export { SubprocessFileNotFoundError, SubprocessPathIsDirectoryError };
+
 /**
  * Spawns a detached subprocess to execute a given file with optional arguments.
  *

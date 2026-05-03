@@ -4,7 +4,11 @@ import {
   addStatementCoverageInstrumentation,
   latestSupportedSolidityVersion,
 } from "@nomicfoundation/edr";
-import { satisfies } from "semver";
+import { assertHardhatInvariant } from "@nomicfoundation/hardhat-errors";
+import {
+  lowerThanOrEqual,
+  parseVersion,
+} from "@nomicfoundation/hardhat-utils/fast-semver";
 
 /**
  * Instruments a solidity source file as part of a compilation job. i.e. the
@@ -37,8 +41,23 @@ export function instrumentSolidityFileForCompilationJob({
   instrumentationVersion: string;
 } {
   const latestSupportedVersion = latestSupportedSolidityVersion();
+  const parsedLatestSupportedVersion = parseVersion(latestSupportedVersion);
+  assertHardhatInvariant(
+    parsedLatestSupportedVersion !== undefined,
+    `Invalid latest supported solidity version: ${latestSupportedVersion}`,
+  );
   let instrumentationVersion = compilationJobSolcVersion;
-  if (!satisfies(instrumentationVersion, `<=${latestSupportedVersion}`)) {
+  const parsedInstrumentationVersion = parseVersion(instrumentationVersion);
+  assertHardhatInvariant(
+    parsedInstrumentationVersion !== undefined,
+    `Invalid solc version: ${instrumentationVersion}`,
+  );
+  if (
+    !lowerThanOrEqual(
+      parsedInstrumentationVersion,
+      parsedLatestSupportedVersion,
+    )
+  ) {
     instrumentationVersion = latestSupportedVersion;
   }
   const { source, metadata } = addStatementCoverageInstrumentation(

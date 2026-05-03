@@ -1,19 +1,33 @@
+import type { SemverVersion } from "@nomicfoundation/hardhat-utils/fast-semver";
+
 import os from "node:os";
 
-import semver from "semver";
+import { HardhatError } from "@nomicfoundation/hardhat-errors";
+import {
+  greaterThanOrEqual,
+  lowerThan,
+  parseVersion,
+} from "@nomicfoundation/hardhat-utils/fast-semver";
 
 // The first solc version with official ARM64 Linux builds
-export const FIRST_OFFICIAL_ARM64_SOLC_VERSION = "0.8.31";
+export const FIRST_OFFICIAL_ARM64_SOLC_VERSION: SemverVersion = [0, 8, 31];
 
 // The lowest solc version available in the frozen ARM64 mirror repo
 // (https://github.com/NomicFoundation/solc-linux-arm64-mirror/tree/main/public/linux/aarch64)
-export const FIRST_ARM64_MIRROR_SOLC_VERSION = "0.5.0";
+export const FIRST_ARM64_MIRROR_SOLC_VERSION: SemverVersion = [0, 5, 0];
 
 /**
  * Determines if a solc version has an official ARM64 Linux build.
  */
 export function hasOfficialArm64Build(version: string): boolean {
-  return semver.gte(version, FIRST_OFFICIAL_ARM64_SOLC_VERSION);
+  const parsed = parseVersion(version);
+  if (parsed === undefined) {
+    throw new HardhatError(
+      HardhatError.ERRORS.CORE.SOLIDITY.INVALID_SOLC_VERSION,
+      { version },
+    );
+  }
+  return greaterThanOrEqual(parsed, FIRST_OFFICIAL_ARM64_SOLC_VERSION);
 }
 
 /**
@@ -21,9 +35,16 @@ export function hasOfficialArm64Build(version: string): boolean {
  * in the community mirror (versions 0.5.0–0.8.30).
  */
 export function hasArm64MirrorBuild(version: string): boolean {
+  const parsed = parseVersion(version);
+  if (parsed === undefined) {
+    throw new HardhatError(
+      HardhatError.ERRORS.CORE.SOLIDITY.INVALID_SOLC_VERSION,
+      { version },
+    );
+  }
   return (
-    semver.gte(version, FIRST_ARM64_MIRROR_SOLC_VERSION) === true &&
-    semver.lt(version, FIRST_OFFICIAL_ARM64_SOLC_VERSION) === true
+    greaterThanOrEqual(parsed, FIRST_ARM64_MIRROR_SOLC_VERSION) &&
+    lowerThan(parsed, FIRST_OFFICIAL_ARM64_SOLC_VERSION)
   );
 }
 

@@ -1,6 +1,6 @@
 {
   "name": "@nomicfoundation/hardhat-utils",
-  "version": "4.0.5",
+  "version": "4.1.0",
   "description": "Utilities for Hardhat and its plugins",
   "homepage": "https://github.com/NomicFoundation/hardhat/tree/main/packages/hardhat-utils",
   "repository": {
@@ -23,6 +23,7 @@
     "./env": "./dist/src/env.js",
     "./error": "./dist/src/error.js",
     "./eth": "./dist/src/eth.js",
+    "./fast-semver": "./dist/src/fast-semver.js",
     "./format": "./dist/src/format.js",
     "./fs": "./dist/src/fs.js",
     "./global-dir": "./dist/src/global-dir.js",
@@ -67,7 +68,7 @@
     "README.md"
   ],
   "devDependencies": {
-    "@nomicfoundation/hardhat-node-test-reporter": "workspace:^3.0.5",
+    "@nomicfoundation/hardhat-node-test-reporter": "workspace:^3.0.6",
     "@types/bn.js": "^5.1.5",
     "@types/node": "^22.0.0",
     "c8": "^9.1.0",

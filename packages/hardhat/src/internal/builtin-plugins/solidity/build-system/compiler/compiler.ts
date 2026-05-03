@@ -3,6 +3,7 @@ import type {
   CompilerOutput,
 } from "../../../../../types/solidity/compiler-io.js";
 import type { Compiler } from "../../../../../types/solidity/compiler.js";
+import type { SemverVersion } from "@nomicfoundation/hardhat-utils/fast-semver";
 
 import { spawn } from "node:child_process";
 import fsPromises from "node:fs/promises";
@@ -17,12 +18,18 @@ import {
 } from "@nomicfoundation/hardhat-errors";
 import { ensureError } from "@nomicfoundation/hardhat-utils/error";
 import {
+  greaterThanOrEqual,
+  parseVersion,
+} from "@nomicfoundation/hardhat-utils/fast-semver";
+import {
   mkdtemp,
   readJsonFileAsStream,
   remove,
 } from "@nomicfoundation/hardhat-utils/fs";
 import { createNonClosingWriter } from "@nomicfoundation/hardhat-utils/stream";
-import * as semver from "semver";
+
+const NO_IMPORT_CALLBACK_MIN_VERSION: SemverVersion = [0, 8, 22];
+const BASE_PATH_MIN_VERSION: SemverVersion = [0, 6, 9];
 
 /**
  * Spawns a compilation process and returns its output.
@@ -163,10 +170,17 @@ export class NativeCompiler implements Compiler {
     // Logic to make sure that solc default import callback is not being used.
     // If solcVersion is not defined or <= 0.6.8, do not add extra args.
     if (this.version !== undefined) {
-      if (semver.gte(this.version, "0.8.22")) {
+      const parsed = parseVersion(this.version);
+      if (parsed === undefined) {
+        throw new HardhatError(
+          HardhatError.ERRORS.CORE.SOLIDITY.INVALID_SOLC_VERSION,
+          { version: this.version },
+        );
+      }
+      if (greaterThanOrEqual(parsed, NO_IMPORT_CALLBACK_MIN_VERSION)) {
         // version >= 0.8.22
         args.push("--no-import-callback");
-      } else if (semver.gte(this.version, "0.6.9")) {
+      } else if (greaterThanOrEqual(parsed, BASE_PATH_MIN_VERSION)) {
         // version >= 0.6.9
         const tmpFolder = await mkdtemp("hardhat-solc-");
         args.push(`--base-path`);
