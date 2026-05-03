@@ -316,9 +316,21 @@ export async function getAllFilesMatching(
   matches?: (absolutePathToFile: string) => Promise<boolean> | boolean,
   directoryFilter?: (absolutePathToDir: string) => Promise<boolean> | boolean,
 ): Promise<string[]> {
+  const results: string[] = [];
+  await collectAllFilesMatching(dirFrom, results, matches, directoryFilter);
+
+  return results;
+}
+
+async function collectAllFilesMatching(
+  dirFrom: string,
+  results: string[],
+  matches?: (absolutePathToFile: string) => Promise<boolean> | boolean,
+  directoryFilter?: (absolutePathToDir: string) => Promise<boolean> | boolean,
+): Promise<void> {
   const dirContent = await readdirWithFileTypesOrEmpty(dirFrom);
 
-  const results = await Promise.all(
+  await Promise.all(
     dirContent.map(async (dirent) => {
       const absolutePathToFile = path.join(dirFrom, dirent.name);
       if (await isDirectoryDirentAware(absolutePathToFile, dirent)) {
@@ -326,23 +338,20 @@ export async function getAllFilesMatching(
           directoryFilter === undefined ||
           (await directoryFilter(absolutePathToFile))
         ) {
-          return await getAllFilesMatching(
+          await collectAllFilesMatching(
             absolutePathToFile,
+            results,
             matches,
             directoryFilter,
           );
         }
 
-        return [];
+        return;
       } else if (matches === undefined || (await matches(absolutePathToFile))) {
-        return absolutePathToFile;
-      } else {
-        return [];
+        results.push(absolutePathToFile);
       }
     }),
   );
-
-  return results.flat();
 }
 
 /**
@@ -364,24 +373,34 @@ export async function getAllDirectoriesMatching(
   dirFrom: string,
   matches?: (absolutePathToDir: string) => Promise<boolean> | boolean,
 ): Promise<string[]> {
+  const results: string[] = [];
+  await collectAllDirectoriesMatching(dirFrom, results, matches);
+
+  return results;
+}
+
+async function collectAllDirectoriesMatching(
+  dirFrom: string,
+  results: string[],
+  matches?: (absolutePathToDir: string) => Promise<boolean> | boolean,
+): Promise<void> {
   const dirContent = await readdirWithFileTypesOrEmpty(dirFrom);
 
-  const results = await Promise.all(
+  await Promise.all(
     dirContent.map(async (dirent) => {
       const absolutePathToFile = path.join(dirFrom, dirent.name);
       if (!(await isDirectoryDirentAware(absolutePathToFile, dirent))) {
-        return [];
+        return;
       }
 
       if (matches === undefined || (await matches(absolutePathToFile))) {
-        return absolutePathToFile;
+        results.push(absolutePathToFile);
+        return;
       }
 
-      return await getAllDirectoriesMatching(absolutePathToFile, matches);
+      await collectAllDirectoriesMatching(absolutePathToFile, results, matches);
     }),
   );
-
-  return results.flat();
 }
 
 /**

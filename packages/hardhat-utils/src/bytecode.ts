@@ -13,6 +13,12 @@ import {
   checkProvidedLibraryAddresses,
 } from "./internal/bytecode.js";
 
+interface BytecodeReplacement {
+  start: number;
+  length: number;
+  value: string;
+}
+
 /**
  * Resolves the linked bytecode for a given contract artifact by substituting
  * the required library placeholders within the bytecode with the provided
@@ -71,7 +77,7 @@ export function linkBytecode(
   libraries: LibraryLink[],
 ): PrefixedHexString {
   const { bytecode, linkReferences } = artifact;
-  let linkedBytecode = bytecode;
+  const replacements: BytecodeReplacement[] = [];
 
   for (const { sourceName, libraryName, address } of libraries) {
     const contractLinkReferences =
@@ -79,12 +85,38 @@ export function linkBytecode(
     const unprefixedAddress = getUnprefixedHexString(address);
 
     for (const { start, length } of contractLinkReferences) {
-      linkedBytecode =
-        linkedBytecode.substring(0, 2 + start * 2) +
-        unprefixedAddress +
-        linkedBytecode.substring(2 + (start + length) * 2);
+      replacements.push({
+        start: 2 + start * 2,
+        length: length * 2,
+        value: unprefixedAddress,
+      });
     }
   }
 
-  return getPrefixedHexString(linkedBytecode);
+  return getPrefixedHexString(
+    applyBytecodeReplacements(bytecode, replacements),
+  );
+}
+
+function applyBytecodeReplacements(
+  bytecode: string,
+  replacements: BytecodeReplacement[],
+): string {
+  if (replacements.length === 0) {
+    return bytecode;
+  }
+
+  replacements.sort((a, b) => a.start - b.start);
+
+  const parts: string[] = [];
+  let position = 0;
+
+  for (const { start, length, value } of replacements) {
+    parts.push(bytecode.slice(position, start), value);
+    position = start + length;
+  }
+
+  parts.push(bytecode.slice(position));
+
+  return parts.join("");
 }

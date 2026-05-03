@@ -334,9 +334,10 @@ function _resolveFutureSenders(
   exStateIds: string[],
 ): string[] {
   const futures = getFuturesFromModule(ignitionModule);
+  const exStateIdSet = new Set(exStateIds);
 
   const senders: string[] = futures
-    .filter((f) => !exStateIds.includes(f.id))
+    .filter((f) => !exStateIdSet.has(f.id))
     .map((f) => _pickFrom(f, accounts, defaultSender))
     .filter((x): x is string => x !== null);
 

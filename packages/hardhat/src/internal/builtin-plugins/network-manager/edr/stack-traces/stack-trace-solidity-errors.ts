@@ -29,24 +29,23 @@ export function createSolidityErrorWithStackTrace(
 ): SolidityError {
   const originalPrepareStackTrace = Error.prepareStackTrace;
 
+  assertHardhatInvariant(
+    originalPrepareStackTrace !== undefined,
+    "Error.prepareStackTrace should be defined",
+  );
+
   try {
     Error.prepareStackTrace = (error, stack) => {
       // Skip error management related stack traces
-      const adjustedStack = stack.slice(1);
+      const [, ...adjustedStack] = stack;
 
+      const prefix = [];
       for (const entry of stackTrace) {
         const callsite = encodeStackTraceEntry(entry);
-        if (callsite !== undefined) {
-          adjustedStack.unshift(callsite);
-        }
+        if (callsite !== undefined) prefix.push(callsite);
       }
-
-      assertHardhatInvariant(
-        originalPrepareStackTrace !== undefined,
-        "Error.prepareStackTrace should be defined",
-      );
-
-      return originalPrepareStackTrace(error, adjustedStack);
+      prefix.reverse();
+      return originalPrepareStackTrace(error, [...prefix, ...adjustedStack]);
     };
 
     const message =
