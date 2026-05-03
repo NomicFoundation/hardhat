@@ -1,11 +1,14 @@
+import type Rfdc from "rfdc";
+
 import { isObject } from "../lang.js";
 
-// We don't load rfdc and fast-equals on startup because they add unnecessary
-// overhead when this module is transitively imported but deep clone/equal
-// are not used.
-let clone: (<T>(input: T) => T) | null = null;
-export async function getDeepCloneFunction(): Promise<<T>(input: T) => T> {
-  if (clone === null) {
+// We don't load rfdc on startup because it adds unnecessary
+// overhead when this module is transitively imported but deep clone
+// is not used.
+let clone: ReturnType<typeof Rfdc> | undefined;
+
+export async function getDeepCloneFunction(): Promise<ReturnType<typeof Rfdc>> {
+  if (clone === undefined) {
     const { default: rfdc } = await import("rfdc");
     clone = rfdc();
   }
@@ -68,6 +71,9 @@ export async function customFastEqual<T>(x: T, y: T): Promise<boolean> {
     return cachedCustomEqual(x, y);
   }
 
+  // We don't load fast-equals on startup because it adds unnecessary
+  // overhead when this module is transitively imported but deep equal
+  // is not used.
   const { createCustomEqual } = await import("fast-equals");
 
   cachedCustomEqual = createCustomEqual({

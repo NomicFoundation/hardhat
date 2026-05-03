@@ -1,3 +1,4 @@
+import type { JsonTypes, ParsedElementInfo } from "@streamparser/json-node";
 import type { FileHandle } from "node:fs/promises";
 
 import fsPromises from "node:fs/promises";
@@ -242,8 +243,10 @@ export async function readJsonFileAsStream<T>(
     const result: T | undefined = await pipeline(
       fileReadStream,
       jsonParser,
-      async (elements: AsyncIterable<{ value: any }>): Promise<any | undefined> => {
-        let value: unknown;
+      async (
+        elements: AsyncIterable<ParsedElementInfo.ParsedElementInfo>,
+      ): Promise<any | undefined> => {
+        let value: JsonTypes.JsonPrimitive | JsonTypes.JsonStruct | undefined;
         for await (const element of elements) {
           value = element.value;
         }

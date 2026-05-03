@@ -1,11 +1,10 @@
+import type { keccak256 as Keccak256 } from "ethereum-cryptography/keccak";
+import type { sha256 as Sha256 } from "ethereum-cryptography/sha256";
+
 // We don't load ethereum-cryptography on startup because it's slow to
 // initialize and this module is transitively imported from many places.
-let keccak256Impl:
-  | typeof import("ethereum-cryptography/keccak").keccak256
-  | undefined;
-let sha256Impl:
-  | typeof import("ethereum-cryptography/sha256").sha256
-  | undefined;
+let keccak256Impl: typeof Keccak256 | undefined;
+let sha256Impl: typeof Sha256 | undefined;
 
 /**
  * Computes the Keccak-256 hash of the input bytes.

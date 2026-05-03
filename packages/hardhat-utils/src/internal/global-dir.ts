@@ -1,12 +1,6 @@
-export const HARDHAT_PACKAGE_NAME = "hardhat";
+import type { Paths } from "env-paths";
 
-export interface Paths {
-  data: string;
-  config: string;
-  cache: string;
-  log: string;
-  temp: string;
-}
+export const HARDHAT_PACKAGE_NAME = "hardhat";
 
 // We don't load env-paths on startup because this module is transitively
 // imported from many places but generatePaths is rarely called during
