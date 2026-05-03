@@ -57,6 +57,9 @@ export function deepMergeImpl<T extends object, S extends object>(
   return result;
 }
 
+// We don't load fast-equals on startup because it adds unnecessary
+// overhead when this module is transitively imported but deep equal
+// is not used.
 let cachedCustomEqual: ((a: unknown, b: unknown) => boolean) | undefined;
 
 /**
@@ -71,9 +74,6 @@ export async function customFastEqual<T>(x: T, y: T): Promise<boolean> {
     return cachedCustomEqual(x, y);
   }
 
-  // We don't load fast-equals on startup because it adds unnecessary
-  // overhead when this module is transitively imported but deep equal
-  // is not used.
   const { createCustomEqual } = await import("fast-equals");
 
   cachedCustomEqual = createCustomEqual({

@@ -1,4 +1,5 @@
-import type { JsonTypes, ParsedElementInfo } from "@streamparser/json-node";
+import type * as StreamParserJson from "@streamparser/json-node";
+import type * as JsonStreamStringify from "json-stream-stringify";
 import type { FileHandle } from "node:fs/promises";
 
 import fsPromises from "node:fs/promises";
@@ -21,6 +22,14 @@ import {
   isDirectoryDirentAware,
   readdirWithFileTypesOrEmpty,
 } from "./internal/fs.js";
+
+// We don't load @streamparser/json-node on startup because it's only
+// used by readJsonFileAsStream for very large JSON files.
+let streamParserJson: typeof StreamParserJson | undefined;
+
+// We don't load json-stream-stringify on startup because it's only
+// used by writeJsonFileAsStream for very large JSON objects.
+let jsonStreamStringify: typeof JsonStreamStringify | undefined;
 
 /**
  * Determines the canonical pathname for a given path, resolving any symbolic
@@ -230,13 +239,13 @@ export async function readJsonFileAsStream<T>(
 
     const fileReadStream = fileHandle.createReadStream();
 
-    // Lazy-load @streamparser/json-node to avoid paying its import cost at
-    // startup — this function is only used for very large JSON files.
-    const { JSONParser } = await import("@streamparser/json-node");
+    if (streamParserJson === undefined) {
+      streamParserJson = await import("@streamparser/json-node");
+    }
 
     // NOTE: We set a separator to disable self-closing to be able to use the parser
     // in the stream.pipeline context; see https://github.com/juanjoDiaz/streamparser-json/issues/47
-    const jsonParser = new JSONParser({
+    const jsonParser = new streamParserJson.JSONParser({
       separator: "",
     });
 
@@ -244,9 +253,12 @@ export async function readJsonFileAsStream<T>(
       fileReadStream,
       jsonParser,
       async (
-        elements: AsyncIterable<ParsedElementInfo.ParsedElementInfo>,
+        elements: AsyncIterable<StreamParserJson.ParsedElementInfo.ParsedElementInfo>,
       ): Promise<any | undefined> => {
-        let value: JsonTypes.JsonPrimitive | JsonTypes.JsonStruct | undefined;
+        let value:
+          | StreamParserJson.JsonTypes.JsonPrimitive
+          | StreamParserJson.JsonTypes.JsonStruct
+          | undefined;
         for await (const element of elements) {
           value = element.value;
         }
@@ -335,11 +347,11 @@ export async function writeJsonFileAsStream<T>(
   try {
     fileHandle = await fsPromises.open(absolutePathToFile, "w");
 
-    // Lazy-load json-stream-stringify to avoid paying its import cost at
-    // startup — this function is only used for very large JSON objects.
-    const { JsonStreamStringify } = await import("json-stream-stringify");
+    if (jsonStreamStringify === undefined) {
+      jsonStreamStringify = await import("json-stream-stringify");
+    }
 
-    const jsonStream = new JsonStreamStringify(object);
+    const jsonStream = new jsonStreamStringify.JsonStreamStringify(object);
     const fileWriteStream = fileHandle.createWriteStream();
 
     await pipeline(jsonStream, fileWriteStream);
