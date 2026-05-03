@@ -1,7 +1,7 @@
 import { randomUUID } from "node:crypto";
-import * as fs from "node:fs";
-import * as os from "node:os";
-import * as path from "node:path";
+import fs from "node:fs";
+import { hostname } from "node:os";
+import path from "node:path";
 
 import { createDebug } from "./debug.js";
 import { ensureError, ensureNodeErrnoExceptionError } from "./error.js";
@@ -382,11 +382,11 @@ export class MultiProcessMutex {
     }
 
     // Different hostname — can't verify PID remotely
-    if (metadata.hostname !== os.hostname()) {
+    if (metadata.hostname !== hostname()) {
       throw new IncompatibleHostnameMultiProcessMutexError(
         lockPath,
         metadata.hostname,
-        os.hostname(),
+        hostname(),
       );
     }
 
@@ -475,7 +475,7 @@ export class MultiProcessMutex {
   #buildMetadata(): LockMetadata {
     return {
       pid: process.pid,
-      hostname: os.hostname(),
+      hostname: hostname(),
       createdAt: Date.now(),
       ...(process.getuid !== undefined ? { uid: process.getuid() } : {}),
       platform: process.platform,
