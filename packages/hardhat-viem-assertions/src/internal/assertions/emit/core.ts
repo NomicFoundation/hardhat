@@ -1,10 +1,8 @@
-import type {
-  ContractAbis,
-  ContractReturnType,
-  HardhatViemHelpers,
-} from "@nomicfoundation/hardhat-viem/types";
+import type { AbiHolder } from "../../../abi-types.js";
+import type { HardhatViemHelpers } from "@nomicfoundation/hardhat-viem/types";
 import type { ChainType } from "hardhat/types/network";
 import type {
+  Abi,
   AbiEvent,
   ContractEventName,
   ReadContractReturnType,
@@ -18,14 +16,13 @@ import { parseEventLogs } from "viem";
 import { settle } from "../../helpers.js";
 
 export async function handleEmit<
-  ContractName extends keyof ContractAbis,
-  EventName extends ContractEventName<ContractAbis[ContractName]>,
+  TContract extends AbiHolder<Abi>,
   ChainTypeT extends ChainType | string = "generic",
 >(
   viem: HardhatViemHelpers<ChainTypeT>,
   contractFn: Promise<ReadContractReturnType | WriteContractReturnType>,
-  contract: ContractReturnType<ContractName>,
-  eventName: EventName,
+  contract: TContract,
+  eventName: ContractEventName<TContract["abi"]>,
 ): Promise<Array<{ args?: Record<string, any> }>> {
   // Settle `contractFn` first so the tx doesn't leak into the next test, but
   // defer rethrowing so ABI errors still take precedence over tx reverts.
