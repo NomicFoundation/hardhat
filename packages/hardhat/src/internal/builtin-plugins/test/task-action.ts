@@ -25,6 +25,7 @@ interface TestActionArguments {
   chainType: string;
   grep: string | undefined;
   noCompile: boolean;
+  invert: boolean;
 }
 
 // Old plugins may only return { failed, passed } without skipped/todo,
@@ -51,7 +52,7 @@ function isTestRunResult(
 }
 
 const runAllTests: NewTaskActionFunction<TestActionArguments> = async (
-  { testFiles, chainType, grep, noCompile, ...otherArgs },
+  { testFiles, chainType, grep, noCompile, invert, ...otherArgs },
   hre,
 ): Promise<Result<void, void>> => {
   // If this code is executed, it means the user has not specified a test runner.
@@ -101,6 +102,10 @@ const runAllTests: NewTaskActionFunction<TestActionArguments> = async (
       grep,
       noCompile: subtask.options.has("noCompile"),
     };
+
+    if (subtask.options.has("invert")) {
+      args.invert = invert;
+    }
 
     if (subtask.options.has("chainType")) {
       args.chainType = chainType;

@@ -20,6 +20,7 @@ interface TestActionArguments {
   bail: boolean;
   grep?: string;
   noCompile: boolean;
+  invert: boolean;
 }
 
 type PerformancePhase =
@@ -65,7 +66,7 @@ async function getTestFiles(
 
 let testsAlreadyRun = false;
 const testWithHardhat: NewTaskActionFunction<TestActionArguments> = async (
-  { testFiles, bail, grep, noCompile },
+  { testFiles, bail, grep, noCompile, invert },
   hre,
 ): Promise<Result<TestRunResult, TestRunResult>> => {
   // Set an environment variable that plugins can use to detect when a process is running tests
@@ -147,6 +148,10 @@ const testWithHardhat: NewTaskActionFunction<TestActionArguments> = async (
 
   if (grep !== undefined && grep !== "") {
     mochaConfig.grep = grep;
+  }
+
+  if (invert) {
+    mochaConfig.invert = true;
   }
 
   if (bail) {

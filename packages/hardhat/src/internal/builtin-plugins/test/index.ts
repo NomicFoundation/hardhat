@@ -29,6 +29,10 @@ const hardhatPlugin: HardhatPlugin = {
         defaultValue: undefined,
       })
       .addFlag({
+        name: "invert",
+        description: "Run tests that do NOT match the grep pattern",
+      })
+      .addFlag({
         name: "noCompile",
         description: "Do not compile the project before running the tests",
       })
