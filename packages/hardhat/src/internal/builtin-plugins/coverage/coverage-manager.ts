@@ -74,7 +74,7 @@ export class CoverageManagerImplementation implements CoverageManager {
   /**
    * @private exposed for testing purposes only
    */
-  public data: CoverageData = [];
+  public data: Map<string, number> = new Map();
 
   readonly #coveragePath: string;
 
@@ -91,8 +91,8 @@ export class CoverageManagerImplementation implements CoverageManager {
   }
 
   public async addData(data: CoverageData): Promise<void> {
-    for (const entry of data) {
-      this.data.push(entry);
+    for (const tag of data) {
+      this.data.set(tag, (this.data.get(tag) ?? 0) + 1);
     }
 
     log("Added data", JSON.stringify(data, null, 2));
@@ -122,14 +122,14 @@ export class CoverageManagerImplementation implements CoverageManager {
   public async clearData(id: string): Promise<void> {
     const dataPath = await this.#getDataPath(id);
     await remove(dataPath);
-    this.data = [];
+    this.data = new Map();
     log("Cleared data from disk and memory");
   }
 
   public async saveData(id: string): Promise<void> {
     const dataPath = await this.#getDataPath(id);
     const filePath = path.join(dataPath, `${crypto.randomUUID()}.json`);
-    const data = this.data;
+    const data = Object.fromEntries(this.data);
     await writeJsonFile(filePath, data);
     log("Saved data", id, filePath);
   }
@@ -170,15 +170,19 @@ export class CoverageManagerImplementation implements CoverageManager {
    * @private exposed for testing purposes only
    */
   public async loadData(...ids: string[]): Promise<void> {
-    this.data = [];
+    this.data = new Map();
+
     for (const id of ids) {
       const dataPath = await this.#getDataPath(id);
       const filePaths = await getAllFilesMatching(dataPath);
+
       for (const filePath of filePaths) {
-        const entries = await readJsonFile<CoverageData>(filePath);
-        for (const entry of entries) {
-          this.data.push(entry);
+        const entries = await readJsonFile<Record<string, number>>(filePath);
+
+        for (const [tag, count] of Object.entries(entries)) {
+          this.data.set(tag, (this.data.get(tag) ?? 0) + count);
         }
+
         log("Loaded data", id, filePath);
       }
     }
@@ -188,7 +192,7 @@ export class CoverageManagerImplementation implements CoverageManager {
    * @private exposed for testing purposes only
    */
   public async getReport(): Promise<Report> {
-    const allExecutedTags = new Set(this.data);
+    const allExecutedTags = this.data;
 
     const reportPromises = Array.from(this.filesMetadata.entries()).map(
       async ([fileRelativePath, fileStatements]) => {
