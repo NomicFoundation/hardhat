@@ -1,5 +1,13 @@
 # hardhat
 
+## 3.4.4
+
+### Patch Changes
+
+- [#8213](https://github.com/NomicFoundation/hardhat/pull/8213) [`448da88`](https://github.com/NomicFoundation/hardhat/commit/448da88c9a221576c212d3a7e8eb5cc124087d70) Thanks [@kanej](https://github.com/kanej)! - Reduced internal memory usage during coverage test runs ([#8213](https://github.com/NomicFoundation/hardhat/pull/8213))
+
+- [#8197](https://github.com/NomicFoundation/hardhat/pull/8197) [`d3cb008`](https://github.com/NomicFoundation/hardhat/commit/d3cb0080e1a7a44cbfddfae879aa8bc23cfe818b) Thanks [@alcuadrado](https://github.com/alcuadrado)! - Update the error reporting logic to reduce noise
+
 ## 3.4.3
 
 ### Patch Changes
