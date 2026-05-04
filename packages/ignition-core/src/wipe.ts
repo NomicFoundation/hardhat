@@ -10,7 +10,7 @@ import { Wiper } from "./internal/wiper.js";
  * @param deploymentDir - the file directory of the deployment
  * @param futureId - the future to be cleared
  *
- * @beta
+ * @public
  */
 export async function wipe(
   deploymentDir: string,

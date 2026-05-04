@@ -5,7 +5,7 @@ import { exists, readdir } from "@nomicfoundation/hardhat-utils/fs";
  *
  * @param deploymentDir - the directory of the deployments
  *
- * @beta
+ * @public
  */
 export async function listDeployments(
   deploymentDir: string,

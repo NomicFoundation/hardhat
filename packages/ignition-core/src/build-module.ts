@@ -14,7 +14,7 @@ import { isValidIgnitionIdentifier } from "./internal/utils/identifier-validator
  * IgnitionModuleBuilder to configure the deployment
  * @returns a module definition
  *
- * @beta
+ * @public
  */
 export function buildModule<
   ModuleIdT extends string,

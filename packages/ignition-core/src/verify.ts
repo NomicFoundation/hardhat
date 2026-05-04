@@ -21,7 +21,7 @@ import { findExecutionStatesByType } from "./internal/views/find-execution-state
  *
  * @param deploymentDir - the file directory of the deployment
  *
- * @beta
+ * @public
  */
 export async function* getVerificationInformation(
   deploymentDir: string,

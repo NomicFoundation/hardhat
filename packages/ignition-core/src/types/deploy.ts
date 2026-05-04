@@ -3,7 +3,7 @@ import type { ModuleParameters } from "./module.js";
 /**
  * Configuration options for the deployment.
  *
- * @beta
+ * @public
  */
 export interface DeployConfig {
   /**
@@ -50,7 +50,7 @@ export interface DeployConfig {
 /**
  * The result of running a deployment.
  *
- * @beta
+ * @public
  */
 export type DeploymentResult =
   | ValidationErrorDeploymentResult
@@ -62,7 +62,7 @@ export type DeploymentResult =
 /**
  * The different kinds of results that a deployment can produce.
  *
- * @beta
+ * @public
  */
 export enum DeploymentResultType {
   /**
@@ -95,7 +95,7 @@ export enum DeploymentResultType {
 /**
  * A deployment result where one or more futures failed validation.
  *
- * @beta
+ * @public
  */
 export interface ValidationErrorDeploymentResult {
   type: DeploymentResultType.VALIDATION_ERROR;
@@ -111,7 +111,7 @@ export interface ValidationErrorDeploymentResult {
 /**
  * A deployment result where one or more futures failed reconciliation.
  *
- * @beta
+ * @public
  */
 export interface ReconciliationErrorDeploymentResult {
   type: DeploymentResultType.RECONCILIATION_ERROR;
@@ -128,7 +128,7 @@ export interface ReconciliationErrorDeploymentResult {
  * A deployment result where one or more futures errored during execution or
  * timed out.
  *
- * @beta
+ * @public
  */
 export interface ExecutionErrorDeploymentResult {
   type: DeploymentResultType.EXECUTION_ERROR;
@@ -171,7 +171,7 @@ export interface ExecutionErrorDeploymentResult {
  * A deployment result where one or more futures from a previous run failed or timed out
  * and need their state wiped.
  *
- * @beta
+ * @public
  */
 export interface PreviousRunErrorDeploymentResult {
   type: DeploymentResultType.PREVIOUS_RUN_ERROR;
@@ -187,7 +187,7 @@ export interface PreviousRunErrorDeploymentResult {
 /**
  * The details of a deployed contract.
  *
- * @beta
+ * @public
  */
 export interface DeployedContract {
   id: string;
@@ -202,7 +202,7 @@ export interface DeployedContract {
  * The deployed contracts returned include the deployed contracts from previous
  * runs.
  *
- * @beta
+ * @public
  */
 export interface SuccessfulDeploymentResult {
   type: DeploymentResultType.SUCCESSFUL_DEPLOYMENT;
@@ -220,7 +220,7 @@ export interface SuccessfulDeploymentResult {
 /**
  * An object containing a map of module ID's to their respective ModuleParameters.
  *
- * @beta
+ * @public
  */
 export interface DeploymentParameters {
   [moduleId: string]: ModuleParameters;
@@ -229,7 +229,7 @@ export interface DeploymentParameters {
 /**
  * The config options for the deployment strategies.
  *
- * @beta
+ * @public
  */
 export interface StrategyConfig {
   basic: Record<PropertyKey, never>;

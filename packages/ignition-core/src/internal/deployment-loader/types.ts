@@ -4,7 +4,7 @@ import type { JournalMessage } from "../execution/types/messages.js";
 /**
  * Read and write to the deployment storage.
  *
- * @beta
+ * @public
  */
 export interface DeploymentLoader {
   recordToJournal(message: JournalMessage): Promise<void>;

@@ -40,7 +40,7 @@ import { getNetworkExecutionStates } from "./internal/views/execution-state/get-
  * @param requiredConfirmations - the number of confirmations required for the transaction to be considered confirmed
  * @param applyNewMessageFn - only used for ease of testing this function and should not be used otherwise
  *
- * @beta
+ * @public
  */
 export async function trackTransaction(
   deploymentDir: string,
