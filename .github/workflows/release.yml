@@ -254,17 +254,127 @@ jobs:
             git diff --color=always --no-index tarballs/$NORMALIZED_NAME/latest/package/package.json tarballs/$NORMALIZED_NAME/proposed/package/package.json || true
           done
 
+  notify-deploy:
+    name: Notify pre-deploy to Slack
+    needs: [pack, review]
+    if: needs.pack.outputs.hasPackages == 'true'
+    timeout-minutes: 5
+    runs-on: ubuntu-latest
+    permissions: {} # Slack webhook only, no GitHub API calls
+    steps:
+      - name: Notify pre-deploy
+        continue-on-error: true
+        uses: slackapi/slack-github-action@91efab103c0de0a537f72a35f6b8cda0ee76bf0a # v2.1.1
+        with:
+          webhook: ${{ secrets.PUBLISHING_NOTIFICATIONS_SLACK_WEBHOOK_URL }}
+          webhook-type: incoming-webhook
+          payload: |
+            {
+              "text": "Deployment review requested by ${{ github.actor }}",
+              "blocks": [
+                {
+                  "type": "section",
+                  "text": {
+                    "type": "mrkdwn",
+                    "text": "*Deployment review requested by ${{ github.actor }}*"
+                  }
+                },
+                {
+                  "type": "section",
+                  "text": {
+                    "type": "mrkdwn",
+                    "text": "<${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|${{ github.workflow }} #${{ github.run_number }}> / Publish packages"
+                  }
+                },
+                {
+                  "type": "section",
+                  "text": {
+                    "type": "mrkdwn",
+                    "text": "`npm-publish` waiting for review"
+                  }
+                },
+                {
+                  "type": "context",
+                  "elements": [
+                    {
+                      "type": "mrkdwn",
+                      "text": "${{ github.repository }}"
+                    }
+                  ]
+                }
+              ]
+            }
+
   publish:
     name: Publish packages
-    needs: review
+    needs: [pack, review, notify-deploy]
     if: needs.pack.outputs.hasPackages == 'true'
     timeout-minutes: 60
     runs-on: ubuntu-latest
     environment: npm-publish
     permissions:
-      actions: read # To download the tarball to publish
+      actions: read # To download the tarball to publish, and to read approvals for the deployment-approved notification
       id-token: write # Needed for npm Trusted Publishing (OIDC)
     steps:
+      - name: Get approver
+        id: approver
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          err=$(mktemp)
+          if approver=$(gh api "/repos/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}/approvals" --jq '.[0].user.login // empty' 2>"$err"); then
+            if [[ -z "$approver" ]]; then
+              echo "::warning::Approvals API returned no approver; falling back to github.actor=${GITHUB_ACTOR}"
+            fi
+          else
+            echo "::warning::Approvals API call failed: $(<"$err"); falling back to github.actor=${GITHUB_ACTOR}"
+            approver=
+          fi
+          echo "login=${approver:-$GITHUB_ACTOR}" >> "$GITHUB_OUTPUT"
+
+      - name: Notify deployment approved
+        continue-on-error: true
+        uses: slackapi/slack-github-action@91efab103c0de0a537f72a35f6b8cda0ee76bf0a # v2.1.1
+        with:
+          webhook: ${{ secrets.PUBLISHING_NOTIFICATIONS_SLACK_WEBHOOK_URL }}
+          webhook-type: incoming-webhook
+          payload: |
+            {
+              "text": "Deployment review approved by ${{ steps.approver.outputs.login }}",
+              "blocks": [
+                {
+                  "type": "section",
+                  "text": {
+                    "type": "mrkdwn",
+                    "text": "*Deployment review approved by ${{ steps.approver.outputs.login }}*\n:rocket: Publishing packages now"
+                  }
+                },
+                {
+                  "type": "section",
+                  "text": {
+                    "type": "mrkdwn",
+                    "text": "<${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|${{ github.workflow }} #${{ github.run_number }}>"
+                  }
+                },
+                {
+                  "type": "section",
+                  "text": {
+                    "type": "mrkdwn",
+                    "text": "Publish packages • `npm-publish`"
+                  }
+                },
+                {
+                  "type": "context",
+                  "elements": [
+                    {
+                      "type": "mrkdwn",
+                      "text": "${{ github.repository }}"
+                    }
+                  ]
+                }
+              ]
+            }
+
       - name: Download pnpm list json
         uses: actions/download-artifact@v5
         with:
