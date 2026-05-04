@@ -11,7 +11,6 @@ on:
     types: [opened, synchronize, reopened, labeled]
     branches:
       - "**"
-  workflow_dispatch:
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -22,6 +21,10 @@ jobs:
   tests:
     name: Validate Hardhat works correctly
     runs-on: ubuntu-latest
+    # Run validation tests for non-main branches to ensure that the branch is
+    # in a valid state before running the expensive regression benchmark.
+    # We assume that the main branch is always in a good state.
+    if: github.ref != 'refs/heads/main'
     steps:
       - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5
         with:
@@ -99,8 +102,8 @@ jobs:
           output-file-path: regression-report.json
           gh-repository: github.com/nomic-foundation-automation/hardhat-benchmark-results
           gh-pages-branch: main
-          benchmark-data-dir-path: hardhat-regression
-          github-token: ${{ secrets.GITHUB_TOKEN }}
+          benchmark-data-dir-path: hardhat3
+          github-token: ${{ secrets.BENCHMARK_GITHUB_TOKEN }}
           # Only push baseline on main-branch pushes; PRs only compare
           auto-push: ${{ github.ref == 'refs/heads/main' && github.event_name != 'pull_request' }}
           alert-threshold: "110%"
