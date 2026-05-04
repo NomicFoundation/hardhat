@@ -1,19 +1,69 @@
 import { execFileSync } from "node:child_process";
-import { existsSync } from "node:fs";
+import { existsSync, readFileSync, writeFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { installDependencies } from "../helpers/install.ts";
 import { git, which, ROOT_DIR } from "../helpers/shell.ts";
-import { log, logStep, logWarning } from "../helpers/log.ts";
-import { isVerdaccioRunning } from "../../verdaccio/helpers/shell.ts";
+import { fmt, log, logStep, logWarning } from "../helpers/log.ts";
+import {
+  isVerdaccioRunning,
+  VERDACCIO_URL,
+} from "../../verdaccio/helpers/shell.ts";
 import { loadScenario } from "../helpers/directory.ts";
 import { start as verdaccioStart } from "../../verdaccio/start.ts";
-import { publish as verdaccioPublish } from "../../verdaccio/publish.ts";
+import {
+  publish as verdaccioPublish,
+  sinceReleasePublish,
+} from "../../verdaccio/publish.ts";
 import { stop as verdaccioStop } from "../../verdaccio/stop.ts";
 import type { Scenario } from "../types.ts";
+
+export const ForceCheckout = {
+  Yes: "Yes",
+  No: "No",
+} as const;
+
+/**
+ * Enum for whether to force checkout in git operations.
+ *
+ * Used to avoid mixing boolean flags with different semantics
+ * (e.g. --force-publish).
+ */
+export type ForceCheckout = (typeof ForceCheckout)[keyof typeof ForceCheckout];
+
+export const ForcePublish = {
+  Yes: "Yes",
+  No: "No",
+} as const;
+
+/**
+ * Enum for whether to force publish packages to an already-running
+ * Verdaccio instance.
+ *
+ * Used to avoid mixing boolean flags with different semantics
+ * (e.g. --force-checkout).
+ */
+export type ForcePublish = (typeof ForcePublish)[keyof typeof ForcePublish];
+
+export const UseLocal = {
+  Yes: "Yes",
+  No: "No",
+} as const;
+
+/**
+ * Enum for whether to detect local package changes, publish to Verdaccio, and
+ * pin scenario dependencies to the published versions. Only applies when init runs.
+ *
+ * Used to avoid mixing boolean flags with different semantics
+ * (e.g. --force-checkout).
+ */
+export type UseLocal = (typeof UseLocal)[keyof typeof UseLocal];
 
 export async function init(
   e2eCloneDirectory: string,
   scenarioPath: string,
+  useLocal: UseLocal,
+  forceCheckout: ForceCheckout,
+  forcePublish: ForcePublish,
 ): Promise<void> {
   const scenario = loadScenario(e2eCloneDirectory, scenarioPath);
 
@@ -23,18 +73,46 @@ export async function init(
     return;
   }
 
-  const runTemporaryVerdaccioInstance = !isVerdaccioRunning();
+  const verdaccioAlreadyRunning = isVerdaccioRunning();
 
-  if (runTemporaryVerdaccioInstance) {
+  if (
+    useLocal === UseLocal.Yes &&
+    verdaccioAlreadyRunning &&
+    forcePublish === ForcePublish.No
+  ) {
+    log(
+      "A Verdaccio instance is already running. Skipping --use-local's\n" +
+        "  bump-and-publish step — the scenario will use whatever the running\n" +
+        "  registry already contains.\n\n" +
+        "  To force a fresh bump-and-publish to the running instance, pass\n" +
+        "  --force-publish. Or stop the running instance first:\n" +
+        "    pnpm verdaccio stop",
+    );
+  }
+
+  if (!verdaccioAlreadyRunning) {
     await verdaccioStart(true);
+  }
 
-    verdaccioPublish(false, true);
+  const startedVerdaccio = !verdaccioAlreadyRunning;
+  if (startedVerdaccio || forcePublish === ForcePublish.Yes) {
+    if (useLocal === UseLocal.Yes) {
+      sinceReleasePublish();
+    } else {
+      verdaccioPublish(false, true);
+    }
   }
 
   try {
-    initializeScenario(scenario);
+    setupScenario(scenario, forceCheckout);
+
+    if (useLocal === UseLocal.Yes) {
+      await upgradeLocalDependencies(scenario);
+    }
+
+    installScenarioDeps(scenario, useLocal === UseLocal.Yes);
   } finally {
-    if (runTemporaryVerdaccioInstance) {
+    if (startedVerdaccio) {
       verdaccioStop();
     }
   }
@@ -44,25 +122,25 @@ export async function init(
 }
 
 /**
- * Clone/setup a scenario repo and install hardhat from Verdaccio.
+ * Clone/setup a scenario repo and run preinstall scripts.
  * Idempotent: reuses existing checkouts (fetch + checkout + clean).
  */
-function initializeScenario(scenario: Scenario): void {
+function setupScenario(scenario: Scenario, forceCheckout: ForceCheckout): void {
   const { scenarioDir, workingDir, definition } = scenario;
   const submodules = definition.submodules ?? false;
 
   if (!existsSync(workingDir)) {
     // Fresh clone flow
     clone(workingDir, definition.repo);
-    checkout(workingDir, definition.commit);
+    checkout(workingDir, definition.commit, forceCheckout);
 
     if (submodules) {
       updateSubmodules(workingDir);
     }
   } else {
     // Re-init flow
-    fetch(workingDir, definition.repo);
-    checkout(workingDir, definition.commit);
+    fetch(workingDir, definition.repo, definition.commit);
+    checkout(workingDir, definition.commit, forceCheckout);
     clean(workingDir);
 
     if (submodules) {
@@ -78,8 +156,19 @@ function initializeScenario(scenario: Scenario): void {
       definition.env,
     );
   }
+}
 
-  if (scenario.definition.install !== undefined) {
+/**
+ * Install dependencies using the scenario's package manager or custom
+ * install script.
+ */
+function installScenarioDeps(
+  scenario: Scenario,
+  allowLockfileUpdates: boolean,
+): void {
+  const { scenarioDir, workingDir, definition } = scenario;
+
+  if (definition.install !== undefined) {
     runCustomInstallScript(
       resolve(scenarioDir, definition.install),
       scenarioDir,
@@ -87,7 +176,75 @@ function initializeScenario(scenario: Scenario): void {
       definition.env,
     );
   } else {
-    installDependencies(workingDir, definition.packageManager, definition.env);
+    installDependencies(
+      workingDir,
+      definition.packageManager,
+      allowLockfileUpdates,
+      definition.env,
+    );
+  }
+}
+
+/**
+ * Patch the scenario's package.json to pin hardhat / @nomicfoundation/*
+ * dependencies to the latest versions available in Verdaccio. Verdaccio
+ * merges locally published packages with npm (via proxy), so this returns
+ * bumped local versions where available and npm versions for everything else.
+ */
+async function upgradeLocalDependencies(scenario: Scenario): Promise<void> {
+  logStep("Upgrading dependencies to latest Verdaccio versions");
+
+  const pkgJsonPath = resolve(scenario.workingDir, "package.json");
+  const pkgJson = JSON.parse(readFileSync(pkgJsonPath, "utf-8"));
+
+  let updated = false;
+
+  for (const depField of ["dependencies", "devDependencies"] as const) {
+    const deps = pkgJson[depField] as Record<string, string> | undefined;
+
+    if (deps === undefined) {
+      continue;
+    }
+
+    for (const name of Object.keys(deps)) {
+      if (name !== "hardhat" && !name.startsWith("@nomicfoundation/")) {
+        continue;
+      }
+
+      const version = await getLatestFromVerdaccio(name);
+
+      if (version !== undefined) {
+        deps[name] = version;
+        updated = true;
+        log(`  ${fmt.pkg(name)} → ${fmt.version(version)}`);
+      }
+    }
+  }
+
+  if (updated) {
+    writeFileSync(pkgJsonPath, JSON.stringify(pkgJson, null, 2) + "\n");
+  } else {
+    log("No matching dependencies to update");
+  }
+}
+
+async function getLatestFromVerdaccio(
+  packageName: string,
+): Promise<string | undefined> {
+  try {
+    const response = await globalThis.fetch(`${VERDACCIO_URL}/${packageName}`);
+
+    if (!response.ok) {
+      return undefined;
+    }
+
+    const metadata = (await response.json()) as {
+      "dist-tags"?: { latest?: string };
+    };
+
+    return metadata["dist-tags"]?.latest;
+  } catch {
+    return undefined;
   }
 }
 
@@ -100,10 +257,14 @@ function clone(scenarioWorkingDir: string, repo: string): void {
   );
 }
 
-function fetch(scenarioWorkingDir: string, repo: string): void {
+function fetch(scenarioWorkingDir: string, repo: string, commit: string): void {
   logStep(`Fetching ${repo}`);
 
-  git(["fetch", "origin"], scenarioWorkingDir);
+  // Fetch the specific commit by SHA so that the checkout below succeeds even
+  // if the commit is no longer the tip of any branch (e.g. after a force-push
+  // that orphaned the previously-fetched commits, or when the SHA points at
+  // an intermediate commit on a long-lived branch).
+  git(["fetch", "origin", commit], scenarioWorkingDir);
 }
 
 function updateSubmodules(scenarioWorkingDir: string): void {
@@ -112,10 +273,18 @@ function updateSubmodules(scenarioWorkingDir: string): void {
   git(["submodule", "update", "--init", "--recursive"], scenarioWorkingDir);
 }
 
-function checkout(scenarioWorkingDir: string, commit: string): void {
+function checkout(
+  scenarioWorkingDir: string,
+  commit: string,
+  force: ForceCheckout,
+): void {
   logStep(`Checking out ${commit}`);
 
-  git(["checkout", commit], scenarioWorkingDir);
+  const args = ["checkout", commit];
+  if (force === ForceCheckout.Yes) {
+    args.push("--force");
+  }
+  git(args, scenarioWorkingDir);
 }
 
 function clean(scenarioWorkingDir: string): void {

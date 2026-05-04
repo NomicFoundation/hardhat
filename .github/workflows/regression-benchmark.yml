@@ -1,0 +1,110 @@
+name: Regression Benchmark
+
+on:
+  # Deliberately do not run on merge_group
+  push:
+    branches:
+      - "main"
+  pull_request:
+    # Include `labeled` so the workflow fires when the `ci:perf`
+    # label is added.
+    types: [opened, synchronize, reopened, labeled]
+    branches:
+      - "**"
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  # Don't cancel in-progress jobs on main so baselines aren't lost mid-run
+  cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
+
+jobs:
+  tests:
+    name: Validate Hardhat works correctly
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5
+        with:
+          persist-credentials: false
+
+      # cspell:disable-next-line
+      - uses: socketdev/action@4337a545deecc20f19a909e52db7a2f6ba292f42 # v1
+        with:
+          mode: firewall
+
+      - uses: ./.github/actions/setup-env
+
+      - name: Install packages
+        run: sfw pnpm install --frozen-lockfile --prefer-offline
+
+      - name: Build
+        run: pnpm build
+
+      - name: Run tests
+        run: pnpm test
+
+  regression-benchmark:
+    name: Regression benchmark
+    environment: github-action-benchmark
+    # Use a self-hosted runner for stable benchmark measurements; the shared
+    # GitHub runners produce noisy results that will generate false positives
+    # against the configured alert-threshold.
+    runs-on: hardhat-linux-amd64-self-hosted
+    # Only run for pushes to main, workflow_dispatch, or PRs that carry the
+    # `ci:perf` label.
+    #
+    # The fork-safety guard keeps untrusted forks off the self-hosted runner.
+    if: >
+      (github.event_name != 'pull_request' ||
+        contains(github.event.pull_request.labels.*.name, 'ci:perf')) &&
+      (github.ref == 'refs/heads/main' ||
+        github.repository == github.event.pull_request.head.repo.full_name)
+
+    needs: tests
+    timeout-minutes: 180
+    steps:
+      - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+          fetch-tags: true
+
+      # cspell:disable-next-line
+      - uses: socketdev/action@4337a545deecc20f19a909e52db7a2f6ba292f42 # v1
+        with:
+          mode: firewall
+
+      - uses: ./.github/actions/setup-env
+
+      - name: Install hyperfine
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y hyperfine
+
+      - name: Install packages
+        run: sfw pnpm install --frozen-lockfile --prefer-offline
+
+      - name: Build
+        run: pnpm build
+
+      - name: Run regression benchmark
+        env:
+          ALCHEMY_URL: ${{ secrets.ALCHEMY_URL }}
+        run: pnpm bench:regression --use-local --force-checkout --output regression-report.json
+
+      - name: Store benchmark result
+        uses: benchmark-action/github-action-benchmark@4bdcce38c94cec68da58d012ac24b7b1155efe8b # v1.20.7
+        with:
+          tool: customSmallerIsBetter
+          output-file-path: regression-report.json
+          gh-repository: github.com/nomic-foundation-automation/hardhat-benchmark-results
+          gh-pages-branch: main
+          benchmark-data-dir-path: hardhat-regression
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          # Only push baseline on main-branch pushes; PRs only compare
+          auto-push: ${{ github.ref == 'refs/heads/main' && github.event_name != 'pull_request' }}
+          alert-threshold: "110%"
+          # Only fail on PRs; don't break CI on main
+          fail-on-alert: ${{ github.event_name == 'pull_request' }}
+          summary-always: true
+          max-items-in-chart: 50
