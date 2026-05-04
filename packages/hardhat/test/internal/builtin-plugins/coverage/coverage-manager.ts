@@ -9,6 +9,7 @@ import type { HardhatRuntimeEnvironment } from "../../../../src/types/hre.js";
 import assert from "node:assert/strict";
 import path from "node:path";
 import { after, before, beforeEach, describe, it } from "node:test";
+import { stripVTControlCharacters } from "node:util";
 
 import {
   disableConsole,
@@ -301,37 +302,28 @@ describe("CoverageManagerImplementation", () => {
   });
 
   it("should format the markdown report", async () => {
-    const originalNoColor = process.env.NO_COLOR;
-    process.env.NO_COLOR = "1";
+    const actual = stripVTControlCharacters(
+      coverageManager.formatMarkdownReport(report),
+    );
 
-    try {
-      const actual = coverageManager.formatMarkdownReport(report);
-
-      assert.equal(
-        actual,
-        [
-          "╔══════════════════════════════════════════════════════════════╗",
-          "║                       Coverage Report                        ║",
-          "╚══════════════════════════════════════════════════════════════╝",
-          "╔══════════════════════════════════════════════════════════════╗",
-          "║ File Coverage                                                ║",
-          "╟─────────────────────┬────────┬─────────────┬─────────────────╢",
-          "║ File Path           │ Line % │ Statement % │ Uncovered Lines ║",
-          "╟─────────────────────┼────────┼─────────────┼─────────────────╢",
-          "║ contracts/test.sol  │ 80.00  │ 75.00       │ 6               ║",
-          "║ contracts/other.sol │ 0.00   │ 0.00        │ 1-2             ║",
-          "╟─────────────────────┼────────┼─────────────┼─────────────────╢",
-          "║ Total               │ 57.14  │ 50.00       │                 ║",
-          "╚═════════════════════╧════════╧═════════════╧═════════════════╝",
-        ].join("\n"),
-      );
-    } finally {
-      if (originalNoColor === undefined) {
-        delete process.env.NO_COLOR;
-      } else {
-        process.env.NO_COLOR = originalNoColor;
-      }
-    }
+    assert.equal(
+      actual,
+      [
+        "╔══════════════════════════════════════════════════════════════╗",
+        "║                       Coverage Report                        ║",
+        "╚══════════════════════════════════════════════════════════════╝",
+        "╔══════════════════════════════════════════════════════════════╗",
+        "║ File Coverage                                                ║",
+        "╟─────────────────────┬────────┬─────────────┬─────────────────╢",
+        "║ File Path           │ Line % │ Statement % │ Uncovered Lines ║",
+        "╟─────────────────────┼────────┼─────────────┼─────────────────╢",
+        "║ contracts/test.sol  │ 80.00  │ 75.00       │ 6               ║",
+        "║ contracts/other.sol │ 0.00   │ 0.00        │ 1-2             ║",
+        "╟─────────────────────┼────────┼─────────────┼─────────────────╢",
+        "║ Total               │ 57.14  │ 50.00       │                 ║",
+        "╚═════════════════════╧════════╧═════════════╧═════════════════╝",
+      ].join("\n"),
+    );
   });
 
   const expectedRelativePath: Array<[string, string]> = [

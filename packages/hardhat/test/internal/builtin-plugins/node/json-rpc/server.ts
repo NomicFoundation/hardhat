@@ -18,17 +18,16 @@ describe("JSON-RPC server", function () {
 
   it("should respond to a request over the network the same as in memory", async function () {
     const hostname = (await exists("/.dockerenv")) ? "0.0.0.0" : "127.0.0.1";
-    const port = 8545;
 
     const connection = await hre.network.create();
     const server = new JsonRpcServerImplementation({
       hostname,
-      port,
+      port: 0,
       provider: connection.provider,
     });
 
     try {
-      await server.listen();
+      const { port } = await server.listen();
 
       const edrProvider = connection.provider;
       const httpProvider = await HttpProvider.create({
