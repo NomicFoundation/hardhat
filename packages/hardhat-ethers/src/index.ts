@@ -1,6 +1,6 @@
-import "./type-extensions.js";
-
 import type { HardhatPlugin } from "hardhat/types/plugins";
+
+export type * from "./type-extensions.js";
 
 const hardhatEthersPlugin: HardhatPlugin = {
   id: "hardhat-ethers",

@@ -2,7 +2,7 @@ import type { HardhatPlugin } from "../../../types/plugins.js";
 
 import { task } from "../../core/config.js";
 
-import "./type-extensions.js";
+export type * from "./type-extensions.js";
 
 const hardhatPlugin: HardhatPlugin = {
   id: "builtin:clean",

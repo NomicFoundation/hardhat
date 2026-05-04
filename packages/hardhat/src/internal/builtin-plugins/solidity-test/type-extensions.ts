@@ -1,4 +1,3 @@
-import "../../../types/config.js";
 import type {
   SensitiveString,
   ResolvedConfigurationVariable,

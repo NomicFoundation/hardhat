@@ -1,7 +1,8 @@
 import type { HardhatPlugin } from "hardhat/types/plugins";
 
-import "./type-extensions.js";
 import { globalFlag } from "hardhat/config";
+
+export type * from "./type-extensions.js";
 
 const hardhatTypechain: HardhatPlugin = {
   id: "hardhat-typechain",

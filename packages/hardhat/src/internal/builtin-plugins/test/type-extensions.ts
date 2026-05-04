@@ -1,4 +1,3 @@
-import "../../../types/hooks.js";
 import type {
   HardhatTestConfig,
   HardhatTestUserConfig,

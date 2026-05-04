@@ -4,6 +4,7 @@
     "outDir": "${configDir}/dist",
     "declaration": true,
     "declarationMap": true,
+    "moduleDetection": "force",
     "forceConsistentCasingInFileNames": true,
     "isolatedModules": true,
     "isolatedDeclarations": true,
