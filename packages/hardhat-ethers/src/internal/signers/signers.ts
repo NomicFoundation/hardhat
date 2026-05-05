@@ -43,6 +43,7 @@ type SignerAccounts =
 
 export class HardhatEthersSigner implements HardhatEthersSignerI {
   readonly #signerAccounts: SignerAccounts;
+  readonly #waitForTransactionReceipts: boolean;
   #cachedPrivateKey: string | undefined;
 
   public readonly address: string;
@@ -64,18 +65,25 @@ export class HardhatEthersSigner implements HardhatEthersSignerI {
         ? { type: "http", accounts: networkConfig.accounts }
         : { type: "edr-simulated", accounts: networkConfig.accounts };
 
-    return new HardhatEthersSigner(address, provider, signerAccounts);
+    return new HardhatEthersSigner(
+      address,
+      provider,
+      signerAccounts,
+      networkConfig.ethers.waitForTransactionReceipts,
+    );
   }
 
   private constructor(
     address: string,
     provider: ethers.JsonRpcProvider | HardhatEthersProvider,
     signerAccounts: SignerAccounts,
+    waitForTransactionReceipts: boolean,
   ) {
     this.address = getAddress(address);
     this.provider = provider;
 
     this.#signerAccounts = signerAccounts;
+    this.#waitForTransactionReceipts = waitForTransactionReceipts;
   }
 
   public connect(
@@ -85,6 +93,7 @@ export class HardhatEthersSigner implements HardhatEthersSignerI {
       this.address,
       provider,
       this.#signerAccounts,
+      this.#waitForTransactionReceipts,
     );
   }
 
@@ -176,26 +185,36 @@ export class HardhatEthersSigner implements HardhatEthersSignerI {
     // for a response, and we need the actual transaction, so we poll
     // for it; it should show up very quickly
 
-    return await new Promise((resolve) => {
-      const timeouts = [1000, 100];
-      const checkTx = async () => {
-        // Try getting the transaction
-        const txPolled = await this.provider.getTransaction(hash);
-        if (txPolled !== null) {
-          resolve(txPolled.replaceableTransaction(blockNumber));
-          return;
-        }
+    const transactionResponse = await new Promise<ethers.TransactionResponse>(
+      (resolve) => {
+        const timeouts = [1000, 100];
+        const checkTx = async () => {
+          // Try getting the transaction
+          const txPolled = await this.provider.getTransaction(hash);
+          if (txPolled !== null) {
+            resolve(txPolled.replaceableTransaction(blockNumber));
+            return;
+          }
 
-        // Wait another 4 seconds
-        setTimeout(() => {
-          // eslint-disable-next-line @typescript-eslint/no-floating-promises -- this check must be done in an async way
-          checkTx();
-        }, timeouts.pop() ?? 4000);
-      };
+          // Wait another 4 seconds
+          setTimeout(() => {
+            // eslint-disable-next-line @typescript-eslint/no-floating-promises -- this check must be done in an async way
+            checkTx();
+          }, timeouts.pop() ?? 4000);
+        };
 
-      // eslint-disable-next-line @typescript-eslint/no-floating-promises -- this check must be done in an async way
-      checkTx();
-    });
+        // eslint-disable-next-line @typescript-eslint/no-floating-promises -- this check must be done in an async way
+        checkTx();
+      },
+    );
+
+    if (this.#waitForTransactionReceipts) {
+      // Don't use transactionResponse.wait(): it throws on status=0 receipts,
+      // but callers and matchers still need the response for reverted txs.
+      await this.provider.waitForTransaction(transactionResponse.hash);
+    }
+
+    return transactionResponse;
   }
 
   public signMessage(message: string | Uint8Array): Promise<string> {

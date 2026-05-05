@@ -8,3 +8,35 @@ declare module "hardhat/types/network" {
     ethers: HardhatEthers;
   }
 }
+
+declare module "hardhat/types/config" {
+  export interface HardhatEthersNetworkUserConfig {
+    /**
+     * When enabled, HardhatEthersSigner.sendTransaction waits until the
+     * transaction receipt is available before resolving.
+     *
+     * The default is false, matching ethers' JsonRpcSigner behavior.
+     */
+    waitForTransactionReceipts?: boolean;
+  }
+
+  export interface HardhatEthersNetworkConfig {
+    waitForTransactionReceipts: boolean;
+  }
+
+  export interface HttpNetworkUserConfig {
+    ethers?: HardhatEthersNetworkUserConfig;
+  }
+
+  export interface EdrNetworkUserConfig {
+    ethers?: HardhatEthersNetworkUserConfig;
+  }
+
+  export interface HttpNetworkConfig {
+    ethers: HardhatEthersNetworkConfig;
+  }
+
+  export interface EdrNetworkConfig {
+    ethers: HardhatEthersNetworkConfig;
+  }
+}
