@@ -1,6 +1,7 @@
 import type { Result } from "ethers/abi";
 
 import { ensureError } from "@nomicfoundation/hardhat-utils/error";
+import { isKnownEvmExecutionErrorMessage } from "@nomicfoundation/hardhat-utils/eth";
 import { assert as chaiAssert, AssertionError } from "chai";
 import { AbiCoder, decodeBytes32String } from "ethers/abi";
 
@@ -18,23 +19,20 @@ const PANIC_CODE_PREFIX = "0x4e487b71";
  * If the value is an error but it doesn't have data, we assume it's not related
  * to a reverted transaction and we re-throw it.
  */
-export function getReturnDataFromError(error: any): string {
+export function getReturnDataFromError(error: unknown): string {
   if (!(error instanceof Error)) {
     // eslint-disable-next-line no-restricted-syntax -- keep the original chai error structure
     throw new AssertionError("Expected an Error object");
   }
 
-  // eslint-disable-next-line @typescript-eslint/consistent-type-assertions -- some properties do not exist in the default Error instance
-  const typedError = error as any;
-
-  const errorData = typedError.data ?? typedError.error?.data;
+  const errorData = getErrorData(error);
 
   if (errorData === undefined) {
     // eslint-disable-next-line no-restricted-syntax -- re-throw because the error is not related to a reverted transaction
     throw error;
   }
 
-  const returnData = typeof errorData === "string" ? errorData : errorData.data;
+  const returnData = getReturnData(errorData);
 
   if (returnData === undefined || typeof returnData !== "string") {
     // eslint-disable-next-line no-restricted-syntax -- re-throw because the error is not related to a reverted transaction
@@ -42,6 +40,106 @@ export function getReturnDataFromError(error: any): string {
   }
 
   return returnData;
+}
+
+/**
+ * Some JSON-RPC clients report EVM execution failures from eth_call or
+ * eth_estimateGas without return data. These can satisfy the broad revert
+ * matcher, but reason-specific matchers still need actual return data.
+ */
+export function isNoDataExecutionError(error: unknown): boolean {
+  if (!(error instanceof Error)) {
+    return false;
+  }
+
+  return (
+    isEthersCallExceptionWithoutData(error) ||
+    isProviderExecutionErrorWithoutData(error)
+  );
+}
+
+function isEthersCallExceptionWithoutData(error: Error): boolean {
+  if (
+    getObjectProperty(error, "code") !== "CALL_EXCEPTION" ||
+    (getObjectProperty(error, "action") !== "call" &&
+      getObjectProperty(error, "action") !== "estimateGas") ||
+    getObjectProperty(error, "data") !== null ||
+    getObjectProperty(error, "reason") !== null ||
+    getObjectProperty(error, "shortMessage") !== "missing revert data"
+  ) {
+    return false;
+  }
+
+  const info = getObjectProperty(error, "info");
+  const rpcError = getObjectProperty(info, "error");
+  const rpcErrorCode = getObjectProperty(rpcError, "code");
+  const rpcErrorData = getObjectProperty(rpcError, "data");
+  const rpcErrorMessage = getObjectProperty(rpcError, "message");
+
+  return (
+    typeof rpcErrorMessage === "string" &&
+    isKnownEvmExecutionErrorMessage(rpcErrorMessage) &&
+    hasJsonRpcExecutionErrorCodeOrNoCodeWithoutData(rpcErrorCode, rpcErrorData)
+  );
+}
+
+function isProviderExecutionErrorWithoutData(error: Error): boolean {
+  const errorData = getErrorData(error);
+  const code = getJsonRpcErrorProperty(error, "code");
+  const message = getJsonRpcErrorProperty(error, "message");
+
+  return (
+    getReturnData(errorData) === undefined &&
+    isJsonRpcExecutionErrorCode(code) &&
+    typeof message === "string" &&
+    isKnownEvmExecutionErrorMessage(message)
+  );
+}
+
+function hasJsonRpcExecutionErrorCodeOrNoCodeWithoutData(
+  code: unknown,
+  data: unknown,
+): boolean {
+  return (
+    getReturnData(data) === undefined &&
+    (code === undefined || isJsonRpcExecutionErrorCode(code))
+  );
+}
+
+function getErrorData(error: Error): unknown {
+  const nestedError = getObjectProperty(error, "error");
+
+  return (
+    getObjectProperty(error, "data") ?? getObjectProperty(nestedError, "data")
+  );
+}
+
+function getReturnData(errorData: unknown): string | undefined {
+  if (typeof errorData === "string") {
+    return errorData;
+  }
+
+  const nestedData = getObjectProperty(errorData, "data");
+
+  return typeof nestedData === "string" ? nestedData : undefined;
+}
+
+function isJsonRpcExecutionErrorCode(code: unknown): boolean {
+  return code === 3 || code === -32000 || code === -32003;
+}
+
+function getJsonRpcErrorProperty(error: Error, key: string): unknown {
+  const nestedError = getObjectProperty(error, "error");
+
+  return getObjectProperty(nestedError, key) ?? getObjectProperty(error, key);
+}
+
+function getObjectProperty(value: unknown, key: string): unknown {
+  if (typeof value !== "object" || value === null) {
+    return undefined;
+  }
+
+  return Reflect.get(value, key);
 }
 
 type DecodedReturnData =

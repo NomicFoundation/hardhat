@@ -10,6 +10,7 @@ import type {
 import type { EIP1193Provider } from "../../types/provider.js";
 
 import { HardhatError } from "@nomicfoundation/hardhat-errors";
+import { isKnownEvmExecutionErrorMessage } from "@nomicfoundation/hardhat-utils/eth";
 
 import { TransactionReceiptStatus } from "./types/jsonrpc.js";
 import { toChecksumFormat } from "./utils/address.js";
@@ -355,10 +356,7 @@ export class EIP1193JsonRpcClient implements JsonRpcClient {
 
         // Geth, and potentially other nodes, may return an error without a data
         // field if there was no reason returned
-        if (
-          error.message.includes("execution reverted") ||
-          error.message.includes("invalid opcode")
-        ) {
+        if (isKnownEvmExecutionErrorMessage(error.message)) {
           return {
             success: false,
             returnData: "0x",

@@ -49,6 +49,54 @@ export function toEvmWord(value: bigint | number): PrefixedHexString {
 }
 
 /**
+ * Checks if an error message is a known JSON-RPC provider message for an EVM
+ * execution failure when no return data is available.
+ */
+export function isKnownEvmExecutionErrorMessage(message: string): boolean {
+  return (
+    /^execution reverted\b/i.test(message) ||
+    /^Transaction reverted (?:without a reason(?: string)?|and Hardhat couldn't infer the reason\.)/i.test(
+      message,
+    ) ||
+    /^Transaction reverted: contract call run out of gas and made the transaction revert$/i.test(
+      message,
+    ) ||
+    /^VM Exception while processing transaction: (?:invalid opcode|out of gas|reverted\b|Transaction reverted\b)/i.test(
+      message,
+    ) ||
+    /(?:^|:\s*)invalid opcode\b/i.test(message) ||
+    isEvmExceptionalHaltMessage(message)
+  );
+}
+
+const EVM_EXCEPTIONAL_HALT_MESSAGES = new Set([
+  "OutOfGas",
+  "OpcodeNotFound",
+  "InvalidFEOpcode",
+  "InvalidJump",
+  "NotActivated",
+  "StackUnderflow",
+  "StackOverflow",
+  "OutOfOffset",
+  "CreateCollision",
+  "PrecompileError",
+  "NonceOverflow",
+  "CreateContractSizeLimit",
+  "CreateContractStartingWithEF",
+  "CreateInitCodeSizeLimit",
+]);
+
+function isEvmExceptionalHaltMessage(message: string): boolean {
+  const match = /^EVM error:?\s+([A-Z][A-Za-z0-9_]*)\b/.exec(message);
+
+  return (
+    match !== null &&
+    match[1] !== undefined &&
+    EVM_EXCEPTIONAL_HALT_MESSAGES.has(match[1])
+  );
+}
+
+/**
  * Generates a pseudo-random sequence of hash bytes.
  *
  * @returns A pseudo-random sequence of hash bytes.

@@ -425,11 +425,103 @@ describe("INTEGRATION: Revert", { timeout: 60000 }, () => {
     });
 
     describe("invalid rejection values", () => {
+      const expectNoDataExecutionError = async (error: Error) => {
+        await expect(Promise.reject(error)).to.be.revert(ethers);
+      };
+
+      const expectNonRevertError = async (error: Error, message: string) => {
+        await expect(
+          expect(Promise.reject(error)).to.be.revert(ethers),
+        ).to.be.rejectedWith(message);
+      };
+
       it("non-errors", async () => {
         await expectAssertionError(
           expect(Promise.reject({})).to.be.revert(ethers),
           "Expected an Error object",
         );
+      });
+
+      it("no-data call exceptions", async () => {
+        for (const action of ["call", "estimateGas"] as const) {
+          await expectNoDataExecutionError(createNoDataCallException(action));
+        }
+
+        await expectNoDataExecutionError(
+          createNoDataCallException("call", new Error("execution reverted")),
+        );
+
+        await expectAssertionError(
+          expect(
+            Promise.reject(createNoDataCallException("call")),
+          ).not.to.be.revert(ethers),
+          "Expected transaction NOT to be reverted",
+        );
+      });
+
+      it("no-data provider execution errors", async () => {
+        for (const code of [-32003, -32000, 3]) {
+          await expectNoDataExecutionError(
+            createNoDataProviderExecutionError(code),
+          );
+        }
+
+        await expectNoDataExecutionError(
+          createNoDataProviderExecutionError(-32003, "EVM error OutOfGas"),
+        );
+        await expectNoDataExecutionError(
+          createNoDataProviderExecutionErrorWithEnvelopeData(-32003),
+        );
+        await expectNoDataExecutionError(
+          createNestedNoDataProviderExecutionError(-32003),
+        );
+
+        await expectNonRevertError(
+          new Error("execution reverted"),
+          "execution reverted",
+        );
+        await expectNonRevertError(
+          new Error("invalid opcode: INVALID"),
+          "invalid opcode: INVALID",
+        );
+        await expectNonRevertError(
+          createNoDataProviderExecutionError(
+            -32003,
+            "EVM error; database error: failed to get account",
+          ),
+          "EVM error; database error: failed to get account",
+        );
+        await expectNonRevertError(
+          createNoDataProviderExecutionError(-32003, "EVM error DatabaseError"),
+          "EVM error DatabaseError",
+        );
+      });
+
+      it("no-data execution errors still require return data for reason-specific matchers", async () => {
+        const reasonSpecificAssertions = [
+          () =>
+            expect(
+              Promise.reject(createNoDataProviderExecutionError(-32003)),
+            ).to.be.revertedWith("some reason"),
+          () =>
+            expect(
+              Promise.reject(createNoDataProviderExecutionError(-32003)),
+            ).to.be.revertedWithPanic(),
+          () =>
+            expect(
+              Promise.reject(createNoDataProviderExecutionError(-32003)),
+            ).to.be.revertedWithCustomError(matchers, "SomeCustomError"),
+          () =>
+            expect(
+              Promise.reject(createNoDataProviderExecutionError(-32003)),
+            ).to.be.revertedWithoutReason(ethers),
+        ];
+
+        for (const assertion of reasonSpecificAssertions) {
+          await expect(assertion()).to.be.rejectedWith(
+            "EVM error InvalidFEOpcode",
+          );
+        }
       });
 
       it("errors that are not related to a reverted transaction", async () => {
@@ -501,3 +593,54 @@ describe("INTEGRATION: Revert", { timeout: 60000 }, () => {
     });
   }
 });
+
+function createNoDataCallException(
+  action: "call" | "estimateGas",
+  rpcError: Error | { code?: number; data?: unknown; message: string } = {
+    code: -32003,
+    message: "EVM error InvalidFEOpcode",
+  },
+): Error {
+  return Object.assign(new Error("missing revert data"), {
+    code: "CALL_EXCEPTION",
+    action,
+    data: null,
+    reason: null,
+    shortMessage: "missing revert data",
+    info: {
+      error: rpcError,
+    },
+  });
+}
+
+function createNoDataProviderExecutionError(
+  code: number,
+  message = "EVM error InvalidFEOpcode",
+): Error {
+  return Object.assign(new Error(message), {
+    code,
+    data: undefined,
+  });
+}
+
+function createNoDataProviderExecutionErrorWithEnvelopeData(
+  code: number,
+): Error {
+  return Object.assign(new Error("EVM error InvalidFEOpcode"), {
+    code,
+    data: {
+      name: "ProviderError",
+      stack: "ProviderError: EVM error InvalidFEOpcode",
+    },
+  });
+}
+
+function createNestedNoDataProviderExecutionError(code: number): Error {
+  return Object.assign(new Error("missing revert data"), {
+    code: -1,
+    error: {
+      code,
+      message: "EVM error InvalidFEOpcode",
+    },
+  });
+}
