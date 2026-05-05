@@ -3,15 +3,6 @@ import type { NewTaskActionFunction } from "hardhat/types/tasks";
 import type { TestRunResult, TestSummary } from "hardhat/types/test";
 import type { LastParameter, Result } from "hardhat/types/utils";
 
-import { pipeline } from "node:stream/promises";
-import { run } from "node:test";
-
-import { hardhatTestReporter } from "@nomicfoundation/hardhat-node-test-reporter";
-import { setGlobalOptionsAsEnvVariables } from "@nomicfoundation/hardhat-utils/env";
-import { getAllFilesMatching } from "@nomicfoundation/hardhat-utils/fs";
-import { createNonClosingWriter } from "@nomicfoundation/hardhat-utils/stream";
-import { errorResult, successfulResult } from "hardhat/utils/result";
-
 interface TestActionArguments {
   testFiles: string[];
   only: boolean;
@@ -45,6 +36,10 @@ async function getTestFiles(
     return testFiles;
   }
 
+  const { getAllFilesMatching } = await import(
+    "@nomicfoundation/hardhat-utils/fs"
+  );
+
   return await getAllFilesMatching(
     config.paths.tests.nodejs,
     (f) => isJavascriptFile(f) || isTypescriptFile(f),
@@ -58,6 +53,22 @@ const testWithHardhat: NewTaskActionFunction<TestActionArguments> = async (
   { testFiles, only, grep, noCompile, testSummaryIndex },
   hre,
 ): Promise<Result<TestRunResult, TestRunResult>> => {
+  const [
+    { pipeline },
+    { run },
+    { hardhatTestReporter },
+    { setGlobalOptionsAsEnvVariables },
+    { createNonClosingWriter },
+    { errorResult, successfulResult },
+  ] = await Promise.all([
+    import("node:stream/promises"),
+    import("node:test"),
+    import("@nomicfoundation/hardhat-node-test-reporter"),
+    import("@nomicfoundation/hardhat-utils/env"),
+    import("@nomicfoundation/hardhat-utils/stream"),
+    import("hardhat/utils/result"),
+  ]);
+
   // Set an environment variable that plugins can use to detect when a process is running tests
   process.env.HH_TEST = "true";
 
