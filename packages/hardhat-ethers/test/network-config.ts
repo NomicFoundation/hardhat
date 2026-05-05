@@ -6,6 +6,8 @@ import type { EthereumProvider } from "hardhat/types/providers";
 import assert from "node:assert/strict";
 import { after, before, describe, it } from "node:test";
 
+import { validateUserConfig } from "../src/internal/hook-handlers/config.js";
+
 import { initializeTestEthers, spawnTestRpcServer } from "./helpers/helpers.js";
 
 const ARTIFACTS = [{ artifactName: "Example", fileName: "gas-config" }];
@@ -17,6 +19,19 @@ interface InitResult {
 }
 
 describe("network config behavior", () => {
+  describe("validation", () => {
+    it("doesn't throw when a network entry isn't an object", async () => {
+      const errors = await validateUserConfig({
+        networks: {
+          // @ts-expect-error -- force invalid user config to test validation behavior
+          invalid: null,
+        },
+      });
+
+      assert.deepEqual(errors, []);
+    });
+  });
+
   describe("in-process hardhat network", () => {
     defineNetworkConfigTests(() => initializeTestEthers(ARTIFACTS));
   });

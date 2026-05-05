@@ -26,6 +26,10 @@ export async function validateUserConfig(
   for (const [networkName, networkConfig] of Object.entries(
     userConfig.networks ?? {},
   )) {
+    if (!isObject(networkConfig)) {
+      continue;
+    }
+
     if (networkConfig.ethers === undefined) {
       continue;
     }
