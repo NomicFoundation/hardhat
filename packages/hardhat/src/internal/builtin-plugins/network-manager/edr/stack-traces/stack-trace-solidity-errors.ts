@@ -21,6 +21,28 @@ import {
   UNRECOGNIZED_FUNCTION_NAME,
 } from "./solidity-stack-trace.js";
 
+const CHEATCODE_SUGGESTIONS: Record<string, string> = {
+  "eip712HashType(string,string)":
+    " Please use the 'eip712HashType(string)' cheatcode instead, which accepts a type definition directly.",
+};
+
+export function getCheatcodeSuggestion(cheatcode: string): string {
+  const suggestion = CHEATCODE_SUGGESTIONS[cheatcode];
+  if (suggestion !== undefined) {
+    return suggestion;
+  }
+
+  // Match by function name prefix for overloaded variants
+  const name = cheatcode.split("(")[0];
+  for (const [key, value] of Object.entries(CHEATCODE_SUGGESTIONS)) {
+    if (key.startsWith(name + "(")) {
+      return value;
+    }
+  }
+
+  return "";
+}
+
 export function createSolidityErrorWithStackTrace(
   fallbackMessage: string,
   stackTrace: SolidityStackTrace,
@@ -278,6 +300,9 @@ function getMessageFromLastStackTraceEntry(
         switch (stackTraceEntry.details.code) {
           case CheatcodeErrorCode.UnsupportedCheatcode:
             message = `Cheatcode '${stackTraceEntry.details.cheatcode}' is not supported by Hardhat.`;
+            message += getCheatcodeSuggestion(
+              stackTraceEntry.details.cheatcode,
+            );
             break;
           case CheatcodeErrorCode.MissingCheatcode:
             message = `Cheatcode '${stackTraceEntry.details.cheatcode}' is not yet available in this version of Hardhat.`;
