@@ -23,6 +23,26 @@ export default defineConfig({
 });
 ```
 
+## Configuration
+
+By default, `HardhatEthersSigner.sendTransaction` follows ethers.js and resolves as soon as the submitted transaction is available from the network. If you want a network connection to wait until each submitted transaction has a receipt before resolving, enable `waitForTransactionReceipt` in that network's `ethers` config:
+
+```ts
+export default defineConfig({
+  networks: {
+    anvil: {
+      type: "http",
+      url: "http://127.0.0.1:8545",
+      ethers: {
+        waitForTransactionReceipt: true,
+      },
+    },
+  },
+});
+```
+
+This is useful when running tests written against Hardhat's in-process network on external nodes whose `eth_sendTransaction` method returns before mining. Reverted transactions still resolve to a transaction response, so callers and matchers can inspect the receipt.
+
 ## Usage
 
 This plugin adds an `ethers` property to each network connection:

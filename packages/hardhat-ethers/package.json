@@ -59,8 +59,10 @@
   "dependencies": {
     "@nomicfoundation/hardhat-errors": "workspace:^3.0.15",
     "@nomicfoundation/hardhat-utils": "workspace:^4.1.2",
+    "@nomicfoundation/hardhat-zod-utils": "workspace:^3.0.5",
     "ethereum-cryptography": "^2.2.1",
-    "ethers": "^6.14.0"
+    "ethers": "^6.14.0",
+    "zod": "^3.23.8"
   },
   "peerDependencies": {
     "hardhat": "workspace:^3.8.0"
