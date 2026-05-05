@@ -119,6 +119,19 @@ export async function mineRevertedTransaction(
   return tx;
 }
 
+export async function withAutomineOff(
+  provider: EthereumProvider,
+  body: () => Promise<void>,
+): Promise<void> {
+  await provider.request({ method: "evm_setAutomine", params: [false] });
+
+  try {
+    await body();
+  } finally {
+    await provider.request({ method: "evm_setAutomine", params: [true] });
+  }
+}
+
 async function mineBlocksUntilTxIsIncluded(
   provider: EthereumProvider,
   ethers: HardhatEthers,

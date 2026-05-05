@@ -5,7 +5,13 @@ import { REVERTED_WITH_MATCHER } from "../../constants.js";
 import { buildAssert } from "../../utils/build-assert.js";
 import { preventAsyncMatcherChaining } from "../../utils/prevent-chaining.js";
 
-import { decodeReturnData, getReturnDataFromError } from "./utils.js";
+import {
+  decodeReturnData,
+  ErrorWithData,
+  getReturnDataFromError,
+  getTransactionRevertData,
+  throwRevertDataNotRetrievedError,
+} from "./utils.js";
 
 export function supportRevertedWith(
   Assertion: Chai.AssertionStatic,
@@ -38,8 +44,28 @@ export function supportRevertedWith(
 
       preventAsyncMatcherChaining(this, REVERTED_WITH_MATCHER, chaiUtils);
 
-      const onSuccess = () => {
+      const onSuccess = async (value: unknown) => {
         const assert = buildAssert(negated, onSuccess);
+        const revertData = await getTransactionRevertData(value);
+
+        if (revertData.kind === "Revert") {
+          if (revertData.returnData !== undefined) {
+            onError(new ErrorWithData(revertData.returnData));
+            return;
+          }
+
+          throwRevertDataNotRetrievedError(
+            `Expected transaction to be reverted with reason '${expectedReasonString}', but the revert data couldn't be retrieved`,
+            revertData.retrievalError,
+          );
+        } else if (revertData.kind === "Success") {
+          assert(
+            false,
+            `Expected transaction to be reverted with reason '${expectedReasonString}', but it didn't revert`,
+          );
+
+          return;
+        }
 
         assert(
           false,

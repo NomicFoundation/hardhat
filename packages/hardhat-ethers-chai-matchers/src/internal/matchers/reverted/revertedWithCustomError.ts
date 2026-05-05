@@ -15,8 +15,11 @@ import { preventAsyncMatcherChaining } from "../../utils/prevent-chaining.js";
 
 import {
   decodeReturnData,
+  ErrorWithData,
   getReturnDataFromError,
+  getTransactionRevertData,
   resultToArray,
+  throwRevertDataNotRetrievedError,
 } from "./utils.js";
 
 export const REVERTED_WITH_CUSTOM_ERROR_CALLED = "customErrorAssertionCalled";
@@ -55,12 +58,32 @@ export function supportRevertedWithCustomError(
         chaiUtils,
       );
 
-      const onSuccess = () => {
+      const onSuccess = async (value: unknown) => {
         if (chaiUtils.flag(this, ASSERTION_ABORTED) === true) {
           return;
         }
 
         const assert = buildAssert(negated, onSuccess);
+        const revertData = await getTransactionRevertData(value);
+
+        if (revertData.kind === "Revert") {
+          if (revertData.returnData !== undefined) {
+            onError(new ErrorWithData(revertData.returnData));
+            return;
+          }
+
+          throwRevertDataNotRetrievedError(
+            `Expected transaction to be reverted with custom error '${expectedCustomErrorName}', but the revert data couldn't be retrieved`,
+            revertData.retrievalError,
+          );
+        } else if (revertData.kind === "Success") {
+          assert(
+            false,
+            `Expected transaction to be reverted with custom error '${expectedCustomErrorName}', but it didn't revert`,
+          );
+
+          return;
+        }
 
         assert(
           false,

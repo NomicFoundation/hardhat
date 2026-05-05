@@ -18,6 +18,7 @@ import {
   runFailedAsserts,
   mineSuccessfulTransaction,
   initEnvironment,
+  withAutomineOff,
 } from "../../helpers/helpers.js";
 
 addChaiMatchers();
@@ -265,6 +266,23 @@ describe("INTEGRATION: Reverted with", { timeout: 60000 }, () => {
           return;
         }
         expect.fail("Expected an exception but none was thrown");
+      });
+    });
+
+    describe("When automining is disabled", () => {
+      it("should wait for the tx to be mined and detect the revert reason", async () => {
+        await withAutomineOff(provider, async () => {
+          const tx = await matchers.revertsWith("some reason", {
+            gasLimit: 1_000_000,
+          });
+
+          const revertedWithPromise =
+            expect(tx).to.be.revertedWith("some reason");
+
+          await provider.request({ method: "hardhat_mine", params: [] });
+
+          await revertedWithPromise;
+        });
       });
     });
   }
