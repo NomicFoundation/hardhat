@@ -73,7 +73,7 @@ describe("eip712 - glob", () => {
 
     it("escapes regex metacharacters in the literal portion", () => {
       // The `.` should not match arbitrary characters.
-      assert.equal(isPathSelected("fooXsol", ["foo.sol"], []), false);
+      assert.equal(isPathSelected("foo1sol", ["foo.sol"], []), false);
     });
 
     it("matches when any include pattern matches", () => {

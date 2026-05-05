@@ -233,7 +233,7 @@ describe("eip712 - ast-walker", () => {
         assert.equal(
           encodeMemberType({
             nodeType: "UserDefinedTypeName",
-            typeDescriptions: { typeString: "contract IERC20" },
+            typeDescriptions: { typeString: "contract MyToken" },
           }),
           "address",
         );
@@ -269,7 +269,7 @@ describe("eip712 - ast-walker", () => {
       });
 
       it("falls back to typeName.name for user-defined value types", () => {
-        // UDVTs (`type MyUint is uint256;`, solc 0.8.8+) emit a typeString that
+        // User-defined value types (`type MyUint is uint256;`, solc 0.8.8+) emit a typeString that
         // doesn't match enum/contract/interface/struct, so we fall back to the
         // node's local `name`.
         assert.equal(

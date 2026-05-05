@@ -35,7 +35,7 @@ describe("eip712 - canonicalize", () => {
     assert.deepEqual(result, ["Person(address wallet,string name)"]);
   });
 
-  it("inlines deps and sorts them alphabetically (EIP-712 Mail example)", () => {
+  it("appends deps and sorts them alphabetically (EIP-712 Mail example)", () => {
     const collected = [
       struct("Mail", [
         ["Person", "from"],
