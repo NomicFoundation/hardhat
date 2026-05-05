@@ -64,6 +64,11 @@ declare module "../../../types/test.js" {
       includePushBytes?: boolean;
       shrinkRunLimit?: number;
     };
+
+    eip712Types?: {
+      include?: string[];
+      exclude?: string[];
+    };
   }
 
   export interface SolidityTestForkingUserConfig {

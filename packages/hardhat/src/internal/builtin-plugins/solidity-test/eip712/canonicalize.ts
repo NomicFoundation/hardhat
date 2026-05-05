@@ -1,0 +1,219 @@
+import type { CollectedStruct } from "./ast-walker.js";
+
+import { HardhatError } from "@nomicfoundation/hardhat-errors";
+
+/**
+ * Produces the flat list of canonical EIP-712 type strings expected by EDR.
+ *
+ * Each encodable struct contributes one entry, built like this:
+ *   1. Start with the struct's own head: `Name(type1 name1,type2 name2,...)`.
+ *   2. If the struct has fields that reference other structs, append those
+ *      structs' heads after it, sorted alphabetically.
+ *
+ * Examples:
+ *   - `Person` has only primitive fields (address, string), so its entry is
+ *     just its own head:
+ *       `Person(address wallet,string name)`
+ *   - `Mail` has a `Person` field, so its entry is its head plus `Person`'s
+ *     head appended:
+ *       `Mail(Person from,Person to,string contents)Person(address wallet,string name)`
+ *
+ * Structs that contain members whose type cannot be EIP-712 encoded (mappings,
+ * function types, etc.) are dropped entirely, along with any structs that
+ * depend on them transitively. This matches `forge bind-json`'s behavior:
+ * `resolve_struct_eip712` returns `None` for any struct containing unsupported
+ * constructs and propagates `None` through the dep graph so dependents are
+ * also dropped.
+ */
+export function canonicalizeStructs(structs: CollectedStruct[]): string[] {
+  const byName = indexByName(structs);
+  const knownNames = new Set(byName.keys());
+  const encodable = computeEncodable(byName, knownNames);
+  const seen = new Set<string>();
+  const result: string[] = [];
+
+  for (const struct of byName.values()) {
+    if (!encodable.has(struct.name)) {
+      continue;
+    }
+
+    const head = encodeStructHead(struct);
+    const deps = transitiveDeps(struct, byName)
+      .map((depName) => {
+        const def = byName.get(depName);
+        return def === undefined ? undefined : encodeStructHead(def);
+      })
+      .filter((s): s is string => s !== undefined);
+
+    deps.sort();
+
+    const canonical = head + deps.join("");
+    if (!seen.has(canonical)) {
+      seen.add(canonical);
+      result.push(canonical);
+    }
+  }
+
+  return result;
+}
+
+/**
+ * Returns the set of struct names that are EIP-712 encodable. A struct is
+ * encodable if none of its members has an non-decodable type (`type === undefined`,
+ * e.g. mappings or function types) AND every one of its struct deps — direct or
+ * transitive — is itself encodable.
+ */
+function computeEncodable(
+  byName: Map<string, CollectedStruct>,
+  knownNames: Set<string>,
+): Set<string> {
+  const encodable = new Set<string>(byName.keys());
+
+  for (const [name, struct] of byName) {
+    if (struct.members.some((m) => m.type === undefined)) {
+      encodable.delete(name);
+    }
+  }
+
+  let changed = true;
+  while (changed) {
+    changed = false;
+    for (const name of [...encodable]) {
+      const struct = byName.get(name);
+      if (struct === undefined) {
+        continue;
+      }
+
+      const deps = directStructDeps(struct, knownNames);
+      if (deps.some((dep) => !encodable.has(dep))) {
+        encodable.delete(name);
+        changed = true;
+      }
+    }
+  }
+
+  return encodable;
+}
+
+/**
+ * Computes the EIP-712 `encodeType` string for one struct in isolation:
+ *   `Name(type1 name1,type2 name2,...)`.
+ * Members whose type is `undefined` (e.g. mappings) are dropped.
+ */
+function encodeStructHead(struct: CollectedStruct): string {
+  const memberSegments: string[] = [];
+  for (const member of struct.members) {
+    if (member.type === undefined) {
+      continue;
+    }
+
+    memberSegments.push(`${member.type} ${member.name}`);
+  }
+
+  return `${struct.name}(${memberSegments.join(",")})`;
+}
+
+/**
+ * Returns the names of all struct dependencies referenced by `struct`'s
+ * members. Considers the base type of arrays. Members whose base type does not
+ * resolve to a known struct (elementary types, address, etc.) are ignored.
+ */
+function directStructDeps(
+  struct: CollectedStruct,
+  knownStructNames: Set<string>,
+): string[] {
+  const deps = new Set<string>();
+  for (const member of struct.members) {
+    if (member.type === undefined) {
+      continue;
+    }
+
+    // Strip array suffixes: `Foo[]`, `Foo[3]`, `Foo[3][2]` → `Foo`.
+    let base = member.type;
+    while (true) {
+      const match = /^(.*)\[[^\]]*\]$/.exec(base);
+
+      if (match === null) {
+        break;
+      }
+
+      base = match[1];
+    }
+
+    if (knownStructNames.has(base) && base !== struct.name) {
+      deps.add(base);
+    }
+  }
+
+  return [...deps];
+}
+
+/**
+ * Walks the dep graph from `root` and returns the set of all transitively
+ * referenced struct names (excluding the root itself).
+ */
+function transitiveDeps(
+  root: CollectedStruct,
+  byName: Map<string, CollectedStruct>,
+): string[] {
+  const visited = new Set<string>();
+  const knownNames = new Set(byName.keys());
+  const stack = directStructDeps(root, knownNames);
+
+  while (stack.length > 0) {
+    const next = stack.pop();
+
+    if (next === undefined || visited.has(next) || next === root.name) {
+      continue;
+    }
+
+    visited.add(next);
+
+    const def = byName.get(next);
+
+    if (def !== undefined) {
+      stack.push(...directStructDeps(def, knownNames));
+    }
+  }
+
+  return [...visited];
+}
+
+/**
+ * Builds a name → definition map from collected structs, throwing
+ * `EIP712_DUPLICATE_STRUCT_NAME` when two structs share a name but produce
+ * different `encodeType` heads. Identical heads are silently deduplicated
+ * (same struct seen across multiple build infos / partial recompiles).
+ */
+function indexByName(structs: CollectedStruct[]): Map<string, CollectedStruct> {
+  const byName = new Map<string, CollectedStruct>();
+  const headByName = new Map<string, string>();
+  const sourceByName = new Map<string, string>();
+
+  for (const struct of structs) {
+    const head = encodeStructHead(struct);
+    const existingHead = headByName.get(struct.name);
+
+    if (existingHead === undefined) {
+      byName.set(struct.name, struct);
+      headByName.set(struct.name, head);
+      sourceByName.set(struct.name, struct.sourcePath);
+      continue;
+    }
+
+    if (existingHead === head) {
+      continue;
+    }
+
+    throw new HardhatError(
+      HardhatError.ERRORS.CORE.SOLIDITY_TESTS.EIP712_DUPLICATE_STRUCT_NAME,
+      {
+        name: struct.name,
+        firstSource: sourceByName.get(struct.name) ?? "<unknown>",
+        secondSource: struct.sourcePath,
+      },
+    );
+  }
+
+  return byName;
+}

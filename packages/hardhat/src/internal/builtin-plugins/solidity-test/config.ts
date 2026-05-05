@@ -88,6 +88,12 @@ const solidityTestUserConfigType = z.object({
       shrinkRunLimit: z.number().optional(),
     })
     .optional(),
+  eip712Types: z
+    .object({
+      include: z.array(z.string()).optional(),
+      exclude: z.array(z.string()).optional(),
+    })
+    .optional(),
 });
 
 const userConfigType = z.object({

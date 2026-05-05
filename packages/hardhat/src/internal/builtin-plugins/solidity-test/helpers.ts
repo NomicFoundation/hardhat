@@ -38,6 +38,7 @@ interface SolidityTestConfigParams {
   testPattern?: string;
   generateGasReport: boolean;
   testFunctionOverrides?: TestFunctionOverride[];
+  eip712CanonicalTypes?: string[];
 }
 
 export async function solidityTestConfigToSolidityTestRunnerConfigArgs({
@@ -50,6 +51,7 @@ export async function solidityTestConfigToSolidityTestRunnerConfigArgs({
   testPattern,
   generateGasReport,
   testFunctionOverrides,
+  eip712CanonicalTypes,
 }: SolidityTestConfigParams): Promise<SolidityTestRunnerConfigArgs> {
   const fsPermissions: PathPermission[] | undefined = [
     config.fsPermissions?.readWriteFile?.map((p) => ({
@@ -122,10 +124,13 @@ export async function solidityTestConfigToSolidityTestRunnerConfigArgs({
 
   const shouldAlwaysCollectStackTraces = verbosity > DEFAULT_VERBOSITY;
 
+  // `eip712Types` must be passed as a separate param, not via `config`
+  const { eip712Types: _, ...configWithoutEip712 } = config;
+
   return {
     projectRoot,
     hardfork: resolvedHardfork,
-    ...config,
+    ...configWithoutEip712,
     fsPermissions,
     localPredeploys,
     sender,
@@ -145,6 +150,7 @@ export async function solidityTestConfigToSolidityTestRunnerConfigArgs({
       ? CollectStackTraces.Always
       : CollectStackTraces.OnFailure,
     testFunctionOverrides,
+    eip712CanonicalTypes,
   };
 }
 
