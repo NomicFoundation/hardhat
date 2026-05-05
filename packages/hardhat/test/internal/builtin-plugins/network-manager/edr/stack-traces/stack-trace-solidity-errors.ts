@@ -12,6 +12,7 @@ import {
 import {
   createSolidityErrorWithStackTrace,
   encodeStackTraceEntry,
+  getCheatcodeSuggestion,
   SolidityCallSite,
   SolidityError,
 } from "../../../../../../src/internal/builtin-plugins/network-manager/edr/stack-traces/stack-trace-solidity-errors.js";
@@ -137,6 +138,42 @@ describe("createSolidityErrorWithStackTrace", () => {
         "VM Exception while processing transaction: Cheatcode 'someNewCheatcode(uint256)' is not yet available in this version of Hardhat.",
       );
     });
+
+    it("appends a suggestion for unsupported cheatcodes with known alternatives", () => {
+      const entry: SolidityStackTraceEntry = {
+        type: StackTraceEntryType.CHEATCODE_ERROR,
+        message:
+          "cheatcode 'eip712HashType(string,string)' is not supported",
+        sourceReference: dummySourceReference,
+        details: {
+          code: CheatcodeErrorCode.UnsupportedCheatcode,
+          cheatcode: "eip712HashType(string,string)",
+        },
+      };
+
+      const error = createSolidityErrorWithStackTrace(
+        "fallback",
+        [entry],
+        "0x",
+      );
+      assert.match(
+        error.message,
+        /Please use the 'eip712HashType\(string\)' cheatcode instead/,
+      );
+    });
+  });
+});
+
+describe("getCheatcodeSuggestion", () => {
+  it("returns a suggestion for a known cheatcode", () => {
+    const suggestion = getCheatcodeSuggestion("eip712HashType(string,string)");
+    assert.ok(suggestion.length > 0);
+    assert.match(suggestion, /eip712HashType\(string\)/);
+  });
+
+  it("returns an empty string for an unknown cheatcode", () => {
+    const suggestion = getCheatcodeSuggestion("unknownCheatcode(uint256)");
+    assert.equal(suggestion, "");
   });
 
   describe("solidityStack", () => {
