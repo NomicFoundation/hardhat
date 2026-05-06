@@ -156,11 +156,14 @@ export class EdrProviderWrapper
       _vm: MinimalEthereumJsVm;
     },
     private readonly _subscriptionConfig: SubscriptionConfig,
-    // Store the initial `genesisAccounts`, `cacheDir`, and `chainOverrides` for `hardhat_reset`
-    // calls, in case there is switching between local and fork configurations.
+    // Store the initial `genesisAccounts`, `cacheDir`, `chainOverrides`, and local-network
+    // genesis values for `hardhat_reset` calls, in case there is switching between local
+    // and fork configurations.
     private readonly _originalGenesisAccounts: GenesisAccount[],
     private readonly _originalCacheDir: string | undefined,
-    private readonly _originalChainOverrides: ChainOverride[] | undefined
+    private readonly _originalChainOverrides: ChainOverride[] | undefined,
+    private readonly _originalGenesisBlockGasLimit: bigint,
+    private readonly _originalGenesisBlockTime: bigint | undefined
   ) {
     super();
   }
@@ -199,9 +202,15 @@ export class EdrProviderWrapper
 
     const cacheDir = config.forkCachePath;
 
-    let fork;
+    const genesisBlockGasLimit = BigInt(config.blockGasLimit);
+    const genesisBlockTime =
+      config.initialDate !== undefined
+        ? BigInt(Math.floor(config.initialDate.getTime() / 1000))
+        : undefined;
+
+    let network;
     if (config.forkConfig !== undefined) {
-      fork = {
+      network = {
         blockNumber:
           config.forkConfig.blockNumber !== undefined
             ? BigInt(config.forkConfig.blockNumber)
@@ -211,12 +220,12 @@ export class EdrProviderWrapper
         httpHeaders: httpHeadersToEdr(config.forkConfig.httpHeaders),
         url: config.forkConfig.jsonRpcUrl,
       };
+    } else {
+      network = {
+        genesisBlockGasLimit,
+        genesisBlockTime,
+      };
     }
-
-    const initialDate =
-      config.initialDate !== undefined
-        ? BigInt(Math.floor(config.initialDate.getTime() / 1000))
-        : undefined;
 
     // To accommodate construction ordering, we need an adapter to forward events
     // from the EdrProvider callback to the wrapper's listener
@@ -229,7 +238,7 @@ export class EdrProviderWrapper
     const edrHardfork = ethereumsjsHardforkToEdrSpecId(hardforkName);
 
     const [genesisState, ownedAccounts] = _genesisStateAndOwnedAccounts(
-      fork !== undefined,
+      config.forkConfig !== undefined,
       edrHardfork,
       config.genesisAccounts
     );
@@ -246,14 +255,12 @@ export class EdrProviderWrapper
       allowUnlimitedContractSize: config.allowUnlimitedContractSize,
       bailOnCallFailure: config.throwOnCallFailures,
       bailOnTransactionFailure: config.throwOnTransactionFailures,
-      blockGasLimit: BigInt(config.blockGasLimit),
       chainId: BigInt(config.chainId),
       coinbase: Buffer.from(coinbase.slice(2), "hex"),
+      defaultTransactionGasLimit: BigInt(config.blockGasLimit),
       precompileOverrides,
-      fork,
       genesisState,
       hardfork: edrHardfork,
-      initialDate,
       initialBaseFeePerGas:
         config.initialBaseFeePerGas !== undefined
           ? BigInt(config.initialBaseFeePerGas!)
@@ -261,11 +268,13 @@ export class EdrProviderWrapper
       minGasPrice: config.minGasPrice,
       mining: {
         autoMine: config.automine,
+        blockGasLimit: BigInt(config.blockGasLimit),
         interval: ethereumjsIntervalMiningConfigToEdr(config.intervalMining),
         memPool: {
           order: ethereumjsMempoolOrderToEdrMineOrdering(config.mempoolOrder),
         },
       },
+      network,
       networkId: BigInt(config.networkId),
       observability: {},
       ownedAccounts,
@@ -331,7 +340,9 @@ export class EdrProviderWrapper
       edrSubscriptionConfig,
       config.genesisAccounts,
       cacheDir,
-      chainOverrides
+      chainOverrides,
+      genesisBlockGasLimit,
+      genesisBlockTime
     );
 
     // Pass through all events from the provider
@@ -526,18 +537,19 @@ export class EdrProviderWrapper
     this._providerConfig.genesisState = genesisState;
     this._providerConfig.ownedAccounts = ownedAccounts;
 
+    const currentNetworkConfig = this._providerConfig.network;
+    const currentlyForked = "url" in currentNetworkConfig;
+
     if (forkConfig !== undefined) {
-      const cacheDir =
-        this._providerConfig.fork === undefined
-          ? this._originalCacheDir
-          : this._providerConfig.fork?.cacheDir;
+      const cacheDir = currentlyForked
+        ? currentNetworkConfig.cacheDir
+        : this._originalCacheDir;
 
-      const chainOverrides =
-        this._providerConfig.fork === undefined
-          ? this._originalChainOverrides
-          : this._providerConfig.fork?.chainOverrides;
+      const chainOverrides = currentlyForked
+        ? currentNetworkConfig.chainOverrides
+        : this._originalChainOverrides;
 
-      this._providerConfig.fork = {
+      this._providerConfig.network = {
         blockNumber:
           forkConfig.blockNumber !== undefined
             ? BigInt(forkConfig.blockNumber)
@@ -548,7 +560,18 @@ export class EdrProviderWrapper
         url: forkConfig.jsonRpcUrl,
       };
     } else {
-      this._providerConfig.fork = undefined;
+      const genesisBlockGasLimit = currentlyForked
+        ? this._originalGenesisBlockGasLimit
+        : currentNetworkConfig.genesisBlockGasLimit;
+
+      const genesisBlockTime = currentlyForked
+        ? this._originalGenesisBlockTime
+        : currentNetworkConfig.genesisBlockTime;
+
+      this._providerConfig.network = {
+        genesisBlockGasLimit,
+        genesisBlockTime,
+      };
     }
 
     const context = await getGlobalEdrContext();
