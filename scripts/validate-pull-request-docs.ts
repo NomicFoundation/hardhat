@@ -27,10 +27,7 @@ const changesetDir = ".changeset";
 const DOCS_PR_URL_PATTERN =
   /github\.com\/nomicfoundation\/hardhat-website\/pull\/\d+/i;
 
-const DOCS_PR_URL_PATTERN_GLOBAL = new RegExp(
-  DOCS_PR_URL_PATTERN.source,
-  "gi",
-);
+const DOCS_PR_URL_PATTERN_GLOBAL = new RegExp(DOCS_PR_URL_PATTERN.source, "gi");
 
 function isReleasePR() {
   if (process.env.GITHUB_HEAD_REF === undefined) {
