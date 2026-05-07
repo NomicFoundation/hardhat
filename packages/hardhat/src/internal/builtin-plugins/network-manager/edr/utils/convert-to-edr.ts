@@ -14,11 +14,11 @@ import type {
   ChainOverride,
   ForkConfig,
   GasReport,
+  MineOrdering,
 } from "@nomicfoundation/edr";
 
 import {
   GasReportExecutionStatus,
-  MineOrdering,
   OpHardfork,
   SpecId,
   FRONTIER,

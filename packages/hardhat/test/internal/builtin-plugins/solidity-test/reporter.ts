@@ -6,9 +6,9 @@ import { describe, it } from "node:test";
 
 import {
   CallKind,
-  TestStatus,
   type CallTrace,
   type TestResult,
+  type TestStatus,
 } from "@nomicfoundation/edr";
 
 import { testReporter } from "../../../../src/internal/builtin-plugins/solidity-test/reporter.js";
