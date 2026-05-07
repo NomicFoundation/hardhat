@@ -45,6 +45,9 @@
       "keccak",
       "unrs-resolver",
       "usb"
-    ]
+    ],
+    "patchedDependencies": {
+      "@nomicfoundation/edr@0.12.0-next.32": "patches/@nomicfoundation__edr@0.12.0-next.32.patch"
+    }
   }
 }
