@@ -26,6 +26,7 @@ import type {
   ContractCallRunOutOfGasError,
   CheatcodeErrorStackTraceEntry,
   CheatcodeErrorDetails,
+  CheatcodeErrorCode,
 } from "@nomicfoundation/edr";
 
 import {
@@ -39,8 +40,6 @@ import {
   PRECOMPILE_FUNCTION_NAME,
   UNRECOGNIZED_CONTRACT_NAME,
 } from "@nomicfoundation/edr";
-
-import type { CheatcodeErrorCode } from "@nomicfoundation/edr";
 
 export {
   StackTraceEntryType,
