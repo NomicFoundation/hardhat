@@ -56,9 +56,6 @@ export function collectEip712CanonicalTypes(
     }
   }
 
-  // The same source can be compiled into more than one build info, so
-  // dedupe structs by (sourceName, structName) before collecting them.
-  const seen = new Set<string>();
   const collected: CollectedStruct[] = [];
 
   for (const { output } of parsed) {
@@ -75,17 +72,7 @@ export function collectEip712CanonicalTypes(
         continue;
       }
 
-      const structs = extractStructsFromAst(source.ast, userSourceName);
-      for (const struct of structs) {
-        const key = `${userSourceName}::${struct.name}`;
-
-        if (seen.has(key)) {
-          continue;
-        }
-
-        seen.add(key);
-        collected.push(struct);
-      }
+      collected.push(...extractStructsFromAst(source.ast, userSourceName));
     }
   }
 

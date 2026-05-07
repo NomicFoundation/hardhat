@@ -3,6 +3,8 @@ import type { BuildInfoAndOutput } from "../../../../../src/internal/builtin-plu
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 
+import { HardhatError } from "@nomicfoundation/hardhat-errors";
+import { assertThrowsHardhatError } from "@nomicfoundation/hardhat-test-utils";
 import { utf8StringToBytes } from "@nomicfoundation/hardhat-utils/bytes";
 
 import { collectEip712CanonicalTypes } from "../../../../../src/internal/builtin-plugins/solidity-test/eip712/index.js";
@@ -98,6 +100,14 @@ function buildArrayTypeName(t: string): unknown {
 
 function sourceUnit(structs: unknown[]): unknown {
   return { nodeType: "SourceUnit", nodes: structs };
+}
+
+function contractAst(name: string, structs: unknown[]): unknown {
+  return {
+    nodeType: "ContractDefinition",
+    name,
+    nodes: structs,
+  };
 }
 
 describe("eip712 - collectEip712CanonicalTypes", () => {
@@ -306,6 +316,85 @@ describe("eip712 - collectEip712CanonicalTypes", () => {
     );
 
     assert.deepEqual(result, ["Imported(uint256 x)"]);
+  });
+
+  it("throws on conflicting same-named structs within a single source file", () => {
+    // A top-level `struct S` and a `contract C { struct S { ... } }` with
+    // a different definition share a source path but produce different
+    // EIP-712 heads. Since `vm.eip712HashType` resolves by bare name, this
+    // is genuinely ambiguous and must surface as an error rather than be
+    // silently resolved by AST traversal order.
+    const buildInfo = makeBuildInfo("solc-0_8_23-11111111", [
+      {
+        inputSourceName: "project/test/Types.sol",
+        userSourceName: "test/Types.sol",
+        ast: sourceUnit([
+          structAst("S", [{ type: "uint256", name: "a" }]),
+          contractAst("C", [structAst("S", [{ type: "uint256", name: "b" }])]),
+        ]),
+      },
+    ]);
+
+    assertThrowsHardhatError(
+      () =>
+        collectEip712CanonicalTypes([buildInfo], {
+          include: ["test/**"],
+        }),
+      HardhatError.ERRORS.CORE.SOLIDITY_TESTS.EIP712_DUPLICATE_STRUCT_NAME,
+      {
+        name: "S",
+        firstSource: "test/Types.sol",
+        secondSource: "test/Types.sol",
+      },
+    );
+  });
+
+  it("throws on conflicting same-named structs across two contracts in one file", () => {
+    const buildInfo = makeBuildInfo("solc-0_8_23-22222222", [
+      {
+        inputSourceName: "project/test/Types.sol",
+        userSourceName: "test/Types.sol",
+        ast: sourceUnit([
+          contractAst("A", [structAst("S", [{ type: "uint256", name: "a" }])]),
+          contractAst("B", [structAst("S", [{ type: "uint256", name: "b" }])]),
+        ]),
+      },
+    ]);
+
+    assertThrowsHardhatError(
+      () =>
+        collectEip712CanonicalTypes([buildInfo], {
+          include: ["test/**"],
+        }),
+      HardhatError.ERRORS.CORE.SOLIDITY_TESTS.EIP712_DUPLICATE_STRUCT_NAME,
+      {
+        name: "S",
+        firstSource: "test/Types.sol",
+        secondSource: "test/Types.sol",
+      },
+    );
+  });
+
+  it("dedupes identical same-named structs within a single source file", () => {
+    // A top-level `struct S` and a `contract C { struct S { ... } }` with
+    // an identical definition produce the same EIP-712 head; that's not a
+    // conflict and must be silently deduped.
+    const buildInfo = makeBuildInfo("solc-0_8_23-33333333", [
+      {
+        inputSourceName: "project/test/Types.sol",
+        userSourceName: "test/Types.sol",
+        ast: sourceUnit([
+          structAst("S", [{ type: "uint256", name: "a" }]),
+          contractAst("C", [structAst("S", [{ type: "uint256", name: "a" }])]),
+        ]),
+      },
+    ]);
+
+    const result = collectEip712CanonicalTypes([buildInfo], {
+      include: ["test/**"],
+    });
+
+    assert.deepEqual(result, ["S(uint256 a)"]);
   });
 
   it("skips build infos whose output has no sources", () => {
