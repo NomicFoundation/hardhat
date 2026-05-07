@@ -181,27 +181,35 @@ function transitiveDeps(
 
 /**
  * Builds a name → definition map from collected structs, throwing
- * `EIP712_DUPLICATE_STRUCT_NAME` when two structs share a name but produce
- * different `encodeType` heads. Identical heads are silently deduplicated
- * (same struct seen across multiple build infos / partial recompiles).
+ * `EIP712_DUPLICATE_STRUCT_NAME` when two structs share a name but have
+ * different member lists. Definitions with identical members are silently
+ * deduplicated (same struct seen across multiple build infos / partial
+ * recompiles).
+ *
+ * The comparison uses the full member list — including members whose type
+ * isn't EIP-712 encodable (mappings, function types) — so that two structs
+ * differing only in unsupported members are detected as conflicting rather
+ * than collapsed into one. Comparing only the encoded head would let a
+ * non decodable definition silently win over an encodable one, dropping the
+ * struct from the canonical output.
  */
 function indexByName(structs: CollectedStruct[]): Map<string, CollectedStruct> {
   const byName = new Map<string, CollectedStruct>();
-  const headByName = new Map<string, string>();
+  const fingerprintByName = new Map<string, string>();
   const sourceByName = new Map<string, string>();
 
   for (const struct of structs) {
-    const head = encodeStructHead(struct);
-    const existingHead = headByName.get(struct.name);
+    const fingerprint = fingerprintStruct(struct);
+    const existingFingerprint = fingerprintByName.get(struct.name);
 
-    if (existingHead === undefined) {
+    if (existingFingerprint === undefined) {
       byName.set(struct.name, struct);
-      headByName.set(struct.name, head);
+      fingerprintByName.set(struct.name, fingerprint);
       sourceByName.set(struct.name, struct.sourcePath);
       continue;
     }
 
-    if (existingHead === head) {
+    if (existingFingerprint === fingerprint) {
       continue;
     }
 
@@ -216,4 +224,19 @@ function indexByName(structs: CollectedStruct[]): Map<string, CollectedStruct> {
   }
 
   return byName;
+}
+
+/**
+ * A stable string capturing every member of `struct`, used to detect
+ * conflicting definitions of the same name. Unlike `encodeStructHead`, this
+ * preserves members whose type can't be EIP-712 encoded — they're emitted with
+ * an `<unsupported>` sentinel — so structs that differ only in mapping or
+ * function-type members aren't collapsed together.
+ */
+function fingerprintStruct(struct: CollectedStruct): string {
+  const segments = struct.members.map(
+    (m) => `${m.type ?? "<unsupported>"} ${m.name}`,
+  );
+
+  return `${struct.name}(${segments.join(",")})`;
 }

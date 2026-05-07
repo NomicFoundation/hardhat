@@ -150,6 +150,96 @@ describe("eip712 - canonicalize", () => {
     );
   });
 
+  it("throws when same-named structs differ only in an unsupported member", () => {
+    // Both definitions encode to `Foo(address from)` once mapping members are
+    // dropped, but they aren't the same struct. Comparing only the encoded
+    // head would let the non decodable definition silently win, dropping `Foo`
+    // from the output even though an encodable definition exists.
+    assertThrowsHardhatError(
+      () =>
+        canonicalizeStructs([
+          struct(
+            "Foo",
+            [
+              ["address", "from"],
+              [undefined, "balances"],
+            ],
+            "test/A.sol",
+          ),
+          struct("Foo", [["address", "from"]], "test/B.sol"),
+        ]),
+      HardhatError.ERRORS.CORE.SOLIDITY_TESTS.EIP712_DUPLICATE_STRUCT_NAME,
+      {
+        name: "Foo",
+        firstSource: "test/A.sol",
+        secondSource: "test/B.sol",
+      },
+    );
+  });
+
+  it("throws when same-named structs differ only in which member is unsupported", () => {
+    // Both heads collapse to `Foo(address from,address to)` once the mapping
+    // is dropped, but the structs are clearly different definitions.
+    assertThrowsHardhatError(
+      () =>
+        canonicalizeStructs([
+          struct(
+            "Foo",
+            [
+              ["address", "from"],
+              [undefined, "m"],
+              ["address", "to"],
+            ],
+            "test/A.sol",
+          ),
+          struct(
+            "Foo",
+            [
+              ["address", "from"],
+              ["address", "to"],
+            ],
+            "test/B.sol",
+          ),
+        ]),
+      HardhatError.ERRORS.CORE.SOLIDITY_TESTS.EIP712_DUPLICATE_STRUCT_NAME,
+      {
+        name: "Foo",
+        firstSource: "test/A.sol",
+        secondSource: "test/B.sol",
+      },
+    );
+  });
+
+  it("dedupes same-named structs that share unsupported members exactly", () => {
+    // Same struct seen in two build infos (e.g. partial recompiles): the
+    // unsupported member appears in both, at the same position, with the same
+    // name. Treat as one definition.
+    const collected = [
+      struct(
+        "Holder",
+        [
+          ["uint256", "amount"],
+          [undefined, "balances"],
+        ],
+        "test/A.sol",
+      ),
+      struct(
+        "Holder",
+        [
+          ["uint256", "amount"],
+          [undefined, "balances"],
+        ],
+        "test/B.sol",
+      ),
+    ];
+
+    // Both copies are non decodable (mapping member), so the canonical output is
+    // empty — the important part is that canonicalization doesn't throw.
+    const result = canonicalizeStructs(collected);
+
+    assert.deepEqual(result, []);
+  });
+
   it("drops structs with non-decodable members (e.g. mappings)", () => {
     // Matches forge: `resolve_struct_eip712` returns `None` when any member
     // has an unsupported type, so the struct is filtered out entirely rather
