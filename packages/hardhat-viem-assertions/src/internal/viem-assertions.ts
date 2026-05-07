@@ -1,4 +1,11 @@
 import type { HardhatViemAssertions } from "../types.js";
+import type { balancesHaveChanged as balancesHaveChangedT } from "./assertions/balances-have-changed.js";
+import type { emitWithArgs as emitWithArgsT } from "./assertions/emit/emit-with-args.js";
+import type { emit as emitT } from "./assertions/emit/emit.js";
+import type { revertWithCustomErrorWithArgs as revertWithCustomErrorWithArgsT } from "./assertions/revert/revert-with-custom-error-with-args.js";
+import type { revertWithCustomError as revertWithCustomErrorT } from "./assertions/revert/revert-with-custom-error.js";
+import type { revertWith as revertWithT } from "./assertions/revert/revert-with.js";
+import type { revert as revertT } from "./assertions/revert/revert.js";
 import type {
   ContractAbis,
   ContractReturnType,
@@ -13,13 +20,15 @@ import type {
   WriteContractReturnType,
 } from "viem";
 
-import { balancesHaveChanged } from "./assertions/balances-have-changed.js";
-import { emitWithArgs } from "./assertions/emit/emit-with-args.js";
-import { emit } from "./assertions/emit/emit.js";
-import { revertWithCustomErrorWithArgs } from "./assertions/revert/revert-with-custom-error-with-args.js";
-import { revertWithCustomError } from "./assertions/revert/revert-with-custom-error.js";
-import { revertWith } from "./assertions/revert/revert-with.js";
-import { revert } from "./assertions/revert/revert.js";
+let balancesHaveChanged: typeof balancesHaveChangedT | undefined;
+let emit: typeof emitT | undefined;
+let emitWithArgs: typeof emitWithArgsT | undefined;
+let revert: typeof revertT | undefined;
+let revertWith: typeof revertWithT | undefined;
+let revertWithCustomError: typeof revertWithCustomErrorT | undefined;
+let revertWithCustomErrorWithArgs:
+  | typeof revertWithCustomErrorWithArgsT
+  | undefined;
 
 export class HardhatViemAssertionsImpl<
   ChainTypeT extends ChainType | string = "generic",
@@ -38,6 +47,12 @@ export class HardhatViemAssertionsImpl<
       amount: bigint;
     }>,
   ): Promise<void> {
+    if (balancesHaveChanged === undefined) {
+      ({ balancesHaveChanged } = await import(
+        "./assertions/balances-have-changed.js"
+      ));
+    }
+
     return await balancesHaveChanged(this.#viem, resolvedTxHash, changes);
   }
 
@@ -49,6 +64,10 @@ export class HardhatViemAssertionsImpl<
     contract: ContractReturnType<ContractName>,
     eventName: EventName,
   ): Promise<void> {
+    if (emit === undefined) {
+      ({ emit } = await import("./assertions/emit/emit.js"));
+    }
+
     return await emit(this.#viem, contractFn, contract, eventName);
   }
 
@@ -61,6 +80,10 @@ export class HardhatViemAssertionsImpl<
     eventName: EventName,
     args: any[],
   ): Promise<void> {
+    if (emitWithArgs === undefined) {
+      ({ emitWithArgs } = await import("./assertions/emit/emit-with-args.js"));
+    }
+
     return await emitWithArgs(
       this.#viem,
       contractFn,
@@ -73,6 +96,10 @@ export class HardhatViemAssertionsImpl<
   public async revert(
     contractFn: Promise<ReadContractReturnType | WriteContractReturnType>,
   ): Promise<void> {
+    if (revert === undefined) {
+      ({ revert } = await import("./assertions/revert/revert.js"));
+    }
+
     return await revert(contractFn);
   }
 
@@ -80,6 +107,10 @@ export class HardhatViemAssertionsImpl<
     contractFn: Promise<ReadContractReturnType | WriteContractReturnType>,
     expectedRevertReason: string,
   ): Promise<void> {
+    if (revertWith === undefined) {
+      ({ revertWith } = await import("./assertions/revert/revert-with.js"));
+    }
+
     return await revertWith(contractFn, expectedRevertReason);
   }
 
@@ -88,6 +119,12 @@ export class HardhatViemAssertionsImpl<
     contract: ContractReturnType<ContractName>,
     customErrorName: string,
   ): Promise<void> {
+    if (revertWithCustomError === undefined) {
+      ({ revertWithCustomError } = await import(
+        "./assertions/revert/revert-with-custom-error.js"
+      ));
+    }
+
     return await revertWithCustomError(contractFn, contract, customErrorName);
   }
 
@@ -99,6 +136,12 @@ export class HardhatViemAssertionsImpl<
     customErrorName: string,
     args: any[],
   ): Promise<void> {
+    if (revertWithCustomErrorWithArgs === undefined) {
+      ({ revertWithCustomErrorWithArgs } = await import(
+        "./assertions/revert/revert-with-custom-error-with-args.js"
+      ));
+    }
+
     return await revertWithCustomErrorWithArgs(
       contractFn,
       contract,
