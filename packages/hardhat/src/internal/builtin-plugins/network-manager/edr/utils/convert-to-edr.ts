@@ -265,9 +265,9 @@ export function hardhatMempoolOrderToEdrMineOrdering(
 ): MineOrdering {
   switch (mempoolOrder) {
     case "fifo":
-      return MineOrdering.Fifo;
+      return "Fifo";
     case "priority":
-      return MineOrdering.Priority;
+      return "Priority";
   }
 }
 

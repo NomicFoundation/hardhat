@@ -2,10 +2,7 @@ import type { SolidityStackTraceEntry } from "../network-manager/edr/stack-trace
 
 import { panicErrorCodeToMessage } from "@nomicfoundation/hardhat-utils/panic-errors";
 
-import {
-  StackTraceEntryType,
-  CheatcodeErrorCode,
-} from "../network-manager/edr/stack-traces/solidity-stack-trace.js";
+import { StackTraceEntryType } from "../network-manager/edr/stack-traces/solidity-stack-trace.js";
 
 export function getMessageFromLastStackTraceEntry(
   stackTraceEntry: SolidityStackTraceEntry,
@@ -70,9 +67,9 @@ export function getMessageFromLastStackTraceEntry(
     case StackTraceEntryType.CHEATCODE_ERROR: {
       if (stackTraceEntry.details !== undefined) {
         switch (stackTraceEntry.details.code) {
-          case CheatcodeErrorCode.UnsupportedCheatcode:
+          case "UnsupportedCheatcode":
             return `Cheatcode '${stackTraceEntry.details.cheatcode}' is not supported by Hardhat.`;
-          case CheatcodeErrorCode.MissingCheatcode:
+          case "MissingCheatcode":
             return `Cheatcode '${stackTraceEntry.details.cheatcode}' is not yet available in this version of Hardhat.`;
         }
       }

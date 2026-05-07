@@ -30,7 +30,6 @@ import type {
 
 import {
   StackTraceEntryType,
-  CheatcodeErrorCode,
   stackTraceEntryTypeToString,
   FALLBACK_FUNCTION_NAME,
   RECEIVE_FUNCTION_NAME,
@@ -41,10 +40,10 @@ import {
   UNRECOGNIZED_CONTRACT_NAME,
 } from "@nomicfoundation/edr";
 
+import type { CheatcodeErrorCode } from "@nomicfoundation/edr";
+
 export {
-  SourceReference,
   StackTraceEntryType,
-  CheatcodeErrorCode,
   stackTraceEntryTypeToString,
   FALLBACK_FUNCTION_NAME,
   RECEIVE_FUNCTION_NAME,
@@ -56,6 +55,8 @@ export {
 };
 
 export type {
+  SourceReference,
+  CheatcodeErrorCode,
   CallstackEntryStackTraceEntry,
   UnrecognizedCreateCallstackEntryStackTraceEntry,
   UnrecognizedContractCallstackEntryStackTraceEntry,

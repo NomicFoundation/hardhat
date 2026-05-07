@@ -90,6 +90,9 @@ const mocker = {
                         mocker.trace(trace),
                       );
                     },
+                    reason: undefined,
+                    counterexample: undefined,
+                    valueSnapshotGroups: undefined,
                   }) satisfies TestResult,
               )
               .reverse(),
@@ -124,7 +127,7 @@ describe("testReporter", () => {
             results: [
               {
                 name: "successful test",
-                status: TestStatus.Success,
+                status: "Success",
               },
             ],
           },
@@ -152,7 +155,7 @@ describe("testReporter", () => {
             results: [
               {
                 name: "failing test",
-                status: TestStatus.Failure,
+                status: "Failure",
                 consoleLogs: ["debug log"],
                 traces: [
                   { contract: "Foo", gasUsed: 100n },
@@ -199,7 +202,7 @@ debug log
             results: [
               {
                 name: "skipped test",
-                status: TestStatus.Skipped,
+                status: "Skipped",
               },
             ],
           },
@@ -228,11 +231,11 @@ debug log
             results: [
               {
                 name: "skipped test",
-                status: TestStatus.Skipped,
+                status: "Skipped",
               },
               {
                 name: "failing test",
-                status: TestStatus.Failure,
+                status: "Failure",
                 consoleLogs: ["debug log"],
                 traces: [
                   { contract: "Foo", gasUsed: 100n },
@@ -245,7 +248,7 @@ debug log
               },
               {
                 name: "successful test",
-                status: TestStatus.Success,
+                status: "Success",
               },
             ],
           },
@@ -288,7 +291,7 @@ debug log
             results: [
               {
                 name: "successful test",
-                status: TestStatus.Success,
+                status: "Success",
               },
             ],
           },
@@ -318,7 +321,7 @@ debug log
             results: [
               {
                 name: "successful test",
-                status: TestStatus.Success,
+                status: "Success",
               },
             ],
           },
@@ -328,7 +331,7 @@ debug log
             results: [
               {
                 name: "another successful test",
-                status: TestStatus.Success,
+                status: "Success",
               },
             ],
           },
@@ -359,11 +362,11 @@ debug log
             results: [
               {
                 name: "failing test1",
-                status: TestStatus.Failure,
+                status: "Failure",
               },
               {
                 name: "failing test2",
-                status: TestStatus.Failure,
+                status: "Failure",
               },
             ],
           },
@@ -373,11 +376,11 @@ debug log
             results: [
               {
                 name: "failing test3",
-                status: TestStatus.Failure,
+                status: "Failure",
               },
               {
                 name: "failing test4",
-                status: TestStatus.Failure,
+                status: "Failure",
               },
             ],
           },
@@ -425,11 +428,11 @@ debug log
             results: [
               {
                 name: "skipped test",
-                status: TestStatus.Skipped,
+                status: "Skipped",
               },
               {
                 name: "failing test",
-                status: TestStatus.Failure,
+                status: "Failure",
                 consoleLogs: ["debug log"],
                 traces: [
                   { contract: "Foo", gasUsed: 100n },
@@ -442,7 +445,7 @@ debug log
               },
               {
                 name: "successful test",
-                status: TestStatus.Success,
+                status: "Success",
               },
             ],
           },

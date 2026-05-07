@@ -3,7 +3,7 @@ import type { SolidityStackTraceEntry } from "../../../../src/internal/builtin-p
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 
-import { CheatcodeErrorCode, StackTraceEntryType } from "@nomicfoundation/edr";
+import { StackTraceEntryType } from "@nomicfoundation/edr";
 
 import { getMessageFromLastStackTraceEntry } from "../../../../src/internal/builtin-plugins/solidity-test/stack-trace-solidity-errors.js";
 
@@ -35,7 +35,7 @@ describe("getMessageFromLastStackTraceEntry", () => {
         message: "cheatcode 'broadcast(address)' is not supported",
         sourceReference: dummySourceReference,
         details: {
-          code: CheatcodeErrorCode.UnsupportedCheatcode,
+          code: "UnsupportedCheatcode",
           cheatcode: "broadcast(address)",
         },
       };
@@ -52,7 +52,7 @@ describe("getMessageFromLastStackTraceEntry", () => {
         message: "unknown cheatcode with selector '0x12345678'",
         sourceReference: dummySourceReference,
         details: {
-          code: CheatcodeErrorCode.MissingCheatcode,
+          code: "MissingCheatcode",
           cheatcode: "someNewCheatcode(uint256)",
         },
       };

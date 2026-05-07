@@ -13,7 +13,6 @@ import { REVERT_ERROR_CODE } from "../../revert-error-code.js";
 
 import {
   StackTraceEntryType,
-  CheatcodeErrorCode,
   CONSTRUCTOR_FUNCTION_NAME,
   PRECOMPILE_FUNCTION_NAME,
   UNKNOWN_FUNCTION_NAME,
@@ -275,10 +274,10 @@ function getMessageFromLastStackTraceEntry(
 
       if (stackTraceEntry.details !== undefined) {
         switch (stackTraceEntry.details.code) {
-          case CheatcodeErrorCode.UnsupportedCheatcode:
+          case "UnsupportedCheatcode":
             message = `Cheatcode '${stackTraceEntry.details.cheatcode}' is not supported by Hardhat.`;
             break;
-          case CheatcodeErrorCode.MissingCheatcode:
+          case "MissingCheatcode":
             message = `Cheatcode '${stackTraceEntry.details.cheatcode}' is not yet available in this version of Hardhat.`;
             break;
         }

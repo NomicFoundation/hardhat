@@ -14,7 +14,7 @@ export function createStandardTestResult(
 ): TestResult {
   return {
     name,
-    status: TestStatus.Success,
+    status: "Success",
     decodedLogs: [],
     durationNs: 0n,
     kind: {
@@ -22,6 +22,9 @@ export function createStandardTestResult(
     },
     stackTrace: () => null,
     callTraces: () => [],
+    reason: undefined,
+    counterexample: undefined,
+    valueSnapshotGroups: undefined,
   };
 }
 
@@ -33,7 +36,7 @@ export function createFuzzTestResult(
 ): TestResult {
   return {
     name,
-    status: TestStatus.Success,
+    status: "Success",
     decodedLogs: [],
     durationNs: 0n,
     kind: {
@@ -43,6 +46,9 @@ export function createFuzzTestResult(
     },
     stackTrace: () => null,
     callTraces: () => [],
+    reason: undefined,
+    counterexample: undefined,
+    valueSnapshotGroups: undefined,
   };
 }
 
@@ -53,7 +59,7 @@ export function createInvariantTestResult(
 ): TestResult {
   return {
     name,
-    status: TestStatus.Success,
+    status: "Success",
     decodedLogs: [],
     durationNs: 0n,
     kind: {
@@ -65,6 +71,9 @@ export function createInvariantTestResult(
     },
     stackTrace: () => null,
     callTraces: () => [],
+    reason: undefined,
+    counterexample: undefined,
+    valueSnapshotGroups: undefined,
   };
 }
 
@@ -73,7 +82,7 @@ export function createTestResultWithSnapshots(
 ): TestResult {
   return {
     name: "testWithSnapshotCheatcodes",
-    status: TestStatus.Success,
+    status: "Success",
     decodedLogs: [],
     durationNs: 0n,
     // Use invariant test kind since it's not tracked by function gas snapshots,
@@ -87,6 +96,8 @@ export function createTestResultWithSnapshots(
     },
     stackTrace: () => null,
     callTraces: () => [],
+    reason: undefined,
+    counterexample: undefined,
     valueSnapshotGroups,
   };
 }
