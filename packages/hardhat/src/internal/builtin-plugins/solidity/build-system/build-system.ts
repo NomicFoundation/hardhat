@@ -33,15 +33,16 @@ import type {
 
 import os from "node:os";
 import path from "node:path";
+import { styleText } from "node:util";
 
 import {
   assertHardhatInvariant,
   HardhatError,
 } from "@nomicfoundation/hardhat-errors";
+import { createDebug } from "@nomicfoundation/hardhat-utils/debug";
 import {
   exists,
   ensureDir,
-  getAllDirectoriesMatching,
   getAllFilesMatching,
   move,
   readJsonFile,
@@ -54,8 +55,6 @@ import {
 import { shortenPath } from "@nomicfoundation/hardhat-utils/path";
 import { createSpinner } from "@nomicfoundation/hardhat-utils/spinner";
 import { pluralize } from "@nomicfoundation/hardhat-utils/string";
-import chalk from "chalk";
-import debug from "debug";
 import pMap from "p-map";
 
 import { FileBuildResultType } from "../../../../types/solidity/build-system.js";
@@ -71,6 +70,7 @@ import {
   getDuplicatedContractNamesDeclarationFile,
 } from "./artifacts.js";
 import { loadCache, saveCache } from "./cache.js";
+import { sortCompilationJobsByDescendingCost } from "./compilation-job-cost.js";
 import { CompilationJobImplementation } from "./compilation-job.js";
 import { downloadSolcCompilers, getCompiler } from "./compiler/index.js";
 import { buildDependencyGraph } from "./dependency-graph-building.js";
@@ -84,7 +84,7 @@ import {
 import { SolcConfigSelector } from "./solc-config-selection.js";
 import { shouldSuppressWarning } from "./warning-suppression.js";
 
-const log = debug("hardhat:core:solidity:build-system");
+const log = createDebug("hardhat:core:solidity:build-system");
 
 /**
  * Returns true if the given compiler config is a SolcSolidityCompilerConfig.
@@ -339,8 +339,18 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
         ),
       );
 
-      const results: CompilationResult[] = await pMap(
+      // We sort the compilation jobs in descending order of estimated
+      // compilation cost. This way we can use this algorithm:
+      // https://en.wikipedia.org/wiki/Longest-processing-time-first_scheduling
+      //
+      // Note that it works because pMap schedules the jobs in the order they
+      // are in the array.
+      const sortedCompilationJobs = sortCompilationJobsByDescendingCost(
         runnableCompilationJobs,
+      );
+
+      const results: CompilationResult[] = await pMap(
+        sortedCompilationJobs,
         async (runnableCompilationJob) => {
           const { output, compiler } = await this.runCompilationJob(
             runnableCompilationJob,
@@ -1087,29 +1097,46 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
 
     const userSourceNamesSet = new Set(userSourceNames);
 
-    for (const file of await getAllDirectoriesMatching(
+    const buildInfosDir = path.join(artifactsDirectory, `build-info`);
+
+    // We accept both `.json` files and per-file `artifacts.d.ts` files:
+    // source files that compile but produce no contracts emit only the
+    // declaration file, but their parent dir still belongs in the cleanup
+    // candidate set.
+    // TODO: This logic is originated with the artifacts manager, but now uses both json files and `artifacts.d.ts` as the test
+    const allArtifactFiles = await getAllFilesMatching(
       artifactsDirectory,
-      (d) => d.endsWith(".sol"),
-    )) {
+      (p) => {
+        // Ignore top level files (e.g. the project-wide artifacts.d.ts)
+        if (
+          p.indexOf(path.sep, artifactsDirectory.length + path.sep.length) ===
+          -1
+        ) {
+          return false;
+        }
+        return p.endsWith(".json") || path.basename(p) === "artifacts.d.ts";
+      },
+      (dir) => dir !== buildInfosDir,
+    );
+
+    const artifactDirs = new Set(
+      allArtifactFiles.map((file) => path.dirname(file)),
+    );
+    const removedDirs = new Set<string>();
+
+    for (const dir of artifactDirs) {
       const relativePath = toForwardSlash(
-        path.relative(artifactsDirectory, file),
+        path.relative(artifactsDirectory, dir),
       );
 
       if (!userSourceNamesSet.has(relativePath)) {
-        await remove(file);
+        await remove(dir);
+        removedDirs.add(dir);
       }
     }
 
-    const buildInfosDir = path.join(artifactsDirectory, `build-info`);
-
-    // TODO: This logic is duplicated with respect to the artifacts manager
-    const artifactPaths = await getAllFilesMatching(
-      artifactsDirectory,
-      (p) =>
-        p.endsWith(".json") && // Only consider json files
-        // Ignore top level json files
-        p.indexOf(path.sep, artifactsDirectory.length + path.sep.length) !== -1,
-      (dir) => dir !== buildInfosDir,
+    const artifactPaths = allArtifactFiles.filter(
+      (p) => p.endsWith(".json") && !removedDirs.has(path.dirname(p)),
     );
 
     const reachableBuildInfoIds = await Promise.all(
@@ -1356,13 +1383,14 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
           error.message;
 
         console.error(
-          errorMessage.replace(/^\w+:/, (t) => chalk.red.bold(t)).trimEnd() +
-            "\n",
+          errorMessage
+            .replace(/^\w+:/, (t) => styleText(["red", "bold"], t))
+            .trimEnd() + "\n",
         );
       } else {
         console.warn(
           (error.formattedMessage ?? error.message)
-            .replace(/^\w+:/, (t) => chalk.yellow.bold(t))
+            .replace(/^\w+:/, (t) => styleText(["yellow", "bold"], t))
             .trimEnd() + "\n",
         );
       }
@@ -1374,7 +1402,8 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
 
     if (hasConsoleErrors) {
       console.error(
-        chalk.red(
+        styleText(
+          "red",
           `The console.log call you made isn't supported. See https://hardhat.org/console-log for the list of supported methods.`,
         ),
       );
@@ -1467,7 +1496,8 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
         }
 
         console.log(
-          chalk.bold(
+          styleText(
+            "bold",
             `Compiled ${rootFiles} Solidity ${pluralize(
               options.scope === "contracts" ? "file" : "test file",
               rootFiles,

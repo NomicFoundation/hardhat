@@ -4,7 +4,7 @@ import type { FutureType } from "./module.js";
 /**
  * A serialized bigint.
  *
- * @beta
+ * @public
  */
 export interface SerializedBigInt {
   _kind: "bigint";
@@ -14,7 +14,7 @@ export interface SerializedBigInt {
 /**
  * The serialized version of BaseArgumentType
  *
- * @beta
+ * @public
  */
 export type SerializedBaseArgumentType =
   | number
@@ -27,7 +27,7 @@ export type SerializedBaseArgumentType =
 /**
  * The serialized version of ArgumentType
  *
- * @beta
+ * @public
  */
 export type SerializedArgumentType =
   | SerializedBaseArgumentType
@@ -38,7 +38,7 @@ export type SerializedArgumentType =
  * In serialized form a pointer to a future stored at the top level
  * within the module.
  *
- * @beta
+ * @public
  */
 export interface FutureToken {
   futureId: string;
@@ -49,7 +49,7 @@ export interface FutureToken {
  * In serialized form a pointer to a module stored at the top level
  * within the deployment.
  *
- * @beta
+ * @public
  */
 export interface ModuleToken {
   moduleId: string;
@@ -59,7 +59,7 @@ export interface ModuleToken {
 /**
  * The base of the different serialized futures.
  *
- * @beta
+ * @public
  */
 export interface BaseSerializedFuture {
   id: string;
@@ -71,7 +71,7 @@ export interface BaseSerializedFuture {
 /**
  * The serialized version of the NamedContractDeploymentFuture.
  *
- * @beta
+ * @public
  */
 export interface SerializedNamedContractDeploymentFuture
   extends BaseSerializedFuture {
@@ -86,7 +86,7 @@ export interface SerializedNamedContractDeploymentFuture
 /**
  * The serialized version of the ArtifactContractDeploymentFuture.
  *
- * @beta
+ * @public
  */
 export interface SerializedArtifactContractDeploymentFuture
   extends BaseSerializedFuture {
@@ -102,7 +102,7 @@ export interface SerializedArtifactContractDeploymentFuture
 /**
  * The serialized version of the NamedLibraryDeploymentFuture.
  *
- * @beta
+ * @public
  */
 export interface SerializedNamedLibraryDeploymentFuture
   extends BaseSerializedFuture {
@@ -115,7 +115,7 @@ export interface SerializedNamedLibraryDeploymentFuture
 /**
  * The serialized version of the ArtifactLibraryDeploymentFuture.
  *
- * @beta
+ * @public
  */
 export interface SerializedArtifactLibraryDeploymentFuture
   extends BaseSerializedFuture {
@@ -129,7 +129,7 @@ export interface SerializedArtifactLibraryDeploymentFuture
 /**
  * The serialized version of NamedContractCallFuture.
  *
- * @beta
+ * @public
  */
 export interface SerializedNamedContractCallFuture
   extends BaseSerializedFuture {
@@ -144,7 +144,7 @@ export interface SerializedNamedContractCallFuture
 /**
  * The serialized version of NamedStaticCallFuture.
  *
- * @beta
+ * @public
  */
 export interface SerializedNamedStaticCallFuture extends BaseSerializedFuture {
   type: FutureType.STATIC_CALL;
@@ -158,7 +158,7 @@ export interface SerializedNamedStaticCallFuture extends BaseSerializedFuture {
 /**
  * The serialized version of NamedEncodeFunctionCallFuture.
  *
- * @beta
+ * @public
  */
 export interface SerializedNamedEncodeFunctionCallFuture
   extends BaseSerializedFuture {
@@ -171,7 +171,7 @@ export interface SerializedNamedEncodeFunctionCallFuture
 /**
  * The serialized version of NamedContractAtFuture.
  *
- * @beta
+ * @public
  */
 export interface SerializedNamedContractAtFuture extends BaseSerializedFuture {
   type: FutureType.NAMED_ARTIFACT_CONTRACT_AT;
@@ -182,7 +182,7 @@ export interface SerializedNamedContractAtFuture extends BaseSerializedFuture {
 /**
  * The serialized version of ArtifactContractAtFuture.
  *
- * @beta
+ * @public
  */
 export interface SerializedArtifactContractAtFuture
   extends BaseSerializedFuture {
@@ -195,7 +195,7 @@ export interface SerializedArtifactContractAtFuture
 /**
  * The serialized version of ReadEventArgumentFuture.
  *
- * @beta
+ * @public
  */
 export interface SerializedReadEventArgumentFuture
   extends BaseSerializedFuture {
@@ -210,7 +210,7 @@ export interface SerializedReadEventArgumentFuture
 /**
  * The serialized version of ReadEventArgumentFuture.
  *
- * @beta
+ * @public
  */
 export interface SerializedSendDataFuture extends BaseSerializedFuture {
   type: FutureType.SEND_DATA;
@@ -227,7 +227,7 @@ export interface SerializedSendDataFuture extends BaseSerializedFuture {
 /**
  * The srialized version of RuntimeValue.
  *
- * @beta
+ * @public
  */
 export type SerializedRuntimeValue =
   | SerializedAccountRuntimeValue
@@ -236,7 +236,7 @@ export type SerializedRuntimeValue =
 /**
  * The serialized version of AccountRuntimeValue.
  *
- * @beta
+ * @public
  */
 export interface SerializedAccountRuntimeValue {
   _kind: "AccountRuntimeValue";
@@ -246,7 +246,7 @@ export interface SerializedAccountRuntimeValue {
 /**
  * The serialized version of ModuleParameterRuntimeValue.
  *
- * @beta
+ * @public
  */
 export interface SerializedModuleParameterRuntimeValue {
   _kind: "ModuleParameterRuntimeValue";
@@ -260,7 +260,7 @@ export interface SerializedModuleParameterRuntimeValue {
 /**
  * The serialized version of an Ignition module and its submodules.
  *
- * @beta
+ * @public
  */
 export interface SerializedIgnitionModule {
   startModule: string;
@@ -273,7 +273,7 @@ export interface SerializedIgnitionModule {
  * A subpart of the `SerializedIgnitionModule` that describes one
  * module/submodule and its relations to futures and other submodule.
  *
- * @beta
+ * @public
  */
 export interface SerializedModuleDescription {
   id: string;
@@ -286,14 +286,14 @@ export interface SerializedModuleDescription {
  * The serialized libraries, where each library
  * has been replaced by a token.
  *
- * @beta
+ * @public
  */
 export type SerializedLibraries = Array<[name: string, token: FutureToken]>;
 
 /**
  * The set of serialized future types
  *
- * @beta
+ * @public
  */
 export type SerializedFuture =
   | SerializedNamedContractDeploymentFuture

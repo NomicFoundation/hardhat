@@ -1,8 +1,18 @@
 // This wrapper was created by extracting the parts of the solc-js package
 // (https://github.com/ethereum/solc-js) that we need to perform compilation.
 
-import { HardhatError } from "@nomicfoundation/hardhat-errors";
-import * as semver from "semver";
+import type { SemverVersion } from "@nomicfoundation/hardhat-utils/fast-semver";
+
+import {
+  HardhatError,
+  assertHardhatInvariant,
+} from "@nomicfoundation/hardhat-errors";
+import {
+  greaterThanOrEqual,
+  parseVersion,
+} from "@nomicfoundation/hardhat-utils/fast-semver";
+
+const VERSION_6: SemverVersion = [0, 6, 0];
 
 interface Solc {
   cwrap<T>(ident: string, returnType: string | null, argTypes: string[]): T;
@@ -36,8 +46,13 @@ export type CompileWrapper = (input: string) => string;
 
 export default function wrapper(solc: Solc): SolcWrapper {
   const version = bindVersion(solc);
-  const semverVersion = versionToSemver(version());
-  const isVersion6OrNewer = semver.gte(semverVersion, "0.6.0");
+  const rawVersion = version();
+  const parsedVersion = parseVersion(rawVersion);
+  assertHardhatInvariant(
+    parsedVersion !== undefined,
+    `Invalid solc version: ${rawVersion}`,
+  );
+  const isVersion6OrNewer = greaterThanOrEqual(parsedVersion, VERSION_6);
   const reset = bindReset(solc);
   const compile = bindCompile(solc, isVersion6OrNewer);
 
@@ -123,22 +138,4 @@ function bindCompile(
   }
 
   return undefined;
-}
-
-function versionToSemver(version: string): string {
-  // FIXME: parse more detail, but this is a good start
-  const parsed = version.match(
-    /^([0-9]+\.[0-9]+\.[0-9]+)-([0-9a-f]{8})[/*].*$/,
-  );
-  if (parsed !== null) {
-    return parsed[1] + "+commit." + parsed[2];
-  }
-  if (version.indexOf("0.1.3-0") !== -1) {
-    return "0.1.3";
-  }
-  if (version.indexOf("0.3.5-0") !== -1) {
-    return "0.3.5";
-  }
-  // assume it is already semver compatible
-  return version;
 }

@@ -1,6 +1,6 @@
 import type { HardhatPlugin } from "hardhat/types/plugins";
 
-import "./type-extensions.js";
+export type * from "./type-extensions.js";
 
 import { PLUGIN_NAME } from "./internal/plugin-name.js";
 

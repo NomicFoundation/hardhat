@@ -25,11 +25,7 @@ import {
   getImmutableOffsets,
   getCallProtectionOffsets,
 } from "../src/internal/bytecode.js";
-import {
-  METADATA_LENGTH_FIELD_SIZE,
-  MISSING_METADATA_VERSION_RANGE,
-  SOLC_NOT_FOUND_IN_METADATA_VERSION_RANGE,
-} from "../src/internal/metadata.js";
+import { METADATA_LENGTH_FIELD_SIZE } from "../src/internal/metadata.js";
 
 import { MockEthereumProvider } from "./utils.js";
 
@@ -59,7 +55,10 @@ describe("bytecode", () => {
           networkName,
         );
 
-        assert.equal(deployedBytecode.solcVersion, "0.8.30");
+        assert.deepEqual(deployedBytecode.solcVersion, {
+          type: "exact",
+          version: [0, 8, 30],
+        });
         assert.equal(deployedBytecode.bytecode, bytecode);
         assert.equal(deployedBytecode.executableSection, executableSection);
       });
@@ -82,7 +81,7 @@ describe("bytecode", () => {
     });
 
     describe("hasVersionRange", () => {
-      it("should return true if the solc version is a range - MISSING_METADATA_VERSION_RANGE", async () => {
+      it("should return true when no metadata can be decoded (lessThan fallback)", async () => {
         const executableSection = "deadbeefcafebabe"; // dummy bytecode
 
         const bytecode = buildBytecode(executableSection, "");
@@ -97,14 +96,14 @@ describe("bytecode", () => {
           networkName,
         );
 
-        assert.equal(
-          deployedBytecode.solcVersion,
-          MISSING_METADATA_VERSION_RANGE,
-        );
+        assert.deepEqual(deployedBytecode.solcVersion, {
+          type: "lessThan",
+          bound: [0, 4, 7],
+        });
         assert.equal(deployedBytecode.hasVersionRange(), true);
       });
 
-      it("should return true if the solc version is a range - SOLC_NOT_FOUND_IN_METADATA_VERSION_RANGE", async () => {
+      it("should return true when metadata lacks a version field (between fallback)", async () => {
         const metadata = {};
         const encodedMetadata = encode(metadata);
         const metadataSection = getUnprefixedHexString(
@@ -124,14 +123,15 @@ describe("bytecode", () => {
           networkName,
         );
 
-        assert.equal(
-          deployedBytecode.solcVersion,
-          SOLC_NOT_FOUND_IN_METADATA_VERSION_RANGE,
-        );
+        assert.deepEqual(deployedBytecode.solcVersion, {
+          type: "between",
+          min: [0, 4, 7],
+          max: [0, 5, 8],
+        });
         assert.equal(deployedBytecode.hasVersionRange(), true);
       });
 
-      it("should return false if the solc version is not a range", async () => {
+      it("should return false when the solc version is exact", async () => {
         const metadata = { solc: new Uint8Array([0, 6, 0]) }; // [major, minor, patch]
         const encodedMetadata = encode(metadata);
         const metadataSection = getUnprefixedHexString(
@@ -151,7 +151,10 @@ describe("bytecode", () => {
           networkName,
         );
 
-        assert.equal(deployedBytecode.solcVersion, "0.6.0");
+        assert.deepEqual(deployedBytecode.solcVersion, {
+          type: "exact",
+          version: [0, 6, 0],
+        });
         assert.equal(deployedBytecode.hasVersionRange(), false);
       });
     });

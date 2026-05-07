@@ -478,6 +478,13 @@ export class RemappedNpmPackagesGraphImplementation
       (f) => !f.endsWith("node_modules"),
     );
 
+    // Sort by path so the first-wins dedup downstream is deterministic across
+    // filesystems. We sort here (and not after hook composition) so that hooks
+    // can rely on the contract that remappings they append after next() come
+    // last — e.g. hardhat-foundry appends forge's remappings after the
+    // package's own remappings.txt files, expecting remappings.txt to win.
+    remappingsTxtFiles.sort();
+
     const results: Array<{ remappings: string[]; source: string }> = [];
     for (const file of remappingsTxtFiles) {
       const contents = await readUtf8File(file);

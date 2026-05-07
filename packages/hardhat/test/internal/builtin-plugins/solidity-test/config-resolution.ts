@@ -39,12 +39,14 @@ describe("config resolution", () => {
         runs: 500,
         maxTestRejects: 100,
         dictionaryWeight: 50,
+        showLogs: true,
       });
 
       assert.ok(result !== undefined, "result is undefined");
       assert.equal(result.runs, 500);
       assert.equal(result.maxTestRejects, 100);
       assert.equal(result.dictionaryWeight, 50);
+      assert.equal(result.showLogs, true);
       assert.equal(result.seed, DEFAULT_FUZZ_SEED);
     });
   });

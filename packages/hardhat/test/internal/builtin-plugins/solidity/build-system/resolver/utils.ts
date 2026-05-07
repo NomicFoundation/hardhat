@@ -7,6 +7,7 @@ import { after, before, describe, it } from "node:test";
 import {
   mkdtemp,
   remove,
+  TrueCasePathResolver,
   writeUtf8File,
 } from "@nomicfoundation/hardhat-utils/fs";
 
@@ -30,12 +31,35 @@ describe("Resolver utils", () => {
     it("Should return an error if the path doesn't exist", async () => {
       const relativePath = "nope";
 
-      assert.deepEqual(await validateFsPath(dir, relativePath), {
-        success: false,
-        error: {
-          type: PathValidationErrorType.DOES_NOT_EXIST,
+      assert.deepEqual(
+        await validateFsPath(new TrueCasePathResolver(), dir, relativePath),
+        {
+          success: false,
+          error: {
+            type: PathValidationErrorType.DOES_NOT_EXIST,
+          },
         },
-      });
+      );
+    });
+
+    it("Should return an error if the path traverses through a file", async () => {
+      const fileName = "not-a-dir.txt";
+      const absolutePath = path.join(dir, fileName);
+      await writeUtf8File(absolutePath, "txt");
+
+      assert.deepEqual(
+        await validateFsPath(
+          new TrueCasePathResolver(),
+          dir,
+          path.join(fileName, "child.sol"),
+        ),
+        {
+          success: false,
+          error: {
+            type: PathValidationErrorType.DOES_NOT_EXIST,
+          },
+        },
+      );
     });
 
     it("Should return an error if the path exists with a different casing", async () => {
@@ -44,13 +68,20 @@ describe("Resolver utils", () => {
       const absolutePath = path.join(dir, relativePathCorrect);
       await writeUtf8File(absolutePath, "txt");
 
-      assert.deepEqual(await validateFsPath(dir, relativePathIncorrect), {
-        success: false,
-        error: {
-          type: PathValidationErrorType.CASING_ERROR,
-          correctCasing: relativePathCorrect,
+      assert.deepEqual(
+        await validateFsPath(
+          new TrueCasePathResolver(),
+          dir,
+          relativePathIncorrect,
+        ),
+        {
+          success: false,
+          error: {
+            type: PathValidationErrorType.CASING_ERROR,
+            correctCasing: relativePathCorrect,
+          },
         },
-      });
+      );
     });
 
     it("Should return success if the path exists with the correct casing", async () => {
@@ -58,10 +89,13 @@ describe("Resolver utils", () => {
       const absolutePath = path.join(dir, relativePath);
       await writeUtf8File(absolutePath, "txt");
 
-      assert.deepEqual(await validateFsPath(dir, relativePath), {
-        success: true,
-        value: undefined,
-      });
+      assert.deepEqual(
+        await validateFsPath(new TrueCasePathResolver(), dir, relativePath),
+        {
+          success: true,
+          value: undefined,
+        },
+      );
     });
   });
 

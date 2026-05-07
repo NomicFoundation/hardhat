@@ -1,17 +1,17 @@
+import type { AbiHolder } from "../../../abi-types.js";
 import type {
-  ContractAbis,
-  ContractReturnType,
-} from "@nomicfoundation/hardhat-viem/types";
-import type { ReadContractReturnType, WriteContractReturnType } from "viem";
+  Abi,
+  ContractErrorName,
+  ReadContractReturnType,
+  WriteContractReturnType,
+} from "viem";
 
 import { handleRevertWithCustomError } from "./handle-revert-with-custom-error.js";
 
-export async function revertWithCustomError<
-  ContractName extends keyof ContractAbis,
->(
+export async function revertWithCustomError<TContract extends AbiHolder<Abi>>(
   contractFn: Promise<ReadContractReturnType | WriteContractReturnType>,
-  contract: ContractReturnType<ContractName>,
-  customErrorName: string,
+  contract: TContract,
+  customErrorName: ContractErrorName<TContract["abi"]>,
 ): Promise<void> {
   await handleRevertWithCustomError(contractFn, contract, customErrorName);
 }

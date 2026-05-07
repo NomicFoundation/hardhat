@@ -1,7 +1,7 @@
 /**
  * Arguments for a request to an EIP-1193 Provider.
  *
- * @beta
+ * @public
  */
 export interface RequestArguments {
   readonly method: string;
@@ -11,7 +11,7 @@ export interface RequestArguments {
 /**
  * A provider for on-chain interactions.
  *
- * @beta
+ * @public
  */
 export interface EIP1193Provider {
   request(args: RequestArguments): Promise<any>;

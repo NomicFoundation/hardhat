@@ -2,6 +2,7 @@ import type { IgnitionModuleBuilder } from "./types/module-builder.js";
 import type { IgnitionModule, IgnitionModuleResult } from "./types/module.js";
 
 import { HardhatError } from "@nomicfoundation/hardhat-errors";
+import { findDuplicates } from "@nomicfoundation/hardhat-utils/lang";
 
 import { ModuleConstructor } from "./internal/module-builder.js";
 import { isValidIgnitionIdentifier } from "./internal/utils/identifier-validators.js";
@@ -14,7 +15,7 @@ import { isValidIgnitionIdentifier } from "./internal/utils/identifier-validator
  * IgnitionModuleBuilder to configure the deployment
  * @returns a module definition
  *
- * @beta
+ * @public
  */
 export function buildModule<
   ModuleIdT extends string,
@@ -69,19 +70,21 @@ export function buildModule<
 function _checkForDuplicateModuleIds(
   ignitionModule: IgnitionModule<string, string, IgnitionModuleResult<string>>,
 ): void {
-  const duplicateModuleIds = [
+  const allIds = [
     ignitionModule.id,
     ...Array.from(ignitionModule.submodules).map((submodule) => submodule.id),
-  ].filter((id, index, array) => array.indexOf(id) !== index);
+  ];
 
-  if (duplicateModuleIds.length === 0) {
+  const duplicateModuleIds = findDuplicates(allIds);
+
+  if (duplicateModuleIds.size === 0) {
     return;
   }
 
   throw new HardhatError(
     HardhatError.ERRORS.IGNITION.MODULE.DUPLICATE_MODULE_ID,
     {
-      duplicateModuleIds: duplicateModuleIds.join(", "),
+      duplicateModuleIds: [...duplicateModuleIds].join(", "),
     },
   );
 }

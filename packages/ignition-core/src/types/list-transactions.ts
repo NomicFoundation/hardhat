@@ -3,7 +3,7 @@ import type { SolidityParameterType } from "./module.js";
 /**
  * The status of a transaction.
  *
- * @beta
+ * @public
  */
 export enum TransactionStatus {
   SUCCESS = "SUCCESS",
@@ -15,7 +15,7 @@ export enum TransactionStatus {
 /**
  * The information of a transaction.
  *
- * @beta
+ * @public
  */
 export interface TransactionInfo {
   type: string;
@@ -33,6 +33,6 @@ export interface TransactionInfo {
 /**
  * An array of transaction information.
  *
- * @beta
+ * @public
  */
 export type ListTransactionsResult = TransactionInfo[];

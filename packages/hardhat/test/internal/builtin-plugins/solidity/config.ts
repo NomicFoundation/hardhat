@@ -14,6 +14,10 @@ import {
   validateSolidityConfig,
   validateSolidityUserConfig,
 } from "../../../../src/internal/builtin-plugins/solidity/config.js";
+import {
+  DEFAULT_OUTPUT_SELECTION,
+  SOLC_DEFAULT_OPTIMIZER_RUNS,
+} from "../../../../src/internal/builtin-plugins/solidity/constants.js";
 
 describe("solidity plugin config validation", () => {
   describe("sources paths", () => {
@@ -941,19 +945,183 @@ describe("solidity plugin config validation", () => {
 });
 
 describe("solidity plugin config resolution", () => {
-  it.todo("should resolve a config with a single version string", () => {});
+  const otherResolvedConfig = { paths: { root: process.cwd() } } as any;
 
-  it.todo("should resolve a config with multiple version strings", () => {});
+  it("should resolve a config with a single version string", async () => {
+    const resolvedConfig = await resolveSolidityUserConfig(
+      { solidity: "0.8.28" },
+      otherResolvedConfig,
+    );
 
-  it.todo("should resolve a SingleVersionSolidityUserConfig value", () => {});
+    const { solidity } = resolvedConfig;
+    assert.deepEqual(solidity.npmFilesToBuild, []);
+    assert.deepEqual(solidity.registeredCompilerTypes, ["solc"]);
+    assert.equal(solidity.splitTestsCompilation, false);
 
-  it.todo("should resolve a MultiVersionSolidityUserConfig value", () => {});
+    const defaultProfile = solidity.profiles.default;
+    assert.equal(defaultProfile.compilers.length, 1);
+    assert.equal(defaultProfile.compilers[0].version, "0.8.28");
+    assert.equal(defaultProfile.isolated, false);
+    assert.deepEqual(defaultProfile.compilers[0].settings, {
+      outputSelection: DEFAULT_OUTPUT_SELECTION,
+    });
 
-  it.todo("should resolve a BuildProfilesSolidityUserConfig value", () => {});
+    const productionProfile = solidity.profiles.production;
+    assert.equal(productionProfile.compilers.length, 1);
+    assert.equal(productionProfile.compilers[0].version, "0.8.28");
+    assert.equal(productionProfile.isolated, true);
+    assert.deepEqual(productionProfile.compilers[0].settings, {
+      outputSelection: DEFAULT_OUTPUT_SELECTION,
+      optimizer: { enabled: true, runs: SOLC_DEFAULT_OPTIMIZER_RUNS },
+    });
+  });
+
+  it("should resolve a config with multiple version strings", async () => {
+    const resolvedConfig = await resolveSolidityUserConfig(
+      { solidity: ["0.8.28", "0.7.0"] },
+      otherResolvedConfig,
+    );
+
+    const { solidity } = resolvedConfig;
+    assert.deepEqual(solidity.npmFilesToBuild, []);
+    assert.deepEqual(solidity.registeredCompilerTypes, ["solc"]);
+    assert.equal(solidity.splitTestsCompilation, false);
+
+    const defaultProfile = solidity.profiles.default;
+    assert.equal(defaultProfile.compilers.length, 2);
+    assert.equal(defaultProfile.compilers[0].version, "0.8.28");
+    assert.equal(defaultProfile.compilers[1].version, "0.7.0");
+    assert.equal(defaultProfile.isolated, false);
+    assert.deepEqual(defaultProfile.compilers[0].settings, {
+      outputSelection: DEFAULT_OUTPUT_SELECTION,
+    });
+
+    const productionProfile = solidity.profiles.production;
+    assert.equal(productionProfile.compilers.length, 2);
+    assert.equal(productionProfile.compilers[0].version, "0.8.28");
+    assert.equal(productionProfile.compilers[1].version, "0.7.0");
+    assert.equal(productionProfile.isolated, true);
+    assert.deepEqual(productionProfile.compilers[0].settings, {
+      outputSelection: DEFAULT_OUTPUT_SELECTION,
+      optimizer: { enabled: true, runs: SOLC_DEFAULT_OPTIMIZER_RUNS },
+    });
+    assert.deepEqual(productionProfile.compilers[1].settings, {
+      outputSelection: DEFAULT_OUTPUT_SELECTION,
+      optimizer: { enabled: true, runs: SOLC_DEFAULT_OPTIMIZER_RUNS },
+    });
+  });
+
+  it("should resolve a SingleVersionSolidityUserConfig value", async () => {
+    const resolvedConfig = await resolveSolidityUserConfig(
+      { solidity: { version: "0.8.28" } },
+      otherResolvedConfig,
+    );
+
+    const { solidity } = resolvedConfig;
+    assert.deepEqual(solidity.npmFilesToBuild, []);
+    assert.deepEqual(solidity.registeredCompilerTypes, ["solc"]);
+    assert.equal(solidity.splitTestsCompilation, false);
+
+    const defaultProfile = solidity.profiles.default;
+    assert.equal(defaultProfile.compilers.length, 1);
+    assert.equal(defaultProfile.compilers[0].version, "0.8.28");
+    assert.equal(defaultProfile.isolated, false);
+    assert.deepEqual(defaultProfile.compilers[0].settings, {
+      outputSelection: DEFAULT_OUTPUT_SELECTION,
+    });
+
+    const productionProfile = solidity.profiles.production;
+    assert.equal(productionProfile.compilers.length, 1);
+    assert.equal(productionProfile.compilers[0].version, "0.8.28");
+    assert.equal(productionProfile.isolated, true);
+    assert.deepEqual(productionProfile.compilers[0].settings, {
+      outputSelection: DEFAULT_OUTPUT_SELECTION,
+      optimizer: { enabled: true, runs: SOLC_DEFAULT_OPTIMIZER_RUNS },
+    });
+  });
+
+  it("should resolve a MultiVersionSolidityUserConfig value", async () => {
+    const resolvedConfig = await resolveSolidityUserConfig(
+      {
+        solidity: {
+          compilers: [{ version: "0.8.28" }, { version: "0.7.0" }],
+        },
+      },
+      otherResolvedConfig,
+    );
+
+    const { solidity } = resolvedConfig;
+    assert.deepEqual(solidity.npmFilesToBuild, []);
+    assert.deepEqual(solidity.registeredCompilerTypes, ["solc"]);
+    assert.equal(solidity.splitTestsCompilation, false);
+
+    const defaultProfile = solidity.profiles.default;
+    assert.equal(defaultProfile.compilers.length, 2);
+    assert.equal(defaultProfile.compilers[0].version, "0.8.28");
+    assert.equal(defaultProfile.compilers[1].version, "0.7.0");
+    assert.equal(defaultProfile.isolated, false);
+    assert.deepEqual(defaultProfile.compilers[0].settings, {
+      outputSelection: DEFAULT_OUTPUT_SELECTION,
+    });
+
+    const productionProfile = solidity.profiles.production;
+    assert.equal(productionProfile.compilers.length, 2);
+    assert.equal(productionProfile.compilers[0].version, "0.8.28");
+    assert.equal(productionProfile.compilers[1].version, "0.7.0");
+    assert.equal(productionProfile.isolated, true);
+    assert.deepEqual(productionProfile.compilers[0].settings, {
+      outputSelection: DEFAULT_OUTPUT_SELECTION,
+      optimizer: { enabled: true, runs: SOLC_DEFAULT_OPTIMIZER_RUNS },
+    });
+    assert.deepEqual(productionProfile.compilers[1].settings, {
+      outputSelection: DEFAULT_OUTPUT_SELECTION,
+      optimizer: { enabled: true, runs: SOLC_DEFAULT_OPTIMIZER_RUNS },
+    });
+  });
+
+  it("should resolve a BuildProfilesSolidityUserConfig value", async () => {
+    const resolvedConfig = await resolveSolidityUserConfig(
+      {
+        solidity: {
+          profiles: {
+            default: { version: "0.8.28" },
+            staging: { compilers: [{ version: "0.7.0" }] },
+          },
+        },
+      },
+      otherResolvedConfig,
+    );
+
+    const { solidity } = resolvedConfig;
+    assert.deepEqual(solidity.npmFilesToBuild, []);
+    assert.deepEqual(solidity.registeredCompilerTypes, ["solc"]);
+    assert.equal(solidity.splitTestsCompilation, false);
+
+    const defaultProfile = solidity.profiles.default;
+    assert.equal(defaultProfile.compilers.length, 1);
+    assert.equal(defaultProfile.compilers[0].version, "0.8.28");
+    assert.equal(defaultProfile.isolated, false);
+    assert.deepEqual(defaultProfile.compilers[0].settings, {
+      outputSelection: DEFAULT_OUTPUT_SELECTION,
+    });
+
+    const stagingProfile = solidity.profiles.staging;
+    assert.equal(stagingProfile.compilers.length, 1);
+    assert.equal(stagingProfile.compilers[0].version, "0.7.0");
+    assert.equal(stagingProfile.isolated, false);
+
+    // production is auto-generated from default
+    const productionProfile = solidity.profiles.production;
+    assert.equal(productionProfile.compilers.length, 1);
+    assert.equal(productionProfile.compilers[0].version, "0.8.28");
+    assert.equal(productionProfile.isolated, true);
+    assert.deepEqual(productionProfile.compilers[0].settings, {
+      outputSelection: DEFAULT_OUTPUT_SELECTION,
+      optimizer: { enabled: true, runs: SOLC_DEFAULT_OPTIMIZER_RUNS },
+    });
+  });
 
   describe("splitTestsCompilation resolution", () => {
-    const otherResolvedConfig = { paths: { root: process.cwd() } } as any;
-
     it("should default splitTestsCompilation to false for a string config", async () => {
       const resolvedConfig = await resolveSolidityUserConfig(
         { solidity: "0.8.28" },
@@ -1024,8 +1192,6 @@ describe("solidity plugin config resolution", () => {
   });
 
   describe("profile-level preferWasm setting resolution", function () {
-    const otherResolvedConfig = { paths: { root: process.cwd() } } as any;
-
     it("resolves to false when build profile is production and preferWasm is not specified", async () => {
       const resolvedConfig = await resolveSolidityUserConfig(
         {
@@ -1107,8 +1273,6 @@ describe("solidity plugin config resolution", () => {
   });
 
   describe("per-compiler preferWasm resolution", () => {
-    const otherResolvedConfig = { paths: { root: process.cwd() } } as any;
-
     it("should preserve per-compiler preferWasm when explicitly set", async () => {
       const resolvedConfig = await resolveSolidityUserConfig(
         {
@@ -1151,8 +1315,6 @@ describe("solidity plugin config resolution", () => {
       skip: !missesSomeOfficialNativeBuilds(),
     },
     () => {
-      const otherResolvedConfig = { paths: { root: process.cwd() } } as any;
-
       it("should default preferWasm to true for versions below the ARM64 mirror threshold in all profiles", async () => {
         const resolvedConfig = await resolveSolidityUserConfig(
           {
@@ -1261,8 +1423,6 @@ describe("solidity plugin config resolution", () => {
       skip: missesSomeOfficialNativeBuilds(),
     },
     () => {
-      const otherResolvedConfig = { paths: { root: process.cwd() } } as any;
-
       it("should leave preferWasm undefined when not on ARM64 Linux", async () => {
         const resolvedConfig = await resolveSolidityUserConfig(
           {
@@ -1281,8 +1441,6 @@ describe("solidity plugin config resolution", () => {
   );
 
   describe("config resolution with type discriminator", () => {
-    const otherResolvedConfig = { paths: { root: process.cwd() } } as any;
-
     it("should resolve compiler entry without type with type undefined (backward compat)", async () => {
       const resolvedConfig = await resolveSolidityUserConfig(
         {
@@ -1340,8 +1498,6 @@ describe("solidity plugin config resolution", () => {
   });
 
   describe("shouldn't enable the optimizer in non-solc production compilers", () => {
-    const otherResolvedConfig = { paths: { root: process.cwd() } } as any;
-
     it("should not add optimizer defaults for non-solc compilers in production", async () => {
       const resolvedConfig = await resolveSolidityUserConfig(
         {
@@ -1370,8 +1526,6 @@ describe("solidity plugin config resolution", () => {
   });
 
   describe("copyFromDefault preserves type field", () => {
-    const otherResolvedConfig = { paths: { root: process.cwd() } } as any;
-
     it("should preserve type on auto-generated production profile", async () => {
       const resolvedConfig = await resolveSolidityUserConfig(
         {
@@ -1413,8 +1567,6 @@ describe("solidity plugin config resolution", () => {
   });
 
   describe("backward compatibility", () => {
-    const otherResolvedConfig = { paths: { root: process.cwd() } } as any;
-
     it("should resolve an existing multi-version config identically (no type field)", async () => {
       const resolvedConfig = await resolveSolidityUserConfig(
         {
@@ -1508,8 +1660,6 @@ describe("solidity plugin config resolution", () => {
   });
 
   describe("toolVersionsInBuildInfo resolution", function () {
-    const otherResolvedConfig = { paths: { root: process.cwd() } } as any;
-
     it("defaults to true for the production profile when using a string config", async () => {
       const resolvedConfig = await resolveSolidityUserConfig(
         { solidity: "0.8.28" },

@@ -1,6 +1,7 @@
 import type { Dirent } from "node:fs";
 
 import fsPromises from "node:fs/promises";
+import path from "node:path";
 
 import { ensureNodeErrnoExceptionError } from "../error.js";
 import { FileSystemAccessError, NotADirectoryError } from "../errors/fs.js";
@@ -54,4 +55,73 @@ export async function isDirectoryDirentAware(
   }
 
   return await isDirectory(absolutePath);
+}
+
+/**
+ * Recursively walk the directory tree rooted at `dirFrom`, appending the
+ * absolute paths of every file accepted by `matches` to `results`. Descent
+ * into a subdirectory is gated by `directoryFilter`. When either callback is
+ * omitted, every file or directory is accepted.
+ */
+export async function collectAllFilesMatching(
+  dirFrom: string,
+  results: string[],
+  matches?: (absolutePathToFile: string) => Promise<boolean> | boolean,
+  directoryFilter?: (absolutePathToDir: string) => Promise<boolean> | boolean,
+): Promise<void> {
+  const dirContent = await readdirWithFileTypesOrEmpty(dirFrom);
+
+  await Promise.all(
+    dirContent.map(async (dirent) => {
+      const absolutePathToFile = path.join(dirFrom, dirent.name);
+      if (await isDirectoryDirentAware(absolutePathToFile, dirent)) {
+        if (
+          directoryFilter === undefined ||
+          (await directoryFilter(absolutePathToFile))
+        ) {
+          await collectAllFilesMatching(
+            absolutePathToFile,
+            results,
+            matches,
+            directoryFilter,
+          );
+        }
+
+        return;
+      } else if (matches === undefined || (await matches(absolutePathToFile))) {
+        results.push(absolutePathToFile);
+      }
+    }),
+  );
+}
+
+/**
+ * Recursively walk the directory tree rooted at `dirFrom`, appending the
+ * absolute paths of every directory accepted by `matches` to `results`. When
+ * a directory matches, its descendants are not explored; when it does not,
+ * the walk continues into its subdirectories. When `matches` is omitted,
+ * every directory is accepted and recursion stops at the top level.
+ */
+export async function collectAllDirectoriesMatching(
+  dirFrom: string,
+  results: string[],
+  matches?: (absolutePathToDir: string) => Promise<boolean> | boolean,
+): Promise<void> {
+  const dirContent = await readdirWithFileTypesOrEmpty(dirFrom);
+
+  await Promise.all(
+    dirContent.map(async (dirent) => {
+      const absolutePathToFile = path.join(dirFrom, dirent.name);
+      if (!(await isDirectoryDirentAware(absolutePathToFile, dirent))) {
+        return;
+      }
+
+      if (matches === undefined || (await matches(absolutePathToFile))) {
+        results.push(absolutePathToFile);
+        return;
+      }
+
+      await collectAllDirectoriesMatching(absolutePathToFile, results, matches);
+    }),
+  );
 }

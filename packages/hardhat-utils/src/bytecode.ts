@@ -1,12 +1,14 @@
 import type { PrefixedHexString } from "./hex.js";
 import type {
   Artifact,
+  BytecodeReplacement,
   LibraryAddresses,
   LibraryLink,
 } from "./internal/bytecode.js";
 
 import { getPrefixedHexString, getUnprefixedHexString } from "./hex.js";
 import {
+  applyBytecodeReplacements,
   checkAmbiguousOrUnnecessaryLinks,
   checkMissingLibraryAddresses,
   checkOverlappingLibraryNames,
@@ -62,6 +64,10 @@ export function resolveLinkedBytecode(
  * Links the bytecode of a contract artifact with the provided library addresses.
  * This function does not perform any validation on the provided libraries.
  *
+ * Callers are responsible for ensuring that `libraries` contains no duplicate
+ * `(sourceName, libraryName)` entries; supplying duplicates would result in
+ * malformed bytecode.
+ *
  * @param artifact The contract artifact containing the bytecode and link references.
  * @param libraries An array of LibraryLink objects representing the libraries to be linked.
  * @returns The linked bytecode with all provided libraries correctly linked.
@@ -71,7 +77,7 @@ export function linkBytecode(
   libraries: LibraryLink[],
 ): PrefixedHexString {
   const { bytecode, linkReferences } = artifact;
-  let linkedBytecode = bytecode;
+  const replacements: BytecodeReplacement[] = [];
 
   for (const { sourceName, libraryName, address } of libraries) {
     const contractLinkReferences =
@@ -79,12 +85,15 @@ export function linkBytecode(
     const unprefixedAddress = getUnprefixedHexString(address);
 
     for (const { start, length } of contractLinkReferences) {
-      linkedBytecode =
-        linkedBytecode.substring(0, 2 + start * 2) +
-        unprefixedAddress +
-        linkedBytecode.substring(2 + (start + length) * 2);
+      replacements.push({
+        start: 2 + start * 2,
+        length: length * 2,
+        value: unprefixedAddress,
+      });
     }
   }
 
-  return getPrefixedHexString(linkedBytecode);
+  return getPrefixedHexString(
+    applyBytecodeReplacements(bytecode, replacements),
+  );
 }

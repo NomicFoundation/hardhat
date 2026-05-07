@@ -1,6 +1,7 @@
 import path from "node:path";
 
 import { HardhatError } from "@nomicfoundation/hardhat-errors";
+import { createDebug } from "@nomicfoundation/hardhat-utils/debug";
 import { ensureError } from "@nomicfoundation/hardhat-utils/error";
 import {
   chmod,
@@ -11,12 +12,11 @@ import {
 import { getCacheDir } from "@nomicfoundation/hardhat-utils/global-dir";
 import { download, getRequest } from "@nomicfoundation/hardhat-utils/request";
 import { MultiProcessMutex } from "@nomicfoundation/hardhat-utils/synchronization";
-import debug from "debug";
 
 import { SOLX_RELEASES_BASE_URL } from "./constants.js";
 import { getSolxAssetName } from "./platform.js";
 
-const log = debug("hardhat:solx:downloader");
+const log = createDebug("hardhat:solx:downloader");
 
 const DOWNLOAD_RETRY_COUNT = 3;
 const DOWNLOAD_RETRY_DELAY_MS = 2000;

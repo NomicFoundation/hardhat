@@ -11,7 +11,7 @@ import { deploymentStateReducer } from "./internal/execution/reducers/deployment
  * @param ignitionModule - the Ignition module to be get batch information for
  * @returns the batches Ignition will use for the module
  *
- * @beta
+ * @public
  */
 export function batches(
   ignitionModule: IgnitionModule<string, string, IgnitionModuleResult<string>>,

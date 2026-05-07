@@ -40,7 +40,7 @@ function isValidEnumValue(
 /**
  * Returns true if potential is of type Artifact.
  *
- * @beta
+ * @public
  */
 export function isArtifactType(potential: unknown): potential is Artifact {
   return (
@@ -60,7 +60,7 @@ export function isArtifactType(potential: unknown): potential is Artifact {
 /**
  * Returns true if potential is of type FutureType.
  *
- * @beta
+ * @public
  */
 export function isFutureType(potential: unknown): potential is FutureType {
   return (
@@ -71,7 +71,7 @@ export function isFutureType(potential: unknown): potential is FutureType {
 /**
  * Returns true if potential is of type Future.
  *
- * @beta
+ * @public
  */
 export function isFuture(potential: unknown): potential is Future {
   return (
@@ -85,7 +85,7 @@ export function isFuture(potential: unknown): potential is Future {
 /**
  * Returns true if future is of type ContractFuture<string>.
  *
- * @beta
+ * @public
  */
 export function isContractFuture(
   future: Future,
@@ -108,7 +108,7 @@ export function isContractFuture(
 /**
  * Returns true if future is of type CallableContractFuture<string>.
  *
- * @beta
+ * @public
  */
 export function isCallableContractFuture(
   future: Future,
@@ -129,7 +129,7 @@ export function isCallableContractFuture(
 /**
  * Returns true if future is of type AddressResolvable.
  *
- * @beta
+ * @public
  */
 export function isAddressResolvableFuture(
   future: Future,
@@ -144,7 +144,7 @@ export function isAddressResolvableFuture(
 /**
  * Returns true if future is of type FunctionCallFuture\<string, string\>.
  *
- * @beta
+ * @public
  */
 export function isFunctionCallFuture(
   future: Future,
@@ -158,7 +158,7 @@ export function isFunctionCallFuture(
 /**
  * Returns true if future is of type NamedStaticCallFuture.
  *
- * @beta
+ * @public
  */
 export function isNamedStaticCallFuture(
   future: Future,
@@ -169,7 +169,7 @@ export function isNamedStaticCallFuture(
 /**
  * Returns true if future is of type EncodeFunctionCallFuture\<string, string\>.
  *
- * @beta
+ * @public
  */
 export function isEncodeFunctionCallFuture(
   potential: unknown,
@@ -182,7 +182,7 @@ export function isEncodeFunctionCallFuture(
 /**
  * Returns true if future is of type ReadEventArgumentFuture.
  *
- * @beta
+ * @public
  */
 export function isReadEventArgumentFuture(
   future: Future,
@@ -193,7 +193,7 @@ export function isReadEventArgumentFuture(
 /**
  * Returns true if future is of type NamedContractDeploymentFuture.
  *
- * @beta
+ * @public
  */
 export function isNamedContractDeploymentFuture(
   future: Future,
@@ -204,7 +204,7 @@ export function isNamedContractDeploymentFuture(
 /**
  * Returns true if future is of type ArtifactContractDeploymentFuture.
  *
- * @beta
+ * @public
  */
 export function isArtifactContractDeploymentFuture(
   future: Future,
@@ -215,7 +215,7 @@ export function isArtifactContractDeploymentFuture(
 /**
  * Returns true if future is of type NamedLibraryDeploymentFuture.
  *
- * @beta
+ * @public
  */
 export function isNamedLibraryDeploymentFuture(
   future: Future,
@@ -226,7 +226,7 @@ export function isNamedLibraryDeploymentFuture(
 /**
  * Returns true if future is of type ArtifactLibraryDeploymentFuture.
  *
- * @beta
+ * @public
  */
 export function isArtifactLibraryDeploymentFuture(
   future: Future,
@@ -237,7 +237,7 @@ export function isArtifactLibraryDeploymentFuture(
 /**
  * Returns true if future is of type NamedContractAtFuture.
  *
- * @beta
+ * @public
  */
 export function isNamedContractAtFuture(
   future: Future,
@@ -248,7 +248,7 @@ export function isNamedContractAtFuture(
 /**
  * Returns true if future is of type ArtifactContractAtFuture.
  *
- * @beta
+ * @public
  */
 export function isArtifactContractAtFuture(
   future: Future,
@@ -259,7 +259,7 @@ export function isArtifactContractAtFuture(
 /**
  * Returns true if the type is of type DeploymentFuture<string>.
  *
- * @beta
+ * @public
  */
 export function isDeploymentType(
   potential: unknown,
@@ -280,7 +280,7 @@ export function isDeploymentType(
 /**
  * Returns true if future is of type DeploymentFuture<string>.
  *
- * @beta
+ * @public
  */
 export function isDeploymentFuture(
   future: Future,
@@ -291,7 +291,7 @@ export function isDeploymentFuture(
 /**
  * Returns true if the future requires submitting a transaction on-chain
  *
- * @beta
+ * @public
  */
 export function isFutureThatSubmitsOnchainTransaction(
   f: Future,
@@ -320,7 +320,7 @@ export function isFutureThatSubmitsOnchainTransaction(
 /**
  * Returns true if potential is of type RuntimeValueType.
  *
- * @beta
+ * @public
  */
 export function isRuntimeValueType(
   potential: unknown,
@@ -334,7 +334,7 @@ export function isRuntimeValueType(
 /**
  * Returns true if potential is of type RuntimeValue.
  *
- * @beta
+ * @public
  */
 export function isRuntimeValue(potential: unknown): potential is RuntimeValue {
   return (
@@ -348,7 +348,7 @@ export function isRuntimeValue(potential: unknown): potential is RuntimeValue {
 /**
  * Return true if potential is an account runtime value.
  *
- * @beta
+ * @public
  */
 export function isAccountRuntimeValue(
   potential: unknown,
@@ -361,7 +361,7 @@ export function isAccountRuntimeValue(
 /**
  * Returns true if potential is of type ModuleParameterRuntimeValue<any>.
  *
- * @beta
+ * @public
  */
 export function isModuleParameterRuntimeValue(
   potential: unknown,

@@ -1,5 +1,11 @@
 # @nomicfoundation/hardhat-viem-assertions
 
+## 3.0.10
+
+### Patch Changes
+
+- [#8223](https://github.com/NomicFoundation/hardhat/pull/8223) [`9e94b25`](https://github.com/NomicFoundation/hardhat/commit/9e94b257eb8fee2cb57b8c12ee67b6517b556286) Thanks [@lsheva](https://github.com/lsheva)! - Fix `emit` and `emitWithArgs` leaking the underlying transaction into the next test when the synchronous ABI shape check failed. These helpers now always settle `contractFn` before any assertion can throw.
+
 ## 3.0.9
 
 ### Patch Changes

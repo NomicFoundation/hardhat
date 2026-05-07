@@ -2,16 +2,17 @@ import type { BuildInfo } from "../../../types/artifacts.js";
 import type { EdrNetworkAccountsConfig } from "../../../types/config.js";
 import type { SolidityBuildInfoOutput } from "../../../types/solidity.js";
 import type { EdrProvider } from "../network-manager/edr/edr-provider.js";
+import type { DebugLogger } from "@nomicfoundation/hardhat-utils/debug";
 import type * as MicroEthSignerT from "micro-eth-signer";
 
 import path from "node:path";
+import { styleText } from "node:util";
 
 import {
   readJsonFile,
   readJsonFileAsStream,
 } from "@nomicfoundation/hardhat-utils/fs";
 import { hexStringToBytes } from "@nomicfoundation/hardhat-utils/hex";
-import chalk from "chalk";
 
 // micro-eth-signer is known to be slow to load, so we lazy load it
 let microEthSigner: typeof MicroEthSignerT | undefined;
@@ -94,7 +95,7 @@ export async function formatEdrNetworkConfigAccounts(
 export function createBuildInfoUploadHandlerFrom(
   buildInfoDirPath: string,
   provider: EdrProvider,
-  log: debug.Debugger,
+  log: DebugLogger,
 ): (buildId: string) => Promise<void> {
   const buildInfoHandler = async (buildId: string) => {
     try {
@@ -116,7 +117,8 @@ export function createBuildInfoUploadHandlerFrom(
       log(`Added compiler result for ${buildId}`);
     } catch (error) {
       console.warn(
-        chalk.yellow(
+        styleText(
+          "yellow",
           `There was a problem adding the new compiler result for build ${buildId}.`,
         ),
       );
@@ -137,7 +139,8 @@ export function createBuildInfoUploadHandlerFrom(
 
 // NOTE: This function is exported for testing purposes only
 export function getPublicPrivateKeysWarning(): string {
-  return chalk.bold(
+  return styleText(
+    "bold",
     "WARNING: Funds sent on live network to accounts with publicly known private keys WILL BE LOST.",
   );
 }

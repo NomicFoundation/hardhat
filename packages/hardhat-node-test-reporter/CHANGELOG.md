@@ -1,5 +1,11 @@
 # @nomicfoundation/hardhat-node-test-reporter
 
+## 3.0.6
+
+### Patch Changes
+
+- [#8195](https://github.com/NomicFoundation/hardhat/pull/8195) [`79205cc`](https://github.com/NomicFoundation/hardhat/commit/79205cc7dc5c89e88438ac0db8fd812720d07df2) Thanks [@ChristopherDedominici](https://github.com/ChristopherDedominici)! - Replace `chalk` with `util.styleText`.
+
 ## 3.0.5
 
 ### Patch Changes

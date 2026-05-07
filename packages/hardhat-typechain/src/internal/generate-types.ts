@@ -5,11 +5,11 @@ import type { OutputTransformer } from "typechain/dist/codegen/outputTransformer
 import path from "node:path";
 
 import { assertHardhatInvariant } from "@nomicfoundation/hardhat-errors";
-import debug from "debug";
+import { createDebug } from "@nomicfoundation/hardhat-utils/debug";
 import { runTypeChain } from "typechain";
 import { outputTransformers as typechainOutputTransformers } from "typechain/dist/codegen/outputTransformers/index.js";
 
-const log = debug("hardhat:typechain:generate-types");
+const log = createDebug("hardhat:typechain:generate-types");
 
 const PRETTIER_TRANSFORMER_NAME = "prettierOutputTransformer";
 

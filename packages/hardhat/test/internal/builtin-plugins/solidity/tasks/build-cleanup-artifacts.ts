@@ -419,6 +419,288 @@ contract ToDelete {}`,
           "ToDelete.sol artifact should be removed after source file deleted",
         );
       });
+
+      it("should remove the directory of a deleted source file that produced only artifacts.d.ts", async () => {
+        // A source file with no contracts (e.g. only file-level constants or
+        // free functions) emits artifacts.d.ts but no .json. Cleanup must
+        // still pick its parent dir up as a candidate when the source is
+        // removed.
+        await using project = await useTestProjectTemplate({
+          name: "test-cleanup-stale-no-json",
+          version: "1.0.0",
+          files: {
+            "contracts/Permanent.sol": `// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.0;
+contract Permanent {}`,
+            "contracts/Constants.sol": `// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.0;
+uint256 constant FOO = 1;`,
+          },
+        });
+
+        const hre = await createHardhatRuntimeEnvironment(
+          {
+            solidity: "0.8.28",
+          },
+          {},
+          project.path,
+        );
+
+        await hre.tasks.getTask("build").run({
+          force: true,
+          quiet: true,
+        });
+
+        const constantsDir = path.join(
+          project.path,
+          "artifacts",
+          "contracts",
+          "Constants.sol",
+        );
+        const constantsDts = path.join(constantsDir, "artifacts.d.ts");
+
+        assert.ok(
+          await exists(constantsDts),
+          "Constants.sol should have an artifacts.d.ts after first build",
+        );
+
+        await remove(path.join(project.path, "contracts/Constants.sol"));
+
+        await hre.tasks.getTask("build").run({
+          force: true,
+          quiet: true,
+        });
+
+        assert.ok(
+          !(await exists(constantsDir)),
+          "Constants.sol directory should be removed after source file deleted",
+        );
+      });
+    });
+
+    describe("when a path segment above the artifact ends in .sol", () => {
+      it("keeps the npm artifact across cleanup when the package directory ends in .sol", async () => {
+        await using project = await useTestProjectTemplate({
+          name: "test-cleanup-npm-sol-suffix-keep",
+          version: "1.0.0",
+          files: {},
+          dependencies: {
+            "@example/fake-pkg.sol": {
+              name: "@example/fake-pkg.sol",
+              version: "1.0.0",
+              files: {
+                "Foo.sol": `// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.0;
+contract Foo {}`,
+              },
+              exports: {
+                "./*": "./*",
+              },
+            },
+          },
+        });
+
+        const hre = await createHardhatRuntimeEnvironment(
+          {
+            solidity: {
+              version: "0.8.28",
+              npmFilesToBuild: ["@example/fake-pkg.sol/Foo.sol"],
+            },
+          },
+          {},
+          project.path,
+        );
+
+        await hre.tasks.getTask("build").run({
+          force: true,
+          quiet: true,
+        });
+
+        const fooArtifact = path.join(
+          project.path,
+          "artifacts",
+          "@example",
+          "fake-pkg.sol",
+          "Foo.sol",
+          "Foo.json",
+        );
+
+        assert.ok(
+          await exists(fooArtifact),
+          "Foo.json under @example/fake-pkg.sol/Foo.sol should survive cleanup",
+        );
+      });
+
+      it("keeps the project artifact across cleanup when a project subfolder ends in .sol", async () => {
+        await using project = await useTestProjectTemplate({
+          name: "test-cleanup-project-sol-suffix-keep",
+          version: "1.0.0",
+          files: {
+            "contracts/foo.sol/Helper.sol": `// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.0;
+contract Helper {}`,
+          },
+        });
+
+        const hre = await createHardhatRuntimeEnvironment(
+          {
+            solidity: "0.8.28",
+          },
+          {},
+          project.path,
+        );
+
+        await hre.tasks.getTask("build").run({
+          force: true,
+          quiet: true,
+        });
+
+        const helperArtifact = path.join(
+          project.path,
+          "artifacts",
+          "contracts",
+          "foo.sol",
+          "Helper.sol",
+          "Helper.json",
+        );
+
+        assert.ok(
+          await exists(helperArtifact),
+          "Helper.json under contracts/foo.sol/Helper.sol should survive cleanup",
+        );
+      });
+
+      it("removes the npm artifact when the source is no longer in npmFilesToBuild", async () => {
+        await using project = await useTestProjectTemplate({
+          name: "test-cleanup-npm-sol-suffix-delete",
+          version: "1.0.0",
+          files: {
+            "contracts/Stable.sol": `// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.0;
+contract Stable {}`,
+          },
+          dependencies: {
+            "@example/fake-pkg.sol": {
+              name: "@example/fake-pkg.sol",
+              version: "1.0.0",
+              files: {
+                "Foo.sol": `// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.0;
+contract Foo {}`,
+              },
+              exports: {
+                "./*": "./*",
+              },
+            },
+          },
+        });
+
+        const hreWithNpm = await createHardhatRuntimeEnvironment(
+          {
+            solidity: {
+              version: "0.8.28",
+              npmFilesToBuild: ["@example/fake-pkg.sol/Foo.sol"],
+            },
+          },
+          {},
+          project.path,
+        );
+
+        await hreWithNpm.tasks.getTask("build").run({
+          force: true,
+          quiet: true,
+        });
+
+        const fooArtifact = path.join(
+          project.path,
+          "artifacts",
+          "@example",
+          "fake-pkg.sol",
+          "Foo.sol",
+          "Foo.json",
+        );
+
+        assert.ok(
+          await exists(fooArtifact),
+          "Foo.json should exist after the first build",
+        );
+
+        // Drop the npm file and rebuild: the artifact must be cleaned up.
+        const hreWithoutNpm = await createHardhatRuntimeEnvironment(
+          {
+            solidity: {
+              version: "0.8.28",
+              npmFilesToBuild: [],
+            },
+          },
+          {},
+          project.path,
+        );
+
+        await hreWithoutNpm.tasks.getTask("build").run({
+          force: true,
+          quiet: true,
+        });
+
+        assert.ok(
+          !(await exists(fooArtifact)),
+          "Foo.json should be removed after dropping it from npmFilesToBuild",
+        );
+      });
+
+      it("removes the project artifact when a source under a .sol-suffixed subfolder is deleted", async () => {
+        await using project = await useTestProjectTemplate({
+          name: "test-cleanup-project-sol-suffix-delete",
+          version: "1.0.0",
+          files: {
+            "contracts/Stable.sol": `// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.0;
+contract Stable {}`,
+            "contracts/foo.sol/Helper.sol": `// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.0;
+contract Helper {}`,
+          },
+        });
+
+        const hre = await createHardhatRuntimeEnvironment(
+          {
+            solidity: "0.8.28",
+          },
+          {},
+          project.path,
+        );
+
+        await hre.tasks.getTask("build").run({
+          force: true,
+          quiet: true,
+        });
+
+        const helperArtifact = path.join(
+          project.path,
+          "artifacts",
+          "contracts",
+          "foo.sol",
+          "Helper.sol",
+          "Helper.json",
+        );
+
+        assert.ok(
+          await exists(helperArtifact),
+          "Helper.json should exist after the first build",
+        );
+
+        await remove(path.join(project.path, "contracts/foo.sol/Helper.sol"));
+
+        await hre.tasks.getTask("build").run({
+          force: true,
+          quiet: true,
+        });
+
+        assert.ok(
+          !(await exists(helperArtifact)),
+          "Helper.json should be removed after deleting its source file",
+        );
+      });
     });
   });
 });

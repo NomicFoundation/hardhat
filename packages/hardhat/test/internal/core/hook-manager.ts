@@ -16,7 +16,8 @@ import type { HardhatPlugin } from "../../../src/types/plugins.js";
 import assert from "node:assert/strict";
 import { describe, it, beforeEach, before } from "node:test";
 
-import { ensureError } from "@nomicfoundation/hardhat-utils/error";
+import { HardhatError } from "@nomicfoundation/hardhat-errors";
+import { assertRejectsWithHardhatError } from "@nomicfoundation/hardhat-test-utils";
 
 import { HookManagerImplementation } from "../../../src/internal/core/hook-manager.js";
 import {
@@ -434,6 +435,39 @@ describe("HookManager", () => {
         ]);
       });
 
+      it("should throw if a plugin's hook handler factory throws when run", async () => {
+        const examplePlugin: HardhatPlugin = {
+          id: "example",
+          hookHandlers: {
+            config: async () => ({
+              default: async () => {
+                throw new Error("factory error");
+              },
+            }),
+          },
+        };
+
+        const manager = new HookManagerImplementation(projectRoot, [
+          examplePlugin,
+        ]);
+
+        await assertRejectsWithHardhatError(
+          manager.runHandlerChain(
+            "config",
+            "extendUserConfig",
+            [{}],
+            async () => {
+              return {};
+            },
+          ),
+          HardhatError.ERRORS.CORE.HOOKS.FAILED_TO_RUN_HOOK_HANDLER_FACTORY,
+          {
+            pluginId: "example",
+            hookCategoryName: "config",
+          },
+        );
+      });
+
       it("should throw if a plugin can't be loaded from file", async () => {
         const nonExistentImport = "./non-existent.js";
 
@@ -449,23 +483,21 @@ describe("HookManager", () => {
           examplePlugin,
         ]);
 
-        try {
-          await manager.runHandlerChain(
+        await assertRejectsWithHardhatError(
+          manager.runHandlerChain(
             "config",
             "extendUserConfig",
             [{}],
             async () => {
               return {};
             },
-          );
-        } catch (error) {
-          ensureError(error);
-          assert.ok("code" in error, "Error has no code property");
-          assert.equal(error.code, "ERR_MODULE_NOT_FOUND");
-          return;
-        }
-
-        assert.fail("Expected an error, but none was thrown");
+          ),
+          HardhatError.ERRORS.CORE.HOOKS.FAILED_TO_LOAD_HOOK_HANDLER_FACTORY,
+          {
+            pluginId: "example",
+            hookCategoryName: "config",
+          },
+        );
       });
     });
 

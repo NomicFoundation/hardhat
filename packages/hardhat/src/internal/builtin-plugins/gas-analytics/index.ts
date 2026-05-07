@@ -3,7 +3,7 @@ import type { HardhatPlugin } from "../../../types/plugins.js";
 import { ArgumentType } from "../../../types/arguments.js";
 import { globalFlag, globalOption, overrideTask } from "../../core/config.js";
 
-import "./type-extensions.js";
+export type * from "./type-extensions.js";
 
 const hardhatPlugin: HardhatPlugin = {
   id: "builtin:gas-analytics",

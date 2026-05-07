@@ -10,12 +10,12 @@ import type {
   HardhatUserConfigValidationError,
 } from "hardhat/types/hooks";
 
+import { createDebug } from "@nomicfoundation/hardhat-utils/debug";
 import { isObject } from "@nomicfoundation/hardhat-utils/lang";
 import {
   conditionalUnionType,
   validateUserConfigZodType,
 } from "@nomicfoundation/hardhat-zod-utils";
-import debug from "debug";
 import { z } from "zod";
 
 import {
@@ -24,7 +24,7 @@ import {
   SUPPORTED_SOLX_EVM_VERSIONS,
 } from "../constants.js";
 
-const log = debug("hardhat:solx:hook-handlers:config");
+const log = createDebug("hardhat:solx:hook-handlers:config");
 
 // These zod types need to be aligned in shape with the ones of the solidity
 // builtin plugin, but don't need to revalidate everything.

@@ -118,10 +118,10 @@ Assert that executing a contract function reverts with a specific custom error d
 Type:
 
 ```ts
-revertWithCustomError(
+revertWithCustomError<TContract extends AbiHolder<Abi>>(
   contractFn: Promise<ReadContractReturnType | WriteContractReturnType>,
-  contract: ContractReturnType,
-  customErrorName: string,
+  contract: TContract,
+  customErrorName: ContractErrorName<TContract["abi"]>,
 ): Promise<void>;
 ```
 
@@ -129,7 +129,7 @@ Parameters:
 
 - `contractFn`: A promise returned by a viem read or write contract call expected to revert.
 - `contract`: The viem contract instance whose ABI defines the expected custom error.
-- `customErrorName`: The expected custom error name.
+- `customErrorName`: The expected custom error name. Autocompleted from `contract.abi`.
 
 Returns:
 
@@ -152,11 +152,14 @@ Assert that executing a contract function reverts with a specific custom error a
 Type:
 
 ```ts
-revertWithCustomErrorWithArgs(
+revertWithCustomErrorWithArgs<
+  TContract extends AbiHolder<Abi>,
+  TErrorName extends ContractErrorName<TContract["abi"]>,
+>(
   contractFn: Promise<ReadContractReturnType | WriteContractReturnType>,
-  contract: ContractReturnType,
-  customErrorName: string,
-  args: any[],
+  contract: TContract,
+  customErrorName: TErrorName,
+  args: ErrorArgsOf<TContract["abi"], TErrorName>,
 ): Promise<void>;
 ```
 
@@ -164,8 +167,8 @@ Parameters:
 
 - `contractFn`: A promise returned by a viem read or write contract call expected to revert.
 - `contract`: The viem contract instance whose ABI defines the expected custom error.
-- `customErrorName`: The expected custom error name.
-- `args`: Expected custom error arguments. Each item can be a concrete value or a predicate function `(value) => boolean`.
+- `customErrorName`: The expected custom error name. Autocompleted from `contract.abi`.
+- `args`: Expected custom error arguments, typed against the matching ABI input tuple. Each position can be a concrete value or a `(value) => boolean` predicate.
 
 Returns:
 
@@ -215,10 +218,10 @@ Assert that executing a contract function emits a specific event.
 Type:
 
 ```ts
-emit(
+emit<TContract extends AbiHolder<Abi>>(
   contractFn: Promise<ReadContractReturnType | WriteContractReturnType>,
-  contract: ContractReturnType,
-  eventName: string,
+  contract: TContract,
+  eventName: ContractEventName<TContract["abi"]>,
 ): Promise<void>;
 ```
 
@@ -226,7 +229,7 @@ Parameters:
 
 - `contractFn`: A promise returned by a viem read or write contract call.
 - `contract`: The viem contract instance whose ABI is used to parse logs.
-- `eventName`: The event name to assert.
+- `eventName`: The event name to assert. Autocompleted from `contract.abi`.
 
 Returns:
 
@@ -249,11 +252,14 @@ Assert that executing a contract function emits a specific event with the given 
 Type:
 
 ```ts
-emitWithArgs(
+emitWithArgs<
+  TContract extends AbiHolder<Abi>,
+  TEventName extends ContractEventName<TContract["abi"]>,
+>(
   contractFn: Promise<ReadContractReturnType | WriteContractReturnType>,
-  contract: ContractReturnType,
-  eventName: string,
-  args: any[],
+  contract: TContract,
+  eventName: TEventName,
+  args: EventArgsOf<TContract["abi"], TEventName>,
 ): Promise<void>;
 ```
 
@@ -261,8 +267,8 @@ Parameters:
 
 - `contractFn`: A promise returned by a viem read or write contract call.
 - `contract`: The viem contract instance whose ABI is used to parse logs.
-- `eventName`: The event name to assert.
-- `args`: Expected event arguments. Each item can be a concrete value or a predicate function `(value) => boolean`.
+- `eventName`: The event name to assert. Autocompleted from `contract.abi`.
+- `args`: Expected event arguments, typed against the matching ABI input tuple. Each position can be a concrete value or a `(value) => boolean` predicate.
 
 Returns:
 

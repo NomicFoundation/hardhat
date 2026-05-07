@@ -1,4 +1,4 @@
-import chalk from "chalk";
+import { styleText } from "node:util";
 
 // This file is loaded directly by our mocha runner task, as well as by mocha when ran in parallel mode, via the `require` arg.
 // The purpose of this patch is to detect unhandled rejected promises that are caused by not awaiting async expectations
@@ -17,7 +17,8 @@ process.on("exit", () => {
   if (showNotAwaitedError) {
     console.log();
     console.log(
-      chalk.red(
+      styleText(
+        "red",
         [
           'Error: Missing "await" on async assert/expect.',
           "",

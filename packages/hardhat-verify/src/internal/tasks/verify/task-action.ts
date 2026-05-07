@@ -3,9 +3,10 @@ import type { VerificationProvidersConfig } from "hardhat/types/config";
 import type { HardhatRuntimeEnvironment } from "hardhat/types/hre";
 import type { NewTaskActionFunction } from "hardhat/types/tasks";
 
+import { styleText } from "node:util";
+
 import { ensureError } from "@nomicfoundation/hardhat-utils/error";
 import { capitalize } from "@nomicfoundation/hardhat-utils/string";
-import chalk from "chalk";
 
 import { verifyContract } from "../../verification.js";
 import { resolveConstructorArgs, resolveLibraries } from "../arg-resolution.js";
@@ -38,7 +39,9 @@ export async function internalVerifyAction(
   );
 
   if (enabledProviders.length === 0) {
-    console.warn(chalk.yellow("\n⚠️  No verification providers are enabled."));
+    console.warn(
+      styleText("yellow", "\n⚠️  No verification providers are enabled."),
+    );
     process.exitCode = 0;
     return;
   }
@@ -53,7 +56,9 @@ export async function internalVerifyAction(
   let errorOccurred = false;
   for (const provider of enabledProviders) {
     try {
-      console.log(chalk.cyan.bold(`\n=== ${capitalize(provider)} ===`));
+      console.log(
+        styleText(["cyan", "bold"], `\n=== ${capitalize(provider)} ===`),
+      );
       await verifyContractFn(
         {
           ...verifyActionArgs,
@@ -68,7 +73,7 @@ export async function internalVerifyAction(
       // It would be nice to use printErrorMessages
       // from packages/hardhat/src/internal/cli/error-handler.ts
       // for consistent error formatting
-      console.error(chalk.red(error.message));
+      console.error(styleText("red", error.message));
       errorOccurred = true;
     }
   }

@@ -1,11 +1,11 @@
 import type EventEmitter from "node:events";
 import type { FileHandle } from "node:fs/promises";
 import type { ParsedUrlQueryInput } from "node:querystring";
-import type * as UndiciT from "undici";
+import type * as Undici from "undici";
 
 import { open } from "node:fs/promises";
 import querystring from "node:querystring";
-import stream from "node:stream/promises";
+import { pipeline } from "node:stream/promises";
 
 import { ensureError } from "./error.js";
 import {
@@ -24,18 +24,18 @@ import {
   handleError,
 } from "./internal/request.js";
 
-export const DEFAULT_TIMEOUT_IN_MILLISECONDS = 300_000; // Aligned with unidici
+export const DEFAULT_TIMEOUT_IN_MILLISECONDS = 300_000; // Aligned with undici
 export const DEFAULT_MAX_REDIRECTS = 10;
 export const DEFAULT_POOL_MAX_CONNECTIONS = 128;
 export const DEFAULT_USER_AGENT = "Hardhat";
 
-export type Dispatcher = UndiciT.Dispatcher;
-export type TestDispatcher = UndiciT.MockAgent;
-export type Interceptable = UndiciT.Interceptable;
+export type Dispatcher = Undici.Dispatcher;
+export type TestDispatcher = Undici.MockAgent;
+export type Interceptable = Undici.Interceptable;
 
 // We don't load undici on startup because this package is transitively imported
 // from too many places and it's too complex to optimize case by case.
-let undici: typeof UndiciT | undefined;
+let undici: typeof Undici | undefined;
 
 /**
  * Options to configure the dispatcher.
@@ -90,7 +90,7 @@ export interface HttpResponse {
 export async function getRequest(
   url: string,
   requestOptions: RequestOptions = {},
-  dispatcherOrDispatcherOptions?: UndiciT.Dispatcher | DispatcherOptions,
+  dispatcherOrDispatcherOptions?: Undici.Dispatcher | DispatcherOptions,
 ): Promise<HttpResponse> {
   if (undici === undefined) {
     undici = await import("undici");
@@ -132,7 +132,7 @@ export async function postJsonRequest(
   url: string,
   body: unknown,
   requestOptions: RequestOptions = {},
-  dispatcherOrDispatcherOptions?: UndiciT.Dispatcher | DispatcherOptions,
+  dispatcherOrDispatcherOptions?: Undici.Dispatcher | DispatcherOptions,
 ): Promise<HttpResponse> {
   if (undici === undefined) {
     undici = await import("undici");
@@ -179,7 +179,7 @@ export async function postFormRequest(
   url: string,
   body: unknown,
   requestOptions: RequestOptions = {},
-  dispatcherOrDispatcherOptions?: UndiciT.Dispatcher | DispatcherOptions,
+  dispatcherOrDispatcherOptions?: Undici.Dispatcher | DispatcherOptions,
 ): Promise<HttpResponse> {
   if (undici === undefined) {
     undici = await import("undici");
@@ -225,7 +225,7 @@ export async function download(
   url: string,
   destination: string,
   requestOptions: RequestOptions = {},
-  dispatcherOrDispatcherOptions?: UndiciT.Dispatcher | DispatcherOptions,
+  dispatcherOrDispatcherOptions?: Undici.Dispatcher | DispatcherOptions,
 ): Promise<void> {
   let statusCode: number | undefined;
   let tempFilePath: string | undefined;
@@ -240,7 +240,7 @@ export async function download(
       url,
       requestOptions,
       dispatcherOrDispatcherOptions,
-    )) as UndiciT.Dispatcher.ResponseData;
+    )) as Undici.Dispatcher.ResponseData;
     const { body } = response;
     statusCode = response.statusCode;
 
@@ -257,7 +257,7 @@ export async function download(
 
       const fileStream = fileHandle.createWriteStream();
 
-      await stream.pipeline(body, fileStream);
+      await pipeline(body, fileStream);
     } finally {
       // NOTE: Historically, not closing the file handle caused issues on Windows,
       // for example, when trying to move the file previously written to by this function
@@ -284,9 +284,9 @@ export async function download(
 
 /**
  * Creates a dispatcher based on the provided options.
- * If the `proxy` option is set, it creates a {@link UndiciT.ProxyAgent} dispatcher.
- * If the `pool` option is set to `true`, it creates a {@link UndiciT.Pool} dispatcher.
- * Otherwise, it creates a basic {@link UndiciT.Agent} dispatcher.
+ * If the `proxy` option is set, it creates a {@link Undici.ProxyAgent} dispatcher.
+ * If the `pool` option is set to `true`, it creates a {@link Undici.Pool} dispatcher.
+ * Otherwise, it creates a basic {@link Undici.Agent} dispatcher.
  *
  * @param url The url to make requests to.
  * @param options The options to configure the dispatcher. See {@link DispatcherOptions}.

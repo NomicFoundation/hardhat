@@ -115,5 +115,14 @@ describe("inline-config - helpers", () => {
         { fuzz: { showLogs: false } },
       );
     });
+
+    it("should strip surrounding double quotes from string values", () => {
+      assert.deepEqual(
+        buildConfigOverride([
+          makeRawOverride({ key: "evmVersion", rawValue: '"cancun"' }),
+        ]),
+        { evmVersion: "cancun" },
+      );
+    });
   });
 });

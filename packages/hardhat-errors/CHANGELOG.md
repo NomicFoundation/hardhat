@@ -1,5 +1,14 @@
 # @nomicfoundation/hardhat-errors
 
+## 3.0.12
+
+### Patch Changes
+
+- [#8196](https://github.com/NomicFoundation/hardhat/pull/8196) [`b669814`](https://github.com/NomicFoundation/hardhat/commit/b6698146abc87aaa6b2b2f18c830a01dba9b6daa) Thanks [@alcuadrado](https://github.com/alcuadrado)! - Improve error messages in common failures
+
+- Updated dependencies:
+  - @nomicfoundation/hardhat-utils@4.1.0
+
 ## 3.0.11
 
 ### Patch Changes

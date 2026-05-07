@@ -5,13 +5,13 @@ import path from "node:path";
 
 import { getCoverageLibrary } from "@nomicfoundation/edr/coverage";
 import { HardhatError } from "@nomicfoundation/hardhat-errors";
+import { createDebug } from "@nomicfoundation/hardhat-utils/debug";
 import { ensureError } from "@nomicfoundation/hardhat-utils/error";
-import debug from "debug";
 
 import { getCoverageManager } from "../helpers/accessors.js";
 import { instrumentSolidityFileForCompilationJob } from "../instrumentation.js";
 
-const log = debug("hardhat:core:coverage:hook-handlers:solidity");
+const log = createDebug("hardhat:core:coverage:hook-handlers:solidity");
 
 export default async (): Promise<Partial<SolidityHooks>> => ({
   preprocessProjectFileBeforeBuilding: async (

@@ -7,9 +7,9 @@ import type { MochaOptions } from "mocha";
 import { resolve as pathResolve } from "node:path";
 
 import { HardhatError } from "@nomicfoundation/hardhat-errors";
+import { createDebug } from "@nomicfoundation/hardhat-utils/debug";
 import { setGlobalOptionsAsEnvVariables } from "@nomicfoundation/hardhat-utils/env";
 import { getAllFilesMatching } from "@nomicfoundation/hardhat-utils/fs";
-import debug from "debug";
 import { errorResult, successfulResult } from "hardhat/utils/result";
 import Mocha from "mocha";
 
@@ -30,8 +30,8 @@ type PerformancePhase =
   | "Test execution"
   | "Reporting";
 
-const performanceScope = "hardhat:mocha:performance";
-const performanceLog = debug(performanceScope);
+const performanceScope = "hardhat:mocha:task-action:performance";
+const performanceLog = createDebug(performanceScope);
 const perf = createPerformanceTracker<PerformancePhase>(
   performanceScope,
   "Mocha test task",

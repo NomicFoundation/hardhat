@@ -31,7 +31,7 @@ import { ExecutionEventType } from "./types/execution-events.js";
 /**
  * Deploy an IgnitionModule to the chain
  *
- * @beta
+ * @public
  */
 export async function deploy<
   ModuleIdT extends string,

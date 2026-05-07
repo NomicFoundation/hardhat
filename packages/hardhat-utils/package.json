@@ -1,6 +1,6 @@
 {
   "name": "@nomicfoundation/hardhat-utils",
-  "version": "4.0.4",
+  "version": "4.1.0",
   "description": "Utilities for Hardhat and its plugins",
   "homepage": "https://github.com/NomicFoundation/hardhat/tree/main/packages/hardhat-utils",
   "repository": {
@@ -23,6 +23,7 @@
     "./env": "./dist/src/env.js",
     "./error": "./dist/src/error.js",
     "./eth": "./dist/src/eth.js",
+    "./fast-semver": "./dist/src/fast-semver.js",
     "./format": "./dist/src/format.js",
     "./fs": "./dist/src/fs.js",
     "./global-dir": "./dist/src/global-dir.js",
@@ -33,6 +34,7 @@
     "./panic-errors": "./dist/src/panic-errors.js",
     "./path": "./dist/src/path.js",
     "./request": "./dist/src/request.js",
+    "./runtime": "./dist/src/runtime.js",
     "./string": "./dist/src/string.js",
     "./stream": "./dist/src/stream.js",
     "./subprocess": "./dist/src/subprocess.js",
@@ -66,9 +68,8 @@
     "README.md"
   ],
   "devDependencies": {
-    "@nomicfoundation/hardhat-node-test-reporter": "workspace:^3.0.5",
+    "@nomicfoundation/hardhat-node-test-reporter": "workspace:^3.0.6",
     "@types/bn.js": "^5.1.5",
-    "@types/debug": "^4.1.7",
     "@types/node": "^22.0.0",
     "c8": "^9.1.0",
     "eslint": "9.25.1",
@@ -80,7 +81,6 @@
   },
   "dependencies": {
     "@streamparser/json-node": "^0.0.22",
-    "debug": "^4.3.2",
     "env-paths": "^2.2.0",
     "ethereum-cryptography": "^2.2.1",
     "fast-equals": "^5.4.0",

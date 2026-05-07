@@ -1,4 +1,3 @@
-import "hardhat/types/config";
 import type { DerivationFunction } from "./internal/types.js";
 
 declare module "hardhat/types/config" {

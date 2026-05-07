@@ -1,7 +1,7 @@
 import type { GlobalOptionDefinitions } from "../../../types/global-options.js";
 import type { Task } from "../../../types/tasks.js";
 
-import chalk from "chalk";
+import { styleText } from "node:util";
 
 import {
   GLOBAL_NAME_PADDING,
@@ -31,7 +31,7 @@ export async function getHelpString(
       ...globalOptions,
     ]) + GLOBAL_NAME_PADDING;
 
-  let output = `${chalk.bold(task.description)}`;
+  let output = `${styleText("bold", task.description)}`;
 
   if (task.isEmpty) {
     output += `\n\nUsage: hardhat [GLOBAL OPTIONS] ${task.id.join(" ")} <SUBTASK> [SUBTASK OPTIONS] [--] [SUBTASK POSITIONAL ARGUMENTS]\n`;

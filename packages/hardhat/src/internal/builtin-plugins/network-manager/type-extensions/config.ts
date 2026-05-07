@@ -1,6 +1,5 @@
 import type { ChainType, DefaultChainType } from "../../../../types/network.js";
 
-import "../../../../types/config.js";
 declare module "../../../../types/config.js" {
   export interface HardhatUserConfig {
     chainDescriptors?: ChainDescriptorsUserConfig;

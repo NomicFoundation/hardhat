@@ -26,14 +26,14 @@ describe("adjacency list", () => {
     adjacencyList.addDependency({ from: "8", to: "9" });
 
     assert.deepStrictEqual(AdjacencyList.topologicalSort(adjacencyList), [
-      "3",
-      "7",
-      "8",
       "5",
+      "7",
+      "3",
       "11",
+      "8",
+      "2",
       "10",
       "9",
-      "2",
     ]);
   });
 });

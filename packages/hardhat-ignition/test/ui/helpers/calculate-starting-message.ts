@@ -1,5 +1,6 @@
+import { styleText } from "node:util";
+
 import { assert } from "chai";
-import chalk from "chalk";
 
 import { calculateStartingMessage } from "../../../src/internal/ui/helpers/calculate-starting-message.js";
 
@@ -20,8 +21,9 @@ describe("ui - calculate starting message display", () => {
 This will execute the deployment, but the results will be lost.
 You can use --network <network-name> to deploy to a different network.`;
 
-    const expectedText = `${chalk.yellow(
-      chalk.bold(warningMessage),
+    const expectedText = `${styleText(
+      ["yellow", "bold"],
+      warningMessage,
     )}\n\nHardhat Ignition starting for [ MyModule ]...`;
 
     const actualText = calculateStartingMessage({

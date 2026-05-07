@@ -102,7 +102,7 @@ export class AdjacencyList {
     }
 
     // Empty list that will contain the sorted elements
-    let l: string[] = [];
+    const l: string[] = [];
     // set of all nodes with no dependents
     const s = new Set<string>(
       [...newList._list.keys()].filter(
@@ -111,11 +111,12 @@ export class AdjacencyList {
     );
 
     while (s.size !== 0) {
-      const n = [...s].pop();
-      s.delete(n!);
-      l = [...l, n!];
-      for (const m of newList.getDependenciesFor(n!)) {
-        newList.deleteDependency({ from: n!, to: m });
+      const n = s.values().next().value;
+      assertIgnitionInvariant(n !== undefined, "Set is non-empty");
+      s.delete(n);
+      l.push(n);
+      for (const m of newList.getDependenciesFor(n)) {
+        newList.deleteDependency({ from: n, to: m });
 
         if (newList.getDependentsFor(m).length === 0) {
           s.add(m);

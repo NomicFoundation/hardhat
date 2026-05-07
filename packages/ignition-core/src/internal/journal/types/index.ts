@@ -3,7 +3,7 @@ import type { JournalMessage } from "../../execution/types/messages.js";
 /**
  * Store a deployments execution state as a transaction log.
  *
- * @beta
+ * @public
  */
 export interface Journal {
   /**
