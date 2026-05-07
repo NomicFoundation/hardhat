@@ -27,6 +27,11 @@ const changesetDir = ".changeset";
 const DOCS_PR_URL_PATTERN =
   /github\.com\/nomicfoundation\/hardhat-website\/pull\/\d+/i;
 
+const DOCS_PR_URL_PATTERN_GLOBAL = new RegExp(
+  DOCS_PR_URL_PATTERN.source,
+  "gi",
+);
+
 function isReleasePR() {
   if (process.env.GITHUB_HEAD_REF === undefined) {
     throw new Error("GITHUB_HEAD_REF is not defined");
@@ -52,11 +57,7 @@ function extractDocsUrlsFromPRBody(): string[] {
     throw new Error("GITHUB_EVENT_PULL_REQUEST_BODY is not defined");
   }
 
-  return (
-    prBody.match(
-      /github\.com\/nomicfoundation\/hardhat-website\/pull\/\d+/gi,
-    ) ?? []
-  );
+  return prBody.match(DOCS_PR_URL_PATTERN_GLOBAL) ?? [];
 }
 
 function hasIssueLinkInPRBody() {
