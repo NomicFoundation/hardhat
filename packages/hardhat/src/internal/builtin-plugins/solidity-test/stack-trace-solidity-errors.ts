@@ -1,8 +1,19 @@
 import type { SolidityStackTraceEntry } from "../network-manager/edr/stack-traces/solidity-stack-trace.js";
+import type { CheatcodeErrorCode } from "@nomicfoundation/edr";
 
 import { panicErrorCodeToMessage } from "@nomicfoundation/hardhat-utils/panic-errors";
 
 import { StackTraceEntryType } from "../network-manager/edr/stack-traces/solidity-stack-trace.js";
+
+const CHEATCODE_ERROR_MESSAGE_BY_CODE: Record<
+  CheatcodeErrorCode,
+  (cheatcode: string) => string
+> = {
+  UnsupportedCheatcode: (cheatcode) =>
+    `Cheatcode '${cheatcode}' is not supported by Hardhat.`,
+  MissingCheatcode: (cheatcode) =>
+    `Cheatcode '${cheatcode}' is not yet available in this version of Hardhat.`,
+};
 
 export function getMessageFromLastStackTraceEntry(
   stackTraceEntry: SolidityStackTraceEntry,
@@ -66,12 +77,9 @@ export function getMessageFromLastStackTraceEntry(
 
     case StackTraceEntryType.CHEATCODE_ERROR: {
       if (stackTraceEntry.details !== undefined) {
-        switch (stackTraceEntry.details.code) {
-          case "UnsupportedCheatcode":
-            return `Cheatcode '${stackTraceEntry.details.cheatcode}' is not supported by Hardhat.`;
-          case "MissingCheatcode":
-            return `Cheatcode '${stackTraceEntry.details.cheatcode}' is not yet available in this version of Hardhat.`;
-        }
+        return CHEATCODE_ERROR_MESSAGE_BY_CODE[stackTraceEntry.details.code](
+          stackTraceEntry.details.cheatcode,
+        );
       }
 
       return stackTraceEntry.message;

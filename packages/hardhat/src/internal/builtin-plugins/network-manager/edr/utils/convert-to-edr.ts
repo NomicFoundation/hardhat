@@ -260,15 +260,18 @@ export function hardhatMiningIntervalToEdrMiningInterval(
   }
 }
 
+const MINE_ORDERING_BY_MEMPOOL_ORDER: Record<
+  EdrNetworkMempoolConfig["order"],
+  MineOrdering
+> = {
+  fifo: "Fifo",
+  priority: "Priority",
+};
+
 export function hardhatMempoolOrderToEdrMineOrdering(
   mempoolOrder: EdrNetworkMempoolConfig["order"],
 ): MineOrdering {
-  switch (mempoolOrder) {
-    case "fifo":
-      return "Fifo";
-    case "priority":
-      return "Priority";
-  }
+  return MINE_ORDERING_BY_MEMPOOL_ORDER[mempoolOrder];
 }
 
 export async function hardhatAccountsToEdrOwnedAccounts(

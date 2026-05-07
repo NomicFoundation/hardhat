@@ -2,6 +2,7 @@ import type {
   SolidityStackTrace,
   SolidityStackTraceEntry,
   SourceReference,
+  CheatcodeErrorCode,
 } from "./solidity-stack-trace.js";
 
 import { ReturnData } from "@nomicfoundation/edr";
@@ -183,6 +184,16 @@ function sourceReferenceToSolidityCallsite(
   );
 }
 
+const CHEATCODE_ERROR_MESSAGE_BY_CODE: Record<
+  CheatcodeErrorCode,
+  (cheatcode: string) => string
+> = {
+  UnsupportedCheatcode: (cheatcode) =>
+    `Cheatcode '${cheatcode}' is not supported by Hardhat.`,
+  MissingCheatcode: (cheatcode) =>
+    `Cheatcode '${cheatcode}' is not yet available in this version of Hardhat.`,
+};
+
 function getMessageFromLastStackTraceEntry(
   stackTraceEntry: SolidityStackTraceEntry,
 ): string | undefined {
@@ -270,18 +281,12 @@ function getMessageFromLastStackTraceEntry(
       return `VM Exception while processing transaction: ${stackTraceEntry.message}`;
 
     case StackTraceEntryType.CHEATCODE_ERROR: {
-      let message = stackTraceEntry.message;
-
-      if (stackTraceEntry.details !== undefined) {
-        switch (stackTraceEntry.details.code) {
-          case "UnsupportedCheatcode":
-            message = `Cheatcode '${stackTraceEntry.details.cheatcode}' is not supported by Hardhat.`;
-            break;
-          case "MissingCheatcode":
-            message = `Cheatcode '${stackTraceEntry.details.cheatcode}' is not yet available in this version of Hardhat.`;
-            break;
-        }
-      }
+      const message =
+        stackTraceEntry.details !== undefined
+          ? CHEATCODE_ERROR_MESSAGE_BY_CODE[stackTraceEntry.details.code](
+              stackTraceEntry.details.cheatcode,
+            )
+          : stackTraceEntry.message;
 
       return `VM Exception while processing transaction: ${message}`;
     }
