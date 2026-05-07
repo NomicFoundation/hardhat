@@ -1,3 +1,6 @@
+// The same patterns are reused for every source file, so compile each one once.
+const compiledGlobCache = new Map<string, RegExp>();
+
 /**
  * Returns true when `path` should be included given user-supplied include and
  * exclude glob lists. `include` is the gate: an empty `include` matches
@@ -28,7 +31,7 @@ export function isPathSelected(
  */
 function matchesAny(value: string, patterns: string[]): boolean {
   for (const pattern of patterns) {
-    if (globToRegExp(pattern).test(value)) {
+    if (getCompiledGlob(pattern).test(value)) {
       return true;
     }
   }
@@ -72,4 +75,15 @@ function globToRegExp(pattern: string): RegExp {
   regex += "$";
 
   return new RegExp(regex);
+}
+
+function getCompiledGlob(pattern: string): RegExp {
+  let compiled = compiledGlobCache.get(pattern);
+
+  if (compiled === undefined) {
+    compiled = globToRegExp(pattern);
+    compiledGlobCache.set(pattern, compiled);
+  }
+
+  return compiled;
 }
