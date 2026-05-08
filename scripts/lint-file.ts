@@ -11,8 +11,8 @@ const USAGE = `
 lint-file - Run prettier --check and eslint on individual files within a workspace package.
 
 USAGE
-  node scripts/lint-file.ts <file...>
-  pnpm lint:file <file...>
+  node scripts/lint-file.ts [--fix] <file...>
+  pnpm lint:file [--fix] <file...>
 
 DESCRIPTION
   Resolves each file's owning workspace package, builds that package and its
@@ -24,8 +24,13 @@ DESCRIPTION
   command (pnpm lint at the repo root) is still the right call when you want
   full coverage.
 
+  Pass --fix to auto-apply prettier formatting and eslint autofixes (mirrors
+  pnpm lint:fix). Files are modified in place; remaining errors that lack an
+  autofix are still reported and cause non-zero exit.
+
 EXAMPLES
   pnpm lint:file packages/hardhat/src/internal/cli/main.ts
+  pnpm lint:file --fix packages/hardhat/src/internal/cli/main.ts
   pnpm lint:file packages/hardhat/src/a.ts packages/hardhat-utils/src/b.ts
 `;
 
@@ -43,9 +48,24 @@ function main(): void {
     process.exit(0);
   }
 
+  let fix = false;
+  const paths: string[] = [];
+  for (const arg of args) {
+    if (arg === "--fix") {
+      fix = true;
+    } else {
+      paths.push(arg);
+    }
+  }
+
+  if (paths.length === 0) {
+    logError("No files specified");
+    process.exit(1);
+  }
+
   let groups;
   try {
-    groups = groupByPackage(args);
+    groups = groupByPackage(paths);
   } catch (error) {
     logError((error as Error).message);
     process.exit(1);
@@ -54,7 +74,9 @@ function main(): void {
   const results: PackageResult[] = [];
 
   for (const { pkg, files } of groups.values()) {
-    log(`Linting ${files.length} file(s) in ${styleText("bold", pkg.name)}`);
+    log(
+      `${fix ? "Fixing" : "Linting"} ${files.length} file(s) in ${styleText("bold", pkg.name)}`,
+    );
 
     log(`Building ${pkg.name} and its deps...`);
     const buildResult = spawnSync(
@@ -76,11 +98,12 @@ function main(): void {
 
     const prettierResult = spawnSync(
       "pnpm",
-      ["exec", "prettier", "--check", ...files],
+      ["exec", "prettier", fix ? "--write" : "--check", ...files],
       { cwd: pkg.path, stdio: "inherit", shell: IS_WINDOWS },
     );
 
-    const eslintResult = spawnSync("pnpm", ["exec", "eslint", ...files], {
+    const eslintArgs = ["exec", "eslint", ...(fix ? ["--fix"] : []), ...files];
+    const eslintResult = spawnSync("pnpm", eslintArgs, {
       cwd: pkg.path,
       stdio: "inherit",
       shell: IS_WINDOWS,

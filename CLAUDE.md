@@ -8,7 +8,7 @@ Test - pnpm test
 
 For single-file work, run these from the repo root. They build upstream deps and run the tool on the given path(s):
 
-Lint single file - `pnpm lint:file path/to/file.ts` (runs prettier --check + eslint)
+Lint single file - `pnpm lint:file path/to/file.ts` (runs prettier --check + eslint; pass `--fix` to auto-apply fixes)
 
 Test single file - `pnpm test:file path/to/test.ts`
 
