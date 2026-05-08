@@ -11,7 +11,7 @@ function main(): void {
 
   if (args.length === 0 || args.includes("--help") || args.includes("-h")) {
     printUsage();
-    process.exit(args.length === 0 ? 1 : 0);
+    process.exit(0);
   }
 
   const result = spawnSync(
