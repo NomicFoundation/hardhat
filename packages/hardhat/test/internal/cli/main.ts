@@ -627,6 +627,18 @@ GLOBAL OPTIONS:
         },
       );
     });
+
+    it("should throw an error when --template is provided twice", async function () {
+      const command = "npx hardhat --init --template foo --template bar";
+
+      await assertRejectsWithHardhatError(
+        async () => await runMain(command),
+        HardhatError.ERRORS.CORE.ARGUMENTS.DUPLICATED_NAME,
+        {
+          name: "--template",
+        },
+      );
+    });
   });
 
   describe("--init --templates", function () {

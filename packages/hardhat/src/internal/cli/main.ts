@@ -115,6 +115,13 @@ export async function main(
         if (cliArguments[i] === "--template") {
           usedCliArguments[i] = true;
 
+          if (templateName !== undefined) {
+            throw new HardhatError(
+              HardhatError.ERRORS.CORE.ARGUMENTS.DUPLICATED_NAME,
+              { name: "--template" },
+            );
+          }
+
           if (
             usedCliArguments[i + 1] === undefined ||
             usedCliArguments[i + 1] === true ||
