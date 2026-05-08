@@ -14,10 +14,10 @@ import type {
   ChainOverride,
   ForkConfig,
   GasReport,
-  MineOrdering,
 } from "@nomicfoundation/edr";
 
 import {
+  MineOrdering,
   GasReportExecutionStatus,
   OpHardfork,
   SpecId,
@@ -264,8 +264,8 @@ const MINE_ORDERING_BY_MEMPOOL_ORDER: Record<
   EdrNetworkMempoolConfig["order"],
   MineOrdering
 > = {
-  fifo: "Fifo",
-  priority: "Priority",
+  fifo: MineOrdering.Fifo,
+  priority: MineOrdering.Priority,
 };
 
 export function hardhatMempoolOrderToEdrMineOrdering(

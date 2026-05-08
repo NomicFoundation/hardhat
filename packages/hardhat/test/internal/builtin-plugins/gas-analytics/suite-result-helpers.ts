@@ -3,6 +3,7 @@ import type {
   TestResult,
   ValueSnapshotGroup,
 } from "@nomicfoundation/edr";
+import { TestStatus } from "@nomicfoundation/edr";
 
 import { parseName } from "../../../../src/utils/contract-names.js";
 
@@ -12,7 +13,7 @@ export function createStandardTestResult(
 ): TestResult {
   return {
     name,
-    status: "Success",
+    status: TestStatus.Success,
     decodedLogs: [],
     durationNs: 0n,
     kind: {
@@ -34,7 +35,7 @@ export function createFuzzTestResult(
 ): TestResult {
   return {
     name,
-    status: "Success",
+    status: TestStatus.Success,
     decodedLogs: [],
     durationNs: 0n,
     kind: {
@@ -57,7 +58,7 @@ export function createInvariantTestResult(
 ): TestResult {
   return {
     name,
-    status: "Success",
+    status: TestStatus.Success,
     decodedLogs: [],
     durationNs: 0n,
     kind: {
@@ -80,7 +81,7 @@ export function createTestResultWithSnapshots(
 ): TestResult {
   return {
     name: "testWithSnapshotCheatcodes",
-    status: "Success",
+    status: TestStatus.Success,
     decodedLogs: [],
     durationNs: 0n,
     // Use invariant test kind since it's not tracked by function gas snapshots,

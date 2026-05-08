@@ -6,7 +6,7 @@ settings:
 
 patchedDependencies:
   '@nomicfoundation/edr@0.12.0-next.32':
-    hash: 428e38291baba140c26b4787e5b2d8c4cb98bcf45f7241174aeac0c71822728e
+    hash: 12e63aa69ad6323e1422d9853ecbb6c9da4889a08906254eed61ee66c9463daa
     path: patches/@nomicfoundation__edr@0.12.0-next.32.patch
 
 importers:
@@ -171,7 +171,7 @@ importers:
     dependencies:
       '@nomicfoundation/edr':
         specifier: 0.12.0-next.32
-        version: 0.12.0-next.32(patch_hash=428e38291baba140c26b4787e5b2d8c4cb98bcf45f7241174aeac0c71822728e)
+        version: 0.12.0-next.32(patch_hash=12e63aa69ad6323e1422d9853ecbb6c9da4889a08906254eed61ee66c9463daa)
       '@nomicfoundation/hardhat-errors':
         specifier: workspace:^3.0.12
         version: link:../hardhat-errors
@@ -8562,7 +8562,7 @@ snapshots:
 
   '@nomicfoundation/edr-win32-x64-msvc@0.12.0-next.32': {}
 
-  '@nomicfoundation/edr@0.12.0-next.32(patch_hash=428e38291baba140c26b4787e5b2d8c4cb98bcf45f7241174aeac0c71822728e)':
+  '@nomicfoundation/edr@0.12.0-next.32(patch_hash=12e63aa69ad6323e1422d9853ecbb6c9da4889a08906254eed61ee66c9463daa)':
     dependencies:
       '@nomicfoundation/edr-darwin-arm64': 0.12.0-next.32
       '@nomicfoundation/edr-darwin-x64': 0.12.0-next.32

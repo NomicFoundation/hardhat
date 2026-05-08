@@ -1,48 +1,13 @@
 diff --git a/index.d.ts b/index.d.ts
-index 2e37e45cfe9dd917dd8fb7eb2cb3098752c83513..fe6126e98864deb13e655fcc15afe2a5f41d0e2a 100644
 --- a/index.d.ts
 +++ b/index.d.ts
-@@ -247,12 +247,7 @@ export interface HardforkActivationByTimestamp {
-   timestamp: bigint
+@@ -1150,7 +1150,9 @@ export interface StackTrace {
+   kind: "StackTrace"
+   /** The stack trace entries */
+   entries: Array<SolidityStackTraceEntry>
  }
- /**The type of ordering to use when selecting blocks to mine. */
--export enum MineOrdering {
--  /**Insertion order */
--  Fifo = 'Fifo',
--  /**Effective miner fee */
--  Priority = 'Priority'
--}
-+export type MineOrdering = 'Fifo' | 'Priority'
- /** Configuration for the provider's mempool. */
- export interface MemPoolConfig {
-   order: MineOrdering
-@@ -605,12 +600,7 @@ export interface LinkReference {
-   length: number
- }
- /**Error codes that can be returned by cheatcodes in Solidity tests. */
--export enum CheatcodeErrorCode {
--  /**The specified cheatcode is not supported. */
--  UnsupportedCheatcode = 'UnsupportedCheatcode',
--  /**The specified cheatcode is missing. */
--  MissingCheatcode = 'MissingCheatcode'
--}
-+export type CheatcodeErrorCode = 'UnsupportedCheatcode' | 'MissingCheatcode'
- /**Error returned by a cheatcode in Solidity tests. */
- export interface CheatcodeErrorDetails {
-   /**The error code representing the type of cheatcode error. */
-@@ -1191,14 +1181,7 @@ export interface UnsafeToReplay {
-   impureCheatcodes: Array<string>
- }
- /**The result of a test execution. */
--export enum TestStatus {
--  /**Test success */
--  Success = 'Success',
--  /**Test failure */
--  Failure = 'Failure',
--  /**Test skipped */
--  Skipped = 'Skipped'
--}
-+export type TestStatus = 'Success' | 'Failure' | 'Skipped'
- /** See [`edr_solidity_tests::result::TestKind::Unit`] */
- export interface StandardTestKind {
-   /** The gas consumed by the test. */
++export type SolidityStackTraceEntry = CallstackEntryStackTraceEntry | UnrecognizedCreateCallstackEntryStackTraceEntry | UnrecognizedContractCallstackEntryStackTraceEntry | PrecompileErrorStackTraceEntry | RevertErrorStackTraceEntry | PanicErrorStackTraceEntry | CustomErrorStackTraceEntry | FunctionNotPayableErrorStackTraceEntry | InvalidParamsErrorStackTraceEntry | FallbackNotPayableErrorStackTraceEntry | FallbackNotPayableAndNoReceiveErrorStackTraceEntry | UnrecognizedFunctionWithoutFallbackErrorStackTraceEntry | MissingFallbackOrReceiveErrorStackTraceEntry | ReturndataSizeErrorStackTraceEntry | NonContractAccountCalledErrorStackTraceEntry | CallFailedErrorStackTraceEntry | DirectLibraryCallErrorStackTraceEntry | UnrecognizedCreateErrorStackTraceEntry | UnrecognizedContractErrorStackTraceEntry | OtherExecutionErrorStackTraceEntry | UnmappedSolc063RevertErrorStackTraceEntry | ContractTooLargeErrorStackTraceEntry | InternalFunctionCallStackEntry | ContractCallRunOutOfGasError | CheatcodeErrorStackTraceEntry
++export type SolidityStackTrace = Array<SolidityStackTraceEntry>
+ /** We couldn't generate stack traces, because an unexpected error occurred. */
+ export interface UnexpectedError {
+   /** Enum tag for JS. */

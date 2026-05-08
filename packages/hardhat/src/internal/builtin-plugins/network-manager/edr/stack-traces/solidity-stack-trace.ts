@@ -1,5 +1,7 @@
 import type {
   SourceReference,
+  SolidityStackTrace,
+  SolidityStackTraceEntry,
   CallstackEntryStackTraceEntry,
   UnrecognizedCreateCallstackEntryStackTraceEntry,
   UnrecognizedContractCallstackEntryStackTraceEntry,
@@ -55,6 +57,8 @@ export {
 
 export type {
   SourceReference,
+  SolidityStackTrace,
+  SolidityStackTraceEntry,
   CheatcodeErrorCode,
   CallstackEntryStackTraceEntry,
   UnrecognizedCreateCallstackEntryStackTraceEntry,
@@ -82,32 +86,3 @@ export type {
   ContractCallRunOutOfGasError,
   CheatcodeErrorDetails,
 };
-
-export type SolidityStackTraceEntry =
-  | CallstackEntryStackTraceEntry
-  | UnrecognizedCreateCallstackEntryStackTraceEntry
-  | UnrecognizedContractCallstackEntryStackTraceEntry
-  | PrecompileErrorStackTraceEntry
-  | RevertErrorStackTraceEntry
-  | PanicErrorStackTraceEntry
-  | CustomErrorStackTraceEntry
-  | FunctionNotPayableErrorStackTraceEntry
-  | InvalidParamsErrorStackTraceEntry
-  | FallbackNotPayableErrorStackTraceEntry
-  | FallbackNotPayableAndNoReceiveErrorStackTraceEntry
-  | UnrecognizedFunctionWithoutFallbackErrorStackTraceEntry
-  | MissingFallbackOrReceiveErrorStackTraceEntry
-  | ReturndataSizeErrorStackTraceEntry
-  | NonContractAccountCalledErrorStackTraceEntry
-  | CallFailedErrorStackTraceEntry
-  | DirectLibraryCallErrorStackTraceEntry
-  | UnrecognizedCreateErrorStackTraceEntry
-  | UnrecognizedContractErrorStackTraceEntry
-  | OtherExecutionErrorStackTraceEntry
-  | UnmappedSolc063RevertErrorStackTraceEntry
-  | ContractTooLargeErrorStackTraceEntry
-  | InternalFunctionCallStackEntry
-  | ContractCallRunOutOfGasError
-  | CheatcodeErrorStackTraceEntry;
-
-export type SolidityStackTrace = SolidityStackTraceEntry[];

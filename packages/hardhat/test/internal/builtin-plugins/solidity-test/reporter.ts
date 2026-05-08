@@ -6,9 +6,9 @@ import { describe, it } from "node:test";
 
 import {
   CallKind,
+  TestStatus,
   type CallTrace,
   type TestResult,
-  type TestStatus,
 } from "@nomicfoundation/edr";
 
 import { testReporter } from "../../../../src/internal/builtin-plugins/solidity-test/reporter.js";
@@ -127,7 +127,7 @@ describe("testReporter", () => {
             results: [
               {
                 name: "successful test",
-                status: "Success",
+                status: TestStatus.Success,
               },
             ],
           },
@@ -155,7 +155,7 @@ describe("testReporter", () => {
             results: [
               {
                 name: "failing test",
-                status: "Failure",
+                status: TestStatus.Failure,
                 consoleLogs: ["debug log"],
                 traces: [
                   { contract: "Foo", gasUsed: 100n },
@@ -202,7 +202,7 @@ debug log
             results: [
               {
                 name: "skipped test",
-                status: "Skipped",
+                status: TestStatus.Skipped,
               },
             ],
           },
@@ -231,11 +231,11 @@ debug log
             results: [
               {
                 name: "skipped test",
-                status: "Skipped",
+                status: TestStatus.Skipped,
               },
               {
                 name: "failing test",
-                status: "Failure",
+                status: TestStatus.Failure,
                 consoleLogs: ["debug log"],
                 traces: [
                   { contract: "Foo", gasUsed: 100n },
@@ -248,7 +248,7 @@ debug log
               },
               {
                 name: "successful test",
-                status: "Success",
+                status: TestStatus.Success,
               },
             ],
           },
@@ -291,7 +291,7 @@ debug log
             results: [
               {
                 name: "successful test",
-                status: "Success",
+                status: TestStatus.Success,
               },
             ],
           },
@@ -321,7 +321,7 @@ debug log
             results: [
               {
                 name: "successful test",
-                status: "Success",
+                status: TestStatus.Success,
               },
             ],
           },
@@ -331,7 +331,7 @@ debug log
             results: [
               {
                 name: "another successful test",
-                status: "Success",
+                status: TestStatus.Success,
               },
             ],
           },
@@ -362,11 +362,11 @@ debug log
             results: [
               {
                 name: "failing test1",
-                status: "Failure",
+                status: TestStatus.Failure,
               },
               {
                 name: "failing test2",
-                status: "Failure",
+                status: TestStatus.Failure,
               },
             ],
           },
@@ -376,11 +376,11 @@ debug log
             results: [
               {
                 name: "failing test3",
-                status: "Failure",
+                status: TestStatus.Failure,
               },
               {
                 name: "failing test4",
-                status: "Failure",
+                status: TestStatus.Failure,
               },
             ],
           },
@@ -428,11 +428,11 @@ debug log
             results: [
               {
                 name: "skipped test",
-                status: "Skipped",
+                status: TestStatus.Skipped,
               },
               {
                 name: "failing test",
-                status: "Failure",
+                status: TestStatus.Failure,
                 consoleLogs: ["debug log"],
                 traces: [
                   { contract: "Foo", gasUsed: 100n },
@@ -445,7 +445,7 @@ debug log
               },
               {
                 name: "successful test",
-                status: "Success",
+                status: TestStatus.Success,
               },
             ],
           },
