@@ -293,7 +293,7 @@ GLOBAL OPTIONS:
   --gas-stats              Collects and displays gas usage statistics for all function calls during tests
   --gas-stats-json         Write gas usage statistics to a JSON file at the specified path
   --help, -h               Show this message, or a task's help if its name is provided
-  --init                   Initializes a Hardhat project. Use \`--init --template <name>\` to initialize in non-interactive mode, and \`--init --templates\` to list the template names
+  --init                   Initializes a Hardhat project. Supports \`--template <name>\` and \`--templates\`
   --network                The network to connect to
   --show-stack-traces      Show stack traces (always enabled on CI servers)
   --verbosity, -v          Verbosity level of the output
@@ -368,7 +368,7 @@ GLOBAL OPTIONS:
   --gas-stats              Collects and displays gas usage statistics for all function calls during tests
   --gas-stats-json         Write gas usage statistics to a JSON file at the specified path
   --help, -h               Show this message, or a task's help if its name is provided
-  --init                   Initializes a Hardhat project. Use \`--init --template <name>\` to initialize in non-interactive mode, and \`--init --templates\` to list the template names
+  --init                   Initializes a Hardhat project. Supports \`--template <name>\` and \`--templates\`
   --network                The network to connect to
   --show-stack-traces      Show stack traces (always enabled on CI servers)
   --verbosity, -v          Verbosity level of the output
@@ -410,7 +410,7 @@ GLOBAL OPTIONS:
   --gas-stats              Collects and displays gas usage statistics for all function calls during tests
   --gas-stats-json         Write gas usage statistics to a JSON file at the specified path
   --help, -h               Show this message, or a task's help if its name is provided
-  --init                   Initializes a Hardhat project. Use \`--init --template <name>\` to initialize in non-interactive mode, and \`--init --templates\` to list the template names
+  --init                   Initializes a Hardhat project. Supports \`--template <name>\` and \`--templates\`
   --network                The network to connect to
   --show-stack-traces      Show stack traces (always enabled on CI servers)
   --verbosity, -v          Verbosity level of the output

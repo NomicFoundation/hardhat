@@ -38,7 +38,7 @@ export const BUILTIN_GLOBAL_OPTIONS_DEFINITIONS: GlobalOptionDefinitions =
         option: globalFlag({
           name: "init",
           description:
-            "Initializes a Hardhat project. Use `--init --template <name>` to initialize in non-interactive mode, and `--init --templates` to list the template names.",
+            "Initializes a Hardhat project. Supports `--template <name>` and `--templates`.",
         }),
       },
     ],
