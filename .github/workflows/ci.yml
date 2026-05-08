@@ -326,8 +326,9 @@ jobs:
       - env:
           ci_result: ${{ needs.ci.result }}
           reporter_result: ${{ needs.hardhat-node-test-reporter.result }}
+          chai_v5_result: ${{ needs.hardhat-ethers-chai-v5-matchers.result }}
         run: |
-          if [[ "$ci_result" == "failure" || "$reporter_result" == "failure" ]]; then
+          if [[ "$ci_result" == "failure" || "$reporter_result" == "failure" || "$chai_v5_result" == "failure" ]]; then
             exit 1
           fi
         shell: bash
