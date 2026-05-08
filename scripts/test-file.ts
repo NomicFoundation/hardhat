@@ -29,6 +29,16 @@ EXAMPLES
   pnpm test:file --only packages/hardhat-utils/test/fs.ts
 `;
 
+// Packages whose `test` script doesn't use `node --import tsx/esm --test`.
+// These use Mocha or composite runners and aren't supported by test:file.
+// Remove entries here once a package migrates to node --test.
+const UNSUPPORTED_TEST_RUNNERS = new Set([
+  "@nomicfoundation/ignition-ui",
+  "@nomicfoundation/hardhat-ignition",
+  "@nomicfoundation/ignition-core",
+  "@nomicfoundation/example-project",
+]);
+
 interface PackageResult {
   name: string;
   failed: boolean;
@@ -62,6 +72,17 @@ function main(): void {
     groups = groupByPackage(paths);
   } catch (error) {
     logError((error as Error).message);
+    process.exit(1);
+  }
+
+  const unsupported = [...groups.values()]
+    .map((g) => g.pkg.name)
+    .filter((name) => UNSUPPORTED_TEST_RUNNERS.has(name));
+  if (unsupported.length > 0) {
+    logError(
+      `${unsupported.join(", ")} ${unsupported.length === 1 ? "doesn't" : "don't"} use node --test (Mocha or composite runner). ` +
+        `Run \`pnpm test\` in the package directory instead.`,
+    );
     process.exit(1);
   }
 
