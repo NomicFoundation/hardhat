@@ -7,6 +7,28 @@ const ROOT_DIR = getRootDir();
 const PREFIX = "[lint-file]";
 const IS_WINDOWS = process.platform === "win32";
 
+const USAGE = `
+lint-file - Run prettier --check and eslint on individual files within a workspace package.
+
+USAGE
+  node scripts/lint-file.ts <file...>
+  pnpm lint:file <file...>
+
+DESCRIPTION
+  Resolves each file's owning workspace package, builds that package and its
+  dependencies (incremental tsc --build, ~100ms no-op when up to date), and
+  then runs prettier and eslint on the files. Files are grouped by package so
+  multi-package invocations work in a single command.
+
+  Exits 0 only if every file passes both prettier and eslint. The aggregate
+  command (pnpm lint at the repo root) is still the right call when you want
+  full coverage.
+
+EXAMPLES
+  pnpm lint:file packages/hardhat/src/internal/cli/main.ts
+  pnpm lint:file packages/hardhat/src/a.ts packages/hardhat-utils/src/b.ts
+`;
+
 interface PackageResult {
   name: string;
   prettierFailed: boolean;
@@ -17,7 +39,7 @@ function main(): void {
   const args = process.argv.slice(2);
 
   if (args.length === 0 || args.includes("--help") || args.includes("-h")) {
-    printUsage();
+    console.log(USAGE);
     process.exit(0);
   }
 
@@ -102,30 +124,6 @@ function printSummary(results: PackageResult[]): void {
       );
     }
   }
-}
-
-function printUsage(): void {
-  console.log(`
-lint-file - Run prettier --check and eslint on individual files within a workspace package.
-
-USAGE
-  node scripts/lint-file.ts <file...>
-  pnpm lint:file <file...>
-
-DESCRIPTION
-  Resolves each file's owning workspace package, builds that package and its
-  dependencies (incremental tsc --build, ~100ms no-op when up to date), and
-  then runs prettier and eslint on the files. Files are grouped by package so
-  multi-package invocations work in a single command.
-
-  Exits 0 only if every file passes both prettier and eslint. The aggregate
-  command (pnpm lint at the repo root) is still the right call when you want
-  full coverage.
-
-EXAMPLES
-  pnpm lint:file packages/hardhat/src/internal/cli/main.ts
-  pnpm lint:file packages/hardhat/src/a.ts packages/hardhat-utils/src/b.ts
-`);
 }
 
 function log(msg: string): void {

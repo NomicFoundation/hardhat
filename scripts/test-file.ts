@@ -7,6 +7,28 @@ const ROOT_DIR = getRootDir();
 const PREFIX = "[test-file]";
 const IS_WINDOWS = process.platform === "win32";
 
+const USAGE = `
+test-file - Run individual test file(s) with the workspace's node-test setup.
+
+USAGE
+  node scripts/test-file.ts [--only] <file...>
+  pnpm test:file [--only] <file...>
+
+DESCRIPTION
+  Resolves each test file's owning workspace package, builds that package and
+  its dependencies (incremental tsc --build), then invokes node --test with
+  tsx/esm and the hardhat-node-test-reporter from inside the package
+  directory. Files are grouped by package so a multi-package invocation runs
+  one node-test process per package.
+
+  Pass --only to add Node's --test-only flag, mirroring the package-level
+  test:only script (use together with .only on a test).
+
+EXAMPLES
+  pnpm test:file packages/hardhat/test/utils.ts
+  pnpm test:file --only packages/hardhat-utils/test/fs.ts
+`;
+
 interface PackageResult {
   name: string;
   failed: boolean;
@@ -16,7 +38,7 @@ function main(): void {
   const args = process.argv.slice(2);
 
   if (args.length === 0 || args.includes("--help") || args.includes("-h")) {
-    printUsage();
+    console.log(USAGE);
     process.exit(0);
   }
 
@@ -112,30 +134,6 @@ function printSummary(results: PackageResult[]): void {
       console.log(`  ${styleText("green", "✓")} ${r.name} — passed`);
     }
   }
-}
-
-function printUsage(): void {
-  console.log(`
-test-file - Run individual test file(s) with the workspace's node-test setup.
-
-USAGE
-  node scripts/test-file.ts [--only] <file...>
-  pnpm test:file [--only] <file...>
-
-DESCRIPTION
-  Resolves each test file's owning workspace package, builds that package and
-  its dependencies (incremental tsc --build), then invokes node --test with
-  tsx/esm and the hardhat-node-test-reporter from inside the package
-  directory. Files are grouped by package so a multi-package invocation runs
-  one node-test process per package.
-
-  Pass --only to add Node's --test-only flag, mirroring the package-level
-  test:only script (use together with .only on a test).
-
-EXAMPLES
-  pnpm test:file packages/hardhat/test/utils.ts
-  pnpm test:file --only packages/hardhat-utils/test/fs.ts
-`);
 }
 
 function log(msg: string): void {
