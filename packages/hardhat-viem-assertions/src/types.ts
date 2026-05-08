@@ -1,9 +1,8 @@
+import type { AbiHolder, ErrorArgsOf, EventArgsOf } from "./abi-types.js";
 import type {
-  ContractAbis,
-  ContractReturnType,
-} from "@nomicfoundation/hardhat-viem/types";
-import type {
+  Abi,
   Address,
+  ContractErrorName,
   ContractEventName,
   Hash,
   ReadContractReturnType,
@@ -42,21 +41,15 @@ export interface HardhatViemAssertions {
    * against the contract ABI for the given event name. The assertion passes if at least one
    * matching event is found.
    *
-   * @typeParam ContractName - The contract name associated with the `contract` instance.
-   * @typeParam EventName - The name of the event to check.
+   * @typeParam TContract - The viem contract instance whose ABI is used to parse logs.
    * @param contractFn - A promise returned by a viem read or write contract call.
    * @param contract - The viem contract instance whose ABI is used to parse logs.
    * @param eventName - The event name to assert.
    */
-  emit<
-    ContractName extends CompiledContractName,
-    EventName extends ContractName extends keyof ContractAbis
-      ? ContractEventName<ContractAbis[ContractName]>
-      : string,
-  >(
+  emit<TContract extends AbiHolder<Abi>>(
     contractFn: Promise<ReadContractReturnType | WriteContractReturnType>,
-    contract: ContractReturnType<ContractName>,
-    eventName: EventName,
+    contract: TContract,
+    eventName: ContractEventName<TContract["abi"]>,
   ): Promise<void>;
 
   /**
@@ -66,23 +59,21 @@ export interface HardhatViemAssertions {
    * predicate functions in the `args` array to perform specific checks, or use the `anyValue` predicate
    * to match any value.
    *
-   * @typeParam ContractName - The contract name associated with the `contract` instance.
-   * @typeParam EventName - The name of the event to check.
+   * @typeParam TContract - The viem contract instance whose ABI is used to parse logs.
+   * @typeParam TEventName - The name of the event to check, constrained to events declared in `TContract`'s ABI.
    * @param contractFn - A promise returned by a viem read or write contract call.
    * @param contract - The viem contract instance whose ABI is used to parse logs.
    * @param eventName - The event name to assert.
    * @param args - Expected event arguments. Each item can be a concrete value or a predicate function `(value) => boolean`.
    */
   emitWithArgs<
-    ContractName extends CompiledContractName,
-    EventName extends ContractName extends keyof ContractAbis
-      ? ContractEventName<ContractAbis[ContractName]>
-      : string,
+    TContract extends AbiHolder<Abi>,
+    TEventName extends ContractEventName<TContract["abi"]>,
   >(
     contractFn: Promise<ReadContractReturnType | WriteContractReturnType>,
-    contract: ContractReturnType<ContractName>,
-    eventName: EventName,
-    args: any[],
+    contract: TContract,
+    eventName: TEventName,
+    args: EventArgsOf<TContract["abi"], TEventName>,
   ): Promise<void>;
 
   /**
@@ -109,16 +100,18 @@ export interface HardhatViemAssertions {
    * Assert that executing a contract function reverts with a specific custom error defined in the given contract.
    *
    * The contract's ABI is used to decode the revert data and validate the error name.
+   * Foreign errors (e.g. `ERC20InsufficientBalance` from a called token) are only assertable
+   * when bundled into the ABI you pass.
    *
-   * @typeParam ContractName - The contract name associated with the `contract` instance.
+   * @typeParam TContract - The viem contract instance whose ABI defines the expected custom error.
    * @param contractFn - A promise returned by a viem read or write contract call expected to revert.
    * @param contract - The viem contract instance whose ABI defines the expected custom error.
    * @param customErrorName - The expected custom error name.
    */
-  revertWithCustomError<ContractName extends CompiledContractName>(
+  revertWithCustomError<TContract extends AbiHolder<Abi>>(
     contractFn: Promise<ReadContractReturnType | WriteContractReturnType>,
-    contract: ContractReturnType<ContractName>,
-    customErrorName: string,
+    contract: TContract,
+    customErrorName: ContractErrorName<TContract["abi"]>,
   ): Promise<void>;
 
   /**
@@ -128,20 +121,20 @@ export interface HardhatViemAssertions {
    * can be a concrete value or a predicate function to perform specific checks. You can also use the `anyValue`
    * predicate to match any value.
    *
-   * @typeParam ContractName - The contract name associated with the `contract` instance.
+   * @typeParam TContract - The viem contract instance whose ABI defines the expected custom error.
+   * @typeParam TErrorName - The custom error name, constrained to errors declared in `TContract`'s ABI.
    * @param contractFn - A promise returned by a viem read or write contract call expected to revert.
    * @param contract - The viem contract instance whose ABI defines the expected custom error.
    * @param customErrorName - The expected custom error name.
    * @param args - Expected custom error arguments. Each item can be a concrete value or a predicate function `(value) => boolean`.
    */
-  revertWithCustomErrorWithArgs<ContractName extends CompiledContractName>(
+  revertWithCustomErrorWithArgs<
+    TContract extends AbiHolder<Abi>,
+    TErrorName extends ContractErrorName<TContract["abi"]>,
+  >(
     contractFn: Promise<ReadContractReturnType | WriteContractReturnType>,
-    contract: ContractReturnType<ContractName>,
-    customErrorName: string,
-    args: any[],
+    contract: TContract,
+    customErrorName: TErrorName,
+    args: ErrorArgsOf<TContract["abi"], TErrorName>,
   ): Promise<void>;
 }
-
-type CompiledContractName = [keyof ContractAbis] extends [never]
-  ? string
-  : keyof ContractAbis;

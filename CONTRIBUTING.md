@@ -89,7 +89,6 @@ This is a list of the modules that always get loaded during startup:
 - `util`
 - `find-up`
 - `fs-extra`
-- `chalk`
 - `semver`
 - `source-map-support/register`
 

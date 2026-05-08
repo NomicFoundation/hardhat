@@ -1,9 +1,9 @@
-import "hardhat/types/config";
-
 import type {
   DeployConfig,
   StrategyConfig,
 } from "@nomicfoundation/ignition-core";
+
+export type * from "@nomicfoundation/hardhat-verify";
 
 declare module "hardhat/types/config" {
   export interface ProjectPathsUserConfig {

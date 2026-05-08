@@ -12,7 +12,10 @@ import type {
 import type { HardhatPlugin } from "../../types/plugins.js";
 import type { LastParameter, Return } from "../../types/utils.js";
 
-import { assertHardhatInvariant } from "@nomicfoundation/hardhat-errors";
+import {
+  assertHardhatInvariant,
+  HardhatError,
+} from "@nomicfoundation/hardhat-errors";
 import { ensureError } from "@nomicfoundation/hardhat-utils/error";
 import { AsyncMutex } from "@nomicfoundation/hardhat-utils/synchronization";
 
@@ -451,7 +454,11 @@ export class HookManagerImplementation implements HookManager {
 
       await detectPluginNpmDependencyProblems(this.#projectRoot, plugin, error);
 
-      throw error;
+      throw new HardhatError(
+        HardhatError.ERRORS.CORE.HOOKS.FAILED_TO_LOAD_HOOK_HANDLER_FACTORY,
+        { pluginId: plugin.id, hookCategoryName },
+        error,
+      );
     }
 
     assertHardhatInvariant(
@@ -459,7 +466,18 @@ export class HookManagerImplementation implements HookManager {
       `Plugin ${plugin.id} doesn't export a hook factory for category ${hookCategoryName}`,
     );
 
-    const hookCategory = await factory();
+    let hookCategory: Partial<HardhatHooks[HookCategoryNameT]>;
+    try {
+      hookCategory = await factory();
+    } catch (error) {
+      ensureError(error);
+
+      throw new HardhatError(
+        HardhatError.ERRORS.CORE.HOOKS.FAILED_TO_RUN_HOOK_HANDLER_FACTORY,
+        { pluginId: plugin.id, hookCategoryName },
+        error,
+      );
+    }
 
     assertHardhatInvariant(
       hookCategory !== null && typeof hookCategory === "object",

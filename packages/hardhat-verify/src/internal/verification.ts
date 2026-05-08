@@ -21,8 +21,9 @@ import { encodeConstructorArgs } from "./constructor-args.js";
 import { ContractInformationResolver } from "./contract.js";
 import { ETHERSCAN_PROVIDER_NAME } from "./etherscan.js";
 import { resolveLibraryInformation } from "./libraries.js";
+import { formatInferredSolcVersion } from "./metadata.js";
 import {
-  filterVersionsByRange,
+  filterVersionsByInferred,
   resolveSupportedSolcVersions,
 } from "./solc-versions.js";
 import { VERIFICATION_PROVIDERS } from "./verification-providers.js";
@@ -154,7 +155,7 @@ Explorer: ${instance.getContractUrl(address)}`);
     networkName,
   );
 
-  const compatibleSolcVersions = filterVersionsByRange(
+  const compatibleSolcVersions = filterVersionsByInferred(
     supportedSolcVersions,
     deployedBytecode.solcVersion,
   );
@@ -168,7 +169,9 @@ Explorer: ${instance.getContractUrl(address)}`);
       HardhatError.ERRORS.HARDHAT_VERIFY.GENERAL.SOLC_VERSION_MISMATCH,
       {
         configuredSolcVersionSummary,
-        deployedSolcVersion: deployedBytecode.solcVersion,
+        deployedSolcVersion: formatInferredSolcVersion(
+          deployedBytecode.solcVersion,
+        ),
         networkName,
       },
     );

@@ -1,4 +1,3 @@
-import "hardhat/types/network";
 import type { HardhatEthers } from "./types.js";
 
 declare module "hardhat/types/network" {

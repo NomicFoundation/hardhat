@@ -1,6 +1,7 @@
 import type { SuiteResult } from "@nomicfoundation/edr";
 
 import path from "node:path";
+import { styleText } from "node:util";
 
 import { HardhatError } from "@nomicfoundation/hardhat-errors";
 import { ensureError } from "@nomicfoundation/hardhat-utils/error";
@@ -10,7 +11,6 @@ import {
   writeUtf8File,
 } from "@nomicfoundation/hardhat-utils/fs";
 import { findDuplicates } from "@nomicfoundation/hardhat-utils/lang";
-import chalk from "chalk";
 
 import {
   getFullyQualifiedName,
@@ -388,7 +388,8 @@ export function logFunctionGasSnapshotsSection(
   if (isFirstTimeWrite) {
     logger();
     logger(
-      chalk.green(
+      styleText(
+        "green",
         "  No existing snapshots found. Function gas snapshots written successfully",
       ),
     );
@@ -408,7 +409,7 @@ export function logFunctionGasSnapshotsSection(
       "\n",
     );
     for (const line of addedLines) {
-      logger(chalk.green(`    + ${line}`));
+      logger(styleText("green", `    + ${line}`));
     }
   }
 
@@ -419,7 +420,7 @@ export function logFunctionGasSnapshotsSection(
       comparison.removed,
     ).split("\n");
     for (const line of removedLines) {
-      logger(chalk.red(`    - ${line}`));
+      logger(styleText("red", `    - ${line}`));
     }
   }
 
@@ -435,10 +436,10 @@ export function printFunctionGasSnapshotChanges(
     const isLast = i === changes.length - 1;
 
     logger(`  ${change.contractNameOrFqn}#${change.functionSig}`);
-    logger(chalk.grey(`    (in ${change.source})`));
+    logger(styleText("grey", `    (in ${change.source})`));
 
     if (change.kind === "fuzz") {
-      logger(chalk.grey(`    Runs: ${change.runs}`));
+      logger(styleText("grey", `    Runs: ${change.runs}`));
     }
 
     const diff = change.actual - change.expected;
@@ -454,15 +455,15 @@ export function printFunctionGasSnapshotChanges(
 
     // Color: green for decrease (improvement), red for increase (regression)
     const formattedGasChange =
-      diff < 0 ? chalk.green(gasChange) : chalk.red(gasChange);
+      diff < 0 ? styleText("green", gasChange) : styleText("red", gasChange);
 
     const label = change.kind === "fuzz" ? "~" : "gas";
 
-    logger(chalk.grey(`    Expected (${label}): ${change.expected}`));
+    logger(styleText("grey", `    Expected (${label}): ${change.expected}`));
     logger(
-      chalk.grey(`    Actual (${label}):   ${change.actual} (`) +
+      styleText("grey", `    Actual (${label}):   ${change.actual} (`) +
         formattedGasChange +
-        chalk.grey(")"),
+        styleText("grey", ")"),
     );
 
     if (!isLast) {

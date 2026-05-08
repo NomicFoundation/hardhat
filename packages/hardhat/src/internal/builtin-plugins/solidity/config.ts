@@ -32,7 +32,10 @@ import {
   hasOfficialArm64Build,
   missesSomeOfficialNativeBuilds,
 } from "./build-system/solc-info.js";
-import { DEFAULT_OUTPUT_SELECTION } from "./constants.js";
+import {
+  DEFAULT_OUTPUT_SELECTION,
+  SOLC_DEFAULT_OPTIMIZER_RUNS,
+} from "./constants.js";
 
 /**
  * The top-level type SolidityUserConfig is a union type too complex for
@@ -542,7 +545,7 @@ function resolveSolidityCompilerConfig(
   if (production && isSolcSolidityCompilerUserConfig(compilerConfig)) {
     defaultSettings.optimizer = {
       enabled: true,
-      runs: 200,
+      runs: SOLC_DEFAULT_OPTIMIZER_RUNS,
     };
   }
 

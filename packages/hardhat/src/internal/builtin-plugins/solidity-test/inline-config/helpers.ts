@@ -1,6 +1,7 @@
 import type { RawInlineOverride } from "./types.js";
 import type { TestFunctionConfigOverride } from "@nomicfoundation/edr";
 
+import { assertHardhatInvariant } from "@nomicfoundation/hardhat-errors";
 import { bytesIncludesUtf8String } from "@nomicfoundation/hardhat-utils/bytes";
 
 import { getFullyQualifiedName } from "../../../../utils/contract-names.js";
@@ -57,10 +58,20 @@ export function buildConfigOverride(
 
   for (const override of overrides) {
     const expectedType = KEY_TYPES[override.key];
-    const parsed =
-      expectedType === "number"
-        ? Number(override.rawValue)
-        : override.rawValue.toLowerCase() === "true";
+    let parsed: number | boolean | string;
+    if (expectedType === "number") {
+      parsed = Number(override.rawValue);
+    } else if (expectedType === "boolean") {
+      parsed = override.rawValue.toLowerCase() === "true";
+    } else if (expectedType === "string") {
+      // Validation has already proven the surrounding double quotes.
+      parsed = override.rawValue.slice(1, -1);
+    } else {
+      assertHardhatInvariant(
+        false,
+        `Unhandled inline config value type for key ${override.key}`,
+      );
+    }
 
     const dotIndex = override.key.indexOf(".");
     if (dotIndex === -1) {

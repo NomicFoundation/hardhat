@@ -1,9 +1,9 @@
-import { exec as execSync } from "node:child_process";
+import { exec as execCb } from "node:child_process";
 import { readdir, readFile } from "node:fs/promises";
 import path from "node:path";
 import { promisify } from "node:util";
 
-const exec = promisify(execSync);
+const exec = promisify(execCb);
 
 const changesetDir = ".changeset";
 
@@ -36,7 +36,7 @@ export async function readAllNewChangsets() {
   return changesets;
 }
 
-function parseFrontMatter(markdown) {
+export function parseFrontMatter(markdown: string) {
   const match = markdown.match(/^---\n([\s\S]*?)\n---\n([\s\S]*)$/);
   if (!match) {
     return { frontMatter: null, content: markdown };
@@ -48,7 +48,20 @@ function parseFrontMatter(markdown) {
   };
 }
 
-async function getAddingCommit(filePath) {
+const DOCS_URL_PATTERN =
+  /^\s*#\s*docs:\s*(https?:\/\/github\.com\/NomicFoundation\/hardhat-website\/pull\/\d+)/i;
+
+export function extractDocsUrlsFromFrontMatter(frontMatter: null | string) {
+  if (frontMatter === null) return [];
+  const urls = [];
+  for (const line of frontMatter.split("\n")) {
+    const match = line.match(DOCS_URL_PATTERN);
+    if (match !== null) urls.push(match[1]);
+  }
+  return urls;
+}
+
+async function getAddingCommit(filePath: string) {
   try {
     const { stdout } = await exec(
       `git log --diff-filter=A --follow --format=%h -- "${filePath}"`,

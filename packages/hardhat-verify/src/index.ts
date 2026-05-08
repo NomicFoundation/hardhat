@@ -1,10 +1,11 @@
 import type { HardhatPlugin } from "hardhat/types/plugins";
 
-import "./type-extensions.js";
 import verifyBlockscoutTask from "./internal/tasks/verify/blockscout/index.js";
 import verifyEtherscanTask from "./internal/tasks/verify/etherscan/index.js";
 import verifyTask from "./internal/tasks/verify/index.js";
 import verifySourcifyTask from "./internal/tasks/verify/sourcify/index.js";
+
+export type * from "./type-extensions.js";
 
 const hardhatPlugin: HardhatPlugin = {
   id: "hardhat-verify",

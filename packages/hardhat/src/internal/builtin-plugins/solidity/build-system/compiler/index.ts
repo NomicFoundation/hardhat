@@ -9,9 +9,9 @@ import {
   assertHardhatInvariant,
   HardhatError,
 } from "@nomicfoundation/hardhat-errors";
+import { createDebug } from "@nomicfoundation/hardhat-utils/debug";
 import { exists, isBinaryFile } from "@nomicfoundation/hardhat-utils/fs";
 import { getCacheDir } from "@nomicfoundation/hardhat-utils/global-dir";
-import debug from "debug";
 
 import { hasArm64MirrorBuild, hasOfficialArm64Build } from "../solc-info.js";
 
@@ -28,7 +28,7 @@ async function getGlobalCompilersCacheDir(): Promise<string> {
   return path.join(globalCompilersCacheDir, "compilers-v3");
 }
 
-const log = debug("hardhat:core:solidity:build-system:compiler");
+const log = createDebug("hardhat:core:solidity:build-system:compiler");
 
 /**
  * Returns true if a platform-specific build exists for the given version

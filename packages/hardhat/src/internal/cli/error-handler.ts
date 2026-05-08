@@ -1,8 +1,9 @@
+import { styleText } from "node:util";
+
 import {
   HardhatError,
   HardhatPluginError,
 } from "@nomicfoundation/hardhat-errors";
-import chalk from "chalk";
 
 import { HARDHAT_NAME, HARDHAT_WEBSITE_URL } from "../constants.js";
 import { UsingHardhat2PluginError } from "../using-hardhat2-plugin-errors.js";
@@ -132,22 +133,25 @@ function getErrorMessages(error: Error): ErrorMessages {
   switch (category) {
     case ErrorCategory.HARDHAT:
       return {
-        formattedErrorMessage: `${chalk.red.bold(`Error ${categorizedError.errorCode}:`)} ${categorizedError.formattedMessage}`,
+        formattedErrorMessage: `${styleText(["red", "bold"], `Error ${categorizedError.errorCode}:`)} ${categorizedError.formattedMessage}`,
         showMoreInfoMessage: `For more info go to ${HARDHAT_WEBSITE_URL}${categorizedError.errorCode} or run ${HARDHAT_NAME} with --show-stack-traces`,
       };
     case ErrorCategory.PLUGIN:
       return {
-        formattedErrorMessage: `${chalk.red.bold(`Error ${categorizedError.errorCode} in plugin ${categorizedError.pluginId}:`)} ${categorizedError.formattedMessage}`,
+        formattedErrorMessage: `${styleText(["red", "bold"], `Error ${categorizedError.errorCode} in plugin ${categorizedError.pluginId}:`)} ${categorizedError.formattedMessage}`,
         showMoreInfoMessage: `For more info go to ${HARDHAT_WEBSITE_URL}${categorizedError.errorCode} or run ${HARDHAT_NAME} with --show-stack-traces`,
       };
     case ErrorCategory.COMMUNITY_PLUGIN:
       return {
-        formattedErrorMessage: `${chalk.red.bold(`Error in community plugin ${categorizedError.pluginId}:`)} ${categorizedError.message}`,
+        formattedErrorMessage: `${styleText(["red", "bold"], `Error in community plugin ${categorizedError.pluginId}:`)} ${categorizedError.message}`,
         showMoreInfoMessage: `For more info run ${HARDHAT_NAME} with --show-stack-traces`,
       };
     case ErrorCategory.OTHER:
       return {
-        formattedErrorMessage: chalk.red.bold(`An unexpected error occurred:`),
+        formattedErrorMessage: styleText(
+          ["red", "bold"],
+          `An unexpected error occurred:`,
+        ),
         postErrorStackTraceMessage: `If you think this is a bug in Hardhat, please report it here: ${HARDHAT_WEBSITE_URL}report-bug`,
       };
   }
@@ -156,7 +160,7 @@ function printUsingHardhat2Error(
   error: UsingHardhat2PluginError,
   print: (message: string | Error) => void = console.error,
 ): void {
-  print(chalk.red.bold(`Hardhat 3 installation error:`));
+  print(styleText(["red", "bold"], `Hardhat 3 installation error:`));
   print("");
   if (error.callerRelativePath !== undefined) {
     print(error.message);

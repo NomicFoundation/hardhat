@@ -1,6 +1,6 @@
 import type { HardhatPlugin } from "hardhat/types/plugins";
 
-import "./type-extensions.js";
+export type * from "./type-extensions.js";
 
 const hardhatToolboxMochaEthersPlugin: HardhatPlugin = {
   id: "hardhat-toolbox-mocha-ethers",

@@ -2,6 +2,9 @@ import assert from "node:assert/strict";
 import os from "node:os";
 import { describe, it } from "node:test";
 
+import { HardhatError } from "@nomicfoundation/hardhat-errors";
+import { assertThrowsHardhatError } from "@nomicfoundation/hardhat-test-utils";
+
 import {
   hasArm64MirrorBuild,
   hasOfficialArm64Build,
@@ -23,6 +26,19 @@ describe("solc-info", () => {
       assert.equal(hasOfficialArm64Build("0.9.0"), true);
       assert.equal(hasOfficialArm64Build("1.0.0"), true);
     });
+
+    it("throws INVALID_SOLC_VERSION for malformed input", () => {
+      assertThrowsHardhatError(
+        () => hasOfficialArm64Build("not-a-version"),
+        HardhatError.ERRORS.CORE.SOLIDITY.INVALID_SOLC_VERSION,
+        { version: "not-a-version" },
+      );
+      assertThrowsHardhatError(
+        () => hasOfficialArm64Build("0.8"),
+        HardhatError.ERRORS.CORE.SOLIDITY.INVALID_SOLC_VERSION,
+        { version: "0.8" },
+      );
+    });
   });
 
   describe("hasArm64MirrorBuild", () => {
@@ -42,6 +58,19 @@ describe("solc-info", () => {
       assert.equal(hasArm64MirrorBuild("0.8.31"), false);
       assert.equal(hasArm64MirrorBuild("0.9.0"), false);
       assert.equal(hasArm64MirrorBuild("1.0.0"), false);
+    });
+
+    it("throws INVALID_SOLC_VERSION for malformed input", () => {
+      assertThrowsHardhatError(
+        () => hasArm64MirrorBuild("not-a-version"),
+        HardhatError.ERRORS.CORE.SOLIDITY.INVALID_SOLC_VERSION,
+        { version: "not-a-version" },
+      );
+      assertThrowsHardhatError(
+        () => hasArm64MirrorBuild("0.8"),
+        HardhatError.ERRORS.CORE.SOLIDITY.INVALID_SOLC_VERSION,
+        { version: "0.8" },
+      );
     });
   });
 

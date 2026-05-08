@@ -1,5 +1,6 @@
-# Fails if a PR doesn't link to documentation (pr/issue on hardhat-website) and is not labeled
-# as "no docs needed"
+# Fails if a PR doesn't link to the docs repo and is not labeled as "no docs needed".
+# Docs PR links must be in changeset frontmatters (as `# docs:` YAML comments), not in the PR body.
+# Docs issue links must be in the PR body.
 
 name: Check that the PR links to documentation
 

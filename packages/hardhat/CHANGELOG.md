@@ -1,5 +1,63 @@
 # hardhat
 
+## 3.4.4
+
+### Patch Changes
+
+- [#8213](https://github.com/NomicFoundation/hardhat/pull/8213) [`448da88`](https://github.com/NomicFoundation/hardhat/commit/448da88c9a221576c212d3a7e8eb5cc124087d70) Thanks [@kanej](https://github.com/kanej)! - Reduced internal memory usage during coverage test runs ([#8213](https://github.com/NomicFoundation/hardhat/pull/8213))
+
+- [#8197](https://github.com/NomicFoundation/hardhat/pull/8197) [`d3cb008`](https://github.com/NomicFoundation/hardhat/commit/d3cb0080e1a7a44cbfddfae879aa8bc23cfe818b) Thanks [@alcuadrado](https://github.com/alcuadrado)! - Update the error reporting logic to reduce noise
+
+## 3.4.3
+
+### Patch Changes
+
+- [#8196](https://github.com/NomicFoundation/hardhat/pull/8196) [`b669814`](https://github.com/NomicFoundation/hardhat/commit/b6698146abc87aaa6b2b2f18c830a01dba9b6daa) Thanks [@alcuadrado](https://github.com/alcuadrado)! - Improve error messages in common failures
+
+- [#8196](https://github.com/NomicFoundation/hardhat/pull/8196) [`73436aa`](https://github.com/NomicFoundation/hardhat/commit/73436aaa1ddac805f8d855627b5b40ad69cf7d2e) Thanks [@alcuadrado](https://github.com/alcuadrado)! - Export missing error types
+
+- [#8195](https://github.com/NomicFoundation/hardhat/pull/8195) [`79205cc`](https://github.com/NomicFoundation/hardhat/commit/79205cc7dc5c89e88438ac0db8fd812720d07df2) Thanks [@ChristopherDedominici](https://github.com/ChristopherDedominici)! - Replace `chalk` with `util.styleText`.
+
+- [#8224](https://github.com/NomicFoundation/hardhat/pull/8224) [`3614c02`](https://github.com/NomicFoundation/hardhat/commit/3614c0241250ad210a1eb608e9a39482d34b6ce7) Thanks [@schaable](https://github.com/schaable)! - Add a `fuzz.showLogs` option to the Solidity test config to display `console.log` output from fuzz tests.
+
+- [#8218](https://github.com/NomicFoundation/hardhat/pull/8218) [`32f2b59`](https://github.com/NomicFoundation/hardhat/commit/32f2b5970e870a38db5e4e5b184038faf6052a0f) Thanks [@alcuadrado](https://github.com/alcuadrado)! - Fix `hardhat test solidity --no-compile` failing with `SELECTED_TEST_FILES_NOT_COMPILED` when no test files are specified.
+
+- [#8139](https://github.com/NomicFoundation/hardhat/pull/8139) [`536b745`](https://github.com/NomicFoundation/hardhat/commit/536b745d041a252601d6feebdbf7d9473accd78c) Thanks [@anaPerezGhiglia](https://github.com/anaPerezGhiglia)! - Bumped EDR version to [`0.12.0-next.31`](https://github.com/NomicFoundation/edr/releases/tag/%40nomicfoundation%2Fedr%400.12.0-next.31)
+
+- [#8199](https://github.com/NomicFoundation/hardhat/pull/8199) [`2cb91f1`](https://github.com/NomicFoundation/hardhat/commit/2cb91f12e7a43e9f883a3451fafc7b7283511c05) Thanks [@alcuadrado](https://github.com/alcuadrado)! - Add LPT scheduling to the Solidity build system
+
+- [#8219](https://github.com/NomicFoundation/hardhat/pull/8219) [`2cad309`](https://github.com/NomicFoundation/hardhat/commit/2cad309eb8d35fcc5d2aba5d75a5af4d63d50508) Thanks [@schaable](https://github.com/schaable)! - Improved performance by replacing the semver dependency with a lightweight in-tree implementation.
+
+- [#8207](https://github.com/NomicFoundation/hardhat/pull/8207) [`d594209`](https://github.com/NomicFoundation/hardhat/commit/d59420968bffca83e1ad2712c6881d19cc7e1a99) Thanks [@alcuadrado](https://github.com/alcuadrado)! - Improved performance by replacing the debug logging library with a lightweight in-tree implementation.
+
+- [#8189](https://github.com/NomicFoundation/hardhat/pull/8189) [`b5ca1ae`](https://github.com/NomicFoundation/hardhat/commit/b5ca1aee1eb2571ec23f54ac8a9b2c39a90361c6) Thanks [@alcuadrado](https://github.com/alcuadrado)! - Introduce a TrueCasePathResolver class to optimize repeated filesystem casing resolution
+
+- Updated dependencies:
+  - @nomicfoundation/hardhat-utils@4.1.0
+  - @nomicfoundation/hardhat-errors@3.0.12
+  - @nomicfoundation/hardhat-vendored@3.0.3
+
+## 3.4.2
+
+### Patch Changes
+
+- [#8177](https://github.com/NomicFoundation/hardhat/pull/8177) [`7cab964`](https://github.com/NomicFoundation/hardhat/commit/7cab96452b81d0f96053ec26a038f3bc13e62d1b) Thanks [@alcuadrado](https://github.com/alcuadrado)! - Optimize the `HookManager` and the `coverage` plugin
+
+- [#8187](https://github.com/NomicFoundation/hardhat/pull/8187) [`8f6a418`](https://github.com/NomicFoundation/hardhat/commit/8f6a418203e78b699ca1a4d9b498d13a428e71f6) Thanks [@ChristopherDedominici](https://github.com/ChristopherDedominici)! - Improved the logic for handling `Node.js` versions that fall below the minimum requirement.
+
+- [#8183](https://github.com/NomicFoundation/hardhat/pull/8183) [`88f8d59`](https://github.com/NomicFoundation/hardhat/commit/88f8d59a947bd0a2045effd84d518d9e5a109e6d) Thanks [@schaable](https://github.com/schaable)! - Speed up startup by loading the coverage manager only when --coverage is set.
+
+- [#8183](https://github.com/NomicFoundation/hardhat/pull/8183) [`82208ba`](https://github.com/NomicFoundation/hardhat/commit/82208baeba7847820810b1d3c7b2aa149f9688c0) Thanks [@schaable](https://github.com/schaable)! - Speed up HRE creation by loading user-interruption support only when it's first used.
+
+- [#8175](https://github.com/NomicFoundation/hardhat/pull/8175) [`eeea0aa`](https://github.com/NomicFoundation/hardhat/commit/eeea0aa3ebde0eca139bcdf74794252cad68500d) Thanks [@ChristopherDedominici](https://github.com/ChristopherDedominici)! - Restructure the imports of the network-manager.
+
+- [#8183](https://github.com/NomicFoundation/hardhat/pull/8183) [`baa9c9a`](https://github.com/NomicFoundation/hardhat/commit/baa9c9a5f9fc1a18afc23cb0bf1c5831dccd13c5) Thanks [@schaable](https://github.com/schaable)! - Speed up startup by loading the gas-analytics manager only when --gas-stats or --gas-stats-json is set.
+
+- [#8180](https://github.com/NomicFoundation/hardhat/pull/8180) [`4122faa`](https://github.com/NomicFoundation/hardhat/commit/4122faa3da2b588d83f2c94574f04ae2abd2e723) Thanks [@alcuadrado](https://github.com/alcuadrado)! - Optimize file system traversal helpers
+
+- Updated dependencies:
+  - @nomicfoundation/hardhat-utils@4.0.5
+
 ## 3.4.1
 
 ### Patch Changes

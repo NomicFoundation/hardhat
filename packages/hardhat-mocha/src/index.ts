@@ -3,7 +3,7 @@ import type { HardhatPlugin } from "hardhat/types/plugins";
 import { task } from "hardhat/config";
 import { ArgumentType } from "hardhat/types/arguments";
 
-import "./type-extensions.js";
+export type * from "./type-extensions.js";
 
 const hardhatPlugin: HardhatPlugin = {
   id: "hardhat-mocha",

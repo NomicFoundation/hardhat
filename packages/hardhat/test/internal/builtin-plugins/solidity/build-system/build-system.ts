@@ -205,8 +205,8 @@ describe(
         );
 
         assert.deepEqual(
-          actualArtifactPathsAfter,
-          actualArtifactPathsBefore,
+          actualArtifactPathsAfter.sort(),
+          actualArtifactPathsBefore.sort(),
           "No artifacts should be cleaned up",
         );
       });
@@ -260,10 +260,12 @@ describe(
       before(async () => {
         expectedArtifactPaths = (
           await getAllFilesMatching(expectedArtifactsPath)
-        ).map((f) => path.relative(expectedArtifactsPath, f));
-        expectedCachePaths = (await getAllFilesMatching(expectedCachePath)).map(
-          (f) => path.relative(expectedCachePath, f),
-        );
+        )
+          .map((f) => path.relative(expectedArtifactsPath, f))
+          .sort();
+        expectedCachePaths = (await getAllFilesMatching(expectedCachePath))
+          .map((f) => path.relative(expectedCachePath, f))
+          .sort();
       });
 
       it("should build the project deterministically", async () => {
@@ -276,10 +278,12 @@ describe(
 
         const actualArtifactPaths = (
           await getAllFilesMatching(actualArtifactsPath)
-        ).map((f) => path.relative(actualArtifactsPath, f));
-        const actualCachePaths = (
-          await getAllFilesMatching(actualCachePath)
-        ).map((f) => path.relative(actualCachePath, f));
+        )
+          .map((f) => path.relative(actualArtifactsPath, f))
+          .sort();
+        const actualCachePaths = (await getAllFilesMatching(actualCachePath))
+          .map((f) => path.relative(actualCachePath, f))
+          .sort();
 
         assert.deepEqual(
           actualArtifactPaths,
@@ -341,10 +345,12 @@ describe(
         assert.ok(buildResult instanceof Map, "Build result should be a Map");
 
         // 2. Read a build info file from artifacts
-        const buildInfoFiles = await getAllFilesMatching(
-          path.join(actualArtifactsPath, "build-info"),
-          (f) => f.endsWith(".json") && !f.endsWith(".output.json"),
-        );
+        const buildInfoFiles = (
+          await getAllFilesMatching(
+            path.join(actualArtifactsPath, "build-info"),
+            (f) => f.endsWith(".json") && !f.endsWith(".output.json"),
+          )
+        ).sort();
         assert.ok(
           buildInfoFiles.length > 0,
           "Should have at least one build info file",

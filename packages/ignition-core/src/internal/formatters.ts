@@ -93,7 +93,7 @@ export function formatCustomError(errorName: string, args: EvmTuple): string {
 /**
  * Formats a Solidity parameter into a human-readable string.
  *
- * @beta
+ * @public
  */
 export function formatSolidityParameter(param: SolidityParameterType): string {
   if (Array.isArray(param)) {

@@ -1,8 +1,10 @@
 export const HARDHAT_CONFIG_PREFIX = "hardhat-config:";
 export const FORGE_CONFIG_PREFIX = "forge-config:";
 
-/** All supported inline config keys and their expected value types. */
-export const KEY_TYPES: Record<string, "number" | "boolean"> = {
+/**
+ * All supported inline config keys and their expected value types.
+ */
+export const KEY_TYPES: Record<string, "number" | "boolean" | "string"> = {
   "fuzz.runs": "number",
   "fuzz.maxTestRejects": "number",
   "fuzz.showLogs": "boolean",
@@ -13,6 +15,8 @@ export const KEY_TYPES: Record<string, "number" | "boolean"> = {
   "invariant.callOverride": "boolean",
   "invariant.timeout": "number",
   allowInternalExpectRevert: "boolean",
+  isolate: "boolean",
+  evmVersion: "string",
 };
 
 /** Top-level key categories (e.g. "fuzz", "invariant", "allowInternalExpectRevert"). */

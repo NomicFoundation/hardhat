@@ -11,7 +11,6 @@ import type {
   CompilerOutput,
 } from "../../../types/solidity.js";
 
-import "../../../types/config.js";
 declare module "../../../types/config.js" {
   /**
    * An interface with a key per compiler type.
@@ -318,21 +317,18 @@ declare module "../../../types/config.js" {
   }
 }
 
-import "../../../types/hre.js";
 declare module "../../../types/hre.js" {
   export interface HardhatRuntimeEnvironment {
     solidity: SolidityBuildSystem;
   }
 }
 
-import "../../../types/global-options.js";
 declare module "../../../types/global-options.js" {
   export interface GlobalOptions {
     buildProfile: string;
   }
 }
 
-import "../../../types/hooks.js";
 declare module "../../../types/hooks.js" {
   export interface HardhatHooks {
     solidity: SolidityHooks;
