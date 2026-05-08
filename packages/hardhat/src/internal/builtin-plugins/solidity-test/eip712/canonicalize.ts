@@ -59,7 +59,7 @@ export function canonicalizeStructs(structs: CollectedStruct[]): string[] {
 
 /**
  * Returns the set of struct names that are EIP-712 encodable. A struct is
- * encodable if none of its members has an non-decodable type (`type === undefined`,
+ * encodable if none of its members has a non-decodable type (`type === undefined`,
  * e.g. mappings or function types) AND every one of its struct deps — direct or
  * transitive — is itself encodable.
  */
