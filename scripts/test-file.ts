@@ -110,6 +110,32 @@ function main(): void {
       process.exit(1);
     }
 
+    // hardhat-ignition-viem's pretest runs `pnpm test-build`, which compiles
+    // the create2/minimal fixture projects + tsconfig.test.json. Required for
+    // tests to run; not covered by --filter ...build. Other packages' pretest
+    // is `pnpm build`, already covered. Remove this branch when ignition-viem's
+    // fixture-build moves into the regular `build` script.
+    //
+    // We deliberately don't run posttest/postlint hooks: in this repo they
+    // dispatch to heavyweight side-channel work (integration suites, api
+    // extraction), not validation of the file the agent edited.
+    if (pkg.name === "@nomicfoundation/hardhat-ignition-viem") {
+      log(`Running pretest for ${pkg.name}...`);
+      const pretest = spawnSync("pnpm", ["run", "pretest"], {
+        cwd: pkg.path,
+        stdio: ["ignore", "pipe", "pipe"],
+        encoding: "utf-8",
+        maxBuffer: 50 * 1024 * 1024,
+        shell: IS_WINDOWS,
+      });
+      if (pretest.status !== 0) {
+        process.stdout.write(pretest.stdout ?? "");
+        process.stderr.write(pretest.stderr ?? "");
+        logError(`pretest failed for ${pkg.name}`);
+        process.exit(1);
+      }
+    }
+
     const nodeArgs = [
       "--import",
       "tsx/esm",
