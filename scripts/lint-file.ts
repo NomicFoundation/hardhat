@@ -86,6 +86,7 @@ function main(): void {
         cwd: ROOT_DIR,
         stdio: ["ignore", "pipe", "pipe"],
         encoding: "utf-8",
+        maxBuffer: 50 * 1024 * 1024,
         shell: IS_WINDOWS,
       },
     );
