@@ -2,6 +2,7 @@ import { existsSync, readFileSync } from "node:fs";
 import { dirname, isAbsolute, relative, resolve } from "node:path";
 
 const ROOT_DIR = resolve(import.meta.dirname, "..", "..");
+const PACKAGES_DIR = resolve(ROOT_DIR, "packages");
 
 export interface FilePackage {
   name: string;
@@ -19,9 +20,11 @@ export function getRootDir(): string {
 }
 
 /**
- * Walk up from a file path to find the owning workspace package by locating
- * the nearest ancestor `package.json` with a `name` field. Stops at ROOT_DIR
- * (the root package.json is not a workspace package for this purpose).
+ * Walk up from a file path to find the owning workspace package: the
+ * `<ROOT_DIR>/packages/<x>/package.json` ancestor. Nested `package.json`
+ * files inside a workspace package (e.g. `test/fixture-projects/<name>/`)
+ * are skipped — the wrapper should always operate against the actual
+ * workspace package, not a fixture.
  */
 export function resolveFilePackage(filePath: string): FilePackage {
   const absolute = isAbsolute(filePath) ? filePath : resolve(filePath);
@@ -41,6 +44,10 @@ export function resolveFilePackage(filePath: string): FilePackage {
         `Path is not inside a workspace package: ${filePath}\n` +
           `Files outside packages/* are not supported by file-level wrappers.`,
       );
+    }
+
+    if (dirname(dir) !== PACKAGES_DIR) {
+      continue;
     }
 
     const candidate = resolve(dir, "package.json");
