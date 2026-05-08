@@ -938,6 +938,26 @@ export async function move(source: string, destination: string): Promise<void> {
 }
 
 /**
+ * Creates a symbolic link at `linkPath` that points to `target`.
+ *
+ * @param target The path the symlink points to. May be relative to `linkPath`.
+ * @param linkPath The absolute path of the symlink to create.
+ * @throws FileAlreadyExistsError if `linkPath` already exists.
+ * @throws FileSystemAccessError for any other error.
+ */
+export async function symlink(target: string, linkPath: string): Promise<void> {
+  try {
+    await fsPromises.symlink(target, linkPath);
+  } catch (e) {
+    ensureNodeErrnoExceptionError(e);
+    if (e.code === "EEXIST") {
+      throw new FileAlreadyExistsError(linkPath, e);
+    }
+    throw new FileSystemAccessError(e.message, e);
+  }
+}
+
+/**
  * Removes a file or directory recursively.
  * Exceptions are ignored for non-existent paths.
  *
