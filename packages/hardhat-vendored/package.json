@@ -13,7 +13,8 @@
   "type": "module",
   "exports": {
     "./coverage": "./dist/src/coverage-module/index.js",
-    "./coverage/types": "./dist/src/coverage-module/types.js"
+    "./coverage/types": "./dist/src/coverage-module/types.js",
+    "./package.json": "./package.json"
   },
   "keywords": [
     "hardhat"

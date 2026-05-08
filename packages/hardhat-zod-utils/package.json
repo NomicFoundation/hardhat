@@ -14,7 +14,8 @@
   "types": "dist/src/index.d.ts",
   "exports": {
     ".": "./dist/src/index.js",
-    "./rpc": "./dist/src/rpc/index.js"
+    "./rpc": "./dist/src/rpc/index.js",
+    "./package.json": "./package.json"
   },
   "keywords": [
     "ethereum",

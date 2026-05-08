@@ -44,7 +44,8 @@
     "./utils/result": "./dist/src/utils/result.js",
     "./types/runtime": "./dist/src/internal/deprecated-module-imported-from-hardhat2-plugin.js",
     "./builtin-tasks/task-names": "./dist/src/internal/deprecated-module-imported-from-hardhat2-plugin.js",
-    "./internal/artifacts": "./dist/src/internal/deprecated-module-imported-from-hardhat2-plugin.js"
+    "./internal/artifacts": "./dist/src/internal/deprecated-module-imported-from-hardhat2-plugin.js",
+    "./package.json": "./package.json"
   },
   "keywords": [
     "ethereum",

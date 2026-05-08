@@ -16,7 +16,8 @@
   "exports": {
     ".": "./dist/src/index.js",
     "./modules": "./dist/src/modules.js",
-    "./helpers": "./dist/src/helpers.js"
+    "./helpers": "./dist/src/helpers.js",
+    "./package.json": "./package.json"
   },
   "typesVersions": {
     "*": {
