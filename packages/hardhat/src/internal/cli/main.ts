@@ -111,6 +111,12 @@ export async function main(
           usedCliArguments[i] = true;
           listTemplates = true;
         }
+      }
+
+      for (let i = 0; i < cliArguments.length; i++) {
+        if (usedCliArguments[i]) {
+          continue;
+        }
 
         if (cliArguments[i] === "--template") {
           usedCliArguments[i] = true;
@@ -119,6 +125,13 @@ export async function main(
             throw new HardhatError(
               HardhatError.ERRORS.CORE.ARGUMENTS.DUPLICATED_NAME,
               { name: "--template" },
+            );
+          }
+
+          if (listTemplates) {
+            throw new HardhatError(
+              HardhatError.ERRORS.CORE.ARGUMENTS
+                .CANNOT_COMBINE_TEMPLATE_AND_TEMPLATES,
             );
           }
 
@@ -138,12 +151,6 @@ export async function main(
           i++;
           usedCliArguments[i] = true;
         }
-      }
-
-      if (templateName !== undefined && listTemplates) {
-        throw new HardhatError(
-          HardhatError.ERRORS.CORE.ARGUMENTS.CANNOT_COMBINE_TEMPLATE_AND_TEMPLATES,
-        );
       }
 
       if (listTemplates) {

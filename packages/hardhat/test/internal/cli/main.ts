@@ -692,6 +692,17 @@ GLOBAL OPTIONS:
         {},
       );
     });
+
+    it("should throw CANNOT_COMBINE when --template is followed by --templates", async function () {
+      const command = "npx hardhat --init --template --templates";
+
+      await assertRejectsWithHardhatError(
+        async () => await runMain(command),
+        HardhatError.ERRORS.CORE.ARGUMENTS
+          .CANNOT_COMBINE_TEMPLATE_AND_TEMPLATES,
+        {},
+      );
+    });
   });
 
   describe("parseGlobalOptions", function () {
