@@ -16,13 +16,18 @@ import {
  * - or the PR body links to a hardhat-website issue
  *
  * A pull request FAILS if the PR body contains a hardhat-website /pull/ link
- * (those must go in changeset frontmatters instead).
+ * that is not also referenced by a `# docs:` comment in a changeset frontmatter.
  */
 
 const exec = promisify(execCb);
 
 const SKIP_LABEL = "no docs needed";
 const changesetDir = ".changeset";
+
+const DOCS_PR_URL_PATTERN =
+  /github\.com\/nomicfoundation\/hardhat-website\/pull\/\d+/i;
+
+const DOCS_PR_URL_PATTERN_GLOBAL = new RegExp(DOCS_PR_URL_PATTERN.source, "gi");
 
 function isReleasePR() {
   if (process.env.GITHUB_HEAD_REF === undefined) {
@@ -39,19 +44,17 @@ function hasNoDocsNeededLabel() {
 
   const labels = JSON.parse(process.env.GITHUB_EVENT_PULL_REQUEST_LABELS);
 
-  return labels.some((l) => l.name === SKIP_LABEL);
+  return labels.some((l: { name: string }) => l.name === SKIP_LABEL);
 }
 
-function hasDocsLinkInPRBody() {
+function extractDocsUrlsFromPRBody(): string[] {
   const prBody = process.env.GITHUB_EVENT_PULL_REQUEST_BODY;
 
   if (prBody === undefined) {
     throw new Error("GITHUB_EVENT_PULL_REQUEST_BODY is not defined");
   }
 
-  return /github\.com\/nomicfoundation\/hardhat-website\/pull\/\d+/i.test(
-    prBody,
-  );
+  return prBody.match(DOCS_PR_URL_PATTERN_GLOBAL) ?? [];
 }
 
 function hasIssueLinkInPRBody() {
@@ -66,7 +69,7 @@ function hasIssueLinkInPRBody() {
   );
 }
 
-async function hasDocsLinkInChangesets() {
+async function collectDocsUrlsFromChangesets(): Promise<string[]> {
   if (process.env.GITHUB_BASE_REF === undefined) {
     throw new Error("GITHUB_BASE_REF is not defined");
   }
@@ -80,14 +83,18 @@ async function hasDocsLinkInChangesets() {
     .split("\n")
     .filter((file) => file.endsWith(".md"));
 
+  const urls: string[] = [];
   for (const file of changesetFiles) {
     const content = await readFile(file, "utf-8");
     const { frontMatter } = parseFrontMatter(content);
-    const urls = extractDocsUrlsFromFrontMatter(frontMatter);
-    if (urls.length > 0) return true;
+    urls.push(...extractDocsUrlsFromFrontMatter(frontMatter));
   }
+  return urls;
+}
 
-  return false;
+function normalizeDocsUrl(url: string): string {
+  const match = url.match(DOCS_PR_URL_PATTERN);
+  return (match !== null ? match[0] : url).toLowerCase();
 }
 
 async function validatePullRequest() {
@@ -101,10 +108,20 @@ async function validatePullRequest() {
     return;
   }
 
-  if (hasDocsLinkInPRBody()) {
+  const bodyUrls = extractDocsUrlsFromPRBody();
+  const changesetUrls = await collectDocsUrlsFromChangesets();
+  const changesetUrlSet = new Set(changesetUrls.map(normalizeDocsUrl));
+
+  const unmatchedBodyUrls = bodyUrls.filter(
+    (url) => !changesetUrlSet.has(normalizeDocsUrl(url)),
+  );
+
+  if (unmatchedBodyUrls.length > 0) {
     throw new Error(
-      "Found a hardhat-website PR link in the PR body. " +
-        "Please move it to a changeset frontmatter as a YAML comment instead:\n\n" +
+      "Found hardhat-website PR link(s) in the PR body that are not referenced in any changeset:\n" +
+        unmatchedBodyUrls.map((u) => `  - ${u}`).join("\n") +
+        "\n\n" +
+        "Add a `# docs:` comment for each in a changeset frontmatter:\n\n" +
         "  ---\n" +
         "  # docs: https://github.com/NomicFoundation/hardhat-website/pull/<number>\n" +
         '  "package-name": patch\n' +
@@ -112,7 +129,7 @@ async function validatePullRequest() {
     );
   }
 
-  if (await hasDocsLinkInChangesets()) {
+  if (changesetUrls.length > 0) {
     console.log("Docs link found in changeset frontmatter");
     return;
   }
