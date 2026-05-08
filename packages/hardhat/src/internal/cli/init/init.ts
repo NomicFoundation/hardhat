@@ -667,11 +667,12 @@ export async function copyProjectFilesNonInteractive(
  *
  * NOTE: This function is exported for testing purposes
  *
- * @param workspace The path to the workspace to initialize the project in.
- * @param template The template to use for the project initialization.
- * @param install Whether to install the project dependencies.
- * @param update Whether to update the project dependencies.
- * @param formatSuccessMessage Whether to format the success message or not.
+ * @param options The installation options.
+ * @param options.workspace The path to the workspace to initialize the project in.
+ * @param options.template The template to use for the project initialization.
+ * @param options.install Whether to install the project dependencies.
+ * @param options.update Whether to update the project dependencies.
+ * @param options.formatSuccessMessage Whether to format the success message or not.
  */
 export async function installProjectDependencies({
   workspace,
