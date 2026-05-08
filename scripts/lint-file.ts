@@ -96,18 +96,21 @@ function main(): void {
       process.exit(1);
     }
 
-    const prettierResult = spawnSync(
-      "pnpm",
-      ["exec", "prettier", fix ? "--write" : "--check", ...files],
-      { cwd: pkg.path, stdio: "inherit", shell: IS_WINDOWS },
-    );
-
+    // eslint runs first because its --fix may leave whitespace prettier wants
+    // to normalize (e.g. import/order leaves a stranded blank line). Prettier
+    // last guarantees a prettier-clean result.
     const eslintArgs = ["exec", "eslint", ...(fix ? ["--fix"] : []), ...files];
     const eslintResult = spawnSync("pnpm", eslintArgs, {
       cwd: pkg.path,
       stdio: "inherit",
       shell: IS_WINDOWS,
     });
+
+    const prettierResult = spawnSync(
+      "pnpm",
+      ["exec", "prettier", fix ? "--write" : "--check", ...files],
+      { cwd: pkg.path, stdio: "inherit", shell: IS_WINDOWS },
+    );
 
     results.push({
       name: pkg.name,
