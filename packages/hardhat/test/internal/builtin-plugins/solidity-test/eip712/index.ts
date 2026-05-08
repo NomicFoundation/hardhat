@@ -318,6 +318,51 @@ describe("eip712 - collectEip712CanonicalTypes", () => {
     assert.deepEqual(result, ["Imported(uint256 x)"]);
   });
 
+  it("strips the project/ prefix when a project file is missing from every userSourceNameMap", () => {
+    // A project file outside the standard root directories (e.g. a shared
+    // file in `lib/` that's only ever imported, never compiled as a root)
+    // never appears in any build info's userSourceNameMap. Its input source
+    // name is `project/lib/Helper.sol`. Falling back to that raw path would
+    // make user globs like `lib/**` miss it. The collector strips the
+    // `project/` prefix to recover the user-facing path.
+    const buildInfoId = "solc-0_8_23-cccccccc";
+    const buildInfo = {
+      _format: "hh3-sol-build-info-1",
+      id: buildInfoId,
+      solcVersion: "0.8.23",
+      solcLongVersion: "0.8.23+commit.f704f362",
+      userSourceNameMap: {}, // transitive project file: not a root anywhere
+      input: { language: "Solidity", sources: {}, settings: {} },
+    };
+    const output = {
+      _format: "hh3-sol-build-info-output-1",
+      id: buildInfoId,
+      output: {
+        sources: {
+          "project/lib/Helper.sol": {
+            id: 0,
+            ast: sourceUnit([
+              structAst("Helper", [{ type: "uint256", name: "n" }]),
+            ]),
+          },
+        },
+      },
+    };
+
+    const result = collectEip712CanonicalTypes(
+      [
+        {
+          buildInfoId,
+          buildInfo: utf8StringToBytes(JSON.stringify(buildInfo)),
+          output: utf8StringToBytes(JSON.stringify(output)),
+        },
+      ],
+      { include: ["lib/**"] },
+    );
+
+    assert.deepEqual(result, ["Helper(uint256 n)"]);
+  });
+
   it("throws on conflicting same-named structs within a single source file", () => {
     // A top-level `struct S` and a `contract C { struct S { ... } }` with
     // a different definition share a source path but produce different

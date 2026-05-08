@@ -7,6 +7,8 @@ import type { BuildInfoAndOutput } from "../edr-artifacts.js";
 
 import { bytesToUtf8String } from "@nomicfoundation/hardhat-utils/bytes";
 
+import { HARDHAT_PROJECT_INPUT_SOURCE_NAME_ROOT } from "../../../../types/solidity/solidity-artifacts.js";
+
 import { extractStructsFromAst } from "./ast-walker.js";
 import { canonicalizeStructs } from "./canonicalize.js";
 import { isPathSelected } from "./glob.js";
@@ -15,6 +17,12 @@ export interface Eip712TypesConfig {
   include?: string[];
   exclude?: string[];
 }
+
+// When a transitive project file isn't a root in any build info — and so
+// is missing from every userSourceNameMap — stripping this prefix recovers
+// the user-facing path that the user's include/exclude globs are written
+// against.
+const PROJECT_INPUT_SOURCE_NAME_PREFIX = `${HARDHAT_PROJECT_INPUT_SOURCE_NAME_ROOT}/`;
 
 /**
  * Walks every compiled source's AST whose user source name matches the
@@ -65,8 +73,15 @@ export function collectEip712CanonicalTypes(
     }
 
     for (const [inputSourceName, source] of Object.entries(sources)) {
-      const userSourceName =
-        inputToUserSource.get(inputSourceName) ?? inputSourceName;
+      let userSourceName = inputToUserSource.get(inputSourceName);
+
+      if (userSourceName === undefined) {
+        userSourceName = inputSourceName.startsWith(
+          PROJECT_INPUT_SOURCE_NAME_PREFIX,
+        )
+          ? inputSourceName.slice(PROJECT_INPUT_SOURCE_NAME_PREFIX.length)
+          : inputSourceName;
+      }
 
       if (!isPathSelected(userSourceName, include, exclude)) {
         continue;
