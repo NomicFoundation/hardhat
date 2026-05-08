@@ -3,6 +3,7 @@ import type {
   TestResult,
   ValueSnapshotGroup,
 } from "@nomicfoundation/edr";
+
 import { TestStatus } from "@nomicfoundation/edr";
 
 import { parseName } from "../../../../src/utils/contract-names.js";

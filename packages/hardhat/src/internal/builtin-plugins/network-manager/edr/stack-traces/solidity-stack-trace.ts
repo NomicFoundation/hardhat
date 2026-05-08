@@ -84,5 +84,6 @@ export type {
   ContractTooLargeErrorStackTraceEntry,
   InternalFunctionCallStackEntry,
   ContractCallRunOutOfGasError,
+  CheatcodeErrorStackTraceEntry,
   CheatcodeErrorDetails,
 };
