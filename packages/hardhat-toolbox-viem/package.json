@@ -1,6 +1,6 @@
 {
   "name": "@nomicfoundation/hardhat-toolbox-viem",
-  "version": "5.0.4",
+  "version": "5.0.5",
   "description": "Nomic Foundation's recommended bundle of Hardhat plugins",
   "homepage": "https://github.com/NomicFoundation/hardhat/tree/main/packages/hardhat-toolbox-viem",
   "repository": {

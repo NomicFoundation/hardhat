@@ -1,6 +1,6 @@
 {
   "name": "@nomicfoundation/hardhat-viem-assertions",
-  "version": "3.0.10",
+  "version": "3.0.11",
   "description": "A Hardhat plugin that adds test assertions for Viem",
   "homepage": "https://github.com/NomicFoundation/hardhat/tree/main/packages/hardhat-viem-assertions",
   "repository": {
@@ -63,7 +63,7 @@
   },
   "dependencies": {
     "@nomicfoundation/hardhat-errors": "workspace:^3.0.11",
-    "@nomicfoundation/hardhat-utils": "workspace:^4.0.4"
+    "@nomicfoundation/hardhat-utils": "workspace:^4.1.1"
   },
   "peerDependencies": {
     "@nomicfoundation/hardhat-viem": "workspace:^3.0.4",
