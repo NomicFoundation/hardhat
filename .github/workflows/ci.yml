@@ -279,9 +279,6 @@ jobs:
         node: [22.13.0, 24.0.0]
         exclude:
           - package: hardhat-node-test-reporter
-            node: 22.13.0
-          - package: hardhat-node-test-reporter
-            node: 24.0.0
           - os: ubuntu-24.04-arm
             node: 24.0.0
           - os: macos-latest
