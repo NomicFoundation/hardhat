@@ -1,5 +1,11 @@
 # @nomicfoundation/hardhat-utils
 
+## 4.1.1
+
+### Patch Changes
+
+- [#8228](https://github.com/NomicFoundation/hardhat/pull/8228) [`417bbf9`](https://github.com/NomicFoundation/hardhat/commit/417bbf9f5d8ee4f9e19788aa40571452d36086d2) Thanks [@alcuadrado](https://github.com/alcuadrado)! - Small performance optimizations
+
 ## 4.1.0
 
 ### Minor Changes

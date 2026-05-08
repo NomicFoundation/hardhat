@@ -1,5 +1,11 @@
 # @nomicfoundation/hardhat-toolbox-mocha-ethers
 
+## 3.0.5
+
+### Patch Changes
+
+- [#8191](https://github.com/NomicFoundation/hardhat/pull/8191) [`2a4ae8e`](https://github.com/NomicFoundation/hardhat/commit/2a4ae8e7dc78cabbe8b17bec778952f0124f9759) Thanks [@alcuadrado](https://github.com/alcuadrado)! - Update how type extensions are handled to optimize the bootstrap process of Hardhat.
+
 ## 3.0.4
 
 ### Patch Changes

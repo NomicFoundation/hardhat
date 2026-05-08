@@ -58,7 +58,7 @@
   },
   "dependencies": {
     "@nomicfoundation/hardhat-errors": "workspace:^3.0.12",
-    "@nomicfoundation/hardhat-utils": "workspace:^4.1.0",
+    "@nomicfoundation/hardhat-utils": "workspace:^4.1.1",
     "@nomicfoundation/hardhat-zod-utils": "workspace:^3.0.4",
     "zod": "^3.23.8"
   },

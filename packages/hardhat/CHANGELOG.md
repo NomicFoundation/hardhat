@@ -1,5 +1,22 @@
 # hardhat
 
+## 3.4.5
+
+### Patch Changes
+
+- [#8253](https://github.com/NomicFoundation/hardhat/pull/8253) [`4aeed16`](https://github.com/NomicFoundation/hardhat/commit/4aeed168afeeb3305a0841605cf2ff5ed20d54a4) Thanks [@schaable](https://github.com/schaable)! - Fix compilation artifacts accidentally being deleted when their path contains an intermediate directory whose name ends in `.sol`.
+
+- [#8191](https://github.com/NomicFoundation/hardhat/pull/8191) [`2a4ae8e`](https://github.com/NomicFoundation/hardhat/commit/2a4ae8e7dc78cabbe8b17bec778952f0124f9759) Thanks [@alcuadrado](https://github.com/alcuadrado)! - Update how type extensions are handled to optimize the bootstrap process of Hardhat.
+
+- [#8190](https://github.com/NomicFoundation/hardhat/pull/8190) [`2443073`](https://github.com/NomicFoundation/hardhat/commit/24430736fdec068d29895156d7789c4e91b6c678) Thanks [@anaPerezGhiglia](https://github.com/anaPerezGhiglia)! - Bump EDR version to `0.12.0-next.32`.
+
+- [#8228](https://github.com/NomicFoundation/hardhat/pull/8228) [`417bbf9`](https://github.com/NomicFoundation/hardhat/commit/417bbf9f5d8ee4f9e19788aa40571452d36086d2) Thanks [@alcuadrado](https://github.com/alcuadrado)! - Small performance optimizations
+
+- [#8229](https://github.com/NomicFoundation/hardhat/pull/8229) [`a4d106e`](https://github.com/NomicFoundation/hardhat/commit/a4d106e78faf6278747ff526a31d9c26ec92a2ec) Thanks [@schaable](https://github.com/schaable)! - Add `isolate` and `evmVersion` to the Solidity test inline configuration.
+
+- Updated dependencies:
+  - @nomicfoundation/hardhat-utils@4.1.1
+
 ## 3.4.4
 
 ### Patch Changes
