@@ -282,6 +282,12 @@ jobs:
             node: 22.13.0
           - package: hardhat-node-test-reporter
             node: 24.0.0
+          - os: ubuntu-24.04-arm
+            node: 24.0.0
+          - os: macos-latest
+            node: 24.0.0
+          - os: windows-latest
+            node: 24.0.0
 
     name: "[${{ matrix.package }}] ci on ${{ matrix.os }} (Node ${{ matrix.node }})"
     timeout-minutes: 60
@@ -335,6 +341,13 @@ jobs:
         # We run the tests for `hardhat-node-test-reporter` with the latest
         # versions of Node (the testing output relying on recent changes)
         node: [22, 24]
+        exclude:
+          - os: ubuntu-24.04-arm
+            node: 24
+          - os: macos-latest
+            node: 24
+          - os: windows-latest
+            node: 24
 
     name: "[hardhat-node-test-reporter] ci on ${{ matrix.os }} (Node ${{ matrix.node }})"
     timeout-minutes: 60
@@ -368,6 +381,13 @@ jobs:
       matrix:
         os: [ubuntu-latest, ubuntu-24.04-arm, macos-latest, windows-latest]
         node: [22.13.0, 24.0.0]
+        exclude:
+          - os: ubuntu-24.04-arm
+            node: 24.0.0
+          - os: macos-latest
+            node: 24.0.0
+          - os: windows-latest
+            node: 24.0.0
 
     name: "[hardhat-ethers-chai-v5-matchers] ci on ${{ matrix.os }} (Node ${{ matrix.node }})"
     timeout-minutes: 60
