@@ -81,7 +81,7 @@ function main(): void {
     log(`Building ${pkg.name} and its deps...`);
     const buildResult = spawnSync(
       "pnpm",
-      ["--filter", `${pkg.name}...`, "build"],
+      ["--filter", `${pkg.name}...`, "run", "--if-present", "build"],
       {
         cwd: ROOT_DIR,
         stdio: ["ignore", "pipe", "pipe"],
