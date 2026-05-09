@@ -174,6 +174,16 @@ export function logSnapshotCheckResult(
 
   logSnapshotCheatcodesSection(snapshotCheatcodesCheck, logger);
 
+  // Add an extra newline if only the rename warnings have output
+  // (logSnapshotCheatcodesSection adds one if it has output)
+  if (
+    !functionGasHasOutput &&
+    !snapshotCheatcodesHasOutput &&
+    snapshotCheatcodesCheck.renamedGroups.length > 0
+  ) {
+    logger();
+  }
+
   logSnapshotRenameWarnings(snapshotCheatcodesCheck.renamedGroups, logger);
 
   if (!functionGasSnapshotsCheck.passed || !snapshotCheatcodesCheck.passed) {
