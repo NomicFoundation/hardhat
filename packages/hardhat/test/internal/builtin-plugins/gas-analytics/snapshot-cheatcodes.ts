@@ -1003,7 +1003,7 @@ ZGroup#entry-z: 300`;
       await emptyDir(tmpDir);
     });
 
-    it("Should rekey groups whose names need sanitization and report renames", () => {
+    it("should rekey groups whose names need sanitization and report renames", () => {
       const input: SnapshotCheatcodesWithMetadataMap = new Map([
         [
           "liquidationCall (reportDeficit): full",
@@ -1028,7 +1028,7 @@ ZGroup#entry-z: 300`;
       ]);
     });
 
-    it("Should flatten path-traversal attempts into a single component", () => {
+    it("should flatten path-traversal attempts into a single component", () => {
       const input: SnapshotCheatcodesWithMetadataMap = new Map([
         [
           "../../etc/passwd",
@@ -1048,7 +1048,7 @@ ZGroup#entry-z: 300`;
       ]);
     });
 
-    it("Should pass already-safe names through and report no renames", () => {
+    it("should pass already-safe names through and report no renames", () => {
       const input: SnapshotCheatcodesWithMetadataMap = new Map<
         string,
         Record<string, { value: string; metadata: { source: string } }>
@@ -1078,7 +1078,7 @@ ZGroup#entry-z: 300`;
       assert.deepEqual(renamedGroups, []);
     });
 
-    it("Should throw SNAPSHOT_GROUP_NAME_COLLISION when distinct originals collide", () => {
+    it("should throw SNAPSHOT_GROUP_NAME_COLLISION when distinct originals collide", () => {
       const input: SnapshotCheatcodesWithMetadataMap = new Map<
         string,
         Record<string, { value: string; metadata: { source: string } }>
@@ -1100,7 +1100,7 @@ ZGroup#entry-z: 300`;
       );
     });
 
-    it("Should produce a deterministic collision message regardless of input order", () => {
+    it("should produce a deterministic collision message regardless of input order", () => {
       const a: SnapshotCheatcodesWithMetadataMap = new Map<
         string,
         Record<string, { value: string; metadata: { source: string } }>
@@ -1140,7 +1140,7 @@ ZGroup#entry-z: 300`;
       );
     });
 
-    it("Should round-trip through write/read/compare without spurious diffs when a group is renamed", async () => {
+    it("should round-trip through write/read/compare without spurious diffs when a group is renamed", async () => {
       const input: SnapshotCheatcodesWithMetadataMap = new Map([
         [
           "foo:bar",
@@ -1172,12 +1172,12 @@ ZGroup#entry-z: 300`;
       output = [];
     });
 
-    it("Should not write anything when there are no renames", () => {
+    it("should not write anything when there are no renames", () => {
       logSnapshotRenameWarnings([], logger);
       assert.equal(output.length, 0);
     });
 
-    it("Should emit the rename warning for a single rename", () => {
+    it("should emit the rename warning for a single rename", () => {
       const renames: RenamedSnapshotGroup[] = [
         { original: "foo:bar", sanitized: "foobar" },
       ];
@@ -1190,7 +1190,7 @@ ZGroup#entry-z: 300`;
       assert.match(text, /consider renaming the group\(s\) in Solidity/);
     });
 
-    it("Should emit the rename warning for multiple renames", () => {
+    it("should emit the rename warning for multiple renames", () => {
       const renames: RenamedSnapshotGroup[] = [
         { original: "foo:bar", sanitized: "foobar" },
         { original: "../traversal", sanitized: "..traversal" },
