@@ -13,6 +13,7 @@ import {
   remove,
   writeJsonFile,
 } from "@nomicfoundation/hardhat-utils/fs";
+import { sanitizeFilename } from "@nomicfoundation/hardhat-utils/path";
 
 import {
   getFullyQualifiedName,
@@ -22,6 +23,16 @@ import {
 import { formatSectionHeader, getUserFqn } from "./helpers/utils.js";
 
 export const SNAPSHOT_CHEATCODES_DIR = "snapshots";
+
+export interface RenamedSnapshotGroup {
+  original: string;
+  sanitized: string;
+}
+
+export interface SanitizedSnapshotCheatcodes {
+  snapshotCheatcodes: SnapshotCheatcodesWithMetadataMap;
+  renamedGroups: RenamedSnapshotGroup[];
+}
 
 export type SnapshotCheatcodesMap = Map<
   string, // group
@@ -68,6 +79,7 @@ export interface SnapshotCheatcodesCheckResult {
   passed: boolean;
   comparison: SnapshotCheatcodesComparison;
   written: boolean;
+  renamedGroups: RenamedSnapshotGroup[];
 }
 
 export function getSnapshotCheatcodesPath(
@@ -75,6 +87,53 @@ export function getSnapshotCheatcodesPath(
   filename: string,
 ): string {
   return path.join(basePath, SNAPSHOT_CHEATCODES_DIR, filename);
+}
+
+/**
+ * Rekeys {@link snapshots} so each group name is safe to use as a filename
+ * component, returning the rekeyed map alongside the list of names that
+ * were actually changed by sanitization.
+ *
+ * @throws `SOLIDITY_TESTS.SNAPSHOT_GROUP_NAME_COLLISION` if two distinct
+ * original names sanitize to the same on-disk filename. Originals are
+ * sorted by codepoint in the error message so the same input always
+ * produces the same error text.
+ */
+export function sanitizeSnapshotCheatcodes(
+  snapshotCheatcodes: SnapshotCheatcodesWithMetadataMap,
+): SanitizedSnapshotCheatcodes {
+  const sanitizedSnapshotCheatcodes: SnapshotCheatcodesWithMetadataMap =
+    new Map();
+  const originalBySanitized = new Map<string, string>();
+  const renamedGroups: RenamedSnapshotGroup[] = [];
+
+  for (const [original, entries] of snapshotCheatcodes) {
+    const sanitizedName = sanitizeFilename(original);
+
+    const previousOriginal = originalBySanitized.get(sanitizedName);
+    if (previousOriginal !== undefined) {
+      const [nameA, nameB] =
+        previousOriginal < original
+          ? [previousOriginal, original]
+          : [original, previousOriginal];
+      throw new HardhatError(
+        HardhatError.ERRORS.CORE.SOLIDITY_TESTS.SNAPSHOT_GROUP_NAME_COLLISION,
+        { nameA, nameB, sanitized: sanitizedName },
+      );
+    }
+
+    originalBySanitized.set(sanitizedName, original);
+    sanitizedSnapshotCheatcodes.set(sanitizedName, entries);
+
+    if (sanitizedName !== original) {
+      renamedGroups.push({ original, sanitized: sanitizedName });
+    }
+  }
+
+  return {
+    snapshotCheatcodes: sanitizedSnapshotCheatcodes,
+    renamedGroups,
+  };
 }
 
 export function extractSnapshotCheatcodes(
@@ -295,7 +354,9 @@ export async function checkSnapshotCheatcodes(
   basePath: string,
   suiteResults: SuiteResult[],
 ): Promise<SnapshotCheatcodesCheckResult> {
-  const snapshotCheatcodes = extractSnapshotCheatcodes(suiteResults);
+  const { snapshotCheatcodes, renamedGroups } = sanitizeSnapshotCheatcodes(
+    extractSnapshotCheatcodes(suiteResults),
+  );
 
   let previousSnapshotCheatcodes;
   try {
@@ -316,6 +377,7 @@ export async function checkSnapshotCheatcodes(
           changed: [],
         },
         written,
+        renamedGroups,
       };
     }
 
@@ -338,6 +400,7 @@ export async function checkSnapshotCheatcodes(
     passed: comparison.changed.length === 0,
     comparison,
     written: hasAddedOrRemoved,
+    renamedGroups,
   };
 }
 
@@ -447,4 +510,30 @@ export function printSnapshotCheatcodeChanges(
       logger();
     }
   }
+}
+
+export function logSnapshotRenameWarnings(
+  renamedGroups: RenamedSnapshotGroup[],
+  logger: typeof console.log = console.log,
+): void {
+  if (renamedGroups.length === 0) {
+    return;
+  }
+
+  logger(
+    styleText(
+      "yellow",
+      `Renamed ${renamedGroups.length} snapshot group name(s) for safe filesystem use:`,
+    ),
+  );
+  for (const { original, sanitized } of renamedGroups) {
+    logger(styleText("yellow", `  "${original}" → "${sanitized}"`));
+  }
+  logger(
+    styleText(
+      "yellow",
+      "If you'd like the on-disk filename(s) to match exactly, consider renaming the group(s) in Solidity.",
+    ),
+  );
+  logger();
 }

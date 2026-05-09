@@ -1243,6 +1243,13 @@ Double-check the paths you are providing to the \`test solidity\` task.`,
         websiteTitle: "Selected Solidity test files do not exist",
         websiteDescription: `You ran the \`test solidity\` task with files that do not exist on disk.`,
       },
+      SNAPSHOT_GROUP_NAME_COLLISION: {
+        number: 817,
+        messageTemplate: `Snapshot group names "{nameA}" and "{nameB}" both produce the on-disk filename "{sanitized}.json" after sanitization. Rename one of them in your Solidity tests so they produce different filenames.`,
+        websiteTitle: "Snapshot group name collision after sanitization",
+        websiteDescription:
+          "Two distinct snapshot group names sanitize to the same on-disk filename. Rename one of the groups in your Solidity tests so they produce different filenames.",
+      },
     },
     SOLIDITY: {
       PROJECT_ROOT_RESOLUTION_ERROR: {

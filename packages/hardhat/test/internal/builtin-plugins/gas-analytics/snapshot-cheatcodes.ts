@@ -3,12 +3,15 @@ import type {
   SnapshotCheatcodeChange,
   SnapshotCheatcodesMap,
   SnapshotCheatcodesWithMetadataMap,
+  RenamedSnapshotGroup,
 } from "../../../../src/internal/builtin-plugins/gas-analytics/snapshot-cheatcodes.js";
 
 import assert from "node:assert/strict";
 import path from "node:path";
 import { afterEach, before, describe, it } from "node:test";
 
+import { HardhatError } from "@nomicfoundation/hardhat-errors";
+import { assertThrowsHardhatError } from "@nomicfoundation/hardhat-test-utils";
 import {
   emptyDir,
   exists,
@@ -21,8 +24,10 @@ import {
   compareSnapshotCheatcodes,
   extractSnapshotCheatcodes,
   getSnapshotCheatcodesPath,
+  logSnapshotRenameWarnings,
   printSnapshotCheatcodeChanges,
   readSnapshotCheatcodes,
+  sanitizeSnapshotCheatcodes,
   SNAPSHOT_CHEATCODES_DIR,
   stringifySnapshotCheatcodes,
   writeSnapshotCheatcodes,
@@ -984,6 +989,220 @@ ZGroup#entry-z: 300`;
 
       const text = getLoggerOutput();
       assert.equal(text, "");
+    });
+  });
+
+  describe("sanitizeSnapshotCheatcodes", () => {
+    let tmpDir: string;
+
+    before(async () => {
+      tmpDir = await mkdtemp("snapshot-cheatcodes-sanitize-test-");
+    });
+
+    afterEach(async () => {
+      await emptyDir(tmpDir);
+    });
+
+    it("Should rekey groups whose names need sanitization and report renames", () => {
+      const input: SnapshotCheatcodesWithMetadataMap = new Map([
+        [
+          "liquidationCall (reportDeficit): full",
+          { x: { value: "1", metadata: { source: "tests/Test.sol" } } },
+        ],
+      ]);
+
+      const { snapshotCheatcodes, renamedGroups } =
+        sanitizeSnapshotCheatcodes(input);
+
+      assert.equal(snapshotCheatcodes.size, 1);
+      assert.ok(
+        snapshotCheatcodes.get("liquidationCall (reportDeficit) full") !==
+          undefined,
+        "Map should be rekeyed by the sanitized name",
+      );
+      assert.deepEqual(renamedGroups, [
+        {
+          original: "liquidationCall (reportDeficit): full",
+          sanitized: "liquidationCall (reportDeficit) full",
+        },
+      ]);
+    });
+
+    it("Should flatten path-traversal attempts into a single component", () => {
+      const input: SnapshotCheatcodesWithMetadataMap = new Map([
+        [
+          "../../etc/passwd",
+          { x: { value: "1", metadata: { source: "tests/Test.sol" } } },
+        ],
+      ]);
+
+      const { snapshotCheatcodes, renamedGroups } =
+        sanitizeSnapshotCheatcodes(input);
+
+      assert.ok(
+        snapshotCheatcodes.get("....etcpasswd") !== undefined,
+        "Map should be rekeyed by the flattened name",
+      );
+      assert.deepEqual(renamedGroups, [
+        { original: "../../etc/passwd", sanitized: "....etcpasswd" },
+      ]);
+    });
+
+    it("Should pass already-safe names through and report no renames", () => {
+      const input: SnapshotCheatcodesWithMetadataMap = new Map<
+        string,
+        Record<string, { value: string; metadata: { source: string } }>
+      >([
+        [
+          "GroupA",
+          { x: { value: "1", metadata: { source: "tests/Test.sol" } } },
+        ],
+        [
+          "GroupB",
+          { y: { value: "2", metadata: { source: "tests/Test.sol" } } },
+        ],
+      ]);
+
+      const { snapshotCheatcodes, renamedGroups } =
+        sanitizeSnapshotCheatcodes(input);
+
+      assert.equal(snapshotCheatcodes.size, 2);
+      assert.ok(
+        snapshotCheatcodes.get("GroupA") !== undefined,
+        "GroupA preserved",
+      );
+      assert.ok(
+        snapshotCheatcodes.get("GroupB") !== undefined,
+        "GroupB preserved",
+      );
+      assert.deepEqual(renamedGroups, []);
+    });
+
+    it("Should throw SNAPSHOT_GROUP_NAME_COLLISION when distinct originals collide", () => {
+      const input: SnapshotCheatcodesWithMetadataMap = new Map<
+        string,
+        Record<string, { value: string; metadata: { source: string } }>
+      >([
+        [
+          "foo:bar",
+          { x: { value: "1", metadata: { source: "tests/Test.sol" } } },
+        ],
+        [
+          "foo*bar",
+          { y: { value: "2", metadata: { source: "tests/Test.sol" } } },
+        ],
+      ]);
+
+      assertThrowsHardhatError(
+        () => sanitizeSnapshotCheatcodes(input),
+        HardhatError.ERRORS.CORE.SOLIDITY_TESTS.SNAPSHOT_GROUP_NAME_COLLISION,
+        { nameA: "foo*bar", nameB: "foo:bar", sanitized: "foobar" },
+      );
+    });
+
+    it("Should produce a deterministic collision message regardless of input order", () => {
+      const a: SnapshotCheatcodesWithMetadataMap = new Map<
+        string,
+        Record<string, { value: string; metadata: { source: string } }>
+      >([
+        [
+          "foo*bar",
+          { y: { value: "2", metadata: { source: "tests/Test.sol" } } },
+        ],
+        [
+          "foo:bar",
+          { x: { value: "1", metadata: { source: "tests/Test.sol" } } },
+        ],
+      ]);
+      const b: SnapshotCheatcodesWithMetadataMap = new Map<
+        string,
+        Record<string, { value: string; metadata: { source: string } }>
+      >([
+        [
+          "foo:bar",
+          { x: { value: "1", metadata: { source: "tests/Test.sol" } } },
+        ],
+        [
+          "foo*bar",
+          { y: { value: "2", metadata: { source: "tests/Test.sol" } } },
+        ],
+      ]);
+
+      assertThrowsHardhatError(
+        () => sanitizeSnapshotCheatcodes(a),
+        HardhatError.ERRORS.CORE.SOLIDITY_TESTS.SNAPSHOT_GROUP_NAME_COLLISION,
+        { nameA: "foo*bar", nameB: "foo:bar", sanitized: "foobar" },
+      );
+      assertThrowsHardhatError(
+        () => sanitizeSnapshotCheatcodes(b),
+        HardhatError.ERRORS.CORE.SOLIDITY_TESTS.SNAPSHOT_GROUP_NAME_COLLISION,
+        { nameA: "foo*bar", nameB: "foo:bar", sanitized: "foobar" },
+      );
+    });
+
+    it("Should round-trip through write/read/compare without spurious diffs when a group is renamed", async () => {
+      const input: SnapshotCheatcodesWithMetadataMap = new Map([
+        [
+          "foo:bar",
+          { x: { value: "100", metadata: { source: "tests/Test.sol" } } },
+        ],
+      ]);
+
+      const { snapshotCheatcodes } = sanitizeSnapshotCheatcodes(input);
+      await writeSnapshotCheatcodes(tmpDir, snapshotCheatcodes);
+
+      const previous = await readSnapshotCheatcodes(tmpDir);
+      const comparison = compareSnapshotCheatcodes(
+        previous,
+        snapshotCheatcodes,
+      );
+
+      assert.deepEqual(comparison, { added: [], removed: [], changed: [] });
+    });
+  });
+
+  describe("logSnapshotRenameWarnings", () => {
+    let output: string[] = [];
+    const logger: typeof console.log = (...args: unknown[]) => {
+      output.push(args.join(" "));
+    };
+    const getLoggerOutput = (): string => output.join("\n");
+
+    afterEach(() => {
+      output = [];
+    });
+
+    it("Should not write anything when there are no renames", () => {
+      logSnapshotRenameWarnings([], logger);
+      assert.equal(output.length, 0);
+    });
+
+    it("Should emit the rename warning for a single rename", () => {
+      const renames: RenamedSnapshotGroup[] = [
+        { original: "foo:bar", sanitized: "foobar" },
+      ];
+
+      logSnapshotRenameWarnings(renames, logger);
+
+      const text = getLoggerOutput();
+      assert.match(text, /Renamed 1 snapshot group name\(s\)/);
+      assert.match(text, /"foo:bar" → "foobar"/);
+      assert.match(text, /consider renaming the group\(s\) in Solidity/);
+    });
+
+    it("Should emit the rename warning for multiple renames", () => {
+      const renames: RenamedSnapshotGroup[] = [
+        { original: "foo:bar", sanitized: "foobar" },
+        { original: "../traversal", sanitized: "..traversal" },
+      ];
+
+      logSnapshotRenameWarnings(renames, logger);
+
+      const text = getLoggerOutput();
+      assert.match(text, /Renamed 2 snapshot group name\(s\)/);
+      assert.match(text, /"foo:bar" → "foobar"/);
+      assert.match(text, /"\.\.\/traversal" → "\.\.traversal"/);
+      assert.match(text, /consider renaming the group\(s\) in Solidity/);
     });
   });
 });
