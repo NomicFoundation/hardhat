@@ -122,6 +122,7 @@ describe("path", () => {
     it("Should strip ASCII control characters", () => {
       assert.equal(sanitizeFilename("a\x00b"), "ab");
       assert.equal(sanitizeFilename("a\x1fb"), "ab");
+      assert.equal(sanitizeFilename("a\x7fb"), "ab");
       assert.equal(sanitizeFilename("a\tb\nc\rd"), "abcd");
     });
 

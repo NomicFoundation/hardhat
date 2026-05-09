@@ -67,7 +67,7 @@ export function shortenPath(absolutePath: string): string {
  * @returns A non-empty filename-safe string.
  */
 export function sanitizeFilename(name: string): string {
-  let result = name.replace(/[<>:"/\\|?*\x00-\x1F]/g, "");
+  let result = name.replace(/[<>:"/\\|?*\x00-\x1F\x7F]/g, "");
   result = result.replace(/[\s.]+$/, "");
 
   if (result === "" || result === "." || result === "..") {
