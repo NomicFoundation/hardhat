@@ -90,9 +90,9 @@ export function getSnapshotCheatcodesPath(
 }
 
 /**
- * Rekeys {@link snapshots} so each group name is safe to use as a filename
- * component, returning the rekeyed map alongside the list of names that
- * were actually changed by sanitization.
+ * Rekeys {@link snapshotCheatcodes} so each group name is safe to use as a
+ * filename component, returning the rekeyed map alongside the list of names
+ * that were actually changed by sanitization.
  *
  * @throws `SOLIDITY_TESTS.SNAPSHOT_GROUP_NAME_COLLISION` if two distinct
  * original names sanitize to the same on-disk filename. Originals are
