@@ -3,7 +3,7 @@ import path from "node:path";
 import { after, before, describe, it } from "node:test";
 
 import { ensureDir } from "../src/fs.js";
-import { resolveFromRoot, shortenPath } from "../src/path.js";
+import { resolveFromRoot, sanitizeFilename, shortenPath } from "../src/path.js";
 
 describe("path", () => {
   describe("resolveFromRoot", () => {
@@ -95,6 +95,70 @@ describe("path", () => {
       process.chdir(cwd);
 
       assert.equal(shortenPath(import.meta.dirname), import.meta.dirname);
+    });
+  });
+
+  describe("sanitizeFilename", () => {
+    it("Should pass through names that are already filesystem-safe", () => {
+      assert.equal(sanitizeFilename("foo"), "foo");
+      assert.equal(sanitizeFilename("foo bar 123"), "foo bar 123");
+      assert.equal(sanitizeFilename(".foo"), ".foo");
+      assert.equal(sanitizeFilename("a.b.c"), "a.b.c");
+      assert.equal(sanitizeFilename("hello-world_42"), "hello-world_42");
+    });
+
+    it('Should strip the reserved characters <>:"/\\|?*', () => {
+      assert.equal(sanitizeFilename("a<b>c"), "abc");
+      assert.equal(sanitizeFilename('a"b'), "ab");
+      assert.equal(sanitizeFilename("a:b"), "ab");
+      assert.equal(sanitizeFilename("a/b"), "ab");
+      assert.equal(sanitizeFilename("a\\b"), "ab");
+      assert.equal(sanitizeFilename("a|b"), "ab");
+      assert.equal(sanitizeFilename("a?b"), "ab");
+      assert.equal(sanitizeFilename("a*b"), "ab");
+      assert.equal(sanitizeFilename('<>:"/\\|?*'), "_");
+    });
+
+    it("Should strip ASCII control characters", () => {
+      assert.equal(sanitizeFilename("a\x00b"), "ab");
+      assert.equal(sanitizeFilename("a\x1fb"), "ab");
+      assert.equal(sanitizeFilename("a\tb\nc\rd"), "abcd");
+    });
+
+    it("Should strip trailing dots and trailing whitespace", () => {
+      assert.equal(sanitizeFilename("foo."), "foo");
+      assert.equal(sanitizeFilename("foo..."), "foo");
+      assert.equal(sanitizeFilename("foo "), "foo");
+      assert.equal(sanitizeFilename("foo   "), "foo");
+      assert.equal(sanitizeFilename("foo. . ."), "foo");
+    });
+
+    it("Should preserve leading whitespace and inner dots", () => {
+      assert.equal(sanitizeFilename(" foo"), " foo");
+      assert.equal(sanitizeFilename("a.b.c"), "a.b.c");
+      assert.equal(sanitizeFilename("..foo"), "..foo");
+    });
+
+    it('Should map literal "." and ".." to the placeholder', () => {
+      assert.equal(sanitizeFilename("."), "_");
+      assert.equal(sanitizeFilename(".."), "_");
+    });
+
+    it("Should fall back to the placeholder for empty input or input that strips to empty", () => {
+      assert.equal(sanitizeFilename(""), "_");
+      assert.equal(sanitizeFilename("   "), "_");
+      assert.equal(sanitizeFilename("..."), "_");
+      assert.equal(sanitizeFilename("///"), "_");
+    });
+
+    it("Should flatten path-traversal attempts into a single component", () => {
+      assert.equal(sanitizeFilename("../etc/passwd"), "..etcpasswd");
+      assert.equal(sanitizeFilename("/abs/path"), "abspath");
+      assert.equal(sanitizeFilename("a/b/c"), "abc");
+      assert.equal(
+        sanitizeFilename("..\\windows\\system32"),
+        "..windowssystem32",
+      );
     });
   });
 });
