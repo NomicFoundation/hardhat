@@ -942,6 +942,7 @@ export async function move(source: string, destination: string): Promise<void> {
  *
  * @param target The path the symlink points to. May be relative to `linkPath`.
  * @param linkPath The absolute path of the symlink to create.
+ * @throws FileNotFoundError if the parent directory of `linkPath` doesn't exist.
  * @throws FileAlreadyExistsError if `linkPath` already exists.
  * @throws FileSystemAccessError for any other error.
  */
@@ -950,6 +951,9 @@ export async function symlink(target: string, linkPath: string): Promise<void> {
     await fsPromises.symlink(target, linkPath);
   } catch (e) {
     ensureNodeErrnoExceptionError(e);
+    if (e.code === "ENOENT") {
+      throw new FileNotFoundError(linkPath, e);
+    }
     if (e.code === "EEXIST") {
       throw new FileAlreadyExistsError(linkPath, e);
     }
