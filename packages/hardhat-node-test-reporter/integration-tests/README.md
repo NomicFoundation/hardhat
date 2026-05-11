@@ -32,7 +32,7 @@ bash scripts/regenerate-fixtures.sh <fixture-name>
 
 ## `--disable-warning=DEP0205`
 
-We run with the integration tests with `--disable-warning=DEP0205` because tsx currently generates this warning:
+We run the integration tests with `--disable-warning=DEP0205` because tsx currently generates this warning:
 
 ```
 DeprecationWarning: `module.register()` is deprecated. Use `module.registerHooks()` instead.
