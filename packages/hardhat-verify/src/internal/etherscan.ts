@@ -595,7 +595,7 @@ export class LazyEtherscanImpl implements LazyEtherscan {
   readonly #chainDescriptors: ChainDescriptorsConfig;
   readonly #verificationProvidersConfig: VerificationProvidersConfig;
 
-  #etherscan: Etherscan | undefined;
+  #etherscan: Promise<Etherscan> | undefined;
 
   constructor(
     provider: EthereumProvider,
@@ -614,23 +614,34 @@ export class LazyEtherscanImpl implements LazyEtherscan {
    * the created instance so that subsequent calls reuse the same object.
    */
   async #getEtherscan(): Promise<Etherscan> {
+    // Cache the in-flight promise (not the resolved value) so concurrent
+    // first-time callers share a single construction. Construction is async
+    // — `createVerificationProviderInstance` may do I/O — so caching the
+    // resolved value would let two callers each build their own Etherscan
+    // and race to overwrite `#etherscan`.
     if (this.#etherscan === undefined) {
-      const { createVerificationProviderInstance } = await import(
-        "./verification.js"
-      );
-
-      this.#etherscan =
-        /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions
-        -- Cast to Etherscan because we know the provider name is "etherscan" */
-        (await createVerificationProviderInstance({
-          provider: this.#provider,
-          networkName: this.#networkName,
-          chainDescriptors: this.#chainDescriptors,
-          verificationProviderName: "etherscan",
-          verificationProvidersConfig: this.#verificationProvidersConfig,
-        })) as Etherscan;
+      this.#etherscan = this.#createEtherscan();
     }
-    return this.#etherscan;
+
+    return await this.#etherscan;
+  }
+
+  async #createEtherscan(): Promise<Etherscan> {
+    const { createVerificationProviderInstance } = await import(
+      "./verification.js"
+    );
+
+    const etherscan = await createVerificationProviderInstance({
+      provider: this.#provider,
+      networkName: this.#networkName,
+      chainDescriptors: this.#chainDescriptors,
+      verificationProviderName: "etherscan",
+      verificationProvidersConfig: this.#verificationProvidersConfig,
+    });
+
+    /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions
+    -- Cast to Etherscan because we know the provider name is "etherscan" */
+    return etherscan as Etherscan;
   }
 
   public async getChainId(): Promise<string> {
