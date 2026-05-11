@@ -618,12 +618,24 @@ export class LazyEtherscanImpl implements LazyEtherscan {
     // first-time callers share a single construction. Construction is async
     // — `createVerificationProviderInstance` may do I/O — so caching the
     // resolved value would let two callers each build their own Etherscan
-    // and race to overwrite `#etherscan`.
+    // and race to overwrite `#etherscan`. Clear the cache on rejection so a
+    // transient failure doesn't permanently poison the instance.
     if (this.#etherscan === undefined) {
       this.#etherscan = this.#createEtherscan();
     }
 
-    return await this.#etherscan;
+    const inflight = this.#etherscan;
+    try {
+      return await inflight;
+    } catch (err) {
+      // Only clear if no later caller has already replaced the cached promise,
+      // otherwise we'd clobber a fresh in-flight attempt.
+      if (this.#etherscan === inflight) {
+        this.#etherscan = undefined;
+      }
+
+      throw err;
+    }
   }
 
   async #createEtherscan(): Promise<Etherscan> {
