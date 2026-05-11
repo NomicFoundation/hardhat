@@ -464,26 +464,35 @@ export async function getProviderConfig(
     specId,
   );
 
+  const forkConfig = await hardhatForkingConfigToEdrForkConfig(
+    networkConfig.forking,
+    chainDescriptors,
+    networkConfig.chainType,
+  );
+
+  const network =
+    forkConfig !== undefined
+      ? forkConfig
+      : {
+          genesisBlockGasLimit: networkConfig.blockGasLimit,
+          genesisBlockTime: BigInt(toSeconds(networkConfig.initialDate)),
+        };
+
   return {
     allowBlocksWithSameTimestamp: networkConfig.allowBlocksWithSameTimestamp,
     allowUnlimitedContractSize: networkConfig.allowUnlimitedContractSize,
     bailOnCallFailure: networkConfig.throwOnCallFailures,
     bailOnTransactionFailure: networkConfig.throwOnTransactionFailures,
-    blockGasLimit: networkConfig.blockGasLimit,
     chainId: BigInt(networkConfig.chainId),
     coinbase: networkConfig.coinbase,
-    fork: await hardhatForkingConfigToEdrForkConfig(
-      networkConfig.forking,
-      chainDescriptors,
-      networkConfig.chainType,
-    ),
+    defaultTransactionGasLimit: networkConfig.blockGasLimit,
     genesisState: Array.from(genesisState.values()),
     hardfork: specId,
     initialBaseFeePerGas: networkConfig.initialBaseFeePerGas,
-    initialDate: BigInt(toSeconds(networkConfig.initialDate)),
     minGasPrice: networkConfig.minGasPrice,
     mining: {
       autoMine: networkConfig.mining.auto,
+      blockGasLimit: networkConfig.blockGasLimit,
       interval: hardhatMiningIntervalToEdrMiningInterval(
         networkConfig.mining.interval,
       ),
@@ -493,6 +502,7 @@ export async function getProviderConfig(
         ),
       },
     },
+    network,
     networkId: BigInt(networkConfig.networkId),
     observability: {
       codeCoverage: coverageConfig,
