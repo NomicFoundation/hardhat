@@ -1,4 +1,7 @@
+import type { deriveMasterKeyFromKeystore as deriveMasterKeyFromKeystoreT } from "../keystores/encryption.js";
+import type { getPasswordHandlers as getPasswordHandlersT } from "../keystores/password.js";
 import type { KeystoreLoader } from "../types.js";
+import type { setupKeystoreLoaderFrom as setupKeystoreLoaderFromT } from "../utils/setup-keystore-loader-from.js";
 import type { ConfigurationVariable } from "hardhat/types/config";
 import type {
   ConfigurationVariableHooks,
@@ -8,9 +11,45 @@ import type {
 import { HardhatError } from "@nomicfoundation/hardhat-errors";
 import { isCi } from "@nomicfoundation/hardhat-utils/ci";
 
-import { deriveMasterKeyFromKeystore } from "../keystores/encryption.js";
-import { getPasswordHandlers } from "../keystores/password.js";
-import { setupKeystoreLoaderFrom } from "../utils/setup-keystore-loader-from.js";
+// Split into two lazy stages so fetchValue calls that don't reach the
+// master-key derivation skip loading the heavy crypto modules.
+// - Stage 1 loads only the keystore-loader factory.
+// - Stage 2 (the crypto modules) only runs after `isKeystoreInitialized()` passes.
+
+let setupKeystoreLoaderFromPromise:
+  | Promise<{ setupKeystoreLoaderFrom: typeof setupKeystoreLoaderFromT }>
+  | undefined;
+
+let cryptoModulesPromise:
+  | Promise<{
+      deriveMasterKeyFromKeystore: typeof deriveMasterKeyFromKeystoreT;
+      getPasswordHandlers: typeof getPasswordHandlersT;
+    }>
+  | undefined;
+
+function loadSetupKeystoreLoaderFrom() {
+  if (setupKeystoreLoaderFromPromise === undefined) {
+    setupKeystoreLoaderFromPromise = import(
+      "../utils/setup-keystore-loader-from.js"
+    );
+  }
+
+  return setupKeystoreLoaderFromPromise;
+}
+
+function loadCryptoModules() {
+  if (cryptoModulesPromise === undefined) {
+    cryptoModulesPromise = Promise.all([
+      import("../keystores/encryption.js"),
+      import("../keystores/password.js"),
+    ]).then(([encryptionMod, passwordMod]) => ({
+      deriveMasterKeyFromKeystore: encryptionMod.deriveMasterKeyFromKeystore,
+      getPasswordHandlers: passwordMod.getPasswordHandlers,
+    }));
+  }
+
+  return cryptoModulesPromise;
+}
 
 export default async (): Promise<Partial<ConfigurationVariableHooks>> => {
   // Use a cache with hooks since they may be called multiple times consecutively.
@@ -71,6 +110,7 @@ export default async (): Promise<Partial<ConfigurationVariableHooks>> => {
     let masterKey = isDevKeystore ? masterKeyDev : masterKeyProd;
 
     if (keystoreLoader === undefined) {
+      const { setupKeystoreLoaderFrom } = await loadSetupKeystoreLoaderFrom();
       keystoreLoader = setupKeystoreLoaderFrom(context, isDevKeystore);
 
       if (isDevKeystore) {
@@ -87,6 +127,9 @@ export default async (): Promise<Partial<ConfigurationVariableHooks>> => {
     const keystore = await keystoreLoader.loadKeystore();
 
     if (masterKey === undefined) {
+      const { deriveMasterKeyFromKeystore, getPasswordHandlers } =
+        await loadCryptoModules();
+
       const { askPassword } = getPasswordHandlers(
         context.interruptions.requestSecretInput.bind(context.interruptions),
         console.log,

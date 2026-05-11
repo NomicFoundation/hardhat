@@ -16,14 +16,8 @@ const PRETTIER_TRANSFORMER_NAME = "prettierOutputTransformer";
 export async function generateTypes(
   rootPath: string,
   config: TypechainConfig,
-  noTypechain: boolean,
   artifactsPaths: string[],
 ): Promise<void> {
-  if (config.dontOverrideCompile === true || noTypechain === true) {
-    // The typechain config is set to skip type generation during compilation
-    return;
-  }
-
   removePrettierTransformerIfPresent(typechainOutputTransformers);
   addCompiledFilesTransformerIfAbsent(typechainOutputTransformers);
 
