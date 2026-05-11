@@ -53,6 +53,8 @@ After modifying a package, within the package run:
 2. pnpm build
 3. pnpm test
 
+After modifying a test file, run it with the "Test single file" command above.
+
 ## Scoped docs to read
 
 - If changing anything in ./scripts/, read ./scripts/README.md first.
