@@ -1837,7 +1837,7 @@ describe("File system utils", () => {
     });
   });
 
-  describe("symlink", () => {
+  describe("symlink", { skip: process.platform === "win32" }, () => {
     it("Should create a symlink to an existing file", async () => {
       const targetPath = path.join(getTmpDir(), "target.txt");
       const linkPath = path.join(getTmpDir(), "link.txt");
