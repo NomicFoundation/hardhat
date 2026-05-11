@@ -276,12 +276,21 @@ jobs:
       matrix:
         package: ${{ fromJson(needs.list-packages.outputs.packages) }}
         os: [ubuntu-latest, ubuntu-24.04-arm, macos-latest, windows-latest]
-        node: [22.13.0, 24.0.0]
+        node: [22.13.0, 24.0.0, 26.0.0]
         exclude:
           - package: hardhat-node-test-reporter
-            node: 22.13.0
-          - package: hardhat-node-test-reporter
+          - os: ubuntu-24.04-arm
             node: 24.0.0
+          - os: macos-latest
+            node: 24.0.0
+          - os: windows-latest
+            node: 24.0.0
+          - os: ubuntu-24.04-arm
+            node: 26.0.0
+          - os: macos-latest
+            node: 26.0.0
+          - os: windows-latest
+            node: 26.0.0
 
     name: "[${{ matrix.package }}] ci on ${{ matrix.os }} (Node ${{ matrix.node }})"
     timeout-minutes: 60
@@ -317,8 +326,9 @@ jobs:
       - env:
           ci_result: ${{ needs.ci.result }}
           reporter_result: ${{ needs.hardhat-node-test-reporter.result }}
+          chai_v5_result: ${{ needs.hardhat-ethers-chai-v5-matchers.result }}
         run: |
-          if [[ "$ci_result" == "failure" || "$reporter_result" == "failure" ]]; then
+          if [[ "$ci_result" == "failure" || "$reporter_result" == "failure" || "$chai_v5_result" == "failure" ]]; then
             exit 1
           fi
         shell: bash
@@ -334,7 +344,20 @@ jobs:
         os: [ubuntu-latest, ubuntu-24.04-arm, macos-latest, windows-latest]
         # We run the tests for `hardhat-node-test-reporter` with the latest
         # versions of Node (the testing output relying on recent changes)
-        node: [22, 24]
+        node: [22, 24, 26]
+        exclude:
+          - os: ubuntu-24.04-arm
+            node: 24
+          - os: macos-latest
+            node: 24
+          - os: windows-latest
+            node: 24
+          - os: ubuntu-24.04-arm
+            node: 26
+          - os: macos-latest
+            node: 26
+          - os: windows-latest
+            node: 26
 
     name: "[hardhat-node-test-reporter] ci on ${{ matrix.os }} (Node ${{ matrix.node }})"
     timeout-minutes: 60
@@ -367,7 +390,20 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-latest, ubuntu-24.04-arm, macos-latest, windows-latest]
-        node: [22.13.0, 24.0.0]
+        node: [22.13.0, 24.0.0, 26.0.0]
+        exclude:
+          - os: ubuntu-24.04-arm
+            node: 24.0.0
+          - os: macos-latest
+            node: 24.0.0
+          - os: windows-latest
+            node: 24.0.0
+          - os: ubuntu-24.04-arm
+            node: 26.0.0
+          - os: macos-latest
+            node: 26.0.0
+          - os: windows-latest
+            node: 26.0.0
 
     name: "[hardhat-ethers-chai-v5-matchers] ci on ${{ matrix.os }} (Node ${{ matrix.node }})"
     timeout-minutes: 60
