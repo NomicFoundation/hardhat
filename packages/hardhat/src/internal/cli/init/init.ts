@@ -22,6 +22,7 @@ import {
   writeJsonFile,
   writeUtf8File,
 } from "@nomicfoundation/hardhat-utils/fs";
+import { findClosestPackageRoot } from "@nomicfoundation/hardhat-utils/package";
 import { resolveFromRoot } from "@nomicfoundation/hardhat-utils/path";
 import * as semver from "semver";
 
@@ -594,6 +595,7 @@ export async function copyProjectFiles(
     await copy(absoluteTemplatePath, absoluteWorkspacePath);
   }
 
+  await installSkills(workspace, template);
   await createClaudeMd(workspace);
   await createDotClaude(workspace);
 
@@ -665,6 +667,66 @@ export async function copyProjectFilesNonInteractive(
       path.join(template.path, relativeTemplatePath),
       absoluteWorkspacePath,
     );
+  }
+}
+
+/**
+ * Skills published from `packages/skills/` and the npm package whose presence
+ * in a template's dependencies opts that template into installing the skill.
+ * Each skill is tied to exactly one package so they can be versioned and
+ * upgraded independently.
+ */
+const SKILL_PACKAGES: ReadonlyArray<{
+  packageName: string;
+  skillName: string;
+}> = [
+  { packageName: "hardhat", skillName: "hardhat" },
+  {
+    packageName: "@nomicfoundation/hardhat-toolbox-viem",
+    skillName: "hardhat-toolbox-viem",
+  },
+  {
+    packageName: "@nomicfoundation/hardhat-toolbox-mocha-ethers",
+    skillName: "hardhat-toolbox-mocha-ethers",
+  },
+];
+
+/**
+ * For agent-aware templates (those that ship an `AGENTS.md`), copies any
+ * skills from `packages/skills/` whose corresponding package is a template
+ * dependency into `<workspace>/.agents/skills/<skill-name>/`.
+ */
+async function installSkills(
+  workspace: string,
+  template: Template,
+): Promise<void> {
+  if (!template.files.includes("AGENTS.md")) {
+    return;
+  }
+
+  const deps = {
+    ...template.packageJson.dependencies,
+    ...template.packageJson.devDependencies,
+  };
+  const relevantSkills = SKILL_PACKAGES.filter(
+    ({ packageName }) => deps[packageName] !== undefined,
+  );
+  if (relevantSkills.length === 0) {
+    return;
+  }
+
+  const hardhatPackageRoot = await findClosestPackageRoot(import.meta.url);
+  const skillsRoot = path.join(hardhatPackageRoot, "..", "skills");
+
+  for (const { skillName } of relevantSkills) {
+    const skillSrcDir = path.join(skillsRoot, skillName);
+    const skillDestDir = path.join(workspace, ".agents", "skills", skillName);
+    const skillFiles = await getAllFilesMatching(skillSrcDir);
+    for (const file of skillFiles) {
+      const dest = path.join(skillDestDir, path.relative(skillSrcDir, file));
+      await ensureDir(path.dirname(dest));
+      await copy(file, dest);
+    }
   }
 }
 

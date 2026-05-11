@@ -1,6 +1,8 @@
 ---
 name: hardhat
 description: Use when working with Hardhat 3 projects — writing or modifying Solidity tests, TypeScript tests, or any code touching hardhat.config.ts, the `hardhat` import, or `network.create()`. Covers test-layer choice, forge-std cheatcodes, the network connection API, `networkHelpers`, and the compile-then-typecheck workflow. For toolbox-specific guidance (clients, contract calls, assertions), also load the matching `hardhat-toolbox-*` skill.
+metadata:
+  package: "hardhat"
 ---
 
 # Hardhat 3

@@ -1,6 +1,8 @@
 ---
 name: hardhat-toolbox-viem
 description: Use alongside the `hardhat` skill when the project depends on `@nomicfoundation/hardhat-toolbox-viem`. Covers the viem clients exposed on `network.create()`, contract interaction (`viem.deployContract`, `read`, `write`, `getContractAt`), and `viem.assertions` (revert / event / balance assertions).
+metadata:
+  package: "@nomicfoundation/hardhat-toolbox-viem"
 ---
 
 # Hardhat toolbox: viem
