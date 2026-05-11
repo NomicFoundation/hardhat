@@ -1,11 +1,13 @@
 import { log } from "node:console";
 import { normalizeScenarioPath } from "./directory.ts";
+import { ForceCheckout, ForcePublish, UseLocal } from "../subcommands/init.ts";
 
-const DEFAULT_CLONE_DIR = "/tmp/end-to-end";
+export const DEFAULT_CLONE_DIR = "/tmp/end-to-end";
 
 export function resolveAndValidateArgs(args: string[]) {
   const scenarioPathRaw =
     getArgValue(args, "--scenario") ?? process.env.E2E_SCENARIO;
+
   const scenarioPath =
     scenarioPathRaw !== undefined
       ? normalizeScenarioPath(scenarioPathRaw)
@@ -16,6 +18,16 @@ export function resolveAndValidateArgs(args: string[]) {
   const cleanFlag = args.includes("clean");
 
   const command = getArgValue(args, "--command");
+
+  const useLocal = args.includes("--use-local") ? UseLocal.Yes : UseLocal.No;
+
+  const forceCheckout = args.includes("--force-checkout")
+    ? ForceCheckout.Yes
+    : ForceCheckout.No;
+
+  const forcePublish = args.includes("--force-publish")
+    ? ForcePublish.Yes
+    : ForcePublish.No;
 
   let e2eCloneDirectory =
     getArgValue(args, "--e2e-clone-dir") ?? process.env.E2E_CLONE_DIR;
@@ -50,6 +62,9 @@ export function resolveAndValidateArgs(args: string[]) {
     e2eCloneDirectory,
     scenarioPath,
     command,
+    useLocal,
+    forceCheckout,
+    forcePublish,
   };
 }
 
