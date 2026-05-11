@@ -30,7 +30,7 @@ declare module "../../../types/test.js" {
     seed: string;
   }
 
-  export interface SolidityTestConfigBase {
+  export interface SolidityTestProfileConfigBase {
     fsPermissions?: {
       readWriteFile?: string[];
       readFile?: string[];
@@ -77,9 +77,18 @@ declare module "../../../types/test.js" {
     rpcEndpoints?: Record<string, SensitiveString>;
   }
 
-  export interface SolidityTestUserConfig extends SolidityTestConfigBase {
+  export interface SolidityTestProfileUserConfig
+    extends SolidityTestProfileConfigBase {
     forking?: SolidityTestForkingUserConfig;
   }
+
+  export interface SolidityTestProfilesUserConfig {
+    profiles: Record<string, SolidityTestProfileUserConfig>;
+  }
+
+  export type SolidityTestUserConfig =
+    | SolidityTestProfileUserConfig
+    | SolidityTestProfilesUserConfig;
 
   export interface HardhatTestUserConfig {
     solidity?: SolidityTestUserConfig;
@@ -91,7 +100,8 @@ declare module "../../../types/test.js" {
     rpcEndpoints?: Record<string, ResolvedConfigurationVariable>;
   }
 
-  export interface SolidityTestProfileConfig extends SolidityTestConfigBase {
+  export interface SolidityTestProfileConfig
+    extends SolidityTestProfileConfigBase {
     fuzz: SolidityTestFuzzConfig;
     forking?: SolidityTestForkingConfig;
     eip712Types: {
