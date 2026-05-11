@@ -113,13 +113,13 @@ const solidityTestProfilesUserConfigType = z.object({
   profiles: z
     .record(z.string(), solidityTestProfileUserConfigType)
     .refine(
-      (profiles) => "default" in profiles,
+      (profiles) => DEFAULT_TEST_PROFILE in profiles,
       "A `default` profile is required when using `profiles`",
     )
     .refine(
       (profiles) =>
-        !("default" in profiles) ||
-        Object.keys(profiles).every((name) => name === "default"),
+        !(DEFAULT_TEST_PROFILE in profiles) ||
+        Object.keys(profiles).every((name) => name === DEFAULT_TEST_PROFILE),
       "Only the `default` profile is supported. Other profile names will be supported in a future release.",
     ),
 });

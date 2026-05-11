@@ -1,5 +1,5 @@
 ---
-"hardhat": patch
+"hardhat": minor
 ---
 
 Solidity test configuration now also accepts `{ profiles: { default: ... } }`. Only the `default` profile is currently supported, other profile names will be supported in a future release. The previous flat shape continues to work unchanged.
