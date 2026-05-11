@@ -1,6 +1,4 @@
 import type { HardhatUserConfig } from "../../../../src/types/config.js";
-import type { HardhatRuntimeEnvironment } from "../../../../src/types/hre.js";
-import type { HardhatPlugin } from "../../../../src/types/plugins.js";
 
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
@@ -10,33 +8,21 @@ import { assertRejectsWithHardhatError } from "@nomicfoundation/hardhat-test-uti
 
 import { createHardhatRuntimeEnvironment } from "hardhat/hre";
 
-import solidityTestPlugin from "../../../../src/internal/builtin-plugins/solidity-test/index.js";
-import { resolveProjectRoot } from "../../../../src/internal/core/hre.js";
-import { resolvePluginList } from "../../../../src/internal/core/plugins/resolve-plugin-list.js";
-
 describe("config validation", () => {
-  it("should validate an acceptable `test.solidity` config", async () => {
-    const hre = await _createHardhatRuntimeEnvironmentWithOnlyBuiltinPlugin(
-      {
-        test: {
-          solidity: {
-            isolate: true,
-          },
+  it("should accept a flat `test.solidity` config", async () => {
+    const hre = await createHardhatRuntimeEnvironment({
+      test: {
+        solidity: {
+          isolate: true,
         },
       },
-      solidityTestPlugin,
-    );
+    });
 
     assert.equal(hre.config.test.solidity.profiles.default.isolate, true);
   });
 
   it("should not throw when the `test.solidity` config is not set by the user", async () => {
-    await _createHardhatRuntimeEnvironmentWithOnlyBuiltinPlugin(
-      {
-        test: {},
-      },
-      solidityTestPlugin,
-    );
+    await createHardhatRuntimeEnvironment({ test: {} });
   });
 
   it("should throw when the `test.solidity` properties are invalid", async () => {
@@ -51,10 +37,7 @@ describe("config validation", () => {
     };
 
     await assertRejectsWithHardhatError(
-      _createHardhatRuntimeEnvironmentWithOnlyBuiltinPlugin(
-        userConfig,
-        solidityTestPlugin,
-      ),
+      createHardhatRuntimeEnvironment(userConfig),
       HardhatError.ERRORS.CORE.GENERAL.INVALID_CONFIG,
       {
         errors:
@@ -62,25 +45,85 @@ describe("config validation", () => {
       },
     );
   });
+
+  it("should accept a `profiles` wrapper with a `default` profile", async () => {
+    const hre = await createHardhatRuntimeEnvironment({
+      test: {
+        solidity: {
+          profiles: {
+            default: {
+              isolate: true,
+            },
+          },
+        },
+      },
+    });
+
+    assert.equal(hre.config.test.solidity.profiles.default.isolate, true);
+  });
+
+  it("should throw when the `profiles` wrapper is missing the `default` profile", async () => {
+    const userConfig: HardhatUserConfig = {
+      test: {
+        solidity: {
+          profiles: {
+            ci: { isolate: true },
+          },
+        },
+      },
+    };
+
+    await assertRejectsWithHardhatError(
+      createHardhatRuntimeEnvironment(userConfig),
+      HardhatError.ERRORS.CORE.GENERAL.INVALID_CONFIG,
+      {
+        errors:
+          "\t* Config error in config.test.solidity.profiles: A `default` profile is required when using `profiles`",
+      },
+    );
+  });
+
+  it("should throw when the `profiles` wrapper has a non-`default` profile", async () => {
+    const userConfig: HardhatUserConfig = {
+      test: {
+        solidity: {
+          profiles: {
+            default: { isolate: true },
+            ci: { isolate: false },
+          },
+        },
+      },
+    };
+
+    await assertRejectsWithHardhatError(
+      createHardhatRuntimeEnvironment(userConfig),
+      HardhatError.ERRORS.CORE.GENERAL.INVALID_CONFIG,
+      {
+        errors:
+          "\t* Config error in config.test.solidity.profiles: Only the `default` profile is supported. Other profile names will be supported in a future release.",
+      },
+    );
+  });
+
+  it("should throw when `profiles` is mixed with flat fields", async () => {
+    const userConfig: HardhatUserConfig = {
+      test: {
+        /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions
+          -- intentionally violating the types for the test */
+        solidity: {
+          profiles: { default: { isolate: true } },
+          fuzz: { runs: 50 },
+        } as any,
+      },
+    };
+
+    await assertRejectsWithHardhatError(
+      createHardhatRuntimeEnvironment(userConfig),
+      HardhatError.ERRORS.CORE.GENERAL.INVALID_CONFIG,
+      {
+        errors:
+          "\t* Config error in config.test.solidity.profiles: This field is incompatible with the flat solidity test config",
+      },
+    );
+  });
 });
-
-async function _createHardhatRuntimeEnvironmentWithOnlyBuiltinPlugin(
-  config: HardhatUserConfig,
-  builtinPlugin: HardhatPlugin,
-): Promise<HardhatRuntimeEnvironment> {
-  const projectRoot = undefined;
-  const resolvedProjectRoot = await resolveProjectRoot(projectRoot);
-
-  const resolvedPlugins = await resolvePluginList(resolvedProjectRoot, [
-    builtinPlugin,
-  ]);
-
-  return await createHardhatRuntimeEnvironment(
-    config,
-    {},
-    resolvedProjectRoot,
-    {
-      resolvedPlugins,
-    },
-  );
-}

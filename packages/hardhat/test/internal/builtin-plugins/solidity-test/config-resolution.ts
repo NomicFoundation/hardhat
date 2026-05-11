@@ -1,6 +1,8 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 
+import { createHardhatRuntimeEnvironment } from "hardhat/hre";
+
 import {
   DEFAULT_FUZZ_SEED,
   resolveFuzzConfig,
@@ -48,6 +50,54 @@ describe("config resolution", () => {
       assert.equal(result.dictionaryWeight, 50);
       assert.equal(result.showLogs, true);
       assert.equal(result.seed, DEFAULT_FUZZ_SEED);
+    });
+  });
+
+  describe("resolveSolidityTestUserConfig", () => {
+    it("should resolve a flat user config to the default profile", async () => {
+      const hre = await createHardhatRuntimeEnvironment({
+        test: {
+          solidity: {
+            isolate: true,
+            fuzz: { runs: 50 },
+          },
+        },
+      });
+
+      const defaultProfile = hre.config.test.solidity.profiles.default;
+      assert.equal(defaultProfile.isolate, true);
+      assert.equal(defaultProfile.fuzz.runs, 50);
+      assert.equal(defaultProfile.fuzz.seed, DEFAULT_FUZZ_SEED);
+      assert.equal(defaultProfile.forking, undefined);
+    });
+
+    it("should resolve a `profiles` wrapper to the same shape as the equivalent flat config", async () => {
+      const flatHre = await createHardhatRuntimeEnvironment({
+        test: {
+          solidity: {
+            isolate: true,
+            fuzz: { runs: 50 },
+          },
+        },
+      });
+
+      const wrapperHre = await createHardhatRuntimeEnvironment({
+        test: {
+          solidity: {
+            profiles: {
+              default: {
+                isolate: true,
+                fuzz: { runs: 50 },
+              },
+            },
+          },
+        },
+      });
+
+      assert.deepEqual(
+        wrapperHre.config.test.solidity,
+        flatHre.config.test.solidity,
+      );
     });
   });
 });
