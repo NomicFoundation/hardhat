@@ -91,7 +91,7 @@ declare module "../../../types/test.js" {
     rpcEndpoints?: Record<string, ResolvedConfigurationVariable>;
   }
 
-  export interface SolidityTestConfig extends SolidityTestConfigBase {
+  export interface SolidityTestProfileConfig extends SolidityTestConfigBase {
     fuzz: SolidityTestFuzzConfig;
     forking?: SolidityTestForkingConfig;
     eip712Types: {
@@ -99,6 +99,11 @@ declare module "../../../types/test.js" {
       exclude: string[];
     };
   }
+
+  export interface SolidityTestConfig {
+    profiles: Record<string, SolidityTestProfileConfig>;
+  }
+
   export interface HardhatTestConfig {
     solidity: SolidityTestConfig;
   }

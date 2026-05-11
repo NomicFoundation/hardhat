@@ -27,7 +27,7 @@ describe("config validation", () => {
       solidityTestPlugin,
     );
 
-    assert.equal(hre.config.test.solidity.isolate, true);
+    assert.equal(hre.config.test.solidity.profiles.default.isolate, true);
   });
 
   it("should not throw when the `test.solidity` config is not set by the user", async () => {
