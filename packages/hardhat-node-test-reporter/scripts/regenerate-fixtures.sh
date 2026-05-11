@@ -44,7 +44,9 @@ for dir in $dirs; do
   result_html="$dir/$result_file_name.html"
   result_svg="$dir/$result_file_name.svg"
 
-  node --import tsx/esm --test --test-reporter=./dist/src/reporter.js $options $dir/*.ts --color > "$result_txt" || true # Ignore failures, as they are expected
+  export FORCE_COLOR=1
+  export NODE_OPTIONS="--disable-warning=DEP0205"
+  node --import tsx/esm --test --test-reporter=./dist/src/reporter.js $options $dir/*.ts > "$result_txt" || true # Ignore failures, as they are expected
 
   if grep -q '^Node\.js' "$result_txt"; then
     sed -i '1,/^Node\.js/d' "$result_txt";
