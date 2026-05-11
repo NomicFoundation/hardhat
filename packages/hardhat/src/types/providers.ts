@@ -1,5 +1,7 @@
 import type EventEmitter from "node:events";
 
+import "./builtin-plugin-type-extensions.js";
+
 export interface RequestArguments {
   readonly method: string;
   readonly params?: readonly unknown[] | object;

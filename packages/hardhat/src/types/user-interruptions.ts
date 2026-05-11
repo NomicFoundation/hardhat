@@ -1,3 +1,5 @@
+import "./builtin-plugin-type-extensions.js";
+
 /**
  * This interface is used to interact with the user in the middle of the
  * execution of an unrelated piece of functionality.

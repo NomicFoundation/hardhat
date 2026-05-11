@@ -1,6 +1,8 @@
 import type { SolidityBuildInfo } from "./solidity/solidity-artifacts.js";
 import type { NonNeverKeys } from "./utils.js";
 
+import "./builtin-plugin-type-extensions.js";
+
 /**
  * A map of bare contract names and fully qualified contract names to their
  * artifacts that will be completed by Hardhat's build system using module
