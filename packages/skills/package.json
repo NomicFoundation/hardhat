@@ -1,0 +1,22 @@
+{
+  "name": "@nomicfoundation/hardhat-skills",
+  "private": true,
+  "version": "3.0.0",
+  "description": "Hardhat skills for coding agents",
+  "homepage": "https://github.com/NomicFoundation/hardhat/tree/main/packages/skills",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/NomicFoundation/hardhat",
+    "directory": "packages/skills"
+  },
+  "author": "Nomic Foundation",
+  "license": "MIT",
+  "scripts": {
+    "lint": "pnpm prettier --check",
+    "lint:fix": "pnpm prettier --write",
+    "prettier": "prettier \"**/*.{ts,js,md,json}\""
+  },
+  "devDependencies": {
+    "prettier": "3.2.5"
+  }
+}

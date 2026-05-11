@@ -1852,6 +1852,8 @@ importers:
         specifier: ^2.0.1
         version: 2.3.0(rollup@4.52.3)(vite@5.4.20(@types/node@24.10.14))
 
+  packages/skills: {}
+
   packages/template-package:
     devDependencies:
       '@nomicfoundation/hardhat-node-test-reporter':

@@ -1,6 +1,8 @@
 ---
 name: hardhat-toolbox-mocha-ethers
 description: Use alongside the `hardhat` skill when the project depends on `@nomicfoundation/hardhat-toolbox-mocha-ethers`. Covers the ethers helpers exposed on `network.create()`, contract interaction (`ethers.deployContract`, calling functions, `connect`), TypeChain-typed contract instances, and the chai matchers from `@nomicfoundation/hardhat-ethers-chai-matchers` (`.to.emit`, `.to.be.revertedWith*`, `.to.changeEtherBalance(s)`).
+metadata:
+  package: "@nomicfoundation/hardhat-toolbox-mocha-ethers"
 ---
 
 # Hardhat toolbox: ethers + Mocha
