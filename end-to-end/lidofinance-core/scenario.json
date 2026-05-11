@@ -6,5 +6,8 @@
   "commit": "ef5307d1b4c6a0373eb897511c8d2d7c3948159b",
   "packageManager": "yarn",
   "submodules": false,
-  "defaultCommand": "yarn run test"
+  "defaultCommand": "yarn run test",
+  "benchmark": {
+    "skip": true
+  }
 }
