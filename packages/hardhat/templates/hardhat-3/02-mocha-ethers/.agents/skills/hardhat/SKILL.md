@@ -23,8 +23,9 @@ Reach for TypeScript only when Solidity isn't enough. Solidity tests cover all c
 ```bash
 hardhat test            # run all tests (Solidity + TypeScript)
 hardhat test solidity   # Solidity tests only
-hardhat test nodejs     # TypeScript tests only
 ```
+
+TypeScript tests are run either with `hardhat test nodejs` or with `hardhat test mocha`, depending on the toolbox or plugins being used: the viem-based toolbox uses `nodejs` while the ethers+mocha toolbox uses `mocha`.
 
 ## Solidity tests
 
@@ -81,18 +82,13 @@ The central object in a TypeScript test is the **network connection**, created b
 
 ```ts
 import { network } from "hardhat";
-import { describe, it } from "node:test";
-import assert from "node:assert/strict";
 
-describe("Counter", async function () {
-  const { networkHelpers } = await network.create();
-  // Toolbox plugins also expose viem / ethers on this object;
-  // see the matching hardhat-toolbox-* skill.
-  // ...
-});
+const { networkHelpers } = await network.create();
+// Toolbox plugins also expose viem / ethers on this object;
+// see the matching hardhat-toolbox-* skill.
 ```
 
-Each call to `network.create()` produces an **isolated blockchain state**. Multiple `describe` blocks can each own their own fresh network.
+Hardhat 3 only works with ESM, so top-level `await` is available. Each call to `network.create()` produces an **isolated blockchain state**. A top-level network connection can be used when the same connection and its associated state can be shared across all tests in the file. For more isolation, you can create a new connection for each test suite or even each test case.
 
 ### `networkHelpers`: EVM state manipulation
 
