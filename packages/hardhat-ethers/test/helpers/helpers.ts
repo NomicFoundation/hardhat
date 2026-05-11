@@ -38,7 +38,7 @@ export async function initializeTestEthers(
 
   const artifactManager = new MockArtifactManager(mockedArtifacts);
 
-  const ethers = await initializeEthers(
+  const ethers = initializeEthers(
     provider,
     connection.networkName,
     connection.networkConfig,

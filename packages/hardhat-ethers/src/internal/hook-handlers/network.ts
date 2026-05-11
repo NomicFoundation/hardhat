@@ -13,7 +13,7 @@ export default async (): Promise<Partial<NetworkHooks>> => {
     ) {
       const connection: NetworkConnection<ChainTypeT> = await next(context);
 
-      connection.ethers = await initializeEthers(
+      connection.ethers = initializeEthers(
         connection.provider,
         connection.networkName,
         connection.networkConfig,
