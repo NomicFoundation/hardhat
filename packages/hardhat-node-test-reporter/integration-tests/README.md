@@ -39,3 +39,5 @@ DeprecationWarning: `module.register()` is deprecated. Use `module.registerHooks
 ```
 
 This also means that the tests need to be run with `NODE_OPTIONS="--disable-warning=DEP0205"` to avoid the warning being printed in the test output, which would make the tests fail when comparing with the expected results.
+
+If you are using `pnpm test:integration` you don't need to do this, as it's already taken care of by the script.
