@@ -6,13 +6,15 @@ Build - pnpm build
 
 Test - pnpm test
 
-These single-file commands run from the package root (e.g. `packages/hardhat`):
+For single-file work, run these from the repo root. They build upstream deps and run the tool on the given path(s):
 
-Lint single file - `pnpm exec eslint ./path/to/file.ts`
+Lint single file - `pnpm lint:file path/to/file.ts` (runs prettier --check + eslint; pass `--fix` to auto-apply fixes)
 
-Test single file - `node --import tsx/esm --test --test-reporter=@nomicfoundation/hardhat-node-test-reporter path/to/test.ts`
+Test single file - `pnpm test:file path/to/test.ts`
 
-Test single test - add `.only` to the test, then `node --import tsx/esm --test --test-only --test-reporter=@nomicfoundation/hardhat-node-test-reporter path/to/test.ts`
+Test single test - add `.only` to the test, then `pnpm test:file --only path/to/test.ts`
+
+Spellcheck single file - `pnpm spellcheck:file path/to/file.md`
 
 ## Repository layout
 
