@@ -1,3 +1,4 @@
+import type { AbiHolder, ErrorArgsOf, EventArgsOf } from "../abi-types.js";
 import type { HardhatViemAssertions } from "../types.js";
 import type { balancesHaveChanged as balancesHaveChangedT } from "./assertions/balances-have-changed.js";
 import type { emitWithArgs as emitWithArgsT } from "./assertions/emit/emit-with-args.js";
@@ -6,14 +7,12 @@ import type { revertWithCustomErrorWithArgs as revertWithCustomErrorWithArgsT } 
 import type { revertWithCustomError as revertWithCustomErrorT } from "./assertions/revert/revert-with-custom-error.js";
 import type { revertWith as revertWithT } from "./assertions/revert/revert-with.js";
 import type { revert as revertT } from "./assertions/revert/revert.js";
-import type {
-  ContractAbis,
-  ContractReturnType,
-  HardhatViemHelpers,
-} from "@nomicfoundation/hardhat-viem/types";
+import type { HardhatViemHelpers } from "@nomicfoundation/hardhat-viem/types";
 import type { ChainType } from "hardhat/types/network";
 import type {
+  Abi,
   Address,
+  ContractErrorName,
   ContractEventName,
   Hash,
   ReadContractReturnType,
@@ -56,13 +55,10 @@ export class HardhatViemAssertionsImpl<
     return await balancesHaveChanged(this.#viem, resolvedTxHash, changes);
   }
 
-  public async emit<
-    ContractName extends keyof ContractAbis,
-    EventName extends ContractEventName<ContractAbis[ContractName]>,
-  >(
+  public async emit<TContract extends AbiHolder<Abi>>(
     contractFn: Promise<ReadContractReturnType | WriteContractReturnType>,
-    contract: ContractReturnType<ContractName>,
-    eventName: EventName,
+    contract: TContract,
+    eventName: ContractEventName<TContract["abi"]>,
   ): Promise<void> {
     if (emit === undefined) {
       ({ emit } = await import("./assertions/emit/emit.js"));
@@ -72,13 +68,13 @@ export class HardhatViemAssertionsImpl<
   }
 
   public async emitWithArgs<
-    ContractName extends keyof ContractAbis,
-    EventName extends ContractEventName<ContractAbis[ContractName]>,
+    TContract extends AbiHolder<Abi>,
+    TEventName extends ContractEventName<TContract["abi"]>,
   >(
     contractFn: Promise<ReadContractReturnType | WriteContractReturnType>,
-    contract: ContractReturnType<ContractName>,
-    eventName: EventName,
-    args: any[],
+    contract: TContract,
+    eventName: TEventName,
+    args: EventArgsOf<TContract["abi"], TEventName>,
   ): Promise<void> {
     if (emitWithArgs === undefined) {
       ({ emitWithArgs } = await import("./assertions/emit/emit-with-args.js"));
@@ -114,10 +110,10 @@ export class HardhatViemAssertionsImpl<
     return await revertWith(contractFn, expectedRevertReason);
   }
 
-  public async revertWithCustomError<ContractName extends keyof ContractAbis>(
+  public async revertWithCustomError<TContract extends AbiHolder<Abi>>(
     contractFn: Promise<ReadContractReturnType | WriteContractReturnType>,
-    contract: ContractReturnType<ContractName>,
-    customErrorName: string,
+    contract: TContract,
+    customErrorName: ContractErrorName<TContract["abi"]>,
   ): Promise<void> {
     if (revertWithCustomError === undefined) {
       ({ revertWithCustomError } = await import(
@@ -129,12 +125,13 @@ export class HardhatViemAssertionsImpl<
   }
 
   public async revertWithCustomErrorWithArgs<
-    ContractName extends keyof ContractAbis,
+    TContract extends AbiHolder<Abi>,
+    TErrorName extends ContractErrorName<TContract["abi"]>,
   >(
     contractFn: Promise<ReadContractReturnType | WriteContractReturnType>,
-    contract: ContractReturnType<ContractName>,
-    customErrorName: string,
-    args: any[],
+    contract: TContract,
+    customErrorName: TErrorName,
+    args: ErrorArgsOf<TContract["abi"], TErrorName>,
   ): Promise<void> {
     if (revertWithCustomErrorWithArgs === undefined) {
       ({ revertWithCustomErrorWithArgs } = await import(

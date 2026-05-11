@@ -43,7 +43,6 @@ import { createDebug } from "@nomicfoundation/hardhat-utils/debug";
 import {
   exists,
   ensureDir,
-  getAllDirectoriesMatching,
   getAllFilesMatching,
   move,
   readJsonFile,
@@ -1098,29 +1097,46 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
 
     const userSourceNamesSet = new Set(userSourceNames);
 
-    for (const file of await getAllDirectoriesMatching(
+    const buildInfosDir = path.join(artifactsDirectory, `build-info`);
+
+    // We accept both `.json` files and per-file `artifacts.d.ts` files:
+    // source files that compile but produce no contracts emit only the
+    // declaration file, but their parent dir still belongs in the cleanup
+    // candidate set.
+    // TODO: This logic is originated with the artifacts manager, but now uses both json files and `artifacts.d.ts` as the test
+    const allArtifactFiles = await getAllFilesMatching(
       artifactsDirectory,
-      (d) => d.endsWith(".sol"),
-    )) {
+      (p) => {
+        // Ignore top level files (e.g. the project-wide artifacts.d.ts)
+        if (
+          p.indexOf(path.sep, artifactsDirectory.length + path.sep.length) ===
+          -1
+        ) {
+          return false;
+        }
+        return p.endsWith(".json") || path.basename(p) === "artifacts.d.ts";
+      },
+      (dir) => dir !== buildInfosDir,
+    );
+
+    const artifactDirs = new Set(
+      allArtifactFiles.map((file) => path.dirname(file)),
+    );
+    const removedDirs = new Set<string>();
+
+    for (const dir of artifactDirs) {
       const relativePath = toForwardSlash(
-        path.relative(artifactsDirectory, file),
+        path.relative(artifactsDirectory, dir),
       );
 
       if (!userSourceNamesSet.has(relativePath)) {
-        await remove(file);
+        await remove(dir);
+        removedDirs.add(dir);
       }
     }
 
-    const buildInfosDir = path.join(artifactsDirectory, `build-info`);
-
-    // TODO: This logic is duplicated with respect to the artifacts manager
-    const artifactPaths = await getAllFilesMatching(
-      artifactsDirectory,
-      (p) =>
-        p.endsWith(".json") && // Only consider json files
-        // Ignore top level json files
-        p.indexOf(path.sep, artifactsDirectory.length + path.sep.length) !== -1,
-      (dir) => dir !== buildInfosDir,
+    const artifactPaths = allArtifactFiles.filter(
+      (p) => p.endsWith(".json") && !removedDirs.has(path.dirname(p)),
     );
 
     const reachableBuildInfoIds = await Promise.all(

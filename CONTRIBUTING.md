@@ -4,7 +4,7 @@ This document contains some tips on how to collaborate in this project.
 
 ## Filing an issue
 
-If you find a bug or want to propose a new feature, please [open an issue](https://github.com/nomiclabs/hardhat/issues/new). Pull requests are welcome, but we recommend you discuss it in an issue first, especially for big changes. This will increase the odds that we can accept your PR.
+If you find a bug or want to propose a new feature, please [open an issue](https://github.com/NomicFoundation/hardhat/issues/new). Pull requests are welcome, but we recommend you discuss it in an issue first, especially for big changes. This will increase the odds that we can accept your PR.
 
 ## GitHub project
 
@@ -14,7 +14,7 @@ We use a [GitHub project](https://github.com/orgs/NomicFoundation/projects/4/vie
 
 This repository is a monorepo handled with [pnpm](https://pnpm.io/) and [pnpm workspaces](https://pnpm.io/workspaces).
 
-There's a folder for each subproject in `packages/`. All of them are plugins, except for `/packages/hardhat-core` which is the main project (i.e. the one that's published as [hardhat](https://npmjs.com/package/hardhat) in npm).
+There's a folder for each subproject in `packages/`. All of them are plugins, except for `/packages/hardhat` which is the main project (i.e. the one that's published as [hardhat](https://npmjs.com/package/hardhat) in npm).
 
 ## Installing
 
@@ -46,7 +46,7 @@ The linter is always run in the CI, so make sure it passes before pushing code. 
 
 ## Branching
 
-We work on two branches, [`main`](https://github.com/nomiclabs/hardhat/tree/main) and [`development`](https://github.com/nomiclabs/hardhat/tree/development).
+We work on two branches, [`main`](https://github.com/NomicFoundation/hardhat/tree/main) and [`development`](https://github.com/NomicFoundation/hardhat/tree/development).
 
 The `main` branch is meant to be kept in sync with the latest released version of each package. Most pull requests are based on `main`, so when in doubt use this branch.
 
@@ -56,7 +56,7 @@ The development branch is meant to be used for major, risky changes that are rea
 
 If you are modifying the default config, adding a feature, or doing any kind of technical work that should be reflected in the documentation, the documentation change should be contained in the same branch and PR as the change.
 
-If you are working purely on the website or documentation, not as a result of a technical change, you should branch from [`main`](https://github.com/nomiclabs/hardhat/tree/main) and use it as the base branch in your pull request.
+If you are working purely on the website or documentation, not as a result of a technical change, you should branch from [`main`](https://github.com/NomicFoundation/hardhat/tree/main) and use it as the base branch in your pull request.
 
 Note that the `main` branch is automatically deployed, so take care when merging into it.
 
@@ -100,7 +100,7 @@ The project can be built by `pnpm build` from the root directory.
 
 You can [link](https://docs.npmjs.com/cli/v9/commands/npm-link/) any package to test it locally. While the rest of the commands we run use `pnpm`, we recommend you use `npm` for linking. For example, if you are working on `hardhat`, you can follow these steps:
 
-1. Go to `packages/hardhat-core` and run `npm link`
+1. Go to `packages/hardhat` and run `npm link`
 2. Go to some hardhat project and run `npm link hardhat`
 
 Now any change you make in the code will be reflected in that project.
@@ -109,7 +109,7 @@ Now any change you make in the code will be reflected in that project.
 
 If for any reason linking doesn't work for you, you can use [`yalc`](https://github.com/whitecolor/yalc):
 
-1. Go to `packages/hardhat-core` and run `yalc publish`
+1. Go to `packages/hardhat` and run `yalc publish`
 2. Go to some hardhat project and run `yalc add hardhat`
 
 Unlike linking, if you make a change in the code, you'll need to repeat the process.
@@ -118,8 +118,8 @@ Unlike linking, if you make a change in the code, you'll need to repeat the proc
 
 An even more realistic way of using your local changes in a project is to use [`pnpm pack`](https://pnpm.io/cli/pack):
 
-1. Go to `packages/hardhat-core` and run `pnpm pack`. This will create a `hardhat-x.y.z.tgz` file in that directory.
-2. Go to some hardhat project and run `npm install /path/to/hardhat/packages/hardhat-core/hardhat-x.y.z.tgz`.
+1. Go to `packages/hardhat` and run `pnpm pack`. This will create a `hardhat-x.y.z.tgz` file in that directory.
+2. Go to some hardhat project and run `npm install /path/to/hardhat/packages/hardhat/hardhat-x.y.z.tgz`.
 
 Unlike linking, if you make a change in the code, you'll need to repeat the process.
 

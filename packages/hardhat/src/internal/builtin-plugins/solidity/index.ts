@@ -53,6 +53,7 @@ const hardhatPlugin: HardhatPlugin = {
       ...buildTask,
       id: ["compile"],
       description: "Build project (alias for build)",
+      action: async () => await import("./tasks/compile.js"),
     },
   ],
   globalOptions: [

@@ -20,8 +20,6 @@ import {
  * @param sourceName The source name of the file, as present in the compilation
  *  job.
  * @param fileContent The contents of the file.
- * @param coverageLibraryPath The path to the coverage library. i.e. where to
- *  import it from.
  * @returns An object with the instrumented source and its metadata, and the
  *  solidity version used to instrument the sources.
  */
@@ -29,12 +27,10 @@ export function instrumentSolidityFileForCompilationJob({
   compilationJobSolcVersion,
   sourceName,
   fileContent,
-  coverageLibraryPath,
 }: {
   compilationJobSolcVersion: string;
   sourceName: string;
   fileContent: string;
-  coverageLibraryPath: string;
 }): {
   source: string;
   metadata: InstrumentationMetadata[];
@@ -64,7 +60,6 @@ export function instrumentSolidityFileForCompilationJob({
     fileContent,
     sourceName,
     instrumentationVersion,
-    coverageLibraryPath,
   );
 
   return { source, metadata, instrumentationVersion };
