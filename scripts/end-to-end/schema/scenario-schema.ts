@@ -24,7 +24,53 @@ export function isScenarioDefinition(
     (obj.preinstall === undefined || typeof obj.preinstall === "string") &&
     (obj.install === undefined || typeof obj.install === "string") &&
     (obj.submodules === undefined || typeof obj.submodules === "boolean") &&
-    (obj.disabled === undefined || obj.disabled === true)
+    (obj.disabled === undefined || obj.disabled === true) &&
+    (obj.benchmark === undefined || isBenchmarkConfig(obj.benchmark))
+  );
+}
+
+function isBenchmarkConfig(value: unknown): value is {
+  skip?: true;
+  runs?: {
+    defaultCommand?: number;
+    coldCompile?: number;
+    warmCompile?: number;
+  };
+} {
+  if (typeof value !== "object" || value === null) {
+    return false;
+  }
+
+  const obj = value as Record<string, unknown>;
+
+  return (
+    (obj.skip === undefined || obj.skip === true) &&
+    (obj.runs === undefined || isBenchmarkRunsConfig(obj.runs))
+  );
+}
+
+function isBenchmarkRunsConfig(value: unknown): value is {
+  defaultCommand?: number;
+  coldCompile?: number;
+  warmCompile?: number;
+} {
+  if (typeof value !== "object" || value === null) {
+    return false;
+  }
+
+  const obj = value as Record<string, unknown>;
+
+  return (
+    isPositiveIntegerOrUndefined(obj.defaultCommand) &&
+    isPositiveIntegerOrUndefined(obj.coldCompile) &&
+    isPositiveIntegerOrUndefined(obj.warmCompile)
+  );
+}
+
+function isPositiveIntegerOrUndefined(value: unknown): boolean {
+  return (
+    value === undefined ||
+    (typeof value === "number" && Number.isInteger(value) && value >= 1)
   );
 }
 
