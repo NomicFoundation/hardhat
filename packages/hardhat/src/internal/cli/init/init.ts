@@ -716,7 +716,7 @@ async function installSkills(
   }
 
   const hardhatPackageRoot = await findClosestPackageRoot(import.meta.url);
-  const skillsRoot = path.join(hardhatPackageRoot, "..", "skills");
+  const skillsRoot = path.join(hardhatPackageRoot, "skills");
 
   for (const { skillName } of relevantSkills) {
     const skillSrcDir = path.join(skillsRoot, skillName);
