@@ -24,7 +24,7 @@ importers:
         specifier: ^0.8.5
         version: 0.8.5
       typescript:
-        specifier: ^5.8.0
+        specifier: ^5.9.3
         version: 5.9.3
 
   packages/common:
@@ -189,7 +189,7 @@ importers:
         specifier: ^10.8.0
         version: 10.9.1(@types/node@20.19.6)(typescript@5.9.3)
       typescript:
-        specifier: ^5.8.0
+        specifier: ^5.9.3
         version: 5.9.3
 
   packages/hardhat-core:
@@ -421,7 +421,7 @@ importers:
         specifier: ^10.8.0
         version: 10.9.1(@types/node@20.19.6)(typescript@5.9.3)
       typescript:
-        specifier: ^5.8.0
+        specifier: ^5.9.3
         version: 5.9.3
 
   packages/hardhat-ethers:
@@ -512,7 +512,7 @@ importers:
         specifier: ^10.8.0
         version: 10.9.1(@types/node@20.19.6)(typescript@5.9.3)
       typescript:
-        specifier: ^5.8.0
+        specifier: ^5.9.3
         version: 5.9.3
 
   packages/hardhat-foundry:
@@ -576,7 +576,7 @@ importers:
         specifier: ^10.8.0
         version: 10.9.1(@types/node@20.19.6)(typescript@5.9.3)
       typescript:
-        specifier: ^5.8.0
+        specifier: ^5.9.3
         version: 5.9.3
 
   packages/hardhat-ignition:
@@ -697,7 +697,7 @@ importers:
         specifier: 10.9.1
         version: 10.9.1(@types/node@20.19.6)(typescript@5.9.3)
       typescript:
-        specifier: ^5.8.0
+        specifier: ^5.9.3
         version: 5.9.3
       viem:
         specifier: ^2.7.6
@@ -821,7 +821,7 @@ importers:
         specifier: 10.9.1
         version: 10.9.1(@types/node@20.19.6)(typescript@5.9.3)
       typescript:
-        specifier: ^5.8.0
+        specifier: ^5.9.3
         version: 5.9.3
 
   packages/hardhat-ignition-ethers:
@@ -917,7 +917,7 @@ importers:
         specifier: 10.9.1
         version: 10.9.1(@types/node@20.19.6)(typescript@5.9.3)
       typescript:
-        specifier: ^5.8.0
+        specifier: ^5.9.3
         version: 5.9.3
 
   packages/hardhat-ignition-ui:
@@ -998,7 +998,7 @@ importers:
         specifier: 10.9.1
         version: 10.9.1(@types/node@22.7.5)(typescript@5.9.3)
       typescript:
-        specifier: ^5.8.0
+        specifier: ^5.9.3
         version: 5.9.3
       vite:
         specifier: ^5.4.17
@@ -1097,7 +1097,7 @@ importers:
         specifier: 10.9.1
         version: 10.9.1(@types/node@20.19.6)(typescript@5.9.3)
       typescript:
-        specifier: ^5.8.0
+        specifier: ^5.9.3
         version: 5.9.3
       viem:
         specifier: ^2.7.6
@@ -1209,7 +1209,7 @@ importers:
         specifier: ^10.8.0
         version: 10.9.1(@types/node@20.19.6)(typescript@5.9.3)
       typescript:
-        specifier: ^5.8.0
+        specifier: ^5.9.3
         version: 5.9.3
 
   packages/hardhat-network-helpers:
@@ -1282,7 +1282,7 @@ importers:
         specifier: ^10.8.0
         version: 10.9.1(@types/node@20.19.6)(typescript@5.9.3)
       typescript:
-        specifier: ^5.8.0
+        specifier: ^5.9.3
         version: 5.9.3
 
   packages/hardhat-shorthand:
@@ -1361,7 +1361,7 @@ importers:
         specifier: ^10.8.0
         version: 10.9.1(@types/node@20.19.6)(typescript@5.9.3)
       typescript:
-        specifier: ^5.8.0
+        specifier: ^5.9.3
         version: 5.9.3
 
   packages/hardhat-solhint:
@@ -1437,7 +1437,7 @@ importers:
         specifier: ^10.8.0
         version: 10.9.1(@types/node@20.19.6)(typescript@5.9.3)
       typescript:
-        specifier: ^5.8.0
+        specifier: ^5.9.3
         version: 5.9.3
 
   packages/hardhat-solpp:
@@ -1507,7 +1507,7 @@ importers:
         specifier: ^10.8.0
         version: 10.9.1(@types/node@20.19.6)(typescript@5.9.3)
       typescript:
-        specifier: ^5.8.0
+        specifier: ^5.9.3
         version: 5.9.3
 
   packages/hardhat-toolbox:
@@ -1600,7 +1600,7 @@ importers:
         specifier: ^8.3.1
         version: 8.3.2(typescript@5.9.3)
       typescript:
-        specifier: ^5.8.0
+        specifier: ^5.9.3
         version: 5.9.3
 
   packages/hardhat-toolbox-viem:
@@ -1685,7 +1685,7 @@ importers:
         specifier: ^10.8.0
         version: 10.9.1(@types/node@20.19.6)(typescript@5.9.3)
       typescript:
-        specifier: ^5.8.0
+        specifier: ^5.9.3
         version: 5.9.3
       viem:
         specifier: ^2.7.6
@@ -1767,7 +1767,7 @@ importers:
         specifier: ^10.8.0
         version: 10.9.1(@types/node@20.19.6)(typescript@5.9.3)
       typescript:
-        specifier: ^5.8.0
+        specifier: ^5.9.3
         version: 5.9.3
       web3:
         specifier: ^0.20.0
@@ -1849,7 +1849,7 @@ importers:
         specifier: ^10.8.0
         version: 10.9.1(@types/node@20.19.6)(typescript@5.9.3)
       typescript:
-        specifier: ^5.8.0
+        specifier: ^5.9.3
         version: 5.9.3
       web3:
         specifier: ^1.0.0-beta.36
@@ -1982,7 +1982,7 @@ importers:
         specifier: ^10.8.0
         version: 10.9.1(@types/node@20.19.6)(typescript@5.9.3)
       typescript:
-        specifier: ^5.8.0
+        specifier: ^5.9.3
         version: 5.9.3
 
   packages/hardhat-viem:
@@ -2073,7 +2073,7 @@ importers:
         specifier: ^10.8.0
         version: 10.9.1(@types/node@20.19.6)(typescript@5.9.3)
       typescript:
-        specifier: ^5.8.0
+        specifier: ^5.9.3
         version: 5.9.3
       viem:
         specifier: ^2.7.6
@@ -2170,7 +2170,7 @@ importers:
         specifier: ^10.8.0
         version: 10.9.1(@types/node@20.19.6)(typescript@5.9.3)
       typescript:
-        specifier: ^5.8.0
+        specifier: ^5.9.3
         version: 5.9.3
 
   packages/hardhat-web3:
@@ -2233,7 +2233,7 @@ importers:
         specifier: ^10.8.0
         version: 10.9.1(@types/node@20.19.6)(typescript@5.9.3)
       typescript:
-        specifier: ^5.8.0
+        specifier: ^5.9.3
         version: 5.9.3
       web3:
         specifier: ^1.0.0-beta.36
@@ -2296,7 +2296,7 @@ importers:
         specifier: ^10.8.0
         version: 10.9.1(@types/node@20.19.6)(typescript@5.9.3)
       typescript:
-        specifier: ^5.8.0
+        specifier: ^5.9.3
         version: 5.9.3
       web3:
         specifier: ^0.20.0
@@ -2365,7 +2365,7 @@ importers:
         specifier: ^10.8.0
         version: 10.9.1(@types/node@20.19.6)(typescript@5.9.3)
       typescript:
-        specifier: ^5.8.0
+        specifier: ^5.9.3
         version: 5.9.3
       web3:
         specifier: ^4.0.1
