@@ -210,7 +210,7 @@ function translateCharClass(content: string): string {
     }
   }
 
-  return `[${negated ? "^" : ""}${escaped}]`;
+  return `(?!/)[${negated ? "^" : ""}${escaped}]`;
 }
 
 function getCompiledGlob(pattern: string): RegExp {
