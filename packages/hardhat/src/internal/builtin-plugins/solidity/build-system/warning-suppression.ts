@@ -55,6 +55,10 @@ export function shouldSuppressWarning(
   absoluteSolidityTestsPath: string,
   absoluteProjectRoot: string,
 ): boolean {
+  if (errorMessage.includes("__NomicFoundationCoverage")) {
+    return true;
+  }
+
   // Compute relative path from project root to test directory.
   // Example:
   // absoluteSolidityTestsPath: /workspaces/hardhat-4/packages/example-project/test/contracts
