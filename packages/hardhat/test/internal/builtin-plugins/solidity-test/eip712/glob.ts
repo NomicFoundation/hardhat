@@ -305,6 +305,13 @@ describe("eip712 - glob", () => {
         assert.equal(isPathSelected("src/b.sol", include, []), true);
         assert.equal(isPathSelected("src/c.sol", include, []), false);
       });
+
+      it("compiles empty and negated-empty character classes without throwing", () => {
+        assert.equal(isPathSelected("", ["[]"], []), false);
+        assert.equal(isPathSelected("a", ["[]"], []), false);
+        assert.equal(isPathSelected("a", ["[!]"], []), true);
+        assert.equal(isPathSelected("ab", ["[!]"], []), false);
+      });
     });
   });
 });
