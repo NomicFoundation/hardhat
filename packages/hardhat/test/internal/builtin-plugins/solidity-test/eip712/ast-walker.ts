@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 
 import {
+  buildUdvtIndex,
   encodeMemberType,
   extractStructsFromAst,
 } from "../../../../../src/internal/builtin-plugins/solidity-test/eip712/ast-walker.js";
@@ -268,10 +269,49 @@ describe("eip712 - ast-walker", () => {
         );
       });
 
-      it("falls back to typeName.name for user-defined value types", () => {
-        // User-defined value types (`type MyUint is uint256;`, solc 0.8.8+) emit a typeString that
-        // doesn't match enum/contract/interface/struct, so we fall back to the
-        // node's local `name`.
+      it("resolves user-defined value types to their underlying elementary type", () => {
+        // `type MyUint is uint256;` should encode as `uint256`
+        const udvtIndex = new Map<number, Record<string, unknown>>([
+          [42, { nodeType: "ElementaryTypeName", name: "uint256" }],
+        ]);
+
+        assert.equal(
+          encodeMemberType(
+            {
+              nodeType: "UserDefinedTypeName",
+              name: "MyUint",
+              referencedDeclaration: 42,
+              typeDescriptions: { typeString: "MyUint" },
+            },
+            udvtIndex,
+          ),
+          "uint256",
+        );
+      });
+
+      it("resolves UDVTs via pathNode.referencedDeclaration too", () => {
+        // Newer solc emits the reference id on `pathNode` rather than the
+        // top-level node.
+        const udvtIndex = new Map<number, Record<string, unknown>>([
+          [99, { nodeType: "ElementaryTypeName", name: "bytes32" }],
+        ]);
+
+        assert.equal(
+          encodeMemberType(
+            {
+              nodeType: "UserDefinedTypeName",
+              typeDescriptions: { typeString: "MyLib.MyHash" },
+              pathNode: { name: "MyLib.MyHash", referencedDeclaration: 99 },
+            },
+            udvtIndex,
+          ),
+          "bytes32",
+        );
+      });
+
+      it("falls back to typeName.name when the UDVT reference can't be resolved", () => {
+        // No `referencedDeclaration`, or the id isn't in the index — emit the
+        // alias name so the downstream encoder produces a clear error.
         assert.equal(
           encodeMemberType({
             nodeType: "UserDefinedTypeName",
@@ -366,6 +406,30 @@ describe("eip712 - ast-walker", () => {
           "uint256[]",
         );
       });
+
+      it("forwards the UDVT index through array recursion", () => {
+        // `MyHash[]` where `type MyHash is bytes32` should encode as `bytes32[]`.
+        const udvtIndex = new Map<number, Record<string, unknown>>([
+          [7, { nodeType: "ElementaryTypeName", name: "bytes32" }],
+        ]);
+
+        assert.equal(
+          encodeMemberType(
+            {
+              nodeType: "ArrayTypeName",
+              baseType: {
+                nodeType: "UserDefinedTypeName",
+                name: "MyHash",
+                referencedDeclaration: 7,
+                typeDescriptions: { typeString: "MyHash" },
+              },
+              length: null,
+            },
+            udvtIndex,
+          ),
+          "bytes32[]",
+        );
+      });
     });
 
     describe("Mapping", () => {
@@ -397,6 +461,169 @@ describe("eip712 - ast-walker", () => {
           undefined,
         );
       });
+    });
+  });
+
+  describe("buildUdvtIndex", () => {
+    it("indexes file-level UDVT definitions by node id", () => {
+      const ast = {
+        nodeType: "SourceUnit",
+        nodes: [
+          {
+            nodeType: "UserDefinedValueTypeDefinition",
+            id: 11,
+            name: "MyUint",
+            underlyingType: { nodeType: "ElementaryTypeName", name: "uint256" },
+          },
+        ],
+      };
+
+      const index = buildUdvtIndex([ast]);
+
+      assert.equal(index.size, 1);
+      assert.deepEqual(index.get(11), {
+        nodeType: "ElementaryTypeName",
+        name: "uint256",
+      });
+    });
+
+    it("indexes UDVTs nested inside contracts", () => {
+      const ast = {
+        nodeType: "SourceUnit",
+        nodes: [
+          {
+            nodeType: "ContractDefinition",
+            nodes: [
+              {
+                nodeType: "UserDefinedValueTypeDefinition",
+                id: 22,
+                name: "MyHash",
+                underlyingType: {
+                  nodeType: "ElementaryTypeName",
+                  name: "bytes32",
+                },
+              },
+            ],
+          },
+        ],
+      };
+
+      const index = buildUdvtIndex([ast]);
+
+      assert.deepEqual(index.get(22), {
+        nodeType: "ElementaryTypeName",
+        name: "bytes32",
+      });
+    });
+
+    it("merges definitions from multiple ASTs", () => {
+      const astA = {
+        nodeType: "SourceUnit",
+        nodes: [
+          {
+            nodeType: "UserDefinedValueTypeDefinition",
+            id: 1,
+            underlyingType: { nodeType: "ElementaryTypeName", name: "uint256" },
+          },
+        ],
+      };
+      const astB = {
+        nodeType: "SourceUnit",
+        nodes: [
+          {
+            nodeType: "UserDefinedValueTypeDefinition",
+            id: 2,
+            underlyingType: { nodeType: "ElementaryTypeName", name: "address" },
+          },
+        ],
+      };
+
+      const index = buildUdvtIndex([astA, astB]);
+
+      assert.equal(index.size, 2);
+      assert.deepEqual(index.get(1), {
+        nodeType: "ElementaryTypeName",
+        name: "uint256",
+      });
+      assert.deepEqual(index.get(2), {
+        nodeType: "ElementaryTypeName",
+        name: "address",
+      });
+    });
+
+    it("ignores definitions whose underlyingType is not an ElementaryTypeName", () => {
+      const ast = {
+        nodeType: "SourceUnit",
+        nodes: [
+          {
+            nodeType: "UserDefinedValueTypeDefinition",
+            id: 33,
+            // Not actually possible in Solidity, but the walker should be
+            // defensive about malformed/foreign-source ASTs.
+            underlyingType: { nodeType: "UserDefinedTypeName" },
+          },
+        ],
+      };
+
+      assert.equal(buildUdvtIndex([ast]).size, 0);
+    });
+
+    it("ignores non-SourceUnit roots", () => {
+      assert.equal(buildUdvtIndex([{ nodeType: "Other" }, null, 42]).size, 0);
+    });
+  });
+
+  describe("extractStructsFromAst with UDVT index", () => {
+    it("resolves a struct member whose type is a UDVT to the underlying type", () => {
+      // `type Bytes32 is bytes32; struct Foo { Bytes32 h; }` — the EIP-712
+      // string must be `Foo(bytes32 h)`, not `Foo(Bytes32 h)`.
+      const udvtAst = {
+        nodeType: "SourceUnit",
+        nodes: [
+          {
+            nodeType: "UserDefinedValueTypeDefinition",
+            id: 100,
+            name: "Bytes32",
+            underlyingType: {
+              nodeType: "ElementaryTypeName",
+              name: "bytes32",
+            },
+          },
+        ],
+      };
+
+      const structAst = {
+        nodeType: "SourceUnit",
+        nodes: [
+          {
+            nodeType: "StructDefinition",
+            name: "Foo",
+            members: [
+              {
+                nodeType: "VariableDeclaration",
+                name: "h",
+                typeName: {
+                  nodeType: "UserDefinedTypeName",
+                  name: "Bytes32",
+                  referencedDeclaration: 100,
+                  typeDescriptions: { typeString: "Bytes32" },
+                },
+              },
+            ],
+          },
+        ],
+      };
+
+      const udvtIndex = buildUdvtIndex([udvtAst, structAst]);
+      const out = extractStructsFromAst(structAst, "Foo.sol", udvtIndex);
+
+      assert.deepEqual(out, [
+        {
+          name: "Foo",
+          sourcePath: "Foo.sol",
+          members: [{ name: "h", type: "bytes32" }],
+        },
+      ]);
     });
   });
 });

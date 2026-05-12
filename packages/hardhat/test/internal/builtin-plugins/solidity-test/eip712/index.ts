@@ -442,6 +442,104 @@ describe("eip712 - collectEip712CanonicalTypes", () => {
     assert.deepEqual(result, ["S(uint256 a)"]);
   });
 
+  it("scopes UDVT resolution per build info when node ids collide", () => {
+    // solc node ids are unique only within a single compilation. When two
+    // build infos happen to assign the same numeric id to different UDVTs,
+    // the collector must resolve each struct's `referencedDeclaration`
+    // against its own compilation's index — not a pooled one — or it will
+    // silently emit the wrong underlying type. This is real-world reachable
+    // because the solidity-test task always passes the union of the
+    // `contracts` and `tests` artifact dirs into the collector.
+    const sharedId = 5;
+
+    const buildA = makeBuildInfo("solc-0_8_23-aaaa1111", [
+      {
+        inputSourceName: "project/contracts/A.sol",
+        userSourceName: "contracts/A.sol",
+        ast: {
+          nodeType: "SourceUnit",
+          nodes: [
+            {
+              nodeType: "UserDefinedValueTypeDefinition",
+              id: sharedId,
+              name: "Foo",
+              underlyingType: {
+                nodeType: "ElementaryTypeName",
+                name: "uint256",
+              },
+            },
+            {
+              nodeType: "StructDefinition",
+              name: "AStruct",
+              members: [
+                {
+                  nodeType: "VariableDeclaration",
+                  name: "f",
+                  typeName: {
+                    nodeType: "UserDefinedTypeName",
+                    name: "Foo",
+                    referencedDeclaration: sharedId,
+                    typeDescriptions: { typeString: "Foo" },
+                  },
+                },
+              ],
+            },
+          ],
+        },
+      },
+    ]);
+
+    const buildB = makeBuildInfo("solc-0_8_23-bbbb2222", [
+      {
+        inputSourceName: "project/test/B.t.sol",
+        userSourceName: "test/B.t.sol",
+        ast: {
+          nodeType: "SourceUnit",
+          nodes: [
+            {
+              nodeType: "UserDefinedValueTypeDefinition",
+              id: sharedId,
+              name: "Bar",
+              underlyingType: {
+                nodeType: "ElementaryTypeName",
+                name: "bytes32",
+              },
+            },
+            {
+              nodeType: "StructDefinition",
+              name: "BStruct",
+              members: [
+                {
+                  nodeType: "VariableDeclaration",
+                  name: "b",
+                  typeName: {
+                    nodeType: "UserDefinedTypeName",
+                    name: "Bar",
+                    referencedDeclaration: sharedId,
+                    typeDescriptions: { typeString: "Bar" },
+                  },
+                },
+              ],
+            },
+          ],
+        },
+      },
+    ]);
+
+    // Both orderings must produce the same answer — iteration order over
+    // `buildInfosAndOutputs` is not something callers can control.
+    const expected = ["AStruct(uint256 f)", "BStruct(bytes32 b)"];
+
+    assert.deepEqual(
+      collectEip712CanonicalTypes([buildA, buildB], { include: ["**"] }).sort(),
+      expected,
+    );
+    assert.deepEqual(
+      collectEip712CanonicalTypes([buildB, buildA], { include: ["**"] }).sort(),
+      expected,
+    );
+  });
+
   it("skips build infos whose output has no sources", () => {
     // Defensive: a build info output without a `sources` key must be
     // silently skipped, and structs from sibling build infos must still

@@ -24,12 +24,72 @@ export interface CollectedStruct {
 }
 
 /**
+ * A user-defined value type (`type Foo is bytes32;`) resolves to its
+ * underlying elementary type for EIP-712 encoding.
+ * The map is keyed by the UDVT definition's solc node id, which is what
+ * `referencedDeclaration` on a `UserDefinedTypeName` reference points to.
+ */
+export type UdvtIndex = Map<number, Record<string, unknown>>;
+
+/**
+ * Walks every AST in the build and indexes every `UserDefinedValueTypeDefinition`
+ * by its node `id`, mapping to its `underlyingType` (an `ElementaryTypeName`).
+ *
+ * UDVTs can sit at file scope or inside a contract, and a struct in one source
+ * may reference a UDVT defined in another, so this must run across every AST in
+ * the build — not just the ones matched by the user's include globs.
+ */
+export function buildUdvtIndex(asts: unknown[]): UdvtIndex {
+  const index: UdvtIndex = new Map();
+
+  for (const ast of asts) {
+    if (!isObject(ast) || ast.nodeType !== "SourceUnit") {
+      continue;
+    }
+
+    const topLevelNodes: unknown[] = Array.isArray(ast.nodes) ? ast.nodes : [];
+    for (const node of topLevelNodes) {
+      if (!isObject(node)) {
+        continue;
+      }
+
+      if (node.nodeType === "UserDefinedValueTypeDefinition") {
+        recordUdvt(node, index);
+      } else if (node.nodeType === "ContractDefinition") {
+        const members: unknown[] = Array.isArray(node.nodes) ? node.nodes : [];
+        for (const member of members) {
+          if (
+            isObject(member) &&
+            member.nodeType === "UserDefinedValueTypeDefinition"
+          ) {
+            recordUdvt(member, index);
+          }
+        }
+      }
+    }
+  }
+
+  return index;
+}
+
+function recordUdvt(node: Record<string, unknown>, index: UdvtIndex): void {
+  if (
+    typeof node.id === "number" &&
+    isObject(node.underlyingType) &&
+    node.underlyingType.nodeType === "ElementaryTypeName"
+  ) {
+    index.set(node.id, node.underlyingType);
+  }
+}
+
+/**
  * Returns every struct definition reachable from a solc source AST (Abstract Syntax Tree),
  * including structs nested inside contracts.
  */
 export function extractStructsFromAst(
   ast: unknown,
   sourcePath: string,
+  udvtIndex: UdvtIndex = new Map(),
 ): CollectedStruct[] {
   if (!isObject(ast) || ast.nodeType !== "SourceUnit") {
     return [];
@@ -44,7 +104,7 @@ export function extractStructsFromAst(
     }
 
     if (node.nodeType === "StructDefinition") {
-      const collected = collectStruct(node, sourcePath);
+      const collected = collectStruct(node, sourcePath, udvtIndex);
       if (collected !== undefined) {
         results.push(collected);
       }
@@ -52,7 +112,7 @@ export function extractStructsFromAst(
       const members: unknown[] = Array.isArray(node.nodes) ? node.nodes : [];
       for (const member of members) {
         if (isObject(member) && member.nodeType === "StructDefinition") {
-          const collected = collectStruct(member, sourcePath);
+          const collected = collectStruct(member, sourcePath, udvtIndex);
           if (collected !== undefined) {
             results.push(collected);
           }
@@ -67,6 +127,7 @@ export function extractStructsFromAst(
 function collectStruct(
   node: Record<string, unknown>,
   sourcePath: string,
+  udvtIndex: UdvtIndex,
 ): CollectedStruct | undefined {
   if (typeof node.name !== "string") {
     return undefined;
@@ -91,7 +152,7 @@ function collectStruct(
 
     members.push({
       name: memberNode.name,
-      type: encodeMemberType(memberNode.typeName),
+      type: encodeMemberType(memberNode.typeName, udvtIndex),
     });
   }
 
@@ -110,10 +171,14 @@ function collectStruct(
  *   - enums                  → `uint8`
  *   - contracts / interfaces → `address`
  *   - structs                → bare name (`Wallet.Person` → `Person`)
+ *   - user-defined value types → underlying elementary type (`type Foo is bytes32` → `bytes32`)
  *   - arrays                 → `T[]` (dynamic) or `T[N]` (fixed)
  *   - mappings / functions   → `undefined` (not EIP-712 encodable)
  */
-export function encodeMemberType(typeName: unknown): string | undefined {
+export function encodeMemberType(
+  typeName: unknown,
+  udvtIndex: UdvtIndex = new Map(),
+): string | undefined {
   if (!isObject(typeName)) {
     return undefined;
   }
@@ -154,9 +219,29 @@ export function encodeMemberType(typeName: unknown): string | undefined {
         return segments[segments.length - 1];
       }
 
-      // Fallback for user-defined value types (solc 0.8.8+) and type aliases.
-      // Some of these aren't EIP-712 encodable; emitting the name lets the
-      // downstream encoder produce a clear error rather than failing here.
+      // User-defined value types (`type Foo is bytes32;`, solc 0.8.8+).
+      // Resolve via `referencedDeclaration` against the build-wide UDVT index
+      // and recurse on the underlying elementary type — matching forge's
+      // `Resolver::resolve_type` so `Foo h` encodes as `bytes32 h`, not `Foo h`.
+      const refId =
+        typeof typeName.referencedDeclaration === "number"
+          ? typeName.referencedDeclaration
+          : isObject(typeName.pathNode) &&
+              typeof typeName.pathNode.referencedDeclaration === "number"
+            ? typeName.pathNode.referencedDeclaration
+            : undefined;
+
+      if (refId !== undefined) {
+        const underlying = udvtIndex.get(refId);
+        if (underlying !== undefined) {
+          return encodeMemberType(underlying, udvtIndex);
+        }
+      }
+
+      // Fallback when the reference can't be resolved (missing
+      // `referencedDeclaration`, or its definition wasn't in the build).
+      // Emitting the name lets the downstream encoder produce a clear error
+      // rather than failing silently here.
       if (typeof typeName.name === "string") {
         return typeName.name;
       }
@@ -173,7 +258,7 @@ export function encodeMemberType(typeName: unknown): string | undefined {
     }
 
     case "ArrayTypeName": {
-      const base = encodeMemberType(typeName.baseType);
+      const base = encodeMemberType(typeName.baseType, udvtIndex);
       if (base === undefined) {
         return undefined;
       }
