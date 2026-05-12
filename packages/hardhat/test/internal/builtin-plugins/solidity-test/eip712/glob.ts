@@ -296,6 +296,30 @@ describe("eip712 - glob", () => {
         assert.equal(isPathSelected("ab.sol", ["a[b.sol"], []), false);
       });
 
+      it("does not match the path separator in a negated class", () => {
+        assert.equal(
+          isPathSelected("src/foo/bar.sol", ["src/foo[!x]bar.sol"], []),
+          false,
+        );
+        assert.equal(
+          isPathSelected("src/fooybar.sol", ["src/foo[!x]bar.sol"], []),
+          true,
+        );
+      });
+
+      it("does not match the path separator when `/` is in a positive class", () => {
+        // A user-written `/` inside a class should never cross directory
+        // boundaries, consistent with `*` and `?`.
+        assert.equal(
+          isPathSelected("src/foo/bar.sol", ["src/foo[/x]bar.sol"], []),
+          false,
+        );
+        assert.equal(
+          isPathSelected("src/fooxbar.sol", ["src/foo[/x]bar.sol"], []),
+          true,
+        );
+      });
+
       it("works inside brace alternatives", () => {
         const include = ["src/{[Aa],[Bb]}.sol"];
 
