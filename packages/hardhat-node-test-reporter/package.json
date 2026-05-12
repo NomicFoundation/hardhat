@@ -20,14 +20,14 @@
     "hardhat"
   ],
   "scripts": {
-    "lint": "pnpm prettier --check && pnpm eslint",
-    "lint:fix": "pnpm prettier --write && pnpm eslint --fix",
+    "lint": "pnpm eslint && pnpm prettier --check",
+    "lint:fix": "pnpm eslint --fix && pnpm prettier --write",
     "eslint": "eslint \"src/**/*.ts\" \"test/**/*.ts\" \"integration-tests/**/*.ts\"",
     "prettier": "prettier \"**/*.{ts,js,md,json}\"",
     "test": "node --import tsx/esm --test \"test/**/*.ts\"",
     "test:only": "node --import tsx/esm --test --test-only \"test/**/*.ts\"",
     "test:coverage": "c8 --reporter html --reporter text --all --exclude test --exclude \"src/**/{types,type-extensions}.ts\" --src src node --import tsx/esm --test \"test/**/*.ts\"",
-    "test:integration": "node --import tsx/esm integration-tests/index.ts --color",
+    "test:integration": "node --disable-warning=DEP0205 --import tsx/esm integration-tests/index.ts --color",
     "posttest": "pnpm test:integration",
     "pretest": "pnpm build",
     "pretest:only": "pnpm build",

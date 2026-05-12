@@ -37,7 +37,8 @@ export const BUILTIN_GLOBAL_OPTIONS_DEFINITIONS: GlobalOptionDefinitions =
         pluginId: "builtin",
         option: globalFlag({
           name: "init",
-          description: "Initializes a Hardhat project.",
+          description:
+            "Initializes a Hardhat project. Supports `--template <name>` and `--templates`.",
         }),
       },
     ],

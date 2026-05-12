@@ -122,3 +122,6 @@ pnpm-publish-summary.json
 # Ignored for now, should be reconsidered if we want codex-specific settings.
 # The reason to ignore it is that codex creates a .codex file if the folder doesn't exist.
 /.codex
+
+# CPU Profiler output
+*.cpuprofile

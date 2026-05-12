@@ -261,7 +261,7 @@ GLOBAL OPTIONS:
 
   --config                 A Hardhat config file
   --help, -h               Show this message, or a task's help if its name is provided
-  --init                   Initializes a Hardhat project
+  --init                   Initializes a Hardhat project. Supports \`--template <name>\` and \`--templates\`
   --show-stack-traces      Show stack traces (always enabled on CI servers)
   --user-option-1          userOption1 description
   --user-option-2          userOption2 description
@@ -383,7 +383,7 @@ GLOBAL OPTIONS:
 
   --config                 A Hardhat config file
   --help, -h               Show this message, or a task's help if its name is provided
-  --init                   Initializes a Hardhat project
+  --init                   Initializes a Hardhat project. Supports \`--template <name>\` and \`--templates\`
   --show-stack-traces      Show stack traces (always enabled on CI servers)
   --user-option-1          userOption1 description
   --user-option-2          userOption2 description

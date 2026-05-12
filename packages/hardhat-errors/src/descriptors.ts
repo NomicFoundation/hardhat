@@ -530,6 +530,24 @@ Please install Hardhat locally using pnpm, npm or yarn, and try again.`,
         websiteTitle: "Invalid resolved config",
         websiteDescription: `The configuration you provided is seemingly valid, but once resolved it contains errors. Please check the documentation to learn how to configure Hardhat correctly.`,
       },
+      TEMPLATE_NOT_FOUND_WITH_LIST_OF_OPTIONS: {
+        number: 25,
+        messageTemplate: `Template "{template}" not found.
+
+The available templates are:
+{availableTemplates}`,
+        websiteTitle: "Template not found",
+        websiteDescription: `The template you provided is not found. Please check the documentation to learn which templates are available.`,
+      },
+      NON_INTERACTIVE_INIT_WOULD_OVERWRITE_FILES: {
+        number: 26,
+        messageTemplate: `The following files already exist in the current working directory, preventing the initialization of a new Hardhat project:
+{files}
+
+Remove them or move them to a different place and try again.`,
+        websiteTitle: "Non-interactive init failed due to existing files",
+        websiteDescription: `The non-interactive project initialization refuses to overwrite existing files. Remove the conflicting files and retry.`,
+      },
     },
     INTERNAL: {
       ASSERTION_ERROR: {
@@ -887,6 +905,16 @@ Please double check your arguments.`,
         websiteTitle: "Hidden options cannot be used from the CLI",
         websiteDescription: `You are trying to use a hidden option from the CLI, which is not allowed.`,
       },
+      CANNOT_COMBINE_TEMPLATE_AND_TEMPLATES: {
+        number: 513,
+        messageTemplate:
+          'The options "--template" and "--templates" cannot be used together. Use "--init --template <name>" to initialize a project with a specific template, or "--init --templates" to list the available templates.',
+        websiteTitle:
+          'The options "--template" and "--templates" cannot be used together',
+        websiteDescription: `The options "--template" and "--templates" cannot be used together.
+
+Use "--init --template <name>" to initialize a project with a specific template, or "--init --templates" to list the available templates.`,
+      },
     },
     BUILTIN_TASKS: {
       RUN_FILE_NOT_FOUND: {
@@ -1243,8 +1271,15 @@ Double-check the paths you are providing to the \`test solidity\` task.`,
         websiteTitle: "Selected Solidity test files do not exist",
         websiteDescription: `You ran the \`test solidity\` task with files that do not exist on disk.`,
       },
-      EIP712_DUPLICATE_STRUCT_NAME: {
+      SNAPSHOT_GROUP_NAME_COLLISION: {
         number: 817,
+        messageTemplate: `Snapshot group names "{nameA}" and "{nameB}" both produce the on-disk filename "{sanitized}.json" after sanitization. Rename one of them in your Solidity tests so they produce different filenames.`,
+        websiteTitle: "Snapshot group name collision after sanitization",
+        websiteDescription:
+          "Two distinct snapshot group names sanitize to the same on-disk filename. Rename one of the groups in your Solidity tests so they produce different filenames.",
+      },
+      EIP712_DUPLICATE_STRUCT_NAME: {
+        number: 818,
         messageTemplate: `Two different EIP-712 struct definitions named "{name}" were found:
 - {firstSource}
 - {secondSource}
