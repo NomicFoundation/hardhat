@@ -79,9 +79,7 @@ export function collectEip712CanonicalTypes(
     // underlying type. The index still has to span every source in *this*
     // build (not just include-matched ones) because a struct in an included
     // file may reference a UDVT defined in a non-included file.
-    const udvtIndex = buildUdvtIndex(
-      Object.values(sources).map((s) => s.ast),
-    );
+    const udvtIndex = buildUdvtIndex(Object.values(sources).map((s) => s.ast));
 
     for (const [inputSourceName, source] of Object.entries(sources)) {
       let userSourceName = inputToUserSource.get(inputSourceName);
