@@ -29,6 +29,8 @@ hardhat test solidity   # Solidity tests only
 
 TypeScript tests are run either with `hardhat test nodejs` or with `hardhat test mocha`, depending on the toolbox or plugins being used: the viem-based toolbox uses `nodejs` while the ethers+mocha toolbox uses `mocha`.
 
+Pass `--coverage` to collect Solidity coverage while running tests. It works on the main `hardhat test` task as well as the `solidity` and TypeScript subtasks (`nodejs` / `mocha`), so you can scope coverage to a single test layer when needed.
+
 ## Solidity tests
 
 Any contract that contains at least one `test*` function is treated as a test contract. Use `forge-std` (if present in `package.json`) for assertions and cheatcodes:
