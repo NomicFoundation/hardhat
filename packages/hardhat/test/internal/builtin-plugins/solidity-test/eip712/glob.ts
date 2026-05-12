@@ -101,5 +101,51 @@ describe("eip712 - glob", () => {
       assert.equal(isPathSelected("b.sol", ["**"], ["a.sol", "b.sol"]), false);
       assert.equal(isPathSelected("c.sol", ["**"], ["a.sol", "b.sol"]), true);
     });
+
+    it("matches scoped npm package paths", () => {
+      assert.equal(
+        isPathSelected(
+          "@openzeppelin/contracts/token/ERC20/ERC20.sol",
+          ["@openzeppelin/**"],
+          [],
+        ),
+        true,
+      );
+      assert.equal(
+        isPathSelected(
+          "@openzeppelin/contracts/token/ERC20/ERC20.sol",
+          ["@openzeppelin/contracts/token/**/*.sol"],
+          [],
+        ),
+        true,
+      );
+      assert.equal(
+        isPathSelected(
+          "@openzeppelin/contracts/token/ERC20/ERC20.sol",
+          ["@other/**"],
+          [],
+        ),
+        false,
+      );
+    });
+
+    it("excludes scoped npm package paths", () => {
+      assert.equal(
+        isPathSelected(
+          "@openzeppelin/contracts/mocks/Mock.sol",
+          ["@openzeppelin/**"],
+          ["@openzeppelin/contracts/mocks/**"],
+        ),
+        false,
+      );
+      assert.equal(
+        isPathSelected(
+          "@openzeppelin/contracts/token/ERC20.sol",
+          ["@openzeppelin/**"],
+          ["@openzeppelin/contracts/mocks/**"],
+        ),
+        true,
+      );
+    });
   });
 });
