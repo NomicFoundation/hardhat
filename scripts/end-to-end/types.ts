@@ -17,4 +17,12 @@ export interface ScenarioDefinition {
   env?: Record<string, string>;
   submodules?: boolean;
   disabled?: true;
+  benchmark?: {
+    skip?: true;
+    runs?: {
+      defaultCommand?: number;
+      coldCompile?: number;
+      warmCompile?: number;
+    };
+  };
 }
