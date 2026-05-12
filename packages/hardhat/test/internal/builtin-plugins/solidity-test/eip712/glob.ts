@@ -302,6 +302,7 @@ describe("eip712 - glob", () => {
           false,
         );
         assert.equal(
+          /* cspell:disable-next-line */
           isPathSelected("src/fooybar.sol", ["src/foo[!x]bar.sol"], []),
           true,
         );
@@ -315,6 +316,7 @@ describe("eip712 - glob", () => {
           false,
         );
         assert.equal(
+          /* cspell:disable-next-line */
           isPathSelected("src/fooxbar.sol", ["src/foo[/x]bar.sol"], []),
           true,
         );
