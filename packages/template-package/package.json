@@ -15,7 +15,8 @@
   "types": "dist/src/index.d.ts",
   "exports": {
     ".": "./dist/src/index.js",
-    "./other": "./dist/src/other-entry-point.js"
+    "./other": "./dist/src/other-entry-point.js",
+    "./package.json": "./package.json"
   },
   "keywords": [
     "ethereum",

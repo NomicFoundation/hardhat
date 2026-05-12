@@ -15,7 +15,8 @@
   "types": "./dist/src/index.d.ts",
   "exports": {
     ".": "./dist/src/index.js",
-    "./ui-helpers": "./dist/src/ui-helpers.js"
+    "./ui-helpers": "./dist/src/ui-helpers.js",
+    "./package.json": "./package.json"
   },
   "typesVersions": {
     "*": {

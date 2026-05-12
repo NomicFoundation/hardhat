@@ -15,7 +15,8 @@
   "exports": {
     ".": "./dist/src/index.js",
     "./panic": "./dist/src/panic.js",
-    "./withArgs": "./dist/src/withArgs.js"
+    "./withArgs": "./dist/src/withArgs.js",
+    "./package.json": "./package.json"
   },
   "keywords": [
     "ethereum",

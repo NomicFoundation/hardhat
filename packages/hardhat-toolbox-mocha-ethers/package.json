@@ -13,7 +13,8 @@
   "type": "module",
   "types": "",
   "exports": {
-    ".": "./dist/src/index.js"
+    ".": "./dist/src/index.js",
+    "./package.json": "./package.json"
   },
   "keywords": [
     "ethereum",

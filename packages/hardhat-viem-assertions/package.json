@@ -15,7 +15,8 @@
   "exports": {
     ".": "./dist/src/index.js",
     "./types": "./dist/src/types.js",
-    "./predicates": "./dist/src/predicates.js"
+    "./predicates": "./dist/src/predicates.js",
+    "./package.json": "./package.json"
   },
   "keywords": [
     "ethereum",

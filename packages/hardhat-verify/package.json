@@ -15,7 +15,8 @@
   "exports": {
     ".": "./dist/src/index.js",
     "./verify": "./dist/src/verify.js",
-    "./types": "./dist/src/types.js"
+    "./types": "./dist/src/types.js",
+    "./package.json": "./package.json"
   },
   "keywords": [
     "ethereum",
