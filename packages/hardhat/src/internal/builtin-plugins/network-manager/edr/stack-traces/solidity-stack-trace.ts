@@ -1,5 +1,7 @@
 import type {
   SourceReference,
+  SolidityStackTrace,
+  SolidityStackTraceEntry,
   CallstackEntryStackTraceEntry,
   UnrecognizedCreateCallstackEntryStackTraceEntry,
   UnrecognizedContractCallstackEntryStackTraceEntry,
@@ -26,11 +28,11 @@ import type {
   ContractCallRunOutOfGasError,
   CheatcodeErrorStackTraceEntry,
   CheatcodeErrorDetails,
+  CheatcodeErrorCode,
 } from "@nomicfoundation/edr";
 
 import {
   StackTraceEntryType,
-  CheatcodeErrorCode,
   stackTraceEntryTypeToString,
   FALLBACK_FUNCTION_NAME,
   RECEIVE_FUNCTION_NAME,
@@ -42,9 +44,7 @@ import {
 } from "@nomicfoundation/edr";
 
 export {
-  SourceReference,
   StackTraceEntryType,
-  CheatcodeErrorCode,
   stackTraceEntryTypeToString,
   FALLBACK_FUNCTION_NAME,
   RECEIVE_FUNCTION_NAME,
@@ -56,6 +56,10 @@ export {
 };
 
 export type {
+  SourceReference,
+  SolidityStackTrace,
+  SolidityStackTraceEntry,
+  CheatcodeErrorCode,
   CallstackEntryStackTraceEntry,
   UnrecognizedCreateCallstackEntryStackTraceEntry,
   UnrecognizedContractCallstackEntryStackTraceEntry,
@@ -80,34 +84,6 @@ export type {
   ContractTooLargeErrorStackTraceEntry,
   InternalFunctionCallStackEntry,
   ContractCallRunOutOfGasError,
+  CheatcodeErrorStackTraceEntry,
   CheatcodeErrorDetails,
 };
-
-export type SolidityStackTraceEntry =
-  | CallstackEntryStackTraceEntry
-  | UnrecognizedCreateCallstackEntryStackTraceEntry
-  | UnrecognizedContractCallstackEntryStackTraceEntry
-  | PrecompileErrorStackTraceEntry
-  | RevertErrorStackTraceEntry
-  | PanicErrorStackTraceEntry
-  | CustomErrorStackTraceEntry
-  | FunctionNotPayableErrorStackTraceEntry
-  | InvalidParamsErrorStackTraceEntry
-  | FallbackNotPayableErrorStackTraceEntry
-  | FallbackNotPayableAndNoReceiveErrorStackTraceEntry
-  | UnrecognizedFunctionWithoutFallbackErrorStackTraceEntry
-  | MissingFallbackOrReceiveErrorStackTraceEntry
-  | ReturndataSizeErrorStackTraceEntry
-  | NonContractAccountCalledErrorStackTraceEntry
-  | CallFailedErrorStackTraceEntry
-  | DirectLibraryCallErrorStackTraceEntry
-  | UnrecognizedCreateErrorStackTraceEntry
-  | UnrecognizedContractErrorStackTraceEntry
-  | OtherExecutionErrorStackTraceEntry
-  | UnmappedSolc063RevertErrorStackTraceEntry
-  | ContractTooLargeErrorStackTraceEntry
-  | InternalFunctionCallStackEntry
-  | ContractCallRunOutOfGasError
-  | CheatcodeErrorStackTraceEntry;
-
-export type SolidityStackTrace = SolidityStackTraceEntry[];

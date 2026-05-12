@@ -17,8 +17,8 @@ import type {
 } from "@nomicfoundation/edr";
 
 import {
-  GasReportExecutionStatus,
   MineOrdering,
+  GasReportExecutionStatus,
   OpHardfork,
   SpecId,
   FRONTIER,
@@ -260,15 +260,18 @@ export function hardhatMiningIntervalToEdrMiningInterval(
   }
 }
 
+const MINE_ORDERING_BY_MEMPOOL_ORDER: Record<
+  EdrNetworkMempoolConfig["order"],
+  MineOrdering
+> = {
+  fifo: MineOrdering.Fifo,
+  priority: MineOrdering.Priority,
+};
+
 export function hardhatMempoolOrderToEdrMineOrdering(
   mempoolOrder: EdrNetworkMempoolConfig["order"],
 ): MineOrdering {
-  switch (mempoolOrder) {
-    case "fifo":
-      return MineOrdering.Fifo;
-    case "priority":
-      return MineOrdering.Priority;
-  }
+  return MINE_ORDERING_BY_MEMPOOL_ORDER[mempoolOrder];
 }
 
 export async function hardhatAccountsToEdrOwnedAccounts(

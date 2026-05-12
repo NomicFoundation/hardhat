@@ -1,0 +1,13 @@
+diff --git a/index.d.ts b/index.d.ts
+--- a/index.d.ts
++++ b/index.d.ts
+@@ -1150,7 +1150,9 @@ export interface StackTrace {
+   kind: "StackTrace"
+   /** The stack trace entries */
+   entries: Array<SolidityStackTraceEntry>
+ }
++export type SolidityStackTraceEntry = CallstackEntryStackTraceEntry | UnrecognizedCreateCallstackEntryStackTraceEntry | UnrecognizedContractCallstackEntryStackTraceEntry | PrecompileErrorStackTraceEntry | RevertErrorStackTraceEntry | PanicErrorStackTraceEntry | CustomErrorStackTraceEntry | FunctionNotPayableErrorStackTraceEntry | InvalidParamsErrorStackTraceEntry | FallbackNotPayableErrorStackTraceEntry | FallbackNotPayableAndNoReceiveErrorStackTraceEntry | UnrecognizedFunctionWithoutFallbackErrorStackTraceEntry | MissingFallbackOrReceiveErrorStackTraceEntry | ReturndataSizeErrorStackTraceEntry | NonContractAccountCalledErrorStackTraceEntry | CallFailedErrorStackTraceEntry | DirectLibraryCallErrorStackTraceEntry | UnrecognizedCreateErrorStackTraceEntry | UnrecognizedContractErrorStackTraceEntry | OtherExecutionErrorStackTraceEntry | UnmappedSolc063RevertErrorStackTraceEntry | ContractTooLargeErrorStackTraceEntry | InternalFunctionCallStackEntry | ContractCallRunOutOfGasError | CheatcodeErrorStackTraceEntry
++export type SolidityStackTrace = Array<SolidityStackTraceEntry>
+ /** We couldn't generate stack traces, because an unexpected error occurred. */
+ export interface UnexpectedError {
+   /** Enum tag for JS. */
