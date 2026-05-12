@@ -1,0 +1,14 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(pnpm build)",
+      "Bash(pnpm test)",
+      "Bash(pnpm test:file *)",
+      "Bash(pnpm lint)",
+      "Bash(pnpm lint:fix)",
+      "Bash(pnpm lint:file *)",
+      "Bash(pnpm spellcheck)",
+      "Bash(pnpm spellcheck:file *)"
+    ]
+  }
+}
