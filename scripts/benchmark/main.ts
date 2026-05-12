@@ -188,4 +188,6 @@ function buildHyperfineCommand(
   return parts.join(" ");
 }
 
-await cliMain();
+if (import.meta.main) {
+  await cliMain();
+}
