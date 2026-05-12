@@ -442,9 +442,10 @@ describe("eip712 - collectEip712CanonicalTypes", () => {
     assert.deepEqual(result, ["S(uint256 a)"]);
   });
 
-  it("scopes UDVT resolution per build info when node ids collide", () => {
+  it("scopes user-defined value type resolution per build info when node ids collide", () => {
     // solc node ids are unique only within a single compilation. When two
-    // build infos happen to assign the same numeric id to different UDVTs,
+    // build infos happen to assign the same numeric id to different
+    // user-defined value types,
     // the collector must resolve each struct's `referencedDeclaration`
     // against its own compilation's index — not a pooled one — or it will
     // silently emit the wrong underlying type. This is real-world reachable

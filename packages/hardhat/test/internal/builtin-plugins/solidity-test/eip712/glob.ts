@@ -176,11 +176,11 @@ describe("eip712 - glob", () => {
       });
 
       it("supports empty alternatives", () => {
-        const include = ["src/foo{,s}.sol"];
+        const include = ["src/cat{,s}.sol"];
 
-        assert.equal(isPathSelected("src/foo.sol", include, []), true);
-        assert.equal(isPathSelected("src/foos.sol", include, []), true);
-        assert.equal(isPathSelected("src/food.sol", include, []), false);
+        assert.equal(isPathSelected("src/cat.sol", include, []), true);
+        assert.equal(isPathSelected("src/cats.sol", include, []), true);
+        assert.equal(isPathSelected("src/cars.sol", include, []), false);
       });
 
       it("supports nested brace groups", () => {
@@ -253,7 +253,7 @@ describe("eip712 - glob", () => {
           false,
         );
         assert.equal(
-          isPathSelected("contracts/Tock.sol", ["**"], exclude),
+          isPathSelected("contracts/Lock.sol", ["**"], exclude),
           true,
         );
       });

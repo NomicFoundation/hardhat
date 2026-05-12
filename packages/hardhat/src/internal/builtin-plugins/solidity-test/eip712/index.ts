@@ -9,7 +9,10 @@ import { bytesToUtf8String } from "@nomicfoundation/hardhat-utils/bytes";
 
 import { HARDHAT_PROJECT_INPUT_SOURCE_NAME_ROOT } from "../../../../types/solidity/solidity-artifacts.js";
 
-import { buildUdvtIndex, extractStructsFromAst } from "./ast-walker.js";
+import {
+  buildUserDefinedValueTypeIndex,
+  extractStructsFromAst,
+} from "./ast-walker.js";
 import { canonicalizeStructs } from "./canonicalize.js";
 import { isPathSelected } from "./glob.js";
 
@@ -72,14 +75,17 @@ export function collectEip712CanonicalTypes(
       continue;
     }
 
-    // Build the UDVT index *per build info*. solc node ids are unique only
-    // within a single compilation, so pooling the indexes across build infos
-    // would let one compilation's UDVT shadow another at the same numeric
-    // id and silently resolve `referencedDeclaration` to the wrong
-    // underlying type. The index still has to span every source in *this*
-    // build (not just include-matched ones) because a struct in an included
-    // file may reference a UDVT defined in a non-included file.
-    const udvtIndex = buildUdvtIndex(Object.values(sources).map((s) => s.ast));
+    // Build the user-defined value type index *per build info*. solc node ids
+    // are unique only within a single compilation, so pooling the indexes
+    // across build infos would let one compilation's user-defined value type
+    // shadow another at the same numeric id and silently resolve
+    // `referencedDeclaration` to the wrong underlying type. The index still
+    // has to span every source in *this* build (not just include-matched ones)
+    // because a struct in an included file may reference a user-defined value
+    // type defined in a non-included file.
+    const userDefinedValueTypeI = buildUserDefinedValueTypeIndex(
+      Object.values(sources).map((s) => s.ast),
+    );
 
     for (const [inputSourceName, source] of Object.entries(sources)) {
       let userSourceName = inputToUserSource.get(inputSourceName);
@@ -97,7 +103,11 @@ export function collectEip712CanonicalTypes(
       }
 
       collected.push(
-        ...extractStructsFromAst(source.ast, userSourceName, udvtIndex),
+        ...extractStructsFromAst(
+          source.ast,
+          userSourceName,
+          userDefinedValueTypeI,
+        ),
       );
     }
   }

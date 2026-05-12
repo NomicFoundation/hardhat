@@ -26,21 +26,25 @@ export interface CollectedStruct {
 /**
  * A user-defined value type (`type Foo is bytes32;`) resolves to its
  * underlying elementary type for EIP-712 encoding.
- * The map is keyed by the UDVT definition's solc node id, which is what
- * `referencedDeclaration` on a `UserDefinedTypeName` reference points to.
+ * The map is keyed by the user-defined value type definition's solc node id,
+ * which is what `referencedDeclaration` on a `UserDefinedTypeName` reference
+ * points to.
  */
-export type UdvtIndex = Map<number, Record<string, unknown>>;
+export type UserDefinedValueTypeIndex = Map<number, Record<string, unknown>>;
 
 /**
  * Walks every AST in the build and indexes every `UserDefinedValueTypeDefinition`
  * by its node `id`, mapping to its `underlyingType` (an `ElementaryTypeName`).
  *
- * UDVTs can sit at file scope or inside a contract, and a struct in one source
- * may reference a UDVT defined in another, so this must run across every AST in
- * the build — not just the ones matched by the user's include globs.
+ * User-defined value types can sit at file scope or inside a contract, and a
+ * struct in one source may reference a user-defined value type defined in
+ * another, so this must run across every AST in the build — not just the ones
+ * matched by the user's include globs.
  */
-export function buildUdvtIndex(asts: unknown[]): UdvtIndex {
-  const index: UdvtIndex = new Map();
+export function buildUserDefinedValueTypeIndex(
+  asts: unknown[],
+): UserDefinedValueTypeIndex {
+  const index: UserDefinedValueTypeIndex = new Map();
 
   for (const ast of asts) {
     if (!isObject(ast) || ast.nodeType !== "SourceUnit") {
@@ -54,7 +58,7 @@ export function buildUdvtIndex(asts: unknown[]): UdvtIndex {
       }
 
       if (node.nodeType === "UserDefinedValueTypeDefinition") {
-        recordUdvt(node, index);
+        recordUserDefinedValueType(node, index);
       } else if (node.nodeType === "ContractDefinition") {
         const members: unknown[] = Array.isArray(node.nodes) ? node.nodes : [];
         for (const member of members) {
@@ -62,7 +66,7 @@ export function buildUdvtIndex(asts: unknown[]): UdvtIndex {
             isObject(member) &&
             member.nodeType === "UserDefinedValueTypeDefinition"
           ) {
-            recordUdvt(member, index);
+            recordUserDefinedValueType(member, index);
           }
         }
       }
@@ -72,7 +76,10 @@ export function buildUdvtIndex(asts: unknown[]): UdvtIndex {
   return index;
 }
 
-function recordUdvt(node: Record<string, unknown>, index: UdvtIndex): void {
+function recordUserDefinedValueType(
+  node: Record<string, unknown>,
+  index: UserDefinedValueTypeIndex,
+): void {
   if (
     typeof node.id === "number" &&
     isObject(node.underlyingType) &&
@@ -89,7 +96,7 @@ function recordUdvt(node: Record<string, unknown>, index: UdvtIndex): void {
 export function extractStructsFromAst(
   ast: unknown,
   sourcePath: string,
-  udvtIndex: UdvtIndex = new Map(),
+  userDefinedValueTypeI: UserDefinedValueTypeIndex = new Map(),
 ): CollectedStruct[] {
   if (!isObject(ast) || ast.nodeType !== "SourceUnit") {
     return [];
@@ -104,7 +111,7 @@ export function extractStructsFromAst(
     }
 
     if (node.nodeType === "StructDefinition") {
-      const collected = collectStruct(node, sourcePath, udvtIndex);
+      const collected = collectStruct(node, sourcePath, userDefinedValueTypeI);
       if (collected !== undefined) {
         results.push(collected);
       }
@@ -112,7 +119,11 @@ export function extractStructsFromAst(
       const members: unknown[] = Array.isArray(node.nodes) ? node.nodes : [];
       for (const member of members) {
         if (isObject(member) && member.nodeType === "StructDefinition") {
-          const collected = collectStruct(member, sourcePath, udvtIndex);
+          const collected = collectStruct(
+            member,
+            sourcePath,
+            userDefinedValueTypeI,
+          );
           if (collected !== undefined) {
             results.push(collected);
           }
@@ -127,7 +138,7 @@ export function extractStructsFromAst(
 function collectStruct(
   node: Record<string, unknown>,
   sourcePath: string,
-  udvtIndex: UdvtIndex,
+  userDefinedValueTypeI: UserDefinedValueTypeIndex,
 ): CollectedStruct | undefined {
   if (typeof node.name !== "string") {
     return undefined;
@@ -152,7 +163,7 @@ function collectStruct(
 
     members.push({
       name: memberNode.name,
-      type: encodeMemberType(memberNode.typeName, udvtIndex),
+      type: encodeMemberType(memberNode.typeName, userDefinedValueTypeI),
     });
   }
 
@@ -177,7 +188,7 @@ function collectStruct(
  */
 export function encodeMemberType(
   typeName: unknown,
-  udvtIndex: UdvtIndex = new Map(),
+  userDefinedValueTypeI: UserDefinedValueTypeIndex = new Map(),
 ): string | undefined {
   if (!isObject(typeName)) {
     return undefined;
@@ -220,7 +231,8 @@ export function encodeMemberType(
       }
 
       // User-defined value types (`type Foo is bytes32;`, solc 0.8.8+).
-      // Resolve via `referencedDeclaration` against the build-wide UDVT index
+      // Resolve via `referencedDeclaration` against the build-wide
+      // user-defined value type index
       // and recurse on the underlying elementary type — matching forge's
       // `Resolver::resolve_type` so `Foo h` encodes as `bytes32 h`, not `Foo h`.
       const refId =
@@ -232,9 +244,9 @@ export function encodeMemberType(
             : undefined;
 
       if (refId !== undefined) {
-        const underlying = udvtIndex.get(refId);
+        const underlying = userDefinedValueTypeI.get(refId);
         if (underlying !== undefined) {
-          return encodeMemberType(underlying, udvtIndex);
+          return encodeMemberType(underlying, userDefinedValueTypeI);
         }
       }
 
@@ -258,7 +270,7 @@ export function encodeMemberType(
     }
 
     case "ArrayTypeName": {
-      const base = encodeMemberType(typeName.baseType, udvtIndex);
+      const base = encodeMemberType(typeName.baseType, userDefinedValueTypeI);
       if (base === undefined) {
         return undefined;
       }

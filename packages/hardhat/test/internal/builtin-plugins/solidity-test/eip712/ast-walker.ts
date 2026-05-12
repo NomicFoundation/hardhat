@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 
 import {
-  buildUdvtIndex,
+  buildUserDefinedValueTypeIndex,
   encodeMemberType,
   extractStructsFromAst,
 } from "../../../../../src/internal/builtin-plugins/solidity-test/eip712/ast-walker.js";
@@ -271,7 +271,7 @@ describe("eip712 - ast-walker", () => {
 
       it("resolves user-defined value types to their underlying elementary type", () => {
         // `type MyUint is uint256;` should encode as `uint256`
-        const udvtIndex = new Map<number, Record<string, unknown>>([
+        const userDefinedValueTypeI = new Map<number, Record<string, unknown>>([
           [42, { nodeType: "ElementaryTypeName", name: "uint256" }],
         ]);
 
@@ -283,16 +283,16 @@ describe("eip712 - ast-walker", () => {
               referencedDeclaration: 42,
               typeDescriptions: { typeString: "MyUint" },
             },
-            udvtIndex,
+            userDefinedValueTypeI,
           ),
           "uint256",
         );
       });
 
-      it("resolves UDVTs via pathNode.referencedDeclaration too", () => {
+      it("resolves user-defined value types via pathNode.referencedDeclaration too", () => {
         // Newer solc emits the reference id on `pathNode` rather than the
         // top-level node.
-        const udvtIndex = new Map<number, Record<string, unknown>>([
+        const userDefinedValueTypeI = new Map<number, Record<string, unknown>>([
           [99, { nodeType: "ElementaryTypeName", name: "bytes32" }],
         ]);
 
@@ -303,13 +303,13 @@ describe("eip712 - ast-walker", () => {
               typeDescriptions: { typeString: "MyLib.MyHash" },
               pathNode: { name: "MyLib.MyHash", referencedDeclaration: 99 },
             },
-            udvtIndex,
+            userDefinedValueTypeI,
           ),
           "bytes32",
         );
       });
 
-      it("falls back to typeName.name when the UDVT reference can't be resolved", () => {
+      it("falls back to typeName.name when the user-defined value type reference can't be resolved", () => {
         // No `referencedDeclaration`, or the id isn't in the index — emit the
         // alias name so the downstream encoder produces a clear error.
         assert.equal(
@@ -407,9 +407,9 @@ describe("eip712 - ast-walker", () => {
         );
       });
 
-      it("forwards the UDVT index through array recursion", () => {
+      it("forwards the user-defined value type index through array recursion", () => {
         // `MyHash[]` where `type MyHash is bytes32` should encode as `bytes32[]`.
-        const udvtIndex = new Map<number, Record<string, unknown>>([
+        const userDefinedValueTypeI = new Map<number, Record<string, unknown>>([
           [7, { nodeType: "ElementaryTypeName", name: "bytes32" }],
         ]);
 
@@ -425,7 +425,7 @@ describe("eip712 - ast-walker", () => {
               },
               length: null,
             },
-            udvtIndex,
+            userDefinedValueTypeI,
           ),
           "bytes32[]",
         );
@@ -464,8 +464,8 @@ describe("eip712 - ast-walker", () => {
     });
   });
 
-  describe("buildUdvtIndex", () => {
-    it("indexes file-level UDVT definitions by node id", () => {
+  describe("buildUserDefinedValueTypeIndex", () => {
+    it("indexes file-level user-defined value type definitions by node id", () => {
       const ast = {
         nodeType: "SourceUnit",
         nodes: [
@@ -478,7 +478,7 @@ describe("eip712 - ast-walker", () => {
         ],
       };
 
-      const index = buildUdvtIndex([ast]);
+      const index = buildUserDefinedValueTypeIndex([ast]);
 
       assert.equal(index.size, 1);
       assert.deepEqual(index.get(11), {
@@ -487,7 +487,7 @@ describe("eip712 - ast-walker", () => {
       });
     });
 
-    it("indexes UDVTs nested inside contracts", () => {
+    it("indexes user-defined value types nested inside contracts", () => {
       const ast = {
         nodeType: "SourceUnit",
         nodes: [
@@ -508,7 +508,7 @@ describe("eip712 - ast-walker", () => {
         ],
       };
 
-      const index = buildUdvtIndex([ast]);
+      const index = buildUserDefinedValueTypeIndex([ast]);
 
       assert.deepEqual(index.get(22), {
         nodeType: "ElementaryTypeName",
@@ -538,7 +538,7 @@ describe("eip712 - ast-walker", () => {
         ],
       };
 
-      const index = buildUdvtIndex([astA, astB]);
+      const index = buildUserDefinedValueTypeIndex([astA, astB]);
 
       assert.equal(index.size, 2);
       assert.deepEqual(index.get(1), {
@@ -565,19 +565,22 @@ describe("eip712 - ast-walker", () => {
         ],
       };
 
-      assert.equal(buildUdvtIndex([ast]).size, 0);
+      assert.equal(buildUserDefinedValueTypeIndex([ast]).size, 0);
     });
 
     it("ignores non-SourceUnit roots", () => {
-      assert.equal(buildUdvtIndex([{ nodeType: "Other" }, null, 42]).size, 0);
+      assert.equal(
+        buildUserDefinedValueTypeIndex([{ nodeType: "Other" }, null, 42]).size,
+        0,
+      );
     });
   });
 
-  describe("extractStructsFromAst with UDVT index", () => {
-    it("resolves a struct member whose type is a UDVT to the underlying type", () => {
+  describe("extractStructsFromAst with user-defined value type index", () => {
+    it("resolves a struct member whose type is a user-defined value type to the underlying type", () => {
       // `type Bytes32 is bytes32; struct Foo { Bytes32 h; }` — the EIP-712
       // string must be `Foo(bytes32 h)`, not `Foo(Bytes32 h)`.
-      const udvtAst = {
+      const userDefinedValueTypeAst = {
         nodeType: "SourceUnit",
         nodes: [
           {
@@ -614,8 +617,15 @@ describe("eip712 - ast-walker", () => {
         ],
       };
 
-      const udvtIndex = buildUdvtIndex([udvtAst, structAst]);
-      const out = extractStructsFromAst(structAst, "Foo.sol", udvtIndex);
+      const userDefinedValueTypeI = buildUserDefinedValueTypeIndex([
+        userDefinedValueTypeAst,
+        structAst,
+      ]);
+      const out = extractStructsFromAst(
+        structAst,
+        "Foo.sol",
+        userDefinedValueTypeI,
+      );
 
       assert.deepEqual(out, [
         {
