@@ -72,7 +72,7 @@
     "rimraf": "^3.0.2",
     "solidity-coverage": "^0.8.17",
     "ts-node": "^10.8.0",
-    "typescript": "^5.8.0",
+    "typescript": "^5.9.3",
     "viem": "^2.7.6"
   },
   "peerDependencies": {

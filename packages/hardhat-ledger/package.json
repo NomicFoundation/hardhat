@@ -75,7 +75,7 @@
     "rimraf": "^3.0.2",
     "sinon": "^9.0.0",
     "ts-node": "^10.8.0",
-    "typescript": "^5.8.0"
+    "typescript": "^5.9.3"
   },
   "peerDependencies": {
     "hardhat": "workspace:^2.26.0"

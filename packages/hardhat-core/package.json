@@ -98,7 +98,7 @@
     "sinon": "^9.0.0",
     "time-require": "^0.1.2",
     "ts-node": "^10.8.0",
-    "typescript": "^5.8.0"
+    "typescript": "^5.9.3"
   },
   "dependencies": {
     "@ethereumjs/util": "^9.1.0",

@@ -65,7 +65,7 @@
     "prettier": "2.4.1",
     "rimraf": "^3.0.2",
     "ts-node": "^10.8.0",
-    "typescript": "^5.8.0",
+    "typescript": "^5.9.3",
     "web3": "^0.20.0"
   },
   "peerDependencies": {
