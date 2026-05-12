@@ -203,9 +203,12 @@ function transitiveDeps(
  * non decodable definition silently win over an encodable one, dropping the
  * struct from the canonical output.
  *
- * Conflicts confined to non-selected names are silently deduped (first wins);
- * conflicts involving a selected name still throw. Selected structs are
- * processed first so they win over non-selected copies.
+ * Conflicts on a name reachable from any selected struct (selected roots plus
+ * their transitive deps) throw, since the selected struct's inlined dep head
+ * would otherwise depend on which conflicting copy happened to be seen first.
+ * Conflicts on names truly unreachable from the selected set are silently
+ * deduped (first wins). Selected structs are processed first so they win over
+ * non-selected copies.
  */
 function indexByName(
   structs: CollectedStruct[],
@@ -214,6 +217,10 @@ function indexByName(
   const byName = new Map<string, CollectedStruct>();
   const fingerprintByName = new Map<string, string>();
   const sourceByName = new Map<string, string>();
+  const deferredConflicts = new Map<
+    string,
+    { firstSource: string; secondSource: string }
+  >();
 
   const ordered =
     selectedNames === undefined
@@ -239,6 +246,12 @@ function indexByName(
     }
 
     if (selectedNames !== undefined && !selectedNames.has(struct.name)) {
+      if (!deferredConflicts.has(struct.name)) {
+        deferredConflicts.set(struct.name, {
+          firstSource: sourceByName.get(struct.name) ?? "<unknown>",
+          secondSource: struct.sourcePath,
+        });
+      }
       continue;
     }
 
@@ -252,7 +265,57 @@ function indexByName(
     );
   }
 
+  if (selectedNames !== undefined && deferredConflicts.size > 0) {
+    const reachable = reachableFromSelected(byName, selectedNames);
+    for (const [name, sources] of deferredConflicts) {
+      if (reachable.has(name)) {
+        throw new HardhatError(
+          HardhatError.ERRORS.CORE.SOLIDITY_TESTS.EIP712_DUPLICATE_STRUCT_NAME,
+          { name, ...sources },
+        );
+      }
+    }
+  }
+
   return byName;
+}
+
+/**
+ * Set of struct names transitively referenced by any struct in `selectedNames`.
+ * The walk uses whatever first-wins definition is in `byName`; that's enough
+ * for conflict detection since we only need to know whether a name is
+ * reachable, not which conflicting copy is the "right" one.
+ */
+function reachableFromSelected(
+  byName: Map<string, CollectedStruct>,
+  selectedNames: Set<string>,
+): Set<string> {
+  const knownNames = new Set(byName.keys());
+  const reachable = new Set<string>();
+  const stack: string[] = [];
+
+  for (const name of selectedNames) {
+    const root = byName.get(name);
+    if (root !== undefined) {
+      stack.push(...directStructDeps(root, knownNames));
+    }
+  }
+
+  while (stack.length > 0) {
+    const next = stack.pop();
+    if (next === undefined || reachable.has(next)) {
+      continue;
+    }
+
+    reachable.add(next);
+
+    const def = byName.get(next);
+    if (def !== undefined) {
+      stack.push(...directStructDeps(def, knownNames));
+    }
+  }
+
+  return reachable;
 }
 
 /**

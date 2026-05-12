@@ -440,6 +440,57 @@ describe("eip712 - canonicalize", () => {
       assert.deepEqual(result, ["Wanted(uint256 x)"]);
     });
 
+    it("throws when a selected struct depends on a non-selected name with conflicting definitions", () => {
+      const collected = [
+        struct(
+          "Mail",
+          [
+            ["Person", "from"],
+            ["string", "contents"],
+          ],
+          "test/Mail.sol",
+        ),
+        struct(
+          "Person",
+          [
+            ["address", "wallet"],
+            ["string", "name"],
+          ],
+          "lib/A.sol",
+        ),
+        struct("Person", [["uint256", "id"]], "lib/B.sol"),
+      ];
+
+      assertThrowsHardhatError(
+        () => canonicalizeStructs(collected, new Set(["Mail"])),
+        HardhatError.ERRORS.CORE.SOLIDITY_TESTS.EIP712_DUPLICATE_STRUCT_NAME,
+        {
+          name: "Person",
+          firstSource: "lib/A.sol",
+          secondSource: "lib/B.sol",
+        },
+      );
+    });
+
+    it("throws when a transitively-required non-selected name has conflicting definitions", () => {
+      const collected = [
+        struct("Mail", [["Person", "from"]], "test/Mail.sol"),
+        struct("Person", [["Wallet", "w"]], "lib/Person.sol"),
+        struct("Wallet", [["address", "addr"]], "lib/A.sol"),
+        struct("Wallet", [["bytes32", "id"]], "lib/B.sol"),
+      ];
+
+      assertThrowsHardhatError(
+        () => canonicalizeStructs(collected, new Set(["Mail"])),
+        HardhatError.ERRORS.CORE.SOLIDITY_TESTS.EIP712_DUPLICATE_STRUCT_NAME,
+        {
+          name: "Wallet",
+          firstSource: "lib/A.sol",
+          secondSource: "lib/B.sol",
+        },
+      );
+    });
+
     it("throws when a selected name is also defined differently in a non-selected file", () => {
       const collected = [
         struct(
