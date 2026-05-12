@@ -314,4 +314,165 @@ describe("eip712 - canonicalize", () => {
     const result = canonicalizeStructs([struct("S", [["S[]", "children"]])]);
     assert.deepEqual(result, ["S(S[] children)"]);
   });
+
+  describe("selectedNames", () => {
+    it("only emits selected structs but inline deps from non-selected ones", () => {
+      const collected = [
+        struct(
+          "Mail",
+          [
+            ["Person", "from"],
+            ["Person", "to"],
+            ["string", "contents"],
+          ],
+          "test/Mail.sol",
+        ),
+        struct(
+          "Person",
+          [
+            ["address", "wallet"],
+            ["string", "name"],
+          ],
+          "lib/Person.sol",
+        ),
+      ];
+
+      const result = canonicalizeStructs(collected, new Set(["Mail"]));
+
+      assert.deepEqual(result, [
+        "Mail(Person from,Person to,string contents)Person(address wallet,string name)",
+      ]);
+    });
+
+    it("walks transitive deps through non-selected structs", () => {
+      const collected = [
+        struct(
+          "Order",
+          [
+            ["uint256", "id"],
+            ["Holder", "holder"],
+          ],
+          "test/Order.sol",
+        ),
+        struct(
+          "Holder",
+          [
+            ["address", "owner"],
+            ["Asset", "asset"],
+          ],
+          "lib/Holder.sol",
+        ),
+        struct(
+          "Asset",
+          [
+            ["address", "token"],
+            ["uint256", "amount"],
+          ],
+          "lib/Asset.sol",
+        ),
+      ];
+
+      const result = canonicalizeStructs(collected, new Set(["Order"]));
+
+      assert.deepEqual(result, [
+        "Order(uint256 id,Holder holder)" +
+          "Asset(address token,uint256 amount)" +
+          "Holder(address owner,Asset asset)",
+      ]);
+    });
+
+    it("drops a selected struct when a non-selected transitive dep is not decodable", () => {
+      const collected = [
+        struct(
+          "Order",
+          [
+            ["uint256", "id"],
+            ["Holder", "holder"],
+          ],
+          "test/Order.sol",
+        ),
+        struct(
+          "Holder",
+          [
+            ["uint256", "amount"],
+            [undefined, "balances"],
+          ],
+          "lib/Holder.sol",
+        ),
+      ];
+
+      const result = canonicalizeStructs(collected, new Set(["Order"]));
+
+      assert.deepEqual(result, []);
+    });
+
+    it("does not emit non-selected structs even when they are encodable", () => {
+      const collected = [
+        struct("Foo", [["uint256", "x"]], "test/Foo.sol"),
+        struct("Bar", [["uint256", "y"]], "lib/Bar.sol"),
+      ];
+
+      const result = canonicalizeStructs(collected, new Set(["Foo"]));
+
+      assert.deepEqual(result, ["Foo(uint256 x)"]);
+    });
+
+    it("returns empty when selectedNames is empty", () => {
+      const collected = [
+        struct("Foo", [["uint256", "x"]], "test/Foo.sol"),
+        struct("Bar", [["uint256", "y"]], "lib/Bar.sol"),
+      ];
+
+      const result = canonicalizeStructs(collected, new Set());
+
+      assert.deepEqual(result, []);
+    });
+
+    it("does not throw on conflicting definitions when neither side is selected", () => {
+      const collected = [
+        struct("Wanted", [["uint256", "x"]], "test/Wanted.sol"),
+        struct("Helper", [["uint256", "a"]], "lib/A.sol"),
+        struct("Helper", [["uint256", "b"]], "lib/B.sol"),
+      ];
+
+      const result = canonicalizeStructs(collected, new Set(["Wanted"]));
+
+      assert.deepEqual(result, ["Wanted(uint256 x)"]);
+    });
+
+    it("throws when a selected name is also defined differently in a non-selected file", () => {
+      const collected = [
+        struct(
+          "Person",
+          [
+            ["address", "wallet"],
+            ["string", "name"],
+          ],
+          "test/Person.sol",
+        ),
+        struct("Person", [["uint256", "x"]], "lib/Other.sol"),
+      ];
+
+      assertThrowsHardhatError(
+        () => canonicalizeStructs(collected, new Set(["Person"])),
+        HardhatError.ERRORS.CORE.SOLIDITY_TESTS.EIP712_DUPLICATE_STRUCT_NAME,
+        {
+          name: "Person",
+          firstSource: "test/Person.sol",
+          secondSource: "lib/Other.sol",
+        },
+      );
+
+      assertThrowsHardhatError(
+        () =>
+          canonicalizeStructs([...collected].reverse(), new Set(["Person"])),
+        HardhatError.ERRORS.CORE.SOLIDITY_TESTS.EIP712_DUPLICATE_STRUCT_NAME,
+        {
+          name: "Person",
+          firstSource: "lib/Other.sol",
+          secondSource: "test/Person.sol",
+        },
+      );
+    });
+  });
 });

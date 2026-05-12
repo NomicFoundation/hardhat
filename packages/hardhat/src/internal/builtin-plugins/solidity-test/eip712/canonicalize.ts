@@ -24,15 +24,25 @@ import { HardhatError } from "@nomicfoundation/hardhat-errors";
  * `resolve_struct_eip712` returns `None` for any struct containing unsupported
  * constructs and propagates `None` through the dep graph so dependents are
  * also dropped.
+ *
+ * When `selectedNames` is provided, only those names are emitted; non-selected
+ * structs still participate in dep resolution so cross-file deps inline correctly.
  */
-export function canonicalizeStructs(structs: CollectedStruct[]): string[] {
-  const byName = indexByName(structs);
+export function canonicalizeStructs(
+  structs: CollectedStruct[],
+  selectedNames?: Set<string>,
+): string[] {
+  const byName = indexByName(structs, selectedNames);
   const knownNames = new Set(byName.keys());
   const encodable = computeEncodable(byName, knownNames);
   const seen = new Set<string>();
   const result: string[] = [];
 
   for (const struct of byName.values()) {
+    if (selectedNames !== undefined && !selectedNames.has(struct.name)) {
+      continue;
+    }
+
     if (!encodable.has(struct.name)) {
       continue;
     }
@@ -192,13 +202,28 @@ function transitiveDeps(
  * than collapsed into one. Comparing only the encoded head would let a
  * non decodable definition silently win over an encodable one, dropping the
  * struct from the canonical output.
+ *
+ * Conflicts confined to non-selected names are silently deduped (first wins);
+ * conflicts involving a selected name still throw. Selected structs are
+ * processed first so they win over non-selected copies.
  */
-function indexByName(structs: CollectedStruct[]): Map<string, CollectedStruct> {
+function indexByName(
+  structs: CollectedStruct[],
+  selectedNames?: Set<string>,
+): Map<string, CollectedStruct> {
   const byName = new Map<string, CollectedStruct>();
   const fingerprintByName = new Map<string, string>();
   const sourceByName = new Map<string, string>();
 
-  for (const struct of structs) {
+  const ordered =
+    selectedNames === undefined
+      ? structs
+      : [
+          ...structs.filter((s) => selectedNames.has(s.name)),
+          ...structs.filter((s) => !selectedNames.has(s.name)),
+        ];
+
+  for (const struct of ordered) {
     const fingerprint = fingerprintStruct(struct);
     const existingFingerprint = fingerprintByName.get(struct.name);
 
@@ -210,6 +235,10 @@ function indexByName(structs: CollectedStruct[]): Map<string, CollectedStruct> {
     }
 
     if (existingFingerprint === fingerprint) {
+      continue;
+    }
+
+    if (selectedNames !== undefined && !selectedNames.has(struct.name)) {
       continue;
     }
 

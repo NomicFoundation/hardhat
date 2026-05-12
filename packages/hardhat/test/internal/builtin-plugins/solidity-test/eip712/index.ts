@@ -541,6 +541,198 @@ describe("eip712 - collectEip712CanonicalTypes", () => {
     );
   });
 
+  it("inline a dep defined in a non-included file", () => {
+    const buildInfo = makeBuildInfo("solc-0_8_23-aabbccdd", [
+      {
+        inputSourceName: "project/test/Mail.sol",
+        userSourceName: "test/Mail.sol",
+        ast: sourceUnit([
+          structAst("Mail", [
+            { type: "Person", name: "from" },
+            { type: "Person", name: "to" },
+            { type: "string", name: "contents" },
+          ]),
+        ]),
+      },
+      {
+        inputSourceName: "project/lib/Person.sol",
+        userSourceName: "lib/Person.sol",
+        ast: sourceUnit([
+          structAst("Person", [
+            { type: "address", name: "wallet" },
+            { type: "string", name: "name" },
+          ]),
+        ]),
+      },
+    ]);
+
+    const result = collectEip712CanonicalTypes([buildInfo], {
+      include: ["test/**"],
+    });
+
+    assert.deepEqual(result, [
+      "Mail(Person from,Person to,string contents)Person(address wallet,string name)",
+    ]);
+  });
+
+  it("inline a dep defined in a different build info", () => {
+    const testBuild = makeBuildInfo("solc-0_8_23-11112222", [
+      {
+        inputSourceName: "project/test/Mail.sol",
+        userSourceName: "test/Mail.sol",
+        ast: sourceUnit([
+          structAst("Mail", [
+            { type: "Person", name: "from" },
+            { type: "string", name: "contents" },
+          ]),
+        ]),
+      },
+    ]);
+    const libBuild = makeBuildInfo("solc-0_8_23-33334444", [
+      {
+        inputSourceName: "project/lib/Person.sol",
+        userSourceName: "lib/Person.sol",
+        ast: sourceUnit([
+          structAst("Person", [
+            { type: "address", name: "wallet" },
+            { type: "string", name: "name" },
+          ]),
+        ]),
+      },
+    ]);
+
+    const result = collectEip712CanonicalTypes([testBuild, libBuild], {
+      include: ["test/**"],
+    });
+
+    assert.deepEqual(result, [
+      "Mail(Person from,string contents)Person(address wallet,string name)",
+    ]);
+  });
+
+  it("walks transitive deps through non-included files", () => {
+    const buildInfo = makeBuildInfo("solc-0_8_23-55556666", [
+      {
+        inputSourceName: "project/test/Order.sol",
+        userSourceName: "test/Order.sol",
+        ast: sourceUnit([
+          structAst("Order", [
+            { type: "uint256", name: "id" },
+            { type: "Holder", name: "holder" },
+          ]),
+        ]),
+      },
+      {
+        inputSourceName: "project/lib/Holder.sol",
+        userSourceName: "lib/Holder.sol",
+        ast: sourceUnit([
+          structAst("Holder", [
+            { type: "address", name: "owner" },
+            { type: "Asset", name: "asset" },
+          ]),
+        ]),
+      },
+      {
+        inputSourceName: "project/lib/Asset.sol",
+        userSourceName: "lib/Asset.sol",
+        ast: sourceUnit([
+          structAst("Asset", [
+            { type: "address", name: "token" },
+            { type: "uint256", name: "amount" },
+          ]),
+        ]),
+      },
+    ]);
+
+    const result = collectEip712CanonicalTypes([buildInfo], {
+      include: ["test/**"],
+    });
+
+    assert.deepEqual(result, [
+      "Order(uint256 id,Holder holder)" +
+        "Asset(address token,uint256 amount)" +
+        "Holder(address owner,Asset asset)",
+    ]);
+  });
+
+  it("does not throw on duplicate struct names confined to non-included files", () => {
+    const buildInfo = makeBuildInfo("solc-0_8_23-99990000", [
+      {
+        inputSourceName: "project/test/Wanted.sol",
+        userSourceName: "test/Wanted.sol",
+        ast: sourceUnit([
+          structAst("Wanted", [{ type: "uint256", name: "x" }]),
+        ]),
+      },
+      {
+        inputSourceName: "project/lib/A.sol",
+        userSourceName: "lib/A.sol",
+        ast: sourceUnit([
+          structAst("Helper", [{ type: "uint256", name: "a" }]),
+        ]),
+      },
+      {
+        inputSourceName: "project/lib/B.sol",
+        userSourceName: "lib/B.sol",
+        ast: sourceUnit([
+          structAst("Helper", [{ type: "uint256", name: "b" }]),
+        ]),
+      },
+    ]);
+
+    const result = collectEip712CanonicalTypes([buildInfo], {
+      include: ["test/**"],
+    });
+
+    assert.deepEqual(result, ["Wanted(uint256 x)"]);
+  });
+
+  it("drops a selected struct when a transitive dep in a non-included file is non decodable", () => {
+    const buildInfo = makeBuildInfo("solc-0_8_23-aaaa9999", [
+      {
+        inputSourceName: "project/test/Order.sol",
+        userSourceName: "test/Order.sol",
+        ast: sourceUnit([
+          structAst("Order", [
+            { type: "uint256", name: "id" },
+            { type: "Holder", name: "holder" },
+          ]),
+        ]),
+      },
+      {
+        inputSourceName: "project/lib/Holder.sol",
+        userSourceName: "lib/Holder.sol",
+        ast: {
+          nodeType: "SourceUnit",
+          nodes: [
+            {
+              nodeType: "StructDefinition",
+              name: "Holder",
+              members: [
+                {
+                  nodeType: "VariableDeclaration",
+                  name: "amount",
+                  typeName: { nodeType: "ElementaryTypeName", name: "uint256" },
+                },
+                {
+                  nodeType: "VariableDeclaration",
+                  name: "balances",
+                  typeName: { nodeType: "Mapping" },
+                },
+              ],
+            },
+          ],
+        },
+      },
+    ]);
+
+    const result = collectEip712CanonicalTypes([buildInfo], {
+      include: ["test/**"],
+    });
+
+    assert.deepEqual(result, []);
+  });
+
   it("skips build infos whose output has no sources", () => {
     // Defensive: a build info output without a `sources` key must be
     // silently skipped, and structs from sibling build infos must still

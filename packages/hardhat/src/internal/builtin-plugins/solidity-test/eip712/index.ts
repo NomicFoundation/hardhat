@@ -28,10 +28,11 @@ export interface Eip712TypesConfig {
 const PROJECT_INPUT_SOURCE_NAME_PREFIX = `${HARDHAT_PROJECT_INPUT_SOURCE_NAME_ROOT}/`;
 
 /**
- * Walks every compiled source's AST whose user source name matches the
- * configured `include` globs (and isn't matched by `exclude`), extracts
- * every struct definition, and returns the flat list of canonical EIP-712
- * type strings expected by EDR's `eip712CanonicalTypes` config field.
+ * Walks every compiled source's AST, extracts every struct definition, and
+ * returns the flat list of canonical EIP-712 type strings expected by EDR's
+ * `eip712CanonicalTypes` config field. Only structs from sources matching
+ * `include`/`exclude` are emitted; non-selected sources still feed the dep
+ * graph so cross-file deps inline correctly.
  *
  * When `include` is empty/unset the feature is off: collection short-circuits
  * and returns an empty list without parsing any build info.
@@ -68,6 +69,7 @@ export function collectEip712CanonicalTypes(
   }
 
   const collected: CollectedStruct[] = [];
+  const selectedNames = new Set<string>();
 
   for (const { output } of parsed) {
     const sources = output.output.sources;
@@ -98,19 +100,22 @@ export function collectEip712CanonicalTypes(
           : inputSourceName;
       }
 
-      if (!isPathSelected(userSourceName, include, exclude)) {
-        continue;
-      }
-
-      collected.push(
-        ...extractStructsFromAst(
-          source.ast,
-          userSourceName,
-          userDefinedValueTypeI,
-        ),
+      // Collect every source so non-selected files can serve as dep targets;
+      // selection is enforced at emit time via `selectedNames`.
+      const structs = extractStructsFromAst(
+        source.ast,
+        userSourceName,
+        userDefinedValueTypeI,
       );
+      collected.push(...structs);
+
+      if (isPathSelected(userSourceName, include, exclude)) {
+        for (const s of structs) {
+          selectedNames.add(s.name);
+        }
+      }
     }
   }
 
-  return canonicalizeStructs(collected);
+  return canonicalizeStructs(collected, selectedNames);
 }
