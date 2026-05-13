@@ -16,5 +16,6 @@
       "warmCompile": 83,
       "defaultCommand": 3
     }
-  }
+  },
+  "disabled": true
 }
