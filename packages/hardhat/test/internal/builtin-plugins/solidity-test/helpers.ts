@@ -13,11 +13,15 @@ import {
   l1HardforkToString,
   opHardforkToString,
   opLatestHardfork,
+  Artifact,
 } from "@nomicfoundation/edr";
 
 import { createHardhatRuntimeEnvironment } from "../../../../src/hre.js";
 import { resolveSolidityTestForkingConfig } from "../../../../src/internal/builtin-plugins/solidity-test/config.js";
-import { solidityTestConfigToSolidityTestRunnerConfigArgs } from "../../../../src/internal/builtin-plugins/solidity-test/helpers.js";
+import {
+  isTestSuiteArtifact,
+  solidityTestConfigToSolidityTestRunnerConfigArgs,
+} from "../../../../src/internal/builtin-plugins/solidity-test/helpers.js";
 import {
   DEFAULT_VERBOSITY,
   GENERIC_CHAIN_TYPE,
@@ -296,5 +300,49 @@ describe("solidityTestConfigToSolidityTestRunnerConfigArgs", () => {
       const expectedHardfork = opHardforkToString(opLatestHardfork());
       assert.equal(args.hardfork, expectedHardfork);
     });
+  });
+});
+
+describe("isTestSuiteArtifact", () => {
+  const testAbi = JSON.stringify([
+    { type: "function", name: "test_foo", inputs: [], outputs: [] },
+  ]);
+
+  it("returns true for a contract with a test_* function", () => {
+    const artifact: Artifact = {
+      id: {
+        name: "ConcreteTest",
+        solcVersion: "0.8.0",
+        source: "test/ConcreteTest.t.sol",
+      },
+      contract: {
+        abi: testAbi,
+        bytecode: "0x6080604052",
+        linkReferences: {},
+        deployedBytecode: "0x6080604052",
+        deployedLinkReferences: {},
+      },
+    };
+
+    assert.equal(isTestSuiteArtifact(artifact), true);
+  });
+
+  it("returns false for abstract contracts with zero bytecode", () => {
+    const artifact: Artifact = {
+      id: {
+        name: "AbstractTest",
+        solcVersion: "0.8.0",
+        source: "test/AbstractTest.t.sol",
+      },
+      contract: {
+        abi: testAbi,
+        bytecode: "",
+        linkReferences: {},
+        deployedBytecode: "",
+        deployedLinkReferences: {},
+      },
+    };
+
+    assert.equal(isTestSuiteArtifact(artifact), false);
   });
 });
