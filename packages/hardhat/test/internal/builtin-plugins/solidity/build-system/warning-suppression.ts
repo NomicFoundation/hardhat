@@ -2,6 +2,8 @@ import assert from "node:assert/strict";
 import path from "node:path";
 import { describe, it } from "node:test";
 
+import { COVERAGE_LIBRARY_FILE_NAME } from "@nomicfoundation/edr";
+
 import {
   shouldSuppressWarning,
   SPECIFIC_FILE_RULES,
@@ -158,6 +160,33 @@ describe("shouldSuppressWarning", () => {
           });
         }
       }
+    });
+  });
+
+  describe("Coverage library warnings (coverage-library scope)", () => {
+    it("should suppress any warning emitted against the bare coverage library file", () => {
+      const message = `Warning: ${NATSPEC_WARNING}\n  --> ${COVERAGE_LIBRARY_FILE_NAME}:11:5:`;
+      assert.equal(
+        shouldSuppressWarning(message, SOLIDITY_TESTS_PATH, PROJECT_ROOT),
+        true,
+      );
+    });
+
+    it("should suppress any warning emitted against the uuid-suffixed coverage library file", () => {
+      const message = `Warning: Some other warning text\n  --> ${COVERAGE_LIBRARY_FILE_NAME}-1fe87c59-dedc-4831-8918-604bc223bbfa.sol:11:5:`;
+      assert.equal(
+        shouldSuppressWarning(message, SOLIDITY_TESTS_PATH, PROJECT_ROOT),
+        true,
+      );
+    });
+
+    it("should NOT suppress the same warning emitted against a user-file path", () => {
+      const userPath = path.join("contracts", "MyContract.sol");
+      const message = `Warning: ${NATSPEC_WARNING}\n  --> ${userPath}:42:1:`;
+      assert.equal(
+        shouldSuppressWarning(message, SOLIDITY_TESTS_PATH, PROJECT_ROOT),
+        false,
+      );
     });
   });
 
