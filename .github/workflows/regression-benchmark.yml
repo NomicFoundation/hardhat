@@ -21,10 +21,16 @@ jobs:
   tests:
     name: Validate Hardhat works correctly
     runs-on: ubuntu-latest
-    # Run validation tests for non-main branches to ensure that the branch is
-    # in a valid state before running the expensive regression benchmark.
-    # We assume that the main branch is always in a good state.
-    if: github.ref != 'refs/heads/main'
+    # Gate validation on the same conditions as the regression-benchmark
+    # job that depends on it: this is a PR event, carries the `ci:perf`
+    # label, and isn't from a fork. Main pushes skip this gate entirely
+    # (main is assumed-green); see the regression-benchmark `if:` for the
+    # corresponding propagation guard.
+    if: |
+      github.event_name == 'pull_request' &&
+      contains(github.event.pull_request.labels.*.name, 'ci:perf') &&
+      github.repository == github.event.pull_request.head.repo.full_name
+
     steps:
       - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5
         with:
@@ -57,7 +63,7 @@ jobs:
     # `ci:perf` label.
     #
     # The fork-safety guard keeps untrusted forks off the self-hosted runner.
-    if: >
+    if: |
       !cancelled() && !failure() &&
       (github.event_name != 'pull_request' ||
         contains(github.event.pull_request.labels.*.name, 'ci:perf')) &&
