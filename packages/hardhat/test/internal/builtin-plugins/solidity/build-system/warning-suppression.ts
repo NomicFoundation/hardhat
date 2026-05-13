@@ -166,12 +166,12 @@ describe("shouldSuppressWarning", () => {
   describe("Coverage library warnings (coverage-library scope)", () => {
     const scenarios = [
       {
-        name: "should suppress any warning emitted against the bare coverage library file",
+        name: "should suppress warnings from the bare coverage library file",
         path: COVERAGE_LIBRARY_FILE_NAME,
         expected: true,
       },
       {
-        name: "should suppress any warning emitted against the uuid-suffixed coverage library file",
+        name: "should suppress warnings from the uuid-suffixed coverage library file",
         path: `${COVERAGE_LIBRARY_FILE_NAME}-1fe87c59-dedc-4831-8918-604bc223bbfa.sol`,
         expected: true,
       },
