@@ -15,7 +15,8 @@
   "types": "./dist/src/index.d.ts",
   "exports": {
     ".": "./dist/src/index.js",
-    "./ui-helpers": "./dist/src/ui-helpers.js"
+    "./ui-helpers": "./dist/src/ui-helpers.js",
+    "./package.json": "./package.json"
   },
   "typesVersions": {
     "*": {
@@ -36,9 +37,9 @@
   ],
   "scripts": {
     "build": "tsc --build .",
-    "lint": "pnpm prettier --check && pnpm eslint",
+    "lint": "pnpm eslint && pnpm prettier --check",
     "postlint": "pnpm api-extractor",
-    "lint:fix": "pnpm prettier --write && pnpm eslint --fix",
+    "lint:fix": "pnpm eslint --fix && pnpm prettier --write",
     "eslint": "eslint \"src/**/*.ts\"",
     "prettier": "prettier \"**/*.{ts,js,md,json}\"",
     "preapi-extractor": "pnpm build",

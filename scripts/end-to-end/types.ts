@@ -9,7 +9,7 @@ export interface ScenarioDefinition {
   description: string;
   repo: string;
   commit: string;
-  packageManager: "npm" | "bun" | "yarn";
+  packageManager: "npm" | "bun" | "yarn" | "pnpm";
   defaultCommand: string;
   preinstall?: string;
   install?: string;
@@ -17,4 +17,12 @@ export interface ScenarioDefinition {
   env?: Record<string, string>;
   submodules?: boolean;
   disabled?: true;
+  benchmark?: {
+    skip?: true;
+    runs?: {
+      defaultCommand?: number;
+      coldCompile?: number;
+      warmCompile?: number;
+    };
+  };
 }

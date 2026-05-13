@@ -13,14 +13,15 @@
   "type": "module",
   "exports": {
     "./coverage": "./dist/src/coverage-module/index.js",
-    "./coverage/types": "./dist/src/coverage-module/types.js"
+    "./coverage/types": "./dist/src/coverage-module/types.js",
+    "./package.json": "./package.json"
   },
   "keywords": [
     "hardhat"
   ],
   "scripts": {
-    "lint": "pnpm prettier --check && pnpm eslint",
-    "lint:fix": "pnpm prettier --write && pnpm eslint --fix",
+    "lint": "pnpm eslint && pnpm prettier --check",
+    "lint:fix": "pnpm eslint --fix && pnpm prettier --write",
     "eslint": "eslint \"src/**/*.ts\" \"test/**/*.ts\"",
     "prettier": "prettier \"**/*.{ts,js,md,json}\"",
     "test": "node --import tsx/esm --test --test-reporter=@nomicfoundation/hardhat-node-test-reporter \"test/*.ts\" \"test/!(fixture-projects|helpers)/**/*.ts\"",

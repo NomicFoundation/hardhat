@@ -1,4 +1,4 @@
-import { existsSync, readFileSync } from "node:fs";
+import { existsSync, readFileSync, readdirSync, writeFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { fmt, log, logStep } from "./helpers/logging.ts";
 import {
@@ -205,4 +205,187 @@ function reportPublished(): void {
       `\n  ${summary.publishedPackages.length} package(s) published to ${VERDACCIO_URL}`,
     ),
   );
+}
+
+const EXCLUDED_PACKAGES = [
+  "config",
+  "example-project",
+  "template-package",
+  "hardhat-test-utils",
+  "hardhat-solx",
+];
+
+/**
+ * Detect packages that changed since their last release tag, bump their
+ * patch version, and publish them to Verdaccio. This avoids the npm proxy
+ * problem where pnpm publish skips versions that already exist on npm.
+ */
+export function sinceReleasePublish(): void {
+  ensureVerdaccioRunning();
+
+  const { toBump, toPublishOnly } = detectChangedSinceRelease();
+
+  if (toBump.length === 0 && toPublishOnly.length === 0) {
+    log("No packages changed since their last release.");
+    return;
+  }
+
+  bumpPatchVersions(toBump);
+  publishPackages([...toBump, ...toPublishOnly]);
+  reportPublished();
+}
+
+function detectChangedSinceRelease(): {
+  toBump: string[];
+  toPublishOnly: string[];
+} {
+  logStep("Detecting packages changed since release");
+
+  const packagesDir = resolve(ROOT_DIR, "packages");
+  const toBump: string[] = [];
+  const toPublishOnly: string[] = [];
+
+  for (const entry of readdirSync(packagesDir, { withFileTypes: true })) {
+    if (!entry.isDirectory() || EXCLUDED_PACKAGES.includes(entry.name)) {
+      continue;
+    }
+
+    const packageDir = `packages/${entry.name}`;
+    const pkgJsonPath = resolve(ROOT_DIR, packageDir, "package.json");
+
+    if (!existsSync(pkgJsonPath)) {
+      continue;
+    }
+
+    const { name, version } = readPackageInfo(packageDir);
+
+    // Find the latest existing release tag for this package
+    const releaseTag = findLatestReleaseTag(name);
+
+    const tagVersion =
+      releaseTag !== undefined
+        ? releaseTag.slice(name.length + 1) // "hardhat@3.3.0" → "3.3.0"
+        : undefined;
+
+    const excludePatterns = [
+      `:!${packageDir}/package.json`,
+      `:!${packageDir}/CHANGELOG.md`,
+    ];
+
+    const hasCodeChangesSinceRelease =
+      releaseTag !== undefined &&
+      git([
+        "diff",
+        "--name-only",
+        releaseTag,
+        "--",
+        packageDir,
+        ...excludePatterns,
+      ]) !== "";
+
+    const action = decidePublishAction(
+      tagVersion,
+      version,
+      hasCodeChangesSinceRelease,
+    );
+
+    if (action === "skip") {
+      continue;
+    }
+
+    if (action === "bump") {
+      const reason =
+        tagVersion === undefined
+          ? "(no release tag)"
+          : `(changed since ${releaseTag})`;
+      log(`  ${fmt.pkg(name)} ${fmt.deemphasize(reason)}`);
+      toBump.push(packageDir);
+    } else {
+      log(
+        `  ${fmt.pkg(name)} ${fmt.deemphasize(`(already bumped to ${version})`)}`,
+      );
+      toPublishOnly.push(packageDir);
+    }
+  }
+
+  const total = toBump.length + toPublishOnly.length;
+
+  if (total > 0) {
+    log(fmt.success(`\n  ${total} package(s) changed since release`));
+  }
+
+  return { toBump, toPublishOnly };
+}
+
+/**
+ * Find the latest release tag for a package by listing all tags matching
+ * `<name>@*` and picking the most recent by version sort.
+ */
+function findLatestReleaseTag(packageName: string): string | undefined {
+  try {
+    const tags = git([
+      "tag",
+      "--list",
+      `${packageName}@*`,
+      "--sort=-v:refname",
+    ]);
+
+    if (tags === "") {
+      return undefined;
+    }
+
+    // First line is the latest tag
+    return tags.split("\n")[0];
+  } catch {
+    return undefined;
+  }
+}
+
+/**
+ * Pure decision function for --use-local / --since-release: what action
+ * should be taken for a given package?
+ *
+ * - No release tag → bump (new package)
+ * - Already bumped (version differs from tag) → publish current version
+ *   without bumping (Verdaccio storage is wiped per run, so we always
+ *   need to (re)publish, but the on-disk version was already bumped on a
+ *   prior run and shouldn't compound)
+ * - Not bumped + code changed since release → bump
+ * - Not bumped + no code changes → skip
+ */
+export function decidePublishAction(
+  releaseTagVersion: string | undefined,
+  currentVersion: string,
+  hasCodeChangesSinceRelease: boolean,
+): "bump" | "publish" | "skip" {
+  if (releaseTagVersion === undefined) {
+    return "bump";
+  }
+
+  if (currentVersion !== releaseTagVersion) {
+    return "publish";
+  }
+
+  return hasCodeChangesSinceRelease ? "bump" : "skip";
+}
+
+function bumpPatchVersions(packageDirs: string[]): void {
+  logStep("Bumping patch versions");
+
+  for (const dir of packageDirs) {
+    const pkgJsonPath = resolve(ROOT_DIR, dir, "package.json");
+    const pkgJson = JSON.parse(readFileSync(pkgJsonPath, "utf-8"));
+    const oldVersion: string = pkgJson.version;
+
+    const parts = oldVersion.split(".");
+    parts[parts.length - 1] = String(Number(parts[parts.length - 1]) + 1);
+    const newVersion = parts.join(".");
+
+    pkgJson.version = newVersion;
+    writeFileSync(pkgJsonPath, JSON.stringify(pkgJson, null, 2) + "\n");
+
+    log(
+      `  ${fmt.pkg(pkgJson.name)} ${fmt.deemphasize(oldVersion)} → ${fmt.version(newVersion)}`,
+    );
+  }
 }

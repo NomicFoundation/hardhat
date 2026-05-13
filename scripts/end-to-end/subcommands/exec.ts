@@ -1,18 +1,27 @@
 import { execSync } from "node:child_process";
 import { existsSync } from "node:fs";
 import { loadScenario } from "../helpers/directory.ts";
-import { init } from "./init.ts";
+import { init, ForceCheckout, ForcePublish, UseLocal } from "./init.ts";
 import { logStep } from "../helpers/log.ts";
 
 export async function exec(
   e2eCloneDirectory: string,
   scenarioPath: string,
   command: string | undefined,
+  useLocal: UseLocal,
+  forceCheckout: ForceCheckout,
+  forcePublish: ForcePublish,
 ): Promise<void> {
   const scenario = loadScenario(e2eCloneDirectory, scenarioPath);
 
   if (!existsSync(scenario.workingDir)) {
-    await init(e2eCloneDirectory, scenarioPath);
+    await init(
+      e2eCloneDirectory,
+      scenarioPath,
+      useLocal,
+      forceCheckout,
+      forcePublish,
+    );
   }
 
   const resolvedCommand = command ?? scenario.definition.defaultCommand;

@@ -15,6 +15,7 @@ import type { ScenarioDefinition } from "../types.ts";
 export function installDependencies(
   workDir: string,
   packageManager: ScenarioDefinition["packageManager"],
+  allowLockfileUpdates: boolean,
   env?: Record<string, string>,
 ): void {
   writeRegistryConfig(workDir, packageManager);
@@ -30,17 +31,60 @@ export function installDependencies(
 
   logStep("Installing dependencies");
 
-  const installArgs =
-    packageManager === "yarn"
-      ? ["install"]
-      : // Required by bun as it may not pickup the cwd bunfig.toml
-        ["install", `--registry=${VERDACCIO_URL}`];
+  const installArgs = getInstallArgs(
+    packageManager,
+    allowLockfileUpdates,
+    VERDACCIO_URL,
+  );
 
   execFileSync(which(packageManager), installArgs, {
     cwd: workDir,
     stdio: "inherit",
-    env: { ...process.env, ...env, COREPACK_ENABLE_DOWNLOAD_PROMPT: "0" },
+    env: {
+      ...process.env,
+      ...env,
+      COREPACK_ENABLE_DOWNLOAD_PROMPT: "0",
+      npm_config_minimum_release_age: "0",
+      // Yarn Classic doesn't honor project .yarnrc for `registry` on the
+      // GitHub Actions runner, so force the registry via env var. This is
+      // the highest-priority npm config source, so it overrides any
+      // user/global .npmrc that might be present.
+      npm_config_registry: VERDACCIO_URL,
+    },
   });
+}
+
+/**
+ * Build the package-manager-specific `install` args for a Verdaccio-backed
+ * install.
+ *
+ * `--use-local` patches the scenario's package.json, drifting the lockfile.
+ * Since CI defaults to frozen-lockfile mode for pnpm and Yarn Berry, we allow
+ * lockfile updates.
+ */
+export function getInstallArgs(
+  packageManager: ScenarioDefinition["packageManager"],
+  allowLockfileUpdates: boolean,
+  registryUrl: string,
+): string[] {
+  // bun doesn't reliably read cwd `bunfig.toml`, so it needs the `--registry` CLI flag.
+  // npm & pnpm don't strictly need `--registry` but we pass it for redundancy.
+  // yarn is excluded because it rejects `--registry` as a CLI flag.
+  const args =
+    packageManager === "yarn"
+      ? ["install"]
+      : ["install", `--registry=${registryUrl}`];
+
+  if (allowLockfileUpdates) {
+    // npm install never freezes (only `npm ci` does), so it doesn't need any flag.
+    if (packageManager === "pnpm" || packageManager === "bun") {
+      args.push("--no-frozen-lockfile");
+    } else if (packageManager === "yarn") {
+      args.push("--no-immutable");
+    }
+  }
+
+  return args;
 }
 
 function writeRegistryConfig(
@@ -52,6 +96,8 @@ function writeRegistryConfig(
     writeFileSync(bunfigPath, `[install]\nregistry = "${VERDACCIO_URL}"\n`);
     log(`Wrote bunfig.toml → ${VERDACCIO_URL}`);
   } else if (packageManager === "yarn") {
+    // Yarn Berry reads `.yarnrc.yml`. Yarn Classic doesn't read it, but the
+    // `npm_config_registry` env var passed at install time covers Classic.
     const yarnrcPath = resolve(dir, ".yarnrc.yml");
 
     let existing = "";

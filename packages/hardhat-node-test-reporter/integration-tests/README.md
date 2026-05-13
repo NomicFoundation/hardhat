@@ -29,3 +29,15 @@ To re-generate only a single fixture, you can run the following script from the 
 ```bash
 bash scripts/regenerate-fixtures.sh <fixture-name>
 ```
+
+## `--disable-warning=DEP0205`
+
+We run the integration tests with `--disable-warning=DEP0205` because tsx currently generates this warning:
+
+```
+DeprecationWarning: `module.register()` is deprecated. Use `module.registerHooks()` instead.
+```
+
+This also means that the tests need to be run with `NODE_OPTIONS="--disable-warning=DEP0205"` to avoid the warning being printed in the test output, which would make the tests fail when comparing with the expected results.
+
+If you are using `pnpm test:integration` you don't need to do this, as it's already taken care of by the script.

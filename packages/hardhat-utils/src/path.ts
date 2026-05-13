@@ -53,3 +53,26 @@ export function shortenPath(absolutePath: string): string {
 
   return absolutePath;
 }
+
+/**
+ * Returns a version of {@link name} that is safe to use as a single filename
+ * component on POSIX, macOS, and Windows.
+ *
+ * Strips characters that are reserved on at least one of those platforms
+ * (`<>:"/\|?*` and ASCII control chars), trims trailing dots and whitespace
+ * (Windows silently strips them on write), and falls back to `_` if the
+ * result is empty or one of the path-traversal literals `.` / `..`.
+ *
+ * @param name The string to sanitize.
+ * @returns A non-empty filename-safe string.
+ */
+export function sanitizeFilename(name: string): string {
+  let result = name.replace(/[<>:"/\\|?*\x00-\x1F\x7F]/g, "");
+  result = result.replace(/[\s.]+$/, "");
+
+  if (result === "" || result === "." || result === "..") {
+    result = "_";
+  }
+
+  return result;
+}

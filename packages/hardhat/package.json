@@ -44,7 +44,8 @@
     "./utils/result": "./dist/src/utils/result.js",
     "./types/runtime": "./dist/src/internal/deprecated-module-imported-from-hardhat2-plugin.js",
     "./builtin-tasks/task-names": "./dist/src/internal/deprecated-module-imported-from-hardhat2-plugin.js",
-    "./internal/artifacts": "./dist/src/internal/deprecated-module-imported-from-hardhat2-plugin.js"
+    "./internal/artifacts": "./dist/src/internal/deprecated-module-imported-from-hardhat2-plugin.js",
+    "./package.json": "./package.json"
   },
   "keywords": [
     "ethereum",
@@ -52,8 +53,8 @@
     "hardhat"
   ],
   "scripts": {
-    "lint": "pnpm prettier --check && pnpm eslint",
-    "lint:fix": "pnpm prettier --write && pnpm eslint --fix",
+    "lint": "pnpm eslint && pnpm prettier --check",
+    "lint:fix": "pnpm eslint --fix && pnpm prettier --write",
     "eslint": "eslint \"src/**/*.ts\" \"test/**/*.ts\"",
     "postlint": "eslint \"templates/**/*.ts\"",
     "postlint:fix": "eslint --fix \"templates/**/*.ts\"",

@@ -28,7 +28,7 @@
     },
     "packageManager": {
       "type": "string",
-      "enum": ["npm", "bun", "yarn"],
+      "enum": ["npm", "bun", "yarn", "pnpm"],
       "description": "Package manager used by the repo"
     },
     "defaultCommand": {
@@ -52,7 +52,7 @@
     "env": {
       "type": "object",
       "additionalProperties": { "type": "string" },
-      "description": "Environment variables to set during install/exec"
+      "description": "Environment variables to set during install/exec. Values may reference host variables with the devcontainer-style token ${localEnv:NAME} (e.g. \"FOUNDRY_RPC_URL\": \"${localEnv:ALCHEMY_URL}\"); the referenced host variable must be set or the run will fail."
     },
     "submodules": {
       "type": "boolean",
@@ -62,6 +62,39 @@
       "type": "boolean",
       "const": true,
       "description": "Set to true to skip this scenario during end-to-end runs"
+    },
+    "benchmark": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "skip": {
+          "type": "boolean",
+          "const": true,
+          "description": "Set to true to skip this scenario in the regression benchmark"
+        },
+        "runs": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "defaultCommand": {
+              "type": "integer",
+              "minimum": 1,
+              "description": "Number of hyperfine runs for the scenario's defaultCommand"
+            },
+            "coldCompile": {
+              "type": "integer",
+              "minimum": 1,
+              "description": "Number of hyperfine runs for `npx hardhat compile` with the cache cleared before each run"
+            },
+            "warmCompile": {
+              "type": "integer",
+              "minimum": 1,
+              "description": "Number of hyperfine runs for `npx hardhat compile` against a warm cache"
+            }
+          }
+        }
+      },
+      "description": "Benchmark configuration for pnpm bench and pnpm bench:regression"
     }
   }
 }
