@@ -194,8 +194,8 @@ export function formatSingleError(
   const solidityStackSection =
     depth === 0 ? formatSolidityStackSection(error) : "";
 
-  // Strip .sol frames from the top-level stack — they render in the section.
-  // So, the Solidity frames don't render twice when appeared in the top-level stack.
+  // Strip .sol frames from the top-level stack.
+  // So, the Solidity frames don't render twice when rendered in the section.
   if (solidityStackSection !== "") {
     stackLines = stackLines.filter(
       (line) =>

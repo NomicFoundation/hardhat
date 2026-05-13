@@ -59,7 +59,7 @@ export function cleanupTestFailError(error: Error): Error {
 }
 
 /**
- * First `SolidityError` in the `.cause` chain, or `undefined`.
+ * Returns the first SolidityError in the '.cause' chain, or 'undefined'
  */
 export function findSolidityErrorInChain(error: Error): Error | undefined {
   let current: Error | undefined = error;

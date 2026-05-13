@@ -536,3 +536,77 @@ describe("Removing the diff from the error message", () => {
     });
   });
 });
+
+describe("SolidityError handling in the cause chain", () => {
+
+  function makeSolidityError(): Error {
+    const solidityError = new Error(
+      "VM Exception while processing transaction: reverted with reason string ''",
+    );
+    solidityError.name = "SolidityError";
+    solidityError.stack = [
+      "SolidityError: VM Exception while processing transaction: reverted with reason string ''",
+      "    at Revert.toss (contracts/Revert.sol:11)",
+      "    at contracts/Revert.sol:8",
+      "    at EdrProvider.request (/repo/node_modules/hardhat/dist/edr-provider.js:120:9)",
+      "    at async runMicrotasks (node:internal/process/task_queues:96:5)",
+    ].join("\n");
+    return solidityError;
+  }
+
+  it("renders a `Solidity stack trace:` section for a viem-style wrapper chain and skips the intermediate `[cause]:` layers", () => {
+    const solidityError = makeSolidityError();
+
+    const callExecutionError = new Error("An unknown RPC error occurred.", {
+      cause: solidityError,
+    });
+    callExecutionError.name = "CallExecutionError";
+
+    const topError = new Error(
+      'The contract function "boom" reverted with the following reason:\nBoom',
+      { cause: callExecutionError },
+    );
+    topError.name = "ContractFunctionExecutionError";
+
+    const formatted = stripVTControlCharacters(formatSingleError(topError));
+
+    assert.ok(
+      formatted.includes("Solidity stack trace:"),
+      `Expected output to contain 'Solidity stack trace:' header.\nGot:\n${formatted}`,
+    );
+    assert.ok(
+      formatted.includes("Revert.toss (contracts/Revert.sol:11)"),
+      `Expected output to contain the Solidity frame.\nGot:\n${formatted}`,
+    );
+    assert.ok(
+      !formatted.includes("[cause]: CallExecutionError"),
+      `Expected output to NOT contain the intermediate '[cause]: CallExecutionError' layer.\nGot:\n${formatted}`,
+    );
+    assert.ok(
+      !formatted.includes("[cause]: SolidityError"),
+      `Expected output to NOT contain '[cause]: SolidityError' (the dedicated section replaces it).\nGot:\n${formatted}`,
+    );
+  });
+
+  it("does NOT alter formatting for error chains that contain no SolidityError", () => {
+    const inner = new Error("inner cause");
+    inner.name = "InnerError";
+    inner.stack =
+      "InnerError: inner cause\n    at innerFn (/repo/inner.js:3:5)";
+
+    const top = new Error("top error", { cause: inner });
+    top.name = "TopError";
+    top.stack = "TopError: top error\n    at topFn (/repo/top.js:7:9)";
+
+    const formatted = stripVTControlCharacters(formatSingleError(top));
+
+    assert.ok(
+      formatted.includes("[cause]: InnerError: inner cause"),
+      `Expected the existing '[cause]:' recursion to still happen for non-SolidityError chains.\nGot:\n${formatted}`,
+    );
+    assert.ok(
+      !formatted.includes("Solidity stack trace:"),
+      `Expected no Solidity stack trace section for non-SolidityError chains.\nGot:\n${formatted}`,
+    );
+  });
+});
