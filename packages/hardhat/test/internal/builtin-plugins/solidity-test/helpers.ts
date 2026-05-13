@@ -1,5 +1,6 @@
 import type { ConfigurationVariableResolver } from "../../../../src/types/config.js";
 import type { HardhatRuntimeEnvironment } from "../../../../src/types/hre.js";
+import type { Artifact } from "@nomicfoundation/edr";
 
 import assert from "node:assert/strict";
 import { before, describe, it } from "node:test";
@@ -13,7 +14,6 @@ import {
   l1HardforkToString,
   opHardforkToString,
   opLatestHardfork,
-  Artifact,
 } from "@nomicfoundation/edr";
 
 import { createHardhatRuntimeEnvironment } from "../../../../src/hre.js";
