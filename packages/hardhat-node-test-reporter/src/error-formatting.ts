@@ -279,7 +279,15 @@ function formatSolidityStackSection(error: Error): string {
   const solidityLines: StackLine[] = [];
   for (let i = firstReferenceIndex; i < parsedLines.length; i++) {
     const { reference } = parsedLines[i];
-    if (reference === undefined || !reference.location.endsWith(".sol")) {
+    if (reference === undefined) {
+      break;
+    }
+    // Accept ".sol" AND "unknown" frames. EDR's SolidityCallSite emits "unknown" 
+    // for certain stack-trace entry types: precompile / unrecognized-create entries
+    if (
+      !reference.location.endsWith(".sol") &&
+      reference.location !== "unknown"
+    ) {
       break;
     }
     solidityLines.push(parsedLines[i]);
