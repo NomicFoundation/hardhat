@@ -17,7 +17,7 @@ import {
   readJsonFile,
   readUtf8File,
   remove,
-  writeJsonFile,
+  writeJsonFileAsStream,
   writeUtf8File,
 } from "@nomicfoundation/hardhat-utils/fs";
 
@@ -130,7 +130,9 @@ export class CoverageManagerImplementation implements CoverageManager {
     const dataPath = await this.#getDataPath(id);
     const filePath = path.join(dataPath, `${crypto.randomUUID()}.json`);
     const data = Object.fromEntries(this.data);
-    await writeJsonFile(filePath, data);
+    // NOTE: We use writeJsonFileAsStream here because the coverage data for large runs 
+    // can exceed the maximum string length when calling JSON.stringify.
+    await writeJsonFileAsStream(filePath, data);
     log("Saved data", id, filePath);
   }
 
