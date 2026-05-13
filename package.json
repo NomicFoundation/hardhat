@@ -38,7 +38,8 @@
     "spellcheck:file": "node ./scripts/spellcheck-file.ts",
     "verdaccio": "node ./scripts/verdaccio/main.ts",
     "e2e": "node ./scripts/end-to-end/main.ts",
-    "bench": "node ./scripts/benchmark/main.ts"
+    "bench": "node ./scripts/benchmark/main.ts",
+    "bench:regression": "node ./scripts/benchmark/regression.ts"
   },
   "pnpm": {
     "onlyBuiltDependencies": [
