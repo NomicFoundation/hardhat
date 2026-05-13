@@ -538,7 +538,6 @@ describe("Removing the diff from the error message", () => {
 });
 
 describe("SolidityError handling in the cause chain", () => {
-
   function makeSolidityError(): Error {
     const solidityError = new Error(
       "VM Exception while processing transaction: reverted with reason string ''",
@@ -585,6 +584,31 @@ describe("SolidityError handling in the cause chain", () => {
     assert.ok(
       !formatted.includes("[cause]: SolidityError"),
       `Expected output to NOT contain '[cause]: SolidityError' (the dedicated section replaces it).\nGot:\n${formatted}`,
+    );
+  });
+
+  it("renders the Solidity section even when the top-level error itself is the SolidityError", () => {
+    const solidityError = makeSolidityError();
+
+    const formatted = stripVTControlCharacters(
+      formatSingleError(solidityError),
+    );
+
+    assert.ok(
+      formatted.includes("Solidity stack trace:"),
+      `Expected output to contain 'Solidity stack trace:' header.\nGot:\n${formatted}`,
+    );
+    assert.ok(
+      formatted.includes("Revert.toss (contracts/Revert.sol:11)"),
+      `Expected output to contain the Solidity frame.\nGot:\n${formatted}`,
+    );
+
+    const occurrences =
+      formatted.split("Revert.toss (contracts/Revert.sol:11)").length - 1;
+    assert.equal(
+      occurrences,
+      1,
+      `Expected 'Revert.toss (contracts/Revert.sol:11)' to appear exactly once (only inside the 'Solidity stack trace:' section), got ${occurrences}.\nGot:\n${formatted}`,
     );
   });
 
