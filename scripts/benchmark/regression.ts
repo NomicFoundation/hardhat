@@ -13,6 +13,8 @@ import {
   UseLocal,
   init as e2eInit,
 } from "../end-to-end/subcommands/init.ts";
+import { isScenarioDefinition } from "../end-to-end/schema/scenario-schema.ts";
+import type { ScenarioDefinition } from "../end-to-end/types.ts";
 import { isVerdaccioRunning } from "../verdaccio/helpers/shell.ts";
 import {
   publish as verdaccioPublish,
@@ -81,21 +83,7 @@ interface RegressionArgs {
 interface ScenarioEntry {
   id: string;
   scenarioJsonPath: string;
-  definition: ScenarioDefinitionLike;
-}
-
-interface ScenarioDefinitionLike {
-  defaultCommand?: string;
-  tags?: string[];
-  disabled?: boolean;
-  benchmark?: {
-    skip?: boolean;
-    runs?: {
-      defaultCommand?: number;
-      coldCompile?: number;
-      warmCompile?: number;
-    };
-  };
+  definition: ScenarioDefinition;
 }
 
 interface BenchmarkEntry {
@@ -271,6 +259,7 @@ function resolveArgs(argv: string[]): RegressionArgs | undefined {
 
 function collectScenarios(args: RegressionArgs): ScenarioEntry[] {
   const entries: ScenarioEntry[] = [];
+  const invalid: string[] = [];
 
   for (const entry of readdirSync(END_TO_END_DIR, { withFileTypes: true })) {
     if (!entry.isDirectory()) {
@@ -291,15 +280,35 @@ function collectScenarios(args: RegressionArgs): ScenarioEntry[] {
       continue;
     }
 
-    const definition = JSON.parse(raw) as ScenarioDefinitionLike;
+    let parsed: unknown;
+
+    try {
+      parsed = JSON.parse(raw);
+    } catch (error) {
+      invalid.push(
+        `${entry.name}: invalid JSON — ${error instanceof Error ? error.message : String(error)}`,
+      );
+
+      continue;
+    }
+
+    if (!isScenarioDefinition(parsed)) {
+      invalid.push(`${entry.name}: does not match scenario schema`);
+
+      continue;
+    }
+
+    const definition = parsed;
 
     if (definition.disabled === true) {
       logWarning(`Skipping "${entry.name}" (scenario is disabled)`);
+
       continue;
     }
 
     if (definition.benchmark?.skip === true) {
       logWarning(`Skipping "${entry.name}" (benchmark.skip is set)`);
+
       continue;
     }
 
@@ -307,7 +316,7 @@ function collectScenarios(args: RegressionArgs): ScenarioEntry[] {
       continue;
     }
 
-    if (args.tag !== undefined && !(definition.tags ?? []).includes(args.tag)) {
+    if (args.tag !== undefined && !definition.tags.includes(args.tag)) {
       continue;
     }
 
@@ -316,6 +325,18 @@ function collectScenarios(args: RegressionArgs): ScenarioEntry[] {
       scenarioJsonPath,
       definition,
     });
+  }
+
+  if (invalid.length > 0) {
+    logError(
+      "Invalid scenario.json files (must be fixed before bench:regression can run):",
+    );
+
+    for (const line of invalid) {
+      console.error(`  - ${line}`);
+    }
+
+    process.exit(1);
   }
 
   return entries;
