@@ -20,9 +20,8 @@ import { COVERAGE_LIBRARY_FILE_NAME } from "@nomicfoundation/edr";
 // 3. scope: 'coverage-library' - Suppress warnings from the injected coverage library file
 //    - The file is identified by source paths containing COVERAGE_LIBRARY_FILE_NAME
 //      (e.g., matches `__NomicFoundationCoverage` and the uuid-suffixed variant)
-//    - Use this for warnings emitted against the file injected by the coverage hook,
-//      since users cannot edit it
-//    - No `message` field: every warning emitted against the file is suppressed
+//    - No `message` field: every warning emitted against the file is suppressed,
+//      since the file is injected by the --coverage hook and users cannot edit it
 interface SpecificFileRule {
   message: string;
   scope: "specific-file";
