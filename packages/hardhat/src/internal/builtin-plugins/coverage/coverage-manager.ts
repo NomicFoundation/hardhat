@@ -130,7 +130,7 @@ export class CoverageManagerImplementation implements CoverageManager {
     const dataPath = await this.#getDataPath(id);
     const filePath = path.join(dataPath, `${crypto.randomUUID()}.json`);
     const data = Object.fromEntries(this.data);
-    // NOTE: We use writeJsonFileAsStream here because the coverage data for large runs 
+    // NOTE: We use writeJsonFileAsStream here because the coverage data for large runs
     // can exceed the maximum string length when calling JSON.stringify.
     await writeJsonFileAsStream(filePath, data);
     log("Saved data", id, filePath);
@@ -179,8 +179,8 @@ export class CoverageManagerImplementation implements CoverageManager {
       const filePaths = await getAllFilesMatching(dataPath);
 
       for (const filePath of filePaths) {
-        // NOTE: We use writeJsonFileAsStream here because the coverage data for large runs 
-        // can exceed the maximum string length when calling JSON.stringify.
+        // NOTE: We use readJsonFileAsStream here because the coverage data for large runs
+        // can exceed the maximum string length when calling JSON.parse.
         const entries =
           await readJsonFileAsStream<Record<string, number>>(filePath);
 
