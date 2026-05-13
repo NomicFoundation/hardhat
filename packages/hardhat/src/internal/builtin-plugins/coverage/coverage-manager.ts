@@ -14,7 +14,7 @@ import { formatTable } from "@nomicfoundation/hardhat-utils/format";
 import {
   ensureDir,
   getAllFilesMatching,
-  readJsonFile,
+  readJsonFileAsStream,
   readUtf8File,
   remove,
   writeJsonFileAsStream,
@@ -179,7 +179,10 @@ export class CoverageManagerImplementation implements CoverageManager {
       const filePaths = await getAllFilesMatching(dataPath);
 
       for (const filePath of filePaths) {
-        const entries = await readJsonFile<Record<string, number>>(filePath);
+        // NOTE: We use writeJsonFileAsStream here because the coverage data for large runs 
+        // can exceed the maximum string length when calling JSON.stringify.
+        const entries =
+          await readJsonFileAsStream<Record<string, number>>(filePath);
 
         for (const [tag, count] of Object.entries(entries)) {
           this.data.set(tag, (this.data.get(tag) ?? 0) + count);
