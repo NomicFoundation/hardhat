@@ -58,6 +58,7 @@ jobs:
     #
     # The fork-safety guard keeps untrusted forks off the self-hosted runner.
     if: >
+      !cancelled() && !failure() &&
       (github.event_name != 'pull_request' ||
         contains(github.event.pull_request.labels.*.name, 'ci:perf')) &&
       (github.ref == 'refs/heads/main' ||
