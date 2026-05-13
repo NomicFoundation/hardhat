@@ -8,6 +8,7 @@ import { isCi } from "./ci.js";
 import { indent } from "./formatting.js";
 import {
   cleanupTestFailError,
+  findSolidityErrorInChain,
   isTestFileExecutionFailureError,
 } from "./node-test-error-utils.js";
 
@@ -188,6 +189,20 @@ export function formatSingleError(
       );
     }
   }
+
+  // Build the `Solidity stack trace:` section through intermediate viem/ethers wrapper layers.
+  const solidityStackSection =
+    depth === 0 ? formatSolidityStackSection(error) : "";
+
+  // Strip .sol frames from the top-level stack — they render in the section.
+  // So, the Solidity frames don't render twice when appeared in the top-level stack.
+  if (solidityStackSection !== "") {
+    stackLines = stackLines.filter(
+      (line) =>
+        line.reference === undefined ||
+        !line.reference.location.endsWith(".sol"),
+    );
+  }
   const stack = stackLines.map(formatStackLine).join("\n");
 
   let formattedError =
@@ -218,6 +233,10 @@ export function formatSingleError(
   }
 
   if (error.cause instanceof Error) {
+    if (solidityStackSection !== "") {
+      return `${formattedError}\n${solidityStackSection}`;
+    }
+
     let cause = error.cause;
     if (depth + 1 >= MAX_ERROR_CHAIN_LENGTH) {
       cause = new Error(
@@ -232,7 +251,48 @@ export function formatSingleError(
     return `${formattedError}\n${formattedCause}`;
   }
 
+  if (solidityStackSection !== "") {
+    return `${formattedError}\n${solidityStackSection}`;
+  }
+
   return formattedError;
+}
+
+/** Formats the `Solidity stack trace:` section, or `""` if no SolidityError is in the chain. */
+function formatSolidityStackSection(error: Error): string {
+  const solidityError = findSolidityErrorInChain(error);
+  if (solidityError === undefined) {
+    return "";
+  }
+
+  const parsedLines = (solidityError.stack?.split("\n") ?? []).map(
+    parseStackLine,
+  );
+  const firstReferenceIndex = parsedLines.findIndex(
+    (line) => line.reference !== undefined,
+  );
+  if (firstReferenceIndex === -1) {
+    return "";
+  }
+
+  const solidityLines: StackLine[] = [];
+  for (let i = firstReferenceIndex; i < parsedLines.length; i++) {
+    const { reference } = parsedLines[i];
+    if (reference === undefined || !reference.location.endsWith(".sol")) {
+      break;
+    }
+    solidityLines.push(parsedLines[i]);
+  }
+
+  if (solidityLines.length === 0) {
+    return "";
+  }
+
+  const formattedFrames = solidityLines.map(formatStackLine).join("\n");
+  return styleText(
+    "gray",
+    `Solidity stack trace:\n${indent(formattedFrames, ERROR_STACK_INDENT)}`,
+  );
 }
 
 function isAggregateError(error: Error): error is Error & { errors: Error[] } {

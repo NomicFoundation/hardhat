@@ -57,3 +57,17 @@ export function cleanupTestFailError(error: Error): Error {
 
   return error;
 }
+
+/**
+ * First `SolidityError` in the `.cause` chain, or `undefined`.
+ */
+export function findSolidityErrorInChain(error: Error): Error | undefined {
+  let current: Error | undefined = error;
+  while (current !== undefined) {
+    if (current.name === "SolidityError") {
+      return current;
+    }
+    current = current.cause instanceof Error ? current.cause : undefined;
+  }
+  return undefined;
+}
