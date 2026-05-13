@@ -16,24 +16,34 @@ import { COVERAGE_LIBRARY_FILE_NAME } from "@nomicfoundation/edr";
 //        (e.g., test/contracts/Example.sol)
 //    - Use this for warnings that are acceptable in test code but not in production code
 //      (e.g., missing SPDX license identifiers or pragma statements)
-export const SPECIFIC_FILE_RULES: Array<{
+type SpecificFileRule = {
   message: string;
-  scope: "file-tag";
+  scope: "specific-file";
   filePath: string;
-}> = [
+};
+
+type TestFilesRule = {
+  message: string;
+  scope: "test-files";
+};
+
+type CoverageLibraryRule = {
+  scope: "coverage-library";
+};
+
+type SuppressionRule = SpecificFileRule | TestFilesRule | CoverageLibraryRule;
+
+export const SPECIFIC_FILE_RULES: SpecificFileRule[] = [
   {
     message:
       "Natspec memory-safe-assembly special comment for inline assembly is deprecated and scheduled for removal. Use the memory-safe block annotation instead.",
-    scope: "file-tag",
+    scope: "specific-file",
     // Normalize to handle different OS path separators
     filePath: path.normalize("hardhat/console.sol"),
   },
 ];
 
-export const TEST_FILE_RULES: Array<{
-  message: string;
-  scope: "test-files";
-}> = [
+export const TEST_FILE_RULES: TestFilesRule[] = [
   {
     message: "SPDX license identifier not provided",
     scope: "test-files",
@@ -44,15 +54,13 @@ export const TEST_FILE_RULES: Array<{
   },
 ];
 
-export const COVERAGE_LIBRARY_RULES: Array<{
-  scope: "coverage-library";
-}> = [
+export const COVERAGE_LIBRARY_RULES: CoverageLibraryRule[] = [
   {
     scope: "coverage-library",
   },
 ];
 
-export const SUPPRESSED_WARNINGS = [
+export const SUPPRESSED_WARNINGS: SuppressionRule[] = [
   ...SPECIFIC_FILE_RULES,
   ...TEST_FILE_RULES,
   ...COVERAGE_LIBRARY_RULES,
