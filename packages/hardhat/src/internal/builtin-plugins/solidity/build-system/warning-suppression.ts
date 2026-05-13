@@ -16,6 +16,13 @@ import { COVERAGE_LIBRARY_FILE_NAME } from "@nomicfoundation/edr";
 //        (e.g., test/contracts/Example.sol)
 //    - Use this for warnings that are acceptable in test code but not in production code
 //      (e.g., missing SPDX license identifiers or pragma statements)
+//
+// 3. scope: 'coverage-library' - Suppress warnings from the injected coverage library file
+//    - The file is identified by source paths containing COVERAGE_LIBRARY_FILE_NAME
+//      (e.g., matches `__NomicFoundationCoverage` and the uuid-suffixed variant)
+//    - Use this for warnings emitted against the file injected by the coverage hook,
+//      since users cannot edit it
+//    - No `message` field: every warning emitted against the file is suppressed
 interface SpecificFileRule {
   message: string;
   scope: "specific-file";
