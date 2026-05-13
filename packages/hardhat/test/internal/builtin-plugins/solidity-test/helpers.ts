@@ -304,89 +304,74 @@ describe("solidityTestConfigToSolidityTestRunnerConfigArgs", () => {
 });
 
 describe("isTestSuiteArtifact", () => {
-  const testFnAbi = JSON.stringify([
-    { type: "function", name: "test_foo", inputs: [], outputs: [] },
-  ]);
-  const nonTestFnAbi = JSON.stringify([
-    { type: "function", name: "foo", inputs: [], outputs: [] },
-  ]);
-  const invariantFnAbi = JSON.stringify([
-    { type: "function", name: "invariant_bar", inputs: [], outputs: [] },
-  ]);
+  const SOLC_VERSION = "0.8.0";
+  const ZERO_BYTECODE = "0x";
+  const NON_EMPTY_BYTECODE = "0x6080604052";
+
+  const abiWith = (fnName: string): string =>
+    JSON.stringify([
+      { type: "function", name: fnName, inputs: [], outputs: [] },
+    ]);
+
+  const artifactFactory = ({
+    name,
+    abi,
+    bytecode,
+  }: {
+    name: string;
+    abi: string;
+    bytecode: string;
+  }): Artifact => ({
+    id: {
+      name,
+      solcVersion: SOLC_VERSION,
+      source: `test/${name}.t.sol`,
+    },
+    contract: {
+      abi,
+      bytecode,
+      linkReferences: {},
+      deployedBytecode: bytecode,
+      deployedLinkReferences: {},
+    },
+  });
 
   it("returns true for a concrete contract with a test_* function", () => {
-    const artifact: Artifact = {
-      id: {
-        name: "ConcreteTest",
-        solcVersion: "0.8.0",
-        source: "test/ConcreteTest.t.sol",
-      },
-      contract: {
-        abi: testFnAbi,
-        bytecode: "0x6080604052",
-        linkReferences: {},
-        deployedBytecode: "0x6080604052",
-        deployedLinkReferences: {},
-      },
-    };
+    const artifact = artifactFactory({
+      name: "ConcreteTest",
+      abi: abiWith("test_foo"),
+      bytecode: NON_EMPTY_BYTECODE,
+    });
 
     assert.equal(isTestSuiteArtifact(artifact), true);
   });
-
 
   it("returns true for a concrete contract with an invariant_* function", () => {
-    const artifact: Artifact = {
-      id: {
-        name: "InvariantTest",
-        solcVersion: "0.8.0",
-        source: "test/InvariantTest.t.sol",
-      },
-      contract: {
-        abi: invariantFnAbi,
-        bytecode: "0x6080604052",
-        linkReferences: {},
-        deployedBytecode: "0x6080604052",
-        deployedLinkReferences: {},
-      },
-    };
+    const artifact = artifactFactory({
+      name: "InvariantTest",
+      abi: abiWith("invariant_bar"),
+      bytecode: NON_EMPTY_BYTECODE,
+    });
 
     assert.equal(isTestSuiteArtifact(artifact), true);
   });
 
-  it("returns false for abstract contracts with zero/empty-string bytecode, even when ABI has test entries", () => {
-    const artifact: Artifact = {
-      id: {
-        name: "AbstractTest",
-        solcVersion: "0.8.0",
-        source: "test/AbstractTest.t.sol",
-      },
-      contract: {
-        abi: testFnAbi,
-        bytecode: "0x",
-        linkReferences: {},
-        deployedBytecode: "0x",
-        deployedLinkReferences: {},
-      },
-    };
+  it("returns false for a concrete contract with no test/invariant ABI entries", () => {
+    const artifact = artifactFactory({
+      name: "Plain",
+      abi: abiWith("foo"),
+      bytecode: NON_EMPTY_BYTECODE,
+    });
 
     assert.equal(isTestSuiteArtifact(artifact), false);
   });
 
-  it("returns false for a concrete contract with no test/invariant ABI entries", () => {
-    const artifact: Artifact = {
-      id: {
-        name: "Plain",
-        solcVersion: "0.8.0",
-        source: "src/Plain.sol",
-      },
-      contract: {
-        abi: nonTestFnAbi,
-        bytecode: "0x6080604052",
-        linkReferences: {},
-        deployedBytecode: "0x6080604052",
-        deployedLinkReferences: {},
-      },
-    };
+  it("returns false for abstract contracts with zero/empty-string bytecode, even when ABI has test entries", () => {
+    const artifact = artifactFactory({
+      name: "AbstractTest",
+      abi: abiWith("test_foo"),
+      bytecode: ZERO_BYTECODE,
+    });
 
     assert.equal(isTestSuiteArtifact(artifact), false);
   });
