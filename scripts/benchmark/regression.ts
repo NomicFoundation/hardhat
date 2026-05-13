@@ -190,11 +190,14 @@ async function main(): Promise<void> {
     }
   }
 
+  writeOutput(args.output, results);
+
   if (failFastExit) {
+    logError(
+      `Aborted on first failure (--fail-fast). Partial results (${results.length} entries) written to ${args.output}`,
+    );
     process.exit(1);
   }
-
-  writeOutput(args.output, results);
 
   if (failures.length > 0) {
     logError(
