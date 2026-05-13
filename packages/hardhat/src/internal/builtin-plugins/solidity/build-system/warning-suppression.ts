@@ -1,7 +1,9 @@
 import path from "node:path";
 
+import { COVERAGE_LIBRARY_FILE_NAME } from "@nomicfoundation/edr";
+
 // Compiler warnings to suppress from build output.
-// Supports two types of suppression rules:
+// Supports three types of suppression rules:
 //
 // 1. scope: 'specific-file' - Suppress warnings from specific file paths
 //    - Use this to suppress known warnings from internal/library files (e.g., console.sol)
@@ -24,6 +26,9 @@ export const SUPPRESSED_WARNINGS: Array<
       message: string;
       scope: "test-files";
     }
+    | {
+      scope: "coverage-library";
+    }
 > = [
   {
     message:
@@ -39,6 +44,9 @@ export const SUPPRESSED_WARNINGS: Array<
   {
     message: "Source file does not specify required compiler version",
     scope: "test-files",
+  },
+  {
+    scope: "coverage-library",
   },
 ];
 
@@ -67,6 +75,10 @@ export function shouldSuppressWarning(
   );
 
   return SUPPRESSED_WARNINGS.some((rule) => {
+    if (rule.scope === "coverage-library") {
+      return errorMessage.includes(COVERAGE_LIBRARY_FILE_NAME);
+    }
+
     if (!errorMessage.includes(rule.message)) {
       return false;
     }
