@@ -304,11 +304,14 @@ describe("solidityTestConfigToSolidityTestRunnerConfigArgs", () => {
 });
 
 describe("isTestSuiteArtifact", () => {
-  const testAbi = JSON.stringify([
+  const testFnAbi = JSON.stringify([
     { type: "function", name: "test_foo", inputs: [], outputs: [] },
   ]);
+  const nonTestFnAbi = JSON.stringify([
+    { type: "function", name: "foo", inputs: [], outputs: [] },
+  ]);
 
-  it("returns true for a contract with a test_* function", () => {
+  it("returns true for a concrete contract with a test_* function", () => {
     const artifact: Artifact = {
       id: {
         name: "ConcreteTest",
@@ -316,7 +319,7 @@ describe("isTestSuiteArtifact", () => {
         source: "test/ConcreteTest.t.sol",
       },
       contract: {
-        abi: testAbi,
+        abi: testFnAbi,
         bytecode: "0x6080604052",
         linkReferences: {},
         deployedBytecode: "0x6080604052",
@@ -327,7 +330,7 @@ describe("isTestSuiteArtifact", () => {
     assert.equal(isTestSuiteArtifact(artifact), true);
   });
 
-  it("returns false for abstract contracts with zero bytecode", () => {
+  it("returns false for abstract contracts with zero/empty-string bytecode, even when ABI has test entries", () => {
     const artifact: Artifact = {
       id: {
         name: "AbstractTest",
@@ -335,10 +338,29 @@ describe("isTestSuiteArtifact", () => {
         source: "test/AbstractTest.t.sol",
       },
       contract: {
-        abi: testAbi,
-        bytecode: "",
+        abi: testFnAbi,
+        bytecode: "0x",
         linkReferences: {},
-        deployedBytecode: "",
+        deployedBytecode: "0x",
+        deployedLinkReferences: {},
+      },
+    };
+
+    assert.equal(isTestSuiteArtifact(artifact), false);
+  });
+
+  it("returns false for a concrete contract with no test ABI entries", () => {
+    const artifact: Artifact = {
+      id: {
+        name: "Plain",
+        solcVersion: "0.8.0",
+        source: "src/Plain.sol",
+      },
+      contract: {
+        abi: nonTestFnAbi,
+        bytecode: "0x6080604052",
+        linkReferences: {},
+        deployedBytecode: "0x6080604052",
         deployedLinkReferences: {},
       },
     };
