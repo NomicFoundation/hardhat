@@ -310,6 +310,9 @@ describe("isTestSuiteArtifact", () => {
   const nonTestFnAbi = JSON.stringify([
     { type: "function", name: "foo", inputs: [], outputs: [] },
   ]);
+  const invariantFnAbi = JSON.stringify([
+    { type: "function", name: "invariant_bar", inputs: [], outputs: [] },
+  ]);
 
   it("returns true for a concrete contract with a test_* function", () => {
     const artifact: Artifact = {
@@ -320,6 +323,26 @@ describe("isTestSuiteArtifact", () => {
       },
       contract: {
         abi: testFnAbi,
+        bytecode: "0x6080604052",
+        linkReferences: {},
+        deployedBytecode: "0x6080604052",
+        deployedLinkReferences: {},
+      },
+    };
+
+    assert.equal(isTestSuiteArtifact(artifact), true);
+  });
+
+
+  it("returns true for a concrete contract with an invariant_* function", () => {
+    const artifact: Artifact = {
+      id: {
+        name: "InvariantTest",
+        solcVersion: "0.8.0",
+        source: "test/InvariantTest.t.sol",
+      },
+      contract: {
+        abi: invariantFnAbi,
         bytecode: "0x6080604052",
         linkReferences: {},
         deployedBytecode: "0x6080604052",
@@ -349,7 +372,7 @@ describe("isTestSuiteArtifact", () => {
     assert.equal(isTestSuiteArtifact(artifact), false);
   });
 
-  it("returns false for a concrete contract with no test ABI entries", () => {
+  it("returns false for a concrete contract with no test/invariant ABI entries", () => {
     const artifact: Artifact = {
       id: {
         name: "Plain",
