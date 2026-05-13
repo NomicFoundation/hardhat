@@ -9,6 +9,7 @@
   "env": {
     "FOUNDRY_RPC_URL": "${localEnv:ALCHEMY_URL}"
   },
+  "preinstall": "./preinstall-foundry.sh",
   "defaultCommand": "npx hardhat test solidity",
   "benchmark": {
     "runs": {
