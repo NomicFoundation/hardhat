@@ -229,14 +229,19 @@ export function formatSingleError(
         ),
       )
       .join("\n");
+
+    // Append the section if a SolidityError sits in the aggregate's own
+    // cause chain. Inner sections come from the recursive map above.
+    if (solidityStackSection !== "") {
+      return `${formattedError}\n${formattedErrors}\n${solidityStackSection}`;
+    }
     return `${formattedError}\n${formattedErrors}`;
   }
 
+  if (solidityStackSection !== "") {
+    return `${formattedError}\n${solidityStackSection}`;
+  }
   if (error.cause instanceof Error) {
-    if (solidityStackSection !== "") {
-      return `${formattedError}\n${solidityStackSection}`;
-    }
-
     let cause = error.cause;
     if (depth + 1 >= MAX_ERROR_CHAIN_LENGTH) {
       cause = new Error(
@@ -249,10 +254,6 @@ export function formatSingleError(
       ERROR_CAUSE_INDENT,
     );
     return `${formattedError}\n${formattedCause}`;
-  }
-
-  if (solidityStackSection !== "") {
-    return `${formattedError}\n${solidityStackSection}`;
   }
 
   return formattedError;
