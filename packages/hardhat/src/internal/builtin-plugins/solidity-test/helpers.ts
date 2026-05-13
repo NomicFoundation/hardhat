@@ -149,6 +149,11 @@ export async function solidityTestConfigToSolidityTestRunnerConfigArgs({
 }
 
 export function isTestSuiteArtifact(artifact: Artifact): boolean {
+  const bytecode = artifact.contract.bytecode;
+  if (bytecode === "" || bytecode === "0x") {
+    return false;
+  }
+
   const abi: Abi = JSON.parse(artifact.contract.abi);
   return abi.some(({ type, name }) => {
     if (type === "function" && typeof name === "string") {
