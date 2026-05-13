@@ -465,6 +465,7 @@ async function runPhase(label: string, benchArgs: BenchArgs): Promise<void> {
     const original = error instanceof Error ? error.message : String(error);
     throw new Error(
       `${label} phase failed: ${original}\n  Reproduce with: ${buildReproCommand(benchArgs)}`,
+      { cause: error },
     );
   }
 }
