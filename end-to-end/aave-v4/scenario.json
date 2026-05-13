@@ -6,6 +6,6 @@
   "commit": "95534d58cf54d60c6415c0efd7fb3a0eac6539d1",
   "packageManager": "yarn",
   "submodules": true,
-  "defaultCommand": "npx hardhat test solidity --no-compile",
+  "defaultCommand": "npx hardhat test solidity",
   "disabled": true
 }
