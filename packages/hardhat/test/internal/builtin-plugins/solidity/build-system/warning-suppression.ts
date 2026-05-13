@@ -4,13 +4,14 @@ import { describe, it } from "node:test";
 
 import {
   shouldSuppressWarning,
-  SUPPRESSED_WARNINGS,
+  SPECIFIC_FILE_RULES,
+  TEST_FILE_RULES,
 } from "../../../../../src/internal/builtin-plugins/solidity/build-system/warning-suppression.js";
 
 describe("shouldSuppressWarning", () => {
-  const NATSPEC_WARNING = SUPPRESSED_WARNINGS[0].message;
-  const SPDX_WARNING = SUPPRESSED_WARNINGS[1].message;
-  const PRAGMA_WARNING = SUPPRESSED_WARNINGS[2].message;
+  const NATSPEC_WARNING = SPECIFIC_FILE_RULES[0].message;
+  const SPDX_WARNING = TEST_FILE_RULES[0].message;
+  const PRAGMA_WARNING = TEST_FILE_RULES[1].message;
 
   // Mock project paths for testing
   const PROJECT_ROOT = path.join("home", "user", "project");
