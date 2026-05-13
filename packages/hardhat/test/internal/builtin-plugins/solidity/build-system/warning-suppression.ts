@@ -164,30 +164,33 @@ describe("shouldSuppressWarning", () => {
   });
 
   describe("Coverage library warnings (coverage-library scope)", () => {
-    it("should suppress any warning emitted against the bare coverage library file", () => {
-      const message = `Warning: ${NATSPEC_WARNING}\n  --> ${COVERAGE_LIBRARY_FILE_NAME}:11:5:`;
-      assert.equal(
-        shouldSuppressWarning(message, SOLIDITY_TESTS_PATH, PROJECT_ROOT),
-        true,
-      );
-    });
+    const scenarios = [
+      {
+        name: "should suppress any warning emitted against the bare coverage library file",
+        path: COVERAGE_LIBRARY_FILE_NAME,
+        expected: true,
+      },
+      {
+        name: "should suppress any warning emitted against the uuid-suffixed coverage library file",
+        path: `${COVERAGE_LIBRARY_FILE_NAME}-1fe87c59-dedc-4831-8918-604bc223bbfa.sol`,
+        expected: true,
+      },
+      {
+        name: "should NOT suppress the same warning emitted against a user-file path",
+        path: path.join("contracts", "MyContract.sol"),
+        expected: false,
+      },
+    ];
 
-    it("should suppress any warning emitted against the uuid-suffixed coverage library file", () => {
-      const message = `Warning: Some other warning text\n  --> ${COVERAGE_LIBRARY_FILE_NAME}-1fe87c59-dedc-4831-8918-604bc223bbfa.sol:11:5:`;
-      assert.equal(
-        shouldSuppressWarning(message, SOLIDITY_TESTS_PATH, PROJECT_ROOT),
-        true,
-      );
-    });
-
-    it("should NOT suppress the same warning emitted against a user-file path", () => {
-      const userPath = path.join("contracts", "MyContract.sol");
-      const message = `Warning: ${NATSPEC_WARNING}\n  --> ${userPath}:42:1:`;
-      assert.equal(
-        shouldSuppressWarning(message, SOLIDITY_TESTS_PATH, PROJECT_ROOT),
-        false,
-      );
-    });
+    for (const scenario of scenarios) {
+      it(scenario.name, () => {
+        const message = `Warning: ${NATSPEC_WARNING}\n  --> ${scenario.path}:1:1:`;
+        assert.equal(
+          shouldSuppressWarning(message, SOLIDITY_TESTS_PATH, PROJECT_ROOT),
+          scenario.expected,
+        );
+      });
+    }
   });
 
   describe("non-matching warnings", () => {
