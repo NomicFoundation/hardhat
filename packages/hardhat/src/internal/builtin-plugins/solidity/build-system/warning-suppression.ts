@@ -16,20 +16,20 @@ import { COVERAGE_LIBRARY_FILE_NAME } from "@nomicfoundation/edr";
 //        (e.g., test/contracts/Example.sol)
 //    - Use this for warnings that are acceptable in test code but not in production code
 //      (e.g., missing SPDX license identifiers or pragma statements)
-type SpecificFileRule = {
+interface SpecificFileRule {
   message: string;
   scope: "specific-file";
   filePath: string;
-};
+}
 
-type TestFilesRule = {
+interface TestFilesRule {
   message: string;
   scope: "test-files";
-};
+}
 
-type CoverageLibraryRule = {
+interface CoverageLibraryRule {
   scope: "coverage-library";
-};
+}
 
 type SuppressionRule = SpecificFileRule | TestFilesRule | CoverageLibraryRule;
 
