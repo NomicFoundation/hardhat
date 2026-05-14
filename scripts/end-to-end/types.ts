@@ -23,7 +23,7 @@ export interface ScenarioDefinition {
      */
     skip?: true;
     /**
-     * The commands to run—in order—as the regression harness.
+     * The commands to run, in order, in the regression harness.
      */
     commands?: Record<string, CommandConfig>;
   };
