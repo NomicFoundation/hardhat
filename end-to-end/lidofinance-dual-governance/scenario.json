@@ -11,10 +11,20 @@
   },
   "defaultCommand": "npx hardhat test solidity --grep=\"^(test_|testFuzz_)\"",
   "benchmark": {
-    "runs": {
-      "coldCompile": 3,
-      "warmCompile": 83,
-      "defaultCommand": 3
+    "commands": {
+      "cold compile": {
+        "runs": 3,
+        "prepare": "npx hardhat clean",
+        "command": "npx hardhat compile"
+      },
+      "warm compile": {
+        "runs": 83,
+        "command": "npx hardhat compile"
+      },
+      "solidity test": {
+        "runs": 3,
+        "command": "npx hardhat test solidity --no-compile --grep=\"^(test_|testFuzz_)\""
+      }
     }
   },
   "disabled": true

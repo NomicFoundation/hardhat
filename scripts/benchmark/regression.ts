@@ -2,6 +2,7 @@
 import { mkdirSync, readFileSync, readdirSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import path from "node:path";
+import { fileURLToPath } from "node:url";
 
 import { runBenchmark } from "./main.ts";
 import type { BenchArgs } from "./helpers/args.ts";
@@ -28,18 +29,19 @@ scripts/benchmark/regression.ts — Multi-scenario regression benchmark
 
 DESCRIPTION
   For each scenario under end-to-end/ that is not disabled and does not opt
-  out via "benchmark": { "skip": true }, runs three hyperfine phases:
+  out via "benchmark": { "skip": true }, runs every command declared in
+  "benchmark": { "commands": { ... } } in the order they appear in
+  scenario.json. Each command entry has the shape:
 
-    1. Cold compile  — "npx hardhat compile" with the compile cache cleared
-                       before each run (via --prepare "npx hardhat clean").
-    2. Warm compile  — "npx hardhat compile" against the warm cache.
-    3. Default cmd   — the scenario's defaultCommand, against a compiled
-                       project.
+    {
+      "runs":    <positive integer>,    // hyperfine runs (required)
+      "prepare": "<shell snippet>",     // optional --prepare hook
+      "command": "<shell command>"      // command to benchmark (required)
+    }
 
-  Run counts (N, M, L) are required per scenario in scenario.json under
-  "benchmark": { "runs": { "coldCompile": N, "warmCompile": M,
-                            "defaultCommand": L } }.
-  Missing fields fail pre-flight with a summary of every offending scenario.
+  The command name (the map key) becomes the on-disk benchmark name:
+  "<scenarioId> / <commandName>". Scenarios missing the "commands" map (or
+  with an empty one) fail pre-flight with a summary of every offending file.
 
   Writes a flat JSON array in benchmark-action/github-action-benchmark's
   customSmallerIsBetter format. Per-run times are preserved in the "extra"
@@ -118,10 +120,10 @@ async function main(): Promise<void> {
     process.exit(1);
   }
 
-  const missing = findMissingRunCounts(scenarios);
+  const missing = findMissingCommands(scenarios);
 
   if (missing.length > 0) {
-    printMissingRunCountsError(missing);
+    printMissingCommandsError(missing);
     process.exit(1);
   }
 
@@ -345,49 +347,29 @@ function collectScenarios(args: RegressionArgs): ScenarioEntry[] {
   return entries;
 }
 
-function findMissingRunCounts(
-  scenarios: ScenarioEntry[],
-): Array<{ id: string; missing: string[] }> {
-  const missing: Array<{ id: string; missing: string[] }> = [];
-
-  for (const scenario of scenarios) {
-    const runs = scenario.definition.benchmark?.runs;
-    const absent: string[] = [];
-
-    if (runs?.coldCompile === undefined) {
-      absent.push("coldCompile");
-    }
-
-    if (runs?.warmCompile === undefined) {
-      absent.push("warmCompile");
-    }
-
-    if (runs?.defaultCommand === undefined) {
-      absent.push("defaultCommand");
-    }
-
-    if (absent.length > 0) {
-      missing.push({ id: scenario.id, missing: absent });
-    }
-  }
-
-  return missing;
+export function findMissingCommands(
+  scenarios: Array<{ id: string; definition: ScenarioDefinition }>,
+): string[] {
+  return scenarios
+    .filter((s) => {
+      const commands = s.definition.benchmark?.commands;
+      return commands !== undefined && Object.keys(commands).length === 0;
+    })
+    .map((s) => s.id);
 }
 
-function printMissingRunCountsError(
-  missing: Array<{ id: string; missing: string[] }>,
-): void {
+function printMissingCommandsError(missing: string[]): void {
   logError(
-    "Regression benchmark requires benchmark.runs.{coldCompile,warmCompile,defaultCommand} in every scenario.json.",
+    "Regression benchmark requires a non-empty benchmark.commands map in every scenario.json.",
   );
-  console.error("Missing fields:");
+  console.error("Scenarios with an empty commands map:");
 
-  for (const { id, missing: fields } of missing) {
-    console.error(`  - end-to-end/${id}/scenario.json: ${fields.join(", ")}`);
+  for (const id of missing) {
+    console.error(`  - end-to-end/${id}/scenario.json`);
   }
 
   console.error(
-    'Add them to scenario.json or set "benchmark": { "skip": true } to opt out.',
+    'Add commands to scenario.json or set "benchmark": { "skip": true } to opt out.',
   );
 }
 
@@ -395,24 +377,16 @@ async function runScenario(
   scenario: ScenarioEntry,
   args: RegressionArgs,
 ): Promise<BenchmarkEntry[]> {
-  const runs = scenario.definition.benchmark?.runs;
+  const commands = scenario.definition.benchmark?.commands;
 
-  if (
-    runs?.coldCompile === undefined ||
-    runs.warmCompile === undefined ||
-    runs.defaultCommand === undefined
-  ) {
+  if (commands === undefined || Object.keys(commands).length === 0) {
     throw new Error(
-      `Missing benchmark.runs.* fields for "${scenario.id}" — pre-flight should have caught this`,
+      `Missing benchmark.commands for "${scenario.id}" — pre-flight should have caught this`,
     );
   }
 
   const scenarioTmpDir = path.join(tmpdir(), "hardhat-regression", scenario.id);
   mkdirSync(scenarioTmpDir, { recursive: true });
-
-  const coldExport = path.join(scenarioTmpDir, "cold.json");
-  const warmExport = path.join(scenarioTmpDir, "warm.json");
-  const defaultExport = path.join(scenarioTmpDir, "default.json");
 
   logStep("Initializing scenario");
   await e2eInit(
@@ -424,41 +398,29 @@ async function runScenario(
     ForcePublish.No,
   );
 
-  await runPhase(
-    "compile (cold)",
-    buildBenchArgs(scenario.scenarioJsonPath, args, {
-      command: "npx hardhat compile",
-      prepare: "npx hardhat clean",
-      runs: runs.coldCompile,
-      exportJson: coldExport,
-    }),
-  );
+  const entries: BenchmarkEntry[] = [];
 
-  await runPhase(
-    "compile (warm)",
-    buildBenchArgs(scenario.scenarioJsonPath, args, {
-      command: "npx hardhat compile",
-      prepare: undefined,
-      runs: runs.warmCompile,
-      exportJson: warmExport,
-    }),
-  );
+  for (const [name, cfg] of Object.entries(commands)) {
+    const exportPath = path.join(scenarioTmpDir, `${slugify(name)}.json`);
 
-  await runPhase(
-    "default command",
-    buildBenchArgs(scenario.scenarioJsonPath, args, {
-      command: undefined,
-      prepare: undefined,
-      runs: runs.defaultCommand,
-      exportJson: defaultExport,
-    }),
-  );
+    await runPhase(
+      name,
+      buildBenchArgs(scenario.scenarioJsonPath, args, {
+        command: cfg.command,
+        prepare: cfg.prepare,
+        runs: cfg.runs,
+        exportJson: exportPath,
+      }),
+    );
 
-  return [
-    toEntry(scenario.id, "compile (cold)", readHyperfineResult(coldExport)),
-    toEntry(scenario.id, "compile (warm)", readHyperfineResult(warmExport)),
-    toEntry(scenario.id, "default command", readHyperfineResult(defaultExport)),
-  ];
+    entries.push(toEntry(scenario.id, name, readHyperfineResult(exportPath)));
+  }
+
+  return entries;
+}
+
+function slugify(name: string): string {
+  return name.replace(/[^a-zA-Z0-9._-]+/g, "-").replace(/^-+|-+$/g, "");
 }
 
 async function runPhase(label: string, benchArgs: BenchArgs): Promise<void> {
@@ -579,4 +541,6 @@ function getArgValue(args: string[], flag: string): string | undefined {
   return idx !== -1 && idx + 1 < args.length ? args[idx + 1] : undefined;
 }
 
-await main();
+if (process.argv[1] === fileURLToPath(import.meta.url)) {
+  await main();
+}

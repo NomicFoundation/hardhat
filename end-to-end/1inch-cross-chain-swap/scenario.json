@@ -6,12 +6,25 @@
   "commit": "690f7f6bbc826ab3d58995e4bc5bf01694222086",
   "packageManager": "yarn",
   "submodules": true,
-  "defaultCommand": "FOUNDRY_PROFILE=default npx hardhat test solidity",
+  "defaultCommand": "npx hardhat test solidity",
+  "env": {
+    "FOUNDRY_PROFILE": "default"
+  },
   "benchmark": {
-    "runs": {
-      "coldCompile": 3,
-      "warmCompile": 97,
-      "defaultCommand": 9
+    "commands": {
+      "cold compile": {
+        "runs": 3,
+        "prepare": "npx hardhat clean",
+        "command": "npx hardhat compile"
+      },
+      "warm compile": {
+        "runs": 97,
+        "command": "npx hardhat compile"
+      },
+      "test solidity": {
+        "runs": 9,
+        "command": "npx hardhat test solidity --no-compile"
+      }
     }
   }
 }

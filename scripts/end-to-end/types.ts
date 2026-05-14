@@ -19,10 +19,12 @@ export interface ScenarioDefinition {
   disabled?: true;
   benchmark?: {
     skip?: true;
-    runs?: {
-      defaultCommand?: number;
-      coldCompile?: number;
-      warmCompile?: number;
-    };
+    commands?: Record<string, CommandConfig>;
   };
+}
+
+export interface CommandConfig {
+  runs: number;
+  prepare?: string;
+  command: string;
 }

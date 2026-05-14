@@ -8,10 +8,20 @@
   "submodules": true,
   "defaultCommand": "npx hardhat test solidity",
   "benchmark": {
-    "runs": {
-      "coldCompile": 13,
-      "warmCompile": 77,
-      "defaultCommand": 69
+    "commands": {
+      "cold compile": {
+        "runs": 13,
+        "prepare": "npx hardhat clean",
+        "command": "npx hardhat compile"
+      },
+      "warm compile": {
+        "runs": 77,
+        "command": "npx hardhat compile"
+      },
+      "solidity test": {
+        "runs": 69,
+        "command": "npx hardhat test solidity --no-compile"
+      }
     }
   }
 }

@@ -36,8 +36,7 @@ OPTIONS
   --warmup <n>          Warmup runs before benchmarking (default: 0). Forwarded
                         to hyperfine's --warmup flag. Useful for filling disk
                         caches for I/O-heavy programs
-  --runs <n>            Number of benchmark runs (default: scenario's
-                        benchmark.runs.defaultCommand or 10). Forwarded to
+  --runs <n>            Number of benchmark runs (default: 10). Forwarded to
                         hyperfine's --runs flag
   --ignore-failure      Ignore non-zero exit codes of the benchmarked command.
                         Forwarded to hyperfine's --ignore-failure flag
@@ -78,8 +77,7 @@ export async function runBenchmark(benchArgs: BenchArgs): Promise<void> {
   }
 
   const benchCommand = command ?? scenario.definition.defaultCommand;
-  const runs =
-    benchArgs.runs ?? scenario.definition.benchmark?.runs?.defaultCommand ?? 10;
+  const runs = benchArgs.runs ?? 10;
 
   if (init) {
     logStep("Initializing scenario");
