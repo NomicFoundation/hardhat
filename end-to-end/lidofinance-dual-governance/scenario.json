@@ -21,7 +21,7 @@
         "runs": 83,
         "command": "npx hardhat compile"
       },
-      "solidity test": {
+      "test solidity": {
         "runs": 3,
         "command": "npx hardhat test solidity --no-compile --grep=\"^(test_|testFuzz_)\""
       }

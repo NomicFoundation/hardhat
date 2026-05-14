@@ -18,7 +18,7 @@
         "runs": 77,
         "command": "npx hardhat compile"
       },
-      "solidity test": {
+      "test solidity": {
         "runs": 69,
         "command": "npx hardhat test solidity --no-compile"
       }
