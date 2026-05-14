@@ -3,5 +3,8 @@
   "file": "./test/setup.ts",
   "timeout": 20000,
   "exit": true,
-  "ignore": ["**/fixture-projects/**/*"]
+  "ignore": [
+    "**/fixture-projects/**/*"
+  ],
+  "node-option": "no-strip-types"
 }

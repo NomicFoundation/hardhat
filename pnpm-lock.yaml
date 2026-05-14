@@ -67,8 +67,8 @@ importers:
         specifier: 3.4.0
         version: 3.4.0(eslint-config-prettier@8.3.0(eslint@8.57.1))(eslint@8.57.1)(prettier@2.8.8)
       mocha:
-        specifier: ^10.0.0
-        version: 10.8.2
+        specifier: ^11.1.0
+        version: 11.7.5
 
   packages/eslint-plugin-slow-imports:
     dependencies:
@@ -95,8 +95,8 @@ importers:
         specifier: ^16.6.2
         version: 16.6.2(eslint@8.57.1)
       mocha:
-        specifier: ^10.0.0
-        version: 10.8.2
+        specifier: ^11.1.0
+        version: 11.7.5
 
   packages/hardhat-chai-matchers:
     dependencies:
@@ -177,8 +177,8 @@ importers:
         specifier: workspace:^2.26.0
         version: link:../hardhat-core
       mocha:
-        specifier: ^10.0.0
-        version: 10.8.2
+        specifier: ^11.1.0
+        version: 11.7.5
       prettier:
         specifier: 2.4.1
         version: 2.4.1
@@ -270,8 +270,8 @@ importers:
         specifier: ^0.38.0
         version: 0.38.5
       mocha:
-        specifier: ^10.0.0
-        version: 10.8.2
+        specifier: ^11.1.0
+        version: 11.7.5
       p-map:
         specifier: ^4.0.0
         version: 4.0.0
@@ -494,8 +494,8 @@ importers:
         specifier: workspace:^2.28.0
         version: link:../hardhat-core
       mocha:
-        specifier: ^10.0.0
-        version: 10.8.2
+        specifier: ^11.1.0
+        version: 11.7.5
       picocolors:
         specifier: ^1.1.0
         version: 1.1.1
@@ -564,8 +564,8 @@ importers:
         specifier: workspace:^2.26.0
         version: link:../hardhat-core
       mocha:
-        specifier: ^10.0.0
-        version: 10.8.2
+        specifier: ^11.1.0
+        version: 11.7.5
       prettier:
         specifier: 2.4.1
         version: 2.4.1
@@ -628,7 +628,7 @@ importers:
         specifier: ^9.0.13
         version: 9.0.13
       '@types/mocha':
-        specifier: 9.1.1
+        specifier: '>=9.1.0'
         version: 9.1.1
       '@types/node':
         specifier: ^20.0.0
@@ -679,8 +679,8 @@ importers:
         specifier: workspace:^2.26.0
         version: link:../hardhat-core
       mocha:
-        specifier: ^9.1.3
-        version: 9.2.2
+        specifier: ^11.1.0
+        version: 11.7.5
       nyc:
         specifier: 15.1.0
         version: 15.1.0
@@ -758,7 +758,7 @@ importers:
         specifier: ^4.14.123
         version: 4.17.17
       '@types/mocha':
-        specifier: 9.1.1
+        specifier: '>=9.1.0'
         version: 9.1.1
       '@types/ndjson':
         specifier: 2.0.1
@@ -806,8 +806,8 @@ importers:
         specifier: workspace:^2.26.4
         version: link:../hardhat-core
       mocha:
-        specifier: ^9.1.3
-        version: 9.2.2
+        specifier: ^11.1.0
+        version: 11.7.5
       nyc:
         specifier: 15.1.0
         version: 15.1.0
@@ -848,7 +848,7 @@ importers:
         specifier: ^7.1.4
         version: 7.1.8
       '@types/mocha':
-        specifier: 9.1.1
+        specifier: '>=9.1.0'
         version: 9.1.1
       '@types/node':
         specifier: ^20.0.0
@@ -899,8 +899,8 @@ importers:
         specifier: workspace:^2.26.0
         version: link:../hardhat-core
       mocha:
-        specifier: ^9.1.3
-        version: 9.2.2
+        specifier: ^11.1.0
+        version: 11.7.5
       nyc:
         specifier: 15.1.0
         version: 15.1.0
@@ -935,7 +935,7 @@ importers:
         specifier: ^7.1.5
         version: 7.1.8
       '@types/mocha':
-        specifier: 9.1.1
+        specifier: '>=9.1.0'
         version: 9.1.1
       '@types/react':
         specifier: ^18.0.28
@@ -971,8 +971,8 @@ importers:
         specifier: 10.9.3
         version: 10.9.3
       mocha:
-        specifier: ^9.1.3
-        version: 9.2.2
+        specifier: ^11.1.0
+        version: 11.7.5
       react:
         specifier: ^18.2.0
         version: 18.3.1
@@ -1031,7 +1031,7 @@ importers:
         specifier: ^7.1.4
         version: 7.1.8
       '@types/mocha':
-        specifier: 9.1.1
+        specifier: '>=9.1.0'
         version: 9.1.1
       '@types/node':
         specifier: ^20.0.0
@@ -1079,8 +1079,8 @@ importers:
         specifier: workspace:^2.26.0
         version: link:../hardhat-core
       mocha:
-        specifier: ^9.1.3
-        version: 9.2.2
+        specifier: ^11.1.0
+        version: 11.7.5
       nyc:
         specifier: 15.1.0
         version: 15.1.0
@@ -1191,8 +1191,8 @@ importers:
         specifier: workspace:^2.26.0
         version: link:../hardhat-core
       mocha:
-        specifier: ^10.0.0
-        version: 10.8.2
+        specifier: ^11.1.0
+        version: 11.7.5
       nyc:
         specifier: ^15.1.0
         version: 15.1.0
@@ -1270,8 +1270,8 @@ importers:
         specifier: workspace:^2.26.0
         version: link:../hardhat-core
       mocha:
-        specifier: ^10.0.0
-        version: 10.8.2
+        specifier: ^11.1.0
+        version: 11.7.5
       prettier:
         specifier: 2.4.1
         version: 2.4.1
@@ -1349,8 +1349,8 @@ importers:
         specifier: workspace:^2.26.5
         version: link:../hardhat-core
       mocha:
-        specifier: ^10.0.0
-        version: 10.8.2
+        specifier: ^11.1.0
+        version: 11.7.5
       prettier:
         specifier: 2.4.1
         version: 2.4.1
@@ -1422,8 +1422,8 @@ importers:
         specifier: workspace:^2.26.0
         version: link:../hardhat-core
       mocha:
-        specifier: ^10.0.0
-        version: 10.8.2
+        specifier: ^11.1.0
+        version: 11.7.5
       prettier:
         specifier: 2.4.1
         version: 2.4.1
@@ -1495,8 +1495,8 @@ importers:
         specifier: workspace:^2.26.0
         version: link:../hardhat-core
       mocha:
-        specifier: ^10.0.0
-        version: 10.8.2
+        specifier: ^11.1.0
+        version: 11.7.5
       prettier:
         specifier: 2.4.1
         version: 2.4.1
@@ -1582,8 +1582,8 @@ importers:
         specifier: ^2.3.0
         version: 2.3.0(bufferutil@4.0.9)(hardhat@packages+hardhat-core)(typescript@5.9.3)(utf-8-validate@5.0.10)(zod@3.25.57)
       mocha:
-        specifier: ^10.0.0
-        version: 10.8.2
+        specifier: ^11.1.0
+        version: 11.7.5
       prettier:
         specifier: 2.4.1
         version: 2.4.1
@@ -1670,8 +1670,8 @@ importers:
         specifier: ^2.3.0
         version: 2.3.0(bufferutil@4.0.9)(hardhat@packages+hardhat-core)(typescript@5.9.3)(utf-8-validate@5.0.10)(zod@3.25.57)
       mocha:
-        specifier: ^10.0.0
-        version: 10.8.2
+        specifier: ^11.1.0
+        version: 11.7.5
       prettier:
         specifier: 2.4.1
         version: 2.4.1
@@ -1755,8 +1755,8 @@ importers:
         specifier: workspace:^2.26.0
         version: link:../hardhat-core
       mocha:
-        specifier: ^10.0.0
-        version: 10.8.2
+        specifier: ^11.1.0
+        version: 11.7.5
       prettier:
         specifier: 2.4.1
         version: 2.4.1
@@ -1837,8 +1837,8 @@ importers:
         specifier: workspace:^2.26.0
         version: link:../hardhat-core
       mocha:
-        specifier: ^10.0.0
-        version: 10.8.2
+        specifier: ^11.1.0
+        version: 11.7.5
       prettier:
         specifier: 2.4.1
         version: 2.4.1
@@ -1961,8 +1961,8 @@ importers:
         specifier: workspace:^2.26.0
         version: link:../hardhat-core
       mocha:
-        specifier: ^10.0.0
-        version: 10.8.2
+        specifier: ^11.1.0
+        version: 11.7.5
       nyc:
         specifier: ^15.1.0
         version: 15.1.0
@@ -2055,8 +2055,8 @@ importers:
         specifier: ^29.7.0
         version: 29.7.0
       mocha:
-        specifier: ^10.0.0
-        version: 10.8.2
+        specifier: ^11.1.0
+        version: 11.7.5
       nyc:
         specifier: ^15.1.0
         version: 15.1.0
@@ -2158,8 +2158,8 @@ importers:
         specifier: workspace:^2.26.0
         version: link:../hardhat-core
       mocha:
-        specifier: ^10.0.0
-        version: 10.8.2
+        specifier: ^11.1.0
+        version: 11.7.5
       prettier:
         specifier: 2.4.1
         version: 2.4.1
@@ -2218,8 +2218,8 @@ importers:
         specifier: workspace:^2.26.0
         version: link:../hardhat-core
       mocha:
-        specifier: ^10.0.0
-        version: 10.8.2
+        specifier: ^11.1.0
+        version: 11.7.5
       prettier:
         specifier: 2.4.1
         version: 2.4.1
@@ -2284,8 +2284,8 @@ importers:
         specifier: workspace:^2.26.0
         version: link:../hardhat-core
       mocha:
-        specifier: ^10.0.0
-        version: 10.8.2
+        specifier: ^11.1.0
+        version: 11.7.5
       prettier:
         specifier: 2.4.1
         version: 2.4.1
@@ -2353,8 +2353,8 @@ importers:
         specifier: workspace:^2.26.0
         version: link:../hardhat-core
       mocha:
-        specifier: ^10.0.0
-        version: 10.8.2
+        specifier: ^11.1.0
+        version: 11.7.5
       prettier:
         specifier: 2.4.1
         version: 2.4.1
@@ -3755,9 +3755,6 @@ packages:
     resolution: {integrity: sha512-07ny+LHRzQXepkGg6w0mFY41fVUNBrL2Roj/++7V1txKugfjm/Ci/qSND03r2RhlJhJYMcTn9AhhSSqQp0Ysyw==}
     engines: {node: ^12.22.0 || ^14.17.0 || >=16.0.0}
 
-  '@ungap/promise-all-settled@1.1.2':
-    resolution: {integrity: sha512-sL/cEvJWAnClXw0wHk85/2L0G6Sj8UB0Ctc1TEMbKSsmpRosqhwj9gWgFRZSrBr2f9tiXISwNhCPmlfqUqyb9Q==}
-
   '@ungap/structured-clone@1.3.0':
     resolution: {integrity: sha512-WmoN8qaIAo7WTYWbAZuG8PYEhn5fkz7dZrqTBZ7dtt//lL2Gwms1IcnQ5yHqjDfX8Ft5j4YzDM23f87zBfDe9g==}
 
@@ -3952,10 +3949,6 @@ packages:
 
   ansi-align@3.0.1:
     resolution: {integrity: sha512-IOfwwBF5iczOjp/WeY4YxyjqAFMQoZufdQWDd19SEExbVLNXqvpzSJ/M7Za4/sCPmQ0+GRquoA7bGcINcxew6w==}
-
-  ansi-colors@4.1.1:
-    resolution: {integrity: sha512-JoX0apGbHaUJBNl6yF+p6JAFYZ666/hhCGKN5t9QFjbJQKUU/g8MNbFDbvfrgKXvI1QpZplPOnwIo99lX/AAmA==}
-    engines: {node: '>=6'}
 
   ansi-colors@4.1.3:
     resolution: {integrity: sha512-/6w/C21Pm1A7aZitlI5Ni/2J6FFQN8i1Cvz3kHABAAbw93v/NlvKdVOqz7CCWz/3iv/JplRSEEZ83XION15ovw==}
@@ -4393,10 +4386,6 @@ packages:
     resolution: {integrity: sha512-+0hMx9eYhJvWbgpKV9hN7jg0JcwydpopZE4hgi+KvQtByZXPp04NiCWU0LzcAbP63abZckIHkTQaXVF52mX3xQ==}
     engines: {node: '>=18.17'}
 
-  chokidar@3.5.3:
-    resolution: {integrity: sha512-Dr3sfKRP6oTcjf2JmUmFJfeVMvXBdegxB0iVQ5eb2V10uFJUCAS8OByZdVAyVb8xXNz3GjjTgj9kLWsZTqE6kw==}
-    engines: {node: '>= 8.10.0'}
-
   chokidar@3.6.0:
     resolution: {integrity: sha512-7VT13fmjotKpGipCW9JEQAusEPE+Ei8nl6/g4FBAmIm0GOOLMua9NDDo/DWp0ZAxCr3cPq5ZpBqmPAQgDda2Pw==}
     engines: {node: '>= 8.10.0'}
@@ -4458,6 +4447,10 @@ packages:
 
   cliui@7.0.4:
     resolution: {integrity: sha512-OcRE68cOsVMXp1Yvonl/fzkQOyjLSu/8bhPDfQt0e0/Eb283TKP20Fs2MqoPsr9SwA595rRCA+QMzYc9nBP+JQ==}
+
+  cliui@8.0.1:
+    resolution: {integrity: sha512-BSeNnyus75C4//NQ9gQt1/csTXyo/8Sb+afLAkzAptFuMsod9HFokGNudZpi/oQV73hnVK+sR+5PVRMd+Dr7YQ==}
+    engines: {node: '>=12'}
 
   clone-response@1.0.3:
     resolution: {integrity: sha512-ROoL94jJH2dUVML2Y/5PEDNaSHgeOdSDicUyS7izcF63G6sTc/FTjLub4b8Il9S8S0beOfYt0TaA5qvFK+w0wA==}
@@ -4845,15 +4838,6 @@ packages:
       supports-color:
         optional: true
 
-  debug@4.3.3:
-    resolution: {integrity: sha512-/zxw5+vh1Tfv+4Qn7a5nsbcJKPaSvCDhojn6FEl9vupwK2VCSDtEiEtqr8DFtzYFOdz63LBkxec7DYuc2jon6Q==}
-    engines: {node: '>=6.0'}
-    peerDependencies:
-      supports-color: '*'
-    peerDependenciesMeta:
-      supports-color:
-        optional: true
-
   debug@4.4.1:
     resolution: {integrity: sha512-KcKCqiftBJcZr++7ykoDIEwSa3XWowTfNPo92BYxjXiyYEVrUQh2aLyhxBCwww+heortUFxEJYcRzosstTEBYQ==}
     engines: {node: '>=6.0'}
@@ -4970,12 +4954,12 @@ packages:
     resolution: {integrity: sha512-58lmxKSA4BNyLz+HHMUzlOEpg09FV+ev6ZMe3vJihgdxzgcwZ8VoEEPmALCZG9LmqfVoNMMKpttIYTVG6uDY7A==}
     engines: {node: '>=0.3.1'}
 
-  diff@5.0.0:
-    resolution: {integrity: sha512-/VTCrvm5Z0JGty/BWHljh+BAiw3IK+2j87NGMu8Nwc/f48WoDAC395uomO9ZD117ZOBaHmkX1oyLvkVM/aIT3w==}
-    engines: {node: '>=0.3.1'}
-
   diff@5.2.0:
     resolution: {integrity: sha512-uIFDxqpRZGZ6ThOk84hEfqWoHx2devRFvpTZcTHur85vImfaxUbTW9Ryh4CpCuDnToOP1CEtXKIgytHBPVff5A==}
+    engines: {node: '>=0.3.1'}
+
+  diff@7.0.0:
+    resolution: {integrity: sha512-PJWHUb1RFevKCwaFA9RlG5tCd+FO5iRh9A8HEtkmBH2Li03iJriB6m6JIN4rGz3K3JLawI7/veA1xzRKP6ISBw==}
     engines: {node: '>=0.3.1'}
 
   difflib@0.2.4:
@@ -5726,18 +5710,15 @@ packages:
 
   glob@10.4.5:
     resolution: {integrity: sha512-7Bv8RF0k6xjo7d4A/PxYLbUCfb6c+Vpd2/mB2yRDlew7Jb5hEXiCD9ibfO7wpk8i4sevK6DFny9h7EYbM3/sHg==}
+    deprecated: Old versions of glob are not supported, and contain widely publicized security vulnerabilities, which have been fixed in the current version. Please update. Support for old versions may be purchased (at exorbitant rates) by contacting i@izs.me
     hasBin: true
 
   glob@5.0.15:
     resolution: {integrity: sha512-c9IPMazfRITpmAAKi22dK1VKxGDX9ehhqfABDriL/lzO92xcUKEJPQHrVA/2YHSNFB4iFlykVmWvwo48nr3OxA==}
-    deprecated: Glob versions prior to v9 are no longer supported
+    deprecated: Old versions of glob are not supported, and contain widely publicized security vulnerabilities, which have been fixed in the current version. Please update. Support for old versions may be purchased (at exorbitant rates) by contacting i@izs.me
 
   glob@7.1.7:
     resolution: {integrity: sha512-OvD9ENzPLbegENnYP5UUfJIirTg4+XwMWGaQfQTY0JenxNvvIKP3U3/tAQSPIu/lHxXYSZmpXlUHeqAIdKzBLQ==}
-    deprecated: Glob versions prior to v9 are no longer supported
-
-  glob@7.2.0:
-    resolution: {integrity: sha512-lmLf6gtyrPq8tTjSmrO94wBeQbFR3HbLHbuyD69wuyQkImp2hWqMGB47OX65FBkPffO641IP9jWa1z4ivqG26Q==}
     deprecated: Glob versions prior to v9 are no longer supported
 
   glob@7.2.3:
@@ -5804,10 +5785,6 @@ packages:
 
   graphemer@1.4.0:
     resolution: {integrity: sha512-EtKwoO6kxCL9WO5xipiHTZlSzBm7WLT627TqC/uVRd0HKmq8NXyebnNYxDoBi7wt8eTWrUrKXCOVaFq9x1kgag==}
-
-  growl@1.10.5:
-    resolution: {integrity: sha512-qBr4OuELkhPenW6goKVXiv47US3clb3/IbuWF9KNKEijAy9oeHxU9IgzjvJhHkUzhaj7rOUD7+YGWqUjLp5oSA==}
-    engines: {node: '>=4.x'}
 
   handlebars@4.7.8:
     resolution: {integrity: sha512-vafaFqs8MZkRrSX7sFVUdo3ap/eNiLnb4IakshzvP56X5Nr1iGKAIqdX6tMlm6HcNRIkr6AxO5jFEoJzzpT8aQ==}
@@ -6676,10 +6653,6 @@ packages:
   minimatch@3.1.2:
     resolution: {integrity: sha512-J7p63hRiAjw1NDEww1W7i37+ByIrOWO5XQQAzZ3VOcL0PNybwpfmV/N05zFAzwQ9USyEcX6t3UO+K5aqBQOIHw==}
 
-  minimatch@4.2.1:
-    resolution: {integrity: sha512-9Uq1ChtSZO+Mxa/CL1eGizn2vRn3MlLgzhT0Iz8zaY8NdvxvB0d5QdPFmCKf7JKA9Lerx5vRrnwO03jsSfGG9g==}
-    engines: {node: '>=10'}
-
   minimatch@5.1.6:
     resolution: {integrity: sha512-lKwV/1brpG6mBUFHtb7NUmtABCb2WZZmm2wNiOA5hAb8VdCS4B3dtMWyvcoViccwAW/COERjXLt0zP1zXUN26g==}
     engines: {node: '>=10'}
@@ -6731,9 +6704,9 @@ packages:
     engines: {node: '>= 14.0.0'}
     hasBin: true
 
-  mocha@9.2.2:
-    resolution: {integrity: sha512-L6XC3EdwT6YrIk0yXpavvLkn8h+EU+Y5UcCHKECyMbdUIxyMuZj4bX4U9e1nvnvUUvQVsV2VHQr5zLdcUkhW/g==}
-    engines: {node: '>= 12.0.0'}
+  mocha@11.7.5:
+    resolution: {integrity: sha512-mTT6RgopEYABzXWFx+GcJ+ZQ32kp4fMf0xvpZIIfSq9Z8lC/++MtcCnQ9t5FP2veYEP95FIYSvW+U9fV4xrlig==}
+    engines: {node: ^18.18.0 || ^20.9.0 || >=21.1.0}
     hasBin: true
 
   mock-fs@4.14.0:
@@ -6745,9 +6718,6 @@ packages:
 
   ms@2.0.0:
     resolution: {integrity: sha512-Tpp60P6IUJDTuOq/5Z8cdskzJujfwqfOTkrwIwj7IRISpnkJnT6SyJ4PCPnGMoFjC9ddhal5KVIYtAt97ix05A==}
-
-  ms@2.1.2:
-    resolution: {integrity: sha512-sGkPx+VjMtmA6MX27oA4FBFELFCZZ4S4XqeGOXCv68tT+jb3vk/RyaKWP0PTKyWtmLSM0b+adUTEvbs1PEaH2w==}
 
   ms@2.1.3:
     resolution: {integrity: sha512-6FlzubTLZG3J2a/NVCAleEhjzq5oxgHyaCU9yYXvcLsvoVaHJq/s5xXI6/XXP6tz7R9xAOtHnSO/tXtF3WRTlA==}
@@ -6779,11 +6749,6 @@ packages:
 
   nano-json-stream-parser@0.1.2:
     resolution: {integrity: sha512-9MqxMH/BSJC7dnLsEMPyfN5Dvoo49IsPFYMcHw3Bcfc2kN0lpHRBSzlMSVx4HGyJ7s9B31CyBTVehWJoQ8Ctew==}
-
-  nanoid@3.3.1:
-    resolution: {integrity: sha512-n6Vs/3KGyxPQd6uO0eH4Bv0ojGSUvuLlIHtC3Y0kEO23YRge8H9x1GCzLn28YX0H66pMkxuaeESFq4tKISKwdw==}
-    engines: {node: ^10 || ^12 || ^13.7 || ^14 || >=15.0.1}
-    hasBin: true
 
   nanoid@3.3.11:
     resolution: {integrity: sha512-N8SpfPUnUp1bK+PMYW8qSWdl9U+wwNWI4QKxOYDy9JAro3WMX7p2OeVRF9v+347pnakNevPmiHhNmZ2HbFA76w==}
@@ -7595,9 +7560,6 @@ packages:
 
   sentence-case@2.1.1:
     resolution: {integrity: sha512-ENl7cYHaK/Ktwk5OTD+aDbQ3uC8IByu/6Bkg+HDv8Mm+XnBnppVNalcfJTNsp1ibstKh030/JKQQWglDvtKwEQ==}
-
-  serialize-javascript@6.0.0:
-    resolution: {integrity: sha512-Qr3TosvguFt8ePWqsvRfrKyQXIiW+nGbYpy8XK24NQHE83caxWt+mIymTT19DGFbNWNLfEwsrkSmN64lVWB9ag==}
 
   serialize-javascript@6.0.2:
     resolution: {integrity: sha512-Saa1xPByTTq2gdeFZYLLo+RFE35NHZkAbqZeWNd3BpzppeVisAqpDjcp8dyf6uIvEqJRd46jemmyA4iFIeVk8g==}
@@ -8679,11 +8641,11 @@ packages:
     resolution: {integrity: sha512-kKlNACbvHrkpIw6oPeYDSmdCTu2hdMHoyXLTcUKala++lx5Y+wjJ/e474Jqv5abnVmwxw08DiTuHmw69lJGksA==}
     engines: {node: '>=8.0.0'}
 
-  workerpool@6.2.0:
-    resolution: {integrity: sha512-Rsk5qQHJ9eowMH28Jwhe8HEbmdYDX4lwoMWshiCXugjtHqMD9ZbiqSDLxcsfdqsETPzVUtX5s1Z5kStiIM6l4A==}
-
   workerpool@6.5.1:
     resolution: {integrity: sha512-Fs4dNYcsdpYSAfVxhnl1L5zTksjvOJxtC5hzMNl+1t9B8hTJTdKDyZ5ju7ztgPy+ft9tBFXoOlDNiOT9WUXZlA==}
+
+  workerpool@9.3.4:
+    resolution: {integrity: sha512-TmPRQYYSAnnDiEB0P/Ytip7bFGvqnSU6I2BcuSw7Hx+JSg/DsUi5ebYfc8GYaSdpuvOcEs6dXxPurOYpe9QFwg==}
 
   wrap-ansi@2.1.0:
     resolution: {integrity: sha512-vAaEaDM946gbNpH5pLVNR+vX2ht6n0Bt3GXwVB1AuAqZosOvHNF3P7wDnh8KLkSqgUh0uh77le7Owgoz+Z9XBw==}
@@ -8818,13 +8780,13 @@ packages:
   yargs-parser@2.4.1:
     resolution: {integrity: sha512-9pIKIJhnI5tonzG6OnCFlz/yln8xHYcGl+pn3xR0Vzff0vzN1PbNRaelgfgRUwZ3s4i3jvxT9WhmUGL4whnasA==}
 
-  yargs-parser@20.2.4:
-    resolution: {integrity: sha512-WOkpgNhPTlE73h4VFAFsOnomJVaovO8VqLDzy5saChRBFQFBoMYirowyW+Q9HB4HFF4Z7VZTiG3iSzJJA29yRA==}
-    engines: {node: '>=10'}
-
   yargs-parser@20.2.9:
     resolution: {integrity: sha512-y11nGElTIV+CT3Zv9t7VKl+Q3hTQoT9a1Qzezhhl6Rp21gJ/IVTW7Z3y9EWXhuUBC2Shnf+DX0antecpAwSP8w==}
     engines: {node: '>=10'}
+
+  yargs-parser@21.1.1:
+    resolution: {integrity: sha512-tVpsJW7DdjecAiFpbIB1e3qxIQsE6NoPc5/eTdrbbIC4h0LVsWhnoa3g+m2HclBIujHzsxZ4VJVA+GUuc2/LBw==}
+    engines: {node: '>=12'}
 
   yargs-unparser@2.0.0:
     resolution: {integrity: sha512-7pRTIA9Qc1caZ0bZ6RYRGbHJthJWuakf+WmHK0rVeLkNrrGhfoabBNdue6kdINI6r4if7ocq9aD/n7xwKOdzOA==}
@@ -8837,6 +8799,10 @@ packages:
   yargs@16.2.0:
     resolution: {integrity: sha512-D1mvvtDG0L5ft/jGWkLpG1+m0eQxOfaBvTNELraWj22wSVUMWxZUvYgJYcKh6jGGIkJFhH4IZPQhR4TKpc8mBw==}
     engines: {node: '>=10'}
+
+  yargs@17.7.2:
+    resolution: {integrity: sha512-7dSzzRQ++CKnNI/krKnYRV7JKKPUXMEh61soaHKg9mrWEhzFWhFnxPxGl+69cD1Ou63C13NUPCnmIcrvqCuM6w==}
+    engines: {node: '>=12'}
 
   yargs@4.8.1:
     resolution: {integrity: sha512-LqodLrnIDM3IFT+Hf/5sxBnEGECrfdC1uIbgZeJmESCSo4HoCAaKEus8MylXHAkdacGc0ye+Qa+dpkuom8uVYA==}
@@ -10693,8 +10659,6 @@ snapshots:
       '@typescript-eslint/types': 5.62.0
       eslint-visitor-keys: 3.4.3
 
-  '@ungap/promise-all-settled@1.1.2': {}
-
   '@ungap/structured-clone@1.3.0': {}
 
   '@unrs/resolver-binding-darwin-arm64@1.7.13':
@@ -10843,8 +10807,6 @@ snapshots:
   ansi-align@3.0.1:
     dependencies:
       string-width: 4.2.3
-
-  ansi-colors@4.1.1: {}
 
   ansi-colors@4.1.3: {}
 
@@ -11351,18 +11313,6 @@ snapshots:
       undici: 7.10.0
       whatwg-mimetype: 4.0.0
 
-  chokidar@3.5.3:
-    dependencies:
-      anymatch: 3.1.3
-      braces: 3.0.3
-      glob-parent: 5.1.2
-      is-binary-path: 2.1.0
-      is-glob: 4.0.3
-      normalize-path: 3.0.0
-      readdirp: 3.6.0
-    optionalDependencies:
-      fsevents: 2.3.3
-
   chokidar@3.6.0:
     dependencies:
       anymatch: 3.1.3
@@ -11431,6 +11381,12 @@ snapshots:
       wrap-ansi: 6.2.0
 
   cliui@7.0.4:
+    dependencies:
+      string-width: 4.2.3
+      strip-ansi: 6.0.1
+      wrap-ansi: 7.0.0
+
+  cliui@8.0.1:
     dependencies:
       string-width: 4.2.3
       strip-ansi: 6.0.1
@@ -11848,12 +11804,6 @@ snapshots:
     dependencies:
       ms: 2.1.3
 
-  debug@4.3.3(supports-color@8.1.1):
-    dependencies:
-      ms: 2.1.2
-    optionalDependencies:
-      supports-color: 8.1.1
-
   debug@4.4.1(supports-color@5.5.0):
     dependencies:
       ms: 2.1.3
@@ -11949,9 +11899,9 @@ snapshots:
 
   diff@4.0.2: {}
 
-  diff@5.0.0: {}
-
   diff@5.2.0: {}
+
+  diff@7.0.0: {}
 
   difflib@0.2.4:
     dependencies:
@@ -13039,15 +12989,6 @@ snapshots:
       once: 1.4.0
       path-is-absolute: 1.0.1
 
-  glob@7.2.0:
-    dependencies:
-      fs.realpath: 1.0.0
-      inflight: 1.0.6
-      inherits: 2.0.4
-      minimatch: 3.1.2
-      once: 1.4.0
-      path-is-absolute: 1.0.1
-
   glob@7.2.3:
     dependencies:
       fs.realpath: 1.0.0
@@ -13162,8 +13103,6 @@ snapshots:
   graceful-fs@4.2.11: {}
 
   graphemer@1.4.0: {}
-
-  growl@1.10.5: {}
 
   handlebars@4.7.8:
     dependencies:
@@ -14104,10 +14043,6 @@ snapshots:
     dependencies:
       brace-expansion: 1.1.11
 
-  minimatch@4.2.1:
-    dependencies:
-      brace-expansion: 1.1.11
-
   minimatch@5.1.6:
     dependencies:
       brace-expansion: 2.0.1
@@ -14170,31 +14105,28 @@ snapshots:
       yargs-parser: 20.2.9
       yargs-unparser: 2.0.0
 
-  mocha@9.2.2:
+  mocha@11.7.5:
     dependencies:
-      '@ungap/promise-all-settled': 1.1.2
-      ansi-colors: 4.1.1
       browser-stdout: 1.3.1
-      chokidar: 3.5.3
-      debug: 4.3.3(supports-color@8.1.1)
-      diff: 5.0.0
+      chokidar: 4.0.3
+      debug: 4.4.1(supports-color@8.1.1)
+      diff: 7.0.0
       escape-string-regexp: 4.0.0
       find-up: 5.0.0
-      glob: 7.2.0
-      growl: 1.10.5
+      glob: 10.4.5
       he: 1.2.0
+      is-path-inside: 3.0.3
       js-yaml: 4.1.0
       log-symbols: 4.1.0
-      minimatch: 4.2.1
+      minimatch: 9.0.5
       ms: 2.1.3
-      nanoid: 3.3.1
-      serialize-javascript: 6.0.0
+      picocolors: 1.1.1
+      serialize-javascript: 6.0.2
       strip-json-comments: 3.1.1
       supports-color: 8.1.1
-      which: 2.0.2
-      workerpool: 6.2.0
-      yargs: 16.2.0
-      yargs-parser: 20.2.4
+      workerpool: 9.3.4
+      yargs: 17.7.2
+      yargs-parser: 21.1.1
       yargs-unparser: 2.0.0
 
   mock-fs@4.14.0: {}
@@ -14202,8 +14134,6 @@ snapshots:
   mri@1.2.0: {}
 
   ms@2.0.0: {}
-
-  ms@2.1.2: {}
 
   ms@2.1.3: {}
 
@@ -14241,8 +14171,6 @@ snapshots:
   nano-base32@1.0.1: {}
 
   nano-json-stream-parser@0.1.2: {}
-
-  nanoid@3.3.1: {}
 
   nanoid@3.3.11: {}
 
@@ -15138,10 +15066,6 @@ snapshots:
     dependencies:
       no-case: 2.3.2
       upper-case-first: 1.1.2
-
-  serialize-javascript@6.0.0:
-    dependencies:
-      randombytes: 2.1.0
 
   serialize-javascript@6.0.2:
     dependencies:
@@ -16823,9 +16747,9 @@ snapshots:
       reduce-flatten: 2.0.0
       typical: 5.2.0
 
-  workerpool@6.2.0: {}
-
   workerpool@6.5.1: {}
+
+  workerpool@9.3.4: {}
 
   wrap-ansi@2.1.0:
     dependencies:
@@ -16941,9 +16865,9 @@ snapshots:
       camelcase: 3.0.0
       lodash.assign: 4.2.0
 
-  yargs-parser@20.2.4: {}
-
   yargs-parser@20.2.9: {}
+
+  yargs-parser@21.1.1: {}
 
   yargs-unparser@2.0.0:
     dependencies:
@@ -16975,6 +16899,16 @@ snapshots:
       string-width: 4.2.3
       y18n: 5.0.8
       yargs-parser: 20.2.9
+
+  yargs@17.7.2:
+    dependencies:
+      cliui: 8.0.1
+      escalade: 3.2.0
+      get-caller-file: 2.0.5
+      require-directory: 2.1.1
+      string-width: 4.2.3
+      y18n: 5.0.8
+      yargs-parser: 21.1.1
 
   yargs@4.8.1:
     dependencies:

@@ -1,6 +1,9 @@
 {
   "require": "ts-node/register/files",
   "file": "../common/run-with-ganache",
-  "ignore": ["test/fixture-projects/**/*"],
-  "timeout": 15000
+  "ignore": [
+    "test/fixture-projects/**/*"
+  ],
+  "timeout": 15000,
+  "node-option": "no-strip-types"
 }

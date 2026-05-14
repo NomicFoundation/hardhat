@@ -66,7 +66,7 @@
     "ethers": "^6.14.0",
     "hardhat": "workspace:^2.28.0",
     "hardhat-gas-reporter": "^2.3.0",
-    "mocha": "^10.0.0",
+    "mocha": "^11.1.0",
     "prettier": "2.4.1",
     "rimraf": "^3.0.2",
     "solidity-coverage": "^0.8.17",

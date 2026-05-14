@@ -62,7 +62,7 @@
     "eslint-plugin-prettier": "3.4.0",
     "ethers-v5": "npm:ethers@5",
     "hardhat": "workspace:^2.26.0",
-    "mocha": "^10.0.0",
+    "mocha": "^11.1.0",
     "prettier": "2.4.1",
     "rimraf": "^3.0.2",
     "ts-node": "^10.8.0",

@@ -1,10 +1,13 @@
 {
-  "require": ["ts-node/register/transpile-only"],
+  "require": [
+    "ts-node/register/transpile-only"
+  ],
   "file": "./test/setup.ts",
   "timeout": 25000,
   "exclude": [
     "./test/helpers/**/*",
     "./test-integrations/fixture-projects/**/*",
     "./test-integrations/helpers/**/*"
-  ]
+  ],
+  "node-option": "no-strip-types"
 }
