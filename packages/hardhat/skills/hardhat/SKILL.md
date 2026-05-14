@@ -12,7 +12,7 @@ This skill covers Hardhat 3 itself. The toolbox layer (clients, contract interac
 - `@nomicfoundation/hardhat-toolbox-viem` → also load the **`hardhat-toolbox-viem`** skill.
 - `@nomicfoundation/hardhat-toolbox-mocha-ethers` → also load the **`hardhat-toolbox-mocha-ethers`** skill.
 
-## Test organisation
+## Test organization
 
 Hardhat 3 supports two distinct test layers:
 

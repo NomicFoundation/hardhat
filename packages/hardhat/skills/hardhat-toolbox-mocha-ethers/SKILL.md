@@ -7,7 +7,7 @@ metadata:
 
 # Hardhat toolbox: ethers + Mocha
 
-This skill builds on the core **`hardhat`** skill. Load that first for test organisation, the `network.create()` shape, `networkHelpers`, fixtures, and the typechecking workflow. Everything below hangs off the connection returned by `network.create()`.
+This skill builds on the core **`hardhat`** skill. Load that first for test organization, the `network.create()` shape, `networkHelpers`, fixtures, and the typechecking workflow. Everything below hangs off the connection returned by `network.create()`.
 
 This stack runs tests under **Mocha** (global `describe` / `it`) and asserts with **chai**. Mocha doesn't await `describe` callbacks, so the connection is set up at the top of the file with top-level `await`:
 

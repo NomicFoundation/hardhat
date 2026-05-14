@@ -7,7 +7,7 @@ metadata:
 
 # Hardhat toolbox: viem
 
-This skill builds on the core **`hardhat`** skill. Load that first for test organisation, the `network.create()` shape, `networkHelpers`, fixtures, and the typechecking workflow. Everything below hangs off the connection returned by `network.create()`:
+This skill builds on the core **`hardhat`** skill. Load that first for test organization, the `network.create()` shape, `networkHelpers`, fixtures, and the typechecking workflow. Everything below hangs off the connection returned by `network.create()`:
 
 ```ts
 import { network } from "hardhat";
