@@ -1,3 +1,5 @@
+import "./builtin-plugin-type-extensions.js";
+
 /**
  * A configuration variable to be fetched at runtime from
  * different sources, depending on the user's setup.

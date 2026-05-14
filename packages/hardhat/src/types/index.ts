@@ -1,3 +1,5 @@
+import "./builtin-plugin-type-extensions.js";
+
 export * from "./arguments.js";
 export * from "./artifacts.js";
 export * from "./config.js";

@@ -14,6 +14,8 @@ import type {
   Return,
 } from "./utils.js";
 
+import "./builtin-plugin-type-extensions.js";
+
 // We add the HookManager to the HRE with a module augmentation to avoid
 // introducing a circular dependency that would look like this:
 // hre.ts -> hooks.ts -> hre.ts

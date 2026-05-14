@@ -1,3 +1,5 @@
+import "./builtin-plugin-type-extensions.js";
+
 export * from "./solidity/build-system.js";
 export * from "./solidity/compilation-job.js";
 export * from "./solidity/compiler.js";

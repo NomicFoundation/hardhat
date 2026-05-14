@@ -3,8 +3,6 @@ export * from "./internal/core/config.js";
 
 export type { HardhatUserConfig } from "./types/config.js";
 
-// NOTE: We export the built-in plugin types to load their type extensions
-export type * from "./internal/builtin-plugins/index.js";
 import type { HardhatUserConfig } from "./types/config.js";
 
 import { throwUsingHardhat2PluginError } from "./internal/using-hardhat2-plugin-errors.js";

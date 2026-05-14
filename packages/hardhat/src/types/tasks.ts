@@ -8,6 +8,8 @@ import type { HardhatRuntimeEnvironment } from "./hre.js";
 /* eslint-disable-next-line @typescript-eslint/no-unused-vars -- used in JSDoc {@link} */
 import type { Result } from "./utils.js";
 
+import "./builtin-plugin-type-extensions.js";
+
 // We add the TaskManager to the HRE with a module augmentation to avoid
 // introducing a circular dependency that would look like this:
 // hre.ts -> tasks.ts -> hre.ts
