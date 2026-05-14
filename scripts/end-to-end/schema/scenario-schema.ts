@@ -38,6 +38,13 @@ export function isBenchmarkConfig(value: unknown): value is {
   }
 
   const obj = value as Record<string, unknown>;
+  const allowedKeys = new Set(["skip", "commands"]);
+
+  for (const key of Object.keys(obj)) {
+    if (!allowedKeys.has(key)) {
+      return false;
+    }
+  }
 
   if (obj.skip === undefined && obj.commands === undefined) {
     return false;

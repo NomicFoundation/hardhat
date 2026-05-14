@@ -370,6 +370,16 @@ describe("isBenchmarkConfig", () => {
     assert.equal(isBenchmarkConfig({ commands: {} }), false);
   });
 
+  it("rejects unknown top-level benchmark keys (e.g. stale runs)", () => {
+    assert.equal(
+      isBenchmarkConfig({
+        commands: { x: { runs: 1, command: "x" } },
+        runs: { coldCompile: 3 },
+      }),
+      false,
+    );
+  });
+
   it("rejects commands containing an invalid entry", () => {
     assert.equal(
       isBenchmarkConfig({
