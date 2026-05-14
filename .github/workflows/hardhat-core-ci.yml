@@ -111,7 +111,8 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        node: [22, 24, 26]
+        # TODO: add 26 once @types/node@26 is published to npm
+        node: [22, 24]
     steps:
       - uses: actions/checkout@v4
       - uses: ./.github/actions/setup-env
