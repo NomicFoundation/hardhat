@@ -49,6 +49,7 @@ import { getGenesisStateAndOwnedAccounts } from "./genesis-state.js";
 import { EdrProviderStackTraceGenerationError } from "./stack-traces/stack-trace-generation-errors.js";
 import { createSolidityErrorWithStackTrace } from "./stack-traces/stack-trace-solidity-errors.js";
 import { isEdrProviderErrorData } from "./type-validation.js";
+import { hardforkGte, L1HardforkName } from "./types/hardfork.js";
 import { clientVersion } from "./utils/client-version.js";
 import { ConsoleLogger } from "./utils/console-logger.js";
 import {
@@ -478,6 +479,18 @@ export async function getProviderConfig(
           genesisBlockTime: BigInt(toSeconds(networkConfig.initialDate)),
         };
 
+  const defaultTransactionGasLimit =
+    networkConfig.chainType === "op"
+      ? // OP stack is yet to activate EIP-7825. Slated for Upgrade 19 (activation TBD as of 2026-05-14)
+        networkConfig.blockGasLimit
+      : hardforkGte(
+            networkConfig.hardfork,
+            L1HardforkName.OSAKA,
+            networkConfig.chainType,
+          )
+        ? 16_777_216n // EIP-7825 transaction gas cap
+        : networkConfig.blockGasLimit;
+
   return {
     allowBlocksWithSameTimestamp: networkConfig.allowBlocksWithSameTimestamp,
     allowUnlimitedContractSize: networkConfig.allowUnlimitedContractSize,
@@ -485,8 +498,7 @@ export async function getProviderConfig(
     bailOnTransactionFailure: networkConfig.throwOnTransactionFailures,
     chainId: BigInt(networkConfig.chainId),
     coinbase: networkConfig.coinbase,
-    // EIP-7825 transaction gas cap
-    defaultTransactionGasLimit: 16_777_216,
+    defaultTransactionGasLimit,
     genesisState: Array.from(genesisState.values()),
     hardfork: specId,
     initialBaseFeePerGas: networkConfig.initialBaseFeePerGas,
