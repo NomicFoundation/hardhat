@@ -1,7 +1,5 @@
 const { noStripTypesFlag } = require("../../config/mocha.cjs");
 
-const stripTypesFlag = noStripTypesFlag();
-
 module.exports = {
   require: "ts-node/register/transpile-only",
   file: "./test/setup.ts",
@@ -10,5 +8,5 @@ module.exports = {
   ignore: [
     "**/fixture-projects/**/*",
   ],
-  ...(stripTypesFlag ? { "node-option": stripTypesFlag } : {}),
+  "node-option": noStripTypesFlag,
 };

@@ -1,4 +1,4 @@
-function noStripTypesFlag(nodeVersion = process.versions.node) {
+function computeNoStripTypesFlag(nodeVersion) {
   const [major, minor, patch] = nodeVersion
     .split(".")
     .map((part) => Number.parseInt(part, 10));
@@ -32,5 +32,7 @@ function noStripTypesFlag(nodeVersion = process.versions.node) {
 
   return "";
 }
+
+const noStripTypesFlag = computeNoStripTypesFlag(process.versions.node);
 
 module.exports = { noStripTypesFlag };
