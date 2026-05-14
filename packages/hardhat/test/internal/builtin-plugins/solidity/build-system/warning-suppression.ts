@@ -160,6 +160,26 @@ describe("shouldSuppressWarning", () => {
     });
   });
 
+  describe("Coverage generated files", () => {
+    it("should suppress any warning from files whose path contains __NomicFoundationCoverage", () => {
+      const message =
+        "Warning: Some arbitrary warning message\n  --> src/__NomicFoundationCoverage-contracts/MyContract.sol:10:1:";
+      assert.equal(
+        shouldSuppressWarning(message, SOLIDITY_TESTS_PATH, PROJECT_ROOT),
+        true,
+      );
+    });
+
+    it("should NOT suppress warnings from paths that do not contain __NomicFoundationCoverage", () => {
+      const message =
+        "Warning: Some arbitrary warning message\n  --> src/MyContract.sol:10:1:";
+      assert.equal(
+        shouldSuppressWarning(message, SOLIDITY_TESTS_PATH, PROJECT_ROOT),
+        false,
+      );
+    });
+  });
+
   describe("non-matching warnings", () => {
     it("should NOT suppress warnings that don't match any rule", () => {
       const message = `Warning: Some other warning message\n  --> ./test/contracts/Example.sol:1:1:`;
