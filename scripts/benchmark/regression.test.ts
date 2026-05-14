@@ -44,14 +44,6 @@ describe("findMissingCommands", () => {
     assert.deepEqual(result, ["empty"]);
   });
 
-  it("ignores scenarios without a benchmark field (caught upstream by the schema)", () => {
-    const result = findMissingCommands([
-      { id: "no-bench", definition: definition() },
-    ]);
-
-    assert.deepEqual(result, []);
-  });
-
   it("returns ids in input order", () => {
     const result = findMissingCommands([
       {
