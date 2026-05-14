@@ -485,7 +485,8 @@ export async function getProviderConfig(
     bailOnTransactionFailure: networkConfig.throwOnTransactionFailures,
     chainId: BigInt(networkConfig.chainId),
     coinbase: networkConfig.coinbase,
-    defaultTransactionGasLimit: networkConfig.blockGasLimit,
+    // EIP-7825 transaction gas cap
+    defaultTransactionGasLimit: 16_777_216,
     genesisState: Array.from(genesisState.values()),
     hardfork: specId,
     initialBaseFeePerGas: networkConfig.initialBaseFeePerGas,
