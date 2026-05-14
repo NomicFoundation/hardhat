@@ -127,5 +127,4 @@ jobs:
         env:
           DO_NOT_SET_THIS_ENV_VAR____IS_HARDHAT_CI: true
           FORCE_COLOR: 3
-          NODE_OPTIONS: ${{ (matrix.node == 22 || matrix.node == 24) && '--no-experimental-strip-types' || '' }}
         run: pnpm test:except-tracing
