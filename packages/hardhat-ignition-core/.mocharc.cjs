@@ -1,4 +1,6 @@
-const { nativeStripTypesIsStable } = require("../../config/mocha.cjs");
+const { noStripTypesFlag } = require("../../config/mocha.cjs");
+
+const stripTypesFlag = noStripTypesFlag();
 
 module.exports = {
   require: [
@@ -11,6 +13,5 @@ module.exports = {
     "./test-integrations/fixture-projects/**/*",
     "./test-integrations/helpers/**/*",
   ],
-  "node-option":
-    nativeStripTypesIsStable ? "no-strip-types" : "no-experimental-strip-types",
+  ...(stripTypesFlag ? { "node-option": stripTypesFlag } : {}),
 };

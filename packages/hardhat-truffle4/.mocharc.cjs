@@ -1,4 +1,6 @@
-const { nativeStripTypesIsStable } = require("../../config/mocha.cjs");
+const { noStripTypesFlag } = require("../../config/mocha.cjs");
+
+const stripTypesFlag = noStripTypesFlag();
 
 module.exports = {
   require: "ts-node/register/files",
@@ -7,6 +9,5 @@ module.exports = {
     "test/fixture-projects/**/*",
   ],
   timeout: 60000,
-  "node-option":
-    nativeStripTypesIsStable ? "no-strip-types" : "no-experimental-strip-types",
+  ...(stripTypesFlag ? { "node-option": stripTypesFlag } : {}),
 };

@@ -1,4 +1,6 @@
-const { nativeStripTypesIsStable } = require("../../config/mocha.cjs");
+const { noStripTypesFlag } = require("../../config/mocha.cjs");
+
+const stripTypesFlag = noStripTypesFlag();
 
 module.exports = {
   require: "ts-node/register/transpile-only",
@@ -9,6 +11,5 @@ module.exports = {
     "test/helpers/**/*.ts",
   ],
   timeout: 25000,
-  "node-option":
-    nativeStripTypesIsStable ? "no-strip-types" : "no-experimental-strip-types",
+  ...(stripTypesFlag ? { "node-option": stripTypesFlag } : {}),
 };

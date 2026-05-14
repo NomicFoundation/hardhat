@@ -1,4 +1,6 @@
-const { nativeStripTypesIsStable } = require("../../config/mocha.cjs");
+const { noStripTypesFlag } = require("../../config/mocha.cjs");
+
+const stripTypesFlag = noStripTypesFlag();
 
 module.exports = {
   require: "ts-node/register/transpile-only",
@@ -8,6 +10,5 @@ module.exports = {
   ignore: [
     "**/fixture-projects/**/*",
   ],
-  "node-option":
-    nativeStripTypesIsStable ? "no-strip-types" : "no-experimental-strip-types",
+  ...(stripTypesFlag ? { "node-option": stripTypesFlag } : {}),
 };
