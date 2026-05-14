@@ -288,21 +288,21 @@ describe("isCommandConfig", () => {
     assert.equal(isCommandConfig({ runs: 3 }), false);
   });
 
-  it("rejects runs that is zero", () => {
+  it("rejects runs that are zero", () => {
     assert.equal(
       isCommandConfig({ runs: 0, command: "npx hardhat compile" }),
       false,
     );
   });
 
-  it("rejects runs that is negative", () => {
+  it("rejects runs that are negative", () => {
     assert.equal(
       isCommandConfig({ runs: -1, command: "npx hardhat compile" }),
       false,
     );
   });
 
-  it("rejects runs that is non-integer", () => {
+  it("rejects runs that are non-integer", () => {
     assert.equal(
       isCommandConfig({ runs: 1.5, command: "npx hardhat compile" }),
       false,
