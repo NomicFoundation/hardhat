@@ -61,9 +61,16 @@ function isCommandsMap(value: unknown): value is Record<string, CommandConfig> {
     return false;
   }
 
-  const entries = Object.values(value as Record<string, unknown>);
+  const obj = value as Record<string, unknown>;
+  const keys = Object.keys(obj);
 
-  return entries.length > 0 && entries.every(isCommandConfig);
+  if (keys.length === 0) {
+    return false;
+  }
+
+  return (
+    keys.every((k) => k.length > 0) && Object.values(obj).every(isCommandConfig)
+  );
 }
 
 export function isCommandConfig(value: unknown): value is CommandConfig {
@@ -85,7 +92,9 @@ export function isCommandConfig(value: unknown): value is CommandConfig {
     Number.isInteger(obj.runs) &&
     obj.runs >= 1 &&
     typeof obj.command === "string" &&
-    (obj.prepare === undefined || typeof obj.prepare === "string")
+    obj.command.length > 0 &&
+    (obj.prepare === undefined ||
+      (typeof obj.prepare === "string" && obj.prepare.length > 0))
   );
 }
 

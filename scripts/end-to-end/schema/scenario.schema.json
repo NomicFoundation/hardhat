@@ -76,6 +76,10 @@
         "commands": {
           "type": "object",
           "minProperties": 1,
+          "propertyNames": {
+            "type": "string",
+            "minLength": 1
+          },
           "additionalProperties": {
             "type": "object",
             "additionalProperties": false,
@@ -88,10 +92,12 @@
               },
               "prepare": {
                 "type": "string",
+                "minLength": 1,
                 "description": "Optional shell snippet to run before each timed run (passed to hyperfine --prepare)"
               },
               "command": {
                 "type": "string",
+                "minLength": 1,
                 "description": "Shell command to benchmark"
               }
             }

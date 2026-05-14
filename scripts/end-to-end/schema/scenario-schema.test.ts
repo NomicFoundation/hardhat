@@ -338,6 +338,21 @@ describe("isCommandConfig", () => {
   it("rejects null", () => {
     assert.equal(isCommandConfig(null), false);
   });
+
+  it("rejects an empty command string", () => {
+    assert.equal(isCommandConfig({ runs: 1, command: "" }), false);
+  });
+
+  it("rejects an empty prepare string", () => {
+    assert.equal(
+      isCommandConfig({
+        runs: 1,
+        prepare: "",
+        command: "npx hardhat compile",
+      }),
+      false,
+    );
+  });
 });
 
 describe("isBenchmarkConfig", () => {
@@ -375,6 +390,15 @@ describe("isBenchmarkConfig", () => {
       isBenchmarkConfig({
         commands: { x: { runs: 1, command: "x" } },
         runs: { coldCompile: 3 },
+      }),
+      false,
+    );
+  });
+
+  it("rejects an empty command-map key", () => {
+    assert.equal(
+      isBenchmarkConfig({
+        commands: { "": { runs: 1, command: "npx hardhat compile" } },
       }),
       false,
     );
