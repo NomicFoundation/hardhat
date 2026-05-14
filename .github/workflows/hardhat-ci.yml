@@ -72,7 +72,7 @@ jobs:
       matrix:
         package: ${{ fromJson(needs.list-packages.outputs.packages) }}
         os: [ubuntu-latest, macos-latest, windows-latest]
-        node: [22.0.0, 24.0.0]
+        node: [22.0.0, 24.0.0, 26.0.0]
         exclude:
           - package: hardhat-vyper
             os: windows-latest
@@ -82,6 +82,10 @@ jobs:
             node: 22.0.0
           - os: macos-latest
             node: 22.0.0
+          - os: windows-latest
+            node: 24.0.0
+          - os: macos-latest
+            node: 24.0.0
 
     name: "[${{ matrix.package }}] ci on ${{ matrix.os }} (Node ${{ matrix.node }})"
     runs-on: ${{ matrix.os }}
