@@ -2,7 +2,6 @@
 import { mkdirSync, readFileSync, readdirSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import path from "node:path";
-import { fileURLToPath } from "node:url";
 
 import { runBenchmark } from "./main.ts";
 import type { BenchArgs } from "./helpers/args.ts";
@@ -117,13 +116,6 @@ async function main(): Promise<void> {
 
   if (scenarios.length === 0) {
     logError("No scenarios matched the provided filters");
-    process.exit(1);
-  }
-
-  const missing = findMissingCommands(scenarios);
-
-  if (missing.length > 0) {
-    printMissingCommandsError(missing);
     process.exit(1);
   }
 
@@ -347,32 +339,6 @@ function collectScenarios(args: RegressionArgs): ScenarioEntry[] {
   return entries;
 }
 
-export function findMissingCommands(
-  scenarios: Array<{ id: string; definition: ScenarioDefinition }>,
-): string[] {
-  return scenarios
-    .filter((s) => {
-      const commands = s.definition.benchmark?.commands;
-      return commands !== undefined && Object.keys(commands).length === 0;
-    })
-    .map((s) => s.id);
-}
-
-function printMissingCommandsError(missing: string[]): void {
-  logError(
-    "Regression benchmark requires a non-empty benchmark.commands map in every scenario.json.",
-  );
-  console.error("Scenarios with an empty commands map:");
-
-  for (const id of missing) {
-    console.error(`  - end-to-end/${id}/scenario.json`);
-  }
-
-  console.error(
-    'Add commands to scenario.json or set "benchmark": { "skip": true } to opt out.',
-  );
-}
-
 async function runScenario(
   scenario: ScenarioEntry,
   args: RegressionArgs,
@@ -381,7 +347,7 @@ async function runScenario(
 
   if (commands === undefined || Object.keys(commands).length === 0) {
     throw new Error(
-      `Missing benchmark.commands for "${scenario.id}" — pre-flight should have caught this`,
+      `Missing benchmark.commands for "${scenario.id}" — schema validation should have caught this`,
     );
   }
 
@@ -541,6 +507,4 @@ function getArgValue(args: string[], flag: string): string | undefined {
   return idx !== -1 && idx + 1 < args.length ? args[idx + 1] : undefined;
 }
 
-if (process.argv[1] === fileURLToPath(import.meta.url)) {
-  await main();
-}
+await main();

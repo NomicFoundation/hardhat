@@ -54,7 +54,9 @@ function isCommandsMap(value: unknown): value is Record<string, CommandConfig> {
     return false;
   }
 
-  return Object.values(value as Record<string, unknown>).every(isCommandConfig);
+  const entries = Object.values(value as Record<string, unknown>);
+
+  return entries.length > 0 && entries.every(isCommandConfig);
 }
 
 export function isCommandConfig(value: unknown): value is CommandConfig {

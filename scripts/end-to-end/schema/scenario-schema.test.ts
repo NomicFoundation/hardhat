@@ -366,6 +366,10 @@ describe("isBenchmarkConfig", () => {
     );
   });
 
+  it("rejects an empty commands map", () => {
+    assert.equal(isBenchmarkConfig({ commands: {} }), false);
+  });
+
   it("rejects commands containing an invalid entry", () => {
     assert.equal(
       isBenchmarkConfig({
