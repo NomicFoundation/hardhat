@@ -296,17 +296,8 @@ export function encodeMemberType(
         return `${base}[]`;
       }
 
-      if (
-        isObject(length) &&
-        length.nodeType === "Literal" &&
-        typeof length.value === "string"
-      ) {
-        return `${base}[${length.value}]`;
-      }
-
-      // The length wasn't a plain literal (e.g. `uint[CONST]`). solc still
-      // records the resolved size in the array's `typeString`, so parse it
-      // from there.
+      // Always read from typeString: `Literal.value` preserves source text
+      // (`0x100`, `1_000`) but typeString canonicalizes to decimal.
       const desc = isObject(typeName.typeDescriptions)
         ? typeName.typeDescriptions
         : undefined;

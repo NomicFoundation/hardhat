@@ -423,18 +423,45 @@ describe("eip712 - ast-walker", () => {
         );
       });
 
-      it("encodes fixed-size arrays with [N] using the literal value", () => {
+      it("encodes fixed-size arrays with [N] using the canonical typeString size", () => {
         assert.equal(
           encodeMemberType({
             nodeType: "ArrayTypeName",
             baseType: { nodeType: "ElementaryTypeName", name: "uint256" },
             length: { nodeType: "Literal", value: "3" },
+            typeDescriptions: { typeString: "uint256[3]" },
           }),
           "uint256[3]",
         );
       });
 
-      it("falls back to typeString for fixed-size with constant-expr length", () => {
+      it("canonicalizes hex literal lengths via typeString", () => {
+        // `bytes32[0x100]`: solc keeps `value: "0x100"` on the Literal but
+        // emits the resolved decimal size in the array's typeString.
+        assert.equal(
+          encodeMemberType({
+            nodeType: "ArrayTypeName",
+            baseType: { nodeType: "ElementaryTypeName", name: "bytes32" },
+            length: { nodeType: "Literal", value: "0x100" },
+            typeDescriptions: { typeString: "bytes32[256]" },
+          }),
+          "bytes32[256]",
+        );
+      });
+
+      it("canonicalizes underscore-separated literal lengths via typeString", () => {
+        assert.equal(
+          encodeMemberType({
+            nodeType: "ArrayTypeName",
+            baseType: { nodeType: "ElementaryTypeName", name: "uint256" },
+            length: { nodeType: "Literal", value: "1_000" },
+            typeDescriptions: { typeString: "uint256[1000]" },
+          }),
+          "uint256[1000]",
+        );
+      });
+
+      it("resolves constant-expression lengths via typeString", () => {
         assert.equal(
           encodeMemberType({
             nodeType: "ArrayTypeName",
@@ -446,7 +473,7 @@ describe("eip712 - ast-walker", () => {
         );
       });
 
-      it("returns undefined when length is non-literal and typeString has no resolved size", () => {
+      it("returns undefined when typeString has no resolved size", () => {
         assert.equal(
           encodeMemberType({
             nodeType: "ArrayTypeName",
