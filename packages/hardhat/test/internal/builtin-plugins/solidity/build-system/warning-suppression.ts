@@ -187,13 +187,21 @@ describe("shouldSuppressWarning", () => {
   describe("Coverage library warnings", () => {
     const scenarios = [
       {
-        name: "should suppress warnings from the bare coverage library file",
+        name: "should suppress NatSpec warning from the coverage library file when coverage=true",
         path: COVERAGE_LIBRARY_FILE_NAME,
+        coverage: true,
         expected: true,
+      },
+      {
+        name: "should NOT suppress NatSpec warning from the coverage library file when coverage=false",
+        path: COVERAGE_LIBRARY_FILE_NAME,
+        coverage: false,
+        expected: false,
       },
       {
         name: "should NOT suppress the same warning emitted against a user-file path",
         path: path.join("contracts", "MyContract.sol"),
+        coverage: true,
         expected: false,
       },
     ];
@@ -206,12 +214,20 @@ describe("shouldSuppressWarning", () => {
             message,
             SOLIDITY_TESTS_PATH,
             PROJECT_ROOT,
-            false,
+            scenario.coverage,
           ),
           scenario.expected,
         );
       });
     }
+
+    it("should NOT suppress other diagnostics from the coverage library file", () => {
+      const message = `Error: Some other compiler diagnostic\n  --> ${COVERAGE_LIBRARY_FILE_NAME}:1:1:`;
+      assert.equal(
+        shouldSuppressWarning(message, SOLIDITY_TESTS_PATH, PROJECT_ROOT, true),
+        false,
+      );
+    });
   });
 
   describe("Contract-size warning (coverage-only)", () => {

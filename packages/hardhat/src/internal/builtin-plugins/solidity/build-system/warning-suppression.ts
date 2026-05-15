@@ -33,11 +33,20 @@ const TEST_FILE_WARNING_MESSAGES: readonly string[] = [
   PRAGMA_WARNING,
 ];
 
-// Warnings that fire against user files only as a side effect of coverage
-// instrumentation. Suppressed only when running with `--coverage` so the same
-// warnings still surface in regular builds.
-const COVERAGE_MODE_WARNING_MESSAGES: readonly string[] = [
-  CONTRACT_SIZE_WARNING,
+// Warnings suppressed only when running with `--coverage`. An entry with no
+// `filePath` matches the message anywhere (e.g. contract-size warnings that
+// fire on user files as a side effect of instrumentation); an entry with a
+// `filePath` only matches when the diagnostic also points at that file
+// (e.g. the injected coverage library file, which users can't edit).
+const COVERAGE_MODE_RULES: ReadonlyArray<{
+  message: string;
+  filePath?: string;
+}> = [
+  { message: CONTRACT_SIZE_WARNING },
+  {
+    message: NATSPEC_MEMORY_SAFE_ASSEMBLY_WARNING,
+    filePath: COVERAGE_LIBRARY_FILE_NAME,
+  },
 ];
 
 /**
@@ -55,16 +64,14 @@ export function shouldSuppressWarning(
   absoluteProjectRoot: string,
   coverage: boolean,
 ): boolean {
-  // Coverage library file: injected by the --coverage hook; users can't edit
-  // it. Always suppress; the file only exists when coverage is enabled.
-  if (errorMessage.includes(COVERAGE_LIBRARY_FILE_NAME)) {
-    return true;
-  }
-
-  // Coverage-only side effects on user files
+  // Warnings suppressed only when running with `--coverage`.
   if (
     coverage &&
-    COVERAGE_MODE_WARNING_MESSAGES.some((m) => errorMessage.includes(m))
+    COVERAGE_MODE_RULES.some(
+      (rule) =>
+        errorMessage.includes(rule.message) &&
+        (rule.filePath === undefined || errorMessage.includes(rule.filePath)),
+    )
   ) {
     return true;
   }
