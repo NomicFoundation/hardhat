@@ -3,7 +3,11 @@ import type { HardhatUserConfig } from "../../../../../../src/config.js";
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 
-import { SUPPRESSED_WARNINGS } from "../../../../../../src/internal/builtin-plugins/solidity/build-system/warning-suppression.js";
+import {
+  NATSPEC_MEMORY_SAFE_ASSEMBLY_WARNING,
+  SPDX_WARNING,
+  PRAGMA_WARNING,
+} from "../../../../../../src/internal/builtin-plugins/solidity/build-system/warning-suppression.js";
 import { useTestProjectTemplate } from "../resolver/helpers.js";
 
 //
@@ -11,9 +15,7 @@ import { useTestProjectTemplate } from "../resolver/helpers.js";
 // unit tests in warning-suppression.ts
 //
 
-const NATSPEC_MEMORY_SAFE_WARNING = SUPPRESSED_WARNINGS[0].message;
-const SPDX_WARNING = SUPPRESSED_WARNINGS[1].message;
-const PRAGMA_WARNING = SUPPRESSED_WARNINGS[2].message;
+const NATSPEC_MEMORY_SAFE_WARNING = NATSPEC_MEMORY_SAFE_ASSEMBLY_WARNING;
 
 // Project with the warning in a regular contract file (not console.sol)
 const projectWithNatspecWarningInRegularFile = {
