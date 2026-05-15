@@ -10,10 +10,20 @@
   "defaultCommand": "npx hardhat test mocha",
   "benchmark": {
     "skip": true,
-    "runs": {
-      "coldCompile": 3,
-      "warmCompile": 19,
-      "defaultCommand": 3
+    "commands": {
+      "cold compile": {
+        "runs": 3,
+        "prepare": "npx hardhat clean",
+        "command": "npx hardhat compile"
+      },
+      "warm compile": {
+        "runs": 19,
+        "command": "npx hardhat compile"
+      },
+      "mocha test": {
+        "runs": 3,
+        "command": "npx hardhat test mocha --no-compile"
+      }
     }
   }
 }

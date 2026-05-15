@@ -18,11 +18,29 @@ export interface ScenarioDefinition {
   submodules?: boolean;
   disabled?: true;
   benchmark?: {
+    /**
+     * Whether to skip this scenario in the regression harness.
+     */
     skip?: true;
-    runs?: {
-      defaultCommand?: number;
-      coldCompile?: number;
-      warmCompile?: number;
-    };
+    /**
+     * The commands to run, in order, in the regression harness.
+     */
+    commands?: Record<string, CommandConfig>;
   };
+}
+
+export interface CommandConfig {
+  /**
+   * The number of times to run this command in the regression harness.
+   */
+  runs: number;
+  /**
+   * An optional preparatory command to run each time before this command
+   * in the regression harness.
+   */
+  prepare?: string;
+  /**
+   * The command to benchmark in the regression harness.
+   */
+  command: string;
 }

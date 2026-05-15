@@ -1,4 +1,4 @@
-import type { ScenarioDefinition } from "../types.ts";
+import type { CommandConfig, ScenarioDefinition } from "../types.ts";
 
 export function isScenarioDefinition(
   value: unknown,
@@ -29,48 +29,72 @@ export function isScenarioDefinition(
   );
 }
 
-function isBenchmarkConfig(value: unknown): value is {
+export function isBenchmarkConfig(value: unknown): value is {
   skip?: true;
-  runs?: {
-    defaultCommand?: number;
-    coldCompile?: number;
-    warmCompile?: number;
-  };
+  commands?: Record<string, CommandConfig>;
 } {
-  if (typeof value !== "object" || value === null) {
+  if (typeof value !== "object" || value === null || Array.isArray(value)) {
     return false;
   }
 
   const obj = value as Record<string, unknown>;
+  const allowedKeys = new Set(["skip", "commands"]);
+
+  for (const key of Object.keys(obj)) {
+    if (!allowedKeys.has(key)) {
+      return false;
+    }
+  }
+
+  if (obj.skip === undefined && obj.commands === undefined) {
+    return false;
+  }
 
   return (
     (obj.skip === undefined || obj.skip === true) &&
-    (obj.runs === undefined || isBenchmarkRunsConfig(obj.runs))
+    (obj.commands === undefined || isCommandsMap(obj.commands))
   );
 }
 
-function isBenchmarkRunsConfig(value: unknown): value is {
-  defaultCommand?: number;
-  coldCompile?: number;
-  warmCompile?: number;
-} {
-  if (typeof value !== "object" || value === null) {
+function isCommandsMap(value: unknown): value is Record<string, CommandConfig> {
+  if (typeof value !== "object" || value === null || Array.isArray(value)) {
     return false;
   }
 
   const obj = value as Record<string, unknown>;
+  const keys = Object.keys(obj);
+
+  if (keys.length === 0) {
+    return false;
+  }
 
   return (
-    isPositiveIntegerOrUndefined(obj.defaultCommand) &&
-    isPositiveIntegerOrUndefined(obj.coldCompile) &&
-    isPositiveIntegerOrUndefined(obj.warmCompile)
+    keys.every((k) => k.length > 0) && Object.values(obj).every(isCommandConfig)
   );
 }
 
-function isPositiveIntegerOrUndefined(value: unknown): boolean {
+export function isCommandConfig(value: unknown): value is CommandConfig {
+  if (typeof value !== "object" || value === null || Array.isArray(value)) {
+    return false;
+  }
+
+  const obj = value as Record<string, unknown>;
+  const allowedKeys = new Set(["runs", "prepare", "command"]);
+
+  for (const key of Object.keys(obj)) {
+    if (!allowedKeys.has(key)) {
+      return false;
+    }
+  }
+
   return (
-    value === undefined ||
-    (typeof value === "number" && Number.isInteger(value) && value >= 1)
+    typeof obj.runs === "number" &&
+    Number.isInteger(obj.runs) &&
+    obj.runs >= 1 &&
+    typeof obj.command === "string" &&
+    obj.command.length > 0 &&
+    (obj.prepare === undefined ||
+      (typeof obj.prepare === "string" && obj.prepare.length > 0))
   );
 }
 

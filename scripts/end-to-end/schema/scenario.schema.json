@@ -66,32 +66,43 @@
     "benchmark": {
       "type": "object",
       "additionalProperties": false,
+      "anyOf": [{ "required": ["skip"] }, { "required": ["commands"] }],
       "properties": {
         "skip": {
           "type": "boolean",
           "const": true,
           "description": "Set to true to skip this scenario in the regression benchmark"
         },
-        "runs": {
+        "commands": {
           "type": "object",
-          "additionalProperties": false,
-          "properties": {
-            "defaultCommand": {
-              "type": "integer",
-              "minimum": 1,
-              "description": "Number of hyperfine runs for the scenario's defaultCommand"
-            },
-            "coldCompile": {
-              "type": "integer",
-              "minimum": 1,
-              "description": "Number of hyperfine runs for `npx hardhat compile` with the cache cleared before each run"
-            },
-            "warmCompile": {
-              "type": "integer",
-              "minimum": 1,
-              "description": "Number of hyperfine runs for `npx hardhat compile` against a warm cache"
+          "minProperties": 1,
+          "propertyNames": {
+            "type": "string",
+            "minLength": 1
+          },
+          "additionalProperties": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["runs", "command"],
+            "properties": {
+              "runs": {
+                "type": "integer",
+                "minimum": 1,
+                "description": "Number of hyperfine runs for this command"
+              },
+              "prepare": {
+                "type": "string",
+                "minLength": 1,
+                "description": "Optional shell snippet to run before each timed run (passed to hyperfine --prepare)"
+              },
+              "command": {
+                "type": "string",
+                "minLength": 1,
+                "description": "Shell command to benchmark"
+              }
             }
-          }
+          },
+          "description": "Named commands to benchmark. Iterated in definition order; the key becomes the benchmark name on disk."
         }
       },
       "description": "Benchmark configuration for pnpm bench and pnpm bench:regression"

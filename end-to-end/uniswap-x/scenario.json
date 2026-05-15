@@ -9,14 +9,22 @@
   "env": {
     "FOUNDRY_RPC_URL": "${localEnv:ALCHEMY_URL}"
   },
-  "preinstall": "./preinstall-foundry.sh",
   "defaultCommand": "npx hardhat test solidity",
   "benchmark": {
-    "runs": {
-      "coldCompile": 3,
-      "warmCompile": 37,
-      "defaultCommand": 3
+    "commands": {
+      "cold compile": {
+        "runs": 3,
+        "prepare": "npx hardhat clean",
+        "command": "npx hardhat compile"
+      },
+      "warm compile": {
+        "runs": 37,
+        "command": "npx hardhat compile"
+      },
+      "test solidity": {
+        "runs": 3,
+        "command": "npx hardhat test solidity --no-compile"
+      }
     }
-  },
-  "disabled": true
+  }
 }
