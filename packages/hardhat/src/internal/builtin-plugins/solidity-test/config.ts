@@ -50,7 +50,7 @@ const solidityTestUserConfigType = z.object({
   blockTimestamp: z.bigint().optional(),
   prevRandao: z.bigint().optional(),
   gasLimit: z.bigint().optional(),
-  blockGasLimit: z.bigint().or(z.literal(false)).optional(),
+  blockGasLimit: z.number().or(z.bigint()).or(z.literal(false)).optional(),
   fuzz: z
     .object({
       failurePersistDir: z.string().optional(),

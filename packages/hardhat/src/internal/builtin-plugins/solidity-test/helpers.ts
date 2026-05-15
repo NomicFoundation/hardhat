@@ -100,7 +100,10 @@ export async function solidityTestConfigToSolidityTestRunnerConfigArgs({
   const includeTraces = verbosityToIncludeTraces(verbosity);
 
   const blockGasLimit =
-    config.blockGasLimit === false ? undefined : config.blockGasLimit;
+    typeof config.blockGasLimit === "number" ||
+    typeof config.blockGasLimit === "bigint"
+      ? BigInt(config.blockGasLimit)
+      : undefined;
   const disableBlockGasLimit = config.blockGasLimit === false;
 
   const blockDifficulty = config.prevRandao;

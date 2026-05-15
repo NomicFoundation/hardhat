@@ -50,7 +50,7 @@ declare module "../../../types/test.js" {
     blockTimestamp?: bigint;
     prevRandao?: bigint;
     gasLimit?: bigint;
-    blockGasLimit?: bigint | false;
+    blockGasLimit?: number | bigint | false;
 
     fuzz?: SolidityTestFuzzConfigBase;
     invariant?: {
