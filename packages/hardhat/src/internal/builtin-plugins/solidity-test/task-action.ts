@@ -235,6 +235,7 @@ const runSolidityTests: NewTaskActionFunction<TestActionArguments> = async (
 
   const eip712CanonicalTypes = collectEip712CanonicalTypes(
     allBuildInfosAndOutputs,
+    sourceNameToUserSourceName,
     eip712Types,
   );
 

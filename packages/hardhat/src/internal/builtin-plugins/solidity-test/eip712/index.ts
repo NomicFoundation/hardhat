@@ -1,11 +1,11 @@
 import type { CollectedStruct } from "./ast-walker.js";
-import type {
-  SolidityBuildInfo,
-  SolidityBuildInfoOutput,
-} from "../../../../types/solidity/solidity-artifacts.js";
+import type { SolidityBuildInfoOutput } from "../../../../types/solidity/solidity-artifacts.js";
 import type { BuildInfoAndOutput } from "../edr-artifacts.js";
 
-import { bytesToUtf8String } from "@nomicfoundation/hardhat-utils/bytes";
+import {
+  bytesIncludesUtf8String,
+  bytesToUtf8String,
+} from "@nomicfoundation/hardhat-utils/bytes";
 
 import { HARDHAT_PROJECT_INPUT_SOURCE_NAME_ROOT } from "../../solidity/constants.js";
 
@@ -21,10 +21,9 @@ export interface Eip712TypesConfig {
   exclude: string[];
 }
 
-// When a transitive project file isn't a root in any build info — and so
-// is missing from every userSourceNameMap — stripping this prefix recovers
-// the user-facing path that the user's include/exclude globs are written
-// against.
+// When a transitive project file doesn't produce an artifact — and so is
+// missing from `inputToUserSource` — stripping this prefix recovers the
+// user-facing path that the user's include/exclude globs are written against.
 const PROJECT_INPUT_SOURCE_NAME_PREFIX = `${HARDHAT_PROJECT_INPUT_SOURCE_NAME_ROOT}/`;
 
 /**
@@ -34,11 +33,16 @@ const PROJECT_INPUT_SOURCE_NAME_PREFIX = `${HARDHAT_PROJECT_INPUT_SOURCE_NAME_RO
  * `include`/`exclude` are emitted; non-selected sources still feed the dep
  * graph so cross-file deps inline correctly.
  *
+ * `inputToUserSource` maps solc input source names to user source names; it's
+ * built by the caller from the artifact set so we don't pay to parse every
+ * build info just to recover that mapping.
+ *
  * When `include` is empty/unset the feature is off: collection short-circuits
  * and returns an empty list without parsing any build info.
  */
 export function collectEip712CanonicalTypes(
   buildInfosAndOutputs: BuildInfoAndOutput[],
+  inputToUserSource: ReadonlyMap<string, string>,
   config: Eip712TypesConfig,
 ): string[] {
   const { include, exclude } = config;
@@ -47,31 +51,21 @@ export function collectEip712CanonicalTypes(
     return [];
   }
 
-  const parsed = buildInfosAndOutputs.map(({ buildInfo, output }) => {
-    const parsedBuildInfo: SolidityBuildInfo = JSON.parse(
-      bytesToUtf8String(buildInfo),
-    );
+  const collected: CollectedStruct[] = [];
+  const selectedNames = new Set<string>();
+
+  for (const { buildInfo, output } of buildInfosAndOutputs) {
+    // Byte-level fast path: a build info whose source bytes don't contain
+    // `struct ` can't define any EIP-712 type, so skip JSON-parsing its output.
+    if (!bytesIncludesUtf8String(buildInfo, "struct ")) {
+      continue;
+    }
+
     const parsedOutput: SolidityBuildInfoOutput = JSON.parse(
       bytesToUtf8String(output),
     );
 
-    return { buildInfo: parsedBuildInfo, output: parsedOutput };
-  });
-
-  const inputToUserSource = new Map<string, string>();
-  for (const { buildInfo } of parsed) {
-    for (const [userSource, inputSource] of Object.entries(
-      buildInfo.userSourceNameMap,
-    )) {
-      inputToUserSource.set(inputSource, userSource);
-    }
-  }
-
-  const collected: CollectedStruct[] = [];
-  const selectedNames = new Set<string>();
-
-  for (const { output } of parsed) {
-    const sources = output.output.sources;
+    const sources = parsedOutput.output.sources;
     if (sources === undefined) {
       continue;
     }
