@@ -80,16 +80,16 @@ function computeEncodable(
     }
   }
 
+  const depsByName = new Map<string, string[]>();
+  for (const [name, struct] of byName) {
+    depsByName.set(name, directStructDeps(struct, knownNames));
+  }
+
   let changed = true;
   while (changed) {
     changed = false;
     for (const name of [...encodable]) {
-      const struct = byName.get(name);
-      if (struct === undefined) {
-        continue;
-      }
-
-      const deps = directStructDeps(struct, knownNames);
+      const deps = depsByName.get(name) ?? [];
       if (deps.some((dep) => !encodable.has(dep))) {
         encodable.delete(name);
         changed = true;
