@@ -35,7 +35,6 @@ export function canonicalizeStructs(
   const byName = indexByName(structs, selectedNames);
   const knownNames = new Set(byName.keys());
   const encodable = computeEncodable(byName, knownNames);
-  const seen = new Set<string>();
   const result: string[] = [];
 
   for (const struct of byName.values()) {
@@ -57,11 +56,7 @@ export function canonicalizeStructs(
 
     deps.sort();
 
-    const canonical = head + deps.join("");
-    if (!seen.has(canonical)) {
-      seen.add(canonical);
-      result.push(canonical);
-    }
+    result.push(head + deps.join(""));
   }
 
   return result;
