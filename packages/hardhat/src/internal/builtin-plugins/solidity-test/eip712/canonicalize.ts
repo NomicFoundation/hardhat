@@ -139,16 +139,7 @@ function directStructDeps(
     }
 
     // Strip array suffixes: `Foo[]`, `Foo[3]`, `Foo[3][2]` → `Foo`.
-    let base = member.type;
-    while (true) {
-      const match = /^(.*)\[[^\]]*\]$/.exec(base);
-
-      if (match === null) {
-        break;
-      }
-
-      base = match[1];
-    }
+    const base = member.type.split("[")[0];
 
     if (knownStructNames.has(base) && base !== struct.name) {
       deps.add(base);
