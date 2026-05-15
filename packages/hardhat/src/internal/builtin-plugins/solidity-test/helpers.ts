@@ -32,7 +32,7 @@ interface SolidityTestConfigParams {
   chainType: ChainType;
   projectRoot: string;
   hardfork?: string;
-  config: SolidityTestConfig;
+  config: Omit<SolidityTestConfig, "eip712Types">;
   verbosity: number;
   observability?: ObservabilityConfig;
   testPattern?: string;
@@ -124,13 +124,10 @@ export async function solidityTestConfigToSolidityTestRunnerConfigArgs({
 
   const shouldAlwaysCollectStackTraces = verbosity > DEFAULT_VERBOSITY;
 
-  // `eip712Types` must be passed as a separate param, not via `config`
-  const { eip712Types: _, ...configWithoutEip712 } = config;
-
   return {
     projectRoot,
     hardfork: resolvedHardfork,
-    ...configWithoutEip712,
+    ...config,
     fsPermissions,
     localPredeploys,
     sender,

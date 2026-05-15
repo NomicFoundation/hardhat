@@ -201,7 +201,7 @@ const runSolidityTests: NewTaskActionFunction<TestActionArguments> = async (
   let includesFailures = false;
   let includesErrors = false;
 
-  const solidityTestConfig = hre.config.test.solidity;
+  const { eip712Types, ...solidityTestConfig } = hre.config.test.solidity;
   let observabilityConfig: ObservabilityConfig | undefined;
   if (hre.globalOptions.coverage) {
     const coverage = getCoverageManager(hre);
@@ -235,7 +235,7 @@ const runSolidityTests: NewTaskActionFunction<TestActionArguments> = async (
 
   const eip712CanonicalTypes = collectEip712CanonicalTypes(
     allBuildInfosAndOutputs,
-    solidityTestConfig.eip712Types,
+    eip712Types,
   );
 
   const testRunnerConfig =
