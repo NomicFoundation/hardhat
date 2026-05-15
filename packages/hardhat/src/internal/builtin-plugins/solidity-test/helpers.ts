@@ -104,7 +104,7 @@ export async function solidityTestConfigToSolidityTestRunnerConfigArgs({
     typeof config.blockGasLimit === "bigint"
       ? BigInt(config.blockGasLimit)
       : undefined;
-  const disableBlockGasLimit = config.blockGasLimit === false;
+  const disableBlockGasLimit = blockGasLimit === undefined;
 
   const transactionGasCap =
     typeof config.transactionGasCap === "number" ||

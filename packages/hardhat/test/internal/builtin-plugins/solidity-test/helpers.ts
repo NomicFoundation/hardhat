@@ -95,7 +95,7 @@ describe("solidityTestConfigToSolidityTestRunnerConfigArgs", () => {
     }
   });
 
-  it("sets blockGasLimit and disableBlockGasLimit when blockGasLimit is undefined", async () => {
+  it("disables blockGasLimit when blockGasLimit is undefined", async () => {
     const args = await solidityTestConfigToSolidityTestRunnerConfigArgs({
       chainType: GENERIC_CHAIN_TYPE,
       projectRoot: process.cwd(),
@@ -109,7 +109,7 @@ describe("solidityTestConfigToSolidityTestRunnerConfigArgs", () => {
     });
 
     assert.equal(args.blockGasLimit, undefined);
-    assert.equal(args.disableBlockGasLimit, false);
+    assert.equal(args.disableBlockGasLimit, true);
   });
 
   it("sets blockGasLimit and disableBlockGasLimit when blockGasLimit is false", async () => {
