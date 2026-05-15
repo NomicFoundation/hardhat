@@ -86,9 +86,10 @@ export function resolveEdrNetwork(
     allowUnlimitedContractSize:
       networkConfig.allowUnlimitedContractSize ?? false,
     blockGasLimit:
-      networkConfig.blockGasLimit !== undefined
+      typeof networkConfig.blockGasLimit === "number" ||
+      typeof networkConfig.blockGasLimit === "bigint"
         ? BigInt(networkConfig.blockGasLimit)
-        : undefined,
+        : networkConfig.blockGasLimit,
     coinbase: resolveCoinbase(networkConfig.coinbase),
 
     forking: resolveForkingConfig(

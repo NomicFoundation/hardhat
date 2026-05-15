@@ -459,6 +459,15 @@ export async function getProviderConfig(
     networkConfig.chainType,
   );
 
+  const genesisBlockGasLimit =
+    typeof networkConfig.blockGasLimit === "bigint"
+      ? networkConfig.blockGasLimit
+      : DEFAULT_EDR_NETWORK_BLOCK_GAS_LIMIT;
+
+  // EDR's mining block gas limit can be disabled in user config explicitly
+  const miningBlockGasLimit =
+    networkConfig.blockGasLimit === false ? undefined : genesisBlockGasLimit;
+
   const { genesisState, ownedAccounts } = await getGenesisStateAndOwnedAccounts(
     networkConfig.accounts,
     networkConfig.forking,
@@ -472,24 +481,18 @@ export async function getProviderConfig(
     networkConfig.chainType,
   );
 
-  // EDR requires a concrete block gas limit for the genesis block and for
-  // the mining target. When the user has not set one, fall back to the
-  // Hardhat default.
-  const blockGasLimit =
-    networkConfig.blockGasLimit ?? DEFAULT_EDR_NETWORK_BLOCK_GAS_LIMIT;
-
   const network =
     forkConfig !== undefined
       ? forkConfig
       : {
-          genesisBlockGasLimit: blockGasLimit,
+          genesisBlockGasLimit,
           genesisBlockTime: BigInt(toSeconds(networkConfig.initialDate)),
         };
 
   const defaultTransactionGasLimit = resolveDefaultTransactionGasLimit({
     chainType: networkConfig.chainType,
     hardfork: networkConfig.hardfork,
-    blockGasLimit,
+    blockGasLimit: genesisBlockGasLimit,
   });
 
   return {
@@ -506,7 +509,7 @@ export async function getProviderConfig(
     minGasPrice: networkConfig.minGasPrice,
     mining: {
       autoMine: networkConfig.mining.auto,
-      blockGasLimit,
+      blockGasLimit: miningBlockGasLimit,
       interval: hardhatMiningIntervalToEdrMiningInterval(
         networkConfig.mining.interval,
       ),

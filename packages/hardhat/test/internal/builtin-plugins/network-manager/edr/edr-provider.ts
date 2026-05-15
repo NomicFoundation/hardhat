@@ -711,5 +711,34 @@ describe("edr-provider", () => {
         assert.equal(providerConfig.network.genesisBlockGasLimit, 60_000_000n);
       });
     });
+
+    describe("when blockGasLimit is disabled (false)", () => {
+      let providerConfig: ProviderConfig;
+
+      before(async () => {
+        providerConfig = await getProviderConfig(
+          {
+            ...networkConfigStub,
+            forking: undefined,
+            blockGasLimit: false,
+          },
+          undefined,
+          undefined,
+          new Map(),
+        );
+      });
+
+      it("should omit mining.blockGasLimit to disable enforcement", () => {
+        assert.equal(providerConfig.mining.blockGasLimit, undefined);
+      });
+
+      it("should still default the LocalConfig genesisBlockGasLimit to 60_000_000n", () => {
+        assertHardhatInvariant(
+          !("url" in providerConfig.network),
+          "Expected local config",
+        );
+        assert.equal(providerConfig.network.genesisBlockGasLimit, 60_000_000n);
+      });
+    });
   });
 });
