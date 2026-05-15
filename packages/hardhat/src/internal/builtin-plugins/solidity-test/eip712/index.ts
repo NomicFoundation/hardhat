@@ -77,14 +77,20 @@ export function collectEip712CanonicalTypes(
       continue;
     }
 
-    // Build the user-defined value type index *per build info*. solc node ids
-    // are unique only within a single compilation, so pooling the indexes
-    // across build infos would let one compilation's user-defined value type
-    // shadow another at the same numeric id and silently resolve
-    // `referencedDeclaration` to the wrong underlying type. The index still
-    // has to span every source in *this* build (not just include-matched ones)
-    // because a struct in an included file may reference a user-defined value
-    // type defined in a non-included file.
+    // Two constraints determine the index's scope:
+    //
+    // 1. Per build info, not pooled across them. solc assigns node ids
+    //    fresh in each compilation, so the same numeric id can mean
+    //    different user-defined value types in different builds. Pooling
+    //    would let one compilation's definition silently overwrite
+    //    another's at the same key, mis-resolving `referencedDeclaration`.
+    //    See the test "scopes user-defined value type resolution per build
+    //    info when node ids collide" for a repro.
+    //
+    // 2. Whole build info, not narrowed to a subset of sources. A struct
+    //    member's `referencedDeclaration` can point at a user-defined
+    //    value type defined in any source within the same compilation, so
+    //    the index must cover every source in the build.
     const userDefinedValueTypeI = buildUserDefinedValueTypeIndex(
       Object.values(sources).map((s) => s.ast),
     );
