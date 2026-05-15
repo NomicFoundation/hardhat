@@ -106,6 +106,13 @@ export async function solidityTestConfigToSolidityTestRunnerConfigArgs({
       : undefined;
   const disableBlockGasLimit = config.blockGasLimit === false;
 
+  const transactionGasCap =
+    typeof config.transactionGasCap === "number" ||
+    typeof config.transactionGasCap === "bigint"
+      ? BigInt(config.transactionGasCap)
+      : undefined;
+  const disableTransactionGasCap = transactionGasCap === undefined;
+
   const blockDifficulty = config.prevRandao;
 
   let ethRpcUrl: string | undefined;
@@ -141,8 +148,8 @@ export async function solidityTestConfigToSolidityTestRunnerConfigArgs({
     includeTraces,
     blockGasLimit,
     disableBlockGasLimit,
-    // TODO: Hardcoded for now. This should be made configurable by the user.
-    disableTransactionGasCap: true,
+    transactionGasCap,
+    disableTransactionGasCap,
     blockDifficulty,
     ethRpcUrl,
     forkBlockNumber,
