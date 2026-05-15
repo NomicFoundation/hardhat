@@ -25,12 +25,12 @@ import { HardhatError } from "@nomicfoundation/hardhat-errors";
  * constructs and propagates `None` through the dep graph so dependents are
  * also dropped.
  *
- * When `selectedNames` is provided, only those names are emitted; non-selected
- * structs still participate in dep resolution so cross-file deps inline correctly.
+ * Only names in `selectedNames` are emitted; non-selected structs still
+ * participate in dep resolution so cross-file deps inline correctly.
  */
 export function canonicalizeStructs(
   structs: CollectedStruct[],
-  selectedNames?: Set<string>,
+  selectedNames: Set<string>,
 ): string[] {
   const byName = indexByName(structs, selectedNames);
   const knownNames = new Set(byName.keys());
@@ -39,7 +39,7 @@ export function canonicalizeStructs(
   const result: string[] = [];
 
   for (const struct of byName.values()) {
-    if (selectedNames !== undefined && !selectedNames.has(struct.name)) {
+    if (!selectedNames.has(struct.name)) {
       continue;
     }
 
@@ -212,7 +212,7 @@ function transitiveDeps(
  */
 function indexByName(
   structs: CollectedStruct[],
-  selectedNames?: Set<string>,
+  selectedNames: Set<string>,
 ): Map<string, CollectedStruct> {
   const byName = new Map<string, CollectedStruct>();
   const fingerprintByName = new Map<string, string>();
@@ -222,13 +222,10 @@ function indexByName(
     { firstSource: string; secondSource: string }
   >();
 
-  const ordered =
-    selectedNames === undefined
-      ? structs
-      : [
-          ...structs.filter((s) => selectedNames.has(s.name)),
-          ...structs.filter((s) => !selectedNames.has(s.name)),
-        ];
+  const ordered = [
+    ...structs.filter((s) => selectedNames.has(s.name)),
+    ...structs.filter((s) => !selectedNames.has(s.name)),
+  ];
 
   for (const struct of ordered) {
     const fingerprint = fingerprintStruct(struct);
@@ -245,7 +242,7 @@ function indexByName(
       continue;
     }
 
-    if (selectedNames !== undefined && !selectedNames.has(struct.name)) {
+    if (!selectedNames.has(struct.name)) {
       if (!deferredConflicts.has(struct.name)) {
         deferredConflicts.set(struct.name, {
           firstSource: sourceByName.get(struct.name) ?? "<unknown>",
@@ -265,7 +262,7 @@ function indexByName(
     );
   }
 
-  if (selectedNames !== undefined && deferredConflicts.size > 0) {
+  if (deferredConflicts.size > 0) {
     const reachable = reachableFromSelected(byName, selectedNames);
     for (const [name, sources] of deferredConflicts) {
       if (reachable.has(name)) {

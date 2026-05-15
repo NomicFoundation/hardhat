@@ -23,9 +23,13 @@ function struct(
   };
 }
 
+function canonicalizeAll(structs: CollectedStruct[]): string[] {
+  return canonicalizeStructs(structs, new Set(structs.map((s) => s.name)));
+}
+
 describe("eip712 - canonicalize", () => {
   it("emits a single head for a primitives-only struct", () => {
-    const result = canonicalizeStructs([
+    const result = canonicalizeAll([
       struct("Person", [
         ["address", "wallet"],
         ["string", "name"],
@@ -48,7 +52,7 @@ describe("eip712 - canonicalize", () => {
       ]),
     ];
 
-    const result = canonicalizeStructs(collected);
+    const result = canonicalizeAll(collected);
 
     assert.deepEqual(result, [
       "Mail(Person from,Person to,string contents)Person(address wallet,string name)",
@@ -73,7 +77,7 @@ describe("eip712 - canonicalize", () => {
       ]),
     ];
 
-    const result = canonicalizeStructs(collected);
+    const result = canonicalizeAll(collected);
 
     // Transaction with deps inlined alphabetically: Asset before Person.
     assert.deepEqual(result, [
@@ -100,7 +104,7 @@ describe("eip712 - canonicalize", () => {
       struct("Wallet", [["address", "addr"]]),
     ];
 
-    const result = canonicalizeStructs(collected);
+    const result = canonicalizeAll(collected);
 
     assert.deepEqual(result, [
       "Transaction(Asset asset,Person person)" +
@@ -129,7 +133,7 @@ describe("eip712 - canonicalize", () => {
       ),
     ];
 
-    const result = canonicalizeStructs(collected);
+    const result = canonicalizeAll(collected);
 
     assert.deepEqual(result, ["Person(address wallet,string name)"]);
   });
@@ -137,7 +141,7 @@ describe("eip712 - canonicalize", () => {
   it("throws on conflicting definitions for the same struct name", () => {
     assertThrowsHardhatError(
       () =>
-        canonicalizeStructs([
+        canonicalizeAll([
           struct("Foo", [["uint256", "a"]], "test/A.sol"),
           struct("Foo", [["uint256", "b"]], "test/B.sol"),
         ]),
@@ -157,7 +161,7 @@ describe("eip712 - canonicalize", () => {
     // from the output even though an encodable definition exists.
     assertThrowsHardhatError(
       () =>
-        canonicalizeStructs([
+        canonicalizeAll([
           struct(
             "Foo",
             [
@@ -182,7 +186,7 @@ describe("eip712 - canonicalize", () => {
     // is dropped, but the structs are clearly different definitions.
     assertThrowsHardhatError(
       () =>
-        canonicalizeStructs([
+        canonicalizeAll([
           struct(
             "Foo",
             [
@@ -235,7 +239,7 @@ describe("eip712 - canonicalize", () => {
 
     // Both copies are non decodable (mapping member), so the canonical output is
     // empty — the important part is that canonicalization doesn't throw.
-    const result = canonicalizeStructs(collected);
+    const result = canonicalizeAll(collected);
 
     assert.deepEqual(result, []);
   });
@@ -244,7 +248,7 @@ describe("eip712 - canonicalize", () => {
     // Matches forge: `resolve_struct_eip712` returns `None` when any member
     // has an unsupported type, so the struct is filtered out entirely rather
     // than emitted with the bad member silently removed.
-    const result = canonicalizeStructs([
+    const result = canonicalizeAll([
       struct("Holder", [
         ["uint256", "id"],
         [undefined, "balances"],
@@ -259,7 +263,7 @@ describe("eip712 - canonicalize", () => {
     // Holder has a mapping → non-decodable.
     // Order references Holder → non-decodable too (None propagates through deps).
     // Person is independent → still encodable.
-    const result = canonicalizeStructs([
+    const result = canonicalizeAll([
       struct("Person", [
         ["address", "wallet"],
         ["string", "name"],
@@ -278,7 +282,7 @@ describe("eip712 - canonicalize", () => {
   });
 
   it("treats array-of-struct members as a struct dep", () => {
-    const result = canonicalizeStructs([
+    const result = canonicalizeAll([
       struct("Bag", [["Item[]", "items"]]),
       struct("Item", [["uint256", "id"]]),
     ]);
@@ -290,7 +294,7 @@ describe("eip712 - canonicalize", () => {
   });
 
   it("strips fixed-size and nested array suffixes when resolving deps", () => {
-    const result = canonicalizeStructs([
+    const result = canonicalizeAll([
       struct("Bag", [
         ["Item[3]", "fixed"],
         ["Other[2][3]", "nested"],
@@ -311,7 +315,7 @@ describe("eip712 - canonicalize", () => {
   it("ignores self-references when computing deps", () => {
     // `S` has a member of type `S[]` (legal in Solidity). The self-ref must
     // not be emitted as a dep — only its name appears in the head.
-    const result = canonicalizeStructs([struct("S", [["S[]", "children"]])]);
+    const result = canonicalizeAll([struct("S", [["S[]", "children"]])]);
     assert.deepEqual(result, ["S(S[] children)"]);
   });
 
