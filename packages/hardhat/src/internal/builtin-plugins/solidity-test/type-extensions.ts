@@ -128,6 +128,7 @@ declare module "../../../types/test.js" {
   }
 
   export interface SolidityTestProfileConfig {
+    rpcCachePath: string;
     fsPermissions?: SolidityTestFsPermissionsConfig;
     isolate?: boolean;
     ffi?: boolean;
