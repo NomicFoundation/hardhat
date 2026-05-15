@@ -152,7 +152,7 @@ class LazySolidityBuildSystem implements SolidityBuildSystem {
 
 export default async (): Promise<Partial<HardhatRuntimeEnvironmentHooks>> => {
   return {
-    created: async (_context, hre) => {
+    created: async (context, hre) => {
       hre.solidity = new LazySolidityBuildSystem(hre.hooks, {
         solidityConfig: hre.config.solidity,
         projectRoot: hre.config.paths.root,
@@ -160,6 +160,7 @@ export default async (): Promise<Partial<HardhatRuntimeEnvironmentHooks>> => {
         artifactsPath: hre.config.paths.artifacts,
         cachePath: hre.config.paths.cache,
         solidityTestsPath: hre.config.paths.tests.solidity,
+        coverage: context.globalOptions.coverage,
       });
     },
   };
