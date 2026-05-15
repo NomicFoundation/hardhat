@@ -1497,7 +1497,7 @@ describe("network-manager/hook-handlers/config", () => {
 
       // EDR-specific fields
       assert.equal(localhost.allowBlocksWithSameTimestamp, false);
-      assert.equal(localhost.allowUnlimitedContractSize, false);
+      assert.equal(localhost.allowUnlimitedContractSize, undefined);
       assert.equal(localhost.blockGasLimit, undefined);
       assert.deepEqual(localhost.mining, {
         auto: true,

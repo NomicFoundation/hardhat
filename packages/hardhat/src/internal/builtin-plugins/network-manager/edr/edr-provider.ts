@@ -498,7 +498,8 @@ export async function getProviderConfig(
 
   return {
     allowBlocksWithSameTimestamp: networkConfig.allowBlocksWithSameTimestamp,
-    allowUnlimitedContractSize: networkConfig.allowUnlimitedContractSize,
+    allowUnlimitedContractSize:
+      networkConfig.allowUnlimitedContractSize ?? false,
     bailOnCallFailure: networkConfig.throwOnCallFailures,
     bailOnTransactionFailure: networkConfig.throwOnTransactionFailures,
     chainId: BigInt(networkConfig.chainId),

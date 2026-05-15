@@ -44,12 +44,22 @@ describe("applyCoverageNetworkOverrides", () => {
   });
 
   describe("when coverage is enabled", () => {
-    it("should force allowUnlimitedContractSize on, overriding an explicit user value", () => {
-      const config = makeEdrConfigStub({ allowUnlimitedContractSize: false });
+    it("should default allowUnlimitedContractSize to true when the user has not set it", () => {
+      const config = makeEdrConfigStub({
+        allowUnlimitedContractSize: undefined,
+      });
 
       const result = applyCoverageNetworkOverrides(config, true);
 
       assert.equal(result.allowUnlimitedContractSize, true);
+    });
+
+    it("should preserve an explicit allowUnlimitedContractSize value of false", () => {
+      const config = makeEdrConfigStub({ allowUnlimitedContractSize: false });
+
+      const result = applyCoverageNetworkOverrides(config, true);
+
+      assert.equal(result.allowUnlimitedContractSize, false);
     });
 
     it("should disable blockGasLimit when the user has not set it", () => {
