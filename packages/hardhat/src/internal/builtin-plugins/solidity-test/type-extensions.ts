@@ -51,6 +51,7 @@ declare module "../../../types/test.js" {
     prevRandao?: bigint;
     gasLimit?: bigint;
     blockGasLimit?: number | bigint | false;
+    transactionGasCap?: number | bigint | false;
 
     fuzz?: SolidityTestFuzzConfigBase;
     invariant?: {

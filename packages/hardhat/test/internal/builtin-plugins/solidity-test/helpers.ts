@@ -147,6 +147,58 @@ describe("solidityTestConfigToSolidityTestRunnerConfigArgs", () => {
     assert.equal(args.disableBlockGasLimit, false);
   });
 
+  it("disables transactionGasCap when transactionGasCap is undefined", async () => {
+    const args = await solidityTestConfigToSolidityTestRunnerConfigArgs({
+      chainType: GENERIC_CHAIN_TYPE,
+      projectRoot: process.cwd(),
+      config: { fuzz: { seed: "0x1234" }, transactionGasCap: undefined },
+      verbosity: 1,
+      generateGasReport: false,
+    });
+
+    assert.equal(args.transactionGasCap, undefined);
+    assert.equal(args.disableTransactionGasCap, true);
+  });
+
+  it("disables transactionGasCap when transactionGasCap is false", async () => {
+    const args = await solidityTestConfigToSolidityTestRunnerConfigArgs({
+      chainType: GENERIC_CHAIN_TYPE,
+      projectRoot: process.cwd(),
+      config: { fuzz: { seed: "0x1234" }, transactionGasCap: false },
+      verbosity: 1,
+      generateGasReport: false,
+    });
+
+    assert.equal(args.transactionGasCap, undefined);
+    assert.equal(args.disableTransactionGasCap, true);
+  });
+
+  it("enforces transactionGasCap when transactionGasCap is a bigint", async () => {
+    const args = await solidityTestConfigToSolidityTestRunnerConfigArgs({
+      chainType: GENERIC_CHAIN_TYPE,
+      projectRoot: process.cwd(),
+      config: { fuzz: { seed: "0x1234" }, transactionGasCap: 1_000_000n },
+      verbosity: 1,
+      generateGasReport: false,
+    });
+
+    assert.equal(args.transactionGasCap, 1_000_000n);
+    assert.equal(args.disableTransactionGasCap, false);
+  });
+
+  it("converts a number transactionGasCap to a bigint", async () => {
+    const args = await solidityTestConfigToSolidityTestRunnerConfigArgs({
+      chainType: GENERIC_CHAIN_TYPE,
+      projectRoot: process.cwd(),
+      config: { fuzz: { seed: "0x1234" }, transactionGasCap: 1_000_000 },
+      verbosity: 1,
+      generateGasReport: false,
+    });
+
+    assert.equal(args.transactionGasCap, 1_000_000n);
+    assert.equal(args.disableTransactionGasCap, false);
+  });
+
   it("sets gasLimit when it is undefined", async () => {
     const args = await solidityTestConfigToSolidityTestRunnerConfigArgs({
       chainType: GENERIC_CHAIN_TYPE,
