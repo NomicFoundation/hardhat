@@ -44,6 +44,7 @@ import {
 import { getTestFunctionOverrides } from "./inline-config/index.js";
 import { testReporter } from "./reporter.js";
 import { run } from "./runner.js";
+import { DEFAULT_TEST_PROFILE } from "./test-profiles.js";
 
 interface TestActionArguments {
   testFiles: string[];
@@ -201,7 +202,9 @@ const runSolidityTests: NewTaskActionFunction<TestActionArguments> = async (
   let includesFailures = false;
   let includesErrors = false;
 
-  const { eip712Types, ...solidityTestConfig } = hre.config.test.solidity;
+  const { eip712Types, ...solidityTestConfig } =
+    hre.config.test.solidity.profiles[DEFAULT_TEST_PROFILE];
+
   let observabilityConfig: ObservabilityConfig | undefined;
   if (hre.globalOptions.coverage) {
     const coverage = getCoverageManager(hre);

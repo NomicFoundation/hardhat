@@ -1,6 +1,6 @@
 import type { Abi } from "../../../types/artifacts.js";
 import type { ChainType } from "../../../types/network.js";
-import type { SolidityTestConfig } from "../../../types/test.js";
+import type { SolidityTestProfileConfig } from "../../../types/test.js";
 import type {
   SolidityTestRunnerConfigArgs,
   PathPermission,
@@ -32,7 +32,7 @@ interface SolidityTestConfigParams {
   chainType: ChainType;
   projectRoot: string;
   hardfork?: string;
-  config: Omit<SolidityTestConfig, "eip712Types">;
+  config: Omit<SolidityTestProfileConfig, "eip712Types">;
   verbosity: number;
   observability?: ObservabilityConfig;
   testPattern?: string;
