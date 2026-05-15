@@ -226,9 +226,7 @@ export async function resolveSolidityTestUserConfig(
     ...profileUserConfig,
     fuzz: resolveFuzzConfig(profileUserConfig?.fuzz),
     forking: resolvedForking,
-    eip712Types: resolveEip712TypesConfig(
-      userConfig.test?.solidity?.eip712Types,
-    ),
+    eip712Types: resolveEip712TypesConfig(profileUserConfig?.eip712Types),
   };
 
   return {
@@ -259,8 +257,8 @@ export function resolveFuzzConfig(
 }
 
 export function resolveEip712TypesConfig(
-  eip712TypesUserConfig: SolidityTestUserConfig["eip712Types"] = {},
-): SolidityTestConfig["eip712Types"] {
+  eip712TypesUserConfig: SolidityTestProfileUserConfig["eip712Types"] = {},
+): SolidityTestProfileConfig["eip712Types"] {
   return {
     include: eip712TypesUserConfig.include ?? [],
     exclude: eip712TypesUserConfig.exclude ?? [],
