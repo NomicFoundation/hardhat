@@ -740,5 +740,40 @@ describe("edr-provider", () => {
         assert.equal(providerConfig.network.genesisBlockGasLimit, 60_000_000n);
       });
     });
+
+    describe("transactionGasCap", () => {
+      it("should omit transactionGasCap when unset (hardfork default applies)", async () => {
+        const providerConfig = await getProviderConfig(
+          { ...networkConfigStub, transactionGasCap: undefined },
+          undefined,
+          undefined,
+          new Map(),
+        );
+
+        assert.equal(providerConfig.transactionGasCap, undefined);
+      });
+
+      it("should pass an explicit transactionGasCap bigint through to EDR", async () => {
+        const providerConfig = await getProviderConfig(
+          { ...networkConfigStub, transactionGasCap: 1_000_000n },
+          undefined,
+          undefined,
+          new Map(),
+        );
+
+        assert.equal(providerConfig.transactionGasCap, 1_000_000n);
+      });
+
+      it("should pass false through to EDR to disable the cap", async () => {
+        const providerConfig = await getProviderConfig(
+          { ...networkConfigStub, transactionGasCap: false },
+          undefined,
+          undefined,
+          new Map(),
+        );
+
+        assert.equal(providerConfig.transactionGasCap, false);
+      });
+    });
   });
 });

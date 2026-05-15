@@ -112,6 +112,11 @@ export function resolveEdrNetwork(
     throwOnCallFailures: networkConfig.throwOnCallFailures ?? true,
     throwOnTransactionFailures:
       networkConfig.throwOnTransactionFailures ?? true,
+    transactionGasCap:
+      typeof networkConfig.transactionGasCap === "number" ||
+      typeof networkConfig.transactionGasCap === "bigint"
+        ? BigInt(networkConfig.transactionGasCap)
+        : networkConfig.transactionGasCap,
   };
 }
 
