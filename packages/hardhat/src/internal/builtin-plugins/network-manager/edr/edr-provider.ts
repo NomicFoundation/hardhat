@@ -45,6 +45,7 @@ import {
   UnknownError,
 } from "../provider-errors.js";
 
+import { DEFAULT_EDR_NETWORK_BLOCK_GAS_LIMIT } from "./edr-constants.js";
 import { getGenesisStateAndOwnedAccounts } from "./genesis-state.js";
 import { EdrProviderStackTraceGenerationError } from "./stack-traces/stack-trace-generation-errors.js";
 import { createSolidityErrorWithStackTrace } from "./stack-traces/stack-trace-solidity-errors.js";
@@ -471,18 +472,24 @@ export async function getProviderConfig(
     networkConfig.chainType,
   );
 
+  // EDR requires a concrete block gas limit for the genesis block and for
+  // the mining target. When the user has not set one, fall back to the
+  // Hardhat default.
+  const blockGasLimit =
+    networkConfig.blockGasLimit ?? DEFAULT_EDR_NETWORK_BLOCK_GAS_LIMIT;
+
   const network =
     forkConfig !== undefined
       ? forkConfig
       : {
-          genesisBlockGasLimit: networkConfig.blockGasLimit,
+          genesisBlockGasLimit: blockGasLimit,
           genesisBlockTime: BigInt(toSeconds(networkConfig.initialDate)),
         };
 
   const defaultTransactionGasLimit = resolveDefaultTransactionGasLimit({
     chainType: networkConfig.chainType,
     hardfork: networkConfig.hardfork,
-    blockGasLimit: networkConfig.blockGasLimit,
+    blockGasLimit,
   });
 
   return {
@@ -499,7 +506,7 @@ export async function getProviderConfig(
     minGasPrice: networkConfig.minGasPrice,
     mining: {
       autoMine: networkConfig.mining.auto,
-      blockGasLimit: networkConfig.blockGasLimit,
+      blockGasLimit,
       interval: hardhatMiningIntervalToEdrMiningInterval(
         networkConfig.mining.interval,
       ),
