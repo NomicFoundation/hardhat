@@ -17,8 +17,8 @@ import { canonicalizeStructs } from "./canonicalize.js";
 import { isPathSelected } from "./glob.js";
 
 export interface Eip712TypesConfig {
-  include?: string[];
-  exclude?: string[];
+  include: string[];
+  exclude: string[];
 }
 
 // When a transitive project file isn't a root in any build info — and so
@@ -39,10 +39,9 @@ const PROJECT_INPUT_SOURCE_NAME_PREFIX = `${HARDHAT_PROJECT_INPUT_SOURCE_NAME_RO
  */
 export function collectEip712CanonicalTypes(
   buildInfosAndOutputs: BuildInfoAndOutput[],
-  config: Eip712TypesConfig | undefined,
+  config: Eip712TypesConfig,
 ): string[] {
-  const include = config?.include ?? [];
-  const exclude = config?.exclude ?? [];
+  const { include, exclude } = config;
 
   if (include.length === 0) {
     return [];

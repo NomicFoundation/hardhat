@@ -112,8 +112,8 @@ function contractAst(name: string, structs: unknown[]): unknown {
 
 describe("eip712 - collectEip712CanonicalTypes", () => {
   it("returns an empty list when no include is configured", () => {
-    // The feature is opt-in: without `include`, collection short-circuits
-    // before any build info is parsed.
+    // The feature is opt-in: with an empty `include`, collection
+    // short-circuits before any build info is parsed.
     const buildInfo = makeBuildInfo("solc-0_8_23-00000000", [
       {
         inputSourceName: "project/test/Types.sol",
@@ -122,16 +122,16 @@ describe("eip712 - collectEip712CanonicalTypes", () => {
       },
     ]);
 
-    // All possible scenarios where `include` is empty/unset:
-    assert.deepEqual(collectEip712CanonicalTypes([buildInfo], undefined), []);
-    assert.deepEqual(collectEip712CanonicalTypes([buildInfo], {}), []);
     assert.deepEqual(
-      collectEip712CanonicalTypes([buildInfo], { include: [] }),
+      collectEip712CanonicalTypes([buildInfo], { include: [], exclude: [] }),
       [],
     );
     // Exclude alone is a no-op without an include to narrow.
     assert.deepEqual(
-      collectEip712CanonicalTypes([buildInfo], { exclude: ["**"] }),
+      collectEip712CanonicalTypes([buildInfo], {
+        include: [],
+        exclude: ["**"],
+      }),
       [],
     );
   });
@@ -157,6 +157,7 @@ describe("eip712 - collectEip712CanonicalTypes", () => {
 
     const result = collectEip712CanonicalTypes([buildInfo], {
       include: ["test/**"],
+      exclude: [],
     });
 
     assert.deepEqual(result, [
@@ -181,6 +182,7 @@ describe("eip712 - collectEip712CanonicalTypes", () => {
 
     const onlyTests = collectEip712CanonicalTypes([buildInfo], {
       include: ["test/**"],
+      exclude: [],
     });
     assert.deepEqual(onlyTests, ["Bar(uint256 y)"]);
 
@@ -215,6 +217,7 @@ describe("eip712 - collectEip712CanonicalTypes", () => {
 
     const result = collectEip712CanonicalTypes([a, b], {
       include: ["test/**"],
+      exclude: [],
     });
 
     assert.deepEqual(result, ["Person(address wallet,string name)"]);
@@ -270,7 +273,7 @@ describe("eip712 - collectEip712CanonicalTypes", () => {
           output: utf8StringToBytes(JSON.stringify(partialOutput)),
         },
       ],
-      { include: ["contracts/**"] },
+      { include: ["contracts/**"], exclude: [] },
     );
 
     assert.deepEqual(result, ["Person(address wallet,string name)"]);
@@ -312,7 +315,7 @@ describe("eip712 - collectEip712CanonicalTypes", () => {
           output: utf8StringToBytes(JSON.stringify(output)),
         },
       ],
-      { include: ["npm/**"] },
+      { include: ["npm/**"], exclude: [] },
     );
 
     assert.deepEqual(result, ["Imported(uint256 x)"]);
@@ -357,7 +360,7 @@ describe("eip712 - collectEip712CanonicalTypes", () => {
           output: utf8StringToBytes(JSON.stringify(output)),
         },
       ],
-      { include: ["lib/**"] },
+      { include: ["lib/**"], exclude: [] },
     );
 
     assert.deepEqual(result, ["Helper(uint256 n)"]);
@@ -384,6 +387,7 @@ describe("eip712 - collectEip712CanonicalTypes", () => {
       () =>
         collectEip712CanonicalTypes([buildInfo], {
           include: ["test/**"],
+          exclude: [],
         }),
       HardhatError.ERRORS.CORE.SOLIDITY_TESTS.EIP712_DUPLICATE_STRUCT_NAME,
       {
@@ -410,6 +414,7 @@ describe("eip712 - collectEip712CanonicalTypes", () => {
       () =>
         collectEip712CanonicalTypes([buildInfo], {
           include: ["test/**"],
+          exclude: [],
         }),
       HardhatError.ERRORS.CORE.SOLIDITY_TESTS.EIP712_DUPLICATE_STRUCT_NAME,
       {
@@ -437,6 +442,7 @@ describe("eip712 - collectEip712CanonicalTypes", () => {
 
     const result = collectEip712CanonicalTypes([buildInfo], {
       include: ["test/**"],
+      exclude: [],
     });
 
     assert.deepEqual(result, ["S(uint256 a)"]);
@@ -532,11 +538,17 @@ describe("eip712 - collectEip712CanonicalTypes", () => {
     const expected = ["AStruct(uint256 f)", "BStruct(bytes32 b)"];
 
     assert.deepEqual(
-      collectEip712CanonicalTypes([buildA, buildB], { include: ["**"] }).sort(),
+      collectEip712CanonicalTypes([buildA, buildB], {
+        include: ["**"],
+        exclude: [],
+      }).sort(),
       expected,
     );
     assert.deepEqual(
-      collectEip712CanonicalTypes([buildB, buildA], { include: ["**"] }).sort(),
+      collectEip712CanonicalTypes([buildB, buildA], {
+        include: ["**"],
+        exclude: [],
+      }).sort(),
       expected,
     );
   });
@@ -568,6 +580,7 @@ describe("eip712 - collectEip712CanonicalTypes", () => {
 
     const result = collectEip712CanonicalTypes([buildInfo], {
       include: ["test/**"],
+      exclude: [],
     });
 
     assert.deepEqual(result, [
@@ -603,6 +616,7 @@ describe("eip712 - collectEip712CanonicalTypes", () => {
 
     const result = collectEip712CanonicalTypes([testBuild, libBuild], {
       include: ["test/**"],
+      exclude: [],
     });
 
     assert.deepEqual(result, [
@@ -646,6 +660,7 @@ describe("eip712 - collectEip712CanonicalTypes", () => {
 
     const result = collectEip712CanonicalTypes([buildInfo], {
       include: ["test/**"],
+      exclude: [],
     });
 
     assert.deepEqual(result, [
@@ -682,6 +697,7 @@ describe("eip712 - collectEip712CanonicalTypes", () => {
 
     const result = collectEip712CanonicalTypes([buildInfo], {
       include: ["test/**"],
+      exclude: [],
     });
 
     assert.deepEqual(result, ["Wanted(uint256 x)"]);
@@ -728,6 +744,7 @@ describe("eip712 - collectEip712CanonicalTypes", () => {
 
     const result = collectEip712CanonicalTypes([buildInfo], {
       include: ["test/**"],
+      exclude: [],
     });
 
     assert.deepEqual(result, []);
@@ -774,7 +791,7 @@ describe("eip712 - collectEip712CanonicalTypes", () => {
         },
         goodBuildInfo,
       ],
-      { include: ["test/**"] },
+      { include: ["test/**"], exclude: [] },
     );
 
     assert.deepEqual(result, ["Person(address wallet,string name)"]);

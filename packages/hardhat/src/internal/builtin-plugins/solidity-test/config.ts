@@ -175,6 +175,9 @@ export async function resolveSolidityTestUserConfig(
     ...userConfig.test?.solidity,
     fuzz: resolveFuzzConfig(userConfig.test?.solidity?.fuzz),
     forking: resolvedForking,
+    eip712Types: resolveEip712TypesConfig(
+      userConfig.test?.solidity?.eip712Types,
+    ),
   };
 
   return {
@@ -199,5 +202,14 @@ export function resolveFuzzConfig(
   return {
     ...fuzzUserConfig,
     seed: fuzzUserConfig.seed ?? DEFAULT_FUZZ_SEED,
+  };
+}
+
+export function resolveEip712TypesConfig(
+  eip712TypesUserConfig: SolidityTestUserConfig["eip712Types"] = {},
+): SolidityTestConfig["eip712Types"] {
+  return {
+    include: eip712TypesUserConfig.include ?? [],
+    exclude: eip712TypesUserConfig.exclude ?? [],
   };
 }
