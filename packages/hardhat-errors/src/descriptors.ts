@@ -1278,6 +1278,16 @@ Double-check the paths you are providing to the \`test solidity\` task.`,
         websiteDescription:
           "Two distinct snapshot group names sanitize to the same on-disk filename. Rename one of the groups in your Solidity tests so they produce different filenames.",
       },
+      EIP712_DUPLICATE_STRUCT_NAME: {
+        number: 818,
+        messageTemplate: `Two different EIP-712 struct definitions named "{name}" were found:
+- {firstSource}
+- {secondSource}
+
+EIP-712 cheatcodes resolve types by name, so each struct name must have a single canonical definition. Rename one of the structs, or scope your \`test.solidity.eip712Types.include\` / \`exclude\` globs in \`hardhat.config.ts\` to only one of them.`,
+        websiteTitle: "Duplicate EIP-712 struct name",
+        websiteDescription: `Two struct definitions with the same name had different members. Type-name lookups via \`vm.eip712HashType\` and \`vm.eip712HashStruct\` would be ambiguous.`,
+      },
     },
     SOLIDITY: {
       PROJECT_ROOT_RESOLUTION_ERROR: {

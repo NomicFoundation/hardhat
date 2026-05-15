@@ -29,13 +29,12 @@ import {
 } from "@nomicfoundation/hardhat-utils/package";
 
 import { UserRemappingErrorType } from "../../../../../types/solidity.js";
+import { HARDHAT_PROJECT_INPUT_SOURCE_NAME_ROOT } from "../../constants.js";
 
 import { getNpmPackageName } from "./npm-module-parsing.js";
 import { parseRemappingString, selectBestRemapping } from "./remappings.js";
 import { sourceNamePathJoin } from "./source-name-utils.js";
 import { UserRemappingType } from "./types.js";
-
-const HARDHAT_PROJECT_INPUT_SOURCE_NAME_ROOT = "project";
 
 /**
  * Returns a normalized version of the path if it refers to a node_modules in

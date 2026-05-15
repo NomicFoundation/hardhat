@@ -35,6 +35,7 @@ import {
   buildEdrArtifactsWithMetadata,
   getBuildInfosAndOutputs,
 } from "./edr-artifacts.js";
+import { collectEip712CanonicalTypes } from "./eip712/index.js";
 import {
   isTestSuiteArtifact,
   warnDeprecatedTestFail,
@@ -200,7 +201,7 @@ const runSolidityTests: NewTaskActionFunction<TestActionArguments> = async (
   let includesFailures = false;
   let includesErrors = false;
 
-  const solidityTestConfig = hre.config.test.solidity;
+  const { eip712Types, ...solidityTestConfig } = hre.config.test.solidity;
   let observabilityConfig: ObservabilityConfig | undefined;
   if (hre.globalOptions.coverage) {
     const coverage = getCoverageManager(hre);
@@ -232,6 +233,12 @@ const runSolidityTests: NewTaskActionFunction<TestActionArguments> = async (
     allBuildInfosAndOutputs,
   );
 
+  const eip712CanonicalTypes = collectEip712CanonicalTypes(
+    allBuildInfosAndOutputs,
+    sourceNameToUserSourceName,
+    eip712Types,
+  );
+
   const testRunnerConfig =
     await solidityTestConfigToSolidityTestRunnerConfigArgs({
       chainType,
@@ -245,6 +252,7 @@ const runSolidityTests: NewTaskActionFunction<TestActionArguments> = async (
         hre.globalOptions.gasStats ||
         hre.globalOptions.gasStatsJson !== undefined,
       testFunctionOverrides,
+      eip712CanonicalTypes,
     });
   const tracingConfig: TracingConfigWithBuffers = {
     buildInfos: allBuildInfosAndOutputs.map(({ buildInfo, output }) => ({

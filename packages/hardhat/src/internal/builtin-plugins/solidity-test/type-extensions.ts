@@ -64,6 +64,11 @@ declare module "../../../types/test.js" {
       includePushBytes?: boolean;
       shrinkRunLimit?: number;
     };
+
+    eip712Types?: {
+      include?: string[];
+      exclude?: string[];
+    };
   }
 
   export interface SolidityTestForkingUserConfig {
@@ -89,6 +94,10 @@ declare module "../../../types/test.js" {
   export interface SolidityTestConfig extends SolidityTestConfigBase {
     fuzz: SolidityTestFuzzConfig;
     forking?: SolidityTestForkingConfig;
+    eip712Types: {
+      include: string[];
+      exclude: string[];
+    };
   }
   export interface HardhatTestConfig {
     solidity: SolidityTestConfig;
