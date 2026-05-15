@@ -493,6 +493,7 @@ export async function getProviderConfig(
     chainType: networkConfig.chainType,
     hardfork: networkConfig.hardfork,
     blockGasLimit: genesisBlockGasLimit,
+    transactionGasCap: networkConfig.transactionGasCap,
   });
 
   return {
@@ -528,5 +529,6 @@ export async function getProviderConfig(
     },
     ownedAccounts: ownedAccounts.map((account) => account.secretKey),
     precompileOverrides: [],
+    transactionGasCap: networkConfig.transactionGasCap,
   };
 }

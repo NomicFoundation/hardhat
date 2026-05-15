@@ -123,6 +123,7 @@ declare module "../../../../types/config.js" {
     networkId?: number;
     throwOnCallFailures?: boolean;
     throwOnTransactionFailures?: boolean;
+    transactionGasCap?: number | bigint | false;
   }
 
   export type EdrNetworkAccountsUserConfig =
@@ -268,6 +269,7 @@ declare module "../../../../types/config.js" {
     networkId: number;
     throwOnCallFailures: boolean;
     throwOnTransactionFailures: boolean;
+    transactionGasCap?: bigint | false;
   }
 
   export type EdrNetworkAccountsConfig =

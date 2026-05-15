@@ -390,16 +390,27 @@ export async function hardhatForkingConfigToEdrForkConfig(
  * Resolves the default transaction gas limit used by RPC call and
  * transaction requests that omit a `gas` field.
  *
- * From L1's Osaka hardfork onwards, this is the EIP-7825 transaction gas
- * cap of 16,777,216. On earlier L1 hardforks, the caller's block gas limit
- * is used.
+ * When `transactionGasCap` is a bigint, that value wins. When it is
+ * `false`, the per-transaction cap is disabled and the block gas limit is
+ * used. When it is undefined, the hardfork-specific default applies:
+ * from L1's Osaka hardfork onwards, the EIP-7825 transaction gas cap of
+ * 16,777,216; otherwise the block gas limit.
  */
 export function resolveDefaultTransactionGasLimit(params: {
   chainType: ChainType;
   hardfork: string;
   blockGasLimit: bigint;
+  transactionGasCap: bigint | false | undefined;
 }): bigint {
-  const { chainType, hardfork, blockGasLimit } = params;
+  const { chainType, hardfork, blockGasLimit, transactionGasCap } = params;
+
+  if (typeof transactionGasCap === "bigint") {
+    return transactionGasCap;
+  }
+
+  if (transactionGasCap === false) {
+    return blockGasLimit;
+  }
 
   // TODO: OP UPGRADE 19 - update OP to also set a default transaction gas once enabled
   if (chainType === OPTIMISM_CHAIN_TYPE) {
