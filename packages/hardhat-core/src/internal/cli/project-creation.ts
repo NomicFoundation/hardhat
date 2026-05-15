@@ -76,23 +76,19 @@ const VIEM_PEER_DEPENDENCIES: Dependencies = {
   "@nomicfoundation/hardhat-ignition-viem": "^0.15.0",
 };
 
-const TYPESCRIPT_DEPENDENCIES: Dependencies = {};
+const TYPESCRIPT_DEPENDENCIES: Dependencies = {
+  typescript: "^5.9.3",
+};
 
 const TYPESCRIPT_PEER_DEPENDENCIES: Dependencies = {
   "@types/chai": "^4.2.0",
   "@types/mocha": ">=9.1.0",
   "@types/node": ">=20.0.0",
   "ts-node": ">=8.0.0",
-  typescript: ">=4.5.0",
-};
-
-const TYPESCRIPT_ETHERS_PEER_DEPENDENCIES: Dependencies = {
-  typescript: ">=4.5.0",
 };
 
 const TYPESCRIPT_VIEM_PEER_DEPENDENCIES: Dependencies = {
   "@types/chai-as-promised": "^7.1.6",
-  typescript: "~5.0.4",
 };
 
 // generated with the "colossal" font
@@ -685,9 +681,6 @@ async function getDependencies(
   const ethersToolboxDependencies: Dependencies = {
     ...ETHERS_PROJECT_DEPENDENCIES,
     ...(shouldInstallPeerDependencies ? ETHERS_PEER_DEPENDENCIES : {}),
-    ...(shouldInstallTypescriptPeerDependencies
-      ? TYPESCRIPT_ETHERS_PEER_DEPENDENCIES
-      : {}),
   };
 
   const viemToolboxDependencies: Dependencies = {

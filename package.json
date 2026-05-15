@@ -10,7 +10,7 @@
     "hardhat": "workspace:*",
     "prettier": "2.4.1",
     "shelljs": "^0.8.5",
-    "typescript": "^5.8.0"
+    "typescript": "^5.9.3"
   },
   "scripts": {
     "postbuild": "cp packages/hardhat-core/src/internal/solidity/compiler/solcjs-runner.js packages/hardhat-core/internal/solidity/compiler/solcjs-runner.js && pnpm build:ignition",

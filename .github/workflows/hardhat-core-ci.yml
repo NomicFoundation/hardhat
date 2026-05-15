@@ -37,7 +37,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        node: [20.0.0]
+        node: [24.0.0]
         os: ["macos-latest", "ubuntu-latest", "windows-latest"]
     steps:
       - uses: actions/checkout@v4
@@ -75,7 +75,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        node: [20.0.0]
+        node: [24.0.0]
         os: ["macos-latest", "ubuntu-latest", "windows-latest"]
     steps:
       - uses: actions/checkout@v4
@@ -111,7 +111,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        node: [20, 22, 24]
+        node: [22, 24]
     steps:
       - uses: actions/checkout@v4
       - uses: ./.github/actions/setup-env
@@ -127,5 +127,4 @@ jobs:
         env:
           DO_NOT_SET_THIS_ENV_VAR____IS_HARDHAT_CI: true
           FORCE_COLOR: 3
-          NODE_OPTIONS: ${{ (matrix.node == 22 || matrix.node == 24) && '--no-experimental-strip-types' || '' }}
         run: pnpm test:except-tracing

@@ -17,7 +17,8 @@ async function getParameters<TConfig extends {} | undefined>(
   chain: Chain,
   config: TConfig
 ) {
-  const { isDevelopmentNetwork } = await import("./chains");
+  const { isDevelopmentNetwork } =
+    require("./chains") as typeof import("./chains");
 
   const defaultParameters = isDevelopmentNetwork(chain.id)
     ? { pollingInterval: 50, cacheTime: 0 }
@@ -45,7 +46,7 @@ export async function getPublicClient(
   provider: EthereumProvider,
   publicClientConfig?: Partial<PublicClientConfig>
 ): Promise<PublicClient> {
-  const { getChain } = await import("./chains");
+  const { getChain } = require("./chains") as typeof import("./chains");
   const chain = publicClientConfig?.chain ?? (await getChain(provider));
   return innerGetPublicClient(provider, chain, publicClientConfig);
 }
@@ -83,8 +84,8 @@ export async function getWalletClients(
   provider: EthereumProvider,
   walletClientConfig?: Partial<WalletClientConfig>
 ): Promise<WalletClient[]> {
-  const { getAccounts } = await import("./accounts");
-  const { getChain } = await import("./chains");
+  const { getAccounts } = require("./accounts") as typeof import("./accounts");
+  const { getChain } = require("./chains") as typeof import("./chains");
   const chain = walletClientConfig?.chain ?? (await getChain(provider));
   const accounts = await getAccounts(provider);
   return innerGetWalletClients(provider, chain, accounts, walletClientConfig);
@@ -128,7 +129,7 @@ export async function getWalletClient(
   address: Address,
   walletClientConfig?: Partial<WalletClientConfig>
 ): Promise<WalletClient> {
-  const { getChain } = await import("./chains");
+  const { getChain } = require("./chains") as typeof import("./chains");
   const chain = walletClientConfig?.chain ?? (await getChain(provider));
   return (
     await innerGetWalletClients(provider, chain, [address], walletClientConfig)
@@ -147,7 +148,8 @@ export async function getTestClient(
   provider: EthereumProvider,
   testClientConfig?: Partial<TestClientConfig>
 ): Promise<TestClient> {
-  const { getChain, getMode } = await import("./chains");
+  const { getChain, getMode } =
+    require("./chains") as typeof import("./chains");
   const chain = testClientConfig?.chain ?? (await getChain(provider));
   const mode = await getMode(provider);
   return innerGetTestClient(provider, chain, mode, testClientConfig);
