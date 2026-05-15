@@ -129,7 +129,7 @@ describe("solidityTestConfigToSolidityTestRunnerConfigArgs", () => {
     assert.equal(args.disableBlockGasLimit, true);
   });
 
-  it("sets blockGasLimit and disableBlockGasLimit when blockGasLimit is a number", async () => {
+  it("sets blockGasLimit and disableBlockGasLimit when blockGasLimit is a bigint", async () => {
     const args = await solidityTestConfigToSolidityTestRunnerConfigArgs({
       chainType: GENERIC_CHAIN_TYPE,
       projectRoot: process.cwd(),
@@ -139,6 +139,23 @@ describe("solidityTestConfigToSolidityTestRunnerConfigArgs", () => {
     });
 
     assert.equal(args.blockGasLimit, 1n);
+    assert.equal(args.disableBlockGasLimit, false);
+  });
+
+  it("converts a number blockGasLimit to a bigint", async () => {
+    const args = await solidityTestConfigToSolidityTestRunnerConfigArgs({
+      chainType: GENERIC_CHAIN_TYPE,
+      projectRoot: process.cwd(),
+      config: {
+        fuzz: { seed: "0x1234" },
+        rpcCachePath: "",
+        blockGasLimit: 100,
+      },
+      verbosity: 1,
+      generateGasReport: false,
+    });
+
+    assert.equal(args.blockGasLimit, 100n);
     assert.equal(args.disableBlockGasLimit, false);
   });
 

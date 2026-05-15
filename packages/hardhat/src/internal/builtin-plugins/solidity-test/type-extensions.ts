@@ -66,7 +66,7 @@ declare module "../../../types/test.js" {
     blockTimestamp?: bigint;
     prevRandao?: bigint;
     gasLimit?: bigint;
-    blockGasLimit?: bigint | false;
+    blockGasLimit?: number | bigint | false;
     fuzz?: SolidityTestFuzzUserConfig;
     invariant?: SolidityTestInvariantUserConfig;
     forking?: SolidityTestForkingUserConfig;
@@ -141,7 +141,7 @@ declare module "../../../types/test.js" {
     blockTimestamp?: bigint;
     prevRandao?: bigint;
     gasLimit?: bigint;
-    blockGasLimit?: bigint | false;
+    blockGasLimit?: number | bigint | false;
     fuzz: SolidityTestFuzzConfig;
     invariant?: SolidityTestInvariantConfig;
     forking?: SolidityTestForkingConfig;
