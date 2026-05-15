@@ -396,14 +396,14 @@ describe("eip712 - ast-walker", () => {
         );
       });
 
-      it("falls back to [] when length is non-literal and typeString has no resolved size", () => {
+      it("returns undefined when length is non-literal and typeString has no resolved size", () => {
         assert.equal(
           encodeMemberType({
             nodeType: "ArrayTypeName",
             baseType: { nodeType: "ElementaryTypeName", name: "uint256" },
             length: { nodeType: "Identifier", name: "N" },
           }),
-          "uint256[]",
+          undefined,
         );
       });
 

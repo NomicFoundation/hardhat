@@ -276,7 +276,7 @@ export function encodeMemberType(
       }
 
       const length = typeName.length;
-      if (length === null || length === undefined) {
+      if (length === null) {
         return `${base}[]`;
       }
 
@@ -302,7 +302,7 @@ export function encodeMemberType(
         return `${base}[${match[1]}]`;
       }
 
-      return `${base}[]`;
+      return undefined;
     }
 
     case "Mapping":
