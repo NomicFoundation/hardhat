@@ -1,5 +1,15 @@
 # hardhat
 
+## 2.29.0
+
+### Minor Changes
+
+- a81ad1d: Upgrade Mocha to version `^11.1.0` to make it compatible with Node 26.
+
+### Patch Changes
+
+- 6ea5832: Update the initialization of new projects to use a newer typescript
+
 ## 2.28.6
 
 ### Patch Changes
