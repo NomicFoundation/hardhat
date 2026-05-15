@@ -220,6 +220,11 @@ const gasUnitUserConfigSchema = unionType(
   "Expected a positive safe int or a positive bigint",
 );
 
+const blockGasLimitUserConfigSchema = unionType(
+  [gasUnitUserConfigSchema, z.literal(false)],
+  "Expected `false`, a positive safe int, or a positive bigint",
+);
+
 const gasUserConfigSchema = unionType(
   [z.literal("auto"), gasUnitUserConfigSchema],
   "Expected 'auto', a positive safe int, or positive bigint",
@@ -311,7 +316,7 @@ const edrNetworkUserConfigSchema = z.object({
   // EDR network specific
   allowBlocksWithSameTimestamp: z.optional(z.boolean()),
   allowUnlimitedContractSize: z.optional(z.boolean()),
-  blockGasLimit: z.optional(gasUnitUserConfigSchema),
+  blockGasLimit: z.optional(blockGasLimitUserConfigSchema),
   coinbase: z.optional(z.string()),
   forking: z.optional(edrNetworkForkingUserConfigSchema),
   hardfork: z.optional(z.string()),
