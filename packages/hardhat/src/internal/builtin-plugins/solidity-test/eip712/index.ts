@@ -7,7 +7,7 @@ import type { BuildInfoAndOutput } from "../edr-artifacts.js";
 
 import { bytesToUtf8String } from "@nomicfoundation/hardhat-utils/bytes";
 
-import { HARDHAT_PROJECT_INPUT_SOURCE_NAME_ROOT } from "../../../../types/solidity/solidity-artifacts.js";
+import { HARDHAT_PROJECT_INPUT_SOURCE_NAME_ROOT } from "../../solidity/constants.js";
 
 import {
   buildUserDefinedValueTypeIndex,

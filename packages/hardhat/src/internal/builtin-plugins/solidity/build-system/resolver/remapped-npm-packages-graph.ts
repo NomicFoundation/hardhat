@@ -28,8 +28,8 @@ import {
   type PackageJson,
 } from "@nomicfoundation/hardhat-utils/package";
 
-import { HARDHAT_PROJECT_INPUT_SOURCE_NAME_ROOT } from "../../../../../types/solidity/solidity-artifacts.js";
 import { UserRemappingErrorType } from "../../../../../types/solidity.js";
+import { HARDHAT_PROJECT_INPUT_SOURCE_NAME_ROOT } from "../../constants.js";
 
 import { getNpmPackageName } from "./npm-module-parsing.js";
 import { parseRemappingString, selectBestRemapping } from "./remappings.js";
