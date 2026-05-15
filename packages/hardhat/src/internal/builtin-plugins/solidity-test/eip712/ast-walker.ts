@@ -289,8 +289,9 @@ export function encodeMemberType(
         return undefined;
       }
 
+      // solc omits `length` entirely for dynamic arrays; it isn't emitted as `null`.
       const length = typeName.length;
-      if (length === null) {
+      if (length === null || length === undefined) {
         return `${base}[]`;
       }
 

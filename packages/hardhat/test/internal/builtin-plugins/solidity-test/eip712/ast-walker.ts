@@ -423,6 +423,19 @@ describe("eip712 - ast-walker", () => {
         );
       });
 
+      it("treats a missing `length` field as a dynamic array", () => {
+        // Real solc output omits `length` entirely for `T[]`; it doesn't
+        // emit `length: null`.
+        assert.equal(
+          encodeMemberType({
+            nodeType: "ArrayTypeName",
+            baseType: { nodeType: "ElementaryTypeName", name: "uint256" },
+            typeDescriptions: { typeString: "uint256[]" },
+          }),
+          "uint256[]",
+        );
+      });
+
       it("encodes fixed-size arrays with [N] using the canonical typeString size", () => {
         assert.equal(
           encodeMemberType({
