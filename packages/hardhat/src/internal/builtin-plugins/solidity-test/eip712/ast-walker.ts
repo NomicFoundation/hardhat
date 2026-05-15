@@ -196,6 +196,22 @@ export function encodeMemberType(
 
   switch (typeName.nodeType) {
     case "ElementaryTypeName": {
+      // Prefer `typeDescriptions.typeString` over `name`: solc emits the
+      // unresolved alias in `name` (`uint`, `int`, `byte`), but the canonical
+      // EIP-712 type is in `typeString` (`uint256`, `int256`, `bytes1`).
+      // `address payable` is the exception — `typeString` is `"address payable"`
+      // while the canonical EIP-712 type is just `address`.
+      const desc = isObject(typeName.typeDescriptions)
+        ? typeName.typeDescriptions
+        : undefined;
+      const typeString =
+        typeof desc?.typeString === "string" ? desc.typeString : undefined;
+      if (typeString !== undefined) {
+        return typeString.endsWith(" payable")
+          ? typeString.slice(0, -" payable".length)
+          : typeString;
+      }
+
       return typeof typeName.name === "string" ? typeName.name : undefined;
     }
 

@@ -211,7 +211,57 @@ describe("eip712 - ast-walker", () => {
         );
       });
 
-      it("returns undefined for elementary types with no name", () => {
+      it("normalizes aliases via typeDescriptions.typeString", () => {
+        // solc emits `name: "uint"` but `typeString: "uint256"` for `uint`.
+        // EIP-712 only knows the canonical form.
+        assert.equal(
+          encodeMemberType({
+            nodeType: "ElementaryTypeName",
+            name: "uint",
+            typeDescriptions: { typeString: "uint256" },
+          }),
+          "uint256",
+        );
+
+        assert.equal(
+          encodeMemberType({
+            nodeType: "ElementaryTypeName",
+            name: "int",
+            typeDescriptions: { typeString: "int256" },
+          }),
+          "int256",
+        );
+
+        assert.equal(
+          encodeMemberType({
+            nodeType: "ElementaryTypeName",
+            name: "byte",
+            typeDescriptions: { typeString: "bytes1" },
+          }),
+          "bytes1",
+        );
+      });
+
+      it("strips the ` payable` suffix from address payable", () => {
+        assert.equal(
+          encodeMemberType({
+            nodeType: "ElementaryTypeName",
+            name: "address",
+            stateMutability: "payable",
+            typeDescriptions: { typeString: "address payable" },
+          }),
+          "address",
+        );
+      });
+
+      it("falls back to name when typeDescriptions.typeString is missing", () => {
+        assert.equal(
+          encodeMemberType({ nodeType: "ElementaryTypeName", name: "uint256" }),
+          "uint256",
+        );
+      });
+
+      it("returns undefined for elementary types with no name or typeString", () => {
         assert.equal(
           encodeMemberType({ nodeType: "ElementaryTypeName" }),
           undefined,
