@@ -26,6 +26,5 @@
         "command": "npx hardhat test solidity --no-compile --grep=\"^(test_|testFuzz_)\""
       }
     }
-  },
-  "disabled": true
+  }
 }
