@@ -42,6 +42,7 @@ import { edrGasReportToHardhatGasMeasurements } from "./edr/utils/convert-to-edr
 import { verbosityToIncludeTraces } from "./edr/utils/trace-formatters.js";
 import { HttpProvider } from "./http-provider.js";
 import { NetworkConnectionImplementation } from "./network-connection.js";
+import { applyCoverageNetworkOverrides } from "./utils/apply-coverage-network-overrides.js";
 
 export type JsonRpcRequestWrapperFunction = (
   request: JsonRpcRequest,
@@ -360,12 +361,10 @@ export class NetworkManagerImplementation implements NetworkManager {
           // The resolvedNetworkConfig can have its chainType set to `undefined`
           // so we default to the default chain type here.
           networkConfig: {
-            ...resolvedNetworkConfig,
-            // When coverage is enabled, we set allowUnlimitedContractSize to true
-            // because the added coverage data can push the contract size over the limit.
-            allowUnlimitedContractSize: shouldEnableCoverage
-              ? true
-              : resolvedNetworkConfig.allowUnlimitedContractSize,
+            ...applyCoverageNetworkOverrides(
+              resolvedNetworkConfig,
+              shouldEnableCoverage,
+            ),
             chainType: resolvedChainType,
           },
           jsonRpcRequestWrapper,
