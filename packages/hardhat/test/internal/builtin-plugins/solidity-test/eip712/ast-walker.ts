@@ -280,7 +280,7 @@ describe("eip712 - ast-walker", () => {
         );
       });
 
-      it("encodes contracts and interfaces as address", () => {
+      it("encodes contracts as address (solc uses the `contract ` prefix for interface references too)", () => {
         assert.equal(
           encodeMemberType({
             nodeType: "UserDefinedTypeName",
@@ -291,7 +291,7 @@ describe("eip712 - ast-walker", () => {
         assert.equal(
           encodeMemberType({
             nodeType: "UserDefinedTypeName",
-            typeDescriptions: { typeString: "interface IFoo" },
+            typeDescriptions: { typeString: "contract IFoo" },
           }),
           "address",
         );

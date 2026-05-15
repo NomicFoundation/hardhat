@@ -218,7 +218,8 @@ export function encodeMemberType(
     case "UserDefinedTypeName": {
       // `typeDescriptions.typeString` is the only reliable way to tell what
       // kind of user-defined type this is — e.g. "struct Foo", "enum Bar",
-      // "contract Token", "interface IFoo". The AST node itself doesn't say.
+      // "contract Token". The AST node itself doesn't say. Note that solc
+      // emits the "contract " prefix for interface references as well.
       const desc = isObject(typeName.typeDescriptions)
         ? typeName.typeDescriptions
         : undefined;
@@ -229,10 +230,7 @@ export function encodeMemberType(
         return "uint8";
       }
 
-      if (
-        typeString.startsWith("contract ") ||
-        typeString.startsWith("interface ")
-      ) {
+      if (typeString.startsWith("contract ")) {
         return "address";
       }
 
