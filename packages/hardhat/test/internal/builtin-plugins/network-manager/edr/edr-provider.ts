@@ -4,7 +4,7 @@ import type {
 } from "../../../../../src/types/config.js";
 import type { HardhatRuntimeEnvironment } from "../../../../../src/types/hre.js";
 import type { RequireField } from "../../../../../src/types/utils.js";
-import type { SubscriptionEvent } from "@nomicfoundation/edr";
+import type { LocalConfig, SubscriptionEvent } from "@nomicfoundation/edr";
 
 import assert from "node:assert/strict";
 import { once } from "node:events";
@@ -638,6 +638,45 @@ describe("edr-provider", () => {
       const sepoliaOverride = providerConfig.network.chainOverrides?.[1];
       assert.equal(sepoliaOverride.name, "sepolia");
       assert.deepEqual(sepoliaOverride.hardforkActivationOverrides, []);
+    });
+
+    describe("LocalConfig (i.e. non-forking network setup)", () => {
+      const initialDate = new Date("2024-01-01T00:00:00Z");
+      const blockGasLimit = 42_000_000n;
+
+      let localConfig: LocalConfig;
+
+      before(async () => {
+        const providerConfig = await getProviderConfig(
+          {
+            ...networkConfigStub,
+            forking: undefined,
+            blockGasLimit,
+            initialDate,
+          },
+          undefined,
+          undefined,
+          new Map(),
+        );
+
+        assertHardhatInvariant(
+          !("url" in providerConfig.network),
+          "Expected local config",
+        );
+
+        localConfig = providerConfig.network;
+      });
+
+      it("should map blockGasLimit to EDR genesisBlockGasLimit", async () => {
+        assert.equal(localConfig.genesisBlockGasLimit, blockGasLimit);
+      });
+
+      it("should map initialDate to EDR genesisBlockTime", async () => {
+        assert.equal(
+          localConfig.genesisBlockTime,
+          BigInt(Math.floor(initialDate.getTime() / 1000)),
+        );
+      });
     });
   });
 });
