@@ -138,6 +138,8 @@ export async function solidityTestConfigToSolidityTestRunnerConfigArgs({
     includeTraces,
     blockGasLimit,
     disableBlockGasLimit,
+    // TODO: Hardcoded for now. This should be made configurable by the user.
+    disableTransactionGasCap: true,
     blockDifficulty,
     ethRpcUrl,
     forkBlockNumber,
