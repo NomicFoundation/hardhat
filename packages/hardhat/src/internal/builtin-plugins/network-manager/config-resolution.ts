@@ -83,9 +83,12 @@ export function resolveEdrNetwork(
 
     allowBlocksWithSameTimestamp:
       networkConfig.allowBlocksWithSameTimestamp ?? false,
-    allowUnlimitedContractSize:
-      networkConfig.allowUnlimitedContractSize ?? false,
-    blockGasLimit: BigInt(networkConfig.blockGasLimit ?? 60_000_000n),
+    allowUnlimitedContractSize: networkConfig.allowUnlimitedContractSize,
+    blockGasLimit:
+      typeof networkConfig.blockGasLimit === "number" ||
+      typeof networkConfig.blockGasLimit === "bigint"
+        ? BigInt(networkConfig.blockGasLimit)
+        : networkConfig.blockGasLimit,
     coinbase: resolveCoinbase(networkConfig.coinbase),
 
     forking: resolveForkingConfig(
@@ -108,6 +111,11 @@ export function resolveEdrNetwork(
     throwOnCallFailures: networkConfig.throwOnCallFailures ?? true,
     throwOnTransactionFailures:
       networkConfig.throwOnTransactionFailures ?? true,
+    transactionGasCap:
+      typeof networkConfig.transactionGasCap === "number" ||
+      typeof networkConfig.transactionGasCap === "bigint"
+        ? BigInt(networkConfig.transactionGasCap)
+        : networkConfig.transactionGasCap,
   };
 }
 

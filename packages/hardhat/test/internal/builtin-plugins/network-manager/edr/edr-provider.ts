@@ -4,7 +4,11 @@ import type {
 } from "../../../../../src/types/config.js";
 import type { HardhatRuntimeEnvironment } from "../../../../../src/types/hre.js";
 import type { RequireField } from "../../../../../src/types/utils.js";
-import type { SubscriptionEvent } from "@nomicfoundation/edr";
+import type {
+  LocalConfig,
+  ProviderConfig,
+  SubscriptionEvent,
+} from "@nomicfoundation/edr";
 
 import assert from "node:assert/strict";
 import { once } from "node:events";
@@ -638,6 +642,138 @@ describe("edr-provider", () => {
       const sepoliaOverride = providerConfig.network.chainOverrides?.[1];
       assert.equal(sepoliaOverride.name, "sepolia");
       assert.deepEqual(sepoliaOverride.hardforkActivationOverrides, []);
+    });
+
+    describe("LocalConfig (i.e. non-forking network setup)", () => {
+      const initialDate = new Date("2024-01-01T00:00:00Z");
+      const blockGasLimit = 42_000_000n;
+
+      let localConfig: LocalConfig;
+
+      before(async () => {
+        const providerConfig = await getProviderConfig(
+          {
+            ...networkConfigStub,
+            forking: undefined,
+            blockGasLimit,
+            initialDate,
+          },
+          undefined,
+          undefined,
+          new Map(),
+        );
+
+        assertHardhatInvariant(
+          !("url" in providerConfig.network),
+          "Expected local config",
+        );
+
+        localConfig = providerConfig.network;
+      });
+
+      it("should map blockGasLimit to EDR genesisBlockGasLimit", async () => {
+        assert.equal(localConfig.genesisBlockGasLimit, blockGasLimit);
+      });
+
+      it("should map initialDate to EDR genesisBlockTime", async () => {
+        assert.equal(
+          localConfig.genesisBlockTime,
+          BigInt(Math.floor(initialDate.getTime() / 1000)),
+        );
+      });
+    });
+
+    describe("when blockGasLimit is unset", () => {
+      let providerConfig: ProviderConfig;
+
+      before(async () => {
+        providerConfig = await getProviderConfig(
+          {
+            ...networkConfigStub,
+            forking: undefined,
+            blockGasLimit: undefined,
+          },
+          undefined,
+          undefined,
+          new Map(),
+        );
+      });
+
+      it("should default mining.blockGasLimit to 60_000_000n", () => {
+        assert.equal(providerConfig.mining.blockGasLimit, 60_000_000n);
+      });
+
+      it("should default the LocalConfig genesisBlockGasLimit to 60_000_000n", () => {
+        assertHardhatInvariant(
+          !("url" in providerConfig.network),
+          "Expected local config",
+        );
+        assert.equal(providerConfig.network.genesisBlockGasLimit, 60_000_000n);
+      });
+    });
+
+    describe("when blockGasLimit is disabled (false)", () => {
+      let providerConfig: ProviderConfig;
+
+      before(async () => {
+        providerConfig = await getProviderConfig(
+          {
+            ...networkConfigStub,
+            forking: undefined,
+            blockGasLimit: false,
+          },
+          undefined,
+          undefined,
+          new Map(),
+        );
+      });
+
+      it("should omit mining.blockGasLimit to disable enforcement", () => {
+        assert.equal(providerConfig.mining.blockGasLimit, undefined);
+      });
+
+      it("should still default the LocalConfig genesisBlockGasLimit to 60_000_000n", () => {
+        assertHardhatInvariant(
+          !("url" in providerConfig.network),
+          "Expected local config",
+        );
+        assert.equal(providerConfig.network.genesisBlockGasLimit, 60_000_000n);
+      });
+    });
+
+    describe("transactionGasCap", () => {
+      it("should omit transactionGasCap when unset (hardfork default applies)", async () => {
+        const providerConfig = await getProviderConfig(
+          { ...networkConfigStub, transactionGasCap: undefined },
+          undefined,
+          undefined,
+          new Map(),
+        );
+
+        assert.equal(providerConfig.transactionGasCap, undefined);
+      });
+
+      it("should pass an explicit transactionGasCap bigint through to EDR", async () => {
+        const providerConfig = await getProviderConfig(
+          { ...networkConfigStub, transactionGasCap: 1_000_000n },
+          undefined,
+          undefined,
+          new Map(),
+        );
+
+        assert.equal(providerConfig.transactionGasCap, 1_000_000n);
+      });
+
+      it("should pass false through to EDR to disable the cap", async () => {
+        const providerConfig = await getProviderConfig(
+          { ...networkConfigStub, transactionGasCap: false },
+          undefined,
+          undefined,
+          new Map(),
+        );
+
+        assert.equal(providerConfig.transactionGasCap, false);
+      });
     });
   });
 });

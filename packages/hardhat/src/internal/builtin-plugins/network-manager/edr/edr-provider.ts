@@ -34,10 +34,7 @@ import { ensureError } from "@nomicfoundation/hardhat-utils/error";
 import { numberToHexString } from "@nomicfoundation/hardhat-utils/hex";
 
 import { sendErrorTelemetry } from "../../../cli/telemetry/error-reporter/reporter.js";
-import {
-  EDR_NETWORK_REVERT_SNAPSHOT_EVENT,
-  OPTIMISM_CHAIN_TYPE,
-} from "../../../constants.js";
+import { EDR_NETWORK_REVERT_SNAPSHOT_EVENT } from "../../../constants.js";
 import { hardhatChainTypeToEdrChainType } from "../../../edr/chain-type.js";
 import { getGlobalEdrContext } from "../../../edr/context.js";
 import { BaseProvider } from "../base-provider.js";
@@ -48,11 +45,11 @@ import {
   UnknownError,
 } from "../provider-errors.js";
 
+import { DEFAULT_EDR_NETWORK_BLOCK_GAS_LIMIT } from "./edr-constants.js";
 import { getGenesisStateAndOwnedAccounts } from "./genesis-state.js";
 import { EdrProviderStackTraceGenerationError } from "./stack-traces/stack-trace-generation-errors.js";
 import { createSolidityErrorWithStackTrace } from "./stack-traces/stack-trace-solidity-errors.js";
 import { isEdrProviderErrorData } from "./type-validation.js";
-import { hardforkGte, L1HardforkName } from "./types/hardfork.js";
 import { clientVersion } from "./utils/client-version.js";
 import { ConsoleLogger } from "./utils/console-logger.js";
 import {
@@ -60,6 +57,7 @@ import {
   hardhatMempoolOrderToEdrMineOrdering,
   hardhatHardforkToEdrSpecId,
   hardhatForkingConfigToEdrForkConfig,
+  resolveDefaultTransactionGasLimit,
 } from "./utils/convert-to-edr.js";
 import { printLine, replaceLastLine } from "./utils/logger.js";
 
@@ -461,6 +459,15 @@ export async function getProviderConfig(
     networkConfig.chainType,
   );
 
+  const genesisBlockGasLimit =
+    typeof networkConfig.blockGasLimit === "bigint"
+      ? networkConfig.blockGasLimit
+      : DEFAULT_EDR_NETWORK_BLOCK_GAS_LIMIT;
+
+  // EDR's mining block gas limit can be disabled in user config explicitly
+  const miningBlockGasLimit =
+    networkConfig.blockGasLimit === false ? undefined : genesisBlockGasLimit;
+
   const { genesisState, ownedAccounts } = await getGenesisStateAndOwnedAccounts(
     networkConfig.accounts,
     networkConfig.forking,
@@ -478,25 +485,21 @@ export async function getProviderConfig(
     forkConfig !== undefined
       ? forkConfig
       : {
-          genesisBlockGasLimit: networkConfig.blockGasLimit,
+          genesisBlockGasLimit,
           genesisBlockTime: BigInt(toSeconds(networkConfig.initialDate)),
         };
 
-  const defaultTransactionGasLimit =
-    networkConfig.chainType === OPTIMISM_CHAIN_TYPE
-      ? // OP stack is yet to activate EIP-7825. Slated for Upgrade 19 (activation TBD as of 2026-05-14)
-        networkConfig.blockGasLimit
-      : hardforkGte(
-            networkConfig.hardfork,
-            L1HardforkName.OSAKA,
-            networkConfig.chainType,
-          )
-        ? 16_777_216n // EIP-7825 transaction gas cap
-        : networkConfig.blockGasLimit;
+  const defaultTransactionGasLimit = resolveDefaultTransactionGasLimit({
+    chainType: networkConfig.chainType,
+    hardfork: networkConfig.hardfork,
+    blockGasLimit: genesisBlockGasLimit,
+    transactionGasCap: networkConfig.transactionGasCap,
+  });
 
   return {
     allowBlocksWithSameTimestamp: networkConfig.allowBlocksWithSameTimestamp,
-    allowUnlimitedContractSize: networkConfig.allowUnlimitedContractSize,
+    allowUnlimitedContractSize:
+      networkConfig.allowUnlimitedContractSize ?? false,
     bailOnCallFailure: networkConfig.throwOnCallFailures,
     bailOnTransactionFailure: networkConfig.throwOnTransactionFailures,
     chainId: BigInt(networkConfig.chainId),
@@ -508,7 +511,7 @@ export async function getProviderConfig(
     minGasPrice: networkConfig.minGasPrice,
     mining: {
       autoMine: networkConfig.mining.auto,
-      blockGasLimit: networkConfig.blockGasLimit,
+      blockGasLimit: miningBlockGasLimit,
       interval: hardhatMiningIntervalToEdrMiningInterval(
         networkConfig.mining.interval,
       ),
@@ -527,5 +530,6 @@ export async function getProviderConfig(
     },
     ownedAccounts: ownedAccounts.map((account) => account.secretKey),
     precompileOverrides: [],
+    transactionGasCap: networkConfig.transactionGasCap,
   };
 }
