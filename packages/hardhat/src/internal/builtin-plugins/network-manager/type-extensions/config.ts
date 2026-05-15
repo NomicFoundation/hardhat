@@ -256,7 +256,7 @@ declare module "../../../../types/config.js" {
 
     // EDR network specific
     allowBlocksWithSameTimestamp: boolean;
-    allowUnlimitedContractSize: boolean;
+    allowUnlimitedContractSize?: boolean;
     blockGasLimit?: bigint | false;
     coinbase: Uint8Array;
     forking?: EdrNetworkForkingConfig;

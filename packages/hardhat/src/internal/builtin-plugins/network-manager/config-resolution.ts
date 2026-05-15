@@ -83,8 +83,7 @@ export function resolveEdrNetwork(
 
     allowBlocksWithSameTimestamp:
       networkConfig.allowBlocksWithSameTimestamp ?? false,
-    allowUnlimitedContractSize:
-      networkConfig.allowUnlimitedContractSize ?? false,
+    allowUnlimitedContractSize: networkConfig.allowUnlimitedContractSize,
     blockGasLimit:
       typeof networkConfig.blockGasLimit === "number" ||
       typeof networkConfig.blockGasLimit === "bigint"

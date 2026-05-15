@@ -196,7 +196,7 @@ describe("config-resolution", () => {
       assert.equal(edrNetworkConfig.from, undefined);
       assert.equal(edrNetworkConfig.gasMultiplier, 1);
       assert.equal(edrNetworkConfig.allowBlocksWithSameTimestamp, false);
-      assert.equal(edrNetworkConfig.allowUnlimitedContractSize, false);
+      assert.equal(edrNetworkConfig.allowUnlimitedContractSize, undefined);
       assert.equal(edrNetworkConfig.blockGasLimit, undefined);
       const initialDate = new Date(edrNetworkConfig.initialDate);
       assert.ok(
