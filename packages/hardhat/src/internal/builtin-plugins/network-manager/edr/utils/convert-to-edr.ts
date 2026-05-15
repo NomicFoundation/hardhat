@@ -62,7 +62,11 @@ import {
   EDR_NETWORK_DEFAULT_PRIVATE_KEYS,
   isDefaultEdrNetworkHDAccountsConfig,
 } from "../edr-constants.js";
-import { L1HardforkName, OpHardforkName } from "../types/hardfork.js";
+import {
+  hardforkGte,
+  L1HardforkName,
+  OpHardforkName,
+} from "../types/hardfork.js";
 
 import { getL1HardforkName, getOpHardforkName } from "./hardfork.js";
 
@@ -380,6 +384,33 @@ export async function hardhatForkingConfigToEdrForkConfig(
   }
 
   return fork;
+}
+
+/**
+ * Resolves the default transaction gas limit used by RPC call and
+ * transaction requests that omit a `gas` field.
+ *
+ * From L1's Osaka hardfork onwards, this is the EIP-7825 transaction gas
+ * cap of 16,777,216. On earlier L1 hardforks, the caller's block gas limit
+ * is used.
+ */
+export function resolveDefaultTransactionGasLimit(params: {
+  chainType: ChainType;
+  hardfork: string;
+  blockGasLimit: bigint;
+}): bigint {
+  const { chainType, hardfork, blockGasLimit } = params;
+
+  // TODO: OP UPGRADE 19 - update OP to also set a default transaction gas once enabled
+  if (chainType === OPTIMISM_CHAIN_TYPE) {
+    return blockGasLimit;
+  }
+
+  if (hardforkGte(hardfork, L1HardforkName.OSAKA, chainType)) {
+    return 16_777_216n; // EIP-7825 transaction gas cap
+  }
+
+  return blockGasLimit;
 }
 
 /**
