@@ -34,7 +34,10 @@ import { ensureError } from "@nomicfoundation/hardhat-utils/error";
 import { numberToHexString } from "@nomicfoundation/hardhat-utils/hex";
 
 import { sendErrorTelemetry } from "../../../cli/telemetry/error-reporter/reporter.js";
-import { EDR_NETWORK_REVERT_SNAPSHOT_EVENT } from "../../../constants.js";
+import {
+  EDR_NETWORK_REVERT_SNAPSHOT_EVENT,
+  OPTIMISM_CHAIN_TYPE,
+} from "../../../constants.js";
 import { hardhatChainTypeToEdrChainType } from "../../../edr/chain-type.js";
 import { getGlobalEdrContext } from "../../../edr/context.js";
 import { BaseProvider } from "../base-provider.js";
@@ -480,7 +483,7 @@ export async function getProviderConfig(
         };
 
   const defaultTransactionGasLimit =
-    networkConfig.chainType === "op"
+    networkConfig.chainType === OPTIMISM_CHAIN_TYPE
       ? // OP stack is yet to activate EIP-7825. Slated for Upgrade 19 (activation TBD as of 2026-05-14)
         networkConfig.blockGasLimit
       : hardforkGte(
