@@ -8,6 +8,8 @@ import { DEFAULT_HD_ACCOUNTS_CONFIG_PARAMS } from "../accounts/constants.js";
 export const EDR_NETWORK_DEFAULT_COINBASE =
   "0xc014ba5ec014ba5ec014ba5ec014ba5ec014ba5e";
 
+export const DEFAULT_EDR_NETWORK_BLOCK_GAS_LIMIT = 60_000_000n;
+
 interface EdrNetworkDefaultHDAccountsConfigParams
   extends DefaultHDAccountsConfigParams {
   mnemonic: string;
