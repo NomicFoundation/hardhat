@@ -3,6 +3,8 @@ import type { HardhatUserConfig } from "../../../../../../src/config.js";
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 
+import { COVERAGE_LIBRARY_FILE_NAME } from "@nomicfoundation/edr";
+
 import {
   NATSPEC_MEMORY_SAFE_ASSEMBLY_WARNING,
   SPDX_WARNING,
@@ -153,4 +155,49 @@ describe("build system - warning filtering", function () {
       }
     });
   }
+
+  // Exercises the HRE wiring that forwards `globalOptions.coverage` into the
+  // build system, so a regression that drops or mistypes that wiring is caught
+  // end-to-end (rather than only by the direct unit tests on
+  // `shouldSuppressWarning`).
+  it("should filter the NatSpec memory-safe-assembly warning from the EDR coverage library when running with --coverage", async (t) => {
+    const consoleWarnMock = t.mock.method(console, "warn", noop);
+
+    await using project = await useTestProjectTemplate({
+      name: "coverage-natspec-suppression",
+      version: "1.0.0",
+      files: {
+        "contracts/Counter.sol": `// SPDX-License-Identifier: UNLICENSED
+pragma solidity 0.8.33;
+
+contract Counter {
+  uint256 public count;
+
+  function increment() public {
+    count += 1;
+  }
+}
+`,
+      },
+    });
+
+    const hre = await project.getHRE(solidity0833Config, { coverage: true });
+
+    await hre.tasks.getTask("build").run({ force: true });
+
+    const coverageLibraryWarningShown = consoleWarnMock.mock.calls.some(
+      (call) => {
+        const message = String(call.arguments[0] ?? "");
+        return (
+          message.includes(NATSPEC_MEMORY_SAFE_WARNING) &&
+          message.includes(COVERAGE_LIBRARY_FILE_NAME)
+        );
+      },
+    );
+
+    assert.ok(
+      !coverageLibraryWarningShown,
+      "Expected the EDR coverage library's NatSpec memory-safe-assembly warning to be suppressed under --coverage, but it was shown",
+    );
+  });
 });
