@@ -2,6 +2,7 @@ import type { NewTaskActionFunction } from "../../../types/tasks.js";
 
 import { styleText } from "node:util";
 
+import { HardhatError } from "@nomicfoundation/hardhat-errors";
 import { resolveFromRoot } from "@nomicfoundation/hardhat-utils/path";
 
 import {
@@ -261,10 +262,18 @@ function getPragmaAbicoderDirectiveInfo(
   };
 }
 
-// Returns files sorted in topological order
+// Returns files sorted in topological order. Throws if the graph contains a
+// cycle, because no topological order exists in that case and silently emitting
+// a "flattened" file would be misleading (cf. issue #7611, restoring the HH2
+// HH603 behavior).
 function getSortedFiles(dependencyGraph: DependencyGraph): ResolvedFile[] {
   const sortedFiles: ResolvedFile[] = [];
-  const visitedFiles = new Set<ResolvedFile>();
+  // 3-color DFS: WHITE = unseen, GRAY = on the current path, BLACK = fully
+  // processed. A GRAY node reached again identifies a back edge, i.e. a cycle.
+  const WHITE = 0;
+  const GRAY = 1;
+  const BLACK = 2;
+  const colors = new Map<ResolvedFile, 0 | 1 | 2>();
 
   // Helper function for sorting files by sourceName, for deterministic results
   const sortBySourceName = (files: Iterable<ResolvedFile>) => {
@@ -273,20 +282,68 @@ function getSortedFiles(dependencyGraph: DependencyGraph): ResolvedFile[] {
     );
   };
 
-  // Depth-first walking
-  const walk = (files: ResolvedFile[]) => {
-    for (const file of files) {
-      if (visitedFiles.has(file)) continue;
+  interface Frame {
+    file: ResolvedFile;
+    deps: ResolvedFile[];
+    index: number;
+  }
 
-      visitedFiles.add(file);
+  // Iterative depth-first walking to avoid hitting the call-stack limit on
+  // large projects and to allow precise cycle reporting through the explicit
+  // path stack.
+  const walk = (startingRoots: ResolvedFile[]) => {
+    for (const root of startingRoots) {
+      if ((colors.get(root) ?? WHITE) !== WHITE) continue;
 
-      const dependencies = sortBySourceName(
-        Array.from(dependencyGraph.getDependencies(file)).map((d) => d.file),
-      );
+      const stack: Frame[] = [
+        {
+          file: root,
+          deps: sortBySourceName(
+            Array.from(dependencyGraph.getDependencies(root)).map(
+              (d) => d.file,
+            ),
+          ),
+          index: 0,
+        },
+      ];
+      colors.set(root, GRAY);
 
-      walk(dependencies);
+      while (stack.length > 0) {
+        const frame = stack[stack.length - 1];
 
-      sortedFiles.push(file);
+        if (frame.index >= frame.deps.length) {
+          colors.set(frame.file, BLACK);
+          sortedFiles.push(frame.file);
+          stack.pop();
+          continue;
+        }
+
+        const dep = frame.deps[frame.index++];
+        const color = colors.get(dep) ?? WHITE;
+
+        if (color === BLACK) continue;
+        if (color === GRAY) {
+          // Back edge found: assemble the cycle from the current DFS path.
+          const cycleStart = stack.findIndex((f) => f.file === dep);
+          const cycle = stack
+            .slice(cycleStart)
+            .map((f) => formatSourceName(f.file));
+          cycle.push(formatSourceName(dep));
+          throw new HardhatError(
+            HardhatError.ERRORS.CORE.BUILTIN_TASKS.FLATTEN_CYCLIC_DEPENDENCY,
+            { cycle: cycle.join(" -> ") },
+          );
+        }
+
+        colors.set(dep, GRAY);
+        stack.push({
+          file: dep,
+          deps: sortBySourceName(
+            Array.from(dependencyGraph.getDependencies(dep)).map((d) => d.file),
+          ),
+          index: 0,
+        });
+      }
     }
   };
 
