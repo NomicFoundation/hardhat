@@ -21,7 +21,7 @@ import {
   StaleMultiProcessMutexError,
 } from "../src/synchronization.js";
 
-import { useTmpDir } from "./helpers/fs.js";
+import { createTmpDir } from "./helpers/fs.js";
 
 /**
  * Creates a file within a lock directory that blocks the process of deleting
@@ -127,10 +127,10 @@ function dropRootPrivileges(): () => void {
 }
 
 describe("MultiProcessMutex", () => {
-  const getTmpDir = useTmpDir("multi-process-mutex");
+  const tmp = createTmpDir("multi-process-mutex", "test");
 
   it("should execute all the functions in a sequential order, not in parallel", async () => {
-    const lockPath = path.join(getTmpDir(), "test.lock");
+    const lockPath = path.join(tmp.path, "test.lock");
     const mutex = new MultiProcessMutex(lockPath);
     const start = performance.now();
 
@@ -157,7 +157,7 @@ describe("MultiProcessMutex", () => {
   });
 
   it("should get the mutex lock because the first function to own it failed", async () => {
-    const lockPath = path.join(getTmpDir(), "test.lock");
+    const lockPath = path.join(tmp.path, "test.lock");
     const mutex = new MultiProcessMutex(lockPath);
 
     const start = performance.now();
@@ -198,7 +198,7 @@ describe("MultiProcessMutex", () => {
     "should acquire the mutex lock after the first owner was cancelled due to a process crash",
     { timeout: 10_000 },
     async () => {
-      const lockPath = path.join(getTmpDir(), "crash.lock");
+      const lockPath = path.join(tmp.path, "crash.lock");
       const fixtureScript = path.resolve(
         import.meta.dirname,
         "fixture-projects/lock/lock-holder.ts",
@@ -256,7 +256,7 @@ describe("MultiProcessMutex", () => {
   );
 
   it("should acquire and release a lock", async () => {
-    const lockPath = path.join(getTmpDir(), "test.lock");
+    const lockPath = path.join(tmp.path, "test.lock");
     const mutex = new MultiProcessMutex(lockPath);
 
     const result = await mutex.use(async () => {
@@ -274,7 +274,7 @@ describe("MultiProcessMutex", () => {
   });
 
   it("should recover a stale lock with a dead PID", async () => {
-    const lockPath = path.join(getTmpDir(), "stale.lock");
+    const lockPath = path.join(tmp.path, "stale.lock");
     // Create a fake lock file with metadata pointing to a non-existent PID
     writeFakeMetadata(lockPath, {
       pid: 999999999, // Very unlikely to exist
@@ -298,7 +298,7 @@ describe("MultiProcessMutex", () => {
   });
 
   it("should recover a stale lock without sleeping (skip backoff)", async () => {
-    const lockPath = path.join(getTmpDir(), "stale-no-sleep.lock");
+    const lockPath = path.join(tmp.path, "stale-no-sleep.lock");
     writeFakeMetadata(lockPath, {
       pid: 999999999, // Very unlikely to exist
       hostname: os.hostname(),
@@ -322,7 +322,7 @@ describe("MultiProcessMutex", () => {
   });
 
   it("should throw MultiProcessMutexTimeoutError when lock is held by a live process", async () => {
-    const lockPath = path.join(getTmpDir(), "timeout.lock");
+    const lockPath = path.join(tmp.path, "timeout.lock");
     // Create a lock owned by THIS process (which is alive)
     writeFakeMetadata(lockPath, {
       pid: process.pid,
@@ -352,7 +352,7 @@ describe("MultiProcessMutex", () => {
     "should wait for a child process to release the lock",
     { timeout: 10_000 },
     async () => {
-      const lockPath = path.join(getTmpDir(), "cross-process.lock");
+      const lockPath = path.join(tmp.path, "cross-process.lock");
       const fixtureScript = path.resolve(
         import.meta.dirname,
         "fixture-projects/lock/lock-holder.ts",
@@ -396,7 +396,7 @@ describe("MultiProcessMutex", () => {
   );
 
   it("should throw IncompatibleHostnameMultiProcessMutexError for a lock from a different hostname", async () => {
-    const lockPath = path.join(getTmpDir(), "hostname.lock");
+    const lockPath = path.join(tmp.path, "hostname.lock");
     writeFakeMetadata(lockPath, {
       pid: 1,
       hostname: "some-other-host",
@@ -427,7 +427,7 @@ describe("MultiProcessMutex", () => {
   });
 
   it("should treat corrupt metadata as stale", async () => {
-    const lockPath = path.join(getTmpDir(), "corrupt.lock");
+    const lockPath = path.join(tmp.path, "corrupt.lock");
     fs.writeFileSync(lockPath, "NOT VALID JSON {{{", "utf8");
 
     const mutex = new MultiProcessMutex(lockPath);
@@ -436,7 +436,7 @@ describe("MultiProcessMutex", () => {
   });
 
   it("should treat empty lock file as stale", async () => {
-    const lockPath = path.join(getTmpDir(), "empty.lock");
+    const lockPath = path.join(tmp.path, "empty.lock");
     fs.writeFileSync(lockPath, "", "utf8");
 
     const mutex = new MultiProcessMutex(lockPath);
@@ -445,13 +445,7 @@ describe("MultiProcessMutex", () => {
   });
 
   it("should auto-create parent directories", async () => {
-    const lockPath = path.join(
-      getTmpDir(),
-      "deep",
-      "nested",
-      "dir",
-      "test.lock",
-    );
+    const lockPath = path.join(tmp.path, "deep", "nested", "dir", "test.lock");
 
     const mutex = new MultiProcessMutex(lockPath);
     const result = await mutex.use(async () => "acquired");
@@ -463,7 +457,7 @@ describe("MultiProcessMutex", () => {
   });
 
   it("should throw IncompatiblePlatformMultiProcessMutexError for a lock from a different platform", async () => {
-    const lockPath = path.join(getTmpDir(), "platform.lock");
+    const lockPath = path.join(tmp.path, "platform.lock");
     const fakePlatform = process.platform === "linux" ? "win32" : "linux";
     writeFakeMetadata(lockPath, {
       pid: process.pid, // Even if PID matches, different platform = incompatible
@@ -500,7 +494,7 @@ describe("MultiProcessMutex", () => {
     "should throw IncompatibleUidMultiProcessMutexError when lock has a different uid",
     { skip: process.getuid === undefined },
     async () => {
-      const lockPath = path.join(getTmpDir(), "uid.lock");
+      const lockPath = path.join(tmp.path, "uid.lock");
       // Create a stale lock (dead PID) with a different uid
       writeFakeMetadata(lockPath, {
         pid: 999999999, // Very unlikely to exist
@@ -538,7 +532,7 @@ describe("MultiProcessMutex", () => {
     "should throw StaleMultiProcessMutexError with cause when stale lock cannot be removed",
     { skip: process.platform === "win32" },
     async () => {
-      const parentDir = path.join(getTmpDir(), "permission-denied");
+      const parentDir = path.join(tmp.path, "permission-denied");
       fs.mkdirSync(parentDir);
       const lockPath = path.join(parentDir, "user.lock");
       // Create a stale lock (dead PID) with same uid so it passes the uid check
@@ -584,7 +578,7 @@ describe("MultiProcessMutex", () => {
     "should throw StaleMultiProcessMutexError with cause when stale lock cannot be removed (Windows)",
     { skip: process.platform !== "win32" },
     async () => {
-      const lockPath = path.join(getTmpDir(), "permission-denied-win.lock");
+      const lockPath = path.join(tmp.path, "permission-denied-win.lock");
       // Create a stale lock (dead PID) so tryUnlockingStaleLock runs
       writeFakeMetadata(lockPath, {
         pid: 999999999, // Very unlikely to exist — makes the lock stale
@@ -621,7 +615,7 @@ describe("MultiProcessMutex", () => {
 
   describe("acquire", () => {
     it("should acquire and release a lock", async () => {
-      const lockPath = path.join(getTmpDir(), "acquire.lock");
+      const lockPath = path.join(tmp.path, "acquire.lock");
       const mutex = new MultiProcessMutex(lockPath);
 
       const release = await mutex.acquire();
@@ -637,7 +631,7 @@ describe("MultiProcessMutex", () => {
     });
 
     it("should allow manual lock lifecycle around work", async () => {
-      const lockPath = path.join(getTmpDir(), "manual.lock");
+      const lockPath = path.join(tmp.path, "manual.lock");
       const mutex = new MultiProcessMutex(lockPath);
 
       const release = await mutex.acquire();
@@ -657,7 +651,7 @@ describe("MultiProcessMutex", () => {
     });
 
     it("should enforce mutual exclusion via acquire()", async () => {
-      const lockPath = path.join(getTmpDir(), "exclusion.lock");
+      const lockPath = path.join(tmp.path, "exclusion.lock");
       const mutex = new MultiProcessMutex(lockPath);
 
       const order: number[] = [];
@@ -679,7 +673,7 @@ describe("MultiProcessMutex", () => {
     });
 
     it("should release the lock even if the caller's work throws", async () => {
-      const lockPath = path.join(getTmpDir(), "throw.lock");
+      const lockPath = path.join(tmp.path, "throw.lock");
       const mutex = new MultiProcessMutex(lockPath);
 
       await assert.rejects(async () => {
@@ -698,7 +692,7 @@ describe("MultiProcessMutex", () => {
     });
 
     it("should allow calling release multiple times without error", async () => {
-      const lockPath = path.join(getTmpDir(), "double-release.lock");
+      const lockPath = path.join(tmp.path, "double-release.lock");
       const mutex = new MultiProcessMutex(lockPath);
 
       const release = await mutex.acquire();
@@ -707,7 +701,7 @@ describe("MultiProcessMutex", () => {
     });
 
     it("should throw MultiProcessMutexTimeoutError from acquire()", async () => {
-      const lockPath = path.join(getTmpDir(), "timeout-acquire.lock");
+      const lockPath = path.join(tmp.path, "timeout-acquire.lock");
       // Create a lock owned by THIS process (which is alive)
       writeFakeMetadata(lockPath, {
         pid: process.pid,
@@ -745,7 +739,7 @@ describe("MultiProcessMutex", () => {
   });
 
   it("should treat metadata with invalid field types as stale", async () => {
-    const lockPath = path.join(getTmpDir(), "invalid-fields.lock");
+    const lockPath = path.join(tmp.path, "invalid-fields.lock");
     writeFakeMetadata(lockPath, {
       pid: "not-a-number",
       hostname: "h",
@@ -759,7 +753,7 @@ describe("MultiProcessMutex", () => {
   });
 
   it("should treat metadata with invalid uid type as stale", async () => {
-    const lockPath = path.join(getTmpDir(), "invalid-uid.lock");
+    const lockPath = path.join(tmp.path, "invalid-uid.lock");
     writeFakeMetadata(lockPath, {
       pid: process.pid,
       hostname: os.hostname(),
@@ -774,7 +768,7 @@ describe("MultiProcessMutex", () => {
   });
 
   it("should treat metadata with non-safe-integer uid as stale", async () => {
-    const lockPath = path.join(getTmpDir(), "unsafe-uid.lock");
+    const lockPath = path.join(tmp.path, "unsafe-uid.lock");
     writeFakeMetadata(lockPath, {
       pid: process.pid,
       hostname: os.hostname(),
@@ -789,7 +783,7 @@ describe("MultiProcessMutex", () => {
   });
 
   it("should treat metadata with non-positive createdAt as stale", async () => {
-    const lockPath = path.join(getTmpDir(), "non-positive-created-at.lock");
+    const lockPath = path.join(tmp.path, "non-positive-created-at.lock");
 
     writeFakeMetadata(lockPath, {
       pid: process.pid,
@@ -809,7 +803,7 @@ describe("MultiProcessMutex", () => {
     "should treat a process returning EPERM on kill(pid,0) as alive",
     { skip: process.platform === "win32" },
     async () => {
-      const lockPath = path.join(getTmpDir(), "eperm.lock");
+      const lockPath = path.join(tmp.path, "eperm.lock");
       writeFakeMetadata(lockPath, {
         pid: 1, // init/systemd, owned by root — kill(1, 0) throws EPERM for non-root
         hostname: os.hostname(),
@@ -836,7 +830,7 @@ describe("MultiProcessMutex", () => {
   );
 
   it("should handle ENOENT gracefully when lock is already removed during release", async () => {
-    const lockPath = path.join(getTmpDir(), "already-removed.lock");
+    const lockPath = path.join(tmp.path, "already-removed.lock");
     const mutex = new MultiProcessMutex(lockPath);
     const release = await mutex.acquire();
 
@@ -852,7 +846,7 @@ describe("MultiProcessMutex", () => {
     "should throw MultiProcessMutexError when release fails with non-ENOENT error",
     { skip: process.platform === "win32" },
     async () => {
-      const parentDir = path.join(getTmpDir(), "release-error");
+      const parentDir = path.join(tmp.path, "release-error");
       fs.mkdirSync(parentDir);
       const lockPath = path.join(parentDir, "test.lock");
       const mutex = new MultiProcessMutex(lockPath);
@@ -884,7 +878,7 @@ describe("MultiProcessMutex", () => {
     "should throw MultiProcessMutexError when release fails with non-ENOENT error (Windows)",
     { skip: process.platform !== "win32" },
     async () => {
-      const lockPath = path.join(getTmpDir(), "release-error-win.lock");
+      const lockPath = path.join(tmp.path, "release-error-win.lock");
       const mutex = new MultiProcessMutex(lockPath);
 
       const release = await mutex.acquire();
@@ -911,7 +905,7 @@ describe("MultiProcessMutex", () => {
     "should throw StaleMultiProcessMutexError without uid info when metadata is corrupt",
     { skip: process.platform === "win32" },
     async () => {
-      const parentDir = path.join(getTmpDir(), "stale-no-uid");
+      const parentDir = path.join(tmp.path, "stale-no-uid");
       fs.mkdirSync(parentDir);
       const lockPath = path.join(parentDir, "user.lock");
       // Create lock file with corrupt content — treated as stale with metadata=undefined
@@ -952,7 +946,7 @@ describe("MultiProcessMutex", () => {
     "should throw StaleMultiProcessMutexError without uid info when metadata is corrupt (Windows)",
     { skip: process.platform !== "win32" },
     async () => {
-      const lockPath = path.join(getTmpDir(), "stale-no-uid-win.lock");
+      const lockPath = path.join(tmp.path, "stale-no-uid-win.lock");
       // Create lock file with corrupt content — treated as stale with metadata=undefined
       fs.writeFileSync(lockPath, "corrupt", "utf8");
 
@@ -987,7 +981,7 @@ describe("MultiProcessMutex", () => {
     "should handle ENOENT when parent directory disappears between polls",
     { timeout: 10_000 },
     async () => {
-      const parentDir = path.join(getTmpDir(), "vanishing");
+      const parentDir = path.join(tmp.path, "vanishing");
       fs.mkdirSync(parentDir);
       const lockPath = path.join(parentDir, "test.lock");
 
@@ -1016,7 +1010,7 @@ describe("MultiProcessMutex", () => {
   );
 
   it("should accept old-format metadata without sessionId", async () => {
-    const lockPath = path.join(getTmpDir(), "old-format.lock");
+    const lockPath = path.join(tmp.path, "old-format.lock");
     // Old-format metadata: no sessionId field
     writeFakeMetadata(lockPath, {
       pid: 999999999, // Very unlikely to exist — stale
@@ -1031,7 +1025,7 @@ describe("MultiProcessMutex", () => {
   });
 
   it("should treat metadata with invalid sessionId type as stale", async () => {
-    const lockPath = path.join(getTmpDir(), "invalid-sessionid.lock");
+    const lockPath = path.join(tmp.path, "invalid-sessionid.lock");
     writeFakeMetadata(lockPath, {
       pid: process.pid,
       hostname: os.hostname(),
@@ -1049,7 +1043,7 @@ describe("MultiProcessMutex", () => {
     const DEAD_PID = 999999999;
 
     it("should clean up orphaned temp files from dead PIDs after acquisition", async () => {
-      const lockPath = path.join(getTmpDir(), "cleanup.lock");
+      const lockPath = path.join(tmp.path, "cleanup.lock");
       const dir = path.dirname(lockPath);
       const baseName = path.basename(lockPath);
 
@@ -1073,7 +1067,7 @@ describe("MultiProcessMutex", () => {
     });
 
     it("should NOT clean up temp files from live PIDs", async () => {
-      const lockPath = path.join(getTmpDir(), "live-pid.lock");
+      const lockPath = path.join(tmp.path, "live-pid.lock");
       const dir = path.dirname(lockPath);
       const baseName = path.basename(lockPath);
 
@@ -1110,7 +1104,7 @@ describe("MultiProcessMutex", () => {
     });
 
     it("should clean orphans during stale lock recovery with corrupt metadata", async () => {
-      const lockPath = path.join(getTmpDir(), "corrupt.lock");
+      const lockPath = path.join(tmp.path, "corrupt.lock");
       const dir = path.dirname(lockPath);
       const baseName = path.basename(lockPath);
 
@@ -1135,7 +1129,7 @@ describe("MultiProcessMutex", () => {
     });
 
     it("should not touch unrelated files or other locks' temp files", async () => {
-      const lockPath = path.join(getTmpDir(), "mylock.lock");
+      const lockPath = path.join(tmp.path, "mylock.lock");
       const dir = path.dirname(lockPath);
 
       // Create an unrelated file
@@ -1165,7 +1159,7 @@ describe("MultiProcessMutex", () => {
     });
 
     it("should skip temp files with malformed/unparseable PIDs", async () => {
-      const lockPath = path.join(getTmpDir(), "malformed.lock");
+      const lockPath = path.join(tmp.path, "malformed.lock");
       const dir = path.dirname(lockPath);
       const baseName = path.basename(lockPath);
 

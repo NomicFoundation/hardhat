@@ -1,6 +1,7 @@
 import type { PackageJson } from "../src/package.js";
 
 import assert from "node:assert/strict";
+import os from "node:os";
 import path from "node:path";
 import { describe, it } from "node:test";
 
@@ -20,10 +21,10 @@ import {
   findDependencyPackageJson,
 } from "../src/package.js";
 
-import { useTmpDir } from "./helpers/fs.js";
+import { createTmpDir } from "./helpers/fs.js";
 
 describe("package", () => {
-  const getTmpDir = useTmpDir("package");
+  const tmp = createTmpDir("package", "test");
 
   describe("findClosestPackageJson", () => {
     it("Should find the closest package.json relative to import.meta.url", async () => {
@@ -34,8 +35,8 @@ describe("package", () => {
     });
 
     it("Should find the closest package.json relative to a file", async () => {
-      const expectedPath = path.join(getTmpDir(), "package.json");
-      const fromPath = path.join(getTmpDir(), "subdir", "subsubdir", "file.js");
+      const expectedPath = path.join(tmp.path, "package.json");
+      const fromPath = path.join(tmp.path, "subdir", "subsubdir", "file.js");
       await createFile(expectedPath);
       await createFile(fromPath);
 
@@ -45,8 +46,8 @@ describe("package", () => {
     });
 
     it("Should find the closest package.json relative to a directory", async () => {
-      const expectedPath = path.join(getTmpDir(), "package.json");
-      const fromPath = path.join(getTmpDir(), "subdir", "subsubdir");
+      const expectedPath = path.join(tmp.path, "package.json");
+      const fromPath = path.join(tmp.path, "subdir", "subsubdir");
       await createFile(expectedPath);
       await mkdir(fromPath);
 
@@ -56,8 +57,8 @@ describe("package", () => {
     });
 
     it("Should find the closest package.json relative to a directory when its within that directory", async () => {
-      const expectedPath = path.join(getTmpDir(), "package.json");
-      const fromPath = getTmpDir();
+      const expectedPath = path.join(tmp.path, "package.json");
+      const fromPath = tmp.path;
       await createFile(expectedPath);
 
       const actualPath = await findClosestPackageJson(fromPath);
@@ -66,7 +67,15 @@ describe("package", () => {
     });
 
     it("Should throw PackageJsonNotFoundError if no package.json is found", async () => {
-      const fromPath = path.join(getTmpDir(), "subdir", "subsubdir");
+      // Walk up from an OS-level tmp path that has no enclosing package.json.
+      // We can't use the workspace-local tmp dir here because the workspace
+      // itself has a `package.json` above it.
+      const fromPath = path.join(
+        os.tmpdir(),
+        "no-package-json-test",
+        "subdir",
+        "subsubdir",
+      );
 
       await assert.rejects(findClosestPackageJson(fromPath), {
         name: "PackageJsonNotFoundError",
@@ -91,8 +100,8 @@ describe("package", () => {
     });
 
     it("Should read the closest package.json relative to a file", async () => {
-      const packageJsonPath = path.join(getTmpDir(), "package.json");
-      const fromPath = path.join(getTmpDir(), "subdir", "subsubdir", "file.js");
+      const packageJsonPath = path.join(tmp.path, "package.json");
+      const fromPath = path.join(tmp.path, "subdir", "subsubdir", "file.js");
       await writeJsonFile(packageJsonPath, {
         name: "test-package",
       });
@@ -105,8 +114,8 @@ describe("package", () => {
     });
 
     it("Should read the closest package.json relative to a directory", async () => {
-      const packageJsonPath = path.join(getTmpDir(), "package.json");
-      const fromPath = path.join(getTmpDir(), "subdir", "subsubdir");
+      const packageJsonPath = path.join(tmp.path, "package.json");
+      const fromPath = path.join(tmp.path, "subdir", "subsubdir");
       await writeJsonFile(packageJsonPath, {
         name: "test-package",
       });
@@ -119,7 +128,13 @@ describe("package", () => {
     });
 
     it("Should throw PackageJsonNotFoundError if no package.json is found", async () => {
-      const fromPath = path.join(getTmpDir(), "subdir", "subsubdir");
+      // See related explanation in the `findClosestPackageJson` test above.
+      const fromPath = path.join(
+        os.tmpdir(),
+        "no-package-json-test",
+        "subdir",
+        "subsubdir",
+      );
 
       await assert.rejects(readClosestPackageJson(fromPath), {
         name: "PackageJsonNotFoundError",
@@ -135,8 +150,8 @@ describe("package", () => {
     });
 
     it("Should throw PackageJsonReadError if the package.json is malformed", async () => {
-      const packageJsonPath = path.join(getTmpDir(), "package.json");
-      const fromPath = path.join(getTmpDir(), "subdir", "subsubdir", "file.js");
+      const packageJsonPath = path.join(tmp.path, "package.json");
+      const fromPath = path.join(tmp.path, "subdir", "subsubdir", "file.js");
       await writeUtf8File(packageJsonPath, "{");
 
       await assert.rejects(readClosestPackageJson(fromPath), {
@@ -154,8 +169,8 @@ describe("package", () => {
     });
 
     it("Should find the package root relative to a file", async () => {
-      const packageJsonPath = path.join(getTmpDir(), "package.json");
-      const fromPath = path.join(getTmpDir(), "subdir", "subsubdir", "file.js");
+      const packageJsonPath = path.join(tmp.path, "package.json");
+      const fromPath = path.join(tmp.path, "subdir", "subsubdir", "file.js");
       await writeJsonFile(packageJsonPath, {
         name: "test-package",
       });
@@ -163,12 +178,12 @@ describe("package", () => {
 
       const packageRoot = await findClosestPackageRoot(fromPath);
 
-      assert.equal(packageRoot, getTmpDir());
+      assert.equal(packageRoot, tmp.path);
     });
 
     it("Should find the package root relative to a directory", async () => {
-      const packageJsonPath = path.join(getTmpDir(), "package.json");
-      const fromPath = path.join(getTmpDir(), "subdir", "subsubdir");
+      const packageJsonPath = path.join(tmp.path, "package.json");
+      const fromPath = path.join(tmp.path, "subdir", "subsubdir");
       await writeJsonFile(packageJsonPath, {
         name: "test-package",
       });
@@ -176,11 +191,17 @@ describe("package", () => {
 
       const packageRoot = await findClosestPackageRoot(fromPath);
 
-      assert.equal(packageRoot, getTmpDir());
+      assert.equal(packageRoot, tmp.path);
     });
 
     it("Should throw PackageJsonNotFoundError if no package.json is found", async () => {
-      const fromPath = path.join(getTmpDir(), "subdir", "subsubdir");
+      // See related explanation in the `findClosestPackageJson` test above.
+      const fromPath = path.join(
+        os.tmpdir(),
+        "no-package-json-test",
+        "subdir",
+        "subsubdir",
+      );
 
       await assert.rejects(findClosestPackageRoot(fromPath), {
         name: "PackageJsonNotFoundError",

@@ -1,3 +1,9 @@
+// IMPORTANT: this file is duplicated almost verbatim at
+// `packages/hardhat-utils/test/helpers/fs.ts` because `hardhat-test-utils`
+// depends on `hardhat-utils`, so the latter can't import from here. Any change
+// to `createTmpDir` / `makeWorkspaceTmpDir` / `safeRemoveTmpDir` should be
+// mirrored in that file.
+
 import fsPromises from "node:fs/promises";
 import path from "node:path";
 import { after, afterEach, before, beforeEach } from "node:test";
@@ -43,6 +49,9 @@ export async function makeWorkspaceTmpDir(nameHint: string): Promise<string> {
   const tmpBase = path.join(root, "tmp");
   await ensureDir(tmpBase);
   const tmpDir = await fsPromises.mkdtemp(path.join(tmpBase, `${nameHint}-`));
+  // `mkdtemp` creates dirs with mode 0o700 (owner-only). Widen to the
+  // conventional 0o755 directory mode so other users can traverse the tree.
+  await fsPromises.chmod(tmpDir, 0o755);
   return await getRealPath(tmpDir);
 }
 

@@ -39,7 +39,7 @@ import {
   readdirOrEmpty,
 } from "../src/fs.js";
 
-import { useTmpDir } from "./helpers/fs.js";
+import { createTmpDir } from "./helpers/fs.js";
 
 function withUnknownDirentType(dirent: Dirent): Dirent {
   const cloned: Dirent = Object.create(dirent);
@@ -66,30 +66,30 @@ function withKnownFileDirentType(dirent: Dirent): Dirent {
 }
 
 describe("File system utils", () => {
-  const getTmpDir = useTmpDir("fs");
+  const tmp = createTmpDir("fs", "test");
 
   describe("getRealPath", () => {
     it("Should resolve symlinks", async () => {
-      const actualPath = path.join(getTmpDir(), "mixedCasingFile");
+      const actualPath = path.join(tmp.path, "mixedCasingFile");
       await createFile(actualPath);
 
-      const linkPath = path.join(getTmpDir(), "link");
+      const linkPath = path.join(tmp.path, "link");
       await fsPromises.symlink(actualPath, linkPath);
 
       assert.equal(await getRealPath(linkPath), actualPath);
     });
 
     it("Should normalize the path", async () => {
-      const actualPath = path.join(getTmpDir(), "file");
+      const actualPath = path.join(tmp.path, "file");
       await createFile(actualPath);
 
-      const filePath = path.join(getTmpDir(), "a", "..", ".", "", "file");
+      const filePath = path.join(tmp.path, "a", "..", ".", "", "file");
 
       assert.equal(await getRealPath(filePath), actualPath);
     });
 
     it("Should throw FileNotFoundError if not found", async () => {
-      const actualPath = path.join(getTmpDir(), "not-exists");
+      const actualPath = path.join(tmp.path, "not-exists");
 
       await assert.rejects(getRealPath(actualPath), {
         name: "FileNotFoundError",
@@ -98,7 +98,7 @@ describe("File system utils", () => {
     });
 
     it("Should throw FileSystemAccessError if a different error is thrown", async () => {
-      const linkPath = path.join(getTmpDir(), "link");
+      const linkPath = path.join(tmp.path, "link");
       await fsPromises.symlink(linkPath, linkPath);
 
       await assert.rejects(getRealPath(linkPath), {
@@ -109,40 +109,40 @@ describe("File system utils", () => {
 
   describe("getAllFilesMatching", () => {
     beforeEach(async () => {
-      await mkdir(path.join(getTmpDir(), "dir-empty"));
-      await mkdir(path.join(getTmpDir(), "dir-with-files", "dir-within-dir"));
-      await mkdir(path.join(getTmpDir(), "dir-with-extension.txt"));
-      await mkdir(path.join(getTmpDir(), "dir-WithCasing"));
+      await mkdir(path.join(tmp.path, "dir-empty"));
+      await mkdir(path.join(tmp.path, "dir-with-files", "dir-within-dir"));
+      await mkdir(path.join(tmp.path, "dir-with-extension.txt"));
+      await mkdir(path.join(tmp.path, "dir-WithCasing"));
 
       // root files
-      await createFile(path.join(getTmpDir(), "file-1.txt"));
-      await createFile(path.join(getTmpDir(), "file-2.txt"));
-      await createFile(path.join(getTmpDir(), "file-3.json"));
+      await createFile(path.join(tmp.path, "file-1.txt"));
+      await createFile(path.join(tmp.path, "file-2.txt"));
+      await createFile(path.join(tmp.path, "file-3.json"));
 
       // dir-with-files files
       await createFile(
-        path.join(getTmpDir(), "dir-with-files", "inner-file-1.json"),
+        path.join(tmp.path, "dir-with-files", "inner-file-1.json"),
       );
       await createFile(
-        path.join(getTmpDir(), "dir-with-files", "inner-file-2.txt"),
+        path.join(tmp.path, "dir-with-files", "inner-file-2.txt"),
       );
 
       // dir-with-files/dir-within-dir files
       await createFile(
-        path.join(getTmpDir(), "dir-with-files", "dir-within-dir", "file-deep"),
+        path.join(tmp.path, "dir-with-files", "dir-within-dir", "file-deep"),
       );
 
       // dir-with-extension.txt files
       await createFile(
-        path.join(getTmpDir(), "dir-with-extension.txt", "inner-file-3.txt"),
+        path.join(tmp.path, "dir-with-extension.txt", "inner-file-3.txt"),
       );
       await createFile(
-        path.join(getTmpDir(), "dir-with-extension.txt", "inner-file-4.json"),
+        path.join(tmp.path, "dir-with-extension.txt", "inner-file-4.json"),
       );
 
       // dir-WithCasing files
       await createFile(
-        path.join(getTmpDir(), "dir-WithCasing", "file-WithCASING"),
+        path.join(tmp.path, "dir-WithCasing", "file-WithCASING"),
       );
     });
 
@@ -159,7 +159,7 @@ describe("File system utils", () => {
 
     it("Should return an empty array if the dir doesn't exist", async () => {
       await assertGetAllFilesMatching(
-        path.join(getTmpDir(), "not-in-fs"),
+        path.join(tmp.path, "not-in-fs"),
         undefined,
         [],
       );
@@ -167,74 +167,74 @@ describe("File system utils", () => {
 
     it("Should return an empty array if the dir is empty", async () => {
       await assertGetAllFilesMatching(
-        path.join(getTmpDir(), "dir-empty"),
+        path.join(tmp.path, "dir-empty"),
         undefined,
         [],
       );
     });
 
     it("Should return an empty array if no file matches", async () => {
-      await assertGetAllFilesMatching(getTmpDir(), () => false, []);
+      await assertGetAllFilesMatching(tmp.path, () => false, []);
     });
 
     it("Should return every file by default, recursively", async () => {
-      await assertGetAllFilesMatching(getTmpDir(), undefined, [
-        path.join(getTmpDir(), "file-1.txt"),
-        path.join(getTmpDir(), "file-2.txt"),
-        path.join(getTmpDir(), "file-3.json"),
-        path.join(getTmpDir(), "dir-with-files", "inner-file-1.json"),
-        path.join(getTmpDir(), "dir-with-files", "inner-file-2.txt"),
-        path.join(getTmpDir(), "dir-with-extension.txt", "inner-file-3.txt"),
-        path.join(getTmpDir(), "dir-with-extension.txt", "inner-file-4.json"),
-        path.join(getTmpDir(), "dir-WithCasing", "file-WithCASING"),
-        path.join(getTmpDir(), "dir-with-files", "dir-within-dir", "file-deep"),
+      await assertGetAllFilesMatching(tmp.path, undefined, [
+        path.join(tmp.path, "file-1.txt"),
+        path.join(tmp.path, "file-2.txt"),
+        path.join(tmp.path, "file-3.json"),
+        path.join(tmp.path, "dir-with-files", "inner-file-1.json"),
+        path.join(tmp.path, "dir-with-files", "inner-file-2.txt"),
+        path.join(tmp.path, "dir-with-extension.txt", "inner-file-3.txt"),
+        path.join(tmp.path, "dir-with-extension.txt", "inner-file-4.json"),
+        path.join(tmp.path, "dir-WithCasing", "file-WithCASING"),
+        path.join(tmp.path, "dir-with-files", "dir-within-dir", "file-deep"),
       ]);
 
       await assertGetAllFilesMatching(
-        path.join(getTmpDir(), "dir-WithCasing"),
+        path.join(tmp.path, "dir-WithCasing"),
         undefined,
-        [path.join(getTmpDir(), "dir-WithCasing", "file-WithCASING")],
+        [path.join(tmp.path, "dir-WithCasing", "file-WithCASING")],
       );
     });
 
     it("Should filter files and not dirs", async () => {
-      await assertGetAllFilesMatching(getTmpDir(), (f) => f.endsWith(".txt"), [
-        path.join(getTmpDir(), "file-1.txt"),
-        path.join(getTmpDir(), "file-2.txt"),
-        path.join(getTmpDir(), "dir-with-files", "inner-file-2.txt"),
-        path.join(getTmpDir(), "dir-with-extension.txt", "inner-file-3.txt"),
+      await assertGetAllFilesMatching(tmp.path, (f) => f.endsWith(".txt"), [
+        path.join(tmp.path, "file-1.txt"),
+        path.join(tmp.path, "file-2.txt"),
+        path.join(tmp.path, "dir-with-files", "inner-file-2.txt"),
+        path.join(tmp.path, "dir-with-extension.txt", "inner-file-3.txt"),
       ]);
 
-      await assertGetAllFilesMatching(getTmpDir(), (f) => !f.endsWith(".txt"), [
-        path.join(getTmpDir(), "file-3.json"),
-        path.join(getTmpDir(), "dir-with-files", "inner-file-1.json"),
-        path.join(getTmpDir(), "dir-with-extension.txt", "inner-file-4.json"),
-        path.join(getTmpDir(), "dir-WithCasing", "file-WithCASING"),
-        path.join(getTmpDir(), "dir-with-files", "dir-within-dir", "file-deep"),
+      await assertGetAllFilesMatching(tmp.path, (f) => !f.endsWith(".txt"), [
+        path.join(tmp.path, "file-3.json"),
+        path.join(tmp.path, "dir-with-files", "inner-file-1.json"),
+        path.join(tmp.path, "dir-with-extension.txt", "inner-file-4.json"),
+        path.join(tmp.path, "dir-WithCasing", "file-WithCASING"),
+        path.join(tmp.path, "dir-with-files", "dir-within-dir", "file-deep"),
       ]);
     });
 
     it("Should filter files asynchronously", async () => {
-      await writeUtf8File(path.join(getTmpDir(), "file-1.txt"), "skip");
+      await writeUtf8File(path.join(tmp.path, "file-1.txt"), "skip");
 
       await assertGetAllFilesMatching(
-        getTmpDir(),
+        tmp.path,
         async (f) => {
           return f.endsWith(".txt") && (await readUtf8File(f)) !== "skip";
         },
         [
-          path.join(getTmpDir(), "file-2.txt"),
-          path.join(getTmpDir(), "dir-with-files", "inner-file-2.txt"),
-          path.join(getTmpDir(), "dir-with-extension.txt", "inner-file-3.txt"),
+          path.join(tmp.path, "file-2.txt"),
+          path.join(tmp.path, "dir-with-files", "inner-file-2.txt"),
+          path.join(tmp.path, "dir-with-extension.txt", "inner-file-3.txt"),
         ],
       );
     });
 
     it("Should preserve the true casing of the files, except for the dir's path", async () => {
       await assertGetAllFilesMatching(
-        getTmpDir(),
+        tmp.path,
         (f) => f.toLowerCase().endsWith("withcasing"),
-        [path.join(getTmpDir(), "dir-WithCasing", "file-WithCASING")],
+        [path.join(tmp.path, "dir-WithCasing", "file-WithCASING")],
       );
     });
 
@@ -242,8 +242,8 @@ describe("File system utils", () => {
       const originalReaddir = fsPromises.readdir;
       const originalLstat = fsPromises.lstat;
 
-      const unknownDirPath = path.join(getTmpDir(), "dir-with-files");
-      const knownFilePath = path.join(getTmpDir(), "file-1.txt");
+      const unknownDirPath = path.join(tmp.path, "dir-with-files");
+      const knownFilePath = path.join(tmp.path, "file-1.txt");
       const lstatPaths: string[] = [];
 
       t.mock.method(fsPromises, "readdir", async (...args: any[]) => {
@@ -254,10 +254,7 @@ describe("File system utils", () => {
           args,
         );
 
-        if (
-          absolutePathToDir !== getTmpDir() ||
-          options?.withFileTypes !== true
-        ) {
+        if (absolutePathToDir !== tmp.path || options?.withFileTypes !== true) {
           return dirents;
         }
 
@@ -279,25 +276,20 @@ describe("File system utils", () => {
         return await Reflect.apply(originalLstat, fsPromises, args);
       });
 
-      const files = await getAllFilesMatching(getTmpDir());
+      const files = await getAllFilesMatching(tmp.path);
 
       assert.deepEqual(
         new Set(files),
         new Set([
-          path.join(getTmpDir(), "file-1.txt"),
-          path.join(getTmpDir(), "file-2.txt"),
-          path.join(getTmpDir(), "file-3.json"),
-          path.join(getTmpDir(), "dir-with-files", "inner-file-1.json"),
-          path.join(getTmpDir(), "dir-with-files", "inner-file-2.txt"),
-          path.join(getTmpDir(), "dir-with-extension.txt", "inner-file-3.txt"),
-          path.join(getTmpDir(), "dir-with-extension.txt", "inner-file-4.json"),
-          path.join(getTmpDir(), "dir-WithCasing", "file-WithCASING"),
-          path.join(
-            getTmpDir(),
-            "dir-with-files",
-            "dir-within-dir",
-            "file-deep",
-          ),
+          path.join(tmp.path, "file-1.txt"),
+          path.join(tmp.path, "file-2.txt"),
+          path.join(tmp.path, "file-3.json"),
+          path.join(tmp.path, "dir-with-files", "inner-file-1.json"),
+          path.join(tmp.path, "dir-with-files", "inner-file-2.txt"),
+          path.join(tmp.path, "dir-with-extension.txt", "inner-file-3.txt"),
+          path.join(tmp.path, "dir-with-extension.txt", "inner-file-4.json"),
+          path.join(tmp.path, "dir-WithCasing", "file-WithCASING"),
+          path.join(tmp.path, "dir-with-files", "dir-within-dir", "file-deep"),
         ]),
       );
       assert.ok(
@@ -311,10 +303,10 @@ describe("File system utils", () => {
     });
 
     it("Should throw NotADirectoryError if the path is not a directory", async () => {
-      const dirPath = path.join(getTmpDir(), "file-1.txt");
+      const dirPath = path.join(tmp.path, "file-1.txt");
 
       await assert.rejects(
-        getAllFilesMatching(path.join(getTmpDir(), "file-1.txt")),
+        getAllFilesMatching(path.join(tmp.path, "file-1.txt")),
         {
           name: "NotADirectoryError",
           message: `Path ${dirPath} is not a directory`,
@@ -323,7 +315,7 @@ describe("File system utils", () => {
     });
 
     it("Should throw FileSystemAccessError if a different error is thrown", async () => {
-      const linkPath = path.join(getTmpDir(), "link");
+      const linkPath = path.join(tmp.path, "link");
       await fsPromises.symlink(linkPath, linkPath);
 
       await assert.rejects(getAllFilesMatching(linkPath), {
@@ -333,7 +325,7 @@ describe("File system utils", () => {
 
     describe("With directoryFilter", () => {
       it("Should return an empty array if directoryFilter returns false", async () => {
-        const from = path.join(getTmpDir(), "from");
+        const from = path.join(tmp.path, "from");
 
         const skipPath = path.join(from, "skip");
         await mkdir(skipPath);
@@ -360,7 +352,7 @@ describe("File system utils", () => {
       });
 
       it("Should filter directories asynchronously", async () => {
-        const from = path.join(getTmpDir(), "from");
+        const from = path.join(tmp.path, "from");
 
         const dirPath = path.join(from, "dir");
         await mkdir(dirPath);
@@ -391,13 +383,13 @@ describe("File system utils", () => {
 
   describe("getAllDirectoriesMatching", () => {
     beforeEach(async () => {
-      await mkdir(path.join(getTmpDir(), "dir-empty"));
-      await mkdir(path.join(getTmpDir(), "dir-with-files"));
-      await mkdir(path.join(getTmpDir(), "dir-with-subdir", "dir-within-dir"));
-      await mkdir(path.join(getTmpDir(), "dir-with-extension.txt"));
-      await mkdir(path.join(getTmpDir(), "dir-WithCasing"));
+      await mkdir(path.join(tmp.path, "dir-empty"));
+      await mkdir(path.join(tmp.path, "dir-with-files"));
+      await mkdir(path.join(tmp.path, "dir-with-subdir", "dir-within-dir"));
+      await mkdir(path.join(tmp.path, "dir-with-extension.txt"));
+      await mkdir(path.join(tmp.path, "dir-WithCasing"));
 
-      await createFile(path.join(getTmpDir(), "dir-with-files", "file-1.txt"));
+      await createFile(path.join(tmp.path, "dir-with-files", "file-1.txt"));
     });
 
     async function assertGetAllDirectoriesMatching(
@@ -413,7 +405,7 @@ describe("File system utils", () => {
 
     it("Should return an empty array if the dir doesn't exist", async () => {
       await assertGetAllDirectoriesMatching(
-        path.join(getTmpDir(), "not-in-fs"),
+        path.join(tmp.path, "not-in-fs"),
         undefined,
         [],
       );
@@ -421,45 +413,45 @@ describe("File system utils", () => {
 
     it("Should return an empty array if the dir is empty", async () => {
       await assertGetAllDirectoriesMatching(
-        path.join(getTmpDir(), "dir-empty"),
+        path.join(tmp.path, "dir-empty"),
         undefined,
         [],
       );
     });
 
     it("Should return an empty array if no file matches", async () => {
-      await assertGetAllDirectoriesMatching(getTmpDir(), () => false, []);
+      await assertGetAllDirectoriesMatching(tmp.path, () => false, []);
     });
 
     it("Should return every dir by default, recursively, except for subdirs of matched dirs", async () => {
-      await assertGetAllDirectoriesMatching(getTmpDir(), undefined, [
-        path.join(getTmpDir(), "dir-empty"),
-        path.join(getTmpDir(), "dir-with-files"),
-        path.join(getTmpDir(), "dir-with-subdir"),
-        path.join(getTmpDir(), "dir-with-extension.txt"),
-        path.join(getTmpDir(), "dir-WithCasing"),
+      await assertGetAllDirectoriesMatching(tmp.path, undefined, [
+        path.join(tmp.path, "dir-empty"),
+        path.join(tmp.path, "dir-with-files"),
+        path.join(tmp.path, "dir-with-subdir"),
+        path.join(tmp.path, "dir-with-extension.txt"),
+        path.join(tmp.path, "dir-WithCasing"),
       ]);
 
       await assertGetAllDirectoriesMatching(
-        path.join(getTmpDir(), "dir-with-subdir"),
+        path.join(tmp.path, "dir-with-subdir"),
         undefined,
-        [path.join(getTmpDir(), "dir-with-subdir", "dir-within-dir")],
+        [path.join(tmp.path, "dir-with-subdir", "dir-within-dir")],
       );
     });
 
     it("Should filter dirs", async () => {
       await assertGetAllDirectoriesMatching(
-        getTmpDir(),
+        tmp.path,
         (d) => d.endsWith(".txt"),
-        [path.join(getTmpDir(), "dir-with-extension.txt")],
+        [path.join(tmp.path, "dir-with-extension.txt")],
       );
     });
 
     it("Should filter dirs asynchronously", async () => {
       await assertGetAllDirectoriesMatching(
-        getTmpDir(),
+        tmp.path,
         async (d) => (await getAllFilesMatching(d)).length !== 0,
-        [path.join(getTmpDir(), "dir-with-files")],
+        [path.join(tmp.path, "dir-with-files")],
       );
     });
 
@@ -467,7 +459,7 @@ describe("File system utils", () => {
       const originalReaddir = fsPromises.readdir;
       const originalLstat = fsPromises.lstat;
 
-      const unknownDirPath = path.join(getTmpDir(), "dir-with-files");
+      const unknownDirPath = path.join(tmp.path, "dir-with-files");
       const lstatPaths: string[] = [];
 
       t.mock.method(fsPromises, "readdir", async (...args: any[]) => {
@@ -478,10 +470,7 @@ describe("File system utils", () => {
           args,
         );
 
-        if (
-          absolutePathToDir !== getTmpDir() ||
-          options?.withFileTypes !== true
-        ) {
+        if (absolutePathToDir !== tmp.path || options?.withFileTypes !== true) {
           return dirents;
         }
 
@@ -497,16 +486,16 @@ describe("File system utils", () => {
         return await Reflect.apply(originalLstat, fsPromises, args);
       });
 
-      const dirs = await getAllDirectoriesMatching(getTmpDir());
+      const dirs = await getAllDirectoriesMatching(tmp.path);
 
       assert.deepEqual(
         new Set(dirs),
         new Set([
-          path.join(getTmpDir(), "dir-empty"),
-          path.join(getTmpDir(), "dir-with-files"),
-          path.join(getTmpDir(), "dir-with-subdir"),
-          path.join(getTmpDir(), "dir-with-extension.txt"),
-          path.join(getTmpDir(), "dir-WithCasing"),
+          path.join(tmp.path, "dir-empty"),
+          path.join(tmp.path, "dir-with-files"),
+          path.join(tmp.path, "dir-with-subdir"),
+          path.join(tmp.path, "dir-with-extension.txt"),
+          path.join(tmp.path, "dir-WithCasing"),
         ]),
       );
       assert.ok(
@@ -518,8 +507,8 @@ describe("File system utils", () => {
 
   describe("getFileTrueCase", () => {
     it("Should return the true case of files and dirs", async () => {
-      const mixedCaseFilePath = path.join(getTmpDir(), "mixedCaseFile");
-      const mixedCaseDirPath = path.join(getTmpDir(), "mixedCaseDir");
+      const mixedCaseFilePath = path.join(tmp.path, "mixedCaseFile");
+      const mixedCaseDirPath = path.join(tmp.path, "mixedCaseDir");
       const mixedCaseFile2Path = path.join(mixedCaseDirPath, "mixedCaseFile2");
 
       await createFile(mixedCaseFilePath);
@@ -528,53 +517,53 @@ describe("File system utils", () => {
 
       // We test mixedCaseFilePath from tmpdir
       assert.equal(
-        await getFileTrueCase(getTmpDir(), "mixedCaseFile"),
-        path.relative(getTmpDir(), mixedCaseFilePath),
+        await getFileTrueCase(tmp.path, "mixedCaseFile"),
+        path.relative(tmp.path, mixedCaseFilePath),
       );
       assert.equal(
-        await getFileTrueCase(getTmpDir(), "mixedcasefile"),
-        path.relative(getTmpDir(), mixedCaseFilePath),
+        await getFileTrueCase(tmp.path, "mixedcasefile"),
+        path.relative(tmp.path, mixedCaseFilePath),
       );
       assert.equal(
-        await getFileTrueCase(getTmpDir(), "MIXEDCASEFILE"),
-        path.relative(getTmpDir(), mixedCaseFilePath),
+        await getFileTrueCase(tmp.path, "MIXEDCASEFILE"),
+        path.relative(tmp.path, mixedCaseFilePath),
       );
 
       // We test mixedCaseDirPath from tmpdir
       assert.equal(
-        await getFileTrueCase(getTmpDir(), "mixedCaseDir"),
-        path.relative(getTmpDir(), mixedCaseDirPath),
+        await getFileTrueCase(tmp.path, "mixedCaseDir"),
+        path.relative(tmp.path, mixedCaseDirPath),
       );
       assert.equal(
-        await getFileTrueCase(getTmpDir(), "mixedcasedir"),
-        path.relative(getTmpDir(), mixedCaseDirPath),
+        await getFileTrueCase(tmp.path, "mixedcasedir"),
+        path.relative(tmp.path, mixedCaseDirPath),
       );
       assert.equal(
-        await getFileTrueCase(getTmpDir(), "MIXEDCASEDIR"),
-        path.relative(getTmpDir(), mixedCaseDirPath),
+        await getFileTrueCase(tmp.path, "MIXEDCASEDIR"),
+        path.relative(tmp.path, mixedCaseDirPath),
       );
 
       // We test mixedCaseFilePath2 from tmpdir
       assert.equal(
         await getFileTrueCase(
-          getTmpDir(),
+          tmp.path,
           path.join("mixedCaseDir", "mixedCaseFile2"),
         ),
-        path.relative(getTmpDir(), mixedCaseFile2Path),
+        path.relative(tmp.path, mixedCaseFile2Path),
       );
       assert.equal(
         await getFileTrueCase(
-          getTmpDir(),
+          tmp.path,
           path.join("mixedcasedir", "MIXEDCASEFILE2"),
         ),
-        path.relative(getTmpDir(), mixedCaseFile2Path),
+        path.relative(tmp.path, mixedCaseFile2Path),
       );
       assert.equal(
         await getFileTrueCase(
-          getTmpDir(),
+          tmp.path,
           path.join("MIXEDCASEDIR", "mixedcasefile2"),
         ),
-        path.relative(getTmpDir(), mixedCaseFile2Path),
+        path.relative(tmp.path, mixedCaseFile2Path),
       );
 
       // We test mixedCaseFilePath2 from mixedCaseDir
@@ -593,26 +582,26 @@ describe("File system utils", () => {
     });
 
     it("Should NOT resolve symlinks", async () => {
-      const actualPath = path.join(getTmpDir(), "mixedCasingFile");
+      const actualPath = path.join(tmp.path, "mixedCasingFile");
       await createFile(actualPath);
 
-      const linkPath = path.join(getTmpDir(), "lInK");
+      const linkPath = path.join(tmp.path, "lInK");
       await fsPromises.symlink(actualPath, linkPath);
 
-      assert.equal(await getFileTrueCase(getTmpDir(), "link"), "lInK");
+      assert.equal(await getFileTrueCase(tmp.path, "link"), "lInK");
     });
 
     it("Should throw FileNotFoundError if not found", async () => {
-      const actualPath = path.join(getTmpDir(), "not-exists");
+      const actualPath = path.join(tmp.path, "not-exists");
 
-      await assert.rejects(getFileTrueCase(getTmpDir(), "not-exists"), {
+      await assert.rejects(getFileTrueCase(tmp.path, "not-exists"), {
         name: "FileNotFoundError",
         message: `File ${actualPath} not found`,
       });
     });
 
     it("Should throw NotADirectoryError if the starting directory is not a directory", async () => {
-      const filePath = path.join(getTmpDir(), "file");
+      const filePath = path.join(tmp.path, "file");
       await createFile(filePath);
 
       await assert.rejects(getFileTrueCase(filePath, "asd"), {
@@ -622,7 +611,7 @@ describe("File system utils", () => {
     });
 
     it("Should throw FileSystemAccessError if a different error is thrown", async () => {
-      const linkPath = path.join(getTmpDir(), "link");
+      const linkPath = path.join(tmp.path, "link");
       await fsPromises.symlink(linkPath, linkPath);
 
       await assert.rejects(getFileTrueCase(linkPath, "file"), {
@@ -633,8 +622,8 @@ describe("File system utils", () => {
 
   describe("TrueCasePathResolver", () => {
     it("Should return the true case of files and directories", async () => {
-      const mixedCaseFilePath = path.join(getTmpDir(), "mixedCaseFile");
-      const mixedCaseDirPath = path.join(getTmpDir(), "mixedCaseDir");
+      const mixedCaseFilePath = path.join(tmp.path, "mixedCaseFile");
+      const mixedCaseDirPath = path.join(tmp.path, "mixedCaseDir");
       const mixedCaseFile2Path = path.join(mixedCaseDirPath, "mixedCaseFile2");
 
       await createFile(mixedCaseFilePath);
@@ -644,16 +633,16 @@ describe("File system utils", () => {
       const resolver = new TrueCasePathResolver();
 
       assert.equal(
-        await resolver.getFileTrueCase(getTmpDir(), "mixedcasefile"),
+        await resolver.getFileTrueCase(tmp.path, "mixedcasefile"),
         "mixedCaseFile",
       );
       assert.equal(
-        await resolver.getFileTrueCase(getTmpDir(), "MIXEDCASEDIR"),
+        await resolver.getFileTrueCase(tmp.path, "MIXEDCASEDIR"),
         "mixedCaseDir",
       );
       assert.equal(
         await resolver.getFileTrueCase(
-          getTmpDir(),
+          tmp.path,
           path.join("mixedcasedir", "MIXEDCASEFILE2"),
         ),
         path.join("mixedCaseDir", "mixedCaseFile2"),
@@ -663,17 +652,17 @@ describe("File system utils", () => {
     it("Should return an empty path when resolving the starting directory itself", async () => {
       const resolver = new TrueCasePathResolver();
 
-      assert.equal(await resolver.getFileTrueCase(getTmpDir(), ""), "");
-      assert.equal(await resolver.getFileTrueCase(getTmpDir(), "."), "");
+      assert.equal(await resolver.getFileTrueCase(tmp.path, ""), "");
+      assert.equal(await resolver.getFileTrueCase(tmp.path, "."), "");
       assert.equal(
-        await resolver.getFileTrueCase(getTmpDir(), path.join("dir", "..")),
+        await resolver.getFileTrueCase(tmp.path, path.join("dir", "..")),
         "",
       );
     });
 
     it("Should resolve relative paths with parent segments that stay within the starting directory", async () => {
-      const mixedCaseFilePath = path.join(getTmpDir(), "mixedCaseFile");
-      const mixedCaseDirPath = path.join(getTmpDir(), "mixedCaseDir");
+      const mixedCaseFilePath = path.join(tmp.path, "mixedCaseFile");
+      const mixedCaseDirPath = path.join(tmp.path, "mixedCaseDir");
 
       await createFile(mixedCaseFilePath);
       await mkdir(mixedCaseDirPath);
@@ -682,7 +671,7 @@ describe("File system utils", () => {
 
       assert.equal(
         await resolver.getFileTrueCase(
-          getTmpDir(),
+          tmp.path,
           path.join("mixedCaseDir", "..", "mixedcasefile"),
         ),
         "mixedCaseFile",
@@ -690,9 +679,9 @@ describe("File system utils", () => {
     });
 
     it("Should throw FileNotFoundError if the resolved path escapes the starting directory", async () => {
-      const rootPath = path.join(getTmpDir(), "root");
+      const rootPath = path.join(tmp.path, "root");
       const nestedPath = path.join(rootPath, "nested");
-      const secretPath = path.join(getTmpDir(), "secret");
+      const secretPath = path.join(tmp.path, "secret");
 
       await mkdir(nestedPath);
       await createFile(secretPath);
@@ -712,13 +701,13 @@ describe("File system utils", () => {
     });
 
     it("Should cache directory listings across calls to the same resolver", async () => {
-      const filePath = path.join(getTmpDir(), "cachedFile");
+      const filePath = path.join(tmp.path, "cachedFile");
       await createFile(filePath);
 
       const resolver = new TrueCasePathResolver();
 
       assert.equal(
-        await resolver.getFileTrueCase(getTmpDir(), "cachedFile"),
+        await resolver.getFileTrueCase(tmp.path, "cachedFile"),
         "cachedFile",
       );
 
@@ -728,24 +717,23 @@ describe("File system utils", () => {
       await remove(filePath);
 
       assert.equal(
-        await resolver.getFileTrueCase(getTmpDir(), "cachedFile"),
+        await resolver.getFileTrueCase(tmp.path, "cachedFile"),
         "cachedFile",
       );
       assert.equal(
-        await resolver.getFileTrueCase(getTmpDir(), "CACHEDFILE"),
+        await resolver.getFileTrueCase(tmp.path, "CACHEDFILE"),
         "cachedFile",
       );
 
       resolver.clear();
 
-      await assert.rejects(
-        resolver.getFileTrueCase(getTmpDir(), "cachedFile"),
-        { name: "FileNotFoundError" },
-      );
+      await assert.rejects(resolver.getFileTrueCase(tmp.path, "cachedFile"), {
+        name: "FileNotFoundError",
+      });
     });
 
     it("Should cache resolutions separately for different trusted starting directories", async (t) => {
-      const root = path.join(getTmpDir(), "root");
+      const root = path.join(tmp.path, "root");
       const trustedFrom = path.join(root, "B"); // Note that it's uppercase
 
       // We mock `readdir` so that it mimics a case-insensitive filesystem where
@@ -791,7 +779,7 @@ describe("File system utils", () => {
     });
 
     it("Should not resolve the true casing of the trusted starting directory", async (t) => {
-      const trustedFrom = path.join(getTmpDir(), "a", "B");
+      const trustedFrom = path.join(tmp.path, "a", "B");
 
       // We mock `readdir` so that only the trusted starting directory can be
       // read. If the resolver tries to read any ancestor of `from`, this test
@@ -823,24 +811,22 @@ describe("File system utils", () => {
     it("Should not throw when a previous call threw and the path now exists", async () => {
       const resolver = new TrueCasePathResolver();
 
-      await assert.rejects(
-        resolver.getFileTrueCase(getTmpDir(), "laterCreated"),
-        { name: "FileNotFoundError" },
-      );
+      await assert.rejects(resolver.getFileTrueCase(tmp.path, "laterCreated"), {
+        name: "FileNotFoundError",
+      });
 
-      await createFile(path.join(getTmpDir(), "laterCreated"));
+      await createFile(path.join(tmp.path, "laterCreated"));
 
       // The directory listing from the first call is cached, so without
       // `clear()` the new file is invisible.
-      await assert.rejects(
-        resolver.getFileTrueCase(getTmpDir(), "laterCreated"),
-        { name: "FileNotFoundError" },
-      );
+      await assert.rejects(resolver.getFileTrueCase(tmp.path, "laterCreated"), {
+        name: "FileNotFoundError",
+      });
 
       resolver.clear();
 
       assert.equal(
-        await resolver.getFileTrueCase(getTmpDir(), "laterCreated"),
+        await resolver.getFileTrueCase(tmp.path, "laterCreated"),
         "laterCreated",
       );
     });
@@ -853,35 +839,29 @@ describe("File system utils", () => {
         return;
       }
 
-      await createFile(path.join(getTmpDir(), "ambig"));
-      await createFile(path.join(getTmpDir(), "AMBIG"));
+      await createFile(path.join(tmp.path, "ambig"));
+      await createFile(path.join(tmp.path, "AMBIG"));
 
       const resolver = new TrueCasePathResolver();
 
       // Exact matches still work.
-      assert.equal(
-        await resolver.getFileTrueCase(getTmpDir(), "ambig"),
-        "ambig",
-      );
-      assert.equal(
-        await resolver.getFileTrueCase(getTmpDir(), "AMBIG"),
-        "AMBIG",
-      );
+      assert.equal(await resolver.getFileTrueCase(tmp.path, "ambig"), "ambig");
+      assert.equal(await resolver.getFileTrueCase(tmp.path, "AMBIG"), "AMBIG");
 
       // A spelling that folds to the ambiguous key is rejected.
-      await assert.rejects(resolver.getFileTrueCase(getTmpDir(), "Ambig"), {
+      await assert.rejects(resolver.getFileTrueCase(tmp.path, "Ambig"), {
         name: "FileNotFoundError",
       });
     });
 
     it("Should throw NotADirectoryError if an intermediate segment is not a directory", async () => {
-      const filePath = path.join(getTmpDir(), "file");
+      const filePath = path.join(tmp.path, "file");
       await createFile(filePath);
 
       const resolver = new TrueCasePathResolver();
 
       await assert.rejects(
-        resolver.getFileTrueCase(getTmpDir(), path.join("file", "child.ts")),
+        resolver.getFileTrueCase(tmp.path, path.join("file", "child.ts")),
         {
           name: "NotADirectoryError",
           message: `Path ${filePath} is not a directory`,
@@ -890,7 +870,7 @@ describe("File system utils", () => {
     });
 
     it("Should throw NotADirectoryError if the starting directory is not a directory", async () => {
-      const filePath = path.join(getTmpDir(), "file");
+      const filePath = path.join(tmp.path, "file");
       await createFile(filePath);
 
       const resolver = new TrueCasePathResolver();
@@ -901,7 +881,7 @@ describe("File system utils", () => {
     });
 
     it("Should throw FileNotFoundError when relativePath is '.' and the starting directory doesn't exist", async () => {
-      const missingDir = path.join(getTmpDir(), "missing");
+      const missingDir = path.join(tmp.path, "missing");
 
       const resolver = new TrueCasePathResolver();
 
@@ -914,7 +894,7 @@ describe("File system utils", () => {
     });
 
     it("Should throw NotADirectoryError when relativePath is '.' and the starting directory is a file", async () => {
-      const filePath = path.join(getTmpDir(), "fileAsFrom");
+      const filePath = path.join(tmp.path, "fileAsFrom");
       await createFile(filePath);
 
       const resolver = new TrueCasePathResolver();
@@ -925,7 +905,7 @@ describe("File system utils", () => {
     });
 
     it("Should throw FileSystemAccessError if a different error is thrown", async () => {
-      const linkPath = path.join(getTmpDir(), "link");
+      const linkPath = path.join(tmp.path, "link");
       await fsPromises.symlink(linkPath, linkPath);
 
       const resolver = new TrueCasePathResolver();
@@ -938,7 +918,7 @@ describe("File system utils", () => {
 
   describe("isDirectory", () => {
     it("Should return true if the path is a directory", async () => {
-      const dirPath = path.join(getTmpDir(), "dir");
+      const dirPath = path.join(tmp.path, "dir");
       await mkdir(dirPath);
 
       assert.ok(
@@ -948,7 +928,7 @@ describe("File system utils", () => {
     });
 
     it("Should return false if the path is not a directory", async () => {
-      const filePath = path.join(getTmpDir(), "file");
+      const filePath = path.join(tmp.path, "file");
       await createFile(filePath);
 
       assert.ok(
@@ -958,7 +938,7 @@ describe("File system utils", () => {
     });
 
     it("Should throw FileNotFoundError if the path doesn't exist", async () => {
-      const actualPath = path.join(getTmpDir(), "not-exists");
+      const actualPath = path.join(tmp.path, "not-exists");
 
       await assert.rejects(isDirectory(actualPath), {
         name: "FileNotFoundError",
@@ -980,7 +960,7 @@ describe("File system utils", () => {
   describe("readJsonFile", () => {
     it("Should read and parse a JSON file", async () => {
       const expectedObject = { a: 1, b: 2 };
-      const filePath = path.join(getTmpDir(), "file.json");
+      const filePath = path.join(tmp.path, "file.json");
       await writeUtf8File(filePath, JSON.stringify(expectedObject));
 
       assert.deepEqual(await readJsonFile(filePath), expectedObject);
@@ -991,7 +971,7 @@ describe("File system utils", () => {
     });
 
     it("Should throw InvalidFileFormatError if the file is not valid JSON", async () => {
-      const filePath = path.join(getTmpDir(), "file.json");
+      const filePath = path.join(tmp.path, "file.json");
       await writeUtf8File(filePath, "not-json");
 
       await assert.rejects(readJsonFile(filePath), {
@@ -1001,7 +981,7 @@ describe("File system utils", () => {
     });
 
     it("Should throw FileNotFoundError if the file doesn't exist", async () => {
-      const filePath = path.join(getTmpDir(), "not-exists.json");
+      const filePath = path.join(tmp.path, "not-exists.json");
 
       await assert.rejects(readJsonFile(filePath), {
         name: "FileNotFoundError",
@@ -1021,7 +1001,7 @@ describe("File system utils", () => {
   describe("writeJsonFile", () => {
     it("Should write an object to a JSON file", async () => {
       const expectedObject = { a: 1, b: 2 };
-      const filePath = path.join(getTmpDir(), "file.json");
+      const filePath = path.join(tmp.path, "file.json");
 
       await writeJsonFile(filePath, expectedObject);
 
@@ -1036,7 +1016,7 @@ describe("File system utils", () => {
 
     it("Should write an object tto a JSON file even if part of the path doesn't exist", async () => {
       const expectedObject = { a: 1, b: 2 };
-      const filePath = path.join(getTmpDir(), "not-exists", "file.json");
+      const filePath = path.join(tmp.path, "not-exists", "file.json");
 
       await writeJsonFile(filePath, expectedObject);
 
@@ -1047,7 +1027,7 @@ describe("File system utils", () => {
     });
 
     it("Should throw JsonSerializationError if the object can't be serialized to JSON", async () => {
-      const filePath = path.join(getTmpDir(), "file.json");
+      const filePath = path.join(tmp.path, "file.json");
       // create an object with a circular reference
       const circularObject: { self?: {} } = {};
       circularObject.self = circularObject;
@@ -1060,7 +1040,7 @@ describe("File system utils", () => {
 
     it("Should throw FileSystemAccessError if a different error is thrown", async () => {
       // Use a path that will cause a file system error (invalid characters in filename)
-      const filePath = path.join(getTmpDir(), "invalid\0filename.json");
+      const filePath = path.join(tmp.path, "invalid\0filename.json");
 
       await assert.rejects(writeJsonFile(filePath, {}), {
         name: "FileSystemAccessError",
@@ -1071,7 +1051,7 @@ describe("File system utils", () => {
   describe("readJsonFileAsStream", () => {
     it("Should read and parse a JSON file", async () => {
       const expectedObject = { a: 1, b: 2 };
-      const filePath = path.join(getTmpDir(), "file.json");
+      const filePath = path.join(tmp.path, "file.json");
       await writeUtf8File(filePath, JSON.stringify(expectedObject));
 
       assert.deepEqual(await readJsonFileAsStream(filePath), expectedObject);
@@ -1082,7 +1062,7 @@ describe("File system utils", () => {
     });
 
     it("Should throw InvalidFileFormatError if the file is not valid JSON", async () => {
-      const filePath = path.join(getTmpDir(), "file.json");
+      const filePath = path.join(tmp.path, "file.json");
       await writeUtf8File(filePath, "not-json");
 
       await assert.rejects(readJsonFileAsStream(filePath), {
@@ -1092,7 +1072,7 @@ describe("File system utils", () => {
     });
 
     it("Should throw InvalidFileFormatError if the file is empty", async () => {
-      const filePath = path.join(getTmpDir(), "file.json");
+      const filePath = path.join(tmp.path, "file.json");
       await writeUtf8File(filePath, "");
 
       await assert.rejects(readJsonFileAsStream(filePath), {
@@ -1102,7 +1082,7 @@ describe("File system utils", () => {
     });
 
     it("Should throw FileNotFoundError if the file doesn't exist", async () => {
-      const filePath = path.join(getTmpDir(), "not-exists.json");
+      const filePath = path.join(tmp.path, "not-exists.json");
 
       await assert.rejects(readJsonFileAsStream(filePath), {
         name: "FileNotFoundError",
@@ -1111,7 +1091,7 @@ describe("File system utils", () => {
     });
 
     it("Should throw IsDirectoryError if the file is a directory", async () => {
-      const filePath = path.join(getTmpDir());
+      const filePath = path.join(tmp.path);
 
       await assert.rejects(readJsonFileAsStream(filePath), {
         name: "IsDirectoryError",
@@ -1131,7 +1111,7 @@ describe("File system utils", () => {
   describe("writeJsonFileAsStream", () => {
     it("Should write an object to a JSON file", async () => {
       const expectedObject = { a: 1, b: 2 };
-      const filePath = path.join(getTmpDir(), "file.json");
+      const filePath = path.join(tmp.path, "file.json");
 
       await writeJsonFileAsStream(filePath, expectedObject);
 
@@ -1146,7 +1126,7 @@ describe("File system utils", () => {
 
     it("Should write an object tto a JSON file even if part of the path doesn't exist", async () => {
       const expectedObject = { a: 1, b: 2 };
-      const filePath = path.join(getTmpDir(), "not-exists", "file.json");
+      const filePath = path.join(tmp.path, "not-exists", "file.json");
 
       await writeJsonFileAsStream(filePath, expectedObject);
 
@@ -1157,7 +1137,7 @@ describe("File system utils", () => {
     });
 
     it("Should throw JsonSerializationError if the object can't be serialized to JSON", async () => {
-      const filePath = path.join(getTmpDir(), "file.json");
+      const filePath = path.join(tmp.path, "file.json");
       // create an object with a circular reference
       const circularObject: { self?: {} } = {};
       circularObject.self = circularObject;
@@ -1170,7 +1150,7 @@ describe("File system utils", () => {
 
     it("Should throw FileSystemAccessError if a different error is thrown", async () => {
       // Use a path that will cause a file system error (invalid characters in filename)
-      const filePath = path.join(getTmpDir(), "invalid\0filename.json");
+      const filePath = path.join(tmp.path, "invalid\0filename.json");
 
       await assert.rejects(writeJsonFileAsStream(filePath, {}), {
         name: "FileSystemAccessError",
@@ -1178,7 +1158,7 @@ describe("File system utils", () => {
     });
 
     it("Should remove the part of the path that didn't exist before if an error is thrown", async () => {
-      const dirPath = path.join(getTmpDir(), "not-exists");
+      const dirPath = path.join(tmp.path, "not-exists");
       const filePath = path.join(dirPath, "protected-file.json");
       // create an object with a circular reference
       const circularObject: { self?: {} } = {};
@@ -1196,7 +1176,7 @@ describe("File system utils", () => {
   describe("readUtf8File", () => {
     it("Should read a file and return its content as a string", async () => {
       const content = "hello";
-      const filePath = path.join(getTmpDir(), "file.txt");
+      const filePath = path.join(tmp.path, "file.txt");
       await writeUtf8File(filePath, content);
 
       assert.equal(await readUtf8File(filePath), content);
@@ -1204,7 +1184,7 @@ describe("File system utils", () => {
     });
 
     it("Should throw IsDirectoryError if the path is a dir and not a file", async () => {
-      const dirPath = path.join(getTmpDir(), "dir-name");
+      const dirPath = path.join(tmp.path, "dir-name");
       await mkdir(dirPath);
 
       await assert.rejects(readUtf8File(dirPath), {
@@ -1214,7 +1194,7 @@ describe("File system utils", () => {
     });
 
     it("Should throw FileNotFoundError if the file doesn't exist", async () => {
-      const filePath = path.join(getTmpDir(), "not-exists.txt");
+      const filePath = path.join(tmp.path, "not-exists.txt");
 
       await assert.rejects(readUtf8File(filePath), {
         name: "FileNotFoundError",
@@ -1223,7 +1203,7 @@ describe("File system utils", () => {
     });
 
     it("Should throw IsDirectoryError if the path is a dir and not a file", async () => {
-      const dirPath = path.join(getTmpDir(), "dir-name");
+      const dirPath = path.join(tmp.path, "dir-name");
       await mkdir(dirPath);
 
       await assert.rejects(readUtf8File(dirPath), {
@@ -1244,7 +1224,7 @@ describe("File system utils", () => {
   describe("writeUtf8File", () => {
     it("Should write a string to a file", async () => {
       const content = "hello";
-      const filePath = path.join(getTmpDir(), "file.txt");
+      const filePath = path.join(tmp.path, "file.txt");
 
       await writeUtf8File(filePath, content);
 
@@ -1253,7 +1233,7 @@ describe("File system utils", () => {
 
     it("Should write a string to a file even if part of the path doesn't exist", async () => {
       const content = "hello";
-      const filePath = path.join(getTmpDir(), "not-exists", "file.txt");
+      const filePath = path.join(tmp.path, "not-exists", "file.txt");
 
       await writeUtf8File(filePath, content);
 
@@ -1262,7 +1242,7 @@ describe("File system utils", () => {
 
     it("Should allow setting the flag", async () => {
       const content = "hello";
-      const filePath = path.join(getTmpDir(), "file.txt");
+      const filePath = path.join(tmp.path, "file.txt");
 
       await writeUtf8File(filePath, content);
       await writeUtf8File(filePath, content, "a");
@@ -1271,7 +1251,7 @@ describe("File system utils", () => {
     });
 
     it("Should throw FileAlreadyExistsError if the file already exists and the flag 'x' is used", async () => {
-      const filePath = path.join(getTmpDir(), "file.txt");
+      const filePath = path.join(tmp.path, "file.txt");
       await writeUtf8File(filePath, "hello");
 
       await assert.rejects(writeUtf8File(filePath, "hello", "wx"), {
@@ -1282,7 +1262,7 @@ describe("File system utils", () => {
 
     it("Should throw FileSystemAccessError if a different error is thrown", async () => {
       // Use a path that will cause a file system error (invalid characters in filename)
-      const filePath = path.join(getTmpDir(), "invalid\0filename.txt");
+      const filePath = path.join(tmp.path, "invalid\0filename.txt");
 
       await assert.rejects(writeUtf8File(filePath, "hello"), {
         name: "FileSystemAccessError",
@@ -1293,7 +1273,7 @@ describe("File system utils", () => {
   describe("readBinaryFile", () => {
     it("Should read a file and return its content as a string", async () => {
       const content = "hello";
-      const filePath = path.join(getTmpDir(), "file.txt");
+      const filePath = path.join(tmp.path, "file.txt");
 
       await writeUtf8File(filePath, content);
 
@@ -1305,7 +1285,7 @@ describe("File system utils", () => {
     });
 
     it("Should throw IsDirectoryError if the path is a dir and not a file", async () => {
-      const dirPath = path.join(getTmpDir(), "dir-name");
+      const dirPath = path.join(tmp.path, "dir-name");
 
       await mkdir(dirPath);
 
@@ -1316,7 +1296,7 @@ describe("File system utils", () => {
     });
 
     it("Should throw FileNotFoundError if the file doesn't exist", async () => {
-      const filePath = path.join(getTmpDir(), "not-exists.txt");
+      const filePath = path.join(tmp.path, "not-exists.txt");
 
       await assert.rejects(readBinaryFile(filePath), {
         name: "FileNotFoundError",
@@ -1325,7 +1305,7 @@ describe("File system utils", () => {
     });
 
     it("Should throw IsDirectoryError if the path is a dir and not a file", async () => {
-      const dirPath = path.join(getTmpDir(), "dir-name");
+      const dirPath = path.join(tmp.path, "dir-name");
 
       await mkdir(dirPath);
 
@@ -1346,7 +1326,7 @@ describe("File system utils", () => {
 
   describe("readdir", () => {
     it("Should return the files in a directory", async () => {
-      const dirPath = path.join(getTmpDir(), "dir");
+      const dirPath = path.join(tmp.path, "dir");
       await mkdir(dirPath);
 
       const files = ["file1.txt", "file2.txt", "file3.json"];
@@ -1366,7 +1346,7 @@ describe("File system utils", () => {
     });
 
     it("Should throw FileNotFoundError if the directory doesn't exist", async () => {
-      const dirPath = path.join(getTmpDir(), "not-exists");
+      const dirPath = path.join(tmp.path, "not-exists");
 
       await assert.rejects(readdir(dirPath), {
         name: "FileNotFoundError",
@@ -1375,7 +1355,7 @@ describe("File system utils", () => {
     });
 
     it("Should throw NotADirectoryError if the path is not a directory", async () => {
-      const filePath = path.join(getTmpDir(), "file");
+      const filePath = path.join(tmp.path, "file");
       await createFile(filePath);
 
       await assert.rejects(readdir(filePath), {
@@ -1395,7 +1375,7 @@ describe("File system utils", () => {
 
   describe("readdirOrEmpty", () => {
     it("Should return the files in a directory", async () => {
-      const dirPath = path.join(getTmpDir(), "dir");
+      const dirPath = path.join(tmp.path, "dir");
       await mkdir(dirPath);
 
       const files = ["file1.txt", "file2.txt", "file3.json"];
@@ -1415,13 +1395,13 @@ describe("File system utils", () => {
     });
 
     it("Should return an empty array if the directory doesn't exist", async () => {
-      const dirPath = path.join(getTmpDir(), "not-exists");
+      const dirPath = path.join(tmp.path, "not-exists");
 
       assert.deepEqual(await readdirOrEmpty(dirPath), []);
     });
 
     it("Should throw NotADirectoryError if the path is not a directory", async () => {
-      const filePath = path.join(getTmpDir(), "file");
+      const filePath = path.join(tmp.path, "file");
       await createFile(filePath);
 
       await assert.rejects(readdirOrEmpty(filePath), {
@@ -1441,7 +1421,7 @@ describe("File system utils", () => {
 
   describe("mkdir", () => {
     it("Should create a directory", async () => {
-      const dirPath = path.join(getTmpDir(), "dir");
+      const dirPath = path.join(tmp.path, "dir");
 
       await mkdir(dirPath);
 
@@ -1449,7 +1429,7 @@ describe("File system utils", () => {
     });
 
     it("Should create a directory and any necessary directories along the way", async () => {
-      const dirPath = path.join(getTmpDir(), "dir", "subdir");
+      const dirPath = path.join(tmp.path, "dir", "subdir");
 
       await mkdir(dirPath);
 
@@ -1457,7 +1437,7 @@ describe("File system utils", () => {
     });
 
     it("Should do nothing if the directory already exists", async () => {
-      const dirPath = path.join(getTmpDir(), "dir");
+      const dirPath = path.join(tmp.path, "dir");
 
       await mkdir(dirPath);
       await mkdir(dirPath);
@@ -1495,7 +1475,7 @@ describe("File system utils", () => {
 
   describe("getChangeTime", () => {
     it("Should return the change time of a file", async () => {
-      const filePath = path.join(getTmpDir(), "file.txt");
+      const filePath = path.join(tmp.path, "file.txt");
       await createFile(filePath);
 
       const stats = await fsPromises.stat(filePath);
@@ -1507,7 +1487,7 @@ describe("File system utils", () => {
     });
 
     it("Should throw FileNotFoundError if the file doesn't exist", async () => {
-      const filePath = path.join(getTmpDir(), "not-exists.txt");
+      const filePath = path.join(tmp.path, "not-exists.txt");
 
       await assert.rejects(getChangeTime(filePath), {
         name: "FileNotFoundError",
@@ -1526,7 +1506,7 @@ describe("File system utils", () => {
 
   describe("getAccessTime", () => {
     it("Should return the access time of a file", async () => {
-      const filePath = path.join(getTmpDir(), "file.txt");
+      const filePath = path.join(tmp.path, "file.txt");
       await createFile(filePath);
 
       const stats = await fsPromises.stat(filePath);
@@ -1538,7 +1518,7 @@ describe("File system utils", () => {
     });
 
     it("Should throw FileNotFoundError if the file doesn't exist", async () => {
-      const filePath = path.join(getTmpDir(), "not-exists.txt");
+      const filePath = path.join(tmp.path, "not-exists.txt");
 
       await assert.rejects(getAccessTime(filePath), {
         name: "FileNotFoundError",
@@ -1557,7 +1537,7 @@ describe("File system utils", () => {
 
   describe("getSize", () => {
     it("Should return the size of a file", async () => {
-      const filePath = path.join(getTmpDir(), "file.txt");
+      const filePath = path.join(tmp.path, "file.txt");
       await createFile(filePath);
 
       const stats = await fsPromises.stat(filePath);
@@ -1566,7 +1546,7 @@ describe("File system utils", () => {
     });
 
     it("Should throw FileNotFoundError if the file doesn't exist", async () => {
-      const filePath = path.join(getTmpDir(), "not-exists.txt");
+      const filePath = path.join(tmp.path, "not-exists.txt");
 
       await assert.rejects(getFileSize(filePath), {
         name: "FileNotFoundError",
@@ -1585,7 +1565,7 @@ describe("File system utils", () => {
 
   describe("exists", () => {
     it("Should return true if the file exists", async () => {
-      const filePath = path.join(getTmpDir(), "file.txt");
+      const filePath = path.join(tmp.path, "file.txt");
       await createFile(filePath);
 
       assert.ok(
@@ -1595,7 +1575,7 @@ describe("File system utils", () => {
     });
 
     it("Should return false if the file doesn't exist", async () => {
-      const filePath = path.join(getTmpDir(), "not-exists.txt");
+      const filePath = path.join(tmp.path, "not-exists.txt");
 
       assert.ok(
         !(await exists(filePath)),
@@ -1606,8 +1586,8 @@ describe("File system utils", () => {
 
   describe("copy", () => {
     it("Should copy a file", async () => {
-      const srcPath = path.join(getTmpDir(), "src.txt");
-      const destPath = path.join(getTmpDir(), "dest.txt");
+      const srcPath = path.join(tmp.path, "src.txt");
+      const destPath = path.join(tmp.path, "dest.txt");
 
       await writeUtf8File(srcPath, "hello");
       await copy(srcPath, destPath);
@@ -1616,8 +1596,8 @@ describe("File system utils", () => {
     });
 
     it("Should throw FileNotFoundError if the source file doesn't exist", async () => {
-      const srcPath = path.join(getTmpDir(), "not-exists.txt");
-      const destPath = path.join(getTmpDir(), "dest.txt");
+      const srcPath = path.join(tmp.path, "not-exists.txt");
+      const destPath = path.join(tmp.path, "dest.txt");
 
       await assert.rejects(copy(srcPath, destPath), {
         name: "FileNotFoundError",
@@ -1626,8 +1606,8 @@ describe("File system utils", () => {
     });
 
     it("Should throw FileNotFoundError if the destination path doesn't exist", async () => {
-      const srcPath = path.join(getTmpDir(), "src.txt");
-      const destPath = path.join(getTmpDir(), "not-exists", "dest.txt");
+      const srcPath = path.join(tmp.path, "src.txt");
+      const destPath = path.join(tmp.path, "not-exists", "dest.txt");
 
       await createFile(srcPath);
 
@@ -1638,8 +1618,8 @@ describe("File system utils", () => {
     });
 
     it("Should throw IsDirectoryError if the source path is a directory", async () => {
-      const srcPath = path.join(getTmpDir(), "dir");
-      const destPath = path.join(getTmpDir(), "dest.txt");
+      const srcPath = path.join(tmp.path, "dir");
+      const destPath = path.join(tmp.path, "dest.txt");
 
       await mkdir(srcPath);
 
@@ -1650,8 +1630,8 @@ describe("File system utils", () => {
     });
 
     it("Should throw IsDirectoryError if the destination path is a directory", async () => {
-      const srcPath = path.join(getTmpDir(), "src.txt");
-      const destPath = path.join(getTmpDir(), "dir");
+      const srcPath = path.join(tmp.path, "src.txt");
+      const destPath = path.join(tmp.path, "dir");
 
       await createFile(srcPath);
       await mkdir(destPath);
@@ -1664,7 +1644,7 @@ describe("File system utils", () => {
 
     it("Should throw FileSystemAccessError if a different error is thrown", async () => {
       const invalidPath = "\0";
-      const destPath = path.join(getTmpDir(), "dest.txt");
+      const destPath = path.join(tmp.path, "dest.txt");
 
       await assert.rejects(copy(invalidPath, destPath), {
         name: "FileSystemAccessError",
@@ -1674,7 +1654,7 @@ describe("File system utils", () => {
 
   describe("remove", () => {
     it("Should remove a file", async () => {
-      const filePath = path.join(getTmpDir(), "file.txt");
+      const filePath = path.join(tmp.path, "file.txt");
       await createFile(filePath);
 
       await remove(filePath);
@@ -1683,7 +1663,7 @@ describe("File system utils", () => {
     });
 
     it("Should remove an empty directory", async () => {
-      const dirPath = path.join(getTmpDir(), "dir");
+      const dirPath = path.join(tmp.path, "dir");
       await mkdir(dirPath);
 
       await remove(dirPath);
@@ -1692,7 +1672,7 @@ describe("File system utils", () => {
     });
 
     it("Should remove a directory and its content", async () => {
-      const dirPath = path.join(getTmpDir(), "dir");
+      const dirPath = path.join(tmp.path, "dir");
       await mkdir(dirPath);
 
       const files = ["file1.txt", "file2.txt", "file3.json"];
@@ -1710,7 +1690,7 @@ describe("File system utils", () => {
     });
 
     it("Should not throw if the path doesn't exist", async () => {
-      const filePath = path.join(getTmpDir(), "not-exists.txt");
+      const filePath = path.join(tmp.path, "not-exists.txt");
 
       await remove(filePath);
     });
@@ -1724,7 +1704,7 @@ describe("File system utils", () => {
     });
 
     it("Should throw busy error on windows platform", async () => {
-      const dirPath = path.join(getTmpDir(), "lockTest");
+      const dirPath = path.join(tmp.path, "lockTest");
       await mkdir(dirPath);
       const filePath = path.join(dirPath, "file.txt");
       await createFile(filePath);
@@ -1749,7 +1729,7 @@ describe("File system utils", () => {
 
   describe("chmod", () => {
     it("Should change the mode of a file", async () => {
-      const filePath = path.join(getTmpDir(), "file.txt");
+      const filePath = path.join(tmp.path, "file.txt");
       await createFile(filePath);
 
       await chmod(filePath, 0o666);
@@ -1761,7 +1741,7 @@ describe("File system utils", () => {
     });
 
     it("Should throw FileNotFoundError if the file doesn't exist", async () => {
-      const filePath = path.join(getTmpDir(), "not-exists.txt");
+      const filePath = path.join(tmp.path, "not-exists.txt");
 
       await assert.rejects(chmod(filePath, 0o666), {
         name: "FileNotFoundError",
@@ -1780,8 +1760,8 @@ describe("File system utils", () => {
 
   describe("move", () => {
     it("Should move a file", async () => {
-      const srcPath = path.join(getTmpDir(), "src.txt");
-      const destPath = path.join(getTmpDir(), "dest.txt");
+      const srcPath = path.join(tmp.path, "src.txt");
+      const destPath = path.join(tmp.path, "dest.txt");
 
       await writeUtf8File(srcPath, "hello");
       await move(srcPath, destPath);
@@ -1791,8 +1771,8 @@ describe("File system utils", () => {
     });
 
     it("Should move a directory", async () => {
-      const srcPath = path.join(getTmpDir(), "dir");
-      const destPath = path.join(getTmpDir(), "dest");
+      const srcPath = path.join(tmp.path, "dir");
+      const destPath = path.join(tmp.path, "dest");
 
       await mkdir(srcPath);
       await createFile(path.join(srcPath, "file.txt"));
@@ -1811,8 +1791,8 @@ describe("File system utils", () => {
     });
 
     it("Should throw FileNotFoundError if the source file doesn't exist", async () => {
-      const srcPath = path.join(getTmpDir(), "not-exists.txt");
-      const destPath = path.join(getTmpDir(), "dest.txt");
+      const srcPath = path.join(tmp.path, "not-exists.txt");
+      const destPath = path.join(tmp.path, "dest.txt");
 
       await assert.rejects(move(srcPath, destPath), {
         name: "FileNotFoundError",
@@ -1821,8 +1801,8 @@ describe("File system utils", () => {
     });
 
     it("Should throw FileNotFoundError if the destination path doesn't exist", async () => {
-      const srcPath = path.join(getTmpDir(), "src.txt");
-      const destPath = path.join(getTmpDir(), "not-exists", "dest.txt");
+      const srcPath = path.join(tmp.path, "src.txt");
+      const destPath = path.join(tmp.path, "not-exists", "dest.txt");
 
       await createFile(srcPath);
 
@@ -1833,8 +1813,8 @@ describe("File system utils", () => {
     });
 
     it("Should throw DirectoryNotEmptyError if the source path is a directory and the destination path is a directory that is not empty", async () => {
-      const srcPath = path.join(getTmpDir(), "dir");
-      const destPath = path.join(getTmpDir(), "dest");
+      const srcPath = path.join(tmp.path, "dir");
+      const destPath = path.join(tmp.path, "dest");
 
       await mkdir(srcPath);
       await mkdir(destPath);
@@ -1848,7 +1828,7 @@ describe("File system utils", () => {
 
     it("Should throw FileSystemAccessError if a different error is thrown", async () => {
       const invalidPath = "\0";
-      const destPath = path.join(getTmpDir(), "dest.txt");
+      const destPath = path.join(tmp.path, "dest.txt");
 
       await assert.rejects(move(invalidPath, destPath), {
         name: "FileSystemAccessError",
@@ -1858,7 +1838,7 @@ describe("File system utils", () => {
 
   describe("createFile", () => {
     it("Should create a file", async () => {
-      const filePath = path.join(getTmpDir(), "file.txt");
+      const filePath = path.join(tmp.path, "file.txt");
 
       await createFile(filePath);
 
@@ -1866,7 +1846,7 @@ describe("File system utils", () => {
     });
 
     it("Should create a file even if part of the path doesn't exist", async () => {
-      const filePath = path.join(getTmpDir(), "not-exists", "file.txt");
+      const filePath = path.join(tmp.path, "not-exists", "file.txt");
 
       await createFile(filePath);
 
@@ -1884,7 +1864,7 @@ describe("File system utils", () => {
 
   describe("emptyDir", () => {
     it("Should empty a directory", async () => {
-      const dirPath = path.join(getTmpDir(), "dir");
+      const dirPath = path.join(tmp.path, "dir");
       await mkdir(dirPath);
 
       const files = ["file1.txt", "file2.txt", "file3.json"];
@@ -1899,7 +1879,7 @@ describe("File system utils", () => {
     });
 
     it("Should preserve the directory permissions", async () => {
-      const dirPath = path.join(getTmpDir(), "dir");
+      const dirPath = path.join(tmp.path, "dir");
       await mkdir(dirPath);
       await chmod(dirPath, 0o666);
 
@@ -1910,7 +1890,7 @@ describe("File system utils", () => {
     });
 
     it("Should create the directory if it doesn't exist", async () => {
-      const dirPath = path.join(getTmpDir(), "not-exists");
+      const dirPath = path.join(tmp.path, "not-exists");
 
       await emptyDir(dirPath);
 
@@ -1919,7 +1899,7 @@ describe("File system utils", () => {
     });
 
     it("Should throw NotADirectoryError if the path is not a directory", async () => {
-      const filePath = path.join(getTmpDir(), "file");
+      const filePath = path.join(tmp.path, "file");
       await createFile(filePath);
 
       await assert.rejects(emptyDir(filePath), {
@@ -1939,18 +1919,18 @@ describe("File system utils", () => {
 
   describe("findUp", () => {
     it("Should find a file in the current directory", async () => {
-      const filePath = path.join(getTmpDir(), "file.txt");
+      const filePath = path.join(tmp.path, "file.txt");
       await createFile(filePath);
 
-      assert.equal(await findUp("file.txt", getTmpDir()), filePath);
+      assert.equal(await findUp("file.txt", tmp.path), filePath);
     });
 
     it("Should find a file in a parent directory", async () => {
-      const filePath = path.join(getTmpDir(), "file.txt");
+      const filePath = path.join(tmp.path, "file.txt");
       await createFile(filePath);
 
       assert.equal(
-        await findUp("file.txt", path.join(getTmpDir(), "subdir")),
+        await findUp("file.txt", path.join(tmp.path, "subdir")),
         filePath,
       );
     });
