@@ -4,8 +4,7 @@ import type { HardhatPlugin } from "../../../../src/types/plugins.js";
 import assert from "node:assert/strict";
 import { afterEach, describe, it } from "node:test";
 
-import { getTmpDir } from "@nomicfoundation/hardhat-test-utils";
-import { remove } from "@nomicfoundation/hardhat-utils/fs";
+import { createTmpDir } from "@nomicfoundation/hardhat-test-utils";
 
 import { overrideTask, task } from "../../../../src/config.js";
 import { createHardhatRuntimeEnvironment } from "../../../../src/hre.js";
@@ -360,13 +359,12 @@ describe("test/task-action", function () {
   });
 
   describe("gas stats reporting only includes data from subtasks that ran", function () {
+    const tmp = createTmpDir("gas-stats", "test");
+
     it("should not include stale data from a skipped runner in the gas stats report", async (t) => {
       const consoleMock = t.mock.method(console, "log", () => {});
 
-      const cacheDir = await getTmpDir("gas-stats");
-      t.after(async () => {
-        await remove(cacheDir);
-      });
+      const cacheDir = tmp.path;
 
       // Plugin that maps "runner-a-test.ts" → "runner-a", leaving "runner-b" unregistered
       const fileMapperPlugin: HardhatPlugin = {
