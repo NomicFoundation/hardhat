@@ -933,6 +933,17 @@ Please double check your script's path.`,
 
 Please specify a valid file path.`,
       },
+      FLATTEN_CYCLIC_DEPENDENCY: {
+        number: 602,
+        messageTemplate: `Hardhat flatten doesn't support cyclic dependencies.
+
+The following files form a cycle:
+{cycle}`,
+        websiteTitle: "Hardhat flatten doesn't support cyclic dependencies",
+        websiteDescription: `Hardhat \`flatten\` works by producing a topological order of the dependency graph and concatenating the files in that order. A graph with cycles has no topological order, so the algorithm can't be applied.
+
+If you need to flatten your project, refactor your Solidity sources to remove the cycle. Cyclic imports are normally avoidable and are harder for both humans and tooling to reason about.`,
+      },
     },
     NETWORK: {
       INVALID_URL: {

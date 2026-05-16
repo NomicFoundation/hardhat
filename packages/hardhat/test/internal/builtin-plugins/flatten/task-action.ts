@@ -4,7 +4,11 @@ import assert from "node:assert/strict";
 import fs from "node:fs";
 import { beforeEach, describe, it } from "node:test";
 
-import { useFixtureProject } from "@nomicfoundation/hardhat-test-utils";
+import { HardhatError } from "@nomicfoundation/hardhat-errors";
+import {
+  assertRejectsWithHardhatError,
+  useFixtureProject,
+} from "@nomicfoundation/hardhat-test-utils";
 
 import { createHardhatRuntimeEnvironment } from "../../../../src/hre.js";
 import flattenAction from "../../../../src/internal/builtin-plugins/flatten/task-action.js";
@@ -467,6 +471,42 @@ describe("flatten/task-action", () => {
     it("should not throw an error when metadata is null", async function () {
       const hre = await createHRE();
       await flattenAction({ files: [], ...logOptions }, hre);
+    });
+  });
+
+  describe("Cyclic dependencies", () => {
+    describe("when two files import each other", () => {
+      useFixtureProject("flatten-task/contracts-cyclic-dependencies");
+
+      it("should throw FLATTEN_CYCLIC_DEPENDENCY listing the cycle", async function () {
+        const hre = await createHRE();
+        // Dependencies are visited in sorted-by-source-name order, so the DFS
+        // starts at the alphabetically-first root (F.sol), descends into G.sol,
+        // and detects the back edge to F.sol.
+        await assertRejectsWithHardhatError(
+          flattenAction({ files: [], ...logOptions }, hre),
+          HardhatError.ERRORS.CORE.BUILTIN_TASKS.FLATTEN_CYCLIC_DEPENDENCY,
+          { cycle: "contracts/F.sol -> contracts/G.sol -> contracts/F.sol" },
+        );
+      });
+    });
+
+    describe("when three files form a cycle", () => {
+      useFixtureProject(
+        "flatten-task/contracts-cyclic-dependencies-three-files",
+      );
+
+      it("should throw FLATTEN_CYCLIC_DEPENDENCY listing every file in the cycle", async function () {
+        const hre = await createHRE();
+        await assertRejectsWithHardhatError(
+          flattenAction({ files: [], ...logOptions }, hre),
+          HardhatError.ERRORS.CORE.BUILTIN_TASKS.FLATTEN_CYCLIC_DEPENDENCY,
+          {
+            cycle:
+              "contracts/H.sol -> contracts/I.sol -> contracts/J.sol -> contracts/H.sol",
+          },
+        );
+      });
     });
   });
 });
