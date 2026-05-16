@@ -12,9 +12,9 @@ import { after, before, beforeEach, describe, it } from "node:test";
 import { stripVTControlCharacters } from "node:util";
 
 import {
+  createTmpDir,
   disableConsole,
   useFixtureProject,
-  useTmpDir,
 } from "@nomicfoundation/hardhat-test-utils";
 import {
   getAllFilesMatching,
@@ -103,11 +103,11 @@ describe("CoverageManagerImplementation", () => {
 
   let coverageManager: CoverageManagerImplementation;
 
-  useTmpDir();
+  const tmp = createTmpDir("coverage-manager", "test");
   disableConsole();
 
   beforeEach(async () => {
-    coverageManager = new CoverageManagerImplementation(process.cwd());
+    coverageManager = new CoverageManagerImplementation(tmp.path);
   });
 
   it("should load all the saved data", async () => {
@@ -127,8 +127,8 @@ describe("CoverageManagerImplementation", () => {
 
     await coverageManager.addMetadata(allMetadata);
 
-    const coverageManager1 = new CoverageManagerImplementation(process.cwd());
-    const coverageManager2 = new CoverageManagerImplementation(process.cwd());
+    const coverageManager1 = new CoverageManagerImplementation(tmp.path);
+    const coverageManager2 = new CoverageManagerImplementation(tmp.path);
 
     await coverageManager1.addData(data1);
     await coverageManager1.saveData(id);
@@ -171,7 +171,7 @@ describe("CoverageManagerImplementation", () => {
       });
     }
 
-    const coverageManager1 = new CoverageManagerImplementation(process.cwd());
+    const coverageManager1 = new CoverageManagerImplementation(tmp.path);
     await coverageManager1.addData(data1);
     await coverageManager1.saveData(id);
 
@@ -192,8 +192,8 @@ describe("CoverageManagerImplementation", () => {
   });
 
   it("should sum counts across saved shards on load", async () => {
-    const cm1 = new CoverageManagerImplementation(process.cwd());
-    const cm2 = new CoverageManagerImplementation(process.cwd());
+    const cm1 = new CoverageManagerImplementation(tmp.path);
+    const cm2 = new CoverageManagerImplementation(tmp.path);
 
     await cm1.addData(["a", "a", "b"]);
     await cm1.saveData(id);
@@ -268,13 +268,13 @@ describe("CoverageManagerImplementation", () => {
     await coverageManager.addData(data);
     await coverageManager.saveData(id);
 
-    let allData = await getAllFilesMatching(process.cwd());
+    let allData = await getAllFilesMatching(tmp.path);
 
     assert.ok(allData.length !== 0, "The data should be saved to disk");
 
     await coverageManager.clearData(id);
 
-    allData = await getAllFilesMatching(process.cwd());
+    allData = await getAllFilesMatching(tmp.path);
 
     assert.ok(allData.length === 0, "The data should be cleared from disk");
   });

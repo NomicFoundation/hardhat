@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import path from "node:path";
 import { after, afterEach, before, beforeEach, describe, it } from "node:test";
 
-import { getTmpDir } from "@nomicfoundation/hardhat-test-utils";
+import { createTmpDir } from "@nomicfoundation/hardhat-test-utils";
 import {
   readJsonFile,
   writeJsonFile,
@@ -40,7 +40,7 @@ function makeValidConfig({
 }
 
 describe("BannerManager", () => {
-  let testCacheRoot: string;
+  const tmp = createTmpDir("banner-manager-test-cache", "describe");
   let cacheDir: string;
   let printed: string[];
   let mockAgent: TestDispatcher;
@@ -55,14 +55,12 @@ describe("BannerManager", () => {
   };
 
   before(async () => {
-    testCacheRoot = await getTmpDir("banner-manager-test-cache");
-    setMockCacheDir(testCacheRoot);
+    setMockCacheDir(tmp.path);
     cacheDir = await getCacheDir();
   });
 
-  after(async () => {
+  after(() => {
     resetMockCacheDir();
-    await remove(testCacheRoot);
   });
 
   beforeEach(async () => {

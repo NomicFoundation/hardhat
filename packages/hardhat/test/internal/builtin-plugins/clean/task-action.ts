@@ -5,7 +5,7 @@ import path from "node:path";
 import { after, before, beforeEach, describe, it, mock } from "node:test";
 
 import {
-  getTmpDir,
+  createTmpDir,
   useFixtureProject,
 } from "@nomicfoundation/hardhat-test-utils";
 import {
@@ -28,9 +28,6 @@ let hre: HardhatRuntimeEnvironment;
 let globalCacheDir: string;
 let cacheDir: string;
 let artifactsDir: string;
-
-// Variable for isolating the global cache during tests
-let testGlobalCacheRoot: string;
 
 const onClean = mock.fn(async () => {});
 
@@ -71,11 +68,11 @@ function assertCleanBehavior(global: boolean) {
 describe("clean/task-action", () => {
   describe("cleanAction", () => {
     useFixtureProject("loaded-config");
+    const tmp = createTmpDir("clean-task-global-cache", "describe");
 
     before(async function () {
       // Set up isolated cache directory to avoid deleting the real global cache
-      testGlobalCacheRoot = await getTmpDir("clean-task-global-cache");
-      setMockCacheDir(testGlobalCacheRoot);
+      setMockCacheDir(tmp.path);
 
       globalCacheDir = await getCacheDir();
       cacheDir = path.join(process.cwd(), "cache");
@@ -89,12 +86,8 @@ describe("clean/task-action", () => {
       });
     });
 
-    after(async function () {
-      // Reset mock cache directory
+    after(function () {
       resetMockCacheDir();
-
-      // Clean up temp directory
-      await remove(testGlobalCacheRoot);
     });
 
     beforeEach(async () => {
