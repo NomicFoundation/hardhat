@@ -8,15 +8,16 @@ import type {
 
 import assert from "node:assert/strict";
 import path from "node:path";
-import { afterEach, before, describe, it } from "node:test";
+import { afterEach, describe, it } from "node:test";
 
 import { HardhatError } from "@nomicfoundation/hardhat-errors";
-import { assertThrowsHardhatError } from "@nomicfoundation/hardhat-test-utils";
 import {
-  emptyDir,
+  assertThrowsHardhatError,
+  createTmpDir,
+} from "@nomicfoundation/hardhat-test-utils";
+import {
   exists,
   FileNotFoundError,
-  mkdtemp,
   readJsonFile,
 } from "@nomicfoundation/hardhat-utils/fs";
 
@@ -266,15 +267,7 @@ describe("snapshot-cheatcodes", () => {
   });
 
   describe("writeSnapshotCheatcodes", () => {
-    let tmpDir: string;
-
-    before(async () => {
-      tmpDir = await mkdtemp("snapshot-cheatcodes-test-");
-    });
-
-    afterEach(async () => {
-      await emptyDir(tmpDir);
-    });
+    const tmp = createTmpDir("snapshot-cheatcodes-test", "test");
 
     it("should write single snapshot group to JSON file", async () => {
       const snapshots = new Map([
@@ -297,10 +290,10 @@ describe("snapshot-cheatcodes", () => {
         ],
       ]);
 
-      await writeSnapshotCheatcodes(tmpDir, snapshots);
+      await writeSnapshotCheatcodes(tmp.path, snapshots);
 
       const snapshotPath = getSnapshotCheatcodesPath(
-        tmpDir,
+        tmp.path,
         "CalculatorTest.json",
       );
       const savedContent = await readJsonFile(snapshotPath);
@@ -340,13 +333,13 @@ describe("snapshot-cheatcodes", () => {
         ],
       ]);
 
-      await writeSnapshotCheatcodes(tmpDir, snapshots);
+      await writeSnapshotCheatcodes(tmp.path, snapshots);
 
-      const groupAPath = getSnapshotCheatcodesPath(tmpDir, "GroupA.json");
+      const groupAPath = getSnapshotCheatcodesPath(tmp.path, "GroupA.json");
       const groupAContent = await readJsonFile(groupAPath);
       assert.deepEqual(groupAContent, { "entry-a": "100" });
 
-      const groupBPath = getSnapshotCheatcodesPath(tmpDir, "GroupB.json");
+      const groupBPath = getSnapshotCheatcodesPath(tmp.path, "GroupB.json");
       const groupBContent = await readJsonFile(groupBPath);
       assert.deepEqual(groupBContent, {
         "entry-b": "200",
@@ -378,10 +371,13 @@ describe("snapshot-cheatcodes", () => {
         ],
       ]);
 
-      await writeSnapshotCheatcodes(tmpDir, firstSnapshots);
-      await writeSnapshotCheatcodes(tmpDir, secondSnapshots);
+      await writeSnapshotCheatcodes(tmp.path, firstSnapshots);
+      await writeSnapshotCheatcodes(tmp.path, secondSnapshots);
 
-      const snapshotPath = getSnapshotCheatcodesPath(tmpDir, "TestGroup.json");
+      const snapshotPath = getSnapshotCheatcodesPath(
+        tmp.path,
+        "TestGroup.json",
+      );
       const savedContent = await readJsonFile(snapshotPath);
 
       assert.deepEqual(savedContent, { "new-entry": "200" });
@@ -390,9 +386,9 @@ describe("snapshot-cheatcodes", () => {
     it("should handle empty snapshots map", async () => {
       const emptySnapshots = new Map();
 
-      await writeSnapshotCheatcodes(tmpDir, emptySnapshots);
+      await writeSnapshotCheatcodes(tmp.path, emptySnapshots);
 
-      const snapshotsDir = path.join(tmpDir, SNAPSHOT_CHEATCODES_DIR);
+      const snapshotsDir = path.join(tmp.path, SNAPSHOT_CHEATCODES_DIR);
       const dirExists = await exists(snapshotsDir);
       assert.equal(
         dirExists,
@@ -426,11 +422,11 @@ describe("snapshot-cheatcodes", () => {
           },
         ],
       ]);
-      await writeSnapshotCheatcodes(tmpDir, firstSnapshots);
+      await writeSnapshotCheatcodes(tmp.path, firstSnapshots);
 
       // Verify both files exist
-      const groupAPath = getSnapshotCheatcodesPath(tmpDir, "GroupA.json");
-      const groupBPath = getSnapshotCheatcodesPath(tmpDir, "GroupB.json");
+      const groupAPath = getSnapshotCheatcodesPath(tmp.path, "GroupA.json");
+      const groupBPath = getSnapshotCheatcodesPath(tmp.path, "GroupB.json");
       assert.equal(await exists(groupAPath), true, "GroupA.json should exist");
       assert.equal(await exists(groupBPath), true, "GroupB.json should exist");
 
@@ -449,7 +445,7 @@ describe("snapshot-cheatcodes", () => {
           },
         ],
       ]);
-      await writeSnapshotCheatcodes(tmpDir, secondSnapshots);
+      await writeSnapshotCheatcodes(tmp.path, secondSnapshots);
 
       // GroupA should still exist, GroupB should be deleted
       assert.equal(
@@ -466,15 +462,7 @@ describe("snapshot-cheatcodes", () => {
   });
 
   describe("readSnapshotCheatcodes", () => {
-    let tmpDir: string;
-
-    before(async () => {
-      tmpDir = await mkdtemp("snapshot-cheatcodes-test-");
-    });
-
-    afterEach(async () => {
-      await emptyDir(tmpDir);
-    });
+    const tmp = createTmpDir("snapshot-cheatcodes-test", "test");
 
     it("should read single snapshot group from JSON file", async () => {
       const snapshots: SnapshotCheatcodesWithMetadataMap = new Map([
@@ -497,8 +485,8 @@ describe("snapshot-cheatcodes", () => {
         ],
       ]);
 
-      await writeSnapshotCheatcodes(tmpDir, snapshots);
-      const readSnapshots = await readSnapshotCheatcodes(tmpDir);
+      await writeSnapshotCheatcodes(tmp.path, snapshots);
+      const readSnapshots = await readSnapshotCheatcodes(tmp.path);
 
       assert.equal(readSnapshots.size, 1);
       const calculatorTest = readSnapshots.get("CalculatorTest");
@@ -539,8 +527,8 @@ describe("snapshot-cheatcodes", () => {
         ],
       ]);
 
-      await writeSnapshotCheatcodes(tmpDir, snapshots);
-      const readSnapshots = await readSnapshotCheatcodes(tmpDir);
+      await writeSnapshotCheatcodes(tmp.path, snapshots);
+      const readSnapshots = await readSnapshotCheatcodes(tmp.path);
 
       assert.equal(readSnapshots.size, 2);
       const groupA = readSnapshots.get("GroupA");
@@ -554,7 +542,7 @@ describe("snapshot-cheatcodes", () => {
 
     it("should throw FileNotFoundError when snapshots directory doesn't exist", async () => {
       try {
-        await readSnapshotCheatcodes(tmpDir);
+        await readSnapshotCheatcodes(tmp.path);
         assert.fail("Expected FileNotFoundError to be thrown");
       } catch (error) {
         assert.ok(
@@ -993,15 +981,7 @@ ZGroup#entry-z: 300`;
   });
 
   describe("sanitizeSnapshotCheatcodes", () => {
-    let tmpDir: string;
-
-    before(async () => {
-      tmpDir = await mkdtemp("snapshot-cheatcodes-sanitize-test-");
-    });
-
-    afterEach(async () => {
-      await emptyDir(tmpDir);
-    });
+    const tmp = createTmpDir("snapshot-cheatcodes-sanitize-test", "test");
 
     it("should rekey groups whose names need sanitization and report renames", () => {
       const input: SnapshotCheatcodesWithMetadataMap = new Map([
@@ -1149,9 +1129,9 @@ ZGroup#entry-z: 300`;
       ]);
 
       const { snapshotCheatcodes } = sanitizeSnapshotCheatcodes(input);
-      await writeSnapshotCheatcodes(tmpDir, snapshotCheatcodes);
+      await writeSnapshotCheatcodes(tmp.path, snapshotCheatcodes);
 
-      const previous = await readSnapshotCheatcodes(tmpDir);
+      const previous = await readSnapshotCheatcodes(tmp.path);
       const comparison = compareSnapshotCheatcodes(
         previous,
         snapshotCheatcodes,
