@@ -108,8 +108,8 @@ export async function useTestProjectTemplate(
       }
 
       // Restore the previous cwd before removal — `safeRemoveTmpDir` also
-      // chdirs out if cwd is inside the tmp dir, but going back to whatever
-      // the caller had before is a more accurate restoration.
+      // changes cwd if it points inside the tmp dir, but going back to
+      // whatever the caller had before is a more accurate restoration.
       process.chdir(oldCwd);
       await safeRemoveTmpDir(projectPath);
       cleaned = true;
