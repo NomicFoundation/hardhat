@@ -406,7 +406,7 @@ invalid syntax`,
             },
           };
 
-          const project = await useTestProjectTemplate(template);
+          await using project = await useTestProjectTemplate(template);
           const graph = await RemappedNpmPackagesGraphImplementation.create(
             project.path,
           );
@@ -648,7 +648,7 @@ invalid syntax`,
           },
         };
 
-        const project = await useTestProjectTemplate(template);
+        await using project = await useTestProjectTemplate(template);
         const graph = await RemappedNpmPackagesGraphImplementation.create(
           project.path,
         );
@@ -845,7 +845,7 @@ invalid syntax`,
       };
 
       it("Should generate a remapping into a npm file, as provided in the args", async () => {
-        const project = await useTestProjectTemplate(template);
+        await using project = await useTestProjectTemplate(template);
         const graph = await RemappedNpmPackagesGraphImplementation.create(
           project.path,
         );
@@ -884,7 +884,7 @@ invalid syntax`,
       });
 
       it("Should reuse the same remapping object if run twice", async () => {
-        const project = await useTestProjectTemplate(template);
+        await using project = await useTestProjectTemplate(template);
         const graph = await RemappedNpmPackagesGraphImplementation.create(
           project.path,
         );
@@ -906,7 +906,7 @@ invalid syntax`,
       });
 
       it("Should validate that the target matches if run twice", async () => {
-        const project = await useTestProjectTemplate(template);
+        await using project = await useTestProjectTemplate(template);
         const graph = await RemappedNpmPackagesGraphImplementation.create(
           project.path,
         );
@@ -1065,7 +1065,7 @@ invalid syntax`,
             },
           };
 
-          const project = await useTestProjectTemplate(template);
+          await using project = await useTestProjectTemplate(template);
           const graph = await RemappedNpmPackagesGraphImplementation.create(
             project.path,
           );
@@ -1565,7 +1565,7 @@ contr:to-npm=node_modules/dep/contracts`,
               },
             };
 
-            const project = await useTestProjectTemplate(template);
+            await using project = await useTestProjectTemplate(template);
             const graph = await RemappedNpmPackagesGraphImplementation.create(
               project.path,
             );
