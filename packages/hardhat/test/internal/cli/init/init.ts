@@ -724,7 +724,7 @@ describe("installProjectDependencies", async () => {
 
 describe("initHardhat", async () => {
   describe("templates", async () => {
-    const tmp = createTmpDir("initHardhat", "test");
+    const tmp = createTmpDir("initHardhat-templates", "test");
 
     disableConsole();
 
@@ -763,7 +763,7 @@ describe("initHardhat", async () => {
   });
 
   describe("folder creation when non existent", async () => {
-    const tmp = createTmpDir("initHardhat", "test");
+    const tmp = createTmpDir("initHardhat-folder-creation", "test");
 
     disableConsole();
 
