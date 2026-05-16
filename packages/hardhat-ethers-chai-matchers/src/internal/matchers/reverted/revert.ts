@@ -12,6 +12,7 @@ import { preventAsyncMatcherChaining } from "../../utils/prevent-chaining.js";
 import {
   decodeReturnData,
   getReturnDataFromError,
+  hasTransactionHash,
   parseBytes32String,
 } from "./utils.js";
 
@@ -37,12 +38,12 @@ export function supportRevert(
       const onSuccess = async (value: unknown) => {
         const assert = buildAssert(negated, onSuccess);
 
-        if (isTransactionResponse(value) || typeof value === "string") {
+        if (hasTransactionHash(value) || typeof value === "string") {
           const hash = typeof value === "string" ? value : value.hash;
 
           if (!isHash(hash)) {
             chaiAssert.fail(
-              `Expected a valid transaction hash, but got "${hash}"`,
+              `Expected a valid transaction hash, but got "${String(hash)}"`,
             );
           }
 
@@ -147,14 +148,6 @@ export function supportRevert(
 
 async function waitForTransactionReceipt(ethers: HardhatEthers, hash: string) {
   return await ethers.provider.waitForTransaction(hash);
-}
-
-function isTransactionResponse(x: unknown): x is { hash: string } {
-  if (typeof x === "object" && x !== null) {
-    return "hash" in x;
-  }
-
-  return false;
 }
 
 function isTransactionReceipt(x: unknown): x is { status: number } {
