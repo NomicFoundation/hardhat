@@ -13,9 +13,9 @@ import { after, before, beforeEach, describe, it } from "node:test";
 import { HardhatError } from "@nomicfoundation/hardhat-errors";
 import {
   assertRejectsWithHardhatError,
-  getTmpDir,
+  createTmpDir,
 } from "@nomicfoundation/hardhat-test-utils";
-import { remove } from "@nomicfoundation/hardhat-utils/fs";
+import { writeJsonFile } from "@nomicfoundation/hardhat-utils/fs";
 import {
   resetMockCacheDir,
   setMockCacheDir,
@@ -39,7 +39,7 @@ describe(
   function () {
     let nativeCompiler: Compiler;
     let wasmCompiler: Compiler;
-    let testGlobalCacheRoot: string;
+    const tmp = createTmpDir("custom-compiler-test-cache", "describe");
 
     const basicProjectTemplate = {
       name: "test",
@@ -81,8 +81,15 @@ describe(
     // We download a specific version of native and WASM solc and use it for the tests
     before(async function () {
       // Set up isolated cache directory to avoid using/affecting the real global cache
-      testGlobalCacheRoot = await getTmpDir("custom-compiler-test-cache");
-      setMockCacheDir(testGlobalCacheRoot);
+      setMockCacheDir(tmp.path);
+
+      // The workspace's package.json sets `"type": "module"`, which would
+      // cascade into this tmp dir and make Node try to load solc's downloaded
+      // WASM bundle (a `.js` CJS file using `__dirname`) as ESM. Plant a
+      // package.json that opts this subtree out.
+      await writeJsonFile(path.join(tmp.path, "package.json"), {
+        type: "commonjs",
+      });
 
       await downloadSolcCompilers(new Set(["0.8.26"]), true);
 
@@ -103,12 +110,8 @@ describe(
       }
     });
 
-    after(async function () {
-      // Reset mock cache directory
+    after(function () {
       resetMockCacheDir();
-
-      // Clean up temp directory
-      await remove(testGlobalCacheRoot);
     });
 
     for (const compilerType of ["native", "wasm"]) {

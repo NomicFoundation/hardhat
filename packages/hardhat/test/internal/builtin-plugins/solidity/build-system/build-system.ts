@@ -14,7 +14,7 @@ import { before, beforeEach, describe, it, mock } from "node:test";
 import { HardhatError } from "@nomicfoundation/hardhat-errors";
 import {
   assertRejectsWithHardhatError,
-  getTmpDir,
+  createTmpDir,
   useFixtureProject,
 } from "@nomicfoundation/hardhat-test-utils";
 import {
@@ -80,6 +80,7 @@ describe(
     let solidity: SolidityBuildSystemImplementation;
 
     useFixtureProject("solidity/example-project");
+    const tmp = createTmpDir("solidity-build-system-implementation", "test");
 
     const solidityConfig: SolidityConfig = {
       profiles: {
@@ -130,9 +131,8 @@ describe(
     });
 
     beforeEach(async () => {
-      const tmpDir = await getTmpDir("solidity-build-system-implementation");
-      actualArtifactsPath = path.join(tmpDir, "artifacts");
-      actualCachePath = path.join(tmpDir, "cache");
+      actualArtifactsPath = path.join(tmp.path, "artifacts");
+      actualCachePath = path.join(tmp.path, "cache");
       const hooks = new HookManagerImplementation(process.cwd(), []);
       // eslint-disable-next-line @typescript-eslint/consistent-type-assertions -- We don't care about hooks in this context
       hooks.setContext({} as HookContext);
@@ -523,8 +523,10 @@ describe("SolidityBuildSystemImplementation.getScope", () => {
 });
 
 describe("SolidityBuildSystemImplementation.getRootFilePaths", () => {
+  const tmp = createTmpDir("solidity-build-system-root-files", "test");
+
   it("Regression test: walks each sources path only once in unified mode", async () => {
-    const projectRoot = await getTmpDir("solidity-build-system-root-files");
+    const projectRoot = tmp.path;
     const contractsPath = path.join(projectRoot, "contracts");
     const testsPath = path.join(projectRoot, "tests");
 

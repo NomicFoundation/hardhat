@@ -10,8 +10,8 @@ import { HardhatError } from "@nomicfoundation/hardhat-errors";
 import {
   assertRejects,
   assertRejectsWithHardhatError,
+  createTmpDir,
   disableConsole,
-  useTmpDir,
 } from "@nomicfoundation/hardhat-test-utils";
 import {
   ensureDir,
@@ -19,7 +19,6 @@ import {
   createFile,
   readJsonFile,
   readUtf8File,
-  remove,
   writeJsonFile,
   writeUtf8File,
 } from "@nomicfoundation/hardhat-utils/fs";
@@ -49,6 +48,41 @@ const skipNetworkSlowTests =
   process.env.GITHUB_EVENT_NAME === "merge_group" ||
   process.env.GITHUB_HEAD_REF?.startsWith("changeset-release/") === true;
 
+// initHardhat3NonInteractive reads `process.cwd()` internally, and several
+// tests below write/read files via relative paths. This helper combines a
+// per-test tmp dir with a `chdir` into it.
+function useTmpDirAsCwd(name: string): { readonly path: string } {
+  const tmp = createTmpDir(name, "test");
+  let previousCwd: string;
+  beforeEach(() => {
+    previousCwd = process.cwd();
+    process.chdir(tmp.path);
+  });
+  afterEach(() => {
+    process.chdir(previousCwd);
+  });
+  return tmp;
+}
+
+// Writes the standard config files needed for tests that run `pnpm add` from
+// inside a tmp dir.
+//
+// `.npmrc` re-introduces `minimum-release-age-exclude` because we run tests
+// under `pnpm`, and the root `.npmrc`'s array setting gets lost on its way to
+// the subprocess.
+//
+// `pnpm-workspace.yaml` makes pnpm treat the tmp dir as its own workspace
+// root. Without it, pnpm would walk up to the repo's `pnpm-workspace.yaml`
+// and record this test's install under `tmp/<name>:` in the workspace's
+// `pnpm-lock.yaml`.
+async function setUpPnpmTmpDir(dir: string): Promise<void> {
+  await writeUtf8File(
+    path.join(dir, ".npmrc"),
+    'minimum-release-age-exclude[]="hardhat"\nminimum-release-age-exclude[]="@nomicfoundation/*"',
+  );
+  await writeUtf8File(path.join(dir, "pnpm-workspace.yaml"), "packages: []\n");
+}
+
 // NOTE: This uses network to access the npm registry
 describe("printWelcomeMessage", () => {
   disableConsole();
@@ -59,13 +93,13 @@ describe("printWelcomeMessage", () => {
 });
 
 describe("getWorkspace", () => {
-  useTmpDir("getWorkspace");
+  const tmp = createTmpDir("getWorkspace", "test");
 
   describe("workspace is not a directory", async () => {
-    useTmpDir("invalidDirectory");
+    const innerTmp = createTmpDir("invalidDirectory", "test");
 
     it("should throw if the provided workspace is not a directory", async () => {
-      const filePath = path.join(process.cwd(), "file.txt");
+      const filePath = path.join(innerTmp.path, "file.txt");
 
       await writeUtf8File(filePath, "some content");
 
@@ -80,13 +114,13 @@ describe("getWorkspace", () => {
   });
 
   it("should throw if the provided workspace is within an already initialized hardhat project", async () => {
-    await ensureDir("hardhat-project");
-    await writeUtf8File("hardhat.config.ts", "");
+    await ensureDir(path.join(tmp.path, "hardhat-project"));
+    await writeUtf8File(path.join(tmp.path, "hardhat.config.ts"), "");
     await assertRejectsWithHardhatError(
-      async () => await getWorkspace("hardhat-project"),
+      async () => await getWorkspace(path.join(tmp.path, "hardhat-project")),
       HardhatError.ERRORS.CORE.GENERAL.HARDHAT_PROJECT_ALREADY_CREATED,
       {
-        hardhatProjectRootPath: path.join(process.cwd(), "hardhat.config.ts"),
+        hardhatProjectRootPath: path.join(tmp.path, "hardhat.config.ts"),
       },
     );
   });
@@ -110,16 +144,17 @@ describe("getTemplate", () => {
 });
 
 describe("validatePackageJson", () => {
-  useTmpDir("validatePackageJson");
+  const tmp = createTmpDir("validatePackageJson", "test");
+  const packageJsonPath = () => path.join(tmp.path, "package.json");
 
   it("should create the package.json file if it does not exist", async () => {
     assert.ok(
-      !(await exists("package.json")),
+      !(await exists(packageJsonPath())),
       "package.json should not exist before ensuring it exists",
     );
 
     await validatePackageJson(
-      process.cwd(),
+      tmp.path,
       {
         name: "package-name",
         version: "0.0.1",
@@ -128,7 +163,7 @@ describe("validatePackageJson", () => {
       false,
     );
 
-    assert.ok(await exists("package.json"), "package.json should exist");
+    assert.ok(await exists(packageJsonPath()), "package.json should exist");
   });
 
   it("should not create the package.json file if it already exists", async () => {
@@ -137,10 +172,10 @@ describe("validatePackageJson", () => {
       type: "module",
     };
 
-    await writeJsonFile("package.json", before);
+    await writeJsonFile(packageJsonPath(), before);
 
     await validatePackageJson(
-      process.cwd(),
+      tmp.path,
       {
         name: "package-name",
         version: "0.0.1",
@@ -149,18 +184,18 @@ describe("validatePackageJson", () => {
       false,
     );
 
-    const after = await readJsonFile("package.json");
+    const after = await readJsonFile(packageJsonPath());
 
     assert.deepEqual(before, after);
   });
 
   it("should throw if the package.json is not for an esm package", async () => {
-    await writeJsonFile("package.json", {});
+    await writeJsonFile(packageJsonPath(), {});
 
     await assertRejectsWithHardhatError(
       async () =>
         await validatePackageJson(
-          process.cwd(),
+          tmp.path,
           {
             name: "package-name",
             version: "0.0.1",
@@ -174,10 +209,10 @@ describe("validatePackageJson", () => {
   });
 
   it("should migrate package.json to esm if the user opts-in to it", async () => {
-    await writeJsonFile("package.json", {});
+    await writeJsonFile(packageJsonPath(), {});
 
     await validatePackageJson(
-      process.cwd(),
+      tmp.path,
       {
         name: "package-name",
         version: "0.0.1",
@@ -186,18 +221,16 @@ describe("validatePackageJson", () => {
       true,
     );
 
-    const pkg: PackageJson = await readJsonFile(
-      path.join(process.cwd(), "package.json"),
-    );
+    const pkg: PackageJson = await readJsonFile(packageJsonPath());
 
     assert.equal(pkg.type, "module");
   });
 
   it("should not migrate package.json to esm when shouldUseEsm is false and type is not set", async () => {
-    await writeJsonFile("package.json", {});
+    await writeJsonFile(packageJsonPath(), {});
 
     await validatePackageJson(
-      process.cwd(),
+      tmp.path,
       {
         name: "package-name",
         version: "0.0.1",
@@ -205,9 +238,7 @@ describe("validatePackageJson", () => {
       false,
     );
 
-    const pkg: PackageJson = await readJsonFile(
-      path.join(process.cwd(), "package.json"),
-    );
+    const pkg: PackageJson = await readJsonFile(packageJsonPath());
 
     assert.equal(pkg.type, undefined);
   });
@@ -218,10 +249,10 @@ describe("validatePackageJson", () => {
       type: "commonjs",
     };
 
-    await writeJsonFile("package.json", before);
+    await writeJsonFile(packageJsonPath(), before);
 
     await validatePackageJson(
-      process.cwd(),
+      tmp.path,
       {
         name: "package-name",
         version: "0.0.1",
@@ -229,23 +260,19 @@ describe("validatePackageJson", () => {
       false,
     );
 
-    const after: PackageJson = await readJsonFile(
-      path.join(process.cwd(), "package.json"),
-    );
+    const after: PackageJson = await readJsonFile(packageJsonPath());
 
     assert.deepEqual(before, after);
   });
 
   it("should not migrate package.json to esm when shouldUseEsm is false and no package.json exists", async () => {
-    await remove(path.join(process.cwd(), "package.json"));
-
     assert.ok(
-      !(await exists("package.json")),
+      !(await exists(packageJsonPath())),
       "package.json should not exist before ensuring it exists",
     );
 
     await validatePackageJson(
-      process.cwd(),
+      tmp.path,
       {
         name: "package-name",
         version: "0.0.1",
@@ -253,9 +280,7 @@ describe("validatePackageJson", () => {
       false,
     );
 
-    const after: PackageJson = await readJsonFile(
-      path.join(process.cwd(), "package.json"),
-    );
+    const after: PackageJson = await readJsonFile(packageJsonPath());
 
     assert.equal(after.type, undefined);
   });
@@ -292,7 +317,7 @@ describe("relativeTemplateToWorkspacePath", () => {
 });
 
 describe("copyProjectFiles", () => {
-  useTmpDir("copyProjectFiles");
+  const tmp = createTmpDir("copyProjectFiles", "test");
 
   disableConsole();
 
@@ -304,29 +329,29 @@ describe("copyProjectFiles", () => {
         relativeTemplateToWorkspacePath,
       );
       for (const file of workspaceFiles) {
-        const pathToFile = path.join(process.cwd(), file);
+        const pathToFile = path.join(tmp.path, file);
         await ensureDir(path.dirname(pathToFile));
         await writeUtf8File(pathToFile, "some content");
       }
       // Copy the template files to the workspace
-      await copyProjectFiles(process.cwd(), template, true);
+      await copyProjectFiles(tmp.path, template, true);
       // Check that the template files in the workspace have been overwritten
       for (const file of workspaceFiles) {
-        const pathToFile = path.join(process.cwd(), file);
+        const pathToFile = path.join(tmp.path, file);
         assert.notEqual(await readUtf8File(pathToFile), "some content");
       }
     });
     it("should copy the .gitignore file correctly", async () => {
       const [template] = await getTemplate("hardhat-3", "mocha-ethers");
       // Copy the template files to the workspace
-      await copyProjectFiles(process.cwd(), template, true);
+      await copyProjectFiles(tmp.path, template, true);
       // Check that the .gitignore exists but gitignore does not
       assert.ok(
-        await exists(path.join(process.cwd(), ".gitignore")),
+        await exists(path.join(tmp.path, ".gitignore")),
         ".gitignore should exist",
       );
       assert.ok(
-        !(await exists(path.join(process.cwd(), "gitignore"))),
+        !(await exists(path.join(tmp.path, "gitignore"))),
         "gitignore should NOT exist",
       );
     });
@@ -339,36 +364,36 @@ describe("copyProjectFiles", () => {
         relativeTemplateToWorkspacePath,
       );
       for (const file of workspaceFiles) {
-        const pathToFile = path.join(process.cwd(), file);
+        const pathToFile = path.join(tmp.path, file);
         await ensureDir(path.dirname(pathToFile));
         await writeUtf8File(pathToFile, "some content");
       }
       // Copy the template files to the workspace
-      await copyProjectFiles(process.cwd(), template, false);
+      await copyProjectFiles(tmp.path, template, false);
       // Check that the template files in the workspace have not been overwritten
       for (const file of workspaceFiles) {
-        const pathToFile = path.join(process.cwd(), file);
+        const pathToFile = path.join(tmp.path, file);
         assert.equal(await readUtf8File(pathToFile), "some content");
       }
     });
     it("should copy the .gitignore file correctly", async () => {
       const [template] = await getTemplate("hardhat-3", "mocha-ethers");
       // Copy the template files to the workspace
-      await copyProjectFiles(process.cwd(), template, false);
+      await copyProjectFiles(tmp.path, template, false);
       // Check that the .gitignore exists but gitignore does not
       assert.ok(
-        await exists(path.join(process.cwd(), ".gitignore")),
+        await exists(path.join(tmp.path, ".gitignore")),
         ".gitignore should exist",
       );
       assert.ok(
-        !(await exists(path.join(process.cwd(), "gitignore"))),
+        !(await exists(path.join(tmp.path, "gitignore"))),
         "gitignore should NOT exist",
       );
     });
 
     it("Regression test: should not scan unrelated workspace files to detect overwrites", async () => {
       const [template] = await getTemplate("hardhat-3", "mocha-ethers");
-      const unrelatedDirPath = path.join(process.cwd(), "unrelated");
+      const unrelatedDirPath = path.join(tmp.path, "unrelated");
       const unrelatedFilePath = path.join(unrelatedDirPath, "ignored.txt");
       await ensureDir(unrelatedDirPath);
       await createFile(unrelatedFilePath);
@@ -378,7 +403,7 @@ describe("copyProjectFiles", () => {
         fsPromises,
         "readdir",
         async (...args: Parameters<typeof originalReaddir>) => {
-          if (args[0] === process.cwd() && args[1]?.withFileTypes === true) {
+          if (args[0] === tmp.path && args[1]?.withFileTypes === true) {
             throw new Error(
               "copyProjectFiles should not scan the workspace recursively",
             );
@@ -389,10 +414,10 @@ describe("copyProjectFiles", () => {
       );
 
       try {
-        await copyProjectFiles(process.cwd(), template, false);
+        await copyProjectFiles(tmp.path, template, false);
 
         const oneCopiedTemplateFile = path.join(
-          process.cwd(),
+          tmp.path,
           relativeTemplateToWorkspacePath(template.files[0]),
         );
         assert.ok(
@@ -406,15 +431,12 @@ describe("copyProjectFiles", () => {
 
     it("Regression test: should still throw if a directory clashes with a destination file", async () => {
       const [template] = await getTemplate("hardhat-3", "mocha-ethers");
-      const pathWithDirectoryClash = path.join(
-        process.cwd(),
-        "hardhat.config.ts",
-      );
+      const pathWithDirectoryClash = path.join(tmp.path, "hardhat.config.ts");
 
       await ensureDir(pathWithDirectoryClash);
 
       await assertRejects(
-        copyProjectFiles(process.cwd(), template, false),
+        copyProjectFiles(tmp.path, template, false),
         (error) => error.name === "IsDirectoryError",
         "expected copyProjectFiles to reject with IsDirectoryError",
       );
@@ -423,7 +445,7 @@ describe("copyProjectFiles", () => {
 });
 
 describe("installProjectDependencies", async () => {
-  useTmpDir("installProjectDependencies");
+  const tmp = createTmpDir("installProjectDependencies", "test");
 
   disableConsole();
 
@@ -439,29 +461,27 @@ describe("installProjectDependencies", async () => {
         skip: skipNetworkSlowTests,
       },
       async () => {
-        await writeUtf8File("package.json", JSON.stringify({ type: "module" }));
-        // NOTE: Because we run tests under `pnpm`, the config setting in
-        // the root `./npmrc` file make it to the subprocesses.
-        // Unfortunately the `minimum-release-age-exclude` because it is an
-        // array can get lost.
-        // We explicitly add the `minimum-release-age-exclude` in as a
-        // `.npmrc` file in the temporary folder to re-introduce this exclude.
         await writeUtf8File(
-          ".npmrc",
-          'minimum-release-age-exclude[]="hardhat"\nminimum-release-age-exclude[]="@nomicfoundation/*"',
+          path.join(tmp.path, "package.json"),
+          JSON.stringify({ type: "module" }),
         );
+        await setUpPnpmTmpDir(tmp.path);
         await installProjectDependencies({
-          workspace: process.cwd(),
+          workspace: tmp.path,
           template,
           install: true,
           update: false,
         });
-        assert.ok(await exists("node_modules"), "node_modules should exist");
+        assert.ok(
+          await exists(path.join(tmp.path, "node_modules")),
+          "node_modules should exist",
+        );
         const dependencies = Object.keys(
           template.packageJson.devDependencies ?? {},
         );
         for (const dependency of dependencies) {
           const nodeModulesPath = path.join(
+            tmp.path,
             "node_modules",
             ...dependency.split("/"),
           );
@@ -476,14 +496,20 @@ describe("installProjectDependencies", async () => {
 
   it("should not install any template dependencies if the user opts-out of the installation", async () => {
     const [template] = await getTemplate("hardhat-3", "mocha-ethers");
-    await writeUtf8File("package.json", JSON.stringify({ type: "module" }));
+    await writeUtf8File(
+      path.join(tmp.path, "package.json"),
+      JSON.stringify({ type: "module" }),
+    );
     await installProjectDependencies({
-      workspace: process.cwd(),
+      workspace: tmp.path,
       template,
       install: false,
       update: false,
     });
-    assert.ok(!(await exists("node_modules")), "node_modules should not exist");
+    assert.ok(
+      !(await exists(path.join(tmp.path, "node_modules"))),
+      "node_modules should not exist",
+    );
   });
 
   it(
@@ -494,29 +520,29 @@ describe("installProjectDependencies", async () => {
     async () => {
       const [template] = await getTemplate("hardhat-3", "mocha-ethers");
       await writeUtf8File(
-        "package.json",
+        path.join(tmp.path, "package.json"),
         JSON.stringify({
           type: "module",
           devDependencies: { hardhat: "0.0.0" },
         }),
       );
-      // NOTE: See related explanation in the `should install all the ${template.name} ...` test
-      await writeUtf8File(
-        ".npmrc",
-        'minimum-release-age-exclude[]="hardhat"\nminimum-release-age-exclude[]="@nomicfoundation/*"',
-      );
+      await setUpPnpmTmpDir(tmp.path);
       await installProjectDependencies({
-        workspace: process.cwd(),
+        workspace: tmp.path,
         template,
         install: false,
         update: true,
       });
-      assert.ok(await exists("node_modules"), "node_modules should exist");
+      assert.ok(
+        await exists(path.join(tmp.path, "node_modules")),
+        "node_modules should exist",
+      );
       const dependencies = Object.keys(
         template.packageJson.devDependencies ?? {},
       );
       for (const dependency of dependencies) {
         const nodeModulesPath = path.join(
+          tmp.path,
           "node_modules",
           ...dependency.split("/"),
         );
@@ -548,26 +574,26 @@ describe("installProjectDependencies", async () => {
           version: "0.0.1",
           devDependencies: { "fake-dependency": "^1.2.3" }, // <-- required version
         },
-        path: process.cwd(),
+        path: tmp.path,
         files: [],
       };
 
       await writeUtf8File(
-        "package.json",
+        path.join(tmp.path, "package.json"),
         JSON.stringify({
           type: "module",
           devDependencies: { "fake-dependency": "1.2.3" }, // <-- specific version
         }),
       );
       await installProjectDependencies({
-        workspace: process.cwd(),
+        workspace: tmp.path,
         template,
         install: false,
         update: true,
       });
 
       assert.ok(
-        !(await exists("node_modules")),
+        !(await exists(path.join(tmp.path, "node_modules"))),
         "no modules should have been installed",
       );
     },
@@ -586,26 +612,26 @@ describe("installProjectDependencies", async () => {
           version: "0.0.1",
           devDependencies: { "fake-dependency": ">=1.2.3" }, // <-- required version
         },
-        path: process.cwd(),
+        path: tmp.path,
         files: [],
       };
 
       await writeUtf8File(
-        "package.json",
+        path.join(tmp.path, "package.json"),
         JSON.stringify({
           type: "module",
           devDependencies: { "fake-dependency": "^1.2.3" }, // <-- version range
         }),
       );
       await installProjectDependencies({
-        workspace: process.cwd(),
+        workspace: tmp.path,
         template,
         install: false,
         update: true,
       });
 
       assert.ok(
-        !(await exists("node_modules")),
+        !(await exists(path.join(tmp.path, "node_modules"))),
         "no modules should have been installed",
       );
     },
@@ -627,7 +653,7 @@ describe("installProjectDependencies", async () => {
         // Put a fake `npm` that always exits non-zero first in PATH so the
         // installation spawn fails deterministically, without needing the
         // network or a real package manager.
-        const fakeBinDir = path.join(process.cwd(), "fake-bin");
+        const fakeBinDir = path.join(tmp.path, "fake-bin");
         await ensureDir(fakeBinDir);
         const fakeNpmPath = path.join(fakeBinDir, "npm");
         await writeUtf8File(fakeNpmPath, "#!/bin/sh\nexit 1\n");
@@ -654,11 +680,14 @@ describe("installProjectDependencies", async () => {
 
       it("should wrap installation failures in a HardhatError", async () => {
         const [template] = await getTemplate("hardhat-3", "mocha-ethers");
-        await writeUtf8File("package.json", JSON.stringify({ type: "module" }));
+        await writeUtf8File(
+          path.join(tmp.path, "package.json"),
+          JSON.stringify({ type: "module" }),
+        );
 
         await assertRejectsWithHardhatError(
           installProjectDependencies({
-            workspace: process.cwd(),
+            workspace: tmp.path,
             template,
             install: true,
             update: false,
@@ -671,7 +700,7 @@ describe("installProjectDependencies", async () => {
       it("should wrap update failures in a HardhatError", async () => {
         const [template] = await getTemplate("hardhat-3", "mocha-ethers");
         await writeUtf8File(
-          "package.json",
+          path.join(tmp.path, "package.json"),
           JSON.stringify({
             type: "module",
             devDependencies: { hardhat: "0.0.0" },
@@ -680,7 +709,7 @@ describe("installProjectDependencies", async () => {
 
         await assertRejectsWithHardhatError(
           installProjectDependencies({
-            workspace: process.cwd(),
+            workspace: tmp.path,
             template,
             install: false,
             update: true,
@@ -695,7 +724,7 @@ describe("installProjectDependencies", async () => {
 
 describe("initHardhat", async () => {
   describe("templates", async () => {
-    useTmpDir("initHardhat");
+    const tmp = createTmpDir("initHardhat-templates", "test");
 
     disableConsole();
 
@@ -712,17 +741,20 @@ describe("initHardhat", async () => {
           await initHardhat({
             hardhatVersion: "hardhat-3",
             template: template.name,
-            workspace: process.cwd(),
+            workspace: tmp.path,
             migrateToEsm: false,
             force: false,
             install: false,
           });
-          assert.ok(await exists("package.json"), "package.json should exist");
+          assert.ok(
+            await exists(path.join(tmp.path, "package.json")),
+            "package.json should exist",
+          );
           const workspaceFiles = template.files.map(
             relativeTemplateToWorkspacePath,
           );
           for (const file of workspaceFiles) {
-            const pathToFile = path.join(process.cwd(), file);
+            const pathToFile = path.join(tmp.path, file);
             assert.ok(await exists(pathToFile), `File ${file} should exist`);
           }
         },
@@ -731,7 +763,7 @@ describe("initHardhat", async () => {
   });
 
   describe("folder creation when non existent", async () => {
-    useTmpDir("initHardhat");
+    const tmp = createTmpDir("initHardhat-folder-creation", "test");
 
     disableConsole();
 
@@ -749,7 +781,7 @@ describe("initHardhat", async () => {
           skip: process.env.HARDHAT_DISABLE_SLOW_TESTS === "true",
         },
         async () => {
-          const workspacePath = path.join(process.cwd(), folderPath);
+          const workspacePath = path.join(tmp.path, folderPath);
 
           await initHardhat({
             hardhatVersion: "hardhat-3",
@@ -941,7 +973,7 @@ describe("shouldUpdateDependency", () => {
 
 describe("initHardhat3NonInteractive", async () => {
   describe("templates", async () => {
-    useTmpDir("initHardhat3NonInteractiveTemplates");
+    const tmp = useTmpDirAsCwd("initHardhat3NonInteractiveTemplates");
 
     disableConsole();
 
@@ -955,10 +987,7 @@ describe("initHardhat3NonInteractive", async () => {
           skip: skipNetworkSlowTests,
         },
         async () => {
-          await writeUtf8File(
-            ".npmrc",
-            'minimum-release-age-exclude[]="hardhat"\nminimum-release-age-exclude[]="@nomicfoundation/*"',
-          );
+          await setUpPnpmTmpDir(tmp.path);
           await initHardhat3NonInteractive({ template: template.name });
           assert.ok(await exists("package.json"), "package.json should exist");
           const pkg: PackageJson = await readJsonFile(
@@ -982,7 +1011,7 @@ describe("initHardhat3NonInteractive", async () => {
   });
 
   describe("unknown template", () => {
-    useTmpDir("initHardhat3NonInteractiveUnknownTemplate");
+    useTmpDirAsCwd("initHardhat3NonInteractiveUnknownTemplate");
 
     it("should throw with the list of available templates", async () => {
       const templates = await getTemplates("hardhat-3");
@@ -1004,7 +1033,7 @@ describe("initHardhat3NonInteractive", async () => {
   });
 
   describe("overwrite protection", () => {
-    useTmpDir("initHardhat3NonInteractiveOverwrite");
+    useTmpDirAsCwd("initHardhat3NonInteractiveOverwrite");
 
     disableConsole();
 
@@ -1043,7 +1072,7 @@ describe("initHardhat3NonInteractive", async () => {
   });
 
   describe("exceptions to overwrite protection", () => {
-    useTmpDir("initHardhat3NonInteractiveExceptions");
+    const tmp = useTmpDirAsCwd("initHardhat3NonInteractiveExceptions");
 
     disableConsole();
 
@@ -1057,10 +1086,7 @@ describe("initHardhat3NonInteractive", async () => {
           name: "user-chosen-name",
           type: "module",
         });
-        await writeUtf8File(
-          ".npmrc",
-          'minimum-release-age-exclude[]="hardhat"\nminimum-release-age-exclude[]="@nomicfoundation/*"',
-        );
+        await setUpPnpmTmpDir(tmp.path);
 
         await initHardhat3NonInteractive({ template: "mocha-ethers" });
 
@@ -1079,10 +1105,7 @@ describe("initHardhat3NonInteractive", async () => {
       },
       async () => {
         await writeUtf8File(".gitignore", "user-gitignore-marker");
-        await writeUtf8File(
-          ".npmrc",
-          'minimum-release-age-exclude[]="hardhat"\nminimum-release-age-exclude[]="@nomicfoundation/*"',
-        );
+        await setUpPnpmTmpDir(tmp.path);
 
         await initHardhat3NonInteractive({ template: "mocha-ethers" });
 
@@ -1101,10 +1124,7 @@ describe("initHardhat3NonInteractive", async () => {
       },
       async () => {
         await writeUtf8File("README.md", "user readme");
-        await writeUtf8File(
-          ".npmrc",
-          'minimum-release-age-exclude[]="hardhat"\nminimum-release-age-exclude[]="@nomicfoundation/*"',
-        );
+        await setUpPnpmTmpDir(tmp.path);
 
         const [template] = await getTemplate("hardhat-3", "mocha-ethers");
         const templateReadme = await readUtf8File(
@@ -1127,10 +1147,7 @@ describe("initHardhat3NonInteractive", async () => {
       async () => {
         await writeUtf8File("README.md", "user readme");
         await writeUtf8File("HARDHAT.md", "user hardhat md");
-        await writeUtf8File(
-          ".npmrc",
-          'minimum-release-age-exclude[]="hardhat"\nminimum-release-age-exclude[]="@nomicfoundation/*"',
-        );
+        await setUpPnpmTmpDir(tmp.path);
 
         await initHardhat3NonInteractive({ template: "mocha-ethers" });
 
@@ -1141,7 +1158,7 @@ describe("initHardhat3NonInteractive", async () => {
   });
 
   describe("progress output", () => {
-    useTmpDir("initHardhat3NonInteractiveOutput");
+    const tmp = useTmpDirAsCwd("initHardhat3NonInteractiveOutput");
 
     it(
       "should print the progress sequence on success",
@@ -1149,10 +1166,7 @@ describe("initHardhat3NonInteractive", async () => {
         skip: skipNetworkSlowTests,
       },
       async () => {
-        await writeUtf8File(
-          ".npmrc",
-          'minimum-release-age-exclude[]="hardhat"\nminimum-release-age-exclude[]="@nomicfoundation/*"',
-        );
+        await setUpPnpmTmpDir(tmp.path);
 
         const logLines: string[] = [];
         const originalLog = console.log;
@@ -1179,10 +1193,10 @@ describe("initHardhat3NonInteractive", async () => {
 });
 
 describe("assertNoNonInteractiveClashes / copyProjectFilesNonInteractive", () => {
-  useTmpDir("copyProjectFilesNonInteractive");
+  const tmp = createTmpDir("copyProjectFilesNonInteractive", "test");
 
   async function buildFixtureTemplate(): Promise<Template> {
-    const templateDir = path.join(process.cwd(), "__template_fixture__");
+    const templateDir = path.join(tmp.path, "__template_fixture__");
     await ensureDir(templateDir);
     await writeUtf8File(
       path.join(templateDir, "hardhat.config.ts"),
@@ -1204,7 +1218,7 @@ describe("assertNoNonInteractiveClashes / copyProjectFilesNonInteractive", () =>
 
   it("should copy all files in an empty workspace", async () => {
     const template = await buildFixtureTemplate();
-    const workspace = path.join(process.cwd(), "workspace");
+    const workspace = path.join(tmp.path, "workspace");
     await ensureDir(workspace);
 
     await assertNoNonInteractiveClashes(workspace, template);
@@ -1230,7 +1244,7 @@ describe("assertNoNonInteractiveClashes / copyProjectFilesNonInteractive", () =>
 
   it("should preserve a pre-existing .gitignore", async () => {
     const template = await buildFixtureTemplate();
-    const workspace = path.join(process.cwd(), "workspace-gitignore");
+    const workspace = path.join(tmp.path, "workspace-gitignore");
     await ensureDir(workspace);
     await writeUtf8File(path.join(workspace, ".gitignore"), "user-gitignore");
 
@@ -1245,7 +1259,7 @@ describe("assertNoNonInteractiveClashes / copyProjectFilesNonInteractive", () =>
 
   it("should redirect README.md to HARDHAT.md when README.md pre-exists", async () => {
     const template = await buildFixtureTemplate();
-    const workspace = path.join(process.cwd(), "workspace-readme");
+    const workspace = path.join(tmp.path, "workspace-readme");
     await ensureDir(workspace);
     await writeUtf8File(path.join(workspace, "README.md"), "user-readme");
 
@@ -1264,7 +1278,7 @@ describe("assertNoNonInteractiveClashes / copyProjectFilesNonInteractive", () =>
 
   it("should skip README copy when both README.md and HARDHAT.md pre-exist", async () => {
     const template = await buildFixtureTemplate();
-    const workspace = path.join(process.cwd(), "workspace-both");
+    const workspace = path.join(tmp.path, "workspace-both");
     await ensureDir(workspace);
     await writeUtf8File(path.join(workspace, "README.md"), "user-readme");
     await writeUtf8File(path.join(workspace, "HARDHAT.md"), "user-hardhat-md");
@@ -1284,7 +1298,7 @@ describe("assertNoNonInteractiveClashes / copyProjectFilesNonInteractive", () =>
 
   it("should throw a clash error for a pre-existing non-exempt file", async () => {
     const template = await buildFixtureTemplate();
-    const workspace = path.join(process.cwd(), "workspace-clash");
+    const workspace = path.join(tmp.path, "workspace-clash");
     await ensureDir(workspace);
     await writeUtf8File(
       path.join(workspace, "hardhat.config.ts"),

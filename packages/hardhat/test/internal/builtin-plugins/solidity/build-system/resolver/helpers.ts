@@ -6,9 +6,11 @@ import type { PackageJson } from "@nomicfoundation/hardhat-utils/package";
 import path from "node:path";
 
 import {
+  makeWorkspaceTmpDir,
+  safeRemoveTmpDir,
+} from "@nomicfoundation/hardhat-test-utils";
+import {
   ensureDir,
-  mkdtemp,
-  remove,
   writeJsonFile,
   writeUtf8File,
 } from "@nomicfoundation/hardhat-utils/fs";
@@ -91,8 +93,8 @@ export interface TestProject {
 export async function useTestProjectTemplate(
   template: TestProjectTemplate,
 ): Promise<TestProject> {
-  const projectPath = await mkdtemp(
-    "hh3-solidity-resolver-test" + template.name,
+  const projectPath = await makeWorkspaceTmpDir(
+    `hh3-solidity-resolver-test-${template.name}`,
   );
 
   let cleaned = false;
@@ -105,8 +107,11 @@ export async function useTestProjectTemplate(
         return;
       }
 
-      process.chdir(oldCwd); // return to old cwd, otherwise windows doesn't allow deleting the directory
-      await remove(projectPath);
+      // Restore the previous cwd before removal — `safeRemoveTmpDir` also
+      // changes cwd if it points inside the tmp dir, but going back to
+      // whatever the caller had before is a more accurate restoration.
+      process.chdir(oldCwd);
+      await safeRemoveTmpDir(projectPath);
       cleaned = true;
     },
     getHRE: async (

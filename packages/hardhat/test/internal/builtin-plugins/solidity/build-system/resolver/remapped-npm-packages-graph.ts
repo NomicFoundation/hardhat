@@ -12,16 +12,14 @@ import type {
 import assert from "node:assert/strict";
 import { symlink } from "node:fs/promises";
 import path from "node:path";
-import { after, before, describe, it } from "node:test";
+import { before, describe, it } from "node:test";
 
 import { HardhatError } from "@nomicfoundation/hardhat-errors";
-import { assertRejectsWithHardhatError } from "@nomicfoundation/hardhat-test-utils";
 import {
-  ensureDir,
-  mkdtemp,
-  remove,
-  writeJsonFile,
-} from "@nomicfoundation/hardhat-utils/fs";
+  assertRejectsWithHardhatError,
+  createTmpDir,
+} from "@nomicfoundation/hardhat-test-utils";
+import { ensureDir, writeJsonFile } from "@nomicfoundation/hardhat-utils/fs";
 
 import {
   getNormalizeNodeModulesPath,
@@ -408,7 +406,7 @@ invalid syntax`,
             },
           };
 
-          const project = await useTestProjectTemplate(template);
+          await using project = await useTestProjectTemplate(template);
           const graph = await RemappedNpmPackagesGraphImplementation.create(
             project.path,
           );
@@ -650,7 +648,7 @@ invalid syntax`,
           },
         };
 
-        const project = await useTestProjectTemplate(template);
+        await using project = await useTestProjectTemplate(template);
         const graph = await RemappedNpmPackagesGraphImplementation.create(
           project.path,
         );
@@ -712,14 +710,16 @@ invalid syntax`,
       });
 
       describe("Monorepo support", () => {
-        let monorepoPath: string;
+        const tmp = createTmpDir(
+          "hh3-solidity-resolver-test-monorepo",
+          "describe",
+        );
         let hhProjectPath: string;
         let monorepoDependencyPath: string;
         before(async () => {
-          monorepoPath = await mkdtemp("hh3-solidity-resolver-test-monorepo");
-          hhProjectPath = path.join(monorepoPath, "packages", "hh-project");
+          hhProjectPath = path.join(tmp.path, "packages", "hh-project");
           monorepoDependencyPath = path.join(
-            monorepoPath,
+            tmp.path,
             "packages",
             "monorepo-dependency",
           );
@@ -755,10 +755,6 @@ invalid syntax`,
             hhProjectPath,
             path.join(monorepoDependencyPath, "node_modules", "main"),
           );
-        });
-
-        after(async () => {
-          await remove(monorepoPath);
         });
 
         it("Should use `local` as version numbers of monorepo packages when creating their input source name roots", async () => {
@@ -849,7 +845,7 @@ invalid syntax`,
       };
 
       it("Should generate a remapping into a npm file, as provided in the args", async () => {
-        const project = await useTestProjectTemplate(template);
+        await using project = await useTestProjectTemplate(template);
         const graph = await RemappedNpmPackagesGraphImplementation.create(
           project.path,
         );
@@ -888,7 +884,7 @@ invalid syntax`,
       });
 
       it("Should reuse the same remapping object if run twice", async () => {
-        const project = await useTestProjectTemplate(template);
+        await using project = await useTestProjectTemplate(template);
         const graph = await RemappedNpmPackagesGraphImplementation.create(
           project.path,
         );
@@ -910,7 +906,7 @@ invalid syntax`,
       });
 
       it("Should validate that the target matches if run twice", async () => {
-        const project = await useTestProjectTemplate(template);
+        await using project = await useTestProjectTemplate(template);
         const graph = await RemappedNpmPackagesGraphImplementation.create(
           project.path,
         );
@@ -1069,7 +1065,7 @@ invalid syntax`,
             },
           };
 
-          const project = await useTestProjectTemplate(template);
+          await using project = await useTestProjectTemplate(template);
           const graph = await RemappedNpmPackagesGraphImplementation.create(
             project.path,
           );
@@ -1569,7 +1565,7 @@ contr:to-npm=node_modules/dep/contracts`,
               },
             };
 
-            const project = await useTestProjectTemplate(template);
+            await using project = await useTestProjectTemplate(template);
             const graph = await RemappedNpmPackagesGraphImplementation.create(
               project.path,
             );
