@@ -1,9 +1,5 @@
-import type {
-  EdrNetworkHDAccountsConfig,
-  NetworkConfig,
-} from "../../../../../src/types/config.js";
+import type { EdrNetworkHDAccountsConfig } from "../../../../../src/types/config.js";
 import type { HardhatRuntimeEnvironment } from "../../../../../src/types/hre.js";
-import type { RequireField } from "../../../../../src/types/utils.js";
 import type { SubscriptionEvent } from "@nomicfoundation/edr";
 
 import assert from "node:assert/strict";
@@ -14,8 +10,10 @@ import {
   assertHardhatInvariant,
   HardhatError,
 } from "@nomicfoundation/hardhat-errors";
-import { assertRejectsWithHardhatError } from "@nomicfoundation/hardhat-test-utils";
-import { mkdtemp } from "@nomicfoundation/hardhat-utils/fs";
+import {
+  assertRejectsWithHardhatError,
+  createTmpDir,
+} from "@nomicfoundation/hardhat-test-utils";
 import { numberToHexString } from "@nomicfoundation/hardhat-utils/hex";
 
 import { createHardhatRuntimeEnvironment } from "../../../../../src/hre.js";
@@ -213,11 +211,7 @@ describe("edr-provider", () => {
     });
 
     describe("eth_getProof", () => {
-      let tmpCacheDir: string;
-
-      before(async () => {
-        tmpCacheDir = await mkdtemp("edr-provider-eth-getProof");
-      });
+      const tmp = createTmpDir("edr-provider-eth-getProof", "describe");
 
       it("should return account proof on local network", async () => {
         const { provider } = await hre.network.create();
@@ -315,7 +309,7 @@ describe("edr-provider", () => {
         // cause eth_getProof to fail with a "proof not supported in fork mode" error.
 
         const forkedHre = await createHardhatRuntimeEnvironment({
-          paths: { cache: tmpCacheDir },
+          paths: { cache: tmp.path },
           networks: {
             edrOptimism: {
               type: "edr-simulated",
@@ -362,7 +356,7 @@ describe("edr-provider", () => {
         // "proof not supported in fork mode" error.
 
         const forkedHre = await createHardhatRuntimeEnvironment({
-          paths: { cache: tmpCacheDir },
+          paths: { cache: tmp.path },
           networks: {
             edrOptimism: {
               type: "edr-simulated",
@@ -576,33 +570,41 @@ describe("edr-provider", () => {
     });
   });
 
-  describe("getProviderConfig", async () => {
-    const networkConfigStub: RequireField<NetworkConfig, "chainType"> = {
-      type: "edr-simulated",
-      chainType: "l1",
-      accounts: [],
-      allowBlocksWithSameTimestamp: true,
-      allowUnlimitedContractSize: true,
-      blockGasLimit: 60_000_000n,
-      chainId: 31337,
-      coinbase: Buffer.from("0000000000000000000000000000000000000000", "hex"),
-      gas: "auto",
-      gasMultiplier: 1,
-      gasPrice: "auto",
-      hardfork: "osaka",
-      initialDate: new Date(),
-      loggingEnabled: false,
-      minGasPrice: 0n,
-      mining: { auto: true, interval: 0, mempool: { order: "fifo" } },
-      networkId: 31337,
-      throwOnCallFailures: true,
-      throwOnTransactionFailures: true,
-      forking: {
-        enabled: true,
-        url: new FixedValueConfigurationVariable("http://example.com"),
-        cacheDir: await mkdtemp("getProviderConfigTest"),
-      },
-    };
+  describe("getProviderConfig", () => {
+    const tmp = createTmpDir("getProviderConfigTest", "describe");
+    let networkConfigStub: Parameters<typeof getProviderConfig>[0];
+
+    before(() => {
+      networkConfigStub = {
+        type: "edr-simulated",
+        chainType: "l1",
+        accounts: [],
+        allowBlocksWithSameTimestamp: true,
+        allowUnlimitedContractSize: true,
+        blockGasLimit: 60_000_000n,
+        chainId: 31337,
+        coinbase: Buffer.from(
+          "0000000000000000000000000000000000000000",
+          "hex",
+        ),
+        gas: "auto",
+        gasMultiplier: 1,
+        gasPrice: "auto",
+        hardfork: "osaka",
+        initialDate: new Date(),
+        loggingEnabled: false,
+        minGasPrice: 0n,
+        mining: { auto: true, interval: 0, mempool: { order: "fifo" } },
+        networkId: 31337,
+        throwOnCallFailures: true,
+        throwOnTransactionFailures: true,
+        forking: {
+          enabled: true,
+          url: new FixedValueConfigurationVariable("http://example.com"),
+          cacheDir: tmp.path,
+        },
+      };
+    });
 
     it("should not include hardfork history if not present in the chain descriptor", async () => {
       const providerConfig = await getProviderConfig(

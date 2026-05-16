@@ -29,6 +29,12 @@ async function getWorkspaceRoot(): Promise<string> {
  * tools that resolve config by walking up from `cwd` — corepack, package
  * managers, `.npmrc`, and similar — see the workspace's settings.
  *
+ * Note that the workspace's `package.json` sets `"type": "module"`, so any
+ * `.js` file written into the tmp dir is treated as ESM by default. Tests
+ * that download third-party CJS `.js` blobs into their tmp dir (e.g. solc's
+ * WASM bundle) need to plant a `package.json` with `{"type":"commonjs"}`
+ * inside their own tmp dir to opt out.
+ *
  * Low-level helper used by `createTmpDir` and `useTestProjectTemplate`. Most
  * tests should use `createTmpDir` instead.
  */

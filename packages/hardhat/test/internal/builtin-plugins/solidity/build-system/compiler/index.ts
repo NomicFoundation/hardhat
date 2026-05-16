@@ -1,10 +1,11 @@
 import type { CompilerInput } from "../../../../../../src/types/solidity.js";
 
 import assert from "node:assert/strict";
+import path from "node:path";
 import { after, before, beforeEach, describe, it } from "node:test";
 
-import { getTmpDir, useTmpDir } from "@nomicfoundation/hardhat-test-utils";
-import { remove } from "@nomicfoundation/hardhat-utils/fs";
+import { createTmpDir } from "@nomicfoundation/hardhat-test-utils";
+import { writeJsonFile } from "@nomicfoundation/hardhat-utils/fs";
 import {
   resetMockCacheDir,
   setMockCacheDir,
@@ -38,7 +39,7 @@ describe(
   },
   () => {
     describe("native", function () {
-      useTmpDir("native-compiler-execution");
+      const tmp = createTmpDir("native-compiler-execution", "test");
 
       let downloader: CompilerDownloader;
       let optimizerConfig: CompilerInput["settings"]["optimizer"];
@@ -54,7 +55,7 @@ describe(
       beforeEach(async function () {
         downloader = new CompilerDownloader(
           CompilerDownloader.getCompilerPlatform(),
-          process.cwd(),
+          tmp.path,
         );
         await downloader.updateCompilerListIfNeeded(new Set([solcVersion]));
         await downloader.downloadCompiler(solcVersion);
@@ -157,7 +158,7 @@ contract A {}
     });
 
     describe("solcjs", function () {
-      useTmpDir("solcjs-compiler-execution");
+      const tmp = createTmpDir("solcjs-compiler-execution", "test");
 
       let downloader: CompilerDownloader;
       let optimizerConfig: any;
@@ -171,10 +172,15 @@ contract A {}
       });
 
       beforeEach(async function () {
-        downloader = new CompilerDownloader(
-          CompilerPlatform.WASM,
-          process.cwd(),
-        );
+        // The workspace's package.json sets `"type": "module"`, which would
+        // cascade into this tmp dir and make Node try to load solc's
+        // downloaded WASM bundle (a `.js` CJS file using `__dirname`) as ESM.
+        // Plant a package.json that opts this subtree out.
+        await writeJsonFile(path.join(tmp.path, "package.json"), {
+          type: "commonjs",
+        });
+
+        downloader = new CompilerDownloader(CompilerPlatform.WASM, tmp.path);
         await downloader.updateCompilerListIfNeeded(new Set([solcVersion]));
         await downloader.downloadCompiler(solcVersion);
         const compilerPathResult = await downloader.getCompiler(solcVersion);
@@ -187,7 +193,7 @@ contract A {}
         // We need to install the tsx dependency in the temporary workspace
         // for the compilation to succeed.
         await spawn("npm", ["install", "tsx", "--no-save"], {
-          cwd: process.cwd(),
+          cwd: tmp.path,
           shell: true,
           stdio: undefined,
         });
@@ -341,16 +347,14 @@ contract A {}
           CompilerPlatform.LINUX_ARM64,
       },
       function () {
-        let testCacheDir: string;
+        const tmp = createTmpDir("arm64-wasm-fallback", "describe");
 
-        before(async function () {
-          testCacheDir = await getTmpDir("arm64-wasm-fallback");
-          setMockCacheDir(testCacheDir);
+        before(function () {
+          setMockCacheDir(tmp.path);
         });
 
-        after(async function () {
+        after(function () {
           resetMockCacheDir();
-          await remove(testCacheDir);
         });
 
         it("should fall back to WASM when no native ARM64 build exists for 0.4.x", async () => {

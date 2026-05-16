@@ -7,14 +7,15 @@ import type {
 } from "../../../../src/internal/builtin-plugins/gas-analytics/function-gas-snapshots.js";
 
 import assert from "node:assert/strict";
-import { afterEach, before, describe, it } from "node:test";
+import { afterEach, describe, it } from "node:test";
 
 import { HardhatError } from "@nomicfoundation/hardhat-errors";
-import { assertThrowsHardhatError } from "@nomicfoundation/hardhat-test-utils";
 import {
-  emptyDir,
+  assertThrowsHardhatError,
+  createTmpDir,
+} from "@nomicfoundation/hardhat-test-utils";
+import {
   FileNotFoundError,
-  mkdtemp,
   readUtf8File,
 } from "@nomicfoundation/hardhat-utils/fs";
 
@@ -197,15 +198,7 @@ describe("function-gas-snapshots", () => {
   });
 
   describe("writeFunctionGasSnapshots", () => {
-    let tmpDir: string;
-
-    before(async () => {
-      tmpDir = await mkdtemp("gas-snapshots-test-");
-    });
-
-    afterEach(async () => {
-      await emptyDir(tmpDir);
-    });
+    const tmp = createTmpDir("gas-snapshots-test", "test");
 
     it("should save snapshots to .gas-snapshot file", async () => {
       const snapshots: FunctionGasSnapshot[] = [
@@ -227,9 +220,9 @@ describe("function-gas-snapshots", () => {
         },
       ];
 
-      await writeFunctionGasSnapshots(tmpDir, snapshots);
+      await writeFunctionGasSnapshots(tmp.path, snapshots);
 
-      const snapshotPath = getFunctionGasSnapshotsPath(tmpDir);
+      const snapshotPath = getFunctionGasSnapshotsPath(tmp.path);
       const savedContent = await readUtf8File(snapshotPath);
 
       const expected = `MyContract#testApprove (gas: 30000)
@@ -259,10 +252,10 @@ MyContract#testTransfer (gas: 25000)`;
         },
       ];
 
-      await writeFunctionGasSnapshots(tmpDir, firstSnapshots);
-      await writeFunctionGasSnapshots(tmpDir, secondSnapshots);
+      await writeFunctionGasSnapshots(tmp.path, firstSnapshots);
+      await writeFunctionGasSnapshots(tmp.path, secondSnapshots);
 
-      const snapshotPath = getFunctionGasSnapshotsPath(tmpDir);
+      const snapshotPath = getFunctionGasSnapshotsPath(tmp.path);
       const savedContent = await readUtf8File(snapshotPath);
 
       assert.equal(savedContent, "MyContract#testB (gas: 20000)");
@@ -271,9 +264,9 @@ MyContract#testTransfer (gas: 25000)`;
     it("should save empty snapshots", async () => {
       const emptySnapshots: FunctionGasSnapshot[] = [];
 
-      await writeFunctionGasSnapshots(tmpDir, emptySnapshots);
+      await writeFunctionGasSnapshots(tmp.path, emptySnapshots);
 
-      const snapshotPath = getFunctionGasSnapshotsPath(tmpDir);
+      const snapshotPath = getFunctionGasSnapshotsPath(tmp.path);
       const savedContent = await readUtf8File(snapshotPath);
 
       assert.equal(savedContent, "");
@@ -281,15 +274,7 @@ MyContract#testTransfer (gas: 25000)`;
   });
 
   describe("readFunctionGasSnapshots", () => {
-    let tmpDir: string;
-
-    before(async () => {
-      tmpDir = await mkdtemp("gas-snapshots-test-");
-    });
-
-    afterEach(async () => {
-      await emptyDir(tmpDir);
-    });
+    const tmp = createTmpDir("gas-snapshots-test", "test");
 
     it("should read snapshots from file", async () => {
       const snapshots: FunctionGasSnapshot[] = [
@@ -303,8 +288,8 @@ MyContract#testTransfer (gas: 25000)`;
         },
       ];
 
-      await writeFunctionGasSnapshots(tmpDir, snapshots);
-      const readSnapshots = await readFunctionGasSnapshots(tmpDir);
+      await writeFunctionGasSnapshots(tmp.path, snapshots);
+      const readSnapshots = await readFunctionGasSnapshots(tmp.path);
 
       assert.deepEqual(readSnapshots, snapshots);
     });
@@ -312,7 +297,7 @@ MyContract#testTransfer (gas: 25000)`;
     it("should throw FileNotFoundError when file doesn't exist", async () => {
       try {
         // file does not exist
-        await readFunctionGasSnapshots(tmpDir);
+        await readFunctionGasSnapshots(tmp.path);
         assert.fail("Expected FileNotFoundError to be thrown");
       } catch (error) {
         assert.ok(

@@ -2,11 +2,10 @@ import type { ResolvedNpmPackage } from "../../../../../../src/types/solidity.js
 
 import assert from "node:assert/strict";
 import path from "node:path";
-import { after, before, describe, it } from "node:test";
+import { describe, it } from "node:test";
 
+import { createTmpDir } from "@nomicfoundation/hardhat-test-utils";
 import {
-  mkdtemp,
-  remove,
   TrueCasePathResolver,
   writeUtf8File,
 } from "@nomicfoundation/hardhat-utils/fs";
@@ -19,20 +18,17 @@ import {
 
 describe("Resolver utils", () => {
   describe("validateFsPath", () => {
-    let dir: string;
-    before(async () => {
-      dir = await mkdtemp("hardhat-test-validate-fs-path");
-    });
-
-    after(async () => {
-      await remove(dir);
-    });
+    const tmp = createTmpDir("hardhat-test-validate-fs-path", "describe");
 
     it("Should return an error if the path doesn't exist", async () => {
       const relativePath = "nope";
 
       assert.deepEqual(
-        await validateFsPath(new TrueCasePathResolver(), dir, relativePath),
+        await validateFsPath(
+          new TrueCasePathResolver(),
+          tmp.path,
+          relativePath,
+        ),
         {
           success: false,
           error: {
@@ -44,13 +40,13 @@ describe("Resolver utils", () => {
 
     it("Should return an error if the path traverses through a file", async () => {
       const fileName = "not-a-dir.txt";
-      const absolutePath = path.join(dir, fileName);
+      const absolutePath = path.join(tmp.path, fileName);
       await writeUtf8File(absolutePath, "txt");
 
       assert.deepEqual(
         await validateFsPath(
           new TrueCasePathResolver(),
-          dir,
+          tmp.path,
           path.join(fileName, "child.sol"),
         ),
         {
@@ -65,13 +61,13 @@ describe("Resolver utils", () => {
     it("Should return an error if the path exists with a different casing", async () => {
       const relativePathIncorrect = "FILE.txt";
       const relativePathCorrect = "file.txt";
-      const absolutePath = path.join(dir, relativePathCorrect);
+      const absolutePath = path.join(tmp.path, relativePathCorrect);
       await writeUtf8File(absolutePath, "txt");
 
       assert.deepEqual(
         await validateFsPath(
           new TrueCasePathResolver(),
-          dir,
+          tmp.path,
           relativePathIncorrect,
         ),
         {
@@ -86,11 +82,15 @@ describe("Resolver utils", () => {
 
     it("Should return success if the path exists with the correct casing", async () => {
       const relativePath = "FILE2.txt";
-      const absolutePath = path.join(dir, relativePath);
+      const absolutePath = path.join(tmp.path, relativePath);
       await writeUtf8File(absolutePath, "txt");
 
       assert.deepEqual(
-        await validateFsPath(new TrueCasePathResolver(), dir, relativePath),
+        await validateFsPath(
+          new TrueCasePathResolver(),
+          tmp.path,
+          relativePath,
+        ),
         {
           success: true,
           value: undefined,

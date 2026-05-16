@@ -5,7 +5,7 @@ import { beforeEach, describe, it } from "node:test";
 import { HardhatError } from "@nomicfoundation/hardhat-errors";
 import {
   assertRejectsWithHardhatError,
-  useTmpDir,
+  createTmpDir,
 } from "@nomicfoundation/hardhat-test-utils";
 import { sha256 } from "@nomicfoundation/hardhat-utils/crypto";
 import * as fs from "@nomicfoundation/hardhat-utils/fs";
@@ -23,7 +23,7 @@ describe(
     skip: process.env.HARDHAT_DISABLE_SLOW_TESTS === "true",
   },
   function () {
-    useTmpDir("compiler-downloader");
+    const tmp = createTmpDir("compiler-downloader", "test");
 
     describe("isCompilerDownloaded (WASM)", function () {
       let wasmDownloader: CompilerDownloader;
@@ -31,7 +31,7 @@ describe(
       beforeEach(async function () {
         wasmDownloader = new CompilerDownloader(
           CompilerPlatform.WASM,
-          process.cwd(),
+          tmp.path,
         );
 
         await wasmDownloader.updateCompilerListIfNeeded(new Set([]));
@@ -72,7 +72,7 @@ describe(
 
       beforeEach(async function () {
         const platform = CompilerDownloader.getCompilerPlatform();
-        downloader = new CompilerDownloader(platform, process.cwd());
+        downloader = new CompilerDownloader(platform, tmp.path);
 
         await downloader.updateCompilerListIfNeeded(new Set([]));
       });
@@ -112,7 +112,7 @@ describe(
 
       beforeEach(async function () {
         const platform = CompilerDownloader.getCompilerPlatform();
-        downloader = new CompilerDownloader(platform, process.cwd());
+        downloader = new CompilerDownloader(platform, tmp.path);
 
         await downloader.updateCompilerListIfNeeded(new Set([]));
       });
@@ -142,7 +142,7 @@ describe(
       it("Should throw the right error if the list fails to be downloaded", async function () {
         const mockDownloader = new CompilerDownloader(
           CompilerPlatform.WASM,
-          process.cwd(),
+          tmp.path,
           (_url, _destination, _requestOptions, _dispatcherOptions) => {
             throw new Error("download failed");
           },
@@ -160,7 +160,7 @@ describe(
         let downloadAttempts = 0;
         const mockDownloader = new CompilerDownloader(
           CompilerPlatform.WASM,
-          process.cwd(),
+          tmp.path,
           (url, destination, requestOptions, dispatcherOptions) => {
             if (!hasDownloadedOnce) {
               hasDownloadedOnce = true;
@@ -197,7 +197,7 @@ describe(
         let downloads = 0;
         const mockDownloader = new CompilerDownloader(
           CompilerPlatform.WASM,
-          process.cwd(),
+          tmp.path,
           (url, destination, requestOptions, dispatcherOptions) => {
             downloads++;
             return download(
@@ -227,7 +227,7 @@ describe(
         let compilerPath: string | undefined;
         const mockDownloader = new CompilerDownloader(
           CompilerPlatform.WASM,
-          process.cwd(),
+          tmp.path,
           async (url, destination, requestOptions, dispatcherOptions) => {
             if (stopMocking) {
               return await download(
@@ -292,7 +292,7 @@ describe(
           let downloads = 0;
           const mockDownloader = new CompilerDownloader(
             CompilerPlatform.WASM,
-            process.cwd(),
+            tmp.path,
             (url, destination, requestOptions, dispatcherOptions) => {
               downloads++;
               return download(
@@ -328,7 +328,7 @@ describe(
           let downloads = 0;
           const mockDownloader = new CompilerDownloader(
             CompilerPlatform.WASM,
-            process.cwd(),
+            tmp.path,
             (url, destination, requestOptions, dispatcherOptions) => {
               downloads++;
               return download(
@@ -368,7 +368,7 @@ describe(
 
       beforeEach(async function () {
         const platform = CompilerDownloader.getCompilerPlatform();
-        downloader = new CompilerDownloader(platform, process.cwd());
+        downloader = new CompilerDownloader(platform, tmp.path);
 
         await downloader.updateCompilerListIfNeeded(new Set([]));
       });
@@ -406,7 +406,7 @@ describe(
         const platform = CompilerDownloader.getCompilerPlatform();
         const mockDownloader = new CompilerDownloader(
           platform,
-          process.cwd(),
+          tmp.path,
           async (_url, destination, _requestOptions, _dispatcherOptions) => {
             if (!hasDownloadedOnce) {
               hasDownloadedOnce = true;
@@ -501,7 +501,7 @@ describe(
       beforeEach(async () => {
         downloader = new CompilerDownloader(
           CompilerPlatform.LINUX_ARM64,
-          process.cwd(),
+          tmp.path,
         );
       });
 
@@ -510,7 +510,7 @@ describe(
           await downloader.updateCompilerListIfNeeded(new Set(["0.8.28"]));
 
           const compilerList: any = await fs.readJsonFile(
-            path.join(process.cwd(), "linux-arm64", "list.json"),
+            path.join(tmp.path, "linux-arm64", "list.json"),
           );
 
           const build = compilerList.builds.find(
@@ -533,11 +533,7 @@ describe(
           await downloader.updateCompilerListIfNeeded(new Set(["0.8.28"]));
           await downloader.downloadCompiler("0.8.28");
 
-          const binaryPath = path.join(
-            process.cwd(),
-            "linux-arm64",
-            "solc-v0.8.28",
-          );
+          const binaryPath = path.join(tmp.path, "linux-arm64", "solc-v0.8.28");
           // Check the binary exists
           assert(await fs.exists(binaryPath), "binary should exist");
 
@@ -555,11 +551,7 @@ describe(
           await downloader.downloadCompiler("0.8.28");
 
           // Trick the system by deleting the .does.not.work file, because this test might not be running on an arm64 linux machine
-          const binaryPath = path.join(
-            process.cwd(),
-            "linux-arm64",
-            "solc-v0.8.28",
-          );
+          const binaryPath = path.join(tmp.path, "linux-arm64", "solc-v0.8.28");
           await fs.remove(`${binaryPath}.does.not.work`);
 
           const compiler = await downloader.getCompiler("0.8.28");
