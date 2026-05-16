@@ -12,6 +12,7 @@ import { preventAsyncMatcherChaining } from "../../utils/prevent-chaining.js";
 import {
   decodeReturnData,
   getReturnDataFromError,
+  isNoDataExecutionError,
   parseBytes32String,
 } from "./utils.js";
 
@@ -102,8 +103,14 @@ export function supportRevert(
         }
       };
 
-      const onError = (error: any) => {
+      const onError = (error: unknown) => {
         const assert = buildAssert(negated, onError);
+
+        if (isNoDataExecutionError(error)) {
+          assert(true, undefined, `Expected transaction NOT to be reverted`);
+          return;
+        }
+
         const returnData = getReturnDataFromError(error);
         const decodedReturnData = decodeReturnData(returnData);
 

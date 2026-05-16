@@ -532,6 +532,49 @@ describe("JSON-RPC client", function () {
         assert.isFalse(result1.customErrorReported);
       });
 
+      it("Should return an empty returnData if the error message is a known EVM execution error", async function () {
+        const messages = [
+          "EVM error InvalidFEOpcode",
+          "EVM error OutOfGas",
+          "Provider error: invalid opcode",
+        ];
+
+        const connection = await createConnection();
+
+        const accounts: any[] = await connection.provider.request({
+          method: "eth_accounts",
+          params: [],
+        });
+
+        for (const message of messages) {
+          const mockClient = new EIP1193JsonRpcClient({
+            request: async (req: { method: string; _: any[] }) => {
+              if (req.method === "eth_call") {
+                throw new Error(message);
+              }
+
+              assertIgnitionInvariant(
+                false,
+                `Unimplemented mock for ${req.method}`,
+              );
+            },
+          });
+
+          const result = await mockClient.call(
+            {
+              data: "0x",
+              value: 0n,
+              from: accounts[0],
+            },
+            "latest",
+          );
+
+          assert.isFalse(result.success);
+          assert.equal(result.returnData, "0x");
+          assert.isFalse(result.customErrorReported);
+        }
+      });
+
       it("Should rethrow an HardhatError if the error message indicates an incorrectly configured base gas fee versus the node's block gas limit", async function () {
         class MockProvider {
           public async request(req: { method: string; _: any[] }) {

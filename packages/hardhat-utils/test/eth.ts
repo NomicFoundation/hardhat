@@ -12,6 +12,7 @@ import {
   generateAddressBytes,
   randomAddress,
   isValidChecksumAddress,
+  isKnownEvmExecutionErrorMessage,
 } from "../src/eth.js";
 
 describe("eth", () => {
@@ -209,6 +210,44 @@ describe("eth", () => {
         name: "InvalidParameterError",
         message: `Expected a non-negative safe integer or bigint. Received: ${unsafeInt}`,
       });
+    });
+  });
+
+  describe("isKnownEvmExecutionErrorMessage", () => {
+    it("Should return true for known EVM execution error messages", () => {
+      const messages = [
+        "execution reverted",
+        "execution reverted: reason",
+        "Transaction reverted without a reason string",
+        "Transaction reverted and Hardhat couldn't infer the reason.",
+        "VM Exception while processing transaction: invalid opcode",
+        "VM Exception while processing transaction: out of gas",
+        "Transaction reverted: contract call run out of gas and made the transaction revert",
+        "invalid opcode: INVALID",
+        "Provider error: invalid opcode",
+        "EVM error InvalidFEOpcode",
+        "EVM error OutOfGas",
+      ];
+
+      for (const message of messages) {
+        assert.equal(isKnownEvmExecutionErrorMessage(message), true, message);
+      }
+    });
+
+    it("Should return false for non-execution provider errors", () => {
+      const messages = [
+        "execution failed",
+        "EVM error; database error: failed to get account",
+        "EVM error: database error",
+        "EVM error DatabaseError",
+        "insufficient funds for gas * price",
+        "Transaction reverted: trying to deploy a contract whose code is too large",
+        "some upstream service mentioned invalid opcode",
+      ];
+
+      for (const message of messages) {
+        assert.equal(isKnownEvmExecutionErrorMessage(message), false, message);
+      }
     });
   });
 
