@@ -29,7 +29,7 @@ import {
   getProxyUrl,
 } from "../src/request.js";
 
-import { useTmpDir } from "./helpers/fs.js";
+import { createTmpDir } from "./helpers/fs.js";
 import { initializeTestDispatcher } from "./helpers/request.js";
 
 describe("Requests util", () => {
@@ -515,7 +515,7 @@ describe("Requests util", () => {
 
   describe("download", async () => {
     const interceptor = await initializeTestDispatcher();
-    const getTmpDir = useTmpDir("request");
+    const tmp = createTmpDir("request", "test");
     const url = "http://localhost";
     const baseInterceptorOptions = {
       path: "/",
@@ -526,7 +526,7 @@ describe("Requests util", () => {
     };
 
     it("Should download a file", async () => {
-      const destination = path.join(getTmpDir(), "file.txt");
+      const destination = path.join(tmp.path, "file.txt");
       interceptor.intercept(baseInterceptorOptions).reply(200, "file content");
       await download(url, destination, undefined, interceptor);
 
@@ -535,7 +535,7 @@ describe("Requests util", () => {
     });
 
     it("Should throw if the request fails", async () => {
-      const destination = path.join(getTmpDir(), "file.txt");
+      const destination = path.join(tmp.path, "file.txt");
       interceptor
         .intercept(baseInterceptorOptions)
         .reply(500, "Internal Server Error");
@@ -547,7 +547,7 @@ describe("Requests util", () => {
     });
 
     it("Should not leave temp files after a failed download", async () => {
-      const tmpDir = getTmpDir();
+      const tmpDir = tmp.path;
       const destination = path.join(tmpDir, "file.txt");
       interceptor
         .intercept(baseInterceptorOptions)
@@ -566,10 +566,10 @@ describe("Requests util", () => {
   });
 
   describe("generateTempFilePath", () => {
-    const getTmpDir = useTmpDir("generateTempFilePath");
+    const tmp = createTmpDir("generateTempFilePath", "test");
 
     it("Should produce unique paths for the same input", async () => {
-      const filePath = path.join(getTmpDir(), "list.json");
+      const filePath = path.join(tmp.path, "list.json");
       const result1 = await generateTempFilePath(filePath);
       const result2 = await generateTempFilePath(filePath);
 
@@ -581,7 +581,7 @@ describe("Requests util", () => {
     });
 
     it("Should preserve directory and extension", async () => {
-      const dir = getTmpDir();
+      const dir = tmp.path;
       const filePath = path.join(dir, "list.json");
       const result = await generateTempFilePath(filePath);
       const parsed = path.parse(result);
@@ -591,7 +591,7 @@ describe("Requests util", () => {
     });
 
     it("Should have a name starting with tmp-<originalName>-", async () => {
-      const filePath = path.join(getTmpDir(), "list.json");
+      const filePath = path.join(tmp.path, "list.json");
       const result = await generateTempFilePath(filePath);
       const parsed = path.parse(result);
 
