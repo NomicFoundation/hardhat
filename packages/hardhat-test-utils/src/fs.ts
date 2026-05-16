@@ -12,7 +12,6 @@ import { assertHardhatInvariant } from "@nomicfoundation/hardhat-errors";
 import {
   ensureDir,
   getRealPath,
-  mkdtemp,
   remove,
 } from "@nomicfoundation/hardhat-utils/fs";
 import { findClosestPackageRoot } from "@nomicfoundation/hardhat-utils/package";
@@ -134,42 +133,4 @@ export function createTmpDir(
   }
 
   return handle;
-}
-
-/**
- * Create a tmp directory.
- * @param nameHint - A hint to use as part of the name of the tmp directory.
- *
- * @deprecated Use {@link createTmpDir} instead. Kept for backwards
- *   compatibility during the migration; will be removed once all callers move
- *   to `createTmpDir`.
- */
-export async function getTmpDir(nameHint: string = "tmp-dir"): Promise<string> {
-  const tmpDir = await mkdtemp(`hardhat-tests-${nameHint}`);
-  return tmpDir;
-}
-
-/**
- * Creates a tmp directory before each test, and removes it after each test.
- * @param nameHint - A hint to use as part of the name of the tmp directory.
- *
- * @deprecated Use {@link createTmpDir} with scope `"test"` instead. Kept for
- *   backwards compatibility during the migration; will be removed once all
- *   callers move to `createTmpDir`.
- */
-export function useTmpDir(nameHint: string = "tmp-dir"): void {
-  let previousWorkingDir: string;
-  let tmpDir: string;
-
-  beforeEach(async function () {
-    previousWorkingDir = process.cwd();
-
-    tmpDir = await getTmpDir(nameHint);
-
-    process.chdir(tmpDir);
-  });
-
-  afterEach(async function () {
-    process.chdir(previousWorkingDir);
-  });
 }
