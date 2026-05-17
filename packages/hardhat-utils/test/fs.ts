@@ -28,6 +28,7 @@ import {
   readUtf8File,
   readdir,
   remove,
+  symlink,
   writeJsonFile,
   writeUtf8File,
   readBinaryFile,
@@ -1851,6 +1852,110 @@ describe("File system utils", () => {
       const destPath = path.join(getTmpDir(), "dest.txt");
 
       await assert.rejects(move(invalidPath, destPath), {
+        name: "FileSystemAccessError",
+      });
+    });
+  });
+
+  describe("symlink", { skip: process.platform === "win32" }, () => {
+    it("Should create a symlink to an existing file", async () => {
+      const targetPath = path.join(getTmpDir(), "target.txt");
+      const linkPath = path.join(getTmpDir(), "link.txt");
+
+      await writeUtf8File(targetPath, "hello");
+      await symlink(targetPath, linkPath);
+
+      const stats = await fsPromises.lstat(linkPath);
+      assert.ok(stats.isSymbolicLink(), "Should create a symlink");
+      assert.equal(await fsPromises.readlink(linkPath), targetPath);
+      assert.equal(await readUtf8File(linkPath), "hello");
+    });
+
+    it("Should create a symlink to an existing directory", async () => {
+      const targetPath = path.join(getTmpDir(), "target-dir");
+      const linkPath = path.join(getTmpDir(), "link-dir");
+
+      await mkdir(targetPath);
+      await createFile(path.join(targetPath, "inside.txt"));
+      await symlink(targetPath, linkPath);
+
+      const stats = await fsPromises.lstat(linkPath);
+      assert.ok(stats.isSymbolicLink(), "Should create a symlink");
+      assert.equal(await fsPromises.readlink(linkPath), targetPath);
+      assert.ok(
+        await exists(path.join(linkPath, "inside.txt")),
+        "Should traverse through the symlink to the directory's contents",
+      );
+    });
+
+    it("Should store the target verbatim when given a relative path", async () => {
+      const linkPath = path.join(getTmpDir(), "link.txt");
+
+      // Create the target next to the link so the relative reference resolves.
+      await writeUtf8File(path.join(getTmpDir(), "target.txt"), "hello");
+      await symlink("target.txt", linkPath);
+
+      assert.equal(await fsPromises.readlink(linkPath), "target.txt");
+      assert.equal(await readUtf8File(linkPath), "hello");
+    });
+
+    it("Should create a dangling symlink when the target doesn't exist", async () => {
+      const targetPath = path.join(getTmpDir(), "missing.txt");
+      const linkPath = path.join(getTmpDir(), "link.txt");
+
+      await symlink(targetPath, linkPath);
+
+      const stats = await fsPromises.lstat(linkPath);
+      assert.ok(stats.isSymbolicLink(), "Should create a symlink");
+      assert.ok(
+        !(await exists(linkPath)),
+        "exists() follows the symlink, so it should be false for a dangling link",
+      );
+    });
+
+    it("Should throw FileNotFoundError if the parent directory of linkPath doesn't exist", async () => {
+      const targetPath = path.join(getTmpDir(), "target.txt");
+      const linkPath = path.join(getTmpDir(), "missing-dir", "link.txt");
+
+      await writeUtf8File(targetPath, "hello");
+
+      await assert.rejects(symlink(targetPath, linkPath), {
+        name: "FileNotFoundError",
+        message: `File ${linkPath} not found`,
+      });
+    });
+
+    it("Should throw FileAlreadyExistsError if linkPath already exists as a file", async () => {
+      const targetPath = path.join(getTmpDir(), "target.txt");
+      const linkPath = path.join(getTmpDir(), "link.txt");
+
+      await writeUtf8File(targetPath, "hello");
+      await createFile(linkPath);
+
+      await assert.rejects(symlink(targetPath, linkPath), {
+        name: "FileAlreadyExistsError",
+        message: `File ${linkPath} already exists`,
+      });
+    });
+
+    it("Should throw FileAlreadyExistsError if linkPath already exists as a symlink", async () => {
+      const targetPath = path.join(getTmpDir(), "target.txt");
+      const linkPath = path.join(getTmpDir(), "link.txt");
+
+      await writeUtf8File(targetPath, "hello");
+      await fsPromises.symlink(targetPath, linkPath);
+
+      await assert.rejects(symlink(targetPath, linkPath), {
+        name: "FileAlreadyExistsError",
+        message: `File ${linkPath} already exists`,
+      });
+    });
+
+    it("Should throw FileSystemAccessError if a different error is thrown", async () => {
+      const targetPath = path.join(getTmpDir(), "target.txt");
+      const invalidLinkPath = "\0";
+
+      await assert.rejects(symlink(targetPath, invalidLinkPath), {
         name: "FileSystemAccessError",
       });
     });
