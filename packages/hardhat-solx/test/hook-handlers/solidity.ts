@@ -15,7 +15,7 @@ function createSolidityCompilerConfig(
   overrides: Partial<SolidityCompilerConfig> = {},
 ): SolidityCompilerConfig {
   return {
-    version: "0.8.33",
+    version: "0.8.34",
     settings: {
       optimizer: {},
       outputSelection: {},
@@ -28,8 +28,8 @@ function createSolidityCompilerConfig(
 function createGetCompilerMockNext() {
   let called = false;
   const mockCompiler = {
-    version: "0.8.33",
-    longVersion: "0.8.33+commit.abc123",
+    version: "0.8.34",
+    longVersion: "0.8.34+commit.abc123",
     compilerPath: "/path/to/solc",
     isSolcJs: false,
     compile: async (_input: CompilerInput): Promise<CompilerOutput> => ({
@@ -129,7 +129,7 @@ describe("hardhat-solx solidity hook handler", () => {
       const context = { config: {} } as any;
 
       const configs: SolidityCompilerConfig[] = [
-        createSolidityCompilerConfig({ type: "solx", version: "0.8.33" }),
+        createSolidityCompilerConfig({ type: "solx", version: "0.8.34" }),
       ];
 
       // This will fail to download (no network in tests), but we can
@@ -239,7 +239,7 @@ describe("hardhat-solx solidity hook handler", () => {
       const context = { config: {} } as any;
       const compilerConfig = createSolidityCompilerConfig({
         type: "solx",
-        version: "0.8.33",
+        version: "0.8.34",
         path: "/nonexistent/path/to/solx",
       });
       const mockNext = createGetCompilerMockNext();
@@ -260,7 +260,7 @@ describe("hardhat-solx solidity hook handler", () => {
       const { exists } = await import("@nomicfoundation/hardhat-utils/fs");
 
       // Use the cached solx binary if available, skip otherwise
-      const cachedPath = await getSolxBinaryPath("0.1.3");
+      const cachedPath = await getSolxBinaryPath("0.1.4");
       if (!(await exists(cachedPath))) {
         return;
       }
@@ -273,7 +273,7 @@ describe("hardhat-solx solidity hook handler", () => {
       const context = { config: {} } as any;
       const compilerConfig = createSolidityCompilerConfig({
         type: "solx",
-        version: "0.8.33",
+        version: "0.8.34",
         path: cachedPath,
       });
       const mockNext = createGetCompilerMockNext();
@@ -290,8 +290,8 @@ describe("hardhat-solx solidity hook handler", () => {
       );
       assert.equal(compiler.compilerPath, cachedPath);
       // Version should be parsed from the binary, not from config
-      assert.equal(compiler.version, "0.1.3");
-      assert.equal(compiler.longVersion, "0.1.3+solx");
+      assert.equal(compiler.version, "0.1.4");
+      assert.equal(compiler.longVersion, "0.1.4+solx");
     });
   });
 
@@ -307,7 +307,7 @@ describe("hardhat-solx solidity hook handler", () => {
       const configs: SolidityCompilerConfig[] = [
         createSolidityCompilerConfig({
           type: "solx",
-          version: "0.8.33",
+          version: "0.8.34",
           path: "/custom/path/to/solx",
         }),
       ];
