@@ -8,6 +8,7 @@ import { isCi } from "./ci.js";
 import { indent } from "./formatting.js";
 import {
   cleanupTestFailError,
+  findSolidityErrorInChain,
   isTestFileExecutionFailureError,
 } from "./node-test-error-utils.js";
 
@@ -188,6 +189,20 @@ export function formatSingleError(
       );
     }
   }
+
+  // Build the `Solidity stack trace:` section through intermediate viem/ethers wrapper layers.
+  const solidityStackSection =
+    depth === 0 ? formatSolidityStackSection(error) : "";
+
+  // Strip .sol frames from the top-level stack.
+  // So, the Solidity frames don't render twice when rendered in the section.
+  if (solidityStackSection !== "") {
+    stackLines = stackLines.filter(
+      (line) =>
+        line.reference === undefined ||
+        !line.reference.location.endsWith(".sol"),
+    );
+  }
   const stack = stackLines.map(formatStackLine).join("\n");
 
   let formattedError =
@@ -214,9 +229,18 @@ export function formatSingleError(
         ),
       )
       .join("\n");
+
+    // Append the section if a SolidityError sits in the aggregate's own
+    // cause chain. Inner sections come from the recursive map above.
+    if (solidityStackSection !== "") {
+      return `${formattedError}\n${formattedErrors}\n${solidityStackSection}`;
+    }
     return `${formattedError}\n${formattedErrors}`;
   }
 
+  if (solidityStackSection !== "") {
+    return `${formattedError}\n${solidityStackSection}`;
+  }
   if (error.cause instanceof Error) {
     let cause = error.cause;
     if (depth + 1 >= MAX_ERROR_CHAIN_LENGTH) {
@@ -233,6 +257,51 @@ export function formatSingleError(
   }
 
   return formattedError;
+}
+
+/** Formats the `Solidity stack trace:` section, or `""` if no SolidityError is in the chain. */
+function formatSolidityStackSection(error: Error): string {
+  const solidityError = findSolidityErrorInChain(error);
+  if (solidityError === undefined) {
+    return "";
+  }
+
+  const parsedLines = (solidityError.stack?.split("\n") ?? []).map(
+    parseStackLine,
+  );
+  const firstReferenceIndex = parsedLines.findIndex(
+    (line) => line.reference !== undefined,
+  );
+  if (firstReferenceIndex === -1) {
+    return "";
+  }
+
+  const solidityLines: StackLine[] = [];
+  for (let i = firstReferenceIndex; i < parsedLines.length; i++) {
+    const { reference } = parsedLines[i];
+    if (reference === undefined) {
+      break;
+    }
+    // Accept ".sol" AND "unknown" frames. EDR's SolidityCallSite emits "unknown" 
+    // for certain stack-trace entry types: precompile / unrecognized-create entries
+    if (
+      !reference.location.endsWith(".sol") &&
+      reference.location !== "unknown"
+    ) {
+      break;
+    }
+    solidityLines.push(parsedLines[i]);
+  }
+
+  if (solidityLines.length === 0) {
+    return "";
+  }
+
+  const formattedFrames = solidityLines.map(formatStackLine).join("\n");
+  return styleText(
+    "gray",
+    `Solidity stack trace:\n${indent(formattedFrames, ERROR_STACK_INDENT)}`,
+  );
 }
 
 function isAggregateError(error: Error): error is Error & { errors: Error[] } {
