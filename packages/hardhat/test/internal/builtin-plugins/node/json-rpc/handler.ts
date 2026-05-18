@@ -341,7 +341,13 @@ describe("JSON-RPC handler", async function () {
     assert.equal(rpcRes.error.data.data, "0xcafe");
   });
 
-  it("should preserve code 3, revert data, and txHash for revert errors over HTTP", async function () {
+  it("should expose revert data as a hex string for code 3 errors (geth/anvil convention)", async function () {
+    // Revert errors (code 3) MUST return `error.data` as a hex string, not
+    // a wrapper object. This matches the geth/anvil/sepolia convention and is
+    // what client tooling (viem, ethers, web3.js) expects to decode custom
+    // errors. See issue #8075 — viem's `ContractFunctionRevertedError` calls
+    // `.slice()` on `error.data` and fails with `data2?.slice is not a function`
+    // when the field is an object.
     const rpcReq: JsonRpcRequest = {
       jsonrpc: "2.0",
       method: "revertWithDataAndTxHash",
@@ -360,16 +366,16 @@ describe("JSON-RPC handler", async function () {
       "execution reverted",
       "Revert error must not be wrapped as InternalError",
     );
-    assert.ok(
-      isObject(rpcRes.error.data),
-      "Expected error data to be an object",
+    assert.equal(
+      typeof rpcRes.error.data,
+      "string",
+      "error.data must be a hex string for revert errors (matches geth/anvil)",
     );
     assert.equal(
-      rpcRes.error.data.data,
+      rpcRes.error.data,
       "0xdeadbeef",
-      "error.data.data must contain the raw revert hex",
+      "error.data must contain the raw revert hex directly",
     );
-    assert.equal(rpcRes.error.data.txHash, "0xabc123");
   });
 });
 
