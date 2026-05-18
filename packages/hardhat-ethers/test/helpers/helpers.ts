@@ -10,6 +10,7 @@ import assert from "node:assert/strict";
 
 import { createHardhatRuntimeEnvironment } from "hardhat/hre";
 
+import hardhatEthersPlugin from "../../src/index.js";
 import { initializeEthers } from "../../src/internal/initialization.js";
 
 import { MockArtifactManager } from "./artifact-manager-mock.js";
@@ -25,7 +26,10 @@ export async function initializeTestEthers(
   artifactManager: ArtifactManager;
   hre: HardhatRuntimeEnvironment;
 }> {
-  const hre = await createHardhatRuntimeEnvironment(config);
+  const hre = await createHardhatRuntimeEnvironment({
+    ...config,
+    plugins: [hardhatEthersPlugin, ...(config.plugins ?? [])],
+  });
 
   const network =
     config.networks?.localhost !== undefined ? "localhost" : "default";
