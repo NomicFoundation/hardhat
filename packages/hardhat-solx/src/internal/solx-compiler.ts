@@ -4,7 +4,14 @@ import type {
   CompilerOutput,
 } from "hardhat/types/solidity";
 
+import { deepClone } from "@nomicfoundation/hardhat-utils/lang";
 import { spawnCompile as defaultSpawnCompile } from "hardhat/internal/solidity";
+
+/** solx 0.1.4+ source-mapping selectors (DWARF in `debugInfo`). */
+export const SOLX_DEBUG_INFO_SELECTORS: readonly string[] = [
+  "evm.bytecode.debugInfo",
+  "evm.deployedBytecode.debugInfo",
+] as const;
 
 export class SolxCompiler implements Compiler {
   public readonly version: string;
@@ -31,8 +38,8 @@ export class SolxCompiler implements Compiler {
   public async compile(input: CompilerInput): Promise<CompilerOutput> {
     const args = ["--standard-json", "--no-import-callback"];
 
-    // Merge default solx settings with user settings. User settings take
-    // precedence, allowing overrides of viaIR, LLVMOptimization, etc.
+    // outputSelection already includes solx selectors (baked in by resolveUserConfig).
+    // Merge extra solx settings on top.
     const modifiedInput: CompilerInput = {
       ...input,
       settings: {
@@ -43,4 +50,33 @@ export class SolxCompiler implements Compiler {
 
     return await this.#spawnCompile(this.compilerPath, args, modifiedInput);
   }
+}
+
+/**
+ * Returns a new outputSelection with the solx debugInfo selectors at
+ * `["*"]["*"]`. Existing user selectors are preserved; downstream
+ * `#dedupeAndSortOutputSelection` removes duplicates.
+ */
+export async function addSolxDebugInfoSelectors(
+  outputSelection: unknown,
+): Promise<NonNullable<CompilerInput["settings"]>["outputSelection"]> {
+  const seed: Record<
+    string,
+    Record<string, string[]>
+  > = typeof outputSelection === "object" && outputSelection !== null
+    ? // eslint-disable-next-line @typescript-eslint/consistent-type-assertions -- known shape
+      (outputSelection as Record<string, Record<string, string[]>>)
+    : {};
+  const cloned: Record<string, Record<string, string[]>> = await deepClone(
+    seed,
+  );
+
+  // Hardhat normalizes outputSelection to populate `["*"]["*"]` upstream, but
+  // unit tests construct the input directly with `{}`, so make sure the slot
+  // exists before we push.
+  cloned["*"] ??= {};
+  cloned["*"]["*"] ??= [];
+  cloned["*"]["*"].push(...SOLX_DEBUG_INFO_SELECTORS);
+
+  return cloned;
 }

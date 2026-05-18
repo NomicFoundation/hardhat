@@ -23,6 +23,7 @@ import {
   SOLX_COMPILER_TYPE,
   SUPPORTED_SOLX_EVM_VERSIONS,
 } from "../constants.js";
+import { addSolxDebugInfoSelectors } from "../solx-compiler.js";
 
 const log = createDebug("hardhat:solx:hook-handlers:config");
 
@@ -172,10 +173,17 @@ export async function resolveUserConfig(
 ): Promise<HardhatConfig> {
   const resolvedConfig = await next(userConfig, resolveConfigurationVariable);
 
+  // Add solx debugInfo selectors so the cached solcInput, build-info,
+  // and build-ID hash all include them.
+  const profiles = await augmentSolxOutputSelectionInProfiles(
+    resolvedConfig.solidity.profiles,
+  );
+
   return {
     ...resolvedConfig,
     solidity: {
       ...resolvedConfig.solidity,
+      profiles,
       registeredCompilerTypes:
         resolvedConfig.solidity.registeredCompilerTypes.includes(
           SOLX_COMPILER_TYPE,
@@ -187,6 +195,56 @@ export async function resolveUserConfig(
             ],
     },
     solx: resolveSolxConfig(userConfig.solx),
+  };
+}
+
+/**
+ * For each compiler entry whose `type === "solx"`, augments
+ * `settings.outputSelection` with the solx debugInfo selectors.
+ * Non-solx entries pass through unchanged.
+ */
+async function augmentSolxOutputSelectionInProfiles(
+  profiles: HardhatConfig["solidity"]["profiles"],
+): Promise<HardhatConfig["solidity"]["profiles"]> {
+  const result: Record<string, (typeof profiles)[string]> = {};
+  for (const [profileName, profile] of Object.entries(profiles)) {
+    const augmentedCompilers = await Promise.all(
+      profile.compilers.map((compiler) => augmentIfSolx(compiler)),
+    );
+    const augmentedOverrides: Record<
+      string,
+      (typeof profile.overrides)[string]
+    > = {};
+    for (const [overrideKey, override] of Object.entries(profile.overrides)) {
+      augmentedOverrides[overrideKey] = await augmentIfSolx(override);
+    }
+    result[profileName] = {
+      ...profile,
+      compilers: augmentedCompilers,
+      overrides: augmentedOverrides,
+    };
+  }
+  return result;
+}
+
+// SolidityCompilerConfig.settings is typed `any` upstream (see hardhat's
+// `CommonSolidityCompilerConfig`), so we use the same here — narrowing
+// would require type assertions that the repo's eslint config forbids.
+async function augmentIfSolx<
+  T extends { type?: string; settings?: Record<string, unknown> },
+>(entry: T): Promise<T> {
+  if (entry.type !== SOLX_COMPILER_TYPE) {
+    return entry;
+  }
+  const settings = isObject(entry.settings) ? entry.settings : {};
+  return {
+    ...entry,
+    settings: {
+      ...settings,
+      outputSelection: await addSolxDebugInfoSelectors(
+        entry.settings?.outputSelection,
+      ),
+    },
   };
 }
 
