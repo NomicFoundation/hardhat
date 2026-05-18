@@ -7,6 +7,7 @@ import {
   validateResolvedConfig,
   validateUserConfig,
 } from "../src/internal/hook-handlers/config.js";
+import { SOLX_DEBUG_INFO_SELECTORS } from "../src/internal/solx-compiler.js";
 
 describe("hardhat-solx plugin config validation", () => {
   it("accepts valid config with dangerouslyAllowSolxInProduction", async () => {
@@ -67,7 +68,7 @@ describe("hardhat-solx plugin config resolution", () => {
         default: {
           isolated: false,
           preferWasm: false,
-          compilers: [{ version: "0.8.33", settings: {} }],
+          compilers: [{ version: "0.8.34", settings: {} }],
           overrides: {},
         },
       }),
@@ -84,7 +85,7 @@ describe("hardhat-solx plugin config resolution", () => {
         default: {
           isolated: false,
           preferWasm: false,
-          compilers: [{ version: "0.8.33", settings: {} }],
+          compilers: [{ version: "0.8.34", settings: {} }],
           overrides: {},
         },
       }),
@@ -101,7 +102,7 @@ describe("hardhat-solx plugin config resolution", () => {
         default: {
           isolated: false,
           preferWasm: false,
-          compilers: [{ version: "0.8.33", settings: {} }],
+          compilers: [{ version: "0.8.34", settings: {} }],
           overrides: {},
         },
       }),
@@ -121,7 +122,7 @@ describe("hardhat-solx plugin config resolution", () => {
         default: {
           isolated: false,
           preferWasm: false,
-          compilers: [{ version: "0.8.33", settings: {} }],
+          compilers: [{ version: "0.8.34", settings: {} }],
           overrides: {},
         },
       }),
@@ -129,6 +130,106 @@ describe("hardhat-solx plugin config resolution", () => {
 
     const profileNames = Object.keys(resolvedConfig.solidity.profiles);
     assert.deepEqual(profileNames, ["default"]);
+  });
+
+  it("adds solx debugInfo selectors to solx-typed compilers in resolved config", async () => {
+    const resolvedConfig = await resolveUserConfig(
+      {},
+      undefined as any,
+      makeNext({
+        solx: {
+          isolated: false,
+          preferWasm: false,
+          compilers: [
+            {
+              version: "0.8.34",
+              type: "solx",
+              settings: { outputSelection: { "*": { "*": ["abi"] } } },
+            },
+          ],
+          overrides: {},
+        },
+      }),
+    );
+
+    const solxCompiler = resolvedConfig.solidity.profiles.solx.compilers[0];
+    const wildcardSelectors = solxCompiler.settings.outputSelection["*"][
+      "*"
+    ] as string[];
+    for (const selector of SOLX_DEBUG_INFO_SELECTORS) {
+      assert.ok(
+        wildcardSelectors.includes(selector),
+        `expected resolved solx compiler config to include "${selector}", got: ${wildcardSelectors.join(", ")}`,
+      );
+    }
+    assert.ok(
+      wildcardSelectors.includes("abi"),
+      "user-provided selectors must be preserved alongside the augmentation",
+    );
+  });
+
+  it("does NOT add solx selectors to non-solx compilers", async () => {
+    const resolvedConfig = await resolveUserConfig(
+      {},
+      undefined as any,
+      makeNext({
+        default: {
+          isolated: false,
+          preferWasm: false,
+          compilers: [
+            {
+              version: "0.8.34",
+              settings: { outputSelection: { "*": { "*": ["abi"] } } },
+            },
+          ],
+          overrides: {},
+        },
+      }),
+    );
+
+    const solcCompiler = resolvedConfig.solidity.profiles.default.compilers[0];
+    const wildcardSelectors = solcCompiler.settings.outputSelection["*"][
+      "*"
+    ] as string[];
+    for (const selector of SOLX_DEBUG_INFO_SELECTORS) {
+      assert.ok(
+        !wildcardSelectors.includes(selector),
+        `solc-typed compiler must NOT receive solx selector "${selector}"; got: ${wildcardSelectors.join(", ")}`,
+      );
+    }
+  });
+
+  it("augments solx-typed override entries too", async () => {
+    const resolvedConfig = await resolveUserConfig(
+      {},
+      undefined as any,
+      makeNext({
+        solx: {
+          isolated: false,
+          preferWasm: false,
+          compilers: [{ version: "0.8.34", type: "solx", settings: {} }],
+          overrides: {
+            "contracts/Special.sol": {
+              version: "0.8.34",
+              type: "solx",
+              settings: {},
+            },
+          },
+        },
+      }),
+    );
+
+    const override =
+      resolvedConfig.solidity.profiles.solx.overrides["contracts/Special.sol"];
+    const wildcardSelectors = override.settings.outputSelection["*"][
+      "*"
+    ] as string[];
+    for (const selector of SOLX_DEBUG_INFO_SELECTORS) {
+      assert.ok(
+        wildcardSelectors.includes(selector),
+        `expected solx override to include "${selector}", got: ${wildcardSelectors.join(", ")}`,
+      );
+    }
   });
 });
 
@@ -140,7 +241,7 @@ describe("hardhat-solx EVM version validation", () => {
           solx: {
             compilers: [
               {
-                version: "0.8.33",
+                version: "0.8.34",
                 type: "solx",
                 settings: { evmVersion: "paris" },
               },
@@ -163,7 +264,7 @@ describe("hardhat-solx EVM version validation", () => {
           solx: {
             compilers: [
               {
-                version: "0.8.33",
+                version: "0.8.34",
                 type: "solx",
                 settings: { evmVersion: "shanghai" },
               },
@@ -182,7 +283,7 @@ describe("hardhat-solx EVM version validation", () => {
           solx: {
             compilers: [
               {
-                version: "0.8.33",
+                version: "0.8.34",
                 type: "solx",
                 settings: { evmVersion: "cancun" },
               },
@@ -201,7 +302,7 @@ describe("hardhat-solx EVM version validation", () => {
           solx: {
             compilers: [
               {
-                version: "0.8.33",
+                version: "0.8.34",
                 type: "solx",
                 settings: { evmVersion: "prague" },
               },
@@ -220,7 +321,7 @@ describe("hardhat-solx EVM version validation", () => {
           solx: {
             compilers: [
               {
-                version: "0.8.33",
+                version: "0.8.34",
                 type: "solx",
                 settings: { evmVersion: "osaka" },
               },
@@ -237,7 +338,7 @@ describe("hardhat-solx EVM version validation", () => {
       solidity: {
         profiles: {
           solx: {
-            compilers: [{ version: "0.8.33", type: "solx" }],
+            compilers: [{ version: "0.8.34", type: "solx" }],
           },
         },
       },
@@ -252,7 +353,7 @@ describe("hardhat-solx EVM version validation", () => {
           solx: {
             compilers: [
               {
-                version: "0.8.33",
+                version: "0.8.34",
                 settings: { evmVersion: "paris" },
               },
             ],
@@ -269,10 +370,10 @@ describe("hardhat-solx EVM version validation", () => {
       solidity: {
         profiles: {
           solx: {
-            compilers: [{ version: "0.8.33" }],
+            compilers: [{ version: "0.8.34" }],
             overrides: {
               "contracts/Old.sol": {
-                version: "0.8.33",
+                version: "0.8.34",
                 type: "solx",
                 settings: { evmVersion: "london" },
               },
@@ -306,12 +407,12 @@ describe("hardhat-solx Solidity version validation", () => {
     );
   });
 
-  it("accepts type: 'solx' with supported Solidity version 0.8.33", async () => {
+  it("accepts type: 'solx' with supported Solidity version 0.8.34", async () => {
     const errors = await validateUserConfig({
       solidity: {
         profiles: {
           solx: {
-            compilers: [{ version: "0.8.33", type: "solx" }],
+            compilers: [{ version: "0.8.34", type: "solx" }],
           },
         },
       },
@@ -328,7 +429,7 @@ describe("hardhat-solx Solidity version validation", () => {
         profiles: {
           solx: {
             compilers: [
-              { version: "0.8.33", type: "solx", path: "/tmp/solx-custom" },
+              { version: "0.8.34", type: "solx", path: "/tmp/solx-custom" },
             ],
           },
         },
@@ -402,7 +503,7 @@ describe("hardhat-solx resolved config validation", () => {
         default: {
           isolated: false,
           preferWasm: false,
-          compilers: [{ version: "0.8.33", settings: {} }],
+          compilers: [{ version: "0.8.34", settings: {} }],
           overrides: {},
         },
       }),
@@ -420,13 +521,13 @@ describe("hardhat-solx resolved config validation", () => {
         default: {
           isolated: false,
           preferWasm: false,
-          compilers: [{ version: "0.8.33", settings: {} }],
+          compilers: [{ version: "0.8.34", settings: {} }],
           overrides: {},
         },
         solx: {
           isolated: false,
           preferWasm: false,
-          compilers: [{ version: "0.8.33", type: "solx", settings: {} }],
+          compilers: [{ version: "0.8.34", type: "solx", settings: {} }],
           overrides: {},
         },
       }),
@@ -440,13 +541,13 @@ describe("hardhat-solx resolved config validation", () => {
         default: {
           isolated: false,
           preferWasm: false,
-          compilers: [{ version: "0.8.33", type: "solx", settings: {} }],
+          compilers: [{ version: "0.8.34", type: "solx", settings: {} }],
           overrides: {},
         },
         solx: {
           isolated: false,
           preferWasm: false,
-          compilers: [{ version: "0.8.33", type: "solx", settings: {} }],
+          compilers: [{ version: "0.8.34", type: "solx", settings: {} }],
           overrides: {},
         },
       }),
@@ -469,15 +570,15 @@ describe("hardhat-solx resolved config validation", () => {
         default: {
           isolated: false,
           preferWasm: false,
-          compilers: [{ version: "0.8.33", settings: {} }],
+          compilers: [{ version: "0.8.34", settings: {} }],
           overrides: {
-            "MyContract.sol": { version: "0.8.33", type: "solx", settings: {} },
+            "MyContract.sol": { version: "0.8.34", type: "solx", settings: {} },
           },
         },
         solx: {
           isolated: false,
           preferWasm: false,
-          compilers: [{ version: "0.8.33", type: "solx", settings: {} }],
+          compilers: [{ version: "0.8.34", type: "solx", settings: {} }],
           overrides: {},
         },
       }),
@@ -501,13 +602,13 @@ describe("hardhat-solx resolved config validation", () => {
           default: {
             isolated: false,
             preferWasm: false,
-            compilers: [{ version: "0.8.33", type: "solx", settings: {} }],
+            compilers: [{ version: "0.8.34", type: "solx", settings: {} }],
             overrides: {},
           },
           solx: {
             isolated: false,
             preferWasm: false,
-            compilers: [{ version: "0.8.33", type: "solx", settings: {} }],
+            compilers: [{ version: "0.8.34", type: "solx", settings: {} }],
             overrides: {},
           },
         },
@@ -523,13 +624,13 @@ describe("hardhat-solx resolved config validation", () => {
         default: {
           isolated: false,
           preferWasm: false,
-          compilers: [{ version: "0.8.33", settings: {} }],
+          compilers: [{ version: "0.8.34", settings: {} }],
           overrides: {},
         },
         solx: {
           isolated: false,
           preferWasm: false,
-          compilers: [{ version: "0.8.33", type: "solx", settings: {} }],
+          compilers: [{ version: "0.8.34", type: "solx", settings: {} }],
           overrides: {},
         },
       }),
@@ -544,7 +645,7 @@ describe("hardhat-solx resolved config validation", () => {
           default: {
             isolated: false,
             preferWasm: false,
-            compilers: [{ version: "0.8.33", type: "solx", settings: {} }],
+            compilers: [{ version: "0.8.34", type: "solx", settings: {} }],
             overrides: {},
           },
         },
