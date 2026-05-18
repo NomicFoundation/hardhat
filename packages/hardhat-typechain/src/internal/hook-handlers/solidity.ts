@@ -1,3 +1,4 @@
+import type { generateTypes as generateTypesT } from "../generate-types.js";
 import type { HookContext, SolidityHooks } from "hardhat/types/hooks";
 import type {
   BuildOptions,
@@ -8,7 +9,7 @@ import type {
 
 import path from "node:path";
 
-import { generateTypes } from "../generate-types.js";
+let generateTypes: typeof generateTypesT | undefined;
 
 export default async (): Promise<Partial<SolidityHooks>> => {
   const handlers: Partial<SolidityHooks> = {
@@ -37,6 +38,13 @@ export default async (): Promise<Partial<SolidityHooks>> => {
       // Clear cache to ensure fresh data after compilation
       await context.artifacts.clearCache();
 
+      if (
+        context.globalOptions.noTypechain === true ||
+        context.config.typechain.dontOverrideCompile === true
+      ) {
+        return result;
+      }
+
       let artifactPaths: string[];
 
       if (context.config.solidity.splitTestsCompilation) {
@@ -51,10 +59,10 @@ export default async (): Promise<Partial<SolidityHooks>> => {
         artifactPaths = await getContractArtifactPaths(context);
       }
 
-      await generateTypes(
+      const generate = await getGenerateTypes();
+      await generate(
         context.config.paths.root,
         context.config.typechain,
-        context.globalOptions.noTypechain,
         artifactPaths,
       );
 
@@ -107,4 +115,12 @@ async function getContractArtifactPaths(
   return await Promise.all(
     contractFqns.map((fqn) => context.artifacts.getArtifactPath(fqn)),
   );
+}
+
+async function getGenerateTypes(): Promise<typeof generateTypesT> {
+  if (generateTypes === undefined) {
+    ({ generateTypes } = await import("../generate-types.js"));
+  }
+
+  return generateTypes;
 }

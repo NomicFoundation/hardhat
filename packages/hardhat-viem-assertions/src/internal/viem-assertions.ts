@@ -1,5 +1,12 @@
 import type { AbiHolder, ErrorArgsOf, EventArgsOf } from "../abi-types.js";
 import type { HardhatViemAssertions } from "../types.js";
+import type { balancesHaveChanged as balancesHaveChangedT } from "./assertions/balances-have-changed.js";
+import type { emitWithArgs as emitWithArgsT } from "./assertions/emit/emit-with-args.js";
+import type { emit as emitT } from "./assertions/emit/emit.js";
+import type { revertWithCustomErrorWithArgs as revertWithCustomErrorWithArgsT } from "./assertions/revert/revert-with-custom-error-with-args.js";
+import type { revertWithCustomError as revertWithCustomErrorT } from "./assertions/revert/revert-with-custom-error.js";
+import type { revertWith as revertWithT } from "./assertions/revert/revert-with.js";
+import type { revert as revertT } from "./assertions/revert/revert.js";
 import type { HardhatViemHelpers } from "@nomicfoundation/hardhat-viem/types";
 import type { ChainType } from "hardhat/types/network";
 import type {
@@ -12,13 +19,32 @@ import type {
   WriteContractReturnType,
 } from "viem";
 
-import { balancesHaveChanged } from "./assertions/balances-have-changed.js";
-import { emitWithArgs } from "./assertions/emit/emit-with-args.js";
-import { emit } from "./assertions/emit/emit.js";
-import { revertWithCustomErrorWithArgs } from "./assertions/revert/revert-with-custom-error-with-args.js";
-import { revertWithCustomError } from "./assertions/revert/revert-with-custom-error.js";
-import { revertWith } from "./assertions/revert/revert-with.js";
-import { revert } from "./assertions/revert/revert.js";
+import { settle } from "./helpers.js";
+
+let balancesHaveChanged: typeof balancesHaveChangedT | undefined;
+let emit: typeof emitT | undefined;
+let emitWithArgs: typeof emitWithArgsT | undefined;
+let revert: typeof revertT | undefined;
+let revertWith: typeof revertWithT | undefined;
+let revertWithCustomError: typeof revertWithCustomErrorT | undefined;
+let revertWithCustomErrorWithArgs:
+  | typeof revertWithCustomErrorWithArgsT
+  | undefined;
+
+// Each method's `await import(...)` opens a microtask gap during which the
+// incoming `Promise<...>` argument has no handler attached, so a rejection
+// (e.g. a reverting contract call) triggers an unhandled-rejection event in
+// strict Node modes. We settle the incoming promise synchronously to suppress
+// that, then re-emit it through a fresh `Promise.resolve/reject` so V8 starts
+// a new async-stack-trace annotation on observation — the inner assertion's
+// await chain, including the test caller frame, ends up on the error.
+function reissue<T>(
+  result: { ok: true; value: T } | { ok: false; error: unknown },
+): Promise<T> {
+  return result.ok
+    ? Promise.resolve(result.value)
+    : Promise.reject(result.error);
+}
 
 export class HardhatViemAssertionsImpl<
   ChainTypeT extends ChainType | string = "generic",
@@ -37,7 +63,19 @@ export class HardhatViemAssertionsImpl<
       amount: bigint;
     }>,
   ): Promise<void> {
-    return await balancesHaveChanged(this.#viem, resolvedTxHash, changes);
+    const settled = settle(resolvedTxHash);
+
+    if (balancesHaveChanged === undefined) {
+      ({ balancesHaveChanged } = await import(
+        "./assertions/balances-have-changed.js"
+      ));
+    }
+
+    return await balancesHaveChanged(
+      this.#viem,
+      reissue(await settled),
+      changes,
+    );
   }
 
   public async emit<TContract extends AbiHolder<Abi>>(
@@ -45,7 +83,13 @@ export class HardhatViemAssertionsImpl<
     contract: TContract,
     eventName: ContractEventName<TContract["abi"]>,
   ): Promise<void> {
-    return await emit(this.#viem, contractFn, contract, eventName);
+    const settled = settle(contractFn);
+
+    if (emit === undefined) {
+      ({ emit } = await import("./assertions/emit/emit.js"));
+    }
+
+    return await emit(this.#viem, reissue(await settled), contract, eventName);
   }
 
   public async emitWithArgs<
@@ -57,9 +101,15 @@ export class HardhatViemAssertionsImpl<
     eventName: TEventName,
     args: EventArgsOf<TContract["abi"], TEventName>,
   ): Promise<void> {
+    const settled = settle(contractFn);
+
+    if (emitWithArgs === undefined) {
+      ({ emitWithArgs } = await import("./assertions/emit/emit-with-args.js"));
+    }
+
     return await emitWithArgs(
       this.#viem,
-      contractFn,
+      reissue(await settled),
       contract,
       eventName,
       args,
@@ -69,14 +119,26 @@ export class HardhatViemAssertionsImpl<
   public async revert(
     contractFn: Promise<ReadContractReturnType | WriteContractReturnType>,
   ): Promise<void> {
-    return await revert(contractFn);
+    const settled = settle(contractFn);
+
+    if (revert === undefined) {
+      ({ revert } = await import("./assertions/revert/revert.js"));
+    }
+
+    return await revert(reissue(await settled));
   }
 
   public async revertWith(
     contractFn: Promise<ReadContractReturnType | WriteContractReturnType>,
     expectedRevertReason: string,
   ): Promise<void> {
-    return await revertWith(contractFn, expectedRevertReason);
+    const settled = settle(contractFn);
+
+    if (revertWith === undefined) {
+      ({ revertWith } = await import("./assertions/revert/revert-with.js"));
+    }
+
+    return await revertWith(reissue(await settled), expectedRevertReason);
   }
 
   public async revertWithCustomError<TContract extends AbiHolder<Abi>>(
@@ -84,7 +146,19 @@ export class HardhatViemAssertionsImpl<
     contract: TContract,
     customErrorName: ContractErrorName<TContract["abi"]>,
   ): Promise<void> {
-    return await revertWithCustomError(contractFn, contract, customErrorName);
+    const settled = settle(contractFn);
+
+    if (revertWithCustomError === undefined) {
+      ({ revertWithCustomError } = await import(
+        "./assertions/revert/revert-with-custom-error.js"
+      ));
+    }
+
+    return await revertWithCustomError(
+      reissue(await settled),
+      contract,
+      customErrorName,
+    );
   }
 
   public async revertWithCustomErrorWithArgs<
@@ -96,8 +170,16 @@ export class HardhatViemAssertionsImpl<
     customErrorName: TErrorName,
     args: ErrorArgsOf<TContract["abi"], TErrorName>,
   ): Promise<void> {
+    const settled = settle(contractFn);
+
+    if (revertWithCustomErrorWithArgs === undefined) {
+      ({ revertWithCustomErrorWithArgs } = await import(
+        "./assertions/revert/revert-with-custom-error-with-args.js"
+      ));
+    }
+
     return await revertWithCustomErrorWithArgs(
-      contractFn,
+      reissue(await settled),
       contract,
       customErrorName,
       args,
