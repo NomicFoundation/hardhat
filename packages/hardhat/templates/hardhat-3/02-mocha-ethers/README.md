@@ -2,7 +2,7 @@
 
 This project showcases a Hardhat 3 project using `mocha` for tests and the `ethers` library for Ethereum interactions.
 
-To learn more about Hardhat 3, please visit the [Getting Started guide](https://hardhat.org/docs/getting-started#getting-started-with-hardhat-3). To share your feedback, [open an issue](https://github.com/NomicFoundation/hardhat/issues/new) in our GitHub issue tracker.
+To learn more about Hardhat 3, please visit the [Getting Started guide](https://hardhat.org/docs/getting-started#getting-started-with-hardhat-3). To share your feedback, join our [Hardhat 3](https://hardhat.org/hardhat3-beta-telegram-group) Telegram group or [open an issue](https://github.com/NomicFoundation/hardhat/issues/new) in our GitHub issue tracker.
 
 ## Project Overview
 
