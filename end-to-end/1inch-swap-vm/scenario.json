@@ -1,0 +1,27 @@
+{
+  "$schema": "../../scripts/end-to-end/schema/scenario.schema.json",
+  "description": "1inch SwapVM contract fork to Hardhat 3.",
+  "tags": ["external-repo"],
+  "repo": "anaPerezGhiglia/1inch-swap-vm",
+  "commit": "eacd08361caf75431d2b4409136cf4eb10fa63a3",
+  "packageManager": "pnpm",
+  "submodules": false,
+  "defaultCommand": "npx hardhat test solidity",
+  "benchmark": {
+    "commands": {
+      "cold compile": {
+        "runs": 3,
+        "prepare": "npx hardhat clean",
+        "command": "npx hardhat compile"
+      },
+      "warm compile": {
+        "runs": 45,
+        "command": "npx hardhat compile"
+      },
+      "test solidity": {
+        "runs": 29,
+        "command": "npx hardhat test solidity --no-compile"
+      }
+    }
+  }
+}

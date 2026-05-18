@@ -1,3 +1,5 @@
+import type { SemverVersion } from "@nomicfoundation/hardhat-utils/fast-semver";
+
 import util from "node:util";
 
 import { bytesToHexString } from "@nomicfoundation/hardhat-utils/bytes";
@@ -8,9 +10,28 @@ const log = createDebug("hardhat:verify:metadata");
 
 export const METADATA_LENGTH_FIELD_SIZE = 2;
 
-export const SOLC_NOT_FOUND_IN_METADATA_VERSION_RANGE = "0.4.7 - 0.5.8";
+/**
+ * The Solidity compiler version inferred from a contract's deployed bytecode.
+ *
+ * Bytecode metadata was introduced in Solidity v0.4.7, and the explicit
+ * version field was added in v0.5.9. Below those thresholds we can only
+ * narrow the version down to a range.
+ */
+export type InferredSolcVersion =
+  | { type: "exact"; version: SemverVersion }
+  | { type: "lessThan"; bound: SemverVersion }
+  | { type: "between"; min: SemverVersion; max: SemverVersion };
 
-export const MISSING_METADATA_VERSION_RANGE = "<0.4.7";
+const MISSING_METADATA: InferredSolcVersion = {
+  type: "lessThan",
+  bound: [0, 4, 7],
+};
+
+const SOLC_NOT_FOUND_IN_METADATA: InferredSolcVersion = {
+  type: "between",
+  min: [0, 4, 7],
+  max: [0, 5, 8],
+};
 
 /**
  * Attempts to infer the Solidity compiler version from the bytecode metadata.
@@ -21,25 +42,28 @@ export const MISSING_METADATA_VERSION_RANGE = "<0.4.7";
  * See https://docs.soliditylang.org/en/v0.5.9/metadata.html#encoding-of-the-metadata-hash-in-the-bytecode
  *
  * @param bytecode The deployed bytecode as a Uint8Array.
- * @returns The inferred solc version (e.g., "0.8.17"), or a fallback
- * version range constant if the version cannot be inferred.
+ * @returns The inferred solc version, either as an exact `x.y.z` or, when
+ * the metadata is missing or incomplete, as a fallback range.
  */
-export async function inferSolcVersion(bytecode: Uint8Array): Promise<string> {
+export async function inferSolcVersion(
+  bytecode: Uint8Array,
+): Promise<InferredSolcVersion> {
   let solcMetadata: unknown;
   try {
     solcMetadata = await decodeSolcMetadata(bytecode);
   } catch {
     // Decoding failed, likely an older compiler or non-Solidity bytecode
     log("Failed to decode metadata.");
-    return MISSING_METADATA_VERSION_RANGE;
+    return MISSING_METADATA;
   }
 
   if (solcMetadata instanceof Uint8Array) {
     if (solcMetadata.length === 3) {
       const [major, minor, patch] = solcMetadata;
-      const solcVersion = `${major}.${minor}.${patch}`;
-      log(`Detected Solidity version from metadata: ${solcVersion}`);
-      return solcVersion;
+      log(
+        `Detected Solidity version from metadata: ${major}.${minor}.${patch}`,
+      );
+      return { type: "exact", version: [major, minor, patch] };
     }
     // Unexpected length. Log raw metadata for inspection
     log(
@@ -49,7 +73,27 @@ export async function inferSolcVersion(bytecode: Uint8Array): Promise<string> {
 
   // Metadata was decoded but contained no version field
   log("Metadata decoded but Solidity version not found.");
-  return SOLC_NOT_FOUND_IN_METADATA_VERSION_RANGE;
+  return SOLC_NOT_FOUND_IN_METADATA;
+}
+
+/**
+ * Formats an `InferredSolcVersion` as a human-readable string suitable for
+ * inclusion in error messages: an exact `x.y.z`, a `<x.y.z` upper bound, or
+ * an `x.y.z - x.y.z` closed range.
+ */
+export function formatInferredSolcVersion(v: InferredSolcVersion): string {
+  switch (v.type) {
+    case "exact":
+      return formatTuple(v.version);
+    case "lessThan":
+      return `<${formatTuple(v.bound)}`;
+    case "between":
+      return `${formatTuple(v.min)} - ${formatTuple(v.max)}`;
+  }
+}
+
+function formatTuple(v: SemverVersion): string {
+  return `${v[0]}.${v[1]}.${v[2]}`;
 }
 
 /**

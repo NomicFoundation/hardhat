@@ -7,9 +7,10 @@ import type {
 import type { TestSummary } from "../../../types/test.js";
 import type { Result } from "../../../types/utils.js";
 
+import { styleText } from "node:util";
+
 import { HardhatError } from "@nomicfoundation/hardhat-errors";
 import { isObject } from "@nomicfoundation/hardhat-utils/lang";
-import chalk, { type ChalkInstance } from "chalk";
 
 import {
   errorResult,
@@ -194,19 +195,23 @@ const runAllTests: NewTaskActionFunction<TestActionArguments> = async (
   }
 
   if (passed.length > 0) {
-    logSummaryLine("passing", passed, chalk.green);
+    logSummaryLine("passing", passed, (text: string) =>
+      styleText("green", text),
+    );
   }
 
   if (failed.length > 0) {
-    logSummaryLine("failing", failed, chalk.red);
+    logSummaryLine("failing", failed, (text: string) => styleText("red", text));
   }
 
   if (skipped.length > 0) {
-    logSummaryLine("skipped", skipped, chalk.cyan);
+    logSummaryLine("skipped", skipped, (text: string) =>
+      styleText("cyan", text),
+    );
   }
 
   if (todo.length > 0) {
-    logSummaryLine("todo", todo, chalk.blue);
+    logSummaryLine("todo", todo, (text: string) => styleText("blue", text));
   }
 
   if (outputLines.length > 0) {
@@ -262,7 +267,8 @@ const runAllTests: NewTaskActionFunction<TestActionArguments> = async (
 function logSummaryLine(
   label: string,
   items: Array<[string, number]>,
-  color: ChalkInstance = chalk.white,
+  // Allow passing a custom colorize function for testing purposes
+  color: (text: string) => string = (text) => styleText("white", text),
 ): void {
   let total = 0;
   const str = items

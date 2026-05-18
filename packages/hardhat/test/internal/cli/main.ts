@@ -13,6 +13,7 @@ import type {
 import assert from "node:assert/strict";
 import { afterEach, before, describe, it } from "node:test";
 import { pathToFileURL } from "node:url";
+import { styleText } from "node:util";
 
 import { HardhatError } from "@nomicfoundation/hardhat-errors";
 import {
@@ -21,8 +22,8 @@ import {
   useFixtureProject,
 } from "@nomicfoundation/hardhat-test-utils";
 import { isCi } from "@nomicfoundation/hardhat-utils/ci";
-import chalk from "chalk";
 
+import { getTemplates } from "../../../src/internal/cli/init/template.js";
 import {
   main,
   parseGlobalOptions,
@@ -292,7 +293,7 @@ GLOBAL OPTIONS:
   --gas-stats              Collects and displays gas usage statistics for all function calls during tests
   --gas-stats-json         Write gas usage statistics to a JSON file at the specified path
   --help, -h               Show this message, or a task's help if its name is provided
-  --init                   Initializes a Hardhat project
+  --init                   Initializes a Hardhat project. Supports \`--template <name>\` and \`--templates\`
   --network                The network to connect to
   --show-stack-traces      Show stack traces (always enabled on CI servers)
   --verbosity, -v          Verbosity level of the output
@@ -312,7 +313,7 @@ To get help for a specific task run: npx hardhat <TASK> [SUBTASK] --help`;
           const command = "npx hardhat empty-task --help";
           const lines = await runMain(command);
 
-          const expected = `${chalk.bold("empty task description")}
+          const expected = `${styleText("bold", "empty task description")}
 
 Usage: hardhat [GLOBAL OPTIONS] empty-task <SUBTASK> [SUBTASK OPTIONS] [--] [SUBTASK POSITIONAL ARGUMENTS]
 `;
@@ -345,7 +346,7 @@ Usage: hardhat [GLOBAL OPTIONS] empty-task <SUBTASK> [SUBTASK OPTIONS] [--] [SUB
           const command = "npx hardhat test-task --help";
           const lines = await runMain(command);
 
-          const expected = `${chalk.bold("description")}
+          const expected = `${styleText("bold", "description")}
 
 Usage: hardhat [GLOBAL OPTIONS] test-task [--opt <STRING>] [--] pos1 [pos2] [var1]
 
@@ -367,7 +368,7 @@ GLOBAL OPTIONS:
   --gas-stats              Collects and displays gas usage statistics for all function calls during tests
   --gas-stats-json         Write gas usage statistics to a JSON file at the specified path
   --help, -h               Show this message, or a task's help if its name is provided
-  --init                   Initializes a Hardhat project
+  --init                   Initializes a Hardhat project. Supports \`--template <name>\` and \`--templates\`
   --network                The network to connect to
   --show-stack-traces      Show stack traces (always enabled on CI servers)
   --verbosity, -v          Verbosity level of the output
@@ -386,7 +387,7 @@ GLOBAL OPTIONS:
         const command = "npx hardhat task --help";
         const lines = await runMain(command);
 
-        const expected = `${chalk.bold("A task that uses arg1")}
+        const expected = `${styleText("bold", "A task that uses arg1")}
 
 Usage: hardhat [GLOBAL OPTIONS] task [--arg-1 <STRING>] [--arg-4] [--arg-5 <LEVEL>] [--] arg2 arg3
 
@@ -409,7 +410,7 @@ GLOBAL OPTIONS:
   --gas-stats              Collects and displays gas usage statistics for all function calls during tests
   --gas-stats-json         Write gas usage statistics to a JSON file at the specified path
   --help, -h               Show this message, or a task's help if its name is provided
-  --init                   Initializes a Hardhat project
+  --init                   Initializes a Hardhat project. Supports \`--template <name>\` and \`--templates\`
   --network                The network to connect to
   --show-stack-traces      Show stack traces (always enabled on CI servers)
   --verbosity, -v          Verbosity level of the output
@@ -566,6 +567,139 @@ GLOBAL OPTIONS:
         async () =>
           await parseBuiltinGlobalOptions(cliArguments, usedCliArguments),
         HardhatError.ERRORS.CORE.ARGUMENTS.MISSING_CONFIG_FILE,
+        {},
+      );
+    });
+  });
+
+  describe("--init --template", function () {
+    it("should throw an error when --template is provided without a value", async function () {
+      const command = "npx hardhat --init --template";
+
+      await assertRejectsWithHardhatError(
+        async () => await runMain(command),
+        HardhatError.ERRORS.CORE.ARGUMENTS.MISSING_VALUE_FOR_ARGUMENT,
+        {
+          argument: "--template",
+        },
+      );
+    });
+
+    it("should throw an error when --template value is consumed by another flag", async function () {
+      const command = "npx hardhat --init --template --show-stack-traces";
+
+      await assertRejectsWithHardhatError(
+        async () => await runMain(command),
+        HardhatError.ERRORS.CORE.ARGUMENTS.MISSING_VALUE_FOR_ARGUMENT,
+        {
+          argument: "--template",
+        },
+      );
+    });
+
+    it("should throw an error when --template is followed by an unknown flag", async function () {
+      const command = "npx hardhat --init --template --unknown-flag";
+
+      await assertRejectsWithHardhatError(
+        async () => await runMain(command),
+        HardhatError.ERRORS.CORE.ARGUMENTS.MISSING_VALUE_FOR_ARGUMENT,
+        {
+          argument: "--template",
+        },
+      );
+    });
+
+    it("should throw an error when --template value is an unknown template name", async function () {
+      const command = "npx hardhat --init --template unknown-template";
+
+      const templates = await getTemplates("hardhat-3");
+      const availableTemplates = templates
+        .map((t) => `  - ${t.name}`)
+        .join("\n");
+
+      await assertRejectsWithHardhatError(
+        async () => await runMain(command),
+        HardhatError.ERRORS.CORE.GENERAL
+          .TEMPLATE_NOT_FOUND_WITH_LIST_OF_OPTIONS,
+        {
+          template: "unknown-template",
+          availableTemplates,
+        },
+      );
+    });
+
+    it("should throw an error when --template is provided twice", async function () {
+      const command = "npx hardhat --init --template foo --template bar";
+
+      await assertRejectsWithHardhatError(
+        async () => await runMain(command),
+        HardhatError.ERRORS.CORE.ARGUMENTS.DUPLICATED_NAME,
+        {
+          name: "--template",
+        },
+      );
+    });
+  });
+
+  describe("--init --templates", function () {
+    it("should list available template names", async function () {
+      const lines: string[] = [];
+
+      const cliArguments = "npx hardhat --init --templates".split(" ").slice(2);
+
+      await main(cliArguments, {
+        print: (message) => {
+          lines.push(message);
+        },
+        rethrowErrors: true,
+        allowNonlocalHardhatInstallation: true,
+      });
+
+      const output = lines.join("\n");
+
+      assert.ok(
+        output.startsWith("Available templates:"),
+        "Output should start with 'Available templates:'",
+      );
+
+      const templates = await getTemplates("hardhat-3");
+      for (const t of templates) {
+        assert.ok(
+          output.includes(`  - ${t.name}`),
+          `Output should contain template name '${t.name}'`,
+        );
+      }
+    });
+
+    it("should throw when --template and --templates are used together", async function () {
+      const command = "npx hardhat --init --template mocha-ethers --templates";
+
+      await assertRejectsWithHardhatError(
+        async () => await runMain(command),
+        HardhatError.ERRORS.CORE.ARGUMENTS
+          .CANNOT_COMBINE_TEMPLATE_AND_TEMPLATES,
+        {},
+      );
+    });
+
+    it("should throw when --templates and --template are used together (reversed order)", async function () {
+      const command = "npx hardhat --init --templates --template mocha-ethers";
+
+      await assertRejectsWithHardhatError(
+        async () => await runMain(command),
+        HardhatError.ERRORS.CORE.ARGUMENTS
+          .CANNOT_COMBINE_TEMPLATE_AND_TEMPLATES,
+        {},
+      );
+    });
+
+    it("should throw CANNOT_COMBINE when --template is followed by --templates", async function () {
+      const command = "npx hardhat --init --template --templates";
+
+      await assertRejectsWithHardhatError(
+        async () => await runMain(command),
+        HardhatError.ERRORS.CORE.ARGUMENTS
+          .CANNOT_COMBINE_TEMPLATE_AND_TEMPLATES,
         {},
       );
     });

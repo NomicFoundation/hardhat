@@ -1,3 +1,5 @@
+import "./builtin-plugin-type-extensions.js";
+
 /* eslint-disable-next-line @typescript-eslint/no-empty-interface -- Empty
 interface allow plugins to extend the Test user configuration for Hardhat. */
 export interface HardhatTestUserConfig {}

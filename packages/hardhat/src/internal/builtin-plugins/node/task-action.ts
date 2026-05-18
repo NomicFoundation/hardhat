@@ -3,6 +3,7 @@ import type { ChainType } from "../../../types/network.js";
 import type { NewTaskActionFunction } from "../../../types/tasks.js";
 
 import path from "node:path";
+import { styleText } from "node:util";
 
 import {
   assertHardhatInvariant,
@@ -10,7 +11,6 @@ import {
 } from "@nomicfoundation/hardhat-errors";
 import { createDebug } from "@nomicfoundation/hardhat-utils/debug";
 import { ensureDir, exists } from "@nomicfoundation/hardhat-utils/fs";
-import chalk from "chalk";
 
 import { isSupportedChainType } from "../../edr/chain-type.js";
 import { BUILD_INFO_DIR_NAME } from "../artifacts/artifact-manager.js";
@@ -143,7 +143,8 @@ const nodeAction: NewTaskActionFunction<NodeActionArguments> = async (
   const { port: actualPort, address: actualHostname } = await server.listen();
 
   console.log(
-    chalk.green(
+    styleText(
+      "green",
       `Started HTTP and WebSocket JSON-RPC server at http://${actualHostname}:${actualPort}/`,
     ),
   );

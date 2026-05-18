@@ -2,6 +2,8 @@ import type { GlobalOptions } from "./global-options.js";
 import type { UserInterruptionManager } from "./user-interruptions.js";
 import type { HardhatConfig, HardhatUserConfig } from "../types/config.js";
 
+import "./builtin-plugin-type-extensions.js";
+
 /**
  * The Hardhat Runtime Environment (HRE) is an object that exposes
  * all the functionality available through Hardhat.

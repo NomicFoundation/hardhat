@@ -2,6 +2,7 @@ import type { Template } from "./template.js";
 import type { PackageJson } from "@nomicfoundation/hardhat-utils/package";
 
 import path from "node:path";
+import { styleText } from "node:util";
 
 import {
   assertHardhatInvariant,
@@ -19,7 +20,6 @@ import {
   writeJsonFile,
 } from "@nomicfoundation/hardhat-utils/fs";
 import { resolveFromRoot } from "@nomicfoundation/hardhat-utils/path";
-import chalk from "chalk";
 import * as semver from "semver";
 
 import { findClosestHardhatConfig } from "../../config-loading.js";
@@ -49,6 +49,10 @@ import {
 import { spawn } from "./subprocess.js";
 import { getTemplates } from "./template.js";
 
+export interface NonInteractiveInitHardhat3Options {
+  template: string;
+}
+
 export interface InitHardhatOptions {
   hardhatVersion?: "hardhat-2" | "hardhat-3";
   workspace?: string;
@@ -59,6 +63,61 @@ export interface InitHardhatOptions {
 }
 
 const log = createDebug("hardhat:core:cli:init");
+
+export async function initHardhat3NonInteractive(
+  options: NonInteractiveInitHardhat3Options,
+): Promise<void> {
+  const [template, projectTypeAnalyticsPromise] = await getTemplate(
+    "hardhat-3",
+    options.template,
+    true,
+  );
+
+  const workspace = process.cwd();
+
+  try {
+    const configFilePath = await findClosestHardhatConfig(workspace);
+
+    throw new HardhatError(
+      HardhatError.ERRORS.CORE.GENERAL.HARDHAT_PROJECT_ALREADY_CREATED,
+      {
+        hardhatProjectRootPath: configFilePath,
+      },
+    );
+  } catch (err) {
+    if (
+      !HardhatError.isHardhatError(
+        err,
+        HardhatError.ERRORS.CORE.GENERAL.NO_CONFIG_FILE_FOUND,
+      )
+    ) {
+      throw err;
+    }
+  }
+
+  await assertNoNonInteractiveClashes(workspace, template);
+
+  console.log("Initializing project...");
+
+  await validatePackageJson(workspace, template.packageJson, true);
+
+  await copyProjectFilesNonInteractive(workspace, template);
+
+  console.log("Installing dependencies...");
+
+  await Promise.all([
+    installProjectDependencies({
+      workspace,
+      template,
+      install: true,
+      update: true,
+      formatSuccessMessage: false,
+    }),
+    projectTypeAnalyticsPromise,
+  ]);
+
+  console.log("Project initialized");
+}
 
 /**
  * initHardhat implements the project initialization wizard flow.
@@ -126,7 +185,11 @@ export async function initHardhat(options?: InitHardhatOptions): Promise<void> {
     // Run them only if the user opts-in to it
     // Concurrently, await the analytics hit
     await Promise.all([
-      installProjectDependencies(workspace, template, options?.install),
+      installProjectDependencies({
+        workspace,
+        template,
+        install: options?.install,
+      }),
       projectTypeAnalyticsPromise,
     ]);
 
@@ -165,7 +228,7 @@ function printAsciiLogo() {
   // logo doesn't fit
   process.stdout.write("\x1b[?7l");
 
-  console.log(chalk.blue(logoLines));
+  console.log(styleText("blue", logoLines));
 
   // Re-enable auto-wapping
   process.stdout.write("\x1b[?7h");
@@ -176,7 +239,7 @@ export async function printWelcomeMessage(): Promise<void> {
   const hardhatVersion = await getHardhatVersion();
 
   console.log(
-    chalk.cyan(`👷 Welcome to ${HARDHAT_NAME} v${hardhatVersion} 👷\n`),
+    styleText("cyan", `👷 Welcome to ${HARDHAT_NAME} v${hardhatVersion} 👷\n`),
   );
 
   // Warn the user if they are using an outdated version of Hardhat
@@ -184,7 +247,8 @@ export async function printWelcomeMessage(): Promise<void> {
     const latestHardhatVersion = await getLatestHardhatVersion();
     if (hardhatVersion !== latestHardhatVersion) {
       console.warn(
-        chalk.yellow.bold(
+        styleText(
+          ["yellow", "bold"],
           `⚠️ You are using an outdated version of Hardhat. The latest version is v${latestHardhatVersion}. Please consider upgrading to the latest version before continuing with the project initialization. ⚠️\n`,
         ),
       );
@@ -197,7 +261,8 @@ export async function printWelcomeMessage(): Promise<void> {
       log("Couldn't report error to sentry: %O", e);
     }
     console.warn(
-      chalk.yellow.bold(
+      styleText(
+        ["yellow", "bold"],
         `⚠️ We couldn't check if you are using the latest version of Hardhat. Please consider upgrading to the latest version if you are not using it yet. ⚠️\n`,
       ),
     );
@@ -268,12 +333,17 @@ export async function getWorkspace(workspace?: string): Promise<string> {
  *
  * NOTE: This function is exported for testing purposes
  *
+ * @param hardhatVersion The version of Hardhat whose templates should be considered.
  * @param template The name of the template to use for the project initialization.
+ * @param includeAvailableTemplatesInErrors When true, a missing template throws
+ *   `TEMPLATE_NOT_FOUND_WITH_LIST_OF_OPTIONS` (which lists the available
+ *   templates) instead of the bare `TEMPLATE_NOT_FOUND`.
  * @returns A tuple with two elements: the template and a promise with the analytics hit.
  */
 export async function getTemplate(
   hardhatVersion: "hardhat-2" | "hardhat-3",
   template?: string,
+  includeAvailableTemplatesInErrors = false,
 ): Promise<[Template, Promise<boolean>]> {
   const templates = await getTemplates(hardhatVersion);
 
@@ -297,9 +367,38 @@ export async function getTemplate(
   // we wait for the GA hit before throwing
   await projectTypeAnalyticsPromise;
 
-  throw new HardhatError(HardhatError.ERRORS.CORE.GENERAL.TEMPLATE_NOT_FOUND, {
-    template,
-  });
+  if (!includeAvailableTemplatesInErrors) {
+    throw new HardhatError(
+      HardhatError.ERRORS.CORE.GENERAL.TEMPLATE_NOT_FOUND,
+      {
+        template,
+      },
+    );
+  }
+
+  const availableTemplates = templates.map((t) => `  - ${t.name}`).join("\n");
+  throw new HardhatError(
+    HardhatError.ERRORS.CORE.GENERAL.TEMPLATE_NOT_FOUND_WITH_LIST_OF_OPTIONS,
+    {
+      template,
+      availableTemplates,
+    },
+  );
+}
+
+/**
+ * Prints the list of available templates for the specified Hardhat version.
+ *
+ * @param hardhatVersion The version of Hardhat whose templates should be
+ *  printed.
+ */
+export async function printTemplatesList(
+  hardhatVersion: "hardhat-2" | "hardhat-3",
+  print: (message: string) => void = console.log,
+): Promise<void> {
+  const templates = await getTemplates(hardhatVersion);
+  const lines = templates.map((t) => `  - ${t.name}`).join("\n");
+  print(`Available templates:\n${lines}`);
 }
 
 /**
@@ -491,7 +590,75 @@ export async function copyProjectFiles(
     await copy(absoluteTemplatePath, absoluteWorkspacePath);
   }
 
-  console.log(`✨ ${chalk.cyan(`Template files copied`)} ✨`);
+  console.log(`✨ ${styleText("cyan", `Template files copied`)} ✨`);
+}
+
+// NOTE: This function is exported for testing purposes
+export async function assertNoNonInteractiveClashes(
+  workspace: string,
+  template: Template,
+): Promise<void> {
+  const clashes: string[] = [];
+
+  for (const relativeTemplatePath of template.files) {
+    const relativeWorkspacePath =
+      relativeTemplateToWorkspacePath(relativeTemplatePath);
+
+    if (
+      relativeWorkspacePath === "package.json" ||
+      relativeWorkspacePath === "README.md" ||
+      path.basename(relativeWorkspacePath) === ".gitignore"
+    ) {
+      continue;
+    }
+
+    if (await exists(path.join(workspace, relativeWorkspacePath))) {
+      clashes.push(relativeWorkspacePath);
+    }
+  }
+
+  if (clashes.length === 0) {
+    return;
+  }
+
+  throw new HardhatError(
+    HardhatError.ERRORS.CORE.GENERAL.NON_INTERACTIVE_INIT_WOULD_OVERWRITE_FILES,
+    {
+      files: clashes.map((f) => `  - ${f}`).join("\n"),
+    },
+  );
+}
+
+// NOTE: This function is exported for testing purposes
+export async function copyProjectFilesNonInteractive(
+  workspace: string,
+  template: Template,
+): Promise<void> {
+  for (const relativeTemplatePath of template.files) {
+    const relativeWorkspacePath =
+      relativeTemplateToWorkspacePath(relativeTemplatePath);
+    let absoluteWorkspacePath = path.join(workspace, relativeWorkspacePath);
+
+    if (path.basename(relativeWorkspacePath) === ".gitignore") {
+      if (await exists(absoluteWorkspacePath)) {
+        continue;
+      }
+    } else if (
+      relativeWorkspacePath === "README.md" &&
+      (await exists(absoluteWorkspacePath))
+    ) {
+      absoluteWorkspacePath = path.join(workspace, "HARDHAT.md");
+      if (await exists(absoluteWorkspacePath)) {
+        continue;
+      }
+    }
+
+    await ensureDir(path.dirname(absoluteWorkspacePath));
+    await copy(
+      path.join(template.path, relativeTemplatePath),
+      absoluteWorkspacePath,
+    );
+  }
 }
 
 /**
@@ -500,17 +667,26 @@ export async function copyProjectFiles(
  *
  * NOTE: This function is exported for testing purposes
  *
- * @param workspace The path to the workspace to initialize the project in.
- * @param template The template to use for the project initialization.
- * @param install Whether to install the project dependencies.
- * @param update Whether to update the project dependencies.
+ * @param options The installation options.
+ * @param options.workspace The path to the workspace to initialize the project in.
+ * @param options.template The template to use for the project initialization.
+ * @param options.install Whether to install the project dependencies.
+ * @param options.update Whether to update the project dependencies.
+ * @param options.formatSuccessMessage Whether to format the success message or not.
  */
-export async function installProjectDependencies(
-  workspace: string,
-  template: Template,
-  install?: boolean,
-  update?: boolean,
-): Promise<void> {
+export async function installProjectDependencies({
+  workspace,
+  template,
+  install,
+  update,
+  formatSuccessMessage = true,
+}: {
+  workspace: string;
+  template: Template;
+  install?: boolean;
+  update?: boolean;
+  formatSuccessMessage?: boolean;
+}): Promise<void> {
   const pathToWorkspacePackageJson = path.join(workspace, "package.json");
 
   const workspacePkg: PackageJson = await readJsonFile(
@@ -567,16 +743,29 @@ export async function installProjectDependencies(
       console.log();
       console.log(commandString);
 
-      await spawn(commandString, [], {
-        cwd: workspace,
-        // We need to run with `shell: true` for this to work on powershell, but
-        // we already enclosed every dependency identifier in quotes, so this
-        // is safe.
-        shell: true,
-        stdio: "inherit",
-      });
+      try {
+        await spawn(commandString, [], {
+          cwd: workspace,
+          // We need to run with `shell: true` for this to work on powershell, but
+          // we already enclosed every dependency identifier in quotes, so this
+          // is safe.
+          shell: true,
+          stdio: "inherit",
+        });
+      } catch (error) {
+        ensureError(error);
 
-      console.log(`✨ ${chalk.cyan(`Dependencies installed`)} ✨`);
+        throw new HardhatError(
+          HardhatError.ERRORS.CORE.INIT.FAILED_TO_INSTALL_DEPENDENCIES,
+          error,
+        );
+      }
+
+      if (formatSuccessMessage) {
+        console.log(`✨ ${styleText("cyan", `Dependencies installed`)} ✨`);
+      } else {
+        console.log(`Dependencies installed`);
+      }
     }
   }
 
@@ -611,26 +800,44 @@ export async function installProjectDependencies(
       console.log();
       console.log(commandString);
 
-      await spawn(commandString, [], {
-        cwd: workspace,
-        // We need to run with `shell: true` for this to work on powershell, but
-        // we already enclosed every dependency identifier in quotes, so this
-        // is safe.
-        shell: true,
-        stdio: "inherit",
-      });
+      try {
+        await spawn(commandString, [], {
+          cwd: workspace,
+          // We need to run with `shell: true` for this to work on powershell, but
+          // we already enclosed every dependency identifier in quotes, so this
+          // is safe.
+          shell: true,
+          stdio: "inherit",
+        });
+      } catch (error) {
+        ensureError(error);
 
-      console.log(`✨ ${chalk.cyan(`Dependencies updated`)} ✨`);
+        throw new HardhatError(
+          HardhatError.ERRORS.CORE.INIT.FAILED_TO_INSTALL_DEPENDENCIES,
+          error,
+        );
+      }
+
+      if (formatSuccessMessage) {
+        console.log(`✨ ${styleText("cyan", `Dependencies updated`)} ✨`);
+      } else {
+        console.log("Dependencies updated");
+      }
     }
   }
 }
 
 function showStarOnGitHubMessage() {
   console.log(
-    chalk.cyan("Give Hardhat a star on Github if you're enjoying it! ⭐️✨"),
+    styleText(
+      "cyan",
+      "Give Hardhat a star on GitHub if you're enjoying it! ⭐️✨",
+    ),
   );
   console.log();
-  console.log(chalk.cyan("     https://github.com/NomicFoundation/hardhat"));
+  console.log(
+    styleText("cyan", "     https://github.com/NomicFoundation/hardhat"),
+  );
 }
 
 // NOTE: This function is exported for testing purposes only.

@@ -28,7 +28,7 @@
     },
     "packageManager": {
       "type": "string",
-      "enum": ["npm", "bun", "yarn"],
+      "enum": ["npm", "bun", "yarn", "pnpm"],
       "description": "Package manager used by the repo"
     },
     "defaultCommand": {
@@ -52,7 +52,7 @@
     "env": {
       "type": "object",
       "additionalProperties": { "type": "string" },
-      "description": "Environment variables to set during install/exec"
+      "description": "Environment variables to set during install/exec. Values may reference host variables with the devcontainer-style token ${localEnv:NAME} (e.g. \"FOUNDRY_RPC_URL\": \"${localEnv:ALCHEMY_URL}\"); the referenced host variable must be set or the run will fail."
     },
     "submodules": {
       "type": "boolean",
@@ -62,6 +62,50 @@
       "type": "boolean",
       "const": true,
       "description": "Set to true to skip this scenario during end-to-end runs"
+    },
+    "benchmark": {
+      "type": "object",
+      "additionalProperties": false,
+      "anyOf": [{ "required": ["skip"] }, { "required": ["commands"] }],
+      "properties": {
+        "skip": {
+          "type": "boolean",
+          "const": true,
+          "description": "Set to true to skip this scenario in the regression benchmark"
+        },
+        "commands": {
+          "type": "object",
+          "minProperties": 1,
+          "propertyNames": {
+            "type": "string",
+            "minLength": 1
+          },
+          "additionalProperties": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["runs", "command"],
+            "properties": {
+              "runs": {
+                "type": "integer",
+                "minimum": 1,
+                "description": "Number of hyperfine runs for this command"
+              },
+              "prepare": {
+                "type": "string",
+                "minLength": 1,
+                "description": "Optional shell snippet to run before each timed run (passed to hyperfine --prepare)"
+              },
+              "command": {
+                "type": "string",
+                "minLength": 1,
+                "description": "Shell command to benchmark"
+              }
+            }
+          },
+          "description": "Named commands to benchmark. Iterated in definition order; the key becomes the benchmark name on disk."
+        }
+      },
+      "description": "Benchmark configuration for pnpm bench and pnpm bench:regression"
     }
   }
 }

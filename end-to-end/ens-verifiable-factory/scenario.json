@@ -1,0 +1,27 @@
+{
+  "$schema": "../../scripts/end-to-end/schema/scenario.schema.json",
+  "description": "ENS verifiable factory contract fork to Hardhat 3.",
+  "tags": ["external-repo"],
+  "repo": "anaPerezGhiglia/ensdomains-verifiable-factory",
+  "commit": "cd6622442c298ae89c4d92bcbc93a0faca4fbfae",
+  "packageManager": "pnpm",
+  "submodules": true,
+  "defaultCommand": "npx hardhat test solidity",
+  "benchmark": {
+    "commands": {
+      "cold compile": {
+        "runs": 13,
+        "prepare": "npx hardhat clean",
+        "command": "npx hardhat compile"
+      },
+      "warm compile": {
+        "runs": 77,
+        "command": "npx hardhat compile"
+      },
+      "test solidity": {
+        "runs": 69,
+        "command": "npx hardhat test solidity --no-compile"
+      }
+    }
+  }
+}

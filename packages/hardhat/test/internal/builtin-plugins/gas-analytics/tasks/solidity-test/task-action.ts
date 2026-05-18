@@ -142,7 +142,7 @@ describe("solidity-test/task-action (override in gas-analytics/index)", () => {
     });
 
     it("should log success message when function gas snapshots were written", () => {
-      const result = { functionGasSnapshotsWritten: true };
+      const result = { functionGasSnapshotsWritten: true, renamedGroups: [] };
 
       logSnapshotResult(result, logger);
 
@@ -151,7 +151,7 @@ describe("solidity-test/task-action (override in gas-analytics/index)", () => {
     });
 
     it("should not log anything when function gas snapshots were not written", () => {
-      const result = { functionGasSnapshotsWritten: false };
+      const result = { functionGasSnapshotsWritten: false, renamedGroups: [] };
 
       logSnapshotResult(result, logger);
 
@@ -548,6 +548,7 @@ describe("solidity-test/task-action (override in gas-analytics/index)", () => {
           passed: true,
           comparison: { added: [], removed: [], changed: [] },
           written: false,
+          renamedGroups: [],
         },
       };
 
@@ -582,6 +583,7 @@ describe("solidity-test/task-action (override in gas-analytics/index)", () => {
             ],
           },
           written: false,
+          renamedGroups: [],
         },
       };
 
@@ -608,6 +610,7 @@ describe("solidity-test/task-action (override in gas-analytics/index)", () => {
           passed: true,
           comparison: { added: [], removed: [], changed: [] },
           written: false,
+          renamedGroups: [],
         },
       };
 
@@ -637,6 +640,7 @@ describe("solidity-test/task-action (override in gas-analytics/index)", () => {
             changed: [],
           },
           written: true,
+          renamedGroups: [],
         },
       };
 
@@ -666,6 +670,7 @@ describe("solidity-test/task-action (override in gas-analytics/index)", () => {
           passed: true,
           comparison: { added: [], removed: [], changed: [] },
           written: false,
+          renamedGroups: [],
         },
       };
 
@@ -699,6 +704,7 @@ describe("solidity-test/task-action (override in gas-analytics/index)", () => {
           passed: true,
           comparison: { added: [], removed: [], changed: [] },
           written: false,
+          renamedGroups: [],
         },
       };
 
@@ -732,6 +738,7 @@ describe("solidity-test/task-action (override in gas-analytics/index)", () => {
             changed: [],
           },
           written: true,
+          renamedGroups: [],
         },
       };
 
@@ -768,6 +775,7 @@ describe("solidity-test/task-action (override in gas-analytics/index)", () => {
           passed: true,
           comparison: { added: [], removed: [], changed: [] },
           written: false,
+          renamedGroups: [],
         },
       };
 
@@ -801,6 +809,7 @@ describe("solidity-test/task-action (override in gas-analytics/index)", () => {
             changed: [],
           },
           written: true,
+          renamedGroups: [],
         },
       };
 
@@ -826,6 +835,7 @@ describe("solidity-test/task-action (override in gas-analytics/index)", () => {
               passed: true,
               comparison: { added: [], removed: [], changed: [] },
               written: false,
+              renamedGroups: [],
             },
           };
 
@@ -858,6 +868,7 @@ describe("solidity-test/task-action (override in gas-analytics/index)", () => {
               passed: true,
               comparison: { added: [], removed: [], changed: [] },
               written: false,
+              renamedGroups: [],
             },
           };
 
@@ -896,6 +907,7 @@ Function gas snapshots: 1 added
               passed: true,
               comparison: { added: [], removed: [], changed: [] },
               written: false,
+              renamedGroups: [],
             },
           };
 
@@ -950,6 +962,7 @@ Function gas snapshots: 1 removed
               passed: true,
               comparison: { added: [], removed: [], changed: [] },
               written: false,
+              renamedGroups: [],
             },
           };
 
@@ -982,6 +995,7 @@ Function gas snapshots: 2 added, 1 removed
               passed: true,
               comparison: { added: [], removed: [], changed: [] },
               written: false,
+              renamedGroups: [],
             },
           };
 
@@ -1024,6 +1038,7 @@ Function gas snapshots:
                 changed: [],
               },
               written: true,
+              renamedGroups: [],
             },
           };
 
@@ -1066,6 +1081,7 @@ Snapshot cheatcodes: 1 added
                 changed: [],
               },
               written: true,
+              renamedGroups: [],
             },
           };
 
@@ -1119,6 +1135,7 @@ Snapshot cheatcodes: 1 removed
                 changed: [],
               },
               written: true,
+              renamedGroups: [],
             },
           };
 
@@ -1151,6 +1168,7 @@ Snapshot cheatcodes: 1 added, 2 removed
               passed: true,
               comparison: { added: [], removed: [], changed: [] },
               written: true,
+              renamedGroups: [],
             },
           };
 
@@ -1179,6 +1197,7 @@ Snapshot cheatcodes:
               passed: true,
               comparison: { added: [], removed: [], changed: [] },
               written: true,
+              renamedGroups: [],
             },
           };
 
@@ -1226,6 +1245,7 @@ Snapshot cheatcodes:
               passed: true,
               comparison: { added: [], removed: [], changed: [] },
               written: false,
+              renamedGroups: [],
             },
           };
 
@@ -1270,6 +1290,7 @@ To update snapshots, run your tests with --snapshot
                 ],
               },
               written: false,
+              renamedGroups: [],
             },
           };
 
@@ -1327,6 +1348,7 @@ To update snapshots, run your tests with --snapshot
                 ],
               },
               written: false,
+              renamedGroups: [],
             },
           };
 
@@ -1400,6 +1422,7 @@ To update snapshots, run your tests with --snapshot
               passed: true,
               comparison: { added: [], removed: [], changed: [] },
               written: false,
+              renamedGroups: [],
             },
           };
 
@@ -1472,6 +1495,7 @@ To update snapshots, run your tests with --snapshot
                 ],
               },
               written: false,
+              renamedGroups: [],
             },
           };
 
@@ -1559,6 +1583,7 @@ To update snapshots, run your tests with --snapshot
                 ],
               },
               written: false,
+              renamedGroups: [],
             },
           };
 
@@ -1638,6 +1663,7 @@ To update snapshots, run your tests with --snapshot
                 ],
               },
               written: false,
+              renamedGroups: [],
             },
           };
 
@@ -1707,6 +1733,7 @@ To update snapshots, run your tests with --snapshot
                 changed: [],
               },
               written: true,
+              renamedGroups: [],
             },
           };
 
@@ -1763,6 +1790,7 @@ To update snapshots, run your tests with --snapshot
                 ],
               },
               written: false,
+              renamedGroups: [],
             },
           };
 
@@ -1816,6 +1844,7 @@ To update snapshots, run your tests with --snapshot
                 changed: [],
               },
               written: true,
+              renamedGroups: [],
             },
           };
 

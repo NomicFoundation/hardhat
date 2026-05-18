@@ -29,7 +29,7 @@ describe("test/config", function () {
     });
 
     assert.equal(
-      hre.config.test.solidity.isolate,
+      hre.config.test.solidity.profiles.default.isolate,
       existingTestConfig.solidity.isolate,
     );
   });

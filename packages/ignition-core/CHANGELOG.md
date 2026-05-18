@@ -1,5 +1,26 @@
 # Changelog
 
+## 3.1.5
+
+### Patch Changes
+
+- [#8215](https://github.com/NomicFoundation/hardhat/pull/8215) [`a39937f`](https://github.com/NomicFoundation/hardhat/commit/a39937fb2be40597fb09b741c485ccf4301a7724) Thanks [@Genmin](https://github.com/Genmin)! - Mark Ignition core APIs as public in the generated API documentation.
+
+- [#8228](https://github.com/NomicFoundation/hardhat/pull/8228) [`417bbf9`](https://github.com/NomicFoundation/hardhat/commit/417bbf9f5d8ee4f9e19788aa40571452d36086d2) Thanks [@alcuadrado](https://github.com/alcuadrado)! - Small performance optimizations
+
+- Updated dependencies:
+  - @nomicfoundation/hardhat-utils@4.1.1
+
+## 3.1.4
+
+### Patch Changes
+
+- [#8207](https://github.com/NomicFoundation/hardhat/pull/8207) [`d594209`](https://github.com/NomicFoundation/hardhat/commit/d59420968bffca83e1ad2712c6881d19cc7e1a99) Thanks [@alcuadrado](https://github.com/alcuadrado)! - Improved performance by replacing the debug logging library with a lightweight in-tree implementation.
+
+- Updated dependencies:
+  - @nomicfoundation/hardhat-utils@4.1.0
+  - @nomicfoundation/hardhat-errors@3.0.12
+
 ## 3.1.3
 
 ### Patch Changes

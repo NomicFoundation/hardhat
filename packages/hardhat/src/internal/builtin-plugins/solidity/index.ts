@@ -3,7 +3,7 @@ import type { HardhatPlugin } from "../../../types/plugins.js";
 import { ArgumentType } from "../../../types/arguments.js";
 import { globalOption, task } from "../../core/config.js";
 
-import "./type-extensions.js";
+export type * from "./type-extensions.js";
 
 const buildTask = task("build", "Build project")
   .addFlag({
@@ -53,6 +53,7 @@ const hardhatPlugin: HardhatPlugin = {
       ...buildTask,
       id: ["compile"],
       description: "Build project (alias for build)",
+      action: async () => await import("./tasks/compile.js"),
     },
   ],
   globalOptions: [

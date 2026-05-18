@@ -1,0 +1,30 @@
+{
+  "$schema": "../../scripts/end-to-end/schema/scenario.schema.json",
+  "description": "UniswapX contracts fork to Hardhat 3.",
+  "tags": ["external-repo"],
+  "repo": "popescuoctavian/UniswapX",
+  "commit": "e4ed16b4e6894d36b7a19b985333dc254ebbf9d2",
+  "packageManager": "npm",
+  "submodules": true,
+  "env": {
+    "FOUNDRY_RPC_URL": "${localEnv:ALCHEMY_URL}"
+  },
+  "defaultCommand": "npx hardhat test solidity",
+  "benchmark": {
+    "commands": {
+      "cold compile": {
+        "runs": 3,
+        "prepare": "npx hardhat clean",
+        "command": "npx hardhat compile"
+      },
+      "warm compile": {
+        "runs": 37,
+        "command": "npx hardhat compile"
+      },
+      "test solidity": {
+        "runs": 3,
+        "command": "npx hardhat test solidity --no-compile"
+      }
+    }
+  }
+}

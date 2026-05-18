@@ -2,8 +2,7 @@ import type { Task } from "../../../../src/types/tasks.js";
 
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
-
-import chalk from "chalk";
+import { styleText } from "node:util";
 
 import { globalOption } from "../../../../src/config.js";
 import { getHelpString } from "../../../../src/internal/cli/help/get-help-string.js";
@@ -66,7 +65,7 @@ describe("getHelpString", function () {
 
       const help = await getHelpString(task, globalOptionDefinitions);
 
-      const expected = `${chalk.bold("task description")}
+      const expected = `${styleText("bold", "task description")}
 
 Usage: hardhat [GLOBAL OPTIONS] task <SUBTASK> [SUBTASK OPTIONS] [--] [SUBTASK POSITIONAL ARGUMENTS]
 
@@ -121,7 +120,7 @@ To get help for a specific task run: npx hardhat task <SUBTASK> --help`;
 
         const help = await getHelpString(task, globalOptionDefinitions);
 
-        const expected = `${chalk.bold("task description")}
+        const expected = `${styleText("bold", "task description")}
 
 Usage: hardhat [GLOBAL OPTIONS] task [--another-option] [--option <STRING>]
 
@@ -187,7 +186,7 @@ GLOBAL OPTIONS:
 
         const help = await getHelpString(task, globalOptionDefinitions);
 
-        const expected = `${chalk.bold("task description")}
+        const expected = `${styleText("bold", "task description")}
 
 Usage: hardhat [GLOBAL OPTIONS] task [--another-option] [--option <STRING>] [--] positionalArgument anotherPositionalArgument
 
@@ -260,7 +259,7 @@ GLOBAL OPTIONS:
 
         const help = await getHelpString(task, globalOptionDefinitions);
 
-        const expected = `${chalk.bold("task description")}
+        const expected = `${styleText("bold", "task description")}
 
 Usage: hardhat [GLOBAL OPTIONS] task [--another-option] [--option <STRING>] [--] positionalArgument
 

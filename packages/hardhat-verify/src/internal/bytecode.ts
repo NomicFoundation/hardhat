@@ -1,3 +1,4 @@
+import type { InferredSolcVersion } from "./metadata.js";
 import type { EthereumProvider } from "hardhat/types/providers";
 import type { CompilerOutputBytecode } from "hardhat/types/solidity";
 
@@ -14,8 +15,6 @@ import {
   getMetadataSectionBytesLength,
   inferSolcVersion,
   METADATA_LENGTH_FIELD_SIZE,
-  MISSING_METADATA_VERSION_RANGE,
-  SOLC_NOT_FOUND_IN_METADATA_VERSION_RANGE,
 } from "./metadata.js";
 
 interface ByteOffset {
@@ -26,7 +25,7 @@ interface ByteOffset {
 export class Bytecode {
   private constructor(
     public readonly bytecode: string,
-    public readonly solcVersion: string,
+    public readonly solcVersion: InferredSolcVersion,
     public readonly executableSection: string,
   ) {}
 
@@ -71,10 +70,7 @@ export class Bytecode {
   }
 
   public hasVersionRange(): boolean {
-    return (
-      this.solcVersion === MISSING_METADATA_VERSION_RANGE ||
-      this.solcVersion === SOLC_NOT_FOUND_IN_METADATA_VERSION_RANGE
-    );
+    return this.solcVersion.type !== "exact";
   }
 
   /**

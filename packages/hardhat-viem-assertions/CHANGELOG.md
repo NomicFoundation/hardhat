@@ -1,5 +1,22 @@
 # @nomicfoundation/hardhat-viem-assertions
 
+## 3.0.11
+
+### Patch Changes
+
+- [#8225](https://github.com/NomicFoundation/hardhat/pull/8225) [`19e2644`](https://github.com/NomicFoundation/hardhat/commit/19e26448ddb8f8ee1100b99a79f303aac5c118b2) Thanks [@lsheva](https://github.com/lsheva)! - Type-narrow event and custom-error assertions from the contract's ABI: `emit` / `emitWithArgs` / `revertWithCustomError` / `revertWithCustomErrorWithArgs` now infer event/error names from `contract.abi` (with autocomplete), and `expectedArgs` is typed as the matching input tuple. Each position can also be a `(value) => boolean` predicate.
+
+- [#8191](https://github.com/NomicFoundation/hardhat/pull/8191) [`2a4ae8e`](https://github.com/NomicFoundation/hardhat/commit/2a4ae8e7dc78cabbe8b17bec778952f0124f9759) Thanks [@alcuadrado](https://github.com/alcuadrado)! - Update how type extensions are handled to optimize the bootstrap process of Hardhat.
+
+- Updated dependencies:
+  - @nomicfoundation/hardhat-utils@4.1.1
+
+## 3.0.10
+
+### Patch Changes
+
+- [#8223](https://github.com/NomicFoundation/hardhat/pull/8223) [`9e94b25`](https://github.com/NomicFoundation/hardhat/commit/9e94b257eb8fee2cb57b8c12ee67b6517b556286) Thanks [@lsheva](https://github.com/lsheva)! - Fix `emit` and `emitWithArgs` leaking the underlying transaction into the next test when the synchronous ABI shape check failed. These helpers now always settle `contractFn` before any assertion can throw.
+
 ## 3.0.9
 
 ### Patch Changes

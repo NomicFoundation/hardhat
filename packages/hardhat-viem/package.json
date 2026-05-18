@@ -1,6 +1,6 @@
 {
   "name": "@nomicfoundation/hardhat-viem",
-  "version": "3.0.6",
+  "version": "3.0.7",
   "description": "Hardhat plugin for viem",
   "homepage": "https://github.com/NomicFoundation/hardhat/tree/main/packages/hardhat-viem",
   "repository": {
@@ -14,7 +14,8 @@
   "types": "dist/src/index.d.ts",
   "exports": {
     ".": "./dist/src/index.js",
-    "./types": "./dist/src/types.js"
+    "./types": "./dist/src/types.js",
+    "./package.json": "./package.json"
   },
   "keywords": [
     "ethereum",
@@ -24,8 +25,8 @@
     "viem"
   ],
   "scripts": {
-    "lint": "pnpm prettier --check && pnpm eslint",
-    "lint:fix": "pnpm prettier --write && pnpm eslint --fix",
+    "lint": "pnpm eslint && pnpm prettier --check",
+    "lint:fix": "pnpm eslint --fix && pnpm prettier --write",
     "eslint": "eslint \"src/**/*.ts\" \"test/**/*.ts\"",
     "prettier": "prettier \"**/*.{ts,js,md,json}\"",
     "test": "node --import tsx/esm --test --test-reporter=@nomicfoundation/hardhat-node-test-reporter \"test/*.ts\" \"test/!(fixture-projects|helpers)/**/*.ts\"",
@@ -60,7 +61,7 @@
   },
   "dependencies": {
     "@nomicfoundation/hardhat-errors": "workspace:^3.0.11",
-    "@nomicfoundation/hardhat-utils": "workspace:^4.0.4"
+    "@nomicfoundation/hardhat-utils": "workspace:^4.1.1"
   },
   "peerDependencies": {
     "hardhat": "workspace:^3.4.0",

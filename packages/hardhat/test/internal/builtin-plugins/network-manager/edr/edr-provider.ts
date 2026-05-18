@@ -10,7 +10,10 @@ import assert from "node:assert/strict";
 import { once } from "node:events";
 import { before, describe, it } from "node:test";
 
-import { HardhatError } from "@nomicfoundation/hardhat-errors";
+import {
+  assertHardhatInvariant,
+  HardhatError,
+} from "@nomicfoundation/hardhat-errors";
 import { assertRejectsWithHardhatError } from "@nomicfoundation/hardhat-test-utils";
 import { mkdtemp } from "@nomicfoundation/hardhat-utils/fs";
 import { numberToHexString } from "@nomicfoundation/hardhat-utils/hex";
@@ -620,15 +623,19 @@ describe("edr-provider", () => {
         ]),
       );
 
-      assert.equal(providerConfig.fork?.chainOverrides?.length, 2);
+      assertHardhatInvariant(
+        "url" in providerConfig.network,
+        "Expected fork config",
+      );
+      assert.equal(providerConfig.network.chainOverrides?.length, 2);
 
       // mainnet doesn't have hardfork history, so it should be undefined
-      const mainnetOverride = providerConfig.fork?.chainOverrides[0];
+      const mainnetOverride = providerConfig.network.chainOverrides?.[0];
       assert.equal(mainnetOverride.name, "mainnet");
       assert.equal(mainnetOverride.hardforkActivationOverrides, undefined);
 
       // sepolia has an empty map as hardfork history, so it should be an empty array
-      const sepoliaOverride = providerConfig.fork?.chainOverrides[1];
+      const sepoliaOverride = providerConfig.network.chainOverrides?.[1];
       assert.equal(sepoliaOverride.name, "sepolia");
       assert.deepEqual(sepoliaOverride.hardforkActivationOverrides, []);
     });

@@ -4,7 +4,7 @@ import type { DeploymentResult } from "./deploy.js";
  * Events emitted by the execution engine to allow tracking
  * progress of a deploy.
  *
- * @beta
+ * @public
  */
 export type ExecutionEvent =
   | DeploymentInitializeEvent
@@ -39,7 +39,7 @@ export type ExecutionEvent =
 /**
  * The types of diagnostic events emitted during a deploy.
  *
- * @beta
+ * @public
  */
 export enum ExecutionEventType {
   WIPE_APPLY = "WIPE_APPLY",
@@ -77,7 +77,7 @@ export enum ExecutionEventType {
 /**
  * An event indicating that a deployment has started.
  *
- * @beta
+ * @public
  */
 export interface DeploymentStartEvent {
   type: ExecutionEventType.DEPLOYMENT_START;
@@ -91,7 +91,7 @@ export interface DeploymentStartEvent {
 /**
  * An event indicating a new deployment has been initialized.
  *
- * @beta
+ * @public
  */
 export interface DeploymentInitializeEvent {
   type: ExecutionEventType.DEPLOYMENT_INITIALIZE;
@@ -101,7 +101,7 @@ export interface DeploymentInitializeEvent {
 /**
  * An event indicating that batches have been generated for a deployment run.
  *
- * @beta
+ * @public
  */
 export interface BatchInitializeEvent {
   type: ExecutionEventType.BATCH_INITIALIZE;
@@ -111,7 +111,7 @@ export interface BatchInitializeEvent {
 /**
  * An event indicating that the deployment is commenencing an execution run.
  *
- * @beta
+ * @public
  */
 export interface RunStartEvent {
   type: ExecutionEventType.RUN_START;
@@ -121,7 +121,7 @@ export interface RunStartEvent {
  * An event indicating that the execution engine has moved onto
  * the next batch.
  *
- * @beta
+ * @public
  */
 export interface BeginNextBatchEvent {
   type: ExecutionEventType.BEGIN_NEXT_BATCH;
@@ -130,7 +130,7 @@ export interface BeginNextBatchEvent {
 /**
  * An event indicating that a deployment has started.
  *
- * @beta
+ * @public
  */
 export interface DeploymentCompleteEvent {
   type: ExecutionEventType.DEPLOYMENT_COMPLETE;
@@ -140,7 +140,7 @@ export interface DeploymentCompleteEvent {
 /**
  * An event indicating that a deployment has reconciliation warnings.
  *
- * @beta
+ * @public
  */
 export interface ReconciliationWarningsEvent {
   type: ExecutionEventType.RECONCILIATION_WARNINGS;
@@ -151,7 +151,7 @@ export interface ReconciliationWarningsEvent {
  * An event indicating a future that deploys a contract
  * or library has started execution.
  *
- * @beta
+ * @public
  */
 export interface DeploymentExecutionStateInitializeEvent {
   type: ExecutionEventType.DEPLOYMENT_EXECUTION_STATE_INITIALIZE;
@@ -162,7 +162,7 @@ export interface DeploymentExecutionStateInitializeEvent {
  * An event indicating that a future that deploys a contract
  * or library has completed execution.
  *
- * @beta
+ * @public
  */
 export interface DeploymentExecutionStateCompleteEvent {
   type: ExecutionEventType.DEPLOYMENT_EXECUTION_STATE_COMPLETE;
@@ -174,7 +174,7 @@ export interface DeploymentExecutionStateCompleteEvent {
  * An event indicating a future that calls a function onchain
  * via transactions has started execution.
  *
- * @beta
+ * @public
  */
 export interface CallExecutionStateInitializeEvent {
   type: ExecutionEventType.CALL_EXECUTION_STATE_INITIALIZE;
@@ -185,7 +185,7 @@ export interface CallExecutionStateInitializeEvent {
  * An event indicating a future that calls a function onchain
  * via transactions has completed execution.
  *
- * @beta
+ * @public
  */
 export interface CallExecutionStateCompleteEvent {
   type: ExecutionEventType.CALL_EXECUTION_STATE_COMPLETE;
@@ -197,7 +197,7 @@ export interface CallExecutionStateCompleteEvent {
  * An event indicating that a future that makes a static call
  * has started execution.
  *
- * @beta
+ * @public
  */
 export interface StaticCallExecutionStateInitializeEvent {
   type: ExecutionEventType.STATIC_CALL_EXECUTION_STATE_INITIALIZE;
@@ -208,7 +208,7 @@ export interface StaticCallExecutionStateInitializeEvent {
  * An event indicating that a future that makes a static call
  * has completed execution.
  *
- * @beta
+ * @public
  */
 export interface StaticCallExecutionStateCompleteEvent {
   type: ExecutionEventType.STATIC_CALL_EXECUTION_STATE_COMPLETE;
@@ -220,7 +220,7 @@ export interface StaticCallExecutionStateCompleteEvent {
  * An event indicationing that a future that sends data or eth to a contract
  * has started execution.
  *
- * @beta
+ * @public
  */
 export interface SendDataExecutionStateInitializeEvent {
   type: ExecutionEventType.SEND_DATA_EXECUTION_STATE_INITIALIZE;
@@ -231,7 +231,7 @@ export interface SendDataExecutionStateInitializeEvent {
  * An event indicationing that a future that sends data or eth to a contract
  * has completed execution.
  *
- * @beta
+ * @public
  */
 export interface SendDataExecutionStateCompleteEvent {
   type: ExecutionEventType.SEND_DATA_EXECUTION_STATE_COMPLETE;
@@ -244,7 +244,7 @@ export interface SendDataExecutionStateCompleteEvent {
  * has been initialized, there is no complete event as it initializes
  * as complete.
  *
- * @beta
+ * @public
  */
 export interface ContractAtExecutionStateInitializeEvent {
   type: ExecutionEventType.CONTRACT_AT_EXECUTION_STATE_INITIALIZE;
@@ -256,7 +256,7 @@ export interface ContractAtExecutionStateInitializeEvent {
  * from a previous futures onchain interaction, there is no complete event
  * as it initializes as complete.
  *
- * @beta
+ * @public
  */
 export interface ReadEventArgExecutionStateInitializeEvent {
   type: ExecutionEventType.READ_EVENT_ARGUMENT_EXECUTION_STATE_INITIALIZE;
@@ -269,7 +269,7 @@ export interface ReadEventArgExecutionStateInitializeEvent {
  * call has been initialized, there is no complete event as it initializes
  * as complete.
  *
- * @beta
+ * @public
  */
 export interface EncodeFunctionCallExecutionStateInitializeEvent {
   type: ExecutionEventType.ENCODE_FUNCTION_CALL_EXECUTION_STATE_INITIALIZE;
@@ -280,7 +280,7 @@ export interface EncodeFunctionCallExecutionStateInitializeEvent {
 /**
  * An event indicating the user has clear the previous execution of a future.
  *
- * @beta
+ * @public
  */
 export interface WipeApplyEvent {
   type: ExecutionEventType.WIPE_APPLY;
@@ -291,7 +291,7 @@ export interface WipeApplyEvent {
  * An event indicating that a future has requested a network interaction,
  * either a transaction or a static call query.
  *
- * @beta
+ * @public
  */
 export interface NetworkInteractionRequestEvent {
   type: ExecutionEventType.NETWORK_INTERACTION_REQUEST;
@@ -302,7 +302,7 @@ export interface NetworkInteractionRequestEvent {
 /**
  * An event indicating that a transaction is about to be sent to the network.
  *
- * @beta
+ * @public
  */
 export interface TransactionPrepareSendEvent {
   type: ExecutionEventType.TRANSACTION_PREPARE_SEND;
@@ -312,7 +312,7 @@ export interface TransactionPrepareSendEvent {
 /**
  * An event indicating that a transaction has been sent to the network.
  *
- * @beta
+ * @public
  */
 export interface TransactionSendEvent {
   type: ExecutionEventType.TRANSACTION_SEND;
@@ -323,7 +323,7 @@ export interface TransactionSendEvent {
 /**
  * An event indicating has been detected as confirmed on-chain.
  *
- * @beta
+ * @public
  */
 export interface TransactionConfirmEvent {
   type: ExecutionEventType.TRANSACTION_CONFIRM;
@@ -335,7 +335,7 @@ export interface TransactionConfirmEvent {
  * An event indicating that a static call has been successfully run
  * against the chain.
  *
- * @beta
+ * @public
  */
 export interface StaticCallCompleteEvent {
   type: ExecutionEventType.STATIC_CALL_COMPLETE;
@@ -346,7 +346,7 @@ export interface StaticCallCompleteEvent {
  * An event indicating that a future's onchain interaction has had
  * its its latest transaction fee bumped.
  *
- * @beta
+ * @public
  */
 export interface OnchainInteractionBumpFeesEvent {
   type: ExecutionEventType.ONCHAIN_INTERACTION_BUMP_FEES;
@@ -357,7 +357,7 @@ export interface OnchainInteractionBumpFeesEvent {
  * An event indicating that a future's onchain interaction has
  * had its transaction dropped and will be resent.
  *
- * @beta
+ * @public
  */
 export interface OnchainInteractionDroppedEvent {
   type: ExecutionEventType.ONCHAIN_INTERACTION_DROPPED;
@@ -368,7 +368,7 @@ export interface OnchainInteractionDroppedEvent {
  * An event indicating that a future's onchain interaction has
  * been replaced by a transaction from the user.
  *
- * @beta
+ * @public
  */
 export interface OnchainInteractionReplacedByUserEvent {
   type: ExecutionEventType.ONCHAIN_INTERACTION_REPLACED_BY_USER;
@@ -379,7 +379,7 @@ export interface OnchainInteractionReplacedByUserEvent {
  * An event indicating that a future's onchain interaction has
  * timed out.
  *
- * @beta
+ * @public
  */
 export interface OnchainInteractionTimeoutEvent {
   type: ExecutionEventType.ONCHAIN_INTERACTION_TIMEOUT;
@@ -389,7 +389,7 @@ export interface OnchainInteractionTimeoutEvent {
 /**
  * An event indicating the current moduleId being validated.
  *
- * @beta
+ * @public
  */
 export interface SetModuleIdEvent {
   type: ExecutionEventType.SET_MODULE_ID;
@@ -399,7 +399,7 @@ export interface SetModuleIdEvent {
 /**
  * An event indicating the type of strategy being used.
  *
- * @beta
+ * @public
  */
 export interface SetStrategyEvent {
   type: ExecutionEventType.SET_STRATEGY;
@@ -409,7 +409,7 @@ export interface SetStrategyEvent {
 /**
  * The types of network interactions that can be requested by a future.
  *
- * @beta
+ * @public
  */
 export enum ExecutionEventNetworkInteractionType {
   ONCHAIN_INTERACTION = "ONCHAIN_INTERACTION",
@@ -419,7 +419,7 @@ export enum ExecutionEventNetworkInteractionType {
 /**
  * The status of a future's completed execution.
  *
- * @beta
+ * @public
  */
 export enum ExecutionEventResultType {
   SUCCESS = "SUCCESS",
@@ -430,7 +430,7 @@ export enum ExecutionEventResultType {
 /**
  * The result of a future's completed execution.
  *
- * @beta
+ * @public
  */
 export type ExecutionEventResult =
   | ExecutionEventSuccess
@@ -440,7 +440,7 @@ export type ExecutionEventResult =
 /**
  * A successful result of a future's execution.
  *
- * @beta
+ * @public
  */
 export interface ExecutionEventSuccess {
   type: ExecutionEventResultType.SUCCESS;
@@ -450,7 +450,7 @@ export interface ExecutionEventSuccess {
 /**
  * An errored result of a future's execution.
  *
- * @beta
+ * @public
  */
 export interface ExecutionEventError {
   type: ExecutionEventResultType.ERROR;
@@ -460,7 +460,7 @@ export interface ExecutionEventError {
 /**
  * A hold result of a future's execution.
  *
- * @beta
+ * @public
  */
 export interface ExecutionEventHeld {
   type: ExecutionEventResultType.HELD;
@@ -471,7 +471,7 @@ export interface ExecutionEventHeld {
 /**
  * A mapping of execution event types to their corresponding event.
  *
- * @beta
+ * @public
  */
 export interface ExecutionEventTypeMap {
   [ExecutionEventType.WIPE_APPLY]: WipeApplyEvent;
@@ -509,7 +509,7 @@ export interface ExecutionEventTypeMap {
 /**
  * A utility type for mapping enum values to function names
  *
- * @beta
+ * @public
  */
 export type SnakeToCamelCase<S extends string> =
   S extends `${infer T}_${infer U}`
@@ -519,7 +519,7 @@ export type SnakeToCamelCase<S extends string> =
 /**
  * A listener for execution events.
  *
- * @beta
+ * @public
  */
 export type ExecutionEventListener = {
   [eventType in ExecutionEventType as SnakeToCamelCase<eventType>]: (

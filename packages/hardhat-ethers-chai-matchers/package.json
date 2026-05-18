@@ -1,6 +1,6 @@
 {
   "name": "@nomicfoundation/hardhat-ethers-chai-matchers",
-  "version": "3.0.6",
+  "version": "3.0.8",
   "description": "Hardhat utils for testing",
   "homepage": "https://github.com/NomicFoundation/hardhat/tree/main/packages/hardhat-ethers-chai-matchers",
   "repository": {
@@ -15,7 +15,8 @@
   "exports": {
     ".": "./dist/src/index.js",
     "./panic": "./dist/src/panic.js",
-    "./withArgs": "./dist/src/withArgs.js"
+    "./withArgs": "./dist/src/withArgs.js",
+    "./package.json": "./package.json"
   },
   "keywords": [
     "ethereum",
@@ -24,8 +25,8 @@
     "testing"
   ],
   "scripts": {
-    "lint": "pnpm prettier --check && pnpm eslint",
-    "lint:fix": "pnpm prettier --write && pnpm eslint --fix",
+    "lint": "pnpm eslint && pnpm prettier --check",
+    "lint:fix": "pnpm eslint --fix && pnpm prettier --write",
     "eslint": "eslint \"src/**/*.ts\" \"test/**/*.ts\"",
     "prettier": "prettier \"**/*.{ts,js,md,json}\"",
     "test": "node --import tsx/esm --test --test-reporter=@nomicfoundation/hardhat-node-test-reporter \"test/*.ts\" \"test/!(fixture-projects|helpers)/**/*.ts\"",
@@ -45,8 +46,8 @@
     "README.md"
   ],
   "devDependencies": {
-    "@nomicfoundation/hardhat-mocha": "workspace:^3.0.17",
-    "@nomicfoundation/hardhat-node-test-reporter": "workspace:^3.0.5",
+    "@nomicfoundation/hardhat-mocha": "workspace:^3.0.19",
+    "@nomicfoundation/hardhat-node-test-reporter": "workspace:^3.0.6",
     "@nomicfoundation/hardhat-test-utils": "workspace:^",
     "@types/chai": "^5.2.3",
     "@types/deep-eql": "^4.0.2",
@@ -66,7 +67,7 @@
     "ethers": "^6.14.0"
   },
   "dependencies": {
-    "@nomicfoundation/hardhat-utils": "workspace:^4.0.4",
+    "@nomicfoundation/hardhat-utils": "workspace:^4.1.1",
     "@types/chai-as-promised": "^8.0.1",
     "chai-as-promised": "^8.0.0",
     "deep-eql": "^5.0.1"

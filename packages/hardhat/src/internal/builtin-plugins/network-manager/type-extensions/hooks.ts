@@ -9,7 +9,6 @@ import type {
 import type { CoverageData } from "../../coverage/types.js";
 import type { GasMeasurement } from "../../gas-analytics/types.js";
 
-import "../../../../types/hooks.js";
 declare module "../../../../types/hooks.js" {
   export interface HardhatHooks {
     network: NetworkHooks;

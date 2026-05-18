@@ -14,7 +14,7 @@ import { findStatus } from "./internal/views/find-status.js";
  * @param deploymentDir - the directory of the deployment to get the status of
  * @param _artifactResolver - DEPRECATED: this parameter is not used and will be removed in the future
  *
- * @beta
+ * @public
  */
 export async function status(
   deploymentDir: string,

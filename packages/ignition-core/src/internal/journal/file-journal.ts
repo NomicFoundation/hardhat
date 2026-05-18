@@ -14,7 +14,7 @@ import { serializeReplacer } from "./utils/serialize-replacer.js";
 /**
  * A file-based journal.
  *
- * @beta
+ * @public
  */
 export class FileJournal implements Journal {
   constructor(

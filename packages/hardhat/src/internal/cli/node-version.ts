@@ -10,7 +10,7 @@
 
 import { getRuntimeInfo } from "@nomicfoundation/hardhat-utils/runtime";
 
-export const MIN_SUPPORTED_NODE_VERSION: number[] = [22, 10, 0];
+export const MIN_SUPPORTED_NODE_VERSION: number[] = [22, 13, 0];
 
 export function isNodeVersionSupported(): boolean {
   try {

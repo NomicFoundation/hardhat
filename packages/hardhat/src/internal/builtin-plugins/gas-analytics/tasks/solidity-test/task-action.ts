@@ -2,11 +2,15 @@ import type { TaskOverrideActionFunction } from "../../../../../types/tasks.js";
 import type { Result } from "../../../../../types/utils.js";
 import type { SolidityTestRunResult } from "../../../solidity-test/task-action.js";
 import type { FunctionGasSnapshotCheckResult } from "../../function-gas-snapshots.js";
-import type { SnapshotCheatcodesCheckResult } from "../../snapshot-cheatcodes.js";
+import type {
+  SnapshotCheatcodesCheckResult,
+  RenamedSnapshotGroup,
+} from "../../snapshot-cheatcodes.js";
 import type { SuiteResult } from "@nomicfoundation/edr";
 
+import { styleText } from "node:util";
+
 import { HardhatError } from "@nomicfoundation/hardhat-errors";
-import chalk from "chalk";
 
 import { errorResult } from "../../../../../utils/result.js";
 import {
@@ -19,6 +23,8 @@ import {
   checkSnapshotCheatcodes,
   extractSnapshotCheatcodes,
   logSnapshotCheatcodesSection,
+  logSnapshotRenameWarnings,
+  sanitizeSnapshotCheatcodes,
   writeSnapshotCheatcodes,
 } from "../../snapshot-cheatcodes.js";
 
@@ -29,6 +35,7 @@ interface GasAnalyticsTestActionArguments {
 
 export interface SnapshotResult {
   functionGasSnapshotsWritten: boolean;
+  renamedGroups: RenamedSnapshotGroup[];
 }
 
 export interface SnapshotCheckResult {
@@ -90,11 +97,14 @@ export async function handleSnapshot(
     await writeFunctionGasSnapshots(basePath, functionGasSnapshots);
   }
 
-  const snapshotCheatcodes = extractSnapshotCheatcodes(suiteResults);
+  const { snapshotCheatcodes, renamedGroups } = sanitizeSnapshotCheatcodes(
+    extractSnapshotCheatcodes(suiteResults),
+  );
   await writeSnapshotCheatcodes(basePath, snapshotCheatcodes);
 
   return {
     functionGasSnapshotsWritten: testsPassed,
+    renamedGroups,
   };
 }
 
@@ -103,9 +113,10 @@ export function logSnapshotResult(
   logger: typeof console.log = console.log,
 ): void {
   if (result.functionGasSnapshotsWritten) {
-    logger(chalk.green("Function gas snapshots written successfully"));
+    logger(styleText("green", "Function gas snapshots written successfully"));
     logger();
   }
+  logSnapshotRenameWarnings(result.renamedGroups, logger);
 }
 
 export async function handleSnapshotCheck(
@@ -133,8 +144,8 @@ export function logSnapshotCheckResult(
 ): void {
   logger(
     functionGasSnapshotsCheck.passed && snapshotCheatcodesCheck.passed
-      ? chalk.green("Snapshot check passed")
-      : chalk.red("Snapshot check failed"),
+      ? styleText("green", "Snapshot check passed")
+      : styleText("red", "Snapshot check failed"),
   );
 
   const functionGasHasOutput =
@@ -163,8 +174,25 @@ export function logSnapshotCheckResult(
 
   logSnapshotCheatcodesSection(snapshotCheatcodesCheck, logger);
 
+  // Add an extra newline if only the rename warnings have output
+  // (logSnapshotCheatcodesSection adds one if it has output)
+  if (
+    !functionGasHasOutput &&
+    !snapshotCheatcodesHasOutput &&
+    snapshotCheatcodesCheck.renamedGroups.length > 0
+  ) {
+    logger();
+  }
+
+  logSnapshotRenameWarnings(snapshotCheatcodesCheck.renamedGroups, logger);
+
   if (!functionGasSnapshotsCheck.passed || !snapshotCheatcodesCheck.passed) {
-    logger(chalk.yellow("To update snapshots, run your tests with --snapshot"));
+    logger(
+      styleText(
+        "yellow",
+        "To update snapshots, run your tests with --snapshot",
+      ),
+    );
     logger();
   }
 }

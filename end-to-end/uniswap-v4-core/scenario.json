@@ -1,0 +1,27 @@
+{
+  "$schema": "../../scripts/end-to-end/schema/scenario.schema.json",
+  "description": "Uniswap V4 core contracts fork to Hardhat 3.",
+  "tags": ["external-repo"],
+  "repo": "anaPerezGhiglia/uniswap-v4-core",
+  "commit": "ab2b22eef19e0abe29d67420dde81b5d54455ae5",
+  "packageManager": "pnpm",
+  "submodules": true,
+  "defaultCommand": "npx hardhat test solidity",
+  "benchmark": {
+    "commands": {
+      "cold compile": {
+        "runs": 3,
+        "prepare": "npx hardhat clean",
+        "command": "npx hardhat compile"
+      },
+      "warm compile": {
+        "runs": 51,
+        "command": "npx hardhat compile"
+      },
+      "test solidity": {
+        "runs": 7,
+        "command": "npx hardhat test solidity --no-compile"
+      }
+    }
+  }
+}

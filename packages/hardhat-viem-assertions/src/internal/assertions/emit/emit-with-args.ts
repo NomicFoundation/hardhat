@@ -1,10 +1,8 @@
-import type {
-  ContractAbis,
-  ContractReturnType,
-  HardhatViemHelpers,
-} from "@nomicfoundation/hardhat-viem/types";
+import type { AbiHolder, EventArgsOf } from "../../../abi-types.js";
+import type { HardhatViemHelpers } from "@nomicfoundation/hardhat-viem/types";
 import type { ChainType } from "hardhat/types/network";
 import type {
+  Abi,
   AbiEvent,
   ContractEventName,
   ReadContractReturnType,
@@ -15,22 +13,26 @@ import assert from "node:assert/strict";
 
 import { assertHardhatInvariant } from "@nomicfoundation/hardhat-errors";
 
-import { stringifyArgs } from "../../helpers.js";
+import { settle, stringifyArgs } from "../../helpers.js";
 import { isArgumentMatch } from "../../predicates.js";
 
 import { handleEmit } from "./core.js";
 
 export async function emitWithArgs<
-  ContractName extends keyof ContractAbis,
-  EventName extends ContractEventName<ContractAbis[ContractName]>,
+  TContract extends AbiHolder<Abi>,
+  TEventName extends ContractEventName<TContract["abi"]>,
   ChainTypeT extends ChainType | string = "generic",
 >(
   viem: HardhatViemHelpers<ChainTypeT>,
   contractFn: Promise<ReadContractReturnType | WriteContractReturnType>,
-  contract: ContractReturnType<ContractName>,
-  eventName: EventName,
-  expectedArgs: any[],
+  contract: TContract,
+  eventName: TEventName,
+  expectedArgs: EventArgsOf<TContract["abi"], TEventName>,
 ): Promise<void> {
+  // Settle `contractFn` first so the tx doesn't leak into the next test, but
+  // defer rethrowing so ABI errors still take precedence over tx reverts.
+  const contractFnResult = await settle(contractFn);
+
   const abiEvents: AbiEvent[] = contract.abi.filter(
     (item): item is AbiEvent =>
       item.type === "event" &&
@@ -48,9 +50,21 @@ export async function emitWithArgs<
     `There are multiple events named "${eventName}" that accepts ${expectedArgs.length} input arguments. This scenario is currently not supported.`,
   );
 
+  if (contractFnResult.ok === false) {
+    // eslint-disable-next-line no-restricted-syntax -- propagate the original tx-revert error
+    throw contractFnResult.error;
+  }
+
   const expectedAbiEvent = abiEvents[0];
 
-  const parsedLogs = await handleEmit(viem, contractFn, contract, eventName);
+  // contractFn has already been awaited above; pass an already-resolved promise
+  // so handleEmit's internal await is a no-op and we don't double-submit.
+  const parsedLogs = await handleEmit(
+    viem,
+    Promise.resolve(contractFnResult.value),
+    contract,
+    eventName,
+  );
 
   for (const { args: logArgs } of parsedLogs) {
     let emittedArgs: any[] = [];

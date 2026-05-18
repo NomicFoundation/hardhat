@@ -126,6 +126,11 @@ export const ERROR_CATEGORIES: {
         max: 1399,
         websiteSubTitle: "Hardhat coverage errors",
       },
+      INIT: {
+        min: 1400,
+        max: 1499,
+        websiteSubTitle: "Initialization errors",
+      },
     },
   },
   IGNITION: {
@@ -525,6 +530,24 @@ Please install Hardhat locally using pnpm, npm or yarn, and try again.`,
         websiteTitle: "Invalid resolved config",
         websiteDescription: `The configuration you provided is seemingly valid, but once resolved it contains errors. Please check the documentation to learn how to configure Hardhat correctly.`,
       },
+      TEMPLATE_NOT_FOUND_WITH_LIST_OF_OPTIONS: {
+        number: 25,
+        messageTemplate: `Template "{template}" not found.
+
+The available templates are:
+{availableTemplates}`,
+        websiteTitle: "Template not found",
+        websiteDescription: `The template you provided is not found. Please check the documentation to learn which templates are available.`,
+      },
+      NON_INTERACTIVE_INIT_WOULD_OVERWRITE_FILES: {
+        number: 26,
+        messageTemplate: `The following files already exist in the current working directory, preventing the initialization of a new Hardhat project:
+{files}
+
+Remove them or move them to a different place and try again.`,
+        websiteTitle: "Non-interactive init failed due to existing files",
+        websiteDescription: `The non-interactive project initialization refuses to overwrite existing files. Remove the conflicting files and retry.`,
+      },
     },
     INTERNAL: {
       ASSERTION_ERROR: {
@@ -589,6 +612,23 @@ Please install a version of the peer dependency that meets the plugin's requirem
         messageTemplate: `Parameter "{paramName}" of hook "{hookCategoryName}#{hookName}" is not allowed to be modified`,
         websiteTitle: "Unexpected hook parameter modification",
         websiteDescription: `The parameter is not allowed to be modified`,
+      },
+      FAILED_TO_LOAD_HOOK_HANDLER_FACTORY: {
+        number: 302,
+        messageTemplate:
+          'Plugin "{pluginId}" hook factory for "{hookCategoryName}" threw an error while being loaded.',
+        websiteTitle: "Plugin hook factory failed during loading",
+        websiteDescription: `The loading of a plugin's hook factory failed while being imported`,
+      },
+      FAILED_TO_RUN_HOOK_HANDLER_FACTORY: {
+        number: 303,
+        messageTemplate: `Plugin "{pluginId}" hook factory for "{hookCategoryName}" threw an error while being run.
+
+This is probably a bug in the plugin. Please report it to the plugin author if it keeps happening.`,
+        websiteTitle: "Plugin hook factory failed during evaluation",
+        websiteDescription: `A plugin threw an error while one of its HookHandlerFactories was being run.
+
+This is probably a bug in the plugin. Please report it to the plugin author if it keeps happening.`,
       },
     },
     TASK_DEFINITIONS: {
@@ -864,6 +904,16 @@ Please double check your arguments.`,
           'The option "{option}" is hidden and cannot be used from the CLI.',
         websiteTitle: "Hidden options cannot be used from the CLI",
         websiteDescription: `You are trying to use a hidden option from the CLI, which is not allowed.`,
+      },
+      CANNOT_COMBINE_TEMPLATE_AND_TEMPLATES: {
+        number: 513,
+        messageTemplate:
+          'The options "--template" and "--templates" cannot be used together. Use "--init --template <name>" to initialize a project with a specific template, or "--init --templates" to list the available templates.',
+        websiteTitle:
+          'The options "--template" and "--templates" cannot be used together',
+        websiteDescription: `The options "--template" and "--templates" cannot be used together.
+
+Use "--init --template <name>" to initialize a project with a specific template, or "--init --templates" to list the available templates.`,
       },
     },
     BUILTIN_TASKS: {
@@ -1221,6 +1271,23 @@ Double-check the paths you are providing to the \`test solidity\` task.`,
         websiteTitle: "Selected Solidity test files do not exist",
         websiteDescription: `You ran the \`test solidity\` task with files that do not exist on disk.`,
       },
+      SNAPSHOT_GROUP_NAME_COLLISION: {
+        number: 817,
+        messageTemplate: `Snapshot group names "{nameA}" and "{nameB}" both produce the on-disk filename "{sanitized}.json" after sanitization. Rename one of them in your Solidity tests so they produce different filenames.`,
+        websiteTitle: "Snapshot group name collision after sanitization",
+        websiteDescription:
+          "Two distinct snapshot group names sanitize to the same on-disk filename. Rename one of the groups in your Solidity tests so they produce different filenames.",
+      },
+      EIP712_DUPLICATE_STRUCT_NAME: {
+        number: 818,
+        messageTemplate: `Two different EIP-712 struct definitions named "{name}" were found:
+- {firstSource}
+- {secondSource}
+
+EIP-712 cheatcodes resolve types by name, so each struct name must have a single canonical definition. Rename one of the structs, or scope your \`test.solidity.eip712Types.include\` / \`exclude\` globs in \`hardhat.config.ts\` to only one of them.`,
+        websiteTitle: "Duplicate EIP-712 struct name",
+        websiteDescription: `Two struct definitions with the same name had different members. Type-name lookups via \`vm.eip712HashType\` and \`vm.eip712HashStruct\` would be ambiguous.`,
+      },
     },
     SOLIDITY: {
       PROJECT_ROOT_RESOLUTION_ERROR: {
@@ -1454,6 +1521,16 @@ Please use the fully qualified name of the contract to disambiguate it.`,
         messageTemplate: `The import path "{importPath}" is already defined in the compilation sources`,
         websiteTitle: "Import path already defined in compilation sources",
         websiteDescription: `The import path is already defined in the compilation sources`,
+      },
+    },
+    INIT: {
+      FAILED_TO_INSTALL_DEPENDENCIES: {
+        number: 1400,
+        messageTemplate: `Failed to install the project dependencies.
+
+Please try again. If it persists, please open an issue in the Hardhat repository.`,
+        websiteTitle: "Failed to install the project dependencies",
+        websiteDescription: `The project initialization failed to install the required dependencies`,
       },
     },
   },

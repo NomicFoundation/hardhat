@@ -1,6 +1,6 @@
 {
   "name": "@nomicfoundation/hardhat-toolbox-mocha-ethers",
-  "version": "3.0.4",
+  "version": "3.0.5",
   "description": "Nomic Foundation's recommended bundle of Hardhat plugins",
   "homepage": "https://github.com/NomicFoundation/hardhat/tree/main/packages/hardhat-toolbox-mocha-ethers",
   "repository": {
@@ -13,7 +13,8 @@
   "type": "module",
   "types": "",
   "exports": {
-    ".": "./dist/src/index.js"
+    ".": "./dist/src/index.js",
+    "./package.json": "./package.json"
   },
   "keywords": [
     "ethereum",
@@ -23,8 +24,8 @@
     "toolbox"
   ],
   "scripts": {
-    "lint": "pnpm prettier --check && pnpm eslint",
-    "lint:fix": "pnpm prettier --write && pnpm eslint --fix",
+    "lint": "pnpm eslint && pnpm prettier --check",
+    "lint:fix": "pnpm eslint --fix && pnpm prettier --write",
     "eslint": "eslint \"src/**/*.ts\" \"test/**/*.ts\"",
     "prettier": "prettier \"**/*.{ts,js,md,json}\"",
     "test": "node --import tsx/esm --test --test-reporter=@nomicfoundation/hardhat-node-test-reporter \"test/*.ts\" \"test/!(fixture-projects|helpers)/**/*.ts\"",
@@ -54,7 +55,7 @@
     "@nomicfoundation/hardhat-node-test-reporter": "workspace:^3.0.4",
     "@nomicfoundation/hardhat-test-utils": "workspace:^",
     "@nomicfoundation/hardhat-typechain": "workspace:^3.0.0",
-    "@nomicfoundation/hardhat-utils": "workspace:^4.0.3",
+    "@nomicfoundation/hardhat-utils": "workspace:^4.1.1",
     "@nomicfoundation/hardhat-verify": "workspace:^3.0.0",
     "@nomicfoundation/ignition-core": "workspace:^3.0.0",
     "@types/chai": "^5.2.3",

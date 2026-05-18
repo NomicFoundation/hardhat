@@ -6,6 +6,7 @@ import type {
 import assert from "node:assert/strict";
 import path from "node:path";
 import { afterEach, before, describe, it } from "node:test";
+import { styleText } from "node:util";
 
 import { HardhatError } from "@nomicfoundation/hardhat-errors";
 import {
@@ -18,7 +19,6 @@ import {
   mkdtemp,
   readJsonFile,
 } from "@nomicfoundation/hardhat-utils/fs";
-import chalk from "chalk";
 
 import { GasAnalyticsManagerImplementation } from "../../../../src/internal/builtin-plugins/gas-analytics/gas-analytics-manager.js";
 import {
@@ -1161,26 +1161,26 @@ describe("gas-analytics-manager", () => {
 
         const expectedReport = `
 ╔═════════════════════════════════════════════════════════════════════════════════════╗
-║                                ${chalk.bold("Gas Usage Statistics")}                                 ║
+║                                ${styleText("bold", "Gas Usage Statistics")}                                 ║
 ╚═════════════════════════════════════════════════════════════════════════════════════╝
 ╔═════════════════════════════════════════════════════════════════════════════════════╗
-║ ${chalk.cyan.bold("contracts/MyContract.sol:MyContract")}                                                 ║
+║ ${styleText(["cyan", "bold"], "contracts/MyContract.sol:MyContract")}                                                 ║
 ╟─────────────────────────────────┬────────┬─────────┬────────┬────────┬──────────────╢
-║ ${chalk.yellow("Function name")}                   │ ${chalk.yellow("Min")}    │ ${chalk.yellow("Average")} │ ${chalk.yellow("Median")} │ ${chalk.yellow("Max")}    │ ${chalk.yellow("#calls")}       ║
+║ ${styleText("yellow", "Function name")}                   │ ${styleText("yellow", "Min")}    │ ${styleText("yellow", "Average")} │ ${styleText("yellow", "Median")} │ ${styleText("yellow", "Max")}    │ ${styleText("yellow", "#calls")}       ║
 ╟─────────────────────────────────┼────────┼─────────┼────────┼────────┼──────────────╢
 ║ balanceOf                       │ 15000  │ 15000   │ 15000  │ 15000  │ 1            ║
 ║ transfer                        │ 20000  │ 25000   │ 25000  │ 30000  │ 3            ║
 ╟─────────────────────────────────┼────────┼─────────┼────────┼────────┼──────────────╢
-║ ${chalk.yellow("Deployment")}                      │ ${chalk.yellow("Min")}    │ ${chalk.yellow("Average")} │ ${chalk.yellow("Median")} │ ${chalk.yellow("Max")}    │ ${chalk.yellow("#deployments")} ║
+║ ${styleText("yellow", "Deployment")}                      │ ${styleText("yellow", "Min")}    │ ${styleText("yellow", "Average")} │ ${styleText("yellow", "Median")} │ ${styleText("yellow", "Max")}    │ ${styleText("yellow", "#deployments")} ║
 ╟─────────────────────────────────┼────────┼─────────┼────────┼────────┼──────────────╢
 ║                                 │ 400000 │ 500000  │ 500000 │ 600000 │ 3            ║
 ╟─────────────────────────────────┼────────┼─────────┴────────┴────────┴──────────────╢
-║ ${chalk.yellow("Bytecode size")}                   │ 2048   │                                          ║
+║ ${styleText("yellow", "Bytecode size")}                   │ 2048   │                                          ║
 ╚═════════════════════════════════╧════════╧══════════════════════════════════════════╝
 ╔═════════════════════════════════════════════════════════════════════════════════════╗
-║ ${chalk.cyan.bold("contracts/TokenA.sol:TokenA")}                                                         ║
+║ ${styleText(["cyan", "bold"], "contracts/TokenA.sol:TokenA")}                                                         ║
 ╟─────────────────────────────────┬────────┬─────────┬────────┬────────┬──────────────╢
-║ ${chalk.yellow("Function name")}                   │ ${chalk.yellow("Min")}    │ ${chalk.yellow("Average")} │ ${chalk.yellow("Median")} │ ${chalk.yellow("Max")}    │ ${chalk.yellow("#calls")}       ║
+║ ${styleText("yellow", "Function name")}                   │ ${styleText("yellow", "Min")}    │ ${styleText("yellow", "Average")} │ ${styleText("yellow", "Median")} │ ${styleText("yellow", "Max")}    │ ${styleText("yellow", "#calls")}       ║
 ╟─────────────────────────────────┼────────┼─────────┼────────┼────────┼──────────────╢
 ║ transfer(address,uint256)       │ 22000  │ 25000   │ 25000  │ 28000  │ 2            ║
 ║ transfer(address,uint256,bytes) │ 32000  │ 34000   │ 34000  │ 36000  │ 2            ║

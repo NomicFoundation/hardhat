@@ -6,17 +6,19 @@ import type {
 } from "../../../types/config.js";
 import type { HardhatUserConfigValidationError } from "../../../types/hooks.js";
 import type {
-  SolidityTestConfig,
   SolidityTestForkingConfig,
-  SolidityTestUserConfig,
+  SolidityTestProfileConfig,
+  SolidityTestProfileUserConfig,
 } from "../../../types/test.js";
 
 import path from "node:path";
 
+import { assertHardhatInvariant } from "@nomicfoundation/hardhat-errors";
 import { isObject } from "@nomicfoundation/hardhat-utils/lang";
 import { resolveFromRoot } from "@nomicfoundation/hardhat-utils/path";
 import {
   conditionalUnionType,
+  incompatibleFieldType,
   sensitiveStringSchema,
   sensitiveUrlSchema,
   unionType,
@@ -24,11 +26,13 @@ import {
 } from "@nomicfoundation/hardhat-zod-utils";
 import { z } from "zod";
 
+import { DEFAULT_TEST_PROFILE } from "./test-profiles.js";
+
 // the keccak256 of "built for ethereum"
 export const DEFAULT_FUZZ_SEED =
   "0x7727ea51af0441c20da14dcd68a15dac8c9ebd589c5be8fa8c87c1d3720450bc";
 
-const solidityTestUserConfigType = z.object({
+const solidityTestProfileUserConfigType = z.object({
   fsPermissions: z
     .object({
       readWriteFile: z.array(z.string()).optional(),
@@ -61,6 +65,7 @@ const solidityTestUserConfigType = z.object({
       dictionaryWeight: z.number().optional(),
       includeStorage: z.boolean().optional(),
       includePushBytes: z.boolean().optional(),
+      showLogs: z.boolean().optional(),
     })
     .optional(),
   forking: z
@@ -88,7 +93,48 @@ const solidityTestUserConfigType = z.object({
       shrinkRunLimit: z.number().optional(),
     })
     .optional(),
+  eip712Types: z
+    .object({
+      include: z.array(z.string()).optional(),
+      exclude: z.array(z.string()).optional(),
+    })
+    .optional(),
 });
+
+const solidityTestFlatUserConfigType = solidityTestProfileUserConfigType.extend(
+  {
+    profiles: incompatibleFieldType(
+      "This field is incompatible with the flat solidity test config",
+    ),
+  },
+);
+
+const solidityTestProfilesUserConfigType = z.object({
+  profiles: z
+    .record(z.string(), solidityTestProfileUserConfigType)
+    .refine(
+      (profiles) => DEFAULT_TEST_PROFILE in profiles,
+      "A `default` profile is required when using `profiles`",
+    )
+    .refine(
+      (profiles) =>
+        !(DEFAULT_TEST_PROFILE in profiles) ||
+        Object.keys(profiles).every((name) => name === DEFAULT_TEST_PROFILE),
+      "Only the `default` profile is supported. Other profile names will be supported in a future release.",
+    ),
+});
+
+const solidityTestUserConfigType = conditionalUnionType(
+  [
+    [
+      (data) =>
+        isObject(data) && "profiles" in data && Object.keys(data).length === 1,
+      solidityTestProfilesUserConfigType,
+    ],
+    [isObject, solidityTestFlatUserConfigType],
+  ],
+  "Expected a Solidity test config or a `{ profiles: { ... } }` wrapper",
+);
 
 const userConfigType = z.object({
   paths: z
@@ -110,7 +156,7 @@ const userConfigType = z.object({
 });
 
 export function resolveSolidityTestForkingConfig(
-  forkingUserConfig: SolidityTestUserConfig["forking"],
+  forkingUserConfig: SolidityTestProfileUserConfig["forking"],
   resolveConfigurationVariable: ConfigurationVariableResolver,
 ): SolidityTestForkingConfig | undefined {
   if (forkingUserConfig === undefined) {
@@ -158,16 +204,29 @@ export async function resolveSolidityTestUserConfig(
 
   const defaultRpcCachePath = path.join(resolvedConfig.paths.cache, "edr");
 
+  const solidityUserConfig = userConfig.test?.solidity;
+  let profileUserConfig: SolidityTestProfileUserConfig | undefined;
+  if (solidityUserConfig !== undefined && "profiles" in solidityUserConfig) {
+    profileUserConfig = solidityUserConfig.profiles[DEFAULT_TEST_PROFILE];
+    assertHardhatInvariant(
+      profileUserConfig !== undefined,
+      "default profile must be present when the profiles wrapper user config is supplied",
+    );
+  } else {
+    profileUserConfig = solidityUserConfig;
+  }
+
   const resolvedForking = resolveSolidityTestForkingConfig(
-    userConfig.test?.solidity?.forking,
+    profileUserConfig?.forking,
     resolveConfigurationVariable,
   );
 
-  const solidityTest = {
+  const resolvedDefaultProfile = {
     rpcCachePath: defaultRpcCachePath,
-    ...userConfig.test?.solidity,
-    fuzz: resolveFuzzConfig(userConfig.test?.solidity?.fuzz),
+    ...profileUserConfig,
+    fuzz: resolveFuzzConfig(profileUserConfig?.fuzz),
     forking: resolvedForking,
+    eip712Types: resolveEip712TypesConfig(profileUserConfig?.eip712Types),
   };
 
   return {
@@ -181,16 +240,27 @@ export async function resolveSolidityTestUserConfig(
     },
     test: {
       ...resolvedConfig.test,
-      solidity: solidityTest,
+      solidity: {
+        profiles: { [DEFAULT_TEST_PROFILE]: resolvedDefaultProfile },
+      },
     },
   };
 }
 
 export function resolveFuzzConfig(
-  fuzzUserConfig: SolidityTestUserConfig["fuzz"] = {},
-): SolidityTestConfig["fuzz"] {
+  fuzzUserConfig: SolidityTestProfileUserConfig["fuzz"] = {},
+): SolidityTestProfileConfig["fuzz"] {
   return {
     ...fuzzUserConfig,
     seed: fuzzUserConfig.seed ?? DEFAULT_FUZZ_SEED,
+  };
+}
+
+export function resolveEip712TypesConfig(
+  eip712TypesUserConfig: SolidityTestProfileUserConfig["eip712Types"] = {},
+): SolidityTestProfileConfig["eip712Types"] {
+  return {
+    include: eip712TypesUserConfig.include ?? [],
+    exclude: eip712TypesUserConfig.exclude ?? [],
   };
 }

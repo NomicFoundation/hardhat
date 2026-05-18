@@ -1,6 +1,6 @@
 {
   "name": "@nomicfoundation/hardhat-keystore",
-  "version": "3.0.7",
+  "version": "3.0.9",
   "description": "A module for managing keystore files that store a map from IDs to encrypted string values.",
   "homepage": "https://github.com/NomicFoundation/hardhat/tree/main/packages/hardhat-keystore",
   "repository": {
@@ -12,7 +12,8 @@
   "license": "MIT",
   "type": "module",
   "exports": {
-    ".": "./dist/src/index.js"
+    ".": "./dist/src/index.js",
+    "./package.json": "./package.json"
   },
   "keywords": [
     "keystore",
@@ -20,8 +21,8 @@
     "hardhat"
   ],
   "scripts": {
-    "lint": "pnpm prettier --check && pnpm eslint",
-    "lint:fix": "pnpm prettier --write && pnpm eslint --fix",
+    "lint": "pnpm eslint && pnpm prettier --check",
+    "lint:fix": "pnpm eslint --fix && pnpm prettier --write",
     "eslint": "eslint \"src/**/*.ts\" \"test/**/*.ts\"",
     "prettier": "prettier \"**/*.{ts,js,md,json}\"",
     "test": "node --import tsx/esm --test --test-reporter=@nomicfoundation/hardhat-node-test-reporter \"test/*.ts\" \"test/!(fixture-projects|helpers)/**/*.ts\"",
@@ -41,7 +42,7 @@
     "README.md"
   ],
   "devDependencies": {
-    "@nomicfoundation/hardhat-node-test-reporter": "workspace:^3.0.5",
+    "@nomicfoundation/hardhat-node-test-reporter": "workspace:^3.0.6",
     "@nomicfoundation/hardhat-test-utils": "workspace:^",
     "@types/node": "^22.0.0",
     "c8": "^9.1.0",
@@ -54,12 +55,11 @@
     "typescript": "~5.8.0"
   },
   "dependencies": {
-    "@nomicfoundation/hardhat-errors": "workspace:^3.0.11",
-    "@nomicfoundation/hardhat-utils": "workspace:^4.0.4",
+    "@nomicfoundation/hardhat-errors": "workspace:^3.0.12",
+    "@nomicfoundation/hardhat-utils": "workspace:^4.1.1",
     "@nomicfoundation/hardhat-zod-utils": "workspace:^3.0.4",
     "@noble/ciphers": "1.2.1",
     "@noble/hashes": "1.7.1",
-    "chalk": "^5.3.0",
     "zod": "^3.23.8"
   },
   "peerDependencies": {

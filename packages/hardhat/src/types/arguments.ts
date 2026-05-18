@@ -1,3 +1,5 @@
+import "./builtin-plugin-type-extensions.js";
+
 /**
  * The possible types of a global or task option.
  */

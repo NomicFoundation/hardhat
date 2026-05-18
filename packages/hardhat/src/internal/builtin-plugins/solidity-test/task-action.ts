@@ -35,6 +35,7 @@ import {
   buildEdrArtifactsWithMetadata,
   getBuildInfosAndOutputs,
 } from "./edr-artifacts.js";
+import { collectEip712CanonicalTypes } from "./eip712/index.js";
 import {
   isTestSuiteArtifact,
   warnDeprecatedTestFail,
@@ -43,6 +44,7 @@ import {
 import { getTestFunctionOverrides } from "./inline-config/index.js";
 import { testReporter } from "./reporter.js";
 import { run } from "./runner.js";
+import { DEFAULT_TEST_PROFILE } from "./test-profiles.js";
 
 interface TestActionArguments {
   testFiles: string[];
@@ -141,8 +143,11 @@ const runSolidityTests: NewTaskActionFunction<TestActionArguments> = async (
     ({ edrArtifactsWithMetadata, allBuildInfosAndOutputs } =
       await loadArtifacts(hre.solidity, ["contracts"]));
 
-    // When noCompile, validate selected test roots have compiled artifacts
-    if (noCompile === true) {
+    // When noCompile is enabled, only validate compiled artifacts for test roots
+    // explicitly selected by the user. If no files were specified, skip
+    // validating every discovered test root and run whatever compiled test
+    // suites are available.
+    if (noCompile === true && testFiles.length > 0) {
       const compiledSources = new Set(
         edrArtifactsWithMetadata.map(({ userSourceName }) =>
           resolveFromRoot(hre.config.paths.root, userSourceName),
@@ -197,7 +202,9 @@ const runSolidityTests: NewTaskActionFunction<TestActionArguments> = async (
   let includesFailures = false;
   let includesErrors = false;
 
-  const solidityTestConfig = hre.config.test.solidity;
+  const { eip712Types, ...solidityTestConfig } =
+    hre.config.test.solidity.profiles[DEFAULT_TEST_PROFILE];
+
   let observabilityConfig: ObservabilityConfig | undefined;
   if (hre.globalOptions.coverage) {
     const coverage = getCoverageManager(hre);
@@ -229,6 +236,12 @@ const runSolidityTests: NewTaskActionFunction<TestActionArguments> = async (
     allBuildInfosAndOutputs,
   );
 
+  const eip712CanonicalTypes = collectEip712CanonicalTypes(
+    allBuildInfosAndOutputs,
+    sourceNameToUserSourceName,
+    eip712Types,
+  );
+
   const testRunnerConfig =
     await solidityTestConfigToSolidityTestRunnerConfigArgs({
       chainType,
@@ -242,6 +255,7 @@ const runSolidityTests: NewTaskActionFunction<TestActionArguments> = async (
         hre.globalOptions.gasStats ||
         hre.globalOptions.gasStatsJson !== undefined,
       testFunctionOverrides,
+      eip712CanonicalTypes,
     });
   const tracingConfig: TracingConfigWithBuffers = {
     buildInfos: allBuildInfosAndOutputs.map(({ buildInfo, output }) => ({

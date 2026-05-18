@@ -1,4 +1,5 @@
 import type { TestEvent } from "../../../../src/internal/builtin-plugins/solidity-test/types.js";
+import type { styleText } from "node:util";
 
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
@@ -20,34 +21,19 @@ function arrayAsAsyncGenerator<T>(array: T[]): AsyncGenerator<T, void> {
   })();
 }
 
-const noopColorizer = {
-  blue: (text: string) => text,
-  green: (text: string) => text,
-  red: (text: string) => text,
-  yellow: (text: string) => text,
-  cyan: (text: string) => text,
-  grey: (text: string) => text,
-  dim: (text: string) => text,
-};
+const noopColorize: typeof styleText = (_format, text) => text;
 
-const tagColorizer = {
-  blue: (text: string) => `<blue>${text}</blue>`,
-  green: (text: string) => `<green>${text}</green>`,
-  red: (text: string) => `<red>${text}</red>`,
-  yellow: (text: string) => `<yellow>${text}</yellow>`,
-  cyan: (text: string) => `<cyan>${text}</cyan>`,
-  grey: (text: string) => `<grey>${text}</grey>`,
-  dim: (text: string) => `<dim>${text}</dim>`,
-};
+const tagColorize: typeof styleText = (format, text) =>
+  `<${String(format)}>${text}</${String(format)}>`;
 
 async function arrayifiedTestReporter(
   arraySource: TestEvent[],
   verbosity: number,
-  colorizer = noopColorizer,
+  colorize: typeof styleText = noopColorize,
 ): Promise<string[]> {
   const source = arrayAsAsyncGenerator(arraySource);
   const result: string[] = [];
-  const reporter = testReporter(source, new Map(), verbosity, 0, colorizer);
+  const reporter = testReporter(source, new Map(), verbosity, 0, colorize);
   for await (const message of reporter) {
     if (typeof message === "string") {
       result.push(message);
@@ -462,7 +448,7 @@ debug log
           },
         ]),
         3,
-        tagColorizer,
+        tagColorize,
       );
 
       const expectedOutput = `

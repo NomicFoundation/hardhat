@@ -1,4 +1,3 @@
-import "../../../types/config.js";
 import type {
   SensitiveString,
   ResolvedConfigurationVariable,
@@ -15,7 +14,28 @@ declare module "../../../types/config.js" {
 }
 
 declare module "../../../types/test.js" {
-  export interface SolidityTestFuzzConfigBase {
+  export interface SolidityTestFsPermissionsUserConfig {
+    readWriteFile?: string[];
+    readFile?: string[];
+    writeFile?: string[];
+    dangerouslyReadWriteDirectory?: string[];
+    readDirectory?: string[];
+    dangerouslyWriteDirectory?: string[];
+  }
+
+  export interface SolidityTestInvariantUserConfig {
+    failurePersistDir?: string;
+    runs?: number;
+    depth?: number;
+    failOnRevert?: boolean;
+    callOverride?: boolean;
+    dictionaryWeight?: number;
+    includeStorage?: boolean;
+    includePushBytes?: boolean;
+    shrinkRunLimit?: number;
+  }
+
+  export interface SolidityTestFuzzUserConfig {
     failurePersistDir?: string;
     failurePersistFile?: string;
     runs?: number;
@@ -24,21 +44,17 @@ declare module "../../../types/test.js" {
     dictionaryWeight?: number;
     includeStorage?: boolean;
     includePushBytes?: boolean;
+    showLogs?: boolean;
   }
 
-  export interface SolidityTestFuzzConfig extends SolidityTestFuzzConfigBase {
-    seed: string;
+  export interface SolidityTestForkingUserConfig {
+    url?: SensitiveString;
+    blockNumber?: number | bigint;
+    rpcEndpoints?: Record<string, SensitiveString>;
   }
 
-  export interface SolidityTestConfigBase {
-    fsPermissions?: {
-      readWriteFile?: string[];
-      readFile?: string[];
-      writeFile?: string[];
-      dangerouslyReadWriteDirectory?: string[];
-      readDirectory?: string[];
-      dangerouslyWriteDirectory?: string[];
-    };
+  export interface SolidityTestProfileUserConfig {
+    fsPermissions?: SolidityTestFsPermissionsUserConfig;
     isolate?: boolean;
     ffi?: boolean;
     allowInternalExpectRevert?: boolean;
@@ -51,33 +67,58 @@ declare module "../../../types/test.js" {
     prevRandao?: bigint;
     gasLimit?: bigint;
     blockGasLimit?: bigint | false;
-
-    fuzz?: SolidityTestFuzzConfigBase;
-    invariant?: {
-      failurePersistDir?: string;
-      runs?: number;
-      depth?: number;
-      failOnRevert?: boolean;
-      callOverride?: boolean;
-      dictionaryWeight?: number;
-      includeStorage?: boolean;
-      includePushBytes?: boolean;
-      shrinkRunLimit?: number;
+    fuzz?: SolidityTestFuzzUserConfig;
+    invariant?: SolidityTestInvariantUserConfig;
+    forking?: SolidityTestForkingUserConfig;
+    eip712Types?: {
+      include?: string[];
+      exclude?: string[];
     };
   }
 
-  export interface SolidityTestForkingUserConfig {
-    url?: SensitiveString;
-    blockNumber?: number | bigint;
-    rpcEndpoints?: Record<string, SensitiveString>;
+  export interface SolidityTestProfilesUserConfig {
+    profiles: Record<string, SolidityTestProfileUserConfig>;
   }
 
-  export interface SolidityTestUserConfig extends SolidityTestConfigBase {
-    forking?: SolidityTestForkingUserConfig;
-  }
+  export type SolidityTestUserConfig =
+    | SolidityTestProfileUserConfig
+    | SolidityTestProfilesUserConfig;
 
   export interface HardhatTestUserConfig {
     solidity?: SolidityTestUserConfig;
+  }
+
+  export interface SolidityTestFsPermissionsConfig {
+    readWriteFile?: string[];
+    readFile?: string[];
+    writeFile?: string[];
+    dangerouslyReadWriteDirectory?: string[];
+    readDirectory?: string[];
+    dangerouslyWriteDirectory?: string[];
+  }
+
+  export interface SolidityTestInvariantConfig {
+    failurePersistDir?: string;
+    runs?: number;
+    depth?: number;
+    failOnRevert?: boolean;
+    callOverride?: boolean;
+    dictionaryWeight?: number;
+    includeStorage?: boolean;
+    includePushBytes?: boolean;
+    shrinkRunLimit?: number;
+  }
+
+  export interface SolidityTestFuzzConfig {
+    failurePersistDir?: string;
+    failurePersistFile?: string;
+    runs?: number;
+    maxTestRejects?: number;
+    seed: string;
+    dictionaryWeight?: number;
+    includeStorage?: boolean;
+    includePushBytes?: boolean;
+    showLogs?: boolean;
   }
 
   export interface SolidityTestForkingConfig {
@@ -86,10 +127,34 @@ declare module "../../../types/test.js" {
     rpcEndpoints?: Record<string, ResolvedConfigurationVariable>;
   }
 
-  export interface SolidityTestConfig extends SolidityTestConfigBase {
+  export interface SolidityTestProfileConfig {
+    rpcCachePath: string;
+    fsPermissions?: SolidityTestFsPermissionsConfig;
+    isolate?: boolean;
+    ffi?: boolean;
+    allowInternalExpectRevert?: boolean;
+    from?: string; // 0x-prefixed hex string
+    txOrigin?: string; // 0x-prefixed hex string
+    initialBalance?: bigint;
+    blockBaseFeePerGas?: bigint;
+    coinbase?: string; // 0x-prefixed hex string
+    blockTimestamp?: bigint;
+    prevRandao?: bigint;
+    gasLimit?: bigint;
+    blockGasLimit?: bigint | false;
     fuzz: SolidityTestFuzzConfig;
+    invariant?: SolidityTestInvariantConfig;
     forking?: SolidityTestForkingConfig;
+    eip712Types: {
+      include: string[];
+      exclude: string[];
+    };
   }
+
+  export interface SolidityTestConfig {
+    profiles: Record<string, SolidityTestProfileConfig>;
+  }
+
   export interface HardhatTestConfig {
     solidity: SolidityTestConfig;
   }

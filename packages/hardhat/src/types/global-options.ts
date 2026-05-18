@@ -1,5 +1,7 @@
 import type { GlobalOptionDefinition } from "./arguments.js";
 
+import "./builtin-plugin-type-extensions.js";
+
 /**
  * The values of each global option for a certain instance of the Hardhat
  * Runtime Environment are defined here. This interface can be extended through

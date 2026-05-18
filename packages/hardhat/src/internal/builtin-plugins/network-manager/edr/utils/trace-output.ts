@@ -1,7 +1,8 @@
 import type { Response } from "@nomicfoundation/edr";
 
+import { styleText } from "node:util";
+
 import { createDebug } from "@nomicfoundation/hardhat-utils/debug";
-import chalk from "chalk";
 
 import { formatTraces } from "./trace-formatters.js";
 
@@ -9,12 +10,12 @@ const log = createDebug("hardhat:core:network-manager:edr:trace-output");
 
 // Rotating palette for per-connection coloring of trace headers.
 const LABEL_COLORS: Array<(text: string) => string> = [
-  chalk.cyan,
-  chalk.magenta,
-  chalk.blueBright,
-  chalk.yellowBright,
-  chalk.cyanBright,
-  chalk.magentaBright,
+  (text: string) => styleText("cyan", text),
+  (text: string) => styleText("magenta", text),
+  (text: string) => styleText("blueBright", text),
+  (text: string) => styleText("yellowBright", text),
+  (text: string) => styleText("cyanBright", text),
+  (text: string) => styleText("magentaBright", text),
 ];
 
 // Keyed by `network name` (not connection label) so the map stays bounded
@@ -107,10 +108,12 @@ export class TraceOutputManager {
       const coloredLabel = this.#labelColor(this.#connectionLabel);
       const prefix = callTraces.length > 1 ? "Traces from" : "Trace from";
       const coloredPrefix = this.#labelColor(prefix);
-      const styledMethod = failed ? chalk.red(method) : chalk.dim(method);
+      const styledMethod = failed
+        ? styleText("red", method)
+        : styleText("dim", method);
       const header = `${coloredPrefix} ${coloredLabel}: ${styledMethod}`;
 
-      this.#printLineFn(`${header}\n${formatTraces(callTraces, "  ", chalk)}`);
+      this.#printLineFn(`${header}\n${formatTraces(callTraces, "  ")}`);
     } catch (e) {
       log("Failed to get call traces: %O", e);
     }

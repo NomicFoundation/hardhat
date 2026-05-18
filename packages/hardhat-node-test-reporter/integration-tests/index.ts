@@ -34,7 +34,7 @@ while (argv.length > 0) {
       break;
     case "--color":
     case "--no-color":
-      // Ignore; this is handled by chalk
+      // Ignore; this is handled by node:util styleText
       break;
     default:
       throw new Error(`Unknown option: ${key}`);

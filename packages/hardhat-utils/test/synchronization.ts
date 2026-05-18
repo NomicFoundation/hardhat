@@ -17,6 +17,7 @@ import {
   MultiProcessMutex,
   MultiProcessMutexError,
   MultiProcessMutexTimeoutError,
+  SharedPromiseCache,
   StaleMultiProcessMutexError,
 } from "../src/synchronization.js";
 
@@ -1209,5 +1210,737 @@ describe("AsyncMutex", () => {
 
     assert.equal(maxRunning, 1);
     assert.equal(running, 0);
+  });
+});
+
+function assertAsyncStackHasThrowAndGetOrComputeFrames(
+  error: unknown,
+): asserts error is Error {
+  assert.ok(error instanceof Error, "Expected an Error object");
+
+  const stack = error.stack ?? "";
+  assert.ok(
+    stack.includes(import.meta.filename),
+    "Should include the stack entry for the test file",
+  );
+  assert.match(stack, /at failAfterAsyncBoundary/);
+  assert.match(stack, /at async SharedPromiseCache\.getOrCompute/);
+}
+
+async function getRejectedValue(fn: () => Promise<unknown>): Promise<unknown> {
+  try {
+    await fn();
+  } catch (error) {
+    return error;
+  }
+
+  assert.fail("Expected promise to reject");
+}
+
+describe("SharedPromiseCache", () => {
+  it("should compute on first miss", async () => {
+    const cache = new SharedPromiseCache<string>();
+    let calls = 0;
+
+    const result = await cache.getOrCompute("key", async () => {
+      calls++;
+      return "value";
+    });
+
+    assert.equal(result, "value");
+    assert.equal(calls, 1);
+  });
+
+  it("should cache a successful result", async () => {
+    const cache = new SharedPromiseCache<string>();
+    let firstCalls = 0;
+    let secondCalls = 0;
+
+    const firstResult = await cache.getOrCompute("key", async () => {
+      firstCalls++;
+      return "first";
+    });
+    const secondResult = await cache.getOrCompute("key", async () => {
+      secondCalls++;
+      return "second";
+    });
+
+    assert.equal(firstResult, "first");
+    assert.equal(secondResult, "first");
+    assert.equal(firstCalls, 1);
+    assert.equal(secondCalls, 0);
+  });
+
+  it("should cache a successful undefined result", async () => {
+    const cache = new SharedPromiseCache<string | undefined>();
+    let calls = 0;
+
+    const firstResult = await cache.getOrCompute("key", async () => {
+      calls++;
+      return undefined;
+    });
+
+    const secondResult = await cache.getOrCompute("key", async () => {
+      calls++;
+      return "second";
+    });
+
+    assert.equal(firstResult, undefined);
+    assert.equal(secondResult, undefined);
+    assert.equal(calls, 1);
+  });
+
+  it("should use independent cache entries per key", async () => {
+    const cache = new SharedPromiseCache<string>();
+    let firstCalls = 0;
+    let secondCalls = 0;
+
+    const firstResult = await cache.getOrCompute("first", async () => {
+      firstCalls++;
+      return "first-value";
+    });
+
+    const secondResult = await cache.getOrCompute("second", async () => {
+      secondCalls++;
+      return "second-value";
+    });
+
+    assert.equal(firstResult, "first-value");
+    assert.equal(secondResult, "second-value");
+    assert.equal(firstCalls, 1);
+    assert.equal(secondCalls, 1);
+  });
+
+  it("should deduplicate concurrent calls", async () => {
+    const cache = new SharedPromiseCache<string>();
+    const deferred = Promise.withResolvers<string>();
+    let calls = 0;
+
+    const fn = async () => {
+      calls++;
+      return await deferred.promise;
+    };
+
+    const first = cache.getOrCompute("key", fn);
+    const second = cache.getOrCompute("key", fn);
+    const third = cache.getOrCompute("key", fn);
+
+    deferred.resolve("first");
+
+    assert.deepEqual(await Promise.all([first, second, third]), [
+      "first",
+      "first",
+      "first",
+    ]);
+    assert.equal(calls, 1);
+  });
+
+  it("should store the in-flight promise before invoking the producer", async () => {
+    const cache = new SharedPromiseCache<string>();
+    let outerCalls = 0;
+    let reentrantCalls = 0;
+    let reentrantResult: Promise<string> | undefined;
+
+    const result = await cache.getOrCompute("key", async () => {
+      outerCalls++;
+      reentrantResult = cache.getOrCompute("key", async () => {
+        reentrantCalls++;
+        return "reentrant";
+      });
+
+      return "outer";
+    });
+
+    assert.equal(result, "outer");
+    assert.ok(reentrantResult !== undefined, "Expected a reentrant result");
+    assert.equal(await reentrantResult, "outer");
+    assert.equal(outerCalls, 1);
+    assert.equal(reentrantCalls, 0);
+  });
+
+  it("should share producer failures with same-key reentrant calls", async () => {
+    const cache = new SharedPromiseCache<string>();
+    const cause = new Error("failure");
+    let outerCalls = 0;
+    let reentrantCalls = 0;
+    let reentrantResult: Promise<string> | undefined;
+
+    const result = cache.getOrCompute("key", async () => {
+      outerCalls++;
+      reentrantResult = cache.getOrCompute("key", async () => {
+        reentrantCalls++;
+        return "reentrant";
+      });
+
+      throw cause;
+    });
+    assert.ok(reentrantResult !== undefined, "Expected a reentrant result");
+
+    await Promise.all([
+      assert.rejects(result, (error) => {
+        assert.equal(error, cause);
+        return true;
+      }),
+      assert.rejects(reentrantResult, (error) => {
+        assert.equal(error, cause);
+        return true;
+      }),
+    ]);
+
+    assert.equal(outerCalls, 1);
+    assert.equal(reentrantCalls, 0);
+  });
+
+  it("should ignore later functions for concurrent calls with the same key, only using the first one", async () => {
+    const cache = new SharedPromiseCache<string>();
+    const deferred = Promise.withResolvers<string>();
+    let firstCalls = 0;
+    let secondCalls = 0;
+    let thirdCalls = 0;
+
+    const first = cache.getOrCompute("key", async () => {
+      firstCalls++;
+      return await deferred.promise;
+    });
+
+    const second = cache.getOrCompute("key", async () => {
+      secondCalls++;
+      return "second";
+    });
+
+    const third = cache.getOrCompute("key", async () => {
+      thirdCalls++;
+      return "third";
+    });
+
+    deferred.resolve("first");
+
+    assert.deepEqual(await Promise.all([first, second, third]), [
+      "first",
+      "first",
+      "first",
+    ]);
+    assert.equal(firstCalls, 1);
+    assert.equal(secondCalls, 0);
+    assert.equal(thirdCalls, 0);
+  });
+
+  it("should not deduplicate different keys, even if they use the same function", async () => {
+    const cache = new SharedPromiseCache<string>();
+    const deferred = Promise.withResolvers<string>();
+    let calls = 0;
+
+    const fn = async () => {
+      calls++;
+      return await deferred.promise;
+    };
+
+    const first = cache.getOrCompute("first", fn);
+
+    const second = cache.getOrCompute("second", fn);
+
+    deferred.resolve("value");
+
+    assert.deepEqual(await Promise.all([first, second]), ["value", "value"]);
+    assert.equal(calls, 2);
+  });
+
+  it("should rethrow computation failures without wrapping them", async () => {
+    const cache = new SharedPromiseCache<string>();
+    const cause = new Error("failure");
+
+    await assert.rejects(
+      cache.getOrCompute("key", async () => {
+        throw cause;
+      }),
+      (error) => {
+        assert.equal(error, cause);
+        return true;
+      },
+    );
+  });
+
+  it("should share concurrent failures without wrapping them", async () => {
+    const cache = new SharedPromiseCache<string>();
+    const deferred = Promise.withResolvers<string>();
+    const cause = new Error("failure");
+    let calls = 0;
+
+    const first = assert.rejects(
+      cache.getOrCompute("key", async () => {
+        calls++;
+        return await deferred.promise;
+      }),
+      (error) => {
+        assert.equal(error, cause);
+        return true;
+      },
+    );
+
+    const second = assert.rejects(
+      cache.getOrCompute("key", async () => "second"),
+      (error) => {
+        assert.equal(error, cause);
+        return true;
+      },
+    );
+
+    deferred.reject(cause);
+
+    await Promise.all([first, second]);
+    assert.equal(calls, 1);
+  });
+
+  it("should not cache failures", async () => {
+    const cache = new SharedPromiseCache<string>();
+    let calls = 0;
+
+    await assert.rejects(
+      cache.getOrCompute("key", async () => {
+        calls++;
+        throw new Error("failure");
+      }),
+    );
+
+    const result = await cache.getOrCompute("key", async () => {
+      calls++;
+      return "value";
+    });
+
+    assert.equal(result, "value");
+    assert.equal(calls, 2);
+  });
+
+  it("should rethrow non-Error thrown values without wrapping them", async () => {
+    const cache = new SharedPromiseCache<string>();
+    const thrown = "failure";
+
+    await assert.rejects(
+      cache.getOrCompute("key", async () => {
+        throw thrown;
+      }),
+      (error) => {
+        assert.equal(error, thrown);
+        return true;
+      },
+    );
+  });
+
+  it("should clear cached successful results", async () => {
+    const cache = new SharedPromiseCache<string>();
+    let calls = 0;
+
+    const firstResult = await cache.getOrCompute("key", async () => {
+      calls++;
+      return "first";
+    });
+
+    cache.clear();
+
+    const secondResult = await cache.getOrCompute("key", async () => {
+      calls++;
+      return "second";
+    });
+
+    assert.equal(firstResult, "first");
+    assert.equal(secondResult, "second");
+    assert.equal(calls, 2);
+  });
+
+  it("should not cancel in-flight work when cleared", async () => {
+    const cache = new SharedPromiseCache<string>();
+    const deferred = Promise.withResolvers<string>();
+
+    const resultPromise = cache.getOrCompute(
+      "key",
+      async () => await deferred.promise,
+    );
+
+    cache.clear();
+    deferred.resolve("value");
+
+    assert.equal(await resultPromise, "value");
+  });
+
+  it("should not repopulate the cache with an in-flight result after clear", async () => {
+    const cache = new SharedPromiseCache<string>();
+    const deferred = Promise.withResolvers<string>();
+    let calls = 0;
+
+    const oldResult = cache.getOrCompute("key", async () => {
+      calls++;
+      return await deferred.promise;
+    });
+
+    cache.clear();
+    deferred.resolve("old");
+
+    assert.equal(await oldResult, "old");
+
+    const newResult = await cache.getOrCompute("key", async () => {
+      calls++;
+      return "new";
+    });
+
+    assert.equal(newResult, "new");
+    assert.equal(calls, 2);
+  });
+
+  it("should keep a new in-flight computation after clearing an old one", async () => {
+    const cache = new SharedPromiseCache<string>();
+    const oldDeferred = Promise.withResolvers<string>();
+    const newDeferred = Promise.withResolvers<string>();
+    let oldCalls = 0;
+    let newCalls = 0;
+    let finalCalls = 0;
+
+    const oldResult = cache.getOrCompute("key", async () => {
+      oldCalls++;
+      return await oldDeferred.promise;
+    });
+
+    cache.clear();
+
+    const newResult = cache.getOrCompute("key", async () => {
+      newCalls++;
+      return await newDeferred.promise;
+    });
+
+    oldDeferred.resolve("old");
+    newDeferred.resolve("new");
+
+    assert.equal(await oldResult, "old");
+    assert.equal(await newResult, "new");
+
+    const finalResult = await cache.getOrCompute("key", async () => {
+      finalCalls++;
+      return "final";
+    });
+
+    assert.equal(finalResult, "new");
+
+    assert.equal(oldCalls, 1);
+    assert.equal(newCalls, 1);
+    assert.equal(finalCalls, 0);
+  });
+
+  it("should delete cached successful results", async () => {
+    const cache = new SharedPromiseCache<string>();
+    let calls = 0;
+
+    const firstResult = await cache.getOrCompute("key", async () => {
+      calls++;
+      return "first";
+    });
+
+    cache.delete("key");
+
+    const secondResult = await cache.getOrCompute("key", async () => {
+      calls++;
+      return "second";
+    });
+
+    assert.equal(firstResult, "first");
+    assert.equal(secondResult, "second");
+    assert.equal(calls, 2);
+  });
+
+  it("should not repopulate the cache with an in-flight result after delete", async () => {
+    const cache = new SharedPromiseCache<string>();
+    const deferred = Promise.withResolvers<string>();
+    let calls = 0;
+
+    const oldResult = cache.getOrCompute("key", async () => {
+      calls++;
+      return await deferred.promise;
+    });
+
+    cache.delete("key");
+    deferred.resolve("old");
+
+    assert.equal(await oldResult, "old");
+
+    const newResult = await cache.getOrCompute("key", async () => {
+      calls++;
+      return "new";
+    });
+
+    assert.equal(newResult, "new");
+    assert.equal(calls, 2);
+  });
+
+  it("should not delete a newer cache entry when an old in-flight computation fails after delete", async () => {
+    const cache = new SharedPromiseCache<string>();
+    const oldDeferred = Promise.withResolvers<string>();
+    const newDeferred = Promise.withResolvers<string>();
+    const cause = new Error("old failure");
+    let oldCalls = 0;
+    let newCalls = 0;
+    let finalCalls = 0;
+
+    const oldResult = cache.getOrCompute("key", async () => {
+      oldCalls++;
+      return await oldDeferred.promise;
+    });
+
+    cache.delete("key");
+
+    const newResult = cache.getOrCompute("key", async () => {
+      newCalls++;
+      return await newDeferred.promise;
+    });
+
+    newDeferred.resolve("new");
+    assert.equal(await newResult, "new");
+
+    const oldFailure = assert.rejects(oldResult, (error) => {
+      assert.equal(error, cause);
+      return true;
+    });
+    oldDeferred.reject(cause);
+    await oldFailure;
+
+    const finalResult = await cache.getOrCompute("key", async () => {
+      finalCalls++;
+      return "final";
+    });
+
+    assert.equal(finalResult, "new");
+    assert.equal(oldCalls, 1);
+    assert.equal(newCalls, 1);
+    assert.equal(finalCalls, 0);
+  });
+
+  it("should preserve the producer async stack when awaited directly", async () => {
+    const cache = new SharedPromiseCache<string>();
+
+    async function failAfterAsyncBoundary(): Promise<string> {
+      await sleep(0.001);
+      throw new Error("fail");
+    }
+
+    await assert.rejects(
+      cache.getOrCompute("key", async () => await failAfterAsyncBoundary()),
+      (error) => {
+        assertAsyncStackHasThrowAndGetOrComputeFrames(error);
+        return true;
+      },
+    );
+  });
+
+  it("should preserve the producer async stack when awaited after other async work", async () => {
+    const cache = new SharedPromiseCache<string>();
+    const deferred = Promise.withResolvers<void>();
+
+    async function failAfterAsyncBoundary(): Promise<string> {
+      await deferred.promise;
+      throw new Error("fail");
+    }
+
+    const result = cache.getOrCompute(
+      "key",
+      async () => await failAfterAsyncBoundary(),
+    );
+
+    await sleep(0.001);
+
+    const rejection = assert.rejects(result, (error) => {
+      assertAsyncStackHasThrowAndGetOrComputeFrames(error);
+      return true;
+    });
+
+    deferred.resolve();
+
+    await rejection;
+  });
+
+  it("should share the original producer error with coalesced callers", async () => {
+    const cache = new SharedPromiseCache<string>();
+    const deferred = Promise.withResolvers<void>();
+    let calls = 0;
+    let originalError: Error | undefined;
+
+    async function failAfterAsyncBoundary(): Promise<string> {
+      await deferred.promise;
+      originalError = new Error("fail");
+      throw originalError;
+    }
+
+    const firstError = getRejectedValue(
+      async () =>
+        await cache.getOrCompute("key", async () => {
+          calls++;
+          return await failAfterAsyncBoundary();
+        }),
+    );
+
+    await sleep(0.001);
+
+    const secondError = getRejectedValue(
+      async () =>
+        await cache.getOrCompute("key", async () => {
+          calls++;
+          return "second";
+        }),
+    );
+
+    deferred.resolve();
+
+    const [firstErrorValue, secondErrorValue] = await Promise.all([
+      firstError,
+      secondError,
+    ]);
+
+    // Note: In this test we intentionally observe the errors through
+    // getRejectedValue so that both coalesced callers can be asserted together.
+    // That breaks the async chain whose stack shape is checked in the previous
+    // tests. This test only verifies that coalesced callers receive the exact
+    // same original error object.
+
+    assert.equal(calls, 1);
+    assert.equal(firstErrorValue, originalError);
+    assert.equal(secondErrorValue, originalError);
+    assert.equal(firstErrorValue, secondErrorValue);
+  });
+
+  describe("peek", () => {
+    it("should return undefined for a missing key", () => {
+      const cache = new SharedPromiseCache<string>();
+      assert.equal(cache.peek("missing"), undefined);
+    });
+
+    it("should return the value for a resolved entry", async () => {
+      const cache = new SharedPromiseCache<string>();
+      await cache.getOrCompute("key", async () => "value");
+
+      assert.equal(cache.peek("key"), "value");
+    });
+
+    it("should return undefined for an in-flight entry", async () => {
+      const cache = new SharedPromiseCache<string>();
+      const deferred = Promise.withResolvers<string>();
+
+      // Kick off the computation but don't await it; the entry is in-flight.
+      const inFlight = cache.getOrCompute(
+        "key",
+        async () => await deferred.promise,
+      );
+
+      assert.equal(cache.peek("key"), undefined);
+
+      deferred.resolve("value");
+      await inFlight;
+
+      // Once resolved, peek now sees the value.
+      assert.equal(cache.peek("key"), "value");
+    });
+
+    it("should not invoke the producer", async () => {
+      const cache = new SharedPromiseCache<string>();
+      let calls = 0;
+
+      // Seed the cache with a resolved entry first so peek has something
+      // to return; verify the producer count never increases.
+      await cache.getOrCompute("key", async () => {
+        calls++;
+        return "value";
+      });
+
+      cache.peek("key");
+      cache.peek("missing");
+
+      assert.equal(calls, 1);
+    });
+
+    it("should return undefined after a failed computation", async () => {
+      const cache = new SharedPromiseCache<string>();
+
+      await assert.rejects(
+        cache.getOrCompute("key", async () => {
+          throw new Error("fail");
+        }),
+      );
+
+      assert.equal(cache.peek("key"), undefined);
+    });
+
+    it("should reflect cached undefined values", async () => {
+      const cache = new SharedPromiseCache<string | undefined>();
+      await cache.getOrCompute("key", async () => undefined);
+
+      // The entry is resolved with `undefined` as the value. `peek` cannot
+      // distinguish that from a missing key, but documenting this here makes
+      // the behavior explicit.
+      assert.equal(cache.peek("key"), undefined);
+    });
+  });
+
+  describe("resolvedEntries", () => {
+    it("should yield nothing for an empty cache", () => {
+      const cache = new SharedPromiseCache<string>();
+      assert.deepEqual([...cache.resolvedEntries()], []);
+    });
+
+    it("should yield resolved entries", async () => {
+      const cache = new SharedPromiseCache<string>();
+      await cache.getOrCompute("a", async () => "1");
+      await cache.getOrCompute("b", async () => "2");
+
+      assert.deepEqual([...cache.resolvedEntries()].sort(), [
+        ["a", "1"],
+        ["b", "2"],
+      ]);
+    });
+
+    it("should skip in-flight entries", async () => {
+      const cache = new SharedPromiseCache<string>();
+      await cache.getOrCompute("resolved", async () => "value");
+
+      const deferred = Promise.withResolvers<string>();
+      const inFlight = cache.getOrCompute(
+        "in-flight",
+        async () => await deferred.promise,
+      );
+
+      assert.deepEqual([...cache.resolvedEntries()], [["resolved", "value"]]);
+
+      deferred.resolve("late");
+      await inFlight;
+
+      // Once the in-flight entry resolves, it shows up.
+      assert.deepEqual([...cache.resolvedEntries()].sort(), [
+        ["in-flight", "late"],
+        ["resolved", "value"],
+      ]);
+    });
+
+    it("should not include entries whose computation failed", async () => {
+      const cache = new SharedPromiseCache<string>();
+      await cache.getOrCompute("good", async () => "ok");
+      await assert.rejects(
+        cache.getOrCompute("bad", async () => {
+          throw new Error("fail");
+        }),
+      );
+
+      assert.deepEqual([...cache.resolvedEntries()], [["good", "ok"]]);
+    });
+
+    it("should not invoke any producer", async () => {
+      const cache = new SharedPromiseCache<string>();
+      let calls = 0;
+      await cache.getOrCompute("key", async () => {
+        calls++;
+        return "value";
+      });
+
+      // Iterate twice; producer count must stay at 1.
+      const first = [...cache.resolvedEntries()];
+      const second = [...cache.resolvedEntries()];
+
+      assert.deepEqual(first, [["key", "value"]]);
+      assert.deepEqual(second, [["key", "value"]]);
+      assert.equal(calls, 1);
+    });
   });
 });

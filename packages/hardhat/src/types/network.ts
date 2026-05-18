@@ -1,6 +1,8 @@
 import type { NetworkConfig, NetworkConfigOverride } from "./config.js";
 import type { EthereumProvider } from "./providers.js";
 
+import "./builtin-plugin-type-extensions.js";
+
 /**
  * Represents the possible chain types for the network. The options are:
  * - `GenericNetworkType`: Represents the most generic type of network.

@@ -157,8 +157,10 @@ export class Reconciler {
     const sortedFutureIds =
       AdjacencyList.topologicalSort(adjacencyList).reverse();
 
+    const futuresById = new Map(futures.map((f) => [f.id, f]));
+
     return sortedFutureIds
-      .map((id) => futures.find((f) => f.id === id))
+      .map((id) => futuresById.get(id))
       .filter((x): x is Future => x !== undefined);
   }
 

@@ -78,7 +78,7 @@ interface SerializeContext {
 /**
  * Serialize an Ignition module.
  *
- * @beta
+ * @public
  */
 export class IgnitionModuleSerializer {
   public static serialize(
@@ -459,7 +459,7 @@ export class IgnitionModuleSerializer {
  * Deserialize an `IgnitionModule` that was previously serialized using
  * IgnitionModuleSerializer.
  *
- * @beta
+ * @public
  */
 export class IgnitionModuleDeserializer {
   public static deserialize(

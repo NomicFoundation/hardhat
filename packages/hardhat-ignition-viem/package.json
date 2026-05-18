@@ -1,6 +1,6 @@
 {
   "name": "@nomicfoundation/hardhat-ignition-viem",
-  "version": "3.1.4",
+  "version": "3.1.5",
   "description": "The Viem extension to Hardhat Ignition. Hardhat Ignition is a declarative system for deploying smart contracts on Ethereum. It enables you to define smart contract instances you want to deploy, and any operation you want to run on them. By taking over the deployment and execution, Hardhat Ignition lets you focus on your project instead of getting caught up in the deployment details.",
   "homepage": "https://github.com/NomicFoundation/hardhat/tree/main/packages/hardhat-ignition-viem",
   "repository": {
@@ -26,8 +26,8 @@
   ],
   "scripts": {
     "build": "tsc --build tsconfig.json",
-    "lint": "pnpm prettier --check && pnpm eslint",
-    "lint:fix": "pnpm prettier --write && pnpm eslint --fix",
+    "lint": "pnpm eslint && pnpm prettier --check",
+    "lint:fix": "pnpm eslint --fix && pnpm prettier --write",
     "preeslint": "pnpm test-build",
     "eslint": "eslint \"src/**/*.ts\" \"test/**/*.ts\"",
     "prettier": "prettier \"**/*.{ts,js,md,json}\"",

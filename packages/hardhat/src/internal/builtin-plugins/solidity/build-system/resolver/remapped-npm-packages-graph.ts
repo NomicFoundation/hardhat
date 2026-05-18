@@ -29,13 +29,12 @@ import {
 } from "@nomicfoundation/hardhat-utils/package";
 
 import { UserRemappingErrorType } from "../../../../../types/solidity.js";
+import { HARDHAT_PROJECT_INPUT_SOURCE_NAME_ROOT } from "../../constants.js";
 
 import { getNpmPackageName } from "./npm-module-parsing.js";
 import { parseRemappingString, selectBestRemapping } from "./remappings.js";
 import { sourceNamePathJoin } from "./source-name-utils.js";
 import { UserRemappingType } from "./types.js";
-
-const HARDHAT_PROJECT_INPUT_SOURCE_NAME_ROOT = "project";
 
 /**
  * Returns a normalized version of the path if it refers to a node_modules in
@@ -477,6 +476,13 @@ export class RemappedNpmPackagesGraphImplementation
       (f) => path.basename(f) === "remappings.txt",
       (f) => !f.endsWith("node_modules"),
     );
+
+    // Sort by path so the first-wins dedup downstream is deterministic across
+    // filesystems. We sort here (and not after hook composition) so that hooks
+    // can rely on the contract that remappings they append after next() come
+    // last — e.g. hardhat-foundry appends forge's remappings after the
+    // package's own remappings.txt files, expecting remappings.txt to win.
+    remappingsTxtFiles.sort();
 
     const results: Array<{ remappings: string[]; source: string }> = [];
     for (const file of remappingsTxtFiles) {

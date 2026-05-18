@@ -26,7 +26,7 @@ import type {
 /**
  * The options for a `contract` deployment.
  *
- * @beta
+ * @public
  */
 export interface ContractOptions {
   /**
@@ -62,7 +62,7 @@ export interface ContractOptions {
 /**
  * The options for a `library` call.
  *
- * @beta
+ * @public
  */
 export interface LibraryOptions {
   /**
@@ -89,7 +89,7 @@ export interface LibraryOptions {
 /**
  * The options for a `call` call.
  *
- * @beta
+ * @public
  */
 export interface CallOptions {
   /**
@@ -120,7 +120,7 @@ export interface CallOptions {
 /**
  * The options for a `staticCall` call.
  *
- * @beta
+ * @public
  */
 export interface StaticCallOptions {
   /**
@@ -142,7 +142,7 @@ export interface StaticCallOptions {
 /**
  * The options for an `encodeFunctionCall` call.
  *
- * @beta
+ * @public
  */
 export interface EncodeFunctionCallOptions {
   /**
@@ -159,7 +159,7 @@ export interface EncodeFunctionCallOptions {
 /**
  * The options for a `contractAt` call.
  *
- * @beta
+ * @public
  */
 export interface ContractAtOptions {
   /**
@@ -176,7 +176,7 @@ export interface ContractAtOptions {
 /**
  * The options for a `readEventArgument` call.
  *
- * @beta
+ * @public
  */
 export interface ReadEventArgumentOptions {
   /**
@@ -200,7 +200,7 @@ export interface ReadEventArgumentOptions {
 /**
  * The options for a `send` call.
  *
- * @beta
+ * @public
  */
 export interface SendDataOptions {
   /**
@@ -217,7 +217,7 @@ export interface SendDataOptions {
 /**
  * The build api for configuring a deployment within a module.
  *
- * @beta
+ * @public
  */
 export interface IgnitionModuleBuilder {
   /**

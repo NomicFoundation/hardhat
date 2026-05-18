@@ -1,0 +1,27 @@
+{
+  "$schema": "../../scripts/end-to-end/schema/scenario.schema.json",
+  "description": "1inch Aqua Protocol fork to Hardhat 3.",
+  "tags": ["external-repo"],
+  "repo": "anaPerezGhiglia/aqua",
+  "commit": "19277969b5e67b5b55968422b4cba4029544807c",
+  "packageManager": "yarn",
+  "submodules": false,
+  "defaultCommand": "npx hardhat test solidity",
+  "benchmark": {
+    "commands": {
+      "cold compile": {
+        "runs": 5,
+        "prepare": "npx hardhat clean",
+        "command": "npx hardhat compile"
+      },
+      "warm compile": {
+        "runs": 55,
+        "command": "npx hardhat compile"
+      },
+      "test solidity": {
+        "runs": 83,
+        "command": "npx hardhat test solidity --no-compile"
+      }
+    }
+  }
+}

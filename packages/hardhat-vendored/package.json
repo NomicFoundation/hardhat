@@ -1,6 +1,6 @@
 {
   "name": "@nomicfoundation/hardhat-vendored",
-  "version": "3.0.2",
+  "version": "3.0.3",
   "description": "Internal dependencies used by Hardhat that have been vendored to prevent bloating the main package",
   "homepage": "https://github.com/NomicFoundation/hardhat/tree/main/packages/hardhat-vendored",
   "repository": {
@@ -13,14 +13,15 @@
   "type": "module",
   "exports": {
     "./coverage": "./dist/src/coverage-module/index.js",
-    "./coverage/types": "./dist/src/coverage-module/types.js"
+    "./coverage/types": "./dist/src/coverage-module/types.js",
+    "./package.json": "./package.json"
   },
   "keywords": [
     "hardhat"
   ],
   "scripts": {
-    "lint": "pnpm prettier --check && pnpm eslint",
-    "lint:fix": "pnpm prettier --write && pnpm eslint --fix",
+    "lint": "pnpm eslint && pnpm prettier --check",
+    "lint:fix": "pnpm eslint --fix && pnpm prettier --write",
     "eslint": "eslint \"src/**/*.ts\" \"test/**/*.ts\"",
     "prettier": "prettier \"**/*.{ts,js,md,json}\"",
     "test": "node --import tsx/esm --test --test-reporter=@nomicfoundation/hardhat-node-test-reporter \"test/*.ts\" \"test/!(fixture-projects|helpers)/**/*.ts\"",
@@ -42,7 +43,7 @@
     "VENDORED.md"
   ],
   "devDependencies": {
-    "@nomicfoundation/hardhat-node-test-reporter": "workspace:^3.0.4",
+    "@nomicfoundation/hardhat-node-test-reporter": "workspace:^3.0.6",
     "@types/bn.js": "^5.1.5",
     "@types/node": "^22.0.0",
     "c8": "^9.1.0",

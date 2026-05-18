@@ -1,14 +1,14 @@
 /**
  * The type of the contract artifact's ABI.
  *
- * @beta
+ * @public
  */
 export type Abi = readonly any[] | any[];
 
 /**
  * The links between libraries and their references in the bytecode.
  *
- * @beta
+ * @public
  */
 export type LinkReferences = Record<
   string,
@@ -22,7 +22,7 @@ export type LinkReferences = Record<
  * Each immutable variable is represented by an id, which in the case of solc
  * is the id of the AST node that represents the variable.
  *
- * @beta
+ * @public
  */
 export interface ImmutableReferences {
   [immutableId: string]: Array<{ start: number; length: number }>;
@@ -31,7 +31,7 @@ export interface ImmutableReferences {
 /**
  * An compilation artifact representing a smart contract.
  *
- * @beta
+ * @public
  */
 export interface Artifact<AbiT extends Abi = Abi> {
   _format: string;
@@ -50,7 +50,7 @@ export interface Artifact<AbiT extends Abi = Abi> {
 /**
  * Retrieve artifacts based on contract name.
  *
- * @beta
+ * @public
  */
 export interface ArtifactResolver {
   loadArtifact(contractName: string): Promise<Artifact>;
@@ -62,7 +62,7 @@ export interface ArtifactResolver {
  * includes all the necessary information to recreate that exact same run, and
  * all of its output.
  *
- * @beta
+ * @public
  */
 export interface BuildInfo {
   _format: string;
@@ -76,7 +76,7 @@ export interface BuildInfo {
 /**
  * The solc input for running the compilation.
  *
- * @beta
+ * @public
  */
 export interface CompilerInput {
   language: string;
@@ -111,7 +111,7 @@ export interface CompilerInput {
 /**
  * The output of a compiled contract from solc.
  *
- * @beta
+ * @public
  */
 export interface CompilerOutputContract {
   abi: any;
@@ -127,7 +127,7 @@ export interface CompilerOutputContract {
 /**
  * The compilation output from solc.
  *
- * @beta
+ * @public
  */
 export interface CompilerOutput {
   sources: CompilerOutputSources;
@@ -141,7 +141,7 @@ export interface CompilerOutput {
 /**
  * The ast for a compiled contract.
  *
- * @beta
+ * @public
  */
 export interface CompilerOutputSource {
   id: number;
@@ -151,7 +151,7 @@ export interface CompilerOutputSource {
 /**
  * The asts for the compiled contracts.
  *
- * @beta
+ * @public
  */
 export interface CompilerOutputSources {
   [sourceName: string]: CompilerOutputSource;
@@ -160,7 +160,7 @@ export interface CompilerOutputSources {
 /**
  * The solc bytecode output.
  *
- * @beta
+ * @public
  */
 export interface CompilerOutputBytecode {
   object: string;

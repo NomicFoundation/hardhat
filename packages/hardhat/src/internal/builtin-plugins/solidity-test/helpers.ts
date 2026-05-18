@@ -1,7 +1,6 @@
 import type { Abi } from "../../../types/artifacts.js";
 import type { ChainType } from "../../../types/network.js";
-import type { SolidityTestConfig } from "../../../types/test.js";
-import type { Colorizer } from "../../utils/colorizer.js";
+import type { SolidityTestProfileConfig } from "../../../types/test.js";
 import type {
   SolidityTestRunnerConfigArgs,
   PathPermission,
@@ -9,6 +8,8 @@ import type {
   ObservabilityConfig,
   TestFunctionOverride,
 } from "@nomicfoundation/edr";
+
+import { styleText } from "node:util";
 
 import {
   opGenesisState,
@@ -19,7 +20,6 @@ import {
   l1HardforkFromString,
 } from "@nomicfoundation/edr";
 import { hexStringToBytes } from "@nomicfoundation/hardhat-utils/hex";
-import chalk from "chalk";
 
 import { DEFAULT_VERBOSITY, OPTIMISM_CHAIN_TYPE } from "../../constants.js";
 import { resolveHardfork } from "../network-manager/config-resolution.js";
@@ -32,12 +32,13 @@ interface SolidityTestConfigParams {
   chainType: ChainType;
   projectRoot: string;
   hardfork?: string;
-  config: SolidityTestConfig;
+  config: Omit<SolidityTestProfileConfig, "eip712Types">;
   verbosity: number;
   observability?: ObservabilityConfig;
   testPattern?: string;
   generateGasReport: boolean;
   testFunctionOverrides?: TestFunctionOverride[];
+  eip712CanonicalTypes?: string[];
 }
 
 export async function solidityTestConfigToSolidityTestRunnerConfigArgs({
@@ -50,6 +51,7 @@ export async function solidityTestConfigToSolidityTestRunnerConfigArgs({
   testPattern,
   generateGasReport,
   testFunctionOverrides,
+  eip712CanonicalTypes,
 }: SolidityTestConfigParams): Promise<SolidityTestRunnerConfigArgs> {
   const fsPermissions: PathPermission[] | undefined = [
     config.fsPermissions?.readWriteFile?.map((p) => ({
@@ -136,6 +138,8 @@ export async function solidityTestConfigToSolidityTestRunnerConfigArgs({
     includeTraces,
     blockGasLimit,
     disableBlockGasLimit,
+    // TODO: Hardcoded for now. This should be made configurable by the user.
+    disableTransactionGasCap: true,
     blockDifficulty,
     ethRpcUrl,
     forkBlockNumber,
@@ -145,6 +149,7 @@ export async function solidityTestConfigToSolidityTestRunnerConfigArgs({
       ? CollectStackTraces.Always
       : CollectStackTraces.OnFailure,
     testFunctionOverrides,
+    eip712CanonicalTypes,
   };
 }
 
@@ -161,7 +166,6 @@ export function isTestSuiteArtifact(artifact: Artifact): boolean {
 export function warnDeprecatedTestFail(
   artifact: Artifact,
   sourceNameToUserSourceName: Map<string, string>,
-  colorizer: Colorizer = chalk,
 ): void {
   const abi: Abi = JSON.parse(artifact.contract.abi);
 
@@ -175,7 +179,7 @@ export function warnDeprecatedTestFail(
         artifact.id,
         sourceNameToUserSourceName,
       );
-      const warningMessage = `${colorizer.yellow("Warning")}: ${name} The support for the prefix \`testFail*\` has been removed. Consider using \`vm.expectRevert()\` for testing reverts in ${formattedLocation}\n`;
+      const warningMessage = `${styleText("yellow", "Warning")}: ${name} The support for the prefix \`testFail*\` has been removed. Consider using \`vm.expectRevert()\` for testing reverts in ${formattedLocation}\n`;
 
       console.warn(warningMessage);
     }

@@ -1,14 +1,5 @@
-import {
-  HardhatError,
-  HardhatPluginError,
-} from "@nomicfoundation/hardhat-errors";
 import { createDebug } from "@nomicfoundation/hardhat-utils/debug";
 
-import {
-  ProviderError,
-  UnknownError,
-} from "../../../builtin-plugins/network-manager/provider-errors.js";
-import { UsingHardhat2PluginError } from "../../../using-hardhat2-plugin-errors.js";
 import { getHardhatVersion } from "../../../utils/package.js";
 import { isTelemetryAllowed } from "../telemetry-permissions.js";
 
@@ -110,11 +101,9 @@ class Reporter {
     error: Error,
     hint?: { unhandled?: boolean; mechanismType?: string },
   ): Promise<boolean> {
-    if (!(await this.#shouldBeReported(error))) {
-      log("Error not send: this type of error should not be reported");
+    if (!this.#telemetryEnabled) {
       return false;
     }
-
     const { captureException, flush } = await import("@sentry/core");
 
     log("Capturing exception");
@@ -131,38 +120,6 @@ class Reporter {
         : undefined,
     );
     await flush();
-
-    return true;
-  }
-
-  async #shouldBeReported(error: Error): Promise<boolean> {
-    if (!this.#telemetryEnabled) {
-      return false;
-    }
-
-    if (
-      HardhatError.isHardhatError(error) &&
-      !error.descriptor.shouldBeReported
-    ) {
-      return false;
-    }
-
-    if (error instanceof UsingHardhat2PluginError) {
-      return false;
-    }
-
-    if (HardhatPluginError.isHardhatPluginError(error)) {
-      // Don't log errors from third-party plugins
-      return false;
-    }
-
-    if (
-      ProviderError.isProviderError(error) &&
-      error.code !== UnknownError.CODE
-    ) {
-      // We don't report known network related errors
-      return false;
-    }
 
     return true;
   }

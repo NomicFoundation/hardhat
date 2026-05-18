@@ -1,0 +1,30 @@
+{
+  "$schema": "../../scripts/end-to-end/schema/scenario.schema.json",
+  "description": "1inch Network Fusion Atomic Swaps fork to Hardhat 3.",
+  "tags": ["external-repo"],
+  "repo": "Wodann/cross-chain-swap",
+  "commit": "690f7f6bbc826ab3d58995e4bc5bf01694222086",
+  "packageManager": "yarn",
+  "submodules": true,
+  "defaultCommand": "npx hardhat test solidity",
+  "env": {
+    "FOUNDRY_PROFILE": "default"
+  },
+  "benchmark": {
+    "commands": {
+      "cold compile": {
+        "runs": 3,
+        "prepare": "npx hardhat clean",
+        "command": "npx hardhat compile"
+      },
+      "warm compile": {
+        "runs": 97,
+        "command": "npx hardhat compile"
+      },
+      "test solidity": {
+        "runs": 9,
+        "command": "npx hardhat test solidity --no-compile"
+      }
+    }
+  }
+}
