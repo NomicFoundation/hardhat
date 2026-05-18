@@ -70,6 +70,27 @@ jobs:
       - name: Run check
         run: node scripts/check-npm-scripts.ts
 
+  check_renovate_config:
+    name: Check Renovate config
+    needs: is-v3
+    if: ${{ needs.is-v3.outputs.is_v3 == 'true' }}
+    timeout-minutes: 60
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - name: Renovate schema check
+        run: npx --yes --package renovate -- renovate-config-validator renovate.json
+      - name: Renovate extraction dry-run
+        env:
+          # Without a token, github-tags/github-releases lookups hit the
+          # anonymous 60 req/hr rate limit shared across the runner IP.
+          GITHUB_COM_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          LOG_LEVEL: debug
+        run: npx --yes renovate --platform=local --dry-run=full
+
   check_infra_scripts_tests:
     name: Check that infrastructure script tests pass
     needs: is-v3
