@@ -1,7 +1,9 @@
 import path from "node:path";
 
+import { COVERAGE_LIBRARY_FILE_NAME } from "@nomicfoundation/edr";
+
 // Compiler warnings to suppress from build output.
-// Supports two types of suppression rules:
+// Supports three types of suppression rules:
 //
 // 1. scope: 'specific-file' - Suppress warnings from specific file paths
 //    - Use this to suppress known warnings from internal/library files (e.g., console.sol)
@@ -14,17 +16,30 @@ import path from "node:path";
 //        (e.g., test/contracts/Example.sol)
 //    - Use this for warnings that are acceptable in test code but not in production code
 //      (e.g., missing SPDX license identifiers or pragma statements)
-export const SUPPRESSED_WARNINGS: Array<
-  | {
-      message: string;
-      scope: "specific-file";
-      filePath: string;
-    }
-  | {
-      message: string;
-      scope: "test-files";
-    }
-> = [
+//
+// 3. scope: 'coverage-library' - Suppress warnings from the injected coverage library file
+//    - The file is identified by source paths containing COVERAGE_LIBRARY_FILE_NAME
+//      (e.g., matches `__NomicFoundationCoverage` and the uuid-suffixed variant)
+//    - No `message` field: every warning emitted against the file is suppressed,
+//      since the file is injected by the --coverage hook and users cannot edit it
+interface SpecificFileRule {
+  message: string;
+  scope: "specific-file";
+  filePath: string;
+}
+
+interface TestFilesRule {
+  message: string;
+  scope: "test-files";
+}
+
+interface CoverageLibraryRule {
+  scope: "coverage-library";
+}
+
+type SuppressionRule = SpecificFileRule | TestFilesRule | CoverageLibraryRule;
+
+export const SPECIFIC_FILE_RULES: SpecificFileRule[] = [
   {
     message:
       "Natspec memory-safe-assembly special comment for inline assembly is deprecated and scheduled for removal. Use the memory-safe block annotation instead.",
@@ -32,6 +47,9 @@ export const SUPPRESSED_WARNINGS: Array<
     // Normalize to handle different OS path separators
     filePath: path.normalize("hardhat/console.sol"),
   },
+];
+
+export const TEST_FILE_RULES: TestFilesRule[] = [
   {
     message: "SPDX license identifier not provided",
     scope: "test-files",
@@ -40,6 +58,18 @@ export const SUPPRESSED_WARNINGS: Array<
     message: "Source file does not specify required compiler version",
     scope: "test-files",
   },
+];
+
+export const COVERAGE_LIBRARY_RULES: CoverageLibraryRule[] = [
+  {
+    scope: "coverage-library",
+  },
+];
+
+export const SUPPRESSED_WARNINGS: SuppressionRule[] = [
+  ...SPECIFIC_FILE_RULES,
+  ...TEST_FILE_RULES,
+  ...COVERAGE_LIBRARY_RULES,
 ];
 
 /**
@@ -67,6 +97,10 @@ export function shouldSuppressWarning(
   );
 
   return SUPPRESSED_WARNINGS.some((rule) => {
+    if (rule.scope === "coverage-library") {
+      return errorMessage.includes(COVERAGE_LIBRARY_FILE_NAME);
+    }
+
     if (!errorMessage.includes(rule.message)) {
       return false;
     }

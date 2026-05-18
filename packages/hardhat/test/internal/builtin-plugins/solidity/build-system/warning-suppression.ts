@@ -2,15 +2,18 @@ import assert from "node:assert/strict";
 import path from "node:path";
 import { describe, it } from "node:test";
 
+import { COVERAGE_LIBRARY_FILE_NAME } from "@nomicfoundation/edr";
+
 import {
   shouldSuppressWarning,
-  SUPPRESSED_WARNINGS,
+  SPECIFIC_FILE_RULES,
+  TEST_FILE_RULES,
 } from "../../../../../src/internal/builtin-plugins/solidity/build-system/warning-suppression.js";
 
 describe("shouldSuppressWarning", () => {
-  const NATSPEC_WARNING = SUPPRESSED_WARNINGS[0].message;
-  const SPDX_WARNING = SUPPRESSED_WARNINGS[1].message;
-  const PRAGMA_WARNING = SUPPRESSED_WARNINGS[2].message;
+  const NATSPEC_WARNING = SPECIFIC_FILE_RULES[0].message;
+  const SPDX_WARNING = TEST_FILE_RULES[0].message;
+  const PRAGMA_WARNING = TEST_FILE_RULES[1].message;
 
   // Mock project paths for testing
   const PROJECT_ROOT = path.join("home", "user", "project");
@@ -158,6 +161,36 @@ describe("shouldSuppressWarning", () => {
         }
       }
     });
+  });
+
+  describe("Coverage library warnings (coverage-library scope)", () => {
+    const scenarios = [
+      {
+        name: "should suppress warnings from the bare coverage library file",
+        path: COVERAGE_LIBRARY_FILE_NAME,
+        expected: true,
+      },
+      {
+        name: "should suppress warnings from the uuid-suffixed coverage library file",
+        path: `${COVERAGE_LIBRARY_FILE_NAME}-1fe87c59-dedc-4831-8918-604bc223bbfa.sol`,
+        expected: true,
+      },
+      {
+        name: "should NOT suppress the same warning emitted against a user-file path",
+        path: path.join("contracts", "MyContract.sol"),
+        expected: false,
+      },
+    ];
+
+    for (const scenario of scenarios) {
+      it(scenario.name, () => {
+        const message = `Warning: ${NATSPEC_WARNING}\n  --> ${scenario.path}:1:1:`;
+        assert.equal(
+          shouldSuppressWarning(message, SOLIDITY_TESTS_PATH, PROJECT_ROOT),
+          scenario.expected,
+        );
+      });
+    }
   });
 
   describe("non-matching warnings", () => {
