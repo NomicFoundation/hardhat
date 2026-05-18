@@ -6,11 +6,11 @@ import { HardhatError } from "@nomicfoundation/hardhat-errors";
  * Returns the platform-specific base name for the solx binary (without version suffix).
  * The full asset name is `${baseName}-v${version}` (or `.exe` on Windows).
  *
- * Actual GitHub release assets (e.g., for v0.1.3):
- *   solx-linux-amd64-gnu-v0.1.3
- *   solx-linux-arm64-gnu-v0.1.3
- *   solx-macosx-v0.1.3           (universal binary)
- *   solx-windows-amd64-gnu-v0.1.3.exe
+ * Actual GitHub release assets (e.g., for v0.1.4):
+ *   solx-linux-amd64-gnu-v0.1.4
+ *   solx-linux-arm64-gnu-v0.1.4
+ *   solx-macosx-v0.1.4           (universal binary)
+ *   solx-windows-amd64-gnu-v0.1.4.exe
  */
 export function getSolxBinaryBaseName(): string {
   const platform = os.platform();

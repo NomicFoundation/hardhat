@@ -34,9 +34,9 @@ describe("hardhat-solx platform detection", () => {
   });
 
   it("asset name includes version suffix", () => {
-    const assetName = getSolxAssetName("0.1.3");
+    const assetName = getSolxAssetName("0.1.4");
     assert.ok(
-      assetName.includes("-v0.1.3"),
+      assetName.includes("-v0.1.4"),
       `asset name should include version suffix: ${assetName}`,
     );
     assert.ok(

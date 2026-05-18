@@ -6,11 +6,11 @@ const config: HardhatUserConfig = {
   solidity: {
     profiles: {
       default: {
-        version: "0.8.33",
+        version: "0.8.34",
       },
       solx: {
         type: "solx",
-        version: "0.8.33",
+        version: "0.8.34",
       },
     },
   },
