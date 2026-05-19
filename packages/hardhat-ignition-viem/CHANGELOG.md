@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.15.17
+
+### Patch Changes
+
+- 5589cfa: Load `viem` using `require` instead of a dynamic import.
+
 ## 0.15.16
 
 ### Patch Changes

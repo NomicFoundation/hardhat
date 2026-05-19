@@ -1,5 +1,11 @@
 # @nomicfoundation/hardhat-viem
 
+## 2.1.4
+
+### Patch Changes
+
+- 5589cfa: Load `viem` using `require` instead of a dynamic import.
+
 ## 2.1.3
 
 ### Patch Changes
