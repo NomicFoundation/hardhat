@@ -269,15 +269,8 @@ const _handleError = (error: Error): JsonRpcResponse => {
     error = new InternalError(undefined, error);
   }
 
-  // For revert errors (code 3), the JSON-RPC `data` field must be the hex
-  // revert data as a string — this matches the geth/anvil/EVM-node convention
-  // and is what tooling (viem, ethers, web3.js) expects when decoding custom
-  // errors. Returning the rich `{ message, txHash, data }` wrapper here breaks
-  // clients that call `.slice` on `error.data` (see issue #8075).
-  //
-  // For Hardhat-internal errors (non-revert) we keep the rich object so that
-  // diagnostic info (txHash, message) is preserved — those clients don't
-  // attempt to decode the field as hex revert data.
+  // Revert errors (code 3): return raw hex to match the geth/anvil convention
+  // that viem/ethers/web3.js rely on. Other errors keep the wrapper for diagnostics.
   const data: unknown = isRevertError
     ? returnData
     : { message: error.message, txHash, data: returnData };
