@@ -1,6 +1,6 @@
 {
   "extension": ["ts"],
-  "loader": "ts-node/esm",
+  "node-option": ["import=tsx/esm"],
   "file": "./test/setup.ts",
   "timeout": 20000,
   "exit": true,

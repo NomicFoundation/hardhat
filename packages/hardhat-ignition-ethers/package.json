@@ -60,7 +60,6 @@
     "nyc": "15.1.0",
     "prettier": "3.2.5",
     "rimraf": "^5.0.5",
-    "ts-node": "10.9.2",
     "tsx": "^4.19.3",
     "typescript": "~6.0.3",
     "@nomicfoundation/hardhat-verify": "workspace:^3.0.0"
