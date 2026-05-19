@@ -417,7 +417,6 @@ export function createConfig(
       },
       parser: tseslint.parser,
       parserOptions: {
-        project: path.join(path.dirname(configFilePath), "tsconfig.json"),
         tsconfigRootDir: path.dirname(configFilePath),
         projectService: true,
       },
