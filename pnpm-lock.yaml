@@ -1076,7 +1076,7 @@ importers:
         specifier: 4.0.0
         version: 4.0.0(eslint-config-prettier@8.3.0(eslint@8.57.1))(eslint@8.57.1)(prettier@2.8.8)
       hardhat:
-        specifier: workspace:^2.26.0
+        specifier: workspace:^2.29.0
         version: link:../hardhat-core
       mocha:
         specifier: ^11.1.0
@@ -2049,7 +2049,7 @@ importers:
         specifier: 3.4.0
         version: 3.4.0(eslint-config-prettier@8.3.0(eslint@8.57.1))(eslint@8.57.1)(prettier@2.4.1)
       hardhat:
-        specifier: workspace:^2.26.0
+        specifier: workspace:^2.29.0
         version: link:../hardhat-core
       jest-diff:
         specifier: ^29.7.0
@@ -4246,7 +4246,7 @@ packages:
     resolution: {integrity: sha512-Ko0uX15oIUS7wJ3Rb30Fs6SkVbLmPBAKdlm7q9+ak9bbIeFf0MwuBsQV6z7+X768/cHsfg+WlysDWJcmthjsjQ==}
 
   bignumber.js@https://codeload.github.com/frozeman/bignumber.js-nolookahead/tar.gz/57692b3ecfc98bbdd6b3a516cb2353652ea49934:
-    resolution: {gitHosted: true, tarball: https://codeload.github.com/frozeman/bignumber.js-nolookahead/tar.gz/57692b3ecfc98bbdd6b3a516cb2353652ea49934}
+    resolution: {tarball: https://codeload.github.com/frozeman/bignumber.js-nolookahead/tar.gz/57692b3ecfc98bbdd6b3a516cb2353652ea49934}
     version: 2.0.7
 
   binary-extensions@2.3.0:

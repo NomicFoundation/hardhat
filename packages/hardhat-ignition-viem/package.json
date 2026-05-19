@@ -1,6 +1,6 @@
 {
   "name": "@nomicfoundation/hardhat-ignition-viem",
-  "version": "0.15.16",
+  "version": "0.15.17",
   "license": "MIT",
   "author": "Nomic Foundation",
   "homepage": "https://hardhat.org",
@@ -60,7 +60,7 @@
     "eslint-plugin-mocha": "^9.0.0",
     "eslint-plugin-no-only-tests": "3.1.0",
     "eslint-plugin-prettier": "4.0.0",
-    "hardhat": "workspace:^2.26.0",
+    "hardhat": "workspace:^2.29.0",
     "mocha": "^11.1.0",
     "nyc": "15.1.0",
     "prettier": "2.8.8",
