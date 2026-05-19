@@ -191,7 +191,7 @@ async function innerSendDeploymentTransaction(
     hash: deploymentTxHash,
   });
 
-  const { getContractAddress } = await import("viem");
+  const { getContractAddress } = require("viem") as typeof import("viem");
   const contractAddress = getContractAddress({
     from: walletClient.account.address,
     nonce: BigInt(deploymentTx.nonce),
@@ -234,7 +234,7 @@ async function innerGetContractAt(
   contractAbi: Abi,
   address: Address
 ): Promise<GetContractReturnType> {
-  const viem = await import("viem");
+  const viem = require("viem") as typeof import("viem");
   const contract = viem.getContract({
     address,
     client: {

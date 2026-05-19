@@ -22,7 +22,7 @@ export async function linkBytecode(
   artifact: Artifact,
   libraries: Link[]
 ): Promise<viemT.Hex> {
-  const { isHex } = await import("viem");
+  const { isHex } = require("viem") as typeof import("viem");
   let bytecode = artifact.bytecode;
 
   // TODO: measure performance impact
