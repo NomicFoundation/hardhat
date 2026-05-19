@@ -56,7 +56,7 @@ export async function innerGetPublicClient(
   chain: Chain,
   publicClientConfig?: Partial<PublicClientConfig>
 ): Promise<PublicClient> {
-  const viem = await import("viem");
+  const viem = require("viem") as typeof import("viem");
   const { clientParameters, transportParameters } = await getParameters(
     chain,
     publicClientConfig
@@ -97,7 +97,7 @@ export async function innerGetWalletClients(
   accounts: Address[],
   walletClientConfig?: Partial<WalletClientConfig>
 ): Promise<WalletClient[]> {
-  const viem = await import("viem");
+  const viem = require("viem") as typeof import("viem");
   const { clientParameters, transportParameters } = await getParameters(
     chain,
     walletClientConfig
@@ -161,7 +161,7 @@ export async function innerGetTestClient(
   mode: TestClientMode,
   testClientConfig?: Partial<TestClientConfig>
 ): Promise<TestClient> {
-  const viem = await import("viem");
+  const viem = require("viem") as typeof import("viem");
   const { clientParameters, transportParameters } = await getParameters(
     chain,
     testClientConfig

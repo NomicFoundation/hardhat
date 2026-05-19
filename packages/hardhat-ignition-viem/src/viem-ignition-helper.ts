@@ -285,7 +285,7 @@ export class ViemIgnitionHelper {
       );
     }
 
-    const viem = await import("viem");
+    const viem = require("viem") as typeof import("viem");
     const contract = viem.getContract({
       address: ViemIgnitionHelper._ensureAddressFormat(
         deployedContract.address

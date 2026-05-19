@@ -7,8 +7,8 @@ import memoize from "lodash.memoize";
 import { UnknownDevelopmentNetworkError, NetworkNotFoundError } from "./errors";
 
 export async function getChain(provider: EthereumProvider): Promise<Chain> {
-  const { extractChain } = await import("viem");
-  const chainsModule = await import("viem/chains");
+  const { extractChain } = require("viem") as typeof import("viem");
+  const chainsModule = require("viem/chains") as typeof import("viem/chains");
   const chains = Object.values(chainsModule) as Chain[];
   const chainId = await getChainId(provider);
 
