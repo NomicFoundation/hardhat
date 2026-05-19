@@ -55,7 +55,7 @@
     "prettier": "3.2.5",
     "rimraf": "^5.0.5",
     "tsx": "^4.19.3",
-    "typescript": "~5.8.0"
+    "typescript": "~6.0.3"
   },
   "dependencies": {
     "@ledgerhq/errors": "^6.25.0",
