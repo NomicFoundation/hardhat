@@ -1003,7 +1003,7 @@ export class HardhatEthersProvider implements HardhatEthersProviderI {
         typeof resolvedToBlock !== "string")
     ) {
       return Promise.all([
-        Promise.all(address),
+        Promise.all(address.map(async (addr) => await addr)),
         resolvedFromBlock,
         resolvedToBlock,
       ]).then((result) => {
