@@ -1,5 +1,14 @@
 # @nomicfoundation/hardhat-ethers-chai-matchers
 
+## 3.0.9
+
+### Patch Changes
+
+- [#8264](https://github.com/NomicFoundation/hardhat/pull/8264) [`8452f97`](https://github.com/NomicFoundation/hardhat/commit/8452f9726205540e1684d3f8458bfd145e790226) Thanks [@alcuadrado](https://github.com/alcuadrado)! - Export `./package.json` so consumers can import the package's manifest.
+
+- Updated dependencies:
+  - @nomicfoundation/hardhat-utils@4.1.2
+
 ## 3.0.8
 
 ### Patch Changes

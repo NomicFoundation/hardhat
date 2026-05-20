@@ -1,5 +1,18 @@
 # @nomicfoundation/hardhat-errors
 
+## 3.0.13
+
+### Patch Changes
+
+- [#8243](https://github.com/NomicFoundation/hardhat/pull/8243) [`f2cdddd`](https://github.com/NomicFoundation/hardhat/commit/f2cdddda6b37a4c590309ac01c078492d54d6a98) Thanks [@ChristopherDedominici](https://github.com/ChristopherDedominici)! - Add error descriptor for duplicate EIP-712 struct names surfaced by the Solidity Test cheatcodes.
+
+- [#8264](https://github.com/NomicFoundation/hardhat/pull/8264) [`8452f97`](https://github.com/NomicFoundation/hardhat/commit/8452f9726205540e1684d3f8458bfd145e790226) Thanks [@alcuadrado](https://github.com/alcuadrado)! - Export `./package.json` so consumers can import the package's manifest.
+
+- [#8188](https://github.com/NomicFoundation/hardhat/pull/8188) [`d48bbfd`](https://github.com/NomicFoundation/hardhat/commit/d48bbfd86c22f5dfaaee7e926814ace0db20f320) Thanks [@alcuadrado](https://github.com/alcuadrado)! - Add `--init --template <template-name>` to initialize projects in a non-interactive way. Also add `--init --templates` to get the list of template names.
+
+- Updated dependencies:
+  - @nomicfoundation/hardhat-utils@4.1.2
+
 ## 3.0.12
 
 ### Patch Changes

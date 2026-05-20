@@ -1,5 +1,49 @@
 # hardhat
 
+## 3.5.0
+
+### Minor Changes
+
+- [#8301](https://github.com/NomicFoundation/hardhat/pull/8301) [`793cc84`](https://github.com/NomicFoundation/hardhat/commit/793cc84d311ff96b1725f5b83a0063b9a28e3d19) Thanks [@kanej](https://github.com/kanej)! - Disable transaction gas cap and block gas limit when running tests under `--coverage`.
+
+- [#8270](https://github.com/NomicFoundation/hardhat/pull/8270) [`cf2823b`](https://github.com/NomicFoundation/hardhat/commit/cf2823b5ec9b5e6427c874636393a5ffcb70f412) Thanks [@schaable](https://github.com/schaable)! - Solidity test configuration now also accepts `{ profiles: { default: ... } }`. Only the `default` profile is currently supported, other profile names will be supported in a future release. The previous flat shape continues to work unchanged.
+
+  The resolved `HardhatConfig.test.solidity` is now profile-keyed: read per-profile fields at `hre.config.test.solidity.profiles.default.*` instead of `hre.config.test.solidity.*`. Plugins that read the resolved Solidity test config need to be updated.
+
+### Patch Changes
+
+- [#8298](https://github.com/NomicFoundation/hardhat/pull/8298) [`83b1ae1`](https://github.com/NomicFoundation/hardhat/commit/83b1ae1bdc3b941f9e15f9d2d92cadf88f7a8747) Thanks [@Wodann](https://github.com/Wodann)! - - Fixed a bug when using a test filter where the `setUp` function would be run for empty test suites
+
+  - Fixed a bug where snapshot cheatcodes would throw an error if names were invalid
+  - Fixed coverage instrumentation interfering with the single-call `vm.prank` cheatcode
+  - Added support for instrumentation of Solidity 0.8.35
+
+- [#8264](https://github.com/NomicFoundation/hardhat/pull/8264) [`8452f97`](https://github.com/NomicFoundation/hardhat/commit/8452f9726205540e1684d3f8458bfd145e790226) Thanks [@alcuadrado](https://github.com/alcuadrado)! - Export `./package.json` so consumers can import the package's manifest.
+
+- [#8310](https://github.com/NomicFoundation/hardhat/pull/8310) [`9f394ec`](https://github.com/NomicFoundation/hardhat/commit/9f394ec7547cf7dd3392aeb826fca96b9c0aca28) Thanks [@js360000](https://github.com/js360000)! - Fix JSON-RPC `error.data` shape for revert errors (code 3): return the raw revert hex string directly instead of a `{ message, txHash, data }` wrapper object. This matches the geth/anvil/EVM-node convention that client tooling (viem, ethers, web3.js) relies on when decoding custom errors. Closes [#8075](https://github.com/NomicFoundation/hardhat/issues/8075).
+
+- [#8269](https://github.com/NomicFoundation/hardhat/pull/8269) [`045cb8d`](https://github.com/NomicFoundation/hardhat/commit/045cb8d46162f07b51cc08e91395a196ee42d07c) Thanks [@alcuadrado](https://github.com/alcuadrado)! - Always load the builtin plugins' type extensions
+
+- [#8243](https://github.com/NomicFoundation/hardhat/pull/8243) [`08805db`](https://github.com/NomicFoundation/hardhat/commit/08805db44549f1ee2175854a456d94a849e7a839) Thanks [@ChristopherDedominici](https://github.com/ChristopherDedominici)! - Support EIP-712 cheatcodes in Solidity Test.
+
+- [#8301](https://github.com/NomicFoundation/hardhat/pull/8301) [`793cc84`](https://github.com/NomicFoundation/hardhat/commit/793cc84d311ff96b1725f5b83a0063b9a28e3d19) Thanks [@kanej](https://github.com/kanej)! - Respect user config for `allowUnlimitedContractSize` when running under `--coverage`.
+
+- [#8259](https://github.com/NomicFoundation/hardhat/pull/8259) [`1d1204f`](https://github.com/NomicFoundation/hardhat/commit/1d1204fe9baa8221d6c32025ffb2d51b67745b19) Thanks [@kanej](https://github.com/kanej)! - Fixed build overrides not being respected when running `compile`
+
+- [#8188](https://github.com/NomicFoundation/hardhat/pull/8188) [`d48bbfd`](https://github.com/NomicFoundation/hardhat/commit/d48bbfd86c22f5dfaaee7e926814ace0db20f320) Thanks [@alcuadrado](https://github.com/alcuadrado)! - Add `--init --template <template-name>` to initialize projects in a non-interactive way. Also add `--init --templates` to get the list of template names.
+
+- [#8290](https://github.com/NomicFoundation/hardhat/pull/8290) [`3a15b11`](https://github.com/NomicFoundation/hardhat/commit/3a15b11b4f4f4987b60ea09d2252dfddbe2f430a) Thanks [@gultekinmakif](https://github.com/gultekinmakif)! - Fixed `abstract` contracts being picked up as test suites by the Solidity test runner ([#8203](https://github.com/NomicFoundation/hardhat/issues/8203)).
+
+- [#8266](https://github.com/NomicFoundation/hardhat/pull/8266) [`325bae1`](https://github.com/NomicFoundation/hardhat/commit/325bae178dd5278f995d591516e3937d5590de4d) Thanks [@schaable](https://github.com/schaable)! - Sanitized snapshot cheatcode group names to avoid issues when persisting them to disk. A warning is shown when a group is renamed suggesting the user to update their snapshot group names to match the on-disk names.
+
+- [#8312](https://github.com/NomicFoundation/hardhat/pull/8312) [`76c15ff`](https://github.com/NomicFoundation/hardhat/commit/76c15ffb080978aea82a198b990b34a2d9d91c99) Thanks [@alcuadrado](https://github.com/alcuadrado)! - Update the Hardhat 3 TypeScript project templates for TypeScript 6.
+
+- Updated dependencies:
+  - @nomicfoundation/hardhat-errors@3.0.13
+  - @nomicfoundation/hardhat-utils@4.1.2
+  - @nomicfoundation/hardhat-vendored@3.0.4
+  - @nomicfoundation/hardhat-zod-utils@3.0.5
+
 ## 3.4.5
 
 ### Patch Changes

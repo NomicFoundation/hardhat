@@ -1,6 +1,6 @@
 {
   "name": "@nomicfoundation/hardhat-keystore",
-  "version": "3.0.9",
+  "version": "3.0.10",
   "description": "A module for managing keystore files that store a map from IDs to encrypted string values.",
   "homepage": "https://github.com/NomicFoundation/hardhat/tree/main/packages/hardhat-keystore",
   "repository": {
@@ -42,7 +42,7 @@
     "README.md"
   ],
   "devDependencies": {
-    "@nomicfoundation/hardhat-node-test-reporter": "workspace:^3.0.6",
+    "@nomicfoundation/hardhat-node-test-reporter": "workspace:^3.0.7",
     "@nomicfoundation/hardhat-test-utils": "workspace:^",
     "@types/node": "^22.0.0",
     "c8": "^9.1.0",
@@ -55,9 +55,9 @@
     "typescript": "~6.0.3"
   },
   "dependencies": {
-    "@nomicfoundation/hardhat-errors": "workspace:^3.0.12",
-    "@nomicfoundation/hardhat-utils": "workspace:^4.1.1",
-    "@nomicfoundation/hardhat-zod-utils": "workspace:^3.0.4",
+    "@nomicfoundation/hardhat-errors": "workspace:^3.0.13",
+    "@nomicfoundation/hardhat-utils": "workspace:^4.1.2",
+    "@nomicfoundation/hardhat-zod-utils": "workspace:^3.0.5",
     "@noble/ciphers": "1.2.1",
     "@noble/hashes": "1.7.1",
     "zod": "^3.23.8"
