@@ -598,7 +598,7 @@ export async function copyProjectFiles(
 
   await installSkills(workspace, template, force);
   await createClaudeMd(workspace, force);
-  await createDotClaude(workspace, force);
+  await createDotClaude(workspace);
 
   console.log(`✨ ${styleText("cyan", `Template files copied`)} ✨`);
 }
@@ -766,13 +766,12 @@ async function createClaudeMd(
 
 /**
  * Creates `.claude` if `.agents` exists. Uses a symlink except on Windows,
- * where the whole directory is copied. Overwrites an existing `.claude` only
- * if `force` is true.
+ * where the whole directory is copied. Does nothing if `.claude` already
+ * exists; the `force` flag is intentionally not used here because
+ * overwriting depends on whether the existing `.claude` is a file, directory,
+ * or symlink, and on the OS, which is more complexity than is worthwhile.
  */
-async function createDotClaude(
-  workspace: string,
-  force?: boolean,
-): Promise<void> {
+async function createDotClaude(workspace: string): Promise<void> {
   const agentsDirPath = path.join(workspace, ".agents");
   if (!(await exists(agentsDirPath))) {
     return;
@@ -780,10 +779,7 @@ async function createDotClaude(
 
   const claudeDirPath = path.join(workspace, ".claude");
   if (await exists(claudeDirPath, { followSymlinks: false })) {
-    if (force !== true) {
-      return;
-    }
-    await remove(claudeDirPath);
+    return;
   }
 
   if (process.platform === "win32") {

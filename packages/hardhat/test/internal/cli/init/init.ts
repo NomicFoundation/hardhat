@@ -585,7 +585,7 @@ describe("copyProjectFiles", () => {
     assert.equal(await readUtf8File(markerPath), "original");
   });
 
-  it("should remove and re-create .claude if it exists and force is true", async () => {
+  it("should not touch .claude if it exists even when force is true", async () => {
     const [template] = await getTemplate("hardhat-3", "mocha-ethers");
     const markerPath = path.join(process.cwd(), ".claude", "marker.txt");
     await ensureDir(path.join(process.cwd(), ".claude"));
@@ -593,10 +593,7 @@ describe("copyProjectFiles", () => {
 
     await copyProjectFiles(process.cwd(), template, true);
 
-    assert.ok(
-      !(await exists(markerPath)),
-      ".claude/marker.txt should not exist after re-creation",
-    );
+    assert.equal(await readUtf8File(markerPath), "original");
   });
 });
 
