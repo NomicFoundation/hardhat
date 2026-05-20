@@ -17,8 +17,8 @@ let classifierModule: typeof ClassifierT | undefined;
  * The different categories of errors that can be handled by hardhat cli.
  * Each category has a different way of being formatted and displayed.
  * To add new categories, add a new entry to this enum and update the
- *  {@link getErrorWithCategory} and {@link getErrorMessages} functions
- * accordingly.
+ *  {@link getErrorWithCategory} function and the switch inside
+ * {@link printErrorMessages} accordingly.
  */
 enum ErrorCategory {
   HARDHAT = "HARDHAT",
@@ -56,22 +56,14 @@ type ErrorWithCategory =
     };
 
 /**
- * The different messages that can be displayed for each category of errors.
- *  - `formattedErrorMessage`: the main error message that is always displayed.
- *  - `showMoreInfoMessage`: an optional message that can be displayed to
- * provide more information about the error. It is only displayed when stack
- * traces are hidden.
- *  - `postErrorStackTraceMessage` an optional message that can be displayed
- * after the stack trace. It is only displayed when stack traces are shown.
- */
-interface ErrorMessages {
-  formattedErrorMessage: string;
-  showMoreInfoMessage?: string;
-  postErrorStackTraceMessage?: string;
-}
-
-/**
  * Formats and logs error messages based on the category the error belongs to.
+ *
+ * For each category, we produce up to three pieces:
+ *  - `formattedErrorMessage`: the main error message that is always displayed.
+ *  - `showMoreInfoMessage`: an optional message that points the user at more
+ *    info. It is only displayed when the stack trace is hidden.
+ *  - `postErrorStackTraceMessage`: an optional message that is displayed after
+ *    the stack trace.
  *
  * @param error the error to handle. Supported categories are defined in
  * {@link ErrorCategory}.
@@ -88,17 +80,53 @@ export async function printErrorMessages(
   shouldShowStackTraces: boolean = false,
   print: (message: string | Error) => void = console.error,
 ): Promise<void> {
-  const { category } = await getErrorWithCategory(error);
+  const { category, categorizedError } = await getErrorWithCategory(error);
+
+  let formattedErrorMessage: string;
+  let showMoreInfoMessage: string | undefined;
+  let postErrorStackTraceMessage: string | undefined;
+
+  switch (category) {
+    case ErrorCategory.HARDHAT:
+      formattedErrorMessage = `${styleText(["red", "bold"], `Error ${categorizedError.errorCode}:`)} ${categorizedError.formattedMessage}`;
+      showMoreInfoMessage = `For more info go to ${HARDHAT_WEBSITE_URL}${categorizedError.errorCode} or run ${HARDHAT_NAME} with --show-stack-traces`;
+      break;
+    case ErrorCategory.PLUGIN:
+      formattedErrorMessage = `${styleText(["red", "bold"], `Error ${categorizedError.errorCode} in plugin ${categorizedError.pluginId}:`)} ${categorizedError.formattedMessage}`;
+      showMoreInfoMessage = `For more info go to ${HARDHAT_WEBSITE_URL}${categorizedError.errorCode} or run ${HARDHAT_NAME} with --show-stack-traces`;
+      break;
+    case ErrorCategory.COMMUNITY_PLUGIN:
+      formattedErrorMessage = `${styleText(["red", "bold"], `Error in community plugin ${categorizedError.pluginId}:`)} ${categorizedError.message}`;
+      showMoreInfoMessage = `For more info run ${HARDHAT_NAME} with --show-stack-traces`;
+      break;
+    case ErrorCategory.HH2_TO_HH3_MIGRATION:
+      formattedErrorMessage = styleText(
+        ["red", "bold"],
+        `Hardhat 3 migration error:`,
+      );
+      postErrorStackTraceMessage = `It looks like you are migrating from Hardhat 2 to Hardhat 3. The following error often shows up during this kind of migration.\nPlease read https://hardhat.org/migrate-from-hardhat2 to learn how to migrate your project to Hardhat 3.`;
+      break;
+    case ErrorCategory.CJS_TO_ESM_MIGRATION:
+      formattedErrorMessage = styleText(
+        ["red", "bold"],
+        `Hardhat 3 migration error:`,
+      );
+      postErrorStackTraceMessage = `It looks like you are migrating from CommonJS to ESM. The following error often shows up during this kind of migration.\nPlease read https://hardhat.org/migrate-to-esm to learn how to migrate your project to ESM.`;
+      break;
+    case ErrorCategory.OTHER:
+      formattedErrorMessage = styleText(
+        ["red", "bold"],
+        `An unexpected error occurred:`,
+      );
+      postErrorStackTraceMessage = `If you think this is a bug in Hardhat, please report it here: ${HARDHAT_WEBSITE_URL}report-bug`;
+      break;
+  }
+
   const showStackTraces =
     shouldShowStackTraces ||
     category === ErrorCategory.OTHER ||
     category === ErrorCategory.HH2_TO_HH3_MIGRATION ||
     category === ErrorCategory.CJS_TO_ESM_MIGRATION;
-  const {
-    formattedErrorMessage,
-    showMoreInfoMessage,
-    postErrorStackTraceMessage,
-  } = await getErrorMessages(error);
 
   print(formattedErrorMessage);
 
@@ -170,49 +198,4 @@ async function getErrorWithCategory(error: Error): Promise<ErrorWithCategory> {
     category: ErrorCategory.OTHER,
     categorizedError: error,
   };
-}
-
-async function getErrorMessages(error: Error): Promise<ErrorMessages> {
-  const { category, categorizedError } = await getErrorWithCategory(error);
-  switch (category) {
-    case ErrorCategory.HARDHAT:
-      return {
-        formattedErrorMessage: `${styleText(["red", "bold"], `Error ${categorizedError.errorCode}:`)} ${categorizedError.formattedMessage}`,
-        showMoreInfoMessage: `For more info go to ${HARDHAT_WEBSITE_URL}${categorizedError.errorCode} or run ${HARDHAT_NAME} with --show-stack-traces`,
-      };
-    case ErrorCategory.PLUGIN:
-      return {
-        formattedErrorMessage: `${styleText(["red", "bold"], `Error ${categorizedError.errorCode} in plugin ${categorizedError.pluginId}:`)} ${categorizedError.formattedMessage}`,
-        showMoreInfoMessage: `For more info go to ${HARDHAT_WEBSITE_URL}${categorizedError.errorCode} or run ${HARDHAT_NAME} with --show-stack-traces`,
-      };
-    case ErrorCategory.COMMUNITY_PLUGIN:
-      return {
-        formattedErrorMessage: `${styleText(["red", "bold"], `Error in community plugin ${categorizedError.pluginId}:`)} ${categorizedError.message}`,
-        showMoreInfoMessage: `For more info run ${HARDHAT_NAME} with --show-stack-traces`,
-      };
-    case ErrorCategory.HH2_TO_HH3_MIGRATION:
-      return {
-        formattedErrorMessage: styleText(
-          ["red", "bold"],
-          `Hardhat 3 migration error:`,
-        ),
-        postErrorStackTraceMessage: `It looks like you are migrating from Hardhat 2 to Hardhat 3. The following error often shows up during this kind of migration.\nPlease read https://hardhat.org/migrate-from-hardhat2 to learn how to migrate your project to Hardhat 3.`,
-      };
-    case ErrorCategory.CJS_TO_ESM_MIGRATION:
-      return {
-        formattedErrorMessage: styleText(
-          ["red", "bold"],
-          `Hardhat 3 migration error:`,
-        ),
-        postErrorStackTraceMessage: `It looks like you are migrating from CommonJS to ESM. The following error often shows up during this kind of migration.\nPlease read https://hardhat.org/migrate-to-esm to learn how to migrate your project to ESM.`,
-      };
-    case ErrorCategory.OTHER:
-      return {
-        formattedErrorMessage: styleText(
-          ["red", "bold"],
-          `An unexpected error occurred:`,
-        ),
-        postErrorStackTraceMessage: `If you think this is a bug in Hardhat, please report it here: ${HARDHAT_WEBSITE_URL}report-bug`,
-      };
-  }
 }
