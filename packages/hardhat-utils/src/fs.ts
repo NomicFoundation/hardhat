@@ -949,7 +949,8 @@ export async function move(source: string, destination: string): Promise<void> {
 }
 
 /**
- * Creates a symbolic link at `linkPath` that points to `target`.
+ * Creates a symbolic link at `linkPath` that points to `target`. This function
+ * is not meant to be used on Windows.
  *
  * @param target The path the symlink points to. May be relative to `linkPath`.
  * @param linkPath The absolute path of the symlink to create.
