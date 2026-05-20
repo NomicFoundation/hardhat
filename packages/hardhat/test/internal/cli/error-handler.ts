@@ -267,8 +267,10 @@ describe("error-handler", () => {
       });
     });
 
-    describe("with a UsingHardhat2PluginError: independent of shouldShowStackTraces and the rest of the handling logic", () => {
-      it("should print the error message when callerRelativePath is available", async () => {
+    describe("with a UsingHardhat2PluginError", () => {
+      // Regression check: the classifier routes UsingHardhat2PluginError to
+      // the HH2_TO_HH3_MIGRATION branch, so the output should match it.
+      it("is treated as a Hardhat 2 to Hardhat 3 migration error", async () => {
         const lines: Array<string | Error> = [];
         const error = new UsingHardhat2PluginError();
 
@@ -276,54 +278,16 @@ describe("error-handler", () => {
           lines.push(msg);
         });
 
-        assert.equal(lines.length, 3);
+        assert.equal(lines.length, 5);
         assert.equal(
           lines[0],
-          styleText(["red", "bold"], `Hardhat 3 installation error:`),
+          styleText(["red", "bold"], `Hardhat 3 migration error:`),
         );
-        assert.equal(lines[1], "");
-        assert.equal(lines[2], error.message);
-      });
-
-      it("should not print the stack trace even when shouldShowStackTraces is true", async () => {
-        const lines: Array<string | Error> = [];
-        const error = new UsingHardhat2PluginError();
-
-        await printErrorMessages(error, true, (msg: string | Error) => {
-          lines.push(msg);
-        });
-
-        // UsingHardhat2PluginError is handled separately and always prints
-        // the same output regardless of shouldShowStackTraces
-        assert.equal(lines.length, 3);
+        assert.equal(lines[2], error);
         assert.equal(
-          lines[0],
-          styleText(["red", "bold"], `Hardhat 3 installation error:`),
+          lines[4],
+          `It looks like you are migrating from Hardhat 2 to Hardhat 3. The following error often shows up during this kind of migration.\nPlease read https://hardhat.org/migrate-from-hardhat2 to learn how to migrate your project to Hardhat 3.`,
         );
-        assert.equal(lines[1], "");
-        assert.equal(lines[2], error.message);
-      });
-
-      it("should print the stack trace when the callerRelativePath is not available", async () => {
-        const lines: Array<string | Error> = [];
-        const error = new UsingHardhat2PluginError();
-
-        /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions
-          -- Casting for testing purposes, as generating a failure of the logic
-          that gets the callerRelativePath is not trivial */
-        (error as any).callerRelativePath = undefined;
-
-        await printErrorMessages(error, true, (msg: string | Error) => {
-          lines.push(msg);
-        });
-
-        assert.equal(lines.length, 3);
-        assert.equal(
-          lines[0],
-          styleText(["red", "bold"], `Hardhat 3 installation error:`),
-        );
-        assert.equal(lines[1], "");
-        assert.equal(lines[2], error.stack);
       });
     });
   });

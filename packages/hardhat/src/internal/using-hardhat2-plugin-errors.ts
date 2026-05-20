@@ -13,21 +13,18 @@ export class UsingHardhat2PluginError extends CustomError {
     if (callerPath !== undefined) {
       message = `You are trying to use a Hardhat 2 plugin in a Hardhat 3 project.
 
-This file is part of a Hardhat 2 plugin calling an API that was removed in Hardhat 3: ${styleText("bold", callerPath)}
-
-Please read https://hardhat.org/migrate-from-hardhat2 to learn how to migrate your project to Hardhat 3.
-`;
+This file is part of a Hardhat 2 plugin calling an API that was removed in Hardhat 3: ${styleText("bold", callerPath)}`;
     } else {
-      message = `You are trying to use a Hardhat 2 plugin in a Hardhat 3 project.
-      
-Check the stack trace below to identify which plugin is causing this.
-
-Please read https://hardhat.org/migrate-from-hardhat2 to learn how to migrate your project to Hardhat 3.
-`;
+      message = `You are trying to use a Hardhat 2 plugin in a Hardhat 3 project.`;
     }
 
     super(message);
-    this.callerRelativePath = callerPath;
+    // Use a non-enumerable property so that `console.error(error)` does not
+    // print `{ callerRelativePath: '…' }` after the stack trace.
+    Object.defineProperty(this, "callerRelativePath", {
+      value: callerPath,
+      enumerable: false,
+    });
   }
 }
 
