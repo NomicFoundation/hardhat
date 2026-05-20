@@ -35,6 +35,7 @@ import { sendErrorTelemetry } from "../telemetry/error-reporter/reporter.js";
 import {
   getDevDependenciesInstallationCommand,
   getPackageManager,
+  getVersion,
   installsPeerDependenciesByDefault,
 } from "./package-manager.js";
 import {
@@ -694,6 +695,8 @@ export async function installProjectDependencies({
   );
 
   const packageManager = getPackageManager();
+  const packageManagerVersion = await getVersion(workspace, packageManager);
+  const packageManagerMajorVersion = packageManagerVersion?.[0];
 
   // Find the template dev dependencies that are not already installed
   const templateDependencies = template.packageJson.devDependencies ?? {};
@@ -730,6 +733,7 @@ export async function installProjectDependencies({
     const command = getDevDependenciesInstallationCommand(
       packageManager,
       dependenciesToInstall,
+      packageManagerMajorVersion,
     );
     const commandString = command.join(" ");
 
@@ -788,6 +792,7 @@ export async function installProjectDependencies({
     const command = getDevDependenciesInstallationCommand(
       packageManager,
       dependenciesToUpdate,
+      packageManagerMajorVersion,
     );
     const commandString = command.join(" ");
 
