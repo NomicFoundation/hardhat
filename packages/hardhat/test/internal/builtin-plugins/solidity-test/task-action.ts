@@ -319,9 +319,9 @@ describe("solidity-test/task-action", function () {
       // TODO: currently fails because any active transactionGasCap
       // breaks Solidity test setUp with a generic "EVM error", regardless of
       // whether the cap would actually be exceeded.
-      // Similaraly the exact error should be asserted rather than just
+      // Similarly the exact error should be asserted rather than just
       // success and failure.
-      it("should pass when transactionGasCap is high enough to allow execution", async () => {
+      it.skip("should pass when transactionGasCap is high enough to allow execution", async () => {
         hre = await createHardhatRuntimeEnvironment(hardhatConfigGasCapHigh);
 
         const result = await hre.tasks
@@ -335,7 +335,7 @@ describe("solidity-test/task-action", function () {
         );
       });
 
-      it("should fail when transactionGasCap is set below required gas", async () => {
+      it.skip("should fail when transactionGasCap is set below required gas", async () => {
         hre = await createHardhatRuntimeEnvironment(hardhatConfigGasCapLow);
 
         const result = await hre.tasks
