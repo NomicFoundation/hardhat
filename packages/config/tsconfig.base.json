@@ -15,6 +15,7 @@
     "sourceMap": true,
     "composite": true,
     "incremental": true,
+    "types": ["node"],
     "typeRoots": ["${configDir}/node_modules/@types"]
   },
   "exclude": ["${configDir}/dist", "${configDir}/node_modules"]

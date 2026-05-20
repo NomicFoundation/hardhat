@@ -63,7 +63,7 @@
     "prettier": "3.2.5",
     "rimraf": "^5.0.5",
     "tsx": "^4.19.3",
-    "typescript": "~5.8.0",
+    "typescript": "~6.0.3",
     "viem": "^2.47.6",
     "hardhat": "workspace:^3.4.0"
   },

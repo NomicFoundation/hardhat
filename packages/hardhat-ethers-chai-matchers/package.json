@@ -60,7 +60,7 @@
     "prettier": "3.2.5",
     "rimraf": "^5.0.5",
     "tsx": "^4.19.3",
-    "typescript": "~5.8.0",
+    "typescript": "~6.0.3",
     "hardhat": "workspace:^3.4.0",
     "@nomicfoundation/hardhat-ethers": "workspace:^4.0.7",
     "chai": ">=5.1.2 <7",
