@@ -5,18 +5,18 @@ import type {
 
 import assert from "node:assert/strict";
 import path from "node:path";
-import { afterEach, before, describe, it } from "node:test";
+import { afterEach, describe, it } from "node:test";
 import { styleText } from "node:util";
 
 import { HardhatError } from "@nomicfoundation/hardhat-errors";
 import {
   assertRejectsWithHardhatError,
+  createTmpDir,
   disableConsole,
 } from "@nomicfoundation/hardhat-test-utils";
 import {
   emptyDir,
   getAllFilesMatching,
-  mkdtemp,
   readJsonFile,
 } from "@nomicfoundation/hardhat-utils/fs";
 
@@ -36,21 +36,18 @@ describe("gas-analytics-manager", () => {
   disableConsole();
 
   describe("GasAnalyticsManager", () => {
-    let tmpDir: string;
-    before(async () => {
-      tmpDir = await mkdtemp("gas-stats-test-");
-    });
+    const tmp = createTmpDir("gas-stats-test", "describe");
 
     describe("constructor", () => {
       it("should initialize with empty gasMeasurements array", () => {
-        const manager = new GasAnalyticsManagerImplementation(tmpDir);
+        const manager = new GasAnalyticsManagerImplementation(tmp.path);
         assert.deepEqual(manager.gasMeasurements, []);
       });
     });
 
     describe("addGasMeasurement", () => {
       it("should add function gas measurement to the array", () => {
-        const manager = new GasAnalyticsManagerImplementation(tmpDir);
+        const manager = new GasAnalyticsManagerImplementation(tmp.path);
         const functionMeasurement: GasMeasurement = {
           type: "function",
           contractFqn: "project/contracts/MyContract.sol:MyContract",
@@ -66,7 +63,7 @@ describe("gas-analytics-manager", () => {
       });
 
       it("should add deployment gas measurement to the array", () => {
-        const manager = new GasAnalyticsManagerImplementation(tmpDir);
+        const manager = new GasAnalyticsManagerImplementation(tmp.path);
         const deploymentMeasurement: GasMeasurement = {
           type: "deployment",
           contractFqn: "project/contracts/MyContract.sol:MyContract",
@@ -83,7 +80,7 @@ describe("gas-analytics-manager", () => {
 
     describe("saveGasMeasurements", () => {
       it("should save gas measurements in memory", async () => {
-        const manager = new GasAnalyticsManagerImplementation(tmpDir);
+        const manager = new GasAnalyticsManagerImplementation(tmp.path);
         const measurement1: GasMeasurement = {
           type: "function",
           contractFqn: "project/contracts/MyContract.sol:MyContract",
@@ -109,7 +106,7 @@ describe("gas-analytics-manager", () => {
       });
 
       it("should save gas measurements in disk", async () => {
-        const manager = new GasAnalyticsManagerImplementation(tmpDir);
+        const manager = new GasAnalyticsManagerImplementation(tmp.path);
         const measurement1: GasMeasurement = {
           type: "function",
           contractFqn: "project/contracts/MyContract.sol:MyContract",
@@ -130,7 +127,7 @@ describe("gas-analytics-manager", () => {
         await manager.saveGasMeasurements("test-id");
 
         const gasMeasurementsPath = await getAllFilesMatching(
-          path.join(tmpDir, "gas-stats", "test-id"),
+          path.join(tmp.path, "gas-stats", "test-id"),
         );
 
         assert.ok(
@@ -149,7 +146,7 @@ describe("gas-analytics-manager", () => {
 
     describe("clearGasMeasurements", () => {
       it("should clear gas measurements in memory", async () => {
-        const manager = new GasAnalyticsManagerImplementation(tmpDir);
+        const manager = new GasAnalyticsManagerImplementation(tmp.path);
         const measurement1: GasMeasurement = {
           type: "function",
           contractFqn: "project/contracts/MyContract.sol:MyContract",
@@ -175,7 +172,7 @@ describe("gas-analytics-manager", () => {
       });
 
       it("should clear gas measurements in disk", async () => {
-        const manager = new GasAnalyticsManagerImplementation(tmpDir);
+        const manager = new GasAnalyticsManagerImplementation(tmp.path);
         const measurement1: GasMeasurement = {
           type: "function",
           contractFqn: "project/contracts/MyContract.sol:MyContract",
@@ -198,7 +195,7 @@ describe("gas-analytics-manager", () => {
         await manager.clearGasMeasurements("test-id");
 
         const gasMeasurementsPath = await getAllFilesMatching(
-          path.join(tmpDir, "gas-stats", "test-id"),
+          path.join(tmp.path, "gas-stats", "test-id"),
         );
 
         assert.ok(
@@ -210,11 +207,11 @@ describe("gas-analytics-manager", () => {
 
     describe("_loadGasMeasurements", () => {
       afterEach(async () => {
-        await emptyDir(tmpDir);
+        await emptyDir(tmp.path);
       });
 
       it("should load gas measurements from disk", async () => {
-        const manager = new GasAnalyticsManagerImplementation(tmpDir);
+        const manager = new GasAnalyticsManagerImplementation(tmp.path);
         const measurement1: GasMeasurement = {
           type: "function",
           contractFqn: "project/contracts/MyContract.sol:MyContract",
@@ -233,7 +230,7 @@ describe("gas-analytics-manager", () => {
 
         await manager.saveGasMeasurements("test-id");
 
-        const newManager = new GasAnalyticsManagerImplementation(tmpDir);
+        const newManager = new GasAnalyticsManagerImplementation(tmp.path);
         await newManager._loadGasMeasurements("test-id");
 
         assert.equal(newManager.gasMeasurements.length, 2);
@@ -242,7 +239,7 @@ describe("gas-analytics-manager", () => {
       });
 
       it("should load gas measurements from multiple IDs", async () => {
-        const manager = new GasAnalyticsManagerImplementation(tmpDir);
+        const manager = new GasAnalyticsManagerImplementation(tmp.path);
         const measurement1: GasMeasurement = {
           type: "function",
           contractFqn: "project/contracts/MyContract.sol:MyContract",
@@ -265,7 +262,7 @@ describe("gas-analytics-manager", () => {
         manager.addGasMeasurement(measurement2);
         await manager.saveGasMeasurements("runner-2");
 
-        const newManager = new GasAnalyticsManagerImplementation(tmpDir);
+        const newManager = new GasAnalyticsManagerImplementation(tmp.path);
         await newManager._loadGasMeasurements("runner-1", "runner-2");
 
         assert.equal(newManager.gasMeasurements.length, 2);
@@ -274,7 +271,7 @@ describe("gas-analytics-manager", () => {
       });
 
       it("should load gas measurements from multiple files", async () => {
-        const manager = new GasAnalyticsManagerImplementation(tmpDir);
+        const manager = new GasAnalyticsManagerImplementation(tmp.path);
         const measurement1: GasMeasurement = {
           type: "function",
           contractFqn: "project/contracts/MyContract.sol:MyContract",
@@ -295,7 +292,7 @@ describe("gas-analytics-manager", () => {
         // Save again to create a second file
         await manager.saveGasMeasurements("test-id");
 
-        const newManager = new GasAnalyticsManagerImplementation(tmpDir);
+        const newManager = new GasAnalyticsManagerImplementation(tmp.path);
         await newManager._loadGasMeasurements("test-id");
 
         assert.equal(newManager.gasMeasurements.length, 4);
@@ -308,12 +305,12 @@ describe("gas-analytics-manager", () => {
 
     describe("reportGasStats", () => {
       afterEach(async () => {
-        await emptyDir(tmpDir);
+        await emptyDir(tmp.path);
       });
 
       it("should not generate output when report is disabled", async (t) => {
         const consoleMock = t.mock.method(console, "log");
-        const manager = new GasAnalyticsManagerImplementation(tmpDir);
+        const manager = new GasAnalyticsManagerImplementation(tmp.path);
         manager.addGasMeasurement({
           type: "function",
           contractFqn: "project/contracts/MyContract.sol:MyContract",
@@ -331,7 +328,7 @@ describe("gas-analytics-manager", () => {
 
       it("should generate output after enableReport is called", async (t) => {
         const consoleMock = t.mock.method(console, "log");
-        const manager = new GasAnalyticsManagerImplementation(tmpDir);
+        const manager = new GasAnalyticsManagerImplementation(tmp.path);
         manager.addGasMeasurement({
           type: "function",
           contractFqn: "project/contracts/MyContract.sol:MyContract",
@@ -360,7 +357,7 @@ describe("gas-analytics-manager", () => {
 
       it("should aggregate data from multiple runner IDs", async (t) => {
         const consoleMock = t.mock.method(console, "log");
-        const manager = new GasAnalyticsManagerImplementation(tmpDir);
+        const manager = new GasAnalyticsManagerImplementation(tmp.path);
 
         manager.addGasMeasurement({
           type: "function",
@@ -395,7 +392,7 @@ describe("gas-analytics-manager", () => {
 
     describe("_aggregateGasMeasurements", () => {
       it("should return empty map for no measurements", () => {
-        const manager = new GasAnalyticsManagerImplementation(tmpDir);
+        const manager = new GasAnalyticsManagerImplementation(tmp.path);
 
         const result = manager._aggregateGasMeasurements();
 
@@ -403,7 +400,7 @@ describe("gas-analytics-manager", () => {
       });
 
       it("should aggregate function measurements for single contract", () => {
-        const manager = new GasAnalyticsManagerImplementation(tmpDir);
+        const manager = new GasAnalyticsManagerImplementation(tmp.path);
         manager.addGasMeasurement({
           type: "function",
           contractFqn: "project/contracts/MyContract.sol:MyContract",
@@ -443,7 +440,7 @@ describe("gas-analytics-manager", () => {
       });
 
       it("should aggregate deployment measurement for single contract", () => {
-        const manager = new GasAnalyticsManagerImplementation(tmpDir);
+        const manager = new GasAnalyticsManagerImplementation(tmp.path);
         manager.addGasMeasurement({
           type: "deployment",
           contractFqn: "project/contracts/MyContract.sol:MyContract",
@@ -467,7 +464,7 @@ describe("gas-analytics-manager", () => {
       });
 
       it("should aggregate both deployment and function measurements", () => {
-        const manager = new GasAnalyticsManagerImplementation(tmpDir);
+        const manager = new GasAnalyticsManagerImplementation(tmp.path);
         manager.addGasMeasurement({
           type: "deployment",
           contractFqn: "project/contracts/MyContract.sol:MyContract",
@@ -523,7 +520,7 @@ describe("gas-analytics-manager", () => {
       });
 
       it("should aggregate measurements for multiple contracts", () => {
-        const manager = new GasAnalyticsManagerImplementation(tmpDir);
+        const manager = new GasAnalyticsManagerImplementation(tmp.path);
         manager.addGasMeasurement({
           type: "function",
           contractFqn: "project/contracts/TokenA.sol:TokenA",
@@ -586,7 +583,7 @@ describe("gas-analytics-manager", () => {
       });
 
       it("should aggregate multiple measurements for same function", () => {
-        const manager = new GasAnalyticsManagerImplementation(tmpDir);
+        const manager = new GasAnalyticsManagerImplementation(tmp.path);
         manager.addGasMeasurement({
           type: "function",
           contractFqn: "project/contracts/MyContract.sol:MyContract",
@@ -632,7 +629,7 @@ describe("gas-analytics-manager", () => {
       });
 
       it("should handle overloaded function signatures", () => {
-        const manager = new GasAnalyticsManagerImplementation(tmpDir);
+        const manager = new GasAnalyticsManagerImplementation(tmp.path);
         manager.addGasMeasurement({
           type: "function",
           contractFqn: "project/contracts/MyContract.sol:MyContract",
@@ -680,7 +677,7 @@ describe("gas-analytics-manager", () => {
       });
 
       it("should aggregate deployment measurements per contract", () => {
-        const manager = new GasAnalyticsManagerImplementation(tmpDir);
+        const manager = new GasAnalyticsManagerImplementation(tmp.path);
         manager.addGasMeasurement({
           type: "deployment",
           contractFqn: "project/contracts/MyContract.sol:MyContract",
@@ -709,7 +706,7 @@ describe("gas-analytics-manager", () => {
       });
 
       it("should group proxied function calls separately from direct calls", () => {
-        const manager = new GasAnalyticsManagerImplementation(tmpDir);
+        const manager = new GasAnalyticsManagerImplementation(tmp.path);
         const proxyChain = [
           "project/contracts/Proxies.sol:Proxy",
           "project/contracts/Impl.sol:Impl",
@@ -754,7 +751,7 @@ describe("gas-analytics-manager", () => {
       });
 
       it("should group different proxy chains separately", () => {
-        const manager = new GasAnalyticsManagerImplementation(tmpDir);
+        const manager = new GasAnalyticsManagerImplementation(tmp.path);
         manager.addGasMeasurement({
           type: "function",
           contractFqn: "project/contracts/Impl.sol:Impl",
@@ -785,7 +782,7 @@ describe("gas-analytics-manager", () => {
 
     describe("_calculateGasStats", () => {
       it("should calculate stats for a single function with multiple gas measurements", () => {
-        const manager = new GasAnalyticsManagerImplementation(tmpDir);
+        const manager = new GasAnalyticsManagerImplementation(tmp.path);
         manager.addGasMeasurement({
           type: "function",
           contractFqn: "project/contracts/MyContract.sol:MyContract",
@@ -833,7 +830,7 @@ describe("gas-analytics-manager", () => {
       });
 
       it("should calculate stats for deployment gas measurements", () => {
-        const manager = new GasAnalyticsManagerImplementation(tmpDir);
+        const manager = new GasAnalyticsManagerImplementation(tmp.path);
         manager.addGasMeasurement({
           type: "deployment",
           contractFqn: "project/contracts/MyContract.sol:MyContract",
@@ -876,7 +873,7 @@ describe("gas-analytics-manager", () => {
       });
 
       it("should calculate stats for multiple contracts", () => {
-        const manager = new GasAnalyticsManagerImplementation(tmpDir);
+        const manager = new GasAnalyticsManagerImplementation(tmp.path);
         manager.addGasMeasurement({
           type: "function",
           contractFqn: "project/contracts/TokenA.sol:TokenA",
@@ -914,7 +911,7 @@ describe("gas-analytics-manager", () => {
       });
 
       it("should handle overloaded functions by using full signature", () => {
-        const manager = new GasAnalyticsManagerImplementation(tmpDir);
+        const manager = new GasAnalyticsManagerImplementation(tmp.path);
         manager.addGasMeasurement({
           type: "function",
           contractFqn: "project/contracts/MyContract.sol:MyContract",
@@ -970,7 +967,7 @@ describe("gas-analytics-manager", () => {
       });
 
       it("should handle empty gas measurements", () => {
-        const manager = new GasAnalyticsManagerImplementation(tmpDir);
+        const manager = new GasAnalyticsManagerImplementation(tmp.path);
 
         const gasStats = manager._calculateGasStats();
 
@@ -978,7 +975,7 @@ describe("gas-analytics-manager", () => {
       });
 
       it("should round average and median to 2 decimal places", () => {
-        const manager = new GasAnalyticsManagerImplementation(tmpDir);
+        const manager = new GasAnalyticsManagerImplementation(tmp.path);
         manager.addGasMeasurement({
           type: "function",
           contractFqn: "project/contracts/MyContract.sol:MyContract",
@@ -1024,7 +1021,7 @@ describe("gas-analytics-manager", () => {
       });
 
       it("should duplicate deployment stats to proxied groups", () => {
-        const manager = new GasAnalyticsManagerImplementation(tmpDir);
+        const manager = new GasAnalyticsManagerImplementation(tmp.path);
         const proxyChain = [
           "project/contracts/Proxies.sol:Proxy",
           "project/contracts/Impl.sol:Impl",
@@ -1082,7 +1079,7 @@ describe("gas-analytics-manager", () => {
 
     describe("_generateGasStatsReport", () => {
       it("should generate an empty report for no gas stats", () => {
-        const manager = new GasAnalyticsManagerImplementation(tmpDir);
+        const manager = new GasAnalyticsManagerImplementation(tmp.path);
 
         const report = manager._generateGasStatsReport(new Map());
 
@@ -1090,7 +1087,7 @@ describe("gas-analytics-manager", () => {
       });
 
       it("should generate a report", () => {
-        const manager = new GasAnalyticsManagerImplementation(tmpDir);
+        const manager = new GasAnalyticsManagerImplementation(tmp.path);
         const gasStats = new Map();
         // Contracts are added in non-alphabetical order to test sorting
         gasStats.set("project/contracts/TokenA.sol:TokenA", {
@@ -1191,7 +1188,7 @@ describe("gas-analytics-manager", () => {
       });
 
       it("should sort overloads with same parameter count correctly", () => {
-        const manager = new GasAnalyticsManagerImplementation(tmpDir);
+        const manager = new GasAnalyticsManagerImplementation(tmp.path);
         const gasStats = new Map();
         gasStats.set("project/contracts/TestContract.sol:TestContract", {
           proxyChain: [],
@@ -1237,7 +1234,7 @@ describe("gas-analytics-manager", () => {
       });
 
       it("should sort overloads with different parameter counts correctly", () => {
-        const manager = new GasAnalyticsManagerImplementation(tmpDir);
+        const manager = new GasAnalyticsManagerImplementation(tmp.path);
         const gasStats = new Map();
         gasStats.set("project/contracts/TestContract.sol:TestContract", {
           proxyChain: [],
@@ -1285,13 +1282,13 @@ describe("gas-analytics-manager", () => {
 
     describe("_generateGasStatsJson", () => {
       it("should return empty contracts object when no measurements", () => {
-        const manager = new GasAnalyticsManagerImplementation(tmpDir);
+        const manager = new GasAnalyticsManagerImplementation(tmp.path);
         const result = manager._generateGasStatsJson(new Map());
         assert.deepEqual(result, { contracts: {} });
       });
 
       it("should include both deployment and functions stats", () => {
-        const manager = new GasAnalyticsManagerImplementation(tmpDir);
+        const manager = new GasAnalyticsManagerImplementation(tmp.path);
         manager.addGasMeasurement({
           type: "deployment",
           contractFqn: "project/contracts/MyContract.sol:MyContract",
@@ -1332,7 +1329,7 @@ describe("gas-analytics-manager", () => {
       });
 
       it("should set deployment to null when contract has only function calls", () => {
-        const manager = new GasAnalyticsManagerImplementation(tmpDir);
+        const manager = new GasAnalyticsManagerImplementation(tmp.path);
         manager.addGasMeasurement({
           type: "function",
           contractFqn: "project/contracts/Token.sol:Token",
@@ -1350,7 +1347,7 @@ describe("gas-analytics-manager", () => {
       });
 
       it("should set functions to null when contract has only deployments", () => {
-        const manager = new GasAnalyticsManagerImplementation(tmpDir);
+        const manager = new GasAnalyticsManagerImplementation(tmp.path);
         manager.addGasMeasurement({
           type: "deployment",
           contractFqn: "project/contracts/Factory.sol:Factory",
@@ -1370,7 +1367,7 @@ describe("gas-analytics-manager", () => {
       });
 
       it("should sort contracts alphabetically by user-friendly FQN", () => {
-        const manager = new GasAnalyticsManagerImplementation(tmpDir);
+        const manager = new GasAnalyticsManagerImplementation(tmp.path);
         manager.addGasMeasurement({
           type: "deployment",
           contractFqn: "project/contracts/ZContract.sol:ZContract",
@@ -1392,7 +1389,7 @@ describe("gas-analytics-manager", () => {
       });
 
       it("should sort functions alphabetically within a contract", () => {
-        const manager = new GasAnalyticsManagerImplementation(tmpDir);
+        const manager = new GasAnalyticsManagerImplementation(tmp.path);
         manager.addGasMeasurement({
           type: "function",
           contractFqn: "project/contracts/Token.sol:Token",
@@ -1422,7 +1419,7 @@ describe("gas-analytics-manager", () => {
       });
 
       it("should use full signatures as keys for overloaded functions", () => {
-        const manager = new GasAnalyticsManagerImplementation(tmpDir);
+        const manager = new GasAnalyticsManagerImplementation(tmp.path);
         manager.addGasMeasurement({
           type: "function",
           contractFqn: "project/contracts/Token.sol:Token",
@@ -1458,7 +1455,7 @@ describe("gas-analytics-manager", () => {
       });
 
       it("should strip project/ prefix from contract keys via getUserFqn", () => {
-        const manager = new GasAnalyticsManagerImplementation(tmpDir);
+        const manager = new GasAnalyticsManagerImplementation(tmp.path);
         manager.addGasMeasurement({
           type: "deployment",
           contractFqn: "project/contracts/MyContract.sol:MyContract",
@@ -1479,7 +1476,7 @@ describe("gas-analytics-manager", () => {
       });
 
       it("should strip npm package version from contract keys", () => {
-        const manager = new GasAnalyticsManagerImplementation(tmpDir);
+        const manager = new GasAnalyticsManagerImplementation(tmp.path);
         manager.addGasMeasurement({
           type: "function",
           contractFqn:
@@ -1507,7 +1504,7 @@ describe("gas-analytics-manager", () => {
         const contractName = "MyToken";
         const internalFqn = `project/${sourceName}:${contractName}`;
 
-        const manager = new GasAnalyticsManagerImplementation(tmpDir);
+        const manager = new GasAnalyticsManagerImplementation(tmp.path);
         manager.addGasMeasurement({
           type: "deployment",
           contractFqn: internalFqn,
@@ -1529,7 +1526,7 @@ describe("gas-analytics-manager", () => {
       });
 
       it("should include proxyChain in JSON output and use display key", () => {
-        const manager = new GasAnalyticsManagerImplementation(tmpDir);
+        const manager = new GasAnalyticsManagerImplementation(tmp.path);
         manager.addGasMeasurement({
           type: "deployment",
           contractFqn: "project/contracts/Impl.sol:Impl",
@@ -1583,20 +1580,20 @@ describe("gas-analytics-manager", () => {
 
     describe("writeGasStatsJson", () => {
       afterEach(async () => {
-        await emptyDir(tmpDir);
+        await emptyDir(tmp.path);
       });
 
       it("should throw if outputPath is a directory", async () => {
-        const manager = new GasAnalyticsManagerImplementation(tmpDir);
+        const manager = new GasAnalyticsManagerImplementation(tmp.path);
         await assertRejectsWithHardhatError(
-          manager.writeGasStatsJson(tmpDir, "test-id"),
+          manager.writeGasStatsJson(tmp.path, "test-id"),
           HardhatError.ERRORS.CORE.BUILTIN_TASKS.INVALID_FILE_PATH,
-          { path: tmpDir },
+          { path: tmp.path },
         );
       });
 
       it("should write JSON file at the specified path", async () => {
-        const manager = new GasAnalyticsManagerImplementation(tmpDir);
+        const manager = new GasAnalyticsManagerImplementation(tmp.path);
         manager.addGasMeasurement({
           type: "function",
           contractFqn: "project/contracts/MyContract.sol:MyContract",
@@ -1606,7 +1603,7 @@ describe("gas-analytics-manager", () => {
         });
         await manager.saveGasMeasurements("test-id");
 
-        const outputPath = path.join(tmpDir, "gas-output.json");
+        const outputPath = path.join(tmp.path, "gas-output.json");
         await manager.writeGasStatsJson(outputPath, "test-id");
 
         const json = await readJsonFile<GasStatsJson>(outputPath);
@@ -1634,7 +1631,7 @@ describe("gas-analytics-manager", () => {
       });
 
       it("should create parent directories if they do not exist", async () => {
-        const manager = new GasAnalyticsManagerImplementation(tmpDir);
+        const manager = new GasAnalyticsManagerImplementation(tmp.path);
         manager.addGasMeasurement({
           type: "deployment",
           contractFqn: "project/contracts/MyContract.sol:MyContract",
@@ -1644,7 +1641,7 @@ describe("gas-analytics-manager", () => {
         await manager.saveGasMeasurements("test-id");
 
         const outputPath = path.join(
-          tmpDir,
+          tmp.path,
           "nested",
           "deep",
           "gas-output.json",
@@ -1659,7 +1656,7 @@ describe("gas-analytics-manager", () => {
       });
 
       it("should resolve a relative path against process.cwd()", async () => {
-        const manager = new GasAnalyticsManagerImplementation(tmpDir);
+        const manager = new GasAnalyticsManagerImplementation(tmp.path);
         manager.addGasMeasurement({
           type: "function",
           contractFqn: "project/contracts/MyContract.sol:MyContract",
@@ -1670,14 +1667,14 @@ describe("gas-analytics-manager", () => {
         await manager.saveGasMeasurements("test-id");
 
         const originalCwd = process.cwd();
-        process.chdir(tmpDir);
+        process.chdir(tmp.path);
         try {
           await manager.writeGasStatsJson("relative-output.json", "test-id");
         } finally {
           process.chdir(originalCwd);
         }
 
-        const expectedPath = path.join(tmpDir, "relative-output.json");
+        const expectedPath = path.join(tmp.path, "relative-output.json");
         const json = await readJsonFile<GasStatsJson>(expectedPath);
         assert.ok(
           "contracts/MyContract.sol:MyContract" in json.contracts,
@@ -1686,7 +1683,7 @@ describe("gas-analytics-manager", () => {
       });
 
       it("should not write file when report is disabled", async () => {
-        const manager = new GasAnalyticsManagerImplementation(tmpDir);
+        const manager = new GasAnalyticsManagerImplementation(tmp.path);
         manager.addGasMeasurement({
           type: "function",
           contractFqn: "project/contracts/MyContract.sol:MyContract",
@@ -1697,10 +1694,10 @@ describe("gas-analytics-manager", () => {
         await manager.saveGasMeasurements("test-id");
 
         manager.disableReport();
-        const outputPath = path.join(tmpDir, "should-not-exist.json");
+        const outputPath = path.join(tmp.path, "should-not-exist.json");
         await manager.writeGasStatsJson(outputPath, "test-id");
 
-        const files = await getAllFilesMatching(tmpDir, (f) =>
+        const files = await getAllFilesMatching(tmp.path, (f) =>
           f.endsWith("should-not-exist.json"),
         );
         assert.equal(files.length, 0, "file should not have been written");

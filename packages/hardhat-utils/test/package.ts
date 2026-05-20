@@ -10,6 +10,8 @@ import {
   createFile,
   getRealPath,
   mkdir,
+  mkdtemp,
+  remove,
   writeJsonFile,
   writeUtf8File,
 } from "../src/fs.js";
@@ -20,10 +22,10 @@ import {
   findDependencyPackageJson,
 } from "../src/package.js";
 
-import { useTmpDir } from "./helpers/fs.js";
+import { createTmpDir } from "./helpers/fs.js";
 
 describe("package", () => {
-  const getTmpDir = useTmpDir("package");
+  const tmp = createTmpDir("package", "test");
 
   describe("findClosestPackageJson", () => {
     it("Should find the closest package.json relative to import.meta.url", async () => {
@@ -34,8 +36,8 @@ describe("package", () => {
     });
 
     it("Should find the closest package.json relative to a file", async () => {
-      const expectedPath = path.join(getTmpDir(), "package.json");
-      const fromPath = path.join(getTmpDir(), "subdir", "subsubdir", "file.js");
+      const expectedPath = path.join(tmp.path, "package.json");
+      const fromPath = path.join(tmp.path, "subdir", "subsubdir", "file.js");
       await createFile(expectedPath);
       await createFile(fromPath);
 
@@ -45,8 +47,8 @@ describe("package", () => {
     });
 
     it("Should find the closest package.json relative to a directory", async () => {
-      const expectedPath = path.join(getTmpDir(), "package.json");
-      const fromPath = path.join(getTmpDir(), "subdir", "subsubdir");
+      const expectedPath = path.join(tmp.path, "package.json");
+      const fromPath = path.join(tmp.path, "subdir", "subsubdir");
       await createFile(expectedPath);
       await mkdir(fromPath);
 
@@ -56,8 +58,8 @@ describe("package", () => {
     });
 
     it("Should find the closest package.json relative to a directory when its within that directory", async () => {
-      const expectedPath = path.join(getTmpDir(), "package.json");
-      const fromPath = getTmpDir();
+      const expectedPath = path.join(tmp.path, "package.json");
+      const fromPath = tmp.path;
       await createFile(expectedPath);
 
       const actualPath = await findClosestPackageJson(fromPath);
@@ -66,12 +68,21 @@ describe("package", () => {
     });
 
     it("Should throw PackageJsonNotFoundError if no package.json is found", async () => {
-      const fromPath = path.join(getTmpDir(), "subdir", "subsubdir");
+      // We use `mkdtemp` (which creates the dir under `os.tmpdir()`) instead
+      // of `createTmpDir`, because `createTmpDir` would put the dir inside
+      // the workspace, and the workspace itself has a `package.json` above
+      // it, which would make `findClosestPackageJson` succeed.
+      const uniqueParent = await mkdtemp("no-package-json-test-");
+      const fromPath = path.join(uniqueParent, "subdir", "subsubdir");
 
-      await assert.rejects(findClosestPackageJson(fromPath), {
-        name: "PackageJsonNotFoundError",
-        message: `No package.json found for ${fromPath}`,
-      });
+      try {
+        await assert.rejects(findClosestPackageJson(fromPath), {
+          name: "PackageJsonNotFoundError",
+          message: `No package.json found for ${fromPath}`,
+        });
+      } finally {
+        await remove(uniqueParent);
+      }
     });
 
     it("Should throw PackageJsonNotFoundError if the file url is malformed", async () => {
@@ -91,8 +102,8 @@ describe("package", () => {
     });
 
     it("Should read the closest package.json relative to a file", async () => {
-      const packageJsonPath = path.join(getTmpDir(), "package.json");
-      const fromPath = path.join(getTmpDir(), "subdir", "subsubdir", "file.js");
+      const packageJsonPath = path.join(tmp.path, "package.json");
+      const fromPath = path.join(tmp.path, "subdir", "subsubdir", "file.js");
       await writeJsonFile(packageJsonPath, {
         name: "test-package",
       });
@@ -105,8 +116,8 @@ describe("package", () => {
     });
 
     it("Should read the closest package.json relative to a directory", async () => {
-      const packageJsonPath = path.join(getTmpDir(), "package.json");
-      const fromPath = path.join(getTmpDir(), "subdir", "subsubdir");
+      const packageJsonPath = path.join(tmp.path, "package.json");
+      const fromPath = path.join(tmp.path, "subdir", "subsubdir");
       await writeJsonFile(packageJsonPath, {
         name: "test-package",
       });
@@ -119,12 +130,21 @@ describe("package", () => {
     });
 
     it("Should throw PackageJsonNotFoundError if no package.json is found", async () => {
-      const fromPath = path.join(getTmpDir(), "subdir", "subsubdir");
+      // We use `mkdtemp` (which creates the dir under `os.tmpdir()`) instead
+      // of `createTmpDir`, because `createTmpDir` would put the dir inside
+      // the workspace, and the workspace itself has a `package.json` above
+      // it, which would make `readClosestPackageJson` succeed.
+      const uniqueParent = await mkdtemp("no-package-json-test-");
+      const fromPath = path.join(uniqueParent, "subdir", "subsubdir");
 
-      await assert.rejects(readClosestPackageJson(fromPath), {
-        name: "PackageJsonNotFoundError",
-        message: `No package.json found for ${fromPath}`,
-      });
+      try {
+        await assert.rejects(readClosestPackageJson(fromPath), {
+          name: "PackageJsonNotFoundError",
+          message: `No package.json found for ${fromPath}`,
+        });
+      } finally {
+        await remove(uniqueParent);
+      }
     });
 
     it("Should throw PackageJsonNotFoundError if the file url is malformed", async () => {
@@ -135,8 +155,8 @@ describe("package", () => {
     });
 
     it("Should throw PackageJsonReadError if the package.json is malformed", async () => {
-      const packageJsonPath = path.join(getTmpDir(), "package.json");
-      const fromPath = path.join(getTmpDir(), "subdir", "subsubdir", "file.js");
+      const packageJsonPath = path.join(tmp.path, "package.json");
+      const fromPath = path.join(tmp.path, "subdir", "subsubdir", "file.js");
       await writeUtf8File(packageJsonPath, "{");
 
       await assert.rejects(readClosestPackageJson(fromPath), {
@@ -154,8 +174,8 @@ describe("package", () => {
     });
 
     it("Should find the package root relative to a file", async () => {
-      const packageJsonPath = path.join(getTmpDir(), "package.json");
-      const fromPath = path.join(getTmpDir(), "subdir", "subsubdir", "file.js");
+      const packageJsonPath = path.join(tmp.path, "package.json");
+      const fromPath = path.join(tmp.path, "subdir", "subsubdir", "file.js");
       await writeJsonFile(packageJsonPath, {
         name: "test-package",
       });
@@ -163,12 +183,12 @@ describe("package", () => {
 
       const packageRoot = await findClosestPackageRoot(fromPath);
 
-      assert.equal(packageRoot, getTmpDir());
+      assert.equal(packageRoot, tmp.path);
     });
 
     it("Should find the package root relative to a directory", async () => {
-      const packageJsonPath = path.join(getTmpDir(), "package.json");
-      const fromPath = path.join(getTmpDir(), "subdir", "subsubdir");
+      const packageJsonPath = path.join(tmp.path, "package.json");
+      const fromPath = path.join(tmp.path, "subdir", "subsubdir");
       await writeJsonFile(packageJsonPath, {
         name: "test-package",
       });
@@ -176,16 +196,25 @@ describe("package", () => {
 
       const packageRoot = await findClosestPackageRoot(fromPath);
 
-      assert.equal(packageRoot, getTmpDir());
+      assert.equal(packageRoot, tmp.path);
     });
 
     it("Should throw PackageJsonNotFoundError if no package.json is found", async () => {
-      const fromPath = path.join(getTmpDir(), "subdir", "subsubdir");
+      // We use `mkdtemp` (which creates the dir under `os.tmpdir()`) instead
+      // of `createTmpDir`, because `createTmpDir` would put the dir inside
+      // the workspace, and the workspace itself has a `package.json` above
+      // it, which would make `findClosestPackageRoot` succeed.
+      const uniqueParent = await mkdtemp("no-package-json-test-");
+      const fromPath = path.join(uniqueParent, "subdir", "subsubdir");
 
-      await assert.rejects(findClosestPackageRoot(fromPath), {
-        name: "PackageJsonNotFoundError",
-        message: `No package.json found for ${fromPath}`,
-      });
+      try {
+        await assert.rejects(findClosestPackageRoot(fromPath), {
+          name: "PackageJsonNotFoundError",
+          message: `No package.json found for ${fromPath}`,
+        });
+      } finally {
+        await remove(uniqueParent);
+      }
     });
   });
 

@@ -4,21 +4,18 @@ import type repl from "node:repl";
 import assert from "node:assert/strict";
 import path from "node:path";
 import { PassThrough } from "node:stream";
-import { afterEach, before, beforeEach, describe, it } from "node:test";
+import { before, beforeEach, describe, it } from "node:test";
 
 import {
-  getTmpDir,
+  createTmpDir,
   useFixtureProject,
 } from "@nomicfoundation/hardhat-test-utils";
-import { createDebug } from "@nomicfoundation/hardhat-utils/debug";
 import { ensureError } from "@nomicfoundation/hardhat-utils/error";
-import { exists, remove } from "@nomicfoundation/hardhat-utils/fs";
+import { exists } from "@nomicfoundation/hardhat-utils/fs";
 
 import { overrideTask } from "../../../../src/config.js";
 import consoleAction from "../../../../src/internal/builtin-plugins/console/task-action.js";
 import { createHardhatRuntimeEnvironment } from "../../../../src/internal/hre-initialization.js";
-
-const log = createDebug("hardhat:core:tasks:console:test");
 
 describe("console/task-action", function () {
   let hre: HardhatRuntimeEnvironment;
@@ -219,25 +216,13 @@ describe("console/task-action", function () {
   });
 
   describe("history", function () {
-    let cacheDir: string;
+    // We use a temporary cache dir to avoid conflicts with other tests
+    // and global user settings.
+    const tmp = createTmpDir("console-action-test", "test");
     let history: string;
 
-    beforeEach(async function () {
-      // We use a temporary cache dir to avoid conflicts with other tests
-      // and global user settings.
-      cacheDir = await getTmpDir("console-action-test");
-      history = path.resolve(cacheDir, "console-history.txt");
-    });
-
-    afterEach(async function () {
-      // We try to remove the temporary cache dir after each test, but we don't
-      // fail the test if it fails. For example, we have observed that in GHA
-      // on Windows, the temp dir cannot be removed due to permission issues.
-      try {
-        await remove(cacheDir);
-      } catch (error) {
-        log("Failed to remove temporary cache dir", error);
-      }
+    beforeEach(() => {
+      history = path.resolve(tmp.path, "console-history.txt");
     });
 
     it("should create a history file", async function () {
