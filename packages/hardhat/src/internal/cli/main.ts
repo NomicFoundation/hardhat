@@ -318,7 +318,7 @@ export async function main(
     }
   } catch (error) {
     ensureError(error);
-    printErrorMessages(error, builtinGlobalOptions?.showStackTraces);
+    await printErrorMessages(error, builtinGlobalOptions?.showStackTraces);
 
     try {
       await sendErrorTelemetry(error);
