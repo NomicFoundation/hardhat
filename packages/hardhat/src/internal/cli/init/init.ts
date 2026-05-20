@@ -669,6 +669,10 @@ export async function copyProjectFilesNonInteractive(
       absoluteWorkspacePath,
     );
   }
+
+  await installSkills(workspace, template);
+  await createClaudeMd(workspace);
+  await createDotClaude(workspace);
 }
 
 /**

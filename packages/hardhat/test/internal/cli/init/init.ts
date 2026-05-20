@@ -1467,4 +1467,116 @@ describe("assertNoNonInteractiveClashes / copyProjectFilesNonInteractive", () =>
       },
     );
   });
+
+  it("should install skills and create CLAUDE.md and .claude for the mocha-ethers template", async () => {
+    const [template] = await getTemplate("hardhat-3", "mocha-ethers");
+    const workspace = path.join(process.cwd(), "workspace-mocha-ethers");
+    await ensureDir(workspace);
+
+    await copyProjectFilesNonInteractive(workspace, template);
+
+    assert.ok(
+      await exists(
+        path.join(workspace, ".agents", "skills", "hardhat", "SKILL.md"),
+      ),
+      "hardhat skill should be installed",
+    );
+    assert.ok(
+      await exists(
+        path.join(
+          workspace,
+          ".agents",
+          "skills",
+          "hardhat-toolbox-mocha-ethers",
+          "SKILL.md",
+        ),
+      ),
+      "hardhat-toolbox-mocha-ethers skill should be installed",
+    );
+
+    if (process.platform === "win32") {
+      assert.equal(
+        await readUtf8File(path.join(workspace, "CLAUDE.md")),
+        "@AGENTS.md\n",
+      );
+      const dotClaudeStat = await fsPromises.lstat(
+        path.join(workspace, ".claude"),
+      );
+      assert.ok(
+        dotClaudeStat.isDirectory(),
+        ".claude should be a directory on windows",
+      );
+    } else {
+      const claudeMdStat = await fsPromises.lstat(
+        path.join(workspace, "CLAUDE.md"),
+      );
+      assert.ok(
+        claudeMdStat.isSymbolicLink(),
+        "CLAUDE.md should be a symlink on unix",
+      );
+      const dotClaudeStat = await fsPromises.lstat(
+        path.join(workspace, ".claude"),
+      );
+      assert.ok(
+        dotClaudeStat.isSymbolicLink(),
+        ".claude should be a symlink on unix",
+      );
+    }
+  });
+
+  it("should install skills and create CLAUDE.md and .claude for the node-test-runner-viem template", async () => {
+    const [template] = await getTemplate("hardhat-3", "node-test-runner-viem");
+    const workspace = path.join(process.cwd(), "workspace-viem");
+    await ensureDir(workspace);
+
+    await copyProjectFilesNonInteractive(workspace, template);
+
+    assert.ok(
+      await exists(
+        path.join(workspace, ".agents", "skills", "hardhat", "SKILL.md"),
+      ),
+      "hardhat skill should be installed",
+    );
+    assert.ok(
+      await exists(
+        path.join(
+          workspace,
+          ".agents",
+          "skills",
+          "hardhat-toolbox-viem",
+          "SKILL.md",
+        ),
+      ),
+      "hardhat-toolbox-viem skill should be installed",
+    );
+
+    if (process.platform === "win32") {
+      assert.equal(
+        await readUtf8File(path.join(workspace, "CLAUDE.md")),
+        "@AGENTS.md\n",
+      );
+      const dotClaudeStat = await fsPromises.lstat(
+        path.join(workspace, ".claude"),
+      );
+      assert.ok(
+        dotClaudeStat.isDirectory(),
+        ".claude should be a directory on windows",
+      );
+    } else {
+      const claudeMdStat = await fsPromises.lstat(
+        path.join(workspace, "CLAUDE.md"),
+      );
+      assert.ok(
+        claudeMdStat.isSymbolicLink(),
+        "CLAUDE.md should be a symlink on unix",
+      );
+      const dotClaudeStat = await fsPromises.lstat(
+        path.join(workspace, ".claude"),
+      );
+      assert.ok(
+        dotClaudeStat.isSymbolicLink(),
+        ".claude should be a symlink on unix",
+      );
+    }
+  });
 });
