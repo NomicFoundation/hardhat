@@ -1,5 +1,6 @@
 import type { ConfigurationVariableResolver } from "../../../../src/types/config.js";
 import type { HardhatRuntimeEnvironment } from "../../../../src/types/hre.js";
+import type { Artifact } from "@nomicfoundation/edr";
 
 import assert from "node:assert/strict";
 import { before, describe, it } from "node:test";
@@ -17,7 +18,10 @@ import {
 
 import { createHardhatRuntimeEnvironment } from "../../../../src/hre.js";
 import { resolveSolidityTestForkingConfig } from "../../../../src/internal/builtin-plugins/solidity-test/config.js";
-import { solidityTestConfigToSolidityTestRunnerConfigArgs } from "../../../../src/internal/builtin-plugins/solidity-test/helpers.js";
+import {
+  isTestSuiteArtifact,
+  solidityTestConfigToSolidityTestRunnerConfigArgs,
+} from "../../../../src/internal/builtin-plugins/solidity-test/helpers.js";
 import {
   DEFAULT_VERBOSITY,
   GENERIC_CHAIN_TYPE,
@@ -320,5 +324,79 @@ describe("solidityTestConfigToSolidityTestRunnerConfigArgs", () => {
       const expectedHardfork = opHardforkToString(opLatestHardfork());
       assert.equal(args.hardfork, expectedHardfork);
     });
+  });
+});
+
+describe("isTestSuiteArtifact", () => {
+  const SOLC_VERSION = "0.8.0";
+  const ZERO_BYTECODE = "0x";
+  const NON_EMPTY_BYTECODE = "0x6080604052";
+
+  const abiWith = (fnName: string): string =>
+    JSON.stringify([
+      { type: "function", name: fnName, inputs: [], outputs: [] },
+    ]);
+
+  const artifactFactory = ({
+    name,
+    abi,
+    bytecode,
+  }: {
+    name: string;
+    abi: string;
+    bytecode: string;
+  }): Artifact => ({
+    id: {
+      name,
+      solcVersion: SOLC_VERSION,
+      source: `test/${name}.t.sol`,
+    },
+    contract: {
+      abi,
+      bytecode,
+      linkReferences: {},
+      deployedBytecode: bytecode,
+      deployedLinkReferences: {},
+    },
+  });
+
+  it("returns true for a concrete contract with a test_* function", () => {
+    const artifact = artifactFactory({
+      name: "ConcreteTest",
+      abi: abiWith("test_foo"),
+      bytecode: NON_EMPTY_BYTECODE,
+    });
+
+    assert.equal(isTestSuiteArtifact(artifact), true);
+  });
+
+  it("returns true for a concrete contract with an invariant_* function", () => {
+    const artifact = artifactFactory({
+      name: "InvariantTest",
+      abi: abiWith("invariant_bar"),
+      bytecode: NON_EMPTY_BYTECODE,
+    });
+
+    assert.equal(isTestSuiteArtifact(artifact), true);
+  });
+
+  it("returns false for a concrete contract with no test/invariant ABI entries", () => {
+    const artifact = artifactFactory({
+      name: "Plain",
+      abi: abiWith("foo"),
+      bytecode: NON_EMPTY_BYTECODE,
+    });
+
+    assert.equal(isTestSuiteArtifact(artifact), false);
+  });
+
+  it("returns false for abstract contracts with zero bytecode, even when ABI has test entries", () => {
+    const artifact = artifactFactory({
+      name: "AbstractTest",
+      abi: abiWith("test_foo"),
+      bytecode: ZERO_BYTECODE,
+    });
+
+    assert.equal(isTestSuiteArtifact(artifact), false);
   });
 });
