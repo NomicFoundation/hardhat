@@ -16,6 +16,7 @@ contract Revert {
   error CustomErrorWithUintAndStringNamedParam(uint u, uint v, string s);
   error CustomErrorWithArray(uint[]);
   error CustomErrorWithStruct(TestStruct);
+  error CustomErrorWithAddress(address);
 
   function alwaysRevert() external pure {
     revert("Intentional revert for testing purposes");
@@ -56,6 +57,10 @@ contract Revert {
 
   function revertWithCustomErrorWithStruct(TestStruct memory a) external pure {
     revert CustomErrorWithStruct(a);
+  }
+
+  function revertWithCustomErrorWithAddress(address a) external pure {
+    revert CustomErrorWithAddress(a);
   }
 }
 

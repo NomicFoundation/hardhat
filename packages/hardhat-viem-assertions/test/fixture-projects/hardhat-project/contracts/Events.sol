@@ -19,6 +19,7 @@ contract Events {
   event WithString(string s);
   event WithArray(uint[] a);
   event WithStruct(TestStruct a);
+  event WithAddress(address a);
 
   constructor() {}
 
@@ -70,5 +71,9 @@ contract Events {
 
   function emitStruct(TestStruct memory a) public {
     emit WithStruct(a);
+  }
+
+  function emitAddress(address a) public {
+    emit WithAddress(a);
   }
 }
