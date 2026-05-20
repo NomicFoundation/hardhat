@@ -742,7 +742,7 @@ async function createClaudeMd(workspace: string): Promise<void> {
   }
 
   const claudeMdPath = path.join(workspace, "CLAUDE.md");
-  if (await exists(claudeMdPath)) {
+  if (await exists(claudeMdPath, { followSymlinks: false })) {
     return;
   }
 
@@ -765,7 +765,7 @@ async function createDotClaude(workspace: string): Promise<void> {
   }
 
   const claudeDirPath = path.join(workspace, ".claude");
-  if (await exists(claudeDirPath)) {
+  if (await exists(claudeDirPath, { followSymlinks: false })) {
     return;
   }
 

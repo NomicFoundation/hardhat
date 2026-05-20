@@ -837,11 +837,22 @@ export async function getFileSize(absolutePath: string): Promise<number> {
  * Checks if a file or directory exists.
  *
  * @param absolutePath The absolute path to the file or directory.
+ * @param options Optional settings for the existence check.
+ * @param options.followSymlinks If set to `false`, broken symbolic links will be treated as existing. Defaults to `true`.
  * @returns A boolean indicating whether the file or directory exists.
  */
-export async function exists(absolutePath: string): Promise<boolean> {
+export async function exists(
+  absolutePath: string,
+  options: { followSymlinks?: boolean } = {},
+): Promise<boolean> {
+  const followSymlinks = options.followSymlinks ?? true;
+
   try {
-    await fsPromises.access(absolutePath);
+    if (followSymlinks) {
+      await fsPromises.access(absolutePath);
+    } else {
+      await fsPromises.lstat(absolutePath);
+    }
     return true;
   } catch (_error) {
     return false;
