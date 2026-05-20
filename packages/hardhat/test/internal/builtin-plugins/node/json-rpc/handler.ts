@@ -341,7 +341,9 @@ describe("JSON-RPC handler", async function () {
     assert.equal(rpcRes.error.data.data, "0xcafe");
   });
 
-  it("should preserve code 3, revert data, and txHash for revert errors over HTTP", async function () {
+  it("should expose revert data as a hex string for code 3 errors (geth/anvil convention)", async function () {
+    // For revert errors (code 3), error.data must be the raw hex string,
+    // matching the geth/anvil convention viem/ethers/web3.js expect. See #8075.
     const rpcReq: JsonRpcRequest = {
       jsonrpc: "2.0",
       method: "revertWithDataAndTxHash",
@@ -360,16 +362,16 @@ describe("JSON-RPC handler", async function () {
       "execution reverted",
       "Revert error must not be wrapped as InternalError",
     );
-    assert.ok(
-      isObject(rpcRes.error.data),
-      "Expected error data to be an object",
+    assert.equal(
+      typeof rpcRes.error.data,
+      "string",
+      "error.data must be a hex string for revert errors (matches geth/anvil)",
     );
     assert.equal(
-      rpcRes.error.data.data,
+      rpcRes.error.data,
       "0xdeadbeef",
-      "error.data.data must contain the raw revert hex",
+      "error.data must contain the raw revert hex directly",
     );
-    assert.equal(rpcRes.error.data.txHash, "0xabc123");
   });
 });
 

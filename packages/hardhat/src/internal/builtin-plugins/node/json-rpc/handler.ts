@@ -269,6 +269,12 @@ const _handleError = (error: Error): JsonRpcResponse => {
     error = new InternalError(undefined, error);
   }
 
+  // Revert errors (code 3): return raw hex to match the geth/anvil convention
+  // that viem/ethers/web3.js rely on. Other errors keep the wrapper for diagnostics.
+  const data: unknown = isRevertError
+    ? returnData
+    : { message: error.message, txHash, data: returnData };
+
   const response: FailedJsonRpcResponse = {
     jsonrpc: "2.0",
     id: null,
@@ -278,11 +284,7 @@ const _handleError = (error: Error): JsonRpcResponse => {
           ? error.code
           : InternalError.CODE,
       message: error.message,
-      data: {
-        message: error.message,
-        txHash,
-        data: returnData,
-      },
+      data,
     },
   };
 

@@ -1,13 +1,10 @@
-/* Based on https://github.com/tsconfig/bases/blob/501da2bcd640cf95c95805783e1012b992338f28/bases/node22.json */
 {
   "compilerOptions": {
     "lib": ["es2023"],
-    "module": "node16",
-    "target": "es2022",
-    "strict": true,
-    "esModuleInterop": true,
+    "module": "node20",
+    "target": "es2023",
     "skipLibCheck": true,
-    "moduleResolution": "node16",
-    "outDir": "dist"
+    "outDir": "dist",
+    "types": ["node", "mocha"]
   }
 }

@@ -1,7 +1,8 @@
 {
   "extends": "../config/tsconfig.base.json",
   "compilerOptions": {
-    "isolatedDeclarations": false
+    "isolatedDeclarations": false,
+    "types": ["node", "mocha"]
   },
   "references": [
     {

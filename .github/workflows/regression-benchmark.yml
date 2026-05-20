@@ -117,4 +117,3 @@ jobs:
           # Only fail on PRs; don't break CI on main
           fail-on-alert: ${{ github.event_name == 'pull_request' }}
           summary-always: true
-          max-items-in-chart: 50

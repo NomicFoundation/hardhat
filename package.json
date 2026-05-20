@@ -13,7 +13,7 @@
     "cspell": "9.7.0",
     "prettier": "3.2.5",
     "rimraf": "^5.0.5",
-    "typescript": "~5.8.0",
+    "typescript": "~6.0.3",
     "verdaccio": "^6.0.0"
   },
   "scripts": {

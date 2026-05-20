@@ -56,6 +56,11 @@ const hardhatConfigHardforkTests = {
   paths: { tests: { solidity: "test/contracts/hardfork" } },
 };
 
+const hardhatConfigAbstractAndInterfaceTests = {
+  ...hardhatConfig,
+  paths: { tests: { solidity: "test/contracts/abstract-and-interface" } },
+};
+
 const TX_GAS_CAP_TEST_PATH = {
   tests: { solidity: "test/contracts/transaction-gas-cap" },
 };
@@ -680,4 +685,77 @@ describe("solidity-test/task-action", function () {
     // The test should not throw, which means the precompile exists
     // and works as expected
   });
+
+  describe("abstract contracts and interfaces", () => {
+    // Earlier tests in this file run `build` against narrower test-path
+    // configs, which overwrites the unified `artifacts/` directory. Rebuild
+    // here so the abstract-and-interface fixture artifacts exist on disk.
+    before(async () => {
+      const rebuildHre = await createHardhatRuntimeEnvironment(
+        hardhatConfigAllTestDirs,
+      );
+
+      await rebuildHre.tasks.getTask(["build"]).run({});
+    });
+
+    it("should not report abstract contracts as test suites", async () => {
+      hre = await createHardhatRuntimeEnvironment(
+        hardhatConfigAbstractAndInterfaceTests,
+      );
+
+      const result = await hre.tasks
+        .getTask(["test", "solidity"])
+        .run({ noCompile: true });
+
+      const discoveredSuiteNames = getDiscoveredSuiteNames(result);
+
+      assert.ok(
+        !discoveredSuiteNames.includes("AbstractTest"),
+        `AbstractTest should be filtered out, got suites: ${discoveredSuiteNames.join(", ")}`,
+      );
+      assert.ok(
+        discoveredSuiteNames.includes("ConcreteFromAbstract"),
+        `ConcreteFromAbstract should be discovered, got suites: ${discoveredSuiteNames.join(", ")}`,
+      );
+    });
+
+    it("should not report interfaces as test suites", async () => {
+      hre = await createHardhatRuntimeEnvironment(
+        hardhatConfigAbstractAndInterfaceTests,
+      );
+
+      const result = await hre.tasks
+        .getTask(["test", "solidity"])
+        .run({ noCompile: true });
+
+      const discoveredSuiteNames = getDiscoveredSuiteNames(result);
+
+      assert.ok(
+        !discoveredSuiteNames.includes("ITestInterface"),
+        `ITestInterface should be filtered out, got suites: ${discoveredSuiteNames.join(", ")}`,
+      );
+      assert.ok(
+        discoveredSuiteNames.includes("InterfaceImpl"),
+        `InterfaceImpl should be discovered, got suites: ${discoveredSuiteNames.join(", ")}`,
+      );
+    });
+  });
 });
+
+function getDiscoveredSuiteNames(
+  result:
+    | {
+        success: true;
+        value: { suiteResults: Array<{ id: { name: string } }> };
+      }
+    | {
+        success: false;
+        error: { suiteResults: Array<{ id: { name: string } }> };
+      },
+): string[] {
+  const suiteResults = result.success
+    ? result.value.suiteResults
+    : result.error.suiteResults;
+
+  return suiteResults.map((s) => s.id.name);
+}
