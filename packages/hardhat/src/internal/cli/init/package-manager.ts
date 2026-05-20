@@ -104,11 +104,16 @@ export function getPackageManager(): PackageManager {
  *
  * @param packageManager The package manager to use.
  * @param dependencies The dependencies to install.
+ * @param packageManagerMajorVersion The major version of the package manager,
+ * if known. Used to opt into version-specific flags (e.g. pnpm 11's
+ * `--allow-build=esbuild`, required because `tsx` ships `esbuild` whose
+ * postinstall script is otherwise blocked).
  * @returns The installation command.
  */
 export function getDevDependenciesInstallationCommand(
   packageManager: PackageManager,
   dependencies: string[],
+  packageManagerMajorVersion?: number,
 ): string[] {
   const packageManagerToCommand: Record<PackageManager, string[]> = {
     npm: ["npm", "install", "--save-dev"],
@@ -118,6 +123,18 @@ export function getDevDependenciesInstallationCommand(
     bun: ["bun", "add", "--dev"],
   };
   const command = packageManagerToCommand[packageManager];
+
+  // NOTE: adding an unnecessary flag doesn't result in an error
+  // nor warning, so we don't check if hardhat or tsx are being
+  // installed.
+  if (
+    packageManager === "pnpm" &&
+    packageManagerMajorVersion !== undefined &&
+    packageManagerMajorVersion >= 11
+  ) {
+    command.push("--allow-build=esbuild");
+  }
+
   // We quote all the dependency identifiers so that they can be run on a shell
   // without semver symbols interfering with the command
   command.push(
@@ -205,7 +222,7 @@ export async function installsPeerDependenciesByDefault(
   }
 }
 
-async function getVersion(
+export async function getVersion(
   workspace: string,
   packageManager: PackageManager,
   version?: string,

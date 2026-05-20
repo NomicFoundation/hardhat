@@ -187,8 +187,50 @@ describe("getDevDependenciesInstallationCommand", () => {
     assert.equal(command.join(" "), 'pnpm add --save-dev "a" "b"');
   });
 
+  it("should return the correct command for pnpm 10", async () => {
+    const command = getDevDependenciesInstallationCommand(
+      "pnpm",
+      ["a", "b"],
+      10,
+    );
+    assert.equal(command.join(" "), 'pnpm add --save-dev "a" "b"');
+  });
+
+  it("should include --allow-build=esbuild for pnpm 11+", async () => {
+    const command = getDevDependenciesInstallationCommand(
+      "pnpm",
+      ["a", "b"],
+      11,
+    );
+    assert.equal(
+      command.join(" "),
+      'pnpm add --save-dev --allow-build=esbuild "a" "b"',
+    );
+  });
+
+  it("should include --allow-build=esbuild for pnpm 12+", async () => {
+    const command = getDevDependenciesInstallationCommand(
+      "pnpm",
+      ["a", "b"],
+      12,
+    );
+    assert.equal(
+      command.join(" "),
+      'pnpm add --save-dev --allow-build=esbuild "a" "b"',
+    );
+  });
+
   it("should return the correct command for npm", async () => {
     const command = getDevDependenciesInstallationCommand("npm", ["a", "b"]);
+    assert.equal(command.join(" "), 'npm install --save-dev "a" "b"');
+  });
+
+  it("should not add --allow-build for npm even at v11", async () => {
+    const command = getDevDependenciesInstallationCommand(
+      "npm",
+      ["a", "b"],
+      11,
+    );
     assert.equal(command.join(" "), 'npm install --save-dev "a" "b"');
   });
 
@@ -197,13 +239,40 @@ describe("getDevDependenciesInstallationCommand", () => {
     assert.equal(command.join(" "), 'yarn add --dev "a" "b"');
   });
 
+  it("should not add --allow-build for yarn even at v11", async () => {
+    const command = getDevDependenciesInstallationCommand(
+      "yarn",
+      ["a", "b"],
+      11,
+    );
+    assert.equal(command.join(" "), 'yarn add --dev "a" "b"');
+  });
+
   it("should return the correct command for bun", async () => {
     const command = getDevDependenciesInstallationCommand("bun", ["a", "b"]);
     assert.equal(command.join(" "), 'bun add --dev "a" "b"');
   });
 
+  it("should not add --allow-build for bun even at v11", async () => {
+    const command = getDevDependenciesInstallationCommand(
+      "bun",
+      ["a", "b"],
+      11,
+    );
+    assert.equal(command.join(" "), 'bun add --dev "a" "b"');
+  });
+
   it("should return the correct command for deno", async () => {
     const command = getDevDependenciesInstallationCommand("deno", ["a", "b"]);
+    assert.equal(command.join(" "), 'deno add "npm:a" "npm:b"');
+  });
+
+  it("should not add --allow-build for deno even at v11", async () => {
+    const command = getDevDependenciesInstallationCommand(
+      "deno",
+      ["a", "b"],
+      11,
+    );
     assert.equal(command.join(" "), 'deno add "npm:a" "npm:b"');
   });
 });
