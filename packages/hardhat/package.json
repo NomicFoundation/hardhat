@@ -73,7 +73,7 @@
     "src/",
     "templates/",
     "console.sol",
-    "skills",
+    "skills/",
     "CHANGELOG.md",
     "LICENSE",
     "README.md"
