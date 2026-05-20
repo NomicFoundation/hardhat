@@ -150,7 +150,9 @@ export async function solidityTestConfigToSolidityTestRunnerConfigArgs({
 
 export function isTestSuiteArtifact(artifact: Artifact): boolean {
   const bytecode = artifact.contract.bytecode;
-  if (bytecode === "" || bytecode === "0x") {
+
+  // Skip abstract contracts and interfaces i.e. those with no bytecode
+  if (bytecode === "" || bytecode === "0x" || bytecode === undefined) {
     return false;
   }
 
@@ -159,6 +161,7 @@ export function isTestSuiteArtifact(artifact: Artifact): boolean {
     if (type === "function" && typeof name === "string") {
       return name.startsWith("test") || name.startsWith("invariant");
     }
+
     return false;
   });
 }

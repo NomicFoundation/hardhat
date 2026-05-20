@@ -366,7 +366,7 @@ describe("isTestSuiteArtifact", () => {
     assert.equal(isTestSuiteArtifact(artifact), false);
   });
 
-  it("returns false for abstract contracts with zero/empty-string bytecode, even when ABI has test entries", () => {
+  it("returns false for abstract contracts with zero bytecode, even when ABI has test entries", () => {
     const artifact = artifactFactory({
       name: "AbstractTest",
       abi: abiWith("test_foo"),
