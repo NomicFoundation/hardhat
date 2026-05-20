@@ -548,6 +548,56 @@ describe("copyProjectFiles", () => {
       );
     }
   });
+
+  it("should not touch CLAUDE.md if it exists and force is false", async () => {
+    const [template] = await getTemplate("hardhat-3", "mocha-ethers");
+    const claudeMdPath = path.join(process.cwd(), "CLAUDE.md");
+    await writeUtf8File(claudeMdPath, "original");
+
+    await copyProjectFiles(process.cwd(), template, false);
+
+    assert.equal(await readUtf8File(claudeMdPath), "original");
+  });
+
+  it("should overwrite CLAUDE.md if force is true", async () => {
+    const [template] = await getTemplate("hardhat-3", "mocha-ethers");
+    const claudeMdPath = path.join(process.cwd(), "CLAUDE.md");
+    await writeUtf8File(claudeMdPath, "original");
+
+    await copyProjectFiles(process.cwd(), template, true);
+
+    if (process.platform === "win32") {
+      assert.equal(await readUtf8File(claudeMdPath), "@AGENTS.md\n");
+    } else {
+      const stat = await fsPromises.lstat(claudeMdPath);
+      assert.ok(stat.isSymbolicLink(), "CLAUDE.md should be a symlink on unix");
+    }
+  });
+
+  it("should not touch .claude if it exists and force is false", async () => {
+    const [template] = await getTemplate("hardhat-3", "mocha-ethers");
+    const markerPath = path.join(process.cwd(), ".claude", "marker.txt");
+    await ensureDir(path.join(process.cwd(), ".claude"));
+    await writeUtf8File(markerPath, "original");
+
+    await copyProjectFiles(process.cwd(), template, false);
+
+    assert.equal(await readUtf8File(markerPath), "original");
+  });
+
+  it("should remove and re-create .claude if it exists and force is true", async () => {
+    const [template] = await getTemplate("hardhat-3", "mocha-ethers");
+    const markerPath = path.join(process.cwd(), ".claude", "marker.txt");
+    await ensureDir(path.join(process.cwd(), ".claude"));
+    await writeUtf8File(markerPath, "original");
+
+    await copyProjectFiles(process.cwd(), template, true);
+
+    assert.ok(
+      !(await exists(markerPath)),
+      ".claude/marker.txt should not exist after re-creation",
+    );
+  });
 });
 
 describe("installProjectDependencies", async () => {
