@@ -13,7 +13,7 @@ contract TransactionGasCapTest {
 
   function testGasBand() public {
     // ~100 cold SSTOREs to unique slots, ~22_100 gas each → ~2.2M gas total.
-    // Sits cleanly between the "low" transaction gas cap (500K) 
+    // Sits cleanly between the "low" transaction gas cap (500K)
     // and the "high" cap (30M).
     for (uint i = 0; i < 100; i++) {
       store[i] = i + 1;
