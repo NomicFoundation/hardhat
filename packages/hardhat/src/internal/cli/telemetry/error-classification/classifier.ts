@@ -70,7 +70,8 @@ import {
  * @param error The error to classify.
  * @param ignoreDevelopmentTimeFilter If true, the classifier will ignore the
  * development-time filter, which is used to exclude errors that happen during
- * development of Hardhat itself. This is only meant to be used for testing.
+ * development of Hardhat itself. Set this from display-side callers (where the
+ * dev-time skip is irrelevant) and from tests.
  * @returns The error category.
  */
 export function classifyError(
