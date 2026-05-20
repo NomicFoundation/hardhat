@@ -671,7 +671,7 @@ export async function copyProjectFilesNonInteractive(
 }
 
 /**
- * Skills published from `packages/skills/` and the npm package whose presence
+ * Skills published from `packages/hardhat/skills/` and the npm package whose presence
  * in a template's dependencies opts that template into installing the skill.
  * Each skill is tied to exactly one package so they can be versioned and
  * upgraded independently.
@@ -693,7 +693,7 @@ const SKILL_PACKAGES: ReadonlyArray<{
 
 /**
  * For agent-aware templates (those that ship an `AGENTS.md`), copies any
- * skills from `packages/skills/` whose corresponding package is a template
+ * skills from `packages/hardhat/skills/` whose corresponding package is a template
  * dependency into `<workspace>/.agents/skills/<skill-name>/`.
  */
 async function installSkills(
