@@ -57,9 +57,12 @@ export async function makeWorkspaceTmpDir(nameHint: string): Promise<string> {
 /**
  * Removes a tmp directory previously created by `makeWorkspaceTmpDir`.
  *
- * Restores `process.cwd()` if it currently points inside the directory
- * (required on Windows so `rm` can unlink the tree), then logs and swallows
- * any error so a cleanup failure never fails a test.
+ * If `process.cwd()` currently points inside the directory, moves it to the
+ * directory's parent first (required on Windows so `rm` can unlink the tree).
+ * Note that this does not restore the caller's original cwd — callers that
+ * need a precise cwd restoration must do it themselves before calling.
+ *
+ * Then logs and swallows any error so a cleanup failure never fails a test.
  *
  * Low-level helper used by `createTmpDir` and `useTestProjectTemplate`.
  */

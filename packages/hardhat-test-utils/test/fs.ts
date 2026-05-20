@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { existsSync } from "node:fs";
+import { existsSync, mkdirSync } from "node:fs";
 import path from "node:path";
 import { after, before, describe, it } from "node:test";
 
@@ -60,7 +60,7 @@ describe("fs", () => {
       await safeRemoveTmpDir(dir);
     });
 
-    it("restores cwd before removing if cwd is inside the directory", async () => {
+    it("moves cwd out before removing if cwd is the directory itself", async () => {
       const dir = await makeWorkspaceTmpDir("safe-remove-cwd");
       const originalCwd = process.cwd();
 
@@ -71,6 +71,30 @@ describe("fs", () => {
         await safeRemoveTmpDir(dir);
 
         assert.notEqual(process.cwd(), dir);
+        assert.ok(!existsSync(dir), `expected ${dir} to be removed`);
+      } finally {
+        if (process.cwd() !== originalCwd) {
+          process.chdir(originalCwd);
+        }
+      }
+    });
+
+    it("moves cwd out before removing if cwd is a subdirectory of the directory", async () => {
+      const dir = await makeWorkspaceTmpDir("safe-remove-cwd-subdir");
+      const subdir = path.join(dir, "nested", "deeper");
+      mkdirSync(subdir, { recursive: true });
+      const originalCwd = process.cwd();
+
+      try {
+        process.chdir(subdir);
+        assert.equal(process.cwd(), subdir);
+
+        await safeRemoveTmpDir(dir);
+
+        assert.ok(
+          !process.cwd().startsWith(dir + path.sep) && process.cwd() !== dir,
+          `expected cwd to be outside ${dir}, got ${process.cwd()}`,
+        );
         assert.ok(!existsSync(dir), `expected ${dir} to be removed`);
       } finally {
         if (process.cwd() !== originalCwd) {
