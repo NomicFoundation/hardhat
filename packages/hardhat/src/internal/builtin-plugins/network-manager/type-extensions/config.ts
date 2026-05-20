@@ -111,7 +111,7 @@ declare module "../../../../types/config.js" {
     // EDR network specific
     allowBlocksWithSameTimestamp?: boolean;
     allowUnlimitedContractSize?: boolean;
-    blockGasLimit?: number | bigint;
+    blockGasLimit?: number | bigint | false;
     coinbase?: string;
     forking?: EdrNetworkForkingUserConfig;
     hardfork?: string;
@@ -123,6 +123,7 @@ declare module "../../../../types/config.js" {
     networkId?: number;
     throwOnCallFailures?: boolean;
     throwOnTransactionFailures?: boolean;
+    transactionGasCap?: number | bigint | false;
   }
 
   export type EdrNetworkAccountsUserConfig =
@@ -255,8 +256,8 @@ declare module "../../../../types/config.js" {
 
     // EDR network specific
     allowBlocksWithSameTimestamp: boolean;
-    allowUnlimitedContractSize: boolean;
-    blockGasLimit: bigint;
+    allowUnlimitedContractSize?: boolean;
+    blockGasLimit?: bigint | false;
     coinbase: Uint8Array;
     forking?: EdrNetworkForkingConfig;
     hardfork: string;
@@ -268,6 +269,7 @@ declare module "../../../../types/config.js" {
     networkId: number;
     throwOnCallFailures: boolean;
     throwOnTransactionFailures: boolean;
+    transactionGasCap?: bigint | false;
   }
 
   export type EdrNetworkAccountsConfig =

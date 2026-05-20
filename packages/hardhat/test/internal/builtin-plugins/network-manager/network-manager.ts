@@ -2650,6 +2650,12 @@ describe("NetworkManagerImplementation", () => {
           );
 
           assertValidationErrors(validationErrors, []);
+
+          validationErrors = await validateNetworkUserConfig(
+            edrConfig({ blockGasLimit: false }),
+          );
+
+          assertValidationErrors(validationErrors, []);
         });
 
         it("should not validate an invalid network config", async () => {
@@ -2660,7 +2666,8 @@ describe("NetworkManagerImplementation", () => {
           assertValidationErrors(validationErrors, [
             {
               path: ["networks", "hardhat", "blockGasLimit"],
-              message: "Expected a positive safe int or a positive bigint",
+              message:
+                "Expected `false`, a positive safe int, or a positive bigint",
             },
           ]);
 
@@ -2671,7 +2678,8 @@ describe("NetworkManagerImplementation", () => {
           assertValidationErrors(validationErrors, [
             {
               path: ["networks", "hardhat", "blockGasLimit"],
-              message: "Expected a positive safe int or a positive bigint",
+              message:
+                "Expected `false`, a positive safe int, or a positive bigint",
             },
           ]);
 
@@ -2682,7 +2690,58 @@ describe("NetworkManagerImplementation", () => {
           assertValidationErrors(validationErrors, [
             {
               path: ["networks", "hardhat", "blockGasLimit"],
-              message: "Expected a positive safe int or a positive bigint",
+              message:
+                "Expected `false`, a positive safe int, or a positive bigint",
+            },
+          ]);
+
+          validationErrors = await validateNetworkUserConfig(
+            edrConfig({ blockGasLimit: true }),
+          );
+
+          assertValidationErrors(validationErrors, [
+            {
+              path: ["networks", "hardhat", "blockGasLimit"],
+              message:
+                "Expected `false`, a positive safe int, or a positive bigint",
+            },
+          ]);
+        });
+      });
+    });
+
+    describe("transactionGasCap", () => {
+      describe("edr config", () => {
+        it("should validate a valid network config", async () => {
+          let validationErrors = await validateNetworkUserConfig(
+            edrConfig({ transactionGasCap: 16_777_216 }),
+          );
+
+          assertValidationErrors(validationErrors, []);
+
+          validationErrors = await validateNetworkUserConfig(
+            edrConfig({ transactionGasCap: 16_777_216n }),
+          );
+
+          assertValidationErrors(validationErrors, []);
+
+          validationErrors = await validateNetworkUserConfig(
+            edrConfig({ transactionGasCap: false }),
+          );
+
+          assertValidationErrors(validationErrors, []);
+        });
+
+        it("should not validate an invalid network config", async () => {
+          const validationErrors = await validateNetworkUserConfig(
+            edrConfig({ transactionGasCap: "incorrect" }),
+          );
+
+          assertValidationErrors(validationErrors, [
+            {
+              path: ["networks", "hardhat", "transactionGasCap"],
+              message:
+                "Expected `false`, a positive safe int, or a positive bigint",
             },
           ]);
         });

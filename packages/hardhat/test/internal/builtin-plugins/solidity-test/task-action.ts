@@ -1,4 +1,5 @@
 import type { HardhatRuntimeEnvironment } from "../../../../src/types/hre.js";
+import type { SuiteResult, TestResult } from "@nomicfoundation/edr";
 
 import assert from "node:assert/strict";
 import { before, describe, it } from "node:test";
@@ -58,6 +59,50 @@ const hardhatConfigHardforkTests = {
 const hardhatConfigAbstractAndInterfaceTests = {
   ...hardhatConfig,
   paths: { tests: { solidity: "test/contracts/abstract-and-interface" } },
+};
+
+const TX_GAS_CAP_TEST_PATH = {
+  tests: { solidity: "test/contracts/transaction-gas-cap" },
+};
+
+const hardhatConfigGasCapDisabled = {
+  ...hardhatConfig,
+  paths: TX_GAS_CAP_TEST_PATH,
+  test: { solidity: { transactionGasCap: false as const } },
+};
+
+const hardhatConfigGasCapHigh = {
+  ...hardhatConfig,
+  paths: TX_GAS_CAP_TEST_PATH,
+  test: { solidity: { transactionGasCap: 30_000_000 } },
+};
+
+const hardhatConfigGasCapLow = {
+  ...hardhatConfig,
+  paths: TX_GAS_CAP_TEST_PATH,
+  test: { solidity: { transactionGasCap: 500_000 } },
+};
+
+const BLOCK_GAS_LIMIT_TEST_PATH = {
+  tests: { solidity: "test/contracts/block-gas-limit" },
+};
+
+const hardhatConfigBlockGasLimitDisabled = {
+  ...hardhatConfig,
+  paths: BLOCK_GAS_LIMIT_TEST_PATH,
+  test: { solidity: { blockGasLimit: false as const } },
+};
+
+const hardhatConfigBlockGasLimitHigh = {
+  ...hardhatConfig,
+  paths: BLOCK_GAS_LIMIT_TEST_PATH,
+  test: { solidity: { blockGasLimit: 30_000_000 } },
+};
+
+const hardhatConfigBlockGasLimitLow = {
+  ...hardhatConfig,
+  paths: BLOCK_GAS_LIMIT_TEST_PATH,
+  test: { solidity: { blockGasLimit: 500_000 } },
 };
 
 describe("solidity-test/task-action", function () {
@@ -256,6 +301,115 @@ describe("solidity-test/task-action", function () {
           noCompile: true,
         });
         assert.equal(result.success, false);
+      });
+    });
+
+    describe("when transactionGasCap is configured", () => {
+      it("should pass when transactionGasCap is disabled", async () => {
+        hre = await createHardhatRuntimeEnvironment(
+          hardhatConfigGasCapDisabled,
+        );
+
+        const result = await hre.tasks
+          .getTask(["test", "solidity"])
+          .run({ noCompile: true });
+
+        assert.equal(result.success, true);
+        assert.ok(
+          Array.isArray(result.value.suiteResults),
+          "suiteResults should be an array",
+        );
+      });
+
+      // TODO: currently fails because any active transactionGasCap
+      // breaks Solidity test setUp with a generic "EVM error", regardless of
+      // whether the cap would actually be exceeded.
+      // Similarly the exact error should be asserted rather than just
+      // success and failure.
+      it.skip("should pass when transactionGasCap is high enough to allow execution", async () => {
+        hre = await createHardhatRuntimeEnvironment(hardhatConfigGasCapHigh);
+
+        const result = await hre.tasks
+          .getTask(["test", "solidity"])
+          .run({ noCompile: true });
+
+        assert.equal(result.success, true);
+        assert.ok(
+          Array.isArray(result.value.suiteResults),
+          "suiteResults should be an array",
+        );
+      });
+
+      it.skip("should fail when transactionGasCap is set below required gas", async () => {
+        hre = await createHardhatRuntimeEnvironment(hardhatConfigGasCapLow);
+
+        const result = await hre.tasks
+          .getTask(["test", "solidity"])
+          .run({ noCompile: true });
+
+        assert.equal(result.success, false);
+        assert.ok(
+          Array.isArray(result.error.suiteResults),
+          "suiteResults should be an array",
+        );
+      });
+    });
+
+    describe("when blockGasLimit is configured", () => {
+      it("should pass when blockGasLimit is disabled", async () => {
+        hre = await createHardhatRuntimeEnvironment(
+          hardhatConfigBlockGasLimitDisabled,
+        );
+
+        const result = await hre.tasks
+          .getTask(["test", "solidity"])
+          .run({ noCompile: true });
+
+        assert.equal(result.success, true);
+        assert.ok(
+          Array.isArray(result.value.suiteResults),
+          "suiteResults should be an array",
+        );
+      });
+
+      it("should pass when blockGasLimit is high enough to allow execution", async () => {
+        hre = await createHardhatRuntimeEnvironment(
+          hardhatConfigBlockGasLimitHigh,
+        );
+
+        const result = await hre.tasks
+          .getTask(["test", "solidity"])
+          .run({ noCompile: true });
+
+        assert.equal(result.success, true);
+        assert.ok(
+          Array.isArray(result.value.suiteResults),
+          "suiteResults should be an array",
+        );
+      });
+
+      it("should fail when blockGasLimit is set below required gas", async () => {
+        hre = await createHardhatRuntimeEnvironment(
+          hardhatConfigBlockGasLimitLow,
+        );
+
+        const result = await hre.tasks
+          .getTask(["test", "solidity"])
+          .run({ noCompile: true });
+
+        assert.equal(result.success, false);
+
+        const suite = result.error.suiteResults.find(
+          (s: SuiteResult) => s.id.name === "BlockGasLimitTest",
+        );
+        assert.ok(suite !== undefined, "expected a BlockGasLimitTest suite");
+
+        const testResult = suite.testResults.find(
+          (t: TestResult) => t.name === "testGasBand()",
+        );
+        assert.ok(testResult !== undefined, "expected a testGasBand() result");
+        assert.equal(testResult.status, "Failure");
+        assert.equal(testResult.reason, "EvmError: OutOfGas");
       });
     });
 

@@ -19,6 +19,7 @@ import {
   opHardforkFromString,
   l1HardforkFromString,
 } from "@nomicfoundation/edr";
+import { toBigInt } from "@nomicfoundation/hardhat-utils/bigint";
 import { hexStringToBytes } from "@nomicfoundation/hardhat-utils/hex";
 
 import { DEFAULT_VERBOSITY, OPTIMISM_CHAIN_TYPE } from "../../constants.js";
@@ -100,8 +101,18 @@ export async function solidityTestConfigToSolidityTestRunnerConfigArgs({
   const includeTraces = verbosityToIncludeTraces(verbosity);
 
   const blockGasLimit =
-    config.blockGasLimit === false ? undefined : config.blockGasLimit;
-  const disableBlockGasLimit = config.blockGasLimit === false;
+    typeof config.blockGasLimit === "number" ||
+    typeof config.blockGasLimit === "bigint"
+      ? toBigInt(config.blockGasLimit)
+      : undefined;
+  const disableBlockGasLimit = blockGasLimit === undefined;
+
+  const transactionGasCap =
+    typeof config.transactionGasCap === "number" ||
+    typeof config.transactionGasCap === "bigint"
+      ? toBigInt(config.transactionGasCap)
+      : undefined;
+  const disableTransactionGasCap = transactionGasCap === undefined;
 
   const blockDifficulty = config.prevRandao;
 
@@ -138,8 +149,8 @@ export async function solidityTestConfigToSolidityTestRunnerConfigArgs({
     includeTraces,
     blockGasLimit,
     disableBlockGasLimit,
-    // TODO: Hardcoded for now. This should be made configurable by the user.
-    disableTransactionGasCap: true,
+    transactionGasCap,
+    disableTransactionGasCap,
     blockDifficulty,
     ethRpcUrl,
     forkBlockNumber,
