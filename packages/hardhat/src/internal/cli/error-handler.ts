@@ -210,7 +210,7 @@ async function getErrorMessages(error: Error): Promise<ErrorMessages> {
           ["red", "bold"],
           `Hardhat 3 migration error:`,
         ),
-        postErrorStackTraceMessage: `It looks like you are migrating from CommonJS to ESM. The following error often shows up during this kind of migration.\nPlease read https://hardhat.org/docs/migrate-from-hardhat2/guides/mocha-tests#esm to learn how to migrate your project to ESM.`,
+        postErrorStackTraceMessage: `It looks like you are migrating from CommonJS to ESM. The following error often shows up during this kind of migration.\nPlease read https://hardhat.org/migrate-to-esm to learn how to migrate your project to ESM.`,
       };
     case ErrorCategory.OTHER:
       return {
