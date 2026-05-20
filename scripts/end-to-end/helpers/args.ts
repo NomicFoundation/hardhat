@@ -46,6 +46,10 @@ export function resolveAndValidateArgs(args: string[]) {
     );
   }
 
+  if (useLocal === UseLocal.Yes && !initFlag) {
+    throw new Error("--use-local flag can only be used with the init command");
+  }
+
   if (e2eCloneDirectory === undefined) {
     e2eCloneDirectory = DEFAULT_CLONE_DIR;
 

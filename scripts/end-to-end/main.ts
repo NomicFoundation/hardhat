@@ -21,10 +21,12 @@ OPTIONS
   --e2e-clone-dir <path>   Override clone directory (default: $E2E_CLONE_DIR or "/tmp/end-to-end")
   --scenario <path>        The scenario folder or file to work on (default: $E2E_SCENARIO)
   --command <cmd>          Command to run (optional with \`exec\`, falls back to scenario defaultCommand)
-  --use-local              Detect packages changed since their release tag, bump versions,
-                           publish to Verdaccio, and pin scenario deps to the published versions.
-                           If Verdaccio is already running, publish is skipped (the existing
-                           registry contents are reused) unless --force-publish is also passed.
+  --use-local              Only valid with \`init\`. Detect packages changed since their release
+                           tag, bump versions, publish to Verdaccio, and pin scenario deps to the
+                           published versions. If Verdaccio is already running, publish is skipped
+                           (the existing registry contents are reused) unless --force-publish is
+                           also passed. Has no effect on \`exec\`; to run a command against the
+                           local Hardhat sources, first run \`init --use-local\`, then \`exec\`.
   --force-checkout         Force git checkouts even if there are uncommitted changes in the scenario working directory
   --force-publish          Allow publishing to an already-running Verdaccio instance, potentially
                            overwriting its current contents
