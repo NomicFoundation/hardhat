@@ -87,7 +87,7 @@ export function resolveEdrNetwork(
     blockGasLimit:
       typeof networkConfig.blockGasLimit === "number" ||
       typeof networkConfig.blockGasLimit === "bigint"
-        ? BigInt(networkConfig.blockGasLimit)
+        ? toBigInt(networkConfig.blockGasLimit)
         : networkConfig.blockGasLimit,
     coinbase: resolveCoinbase(networkConfig.coinbase),
 
@@ -114,7 +114,7 @@ export function resolveEdrNetwork(
     transactionGasCap:
       typeof networkConfig.transactionGasCap === "number" ||
       typeof networkConfig.transactionGasCap === "bigint"
-        ? BigInt(networkConfig.transactionGasCap)
+        ? toBigInt(networkConfig.transactionGasCap)
         : networkConfig.transactionGasCap,
   };
 }

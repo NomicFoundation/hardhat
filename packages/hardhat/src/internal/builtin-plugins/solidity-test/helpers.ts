@@ -19,6 +19,7 @@ import {
   opHardforkFromString,
   l1HardforkFromString,
 } from "@nomicfoundation/edr";
+import { toBigInt } from "@nomicfoundation/hardhat-utils/bigint";
 import { hexStringToBytes } from "@nomicfoundation/hardhat-utils/hex";
 
 import { DEFAULT_VERBOSITY, OPTIMISM_CHAIN_TYPE } from "../../constants.js";
@@ -102,14 +103,14 @@ export async function solidityTestConfigToSolidityTestRunnerConfigArgs({
   const blockGasLimit =
     typeof config.blockGasLimit === "number" ||
     typeof config.blockGasLimit === "bigint"
-      ? BigInt(config.blockGasLimit)
+      ? toBigInt(config.blockGasLimit)
       : undefined;
   const disableBlockGasLimit = blockGasLimit === undefined;
 
   const transactionGasCap =
     typeof config.transactionGasCap === "number" ||
     typeof config.transactionGasCap === "bigint"
-      ? BigInt(config.transactionGasCap)
+      ? toBigInt(config.transactionGasCap)
       : undefined;
   const disableTransactionGasCap = transactionGasCap === undefined;
 
