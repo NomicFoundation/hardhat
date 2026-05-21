@@ -1,5 +1,11 @@
 # @nomicfoundation/hardhat-viem-assertions
 
+## 3.0.13
+
+### Patch Changes
+
+- [#8323](https://github.com/NomicFoundation/hardhat/pull/8323) [`ac172b5`](https://github.com/NomicFoundation/hardhat/commit/ac172b557ef283d4156cc617e911b481de48c67b) Thanks [@alcuadrado](https://github.com/alcuadrado)! - Fix an error in revertWithCustomErrorWithArgs
+
 ## 3.0.12
 
 ### Patch Changes
