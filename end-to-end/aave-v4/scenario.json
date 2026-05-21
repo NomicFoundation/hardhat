@@ -7,5 +7,21 @@
   "packageManager": "yarn",
   "submodules": true,
   "defaultCommand": "npx hardhat test solidity",
-  "disabled": true
+  "benchmark": {
+    "commands": {
+      "cold compile": {
+        "runs": 3,
+        "prepare": "npx hardhat clean",
+        "command": "npx hardhat compile"
+      },
+      "warm compile": {
+        "runs": 39,
+        "command": "npx hardhat compile"
+      },
+      "test solidity": {
+        "runs": 3,
+        "command": "npx hardhat test solidity --no-compile"
+      }
+    }
+  }
 }
