@@ -121,6 +121,7 @@ describe(
         artifactsPath: expectedArtifactsPath,
         cachePath: expectedCachePath,
         solidityTestsPath: path.join(process.cwd(), "tests"),
+        coverage: false,
       });
       const rootFilePaths = await solidity.getRootFilePaths();
       await solidity.build(rootFilePaths, {
@@ -144,6 +145,7 @@ describe(
         artifactsPath: actualArtifactsPath,
         cachePath: actualCachePath,
         solidityTestsPath: path.join(process.cwd(), "tests"),
+        coverage: false,
       });
     });
 
@@ -449,6 +451,7 @@ describe("SolidityBuildSystemImplementation.getScope", () => {
       artifactsPath: path.join(projectRoot, "artifacts"),
       cachePath: path.join(projectRoot, "cache"),
       solidityTestsPath,
+      coverage: false,
     });
   }
 
@@ -559,6 +562,7 @@ describe("SolidityBuildSystemImplementation.getRootFilePaths", () => {
       artifactsPath: path.join(projectRoot, "artifacts"),
       cachePath: path.join(projectRoot, "cache"),
       solidityTestsPath: testsPath,
+      coverage: false,
     });
 
     const originalReaddir = fsPromises.readdir;

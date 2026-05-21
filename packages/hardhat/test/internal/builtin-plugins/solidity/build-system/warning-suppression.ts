@@ -2,15 +2,19 @@ import assert from "node:assert/strict";
 import path from "node:path";
 import { describe, it } from "node:test";
 
+import { COVERAGE_LIBRARY_FILE_NAME } from "@nomicfoundation/edr";
+
 import {
   shouldSuppressWarning,
-  SUPPRESSED_WARNINGS,
+  NATSPEC_MEMORY_SAFE_ASSEMBLY_WARNING,
+  SPDX_WARNING,
+  PRAGMA_WARNING,
 } from "../../../../../src/internal/builtin-plugins/solidity/build-system/warning-suppression.js";
 
 describe("shouldSuppressWarning", () => {
-  const NATSPEC_WARNING = SUPPRESSED_WARNINGS[0].message;
-  const SPDX_WARNING = SUPPRESSED_WARNINGS[1].message;
-  const PRAGMA_WARNING = SUPPRESSED_WARNINGS[2].message;
+  const NATSPEC_WARNING = NATSPEC_MEMORY_SAFE_ASSEMBLY_WARNING;
+  const CONTRACT_SIZE_WARNING =
+    "Contract code size is 25002 bytes and exceeds 24576 bytes (a limit introduced in Spurious Dragon). This contract may not be deployable on Mainnet.";
 
   // Mock project paths for testing
   const PROJECT_ROOT = path.join("home", "user", "project");
@@ -44,7 +48,12 @@ describe("shouldSuppressWarning", () => {
       it(scenario.name, () => {
         const message = `Warning: ${NATSPEC_WARNING}\n  --> ${scenario.path}:1:1:`;
         assert.equal(
-          shouldSuppressWarning(message, SOLIDITY_TESTS_PATH, PROJECT_ROOT),
+          shouldSuppressWarning(
+            message,
+            SOLIDITY_TESTS_PATH,
+            PROJECT_ROOT,
+            false,
+          ),
           scenario.expected,
         );
       });
@@ -74,7 +83,12 @@ describe("shouldSuppressWarning", () => {
           it(`should suppress ${warning.name} warning ${scenario.name}`, () => {
             const message = `Warning: ${warning.message}\n  --> ${scenario.path}:1:1:`;
             assert.equal(
-              shouldSuppressWarning(message, SOLIDITY_TESTS_PATH, PROJECT_ROOT),
+              shouldSuppressWarning(
+                message,
+                SOLIDITY_TESTS_PATH,
+                PROJECT_ROOT,
+                false,
+              ),
               true,
             );
           });
@@ -110,7 +124,12 @@ describe("shouldSuppressWarning", () => {
           it(`should suppress ${warning.name} warning ${scenario.name}`, () => {
             const message = `Warning: ${warning.message}\n  --> ${scenario.path}:1:1:`;
             assert.equal(
-              shouldSuppressWarning(message, SOLIDITY_TESTS_PATH, PROJECT_ROOT),
+              shouldSuppressWarning(
+                message,
+                SOLIDITY_TESTS_PATH,
+                PROJECT_ROOT,
+                false,
+              ),
               true,
             );
           });
@@ -151,7 +170,12 @@ describe("shouldSuppressWarning", () => {
           it(`should NOT suppress ${warning.name} warning ${scenario.name}`, () => {
             const message = `Warning: ${warning.message}\n  --> ${scenario.path}:1:1:`;
             assert.equal(
-              shouldSuppressWarning(message, SOLIDITY_TESTS_PATH, PROJECT_ROOT),
+              shouldSuppressWarning(
+                message,
+                SOLIDITY_TESTS_PATH,
+                PROJECT_ROOT,
+                false,
+              ),
               false,
             );
           });
@@ -160,11 +184,93 @@ describe("shouldSuppressWarning", () => {
     });
   });
 
+  describe("Coverage library warnings", () => {
+    const scenarios = [
+      {
+        name: "should suppress NatSpec warning from the coverage library file when coverage=true",
+        path: COVERAGE_LIBRARY_FILE_NAME,
+        coverage: true,
+        expected: true,
+      },
+      {
+        name: "should NOT suppress NatSpec warning from the coverage library file when coverage=false",
+        path: COVERAGE_LIBRARY_FILE_NAME,
+        coverage: false,
+        expected: false,
+      },
+      {
+        name: "should NOT suppress the same warning emitted against a user-file path",
+        path: path.join("contracts", "MyContract.sol"),
+        coverage: true,
+        expected: false,
+      },
+    ];
+
+    for (const scenario of scenarios) {
+      it(scenario.name, () => {
+        const message = `Warning: ${NATSPEC_WARNING}\n  --> ${scenario.path}:1:1:`;
+        assert.equal(
+          shouldSuppressWarning(
+            message,
+            SOLIDITY_TESTS_PATH,
+            PROJECT_ROOT,
+            scenario.coverage,
+          ),
+          scenario.expected,
+        );
+      });
+    }
+
+    it("should NOT suppress other diagnostics from the coverage library file", () => {
+      const message = `Error: Some other compiler diagnostic\n  --> ${COVERAGE_LIBRARY_FILE_NAME}:1:1:`;
+      assert.equal(
+        shouldSuppressWarning(message, SOLIDITY_TESTS_PATH, PROJECT_ROOT, true),
+        false,
+      );
+    });
+  });
+
+  describe("Contract-size warning (coverage-only)", () => {
+    it("should suppress contract-size warning when coverage=true", () => {
+      const message = `Warning: ${CONTRACT_SIZE_WARNING}\n  --> ${path.join("contracts", "Foo.sol")}:1:1:`;
+      assert.equal(
+        shouldSuppressWarning(message, SOLIDITY_TESTS_PATH, PROJECT_ROOT, true),
+        true,
+      );
+    });
+
+    it("should NOT suppress contract-size warning when coverage=false", () => {
+      const message = `Warning: ${CONTRACT_SIZE_WARNING}\n  --> ${path.join("contracts", "Foo.sol")}:1:1:`;
+      assert.equal(
+        shouldSuppressWarning(
+          message,
+          SOLIDITY_TESTS_PATH,
+          PROJECT_ROOT,
+          false,
+        ),
+        false,
+      );
+    });
+
+    it("should fall through to other rules when coverage=true but no coverage warning matches", () => {
+      const message = `Warning: ${SPDX_WARNING}\n  --> ${path.join("contracts", "Counter.t.sol")}:1:1:`;
+      assert.equal(
+        shouldSuppressWarning(message, SOLIDITY_TESTS_PATH, PROJECT_ROOT, true),
+        true,
+      );
+    });
+  });
+
   describe("non-matching warnings", () => {
     it("should NOT suppress warnings that don't match any rule", () => {
       const message = `Warning: Some other warning message\n  --> ./test/contracts/Example.sol:1:1:`;
       assert.equal(
-        shouldSuppressWarning(message, SOLIDITY_TESTS_PATH, PROJECT_ROOT),
+        shouldSuppressWarning(
+          message,
+          SOLIDITY_TESTS_PATH,
+          PROJECT_ROOT,
+          false,
+        ),
         false,
       );
     });
