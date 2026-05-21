@@ -1,6 +1,7 @@
 import type { Hex } from "viem";
 
-import { assertHardhatInvariant } from "@nomicfoundation/hardhat-errors";
+import assert from "node:assert/strict";
+
 import { ensureError } from "@nomicfoundation/hardhat-utils/error";
 import { isPrefixedHexString } from "@nomicfoundation/hardhat-utils/hex";
 import { isObject } from "@nomicfoundation/hardhat-utils/lang";
@@ -57,7 +58,7 @@ export function extractRevertError(error: unknown): {
     current = current.cause as Error | undefined;
   }
 
-  assertHardhatInvariant(
+  assert.ok(
     dataReason !== undefined,
     `No revert data found on error.\nError name: "${error.name}", message: ${error.message}`,
   );

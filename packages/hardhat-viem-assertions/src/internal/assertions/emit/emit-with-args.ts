@@ -11,8 +11,6 @@ import type {
 
 import assert from "node:assert/strict";
 
-import { assertHardhatInvariant } from "@nomicfoundation/hardhat-errors";
-
 import { settle, stringifyArgs } from "../../helpers.js";
 import { isArgumentMatch } from "../../predicates.js";
 
@@ -87,7 +85,7 @@ export async function emitWithArgs<
       // They must be mapped into a sorted array that matches the order of the ABI event parameters.
       // Example: event EventY(uint u, uint v) -> mapped to -> { u: bigint, v: bigint }
       for (const [index, param] of expectedAbiEvent.inputs.entries()) {
-        assertHardhatInvariant(
+        assert.ok(
           param.name !== undefined,
           `The event parameter at index ${index} does not have a name`,
         );
