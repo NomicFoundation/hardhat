@@ -239,7 +239,7 @@ describe("revertWithCustomErrorWithArgs", () => {
   });
 });
 
-describe("revertWithCustomErrorWithArgs: regressuin tests", () => {
+describe("revertWithCustomErrorWithArgs: regression tests", () => {
   useEphemeralFixtureProject("missing-contract-error");
 
   it("Should correctly find the custom error", async () => {
