@@ -327,6 +327,36 @@ export const DEFAULT_CHAIN_DESCRIPTORS: ChainDescriptorsConfig = new Map([
       },
     },
   ],
+  // battlechain mainnet
+  [
+    626n,
+    {
+      name: "BattleChain Mainnet",
+      chainType: GENERIC_CHAIN_TYPE,
+      blockExplorers: {
+        blockscout: {
+          name: "BattleChain Explorer",
+          url: "https://explorer.battlechain.com",
+          apiUrl: "https://block-explorer-api.battlechain.com/api",
+        },
+      },
+    },
+  ],
+  // battlechain testnet
+  [
+    627n,
+    {
+      name: "BattleChain Testnet",
+      chainType: GENERIC_CHAIN_TYPE,
+      blockExplorers: {
+        blockscout: {
+          name: "BattleChain Explorer",
+          url: "https://explorer.testnet.battlechain.com",
+          apiUrl: "https://block-explorer-api.testnet.battlechain.com/api",
+        },
+      },
+    },
+  ],
   // binance smart chain mainnet
   [
     56n,
