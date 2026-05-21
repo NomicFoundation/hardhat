@@ -8,7 +8,11 @@ import {
   useEphemeralFixtureProject,
 } from "@nomicfoundation/hardhat-test-utils";
 import hardhatViem from "@nomicfoundation/hardhat-viem";
-import { createHardhatRuntimeEnvironment } from "hardhat/hre";
+import {
+  resolveHardhatConfigPath,
+  createHardhatRuntimeEnvironment,
+  importUserConfig,
+} from "hardhat/hre";
 
 import hardhatViemAssertions from "../../../../src/index.js";
 import { anyValue } from "../../../../src/predicates.js";
@@ -232,5 +236,30 @@ describe("revertWithCustomErrorWithArgs", () => {
           ].every((msg) => error.message.includes(msg)),
       );
     });
+  });
+});
+
+describe("revertWithCustomErrorWithArgs: regressuin tests", () => {
+  useEphemeralFixtureProject("missing-contract-error");
+
+  it("Should correctly find the custom error", async () => {
+    const configPath = await resolveHardhatConfigPath();
+    const config = await importUserConfig(configPath);
+    const hre = await createHardhatRuntimeEnvironment(config, {
+      config: configPath,
+    });
+
+    await hre.tasks.getTask("build").run({});
+    const { viem } = await hre.network.create();
+    const account = "0x0000000000000000000000000000000000000001";
+
+    const contract = await viem.deployContract("GenericReverter");
+
+    await viem.assertions.revertWithCustomErrorWithArgs(
+      contract.read.check([account]),
+      contract,
+      "GenericError",
+      [account],
+    );
   });
 });
