@@ -1,5 +1,15 @@
 # hardhat
 
+## 3.5.1
+
+### Patch Changes
+
+- [#8316](https://github.com/NomicFoundation/hardhat/pull/8316) [`971a135`](https://github.com/NomicFoundation/hardhat/commit/971a135becc86dea7a3039148b55d0774c7c26a0) Thanks [@alcuadrado](https://github.com/alcuadrado)! - Fix `hardhat --init` when used with pnpm 11
+
+- [#8302](https://github.com/NomicFoundation/hardhat/pull/8302) [`fb99caa`](https://github.com/NomicFoundation/hardhat/commit/fb99caa5b9bf75ffa70d2488112755b8de94e7a3) Thanks [@ChristopherDedominici](https://github.com/ChristopherDedominici)! - Suppress solc warnings that are direct side effects of `--coverage` instrumentation.
+
+- [#8315](https://github.com/NomicFoundation/hardhat/pull/8315) [`90650fd`](https://github.com/NomicFoundation/hardhat/commit/90650fd841a800adecdae011c196c8ec83a1a053) Thanks [@schaable](https://github.com/schaable)! - Improved error messages for common migration errors.
+
 ## 3.5.0
 
 ### Minor Changes
