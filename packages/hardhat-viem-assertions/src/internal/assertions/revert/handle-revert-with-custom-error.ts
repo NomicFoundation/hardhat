@@ -8,7 +8,6 @@ import type {
 
 import assert from "node:assert/strict";
 
-import { assertHardhatInvariant } from "@nomicfoundation/hardhat-errors";
 import { ensureError } from "@nomicfoundation/hardhat-utils/error";
 import { panicErrorCodeToMessage } from "@nomicfoundation/hardhat-utils/panic-errors";
 import { decodeErrorResult } from "viem";
@@ -43,10 +42,7 @@ export async function handleRevertWithCustomError<
       });
 
       if (isKnownErrorSelector(rawError.data)) {
-        assertHardhatInvariant(
-          Array.isArray(args),
-          "Expected args to be an array",
-        );
+        assert.ok(Array.isArray(args), "Expected args to be an array");
 
         if (isPanicErrorSelector(rawError.data)) {
           assert.fail(
@@ -61,8 +57,9 @@ export async function handleRevertWithCustomError<
         );
       }
 
-      assertHardhatInvariant(
-        abiItem.type === "error",
+      assert.equal(
+        abiItem.type,
+        "error",
         `Expected a custom error, but the error type is "${abiItem.type}".`,
       );
 

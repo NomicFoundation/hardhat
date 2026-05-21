@@ -1,8 +1,10 @@
 import type { Hex } from "viem";
 
-import { assertHardhatInvariant } from "@nomicfoundation/hardhat-errors";
+import assert from "node:assert/strict";
+
 import { ensureError } from "@nomicfoundation/hardhat-utils/error";
 import { isPrefixedHexString } from "@nomicfoundation/hardhat-utils/hex";
+import { isObject } from "@nomicfoundation/hardhat-utils/lang";
 
 /**
  * Recursively extracts, if it exists, the revert data hex string from an error.
@@ -38,6 +40,17 @@ export function extractRevertError(error: unknown): {
         dataReason = data;
         message = current.message;
       }
+
+      // We also support the data.data format used by some Hardhat versions.
+      if (
+        isObject(data) &&
+        "data" in data &&
+        typeof data.data === "string" &&
+        isPrefixedHexString(data.data)
+      ) {
+        dataReason = data.data;
+        message = current.message;
+      }
     }
 
     /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions
@@ -45,7 +58,7 @@ export function extractRevertError(error: unknown): {
     current = current.cause as Error | undefined;
   }
 
-  assertHardhatInvariant(
+  assert.ok(
     dataReason !== undefined,
     `No revert data found on error.\nError name: "${error.name}", message: ${error.message}`,
   );
