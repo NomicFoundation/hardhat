@@ -3,6 +3,7 @@ import type { Hex } from "viem";
 import { assertHardhatInvariant } from "@nomicfoundation/hardhat-errors";
 import { ensureError } from "@nomicfoundation/hardhat-utils/error";
 import { isPrefixedHexString } from "@nomicfoundation/hardhat-utils/hex";
+import { isObject } from "@nomicfoundation/hardhat-utils/lang";
 
 /**
  * Recursively extracts, if it exists, the revert data hex string from an error.
@@ -36,6 +37,17 @@ export function extractRevertError(error: unknown): {
 
       if (typeof data === "string" && isPrefixedHexString(data)) {
         dataReason = data;
+        message = current.message;
+      }
+
+      // We also support the data.data format used by some Hardhat versions.
+      if (
+        isObject(data) &&
+        "data" in data &&
+        typeof data.data === "string" &&
+        isPrefixedHexString(data.data)
+      ) {
+        dataReason = data.data;
         message = current.message;
       }
     }
