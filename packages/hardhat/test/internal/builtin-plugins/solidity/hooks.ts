@@ -23,6 +23,7 @@ import type {
   Compiler,
   CompilerInput,
   CompilerOutput,
+  ResolvedBuildOptions,
 } from "../../../../src/types/solidity.js";
 
 import assert from "node:assert/strict";
@@ -653,7 +654,7 @@ describe("solidity - hooks", () => {
         let calls = 0;
         let capturedArtifactPaths: readonly string[] | undefined;
         let capturedRootFilePaths: readonly string[] | undefined;
-        let capturedBuildOptions: Readonly<BuildOptions> | undefined;
+        let capturedBuildOptions: Readonly<ResolvedBuildOptions> | undefined;
 
         const plugin: HardhatPlugin = {
           id: "test-process-artifacts-plugin",
@@ -665,7 +666,7 @@ describe("solidity - hooks", () => {
                     _context: HookContext,
                     artifactPaths: readonly string[],
                     buildRootFilePaths: readonly string[],
-                    hookBuildOptions: Readonly<BuildOptions> | undefined,
+                    hookBuildOptions: Readonly<ResolvedBuildOptions>,
                   ) => {
                     calls += 1;
                     capturedArtifactPaths = artifactPaths;
@@ -718,7 +719,7 @@ describe("solidity - hooks", () => {
       });
 
       it("should pass the resolved build options to the hook, including defaults for unspecified fields", async () => {
-        let capturedBuildOptions: Readonly<BuildOptions> | undefined;
+        let capturedBuildOptions: Readonly<ResolvedBuildOptions> | undefined;
 
         const plugin: HardhatPlugin = {
           id: "test-process-artifacts-resolved-options-plugin",
@@ -730,7 +731,7 @@ describe("solidity - hooks", () => {
                     _context: HookContext,
                     _artifactPaths: readonly string[],
                     _buildRootFilePaths: readonly string[],
-                    hookBuildOptions: Readonly<BuildOptions> | undefined,
+                    hookBuildOptions: Readonly<ResolvedBuildOptions>,
                   ) => {
                     capturedBuildOptions = hookBuildOptions;
                   },
@@ -775,6 +776,8 @@ describe("solidity - hooks", () => {
                   processArtifactsAfterSuccessfulBuild: async (
                     _context: HookContext,
                     artifactPaths: readonly string[],
+                    _buildRootFilePaths: readonly string[],
+                    _buildOptions: Readonly<ResolvedBuildOptions>,
                   ) => {
                     captured.push(artifactPaths);
                   },
@@ -832,6 +835,8 @@ describe("solidity - hooks", () => {
                   processArtifactsAfterSuccessfulBuild: async (
                     _context: HookContext,
                     artifactPaths: readonly string[],
+                    _buildRootFilePaths: readonly string[],
+                    _buildOptions: Readonly<ResolvedBuildOptions>,
                   ) => {
                     captured.push(artifactPaths);
                   },
@@ -889,6 +894,8 @@ describe("solidity - hooks", () => {
                   processArtifactsAfterSuccessfulBuild: async (
                     _context: HookContext,
                     artifactPaths: readonly string[],
+                    _buildRootFilePaths: readonly string[],
+                    _buildOptions: Readonly<ResolvedBuildOptions>,
                   ) => {
                     capturedArtifactPaths = artifactPaths;
                   },
@@ -947,7 +954,12 @@ describe("solidity - hooks", () => {
             solidity: async () => ({
               default: async () => {
                 const handlers: Partial<SolidityHooks> = {
-                  processArtifactsAfterSuccessfulBuild: async () => {
+                  processArtifactsAfterSuccessfulBuild: async (
+                    _context: HookContext,
+                    _artifactPaths: readonly string[],
+                    _buildRootFilePaths: readonly string[],
+                    _buildOptions: Readonly<ResolvedBuildOptions>,
+                  ) => {
                     calls += 1;
                   },
                 };
