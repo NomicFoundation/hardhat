@@ -445,18 +445,18 @@ describe("copyProjectFiles", () => {
 
   it("should install skills and create CLAUDE.md and .claude for the mocha-ethers template", async () => {
     const [template] = await getTemplate("hardhat-3", "mocha-ethers");
-    await copyProjectFiles(process.cwd(), template, true);
+    await copyProjectFiles(tmp.path, template, true);
 
     assert.ok(
       await exists(
-        path.join(process.cwd(), ".agents", "skills", "hardhat", "SKILL.md"),
+        path.join(tmp.path, ".agents", "skills", "hardhat", "SKILL.md"),
       ),
       "hardhat skill should be installed",
     );
     assert.ok(
       await exists(
         path.join(
-          process.cwd(),
+          tmp.path,
           ".agents",
           "skills",
           "hardhat-toolbox-mocha-ethers",
@@ -468,11 +468,11 @@ describe("copyProjectFiles", () => {
 
     if (process.platform === "win32") {
       assert.equal(
-        await readUtf8File(path.join(process.cwd(), "CLAUDE.md")),
+        await readUtf8File(path.join(tmp.path, "CLAUDE.md")),
         "@AGENTS.md\n",
       );
       const dotClaudeStat = await fsPromises.lstat(
-        path.join(process.cwd(), ".claude"),
+        path.join(tmp.path, ".claude"),
       );
       assert.ok(
         dotClaudeStat.isDirectory(),
@@ -480,14 +480,14 @@ describe("copyProjectFiles", () => {
       );
     } else {
       const claudeMdStat = await fsPromises.lstat(
-        path.join(process.cwd(), "CLAUDE.md"),
+        path.join(tmp.path, "CLAUDE.md"),
       );
       assert.ok(
         claudeMdStat.isSymbolicLink(),
         "CLAUDE.md should be a symlink on unix",
       );
       const dotClaudeStat = await fsPromises.lstat(
-        path.join(process.cwd(), ".claude"),
+        path.join(tmp.path, ".claude"),
       );
       assert.ok(
         dotClaudeStat.isSymbolicLink(),
@@ -498,18 +498,18 @@ describe("copyProjectFiles", () => {
 
   it("should install skills and create CLAUDE.md and .claude for the node-test-runner-viem template", async () => {
     const [template] = await getTemplate("hardhat-3", "node-test-runner-viem");
-    await copyProjectFiles(process.cwd(), template, true);
+    await copyProjectFiles(tmp.path, template, true);
 
     assert.ok(
       await exists(
-        path.join(process.cwd(), ".agents", "skills", "hardhat", "SKILL.md"),
+        path.join(tmp.path, ".agents", "skills", "hardhat", "SKILL.md"),
       ),
       "hardhat skill should be installed",
     );
     assert.ok(
       await exists(
         path.join(
-          process.cwd(),
+          tmp.path,
           ".agents",
           "skills",
           "hardhat-toolbox-viem",
@@ -521,11 +521,11 @@ describe("copyProjectFiles", () => {
 
     if (process.platform === "win32") {
       assert.equal(
-        await readUtf8File(path.join(process.cwd(), "CLAUDE.md")),
+        await readUtf8File(path.join(tmp.path, "CLAUDE.md")),
         "@AGENTS.md\n",
       );
       const dotClaudeStat = await fsPromises.lstat(
-        path.join(process.cwd(), ".claude"),
+        path.join(tmp.path, ".claude"),
       );
       assert.ok(
         dotClaudeStat.isDirectory(),
@@ -533,14 +533,14 @@ describe("copyProjectFiles", () => {
       );
     } else {
       const claudeMdStat = await fsPromises.lstat(
-        path.join(process.cwd(), "CLAUDE.md"),
+        path.join(tmp.path, "CLAUDE.md"),
       );
       assert.ok(
         claudeMdStat.isSymbolicLink(),
         "CLAUDE.md should be a symlink on unix",
       );
       const dotClaudeStat = await fsPromises.lstat(
-        path.join(process.cwd(), ".claude"),
+        path.join(tmp.path, ".claude"),
       );
       assert.ok(
         dotClaudeStat.isSymbolicLink(),
@@ -551,20 +551,20 @@ describe("copyProjectFiles", () => {
 
   it("should not touch CLAUDE.md if it exists and force is false", async () => {
     const [template] = await getTemplate("hardhat-3", "mocha-ethers");
-    const claudeMdPath = path.join(process.cwd(), "CLAUDE.md");
+    const claudeMdPath = path.join(tmp.path, "CLAUDE.md");
     await writeUtf8File(claudeMdPath, "original");
 
-    await copyProjectFiles(process.cwd(), template, false);
+    await copyProjectFiles(tmp.path, template, false);
 
     assert.equal(await readUtf8File(claudeMdPath), "original");
   });
 
   it("should overwrite CLAUDE.md if force is true", async () => {
     const [template] = await getTemplate("hardhat-3", "mocha-ethers");
-    const claudeMdPath = path.join(process.cwd(), "CLAUDE.md");
+    const claudeMdPath = path.join(tmp.path, "CLAUDE.md");
     await writeUtf8File(claudeMdPath, "original");
 
-    await copyProjectFiles(process.cwd(), template, true);
+    await copyProjectFiles(tmp.path, template, true);
 
     if (process.platform === "win32") {
       assert.equal(await readUtf8File(claudeMdPath), "@AGENTS.md\n");
@@ -576,22 +576,22 @@ describe("copyProjectFiles", () => {
 
   it("should not touch .claude if it exists and force is false", async () => {
     const [template] = await getTemplate("hardhat-3", "mocha-ethers");
-    const markerPath = path.join(process.cwd(), ".claude", "marker.txt");
-    await ensureDir(path.join(process.cwd(), ".claude"));
+    const markerPath = path.join(tmp.path, ".claude", "marker.txt");
+    await ensureDir(path.join(tmp.path, ".claude"));
     await writeUtf8File(markerPath, "original");
 
-    await copyProjectFiles(process.cwd(), template, false);
+    await copyProjectFiles(tmp.path, template, false);
 
     assert.equal(await readUtf8File(markerPath), "original");
   });
 
   it("should not touch .claude if it exists even when force is true", async () => {
     const [template] = await getTemplate("hardhat-3", "mocha-ethers");
-    const markerPath = path.join(process.cwd(), ".claude", "marker.txt");
-    await ensureDir(path.join(process.cwd(), ".claude"));
+    const markerPath = path.join(tmp.path, ".claude", "marker.txt");
+    await ensureDir(path.join(tmp.path, ".claude"));
     await writeUtf8File(markerPath, "original");
 
-    await copyProjectFiles(process.cwd(), template, true);
+    await copyProjectFiles(tmp.path, template, true);
 
     assert.equal(await readUtf8File(markerPath), "original");
   });
