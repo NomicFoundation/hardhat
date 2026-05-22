@@ -21,7 +21,11 @@ import type {
   AccountOverride,
 } from "@nomicfoundation/edr";
 import { privateToAddress } from "@ethereumjs/util";
-import { ContractDecoder, precompileP256Verify } from "@nomicfoundation/edr";
+import {
+  ContractDecoder,
+  IncludeTraces,
+  precompileP256Verify,
+} from "@nomicfoundation/edr";
 import picocolors from "picocolors";
 import debug from "debug";
 import { EventEmitter } from "events";
@@ -67,7 +71,6 @@ import {
   MempoolOrder,
 } from "./node-types";
 import {
-  edrRpcDebugTraceToHardhat,
   edrTracingMessageResultToMinimalEVMResult,
   edrTracingMessageToMinimalMessage,
   edrTracingStepToMinimalInterpreterStep,
@@ -268,7 +271,9 @@ export class EdrProviderWrapper
         },
       },
       networkId: BigInt(config.networkId),
-      observability: {},
+      observability: {
+        includeCallTraces: IncludeTraces.All,
+      },
       ownedAccounts,
       // Turn off the Osaka EIP-7825 per transaction gas limit for HH2
       // when being run from `solidity-coverage`.
@@ -392,11 +397,8 @@ export class EdrProviderWrapper
       this._node._vm.events.eventNames().length > 0;
 
     if (needsTraces) {
-      const rawTraces = responseObject.traces;
-      for (const rawTrace of rawTraces) {
-        // For other consumers in JS we need to marshall the entire trace over FFI
-        const trace = rawTrace.trace;
-
+      const rawTraces = responseObject.traces();
+      for (const trace of rawTraces) {
         // beforeTx event
         if (this._node._vm.events.listenerCount("beforeTx") > 0) {
           this._node._vm.events.emit("beforeTx");
@@ -413,7 +415,7 @@ export class EdrProviderWrapper
             }
           }
           // afterMessage event
-          else if ("executionResult" in traceItem) {
+          else if ("execResult" in traceItem) {
             if (this._node._vm.evm.events.listenerCount("afterMessage") > 0) {
               this._node._vm.evm.events.emit(
                 "afterMessage",
@@ -442,20 +444,32 @@ export class EdrProviderWrapper
     if (isErrorResponse(response)) {
       let error;
 
-      let stackTrace: SolidityStackTrace | null = null;
-      try {
-        stackTrace = responseObject.stackTrace();
-      } catch (e) {
-        log("Failed to get stack trace: %O", e);
-      }
+      const stackTrace = responseObject.stackTrace();
 
-      if (stackTrace !== null) {
-        error = encodeSolidityStackTrace(response.error.message, stackTrace);
+      if (stackTrace?.kind === "StackTrace") {
+        error = encodeSolidityStackTrace(
+          response.error.message,
+          stackTrace.entries
+        );
         // Pass data and transaction hash from the original error
         (error as any).data = response.error.data?.data ?? undefined;
         (error as any).transactionHash =
           response.error.data?.transactionHash ?? undefined;
       } else {
+        if (stackTrace !== null) {
+          switch (stackTrace.kind) {
+            case "UnexpectedError":
+              log(
+                "Failed to get stack trace due to error: %O",
+                stackTrace.errorMessage
+              );
+              break;
+            case "HeuristicFailed":
+              log("Failed to get stack trace due to failing heuristics");
+              break;
+          }
+        }
+
         if (response.error.code === InvalidArgumentsError.CODE) {
           error = new InvalidArgumentsError(response.error.message);
         } else {
@@ -479,11 +493,6 @@ export class EdrProviderWrapper
     // e.g. `HardhatNetwork/2.19.0/@nomicfoundation/edr/0.2.0-dev`
     if (args.method === "web3_clientVersion") {
       return clientVersion(response.result);
-    } else if (
-      args.method === "debug_traceTransaction" ||
-      args.method === "debug_traceCall"
-    ) {
-      return edrRpcDebugTraceToHardhat(response.result);
     } else {
       return response.result;
     }
