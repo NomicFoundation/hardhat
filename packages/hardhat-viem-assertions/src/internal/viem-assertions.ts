@@ -1,5 +1,5 @@
 import type { AbiHolder, ErrorArgsOf, EventArgsOf } from "../abi-types.js";
-import type { HardhatViemAssertions } from "../types.js";
+import type { HardhatViemAssertions, MaybePromise } from "../types.js";
 import type { HardhatViemHelpers } from "@nomicfoundation/hardhat-viem/types";
 import type { ChainType } from "hardhat/types/network";
 import type {
@@ -31,17 +31,17 @@ export class HardhatViemAssertionsImpl<
   }
 
   public async balancesHaveChanged(
-    resolvedTxHash: Promise<Hash>,
+    txHash: MaybePromise<Hash>,
     changes: Array<{
       address: Address;
       amount: bigint;
     }>,
   ): Promise<void> {
-    return await balancesHaveChanged(this.#viem, resolvedTxHash, changes);
+    return await balancesHaveChanged(this.#viem, txHash, changes);
   }
 
   public async emit<TContract extends AbiHolder<Abi>>(
-    contractFn: Promise<WriteContractReturnType>,
+    contractFn: MaybePromise<WriteContractReturnType>,
     contract: TContract,
     eventName: ContractEventName<TContract["abi"]>,
   ): Promise<void> {
@@ -52,7 +52,7 @@ export class HardhatViemAssertionsImpl<
     TContract extends AbiHolder<Abi>,
     TEventName extends ContractEventName<TContract["abi"]>,
   >(
-    contractFn: Promise<WriteContractReturnType>,
+    contractFn: MaybePromise<WriteContractReturnType>,
     contract: TContract,
     eventName: TEventName,
     args: EventArgsOf<TContract["abi"], TEventName>,

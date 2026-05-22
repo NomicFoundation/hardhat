@@ -46,6 +46,16 @@ describe("emitWithArgs", () => {
     );
   });
 
+  it("should check that the event was emitted when given an already-awaited write result", async () => {
+    const contract = await viem.deployContract("Events");
+
+    const writeResult = await contract.write.emitInt([1n]);
+
+    await viem.assertions.emitWithArgs(writeResult, contract, "WithIntArg", [
+      1n,
+    ]);
+  });
+
   it("should check that the event was emitted with the correct multiple arguments", async () => {
     const contract = await viem.deployContract("Events");
 

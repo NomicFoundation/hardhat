@@ -58,6 +58,22 @@ describe("balancesHaveChanged", () => {
     );
   });
 
+  it("should accept an already-awaited tx hash", async () => {
+    const [bobWalletClient, aliceWalletClient] = await viem.getWalletClients();
+
+    const txHash = await bobWalletClient.sendTransaction({
+      to: aliceWalletClient.account.address,
+      value: 3333333333333333n,
+    });
+
+    await viem.assertions.balancesHaveChanged(txHash, [
+      {
+        address: aliceWalletClient.account.address,
+        amount: 3333333333333333n,
+      },
+    ]);
+  });
+
   it("should throw an error when the balance changes to a value different from the expected one", async () => {
     const [bobWalletClient, aliceWalletClient] = await viem.getWalletClients();
 

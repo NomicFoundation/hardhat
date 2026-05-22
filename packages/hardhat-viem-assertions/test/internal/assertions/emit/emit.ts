@@ -44,6 +44,14 @@ describe("emit", () => {
     );
   });
 
+  it("should check that the event was emitted when given an already-awaited write result", async () => {
+    const contract = await viem.deployContract("Events");
+
+    const writeResult = await contract.write.emitWithoutArgs();
+
+    await viem.assertions.emit(writeResult, contract, "WithoutArgs");
+  });
+
   it("should throw because the event does not exists in the ABI", async () => {
     const contract = await viem.deployContract("Events");
 

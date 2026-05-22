@@ -1,6 +1,10 @@
 import type { HardhatViemAssertions } from "../../src/types.js";
 import type { GetContractReturnType } from "@nomicfoundation/hardhat-viem/types";
-import type { ReadContractReturnType, WriteContractReturnType } from "viem";
+import type {
+  Hash,
+  ReadContractReturnType,
+  WriteContractReturnType,
+} from "viem";
 
 import { describe, it } from "node:test";
 
@@ -58,11 +62,20 @@ declare const assertions: HardhatViemAssertions;
 declare const contract: GetContractReturnType<typeof _abi>;
 declare const fn: Promise<ReadContractReturnType | WriteContractReturnType>;
 declare const writeFn: Promise<WriteContractReturnType>;
+declare const writeResult: WriteContractReturnType;
 declare const readFn: Promise<ReadContractReturnType>;
+declare const hash: Hash;
+declare const hashPromise: Promise<Hash>;
 
 describe("assertion typings", () => {
-  it("emit rejects read calls (only write calls have a receipt)", () => {
+  it("balancesHaveChanged accepts either a hash or a promise of a hash", () => {
+    void (() => assertions.balancesHaveChanged(hashPromise, []));
+    void (() => assertions.balancesHaveChanged(hash, []));
+  });
+
+  it("emit accepts a write call or its already-awaited hash, and rejects reads", () => {
     void (() => assertions.emit(writeFn, contract, "WithoutArgs"));
+    void (() => assertions.emit(writeResult, contract, "WithoutArgs"));
 
     void (() =>
       assertions.emit(
@@ -73,8 +86,10 @@ describe("assertion typings", () => {
       ));
   });
 
-  it("emitWithArgs rejects read calls (only write calls have a receipt)", () => {
+  it("emitWithArgs accepts a write call or its already-awaited hash, and rejects reads", () => {
     void (() => assertions.emitWithArgs(writeFn, contract, "WithoutArgs", []));
+    void (() =>
+      assertions.emitWithArgs(writeResult, contract, "WithoutArgs", []));
 
     void (() =>
       assertions.emitWithArgs(

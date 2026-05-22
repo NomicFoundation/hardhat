@@ -1,4 +1,5 @@
 import type { AbiHolder } from "../../../abi-types.js";
+import type { MaybePromise } from "../../../types.js";
 import type { HardhatViemHelpers } from "@nomicfoundation/hardhat-viem/types";
 import type { ChainType } from "hardhat/types/network";
 import type {
@@ -19,7 +20,7 @@ export async function handleEmit<
   ChainTypeT extends ChainType | string = "generic",
 >(
   viem: HardhatViemHelpers<ChainTypeT>,
-  contractFn: Promise<WriteContractReturnType>,
+  contractFn: MaybePromise<WriteContractReturnType>,
   contract: TContract,
   eventName: ContractEventName<TContract["abi"]>,
 ): Promise<Array<{ args?: Record<string, any> }>> {
