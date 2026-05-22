@@ -308,10 +308,7 @@ function getSortedFiles(dependencyGraph: DependencyGraph): ResolvedFile[] {
   return sortedFiles;
 }
 
-function assertNotOnPath(
-  path: readonly ResolvedFile[],
-  file: Readonly<ResolvedFile>,
-): void {
+function assertNotOnPath(path: ResolvedFile[], file: ResolvedFile): void {
   const cycleStart = path.indexOf(file);
 
   if (cycleStart === -1) {
