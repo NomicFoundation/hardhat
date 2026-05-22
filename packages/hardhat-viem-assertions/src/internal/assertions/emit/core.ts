@@ -44,14 +44,14 @@ export async function handleEmit<
 
   const publicClient = await viem.getPublicClient();
 
-  const logs = await publicClient.getLogs({
-    address: contract.address,
+  const receipt = await publicClient.getTransactionReceipt({
+    hash: contractFnResult.value,
   });
 
   const parsedLogs = parseEventLogs({
     abi: contract.abi,
     eventName,
-    logs,
+    logs: receipt.logs,
   });
 
   assert.ok(
