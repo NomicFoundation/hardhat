@@ -1242,6 +1242,15 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
     return artifactPaths;
   }
 
+  /**
+   * Returns every `.json` artifact under the contracts artifacts directory,
+   * excluding the project-wide top-level files (e.g. `artifacts.d.ts`) and
+   * the `build-info/` subtree.
+   *
+   * In unified mode, the returned list also contains test artifacts. Callers
+   * that need a contracts-only view should pass the result through
+   * `#filterOutTestArtifacts`.
+   */
   async #getCurrentContractArtifactPaths(): Promise<string[]> {
     const artifactsDirectory = await this.getArtifactsDirectory("contracts");
     const buildInfosDir = path.join(artifactsDirectory, `build-info`);
@@ -1264,6 +1273,19 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
     return allArtifactFiles;
   }
 
+  /**
+   * Returns `artifactPaths` with the test artifacts removed.
+   *
+   * This is only meaningful in unified mode, where contracts and tests share
+   * the same artifacts directory. The caller is responsible for ensuring that
+   * precondition.
+   *
+   * Each artifact's user source name is recovered from its path and classified
+   * via `getScope`. Results are cached per source name to avoid repeating the
+   * FS stat work for sibling artifacts. npm-style source names don't resolve
+   * to a real path inside the project, so `getScope` falls back to
+   * `"contracts"`, which is the intended outcome.
+   */
   async #filterOutTestArtifacts(artifactPaths: string[]): Promise<string[]> {
     const artifactsDirectory = await this.getArtifactsDirectory("contracts");
     const scopeBySource = new Map<string, BuildScope>();

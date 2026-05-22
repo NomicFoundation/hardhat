@@ -547,11 +547,12 @@ declare module "../../../types/hooks.js" {
      * @param context The hook context.
      * @param artifactPaths All the contract artifact paths, including
      * pre-existing ones.
-     * @param buildRootFilePaths The root file paths of the build, which
-     * can be either absolute paths or `npm:<package-name>/<file-path>`
-     * identifiers. This includes all the root files provided to the build
-     * run, including potentially test files.
-     * @param buildOptions The options used during the build.
+     * @param buildRootFilePaths The root file paths provided to the build,
+     * as absolute paths or `npm:<package-name>/<file-path>` identifiers. In
+     * unified mode this may include test files.
+     * @param buildOptions The resolved options used during the build, with
+     * the build system's defaults filled in for any field the caller didn't
+     * provide.
      */
     processArtifactsAfterSuccessfulBuild(
       context: HookContext,
