@@ -275,21 +275,24 @@ function getSortedFiles(dependencyGraph: DependencyGraph): ResolvedFile[] {
     );
   };
 
-  // Depth-first walking. `path` is the chain of files leading to the current
-  // visit; a dep that reappears in it indicates a cycle.
-  const walk = (files: ResolvedFile[], path: readonly ResolvedFile[]) => {
+  // Depth-first walking. `importChain` is the chain of files leading to the
+  // current visit; a dep that reappears in it indicates a cycle.
+  const walk = (
+    files: ResolvedFile[],
+    importChain: readonly ResolvedFile[],
+  ) => {
     for (const file of files) {
       if (visitedFiles.has(file)) {
         continue;
       }
 
-      assertFileNotOnPath(file, path);
+      throwIfCycle(file, importChain);
 
       const dependencies = sortBySourceName(
         Array.from(dependencyGraph.getDependencies(file)).map((d) => d.file),
       );
 
-      walk(dependencies, [...path, file]);
+      walk(dependencies, [...importChain, file]);
 
       visitedFiles.add(file);
       sortedFiles.push(file);
@@ -303,18 +306,18 @@ function getSortedFiles(dependencyGraph: DependencyGraph): ResolvedFile[] {
   return sortedFiles;
 }
 
-function assertFileNotOnPath(
+function throwIfCycle(
   file: ResolvedFile,
-  path: readonly ResolvedFile[],
+  importChain: readonly ResolvedFile[],
 ): void {
-  const cycleStart = path.indexOf(file);
+  const cycleStart = importChain.indexOf(file);
 
   if (cycleStart === -1) {
     return;
   }
 
   const cycle = [
-    ...path.slice(cycleStart).map(formatSourceName),
+    ...importChain.slice(cycleStart).map(formatSourceName),
     formatSourceName(file),
   ].join(" -> ");
 
