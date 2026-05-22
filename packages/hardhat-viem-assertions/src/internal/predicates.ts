@@ -39,6 +39,10 @@ export async function isArgumentMatch(
         );
       }
     } else if (isAddressLike(emittedArg) && isAddressLike(expectedArg)) {
+      if (emittedArg === expectedArg) {
+        continue;
+      }
+
       if (emittedArg.toLowerCase() !== expectedArg.toLowerCase()) {
         return false;
       }
