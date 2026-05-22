@@ -17,6 +17,8 @@ import type {
   CompilationJobCreationError,
   FileBuildResult,
 } from "../../../../src/types/solidity/build-system.js";
+import type { CompilationJob } from "../../../../src/types/solidity/compilation-job.js";
+import type { CompilerOutputError } from "../../../../src/types/solidity/compiler-io.js";
 import type {
   Compiler,
   CompilerInput,
@@ -30,6 +32,7 @@ import { beforeEach, describe, it } from "node:test";
 import { useFixtureProject } from "@nomicfoundation/hardhat-test-utils";
 
 import { createHardhatRuntimeEnvironment } from "../../../../src/hre.js";
+import { FileBuildResultType } from "../../../../src/types/solidity.js";
 
 /**
  * Creates a mock plugin for testing that registers additional compiler types so they pass
@@ -919,6 +922,218 @@ describe("solidity - hooks", () => {
 
         assert.equal(calls, 0, "hook should not fire for scope === 'tests'");
       });
+    });
+  });
+
+  describe("getCompilationJobErrors", () => {
+    useFixtureProject("solidity/broken-project");
+
+    it("should run with the compilation job and compiler output containing errors", async () => {
+      let capturedJob: CompilationJob | undefined;
+      let capturedOutput: CompilerOutput | undefined;
+
+      const plugin: HardhatPlugin = {
+        id: "test-compilation-errors-capture-plugin",
+        hookHandlers: {
+          solidity: async () => ({
+            default: async () => {
+              const handlers: Partial<SolidityHooks> = {
+                getCompilationJobErrors: async (
+                  context: HookContext,
+                  compilationJob: Readonly<CompilationJob>,
+                  compilerOutput: Readonly<CompilerOutput>,
+                  next: (
+                    nextContext: HookContext,
+                    nextCompilationJob: Readonly<CompilationJob>,
+                    nextCompilerOutput: Readonly<CompilerOutput>,
+                  ) => Promise<CompilerOutputError[]>,
+                ) => {
+                  capturedJob = compilationJob;
+                  capturedOutput = compilerOutput;
+                  return await next(context, compilationJob, compilerOutput);
+                },
+              };
+
+              return handlers;
+            },
+          }),
+        },
+      };
+
+      const hre = await createHardhatRuntimeEnvironment({
+        plugins: [plugin],
+        solidity: "0.8.23",
+      });
+
+      const roots = await hre.solidity.getRootFilePaths();
+      const result = await hre.solidity.build(roots, {
+        force: true,
+        quiet: true,
+      });
+
+      assert.ok(result instanceof Map, "result should be a Map");
+      assert.ok(capturedJob !== undefined, "compilation job should be passed");
+      assert.ok(
+        capturedOutput !== undefined,
+        "compiler output should be passed",
+      );
+      assert.ok(
+        (capturedOutput.errors ?? []).length > 0,
+        "the compiler output should contain errors",
+      );
+      assert.ok(
+        capturedJob.solcConfig !== undefined,
+        "the compilation job should expose its solc config",
+      );
+    });
+
+    it("should remap source-name paths to filesystem paths in the default impl", async () => {
+      let returnedErrors: CompilerOutputError[] | undefined;
+
+      const plugin: HardhatPlugin = {
+        id: "test-compilation-errors-default-remap-plugin",
+        hookHandlers: {
+          solidity: async () => ({
+            default: async () => {
+              const handlers: Partial<SolidityHooks> = {
+                getCompilationJobErrors: async (
+                  context: HookContext,
+                  compilationJob: Readonly<CompilationJob>,
+                  compilerOutput: Readonly<CompilerOutput>,
+                  next: (
+                    nextContext: HookContext,
+                    nextCompilationJob: Readonly<CompilationJob>,
+                    nextCompilerOutput: Readonly<CompilerOutput>,
+                  ) => Promise<CompilerOutputError[]>,
+                ) => {
+                  returnedErrors = await next(
+                    context,
+                    compilationJob,
+                    compilerOutput,
+                  );
+                  return returnedErrors;
+                },
+              };
+
+              return handlers;
+            },
+          }),
+        },
+      };
+
+      const hre = await createHardhatRuntimeEnvironment({
+        plugins: [plugin],
+        solidity: "0.8.23",
+      });
+
+      const roots = await hre.solidity.getRootFilePaths();
+      await hre.solidity.build(roots, { force: true, quiet: true });
+
+      assert.ok(
+        returnedErrors !== undefined && returnedErrors.length > 0,
+        "default impl should return remapped errors",
+      );
+      const formatted = returnedErrors
+        .map((e) => e.formattedMessage ?? "")
+        .join("\n");
+      const expectedRemappedPath = `--> .${path.sep}${path.join(
+        "contracts",
+        "Broken.sol",
+      )}`;
+      assert.ok(
+        formatted.includes(expectedRemappedPath),
+        `expected remapped formattedMessage to include '${expectedRemappedPath}', got: ${formatted}`,
+      );
+    });
+
+    it("should allow a plugin to replace the errors used downstream", async () => {
+      const fakeError: CompilerOutputError = {
+        type: "TestError",
+        component: "general",
+        message: "synthetic error from plugin",
+        severity: "error",
+        formattedMessage: "synthetic error from plugin",
+      };
+
+      const plugin: HardhatPlugin = {
+        id: "test-compilation-errors-replace-plugin",
+        hookHandlers: {
+          solidity: async () => ({
+            default: async () => {
+              const handlers: Partial<SolidityHooks> = {
+                getCompilationJobErrors: async () => [fakeError],
+              };
+
+              return handlers;
+            },
+          }),
+        },
+      };
+
+      const hre = await createHardhatRuntimeEnvironment({
+        plugins: [plugin],
+        solidity: "0.8.23",
+      });
+
+      const roots = await hre.solidity.getRootFilePaths();
+      const result = await hre.solidity.build(roots, {
+        force: true,
+        quiet: true,
+      });
+
+      assert.ok(result instanceof Map, "result should be a Map");
+      const failures = [...result.values()].filter(
+        (r) => r.type === FileBuildResultType.BUILD_FAILURE,
+      );
+      assert.ok(failures.length > 0, "expected at least one build failure");
+      for (const failure of failures) {
+        if (failure.type !== FileBuildResultType.BUILD_FAILURE) {
+          continue;
+        }
+
+        assert.deepEqual(
+          failure.errors,
+          [fakeError],
+          "build result should expose the plugin-provided errors",
+        );
+      }
+    });
+
+    it("should not affect build pass/fail (filtering errors keeps the build failing)", async () => {
+      const plugin: HardhatPlugin = {
+        id: "test-compilation-errors-no-flip-plugin",
+        hookHandlers: {
+          solidity: async () => ({
+            default: async () => {
+              const handlers: Partial<SolidityHooks> = {
+                getCompilationJobErrors: async () => [],
+              };
+
+              return handlers;
+            },
+          }),
+        },
+      };
+
+      const hre = await createHardhatRuntimeEnvironment({
+        plugins: [plugin],
+        solidity: "0.8.23",
+      });
+
+      const roots = await hre.solidity.getRootFilePaths();
+      const result = await hre.solidity.build(roots, {
+        force: true,
+        quiet: true,
+      });
+
+      assert.ok(result instanceof Map, "result should be a Map");
+      const hasFailure = [...result.values()].some(
+        (r) => r.type === FileBuildResultType.BUILD_FAILURE,
+      );
+      assert.ok(
+        hasFailure,
+        "build should still be marked as failed even when the plugin returns no errors",
+      );
     });
   });
 });

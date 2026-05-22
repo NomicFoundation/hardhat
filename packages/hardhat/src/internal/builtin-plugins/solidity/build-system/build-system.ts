@@ -448,10 +448,16 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
           "We emitted contract artifacts for all the jobs if the build was successful",
         );
 
-        const errors = await Promise.all(
-          (result.compilerOutput.errors ?? []).map((error) =>
-            this.remapCompilerError(result.compilationJob, error, true),
-          ),
+        const errors = await this.#hooks.runHandlerChain(
+          "solidity",
+          "getCompilationJobErrors",
+          [result.compilationJob, result.compilerOutput],
+          async (_context, nextCompilationJob, nextCompilerOutput) =>
+            await Promise.all(
+              (nextCompilerOutput.errors ?? []).map((error) =>
+                this.remapCompilerError(nextCompilationJob, error, true),
+              ),
+            ),
         );
 
         this.#printSolcErrorsAndWarnings(errors);

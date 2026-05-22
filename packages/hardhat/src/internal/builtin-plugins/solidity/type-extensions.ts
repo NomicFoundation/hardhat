@@ -5,6 +5,8 @@ import type {
   FileBuildResult,
   SolidityBuildSystem,
 } from "../../../types/solidity/build-system.js";
+import type { CompilationJob } from "../../../types/solidity/compilation-job.js";
+import type { CompilerOutputError } from "../../../types/solidity/compiler-io.js";
 import type {
   Compiler,
   CompilerInput,
@@ -545,5 +547,37 @@ declare module "../../../types/hooks.js" {
       buildRootFilePaths: readonly string[],
       buildOptions: Readonly<BuildOptions> | undefined,
     ): Promise<void>;
+
+    /**
+     * A hook run to get and potentially process the errors of the compiler
+     * output after it was run by the build system.
+     *
+     * This hook allows plugin authors to process the compiler output errors
+     * list before it's used by the build system to report them to the users,
+     * but it doesn't let plugins alter the logic that determines if a
+     * compilation job succeeded or failed.
+     *
+     * This hook must not mutate the parameters passed to `next`. Doing can
+     * have unexpected behavior, and will eventually crash Hardhat.
+     *
+     * The recommended way to use this hook is to call `next` first, and then
+     * work with the returned list.
+     *
+     * @param context The hook context.
+     * @param compilationJob The compilation job run by the build system.
+     * @param compilerOutput The output returned by the compiler.
+     * @param next A function to call the next handler for this hook.
+     * @returns The processed compiler output error list.
+     */
+    getCompilationJobErrors(
+      context: HookContext,
+      compilationJob: Readonly<CompilationJob>,
+      compilerOutput: Readonly<CompilerOutput>,
+      next: (
+        nextContext: HookContext,
+        nextCompilationJob: Readonly<CompilationJob>,
+        nextCompilerOutput: Readonly<CompilerOutput>,
+      ) => Promise<CompilerOutputError[]>,
+    ): Promise<CompilerOutputError[]>;
   }
 }
