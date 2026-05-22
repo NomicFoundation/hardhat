@@ -285,7 +285,7 @@ function getSortedFiles(dependencyGraph: DependencyGraph): ResolvedFile[] {
         continue;
       }
 
-      assertNotOnPath(path, file);
+      assertFileNotOnPath(file, path);
 
       path.push(file);
 
@@ -308,7 +308,7 @@ function getSortedFiles(dependencyGraph: DependencyGraph): ResolvedFile[] {
   return sortedFiles;
 }
 
-function assertNotOnPath(path: ResolvedFile[], file: ResolvedFile): void {
+function assertFileNotOnPath(file: ResolvedFile, path: ResolvedFile[]): void {
   const cycleStart = path.indexOf(file);
 
   if (cycleStart === -1) {
