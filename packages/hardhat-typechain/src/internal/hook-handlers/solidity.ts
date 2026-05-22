@@ -9,7 +9,7 @@ export default async (): Promise<Partial<SolidityHooks>> => {
       context: HookContext,
       artifactPaths: readonly string[],
       _buildRootFilePaths: readonly string[],
-      _buildOptions: ResolvedBuildOptions,
+      _buildOptions: Readonly<ResolvedBuildOptions>,
     ) {
       await generateTypes(
         context.config.paths.root,
