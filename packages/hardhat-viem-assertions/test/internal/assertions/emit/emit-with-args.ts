@@ -180,6 +180,40 @@ describe("emitWithArgs", () => {
     });
   });
 
+  it("should compare address arguments case-insensitively", async () => {
+    const contract = await viem.deployContract("Events");
+    const checksummed = "0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045";
+
+    await viem.assertions.emitWithArgs(
+      contract.write.emitAddress([checksummed]),
+      contract,
+      "WithAddress",
+      [checksummed.toLowerCase()],
+    );
+  });
+
+  it("should throw when address arguments do not match even case-insensitively", async () => {
+    const contract = await viem.deployContract("Events");
+    const addr1 = "0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045";
+    const addr2 = "0x0000000000000000000000000000000000000001";
+
+    await assertRejects(
+      viem.assertions.emitWithArgs(
+        contract.write.emitAddress([addr1]),
+        contract,
+        "WithAddress",
+        [addr2],
+      ),
+      (error) =>
+        isExpectedError(
+          error,
+          "The event arguments do not match the expected ones.",
+          [addr1],
+          [addr2],
+        ),
+    );
+  });
+
   it("should not throw if no args are passed and nothing is emitted", async () => {
     const contract = await viem.deployContract("Events");
 

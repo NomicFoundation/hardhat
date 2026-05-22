@@ -95,6 +95,18 @@ describe("revertWithCustomErrorWithArgs", () => {
     );
   });
 
+  it("should compare address error arguments case-insensitively", async () => {
+    const contract = await viem.deployContract("Revert");
+    const checksummed = "0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045";
+
+    await viem.assertions.revertWithCustomErrorWithArgs(
+      contract.read.revertWithCustomErrorWithAddress([checksummed]),
+      contract,
+      "CustomErrorWithAddress",
+      [checksummed.toLowerCase()],
+    );
+  });
+
   it("should check that the function reverts when called within nested contracts", async () => {
     const contract = await viem.deployContract("Revert");
     const contractThatThrows = await viem.deployContract("Revert");
