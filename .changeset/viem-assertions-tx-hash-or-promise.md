@@ -2,7 +2,7 @@
 "@nomicfoundation/hardhat-viem-assertions": minor
 ---
 
-`balancesHaveChanged`, `emit`, and `emitWithArgs` now accept either a promise or its already-awaited value, so `await contract.write.foo()` can be passed directly. The `revert*` assertions still require an un-awaited promise because they need to catch the rejection.
+The assertions `balancesHaveChanged`, `emit`, and `emitWithArgs` now accept either a promise or its already-awaited value, so `await contract.write.foo()` can be passed directly.
 
 `emit` and `emitWithArgs` now only look at logs produced by the specific transaction passed in (via its receipt) instead of every log ever emitted by the contract address. Tests that previously passed by matching events from other transactions on the same contract will now correctly fail.
 
