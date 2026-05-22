@@ -29,6 +29,7 @@ import type {
   CompilerOutputError,
   DependencyGraph,
   SolidityBuildInfo,
+  ResolvedBuildOptions,
 } from "../../../../types/solidity.js";
 
 import os from "node:os";
@@ -277,13 +278,14 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
     rootFilePaths: string[],
     options?: BuildOptions,
   ): Promise<CompilationJobCreationError | Map<string, FileBuildResult>> {
-    const resolvedOptions: Required<BuildOptions> = {
+    const resolvedOptions: ResolvedBuildOptions = {
       buildProfile: DEFAULT_BUILD_PROFILE,
       concurrency: Math.max(os.cpus().length - 1, 1),
       force: false,
       isolated: false,
       quiet: false,
       scope: "contracts",
+      cleanupArtifacts: false,
       ...options,
     };
 
@@ -368,6 +370,8 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
         ReadonlyMap<string, string[]>
       > = new Map();
 
+      let contractArtifactsAfterBuild: string[] | undefined;
+
       if (isSuccessfulBuild) {
         log("Emitting artifacts of successful build");
         await Promise.all(
@@ -397,6 +401,43 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
         );
 
         await saveCache(this.#options.cachePath, this.#compileCache);
+
+        if (resolvedOptions.cleanupArtifacts) {
+          const paths = await this.cleanupArtifacts(rootFilePaths, {
+            scope: resolvedOptions.scope,
+          });
+
+          if (resolvedOptions.scope !== "tests") {
+            contractArtifactsAfterBuild = paths;
+          }
+        }
+
+        if (resolvedOptions.scope !== "tests") {
+          if (
+            await this.#hooks.hasHandlers(
+              "solidity",
+              "processArtifactsAfterSuccessfulBuild",
+            )
+          ) {
+            contractArtifactsAfterBuild ??=
+              await this.#getCurrentContractArtifactPaths();
+
+            if (!this.#options.solidityConfig.splitTestsCompilation) {
+              // In unified mode the contracts artifacts directory also contains
+              // test artifacts, so we must filter them out before invoking the
+              // processArtifactsAfterSuccessfulBuild hook.
+              contractArtifactsAfterBuild = await this.#filterOutTestArtifacts(
+                contractArtifactsAfterBuild,
+              );
+            }
+
+            await this.#hooks.runSequentialHandlers(
+              "solidity",
+              "processArtifactsAfterSuccessfulBuild",
+              [contractArtifactsAfterBuild, rootFilePaths, resolvedOptions],
+            );
+          }
+        }
       }
 
       spinner.stop();
@@ -415,10 +456,16 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
           "We emitted contract artifacts for all the jobs if the build was successful",
         );
 
-        const errors = await Promise.all(
-          (result.compilerOutput.errors ?? []).map((error) =>
-            this.remapCompilerError(result.compilationJob, error, true),
-          ),
+        const errors = await this.#hooks.runHandlerChain(
+          "solidity",
+          "getCompilationJobErrors",
+          [result.compilationJob, result.compilerOutput],
+          async (_context, nextCompilationJob, nextCompilerOutput) =>
+            await Promise.all(
+              (nextCompilerOutput.errors ?? []).map((error) =>
+                this.remapCompilerError(nextCompilationJob, error, true),
+              ),
+            ),
         );
 
         this.#printSolcErrorsAndWarnings(errors);
@@ -1064,7 +1111,7 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
   public async cleanupArtifacts(
     rootFilePaths: string[],
     options: { scope?: BuildScope } = {},
-  ): Promise<void> {
+  ): Promise<string[]> {
     const scope = options.scope ?? "contracts";
 
     this.#ensureSplitCompilationModeIfTestsScope(scope);
@@ -1191,6 +1238,77 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
         async () => {},
       );
     }
+
+    return artifactPaths;
+  }
+
+  /**
+   * Returns every `.json` artifact under the contracts artifacts directory,
+   * excluding the project-wide top-level files (e.g. `artifacts.d.ts`) and
+   * the `build-info/` subtree.
+   *
+   * In unified mode, the returned list also contains test artifacts. Callers
+   * that need a contracts-only view should pass the result through
+   * `#filterOutTestArtifacts`.
+   */
+  async #getCurrentContractArtifactPaths(): Promise<string[]> {
+    const artifactsDirectory = await this.getArtifactsDirectory("contracts");
+    const buildInfosDir = path.join(artifactsDirectory, `build-info`);
+
+    const allArtifactFiles = await getAllFilesMatching(
+      artifactsDirectory,
+      (p) => {
+        // Ignore top level files (e.g. the project-wide artifacts.d.ts)
+        if (
+          p.indexOf(path.sep, artifactsDirectory.length + path.sep.length) ===
+          -1
+        ) {
+          return false;
+        }
+        return p.endsWith(".json");
+      },
+      (dir) => dir !== buildInfosDir,
+    );
+
+    return allArtifactFiles;
+  }
+
+  /**
+   * Returns `artifactPaths` with the test artifacts removed.
+   *
+   * This is only meaningful in unified mode, where contracts and tests share
+   * the same artifacts directory. The caller is responsible for ensuring that
+   * precondition.
+   *
+   * Each artifact's user source name is recovered from its path and classified
+   * via `getScope`. Results are cached per source name to avoid repeating the
+   * FS stat work for sibling artifacts. npm-style source names don't resolve
+   * to a real path inside the project, so `getScope` falls back to
+   * `"contracts"`, which is the intended outcome.
+   */
+  async #filterOutTestArtifacts(artifactPaths: string[]): Promise<string[]> {
+    const artifactsDirectory = await this.getArtifactsDirectory("contracts");
+    const scopeBySource = new Map<string, BuildScope>();
+    const contractArtifactPaths: string[] = [];
+
+    for (const artifactPath of artifactPaths) {
+      const userSourceName = toForwardSlash(
+        path.relative(artifactsDirectory, path.dirname(artifactPath)),
+      );
+
+      let scope = scopeBySource.get(userSourceName);
+      if (scope === undefined) {
+        const fsPath = path.resolve(this.#options.projectRoot, userSourceName);
+        scope = await this.getScope(fsPath);
+        scopeBySource.set(userSourceName, scope);
+      }
+
+      if (scope === "contracts") {
+        contractArtifactPaths.push(artifactPath);
+      }
+    }
+
+    return contractArtifactPaths;
   }
 
   public async compileBuildInfo(

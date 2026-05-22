@@ -5,10 +5,13 @@ import type {
   FileBuildResult,
   SolidityBuildSystem,
 } from "../../../types/solidity/build-system.js";
+import type { CompilationJob } from "../../../types/solidity/compilation-job.js";
+import type { CompilerOutputError } from "../../../types/solidity/compiler-io.js";
 import type {
   Compiler,
   CompilerInput,
   CompilerOutput,
+  ResolvedBuildOptions,
 } from "../../../types/solidity.js";
 
 declare module "../../../types/config.js" {
@@ -359,6 +362,7 @@ declare module "../../../types/hooks.js" {
      * @param compilerConfig The compiler configuration to get a compiler for.
      * @param next A function to call the next handler for this hook.
      * @returns A Compiler instance.
+     * @deprecated This hook will soon be removed.
      */
     getCompiler: (
       context: HookContext,
@@ -377,6 +381,8 @@ declare module "../../../types/hooks.js" {
      * @param artifactPaths The file paths of artifacts that remain after cleanup.
      * @param next A function to call the next handler for this hook, or the
      * default implementation if no more handlers exist.
+     * @deprecated This hook will soon be removed. Use
+     * `processArtifactsAfterSuccessfulBuild` instead.
      */
     onCleanUpArtifacts: (
       context: HookContext,
@@ -402,6 +408,7 @@ declare module "../../../types/hooks.js" {
      * default implementation if no more handlers exist.
      *
      * @returns The modified file content.
+     * @deprecated This hook will soon be removed.
      */
     preprocessProjectFileBeforeBuilding(
       context: HookContext,
@@ -427,6 +434,7 @@ declare module "../../../types/hooks.js" {
      * default implementation if no more handlers exist.
      *
      * @returns The modified solc input.
+     * @deprecated This hook will soon be removed.
      */
     preprocessSolcInputBeforeBuilding(
       context: HookContext,
@@ -437,6 +445,9 @@ declare module "../../../types/hooks.js" {
       ) => Promise<CompilerInput>,
     ): Promise<CompilerInput>;
 
+    /**
+     * @deprecated This hook will soon be removed.
+     */
     readSourceFile: (
       context: HookContext,
       absolutePath: string,
@@ -482,6 +493,7 @@ declare module "../../../types/hooks.js" {
      * @param solcConfig The compiler configuration (version, type, etc.).
      * @param next A function to call the next handler for this hook, or the
      * default implementation if no more handlers exist.
+     * @deprecated This hook will soon be removed. Use `getCompilationJobErrors` instead.
      */
     invokeSolc(
       context: HookContext,
@@ -510,6 +522,7 @@ declare module "../../../types/hooks.js" {
      * @param next A function to get remappings from other sources (including default behavior).
      * @returns An array of remapping sources, each containing an array of remapping strings
      *   and the source path they came from.
+     * @deprecated This hook will soon be removed.
      */
     readNpmPackageRemappings: (
       context: HookContext,
@@ -523,5 +536,61 @@ declare module "../../../types/hooks.js" {
         nextPackagePath: string,
       ) => Promise<Array<{ remappings: string[]; source: string }>>,
     ) => Promise<Array<{ remappings: string[]; source: string }>>;
+
+    /**
+     * Sequential hook run when a solidity build finished successfully,
+     * and the artifacts are ready to be processed by a plugin.
+     *
+     * This hook is only run for the "contracts" scope, and never includes
+     * test artifacts in its parameters.
+     *
+     * @param context The hook context.
+     * @param artifactPaths All the contract artifact paths, including
+     * pre-existing ones.
+     * @param buildRootFilePaths The root file paths provided to the build,
+     * as absolute paths or `npm:<package-name>/<file-path>` identifiers. In
+     * unified mode this may include test files.
+     * @param buildOptions The resolved options used during the build, with
+     * the build system's defaults filled in for any field the caller didn't
+     * provide.
+     */
+    processArtifactsAfterSuccessfulBuild(
+      context: HookContext,
+      artifactPaths: readonly string[],
+      buildRootFilePaths: readonly string[],
+      buildOptions: Readonly<ResolvedBuildOptions>,
+    ): Promise<void>;
+
+    /**
+     * A hook run to get and potentially process the errors of the compiler
+     * output after it was run by the build system.
+     *
+     * This hook allows plugin authors to process the compiler output errors
+     * list before it's used by the build system to report them to the users,
+     * but it doesn't let plugins alter the logic that determines if a
+     * compilation job succeeded or failed.
+     *
+     * This hook must not mutate the parameters passed to `next`. Doing so can
+     * have unexpected behavior, and will eventually crash Hardhat.
+     *
+     * The recommended way to use this hook is to call `next` first, and then
+     * work with the returned list.
+     *
+     * @param context The hook context.
+     * @param compilationJob The compilation job run by the build system.
+     * @param compilerOutput The output returned by the compiler.
+     * @param next A function to call the next handler for this hook.
+     * @returns The processed compiler output error list.
+     */
+    getCompilationJobErrors(
+      context: HookContext,
+      compilationJob: Readonly<CompilationJob>,
+      compilerOutput: Readonly<CompilerOutput>,
+      next: (
+        nextContext: HookContext,
+        nextCompilationJob: Readonly<CompilationJob>,
+        nextCompilerOutput: Readonly<CompilerOutput>,
+      ) => Promise<CompilerOutputError[]>,
+    ): Promise<CompilerOutputError[]>;
   }
 }

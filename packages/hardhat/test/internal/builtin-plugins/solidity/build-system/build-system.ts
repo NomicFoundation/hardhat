@@ -197,9 +197,10 @@ describe(
       });
 
       it("should clean up no artifacts when given all root file paths", async () => {
-        await solidity.cleanupArtifacts(await solidity.getRootFilePaths(), {
-          scope: "contracts",
-        });
+        const remaining = await solidity.cleanupArtifacts(
+          await solidity.getRootFilePaths(),
+          { scope: "contracts" },
+        );
 
         const actualArtifactPathsAfter = await getAllFilesMatching(
           actualArtifactsPath,
@@ -211,6 +212,19 @@ describe(
           actualArtifactPathsBefore.sort(),
           "No artifacts should be cleaned up",
         );
+
+        const buildInfoDirPrefix =
+          path.join(actualArtifactsPath, "build-info") + path.sep;
+        const expectedRemaining = actualArtifactPathsAfter
+          .filter(
+            (f) => f.endsWith(".json") && !f.startsWith(buildInfoDirPrefix),
+          )
+          .sort();
+        assert.deepEqual(
+          remaining.sort(),
+          expectedRemaining,
+          "Returned paths should match the surviving artifact json files",
+        );
       });
 
       it("should not clean up some of the artifacts when given a subset of all root file paths", async () => {
@@ -220,9 +234,10 @@ describe(
           rootFilePaths.length - 1,
         );
 
-        await solidity.cleanupArtifacts(rootFilePathsToCleanUp, {
-          scope: "contracts",
-        });
+        const remaining = await solidity.cleanupArtifacts(
+          rootFilePathsToCleanUp,
+          { scope: "contracts" },
+        );
 
         const actualArtifactPathsAfter = await getAllFilesMatching(
           actualArtifactsPath,
@@ -233,10 +248,29 @@ describe(
           actualArtifactPathsBefore.length > actualArtifactPathsAfter.length,
           "Some artifacts should be cleaned up",
         );
+
+        const buildInfoDirPrefix =
+          path.join(actualArtifactsPath, "build-info") + path.sep;
+        const expectedRemaining = actualArtifactPathsAfter
+          .filter(
+            (f) => f.endsWith(".json") && !f.startsWith(buildInfoDirPrefix),
+          )
+          .sort();
+        assert.deepEqual(
+          remaining.sort(),
+          expectedRemaining,
+          "Returned paths should match the surviving artifact json files",
+        );
+        assert.ok(
+          remaining.length < actualArtifactPathsBefore.length,
+          "Returned paths should be fewer than the artifacts present before cleanup",
+        );
       });
 
       it("should clean up all the artifacts when given no root file paths", async () => {
-        await solidity.cleanupArtifacts([], { scope: "contracts" });
+        const remaining = await solidity.cleanupArtifacts([], {
+          scope: "contracts",
+        });
 
         const actualArtifactPathsAfter = await getAllFilesMatching(
           actualArtifactsPath,
@@ -251,6 +285,11 @@ describe(
           actualArtifactPathsAfter,
           [],
           "All artifacts should be cleaned up",
+        );
+        assert.deepEqual(
+          remaining,
+          [],
+          "Returned paths should be empty when everything is cleaned up",
         );
       });
     });
@@ -333,6 +372,121 @@ describe(
             buildProfileName: "not-defined",
           },
         );
+      });
+
+      describe("cleanupArtifacts option", () => {
+        const noImportsArtifactRelPath = path.join(
+          "contracts",
+          "NoImports.sol",
+          "NoImports.json",
+        );
+
+        async function buildAllThenDropNoImports(
+          cleanupArtifacts: boolean | undefined,
+        ): Promise<{ noImportsArtifact: string }> {
+          const rootFilePaths = await solidity.getRootFilePaths();
+          await solidity.build(rootFilePaths, {
+            force: true,
+            isolated: false,
+            quiet: true,
+          });
+
+          const noImportsArtifact = path.join(
+            actualArtifactsPath,
+            noImportsArtifactRelPath,
+          );
+          assert.ok(
+            await exists(noImportsArtifact),
+            "NoImports artifact should exist after the initial full build",
+          );
+
+          const filteredRoots = rootFilePaths.filter(
+            (p) => !p.endsWith(`${path.sep}NoImports.sol`),
+          );
+          assert.equal(
+            filteredRoots.length,
+            rootFilePaths.length - 1,
+            "Test setup: NoImports.sol should be one of the root file paths",
+          );
+
+          await solidity.build(filteredRoots, {
+            force: true,
+            isolated: false,
+            quiet: true,
+            cleanupArtifacts,
+          });
+
+          return { noImportsArtifact };
+        }
+
+        it("should remove stale artifacts when set to true", async () => {
+          const { noImportsArtifact } = await buildAllThenDropNoImports(true);
+
+          assert.ok(
+            !(await exists(noImportsArtifact)),
+            "NoImports artifact should be removed when cleanupArtifacts is true",
+          );
+        });
+
+        it("should leave stale artifacts in place when set to false", async () => {
+          const { noImportsArtifact } = await buildAllThenDropNoImports(false);
+
+          assert.ok(
+            await exists(noImportsArtifact),
+            "NoImports artifact should remain when cleanupArtifacts is false",
+          );
+        });
+
+        it("should leave stale artifacts in place when not set", async () => {
+          const { noImportsArtifact } =
+            await buildAllThenDropNoImports(undefined);
+
+          assert.ok(
+            await exists(noImportsArtifact),
+            "NoImports artifact should remain when cleanupArtifacts is omitted",
+          );
+        });
+
+        it("should leave artifacts unchanged when set to true and nothing is stale", async () => {
+          const rootFilePaths = await solidity.getRootFilePaths();
+          await solidity.build(rootFilePaths, {
+            force: true,
+            isolated: false,
+            quiet: true,
+          });
+
+          const buildInfoDirPrefix =
+            path.join(actualArtifactsPath, "build-info") + path.sep;
+          const artifactJsonPredicate = (f: string) =>
+            f.endsWith(".json") && !f.startsWith(buildInfoDirPrefix);
+
+          const artifactsBefore = (
+            await getAllFilesMatching(
+              actualArtifactsPath,
+              artifactJsonPredicate,
+            )
+          ).sort();
+
+          await solidity.build(rootFilePaths, {
+            force: true,
+            isolated: false,
+            quiet: true,
+            cleanupArtifacts: true,
+          });
+
+          const artifactsAfter = (
+            await getAllFilesMatching(
+              actualArtifactsPath,
+              artifactJsonPredicate,
+            )
+          ).sort();
+
+          assert.deepEqual(
+            artifactsAfter,
+            artifactsBefore,
+            "Artifacts should be unchanged when nothing is stale",
+          );
+        });
       });
     });
 
