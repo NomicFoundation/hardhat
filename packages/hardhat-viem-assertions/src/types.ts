@@ -44,9 +44,9 @@ export interface HardhatViemAssertions {
   /**
    * Assert that executing a contract function emits a specific event.
    *
-   * The function is awaited, then logs are fetched for the contract address and parsed
-   * against the contract ABI for the given event name. The assertion passes if at least one
-   * matching event is found.
+   * The transaction is awaited and its receipt is fetched; the logs in the receipt that were
+   * emitted by `contract` are parsed against its ABI for the given event name. The assertion
+   * passes if at least one matching event is found in that transaction.
    *
    * @typeParam TContract - The viem contract instance whose ABI is used to parse logs.
    * @param contractFn - A viem write contract call, or its already-awaited transaction hash.
