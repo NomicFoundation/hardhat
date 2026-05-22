@@ -2,6 +2,7 @@ import type { NewTaskActionFunction } from "../../../types/tasks.js";
 
 import { styleText } from "node:util";
 
+import { HardhatError } from "@nomicfoundation/hardhat-errors";
 import { resolveFromRoot } from "@nomicfoundation/hardhat-utils/path";
 
 import {
@@ -261,7 +262,8 @@ function getPragmaAbicoderDirectiveInfo(
   };
 }
 
-// Returns files sorted in topological order
+// Returns files sorted in topological order. Throws if the graph contains a
+// cycle.
 function getSortedFiles(dependencyGraph: DependencyGraph): ResolvedFile[] {
   const sortedFiles: ResolvedFile[] = [];
   const visitedFiles = new Set<ResolvedFile>();
@@ -273,28 +275,56 @@ function getSortedFiles(dependencyGraph: DependencyGraph): ResolvedFile[] {
     );
   };
 
-  // Depth-first walking
-  const walk = (files: ResolvedFile[]) => {
+  // Depth-first walking. `importChain` is the chain of files leading to the
+  // current visit; a dep that reappears in it indicates a cycle.
+  const walk = (
+    files: ResolvedFile[],
+    importChain: readonly ResolvedFile[],
+  ) => {
     for (const file of files) {
-      if (visitedFiles.has(file)) continue;
+      if (visitedFiles.has(file)) {
+        continue;
+      }
 
-      visitedFiles.add(file);
+      throwIfCycle(file, importChain);
 
       const dependencies = sortBySourceName(
         Array.from(dependencyGraph.getDependencies(file)).map((d) => d.file),
       );
 
-      walk(dependencies);
+      walk(dependencies, [...importChain, file]);
 
+      visitedFiles.add(file);
       sortedFiles.push(file);
     }
   };
 
   const roots = sortBySourceName(dependencyGraph.getRoots().values());
 
-  walk(roots);
+  walk(roots, []);
 
   return sortedFiles;
+}
+
+function throwIfCycle(
+  file: ResolvedFile,
+  importChain: readonly ResolvedFile[],
+): void {
+  const cycleStart = importChain.indexOf(file);
+
+  if (cycleStart === -1) {
+    return;
+  }
+
+  const cycle = [
+    ...importChain.slice(cycleStart).map(formatSourceName),
+    formatSourceName(file),
+  ].join(" -> ");
+
+  throw new HardhatError(
+    HardhatError.ERRORS.CORE.BUILTIN_TASKS.FLATTEN_CYCLIC_DEPENDENCY,
+    { cycle },
+  );
 }
 
 function removeDuplicateAndSurroundingWhitespaces(str: string): string {
