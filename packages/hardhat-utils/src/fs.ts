@@ -837,11 +837,22 @@ export async function getFileSize(absolutePath: string): Promise<number> {
  * Checks if a file or directory exists.
  *
  * @param absolutePath The absolute path to the file or directory.
+ * @param options Optional settings for the existence check.
+ * @param options.followSymlinks If set to `false`, broken symbolic links will be treated as existing. Defaults to `true`.
  * @returns A boolean indicating whether the file or directory exists.
  */
-export async function exists(absolutePath: string): Promise<boolean> {
+export async function exists(
+  absolutePath: string,
+  options: { followSymlinks?: boolean } = {},
+): Promise<boolean> {
+  const followSymlinks = options.followSymlinks ?? true;
+
   try {
-    await fsPromises.access(absolutePath);
+    if (followSymlinks) {
+      await fsPromises.access(absolutePath);
+    } else {
+      await fsPromises.lstat(absolutePath);
+    }
     return true;
   } catch (_error) {
     return false;
@@ -933,6 +944,31 @@ export async function move(source: string, destination: string): Promise<void> {
       }
     }
 
+    throw new FileSystemAccessError(e.message, e);
+  }
+}
+
+/**
+ * Creates a symbolic link at `linkPath` that points to `target`. This function
+ * is not meant to be used on Windows.
+ *
+ * @param target The path the symlink points to. May be relative to `linkPath`.
+ * @param linkPath The absolute path of the symlink to create.
+ * @throws FileNotFoundError if the parent directory of `linkPath` doesn't exist.
+ * @throws FileAlreadyExistsError if `linkPath` already exists.
+ * @throws FileSystemAccessError for any other error.
+ */
+export async function symlink(target: string, linkPath: string): Promise<void> {
+  try {
+    await fsPromises.symlink(target, linkPath);
+  } catch (e) {
+    ensureNodeErrnoExceptionError(e);
+    if (e.code === "ENOENT") {
+      throw new FileNotFoundError(linkPath, e);
+    }
+    if (e.code === "EEXIST") {
+      throw new FileAlreadyExistsError(linkPath, e);
+    }
     throw new FileSystemAccessError(e.message, e);
   }
 }
