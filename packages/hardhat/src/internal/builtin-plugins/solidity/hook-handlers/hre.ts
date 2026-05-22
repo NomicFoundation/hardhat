@@ -114,7 +114,7 @@ class LazySolidityBuildSystem implements SolidityBuildSystem {
   public async cleanupArtifacts(
     rootFilePaths: string[],
     options: { scope?: BuildScope } = {},
-  ): Promise<void> {
+  ): Promise<string[]> {
     const buildSystem = await this.#getBuildSystem();
     return await buildSystem.cleanupArtifacts(rootFilePaths, options);
   }

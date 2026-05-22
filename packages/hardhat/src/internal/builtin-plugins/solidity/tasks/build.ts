@@ -186,6 +186,7 @@ async function runSolidityBuild({
       buildProfile,
       quiet,
       scope,
+      cleanupArtifacts: isFullBuild,
     },
   );
 
@@ -193,12 +194,6 @@ async function runSolidityBuild({
 
   // We use the result keys in case a hook added or removed root files
   const builtRootPaths = [...results.keys()];
-
-  if (isFullBuild) {
-    await solidity.cleanupArtifacts(builtRootPaths, {
-      scope,
-    });
-  }
 
   const preBuildRoots = new Set([...contractRootPaths, ...testRootPaths]);
   if (

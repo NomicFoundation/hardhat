@@ -284,6 +284,7 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
       isolated: false,
       quiet: false,
       scope: "contracts",
+      cleanupArtifacts: false,
       ...options,
     };
 
@@ -368,6 +369,8 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
         ReadonlyMap<string, string[]>
       > = new Map();
 
+      let contractArtifactsAfterBuild: string[] | undefined;
+
       if (isSuccessfulBuild) {
         log("Emitting artifacts of successful build");
         await Promise.all(
@@ -397,6 +400,17 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
         );
 
         await saveCache(this.#options.cachePath, this.#compileCache);
+
+        if (resolvedOptions.cleanupArtifacts) {
+          const paths = await this.cleanupArtifacts(rootFilePaths, {
+            scope: resolvedOptions.scope,
+          });
+
+          if (resolvedOptions.scope !== "tests") {
+            contractArtifactsAfterBuild = paths;
+          }
+        }
+
       }
 
       spinner.stop();
@@ -1064,7 +1078,7 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
   public async cleanupArtifacts(
     rootFilePaths: string[],
     options: { scope?: BuildScope } = {},
-  ): Promise<void> {
+  ): Promise<string[]> {
     const scope = options.scope ?? "contracts";
 
     this.#ensureSplitCompilationModeIfTestsScope(scope);
@@ -1191,6 +1205,8 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
         async () => {},
       );
     }
+
+    return artifactPaths;
   }
 
   public async compileBuildInfo(

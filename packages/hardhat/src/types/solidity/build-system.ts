@@ -52,6 +52,22 @@ export interface BuildOptions {
    * and produce separate compilation passes.
    */
   scope?: BuildScope;
+
+  /**
+   * If `true`, a clean up process is run after a successful build.
+   *
+   * The clean up deletes all the orphan artifacts that aren't reachable from
+   * the provided `rootFilePaths`.
+   *
+   * When building with `"contracts"` scope, it also updates the top-level
+   * `artifacts.d.ts`.
+   *
+   * Only use this option when the provided `rootFilePaths` represent the
+   * entire set of contracts for the scope you are using (i.e. not during
+   * partial builds). Otherwise, you'll delete artifacts generated in previous
+   * build, despite their sources still being available.
+   */
+  cleanupArtifacts?: boolean;
 }
 
 /**
@@ -60,10 +76,7 @@ export interface BuildOptions {
  * Note that this option object includes a `quiet` property, as this process
  * may require downloading compilers, and potentially printing some output.
  */
-export type GetCompilationJobsOptions = Omit<
-  BuildOptions,
-  "removeUnusedArtifacts"
->;
+export type GetCompilationJobsOptions = Omit<BuildOptions, "cleanupArtifacts">;
 
 /**
  * The options of the `runCompilationJob` method.
@@ -434,11 +447,12 @@ export interface SolidityBuildSystem {
    *      used.
    *
    * @param rootFilePaths All the root files of the project.
+   * @returns The list of artifact paths that remain after the cleanup.
    */
   cleanupArtifacts(
     rootFilePaths: string[],
     options?: { scope?: BuildScope },
-  ): Promise<void>;
+  ): Promise<string[]>;
 
   /**
    * Compiles a build info, returning the output of the compilation, verbatim,
