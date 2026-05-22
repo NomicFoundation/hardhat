@@ -942,7 +942,7 @@ The following files form a cycle:
         websiteTitle: "Hardhat flatten doesn't support cyclic dependencies",
         websiteDescription: `Hardhat \`flatten\` works by producing a topological order of the dependency graph and concatenating the files in that order. A graph with cycles has no topological order, so the algorithm can't be applied.
 
-If you need to flatten your project, refactor your Solidity sources to remove the cycle. Cyclic imports are normally avoidable and are harder for both humans and tooling to reason about.`,
+If you need to flatten your project, refactor your Solidity sources to remove the cycle. Cyclic imports are normally avoidable and are harder to reason about.`,
       },
     },
     NETWORK: {
