@@ -55,10 +55,7 @@ const solidityTestProfileUserConfigType = z.object({
   prevRandao: z.bigint().optional(),
   gasLimit: z.bigint().optional(),
   blockGasLimit: z.number().or(z.bigint()).or(z.literal(false)).optional(),
-  // TODO: widen back to .number().or(z.bigint()).or(z.literal(false))
-  // once Solidity test runner no longer breaks setUp() when
-  // disableTransactionGasCap is false. See PR #8301.
-  transactionGasCap: z.literal(false).optional(),
+  transactionGasCap: z.number().or(z.bigint()).or(z.literal(false)).optional(),
   fuzz: z
     .object({
       failurePersistDir: z.string().optional(),

@@ -326,7 +326,7 @@ describe("solidity-test/task-action", function () {
       // whether the cap would actually be exceeded.
       // Similarly the exact error should be asserted rather than just
       // success and failure.
-      it.skip("should pass when transactionGasCap is high enough to allow execution", async () => {
+      it("should pass when transactionGasCap is high enough to allow execution", async () => {
         hre = await createHardhatRuntimeEnvironment(hardhatConfigGasCapHigh);
 
         const result = await hre.tasks
@@ -340,7 +340,7 @@ describe("solidity-test/task-action", function () {
         );
       });
 
-      it.skip("should fail when transactionGasCap is set below required gas", async () => {
+      it("should fail when transactionGasCap is set below required gas", async () => {
         hre = await createHardhatRuntimeEnvironment(hardhatConfigGasCapLow);
 
         const result = await hre.tasks
