@@ -21,7 +21,7 @@ export async function balancesHaveChanged<
 
   assert.ok(
     isHash(resolvedTxHash),
-    `The promise should return a transaction hash, but it returned: ${String(resolvedTxHash)}`,
+    `txHash must be a transaction hash or a promise resolving to one, but got: ${String(resolvedTxHash)}`,
   );
 
   const publicClient = await viem.getPublicClient();
