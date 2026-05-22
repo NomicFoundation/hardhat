@@ -65,7 +65,7 @@ export interface BuildOptions {
    * Only use this option when the provided `rootFilePaths` represent the
    * entire set of contracts for the scope you are using (i.e. not during
    * partial builds). Otherwise, you'll delete artifacts generated in previous
-   * build, despite their sources still being available.
+   * builds, despite their sources still being available.
    */
   cleanupArtifacts?: boolean;
 }

@@ -568,7 +568,7 @@ declare module "../../../types/hooks.js" {
      * but it doesn't let plugins alter the logic that determines if a
      * compilation job succeeded or failed.
      *
-     * This hook must not mutate the parameters passed to `next`. Doing can
+     * This hook must not mutate the parameters passed to `next`. Doing so can
      * have unexpected behavior, and will eventually crash Hardhat.
      *
      * The recommended way to use this hook is to call `next` first, and then
