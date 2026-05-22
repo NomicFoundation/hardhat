@@ -10,6 +10,7 @@ import {
 } from "@nomicfoundation/hardhat-test-utils";
 import hardhatViem from "@nomicfoundation/hardhat-viem";
 import { createHardhatRuntimeEnvironment } from "hardhat/hre";
+import { encodeFunctionData } from "viem";
 
 import hardhatViemAssertions from "../../../../src/index.js";
 import { errorIncludesTestFile } from "../../../helpers/error-includes-test-file.js";
@@ -50,6 +51,38 @@ describe("emit", () => {
     const writeResult = await contract.write.emitWithoutArgs();
 
     await viem.assertions.emit(writeResult, contract, "WithoutArgs");
+  });
+
+  it("should check that the event was emitted when given a sendTransaction promise", async () => {
+    const contract = await viem.deployContract("Events");
+    const [walletClient] = await viem.getWalletClients();
+
+    await viem.assertions.emit(
+      walletClient.sendTransaction({
+        to: contract.address,
+        data: encodeFunctionData({
+          abi: contract.abi,
+          functionName: "emitWithoutArgs",
+        }),
+      }),
+      contract,
+      "WithoutArgs",
+    );
+  });
+
+  it("should check that the event was emitted when given an already-awaited sendTransaction hash", async () => {
+    const contract = await viem.deployContract("Events");
+    const [walletClient] = await viem.getWalletClients();
+
+    const hash = await walletClient.sendTransaction({
+      to: contract.address,
+      data: encodeFunctionData({
+        abi: contract.abi,
+        functionName: "emitWithoutArgs",
+      }),
+    });
+
+    await viem.assertions.emit(hash, contract, "WithoutArgs");
   });
 
   it("should throw because the event does not exists in the ABI", async () => {

@@ -10,6 +10,7 @@ import {
 } from "@nomicfoundation/hardhat-test-utils";
 import hardhatViem from "@nomicfoundation/hardhat-viem";
 import { createHardhatRuntimeEnvironment } from "hardhat/hre";
+import { encodeFunctionData } from "viem";
 
 import hardhatViemAssertions from "../../../../src/index.js";
 import { anyValue } from "../../../../src/internal/predicates.js";
@@ -54,6 +55,41 @@ describe("emitWithArgs", () => {
     await viem.assertions.emitWithArgs(writeResult, contract, "WithIntArg", [
       1n,
     ]);
+  });
+
+  it("should check that the event was emitted when given a sendTransaction promise", async () => {
+    const contract = await viem.deployContract("Events");
+    const [walletClient] = await viem.getWalletClients();
+
+    await viem.assertions.emitWithArgs(
+      walletClient.sendTransaction({
+        to: contract.address,
+        data: encodeFunctionData({
+          abi: contract.abi,
+          functionName: "emitInt",
+          args: [1n],
+        }),
+      }),
+      contract,
+      "WithIntArg",
+      [1n],
+    );
+  });
+
+  it("should check that the event was emitted when given an already-awaited sendTransaction hash", async () => {
+    const contract = await viem.deployContract("Events");
+    const [walletClient] = await viem.getWalletClients();
+
+    const hash = await walletClient.sendTransaction({
+      to: contract.address,
+      data: encodeFunctionData({
+        abi: contract.abi,
+        functionName: "emitInt",
+        args: [1n],
+      }),
+    });
+
+    await viem.assertions.emitWithArgs(hash, contract, "WithIntArg", [1n]);
   });
 
   it("should check that the event was emitted with the correct multiple arguments", async () => {
