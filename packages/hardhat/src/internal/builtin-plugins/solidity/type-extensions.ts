@@ -11,6 +11,7 @@ import type {
   Compiler,
   CompilerInput,
   CompilerOutput,
+  ResolvedBuildOptions,
 } from "../../../types/solidity.js";
 
 declare module "../../../types/config.js" {
@@ -555,7 +556,7 @@ declare module "../../../types/hooks.js" {
       context: HookContext,
       artifactPaths: readonly string[],
       buildRootFilePaths: readonly string[],
-      buildOptions: Readonly<BuildOptions> | undefined,
+      buildOptions: Readonly<ResolvedBuildOptions>,
     ): Promise<void>;
 
     /**

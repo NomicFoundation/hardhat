@@ -71,6 +71,11 @@ export interface BuildOptions {
 }
 
 /**
+ * The resolved BuildOptions used to run a build.
+ */
+export type ResolvedBuildOptions = Required<BuildOptions>;
+
+/**
  * The options of the `getCompilationJobs` method.
  *
  * Note that this option object includes a `quiet` property, as this process

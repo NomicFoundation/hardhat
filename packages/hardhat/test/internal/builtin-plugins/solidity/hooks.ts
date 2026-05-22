@@ -708,7 +708,59 @@ describe("solidity - hooks", () => {
           );
         }
         assert.deepEqual(capturedRootFilePaths, expectedRoots);
-        assert.deepEqual(capturedBuildOptions, buildOptions);
+        assert.ok(
+          capturedBuildOptions !== undefined,
+          "The resolved build options should be passed to the hook",
+        );
+        assert.equal(capturedBuildOptions.force, true);
+        assert.equal(capturedBuildOptions.quiet, true);
+        assert.equal(capturedBuildOptions.cleanupArtifacts, true);
+      });
+
+      it("should pass the resolved build options to the hook, including defaults for unspecified fields", async () => {
+        let capturedBuildOptions: Readonly<BuildOptions> | undefined;
+
+        const plugin: HardhatPlugin = {
+          id: "test-process-artifacts-resolved-options-plugin",
+          hookHandlers: {
+            solidity: async () => ({
+              default: async () => {
+                const handlers: Partial<SolidityHooks> = {
+                  processArtifactsAfterSuccessfulBuild: async (
+                    _context: HookContext,
+                    _artifactPaths: readonly string[],
+                    _buildRootFilePaths: readonly string[],
+                    hookBuildOptions: Readonly<BuildOptions> | undefined,
+                  ) => {
+                    capturedBuildOptions = hookBuildOptions;
+                  },
+                };
+
+                return handlers;
+              },
+            }),
+          },
+        };
+
+        const hre = await createHardhatRuntimeEnvironment({
+          plugins: [plugin],
+          solidity: "0.8.23",
+        });
+
+        const roots = await hre.solidity.getRootFilePaths();
+
+        // Pass the minimal options needed to keep the test output clean.
+        await hre.solidity.build(roots, { quiet: true });
+
+        assert.ok(
+          capturedBuildOptions !== undefined,
+          "build options should be passed to the hook",
+        );
+
+        // Only test a few fields here to keep the test stable.
+        assert.equal(capturedBuildOptions.quiet, true);
+        assert.equal(capturedBuildOptions.buildProfile, "default");
+        assert.equal(capturedBuildOptions.force, false);
       });
 
       it("should include pre-existing artifact paths across multiple builds", async () => {

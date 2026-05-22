@@ -29,6 +29,7 @@ import type {
   CompilerOutputError,
   DependencyGraph,
   SolidityBuildInfo,
+  ResolvedBuildOptions,
 } from "../../../../types/solidity.js";
 
 import os from "node:os";
@@ -277,7 +278,7 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
     rootFilePaths: string[],
     options?: BuildOptions,
   ): Promise<CompilationJobCreationError | Map<string, FileBuildResult>> {
-    const resolvedOptions: Required<BuildOptions> = {
+    const resolvedOptions: ResolvedBuildOptions = {
       buildProfile: DEFAULT_BUILD_PROFILE,
       concurrency: Math.max(os.cpus().length - 1, 1),
       force: false,
@@ -427,7 +428,7 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
           await this.#hooks.runSequentialHandlers(
             "solidity",
             "processArtifactsAfterSuccessfulBuild",
-            [contractArtifactsAfterBuild, rootFilePaths, options],
+            [contractArtifactsAfterBuild, rootFilePaths, resolvedOptions],
           );
         }
       }
