@@ -413,23 +413,30 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
         }
 
         if (resolvedOptions.scope !== "tests") {
-          contractArtifactsAfterBuild ??=
-            await this.#getCurrentContractArtifactPaths();
+          if (
+            await this.#hooks.hasHandlers(
+              "solidity",
+              "processArtifactsAfterSuccessfulBuild",
+            )
+          ) {
+            contractArtifactsAfterBuild ??=
+              await this.#getCurrentContractArtifactPaths();
 
-          if (!this.#options.solidityConfig.splitTestsCompilation) {
-            // In unified mode the contracts artifacts directory also contains
-            // test artifacts, so we must filter them out before invoking the
-            // processArtifactsAfterSuccessfulBuild hook.
-            contractArtifactsAfterBuild = await this.#filterOutTestArtifacts(
-              contractArtifactsAfterBuild,
+            if (!this.#options.solidityConfig.splitTestsCompilation) {
+              // In unified mode the contracts artifacts directory also contains
+              // test artifacts, so we must filter them out before invoking the
+              // processArtifactsAfterSuccessfulBuild hook.
+              contractArtifactsAfterBuild = await this.#filterOutTestArtifacts(
+                contractArtifactsAfterBuild,
+              );
+            }
+
+            await this.#hooks.runSequentialHandlers(
+              "solidity",
+              "processArtifactsAfterSuccessfulBuild",
+              [contractArtifactsAfterBuild, rootFilePaths, resolvedOptions],
             );
           }
-
-          await this.#hooks.runSequentialHandlers(
-            "solidity",
-            "processArtifactsAfterSuccessfulBuild",
-            [contractArtifactsAfterBuild, rootFilePaths, resolvedOptions],
-          );
         }
       }
 
