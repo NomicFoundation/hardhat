@@ -523,5 +523,27 @@ declare module "../../../types/hooks.js" {
         nextPackagePath: string,
       ) => Promise<Array<{ remappings: string[]; source: string }>>,
     ) => Promise<Array<{ remappings: string[]; source: string }>>;
+
+    /**
+     * Sequential hook run when a solidity build finished successfully,
+     * and the artifacts are ready to be processed by a plugin.
+     *
+     * This hook is only run for the "contracts" scope, and never includes
+     * test artifacts in its parameters.
+     *
+     * @param context The hook context.
+     * @param artifactPaths All the contract artifact paths, including
+     * pre-existing ones.
+     * @param buildRootFilePaths The root file paths of the build, which
+     * can be either absolute paths or `npm:<package-name>/<file-path>`
+     * identifiers.
+     * @param buildOptions The options used during the build.
+     */
+    processArtifactsAfterSuccessfulBuild(
+      context: HookContext,
+      artifactPaths: readonly string[],
+      buildRootFilePaths: readonly string[],
+      buildOptions: Readonly<BuildOptions> | undefined,
+    ): Promise<void>;
   }
 }

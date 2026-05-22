@@ -411,6 +411,25 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
           }
         }
 
+        if (resolvedOptions.scope !== "tests") {
+          contractArtifactsAfterBuild ??=
+            await this.#getCurrentContractArtifactPaths();
+
+          if (!this.#options.solidityConfig.splitTestsCompilation) {
+            // In unified mode the contracts artifacts directory also contains
+            // test artifacts, so we must filter them out before invoking the
+            // processArtifactsAfterSuccessfulBuild hook.
+            contractArtifactsAfterBuild = await this.#filterOutTestArtifacts(
+              contractArtifactsAfterBuild,
+            );
+          }
+
+          await this.#hooks.runSequentialHandlers(
+            "solidity",
+            "processArtifactsAfterSuccessfulBuild",
+            [contractArtifactsAfterBuild, rootFilePaths, options],
+          );
+        }
       }
 
       spinner.stop();
@@ -1207,6 +1226,53 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
     }
 
     return artifactPaths;
+  }
+
+  async #getCurrentContractArtifactPaths(): Promise<string[]> {
+    const artifactsDirectory = await this.getArtifactsDirectory("contracts");
+    const buildInfosDir = path.join(artifactsDirectory, `build-info`);
+
+    const allArtifactFiles = await getAllFilesMatching(
+      artifactsDirectory,
+      (p) => {
+        // Ignore top level files (e.g. the project-wide artifacts.d.ts)
+        if (
+          p.indexOf(path.sep, artifactsDirectory.length + path.sep.length) ===
+          -1
+        ) {
+          return false;
+        }
+        return p.endsWith(".json");
+      },
+      (dir) => dir !== buildInfosDir,
+    );
+
+    return allArtifactFiles;
+  }
+
+  async #filterOutTestArtifacts(artifactPaths: string[]): Promise<string[]> {
+    const artifactsDirectory = await this.getArtifactsDirectory("contracts");
+    const scopeBySource = new Map<string, BuildScope>();
+    const contractArtifactPaths: string[] = [];
+
+    for (const artifactPath of artifactPaths) {
+      const userSourceName = toForwardSlash(
+        path.relative(artifactsDirectory, path.dirname(artifactPath)),
+      );
+
+      let scope = scopeBySource.get(userSourceName);
+      if (scope === undefined) {
+        const fsPath = path.resolve(this.#options.projectRoot, userSourceName);
+        scope = await this.getScope(fsPath);
+        scopeBySource.set(userSourceName, scope);
+      }
+
+      if (scope === "contracts") {
+        contractArtifactPaths.push(artifactPath);
+      }
+    }
+
+    return contractArtifactPaths;
   }
 
   public async compileBuildInfo(
