@@ -45,14 +45,22 @@ export async function handleEmit<
 
   const publicClient = await viem.getPublicClient();
 
-  const receipt = await publicClient.getTransactionReceipt({
+  const receipt = await publicClient.waitForTransactionReceipt({
     hash: contractFnResult.value,
   });
+
+  // `receipt.logs` includes logs from every contract touched by the tx; keep
+  // only the ones emitted by the contract under test so an event with a
+  // colliding signature from a different contract can't satisfy the assertion.
+  const contractAddress = contract.address.toLowerCase();
+  const ownLogs = receipt.logs.filter(
+    (log) => log.address.toLowerCase() === contractAddress,
+  );
 
   const parsedLogs = parseEventLogs({
     abi: contract.abi,
     eventName,
-    logs: receipt.logs,
+    logs: ownLogs,
   });
 
   assert.ok(
