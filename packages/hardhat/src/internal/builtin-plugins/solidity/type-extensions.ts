@@ -361,6 +361,7 @@ declare module "../../../types/hooks.js" {
      * @param compilerConfig The compiler configuration to get a compiler for.
      * @param next A function to call the next handler for this hook.
      * @returns A Compiler instance.
+     * @deprecated This hook will soon be removed.
      */
     getCompiler: (
       context: HookContext,
@@ -379,6 +380,8 @@ declare module "../../../types/hooks.js" {
      * @param artifactPaths The file paths of artifacts that remain after cleanup.
      * @param next A function to call the next handler for this hook, or the
      * default implementation if no more handlers exist.
+     * @deprecated This hook will soon be removed. Use
+     * `processArtifactsAfterSuccessfulBuild` instead.
      */
     onCleanUpArtifacts: (
       context: HookContext,
@@ -404,6 +407,7 @@ declare module "../../../types/hooks.js" {
      * default implementation if no more handlers exist.
      *
      * @returns The modified file content.
+     * @deprecated This hook will soon be removed.
      */
     preprocessProjectFileBeforeBuilding(
       context: HookContext,
@@ -429,6 +433,7 @@ declare module "../../../types/hooks.js" {
      * default implementation if no more handlers exist.
      *
      * @returns The modified solc input.
+     * @deprecated This hook will soon be removed.
      */
     preprocessSolcInputBeforeBuilding(
       context: HookContext,
@@ -439,6 +444,9 @@ declare module "../../../types/hooks.js" {
       ) => Promise<CompilerInput>,
     ): Promise<CompilerInput>;
 
+    /**
+     * @deprecated This hook will soon be removed.
+     */
     readSourceFile: (
       context: HookContext,
       absolutePath: string,
@@ -484,6 +492,7 @@ declare module "../../../types/hooks.js" {
      * @param solcConfig The compiler configuration (version, type, etc.).
      * @param next A function to call the next handler for this hook, or the
      * default implementation if no more handlers exist.
+     * @deprecated This hook will soon be removed. Use `getCompilationJobErrors` instead.
      */
     invokeSolc(
       context: HookContext,
@@ -512,6 +521,7 @@ declare module "../../../types/hooks.js" {
      * @param next A function to get remappings from other sources (including default behavior).
      * @returns An array of remapping sources, each containing an array of remapping strings
      *   and the source path they came from.
+     * @deprecated This hook will soon be removed.
      */
     readNpmPackageRemappings: (
       context: HookContext,
