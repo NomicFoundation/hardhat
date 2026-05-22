@@ -1,8 +1,5 @@
 import type { HookContext, SolidityHooks } from "hardhat/types/hooks";
-import type {
-  BuildOptions,
-  ResolvedBuildOptions,
-} from "hardhat/types/solidity";
+import type { ResolvedBuildOptions } from "hardhat/types/solidity";
 
 import { generateTypes } from "../generate-types.js";
 
