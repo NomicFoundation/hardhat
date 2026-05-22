@@ -208,7 +208,7 @@ describe("emitWithArgs", () => {
         isExpectedError(
           error,
           "The event arguments do not match the expected ones.",
-          [addr1.toLowerCase()],
+          [addr1],
           [addr2],
         ),
     );
