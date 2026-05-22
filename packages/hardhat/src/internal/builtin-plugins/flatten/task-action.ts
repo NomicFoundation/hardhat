@@ -268,9 +268,6 @@ function getSortedFiles(dependencyGraph: DependencyGraph): ResolvedFile[] {
   const sortedFiles: ResolvedFile[] = [];
   const visitedFiles = new Set<ResolvedFile>();
 
-  // Files on the current DFS path. A dep that reappears here indicates a cycle.
-  const path: ResolvedFile[] = [];
-
   // Helper function for sorting files by sourceName, for deterministic results
   const sortBySourceName = (files: Iterable<ResolvedFile>) => {
     return Array.from(files).sort((f1, f2) =>
@@ -278,8 +275,9 @@ function getSortedFiles(dependencyGraph: DependencyGraph): ResolvedFile[] {
     );
   };
 
-  // Depth-first walking
-  const walk = (files: ResolvedFile[]) => {
+  // Depth-first walking. `path` is the chain of files leading to the current
+  // visit; a dep that reappears in it indicates a cycle.
+  const walk = (files: ResolvedFile[], path: readonly ResolvedFile[]) => {
     for (const file of files) {
       if (visitedFiles.has(file)) {
         continue;
@@ -287,15 +285,12 @@ function getSortedFiles(dependencyGraph: DependencyGraph): ResolvedFile[] {
 
       assertFileNotOnPath(file, path);
 
-      path.push(file);
-
       const dependencies = sortBySourceName(
         Array.from(dependencyGraph.getDependencies(file)).map((d) => d.file),
       );
 
-      walk(dependencies);
+      walk(dependencies, [...path, file]);
 
-      path.pop();
       visitedFiles.add(file);
       sortedFiles.push(file);
     }
@@ -303,12 +298,15 @@ function getSortedFiles(dependencyGraph: DependencyGraph): ResolvedFile[] {
 
   const roots = sortBySourceName(dependencyGraph.getRoots().values());
 
-  walk(roots);
+  walk(roots, []);
 
   return sortedFiles;
 }
 
-function assertFileNotOnPath(file: ResolvedFile, path: ResolvedFile[]): void {
+function assertFileNotOnPath(
+  file: ResolvedFile,
+  path: readonly ResolvedFile[],
+): void {
   const cycleStart = path.indexOf(file);
 
   if (cycleStart === -1) {
