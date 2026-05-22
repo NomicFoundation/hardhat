@@ -507,5 +507,21 @@ describe("flatten/task-action", () => {
         );
       });
     });
+
+    describe("when a file imports itself", () => {
+      useFixtureProject(
+        "flatten-task/contracts-cyclic-dependencies-self-import",
+      );
+
+      it("should throw FLATTEN_CYCLIC_DEPENDENCY listing the file twice", async function () {
+        const hre = await createHRE();
+
+        await assertRejectsWithHardhatError(
+          flattenAction({ files: [], ...logOptions }, hre),
+          HardhatError.ERRORS.CORE.BUILTIN_TASKS.FLATTEN_CYCLIC_DEPENDENCY,
+          { cycle: "contracts/K.sol -> contracts/K.sol" },
+        );
+      });
+    });
   });
 });
