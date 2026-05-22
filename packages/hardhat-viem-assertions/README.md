@@ -209,7 +209,7 @@ await viem.assertions.revertWithCustomErrorWithArgs(
 
 ### Events
 
-These assertions can be used to check that a transaction emits specific events and their arguments.
+These assertions can be used to check that a transaction emits specific events and their arguments. Each one accepts either an un-awaited viem write call or its already-awaited result, and looks at the receipt of that specific transaction.
 
 #### `emit`
 
@@ -219,7 +219,7 @@ Type:
 
 ```ts
 emit<TContract extends AbiHolder<Abi>>(
-  contractFn: Promise<ReadContractReturnType | WriteContractReturnType>,
+  contractFn: MaybePromise<WriteContractReturnType>,
   contract: TContract,
   eventName: ContractEventName<TContract["abi"]>,
 ): Promise<void>;
@@ -227,7 +227,7 @@ emit<TContract extends AbiHolder<Abi>>(
 
 Parameters:
 
-- `contractFn`: A promise returned by a viem read or write contract call.
+- `contractFn`: A viem write contract call, or its already-awaited result.
 - `contract`: The viem contract instance whose ABI is used to parse logs.
 - `eventName`: The event name to assert. Autocompleted from `contract.abi`.
 
@@ -245,6 +245,15 @@ await viem.assertions.emit(
 );
 ```
 
+The contract call can also be awaited first, which is helpful if you want to assert several events against the same transaction:
+
+```ts
+const hash = await rocketContract.write.launch();
+
+await viem.assertions.emit(hash, rocketContract, "LaunchEvent");
+await viem.assertions.emit(hash, rocketContract, "FuelBurnedEvent");
+```
+
 #### `emitWithArgs`
 
 Assert that executing a contract function emits a specific event with the given arguments.
@@ -256,7 +265,7 @@ emitWithArgs<
   TContract extends AbiHolder<Abi>,
   TEventName extends ContractEventName<TContract["abi"]>,
 >(
-  contractFn: Promise<ReadContractReturnType | WriteContractReturnType>,
+  contractFn: MaybePromise<WriteContractReturnType>,
   contract: TContract,
   eventName: TEventName,
   args: EventArgsOf<TContract["abi"], TEventName>,
@@ -265,7 +274,7 @@ emitWithArgs<
 
 Parameters:
 
-- `contractFn`: A promise returned by a viem read or write contract call.
+- `contractFn`: A viem write contract call, or its already-awaited result.
 - `contract`: The viem contract instance whose ABI is used to parse logs.
 - `eventName`: The event name to assert. Autocompleted from `contract.abi`.
 - `args`: Expected event arguments, typed against the matching ABI input tuple. Each position can be a concrete value or a `(value) => boolean` predicate.
@@ -313,13 +322,13 @@ These assertions can be used to check how a given transaction affects the ether 
 
 #### `balancesHaveChanged`
 
-Assert that a transaction changes the ether balance of the given addresses by the specified amounts.
+Assert that a transaction changes the ether balance of the given addresses by the specified amounts. The transaction can be provided as an un-awaited promise from `sendTransaction` or a viem write call, or as the already-awaited result.
 
 Type:
 
 ```ts
 balancesHaveChanged(
-  resolvedTxHash: Promise<Hash>,
+  txHash: MaybePromise<Hash>,
   changes: Array<{
     address: Address;
     amount: bigint;
@@ -329,7 +338,7 @@ balancesHaveChanged(
 
 Parameters:
 
-- `resolvedTxHash`: A promise that resolves to the transaction hash returned by `sendTransaction`.
+- `txHash`: The transaction hash returned by `sendTransaction` (or a viem write call), or a promise that resolves to it.
 - `changes`: The expected balance deltas, in wei, for each address. Negative values are allowed.
 
 Returns:
@@ -355,4 +364,15 @@ await viem.assertions.balancesHaveChanged(
     },
   ],
 );
+```
+
+The transaction can also be awaited first:
+
+```ts
+const hash = await vault.write.deposit([], { value: 1000n });
+
+await viem.assertions.balancesHaveChanged(hash, [
+  { address: vault.address, amount: 1000n },
+  { address: bobWalletClient.account.address, amount: -1000n },
+]);
 ```
