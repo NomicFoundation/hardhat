@@ -78,6 +78,38 @@ describe("emitWithArgs", () => {
     );
   });
 
+  it("should make multiple assertions against the same awaited tx, including one not emitted", async () => {
+    const contract = await viem.deployContract("Events");
+
+    const hash = await contract.write.emitMultipleTwoUints();
+
+    await viem.assertions.emit(hash, contract, "WithoutArgs");
+
+    await viem.assertions.emitWithArgs(hash, contract, "WithTwoUintArgs", [
+      1n,
+      2n,
+    ]);
+    await viem.assertions.emitWithArgs(hash, contract, "WithTwoUintArgs", [
+      3n,
+      4n,
+    ]);
+    await viem.assertions.emitWithArgs(hash, contract, "WithTwoUintArgs", [
+      5n,
+      6n,
+    ]);
+
+    await assertRejects(
+      viem.assertions.emit(hash, contract, "WithIntArg"),
+      (error) =>
+        isExpectedError(
+          error,
+          `No events were emitted for contract with address "${contract.address}" and event name "WithIntArg"`,
+          false,
+          true,
+        ),
+    );
+  });
+
   it("should check that the event was emitted with the correct multiple arguments, one with param name, one without", async () => {
     const contract = await viem.deployContract("Events");
 
