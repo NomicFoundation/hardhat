@@ -1839,8 +1839,8 @@ describe("File system utils", () => {
 
   describe("symlink", { skip: process.platform === "win32" }, () => {
     it("Should create a symlink to an existing file", async () => {
-      const targetPath = path.join(getTmpDir(), "target.txt");
-      const linkPath = path.join(getTmpDir(), "link.txt");
+      const targetPath = path.join(tmp.path, "target.txt");
+      const linkPath = path.join(tmp.path, "link.txt");
 
       await writeUtf8File(targetPath, "hello");
       await symlink(targetPath, linkPath);
@@ -1852,8 +1852,8 @@ describe("File system utils", () => {
     });
 
     it("Should create a symlink to an existing directory", async () => {
-      const targetPath = path.join(getTmpDir(), "target-dir");
-      const linkPath = path.join(getTmpDir(), "link-dir");
+      const targetPath = path.join(tmp.path, "target-dir");
+      const linkPath = path.join(tmp.path, "link-dir");
 
       await mkdir(targetPath);
       await createFile(path.join(targetPath, "inside.txt"));
@@ -1869,10 +1869,10 @@ describe("File system utils", () => {
     });
 
     it("Should store the target verbatim when given a relative path", async () => {
-      const linkPath = path.join(getTmpDir(), "link.txt");
+      const linkPath = path.join(tmp.path, "link.txt");
 
       // Create the target next to the link so the relative reference resolves.
-      await writeUtf8File(path.join(getTmpDir(), "target.txt"), "hello");
+      await writeUtf8File(path.join(tmp.path, "target.txt"), "hello");
       await symlink("target.txt", linkPath);
 
       assert.equal(await fsPromises.readlink(linkPath), "target.txt");
@@ -1880,8 +1880,8 @@ describe("File system utils", () => {
     });
 
     it("Should create a dangling symlink when the target doesn't exist", async () => {
-      const targetPath = path.join(getTmpDir(), "missing.txt");
-      const linkPath = path.join(getTmpDir(), "link.txt");
+      const targetPath = path.join(tmp.path, "missing.txt");
+      const linkPath = path.join(tmp.path, "link.txt");
 
       await symlink(targetPath, linkPath);
 
@@ -1894,8 +1894,8 @@ describe("File system utils", () => {
     });
 
     it("Should throw FileNotFoundError if the parent directory of linkPath doesn't exist", async () => {
-      const targetPath = path.join(getTmpDir(), "target.txt");
-      const linkPath = path.join(getTmpDir(), "missing-dir", "link.txt");
+      const targetPath = path.join(tmp.path, "target.txt");
+      const linkPath = path.join(tmp.path, "missing-dir", "link.txt");
 
       await writeUtf8File(targetPath, "hello");
 
@@ -1906,8 +1906,8 @@ describe("File system utils", () => {
     });
 
     it("Should throw FileAlreadyExistsError if linkPath already exists as a file", async () => {
-      const targetPath = path.join(getTmpDir(), "target.txt");
-      const linkPath = path.join(getTmpDir(), "link.txt");
+      const targetPath = path.join(tmp.path, "target.txt");
+      const linkPath = path.join(tmp.path, "link.txt");
 
       await writeUtf8File(targetPath, "hello");
       await createFile(linkPath);
@@ -1919,8 +1919,8 @@ describe("File system utils", () => {
     });
 
     it("Should throw FileAlreadyExistsError if linkPath already exists as a symlink", async () => {
-      const targetPath = path.join(getTmpDir(), "target.txt");
-      const linkPath = path.join(getTmpDir(), "link.txt");
+      const targetPath = path.join(tmp.path, "target.txt");
+      const linkPath = path.join(tmp.path, "link.txt");
 
       await writeUtf8File(targetPath, "hello");
       await fsPromises.symlink(targetPath, linkPath);
@@ -1932,7 +1932,7 @@ describe("File system utils", () => {
     });
 
     it("Should throw FileSystemAccessError if a different error is thrown", async () => {
-      const targetPath = path.join(getTmpDir(), "target.txt");
+      const targetPath = path.join(tmp.path, "target.txt");
       const invalidLinkPath = "\0";
 
       await assert.rejects(symlink(targetPath, invalidLinkPath), {
