@@ -475,14 +475,12 @@ describe("flatten/task-action", () => {
   });
 
   describe("Cyclic dependencies", () => {
-    describe("when two files import each other", () => {
+    describe("when two files form a cycle through imports", () => {
       useFixtureProject("flatten-task/contracts-cyclic-dependencies");
 
       it("should throw FLATTEN_CYCLIC_DEPENDENCY listing the cycle", async function () {
         const hre = await createHRE();
-        // Dependencies are visited in sorted-by-source-name order, so the DFS
-        // starts at the alphabetically-first root (F.sol), descends into G.sol,
-        // and detects the back edge to F.sol.
+
         await assertRejectsWithHardhatError(
           flattenAction({ files: [], ...logOptions }, hre),
           HardhatError.ERRORS.CORE.BUILTIN_TASKS.FLATTEN_CYCLIC_DEPENDENCY,
@@ -491,13 +489,14 @@ describe("flatten/task-action", () => {
       });
     });
 
-    describe("when three files form a cycle", () => {
+    describe("when three files form a cycle through imports", () => {
       useFixtureProject(
         "flatten-task/contracts-cyclic-dependencies-three-files",
       );
 
       it("should throw FLATTEN_CYCLIC_DEPENDENCY listing every file in the cycle", async function () {
         const hre = await createHRE();
+
         await assertRejectsWithHardhatError(
           flattenAction({ files: [], ...logOptions }, hre),
           HardhatError.ERRORS.CORE.BUILTIN_TASKS.FLATTEN_CYCLIC_DEPENDENCY,
