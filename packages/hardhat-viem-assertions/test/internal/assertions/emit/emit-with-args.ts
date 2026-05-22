@@ -72,7 +72,7 @@ describe("emitWithArgs", () => {
       (async () => {
         await contract.write.emitWithoutArgs();
         await contract.write.emitTwoUints([1n, 2n]);
-        await contract.write.emitTwoUints([3n, 4n]);
+        const hash = await contract.write.emitTwoUints([3n, 4n]);
         await contract.write.emitTwoUints([5n, 6n]);
         await contract.write.emitWithoutArgs();
 
@@ -81,6 +81,8 @@ describe("emitWithArgs", () => {
           method: "hardhat_mine",
           params: ["0x1"],
         });
+
+        return hash;
       })(),
       contract,
       "WithTwoUintArgs",

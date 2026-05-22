@@ -57,14 +57,41 @@ const _abi = [
 declare const assertions: HardhatViemAssertions;
 declare const contract: GetContractReturnType<typeof _abi>;
 declare const fn: Promise<ReadContractReturnType | WriteContractReturnType>;
+declare const writeFn: Promise<WriteContractReturnType>;
+declare const readFn: Promise<ReadContractReturnType>;
 
 describe("assertion typings", () => {
-  it("emit accepts only event names declared on the contract ABI", () => {
-    void (() => assertions.emit(fn, contract, "WithoutArgs"));
+  it("emit rejects read calls (only write calls have a receipt)", () => {
+    void (() => assertions.emit(writeFn, contract, "WithoutArgs"));
 
     void (() =>
       assertions.emit(
-        fn,
+        // @ts-expect-error -- read results are not accepted: reads don't produce a tx receipt
+        readFn,
+        contract,
+        "WithoutArgs",
+      ));
+  });
+
+  it("emitWithArgs rejects read calls (only write calls have a receipt)", () => {
+    void (() => assertions.emitWithArgs(writeFn, contract, "WithoutArgs", []));
+
+    void (() =>
+      assertions.emitWithArgs(
+        // @ts-expect-error -- read results are not accepted: reads don't produce a tx receipt
+        readFn,
+        contract,
+        "WithoutArgs",
+        [],
+      ));
+  });
+
+  it("emit accepts only event names declared on the contract ABI", () => {
+    void (() => assertions.emit(writeFn, contract, "WithoutArgs"));
+
+    void (() =>
+      assertions.emit(
+        writeFn,
         contract,
         // @ts-expect-error -- "ForeignEvent" is not in the ABI
         "ForeignEvent",
@@ -73,14 +100,14 @@ describe("assertion typings", () => {
 
   it("emitWithArgs narrows expectedArgs to the event's input tuple", () => {
     void (() =>
-      assertions.emitWithArgs(fn, contract, "WithTwoUintArgs", [
+      assertions.emitWithArgs(writeFn, contract, "WithTwoUintArgs", [
         1n,
         (v: bigint) => v > 0n,
       ]));
 
     void (() =>
       assertions.emitWithArgs(
-        fn,
+        writeFn,
         contract,
         "WithTwoUintArgs",
         // @ts-expect-error -- second arg is a string, not a bigint or predicate
@@ -89,7 +116,7 @@ describe("assertion typings", () => {
 
     void (() =>
       assertions.emitWithArgs(
-        fn,
+        writeFn,
         contract,
         "WithTwoUintArgs",
         // @ts-expect-error -- only one arg, ABI declares two
@@ -97,7 +124,7 @@ describe("assertion typings", () => {
       ));
 
     void (() =>
-      assertions.emitWithArgs(fn, contract, "WithTwoUintArgs", [
+      assertions.emitWithArgs(writeFn, contract, "WithTwoUintArgs", [
         1n,
         // @ts-expect-error -- predicate types its arg as string, ABI says bigint
         (v: string) => v.length > 0,

@@ -41,7 +41,7 @@ export class HardhatViemAssertionsImpl<
   }
 
   public async emit<TContract extends AbiHolder<Abi>>(
-    contractFn: Promise<ReadContractReturnType | WriteContractReturnType>,
+    contractFn: Promise<WriteContractReturnType>,
     contract: TContract,
     eventName: ContractEventName<TContract["abi"]>,
   ): Promise<void> {
@@ -52,7 +52,7 @@ export class HardhatViemAssertionsImpl<
     TContract extends AbiHolder<Abi>,
     TEventName extends ContractEventName<TContract["abi"]>,
   >(
-    contractFn: Promise<ReadContractReturnType | WriteContractReturnType>,
+    contractFn: Promise<WriteContractReturnType>,
     contract: TContract,
     eventName: TEventName,
     args: EventArgsOf<TContract["abi"], TEventName>,

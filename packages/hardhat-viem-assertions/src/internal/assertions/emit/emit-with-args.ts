@@ -5,7 +5,6 @@ import type {
   Abi,
   AbiEvent,
   ContractEventName,
-  ReadContractReturnType,
   WriteContractReturnType,
 } from "viem";
 
@@ -22,7 +21,7 @@ export async function emitWithArgs<
   ChainTypeT extends ChainType | string = "generic",
 >(
   viem: HardhatViemHelpers<ChainTypeT>,
-  contractFn: Promise<ReadContractReturnType | WriteContractReturnType>,
+  contractFn: Promise<WriteContractReturnType>,
   contract: TContract,
   eventName: TEventName,
   expectedArgs: EventArgsOf<TContract["abi"], TEventName>,
