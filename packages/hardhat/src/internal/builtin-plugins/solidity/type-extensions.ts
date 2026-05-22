@@ -549,7 +549,8 @@ declare module "../../../types/hooks.js" {
      * pre-existing ones.
      * @param buildRootFilePaths The root file paths of the build, which
      * can be either absolute paths or `npm:<package-name>/<file-path>`
-     * identifiers.
+     * identifiers. This includes all the root files provided to the build
+     * run, including potentially test files.
      * @param buildOptions The options used during the build.
      */
     processArtifactsAfterSuccessfulBuild(
