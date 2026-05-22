@@ -1,5 +1,8 @@
 import type { HookContext, SolidityHooks } from "hardhat/types/hooks";
-import type { BuildOptions } from "hardhat/types/solidity";
+import type {
+  BuildOptions,
+  ResolvedBuildOptions,
+} from "hardhat/types/solidity";
 
 import { generateTypes } from "../generate-types.js";
 
@@ -9,7 +12,7 @@ export default async (): Promise<Partial<SolidityHooks>> => {
       context: HookContext,
       artifactPaths: readonly string[],
       _buildRootFilePaths: readonly string[],
-      _buildOptions: Readonly<BuildOptions> | undefined,
+      _buildOptions: ResolvedBuildOptions,
     ) {
       await generateTypes(
         context.config.paths.root,
