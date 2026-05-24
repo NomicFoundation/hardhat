@@ -103,7 +103,11 @@ describe("AutomaticSenderHandler", function () {
       isFailedJsonRpcResponse(result),
       "expected a failed JSON-RPC response",
     );
-    assert.equal(result.error.code, -32603, "error code should be Internal error (-32603)");
+    assert.equal(
+      result.error.code,
+      -32603,
+      "error code should be Internal error (-32603)",
+    );
     assert.ok(
       result.error.message.includes("eth_accounts"),
       "error message should mention eth_accounts",
