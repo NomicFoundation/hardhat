@@ -76,7 +76,6 @@ export class InvalidRequestError extends ProviderError {
   }
 }
 
-// TODO: not used, should we remove it?
 export class MethodNotFoundError extends ProviderError {
   public static readonly CODE = -32601;
 
@@ -98,33 +97,6 @@ export class InternalError extends ProviderError {
 
   constructor(message: string = "Internal error", parent?: Error) {
     super(message, InternalError.CODE, parent);
-  }
-}
-
-// TODO: not used, should we remove it?
-export class TransactionExecutionError extends ProviderError {
-  public static readonly CODE = -32003;
-
-  constructor(message: string = "Transaction rejected", parent?: Error) {
-    super(message, TransactionExecutionError.CODE, parent);
-  }
-}
-
-// TODO: not used, should we remove it?
-export class MethodNotSupportedError extends ProviderError {
-  public static readonly CODE = -32004;
-
-  constructor(message: string = "Method not supported", parent?: Error) {
-    super(message, MethodNotSupportedError.CODE, parent);
-  }
-}
-
-// TODO: not used, should we remove it?
-export class InvalidResponseError extends ProviderError {
-  public static readonly CODE = -32999;
-
-  constructor(message: string = "Invalid response", parent?: Error) {
-    super(message, InvalidResponseError.CODE, parent);
   }
 }
 
