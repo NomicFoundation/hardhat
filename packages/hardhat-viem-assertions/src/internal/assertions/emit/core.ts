@@ -2,12 +2,7 @@ import type { AbiHolder } from "../../../abi-types.js";
 import type { MaybePromise } from "../../../types.js";
 import type { HardhatViemHelpers } from "@nomicfoundation/hardhat-viem/types";
 import type { ChainType } from "hardhat/types/network";
-import type {
-  Abi,
-  AbiEvent,
-  ContractEventName,
-  WriteContractReturnType,
-} from "viem";
+import type { Abi, AbiEvent, ContractEventName, Hash } from "viem";
 
 import assert from "node:assert/strict";
 
@@ -20,19 +15,19 @@ export async function handleEmit<
   ChainTypeT extends ChainType | string = "generic",
 >(
   viem: HardhatViemHelpers<ChainTypeT>,
-  contractFn: MaybePromise<WriteContractReturnType>,
+  txHash: MaybePromise<Hash>,
   contract: TContract,
   eventName: ContractEventName<TContract["abi"]>,
 ): Promise<Array<{ args?: Record<string, any> }>> {
-  // Settle `contractFn` first so the tx doesn't leak into the next test, but
+  // Settle `txHash` first so the tx doesn't leak into the next test, but
   // defer rethrowing so ABI errors still take precedence over tx reverts.
-  const contractFnResult = await settle(contractFn);
+  const txHashResult = await settle(txHash);
 
-  if (contractFnResult.ok === true) {
+  if (txHashResult.ok === true) {
     assert.ok(
-      isHash(contractFnResult.value),
-      `Expected contract function to return a transaction hash, but got: ${String(
-        contractFnResult.value,
+      isHash(txHashResult.value),
+      `txHash must be a transaction hash or a promise resolving to one, but got: ${String(
+        txHashResult.value,
       )}`,
     );
   }
@@ -47,15 +42,15 @@ export async function handleEmit<
     `Event "${eventName}" not found in the contract ABI`,
   );
 
-  if (contractFnResult.ok === false) {
+  if (txHashResult.ok === false) {
     // eslint-disable-next-line no-restricted-syntax -- propagate the original tx-revert error
-    throw contractFnResult.error;
+    throw txHashResult.error;
   }
 
   const publicClient = await viem.getPublicClient();
 
   const receipt = await publicClient.waitForTransactionReceipt({
-    hash: contractFnResult.value,
+    hash: txHashResult.value,
   });
 
   // `receipt.logs` includes logs from every contract touched by the tx; keep

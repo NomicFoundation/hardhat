@@ -2,12 +2,7 @@ import type { AbiHolder, EventArgsOf } from "../../../abi-types.js";
 import type { MaybePromise } from "../../../types.js";
 import type { HardhatViemHelpers } from "@nomicfoundation/hardhat-viem/types";
 import type { ChainType } from "hardhat/types/network";
-import type {
-  Abi,
-  AbiEvent,
-  ContractEventName,
-  WriteContractReturnType,
-} from "viem";
+import type { Abi, AbiEvent, ContractEventName, Hash } from "viem";
 
 import assert from "node:assert/strict";
 
@@ -22,14 +17,14 @@ export async function emitWithArgs<
   ChainTypeT extends ChainType | string = "generic",
 >(
   viem: HardhatViemHelpers<ChainTypeT>,
-  contractFn: MaybePromise<WriteContractReturnType>,
+  txHash: MaybePromise<Hash>,
   contract: TContract,
   eventName: TEventName,
   expectedArgs: EventArgsOf<TContract["abi"], TEventName>,
 ): Promise<void> {
-  // Settle `contractFn` first so the tx doesn't leak into the next test, but
+  // Settle `txHash` first so the tx doesn't leak into the next test, but
   // defer rethrowing so ABI errors still take precedence over tx reverts.
-  const contractFnResult = await settle(contractFn);
+  const txHashResult = await settle(txHash);
 
   const abiEvents: AbiEvent[] = contract.abi.filter(
     (item): item is AbiEvent =>
@@ -48,18 +43,18 @@ export async function emitWithArgs<
     `There are multiple events named "${eventName}" that accepts ${expectedArgs.length} input arguments. This scenario is currently not supported.`,
   );
 
-  if (contractFnResult.ok === false) {
+  if (txHashResult.ok === false) {
     // eslint-disable-next-line no-restricted-syntax -- propagate the original tx-revert error
-    throw contractFnResult.error;
+    throw txHashResult.error;
   }
 
   const expectedAbiEvent = abiEvents[0];
 
-  // contractFn has already been awaited above; pass an already-resolved promise
+  // txHash has already been awaited above; pass an already-resolved promise
   // so handleEmit's internal await is a no-op and we don't double-submit.
   const parsedLogs = await handleEmit(
     viem,
-    Promise.resolve(contractFnResult.value),
+    Promise.resolve(txHashResult.value),
     contract,
     eventName,
   );

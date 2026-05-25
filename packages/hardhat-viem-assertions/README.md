@@ -209,7 +209,7 @@ await viem.assertions.revertWithCustomErrorWithArgs(
 
 ### Events
 
-These assertions can be used to check that a transaction emits specific events and their arguments. Each one accepts either an un-awaited viem write call or its already-awaited result, and looks at the receipt of that specific transaction.
+These assertions can be used to check that a transaction emits specific events and their arguments. Each one accepts a transaction hash or a promise resolving to one (e.g. a viem write call) and looks at the receipt of that specific transaction.
 
 #### `emit`
 
@@ -219,7 +219,7 @@ Type:
 
 ```ts
 emit<TContract extends AbiHolder<Abi>>(
-  contractFn: MaybePromise<WriteContractReturnType>,
+  txHash: MaybePromise<Hash>,
   contract: TContract,
   eventName: ContractEventName<TContract["abi"]>,
 ): Promise<void>;
@@ -227,7 +227,7 @@ emit<TContract extends AbiHolder<Abi>>(
 
 Parameters:
 
-- `contractFn`: A viem write contract call, or its already-awaited result.
+- `txHash`: The transaction hash returned by a viem write call or `sendTransaction`, or a promise that resolves to it.
 - `contract`: The viem contract instance whose ABI is used to parse logs.
 - `eventName`: The event name to assert. Autocompleted from `contract.abi`.
 
@@ -265,7 +265,7 @@ emitWithArgs<
   TContract extends AbiHolder<Abi>,
   TEventName extends ContractEventName<TContract["abi"]>,
 >(
-  contractFn: MaybePromise<WriteContractReturnType>,
+  txHash: MaybePromise<Hash>,
   contract: TContract,
   eventName: TEventName,
   args: EventArgsOf<TContract["abi"], TEventName>,
@@ -274,7 +274,7 @@ emitWithArgs<
 
 Parameters:
 
-- `contractFn`: A viem write contract call, or its already-awaited result.
+- `txHash`: The transaction hash returned by a viem write call or `sendTransaction`, or a promise that resolves to it.
 - `contract`: The viem contract instance whose ABI is used to parse logs.
 - `eventName`: The event name to assert. Autocompleted from `contract.abi`.
 - `args`: Expected event arguments, typed against the matching ABI input tuple. Each position can be a concrete value or a `(value) => boolean` predicate.

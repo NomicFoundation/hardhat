@@ -87,7 +87,7 @@ describe("emit", () => {
     await viem.assertions.emit(hash, contract, "WithoutArgs");
   });
 
-  it("should throw when contractFn does not resolve to a transaction hash", async () => {
+  it("should throw when txHash does not resolve to a transaction hash", async () => {
     const contract = await viem.deployContract("Events");
 
     await assertRejects(
@@ -100,7 +100,7 @@ describe("emit", () => {
       (error) =>
         isExpectedError(
           error,
-          `Expected contract function to return a transaction hash, but got: not-a-hash`,
+          `txHash must be a transaction hash or a promise resolving to one, but got: not-a-hash`,
           false,
           true,
         ),

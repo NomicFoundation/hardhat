@@ -49,12 +49,12 @@ export interface HardhatViemAssertions {
    * passes if at least one matching event is found in that transaction.
    *
    * @typeParam TContract - The viem contract instance whose ABI is used to parse logs.
-   * @param contractFn - A viem write contract call, or its already-awaited transaction hash.
+   * @param txHash - The transaction hash returned by a viem write call or `sendTransaction`, or a promise that resolves to it.
    * @param contract - The viem contract instance whose ABI is used to parse logs.
    * @param eventName - The event name to assert.
    */
   emit<TContract extends AbiHolder<Abi>>(
-    contractFn: MaybePromise<WriteContractReturnType>,
+    txHash: MaybePromise<Hash>,
     contract: TContract,
     eventName: ContractEventName<TContract["abi"]>,
   ): Promise<void>;
@@ -68,7 +68,7 @@ export interface HardhatViemAssertions {
    *
    * @typeParam TContract - The viem contract instance whose ABI is used to parse logs.
    * @typeParam TEventName - The name of the event to check, constrained to events declared in `TContract`'s ABI.
-   * @param contractFn - A viem write contract call, or its already-awaited transaction hash.
+   * @param txHash - The transaction hash returned by a viem write call or `sendTransaction`, or a promise that resolves to it.
    * @param contract - The viem contract instance whose ABI is used to parse logs.
    * @param eventName - The event name to assert.
    * @param args - Expected event arguments. Each item can be a concrete value or a predicate function `(value) => boolean`.
@@ -77,7 +77,7 @@ export interface HardhatViemAssertions {
     TContract extends AbiHolder<Abi>,
     TEventName extends ContractEventName<TContract["abi"]>,
   >(
-    contractFn: MaybePromise<WriteContractReturnType>,
+    txHash: MaybePromise<Hash>,
     contract: TContract,
     eventName: TEventName,
     args: EventArgsOf<TContract["abi"], TEventName>,

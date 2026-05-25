@@ -41,29 +41,23 @@ export class HardhatViemAssertionsImpl<
   }
 
   public async emit<TContract extends AbiHolder<Abi>>(
-    contractFn: MaybePromise<WriteContractReturnType>,
+    txHash: MaybePromise<Hash>,
     contract: TContract,
     eventName: ContractEventName<TContract["abi"]>,
   ): Promise<void> {
-    return await emit(this.#viem, contractFn, contract, eventName);
+    return await emit(this.#viem, txHash, contract, eventName);
   }
 
   public async emitWithArgs<
     TContract extends AbiHolder<Abi>,
     TEventName extends ContractEventName<TContract["abi"]>,
   >(
-    contractFn: MaybePromise<WriteContractReturnType>,
+    txHash: MaybePromise<Hash>,
     contract: TContract,
     eventName: TEventName,
     args: EventArgsOf<TContract["abi"], TEventName>,
   ): Promise<void> {
-    return await emitWithArgs(
-      this.#viem,
-      contractFn,
-      contract,
-      eventName,
-      args,
-    );
+    return await emitWithArgs(this.#viem, txHash, contract, eventName, args);
   }
 
   public async revert(
