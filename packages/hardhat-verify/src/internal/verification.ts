@@ -240,21 +240,12 @@ Explorer: ${instance.getContractUrl(address)}`);
     return true;
   }
 
-  const librariesWarning =
-    libraryInformation.undetectableLibraries.length > 0
-      ? `
-This contract makes use of libraries whose addresses are undetectable by the plugin.
-Keep in mind that this verification failure may be due to passing in the wrong
-address for one of these libraries:
-${libraryInformation.undetectableLibraries.map((x) => `  * ${x}`).join("\n")}`
-      : "";
-
   if (isNonRetryableVerificationError(minimalInputMessage)) {
     throw new HardhatError(
       HardhatError.ERRORS.HARDHAT_VERIFY.GENERAL.CONTRACT_VERIFICATION_FAILED,
       {
         reason: minimalInputMessage,
-        librariesWarning,
+        librariesWarning: getLibrariesWarning(libraryInformation),
       },
     );
   }
@@ -300,12 +291,11 @@ Unrelated contracts may be displayed on ${instance.name} as a result.
     return true;
   }
 
-
   throw new HardhatError(
     HardhatError.ERRORS.HARDHAT_VERIFY.GENERAL.CONTRACT_VERIFICATION_FAILED,
     {
       reason: verificationMessage,
-      librariesWarning,
+      librariesWarning: getLibrariesWarning(libraryInformation),
     },
   );
 }
@@ -430,6 +420,21 @@ function isNonRetryableVerificationError(message: string): boolean {
   const lower = message.toLowerCase();
   return (
     (lower.includes("bytecode") && lower.includes("not match")) ||
-    lower.includes("constructor argument")
+    lower.includes("constructor argument") ||
+    lower.includes("invalid compiler version")
   );
+}
+
+function getLibrariesWarning(libraryInformation: {
+  undetectableLibraries: string[];
+}): string {
+  if (libraryInformation.undetectableLibraries.length === 0) {
+    return "";
+  }
+
+  return `
+This contract makes use of libraries whose addresses are undetectable by the plugin.
+Keep in mind that this verification failure may be due to passing in the wrong
+address for one of these libraries:
+${libraryInformation.undetectableLibraries.map((x) => `  * ${x}`).join("\n")}`;
 }
