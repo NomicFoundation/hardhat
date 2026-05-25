@@ -205,10 +205,11 @@ export class ResolvedTask implements Task {
     value: ArgumentValue | ArgumentValue[],
   ) {
     if (argument.defaultValue === undefined && value === undefined) {
-      if (
-        argument.type !== ArgumentType.STRING_WITHOUT_DEFAULT &&
-        argument.type !== ArgumentType.FILE_WITHOUT_DEFAULT
-      ) {
+      const allowsUndefined =
+        argument.type === ArgumentType.STRING_WITHOUT_DEFAULT ||
+        argument.type === ArgumentType.FILE_WITHOUT_DEFAULT;
+
+      if (!allowsUndefined) {
         throw new HardhatError(
           HardhatError.ERRORS.CORE.TASK_DEFINITIONS.MISSING_VALUE_FOR_TASK_ARGUMENT,
           {
