@@ -40,6 +40,7 @@ import { parseArgumentValue } from "../core/arguments.js";
 import { buildGlobalOptionDefinitions } from "../core/global-options.js";
 import { resolveProjectRoot } from "../core/hre.js";
 import { resolvePluginList } from "../core/plugins/resolve-plugin-list.js";
+import { warnAboutUnusedLoadedPlugins } from "../core/plugins/unused-plugins-warning.js";
 import { isArgumentRequired } from "../core/tasks/utils.js";
 import { setGlobalHardhatRuntimeEnvironment } from "../global-hre-instance.js";
 import { createHardhatRuntimeEnvironment } from "../hre-initialization.js";
@@ -233,6 +234,8 @@ export async function main(
       projectRoot,
       { resolvedPlugins, globalOptionDefinitions },
     );
+
+    warnAboutUnusedLoadedPlugins(hre.config.plugins);
 
     // This must be the first time we set it, otherwise we let it crash
     setGlobalHardhatRuntimeEnvironment(hre);
