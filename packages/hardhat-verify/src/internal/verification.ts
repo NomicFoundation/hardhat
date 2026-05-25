@@ -242,10 +242,9 @@ Explorer: ${instance.getContractUrl(address)}`);
 
   if (isNonRetryableVerificationError(minimalInputMessage)) {
     throw new HardhatError(
-      HardhatError.ERRORS.HARDHAT_VERIFY.GENERAL.CONTRACT_VERIFICATION_FAILED,
+      HardhatError.ERRORS.HARDHAT_VERIFY.GENERAL.NON_RETRYABLE_VERIFICATION_ERROR,
       {
         reason: minimalInputMessage,
-        librariesWarning: getLibrariesWarning(libraryInformation),
       },
     );
   }

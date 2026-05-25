@@ -3044,6 +3044,16 @@ Please verify the address and network, and try again later if necessary.`,
 
 To resolve this, set a valid non-empty API key in your Hardhat config, then try again.`,
       },
+      NON_RETRYABLE_VERIFICATION_ERROR: {
+        number: 80030,
+        messageTemplate: `The contract verification failed with a non-retryable error: "{reason}".
+
+Retrying with the full compiler input would produce the same result.`,
+        websiteTitle: "Non-retryable verification error",
+        websiteDescription: `The block explorer returned an error that cannot be resolved by retrying with different compiler input. Common causes include:
+
+Retrying will not change the outcome. Fix the underlying cause and try again.`,
+      },
     },
     VALIDATION: {
       INVALID_ADDRESS: {
