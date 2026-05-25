@@ -204,20 +204,19 @@ export class ResolvedTask implements Task {
     argument: PositionalArgumentDefinition,
     value: ArgumentValue | ArgumentValue[],
   ) {
-    if (argument.defaultValue === undefined && value === undefined) {
-      const allowsUndefined =
-        argument.type === ArgumentType.STRING_WITHOUT_DEFAULT ||
-        argument.type === ArgumentType.FILE_WITHOUT_DEFAULT;
-
-      if (!allowsUndefined) {
-        throw new HardhatError(
-          HardhatError.ERRORS.CORE.TASK_DEFINITIONS.MISSING_VALUE_FOR_TASK_ARGUMENT,
-          {
-            argument: argument.name,
-            task: formatTaskId(this.id),
-          },
-        );
-      }
+    if (
+      argument.defaultValue === undefined &&
+      value === undefined &&
+      argument.type !== ArgumentType.STRING_WITHOUT_DEFAULT &&
+      argument.type !== ArgumentType.FILE_WITHOUT_DEFAULT
+    ) {
+      throw new HardhatError(
+        HardhatError.ERRORS.CORE.TASK_DEFINITIONS.MISSING_VALUE_FOR_TASK_ARGUMENT,
+        {
+          argument: argument.name,
+          task: formatTaskId(this.id),
+        },
+      );
     }
   }
 
