@@ -1,10 +1,11 @@
 import type { HardhatPlugin } from "../../../types/plugins.js";
 
+import { definePlugin } from "../../../plugins.js";
 import { globalFlag } from "../../core/config.js";
 
 export type * from "./type-extensions.js";
 
-const hardhatPlugin: HardhatPlugin = {
+const hardhatPlugin: HardhatPlugin = definePlugin({
   id: "builtin:coverage",
   tasks: [],
   globalOptions: [
@@ -20,6 +21,6 @@ const hardhatPlugin: HardhatPlugin = {
     test: () => import("./hook-handlers/test.js"),
   },
   npmPackage: "hardhat",
-};
+});
 
 export default hardhatPlugin;

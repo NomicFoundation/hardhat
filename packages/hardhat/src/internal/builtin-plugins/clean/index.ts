@@ -1,10 +1,11 @@
 import type { HardhatPlugin } from "../../../types/plugins.js";
 
+import { definePlugin } from "../../../plugins.js";
 import { task } from "../../core/config.js";
 
 export type * from "./type-extensions.js";
 
-const hardhatPlugin: HardhatPlugin = {
+const hardhatPlugin: HardhatPlugin = definePlugin({
   id: "builtin:clean",
   tasks: [
     task("clean", "Clear the cache and delete all artifacts")
@@ -16,6 +17,6 @@ const hardhatPlugin: HardhatPlugin = {
       .build(),
   ],
   npmPackage: "hardhat",
-};
+});
 
 export default hardhatPlugin;

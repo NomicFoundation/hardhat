@@ -1,9 +1,10 @@
 import type { HardhatPlugin } from "../../../types/plugins.js";
 
+import { definePlugin } from "../../../plugins.js";
 import { ArgumentType } from "../../../types/arguments.js";
 import { task } from "../../core/config.js";
 
-const hardhatPlugin: HardhatPlugin = {
+const hardhatPlugin: HardhatPlugin = definePlugin({
   id: "builtin:flatten",
   tasks: [
     task("flatten")
@@ -17,6 +18,6 @@ const hardhatPlugin: HardhatPlugin = {
       .setAction(async () => await import("./task-action.js"))
       .build(),
   ],
-};
+});
 
 export default hardhatPlugin;

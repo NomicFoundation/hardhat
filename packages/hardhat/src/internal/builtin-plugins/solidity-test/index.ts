@@ -2,11 +2,12 @@ import type { HardhatPlugin } from "../../../types/plugins.js";
 
 import { ArgumentType } from "hardhat/types/arguments";
 
+import { definePlugin } from "../../../plugins.js";
 import { task } from "../../core/config.js";
 
 export type * from "./type-extensions.js";
 
-const hardhatPlugin: HardhatPlugin = {
+const hardhatPlugin: HardhatPlugin = definePlugin({
   id: "builtin:solidity-tests",
   hookHandlers: {
     config: () => import("./hook-handlers/config.js"),
@@ -51,6 +52,6 @@ const hardhatPlugin: HardhatPlugin = {
     import("../coverage/index.js"),
   ],
   npmPackage: "hardhat",
-};
+});
 
 export default hardhatPlugin;
