@@ -1470,7 +1470,7 @@ describe("assertNoNonInteractiveClashes / copyProjectFilesNonInteractive", () =>
 
   it("should install skills and create CLAUDE.md and .claude for the mocha-ethers template", async () => {
     const [template] = await getTemplate("hardhat-3", "mocha-ethers");
-    const workspace = path.join(process.cwd(), "workspace-mocha-ethers");
+    const workspace = path.join(tmp.path, "workspace-mocha-ethers");
     await ensureDir(workspace);
 
     await copyProjectFilesNonInteractive(workspace, template);
@@ -1526,7 +1526,7 @@ describe("assertNoNonInteractiveClashes / copyProjectFilesNonInteractive", () =>
 
   it("should install skills and create CLAUDE.md and .claude for the node-test-runner-viem template", async () => {
     const [template] = await getTemplate("hardhat-3", "node-test-runner-viem");
-    const workspace = path.join(process.cwd(), "workspace-viem");
+    const workspace = path.join(tmp.path, "workspace-viem");
     await ensureDir(workspace);
 
     await copyProjectFilesNonInteractive(workspace, template);
