@@ -20,6 +20,7 @@ import {
 } from "@nomicfoundation/hardhat-errors";
 import { ensureError } from "@nomicfoundation/hardhat-utils/error";
 
+import { ArgumentType } from "../../../types/arguments.js";
 import { detectPluginNpmDependencyProblems } from "../plugins/detect-plugin-npm-dependency-problems.js";
 
 import { formatTaskId } from "./utils.js";
@@ -204,13 +205,18 @@ export class ResolvedTask implements Task {
     value: ArgumentValue | ArgumentValue[],
   ) {
     if (argument.defaultValue === undefined && value === undefined) {
-      throw new HardhatError(
-        HardhatError.ERRORS.CORE.TASK_DEFINITIONS.MISSING_VALUE_FOR_TASK_ARGUMENT,
-        {
-          argument: argument.name,
-          task: formatTaskId(this.id),
-        },
-      );
+      if (
+        argument.type !== ArgumentType.STRING_WITHOUT_DEFAULT &&
+        argument.type !== ArgumentType.FILE_WITHOUT_DEFAULT
+      ) {
+        throw new HardhatError(
+          HardhatError.ERRORS.CORE.TASK_DEFINITIONS.MISSING_VALUE_FOR_TASK_ARGUMENT,
+          {
+            argument: argument.name,
+            task: formatTaskId(this.id),
+          },
+        );
+      }
     }
   }
 
