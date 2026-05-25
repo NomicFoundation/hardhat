@@ -11,7 +11,7 @@ import type {
 
 import assert from "node:assert/strict";
 
-import { parseEventLogs } from "viem";
+import { parseEventLogs, isHash } from "viem";
 
 import { settle } from "../../helpers.js";
 
@@ -27,6 +27,15 @@ export async function handleEmit<
   // Settle `contractFn` first so the tx doesn't leak into the next test, but
   // defer rethrowing so ABI errors still take precedence over tx reverts.
   const contractFnResult = await settle(contractFn);
+
+  if (contractFnResult.ok === true) {
+    assert.ok(
+      isHash(contractFnResult.value),
+      `Expected contract function to return a transaction hash, but got: ${String(
+        contractFnResult.value,
+      )}`,
+    );
+  }
 
   const abiEvents: AbiEvent[] = contract.abi.filter(
     (item): item is AbiEvent =>

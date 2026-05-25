@@ -87,6 +87,26 @@ describe("emit", () => {
     await viem.assertions.emit(hash, contract, "WithoutArgs");
   });
 
+  it("should throw when contractFn does not resolve to a transaction hash", async () => {
+    const contract = await viem.deployContract("Events");
+
+    await assertRejects(
+      viem.assertions.emit(
+        // eslint-disable-next-line @typescript-eslint/consistent-type-assertions -- intentionally passing a non-hash value to exercise the validation
+        "not-a-hash" as `0x${string}`,
+        contract,
+        "WithoutArgs",
+      ),
+      (error) =>
+        isExpectedError(
+          error,
+          `Expected contract function to return a transaction hash, but got: not-a-hash`,
+          false,
+          true,
+        ),
+    );
+  });
+
   it("should throw because the event does not exists in the ABI", async () => {
     const contract = await viem.deployContract("Events");
 
