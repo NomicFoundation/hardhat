@@ -206,28 +206,30 @@ Explorer: ${instance.getContractUrl(address)}`);
     buildProfileName,
   );
 
-  const { success: minimalInputVerificationSuccess } =
-    await attemptVerification(
-      {
-        verificationProvider: instance,
-        address,
-        encodedConstructorArgs,
-        creationTxHash,
-        contractInformation: {
-          ...contractInformation,
-          // Use the minimal compiler input for the first verification attempt
-          compilerInput: {
-            ...minimalCompilerInput,
-            settings: {
-              ...minimalCompilerInput.settings,
-              // Ensure the libraries are included in the compiler input
-              libraries: libraryInformation.libraries,
-            },
+  const {
+    success: minimalInputVerificationSuccess,
+    message: minimalInputMessage,
+  } = await attemptVerification(
+    {
+      verificationProvider: instance,
+      address,
+      encodedConstructorArgs,
+      creationTxHash,
+      contractInformation: {
+        ...contractInformation,
+        // Use the minimal compiler input for the first verification attempt
+        compilerInput: {
+          ...minimalCompilerInput,
+          settings: {
+            ...minimalCompilerInput.settings,
+            // Ensure the libraries are included in the compiler input
+            libraries: libraryInformation.libraries,
           },
         },
       },
-      consoleLog,
-    );
+    },
+    consoleLog,
+  );
 
   if (minimalInputVerificationSuccess) {
     consoleLog(`
@@ -236,6 +238,25 @@ Explorer: ${instance.getContractUrl(address)}`);
   ${contractInformation.userFqn}
   Explorer: ${instance.getContractUrl(address)}`);
     return true;
+  }
+
+  const librariesWarning =
+    libraryInformation.undetectableLibraries.length > 0
+      ? `
+This contract makes use of libraries whose addresses are undetectable by the plugin.
+Keep in mind that this verification failure may be due to passing in the wrong
+address for one of these libraries:
+${libraryInformation.undetectableLibraries.map((x) => `  * ${x}`).join("\n")}`
+      : "";
+
+  if (isNonRetryableVerificationError(minimalInputMessage)) {
+    throw new HardhatError(
+      HardhatError.ERRORS.HARDHAT_VERIFY.GENERAL.CONTRACT_VERIFICATION_FAILED,
+      {
+        reason: minimalInputMessage,
+        librariesWarning,
+      },
+    );
   }
 
   consoleLog(`
@@ -279,14 +300,6 @@ Unrelated contracts may be displayed on ${instance.name} as a result.
     return true;
   }
 
-  const librariesWarning =
-    libraryInformation.undetectableLibraries.length > 0
-      ? `
-This contract makes use of libraries whose addresses are undetectable by the plugin.
-Keep in mind that this verification failure may be due to passing in the wrong
-address for one of these libraries:
-${libraryInformation.undetectableLibraries.map((x) => `  * ${x}`).join("\n")}`
-      : "";
 
   throw new HardhatError(
     HardhatError.ERRORS.HARDHAT_VERIFY.GENERAL.CONTRACT_VERIFICATION_FAILED,
@@ -411,4 +424,12 @@ async function attemptVerification(
   );
 
   return verificationStatus;
+}
+
+function isNonRetryableVerificationError(message: string): boolean {
+  const lower = message.toLowerCase();
+  return (
+    (lower.includes("bytecode") && lower.includes("not match")) ||
+    lower.includes("constructor argument")
+  );
 }
