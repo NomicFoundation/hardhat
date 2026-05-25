@@ -1,4 +1,5 @@
 import type {
+  ArgumentType,
   ArgumentValue,
   OptionDefinition,
   PositionalArgumentDefinition,
@@ -20,7 +21,6 @@ import {
 } from "@nomicfoundation/hardhat-errors";
 import { ensureError } from "@nomicfoundation/hardhat-utils/error";
 
-import { ArgumentType } from "../../../types/arguments.js";
 import { detectPluginNpmDependencyProblems } from "../plugins/detect-plugin-npm-dependency-problems.js";
 
 import { formatTaskId } from "./utils.js";
@@ -293,9 +293,6 @@ export class ResolvedTask implements Task {
   }
 
   static #isOptionalArgumentType(type: ArgumentType): boolean {
-    return (
-      type === ArgumentType.STRING_WITHOUT_DEFAULT ||
-      type === ArgumentType.FILE_WITHOUT_DEFAULT
-    );
+    return type.endsWith("_WITHOUT_DEFAULT");
   }
 }
