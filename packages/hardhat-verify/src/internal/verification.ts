@@ -432,7 +432,7 @@ const NON_RETRYABLE_PATTERNS = [
   "correct constructor argument",
 ];
 
-function isNonRetryableVerificationError(message: string): boolean {
+export function isNonRetryableVerificationError(message: string): boolean {
   const lower = message.toLowerCase();
   return NON_RETRYABLE_PATTERNS.some((pattern) => lower.includes(pattern));
 }

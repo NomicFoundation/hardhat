@@ -17,6 +17,7 @@ import {
   verifyContract,
   validateArgs,
   validateVerificationProviderName,
+  isNonRetryableVerificationError,
 } from "../src/internal/verification.js";
 import { deployContract, initializeTestDispatcher } from "../test/utils.js";
 
@@ -303,6 +304,28 @@ describe("verification", () => {
           "function",
           `Provider "${providerName}" should have getSupportedChains method`,
         );
+      }
+    });
+  });
+
+  describe("isNonRetryableVerificationError", () => {
+    it("should match NON_RETRYABLE_PATTERNS", () => {
+      const nonRetryableMessages = [
+        "Fail - Unable to verify. Compiled contract deployment bytecode does NOT match the transaction deployment bytecode.",
+        "Fail - Unable to verify. Please check if the correct constructor argument was entered.",
+      ];
+      for (const msg of nonRetryableMessages) {
+        assert.equal(isNonRetryableVerificationError(msg), true, msg);
+      }
+    });
+
+    it("should allow retry for other errors", () => {
+      const retryableMessages = [
+        "Fail - Unable to verify",
+        "Fail - Unable to verify. Solidity Compilation Error: Identifier not found or not unique.",
+      ];
+      for (const msg of retryableMessages) {
+        assert.equal(isNonRetryableVerificationError(msg), false, msg);
       }
     });
   });
