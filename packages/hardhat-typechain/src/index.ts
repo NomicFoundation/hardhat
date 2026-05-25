@@ -1,10 +1,11 @@
 import type { HardhatPlugin } from "hardhat/types/plugins";
 
 import { globalFlag } from "hardhat/config";
+import { definePlugin } from "hardhat/plugins";
 
 export type * from "./type-extensions.js";
 
-const hardhatTypechain: HardhatPlugin = {
+const hardhatTypechain: HardhatPlugin = definePlugin({
   id: "hardhat-typechain",
   hookHandlers: {
     config: () => import("./internal/hook-handlers/config.js"),
@@ -19,6 +20,6 @@ const hardhatTypechain: HardhatPlugin = {
       description: "Disables the typechain type generation",
     }),
   ],
-};
+});
 
 export default hardhatTypechain;

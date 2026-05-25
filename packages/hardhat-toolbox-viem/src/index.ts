@@ -1,8 +1,10 @@
 import type { HardhatPlugin } from "hardhat/types/plugins";
 
+import { definePlugin } from "hardhat/plugins";
+
 export type * from "./type-extensions.js";
 
-const hardhatToolboxViemPlugin: HardhatPlugin = {
+const hardhatToolboxViemPlugin: HardhatPlugin = definePlugin({
   id: "hardhat-toolbox-viem",
   dependencies: () => [
     import("@nomicfoundation/hardhat-ignition-viem"),
@@ -14,6 +16,6 @@ const hardhatToolboxViemPlugin: HardhatPlugin = {
     import("@nomicfoundation/hardhat-verify"),
   ],
   npmPackage: "@nomicfoundation/hardhat-toolbox-viem",
-};
+});
 
 export default hardhatToolboxViemPlugin;
