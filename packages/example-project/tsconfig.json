@@ -2,6 +2,7 @@
   "extends": "../config/tsconfig.base.json",
   "compilerOptions": {
     "isolatedDeclarations": false,
+    "verbatimModuleSyntax": true,
     "types": ["node", "mocha"]
   },
   "references": [
