@@ -290,11 +290,20 @@ Unrelated contracts may be displayed on ${instance.name} as a result.
     return true;
   }
 
+  const librariesWarning =
+    libraryInformation.undetectableLibraries.length > 0
+      ? `
+This contract makes use of libraries whose addresses are undetectable by the plugin.
+Keep in mind that this verification failure may be due to passing in the wrong
+address for one of these libraries:
+${libraryInformation.undetectableLibraries.map((x) => `  * ${x}`).join("\n")}`
+      : "";
+
   throw new HardhatError(
     HardhatError.ERRORS.HARDHAT_VERIFY.GENERAL.CONTRACT_VERIFICATION_FAILED,
     {
       reason: verificationMessage,
-      librariesWarning: getLibrariesWarning(libraryInformation),
+      librariesWarning,
     },
   );
 }
@@ -415,25 +424,15 @@ async function attemptVerification(
   return verificationStatus;
 }
 
+// Known non-retryable Etherscan/Blockscout verification failure patterns.
+const NON_RETRYABLE_PATTERNS = [
+  // Etherscan: "Compiled contract deployment bytecode does NOT match..."
+  "bytecode does not match",
+  // Etherscan: "Please check if the correct constructor argument was entered"
+  "correct constructor argument",
+];
+
 function isNonRetryableVerificationError(message: string): boolean {
   const lower = message.toLowerCase();
-  return (
-    (lower.includes("bytecode") && lower.includes("not match")) ||
-    lower.includes("constructor argument") ||
-    lower.includes("invalid compiler version")
-  );
-}
-
-function getLibrariesWarning(libraryInformation: {
-  undetectableLibraries: string[];
-}): string {
-  if (libraryInformation.undetectableLibraries.length === 0) {
-    return "";
-  }
-
-  return `
-This contract makes use of libraries whose addresses are undetectable by the plugin.
-Keep in mind that this verification failure may be due to passing in the wrong
-address for one of these libraries:
-${libraryInformation.undetectableLibraries.map((x) => `  * ${x}`).join("\n")}`;
+  return NON_RETRYABLE_PATTERNS.some((pattern) => lower.includes(pattern));
 }
