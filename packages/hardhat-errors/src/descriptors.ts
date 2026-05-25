@@ -3052,6 +3052,9 @@ Retrying with the full compiler input would produce the same result.`,
         websiteTitle: "Non-retryable verification error",
         websiteDescription: `The block explorer returned an error that cannot be resolved by retrying with different compiler input. Common causes include:
 
+- **Bytecode mismatch**: the deployed bytecode does not match the compiled bytecode. This can happen when the contract was compiled with a different build profile than the one used for verification. Try verifying with the correct \`--build-profile\`.
+- **Constructor arguments**: the provided constructor arguments do not match the ones used during deployment.
+
 Retrying will not change the outcome. Fix the underlying cause and try again.`,
       },
     },
