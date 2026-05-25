@@ -207,8 +207,7 @@ export class ResolvedTask implements Task {
     if (
       argument.defaultValue === undefined &&
       value === undefined &&
-      argument.type !== ArgumentType.STRING_WITHOUT_DEFAULT &&
-      argument.type !== ArgumentType.FILE_WITHOUT_DEFAULT
+      !isOptionalArgumentType(argument.type)
     ) {
       throw new HardhatError(
         HardhatError.ERRORS.CORE.TASK_DEFINITIONS.MISSING_VALUE_FOR_TASK_ARGUMENT,
@@ -292,4 +291,11 @@ export class ResolvedTask implements Task {
 
     return resolvedActionFn.default;
   }
+}
+
+function isOptionalArgumentType(type: ArgumentType): boolean {
+  return (
+    type === ArgumentType.STRING_WITHOUT_DEFAULT ||
+    type === ArgumentType.FILE_WITHOUT_DEFAULT
+  );
 }
