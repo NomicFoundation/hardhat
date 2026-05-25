@@ -31,39 +31,33 @@ export class HardhatViemAssertionsImpl<
   }
 
   public async balancesHaveChanged(
-    resolvedTxHash: Promise<Hash>,
+    txHash: Hash | Promise<Hash>,
     changes: Array<{
       address: Address;
       amount: bigint;
     }>,
   ): Promise<void> {
-    return await balancesHaveChanged(this.#viem, resolvedTxHash, changes);
+    return await balancesHaveChanged(this.#viem, txHash, changes);
   }
 
   public async emit<TContract extends AbiHolder<Abi>>(
-    contractFn: Promise<ReadContractReturnType | WriteContractReturnType>,
+    txHash: Hash | Promise<Hash>,
     contract: TContract,
     eventName: ContractEventName<TContract["abi"]>,
   ): Promise<void> {
-    return await emit(this.#viem, contractFn, contract, eventName);
+    return await emit(this.#viem, txHash, contract, eventName);
   }
 
   public async emitWithArgs<
     TContract extends AbiHolder<Abi>,
     TEventName extends ContractEventName<TContract["abi"]>,
   >(
-    contractFn: Promise<ReadContractReturnType | WriteContractReturnType>,
+    txHash: Hash | Promise<Hash>,
     contract: TContract,
     eventName: TEventName,
     args: EventArgsOf<TContract["abi"], TEventName>,
   ): Promise<void> {
-    return await emitWithArgs(
-      this.#viem,
-      contractFn,
-      contract,
-      eventName,
-      args,
-    );
+    return await emitWithArgs(this.#viem, txHash, contract, eventName, args);
   }
 
   public async revert(

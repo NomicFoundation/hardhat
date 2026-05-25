@@ -41,6 +41,14 @@ contract Events {
     emit WithTwoUintArgs(u, v);
   }
 
+  function emitMultipleTwoUints() public {
+    emit WithoutArgs();
+    emit WithTwoUintArgs(1, 2);
+    emit WithTwoUintArgs(3, 4);
+    emit WithTwoUintArgs(5, 6);
+    emit WithoutArgs();
+  }
+
   function emitTwoUintsNoParamName(uint u, uint v) public {
     emit WithTwoUintArgsNoParamName(u, v);
   }

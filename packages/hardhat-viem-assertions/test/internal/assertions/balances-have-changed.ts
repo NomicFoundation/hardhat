@@ -1,8 +1,12 @@
 import type { HardhatViemHelpers } from "@nomicfoundation/hardhat-viem/types";
+import type { HardhatRuntimeEnvironment } from "hardhat/types/hre";
 
-import { beforeEach, describe, it } from "node:test";
+import { before, beforeEach, describe, it } from "node:test";
 
-import { assertRejects } from "@nomicfoundation/hardhat-test-utils";
+import {
+  assertRejects,
+  useEphemeralFixtureProject,
+} from "@nomicfoundation/hardhat-test-utils";
 import hardhatViem from "@nomicfoundation/hardhat-viem";
 import { createHardhatRuntimeEnvironment } from "hardhat/hre";
 
@@ -58,6 +62,22 @@ describe("balancesHaveChanged", () => {
     );
   });
 
+  it("should accept an already-awaited tx hash", async () => {
+    const [bobWalletClient, aliceWalletClient] = await viem.getWalletClients();
+
+    const txHash = await bobWalletClient.sendTransaction({
+      to: aliceWalletClient.account.address,
+      value: 3333333333333333n,
+    });
+
+    await viem.assertions.balancesHaveChanged(txHash, [
+      {
+        address: aliceWalletClient.account.address,
+        amount: 3333333333333333n,
+      },
+    ]);
+  });
+
   it("should throw an error when the balance changes to a value different from the expected one", async () => {
     const [bobWalletClient, aliceWalletClient] = await viem.getWalletClients();
 
@@ -83,5 +103,50 @@ describe("balancesHaveChanged", () => {
           10n,
         ),
     );
+  });
+});
+
+describe("balancesHaveChanged with contract write calls", () => {
+  let hre: HardhatRuntimeEnvironment;
+  let viem: HardhatViemHelpers;
+
+  useEphemeralFixtureProject("hardhat-project");
+
+  before(async () => {
+    hre = await createHardhatRuntimeEnvironment({
+      solidity: "0.8.24",
+      plugins: [hardhatViem, hardhatViemAssertions],
+    });
+
+    await hre.tasks.getTask("build").run({});
+  });
+
+  beforeEach(async () => {
+    ({ viem } = await hre.network.create());
+  });
+
+  it("should check balance changes when passed a contract write call promise", async () => {
+    const counter = await viem.deployContract("Counter");
+    const [bobWalletClient] = await viem.getWalletClients();
+
+    await viem.assertions.balancesHaveChanged(
+      counter.write.deposit([], { value: 1000n }),
+      [
+        { address: counter.address, amount: 1000n },
+        { address: bobWalletClient.account.address, amount: -1000n },
+      ],
+    );
+  });
+
+  it("should check balance changes when passed an already-awaited contract write call", async () => {
+    const counter = await viem.deployContract("Counter");
+    const [bobWalletClient] = await viem.getWalletClients();
+
+    const txHash = await counter.write.deposit([], { value: 1000n });
+
+    await viem.assertions.balancesHaveChanged(txHash, [
+      { address: counter.address, amount: 1000n },
+      { address: bobWalletClient.account.address, amount: -1000n },
+    ]);
   });
 });
