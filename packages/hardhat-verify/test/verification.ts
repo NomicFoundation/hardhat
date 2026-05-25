@@ -313,6 +313,9 @@ describe("verification", () => {
       const nonRetryableMessages = [
         "Fail - Unable to verify. Compiled contract deployment bytecode does NOT match the transaction deployment bytecode.",
         "Fail - Unable to verify. Please check if the correct constructor argument was entered.",
+        "Fail - Unable to verify. Please check if the correct bytecodehash was specified via standard-json verification.",
+        "Unable to locate ContractName , did you specify the correct Contract Name ?",
+        "This contract already Similar Matches the deployed ByteCode at 0x1234",
       ];
       for (const msg of nonRetryableMessages) {
         assert.equal(isNonRetryableVerificationError(msg), true, msg);
@@ -323,6 +326,9 @@ describe("verification", () => {
       const retryableMessages = [
         "Fail - Unable to verify",
         "Fail - Unable to verify. Solidity Compilation Error: Identifier not found or not unique.",
+        'Source "contracts/Lib.sol" not found: File import callback not supported',
+        "Library was required but suitable match not found",
+        "This could be a temporary error, please retry or contact us (Error Code 10001)",
       ];
       for (const msg of retryableMessages) {
         assert.equal(isNonRetryableVerificationError(msg), false, msg);

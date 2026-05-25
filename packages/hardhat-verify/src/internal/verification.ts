@@ -425,11 +425,20 @@ async function attemptVerification(
 }
 
 // Known non-retryable Etherscan/Blockscout verification failure patterns.
+// Between the minimal and full-input attempts, only `compilerInput` (source files)
+// changes. Any error unrelated to missing sources is deterministic and non-retryable.
+// Source: https://docs.etherscan.io/contract-verification/common-verification-errors
 const NON_RETRYABLE_PATTERNS = [
-  // Etherscan: "Compiled contract deployment bytecode does NOT match..."
+  // "Compiled contract deployment bytecode does NOT match the transaction deployment bytecode."
   "bytecode does not match",
-  // Etherscan: "Please check if the correct constructor argument was entered"
+  // "Please check if the correct constructor argument was entered"
   "correct constructor argument",
+  // "Please check if the correct bytecodehash was specified via standard-json verification."
+  "correct bytecodehash",
+  // "Unable to locate ContractName , did you specify the correct Contract Name ?"
+  "unable to locate",
+  // "This contract already Similar Matches the deployed ByteCode at [address]"
+  "already similar match",
 ];
 
 export function isNonRetryableVerificationError(message: string): boolean {
