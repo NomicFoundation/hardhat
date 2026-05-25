@@ -2362,6 +2362,68 @@ describe("TaskManagerImplementation", () => {
         );
       });
 
+      it("should not throw for STRING_WITHOUT_DEFAULT positional argument with no value", async () => {
+        let receivedValue: unknown;
+        const hre = await HardhatRuntimeEnvironmentImplementation.create(
+          {
+            plugins: [
+              {
+                id: "plugin1",
+                tasks: [
+                  new NewTaskDefinitionBuilderImplementation("task1")
+                    .addPositionalArgument({
+                      name: "posArg",
+                      type: ArgumentType.STRING_WITHOUT_DEFAULT,
+                    })
+                    .setAction(async () => ({
+                      default: ({ posArg }: { posArg: unknown }) => {
+                        receivedValue = posArg;
+                      },
+                    }))
+                    .build(),
+                ],
+              },
+            ],
+          },
+          {},
+        );
+
+        const task1 = hre.tasks.getTask("task1");
+        await task1.run({});
+        assert.equal(receivedValue, undefined);
+      });
+
+      it("should not throw for FILE_WITHOUT_DEFAULT positional argument with no value", async () => {
+        let receivedValue: unknown;
+        const hre = await HardhatRuntimeEnvironmentImplementation.create(
+          {
+            plugins: [
+              {
+                id: "plugin1",
+                tasks: [
+                  new NewTaskDefinitionBuilderImplementation("task1")
+                    .addPositionalArgument({
+                      name: "posArg",
+                      type: ArgumentType.FILE_WITHOUT_DEFAULT,
+                    })
+                    .setAction(async () => ({
+                      default: ({ posArg }: { posArg: unknown }) => {
+                        receivedValue = posArg;
+                      },
+                    }))
+                    .build(),
+                ],
+              },
+            ],
+          },
+          {},
+        );
+
+        const task1 = hre.tasks.getTask("task1");
+        await task1.run({});
+        assert.equal(receivedValue, undefined);
+      });
+
       it("should throw if the provided value for the argument is not of the correct type", async () => {
         const hre = await HardhatRuntimeEnvironmentImplementation.create(
           {
