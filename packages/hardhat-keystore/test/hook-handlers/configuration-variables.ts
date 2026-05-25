@@ -343,6 +343,35 @@ describe("hook-handlers - configuration variables - fetchValue", () => {
       });
     });
 
+    describe("when an environment variable is set for the same key", () => {
+      let resultValue: string;
+
+      beforeEach(async () => {
+        process.env.key1 = "value-from-env";
+
+        resultValue = await hre.hooks.runHandlerChain(
+          "configurationVariables",
+          "fetchValue",
+          [exampleConfigurationVariable],
+          async (_context, _configVar) => {
+            return process.env[_configVar.name] ?? "unexpected-default-value";
+          },
+        );
+      });
+
+      afterEach(() => {
+        delete process.env.key1;
+      });
+
+      it("should return the environment variable value instead of the keystore value", async () => {
+        assert.equal(
+          resultValue,
+          "value-from-env",
+          "env var should take precedence over keystore",
+        );
+      });
+    });
+
     describe("where the key is not in the development and production keystore", () => {
       let resultValue: string;
 
