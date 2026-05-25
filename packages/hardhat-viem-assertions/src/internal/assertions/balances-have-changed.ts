@@ -1,4 +1,3 @@
-import type { MaybePromise } from "../../types.js";
 import type { HardhatViemHelpers } from "@nomicfoundation/hardhat-viem/types";
 import type { ChainType } from "hardhat/types/network";
 import type { Address, Hash } from "viem";
@@ -11,7 +10,7 @@ export async function balancesHaveChanged<
   ChainTypeT extends ChainType | string = "generic",
 >(
   viem: HardhatViemHelpers<ChainTypeT>,
-  txHash: MaybePromise<Hash>,
+  txHash: Hash | Promise<Hash>,
   changes: Array<{
     address: Address;
     amount: bigint;

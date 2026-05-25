@@ -219,7 +219,7 @@ Type:
 
 ```ts
 emit<TContract extends AbiHolder<Abi>>(
-  txHash: MaybePromise<Hash>,
+  txHash: Hash | Promise<Hash>,
   contract: TContract,
   eventName: ContractEventName<TContract["abi"]>,
 ): Promise<void>;
@@ -265,7 +265,7 @@ emitWithArgs<
   TContract extends AbiHolder<Abi>,
   TEventName extends ContractEventName<TContract["abi"]>,
 >(
-  txHash: MaybePromise<Hash>,
+  txHash: Hash | Promise<Hash>,
   contract: TContract,
   eventName: TEventName,
   args: EventArgsOf<TContract["abi"], TEventName>,
@@ -328,7 +328,7 @@ Type:
 
 ```ts
 balancesHaveChanged(
-  txHash: MaybePromise<Hash>,
+  txHash: Hash | Promise<Hash>,
   changes: Array<{
     address: Address;
     amount: bigint;

@@ -10,13 +10,6 @@ import type {
 } from "viem";
 
 /**
- * A value that may be either resolved synchronously or wrapped in a promise.
- * Used so assertions can accept either `contract.write.foo()` directly or its
- * already-awaited result.
- */
-export type MaybePromise<T> = T | Promise<T>;
-
-/**
  * Ethereum-specific test assertions that integrate with viem.
  *
  * These assertions help validate: reverted transactions, emitted events, and
@@ -34,7 +27,7 @@ export interface HardhatViemAssertions {
    * @param changes - The expected balance deltas, in wei, for each address. Negative values are allowed.
    */
   balancesHaveChanged: (
-    txHash: MaybePromise<Hash>,
+    txHash: Hash | Promise<Hash>,
     changes: Array<{
       address: Address;
       amount: bigint;
@@ -54,7 +47,7 @@ export interface HardhatViemAssertions {
    * @param eventName - The event name to assert.
    */
   emit<TContract extends AbiHolder<Abi>>(
-    txHash: MaybePromise<Hash>,
+    txHash: Hash | Promise<Hash>,
     contract: TContract,
     eventName: ContractEventName<TContract["abi"]>,
   ): Promise<void>;
@@ -77,7 +70,7 @@ export interface HardhatViemAssertions {
     TContract extends AbiHolder<Abi>,
     TEventName extends ContractEventName<TContract["abi"]>,
   >(
-    txHash: MaybePromise<Hash>,
+    txHash: Hash | Promise<Hash>,
     contract: TContract,
     eventName: TEventName,
     args: EventArgsOf<TContract["abi"], TEventName>,
