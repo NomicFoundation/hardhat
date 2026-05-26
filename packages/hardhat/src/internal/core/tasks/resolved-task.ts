@@ -1,5 +1,4 @@
 import type {
-  ArgumentType,
   ArgumentValue,
   OptionDefinition,
   PositionalArgumentDefinition,
@@ -23,7 +22,7 @@ import { ensureError } from "@nomicfoundation/hardhat-utils/error";
 
 import { detectPluginNpmDependencyProblems } from "../plugins/detect-plugin-npm-dependency-problems.js";
 
-import { formatTaskId } from "./utils.js";
+import { formatTaskId, isOptionalArgumentType } from "./utils.js";
 import { validateTaskArgumentValue } from "./validations.js";
 
 export class ResolvedTask implements Task {
@@ -207,7 +206,7 @@ export class ResolvedTask implements Task {
     if (
       argument.defaultValue === undefined &&
       value === undefined &&
-      !ResolvedTask.#isOptionalArgumentType(argument.type)
+      !isOptionalArgumentType(argument.type)
     ) {
       throw new HardhatError(
         HardhatError.ERRORS.CORE.TASK_DEFINITIONS.MISSING_VALUE_FOR_TASK_ARGUMENT,
@@ -290,9 +289,5 @@ export class ResolvedTask implements Task {
     }
 
     return resolvedActionFn.default;
-  }
-
-  static #isOptionalArgumentType(type: ArgumentType): boolean {
-    return type.endsWith("_WITHOUT_DEFAULT");
   }
 }
