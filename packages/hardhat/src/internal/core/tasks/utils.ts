@@ -10,10 +10,13 @@ export function getActorFragment(pluginId: string | undefined): string {
   return pluginId !== undefined ? `Plugin ${pluginId} is` : "You are";
 }
 
+export function isOptionalArgumentType(type: string): boolean {
+  return type.endsWith("_WITHOUT_DEFAULT");
+}
 
 export function isArgumentRequired(
   type: string,
   defaultValue: unknown,
 ): boolean {
-  return defaultValue === undefined && !type.endsWith("_WITHOUT_DEFAULT");
+  return defaultValue === undefined && !isOptionalArgumentType(type);
 }
