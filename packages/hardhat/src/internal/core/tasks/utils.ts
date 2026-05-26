@@ -1,3 +1,5 @@
+import type { ArgumentType, ArgumentValue } from "../../../types/arguments.js";
+
 export function formatTaskId(taskId: string | string[]): string {
   if (typeof taskId === "string") {
     return taskId;
@@ -10,13 +12,13 @@ export function getActorFragment(pluginId: string | undefined): string {
   return pluginId !== undefined ? `Plugin ${pluginId} is` : "You are";
 }
 
-export function isOptionalArgumentType(type: string): boolean {
+export function isOptionalArgumentType(type: ArgumentType): boolean {
   return type.endsWith("_WITHOUT_DEFAULT");
 }
 
 export function isArgumentRequired(
-  type: string,
-  defaultValue: unknown,
+  type: ArgumentType,
+  defaultValue: ArgumentValue | ArgumentValue[] | undefined,
 ): boolean {
   return defaultValue === undefined && !isOptionalArgumentType(type);
 }
