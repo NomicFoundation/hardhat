@@ -9,3 +9,7 @@ export function formatTaskId(taskId: string | string[]): string {
 export function getActorFragment(pluginId: string | undefined): string {
   return pluginId !== undefined ? `Plugin ${pluginId} is` : "You are";
 }
+
+export function isOptionalArgumentType(type: string): boolean {
+  return type.endsWith("_WITHOUT_DEFAULT");
+}
