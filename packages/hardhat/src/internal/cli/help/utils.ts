@@ -7,7 +7,7 @@ import type { Task } from "../../../types/tasks.js";
 
 import { camelToKebabCase } from "@nomicfoundation/hardhat-utils/string";
 
-import { isOptionalArgumentType } from "../../core/tasks/utils.js";
+import { isArgumentRequired } from "../../core/tasks/utils.js";
 
 export const GLOBAL_NAME_PADDING = 6;
 
@@ -95,7 +95,7 @@ export function parseOptions(task: Task): {
     positionalArguments.push({
       name,
       description: trimFullStop(description),
-      isRequired: defaultValue === undefined && !isOptionalArgumentType(type),
+      isRequired: isArgumentRequired(type, defaultValue),
       ...(defaultValue !== undefined && {
         defaultValue: Array.isArray(defaultValue)
           ? defaultValue.join(", ")
