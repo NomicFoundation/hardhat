@@ -19,7 +19,7 @@ import {
   validateArgumentValue,
 } from "../arguments.js";
 
-import { formatTaskId } from "./utils.js";
+import { isArgumentRequired, formatTaskId } from "./utils.js";
 
 export function validateId(id: string | string[]): void {
   if (id.length === 0) {
@@ -133,8 +133,8 @@ export function validatePositionalArgument(
 
   if (
     lastArg !== undefined &&
-    lastArg.defaultValue !== undefined &&
-    defaultValue === undefined
+    !isArgumentRequired(lastArg.type, lastArg.defaultValue) &&
+    isArgumentRequired(type, defaultValue)
   ) {
     throw new HardhatError(
       HardhatError.ERRORS.CORE.TASK_DEFINITIONS.REQUIRED_ARG_AFTER_OPTIONAL,
