@@ -22,7 +22,7 @@ import { ensureError } from "@nomicfoundation/hardhat-utils/error";
 
 import { detectPluginNpmDependencyProblems } from "../plugins/detect-plugin-npm-dependency-problems.js";
 
-import { formatTaskId } from "./utils.js";
+import { formatTaskId, isArgumentRequired } from "./utils.js";
 import { validateTaskArgumentValue } from "./validations.js";
 
 export class ResolvedTask implements Task {
@@ -203,7 +203,10 @@ export class ResolvedTask implements Task {
     argument: PositionalArgumentDefinition,
     value: ArgumentValue | ArgumentValue[],
   ) {
-    if (argument.defaultValue === undefined && value === undefined) {
+    if (
+      isArgumentRequired(argument.type, argument.defaultValue) &&
+      value === undefined
+    ) {
       throw new HardhatError(
         HardhatError.ERRORS.CORE.TASK_DEFINITIONS.MISSING_VALUE_FOR_TASK_ARGUMENT,
         {
