@@ -2,6 +2,7 @@ import type { HardhatPlugin } from "../../../../src/types/plugins.js";
 
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
+import { styleText } from "node:util";
 
 import { warnAboutUnusedLoadedPlugins } from "../../../../src/internal/core/plugins/unused-plugins-warning.js";
 
@@ -16,6 +17,13 @@ function captureErrors(): {
   };
 }
 
+const WARNING_HEADER =
+  styleText(["bold", "yellow"], "Warning:") +
+  " the following plugins were imported but are not present in your `plugins` array in hardhat.config.ts:";
+
+const WARNING_FOOTER =
+  "  Add them to `plugins: [...]` in your config to enable them, or remove the import(s) to remove this warning.";
+
 describe("warnAboutUnusedLoadedPlugins", () => {
   it("emits a warning listing plugins that are loaded but not resolved", () => {
     const orphan: HardhatPlugin = {
@@ -28,11 +36,13 @@ describe("warnAboutUnusedLoadedPlugins", () => {
 
     assert.deepEqual(messages, [
       [
-        "Warning: the following plugins were imported but are not present in your `plugins` array in hardhat.config.ts:",
+        "",
+        WARNING_HEADER,
         "",
         "  - @nomicfoundation/hardhat-orphan  (id: hardhat-orphan)",
         "",
-        "Add them to `plugins: [...]` in your config to enable them, or remove the import if intentional.",
+        WARNING_FOOTER,
+        "",
       ].join("\n"),
     ]);
   });
@@ -67,11 +77,13 @@ describe("warnAboutUnusedLoadedPlugins", () => {
 
     assert.deepEqual(messages, [
       [
-        "Warning: the following plugins were imported but are not present in your `plugins` array in hardhat.config.ts:",
+        "",
+        WARNING_HEADER,
         "",
         "  - hardhat-no-pkg",
         "",
-        "Add them to `plugins: [...]` in your config to enable them, or remove the import if intentional.",
+        WARNING_FOOTER,
+        "",
       ].join("\n"),
     ]);
   });
@@ -88,12 +100,14 @@ describe("warnAboutUnusedLoadedPlugins", () => {
 
     assert.deepEqual(messages, [
       [
-        "Warning: the following plugins were imported but are not present in your `plugins` array in hardhat.config.ts:",
+        "",
+        WARNING_HEADER,
         "",
         "  - @nomicfoundation/hardhat-orphan-a  (id: hardhat-orphan-a)",
         "  - hardhat-orphan-b",
         "",
-        "Add them to `plugins: [...]` in your config to enable them, or remove the import if intentional.",
+        WARNING_FOOTER,
+        "",
       ].join("\n"),
     ]);
   });

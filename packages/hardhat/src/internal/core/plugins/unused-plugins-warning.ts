@@ -1,5 +1,7 @@
 import type { HardhatPlugin } from "../../../types/plugins.js";
 
+import { styleText } from "node:util";
+
 import { getLoadedPlugins } from "./loaded-plugins-registry.js";
 
 export function warnAboutUnusedLoadedPlugins(
@@ -21,7 +23,9 @@ export function warnAboutUnusedLoadedPlugins(
   }
 
   const lines: string[] = [
-    "Warning: the following plugins were imported but are not present in your `plugins` array in hardhat.config.ts:",
+    "",
+    styleText(["bold", "yellow"], "Warning:") +
+      " the following plugins were imported but are not present in your `plugins` array in hardhat.config.ts:",
     "",
   ];
 
@@ -35,7 +39,8 @@ export function warnAboutUnusedLoadedPlugins(
 
   lines.push(
     "",
-    "Add them to `plugins: [...]` in your config to enable them, or remove the import if intentional.",
+    "  Add them to `plugins: [...]` in your config to enable them, or remove the import(s) to remove this warning.",
+    "",
   );
 
   printError(lines.join("\n"));
