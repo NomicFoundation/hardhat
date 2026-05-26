@@ -360,6 +360,52 @@ describe("utils", function () {
         ],
       });
     });
+
+    for (const argType of [
+      ArgumentType.STRING_WITHOUT_DEFAULT,
+      ArgumentType.FILE_WITHOUT_DEFAULT,
+    ] as const) {
+      it(`should mark ${argType} positional argument as optional`, function () {
+        const task: Task = {
+          id: ["task"],
+          description: "task description",
+          actions: [
+            {
+              pluginId: "task-plugin-id",
+              action: async () => ({
+                default: () => {},
+              }),
+            },
+          ],
+          options: new Map(),
+          positionalArguments: [
+            {
+              name: "posArg",
+              description: "An optional argument",
+              type: argType,
+              isVariadic: false,
+            },
+          ],
+          pluginId: "task-plugin-id",
+          subtasks: new Map(),
+          isEmpty: false,
+          run: async () => {},
+        };
+
+        const result = parseOptions(task);
+
+        assert.deepEqual(result, {
+          options: [],
+          positionalArguments: [
+            {
+              name: "posArg",
+              description: "An optional argument",
+              isRequired: false,
+            },
+          ],
+        });
+      });
+    }
   });
 
   describe("toCommandLineOption", function () {

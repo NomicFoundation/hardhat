@@ -1477,6 +1477,65 @@ GLOBAL OPTIONS:
       });
     });
 
+    describe("task with _WITHOUT_DEFAULT positional arguments", function () {
+      for (const argType of [
+        ArgumentType.STRING_WITHOUT_DEFAULT,
+        ArgumentType.FILE_WITHOUT_DEFAULT,
+      ] as const) {
+        describe(argType, function () {
+          before(async function () {
+            tasksBuilders = [
+              task(["task0"]).addPositionalArgument({
+                name: "arg",
+                type: argType,
+              }),
+            ];
+
+            subtasksBuilders = [];
+
+            ({ hre, tasks, subtasks } = await getTasksAndHreEnvironment(
+              tasksBuilders,
+              subtasksBuilders,
+            ));
+          });
+
+          it("should not throw when no value is provided", function () {
+            const command = "npx hardhat task0";
+
+            const cliArguments = command.split(" ").slice(2);
+            const usedCliArguments = [false];
+
+            const res = parseTaskAndArguments(
+              cliArguments,
+              usedCliArguments,
+              hre,
+            );
+
+            assert.ok(!Array.isArray(res), "Result should not be an array");
+            assert.equal(res.task.id, tasks[0].id);
+            assert.deepEqual(res.taskArguments, {});
+          });
+
+          it("should accept a value when one is provided", function () {
+            const command = "npx hardhat task0 myValue";
+
+            const cliArguments = command.split(" ").slice(2);
+            const usedCliArguments = new Array(cliArguments.length).fill(false);
+
+            const res = parseTaskAndArguments(
+              cliArguments,
+              usedCliArguments,
+              hre,
+            );
+
+            assert.ok(!Array.isArray(res), "Result should not be an array");
+            assert.equal(res.task.id, tasks[0].id);
+            assert.deepEqual(res.taskArguments, { arg: "myValue" });
+          });
+        });
+      }
+    });
+
     describe("task and subtask with variadic arguments", function () {
       before(async function () {
         tasksBuilders = [
