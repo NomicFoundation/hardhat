@@ -19,10 +19,10 @@ function captureErrors(): {
 
 const WARNING_HEADER =
   styleText(["bold", "yellow"], "Warning:") +
-  " the following plugins were imported but are not present in your `plugins` array in hardhat.config.ts:";
+  " the following plugins were imported but are not present in the `plugins` array of your config:";
 
 const WARNING_FOOTER =
-  "  Add them to `plugins: [...]` in your config to enable them, or remove the import(s) to remove this warning.";
+  "  Add them to the `plugins` array, or remove the unused plugin import(s) to silence this warning.";
 
 describe("warnAboutUnusedLoadedPlugins", () => {
   it("emits a warning listing plugins that are loaded but not resolved", () => {
