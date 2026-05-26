@@ -61,6 +61,7 @@ export interface MainOptions {
   registerTsx?: boolean;
   rethrowErrors?: true;
   allowNonlocalHardhatInstallation?: true;
+  warnAboutUnusedPlugins?: true;
 }
 
 export async function main(
@@ -235,7 +236,9 @@ export async function main(
       { resolvedPlugins, globalOptionDefinitions },
     );
 
-    warnAboutUnusedLoadedPlugins(hre.config.plugins);
+    if (options.warnAboutUnusedPlugins) {
+      warnAboutUnusedLoadedPlugins(hre.config.plugins);
+    }
 
     // This must be the first time we set it, otherwise we let it crash
     setGlobalHardhatRuntimeEnvironment(hre);
