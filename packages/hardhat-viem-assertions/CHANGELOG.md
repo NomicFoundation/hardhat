@@ -1,5 +1,23 @@
 # @nomicfoundation/hardhat-viem-assertions
 
+## 3.1.0
+
+### Minor Changes
+
+- [#8329](https://github.com/NomicFoundation/hardhat/pull/8329) [`02fc7fb`](https://github.com/NomicFoundation/hardhat/commit/02fc7fb4e1d9883dc1158ae5172a10f6af6cc5be) Thanks [@alcuadrado](https://github.com/alcuadrado)! - The assertions `balancesHaveChanged`, `emit`, and `emitWithArgs` now accept either a promise or its already-awaited value, so `await contract.write.foo()` can be passed directly.
+
+  `emit` and `emitWithArgs` now only look at logs produced by the specific transaction passed in (via its receipt) instead of every log ever emitted by the contract address. Tests that previously passed by matching events from other transactions on the same contract will now correctly fail.
+
+  The `contractFn` parameter of `emit` and `emitWithArgs` has been narrowed accordingly: it no longer accepts `ReadContractReturnType` (reads don't produce a receipt). Existing code passing a read result was already a no-op against the contract's logs and would not have produced a meaningful assertion.
+
+### Patch Changes
+
+- [#8313](https://github.com/NomicFoundation/hardhat/pull/8313) [`f1663f7`](https://github.com/NomicFoundation/hardhat/commit/f1663f7aa95a9e7490996527f2f8e9a3e9c8b1c7) Thanks [@0xAxiom](https://github.com/0xAxiom)! - Compare addresses case-insensitively in withArgs / revertWithCustomErrorWithArgs
+
+- Updated dependencies:
+  - @nomicfoundation/hardhat-utils@4.1.3
+  - @nomicfoundation/hardhat-errors@3.0.14
+
 ## 3.0.13
 
 ### Patch Changes

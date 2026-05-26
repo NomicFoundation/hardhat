@@ -1,5 +1,13 @@
 # @nomicfoundation/hardhat-utils
 
+## 4.1.3
+
+### Patch Changes
+
+- [#8262](https://github.com/NomicFoundation/hardhat/pull/8262) [`d3ba170`](https://github.com/NomicFoundation/hardhat/commit/d3ba17006874715de86194c6a136cd0b7afb9bc4) Thanks [@fvictorio](https://github.com/fvictorio)! - Add symlink functionality
+
+- [#8262](https://github.com/NomicFoundation/hardhat/pull/8262) [`d3ba170`](https://github.com/NomicFoundation/hardhat/commit/d3ba17006874715de86194c6a136cd0b7afb9bc4) Thanks [@fvictorio](https://github.com/fvictorio)! - Add AGENTS.md and agentic skills to sample projects
+
 ## 4.1.2
 
 ### Patch Changes
