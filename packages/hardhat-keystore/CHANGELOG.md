@@ -1,5 +1,15 @@
 # @nomicfoundation/hardhat-keystore
 
+## 3.0.11
+
+### Patch Changes
+
+- [#8334](https://github.com/NomicFoundation/hardhat/pull/8334) [`68e9906`](https://github.com/NomicFoundation/hardhat/commit/68e9906f302914dae5d8dabb43955774e2c69672) Thanks [@gultekinmakif](https://github.com/gultekinmakif)! - Environment variables take precedence over keystore values
+
+- Updated dependencies:
+  - @nomicfoundation/hardhat-utils@4.1.3
+  - @nomicfoundation/hardhat-errors@3.0.14
+
 ## 3.0.10
 
 ### Patch Changes

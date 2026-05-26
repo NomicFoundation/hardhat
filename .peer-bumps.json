@@ -6,11 +6,5 @@
     "packages/hardhat/templates",
     "packages/config"
   ],
-  "bumps": [
-    {
-      "package": "@nomicfoundation/hardhat-typechain",
-      "peer": "hardhat",
-      "reason": "It uses the new processArtifactsAfterSuccessfulBuild hook"
-    }
-  ]
+  "bumps": []
 }

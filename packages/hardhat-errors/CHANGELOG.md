@@ -1,5 +1,14 @@
 # @nomicfoundation/hardhat-errors
 
+## 3.0.14
+
+### Patch Changes
+
+- [#8326](https://github.com/NomicFoundation/hardhat/pull/8326) [`959f2e1`](https://github.com/NomicFoundation/hardhat/commit/959f2e1989c4bcbff05f717b33a2df1098f67616) Thanks [@kanej](https://github.com/kanej)! - Fixed `hardhat flatten` silently producing a misleading output for projects with cyclic Solidity dependencies.
+
+- Updated dependencies:
+  - @nomicfoundation/hardhat-utils@4.1.3
+
 ## 3.0.13
 
 ### Patch Changes
