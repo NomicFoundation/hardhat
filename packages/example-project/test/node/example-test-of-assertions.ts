@@ -1,6 +1,6 @@
 import { describe, it, before } from "node:test";
 import hre from "hardhat";
-import { ContractReturnType } from "@nomicfoundation/hardhat-viem/types";
+import type { ContractReturnType } from "@nomicfoundation/hardhat-viem/types";
 
 const { viem } = await hre.network.create();
 
