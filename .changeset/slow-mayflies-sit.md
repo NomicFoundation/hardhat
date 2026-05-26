@@ -1,5 +1,5 @@
 ---
-"hardhat": patch
+"hardhat": minor
 # docs: https://github.com/NomicFoundation/hardhat-website/pull/266
 ---
 
