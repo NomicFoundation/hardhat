@@ -6,5 +6,101 @@
     "packages/hardhat/templates",
     "packages/config"
   ],
-  "bumps": []
+  "bumps": [
+    {
+      "package": "@nomicfoundation/hardhat-typechain",
+      "peer": "hardhat",
+      "reason": "It uses the new processArtifactsAfterSuccessfulBuild hook"
+    },
+    {
+      "package": "@nomicfoundation/hardhat-ethers",
+      "peer": "hardhat",
+      "reason": "It uses `definePlugin` from `hardhat/plugins`"
+    },
+    {
+      "package": "@nomicfoundation/hardhat-ethers-chai-matchers",
+      "peer": "hardhat",
+      "reason": "It uses `definePlugin` from `hardhat/plugins`"
+    },
+    {
+      "package": "@nomicfoundation/hardhat-foundry",
+      "peer": "hardhat",
+      "reason": "It uses `definePlugin` from `hardhat/plugins`"
+    },
+    {
+      "package": "@nomicfoundation/hardhat-ignition",
+      "peer": "hardhat",
+      "reason": "It uses `definePlugin` from `hardhat/plugins`"
+    },
+    {
+      "package": "@nomicfoundation/hardhat-ignition-ethers",
+      "peer": "hardhat",
+      "reason": "It uses `definePlugin` from `hardhat/plugins`"
+    },
+    {
+      "package": "@nomicfoundation/hardhat-ignition-viem",
+      "peer": "hardhat",
+      "reason": "It uses `definePlugin` from `hardhat/plugins`"
+    },
+    {
+      "package": "@nomicfoundation/hardhat-keystore",
+      "peer": "hardhat",
+      "reason": "It uses `definePlugin` from `hardhat/plugins`"
+    },
+    {
+      "package": "@nomicfoundation/hardhat-ledger",
+      "peer": "hardhat",
+      "reason": "It uses `definePlugin` from `hardhat/plugins`"
+    },
+    {
+      "package": "@nomicfoundation/hardhat-mocha",
+      "peer": "hardhat",
+      "reason": "It uses `definePlugin` from `hardhat/plugins`"
+    },
+    {
+      "package": "@nomicfoundation/hardhat-network-helpers",
+      "peer": "hardhat",
+      "reason": "It uses `definePlugin` from `hardhat/plugins`"
+    },
+    {
+      "package": "@nomicfoundation/hardhat-node-test-runner",
+      "peer": "hardhat",
+      "reason": "It uses `definePlugin` from `hardhat/plugins`"
+    },
+    {
+      "package": "@nomicfoundation/hardhat-solx",
+      "peer": "hardhat",
+      "reason": "It uses `definePlugin` from `hardhat/plugins`"
+    },
+    {
+      "package": "@nomicfoundation/hardhat-toolbox-mocha-ethers",
+      "peer": "hardhat",
+      "reason": "It uses `definePlugin` from `hardhat/plugins`"
+    },
+    {
+      "package": "@nomicfoundation/hardhat-toolbox-viem",
+      "peer": "hardhat",
+      "reason": "It uses `definePlugin` from `hardhat/plugins`"
+    },
+    {
+      "package": "@nomicfoundation/hardhat-typechain",
+      "peer": "hardhat",
+      "reason": "It uses `definePlugin` from `hardhat/plugins`"
+    },
+    {
+      "package": "@nomicfoundation/hardhat-verify",
+      "peer": "hardhat",
+      "reason": "It uses `definePlugin` from `hardhat/plugins`"
+    },
+    {
+      "package": "@nomicfoundation/hardhat-viem",
+      "peer": "hardhat",
+      "reason": "It uses `definePlugin` from `hardhat/plugins`"
+    },
+    {
+      "package": "@nomicfoundation/hardhat-viem-assertions",
+      "peer": "hardhat",
+      "reason": "It uses `definePlugin` from `hardhat/plugins`"
+    }
+  ]
 }
