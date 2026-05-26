@@ -40,6 +40,7 @@ import { parseArgumentValue } from "../core/arguments.js";
 import { buildGlobalOptionDefinitions } from "../core/global-options.js";
 import { resolveProjectRoot } from "../core/hre.js";
 import { resolvePluginList } from "../core/plugins/resolve-plugin-list.js";
+import { isOptionalArgumentType } from "../core/tasks/utils.js";
 import { setGlobalHardhatRuntimeEnvironment } from "../global-hre-instance.js";
 import { createHardhatRuntimeEnvironment } from "../hre-initialization.js";
 
@@ -767,8 +768,10 @@ function validateRequiredArguments(
   taskArguments: TaskArguments,
 ) {
   const missingRequiredArgument = argumentDefinitions.find(
-    ({ defaultValue, name }) =>
-      defaultValue === undefined && taskArguments[name] === undefined,
+    ({ defaultValue, name, type }) =>
+      defaultValue === undefined &&
+      taskArguments[name] === undefined &&
+      !isOptionalArgumentType(type),
   );
 
   if (missingRequiredArgument === undefined) {
