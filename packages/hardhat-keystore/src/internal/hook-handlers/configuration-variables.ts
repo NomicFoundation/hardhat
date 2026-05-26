@@ -26,6 +26,11 @@ export default async (): Promise<Partial<ConfigurationVariableHooks>> => {
       variable: ConfigurationVariable,
       next,
     ) => {
+      // Environment variables should take precedence over keystore
+      if (process.env[variable.name] !== undefined) {
+        return await next(context, variable);
+      }
+
       // If we are in CI, the keystore should not be used
       // or even initialized
       if (isCi()) {
