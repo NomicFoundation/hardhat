@@ -19,6 +19,7 @@ import {
   opHardforkFromString,
   l1HardforkFromString,
 } from "@nomicfoundation/edr";
+import { HardhatError } from "@nomicfoundation/hardhat-errors";
 import { toBigInt } from "@nomicfoundation/hardhat-utils/bigint";
 import { hexStringToBytes } from "@nomicfoundation/hardhat-utils/hex";
 
@@ -203,4 +204,19 @@ export function warnDeprecatedTestFail(
       console.warn(warningMessage);
     }
   });
+}
+
+export function escapeRegExp(s: string): string {
+  return s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
+export function buildSafeRegExp(pattern: string, flagName: string): RegExp {
+  try {
+    return new RegExp(pattern);
+  } catch {
+    throw new HardhatError(
+      HardhatError.ERRORS.CORE.ARGUMENTS.INVALID_VALUE_FOR_TYPE,
+      { value: pattern, type: "RegExp", name: flagName },
+    );
+  }
 }

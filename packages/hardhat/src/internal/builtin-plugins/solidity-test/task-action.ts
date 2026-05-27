@@ -38,6 +38,8 @@ import {
 } from "./edr-artifacts.js";
 import { collectEip712CanonicalTypes } from "./eip712/index.js";
 import {
+  buildSafeRegExp,
+  escapeRegExp,
   isTestSuiteArtifact,
   warnDeprecatedTestFail,
   solidityTestConfigToSolidityTestRunnerConfigArgs,
@@ -502,21 +504,6 @@ async function loadArtifacts(
     );
   }
   return { edrArtifactsWithMetadata, allBuildInfosAndOutputs };
-}
-
-function escapeRegExp(s: string): string {
-  return s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-}
-
-function buildSafeRegExp(pattern: string, flagName: string): RegExp {
-  try {
-    return new RegExp(pattern);
-  } catch {
-    throw new HardhatError(
-      HardhatError.ERRORS.CORE.ARGUMENTS.INVALID_VALUE_FOR_TYPE,
-      { value: pattern, type: "RegExp", name: flagName },
-    );
-  }
 }
 
 export default runSolidityTests;
