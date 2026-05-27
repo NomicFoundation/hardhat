@@ -204,7 +204,7 @@ const runSolidityTests: NewTaskActionFunction<TestActionArguments> = async (
   if (noMatchContract !== undefined) {
     const noMatchContractRegex = buildSafeRegExp(
       noMatchContract,
-      "noMatchContract",
+      "--no-match-contract",
     );
     testSuiteArtifacts = testSuiteArtifacts.filter(
       ({ edrArtifact }) => !noMatchContractRegex.test(edrArtifact.id.name),
@@ -267,7 +267,7 @@ const runSolidityTests: NewTaskActionFunction<TestActionArguments> = async (
 
   let effectiveTestPattern = grep;
   if (noMatchTest !== undefined) {
-    const noMatchTestRegex = buildSafeRegExp(noMatchTest, "noMatchTest");
+    const noMatchTestRegex = buildSafeRegExp(noMatchTest, "--no-match-test");
     const allTestNames = testSuiteArtifacts.flatMap(({ edrArtifact }) =>
       getTestFunctionNames(edrArtifact),
     );
@@ -277,13 +277,14 @@ const runSolidityTests: NewTaskActionFunction<TestActionArguments> = async (
     );
 
     if (grep !== undefined) {
-      const grepRegex = buildSafeRegExp(grep, "grep");
+      const grepRegex = buildSafeRegExp(grep, "--grep");
       survivingTests = survivingTests.filter((name) => grepRegex.test(name));
     }
 
     if (survivingTests.length === 0) {
+      const activeFlags = `--no-match-test${grep !== undefined ? ", --grep" : ""}`;
       console.warn(
-        "Warning: all test functions were excluded by the provided filters. No tests will run.",
+        `Warning: all test functions were excluded by ${activeFlags}. No tests will run.`,
       );
       return successfulResult({
         summary: { failed: 0, passed: 0, skipped: 0, todo: 0, failureOutput: "" },
