@@ -210,6 +210,16 @@ const runSolidityTests: NewTaskActionFunction<TestActionArguments> = async (
         !noMatchContractRegex.test(edrArtifact.id.name),
     );
 
+  if (testSuiteArtifacts.length === 0 && noMatchContractRegex !== undefined) {
+    console.warn(
+      "Warning: all test contracts were excluded by --no-match-contract. No tests will run.",
+    );
+    return successfulResult({
+      summary: { failed: 0, passed: 0, skipped: 0, todo: 0, failureOutput: "" },
+      suiteResults: [],
+    });
+  }
+
   for (const { edrArtifact } of testSuiteArtifacts) {
     warnDeprecatedTestFail(edrArtifact, sourceNameToUserSourceName);
   }
