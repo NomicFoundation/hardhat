@@ -193,23 +193,22 @@ const runSolidityTests: NewTaskActionFunction<TestActionArguments> = async (
   );
 
   const testRootPathsSet = new Set(testRootPathsToRun);
-  let testSuiteArtifacts = edrArtifactsWithMetadata
+  const noMatchContractRegex =
+    noMatchContract !== undefined
+      ? buildSafeRegExp(noMatchContract, "--no-match-contract")
+      : undefined;
+  const testSuiteArtifacts = edrArtifactsWithMetadata
     .filter(({ userSourceName }) =>
       testRootPathsSet.has(
         resolveFromRoot(hre.config.paths.root, userSourceName),
       ),
     )
-    .filter(({ edrArtifact }) => isTestSuiteArtifact(edrArtifact));
-
-  if (noMatchContract !== undefined) {
-    const noMatchContractRegex = buildSafeRegExp(
-      noMatchContract,
-      "--no-match-contract",
+    .filter(({ edrArtifact }) => isTestSuiteArtifact(edrArtifact))
+    .filter(
+      ({ edrArtifact }) =>
+        noMatchContractRegex === undefined ||
+        !noMatchContractRegex.test(edrArtifact.id.name),
     );
-    testSuiteArtifacts = testSuiteArtifacts.filter(
-      ({ edrArtifact }) => !noMatchContractRegex.test(edrArtifact.id.name),
-    );
-  }
 
   for (const { edrArtifact } of testSuiteArtifacts) {
     warnDeprecatedTestFail(edrArtifact, sourceNameToUserSourceName);
@@ -282,12 +281,17 @@ const runSolidityTests: NewTaskActionFunction<TestActionArguments> = async (
     }
 
     if (survivingTests.length === 0) {
-      const activeFlags = `--no-match-test${grep !== undefined ? ", --grep" : ""}`;
       console.warn(
-        `Warning: all test functions were excluded by ${activeFlags}. No tests will run.`,
+        "Warning: all test functions were excluded by the provided filters. No tests will run.",
       );
       return successfulResult({
-        summary: { failed: 0, passed: 0, skipped: 0, todo: 0, failureOutput: "" },
+        summary: {
+          failed: 0,
+          passed: 0,
+          skipped: 0,
+          todo: 0,
+          failureOutput: "",
+        },
         suiteResults: [],
       });
     }

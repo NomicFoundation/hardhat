@@ -32,8 +32,7 @@ const hardhatPlugin: HardhatPlugin = {
       })
       .addOption({
         name: "noMatchTest",
-        description:
-          "Exclude tests matching the given string or regexp",
+        description: "Exclude tests matching the given string or regexp",
         type: ArgumentType.STRING_WITHOUT_DEFAULT,
         defaultValue: undefined,
       })
