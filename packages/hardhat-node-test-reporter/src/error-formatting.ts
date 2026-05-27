@@ -217,6 +217,14 @@ export function formatSingleError(
     return `${formattedError}\n${formattedErrors}`;
   }
 
+  // If we find a SolidityError (i.e. an execution error thrown by an
+  // EDR-simulated network), we format it in a special way.
+  //
+  // We display the solidity stack trace below the actuall error, so that
+  // it's more prominent, and we don't print the entire cause chain of it,
+  // or the error chain that includes it.
+  //
+  // See: https://github.com/NomicFoundation/hardhat/pull/8345
   let solidityError:
     | (Error & { name: "SolidityError"; solidityStack: string })
     | undefined;
@@ -234,6 +242,8 @@ export function formatSingleError(
     currentError = currentError.cause;
   }
 
+  // When using viem, SolidityError exceptions are part of the cause chain of
+  // ContractFunctionExecutionError, so we also handle it here.
   if (
     (error.name === "ContractFunctionExecutionError" ||
       error.name === "SolidityError") &&
