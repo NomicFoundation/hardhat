@@ -306,7 +306,7 @@ const runSolidityTests: NewTaskActionFunction<TestActionArguments> = async (
       });
     }
 
-    effectiveTestPattern = `^(${survivingTests.map(escapeRegExp).join("|")})$`;
+    effectiveTestPattern = `^(${survivingTests.map(escapeRegExp).join("|")})(\\(\\))?$`;
   }
 
   const testRunnerConfig =

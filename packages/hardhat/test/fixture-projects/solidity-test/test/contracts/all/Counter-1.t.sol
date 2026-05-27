@@ -13,4 +13,9 @@ contract CounterTest1 {
   function testInitialValue() public view {
     require(counter.x() == 0, "Initial value should be 0");
   }
+
+  function testIncrement() public {
+    counter.inc();
+    require(counter.x() == 1, "Value should be 1 after increment");
+  }
 }

@@ -774,6 +774,17 @@ describe("solidity-test/task-action", function () {
       assert.equal(getDiscoveredSuiteNames(result).length, 0);
     });
 
+    it("should exclude tests matching --no-match-test and run the rest", async () => {
+      const result = await runWithFilters({ noMatchTest: "Increment" });
+
+      assert.equal(result.success, true);
+      const suiteNames = getDiscoveredSuiteNames(result);
+      assert.ok(
+        suiteNames.includes("CounterTest1"),
+        "CounterTest1 should still run with non-excluded tests",
+      );
+    });
+
     it("should return early when --no-match-test excludes all test functions", async () => {
       const result = await runWithFilters({ noMatchTest: "test" });
 
