@@ -1,3 +1,4 @@
+import type { Abi } from "../../../types/artifacts.js";
 import type {
   BuildInfoAndOutput,
   EdrArtifactWithMetadata,
@@ -50,6 +51,8 @@ interface TestActionArguments {
   testFiles: string[];
   chainType: string;
   grep?: string;
+  noMatchTest?: string;
+  noMatchContract?: string;
   noCompile: boolean;
   testSummaryIndex: number;
 }
@@ -59,7 +62,7 @@ export interface SolidityTestRunResult extends TestRunResult {
 }
 
 const runSolidityTests: NewTaskActionFunction<TestActionArguments> = async (
-  { testFiles, chainType, grep, noCompile, testSummaryIndex },
+  { testFiles, chainType, grep, noMatchTest, noMatchContract, noCompile, testSummaryIndex },
   hre,
 ): Promise<Result<SolidityTestRunResult, SolidityTestRunResult>> => {
   // Set an environment variable that plugins can use to detect when a process is running tests
@@ -180,13 +183,20 @@ const runSolidityTests: NewTaskActionFunction<TestActionArguments> = async (
   );
 
   const testRootPathsSet = new Set(testRootPathsToRun);
-  const testSuiteArtifacts = edrArtifactsWithMetadata
+  let testSuiteArtifacts = edrArtifactsWithMetadata
     .filter(({ userSourceName }) =>
       testRootPathsSet.has(
         resolveFromRoot(hre.config.paths.root, userSourceName),
       ),
     )
     .filter(({ edrArtifact }) => isTestSuiteArtifact(edrArtifact));
+
+  if (noMatchContract !== undefined) {
+    const noMatchContractRegex = new RegExp(noMatchContract);
+    testSuiteArtifacts = testSuiteArtifacts.filter(
+      ({ edrArtifact }) => !noMatchContractRegex.test(edrArtifact.id.name),
+    );
+  }
 
   for (const { edrArtifact } of testSuiteArtifacts) {
     warnDeprecatedTestFail(edrArtifact, sourceNameToUserSourceName);
@@ -242,6 +252,34 @@ const runSolidityTests: NewTaskActionFunction<TestActionArguments> = async (
     eip712Types,
   );
 
+  let effectiveTestPattern = grep;
+  if (noMatchTest !== undefined) {
+    const noMatchTestRegex = new RegExp(noMatchTest);
+    const allTestNames: string[] = [];
+    for (const { edrArtifact } of testSuiteArtifacts) {
+      const abi: Abi = JSON.parse(edrArtifact.contract.abi);
+      for (const entry of abi) {
+        if (entry.type === "function" && typeof entry.name === "string") {
+          if (entry.name.startsWith("test") ||entry.name.startsWith("invariant") ) {
+            allTestNames.push(entry.name);
+          }
+        }
+      }
+    }
+
+    let survivingTests = allTestNames.filter(
+      (name) => !noMatchTestRegex.test(name),
+    );
+
+    if (grep !== undefined) {
+      const grepRegex = new RegExp(grep);
+      survivingTests = survivingTests.filter((name) => grepRegex.test(name));
+    }
+
+    const uniqueTests = [...new Set(survivingTests)];
+    effectiveTestPattern = `^(${uniqueTests.map(s=>s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")).join("|")})$`;
+  }
+
   const testRunnerConfig =
     await solidityTestConfigToSolidityTestRunnerConfigArgs({
       chainType,
@@ -250,7 +288,7 @@ const runSolidityTests: NewTaskActionFunction<TestActionArguments> = async (
       config: solidityTestConfig,
       verbosity,
       observability: observabilityConfig,
-      testPattern: grep,
+      testPattern: effectiveTestPattern,
       generateGasReport:
         hre.globalOptions.gasStats ||
         hre.globalOptions.gasStatsJson !== undefined,
