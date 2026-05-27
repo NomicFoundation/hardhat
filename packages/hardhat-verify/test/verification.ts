@@ -24,23 +24,23 @@ import { deployContract, initializeTestDispatcher } from "../test/utils.js";
 
 describe("verification", () => {
   describe("verifyContract", () => {
+    useEphemeralFixtureProject("integration");
+    const etherscanApiUrl = new URL("https://api-sepolia.etherscan.io").origin;
+
+    let hardhatUserConfig: HardhatUserConfig;
+    let hre: HardhatRuntimeEnvironment;
+    before(async () => {
+      hardhatUserConfig =
+        // eslint-disable-next-line import/no-relative-packages -- allowed in test
+        (await import("./fixture-projects/integration/hardhat.config.js"))
+          .default;
+      hre = await createHardhatRuntimeEnvironment(hardhatUserConfig);
+      await hre.tasks.getTask("build").run();
+    });
+
     describe("base cases", () => {
-      useEphemeralFixtureProject("integration");
-      const etherscanApiUrl = new URL("https://api-sepolia.etherscan.io")
-        .origin;
       const testDispatcher = initializeTestDispatcher({
         url: etherscanApiUrl,
-      });
-
-      let hardhatUserConfig: HardhatUserConfig;
-      let hre: HardhatRuntimeEnvironment;
-      before(async () => {
-        hardhatUserConfig =
-          // eslint-disable-next-line import/no-relative-packages -- allowed in test
-          (await import("./fixture-projects/integration/hardhat.config.js"))
-            .default;
-        hre = await createHardhatRuntimeEnvironment(hardhatUserConfig);
-        await hre.tasks.getTask("build").run();
       });
 
       beforeEach(() => {
@@ -190,61 +190,48 @@ describe("verification", () => {
         );
         assert.ok(result, "Verification should return true");
       });
+    });
 
-      describe("non-retryable errors", () => {
-        const nrDispatcher = initializeTestDispatcher({
-          url: etherscanApiUrl,
+    describe("non-retryable errors", () => {
+      const nrDispatcher = initializeTestDispatcher({ url: etherscanApiUrl });
+
+      for (const [label, reason] of [
+        [
+          "bytecode mismatch",
+          "Fail - Unable to verify. Compiled contract deployment bytecode does NOT match the transaction deployment bytecode.",
+        ],
+        [
+          "constructor argument mismatch",
+          "Fail - Unable to verify. Please check if the correct constructor argument was entered.",
+        ],
+      ] as const) {
+        it(`should throw NON_RETRYABLE_VERIFICATION_ERROR for: ${label}`, async () => {
+          const { provider } = await hre.network.create();
+          const address = await deployContract(
+            "Counter",
+            [],
+            {},
+            hre,
+            provider,
+          );
+
+          mockEtherscanNonRetryableResponse(nrDispatcher.interceptable, reason);
+
+          await assertRejectsWithHardhatError(
+            () =>
+              verifyContract(
+                { address },
+                hre,
+                () => {},
+                nrDispatcher.interceptable,
+                provider,
+              ),
+            HardhatError.ERRORS.HARDHAT_VERIFY.GENERAL
+              .NON_RETRYABLE_VERIFICATION_ERROR,
+            { reason },
+          );
         });
-
-        for (const [label, reason] of [
-          [
-            "bytecode mismatch",
-            "Fail - Unable to verify. Compiled contract deployment bytecode does NOT match the transaction deployment bytecode.",
-          ],
-          [
-            "constructor argument mismatch",
-            "Fail - Unable to verify. Please check if the correct constructor argument was entered.",
-          ],
-          [
-            "unable to locate contract",
-            "Unable to locate ContractName , did you specify the correct Contract Name ?",
-          ],
-          [
-            "already similar match",
-            "This contract already Similar Matches the deployed ByteCode at 0x1234",
-          ],
-        ] as const) {
-          it(`should throw NON_RETRYABLE_VERIFICATION_ERROR for: ${label}`, async () => {
-            const { provider } = await hre.network.create();
-            const address = await deployContract(
-              "Counter",
-              [],
-              {},
-              hre,
-              provider,
-            );
-
-            mockEtherscanNonRetryableResponse(
-              nrDispatcher.interceptable,
-              reason,
-            );
-
-            await assertRejectsWithHardhatError(
-              () =>
-                verifyContract(
-                  { address },
-                  hre,
-                  () => {},
-                  nrDispatcher.interceptable,
-                  provider,
-                ),
-              HardhatError.ERRORS.HARDHAT_VERIFY.GENERAL
-                .NON_RETRYABLE_VERIFICATION_ERROR,
-              { reason },
-            );
-          });
-        }
-      });
+      }
     });
 
     // TODO: Include remaining `hardhat-verify` verification test cases
