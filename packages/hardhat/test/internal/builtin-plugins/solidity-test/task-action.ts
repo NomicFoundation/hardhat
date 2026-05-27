@@ -747,7 +747,7 @@ describe("solidity-test/task-action", function () {
     });
 
     async function runWithFilters(filters: Record<string, unknown>) {
-      return hre.tasks
+      return await hre.tasks
         .getTask(["test", "solidity"])
         .run({ noCompile: true, ...filters });
     }
@@ -757,8 +757,14 @@ describe("solidity-test/task-action", function () {
 
       assert.equal(result.success, true);
       const suiteNames = getDiscoveredSuiteNames(result);
-      assert.ok(!suiteNames.includes("CounterTest1"));
-      assert.ok(suiteNames.includes("CounterTest2"));
+      assert.ok(
+        !suiteNames.includes("CounterTest1"),
+        "CounterTest1 should be excluded",
+      );
+      assert.ok(
+        suiteNames.includes("CounterTest2"),
+        "CounterTest2 should still run",
+      );
     });
 
     it("should exclude all contracts and return success with zero results", async () => {
