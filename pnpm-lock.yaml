@@ -209,9 +209,6 @@ importers:
       semver:
         specifier: ^7.6.3
         version: 7.7.4
-      tsx:
-        specifier: ^4.19.3
-        version: 4.20.6
       ws:
         specifier: ^8.18.0
         version: 8.18.3
@@ -252,6 +249,9 @@ importers:
       rimraf:
         specifier: ^5.0.5
         version: 5.0.10
+      tsx:
+        specifier: ^4.19.3
+        version: 4.20.6
       typescript:
         specifier: ~6.0.3
         version: 6.0.3
@@ -1663,6 +1663,18 @@ importers:
         version: 6.0.3
 
   packages/hardhat/templates/hardhat-3/03-minimal:
+    devDependencies:
+      '@types/node':
+        specifier: ^22.8.5
+        version: 22.18.7
+      hardhat:
+        specifier: workspace:^3.5.0
+        version: link:../../..
+      typescript:
+        specifier: ~6.0.3
+        version: 6.0.3
+
+  packages/hardhat/templates/hardhat-3/04-minimal-native:
     devDependencies:
       '@types/node':
         specifier: ^22.8.5

@@ -1,0 +1,15 @@
+{
+  "name": "template-minimal-native",
+  "private": true,
+  "version": "0.0.1",
+  "description": "A minimal Hardhat project using native TypeScript support",
+  "type": "module",
+  "hardhat": {
+    "typescriptSupport": "native"
+  },
+  "devDependencies": {
+    "hardhat": "workspace:^3.5.0",
+    "@types/node": "^22.8.5",
+    "typescript": "~6.0.3"
+  }
+}

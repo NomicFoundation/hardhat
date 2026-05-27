@@ -1,4 +1,5 @@
 import type { HardhatUserConfig } from "../types/config.js";
+import type { TypescriptSupportMode } from "@nomicfoundation/hardhat-utils/typescript-support";
 
 import path from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
@@ -9,6 +10,7 @@ import { ensureError } from "@nomicfoundation/hardhat-utils/error";
 import { exists, findUp, getRealPath } from "@nomicfoundation/hardhat-utils/fs";
 import { isObject } from "@nomicfoundation/hardhat-utils/lang";
 import { resolveFromRoot } from "@nomicfoundation/hardhat-utils/path";
+import { DEFAULT_TYPESCRIPT_SUPPORT_MODE } from "@nomicfoundation/hardhat-utils/typescript-support";
 
 const log = createDebug("hardhat:core:config-loading");
 
@@ -70,15 +72,20 @@ export async function findClosestHardhatConfig(from?: string): Promise<string> {
 /**
  * Imports the user config and returns it.
  * @param configPath The path to the config file.
+ * @param tsMode How TypeScript is loaded in this project. In `"native"` mode we
+ * never fall back to tsx (it may not be installed). Defaults to the project's
+ * default mode for programmatic callers that don't resolve it themselves.
  * @returns The user config.
  */
 export async function importUserConfig(
   configPath: string,
+  tsMode: TypescriptSupportMode = DEFAULT_TYPESCRIPT_SUPPORT_MODE,
 ): Promise<HardhatUserConfig> {
   const normalizedPath = await normalizeConfigPath(configPath);
 
   const imported = await importConfigFileWithTsxFallback(
     pathToFileURL(normalizedPath).href,
+    tsMode,
   );
 
   if (!("default" in imported)) {
@@ -138,8 +145,14 @@ async function normalizeConfigPath(configPath: string): Promise<string> {
  *
  * This function uses `tsx`'s `tsImport`, which doesn't cache the compiled files, so we
  * implement our own caching mechanism.
+ *
+ * In `"native"` mode we never reach for tsx: the runtime is expected to strip
+ * types itself, and tsx may not be installed.
  */
-async function importConfigFileWithTsxFallback(configPath: string) {
+async function importConfigFileWithTsxFallback(
+  configPath: string,
+  tsMode: TypescriptSupportMode,
+) {
   try {
     try {
       return await import(configPath);
@@ -147,6 +160,7 @@ async function importConfigFileWithTsxFallback(configPath: string) {
       ensureError(error);
 
       if (
+        tsMode !== "native" &&
         "code" in error &&
         error.code === "ERR_UNKNOWN_FILE_EXTENSION" &&
         configPath.endsWith(".ts")

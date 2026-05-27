@@ -10,6 +10,11 @@ import { HardhatError } from "@nomicfoundation/hardhat-errors";
 import { createDebug } from "@nomicfoundation/hardhat-utils/debug";
 import { setGlobalOptionsAsEnvVariables } from "@nomicfoundation/hardhat-utils/env";
 import { getAllFilesMatching } from "@nomicfoundation/hardhat-utils/fs";
+import {
+  DEFAULT_TYPESCRIPT_SUPPORT_MODE,
+  isValidTypescriptSupportMode,
+  readTypescriptSupportField,
+} from "@nomicfoundation/hardhat-utils/typescript-support";
 import { errorResult, successfulResult } from "hardhat/utils/result";
 import Mocha from "mocha";
 
@@ -112,11 +117,24 @@ const testWithHardhat: NewTaskActionFunction<TestActionArguments> = async (
   if (hre.config.test.mocha.parallel === true) {
     const imports = [];
 
-    const tsx = new URL(import.meta.resolve("tsx/esm"));
+    // In tsx mode, the worker processes mocha spawns need the tsx loader to
+    // run TypeScript test files. In native mode the workers strip types
+    // themselves, so no loader is injected (and tsx may not be installed). The
+    // value was already validated during startup, so an invalid one can't reach
+    // here; we fall back to the default just in case.
+    const tsField = await readTypescriptSupportField(hre.config.paths.root);
+    const tsMode = isValidTypescriptSupportMode(tsField)
+      ? tsField
+      : DEFAULT_TYPESCRIPT_SUPPORT_MODE;
+
+    if (tsMode === "tsx") {
+      const tsx = new URL(import.meta.resolve("tsx/esm"));
+      imports.push(tsx.href);
+    }
+
     const unhandledRejectionHook = new URL(
       import.meta.resolve(unhandledRejectionHookPath),
     );
-    imports.push(tsx.href);
 
     hre.config.test.mocha.require = hre.config.test.mocha.require ?? [];
     hre.config.test.mocha.require.push(unhandledRejectionHook.href);
@@ -133,9 +151,11 @@ const testWithHardhat: NewTaskActionFunction<TestActionArguments> = async (
       hre.config.test.mocha.require.push(testWorkerDone.href);
     }
 
-    process.env.NODE_OPTIONS = imports
-      .map((href) => `--import "${href}"`)
-      .join(" ");
+    if (imports.length > 0) {
+      process.env.NODE_OPTIONS = imports
+        .map((href) => `--import "${href}"`)
+        .join(" ");
+    }
   } else {
     // Import the handler directly when not running in parallel mode.
     // This must be a dynamic import because it's loaded for its side-effects

@@ -548,6 +548,36 @@ Remove them or move them to a different place and try again.`,
         websiteTitle: "Non-interactive init failed due to existing files",
         websiteDescription: `The non-interactive project initialization refuses to overwrite existing files. Remove the conflicting files and retry.`,
       },
+      INVALID_TYPESCRIPT_SUPPORT_VALUE: {
+        number: 27,
+        messageTemplate: `Invalid value "{value}" for the "hardhat.typescriptSupport" field in your package.json.
+
+The valid values are "native" (use Node.js' built-in type stripping) and "tsx" (use the tsx transpiler).`,
+        websiteTitle: "Invalid typescriptSupport value",
+        websiteDescription: `The "hardhat.typescriptSupport" field in your package.json has an invalid value.
+
+The valid values are "native", to use Node.js' built-in TypeScript type stripping, and "tsx", to use the tsx transpiler.`,
+      },
+      NATIVE_TS_REQUIRES_NEWER_NODE: {
+        number: 28,
+        messageTemplate: `Your project uses native TypeScript support ("hardhat.typescriptSupport": "native"), but the current Node.js version ({nodeVersion}) doesn't have type stripping enabled.
+
+Please upgrade to Node.js {minVersion} or later, or set "hardhat.typescriptSupport" to "tsx" in your package.json and install tsx.`,
+        websiteTitle: "Native TypeScript support requires a newer Node.js",
+        websiteDescription: `Your project is configured to use Node.js' built-in TypeScript type stripping, but the Node.js version you are running doesn't have it enabled.
+
+Native type stripping is enabled by default in Node.js 22.18 and later (and 23.6 and later). Please upgrade Node.js, or set "hardhat.typescriptSupport" to "tsx" in your package.json and install tsx to transpile TypeScript instead.`,
+      },
+      TSX_NOT_INSTALLED: {
+        number: 29,
+        messageTemplate: `Your project uses the tsx transpiler ("hardhat.typescriptSupport": "tsx"), but tsx is not installed.
+
+Please install it as a development dependency (e.g. "npm install --save-dev tsx"), or set "hardhat.typescriptSupport" to "native" in your package.json to use Node.js' built-in type stripping.`,
+        websiteTitle: "tsx is not installed",
+        websiteDescription: `Your project is configured to transpile TypeScript with tsx, but tsx is not installed.
+
+Install tsx as a development dependency, or switch to native TypeScript support by setting "hardhat.typescriptSupport" to "native" in your package.json (requires Node.js 22.18 or later).`,
+      },
     },
     INTERNAL: {
       ASSERTION_ERROR: {

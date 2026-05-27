@@ -19,6 +19,10 @@ import {
   getGlobalHardhatRuntimeEnvironment,
   setGlobalHardhatRuntimeEnvironment,
 } from "./global-hre-instance.js";
+import {
+  assertNativeModeIsUsable,
+  resolveTypescriptSupportMode,
+} from "./typescript-support.js";
 
 /**
  * Creates an instance of the Hardhat Runtime Environment.
@@ -87,7 +91,15 @@ export async function getOrCreateGlobalHardhatRuntimeEnvironment(): Promise<Hard
 
   const configPath = await resolveHardhatConfigPath();
   const projectRoot = await resolveProjectRoot(configPath);
-  const userConfig = await importUserConfig(configPath);
+
+  // NOTE: Unlike the CLI path, the library path doesn't register tsx; in tsx
+  // mode it relies on the on-the-fly fallback in `importUserConfig`.
+  const tsMode = await resolveTypescriptSupportMode(projectRoot);
+  if (tsMode === "native") {
+    assertNativeModeIsUsable();
+  }
+
+  const userConfig = await importUserConfig(configPath, tsMode);
 
   globalHre = await createHardhatRuntimeEnvironment(
     userConfig,

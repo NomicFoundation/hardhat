@@ -5,6 +5,7 @@ import type {
 import type { HardhatRuntimeEnvironment } from "../../types/hre.js";
 import type { Task, TaskArguments } from "../../types/tasks.js";
 import type { DebugLogger } from "@nomicfoundation/hardhat-utils/debug";
+import type { TypescriptSupportMode } from "@nomicfoundation/hardhat-utils/typescript-support";
 
 import { fileURLToPath } from "node:url";
 
@@ -22,7 +23,6 @@ import {
   readClosestPackageJson,
 } from "@nomicfoundation/hardhat-utils/package";
 import { kebabToCamelCase } from "@nomicfoundation/hardhat-utils/string";
-import { register } from "tsx/esm/api";
 
 import {
   ArgumentType,
@@ -42,6 +42,10 @@ import { resolveProjectRoot } from "../core/hre.js";
 import { resolvePluginList } from "../core/plugins/resolve-plugin-list.js";
 import { setGlobalHardhatRuntimeEnvironment } from "../global-hre-instance.js";
 import { createHardhatRuntimeEnvironment } from "../hre-initialization.js";
+import {
+  assertNativeModeIsUsable,
+  resolveTypescriptSupportMode,
+} from "../typescript-support.js";
 
 import { printErrorMessages } from "./error-handler.js";
 import { getGlobalHelpString } from "./help/get-global-help-string.js";
@@ -190,11 +194,33 @@ export async function main(
       return;
     }
 
+    // On runtimes with built-in TypeScript support (e.g. Deno), `registerTsx`
+    // is false and we let the runtime handle TypeScript directly, without
+    // resolving a mode, asserting native availability or registering tsx.
+    let tsMode: TypescriptSupportMode = "native";
+
     if (options.registerTsx === true) {
-      register();
+      tsMode = await resolveTypescriptSupportMode(projectRoot, print);
+
+      if (tsMode === "native") {
+        assertNativeModeIsUsable();
+      } else {
+        // We import tsx dynamically because it's an optional dependency that's
+        // only needed in tsx mode (see CLAUDE.md rules 1 and 5).
+        let register;
+        try {
+          ({ register } = await import("tsx/esm/api"));
+        } catch {
+          throw new HardhatError(
+            HardhatError.ERRORS.CORE.GENERAL.TSX_NOT_INSTALLED,
+          );
+        }
+
+        register();
+      }
     }
 
-    const userConfig = await importUserConfig(configPath);
+    const userConfig = await importUserConfig(configPath, tsMode);
 
     log("User config imported");
 

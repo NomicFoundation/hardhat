@@ -89,6 +89,7 @@
     "expect-type": "^1.2.1",
     "prettier": "3.2.5",
     "rimraf": "^5.0.5",
+    "tsx": "^4.19.3",
     "typescript": "~6.0.3"
   },
   "dependencies": {
@@ -107,8 +108,15 @@
     "p-map": "^7.0.2",
     "resolve.exports": "^2.0.3",
     "semver": "^7.6.3",
-    "tsx": "^4.19.3",
     "ws": "^8.18.0",
     "zod": "^3.23.8"
+  },
+  "peerDependencies": {
+    "tsx": "^4.19.3"
+  },
+  "peerDependenciesMeta": {
+    "tsx": {
+      "optional": true
+    }
   }
 }
