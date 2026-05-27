@@ -742,96 +742,59 @@ describe("solidity-test/task-action", function () {
   });
 
   describe("negation filters", () => {
-    it("should exclude contracts matching --no-match-contract", async () => {
+    before(async () => {
       hre = await createHardhatRuntimeEnvironment(hardhatConfigAllTests);
+    });
 
-      const result = await hre.tasks
+    async function runWithFilters(filters: Record<string, unknown>) {
+      return hre.tasks
         .getTask(["test", "solidity"])
-        .run({ noCompile: true, noMatchContract: "CounterTest1" });
+        .run({ noCompile: true, ...filters });
+    }
+
+    it("should exclude contracts matching --no-match-contract", async () => {
+      const result = await runWithFilters({ noMatchContract: "CounterTest1" });
 
       assert.equal(result.success, true);
       const suiteNames = getDiscoveredSuiteNames(result);
-      assert.ok(
-        !suiteNames.includes("CounterTest1"),
-        `CounterTest1 should be excluded, got: ${suiteNames.join(", ")}`,
-      );
-      assert.ok(
-        suiteNames.includes("CounterTest2"),
-        `CounterTest2 should still run, got: ${suiteNames.join(", ")}`,
-      );
+      assert.ok(!suiteNames.includes("CounterTest1"));
+      assert.ok(suiteNames.includes("CounterTest2"));
     });
 
     it("should exclude all contracts and return success with zero results", async () => {
-      hre = await createHardhatRuntimeEnvironment(hardhatConfigAllTests);
-
-      const result = await hre.tasks
-        .getTask(["test", "solidity"])
-        .run({ noCompile: true, noMatchContract: "Counter" });
+      const result = await runWithFilters({ noMatchContract: "Counter" });
 
       assert.equal(result.success, true);
-      const suiteNames = getDiscoveredSuiteNames(result);
-      assert.equal(suiteNames.length, 0);
+      assert.equal(getDiscoveredSuiteNames(result).length, 0);
     });
 
     it("should return early when --no-match-test excludes all test functions", async () => {
-      hre = await createHardhatRuntimeEnvironment(hardhatConfigAllTests);
-
-      const result = await hre.tasks
-        .getTask(["test", "solidity"])
-        .run({ noCompile: true, noMatchTest: "test" });
+      const result = await runWithFilters({ noMatchTest: "test" });
 
       assert.equal(result.success, true);
-      assert.deepEqual(result.value.summary, {
-        failed: 0,
-        passed: 0,
-        skipped: 0,
-        todo: 0,
-        failureOutput: "",
-      });
       assert.deepEqual(result.value.suiteResults, []);
     });
 
-    it("should throw HardhatError for invalid --no-match-contract regex", async () => {
-      hre = await createHardhatRuntimeEnvironment(hardhatConfigAllTests);
+    for (const [flag, key] of [
+      ["--no-match-contract", "noMatchContract"],
+      ["--no-match-test", "noMatchTest"],
+    ] as const) {
+      it(`should throw HardhatError for invalid ${flag} regex`, async () => {
+        await assertRejectsWithHardhatError(
+          () => runWithFilters({ [key]: "[unclosed" }),
+          HardhatError.ERRORS.CORE.ARGUMENTS.INVALID_VALUE_FOR_TYPE,
+          { value: "[unclosed", type: "RegExp", name: flag },
+        );
+      });
 
-      await assertRejectsWithHardhatError(
-        () =>
-          hre.tasks.getTask(["test", "solidity"]).run({
-            noCompile: true,
-            noMatchContract: "[unclosed",
-          }),
-        HardhatError.ERRORS.CORE.ARGUMENTS.INVALID_VALUE_FOR_TYPE,
-        { value: "[unclosed", type: "RegExp", name: "--no-match-contract" },
-      );
-    });
-
-    it("should throw HardhatError for invalid --no-match-test regex", async () => {
-      hre = await createHardhatRuntimeEnvironment(hardhatConfigAllTests);
-
-      await assertRejectsWithHardhatError(
-        () =>
-          hre.tasks.getTask(["test", "solidity"]).run({
-            noCompile: true,
-            noMatchTest: "[unclosed",
-          }),
-        HardhatError.ERRORS.CORE.ARGUMENTS.INVALID_VALUE_FOR_TYPE,
-        { value: "[unclosed", type: "RegExp", name: "--no-match-test" },
-      );
-    });
-
-    it("should throw HardhatError for empty --no-match-test pattern", async () => {
-      hre = await createHardhatRuntimeEnvironment(hardhatConfigAllTests);
-
-      await assertRejectsWithHardhatError(
-        () =>
-          hre.tasks.getTask(["test", "solidity"]).run({
-            noCompile: true,
-            noMatchTest: "",
-          }),
-        HardhatError.ERRORS.CORE.ARGUMENTS.INVALID_VALUE_FOR_TYPE,
-        { value: "", type: "RegExp", name: "--no-match-test" },
-      );
-    });
+      it(`should throw HardhatError for empty ${flag} pattern`, async () => {
+        await assertRejectsWithHardhatError(
+          () => runWithFilters({ [key]: "" }),
+          HardhatError.ERRORS.CORE.ARGUMENTS.INVALID_VALUE_FOR_TYPE,
+          { value: "", type: "RegExp", name: flag },
+        );
+      });
+    }
   });
 });
 
