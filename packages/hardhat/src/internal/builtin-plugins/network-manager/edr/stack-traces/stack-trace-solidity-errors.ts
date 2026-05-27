@@ -319,6 +319,7 @@ function getMessageFromLastStackTraceEntry(
  **/
 export class SolidityError extends Error {
   public readonly code: number = REVERT_ERROR_CODE;
+  public readonly solidityStack: string;
 
   constructor(
     message: string,
@@ -328,6 +329,10 @@ export class SolidityError extends Error {
   ) {
     super(message);
     this.name = "SolidityError";
+    this.solidityStack =
+      stackTrace.length !== 0
+        ? stackTrace.map(encodeStackTraceEntry).join("\n")
+        : "Internal error when encoding SolidityError";
 
     Object.defineProperty(this, Symbol.for("nodejs.util.inspect.custom"), {
       value: () =>

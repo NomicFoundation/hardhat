@@ -3,11 +3,17 @@ import type { SolidityStackTraceEntry } from "../../../../../../src/internal/bui
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 
-import { CheatcodeErrorCode, StackTraceEntryType } from "@nomicfoundation/edr";
+import {
+  CheatcodeErrorCode,
+  ContractFunctionType,
+  StackTraceEntryType,
+} from "@nomicfoundation/edr";
 
 import {
   createSolidityErrorWithStackTrace,
+  encodeStackTraceEntry,
   SolidityCallSite,
+  SolidityError,
 } from "../../../../../../src/internal/builtin-plugins/network-manager/edr/stack-traces/stack-trace-solidity-errors.js";
 
 describe("SolidityCallSite", function () {
@@ -130,6 +136,95 @@ describe("createSolidityErrorWithStackTrace", () => {
         error.message,
         "VM Exception while processing transaction: Cheatcode 'someNewCheatcode(uint256)' is not yet available in this version of Hardhat.",
       );
+    });
+  });
+
+  describe("solidityStack", () => {
+    it("encodes a single stack-trace entry", () => {
+      const entry: SolidityStackTraceEntry = {
+        type: StackTraceEntryType.CHEATCODE_ERROR,
+        message: "boom",
+        sourceReference: {
+          sourceName: "Test.t.sol",
+          sourceContent: "",
+          contract: "TestContract",
+          function: "testFn",
+          line: 42,
+          range: [0, 0],
+        },
+      };
+
+      const error = createSolidityErrorWithStackTrace(
+        "fallback",
+        [entry],
+        "0x",
+      );
+
+      assert.equal(
+        error.solidityStack,
+        encodeStackTraceEntry(entry).toString(),
+      );
+    });
+
+    it("joins multiple entries with a newline, in stack order", () => {
+      const entryA: SolidityStackTraceEntry = {
+        type: StackTraceEntryType.CALLSTACK_ENTRY,
+        sourceReference: {
+          sourceName: "A.sol",
+          sourceContent: "",
+          contract: "A",
+          function: "a",
+          line: 1,
+          range: [0, 0],
+        },
+        functionType: ContractFunctionType.FUNCTION,
+      };
+      const entryB: SolidityStackTraceEntry = {
+        type: StackTraceEntryType.CHEATCODE_ERROR,
+        message: "boom",
+        sourceReference: {
+          sourceName: "B.sol",
+          sourceContent: "",
+          contract: "B",
+          function: "b",
+          line: 2,
+          range: [0, 0],
+        },
+      };
+
+      const error = createSolidityErrorWithStackTrace(
+        "fallback",
+        [entryA, entryB],
+        "0x",
+      );
+
+      const expected = [
+        encodeStackTraceEntry(entryA).toString(),
+        encodeStackTraceEntry(entryB).toString(),
+      ].join("\n");
+      assert.equal(error.solidityStack, expected);
+    });
+
+    it("uses the fallback string when the stack trace is empty", () => {
+      const error = new SolidityError("msg", [], "0x");
+      assert.equal(
+        error.solidityStack,
+        "Internal error when encoding SolidityError",
+      );
+    });
+
+    it("exposes solidityStack as a string property", () => {
+      const entry: SolidityStackTraceEntry = {
+        type: StackTraceEntryType.CHEATCODE_ERROR,
+        message: "boom",
+        sourceReference: dummySourceReference,
+      };
+      const error = createSolidityErrorWithStackTrace(
+        "fallback",
+        [entry],
+        "0x",
+      );
+      assert.equal(typeof error.solidityStack, "string");
     });
   });
 });
