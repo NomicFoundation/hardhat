@@ -3,6 +3,7 @@ import type { EdrNetworkAccountsUserConfig } from "hardhat/types/config";
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 
+import { assertRejects } from "@nomicfoundation/hardhat-test-utils";
 import { createHardhatRuntimeEnvironment } from "hardhat/hre";
 
 import hardhatLedgerPlugin from "../src/index.js";
@@ -99,6 +100,33 @@ describe("LedgerHandler", () => {
       const res = await provider.request({ method: "eth_accounts" });
 
       assert.deepEqual(res, HARDHAT_ACCOUNTS_ADDRESSES);
+    });
+
+    it("should skip the ledger onRequest body when no ledger accounts are configured", async () => {
+      // With the mocked network plugin, eth_accounts fails with -32601. If
+      // the ledger plugin's onRequest body ran, it would swallow that error
+      // and return its (empty) list of ledger accounts. Skipping the body
+      // when no ledger accounts are configured means the error surfaces
+      // unchanged.
+      const hre = await createHardhatRuntimeEnvironment({
+        plugins: [mockedNetworkPlugin, hardhatLedgerPlugin],
+        networks: {
+          default: {
+            type: "edr-simulated",
+            accounts: HARDHAT_ACCOUNTS,
+          },
+        },
+      });
+
+      const { provider } = await hre.network.create();
+
+      await assertRejects(
+        provider.request({ method: "eth_accounts" }),
+        (error: Error) => {
+          assert.match(error.message, /Method not found/);
+          return true;
+        },
+      );
     });
   });
 
