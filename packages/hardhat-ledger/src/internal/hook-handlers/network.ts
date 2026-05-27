@@ -37,7 +37,7 @@ export default async (): Promise<Partial<NetworkHooks>> => {
       ) => Promise<JsonRpcResponse>,
     ) {
       // Skip the entire hook handler if there are no ledger accounts.
-      // This avoid having to load the implementation of the handler unless
+      // This avoids having to load the implementation of the handler unless
       // it's actually needed.
       if (networkConnection.networkConfig.ledgerAccounts.length === 0) {
         return await next(context, networkConnection, jsonRpcRequest);
