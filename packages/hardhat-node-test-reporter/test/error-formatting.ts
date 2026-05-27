@@ -536,3 +536,142 @@ describe("Removing the diff from the error message", () => {
     });
   });
 });
+
+describe("Formatting SolidityError stack traces", () => {
+  const SOLIDITY_STACK =
+    "TestContract.testFn (Test.t.sol:1)\nOther.foo (Other.sol:7)";
+
+  function makeSolidityError(stack: string = SOLIDITY_STACK): Error {
+    const err = new Error("revert reason");
+    err.name = "SolidityError";
+    Object.defineProperty(err, "solidityStack", {
+      value: stack,
+      enumerable: true,
+    });
+    return err;
+  }
+
+  function makeWrapper(name: string, cause: unknown): Error {
+    const err = new Error("wrapper message", { cause });
+    err.name = name;
+    return err;
+  }
+
+  it("appends the Solidity stack trace when the top-level error is a SolidityError", () => {
+    const error = makeSolidityError();
+    const output = stripVTControlCharacters(formatSingleError(error));
+
+    assert.ok(
+      output.includes("Solidity stack trace:"),
+      `expected output to include 'Solidity stack trace:': ${output}`,
+    );
+    assert.ok(
+      output.includes("TestContract.testFn (Test.t.sol:1)"),
+      `expected first stack line in output: ${output}`,
+    );
+    assert.ok(
+      output.includes("Other.foo (Other.sol:7)"),
+      `expected second stack line in output: ${output}`,
+    );
+  });
+
+  it("indents each Solidity stack line by 4 spaces", () => {
+    const error = makeSolidityError();
+    const output = stripVTControlCharacters(formatSingleError(error));
+
+    assert.ok(
+      output.includes("    TestContract.testFn (Test.t.sol:1)"),
+      `expected first stack line to be indented: ${output}`,
+    );
+    assert.ok(
+      output.includes("    Other.foo (Other.sol:7)"),
+      `expected second stack line to be indented: ${output}`,
+    );
+  });
+
+  it("finds the SolidityError through a ContractFunctionExecutionError cause", () => {
+    const solErr = makeSolidityError();
+    const wrapper = makeWrapper("ContractFunctionExecutionError", solErr);
+
+    const output = stripVTControlCharacters(formatSingleError(wrapper));
+
+    assert.ok(
+      output.includes("wrapper message"),
+      `expected wrapper message: ${output}`,
+    );
+    assert.ok(
+      output.includes("Solidity stack trace:"),
+      `expected Solidity trailer: ${output}`,
+    );
+    assert.ok(
+      output.includes("TestContract.testFn (Test.t.sol:1)"),
+      `expected solidityStack content: ${output}`,
+    );
+  });
+
+  it("finds the SolidityError through a deeper cause chain", () => {
+    const solErr = makeSolidityError();
+    const middle = makeWrapper("SomeIntermediateError", solErr);
+    const wrapper = makeWrapper("ContractFunctionExecutionError", middle);
+
+    const output = stripVTControlCharacters(formatSingleError(wrapper));
+
+    assert.ok(
+      output.includes("Solidity stack trace:"),
+      `expected Solidity trailer through deep cause chain: ${output}`,
+    );
+  });
+
+  it("should not display the SolidityError twice when it's found through a cause chain", () => {
+    const solErr = makeSolidityError();
+    const wrapper = makeWrapper("ContractFunctionExecutionError", solErr);
+
+    const output = stripVTControlCharacters(formatSingleError(wrapper));
+
+    // The cause's "revert reason" message should not be rendered as a separate
+    // formatted cause block, because the Solidity branch returns early.
+    assert.equal(
+      output.indexOf("Solidity stack trace:"),
+      output.lastIndexOf("Solidity stack trace:"),
+      `expected exactly one 'Solidity stack trace:' marker: ${output}`,
+    );
+    assert.ok(
+      !output.includes("revert reason"),
+      `did not expect the inner SolidityError message to be re-formatted as a cause: ${output}`,
+    );
+  });
+
+  it("falls through to cause-recursion when the top-level name does not match", () => {
+    const plainCause = new Error("inner");
+    plainCause.stack = undefined;
+    const wrapper = makeWrapper("SomeUnrelatedError", plainCause);
+
+    const output = stripVTControlCharacters(formatSingleError(wrapper));
+
+    // The wrapper's own block must not get a Solidity trailer attached, even
+    // when the cause chain is unrelated.
+    assert.ok(
+      !output.includes("Solidity stack trace:"),
+      `did not expect Solidity trailer for unrelated error: ${output}`,
+    );
+    // The fallback cause-recursion path renders the inner error.
+    assert.ok(
+      output.includes("[cause]: inner"),
+      `expected cause-recursion to render the inner error: ${output}`,
+    );
+  });
+
+  it("falls through to cause-recursion when SolidityError is missing solidityStack", () => {
+    const malformed = new Error("revert reason");
+    malformed.name = "SolidityError";
+    malformed.stack = undefined;
+    // No solidityStack field.
+
+    const output = stripVTControlCharacters(formatSingleError(malformed));
+
+    assert.ok(
+      !output.includes("Solidity stack trace:"),
+      `did not expect Solidity trailer when solidityStack is absent: ${output}`,
+    );
+  });
+});

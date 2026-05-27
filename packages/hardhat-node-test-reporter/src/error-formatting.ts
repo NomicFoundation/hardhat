@@ -217,6 +217,38 @@ export function formatSingleError(
     return `${formattedError}\n${formattedErrors}`;
   }
 
+  let solidityError:
+    | (Error & { name: "SolidityError"; solidityStack: string })
+    | undefined;
+  let currentError: any = error;
+  while (currentError !== undefined) {
+    if (
+      currentError.name === "SolidityError" &&
+      "solidityStack" in currentError &&
+      typeof currentError.solidityStack === "string"
+    ) {
+      solidityError = currentError;
+      break;
+    }
+
+    currentError = currentError.cause;
+  }
+
+  if (
+    (error.name === "ContractFunctionExecutionError" ||
+      error.name === "SolidityError") &&
+    solidityError !== undefined
+  ) {
+    const formattedSolidityError = styleText(
+      "red",
+      `${styleText("red", "Solidity stack trace:")}
+${styleText("gray", indent(solidityError.solidityStack, ERROR_STACK_INDENT))}`,
+    );
+    return `${formattedError}
+
+${formattedSolidityError}`;
+  }
+
   if (error.cause instanceof Error) {
     let cause = error.cause;
     if (depth + 1 >= MAX_ERROR_CHAIN_LENGTH) {
