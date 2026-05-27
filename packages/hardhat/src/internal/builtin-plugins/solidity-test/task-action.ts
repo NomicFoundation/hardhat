@@ -272,7 +272,7 @@ const runSolidityTests: NewTaskActionFunction<TestActionArguments> = async (
       getTestFunctionNames(edrArtifact),
     );
 
-    let survivingTests = allTestNames.filter(
+    let survivingTests = [...new Set(allTestNames)].filter(
       (name) => !noMatchTestRegex.test(name),
     );
 
@@ -281,15 +281,17 @@ const runSolidityTests: NewTaskActionFunction<TestActionArguments> = async (
       survivingTests = survivingTests.filter((name) => grepRegex.test(name));
     }
 
-    const uniqueTests = [...new Set(survivingTests)];
-    if (uniqueTests.length > 0) {
-      effectiveTestPattern = `^(${uniqueTests.map(escapeRegExp).join("|")})$`;
-    } else {
+    if (survivingTests.length === 0) {
       console.warn(
         "Warning: all test functions were excluded by the provided filters. No tests will run.",
       );
-      effectiveTestPattern = "^$";
+      return successfulResult({
+        summary: { failed: 0, passed: 0, skipped: 0, todo: 0, failureOutput: "" },
+        suiteResults: [],
+      });
     }
+
+    effectiveTestPattern = `^(${survivingTests.map(escapeRegExp).join("|")})$`;
   }
 
   const testRunnerConfig =
