@@ -33,14 +33,14 @@ const hardhatPlugin: HardhatPlugin = {
       .addOption({
         name: "noMatchTest",
         description:
-          "excludes tests",
+          "Exclude tests matching the given string or regexp",
         type: ArgumentType.STRING_WITHOUT_DEFAULT,
         defaultValue: undefined,
       })
       .addOption({
         name: "noMatchContract",
         description:
-          "exclude test contracts",
+          "Exclude test contracts matching the given string or regexp",
         type: ArgumentType.STRING_WITHOUT_DEFAULT,
         defaultValue: undefined,
       })

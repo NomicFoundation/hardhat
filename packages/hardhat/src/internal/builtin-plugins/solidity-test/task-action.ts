@@ -269,14 +269,13 @@ const runSolidityTests: NewTaskActionFunction<TestActionArguments> = async (
     const allTestNames: string[] = [];
     for (const { edrArtifact } of testSuiteArtifacts) {
       const abi: Abi = JSON.parse(edrArtifact.contract.abi);
-      for (const entry of abi) {
-        if (entry.type === "function" && typeof entry.name === "string") {
-          if (
-            entry.name.startsWith("test") ||
-            entry.name.startsWith("invariant")
-          ) {
-            allTestNames.push(entry.name);
-          }
+      for (const { type, name } of abi) {
+        if (
+          type === "function" &&
+          typeof name === "string" &&
+          (name.startsWith("test") || name.startsWith("invariant"))
+        ) {
+          allTestNames.push(name);
         }
       }
     }
