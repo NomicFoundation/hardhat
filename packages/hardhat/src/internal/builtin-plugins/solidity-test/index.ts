@@ -30,6 +30,20 @@ const hardhatPlugin: HardhatPlugin = {
         type: ArgumentType.STRING_WITHOUT_DEFAULT,
         defaultValue: undefined,
       })
+      .addOption({
+        name: "noMatchTest",
+        description:
+          "excludes tests",
+        type: ArgumentType.STRING_WITHOUT_DEFAULT,
+        defaultValue: undefined,
+      })
+      .addOption({
+        name: "noMatchContract",
+        description:
+          "exclude test contracts",
+        type: ArgumentType.STRING_WITHOUT_DEFAULT,
+        defaultValue: undefined,
+      })
       .addFlag({
         name: "noCompile",
         description: "Don't compile the project before running the tests",
