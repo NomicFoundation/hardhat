@@ -62,7 +62,15 @@ export interface SolidityTestRunResult extends TestRunResult {
 }
 
 const runSolidityTests: NewTaskActionFunction<TestActionArguments> = async (
-  { testFiles, chainType, grep, noMatchTest, noMatchContract, noCompile, testSummaryIndex },
+  {
+    testFiles,
+    chainType,
+    grep,
+    noMatchTest,
+    noMatchContract,
+    noCompile,
+    testSummaryIndex,
+  },
   hre,
 ): Promise<Result<SolidityTestRunResult, SolidityTestRunResult>> => {
   // Set an environment variable that plugins can use to detect when a process is running tests
@@ -192,7 +200,10 @@ const runSolidityTests: NewTaskActionFunction<TestActionArguments> = async (
     .filter(({ edrArtifact }) => isTestSuiteArtifact(edrArtifact));
 
   if (noMatchContract !== undefined) {
-    const noMatchContractRegex = new RegExp(noMatchContract);
+    const noMatchContractRegex = buildSafeRegExp(
+      noMatchContract,
+      "noMatchContract",
+    );
     testSuiteArtifacts = testSuiteArtifacts.filter(
       ({ edrArtifact }) => !noMatchContractRegex.test(edrArtifact.id.name),
     );
@@ -254,13 +265,16 @@ const runSolidityTests: NewTaskActionFunction<TestActionArguments> = async (
 
   let effectiveTestPattern = grep;
   if (noMatchTest !== undefined) {
-    const noMatchTestRegex = new RegExp(noMatchTest);
+    const noMatchTestRegex = buildSafeRegExp(noMatchTest, "noMatchTest");
     const allTestNames: string[] = [];
     for (const { edrArtifact } of testSuiteArtifacts) {
       const abi: Abi = JSON.parse(edrArtifact.contract.abi);
       for (const entry of abi) {
         if (entry.type === "function" && typeof entry.name === "string") {
-          if (entry.name.startsWith("test") ||entry.name.startsWith("invariant") ) {
+          if (
+            entry.name.startsWith("test") ||
+            entry.name.startsWith("invariant")
+          ) {
             allTestNames.push(entry.name);
           }
         }
@@ -272,12 +286,19 @@ const runSolidityTests: NewTaskActionFunction<TestActionArguments> = async (
     );
 
     if (grep !== undefined) {
-      const grepRegex = new RegExp(grep);
+      const grepRegex = buildSafeRegExp(grep, "grep");
       survivingTests = survivingTests.filter((name) => grepRegex.test(name));
     }
 
     const uniqueTests = [...new Set(survivingTests)];
-    effectiveTestPattern = `^(${uniqueTests.map(s=>s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")).join("|")})$`;
+    if (uniqueTests.length > 0) {
+      effectiveTestPattern = `^(${uniqueTests.map(escapeRegExp).join("|")})$`;
+    } else {
+      console.warn(
+        "Warning: all test functions were excluded by the provided filters. No tests will run.",
+      );
+      effectiveTestPattern = "^$";
+    }
   }
 
   const testRunnerConfig =
@@ -482,6 +503,21 @@ async function loadArtifacts(
     );
   }
   return { edrArtifactsWithMetadata, allBuildInfosAndOutputs };
+}
+
+function escapeRegExp(s: string): string {
+  return s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
+function buildSafeRegExp(pattern: string, flagName: string): RegExp {
+  try {
+    return new RegExp(pattern);
+  } catch {
+    throw new HardhatError(
+      HardhatError.ERRORS.CORE.ARGUMENTS.INVALID_VALUE_FOR_TYPE,
+      { value: pattern, type: "RegExp", name: flagName },
+    );
+  }
 }
 
 export default runSolidityTests;
