@@ -1,4 +1,3 @@
-import type { Abi } from "../../../types/artifacts.js";
 import type {
   BuildInfoAndOutput,
   EdrArtifactWithMetadata,
@@ -40,6 +39,7 @@ import { collectEip712CanonicalTypes } from "./eip712/index.js";
 import {
   buildSafeRegExp,
   escapeRegExp,
+  getTestFunctionNames,
   isTestSuiteArtifact,
   warnDeprecatedTestFail,
   solidityTestConfigToSolidityTestRunnerConfigArgs,
@@ -268,19 +268,9 @@ const runSolidityTests: NewTaskActionFunction<TestActionArguments> = async (
   let effectiveTestPattern = grep;
   if (noMatchTest !== undefined) {
     const noMatchTestRegex = buildSafeRegExp(noMatchTest, "noMatchTest");
-    const allTestNames: string[] = [];
-    for (const { edrArtifact } of testSuiteArtifacts) {
-      const abi: Abi = JSON.parse(edrArtifact.contract.abi);
-      for (const { type, name } of abi) {
-        if (
-          type === "function" &&
-          typeof name === "string" &&
-          (name.startsWith("test") || name.startsWith("invariant"))
-        ) {
-          allTestNames.push(name);
-        }
-      }
-    }
+    const allTestNames = testSuiteArtifacts.flatMap(({ edrArtifact }) =>
+      getTestFunctionNames(edrArtifact),
+    );
 
     let survivingTests = allTestNames.filter(
       (name) => !noMatchTestRegex.test(name),

@@ -165,6 +165,24 @@ export async function solidityTestConfigToSolidityTestRunnerConfigArgs({
   };
 }
 
+function parseAbi(artifact: Artifact): Abi {
+  return JSON.parse(artifact.contract.abi);
+}
+
+export function getTestFunctionNames(artifact: Artifact): string[] {
+  const names: string[] = [];
+  for (const { type, name } of parseAbi(artifact)) {
+    if (
+      type === "function" &&
+      typeof name === "string" &&
+      (name.startsWith("test") || name.startsWith("invariant"))
+    ) {
+      names.push(name);
+    }
+  }
+  return names;
+}
+
 export function isTestSuiteArtifact(artifact: Artifact): boolean {
   const bytecode = artifact.contract.bytecode;
 
@@ -173,23 +191,14 @@ export function isTestSuiteArtifact(artifact: Artifact): boolean {
     return false;
   }
 
-  const abi: Abi = JSON.parse(artifact.contract.abi);
-  return abi.some(({ type, name }) => {
-    if (type === "function" && typeof name === "string") {
-      return name.startsWith("test") || name.startsWith("invariant");
-    }
-
-    return false;
-  });
+  return getTestFunctionNames(artifact).length > 0;
 }
 
 export function warnDeprecatedTestFail(
   artifact: Artifact,
   sourceNameToUserSourceName: Map<string, string>,
 ): void {
-  const abi: Abi = JSON.parse(artifact.contract.abi);
-
-  abi.forEach(({ type, name }) => {
+  for (const { type, name } of parseAbi(artifact)) {
     if (
       type === "function" &&
       typeof name === "string" &&
@@ -203,7 +212,7 @@ export function warnDeprecatedTestFail(
 
       console.warn(warningMessage);
     }
-  });
+  }
 }
 
 export function escapeRegExp(s: string): string {
