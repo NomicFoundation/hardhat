@@ -220,6 +220,13 @@ export function escapeRegExp(s: string): string {
 }
 
 export function buildSafeRegExp(pattern: string, flagName: string): RegExp {
+  if (pattern === "") {
+    throw new HardhatError(
+      HardhatError.ERRORS.CORE.ARGUMENTS.INVALID_VALUE_FOR_TYPE,
+      { value: pattern, type: "RegExp", name: flagName },
+    );
+  }
+
   try {
     return new RegExp(pattern);
   } catch {
