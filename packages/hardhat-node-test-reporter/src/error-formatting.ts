@@ -220,7 +220,7 @@ export function formatSingleError(
   // If we find a SolidityError (i.e. an execution error thrown by an
   // EDR-simulated network), we format it in a special way.
   //
-  // We display the solidity stack trace below the actuall error, so that
+  // We display the solidity stack trace below the actual error, so that
   // it's more prominent, and we don't print the entire cause chain of it,
   // or the error chain that includes it.
   //
