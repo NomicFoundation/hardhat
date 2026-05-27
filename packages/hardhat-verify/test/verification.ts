@@ -7,6 +7,7 @@ import { before, beforeEach, describe, it } from "node:test";
 
 import { HardhatError } from "@nomicfoundation/hardhat-errors";
 import {
+  assertRejectsWithHardhatError,
   assertThrowsHardhatError,
   useEphemeralFixtureProject,
 } from "@nomicfoundation/hardhat-test-utils";
@@ -188,6 +189,61 @@ describe("verification", () => {
           "Etherscan verification should be disabled",
         );
         assert.ok(result, "Verification should return true");
+      });
+
+      describe("non-retryable errors", () => {
+        const nrDispatcher = initializeTestDispatcher({
+          url: etherscanApiUrl,
+        });
+
+        for (const [label, reason] of [
+          [
+            "bytecode mismatch",
+            "Fail - Unable to verify. Compiled contract deployment bytecode does NOT match the transaction deployment bytecode.",
+          ],
+          [
+            "constructor argument mismatch",
+            "Fail - Unable to verify. Please check if the correct constructor argument was entered.",
+          ],
+          [
+            "unable to locate contract",
+            "Unable to locate ContractName , did you specify the correct Contract Name ?",
+          ],
+          [
+            "already similar match",
+            "This contract already Similar Matches the deployed ByteCode at 0x1234",
+          ],
+        ] as const) {
+          it(`should throw NON_RETRYABLE_VERIFICATION_ERROR for: ${label}`, async () => {
+            const { provider } = await hre.network.create();
+            const address = await deployContract(
+              "Counter",
+              [],
+              {},
+              hre,
+              provider,
+            );
+
+            mockEtherscanNonRetryableResponse(
+              nrDispatcher.interceptable,
+              reason,
+            );
+
+            await assertRejectsWithHardhatError(
+              () =>
+                verifyContract(
+                  { address },
+                  hre,
+                  () => {},
+                  nrDispatcher.interceptable,
+                  provider,
+                ),
+              HardhatError.ERRORS.HARDHAT_VERIFY.GENERAL
+                .NON_RETRYABLE_VERIFICATION_ERROR,
+              { reason },
+            );
+          });
+        }
       });
     });
 
@@ -402,5 +458,41 @@ function mockEtherscanRequests(interceptable: Interceptable) {
     .reply(200, {
       status: "1",
       result: "Pass - Verified",
+    });
+}
+
+function mockEtherscanNonRetryableResponse(
+  interceptable: Interceptable,
+  failureMessage: string,
+) {
+  // getsourcecode: contract not yet verified
+  interceptable
+    .intercept({
+      path: /^\/(?:v2\/)?api\?action=getsourcecode&address=0x[a-fA-F0-9]{40}&apikey=[A-Za-z0-9]+&chainid=\d+&module=contract$/,
+      method: "GET",
+    })
+    .reply(200, { status: "1", result: [{ SourceCode: "" }] });
+
+  // verifysourcecode: accepted
+  interceptable
+    .intercept({
+      path: /^\/(?:v2\/)?api\?action=verifysourcecode&apikey=[A-Za-z0-9]+&chainid=\d+&module=contract$/,
+      method: "POST",
+    })
+    .reply(200, {
+      status: "1",
+      message: "OK",
+      result: "1234",
+    });
+
+  // checkverifystatus: non-retryable failure
+  interceptable
+    .intercept({
+      path: /^\/(?:v2\/)?api\?action=checkverifystatus&apikey=[A-Za-z0-9]+&chainid=\d+&guid=1234&module=contract$/,
+      method: "GET",
+    })
+    .reply(200, {
+      status: "0",
+      result: failureMessage,
     });
 }
