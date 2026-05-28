@@ -206,28 +206,31 @@ Explorer: ${instance.getContractUrl(address)}`);
     buildProfileName,
   );
 
-  const { success: minimalInputVerificationSuccess } =
-    await attemptVerification(
-      {
-        verificationProvider: instance,
-        address,
-        encodedConstructorArgs,
-        creationTxHash,
-        contractInformation: {
-          ...contractInformation,
-          // Use the minimal compiler input for the first verification attempt
-          compilerInput: {
-            ...minimalCompilerInput,
-            settings: {
-              ...minimalCompilerInput.settings,
-              // Ensure the libraries are included in the compiler input
-              libraries: libraryInformation.libraries,
-            },
+  const {
+    success: minimalInputVerificationSuccess,
+    message: minimalInputMessage,
+    isRetryable,
+  } = await attemptVerification(
+    {
+      verificationProvider: instance,
+      address,
+      encodedConstructorArgs,
+      creationTxHash,
+      contractInformation: {
+        ...contractInformation,
+        // Use the minimal compiler input for the first verification attempt
+        compilerInput: {
+          ...minimalCompilerInput,
+          settings: {
+            ...minimalCompilerInput.settings,
+            // Ensure the libraries are included in the compiler input
+            libraries: libraryInformation.libraries,
           },
         },
       },
-      consoleLog,
-    );
+    },
+    consoleLog,
+  );
 
   if (minimalInputVerificationSuccess) {
     consoleLog(`
@@ -238,45 +241,51 @@ Explorer: ${instance.getContractUrl(address)}`);
     return true;
   }
 
-  consoleLog(`
+  let failureReason = minimalInputMessage;
+
+  if (isRetryable) {
+    consoleLog(`
 The initial verification attempt for ${contractInformation.userFqn} failed using the minimal compiler input.
 
 Trying again with the full solc input used to compile and deploy the contract.
 Unrelated contracts may be displayed on ${instance.name} as a result.
 `);
 
-  // If verifying with the minimal input failed, try again with the full compiler input
-  const {
-    success: fullCompilerInputVerificationSuccess,
-    message: verificationMessage,
-  } = await attemptVerification(
-    {
-      verificationProvider: instance,
-      address,
-      encodedConstructorArgs,
-      creationTxHash,
-      contractInformation: {
-        ...contractInformation,
-        compilerInput: {
-          ...contractInformation.compilerInput,
-          settings: {
-            ...contractInformation.compilerInput.settings,
-            // Ensure the libraries are included in the compiler input
-            libraries: libraryInformation.libraries,
+    // If verifying with the minimal input failed, try again with the full compiler input
+    const {
+      success: fullCompilerInputVerificationSuccess,
+      message: fullInputMessage,
+    } = await attemptVerification(
+      {
+        verificationProvider: instance,
+        address,
+        encodedConstructorArgs,
+        creationTxHash,
+        contractInformation: {
+          ...contractInformation,
+          compilerInput: {
+            ...contractInformation.compilerInput,
+            settings: {
+              ...contractInformation.compilerInput.settings,
+              // Ensure the libraries are included in the compiler input
+              libraries: libraryInformation.libraries,
+            },
           },
         },
       },
-    },
-    consoleLog,
-  );
+      consoleLog,
+    );
 
-  if (fullCompilerInputVerificationSuccess) {
-    consoleLog(`
+    if (fullCompilerInputVerificationSuccess) {
+      consoleLog(`
 ✅ Contract verified successfully on ${instance.name}!
 
   ${contractInformation.userFqn}
   Explorer: ${instance.getContractUrl(address)}`);
-    return true;
+      return true;
+    }
+
+    failureReason = fullInputMessage;
   }
 
   const librariesWarning =
@@ -291,7 +300,7 @@ ${libraryInformation.undetectableLibraries.map((x) => `  * ${x}`).join("\n")}`
   throw new HardhatError(
     HardhatError.ERRORS.HARDHAT_VERIFY.GENERAL.CONTRACT_VERIFICATION_FAILED,
     {
-      reason: verificationMessage,
+      reason: failureReason,
       librariesWarning,
     },
   );
@@ -383,6 +392,7 @@ async function attemptVerification(
 ): Promise<{
   success: boolean;
   message: string;
+  isRetryable: boolean;
 }> {
   const guid = await verificationProvider.verify({
     contractAddress: address,

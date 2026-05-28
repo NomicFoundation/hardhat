@@ -255,6 +255,7 @@ export class Sourcify implements VerificationProvider {
   ): Promise<{
     success: boolean;
     message: string;
+    isRetryable: boolean;
   }> {
     let response: HttpResponse;
     let responseBody:
@@ -347,6 +348,7 @@ export class Sourcify implements VerificationProvider {
     return {
       success,
       message,
+      isRetryable: verificationStatus.isRetryable(),
     };
   }
 }
@@ -431,6 +433,13 @@ class SourcifyVerificationStatus implements VerificationStatusResponse {
       this.response.isJobCompleted &&
       this.response.error?.customCode === "contract_not_deployed"
     );
+  }
+
+  public isRetryable(): boolean {
+    // Sourcify error messages vary and have no documented catalogue. We cannot
+    // reliably tell whether a retry would help, so we assume that all failures
+    // are retryable.
+    return true;
   }
 
   public isAlreadyVerified(): boolean {

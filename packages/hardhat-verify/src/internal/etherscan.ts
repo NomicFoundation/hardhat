@@ -371,6 +371,7 @@ export class Etherscan implements VerificationProvider {
   ): Promise<{
     success: boolean;
     message: string;
+    isRetryable: boolean;
   }> {
     let response: HttpResponse;
     let responseBody: EtherscanResponse | undefined;
@@ -450,6 +451,7 @@ export class Etherscan implements VerificationProvider {
       return {
         success: etherscanResponse.isSuccess(),
         message: etherscanResponse.message,
+        isRetryable: etherscanResponse.isRetryable(),
       };
     }
 
@@ -554,6 +556,28 @@ class EtherscanVerificationResponse implements VerificationResponse {
   }
 }
 
+// Etherscan verification failures classified by message as non-retryable.
+//
+// The full-input retry only changes the submitted sources and compiler
+// settings. A wrong-constructor-arguments rejection is independent of both
+// (the arguments are encoded once and reused across attempts), so retrying is
+// pointless.
+//
+// Other documented failures are deliberately excluded here: bytecode and
+// metadata (`bytecodehash`) mismatches are often fixed by the retry, which
+// resubmits with the artifact's real compiler settings; missing-source,
+// compilation, and temporary errors are inherently retryable.
+//
+// TODO: this is not the complete set of non-retryable failures. A bytecode
+// mismatch is also non-retryable when the minimal and full inputs have equal
+// compiler settings (the retry would recompile the target to identical
+// bytecode and fail identically). That case is not detectable from the
+// failure message alone; it requires comparing the two inputs' settings, and
+// will be implemented in a future PR.
+//
+// See: https://docs.etherscan.io/contract-verification/common-verification-errors
+const NON_RETRYABLE_FAILURE_PATTERNS = ["correct constructor argument"];
+
 class EtherscanVerificationStatusResponse
   implements VerificationStatusResponse
 {
@@ -586,6 +610,13 @@ class EtherscanVerificationStatusResponse
 
   public isOk(): boolean {
     return this.status === 1;
+  }
+
+  public isRetryable(): boolean {
+    const message = this.message.toLowerCase();
+    return !NON_RETRYABLE_FAILURE_PATTERNS.some((pattern) =>
+      message.includes(pattern),
+    );
   }
 }
 

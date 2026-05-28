@@ -359,6 +359,7 @@ export class Blockscout implements VerificationProvider {
   ): Promise<{
     success: boolean;
     message: string;
+    isRetryable: boolean;
   }> {
     let response: HttpResponse;
     let responseBody: BlockscoutResponse | undefined;
@@ -450,6 +451,7 @@ export class Blockscout implements VerificationProvider {
     return {
       success: blockscoutResponse.isSuccess(),
       message: blockscoutResponse.message,
+      isRetryable: blockscoutResponse.isRetryable(),
     };
   }
 }
@@ -509,5 +511,12 @@ class BlockscoutVerificationStatusResponse
 
   public isOk(): boolean {
     return this.status === 1;
+  }
+
+  public isRetryable(): boolean {
+    // Blockscout's only failure message is the detail-free "Fail - Unable to
+    // verify". We cannot reliably tell whether a retry would help, so we
+    // assume that all failures are retryable.
+    return true;
   }
 }

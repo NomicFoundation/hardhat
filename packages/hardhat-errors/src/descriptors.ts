@@ -2999,7 +2999,9 @@ Reason: "{reason}".
         websiteTitle: "Contract verification failed",
         websiteDescription: `Unable to verify the contract on the block explorer.
 
-If your contract uses libraries whose addresses cannot be detected automatically, make sure you are providing the correct address for each undetectable library.`,
+A common cause is incorrect constructor arguments. Please make sure the values you provide match the ones used during deployment.
+
+Another common cause is missing or incorrect library addresses. If your contract uses libraries whose addresses cannot be detected automatically, please make sure you provide the correct address for each undetectable library.`,
       },
       BLOCK_EXPLORER_NOT_CONFIGURED: {
         number: 80027,

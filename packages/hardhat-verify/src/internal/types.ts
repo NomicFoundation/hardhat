@@ -15,6 +15,12 @@ export interface VerificationStatusResponse {
   isSuccess(): boolean;
   isAlreadyVerified(): boolean;
   isOk(): boolean;
+  /**
+   * Whether a failed verification could be resolved by retrying with the full
+   * compiler input. Only meaningful when `isFailure()` is true, on success the
+   * value is irrelevant.
+   */
+  isRetryable(): boolean;
 }
 
 export interface VerificationResponse {
@@ -112,5 +118,6 @@ export interface VerificationProvider {
   ): Promise<{
     success: boolean;
     message: string;
+    isRetryable: boolean;
   }>;
 }
