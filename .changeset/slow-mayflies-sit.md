@@ -3,4 +3,4 @@
 # docs: https://github.com/NomicFoundation/hardhat-website/pull/266
 ---
 
-Drop "Beta" wording from the `hardhat --init` version selector and the Hardhat 3 project templates ahead of the stable release.
+Hardhat 3 is now stable, the "Beta" wording is being dropped from the `hardhat --init` process and project templates.
