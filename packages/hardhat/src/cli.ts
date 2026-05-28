@@ -24,4 +24,7 @@ function isTsxRequired(): boolean {
 }
 
 // eslint-disable-next-line no-restricted-syntax -- We do want TLA here
-await main(process.argv.slice(2), { registerTsx: isTsxRequired() });
+await main(process.argv.slice(2), {
+  registerTsx: isTsxRequired(),
+  warnAboutUnusedPlugins: true,
+});

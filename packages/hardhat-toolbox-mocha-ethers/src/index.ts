@@ -1,8 +1,10 @@
 import type { HardhatPlugin } from "hardhat/types/plugins";
 
+import { definePlugin } from "hardhat/plugins";
+
 export type * from "./type-extensions.js";
 
-const hardhatToolboxMochaEthersPlugin: HardhatPlugin = {
+const hardhatToolboxMochaEthersPlugin: HardhatPlugin = definePlugin({
   id: "hardhat-toolbox-mocha-ethers",
   dependencies: () => [
     import("@nomicfoundation/hardhat-ethers"),
@@ -15,6 +17,6 @@ const hardhatToolboxMochaEthersPlugin: HardhatPlugin = {
     import("@nomicfoundation/hardhat-verify"),
   ],
   npmPackage: "@nomicfoundation/hardhat-toolbox-mocha-ethers",
-};
+});
 
 export default hardhatToolboxMochaEthersPlugin;

@@ -1,5 +1,6 @@
 import type { HardhatPlugin } from "../../../types/plugins.js";
 
+import { definePlugin } from "../../../plugins.js";
 import { ArgumentType } from "../../../types/arguments.js";
 import { globalOption, task } from "../../core/config.js";
 
@@ -35,7 +36,7 @@ const buildTask = task("build", "Build project")
   .setAction(async () => await import("./tasks/build.js"))
   .build();
 
-const hardhatPlugin: HardhatPlugin = {
+const hardhatPlugin: HardhatPlugin = definePlugin({
   id: "builtin:solidity",
   dependencies: () => [import("../artifacts/index.js")],
   hookHandlers: {
@@ -65,6 +66,6 @@ const hardhatPlugin: HardhatPlugin = {
     }),
   ],
   npmPackage: "hardhat",
-};
+});
 
 export default hardhatPlugin;

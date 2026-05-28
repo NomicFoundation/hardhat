@@ -1,11 +1,12 @@
 import type { HardhatPlugin } from "../../../types/plugins.js";
 
+import { definePlugin } from "../../../plugins.js";
 import { ArgumentType } from "../../../types/arguments.js";
 import { globalFlag, globalOption, overrideTask } from "../../core/config.js";
 
 export type * from "./type-extensions.js";
 
-const hardhatPlugin: HardhatPlugin = {
+const hardhatPlugin: HardhatPlugin = definePlugin({
   id: "builtin:gas-analytics",
   tasks: [
     overrideTask("test")
@@ -63,6 +64,6 @@ const hardhatPlugin: HardhatPlugin = {
     import("../solidity-test/index.js"),
   ],
   npmPackage: "hardhat",
-};
+});
 
 export default hardhatPlugin;

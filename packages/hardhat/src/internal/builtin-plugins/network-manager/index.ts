@@ -1,5 +1,6 @@
 import type { HardhatPlugin } from "../../../types/plugins.js";
 
+import { definePlugin } from "../../../plugins.js";
 import { ArgumentType } from "../../../types/arguments.js";
 import { globalOption } from "../../core/config.js";
 
@@ -8,7 +9,7 @@ export type * from "./type-extensions/global-options.js";
 export type * from "./type-extensions/hooks.js";
 export type * from "./type-extensions/hre.js";
 
-const hardhatPlugin: HardhatPlugin = {
+const hardhatPlugin: HardhatPlugin = definePlugin({
   id: "builtin:network-manager",
   hookHandlers: {
     config: () => import("./hook-handlers/config.js"),
@@ -25,6 +26,6 @@ const hardhatPlugin: HardhatPlugin = {
   ],
   npmPackage: "hardhat",
   dependencies: () => [import("../artifacts/index.js")],
-};
+});
 
 export default hardhatPlugin;

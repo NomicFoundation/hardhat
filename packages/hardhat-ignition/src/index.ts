@@ -1,13 +1,14 @@
 import type { HardhatPlugin } from "hardhat/types/plugins";
 
 import { emptyTask, task } from "hardhat/config";
+import { definePlugin } from "hardhat/plugins";
 import { ArgumentType } from "hardhat/types/arguments";
 
 import { PLUGIN_ID } from "./internal/constants.js";
 
 export type * from "./type-extensions.js";
 
-const hardhatIgnitionPlugin: HardhatPlugin = {
+const hardhatIgnitionPlugin: HardhatPlugin = definePlugin({
   id: PLUGIN_ID,
   npmPackage: "@nomicfoundation/hardhat-ignition",
   hookHandlers: {
@@ -156,6 +157,6 @@ const hardhatIgnitionPlugin: HardhatPlugin = {
       .setAction(() => import("./internal/tasks/migrate.js"))
       .build(),
   ],
-};
+});
 
 export default hardhatIgnitionPlugin;

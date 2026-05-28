@@ -1,8 +1,9 @@
 import type { HardhatPlugin } from "../../../types/plugins.js";
 
+import { definePlugin } from "../../../plugins.js";
 import { task } from "../../core/config.js";
 
-const hardhatPlugin: HardhatPlugin = {
+const hardhatPlugin: HardhatPlugin = definePlugin({
   id: "builtin:telemetry",
   tasks: [
     task("telemetry", "Display and modify telemetry settings")
@@ -18,6 +19,6 @@ const hardhatPlugin: HardhatPlugin = {
       .build(),
   ],
   npmPackage: "hardhat",
-};
+});
 
 export default hardhatPlugin;

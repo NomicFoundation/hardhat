@@ -1,5 +1,7 @@
 import type { HardhatPlugin } from "hardhat/types/plugins";
 
+import { definePlugin } from "hardhat/plugins";
+
 import verifyBlockscoutTask from "./internal/tasks/verify/blockscout/index.js";
 import verifyEtherscanTask from "./internal/tasks/verify/etherscan/index.js";
 import verifyTask from "./internal/tasks/verify/index.js";
@@ -7,7 +9,7 @@ import verifySourcifyTask from "./internal/tasks/verify/sourcify/index.js";
 
 export type * from "./type-extensions.js";
 
-const hardhatPlugin: HardhatPlugin = {
+const hardhatPlugin: HardhatPlugin = definePlugin({
   id: "hardhat-verify",
   hookHandlers: {
     config: () => import("./internal/hook-handlers/config.js"),
@@ -20,6 +22,6 @@ const hardhatPlugin: HardhatPlugin = {
     verifySourcifyTask,
   ],
   npmPackage: "@nomicfoundation/hardhat-verify",
-};
+});
 
 export default hardhatPlugin;
