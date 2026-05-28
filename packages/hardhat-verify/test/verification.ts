@@ -7,6 +7,7 @@ import { before, beforeEach, describe, it } from "node:test";
 
 import { HardhatError } from "@nomicfoundation/hardhat-errors";
 import {
+  assertRejectsWithHardhatError,
   assertThrowsHardhatError,
   useEphemeralFixtureProject,
 } from "@nomicfoundation/hardhat-test-utils";
@@ -187,6 +188,78 @@ describe("verification", () => {
           "Etherscan verification should be disabled",
         );
         assert.ok(result, "Verification should return true");
+      });
+    });
+
+    describe("retry behavior", () => {
+      useEphemeralFixtureProject("integration");
+      const etherscanApiUrl = new URL("https://api-sepolia.etherscan.io")
+        .origin;
+      const testDispatcher = initializeTestDispatcher({
+        url: etherscanApiUrl,
+      });
+
+      let hre: HardhatRuntimeEnvironment;
+      before(async () => {
+        const hardhatUserConfig =
+          // eslint-disable-next-line import/no-relative-packages -- allowed in test
+          (await import("./fixture-projects/integration/hardhat.config.js"))
+            .default;
+        hre = await createHardhatRuntimeEnvironment(hardhatUserConfig);
+        await hre.tasks.getTask("build").run();
+      });
+
+      it("should skip the full-input retry when the explorer rejects the constructor arguments", async () => {
+        const { provider } = await hre.network.create();
+        const address = await deployContract("Counter", [], {}, hre, provider);
+
+        // Only a single verification attempt is mocked. If the code retried with
+        // the full input it would issue a second verifysourcecode request with no
+        // interceptor, which disableNetConnect() rejects, and the dispatcher's
+        // afterEach pending-interceptor check would also fail.
+        mockEtherscanVerificationFlow(testDispatcher.interceptable, [
+          "Fail - Unable to verify. Please check if the correct constructor argument was entered.",
+        ]);
+
+        await assertRejectsWithHardhatError(
+          verifyContract(
+            { address },
+            hre,
+            () => {},
+            testDispatcher.interceptable,
+            provider,
+          ),
+          HardhatError.ERRORS.HARDHAT_VERIFY.GENERAL
+            .CONTRACT_VERIFICATION_FAILED,
+          {
+            reason:
+              "Fail - Unable to verify. Please check if the correct constructor argument was entered.",
+            librariesWarning: "",
+          },
+        );
+      });
+
+      it("should retry with the full input when the minimal attempt fails with a bytecode mismatch", async () => {
+        const { provider } = await hre.network.create();
+        const address = await deployContract("Counter", [], {}, hre, provider);
+
+        // Two attempts: the minimal input fails with a bytecode mismatch (which
+        // the retry can fix by resubmitting with the artifact's settings), then
+        // the full input succeeds.
+        mockEtherscanVerificationFlow(testDispatcher.interceptable, [
+          "Fail - Unable to verify. Compiled contract deployment bytecode does NOT match the transaction deployment bytecode.",
+          "Pass - Verified",
+        ]);
+
+        const result = await verifyContract(
+          { address },
+          hre,
+          () => {},
+          testDispatcher.interceptable,
+          provider,
+        );
+
+        assert.ok(result, "Verification should return true after the retry");
       });
     });
 
@@ -374,4 +447,35 @@ function mockEtherscanRequests(interceptable: Interceptable) {
       status: "1",
       result: "Pass - Verified",
     });
+}
+
+// Mocks a full Etherscan verification flow: the initial isVerified() lookup
+// (reported as not verified), followed by one verifysourcecode + checkverifystatus
+// pair per entry in `statusResults` (one per verification attempt).
+function mockEtherscanVerificationFlow(
+  interceptable: Interceptable,
+  statusResults: string[],
+) {
+  interceptable
+    .intercept({
+      path: /^\/(?:v2\/)?api\?action=getsourcecode&address=0x[a-fA-F0-9]{40}&apikey=[A-Za-z0-9]+&chainid=\d+&module=contract$/,
+      method: "GET",
+    })
+    .reply(200, { status: "1", result: [{ SourceCode: "" }] });
+
+  for (const result of statusResults) {
+    interceptable
+      .intercept({
+        path: /^\/(?:v2\/)?api\?action=verifysourcecode&apikey=[A-Za-z0-9]+&chainid=\d+&module=contract$/,
+        method: "POST",
+      })
+      .reply(200, { status: "1", message: "OK", result: "1234" });
+
+    interceptable
+      .intercept({
+        path: /^\/(?:v2\/)?api\?action=checkverifystatus&apikey=[A-Za-z0-9]+&chainid=\d+&guid=1234&module=contract$/,
+        method: "GET",
+      })
+      .reply(200, { status: "1", result });
+  }
 }
