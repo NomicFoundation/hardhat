@@ -3,11 +3,12 @@ import type { HardhatPlugin } from "hardhat/types/plugins";
 export type * from "./internal/type-extensions.js";
 
 import { emptyTask, task } from "hardhat/config";
+import { definePlugin } from "hardhat/plugins";
 import { ArgumentType } from "hardhat/types/arguments";
 
 import { PLUGIN_ID } from "./internal/constants.js";
 
-const hardhatKeystorePlugin: HardhatPlugin = {
+const hardhatKeystorePlugin: HardhatPlugin = definePlugin({
   id: PLUGIN_ID,
   hookHandlers: {
     config: () => import("./internal/hook-handlers/config.js"),
@@ -125,6 +126,6 @@ const hardhatKeystorePlugin: HardhatPlugin = {
       .build(),
   ],
   npmPackage: "@nomicfoundation/hardhat-keystore",
-};
+});
 
 export default hardhatKeystorePlugin;

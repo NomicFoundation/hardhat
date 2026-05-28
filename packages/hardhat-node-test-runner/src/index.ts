@@ -1,11 +1,12 @@
 import type { HardhatPlugin } from "hardhat/types/plugins";
 
 import { task } from "hardhat/config";
+import { definePlugin } from "hardhat/plugins";
 import { ArgumentType } from "hardhat/types/arguments";
 
 export type * from "./type-extensions.js";
 
-const hardhatPlugin: HardhatPlugin = {
+const hardhatPlugin: HardhatPlugin = definePlugin({
   id: "hardhat-node-test-runner",
   tasks: [
     task(["test", "nodejs"], "Runs tests using the NodeJS test runner")
@@ -44,6 +45,6 @@ const hardhatPlugin: HardhatPlugin = {
     test: () => import("./hookHandlers/test.js"),
   },
   npmPackage: "@nomicfoundation/hardhat-node-test-runner",
-};
+});
 
 export default hardhatPlugin;

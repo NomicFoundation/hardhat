@@ -1,8 +1,10 @@
 import type { HardhatPlugin } from "hardhat/types/plugins";
 
+import { definePlugin } from "hardhat/plugins";
+
 export type * from "./type-extensions.js";
 
-const hardhatIgnitionEthersPlugin: HardhatPlugin = {
+const hardhatIgnitionEthersPlugin: HardhatPlugin = definePlugin({
   id: "hardhat-ignition-ethers",
   dependencies: () => [
     import("@nomicfoundation/hardhat-ignition"),
@@ -12,6 +14,6 @@ const hardhatIgnitionEthersPlugin: HardhatPlugin = {
     network: () => import("./internal/hook-handlers/network.js"),
   },
   npmPackage: "@nomicfoundation/hardhat-ignition-ethers",
-};
+});
 
 export default hardhatIgnitionEthersPlugin;

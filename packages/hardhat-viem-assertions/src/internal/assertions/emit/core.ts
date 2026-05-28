@@ -1,17 +1,11 @@
 import type { AbiHolder } from "../../../abi-types.js";
 import type { HardhatViemHelpers } from "@nomicfoundation/hardhat-viem/types";
 import type { ChainType } from "hardhat/types/network";
-import type {
-  Abi,
-  AbiEvent,
-  ContractEventName,
-  ReadContractReturnType,
-  WriteContractReturnType,
-} from "viem";
+import type { Abi, AbiEvent, ContractEventName, Hash } from "viem";
 
 import assert from "node:assert/strict";
 
-import { parseEventLogs } from "viem";
+import { parseEventLogs, isHash } from "viem";
 
 import { settle } from "../../helpers.js";
 
@@ -20,13 +14,22 @@ export async function handleEmit<
   ChainTypeT extends ChainType | string = "generic",
 >(
   viem: HardhatViemHelpers<ChainTypeT>,
-  contractFn: Promise<ReadContractReturnType | WriteContractReturnType>,
+  txHash: Hash | Promise<Hash>,
   contract: TContract,
   eventName: ContractEventName<TContract["abi"]>,
 ): Promise<Array<{ args?: Record<string, any> }>> {
-  // Settle `contractFn` first so the tx doesn't leak into the next test, but
+  // Settle `txHash` first so the tx doesn't leak into the next test, but
   // defer rethrowing so ABI errors still take precedence over tx reverts.
-  const contractFnResult = await settle(contractFn);
+  const txHashResult = await settle(txHash);
+
+  if (txHashResult.ok === true) {
+    assert.ok(
+      isHash(txHashResult.value),
+      `txHash must be a transaction hash or a promise resolving to one, but got: ${String(
+        txHashResult.value,
+      )}`,
+    );
+  }
 
   const abiEvents: AbiEvent[] = contract.abi.filter(
     (item): item is AbiEvent =>
@@ -38,21 +41,29 @@ export async function handleEmit<
     `Event "${eventName}" not found in the contract ABI`,
   );
 
-  if (contractFnResult.ok === false) {
+  if (txHashResult.ok === false) {
     // eslint-disable-next-line no-restricted-syntax -- propagate the original tx-revert error
-    throw contractFnResult.error;
+    throw txHashResult.error;
   }
 
   const publicClient = await viem.getPublicClient();
 
-  const logs = await publicClient.getLogs({
-    address: contract.address,
+  const receipt = await publicClient.waitForTransactionReceipt({
+    hash: txHashResult.value,
   });
+
+  // `receipt.logs` includes logs from every contract touched by the tx; keep
+  // only the ones emitted by the contract under test so an event with a
+  // colliding signature from a different contract can't satisfy the assertion.
+  const contractAddress = contract.address.toLowerCase();
+  const ownLogs = receipt.logs.filter(
+    (log) => log.address.toLowerCase() === contractAddress,
+  );
 
   const parsedLogs = parseEventLogs({
     abi: contract.abi,
     eventName,
-    logs,
+    logs: ownLogs,
   });
 
   assert.ok(

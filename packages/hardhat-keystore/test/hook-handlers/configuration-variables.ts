@@ -1,5 +1,6 @@
 import type { ConfigurationVariable } from "hardhat/types/config";
 import type { HardhatRuntimeEnvironment } from "hardhat/types/hre";
+import type { HardhatPlugin } from "hardhat/types/plugins";
 
 import assert from "node:assert/strict";
 import path from "node:path";
@@ -340,6 +341,116 @@ describe("hook-handlers - configuration variables - fetchValue", () => {
             .KEY_NOT_FOUND_DURING_TESTS_WITH_DEV_KEYSTORE,
           { key: "key3-prod" },
         );
+      });
+    });
+
+    describe("when an environment variable is set for the same key", () => {
+      let passwordRequestCount: number;
+
+      beforeEach(async () => {
+        passwordRequestCount = 0;
+
+        const trackingPasswordPlugin: HardhatPlugin = {
+          id: "tracking-keystore-password",
+          hookHandlers: {
+            userInterruptions: async () => ({
+              default: async () => ({
+                requestSecretInput: async () => {
+                  passwordRequestCount++;
+                  return TEST_PASSWORD_PROD;
+                },
+              }),
+            }),
+          },
+        };
+
+        hre = await createHardhatRuntimeEnvironment({
+          plugins: [
+            hardhatKeystorePlugin,
+            setupKeystoreFileLocationOverrideAt(
+              configurationVariableProdKeystoreFilePath,
+              configurationVariableDevKeystoreFilePath,
+              configurationVariableDevKeystorePasswordFilePath,
+            ),
+            trackingPasswordPlugin,
+          ],
+        });
+      });
+
+      describe("with a non-empty value", () => {
+        let resultValue: string;
+
+        // `key4-prod` only exists in the production keystore, so resolving it
+        // through the keystore would prompt for the production password.
+        beforeEach(async () => {
+          process.env["key4-prod"] = "value-from-env";
+
+          resultValue = await hre.hooks.runHandlerChain(
+            "configurationVariables",
+            "fetchValue",
+            [exampleConfigurationVariable4],
+            async (_context, _configVar) => {
+              return process.env[_configVar.name] ?? "unexpected-default-value";
+            },
+          );
+        });
+
+        afterEach(() => {
+          delete process.env["key4-prod"];
+        });
+
+        it("should return the environment variable value instead of the keystore value", async () => {
+          assert.equal(
+            resultValue,
+            "value-from-env",
+            "env var should take precedence over keystore",
+          );
+        });
+
+        it("should not prompt for the keystore password", async () => {
+          assert.equal(
+            passwordRequestCount,
+            0,
+            "keystore should not be opened when env var is set",
+          );
+        });
+      });
+
+      describe("with an empty string value", () => {
+        let resultValue: string;
+
+        beforeEach(async () => {
+          process.env["key4-prod"] = "";
+
+          resultValue = await hre.hooks.runHandlerChain(
+            "configurationVariables",
+            "fetchValue",
+            [exampleConfigurationVariable4],
+            async (_context, _configVar) => {
+              return process.env[_configVar.name] ?? "unexpected-default-value";
+            },
+          );
+        });
+
+        afterEach(() => {
+          delete process.env["key4-prod"];
+        });
+
+        it("should return the empty environment variable value", async () => {
+          assert.equal(
+            resultValue,
+            "",
+            "an empty env var should still take precedence over keystore",
+          );
+        });
+
+        it("should not prompt for the keystore password", async () => {
+          assert.equal(
+            passwordRequestCount,
+            0,
+            "keystore should not be opened when env var is set",
+          );
+        });
       });
     });
 

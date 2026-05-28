@@ -23,11 +23,11 @@ export interface HardhatViemAssertions {
    * For the transaction sender, the effective gas fee is accounted for so the expected amount reflects the
    * pure value transfer effect.
    *
-   * @param resolvedTxHash - A promise that resolves to the transaction hash returned by `sendTransaction`.
+   * @param txHash - The transaction hash returned by `sendTransaction`, or a promise that resolves to it.
    * @param changes - The expected balance deltas, in wei, for each address. Negative values are allowed.
    */
   balancesHaveChanged: (
-    resolvedTxHash: Promise<Hash>,
+    txHash: Hash | Promise<Hash>,
     changes: Array<{
       address: Address;
       amount: bigint;
@@ -37,17 +37,17 @@ export interface HardhatViemAssertions {
   /**
    * Assert that executing a contract function emits a specific event.
    *
-   * The function is awaited, then logs are fetched for the contract address and parsed
-   * against the contract ABI for the given event name. The assertion passes if at least one
-   * matching event is found.
+   * The transaction is awaited and its receipt is fetched; the logs in the receipt that were
+   * emitted by `contract` are parsed against its ABI for the given event name. The assertion
+   * passes if at least one matching event is found in that transaction.
    *
    * @typeParam TContract - The viem contract instance whose ABI is used to parse logs.
-   * @param contractFn - A promise returned by a viem read or write contract call.
+   * @param txHash - The transaction hash returned by a viem write call or `sendTransaction`, or a promise that resolves to it.
    * @param contract - The viem contract instance whose ABI is used to parse logs.
    * @param eventName - The event name to assert.
    */
   emit<TContract extends AbiHolder<Abi>>(
-    contractFn: Promise<ReadContractReturnType | WriteContractReturnType>,
+    txHash: Hash | Promise<Hash>,
     contract: TContract,
     eventName: ContractEventName<TContract["abi"]>,
   ): Promise<void>;
@@ -61,7 +61,7 @@ export interface HardhatViemAssertions {
    *
    * @typeParam TContract - The viem contract instance whose ABI is used to parse logs.
    * @typeParam TEventName - The name of the event to check, constrained to events declared in `TContract`'s ABI.
-   * @param contractFn - A promise returned by a viem read or write contract call.
+   * @param txHash - The transaction hash returned by a viem write call or `sendTransaction`, or a promise that resolves to it.
    * @param contract - The viem contract instance whose ABI is used to parse logs.
    * @param eventName - The event name to assert.
    * @param args - Expected event arguments. Each item can be a concrete value or a predicate function `(value) => boolean`.
@@ -70,7 +70,7 @@ export interface HardhatViemAssertions {
     TContract extends AbiHolder<Abi>,
     TEventName extends ContractEventName<TContract["abi"]>,
   >(
-    contractFn: Promise<ReadContractReturnType | WriteContractReturnType>,
+    txHash: Hash | Promise<Hash>,
     contract: TContract,
     eventName: TEventName,
     args: EventArgsOf<TContract["abi"], TEventName>,

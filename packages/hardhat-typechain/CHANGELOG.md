@@ -1,5 +1,18 @@
 # @nomicfoundation/hardhat-typechain
 
+## 3.1.0
+
+### Minor Changes
+
+- [#8327](https://github.com/NomicFoundation/hardhat/pull/8327) [`007b482`](https://github.com/NomicFoundation/hardhat/commit/007b4827b0b50ec10ded100fa316e2750680e598) Thanks [@alcuadrado](https://github.com/alcuadrado)! - Use the new `SolidityHooks#processArtifactsAfterSuccessfulBuild` hook
+
+### Patch Changes
+
+- Updated dependencies:
+  - hardhat@3.6.0
+  - @nomicfoundation/hardhat-utils@4.1.3
+  - @nomicfoundation/hardhat-errors@3.0.14
+
 ## 3.0.9
 
 ### Patch Changes

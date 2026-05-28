@@ -1,5 +1,39 @@
 # hardhat
 
+## 3.7.0
+
+### Minor Changes
+
+- [#8200](https://github.com/NomicFoundation/hardhat/pull/8200) [`ce430ac`](https://github.com/NomicFoundation/hardhat/commit/ce430ac97113e743ff6b2d34105f1ebde90d0d91) Thanks [@tenderdeve](https://github.com/tenderdeve)! - Hardhat 3 is now stable, the "Beta" wording is being dropped from the `hardhat --init` process and project templates.
+
+## 3.6.0
+
+### Minor Changes
+
+- [#8327](https://github.com/NomicFoundation/hardhat/pull/8327) [`dee44f6`](https://github.com/NomicFoundation/hardhat/commit/dee44f69cafb9a11b702abe73e6215a954f16937) Thanks [@alcuadrado](https://github.com/alcuadrado)! - Add a `cleanupArtifacts` option to `SolidityBuildSystem#build`. When `true`, the build system runs `cleanupArtifacts` against the build's root file paths after a successful build, deleting orphan artifacts and unreachable build-info files for the scope.
+
+- [#8327](https://github.com/NomicFoundation/hardhat/pull/8327) [`dee44f6`](https://github.com/NomicFoundation/hardhat/commit/dee44f69cafb9a11b702abe73e6215a954f16937) Thanks [@alcuadrado](https://github.com/alcuadrado)! - Deprecate the following `SolidityHooks`: `getCompiler`, `onCleanUpArtifacts`, `preprocessProjectFileBeforeBuilding`, `preprocessSolcInputBeforeBuilding`, `readSourceFile`, `invokeSolc`, and `readNpmPackageRemappings`. They will be removed in a future release.
+
+  Use `processArtifactsAfterSuccessfulBuild` instead of `onCleanUpArtifacts`, and `getCompilationJobErrors` instead of `invokeSolc`.
+
+- [#8327](https://github.com/NomicFoundation/hardhat/pull/8327) [`dee44f6`](https://github.com/NomicFoundation/hardhat/commit/dee44f69cafb9a11b702abe73e6215a954f16937) Thanks [@alcuadrado](https://github.com/alcuadrado)! - Add `SolidityHooks#getCompilationJobErrors` hook, which lets plugins process the compiler output errors of a compilation job before they are reported to the user.
+
+- [#8327](https://github.com/NomicFoundation/hardhat/pull/8327) [`dee44f6`](https://github.com/NomicFoundation/hardhat/commit/dee44f69cafb9a11b702abe73e6215a954f16937) Thanks [@alcuadrado](https://github.com/alcuadrado)! - Add `SolidityHooks#processArtifactsAfterSuccessfulBuild` hook to let plugins post-process the artifacts. The hook receives the resolved build options as a new exported `ResolvedBuildOptions` type.
+
+### Patch Changes
+
+- [#8327](https://github.com/NomicFoundation/hardhat/pull/8327) [`dee44f6`](https://github.com/NomicFoundation/hardhat/commit/dee44f69cafb9a11b702abe73e6215a954f16937) Thanks [@alcuadrado](https://github.com/alcuadrado)! - `SolidityBuildSystem#cleanupArtifacts` now returns the list of artifact paths that remain after the cleanup.
+
+- [#8335](https://github.com/NomicFoundation/hardhat/pull/8335) [`a4bf547`](https://github.com/NomicFoundation/hardhat/commit/a4bf547bd7bc7d60e63fc31efc3dd27edb197b78) Thanks [@gultekinmakif](https://github.com/gultekinmakif)! - Allow STRING_WITHOUT_DEFAULT and FILE_WITHOUT_DEFAULT as positional arguments
+
+- [#8326](https://github.com/NomicFoundation/hardhat/pull/8326) [`959f2e1`](https://github.com/NomicFoundation/hardhat/commit/959f2e1989c4bcbff05f717b33a2df1098f67616) Thanks [@kanej](https://github.com/kanej)! - Fixed `hardhat flatten` silently producing a misleading output for projects with cyclic Solidity dependencies.
+
+- [#8262](https://github.com/NomicFoundation/hardhat/pull/8262) [`d3ba170`](https://github.com/NomicFoundation/hardhat/commit/d3ba17006874715de86194c6a136cd0b7afb9bc4) Thanks [@fvictorio](https://github.com/fvictorio)! - Add AGENTS.md and agentic skills to sample projects
+
+- Updated dependencies:
+  - @nomicfoundation/hardhat-utils@4.1.3
+  - @nomicfoundation/hardhat-errors@3.0.14
+
 ## 3.5.1
 
 ### Patch Changes

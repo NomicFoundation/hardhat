@@ -1,6 +1,5 @@
 import type { HardhatViemHelpers } from "@nomicfoundation/hardhat-viem/types";
 import type { HardhatRuntimeEnvironment } from "hardhat/types/hre";
-import type { EthereumProvider } from "hardhat/types/providers";
 
 import assert from "node:assert/strict";
 import { before, beforeEach, describe, it } from "node:test";
@@ -11,6 +10,7 @@ import {
 } from "@nomicfoundation/hardhat-test-utils";
 import hardhatViem from "@nomicfoundation/hardhat-viem";
 import { createHardhatRuntimeEnvironment } from "hardhat/hre";
+import { encodeFunctionData } from "viem";
 
 import hardhatViemAssertions from "../../../../src/index.js";
 import { anyValue } from "../../../../src/internal/predicates.js";
@@ -20,7 +20,6 @@ import { isExpectedError } from "../../../helpers/is-expected-error.js";
 describe("emitWithArgs", () => {
   let hre: HardhatRuntimeEnvironment;
   let viem: HardhatViemHelpers;
-  let provider: EthereumProvider;
 
   useEphemeralFixtureProject("hardhat-project");
 
@@ -34,7 +33,7 @@ describe("emitWithArgs", () => {
   });
 
   beforeEach(async () => {
-    ({ provider, viem } = await hre.network.create());
+    ({ viem } = await hre.network.create());
   });
 
   it("should check that the event was emitted with the correct single argument", async () => {
@@ -48,6 +47,51 @@ describe("emitWithArgs", () => {
     );
   });
 
+  it("should check that the event was emitted when given an already-awaited write result", async () => {
+    const contract = await viem.deployContract("Events");
+
+    const writeResult = await contract.write.emitInt([1n]);
+
+    await viem.assertions.emitWithArgs(writeResult, contract, "WithIntArg", [
+      1n,
+    ]);
+  });
+
+  it("should check that the event was emitted when given a sendTransaction promise", async () => {
+    const contract = await viem.deployContract("Events");
+    const [walletClient] = await viem.getWalletClients();
+
+    await viem.assertions.emitWithArgs(
+      walletClient.sendTransaction({
+        to: contract.address,
+        data: encodeFunctionData({
+          abi: contract.abi,
+          functionName: "emitInt",
+          args: [1n],
+        }),
+      }),
+      contract,
+      "WithIntArg",
+      [1n],
+    );
+  });
+
+  it("should check that the event was emitted when given an already-awaited sendTransaction hash", async () => {
+    const contract = await viem.deployContract("Events");
+    const [walletClient] = await viem.getWalletClients();
+
+    const hash = await walletClient.sendTransaction({
+      to: contract.address,
+      data: encodeFunctionData({
+        abi: contract.abi,
+        functionName: "emitInt",
+        args: [1n],
+      }),
+    });
+
+    await viem.assertions.emitWithArgs(hash, contract, "WithIntArg", [1n]);
+  });
+
   it("should check that the event was emitted with the correct multiple arguments", async () => {
     const contract = await viem.deployContract("Events");
 
@@ -59,39 +103,47 @@ describe("emitWithArgs", () => {
     );
   });
 
-  it("should check that the event was emitted when multiple events are emitted", async () => {
+  it("should check that the event was emitted when the transaction emits multiple events", async () => {
     const contract = await viem.deployContract("Events");
 
-    // Temporarily disable auto mine to ensure all events are emitted within the same block
-    await provider.request({
-      method: "evm_setAutomine",
-      params: [false],
-    });
-
     await viem.assertions.emitWithArgs(
-      (async () => {
-        await contract.write.emitWithoutArgs();
-        await contract.write.emitTwoUints([1n, 2n]);
-        await contract.write.emitTwoUints([3n, 4n]);
-        await contract.write.emitTwoUints([5n, 6n]);
-        await contract.write.emitWithoutArgs();
-
-        // Mine a block that will contain multiple events
-        await provider.request({
-          method: "hardhat_mine",
-          params: ["0x1"],
-        });
-      })(),
+      contract.write.emitMultipleTwoUints(),
       contract,
       "WithTwoUintArgs",
       [3n, 4n],
     );
+  });
 
-    // Re-enable auto mine
-    await provider.request({
-      method: "evm_setAutomine",
-      params: [true],
-    });
+  it("should make multiple assertions against the same awaited tx, including one not emitted", async () => {
+    const contract = await viem.deployContract("Events");
+
+    const hash = await contract.write.emitMultipleTwoUints();
+
+    await viem.assertions.emit(hash, contract, "WithoutArgs");
+
+    await viem.assertions.emitWithArgs(hash, contract, "WithTwoUintArgs", [
+      1n,
+      2n,
+    ]);
+    await viem.assertions.emitWithArgs(hash, contract, "WithTwoUintArgs", [
+      3n,
+      4n,
+    ]);
+    await viem.assertions.emitWithArgs(hash, contract, "WithTwoUintArgs", [
+      5n,
+      6n,
+    ]);
+
+    await assertRejects(
+      viem.assertions.emit(hash, contract, "WithIntArg"),
+      (error) =>
+        isExpectedError(
+          error,
+          `No events were emitted for contract with address "${contract.address}" and event name "WithIntArg"`,
+          false,
+          true,
+        ),
+    );
   });
 
   it("should check that the event was emitted with the correct multiple arguments, one with param name, one without", async () => {

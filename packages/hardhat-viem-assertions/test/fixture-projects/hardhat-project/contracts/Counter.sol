@@ -13,6 +13,8 @@ contract Counter {
   function divideBy(uint8 by) public {
     x /= by;
   }
+
+  function deposit() public payable {}
 }
 
 contract CounterNestedPanicError {

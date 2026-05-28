@@ -7,6 +7,8 @@ import type { Task } from "../../../types/tasks.js";
 
 import { camelToKebabCase } from "@nomicfoundation/hardhat-utils/string";
 
+import { isArgumentRequired } from "../../core/tasks/utils.js";
+
 export const GLOBAL_NAME_PADDING = 6;
 
 interface ArgumentDescriptor {
@@ -84,11 +86,16 @@ export function parseOptions(task: Task): {
     });
   }
 
-  for (const { name, description, defaultValue } of task.positionalArguments) {
+  for (const {
+    name,
+    description,
+    defaultValue,
+    type,
+  } of task.positionalArguments) {
     positionalArguments.push({
       name,
       description: trimFullStop(description),
-      isRequired: defaultValue === undefined,
+      isRequired: isArgumentRequired(type, defaultValue),
       ...(defaultValue !== undefined && {
         defaultValue: Array.isArray(defaultValue)
           ? defaultValue.join(", ")

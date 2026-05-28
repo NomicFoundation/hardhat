@@ -1,8 +1,9 @@
 import type { HardhatPlugin } from "../../../types/plugins.js";
 
+import { definePlugin } from "../../../plugins.js";
 import { task } from "../../core/config.js";
 
-const hardhatPlugin: HardhatPlugin = {
+const hardhatPlugin: HardhatPlugin = definePlugin({
   id: "builtin:console",
   tasks: [
     task("console", "Open a hardhat console")
@@ -25,6 +26,6 @@ const hardhatPlugin: HardhatPlugin = {
   ],
   dependencies: () => [import("../solidity/index.js")],
   npmPackage: "hardhat",
-};
+});
 
 export default hardhatPlugin;

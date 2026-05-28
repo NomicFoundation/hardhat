@@ -1,9 +1,10 @@
 import type { HardhatPlugin } from "../../../types/plugins.js";
 
+import { definePlugin } from "../../../plugins.js";
 import { ArgumentType } from "../../../types/arguments.js";
 import { task } from "../../core/config.js";
 
-const hardhatPlugin: HardhatPlugin = {
+const hardhatPlugin: HardhatPlugin = definePlugin({
   id: "builtin:node",
   tasks: [
     task("node", "Start a JSON-RPC server on top of Hardhat Network")
@@ -50,6 +51,6 @@ const hardhatPlugin: HardhatPlugin = {
       .build(),
   ],
   dependencies: () => [import("../network-manager/index.js")],
-};
+});
 
 export default hardhatPlugin;

@@ -1,8 +1,9 @@
 import type { HardhatPlugin } from "../../../types/plugins.js";
 
+import { definePlugin } from "../../../plugins.js";
 import { task } from "../../core/config.js";
 
-const hardhatPlugin: HardhatPlugin = {
+const hardhatPlugin: HardhatPlugin = definePlugin({
   id: "builtin:run",
   tasks: [
     task("run", "Run a user-defined script after compiling the project")
@@ -19,6 +20,6 @@ const hardhatPlugin: HardhatPlugin = {
   ],
   dependencies: () => [import("../solidity/index.js")],
   npmPackage: "hardhat",
-};
+});
 
 export default hardhatPlugin;

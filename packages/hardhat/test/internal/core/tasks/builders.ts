@@ -1059,6 +1059,33 @@ describe("Task builders", () => {
         );
       });
 
+      for (const argType of [
+        ArgumentType.STRING_WITHOUT_DEFAULT,
+        ArgumentType.FILE_WITHOUT_DEFAULT,
+      ] as const) {
+        it(`should throw if trying to add a required positional argument after a ${argType} one`, () => {
+          const builder = new NewTaskDefinitionBuilderImplementation("task-id");
+
+          builder.addPositionalArgument({
+            name: "arg",
+            type: argType,
+          });
+
+          assertThrowsHardhatError(
+            () => builder.addPositionalArgument({ name: "arg2" }),
+            HardhatError.ERRORS.CORE.TASK_DEFINITIONS
+              .REQUIRED_ARG_AFTER_OPTIONAL,
+            { name: "arg2" },
+          );
+          assertThrowsHardhatError(
+            () => builder.addVariadicArgument({ name: "arg3" }),
+            HardhatError.ERRORS.CORE.TASK_DEFINITIONS
+              .REQUIRED_ARG_AFTER_OPTIONAL,
+            { name: "arg3" },
+          );
+        });
+      }
+
       it("should throw if trying to add a positional argument after a variadic one", () => {
         const builder = new NewTaskDefinitionBuilderImplementation("task-id");
 
