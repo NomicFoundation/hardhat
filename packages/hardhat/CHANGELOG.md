@@ -1,5 +1,11 @@
 # hardhat
 
+## 3.7.0
+
+### Minor Changes
+
+- [#8200](https://github.com/NomicFoundation/hardhat/pull/8200) [`ce430ac`](https://github.com/NomicFoundation/hardhat/commit/ce430ac97113e743ff6b2d34105f1ebde90d0d91) Thanks [@tenderdeve](https://github.com/tenderdeve)! - Hardhat 3 is now stable, the "Beta" wording is being dropped from the `hardhat --init` process and project templates.
+
 ## 3.6.0
 
 ### Minor Changes
