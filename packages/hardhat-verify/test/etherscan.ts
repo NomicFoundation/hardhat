@@ -866,6 +866,50 @@ describe("etherscan", () => {
         }
       });
 
+      it("should flag only constructor-argument failures as non-retryable", async () => {
+        const etherscan = new Etherscan({
+          ...etherscanConfig,
+          dispatcher: testDispatcher.interceptable,
+        });
+
+        const cases: Array<{ result: string; isRetryable: boolean }> = [
+          {
+            result:
+              "Fail - Unable to verify. Please check if the correct constructor argument was entered.",
+            isRetryable: false,
+          },
+          {
+            // Settings-dependent: the full-input retry can fix it, so retryable.
+            result:
+              "Fail - Unable to verify. Compiled contract deployment bytecode does NOT match the transaction deployment bytecode.",
+            isRetryable: true,
+          },
+          {
+            // Metadata is a compiler setting, so the retry can fix it too.
+            result:
+              "Fail - Unable to verify. Please check if the correct bytecodehash was specified via standard-json verification.",
+            isRetryable: true,
+          },
+          { result: "Fail - Unable to verify", isRetryable: true },
+        ];
+
+        for (const { result, isRetryable } of cases) {
+          pollVerificationStatusInterceptor.reply(200, {
+            status: "0",
+            result,
+          });
+
+          const response = await etherscan.pollVerificationStatus(
+            guid,
+            address,
+            contract,
+          );
+
+          assert.equal(response.success, false, result);
+          assert.equal(response.isRetryable, isRetryable, result);
+        }
+      });
+
       it("should poll the verification status until it is successful or fails", async () => {
         const etherscan = new Etherscan({
           ...etherscanConfig,
