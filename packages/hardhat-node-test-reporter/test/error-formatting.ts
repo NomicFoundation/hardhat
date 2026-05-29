@@ -8,6 +8,25 @@ import {
   parseStackLine,
 } from "../src/error-formatting.js";
 
+const SOLIDITY_STACK =
+  "TestContract.testFn (Test.t.sol:1)\nOther.foo (Other.sol:7)";
+
+function makeSolidityError(stack: string = SOLIDITY_STACK): Error {
+  const err = new Error("revert reason");
+  err.name = "SolidityError";
+  Object.defineProperty(err, "solidityStack", {
+    value: stack,
+    enumerable: true,
+  });
+  return err;
+}
+
+function makeWrapper(name: string, cause: unknown): Error {
+  const err = new Error("wrapper message", { cause });
+  err.name = name;
+  return err;
+}
+
 const stackLineToReference = [
   {
     line: "AssertionError [ERR_ASSERTION]: Multiplication result is not correct",
@@ -538,25 +557,6 @@ describe("Removing the diff from the error message", () => {
 });
 
 describe("Formatting SolidityError stack traces", () => {
-  const SOLIDITY_STACK =
-    "TestContract.testFn (Test.t.sol:1)\nOther.foo (Other.sol:7)";
-
-  function makeSolidityError(stack: string = SOLIDITY_STACK): Error {
-    const err = new Error("revert reason");
-    err.name = "SolidityError";
-    Object.defineProperty(err, "solidityStack", {
-      value: stack,
-      enumerable: true,
-    });
-    return err;
-  }
-
-  function makeWrapper(name: string, cause: unknown): Error {
-    const err = new Error("wrapper message", { cause });
-    err.name = name;
-    return err;
-  }
-
   it("appends the Solidity stack trace when the top-level error is a SolidityError", () => {
     const error = makeSolidityError();
     const output = stripVTControlCharacters(formatSingleError(error));
