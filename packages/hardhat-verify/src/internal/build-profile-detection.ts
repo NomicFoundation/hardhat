@@ -7,6 +7,7 @@ import type {
 
 import path from "node:path";
 
+import { assertHardhatInvariant } from "@nomicfoundation/hardhat-errors";
 import { deepEqual } from "@nomicfoundation/hardhat-utils/lang";
 
 export interface ArtifactCandidate {
@@ -26,6 +27,10 @@ export function makeArtifactCandidate(
   projectRoot: string,
 ): ArtifactCandidate {
   const inputSourceName = buildInfo.userSourceNameMap[userSourceName];
+  assertHardhatInvariant(
+    inputSourceName !== undefined,
+    `Source name "${userSourceName}" is missing from the build info's userSourceNameMap.`,
+  );
   const rootFilePath = inputSourceName.startsWith("npm/")
     ? `npm:${userSourceName}`
     : path.join(projectRoot, userSourceName);
