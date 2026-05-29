@@ -277,7 +277,6 @@ ${formattedSolidityError}`;
   return formattedError;
 }
 
-
 function isSolidityError(error: Error): error is SolidityError {
   return (
     error.name === "SolidityError" &&
