@@ -574,6 +574,21 @@ function ethersValueIntoEvmValue(
     return ethersResultIntoEvmTuple(ethersValue, paramType.components);
   }
 
+  // Indexed dynamic params (string/bytes/array/tuple) aren't stored in the log
+  // — only their keccak256 lives in a topic — so ethers v6 returns an `Indexed`
+  // placeholder for them. Reading the value itself is rejected upstream by
+  // `validateArtifactEventArgumentParams`, so this branch only fires for
+  // sibling params during tuple decoding; returning the topic hash lets the
+  // surrounding event decode without poisoning reads of other args.
+  if (ethers.Indexed.isIndexed(ethersValue)) {
+    assertIgnitionInvariant(
+      ethersValue.hash !== null,
+      "ethers.Indexed.hash must be set for placeholders produced by decodeEventLog",
+    );
+
+    return ethersValue.hash;
+  }
+
   throw new HardhatError(
     HardhatError.ERRORS.IGNITION.GENERAL.UNSUPPORTED_DECODE,
     {

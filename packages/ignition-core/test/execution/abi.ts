@@ -1,6 +1,7 @@
 import { HardhatError } from "@nomicfoundation/hardhat-errors";
 import { assertThrowsHardhatError } from "@nomicfoundation/hardhat-test-utils";
 import { assert } from "chai";
+import { ethers } from "ethers";
 import type { Artifact } from "../../src/types/artifact.js";
 
 import type { SolidityParameterType } from "../../src/index.js";
@@ -10,10 +11,15 @@ import {
   decodeError,
   encodeArtifactDeploymentData,
   encodeArtifactFunctionCall,
+  getEventArgumentFromReceipt,
   validateArtifactFunctionName,
 } from "../../src/internal/execution/abi.js";
 import { linkLibraries } from "../../src/internal/execution/libraries.js";
 import { EvmExecutionResultTypes } from "../../src/internal/execution/types/evm-execution.js";
+import {
+  type TransactionReceipt,
+  TransactionReceiptStatus,
+} from "../../src/internal/execution/types/jsonrpc.js";
 import { assertValidationError } from "../helpers.js";
 import {
   callEncodingFixtures,
@@ -345,6 +351,77 @@ describe("abi", () => {
       it("Should throw if a result type is a function", () => {});
       it("Should throw if a result type is a fixed<M>x<N>", () => {});
       it("Should throw if a result type is a ufixed<M>x<N>", () => {});
+    });
+  });
+
+  describe("getEventArgumentFromReceipt", () => {
+    // Regression test for https://github.com/NomicFoundation/hardhat/issues/8338
+    it("Should decode a non-indexed sibling arg even when the event has an indexed dynamic param", () => {
+      const emitterAddress = "0x1F98431c8aD98523631AE4a59f267346ea31F984";
+
+      const artifact: Artifact = {
+        _format: "hh3-artifact-1",
+        contractName: "Repro8338",
+        sourceName: "contracts/Repro8338.sol",
+        abi: [
+          {
+            anonymous: false,
+            type: "event",
+            name: "SuiteDeployed",
+            inputs: [
+              {
+                indexed: true,
+                internalType: "address",
+                name: "token",
+                type: "address",
+              },
+              {
+                indexed: true,
+                internalType: "string",
+                name: "salt",
+                type: "string",
+              },
+            ],
+          },
+        ],
+        bytecode: "0x",
+        linkReferences: {},
+        deployedBytecode: "0x",
+        deployedLinkReferences: {},
+      };
+
+      const receipt: TransactionReceipt = {
+        blockHash: `0x${"11".repeat(32)}`,
+        blockNumber: 1,
+        status: TransactionReceiptStatus.SUCCESS,
+        logs: [
+          {
+            address: emitterAddress,
+            logIndex: 0,
+            data: "0x",
+            topics: [
+              ethers.id("SuiteDeployed(address,string)"),
+              ethers.zeroPadValue(emitterAddress, 32),
+              ethers.keccak256(ethers.toUtf8Bytes("my-salt")),
+            ],
+          },
+        ],
+      };
+
+      const token = getEventArgumentFromReceipt(
+        receipt,
+        artifact,
+        emitterAddress,
+        "SuiteDeployed",
+        0,
+        "token",
+      );
+
+      assert.equal(
+        token,
+        emitterAddress,
+        "The decoded `token` arg should equal the emitter address",
+      );
     });
   });
 
