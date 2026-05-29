@@ -252,11 +252,8 @@ export function formatSingleError(
       error.name === "SolidityError") &&
     solidityError !== undefined
   ) {
-    const formattedSolidityError = styleText(
-      "red",
-      `${styleText("red", "Solidity stack trace:")}
-${styleText("gray", indent(solidityError.solidityStack, ERROR_STACK_INDENT))}`,
-    );
+    const formattedSolidityError = `${styleText("red", "Solidity stack trace:")}
+${styleText("gray", indent(solidityError.solidityStack, ERROR_STACK_INDENT))}`;
     return `${formattedError}
 
 ${formattedSolidityError}`;
