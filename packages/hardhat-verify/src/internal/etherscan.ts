@@ -568,12 +568,12 @@ class EtherscanVerificationResponse implements VerificationResponse {
 // resubmits with the artifact's real compiler settings; missing-source,
 // compilation, and temporary errors are inherently retryable.
 //
-// TODO: this is not the complete set of non-retryable failures. A bytecode
-// mismatch is also non-retryable when the minimal and full inputs have equal
-// compiler settings (the retry would recompile the target to identical
-// bytecode and fail identically). That case is not detectable from the
-// failure message alone; it requires comparing the two inputs' settings, and
-// will be implemented in a future PR.
+// Note: a bytecode mismatch is intentionally left retryable even when the
+// minimal and full inputs share the same compiler settings. Older solc
+// versions have known bugs that can produce different bytecode depending on
+// which unrelated files are present in the input, so the full-input retry
+// can still resolve such a mismatch — the non-retryable set can't safely
+// be extended without an actual recompile-and-compare.
 //
 // See: https://docs.etherscan.io/contract-verification/common-verification-errors
 const NON_RETRYABLE_FAILURE_PATTERNS = ["correct constructor argument"];
