@@ -331,7 +331,7 @@ export class SolidityError extends Error {
     this.name = "SolidityError";
     this.solidityStack =
       stackTrace.length !== 0
-        ? stackTrace.map(encodeStackTraceEntry).join("\n")
+        ? stackTrace.map(encodeStackTraceEntry).reverse().join("\n")
         : "Internal error when encoding SolidityError";
 
     Object.defineProperty(this, Symbol.for("nodejs.util.inspect.custom"), {

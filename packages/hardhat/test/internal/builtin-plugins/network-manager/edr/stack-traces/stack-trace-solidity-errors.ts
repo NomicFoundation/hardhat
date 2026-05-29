@@ -166,7 +166,7 @@ describe("createSolidityErrorWithStackTrace", () => {
       );
     });
 
-    it("joins multiple entries with a newline, in stack order", () => {
+    it("joins multiple entries with a newline, innermost frame first to match error.stack", () => {
       const entryA: SolidityStackTraceEntry = {
         type: StackTraceEntryType.CALLSTACK_ENTRY,
         sourceReference: {
@@ -199,8 +199,8 @@ describe("createSolidityErrorWithStackTrace", () => {
       );
 
       const expected = [
-        encodeStackTraceEntry(entryA).toString(),
         encodeStackTraceEntry(entryB).toString(),
+        encodeStackTraceEntry(entryA).toString(),
       ].join("\n");
       assert.equal(error.solidityStack, expected);
     });
