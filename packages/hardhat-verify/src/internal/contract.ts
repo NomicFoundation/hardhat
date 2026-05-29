@@ -1,6 +1,6 @@
 import type { BuildInfoAndOutput } from "./artifacts.js";
 import type { Bytecode } from "./bytecode.js";
-import type { ArtifactManager, BuildInfo } from "hardhat/types/artifacts";
+import type { ArtifactManager } from "hardhat/types/artifacts";
 import type { SolidityBuildProfileConfig } from "hardhat/types/config";
 import type {
   CompilerInput,
@@ -146,9 +146,7 @@ export class ContractInformationResolver {
       deployedBytecode,
     );
     if (contractInformation === null) {
-      return await this.#throwBytecodeMismatch([
-        { buildInfo: buildInfoAndOutput.buildInfo, contract },
-      ]);
+      return await this.#throwBytecodeMismatch([contract]);
     }
 
     return contractInformation;
@@ -170,10 +168,7 @@ export class ContractInformationResolver {
   ): Promise<ContractInformation> {
     const candidates = await this.#artifacts.getAllFullyQualifiedNames();
     const matches: ContractInformation[] = [];
-    const consideredCandidates: Array<{
-      contract: string;
-      buildInfo: BuildInfo;
-    }> = [];
+    const consideredContracts: string[] = [];
 
     for (const contract of candidates) {
       const buildInfoAndOutput = await getBuildInfoAndOutput(
@@ -192,10 +187,7 @@ export class ContractInformationResolver {
         continue;
       }
 
-      consideredCandidates.push({
-        contract,
-        buildInfo: buildInfoAndOutput.buildInfo,
-      });
+      consideredContracts.push(contract);
 
       const contractInformation = this.#matchAndBuild(
         contract,
@@ -208,7 +200,7 @@ export class ContractInformationResolver {
     }
 
     if (matches.length === 0) {
-      return await this.#throwBytecodeMismatch(consideredCandidates);
+      return await this.#throwBytecodeMismatch(consideredContracts);
     }
 
     if (matches.length > 1) {
@@ -284,18 +276,27 @@ export class ContractInformationResolver {
    * `ARTIFACT_BUILD_PROFILE_MISMATCH`; otherwise throws the generic
    * `DEPLOYED_BYTECODE_MISMATCH`.
    */
-  async #throwBytecodeMismatch(
-    candidates: Array<{ buildInfo: BuildInfo; contract: string }>,
-  ): Promise<never> {
+  async #throwBytecodeMismatch(candidates: string[]): Promise<never> {
     const contractDescription =
       candidates.length === 1
-        ? `the contract "${candidates[0].contract}"`
+        ? `the contract "${candidates[0]}"`
         : "any of your local contracts";
 
-    for (const candidate of candidates) {
-      const { sourceName } = parseFullyQualifiedName(candidate.contract);
+    // We re-fetch build infos here instead of accumulating them in
+    // #resolveByBytecodeLookup to prevent out-of-memory issues.
+    // This is fine as re-reads only happen on the unhappy path
+    // and we bail on the first profile match.
+    for (const contract of candidates) {
+      const buildInfoAndOutput = await getBuildInfoAndOutput(
+        this.#artifacts,
+        contract,
+      );
+      if (buildInfoAndOutput === undefined) {
+        continue;
+      }
+      const { sourceName } = parseFullyQualifiedName(contract);
       const profileMatches = await getMatchingBuildProfileNames(
-        candidate.buildInfo,
+        buildInfoAndOutput.buildInfo,
         sourceName,
         this.#buildProfiles,
       );
