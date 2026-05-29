@@ -47,6 +47,14 @@ interface StackLine {
   reference: StackReference | undefined;
 }
 
+/**
+ * An interface matching the execution errors thrown by EDR-simulated networks.
+ */
+interface SolidityError extends Error {
+  name: "SolidityError";
+  solidityStack: string;
+}
+
 export function formatError(error: Error): string {
   if (isTestFileExecutionFailureError(error)) {
     return styleText(
@@ -225,21 +233,16 @@ export function formatSingleError(
   // or the error chain that includes it.
   //
   // See: https://github.com/NomicFoundation/hardhat/pull/8345
-  let solidityError:
-    | (Error & { name: "SolidityError"; solidityStack: string })
-    | undefined;
-  let currentError: any = error;
+  let solidityError: SolidityError | undefined;
+  let currentError: Error | undefined = error;
   while (currentError !== undefined) {
-    if (
-      currentError.name === "SolidityError" &&
-      "solidityStack" in currentError &&
-      typeof currentError.solidityStack === "string"
-    ) {
+    if (isSolidityError(currentError)) {
       solidityError = currentError;
       break;
     }
 
-    currentError = currentError.cause;
+    currentError =
+      currentError.cause instanceof Error ? currentError.cause : undefined;
   }
 
   // When using viem, SolidityError exceptions are part of the cause chain of
@@ -275,6 +278,15 @@ ${formattedSolidityError}`;
   }
 
   return formattedError;
+}
+
+
+function isSolidityError(error: Error): error is SolidityError {
+  return (
+    error.name === "SolidityError" &&
+    "solidityStack" in error &&
+    typeof error.solidityStack === "string"
+  );
 }
 
 function isAggregateError(error: Error): error is Error & { errors: Error[] } {
