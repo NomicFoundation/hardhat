@@ -78,7 +78,6 @@ export async function verifyContract(
   provider?: EthereumProvider,
 ): Promise<boolean> {
   const {
-    artifacts,
     config,
     globalOptions: { buildProfile: buildProfileName = "production" },
     network,
@@ -177,13 +176,12 @@ Explorer: ${instance.getContractUrl(address)}`);
     );
   }
 
-  const contractInformationResolver = new ContractInformationResolver(
-    artifacts,
+  const contractInformationResolver = new ContractInformationResolver({
+    hre,
     compatibleSolcVersions,
     networkName,
-    config.solidity.profiles,
     buildProfileName,
-  );
+  });
   const contractInformation = await contractInformationResolver.resolve(
     contract,
     deployedBytecode,

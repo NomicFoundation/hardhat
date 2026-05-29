@@ -1,10 +1,13 @@
 import type { BuildInfoAndOutput } from "./artifacts.js";
+import type { ArtifactCandidate } from "./build-profile-detection.js";
 import type { Bytecode } from "./bytecode.js";
 import type { ArtifactManager } from "hardhat/types/artifacts";
 import type { SolidityBuildProfileConfig } from "hardhat/types/config";
+import type { HardhatRuntimeEnvironment } from "hardhat/types/hre";
 import type {
   CompilerInput,
   CompilerOutputContract,
+  SolidityBuildSystem,
 } from "hardhat/types/solidity";
 
 import {
@@ -17,7 +20,10 @@ import {
 } from "hardhat/utils/contract-names";
 
 import { getBuildInfoAndOutput } from "./artifacts.js";
-import { getMatchingBuildProfileNames } from "./build-profile-detection.js";
+import {
+  findArtifactBuildProfile,
+  makeArtifactCandidate,
+} from "./build-profile-detection.js";
 import { formatInferredSolcVersion } from "./metadata.js";
 
 export interface ContractInformation {
@@ -41,25 +47,35 @@ export interface ContractInformation {
  *  - zero or multiple matches in inference mode.
  */
 // TODO: add tests once the todos in getBuildInfoAndOutput are resolved.
+export interface ContractInformationResolverOptions {
+  hre: HardhatRuntimeEnvironment;
+  compatibleSolcVersions: string[];
+  networkName: string;
+  buildProfileName: string;
+}
+
 export class ContractInformationResolver {
   readonly #artifacts: ArtifactManager;
   readonly #compatibleSolcVersions: string[];
   readonly #networkName: string;
   readonly #buildProfiles: Record<string, SolidityBuildProfileConfig>;
   readonly #buildProfileName: string;
+  readonly #solidity: SolidityBuildSystem;
+  readonly #projectRoot: string;
 
-  constructor(
-    artifacts: ArtifactManager,
-    compatibleSolcVersions: string[],
-    networkName: string,
-    buildProfiles: Record<string, SolidityBuildProfileConfig>,
-    buildProfileName: string,
-  ) {
-    this.#artifacts = artifacts;
+  constructor({
+    hre,
+    compatibleSolcVersions,
+    networkName,
+    buildProfileName,
+  }: ContractInformationResolverOptions) {
+    this.#artifacts = hre.artifacts;
     this.#compatibleSolcVersions = compatibleSolcVersions;
     this.#networkName = networkName;
-    this.#buildProfiles = buildProfiles;
+    this.#buildProfiles = hre.config.solidity.profiles;
     this.#buildProfileName = buildProfileName;
+    this.#solidity = hre.solidity;
+    this.#projectRoot = hre.config.paths.root;
   }
 
   public async resolve(
@@ -284,8 +300,8 @@ export class ContractInformationResolver {
 
     // We re-fetch build infos here instead of accumulating them in
     // #resolveByBytecodeLookup to prevent out-of-memory issues.
-    // This is fine as re-reads only happen on the unhappy path
-    // and we bail on the first profile match.
+    // This is fine as re-reads only happen on the unhappy path.
+    const artifactCandidates: ArtifactCandidate[] = [];
     for (const contract of candidates) {
       const buildInfoAndOutput = await getBuildInfoAndOutput(
         this.#artifacts,
@@ -295,25 +311,33 @@ export class ContractInformationResolver {
         continue;
       }
       const { sourceName } = parseFullyQualifiedName(contract);
-      const profileMatches = await getMatchingBuildProfileNames(
-        buildInfoAndOutput.buildInfo,
-        sourceName,
-        this.#buildProfiles,
+      artifactCandidates.push(
+        makeArtifactCandidate(
+          contract,
+          sourceName,
+          buildInfoAndOutput.buildInfo,
+          this.#projectRoot,
+        ),
       );
-      const mismatchedProfiles = profileMatches.filter(
-        (p) => p !== this.#buildProfileName,
-      );
-      if (mismatchedProfiles.length > 0) {
-        throw new HardhatError(
-          HardhatError.ERRORS.HARDHAT_VERIFY.GENERAL.ARTIFACT_BUILD_PROFILE_MISMATCH,
-          {
-            contractDescription,
-            artifactProfile: mismatchedProfiles[0],
-            buildProfileName: this.#buildProfileName,
-          },
-        );
-      }
     }
+
+    const match = await findArtifactBuildProfile(
+      this.#solidity,
+      artifactCandidates,
+      this.#buildProfiles,
+      this.#buildProfileName,
+    );
+    if (match !== undefined) {
+      throw new HardhatError(
+        HardhatError.ERRORS.HARDHAT_VERIFY.GENERAL.ARTIFACT_BUILD_PROFILE_MISMATCH,
+        {
+          contractDescription,
+          artifactProfile: match.profileName,
+          buildProfileName: this.#buildProfileName,
+        },
+      );
+    }
+
     throw new HardhatError(
       HardhatError.ERRORS.HARDHAT_VERIFY.GENERAL.DEPLOYED_BYTECODE_MISMATCH,
       { contractDescription },
