@@ -1,4 +1,3 @@
-import type { SolidityBuildInfoOutput } from "../../../../types/solidity/solidity-artifacts.js";
 import type {
   BuildInfoAndOutput,
   EdrArtifactWithMetadata,
@@ -10,9 +9,9 @@ import {
   HardhatError,
   assertHardhatInvariant,
 } from "@nomicfoundation/hardhat-errors";
-import { bytesToUtf8String } from "@nomicfoundation/hardhat-utils/bytes";
 
 import { getFullyQualifiedName } from "../../../../utils/contract-names.js";
+import { parseSolidityTestBuildInfoOutput } from "../build-info-output.js";
 
 import {
   buildInfoContainsInlineConfig,
@@ -153,8 +152,8 @@ function collectRawOverrides(
       continue;
     }
 
-    const buildInfoOutput: SolidityBuildInfoOutput = JSON.parse(
-      bytesToUtf8String(buildInfoAndOutput.output),
+    const buildInfoOutput = parseSolidityTestBuildInfoOutput(
+      buildInfoAndOutput.output,
     );
 
     for (const [

@@ -1,13 +1,10 @@
 import type { CollectedStruct } from "./ast-walker.js";
-import type { SolidityBuildInfoOutput } from "../../../../types/solidity/solidity-artifacts.js";
 import type { BuildInfoAndOutput } from "../edr-artifacts.js";
 
-import {
-  bytesIncludesUtf8String,
-  bytesToUtf8String,
-} from "@nomicfoundation/hardhat-utils/bytes";
+import { bytesIncludesUtf8String } from "@nomicfoundation/hardhat-utils/bytes";
 
 import { HARDHAT_PROJECT_INPUT_SOURCE_NAME_ROOT } from "../../solidity/constants.js";
+import { parseSolidityTestBuildInfoOutput } from "../build-info-output.js";
 
 import {
   buildUserDefinedValueTypeIndex,
@@ -61,9 +58,7 @@ export function collectEip712CanonicalTypes(
       continue;
     }
 
-    const parsedOutput: SolidityBuildInfoOutput = JSON.parse(
-      bytesToUtf8String(output),
-    );
+    const parsedOutput = parseSolidityTestBuildInfoOutput(output);
 
     const sources = parsedOutput.output.sources;
     if (sources === undefined) {
