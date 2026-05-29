@@ -326,7 +326,7 @@ describe("verification", () => {
           {
             artifactProfile: "default",
             buildProfileName: "production",
-            contractDescription: "any of your local contracts",
+            contractDescription: "one of your local contracts",
           },
         );
       });
@@ -494,7 +494,7 @@ describe("verification", () => {
           {
             artifactProfile: "staging",
             buildProfileName: "production",
-            contractDescription: "any of your local contracts",
+            contractDescription: "one of your local contracts",
           },
         );
       });

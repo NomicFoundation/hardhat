@@ -3048,7 +3048,7 @@ To resolve this, set a valid non-empty API key in your Hardhat config, then try 
       },
       ARTIFACT_BUILD_PROFILE_MISMATCH: {
         number: 80030,
-        messageTemplate: `The artifact for {contractDescription} was compiled with build profile "{artifactProfile}", but verify is using build profile "{buildProfileName}".
+        messageTemplate: `The artifacts used to verify {contractDescription} were compiled with build profile "{artifactProfile}", but verify is using build profile "{buildProfileName}".
 
 If your contract was deployed with the "{artifactProfile}" profile, re-run verify with the matching profile:
 

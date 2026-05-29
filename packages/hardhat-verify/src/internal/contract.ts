@@ -293,11 +293,6 @@ export class ContractInformationResolver {
    * `DEPLOYED_BYTECODE_MISMATCH`.
    */
   async #throwBytecodeMismatch(candidates: string[]): Promise<never> {
-    const contractDescription =
-      candidates.length === 1
-        ? `the contract "${candidates[0]}"`
-        : "any of your local contracts";
-
     // We re-fetch build infos here instead of accumulating them in
     // #resolveByBytecodeLookup to prevent out-of-memory issues.
     // This is fine as re-reads only happen on the unhappy path.
@@ -331,7 +326,10 @@ export class ContractInformationResolver {
       throw new HardhatError(
         HardhatError.ERRORS.HARDHAT_VERIFY.GENERAL.ARTIFACT_BUILD_PROFILE_MISMATCH,
         {
-          contractDescription,
+          contractDescription:
+            candidates.length === 1
+              ? `the contract "${candidates[0]}"`
+              : "one of your local contracts",
           artifactProfile: match.profileName,
           buildProfileName: this.#buildProfileName,
         },
@@ -340,7 +338,12 @@ export class ContractInformationResolver {
 
     throw new HardhatError(
       HardhatError.ERRORS.HARDHAT_VERIFY.GENERAL.DEPLOYED_BYTECODE_MISMATCH,
-      { contractDescription },
+      {
+        contractDescription:
+          candidates.length === 1
+            ? `the contract "${candidates[0]}"`
+            : "any of your local contracts",
+      },
     );
   }
 }
