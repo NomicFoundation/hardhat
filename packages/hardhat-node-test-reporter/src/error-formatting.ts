@@ -47,6 +47,14 @@ interface StackLine {
   reference: StackReference | undefined;
 }
 
+/**
+ * An interface matching the execution errors thrown by EDR-simulated networks.
+ */
+interface SolidityError extends Error {
+  name: "SolidityError";
+  solidityStack: string;
+}
+
 export function formatError(error: Error): string {
   if (isTestFileExecutionFailureError(error)) {
     return styleText(
@@ -217,6 +225,40 @@ export function formatSingleError(
     return `${formattedError}\n${formattedErrors}`;
   }
 
+  // If we find a SolidityError (i.e. an execution error thrown by an
+  // EDR-simulated network), we format it in a special way.
+  //
+  // We display the solidity stack trace below the actual error, so that
+  // it's more prominent, and we don't print the entire cause chain of it,
+  // or the error chain that includes it.
+  //
+  // See: https://github.com/NomicFoundation/hardhat/pull/8345
+  let solidityError: SolidityError | undefined;
+  let currentError: Error | undefined = error;
+  while (currentError !== undefined) {
+    if (isSolidityError(currentError)) {
+      solidityError = currentError;
+      break;
+    }
+
+    currentError =
+      currentError.cause instanceof Error ? currentError.cause : undefined;
+  }
+
+  // When using viem, SolidityError exceptions are part of the cause chain of
+  // ContractFunctionExecutionError, so we also handle it here.
+  if (
+    (error.name === "ContractFunctionExecutionError" ||
+      error.name === "SolidityError") &&
+    solidityError !== undefined
+  ) {
+    const formattedSolidityError = `${styleText("red", "Solidity stack trace:")}
+${styleText("gray", indent(solidityError.solidityStack, ERROR_STACK_INDENT))}`;
+    return `${formattedError}
+
+${formattedSolidityError}`;
+  }
+
   if (error.cause instanceof Error) {
     let cause = error.cause;
     if (depth + 1 >= MAX_ERROR_CHAIN_LENGTH) {
@@ -233,6 +275,14 @@ export function formatSingleError(
   }
 
   return formattedError;
+}
+
+function isSolidityError(error: Error): error is SolidityError {
+  return (
+    error.name === "SolidityError" &&
+    "solidityStack" in error &&
+    typeof error.solidityStack === "string"
+  );
 }
 
 function isAggregateError(error: Error): error is Error & { errors: Error[] } {
