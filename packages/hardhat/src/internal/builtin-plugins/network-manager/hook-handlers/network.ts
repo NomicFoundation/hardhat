@@ -59,9 +59,8 @@ export default async (): Promise<Partial<NetworkHooks>> => {
         });
       }
 
-      // We previously cloned here, but the performance impact is significant.
-      // TODO: ensure the passed in request is not mutated by adapting the
-      // handlers being applied here. See https://github.com/NomicFoundation/hardhat/issues/8090
+      // Handlers copy requests when they need to add or update fields, so the
+      // original request received by this hook is not mutated.
       let updatedRequest = jsonRpcRequest;
 
       for (const handler of requestHandlers) {

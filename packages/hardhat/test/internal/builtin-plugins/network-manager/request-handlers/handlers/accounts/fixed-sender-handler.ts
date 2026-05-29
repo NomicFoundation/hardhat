@@ -43,9 +43,10 @@ describe("FixedSenderHandler", function () {
   it("should set the from value into the transaction", async () => {
     const jsonRpcRequest = getJsonRpcRequest(1, "eth_sendTransaction", [tx]);
 
-    await fixedSenderHandler.handle(jsonRpcRequest);
+    const response = await fixedSenderHandler.handle(jsonRpcRequest);
 
-    const [requestTx] = getRequestParams(jsonRpcRequest);
+    assert("method" in response, "expected handler response to be a request");
+    const [requestTx] = getRequestParams(response);
     assert.ok(isObject(requestTx), "tx is not an object");
     assert.equal(requestTx.from, "0x2a97a65d5673a2c61e95ce33cecadf24f654f96d");
   });

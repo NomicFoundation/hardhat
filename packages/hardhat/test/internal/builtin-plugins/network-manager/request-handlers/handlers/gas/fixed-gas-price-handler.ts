@@ -30,8 +30,9 @@ describe("FixedGasPriceHandler", () => {
       },
     ]);
 
-    await fixedGasPriceHandler.handle(jsonRpcRequest);
-    const [tx] = getRequestParams(jsonRpcRequest);
+    const response = await fixedGasPriceHandler.handle(jsonRpcRequest);
+    assert("method" in response, "expected handler response to be a request");
+    const [tx] = getRequestParams(response);
 
     assert.ok(isObject(tx), "tx is not an object");
     assert.equal(tx.gasPrice, numberToHexString(FIXED_GAS_PRICE));

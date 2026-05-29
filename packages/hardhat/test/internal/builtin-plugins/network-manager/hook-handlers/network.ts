@@ -17,6 +17,7 @@ import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 
 import { numberToHexString } from "@nomicfoundation/hardhat-utils/hex";
+import { deepClone } from "@nomicfoundation/hardhat-utils/lang";
 
 import factory from "../../../../../src/internal/builtin-plugins/network-manager/hook-handlers/network.js";
 import { EthereumMockedProvider } from "../request-handlers/ethereum-mocked-provider.js";
@@ -36,6 +37,33 @@ describe("network hook handler", () => {
     );
 
     assert.deepEqual(response.id, 99);
+  });
+
+  it("should not mutate the original JSON-RPC request", async () => {
+    const handlers = await createHandlersFromFactory();
+    const { connection, context, next } = setupRequestMocks();
+
+    const request = createRequestWithId(1);
+    const originalParams = await deepClone(request.params);
+
+    const response = await handlers.onRequest(
+      context,
+      connection,
+      request,
+      next,
+    );
+
+    assert.deepEqual(request.params, originalParams);
+
+    assert(
+      isSuccessfulResponse(response),
+      "expected response to be a successful response",
+    );
+    /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions -- result is typed as unknown, narrowing to the expected shape */
+    const params = response.result as Array<Record<string, string>>;
+    assert.equal(params[0].from, connection.networkConfig.from);
+    assert.equal(params[0].gas, numberToHexString(21_000n));
+    assert.equal(params[0].gasPrice, numberToHexString(1_000n));
   });
 
   it("should reuse cached handlers on subsequent calls with the same connection", async () => {

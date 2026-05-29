@@ -48,8 +48,9 @@ describe("AutomaticGasHandler", () => {
       },
     ]);
 
-    await automaticGasHandler.handle(jsonRpcRequest);
-    const [tx] = getRequestParams(jsonRpcRequest);
+    const response = await automaticGasHandler.handle(jsonRpcRequest);
+    assert("method" in response, "expected handler response to be a request");
+    const [tx] = getRequestParams(response);
 
     assert.ok(isObject(tx), "tx is not an object");
     assert.equal(
@@ -74,8 +75,9 @@ describe("AutomaticGasHandler", () => {
       GAS_MULTIPLIER2,
     );
 
-    await automaticGasHandler.handle(jsonRpcRequest);
-    const [tx] = getRequestParams(jsonRpcRequest);
+    const response = await automaticGasHandler.handle(jsonRpcRequest);
+    assert("method" in response, "expected handler response to be a request");
+    const [tx] = getRequestParams(response);
 
     assert.ok(isObject(tx), "tx is not an object");
     assert.equal(
@@ -95,8 +97,9 @@ describe("AutomaticGasHandler", () => {
 
     automaticGasHandler = new AutomaticGasHandler(mockedProvider);
 
-    await automaticGasHandler.handle(jsonRpcRequest);
-    const [tx] = getRequestParams(jsonRpcRequest);
+    const response = await automaticGasHandler.handle(jsonRpcRequest);
+    assert("method" in response, "expected handler response to be a request");
+    const [tx] = getRequestParams(response);
 
     assert.ok(isObject(tx), "tx is not an object");
     assert.equal(

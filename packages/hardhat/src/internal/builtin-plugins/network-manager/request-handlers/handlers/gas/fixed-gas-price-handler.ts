@@ -7,7 +7,7 @@ import type { PrefixedHexString } from "@nomicfoundation/hardhat-utils/hex";
 
 import { isObject } from "@nomicfoundation/hardhat-utils/lang";
 
-import { getRequestParams } from "../../../json-rpc.js";
+import { getRequestParams, updateRequestParams } from "../../../json-rpc.js";
 
 /**
  * This class ensures that a fixed gas price is applied to transaction requests.
@@ -43,7 +43,10 @@ export class FixedGasPriceHandler implements RequestHandler {
       tx.maxFeePerGas === undefined &&
       tx.maxPriorityFeePerGas === undefined
     ) {
-      tx.gasPrice = this.#gasPrice;
+      const updatedParams = [...params];
+      updatedParams[0] = { ...tx, gasPrice: this.#gasPrice };
+
+      return updateRequestParams(jsonRpcRequest, updatedParams);
     }
 
     return jsonRpcRequest;

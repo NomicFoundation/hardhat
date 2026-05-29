@@ -145,3 +145,13 @@ export function getRequestParams(
     HardhatError.ERRORS.CORE.NETWORK.INVALID_REQUEST_PARAMS,
   );
 }
+
+export function updateRequestParams(
+  jsonRpcRequest: JsonRpcRequest,
+  params: unknown[],
+): JsonRpcRequest {
+  return {
+    ...jsonRpcRequest,
+    params,
+  };
+}

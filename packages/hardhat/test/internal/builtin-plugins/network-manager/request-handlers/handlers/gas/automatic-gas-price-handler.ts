@@ -96,8 +96,12 @@ describe("AutomaticGasPriceHandler", () => {
           },
         ]);
 
-        await automaticGasPriceHandler.handle(jsonRpcRequest);
-        const [tx] = getRequestParams(jsonRpcRequest);
+        const response = await automaticGasPriceHandler.handle(jsonRpcRequest);
+        assert(
+          "method" in response,
+          "expected handler response to be a request",
+        );
+        const [tx] = getRequestParams(response);
 
         assert.ok(isObject(tx), "tx is not an object");
         assert.equal(tx.maxPriorityFeePerGas, "0x4");
@@ -114,8 +118,12 @@ describe("AutomaticGasPriceHandler", () => {
           },
         ]);
 
-        await automaticGasPriceHandler.handle(jsonRpcRequest);
-        const [tx] = getRequestParams(jsonRpcRequest);
+        const response = await automaticGasPriceHandler.handle(jsonRpcRequest);
+        assert(
+          "method" in response,
+          "expected handler response to be a request",
+        );
+        const [tx] = getRequestParams(response);
 
         assert.ok(isObject(tx), "tx is not an object");
         assert.equal(tx.maxPriorityFeePerGas, "0x4");
@@ -140,8 +148,12 @@ describe("AutomaticGasPriceHandler", () => {
               ),
         );
 
-        await automaticGasPriceHandler.handle(jsonRpcRequest);
-        const [tx] = getRequestParams(jsonRpcRequest);
+        const response = await automaticGasPriceHandler.handle(jsonRpcRequest);
+        assert(
+          "method" in response,
+          "expected handler response to be a request",
+        );
+        const [tx] = getRequestParams(response);
 
         assert.ok(isObject(tx), "tx is not an object");
         assert.equal(tx.maxPriorityFeePerGas, "0x1");
@@ -185,8 +197,12 @@ describe("AutomaticGasPriceHandler", () => {
               ),
         );
 
-        await automaticGasPriceHandler.handle(jsonRpcRequest);
-        const [tx] = getRequestParams(jsonRpcRequest);
+        const response = await automaticGasPriceHandler.handle(jsonRpcRequest);
+        assert(
+          "method" in response,
+          "expected handler response to be a request",
+        );
+        const [tx] = getRequestParams(response);
 
         assert.ok(isObject(tx), "tx is not an object");
         assert.equal(tx.maxPriorityFeePerGas, "0x1");
@@ -232,8 +248,12 @@ describe("AutomaticGasPriceHandler", () => {
               ),
         );
 
-        await automaticGasPriceHandler.handle(jsonRpcRequest);
-        const [tx] = getRequestParams(jsonRpcRequest);
+        const response = await automaticGasPriceHandler.handle(jsonRpcRequest);
+        assert(
+          "method" in response,
+          "expected handler response to be a request",
+        );
+        const [tx] = getRequestParams(response);
 
         assert.ok(isObject(tx), "tx is not an object");
         assert.equal(tx.maxPriorityFeePerGas, "0x12");
@@ -282,8 +302,12 @@ describe("AutomaticGasPriceHandler", () => {
           },
         ]);
 
-        await automaticGasPriceHandler.handle(jsonRpcRequest);
-        const [tx] = getRequestParams(jsonRpcRequest);
+        const response = await automaticGasPriceHandler.handle(jsonRpcRequest);
+        assert(
+          "method" in response,
+          "expected handler response to be a request",
+        );
+        const [tx] = getRequestParams(response);
 
         assert.ok(isObject(tx), "tx is not an object");
         assert.equal(tx.gasPrice, numberToHexString(FIXED_GAS_PRICE));
@@ -299,8 +323,12 @@ describe("AutomaticGasPriceHandler", () => {
           },
         ]);
 
-        await automaticGasPriceHandler.handle(jsonRpcRequest);
-        const [tx] = getRequestParams(jsonRpcRequest);
+        const response = await automaticGasPriceHandler.handle(jsonRpcRequest);
+        assert(
+          "method" in response,
+          "expected handler response to be a request",
+        );
+        const [tx] = getRequestParams(response);
 
         assert.ok(isObject(tx), "tx is not an object");
         assert.equal(
@@ -320,8 +348,12 @@ describe("AutomaticGasPriceHandler", () => {
           },
         ]);
 
-        await automaticGasPriceHandler.handle(jsonRpcRequest);
-        const [tx] = getRequestParams(jsonRpcRequest);
+        const response = await automaticGasPriceHandler.handle(jsonRpcRequest);
+        assert(
+          "method" in response,
+          "expected handler response to be a request",
+        );
+        const [tx] = getRequestParams(response);
 
         assert.ok(isObject(tx), "tx is not an object");
         assert.equal(

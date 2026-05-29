@@ -28,8 +28,9 @@ describe("FixedGasHandler", () => {
       },
     ]);
 
-    await fixedGasHandler.handle(jsonRpcRequest);
-    const [tx] = getRequestParams(jsonRpcRequest);
+    const response = await fixedGasHandler.handle(jsonRpcRequest);
+    assert("method" in response, "expected handler response to be a request");
+    const [tx] = getRequestParams(response);
 
     assert.ok(isObject(tx), "tx is not an object");
     assert.equal(tx.gas, numberToHexString(FIXED_GAS_LIMIT));

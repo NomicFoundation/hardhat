@@ -8,7 +8,7 @@ import type { RequestHandler } from "../../types.js";
 import { HardhatError } from "@nomicfoundation/hardhat-errors";
 import { isObject } from "@nomicfoundation/hardhat-utils/lang";
 
-import { getRequestParams } from "../../../json-rpc.js";
+import { getRequestParams, updateRequestParams } from "../../../json-rpc.js";
 
 /**
  * This class modifies JSON-RPC requests.
@@ -49,7 +49,10 @@ export abstract class SenderHandler implements RequestHandler {
       const senderAccount = await this.getSender();
 
       if (senderAccount !== undefined) {
-        tx.from = senderAccount;
+        const updatedParams = [...params];
+        updatedParams[0] = { ...tx, from: senderAccount };
+
+        return updateRequestParams(jsonRpcRequest, updatedParams);
       } else if (method === "eth_sendTransaction") {
         throw new HardhatError(
           HardhatError.ERRORS.CORE.NETWORK.NO_REMOTE_ACCOUNT_AVAILABLE,
