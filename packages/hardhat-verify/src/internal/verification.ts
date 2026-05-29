@@ -181,6 +181,8 @@ Explorer: ${instance.getContractUrl(address)}`);
     artifacts,
     compatibleSolcVersions,
     networkName,
+    config.solidity.profiles,
+    buildProfileName,
   );
   const contractInformation = await contractInformationResolver.resolve(
     contract,

@@ -263,6 +263,72 @@ describe("verification", () => {
       });
     });
 
+    describe("build profile mismatch", () => {
+      useEphemeralFixtureProject("integration");
+      const testDispatcher = initializeTestDispatcher({
+        url: "https://fake-explorer.test",
+      });
+
+      let hre: HardhatRuntimeEnvironment;
+      before(async () => {
+        const hardhatUserConfig =
+          // eslint-disable-next-line import/no-relative-packages -- allowed in test
+          (await import("./fixture-projects/integration/hardhat.config.js"))
+            .default;
+        hre = await createHardhatRuntimeEnvironment(hardhatUserConfig);
+      });
+
+      it("should throw ARTIFACT_BUILD_PROFILE_MISMATCH when the artifact was compiled with a different profile than verify is using", async () => {
+        // Only the `isVerified` lookup is mocked. The verifysourcecode POST is
+        // intentionally NOT mocked: if a regression bypasses the new detection
+        // and tries to submit, disableNetConnect() in the test dispatcher will
+        // reject the request noisily.
+        testDispatcher.interceptable
+          .intercept({
+            path: /^\/(?:v2\/)?api\?action=getsourcecode&address=0x[a-fA-F0-9]{40}&apikey=[A-Za-z0-9]+&chainid=\d+&module=contract$/,
+            method: "GET",
+          })
+          .reply(200, { status: "1", result: [{ SourceCode: "" }] });
+
+        // 1) Build with production → artifacts on disk = production-compiled.
+        await hre.tasks.getTask("build").run({
+          defaultBuildProfile: "production",
+          force: true,
+        });
+
+        // 2) Deploy. On-chain deployedBytecode = production-compiled.
+        const { provider } = await hre.network.create();
+        const address = await deployContract("Counter", [], {}, hre, provider);
+
+        // 3) Re-build with default → artifacts on disk = default-compiled,
+        //    while the on-chain bytecode is still production.
+        await hre.tasks.getTask("build").run({
+          defaultBuildProfile: "default",
+          force: true,
+        });
+
+        // 4) Verify. globalOptions.buildProfile is undefined, so verifyContract
+        //    defaults to "production". The artifact matches "default"; detection
+        //    should throw the precise error before any verifysourcecode call.
+        await assertRejectsWithHardhatError(
+          verifyContract(
+            { address },
+            hre,
+            () => {},
+            testDispatcher.interceptable,
+            provider,
+          ),
+          HardhatError.ERRORS.HARDHAT_VERIFY.GENERAL
+            .ARTIFACT_BUILD_PROFILE_MISMATCH,
+          {
+            artifactProfile: "default",
+            buildProfileName: "production",
+            contractDescription: "any of your local contracts",
+          },
+        );
+      });
+    });
+
     // TODO: Include remaining `hardhat-verify` verification test cases
     describe.todo("all cases", () => {
       it("should throw an error when etherscan is not enabled in the hardhat config", async () => {});

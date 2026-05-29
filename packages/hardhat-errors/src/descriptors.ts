@@ -3046,6 +3046,23 @@ Please verify the address and network, and try again later if necessary.`,
 
 To resolve this, set a valid non-empty API key in your Hardhat config, then try again.`,
       },
+      ARTIFACT_BUILD_PROFILE_MISMATCH: {
+        number: 80030,
+        messageTemplate: `The artifact for {contractDescription} was compiled with the "{artifactProfile}" build profile, but verify is using the "{buildProfileName}" build profile.
+
+To fix this, recompile with the matching profile and retry verification:
+
+  npx hardhat compile --force --build-profile {buildProfileName}
+  npx hardhat verify ...
+
+If your contract was actually deployed using the "{artifactProfile}" profile, re-run verify with --build-profile {artifactProfile} instead.`,
+        websiteTitle: "Artifact build profile mismatch",
+        websiteDescription: `The compiled artifacts on disk were produced by a different configured build profile than the one verify is using.
+
+This typically happens when \`hardhat compile\`, \`hardhat test\`, or another task overwrote the on-disk artifacts between deployment and verification, since most tasks default to the \`default\` profile while \`verify\` defaults to \`production\`.
+
+Recompile with the profile verify uses (or pass --build-profile to match the profile that was used at deploy time), then retry.`,
+      },
     },
     VALIDATION: {
       INVALID_ADDRESS: {

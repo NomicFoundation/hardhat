@@ -1,6 +1,7 @@
 import type { BuildInfoAndOutput } from "./artifacts.js";
 import type { Bytecode } from "./bytecode.js";
-import type { ArtifactManager } from "hardhat/types/artifacts";
+import type { ArtifactManager, BuildInfo } from "hardhat/types/artifacts";
+import type { SolidityBuildProfileConfig } from "hardhat/types/config";
 import type {
   CompilerInput,
   CompilerOutputContract,
@@ -16,6 +17,7 @@ import {
 } from "hardhat/utils/contract-names";
 
 import { getBuildInfoAndOutput } from "./artifacts.js";
+import { getMatchingBuildProfileNames } from "./build-profile-detection.js";
 import { formatInferredSolcVersion } from "./metadata.js";
 
 export interface ContractInformation {
@@ -43,15 +45,21 @@ export class ContractInformationResolver {
   readonly #artifacts: ArtifactManager;
   readonly #compatibleSolcVersions: string[];
   readonly #networkName: string;
+  readonly #buildProfiles: Record<string, SolidityBuildProfileConfig>;
+  readonly #buildProfileName: string;
 
   constructor(
     artifacts: ArtifactManager,
     compatibleSolcVersions: string[],
     networkName: string,
+    buildProfiles: Record<string, SolidityBuildProfileConfig>,
+    buildProfileName: string,
   ) {
     this.#artifacts = artifacts;
     this.#compatibleSolcVersions = compatibleSolcVersions;
     this.#networkName = networkName;
+    this.#buildProfiles = buildProfiles;
+    this.#buildProfileName = buildProfileName;
   }
 
   public async resolve(
@@ -138,10 +146,9 @@ export class ContractInformationResolver {
       deployedBytecode,
     );
     if (contractInformation === null) {
-      throw new HardhatError(
-        HardhatError.ERRORS.HARDHAT_VERIFY.GENERAL.DEPLOYED_BYTECODE_MISMATCH,
-        { contractDescription: `the contract "${contract}"` },
-      );
+      return await this.#throwBytecodeMismatch([
+        { buildInfo: buildInfoAndOutput.buildInfo, contract },
+      ]);
     }
 
     return contractInformation;
@@ -163,6 +170,10 @@ export class ContractInformationResolver {
   ): Promise<ContractInformation> {
     const candidates = await this.#artifacts.getAllFullyQualifiedNames();
     const matches: ContractInformation[] = [];
+    const consideredCandidates: Array<{
+      contract: string;
+      buildInfo: BuildInfo;
+    }> = [];
 
     for (const contract of candidates) {
       const buildInfoAndOutput = await getBuildInfoAndOutput(
@@ -181,6 +192,11 @@ export class ContractInformationResolver {
         continue;
       }
 
+      consideredCandidates.push({
+        contract,
+        buildInfo: buildInfoAndOutput.buildInfo,
+      });
+
       const contractInformation = this.#matchAndBuild(
         contract,
         buildInfoAndOutput,
@@ -192,10 +208,7 @@ export class ContractInformationResolver {
     }
 
     if (matches.length === 0) {
-      throw new HardhatError(
-        HardhatError.ERRORS.HARDHAT_VERIFY.GENERAL.DEPLOYED_BYTECODE_MISMATCH,
-        { contractDescription: "any of your local contracts" },
-      );
+      return await this.#throwBytecodeMismatch(consideredCandidates);
     }
 
     if (matches.length > 1) {
@@ -262,5 +275,47 @@ export class ContractInformationResolver {
     }
 
     return null;
+  }
+
+  /**
+   * Throws the most precise bytecode-mismatch error available for the given
+   * candidates. If any candidate's bytecode-affecting settings match a
+   * configured build profile other than the active one, throws
+   * `ARTIFACT_BUILD_PROFILE_MISMATCH`; otherwise throws the generic
+   * `DEPLOYED_BYTECODE_MISMATCH`.
+   */
+  async #throwBytecodeMismatch(
+    candidates: Array<{ buildInfo: BuildInfo; contract: string }>,
+  ): Promise<never> {
+    const contractDescription =
+      candidates.length === 1
+        ? `the contract "${candidates[0].contract}"`
+        : "any of your local contracts";
+
+    for (const candidate of candidates) {
+      const { sourceName } = parseFullyQualifiedName(candidate.contract);
+      const profileMatches = await getMatchingBuildProfileNames(
+        candidate.buildInfo,
+        sourceName,
+        this.#buildProfiles,
+      );
+      const mismatchedProfiles = profileMatches.filter(
+        (p) => p !== this.#buildProfileName,
+      );
+      if (mismatchedProfiles.length > 0) {
+        throw new HardhatError(
+          HardhatError.ERRORS.HARDHAT_VERIFY.GENERAL.ARTIFACT_BUILD_PROFILE_MISMATCH,
+          {
+            contractDescription,
+            artifactProfile: mismatchedProfiles.join(" or "),
+            buildProfileName: this.#buildProfileName,
+          },
+        );
+      }
+    }
+    throw new HardhatError(
+      HardhatError.ERRORS.HARDHAT_VERIFY.GENERAL.DEPLOYED_BYTECODE_MISMATCH,
+      { contractDescription },
+    );
   }
 }
