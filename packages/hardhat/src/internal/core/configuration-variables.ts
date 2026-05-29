@@ -115,6 +115,12 @@ export class LazyResolvedConfigurationVariable extends BaseResolvedConfiguration
   }
 
   protected async _getRawValue(): Promise<string> {
+    const envValue = process.env[this.name];
+
+    if (typeof envValue === "string") {
+      return envValue;
+    }
+
     const mutex = LazyResolvedConfigurationVariable.#mutexes.get(this.#hooks);
     assertHardhatInvariant(mutex !== undefined, "Mutex must be defined");
 

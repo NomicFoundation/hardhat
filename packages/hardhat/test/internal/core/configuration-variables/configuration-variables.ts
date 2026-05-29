@@ -56,6 +56,30 @@ describe("ResolvedConfigurationVariable", () => {
     delete process.env.foo;
   });
 
+  it("should prefer environment variables over configuration variable hooks", async () => {
+    const isolatedHre = await HardhatRuntimeEnvironmentImplementation.create(
+      {},
+      {},
+    );
+
+    isolatedHre.hooks.registerHandlers("configurationVariables", {
+      fetchValue: async () => "hook value",
+    });
+
+    const variable = new LazyResolvedConfigurationVariable(
+      isolatedHre.hooks,
+      configVariable("foo"),
+    );
+
+    process.env.foo = "env value";
+
+    try {
+      assert.equal(await variable.get(), "env value");
+    } finally {
+      delete process.env.foo;
+    }
+  });
+
   it("should throw if the environment variable is not found", async () => {
     const variable = new LazyResolvedConfigurationVariable(
       hre.hooks,
