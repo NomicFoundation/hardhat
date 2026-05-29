@@ -25,14 +25,17 @@ import { HardhatError } from "@nomicfoundation/hardhat-errors";
  * constructs and propagates `None` through the dep graph so dependents are
  * also dropped.
  *
- * Only names in `selectedNames` are emitted; non-selected structs still
+ * Only names from `selectedSourcePaths` are emitted; non-selected structs still
  * participate in dep resolution so cross-file deps inline correctly.
  */
 export function canonicalizeStructs(
   structs: CollectedStruct[],
   selectedNames: Set<string>,
+  selectedSourcePaths: Set<string> = new Set<string>(
+    structs.filter((s) => selectedNames.has(s.name)).map((s) => s.sourcePath),
+  ),
 ): string[] {
-  const byName = indexByName(structs, selectedNames);
+  const byName = indexByName(structs, selectedNames, selectedSourcePaths);
   const knownNames = new Set(byName.keys());
   const encodable = computeEncodable(byName, knownNames);
   const result: string[] = [];
@@ -199,6 +202,7 @@ function transitiveDeps(
 function indexByName(
   structs: CollectedStruct[],
   selectedNames: Set<string>,
+  selectedSourcePaths: Set<string>,
 ): Map<string, CollectedStruct> {
   const byName = new Map<string, CollectedStruct>();
   const fingerprintByName = new Map<string, string>();
@@ -209,8 +213,8 @@ function indexByName(
   >();
 
   const ordered = [
-    ...structs.filter((s) => selectedNames.has(s.name)),
-    ...structs.filter((s) => !selectedNames.has(s.name)),
+    ...structs.filter((s) => selectedSourcePaths.has(s.sourcePath)),
+    ...structs.filter((s) => !selectedSourcePaths.has(s.sourcePath)),
   ];
 
   for (const struct of ordered) {
@@ -228,7 +232,7 @@ function indexByName(
       continue;
     }
 
-    if (!selectedNames.has(struct.name)) {
+    if (!selectedSourcePaths.has(struct.sourcePath)) {
       if (!deferredConflicts.has(struct.name)) {
         deferredConflicts.set(struct.name, {
           firstSource: sourceByName.get(struct.name) ?? "<unknown>",

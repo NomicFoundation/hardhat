@@ -53,6 +53,7 @@ export function collectEip712CanonicalTypes(
 
   const collected: CollectedStruct[] = [];
   const selectedNames = new Set<string>();
+  const selectedSourcePaths = new Set<string>();
 
   for (const { buildInfo, output } of buildInfosAndOutputs) {
     // Byte-level fast path: a build info whose source bytes don't contain
@@ -109,6 +110,7 @@ export function collectEip712CanonicalTypes(
       collected.push(...structs);
 
       if (isPathSelected(userSourceName, include, exclude)) {
+        selectedSourcePaths.add(userSourceName);
         for (const s of structs) {
           selectedNames.add(s.name);
         }
@@ -116,5 +118,5 @@ export function collectEip712CanonicalTypes(
     }
   }
 
-  return canonicalizeStructs(collected, selectedNames);
+  return canonicalizeStructs(collected, selectedNames, selectedSourcePaths);
 }

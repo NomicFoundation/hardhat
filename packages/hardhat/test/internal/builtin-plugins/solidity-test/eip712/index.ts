@@ -220,6 +220,40 @@ describe("eip712 - collectEip712CanonicalTypes", () => {
     assert.deepEqual(excludeTests, ["Foo(uint256 x)"]);
   });
 
+  it("ignores conflicting same-named structs from unselected sources", () => {
+    const sources: FakeSource[] = [
+      {
+        inputSourceName: "project/contracts/A.sol",
+        userSourceName: "contracts/A.sol",
+        ast: sourceUnit([
+          structAst("Order", [
+            { type: "address", name: "user" },
+            { type: "uint256", name: "amount" },
+          ]),
+        ]),
+      },
+      {
+        inputSourceName: "project/contracts/B.sol",
+        userSourceName: "contracts/B.sol",
+        ast: sourceUnit([
+          structAst("Order", [
+            { type: "bytes32", name: "id" },
+            { type: "bool", name: "active" },
+          ]),
+        ]),
+      },
+    ];
+    const buildInfo = makeBuildInfo("solc-0_8_23-bbbbcccc", sources);
+
+    const result = collectEip712CanonicalTypes(
+      [buildInfo],
+      inputToUserSourceMap(sources),
+      { include: ["contracts/A.sol"], exclude: [] },
+    );
+
+    assert.deepEqual(result, ["Order(address user,uint256 amount)"]);
+  });
+
   it("dedupes the same struct seen across multiple build infos", () => {
     const ast = sourceUnit([
       structAst("Person", [
