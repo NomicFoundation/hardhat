@@ -3048,20 +3048,22 @@ To resolve this, set a valid non-empty API key in your Hardhat config, then try 
       },
       ARTIFACT_BUILD_PROFILE_MISMATCH: {
         number: 80030,
-        messageTemplate: `The artifact for {contractDescription} was compiled with the "{artifactProfile}" build profile, but verify is using the "{buildProfileName}" build profile.
+        messageTemplate: `The artifact for {contractDescription} was compiled with build profile "{artifactProfile}", but verify is using build profile "{buildProfileName}".
 
-To fix this, recompile with the matching profile and retry verification:
+If your contract was deployed with the "{artifactProfile}" profile, re-run verify with the matching profile:
 
-  npx hardhat compile --force --build-profile {buildProfileName}
-  npx hardhat verify ...
+  npx hardhat verify --build-profile {artifactProfile} ...
 
-If your contract was actually deployed using the "{artifactProfile}" profile, re-run verify with --build-profile {artifactProfile} instead.`,
+Another possibility is that your local artifacts are stale; recompile and retry:
+
+  npx hardhat compile --build-profile {buildProfileName}
+  npx hardhat verify ...`,
         websiteTitle: "Artifact build profile mismatch",
         websiteDescription: `The compiled artifacts on disk were produced by a different configured build profile than the one verify is using.
 
 This typically happens when \`hardhat compile\`, \`hardhat test\`, or another task overwrote the on-disk artifacts between deployment and verification, since most tasks default to the \`default\` profile while \`verify\` defaults to \`production\`.
 
-Recompile with the profile verify uses (or pass --build-profile to match the profile that was used at deploy time), then retry.`,
+Pass --build-profile to match the profile that was used at deploy time, or recompile to regenerate artifacts for the profile verify uses, then retry.`,
       },
     },
     VALIDATION: {

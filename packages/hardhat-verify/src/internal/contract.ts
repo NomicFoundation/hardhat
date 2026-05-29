@@ -307,7 +307,7 @@ export class ContractInformationResolver {
           HardhatError.ERRORS.HARDHAT_VERIFY.GENERAL.ARTIFACT_BUILD_PROFILE_MISMATCH,
           {
             contractDescription,
-            artifactProfile: mismatchedProfiles.join(" or "),
+            artifactProfile: mismatchedProfiles[0],
             buildProfileName: this.#buildProfileName,
           },
         );
