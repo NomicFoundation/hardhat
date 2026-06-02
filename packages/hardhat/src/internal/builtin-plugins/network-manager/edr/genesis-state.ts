@@ -12,6 +12,7 @@ import {
   opHardforkFromString,
   type AccountOverride,
 } from "@nomicfoundation/edr";
+import { bytesToHexString } from "@nomicfoundation/hardhat-utils/hex";
 import { AsyncMutex } from "@nomicfoundation/hardhat-utils/synchronization";
 import { hexToBytes } from "ethereum-cryptography/utils";
 
@@ -50,7 +51,7 @@ const genesisStateAndAccountsCache: WeakMap<
       Map<
         string,
         {
-          genesisState: Map<Uint8Array, AccountOverride>;
+          genesisState: Map<string, AccountOverride>;
           ownedAccounts: Array<{ secretKey: string; balance: bigint }>;
         }
       >
@@ -66,7 +67,7 @@ export async function getGenesisStateAndOwnedAccounts(
   chainType: ChainType,
   specId: string,
 ): Promise<{
-  genesisState: Map<Uint8Array, AccountOverride>;
+  genesisState: Map<string, AccountOverride>;
   ownedAccounts: Array<{ secretKey: string; balance: bigint }>;
 }> {
   const cached = genesisStateAndAccountsCache
@@ -131,7 +132,7 @@ async function createGenesisStateAndOwnedAccounts(
   chainType: ChainType,
   specId: string,
 ): Promise<{
-  genesisState: Map<Uint8Array, AccountOverride>;
+  genesisState: Map<string, AccountOverride>;
   ownedAccounts: Array<{ secretKey: string; balance: bigint }>;
 }> {
   if (microEthSignerAddress === undefined) {
@@ -142,7 +143,7 @@ async function createGenesisStateAndOwnedAccounts(
 
   const ownedAccounts = await hardhatAccountsToEdrOwnedAccounts(accountsConfig);
 
-  const genesisState: Map<Uint8Array, AccountOverride> = new Map(
+  const genesisState: Map<string, AccountOverride> = new Map(
     ownedAccounts.map(({ secretKey, balance }) => {
       const address = hexToBytes(addr.fromPrivateKey(secretKey));
       const accountOverride: AccountOverride = {
@@ -151,7 +152,7 @@ async function createGenesisStateAndOwnedAccounts(
         code: new Uint8Array(), // Empty account code, removing potential delegation code when forking
       };
 
-      return [address, accountOverride];
+      return [bytesToHexString(address), accountOverride];
     }),
   );
 
@@ -163,7 +164,8 @@ async function createGenesisStateAndOwnedAccounts(
         : l1GenesisState(l1HardforkFromString(specId));
 
   for (const account of chainGenesisState) {
-    const existingOverride = genesisState.get(account.address);
+    const addressKey = bytesToHexString(account.address);
+    const existingOverride = genesisState.get(addressKey);
     if (existingOverride !== undefined) {
       // Favor the genesis state specified by the user
       account.balance = account.balance ?? existingOverride.balance;
@@ -171,7 +173,7 @@ async function createGenesisStateAndOwnedAccounts(
       account.code = account.code ?? existingOverride.code;
       account.storage = account.storage ?? existingOverride.storage;
     } else {
-      genesisState.set(account.address, account);
+      genesisState.set(addressKey, account);
     }
   }
 

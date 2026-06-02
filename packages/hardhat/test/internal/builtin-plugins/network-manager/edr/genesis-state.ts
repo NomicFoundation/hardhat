@@ -4,6 +4,7 @@ import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 
 import { CANCUN, LONDON } from "@nomicfoundation/edr";
+import { bytesToHexString } from "@nomicfoundation/hardhat-utils/hex";
 
 import { getGenesisStateAndOwnedAccounts } from "../../../../../src/internal/builtin-plugins/network-manager/edr/genesis-state.js";
 import { L1_CHAIN_TYPE } from "../../../../../src/internal/constants.js";
@@ -64,5 +65,26 @@ describe("getGenesisStateAndOwnedAccounts", () => {
     assert.notEqual(result1, result2);
     assert.notEqual(result2, result3);
     assert.notEqual(result3, result1);
+  });
+
+  it("should merge duplicate account overrides by address rather than by Uint8Array reference identity", async () => {
+    const result = await getGenesisStateAndOwnedAccounts(
+      { ...accounts },
+      undefined,
+      L1_CHAIN_TYPE,
+      CANCUN,
+    );
+
+    const addresses = Array.from(result.genesisState.values()).map((entry) =>
+      bytesToHexString(entry.address),
+    );
+    const uniqueAddresses = new Set(addresses);
+
+    assert.equal(
+      addresses.length,
+      uniqueAddresses.size,
+      "genesis state must not contain duplicate entries for the same address",
+    );
+    assert.equal(result.genesisState.size, addresses.length);
   });
 });
