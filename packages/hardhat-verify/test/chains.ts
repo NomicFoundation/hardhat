@@ -9,21 +9,21 @@ import { rejectLocalNetworks, getChainId } from "../src/internal/chains.js";
 import { MockEthereumProvider } from "./utils.js";
 
 describe("chains", () => {
-  describe("assertVerifiableNetwork", () => {
+  describe("rejectLocalNetworks", () => {
     it("should throw for Hardhat Network chain id (31337)", () => {
       assertThrowsHardhatError(
-        () => rejectLocalNetworks(31337),
-        HardhatError.ERRORS.HARDHAT_VERIFY.GENERAL.UNSUPPORTED_DEV_NETWORK,
-        { chainId: 31337 },
+        () => rejectLocalNetworks("hardhat", 31337),
+        HardhatError.ERRORS.HARDHAT_VERIFY.GENERAL.NETWORK_NOT_SUPPORTED,
+        { networkName: "hardhat", chainId: 31337 },
       );
     });
 
     it("should not throw for a public chain id (1)", () => {
-      rejectLocalNetworks(1);
+      rejectLocalNetworks("mainnet", 1);
     });
 
     it("should not throw for Sepolia (11155111)", () => {
-      rejectLocalNetworks(11155111);
+      rejectLocalNetworks("sepolia", 11155111);
     });
   });
 

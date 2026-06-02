@@ -115,7 +115,7 @@ export async function verifyContract(
   const { networkName } = connection;
   const resolvedProvider = provider ?? connection.provider;
 
-  rejectLocalNetworks(await getChainId(resolvedProvider));
+  rejectLocalNetworks(networkName, await getChainId(resolvedProvider));
 
   const instance = await createVerificationProviderInstance({
     provider: resolvedProvider,

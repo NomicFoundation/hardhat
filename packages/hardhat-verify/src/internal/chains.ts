@@ -17,11 +17,11 @@ export async function getChainId(provider: EthereumProvider): Promise<number> {
 }
 
 const DEV_NETWORK_CHAIN_IDS: readonly number[] = [31337, 1337];
-export function rejectLocalNetworks(chainId: number): void {
+export function rejectLocalNetworks(networkName: string, chainId: number): void {
   if (DEV_NETWORK_CHAIN_IDS.includes(chainId)) {
     throw new HardhatError(
-      HardhatError.ERRORS.HARDHAT_VERIFY.GENERAL.UNSUPPORTED_DEV_NETWORK,
-      { chainId },
+      HardhatError.ERRORS.HARDHAT_VERIFY.GENERAL.NETWORK_NOT_SUPPORTED,
+      { networkName, chainId },
     );
   }
 }
