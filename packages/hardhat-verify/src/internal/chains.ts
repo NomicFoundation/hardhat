@@ -16,8 +16,9 @@ export async function getChainId(provider: EthereumProvider): Promise<number> {
   return chainId;
 }
 
+const DEV_NETWORK_CHAIN_IDS: readonly number[] = [31337, 1337];
 export function rejectLocalNetworks(chainId: number): void {
-  if (chainId===31337) {
+  if (DEV_NETWORK_CHAIN_IDS.includes(chainId)) {
     throw new HardhatError(
       HardhatError.ERRORS.HARDHAT_VERIFY.GENERAL.UNSUPPORTED_DEV_NETWORK,
       { chainId },
