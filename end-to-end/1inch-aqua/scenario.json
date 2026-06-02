@@ -10,16 +10,16 @@
   "benchmark": {
     "commands": {
       "cold compile": {
-        "runs": 5,
+        "runs": 3,
         "prepare": "npx hardhat clean",
         "command": "npx hardhat compile"
       },
       "warm compile": {
-        "runs": 55,
+        "runs": 9,
         "command": "npx hardhat compile"
       },
       "test solidity": {
-        "runs": 83,
+        "runs": 11,
         "command": "npx hardhat test solidity --no-compile"
       }
     }

@@ -18,7 +18,7 @@
         "command": "npx hardhat compile"
       },
       "warm compile": {
-        "runs": 97,
+        "runs": 11,
         "command": "npx hardhat compile"
       },
       "test solidity": {
