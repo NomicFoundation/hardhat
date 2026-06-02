@@ -623,6 +623,20 @@ describe("network-manager/hook-handlers/config", () => {
       assert.equal(validationErrors.length, 0);
     });
 
+    it("should accept a parseable initialDate string", async () => {
+      const config: HardhatUserConfig = {
+        networks: {
+          test: {
+            type: "edr-simulated",
+            initialDate: "2024-01-01T00:00:00.000Z",
+          },
+        },
+      };
+
+      const validationErrors = await validateNetworkUserConfig(config);
+      assert.equal(validationErrors.length, 0);
+    });
+
     it("should throw if the initialDate is not a parseable date string", async () => {
       const config: HardhatUserConfig = {
         networks: {
