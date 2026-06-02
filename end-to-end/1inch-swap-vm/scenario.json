@@ -15,11 +15,11 @@
         "command": "npx hardhat compile"
       },
       "warm compile": {
-        "runs": 45,
+        "runs": 5,
         "command": "npx hardhat compile"
       },
       "test solidity": {
-        "runs": 29,
+        "runs": 15,
         "command": "npx hardhat test solidity --no-compile"
       }
     }
