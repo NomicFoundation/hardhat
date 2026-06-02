@@ -21,6 +21,16 @@
       "test solidity": {
         "runs": 69,
         "command": "npx hardhat test solidity --no-compile"
+      },
+      "hardhat compile edit test/VerifiableFactory.t.sol": {
+        "runs": 7,
+        "prepare": "git checkout -- test/VerifiableFactory.t.sol && npx hardhat compile",
+        "command": "printf \"\\n// hardhat benchmark edit\\n\" >> test/VerifiableFactory.t.sol && npx hardhat compile"
+      },
+      "hardhat compile edit src/VerifiableFactory.sol": {
+        "runs": 7,
+        "prepare": "git checkout -- src/VerifiableFactory.sol && npx hardhat compile",
+        "command": "printf \"\\n// hardhat benchmark edit\\n\" >> src/VerifiableFactory.sol && npx hardhat compile"
       }
     }
   }

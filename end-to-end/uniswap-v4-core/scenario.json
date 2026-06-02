@@ -21,6 +21,16 @@
       "test solidity": {
         "runs": 7,
         "command": "npx hardhat test solidity --no-compile"
+      },
+      "hardhat compile edit test/Extsload.t.sol": {
+        "runs": 3,
+        "prepare": "git checkout -- test/Extsload.t.sol && npx hardhat compile",
+        "command": "printf \"\\n// hardhat benchmark edit\\n\" >> test/Extsload.t.sol && npx hardhat compile"
+      },
+      "hardhat compile edit src/types/Currency.sol": {
+        "runs": 3,
+        "prepare": "git checkout -- src/types/Currency.sol && npx hardhat compile",
+        "command": "printf \"\\n// hardhat benchmark edit\\n\" >> src/types/Currency.sol && npx hardhat compile"
       }
     }
   }

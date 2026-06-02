@@ -21,6 +21,16 @@
       "test solidity": {
         "runs": 29,
         "command": "npx hardhat test solidity --no-compile"
+      },
+      "hardhat compile edit test/Fee.t.sol": {
+        "runs": 3,
+        "prepare": "git checkout -- test/Fee.t.sol && npx hardhat compile",
+        "command": "printf \"\\n// hardhat benchmark edit\\n\" >> test/Fee.t.sol && npx hardhat compile"
+      },
+      "hardhat compile edit src/SwapVM.sol": {
+        "runs": 3,
+        "prepare": "git checkout -- src/SwapVM.sol && npx hardhat compile",
+        "command": "printf \"\\n// hardhat benchmark edit\\n\" >> src/SwapVM.sol && npx hardhat compile"
       }
     }
   }

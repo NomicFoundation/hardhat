@@ -24,6 +24,16 @@
       "test solidity": {
         "runs": 9,
         "command": "npx hardhat test solidity --no-compile"
+      },
+      "hardhat compile edit test/unit/Escrow.t.sol": {
+        "runs": 3,
+        "prepare": "git checkout -- test/unit/Escrow.t.sol && npx hardhat compile",
+        "command": "printf \"\\n// hardhat benchmark edit\\n\" >> test/unit/Escrow.t.sol && npx hardhat compile"
+      },
+      "hardhat compile edit contracts/BaseEscrow.sol": {
+        "runs": 3,
+        "prepare": "git checkout -- contracts/BaseEscrow.sol && npx hardhat compile",
+        "command": "printf \"\\n// hardhat benchmark edit\\n\" >> contracts/BaseEscrow.sol && npx hardhat compile"
       }
     }
   }

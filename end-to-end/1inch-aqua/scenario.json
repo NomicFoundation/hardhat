@@ -21,6 +21,16 @@
       "test solidity": {
         "runs": 83,
         "command": "npx hardhat test solidity --no-compile"
+      },
+      "hardhat compile edit test/AquaLifecycle.t.sol": {
+        "runs": 3,
+        "prepare": "git checkout -- test/AquaLifecycle.t.sol && npx hardhat compile",
+        "command": "printf \"\\n// hardhat benchmark edit\\n\" >> test/AquaLifecycle.t.sol && npx hardhat compile"
+      },
+      "hardhat compile edit src/Aqua.sol": {
+        "runs": 3,
+        "prepare": "git checkout -- src/Aqua.sol && npx hardhat compile",
+        "command": "printf \"\\n// hardhat benchmark edit\\n\" >> src/Aqua.sol && npx hardhat compile"
       }
     }
   }
