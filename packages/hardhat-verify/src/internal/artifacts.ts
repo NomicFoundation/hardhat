@@ -7,7 +7,7 @@ import type {
 
 import path from "node:path";
 
-import { assertHardhatInvariant } from "@nomicfoundation/hardhat-errors";
+import { HardhatError } from "@nomicfoundation/hardhat-errors";
 import { readJsonFile } from "@nomicfoundation/hardhat-utils/fs";
 
 export interface BuildInfoAndOutput {
@@ -90,26 +90,42 @@ export async function getCompilerInput(
     },
   );
 
-  assertHardhatInvariant(
-    getCompilationJobsResult.success,
-    "getCompilationJobs should not error",
-  );
+  if (!getCompilationJobsResult.success) {
+    throw new HardhatError(
+      HardhatError.ERRORS.HARDHAT_VERIFY.GENERAL.COMPILATION_JOBS_CREATION_FAILED,
+      {
+        sourceName,
+        buildProfile: buildProfileName,
+        formattedReason: getCompilationJobsResult.formattedReason,
+      },
+    );
+  }
 
   const compilationJob = getCompilationJobsResult.compilationJobsPerFile;
 
-  // TODO: should this be an error instead?
-  assertHardhatInvariant(
-    compilationJob instanceof Map && compilationJob.size === 1,
-    "The compilation job for the contract source was not found.",
-  );
+  if (!(compilationJob instanceof Map) || compilationJob.size !== 1) {
+    throw new HardhatError(
+      HardhatError.ERRORS.HARDHAT_VERIFY.GENERAL
+        .COMPILATION_JOB_NOT_FOUND_FOR_CONTRACT,
+      {
+        sourceName,
+        buildProfile: buildProfileName,
+      },
+    );
+  }
 
   const compilerInput = await compilationJob.get(rootFilePath)?.getSolcInput();
 
-  // TODO: should this be an error instead?
-  assertHardhatInvariant(
-    compilerInput !== undefined,
-    "The compiler input for the contract source was not found.",
-  );
+  if (compilerInput === undefined) {
+    throw new HardhatError(
+      HardhatError.ERRORS.HARDHAT_VERIFY.GENERAL
+        .COMPILER_INPUT_NOT_FOUND_FOR_CONTRACT,
+      {
+        sourceName,
+        buildProfile: buildProfileName,
+      },
+    );
+  }
 
   return compilerInput;
 }
