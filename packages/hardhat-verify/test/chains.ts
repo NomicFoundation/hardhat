@@ -19,11 +19,11 @@ describe("chains", () => {
     });
 
     it("should not throw for a public chain id (1)", () => {
-      assert.doesNotThrow(() => rejectLocalNetworks(1));
+      rejectLocalNetworks(1);
     });
 
     it("should not throw for Sepolia (11155111)", () => {
-      assert.doesNotThrow(() => rejectLocalNetworks(11155111));
+      rejectLocalNetworks(11155111);
     });
   });
 
