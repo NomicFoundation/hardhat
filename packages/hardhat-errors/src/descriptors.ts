@@ -3046,6 +3046,36 @@ Please verify the address and network, and try again later if necessary.`,
 
 To resolve this, set a valid non-empty API key in your Hardhat config, then try again.`,
       },
+      COMPILATION_JOBS_CREATION_FAILED: {
+        number: 80030,
+        messageTemplate: `Could not build a compilation job for "{sourceName}" under build profile "{buildProfile}": {formattedReason}`,
+        websiteTitle: "Compilation jobs creation failed",
+        websiteDescription: `The Solidity build system was unable to create a compilation job for the contract being verified.
+
+Common causes:
+
+- The selected build profile does not include this source.
+- The contract's pragma is incompatible with the configured Solidity compiler versions.
+- A dependency's pragma is incompatible with the configured Solidity compiler versions.
+
+Check the reported reason and adjust your Hardhat configuration or the contract's source, then try again.`,
+      },
+      COMPILATION_JOB_NOT_FOUND_FOR_CONTRACT: {
+        number: 80031,
+        messageTemplate: `No compilation job was found for "{sourceName}" under build profile "{buildProfile}".`,
+        websiteTitle: "Compilation job not found",
+        websiteDescription: `The Solidity build system did not return a compilation job for the contract being verified.
+
+This usually means the contract is not part of the selected build profile. Make sure the contract is included in your Hardhat configuration and that you are using the correct \`--build-profile\`.`,
+      },
+      COMPILER_INPUT_NOT_FOUND_FOR_CONTRACT: {
+        number: 80032,
+        messageTemplate: `Could not get the compiler input for "{sourceName}" under build profile "{buildProfile}".`,
+        websiteTitle: "Compiler input not found",
+        websiteDescription: `The Solidity build system returned a compilation job that did not contain a compiler input for the contract being verified.
+
+Make sure the contract is included in the selected build profile and that you are using the correct \`--build-profile\`, then try again.`,
+      },
     },
     VALIDATION: {
       INVALID_ADDRESS: {
