@@ -21,6 +21,21 @@
       "test solidity": {
         "runs": 3,
         "command": "npx hardhat test solidity --no-compile"
+      },
+      "edit & compile Solidity test with min deps: tests/unit/WadRayMath.t.sol": {
+        "runs": 3,
+        "prepare": "git checkout -- tests/unit/WadRayMath.t.sol && npx hardhat compile",
+        "command": "printf \"\\n// hardhat benchmark edit\\n\" >> tests/unit/WadRayMath.t.sol && npx hardhat compile"
+      },
+      "edit & compile Solidity test with max deps: tests/unit/Spoke/Liquidations/Spoke.LiquidationCall.t.sol": {
+        "runs": 3,
+        "prepare": "git checkout -- tests/unit/Spoke/Liquidations/Spoke.LiquidationCall.t.sol && npx hardhat compile",
+        "command": "printf \"\\n// hardhat benchmark edit\\n\" >> tests/unit/Spoke/Liquidations/Spoke.LiquidationCall.t.sol && npx hardhat compile"
+      },
+      "edit & compile Solidity contract: src/libraries/math/MathUtils.sol": {
+        "runs": 3,
+        "prepare": "git checkout -- src/libraries/math/MathUtils.sol && npx hardhat compile",
+        "command": "printf \"\\n// hardhat benchmark edit\\n\" >> src/libraries/math/MathUtils.sol && npx hardhat compile"
       }
     }
   }

@@ -24,6 +24,21 @@
       "test solidity": {
         "runs": 3,
         "command": "npx hardhat test solidity --no-compile"
+      },
+      "edit & compile Solidity test with min deps: test/lib/CosignerLib.t.sol": {
+        "runs": 3,
+        "prepare": "git checkout -- test/lib/CosignerLib.t.sol && npx hardhat compile",
+        "command": "printf \"\\n// hardhat benchmark edit\\n\" >> test/lib/CosignerLib.t.sol && npx hardhat compile"
+      },
+      "edit & compile Solidity test with max deps: test/reactors/V3DutchOrderReactor.t.sol": {
+        "runs": 3,
+        "prepare": "git checkout -- test/reactors/V3DutchOrderReactor.t.sol && npx hardhat compile",
+        "command": "printf \"\\n// hardhat benchmark edit\\n\" >> test/reactors/V3DutchOrderReactor.t.sol && npx hardhat compile"
+      },
+      "edit & compile Solidity contract: src/base/ReactorStructs.sol": {
+        "runs": 3,
+        "prepare": "git checkout -- src/base/ReactorStructs.sol && npx hardhat compile",
+        "command": "printf \"\\n// hardhat benchmark edit\\n\" >> src/base/ReactorStructs.sol && npx hardhat compile"
       }
     }
   }

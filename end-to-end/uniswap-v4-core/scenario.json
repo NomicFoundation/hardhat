@@ -22,12 +22,17 @@
         "runs": 7,
         "command": "npx hardhat test solidity --no-compile"
       },
-      "hardhat compile edit test/Extsload.t.sol": {
+      "edit & compile Solidity test with min deps: test/libraries/BitMath.t.sol": {
         "runs": 3,
-        "prepare": "git checkout -- test/Extsload.t.sol && npx hardhat compile",
-        "command": "printf \"\\n// hardhat benchmark edit\\n\" >> test/Extsload.t.sol && npx hardhat compile"
+        "prepare": "git checkout -- test/libraries/BitMath.t.sol && npx hardhat compile",
+        "command": "printf \"\\n// hardhat benchmark edit\\n\" >> test/libraries/BitMath.t.sol && npx hardhat compile"
       },
-      "hardhat compile edit src/types/Currency.sol": {
+      "edit & compile Solidity test with max deps: test/PoolManager.t.sol": {
+        "runs": 3,
+        "prepare": "git checkout -- test/PoolManager.t.sol && npx hardhat compile",
+        "command": "printf \"\\n// hardhat benchmark edit\\n\" >> test/PoolManager.t.sol && npx hardhat compile"
+      },
+      "edit & compile Solidity contract: src/types/Currency.sol": {
         "runs": 3,
         "prepare": "git checkout -- src/types/Currency.sol && npx hardhat compile",
         "command": "printf \"\\n// hardhat benchmark edit\\n\" >> src/types/Currency.sol && npx hardhat compile"

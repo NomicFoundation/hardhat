@@ -22,12 +22,17 @@
         "runs": 69,
         "command": "npx hardhat test solidity --no-compile"
       },
-      "hardhat compile edit test/VerifiableFactory.t.sol": {
+      "edit & compile Solidity test with min deps: test/UUPSProxy.t.sol": {
+        "runs": 7,
+        "prepare": "git checkout -- test/UUPSProxy.t.sol && npx hardhat compile",
+        "command": "printf \"\\n// hardhat benchmark edit\\n\" >> test/UUPSProxy.t.sol && npx hardhat compile"
+      },
+      "edit & compile Solidity test with max deps: test/VerifiableFactory.t.sol": {
         "runs": 7,
         "prepare": "git checkout -- test/VerifiableFactory.t.sol && npx hardhat compile",
         "command": "printf \"\\n// hardhat benchmark edit\\n\" >> test/VerifiableFactory.t.sol && npx hardhat compile"
       },
-      "hardhat compile edit src/VerifiableFactory.sol": {
+      "edit & compile Solidity contract: src/VerifiableFactory.sol": {
         "runs": 7,
         "prepare": "git checkout -- src/VerifiableFactory.sol && npx hardhat compile",
         "command": "printf \"\\n// hardhat benchmark edit\\n\" >> src/VerifiableFactory.sol && npx hardhat compile"

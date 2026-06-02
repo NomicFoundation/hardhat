@@ -24,6 +24,21 @@
       "test solidity": {
         "runs": 3,
         "command": "npx hardhat test solidity --no-compile --grep=\"^(test_|testFuzz_)\""
+      },
+      "edit & compile Solidity test with min deps: test/unit/scripts/launch/TimeConstraints.t.sol": {
+        "runs": 3,
+        "prepare": "git checkout -- test/unit/scripts/launch/TimeConstraints.t.sol && npx hardhat compile",
+        "command": "printf \"\\n// hardhat benchmark edit\\n\" >> test/unit/scripts/launch/TimeConstraints.t.sol && npx hardhat compile"
+      },
+      "edit & compile Solidity test with max deps: test/scenario/mainnet-launch.t.sol": {
+        "runs": 3,
+        "prepare": "git checkout -- test/scenario/mainnet-launch.t.sol && npx hardhat compile",
+        "command": "printf \"\\n// hardhat benchmark edit\\n\" >> test/scenario/mainnet-launch.t.sol && npx hardhat compile"
+      },
+      "edit & compile Solidity contract: contracts/types/Timestamp.sol": {
+        "runs": 3,
+        "prepare": "git checkout -- contracts/types/Timestamp.sol && npx hardhat compile",
+        "command": "printf \"\\n// hardhat benchmark edit\\n\" >> contracts/types/Timestamp.sol && npx hardhat compile"
       }
     }
   }
