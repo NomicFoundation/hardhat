@@ -16,7 +16,7 @@ import { isFullyQualifiedName } from "hardhat/utils/contract-names";
 
 import { getCompilerInput } from "./artifacts.js";
 import { Bytecode } from "./bytecode.js";
-import { getChainId } from "./chains.js";
+import { rejectLocalNetworks, getChainId } from "./chains.js";
 import { encodeConstructorArgs } from "./constructor-args.js";
 import { ContractInformationResolver } from "./contract.js";
 import { ETHERSCAN_PROVIDER_NAME } from "./etherscan.js";
@@ -114,6 +114,8 @@ export async function verifyContract(
   const connection = await network.create();
   const { networkName } = connection;
   const resolvedProvider = provider ?? connection.provider;
+
+  rejectLocalNetworks(await getChainId(resolvedProvider));
 
   const instance = await createVerificationProviderInstance({
     provider: resolvedProvider,
