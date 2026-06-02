@@ -43,7 +43,7 @@ const BASE_PATH_MIN_VERSION: SemverVersion = [0, 6, 9];
  * @param args The arguments to pass to the compilation command
  * @param input The solc input to pass to the compilation command on stdin
  * @returns The compilation output
- * @throws Error if the compilation process exits with a non-zero exit code.
+ * @throws HardhatError if the compilation process exits with a non-zero exit code.
  * @throws HardhatInvariantError if the any of the io streams are null.
  */
 export async function spawnCompile(
@@ -88,7 +88,12 @@ export async function spawnCompile(
         await stdoutFileHandle.close();
 
         if (code !== 0) {
-          return reject(new Error(`Subprocess exited with code ${code}`));
+          return reject(
+            new HardhatError(
+              HardhatError.ERRORS.CORE.SOLIDITY.COMPILER_SUBPROCESS_CRASH,
+              { code: code ?? "null" },
+            ),
+          );
         }
 
         resolve(await readJsonFileAsStream(stdoutPath));

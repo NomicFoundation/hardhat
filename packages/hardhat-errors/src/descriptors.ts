@@ -1479,6 +1479,14 @@ Try re-running without these files, or without the flag.`,
 
 For example, you may be trying to build a test file with \`--no-tests\`, which isn't a valid operation.`,
       },
+      COMPILER_SUBPROCESS_CRASH: {
+        number: 918,
+        messageTemplate: `The solc subprocess exited with code {code}.`,
+        websiteTitle: "Solc subprocess crashed",
+        websiteDescription: `The solc subprocess exited with a non-zero status code while compiling your contracts.
+
+This usually indicates that solc itself crashed. If this error persists, run \`npx hardhat clean --global\` and try again.`,
+      },
     },
     ARTIFACTS: {
       NOT_FOUND: {

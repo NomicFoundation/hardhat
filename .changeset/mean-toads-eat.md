@@ -1,5 +1,7 @@
 ---
+"hardhat": patch
 "@nomicfoundation/hardhat-verify": patch
+"@nomicfoundation/hardhat-errors": patch
 ---
 
-Replace three user-reachable `assertHardhatInvariant` calls in `artifacts.ts` with descriptive `HardhatError`s so users see actionable messages instead of HH900.
+Surface descriptive `HardhatError`s at four solidity-build and hardhat-verify error sites that previously threw generic errors.
