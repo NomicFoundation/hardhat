@@ -24,14 +24,14 @@ import {
 import { isCi } from "@nomicfoundation/hardhat-utils/ci";
 
 import { getTemplates } from "../../../src/internal/cli/init/template.js";
+import { main } from "../../../src/internal/cli/main.js";
 import {
-  main,
   parseGlobalOptions,
   parseBuiltinGlobalOptions,
   parseTask,
   parseTaskArguments,
   parseRawArguments,
-} from "../../../src/internal/cli/main.js";
+} from "../../../src/internal/cli/parser.js";
 import {
   globalOption,
   globalFlag,
