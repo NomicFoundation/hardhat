@@ -17,10 +17,6 @@ import {
 // Side-effect-import the type augmentation for `debugInfo`.
 import "../src/type-extensions.js";
 
-// Compiles small contracts with solx (downloads binary on first run) and
-// asserts evm.{deployed,}Bytecode.debugInfo is populated. Gated behind
-// HARDHAT_DISABLE_SLOW_TESTS to mirror other compile-heavy tests.
-
 // `\x7fELF` magic hex-encoded — solx debugInfo is a hex-encoded ELF blob.
 const ELF_MAGIC_HEX = "7f454c46";
 
