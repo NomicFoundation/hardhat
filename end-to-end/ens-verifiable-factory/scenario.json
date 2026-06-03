@@ -10,7 +10,7 @@
   "benchmark": {
     "commands": {
       "compile sequence": {
-        "runs": 13,
+        "runs": 3,
         "steps": {
           "reset files & cache": {
             "command": "git checkout -- test/UUPSProxy.t.sol test/VerifiableFactory.t.sol src/VerifiableFactory.sol && npx hardhat clean",
@@ -31,11 +31,11 @@
         }
       },
       "warm compile": {
-        "runs": 77,
+        "runs": 7,
         "command": "npx hardhat compile"
       },
       "test solidity": {
-        "runs": 69,
+        "runs": 3,
         "command": "npx hardhat test solidity --no-compile"
       }
     }
