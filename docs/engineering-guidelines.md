@@ -105,6 +105,38 @@ Use `await import` only if one of these conditions is met:
 
 Test files are free to use `await import` freely.
 
+### Always-run hook handler factories
+
+`ConfigHooks` and `HardhatRuntimeEnvironmentHooks` factories run on every Hardhat invocation, so they should follow the same criteria as the plugin's `index.ts` file.
+
+### Lazy wrappers for `NetworkConnection` extensions
+
+`NetworkHooks` aren't always run, but `newConnection` handlers that extend `NetworkConnection` (e.g. `connection.foo = …`) should consider lazily initializing there bussiness logic, unless they are virtually always used. The reason for this is that otherwise the first network connection initializes too many unnecesary things. For example, the `hardhat-ethers` plugin doesn't need to be lazily initialized, as most users that install it will use it most of the time after creating a new network. On the contrary, the `hardhat-ignition-ethers` plugin isn't always used, so it should be lazily initialized.
+
+Reference pattern for lazy initialization: `packages/hardhat-ignition-ethers/src/internal/hook-handlers/network.ts`. When the wrapper caches both the imported module and an instance built from it, the getter must run `await import(...)` **before** the instance cache check — see the "Ordering in cached lazy getters" section in `docs/engineering-guidelines.md` (under GC3) for the rationale and code shape.
+
+### Ordering in cached lazy getters
+
+This rule applies to any cached dynamic import (condition 6 in the list above) that also caches an instance built from the imported module. The `NetworkConnection` lazy wrapper above is one example, but the same shape comes up elsewhere.
+
+The getter must run `await import(...)` **before** the instance cache check, so concurrent callers share a single microtask-dedupe point — otherwise each suspended caller re-enters the branch, constructs its own implementation, and the callers end up with different instances.
+
+```ts
+let Impl: typeof ImplT | undefined;
+
+async #get(): Promise<ImplT> {
+  if (Impl === undefined) {
+    ({ Impl } = await import("./impl.js"));
+  }
+
+  if (this.#instance === undefined) {
+    this.#instance = new Impl(...);
+  }
+
+  return this.#instance;
+}
+```
+
 # Testing guidelines
 
 ## T1: Do not use fixture projects unless they are needed
