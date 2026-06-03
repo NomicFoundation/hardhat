@@ -31,6 +31,7 @@ const SPECIFIC_FILE_RULES: ReadonlyArray<{
 const TEST_FILE_WARNING_MESSAGES: readonly string[] = [
   SPDX_WARNING,
   PRAGMA_WARNING,
+  CONTRACT_SIZE_WARNING,
 ];
 
 // Warnings suppressed only when running with `--coverage`. An entry with no

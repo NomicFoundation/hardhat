@@ -230,8 +230,8 @@ describe("shouldSuppressWarning", () => {
     });
   });
 
-  describe("Contract-size warning (coverage-only)", () => {
-    it("should suppress contract-size warning when coverage=true", () => {
+  describe("Contract-size warning", () => {
+    it("should suppress contract-size warning on a user file when coverage=true", () => {
       const message = `Warning: ${CONTRACT_SIZE_WARNING}\n  --> ${path.join("contracts", "Foo.sol")}:1:1:`;
       assert.equal(
         shouldSuppressWarning(message, SOLIDITY_TESTS_PATH, PROJECT_ROOT, true),
@@ -239,7 +239,7 @@ describe("shouldSuppressWarning", () => {
       );
     });
 
-    it("should NOT suppress contract-size warning when coverage=false", () => {
+    it("should NOT suppress contract-size warning on a user file when coverage=false", () => {
       const message = `Warning: ${CONTRACT_SIZE_WARNING}\n  --> ${path.join("contracts", "Foo.sol")}:1:1:`;
       assert.equal(
         shouldSuppressWarning(
@@ -249,6 +249,32 @@ describe("shouldSuppressWarning", () => {
           false,
         ),
         false,
+      );
+    });
+
+    it("should suppress contract-size warning on a .t.sol file when coverage=false", () => {
+      const message = `Warning: ${CONTRACT_SIZE_WARNING}\n  --> ${path.join("contracts", "Counter.t.sol")}:1:1:`;
+      assert.equal(
+        shouldSuppressWarning(
+          message,
+          SOLIDITY_TESTS_PATH,
+          PROJECT_ROOT,
+          false,
+        ),
+        true,
+      );
+    });
+
+    it("should suppress contract-size warning on a file in the Solidity tests dir when coverage=false", () => {
+      const message = `Warning: ${CONTRACT_SIZE_WARNING}\n  --> ${path.join("test", "contracts", "Helper.sol")}:1:1:`;
+      assert.equal(
+        shouldSuppressWarning(
+          message,
+          SOLIDITY_TESTS_PATH,
+          PROJECT_ROOT,
+          false,
+        ),
+        true,
       );
     });
 
