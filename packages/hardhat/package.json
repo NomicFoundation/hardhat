@@ -93,7 +93,7 @@
     "typescript": "~6.0.3"
   },
   "dependencies": {
-    "@nomicfoundation/edr": "0.12.0-next.34",
+    "@nomicfoundation/edr": "0.12.0",
     "@nomicfoundation/hardhat-errors": "workspace:^3.0.14",
     "@nomicfoundation/hardhat-utils": "workspace:^4.1.3",
     "@nomicfoundation/hardhat-vendored": "workspace:^3.0.4",
