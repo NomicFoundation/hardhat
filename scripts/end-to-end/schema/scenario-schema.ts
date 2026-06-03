@@ -1,4 +1,15 @@
-import type { CommandConfig, ScenarioDefinition } from "../types.ts";
+import type {
+  CommandConfig,
+  ScenarioDefinition,
+  StepConfig,
+} from "../types.ts";
+
+/** Matches integer-like keys, which V8 reorders ahead of string keys. */
+const INTEGER_LIKE_KEY = /^\d+$/;
+
+function isPositiveInteger(value: unknown): boolean {
+  return typeof value === "number" && Number.isInteger(value) && value >= 1;
+}
 
 export function isScenarioDefinition(
   value: unknown,
@@ -68,8 +79,11 @@ function isCommandsMap(value: unknown): value is Record<string, CommandConfig> {
     return false;
   }
 
+  // Reject empty and integer-like keys so the declared command order is
+  // preserved (V8 iterates integer-like keys ahead of string keys).
   return (
-    keys.every((k) => k.length > 0) && Object.values(obj).every(isCommandConfig)
+    keys.every((k) => k.length > 0 && !INTEGER_LIKE_KEY.test(k)) &&
+    Object.values(obj).every(isCommandConfig)
   );
 }
 
@@ -79,6 +93,18 @@ export function isCommandConfig(value: unknown): value is CommandConfig {
   }
 
   const obj = value as Record<string, unknown>;
+  const hasCommand = "command" in obj;
+  const hasSteps = "steps" in obj;
+
+  // Exactly one of `command` | `steps` must be present.
+  if (hasCommand === hasSteps) {
+    return false;
+  }
+
+  return hasSteps ? isStepsVariant(obj) : isCommandVariant(obj);
+}
+
+function isCommandVariant(obj: Record<string, unknown>): boolean {
   const allowedKeys = new Set(["runs", "prepare", "command"]);
 
   for (const key of Object.keys(obj)) {
@@ -88,13 +114,64 @@ export function isCommandConfig(value: unknown): value is CommandConfig {
   }
 
   return (
-    typeof obj.runs === "number" &&
-    Number.isInteger(obj.runs) &&
-    obj.runs >= 1 &&
+    isPositiveInteger(obj.runs) &&
     typeof obj.command === "string" &&
     obj.command.length > 0 &&
     (obj.prepare === undefined ||
       (typeof obj.prepare === "string" && obj.prepare.length > 0))
+  );
+}
+
+function isStepsVariant(obj: Record<string, unknown>): boolean {
+  const allowedKeys = new Set(["runs", "steps"]);
+
+  for (const key of Object.keys(obj)) {
+    if (!allowedKeys.has(key)) {
+      return false;
+    }
+  }
+
+  return isPositiveInteger(obj.runs) && isStepsMap(obj.steps);
+}
+
+function isStepsMap(value: unknown): value is Record<string, StepConfig> {
+  if (typeof value !== "object" || value === null || Array.isArray(value)) {
+    return false;
+  }
+
+  const obj = value as Record<string, unknown>;
+  const keys = Object.keys(obj);
+
+  if (keys.length === 0) {
+    return false;
+  }
+
+  // Reject empty and integer-like keys so the declared step order is preserved
+  // (V8 iterates integer-like keys ahead of string keys).
+  return (
+    keys.every((k) => k.length > 0 && !INTEGER_LIKE_KEY.test(k)) &&
+    Object.values(obj).every(isStepConfig)
+  );
+}
+
+export function isStepConfig(value: unknown): value is StepConfig {
+  if (typeof value !== "object" || value === null || Array.isArray(value)) {
+    return false;
+  }
+
+  const obj = value as Record<string, unknown>;
+  const allowedKeys = new Set(["command", "measure"]);
+
+  for (const key of Object.keys(obj)) {
+    if (!allowedKeys.has(key)) {
+      return false;
+    }
+  }
+
+  return (
+    typeof obj.command === "string" &&
+    obj.command.length > 0 &&
+    (obj.measure === undefined || typeof obj.measure === "boolean")
   );
 }
 

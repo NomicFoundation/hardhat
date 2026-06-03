@@ -1,12 +1,15 @@
 // cSpell:ignore cacache <-- NPM's content-addressable cache
+import { execSync } from "node:child_process";
 import { mkdirSync, readFileSync, readdirSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import path from "node:path";
 
 import { runBenchmark } from "./main.ts";
 import type { BenchArgs } from "./helpers/args.ts";
+import { computeStats, type BenchmarkStats } from "./helpers/stats.ts";
 import { DEFAULT_CLONE_DIR } from "../end-to-end/helpers/args.ts";
 import { fmt, log, logError, logStep, logWarning } from "./helpers/log.ts";
+import { loadScenario } from "../end-to-end/helpers/directory.ts";
 import {
   ForceCheckout,
   ForcePublish,
@@ -14,7 +17,7 @@ import {
   init as e2eInit,
 } from "../end-to-end/subcommands/init.ts";
 import { isScenarioDefinition } from "../end-to-end/schema/scenario-schema.ts";
-import type { ScenarioDefinition } from "../end-to-end/types.ts";
+import type { ScenarioDefinition, StepsVariant } from "../end-to-end/types.ts";
 import { isVerdaccioRunning } from "../verdaccio/helpers/shell.ts";
 import {
   publish as verdaccioPublish,
@@ -30,17 +33,31 @@ DESCRIPTION
   For each scenario under end-to-end/ that is not disabled and does not opt
   out via "benchmark": { "skip": true }, runs every command declared in
   "benchmark": { "commands": { ... } } in the order they appear in
-  scenario.json. Each command entry has the shape:
+  scenario.json. Each command entry is one of two shapes:
 
+    // single command, benchmarked with hyperfine
     {
       "runs":    <positive integer>,    // hyperfine runs (required)
       "prepare": "<shell snippet>",     // optional --prepare hook
       "command": "<shell command>"      // command to benchmark (required)
     }
 
-  The command name (the map key) becomes the on-disk benchmark name:
-  "<scenarioId> / <commandName>". Scenarios missing the "commands" map (or
-  with an empty one) fail pre-flight with a summary of every offending file.
+    // step sequence, timed in-process (no hyperfine, no per-run prepare)
+    {
+      "runs":  <positive integer>,      // times to run the whole sequence
+      "steps": {                         // ordered; each step timed individually
+        "<step name>": {
+          "command": "<shell command>", // required
+          "measure": <boolean>          // optional, default true; false = run but
+        }                               //   don't emit an entry (e.g. a reset step)
+      }
+    }
+
+  Step sequences share state across steps, so a single reset/cold step per run
+  replaces the redundant per-run prepare recompiles. The command name (or, for a
+  sequence, each measured step name) becomes the on-disk benchmark name:
+  "<scenarioId> / <name>". Scenarios missing the "commands" map (or with an
+  empty one) fail pre-flight with a summary of every offending file.
 
   Writes a flat JSON array in benchmark-action/github-action-benchmark's
   customSmallerIsBetter format. Per-run times are preserved in the "extra"
@@ -93,15 +110,6 @@ interface BenchmarkEntry {
   value: number;
   range: string;
   extra: string;
-}
-
-interface HyperfineResult {
-  mean: number;
-  stddev: number;
-  min: number;
-  max: number;
-  median: number;
-  times: number[];
 }
 
 async function main(): Promise<void> {
@@ -364,9 +372,31 @@ async function runScenario(
     ForcePublish.No,
   );
 
+  // Load the initialized scenario once to resolve its working directory and
+  // env (with ${localEnv:...} tokens expanded, like exec.ts); reused by every
+  // steps phase below instead of reloading per phase.
+  const loaded = loadScenario(
+    args.e2eCloneDirectory,
+    scenario.scenarioJsonPath,
+  );
+
   const entries: BenchmarkEntry[] = [];
 
   for (const [name, cfg] of Object.entries(commands)) {
+    if ("steps" in cfg) {
+      entries.push(
+        ...runStepsPhase(
+          scenario.id,
+          loaded.workingDir,
+          loaded.definition.env,
+          name,
+          cfg,
+        ),
+      );
+
+      continue;
+    }
+
     const exportPath = path.join(scenarioTmpDir, `${slugify(name)}.json`);
 
     await runPhase(
@@ -383,6 +413,59 @@ async function runScenario(
   }
 
   return entries;
+}
+
+/**
+ * Run a step-sequence command: execute the ordered steps in-process, once per
+ * run, timing each step with the high-resolution monotonic clock. Returns one
+ * entry per measured step.
+ */
+function runStepsPhase(
+  scenarioId: string,
+  workingDir: string,
+  env: Record<string, string> | undefined,
+  seqName: string,
+  cfg: StepsVariant,
+): BenchmarkEntry[] {
+  logStep(`${fmt.pkg(seqName)} (${cfg.runs} runs)`);
+
+  const stepNames = Object.keys(cfg.steps);
+  const samples = new Map<string, number[]>();
+
+  for (const stepName of stepNames) {
+    if (cfg.steps[stepName].measure !== false) {
+      samples.set(stepName, []);
+    }
+  }
+
+  for (let run = 0; run < cfg.runs; run++) {
+    for (const stepName of stepNames) {
+      const step = cfg.steps[stepName];
+      const start = performance.now();
+
+      try {
+        execSync(step.command, {
+          cwd: workingDir,
+          stdio: "inherit",
+          env: { ...process.env, ...env },
+        });
+      } catch (error) {
+        const original = error instanceof Error ? error.message : String(error);
+        throw new Error(
+          `${scenarioId} / ${seqName}: step "${stepName}" failed on run ${run + 1}/${cfg.runs}: ${original}\n` +
+            `  Reproduce with: cd ${shellQuote(workingDir)} && ${step.command}`,
+          { cause: error },
+        );
+      }
+
+      const elapsed = (performance.now() - start) / 1000;
+      samples.get(stepName)?.push(elapsed);
+    }
+  }
+
+  return [...samples].map(([stepName, times]) =>
+    toEntry(scenarioId, stepName, computeStats(times)),
+  );
 }
 
 function slugify(name: string): string {
@@ -465,9 +548,9 @@ function buildBenchArgs(
   };
 }
 
-function readHyperfineResult(exportPath: string): HyperfineResult {
+function readHyperfineResult(exportPath: string): BenchmarkStats {
   const raw = JSON.parse(readFileSync(exportPath, "utf-8")) as {
-    results: HyperfineResult[];
+    results: BenchmarkStats[];
   };
 
   if (!Array.isArray(raw.results) || raw.results.length === 0) {
@@ -480,7 +563,7 @@ function readHyperfineResult(exportPath: string): HyperfineResult {
 function toEntry(
   scenarioId: string,
   phaseLabel: string,
-  result: HyperfineResult,
+  result: BenchmarkStats,
 ): BenchmarkEntry {
   return {
     name: `${scenarioId} / ${phaseLabel}`,

@@ -9,10 +9,26 @@
   "defaultCommand": "npx hardhat test solidity",
   "benchmark": {
     "commands": {
-      "cold compile": {
+      "compile sequence": {
         "runs": 5,
-        "prepare": "npx hardhat clean",
-        "command": "npx hardhat compile"
+        "steps": {
+          "reset files & cache": {
+            "command": "git checkout -- test/AquaLifecycle.t.sol test/AquaStorageTest.t.sol src/Aqua.sol && npx hardhat clean",
+            "measure": false
+          },
+          "cold compile": {
+            "command": "npx hardhat compile"
+          },
+          "edit & compile Solidity test with min deps: test/AquaLifecycle.t.sol": {
+            "command": "printf \"\\n// hardhat benchmark edit\\n\" >> test/AquaLifecycle.t.sol && npx hardhat compile"
+          },
+          "edit & compile Solidity test with max deps: test/AquaStorageTest.t.sol": {
+            "command": "printf \"\\n// hardhat benchmark edit\\n\" >> test/AquaStorageTest.t.sol && npx hardhat compile"
+          },
+          "edit & compile Solidity contract: src/Aqua.sol": {
+            "command": "printf \"\\n// hardhat benchmark edit\\n\" >> src/Aqua.sol && npx hardhat compile"
+          }
+        }
       },
       "warm compile": {
         "runs": 55,
@@ -21,21 +37,6 @@
       "test solidity": {
         "runs": 83,
         "command": "npx hardhat test solidity --no-compile"
-      },
-      "edit & compile Solidity test with min deps: test/AquaLifecycle.t.sol": {
-        "runs": 3,
-        "prepare": "git checkout -- test/AquaLifecycle.t.sol && npx hardhat compile",
-        "command": "printf \"\\n// hardhat benchmark edit\\n\" >> test/AquaLifecycle.t.sol && npx hardhat compile"
-      },
-      "edit & compile Solidity test with max deps: test/AquaStorageTest.t.sol": {
-        "runs": 3,
-        "prepare": "git checkout -- test/AquaStorageTest.t.sol && npx hardhat compile",
-        "command": "printf \"\\n// hardhat benchmark edit\\n\" >> test/AquaStorageTest.t.sol && npx hardhat compile"
-      },
-      "edit & compile Solidity contract: src/Aqua.sol": {
-        "runs": 3,
-        "prepare": "git checkout -- src/Aqua.sol && npx hardhat compile",
-        "command": "printf \"\\n// hardhat benchmark edit\\n\" >> src/Aqua.sol && npx hardhat compile"
       }
     }
   }

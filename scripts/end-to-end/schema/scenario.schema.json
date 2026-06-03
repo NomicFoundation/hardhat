@@ -78,31 +78,73 @@
           "minProperties": 1,
           "propertyNames": {
             "type": "string",
-            "minLength": 1
+            "minLength": 1,
+            "pattern": "^(?!\\d+$).+"
           },
           "additionalProperties": {
             "type": "object",
-            "additionalProperties": false,
-            "required": ["runs", "command"],
-            "properties": {
-              "runs": {
-                "type": "integer",
-                "minimum": 1,
-                "description": "Number of hyperfine runs for this command"
+            "oneOf": [
+              {
+                "additionalProperties": false,
+                "required": ["runs", "command"],
+                "properties": {
+                  "runs": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "description": "Number of hyperfine runs for this command"
+                  },
+                  "prepare": {
+                    "type": "string",
+                    "minLength": 1,
+                    "description": "Optional shell snippet to run before each timed run (passed to hyperfine --prepare)"
+                  },
+                  "command": {
+                    "type": "string",
+                    "minLength": 1,
+                    "description": "Shell command to benchmark"
+                  }
+                }
               },
-              "prepare": {
-                "type": "string",
-                "minLength": 1,
-                "description": "Optional shell snippet to run before each timed run (passed to hyperfine --prepare)"
-              },
-              "command": {
-                "type": "string",
-                "minLength": 1,
-                "description": "Shell command to benchmark"
+              {
+                "additionalProperties": false,
+                "required": ["runs", "steps"],
+                "properties": {
+                  "runs": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "description": "Number of times to run the whole step sequence"
+                  },
+                  "steps": {
+                    "type": "object",
+                    "minProperties": 1,
+                    "propertyNames": {
+                      "type": "string",
+                      "minLength": 1,
+                      "pattern": "^(?!\\d+$).+"
+                    },
+                    "additionalProperties": {
+                      "type": "object",
+                      "additionalProperties": false,
+                      "required": ["command"],
+                      "properties": {
+                        "command": {
+                          "type": "string",
+                          "minLength": 1,
+                          "description": "Shell command for this step"
+                        },
+                        "measure": {
+                          "type": "boolean",
+                          "description": "Emit a benchmark entry for this step (default true)"
+                        }
+                      }
+                    },
+                    "description": "Ordered steps run as a sequence, repeated `runs` times. Each step is timed individually in-process; the key becomes the benchmark name on disk for measured steps."
+                  }
+                }
               }
-            }
+            ]
           },
-          "description": "Named commands to benchmark. Iterated in definition order; the key becomes the benchmark name on disk."
+          "description": "Named commands to benchmark. Iterated in definition order; the key becomes the benchmark name on disk. Each entry is either a single hyperfine command or an in-process step sequence."
         }
       },
       "description": "Benchmark configuration for pnpm bench and pnpm bench:regression"

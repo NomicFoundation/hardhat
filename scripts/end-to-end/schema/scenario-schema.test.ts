@@ -4,6 +4,7 @@ import {
   isBenchmarkConfig,
   isCommandConfig,
   isScenarioDefinition,
+  isStepConfig,
 } from "./scenario-schema.ts";
 
 const baseScenario = {
@@ -253,6 +254,18 @@ describe("isScenarioDefinition", () => {
     );
   });
 
+  it("rejects an integer-like command key (would break order)", () => {
+    assert.equal(
+      isScenarioDefinition({
+        ...baseScenario,
+        benchmark: {
+          commands: { "1": { runs: 1, command: "npx hardhat compile" } },
+        },
+      }),
+      false,
+    );
+  });
+
   it("rejects benchmark.skip values other than true", () => {
     assert.equal(
       isScenarioDefinition({ ...baseScenario, benchmark: { skip: false } }),
@@ -350,6 +363,107 @@ describe("isCommandConfig", () => {
         prepare: "",
         command: "npx hardhat compile",
       }),
+      false,
+    );
+  });
+
+  it("accepts a steps variant", () => {
+    assert.equal(
+      isCommandConfig({
+        runs: 3,
+        steps: {
+          reset: {
+            command: "git checkout -- f && npx hardhat clean",
+            measure: false,
+          },
+          "cold compile": { command: "npx hardhat compile" },
+        },
+      }),
+      true,
+    );
+  });
+
+  it("rejects when both command and steps are present", () => {
+    assert.equal(
+      isCommandConfig({
+        runs: 3,
+        command: "npx hardhat compile",
+        steps: { "cold compile": { command: "npx hardhat compile" } },
+      }),
+      false,
+    );
+  });
+
+  it("rejects when neither command nor steps is present", () => {
+    assert.equal(isCommandConfig({ runs: 3 }), false);
+  });
+
+  it("rejects an empty steps map", () => {
+    assert.equal(isCommandConfig({ runs: 3, steps: {} }), false);
+  });
+
+  it("rejects an empty step key", () => {
+    assert.equal(
+      isCommandConfig({
+        runs: 3,
+        steps: { "": { command: "npx hardhat compile" } },
+      }),
+      false,
+    );
+  });
+
+  it("rejects an integer-like step key (would break order)", () => {
+    assert.equal(
+      isCommandConfig({
+        runs: 3,
+        steps: { "1": { command: "npx hardhat compile" } },
+      }),
+      false,
+    );
+  });
+
+  it("rejects unknown keys alongside steps", () => {
+    assert.equal(
+      isCommandConfig({
+        runs: 3,
+        prepare: "x",
+        steps: { "cold compile": { command: "npx hardhat compile" } },
+      }),
+      false,
+    );
+  });
+});
+
+describe("isStepConfig", () => {
+  it("accepts a step with just a command (measure defaults true)", () => {
+    assert.equal(isStepConfig({ command: "npx hardhat compile" }), true);
+  });
+
+  it("accepts a step with measure false", () => {
+    assert.equal(
+      isStepConfig({ command: "npx hardhat clean", measure: false }),
+      true,
+    );
+  });
+
+  it("rejects a step missing command", () => {
+    assert.equal(isStepConfig({ measure: true }), false);
+  });
+
+  it("rejects an empty command", () => {
+    assert.equal(isStepConfig({ command: "" }), false);
+  });
+
+  it("rejects a non-boolean measure", () => {
+    assert.equal(
+      isStepConfig({ command: "npx hardhat compile", measure: "false" }),
+      false,
+    );
+  });
+
+  it("rejects unknown step keys", () => {
+    assert.equal(
+      isStepConfig({ command: "npx hardhat compile", runs: 3 }),
       false,
     );
   });
