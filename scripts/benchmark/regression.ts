@@ -446,7 +446,7 @@ function runStepsPhase(
       try {
         execSync(step.command, {
           cwd: workingDir,
-          stdio: "inherit",
+          stdio: "ignore",
           env: { ...process.env, ...env },
         });
       } catch (error) {
