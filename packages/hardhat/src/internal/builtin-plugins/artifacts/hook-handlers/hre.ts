@@ -4,6 +4,11 @@ import type {
   StringWithArtifactContractNamesAutocompletion,
 } from "../../../../types/artifacts.js";
 import type { HardhatRuntimeEnvironmentHooks } from "../../../../types/hooks.js";
+import type { ArtifactManagerImplementation as ArtifactManagerImplementationT } from "../artifact-manager.js";
+
+let ArtifactManagerImplementation:
+  | typeof ArtifactManagerImplementationT
+  | undefined;
 
 class LazyArtifactManager implements ArtifactManager {
   readonly #artifactsPath: string;
@@ -85,10 +90,13 @@ class LazyArtifactManager implements ArtifactManager {
   }
 
   async #getArtifactManager(): Promise<ArtifactManager> {
-    if (this.#artifactManager === undefined) {
-      const { ArtifactManagerImplementation } = await import(
+    if (ArtifactManagerImplementation === undefined) {
+      ({ ArtifactManagerImplementation } = await import(
         "../artifact-manager.js"
-      );
+      ));
+    }
+
+    if (this.#artifactManager === undefined) {
       this.#artifactManager = new ArtifactManagerImplementation(
         this.#artifactsPath,
       );
