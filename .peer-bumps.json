@@ -101,11 +101,6 @@
       "package": "@nomicfoundation/hardhat-viem-assertions",
       "peer": "hardhat",
       "reason": "It uses `definePlugin` from `hardhat/plugins`"
-    },
-    {
-      "package": "@nomicfoundation/hardhat-node-test-reporter",
-      "peer": "hardhat",
-      "reason": "It now depends on hardhat including .solidityStack in the Solidity stack traces, while it can still handle older versions"
     }
   ]
 }
