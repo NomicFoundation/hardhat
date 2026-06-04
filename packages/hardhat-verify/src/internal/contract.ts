@@ -1,6 +1,6 @@
 import type { BuildInfoAndOutput } from "./artifacts.js";
 import type { Bytecode } from "./bytecode.js";
-import type { ArtifactManager } from "hardhat/types/artifacts";
+import type { Artifact, ArtifactManager } from "hardhat/types/artifacts";
 import type {
   CompilerInput,
   CompilerOutputContract,
@@ -110,10 +110,18 @@ export class ContractInformationResolver {
       );
     }
 
-    const isSolcVersionCompatible = this.#compatibleSolcVersions.includes(
-      buildInfoAndOutput.buildInfo.solcVersion,
-    );
-    if (!isSolcVersionCompatible) {
+    const artifact = await this.#artifacts.readArtifact(contract);
+    const solcVersion = await this.#resolveSolcVersion(artifact);
+    if (solcVersion === undefined) {
+      throw new HardhatError(
+        HardhatError.ERRORS.HARDHAT_VERIFY.GENERAL.BUILD_INFO_NOT_FOUND,
+        {
+          contract,
+        },
+      );
+    }
+
+    if (!this.#compatibleSolcVersions.includes(solcVersion)) {
       const formattedSolcVersion = formatInferredSolcVersion(
         deployedBytecode.solcVersion,
       );
@@ -125,7 +133,7 @@ export class ContractInformationResolver {
         HardhatError.ERRORS.HARDHAT_VERIFY.GENERAL.BUILD_INFO_SOLC_VERSION_MISMATCH,
         {
           contract,
-          buildInfoSolcVersion: buildInfoAndOutput.buildInfo.solcVersion,
+          buildInfoSolcVersion: solcVersion,
           networkName: this.#networkName,
           versionDetails,
         },
@@ -134,6 +142,7 @@ export class ContractInformationResolver {
 
     const contractInformation = this.#matchAndBuild(
       contract,
+      artifact,
       buildInfoAndOutput,
       deployedBytecode,
     );
@@ -174,15 +183,19 @@ export class ContractInformationResolver {
         continue;
       }
 
-      const isSolcVersionCompatible = this.#compatibleSolcVersions.includes(
-        buildInfoAndOutput.buildInfo.solcVersion,
-      );
-      if (!isSolcVersionCompatible) {
+      const artifact = await this.#artifacts.readArtifact(contract);
+      const solcVersion = await this.#resolveSolcVersion(artifact);
+      if (solcVersion === undefined) {
+        continue;
+      }
+
+      if (!this.#compatibleSolcVersions.includes(solcVersion)) {
         continue;
       }
 
       const contractInformation = this.#matchAndBuild(
         contract,
+        artifact,
         buildInfoAndOutput,
         deployedBytecode,
       );
@@ -210,11 +223,20 @@ export class ContractInformationResolver {
     return matches[0];
   }
 
+  async #resolveSolcVersion(artifact: Artifact): Promise<string | undefined> {
+    const parsed = /^solc-(\d+)_(\d+)_(\d+)-/
+      .exec(artifact.buildInfoId)
+      ?.slice(1, 4)
+      .join(".");
+    return parsed;
+  }
+
   /**
    * Compares on-chain bytecode against the compiled deployedBytecode in the
    * build output, and assembles a ContractInformation object if they match.
    *
    * @param contract The fully qualified contract name (e.g. "src/A.sol:MyA").
+   * @param artifact The Hardhat artifact for the contract.
    * @param buildInfoAndOutput An object containing the compiler’s BuildInfo
    * and its Output.
    * @param deployedBytecode The on-chain bytecode wrapped in a Bytecode instance.
@@ -225,11 +247,13 @@ export class ContractInformationResolver {
    */
   #matchAndBuild(
     contract: string,
+    artifact: Artifact,
     { buildInfo, buildInfoOutput }: BuildInfoAndOutput,
     deployedBytecode: Bytecode,
   ): ContractInformation | null {
     const { sourceName, contractName } = parseFullyQualifiedName(contract);
-    const inputSourceName = buildInfo.userSourceNameMap[sourceName];
+    const inputSourceName =
+      artifact.inputSourceName ?? buildInfo.userSourceNameMap[sourceName];
 
     const compilerOutputContract =
       buildInfoOutput.output.contracts?.[inputSourceName]?.[contractName];
