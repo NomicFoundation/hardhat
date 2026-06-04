@@ -492,6 +492,7 @@ function toEntry(
       min: result.min,
       max: result.max,
       median: result.median,
+      mean: result.mean,
     }),
   };
 }
