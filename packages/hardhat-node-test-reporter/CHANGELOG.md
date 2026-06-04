@@ -1,5 +1,11 @@
 # @nomicfoundation/hardhat-node-test-reporter
 
+## 3.1.0
+
+### Minor Changes
+
+- [#8345](https://github.com/NomicFoundation/hardhat/pull/8345) [`9d5b96c`](https://github.com/NomicFoundation/hardhat/commit/9d5b96c59b4b84db549fff18144e6d0c8b129901) Thanks [@alcuadrado](https://github.com/alcuadrado)! - Add a special case to the error formatting when a `SolidityError` is found, so that Solidity stack traces are more prominent. Thanks, @gultekinmakif!
+
 ## 3.0.7
 
 ### Patch Changes

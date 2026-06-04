@@ -1,5 +1,13 @@
 # @nomicfoundation/hardhat-errors
 
+## 3.0.15
+
+### Patch Changes
+
+- [#8349](https://github.com/NomicFoundation/hardhat/pull/8349) [`af31a41`](https://github.com/NomicFoundation/hardhat/commit/af31a415fddb7531fea240f662bd47e33e33690b) Thanks [@schaable](https://github.com/schaable)! - Improved `hardhat verify` to fail faster when the block explorer reports that the constructor arguments are incorrect.
+
+  Thanks to @gultekinmakif for the original idea and implementation in [#8333](https://github.com/NomicFoundation/hardhat/issues/8333).
+
 ## 3.0.14
 
 ### Patch Changes

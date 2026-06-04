@@ -1,6 +1,6 @@
 {
   "name": "@nomicfoundation/hardhat-network-helpers",
-  "version": "3.0.9",
+  "version": "3.0.10",
   "description": "Hardhat Network Helpers is a plugin that provides a set of utility functions to interact with locally simulated networks.",
   "homepage": "https://github.com/NomicFoundation/hardhat/tree/main/packages/hardhat-network-helpers",
   "repository": {
@@ -45,7 +45,7 @@
     "README.md"
   ],
   "devDependencies": {
-    "@nomicfoundation/hardhat-node-test-reporter": "workspace:^3.0.7",
+    "@nomicfoundation/hardhat-node-test-reporter": "workspace:^3.1.0",
     "@nomicfoundation/hardhat-test-utils": "workspace:^",
     "@types/node": "^22.0.0",
     "c8": "^9.1.0",
@@ -55,13 +55,13 @@
     "rimraf": "^5.0.5",
     "tsx": "^4.19.3",
     "typescript": "~6.0.3",
-    "hardhat": "workspace:^3.4.0"
+    "hardhat": "workspace:^3.8.0"
   },
   "dependencies": {
-    "@nomicfoundation/hardhat-errors": "workspace:^3.0.13",
+    "@nomicfoundation/hardhat-errors": "workspace:^3.0.15",
     "@nomicfoundation/hardhat-utils": "workspace:^4.1.2"
   },
   "peerDependencies": {
-    "hardhat": "workspace:^3.4.0"
+    "hardhat": "workspace:^3.8.0"
   }
 }
