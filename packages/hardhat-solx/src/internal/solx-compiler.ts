@@ -7,7 +7,7 @@ import type {
 import { deepClone } from "@nomicfoundation/hardhat-utils/lang";
 import { spawnCompile as defaultSpawnCompile } from "hardhat/internal/solidity";
 
-/** solx 0.1.4+ source-mapping selectors (DWARF in `debugInfo`). */
+// Selectors for enabling DWARF `debugInfo` output
 export const SOLX_DEBUG_INFO_SELECTORS: readonly string[] = [
   "evm.bytecode.debugInfo",
   "evm.deployedBytecode.debugInfo",
@@ -38,8 +38,8 @@ export class SolxCompiler implements Compiler {
   public async compile(input: CompilerInput): Promise<CompilerOutput> {
     const args = ["--standard-json", "--no-import-callback"];
 
-    // outputSelection already includes solx selectors (baked in by resolveUserConfig).
-    // Merge extra solx settings on top.
+    // Merge default solx settings with user settings. User settings take
+    // precedence, allowing overrides of viaIR, LLVMOptimization, etc.
     const modifiedInput: CompilerInput = {
       ...input,
       settings: {
