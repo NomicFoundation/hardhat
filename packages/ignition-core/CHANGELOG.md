@@ -1,5 +1,14 @@
 # Changelog
 
+## 3.1.7
+
+### Patch Changes
+
+- [#8355](https://github.com/NomicFoundation/hardhat/pull/8355) [`40bd474`](https://github.com/NomicFoundation/hardhat/commit/40bd474c9d67df423ede5ce3ac8debed3fe71e51) Thanks [@kanej](https://github.com/kanej)! - Fixed `m.readEventArgument` by tolerating indexed dynamic siblings when decoding event args ([#8338](https://github.com/NomicFoundation/hardhat/issues/8338))
+
+- Updated dependencies:
+  - @nomicfoundation/hardhat-errors@3.0.15
+
 ## 3.1.6
 
 ### Patch Changes

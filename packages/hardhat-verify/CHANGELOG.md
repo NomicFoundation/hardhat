@@ -1,5 +1,19 @@
 # @nomicfoundation/hardhat-verify
 
+## 3.0.19
+
+### Patch Changes
+
+- [#8339](https://github.com/NomicFoundation/hardhat/pull/8339) [`00720e8`](https://github.com/NomicFoundation/hardhat/commit/00720e848ced4601deb300488beda85491dc7733) Thanks [@alcuadrado](https://github.com/alcuadrado)! - The plugin now uses `definePlugin` from `hardhat/plugins` in its `index.ts`, so it participates in Hardhat's new "imported but unused plugin" warning when omitted from a project's `plugins` array.
+
+- [#8349](https://github.com/NomicFoundation/hardhat/pull/8349) [`af31a41`](https://github.com/NomicFoundation/hardhat/commit/af31a415fddb7531fea240f662bd47e33e33690b) Thanks [@schaable](https://github.com/schaable)! - Improved `hardhat verify` to fail faster when the block explorer reports that the constructor arguments are incorrect.
+
+  Thanks to @gultekinmakif for the original idea and implementation in [#8333](https://github.com/NomicFoundation/hardhat/issues/8333).
+
+- Updated dependencies:
+  - hardhat@3.8.0
+  - @nomicfoundation/hardhat-errors@3.0.15
+
 ## 3.0.18
 
 ### Patch Changes

@@ -1,6 +1,6 @@
 {
   "name": "@nomicfoundation/hardhat-errors",
-  "version": "3.0.14",
+  "version": "3.0.15",
   "description": "The different errors that Hardhat can throw",
   "homepage": "https://github.com/NomicFoundation/hardhat/tree/main/packages/hardhat-errors",
   "repository": {
@@ -44,7 +44,7 @@
     "README.md"
   ],
   "devDependencies": {
-    "@nomicfoundation/hardhat-node-test-reporter": "workspace:^3.0.7",
+    "@nomicfoundation/hardhat-node-test-reporter": "workspace:^3.1.0",
     "@types/node": "^22.0.0",
     "c8": "^9.1.0",
     "eslint": "9.25.1",
