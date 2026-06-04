@@ -110,7 +110,6 @@ export class ContractInformationResolver {
       );
     }
 
-
     const artifact = await this.#artifacts.readArtifact(contract);
     const solcVersion = await this.#resolveSolcVersion(artifact, contract);
     if (solcVersion === undefined) {
@@ -224,13 +223,20 @@ export class ContractInformationResolver {
     return matches[0];
   }
 
+  #parseSolcVersion(buildInfoId: string): string | undefined {
+    const match = /^solc-(\d+)_(\d+)_(\d+)-/.exec(buildInfoId);
+    return `${match[1]}.${match[2]}.${match[3]}`;
+  }
+
   async #resolveSolcVersion(
     artifact: Artifact,
     contract: string,
   ): Promise<string | undefined> {
     if (artifact.buildInfoId !== undefined) {
-      const parsed = /^solc-(\d+)_(\d+)_(\d+)-/.exec(artifact.buildInfoId)?.slice(1, 4).join(".");
+      const parsed = this.#parseSolcVersion(artifact.buildInfoId);
+      if (parsed !== undefined) {
         return parsed;
+      }
     }
 
     // Fallback: the artifact lacks a parseable buildInfoId,
