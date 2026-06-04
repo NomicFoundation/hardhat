@@ -110,8 +110,9 @@ export class ContractInformationResolver {
       );
     }
 
+
     const artifact = await this.#artifacts.readArtifact(contract);
-    const solcVersion = await this.#resolveSolcVersion(artifact);
+    const solcVersion = await this.#resolveSolcVersion(artifact, contract);
     if (solcVersion === undefined) {
       throw new HardhatError(
         HardhatError.ERRORS.HARDHAT_VERIFY.GENERAL.BUILD_INFO_NOT_FOUND,
@@ -184,7 +185,7 @@ export class ContractInformationResolver {
       }
 
       const artifact = await this.#artifacts.readArtifact(contract);
-      const solcVersion = await this.#resolveSolcVersion(artifact);
+      const solcVersion = await this.#resolveSolcVersion(artifact, contract);
       if (solcVersion === undefined) {
         continue;
       }
@@ -223,12 +224,22 @@ export class ContractInformationResolver {
     return matches[0];
   }
 
-  async #resolveSolcVersion(artifact: Artifact): Promise<string | undefined> {
-    const parsed = /^solc-(\d+)_(\d+)_(\d+)-/
-      .exec(artifact.buildInfoId)
-      ?.slice(1, 4)
-      .join(".");
-    return parsed;
+  async #resolveSolcVersion(
+    artifact: Artifact,
+    contract: string,
+  ): Promise<string | undefined> {
+    if (artifact.buildInfoId !== undefined) {
+      const parsed = /^solc-(\d+)_(\d+)_(\d+)-/.exec(artifact.buildInfoId)?.slice(1, 4).join(".");
+        return parsed;
+    }
+
+    // Fallback: the artifact lacks a parseable buildInfoId,
+    // read the buildInfo from disk for this single candidate.
+    const buildInfoAndOutput = await getBuildInfoAndOutput(
+      this.#artifacts,
+      contract,
+    );
+    return buildInfoAndOutput?.buildInfo.solcVersion;
   }
 
   /**
