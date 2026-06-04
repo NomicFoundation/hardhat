@@ -1309,6 +1309,59 @@ describe("solidity plugin config resolution", () => {
     });
   });
 
+  describe("per-compiler path resolution", () => {
+    // A custom `path` points at a user-provided local solc binary. The
+    // auto-generated `production` profile is cloned from `default`, and it must
+    // preserve `path` — otherwise the build attempts to download that compiler,
+    // which is exactly the bug from
+    // https://github.com/NomicFoundation/hardhat/issues/8366.
+    it("should preserve path in both default and production profiles for a single-version config", async () => {
+      const resolvedConfig = await resolveSolidityUserConfig(
+        { solidity: { version: "0.8.28", path: "/path/to/solc" } },
+        otherResolvedConfig,
+      );
+
+      assert.equal(
+        resolvedConfig.solidity.profiles.default.compilers[0].path,
+        "/path/to/solc",
+      );
+      assert.equal(
+        resolvedConfig.solidity.profiles.production.compilers[0].path,
+        "/path/to/solc",
+      );
+    });
+
+    it("should preserve path in overrides for both default and production profiles", async () => {
+      const resolvedConfig = await resolveSolidityUserConfig(
+        {
+          solidity: {
+            compilers: [{ version: "0.8.28" }],
+            overrides: {
+              "contracts/Special.sol": {
+                version: "0.8.31",
+                path: "/path/to/solc-0.8.31",
+              },
+            },
+          },
+        },
+        otherResolvedConfig,
+      );
+
+      assert.equal(
+        resolvedConfig.solidity.profiles.default.overrides[
+          "contracts/Special.sol"
+        ].path,
+        "/path/to/solc-0.8.31",
+      );
+      assert.equal(
+        resolvedConfig.solidity.profiles.production.overrides[
+          "contracts/Special.sol"
+        ].path,
+        "/path/to/solc-0.8.31",
+      );
+    });
+  });
+
   describe(
     "ARM64 Linux per-compiler preferWasm defaults",
     {

@@ -96,6 +96,17 @@ export function isSolcSolidityCompilerConfig(
   return config.type === undefined || config.type === "solc";
 }
 
+/**
+ * Returns true if the given compiler config defines a custom path to a solc
+ * compiler (native binary or WASM bundle). Such a compiler is user-provided and
+ * does not need to be downloaded.
+ */
+export function isSolcSolidityCompilerLocalBinary(
+  config: SolidityCompilerConfig,
+): boolean {
+  return isSolcSolidityCompilerConfig(config) && config.path !== undefined;
+}
+
 interface CompilationResult {
   compilationJob: CompilationJob;
   compilerOutput: CompilerOutput;

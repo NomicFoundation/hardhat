@@ -613,6 +613,7 @@ function copyFromDefault(
     return {
       version: defaultSolidityConfig.version,
       type: defaultSolidityConfig.type,
+      path: defaultSolidityConfig.path,
     };
   }
 
@@ -620,12 +621,17 @@ function copyFromDefault(
     compilers: defaultSolidityConfig.compilers.map((c) => ({
       version: c.version,
       type: c.type,
+      path: c.path,
     })),
     overrides: Object.fromEntries(
       Object.entries(defaultSolidityConfig.overrides ?? {}).map(
         ([userSourceName, override]) => [
           userSourceName,
-          { version: override.version, type: override.type },
+          {
+            version: override.version,
+            type: override.type,
+            path: override.path,
+          },
         ],
       ),
     ),
