@@ -223,8 +223,23 @@ export class ContractInformationResolver {
     return matches[0];
   }
 
-  #parseSolcVersion(buildInfoId: string): string | undefined {
+  /**
+   * Parses the solc version out of a Hardhat build info id.
+   *
+   * The id format is documented at
+   * `packages/hardhat/src/types/solidity/solidity-artifacts.ts`:
+   *   `solc-<major>_<minor>_<patch>-<job-hash>` or
+   *   `solc-<major>_<minor>_<patch>-<compiler-type>-<job-hash>`.
+   *
+   * Returns the dotted version string (e.g. `"0.8.28"`), or `undefined`.
+   */
+  #parseSolcVersion(
+    buildInfoId: string,
+  ): string | undefined {
     const match = /^solc-(\d+)_(\d+)_(\d+)-/.exec(buildInfoId);
+    if (match === null) {
+      return undefined;
+    }
     return `${match[1]}.${match[2]}.${match[3]}`;
   }
 
