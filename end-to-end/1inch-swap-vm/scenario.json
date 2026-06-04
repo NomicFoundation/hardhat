@@ -9,15 +9,17 @@
   "defaultCommand": "npx hardhat test solidity",
   "benchmark": {
     "commands": {
-      "compile sequence": {
+      "cold compile": {
+        "runs": 2,
+        "prepare": "npx hardhat clean",
+        "command": "npx hardhat compile"
+      },
+      "edit & compile sequence": {
         "runs": 2,
         "steps": {
-          "reset files & cache": {
-            "command": "git checkout -- test/ProtocolFeeProviderMock.t.sol test/TransferModesCombinations.t.sol src/SwapVM.sol && npx hardhat clean",
+          "reset files": {
+            "command": "git checkout -- test/ProtocolFeeProviderMock.t.sol test/TransferModesCombinations.t.sol src/SwapVM.sol",
             "measure": false
-          },
-          "cold compile": {
-            "command": "npx hardhat compile"
           },
           "edit & compile Solidity test with min deps: test/ProtocolFeeProviderMock.t.sol": {
             "command": "printf \"\\n// hardhat benchmark edit\\n\" >> test/ProtocolFeeProviderMock.t.sol && npx hardhat compile"
@@ -31,11 +33,11 @@
         }
       },
       "warm compile": {
-        "runs": 5,
+        "runs": 2,
         "command": "npx hardhat compile"
       },
       "test solidity": {
-        "runs": 5,
+        "runs": 4,
         "command": "npx hardhat test solidity --no-compile"
       }
     }

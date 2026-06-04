@@ -9,15 +9,17 @@
   "defaultCommand": "npx hardhat test solidity",
   "benchmark": {
     "commands": {
-      "compile sequence": {
+      "cold compile": {
+        "runs": 2,
+        "prepare": "npx hardhat clean",
+        "command": "npx hardhat compile"
+      },
+      "edit & compile sequence": {
         "runs": 2,
         "steps": {
-          "reset files & cache": {
-            "command": "git checkout -- test/libraries/BitMath.t.sol test/PoolManager.t.sol src/types/Currency.sol && npx hardhat clean",
+          "reset files": {
+            "command": "git checkout -- test/libraries/BitMath.t.sol test/PoolManager.t.sol src/types/Currency.sol",
             "measure": false
-          },
-          "cold compile": {
-            "command": "npx hardhat compile"
           },
           "edit & compile Solidity test with min deps: test/libraries/BitMath.t.sol": {
             "command": "printf \"\\n// hardhat benchmark edit\\n\" >> test/libraries/BitMath.t.sol && npx hardhat compile"
@@ -31,7 +33,7 @@
         }
       },
       "warm compile": {
-        "runs": 5,
+        "runs": 2,
         "command": "npx hardhat compile"
       },
       "test solidity": {

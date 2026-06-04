@@ -9,15 +9,17 @@
   "defaultCommand": "npx hardhat test solidity",
   "benchmark": {
     "commands": {
-      "compile sequence": {
-        "runs": 3,
+      "cold compile": {
+        "runs": 2,
+        "prepare": "npx hardhat clean",
+        "command": "npx hardhat compile"
+      },
+      "edit & compile sequence": {
+        "runs": 2,
         "steps": {
-          "reset files & cache": {
-            "command": "git checkout -- test/AquaLifecycle.t.sol test/AquaStorageTest.t.sol src/Aqua.sol && npx hardhat clean",
+          "reset files": {
+            "command": "git checkout -- test/AquaLifecycle.t.sol test/AquaStorageTest.t.sol src/Aqua.sol",
             "measure": false
-          },
-          "cold compile": {
-            "command": "npx hardhat compile"
           },
           "edit & compile Solidity test with min deps: test/AquaLifecycle.t.sol": {
             "command": "printf \"\\n// hardhat benchmark edit\\n\" >> test/AquaLifecycle.t.sol && npx hardhat compile"
@@ -31,11 +33,11 @@
         }
       },
       "warm compile": {
-        "runs": 9,
+        "runs": 2,
         "command": "npx hardhat compile"
       },
       "test solidity": {
-        "runs": 11,
+        "runs": 2,
         "command": "npx hardhat test solidity --no-compile"
       }
     }
