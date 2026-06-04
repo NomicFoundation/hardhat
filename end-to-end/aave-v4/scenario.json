@@ -6,6 +6,7 @@
   "commit": "f729aeff7cc61d576e8f89e818e05265ec9f65e9",
   "packageManager": "yarn",
   "submodules": true,
+  "preinstall": "./preinstall.sh",
   "defaultCommand": "npx hardhat test solidity",
   "benchmark": {
     "commands": {
