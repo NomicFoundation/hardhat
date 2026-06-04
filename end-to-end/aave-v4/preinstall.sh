@@ -1,5 +1,4 @@
 #!/usr/bin/env bash
-set -euo pipefail
 
 # Reduce the Solidity-test fuzz workload for benchmarking.
 #
@@ -20,17 +19,31 @@ set -euo pipefail
 # Tune FUZZ_RUNS to trade benchmark cost against the fuzz volume exercised.
 FUZZ_RUNS=100
 
-CONFIG="hardhat.config.ts"
+# Use node for the file transform to avoid BSD/GNU sed portability issues
+# (matches the convention used by the other scenarios' preinstall scripts).
+node -e "
+const fs = require('fs');
+const path = 'hardhat.config.ts';
+const fuzzRuns = ${FUZZ_RUNS};
 
-# `runs: 1000,` is the test.solidity.fuzz iteration count and the only match in
-# the config — the optimizer `runs` values are far larger (e.g. 444_444_444_444),
-# so this targeted replacement never touches them. Assert the marker is present
-# so a future pinned-commit bump can't silently mismeasure against an unexpected
-# fuzz workload. Uses GNU sed (the benchmark runs on a Linux runner).
-if ! grep -q 'runs: 1000,' "$CONFIG"; then
-  echo "aave-v4 preinstall: expected 'runs: 1000,' (fuzz.runs) not found in $CONFIG — the pinned commit may have changed. Refusing to run the benchmark against an unexpected fuzz workload." >&2
-  exit 1
-fi
+let config = fs.readFileSync(path, 'utf8');
 
-sed -i "s/runs: 1000,/runs: ${FUZZ_RUNS},/" "$CONFIG"
-echo "aave-v4 preinstall: reduced Solidity test fuzz.runs 1000 -> ${FUZZ_RUNS} for benchmarking"
+// Scope the replacement to the test.solidity.fuzz block so we never touch
+// the (much larger) optimizer 'runs' values elsewhere in the config.
+const re = /(\bfuzz:\s*\{[^}]*?\bruns:\s*)1000\b/;
+
+if (!re.test(config)) {
+  console.error(
+    'aave-v4 preinstall: expected \`fuzz: { runs: 1000 }\` not found in ' +
+      'hardhat.config.ts — the pinned commit may have changed. Refusing to ' +
+      'run the benchmark against an unexpected fuzz workload.',
+  );
+  process.exit(1);
+}
+
+config = config.replace(re, \`\$1\${fuzzRuns}\`);
+fs.writeFileSync(path, config);
+console.log(
+  \`aave-v4 preinstall: reduced Solidity test fuzz.runs 1000 -> \${fuzzRuns} for benchmarking\`,
+);
+"
