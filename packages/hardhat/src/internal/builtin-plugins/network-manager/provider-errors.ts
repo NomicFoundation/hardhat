@@ -15,13 +15,7 @@ const IS_PROVIDER_ERROR_PROPERTY_NAME = "_isProviderError";
 // -32603	Internal error	      Internal JSON-RPC error	            standard
 // -32700	Parse error	          Invalid JSON	                      standard
 //
-// -32003	Transaction rejected	Transaction creation failed	        non-standard
-// -32004	Method not supported	Method is not implemented	          non-standard
 // -32005	Limit exceeded	      Request exceeds defined limit	      non-standard
-//
-// -32999 Invalid response      The server returned a JSON-RPC      hardhat-specific
-//                              response, but the result is not
-//                              in the expected format
 export class ProviderError extends CustomError implements ProviderRpcError {
   public code: number;
   public data?: unknown;
@@ -76,7 +70,6 @@ export class InvalidRequestError extends ProviderError {
   }
 }
 
-// TODO: not used, should we remove it?
 export class MethodNotFoundError extends ProviderError {
   public static readonly CODE = -32601;
 
@@ -98,33 +91,6 @@ export class InternalError extends ProviderError {
 
   constructor(message: string = "Internal error", parent?: Error) {
     super(message, InternalError.CODE, parent);
-  }
-}
-
-// TODO: not used, should we remove it?
-export class TransactionExecutionError extends ProviderError {
-  public static readonly CODE = -32003;
-
-  constructor(message: string = "Transaction rejected", parent?: Error) {
-    super(message, TransactionExecutionError.CODE, parent);
-  }
-}
-
-// TODO: not used, should we remove it?
-export class MethodNotSupportedError extends ProviderError {
-  public static readonly CODE = -32004;
-
-  constructor(message: string = "Method not supported", parent?: Error) {
-    super(message, MethodNotSupportedError.CODE, parent);
-  }
-}
-
-// TODO: not used, should we remove it?
-export class InvalidResponseError extends ProviderError {
-  public static readonly CODE = -32999;
-
-  constructor(message: string = "Invalid response", parent?: Error) {
-    super(message, InvalidResponseError.CODE, parent);
   }
 }
 
