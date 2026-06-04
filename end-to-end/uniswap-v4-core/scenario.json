@@ -10,7 +10,7 @@
   "benchmark": {
     "commands": {
       "compile sequence": {
-        "runs": 3,
+        "runs": 2,
         "steps": {
           "reset files & cache": {
             "command": "git checkout -- test/libraries/BitMath.t.sol test/PoolManager.t.sol src/types/Currency.sol && npx hardhat clean",
@@ -31,11 +31,11 @@
         }
       },
       "warm compile": {
-        "runs": 15,
+        "runs": 5,
         "command": "npx hardhat compile"
       },
       "test solidity": {
-        "runs": 7,
+        "runs": 9,
         "command": "npx hardhat test solidity --no-compile"
       }
     }

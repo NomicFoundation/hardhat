@@ -13,7 +13,7 @@
   "benchmark": {
     "commands": {
       "compile sequence": {
-        "runs": 3,
+        "runs": 2,
         "steps": {
           "reset files & cache": {
             "command": "git checkout -- test/unit/scripts/launch/TimeConstraints.t.sol test/scenario/mainnet-launch.t.sol contracts/types/Timestamp.sol && npx hardhat clean",
@@ -34,11 +34,11 @@
         }
       },
       "warm compile": {
-        "runs": 9,
+        "runs": 5,
         "command": "npx hardhat compile"
       },
       "test solidity": {
-        "runs": 3,
+        "runs": 7,
         "command": "npx hardhat test solidity --no-compile --grep=\"^(test_|testFuzz_)\""
       }
     }

@@ -13,7 +13,7 @@
   "benchmark": {
     "commands": {
       "compile sequence": {
-        "runs": 3,
+        "runs": 2,
         "steps": {
           "reset files & cache": {
             "command": "git checkout -- test/lib/CosignerLib.t.sol test/reactors/V3DutchOrderReactor.t.sol src/base/ReactorStructs.sol && npx hardhat clean",
@@ -34,11 +34,11 @@
         }
       },
       "warm compile": {
-        "runs": 15,
+        "runs": 5,
         "command": "npx hardhat compile"
       },
       "test solidity": {
-        "runs": 3,
+        "runs": 2,
         "command": "npx hardhat test solidity --no-compile"
       }
     }

@@ -10,7 +10,7 @@
   "benchmark": {
     "commands": {
       "compile sequence": {
-        "runs": 3,
+        "runs": 2,
         "steps": {
           "reset files & cache": {
             "command": "git checkout -- test/ProtocolFeeProviderMock.t.sol test/TransferModesCombinations.t.sol src/SwapVM.sol && npx hardhat clean",
@@ -35,7 +35,7 @@
         "command": "npx hardhat compile"
       },
       "test solidity": {
-        "runs": 15,
+        "runs": 5,
         "command": "npx hardhat test solidity --no-compile"
       }
     }
