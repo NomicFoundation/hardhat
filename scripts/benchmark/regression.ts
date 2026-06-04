@@ -1,5 +1,6 @@
 // cSpell:ignore cacache <-- NPM's content-addressable cache
 import { execSync } from "node:child_process";
+import { performance } from "node:perf_hooks";
 import { mkdirSync, readFileSync, readdirSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import path from "node:path";
