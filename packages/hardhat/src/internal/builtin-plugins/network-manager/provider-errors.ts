@@ -15,13 +15,7 @@ const IS_PROVIDER_ERROR_PROPERTY_NAME = "_isProviderError";
 // -32603	Internal error	      Internal JSON-RPC error	            standard
 // -32700	Parse error	          Invalid JSON	                      standard
 //
-// -32003	Transaction rejected	Transaction creation failed	        non-standard
-// -32004	Method not supported	Method is not implemented	          non-standard
 // -32005	Limit exceeded	      Request exceeds defined limit	      non-standard
-//
-// -32999 Invalid response      The server returned a JSON-RPC      hardhat-specific
-//                              response, but the result is not
-//                              in the expected format
 export class ProviderError extends CustomError implements ProviderRpcError {
   public code: number;
   public data?: unknown;
