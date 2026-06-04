@@ -76,11 +76,11 @@ Conclusion: a global statistic swap trades the expensive aave benchmark for the 
 
 ### Implemented: cut aave-v4's benchmark fuzz workload (the cost driver)
 
-`end-to-end/aave-v4/preinstall.sh` reduces the Solidity-test fuzz iterations (`fuzz.runs` 1000 → 100) on the cloned project before the benchmark runs, wired in via `"preinstall"` in `end-to-end/aave-v4/scenario.json`.
+`end-to-end/aave-v4/preinstall.sh` reduces the Solidity-test fuzz iterations (`fuzz.runs` 1000 → 100) on the cloned project before the benchmark runs, wired in via `"preinstall"` in `end-to-end/aave-v4/scenario.json`. The benchmark runs via `npx hardhat test solidity` (which reads only `hardhat.config.ts`), but the change is mirrored into `foundry.toml`'s `[profile.default.fuzz]` so a direct `forge test` uses the same iteration count and the two configs stay consistent.
 
 Rationale: the seed is pinned, so fewer iterations exercise the same code deterministically while slashing the per-run time. Even if the CV is unchanged, the affordability math is transformed — the ~57–85 runs a 5% limit needs cost minutes instead of >1 hour once each run drops from ~82 s to a fraction of that. This is a **benchmark-only workload reduction**: it produces a one-time step in this entry's stored series (the series continues — github-action-benchmark keys on the benchmark _name_, which is unchanged). `FUZZ_RUNS` in the script is the tuning knob.
 
-_Verification:_ the patch was checked against the pinned commit's real `hardhat.config.ts` (it edits exactly the `fuzz.runs` value and nothing else, and fails loudly if the expected marker is gone). The end-to-end CV/runtime effect must be confirmed by a CI run on a self-hosted runner — it cannot be measured in a sandbox without the network fork, Verdaccio, and the external clone.
+_Verification:_ the patch was checked against the pinned commit's real `hardhat.config.ts` and `foundry.toml` (it edits exactly the fuzz `runs` value in each and nothing else — the word boundary keeps it off `runs = 10000`/`5000` and the `optimizer_runs` values — and fails loudly if either expected marker is gone). The end-to-end CV/runtime effect must be confirmed by a CI run on a self-hosted runner — it cannot be measured in a sandbox without the network fork, Verdaccio, and the external clone.
 
 ### Recommended (needs a CI run to verify)
 
