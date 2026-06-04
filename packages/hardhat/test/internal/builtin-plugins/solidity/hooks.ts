@@ -33,6 +33,7 @@ import { beforeEach, describe, it } from "node:test";
 import { useFixtureProject } from "@nomicfoundation/hardhat-test-utils";
 
 import { createHardhatRuntimeEnvironment } from "../../../../src/hre.js";
+import { downloadSolcCompilersHandler } from "../../../../src/internal/builtin-plugins/solidity/solidity-hooks.js";
 import { FileBuildResultType } from "../../../../src/types/solidity.js";
 
 /**
@@ -520,6 +521,47 @@ describe("solidity - hooks", () => {
         quiet: true,
       });
     });
+
+    // A compiler config with a `path` is user-provided and resolved directly
+    // from disk during compilation, so it must not be downloaded. The version
+    // here is a full long-version string that does not exist in the binaries
+    // list — without the path-skip it would be downloaded and throw
+    // DOWNLOAD_FAILED. The handler must resolve without throwing or hitting
+    // the network. See https://github.com/NomicFoundation/hardhat/issues/8366.
+    it("should skip download for solc configs with a custom path", async () => {
+      await downloadSolcCompilersHandler(
+        [
+          {
+            version: "0.8.30+commit.73712a01.Linux.g++",
+            path: "/some/local/path/to/solc",
+            settings: {},
+          },
+        ],
+        true,
+      );
+    });
+
+    it(
+      "should download path-less versions while skipping path-backed ones",
+      {
+        skip: process.env.HARDHAT_DISABLE_SLOW_TESTS === "true",
+      },
+      async () => {
+        // Mixed configs: the path-backed config (undownloadable version) is
+        // skipped, while the normal solc config still resolves from the cache.
+        await downloadSolcCompilersHandler(
+          [
+            {
+              version: "0.8.30+commit.73712a01.Linux.g++",
+              path: "/some/local/path/to/solc",
+              settings: {},
+            },
+            { version: "0.8.23", settings: {} },
+          ],
+          true,
+        );
+      },
+    );
   });
 
   describe("getCompiler", () => {

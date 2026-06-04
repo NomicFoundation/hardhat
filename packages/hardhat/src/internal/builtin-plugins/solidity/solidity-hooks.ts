@@ -1,7 +1,10 @@
 import type { SolidityCompilerConfig } from "../../../types/config.js";
 import type { Compiler } from "../../../types/solidity.js";
 
-import { isSolcSolidityCompilerConfig } from "./build-system/build-system.js";
+import {
+  isSolcSolidityCompilerConfig,
+  isSolcSolidityCompilerLocalBinary,
+} from "./build-system/build-system.js";
 import {
   downloadSolcCompilers,
   getCompiler,
@@ -16,7 +19,10 @@ export async function downloadSolcCompilersHandler(
   quiet: boolean,
 ): Promise<void> {
   const solcVersions = new Set(
-    compilerConfigs.filter(isSolcSolidityCompilerConfig).map((c) => c.version),
+    compilerConfigs
+      .filter(isSolcSolidityCompilerConfig)
+      .filter((c) => !isSolcSolidityCompilerLocalBinary(c))
+      .map((c) => c.version),
   );
 
   if (solcVersions.size > 0) {
