@@ -67,7 +67,7 @@ describe("getGenesisStateAndOwnedAccounts", () => {
     assert.notEqual(result3, result1);
   });
 
-  it("should merge duplicate account overrides by address rather than by Uint8Array reference identity", async () => {
+  it("should merge duplicate account overrides by address", async () => {
     const result = await getGenesisStateAndOwnedAccounts(
       { ...accounts },
       undefined,
