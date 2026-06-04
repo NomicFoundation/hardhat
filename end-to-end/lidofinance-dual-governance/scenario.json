@@ -12,17 +12,15 @@
   "defaultCommand": "npx hardhat test solidity --grep=\"^(test_|testFuzz_)\"",
   "benchmark": {
     "commands": {
-      "cold compile": {
-        "runs": 2,
-        "prepare": "npx hardhat clean",
-        "command": "npx hardhat compile"
-      },
-      "edit & compile sequence": {
+      "compile sequence": {
         "runs": 2,
         "steps": {
-          "reset files": {
-            "command": "git checkout -- test/unit/scripts/launch/TimeConstraints.t.sol test/scenario/mainnet-launch.t.sol contracts/types/Timestamp.sol",
+          "reset files & cache": {
+            "command": "git checkout -- test/unit/scripts/launch/TimeConstraints.t.sol test/scenario/mainnet-launch.t.sol contracts/types/Timestamp.sol && npx hardhat clean",
             "measure": false
+          },
+          "cold compile": {
+            "command": "npx hardhat compile"
           },
           "edit & compile Solidity test with min deps: test/unit/scripts/launch/TimeConstraints.t.sol": {
             "command": "printf \"\\n// hardhat benchmark edit\\n\" >> test/unit/scripts/launch/TimeConstraints.t.sol && npx hardhat compile"
