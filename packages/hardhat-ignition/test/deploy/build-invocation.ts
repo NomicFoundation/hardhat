@@ -33,7 +33,7 @@ describe("deploy - build invocation", function () {
     return { projectPath, configPath };
   }
 
-  it("should call build without noTests when splitTestsCompilation is false", async function () {
+  it("should call build with noTests when splitTestsCompilation is false", async function () {
     const { buildArgs, buildOverride } = buildArgCaptor();
     const { projectPath, configPath } = getProjectConfig();
 
@@ -56,7 +56,7 @@ describe("deploy - build invocation", function () {
     });
 
     assert.equal(buildArgs.length, 1);
-    assert.equal(buildArgs[0].noTests, false);
+    assert.equal(buildArgs[0].noTests, true);
     assert.equal(buildArgs[0].defaultBuildProfile, "production");
     assert.equal(buildArgs[0].quiet, true);
   });
