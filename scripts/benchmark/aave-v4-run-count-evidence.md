@@ -24,14 +24,15 @@ n = ceil( 2 · (CV / σ_target)² )      σ_target = 3% (L=10%), 1.5% (L=5%), 1%
 
 ## Measured input
 
-Two post-fuzz-reduction CI runs (self-hosted runner), `aave-v4 / test solidity`:
+Three post-fuzz-reduction CI runs (self-hosted runner), `aave-v4 / test solidity`:
 
-| run        | n   | mean runtime | CV        |
-| ---------- | --- | ------------ | --------- |
-| first      | 3   | 11.8 s       | 4.31%     |
-| **second** | 17  | 11.8 s       | **5.17%** |
+| run        | n   | mean runtime | within-run CV |
+| ---------- | --- | ------------ | ------------- |
+| first      | 3   | 11.8 s       | 4.31%         |
+| **second** | 17  | 11.8 s       | **5.17%**     |
+| third      | 24  | 13.8 s       | 3.90%         |
 
-The **n = 17 run is the trustworthy estimate** (the n = 3 figure was a small sample that happened to land low). Runtime is stable at **~11.8 s/run**, down from ~82 s before the fuzz-iteration cut. For reference, the pre-change p95 was 9.74% on the heavier workload, and historical aave per-commit CV ranged 1.2–12.8%. Taking **CV ≈ 5.17%** as the working figure:
+The within-run CV is stable at **~5%** (p95 ≈ 5.1% across the three commits); the n = 17/24 runs are the trustworthy estimates. Per-run time is ~11.8–13.8 s, down from ~82 s before the fuzz-iteration cut. For reference, the pre-change p95 was 9.74% on the heavier workload, and historical aave per-commit CV ranged 1.2–12.8%. Taking **CV ≈ 5.17%** as the working figure:
 
 ## Why 24
 
@@ -47,10 +48,12 @@ So **24 is the 5%-limit count** for this benchmark. At 24 runs the comparison no
 
 **Cost:** 24 × 11.8 s ≈ **4.7 min**. (For comparison, a 5% limit on the pre-fix 82 s workload needed ~85 runs ≈ 116 min — the fuzz reduction is what makes 24 runs cheap.)
 
-## Caveat
+## Caveats
 
-The CV is provisional (one full n = 17 sample), and 24 sits **essentially on the 5% threshold**: 24 runs satisfies a 5% limit only while CV ≤ 5.20%, and the measured 5.17% is right at that edge. If a few more post-change commits firm the CV up to e.g. the ~5.3% seen on the sibling `1inch`/`lido` test-solidity benchmarks, bump to ~25–26 (still well under 5 min). The 10% limit in force today is unaffected either way (it needs only ~6 runs).
+**Within-run CV is near the 5% threshold.** 24 satisfies a 5% limit only while CV ≤ 5.20%, and the measured ~5.17% is right at that edge. If more commits firm the CV higher (e.g. the ~5.3% seen on the sibling `1inch`/`lido` test-solidity benchmarks), bump to ~25–26 (still well under 5 min). The 10% limit in force today is unaffected either way (it needs only ~6 runs).
+
+**Between-run drift is the bigger risk, and no run count fixes it.** Across the three runs aave's _mean_ jumped +16.9% in run 3 (11.8 → 13.8 s) on the identical workload — a ~15σ move versus the within-run spread. Co-movement pins the cause as **environmental, not code**: every compile benchmark was flat to ≤ 0.2% across all three runs, while the rise was confined to the `test solidity` (EVM-execution) phase and scaled with how CPU/fuzz-bound each suite is (aave +16.9%, 1inch-swap-vm +6.1%, uniswap-v4 +4.4%, …; the I/O-bound lido/1inch-ccs didn't move). That points to transient CPU contention during the parallel test-execution phase. The CI alert compares means _across_ invocations, so this drift — not the within-run CV — is what would actually trip it, and it can swing far past even a 10% limit regardless of N. Stabilise it at the source before tightening: a dedicated/isolated benchmark runner (no concurrent jobs during the test phase), pinned CPU affinity / disabled turbo, or normalising each suite against an in-run reference.
 
 ## Recommendation
 
-Use **24 runs** for the 5% rollout — the skill-recommended count at the measured CV, ~4.7 min. Re-run the `benchmark-run-sizing` skill once several post-change commits exist to confirm the CV (currently ~5.17% from one full sample); nudge the count up by 1–2 if it firms higher, or down toward the 10%-limit count (~6) if the threshold stays at 10%.
+Use **24 runs** for the 5% rollout — the skill-recommended count at the measured CV (~5.1% p95 over three commits), ~4.7 min; nudge up 1–2 if the CV firms higher, or down toward the 10%-limit count (~6) if the threshold stays at 10%. But the prerequisite for trusting _any_ tightened limit on this benchmark is **stabilising the between-run environment** (see caveats): until the parallel test-execution phase runs without CPU contention, the run-to-run mean can drift enough to false-fire even at 10%, and adding runs will not help.
