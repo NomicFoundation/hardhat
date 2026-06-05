@@ -1,12 +1,17 @@
 import type { EdrNetworkAccountsConfig } from "../../../../../src/types/config.js";
+import type { AccountOverride } from "@nomicfoundation/edr";
 
 import assert from "node:assert/strict";
-import { describe, it } from "node:test";
+import { beforeEach, describe, it } from "node:test";
 
 import { CANCUN, LONDON } from "@nomicfoundation/edr";
 import { bytesToHexString } from "@nomicfoundation/hardhat-utils/hex";
+import { hexToBytes } from "ethereum-cryptography/utils";
 
-import { getGenesisStateAndOwnedAccounts } from "../../../../../src/internal/builtin-plugins/network-manager/edr/genesis-state.js";
+import {
+  getGenesisStateAndOwnedAccounts,
+  mergeGenesisState,
+} from "../../../../../src/internal/builtin-plugins/network-manager/edr/genesis-state.js";
 import { L1_CHAIN_TYPE } from "../../../../../src/internal/constants.js";
 import { FixedValueConfigurationVariable } from "../../../../../src/internal/core/configuration-variables.js";
 
@@ -67,24 +72,33 @@ describe("getGenesisStateAndOwnedAccounts", () => {
     assert.notEqual(result3, result1);
   });
 
-  it("should merge duplicate account overrides by address", async () => {
-    const result = await getGenesisStateAndOwnedAccounts(
-      { ...accounts },
-      undefined,
-      L1_CHAIN_TYPE,
-      CANCUN,
-    );
+  describe("mergeGenesisState", () => {
+    const address = hexToBytes("0x0000F90827F1C53a10cb7A02335B175320002935");
+    const addressKey = bytesToHexString(address);
 
-    const addresses = Array.from(result.genesisState.values()).map((entry) =>
-      bytesToHexString(entry.address),
-    );
-    const uniqueAddresses = new Set(addresses);
+    let genesisState: Map<string, AccountOverride>;
 
-    assert.equal(
-      addresses.length,
-      uniqueAddresses.size,
-      "genesis state must not contain duplicate entries for the same address",
-    );
-    assert.equal(result.genesisState.size, addresses.length);
+    beforeEach(() => {
+      genesisState = new Map();
+    });
+
+    it("when a chain entry collides with an existing override, user wins overlapping fields", () => {
+      genesisState.set(addressKey, { address, balance: 1n, nonce: 1n });
+
+      mergeGenesisState(genesisState, [
+        { address, balance: 9n, code: new Uint8Array([0x99]) },
+      ]);
+
+      const merged = genesisState.get(addressKey);
+      assert.ok(merged !== undefined);
+      assert.equal(genesisState.size, 1, "must not duplicate the entry");
+      assert.equal(merged.balance, 1n, "user wins on overlapping field");
+      assert.equal(merged.nonce, 1n, "user-only field stays");
+      assert.deepEqual(
+        merged.code,
+        new Uint8Array([0x99]),
+        "chain-only field fills in",
+      );
+    });
   });
 });
