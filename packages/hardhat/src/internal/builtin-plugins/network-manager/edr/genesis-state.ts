@@ -163,6 +163,15 @@ async function createGenesisStateAndOwnedAccounts(
         ? opGenesisState(opHardforkFromString(specId))
         : l1GenesisState(l1HardforkFromString(specId));
 
+  mergeGenesisState(genesisState, chainGenesisState);
+
+  return { genesisState, ownedAccounts };
+}
+
+export function mergeGenesisState(
+  genesisState: Map<string, AccountOverride>,
+  chainGenesisState: readonly AccountOverride[],
+): void {
   for (const account of chainGenesisState) {
     const addressKey = bytesToHexString(account.address);
     const existingOverride = genesisState.get(addressKey);
@@ -175,6 +184,4 @@ async function createGenesisStateAndOwnedAccounts(
     }
     genesisState.set(addressKey, account);
   }
-
-  return { genesisState, ownedAccounts };
 }
