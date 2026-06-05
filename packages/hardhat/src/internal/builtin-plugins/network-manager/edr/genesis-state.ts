@@ -172,9 +172,8 @@ async function createGenesisStateAndOwnedAccounts(
       account.nonce = account.nonce ?? existingOverride.nonce;
       account.code = account.code ?? existingOverride.code;
       account.storage = account.storage ?? existingOverride.storage;
-    } else {
-      genesisState.set(addressKey, account);
     }
+    genesisState.set(addressKey, account);
   }
 
   return { genesisState, ownedAccounts };
