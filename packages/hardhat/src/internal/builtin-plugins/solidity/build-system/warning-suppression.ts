@@ -8,6 +8,7 @@ export const SPDX_WARNING = "SPDX license identifier not provided";
 export const PRAGMA_WARNING =
   "Source file does not specify required compiler version";
 const CONTRACT_SIZE_WARNING = "Contract code size is";
+const INIT_CODE_SIZE_WARNING = "Contract initcode size is";
 
 // Suppression rules are grouped by scope. Each array has its own match logic
 // in `shouldSuppressWarning` function; add new entries to the array that fits, or add
@@ -32,6 +33,7 @@ const TEST_FILE_WARNING_MESSAGES: readonly string[] = [
   SPDX_WARNING,
   PRAGMA_WARNING,
   CONTRACT_SIZE_WARNING,
+  INIT_CODE_SIZE_WARNING,
 ];
 
 // Warnings suppressed only when running with `--coverage`. An entry with no
@@ -44,6 +46,7 @@ const COVERAGE_MODE_RULES: ReadonlyArray<{
   filePath?: string;
 }> = [
   { message: CONTRACT_SIZE_WARNING },
+  { message: INIT_CODE_SIZE_WARNING },
   {
     message: NATSPEC_MEMORY_SAFE_ASSEMBLY_WARNING,
     filePath: COVERAGE_LIBRARY_FILE_NAME,

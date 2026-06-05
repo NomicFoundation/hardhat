@@ -15,6 +15,8 @@ describe("shouldSuppressWarning", () => {
   const NATSPEC_WARNING = NATSPEC_MEMORY_SAFE_ASSEMBLY_WARNING;
   const CONTRACT_SIZE_WARNING =
     "Contract code size is 25002 bytes and exceeds 24576 bytes (a limit introduced in Spurious Dragon). This contract may not be deployable on Mainnet.";
+  const INIT_CODE_SIZE_WARNING =
+    "Contract initcode size is 50000 bytes and exceeds 49152 bytes (a limit introduced in Shanghai). This contract may not be deployable on Mainnet.";
 
   // Mock project paths for testing
   const PROJECT_ROOT = path.join("home", "user", "project");
@@ -282,6 +284,55 @@ describe("shouldSuppressWarning", () => {
       const message = `Warning: ${SPDX_WARNING}\n  --> ${path.join("contracts", "Counter.t.sol")}:1:1:`;
       assert.equal(
         shouldSuppressWarning(message, SOLIDITY_TESTS_PATH, PROJECT_ROOT, true),
+        true,
+      );
+    });
+  });
+
+  describe("Initcode-size warning", () => {
+    it("should suppress initcode-size warning on a user file when coverage=true", () => {
+      const message = `Warning: ${INIT_CODE_SIZE_WARNING}\n  --> ${path.join("contracts", "Foo.sol")}:1:1:`;
+      assert.equal(
+        shouldSuppressWarning(message, SOLIDITY_TESTS_PATH, PROJECT_ROOT, true),
+        true,
+      );
+    });
+
+    it("should NOT suppress initcode-size warning on a user file when coverage=false", () => {
+      const message = `Warning: ${INIT_CODE_SIZE_WARNING}\n  --> ${path.join("contracts", "Foo.sol")}:1:1:`;
+      assert.equal(
+        shouldSuppressWarning(
+          message,
+          SOLIDITY_TESTS_PATH,
+          PROJECT_ROOT,
+          false,
+        ),
+        false,
+      );
+    });
+
+    it("should suppress initcode-size warning on a .t.sol file when coverage=false", () => {
+      const message = `Warning: ${INIT_CODE_SIZE_WARNING}\n  --> ${path.join("contracts", "Counter.t.sol")}:1:1:`;
+      assert.equal(
+        shouldSuppressWarning(
+          message,
+          SOLIDITY_TESTS_PATH,
+          PROJECT_ROOT,
+          false,
+        ),
+        true,
+      );
+    });
+
+    it("should suppress initcode-size warning on a file in the Solidity tests dir when coverage=false", () => {
+      const message = `Warning: ${INIT_CODE_SIZE_WARNING}\n  --> ${path.join("test", "contracts", "Helper.sol")}:1:1:`;
+      assert.equal(
+        shouldSuppressWarning(
+          message,
+          SOLIDITY_TESTS_PATH,
+          PROJECT_ROOT,
+          false,
+        ),
         true,
       );
     });
