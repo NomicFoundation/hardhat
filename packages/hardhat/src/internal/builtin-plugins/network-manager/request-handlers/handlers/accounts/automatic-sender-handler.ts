@@ -3,6 +3,10 @@ import type {
   JsonRpcResponse,
 } from "../../../../../../types/providers.js";
 
+import { isObject } from "@nomicfoundation/hardhat-utils/lang";
+
+import { getRequestParams } from "../../../json-rpc.js";
+
 import { SenderHandler } from "./sender.js";
 
 /**
@@ -19,6 +23,13 @@ export class AutomaticSenderHandler extends SenderHandler {
   ): Promise<JsonRpcRequest | JsonRpcResponse> {
     if (!this.isSupportedMethod(jsonRpcRequest)) {
       return jsonRpcRequest;
+    }
+
+    const [tx] = getRequestParams(jsonRpcRequest);
+    if (!isObject(tx) || tx.from !== undefined) {
+      // Skip the eth_accounts fetch when we won't need a sender anyway:
+      // the tx isn't an object, or it already carries a `from`.
+      return await super.handle(jsonRpcRequest);
     }
 
     if (this.#alreadyFetchedAccounts === false) {
