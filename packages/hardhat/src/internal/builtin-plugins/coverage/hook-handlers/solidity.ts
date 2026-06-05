@@ -8,6 +8,8 @@ import { HardhatError } from "@nomicfoundation/hardhat-errors";
 import { createDebug } from "@nomicfoundation/hardhat-utils/debug";
 import { ensureError } from "@nomicfoundation/hardhat-utils/error";
 
+import { matchesAnyGlob } from "../../../utils/glob.js";
+import { toUserSourceName } from "../../solidity/source-names.js";
 import { getCoverageManager } from "../helpers/accessors.js";
 import { instrumentSolidityFileForCompilationJob } from "../instrumentation.js";
 
@@ -22,12 +24,23 @@ export default async (): Promise<Partial<SolidityHooks>> => ({
     solcVersion,
     next,
   ) => {
+    // This hook runs on every project file of every build. Coverage is the
+    // only reason to preprocess them, so when it is off we pass the file
+    // through untouched and keep the common path free of the work below.
+    if (!context.globalOptions.coverage) {
+      return await next(context, sourceName, fsPath, fileContent, solcVersion);
+    }
+
     // NOTE: We do not want to instrument the test project files as we don't
     // want to report coverage for them.
-
     const isTestSource = (await context.solidity.getScope(fsPath)) === "tests";
 
-    if (context.globalOptions.coverage && !isTestSource) {
+    const isSkipped = matchesAnyGlob(
+      toUserSourceName(sourceName),
+      context.config.coverage.skipFiles,
+    );
+
+    if (!isTestSource && !isSkipped) {
       try {
         const { source, metadata } = instrumentSolidityFileForCompilationJob({
           compilationJobSolcVersion: solcVersion,
