@@ -82,7 +82,20 @@ describe("getGenesisStateAndOwnedAccounts", () => {
       genesisState = new Map();
     });
 
-    it("when a chain entry collides with an existing override, user wins overlapping fields", () => {
+    it("when the chain list is empty, leaves the map untouched", () => {
+      genesisState.set(addressKey, { address, balance: 1n });
+      mergeGenesisState(genesisState, []);
+      assert.equal(genesisState.size, 1);
+      assert.equal(genesisState.get(addressKey)?.balance, 1n);
+    });
+
+    it("when the chain address is not in the map, adds it as a new entry", () => {
+      mergeGenesisState(genesisState, [{ address, balance: 42n }]);
+      assert.equal(genesisState.size, 1);
+      assert.equal(genesisState.get(addressKey)?.balance, 42n);
+    });
+
+    it("when a chain entry collides with an existing override, user wins overlapping fields and chain fills the gaps", () => {
       genesisState.set(addressKey, { address, balance: 1n, nonce: 1n });
 
       mergeGenesisState(genesisState, [
@@ -90,7 +103,7 @@ describe("getGenesisStateAndOwnedAccounts", () => {
       ]);
 
       const merged = genesisState.get(addressKey);
-      assert.ok(merged !== undefined);
+      assert.ok(merged !== undefined, "merged entry must exist at the address");
       assert.equal(genesisState.size, 1, "must not duplicate the entry");
       assert.equal(merged.balance, 1n, "user wins on overlapping field");
       assert.equal(merged.nonce, 1n, "user-only field stays");
