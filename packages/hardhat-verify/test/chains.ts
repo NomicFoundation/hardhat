@@ -1,11 +1,40 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 
-import { getChainId } from "../src/internal/chains.js";
+import { HardhatError } from "@nomicfoundation/hardhat-errors";
+import { assertThrowsHardhatError } from "@nomicfoundation/hardhat-test-utils";
+
+import { rejectLocalNetworks, getChainId } from "../src/internal/chains.js";
 
 import { MockEthereumProvider } from "./utils.js";
 
 describe("chains", () => {
+  describe("rejectLocalNetworks", () => {
+    it("should throw for Hardhat Network chain id (31337)", () => {
+      assertThrowsHardhatError(
+        () => rejectLocalNetworks("hardhat", 31337),
+        HardhatError.ERRORS.HARDHAT_VERIFY.GENERAL.NETWORK_NOT_SUPPORTED,
+        { networkName: "hardhat", chainId: 31337 },
+      );
+    });
+
+    it("should throw for Ganache Network chain id (1337)", () => {
+      assertThrowsHardhatError(
+        () => rejectLocalNetworks("localhost", 1337),
+        HardhatError.ERRORS.HARDHAT_VERIFY.GENERAL.NETWORK_NOT_SUPPORTED,
+        { networkName: "localhost", chainId: 1337 },
+      );
+    });
+
+    it("should not throw for a public chain id (1)", () => {
+      rejectLocalNetworks("mainnet", 1);
+    });
+
+    it("should not throw for Sepolia (11155111)", () => {
+      rejectLocalNetworks("sepolia", 11155111);
+    });
+  });
+
   describe("getChainId", () => {
     it("should return the chainId", async () => {
       const provider = new MockEthereumProvider({ eth_chainId: "0x1" });
