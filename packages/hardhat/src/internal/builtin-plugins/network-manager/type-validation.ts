@@ -326,8 +326,13 @@ const edrNetworkUserConfigSchema = z.object({
       [z.string(), z.instanceof(Date)],
       "Expected a string or a Date",
     ).refine(
-      (val) => typeof val !== "string" || !Number.isNaN(Date.parse(val)),
-      { message: "initialDate must be a parseable date string" },
+      (val) => {
+        const ts = typeof val === "string" ? Date.parse(val) : val.getTime();
+        return !Number.isNaN(ts);
+      },
+      {
+        message: "initialDate must be a parseable date string or a valid Date",
+      },
     ),
   ),
   loggingEnabled: z.optional(z.boolean()),
