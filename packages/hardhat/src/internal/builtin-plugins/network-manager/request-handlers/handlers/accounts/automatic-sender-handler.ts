@@ -7,7 +7,8 @@ import { SenderHandler } from "./sender.js";
 
 /**
  * This class automatically retrieves and caches the first available account from the connected provider.
- * If the first account have not been fetched yet, It returns a JSON-RPC error.
+ * On the first supported request, fetches and caches `eth_accounts` so callers don't need to set `from` manually.
+ * If `eth_accounts` responds with a non-array, it returns a JSON-RPC error.
  */
 export class AutomaticSenderHandler extends SenderHandler {
   #alreadyFetchedAccounts = false;
