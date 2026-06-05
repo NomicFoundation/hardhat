@@ -651,7 +651,28 @@ describe("network-manager/hook-handlers/config", () => {
       assertValidationErrors(validationErrors, [
         {
           path: ["networks", "test", "initialDate"],
-          message: "initialDate must be a parseable date string",
+          message:
+            "initialDate must be a parseable date string or a valid Date",
+        },
+      ]);
+    });
+
+    it("should throw if the initialDate is an invalid Date instance", async () => {
+      const config: HardhatUserConfig = {
+        networks: {
+          test: {
+            type: "edr-simulated",
+            initialDate: new Date("invalid"),
+          },
+        },
+      };
+
+      const validationErrors = await validateNetworkUserConfig(config);
+      assertValidationErrors(validationErrors, [
+        {
+          path: ["networks", "test", "initialDate"],
+          message:
+            "initialDate must be a parseable date string or a valid Date",
         },
       ]);
     });
