@@ -2,4 +2,4 @@
 "@nomicfoundation/hardhat-verify": patch
 ---
 
-Reject `verify` invocations against local dev networks (chain ID 31337 or 1337), surfacing `NETWORK_NOT_SUPPORTED` error instead of letting the downstream explorer client fail cryptically.
+Running `verify` against local development networks (chain IDs 31337 and 1337) now fails with a clear `NETWORK_NOT_SUPPORTED` error.
