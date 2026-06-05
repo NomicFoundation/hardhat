@@ -36,7 +36,7 @@
         "command": "npx hardhat compile"
       },
       "test solidity": {
-        "runs": 5,
+        "runs": 17,
         "command": "npx hardhat test solidity --no-compile"
       }
     }
