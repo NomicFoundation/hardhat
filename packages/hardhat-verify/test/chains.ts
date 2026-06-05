@@ -18,6 +18,14 @@ describe("chains", () => {
       );
     });
 
+    it("should throw for Ganache Network chain id (1337)", () => {
+      assertThrowsHardhatError(
+        () => rejectLocalNetworks("localhost", 1337),
+        HardhatError.ERRORS.HARDHAT_VERIFY.GENERAL.NETWORK_NOT_SUPPORTED,
+        { networkName: "localhost", chainId: 1337 },
+      );
+    });
+
     it("should not throw for a public chain id (1)", () => {
       rejectLocalNetworks("mainnet", 1);
     });
