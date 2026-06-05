@@ -177,10 +177,10 @@ export function mergeGenesisState(
     const existingOverride = genesisState.get(addressKey);
     if (existingOverride !== undefined) {
       // Favor the genesis state specified by the user
-      account.balance = account.balance ?? existingOverride.balance;
-      account.nonce = account.nonce ?? existingOverride.nonce;
-      account.code = account.code ?? existingOverride.code;
-      account.storage = account.storage ?? existingOverride.storage;
+      account.balance = existingOverride.balance ?? account.balance;
+      account.nonce = existingOverride.nonce ?? account.nonce;
+      account.code = existingOverride.code ?? account.code;
+      account.storage = existingOverride.storage ?? account.storage;
     }
     genesisState.set(addressKey, account);
   }
