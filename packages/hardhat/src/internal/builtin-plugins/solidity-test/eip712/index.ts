@@ -7,6 +7,7 @@ import {
   bytesToUtf8String,
 } from "@nomicfoundation/hardhat-utils/bytes";
 
+import { isPathSelected } from "../../../utils/glob.js";
 import { HARDHAT_PROJECT_INPUT_SOURCE_NAME_ROOT } from "../../solidity/constants.js";
 
 import {
@@ -14,7 +15,6 @@ import {
   extractStructsFromAst,
 } from "./ast-walker.js";
 import { canonicalizeStructs } from "./canonicalize.js";
-import { isPathSelected } from "./glob.js";
 
 export interface Eip712TypesConfig {
   include: string[];
