@@ -80,7 +80,11 @@ Conclusion: a global statistic swap trades the expensive aave benchmark for the 
 
 Rationale: the seed is pinned, so fewer iterations exercise the same code deterministically while slashing the per-run time. Even if the CV is unchanged, the affordability math is transformed — the ~57–85 runs a 5% limit needs cost minutes instead of >1 hour once each run drops from ~82 s to a fraction of that. This is a **benchmark-only workload reduction**: it produces a one-time step in this entry's stored series (the series continues — github-action-benchmark keys on the benchmark _name_, which is unchanged). `FUZZ_RUNS` in the script is the tuning knob.
 
-_Verification:_ the patch was checked against the pinned commit's real `hardhat.config.ts` and `foundry.toml` (it edits exactly the fuzz `runs` value in each and nothing else — the word boundary keeps it off `runs = 10000`/`5000` and the `optimizer_runs` values — and fails loudly if either expected marker is gone). The end-to-end CV/runtime effect must be confirmed by a CI run on a self-hosted runner — it cannot be measured in a sandbox without the network fork, Verdaccio, and the external clone.
+_Verification:_ the patch was checked against the pinned commit's real `hardhat.config.ts` and `foundry.toml` (it edits exactly the fuzz `runs` value in each and nothing else — the word boundary keeps it off `runs = 10000`/`5000` and the `optimizer_runs` values — and fails loudly if either expected marker is gone).
+
+_Measured outcome (CI run, self-hosted):_ `aave-v4 / test solidity` dropped from **~82 s to ~11.8 s per run (~7×)**, with no change to aave's compile benchmarks or any other suite. This run's CV was 4.3% (n=3) versus the historical p95 of 9.7% — encouraging, but a single small sample (historical aave runs ranged 1.2–12.8%), so a stable post-change p95 still needs a few commits. The affordability win does not depend on the CV improving: at the historical 9.7% CV the cost at a 5% limit falls from ~116 min (85×82 s) to ~17 min (85×11.8 s), and at 3% from ~260 min to ~37 min; at this run's CV it is ~3–8 min.
+
+_Follow-up:_ `aave-v4 / test solidity` is still configured at 3 runs, which is too noisy for a 5% limit on its own (σ ≈ √2·CV/√3 ≈ 3.5% at 4% CV). Raising it is now cheap (≈17 runs ≈ 3 min for 5%, ≈38 runs ≈ 8 min for 3%); set the exact count from the skill once a few post-change commits give a stable p95.
 
 ### Recommended (needs a CI run to verify)
 
@@ -92,6 +96,6 @@ _Verification:_ the patch was checked against the pinned commit's real `hardhat.
 ## Is 5% / 3% affordable?
 
 - For **1inch, lido (post fork-pin), and uniswap**: yes — small runtimes mean even the runs a 3% limit needs cost only minutes.
-- For **aave-v4**: it was the blocker, and no statistic swap rescues it. The fuzz-workload reduction makes its required runs **affordable** (cheap per-run) even though it stays above the run-count floor. Hitting the "≤ ~5 runs" ideal for aave additionally needs its CV down near ~2.4% (5%) / ~1.5% (3%); whether the lighter workload reaches that is the open question a CI run must answer.
+- For **aave-v4**: it was the blocker, and no statistic swap rescues it. The fuzz-workload reduction (confirmed ~7× faster in CI: ~82 s → ~11.8 s) makes its required runs **affordable** — ~17 min at a 5% limit even at the historical CV, ~3–8 min if the lower CV seen in the first post-change run holds. It stays above the run-count floor; hitting the "≤ ~5 runs" ideal would additionally need its CV down near ~2.4% (5%) / ~1.5% (3%), which a few more post-change commits will show.
 
 Net: with aave's workload cut and lido's fork pinned, a **5% limit becomes affordable**, and **3%** is within reach pending the measured post-change CVs.
