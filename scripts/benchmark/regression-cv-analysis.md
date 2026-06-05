@@ -1,101 +1,84 @@
-<!-- cSpell:ignore Alchemy lidofinance uniswap aave testFuzz CDF -->
+<!-- cSpell:ignore Alchemy lidofinance uniswap aave -->
 
-# Regression-benchmark variance: root causes and how to afford a tighter alert limit
+# Choosing benchmark run counts from observed variance
 
-## Why this exists
+> Generated with the [`benchmark-run-sizing`](https://github.com/NomicFoundation/hardhat/pull/8370) skill, targeting the **5%** alert-limit rollout. The `aave-v4 / test solidity` row reflects the **post-fuzz-reduction** workload (its stale 82 s history is excluded); every other row is the full stored history.
 
-The regression benchmark (`scripts/benchmark/regression.ts`, `.github/workflows/regression-benchmark.yml`) runs each command N times and records a summary time. CI fails a PR when a benchmark rises past the **alert limit** (today `110%`, i.e. +10%). We want to tighten that toward **5%** and eventually **3%**.
+## Purpose
 
-The run count needed to keep measurement noise under the limit grows with the **square** of a benchmark's per-run coefficient of variation (CV):
+Each regression benchmark runs a command several times and records the **average** time. CI flags a regression when a benchmark's average rises more than a set **alert limit** (today 10% but we plan to incrementally reduce it to 5%). Running more times gives a more stable average but costs CI time. This note derives, per benchmark, the **minimum run count** so that normal measurement noise stays comfortably below the alert limit.
 
-```
-sigma_comparison ≈ √2 · CV / √runs        runs ≈ 2 · (CV / sigma_target)²,  sigma_target ≈ limit / 3
-```
+## Notation
 
-So halving a benchmark's CV quarters the runs it needs — reducing CV is far cheaper than adding runs. This note finds where the variance comes from and what actually moves the needle.
+- **run** — one execution of a benchmark command.
+- **mean** — the average time over a benchmark's runs (the number CI compares).
+- **CV** (coefficient of variation) — run-to-run standard deviation ÷ mean, as a %. Measures intrinsic noisiness; independent of how many times we run.
+- **σ** (sigma) — standard deviation of the _comparison_ between a new commit's mean and the previous commit's mean, as a %. This is the noise the alert sees.
+- **p95** — 95th percentile: the value exceeded by only 1 in 20 commits.
+- **alert limit (L)** — the % slowdown at which CI fails the build.
 
-## Method
+## Method and formulas
 
-- Variance/run-sizing numbers come from the **`benchmark-run-sizing`** skill's `analyze.py`, run against the stored history (`nomic-foundation-automation/hardhat-benchmark-results`, `hardhat3/data.js`). It computes each benchmark's p95 per-commit CV (broken runs dropped via a MAD filter) and the runs each alert limit needs.
-- Two supplementary analyses were run over the same history's per-run `times` to evaluate the **summary-statistic** lever (mean vs median vs min):
-  1. a per-commit **bootstrap** of each statistic's standard error → an effective CV, fed through the skill's exact sizing formula;
-  2. the **realized false-alarm count**: replaying github-action-benchmark's own comparison (consecutive-commit _increase_ > limit) across the history under each statistic. This is what CI actually does, so it is the ground truth for "how often would this have falsely failed a PR".
+Two standard results (take as given):
 
-## Baseline (mean, today's reported value)
+1. **Standard error of the mean.** The average of _n_ independent measurements, each with relative spread CV, has relative spread **CV / √n**.
+2. **Error propagation of a ratio.** If two independent values each have small relative spread, their ratio's relative spread is the square root of the sum of their squares.
 
-Everything except four `test solidity` benchmarks sits at the run-count floor of 2, even for a 3% limit. The cost is entirely concentrated here:
+A regression check compares two independent means (new vs old), each with spread CV/√n. By (1) then (2):
 
-| benchmark | ~runtime (s) | p95 CV% | runs @5% | runs @3% |
-| --- | --- | --- | --- | --- |
-| aave-v4 / test solidity | 82.0 | 9.74 | 85 | 190 |
-| 1inch-cross-chain-swap / test solidity | 3.5 | 5.29 | 25 | 56 |
-| lidofinance-dual-governance / test solidity | 22.6 | 5.24 | 25 | 55 |
-| uniswap-v4-core / test solidity | 7.6 | 2.12 | 4 | 9 |
+    σ = √2 · CV / √n
 
-`aave-v4 / test solidity` alone (≈82 s/run × 85 runs) makes a 5% limit cost well over an hour.
+Targeting σ ≈ L/3 (so a real L% change sits ~3 standard deviations above noise):
 
-## Root cause of each noisy benchmark
+| alert limit L | target σ |
+| ------------- | -------- |
+| 10%           | 3%       |
+| 5%            | 1.5%     |
+| 3%            | 1%       |
 
-The per-run times reveal the **shape** of the noise, which decides what helps:
+Solving for the run count:
 
-| benchmark | example run times (s) | shape | source |
-| --- | --- | --- | --- |
-| aave-v4 | `75.2, 76.7, 94.0` | broad spread, n=3 | wall-clock jitter on a big **deterministic** fuzz workload |
-| 1inch | `3.5 ×7, 3.9, 4.8` | tight + rare slow run | occasional slow run; ~3.5 s base magnifies it in % |
-| lido | `3.2, 3.3, 61.1` | catastrophic outlier | **live mainnet fork (Alchemy) RPC stall** |
-| uniswap-v4 | `7.5, 7.5, 7.6, 7.6, 7.7, 7.7, 7.7` | tight, symmetric | already fine |
+    runs = ceil( 2 · (CV / target σ)² ),  minimum 2
 
-Key facts established from the projects' configs and the Hardhat source:
+We use the **95th-percentile CV** across commits (broken runs removed first), so the noise target holds on all but the noisiest commits — the ones that actually cause false alarms. Benchmarks marked _(provisional)_ have little history, so their figure is a small-sample estimate that will firm up over time.
 
-- **Fuzz inputs are not a source of variance.** Hardhat pins a default fuzz seed (`DEFAULT_FUZZ_SEED` in `packages/hardhat/.../solidity-test/config.ts`); aave and uniswap also pin their own (`0x640`, `0x4444`). So fuzz _inputs_ are identical run-to-run — the variance is execution-time jitter, not randomized inputs. (This refutes the "randomized fuzz" hypothesis.) There is **no env/CLI knob** for fuzz runs/seed — only the project config sets them.
-- **Only lido forks the network.** Its scenario sets `MAINNET_RPC_URL = ${localEnv:ALCHEMY_URL}`; the others do not fork. Lido's 61 s spike landed on the _last_ of its three runs (not the first), so it is a **mid-run transient RPC stall**, not a cold-cache start effect. That single spike is why the table reports lido's "~runtime" as 22.6 s when its true time is ~3.3 s.
-- **aave is the cost driver and forks nothing.** Its ~10% CV is pure wall-clock jitter on an 82 s, 1000-iteration-per-test fuzz run.
+## Benchmark variance and recommended runs
 
-## The summary-statistic lever (mean vs median vs min)
+| benchmark | ~runtime (s) | p95 CV% | runs @sigma=3% | runs @sigma=1.5% | runs @sigma=1% |
+| --- | --- | --- | --- | --- | --- |
+| 1inch-aqua / cold compile | 9.3 | 0.31 | 2 | 2 | 2 |
+| 1inch-aqua / warm compile | 0.5 | 0.68 | 2 | 2 | 2 |
+| 1inch-aqua / test solidity | 0.6 | 0.75 | 2 | 2 | 2 |
+| 1inch-cross-chain-swap / cold compile | 239.8 | 0.43 | 2 | 2 | 2 |
+| 1inch-cross-chain-swap / warm compile | 0.6 | 0.61 | 2 | 2 | 2 |
+| 1inch-cross-chain-swap / test solidity | 3.5 | 5.29 | 7 | 25 | 56 |
+| 1inch-swap-vm / cold compile | 248.2 | 0.26 | 2 | 2 | 2 |
+| 1inch-swap-vm / warm compile | 1.1 | 0.85 | 2 | 2 | 2 |
+| 1inch-swap-vm / test solidity | 1.8 | 1.41 | 2 | 2 | 4 |
+| aave-v4 / cold compile | 188.4 | 0.57 | 2 | 2 | 2 |
+| aave-v4 / warm compile | 1.0 | 0.97 | 2 | 2 | 2 |
+| aave-v4 / test solidity _(provisional, 2 commits)_ | 11.8 | 5.13 | 6 | 24 | 53 |
+| ens-verifiable-factory / cold compile | 4.4 | 0.62 | 2 | 2 | 2 |
+| ens-verifiable-factory / warm compile | 0.7 | 0.58 | 2 | 2 | 2 |
+| ens-verifiable-factory / test solidity | 0.7 | 0.57 | 2 | 2 | 2 |
+| lidofinance-dual-governance / cold compile | 53.0 | 0.47 | 2 | 2 | 2 |
+| lidofinance-dual-governance / warm compile | 0.6 | 0.79 | 2 | 2 | 2 |
+| lidofinance-dual-governance / test solidity | 22.6 | 5.24 | 7 | 25 | 55 |
+| uniswap-v4-core / cold compile | 198.1 | 0.31 | 2 | 2 | 2 |
+| uniswap-v4-core / warm compile | 1.1 | 0.93 | 2 | 2 | 2 |
+| uniswap-v4-core / test solidity | 7.6 | 2.12 | 2 | 4 | 9 |
+| uniswap-x / cold compile | 37.6 | 0.35 | 2 | 2 | 2 |
+| uniswap-x / warm compile | 0.7 | 0.96 | 2 | 2 | 2 |
+| uniswap-x / test solidity | 40.2 | 0.21 | 2 | 2 | 2 |
 
-Switching the reported `value` from the mean to a robust statistic was the cheapest hypothesized lever. The data shows it is **real but partial**, and not the clean win it first appears.
+## Conclusion
 
-**Realized false alarms** (consecutive-commit increases over the limit, summed across the four noisy benchmarks — lower is better):
+Read for the **5% rollout** (the `runs @sigma=1.5%` column):
 
-| limit | mean | median | min    |
-| ----- | ---- | ------ | ------ |
-| > 5%  | 8    | 11     | 9      |
-| > 3%  | 18   | 22     | **12** |
+- **Almost everything is already at the floor.** 20 of 24 benchmarks need only 2 runs for a 5% limit; every compile benchmark is < 1% CV. The cost is concentrated entirely in the `test solidity` benchmarks.
+- **Four benchmarks need more for 5%:** `1inch-cross-chain-swap → 25`, `lidofinance-dual-governance → 25`, `aave-v4 → 24`, `uniswap-v4-core → 4`. The whole suite at a 5% limit is ≈ 50 min of wall-clock.
+- **aave-v4 was the blocker, and reducing CV was far cheaper than adding runs.** Cutting its fuzz iterations (1000 → 100) dropped per-run time ~7× (82 s → 11.8 s) and its p95 CV from 9.7% to ~5.1%, so its 5% count fell from ~85 runs (~116 min) to **24 runs (~4.7 min)**. This is exactly the `runs ∝ CV²` lever — fewer fuzz iterations — with the runtime cut compounding it. (Its 5.1% is provisional, from 2 post-change commits.) It currently runs **17** times, which is sized for the 10% limit in force today; raise it to **24** when the limit is tightened to 5%.
+- **lido's 25-run cost is mostly an artifact** of intermittent live-mainnet-fork (Alchemy) RPC stalls — one run spiked to 61 s, which is also why its "~runtime" shows 22.6 s rather than its true ~3.3 s. Pinning the fork to a fixed block and serving it from an offline cache should collapse its CV toward the < 1% of its clean commits and return it to the floor, removing most of the remaining 5% cost.
+- **A robust summary statistic was considered and rejected.** Reporting median/min instead of the mean only helps the outlier-driven suites, is worse for aave at its low run count, and `min` risks masking real regressions — so the reported value stays the **mean** and variance is cut at the source instead.
 
-Worst single increase, lido: **mean 607%** → median 18% → min 19%.
-
-What this means:
-
-- **`min`** gives the lowest false-alarm rate at a tight limit and nearly eliminates them on the outlier-driven suites (1inch 3→0, lido 7→2, uniswap 1→0 at the 3% limit). Downsides: it reports best-case time, so it can **mask a regression** that raises the typical/tail time without raising the floor; and it is sensitive to run count.
-- **`median`** kills the catastrophic outlier (lido's 607% → 18%) without best-case bias, but at n=3 (aave, lido) it is itself a noisy estimator, so it _adds_ marginal small flags and is the worst by raw count. The bootstrap confirms this: at n=3, median/min need _more_ runs than the mean to hit the same sigma target.
-- **No statistic helps aave-v4.** Its noise is broad and symmetric at n=3, exactly the case where the mean is optimal and robust statistics are worse.
-
-Conclusion: a global statistic swap trades the expensive aave benchmark for the cheap ones, and `min`'s gains come with a regression-masking risk. It is not the right primary lever. **The reported `value` is therefore left as the mean**, and the variance is attacked at its source instead.
-
-## What was changed, and what is recommended
-
-### Implemented: cut aave-v4's benchmark fuzz workload (the cost driver)
-
-`end-to-end/aave-v4/preinstall.sh` reduces the Solidity-test fuzz iterations (`fuzz.runs` 1000 → 100) on the cloned project before the benchmark runs, wired in via `"preinstall"` in `end-to-end/aave-v4/scenario.json`. The benchmark runs via `npx hardhat test solidity` (which reads only `hardhat.config.ts`), but the change is mirrored into `foundry.toml`'s `[profile.default.fuzz]` so a direct `forge test` uses the same iteration count and the two configs stay consistent.
-
-Rationale: the seed is pinned, so fewer iterations exercise the same code deterministically while slashing the per-run time. Even if the CV is unchanged, the affordability math is transformed — the ~57–85 runs a 5% limit needs cost minutes instead of >1 hour once each run drops from ~82 s to a fraction of that. This is a **benchmark-only workload reduction**: it produces a one-time step in this entry's stored series (the series continues — github-action-benchmark keys on the benchmark _name_, which is unchanged). `FUZZ_RUNS` in the script is the tuning knob.
-
-_Verification:_ the patch was checked against the pinned commit's real `hardhat.config.ts` and `foundry.toml` (it edits exactly the fuzz `runs` value in each and nothing else — the word boundary keeps it off `runs = 10000`/`5000` and the `optimizer_runs` values — and fails loudly if either expected marker is gone).
-
-_Measured outcome (CI run, self-hosted):_ `aave-v4 / test solidity` dropped from **~82 s to ~11.8 s per run (~7×)**, with no change to aave's compile benchmarks or any other suite. This run's CV was 4.3% (n=3) versus the historical p95 of 9.7% — encouraging, but a single small sample (historical aave runs ranged 1.2–12.8%), so a stable post-change p95 still needs a few commits. The affordability win does not depend on the CV improving: at the historical 9.7% CV the cost at a 5% limit falls from ~116 min (85×82 s) to ~17 min (85×11.8 s), and at 3% from ~260 min to ~37 min; at this run's CV it is ~3–8 min.
-
-_Follow-up:_ `aave-v4 / test solidity` is still configured at 3 runs, which is too noisy for a 5% limit on its own (σ ≈ √2·CV/√3 ≈ 3.5% at 4% CV). Raising it is now cheap (≈17 runs ≈ 3 min for 5%, ≈38 runs ≈ 8 min for 3%); set the exact count from the skill once a few post-change commits give a stable p95.
-
-### Recommended (needs a CI run to verify)
-
-- **lido — pin the fork block and serve it offline.** The 607% catastrophe is a live-RPC stall. Pinning the fork to a fixed mainnet block and pre-populating a complete on-disk fork cache (so no timed run hits Alchemy) removes the stalls at the source and should collapse the CV to the ~0.1–1% seen on its clean commits — making even the mean stable at the floor. This requires patching the project's fork setup, so it is left as a follow-up rather than an unverified blind patch.
-- **1inch — already cheap.** 3.5 s/run; the occasional slow run is the only issue. Leave as-is, or pin a fork block if it forks.
-- **uniswap-v4 — leave it.** p95 CV 2.1%, 4 runs @5% / 9 @3%; not worth touching.
-- **Compile/edit benchmarks — leave at the floor of 2.** All are < 1% CV.
-
-## Is 5% / 3% affordable?
-
-- For **1inch, lido (post fork-pin), and uniswap**: yes — small runtimes mean even the runs a 3% limit needs cost only minutes.
-- For **aave-v4**: it was the blocker, and no statistic swap rescues it. The fuzz-workload reduction (confirmed ~7× faster in CI: ~82 s → ~11.8 s) makes its required runs **affordable** — ~17 min at a 5% limit even at the historical CV, ~3–8 min if the lower CV seen in the first post-change run holds. It stays above the run-count floor; hitting the "≤ ~5 runs" ideal would additionally need its CV down near ~2.4% (5%) / ~1.5% (3%), which a few more post-change commits will show.
-
-Net: with aave's workload cut and lido's fork pinned, a **5% limit becomes affordable**, and **3%** is within reach pending the measured post-change CVs.
+Net: with aave's workload reduced and lido's fork pinned offline, a **5% limit is affordable** — only `1inch-cross-chain-swap` and `aave-v4` would carry a non-floor count, each cheap per run.
