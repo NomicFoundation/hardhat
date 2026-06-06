@@ -322,7 +322,20 @@ const edrNetworkUserConfigSchema = z.object({
   hardfork: z.optional(z.string()),
   initialBaseFeePerGas: z.optional(gasUnitUserConfigSchema),
   initialDate: z.optional(
-    unionType([z.string(), z.instanceof(Date)], "Expected a string or a Date"),
+    unionType(
+      [z.string(), z.instanceof(Date)],
+      "Expected a string or a Date",
+    ).refine(
+      (val) => {
+        if (typeof val === "string") return !Number.isNaN(Date.parse(val));
+        if (val instanceof Date) return !Number.isNaN(val.getTime());
+        // already union of string/Date, all types are exhausted
+        return true;
+      },
+      {
+        message: "initialDate must be a parseable date string or a valid Date",
+      },
+    ),
   ),
   loggingEnabled: z.optional(z.boolean()),
   minGasPrice: z.optional(gasUnitUserConfigSchema),

@@ -623,6 +623,60 @@ describe("network-manager/hook-handlers/config", () => {
       assert.equal(validationErrors.length, 0);
     });
 
+    it("should accept a parseable initialDate string", async () => {
+      const config: HardhatUserConfig = {
+        networks: {
+          test: {
+            type: "edr-simulated",
+            initialDate: "2024-01-01T00:00:00.000Z",
+          },
+        },
+      };
+
+      const validationErrors = await validateNetworkUserConfig(config);
+      assert.equal(validationErrors.length, 0);
+    });
+
+    it("should throw if the initialDate is not a parseable date string", async () => {
+      const config: HardhatUserConfig = {
+        networks: {
+          test: {
+            type: "edr-simulated",
+            initialDate: "today",
+          },
+        },
+      };
+
+      const validationErrors = await validateNetworkUserConfig(config);
+      assertValidationErrors(validationErrors, [
+        {
+          path: ["networks", "test", "initialDate"],
+          message:
+            "initialDate must be a parseable date string or a valid Date",
+        },
+      ]);
+    });
+
+    it("should throw if the initialDate is an invalid Date instance", async () => {
+      const config: HardhatUserConfig = {
+        networks: {
+          test: {
+            type: "edr-simulated",
+            initialDate: new Date("invalid"),
+          },
+        },
+      };
+
+      const validationErrors = await validateNetworkUserConfig(config);
+      assertValidationErrors(validationErrors, [
+        {
+          path: ["networks", "test", "initialDate"],
+          message:
+            "initialDate must be a parseable date string or a valid Date",
+        },
+      ]);
+    });
+
     describe("http network specific fields", () => {
       it("should throw if the url is missing", async () => {
         const config = {
