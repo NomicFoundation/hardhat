@@ -2,4 +2,4 @@
 "hardhat": patch
 ---
 
-Fix duplicate account overrides before they reach the genesis state: use hex string instead of Uint8Array reference.
+Account overrides that share an address with the network's built-in genesis accounts are now correctly merged into a single genesis entry.
