@@ -1,5 +1,21 @@
 # hardhat
 
+## 3.9.0
+
+### Minor Changes
+
+- [#8380](https://github.com/NomicFoundation/hardhat/pull/8380) [`0fd498d`](https://github.com/NomicFoundation/hardhat/commit/0fd498df67fbdefe5ca16c77019f94715bf0401f) Thanks [@kanej](https://github.com/kanej)! - Added support for `coverage.skipFiles`, a list of globs of Solidity files to exclude from coverage instrumentation and reporting during a `--coverage` run.
+
+### Patch Changes
+
+- [#8383](https://github.com/NomicFoundation/hardhat/pull/8383) [`1660f1e`](https://github.com/NomicFoundation/hardhat/commit/1660f1e8078a1eca1de27b9256b5adcb6deb37b3) Thanks [@schaable](https://github.com/schaable)! - Fixed an intermittent "Provider for provided chain type does not exist" error that could occur when multiple network connections were created concurrently.
+
+- [#8371](https://github.com/NomicFoundation/hardhat/pull/8371) [`287620e`](https://github.com/NomicFoundation/hardhat/commit/287620efca6d5459cbccd5df020e08f830df8449) Thanks [@gultekinmakif](https://github.com/gultekinmakif)! - Account overrides that share an address with the network's built-in genesis accounts are now correctly merged into a single genesis entry.
+
+- [#8375](https://github.com/NomicFoundation/hardhat/pull/8375) [`931a5f0`](https://github.com/NomicFoundation/hardhat/commit/931a5f0699d310965b338a773f5a69c1dbcb2ec3) Thanks [@schaable](https://github.com/schaable)! - Suppressed the solc initcode size warning for Solidity test contracts and when running under `--coverage`.
+
+- [#8372](https://github.com/NomicFoundation/hardhat/pull/8372) [`5f6aff2`](https://github.com/NomicFoundation/hardhat/commit/5f6aff268841e947a2dd32a72a18885adf3d78de) Thanks [@gultekinmakif](https://github.com/gultekinmakif)! - Improved validation for `initialDate` network configuration. Invalid `Date` objects and unparseable date `string`s are now rejected during config loading rather than causing a runtime error later.
+
 ## 3.8.0
 
 ### Minor Changes
