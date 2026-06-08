@@ -15,11 +15,11 @@ export function isPathSelected(
     return false;
   }
 
-  if (!matchesAny(path, include)) {
+  if (!matchesAnyGlob(path, include)) {
     return false;
   }
 
-  if (exclude.length > 0 && matchesAny(path, exclude)) {
+  if (exclude.length > 0 && matchesAnyGlob(path, exclude)) {
     return false;
   }
 
@@ -29,7 +29,7 @@ export function isPathSelected(
 /**
  * Returns true if `value` matches at least one of the given glob patterns.
  */
-function matchesAny(value: string, patterns: string[]): boolean {
+export function matchesAnyGlob(value: string, patterns: string[]): boolean {
   for (const pattern of patterns) {
     if (getCompiledGlob(pattern).test(value)) {
       return true;

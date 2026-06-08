@@ -16,6 +16,7 @@ const hardhatPlugin: HardhatPlugin = definePlugin({
   ],
   hookHandlers: {
     clean: () => import("./hook-handlers/clean.js"),
+    config: () => import("./hook-handlers/config.js"),
     hre: () => import("./hook-handlers/hre.js"),
     solidity: () => import("./hook-handlers/solidity.js"),
     test: () => import("./hook-handlers/test.js"),

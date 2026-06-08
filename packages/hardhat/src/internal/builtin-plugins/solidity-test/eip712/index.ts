@@ -7,24 +7,19 @@ import {
   bytesToUtf8String,
 } from "@nomicfoundation/hardhat-utils/bytes";
 
-import { HARDHAT_PROJECT_INPUT_SOURCE_NAME_ROOT } from "../../solidity/constants.js";
+import { isPathSelected } from "../../../utils/glob.js";
+import { toUserSourceName } from "../../solidity/source-names.js";
 
 import {
   buildUserDefinedValueTypeIndex,
   extractStructsFromAst,
 } from "./ast-walker.js";
 import { canonicalizeStructs } from "./canonicalize.js";
-import { isPathSelected } from "./glob.js";
 
 export interface Eip712TypesConfig {
   include: string[];
   exclude: string[];
 }
-
-// When a transitive project file doesn't produce an artifact — and so is
-// missing from `inputToUserSource` — stripping this prefix recovers the
-// user-facing path that the user's include/exclude globs are written against.
-const PROJECT_INPUT_SOURCE_NAME_PREFIX = `${HARDHAT_PROJECT_INPUT_SOURCE_NAME_ROOT}/`;
 
 /**
  * Walks every compiled source's AST, extracts every struct definition, and
@@ -89,15 +84,12 @@ export function collectEip712CanonicalTypes(
     );
 
     for (const [inputSourceName, source] of Object.entries(sources)) {
-      let userSourceName = inputToUserSource.get(inputSourceName);
-
-      if (userSourceName === undefined) {
-        userSourceName = inputSourceName.startsWith(
-          PROJECT_INPUT_SOURCE_NAME_PREFIX,
-        )
-          ? inputSourceName.slice(PROJECT_INPUT_SOURCE_NAME_PREFIX.length)
-          : inputSourceName;
-      }
+      // A transitive project file that doesn't produce an artifact is missing
+      // from `inputToUserSource`; recovering the user source name from the
+      // input source name covers that case.
+      const userSourceName =
+        inputToUserSource.get(inputSourceName) ??
+        toUserSourceName(inputSourceName);
 
       // Collect every source so non-selected files can serve as dep targets;
       // selection is enforced at emit time via `selectedNames`.

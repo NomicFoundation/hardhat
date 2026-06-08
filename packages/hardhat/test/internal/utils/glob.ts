@@ -1,9 +1,12 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 
-import { isPathSelected } from "../../../../../src/internal/builtin-plugins/solidity-test/eip712/glob.js";
+import {
+  isPathSelected,
+  matchesAnyGlob,
+} from "../../../src/internal/utils/glob.js";
 
-describe("eip712 - glob", () => {
+describe("glob", () => {
   describe("isPathSelected", () => {
     it("matches nothing when include is empty", () => {
       assert.equal(isPathSelected("a/b.sol", [], []), false);
@@ -338,6 +341,28 @@ describe("eip712 - glob", () => {
         assert.equal(isPathSelected("a", ["[!]"], []), true);
         assert.equal(isPathSelected("ab", ["[!]"], []), false);
       });
+    });
+  });
+
+  describe("matchesAnyGlob", () => {
+    it("returns false when there are no patterns", () => {
+      assert.equal(matchesAnyGlob("a/b.sol", []), false);
+    });
+
+    it("returns true when any pattern matches", () => {
+      assert.equal(
+        matchesAnyGlob("contracts/mocks/Foo.sol", ["**/mocks/**"]),
+        true,
+      );
+      assert.equal(matchesAnyGlob("contracts/Foo.sol", ["**/mocks/**"]), false);
+    });
+
+    it("matches against any of several patterns", () => {
+      const patterns = ["**/mocks/**", "**/Migrations.sol"];
+
+      assert.equal(matchesAnyGlob("contracts/mocks/Foo.sol", patterns), true);
+      assert.equal(matchesAnyGlob("contracts/Migrations.sol", patterns), true);
+      assert.equal(matchesAnyGlob("contracts/Token.sol", patterns), false);
     });
   });
 });
