@@ -1,5 +1,11 @@
 # @nomicfoundation/hardhat-verify
 
+## 3.0.20
+
+### Patch Changes
+
+- [#8374](https://github.com/NomicFoundation/hardhat/pull/8374) [`c67a5bb`](https://github.com/NomicFoundation/hardhat/commit/c67a5bb581becb3f5363c725c85e3af298233f0b) Thanks [@gultekinmakif](https://github.com/gultekinmakif)! - Running `verify` against local development networks (chain IDs 31337 and 1337) now fails with a clear `NETWORK_NOT_SUPPORTED` error.
+
 ## 3.0.19
 
 ### Patch Changes
