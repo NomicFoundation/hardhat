@@ -70,6 +70,9 @@ describe("Reverted transaction responses", () => {
         (error) =>
           error instanceof AssertionError &&
           error.message.includes(message) &&
+          // `in` narrowing exposes `cause` regardless of how chai's
+          // `AssertionError` type is declared (chai v5's typings omit it).
+          "cause" in error &&
           error.cause === callError,
         `Expected ${name} to fail and preserve the replay call error`,
       );
