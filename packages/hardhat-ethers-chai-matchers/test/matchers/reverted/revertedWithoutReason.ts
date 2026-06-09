@@ -1,5 +1,6 @@
 import type { MatchersContract } from "../../helpers/contracts.js";
 import type { HardhatEthers } from "@nomicfoundation/hardhat-ethers/types";
+import type { EthereumProvider } from "hardhat/types/providers";
 
 import path from "node:path";
 import { before, beforeEach, describe, it } from "node:test";
@@ -13,6 +14,7 @@ import {
   runSuccessfulAsserts,
   runFailedAsserts,
   initEnvironment,
+  withAutomineOff,
 } from "../../helpers/helpers.js";
 
 addChaiMatchers();
@@ -28,9 +30,10 @@ describe("INTEGRATION: Reverted without reason", { timeout: 60000 }, () => {
     let matchers: MatchersContract;
 
     let ethers: HardhatEthers;
+    let provider: EthereumProvider;
 
     before(async () => {
-      ({ ethers } = await initEnvironment("reverted-without-reason"));
+      ({ ethers, provider } = await initEnvironment("reverted-without-reason"));
     });
 
     beforeEach(async () => {
@@ -207,6 +210,23 @@ describe("INTEGRATION: Reverted without reason", { timeout: 60000 }, () => {
           return;
         }
         expect.fail("Expected an exception but none was thrown");
+      });
+    });
+
+    describe("When automining is disabled", () => {
+      it("should wait for the tx to be mined and detect the empty revert", async () => {
+        await withAutomineOff(provider, async () => {
+          const tx = await matchers.revertsWithoutReason({
+            gasLimit: 1_000_000,
+          });
+
+          const revertedWithoutReasonPromise =
+            expect(tx).to.be.revertedWithoutReason(ethers);
+
+          await provider.request({ method: "hardhat_mine", params: [] });
+
+          await revertedWithoutReasonPromise;
+        });
       });
     });
   }

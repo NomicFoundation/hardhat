@@ -19,6 +19,7 @@ import {
   runFailedAsserts,
   mineSuccessfulTransaction,
   initEnvironment,
+  withAutomineOff,
 } from "../../helpers/helpers.js";
 
 addChaiMatchers();
@@ -335,6 +336,20 @@ describe("INTEGRATION: Reverted with panic", { timeout: 60000 }, () => {
           return;
         }
         expect.fail("Expected an exception but none was thrown");
+      });
+    });
+
+    describe("When automining is disabled", () => {
+      it("should wait for the tx to be mined and detect the panic", async () => {
+        await withAutomineOff(provider, async () => {
+          const tx = await matchers.panicAssert({ gasLimit: 1_000_000 });
+
+          const revertedWithPanicPromise = expect(tx).to.be.revertedWithPanic();
+
+          await provider.request({ method: "hardhat_mine", params: [] });
+
+          await revertedWithPanicPromise;
+        });
       });
     });
   }
