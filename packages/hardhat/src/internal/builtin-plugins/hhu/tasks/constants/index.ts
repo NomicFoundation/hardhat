@@ -1,9 +1,7 @@
-import type { GenerateTasksOptions } from "./index.js";
-import type { TaskDefinition } from "../../../../types/index.js";
+import type { TaskDefinition } from "../../../../../types/index.js";
+import type { GenerateTasksOptions } from "../index.js";
 
-import { emptyTask, task } from "../../../core/config.js";
-
-const zeroAddress = "0x0000000000000000000000000000000000000000";
+import { emptyTask, task } from "../../../../core/config.js";
 
 export function constants({
   withUtils,
@@ -19,9 +17,7 @@ export function constants({
     [...prefix, "constants", "zeroAddress"],
     "Print the zero address",
   )
-    .setAction(async () => ({
-      default: () => console.log(zeroAddress),
-    }))
+    .setAction(async () => await import("./zero-address.js"))
     .build();
 
   return [constantsTask, zeroAddressTask];

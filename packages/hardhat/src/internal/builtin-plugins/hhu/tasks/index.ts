@@ -2,7 +2,7 @@ import type { TaskDefinition } from "../../../../types/index.js";
 
 import { emptyTask } from "../../../../config.js";
 
-import { constants } from "./constants.js";
+import { constants } from "./constants/index.js";
 
 export interface GenerateTasksOptions {
   /**
