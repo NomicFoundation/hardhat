@@ -25,12 +25,18 @@ export function definePlugin(plugin: HardhatPlugin): HardhatPlugin {
  * @deprecated This function is part of the Hardhat 2 plugin API.
  */
 export function lazyFunction(..._args: any): any {
-  throwUsingHardhat2PluginError();
+  throwUsingHardhat2PluginError(
+    "lazyFunction",
+    "To migrate a plugin to Hardhat 3, export a plugin object with definePlugin from hardhat/plugins and register lazy-loaded logic through dependencies, hook handlers, and task actions.",
+  );
 }
 
 /**
  * @deprecated This function is part of the Hardhat 2 plugin API.
  */
 export function lazyObject(..._args: any): any {
-  throwUsingHardhat2PluginError();
+  throwUsingHardhat2PluginError(
+    "lazyObject",
+    "To migrate a plugin to Hardhat 3, export a plugin object with definePlugin from hardhat/plugins and register lazy-loaded logic through dependencies, hook handlers, and task actions.",
+  );
 }
