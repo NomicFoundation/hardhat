@@ -63,10 +63,12 @@ describe("JsonRpcNonceManager", () => {
       // First call returns 1 (behind), retry calls return 3 (caught up)
       const retryResults = [1, 1, 3];
       const client = createMockClient(retryResults);
+
+      const numberOfRetries = 5;
       const manager = new JsonRpcNonceManager(
         client,
         { "0xSender": 2 },
-        retryResults.length,
+        numberOfRetries,
         TEST_SYNC_RETRY_DELAY,
       );
 
@@ -77,13 +79,13 @@ describe("JsonRpcNonceManager", () => {
 
     it("should throw NONCE_TOO_LOW after retries exhausted (dropped tx)", async () => {
       // All calls return a count below expectedNonce
-      const retryResults = [1, 1, 1, 1, 1];
-      const client = createMockClient(retryResults);
+      const client = createMockClient([1, 1, 1, 1, 1]);
 
+      const numberOfRetries = 5;
       const manager = new JsonRpcNonceManager(
         client,
         { "0xSender": 2 },
-        retryResults.length,
+        numberOfRetries,
         TEST_SYNC_RETRY_DELAY,
       );
 

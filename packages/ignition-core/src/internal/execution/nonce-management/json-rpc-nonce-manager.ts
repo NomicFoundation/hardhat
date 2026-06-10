@@ -6,7 +6,7 @@ import { HardhatError } from "@nomicfoundation/hardhat-errors";
  * The default delay (in ms) between retries when waiting for the node's
  * mempool to reflect recently submitted transactions.
  */
-const DEFAULT_SYNC_RETRY_DELAY = 200;
+const DEFAULT_SYNC_RETRY_DELAY_MS = 200;
 
 /**
  * The number of retries to attempt when waiting for the node's
@@ -47,7 +47,7 @@ export class JsonRpcNonceManager implements NonceManager {
     private readonly _jsonRpcClient: JsonRpcClient,
     private readonly _maxUsedNonce: { [sender: string]: number },
     private readonly _syncRetryNumberOfRetries: number = SYNC_RETRY_NUMBER_OF_RETRIES,
-    private readonly _syncRetryDelay: number = DEFAULT_SYNC_RETRY_DELAY,
+    private readonly _syncRetryDelayInMs: number = DEFAULT_SYNC_RETRY_DELAY_MS,
   ) {}
 
   public async getNextNonce(sender: string): Promise<number> {
@@ -81,12 +81,7 @@ export class JsonRpcNonceManager implements NonceManager {
     //    between Ignition's view and the node's state.
     const resolvedCount =
       pendingCount < expectedNonce
-        ? await this._waitForMempoolSync(
-            sender,
-            expectedNonce,
-            this._syncRetryNumberOfRetries,
-            this._syncRetryDelay,
-          )
+        ? await this._waitForMempoolSync(sender, expectedNonce)
         : pendingCount;
 
     if (resolvedCount !== expectedNonce) {
@@ -121,12 +116,14 @@ export class JsonRpcNonceManager implements NonceManager {
   private async _waitForMempoolSync(
     sender: string,
     expectedNonce: number,
-    numberOfRetries: number,
-    retryDelay: number,
   ): Promise<number> {
+    // The first poll should happen with no delay
     const mempoolSyncRetryDelaysInMs = [
       0,
-      ...Array.from({ length: numberOfRetries }, () => retryDelay),
+      ...Array.from(
+        { length: this._syncRetryNumberOfRetries },
+        () => this._syncRetryDelayInMs,
+      ),
     ];
 
     let pendingCount = 0;
