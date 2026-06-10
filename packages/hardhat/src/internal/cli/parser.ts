@@ -2,7 +2,6 @@ import type {
   GlobalOptionDefinitions,
   GlobalOptions,
 } from "../../types/global-options.js";
-import type { HardhatRuntimeEnvironment } from "../../types/hre.js";
 import type { Task, TaskArguments } from "../../types/tasks.js";
 
 import {
@@ -133,9 +132,13 @@ export async function parseGlobalOptions(
 export function parseTask(
   cliArguments: string[],
   usedCliArguments: boolean[],
-  hre: HardhatRuntimeEnvironment,
+  tasksMap: Map<string, Task>,
 ): Task | string[] {
-  const taskOrId = getTaskFromCliArguments(cliArguments, usedCliArguments, hre);
+  const taskOrId = getTaskFromCliArguments(
+    cliArguments,
+    usedCliArguments,
+    tasksMap,
+  );
 
   return taskOrId;
 }
@@ -143,7 +146,7 @@ export function parseTask(
 function getTaskFromCliArguments(
   cliArguments: string[],
   usedCliArguments: boolean[],
-  hre: HardhatRuntimeEnvironment,
+  tasksMap: Map<string, Task>,
 ): string[] | Task {
   const taskId = [];
   let task: Task | undefined;
@@ -177,9 +180,9 @@ function getTaskFromCliArguments(
     }
 
     if (task === undefined) {
-      try {
-        task = hre.tasks.getTask(arg);
-      } catch (_error) {
+      task = tasksMap.get(arg);
+
+      if (task === undefined) {
         return [arg]; // No task found
       }
     } else {

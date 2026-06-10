@@ -233,7 +233,11 @@ export async function main(
     // This must be the first time we set it, otherwise we let it crash
     setGlobalHardhatRuntimeEnvironment(hre);
 
-    const taskOrId = parseTask(cliArguments, usedCliArguments, hre);
+    const taskOrId = parseTask(
+      cliArguments,
+      usedCliArguments,
+      hre.tasks.rootTasks,
+    );
 
     if (Array.isArray(taskOrId)) {
       if (taskOrId.length === 0) {

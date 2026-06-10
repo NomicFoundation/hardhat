@@ -877,7 +877,11 @@ GLOBAL OPTIONS:
           taskArguments: TaskArguments;
         }
       | string[] {
-      const parsedTask = parseTask(cliArguments, usedCliArguments, hreLocal);
+      const parsedTask = parseTask(
+        cliArguments,
+        usedCliArguments,
+        hreLocal.tasks.rootTasks,
+      );
       if (Array.isArray(parsedTask)) {
         return parsedTask;
       }
