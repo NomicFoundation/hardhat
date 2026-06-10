@@ -9,6 +9,7 @@ import {
   assertHardhatInvariant,
   HardhatError,
 } from "@nomicfoundation/hardhat-errors";
+import { isCi } from "@nomicfoundation/hardhat-utils/ci";
 import { createDebug } from "@nomicfoundation/hardhat-utils/debug";
 import { ensureError } from "@nomicfoundation/hardhat-utils/error";
 
@@ -205,7 +206,7 @@ export async function parseHhuGlobalOptions(
 
   return {
     help: hhuGlobalOptions.help ?? false,
-    showStackTraces: hhuGlobalOptions.showStackTraces ?? false,
+    showStackTraces: hhuGlobalOptions.showStackTraces ?? isCi(),
     version: hhuGlobalOptions.version ?? false,
   };
 }
