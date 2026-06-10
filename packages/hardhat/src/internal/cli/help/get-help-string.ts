@@ -16,6 +16,7 @@ import {
 export async function getHelpString(
   task: Task,
   globalOptionDefinitions: GlobalOptionDefinitions,
+  { command = "hardhat" }: { command?: "hardhat" | "hhu" } = {},
 ): Promise<string> {
   const { options, positionalArguments } = parseOptions(task);
 
@@ -34,20 +35,20 @@ export async function getHelpString(
   let output = `${styleText("bold", task.description)}`;
 
   if (task.isEmpty) {
-    output += `\n\nUsage: hardhat [GLOBAL OPTIONS] ${task.id.join(" ")} <SUBTASK> [SUBTASK OPTIONS] [--] [SUBTASK POSITIONAL ARGUMENTS]\n`;
+    output += `\n\nUsage: ${command} [GLOBAL OPTIONS] ${task.id.join(" ")} <SUBTASK> [SUBTASK OPTIONS] [--] [SUBTASK POSITIONAL ARGUMENTS]\n`;
 
     if (subtasks.length > 0) {
       output += getSection("AVAILABLE SUBTASKS", subtasks, namePadding);
 
       output += getSection("GLOBAL OPTIONS", globalOptions, namePadding);
 
-      output += `\nTo get help for a specific task run: npx hardhat ${task.id.join(" ")} <SUBTASK> --help`;
+      output += `\nTo get help for a specific task run: npx ${command} ${task.id.join(" ")} <SUBTASK> --help`;
     }
 
     return output;
   }
 
-  const usage = getUsageString(task, options, positionalArguments);
+  const usage = getUsageString(task, options, positionalArguments, { command });
 
   output += `\n\n${usage}\n`;
 

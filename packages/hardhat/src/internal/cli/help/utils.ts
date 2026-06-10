@@ -172,8 +172,9 @@ export function getUsageString(
   task: Task,
   options: ReturnType<typeof parseOptions>["options"],
   positionalArguments: ReturnType<typeof parseOptions>["positionalArguments"],
+  { command = "hardhat" }: { command?: "hardhat" | "hhu" } = {},
 ): string {
-  let output = `Usage: hardhat [GLOBAL OPTIONS] ${task.id.join(" ")}`;
+  let output = `Usage: ${command} [GLOBAL OPTIONS] ${task.id.join(" ")}`;
 
   if (options.length > 0) {
     output += ` ${options

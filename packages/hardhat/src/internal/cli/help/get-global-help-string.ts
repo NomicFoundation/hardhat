@@ -14,6 +14,7 @@ import {
 export async function getGlobalHelpString(
   rootTasks: Map<string, Task>,
   globalOptionDefinitions: GlobalOptionDefinitions,
+  { command = "hardhat" }: { command?: "hardhat" | "hhu" } = {},
 ): Promise<string> {
   const version = await getHardhatVersion();
 
@@ -27,7 +28,7 @@ export async function getGlobalHelpString(
 
   let output = `Hardhat version ${version}
 
-Usage: hardhat [GLOBAL OPTIONS] <TASK> [SUBTASK] [TASK OPTIONS] [--] [TASK ARGUMENTS]
+Usage: ${command} [GLOBAL OPTIONS] <TASK> [SUBTASK] [TASK OPTIONS] [--] [TASK ARGUMENTS]
 `;
 
   if (tasks.length > 0) {
@@ -40,7 +41,7 @@ Usage: hardhat [GLOBAL OPTIONS] <TASK> [SUBTASK] [TASK OPTIONS] [--] [TASK ARGUM
 
   output += getSection("GLOBAL OPTIONS", globalOptions, namePadding);
 
-  output += `\nTo get help for a specific task run: npx hardhat <TASK> [SUBTASK] --help`;
+  output += `\nTo get help for a specific task run: npx ${command} <TASK> [SUBTASK] --help`;
 
   return output;
 }
