@@ -76,24 +76,22 @@ export class JsonRpcNonceManager implements NonceManager {
     //    bounded period and surface an error if the gap persists, which may
     //    indicate a dropped transaction, provider lag, or another mismatch
     //    between Ignition's view and the node's state.
-    if (pendingCount !== expectedNonce) {
-      const resolvedCount =
-        pendingCount < expectedNonce
-          ? await this._waitForMempoolSync(sender, expectedNonce)
-          : pendingCount;
+    const resolvedCount =
+      pendingCount < expectedNonce
+        ? await this._waitForMempoolSync(sender, expectedNonce)
+        : pendingCount;
 
-      if (resolvedCount !== expectedNonce) {
-        const errorDescriptor =
-          resolvedCount > expectedNonce
-            ? HardhatError.ERRORS.IGNITION.EXECUTION.NONCE_TOO_HIGH
-            : HardhatError.ERRORS.IGNITION.EXECUTION.NONCE_TOO_LOW;
+    if (resolvedCount !== expectedNonce) {
+      const errorDescriptor =
+        resolvedCount > expectedNonce
+          ? HardhatError.ERRORS.IGNITION.EXECUTION.NONCE_TOO_HIGH
+          : HardhatError.ERRORS.IGNITION.EXECUTION.NONCE_TOO_LOW;
 
-        throw new HardhatError(errorDescriptor, {
-          sender,
-          expectedNonce,
-          pendingCount: resolvedCount,
-        });
-      }
+      throw new HardhatError(errorDescriptor, {
+        sender,
+        expectedNonce,
+        pendingCount: resolvedCount,
+      });
     }
 
     // The nonce hasn't been used yet, but we update as
