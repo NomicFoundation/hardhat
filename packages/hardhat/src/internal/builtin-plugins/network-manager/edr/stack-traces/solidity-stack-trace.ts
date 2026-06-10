@@ -42,7 +42,6 @@ import {
 } from "@nomicfoundation/edr";
 
 export {
-  SourceReference,
   StackTraceEntryType,
   CheatcodeErrorCode,
   stackTraceEntryTypeToString,
@@ -56,6 +55,7 @@ export {
 };
 
 export type {
+  SourceReference,
   CallstackEntryStackTraceEntry,
   UnrecognizedCreateCallstackEntryStackTraceEntry,
   UnrecognizedContractCallstackEntryStackTraceEntry,
