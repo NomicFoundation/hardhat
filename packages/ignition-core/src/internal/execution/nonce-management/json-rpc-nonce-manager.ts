@@ -6,11 +6,11 @@ import { HardhatError } from "@nomicfoundation/hardhat-errors";
  * Fixed-interval retry delays (in ms) used when waiting for the node's
  * mempool to reflect recently submitted transactions. The first entry is
  * 0 so an immediate re-check is performed before any waiting. Subsequent
- * retries wait 50 ms each, up to a maximum total wait of 1 second.
+ * retries wait 200 ms each, up to a maximum total wait of 1 second.
  */
 const MEMPOOL_SYNC_RETRY_DELAYS_MS = [
   0,
-  ...Array.from({ length: 20 }, () => 50),
+  ...Array.from({ length: 5 }, () => 200),
 ];
 
 /**
