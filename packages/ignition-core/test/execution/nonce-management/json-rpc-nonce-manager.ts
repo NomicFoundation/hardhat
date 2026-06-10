@@ -61,8 +61,7 @@ describe("JsonRpcNonceManager", () => {
 
     it("should succeed after retry when mempool catches up", async () => {
       // First call returns 1 (behind), retry calls return 3 (caught up)
-      const retryResults = [1, 1, 3];
-      const client = createMockClient(retryResults);
+      const client = createMockClient([1, 1, 3]);
 
       const numberOfRetries = 5;
       const manager = new JsonRpcNonceManager(
