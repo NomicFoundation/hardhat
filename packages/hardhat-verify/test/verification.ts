@@ -263,6 +263,311 @@ describe("verification", () => {
       });
     });
 
+    describe("build profile mismatch", () => {
+      useEphemeralFixtureProject("integration");
+      const testDispatcher = initializeTestDispatcher({
+        url: "https://fake-explorer.test",
+      });
+
+      let baseConfig: HardhatUserConfig;
+      before(async () => {
+        baseConfig =
+          // eslint-disable-next-line import/no-relative-packages -- allowed in test
+          (await import("./fixture-projects/integration/hardhat.config.js"))
+            .default;
+      });
+
+      beforeEach(() => {
+        // Mock only the `isVerified` getsourcecode lookup. verifysourcecode is
+        // intentionally NOT mocked — every test in this block must throw
+        // before any verification submission. If a regression submits, the
+        // dispatcher's disableNetConnect() + pending-interceptor check will
+        // surface it loudly.
+        testDispatcher.interceptable
+          .intercept({
+            path: /^\/(?:v2\/)?api\?action=getsourcecode&address=0x[a-fA-F0-9]{40}&apikey=[A-Za-z0-9]+&chainid=\d+&module=contract$/,
+            method: "GET",
+          })
+          .reply(200, { status: "1", result: [{ SourceCode: "" }] });
+      });
+
+      it("should throw ARTIFACT_BUILD_PROFILE_MISMATCH when the artifact was compiled with a different profile than verify is using", async () => {
+        const hre = await createHardhatRuntimeEnvironment(baseConfig);
+
+        // Build with production → artifacts on disk = production-compiled.
+        await hre.tasks.getTask("build").run({
+          defaultBuildProfile: "production",
+          force: true,
+        });
+
+        // Deploy. On-chain deployedBytecode = production-compiled.
+        const { provider } = await hre.network.create();
+        const address = await deployContract("Counter", [], {}, hre, provider);
+
+        // Re-build with default → artifacts on disk = default-compiled,
+        // while the on-chain bytecode is still production.
+        await hre.tasks.getTask("build").run({
+          defaultBuildProfile: "default",
+          force: true,
+        });
+
+        // Verify defaults to "production". The artifact matches "default" —
+        // detection should throw the precise error before any submission.
+        await assertRejectsWithHardhatError(
+          verifyContract(
+            { address },
+            hre,
+            () => {},
+            testDispatcher.interceptable,
+            provider,
+          ),
+          HardhatError.ERRORS.HARDHAT_VERIFY.GENERAL
+            .ARTIFACT_BUILD_PROFILE_MISMATCH,
+          {
+            artifactProfile: "default",
+            buildProfileName: "production",
+            contractDescription: "one of your local contracts",
+          },
+        );
+      });
+
+      it("should fall back to the generic DEPLOYED_BYTECODE_MISMATCH when the artifact matches the active build profile", async () => {
+        const hre = await createHardhatRuntimeEnvironment(baseConfig);
+
+        // Build with production → every artifact reflects production settings,
+        // which is also what verify will use (the active profile).
+        await hre.tasks.getTask("build").run({
+          defaultBuildProfile: "production",
+          force: true,
+        });
+
+        // Deploy Counter, but verify with CounterWithArgs's FQN at Counter's
+        // address. #resolveByFqn re-compiles CounterWithArgs's artifact (also
+        // production-compiled) against Counter's on-chain bytecode → bytecode
+        // mismatch. Profile detection then sees the artifact matches the
+        // active profile and must fall back to the generic error.
+        const { provider } = await hre.network.create();
+        const address = await deployContract("Counter", [], {}, hre, provider);
+
+        await assertRejectsWithHardhatError(
+          verifyContract(
+            {
+              address,
+              contract: "contracts/CounterWithArgs.sol:CounterWithArgs",
+            },
+            hre,
+            () => {},
+            testDispatcher.interceptable,
+            provider,
+          ),
+          HardhatError.ERRORS.HARDHAT_VERIFY.GENERAL.DEPLOYED_BYTECODE_MISMATCH,
+          {
+            contractDescription:
+              'the contract "contracts/CounterWithArgs.sol:CounterWithArgs"',
+          },
+        );
+      });
+
+      it("should fall back to the generic DEPLOYED_BYTECODE_MISMATCH when no configured profile matches the artifact", async () => {
+        // Build via an HRE that has an extra "weird" profile (runs: 1). After
+        // this build, the on-disk artifacts reflect runs: 1.
+        const buildConfig: HardhatUserConfig = {
+          ...baseConfig,
+          solidity: {
+            profiles: {
+              default: {
+                compilers: [{ version: "0.8.28" }, { version: "0.8.33" }],
+              },
+              production: {
+                compilers: [{ version: "0.8.28" }, { version: "0.8.33" }],
+              },
+              weird: {
+                compilers: [
+                  {
+                    version: "0.8.28",
+                    settings: { optimizer: { enabled: true, runs: 1 } },
+                  },
+                  {
+                    version: "0.8.33",
+                    settings: { optimizer: { enabled: true, runs: 1 } },
+                  },
+                ],
+              },
+            },
+          },
+        };
+        const buildHre = await createHardhatRuntimeEnvironment(buildConfig);
+        await buildHre.tasks.getTask("build").run({
+          defaultBuildProfile: "weird",
+          force: true,
+        });
+
+        const { provider } = await buildHre.network.create();
+        const address = await deployContract(
+          "Counter",
+          [],
+          {},
+          buildHre,
+          provider,
+        );
+
+        // Verify with an HRE that does NOT have `weird` in its config. The
+        // local CounterWithArgs artifact (runs: 1) doesn't match the verify
+        // HRE's `default` (no optimizer); `production` is active and skipped.
+        // No profile matches → fall back to the generic error.
+        const verifyHre = await createHardhatRuntimeEnvironment(baseConfig);
+
+        await assertRejectsWithHardhatError(
+          verifyContract(
+            {
+              address,
+              contract: "contracts/CounterWithArgs.sol:CounterWithArgs",
+            },
+            verifyHre,
+            () => {},
+            testDispatcher.interceptable,
+            provider,
+          ),
+          HardhatError.ERRORS.HARDHAT_VERIFY.GENERAL.DEPLOYED_BYTECODE_MISMATCH,
+          {
+            contractDescription:
+              'the contract "contracts/CounterWithArgs.sol:CounterWithArgs"',
+          },
+        );
+      });
+
+      it("should identify the artifact profile when it is the third (non-default, non-production) configured profile", async () => {
+        const configWithStaging: HardhatUserConfig = {
+          ...baseConfig,
+          solidity: {
+            profiles: {
+              default: {
+                compilers: [{ version: "0.8.28" }, { version: "0.8.33" }],
+              },
+              production: {
+                compilers: [{ version: "0.8.28" }, { version: "0.8.33" }],
+              },
+              staging: {
+                compilers: [
+                  {
+                    version: "0.8.28",
+                    settings: { optimizer: { enabled: true, runs: 999 } },
+                  },
+                  {
+                    version: "0.8.33",
+                    settings: { optimizer: { enabled: true, runs: 999 } },
+                  },
+                ],
+              },
+            },
+          },
+        };
+        const hre = await createHardhatRuntimeEnvironment(configWithStaging);
+
+        // Build with `default`. Deploy. On-chain = default-compiled.
+        await hre.tasks.getTask("build").run({
+          defaultBuildProfile: "default",
+          force: true,
+        });
+        const { provider } = await hre.network.create();
+        const address = await deployContract("Counter", [], {}, hre, provider);
+
+        // Rebuild with `staging` so the on-disk artifacts reflect runs: 999.
+        await hre.tasks.getTask("build").run({
+          defaultBuildProfile: "staging",
+          force: true,
+        });
+
+        // Verify defaults to `production`. The artifact matches neither
+        // `default` nor `production`, but matches `staging` — the loop must
+        // iterate past `default` to find the match.
+        await assertRejectsWithHardhatError(
+          verifyContract(
+            { address },
+            hre,
+            () => {},
+            testDispatcher.interceptable,
+            provider,
+          ),
+          HardhatError.ERRORS.HARDHAT_VERIFY.GENERAL
+            .ARTIFACT_BUILD_PROFILE_MISMATCH,
+          {
+            artifactProfile: "staging",
+            buildProfileName: "production",
+            contractDescription: "one of your local contracts",
+          },
+        );
+      });
+
+      it("should identify the artifact profile when the match comes from a per-source override", async () => {
+        // `production-counter-override` overrides Counter.sol to use runs: 1.
+        // Other contracts in the profile compile with the compiler-level
+        // settings (no optimizer here).
+        const configWithOverride: HardhatUserConfig = {
+          ...baseConfig,
+          solidity: {
+            profiles: {
+              default: {
+                compilers: [{ version: "0.8.28" }, { version: "0.8.33" }],
+              },
+              production: {
+                compilers: [{ version: "0.8.28" }, { version: "0.8.33" }],
+              },
+              "production-counter-override": {
+                compilers: [{ version: "0.8.28" }, { version: "0.8.33" }],
+                overrides: {
+                  "contracts/Counter.sol": {
+                    version: "0.8.33",
+                    settings: { optimizer: { enabled: true, runs: 1 } },
+                  },
+                },
+              },
+            },
+          },
+        };
+        const hre = await createHardhatRuntimeEnvironment(configWithOverride);
+
+        // Build with `default`. Deploy Counter. On-chain Counter = no optimizer.
+        await hre.tasks.getTask("build").run({
+          defaultBuildProfile: "default",
+          force: true,
+        });
+        const { provider } = await hre.network.create();
+        const address = await deployContract("Counter", [], {}, hre, provider);
+
+        // Rebuild with `production-counter-override` → local Counter artifact
+        // reflects runs: 1 (via the override). Other artifacts get the
+        // compiler-level settings (no optimizer).
+        await hre.tasks.getTask("build").run({
+          defaultBuildProfile: "production-counter-override",
+          force: true,
+        });
+
+        // Use the FQN path so we constrain detection to Counter and exercise
+        // override resolution unambiguously. The artifact (runs: 1) only
+        // matches `production-counter-override` via the Counter.sol override.
+        await assertRejectsWithHardhatError(
+          verifyContract(
+            {
+              address,
+              contract: "contracts/Counter.sol:Counter",
+            },
+            hre,
+            () => {},
+            testDispatcher.interceptable,
+            provider,
+          ),
+          HardhatError.ERRORS.HARDHAT_VERIFY.GENERAL
+            .ARTIFACT_BUILD_PROFILE_MISMATCH,
+          {
+            artifactProfile: "production-counter-override",
+            buildProfileName: "production",
+            contractDescription: 'the contract "contracts/Counter.sol:Counter"',
+          },
+        );
+      });
+    });
+
     // TODO: Include remaining `hardhat-verify` verification test cases
     describe.todo("all cases", () => {
       it("should throw an error when etherscan is not enabled in the hardhat config", async () => {});
