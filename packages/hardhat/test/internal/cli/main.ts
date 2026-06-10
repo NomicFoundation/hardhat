@@ -284,6 +284,7 @@ AVAILABLE TASKS:
 AVAILABLE SUBTASKS:
 
   test solidity            Run the Solidity tests
+  utils constants          Commonly used Ethereum constants
 
 GLOBAL OPTIONS:
 
