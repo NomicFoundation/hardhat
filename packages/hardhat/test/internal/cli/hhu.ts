@@ -51,6 +51,7 @@ Usage: hhu [GLOBAL OPTIONS] <TASK> [SUBTASK] [TASK OPTIONS] [--] [TASK ARGUMENTS
 AVAILABLE SUBTASKS:
 
   constants zeroAddress      Print the zero address
+  convert pad                Pad a hex string to a given byte length
 
 GLOBAL OPTIONS:
 
@@ -194,6 +195,18 @@ GLOBAL OPTIONS:
       await runHhu("npx hhu constants zeroAddress");
 
       assert.deepEqual(logs, [ZERO_ADDRESS]);
+    });
+
+    it("`convert pad` should pad to the left by default", async () => {
+      await runHhu("npx hhu convert pad --length 8 ff");
+
+      assert.deepEqual(logs, ["0x00000000000000ff"]);
+    });
+
+    it("`convert pad --right` should pad to the right", async () => {
+      await runHhu("npx hhu convert pad --length 4 --right 0xff");
+
+      assert.deepEqual(logs, ["0xff000000"]);
     });
   });
 });

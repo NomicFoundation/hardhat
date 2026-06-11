@@ -3,6 +3,7 @@ import type { TaskDefinition } from "../../../../types/tasks.js";
 import { emptyTask } from "../../../core/config.js";
 
 import { constants } from "./constants/index.js";
+import { convert } from "./convert/index.js";
 
 export interface GenerateTasksOptions {
   /**
@@ -19,5 +20,6 @@ export function generateTasks(options: GenerateTasksOptions): TaskDefinition[] {
       ? [emptyTask("utils", "Utilities for common Ethereum tasks").build()]
       : []),
     ...constants(options),
+    ...convert(options),
   ];
 }
