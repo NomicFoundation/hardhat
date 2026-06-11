@@ -6,37 +6,41 @@
   "commit": "cd6622442c298ae89c4d92bcbc93a0faca4fbfae",
   "packageManager": "pnpm",
   "submodules": true,
+  "env": {
+    "PATH": "${localEnv:HOME}/.foundry/bin:${localEnv:PATH}"
+  },
+  "preinstall": "./preinstall-foundry.sh",
   "defaultCommand": "npx hardhat test solidity",
   "benchmark": {
     "commands": {
       "compile sequence": {
-        "runs": 2,
+        "runs": 39,
         "steps": {
           "reset files & cache": {
-            "command": "git checkout -- test/UUPSProxy.t.sol test/VerifiableFactory.t.sol src/VerifiableFactory.sol && npx hardhat clean",
+            "command": "git checkout -- test/UUPSProxy.t.sol test/VerifiableFactory.t.sol src/VerifiableFactory.sol && forge clean",
             "measure": false
           },
           "cold compile": {
-            "command": "npx hardhat compile"
+            "command": "forge build"
           },
           "edit & compile Solidity test with min deps: test/UUPSProxy.t.sol": {
-            "command": "printf \"\\n// hardhat benchmark edit\\n\" >> test/UUPSProxy.t.sol && npx hardhat compile"
+            "command": "printf \"\\n// hardhat benchmark edit\\n\" >> test/UUPSProxy.t.sol && forge build"
           },
           "edit & compile Solidity test with max deps: test/VerifiableFactory.t.sol": {
-            "command": "printf \"\\n// hardhat benchmark edit\\n\" >> test/VerifiableFactory.t.sol && npx hardhat compile"
+            "command": "printf \"\\n// hardhat benchmark edit\\n\" >> test/VerifiableFactory.t.sol && forge build"
           },
           "edit & compile Solidity contract: src/VerifiableFactory.sol": {
-            "command": "printf \"\\n// hardhat benchmark edit\\n\" >> src/VerifiableFactory.sol && npx hardhat compile"
+            "command": "printf \"\\n// hardhat benchmark edit\\n\" >> src/VerifiableFactory.sol && forge build"
           }
         }
       },
       "warm compile": {
-        "runs": 2,
-        "command": "npx hardhat compile"
+        "runs": 231,
+        "command": "forge build"
       },
       "test solidity": {
-        "runs": 2,
-        "command": "npx hardhat test solidity --no-compile"
+        "runs": 207,
+        "command": "forge test"
       }
     }
   }

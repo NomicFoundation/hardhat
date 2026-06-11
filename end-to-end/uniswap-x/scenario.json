@@ -7,39 +7,41 @@
   "packageManager": "npm",
   "submodules": true,
   "env": {
-    "FOUNDRY_RPC_URL": "${localEnv:ALCHEMY_URL}"
+    "FOUNDRY_RPC_URL": "${localEnv:ALCHEMY_URL}",
+    "PATH": "${localEnv:HOME}/.foundry/bin:${localEnv:PATH}"
   },
+  "preinstall": "./preinstall-foundry.sh",
   "defaultCommand": "npx hardhat test solidity",
   "benchmark": {
     "commands": {
       "compile sequence": {
-        "runs": 2,
+        "runs": 9,
         "steps": {
           "reset files & cache": {
-            "command": "git checkout -- test/lib/CosignerLib.t.sol test/reactors/V3DutchOrderReactor.t.sol src/base/ReactorStructs.sol && npx hardhat clean",
+            "command": "git checkout -- test/lib/CosignerLib.t.sol test/reactors/V3DutchOrderReactor.t.sol src/base/ReactorStructs.sol && forge clean",
             "measure": false
           },
           "cold compile": {
-            "command": "npx hardhat compile"
+            "command": "forge build"
           },
           "edit & compile Solidity test with min deps: test/lib/CosignerLib.t.sol": {
-            "command": "printf \"\\n// hardhat benchmark edit\\n\" >> test/lib/CosignerLib.t.sol && npx hardhat compile"
+            "command": "printf \"\\n// hardhat benchmark edit\\n\" >> test/lib/CosignerLib.t.sol && forge build"
           },
           "edit & compile Solidity test with max deps: test/reactors/V3DutchOrderReactor.t.sol": {
-            "command": "printf \"\\n// hardhat benchmark edit\\n\" >> test/reactors/V3DutchOrderReactor.t.sol && npx hardhat compile"
+            "command": "printf \"\\n// hardhat benchmark edit\\n\" >> test/reactors/V3DutchOrderReactor.t.sol && forge build"
           },
           "edit & compile Solidity contract: src/base/ReactorStructs.sol": {
-            "command": "printf \"\\n// hardhat benchmark edit\\n\" >> src/base/ReactorStructs.sol && npx hardhat compile"
+            "command": "printf \"\\n// hardhat benchmark edit\\n\" >> src/base/ReactorStructs.sol && forge build"
           }
         }
       },
       "warm compile": {
-        "runs": 2,
-        "command": "npx hardhat compile"
+        "runs": 111,
+        "command": "forge build"
       },
       "test solidity": {
-        "runs": 2,
-        "command": "npx hardhat test solidity --no-compile"
+        "runs": 9,
+        "command": "forge test"
       }
     }
   }

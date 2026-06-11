@@ -6,40 +6,42 @@
   "commit": "690f7f6bbc826ab3d58995e4bc5bf01694222086",
   "packageManager": "yarn",
   "submodules": true,
+  "preinstall": "./preinstall-foundry.sh",
   "defaultCommand": "npx hardhat test solidity",
   "env": {
-    "FOUNDRY_PROFILE": "default"
+    "FOUNDRY_PROFILE": "default",
+    "PATH": "${localEnv:HOME}/.foundry/bin:${localEnv:PATH}"
   },
   "benchmark": {
     "commands": {
       "compile sequence": {
-        "runs": 2,
+        "runs": 9,
         "steps": {
           "reset files & cache": {
-            "command": "git checkout -- test/libraries/FeeCalcLib.t.sol test/integration/ResolverMock.t.sol contracts/BaseEscrow.sol && npx hardhat clean",
+            "command": "git checkout -- test/libraries/FeeCalcLib.t.sol test/integration/ResolverMock.t.sol contracts/BaseEscrow.sol && forge clean",
             "measure": false
           },
           "cold compile": {
-            "command": "npx hardhat compile"
+            "command": "forge build"
           },
           "edit & compile Solidity test with min deps: test/libraries/FeeCalcLib.t.sol": {
-            "command": "printf \"\\n// hardhat benchmark edit\\n\" >> test/libraries/FeeCalcLib.t.sol && npx hardhat compile"
+            "command": "printf \"\\n// hardhat benchmark edit\\n\" >> test/libraries/FeeCalcLib.t.sol && forge build"
           },
           "edit & compile Solidity test with max deps: test/integration/ResolverMock.t.sol": {
-            "command": "printf \"\\n// hardhat benchmark edit\\n\" >> test/integration/ResolverMock.t.sol && npx hardhat compile"
+            "command": "printf \"\\n// hardhat benchmark edit\\n\" >> test/integration/ResolverMock.t.sol && forge build"
           },
           "edit & compile Solidity contract: contracts/BaseEscrow.sol": {
-            "command": "printf \"\\n// hardhat benchmark edit\\n\" >> contracts/BaseEscrow.sol && npx hardhat compile"
+            "command": "printf \"\\n// hardhat benchmark edit\\n\" >> contracts/BaseEscrow.sol && forge build"
           }
         }
       },
       "warm compile": {
-        "runs": 2,
-        "command": "npx hardhat compile"
+        "runs": 291,
+        "command": "forge build"
       },
       "test solidity": {
-        "runs": 15,
-        "command": "npx hardhat test solidity --no-compile"
+        "runs": 27,
+        "command": "forge test"
       }
     }
   }

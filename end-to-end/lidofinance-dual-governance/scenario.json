@@ -7,39 +7,41 @@
   "packageManager": "npm",
   "submodules": true,
   "env": {
-    "MAINNET_RPC_URL": "${localEnv:ALCHEMY_URL}"
+    "MAINNET_RPC_URL": "${localEnv:ALCHEMY_URL}",
+    "PATH": "${localEnv:HOME}/.foundry/bin:${localEnv:PATH}"
   },
+  "preinstall": "./preinstall-foundry.sh",
   "defaultCommand": "npx hardhat test solidity --grep=\"^(test_|testFuzz_)\"",
   "benchmark": {
     "commands": {
       "compile sequence": {
-        "runs": 2,
+        "runs": 9,
         "steps": {
           "reset files & cache": {
-            "command": "git checkout -- test/unit/scripts/launch/TimeConstraints.t.sol test/scenario/mainnet-launch.t.sol contracts/types/Timestamp.sol && npx hardhat clean",
+            "command": "git checkout -- test/unit/scripts/launch/TimeConstraints.t.sol test/scenario/mainnet-launch.t.sol contracts/types/Timestamp.sol && forge clean",
             "measure": false
           },
           "cold compile": {
-            "command": "npx hardhat compile"
+            "command": "forge build"
           },
           "edit & compile Solidity test with min deps: test/unit/scripts/launch/TimeConstraints.t.sol": {
-            "command": "printf \"\\n// hardhat benchmark edit\\n\" >> test/unit/scripts/launch/TimeConstraints.t.sol && npx hardhat compile"
+            "command": "printf \"\\n// hardhat benchmark edit\\n\" >> test/unit/scripts/launch/TimeConstraints.t.sol && forge build"
           },
           "edit & compile Solidity test with max deps: test/scenario/mainnet-launch.t.sol": {
-            "command": "printf \"\\n// hardhat benchmark edit\\n\" >> test/scenario/mainnet-launch.t.sol && npx hardhat compile"
+            "command": "printf \"\\n// hardhat benchmark edit\\n\" >> test/scenario/mainnet-launch.t.sol && forge build"
           },
           "edit & compile Solidity contract: contracts/types/Timestamp.sol": {
-            "command": "printf \"\\n// hardhat benchmark edit\\n\" >> contracts/types/Timestamp.sol && npx hardhat compile"
+            "command": "printf \"\\n// hardhat benchmark edit\\n\" >> contracts/types/Timestamp.sol && forge build"
           }
         }
       },
       "warm compile": {
-        "runs": 2,
-        "command": "npx hardhat compile"
+        "runs": 249,
+        "command": "forge build"
       },
       "test solidity": {
-        "runs": 15,
-        "command": "npx hardhat test solidity --no-compile --grep=\"^(test_|testFuzz_)\""
+        "runs": 9,
+        "command": "forge test --match-test \"^(test_|testFuzz_)\""
       }
     }
   }

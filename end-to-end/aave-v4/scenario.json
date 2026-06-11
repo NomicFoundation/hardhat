@@ -6,38 +6,41 @@
   "commit": "f729aeff7cc61d576e8f89e818e05265ec9f65e9",
   "packageManager": "yarn",
   "submodules": true,
+  "env": {
+    "PATH": "${localEnv:HOME}/.foundry/bin:${localEnv:PATH}"
+  },
   "preinstall": "./preinstall.sh",
   "defaultCommand": "npx hardhat test solidity",
   "benchmark": {
     "commands": {
       "compile sequence": {
-        "runs": 2,
+        "runs": 9,
         "steps": {
           "reset files & cache": {
-            "command": "git checkout -- tests/unit/WadRayMath.t.sol tests/unit/Spoke/Liquidations/Spoke.LiquidationCall.t.sol src/libraries/math/MathUtils.sol && npx hardhat clean",
+            "command": "git checkout -- tests/unit/WadRayMath.t.sol tests/unit/Spoke/Liquidations/Spoke.LiquidationCall.t.sol src/libraries/math/MathUtils.sol && forge clean",
             "measure": false
           },
           "cold compile": {
-            "command": "npx hardhat compile"
+            "command": "forge build"
           },
           "edit & compile Solidity test with min deps: tests/unit/WadRayMath.t.sol": {
-            "command": "printf \"\\n// hardhat benchmark edit\\n\" >> tests/unit/WadRayMath.t.sol && npx hardhat compile"
+            "command": "printf \"\\n// hardhat benchmark edit\\n\" >> tests/unit/WadRayMath.t.sol && forge build"
           },
           "edit & compile Solidity test with max deps: tests/unit/Spoke/Liquidations/Spoke.LiquidationCall.t.sol": {
-            "command": "printf \"\\n// hardhat benchmark edit\\n\" >> tests/unit/Spoke/Liquidations/Spoke.LiquidationCall.t.sol && npx hardhat compile"
+            "command": "printf \"\\n// hardhat benchmark edit\\n\" >> tests/unit/Spoke/Liquidations/Spoke.LiquidationCall.t.sol && forge build"
           },
           "edit & compile Solidity contract: src/libraries/math/MathUtils.sol": {
-            "command": "printf \"\\n// hardhat benchmark edit\\n\" >> src/libraries/math/MathUtils.sol && npx hardhat compile"
+            "command": "printf \"\\n// hardhat benchmark edit\\n\" >> src/libraries/math/MathUtils.sol && forge build"
           }
         }
       },
       "warm compile": {
-        "runs": 2,
-        "command": "npx hardhat compile"
+        "runs": 117,
+        "command": "forge build"
       },
       "test solidity": {
-        "runs": 24,
-        "command": "npx hardhat test solidity --no-compile"
+        "runs": 9,
+        "command": "forge test"
       }
     }
   }

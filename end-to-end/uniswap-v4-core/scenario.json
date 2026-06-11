@@ -6,37 +6,41 @@
   "commit": "ab2b22eef19e0abe29d67420dde81b5d54455ae5",
   "packageManager": "pnpm",
   "submodules": true,
+  "env": {
+    "PATH": "${localEnv:HOME}/.foundry/bin:${localEnv:PATH}"
+  },
+  "preinstall": "./preinstall-foundry.sh",
   "defaultCommand": "npx hardhat test solidity",
   "benchmark": {
     "commands": {
       "compile sequence": {
-        "runs": 2,
+        "runs": 9,
         "steps": {
           "reset files & cache": {
-            "command": "git checkout -- test/libraries/BitMath.t.sol test/PoolManager.t.sol src/types/Currency.sol && npx hardhat clean",
+            "command": "git checkout -- test/libraries/BitMath.t.sol test/PoolManager.t.sol src/types/Currency.sol && forge clean",
             "measure": false
           },
           "cold compile": {
-            "command": "npx hardhat compile"
+            "command": "forge build"
           },
           "edit & compile Solidity test with min deps: test/libraries/BitMath.t.sol": {
-            "command": "printf \"\\n// hardhat benchmark edit\\n\" >> test/libraries/BitMath.t.sol && npx hardhat compile"
+            "command": "printf \"\\n// hardhat benchmark edit\\n\" >> test/libraries/BitMath.t.sol && forge build"
           },
           "edit & compile Solidity test with max deps: test/PoolManager.t.sol": {
-            "command": "printf \"\\n// hardhat benchmark edit\\n\" >> test/PoolManager.t.sol && npx hardhat compile"
+            "command": "printf \"\\n// hardhat benchmark edit\\n\" >> test/PoolManager.t.sol && forge build"
           },
           "edit & compile Solidity contract: src/types/Currency.sol": {
-            "command": "printf \"\\n// hardhat benchmark edit\\n\" >> src/types/Currency.sol && npx hardhat compile"
+            "command": "printf \"\\n// hardhat benchmark edit\\n\" >> src/types/Currency.sol && forge build"
           }
         }
       },
       "warm compile": {
-        "runs": 2,
-        "command": "npx hardhat compile"
+        "runs": 153,
+        "command": "forge build"
       },
       "test solidity": {
-        "runs": 9,
-        "command": "npx hardhat test solidity --no-compile"
+        "runs": 21,
+        "command": "forge test"
       }
     }
   }

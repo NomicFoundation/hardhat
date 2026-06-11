@@ -1,4 +1,13 @@
 #!/usr/bin/env bash
+set -euo pipefail
+
+# Install Foundry so the benchmark's `forge` commands are available. The fuzz
+# reduction below also rewrites foundry.toml, so foundry must be on PATH for
+# the forge-based benchmark commands declared in scenario.json. E2E_TEST_DIR is
+# set by scripts/end-to-end/subcommands/init.ts (see runPreinstallScript) to
+# this scenario's directory, so we can reach the shared helper in _shared/.
+. "$E2E_TEST_DIR/../_shared/foundry-install.sh"
+install_foundry v1.7.1
 
 # Reduce the Solidity-test fuzz workload for benchmarking.
 #
@@ -38,10 +47,16 @@ if (!hhRe.test(hhConfig)) {
 }
 fs.writeFileSync(hhPath, hhConfig.replace(hhRe, \`\$1\${fuzzRuns}\`));
 
-// 2) foundry.toml — [profile.default.fuzz] runs. The word boundary after 1000
-//    keeps this off 'runs = 10000'/'runs = 5000' and the 'optimizer_runs' values.
+// 2) foundry.toml — reduce [profile.default.fuzz] runs (the word boundary after
+//    1000 keeps this off 'runs = 10000'/'runs = 5000' and 'optimizer_runs'), and
+//    clamp any optimizer_runs above Foundry's u32 maximum. The aave-v4 fork sets
+//    optimizer_runs = 444444444444, which Solidity (and so Hardhat) accept but
+//    Foundry rejects ('optimizer_runs value 444444444444 exceeds maximum allowed
+//    value of 4294967295'), making every forge command — including the benchmark
+//    commands — fail until it is clamped. Clamping to the u32 max preserves the
+//    'optimize as hard as possible' intent while letting forge parse the config.
 const fdPath = 'foundry.toml';
-const fdConfig = fs.readFileSync(fdPath, 'utf8');
+let fdConfig = fs.readFileSync(fdPath, 'utf8');
 const fdRe = /\bruns = 1000\b/;
 if (!fdRe.test(fdConfig)) {
   console.error(
@@ -51,10 +66,22 @@ if (!fdRe.test(fdConfig)) {
   );
   process.exit(1);
 }
-fs.writeFileSync(fdPath, fdConfig.replace(fdRe, \`runs = \${fuzzRuns}\`));
+fdConfig = fdConfig.replace(fdRe, \`runs = \${fuzzRuns}\`);
+
+const FOUNDRY_MAX_OPTIMIZER_RUNS = 4294967295;
+let clampedOptimizerRuns = 0;
+fdConfig = fdConfig.replace(/optimizer_runs = (\d+)/g, (match, value) => {
+  if (Number(value) > FOUNDRY_MAX_OPTIMIZER_RUNS) {
+    clampedOptimizerRuns++;
+    return 'optimizer_runs = ' + FOUNDRY_MAX_OPTIMIZER_RUNS;
+  }
+  return match;
+});
+fs.writeFileSync(fdPath, fdConfig);
 
 console.log(
   \`aave-v4 preinstall: reduced fuzz runs 1000 -> \${fuzzRuns} in \` +
-    'hardhat.config.ts and foundry.toml for benchmarking',
+    'hardhat.config.ts and foundry.toml, and clamped ' + clampedOptimizerRuns +
+    ' over-u32 optimizer_runs value(s) in foundry.toml for benchmarking',
 );
 "

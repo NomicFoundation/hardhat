@@ -6,37 +6,41 @@
   "commit": "19277969b5e67b5b55968422b4cba4029544807c",
   "packageManager": "yarn",
   "submodules": false,
+  "env": {
+    "PATH": "${localEnv:HOME}/.foundry/bin:${localEnv:PATH}"
+  },
+  "preinstall": "./preinstall-foundry.sh",
   "defaultCommand": "npx hardhat test solidity",
   "benchmark": {
     "commands": {
       "compile sequence": {
-        "runs": 2,
+        "runs": 15,
         "steps": {
           "reset files & cache": {
-            "command": "git checkout -- test/AquaLifecycle.t.sol test/AquaStorageTest.t.sol src/Aqua.sol && npx hardhat clean",
+            "command": "git checkout -- test/AquaLifecycle.t.sol test/AquaStorageTest.t.sol src/Aqua.sol && forge clean",
             "measure": false
           },
           "cold compile": {
-            "command": "npx hardhat compile"
+            "command": "forge build"
           },
           "edit & compile Solidity test with min deps: test/AquaLifecycle.t.sol": {
-            "command": "printf \"\\n// hardhat benchmark edit\\n\" >> test/AquaLifecycle.t.sol && npx hardhat compile"
+            "command": "printf \"\\n// hardhat benchmark edit\\n\" >> test/AquaLifecycle.t.sol && forge build"
           },
           "edit & compile Solidity test with max deps: test/AquaStorageTest.t.sol": {
-            "command": "printf \"\\n// hardhat benchmark edit\\n\" >> test/AquaStorageTest.t.sol && npx hardhat compile"
+            "command": "printf \"\\n// hardhat benchmark edit\\n\" >> test/AquaStorageTest.t.sol && forge build"
           },
           "edit & compile Solidity contract: src/Aqua.sol": {
-            "command": "printf \"\\n// hardhat benchmark edit\\n\" >> src/Aqua.sol && npx hardhat compile"
+            "command": "printf \"\\n// hardhat benchmark edit\\n\" >> src/Aqua.sol && forge build"
           }
         }
       },
       "warm compile": {
-        "runs": 2,
-        "command": "npx hardhat compile"
+        "runs": 165,
+        "command": "forge build"
       },
       "test solidity": {
-        "runs": 2,
-        "command": "npx hardhat test solidity --no-compile"
+        "runs": 249,
+        "command": "forge test"
       }
     }
   }

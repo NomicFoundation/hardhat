@@ -6,37 +6,41 @@
   "commit": "eacd08361caf75431d2b4409136cf4eb10fa63a3",
   "packageManager": "pnpm",
   "submodules": false,
+  "env": {
+    "PATH": "${localEnv:HOME}/.foundry/bin:${localEnv:PATH}"
+  },
+  "preinstall": "./preinstall-foundry.sh",
   "defaultCommand": "npx hardhat test solidity",
   "benchmark": {
     "commands": {
       "compile sequence": {
-        "runs": 2,
+        "runs": 9,
         "steps": {
           "reset files & cache": {
-            "command": "git checkout -- test/ProtocolFeeProviderMock.t.sol test/TransferModesCombinations.t.sol src/SwapVM.sol && npx hardhat clean",
+            "command": "git checkout -- test/ProtocolFeeProviderMock.t.sol test/TransferModesCombinations.t.sol src/SwapVM.sol && forge clean",
             "measure": false
           },
           "cold compile": {
-            "command": "npx hardhat compile"
+            "command": "forge build"
           },
           "edit & compile Solidity test with min deps: test/ProtocolFeeProviderMock.t.sol": {
-            "command": "printf \"\\n// hardhat benchmark edit\\n\" >> test/ProtocolFeeProviderMock.t.sol && npx hardhat compile"
+            "command": "printf \"\\n// hardhat benchmark edit\\n\" >> test/ProtocolFeeProviderMock.t.sol && forge build"
           },
           "edit & compile Solidity test with max deps: test/TransferModesCombinations.t.sol": {
-            "command": "printf \"\\n// hardhat benchmark edit\\n\" >> test/TransferModesCombinations.t.sol && npx hardhat compile"
+            "command": "printf \"\\n// hardhat benchmark edit\\n\" >> test/TransferModesCombinations.t.sol && forge build"
           },
           "edit & compile Solidity contract: src/SwapVM.sol": {
-            "command": "printf \"\\n// hardhat benchmark edit\\n\" >> src/SwapVM.sol && npx hardhat compile"
+            "command": "printf \"\\n// hardhat benchmark edit\\n\" >> src/SwapVM.sol && forge build"
           }
         }
       },
       "warm compile": {
-        "runs": 2,
-        "command": "npx hardhat compile"
+        "runs": 135,
+        "command": "forge build"
       },
       "test solidity": {
-        "runs": 4,
-        "command": "npx hardhat test solidity --no-compile"
+        "runs": 87,
+        "command": "forge test"
       }
     }
   }
