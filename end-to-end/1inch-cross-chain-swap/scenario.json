@@ -5,53 +5,58 @@
   "repo": "1inch/cross-chain-swap",
   "commit": "68191c117c3a74917e823cbaeab31976463c12ef",
   "packageManager": "yarn",
+  "env": {
+    "PATH": "${localEnv:HOME}/.foundry/bin:${localEnv:PATH}",
+    "FOUNDRY_ISOLATE": "false"
+  },
   "submodules": false,
+  "preinstall": "./preinstall-foundry.sh",
   "defaultCommand": "npx hardhat test solidity",
   "benchmark": {
     "commands": {
       "compile sequence": {
-        "runs": 2,
+        "runs": 9,
         "steps": {
           "reset files & cache": {
-            "command": "git checkout -- test/libraries/FeeCalcLib.t.sol test/integration/MerkleStorageInvalidator.t.sol contracts/libraries/TimelocksLib.sol && npx hardhat clean",
+            "command": "git checkout -- test/libraries/FeeCalcLib.t.sol test/integration/MerkleStorageInvalidator.t.sol contracts/libraries/TimelocksLib.sol && forge clean",
             "measure": false
           },
           "cold compile": {
-            "command": "npx hardhat compile",
+            "command": "forge build",
             "dependsOn": ["reset files & cache"]
           },
           "edit & compile Solidity test with min deps: test/libraries/FeeCalcLib.t.sol": {
-            "command": "printf \"\\n// hardhat benchmark edit\\n\" >> test/libraries/FeeCalcLib.t.sol && npx hardhat compile",
+            "command": "printf \"\\n// hardhat benchmark edit\\n\" >> test/libraries/FeeCalcLib.t.sol && forge build",
             "dependsOn": ["cold compile"]
           },
           "edit & compile Solidity test with max deps: test/integration/MerkleStorageInvalidator.t.sol": {
-            "command": "printf \"\\n// hardhat benchmark edit\\n\" >> test/integration/MerkleStorageInvalidator.t.sol && npx hardhat compile",
+            "command": "printf \"\\n// hardhat benchmark edit\\n\" >> test/integration/MerkleStorageInvalidator.t.sol && forge build",
             "dependsOn": ["cold compile"]
           },
           "edit & compile Solidity contract: contracts/libraries/TimelocksLib.sol": {
-            "command": "printf \"\\n// hardhat benchmark edit\\n\" >> contracts/libraries/TimelocksLib.sol && npx hardhat compile",
+            "command": "printf \"\\n// hardhat benchmark edit\\n\" >> contracts/libraries/TimelocksLib.sol && forge build",
             "dependsOn": ["cold compile"]
           }
         }
       },
       "warm compile": {
-        "runs": 2,
-        "command": "npx hardhat compile",
+        "runs": 291,
+        "command": "forge build",
         "dependsOn": ["cold compile"]
       },
       "test solidity": {
-        "runs": 15,
-        "command": "npx hardhat test solidity --no-compile",
+        "runs": 27,
+        "command": "forge test",
         "dependsOn": ["cold compile"]
       },
       "test solidity -vvv": {
-        "runs": 15,
-        "command": "npx hardhat test solidity --no-compile -vvv",
+        "runs": 27,
+        "command": "forge test -vvv",
         "dependsOn": ["cold compile"]
       },
       "test solidity -vvvv": {
-        "runs": 15,
-        "command": "npx hardhat test solidity --no-compile -vvvv",
+        "runs": 27,
+        "command": "forge test -vvvv",
         "dependsOn": ["cold compile"]
       }
     }
