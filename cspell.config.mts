@@ -5,7 +5,7 @@ export default defineConfig({
   language: "en",
   files: [
     "*.{js,ts,md,json,yml,yaml,mjs,cjs,mts,cts}",
-    "{.github,scripts,packages}/**/*.{js,ts,md,json,yml,yaml,mjs,cjs,mts,cts}",
+    "{.github,scripts,packages,docs}/**/*.{js,ts,md,json,yml,yaml,mjs,cjs,mts,cts}",
   ],
   ignoreRandomStrings: true,
   allowCompoundWords: true,

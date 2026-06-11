@@ -1,7 +1,7 @@
 import type { HookContext, NetworkHooks } from "hardhat/types/hooks";
 import type { ChainType, NetworkConnection } from "hardhat/types/network";
 
-import { Verification } from "../verification-helpers.js";
+import { LazyVerification } from "../lazy-verification.js";
 
 export default async (): Promise<Partial<NetworkHooks>> => ({
   async newConnection<ChainTypeT extends ChainType | string>(
@@ -10,7 +10,7 @@ export default async (): Promise<Partial<NetworkHooks>> => ({
   ) {
     const connection = await next(context);
 
-    connection.verification = new Verification(
+    connection.verification = new LazyVerification(
       connection.provider,
       connection.networkName,
       context.config.chainDescriptors,
