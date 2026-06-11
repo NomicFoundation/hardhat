@@ -1,4 +1,4 @@
-import type { TaskDefinition } from "../../../../../types/index.js";
+import type { TaskDefinition } from "../../../../../types/tasks.js";
 import type { GenerateTasksOptions } from "../index.js";
 
 import { emptyTask, task } from "../../../../core/config.js";

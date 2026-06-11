@@ -1,6 +1,6 @@
-import type { TaskDefinition } from "../../../../types/index.js";
+import type { TaskDefinition } from "../../../../types/tasks.js";
 
-import { emptyTask } from "../../../../config.js";
+import { emptyTask } from "../../../core/config.js";
 
 import { constants } from "./constants/index.js";
 

@@ -1,9 +1,6 @@
 import type { GlobalOptionDefinitions } from "../../types/global-options.js";
-import type {
-  HardhatRuntimeEnvironment,
-  Task,
-  TaskDefinition,
-} from "../../types/index.js";
+import type { HardhatRuntimeEnvironment } from "../../types/hre.js";
+import type { Task, TaskDefinition } from "../../types/tasks.js";
 
 import {
   assertHardhatInvariant,
@@ -13,9 +10,9 @@ import { isCi } from "@nomicfoundation/hardhat-utils/ci";
 import { createDebug } from "@nomicfoundation/hardhat-utils/debug";
 import { ensureError } from "@nomicfoundation/hardhat-utils/error";
 
-import { globalFlag } from "../../config.js";
 import { isResult } from "../../utils/result.js";
 import { generateTasks } from "../builtin-plugins/hhu/tasks/index.js";
+import { globalFlag } from "../core/config.js";
 import { TaskManagerImplementation } from "../core/tasks/task-manager.js";
 import { getHardhatVersion } from "../utils/package.js";
 
