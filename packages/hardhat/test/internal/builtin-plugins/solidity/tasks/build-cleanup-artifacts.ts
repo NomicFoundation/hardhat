@@ -758,6 +758,53 @@ const unifiedTestsCompilationConfig = {
 };
 
 describe("build task - unified mode cleanup", () => {
+  it("preserves existing test artifacts when building with noTests", async () => {
+    await using project = await useTestProjectTemplate(
+      unifiedCleanupProjectTemplate,
+    );
+    const hre = await project.getHRE(unifiedTestsCompilationConfig);
+
+    await hre.tasks.getTask("build").run({ force: true, quiet: true });
+
+    const artifactsPath = await hre.solidity.getArtifactsDirectory("contracts");
+    const sourceTestArtifact = path.join(
+      artifactsPath,
+      "contracts",
+      "Foo.t.sol",
+      "FooTest.json",
+    );
+    const testDirectoryArtifact = path.join(
+      artifactsPath,
+      "test",
+      "OtherFooTest.sol",
+      "OtherFooTest.json",
+    );
+
+    assert.ok(
+      await exists(sourceTestArtifact),
+      "Source-directory test artifact should exist after the initial full build",
+    );
+    assert.ok(
+      await exists(testDirectoryArtifact),
+      "Test-directory artifact should exist after the initial full build",
+    );
+
+    await hre.tasks.getTask("build").run({
+      force: true,
+      noTests: true,
+      quiet: true,
+    });
+
+    assert.ok(
+      await exists(sourceTestArtifact),
+      "Source-directory test artifact should remain after build --no-tests",
+    );
+    assert.ok(
+      await exists(testDirectoryArtifact),
+      "Test-directory artifact should remain after build --no-tests",
+    );
+  });
+
   it("includes test artifacts in duplicate-name detection", async () => {
     const duplicateNameTemplate = {
       name: "test",
