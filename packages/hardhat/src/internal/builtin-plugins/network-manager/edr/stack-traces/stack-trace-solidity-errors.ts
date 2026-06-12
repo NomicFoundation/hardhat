@@ -28,19 +28,8 @@ const CHEATCODE_SUGGESTIONS: Record<string, string> = {
 
 export function getCheatcodeSuggestion(cheatcode: string): string {
   const suggestion = CHEATCODE_SUGGESTIONS[cheatcode];
-  if (suggestion !== undefined) {
-    return suggestion;
-  }
 
-  // Match by function name prefix for overloaded variants
-  const name = cheatcode.split("(")[0];
-  for (const [key, value] of Object.entries(CHEATCODE_SUGGESTIONS)) {
-    if (key.startsWith(name + "(")) {
-      return value;
-    }
-  }
-
-  return "";
+  return suggestion ?? "";
 }
 
 export function createSolidityErrorWithStackTrace(
