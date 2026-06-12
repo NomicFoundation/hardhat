@@ -21,6 +21,32 @@ import {
   UNRECOGNIZED_FUNCTION_NAME,
 } from "./solidity-stack-trace.js";
 
+interface CheatcodeSuggestion {
+  message: string;
+  docsUrl?: string;
+}
+
+const CHEATCODE_SUGGESTIONS: Record<string, CheatcodeSuggestion> = {
+  "eip712HashType(string,string)": {
+    message:
+      "Providing a path to a bindings file is not supported, please use the eip712HashType(string calldata typeNameOrDefinition) cheatcode instead.",
+    docsUrl:
+      "https://hardhat.org/docs/reference/cheatcodes/utilities/eip712-hash-type",
+  },
+};
+
+export function getCheatcodeSuggestion(cheatcode: string): string {
+  const suggestion = CHEATCODE_SUGGESTIONS[cheatcode];
+
+  if (suggestion === undefined) {
+    return "";
+  }
+
+  return suggestion.docsUrl !== undefined
+    ? `${suggestion.message} See ${suggestion.docsUrl} for more information.`
+    : suggestion.message;
+}
+
 export function createSolidityErrorWithStackTrace(
   fallbackMessage: string,
   stackTrace: SolidityStackTrace,
@@ -277,6 +303,13 @@ function getMessageFromLastStackTraceEntry(
         switch (stackTraceEntry.details.code) {
           case CheatcodeErrorCode.UnsupportedCheatcode:
             message = `Cheatcode '${stackTraceEntry.details.cheatcode}' is not supported by Hardhat.`;
+
+            const suggestion = getCheatcodeSuggestion(
+              stackTraceEntry.details.cheatcode,
+            );
+
+            message += suggestion.length > 0 ? " " + suggestion : "";
+
             break;
           case CheatcodeErrorCode.MissingCheatcode:
             message = `Cheatcode '${stackTraceEntry.details.cheatcode}' is not yet available in this version of Hardhat.`;

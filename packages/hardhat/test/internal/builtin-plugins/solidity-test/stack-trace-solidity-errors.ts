@@ -62,5 +62,22 @@ describe("getMessageFromLastStackTraceEntry", () => {
         "Cheatcode 'someNewCheatcode(uint256)' is not yet available in this version of Hardhat.",
       );
     });
+
+    it("appends a suggestion for unsupported cheatcodes with known alternatives", () => {
+      const entry: SolidityStackTraceEntry = {
+        type: StackTraceEntryType.CHEATCODE_ERROR,
+        message: "cheatcode 'eip712HashType(string,string)' is not supported",
+        sourceReference: dummySourceReference,
+        details: {
+          code: CheatcodeErrorCode.UnsupportedCheatcode,
+          cheatcode: "eip712HashType(string,string)",
+        },
+      };
+
+      assert.equal(
+        getMessageFromLastStackTraceEntry(entry),
+        "Cheatcode 'eip712HashType(string,string)' is not supported by Hardhat. Providing a path to a bindings file is not supported, please use the eip712HashType(string calldata typeNameOrDefinition) cheatcode instead. See https://hardhat.org/docs/reference/cheatcodes/utilities/eip712-hash-type for more information.",
+      );
+    });
   });
 });

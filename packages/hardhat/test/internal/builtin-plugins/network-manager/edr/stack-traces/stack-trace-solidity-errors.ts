@@ -12,6 +12,7 @@ import {
 import {
   createSolidityErrorWithStackTrace,
   encodeStackTraceEntry,
+  getCheatcodeSuggestion,
   SolidityCallSite,
   SolidityError,
 } from "../../../../../../src/internal/builtin-plugins/network-manager/edr/stack-traces/stack-trace-solidity-errors.js";
@@ -88,6 +89,7 @@ describe("createSolidityErrorWithStackTrace", () => {
         [entry],
         "0x",
       );
+
       assert.equal(
         error.message,
         "VM Exception while processing transaction: cheatcode 'broadcast(address)' is not supported",
@@ -110,6 +112,7 @@ describe("createSolidityErrorWithStackTrace", () => {
         [entry],
         "0x",
       );
+
       assert.equal(
         error.message,
         "VM Exception while processing transaction: Cheatcode 'broadcast(address)' is not supported by Hardhat.",
@@ -132,9 +135,33 @@ describe("createSolidityErrorWithStackTrace", () => {
         [entry],
         "0x",
       );
+
       assert.equal(
         error.message,
         "VM Exception while processing transaction: Cheatcode 'someNewCheatcode(uint256)' is not yet available in this version of Hardhat.",
+      );
+    });
+
+    it("appends a suggestion for unsupported cheatcodes with known alternatives", () => {
+      const entry: SolidityStackTraceEntry = {
+        type: StackTraceEntryType.CHEATCODE_ERROR,
+        message: "cheatcode 'eip712HashType(string,string)' is not supported",
+        sourceReference: dummySourceReference,
+        details: {
+          code: CheatcodeErrorCode.UnsupportedCheatcode,
+          cheatcode: "eip712HashType(string,string)",
+        },
+      };
+
+      const error = createSolidityErrorWithStackTrace(
+        "fallback",
+        [entry],
+        "0x",
+      );
+
+      assert.match(
+        error.message,
+        /please use the eip712HashType\(string calldata typeNameOrDefinition\) cheatcode instead/,
       );
     });
   });
@@ -226,5 +253,27 @@ describe("createSolidityErrorWithStackTrace", () => {
       );
       assert.equal(typeof error.solidityStack, "string");
     });
+  });
+});
+
+describe("getCheatcodeSuggestion", () => {
+  it("returns a suggestion for a known cheatcode", () => {
+    const suggestion = getCheatcodeSuggestion("eip712HashType(string,string)");
+
+    assert.ok(suggestion.length > 0, "a suggestion should be returned");
+    assert.match(
+      suggestion,
+      /eip712HashType\(string calldata typeNameOrDefinition\)/,
+    );
+    assert.match(
+      suggestion,
+      /https:\/\/hardhat\.org\/docs\/reference\/cheatcodes\/utilities\/eip712-hash-type/,
+    );
+  });
+
+  it("returns an empty string for an unknown cheatcode", () => {
+    const suggestion = getCheatcodeSuggestion("unknownCheatcode(uint256)");
+
+    assert.equal(suggestion, "");
   });
 });
