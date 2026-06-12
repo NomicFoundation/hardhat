@@ -171,7 +171,7 @@ describe("getCheatcodeSuggestion", () => {
   it("returns a suggestion for a known cheatcode", () => {
     const suggestion = getCheatcodeSuggestion("eip712HashType(string,string)");
 
-    assert.ok(suggestion.length > 0);
+    assert.ok(suggestion.length > 0, "a suggestion should be returned");
     assert.match(suggestion, /eip712HashType\(string\)/);
   });
 

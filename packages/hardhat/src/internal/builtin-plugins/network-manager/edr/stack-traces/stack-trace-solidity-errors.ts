@@ -23,7 +23,7 @@ import {
 
 const CHEATCODE_SUGGESTIONS: Record<string, string> = {
   "eip712HashType(string,string)":
-    " Please use the 'eip712HashType(string)' cheatcode instead, which accepts a type definition directly.",
+    "Please use the 'eip712HashType(string)' cheatcode instead, which accepts a type definition directly.",
 };
 
 export function getCheatcodeSuggestion(cheatcode: string): string {
@@ -288,9 +288,13 @@ function getMessageFromLastStackTraceEntry(
         switch (stackTraceEntry.details.code) {
           case CheatcodeErrorCode.UnsupportedCheatcode:
             message = `Cheatcode '${stackTraceEntry.details.cheatcode}' is not supported by Hardhat.`;
-            message += getCheatcodeSuggestion(
+
+            const suggestion = getCheatcodeSuggestion(
               stackTraceEntry.details.cheatcode,
             );
+
+            message += suggestion.length > 0 ? " " + suggestion : "";
+
             break;
           case CheatcodeErrorCode.MissingCheatcode:
             message = `Cheatcode '${stackTraceEntry.details.cheatcode}' is not yet available in this version of Hardhat.`;

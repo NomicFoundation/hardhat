@@ -6,7 +6,6 @@ import {
   StackTraceEntryType,
   CheatcodeErrorCode,
 } from "../network-manager/edr/stack-traces/solidity-stack-trace.js";
-
 import { getCheatcodeSuggestion } from "../network-manager/edr/stack-traces/stack-trace-solidity-errors.js";
 
 export function getMessageFromLastStackTraceEntry(
@@ -73,7 +72,11 @@ export function getMessageFromLastStackTraceEntry(
       if (stackTraceEntry.details !== undefined) {
         switch (stackTraceEntry.details.code) {
           case CheatcodeErrorCode.UnsupportedCheatcode:
-            return `Cheatcode '${stackTraceEntry.details.cheatcode}' is not supported by Hardhat.${getCheatcodeSuggestion(stackTraceEntry.details.cheatcode)}`;
+            const suggestion = getCheatcodeSuggestion(
+              stackTraceEntry.details.cheatcode,
+            );
+
+            return `Cheatcode '${stackTraceEntry.details.cheatcode}' is not supported by Hardhat.${suggestion.length > 0 ? " " + suggestion : ""}`;
           case CheatcodeErrorCode.MissingCheatcode:
             return `Cheatcode '${stackTraceEntry.details.cheatcode}' is not yet available in this version of Hardhat.`;
         }
