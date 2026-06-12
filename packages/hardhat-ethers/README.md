@@ -30,7 +30,7 @@ By default, `HardhatEthersSigner.sendTransaction` follows ethers.js and resolves
 ```ts
 export default defineConfig({
   networks: {
-    anvil: {
+    externalNode: {
       type: "http",
       url: "http://127.0.0.1:8545",
       ethers: {

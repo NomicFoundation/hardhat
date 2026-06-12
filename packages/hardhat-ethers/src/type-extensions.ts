@@ -22,10 +22,10 @@ declare module "hardhat/types/config" {
      *
      * The default is false, matching ethers' JsonRpcSigner behavior.
      *
-     * Enable this only for compatibility runs against external nodes (anvil,
-     * geth, reth) whose eth_sendTransaction returns before mining. Leave it
-     * off otherwise, since it changes pending-transaction timing and waits for
-     * mining on every send.
+     * Enable this only for compatibility runs against external nodes whose
+     * eth_sendTransaction returns before mining. Leave it off otherwise, since
+     * it changes pending-transaction timing and waits for mining on every
+     * send.
      */
     waitForTransactionReceipt?: boolean;
   }
