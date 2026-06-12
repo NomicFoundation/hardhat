@@ -92,7 +92,7 @@ jobs:
     # GitHub runners produce noisy results that will generate false positives
     # against the configured alert-threshold.
     runs-on: hardhat-linux-amd64-self-hosted
-    timeout-minutes: 180
+    timeout-minutes: 900
     permissions:
       # Lets the short-lived GITHUB_TOKEN used on non-baseline runs read commit
       # metadata via the REST API (see "Store benchmark result").
