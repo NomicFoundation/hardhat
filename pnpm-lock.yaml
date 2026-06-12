@@ -298,12 +298,18 @@ importers:
       '@nomicfoundation/hardhat-utils':
         specifier: workspace:^4.1.2
         version: link:../hardhat-utils
+      '@nomicfoundation/hardhat-zod-utils':
+        specifier: workspace:^3.0.5
+        version: link:../hardhat-zod-utils
       ethereum-cryptography:
         specifier: ^2.2.1
         version: 2.2.1
       ethers:
         specifier: ^6.14.0
         version: 6.15.0
+      zod:
+        specifier: ^3.23.8
+        version: 3.25.76
     devDependencies:
       '@nomicfoundation/hardhat-node-test-reporter':
         specifier: workspace:^3.1.0
