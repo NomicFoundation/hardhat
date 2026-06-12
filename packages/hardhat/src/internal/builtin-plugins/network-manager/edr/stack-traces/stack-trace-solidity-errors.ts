@@ -21,15 +21,30 @@ import {
   UNRECOGNIZED_FUNCTION_NAME,
 } from "./solidity-stack-trace.js";
 
-const CHEATCODE_SUGGESTIONS: Record<string, string> = {
-  "eip712HashType(string,string)":
-    "Please use the 'eip712HashType(string)' cheatcode instead, which accepts a type definition directly.",
+interface CheatcodeSuggestion {
+  message: string;
+  docsUrl?: string;
+}
+
+const CHEATCODE_SUGGESTIONS: Record<string, CheatcodeSuggestion> = {
+  "eip712HashType(string,string)": {
+    message:
+      "Please use the 'eip712HashType(string)' cheatcode instead, which accepts a type definition directly.",
+    docsUrl:
+      "https://hardhat.org/docs/reference/cheatcodes/utilities/eip712-hash-type",
+  },
 };
 
 export function getCheatcodeSuggestion(cheatcode: string): string {
   const suggestion = CHEATCODE_SUGGESTIONS[cheatcode];
 
-  return suggestion ?? "";
+  if (suggestion === undefined) {
+    return "";
+  }
+
+  return suggestion.docsUrl !== undefined
+    ? `${suggestion.message} See ${suggestion.docsUrl} for more information.`
+    : suggestion.message;
 }
 
 export function createSolidityErrorWithStackTrace(

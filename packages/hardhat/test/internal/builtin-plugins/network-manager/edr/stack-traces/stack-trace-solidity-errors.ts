@@ -173,6 +173,10 @@ describe("getCheatcodeSuggestion", () => {
 
     assert.ok(suggestion.length > 0, "a suggestion should be returned");
     assert.match(suggestion, /eip712HashType\(string\)/);
+    assert.match(
+      suggestion,
+      /https:\/\/hardhat\.org\/docs\/reference\/cheatcodes\/utilities\/eip712-hash-type/,
+    );
   });
 
   it("returns an empty string for an unknown cheatcode", () => {
