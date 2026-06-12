@@ -165,31 +165,32 @@ function isJsonRpcExecutionErrorCode(code: unknown): boolean {
   return code === 3 || code === -32000 || code === -32003;
 }
 
+// Provider and Hardhat message formats that signal an EVM execution failure
+// with no return data.
+const EVM_EXECUTION_ERROR_MESSAGE_PATTERNS = [
+  /^execution reverted\b/i,
+  /^Transaction reverted (?:without a reason(?: string)?|and Hardhat couldn't infer the reason\.)/i,
+  /^Transaction reverted: contract call run out of gas and made the transaction revert$/i,
+  /^VM Exception while processing transaction: (?:invalid opcode|out of gas|reverted\b)/i,
+  /(?:^|:\s*)invalid opcode\b/i,
+];
+
 /**
  * Checks if an error message is a known JSON-RPC provider message for an EVM
  * execution failure when no return data is available.
  */
 export function isKnownEvmExecutionErrorMessage(message: string): boolean {
   return (
-    /^execution reverted\b/i.test(message) ||
-    /^Transaction reverted (?:without a reason(?: string)?|and Hardhat couldn't infer the reason\.)/i.test(
-      message,
-    ) ||
-    /^Transaction reverted: contract call run out of gas and made the transaction revert$/i.test(
-      message,
-    ) ||
-    /^VM Exception while processing transaction: (?:invalid opcode|out of gas|reverted\b)/i.test(
-      message,
-    ) ||
-    /(?:^|:\s*)invalid opcode\b/i.test(message) ||
-    isEvmExceptionalHaltMessage(message)
+    EVM_EXECUTION_ERROR_MESSAGE_PATTERNS.some((pattern) =>
+      pattern.test(message),
+    ) || isEvmExceptionalHaltMessage(message)
   );
 }
 
 // This list is a verbatim copy of the `ExceptionalHalt` enum in
 // `@nomicfoundation/edr`'s `index.d.ts`, which is the source of truth.
 // It can silently drift on EDR bumps, so keep it in sync.
-const EVM_EXCEPTIONAL_HALT_MESSAGES = new Set([
+const EVM_EXCEPTIONAL_HALT_NAMES = new Set([
   "OutOfGas",
   "OpcodeNotFound",
   "InvalidFEOpcode",
@@ -207,13 +208,9 @@ const EVM_EXCEPTIONAL_HALT_MESSAGES = new Set([
 ]);
 
 function isEvmExceptionalHaltMessage(message: string): boolean {
-  const match = /^EVM error:?\s+([A-Z][A-Za-z0-9_]*)\b/.exec(message);
+  const [, haltName] = /^EVM error:?\s+([A-Z]\w*)/.exec(message) ?? [];
 
-  return (
-    match !== null &&
-    match[1] !== undefined &&
-    EVM_EXCEPTIONAL_HALT_MESSAGES.has(match[1])
-  );
+  return haltName !== undefined && EVM_EXCEPTIONAL_HALT_NAMES.has(haltName);
 }
 
 export async function getTransactionRevertData(
