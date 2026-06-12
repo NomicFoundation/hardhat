@@ -22,6 +22,13 @@ import {
   initEnvironment,
 } from "../../helpers/helpers.js";
 
+import {
+  createNoDataCallException,
+  createNoDataProviderExecutionError,
+  createNoDataProviderExecutionErrorWithEnvelopeData,
+  createNestedNoDataProviderExecutionError,
+} from "./no-data-error-fixtures.js";
+
 addChaiMatchers();
 
 describe("INTEGRATION: Revert", { timeout: 60000 }, () => {
@@ -425,11 +432,103 @@ describe("INTEGRATION: Revert", { timeout: 60000 }, () => {
     });
 
     describe("invalid rejection values", () => {
+      const expectNoDataExecutionError = async (error: Error) => {
+        await expect(Promise.reject(error)).to.be.revert(ethers);
+      };
+
+      const expectNonRevertError = async (error: Error, message: string) => {
+        await expect(
+          expect(Promise.reject(error)).to.be.revert(ethers),
+        ).to.be.rejectedWith(message);
+      };
+
       it("non-errors", async () => {
         await expectAssertionError(
           expect(Promise.reject({})).to.be.revert(ethers),
           "Expected an Error object",
         );
+      });
+
+      it("no-data call exceptions", async () => {
+        for (const action of ["call", "estimateGas"] as const) {
+          await expectNoDataExecutionError(createNoDataCallException(action));
+        }
+
+        await expectNoDataExecutionError(
+          createNoDataCallException("call", new Error("execution reverted")),
+        );
+
+        await expectAssertionError(
+          expect(
+            Promise.reject(createNoDataCallException("call")),
+          ).not.to.be.revert(ethers),
+          "Expected transaction NOT to be reverted",
+        );
+      });
+
+      it("no-data provider execution errors", async () => {
+        for (const code of [-32003, -32000, 3]) {
+          await expectNoDataExecutionError(
+            createNoDataProviderExecutionError(code),
+          );
+        }
+
+        await expectNoDataExecutionError(
+          createNoDataProviderExecutionError(-32003, "EVM error OutOfGas"),
+        );
+        await expectNoDataExecutionError(
+          createNoDataProviderExecutionErrorWithEnvelopeData(-32003),
+        );
+        await expectNoDataExecutionError(
+          createNestedNoDataProviderExecutionError(-32003),
+        );
+
+        await expectNonRevertError(
+          new Error("execution reverted"),
+          "execution reverted",
+        );
+        await expectNonRevertError(
+          new Error("invalid opcode: INVALID"),
+          "invalid opcode: INVALID",
+        );
+        await expectNonRevertError(
+          createNoDataProviderExecutionError(
+            -32003,
+            "EVM error; database error: failed to get account",
+          ),
+          "EVM error; database error: failed to get account",
+        );
+        await expectNonRevertError(
+          createNoDataProviderExecutionError(-32003, "EVM error DatabaseError"),
+          "EVM error DatabaseError",
+        );
+      });
+
+      it("no-data execution errors still require return data for reason-specific matchers", async () => {
+        const reasonSpecificAssertions = [
+          () =>
+            expect(
+              Promise.reject(createNoDataProviderExecutionError(-32003)),
+            ).to.be.revertedWith("some reason"),
+          () =>
+            expect(
+              Promise.reject(createNoDataProviderExecutionError(-32003)),
+            ).to.be.revertedWithPanic(),
+          () =>
+            expect(
+              Promise.reject(createNoDataProviderExecutionError(-32003)),
+            ).to.be.revertedWithCustomError(matchers, "SomeCustomError"),
+          () =>
+            expect(
+              Promise.reject(createNoDataProviderExecutionError(-32003)),
+            ).to.be.revertedWithoutReason(ethers),
+        ];
+
+        for (const assertion of reasonSpecificAssertions) {
+          await expect(assertion()).to.be.rejectedWith(
+            "EVM error InvalidFEOpcode",
+          );
+        }
       });
 
       it("errors that are not related to a reverted transaction", async () => {
