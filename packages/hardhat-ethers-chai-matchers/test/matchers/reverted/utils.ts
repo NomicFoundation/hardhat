@@ -6,34 +6,11 @@ import {
   isNoDataExecutionError,
 } from "../../../src/internal/matchers/reverted/utils.js";
 
-function createNoDataCallException(
-  action: "call" | "estimateGas",
-  rpcError: Error | { code?: number; data?: unknown; message: string } = {
-    code: -32003,
-    message: "EVM error InvalidFEOpcode",
-  },
-): Error {
-  return Object.assign(new Error("missing revert data"), {
-    code: "CALL_EXCEPTION",
-    action,
-    data: null,
-    reason: null,
-    shortMessage: "missing revert data",
-    info: {
-      error: rpcError,
-    },
-  });
-}
-
-function createNoDataProviderExecutionError(
-  code: number,
-  message = "EVM error InvalidFEOpcode",
-): Error {
-  return Object.assign(new Error(message), {
-    code,
-    data: undefined,
-  });
-}
+import {
+  createNoDataCallException,
+  createNoDataProviderExecutionError,
+  createNestedNoDataProviderExecutionError,
+} from "./no-data-error-fixtures.js";
 
 describe("isNoDataExecutionError", () => {
   it("Should return true for no-data ethers call exceptions", () => {
@@ -62,15 +39,10 @@ describe("isNoDataExecutionError", () => {
       );
     }
 
-    const nestedError = Object.assign(new Error("missing revert data"), {
-      code: -1,
-      error: {
-        code: -32003,
-        message: "EVM error InvalidFEOpcode",
-      },
-    });
-
-    assert.equal(isNoDataExecutionError(nestedError), true);
+    assert.equal(
+      isNoDataExecutionError(createNestedNoDataProviderExecutionError(-32003)),
+      true,
+    );
   });
 
   it("Should return false for values that are not no-data execution errors", () => {

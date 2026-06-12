@@ -22,6 +22,13 @@ import {
   initEnvironment,
 } from "../../helpers/helpers.js";
 
+import {
+  createNoDataCallException,
+  createNoDataProviderExecutionError,
+  createNoDataProviderExecutionErrorWithEnvelopeData,
+  createNestedNoDataProviderExecutionError,
+} from "./no-data-error-fixtures.js";
+
 addChaiMatchers();
 
 describe("INTEGRATION: Revert", { timeout: 60000 }, () => {
@@ -593,54 +600,3 @@ describe("INTEGRATION: Revert", { timeout: 60000 }, () => {
     });
   }
 });
-
-function createNoDataCallException(
-  action: "call" | "estimateGas",
-  rpcError: Error | { code?: number; data?: unknown; message: string } = {
-    code: -32003,
-    message: "EVM error InvalidFEOpcode",
-  },
-): Error {
-  return Object.assign(new Error("missing revert data"), {
-    code: "CALL_EXCEPTION",
-    action,
-    data: null,
-    reason: null,
-    shortMessage: "missing revert data",
-    info: {
-      error: rpcError,
-    },
-  });
-}
-
-function createNoDataProviderExecutionError(
-  code: number,
-  message = "EVM error InvalidFEOpcode",
-): Error {
-  return Object.assign(new Error(message), {
-    code,
-    data: undefined,
-  });
-}
-
-function createNoDataProviderExecutionErrorWithEnvelopeData(
-  code: number,
-): Error {
-  return Object.assign(new Error("EVM error InvalidFEOpcode"), {
-    code,
-    data: {
-      name: "ProviderError",
-      stack: "ProviderError: EVM error InvalidFEOpcode",
-    },
-  });
-}
-
-function createNestedNoDataProviderExecutionError(code: number): Error {
-  return Object.assign(new Error("missing revert data"), {
-    code: -1,
-    error: {
-      code,
-      message: "EVM error InvalidFEOpcode",
-    },
-  });
-}
