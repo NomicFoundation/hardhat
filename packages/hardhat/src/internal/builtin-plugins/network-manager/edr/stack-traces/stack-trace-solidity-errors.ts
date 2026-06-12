@@ -29,7 +29,7 @@ interface CheatcodeSuggestion {
 const CHEATCODE_SUGGESTIONS: Record<string, CheatcodeSuggestion> = {
   "eip712HashType(string,string)": {
     message:
-      "Please use the 'eip712HashType(string)' cheatcode instead, which accepts a type definition directly.",
+      "Providing a path to a bindings file is not supported, please use the eip712HashType(string calldata typeNameOrDefinition) cheatcode instead.",
     docsUrl:
       "https://hardhat.org/docs/reference/cheatcodes/utilities/eip712-hash-type",
   },

@@ -161,28 +161,9 @@ describe("createSolidityErrorWithStackTrace", () => {
 
       assert.match(
         error.message,
-        /Please use the 'eip712HashType\(string\)' cheatcode instead/,
+        /please use the eip712HashType\(string calldata typeNameOrDefinition\) cheatcode instead/,
       );
     });
-  });
-});
-
-describe("getCheatcodeSuggestion", () => {
-  it("returns a suggestion for a known cheatcode", () => {
-    const suggestion = getCheatcodeSuggestion("eip712HashType(string,string)");
-
-    assert.ok(suggestion.length > 0, "a suggestion should be returned");
-    assert.match(suggestion, /eip712HashType\(string\)/);
-    assert.match(
-      suggestion,
-      /https:\/\/hardhat\.org\/docs\/reference\/cheatcodes\/utilities\/eip712-hash-type/,
-    );
-  });
-
-  it("returns an empty string for an unknown cheatcode", () => {
-    const suggestion = getCheatcodeSuggestion("unknownCheatcode(uint256)");
-
-    assert.equal(suggestion, "");
   });
 
   describe("solidityStack", () => {
@@ -272,5 +253,27 @@ describe("getCheatcodeSuggestion", () => {
       );
       assert.equal(typeof error.solidityStack, "string");
     });
+  });
+});
+
+describe("getCheatcodeSuggestion", () => {
+  it("returns a suggestion for a known cheatcode", () => {
+    const suggestion = getCheatcodeSuggestion("eip712HashType(string,string)");
+
+    assert.ok(suggestion.length > 0, "a suggestion should be returned");
+    assert.match(
+      suggestion,
+      /eip712HashType\(string calldata typeNameOrDefinition\)/,
+    );
+    assert.match(
+      suggestion,
+      /https:\/\/hardhat\.org\/docs\/reference\/cheatcodes\/utilities\/eip712-hash-type/,
+    );
+  });
+
+  it("returns an empty string for an unknown cheatcode", () => {
+    const suggestion = getCheatcodeSuggestion("unknownCheatcode(uint256)");
+
+    assert.equal(suggestion, "");
   });
 });

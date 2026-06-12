@@ -76,7 +76,7 @@ describe("getMessageFromLastStackTraceEntry", () => {
 
       assert.equal(
         getMessageFromLastStackTraceEntry(entry),
-        "Cheatcode 'eip712HashType(string,string)' is not supported by Hardhat. Please use the 'eip712HashType(string)' cheatcode instead, which accepts a type definition directly. See https://hardhat.org/docs/reference/cheatcodes/utilities/eip712-hash-type for more information.",
+        "Cheatcode 'eip712HashType(string,string)' is not supported by Hardhat. Providing a path to a bindings file is not supported, please use the eip712HashType(string calldata typeNameOrDefinition) cheatcode instead. See https://hardhat.org/docs/reference/cheatcodes/utilities/eip712-hash-type for more information.",
       );
     });
   });
