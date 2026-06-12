@@ -59,6 +59,17 @@ describe("isNoDataExecutionError", () => {
       ),
       false,
     );
+
+    // ethers call exception whose nested rpc error has a non-execution code
+    assert.equal(
+      isNoDataExecutionError(
+        createNoDataCallException("call", {
+          code: -1,
+          message: "EVM error InvalidFEOpcode",
+        }),
+      ),
+      false,
+    );
   });
 
   it("Should return false when revert data is present", () => {
@@ -82,6 +93,16 @@ describe("isNoDataExecutionError", () => {
       ),
       false,
     );
+
+    // ethers call exception that itself carries data is not a no-data error
+    assert.equal(
+      isNoDataExecutionError(
+        Object.assign(createNoDataCallException("call"), {
+          data: "0x08c379a0",
+        }),
+      ),
+      false,
+    );
   });
 });
 
@@ -94,6 +115,7 @@ describe("isKnownEvmExecutionErrorMessage", () => {
       "Transaction reverted and Hardhat couldn't infer the reason.",
       "VM Exception while processing transaction: invalid opcode",
       "VM Exception while processing transaction: out of gas",
+      "VM Exception while processing transaction: reverted with reason string 'x'",
       "Transaction reverted: contract call run out of gas and made the transaction revert",
       "invalid opcode: INVALID",
       "Provider error: invalid opcode",
