@@ -255,7 +255,10 @@ function taskDefinitionsToTasksMap(tasks: TaskDefinition[]): Map<string, Task> {
     },
   );
 
-  const taskManager = new TaskManagerImplementation(fakeHre, new Map());
+  const taskManager = new TaskManagerImplementation(
+    fakeHre,
+    new Map(HHU_GLOBAL_OPTIONS_DEFINITIONS),
+  );
 
   return taskManager.rootTasks;
 }
