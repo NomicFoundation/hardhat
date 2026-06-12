@@ -92,7 +92,7 @@ jobs:
     # GitHub runners produce noisy results that will generate false positives
     # against the configured alert-threshold.
     runs-on: hardhat-benchmark-runner-2
-    timeout-minutes: 180
+    timeout-minutes: 900
     permissions:
       # Lets the GITHUB_TOKEN used by "Compare benchmark result against
       # baseline" read commit metadata via the REST API. Only needed on
