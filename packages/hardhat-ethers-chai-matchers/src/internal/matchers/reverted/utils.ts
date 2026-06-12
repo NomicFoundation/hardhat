@@ -37,15 +37,13 @@ export function getReturnDataFromError(error: unknown): string {
   }
 
   const errorData = getErrorData(error);
-
   if (errorData === undefined) {
     // eslint-disable-next-line no-restricted-syntax -- re-throw because the error is not related to a reverted transaction
     throw error;
   }
 
   const returnData = getReturnData(errorData);
-
-  if (returnData === undefined || typeof returnData !== "string") {
+  if (returnData === undefined) {
     // eslint-disable-next-line no-restricted-syntax -- re-throw because the error is not related to a reverted transaction
     throw error;
   }
@@ -69,6 +67,16 @@ export function isNoDataExecutionError(error: unknown): boolean {
   );
 }
 
+/**
+ * Returns true when the error is the one ethers throws after a failed
+ * `eth_call` or `eth_estimateGas` that came back without any revert data.
+ *
+ * In that case ethers wraps the failure in a `CALL_EXCEPTION` with no data or
+ * reason and the short message "missing revert data", while keeping the
+ * original provider error under `error.info.error`. We only treat it as a
+ * no-data revert when that original error also looks like a known EVM
+ * execution failure (matching by message, and by code when it has one).
+ */
 function isEthersCallExceptionWithoutData(error: Error): boolean {
   if (!isObject(error)) {
     return false;
@@ -98,24 +106,36 @@ function isEthersCallExceptionWithoutData(error: Error): boolean {
     typeof rpcError.message === "string" &&
     isKnownEvmExecutionErrorMessage(rpcError.message) &&
     getReturnData(rpcError.data) === undefined &&
+    // The ethers CALL_EXCEPTION wrapper already tells us this was a no-data
+    // execution failure, so we don't insist on a code here and accept errors
+    // that don't carry one (like Geth's plain errors). The provider branch has
+    // no such wrapper to rely on, so there we do require a known code.
     (rpcError.code === undefined || isJsonRpcExecutionErrorCode(rpcError.code))
   );
 }
 
+/**
+ * Returns true for an execution failure that a JSON-RPC provider reports
+ * directly, instead of through ethers' call handling.
+ *
+ * Here the failure shows up as a plain provider error (sometimes nested one
+ * level under `error.error`) that carries a known JSON-RPC execution code and a
+ * known EVM execution message, but again has no revert data to work with.
+ */
 function isProviderExecutionErrorWithoutData(error: Error): boolean {
   if (!isObject(error)) {
     return false;
   }
 
-  const nestedError = isObject(error.error) ? error.error : undefined;
-  const code = nestedError?.code ?? error.code;
-  const message = nestedError?.message ?? error.message;
+  // Read code and message from the same source (the nested provider error if
+  // present, otherwise the top-level error)
+  const source = isObject(error.error) ? error.error : error;
 
   return (
     getReturnData(getErrorData(error)) === undefined &&
-    isJsonRpcExecutionErrorCode(code) &&
-    typeof message === "string" &&
-    isKnownEvmExecutionErrorMessage(message)
+    isJsonRpcExecutionErrorCode(source.code) &&
+    typeof source.message === "string" &&
+    isKnownEvmExecutionErrorMessage(source.message)
   );
 }
 
@@ -158,7 +178,7 @@ export function isKnownEvmExecutionErrorMessage(message: string): boolean {
     /^Transaction reverted: contract call run out of gas and made the transaction revert$/i.test(
       message,
     ) ||
-    /^VM Exception while processing transaction: (?:invalid opcode|out of gas|reverted\b|Transaction reverted\b)/i.test(
+    /^VM Exception while processing transaction: (?:invalid opcode|out of gas|reverted\b)/i.test(
       message,
     ) ||
     /(?:^|:\s*)invalid opcode\b/i.test(message) ||
