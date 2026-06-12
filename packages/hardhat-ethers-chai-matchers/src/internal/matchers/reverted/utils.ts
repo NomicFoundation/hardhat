@@ -2,6 +2,7 @@ import type { Result } from "ethers/abi";
 import type { TransactionRequest, TransactionResponse } from "ethers/providers";
 
 import { ensureError } from "@nomicfoundation/hardhat-utils/error";
+import { isObject } from "@nomicfoundation/hardhat-utils/lang";
 import { assert as chaiAssert, AssertionError } from "chai";
 import { AbiCoder, decodeBytes32String } from "ethers/abi";
 
@@ -29,23 +30,20 @@ const PANIC_CODE_PREFIX = "0x4e487b71";
  * If the value is an error but it doesn't have data, we assume it's not related
  * to a reverted transaction and we re-throw it.
  */
-export function getReturnDataFromError(error: any): string {
+export function getReturnDataFromError(error: unknown): string {
   if (!(error instanceof Error)) {
     // eslint-disable-next-line no-restricted-syntax -- keep the original chai error structure
     throw new AssertionError("Expected an Error object");
   }
 
-  // eslint-disable-next-line @typescript-eslint/consistent-type-assertions -- some properties do not exist in the default Error instance
-  const typedError = error as any;
-
-  const errorData = typedError.data ?? typedError.error?.data;
+  const errorData = getErrorData(error);
 
   if (errorData === undefined) {
     // eslint-disable-next-line no-restricted-syntax -- re-throw because the error is not related to a reverted transaction
     throw error;
   }
 
-  const returnData = typeof errorData === "string" ? errorData : errorData.data;
+  const returnData = getReturnData(errorData);
 
   if (returnData === undefined || typeof returnData !== "string") {
     // eslint-disable-next-line no-restricted-syntax -- re-throw because the error is not related to a reverted transaction
@@ -53,6 +51,149 @@ export function getReturnDataFromError(error: any): string {
   }
 
   return returnData;
+}
+
+/**
+ * Some JSON-RPC clients report EVM execution failures from eth_call or
+ * eth_estimateGas without return data. These can satisfy the broad revert
+ * matcher, but reason-specific matchers still need actual return data.
+ */
+export function isNoDataExecutionError(error: unknown): boolean {
+  if (!(error instanceof Error)) {
+    return false;
+  }
+
+  return (
+    isEthersCallExceptionWithoutData(error) ||
+    isProviderExecutionErrorWithoutData(error)
+  );
+}
+
+function isEthersCallExceptionWithoutData(error: Error): boolean {
+  if (!isObject(error)) {
+    return false;
+  }
+
+  if (
+    error.code !== "CALL_EXCEPTION" ||
+    (error.action !== "call" && error.action !== "estimateGas") ||
+    error.data !== null ||
+    error.reason !== null ||
+    error.shortMessage !== "missing revert data"
+  ) {
+    return false;
+  }
+
+  if (!isObject(error.info)) {
+    return false;
+  }
+
+  const rpcError = error.info.error;
+
+  if (!isObject(rpcError)) {
+    return false;
+  }
+
+  return (
+    typeof rpcError.message === "string" &&
+    isKnownEvmExecutionErrorMessage(rpcError.message) &&
+    getReturnData(rpcError.data) === undefined &&
+    (rpcError.code === undefined || isJsonRpcExecutionErrorCode(rpcError.code))
+  );
+}
+
+function isProviderExecutionErrorWithoutData(error: Error): boolean {
+  if (!isObject(error)) {
+    return false;
+  }
+
+  const nestedError = isObject(error.error) ? error.error : undefined;
+  const code = nestedError?.code ?? error.code;
+  const message = nestedError?.message ?? error.message;
+
+  return (
+    getReturnData(getErrorData(error)) === undefined &&
+    isJsonRpcExecutionErrorCode(code) &&
+    typeof message === "string" &&
+    isKnownEvmExecutionErrorMessage(message)
+  );
+}
+
+function getErrorData(error: Error): unknown {
+  if (!isObject(error)) {
+    return undefined;
+  }
+
+  const nestedError = isObject(error.error) ? error.error : undefined;
+
+  return error.data ?? nestedError?.data;
+}
+
+function getReturnData(errorData: unknown): string | undefined {
+  if (typeof errorData === "string") {
+    return errorData;
+  }
+
+  if (isObject(errorData) && typeof errorData.data === "string") {
+    return errorData.data;
+  }
+
+  return undefined;
+}
+
+function isJsonRpcExecutionErrorCode(code: unknown): boolean {
+  return code === 3 || code === -32000 || code === -32003;
+}
+
+/**
+ * Checks if an error message is a known JSON-RPC provider message for an EVM
+ * execution failure when no return data is available.
+ */
+export function isKnownEvmExecutionErrorMessage(message: string): boolean {
+  return (
+    /^execution reverted\b/i.test(message) ||
+    /^Transaction reverted (?:without a reason(?: string)?|and Hardhat couldn't infer the reason\.)/i.test(
+      message,
+    ) ||
+    /^Transaction reverted: contract call run out of gas and made the transaction revert$/i.test(
+      message,
+    ) ||
+    /^VM Exception while processing transaction: (?:invalid opcode|out of gas|reverted\b|Transaction reverted\b)/i.test(
+      message,
+    ) ||
+    /(?:^|:\s*)invalid opcode\b/i.test(message) ||
+    isEvmExceptionalHaltMessage(message)
+  );
+}
+
+// This list is a verbatim copy of the `ExceptionalHalt` enum in
+// `@nomicfoundation/edr`'s `index.d.ts`, which is the source of truth.
+// It can silently drift on EDR bumps, so keep it in sync.
+const EVM_EXCEPTIONAL_HALT_MESSAGES = new Set([
+  "OutOfGas",
+  "OpcodeNotFound",
+  "InvalidFEOpcode",
+  "InvalidJump",
+  "NotActivated",
+  "StackUnderflow",
+  "StackOverflow",
+  "OutOfOffset",
+  "CreateCollision",
+  "PrecompileError",
+  "NonceOverflow",
+  "CreateContractSizeLimit",
+  "CreateContractStartingWithEF",
+  "CreateInitCodeSizeLimit",
+]);
+
+function isEvmExceptionalHaltMessage(message: string): boolean {
+  const match = /^EVM error:?\s+([A-Z][A-Za-z0-9_]*)\b/.exec(message);
+
+  return (
+    match !== null &&
+    match[1] !== undefined &&
+    EVM_EXCEPTIONAL_HALT_MESSAGES.has(match[1])
+  );
 }
 
 export async function getTransactionRevertData(
