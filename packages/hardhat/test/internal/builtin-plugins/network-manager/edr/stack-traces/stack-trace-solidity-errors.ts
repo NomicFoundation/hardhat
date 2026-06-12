@@ -89,6 +89,7 @@ describe("createSolidityErrorWithStackTrace", () => {
         [entry],
         "0x",
       );
+
       assert.equal(
         error.message,
         "VM Exception while processing transaction: cheatcode 'broadcast(address)' is not supported",
@@ -111,6 +112,7 @@ describe("createSolidityErrorWithStackTrace", () => {
         [entry],
         "0x",
       );
+
       assert.equal(
         error.message,
         "VM Exception while processing transaction: Cheatcode 'broadcast(address)' is not supported by Hardhat.",
@@ -133,6 +135,7 @@ describe("createSolidityErrorWithStackTrace", () => {
         [entry],
         "0x",
       );
+
       assert.equal(
         error.message,
         "VM Exception while processing transaction: Cheatcode 'someNewCheatcode(uint256)' is not yet available in this version of Hardhat.",
@@ -142,8 +145,7 @@ describe("createSolidityErrorWithStackTrace", () => {
     it("appends a suggestion for unsupported cheatcodes with known alternatives", () => {
       const entry: SolidityStackTraceEntry = {
         type: StackTraceEntryType.CHEATCODE_ERROR,
-        message:
-          "cheatcode 'eip712HashType(string,string)' is not supported",
+        message: "cheatcode 'eip712HashType(string,string)' is not supported",
         sourceReference: dummySourceReference,
         details: {
           code: CheatcodeErrorCode.UnsupportedCheatcode,
@@ -156,6 +158,7 @@ describe("createSolidityErrorWithStackTrace", () => {
         [entry],
         "0x",
       );
+
       assert.match(
         error.message,
         /Please use the 'eip712HashType\(string\)' cheatcode instead/,
@@ -167,12 +170,14 @@ describe("createSolidityErrorWithStackTrace", () => {
 describe("getCheatcodeSuggestion", () => {
   it("returns a suggestion for a known cheatcode", () => {
     const suggestion = getCheatcodeSuggestion("eip712HashType(string,string)");
+
     assert.ok(suggestion.length > 0);
     assert.match(suggestion, /eip712HashType\(string\)/);
   });
 
   it("returns an empty string for an unknown cheatcode", () => {
     const suggestion = getCheatcodeSuggestion("unknownCheatcode(uint256)");
+
     assert.equal(suggestion, "");
   });
 
