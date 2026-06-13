@@ -221,6 +221,9 @@ describe("solidity-test/task-action (override in gas-analytics/index)", () => {
 
         await handleSnapshot(tmp.path, initialResults, true);
 
+        const snapshotPath = getFunctionGasSnapshotsPath(tmp.path);
+        const before = await readUtf8File(snapshotPath);
+
         const { functionGasSnapshotsCheck } = await handleSnapshotCheck(
           tmp.path,
           changedResults,
@@ -231,6 +234,10 @@ describe("solidity-test/task-action (override in gas-analytics/index)", () => {
         assert.equal(functionGasSnapshotsCheck.comparison.added.length, 0);
         assert.equal(functionGasSnapshotsCheck.comparison.removed.length, 0);
         assert.equal(functionGasSnapshotsCheck.comparison.changed.length, 1);
+
+        // Read-only: a changed value must not be written to the baseline.
+        const after = await readUtf8File(snapshotPath);
+        assert.equal(after, before);
       });
 
       it("should pass and not modify the baseline when functions are added", async () => {
@@ -303,37 +310,22 @@ describe("solidity-test/task-action (override in gas-analytics/index)", () => {
         assert.match(after, /testB/);
       });
 
-      it("should not delete the baseline when a scoped run produces no function gas snapshots", async () => {
-        const initialResults = [
-          createSuiteResult("MyContract", [
-            createStandardTestResult("testA", 10000n),
-            createStandardTestResult("testB", 20000n),
-          ]),
-        ];
-
-        await handleSnapshot(tmp.path, initialResults, true);
-
-        const snapshotPath = getFunctionGasSnapshotsPath(tmp.path);
-        const before = await readUtf8File(snapshotPath);
-
-        // Simulates `--grep`/positional filtering down to a single test.
-        const scopedResults = [
-          createSuiteResult("MyContract", [
-            createStandardTestResult("testA", 10000n),
-          ]),
-        ];
+      it("should not flag no baseline when no existing file and no function gas snapshots produced", async () => {
+        // e.g. a project that only uses snapshot cheatcodes never produces a
+        // `.gas-snapshot`; the check should stay quiet rather than nag about it.
+        const suiteResults = [createSuiteResult("MyContract", [])];
 
         const { functionGasSnapshotsCheck } = await handleSnapshotCheck(
           tmp.path,
-          scopedResults,
+          suiteResults,
         );
 
         assert.equal(functionGasSnapshotsCheck.passed, true);
         assert.equal(functionGasSnapshotsCheck.noBaseline, false);
-        assert.equal(functionGasSnapshotsCheck.comparison.removed.length, 1);
+        assert.equal(functionGasSnapshotsCheck.comparison.changed.length, 0);
 
-        const after = await readUtf8File(snapshotPath);
-        assert.equal(after, before);
+        const snapshotPath = getFunctionGasSnapshotsPath(tmp.path);
+        assert.equal(await exists(snapshotPath), false);
       });
     });
 
@@ -369,7 +361,7 @@ describe("solidity-test/task-action (override in gas-analytics/index)", () => {
         assert.equal(await exists(cheatcodePath), false);
       });
 
-      it("should report no baseline when no existing file and no cheatcodes in current run", async () => {
+      it("should not flag no baseline when no existing file and no cheatcodes produced", async () => {
         const suiteResults = [
           createSuiteResult("MyContract", [
             createTestResultWithSnapshots(undefined),
