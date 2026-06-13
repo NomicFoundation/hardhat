@@ -2,4 +2,4 @@
 "hardhat": patch
 ---
 
-Improve Hardhat 2 plugin API compatibility errors with the removed API name and Hardhat 3 migration guidance.
+When a Hardhat 2 plugin calls an API that no longer exists in Hardhat 3, the error now names the specific API that was used and explains how to migrate it to Hardhat 3.

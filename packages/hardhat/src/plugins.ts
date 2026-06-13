@@ -5,6 +5,9 @@ import type { HardhatPlugin } from "./types/plugins.js";
 import { registerLoadedPlugin } from "./internal/core/plugins/loaded-plugins-registry.js";
 import { throwUsingHardhat2PluginError } from "./internal/using-hardhat2-plugin-errors.js";
 
+const LAZY_LOADING_MIGRATION_HINT =
+  "To migrate a plugin to Hardhat 3, export a plugin object with definePlugin from hardhat/plugins and register lazy-loaded logic through dependencies, hook handlers, and task actions.";
+
 /**
  * Defines a Hardhat plugin.
  *
@@ -25,18 +28,12 @@ export function definePlugin(plugin: HardhatPlugin): HardhatPlugin {
  * @deprecated This function is part of the Hardhat 2 plugin API.
  */
 export function lazyFunction(..._args: any): any {
-  throwUsingHardhat2PluginError(
-    "lazyFunction",
-    "To migrate a plugin to Hardhat 3, export a plugin object with definePlugin from hardhat/plugins and register lazy-loaded logic through dependencies, hook handlers, and task actions.",
-  );
+  throwUsingHardhat2PluginError("lazyFunction", LAZY_LOADING_MIGRATION_HINT);
 }
 
 /**
  * @deprecated This function is part of the Hardhat 2 plugin API.
  */
 export function lazyObject(..._args: any): any {
-  throwUsingHardhat2PluginError(
-    "lazyObject",
-    "To migrate a plugin to Hardhat 3, export a plugin object with definePlugin from hardhat/plugins and register lazy-loaded logic through dependencies, hook handlers, and task actions.",
-  );
+  throwUsingHardhat2PluginError("lazyObject", LAZY_LOADING_MIGRATION_HINT);
 }

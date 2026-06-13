@@ -6,7 +6,7 @@ import { shortenPath } from "@nomicfoundation/hardhat-utils/path";
 
 export class UsingHardhat2PluginError extends CustomError {
   public readonly callerRelativePath: string | undefined;
-  constructor(apiName?: string, migrationHint?: string) {
+  constructor(apiName: string, migrationHint?: string) {
     const callerPath = getCallerRelativePath();
 
     let message: string;
@@ -18,9 +18,7 @@ This file is part of a Hardhat 2 plugin calling an API that was removed in Hardh
       message = `You are trying to use a Hardhat 2 plugin in a Hardhat 3 project.`;
     }
 
-    if (apiName !== undefined) {
-      message += `\n\nThe removed API is: ${styleText("bold", apiName)}.`;
-    }
+    message += `\n\nThe removed API is: ${styleText("bold", apiName)}.`;
 
     if (migrationHint !== undefined) {
       message += `\n\n${migrationHint}`;
@@ -107,7 +105,7 @@ export function getCallerRelativePath(depth: number = 5): string | undefined {
 }
 
 export function throwUsingHardhat2PluginError(
-  apiName?: string,
+  apiName: string,
   migrationHint?: string,
 ): never {
   /* eslint-disable-next-line no-restricted-syntax -- Intentionally throwing a
