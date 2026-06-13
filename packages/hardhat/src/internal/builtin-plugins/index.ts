@@ -6,6 +6,7 @@ import console from "./console/index.js";
 import coverage from "./coverage/index.js";
 import flatten from "./flatten/index.js";
 import gasAnalytics from "./gas-analytics/index.js";
+import hhu from "./hhu/index.js";
 import networkManager from "./network-manager/index.js";
 import node from "./node/index.js";
 import run from "./run/index.js";
@@ -22,6 +23,7 @@ export type * from "./console/index.js";
 export type * from "./coverage/index.js";
 export type * from "./flatten/index.js";
 export type * from "./gas-analytics/index.js";
+export type * from "./hhu/index.js";
 export type * from "./network-manager/index.js";
 export type * from "./node/index.js";
 export type * from "./run/index.js";
@@ -46,4 +48,5 @@ export const builtinPlugins: HardhatPlugin[] = [
   node,
   flatten,
   telemetry,
+  hhu,
 ];
