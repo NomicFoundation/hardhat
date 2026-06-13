@@ -6,10 +6,12 @@ import { HardhatError } from "@nomicfoundation/hardhat-errors";
 import {
   assertRejectsWithHardhatError,
   assertThrowsHardhatError,
+  useFixtureProject,
 } from "@nomicfoundation/hardhat-test-utils";
 import { isCi } from "@nomicfoundation/hardhat-utils/ci";
 
 import { main, parseHhuGlobalOptions } from "../../../src/internal/cli/hhu.js";
+import { resetGlobalHardhatRuntimeEnvironment } from "../../../src/internal/global-hre-instance.js";
 import { createHardhatRuntimeEnvironment } from "../../../src/internal/hre-initialization.js";
 import { getHardhatVersion } from "../../../src/internal/utils/package.js";
 
@@ -52,10 +54,12 @@ AVAILABLE SUBTASKS:
 
   constants zeroAddress      Print the zero address
   convert pad                Pad a hex string to a given byte length
+  fetch block-number         Print the latest block number
 
 GLOBAL OPTIONS:
 
   --help, -h                 Show this message, or a task's help if its name is provided
+  --network                  The network to connect to
   --show-stack-traces        Show stack traces (always enabled on CI servers)
   --version                  Show the version of hhu
 
@@ -80,6 +84,7 @@ AVAILABLE SUBTASKS:
 GLOBAL OPTIONS:
 
   --help, -h                 Show this message, or a task's help if its name is provided
+  --network                  The network to connect to
   --show-stack-traces        Show stack traces (always enabled on CI servers)
   --version                  Show the version of hhu
 
@@ -100,6 +105,7 @@ Usage: hhu [GLOBAL OPTIONS] constants zeroAddress
 GLOBAL OPTIONS:
 
   --help, -h               Show this message, or a task's help if its name is provided
+  --network                The network to connect to
   --show-stack-traces      Show stack traces (always enabled on CI servers)
   --version                Show the version of hhu
 `;
@@ -143,6 +149,7 @@ GLOBAL OPTIONS:
         help: true,
         showStackTraces: true,
         version: true,
+        network: undefined,
       });
     });
 
@@ -153,6 +160,26 @@ GLOBAL OPTIONS:
         help: false,
         showStackTraces: isCi(),
         version: false,
+        network: undefined,
+      });
+    });
+
+    it("should set the network option to the given value", async () => {
+      const command = "npx hhu --network sepolia";
+      const cliArguments = command.split(" ").slice(2);
+      const usedCliArguments = new Array(cliArguments.length).fill(false);
+
+      const hhuGlobalOptions = await parseHhuGlobalOptions(
+        cliArguments,
+        usedCliArguments,
+      );
+
+      assert.deepEqual(usedCliArguments, [true, true]);
+      assert.deepEqual(hhuGlobalOptions, {
+        help: false,
+        showStackTraces: isCi(),
+        version: false,
+        network: "sepolia",
       });
     });
   });
@@ -207,6 +234,25 @@ GLOBAL OPTIONS:
       await runHhu("npx hhu convert pad --length 4 --right 0xff");
 
       assert.deepEqual(logs, ["0xff000000"]);
+    });
+
+    // This util needs a network, which exercises the fake HRE's `network.create`
+    // (it lazily loads Hardhat and creates the real HRE). That requires a real
+    // project, so we run it from a fixture project.
+    describe("`fetch block-number`", () => {
+      useFixtureProject("cli/parsing/base-project");
+
+      afterEach(() => {
+        // `network.create` creates the global HRE; reset it so it doesn't leak.
+        resetGlobalHardhatRuntimeEnvironment();
+      });
+
+      it("should print the latest block number", async () => {
+        await runHhu("npx hhu fetch block-number");
+
+        assert.equal(logs.length, 1);
+        assert.match(logs[0], /^\d+$/);
+      });
     });
   });
 });

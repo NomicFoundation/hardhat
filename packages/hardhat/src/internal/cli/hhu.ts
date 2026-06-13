@@ -1,6 +1,7 @@
 import type { GlobalOptionDefinitions } from "../../types/global-options.js";
 import type { HardhatRuntimeEnvironment } from "../../types/hre.js";
 import type { Task, TaskDefinition } from "../../types/tasks.js";
+import type { FakeHhuHardhatRuntimeEnvironment } from "../builtin-plugins/hhu/types.js";
 
 import {
   assertHardhatInvariant,
@@ -8,11 +9,13 @@ import {
 } from "@nomicfoundation/hardhat-errors";
 import { isCi } from "@nomicfoundation/hardhat-utils/ci";
 import { createDebug } from "@nomicfoundation/hardhat-utils/debug";
+import { setGlobalOptionsAsEnvVariables } from "@nomicfoundation/hardhat-utils/env";
 import { ensureError } from "@nomicfoundation/hardhat-utils/error";
 
+import { ArgumentType } from "../../types/arguments.js";
 import { isResult } from "../../utils/result.js";
 import { generateTasks } from "../builtin-plugins/hhu/tasks/index.js";
-import { globalFlag } from "../core/config.js";
+import { globalFlag, globalOption } from "../core/config.js";
 import { TaskManagerImplementation } from "../core/tasks/task-manager.js";
 import { getHardhatVersion } from "../utils/package.js";
 
@@ -60,6 +63,10 @@ export async function main(
       cliArguments,
       usedCliArguments,
     );
+
+    // We need to do this so that the global options are available when we import
+    // the HRE in utils that need it.
+    setGlobalOptionsAsEnvVariables(hhuGlobalOptions);
 
     log("Parsed hhu global options");
 
@@ -185,6 +192,18 @@ const HHU_GLOBAL_OPTIONS_DEFINITIONS: GlobalOptionDefinitions = new Map([
       }),
     },
   ],
+  [
+    "network",
+    {
+      pluginId: "builtin",
+      option: globalOption({
+        name: "network",
+        description: "The network to connect to",
+        type: ArgumentType.STRING_WITHOUT_DEFAULT,
+        defaultValue: undefined,
+      }),
+    },
+  ],
 ]);
 
 export async function parseHhuGlobalOptions(
@@ -194,6 +213,7 @@ export async function parseHhuGlobalOptions(
   help: boolean;
   showStackTraces: boolean;
   version: boolean;
+  network: string | undefined;
 }> {
   const hhuGlobalOptions = await parseGlobalOptions(
     HHU_GLOBAL_OPTIONS_DEFINITIONS,
@@ -205,6 +225,7 @@ export async function parseHhuGlobalOptions(
     help: hhuGlobalOptions.help ?? false,
     showStackTraces: hhuGlobalOptions.showStackTraces ?? isCi(),
     version: hhuGlobalOptions.version ?? false,
+    network: hhuGlobalOptions.network,
   };
 }
 
@@ -239,9 +260,16 @@ function taskDefinitionsToTasksMap(tasks: TaskDefinition[]): Map<string, Task> {
   // create one just for this. So we use a fake HRE that has the minimum
   // properties needed.
   //
+  // The exception is `network.create`: utils that need a network get the real
+  // implementation, which lazily loads Hardhat (and thus creates the project's
+  // HRE) only when such a util actually runs.
+  //
   // One downside of this approach is that we _won't_ get a compilation error
   // if `TaskManagerImplementation` tries to access a property that doesn't exist in the
   // fake HRE, but tests should catch that.
+  //
+  // The `satisfies FakeHhuHardhatRuntimeEnvironment` keeps this fake HRE in sync
+  // with the surface utils actions rely on.
   const fakeHre = makeStrictProxy<HardhatRuntimeEnvironment>(
     "hhu's proxied HRE",
     {
@@ -252,7 +280,16 @@ function taskDefinitionsToTasksMap(tasks: TaskDefinition[]): Map<string, Task> {
           plugins: [],
         },
       ),
-    },
+      network: makeStrictProxy<HardhatRuntimeEnvironment["network"]>(
+        "hhu's proxied network",
+        {
+          create: async (networkOrParams) => {
+            const hre = await import("../../index.js");
+            return await hre.network.create(networkOrParams);
+          },
+        },
+      ),
+    } satisfies FakeHhuHardhatRuntimeEnvironment,
   );
 
   const taskManager = new TaskManagerImplementation(
