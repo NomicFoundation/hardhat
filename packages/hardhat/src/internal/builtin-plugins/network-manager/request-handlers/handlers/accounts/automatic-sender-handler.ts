@@ -6,6 +6,7 @@ import type {
 import { isObject } from "@nomicfoundation/hardhat-utils/lang";
 
 import { getRequestParams } from "../../../json-rpc.js";
+import { InternalError } from "../../../provider-errors.js";
 
 import { SenderHandler } from "./sender.js";
 
@@ -42,7 +43,7 @@ export class AutomaticSenderHandler extends SenderHandler {
           jsonrpc: "2.0",
           id: jsonRpcRequest.id,
           error: {
-            code: -32603,
+            code: InternalError.CODE,
             message: "eth_accounts did not return an array of accounts",
           },
         };

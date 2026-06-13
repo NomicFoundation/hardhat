@@ -2,4 +2,4 @@
 "hardhat": patch
 ---
 
-Return a JSON-RPC error instead of crashing when eth_accounts returns a non-array
+Fixed a crash that could occur when a network returned an unexpected response while resolving the default sender account

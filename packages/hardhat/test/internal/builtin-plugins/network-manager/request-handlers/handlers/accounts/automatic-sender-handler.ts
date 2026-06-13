@@ -10,6 +10,7 @@ import {
   isJsonRpcResponse,
   isFailedJsonRpcResponse,
 } from "../../../../../../../src/internal/builtin-plugins/network-manager/json-rpc.js";
+import { InternalError } from "../../../../../../../src/internal/builtin-plugins/network-manager/provider-errors.js";
 import { AutomaticSenderHandler } from "../../../../../../../src/internal/builtin-plugins/network-manager/request-handlers/handlers/accounts/automatic-sender-handler.js";
 import { EthereumMockedProvider } from "../../ethereum-mocked-provider.js";
 
@@ -58,9 +59,51 @@ describe("AutomaticSenderHandler", function () {
 
     const jsonRpcRequest = getJsonRpcRequest(1, "eth_sendTransaction", [tx]);
 
+    await automaticSenderHandler.handle(jsonRpcRequest);
+
     const [requestTx] = getRequestParams(jsonRpcRequest);
     assert.ok(isObject(requestTx), "tx is not an object");
     assert.equal(requestTx.from, "0x000006d4548a3ac17d72b372ae1e416bf65b8ead");
+  });
+
+  it("should not fetch eth_accounts when the transaction already has a from", async () => {
+    const provider = new EthereumMockedProvider();
+    provider.setReturnValue("eth_accounts", [
+      "0x123006d4548a3ac17d72b372ae1e416bf65b8eaf",
+    ]);
+
+    const handler = new AutomaticSenderHandler(provider);
+
+    const jsonRpcRequest = getJsonRpcRequest(1, "eth_sendTransaction", [
+      { ...tx, from: "0x000006d4548a3ac17d72b372ae1e416bf65b8ead" },
+    ]);
+
+    await handler.handle(jsonRpcRequest);
+
+    assert.equal(
+      provider.getNumberOfCalls("eth_accounts"),
+      0,
+      "eth_accounts should not be fetched when a sender isn't needed",
+    );
+  });
+
+  it("should not fetch eth_accounts when the params don't carry a transaction object", async () => {
+    const provider = new EthereumMockedProvider();
+    provider.setReturnValue("eth_accounts", [
+      "0x123006d4548a3ac17d72b372ae1e416bf65b8eaf",
+    ]);
+
+    const handler = new AutomaticSenderHandler(provider);
+
+    const jsonRpcRequest = getJsonRpcRequest(1, "eth_call", []);
+
+    await handler.handle(jsonRpcRequest);
+
+    assert.equal(
+      provider.getNumberOfCalls("eth_accounts"),
+      0,
+      "eth_accounts should not be fetched when there's no transaction object",
+    );
   });
 
   it("should not fail on eth_calls if provider doesn't have any accounts", async () => {
@@ -105,7 +148,7 @@ describe("AutomaticSenderHandler", function () {
     );
     assert.equal(
       result.error.code,
-      -32603,
+      InternalError.CODE,
       "error code should be Internal error (-32603)",
     );
     assert.ok(
