@@ -64,7 +64,7 @@ export interface FunctionGasSnapshotChange {
 export interface FunctionGasSnapshotCheckResult {
   passed: boolean;
   comparison: FunctionGasSnapshotComparison;
-  written: boolean;
+  noBaseline: boolean;
 }
 
 export function getFunctionGasSnapshotsPath(basePath: string): string {
@@ -323,8 +323,6 @@ export async function checkFunctionGasSnapshots(
     previousFunctionGasSnapshots = await readFunctionGasSnapshots(basePath);
   } catch (error) {
     if (error instanceof FileNotFoundError) {
-      await writeFunctionGasSnapshots(basePath, functionGasSnapshots);
-
       return {
         passed: true,
         comparison: {
@@ -332,7 +330,7 @@ export async function checkFunctionGasSnapshots(
           removed: [],
           changed: [],
         },
-        written: true,
+        noBaseline: functionGasSnapshots.length > 0,
       };
     }
 
@@ -344,17 +342,10 @@ export async function checkFunctionGasSnapshots(
     functionGasSnapshots,
   );
 
-  // Update snapshots when functions are added or removed (but not changed)
-  const hasAddedOrRemoved =
-    comparison.added.length > 0 || comparison.removed.length > 0;
-  if (comparison.changed.length === 0 && hasAddedOrRemoved) {
-    await writeFunctionGasSnapshots(basePath, functionGasSnapshots);
-  }
-
   return {
     passed: comparison.changed.length === 0,
     comparison,
-    written: hasAddedOrRemoved,
+    noBaseline: false,
   };
 }
 
@@ -362,7 +353,7 @@ export function logFunctionGasSnapshotsSection(
   result: FunctionGasSnapshotCheckResult,
   logger: typeof console.log = console.log,
 ): void {
-  const { comparison, written } = result;
+  const { comparison, noBaseline } = result;
   const changedLength = comparison.changed.length;
   const addedLength = comparison.added.length;
   const removedLength = comparison.removed.length;
@@ -370,10 +361,20 @@ export function logFunctionGasSnapshotsSection(
   const hasAdded = addedLength > 0;
   const hasRemoved = removedLength > 0;
   const hasAnyDifferences = hasChanges || hasAdded || hasRemoved;
-  const isFirstTimeWrite = written && !hasAnyDifferences;
 
   // Nothing to report
-  if (!isFirstTimeWrite && !hasAnyDifferences) {
+  if (!noBaseline && !hasAnyDifferences) {
+    return;
+  }
+
+  if (noBaseline) {
+    logger(
+      styleText(
+        "yellow",
+        "Function gas snapshots: no baseline found. Run your tests with --snapshot to create one.",
+      ),
+    );
+    logger();
     return;
   }
 
@@ -385,18 +386,6 @@ export function logFunctionGasSnapshotsSection(
     }),
   );
 
-  if (isFirstTimeWrite) {
-    logger();
-    logger(
-      styleText(
-        "green",
-        "  No existing snapshots found. Function gas snapshots written successfully",
-      ),
-    );
-    logger();
-    return;
-  }
-
   if (hasChanges) {
     logger();
     printFunctionGasSnapshotChanges(comparison.changed, logger);
@@ -404,7 +393,9 @@ export function logFunctionGasSnapshotsSection(
 
   if (hasAdded) {
     logger();
-    logger(`  Added ${comparison.added.length} function(s):`);
+    logger(
+      `  ${comparison.added.length} function(s) produced by this run are not in the baseline:`,
+    );
     const addedLines = stringifyFunctionGasSnapshots(comparison.added).split(
       "\n",
     );
@@ -415,7 +406,9 @@ export function logFunctionGasSnapshotsSection(
 
   if (hasRemoved) {
     logger();
-    logger(`  Removed ${comparison.removed.length} function(s):`);
+    logger(
+      `  ${comparison.removed.length} stored function(s) were not produced by this run:`,
+    );
     const removedLines = stringifyFunctionGasSnapshots(
       comparison.removed,
     ).split("\n");

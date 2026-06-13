@@ -163,7 +163,7 @@ describe("solidity-test/task-action (override in gas-analytics/index)", () => {
     const tmp = createTmpDir("snapshots-check-test", "test");
 
     describe("function gas snapshots", () => {
-      it("should write function gas snapshots on first run (no existing file)", async () => {
+      it("should not write function gas snapshots on first run (no existing file)", async () => {
         const suiteResults = [
           createSuiteResult("MyContract", [
             createStandardTestResult("testA", 10000n),
@@ -176,13 +176,14 @@ describe("solidity-test/task-action (override in gas-analytics/index)", () => {
         );
 
         assert.equal(functionGasSnapshotsCheck.passed, true);
-        assert.equal(functionGasSnapshotsCheck.written, true);
+        assert.equal(functionGasSnapshotsCheck.noBaseline, true);
         assert.equal(functionGasSnapshotsCheck.comparison.added.length, 0);
         assert.equal(functionGasSnapshotsCheck.comparison.removed.length, 0);
         assert.equal(functionGasSnapshotsCheck.comparison.changed.length, 0);
+
+        // --snapshot-check is read-only: it must not bootstrap the baseline.
         const snapshotPath = getFunctionGasSnapshotsPath(tmp.path);
-        const savedContent = await readUtf8File(snapshotPath);
-        assert.equal(savedContent, "MyContract#testA (gas: 10000)");
+        assert.equal(await exists(snapshotPath), false);
       });
 
       it("should pass when function gas snapshots are unchanged", async () => {
@@ -200,7 +201,7 @@ describe("solidity-test/task-action (override in gas-analytics/index)", () => {
         );
 
         assert.equal(functionGasSnapshotsCheck.passed, true);
-        assert.equal(functionGasSnapshotsCheck.written, false);
+        assert.equal(functionGasSnapshotsCheck.noBaseline, false);
         assert.equal(functionGasSnapshotsCheck.comparison.added.length, 0);
         assert.equal(functionGasSnapshotsCheck.comparison.removed.length, 0);
         assert.equal(functionGasSnapshotsCheck.comparison.changed.length, 0);
@@ -220,19 +221,26 @@ describe("solidity-test/task-action (override in gas-analytics/index)", () => {
 
         await handleSnapshot(tmp.path, initialResults, true);
 
+        const snapshotPath = getFunctionGasSnapshotsPath(tmp.path);
+        const before = await readUtf8File(snapshotPath);
+
         const { functionGasSnapshotsCheck } = await handleSnapshotCheck(
           tmp.path,
           changedResults,
         );
 
         assert.equal(functionGasSnapshotsCheck.passed, false);
-        assert.equal(functionGasSnapshotsCheck.written, false);
+        assert.equal(functionGasSnapshotsCheck.noBaseline, false);
         assert.equal(functionGasSnapshotsCheck.comparison.added.length, 0);
         assert.equal(functionGasSnapshotsCheck.comparison.removed.length, 0);
         assert.equal(functionGasSnapshotsCheck.comparison.changed.length, 1);
+
+        // Read-only: a changed value must not be written to the baseline.
+        const after = await readUtf8File(snapshotPath);
+        assert.equal(after, before);
       });
 
-      it("should pass and update file when functions are added", async () => {
+      it("should pass and not modify the baseline when functions are added", async () => {
         const initialResults = [
           createSuiteResult("MyContract", [
             createStandardTestResult("testA", 10000n),
@@ -247,23 +255,27 @@ describe("solidity-test/task-action (override in gas-analytics/index)", () => {
 
         await handleSnapshot(tmp.path, initialResults, true);
 
+        const snapshotPath = getFunctionGasSnapshotsPath(tmp.path);
+        const before = await readUtf8File(snapshotPath);
+
         const { functionGasSnapshotsCheck } = await handleSnapshotCheck(
           tmp.path,
           withAddedResults,
         );
 
         assert.equal(functionGasSnapshotsCheck.passed, true);
-        assert.equal(functionGasSnapshotsCheck.written, true);
+        assert.equal(functionGasSnapshotsCheck.noBaseline, false);
         assert.equal(functionGasSnapshotsCheck.comparison.added.length, 1);
         assert.equal(functionGasSnapshotsCheck.comparison.removed.length, 0);
         assert.equal(functionGasSnapshotsCheck.comparison.changed.length, 0);
 
-        const snapshotPath = getFunctionGasSnapshotsPath(tmp.path);
-        const savedContent = await readUtf8File(snapshotPath);
-        assert.match(savedContent, /MyContract#testB \(gas: 20000\)/);
+        // Read-only: the added function must not be written to the baseline.
+        const after = await readUtf8File(snapshotPath);
+        assert.equal(after, before);
+        assert.doesNotMatch(after, /testB/);
       });
 
-      it("should pass and update file when functions are removed", async () => {
+      it("should pass and not modify the baseline when functions are removed", async () => {
         const initialResults = [
           createSuiteResult("MyContract", [
             createStandardTestResult("testA", 10000n),
@@ -278,25 +290,47 @@ describe("solidity-test/task-action (override in gas-analytics/index)", () => {
 
         await handleSnapshot(tmp.path, initialResults, true);
 
+        const snapshotPath = getFunctionGasSnapshotsPath(tmp.path);
+        const before = await readUtf8File(snapshotPath);
+
         const { functionGasSnapshotsCheck } = await handleSnapshotCheck(
           tmp.path,
           withRemovedResults,
         );
 
         assert.equal(functionGasSnapshotsCheck.passed, true);
-        assert.equal(functionGasSnapshotsCheck.written, true);
+        assert.equal(functionGasSnapshotsCheck.noBaseline, false);
         assert.equal(functionGasSnapshotsCheck.comparison.added.length, 0);
         assert.equal(functionGasSnapshotsCheck.comparison.removed.length, 1);
         assert.equal(functionGasSnapshotsCheck.comparison.changed.length, 0);
 
+        // Read-only: the missing function must remain in the baseline.
+        const after = await readUtf8File(snapshotPath);
+        assert.equal(after, before);
+        assert.match(after, /testB/);
+      });
+
+      it("should not flag no baseline when no existing file and no function gas snapshots produced", async () => {
+        // e.g. a project that only uses snapshot cheatcodes never produces a
+        // `.gas-snapshot`; the check should stay quiet rather than nag about it.
+        const suiteResults = [createSuiteResult("MyContract", [])];
+
+        const { functionGasSnapshotsCheck } = await handleSnapshotCheck(
+          tmp.path,
+          suiteResults,
+        );
+
+        assert.equal(functionGasSnapshotsCheck.passed, true);
+        assert.equal(functionGasSnapshotsCheck.noBaseline, false);
+        assert.equal(functionGasSnapshotsCheck.comparison.changed.length, 0);
+
         const snapshotPath = getFunctionGasSnapshotsPath(tmp.path);
-        const savedContent = await readUtf8File(snapshotPath);
-        assert.doesNotMatch(savedContent, /testB/);
+        assert.equal(await exists(snapshotPath), false);
       });
     });
 
     describe("snapshot cheatcodes", () => {
-      it("should write snapshot cheatcodes on first run (no existing file)", async () => {
+      it("should not write snapshot cheatcodes on first run (no existing file)", async () => {
         const suiteResults = [
           createSuiteResult("MyContract", [
             createTestResultWithSnapshots([
@@ -314,20 +348,20 @@ describe("solidity-test/task-action (override in gas-analytics/index)", () => {
         );
 
         assert.equal(snapshotCheatcodesCheck.passed, true);
-        assert.equal(snapshotCheatcodesCheck.written, true);
+        assert.equal(snapshotCheatcodesCheck.noBaseline, true);
         assert.equal(snapshotCheatcodesCheck.comparison.added.length, 0);
         assert.equal(snapshotCheatcodesCheck.comparison.removed.length, 0);
         assert.equal(snapshotCheatcodesCheck.comparison.changed.length, 0);
 
+        // --snapshot-check is read-only: it must not bootstrap the baseline.
         const cheatcodePath = getSnapshotCheatcodesPath(
           tmp.path,
           "TestGroup.json",
         );
-        const cheatcodeContent = await readJsonFile(cheatcodePath);
-        assert.deepEqual(cheatcodeContent, { "test-entry": "42" });
+        assert.equal(await exists(cheatcodePath), false);
       });
 
-      it("should not write when no existing file and no cheatcodes in current run", async () => {
+      it("should not flag no baseline when no existing file and no cheatcodes produced", async () => {
         const suiteResults = [
           createSuiteResult("MyContract", [
             createTestResultWithSnapshots(undefined),
@@ -340,7 +374,8 @@ describe("solidity-test/task-action (override in gas-analytics/index)", () => {
         );
 
         assert.equal(snapshotCheatcodesCheck.passed, true);
-        assert.equal(snapshotCheatcodesCheck.written, false);
+        // Nothing was produced, so there's nothing to flag as missing a baseline.
+        assert.equal(snapshotCheatcodesCheck.noBaseline, false);
         assert.equal(snapshotCheatcodesCheck.comparison.added.length, 0);
         assert.equal(snapshotCheatcodesCheck.comparison.removed.length, 0);
         assert.equal(snapshotCheatcodesCheck.comparison.changed.length, 0);
@@ -366,7 +401,7 @@ describe("solidity-test/task-action (override in gas-analytics/index)", () => {
         );
 
         assert.equal(snapshotCheatcodesCheck.passed, true);
-        assert.equal(snapshotCheatcodesCheck.written, false);
+        assert.equal(snapshotCheatcodesCheck.noBaseline, false);
         assert.equal(snapshotCheatcodesCheck.comparison.added.length, 0);
         assert.equal(snapshotCheatcodesCheck.comparison.removed.length, 0);
         assert.equal(snapshotCheatcodesCheck.comparison.changed.length, 0);
@@ -396,19 +431,29 @@ describe("solidity-test/task-action (override in gas-analytics/index)", () => {
 
         await handleSnapshot(tmp.path, initialResults, true);
 
+        const cheatcodePath = getSnapshotCheatcodesPath(
+          tmp.path,
+          "TestGroup.json",
+        );
+        const before = await readJsonFile(cheatcodePath);
+
         const { snapshotCheatcodesCheck } = await handleSnapshotCheck(
           tmp.path,
           changedResults,
         );
 
         assert.equal(snapshotCheatcodesCheck.passed, false);
-        assert.equal(snapshotCheatcodesCheck.written, false);
+        assert.equal(snapshotCheatcodesCheck.noBaseline, false);
         assert.equal(snapshotCheatcodesCheck.comparison.added.length, 0);
         assert.equal(snapshotCheatcodesCheck.comparison.removed.length, 0);
         assert.equal(snapshotCheatcodesCheck.comparison.changed.length, 1);
+
+        // Read-only: a changed value must not be written to the baseline.
+        const after = await readJsonFile(cheatcodePath);
+        assert.deepEqual(after, before);
       });
 
-      it("should pass and update file when cheatcodes are added", async () => {
+      it("should pass and not modify the baseline when cheatcodes are added", async () => {
         const initialResults = [
           createSuiteResult("MyContract", [
             createTestResultWithSnapshots([
@@ -435,29 +480,29 @@ describe("solidity-test/task-action (override in gas-analytics/index)", () => {
 
         await handleSnapshot(tmp.path, initialResults, true);
 
+        const cheatcodePath = getSnapshotCheatcodesPath(
+          tmp.path,
+          "TestGroup.json",
+        );
+        const before = await readJsonFile(cheatcodePath);
+
         const { snapshotCheatcodesCheck } = await handleSnapshotCheck(
           tmp.path,
           withAddedResults,
         );
 
         assert.equal(snapshotCheatcodesCheck.passed, true);
-        assert.equal(snapshotCheatcodesCheck.written, true);
+        assert.equal(snapshotCheatcodesCheck.noBaseline, false);
         assert.equal(snapshotCheatcodesCheck.comparison.added.length, 1);
         assert.equal(snapshotCheatcodesCheck.comparison.removed.length, 0);
         assert.equal(snapshotCheatcodesCheck.comparison.changed.length, 0);
 
-        const cheatcodePath = getSnapshotCheatcodesPath(
-          tmp.path,
-          "TestGroup.json",
-        );
-        const cheatcodeContent = await readJsonFile(cheatcodePath);
-        assert.deepEqual(cheatcodeContent, {
-          "entry-a": "42",
-          "entry-b": "100",
-        });
+        // Read-only: the added entry must not be written to the baseline.
+        const after = await readJsonFile(cheatcodePath);
+        assert.deepEqual(after, before);
       });
 
-      it("should pass and update file when cheatcodes are removed", async () => {
+      it("should pass and not modify the baseline when cheatcodes are removed", async () => {
         const initialResults = [
           createSuiteResult("MyContract", [
             createTestResultWithSnapshots([
@@ -484,23 +529,82 @@ describe("solidity-test/task-action (override in gas-analytics/index)", () => {
 
         await handleSnapshot(tmp.path, initialResults, true);
 
+        const cheatcodePath = getSnapshotCheatcodesPath(
+          tmp.path,
+          "TestGroup.json",
+        );
+        const before = await readJsonFile(cheatcodePath);
+
         const { snapshotCheatcodesCheck } = await handleSnapshotCheck(
           tmp.path,
           withRemovedResults,
         );
 
         assert.equal(snapshotCheatcodesCheck.passed, true);
-        assert.equal(snapshotCheatcodesCheck.written, true);
+        assert.equal(snapshotCheatcodesCheck.noBaseline, false);
         assert.equal(snapshotCheatcodesCheck.comparison.added.length, 0);
         assert.equal(snapshotCheatcodesCheck.comparison.removed.length, 1);
         assert.equal(snapshotCheatcodesCheck.comparison.changed.length, 0);
 
-        const cheatcodePath = getSnapshotCheatcodesPath(
+        // Read-only: the removed entry must remain in the baseline.
+        const after = await readJsonFile(cheatcodePath);
+        assert.deepEqual(after, before);
+      });
+
+      it("should not delete group files when a scoped run omits a group", async () => {
+        // Reproduces the issue: a baseline with two groups, then a scoped run
+        // (e.g. via --grep) that only exercises one of them.
+        const initialResults = [
+          createSuiteResult("GroupAContract", [
+            createTestResultWithSnapshots([
+              {
+                name: "A",
+                entries: [{ name: "a1", value: "42" }],
+              },
+            ]),
+          ]),
+          createSuiteResult("GroupBContract", [
+            createTestResultWithSnapshots([
+              {
+                name: "B",
+                entries: [{ name: "b1", value: "100" }],
+              },
+            ]),
+          ]),
+        ];
+
+        await handleSnapshot(tmp.path, initialResults, true);
+
+        const pathA = getSnapshotCheatcodesPath(tmp.path, "A.json");
+        const pathB = getSnapshotCheatcodesPath(tmp.path, "B.json");
+        const beforeA = await readJsonFile(pathA);
+        const beforeB = await readJsonFile(pathB);
+
+        // Only group A is produced this run; group B's tests weren't run.
+        const scopedResults = [
+          createSuiteResult("GroupAContract", [
+            createTestResultWithSnapshots([
+              {
+                name: "A",
+                entries: [{ name: "a1", value: "42" }],
+              },
+            ]),
+          ]),
+        ];
+
+        const { snapshotCheatcodesCheck } = await handleSnapshotCheck(
           tmp.path,
-          "TestGroup.json",
+          scopedResults,
         );
-        const cheatcodeContent = await readJsonFile(cheatcodePath);
-        assert.deepEqual(cheatcodeContent, { "entry-a": "42" });
+
+        assert.equal(snapshotCheatcodesCheck.passed, true);
+        assert.equal(snapshotCheatcodesCheck.noBaseline, false);
+        assert.equal(snapshotCheatcodesCheck.comparison.removed.length, 1);
+
+        // The orphaned group file must NOT be deleted, and neither file changed.
+        assert.equal(await exists(pathB), true);
+        assert.deepEqual(await readJsonFile(pathA), beforeA);
+        assert.deepEqual(await readJsonFile(pathB), beforeB);
       });
     });
   });
@@ -534,12 +638,12 @@ describe("solidity-test/task-action (override in gas-analytics/index)", () => {
               },
             ],
           },
-          written: false,
+          noBaseline: false,
         },
         snapshotCheatcodesCheck: {
           passed: true,
           comparison: { added: [], removed: [], changed: [] },
-          written: false,
+          noBaseline: false,
           renamedGroups: [],
         },
       };
@@ -557,7 +661,7 @@ describe("solidity-test/task-action (override in gas-analytics/index)", () => {
         functionGasSnapshotsCheck: {
           passed: true,
           comparison: { added: [], removed: [], changed: [] },
-          written: false,
+          noBaseline: false,
         },
         snapshotCheatcodesCheck: {
           passed: false,
@@ -574,7 +678,7 @@ describe("solidity-test/task-action (override in gas-analytics/index)", () => {
               },
             ],
           },
-          written: false,
+          noBaseline: false,
           renamedGroups: [],
         },
       };
@@ -587,7 +691,7 @@ describe("solidity-test/task-action (override in gas-analytics/index)", () => {
       assert.match(text, /To update snapshots, run your tests with --snapshot/);
     });
 
-    it("should log first-time write message when function gas snapshots written with no changes", () => {
+    it("should log no-baseline message when there's no function gas baseline", () => {
       const result = {
         functionGasSnapshotsCheck: {
           passed: true,
@@ -596,12 +700,12 @@ describe("solidity-test/task-action (override in gas-analytics/index)", () => {
             removed: [],
             changed: [],
           },
-          written: true,
+          noBaseline: true,
         },
         snapshotCheatcodesCheck: {
           passed: true,
           comparison: { added: [], removed: [], changed: [] },
-          written: false,
+          noBaseline: false,
           renamedGroups: [],
         },
       };
@@ -610,19 +714,18 @@ describe("solidity-test/task-action (override in gas-analytics/index)", () => {
 
       const text = getLoggerOutput();
       assert.match(text, /Snapshot check passed/);
-      assert.match(text, /Function gas snapshots:/);
       assert.match(
         text,
-        /No existing snapshots found\. Function gas snapshots written successfully/,
+        /Function gas snapshots: no baseline found\. Run your tests with --snapshot to create one\./,
       );
     });
 
-    it("should log first-time write message when snapshot cheatcodes written with no changes", () => {
+    it("should log no-baseline message when there's no snapshot cheatcodes baseline", () => {
       const result = {
         functionGasSnapshotsCheck: {
           passed: true,
           comparison: { added: [], removed: [], changed: [] },
-          written: false,
+          noBaseline: false,
         },
         snapshotCheatcodesCheck: {
           passed: true,
@@ -631,7 +734,7 @@ describe("solidity-test/task-action (override in gas-analytics/index)", () => {
             removed: [],
             changed: [],
           },
-          written: true,
+          noBaseline: true,
           renamedGroups: [],
         },
       };
@@ -640,10 +743,9 @@ describe("solidity-test/task-action (override in gas-analytics/index)", () => {
 
       const text = getLoggerOutput();
       assert.match(text, /Snapshot check passed/);
-      assert.match(text, /Snapshot cheatcodes:/);
       assert.match(
         text,
-        /No existing snapshots found\. Snapshot cheatcodes written successfully/,
+        /Snapshot cheatcodes: no baseline found\. Run your tests with --snapshot to create one\./,
       );
     });
 
@@ -656,12 +758,12 @@ describe("solidity-test/task-action (override in gas-analytics/index)", () => {
             removed: [],
             changed: [],
           },
-          written: false,
+          noBaseline: false,
         },
         snapshotCheatcodesCheck: {
           passed: true,
           comparison: { added: [], removed: [], changed: [] },
-          written: false,
+          noBaseline: false,
           renamedGroups: [],
         },
       };
@@ -690,12 +792,12 @@ describe("solidity-test/task-action (override in gas-analytics/index)", () => {
             removed: [],
             changed: [],
           },
-          written: true,
+          noBaseline: false,
         },
         snapshotCheatcodesCheck: {
           passed: true,
           comparison: { added: [], removed: [], changed: [] },
-          written: false,
+          noBaseline: false,
           renamedGroups: [],
         },
       };
@@ -705,7 +807,10 @@ describe("solidity-test/task-action (override in gas-analytics/index)", () => {
       const text = getLoggerOutput();
       assert.match(text, /Snapshot check passed/);
       assert.match(text, /Function gas snapshots: 1 added/);
-      assert.match(text, /Added 1 function\(s\):/);
+      assert.match(
+        text,
+        /1 function\(s\) produced by this run are not in the baseline:/,
+      );
       assert.match(text, /\+ MyContract#testB \(gas: 20000\)/);
     });
 
@@ -714,7 +819,7 @@ describe("solidity-test/task-action (override in gas-analytics/index)", () => {
         functionGasSnapshotsCheck: {
           passed: true,
           comparison: { added: [], removed: [], changed: [] },
-          written: false,
+          noBaseline: false,
         },
         snapshotCheatcodesCheck: {
           passed: true,
@@ -729,7 +834,7 @@ describe("solidity-test/task-action (override in gas-analytics/index)", () => {
             removed: [],
             changed: [],
           },
-          written: true,
+          noBaseline: false,
           renamedGroups: [],
         },
       };
@@ -739,7 +844,10 @@ describe("solidity-test/task-action (override in gas-analytics/index)", () => {
       const text = getLoggerOutput();
       assert.match(text, /Snapshot check passed/);
       assert.match(text, /Snapshot cheatcodes: 1 added/);
-      assert.match(text, /Added 1 snapshot\(s\):/);
+      assert.match(
+        text,
+        /1 snapshot\(s\) produced by this run are not in the baseline:/,
+      );
       assert.match(text, /\+ TestGroup#test-entry: 42/);
     });
 
@@ -761,12 +869,12 @@ describe("solidity-test/task-action (override in gas-analytics/index)", () => {
             ],
             changed: [],
           },
-          written: true,
+          noBaseline: false,
         },
         snapshotCheatcodesCheck: {
           passed: true,
           comparison: { added: [], removed: [], changed: [] },
-          written: false,
+          noBaseline: false,
           renamedGroups: [],
         },
       };
@@ -776,7 +884,10 @@ describe("solidity-test/task-action (override in gas-analytics/index)", () => {
       const text = getLoggerOutput();
       assert.match(text, /Snapshot check passed/);
       assert.match(text, /Function gas snapshots: 1 removed/);
-      assert.match(text, /Removed 1 function\(s\):/);
+      assert.match(
+        text,
+        /1 stored function\(s\) were not produced by this run:/,
+      );
       assert.match(text, /- MyContract#testB \(gas: 20000\)/);
     });
 
@@ -785,7 +896,7 @@ describe("solidity-test/task-action (override in gas-analytics/index)", () => {
         functionGasSnapshotsCheck: {
           passed: true,
           comparison: { added: [], removed: [], changed: [] },
-          written: false,
+          noBaseline: false,
         },
         snapshotCheatcodesCheck: {
           passed: true,
@@ -800,7 +911,7 @@ describe("solidity-test/task-action (override in gas-analytics/index)", () => {
             ],
             changed: [],
           },
-          written: true,
+          noBaseline: false,
           renamedGroups: [],
         },
       };
@@ -810,7 +921,10 @@ describe("solidity-test/task-action (override in gas-analytics/index)", () => {
       const text = getLoggerOutput();
       assert.match(text, /Snapshot check passed/);
       assert.match(text, /Snapshot cheatcodes: 1 removed/);
-      assert.match(text, /Removed 1 snapshot\(s\):/);
+      assert.match(
+        text,
+        /1 stored snapshot\(s\) were not produced by this run:/,
+      );
       assert.match(text, /- TestGroup#test-entry: 42/);
     });
 
@@ -821,12 +935,12 @@ describe("solidity-test/task-action (override in gas-analytics/index)", () => {
             functionGasSnapshotsCheck: {
               passed: true,
               comparison: { added: [], removed: [], changed: [] },
-              written: false,
+              noBaseline: false,
             },
             snapshotCheatcodesCheck: {
               passed: true,
               comparison: { added: [], removed: [], changed: [] },
-              written: false,
+              noBaseline: false,
               renamedGroups: [],
             },
           };
@@ -854,12 +968,12 @@ describe("solidity-test/task-action (override in gas-analytics/index)", () => {
                 removed: [],
                 changed: [],
               },
-              written: true,
+              noBaseline: false,
             },
             snapshotCheatcodesCheck: {
               passed: true,
               comparison: { added: [], removed: [], changed: [] },
-              written: false,
+              noBaseline: false,
               renamedGroups: [],
             },
           };
@@ -871,7 +985,7 @@ describe("solidity-test/task-action (override in gas-analytics/index)", () => {
 
 Function gas snapshots: 1 added
 
-  Added 1 function(s):
+  1 function(s) produced by this run are not in the baseline:
     + NewContract#testA() (gas: 7500)
 `;
 
@@ -893,12 +1007,12 @@ Function gas snapshots: 1 added
                 ],
                 changed: [],
               },
-              written: true,
+              noBaseline: false,
             },
             snapshotCheatcodesCheck: {
               passed: true,
               comparison: { added: [], removed: [], changed: [] },
-              written: false,
+              noBaseline: false,
               renamedGroups: [],
             },
           };
@@ -910,7 +1024,7 @@ Function gas snapshots: 1 added
 
 Function gas snapshots: 1 removed
 
-  Removed 1 function(s):
+  1 stored function(s) were not produced by this run:
     - OldContract#testDeprecated() (gas: 3000)
 `;
 
@@ -948,12 +1062,12 @@ Function gas snapshots: 1 removed
                 ],
                 changed: [],
               },
-              written: true,
+              noBaseline: false,
             },
             snapshotCheatcodesCheck: {
               passed: true,
               comparison: { added: [], removed: [], changed: [] },
-              written: false,
+              noBaseline: false,
               renamedGroups: [],
             },
           };
@@ -965,28 +1079,28 @@ Function gas snapshots: 1 removed
 
 Function gas snapshots: 2 added, 1 removed
 
-  Added 2 function(s):
+  2 function(s) produced by this run are not in the baseline:
     + ContractA#testNew() (gas: 10000)
     + ContractB#testFuzz(uint256) (runs: 256, μ: 15000, ~: 14500)
 
-  Removed 1 function(s):
+  1 stored function(s) were not produced by this run:
     - ContractA#testOld() (gas: 8000)
 `;
 
           assert.equal(text, expected);
         });
 
-        it("function gas first-time write", () => {
+        it("function gas no baseline", () => {
           const result = {
             functionGasSnapshotsCheck: {
               passed: true,
               comparison: { added: [], removed: [], changed: [] },
-              written: true,
+              noBaseline: true,
             },
             snapshotCheatcodesCheck: {
               passed: true,
               comparison: { added: [], removed: [], changed: [] },
-              written: false,
+              noBaseline: false,
               renamedGroups: [],
             },
           };
@@ -994,12 +1108,9 @@ Function gas snapshots: 2 added, 1 removed
           logSnapshotCheckResult(result, logger);
 
           const text = getLoggerOutput();
-          // Note: "Function gas snapshots: " has a trailing space when there are no counts
           const expected = `Snapshot check passed
 
-Function gas snapshots: 
-
-  No existing snapshots found. Function gas snapshots written successfully
+Function gas snapshots: no baseline found. Run your tests with --snapshot to create one.
 `;
 
           assert.equal(text, expected);
@@ -1014,7 +1125,7 @@ Function gas snapshots:
                 removed: [],
                 changed: [],
               },
-              written: false,
+              noBaseline: false,
             },
             snapshotCheatcodesCheck: {
               passed: true,
@@ -1029,7 +1140,7 @@ Function gas snapshots:
                 removed: [],
                 changed: [],
               },
-              written: true,
+              noBaseline: false,
               renamedGroups: [],
             },
           };
@@ -1041,7 +1152,7 @@ Function gas snapshots:
 
 Snapshot cheatcodes: 1 added
 
-  Added 1 snapshot(s):
+  1 snapshot(s) produced by this run are not in the baseline:
     + TestGroup#test-entry: 42
 `;
 
@@ -1057,7 +1168,7 @@ Snapshot cheatcodes: 1 added
                 removed: [],
                 changed: [],
               },
-              written: false,
+              noBaseline: false,
             },
             snapshotCheatcodesCheck: {
               passed: true,
@@ -1072,7 +1183,7 @@ Snapshot cheatcodes: 1 added
                 ],
                 changed: [],
               },
-              written: true,
+              noBaseline: false,
               renamedGroups: [],
             },
           };
@@ -1084,7 +1195,7 @@ Snapshot cheatcodes: 1 added
 
 Snapshot cheatcodes: 1 removed
 
-  Removed 1 snapshot(s):
+  1 stored snapshot(s) were not produced by this run:
     - TestGroup#test-entry: 42
 `;
 
@@ -1100,7 +1211,7 @@ Snapshot cheatcodes: 1 removed
                 removed: [],
                 changed: [],
               },
-              written: false,
+              noBaseline: false,
             },
             snapshotCheatcodesCheck: {
               passed: true,
@@ -1126,7 +1237,7 @@ Snapshot cheatcodes: 1 removed
                 ],
                 changed: [],
               },
-              written: true,
+              noBaseline: false,
               renamedGroups: [],
             },
           };
@@ -1138,10 +1249,10 @@ Snapshot cheatcodes: 1 removed
 
 Snapshot cheatcodes: 1 added, 2 removed
 
-  Added 1 snapshot(s):
+  1 snapshot(s) produced by this run are not in the baseline:
     + TestGroup#test-entry: 42
 
-  Removed 2 snapshot(s):
+  2 stored snapshot(s) were not produced by this run:
     - AnotherGroup#old-entry: 150
     - TestGroup#removed-entry: 100
 `;
@@ -1149,17 +1260,17 @@ Snapshot cheatcodes: 1 added, 2 removed
           assert.equal(text, expected);
         });
 
-        it("cheatcodes first-time write", () => {
+        it("cheatcodes no baseline", () => {
           const result = {
             functionGasSnapshotsCheck: {
               passed: true,
               comparison: { added: [], removed: [], changed: [] },
-              written: false,
+              noBaseline: false,
             },
             snapshotCheatcodesCheck: {
               passed: true,
               comparison: { added: [], removed: [], changed: [] },
-              written: true,
+              noBaseline: true,
               renamedGroups: [],
             },
           };
@@ -1167,28 +1278,25 @@ Snapshot cheatcodes: 1 added, 2 removed
           logSnapshotCheckResult(result, logger);
 
           const text = getLoggerOutput();
-          // Note: "Snapshot cheatcodes: " has a trailing space when there are no counts
           const expected = `Snapshot check passed
 
-Snapshot cheatcodes: 
-
-  No existing snapshots found. Snapshot cheatcodes written successfully
+Snapshot cheatcodes: no baseline found. Run your tests with --snapshot to create one.
 `;
 
           assert.equal(text, expected);
         });
 
-        it("both function gas and cheatcodes first-time write", () => {
+        it("both function gas and cheatcodes no baseline", () => {
           const result = {
             functionGasSnapshotsCheck: {
               passed: true,
               comparison: { added: [], removed: [], changed: [] },
-              written: true,
+              noBaseline: true,
             },
             snapshotCheatcodesCheck: {
               passed: true,
               comparison: { added: [], removed: [], changed: [] },
-              written: true,
+              noBaseline: true,
               renamedGroups: [],
             },
           };
@@ -1196,16 +1304,11 @@ Snapshot cheatcodes:
           logSnapshotCheckResult(result, logger);
 
           const text = getLoggerOutput();
-          // Note: "Function gas snapshots: " has a trailing space when there are no counts
           const expected = `Snapshot check passed
 
-Function gas snapshots: 
+Function gas snapshots: no baseline found. Run your tests with --snapshot to create one.
 
-  No existing snapshots found. Function gas snapshots written successfully
-
-Snapshot cheatcodes: 
-
-  No existing snapshots found. Snapshot cheatcodes written successfully
+Snapshot cheatcodes: no baseline found. Run your tests with --snapshot to create one.
 `;
 
           assert.equal(text, expected);
@@ -1231,12 +1334,12 @@ Snapshot cheatcodes:
                 added: [],
                 removed: [],
               },
-              written: false,
+              noBaseline: false,
             },
             snapshotCheatcodesCheck: {
               passed: true,
               comparison: { added: [], removed: [], changed: [] },
-              written: false,
+              noBaseline: false,
               renamedGroups: [],
             },
           };
@@ -1264,7 +1367,7 @@ To update snapshots, run your tests with --snapshot
             functionGasSnapshotsCheck: {
               passed: true,
               comparison: { added: [], removed: [], changed: [] },
-              written: false,
+              noBaseline: false,
             },
             snapshotCheatcodesCheck: {
               passed: false,
@@ -1281,7 +1384,7 @@ To update snapshots, run your tests with --snapshot
                   },
                 ],
               },
-              written: false,
+              noBaseline: false,
               renamedGroups: [],
             },
           };
@@ -1322,7 +1425,7 @@ To update snapshots, run your tests with --snapshot
                   },
                 ],
               },
-              written: false,
+              noBaseline: false,
             },
             snapshotCheatcodesCheck: {
               passed: false,
@@ -1339,7 +1442,7 @@ To update snapshots, run your tests with --snapshot
                   },
                 ],
               },
-              written: false,
+              noBaseline: false,
               renamedGroups: [],
             },
           };
@@ -1408,12 +1511,12 @@ To update snapshots, run your tests with --snapshot
                   },
                 ],
               },
-              written: false,
+              noBaseline: false,
             },
             snapshotCheatcodesCheck: {
               passed: true,
               comparison: { added: [], removed: [], changed: [] },
-              written: false,
+              noBaseline: false,
               renamedGroups: [],
             },
           };
@@ -1436,10 +1539,10 @@ Function gas snapshots: 2 changed, 1 added, 1 removed
     Expected (~): 20000
     Actual (~):   18000 (-10.00%, Δ-2000)
 
-  Added 1 function(s):
+  1 function(s) produced by this run are not in the baseline:
     + ContractA#testNew() (gas: 12000)
 
-  Removed 1 function(s):
+  1 stored function(s) were not produced by this run:
     - ContractA#testOld() (gas: 9000)
 
 To update snapshots, run your tests with --snapshot
@@ -1457,7 +1560,7 @@ To update snapshots, run your tests with --snapshot
                 removed: [],
                 changed: [],
               },
-              written: false,
+              noBaseline: false,
             },
             snapshotCheatcodesCheck: {
               passed: false,
@@ -1486,7 +1589,7 @@ To update snapshots, run your tests with --snapshot
                   },
                 ],
               },
-              written: false,
+              noBaseline: false,
               renamedGroups: [],
             },
           };
@@ -1503,10 +1606,10 @@ Snapshot cheatcodes: 1 changed, 1 added, 1 removed
     Expected: 42
     Actual:   100 (+138.10%, Δ+58)
 
-  Added 1 snapshot(s):
+  1 snapshot(s) produced by this run are not in the baseline:
     + GroupA#new-entry: 256
 
-  Removed 1 snapshot(s):
+  1 stored snapshot(s) were not produced by this run:
     - GroupB#old-entry: 128
 
 To update snapshots, run your tests with --snapshot
@@ -1545,7 +1648,7 @@ To update snapshots, run your tests with --snapshot
                   },
                 ],
               },
-              written: false,
+              noBaseline: false,
             },
             snapshotCheatcodesCheck: {
               passed: false,
@@ -1574,7 +1677,7 @@ To update snapshots, run your tests with --snapshot
                   },
                 ],
               },
-              written: false,
+              noBaseline: false,
               renamedGroups: [],
             },
           };
@@ -1591,10 +1694,10 @@ Function gas snapshots: 1 changed, 1 added, 1 removed
     Expected (gas): 5000
     Actual (gas):   6000 (+20.00%, Δ+1000)
 
-  Added 1 function(s):
+  1 function(s) produced by this run are not in the baseline:
     + NewContract#testA() (gas: 7500)
 
-  Removed 1 function(s):
+  1 stored function(s) were not produced by this run:
     - OldContract#testDeprecated() (gas: 3000)
 
 Snapshot cheatcodes: 1 changed, 1 added, 1 removed
@@ -1604,10 +1707,10 @@ Snapshot cheatcodes: 1 changed, 1 added, 1 removed
     Expected: 42
     Actual:   100 (+138.10%, Δ+58)
 
-  Added 1 snapshot(s):
+  1 snapshot(s) produced by this run are not in the baseline:
     + GroupA#new-entry: 256
 
-  Removed 1 snapshot(s):
+  1 stored snapshot(s) were not produced by this run:
     - GroupB#old-entry: 128
 
 To update snapshots, run your tests with --snapshot
@@ -1637,7 +1740,7 @@ To update snapshots, run your tests with --snapshot
                 ],
                 changed: [],
               },
-              written: true,
+              noBaseline: false,
             },
             snapshotCheatcodesCheck: {
               passed: false,
@@ -1654,7 +1757,7 @@ To update snapshots, run your tests with --snapshot
                   },
                 ],
               },
-              written: false,
+              noBaseline: false,
               renamedGroups: [],
             },
           };
@@ -1666,10 +1769,10 @@ To update snapshots, run your tests with --snapshot
 
 Function gas snapshots: 1 added, 1 removed
 
-  Added 1 function(s):
+  1 function(s) produced by this run are not in the baseline:
     + NewContract#testA() (gas: 7500)
 
-  Removed 1 function(s):
+  1 stored function(s) were not produced by this run:
     - OldContract#testDeprecated() (gas: 3000)
 
 Snapshot cheatcodes: 1 changed
@@ -1703,7 +1806,7 @@ To update snapshots, run your tests with --snapshot
                   },
                 ],
               },
-              written: false,
+              noBaseline: false,
             },
             snapshotCheatcodesCheck: {
               passed: false,
@@ -1724,7 +1827,7 @@ To update snapshots, run your tests with --snapshot
                 ],
                 changed: [],
               },
-              written: true,
+              noBaseline: false,
               renamedGroups: [],
             },
           };
@@ -1743,10 +1846,10 @@ Function gas snapshots: 1 changed
 
 Snapshot cheatcodes: 1 added, 1 removed
 
-  Added 1 snapshot(s):
+  1 snapshot(s) produced by this run are not in the baseline:
     + GroupA#new-entry: 256
 
-  Removed 1 snapshot(s):
+  1 stored snapshot(s) were not produced by this run:
     - GroupB#old-entry: 128
 
 To update snapshots, run your tests with --snapshot
@@ -1755,16 +1858,16 @@ To update snapshots, run your tests with --snapshot
           assert.equal(text, expected);
         });
 
-        it("function gas first-time write, cheatcodes changed", () => {
+        it("function gas no baseline, cheatcodes changed", () => {
           const result = {
             functionGasSnapshotsCheck: {
-              passed: false,
+              passed: true,
               comparison: {
                 added: [],
                 removed: [],
                 changed: [],
               },
-              written: true,
+              noBaseline: true,
             },
             snapshotCheatcodesCheck: {
               passed: false,
@@ -1781,7 +1884,7 @@ To update snapshots, run your tests with --snapshot
                   },
                 ],
               },
-              written: false,
+              noBaseline: false,
               renamedGroups: [],
             },
           };
@@ -1791,9 +1894,7 @@ To update snapshots, run your tests with --snapshot
           const text = getLoggerOutput();
           const expected = `Snapshot check failed
 
-Function gas snapshots: 
-
-  No existing snapshots found. Function gas snapshots written successfully
+Function gas snapshots: no baseline found. Run your tests with --snapshot to create one.
 
 Snapshot cheatcodes: 1 changed
 
@@ -1808,7 +1909,7 @@ To update snapshots, run your tests with --snapshot
           assert.equal(text, expected);
         });
 
-        it("cheatcodes first-time write, function gas changed", () => {
+        it("cheatcodes no baseline, function gas changed", () => {
           const result = {
             functionGasSnapshotsCheck: {
               passed: false,
@@ -1826,16 +1927,16 @@ To update snapshots, run your tests with --snapshot
                   },
                 ],
               },
-              written: false,
+              noBaseline: false,
             },
             snapshotCheatcodesCheck: {
-              passed: false,
+              passed: true,
               comparison: {
                 added: [],
                 removed: [],
                 changed: [],
               },
-              written: true,
+              noBaseline: true,
               renamedGroups: [],
             },
           };
@@ -1852,9 +1953,7 @@ Function gas snapshots: 1 changed
     Expected (gas): 5000
     Actual (gas):   6000 (+20.00%, Δ+1000)
 
-Snapshot cheatcodes: 
-
-  No existing snapshots found. Snapshot cheatcodes written successfully
+Snapshot cheatcodes: no baseline found. Run your tests with --snapshot to create one.
 
 To update snapshots, run your tests with --snapshot
 `;
