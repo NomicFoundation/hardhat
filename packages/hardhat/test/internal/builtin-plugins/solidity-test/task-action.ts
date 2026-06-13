@@ -740,6 +740,79 @@ describe("solidity-test/task-action", function () {
       );
     });
   });
+
+  describe("negation filters", () => {
+    before(async () => {
+      hre = await createHardhatRuntimeEnvironment(hardhatConfigAllTests);
+    });
+
+    async function runWithFilters(filters: Record<string, unknown>) {
+      return await hre.tasks
+        .getTask(["test", "solidity"])
+        .run({ noCompile: true, ...filters });
+    }
+
+    it("should exclude contracts matching --no-match-contract", async () => {
+      const result = await runWithFilters({ noMatchContract: "CounterTest1" });
+
+      assert.equal(result.success, true);
+      const suiteNames = getDiscoveredSuiteNames(result);
+      assert.ok(
+        !suiteNames.includes("CounterTest1"),
+        "CounterTest1 should be excluded",
+      );
+      assert.ok(
+        suiteNames.includes("CounterTest2"),
+        "CounterTest2 should still run",
+      );
+    });
+
+    it("should exclude all contracts and return success with zero results", async () => {
+      const result = await runWithFilters({ noMatchContract: "Counter" });
+
+      assert.equal(result.success, true);
+      assert.equal(getDiscoveredSuiteNames(result).length, 0);
+    });
+
+    it("should exclude tests matching --no-match-test and run the rest", async () => {
+      const result = await runWithFilters({ noMatchTest: "Increment" });
+
+      assert.equal(result.success, true);
+      const suiteNames = getDiscoveredSuiteNames(result);
+      assert.ok(
+        suiteNames.includes("CounterTest1"),
+        "CounterTest1 should still run with non-excluded tests",
+      );
+    });
+
+    it("should return early when --no-match-test excludes all test functions", async () => {
+      const result = await runWithFilters({ noMatchTest: "test" });
+
+      assert.equal(result.success, true);
+      assert.deepEqual(result.value.suiteResults, []);
+    });
+
+    for (const [flag, key] of [
+      ["--no-match-contract", "noMatchContract"],
+      ["--no-match-test", "noMatchTest"],
+    ] as const) {
+      it(`should throw HardhatError for invalid ${flag} regex`, async () => {
+        await assertRejectsWithHardhatError(
+          () => runWithFilters({ [key]: "[unclosed" }),
+          HardhatError.ERRORS.CORE.ARGUMENTS.INVALID_VALUE_FOR_TYPE,
+          { value: "[unclosed", type: "RegExp", name: flag },
+        );
+      });
+
+      it(`should throw HardhatError for empty ${flag} pattern`, async () => {
+        await assertRejectsWithHardhatError(
+          () => runWithFilters({ [key]: "" }),
+          HardhatError.ERRORS.CORE.ARGUMENTS.INVALID_VALUE_FOR_TYPE,
+          { value: "", type: "RegExp", name: flag },
+        );
+      });
+    }
+  });
 });
 
 function getDiscoveredSuiteNames(

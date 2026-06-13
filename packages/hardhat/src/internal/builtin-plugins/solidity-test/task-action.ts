@@ -37,6 +37,9 @@ import {
 } from "./edr-artifacts.js";
 import { collectEip712CanonicalTypes } from "./eip712/index.js";
 import {
+  buildSafeRegExp,
+  escapeRegExp,
+  getTestFunctionNames,
   isTestSuiteArtifact,
   warnDeprecatedTestFail,
   solidityTestConfigToSolidityTestRunnerConfigArgs,
@@ -50,6 +53,8 @@ interface TestActionArguments {
   testFiles: string[];
   chainType: string;
   grep?: string;
+  noMatchTest?: string;
+  noMatchContract?: string;
   noCompile: boolean;
   testSummaryIndex: number;
 }
@@ -59,7 +64,15 @@ export interface SolidityTestRunResult extends TestRunResult {
 }
 
 const runSolidityTests: NewTaskActionFunction<TestActionArguments> = async (
-  { testFiles, chainType, grep, noCompile, testSummaryIndex },
+  {
+    testFiles,
+    chainType,
+    grep,
+    noMatchTest,
+    noMatchContract,
+    noCompile,
+    testSummaryIndex,
+  },
   hre,
 ): Promise<Result<SolidityTestRunResult, SolidityTestRunResult>> => {
   // Set an environment variable that plugins can use to detect when a process is running tests
@@ -180,13 +193,32 @@ const runSolidityTests: NewTaskActionFunction<TestActionArguments> = async (
   );
 
   const testRootPathsSet = new Set(testRootPathsToRun);
+  const noMatchContractRegex =
+    noMatchContract !== undefined
+      ? buildSafeRegExp(noMatchContract, "--no-match-contract")
+      : undefined;
   const testSuiteArtifacts = edrArtifactsWithMetadata
     .filter(({ userSourceName }) =>
       testRootPathsSet.has(
         resolveFromRoot(hre.config.paths.root, userSourceName),
       ),
     )
-    .filter(({ edrArtifact }) => isTestSuiteArtifact(edrArtifact));
+    .filter(({ edrArtifact }) => isTestSuiteArtifact(edrArtifact))
+    .filter(
+      ({ edrArtifact }) =>
+        noMatchContractRegex === undefined ||
+        !noMatchContractRegex.test(edrArtifact.id.name),
+    );
+
+  if (testSuiteArtifacts.length === 0 && noMatchContractRegex !== undefined) {
+    console.warn(
+      "Warning: all test contracts were excluded by --no-match-contract. No tests will run.",
+    );
+    return successfulResult({
+      summary: { failed: 0, passed: 0, skipped: 0, todo: 0, failureOutput: "" },
+      suiteResults: [],
+    });
+  }
 
   for (const { edrArtifact } of testSuiteArtifacts) {
     warnDeprecatedTestFail(edrArtifact, sourceNameToUserSourceName);
@@ -242,6 +274,41 @@ const runSolidityTests: NewTaskActionFunction<TestActionArguments> = async (
     eip712Types,
   );
 
+  let effectiveTestPattern = grep;
+  if (noMatchTest !== undefined) {
+    const noMatchTestRegex = buildSafeRegExp(noMatchTest, "--no-match-test");
+    const allTestNames = testSuiteArtifacts.flatMap(({ edrArtifact }) =>
+      getTestFunctionNames(edrArtifact),
+    );
+
+    let survivingTests = [...new Set(allTestNames)].filter(
+      (name) => !noMatchTestRegex.test(name),
+    );
+
+    if (grep !== undefined) {
+      const grepRegex = buildSafeRegExp(grep, "--grep");
+      survivingTests = survivingTests.filter((name) => grepRegex.test(name));
+    }
+
+    if (survivingTests.length === 0) {
+      console.warn(
+        "Warning: all test functions were excluded by the provided filters. No tests will run.",
+      );
+      return successfulResult({
+        summary: {
+          failed: 0,
+          passed: 0,
+          skipped: 0,
+          todo: 0,
+          failureOutput: "",
+        },
+        suiteResults: [],
+      });
+    }
+
+    effectiveTestPattern = `^(${survivingTests.map(escapeRegExp).join("|")})(\\(\\))?$`;
+  }
+
   const testRunnerConfig =
     await solidityTestConfigToSolidityTestRunnerConfigArgs({
       chainType,
@@ -250,7 +317,7 @@ const runSolidityTests: NewTaskActionFunction<TestActionArguments> = async (
       config: solidityTestConfig,
       verbosity,
       observability: observabilityConfig,
-      testPattern: grep,
+      testPattern: effectiveTestPattern,
       generateGasReport:
         hre.globalOptions.gasStats ||
         hre.globalOptions.gasStatsJson !== undefined,

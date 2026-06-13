@@ -31,6 +31,19 @@ const hardhatPlugin: HardhatPlugin = definePlugin({
         type: ArgumentType.STRING_WITHOUT_DEFAULT,
         defaultValue: undefined,
       })
+      .addOption({
+        name: "noMatchTest",
+        description: "Exclude tests matching the given string or regexp",
+        type: ArgumentType.STRING_WITHOUT_DEFAULT,
+        defaultValue: undefined,
+      })
+      .addOption({
+        name: "noMatchContract",
+        description:
+          "Exclude test contracts matching the given string or regexp",
+        type: ArgumentType.STRING_WITHOUT_DEFAULT,
+        defaultValue: undefined,
+      })
       .addFlag({
         name: "noCompile",
         description: "Don't compile the project before running the tests",
