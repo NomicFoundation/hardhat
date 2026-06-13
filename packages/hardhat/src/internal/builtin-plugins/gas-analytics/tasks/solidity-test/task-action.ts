@@ -154,7 +154,7 @@ export function logSnapshotCheckResult(
     functionGasSnapshotsCheck.comparison.added.length > 0 ||
     functionGasSnapshotsCheck.comparison.removed.length > 0;
   const snapshotCheatcodesHasOutput =
-    snapshotCheatcodesCheck.written ||
+    snapshotCheatcodesCheck.noBaseline ||
     snapshotCheatcodesCheck.comparison.changed.length > 0 ||
     snapshotCheatcodesCheck.comparison.added.length > 0 ||
     snapshotCheatcodesCheck.comparison.removed.length > 0;
