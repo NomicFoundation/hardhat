@@ -1,5 +1,11 @@
 # @nomicfoundation/hardhat-errors
 
+## 3.0.16
+
+### Patch Changes
+
+- [#8098](https://github.com/NomicFoundation/hardhat/pull/8098) [`3146838`](https://github.com/NomicFoundation/hardhat/commit/31468384f6f9f3ac5d31e387e926c7325115a133) Thanks [@ChristopherDedominici](https://github.com/ChristopherDedominici)! - Handle mempool lag in nonce validation by retrying before erroring on stale pending counts ([8092](https://github.com/NomicFoundation/hardhat/issues/8092)).
+
 ## 3.0.15
 
 ### Patch Changes

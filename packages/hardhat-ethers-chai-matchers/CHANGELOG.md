@@ -1,5 +1,15 @@
 # @nomicfoundation/hardhat-ethers-chai-matchers
 
+## 3.0.11
+
+### Patch Changes
+
+- [#8250](https://github.com/NomicFoundation/hardhat/pull/8250) [`ee33400`](https://github.com/NomicFoundation/hardhat/commit/ee3340003959ada70801e08820f05a2fa8fbde4c) Thanks [@mmv08](https://github.com/mmv08)! - The broad `.revert(ethers)` matcher now recognizes EVM execution failures that some providers report without revert data, such as invalid opcode and out-of-gas errors. This makes `.revert(ethers)` behave consistently across providers that omit revert data on these failures. Reason-specific matchers like `.revertedWith` are unchanged and still require revert data.
+
+  As a consequence, `.not.to.be.revert(ethers)` now fails for these no-data execution failures, since they are treated as reverts.
+
+- [#8248](https://github.com/NomicFoundation/hardhat/pull/8248) [`a921ed8`](https://github.com/NomicFoundation/hardhat/commit/a921ed80bc1dda4f8548fd309df317ad6a7703b9) Thanks [@mmv08](https://github.com/mmv08)! - Make `revertedWith`, `revertedWithoutReason`, `revertedWithPanic`, and `revertedWithCustomError` wait for transaction receipts before asserting on resolved transaction responses.
+
 ## 3.0.10
 
 ### Patch Changes

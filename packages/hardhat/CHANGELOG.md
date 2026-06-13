@@ -1,5 +1,16 @@
 # hardhat
 
+## 3.9.1
+
+### Patch Changes
+
+- [#8234](https://github.com/NomicFoundation/hardhat/pull/8234) [`81871fd`](https://github.com/NomicFoundation/hardhat/commit/81871fd838c75b136c3a88813b06ac1d59a8c200) Thanks [@tenderdeve](https://github.com/tenderdeve)! - Explain the unsupported cheatcode `eip712HashType(string,string)` and point to the documentation for the alternative instead.
+
+- [#8332](https://github.com/NomicFoundation/hardhat/pull/8332) [`e542a48`](https://github.com/NomicFoundation/hardhat/commit/e542a4850833ab1a583021bb0ee8a78530cb0be5) Thanks [@gultekinmakif](https://github.com/gultekinmakif)! - Fixed a crash that could occur when a network returned an unexpected response while resolving the default sender account
+
+- Updated dependencies:
+  - @nomicfoundation/hardhat-errors@3.0.16
+
 ## 3.9.0
 
 ### Minor Changes
