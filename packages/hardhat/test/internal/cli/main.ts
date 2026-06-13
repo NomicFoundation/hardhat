@@ -286,6 +286,7 @@ AVAILABLE SUBTASKS:
   test solidity            Run the Solidity tests
   utils constants          Commonly used Ethereum constants
   utils convert            Convert values between common Ethereum representations
+  utils fetch              Fetch on-chain data
 
 GLOBAL OPTIONS:
 
