@@ -149,7 +149,7 @@ export function logSnapshotCheckResult(
   );
 
   const functionGasHasOutput =
-    functionGasSnapshotsCheck.written ||
+    functionGasSnapshotsCheck.noBaseline ||
     functionGasSnapshotsCheck.comparison.changed.length > 0 ||
     functionGasSnapshotsCheck.comparison.added.length > 0 ||
     functionGasSnapshotsCheck.comparison.removed.length > 0;
