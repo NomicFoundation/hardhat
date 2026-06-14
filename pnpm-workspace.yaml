@@ -1,3 +1,18 @@
 packages:
   - "packages/*"
   - "packages/hardhat/templates/hardhat-3/*"
+
+allowBuilds:
+  node-hid: true
+  esbuild: false
+  keccak: false
+  unrs-resolver: false
+  usb: false
+
+hoistPattern:
+  - "!@types/*"
+
+minimumReleaseAge: 10080
+minimumReleaseAgeExclude:
+  - hardhat
+  - "@nomicfoundation/*"
