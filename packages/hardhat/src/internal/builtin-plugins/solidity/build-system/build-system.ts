@@ -73,7 +73,6 @@ import {
 import { loadCache, saveCache } from "./cache.js";
 import { sortCompilationJobsByDescendingCost } from "./compilation-job-cost.js";
 import { CompilationJobImplementation } from "./compilation-job.js";
-import { downloadSolcCompilers, getCompiler } from "./compiler/index.js";
 import { buildDependencyGraph } from "./dependency-graph-building.js";
 import { readSourceFileFactory } from "./read-source-file.js";
 import {
@@ -1327,18 +1326,36 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
     options?: CompileBuildInfoOptions,
   ): Promise<CompilerOutput> {
     const quiet = options?.quiet ?? false;
+    // We need to cast because build infos can come from Hardhat setups with
+    // plugin-defined compiler types that aren't registered in the current type
+    // definitions.
+    // eslint-disable-next-line @typescript-eslint/consistent-type-assertions -- See comment above
+    const compilerConfig = {
+      type: buildInfo.compilerType ?? "solc",
+      version: buildInfo.solcVersion,
+      settings: buildInfo.input.settings,
+    } as SolidityCompilerConfig;
 
-    // Build info recompilation is always solc-only: build info files are
-    // produced by solc and must be recompiled with the same solc version.
-    // We bypass both downloadCompilers and getCompiler hooks — this is a
-    // self-contained solc replay path, not plugin-configurable compilation.
-    await downloadSolcCompilers(new Set([buildInfo.solcVersion]), quiet);
+    await this.#hooks.runParallelHandlers("solidity", "downloadCompilers", [
+      [compilerConfig],
+      quiet,
+    ]);
 
-    const compiler = await getCompiler(buildInfo.solcVersion, {
-      preferWasm: false,
-    });
+    const compiler = await this.#hooks.runHandlerChain(
+      "solidity",
+      "getCompiler",
+      [compilerConfig],
+      async (_context, cfg) => await getSolcCompilerForConfig(cfg, false),
+    );
 
-    return await compiler.compile(buildInfo.input);
+    return await this.#hooks.runHandlerChain(
+      "solidity",
+      "invokeSolc",
+      [compiler, buildInfo.input, compilerConfig],
+      async (_context, nextCompiler, nextSolcInput) => {
+        return await nextCompiler.compile(nextSolcInput);
+      },
+    );
   }
 
   async #downloadConfiguredCompilers(quiet = false): Promise<void> {

@@ -1,6 +1,7 @@
 import type { SolidityConfig } from "../../../../../src/types/config.js";
 import type { HookContext } from "../../../../../src/types/hooks.js";
 import type {
+  Compiler,
   SolidityBuildInfo,
   SolidityBuildInfoOutput,
   SolidityBuildSystem,
@@ -571,6 +572,93 @@ describe(
           output.errors.some((e) => e.severity === "error"),
           "Output should have at least one error",
         );
+      });
+
+      it("should use the compiler type from the build info", async () => {
+        const hooks = new HookManagerImplementation(process.cwd(), []);
+        // eslint-disable-next-line @typescript-eslint/consistent-type-assertions -- We don't care about hooks in this context
+        hooks.setContext({} as HookContext);
+
+        let downloadedCompilerType: string | undefined;
+        let invokedCompilerType: string | undefined;
+
+        const customCompiler: Compiler = {
+          version: "0.8.22",
+          longVersion: "0.8.22+custom",
+          compilerPath: "custom-compiler",
+          isSolcJs: false,
+          compile: async () => ({
+            sources: {
+              "Custom.sol": {
+                id: 0,
+                ast: {},
+              },
+            },
+          }),
+        };
+
+        hooks.registerHandlers("solidity", {
+          downloadCompilers: async (_context, compilerConfigs) => {
+            downloadedCompilerType = compilerConfigs[0].type;
+          },
+          getCompiler: async (_context, compilerConfig) => {
+            assert.equal(compilerConfig.type, "custom");
+            return customCompiler;
+          },
+          invokeSolc: async (
+            _context,
+            compiler,
+            solcInput,
+            solcConfig,
+            next,
+          ) => {
+            invokedCompilerType = solcConfig.type;
+            return await next(_context, compiler, solcInput, solcConfig);
+          },
+        });
+
+        const customSolidity = new SolidityBuildSystemImplementation(hooks, {
+          solidityConfig,
+          projectRoot: process.cwd(),
+          soliditySourcesPaths: [path.join(process.cwd(), "contracts")],
+          artifactsPath: actualArtifactsPath,
+          cachePath: actualCachePath,
+          solidityTestsPath: path.join(process.cwd(), "tests"),
+          coverage: false,
+        });
+
+        const buildInfo: SolidityBuildInfo = {
+          _format: "hh3-sol-build-info-1",
+          id: "custom-build-info",
+          solcVersion: "0.8.22",
+          solcLongVersion: "0.8.22+custom",
+          compilerType: "custom",
+          userSourceNameMap: { "Custom.sol": "Custom.sol" },
+          input: {
+            language: "Solidity",
+            sources: {
+              "Custom.sol": {
+                content: "contract Custom {}",
+              },
+            },
+            settings: {
+              optimizer: { enabled: false, runs: 200 },
+              outputSelection: {
+                "*": {
+                  "*": ["abi", "evm.bytecode"],
+                },
+              },
+            },
+          },
+        };
+
+        const output = await customSolidity.compileBuildInfo(buildInfo, {
+          quiet: true,
+        });
+
+        assert.equal(downloadedCompilerType, "custom");
+        assert.equal(invokedCompilerType, "custom");
+        assert.deepEqual(Object.keys(output.sources), ["Custom.sol"]);
       });
     });
   },
