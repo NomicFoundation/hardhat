@@ -272,7 +272,7 @@ describe("error-handler", () => {
       // the HH2_TO_HH3_MIGRATION branch, so the output should match it.
       it("is treated as a Hardhat 2 to Hardhat 3 migration error", async () => {
         const lines: Array<string | Error> = [];
-        const error = new UsingHardhat2PluginError();
+        const error = new UsingHardhat2PluginError("extendConfig");
 
         await printErrorMessages(error, false, (msg: string | Error) => {
           lines.push(msg);

@@ -7,6 +7,9 @@ import type { HardhatUserConfig } from "./types/config.js";
 
 import { throwUsingHardhat2PluginError } from "./internal/using-hardhat2-plugin-errors.js";
 
+const DEFINE_PLUGIN_MIGRATION_HINT =
+  "To migrate a plugin to Hardhat 3, export a plugin object with definePlugin from hardhat/plugins and register hook handlers in its hookHandlers field.";
+
 /**
  * Defines a Hardhat user config.
  *
@@ -42,33 +45,42 @@ export function defineConfig(config: HardhatUserConfig): HardhatUserConfig {
  * @deprecated This function is part of the Hardhat 2 plugin API.
  */
 export function extendConfig(..._args: any): any {
-  throwUsingHardhat2PluginError();
+  throwUsingHardhat2PluginError("extendConfig", DEFINE_PLUGIN_MIGRATION_HINT);
 }
 
 /**
  * @deprecated This function is part of the Hardhat 2 plugin API.
  */
 export function extendEnvironment(..._args: any): any {
-  throwUsingHardhat2PluginError();
+  throwUsingHardhat2PluginError(
+    "extendEnvironment",
+    DEFINE_PLUGIN_MIGRATION_HINT,
+  );
 }
 
 /**
  * @deprecated This function is part of the Hardhat 2 plugin API.
  */
 export function extendProvider(..._args: any): any {
-  throwUsingHardhat2PluginError();
+  throwUsingHardhat2PluginError("extendProvider", DEFINE_PLUGIN_MIGRATION_HINT);
 }
 
 /**
  * @deprecated This function is part of the Hardhat 2 plugin API.
  */
 export function scope(..._args: any): any {
-  throwUsingHardhat2PluginError();
+  throwUsingHardhat2PluginError(
+    "scope",
+    "To migrate tasks to Hardhat 3, define them with task or emptyTask from hardhat/config and include them in a plugin exported with definePlugin from hardhat/plugins.",
+  );
 }
 
 /**
  * @deprecated This function is part of the Hardhat 2 plugin API.
  */
 export function subtask(..._args: any): any {
-  throwUsingHardhat2PluginError();
+  throwUsingHardhat2PluginError(
+    "subtask",
+    "To migrate subtasks to Hardhat 3, define them as nested tasks with task or emptyTask from hardhat/config and include them in a plugin exported with definePlugin from hardhat/plugins.",
+  );
 }
