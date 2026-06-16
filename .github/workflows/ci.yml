@@ -308,6 +308,13 @@ jobs:
         run: pnpm install --frozen-lockfile --prefer-offline
       - name: Build
         run: pnpm run --if-present build
+      # The hardhat package's template tests spawn `pnpm hardhat` inside template
+      # projects that depend on other workspace packages (e.g. the toolboxes),
+      # which `pnpm run build` (the package under test) doesn't build. Build the
+      # whole workspace so those dependencies are available to the templates.
+      - name: Build all workspace packages
+        if: matrix.package == 'hardhat'
+        run: pnpm -r build
       # pnpm 11 skips creating bin symlinks whose target doesn't exist yet, so
       # workspace CLIs (e.g. hardhat) built after install have no bin until we
       # relink them once the build output exists. See pnpm/pnpm#10524.

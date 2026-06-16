@@ -25,6 +25,11 @@ jobs:
       - name: Run build
         # Ensure all projects are built before parallel test execution
         run: pnpm build
+      # pnpm 11 skips creating bin symlinks whose target isn't built at install
+      # time; relink workspace bins (e.g. hardhat) now that the build output
+      # exists. See pnpm/pnpm#10524.
+      - name: Recreate workspace bin links
+        run: pnpm rebuild -r
       - name: Run tests
         run: pnpm test || (echo "===== Retry =====" && pnpm test)
         env:
