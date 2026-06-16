@@ -84,6 +84,7 @@ napi
 niño
 NFKC
 Nomic
+nomicfoundation
 nomiclabs
 normalise
 NOTOK
