@@ -1194,6 +1194,22 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
       reachableBuildInfoIds.filter((id) => id !== undefined),
     );
 
+    // Source files that compile successfully but don't define contracts only
+    // emit build-info files and an artifacts.d.ts file. There are no artifact
+    // .json files pointing back to their build-info ids, so keep the current
+    // roots' cached build-info ids reachable too.
+    for (const rootFilePath of rootFilePaths) {
+      const cacheEntry = this.#compileCache[rootFilePath];
+
+      if (cacheEntry === undefined) {
+        continue;
+      }
+
+      reachableBuildInfoIdsSet.add(
+        path.basename(cacheEntry.buildInfoPath, ".json"),
+      );
+    }
+
     // The build-info directory is expected to be flat: every build-info file
     // lives directly under it, so a non-recursive `readdir` is enough.
     const buildInfoFiles = await readdirOrEmpty(buildInfosDir);
