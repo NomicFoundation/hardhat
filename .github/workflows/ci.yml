@@ -308,6 +308,11 @@ jobs:
         run: pnpm install --frozen-lockfile --prefer-offline
       - name: Build
         run: pnpm run --if-present build
+      # pnpm 11 skips creating bin symlinks whose target doesn't exist yet, so
+      # workspace CLIs (e.g. hardhat) built after install have no bin until we
+      # relink them once the build output exists. See pnpm/pnpm#10524.
+      - name: Recreate workspace bin links
+        run: pnpm rebuild -r
       - name: Run tests
         env:
           __DO_NOT_USE_IS_HARDHAT_CI: true
@@ -374,6 +379,11 @@ jobs:
         run: pnpm install --frozen-lockfile --prefer-offline
       - name: Build
         run: pnpm run --if-present build
+      # pnpm 11 skips creating bin symlinks whose target doesn't exist yet, so
+      # workspace CLIs (e.g. hardhat) built after install have no bin until we
+      # relink them once the build output exists. See pnpm/pnpm#10524.
+      - name: Recreate workspace bin links
+        run: pnpm rebuild -r
       - name: Run tests
         env:
           __DO_NOT_USE_IS_HARDHAT_CI: true
@@ -424,6 +434,11 @@ jobs:
           pnpm ls
       - name: Build
         run: pnpm run --if-present build
+      # pnpm 11 skips creating bin symlinks whose target doesn't exist yet, so
+      # workspace CLIs (e.g. hardhat) built after install have no bin until we
+      # relink them once the build output exists. See pnpm/pnpm#10524.
+      - name: Recreate workspace bin links
+        run: pnpm rebuild -r
       - name: Run tests
         env:
           __DO_NOT_USE_IS_HARDHAT_CI: true
