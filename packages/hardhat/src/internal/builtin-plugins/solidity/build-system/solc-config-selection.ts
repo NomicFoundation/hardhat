@@ -11,6 +11,7 @@ import { shortenPath } from "@nomicfoundation/hardhat-utils/path";
 import { intersects, maxSatisfying, satisfies } from "semver";
 
 import { CompilationJobCreationErrorReason } from "../../../../types/solidity/build-system.js";
+import { matchesAnyGlob } from "../../../utils/glob.js";
 
 export class SolcConfigSelector {
   readonly #buildProfileName: string;
@@ -62,7 +63,7 @@ export class SolcConfigSelector {
 
     const versionRange = Array.from(new Set(allVersionPragmas)).join(" ");
 
-    const overriddenCompiler = this.#buildProfile.overrides[userSourceName];
+    const overriddenCompiler = this.#getOverriddenCompiler(userSourceName);
 
     // if there's an override, we only check that
     if (overriddenCompiler !== undefined) {
@@ -101,6 +102,26 @@ export class SolcConfigSelector {
     );
 
     return { success: true, config: matchingConfig };
+  }
+
+  #getOverriddenCompiler(
+    userSourceName: string,
+  ): SolidityCompilerConfig | undefined {
+    const exactMatch = this.#buildProfile.overrides[userSourceName];
+
+    if (exactMatch !== undefined) {
+      return exactMatch;
+    }
+
+    for (const [overridePattern, compilerConfig] of Object.entries(
+      this.#buildProfile.overrides,
+    )) {
+      if (matchesAnyGlob(userSourceName, [overridePattern])) {
+        return compilerConfig;
+      }
+    }
+
+    return undefined;
   }
 
   /**

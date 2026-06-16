@@ -116,6 +116,100 @@ describe("SolcConfigSelector", () => {
         });
       });
 
+      it("should return the compiler if a glob override satisfies the version range", () => {
+        root = createProjectResolvedFile("contracts/Token.sol", ["^0.8.0"]);
+        dependencyGraph = new DependencyGraphImplementation();
+        dependencyGraph.addRootFile(root.inputSourceName, root);
+
+        buildProfile.overrides["contracts/**/*.sol"] = {
+          version: "0.8.1",
+          settings: {},
+        };
+
+        const selector = new SolcConfigSelector(buildProfileName, buildProfile);
+        const config =
+          selector.selectBestSolcConfigForSingleRootGraph(dependencyGraph);
+
+        assert.deepEqual(config, {
+          success: true,
+          config: buildProfile.overrides["contracts/**/*.sol"],
+        });
+      });
+
+      it("should prefer an exact override over a glob override", () => {
+        root = createProjectResolvedFile("contracts/Token.sol", ["^0.8.0"]);
+        dependencyGraph = new DependencyGraphImplementation();
+        dependencyGraph.addRootFile(root.inputSourceName, root);
+
+        buildProfile.overrides["contracts/**/*.sol"] = {
+          version: "0.8.1",
+          settings: {},
+        };
+        buildProfile.overrides[root.inputSourceName] = {
+          version: "0.8.2",
+          settings: {},
+        };
+
+        const selector = new SolcConfigSelector(buildProfileName, buildProfile);
+        const config =
+          selector.selectBestSolcConfigForSingleRootGraph(dependencyGraph);
+
+        assert.deepEqual(config, {
+          success: true,
+          config: buildProfile.overrides[root.inputSourceName],
+        });
+      });
+
+      it("should use the first matching glob override", () => {
+        root = createProjectResolvedFile("contracts/nested/Token.sol", [
+          "^0.8.0",
+        ]);
+        dependencyGraph = new DependencyGraphImplementation();
+        dependencyGraph.addRootFile(root.inputSourceName, root);
+
+        buildProfile.overrides["contracts/**/*.sol"] = {
+          version: "0.8.1",
+          settings: {},
+        };
+        buildProfile.overrides["contracts/nested/*.sol"] = {
+          version: "0.8.2",
+          settings: {},
+        };
+
+        const selector = new SolcConfigSelector(buildProfileName, buildProfile);
+        const config =
+          selector.selectBestSolcConfigForSingleRootGraph(dependencyGraph);
+
+        assert.deepEqual(config, {
+          success: true,
+          config: buildProfile.overrides["contracts/**/*.sol"],
+        });
+      });
+
+      it("should fall back to the configured compilers if no glob override matches", () => {
+        root = createProjectResolvedFile("scripts/Token.sol", ["^0.8.0"]);
+        dependencyGraph = new DependencyGraphImplementation();
+        dependencyGraph.addRootFile(root.inputSourceName, root);
+
+        buildProfile.overrides["contracts/**/*.sol"] = {
+          version: "0.8.1",
+          settings: {},
+        };
+        buildProfile.compilers.push({
+          version: "0.8.2",
+          settings: {},
+        });
+
+        const selector = new SolcConfigSelector(buildProfileName, buildProfile);
+        const config =
+          selector.selectBestSolcConfigForSingleRootGraph(dependencyGraph);
+
+        assert.deepEqual(config, {
+          success: true,
+          config: buildProfile.compilers[0],
+        });
+      });
+
       it("should return the compiler if it satisfies the version range of root and dependencies", () => {
         buildProfile.overrides[root.inputSourceName] = {
           version: "0.8.5",
