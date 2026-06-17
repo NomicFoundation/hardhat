@@ -5,7 +5,7 @@
   "license": "SEE LICENSE IN EACH PACKAGE'S LICENSE FILE",
   "type": "module",
   "private": true,
-  "packageManager": "pnpm@10.28.2",
+  "packageManager": "pnpm@11.6.0",
   "devDependencies": {
     "@changesets/changelog-github": "^0.6.0",
     "@changesets/cli": "^2.16.0",
@@ -40,16 +40,5 @@
     "e2e": "node ./scripts/end-to-end/main.ts",
     "bench": "node ./scripts/benchmark/main.ts",
     "bench:regression": "node ./scripts/benchmark/regression.ts"
-  },
-  "pnpm": {
-    "onlyBuiltDependencies": [
-      "node-hid"
-    ],
-    "ignoredBuiltDependencies": [
-      "esbuild",
-      "keccak",
-      "unrs-resolver",
-      "usb"
-    ]
   }
 }

@@ -3,7 +3,8 @@
   "image": "mcr.microsoft.com/devcontainers/base:trixie",
   "features": {
     "ghcr.io/devcontainers/features/node:1": {
-      "version": "24"
+      "version": "24",
+      "pnpmVersion": "11.6.0"
     }
   },
   "onCreateCommand": "scripts/setup.sh",
