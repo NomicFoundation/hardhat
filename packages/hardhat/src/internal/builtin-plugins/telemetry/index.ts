@@ -3,8 +3,13 @@ import type { HardhatPlugin } from "../../../types/plugins.js";
 import { definePlugin } from "../../../plugins.js";
 import { task } from "../../core/config.js";
 
+export type * from "./type-extensions/hre.js";
+
 const hardhatPlugin: HardhatPlugin = definePlugin({
   id: "builtin:telemetry",
+  hookHandlers: {
+    hre: () => import("./hook-handlers/hre.js"),
+  },
   tasks: [
     task("telemetry", "Display and modify telemetry settings")
       .addFlag({

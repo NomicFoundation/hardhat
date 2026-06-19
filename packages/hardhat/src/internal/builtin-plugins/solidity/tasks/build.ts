@@ -34,6 +34,21 @@ const buildAction: NewTaskActionFunction<BuildActionArguments> = async (
   const buildProfile =
     hre.globalOptions.buildProfile ?? args.defaultBuildProfile;
 
+  // Record task telemetry tags. These are no-ops unless a recording is active
+  // (telemetry enabled + sampled at the top-level CLI invocation).
+  hre.telemetry.recordTag("buildProfile", buildProfile);
+  hre.telemetry.recordTag(
+    "splitTestsCompilation",
+    hre.config.solidity.splitTestsCompilation,
+  );
+  hre.telemetry.recordTag("force", args.force);
+  const solcVersions = hre.config.solidity.profiles[buildProfile]?.compilers
+    .map((compiler) => compiler.version)
+    .join(",");
+  if (solcVersions !== undefined) {
+    hre.telemetry.recordTag("solcVersions", solcVersions);
+  }
+
   const files = normalizeRootPaths(args.files);
 
   const partitionedFiles = await partitionRootPathsByScope(hre.solidity, files);

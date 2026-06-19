@@ -26,6 +26,7 @@ import type { TaskManager } from "../../types/tasks.js";
 import type { UserInterruptionManager } from "../../types/user-interruptions.js";
 import type { CoverageManager } from "../builtin-plugins/coverage/types.js";
 import type { GasAnalyticsManager } from "../builtin-plugins/gas-analytics/types.js";
+import type { TaskTelemetry } from "../builtin-plugins/telemetry/recorder.js";
 
 import { HardhatError } from "@nomicfoundation/hardhat-errors";
 import { findClosestPackageRoot } from "@nomicfoundation/hardhat-utils/package";
@@ -53,6 +54,7 @@ export class HardhatRuntimeEnvironmentImplementation
   public network!: NetworkManager;
   public artifacts!: ArtifactManager;
   public solidity!: SolidityBuildSystem;
+  public telemetry!: TaskTelemetry;
 
   // NOTE: These underscore-prefixed properties are architectural violations intended
   // for internal use only. They are declared here rather than through module

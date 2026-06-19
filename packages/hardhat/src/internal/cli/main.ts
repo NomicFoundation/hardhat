@@ -54,6 +54,7 @@ import {
   sendErrorTelemetry,
   setCliHardhatConfigPath,
 } from "./telemetry/error-reporter/reporter.js";
+import { maybeStartTaskTelemetry } from "./telemetry/performance/gate.js";
 import { printVersionMessage } from "./version.js";
 
 export interface MainOptions {
@@ -77,6 +78,9 @@ export async function main(
 
   let builtinGlobalOptions;
   let configPath;
+  // Hoisted so the `finally` block can flush any recorded task telemetry,
+  // regardless of whether the run succeeded or threw.
+  let hre: HardhatRuntimeEnvironment | undefined;
 
   log("Hardhat CLI started");
 
@@ -225,7 +229,7 @@ export async function main(
 
     log("Creating Hardhat Runtime Environment");
 
-    const hre = await createHardhatRuntimeEnvironment(
+    hre = await createHardhatRuntimeEnvironment(
       userConfig,
       {
         ...builtinGlobalOptions,
@@ -291,6 +295,8 @@ export async function main(
 
     log(`Running task "${task.id.join(" ")}"`);
 
+    await maybeStartTaskTelemetry(hre, task.id);
+
     const [taskResult] = await Promise.all([
       task.run(taskArguments),
       sendTaskAnalytics(task.id),
@@ -338,6 +344,14 @@ export async function main(
     }
 
     process.exitCode = 1;
+  } finally {
+    // Flush any recorded task telemetry via the detached process. This is a
+    // no-op unless a recording was activated (telemetry enabled + sampled).
+    try {
+      await hre?.telemetry.flush();
+    } catch (e) {
+      log("Couldn't flush task telemetry: %O", e);
+    }
   }
 }
 
