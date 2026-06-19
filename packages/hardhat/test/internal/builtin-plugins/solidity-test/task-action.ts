@@ -321,12 +321,7 @@ describe("solidity-test/task-action", function () {
         );
       });
 
-      // TODO: currently fails because any active transactionGasCap
-      // breaks Solidity test setUp with a generic "EVM error", regardless of
-      // whether the cap would actually be exceeded.
-      // Similarly the exact error should be asserted rather than just
-      // success and failure.
-      it.skip("should pass when transactionGasCap is high enough to allow execution", async () => {
+      it("should pass when transactionGasCap is high enough to allow execution", async () => {
         hre = await createHardhatRuntimeEnvironment(hardhatConfigGasCapHigh);
 
         const result = await hre.tasks
@@ -340,7 +335,7 @@ describe("solidity-test/task-action", function () {
         );
       });
 
-      it.skip("should fail when transactionGasCap is set below required gas", async () => {
+      it("should fail when transactionGasCap is set below required gas", async () => {
         hre = await createHardhatRuntimeEnvironment(hardhatConfigGasCapLow);
 
         const result = await hre.tasks
@@ -348,10 +343,21 @@ describe("solidity-test/task-action", function () {
           .run({ noCompile: true });
 
         assert.equal(result.success, false);
-        assert.ok(
-          Array.isArray(result.error.suiteResults),
-          "suiteResults should be an array",
+
+        const suite = result.error.suiteResults.find(
+          (s: SuiteResult) => s.id.name === "TransactionGasCapTest",
         );
+        assert.ok(
+          suite !== undefined,
+          "expected a TransactionGasCapTest suite",
+        );
+
+        const testResult = suite.testResults.find(
+          (t: TestResult) => t.name === "testGasBand()",
+        );
+        assert.ok(testResult !== undefined, "expected a testGasBand() result");
+        assert.equal(testResult.status, "Failure");
+        assert.equal(testResult.reason, "EvmError: OutOfGas");
       });
     });
 
