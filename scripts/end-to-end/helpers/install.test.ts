@@ -35,17 +35,28 @@ describe("getInstallArgs", () => {
   });
 
   describe("pnpm", () => {
-    it("passes --registry when lockfile updates are not allowed", () => {
+    it("appends --trust-lockfile for a Verdaccio registry when lockfile updates are not allowed", () => {
       assert.deepEqual(getInstallArgs("pnpm", false, REGISTRY), [
         "install",
         `--registry=${REGISTRY}`,
+        "--trust-lockfile",
       ]);
     });
 
-    it("appends --no-frozen-lockfile when lockfile updates are allowed", () => {
+    it("appends --no-frozen-lockfile and --trust-lockfile when lockfile updates are allowed", () => {
       assert.deepEqual(getInstallArgs("pnpm", true, REGISTRY), [
         "install",
         `--registry=${REGISTRY}`,
+        "--no-frozen-lockfile",
+        "--trust-lockfile",
+      ]);
+    });
+
+    it("omits --trust-lockfile when the registry is not Verdaccio", () => {
+      const npmRegistry = "https://registry.npmjs.org";
+      assert.deepEqual(getInstallArgs("pnpm", true, npmRegistry), [
+        "install",
+        `--registry=${npmRegistry}`,
         "--no-frozen-lockfile",
       ]);
     });

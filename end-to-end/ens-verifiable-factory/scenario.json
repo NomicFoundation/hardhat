@@ -5,6 +5,9 @@
   "repo": "anaPerezGhiglia/ensdomains-verifiable-factory",
   "commit": "cd6622442c298ae89c4d92bcbc93a0faca4fbfae",
   "packageManager": "pnpm",
+  "env": {
+    "pnpm_config_dangerously_allow_all_builds": "true"
+  },
   "submodules": true,
   "defaultCommand": "npx hardhat test solidity",
   "benchmark": {

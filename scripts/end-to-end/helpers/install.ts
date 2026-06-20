@@ -84,6 +84,18 @@ export function getInstallArgs(
     }
   }
 
+  // pnpm 11 verifies every lockfile entry's tarball URL against the active
+  // registry's metadata (ERR_PNPM_TARBALL_URL_MISMATCH). Scenario lockfiles can
+  // pin an absolute `registry.npmjs.org` tarball, but installing through
+  // Verdaccio serves the same package from 127.0.0.1, so the check fails. The
+  // scenario lockfile is a trusted benchmark fixture, so skip that re-
+  // verification rather than regenerate the lockfile. Scoped to pnpm (the only
+  // package manager with this flag) and to Verdaccio-backed installs (the only
+  // place the tarball host is rewritten).
+  if (packageManager === "pnpm" && registryUrl === VERDACCIO_URL) {
+    args.push("--trust-lockfile");
+  }
+
   return args;
 }
 
