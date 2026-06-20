@@ -5,6 +5,9 @@
   "repo": "anaPerezGhiglia/uniswap-v4-core",
   "commit": "ab2b22eef19e0abe29d67420dde81b5d54455ae5",
   "packageManager": "pnpm",
+  "env": {
+    "pnpm_config_dangerously_allow_all_builds": "true"
+  },
   "submodules": true,
   "defaultCommand": "npx hardhat test solidity",
   "benchmark": {
