@@ -1,5 +1,8 @@
 import path from "node:path";
 
+const WINDOWS_RESERVED_FILENAME_PATTERN =
+  /^(con|prn|aux|nul|com[1-9]|lpt[1-9])(\..*)?$/i;
+
 /**
  * Resolves a user-provided path into an absolute path.
  *
@@ -60,8 +63,9 @@ export function shortenPath(absolutePath: string): string {
  *
  * Strips characters that are reserved on at least one of those platforms
  * (`<>:"/\|?*` and ASCII control chars), trims trailing dots and whitespace
- * (Windows silently strips them on write), and falls back to `_` if the
- * result is empty or one of the path-traversal literals `.` / `..`.
+ * (Windows silently strips them on write), avoids Windows reserved device
+ * names, and falls back to `_` if the result is empty or one of the
+ * path-traversal literals `.` / `..`.
  *
  * @param name The string to sanitize.
  * @returns A non-empty filename-safe string.
@@ -72,6 +76,18 @@ export function sanitizeFilename(name: string): string {
 
   if (result === "" || result === "." || result === "..") {
     result = "_";
+  }
+
+  if (WINDOWS_RESERVED_FILENAME_PATTERN.test(result)) {
+    const extensionIndex = result.indexOf(".");
+
+    if (extensionIndex === -1) {
+      result = `${result}_`;
+    } else {
+      result = `${result.slice(0, extensionIndex)}_${result.slice(
+        extensionIndex,
+      )}`;
+    }
   }
 
   return result;

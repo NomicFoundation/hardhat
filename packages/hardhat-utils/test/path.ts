@@ -161,5 +161,24 @@ describe("path", () => {
         "..windowssystem32",
       );
     });
+
+    it("Should avoid Windows reserved device names", () => {
+      assert.equal(sanitizeFilename("CON"), "CON_");
+      assert.equal(sanitizeFilename("nul"), "nul_");
+      assert.equal(sanitizeFilename("COM1"), "COM1_");
+      assert.equal(sanitizeFilename("LPT9"), "LPT9_");
+      assert.equal(sanitizeFilename("CON.txt"), "CON_.txt");
+      assert.equal(sanitizeFilename("com1.log"), "com1_.log");
+    });
+
+    it(
+      "Should preserve names that only contain Windows reserved device names as substrings",
+      () => {
+        assert.equal(sanitizeFilename("CONTRACT"), "CONTRACT");
+        assert.equal(sanitizeFilename("XCOM1"), "XCOM1");
+        assert.equal(sanitizeFilename("LPT10"), "LPT10");
+        assert.equal(sanitizeFilename("NUL-device"), "NUL-device");
+      },
+    );
   });
 });
