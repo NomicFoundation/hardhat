@@ -43,6 +43,12 @@ Use `await import` only if one of these conditions is met:
 
 The only accepted imports in the `index.ts` file of plugins (both built-in and external) are their `type-extension`, types and `enums` from `hardhat`, `hardhat/config`, `hardhat/plugins` (for `definePlugin`), and potentially a simple file with constants. They can also import files that follow these same rules and restrictions. Everything else should be imported by a callback registered in the plugin object.
 
+`ConfigHooks` and `HardhatRuntimeEnvironmentHooks` factories run on every Hardhat invocation, so they should follow the same criteria as the plugin's `index.ts` file.
+
+`NetworkHooks` aren't always run, but `newConnection` handlers that extend `NetworkConnection` (e.g. `connection.foo = …`) should consider lazily initializing their business logic, unless they are virtually always used. The reason for this is that otherwise the first network connection initializes too many unnecessary things. For example, the `hardhat-ethers` plugin doesn't need to be lazily initialized, as most users that install it will use it most of the time after creating a new network. On the contrary, the `hardhat-ignition-ethers` plugin isn't always used, so it should be lazily initialized.
+
+Reference pattern for lazy initialization: `packages/hardhat-ignition-ethers/src/internal/hook-handlers/network.ts`. When the wrapper caches both the imported module and an instance built from it, the getter must run `await import(...)` **before** the instance cache check — see the "Ordering in cached lazy getters" section in `docs/engineering-guidelines.md` (under GC3) for the rationale and code shape.
+
 Test files are free to use `await import` freely.
 
 ## Development workflow

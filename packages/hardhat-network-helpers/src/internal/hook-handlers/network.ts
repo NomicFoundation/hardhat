@@ -1,7 +1,7 @@
 import type { HookContext, NetworkHooks } from "hardhat/types/hooks";
 import type { ChainType, NetworkConnection } from "hardhat/types/network";
 
-import { NetworkHelpers } from "../network-helpers/network-helpers.js";
+import { LazyNetworkHelpers } from "../network-helpers/lazy-network-helpers.js";
 
 export default async (): Promise<Partial<NetworkHooks>> => {
   const handlers: Partial<NetworkHooks> = {
@@ -13,7 +13,7 @@ export default async (): Promise<Partial<NetworkHooks>> => {
     ) {
       const connection = await next(context);
 
-      connection.networkHelpers = new NetworkHelpers(connection);
+      connection.networkHelpers = new LazyNetworkHelpers(connection);
 
       return connection;
     },
