@@ -1,7 +1,7 @@
 import { execFileSync } from "node:child_process";
-import { existsSync, readFileSync, writeFileSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import { resolve } from "node:path";
-import { installDependencies } from "../helpers/install.ts";
+import { installDependencies, updateDependencies } from "../helpers/install.ts";
 import { git, which, ROOT_DIR } from "../helpers/shell.ts";
 import { fmt, log, logStep, logWarning } from "../helpers/log.ts";
 import {
@@ -107,10 +107,10 @@ export async function init(
     setupScenario(scenario, forceCheckout);
 
     if (useLocal === UseLocal.Yes) {
-      await upgradeLocalDependencies(scenario);
+      await updateLocalDependencies(scenario);
     }
 
-    installScenarioDeps(scenario, useLocal === UseLocal.Yes);
+    installScenarioDeps(scenario);
   } finally {
     if (startedVerdaccio) {
       verdaccioStop();
@@ -162,10 +162,7 @@ function setupScenario(scenario: Scenario, forceCheckout: ForceCheckout): void {
  * Install dependencies using the scenario's package manager or custom
  * install script.
  */
-function installScenarioDeps(
-  scenario: Scenario,
-  allowLockfileUpdates: boolean,
-): void {
+function installScenarioDeps(scenario: Scenario): void {
   const { scenarioDir, workingDir, definition } = scenario;
 
   if (definition.install !== undefined) {
@@ -176,28 +173,24 @@ function installScenarioDeps(
       definition.env,
     );
   } else {
-    installDependencies(
-      workingDir,
-      definition.packageManager,
-      allowLockfileUpdates,
-      definition.env,
-    );
+    installDependencies(workingDir, definition.packageManager, definition.env);
   }
 }
 
 /**
- * Patch the scenario's package.json to pin hardhat / @nomicfoundation/*
- * dependencies to the latest versions available in Verdaccio. Verdaccio
- * merges locally published packages with npm (via proxy), so this returns
- * bumped local versions where available and npm versions for everything else.
+ * Update the scenario's hardhat / @nomicfoundation/* dependencies to the latest
+ * versions available in Verdaccio using the scenario's package manager. A
+ * targeted update writes package.json and the lockfile together and installs,
+ * without re-resolving the rest of the tree — so it can't split a shared
+ * transitive dependency across versions.
  */
-async function upgradeLocalDependencies(scenario: Scenario): Promise<void> {
-  logStep("Upgrading dependencies to latest Verdaccio versions");
+async function updateLocalDependencies(scenario: Scenario): Promise<void> {
+  logStep("Updating local dependencies to latest Verdaccio versions");
 
   const pkgJsonPath = resolve(scenario.workingDir, "package.json");
   const pkgJson = JSON.parse(readFileSync(pkgJsonPath, "utf-8"));
 
-  let updated = false;
+  const specs: string[] = [];
 
   for (const depField of ["dependencies", "devDependencies"] as const) {
     const deps = pkgJson[depField] as Record<string, string> | undefined;
@@ -214,18 +207,27 @@ async function upgradeLocalDependencies(scenario: Scenario): Promise<void> {
       const version = await getLatestFromVerdaccio(name);
 
       if (version !== undefined) {
-        deps[name] = version;
-        updated = true;
+        specs.push(`${name}@${version}`);
         log(`  ${fmt.pkg(name)} → ${fmt.version(version)}`);
       }
     }
   }
 
-  if (updated) {
-    writeFileSync(pkgJsonPath, JSON.stringify(pkgJson, null, 2) + "\n");
-  } else {
+  if (specs.length === 0) {
+    // Nothing to bump; the unconditional installScenarioDeps below realizes
+    // node_modules.
     log("No matching dependencies to update");
+    return;
   }
+
+  const { workingDir, definition } = scenario;
+
+  updateDependencies(
+    workingDir,
+    definition.packageManager,
+    specs,
+    definition.env,
+  );
 }
 
 async function getLatestFromVerdaccio(

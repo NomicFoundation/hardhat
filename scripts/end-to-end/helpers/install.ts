@@ -15,7 +15,47 @@ import type { ScenarioDefinition } from "../types.ts";
 export function installDependencies(
   workDir: string,
   packageManager: ScenarioDefinition["packageManager"],
-  allowLockfileUpdates: boolean,
+  env?: Record<string, string>,
+): void {
+  logStep("Installing dependencies");
+
+  runPackageManager(
+    workDir,
+    packageManager,
+    getInstallArgs(packageManager, VERDACCIO_URL),
+    env,
+  );
+}
+
+/**
+ * Update the scenario's local (`hardhat` / `@nomicfoundation/*`) dependencies to
+ * the given `name@version` specs using the scenario's package manager.
+ */
+export function updateDependencies(
+  workDir: string,
+  packageManager: ScenarioDefinition["packageManager"],
+  specs: string[],
+  env?: Record<string, string>,
+): void {
+  logStep("Updating local dependencies");
+
+  runPackageManager(
+    workDir,
+    packageManager,
+    getUpdateArgs(packageManager, specs, VERDACCIO_URL),
+    env,
+  );
+}
+
+/**
+ * Point the scenario's package manager at Verdaccio and run it with `args`.
+ * Shared by install and targeted-update so both get the same registry config,
+ * corepack bootstrap (yarn), and environment.
+ */
+function runPackageManager(
+  workDir: string,
+  packageManager: ScenarioDefinition["packageManager"],
+  args: string[],
   env?: Record<string, string>,
 ): void {
   writeRegistryConfig(workDir, packageManager);
@@ -29,27 +69,38 @@ export function installDependencies(
     });
   }
 
-  logStep("Installing dependencies");
-
-  const installArgs = getInstallArgs(
-    packageManager,
-    allowLockfileUpdates,
-    VERDACCIO_URL,
-  );
-
-  execFileSync(which(packageManager), installArgs, {
+  execFileSync(which(packageManager), args, {
     cwd: workDir,
     stdio: "inherit",
     env: {
       ...process.env,
       ...env,
       COREPACK_ENABLE_DOWNLOAD_PROMPT: "0",
-      npm_config_minimum_release_age: "0",
-      // Yarn Classic doesn't honor project .yarnrc for `registry` on the
-      // GitHub Actions runner, so force the registry via env var. This is
-      // the highest-priority npm config source, so it overrides any
-      // user/global .npmrc that might be present.
-      npm_config_registry: VERDACCIO_URL,
+      ...(packageManager === "pnpm"
+        ? {
+            // The local packages (hardhat, @nomicfoundation/*) are published to
+            // Verdaccio minutes before this runs; pnpm 11 defaults minimumReleaseAge
+            // to one day and would block them.
+            pnpm_config_minimum_release_age: "0",
+            // pnpm 11 re-verifies every lockfile entry's tarball URL against the
+            // active registry (ERR_PNPM_TARBALL_URL_MISMATCH). Scenario lockfiles
+            // pin absolute registry.npmjs.org tarballs, but installing through
+            // Verdaccio serves them from 127.0.0.1, so the check fails on entries
+            // a targeted update doesn't touch. The scenario lockfile is a trusted
+            // benchmark fixture, so trust it. Set as config (not a flag) so it
+            // applies to both `pnpm install` and `pnpm update`.
+            pnpm_config_trust_lockfile: "true",
+          }
+        : {
+            // The local packages (hardhat, @nomicfoundation/*) are published to
+            // Verdaccio minutes before this runs; so disable any release-age gate.
+            npm_config_minimum_release_age: "0",
+            // Yarn Classic doesn't honor project .yarnrc for `registry` on the
+            // GitHub Actions runner, so force the registry via env var. This is
+            // the highest-priority npm config source, so it overrides any
+            // user/global .npmrc that might be present.
+            npm_config_registry: VERDACCIO_URL,
+          }),
     },
   });
 }
@@ -57,46 +108,40 @@ export function installDependencies(
 /**
  * Build the package-manager-specific `install` args for a Verdaccio-backed
  * install.
- *
- * `--use-local` patches the scenario's package.json, drifting the lockfile.
- * Since CI defaults to frozen-lockfile mode for pnpm and Yarn Berry, we allow
- * lockfile updates.
  */
 export function getInstallArgs(
   packageManager: ScenarioDefinition["packageManager"],
-  allowLockfileUpdates: boolean,
   registryUrl: string,
 ): string[] {
   // bun doesn't reliably read cwd `bunfig.toml`, so it needs the `--registry` CLI flag.
   // npm & pnpm don't strictly need `--registry` but we pass it for redundancy.
   // yarn is excluded because it rejects `--registry` as a CLI flag.
-  const args =
-    packageManager === "yarn"
-      ? ["install"]
-      : ["install", `--registry=${registryUrl}`];
+  return packageManager === "yarn"
+    ? ["install"]
+    : ["install", `--registry=${registryUrl}`];
+}
 
-  if (allowLockfileUpdates) {
-    // npm install never freezes (only `npm ci` does), so it doesn't need any flag.
-    if (packageManager === "pnpm" || packageManager === "bun") {
-      args.push("--no-frozen-lockfile");
-    } else if (packageManager === "yarn") {
-      args.push("--no-immutable");
-    }
+/**
+ * Build the package-manager-specific args to update `specs` (e.g.
+ * `["hardhat@3.9.1"]`) against a Verdaccio-backed registry.
+ */
+export function getUpdateArgs(
+  packageManager: ScenarioDefinition["packageManager"],
+  specs: string[],
+  registryUrl: string,
+): string[] {
+  switch (packageManager) {
+    case "pnpm":
+      return ["update", ...specs, `--registry=${registryUrl}`];
+    case "npm":
+      return ["install", ...specs, `--registry=${registryUrl}`];
+    case "bun":
+      return ["add", ...specs, `--registry=${registryUrl}`];
+    case "yarn":
+      // `yarn add` updates an existing dependency in both Classic and Berry;
+      // the registry comes from .yarnrc.yml / npm_config_registry.
+      return ["add", ...specs];
   }
-
-  // pnpm 11 verifies every lockfile entry's tarball URL against the active
-  // registry's metadata (ERR_PNPM_TARBALL_URL_MISMATCH). Scenario lockfiles can
-  // pin an absolute `registry.npmjs.org` tarball, but installing through
-  // Verdaccio serves the same package from 127.0.0.1, so the check fails. The
-  // scenario lockfile is a trusted benchmark fixture, so skip that re-
-  // verification rather than regenerate the lockfile. Scoped to pnpm (the only
-  // package manager with this flag) and to Verdaccio-backed installs (the only
-  // place the tarball host is rewritten).
-  if (packageManager === "pnpm" && registryUrl === VERDACCIO_URL) {
-    args.push("--trust-lockfile");
-  }
-
-  return args;
 }
 
 function writeRegistryConfig(

@@ -1,81 +1,64 @@
 import { describe, it } from "node:test";
 import assert from "node:assert/strict";
-import { getInstallArgs } from "./install.ts";
+import { getInstallArgs, getUpdateArgs } from "./install.ts";
 
 const REGISTRY = "http://127.0.0.1:4873";
 
 describe("getInstallArgs", () => {
-  describe("yarn", () => {
-    it("omits --registry (env var carries it) when lockfile updates are not allowed", () => {
-      assert.deepEqual(getInstallArgs("yarn", false, REGISTRY), ["install"]);
-    });
-
-    it("appends --no-immutable when lockfile updates are allowed", () => {
-      assert.deepEqual(getInstallArgs("yarn", true, REGISTRY), [
-        "install",
-        "--no-immutable",
-      ]);
-    });
+  it("omits --registry for yarn (it rejects the CLI flag)", () => {
+    assert.deepEqual(getInstallArgs("yarn", REGISTRY), ["install"]);
   });
 
-  describe("npm", () => {
-    it("passes --registry when lockfile updates are not allowed", () => {
-      assert.deepEqual(getInstallArgs("npm", false, REGISTRY), [
-        "install",
-        `--registry=${REGISTRY}`,
-      ]);
-    });
-
-    it("does not append a lockfile flag (npm install never freezes)", () => {
-      assert.deepEqual(getInstallArgs("npm", true, REGISTRY), [
-        "install",
-        `--registry=${REGISTRY}`,
-      ]);
-    });
+  it("passes --registry for npm", () => {
+    assert.deepEqual(getInstallArgs("npm", REGISTRY), [
+      "install",
+      `--registry=${REGISTRY}`,
+    ]);
   });
 
-  describe("pnpm", () => {
-    it("appends --trust-lockfile for a Verdaccio registry when lockfile updates are not allowed", () => {
-      assert.deepEqual(getInstallArgs("pnpm", false, REGISTRY), [
-        "install",
-        `--registry=${REGISTRY}`,
-        "--trust-lockfile",
-      ]);
-    });
-
-    it("appends --no-frozen-lockfile and --trust-lockfile when lockfile updates are allowed", () => {
-      assert.deepEqual(getInstallArgs("pnpm", true, REGISTRY), [
-        "install",
-        `--registry=${REGISTRY}`,
-        "--no-frozen-lockfile",
-        "--trust-lockfile",
-      ]);
-    });
-
-    it("omits --trust-lockfile when the registry is not Verdaccio", () => {
-      const npmRegistry = "https://registry.npmjs.org";
-      assert.deepEqual(getInstallArgs("pnpm", true, npmRegistry), [
-        "install",
-        `--registry=${npmRegistry}`,
-        "--no-frozen-lockfile",
-      ]);
-    });
+  it("passes --registry for pnpm", () => {
+    assert.deepEqual(getInstallArgs("pnpm", REGISTRY), [
+      "install",
+      `--registry=${REGISTRY}`,
+    ]);
   });
 
-  describe("bun", () => {
-    it("passes --registry when lockfile updates are not allowed", () => {
-      assert.deepEqual(getInstallArgs("bun", false, REGISTRY), [
-        "install",
-        `--registry=${REGISTRY}`,
-      ]);
-    });
+  it("passes --registry for bun", () => {
+    assert.deepEqual(getInstallArgs("bun", REGISTRY), [
+      "install",
+      `--registry=${REGISTRY}`,
+    ]);
+  });
+});
 
-    it("appends --no-frozen-lockfile when lockfile updates are allowed", () => {
-      assert.deepEqual(getInstallArgs("bun", true, REGISTRY), [
-        "install",
-        `--registry=${REGISTRY}`,
-        "--no-frozen-lockfile",
-      ]);
-    });
+describe("getUpdateArgs", () => {
+  const specs = ["hardhat@3.9.1", "@nomicfoundation/hardhat-ethers@4.0.14"];
+
+  it("uses `pnpm update <specs>`", () => {
+    assert.deepEqual(getUpdateArgs("pnpm", specs, REGISTRY), [
+      "update",
+      ...specs,
+      `--registry=${REGISTRY}`,
+    ]);
+  });
+
+  it("uses `npm install <specs>`", () => {
+    assert.deepEqual(getUpdateArgs("npm", specs, REGISTRY), [
+      "install",
+      ...specs,
+      `--registry=${REGISTRY}`,
+    ]);
+  });
+
+  it("uses `bun add <specs>`", () => {
+    assert.deepEqual(getUpdateArgs("bun", specs, REGISTRY), [
+      "add",
+      ...specs,
+      `--registry=${REGISTRY}`,
+    ]);
+  });
+
+  it("uses `yarn add <specs>` (registry comes from config, not a flag)", () => {
+    assert.deepEqual(getUpdateArgs("yarn", specs, REGISTRY), ["add", ...specs]);
   });
 });
