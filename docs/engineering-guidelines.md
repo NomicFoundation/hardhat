@@ -121,6 +121,8 @@ This rule applies to any cached dynamic import (condition 6 in the list above) t
 
 The getter must run `await import(...)` **before** the instance cache check, so concurrent callers share a single microtask-dedupe point — otherwise each suspended caller re-enters the branch, constructs its own implementation, and the callers end up with different instances.
 
+For the same reason, there must be no `await` between reading `this.#instance === undefined` and assigning `this.#instance`: any suspension point in that window lets a concurrent caller observe the still-`undefined` instance and construct a second one.
+
 ```ts
 import type { Impl as ImplT } from "./impl.js";
 
