@@ -323,14 +323,17 @@ export async function checkFunctionGasSnapshots(
     previousFunctionGasSnapshots = await readFunctionGasSnapshots(basePath);
   } catch (error) {
     if (error instanceof FileNotFoundError) {
+      // Running a check without a stored snapshot is a mistake: fail so it's
+      // caught, but only when this run actually produced something to check.
+      const noBaseline = functionGasSnapshots.length > 0;
       return {
-        passed: true,
+        passed: !noBaseline,
         comparison: {
           added: [],
           removed: [],
           changed: [],
         },
-        noBaseline: functionGasSnapshots.length > 0,
+        noBaseline,
       };
     }
 
@@ -352,12 +355,16 @@ export async function checkFunctionGasSnapshots(
 export function logFunctionGasSnapshotsSection(
   result: FunctionGasSnapshotCheckResult,
   logger: typeof console.log = console.log,
+  isFiltered = false,
 ): void {
   const { comparison, noBaseline } = result;
   const changedLength = comparison.changed.length;
-  const addedLength = comparison.added.length;
-  const removedLength = comparison.removed.length;
   const hasChanges = changedLength > 0;
+  // On a filtered run (--grep or specific files), added and missing snapshots
+  // are mostly artifacts of the filter rather than real differences, so we
+  // don't report them.
+  const addedLength = isFiltered ? 0 : comparison.added.length;
+  const removedLength = isFiltered ? 0 : comparison.removed.length;
   const hasAdded = addedLength > 0;
   const hasRemoved = removedLength > 0;
   const hasAnyDifferences = hasChanges || hasAdded || hasRemoved;
@@ -371,7 +378,7 @@ export function logFunctionGasSnapshotsSection(
     logger(
       styleText(
         "yellow",
-        "Function gas snapshots: no baseline found. Run your tests with --snapshot to create one.",
+        "Function gas snapshots: no snapshot found. Run your tests with --snapshot to create one.",
       ),
     );
     logger();
@@ -394,7 +401,7 @@ export function logFunctionGasSnapshotsSection(
   if (hasAdded) {
     logger();
     logger(
-      `  ${comparison.added.length} function(s) produced by this run are not in the baseline:`,
+      `  ${comparison.added.length} function(s) produced by this run are not in the snapshot:`,
     );
     const addedLines = stringifyFunctionGasSnapshots(comparison.added).split(
       "\n",
