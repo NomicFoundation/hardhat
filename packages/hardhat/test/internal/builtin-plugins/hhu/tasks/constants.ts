@@ -28,9 +28,9 @@ describe("hhu utils constants tasks", () => {
     console.log = originalLog;
   });
 
-  describe("zeroAddress", () => {
+  describe("zero-address", () => {
     it("prints the zero address", async () => {
-      await hre.tasks.getTask(["utils", "constants", "zeroAddress"]).run({});
+      await hre.tasks.getTask(["utils", "constants", "zero-address"]).run({});
 
       assert.deepEqual(logs, [ZERO_ADDRESS]);
     });

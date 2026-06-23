@@ -52,16 +52,16 @@ Usage: hhu [GLOBAL OPTIONS] <TASK> [SUBTASK] [TASK OPTIONS] [--] [TASK ARGUMENTS
 
 AVAILABLE SUBTASKS:
 
-  constants zeroAddress      Print the zero address
-  convert pad                Pad a hex string to a given byte length
-  fetch block-number         Print the latest block number
+  constants zero-address      Print the zero address
+  convert pad                 Pad a hex string to a given byte length
+  fetch block-number          Print the latest block number
 
 GLOBAL OPTIONS:
 
-  --help, -h                 Show this message, or a task's help if its name is provided
-  --network                  The network to connect to
-  --show-stack-traces        Show stack traces (always enabled on CI servers)
-  --version                  Show the version of hhu
+  --help, -h                  Show this message, or a task's help if its name is provided
+  --network                   The network to connect to
+  --show-stack-traces         Show stack traces (always enabled on CI servers)
+  --version                   Show the version of hhu
 
 To get help for a specific task run: npx hhu <TASK> [SUBTASK] --help`;
 
@@ -79,14 +79,14 @@ Usage: hhu [GLOBAL OPTIONS] constants <SUBTASK> [SUBTASK OPTIONS] [--] [SUBTASK 
 
 AVAILABLE SUBTASKS:
 
-  constants zeroAddress      Print the zero address
+  constants zero-address      Print the zero address
 
 GLOBAL OPTIONS:
 
-  --help, -h                 Show this message, or a task's help if its name is provided
-  --network                  The network to connect to
-  --show-stack-traces        Show stack traces (always enabled on CI servers)
-  --version                  Show the version of hhu
+  --help, -h                  Show this message, or a task's help if its name is provided
+  --network                   The network to connect to
+  --show-stack-traces         Show stack traces (always enabled on CI servers)
+  --version                   Show the version of hhu
 
 To get help for a specific task run: npx hhu constants <SUBTASK> --help`;
 
@@ -95,12 +95,12 @@ To get help for a specific task run: npx hhu constants <SUBTASK> --help`;
 
       it("should print the help for a task with an action", async () => {
         const help = (
-          await runHhu("npx hhu constants zeroAddress --help")
+          await runHhu("npx hhu constants zero-address --help")
         ).join("");
 
         const expected = `${styleText("bold", "Print the zero address")}
 
-Usage: hhu [GLOBAL OPTIONS] constants zeroAddress
+Usage: hhu [GLOBAL OPTIONS] constants zero-address
 
 GLOBAL OPTIONS:
 
@@ -188,7 +188,7 @@ GLOBAL OPTIONS:
     it("should not be used by hhu, while Hardhat does not expose the un-prefixed tasks", async () => {
       // hhu must NOT understand the Hardhat-style `utils` prefix.
       await assertRejectsWithHardhatError(
-        () => runHhu("npx hhu utils constants zeroAddress"),
+        () => runHhu("npx hhu utils constants zero-address"),
         HardhatError.ERRORS.CORE.TASK_DEFINITIONS.TASK_NOT_FOUND,
         { task: "utils" },
       );
@@ -196,7 +196,7 @@ GLOBAL OPTIONS:
       // Hardhat must NOT understand the hhu-style un-prefixed task.
       const hre = await createHardhatRuntimeEnvironment({}, {}, process.cwd());
       assertThrowsHardhatError(
-        () => hre.tasks.getTask(["constants", "zeroAddress"]),
+        () => hre.tasks.getTask(["constants", "zero-address"]),
         HardhatError.ERRORS.CORE.TASK_DEFINITIONS.TASK_NOT_FOUND,
         { task: "constants" },
       );
@@ -218,8 +218,8 @@ GLOBAL OPTIONS:
       console.log = originalLog;
     });
 
-    it("`constants zeroAddress` should print the zero address", async () => {
-      await runHhu("npx hhu constants zeroAddress");
+    it("`constants zero-address` should print the zero address", async () => {
+      await runHhu("npx hhu constants zero-address");
 
       assert.deepEqual(logs, [ZERO_ADDRESS]);
     });

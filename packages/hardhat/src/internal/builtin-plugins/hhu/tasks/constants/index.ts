@@ -10,7 +10,7 @@ export function constants(prefix: string[]): UtilsTaskDefinition[] {
   ).build();
 
   const zeroAddressTask = buildUtilsTask(
-    task([...prefix, "constants", "zeroAddress"], "Print the zero address"),
+    task([...prefix, "constants", "zero-address"], "Print the zero address"),
     async () => await import("./zero-address.js"),
   );
 
