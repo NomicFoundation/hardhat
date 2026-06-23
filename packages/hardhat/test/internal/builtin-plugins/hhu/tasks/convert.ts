@@ -88,5 +88,23 @@ describe("hhu utils convert tasks", () => {
         },
       );
     });
+
+    it("throws when the length is negative", async () => {
+      await assertRejectsWithHardhatError(
+        runPad({ value: "ff", length: -1 }),
+        HardhatError.ERRORS.CORE.ARGUMENTS.INVALID_VALUE,
+        {
+          value: -1,
+          name: "length",
+          reason: "it must be a non-negative integer",
+        },
+      );
+    });
+
+    it("accepts a length of 0 for an empty value", async () => {
+      await runPad({ value: "0x", length: 0 });
+
+      assert.deepEqual(logs, ["0x"]);
+    });
   });
 });

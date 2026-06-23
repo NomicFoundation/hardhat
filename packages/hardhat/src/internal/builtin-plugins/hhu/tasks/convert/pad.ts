@@ -26,6 +26,14 @@ const padAction: NewTaskActionFunction<PadActionArguments> = async ({
     );
   }
 
+  if (length < 0) {
+    throw new HardhatError(HardhatError.ERRORS.CORE.ARGUMENTS.INVALID_VALUE, {
+      value: length,
+      name: "length",
+      reason: "it must be a non-negative integer",
+    });
+  }
+
   if (!isHexString(value)) {
     throw new HardhatError(
       HardhatError.ERRORS.CORE.GENERAL.INVALID_HEX_STRING,
