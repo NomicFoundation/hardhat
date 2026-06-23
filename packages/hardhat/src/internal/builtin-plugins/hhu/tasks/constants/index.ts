@@ -1,14 +1,9 @@
 import type { UtilsTaskDefinition } from "../../types.js";
-import type { GenerateTasksOptions } from "../index.js";
 
 import { emptyTask, task } from "../../../../core/config.js";
 import { buildUtilsTask } from "../utils-task.js";
 
-export function constants({
-  withUtils,
-}: GenerateTasksOptions): UtilsTaskDefinition[] {
-  const prefix = withUtils ? ["utils"] : [];
-
+export function constants(prefix: string[]): UtilsTaskDefinition[] {
   const constantsTask = emptyTask(
     [...prefix, "constants"],
     "Commonly used Ethereum constants",

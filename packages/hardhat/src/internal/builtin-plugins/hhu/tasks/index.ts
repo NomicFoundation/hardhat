@@ -12,18 +12,25 @@ export interface GenerateTasksOptions {
    * Hardhat CLI (`hardhat utils constants ...`) but not by the standalone hhu
    * binary (`hhu constants ...`).
    */
-  withUtils: boolean;
+  prefixWithUtils: boolean;
 }
+
+/**
+ * The category builders that contribute the utils tasks. Each one receives the
+ * id prefix to nest its tasks under and returns its task definitions. Adding a
+ * new category is a single entry here.
+ */
+const CATEGORIES = [constants, convert, fetch];
 
 export function generateTasks(
   options: GenerateTasksOptions,
 ): UtilsTaskDefinition[] {
+  const prefix = options.prefixWithUtils ? ["utils"] : [];
+
   return [
-    ...(options.withUtils
-      ? [emptyTask("utils", "Utilities for common Ethereum tasks").build()]
+    ...(prefix.length > 0
+      ? [emptyTask(prefix, "Utilities for common Ethereum tasks").build()]
       : []),
-    ...constants(options),
-    ...convert(options),
-    ...fetch(options),
+    ...CATEGORIES.flatMap((category) => category(prefix)),
   ];
 }

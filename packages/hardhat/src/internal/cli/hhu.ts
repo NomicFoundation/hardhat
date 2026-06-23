@@ -79,7 +79,7 @@ export async function main(
     );
 
     const rootTasks = taskDefinitionsToTasksMap(
-      generateTasks({ withUtils: false }),
+      generateTasks({ prefixWithUtils: false }),
     );
 
     const taskOrId = parseTask(cliArguments, usedCliArguments, rootTasks);

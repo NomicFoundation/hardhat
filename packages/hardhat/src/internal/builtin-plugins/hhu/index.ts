@@ -6,7 +6,7 @@ import { generateTasks } from "./tasks/index.js";
 
 const hardhatPlugin: HardhatPlugin = definePlugin({
   id: "builtin:hhu",
-  tasks: generateTasks({ withUtils: true }),
+  tasks: generateTasks({ prefixWithUtils: true }),
   npmPackage: "hardhat",
 });
 

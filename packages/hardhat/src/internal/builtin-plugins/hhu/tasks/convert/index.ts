@@ -1,15 +1,10 @@
 import type { UtilsTaskDefinition } from "../../types.js";
-import type { GenerateTasksOptions } from "../index.js";
 
 import { ArgumentType } from "../../../../../types/arguments.js";
 import { emptyTask, task } from "../../../../core/config.js";
 import { buildUtilsTask } from "../utils-task.js";
 
-export function convert({
-  withUtils,
-}: GenerateTasksOptions): UtilsTaskDefinition[] {
-  const prefix = withUtils ? ["utils"] : [];
-
+export function convert(prefix: string[]): UtilsTaskDefinition[] {
   const convertTask = emptyTask(
     [...prefix, "convert"],
     "Convert values between common Ethereum representations",

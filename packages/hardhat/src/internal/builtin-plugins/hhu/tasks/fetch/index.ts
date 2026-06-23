@@ -1,14 +1,9 @@
 import type { UtilsTaskDefinition } from "../../types.js";
-import type { GenerateTasksOptions } from "../index.js";
 
 import { emptyTask, task } from "../../../../core/config.js";
 import { buildUtilsTask } from "../utils-task.js";
 
-export function fetch({
-  withUtils,
-}: GenerateTasksOptions): UtilsTaskDefinition[] {
-  const prefix = withUtils ? ["utils"] : [];
-
+export function fetch(prefix: string[]): UtilsTaskDefinition[] {
   const fetchTask = emptyTask(
     [...prefix, "fetch"],
     "Fetch on-chain data",
