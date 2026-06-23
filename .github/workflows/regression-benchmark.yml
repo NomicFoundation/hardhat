@@ -129,3 +129,16 @@ jobs:
           # Only fail on PRs; don't break CI on main
           fail-on-alert: ${{ github.event_name == 'pull_request' }}
           summary-always: true
+
+      - name: Notify failures
+        # Only ping Slack when a commit/merge to main fails
+        if: ${{ failure() && github.event_name == 'push' && github.ref == 'refs/heads/main' }}
+        uses: slackapi/slack-github-action@70cd7be8e40a46e8b0eced40b0de447bdb42f68e # v1.26.0
+        with:
+          payload: |
+            {
+              "workflow_name": "${{ github.workflow }}",
+              "run_url": "${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+            }
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.GH_ACTION_NOTIFICATIONS_SLACK_WEBHOOK_URL }}
