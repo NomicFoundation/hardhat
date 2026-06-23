@@ -4,20 +4,20 @@ import type { GenerateTasksOptions } from "../index.js";
 import { emptyTask, task } from "../../../../core/config.js";
 import { buildUtilsTask } from "../utils-task.js";
 
-export function constants({
+export function fetch({
   withUtils,
 }: GenerateTasksOptions): UtilsTaskDefinition[] {
   const prefix = withUtils ? ["utils"] : [];
 
-  const constantsTask = emptyTask(
-    [...prefix, "constants"],
-    "Commonly used Ethereum constants",
+  const fetchTask = emptyTask(
+    [...prefix, "fetch"],
+    "Fetch on-chain data",
   ).build();
 
-  const zeroAddressTask = buildUtilsTask(
-    task([...prefix, "constants", "zeroAddress"], "Print the zero address"),
-    async () => await import("./zero-address.js"),
+  const blockNumberTask = buildUtilsTask(
+    task([...prefix, "fetch", "block-number"], "Print the latest block number"),
+    async () => await import("./block-number.js"),
   );
 
-  return [constantsTask, zeroAddressTask];
+  return [fetchTask, blockNumberTask];
 }

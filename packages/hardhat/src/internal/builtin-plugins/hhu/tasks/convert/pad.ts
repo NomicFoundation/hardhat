@@ -1,4 +1,4 @@
-import type { NewTaskActionFunction } from "../../../../../types/tasks.js";
+import type { NewUtilsTaskActionFunction } from "../../types.js";
 
 import { HardhatError } from "@nomicfoundation/hardhat-errors";
 import {
@@ -13,7 +13,7 @@ interface PadActionArguments {
   right: boolean;
 }
 
-const padAction: NewTaskActionFunction<PadActionArguments> = async ({
+const padAction: NewUtilsTaskActionFunction<PadActionArguments> = async ({
   value,
   length,
   left,
