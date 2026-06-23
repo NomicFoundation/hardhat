@@ -1,13 +1,11 @@
-import type { HardhatRuntimeEnvironment } from "../../../../../src/types/hre.js";
+import type { HardhatRuntimeEnvironment } from "../../../../../../src/types/hre.js";
 
 import assert from "node:assert/strict";
 import { afterEach, before, beforeEach, describe, it } from "node:test";
 
-import { createHardhatRuntimeEnvironment } from "../../../../../src/internal/hre-initialization.js";
+import { createHardhatRuntimeEnvironment } from "../../../../../../src/internal/hre-initialization.js";
 
-const ZERO_ADDRESS = "0x0000000000000000000000000000000000000000";
-
-describe("hhu utils constants tasks", () => {
+describe("hhu utils fetch tasks", () => {
   let hre: HardhatRuntimeEnvironment;
 
   let logs: string[] = [];
@@ -28,11 +26,12 @@ describe("hhu utils constants tasks", () => {
     console.log = originalLog;
   });
 
-  describe("zero-address", () => {
-    it("prints the zero address", async () => {
-      await hre.tasks.getTask(["utils", "constants", "zero-address"]).run({});
+  describe("block-number", () => {
+    it("prints the latest block number of the default network", async () => {
+      await hre.tasks.getTask(["utils", "fetch", "block-number"]).run({});
 
-      assert.deepEqual(logs, [ZERO_ADDRESS]);
+      assert.equal(logs.length, 1);
+      assert.match(logs[0], /^\d+$/);
     });
   });
 });

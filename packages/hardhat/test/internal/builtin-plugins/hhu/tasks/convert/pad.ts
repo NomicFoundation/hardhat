@@ -1,5 +1,5 @@
 // cSpell:ignore 0xnothex
-import type { HardhatRuntimeEnvironment } from "../../../../../src/types/hre.js";
+import type { HardhatRuntimeEnvironment } from "../../../../../../src/types/hre.js";
 
 import assert from "node:assert/strict";
 import { afterEach, before, beforeEach, describe, it } from "node:test";
@@ -7,7 +7,7 @@ import { afterEach, before, beforeEach, describe, it } from "node:test";
 import { HardhatError } from "@nomicfoundation/hardhat-errors";
 import { assertRejectsWithHardhatError } from "@nomicfoundation/hardhat-test-utils";
 
-import { createHardhatRuntimeEnvironment } from "../../../../../src/internal/hre-initialization.js";
+import { createHardhatRuntimeEnvironment } from "../../../../../../src/internal/hre-initialization.js";
 
 describe("hhu utils convert tasks", () => {
   let hre: HardhatRuntimeEnvironment;
