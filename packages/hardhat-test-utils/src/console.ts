@@ -1,4 +1,4 @@
-import { after, before } from "node:test";
+import { after, afterEach, before, beforeEach } from "node:test";
 
 /**
  * Disables the console functions that directly interact with stdout/stderr.
@@ -33,4 +33,36 @@ export function disableConsole(): void {
     console.warn = originalWarn;
     console.dir = originalDir;
   });
+}
+
+export interface CapturedConsole {
+  /** The lines printed via `console.log` since the current test started. */
+  readonly lines: string[];
+}
+
+/**
+ * Captures `console.log` output so tests can assert on it, resetting before
+ * each test.
+ *
+ * Like {@link disableConsole}, this overwrites `console.log`, but instead of
+ * discarding the output it records each call's arguments (joined by spaces).
+ * Call it once at the top of a `describe` body and read the returned handle's
+ * `lines` inside each test.
+ */
+export function captureConsole(): CapturedConsole {
+  const capture: { lines: string[] } = { lines: [] };
+  const originalLog = console.log;
+
+  beforeEach(() => {
+    capture.lines = [];
+    console.log = (...args: unknown[]) => {
+      capture.lines.push(args.join(" "));
+    };
+  });
+
+  afterEach(() => {
+    console.log = originalLog;
+  });
+
+  return capture;
 }

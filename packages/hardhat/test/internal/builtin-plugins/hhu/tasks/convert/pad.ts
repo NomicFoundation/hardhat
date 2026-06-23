@@ -2,32 +2,23 @@
 import type { HardhatRuntimeEnvironment } from "../../../../../../src/types/hre.js";
 
 import assert from "node:assert/strict";
-import { afterEach, before, beforeEach, describe, it } from "node:test";
+import { before, describe, it } from "node:test";
 
 import { HardhatError } from "@nomicfoundation/hardhat-errors";
-import { assertRejectsWithHardhatError } from "@nomicfoundation/hardhat-test-utils";
+import {
+  assertRejectsWithHardhatError,
+  captureConsole,
+} from "@nomicfoundation/hardhat-test-utils";
 
 import { createHardhatRuntimeEnvironment } from "../../../../../../src/internal/hre-initialization.js";
 
 describe("hhu utils convert tasks", () => {
   let hre: HardhatRuntimeEnvironment;
 
-  let logs: string[] = [];
-  const originalLog = console.log;
+  const capture = captureConsole();
 
   before(async () => {
     hre = await createHardhatRuntimeEnvironment({}, {}, process.cwd());
-  });
-
-  beforeEach(() => {
-    logs = [];
-    console.log = (...args: unknown[]) => {
-      logs.push(args.join(" "));
-    };
-  });
-
-  afterEach(() => {
-    console.log = originalLog;
   });
 
   describe("pad", () => {
@@ -38,7 +29,7 @@ describe("hhu utils convert tasks", () => {
     it("pads to the left to 32 bytes by default", async () => {
       await runPad({ value: "ff" });
 
-      assert.deepEqual(logs, [
+      assert.deepEqual(capture.lines, [
         "0x00000000000000000000000000000000000000000000000000000000000000ff",
       ]);
     });
@@ -46,19 +37,19 @@ describe("hhu utils convert tasks", () => {
     it("accepts values with the 0x prefix", async () => {
       await runPad({ value: "0xff", length: 8 });
 
-      assert.deepEqual(logs, ["0x00000000000000ff"]);
+      assert.deepEqual(capture.lines, ["0x00000000000000ff"]);
     });
 
     it("pads to the left when the left flag is used", async () => {
       await runPad({ value: "ff", length: 8, left: true });
 
-      assert.deepEqual(logs, ["0x00000000000000ff"]);
+      assert.deepEqual(capture.lines, ["0x00000000000000ff"]);
     });
 
     it("pads to the right when the right flag is used", async () => {
       await runPad({ value: "0xff", length: 4, right: true });
 
-      assert.deepEqual(logs, ["0xff000000"]);
+      assert.deepEqual(capture.lines, ["0xff000000"]);
     });
 
     it("throws when both the left and right flags are used", async () => {
@@ -104,7 +95,7 @@ describe("hhu utils convert tasks", () => {
     it("accepts a length of 0 for an empty value", async () => {
       await runPad({ value: "0x", length: 0 });
 
-      assert.deepEqual(logs, ["0x"]);
+      assert.deepEqual(capture.lines, ["0x"]);
     });
   });
 });

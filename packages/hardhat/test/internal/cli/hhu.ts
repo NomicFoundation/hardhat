@@ -1,11 +1,12 @@
 import assert from "node:assert/strict";
-import { afterEach, beforeEach, describe, it } from "node:test";
+import { afterEach, describe, it } from "node:test";
 import { styleText } from "node:util";
 
 import { HardhatError } from "@nomicfoundation/hardhat-errors";
 import {
   assertRejectsWithHardhatError,
   assertThrowsHardhatError,
+  captureConsole,
   useFixtureProject,
 } from "@nomicfoundation/hardhat-test-utils";
 import { isCi } from "@nomicfoundation/hardhat-utils/ci";
@@ -37,6 +38,12 @@ describe("hhu", () => {
     describe("--version", () => {
       it("should print the version and instantly return", async () => {
         const lines = await runHhu("npx hhu --version");
+
+        assert.deepEqual(lines, [await getHardhatVersion()]);
+      });
+
+      it("should take precedence over --help", async () => {
+        const lines = await runHhu("npx hhu --version --help");
 
         assert.deepEqual(lines, [await getHardhatVersion()]);
       });
@@ -130,6 +137,70 @@ GLOBAL OPTIONS:
           { task: "constants", invalidSubtask: "nonExistentSubtask" },
         );
       });
+
+      // hhu deliberately exposes a smaller global-option set than the Hardhat
+      // CLI, so Hardhat-only options must be rejected rather than silently
+      // accepted.
+      it("should reject Hardhat-only global options", async () => {
+        await assertRejectsWithHardhatError(
+          () => runHhu("npx hhu --config hardhat.config.ts"),
+          HardhatError.ERRORS.CORE.ARGUMENTS.UNRECOGNIZED_OPTION,
+          { option: "--config" },
+        );
+
+        await assertRejectsWithHardhatError(
+          () => runHhu("npx hhu --init"),
+          HardhatError.ERRORS.CORE.ARGUMENTS.UNRECOGNIZED_OPTION,
+          { option: "--init" },
+        );
+      });
+    });
+
+    // These run a util end-to-end through the `hhu` binary (parsing + the fake
+    // HRE). They're not per-util tests — util logic is covered by the task-level
+    // tests under `test/.../hhu/tasks/`. Add a smoke test here only when a util
+    // exercises something the `hhu` path hasn't before (e.g. the first use of
+    // the network); a plain print-only util needs no entry. See the
+    // `add-hhu-util` skill's Testing section.
+    describe("smoke tests", () => {
+      const capture = captureConsole();
+
+      it("`constants zero-address` should print the zero address", async () => {
+        await runHhu("npx hhu constants zero-address");
+
+        assert.deepEqual(capture.lines, [ZERO_ADDRESS]);
+      });
+
+      it("`convert pad` should pad to the left by default", async () => {
+        await runHhu("npx hhu convert pad --length 8 ff");
+
+        assert.deepEqual(capture.lines, ["0x00000000000000ff"]);
+      });
+
+      it("`convert pad --right` should pad to the right", async () => {
+        await runHhu("npx hhu convert pad --length 4 --right 0xff");
+
+        assert.deepEqual(capture.lines, ["0xff000000"]);
+      });
+
+      // This util needs a network, which exercises the fake HRE's `network.create`
+      // (it lazily loads Hardhat and creates the real HRE). That requires a real
+      // project, so we run it from a fixture project.
+      describe("`fetch block-number`", () => {
+        useFixtureProject("cli/parsing/base-project");
+
+        afterEach(() => {
+          // `network.create` creates the global HRE; reset it so it doesn't leak.
+          resetGlobalHardhatRuntimeEnvironment();
+        });
+
+        it("should print the latest block number", async () => {
+          await runHhu("npx hhu fetch block-number");
+
+          assert.equal(capture.lines.length, 1);
+          assert.match(capture.lines[0], /^\d+$/);
+        });
+      });
     });
   });
 
@@ -200,59 +271,6 @@ GLOBAL OPTIONS:
         HardhatError.ERRORS.CORE.TASK_DEFINITIONS.TASK_NOT_FOUND,
         { task: "constants" },
       );
-    });
-  });
-
-  describe("smoke tests", () => {
-    let logs: string[] = [];
-    const originalLog = console.log;
-
-    beforeEach(() => {
-      logs = [];
-      console.log = (...args: unknown[]) => {
-        logs.push(args.join(" "));
-      };
-    });
-
-    afterEach(() => {
-      console.log = originalLog;
-    });
-
-    it("`constants zero-address` should print the zero address", async () => {
-      await runHhu("npx hhu constants zero-address");
-
-      assert.deepEqual(logs, [ZERO_ADDRESS]);
-    });
-
-    it("`convert pad` should pad to the left by default", async () => {
-      await runHhu("npx hhu convert pad --length 8 ff");
-
-      assert.deepEqual(logs, ["0x00000000000000ff"]);
-    });
-
-    it("`convert pad --right` should pad to the right", async () => {
-      await runHhu("npx hhu convert pad --length 4 --right 0xff");
-
-      assert.deepEqual(logs, ["0xff000000"]);
-    });
-
-    // This util needs a network, which exercises the fake HRE's `network.create`
-    // (it lazily loads Hardhat and creates the real HRE). That requires a real
-    // project, so we run it from a fixture project.
-    describe("`fetch block-number`", () => {
-      useFixtureProject("cli/parsing/base-project");
-
-      afterEach(() => {
-        // `network.create` creates the global HRE; reset it so it doesn't leak.
-        resetGlobalHardhatRuntimeEnvironment();
-      });
-
-      it("should print the latest block number", async () => {
-        await runHhu("npx hhu fetch block-number");
-
-        assert.equal(logs.length, 1);
-        assert.match(logs[0], /^\d+$/);
-      });
     });
   });
 });

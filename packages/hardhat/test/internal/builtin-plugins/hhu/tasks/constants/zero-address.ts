@@ -1,7 +1,9 @@
 import type { HardhatRuntimeEnvironment } from "../../../../../../src/types/hre.js";
 
 import assert from "node:assert/strict";
-import { afterEach, before, beforeEach, describe, it } from "node:test";
+import { before, describe, it } from "node:test";
+
+import { captureConsole } from "@nomicfoundation/hardhat-test-utils";
 
 import { createHardhatRuntimeEnvironment } from "../../../../../../src/internal/hre-initialization.js";
 
@@ -10,29 +12,17 @@ const ZERO_ADDRESS = "0x0000000000000000000000000000000000000000";
 describe("hhu utils constants tasks", () => {
   let hre: HardhatRuntimeEnvironment;
 
-  let logs: string[] = [];
-  const originalLog = console.log;
+  const capture = captureConsole();
 
   before(async () => {
     hre = await createHardhatRuntimeEnvironment({}, {}, process.cwd());
-  });
-
-  beforeEach(() => {
-    logs = [];
-    console.log = (...args: unknown[]) => {
-      logs.push(args.join(" "));
-    };
-  });
-
-  afterEach(() => {
-    console.log = originalLog;
   });
 
   describe("zero-address", () => {
     it("prints the zero address", async () => {
       await hre.tasks.getTask(["utils", "constants", "zero-address"]).run({});
 
-      assert.deepEqual(logs, [ZERO_ADDRESS]);
+      assert.deepEqual(capture.lines, [ZERO_ADDRESS]);
     });
   });
 });
