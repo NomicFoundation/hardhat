@@ -1,4 +1,5 @@
-import { assert } from "chai";
+import assert from "node:assert/strict";
+import { describe, it } from "node:test";
 
 import {
   encodeArtifactDeploymentData,
@@ -11,15 +12,21 @@ import {
   staticCallResultFixturesArtifacts,
 } from "../test/helpers/execution-result-fixtures.js";
 
-import { useHardhatProject } from "./helpers/hardhat-projects.js";
-import { createClient } from "./helpers/create-hre.js";
+import { useEphemeralFixtureProject } from "@nomicfoundation/hardhat-test-utils";
+import { EIP1193JsonRpcClient } from "../src/internal/execution/jsonrpc-client.js";
+import { createHre } from "./helpers/create-hre.js";
 
-// See ../test/helpers/execution-result-fixtures.ts
-describe("execution-result-fixture tests", function () {
-  useHardhatProject("default");
+describe("execution-result-fixture tests", { timeout: 60000 }, () => {
+  useEphemeralFixtureProject("default");
 
-  it("Should have the right values", async function () {
-    const { client, hre, connection } = await createClient();
+  it("Should have the right values", async () => {
+    const hre = await createHre();
+
+    await hre.tasks.getTask("build").run({ quiet: false });
+
+    const connection = await hre.network.create();
+
+    const client = new EIP1193JsonRpcClient(connection.provider, {});
 
     const accounts = await connection.provider.request({
       method: "eth_accounts",
@@ -57,9 +64,14 @@ describe("execution-result-fixture tests", function () {
       });
 
       const receipt = await client.getTransactionReceipt(tx);
-      assert.isDefined(receipt, `No receipt for deployment of ${name}`);
-      assert.isDefined(
+      assert.notEqual(
+        receipt,
+        undefined,
+        `No receipt for deployment of ${name}`,
+      );
+      assert.notEqual(
         receipt!.contractAddress,
+        undefined,
         `No receipt address from deployment of ${name}`,
       );
 
@@ -70,7 +82,7 @@ describe("execution-result-fixture tests", function () {
       contractName: string,
       functionName: string,
     ) => {
-      assert(
+      assert.ok(
         contractName in staticCallResultFixturesArtifacts,
         `Artifact ${contractName} missing from the fixture`,
       );
@@ -111,11 +123,11 @@ describe("execution-result-fixture tests", function () {
           continue;
         }
 
-        assert(
+        assert.ok(
           contractName in staticCallResultFixtures,
           `Fixture for ${contractName} missing`,
         );
-        assert(
+        assert.ok(
           abiItem.name in staticCallResultFixtures[contractName],
           `Fixture for ${contractName}.${abiItem.name} missing`,
         );
