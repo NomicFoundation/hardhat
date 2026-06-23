@@ -1,8 +1,8 @@
 import type { HardhatPlugin } from "../../../types/plugins.js";
 
 import { definePlugin } from "../../../plugins.js";
-import { ArgumentType } from "../../../types/arguments.js";
-import { globalOption } from "../../core/config.js";
+
+import { NETWORK_GLOBAL_OPTION } from "./network-option.js";
 
 export type * from "./type-extensions/config.js";
 export type * from "./type-extensions/global-options.js";
@@ -16,14 +16,7 @@ const hardhatPlugin: HardhatPlugin = definePlugin({
     hre: () => import("./hook-handlers/hre.js"),
     network: () => import("./hook-handlers/network.js"),
   },
-  globalOptions: [
-    globalOption({
-      name: "network",
-      description: "The network to connect to",
-      type: ArgumentType.STRING_WITHOUT_DEFAULT,
-      defaultValue: undefined,
-    }),
-  ],
+  globalOptions: [NETWORK_GLOBAL_OPTION],
   npmPackage: "hardhat",
   dependencies: () => [import("../artifacts/index.js")],
 });

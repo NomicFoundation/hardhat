@@ -12,10 +12,10 @@ import { createDebug } from "@nomicfoundation/hardhat-utils/debug";
 import { setGlobalOptionsAsEnvVariables } from "@nomicfoundation/hardhat-utils/env";
 import { ensureError } from "@nomicfoundation/hardhat-utils/error";
 
-import { ArgumentType } from "../../types/arguments.js";
 import { isResult } from "../../utils/result.js";
 import { generateTasks } from "../builtin-plugins/hhu/tasks/index.js";
-import { globalFlag, globalOption } from "../core/config.js";
+import { NETWORK_GLOBAL_OPTION } from "../builtin-plugins/network-manager/network-option.js";
+import { globalFlag } from "../core/config.js";
 import { TaskManagerImplementation } from "../core/tasks/task-manager.js";
 import { getHardhatVersion } from "../utils/package.js";
 
@@ -64,9 +64,11 @@ export async function main(
       usedCliArguments,
     );
 
-    // We need to do this so that the global options are available when we import
-    // the HRE in utils that need it.
-    setGlobalOptionsAsEnvVariables(hhuGlobalOptions);
+    // We forward `network` as an env variable so it's available when we lazily
+    // import the real HRE in utils that need it. We explicitly whitelist it
+    // (rather than forwarding every hhu global option) so that hhu-only options
+    // never leak into the real HRE's global-option namespace.
+    setGlobalOptionsAsEnvVariables({ network: hhuGlobalOptions.network });
 
     log("Parsed hhu global options");
 
@@ -196,12 +198,7 @@ const HHU_GLOBAL_OPTIONS_DEFINITIONS: GlobalOptionDefinitions = new Map([
     "network",
     {
       pluginId: "builtin",
-      option: globalOption({
-        name: "network",
-        description: "The network to connect to",
-        type: ArgumentType.STRING_WITHOUT_DEFAULT,
-        defaultValue: undefined,
-      }),
+      option: NETWORK_GLOBAL_OPTION,
     },
   ],
 ]);
