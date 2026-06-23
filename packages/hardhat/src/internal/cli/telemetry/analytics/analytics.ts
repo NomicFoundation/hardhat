@@ -52,11 +52,15 @@ export async function sendTelemetryConfigAnalytics(
   return true;
 }
 
-export async function sendTaskAnalytics(taskId: string[]): Promise<boolean> {
+export async function sendTaskAnalytics(
+  taskId: string[],
+  command: "hardhat" | "hhu",
+): Promise<boolean> {
   const taskAnalyticsEvent: AnalyticsEvent = {
     name: "task",
     params: {
       task: taskId.join(", "),
+      command,
     },
   };
 

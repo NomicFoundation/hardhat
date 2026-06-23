@@ -287,7 +287,7 @@ export async function main(
 
     const [taskResult] = await Promise.all([
       task.run(taskArguments),
-      sendTaskAnalytics(task.id),
+      sendTaskAnalytics(task.id, "hardhat"),
     ]);
 
     if (isResult(taskResult) && !taskResult.success) {

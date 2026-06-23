@@ -45,7 +45,7 @@ describe("analytics", () => {
     });
 
     it("should not send analytics because the environment is not interactive", async () => {
-      const wasSent = await sendTaskAnalytics(["task", "subtask"]);
+      const wasSent = await sendTaskAnalytics(["task", "subtask"], "hardhat");
       assert.equal(wasSent, false);
     });
   });
@@ -113,7 +113,7 @@ describe("analytics", () => {
     });
 
     it("should create the correct payload for the task analytics", async () => {
-      const wasSent = await sendTaskAnalytics(["task", "subtask"]);
+      const wasSent = await sendTaskAnalytics(["task", "subtask"], "hhu");
 
       await checkIfSubprocessWasExecuted(RESULT_FILE_PATH);
 
@@ -139,6 +139,7 @@ describe("analytics", () => {
         "params should have a task field",
       );
       assert.equal(result.events[0].params.task, "task, subtask");
+      assert.equal(result.events[0].params.command, "hhu");
     });
 
     it("should create the correct payload for the init analytics", async () => {
@@ -177,7 +178,7 @@ describe("analytics", () => {
     it("should not send analytics because the user explicitly opted out of telemetry", async () => {
       process.env.HARDHAT_TEST_TELEMETRY_ENABLED = "false";
 
-      const wasSent = await sendTaskAnalytics(["task", "subtask"]);
+      const wasSent = await sendTaskAnalytics(["task", "subtask"], "hardhat");
       assert.equal(wasSent, false);
     });
   });

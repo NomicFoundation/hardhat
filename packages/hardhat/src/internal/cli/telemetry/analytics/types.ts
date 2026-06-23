@@ -37,6 +37,9 @@ export type AnalyticsEvent =
       name: "task";
       params: {
         task: string;
+        // The CLI surface that ran the task, so `hhu` usage can be measured
+        // separately from the `hardhat` CLI.
+        command: "hardhat" | "hhu";
       };
     }
   | {
