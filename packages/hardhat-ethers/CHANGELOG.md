@@ -1,5 +1,15 @@
 # @nomicfoundation/hardhat-ethers
 
+## 4.0.14
+
+### Patch Changes
+
+- [#8249](https://github.com/NomicFoundation/hardhat/pull/8249) [`8acc2cf`](https://github.com/NomicFoundation/hardhat/commit/8acc2cfa2e8316a090dc4f01c6101cee57f9e492) Thanks [@mmv08](https://github.com/mmv08)! - Add a per-network `ethers.waitForTransactionReceipt` option that makes `HardhatEthersSigner.sendTransaction` wait until the transaction receipt is available before resolving.
+
+- Updated dependencies:
+  - @nomicfoundation/hardhat-errors@3.0.16
+  - @nomicfoundation/hardhat-utils@4.1.4
+
 ## 4.0.13
 
 ### Patch Changes

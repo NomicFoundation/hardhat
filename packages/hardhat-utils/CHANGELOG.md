@@ -1,5 +1,11 @@
 # @nomicfoundation/hardhat-utils
 
+## 4.1.4
+
+### Patch Changes
+
+- [#8402](https://github.com/NomicFoundation/hardhat/pull/8402) [`afa9bc4`](https://github.com/NomicFoundation/hardhat/commit/afa9bc44e14563c1fd77440228ef6fbc785774b4) Thanks [@flag4table](https://github.com/flag4table)! - Make `sanitizeFilename` avoid Windows reserved device names while preserving filename extensions.
+
 ## 4.1.3
 
 ### Patch Changes

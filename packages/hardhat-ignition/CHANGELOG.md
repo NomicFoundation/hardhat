@@ -1,5 +1,16 @@
 # Changelog
 
+## 3.1.8
+
+### Patch Changes
+
+- [#8378](https://github.com/NomicFoundation/hardhat/pull/8378) [`e445bca`](https://github.com/NomicFoundation/hardhat/commit/e445bcaf270e9a02353488cc5f25e963bf55e651) Thanks [@BROCCOLO1D](https://github.com/BROCCOLO1D)! - Avoid compiling tests during Ignition deploys.
+
+- Updated dependencies:
+  - @nomicfoundation/ignition-core@3.1.8
+  - @nomicfoundation/hardhat-errors@3.0.16
+  - @nomicfoundation/hardhat-utils@4.1.4
+
 ## 3.1.7
 
 ### Patch Changes
