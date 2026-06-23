@@ -915,6 +915,24 @@ Please double check your arguments.`,
 
 Use "--init --template <name>" to initialize a project with a specific template, or "--init --templates" to list the available templates.`,
       },
+      MUTUALLY_EXCLUSIVE_OPTIONS: {
+        number: 514,
+        messageTemplate:
+          'The options "--{optionA}" and "--{optionB}" cannot be used together',
+        websiteTitle: "Mutually exclusive options",
+        websiteDescription: `You are trying to use two options that cannot be used together.
+
+Please double check your arguments.`,
+      },
+      INVALID_VALUE: {
+        number: 515,
+        messageTemplate:
+          'Invalid value "{value}" for argument "{name}": {reason}',
+        websiteTitle: "Invalid argument value",
+        websiteDescription: `One of the arguments you provided has an invalid value.
+
+Please double check your arguments.`,
+      },
     },
     BUILTIN_TASKS: {
       RUN_FILE_NOT_FOUND: {
