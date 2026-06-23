@@ -61,6 +61,11 @@ const hardhatConfigAbstractAndInterfaceTests = {
   paths: { tests: { solidity: "test/contracts/abstract-and-interface" } },
 };
 
+const hardhatConfigConsoleAddressTests = {
+  ...hardhatConfig,
+  paths: { tests: { solidity: "test/contracts/console-address" } },
+};
+
 const TX_GAS_CAP_TEST_PATH = {
   tests: { solidity: "test/contracts/transaction-gas-cap" },
 };
@@ -690,6 +695,16 @@ describe("solidity-test/task-action", function () {
 
     // The test should not throw, which means the precompile exists
     // and works as expected
+  });
+
+  it("should link imported console libraries when their address is taken", async () => {
+    hre = await createHardhatRuntimeEnvironment(
+      hardhatConfigConsoleAddressTests,
+    );
+
+    await hre.tasks.getTask(["test", "solidity"]).run({
+      noCompile: false,
+    });
   });
 
   describe("abstract contracts and interfaces", () => {

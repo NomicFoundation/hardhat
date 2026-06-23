@@ -20,6 +20,9 @@ export interface EdrArtifactWithMetadata {
 export const BUILD_INFO_FORMAT: RegExp =
   /^solc-(?<major>\d+)_(?<minor>\d+)_(?<patch>\d+)(?:-(?<compilerType>[a-zA-Z][a-zA-Z0-9]*))?-[0-9a-fA-F]*$/;
 
+const HARDHAT_CONSOLE_LIBRARY_ADDRESS =
+  "0x000000000000000000636f6e736f6c652e6c6f67";
+
 /**
  * This function returns all the build infos and associated outputs.
  *
@@ -119,7 +122,7 @@ export async function buildEdrArtifactsWithMetadata(
 
   const solcVersions = new Map(solcVersionsArray);
 
-  return artifacts.map((artifact) => {
+  const edrArtifacts = artifacts.map((artifact) => {
     assertHardhatInvariant(
       artifact.buildInfoId !== undefined,
       `buildInfoId should not be undefined for artifact: ${displayArtifactForError(artifact)}`,
@@ -159,6 +162,65 @@ export async function buildEdrArtifactsWithMetadata(
       buildInfoId: artifact.buildInfoId,
     };
   });
+
+  const edrArtifactIds = new Set(
+    edrArtifacts.map(({ edrArtifact }) => formatEdrArtifactId(edrArtifact.id)),
+  );
+
+  for (const artifact of artifacts) {
+    assertHardhatInvariant(
+      artifact.buildInfoId !== undefined,
+      `buildInfoId should not be undefined for artifact: ${displayArtifactForError(artifact)}`,
+    );
+
+    const solcVersion = solcVersions.get(artifact.buildInfoId);
+
+    assertHardhatInvariant(
+      solcVersion !== undefined,
+      `solcVersion should not be undefined for artifact: ${displayArtifactForError(artifact)}`,
+    );
+
+    for (const [source, libraries] of Object.entries(artifact.linkReferences)) {
+      for (const name of Object.keys(libraries)) {
+        if (!isConsoleLibrary(source, name)) {
+          continue;
+        }
+
+        const id = { name, solcVersion, source };
+        const formattedId = formatEdrArtifactId(id);
+
+        if (edrArtifactIds.has(formattedId)) {
+          continue;
+        }
+
+        edrArtifactIds.add(formattedId);
+        edrArtifacts.push({
+          edrArtifact: {
+            id,
+            contract: {
+              abi: "[]",
+              bytecode: HARDHAT_CONSOLE_LIBRARY_ADDRESS,
+              linkReferences: {},
+              deployedBytecode: "0x",
+              deployedLinkReferences: {},
+            },
+          },
+          userSourceName: source,
+          buildInfoId: artifact.buildInfoId,
+        });
+      }
+    }
+  }
+
+  return edrArtifacts;
+}
+
+function isConsoleLibrary(source: string, name: string): boolean {
+  return name === "console" && source.endsWith("/console.sol");
+}
+
+function formatEdrArtifactId(id: EdrArtifact["id"]): string {
+  return `${id.source}:${id.name}:${id.solcVersion}`;
 }
 
 function displayArtifactForError(artifact: Artifact): string {
