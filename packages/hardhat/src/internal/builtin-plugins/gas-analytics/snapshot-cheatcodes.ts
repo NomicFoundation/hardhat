@@ -78,7 +78,7 @@ export interface SnapshotCheatcodesComparison {
 export interface SnapshotCheatcodesCheckResult {
   passed: boolean;
   comparison: SnapshotCheatcodesComparison;
-  written: boolean;
+  noBaseline: boolean;
   renamedGroups: RenamedSnapshotGroup[];
 }
 
@@ -363,20 +363,17 @@ export async function checkSnapshotCheatcodes(
     previousSnapshotCheatcodes = await readSnapshotCheatcodes(basePath);
   } catch (error) {
     if (error instanceof FileNotFoundError) {
-      // Only write if there are cheatcodes to save
-      const written = snapshotCheatcodes.size > 0;
-      if (written) {
-        await writeSnapshotCheatcodes(basePath, snapshotCheatcodes);
-      }
-
+      // Running a check without stored snapshots is a mistake: fail so it's
+      // caught, but only when this run actually produced something to check.
+      const noBaseline = snapshotCheatcodes.size > 0;
       return {
-        passed: true,
+        passed: !noBaseline,
         comparison: {
           added: [],
           removed: [],
           changed: [],
         },
-        written,
+        noBaseline,
         renamedGroups,
       };
     }
@@ -389,17 +386,10 @@ export async function checkSnapshotCheatcodes(
     snapshotCheatcodes,
   );
 
-  // Update snapshots when functions are added or removed (but not changed)
-  const hasAddedOrRemoved =
-    comparison.added.length > 0 || comparison.removed.length > 0;
-  if (comparison.changed.length === 0 && hasAddedOrRemoved) {
-    await writeSnapshotCheatcodes(basePath, snapshotCheatcodes);
-  }
-
   return {
     passed: comparison.changed.length === 0,
     comparison,
-    written: hasAddedOrRemoved,
+    noBaseline: false,
     renamedGroups,
   };
 }
@@ -407,19 +397,33 @@ export async function checkSnapshotCheatcodes(
 export function logSnapshotCheatcodesSection(
   result: SnapshotCheatcodesCheckResult,
   logger: typeof console.log = console.log,
+  isFiltered = false,
 ): void {
-  const { comparison, written } = result;
+  const { comparison, noBaseline } = result;
   const changedLength = comparison.changed.length;
-  const addedLength = comparison.added.length;
-  const removedLength = comparison.removed.length;
   const hasChanges = changedLength > 0;
+  // On a filtered run (--grep or specific files), added and missing snapshots
+  // are mostly artifacts of the filter rather than real differences, so we
+  // don't report them.
+  const addedLength = isFiltered ? 0 : comparison.added.length;
+  const removedLength = isFiltered ? 0 : comparison.removed.length;
   const hasAdded = addedLength > 0;
   const hasRemoved = removedLength > 0;
   const hasAnyDifferences = hasChanges || hasAdded || hasRemoved;
-  const isFirstTimeWrite = written && !hasAnyDifferences;
 
   // Nothing to report
-  if (!isFirstTimeWrite && !hasAnyDifferences) {
+  if (!noBaseline && !hasAnyDifferences) {
+    return;
+  }
+
+  if (noBaseline) {
+    logger(
+      styleText(
+        "yellow",
+        "Snapshot cheatcodes: no snapshots found. Run your tests with --snapshot to create one.",
+      ),
+    );
+    logger();
     return;
   }
 
@@ -431,18 +435,6 @@ export function logSnapshotCheatcodesSection(
     }),
   );
 
-  if (isFirstTimeWrite) {
-    logger();
-    logger(
-      styleText(
-        "green",
-        "  No existing snapshots found. Snapshot cheatcodes written successfully",
-      ),
-    );
-    logger();
-    return;
-  }
-
   if (hasChanges) {
     logger();
     printSnapshotCheatcodeChanges(comparison.changed, logger);
@@ -450,7 +442,9 @@ export function logSnapshotCheatcodesSection(
 
   if (hasAdded) {
     logger();
-    logger(`  Added ${comparison.added.length} snapshot(s):`);
+    logger(
+      `  ${comparison.added.length} snapshot(s) produced by this run are not in the snapshot:`,
+    );
     const addedLines = stringifySnapshotCheatcodes(comparison.added).split(
       "\n",
     );
@@ -461,7 +455,9 @@ export function logSnapshotCheatcodesSection(
 
   if (hasRemoved) {
     logger();
-    logger(`  Removed ${comparison.removed.length} snapshot(s):`);
+    logger(
+      `  ${comparison.removed.length} stored snapshot(s) were not produced by this run:`,
+    );
     const removedLines = stringifySnapshotCheatcodes(comparison.removed).split(
       "\n",
     );

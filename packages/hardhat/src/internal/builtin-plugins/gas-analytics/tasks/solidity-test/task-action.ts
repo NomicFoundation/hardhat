@@ -31,6 +31,9 @@ import {
 interface GasAnalyticsTestActionArguments {
   snapshot: boolean;
   snapshotCheck: boolean;
+  // Forwarded from the base `test solidity` task; used to detect scoped runs.
+  grep?: string;
+  testFiles?: string[];
 }
 
 export interface SnapshotResult {
@@ -74,7 +77,11 @@ const runSolidityTests: TaskOverrideActionFunction<
       rootPath,
       suiteResults,
     );
-    logSnapshotCheckResult(snapshotCheckResult);
+    // On a scoped run, added/missing snapshots are expected, so don't report
+    // them (they'd be noise from the filter, not real differences).
+    const isFiltered =
+      args.grep !== undefined || (args.testFiles?.length ?? 0) > 0;
+    logSnapshotCheckResult(snapshotCheckResult, console.log, isFiltered);
     snapshotCheckPassed =
       snapshotCheckResult.functionGasSnapshotsCheck.passed &&
       snapshotCheckResult.snapshotCheatcodesCheck.passed;
@@ -141,6 +148,7 @@ export async function handleSnapshotCheck(
 export function logSnapshotCheckResult(
   { functionGasSnapshotsCheck, snapshotCheatcodesCheck }: SnapshotCheckResult,
   logger: typeof console.log = console.log,
+  isFiltered = false,
 ): void {
   logger(
     functionGasSnapshotsCheck.passed && snapshotCheatcodesCheck.passed
@@ -148,23 +156,28 @@ export function logSnapshotCheckResult(
       : styleText("red", "Snapshot check failed"),
   );
 
+  // On a filtered run, added/removed aren't reported, so they don't count
+  // towards a section having output (which drives the spacing below).
+  const showAddedRemoved = !isFiltered;
   const functionGasHasOutput =
-    functionGasSnapshotsCheck.written ||
+    functionGasSnapshotsCheck.noBaseline ||
     functionGasSnapshotsCheck.comparison.changed.length > 0 ||
-    functionGasSnapshotsCheck.comparison.added.length > 0 ||
-    functionGasSnapshotsCheck.comparison.removed.length > 0;
+    (showAddedRemoved &&
+      (functionGasSnapshotsCheck.comparison.added.length > 0 ||
+        functionGasSnapshotsCheck.comparison.removed.length > 0));
   const snapshotCheatcodesHasOutput =
-    snapshotCheatcodesCheck.written ||
+    snapshotCheatcodesCheck.noBaseline ||
     snapshotCheatcodesCheck.comparison.changed.length > 0 ||
-    snapshotCheatcodesCheck.comparison.added.length > 0 ||
-    snapshotCheatcodesCheck.comparison.removed.length > 0;
+    (showAddedRemoved &&
+      (snapshotCheatcodesCheck.comparison.added.length > 0 ||
+        snapshotCheatcodesCheck.comparison.removed.length > 0));
 
   // Add an extra newline if function gas snapshots have output
   if (functionGasHasOutput) {
     logger();
   }
 
-  logFunctionGasSnapshotsSection(functionGasSnapshotsCheck, logger);
+  logFunctionGasSnapshotsSection(functionGasSnapshotsCheck, logger, isFiltered);
 
   // Add an extra newline if only snapshot cheatcodes have output
   // (logFunctionGasSnapshotsSection adds one if it has output)
@@ -172,7 +185,7 @@ export function logSnapshotCheckResult(
     logger();
   }
 
-  logSnapshotCheatcodesSection(snapshotCheatcodesCheck, logger);
+  logSnapshotCheatcodesSection(snapshotCheatcodesCheck, logger, isFiltered);
 
   // Add an extra newline if only the rename warnings have output
   // (logSnapshotCheatcodesSection adds one if it has output)
