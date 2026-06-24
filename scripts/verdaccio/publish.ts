@@ -159,6 +159,8 @@ function publishPackages(filterDirs?: string[]): void {
       "publish",
       ...filterArgs,
       "-r",
+      // Force publish to prevent pnpm from skipping packages that are cached in the resolver metadata cache.
+      "--force",
       "--no-git-checks",
       "--access",
       "public",
