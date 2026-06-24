@@ -43,6 +43,7 @@ export function extractInlineConfigFromAst(
       continue;
     }
 
+    const contractDocText = extractDocText(node.documentation);
     const members: unknown[] = Array.isArray(node.nodes) ? node.nodes : [];
     for (const member of members) {
       if (!isObject(member) || member.nodeType !== "FunctionDefinition") {
@@ -62,21 +63,31 @@ export function extractInlineConfigFromAst(
           ? member.functionSelector
           : undefined;
 
-      const docText = extractDocText(member.documentation);
-      if (docText === undefined) {
-        continue;
-      }
+      const docTexts = [
+        { scope: "contract" as const, text: contractDocText },
+        {
+          scope: "function" as const,
+          text: extractDocText(member.documentation),
+        },
+      ];
 
-      for (const line of docText.split("\n")) {
-        const parsed = parseInlineConfigLine(
-          line,
-          inputSourceName,
-          contractName,
-          fnName,
-        );
-        if (parsed !== undefined) {
-          parsed.functionSelector = fnSelector;
-          results.push(parsed);
+      for (const { scope, text } of docTexts) {
+        if (text === undefined) {
+          continue;
+        }
+
+        for (const line of text.split("\n")) {
+          const parsed = parseInlineConfigLine(
+            line,
+            inputSourceName,
+            contractName,
+            fnName,
+            scope,
+          );
+          if (parsed !== undefined) {
+            parsed.functionSelector = fnSelector;
+            results.push(parsed);
+          }
         }
       }
     }
@@ -114,6 +125,7 @@ export function parseInlineConfigLine(
   inputSourceName: string,
   contractName: string,
   functionName: string,
+  scope: RawInlineOverride["scope"] = "function",
 ): RawInlineOverride | undefined {
   // Strip leading whitespace and optional leading '*' from NatSpec text.
   // Solc's StructuredDocumentation.text has delimiters (///, /**, */) removed.
@@ -179,6 +191,7 @@ export function parseInlineConfigLine(
     inputSourceName,
     contractName,
     functionName,
+    scope,
     key: parsedKey,
     rawKey,
     rawValue,

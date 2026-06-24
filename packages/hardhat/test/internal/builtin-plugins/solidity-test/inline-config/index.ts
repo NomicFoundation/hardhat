@@ -172,6 +172,55 @@ describe("inline-config", () => {
       });
     });
 
+    it("should apply contract-level overrides to all test functions", () => {
+      const bi = makeBuildInfo(
+        "test/MyTest.sol",
+        "/** hardhat-config: fuzz.runs = 10 */",
+        {
+          MyTest: {
+            documentation: " hardhat-config: fuzz.runs = 10",
+            methodIdentifiers: {
+              "testFuzzA()": "aabbccdd",
+              "testFuzzB()": "11223344",
+            },
+            functions: [{ name: "testFuzzA" }, { name: "testFuzzB" }],
+          },
+        },
+      );
+      const artifacts = [makeTestSuiteArtifact("test/MyTest.sol", "MyTest")];
+      const result = getTestFunctionOverrides(artifacts, [bi]);
+      assert.equal(result.length, 2);
+
+      const configs = result.map((r) => r.config);
+      assert.deepEqual(configs, [
+        { fuzz: { runs: 10 } },
+        { fuzz: { runs: 10 } },
+      ]);
+    });
+
+    it("should let function-level overrides take precedence over contract-level overrides", () => {
+      const bi = makeBuildInfo(
+        "test/MyTest.sol",
+        "/** hardhat-config: fuzz.runs = 10 */\n/// hardhat-config: fuzz.runs = 20",
+        {
+          MyTest: {
+            documentation: " hardhat-config: fuzz.runs = 10",
+            methodIdentifiers: { "testFuzz()": "aabbccdd" },
+            functions: [
+              {
+                name: "testFuzz",
+                documentation: " hardhat-config: fuzz.runs = 20",
+              },
+            ],
+          },
+        },
+      );
+      const artifacts = [makeTestSuiteArtifact("test/MyTest.sol", "MyTest")];
+      const overrides = getTestFunctionOverrides(artifacts, [bi]);
+      assert.equal(overrides.length, 1);
+      assert.deepEqual(overrides[0].config, { fuzz: { runs: 20 } });
+    });
+
     it("should throw BUILD_INFO_NOT_FOUND when artifact references missing build info", () => {
       const bi = makeBuildInfo(
         "test/MyTest.sol",

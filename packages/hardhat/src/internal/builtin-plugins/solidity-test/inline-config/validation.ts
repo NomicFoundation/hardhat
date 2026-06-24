@@ -26,6 +26,7 @@ export function validateInlineOverrides(overrides: RawInlineOverride[]): void {
     contractName,
     functionName,
     functionSelector,
+    scope,
     rawKey,
     rawValue,
     key,
@@ -82,7 +83,8 @@ export function validateInlineOverrides(overrides: RawInlineOverride[]): void {
       functionSelector !== undefined
         ? `${functionFqn}#${functionSelector}`
         : functionFqn;
-    const dedupeKey = `${functionId}-${key}`;
+    const overrideScope = scope ?? "function";
+    const dedupeKey = `${functionId}-${overrideScope}-${key}`;
     if (seen.has(dedupeKey)) {
       throw new HardhatError(
         HardhatError.ERRORS.CORE.SOLIDITY_TESTS.INLINE_CONFIG_DUPLICATE_KEY,

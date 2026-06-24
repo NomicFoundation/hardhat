@@ -48,6 +48,7 @@ export function makeBuildInfo(
     string,
     {
       methodIdentifiers: Record<string, string>;
+      documentation?: string | null;
       functions: Array<{
         name: string;
         documentation?: string | null;
@@ -78,6 +79,15 @@ export function makeBuildInfo(
     ([contractName, contract]) => ({
       nodeType: "ContractDefinition",
       name: contractName,
+      ...(contract.documentation !== undefined &&
+      contract.documentation !== null
+        ? {
+            documentation: {
+              nodeType: "StructuredDocumentation",
+              text: contract.documentation,
+            },
+          }
+        : {}),
       nodes: contract.functions.map((fn) => ({
         nodeType: "FunctionDefinition",
         name: fn.name,
