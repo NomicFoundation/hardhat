@@ -13,8 +13,7 @@
   "type": "module",
   "types": "dist/src/index.d.ts",
   "bin": {
-    "hardhat": "./dist/src/cli.js",
-    "hhu": "./dist/src/hhu.js"
+    "hardhat": "./dist/src/cli.js"
   },
   "exports": {
     ".": "./dist/src/index.js",
