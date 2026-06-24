@@ -236,11 +236,11 @@ function makeStrictProxy<T extends object>(
   name: string,
   object: Partial<T>,
 ): T {
-  // eslint-disable-next-line @typescript-eslint/consistent-type-assertions -- unaccessible properties will throw an assertion error
+  // eslint-disable-next-line @typescript-eslint/consistent-type-assertions -- inaccessible properties will throw an assertion error
   return new Proxy(object as T, {
     get(target, property) {
       assertHardhatInvariant(
-        property in object,
+        Object.hasOwn(object, property),
         `Unexpected access of property "${String(property)}" in ${name}.`,
       );
 

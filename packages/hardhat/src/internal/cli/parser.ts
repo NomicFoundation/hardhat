@@ -148,7 +148,7 @@ function getTaskFromCliArguments(
   usedCliArguments: boolean[],
   tasksMap: Map<string, Task>,
 ): string[] | Task {
-  const taskId = [];
+  const taskId: string[] = [];
   let task: Task | undefined;
 
   for (let i = 0; i < cliArguments.length; i++) {
