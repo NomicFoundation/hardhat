@@ -17,6 +17,9 @@ const PUBLISH_SUMMARY = resolve(ROOT_DIR, "pnpm-publish-summary.json");
 const REGISTRY_ENV = {
   ...process.env,
   NPM_CONFIG_USERCONFIG: VERDACCIO_NPMRC,
+  // prefer-online bypasses metadata staleness checks, ensuring that we always
+  // fetch the latest package versions from Verdaccio instead of using cached data.
+  npm_config_prefer_online: "true",
 };
 
 export function publish(changes: boolean, noGitChecks: boolean): void {

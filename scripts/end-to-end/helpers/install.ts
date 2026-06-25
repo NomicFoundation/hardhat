@@ -76,6 +76,9 @@ function runPackageManager(
       ...process.env,
       ...env,
       COREPACK_ENABLE_DOWNLOAD_PROMPT: "0",
+      // prefer-online bypasses metadata staleness checks, ensuring that we always
+      // fetch the latest package versions from Verdaccio instead of using cached data.
+      npm_config_prefer_online: "true",
       ...(packageManager === "pnpm"
         ? {
             // The local packages (hardhat, @nomicfoundation/*) are published to
