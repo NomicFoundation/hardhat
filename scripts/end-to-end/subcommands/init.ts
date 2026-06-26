@@ -300,6 +300,7 @@ async function getLatestFromVerdaccio(
       throw new Error(
         `Could not resolve latest ${packageName} from Verdaccio after ` +
           `${VERDACCIO_FETCH_ATTEMPTS} attempts: GET ${url} failed: ${reason}`,
+        { cause: error },
       );
     }
   }
