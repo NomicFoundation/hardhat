@@ -147,6 +147,32 @@ describe("inline-config", () => {
       assert.deepEqual(overrides[0].config, { fuzz: { runs: 50 } });
     });
 
+    it("should apply only inline overrides for the selected profile", () => {
+      const bi = makeBuildInfo(
+        "test/MyTest.sol",
+        "/// hardhat-config: fuzz.runs = 50\n/// hardhat-config: ci.fuzz.runs = 1000",
+        {
+          MyTest: {
+            methodIdentifiers: { "testFuzz()": "aabbccdd" },
+            functions: [
+              {
+                name: "testFuzz",
+                documentation:
+                  " hardhat-config: fuzz.runs = 50\n hardhat-config: ci.fuzz.runs = 1000",
+              },
+            ],
+          },
+        },
+      );
+      const artifacts = [makeTestSuiteArtifact("test/MyTest.sol", "MyTest")];
+
+      const defaultOverrides = getTestFunctionOverrides(artifacts, [bi]);
+      const ciOverrides = getTestFunctionOverrides(artifacts, [bi], "ci");
+
+      assert.deepEqual(defaultOverrides[0].config, { fuzz: { runs: 50 } });
+      assert.deepEqual(ciOverrides[0].config, { fuzz: { runs: 1000 } });
+    });
+
     it("should merge overrides from mixed hardhat-config: and forge-config: prefixes", () => {
       const bi = makeBuildInfo(
         "test/MyTest.sol",

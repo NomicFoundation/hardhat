@@ -1,4 +1,5 @@
 export interface RawInlineOverride {
+  profile: string;
   inputSourceName: string;
   contractName: string;
   functionName: string;

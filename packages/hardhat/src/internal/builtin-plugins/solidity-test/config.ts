@@ -13,7 +13,6 @@ import type {
 
 import path from "node:path";
 
-import { assertHardhatInvariant } from "@nomicfoundation/hardhat-errors";
 import { isObject } from "@nomicfoundation/hardhat-utils/lang";
 import { resolveFromRoot } from "@nomicfoundation/hardhat-utils/path";
 import {
@@ -116,12 +115,6 @@ const solidityTestProfilesUserConfigType = z.object({
     .refine(
       (profiles) => DEFAULT_TEST_PROFILE in profiles,
       "A `default` profile is required when using `profiles`",
-    )
-    .refine(
-      (profiles) =>
-        !(DEFAULT_TEST_PROFILE in profiles) ||
-        Object.keys(profiles).every((name) => name === DEFAULT_TEST_PROFILE),
-      "Only the `default` profile is supported. Other profile names will be supported in a future release.",
     ),
 });
 
@@ -206,29 +199,27 @@ export async function resolveSolidityTestUserConfig(
   const defaultRpcCachePath = path.join(resolvedConfig.paths.cache, "edr");
 
   const solidityUserConfig = userConfig.test?.solidity;
-  let profileUserConfig: SolidityTestProfileUserConfig | undefined;
+  let profileUserConfigs: Record<string, SolidityTestProfileUserConfig>;
   if (solidityUserConfig !== undefined && "profiles" in solidityUserConfig) {
-    profileUserConfig = solidityUserConfig.profiles[DEFAULT_TEST_PROFILE];
-    assertHardhatInvariant(
-      profileUserConfig !== undefined,
-      "default profile must be present when the profiles wrapper user config is supplied",
-    );
+    profileUserConfigs = solidityUserConfig.profiles;
   } else {
-    profileUserConfig = solidityUserConfig;
+    profileUserConfigs = {
+      [DEFAULT_TEST_PROFILE]: solidityUserConfig ?? {},
+    };
   }
 
-  const resolvedForking = resolveSolidityTestForkingConfig(
-    profileUserConfig?.forking,
-    resolveConfigurationVariable,
+  const resolvedProfiles = Object.fromEntries(
+    Object.entries(profileUserConfigs).map(
+      ([profileName, profileUserConfig]) => [
+        profileName,
+        resolveSolidityTestProfileUserConfig(
+          profileUserConfig,
+          defaultRpcCachePath,
+          resolveConfigurationVariable,
+        ),
+      ],
+    ),
   );
-
-  const resolvedDefaultProfile = {
-    rpcCachePath: defaultRpcCachePath,
-    ...profileUserConfig,
-    fuzz: resolveFuzzConfig(profileUserConfig?.fuzz),
-    forking: resolvedForking,
-    eip712Types: resolveEip712TypesConfig(profileUserConfig?.eip712Types),
-  };
 
   return {
     ...resolvedConfig,
@@ -242,9 +233,28 @@ export async function resolveSolidityTestUserConfig(
     test: {
       ...resolvedConfig.test,
       solidity: {
-        profiles: { [DEFAULT_TEST_PROFILE]: resolvedDefaultProfile },
+        profiles: resolvedProfiles,
       },
     },
+  };
+}
+
+function resolveSolidityTestProfileUserConfig(
+  profileUserConfig: SolidityTestProfileUserConfig,
+  defaultRpcCachePath: string,
+  resolveConfigurationVariable: ConfigurationVariableResolver,
+): SolidityTestProfileConfig {
+  const resolvedForking = resolveSolidityTestForkingConfig(
+    profileUserConfig.forking,
+    resolveConfigurationVariable,
+  );
+
+  return {
+    rpcCachePath: defaultRpcCachePath,
+    ...profileUserConfig,
+    fuzz: resolveFuzzConfig(profileUserConfig.fuzz),
+    forking: resolvedForking,
+    eip712Types: resolveEip712TypesConfig(profileUserConfig.eip712Types),
   };
 }
 
