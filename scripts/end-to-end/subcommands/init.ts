@@ -230,24 +230,83 @@ async function updateLocalDependencies(scenario: Scenario): Promise<void> {
   );
 }
 
+const VERDACCIO_FETCH_ATTEMPTS = 4;
+const VERDACCIO_FETCH_RETRY_DELAY_MS = 1_000;
+
+function sleep(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+/**
+ * Resolve a package's `dist-tags.latest` from Verdaccio.
+ *
+ * Returns `undefined` only when the package genuinely isn't in the registry
+ * (404).
+ *
+ * A transient connection failure is retried. Sometimes a scenario's recursive
+ * submodule clone burst momentarily exhausts the runner's sockets / ephemeral
+ * ports right before this fetch runs, which makes the localhost request throw
+ * `fetch failed`. If the failure persists this throws, so the scenario fails
+ * loudly instead of silently benchmarking out-of-date code.
+ */
 async function getLatestFromVerdaccio(
   packageName: string,
 ): Promise<string | undefined> {
-  try {
-    const response = await globalThis.fetch(`${VERDACCIO_URL}/${packageName}`);
+  const url = `${VERDACCIO_URL}/${packageName}`;
 
-    if (!response.ok) {
-      return undefined;
+  for (let attempt = 1; attempt <= VERDACCIO_FETCH_ATTEMPTS; attempt++) {
+    try {
+      const response = await globalThis.fetch(url);
+
+      // A genuine "not in the registry" answer — don't retry, don't fail.
+      if (response.status === 404) {
+        return undefined;
+      }
+
+      if (!response.ok) {
+        throw new Error(`${response.status} ${response.statusText}`);
+      }
+
+      const metadata = (await response.json()) as {
+        "dist-tags"?: { latest?: string };
+      };
+
+      const latest = metadata["dist-tags"]?.latest;
+
+      if (latest === undefined) {
+        throw new Error(
+          `Verdaccio returned no \`dist-tags.latest\` for ${packageName} (GET ${url})`,
+        );
+      }
+
+      return latest;
+    } catch (error) {
+      const reason =
+        error instanceof Error
+          ? error.cause instanceof Error
+            ? `${error.message} (${error.cause.message})`
+            : error.message
+          : String(error);
+
+      if (attempt < VERDACCIO_FETCH_ATTEMPTS) {
+        logWarning(
+          `GET ${url} failed (attempt ${attempt}/${VERDACCIO_FETCH_ATTEMPTS}): ` +
+            `${reason}; retrying in ${VERDACCIO_FETCH_RETRY_DELAY_MS}ms`,
+        );
+        await sleep(VERDACCIO_FETCH_RETRY_DELAY_MS);
+        continue;
+      }
+
+      throw new Error(
+        `Could not resolve latest ${packageName} from Verdaccio after ` +
+          `${VERDACCIO_FETCH_ATTEMPTS} attempts: GET ${url} failed: ${reason}`,
+        { cause: error },
+      );
     }
-
-    const metadata = (await response.json()) as {
-      "dist-tags"?: { latest?: string };
-    };
-
-    return metadata["dist-tags"]?.latest;
-  } catch {
-    return undefined;
   }
+
+  // Unreachable: the loop returns or throws on the final attempt.
+  throw new Error(`Could not resolve latest ${packageName} from Verdaccio`);
 }
 
 function clone(scenarioWorkingDir: string, repo: string): void {
