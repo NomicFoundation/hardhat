@@ -13,6 +13,7 @@ import {
 import { bytesToUtf8String } from "@nomicfoundation/hardhat-utils/bytes";
 
 import { getFullyQualifiedName } from "../../../../utils/contract-names.js";
+import { DEFAULT_TEST_PROFILE } from "../test-profiles.js";
 
 import {
   buildInfoContainsInlineConfig,
@@ -51,6 +52,7 @@ interface CollectedOverrides {
 export function getTestFunctionOverrides(
   testSuiteArtifacts: EdrArtifactWithMetadata[],
   buildInfosAndOutputs: BuildInfoAndOutput[],
+  selectedProfile: string = DEFAULT_TEST_PROFILE,
 ): TestFunctionOverride[] {
   const allRawOverrides = collectRawOverrides(
     testSuiteArtifacts,
@@ -59,7 +61,7 @@ export function getTestFunctionOverrides(
 
   validateInlineOverrides(allRawOverrides.overrides);
 
-  return buildTestFunctionOverrides(allRawOverrides);
+  return buildTestFunctionOverrides(allRawOverrides, selectedProfile);
 }
 
 function collectRawOverrides(
@@ -191,6 +193,7 @@ function collectRawOverrides(
 
 function buildTestFunctionOverrides(
   collected: CollectedOverrides,
+  selectedProfile: string,
 ): TestFunctionOverride[] {
   const { overrides, artifactIdsByFqn, methodIdentifiersByContract } =
     collected;
@@ -200,6 +203,10 @@ function buildTestFunctionOverrides(
   // overloaded functions. Otherwise fall back to function name only.
   const overridesByFunction = new Map<string, RawInlineOverride[]>();
   for (const override of overrides) {
+    if (override.profile !== selectedProfile) {
+      continue;
+    }
+
     const functionFqn = getFunctionFqn(
       override.inputSourceName,
       override.contractName,

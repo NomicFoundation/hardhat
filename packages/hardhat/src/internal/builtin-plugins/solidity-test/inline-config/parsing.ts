@@ -7,6 +7,8 @@ import {
   snakeToCamelCase,
 } from "@nomicfoundation/hardhat-utils/string";
 
+import { DEFAULT_TEST_PROFILE } from "../test-profiles.js";
+
 import {
   HARDHAT_CONFIG_PREFIX,
   FORGE_CONFIG_PREFIX,
@@ -150,6 +152,7 @@ export function parseInlineConfigLine(
   const rawKey = keyValueSegment.slice(0, eqIndex).trim();
   let parsedKey = rawKey;
   const rawValue = keyValueSegment.slice(eqIndex + 1).trim();
+  let profile = DEFAULT_TEST_PROFILE;
 
   // Detect profile prefix: if the first dot-segment is NOT a known top-level
   // category, treat it as a profile name.
@@ -157,18 +160,7 @@ export function parseInlineConfigLine(
   if (firstDot !== -1) {
     const firstSegment = rawKey.slice(0, firstDot);
     if (!TOP_LEVEL_KEYS.includes(firstSegment)) {
-      // It's a profile. Validate it.
-      const profile = firstSegment;
-      if (profile !== "default") {
-        throw new HardhatError(
-          HardhatError.ERRORS.CORE.SOLIDITY_TESTS.INLINE_CONFIG_UNSUPPORTED_PROFILE,
-          {
-            profile,
-            functionFqn,
-          },
-        );
-      }
-      // Strip the "default." prefix
+      profile = firstSegment;
       parsedKey = rawKey.slice(firstDot + 1);
     }
   }
@@ -176,6 +168,7 @@ export function parseInlineConfigLine(
   parsedKey = snakeToCamelCase(kebabToCamelCase(parsedKey));
 
   return {
+    profile,
     inputSourceName,
     contractName,
     functionName,

@@ -7,6 +7,7 @@ export function makeRawOverride(
   partial: Partial<RawInlineOverride> & { key: string; rawValue: string },
 ): RawInlineOverride {
   return {
+    profile: partial.profile ?? "default",
     inputSourceName: partial.inputSourceName ?? "test/MyTest.sol",
     contractName: partial.contractName ?? "MyTest",
     functionName: partial.functionName ?? "testFoo",

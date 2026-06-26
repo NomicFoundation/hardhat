@@ -99,5 +99,36 @@ describe("config resolution", () => {
         flatHre.config.test.solidity,
       );
     });
+
+    it("should resolve named profiles", async () => {
+      const hre = await createHardhatRuntimeEnvironment({
+        test: {
+          solidity: {
+            profiles: {
+              default: {
+                fuzz: { runs: 50 },
+              },
+              ci: {
+                isolate: true,
+                fuzz: { runs: 1_000, seed: "0x123" },
+              },
+            },
+          },
+        },
+      });
+
+      assert.deepEqual(Object.keys(hre.config.test.solidity.profiles), [
+        "default",
+        "ci",
+      ]);
+      assert.equal(hre.config.test.solidity.profiles.default.fuzz.runs, 50);
+      assert.equal(
+        hre.config.test.solidity.profiles.default.fuzz.seed,
+        DEFAULT_FUZZ_SEED,
+      );
+      assert.equal(hre.config.test.solidity.profiles.ci.isolate, true);
+      assert.equal(hre.config.test.solidity.profiles.ci.fuzz.runs, 1_000);
+      assert.equal(hre.config.test.solidity.profiles.ci.fuzz.seed, "0x123");
+    });
   });
 });

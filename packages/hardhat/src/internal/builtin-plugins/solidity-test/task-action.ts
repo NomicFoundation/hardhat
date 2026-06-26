@@ -202,8 +202,13 @@ const runSolidityTests: NewTaskActionFunction<TestActionArguments> = async (
   let includesFailures = false;
   let includesErrors = false;
 
+  const selectedTestProfile =
+    hre.config.test.solidity.profiles[hre.globalOptions.buildProfile] !==
+    undefined
+      ? hre.globalOptions.buildProfile
+      : DEFAULT_TEST_PROFILE;
   const { eip712Types, ...solidityTestConfig } =
-    hre.config.test.solidity.profiles[DEFAULT_TEST_PROFILE];
+    hre.config.test.solidity.profiles[selectedTestProfile];
 
   let observabilityConfig: ObservabilityConfig | undefined;
   if (hre.globalOptions.coverage) {
@@ -234,6 +239,7 @@ const runSolidityTests: NewTaskActionFunction<TestActionArguments> = async (
   const testFunctionOverrides = getTestFunctionOverrides(
     testSuiteArtifacts,
     allBuildInfosAndOutputs,
+    selectedTestProfile,
   );
 
   const eip712CanonicalTypes = collectEip712CanonicalTypes(
