@@ -233,10 +233,16 @@ async function updateLocalDependencies(scenario: Scenario): Promise<void> {
 async function getLatestFromVerdaccio(
   packageName: string,
 ): Promise<string | undefined> {
+  const url = `${VERDACCIO_URL}/${packageName}`;
+
   try {
-    const response = await globalThis.fetch(`${VERDACCIO_URL}/${packageName}`);
+    const response = await globalThis.fetch(url);
 
     if (!response.ok) {
+      logWarning(
+        `Could not resolve latest ${packageName} from Verdaccio: ` +
+          `GET ${url} returned ${response.status} ${response.statusText}`,
+      );
       return undefined;
     }
 
@@ -244,8 +250,23 @@ async function getLatestFromVerdaccio(
       "dist-tags"?: { latest?: string };
     };
 
-    return metadata["dist-tags"]?.latest;
-  } catch {
+    const latest = metadata["dist-tags"]?.latest;
+
+    if (latest === undefined) {
+      logWarning(
+        `Could not resolve latest ${packageName} from Verdaccio: ` +
+          `GET ${url} returned no \`dist-tags.latest\``,
+      );
+    }
+
+    return latest;
+  } catch (error) {
+    logWarning(
+      `Could not resolve latest ${packageName} from Verdaccio: ` +
+        `GET ${url} failed: ${
+          error instanceof Error ? error.message : String(error)
+        }`,
+    );
     return undefined;
   }
 }
