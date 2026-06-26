@@ -274,9 +274,8 @@ async function getLatestFromVerdaccio(
       const latest = metadata["dist-tags"]?.latest;
 
       if (latest === undefined) {
-        logWarning(
-          `Verdaccio returned no \`dist-tags.latest\` for ${packageName} ` +
-            `(GET ${url})`,
+        throw new Error(
+          `Verdaccio returned no \`dist-tags.latest\` for ${packageName} (GET ${url})`,
         );
       }
 
