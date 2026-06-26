@@ -247,7 +247,7 @@ function sleep(ms: number): Promise<void> {
  * submodule clone burst momentarily exhausts the runner's sockets / ephemeral
  * ports right before this fetch runs, which makes the localhost request throw
  * `fetch failed`. If the failure persists this throws, so the scenario fails
- * loudly instead of silently benchmarking out-of-date-code.
+ * loudly instead of silently benchmarking out-of-date code.
  */
 async function getLatestFromVerdaccio(
   packageName: string,
