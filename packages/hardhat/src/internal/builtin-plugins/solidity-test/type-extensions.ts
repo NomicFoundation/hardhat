@@ -33,6 +33,7 @@ declare module "../../../types/test.js" {
     includeStorage?: boolean;
     includePushBytes?: boolean;
     shrinkRunLimit?: number;
+    timeout?: number | bigint;
   }
 
   export interface SolidityTestFuzzUserConfig {
@@ -45,6 +46,7 @@ declare module "../../../types/test.js" {
     includeStorage?: boolean;
     includePushBytes?: boolean;
     showLogs?: boolean;
+    timeout?: number | bigint;
   }
 
   export interface SolidityTestForkingUserConfig {
@@ -66,6 +68,7 @@ declare module "../../../types/test.js" {
     blockTimestamp?: bigint;
     prevRandao?: bigint;
     gasLimit?: bigint;
+    memoryLimit?: number | bigint;
     blockGasLimit?: number | bigint | false;
     transactionGasCap?: number | bigint | false;
     fuzz?: SolidityTestFuzzUserConfig;
@@ -108,6 +111,7 @@ declare module "../../../types/test.js" {
     includeStorage?: boolean;
     includePushBytes?: boolean;
     shrinkRunLimit?: number;
+    timeout?: number;
   }
 
   export interface SolidityTestFuzzConfig {
@@ -120,6 +124,7 @@ declare module "../../../types/test.js" {
     includeStorage?: boolean;
     includePushBytes?: boolean;
     showLogs?: boolean;
+    timeout?: number;
   }
 
   export interface SolidityTestForkingConfig {
@@ -142,6 +147,7 @@ declare module "../../../types/test.js" {
     blockTimestamp?: bigint;
     prevRandao?: bigint;
     gasLimit?: bigint;
+    memoryLimit?: bigint;
     blockGasLimit?: number | bigint | false;
     transactionGasCap?: number | bigint | false;
     fuzz: SolidityTestFuzzConfig;

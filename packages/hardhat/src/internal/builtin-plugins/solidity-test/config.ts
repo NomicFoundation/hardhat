@@ -32,6 +32,11 @@ import { DEFAULT_TEST_PROFILE } from "./test-profiles.js";
 export const DEFAULT_FUZZ_SEED =
   "0x7727ea51af0441c20da14dcd68a15dac8c9ebd589c5be8fa8c87c1d3720450bc";
 
+const nonnegativeSafeIntOrBigInt = unionType(
+  [z.number().int().nonnegative().safe(), z.bigint().nonnegative()],
+  "Expected a nonnegative safe int or a nonnegative bigint",
+);
+
 const solidityTestProfileUserConfigType = z.object({
   fsPermissions: z
     .object({
@@ -54,6 +59,7 @@ const solidityTestProfileUserConfigType = z.object({
   blockTimestamp: z.bigint().optional(),
   prevRandao: z.bigint().optional(),
   gasLimit: z.bigint().optional(),
+  memoryLimit: nonnegativeSafeIntOrBigInt.optional(),
   blockGasLimit: z.number().or(z.bigint()).or(z.literal(false)).optional(),
   transactionGasCap: z.number().or(z.bigint()).or(z.literal(false)).optional(),
   fuzz: z
@@ -67,6 +73,7 @@ const solidityTestProfileUserConfigType = z.object({
       includeStorage: z.boolean().optional(),
       includePushBytes: z.boolean().optional(),
       showLogs: z.boolean().optional(),
+      timeout: nonnegativeSafeIntOrBigInt.optional(),
     })
     .optional(),
   forking: z
@@ -92,6 +99,7 @@ const solidityTestProfileUserConfigType = z.object({
       includeStorage: z.boolean().optional(),
       includePushBytes: z.boolean().optional(),
       shrinkRunLimit: z.number().optional(),
+      timeout: nonnegativeSafeIntOrBigInt.optional(),
     })
     .optional(),
   eip712Types: z
@@ -222,12 +230,22 @@ export async function resolveSolidityTestUserConfig(
     resolveConfigurationVariable,
   );
 
+  const {
+    memoryLimit,
+    fuzz,
+    invariant,
+    eip712Types,
+    ...otherProfileUserConfig
+  } = profileUserConfig ?? {};
+
   const resolvedDefaultProfile = {
     rpcCachePath: defaultRpcCachePath,
-    ...profileUserConfig,
-    fuzz: resolveFuzzConfig(profileUserConfig?.fuzz),
+    ...otherProfileUserConfig,
+    memoryLimit: memoryLimit !== undefined ? BigInt(memoryLimit) : undefined,
+    fuzz: resolveFuzzConfig(fuzz),
+    invariant: resolveInvariantConfig(invariant),
     forking: resolvedForking,
-    eip712Types: resolveEip712TypesConfig(profileUserConfig?.eip712Types),
+    eip712Types: resolveEip712TypesConfig(eip712Types),
   };
 
   return {
@@ -251,10 +269,83 @@ export async function resolveSolidityTestUserConfig(
 export function resolveFuzzConfig(
   fuzzUserConfig: SolidityTestProfileUserConfig["fuzz"] = {},
 ): SolidityTestProfileConfig["fuzz"] {
-  return {
-    ...fuzzUserConfig,
+  const resolvedConfig: SolidityTestProfileConfig["fuzz"] = {
     seed: fuzzUserConfig.seed ?? DEFAULT_FUZZ_SEED,
   };
+
+  if (fuzzUserConfig.failurePersistDir !== undefined) {
+    resolvedConfig.failurePersistDir = fuzzUserConfig.failurePersistDir;
+  }
+  if (fuzzUserConfig.failurePersistFile !== undefined) {
+    resolvedConfig.failurePersistFile = fuzzUserConfig.failurePersistFile;
+  }
+  if (fuzzUserConfig.runs !== undefined) {
+    resolvedConfig.runs = fuzzUserConfig.runs;
+  }
+  if (fuzzUserConfig.maxTestRejects !== undefined) {
+    resolvedConfig.maxTestRejects = fuzzUserConfig.maxTestRejects;
+  }
+  if (fuzzUserConfig.dictionaryWeight !== undefined) {
+    resolvedConfig.dictionaryWeight = fuzzUserConfig.dictionaryWeight;
+  }
+  if (fuzzUserConfig.includeStorage !== undefined) {
+    resolvedConfig.includeStorage = fuzzUserConfig.includeStorage;
+  }
+  if (fuzzUserConfig.includePushBytes !== undefined) {
+    resolvedConfig.includePushBytes = fuzzUserConfig.includePushBytes;
+  }
+  if (fuzzUserConfig.showLogs !== undefined) {
+    resolvedConfig.showLogs = fuzzUserConfig.showLogs;
+  }
+  if (fuzzUserConfig.timeout !== undefined) {
+    resolvedConfig.timeout = Number(fuzzUserConfig.timeout);
+  }
+
+  return resolvedConfig;
+}
+
+export function resolveInvariantConfig(
+  invariantUserConfig: SolidityTestProfileUserConfig["invariant"],
+): SolidityTestProfileConfig["invariant"] {
+  if (invariantUserConfig === undefined) {
+    return undefined;
+  }
+
+  const resolvedConfig: NonNullable<SolidityTestProfileConfig["invariant"]> =
+    {};
+
+  if (invariantUserConfig.failurePersistDir !== undefined) {
+    resolvedConfig.failurePersistDir = invariantUserConfig.failurePersistDir;
+  }
+  if (invariantUserConfig.runs !== undefined) {
+    resolvedConfig.runs = invariantUserConfig.runs;
+  }
+  if (invariantUserConfig.depth !== undefined) {
+    resolvedConfig.depth = invariantUserConfig.depth;
+  }
+  if (invariantUserConfig.failOnRevert !== undefined) {
+    resolvedConfig.failOnRevert = invariantUserConfig.failOnRevert;
+  }
+  if (invariantUserConfig.callOverride !== undefined) {
+    resolvedConfig.callOverride = invariantUserConfig.callOverride;
+  }
+  if (invariantUserConfig.dictionaryWeight !== undefined) {
+    resolvedConfig.dictionaryWeight = invariantUserConfig.dictionaryWeight;
+  }
+  if (invariantUserConfig.includeStorage !== undefined) {
+    resolvedConfig.includeStorage = invariantUserConfig.includeStorage;
+  }
+  if (invariantUserConfig.includePushBytes !== undefined) {
+    resolvedConfig.includePushBytes = invariantUserConfig.includePushBytes;
+  }
+  if (invariantUserConfig.shrinkRunLimit !== undefined) {
+    resolvedConfig.shrinkRunLimit = invariantUserConfig.shrinkRunLimit;
+  }
+  if (invariantUserConfig.timeout !== undefined) {
+    resolvedConfig.timeout = Number(invariantUserConfig.timeout);
+  }
+
+  return resolvedConfig;
 }
 
 export function resolveEip712TypesConfig(

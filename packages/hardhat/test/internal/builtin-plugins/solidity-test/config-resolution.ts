@@ -6,6 +6,7 @@ import { createHardhatRuntimeEnvironment } from "hardhat/hre";
 import {
   DEFAULT_FUZZ_SEED,
   resolveFuzzConfig,
+  resolveInvariantConfig,
 } from "../../../../src/internal/builtin-plugins/solidity-test/config.js";
 
 describe("config resolution", () => {
@@ -42,6 +43,7 @@ describe("config resolution", () => {
         maxTestRejects: 100,
         dictionaryWeight: 50,
         showLogs: true,
+        timeout: 30n,
       });
 
       assert.ok(result !== undefined, "result is undefined");
@@ -49,7 +51,22 @@ describe("config resolution", () => {
       assert.equal(result.maxTestRejects, 100);
       assert.equal(result.dictionaryWeight, 50);
       assert.equal(result.showLogs, true);
+      assert.equal(result.timeout, 30);
       assert.equal(result.seed, DEFAULT_FUZZ_SEED);
+    });
+  });
+
+  describe("resolveInvariantConfig", () => {
+    it("should return undefined when solidity test invariant config is undefined", () => {
+      const result = resolveInvariantConfig(undefined);
+
+      assert.equal(result, undefined);
+    });
+
+    it("should convert bigint timeout values to numbers", () => {
+      const result = resolveInvariantConfig({ timeout: 60n });
+
+      assert.deepEqual(result, { timeout: 60 });
     });
   });
 
@@ -59,15 +76,19 @@ describe("config resolution", () => {
         test: {
           solidity: {
             isolate: true,
+            memoryLimit: 17_179_869_184n,
             fuzz: { runs: 50 },
+            invariant: { timeout: 100n },
           },
         },
       });
 
       const defaultProfile = hre.config.test.solidity.profiles.default;
       assert.equal(defaultProfile.isolate, true);
+      assert.equal(defaultProfile.memoryLimit, 17_179_869_184n);
       assert.equal(defaultProfile.fuzz.runs, 50);
       assert.equal(defaultProfile.fuzz.seed, DEFAULT_FUZZ_SEED);
+      assert.equal(defaultProfile.invariant?.timeout, 100);
       assert.equal(defaultProfile.forking, undefined);
     });
 
