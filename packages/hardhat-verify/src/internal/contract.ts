@@ -1,9 +1,13 @@
 import type { BuildInfoAndOutput } from "./artifacts.js";
+import type { ArtifactCandidate } from "./build-profile-detection.js";
 import type { Bytecode } from "./bytecode.js";
 import type { ArtifactManager } from "hardhat/types/artifacts";
+import type { SolidityBuildProfileConfig } from "hardhat/types/config";
+import type { HardhatRuntimeEnvironment } from "hardhat/types/hre";
 import type {
   CompilerInput,
   CompilerOutputContract,
+  SolidityBuildSystem,
 } from "hardhat/types/solidity";
 
 import {
@@ -16,6 +20,10 @@ import {
 } from "hardhat/utils/contract-names";
 
 import { getBuildInfoAndOutput } from "./artifacts.js";
+import {
+  findArtifactBuildProfile,
+  makeArtifactCandidate,
+} from "./build-profile-detection.js";
 import { formatInferredSolcVersion } from "./metadata.js";
 
 export interface ContractInformation {
@@ -39,19 +47,35 @@ export interface ContractInformation {
  *  - zero or multiple matches in inference mode.
  */
 // TODO: add tests once the todos in getBuildInfoAndOutput are resolved.
+export interface ContractInformationResolverOptions {
+  hre: HardhatRuntimeEnvironment;
+  compatibleSolcVersions: string[];
+  networkName: string;
+  buildProfileName: string;
+}
+
 export class ContractInformationResolver {
   readonly #artifacts: ArtifactManager;
   readonly #compatibleSolcVersions: string[];
   readonly #networkName: string;
+  readonly #buildProfiles: Record<string, SolidityBuildProfileConfig>;
+  readonly #buildProfileName: string;
+  readonly #solidity: SolidityBuildSystem;
+  readonly #projectRoot: string;
 
-  constructor(
-    artifacts: ArtifactManager,
-    compatibleSolcVersions: string[],
-    networkName: string,
-  ) {
-    this.#artifacts = artifacts;
+  constructor({
+    hre,
+    compatibleSolcVersions,
+    networkName,
+    buildProfileName,
+  }: ContractInformationResolverOptions) {
+    this.#artifacts = hre.artifacts;
     this.#compatibleSolcVersions = compatibleSolcVersions;
     this.#networkName = networkName;
+    this.#buildProfiles = hre.config.solidity.profiles;
+    this.#buildProfileName = buildProfileName;
+    this.#solidity = hre.solidity;
+    this.#projectRoot = hre.config.paths.root;
   }
 
   public async resolve(
@@ -138,10 +162,7 @@ export class ContractInformationResolver {
       deployedBytecode,
     );
     if (contractInformation === null) {
-      throw new HardhatError(
-        HardhatError.ERRORS.HARDHAT_VERIFY.GENERAL.DEPLOYED_BYTECODE_MISMATCH,
-        { contractDescription: `the contract "${contract}"` },
-      );
+      return await this.#throwBytecodeMismatch([contract]);
     }
 
     return contractInformation;
@@ -163,6 +184,7 @@ export class ContractInformationResolver {
   ): Promise<ContractInformation> {
     const candidates = await this.#artifacts.getAllFullyQualifiedNames();
     const matches: ContractInformation[] = [];
+    const consideredContracts: string[] = [];
 
     for (const contract of candidates) {
       const buildInfoAndOutput = await getBuildInfoAndOutput(
@@ -181,6 +203,8 @@ export class ContractInformationResolver {
         continue;
       }
 
+      consideredContracts.push(contract);
+
       const contractInformation = this.#matchAndBuild(
         contract,
         buildInfoAndOutput,
@@ -192,10 +216,7 @@ export class ContractInformationResolver {
     }
 
     if (matches.length === 0) {
-      throw new HardhatError(
-        HardhatError.ERRORS.HARDHAT_VERIFY.GENERAL.DEPLOYED_BYTECODE_MISMATCH,
-        { contractDescription: "any of your local contracts" },
-      );
+      return await this.#throwBytecodeMismatch(consideredContracts);
     }
 
     if (matches.length > 1) {
@@ -262,5 +283,67 @@ export class ContractInformationResolver {
     }
 
     return null;
+  }
+
+  /**
+   * Throws the most precise bytecode-mismatch error available for the given
+   * candidates. If any candidate's bytecode-affecting settings match a
+   * configured build profile other than the active one, throws
+   * `ARTIFACT_BUILD_PROFILE_MISMATCH`; otherwise throws the generic
+   * `DEPLOYED_BYTECODE_MISMATCH`.
+   */
+  async #throwBytecodeMismatch(candidates: string[]): Promise<never> {
+    // We re-fetch build infos here instead of accumulating them in
+    // #resolveByBytecodeLookup to prevent out-of-memory issues.
+    // This is fine as re-reads only happen on the unhappy path.
+    const artifactCandidates: ArtifactCandidate[] = [];
+    for (const contract of candidates) {
+      const buildInfoAndOutput = await getBuildInfoAndOutput(
+        this.#artifacts,
+        contract,
+      );
+      if (buildInfoAndOutput === undefined) {
+        continue;
+      }
+      const { sourceName } = parseFullyQualifiedName(contract);
+      artifactCandidates.push(
+        makeArtifactCandidate(
+          contract,
+          sourceName,
+          buildInfoAndOutput.buildInfo,
+          this.#projectRoot,
+        ),
+      );
+    }
+
+    const match = await findArtifactBuildProfile(
+      this.#solidity,
+      artifactCandidates,
+      this.#buildProfiles,
+      this.#buildProfileName,
+    );
+    if (match !== undefined) {
+      throw new HardhatError(
+        HardhatError.ERRORS.HARDHAT_VERIFY.GENERAL.ARTIFACT_BUILD_PROFILE_MISMATCH,
+        {
+          contractDescription:
+            candidates.length === 1
+              ? `the contract "${candidates[0]}"`
+              : "one of your local contracts",
+          artifactProfile: match.profileName,
+          buildProfileName: this.#buildProfileName,
+        },
+      );
+    }
+
+    throw new HardhatError(
+      HardhatError.ERRORS.HARDHAT_VERIFY.GENERAL.DEPLOYED_BYTECODE_MISMATCH,
+      {
+        contractDescription:
+          candidates.length === 1
+            ? `the contract "${candidates[0]}"`
+            : "any of your local contracts",
+      },
+    );
   }
 }
