@@ -1,5 +1,25 @@
 # hardhat
 
+## 3.9.1
+
+### Patch Changes
+
+- [#8234](https://github.com/NomicFoundation/hardhat/pull/8234) [`81871fd`](https://github.com/NomicFoundation/hardhat/commit/81871fd838c75b136c3a88813b06ac1d59a8c200) Thanks [@tenderdeve](https://github.com/tenderdeve)! - Explain the unsupported cheatcode `eip712HashType(string,string)` and point to the documentation for the alternative instead.
+
+- [#8400](https://github.com/NomicFoundation/hardhat/pull/8400) [`2f48724`](https://github.com/NomicFoundation/hardhat/commit/2f487248346364b235f5546df9a033b7dca8f395) Thanks [@kanej](https://github.com/kanej)! - Support setting the transaction gas cap in Solidity Tests
+
+- [#8367](https://github.com/NomicFoundation/hardhat/pull/8367) [`82d00fc`](https://github.com/NomicFoundation/hardhat/commit/82d00fcc7d5d3539e6dd123d893e645e42bd3645) Thanks [@alcuadrado](https://github.com/alcuadrado)! - Lazy load dependencies to optimize bootstrap time
+
+- [#8391](https://github.com/NomicFoundation/hardhat/pull/8391) [`f3c5727`](https://github.com/NomicFoundation/hardhat/commit/f3c5727d9df507135a37e782ea1c032fdc31c588) Thanks [@schaable](https://github.com/schaable)! - Make `hardhat test solidity --snapshot-check` read-only. It no longer rewrites or deletes `.gas-snapshot` or `snapshots/*.json` files, and instead reports differences. The command now fails when a stored gas value differs from the current one, or when no baseline exists, with a hint to run `--snapshot`.
+
+- [#8332](https://github.com/NomicFoundation/hardhat/pull/8332) [`e542a48`](https://github.com/NomicFoundation/hardhat/commit/e542a4850833ab1a583021bb0ee8a78530cb0be5) Thanks [@gultekinmakif](https://github.com/gultekinmakif)! - Fixed a crash that could occur when a network returned an unexpected response while resolving the default sender account
+
+- [#8385](https://github.com/NomicFoundation/hardhat/pull/8385) [`946e379`](https://github.com/NomicFoundation/hardhat/commit/946e379e47c1a65f95126720a80fece22fe5fd72) Thanks [@BROCCOLO1D](https://github.com/BROCCOLO1D)! - When a Hardhat 2 plugin calls an API that no longer exists in Hardhat 3, the error now names the specific API that was used and explains how to migrate it to Hardhat 3.
+
+- Updated dependencies:
+  - @nomicfoundation/hardhat-errors@3.0.16
+  - @nomicfoundation/hardhat-utils@4.1.4
+
 ## 3.9.0
 
 ### Minor Changes
