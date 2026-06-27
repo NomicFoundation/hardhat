@@ -1,6 +1,14 @@
 import type { HardhatRuntimeEnvironment } from "hardhat/types/hre";
 
-import { assert } from "chai";
+import assert from "node:assert/strict";
+import { describe, it } from "node:test";
+
+import { HardhatError } from "@nomicfoundation/hardhat-errors";
+import {
+  assertRejects,
+  assertRejectsWithHardhatError,
+  useEphemeralFixtureProject,
+} from "@nomicfoundation/hardhat-test-utils";
 
 import type { Artifact } from "../../../src/index.js";
 import {
@@ -11,11 +19,10 @@ import { EIP1193JsonRpcClient } from "../../../src/internal/execution/jsonrpc-cl
 import { TransactionReceiptStatus } from "../../../src/internal/execution/types/jsonrpc.js";
 import { assertIgnitionInvariant } from "../../../src/internal/utils/assertions.js";
 import { createConnection, createClient } from "../../helpers/create-hre.js";
-import { useHardhatProject } from "../../helpers/hardhat-projects.js";
 
-describe("JSON-RPC client", function () {
-  describe("With default hardhat project", function () {
-    useHardhatProject("default");
+describe("JSON-RPC client", { timeout: 60000 }, () => {
+  describe("With default hardhat project", () => {
+    useEphemeralFixtureProject("default");
 
     async function deployContract({
       hre,
@@ -43,15 +50,15 @@ describe("JSON-RPC client", function () {
 
       const receipt = await client.getTransactionReceipt(tx);
 
-      assert.isDefined(receipt);
+      assert.notEqual(receipt, undefined);
       assert.equal(receipt!.status, TransactionReceiptStatus.SUCCESS);
-      assert.isDefined(receipt!.contractAddress);
+      assert.notEqual(receipt!.contractAddress, undefined);
 
       return { artifact, address: receipt!.contractAddress! };
     }
 
-    describe("getChainId", function () {
-      it("Should return the chainId as number", async function () {
+    describe("getChainId", () => {
+      it("Should return the chainId as number", async () => {
         const { client } = await createClient();
         const chainId = await client.getChainId();
 
@@ -59,75 +66,77 @@ describe("JSON-RPC client", function () {
       });
     });
 
-    describe("getLatestBlock", function () {
-      it("Should return the first block in the correct format", async function () {
+    describe("getLatestBlock", () => {
+      it("Should return the first block in the correct format", async () => {
         const { client } = await createClient();
         const block = await client.getLatestBlock();
 
         assert.equal(block.number, 0);
-        assert.isString(block.hash);
-        assert.typeOf(block.baseFeePerGas, "bigint");
+        assert.equal(typeof block.hash, "string");
+        assert.equal(typeof block.baseFeePerGas, "bigint");
       });
 
-      it("Should return the second block in the correct format", async function () {
+      it("Should return the second block in the correct format", async () => {
         const { client, connection } = await createClient();
         await connection.provider.request({ method: "evm_mine" });
         const block = await client.getLatestBlock();
 
         assert.equal(block.number, 1);
-        assert.isString(block.hash);
-        assert.typeOf(block.baseFeePerGas, "bigint");
+        assert.equal(typeof block.hash, "string");
+        assert.equal(typeof block.baseFeePerGas, "bigint");
       });
     });
 
-    describe("getNetworkFees", function () {
-      describe("With an EIP-1559 network (i.e. Hardhat Network)", function () {
-        it("Should return information about EIP-1559 fees", async function () {
+    describe("getNetworkFees", () => {
+      describe("With an EIP-1559 network (i.e. Hardhat Network)", () => {
+        it("Should return information about EIP-1559 fees", async () => {
           const { client } = await createClient();
           const fees = await client.getNetworkFees();
 
-          assert("maxFeePerGas" in fees);
-          assert("maxPriorityFeePerGas" in fees);
+          assert.ok("maxFeePerGas" in fees);
+          assert.ok("maxPriorityFeePerGas" in fees);
 
-          assert.typeOf(fees.maxFeePerGas, "bigint");
-          assert.typeOf(fees.maxPriorityFeePerGas, "bigint");
-          assert.isTrue(fees.maxFeePerGas > fees.maxPriorityFeePerGas);
+          assert.equal(typeof fees.maxFeePerGas, "bigint");
+          assert.equal(typeof fees.maxPriorityFeePerGas, "bigint");
+          assert.equal(fees.maxFeePerGas > fees.maxPriorityFeePerGas, true);
         });
 
-        it('Should throw if the "maxFeePerGas" exceeds the configured limit', async function () {
+        it('Should throw if the "maxFeePerGas" exceeds the configured limit', async () => {
           const { client: failClient } = await createClient({
             maxFeePerGasLimit: 1n,
           });
 
-          await assert.isRejected(
+          await assertRejectsWithHardhatError(
             failClient.getNetworkFees(),
-            /HHE10406: The calculated max fee per gas exceeds the configured limit./,
+            HardhatError.ERRORS.IGNITION.EXECUTION
+              .MAX_FEE_PER_GAS_EXCEEDS_GAS_LIMIT,
+            {},
           );
         });
 
-        it("Should use the configured maxFeePerGas", async function () {
+        it("Should use the configured maxFeePerGas", async () => {
           const { client: maxFeeClient } = await createClient({
             maxFeePerGas: 1n,
           });
           const fees = await maxFeeClient.getNetworkFees();
 
-          assert("maxFeePerGas" in fees);
+          assert.ok("maxFeePerGas" in fees);
 
           assert.equal(fees.maxFeePerGas, 1n);
         });
 
-        it("Should use the configured maxPriorityFeePerGas", async function () {
+        it("Should use the configured maxPriorityFeePerGas", async () => {
           const { client: maxFeeClient } = await createClient({
             maxPriorityFeePerGas: 1n,
           });
           const fees = await maxFeeClient.getNetworkFees();
 
-          assert("maxPriorityFeePerGas" in fees);
+          assert.ok("maxPriorityFeePerGas" in fees);
 
           assert.equal(fees.maxPriorityFeePerGas, 1n);
         });
 
-        it("Should use return legacy fees when deploying to polygon network (chainId 137)", async function () {
+        it("Should use return legacy fees when deploying to polygon network (chainId 137)", async () => {
           const polygonClient = new EIP1193JsonRpcClient(
             {
               request: async (req) => {
@@ -155,12 +164,12 @@ describe("JSON-RPC client", function () {
           );
           const fees = await polygonClient.getNetworkFees();
 
-          assert("gasPrice" in fees);
+          assert.ok("gasPrice" in fees);
 
           assert.equal(fees.gasPrice, 1n);
         });
 
-        it("Should return zero gas fees when deploying to a network with a zero base fee per gas (e.g. private Besu instances)", async function () {
+        it("Should return zero gas fees when deploying to a network with a zero base fee per gas (e.g. private Besu instances)", async () => {
           const besuClient = new EIP1193JsonRpcClient({
             request: async (req) => {
               if (req.method === "eth_chainId") {
@@ -191,7 +200,7 @@ describe("JSON-RPC client", function () {
           });
         });
 
-        it("Should not return zero gas fees for BNB Chain even with a zero base fee", async function () {
+        it("Should not return zero gas fees for BNB Chain even with a zero base fee", async () => {
           const bnbClient = new EIP1193JsonRpcClient({
             request: async (req) => {
               if (req.method === "eth_chainId") {
@@ -226,7 +235,7 @@ describe("JSON-RPC client", function () {
           );
         });
 
-        it("Should not return zero gas fees for BNB Test Chain even with a zero base fee", async function () {
+        it("Should not return zero gas fees for BNB Test Chain even with a zero base fee", async () => {
           const bnbTestClient = new EIP1193JsonRpcClient({
             request: async (req) => {
               if (req.method === "eth_chainId") {
@@ -261,7 +270,7 @@ describe("JSON-RPC client", function () {
           );
         });
 
-        it("Should use the `maxPriorityFeePerGas` from the node if `eth_maxPriorityFeePerGas` is present (and there is no config)", async function () {
+        it("Should use the `maxPriorityFeePerGas` from the node if `eth_maxPriorityFeePerGas` is present (and there is no config)", async () => {
           const connection = await createConnection();
 
           // TODO: Hardhat does not support `eth_maxPriorityFeePerGas` yet, when it does, this
@@ -283,12 +292,12 @@ describe("JSON-RPC client", function () {
 
           const fees = await maxFeeClient.getNetworkFees();
 
-          assert("maxPriorityFeePerGas" in fees);
+          assert.ok("maxPriorityFeePerGas" in fees);
 
           assert.equal(fees.maxPriorityFeePerGas, 2_000_000_000n);
         });
 
-        it("Should default to 1gwei for maxPriorityFeePerGas if `eth_maxPriorityFeePerGas` is not available and no config set", async function () {
+        it("Should default to 1gwei for maxPriorityFeePerGas if `eth_maxPriorityFeePerGas` is not available and no config set", async () => {
           const connection = await createConnection();
 
           const proxiedProvider = {
@@ -310,15 +319,15 @@ describe("JSON-RPC client", function () {
 
           const fees = await maxFeeClient.getNetworkFees();
 
-          assert("maxPriorityFeePerGas" in fees);
+          assert.ok("maxPriorityFeePerGas" in fees);
 
           assert.equal(fees.maxPriorityFeePerGas, 1_000_000_000n);
         });
       });
     });
 
-    describe("call", function () {
-      it("Should return the raw result in successful deployment calls", async function () {
+    describe("call", () => {
+      it("Should return the raw result in successful deployment calls", async () => {
         const { client, hre, connection } = await createClient();
 
         const accounts: any[] = await connection.provider.request({
@@ -336,12 +345,12 @@ describe("JSON-RPC client", function () {
           "latest",
         );
 
-        assert.isTrue(result.success);
+        assert.equal(result.success, true);
         assert.notEqual(result.returnData, "0x");
-        assert.isFalse(result.customErrorReported);
+        assert.equal(result.customErrorReported, false);
       });
 
-      it("Should return the raw result in successful non-deployment calls", async function () {
+      it("Should return the raw result in successful non-deployment calls", async () => {
         const { client, hre, connection } = await createClient();
 
         const accounts: any[] = await connection.provider.request({
@@ -369,12 +378,12 @@ describe("JSON-RPC client", function () {
         const abiEncodedHello =
           "0x0000000000000000000000000000000000000000000000000000000000000020000000000000000000000000000000000000000000000000000000000000000568656c6c6f000000000000000000000000000000000000000000000000000000";
 
-        assert.isTrue(result.success);
+        assert.equal(result.success, true);
         assert.equal(result.returnData, abiEncodedHello);
-        assert.isFalse(result.customErrorReported);
+        assert.equal(result.customErrorReported, false);
       });
 
-      it("Should not throw on execution failures, but return a result", async function () {
+      it("Should not throw on execution failures, but return a result", async () => {
         const { client, connection } = await createClient();
 
         const accounts: any[] = await connection.provider.request({
@@ -392,12 +401,12 @@ describe("JSON-RPC client", function () {
           "latest",
         );
 
-        assert.isFalse(result.success);
+        assert.equal(result.success, false);
         assert.equal(result.returnData, "0x");
-        assert.isFalse(result.customErrorReported);
+        assert.equal(result.customErrorReported, false);
       });
 
-      it("Should return the returnData on execution failures", async function () {
+      it("Should return the returnData on execution failures", async () => {
         const { client, hre, connection } = await createClient();
 
         const accounts: any[] = await connection.provider.request({
@@ -429,12 +438,12 @@ describe("JSON-RPC client", function () {
         const abiEncodedHello =
           "0x08c379a000000000000000000000000000000000000000000000000000000000000000200000000000000000000000000000000000000000000000000000000000000006726561736f6e0000000000000000000000000000000000000000000000000000";
 
-        assert.isFalse(result.success);
+        assert.equal(result.success, false);
         assert.equal(result.returnData, abiEncodedHello);
-        assert.isFalse(result.customErrorReported);
+        assert.equal(result.customErrorReported, false);
       });
 
-      it("[Geth specific] Should return an empty returnData even when geth doesn't return it", async function () {
+      it("[Geth specific] Should return an empty returnData even when geth doesn't return it", async () => {
         // **NOTE**: This tests is mocked with the error messages that Geth returns
         let formatNumber = 0;
 
@@ -477,9 +486,9 @@ describe("JSON-RPC client", function () {
           "latest",
         );
 
-        assert.isFalse(result1.success);
+        assert.equal(result1.success, false);
         assert.equal(result1.returnData, "0x");
-        assert.isFalse(result1.customErrorReported);
+        assert.equal(result1.customErrorReported, false);
 
         const result2 = await mockClient.call(
           {
@@ -490,12 +499,12 @@ describe("JSON-RPC client", function () {
           "latest",
         );
 
-        assert.isFalse(result2.success);
+        assert.equal(result2.success, false);
         assert.equal(result2.returnData, "0x");
-        assert.isFalse(result2.customErrorReported);
+        assert.equal(result2.customErrorReported, false);
       });
 
-      it("[Other nodes] Should return an empty returnData if the error message indicates a revert", async function () {
+      it("[Other nodes] Should return an empty returnData if the error message indicates a revert", async () => {
         class MockProvider {
           public async request(req: { method: string; _: any[] }) {
             if (req.method === "eth_call") {
@@ -527,12 +536,12 @@ describe("JSON-RPC client", function () {
           "latest",
         );
 
-        assert.isFalse(result1.success);
+        assert.equal(result1.success, false);
         assert.equal(result1.returnData, "0x");
-        assert.isFalse(result1.customErrorReported);
+        assert.equal(result1.customErrorReported, false);
       });
 
-      it("Should rethrow an HardhatError if the error message indicates an incorrectly configured base gas fee versus the node's block gas limit", async function () {
+      it("Should rethrow an HardhatError if the error message indicates an incorrectly configured base gas fee versus the node's block gas limit", async () => {
         class MockProvider {
           public async request(req: { method: string; _: any[] }) {
             if (req.method === "eth_call") {
@@ -555,7 +564,7 @@ describe("JSON-RPC client", function () {
           params: [],
         });
 
-        await assert.isRejected(
+        await assertRejectsWithHardhatError(
           mockClient.call(
             {
               data: "0x",
@@ -564,11 +573,12 @@ describe("JSON-RPC client", function () {
             },
             "latest",
           ),
-          /HHE10405\: The configured base fee exceeds the block gas limit\. Please reduce the configured base fee or increase the block gas limit\./,
+          HardhatError.ERRORS.IGNITION.EXECUTION.BASE_FEE_EXCEEDS_GAS_LIMIT,
+          {},
         );
       });
 
-      it("Should return customErrorReported true when the server reports a custom error", async function () {
+      it("Should return customErrorReported true when the server reports a custom error", async () => {
         const { client, hre, connection } = await createClient();
 
         const accounts: any[] = await connection.provider.request({
@@ -596,12 +606,12 @@ describe("JSON-RPC client", function () {
           "latest",
         );
 
-        assert.isFalse(result.success);
+        assert.equal(result.success, false);
         assert.notEqual(result.returnData, "0x");
-        assert.isTrue(result.customErrorReported);
+        assert.equal(result.customErrorReported, true);
       });
 
-      it("Should return customErrorReported false when the server does not reports a custom error", async function () {
+      it("Should return customErrorReported false when the server does not reports a custom error", async () => {
         const { client, hre, connection } = await createClient();
 
         const accounts: any[] = await connection.provider.request({
@@ -629,12 +639,12 @@ describe("JSON-RPC client", function () {
           "latest",
         );
 
-        assert.isFalse(result.success);
+        assert.equal(result.success, false);
         assert.notEqual(result.returnData, "0x");
-        assert.isFalse(result.customErrorReported);
+        assert.equal(result.customErrorReported, false);
       });
 
-      it("Should accept pending as blockTag", async function () {
+      it("Should accept pending as blockTag", async () => {
         // We disable automining, so the transaction is pending
         // and calls different between latest and pending
         const { client, connection, hre } = await createClient();
@@ -678,9 +688,9 @@ describe("JSON-RPC client", function () {
           "latest",
         );
 
-        assert.isTrue(resultLatest.success);
+        assert.equal(resultLatest.success, true);
         assert.equal(resultLatest.returnData, "0x");
-        assert.isFalse(resultLatest.customErrorReported);
+        assert.equal(resultLatest.customErrorReported, false);
 
         const resultPending = await client.call(
           {
@@ -696,17 +706,17 @@ describe("JSON-RPC client", function () {
           "pending",
         );
 
-        assert.isFalse(resultPending.success);
+        assert.equal(resultPending.success, false);
         assert.notEqual(resultPending.returnData, "0x");
-        assert.isFalse(resultPending.customErrorReported);
+        assert.equal(resultPending.customErrorReported, false);
       });
 
       // TODO: Should we test that eth_call validates the account balance?
       // TODO: Should we test that eth_call validates the nonce, maxFeePerGas, and maxPriorityFeePerGas?
     });
 
-    describe("sendTransaction", function () {
-      it("Should return the tx hash, even on execution failures", async function () {
+    describe("sendTransaction", () => {
+      it("Should return the tx hash, even on execution failures", async () => {
         const { client, connection } = await createClient();
 
         const accounts: any[] = await connection.provider.request({
@@ -726,10 +736,10 @@ describe("JSON-RPC client", function () {
           fees,
         });
 
-        assert.isString(result);
+        assert.equal(typeof result, "string");
       });
 
-      it("Should return the tx hash in a network without automining", async function () {
+      it("Should return the tx hash in a network without automining", async () => {
         const { client, connection } = await createClient();
 
         const accounts: any[] = await connection.provider.request({
@@ -754,12 +764,12 @@ describe("JSON-RPC client", function () {
           fees,
         });
 
-        assert.isString(result);
+        assert.equal(typeof result, "string");
       });
     });
 
-    describe("getBalance", function () {
-      it("Should return the latest balance of an account", async function () {
+    describe("getBalance", () => {
+      it("Should return the latest balance of an account", async () => {
         const defaultHardhatNetworkBalance = 10n ** 18n * 10_000n;
         const nextBlockBaseFee = 875000000n;
 
@@ -793,7 +803,7 @@ describe("JSON-RPC client", function () {
 
       // Skipped because Hardhat Network doesn't implement this correctly and
       // always returns the latest balance.
-      it.skip("Should return the pending balance of an account", async function () {
+      it.skip("Should return the pending balance of an account", async () => {
         const { client, connection } = await createClient();
 
         const accounts: any[] = await connection.provider.request({
@@ -828,8 +838,8 @@ describe("JSON-RPC client", function () {
       });
     });
 
-    describe("setBalance", function () {
-      it("Should allow setting an account balance against a local hardhat node", async function () {
+    describe("setBalance", () => {
+      it("Should allow setting an account balance against a local hardhat node", async () => {
         const { client, connection } = await createClient();
 
         const accounts: any[] = await connection.provider.request({
@@ -851,7 +861,7 @@ describe("JSON-RPC client", function () {
         assert.equal(balanceAfter, 99999n);
       });
 
-      it("Should allow setting an account balance against an anvil node", async function () {
+      it("Should allow setting an account balance against an anvil node", async () => {
         // Arrange
 
         const connection = await createConnection();
@@ -898,8 +908,8 @@ describe("JSON-RPC client", function () {
       });
     });
 
-    describe("estimateGas", function () {
-      it("Should return the estimate gas if the tx would succeed", async function () {
+    describe("estimateGas", () => {
+      it("Should return the estimate gas if the tx would succeed", async () => {
         const { client, connection } = await createClient();
 
         const accounts: any[] = await connection.provider.request({
@@ -923,7 +933,7 @@ describe("JSON-RPC client", function () {
         assert.equal(estimation, 21_000n + 1n);
       });
 
-      it("Should throw if the tx would not succeed", async function () {
+      it("Should throw if the tx would not succeed", async () => {
         const { client, hre, connection } = await createClient();
 
         const accounts: any[] = await connection.provider.request({
@@ -937,7 +947,7 @@ describe("JSON-RPC client", function () {
           accounts,
         });
 
-        await assert.isRejected(
+        await assertRejects(
           client.estimateGas({
             to: address,
             from: accounts[0],
@@ -957,8 +967,8 @@ describe("JSON-RPC client", function () {
       });
     });
 
-    describe("getTransactionCount", function () {
-      it("`latest` should return the amount of confirmed transactions", async function () {
+    describe("getTransactionCount", () => {
+      it("`latest` should return the amount of confirmed transactions", async () => {
         const { client, connection } = await createClient();
 
         const accounts: any[] = await connection.provider.request({
@@ -1005,7 +1015,7 @@ describe("JSON-RPC client", function () {
         assert.equal(count, 2);
       });
 
-      it("`pending` should return the amount of unconfirmed transactions", async function () {
+      it("`pending` should return the amount of unconfirmed transactions", async () => {
         const { client, connection } = await createClient();
 
         const accounts: any[] = await connection.provider.request({
@@ -1071,7 +1081,7 @@ describe("JSON-RPC client", function () {
         assert.equal(pendingCount, 2);
       });
 
-      it("using a number should return the amount of confirmed transactions up to and including that block", async function () {
+      it("using a number should return the amount of confirmed transactions up to and including that block", async () => {
         const { client, connection } = await createClient();
 
         const accounts: any[] = await connection.provider.request({
@@ -1124,10 +1134,10 @@ describe("JSON-RPC client", function () {
       });
     });
 
-    describe("getTransaction", function () {
-      describe("On a EIP-1559 network", function () {
-        describe("Confirmed transactions", function () {
-          it("Should return its hash, network fees, blockNumber and blockHash", async function () {
+    describe("getTransaction", () => {
+      describe("On a EIP-1559 network", () => {
+        describe("Confirmed transactions", () => {
+          it("Should return its hash, network fees, blockNumber and blockHash", async () => {
             const { client, connection } = await createClient();
 
             const accounts: any[] = await connection.provider.request({
@@ -1152,13 +1162,13 @@ describe("JSON-RPC client", function () {
 
             const tx = await client.getTransaction(hash);
 
-            assert.isDefined(tx);
+            assert.notEqual(tx, undefined);
 
             assert.equal(tx!.hash, hash);
-            assert("maxFeePerGas" in tx!.fees);
-            assert("maxPriorityFeePerGas" in tx!.fees);
-            assert("maxFeePerGas" in tx!.fees);
-            assert("maxPriorityFeePerGas" in tx!.fees);
+            assert.ok("maxFeePerGas" in tx!.fees);
+            assert.ok("maxPriorityFeePerGas" in tx!.fees);
+            assert.ok("maxFeePerGas" in tx!.fees);
+            assert.ok("maxPriorityFeePerGas" in tx!.fees);
             assert.equal(tx!.fees.maxFeePerGas, req.fees.maxFeePerGas);
             assert.equal(
               tx!.fees.maxPriorityFeePerGas,
@@ -1167,8 +1177,8 @@ describe("JSON-RPC client", function () {
           });
         });
 
-        describe("Pending transactions", function () {
-          it("Should the tx if it is in the mempool", async function () {
+        describe("Pending transactions", () => {
+          it("Should the tx if it is in the mempool", async () => {
             const { client, connection } = await createClient();
 
             const accounts: any[] = await connection.provider.request({
@@ -1198,10 +1208,10 @@ describe("JSON-RPC client", function () {
 
             const tx = await client.getTransaction(hash);
 
-            assert.isDefined(tx);
+            assert.notEqual(tx, undefined);
             assert.equal(tx!.hash, hash);
-            assert("maxFeePerGas" in tx!.fees);
-            assert("maxPriorityFeePerGas" in tx!.fees);
+            assert.ok("maxFeePerGas" in tx!.fees);
+            assert.ok("maxPriorityFeePerGas" in tx!.fees);
             assert.equal(tx!.fees.maxFeePerGas, req.fees.maxFeePerGas);
             assert.equal(
               tx!.fees.maxPriorityFeePerGas,
@@ -1209,17 +1219,17 @@ describe("JSON-RPC client", function () {
             );
           });
 
-          it("Should return undefined if the transaction was never sent", async function () {
+          it("Should return undefined if the transaction was never sent", async () => {
             const { client } = await createClient();
 
             const tx = await client.getTransaction(
               "0x0000000000000000000000000000000000000000000000000000000000000001",
             );
 
-            assert.isUndefined(tx);
+            assert.equal(tx, undefined);
           });
 
-          it("Should return undefined if the transaction was replaced by a different one", async function () {
+          it("Should return undefined if the transaction was replaced by a different one", async () => {
             const { client, connection } = await createClient();
 
             const accounts: any[] = await connection.provider.request({
@@ -1259,10 +1269,10 @@ describe("JSON-RPC client", function () {
 
             const tx = await client.getTransaction(firstTxHash);
 
-            assert.isUndefined(tx);
+            assert.equal(tx, undefined);
           });
 
-          it("Should return undefined if the transaction was dropped", async function () {
+          it("Should return undefined if the transaction was dropped", async () => {
             const { client, connection } = await createClient();
 
             const accounts: any[] = await connection.provider.request({
@@ -1295,15 +1305,15 @@ describe("JSON-RPC client", function () {
 
             const tx = await client.getTransaction(txHash);
 
-            assert.isUndefined(tx);
+            assert.equal(tx, undefined);
           });
         });
       });
     });
 
-    describe("getTransactionReceipt", function () {
-      describe("Confirmed transactions", function () {
-        it("Should return the receipt if the transaction was successful", async function () {
+    describe("getTransactionReceipt", () => {
+      describe("Confirmed transactions", () => {
+        it("Should return the receipt if the transaction was successful", async () => {
           const { client, connection } = await createClient();
 
           const accounts: any[] = await connection.provider.request({
@@ -1328,15 +1338,15 @@ describe("JSON-RPC client", function () {
 
           const receipt = await client.getTransactionReceipt(hash);
 
-          assert.isDefined(receipt);
+          assert.notEqual(receipt, undefined);
           assert.equal(receipt!.blockHash, block.hash);
           assert.equal(receipt!.blockNumber, block.number);
           assert.equal(receipt!.status, TransactionReceiptStatus.SUCCESS);
-          assert.isUndefined(receipt!.contractAddress);
+          assert.equal(receipt!.contractAddress, undefined);
           assert.deepEqual(receipt!.logs, []);
         });
 
-        it("Should return the contract address for successful deployment transactions", async function () {
+        it("Should return the contract address for successful deployment transactions", async () => {
           const { client, hre, connection } = await createClient();
 
           const accounts: any[] = await connection.provider.request({
@@ -1361,15 +1371,15 @@ describe("JSON-RPC client", function () {
 
           const receipt = await client.getTransactionReceipt(hash);
 
-          assert.isDefined(receipt);
+          assert.notEqual(receipt, undefined);
           assert.equal(receipt!.blockHash, block.hash);
           assert.equal(receipt!.blockNumber, block.number);
           assert.equal(receipt!.status, TransactionReceiptStatus.SUCCESS);
-          assert.isDefined(receipt!.contractAddress);
+          assert.notEqual(receipt!.contractAddress, undefined);
           assert.deepEqual(receipt!.logs, []);
         });
 
-        it("Should return the receipt for reverted transactions", async function () {
+        it("Should return the receipt for reverted transactions", async () => {
           const { client, connection } = await createClient();
 
           const accounts: any[] = await connection.provider.request({
@@ -1393,15 +1403,15 @@ describe("JSON-RPC client", function () {
 
           const receipt = await client.getTransactionReceipt(hash);
 
-          assert.isDefined(receipt);
+          assert.notEqual(receipt, undefined);
           assert.equal(receipt!.blockHash, block.hash);
           assert.equal(receipt!.blockNumber, block.number);
           assert.equal(receipt!.status, TransactionReceiptStatus.FAILURE);
-          assert.isUndefined(receipt!.contractAddress);
+          assert.equal(receipt!.contractAddress, undefined);
           assert.deepEqual(receipt!.logs, []);
         });
 
-        it("Should return the right logs", async function () {
+        it("Should return the right logs", async () => {
           const { client, hre, connection } = await createClient();
 
           const accounts: any[] = await connection.provider.request({
@@ -1431,14 +1441,14 @@ describe("JSON-RPC client", function () {
 
           const receipt = await client.getTransactionReceipt(hash);
 
-          assert.isDefined(receipt);
+          assert.notEqual(receipt, undefined);
           assert.equal(receipt!.blockHash, block.hash);
           assert.equal(receipt!.blockNumber, block.number);
           assert.equal(receipt!.status, TransactionReceiptStatus.SUCCESS);
-          assert.isUndefined(receipt!.contractAddress);
+          assert.equal(receipt!.contractAddress, undefined);
 
-          assert.isArray(receipt!.logs);
-          assert.lengthOf(receipt!.logs, 2);
+          assert.ok(Array.isArray(receipt!.logs));
+          assert.equal(receipt!.logs.length, 2);
 
           const event0 = receipt!.logs[0];
           const event1 = receipt!.logs[1];
@@ -1452,18 +1462,18 @@ describe("JSON-RPC client", function () {
           assert.notEqual(event0.data, "0x");
           assert.notEqual(event1.data, "0x");
 
-          assert.isDefined(event0.topics[0]);
+          assert.notEqual(event0.topics[0], undefined);
           assert.notEqual(event0.topics[0], "0x");
 
-          assert.isDefined(event1.topics[0]);
+          assert.notEqual(event1.topics[0], undefined);
           assert.notEqual(event1.topics[0], "0x");
 
           assert.notEqual(event0.topics[0], event1.topics[0]);
         });
       });
 
-      describe("Pending transactions", function () {
-        it("Should return undefined if the transaction is in the mempool", async function () {
+      describe("Pending transactions", () => {
+        it("Should return undefined if the transaction is in the mempool", async () => {
           const { client, connection } = await createClient();
 
           const accounts: any[] = await connection.provider.request({
@@ -1491,20 +1501,20 @@ describe("JSON-RPC client", function () {
 
           const receipt = await client.getTransactionReceipt(hash);
 
-          assert.isUndefined(receipt);
+          assert.equal(receipt, undefined);
         });
 
-        it("Should return undefined if the transaction was never sent", async function () {
+        it("Should return undefined if the transaction was never sent", async () => {
           const { client } = await createClient();
 
           const receipt = await client.getTransactionReceipt(
             "0x0000000000000000000000000000000000000000000000000000000000000001",
           );
 
-          assert.isUndefined(receipt);
+          assert.equal(receipt, undefined);
         });
 
-        it("Should return undefined if the transaction was replaced by a different one", async function () {
+        it("Should return undefined if the transaction was replaced by a different one", async () => {
           const { client, connection } = await createClient();
 
           const accounts: any[] = await connection.provider.request({
@@ -1544,10 +1554,10 @@ describe("JSON-RPC client", function () {
 
           const receipt = await client.getTransactionReceipt(firstTxHash);
 
-          assert.isUndefined(receipt);
+          assert.equal(receipt, undefined);
         });
 
-        it("Should return undefined if the transaction was dropped", async function () {
+        it("Should return undefined if the transaction was dropped", async () => {
           const { client, connection } = await createClient();
 
           const accounts: any[] = await connection.provider.request({
@@ -1580,18 +1590,18 @@ describe("JSON-RPC client", function () {
 
           const receipt = await client.getTransactionReceipt(txHash);
 
-          assert.isUndefined(receipt);
+          assert.equal(receipt, undefined);
         });
       });
     });
   });
 
-  describe("With a hardhat network that doesn't throw on transaction errors", function () {
+  describe("With a hardhat network that doesn't throw on transaction errors", () => {
     /* cspell:disable-next-line */
-    useHardhatProject("dont-throw-on-reverts");
+    useEphemeralFixtureProject("dont-throw-on-reverts");
 
-    describe("sendTransaction", function () {
-      it("Should return the tx hash, even on execution failures", async function () {
+    describe("sendTransaction", () => {
+      it("Should return the tx hash, even on execution failures", async () => {
         const { client, connection } = await createClient();
 
         const accounts: any[] = await connection.provider.request({
@@ -1612,7 +1622,7 @@ describe("JSON-RPC client", function () {
           },
         });
 
-        assert.isString(result);
+        assert.equal(typeof result, "string");
       });
     });
   });
