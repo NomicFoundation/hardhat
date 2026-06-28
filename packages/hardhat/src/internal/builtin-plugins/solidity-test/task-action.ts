@@ -231,12 +231,12 @@ const runSolidityTests: NewTaskActionFunction<TestActionArguments> = async (
     }
   }
 
-  const testFunctionOverrides = getTestFunctionOverrides(
+  const testFunctionOverrides = await getTestFunctionOverrides(
     testSuiteArtifacts,
     allBuildInfosAndOutputs,
   );
 
-  const eip712CanonicalTypes = collectEip712CanonicalTypes(
+  const eip712CanonicalTypes = await collectEip712CanonicalTypes(
     allBuildInfosAndOutputs,
     sourceNameToUserSourceName,
     eip712Types,

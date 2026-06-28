@@ -5,6 +5,7 @@ import type { FileHandle } from "node:fs/promises";
 import fsPromises from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";
+import { Readable } from "node:stream";
 import { pipeline } from "node:stream/promises";
 
 import { ensureError, ensureNodeErrnoExceptionError } from "./error.js";
@@ -405,6 +406,49 @@ export async function readJsonFile<T>(absolutePathToFile: string): Promise<T> {
     ensureError(e);
     throw new InvalidFileFormatError(absolutePathToFile, e);
   }
+}
+
+/**
+ * Parses JSON bytes as a stream. This avoids materializing the full input as a
+ * single string, which can exceed V8's maximum string size for very large JSON
+ * payloads.
+ *
+ * @param bytes The UTF-8 encoded JSON bytes.
+ * @returns The parsed JSON object.
+ */
+export async function parseJsonBytesAsStream<T>(bytes: Uint8Array): Promise<T> {
+  if (streamParserJson === undefined) {
+    streamParserJson = await import("@streamparser/json-node");
+  }
+
+  // NOTE: We set a separator to disable self-closing to be able to use the parser
+  // in the stream.pipeline context; see https://github.com/juanjoDiaz/streamparser-json/issues/47
+  const jsonParser = new streamParserJson.JSONParser({
+    separator: "",
+  });
+
+  const result: T | undefined = await pipeline(
+    Readable.from([bytes]),
+    jsonParser,
+    async (
+      elements: AsyncIterable<StreamParserJson.ParsedElementInfo.ParsedElementInfo>,
+    ): Promise<any | undefined> => {
+      let value:
+        | StreamParserJson.JsonTypes.JsonPrimitive
+        | StreamParserJson.JsonTypes.JsonStruct
+        | undefined;
+      for await (const element of elements) {
+        value = element.value;
+      }
+      return value;
+    },
+  );
+
+  if (result === undefined) {
+    throw new Error("No data");
+  }
+
+  return result;
 }
 
 /**
