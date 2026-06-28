@@ -2,10 +2,8 @@ import type { CollectedStruct } from "./ast-walker.js";
 import type { SolidityBuildInfoOutput } from "../../../../types/solidity/solidity-artifacts.js";
 import type { BuildInfoAndOutput } from "../edr-artifacts.js";
 
-import {
-  bytesIncludesUtf8String,
-  bytesToUtf8String,
-} from "@nomicfoundation/hardhat-utils/bytes";
+import { bytesIncludesUtf8String } from "@nomicfoundation/hardhat-utils/bytes";
+import { parseJsonBytesAsStream } from "@nomicfoundation/hardhat-utils/fs";
 
 import { isPathSelected } from "../../../utils/glob.js";
 import { toUserSourceName } from "../../solidity/source-names.js";
@@ -35,11 +33,11 @@ export interface Eip712TypesConfig {
  * When `include` is empty/unset the feature is off: collection short-circuits
  * and returns an empty list without parsing any build info.
  */
-export function collectEip712CanonicalTypes(
+export async function collectEip712CanonicalTypes(
   buildInfosAndOutputs: BuildInfoAndOutput[],
   inputToUserSource: ReadonlyMap<string, string>,
   config: Eip712TypesConfig,
-): string[] {
+): Promise<string[]> {
   const { include, exclude } = config;
 
   if (include.length === 0) {
@@ -56,9 +54,8 @@ export function collectEip712CanonicalTypes(
       continue;
     }
 
-    const parsedOutput: SolidityBuildInfoOutput = JSON.parse(
-      bytesToUtf8String(output),
-    );
+    const parsedOutput =
+      await parseJsonBytesAsStream<SolidityBuildInfoOutput>(output);
 
     const sources = parsedOutput.output.sources;
     if (sources === undefined) {
