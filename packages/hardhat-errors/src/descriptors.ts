@@ -1313,7 +1313,7 @@ Double-check the paths you are providing to the \`test solidity\` task.`,
 - {firstSource}
 - {secondSource}
 
-EIP-712 cheatcodes resolve types by name, so each struct name must have a single canonical definition. Rename one of the structs, or scope your \`test.solidity.eip712Types.include\` / \`exclude\` globs in \`hardhat.config.ts\` to only one of them.`,
+EIP-712 cheatcodes resolve types by name, so each struct name must have a single canonical definition. {remediation}`,
         websiteTitle: "Duplicate EIP-712 struct name",
         websiteDescription: `Two struct definitions with the same name had different members. Type-name lookups via \`vm.eip712HashType\` and \`vm.eip712HashStruct\` would be ambiguous.`,
       },

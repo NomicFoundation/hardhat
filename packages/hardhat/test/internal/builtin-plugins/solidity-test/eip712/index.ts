@@ -7,6 +7,10 @@ import { HardhatError } from "@nomicfoundation/hardhat-errors";
 import { assertThrowsHardhatError } from "@nomicfoundation/hardhat-test-utils";
 import { utf8StringToBytes } from "@nomicfoundation/hardhat-utils/bytes";
 
+import {
+  DEPENDENCY_CONFLICT_REMEDIATION,
+  SELECTED_CONFLICT_REMEDIATION,
+} from "../../../../../src/internal/builtin-plugins/solidity-test/eip712/canonicalize.js";
 import { collectEip712CanonicalTypes } from "../../../../../src/internal/builtin-plugins/solidity-test/eip712/index.js";
 
 interface FakeSource {
@@ -372,6 +376,7 @@ describe("eip712 - collectEip712CanonicalTypes", () => {
         name: "S",
         firstSource: "test/Types.sol",
         secondSource: "test/Types.sol",
+        remediation: SELECTED_CONFLICT_REMEDIATION,
       },
     );
   });
@@ -401,6 +406,7 @@ describe("eip712 - collectEip712CanonicalTypes", () => {
         name: "S",
         firstSource: "test/Types.sol",
         secondSource: "test/Types.sol",
+        remediation: SELECTED_CONFLICT_REMEDIATION,
       },
     );
   });
@@ -696,6 +702,133 @@ describe("eip712 - collectEip712CanonicalTypes", () => {
     );
 
     assert.deepEqual(result, ["Wanted(uint256 x)"]);
+  });
+
+  it("does not throw when an included file and a non-included, unimported file define the same struct name", () => {
+    // `include` scopes which sources contribute structs, so a same-named
+    // struct in a non-included file that nothing in the included scope imports
+    // must not abort the run — the included definition wins and is emitted.
+    const sources: FakeSource[] = [
+      {
+        inputSourceName: "project/contracts/A.sol",
+        userSourceName: "contracts/A.sol",
+        ast: sourceUnit([
+          structAst("Order", [
+            { type: "address", name: "user" },
+            { type: "uint256", name: "amount" },
+          ]),
+        ]),
+      },
+      {
+        inputSourceName: "project/contracts/B.sol",
+        userSourceName: "contracts/B.sol",
+        ast: sourceUnit([
+          structAst("Order", [
+            { type: "bytes32", name: "id" },
+            { type: "bool", name: "active" },
+          ]),
+        ]),
+      },
+    ];
+    const buildInfo = makeBuildInfo("solc-0_8_23-aaaabbbb", sources);
+
+    const result = collectEip712CanonicalTypes(
+      [buildInfo],
+      inputToUserSourceMap(sources),
+      { include: ["contracts/A.sol"], exclude: [] },
+    );
+
+    assert.deepEqual(result, ["Order(address user,uint256 amount)"]);
+  });
+
+  it("throws HHE818 when a selected struct depends on a name two non-included files define differently", () => {
+    // The conflict is real: included `Mail` depends on `Person`, which two
+    // non-included files define differently, so it's reachable from the
+    // selected set and genuinely ambiguous. HHE818 must steer to renaming,
+    // not include/exclude — the copies come in as dependencies regardless
+    // of selection.
+    const sources: FakeSource[] = [
+      {
+        inputSourceName: "project/test/Mail.sol",
+        userSourceName: "test/Mail.sol",
+        ast: sourceUnit([
+          structAst("Mail", [
+            { type: "Person", name: "from" },
+            { type: "string", name: "contents" },
+          ]),
+        ]),
+      },
+      {
+        inputSourceName: "project/lib/A.sol",
+        userSourceName: "lib/A.sol",
+        ast: sourceUnit([
+          structAst("Person", [
+            { type: "address", name: "wallet" },
+            { type: "string", name: "name" },
+          ]),
+        ]),
+      },
+      {
+        inputSourceName: "project/lib/B.sol",
+        userSourceName: "lib/B.sol",
+        ast: sourceUnit([
+          structAst("Person", [{ type: "uint256", name: "id" }]),
+        ]),
+      },
+    ];
+    const buildInfo = makeBuildInfo("solc-0_8_23-aaaacccc", sources);
+
+    assertThrowsHardhatError(
+      () =>
+        collectEip712CanonicalTypes(
+          [buildInfo],
+          inputToUserSourceMap(sources),
+          { include: ["test/**"], exclude: [] },
+        ),
+      HardhatError.ERRORS.CORE.SOLIDITY_TESTS.EIP712_DUPLICATE_STRUCT_NAME,
+      {
+        name: "Person",
+        firstSource: "lib/A.sol",
+        secondSource: "lib/B.sol",
+        remediation: DEPENDENCY_CONFLICT_REMEDIATION,
+      },
+    );
+  });
+
+  it("dedupes an identical struct shared by an included and a non-included file", () => {
+    // Same `Person` in an included and a non-included file isn't a conflict:
+    // dedup and selection emit it once rather than reject the duplicate name.
+    const sources: FakeSource[] = [
+      {
+        inputSourceName: "project/contracts/A.sol",
+        userSourceName: "contracts/A.sol",
+        ast: sourceUnit([
+          structAst("Person", [
+            { type: "address", name: "wallet" },
+            { type: "string", name: "name" },
+          ]),
+        ]),
+      },
+      {
+        inputSourceName: "project/lib/Shared.sol",
+        userSourceName: "lib/Shared.sol",
+        ast: sourceUnit([
+          structAst("Person", [
+            { type: "address", name: "wallet" },
+            { type: "string", name: "name" },
+          ]),
+        ]),
+      },
+    ];
+    const buildInfo = makeBuildInfo("solc-0_8_23-bbbbdddd", sources);
+
+    const result = collectEip712CanonicalTypes(
+      [buildInfo],
+      inputToUserSourceMap(sources),
+      { include: ["contracts/A.sol"], exclude: [] },
+    );
+
+    assert.deepEqual(result, ["Person(address wallet,string name)"]);
   });
 
   it("drops a selected struct when a transitive dep in a non-included file is non decodable", () => {

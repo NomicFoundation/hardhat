@@ -47,7 +47,7 @@ export function collectEip712CanonicalTypes(
   }
 
   const collected: CollectedStruct[] = [];
-  const selectedNames = new Set<string>();
+  const selectedSources = new Set<string>();
 
   for (const { buildInfo, output } of buildInfosAndOutputs) {
     // Byte-level fast path: a build info whose source bytes don't contain
@@ -92,7 +92,9 @@ export function collectEip712CanonicalTypes(
         toUserSourceName(inputSourceName);
 
       // Collect every source so non-selected files can serve as dep targets;
-      // selection is enforced at emit time via `selectedNames`.
+      // `selectedSources` enforces selection at emit time. Tracked per source,
+      // not per struct name, so a non-selected source defining a same-named
+      // struct isn't treated as selected (see `canonicalizeStructs`).
       const structs = extractStructsFromAst(
         source.ast,
         userSourceName,
@@ -101,12 +103,10 @@ export function collectEip712CanonicalTypes(
       collected.push(...structs);
 
       if (isPathSelected(userSourceName, include, exclude)) {
-        for (const s of structs) {
-          selectedNames.add(s.name);
-        }
+        selectedSources.add(userSourceName);
       }
     }
   }
 
-  return canonicalizeStructs(collected, selectedNames);
+  return canonicalizeStructs(collected, selectedSources);
 }

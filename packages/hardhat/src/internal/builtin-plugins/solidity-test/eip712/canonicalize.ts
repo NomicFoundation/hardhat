@@ -2,6 +2,12 @@ import type { CollectedStruct } from "./ast-walker.js";
 
 import { HardhatError } from "@nomicfoundation/hardhat-errors";
 
+export const SELECTED_CONFLICT_REMEDIATION =
+  "Rename one of the structs, or scope your `test.solidity.eip712Types.include` / `exclude` globs in `hardhat.config.ts` so that only one of them is selected.";
+
+export const DEPENDENCY_CONFLICT_REMEDIATION =
+  "Rename one of the structs. Narrowing `test.solidity.eip712Types.include` / `exclude` won't resolve this: the conflicting definition is pulled in as a dependency of a selected struct, not selected directly.";
+
 /**
  * Produces the flat list of canonical EIP-712 type strings expected by EDR.
  *
@@ -25,14 +31,28 @@ import { HardhatError } from "@nomicfoundation/hardhat-errors";
  * constructs and propagates `None` through the dep graph so dependents are
  * also dropped.
  *
- * Only names in `selectedNames` are emitted; non-selected structs still
- * participate in dep resolution so cross-file deps inline correctly.
+ * Selection is scoped by source, not by struct name: `selectedSources` holds
+ * the project-relative paths matched by the user's include/exclude globs. Only
+ * structs from those sources are emitted, but structs elsewhere still feed dep
+ * resolution so cross-file deps inline correctly. Scoping by source is what
+ * lets a non-selected file define a same-named struct without it being mistaken
+ * for selected.
  */
 export function canonicalizeStructs(
   structs: CollectedStruct[],
-  selectedNames: Set<string>,
+  selectedSources: Set<string>,
 ): string[] {
-  const byName = indexByName(structs, selectedNames);
+  // A name is "selected" if any of its definitions lives in a selected source.
+  // Drives what's emitted and, in `indexByName`, whether a selected definition
+  // exists to win a name collision.
+  const selectedNames = new Set<string>();
+  for (const struct of structs) {
+    if (selectedSources.has(struct.sourcePath)) {
+      selectedNames.add(struct.name);
+    }
+  }
+
+  const byName = indexByName(structs, selectedSources, selectedNames);
   const knownNames = new Set(byName.keys());
   const encodable = computeEncodable(byName, knownNames);
   const result: string[] = [];
@@ -189,15 +209,27 @@ function transitiveDeps(
  * non decodable definition silently win over an encodable one, dropping the
  * struct from the canonical output.
  *
- * Conflicts on a name reachable from any selected struct (selected roots plus
- * their transitive deps) throw, since the selected struct's inlined dep head
- * would otherwise depend on which conflicting copy happened to be seen first.
- * Conflicts on names truly unreachable from the selected set are silently
- * deduped (first wins). Selected structs are processed first so they win over
- * non-selected copies.
+ * A name clash aborts the run only when it could change the output; otherwise
+ * the first definition wins silently. Selection is scoped by source
+ * (`selectedSources`), not by name, so a non-selected source whose struct name
+ * collides with a selected one stays non-selected. `selectedNames` is the
+ * derived set of names with at least one selected definition. Selected structs
+ * are processed first, so the already-stored definition in any collision is
+ * selected when one exists. Two rules resolve conflicts:
+ *
+ *   - Both sides selected: throw immediately — genuinely ambiguous which to
+ *     emit.
+ *   - Current side non-selected: defer; the stored definition keeps the name.
+ *     Throw only if the name is reachable from a selected struct (its
+ *     transitive deps), since then which copy got inlined would depend on
+ *     iteration order. Names unreachable from the selected set are silently
+ *     deduped (first wins), so a non-selected struct that merely shares a
+ *     name with a selected root or an unreferenced struct never aborts the
+ *     run.
  */
 function indexByName(
   structs: CollectedStruct[],
+  selectedSources: Set<string>,
   selectedNames: Set<string>,
 ): Map<string, CollectedStruct> {
   const byName = new Map<string, CollectedStruct>();
@@ -209,8 +241,8 @@ function indexByName(
   >();
 
   const ordered = [
-    ...structs.filter((s) => selectedNames.has(s.name)),
-    ...structs.filter((s) => !selectedNames.has(s.name)),
+    ...structs.filter((s) => selectedSources.has(s.sourcePath)),
+    ...structs.filter((s) => !selectedSources.has(s.sourcePath)),
   ];
 
   for (const struct of ordered) {
@@ -228,24 +260,31 @@ function indexByName(
       continue;
     }
 
-    if (!selectedNames.has(struct.name)) {
-      if (!deferredConflicts.has(struct.name)) {
-        deferredConflicts.set(struct.name, {
+    if (selectedSources.has(struct.sourcePath)) {
+      // Selected-vs-selected conflict: both this and the stored definition are
+      // selected (selected structs come first), so it's ambiguous which to emit.
+      throw new HardhatError(
+        HardhatError.ERRORS.CORE.SOLIDITY_TESTS.EIP712_DUPLICATE_STRUCT_NAME,
+        {
+          name: struct.name,
           firstSource: sourceByName.get(struct.name) ?? "<unknown>",
           secondSource: struct.sourcePath,
-        });
-      }
-      continue;
+          remediation: SELECTED_CONFLICT_REMEDIATION,
+        },
+      );
     }
 
-    throw new HardhatError(
-      HardhatError.ERRORS.CORE.SOLIDITY_TESTS.EIP712_DUPLICATE_STRUCT_NAME,
-      {
-        name: struct.name,
+    // Non-selected side, so the stored definition (selected if the name has
+    // one, since selected sources come first) keeps the name. Defer: throw
+    // later only if the name is reachable from a selected struct. Sharing a
+    // name with a selected root or an unreferenced struct is harmless and
+    // must not abort.
+    if (!deferredConflicts.has(struct.name)) {
+      deferredConflicts.set(struct.name, {
         firstSource: sourceByName.get(struct.name) ?? "<unknown>",
         secondSource: struct.sourcePath,
-      },
-    );
+      });
+    }
   }
 
   if (deferredConflicts.size > 0) {
@@ -254,7 +293,7 @@ function indexByName(
       if (reachable.has(name)) {
         throw new HardhatError(
           HardhatError.ERRORS.CORE.SOLIDITY_TESTS.EIP712_DUPLICATE_STRUCT_NAME,
-          { name, ...sources },
+          { name, ...sources, remediation: DEPENDENCY_CONFLICT_REMEDIATION },
         );
       }
     }

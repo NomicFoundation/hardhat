@@ -6,7 +6,11 @@ import { describe, it } from "node:test";
 import { HardhatError } from "@nomicfoundation/hardhat-errors";
 import { assertThrowsHardhatError } from "@nomicfoundation/hardhat-test-utils";
 
-import { canonicalizeStructs } from "../../../../../src/internal/builtin-plugins/solidity-test/eip712/canonicalize.js";
+import {
+  canonicalizeStructs,
+  DEPENDENCY_CONFLICT_REMEDIATION,
+  SELECTED_CONFLICT_REMEDIATION,
+} from "../../../../../src/internal/builtin-plugins/solidity-test/eip712/canonicalize.js";
 
 function struct(
   name: string,
@@ -24,7 +28,10 @@ function struct(
 }
 
 function canonicalizeAll(structs: CollectedStruct[]): string[] {
-  return canonicalizeStructs(structs, new Set(structs.map((s) => s.name)));
+  return canonicalizeStructs(
+    structs,
+    new Set(structs.map((s) => s.sourcePath)),
+  );
 }
 
 describe("eip712 - canonicalize", () => {
@@ -150,6 +157,7 @@ describe("eip712 - canonicalize", () => {
         name: "Foo",
         firstSource: "test/A.sol",
         secondSource: "test/B.sol",
+        remediation: SELECTED_CONFLICT_REMEDIATION,
       },
     );
   });
@@ -177,6 +185,7 @@ describe("eip712 - canonicalize", () => {
         name: "Foo",
         firstSource: "test/A.sol",
         secondSource: "test/B.sol",
+        remediation: SELECTED_CONFLICT_REMEDIATION,
       },
     );
   });
@@ -210,6 +219,7 @@ describe("eip712 - canonicalize", () => {
         name: "Foo",
         firstSource: "test/A.sol",
         secondSource: "test/B.sol",
+        remediation: SELECTED_CONFLICT_REMEDIATION,
       },
     );
   });
@@ -319,7 +329,7 @@ describe("eip712 - canonicalize", () => {
     assert.deepEqual(result, ["S(S[] children)"]);
   });
 
-  describe("selectedNames", () => {
+  describe("source-scoped selection", () => {
     it("only emits selected structs but inline deps from non-selected ones", () => {
       const collected = [
         struct(
@@ -341,7 +351,7 @@ describe("eip712 - canonicalize", () => {
         ),
       ];
 
-      const result = canonicalizeStructs(collected, new Set(["Mail"]));
+      const result = canonicalizeStructs(collected, new Set(["test/Mail.sol"]));
 
       assert.deepEqual(result, [
         "Mail(Person from,Person to,string contents)Person(address wallet,string name)",
@@ -376,7 +386,10 @@ describe("eip712 - canonicalize", () => {
         ),
       ];
 
-      const result = canonicalizeStructs(collected, new Set(["Order"]));
+      const result = canonicalizeStructs(
+        collected,
+        new Set(["test/Order.sol"]),
+      );
 
       assert.deepEqual(result, [
         "Order(uint256 id,Holder holder)" +
@@ -405,7 +418,10 @@ describe("eip712 - canonicalize", () => {
         ),
       ];
 
-      const result = canonicalizeStructs(collected, new Set(["Order"]));
+      const result = canonicalizeStructs(
+        collected,
+        new Set(["test/Order.sol"]),
+      );
 
       assert.deepEqual(result, []);
     });
@@ -416,12 +432,12 @@ describe("eip712 - canonicalize", () => {
         struct("Bar", [["uint256", "y"]], "lib/Bar.sol"),
       ];
 
-      const result = canonicalizeStructs(collected, new Set(["Foo"]));
+      const result = canonicalizeStructs(collected, new Set(["test/Foo.sol"]));
 
       assert.deepEqual(result, ["Foo(uint256 x)"]);
     });
 
-    it("returns empty when selectedNames is empty", () => {
+    it("returns empty when no source is selected", () => {
       const collected = [
         struct("Foo", [["uint256", "x"]], "test/Foo.sol"),
         struct("Bar", [["uint256", "y"]], "lib/Bar.sol"),
@@ -439,7 +455,10 @@ describe("eip712 - canonicalize", () => {
         struct("Helper", [["uint256", "b"]], "lib/B.sol"),
       ];
 
-      const result = canonicalizeStructs(collected, new Set(["Wanted"]));
+      const result = canonicalizeStructs(
+        collected,
+        new Set(["test/Wanted.sol"]),
+      );
 
       assert.deepEqual(result, ["Wanted(uint256 x)"]);
     });
@@ -466,12 +485,13 @@ describe("eip712 - canonicalize", () => {
       ];
 
       assertThrowsHardhatError(
-        () => canonicalizeStructs(collected, new Set(["Mail"])),
+        () => canonicalizeStructs(collected, new Set(["test/Mail.sol"])),
         HardhatError.ERRORS.CORE.SOLIDITY_TESTS.EIP712_DUPLICATE_STRUCT_NAME,
         {
           name: "Person",
           firstSource: "lib/A.sol",
           secondSource: "lib/B.sol",
+          remediation: DEPENDENCY_CONFLICT_REMEDIATION,
         },
       );
     });
@@ -485,17 +505,22 @@ describe("eip712 - canonicalize", () => {
       ];
 
       assertThrowsHardhatError(
-        () => canonicalizeStructs(collected, new Set(["Mail"])),
+        () => canonicalizeStructs(collected, new Set(["test/Mail.sol"])),
         HardhatError.ERRORS.CORE.SOLIDITY_TESTS.EIP712_DUPLICATE_STRUCT_NAME,
         {
           name: "Wallet",
           firstSource: "lib/A.sol",
           secondSource: "lib/B.sol",
+          remediation: DEPENDENCY_CONFLICT_REMEDIATION,
         },
       );
     });
 
-    it("throws when a selected name is also defined differently in a non-selected file", () => {
+    it("lets the selected definition win when a non-selected file redefines the name", () => {
+      // A clash with an unselected, unimported `Person` is harmless: that copy
+      // is unreachable, so the selected definition is unambiguous and is
+      // emitted, and the non-selected copy is ignored rather than erroring on
+      // the duplicate name.
       const collected = [
         struct(
           "Person",
@@ -508,24 +533,80 @@ describe("eip712 - canonicalize", () => {
         struct("Person", [["uint256", "x"]], "lib/Other.sol"),
       ];
 
-      assertThrowsHardhatError(
-        () => canonicalizeStructs(collected, new Set(["Person"])),
-        HardhatError.ERRORS.CORE.SOLIDITY_TESTS.EIP712_DUPLICATE_STRUCT_NAME,
-        {
-          name: "Person",
-          firstSource: "test/Person.sol",
-          secondSource: "lib/Other.sol",
-        },
+      assert.deepEqual(
+        canonicalizeStructs(collected, new Set(["test/Person.sol"])),
+        ["Person(address wallet,string name)"],
       );
+
+      // Order-independent: the selected definition wins even when the
+      // non-selected copy comes first in `collected`.
+      assert.deepEqual(
+        canonicalizeStructs(
+          [...collected].reverse(),
+          new Set(["test/Person.sol"]),
+        ),
+        ["Person(address wallet,string name)"],
+      );
+    });
+
+    it("throws when a selected struct depends on a name that a selected and a non-selected source define differently", () => {
+      // Selected `Mail` depends on `Person`, which has a selected definition
+      // (test/Other.sol) AND a different non-selected one (lib/Imported.sol).
+      // Unlike the selected-root case above, the name is reachable, so it is
+      // ambiguous which `Person` definition `Mail.from` should inline: throw.
+      const collected = [
+        struct("Mail", [["Person", "from"]], "test/Mail.sol"),
+        struct(
+          "Person",
+          [
+            ["address", "wallet"],
+            ["string", "name"],
+          ],
+          "test/Other.sol",
+        ),
+        struct("Person", [["uint256", "id"]], "lib/Imported.sol"),
+      ];
 
       assertThrowsHardhatError(
         () =>
-          canonicalizeStructs([...collected].reverse(), new Set(["Person"])),
+          canonicalizeStructs(
+            collected,
+            new Set(["test/Mail.sol", "test/Other.sol"]),
+          ),
         HardhatError.ERRORS.CORE.SOLIDITY_TESTS.EIP712_DUPLICATE_STRUCT_NAME,
         {
           name: "Person",
-          firstSource: "lib/Other.sol",
-          secondSource: "test/Person.sol",
+          firstSource: "test/Other.sol",
+          secondSource: "lib/Imported.sol",
+          remediation: DEPENDENCY_CONFLICT_REMEDIATION,
+        },
+      );
+    });
+
+    it("throws when both conflicting definitions are in selected sources", () => {
+      // Two selected sources defining the same name differently is ambiguous:
+      // no single canonical definition to emit.
+      const collected = [
+        struct(
+          "Person",
+          [
+            ["address", "wallet"],
+            ["string", "name"],
+          ],
+          "test/A.sol",
+        ),
+        struct("Person", [["uint256", "x"]], "test/B.sol"),
+      ];
+
+      assertThrowsHardhatError(
+        () =>
+          canonicalizeStructs(collected, new Set(["test/A.sol", "test/B.sol"])),
+        HardhatError.ERRORS.CORE.SOLIDITY_TESTS.EIP712_DUPLICATE_STRUCT_NAME,
+        {
+          name: "Person",
+          firstSource: "test/A.sol",
+          secondSource: "test/B.sol",
+          remediation: SELECTED_CONFLICT_REMEDIATION,
         },
       );
     });
