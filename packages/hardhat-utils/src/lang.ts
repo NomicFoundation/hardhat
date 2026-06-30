@@ -90,9 +90,12 @@ export async function sleep(seconds: number): Promise<void> {
  * @param obj The object, which can be an instance of a class.
  */
 export function bindAllMethods<ObjectT extends object>(obj: ObjectT): void {
-  const prototype = Object.getPrototypeOf(obj);
-  const prototypeKeys =
-    prototype !== null ? Object.getOwnPropertyNames(prototype) : [];
+  const prototypeKeys: string[] = [];
+  let prototype = Object.getPrototypeOf(obj);
+  while (prototype !== null && prototype !== Object.prototype) {
+    prototypeKeys.push(...Object.getOwnPropertyNames(prototype));
+    prototype = Object.getPrototypeOf(prototype);
+  }
 
   const keys = [...prototypeKeys, ...Object.getOwnPropertyNames(obj)];
 
