@@ -795,6 +795,32 @@ describe("lang", () => {
       assert.equal(foo(), "bar");
     });
 
+    it("Should bind methods inherited from parent classes", () => {
+      class Foo {
+        public foo() {
+          return this.bar();
+        }
+
+        public bar() {
+          return "bar";
+        }
+      }
+
+      class FooBar extends Foo {}
+
+      const obj = new FooBar();
+
+      assert.throws(() => {
+        const foo = obj.foo;
+        foo();
+      });
+
+      bindAllMethods(obj);
+
+      const boundFoo = obj.foo;
+      assert.equal(boundFoo(), "bar");
+    });
+
     it("Should work with instances of classes with their own properties", () => {
       class FooBar {
         public foo() {
