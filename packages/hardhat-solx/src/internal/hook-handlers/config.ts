@@ -19,6 +19,7 @@ import {
 import { z } from "zod";
 
 import {
+  DEFAULT_SOLX_OPTIMIZER_MODE,
   SOLIDITY_TO_SOLX_VERSION_MAP,
   SOLX_COMPILER_TYPE,
   SUPPORTED_SOLX_EVM_VERSIONS,
@@ -237,10 +238,21 @@ async function augmentIfSolx<
     return entry;
   }
   const settings = isObject(entry.settings) ? entry.settings : {};
+  const optimizer: Record<string, unknown> = isObject(settings.optimizer)
+    ? settings.optimizer
+    : {};
   return {
     ...entry,
     settings: {
       ...settings,
+      // Default here (not in SolxCompiler.compile) so it reaches the resolved
+      // solcInput, hence the build-id hash. Nullish-coalesce so an explicit
+      // `mode: undefined` doesn't clobber the default back to solx's -O3.
+      viaIR: settings.viaIR ?? false,
+      optimizer: {
+        ...optimizer,
+        mode: optimizer.mode ?? DEFAULT_SOLX_OPTIMIZER_MODE,
+      },
       outputSelection: await addSolxDebugInfoSelectors(
         entry.settings?.outputSelection,
       ),
