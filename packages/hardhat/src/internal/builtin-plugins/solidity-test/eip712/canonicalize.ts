@@ -6,7 +6,7 @@ export const SELECTED_CONFLICT_REMEDIATION =
   "Rename one of the structs, or scope your `test.solidity.eip712Types.include` / `exclude` globs in `hardhat.config.ts` so that only one of them is selected.";
 
 export const DEPENDENCY_CONFLICT_REMEDIATION =
-  "Rename one of the structs. Narrowing `test.solidity.eip712Types.include` / `exclude` won't resolve this: the conflicting definition is pulled in as a dependency of a selected struct, not selected directly.";
+  "Rename one of the structs so the name has a single definition. The clashing name is pulled in as a dependency of a selected struct, so if you don't need that selected struct, deselecting it with your `test.solidity.eip712Types.include` / `exclude` globs in `hardhat.config.ts` also resolves the conflict.";
 
 /**
  * Produces the flat list of canonical EIP-712 type strings expected by EDR.

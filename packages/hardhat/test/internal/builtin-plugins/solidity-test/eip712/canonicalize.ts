@@ -610,5 +610,85 @@ describe("eip712 - canonicalize", () => {
         },
       );
     });
+
+    it("throws on a reachable dependency conflict even when one conflicting copy is non-encodable, whatever the collection order", () => {
+      // `Mail` (selected) has a `Person` field, which two NON-selected files define
+      // differently: `lib/Bad.sol`'s copy is non-encodable (its `balances`
+      // member has no EIP-712 type, e.g. a mapping) while `lib/Good.sol`'s is
+      // encodable. The clash is a genuine ambiguity reachable from a selected
+      // struct, so it must abort deterministically. A non-encodable copy must
+      // not be able to mask the conflict — and silently drop `Mail` from the
+      // output — just because it happened to be collected first.
+      const good = struct("Person", [["address", "wallet"]], "lib/Good.sol");
+      const bad = struct(
+        "Person",
+        [
+          [undefined, "balances"],
+          ["address", "wallet"],
+        ],
+        "lib/Bad.sol",
+      );
+      const mail = struct("Mail", [["Person", "from"]], "test/Mail.sol");
+
+      assertThrowsHardhatError(
+        () =>
+          canonicalizeStructs([mail, good, bad], new Set(["test/Mail.sol"])),
+        HardhatError.ERRORS.CORE.SOLIDITY_TESTS.EIP712_DUPLICATE_STRUCT_NAME,
+        {
+          name: "Person",
+          firstSource: "lib/Good.sol",
+          secondSource: "lib/Bad.sol",
+          remediation: DEPENDENCY_CONFLICT_REMEDIATION,
+        },
+      );
+
+      // Same inputs, non-encodable copy collected first: still aborts.
+      assertThrowsHardhatError(
+        () =>
+          canonicalizeStructs([mail, bad, good], new Set(["test/Mail.sol"])),
+        HardhatError.ERRORS.CORE.SOLIDITY_TESTS.EIP712_DUPLICATE_STRUCT_NAME,
+        {
+          name: "Person",
+          firstSource: "lib/Bad.sol",
+          secondSource: "lib/Good.sol",
+          remediation: DEPENDENCY_CONFLICT_REMEDIATION,
+        },
+      );
+    });
+
+    it("resolves a dependency conflict by deselecting the only selected root that reaches it", () => {
+      // `Person` has two different non-selected definitions and is reachable
+      // from selected `Mail` (as a dependency), so selecting `Mail` aborts.
+      // Selecting only `Note` (which doesn't reference `Person`) makes the
+      // clash unreachable and the run succeeds — deselecting the reaching
+      // struct resolves a dependency conflict, as DEPENDENCY_CONFLICT_REMEDIATION
+      // states.
+      const collected = [
+        struct("Mail", [["Person", "from"]], "test/Mail.sol"),
+        struct("Note", [["string", "body"]], "test/Note.sol"),
+        struct("Person", [["address", "w"]], "lib/A.sol"),
+        struct("Person", [["uint256", "id"]], "lib/B.sol"),
+      ];
+
+      assertThrowsHardhatError(
+        () =>
+          canonicalizeStructs(
+            collected,
+            new Set(["test/Mail.sol", "test/Note.sol"]),
+          ),
+        HardhatError.ERRORS.CORE.SOLIDITY_TESTS.EIP712_DUPLICATE_STRUCT_NAME,
+        {
+          name: "Person",
+          firstSource: "lib/A.sol",
+          secondSource: "lib/B.sol",
+          remediation: DEPENDENCY_CONFLICT_REMEDIATION,
+        },
+      );
+
+      assert.deepEqual(
+        canonicalizeStructs(collected, new Set(["test/Note.sol"])),
+        ["Note(string body)"],
+      );
+    });
   });
 });
