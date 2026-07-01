@@ -1,0 +1,127 @@
+name: Solx Regression Benchmark
+
+on:
+  # Manual trigger for ad-hoc perf runs.
+  workflow_dispatch:
+  # Deliberately do not run on merge_group
+  push:
+    branches:
+      - "main"
+  pull_request:
+    # Include `labeled` so the workflow fires when the `ci:perf-solx`
+    # label is added.
+    types: [opened, synchronize, reopened, labeled]
+    branches:
+      - "**"
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  # Don't cancel in-progress jobs on main so baselines aren't lost mid-run
+  cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
+
+jobs:
+  solx-regression-benchmark:
+    name: Solx regression benchmark
+    environment: github-action-benchmark
+    # Use a self-hosted runner for stable benchmark measurements; the shared
+    # GitHub runners produce noisy results that will generate false positives.
+    runs-on: hardhat-linux-amd64-self-hosted
+    # Only run for pushes to main, workflow_dispatch, or PRs that carry the
+    # `ci:perf-solx` label. Kept separate from `ci:perf` so the experimental
+    # solx compiler doesn't run on every solc perf PR.
+    #
+    # The fork-safety guard keeps untrusted forks off the self-hosted runner.
+    if: |
+      !cancelled() && !failure() &&
+      (github.event_name != 'pull_request' ||
+        contains(github.event.pull_request.labels.*.name, 'ci:perf-solx')) &&
+      (github.ref == 'refs/heads/main' ||
+        github.repository == github.event.pull_request.head.repo.full_name)
+
+    timeout-minutes: 180
+    steps:
+      - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+          fetch-tags: true
+
+      # cspell:disable-next-line
+      - uses: socketdev/action@4337a545deecc20f19a909e52db7a2f6ba292f42 # v1
+        with:
+          mode: firewall
+
+      - uses: ./.github/actions/setup-env
+
+      - name: Install hyperfine
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y hyperfine
+
+      - name: Install packages
+        run: sfw pnpm install --frozen-lockfile --prefer-offline
+
+      - name: Build
+        run: pnpm build
+
+      # pnpm 11 skips creating bin symlinks whose target isn't built at install
+      # time; relink workspace bins (e.g. hardhat) now that the build output
+      # exists. See pnpm/pnpm#10524.
+      - name: Recreate workspace bin links
+        run: pnpm rebuild -r
+
+      # The solx binary downloads from solx-releases-mirror.hardhat.org during
+      # the scenario's first compile (the "prime solx" step). This runs inside
+      # bench:regression, not under `sfw`, so no firewall allowlist is needed.
+      - name: Run solx regression benchmark
+        run: pnpm bench:regression --use-local --force-checkout --tag solx --output solx-regression-report.json
+
+      # Deterministic output-size metrics (no execution): compile each profile in
+      # the already-cloned scenario and append bytecode-size entries to the report.
+      - name: Measure bytecode size
+        run: pnpm bench:bytecode-size --scenario ./end-to-end/openzeppelin-contracts-0.34 --report solx-regression-report.json
+
+      # Native gas reports (hardhat --gas-stats-json) under solc vs solx on a
+      # representative subset; appends aggregate gas to the report and prints a
+      # per-method diff to the run summary. Best-effort: solx is experimental, so
+      # a failed gas run must not drop the timing/size results.
+      - name: Compare gas (solx vs solc)
+        continue-on-error: true
+        run: |
+          pnpm --silent bench:gas-compare \
+            --scenario ./end-to-end/openzeppelin-contracts-0.34 \
+            --report solx-regression-report.json \
+            --tests "test/token/ERC20/ERC20.test.js test/token/ERC721/ERC721.test.js test/token/ERC1155/ERC1155.test.js test/access/AccessControl.test.js test/access/Ownable.test.js" \
+            >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Store benchmark result
+        uses: benchmark-action/github-action-benchmark@4bdcce38c94cec68da58d012ac24b7b1155efe8b # v1.20.7
+        with:
+          tool: customSmallerIsBetter
+          output-file-path: solx-regression-report.json
+          gh-repository: github.com/nomic-foundation-automation/hardhat-benchmark-results
+          gh-pages-branch: main
+          # Own folder so solx baselines never mix with the solc `hardhat3`
+          # dataset in this repo. (BENCHMARK_GITHUB_TOKEN already writes here.)
+          benchmark-data-dir-path: solx
+          github-token: ${{ secrets.BENCHMARK_GITHUB_TOKEN }}
+          # Only push baseline on main-branch pushes; PRs only compare
+          auto-push: ${{ github.ref == 'refs/heads/main' && github.event_name != 'pull_request' }}
+          alert-threshold: "110%"
+          # solx is experimental — surface regressions in the summary but never
+          # fail the build on them.
+          fail-on-alert: false
+          summary-always: true
+
+      - name: Notify failures
+        # Only ping Slack when a commit/merge to main fails
+        if: ${{ failure() && github.event_name == 'push' && github.ref == 'refs/heads/main' }}
+        uses: slackapi/slack-github-action@70cd7be8e40a46e8b0eced40b0de447bdb42f68e # v1.26.0
+        with:
+          payload: |
+            {
+              "workflow_name": "${{ github.workflow }}",
+              "run_url": "${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+            }
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.GH_ACTION_NOTIFICATIONS_SLACK_WEBHOOK_URL }}
