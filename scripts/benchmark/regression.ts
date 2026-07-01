@@ -60,9 +60,14 @@ DESCRIPTION
   "<scenarioId> / <name>". Scenarios missing the "commands" map (or with an
   empty one) fail pre-flight with a summary of every offending file.
 
+  Scenarios tagged "solx" are excluded from the default run (they benchmark the
+  experimental solx compiler); select them with --tag solx or --scenarios <id>.
+
   Writes a flat JSON array in benchmark-action/github-action-benchmark's
   customSmallerIsBetter format. Per-run times are preserved in the "extra"
-  field as a JSON-stringified object.
+  field as a JSON-stringified object. Each hyperfine command also emits a
+  sibling "<name> (cpu)" entry with total CPU time (user+system) which, unlike
+  wall-clock, is roughly core-count-independent.
 
 OPTIONS
   --output <path>       Required. Aggregated JSON destination
@@ -87,6 +92,12 @@ EXAMPLES
 
 const REPO_ROOT = path.resolve(import.meta.dirname, "..", "..");
 const END_TO_END_DIR = path.join(REPO_ROOT, "end-to-end");
+
+// Scenarios carrying this tag are excluded from the default regression run:
+// they benchmark the experimental solx compiler, whose swings shouldn't trip
+// the solc baseline alerts. Select them explicitly with `--tag solx` or
+// `--scenarios <id>`.
+const SOLX_TAG = "solx";
 
 interface RegressionArgs {
   output: string;
@@ -318,6 +329,23 @@ function collectScenarios(args: RegressionArgs): ScenarioEntry[] {
       continue;
     }
 
+    const explicitlySelected =
+      (args.scenarios !== undefined && args.scenarios.includes(entry.name)) ||
+      args.tag === SOLX_TAG;
+
+    if (definition.tags.includes(SOLX_TAG) && !explicitlySelected) {
+      // Only warn on the true default run (no filters), where silently
+      // excluding a scenario is surprising. When the user is filtering, the
+      // exclusion is expected — stay quiet.
+      if (args.scenarios === undefined && args.tag === undefined) {
+        logWarning(
+          `Skipping "${entry.name}" (tagged "${SOLX_TAG}"; select it with --tag ${SOLX_TAG} or --scenarios ${entry.name})`,
+        );
+      }
+
+      continue;
+    }
+
     if (args.scenarios !== undefined && !args.scenarios.includes(entry.name)) {
       continue;
     }
@@ -410,7 +438,15 @@ async function runScenario(
       }),
     );
 
-    entries.push(toEntry(scenario.id, name, readHyperfineResult(exportPath)));
+    const result = readHyperfineResult(exportPath);
+    entries.push(toEntry(scenario.id, name, result));
+
+    // Total CPU time (user+system) as a sibling metric. Unlike wall-clock it's
+    // ~independent of core count, so it's the comparable signal for heavily
+    // parallel compilers like solx (whose wall-clock swings with the runner).
+    if (result.user !== undefined && result.system !== undefined) {
+      entries.push(toCpuEntry(scenario.id, name, result.user, result.system));
+    }
   }
 
   return entries;
@@ -549,9 +585,16 @@ function buildBenchArgs(
   };
 }
 
-function readHyperfineResult(exportPath: string): BenchmarkStats {
+// hyperfine's per-result object also carries mean `user`/`system` CPU time,
+// which `BenchmarkStats` (shared with the in-process steps path) doesn't model.
+interface HyperfineResult extends BenchmarkStats {
+  user?: number;
+  system?: number;
+}
+
+function readHyperfineResult(exportPath: string): HyperfineResult {
   const raw = JSON.parse(readFileSync(exportPath, "utf-8")) as {
-    results: BenchmarkStats[];
+    results: HyperfineResult[];
   };
 
   if (!Array.isArray(raw.results) || raw.results.length === 0) {
@@ -578,6 +621,23 @@ function toEntry(
       median: result.median,
       mean: result.mean,
     }),
+  };
+}
+
+function toCpuEntry(
+  scenarioId: string,
+  phaseLabel: string,
+  user: number,
+  system: number,
+): BenchmarkEntry {
+  return {
+    name: `${scenarioId} / ${phaseLabel} (cpu)`,
+    unit: "s",
+    value: user + system,
+    // hyperfine reports only mean user/system (no per-run CPU samples), so
+    // there's no stddev to show here.
+    range: "± 0",
+    extra: JSON.stringify({ user, system }),
   };
 }
 
