@@ -60,6 +60,9 @@ DESCRIPTION
   "<scenarioId> / <name>". Scenarios missing the "commands" map (or with an
   empty one) fail pre-flight with a summary of every offending file.
 
+  Scenarios tagged "solx" are excluded from the default run (they benchmark the
+  experimental solx compiler); select them with --tag solx or --scenarios <id>.
+
   Writes a flat JSON array in benchmark-action/github-action-benchmark's
   customSmallerIsBetter format. Every timed name — hyperfine command or
   measured step — emits its wall-clock time plus a sibling "<name> (cpu)"
@@ -90,6 +93,12 @@ EXAMPLES
 
 const REPO_ROOT = path.resolve(import.meta.dirname, "..", "..");
 const END_TO_END_DIR = path.join(REPO_ROOT, "end-to-end");
+
+// Scenarios carrying this tag are excluded from the default regression run:
+// they benchmark the experimental solx compiler, whose swings shouldn't trip
+// the solc baseline alerts. Select them explicitly with `--tag solx` or
+// `--scenarios <id>`.
+const SOLX_TAG = "solx";
 
 interface RegressionArgs {
   output: string;
@@ -317,6 +326,23 @@ function collectScenarios(args: RegressionArgs): ScenarioEntry[] {
 
     if (definition.benchmark?.skip === true) {
       logWarning(`Skipping "${entry.name}" (benchmark.skip is set)`);
+
+      continue;
+    }
+
+    const explicitlySelected =
+      (args.scenarios !== undefined && args.scenarios.includes(entry.name)) ||
+      args.tag === SOLX_TAG;
+
+    if (definition.tags.includes(SOLX_TAG) && !explicitlySelected) {
+      // Only warn on the true default run (no filters), where silently
+      // excluding a scenario is surprising. When the user is filtering, the
+      // exclusion is expected — stay quiet.
+      if (args.scenarios === undefined && args.tag === undefined) {
+        logWarning(
+          `Skipping "${entry.name}" (tagged "${SOLX_TAG}"; select it with --tag ${SOLX_TAG} or --scenarios ${entry.name})`,
+        );
+      }
 
       continue;
     }

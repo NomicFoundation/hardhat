@@ -1,0 +1,54 @@
+{
+  "$schema": "../../scripts/end-to-end/schema/scenario.schema.json",
+  "description": "OpenZeppelin's Hardhat 3 fork compiled at solc 0.8.34, benchmarking solx against solc side by side.",
+  "tags": ["external-repo", "solx"],
+  "repo": "nomicfoundation/openzeppelin-contracts",
+  "commit": "f72b6b4616806a0cb29eb61d6baf05ab5ff01558",
+  "packageManager": "npm",
+  "submodules": true,
+  "preinstall": "./preinstall.sh",
+  "defaultCommand": "npx hardhat compile --build-profile solx",
+  "benchmark": {
+    "commands": {
+      "prime compilers": {
+        "runs": 1,
+        "steps": {
+          "download solc + solx and warm caches": {
+            "command": "npx hardhat compile && npx hardhat compile --build-profile solx && npx hardhat clean",
+            "measure": false
+          }
+        }
+      },
+      "cold compile solc": {
+        "runs": 3,
+        "prepare": "npx hardhat clean",
+        "command": "npx hardhat compile"
+      },
+      "cold compile solc via-ir": {
+        "runs": 3,
+        "prepare": "npx hardhat clean",
+        "command": "npx hardhat compile --build-profile solc-via-ir"
+      },
+      "cold compile solx": {
+        "runs": 3,
+        "prepare": "npx hardhat clean",
+        "command": "npx hardhat compile --build-profile solx"
+      },
+      "cold compile solx via-ir": {
+        "runs": 3,
+        "prepare": "npx hardhat clean",
+        "command": "npx hardhat compile --build-profile solx-via-ir"
+      },
+      "cold compile solx no-dwarf": {
+        "runs": 3,
+        "prepare": "npx hardhat clean",
+        "command": "HARDHAT_SOLX_DISABLE_DEBUG_INFO=true npx hardhat compile --build-profile solx"
+      },
+      "cold compile solx via-ir no-dwarf": {
+        "runs": 3,
+        "prepare": "npx hardhat clean",
+        "command": "HARDHAT_SOLX_DISABLE_DEBUG_INFO=true npx hardhat compile --build-profile solx-via-ir"
+      }
+    }
+  }
+}
