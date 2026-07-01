@@ -40,11 +40,10 @@ describe("SolxCompiler", () => {
     assert.equal(compiler.isSolcJs, false);
   });
 
-  it("calls spawnCompile with correct binary path and args", async () => {
+  it("forwards binary path, args, and the input unchanged to spawnCompile", async () => {
     const compiler = new SolxCompiler(
       "0.1.4",
       "/path/to/solx",
-      {},
       fakeSpawnCompile,
     );
     const input: CompilerInput = {
@@ -59,66 +58,16 @@ describe("SolxCompiler", () => {
     const call = spawnCompileCalls[0];
     assert.equal(call.command, "/path/to/solx");
     assert.deepEqual(call.args, ["--standard-json", "--no-import-callback"]);
-  });
-
-  it("merges extraSettings into input.settings", async () => {
-    const compiler = new SolxCompiler(
-      "0.1.4",
-      "/path/to/solx",
-      { LLVMOptimization: "1" },
-      fakeSpawnCompile,
-    );
-    const input: CompilerInput = {
-      language: "Solidity",
-      sources: { "A.sol": { content: "pragma solidity ^0.8.0;" } },
-      settings: {
-        optimizer: { enabled: true },
-        outputSelection: { "*": { "*": ["abi"] } },
-      },
-    };
-
-    await compiler.compile(input);
-
-    assert.equal(spawnCompileCalls.length, 1);
-    // The outputSelection passes through unchanged: the plugin's
-    // `resolveUserConfig` hook is what adds the solx-specific debugInfo
-    // selectors, so by the time `SolxCompiler.compile` runs they're
-    // already present on whatever the build system constructed.
-    assert.deepEqual(spawnCompileCalls[0].input.settings, {
-      optimizer: { enabled: true },
-      outputSelection: { "*": { "*": ["abi"] } },
-      LLVMOptimization: "1",
-    });
-  });
-
-  it("does not modify the original input object", async () => {
-    const compiler = new SolxCompiler(
-      "0.1.4",
-      "/path/to/solx",
-      { LLVMOptimization: "1" },
-      fakeSpawnCompile,
-    );
-    const input: CompilerInput = {
-      language: "Solidity",
-      sources: { "A.sol": { content: "pragma solidity ^0.8.0;" } },
-      settings: { optimizer: { enabled: true }, outputSelection: {} },
-    };
-
-    const originalSettings = { ...input.settings };
-    await compiler.compile(input);
-
-    assert.deepEqual(
-      input.settings,
-      originalSettings,
-      "Original input settings should not be modified",
-    );
+    // compile() transforms nothing — solx's defaults (optimizer mode, viaIR,
+    // debugInfo) are applied at config resolution, so the input reaches solx
+    // exactly as the build system constructed it.
+    assert.equal(call.input, input);
   });
 
   it("returns the output from spawnCompile", async () => {
     const compiler = new SolxCompiler(
       "0.1.4",
       "/path/to/solx",
-      {},
       fakeSpawnCompile,
     );
     const input: CompilerInput = {

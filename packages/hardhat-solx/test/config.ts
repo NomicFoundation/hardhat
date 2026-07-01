@@ -231,6 +231,157 @@ describe("hardhat-solx plugin config resolution", () => {
       );
     }
   });
+
+  it("defaults the optimizer mode on solx-typed compilers in resolved config", async () => {
+    const resolvedConfig = await resolveUserConfig(
+      {},
+      undefined as any,
+      makeNext({
+        solx: {
+          isolated: false,
+          preferWasm: false,
+          compilers: [{ version: "0.8.34", type: "solx", settings: {} }],
+          overrides: {},
+        },
+      }),
+    );
+
+    const solxCompiler = resolvedConfig.solidity.profiles.solx.compilers[0];
+    assert.equal(solxCompiler.settings.optimizer.mode, "1");
+  });
+
+  it("lets a user-set optimizer mode win over the solx default", async () => {
+    const resolvedConfig = await resolveUserConfig(
+      {},
+      undefined as any,
+      makeNext({
+        solx: {
+          isolated: false,
+          preferWasm: false,
+          compilers: [
+            {
+              version: "0.8.34",
+              type: "solx",
+              settings: { optimizer: { enabled: true, mode: "z" } },
+            },
+          ],
+          overrides: {},
+        },
+      }),
+    );
+
+    const solxCompiler = resolvedConfig.solidity.profiles.solx.compilers[0];
+    assert.deepEqual(solxCompiler.settings.optimizer, {
+      enabled: true,
+      mode: "z",
+    });
+  });
+
+  it("fills the optimizer mode without clobbering other user optimizer fields", async () => {
+    const resolvedConfig = await resolveUserConfig(
+      {},
+      undefined as any,
+      makeNext({
+        solx: {
+          isolated: false,
+          preferWasm: false,
+          compilers: [
+            {
+              version: "0.8.34",
+              type: "solx",
+              settings: { optimizer: { enabled: true } },
+            },
+          ],
+          overrides: {},
+        },
+      }),
+    );
+
+    const solxCompiler = resolvedConfig.solidity.profiles.solx.compilers[0];
+    assert.deepEqual(solxCompiler.settings.optimizer, {
+      enabled: true,
+      mode: "1",
+    });
+  });
+
+  it("does not let an undefined user optimizer mode clobber the default", async () => {
+    const resolvedConfig = await resolveUserConfig(
+      {},
+      undefined as any,
+      makeNext({
+        solx: {
+          isolated: false,
+          preferWasm: false,
+          compilers: [
+            {
+              version: "0.8.34",
+              type: "solx",
+              settings: { optimizer: { enabled: true, mode: undefined } },
+            },
+          ],
+          overrides: {},
+        },
+      }),
+    );
+
+    const solxCompiler = resolvedConfig.solidity.profiles.solx.compilers[0];
+    assert.equal(solxCompiler.settings.optimizer.mode, "1");
+  });
+
+  it("defaults viaIR to false on solx-typed compilers, letting a user value win", async () => {
+    const resolvedConfig = await resolveUserConfig(
+      {},
+      undefined as any,
+      makeNext({
+        solx: {
+          isolated: false,
+          preferWasm: false,
+          compilers: [{ version: "0.8.34", type: "solx", settings: {} }],
+          overrides: {
+            "contracts/ViaIR.sol": {
+              version: "0.8.34",
+              type: "solx",
+              settings: { viaIR: true },
+            },
+          },
+        },
+      }),
+    );
+
+    const solxCompiler = resolvedConfig.solidity.profiles.solx.compilers[0];
+    assert.equal(solxCompiler.settings.viaIR, false);
+    const override =
+      resolvedConfig.solidity.profiles.solx.overrides["contracts/ViaIR.sol"];
+    assert.equal(override.settings.viaIR, true);
+    assert.equal(override.settings.optimizer.mode, "1");
+  });
+
+  it("preserves user-set settings (e.g. evmVersion) while adding solx defaults", async () => {
+    const resolvedConfig = await resolveUserConfig(
+      {},
+      undefined as any,
+      makeNext({
+        solx: {
+          isolated: false,
+          preferWasm: false,
+          compilers: [
+            {
+              version: "0.8.34",
+              type: "solx",
+              settings: { evmVersion: "prague" },
+            },
+          ],
+          overrides: {},
+        },
+      }),
+    );
+
+    const solxCompiler = resolvedConfig.solidity.profiles.solx.compilers[0];
+    // An arbitrary user solc setting survives config resolution untouched...
+    assert.equal(solxCompiler.settings.evmVersion, "prague");
+    // ...alongside a default the plugin fills in (the mode default has its own test).
+    assert.equal(solxCompiler.settings.viaIR, false);
+  });
 });
 
 describe("hardhat-solx EVM version validation", () => {

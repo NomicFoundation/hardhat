@@ -95,6 +95,46 @@ export default defineConfig({
 });
 ```
 
+### Optimization level
+
+solx optimizes via LLVM; set the level per profile with `settings.optimizer.mode` — one of `"1"`, `"2"`, `"3"` (best performance), `"s"` (optimize for size), or `"z"` (aggressively minimize size). The plugin defaults to `"1"` (solx's own default if left unset is `"3"`).
+
+solx has two independent optimizer knobs, and both affect the output:
+
+- `optimizer.mode` (above) is the LLVM backend level. There is **no "off"** — the minimum is `"1"`, so LLVM always optimizes.
+- `optimizer.enabled` is the Yul optimizer (standard solc semantics), `false` by default. Enabling it optimizes _on top of_ LLVM; it does not turn LLVM off.
+
+For example, optimizing for size instead of performance:
+
+```typescript
+import { defineConfig } from "hardhat/config";
+import hardhatSolx from "@nomicfoundation/hardhat-solx";
+
+export default defineConfig({
+  plugins: [hardhatSolx],
+  solidity: {
+    profiles: {
+      default: { version: "0.8.34" },
+      solx: {
+        type: "solx",
+        version: "0.8.34",
+        settings: { optimizer: { mode: "z" } }, // optimize for size
+      },
+    },
+  },
+});
+```
+
+Or run the Yul optimizer as well, on top of LLVM `-O3` (both knobs on) — just the `solx` profile:
+
+```typescript
+solx: {
+  type: "solx",
+  version: "0.8.34",
+  settings: { optimizer: { enabled: true, mode: "3" } },
+},
+```
+
 ### Supported Solidity versions
 
 solx maps each Solidity version to a specific solx binary version internally. Currently supported: `0.8.34` (solx 0.1.4). Earlier solx releases did not emit the DWARF debug info that EDR relies on for Solidity stack traces, so they are not supported by this plugin.

@@ -11,7 +11,6 @@ import { createDebug } from "@nomicfoundation/hardhat-utils/debug";
 import { exists } from "@nomicfoundation/hardhat-utils/fs";
 
 import {
-  DEFAULT_SOLX_SETTINGS,
   SOLIDITY_TO_SOLX_VERSION_MAP,
   SOLX_COMPILER_TYPE,
 } from "../constants.js";
@@ -105,11 +104,7 @@ export default async (): Promise<Partial<SolidityHooks>> => ({
         `Creating SolxCompiler with custom path for Solidity ${compilerConfig.version} (solx ${customSolxVersion}) at ${compilerConfig.path}`,
       );
 
-      return new SolxCompiler(
-        customSolxVersion,
-        compilerConfig.path,
-        DEFAULT_SOLX_SETTINGS,
-      );
+      return new SolxCompiler(customSolxVersion, compilerConfig.path);
     }
 
     const solxVersion = SOLIDITY_TO_SOLX_VERSION_MAP[compilerConfig.version];
@@ -129,6 +124,6 @@ export default async (): Promise<Partial<SolidityHooks>> => ({
       `Creating SolxCompiler for Solidity ${compilerConfig.version} (solx ${solxVersion}) at ${binaryPath}`,
     );
 
-    return new SolxCompiler(solxVersion, binaryPath, DEFAULT_SOLX_SETTINGS);
+    return new SolxCompiler(solxVersion, binaryPath);
   },
 });
