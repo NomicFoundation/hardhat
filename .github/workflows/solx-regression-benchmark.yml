@@ -113,6 +113,22 @@ jobs:
           fail-on-alert: false
           summary-always: true
 
+      # Capture the exact standard-JSON solx receives, per solx profile, so perf
+      # runs can replay `solx --standard-json < input.json` without the Hardhat
+      # fixture. Best-effort: runs after the benchmark is stored and never fails
+      # the run (solx is experimental).
+      - name: Dump solx standard JSON
+        continue-on-error: true
+        run: pnpm bench:dump-standard-json --scenario ./end-to-end/openzeppelin-contracts-0.34 --out solx-standard-json
+
+      - name: Upload solx standard JSON
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: solx-standard-json
+          path: solx-standard-json/
+          if-no-files-found: warn
+
       - name: Notify failures
         # Only ping Slack when a commit/merge to main fails
         if: ${{ failure() && github.event_name == 'push' && github.ref == 'refs/heads/main' }}
