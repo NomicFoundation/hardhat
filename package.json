@@ -45,6 +45,7 @@
     "bench": "node ./scripts/benchmark/main.ts",
     "bench:regression": "node ./scripts/benchmark/regression.ts",
     "bench:bytecode-size": "node ./scripts/benchmark/bytecode-size.ts",
-    "bench:gas-compare": "node ./scripts/benchmark/gas-compare.ts"
+    "bench:gas-compare": "node ./scripts/benchmark/gas-compare.ts",
+    "bench:dump-standard-json": "node ./scripts/benchmark/dump-standard-json.ts"
   }
 }
