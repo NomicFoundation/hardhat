@@ -245,9 +245,8 @@ async function augmentIfSolx<
     ...entry,
     settings: {
       ...settings,
-      // Default here (not in SolxCompiler.compile) so it reaches the resolved
-      // solcInput, hence the build-id hash. Nullish-coalesce so an explicit
-      // `mode: undefined` doesn't clobber the default back to solx's -O3.
+      // Defaults added here instead of in SolxCompiler.compile so this reaches
+      // the solcInput and hence the build-id hash.
       viaIR: settings.viaIR ?? false,
       optimizer: {
         ...optimizer,
