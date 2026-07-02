@@ -1,5 +1,15 @@
 # @nomicfoundation/hardhat-network-helpers
 
+## 3.0.11
+
+### Patch Changes
+
+- [#8367](https://github.com/NomicFoundation/hardhat/pull/8367) [`82d00fc`](https://github.com/NomicFoundation/hardhat/commit/82d00fcc7d5d3539e6dd123d893e645e42bd3645) Thanks [@alcuadrado](https://github.com/alcuadrado)! - Lazy load dependencies to optimize bootstrap time
+
+- Updated dependencies:
+  - @nomicfoundation/hardhat-errors@3.0.16
+  - @nomicfoundation/hardhat-utils@4.1.4
+
 ## 3.0.10
 
 ### Patch Changes
