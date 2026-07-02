@@ -1221,57 +1221,8 @@ Remaining test suites: {suites}`,
         websiteDescription:
           "The flags --snapshot and --snapshot-check are mutually exclusive. Please provide only one of them.",
       },
-      INLINE_CONFIG_INVALID_KEY: {
-        number: 807,
-        messageTemplate: `Invalid inline config key "{key}" in {functionFqn}. Valid keys are: {validKeys}`,
-        websiteTitle: "Invalid inline config key",
-        websiteDescription:
-          "An unrecognized key was used in an inline config comment.",
-      },
-      INLINE_CONFIG_DUPLICATE_KEY: {
-        number: 808,
-        messageTemplate: `Duplicate inline config key "{key}" in {functionFqn}`,
-        websiteTitle: "Duplicate inline config key",
-        websiteDescription:
-          "The same configuration key was specified more than once for the same test function.",
-      },
-      INLINE_CONFIG_INVALID_VALUE: {
-        number: 809,
-        messageTemplate: `Invalid value "{value}" for inline config key "{key}" in {functionFqn}. Expected a {expectedType}.`,
-        websiteTitle: "Invalid inline config value",
-        websiteDescription:
-          "The value provided for an inline config key could not be parsed as the expected type.",
-      },
-      INLINE_CONFIG_UNSUPPORTED_PROFILE: {
-        number: 810,
-        messageTemplate: `Unsupported profile "{profile}" in {functionFqn}. Only the "default" profile (or no profile) is supported.`,
-        websiteTitle: "Unsupported profile",
-        websiteDescription:
-          "An inline config comment used a non-default profile, which is not supported by Hardhat.",
-      },
-      INLINE_CONFIG_INVALID_SYNTAX: {
-        number: 811,
-        messageTemplate: `Malformed inline config in {functionFqn}. Expected "key = value" but found "{line}".`,
-        websiteTitle: "Invalid inline config syntax",
-        websiteDescription:
-          "An inline config comment was found but its syntax could not be parsed.",
-      },
-      INLINE_CONFIG_UNRESOLVED_SELECTOR: {
-        number: 812,
-        messageTemplate: `Inline config found in {functionFqn}, but no matching function selector was found. Only public or external functions can have inline configuration.`,
-        websiteTitle: "Unresolved function selector for inline config",
-        websiteDescription:
-          "An inline config comment was found on a function that does not have a function selector. This usually means the function is internal or private, and therefore cannot be run as a test.",
-      },
-      INLINE_CONFIG_INVALID_KEY_FOR_TEST_TYPE: {
-        number: 813,
-        messageTemplate: `The inline config key "{key}" in {functionFqn} is not valid for {testType} tests. Valid keys for {testType} tests are: {validKeys}`,
-        websiteTitle: "Inline config key not valid for test type",
-        websiteDescription:
-          "An inline config key was used that does not apply to the type of test function it was attached to. Fuzz test functions (test*) only accept fuzz.* keys and top-level keys, while invariant test functions (invariant*) only accept invariant.* keys and top-level keys.",
-      },
       SELECTED_TEST_FILES_NOT_COMPILED: {
-        number: 814,
+        number: 807,
         messageTemplate: `The following Solidity test files have not been compiled:
 
 {files}
@@ -1281,7 +1232,7 @@ Run \`hardhat build\` to compile your project before running tests with \`--no-c
         websiteDescription: `You ran Solidity tests with \`--no-compile\`, but some of the selected test files have not been compiled yet. Run \`hardhat build\` first, or remove the \`--no-compile\` flag.`,
       },
       SELECTED_FILES_ARE_NOT_SOLIDITY_TESTS: {
-        number: 815,
+        number: 808,
         messageTemplate: `Trying to run these files as Solidity tests, but they aren't:
 
 {files}
@@ -1291,7 +1242,7 @@ Double-check the files that you are providing to the \`test solidity\` task.`,
         websiteDescription: `You ran the \`test solidity\` task with files that aren't classified as Solidity tests.`,
       },
       SELECTED_TEST_FILES_DO_NOT_EXIST: {
-        number: 816,
+        number: 809,
         messageTemplate: `The following Solidity test files do not exist:
 
 {files}
@@ -1301,14 +1252,14 @@ Double-check the paths you are providing to the \`test solidity\` task.`,
         websiteDescription: `You ran the \`test solidity\` task with files that do not exist on disk.`,
       },
       SNAPSHOT_GROUP_NAME_COLLISION: {
-        number: 817,
+        number: 810,
         messageTemplate: `Snapshot group names "{nameA}" and "{nameB}" both produce the on-disk filename "{sanitized}.json" after sanitization. Rename one of them in your Solidity tests so they produce different filenames.`,
         websiteTitle: "Snapshot group name collision after sanitization",
         websiteDescription:
           "Two distinct snapshot group names sanitize to the same on-disk filename. Rename one of the groups in your Solidity tests so they produce different filenames.",
       },
       EIP712_DUPLICATE_STRUCT_NAME: {
-        number: 818,
+        number: 811,
         messageTemplate: `Two different EIP-712 struct definitions named "{name}" were found:
 - {firstSource}
 - {secondSource}
@@ -1316,6 +1267,15 @@ Double-check the paths you are providing to the \`test solidity\` task.`,
 EIP-712 cheatcodes resolve types by name, so each struct name must have a single canonical definition. {remediation}`,
         websiteTitle: "Duplicate EIP-712 struct name",
         websiteDescription: `Two struct definitions with the same name had different members. Type-name lookups via \`vm.eip712HashType\` and \`vm.eip712HashStruct\` would be ambiguous.`,
+      },
+      INVALID_INLINE_CONFIG: {
+        number: 812,
+        messageTemplate: `Invalid inline test configuration:
+
+{errors}`,
+        websiteTitle: "Invalid inline test configuration",
+        websiteDescription:
+          "One or more inline test configuration directives (`forge-config:` / `hardhat-config:` NatSpec comments) in your Solidity test sources are invalid. Fix the reported directives and run the tests again.",
       },
     },
     SOLIDITY: {

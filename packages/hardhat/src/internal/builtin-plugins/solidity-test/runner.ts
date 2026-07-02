@@ -18,6 +18,42 @@ import { getGlobalEdrContext } from "../../edr/context.js";
 import { formatArtifactId } from "./formatters.js";
 
 /**
+ * A single ill-formed inline-config directive reported by EDR, located so the
+ * user can find and fix it.
+ *
+ * EDR rejects `runSolidityTests` with an error carrying these on its
+ * `inlineConfigErrors` property. The npm-pinned `@nomicfoundation/edr` types
+ * don't declare these types yet, so we mirror them locally until a release
+ * carrying them is pinned.
+ */
+interface InlineConfigError {
+  sourceName: string;
+  contract?: string;
+  function?: string;
+  line?: number;
+  problem: InlineConfigProblem;
+}
+
+/**
+ * The specific problem with an inline-config directive. Discriminated on its
+ * `kind` tag.
+ */
+type InlineConfigProblem =
+  | { kind: "InlineConfigInvalidSyntax"; directive: string }
+  | { kind: "InlineConfigUnsupportedProfile"; profile: string }
+  | { kind: "InlineConfigInvalidKey"; key: string }
+  | { kind: "InlineConfigInvalidKeyForTestType"; key: string; testType: string }
+  | {
+      kind: "InlineConfigInvalidValue";
+      key: string;
+      value: string;
+      expected: string;
+    }
+  | { kind: "InlineConfigDuplicateKey"; key: string }
+  | { kind: "InlineConfigInvalidSolcVersion" }
+  | { kind: "InlineConfigSourceFileNotFound"; path: string; reason: string };
+
+/**
  * Run all the given solidity tests and returns the stream of results.
  *
  * It returns a Readable stream that emits the test events similarly to how the
@@ -100,6 +136,25 @@ export function run(
     } catch (error) {
       ensureError(error);
 
+      // Inline-config parsing/validation failures are user errors that EDR
+      // surfaces as structured, located problems. Report them as such instead
+      // of as an unhandled EDR error.
+      const inlineConfigErrors = getInlineConfigErrors(error);
+      if (inlineConfigErrors !== undefined) {
+        stream.destroy(
+          new HardhatError(
+            HardhatError.ERRORS.CORE.SOLIDITY_TESTS.INVALID_INLINE_CONFIG,
+            {
+              errors: formatInlineConfigErrors(
+                inlineConfigErrors,
+                sourceNameToUserSourceName,
+              ),
+            },
+          ),
+        );
+        return;
+      }
+
       stream.destroy(
         new HardhatError(
           HardhatError.ERRORS.CORE.SOLIDITY_TESTS.UNHANDLED_EDR_ERROR_SOLIDITY_TESTS,
@@ -112,4 +167,75 @@ export function run(
   })();
 
   return stream;
+}
+
+/**
+ * Returns the structured inline-config problems EDR attaches to a rejected
+ * `runSolidityTests` promise, or `undefined` if the error isn't an
+ * inline-config failure.
+ */
+function getInlineConfigErrors(error: Error): InlineConfigError[] | undefined {
+  if (!("inlineConfigErrors" in error)) {
+    return undefined;
+  }
+
+  const { inlineConfigErrors } = error;
+  if (Array.isArray(inlineConfigErrors) && inlineConfigErrors.length > 0) {
+    return inlineConfigErrors;
+  }
+
+  return undefined;
+}
+
+/**
+ * Formats the inline-config problems into a human-readable, bulleted list,
+ * mapping solc source names back to the user's source names where possible.
+ */
+function formatInlineConfigErrors(
+  errors: InlineConfigError[],
+  sourceNameToUserSourceName: Map<string, string>,
+): string {
+  return errors
+    .map((error) => {
+      let location =
+        sourceNameToUserSourceName.get(error.sourceName) ?? error.sourceName;
+
+      if (error.line !== undefined) {
+        location += `:${error.line}`;
+      }
+
+      const qualifier = [error.contract, error.function]
+        .filter((part) => part !== undefined)
+        .join(".");
+      if (qualifier !== "") {
+        location += ` (${qualifier})`;
+      }
+
+      return `- ${location}: ${formatInlineConfigProblem(error.problem)}`;
+    })
+    .join("\n");
+}
+
+/**
+ * Turns a structured inline-config problem into a human-readable message.
+ */
+function formatInlineConfigProblem(problem: InlineConfigProblem): string {
+  switch (problem.kind) {
+    case "InlineConfigInvalidSyntax":
+      return `Malformed directive "${problem.directive}". Expected "key = value".`;
+    case "InlineConfigUnsupportedProfile":
+      return `Unsupported profile "${problem.profile}". Only the "default" profile (or no profile) is supported.`;
+    case "InlineConfigInvalidKey":
+      return `Invalid config key "${problem.key}".`;
+    case "InlineConfigInvalidKeyForTestType":
+      return `Config key "${problem.key}" is not valid for ${problem.testType} tests.`;
+    case "InlineConfigInvalidValue":
+      return `Invalid value "${problem.value}" for config key "${problem.key}". Expected ${problem.expected}.`;
+    case "InlineConfigDuplicateKey":
+      return `Duplicate config key "${problem.key}".`;
+    case "InlineConfigInvalidSolcVersion":
+      return `The source's solc version has no supported grammar, so its inline configuration could not be parsed.`;
+    case "InlineConfigSourceFileNotFound":
+      return `Could not read source file at "${problem.path}": ${problem.reason}.`;
+  }
 }
