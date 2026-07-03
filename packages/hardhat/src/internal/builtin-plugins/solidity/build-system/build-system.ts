@@ -1327,16 +1327,43 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
     options?: CompileBuildInfoOptions,
   ): Promise<CompilerOutput> {
     const quiet = options?.quiet ?? false;
+    const compilerType = buildInfo.compilerType ?? "solc";
 
-    // Build info recompilation is always solc-only: build info files are
-    // produced by solc and must be recompiled with the same solc version.
-    // We bypass both downloadCompilers and getCompiler hooks — this is a
-    // self-contained solc replay path, not plugin-configurable compilation.
-    await downloadSolcCompilers(new Set([buildInfo.solcVersion]), quiet);
+    if (compilerType === "solc") {
+      // Build info recompilation for solc is self-contained: solc build info
+      // files must be replayed with the same solc version. We bypass both
+      // downloadCompilers and getCompiler hooks to preserve the historical solc
+      // path and avoid making it depend on the current project config.
+      await downloadSolcCompilers(new Set([buildInfo.solcVersion]), quiet);
 
-    const compiler = await getCompiler(buildInfo.solcVersion, {
-      preferWasm: false,
-    });
+      const solcCompiler = await getCompiler(buildInfo.solcVersion, {
+        preferWasm: false,
+      });
+
+      return await solcCompiler.compile(buildInfo.input);
+    }
+
+    /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions --
+      Build infos may come from setups whose compiler type is unknown to the
+      current Hardhat type definitions, but plugins can still handle them via
+      the compiler hooks. */
+    const compilerConfig = {
+      type: compilerType,
+      version: buildInfo.solcVersion,
+      settings: buildInfo.input.settings,
+    } as SolidityCompilerConfig;
+
+    await this.#hooks.runParallelHandlers("solidity", "downloadCompilers", [
+      [compilerConfig],
+      quiet,
+    ]);
+
+    const compiler = await this.#hooks.runHandlerChain(
+      "solidity",
+      "getCompiler",
+      [compilerConfig],
+      async (_context, cfg) => await getSolcCompilerForConfig(cfg, false),
+    );
 
     return await compiler.compile(buildInfo.input);
   }
