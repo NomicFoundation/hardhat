@@ -97,6 +97,12 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y hyperfine
 
+      - name: Configure E2E clone directory
+        # Clone scenarios into the runner's temp dir instead of the default
+        # /tmp/end-to-end, which persists across runs on the self-hosted
+        # runner. The "Clean up temp dir" step below removes it after the run.
+        run: echo "E2E_CLONE_DIR=$RUNNER_TEMP/hardhat-e2e-clones" >> "$GITHUB_ENV"
+
       - name: Install packages
         run: sfw pnpm install --frozen-lockfile --prefer-offline
 
@@ -108,6 +114,22 @@ jobs:
       # exists. See pnpm/pnpm#10524.
       - name: Recreate workspace bin links
         run: pnpm rebuild -r
+
+      - name: Clear stale pnpm metadata cache
+        # The self-hosted runner reuses ~/.cache/pnpm across runs. The benchmark
+        # republishes deterministic versions (e.g. hardhat@3.9.1) whose content
+        # can change between runs (new @nomicfoundation/edr pin), so a prior
+        # run's cached registry metadata makes pnpm-based scenario installs
+        # resolve a stale hardhat with outdated dependencies.
+        #
+        # pnpm 11 ignores `npm_config_cache_dir`, so the metadata cache can't be
+        # relocated.
+        #
+        # The content-addressable store is separate and kept on purpose: it's
+        # keyed by integrity hash, so with fresh metadata pnpm derives the correct
+        # hash and any stale entry is simply never matched. Keeping it is safe and
+        # preserves install speed.
+        run: rm -rf "$HOME/.cache/pnpm"
 
       - name: Run regression benchmark
         env:
@@ -142,3 +164,9 @@ jobs:
             }
         env:
           SLACK_WEBHOOK_URL: ${{ secrets.GH_ACTION_NOTIFICATIONS_SLACK_WEBHOOK_URL }}
+
+      - name: Clean up temp dir
+        # Self-hosted runners don't automatically wipe RUNNER_TEMP between jobs,
+        # so we do this manually to avoid polluting future runs.
+        if: always()
+        run: rm -rf "$RUNNER_TEMP/hardhat-e2e-clones"
