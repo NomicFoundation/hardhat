@@ -1,86 +1,92 @@
 name: Regression Benchmark
 
 on:
-  # Deliberately do not run on merge_group
+  # Records baselines for main. Deliberately do not run on merge_group.
   push:
     branches:
       - "main"
-  pull_request:
-    # Include `labeled` so the workflow fires when the `ci:perf`
-    # label is added.
-    types: [opened, synchronize, reopened, labeled]
-    branches:
-      - "**"
+  # Manual runs against the dispatched ref.
+  workflow_dispatch:
+  # ChatOps: comment `/bench` on a same-repo PR. Authorization + gating
+  # happens in the `setup` job.
+  issue_comment:
+    types: [created]
 
 concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
-  # Don't cancel in-progress jobs on main so baselines aren't lost mid-run
-  cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
+  # Group by PR (comment events) or ref (dispatch) so re-triggering `/bench`
+  # on a PR supersedes the previous run.
+  #
+  # Pushes to main are the exception: every commit must record its own baseline
+  # entry, so each push gets a group keyed by commit SHA. `cancel-in-progress`
+  # only protects the *in-progress* run, not runs *waiting* in the queue. A
+  # unique-per-commit group collides with nothing, so every commit's run is
+  # preserved and serialized by the self-hosted runner.
+  #
+  # Every comment triggers a workflow run. The job-level `if` skips non-`/bench`
+  # ones, but that runs after concurrency is evaluated, so an unrelated comment
+  # can cancel an in-progress benchmark. Give those skipped runs a unique group
+  # so they collide with nothing.
+  group: ${{ github.workflow }}-${{ github.event_name == 'push' && github.sha || github.event.issue.number || github.ref }}${{ (github.event_name == 'issue_comment' && !startsWith(github.event.comment.body, '/bench')) && format('-skip-{0}', github.run_id) || '' }}
+  # Don't cancel in-progress baseline runs on main so baselines aren't lost.
+  cancel-in-progress: ${{ github.event_name != 'push' }}
 
 jobs:
-  tests:
-    name: Validate Hardhat works correctly
+  setup:
+    name: Resolve refs and authorize
     runs-on: ubuntu-latest
-    # Gate validation on the same conditions as the regression-benchmark
-    # job that depends on it: this is a PR event, carries the `ci:perf`
-    # label, and isn't from a fork. Main pushes skip this gate entirely
-    # (main is assumed-green); see the regression-benchmark `if:` for the
-    # corresponding propagation guard.
-    if: |
-      github.event_name == 'pull_request' &&
-      contains(github.event.pull_request.labels.*.name, 'ci:perf') &&
-      github.repository == github.event.pull_request.head.repo.full_name
+    timeout-minutes: 40
+    permissions:
+      contents: read # read PR head / checkout metadata
+      pull-requests: write # pulls.get + post status comments/reactions on the PR
+      issues: write # post status comments + reactions on the PR
+      actions: read # list CI workflow runs for the CI-green gate
+    # For comment events, only proceed for `/bench` comments on a PR. Other
+    # events (push/workflow_dispatch) always evaluate inside the script.
+    if: >-
+      github.event_name != 'issue_comment' || (github.event.issue.pull_request != null &&
+       startsWith(github.event.comment.body, '/bench'))
 
+
+    outputs:
+      should_run: ${{ steps.resolve.outputs.should_run }}
+      hardhat_ref: ${{ steps.resolve.outputs.hardhat_ref }}
+      is_baseline: ${{ steps.resolve.outputs.is_baseline }}
     steps:
+      # Sparse-checkout only the workflow scripts so the github-script step can
+      # require the resolver module below.
       - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5
         with:
+          sparse-checkout: .github/scripts
           persist-credentials: false
 
-      # cspell:disable-next-line
-      - uses: socketdev/action@4337a545deecc20f19a909e52db7a2f6ba292f42 # v1
+      - id: resolve
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
         with:
-          mode: firewall
-
-      - uses: ./.github/actions/setup-env
-
-      - name: Install packages
-        run: sfw pnpm install --frozen-lockfile --prefer-offline
-
-      - name: Build
-        run: pnpm build
-
-      # pnpm 11 skips creating bin symlinks whose target isn't built at install
-      # time; relink workspace bins (e.g. hardhat) now that the build output
-      # exists. See pnpm/pnpm#10524.
-      - name: Recreate workspace bin links
-        run: pnpm rebuild -r
-
-      - name: Run tests
-        run: pnpm test
+          script: |
+            const resolve = require(`${process.env.GITHUB_WORKSPACE}/.github/scripts/resolve-regression-trigger.cjs`);
+            await resolve({ github, context, core });
 
   regression-benchmark:
     name: Regression benchmark
+    needs: setup
+    if: needs.setup.outputs.should_run == 'true'
     environment: github-action-benchmark
     # Use a self-hosted runner for stable benchmark measurements; the shared
     # GitHub runners produce noisy results that will generate false positives
     # against the configured alert-threshold.
-    runs-on: hardhat-linux-amd64-self-hosted
-    # Only run for pushes to main, workflow_dispatch, or PRs that carry the
-    # `ci:perf` label.
     #
-    # The fork-safety guard keeps untrusted forks off the self-hosted runner.
-    if: |
-      !cancelled() && !failure() &&
-      (github.event_name != 'pull_request' ||
-        contains(github.event.pull_request.labels.*.name, 'ci:perf')) &&
-      (github.ref == 'refs/heads/main' ||
-        github.repository == github.event.pull_request.head.repo.full_name)
-
-    needs: tests
+    # The `setup` job keeps untrusted actors off this runner: it rejects fork
+    # PRs and unauthorized `/bench` commenters, and gates on CI being green.
+    runs-on: hardhat-linux-amd64-self-hosted
     timeout-minutes: 180
+    permissions:
+      # Lets the short-lived GITHUB_TOKEN used on non-baseline runs read commit
+      # metadata via the REST API (see "Store benchmark result").
+      contents: read
     steps:
       - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5
         with:
+          ref: ${{ needs.setup.outputs.hardhat_ref }}
           persist-credentials: false
           fetch-depth: 0
           fetch-tags: true
@@ -122,17 +128,23 @@ jobs:
           gh-repository: github.com/nomic-foundation-automation/hardhat-benchmark-results
           gh-pages-branch: main
           benchmark-data-dir-path: hardhat3
-          github-token: ${{ secrets.BENCHMARK_GITHUB_TOKEN }}
-          # Only push baseline on main-branch pushes; PRs only compare
-          auto-push: ${{ github.ref == 'refs/heads/main' && github.event_name != 'pull_request' }}
+          # Baseline (main push) runs push to the external results repo, which
+          # needs the cross-repo PAT. Non-baseline runs (dispatch and the
+          # `/bench` issue_comment path) never push — the token is only used to
+          # read commit metadata and to clone the (public) results repo for
+          # comparison — so use the short-lived GITHUB_TOKEN.
+          github-token: ${{ needs.setup.outputs.is_baseline == 'true' && secrets.BENCHMARK_GITHUB_TOKEN || secrets.GITHUB_TOKEN }}
+          # Only push a new baseline on main-branch pushes; dispatch and
+          # `/bench` runs only compare.
+          auto-push: ${{ needs.setup.outputs.is_baseline == 'true' }}
           alert-threshold: "110%"
-          # Only fail on PRs; don't break CI on main
-          fail-on-alert: ${{ github.event_name == 'pull_request' }}
+          # Fail the run on a regression for comparisons; never break main.
+          fail-on-alert: ${{ needs.setup.outputs.is_baseline != 'true' }}
           summary-always: true
 
       - name: Notify failures
-        # Only ping Slack when a commit/merge to main fails
-        if: ${{ failure() && github.event_name == 'push' && github.ref == 'refs/heads/main' }}
+        # Only ping Slack for failed baseline runs (pushes to main)
+        if: ${{ failure() && needs.setup.outputs.is_baseline == 'true' }}
         uses: slackapi/slack-github-action@70cd7be8e40a46e8b0eced40b0de447bdb42f68e # v1.26.0
         with:
           payload: |
@@ -142,3 +154,45 @@ jobs:
             }
         env:
           SLACK_WEBHOOK_URL: ${{ secrets.GH_ACTION_NOTIFICATIONS_SLACK_WEBHOOK_URL }}
+
+  report:
+    name: Report result to PR
+    needs: [setup, regression-benchmark]
+    # 1. run on benchmark failure but skip when the run is superseded (concurrency)
+    # 2. Only report back to the PR for `/bench` comment triggers
+    # 3. Only report back if the benchmark actually started
+    # prettier-ignore
+    if: >-
+      !cancelled()
+        && github.event_name == 'issue_comment'
+        && needs.regression-benchmark.result != 'skipped'
+    runs-on: ubuntu-latest
+    permissions:
+      issues: write # post the result comment on the PR
+      pull-requests: write # post status comments/reactions on the PR
+    steps:
+      - uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
+        env:
+          RESULT: ${{ needs.regression-benchmark.result }}
+          HARDHAT_REF: ${{ needs.setup.outputs.hardhat_ref }}
+        with:
+          script: |
+            const { RESULT, HARDHAT_REF } = process.env;
+            const runUrl =
+              `${context.serverUrl}/${context.repo.owner}/${context.repo.repo}` +
+              `/actions/runs/${context.runId}`;
+            const target = `\`${HARDHAT_REF.slice(0, 12)}\``;
+            const body =
+              RESULT === "success"
+                ? `✅ Regression benchmark passed for ${target}.\n\n` +
+                  `[View workflow run](${runUrl})`
+                : `❌ Regression benchmark failed for ${target}. This is either ` +
+                  `a detected performance regression or an infrastructure ` +
+                  `failure — see the run for details.\n\n` +
+                  `[View workflow run](${runUrl})`;
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.payload.issue.number,
+              body,
+            });
