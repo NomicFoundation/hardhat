@@ -20,6 +20,7 @@ jobs:
     outputs:
       is_v3: ${{ steps.check.outputs.version_starts_with_3 }}
       scripts_changed: ${{ steps.scripts-filter.outputs.scripts }}
+      workflows_changed: ${{ steps.scripts-filter.outputs.workflows }}
 
     steps:
       - name: Checkout code
@@ -34,13 +35,15 @@ jobs:
             echo "version_starts_with_3=false" >> "$GITHUB_OUTPUT"
           fi
 
-      - name: Check if scripts have changed
+      - name: Check if scripts or workflows have changed
         id: scripts-filter
         uses: dorny/paths-filter@de90cc6fb38fc0963ad72b210f1f284cd68cea36 # v3.0.2
         with:
           filters: |
             scripts:
               - 'scripts/**'
+            workflows:
+              - '.github/**'
 
   check_dependencies:
     name: Check dependency versions
@@ -73,7 +76,7 @@ jobs:
   check_infra_scripts_tests:
     name: Check that infrastructure script tests pass
     needs: is-v3
-    if: ${{ needs.is-v3.outputs.is_v3 == 'true' && needs.is-v3.outputs.scripts_changed == 'true' }}
+    if: ${{ needs.is-v3.outputs.is_v3 == 'true' && (needs.is-v3.outputs.scripts_changed == 'true' || needs.is-v3.outputs.workflows_changed == 'true') }}
     timeout-minutes: 60
     runs-on: ubuntu-latest
     steps:
@@ -87,6 +90,10 @@ jobs:
         run: pnpm lint:scripts
       - name: Run check
         run: pnpm test:scripts
+      - name: Lint workflows
+        run: pnpm lint:workflows
+      - name: Run workflow script tests
+        run: pnpm test:workflows
 
   list-packages:
     name: List packages
