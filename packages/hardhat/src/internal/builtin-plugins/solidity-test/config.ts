@@ -37,6 +37,17 @@ const nonnegativeSafeIntOrBigInt = unionType(
   "Expected a nonnegative safe int or a nonnegative bigint",
 );
 
+const nonnegativeSafeIntOrSafeBigInt = unionType(
+  [
+    z.number().int().nonnegative().safe(),
+    z
+      .bigint()
+      .nonnegative()
+      .refine((value) => value <= BigInt(Number.MAX_SAFE_INTEGER)),
+  ],
+  "Expected a nonnegative safe int or a nonnegative safe bigint",
+);
+
 const solidityTestProfileUserConfigType = z.object({
   fsPermissions: z
     .object({
@@ -73,7 +84,7 @@ const solidityTestProfileUserConfigType = z.object({
       includeStorage: z.boolean().optional(),
       includePushBytes: z.boolean().optional(),
       showLogs: z.boolean().optional(),
-      timeout: nonnegativeSafeIntOrBigInt.optional(),
+      timeout: nonnegativeSafeIntOrSafeBigInt.optional(),
     })
     .optional(),
   forking: z
@@ -99,7 +110,7 @@ const solidityTestProfileUserConfigType = z.object({
       includeStorage: z.boolean().optional(),
       includePushBytes: z.boolean().optional(),
       shrinkRunLimit: z.number().optional(),
-      timeout: nonnegativeSafeIntOrBigInt.optional(),
+      timeout: nonnegativeSafeIntOrSafeBigInt.optional(),
     })
     .optional(),
   eip712Types: z
