@@ -52,13 +52,57 @@ function resolveInstalledHardhat(scenarioDir) {
   }
 }
 
+// Extract the locked versions of the `hardhat` package (and only that
+// package) from a yarn.lock. Handles both Yarn Berry (`version: 1.2.3`) and
+// classic (`version "1.2.3"`) formats. Entry headers start at column 0 with
+// the package's descriptors (e.g. `"hardhat@npm:^3.0.0, hardhat@npm:3.9.2":`),
+// so anchoring on `hardhat@` cannot match scoped or prefixed package names.
+//
+// Only entries carrying the `directSpec` descriptor (the hardhat range from
+// the scenario's own package.json) count: a hardhat pulled in transitively by
+// another dependent has its own range and must not mask the version the
+// scenario itself locks.
+function yarnLockHardhatVersions(lockfileContents, directSpec) {
+  const versions = [];
+  const entries = lockfileContents.matchAll(
+    /^("?hardhat@[^\n]*):\r?\n((?:[ \t]+[^\n]*(?:\r?\n|$))*)/gm,
+  );
+  for (const [, header, block] of entries) {
+    const descriptors = header
+      .replace(/^"|"$/g, "")
+      .split(",")
+      .map((descriptor) => descriptor.trim().replace(/^"|"$/g, ""));
+    const wanted = [`hardhat@npm:${directSpec}`, `hardhat@${directSpec}`];
+    if (!descriptors.some((descriptor) => wanted.includes(descriptor))) {
+      continue;
+    }
+    const version = block.match(/^[ \t]+version:?[ \t]+"?([^"\r\n]+)"?/m);
+    if (version !== null) {
+      versions.push(version[1]);
+    }
+  }
+  return versions;
+}
+
+// The hardhat range declared by the scenario itself, used to tell its own
+// lockfile entry apart from transitive ones. Every scenario declares hardhat
+// directly (its install would have failed otherwise), so undefined signals a
+// broken clone and is reported as a warning by the caller. Throws if
+// package.json cannot be read or parsed.
+function readDirectHardhatSpec(scenarioDir) {
+  const pkg = JSON.parse(
+    fs.readFileSync(path.join(scenarioDir, "package.json"), "utf8"),
+  );
+  return pkg.dependencies?.hardhat ?? pkg.devDependencies?.hardhat;
+}
+
 // Resolve a scenario into one of:
 //   { version, stamp } — the installed hardhat's manifest fields
-//   { pnpLockfileHasVersion } — yarn Plug'n'Play scenario (no node_modules to
-//                               resolve through); true if yarn.lock mentions
-//                               the expected version
+//   { pnpLockedVersions } — yarn Plug'n'Play scenario (no node_modules to
+//                           resolve through); the versions its yarn.lock
+//                           locks for the scenario's own hardhat dependency
 //   { error }
-function resolveScenario(scenarioDir, expectedVersion) {
+function resolveScenario(scenarioDir) {
   try {
     return resolveInstalledHardhat(scenarioDir);
   } catch (e) {
@@ -67,10 +111,26 @@ function resolveScenario(scenarioDir, expectedVersion) {
       fs.existsSync(path.join(scenarioDir, ".pnp.loader.mjs"));
     const lockfile = path.join(scenarioDir, "yarn.lock");
     if (isPnp && fs.existsSync(lockfile)) {
+      let directSpec;
+      try {
+        directSpec = readDirectHardhatSpec(scenarioDir);
+      } catch (readError) {
+        const message =
+          readError instanceof Error ? readError.message : String(readError);
+        return {
+          error: `could not read the PnP scenario's package.json (${message})`,
+        };
+      }
+      if (directSpec === undefined) {
+        return {
+          error: "PnP scenario's package.json declares no hardhat dependency",
+        };
+      }
       return {
-        pnpLockfileHasVersion: fs
-          .readFileSync(lockfile, "utf8")
-          .includes(expectedVersion),
+        pnpLockedVersions: yarnLockHardhatVersions(
+          fs.readFileSync(lockfile, "utf8"),
+          directSpec,
+        ),
       };
     }
     return { error: e instanceof Error ? e.message : String(e) };
@@ -89,12 +149,15 @@ function classifyScenario(id, resolution, expected) {
     };
   }
 
-  if (resolution.pnpLockfileHasVersion !== undefined) {
-    return resolution.pnpLockfileHasVersion
+  if (resolution.pnpLockedVersions !== undefined) {
+    return resolution.pnpLockedVersions.includes(expected.version)
       ? { ok: true, message: `OK (PnP lockfile, stamp unverifiable): ${id}` }
       : {
           ok: false,
-          message: `${id}: PnP scenario's yarn.lock does not mention hardhat@${expected.version}`,
+          message:
+            `${id}: PnP scenario's yarn.lock locks ` +
+            `hardhat@${resolution.pnpLockedVersions.join(", ") || "<no entry>"}, ` +
+            `expected ${expected.version}`,
         };
   }
 
@@ -178,7 +241,7 @@ function main() {
   let allOk = true;
   for (const scenarioDir of scenarioDirs) {
     const id = path.basename(scenarioDir);
-    const resolution = resolveScenario(scenarioDir, expected.version);
+    const resolution = resolveScenario(scenarioDir);
     const verdict = classifyScenario(id, resolution, expected);
     if (verdict.ok) {
       console.log(verdict.message);
@@ -193,7 +256,12 @@ function main() {
   }
 }
 
-module.exports = { classifyScenario, resolveInstalledHardhat, resolveScenario };
+module.exports = {
+  classifyScenario,
+  resolveInstalledHardhat,
+  resolveScenario,
+  yarnLockHardhatVersions,
+};
 
 if (require.main === module) {
   main();

@@ -13,6 +13,7 @@ const {
   classifyScenario,
   resolveInstalledHardhat,
   resolveScenario,
+  yarnLockHardhatVersions,
 } = require("./validate-local-hardhat-install.cjs");
 
 const EXPECTED = { version: "3.9.2", preVersion: "3.9.1", stamp: "run-1" };
@@ -89,10 +90,10 @@ test("unresolvable scenario warns", () => {
   assert.match(verdict.message, /could not resolve/);
 });
 
-test("PnP scenario is OK only when yarn.lock mentions the version", () => {
+test("PnP scenario is OK only when yarn.lock locks hardhat at the version", () => {
   const ok = classifyScenario(
     "scenario",
-    { pnpLockfileHasVersion: true },
+    { pnpLockedVersions: ["3.9.2"] },
     EXPECTED,
   );
   assert.equal(ok.ok, true);
@@ -100,10 +101,52 @@ test("PnP scenario is OK only when yarn.lock mentions the version", () => {
 
   const stale = classifyScenario(
     "scenario",
-    { pnpLockfileHasVersion: false },
+    { pnpLockedVersions: ["3.9.1"] },
     EXPECTED,
   );
   assert.equal(stale.ok, false);
+  assert.match(stale.message, /locks hardhat@3\.9\.1, expected 3\.9\.2/);
+
+  const missing = classifyScenario(
+    "scenario",
+    { pnpLockedVersions: [] },
+    EXPECTED,
+  );
+  assert.equal(missing.ok, false);
+  assert.match(missing.message, /<no entry>/);
+});
+
+test("yarnLockHardhatVersions only matches the scenario's own hardhat entry", () => {
+  // Yarn Berry format. The unrelated package and the hardhat-prefixed plugin
+  // carry the expected version and must not count (the false positive the
+  // whole-file `.includes` check used to have), and neither does a hardhat
+  // pulled in transitively under a dependent's own `hardhat@npm:*` range.
+  const berry = [
+    '"@nomicfoundation/edr@npm:3.9.2":',
+    "  version: 3.9.2",
+    "",
+    '"hardhat-gas-reporter@npm:3.9.2":',
+    "  version: 3.9.2",
+    "",
+    '"hardhat@npm:*":',
+    "  version: 3.9.2",
+    "",
+    '"hardhat@npm:^3.0.0, hardhat@npm:3.9.1":',
+    "  version: 3.9.1",
+    '  resolution: "hardhat@npm:3.9.1"',
+    "",
+  ].join("\n");
+  // Multi-descriptor entries match on any of their descriptors.
+  assert.deepEqual(yarnLockHardhatVersions(berry, "3.9.1"), ["3.9.1"]);
+  assert.deepEqual(yarnLockHardhatVersions(berry, "^3.0.0"), ["3.9.1"]);
+  assert.deepEqual(yarnLockHardhatVersions(berry, "*"), ["3.9.2"]);
+  assert.deepEqual(yarnLockHardhatVersions(berry, "^2.0.0"), []);
+
+  // Yarn classic format descriptors carry no `npm:` protocol.
+  const classic = ["hardhat@^3.0.0:", '  version "3.9.1"', ""].join("\n");
+  assert.deepEqual(yarnLockHardhatVersions(classic, "^3.0.0"), ["3.9.1"]);
+
+  assert.deepEqual(yarnLockHardhatVersions("", "3.9.1"), []);
 });
 
 // Build a fake installed scenario: node_modules/hardhat with a nested main
@@ -134,7 +177,7 @@ test("resolveScenario reports an error for a dir without hardhat", (t) => {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), "validate-local-"));
   t.after(() => fs.rmSync(dir, { recursive: true, force: true }));
 
-  const resolution = resolveScenario(dir, "3.9.2");
+  const resolution = resolveScenario(dir);
   assert.match(resolution.error, /Cannot find module 'hardhat'/);
 });
 
@@ -142,12 +185,55 @@ test("resolveScenario falls back to the yarn.lock for PnP scenarios", (t) => {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), "validate-local-"));
   t.after(() => fs.rmSync(dir, { recursive: true, force: true }));
   fs.writeFileSync(path.join(dir, ".pnp.cjs"), "");
-  fs.writeFileSync(path.join(dir, "yarn.lock"), 'version: "3.9.2"\n');
+  fs.writeFileSync(
+    path.join(dir, "package.json"),
+    JSON.stringify({ dependencies: { hardhat: "3.9.2" } }),
+  );
+  fs.writeFileSync(
+    path.join(dir, "yarn.lock"),
+    [
+      '"hardhat@npm:*":',
+      "  version: 3.9.9",
+      "",
+      '"hardhat@npm:3.9.2":',
+      "  version: 3.9.2",
+      "",
+    ].join("\n"),
+  );
 
-  assert.deepEqual(resolveScenario(dir, "3.9.2"), {
-    pnpLockfileHasVersion: true,
-  });
-  assert.deepEqual(resolveScenario(dir, "3.9.3"), {
-    pnpLockfileHasVersion: false,
-  });
+  // Only the entry for the scenario's own hardhat dependency counts.
+  assert.deepEqual(resolveScenario(dir), { pnpLockedVersions: ["3.9.2"] });
+});
+
+test("resolveScenario errors for a PnP scenario without a direct hardhat dependency", (t) => {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "validate-local-"));
+  t.after(() => fs.rmSync(dir, { recursive: true, force: true }));
+  fs.writeFileSync(path.join(dir, ".pnp.cjs"), "");
+  fs.writeFileSync(path.join(dir, "package.json"), JSON.stringify({}));
+  fs.writeFileSync(
+    path.join(dir, "yarn.lock"),
+    '"hardhat@npm:3.9.2":\n  version: 3.9.2\n',
+  );
+
+  const resolution = resolveScenario(dir);
+  assert.match(resolution.error, /declares no hardhat dependency/);
+});
+
+test("resolveScenario reports the underlying error for an unreadable PnP package.json", (t) => {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "validate-local-"));
+  t.after(() => fs.rmSync(dir, { recursive: true, force: true }));
+  fs.writeFileSync(path.join(dir, ".pnp.cjs"), "");
+  fs.writeFileSync(path.join(dir, "yarn.lock"), "");
+
+  const missing = resolveScenario(dir);
+  assert.match(missing.error, /could not read the PnP scenario's package.json/);
+  assert.match(missing.error, /ENOENT/);
+
+  fs.writeFileSync(path.join(dir, "package.json"), "{ not json");
+  const malformed = resolveScenario(dir);
+  assert.match(
+    malformed.error,
+    /could not read the PnP scenario's package.json/,
+  );
+  assert.match(malformed.error, /JSON/);
 });
