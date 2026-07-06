@@ -12,5 +12,6 @@
     { "path": "../hardhat-network-helpers" },
     { "path": "../hardhat-verify" },
     { "path": "../hardhat-ignition-ui/tsconfig.node.json" }
-  ]
+  ],
+  "exclude": ["./test/", "./dist", "./node_modules"]
 }
