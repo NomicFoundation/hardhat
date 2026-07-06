@@ -43,7 +43,9 @@ jobs:
             scripts:
               - 'scripts/**'
             workflows:
-              - '.github/**'
+              - '.github/scripts/**'
+              - '.github/workflows/**'
+              - '.github/actions/**'
 
   check_dependencies:
     name: Check dependency versions
