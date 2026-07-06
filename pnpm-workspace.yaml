@@ -1,3 +1,20 @@
 packages:
   - "packages/*"
   - "!packages/hardhat-ignition-examples"
+# The legacy web3/truffle packages pull bignumber.js from a git tarball
+# (frozeman/bignumber.js-nolookahead). pnpm has no per-package allowlist for
+# exotic subdeps, so we opt this repo out of the block entirely.
+blockExoticSubdeps: false
+allowBuilds:
+  bufferutil: true
+  es5-ext: true
+  esbuild: true
+  keccak: true
+  node-hid: true
+  secp256k1: true
+  unrs-resolver: true
+  usb: true
+  utf-8-validate: true
+  web3: true
+  web3-bzz: true
+  web3-shh: true
