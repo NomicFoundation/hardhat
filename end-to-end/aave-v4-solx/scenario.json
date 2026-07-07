@@ -1,0 +1,34 @@
+{
+  "$schema": "../../scripts/end-to-end/schema/scenario.schema.json",
+  "description": "Aave v4 fork compiled at solc 0.8.34, tracking solx compile times (solc profiles available for manual runs).",
+  "tags": ["external-repo", "solx"],
+  "repo": "anaPerezGhiglia/aave-v4",
+  "commit": "f729aeff7cc61d576e8f89e818e05265ec9f65e9",
+  "packageManager": "yarn",
+  "submodules": true,
+  "preinstall": "./preinstall.sh",
+  "defaultCommand": "npx hardhat compile --build-profile solx",
+  "benchmark": {
+    "commands": {
+      "prime compilers": {
+        "runs": 1,
+        "steps": {
+          "download solx and warm caches": {
+            "command": "npx hardhat compile --build-profile solx && npx hardhat clean",
+            "measure": false
+          }
+        }
+      },
+      "cold compile solx": {
+        "runs": 2,
+        "prepare": "npx hardhat clean",
+        "command": "npx hardhat compile --build-profile solx"
+      },
+      "cold compile solx via-ir": {
+        "runs": 2,
+        "prepare": "npx hardhat clean",
+        "command": "npx hardhat compile --build-profile solx-via-ir"
+      }
+    }
+  }
+}
