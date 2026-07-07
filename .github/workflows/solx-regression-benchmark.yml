@@ -38,6 +38,9 @@ jobs:
       (github.ref == 'refs/heads/main' ||
         github.repository == github.event.pull_request.head.repo.full_name)
 
+    # Sized for the OZ anchor suite (6 timed cells x 3 hyperfine runs, ~54-150 s
+    # each) plus the solx-only scenarios (~15-22 min timed, aave-v4 dominating)
+    # and the post-bench size/gas/dump passes — ~2h worst case in total.
     timeout-minutes: 180
     steps:
       - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5
@@ -78,6 +81,9 @@ jobs:
 
       # Deterministic output-size metrics (no execution): compile each profile in
       # the already-cloned scenario and append bytecode-size entries to the report.
+      # Deliberately scoped to the OZ anchor scenario: the other solx scenarios
+      # only benchmark solx timing cells, so compiling their four profiles here
+      # would add untracked solc compile time to every run.
       - name: Measure bytecode size
         run: pnpm bench:bytecode-size --scenario ./end-to-end/openzeppelin-contracts-0.34 --report solx-regression-report.json
 
@@ -113,13 +119,14 @@ jobs:
           fail-on-alert: false
           summary-always: true
 
-      # Capture the exact standard-JSON solx receives, per solx profile, so perf
-      # runs can replay `solx --standard-json < input.json` without the Hardhat
-      # fixture. Best-effort: runs after the benchmark is stored and never fails
-      # the run (solx is experimental).
+      # Capture the exact standard-JSON solx receives, per scenario and solx
+      # profile (one subdirectory per scenario), so perf runs can replay
+      # `solx --standard-json < input.json` without the Hardhat fixture.
+      # Best-effort: runs after the benchmark is stored and never fails the run
+      # (solx is experimental).
       - name: Dump solx standard JSON
         continue-on-error: true
-        run: pnpm bench:dump-standard-json --scenario ./end-to-end/openzeppelin-contracts-0.34 --out solx-standard-json
+        run: pnpm bench:dump-standard-json --tag solx --out solx-standard-json
 
       - name: Upload solx standard JSON
         if: always()
