@@ -7,26 +7,28 @@ import {
   loadScenario,
   normalizeScenarioPath,
 } from "../end-to-end/helpers/directory.ts";
+import { discoverScenarioPathsByTag } from "./helpers/scenarios.ts";
 
 const USAGE = `
 scripts/benchmark/bytecode-size.ts — Append bytecode-size metrics to a report
 
 DESCRIPTION
-  Compiles each profile of an already-initialized scenario and records the total
+  Compiles each profile of already-initialized scenario(s) and records the total
   deployed and creation bytecode size (in bytes) per profile, appending them as
   github-action-benchmark customSmallerIsBetter entries to --report. Bytecode
   size is deterministic and needs no execution, so this is a cheap measurement
-  pass run after the timing benchmark; it reuses the scenario working directory
+  pass run after the timing benchmark; it reuses the scenario working directories
   that bench:regression already cloned and installed.
 
 OPTIONS
-  --scenario <path>      Required. Scenario folder/file (same as bench:regression)
+  --scenario <path>      Scenario folder/file (same as bench:regression)
+  --tag <tag>            Measure every enabled scenario carrying this tag instead
+                         (exactly one of --scenario / --tag is required)
   --report <path>        Required. Existing report JSON to append entries to
   --e2e-clone-dir <p>    Override clone dir (default: $E2E_CLONE_DIR or ${DEFAULT_CLONE_DIR})
 
 EXAMPLE
-  pnpm bench:bytecode-size --scenario ./end-to-end/openzeppelin-contracts-0.34 \\
-    --report solx-regression-report.json
+  pnpm bench:bytecode-size --tag solx --report solx-regression-report.json
 `;
 
 // {solc, solx} x {legacy, viaIR}, matching the scenario's benchmark profiles.
@@ -112,35 +114,50 @@ function entry(
 
 function main(): void {
   const scenarioPath = getArg("--scenario");
+  const tag = getArg("--tag");
   const reportPath = getArg("--report");
 
-  if (scenarioPath === undefined || reportPath === undefined) {
+  if ((scenarioPath === undefined) === (tag === undefined)) {
     console.log(USAGE);
-    process.exit(
-      scenarioPath === undefined && reportPath === undefined ? 0 : 1,
-    );
+    process.exit(scenarioPath === undefined && tag === undefined ? 0 : 1);
+  }
+
+  if (reportPath === undefined) {
+    console.log(USAGE);
+    process.exit(1);
+  }
+
+  const scenarioPaths =
+    scenarioPath !== undefined
+      ? [normalizeScenarioPath(scenarioPath)]
+      : discoverScenarioPathsByTag(tag as string);
+
+  if (scenarioPaths.length === 0) {
+    throw new Error(`No scenarios found with tag "${tag}"`);
   }
 
   const cloneDir =
     getArg("--e2e-clone-dir") ?? process.env.E2E_CLONE_DIR ?? DEFAULT_CLONE_DIR;
-  const { id, workingDir } = loadScenario(
-    cloneDir,
-    normalizeScenarioPath(scenarioPath),
-  );
 
   const entries: BenchmarkEntry[] = [];
 
-  for (const { label, flags } of PROFILES) {
-    execSync("npx hardhat clean", { cwd: workingDir, stdio: "ignore" });
-    execSync(["npx", "hardhat", "compile", ...flags].join(" "), {
-      cwd: workingDir,
-      stdio: "ignore",
-    });
+  for (const jsonPath of scenarioPaths) {
+    const { id, workingDir } = loadScenario(cloneDir, jsonPath);
 
-    const { deployed, creation } = sumBytecode(workingDir);
-    entries.push(entry(id, `deployed bytecode ${label}`, deployed));
-    entries.push(entry(id, `creation bytecode ${label}`, creation));
-    console.log(`${label}: deployed ${deployed} B, creation ${creation} B`);
+    for (const { label, flags } of PROFILES) {
+      execSync("npx hardhat clean", { cwd: workingDir, stdio: "ignore" });
+      execSync(["npx", "hardhat", "compile", ...flags].join(" "), {
+        cwd: workingDir,
+        stdio: "ignore",
+      });
+
+      const { deployed, creation } = sumBytecode(workingDir);
+      entries.push(entry(id, `deployed bytecode ${label}`, deployed));
+      entries.push(entry(id, `creation bytecode ${label}`, creation));
+      console.log(
+        `${id} / ${label}: deployed ${deployed} B, creation ${creation} B`,
+      );
+    }
   }
 
   const report = JSON.parse(readFileSync(reportPath, "utf-8"));
