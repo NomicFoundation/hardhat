@@ -1,6 +1,6 @@
 {
   "$schema": "../../scripts/end-to-end/schema/scenario.schema.json",
-  "description": "ENS verifiable factory contract fork compiled at solc 0.8.34, benchmarking solx against solc side by side.",
+  "description": "ENS verifiable factory contract fork compiled at solc 0.8.34, tracking solx compile times (solc profiles available for manual runs).",
   "tags": ["external-repo", "solx"],
   "repo": "anaPerezGhiglia/ensdomains-verifiable-factory",
   "commit": "cd6622442c298ae89c4d92bcbc93a0faca4fbfae",
@@ -17,21 +17,11 @@
       "prime compilers": {
         "runs": 1,
         "steps": {
-          "download solc + solx and warm caches": {
-            "command": "npx hardhat compile && npx hardhat compile --build-profile solx && npx hardhat clean",
+          "download solx and warm caches": {
+            "command": "npx hardhat compile --build-profile solx && npx hardhat clean",
             "measure": false
           }
         }
-      },
-      "cold compile solc": {
-        "runs": 3,
-        "prepare": "npx hardhat clean",
-        "command": "npx hardhat compile"
-      },
-      "cold compile solc via-ir": {
-        "runs": 3,
-        "prepare": "npx hardhat clean",
-        "command": "npx hardhat compile --build-profile solc-via-ir"
       },
       "cold compile solx": {
         "runs": 3,
