@@ -41,8 +41,14 @@ describe("warnIfExperimentalHardfork", () => {
   it("warns exactly once for an experimental hardfork, then dedupes", () => {
     warnIfExperimentalHardfork(L1HardforkName.AMSTERDAM, L1_CHAIN_TYPE);
     assert.equal(warnings.length, 1);
-    assert.ok(warnings[0].includes(L1HardforkName.AMSTERDAM));
-    assert.ok(warnings[0].includes(getCurrentHardfork(L1_CHAIN_TYPE)));
+    assert.ok(
+      warnings[0].includes(L1HardforkName.AMSTERDAM),
+      "warning should mention the selected experimental hardfork",
+    );
+    assert.ok(
+      warnings[0].includes(getCurrentHardfork(L1_CHAIN_TYPE)),
+      "warning should mention the latest stable hardfork",
+    );
 
     // Repeated calls for the same (chainType, hardfork) are deduped.
     warnIfExperimentalHardfork(L1HardforkName.AMSTERDAM, L1_CHAIN_TYPE);
