@@ -1343,29 +1343,37 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
       return await solcCompiler.compile(buildInfo.input);
     }
 
-    /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions --
-      Build infos may come from setups whose compiler type is unknown to the
-      current Hardhat type definitions, but plugins can still handle them via
-      the compiler hooks. */
-    const compilerConfig = {
-      type: compilerType,
-      version: buildInfo.solcVersion,
-      settings: buildInfo.input.settings,
-    } as SolidityCompilerConfig;
+    const partialCompilerConfig =
+      this.#getPartialSolidityCompilerConfigFromBuildInfo(buildInfo);
 
     await this.#hooks.runParallelHandlers("solidity", "downloadCompilers", [
-      [compilerConfig],
+      [partialCompilerConfig],
       quiet,
     ]);
 
     const compiler = await this.#hooks.runHandlerChain(
       "solidity",
       "getCompiler",
-      [compilerConfig],
+      [partialCompilerConfig],
       async (_context, cfg) => await getSolcCompilerForConfig(cfg, false),
     );
 
     return await compiler.compile(buildInfo.input);
+  }
+
+  #getPartialSolidityCompilerConfigFromBuildInfo(
+    buildInfo: SolidityBuildInfo,
+  ): SolidityCompilerConfig {
+    return {
+      /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions --
+      Build infos may come from setups whose compiler type is unknown to the
+      current Hardhat type definitions, but plugins can still handle them via
+      the compiler hooks. */
+      type: (buildInfo.compilerType ??
+        "solc") as SolidityCompilerConfig["type"],
+      version: buildInfo.solcVersion,
+      settings: buildInfo.input.settings,
+    };
   }
 
   async #downloadConfiguredCompilers(quiet = false): Promise<void> {
