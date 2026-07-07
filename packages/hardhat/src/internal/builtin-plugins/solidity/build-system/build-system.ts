@@ -1355,7 +1355,15 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
       "solidity",
       "getCompiler",
       [partialCompilerConfig],
-      async (_context, cfg) => await getSolcCompilerForConfig(cfg, false),
+      async () => {
+        throw new HardhatError(
+          HardhatError.ERRORS.CORE.SOLIDITY.BUILD_INFO_COMPILER_TYPE_NOT_HANDLED,
+          {
+            compilerType,
+            version: buildInfo.solcVersion,
+          },
+        );
+      },
     );
 
     return await compiler.compile(buildInfo.input);

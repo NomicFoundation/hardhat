@@ -1497,6 +1497,16 @@ Try re-running without these files, or without the flag.`,
 
 For example, you may be trying to build a test file with \`--no-tests\`, which isn't a valid operation.`,
       },
+      BUILD_INFO_COMPILER_TYPE_NOT_HANDLED: {
+        number: 918,
+        messageTemplate: `The build info you are trying to compile was produced by the "{compilerType}" compiler (version {version}), but no plugin registered a handler for that compiler type.
+
+Make sure the plugin that provides the "{compilerType}" compiler is installed and enabled in your Hardhat config.`,
+        websiteTitle: "No compiler registered for build info compiler type",
+        websiteDescription: `The build info you are trying to compile was produced by a non-\`solc\` compiler type, but no installed plugin registered a handler for that compiler type.
+
+Make sure the plugin that provides the compiler is installed and enabled in your Hardhat config.`,
+      },
     },
     ARTIFACTS: {
       NOT_FOUND: {

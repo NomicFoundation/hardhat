@@ -661,6 +661,54 @@ describe(
         assert.deepEqual(getCompilerConfig, downloadConfigs?.[0]);
         assert.equal(compileInput, buildInfo.input);
       });
+
+      it("should throw when no plugin handles a non-solc compiler type", async () => {
+        const hooks = new HookManagerImplementation(process.cwd(), []);
+        // eslint-disable-next-line @typescript-eslint/consistent-type-assertions -- We don't care about hooks in this context
+        hooks.setContext({} as HookContext);
+        // Only the default solc handlers are registered, so no plugin can
+        // provide a compiler for the "custom" type.
+        hooks.registerHandlers("solidity", await createSolidityHookHandlers());
+
+        const buildSystem = new SolidityBuildSystemImplementation(hooks, {
+          solidityConfig,
+          projectRoot: process.cwd(),
+          soliditySourcesPaths: [path.join(process.cwd(), "contracts")],
+          artifactsPath: actualArtifactsPath,
+          cachePath: actualCachePath,
+          solidityTestsPath: path.join(process.cwd(), "tests"),
+          coverage: false,
+        });
+
+        const buildInfo: SolidityBuildInfo = {
+          _format: "hh3-sol-build-info-1",
+          id: "solc-0_8_22-custom-test",
+          solcVersion: "0.8.22",
+          solcLongVersion: "0.8.22+custom",
+          compilerType: "custom",
+          userSourceNameMap: { "contracts/A.sol": "contracts/A.sol" },
+          input: {
+            language: "Solidity",
+            sources: {
+              "contracts/A.sol": { content: "contract A {}" },
+            },
+            settings: {
+              optimizer: { enabled: false, runs: 200 },
+              outputSelection: { "*": { "*": ["abi"] } },
+            },
+          },
+        };
+
+        await assertRejectsWithHardhatError(
+          buildSystem.compileBuildInfo(buildInfo, { quiet: true }),
+          HardhatError.ERRORS.CORE.SOLIDITY
+            .BUILD_INFO_COMPILER_TYPE_NOT_HANDLED,
+          {
+            compilerType: "custom",
+            version: "0.8.22",
+          },
+        );
+      });
     });
   },
 );
