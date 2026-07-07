@@ -1,12 +1,18 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 
+import { AMSTERDAM, SpecId } from "@nomicfoundation/edr";
+
 import {
   getCurrentHardfork,
   L1HardforkName,
   OpHardforkName,
 } from "../../../../../../src/internal/builtin-plugins/network-manager/edr/types/hardfork.js";
-import { resolveDefaultTransactionGasLimit } from "../../../../../../src/internal/builtin-plugins/network-manager/edr/utils/convert-to-edr.js";
+import {
+  edrL1HardforkToHardhatL1HardforkName,
+  hardhatHardforkToEdrSpecId,
+  resolveDefaultTransactionGasLimit,
+} from "../../../../../../src/internal/builtin-plugins/network-manager/edr/utils/convert-to-edr.js";
 import {
   L1_CHAIN_TYPE,
   OPTIMISM_CHAIN_TYPE,
@@ -135,5 +141,21 @@ describe("resolveDefaultTransactionGasLimit", () => {
         ARBITRARY_BLOCK_GAS_LIMIT,
       );
     });
+  });
+});
+
+describe("Amsterdam L1 hardfork conversion round-trip", () => {
+  it("maps the AMSTERDAM name to EDR's Amsterdam spec id", () => {
+    assert.equal(
+      hardhatHardforkToEdrSpecId(L1HardforkName.AMSTERDAM, L1_CHAIN_TYPE),
+      AMSTERDAM,
+    );
+  });
+
+  it("maps EDR's Amsterdam spec id back to the AMSTERDAM name", () => {
+    assert.equal(
+      edrL1HardforkToHardhatL1HardforkName(SpecId.Amsterdam),
+      L1HardforkName.AMSTERDAM,
+    );
   });
 });

@@ -22,6 +22,10 @@ export enum L1HardforkName {
   CANCUN = "cancun",
   PRAGUE = "prague",
   OSAKA = "osaka",
+  // Selectable but NOT the default hardfork: EDR keeps `l1HardforkLatest()`
+  // pinned to Osaka, so Amsterdam is still experimental. See
+  // `L1_LATEST_STABLE_HARDFORK` and `warnIfExperimentalHardfork`.
+  AMSTERDAM = "amsterdam",
 }
 
 export enum OpHardforkName {
@@ -44,10 +48,26 @@ export function getHardforks(chainType: ChainType): string[] {
     : L1_HARDFORK_ORDER;
 }
 
+/**
+ * The latest *stable* hardforks. These are hardcoded (rather than derived from
+ * EDR's `l1HardforkLatest()`/`opLatestHardfork()`) so this module stays free of
+ * the native `@nomicfoundation/edr` addon on the config-resolution bootstrap
+ * path — see commit 2568ed1ba.
+ *
+ * They are NOT necessarily the last entry of the enum: the enum can contain
+ * experimental forks (e.g. Amsterdam) that EDR ships but hasn't promoted to
+ * latest yet. The invariant test in
+ * `test/.../edr/types/hardfork.ts` asserts these equal EDR's
+ * `l1HardforkLatest()`/`opLatestHardfork()` — bump them together when EDR
+ * promotes a fork.
+ */
+export const L1_LATEST_STABLE_HARDFORK: L1HardforkName = L1HardforkName.OSAKA;
+export const OP_LATEST_STABLE_HARDFORK: OpHardforkName = OpHardforkName.ISTHMUS;
+
 export function getCurrentHardfork(chainType: ChainType): string {
-  const order =
-    chainType === OPTIMISM_CHAIN_TYPE ? OP_HARDFORK_ORDER : L1_HARDFORK_ORDER;
-  return order[order.length - 1];
+  return chainType === OPTIMISM_CHAIN_TYPE
+    ? OP_LATEST_STABLE_HARDFORK
+    : L1_LATEST_STABLE_HARDFORK;
 }
 
 /**
