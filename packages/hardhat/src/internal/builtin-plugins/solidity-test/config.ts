@@ -280,39 +280,13 @@ export async function resolveSolidityTestUserConfig(
 export function resolveFuzzConfig(
   fuzzUserConfig: SolidityTestProfileUserConfig["fuzz"] = {},
 ): SolidityTestProfileConfig["fuzz"] {
-  const resolvedConfig: SolidityTestProfileConfig["fuzz"] = {
-    seed: fuzzUserConfig.seed ?? DEFAULT_FUZZ_SEED,
+  const { seed, timeout, ...otherFuzzUserConfig } = fuzzUserConfig;
+
+  return {
+    ...otherFuzzUserConfig,
+    seed: seed ?? DEFAULT_FUZZ_SEED,
+    ...(timeout !== undefined ? { timeout: Number(timeout) } : {}),
   };
-
-  if (fuzzUserConfig.failurePersistDir !== undefined) {
-    resolvedConfig.failurePersistDir = fuzzUserConfig.failurePersistDir;
-  }
-  if (fuzzUserConfig.failurePersistFile !== undefined) {
-    resolvedConfig.failurePersistFile = fuzzUserConfig.failurePersistFile;
-  }
-  if (fuzzUserConfig.runs !== undefined) {
-    resolvedConfig.runs = fuzzUserConfig.runs;
-  }
-  if (fuzzUserConfig.maxTestRejects !== undefined) {
-    resolvedConfig.maxTestRejects = fuzzUserConfig.maxTestRejects;
-  }
-  if (fuzzUserConfig.dictionaryWeight !== undefined) {
-    resolvedConfig.dictionaryWeight = fuzzUserConfig.dictionaryWeight;
-  }
-  if (fuzzUserConfig.includeStorage !== undefined) {
-    resolvedConfig.includeStorage = fuzzUserConfig.includeStorage;
-  }
-  if (fuzzUserConfig.includePushBytes !== undefined) {
-    resolvedConfig.includePushBytes = fuzzUserConfig.includePushBytes;
-  }
-  if (fuzzUserConfig.showLogs !== undefined) {
-    resolvedConfig.showLogs = fuzzUserConfig.showLogs;
-  }
-  if (fuzzUserConfig.timeout !== undefined) {
-    resolvedConfig.timeout = Number(fuzzUserConfig.timeout);
-  }
-
-  return resolvedConfig;
 }
 
 export function resolveInvariantConfig(
@@ -322,41 +296,12 @@ export function resolveInvariantConfig(
     return undefined;
   }
 
-  const resolvedConfig: NonNullable<SolidityTestProfileConfig["invariant"]> =
-    {};
+  const { timeout, ...otherInvariantUserConfig } = invariantUserConfig;
 
-  if (invariantUserConfig.failurePersistDir !== undefined) {
-    resolvedConfig.failurePersistDir = invariantUserConfig.failurePersistDir;
-  }
-  if (invariantUserConfig.runs !== undefined) {
-    resolvedConfig.runs = invariantUserConfig.runs;
-  }
-  if (invariantUserConfig.depth !== undefined) {
-    resolvedConfig.depth = invariantUserConfig.depth;
-  }
-  if (invariantUserConfig.failOnRevert !== undefined) {
-    resolvedConfig.failOnRevert = invariantUserConfig.failOnRevert;
-  }
-  if (invariantUserConfig.callOverride !== undefined) {
-    resolvedConfig.callOverride = invariantUserConfig.callOverride;
-  }
-  if (invariantUserConfig.dictionaryWeight !== undefined) {
-    resolvedConfig.dictionaryWeight = invariantUserConfig.dictionaryWeight;
-  }
-  if (invariantUserConfig.includeStorage !== undefined) {
-    resolvedConfig.includeStorage = invariantUserConfig.includeStorage;
-  }
-  if (invariantUserConfig.includePushBytes !== undefined) {
-    resolvedConfig.includePushBytes = invariantUserConfig.includePushBytes;
-  }
-  if (invariantUserConfig.shrinkRunLimit !== undefined) {
-    resolvedConfig.shrinkRunLimit = invariantUserConfig.shrinkRunLimit;
-  }
-  if (invariantUserConfig.timeout !== undefined) {
-    resolvedConfig.timeout = Number(invariantUserConfig.timeout);
-  }
-
-  return resolvedConfig;
+  return {
+    ...otherInvariantUserConfig,
+    ...(timeout !== undefined ? { timeout: Number(timeout) } : {}),
+  };
 }
 
 export function resolveEip712TypesConfig(

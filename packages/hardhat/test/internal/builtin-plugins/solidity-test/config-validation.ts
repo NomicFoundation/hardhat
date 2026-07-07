@@ -168,4 +168,42 @@ describe("config validation", () => {
       },
     );
   });
+
+  it("should reject a negative memoryLimit", async () => {
+    const userConfig: HardhatUserConfig = {
+      test: {
+        solidity: {
+          memoryLimit: -1,
+        },
+      },
+    };
+
+    await assertRejectsWithHardhatError(
+      createHardhatRuntimeEnvironment(userConfig),
+      HardhatError.ERRORS.CORE.GENERAL.INVALID_CONFIG,
+      {
+        errors:
+          "\t* Config error in config.test.solidity.memoryLimit: Expected a nonnegative safe int or a nonnegative bigint",
+      },
+    );
+  });
+
+  it("should reject a non-integer memoryLimit", async () => {
+    const userConfig: HardhatUserConfig = {
+      test: {
+        solidity: {
+          memoryLimit: 1.5,
+        },
+      },
+    };
+
+    await assertRejectsWithHardhatError(
+      createHardhatRuntimeEnvironment(userConfig),
+      HardhatError.ERRORS.CORE.GENERAL.INVALID_CONFIG,
+      {
+        errors:
+          "\t* Config error in config.test.solidity.memoryLimit: Expected a nonnegative safe int or a nonnegative bigint",
+      },
+    );
+  });
 });

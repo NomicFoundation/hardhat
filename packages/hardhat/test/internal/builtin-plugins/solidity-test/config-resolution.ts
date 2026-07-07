@@ -68,6 +68,24 @@ describe("config resolution", () => {
 
       assert.deepEqual(result, { timeout: 60 });
     });
+
+    it("should preserve other invariant config properties", () => {
+      const result = resolveInvariantConfig({
+        runs: 500,
+        depth: 10,
+        failOnRevert: true,
+        shrinkRunLimit: 0,
+        timeout: 60n,
+      });
+
+      assert.deepEqual(result, {
+        runs: 500,
+        depth: 10,
+        failOnRevert: true,
+        shrinkRunLimit: 0,
+        timeout: 60,
+      });
+    });
   });
 
   describe("resolveSolidityTestUserConfig", () => {
@@ -90,6 +108,19 @@ describe("config resolution", () => {
       assert.equal(defaultProfile.fuzz.seed, DEFAULT_FUZZ_SEED);
       assert.equal(defaultProfile.invariant?.timeout, 100);
       assert.equal(defaultProfile.forking, undefined);
+    });
+
+    it("should normalize a number memoryLimit to a bigint", async () => {
+      const hre = await createHardhatRuntimeEnvironment({
+        test: {
+          solidity: {
+            memoryLimit: 33_554_432,
+          },
+        },
+      });
+
+      const defaultProfile = hre.config.test.solidity.profiles.default;
+      assert.equal(defaultProfile.memoryLimit, 33_554_432n);
     });
 
     it("should resolve a `profiles` wrapper to the same shape as the equivalent flat config", async () => {
