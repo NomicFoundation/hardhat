@@ -29,11 +29,11 @@ import {
   EdrProvider,
   getProviderConfig,
 } from "../../../../../src/internal/builtin-plugins/network-manager/edr/edr-provider.js";
+import { L1HardforkName } from "../../../../../src/internal/builtin-plugins/network-manager/edr/types/hardfork.js";
 import {
   InvalidArgumentsError,
   ProviderError,
 } from "../../../../../src/internal/builtin-plugins/network-manager/provider-errors.js";
-import { L1HardforkName } from "../../../../../src/internal/builtin-plugins/network-manager/edr/types/hardfork.js";
 import { EDR_NETWORK_REVERT_SNAPSHOT_EVENT } from "../../../../../src/internal/constants.js";
 import { FixedValueConfigurationVariable } from "../../../../../src/internal/core/configuration-variables.js";
 
@@ -413,11 +413,14 @@ describe("edr-provider", () => {
       "should emit notification and message events for each result of the SubscriptionEvent",
       { timeout: 1000 },
       async () => {
+        // `SubscriptionEvent.result` is typed as `unknown`, so we keep the
+        // payload in a typed local to read its length and assert against it.
+        const eventResult = ["0x1", "0x2"];
         const event: SubscriptionEvent = {
           filterId: 1n,
-          result: ["0x1", "0x2"],
+          result: eventResult,
         };
-        const eventResultLength = event.result.length;
+        const eventResultLength = eventResult.length;
         const notificationEventResults: string[] = [];
         const messageEventResults: string[] = [];
 
@@ -454,8 +457,8 @@ describe("edr-provider", () => {
         notificationEventResults.sort();
         messageEventResults.sort();
 
-        assert.deepEqual(notificationEventResults, event.result);
-        assert.deepEqual(messageEventResults, event.result);
+        assert.deepEqual(notificationEventResults, eventResult);
+        assert.deepEqual(messageEventResults, eventResult);
       },
     );
   });
