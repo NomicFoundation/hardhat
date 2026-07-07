@@ -126,4 +126,84 @@ describe("config validation", () => {
       },
     );
   });
+
+  it("should reject bigint fuzz timeouts that cannot be represented as safe numbers", async () => {
+    const userConfig: HardhatUserConfig = {
+      test: {
+        solidity: {
+          fuzz: { timeout: BigInt(Number.MAX_SAFE_INTEGER) + 1n },
+        },
+      },
+    };
+
+    await assertRejectsWithHardhatError(
+      createHardhatRuntimeEnvironment(userConfig),
+      HardhatError.ERRORS.CORE.GENERAL.INVALID_CONFIG,
+      {
+        errors:
+          "\t* Config error in config.test.solidity.fuzz.timeout: Expected a nonnegative safe int or a nonnegative safe bigint",
+      },
+    );
+  });
+
+  it("should reject bigint invariant timeouts that cannot be represented as safe numbers", async () => {
+    const userConfig: HardhatUserConfig = {
+      test: {
+        solidity: {
+          profiles: {
+            default: {
+              invariant: { timeout: BigInt(Number.MAX_SAFE_INTEGER) + 1n },
+            },
+          },
+        },
+      },
+    };
+
+    await assertRejectsWithHardhatError(
+      createHardhatRuntimeEnvironment(userConfig),
+      HardhatError.ERRORS.CORE.GENERAL.INVALID_CONFIG,
+      {
+        errors:
+          "\t* Config error in config.test.solidity.profiles.default.invariant.timeout: Expected a nonnegative safe int or a nonnegative safe bigint",
+      },
+    );
+  });
+
+  it("should reject a negative memoryLimit", async () => {
+    const userConfig: HardhatUserConfig = {
+      test: {
+        solidity: {
+          memoryLimit: -1,
+        },
+      },
+    };
+
+    await assertRejectsWithHardhatError(
+      createHardhatRuntimeEnvironment(userConfig),
+      HardhatError.ERRORS.CORE.GENERAL.INVALID_CONFIG,
+      {
+        errors:
+          "\t* Config error in config.test.solidity.memoryLimit: Expected a nonnegative safe int or a nonnegative bigint",
+      },
+    );
+  });
+
+  it("should reject a non-integer memoryLimit", async () => {
+    const userConfig: HardhatUserConfig = {
+      test: {
+        solidity: {
+          memoryLimit: 1.5,
+        },
+      },
+    };
+
+    await assertRejectsWithHardhatError(
+      createHardhatRuntimeEnvironment(userConfig),
+      HardhatError.ERRORS.CORE.GENERAL.INVALID_CONFIG,
+      {
+        errors:
+          "\t* Config error in config.test.solidity.memoryLimit: Expected a nonnegative safe int or a nonnegative bigint",
+      },
+    );
+  });
 });

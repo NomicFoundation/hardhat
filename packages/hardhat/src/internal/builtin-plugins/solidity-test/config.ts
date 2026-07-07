@@ -32,6 +32,22 @@ import { DEFAULT_TEST_PROFILE } from "./test-profiles.js";
 export const DEFAULT_FUZZ_SEED =
   "0x7727ea51af0441c20da14dcd68a15dac8c9ebd589c5be8fa8c87c1d3720450bc";
 
+const nonnegativeSafeIntOrBigInt = unionType(
+  [z.number().int().nonnegative().safe(), z.bigint().nonnegative()],
+  "Expected a nonnegative safe int or a nonnegative bigint",
+);
+
+const nonnegativeSafeIntOrSafeBigInt = unionType(
+  [
+    z.number().int().nonnegative().safe(),
+    z
+      .bigint()
+      .nonnegative()
+      .refine((value) => value <= BigInt(Number.MAX_SAFE_INTEGER)),
+  ],
+  "Expected a nonnegative safe int or a nonnegative safe bigint",
+);
+
 const solidityTestProfileUserConfigType = z.object({
   fsPermissions: z
     .object({
@@ -54,6 +70,7 @@ const solidityTestProfileUserConfigType = z.object({
   blockTimestamp: z.bigint().optional(),
   prevRandao: z.bigint().optional(),
   gasLimit: z.bigint().optional(),
+  memoryLimit: nonnegativeSafeIntOrBigInt.optional(),
   blockGasLimit: z.number().or(z.bigint()).or(z.literal(false)).optional(),
   transactionGasCap: z.number().or(z.bigint()).or(z.literal(false)).optional(),
   fuzz: z
@@ -67,6 +84,7 @@ const solidityTestProfileUserConfigType = z.object({
       includeStorage: z.boolean().optional(),
       includePushBytes: z.boolean().optional(),
       showLogs: z.boolean().optional(),
+      timeout: nonnegativeSafeIntOrSafeBigInt.optional(),
     })
     .optional(),
   forking: z
@@ -92,6 +110,7 @@ const solidityTestProfileUserConfigType = z.object({
       includeStorage: z.boolean().optional(),
       includePushBytes: z.boolean().optional(),
       shrinkRunLimit: z.number().optional(),
+      timeout: nonnegativeSafeIntOrSafeBigInt.optional(),
     })
     .optional(),
   eip712Types: z
@@ -222,12 +241,22 @@ export async function resolveSolidityTestUserConfig(
     resolveConfigurationVariable,
   );
 
+  const {
+    memoryLimit,
+    fuzz,
+    invariant,
+    eip712Types,
+    ...otherProfileUserConfig
+  } = profileUserConfig ?? {};
+
   const resolvedDefaultProfile = {
     rpcCachePath: defaultRpcCachePath,
-    ...profileUserConfig,
-    fuzz: resolveFuzzConfig(profileUserConfig?.fuzz),
+    ...otherProfileUserConfig,
+    memoryLimit: memoryLimit !== undefined ? BigInt(memoryLimit) : undefined,
+    fuzz: resolveFuzzConfig(fuzz),
+    invariant: resolveInvariantConfig(invariant),
     forking: resolvedForking,
-    eip712Types: resolveEip712TypesConfig(profileUserConfig?.eip712Types),
+    eip712Types: resolveEip712TypesConfig(eip712Types),
   };
 
   return {
@@ -251,9 +280,27 @@ export async function resolveSolidityTestUserConfig(
 export function resolveFuzzConfig(
   fuzzUserConfig: SolidityTestProfileUserConfig["fuzz"] = {},
 ): SolidityTestProfileConfig["fuzz"] {
+  const { seed, timeout, ...otherFuzzUserConfig } = fuzzUserConfig;
+
   return {
-    ...fuzzUserConfig,
-    seed: fuzzUserConfig.seed ?? DEFAULT_FUZZ_SEED,
+    ...otherFuzzUserConfig,
+    seed: seed ?? DEFAULT_FUZZ_SEED,
+    ...(timeout !== undefined ? { timeout: Number(timeout) } : {}),
+  };
+}
+
+export function resolveInvariantConfig(
+  invariantUserConfig: SolidityTestProfileUserConfig["invariant"],
+): SolidityTestProfileConfig["invariant"] {
+  if (invariantUserConfig === undefined) {
+    return undefined;
+  }
+
+  const { timeout, ...otherInvariantUserConfig } = invariantUserConfig;
+
+  return {
+    ...otherInvariantUserConfig,
+    ...(timeout !== undefined ? { timeout: Number(timeout) } : {}),
   };
 }
 
