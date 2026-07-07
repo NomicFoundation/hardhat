@@ -166,7 +166,8 @@ jobs:
           SLACK_WEBHOOK_URL: ${{ secrets.GH_ACTION_NOTIFICATIONS_SLACK_WEBHOOK_URL }}
 
       - name: Clean up temp dir
-        # Self-hosted runners don't automatically wipe RUNNER_TEMP between jobs,
-        # so we do this manually to avoid polluting future runs.
+        # Self-hosted runners don't automatically wipe the E2E_CLONE_DIR written
+        # to RUNNER_TEMP between jobs, so we do this manually to avoid polluting
+        # future runs.
         if: always()
-        run: rm -rf "$RUNNER_TEMP/hardhat-e2e-clones"
+        run: rm -rf "$E2E_CLONE_DIR"
