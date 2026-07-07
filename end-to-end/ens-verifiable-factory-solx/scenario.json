@@ -1,0 +1,48 @@
+{
+  "$schema": "../../scripts/end-to-end/schema/scenario.schema.json",
+  "description": "ENS verifiable factory contract fork compiled at solc 0.8.34, benchmarking solx against solc side by side.",
+  "tags": ["external-repo", "solx"],
+  "repo": "anaPerezGhiglia/ensdomains-verifiable-factory",
+  "commit": "cd6622442c298ae89c4d92bcbc93a0faca4fbfae",
+  "packageManager": "pnpm",
+  "env": {
+    "pnpm_config_dangerously_allow_all_builds": "true",
+    "pnpm_config_frozen_lockfile": "false"
+  },
+  "submodules": true,
+  "preinstall": "./preinstall.sh",
+  "defaultCommand": "npx hardhat compile --build-profile solx",
+  "benchmark": {
+    "commands": {
+      "prime compilers": {
+        "runs": 1,
+        "steps": {
+          "download solc + solx and warm caches": {
+            "command": "npx hardhat compile && npx hardhat compile --build-profile solx && npx hardhat clean",
+            "measure": false
+          }
+        }
+      },
+      "cold compile solc": {
+        "runs": 3,
+        "prepare": "npx hardhat clean",
+        "command": "npx hardhat compile"
+      },
+      "cold compile solc via-ir": {
+        "runs": 3,
+        "prepare": "npx hardhat clean",
+        "command": "npx hardhat compile --build-profile solc-via-ir"
+      },
+      "cold compile solx": {
+        "runs": 3,
+        "prepare": "npx hardhat clean",
+        "command": "npx hardhat compile --build-profile solx"
+      },
+      "cold compile solx via-ir": {
+        "runs": 3,
+        "prepare": "npx hardhat clean",
+        "command": "npx hardhat compile --build-profile solx-via-ir"
+      }
+    }
+  }
+}
