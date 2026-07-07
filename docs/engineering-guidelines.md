@@ -26,7 +26,7 @@ This keeps the declaration file reachable to TypeScript consumers without adding
 
 1. `type-extensions.ts` must contain only type-level module augmentation code and no runtime side effects.
 2. `type-extensions.ts` must not export named types. If it needs to be treated as a module, rely on `"moduleDetection": "force"` or use `export {};`.
-3. If the plugin depends on another plugin's type extensions, re-export them with `export type * from "dependency/type-extensions";` from your own `type-extensions.ts`.
+3. Type-extensions don't need to import the modules they are augmenting. This was an incorrect way to force the .ts file to be treated as a module. Use `export {};`, or better yet ["moduleDetection": "force"](https://www.typescriptlang.org/tsconfig/#moduleDetection).
 4. Avoid exporting arbitrary types from `index.ts`; otherwise downstream plugins may accidentally re-export them when they re-export your type extensions.
 
 ## A3: Always initialize the HRE using the `hre-initialization` module inside of `hardhat`
