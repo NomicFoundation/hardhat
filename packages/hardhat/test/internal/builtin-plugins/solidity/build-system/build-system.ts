@@ -1,6 +1,11 @@
-import type { SolidityConfig } from "../../../../../src/types/config.js";
+import type {
+  SolidityCompilerConfig,
+  SolidityConfig,
+} from "../../../../../src/types/config.js";
 import type { HookContext } from "../../../../../src/types/hooks.js";
 import type {
+  Compiler,
+  CompilerOutput,
   SolidityBuildInfo,
   SolidityBuildInfoOutput,
   SolidityBuildSystem,
@@ -570,6 +575,138 @@ describe(
         assert.ok(
           output.errors.some((e) => e.severity === "error"),
           "Output should have at least one error",
+        );
+      });
+
+      it("should use compiler hooks for build infos with a non-solc compiler type", async () => {
+        const fakeOutput: CompilerOutput = {
+          contracts: {},
+          sources: {},
+        };
+        const customCompiler: Compiler = {
+          version: "0.8.22",
+          longVersion: "0.8.22+custom",
+          compilerPath: "/mock/custom-compiler",
+          isSolcJs: false,
+          compile: async () => fakeOutput,
+        };
+
+        let downloadConfigs: SolidityCompilerConfig[] | undefined;
+        let getCompilerConfig: SolidityCompilerConfig | undefined;
+        let compileInput: SolidityBuildInfo["input"] | undefined;
+
+        const hooks = new HookManagerImplementation(process.cwd(), []);
+        // eslint-disable-next-line @typescript-eslint/consistent-type-assertions -- We don't care about hooks in this context
+        hooks.setContext({} as HookContext);
+        hooks.registerHandlers("solidity", await createSolidityHookHandlers());
+        hooks.registerHandlers("solidity", {
+          downloadCompilers: async (_context, compilerConfigs) => {
+            downloadConfigs = compilerConfigs;
+          },
+          getCompiler: async (_context, compilerConfig) => {
+            getCompilerConfig = compilerConfig;
+            return {
+              ...customCompiler,
+              compile: async (input) => {
+                compileInput = input;
+                return await customCompiler.compile(input);
+              },
+            };
+          },
+        });
+
+        const buildSystem = new SolidityBuildSystemImplementation(hooks, {
+          solidityConfig,
+          projectRoot: process.cwd(),
+          soliditySourcesPaths: [path.join(process.cwd(), "contracts")],
+          artifactsPath: actualArtifactsPath,
+          cachePath: actualCachePath,
+          solidityTestsPath: path.join(process.cwd(), "tests"),
+          coverage: false,
+        });
+
+        const buildInfo: SolidityBuildInfo = {
+          _format: "hh3-sol-build-info-1",
+          id: "solc-0_8_22-custom-test",
+          solcVersion: "0.8.22",
+          solcLongVersion: "0.8.22+custom",
+          compilerType: "custom",
+          userSourceNameMap: { "contracts/A.sol": "contracts/A.sol" },
+          input: {
+            language: "Solidity",
+            sources: {
+              "contracts/A.sol": { content: "contract A {}" },
+            },
+            settings: {
+              optimizer: { enabled: false, runs: 200 },
+              outputSelection: { "*": { "*": ["abi"] } },
+            },
+          },
+        };
+
+        const output = await buildSystem.compileBuildInfo(buildInfo, {
+          quiet: true,
+        });
+
+        const expectedDownloadConfigs: unknown = [
+          {
+            type: "custom",
+            version: "0.8.22",
+            settings: buildInfo.input.settings,
+          },
+        ];
+
+        assert.equal(output, fakeOutput);
+        assert.deepEqual(downloadConfigs, expectedDownloadConfigs);
+        assert.deepEqual(getCompilerConfig, downloadConfigs?.[0]);
+        assert.equal(compileInput, buildInfo.input);
+      });
+
+      it("should throw when no plugin handles a non-solc compiler type", async () => {
+        const hooks = new HookManagerImplementation(process.cwd(), []);
+        // eslint-disable-next-line @typescript-eslint/consistent-type-assertions -- We don't care about hooks in this context
+        hooks.setContext({} as HookContext);
+        // Only the default solc handlers are registered, so no plugin can
+        // provide a compiler for the "custom" type.
+        hooks.registerHandlers("solidity", await createSolidityHookHandlers());
+
+        const buildSystem = new SolidityBuildSystemImplementation(hooks, {
+          solidityConfig,
+          projectRoot: process.cwd(),
+          soliditySourcesPaths: [path.join(process.cwd(), "contracts")],
+          artifactsPath: actualArtifactsPath,
+          cachePath: actualCachePath,
+          solidityTestsPath: path.join(process.cwd(), "tests"),
+          coverage: false,
+        });
+
+        const buildInfo: SolidityBuildInfo = {
+          _format: "hh3-sol-build-info-1",
+          id: "solc-0_8_22-custom-test",
+          solcVersion: "0.8.22",
+          solcLongVersion: "0.8.22+custom",
+          compilerType: "custom",
+          userSourceNameMap: { "contracts/A.sol": "contracts/A.sol" },
+          input: {
+            language: "Solidity",
+            sources: {
+              "contracts/A.sol": { content: "contract A {}" },
+            },
+            settings: {
+              optimizer: { enabled: false, runs: 200 },
+              outputSelection: { "*": { "*": ["abi"] } },
+            },
+          },
+        };
+
+        await assertRejectsWithHardhatError(
+          buildSystem.compileBuildInfo(buildInfo, { quiet: true }),
+          HardhatError.ERRORS.CORE.SOLIDITY
+            .BUILD_INFO_COMPILER_TYPE_NOT_HANDLED,
+          {
+            compilerType: "custom",
+            version: "0.8.22",
+          },
         );
       });
     });
