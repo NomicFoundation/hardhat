@@ -129,7 +129,7 @@ jobs:
         # above — rather than a stale copy from a package-manager cache on the
         # self-hosted runner or the public npm registry. Emits warnings instead
         # of errors so it can never regress the benchmark runner.
-        run: node .github/scripts/validate-local-hardhat-install.cjs
+        run: node .github/scripts/validate-local-hardhat-install.ts
 
       # Persist the (possibly partial) benchmark output in the job log so it
       # survives cleanup and is available for debugging.

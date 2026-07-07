@@ -15,21 +15,54 @@
 //                    since its release and was not republished, so scenarios
 //                    legitimately resolve the (unstamped) registry release
 //   E2E_CLONE_DIR    scenario clone dir (default: /tmp/end-to-end)
-//
-// Run the tests with:
-//   node --test .github/scripts/validate-local-hardhat-install.test.cjs
 
-const fs = require("node:fs");
-const path = require("node:path");
-const { createRequire } = require("node:module");
+import fs from "node:fs";
+import { createRequire } from "node:module";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
 
 const DEFAULT_CLONE_DIR = "/tmp/end-to-end";
+
+// The installed hardhat's manifest fields.
+interface InstalledHardhat {
+  version: string;
+  stamp: string | undefined;
+}
+
+// A yarn Plug'n'Play scenario (no node_modules to resolve through): the
+// versions its yarn.lock locks for the scenario's own hardhat dependency.
+interface PnpLockedHardhat {
+  pnpLockedVersions: string[];
+}
+
+interface ResolutionError {
+  error: string;
+}
+
+export type ScenarioResolution =
+  | InstalledHardhat
+  | PnpLockedHardhat
+  | ResolutionError;
+
+// What this run published: the locally published hardhat version
+// (post-benchmark), the packages/hardhat version before the benchmark ran,
+// and this run's unique stamp.
+export interface ExpectedBuild {
+  version: string;
+  preVersion: string;
+  stamp: string;
+}
+
+export interface Verdict {
+  ok: boolean;
+  message: string;
+}
 
 // Resolve the hardhat that a scenario's install loads. Works across
 // npm/pnpm/yarn node_modules layouts (Node realpaths pnpm symlinks).
 // require.resolve("hardhat/package.json") is blocked by the exports map, so
 // resolve the "." export and walk up to the owning package.json.
-function resolveInstalledHardhat(scenarioDir) {
+export function resolveInstalledHardhat(scenarioDir: string): InstalledHardhat {
   const scenarioRequire = createRequire(path.join(scenarioDir, "noop.js"));
   const main = scenarioRequire.resolve("hardhat");
 
@@ -62,8 +95,11 @@ function resolveInstalledHardhat(scenarioDir) {
 // the scenario's own package.json) count: a hardhat pulled in transitively by
 // another dependent has its own range and must not mask the version the
 // scenario itself locks.
-function yarnLockHardhatVersions(lockfileContents, directSpec) {
-  const versions = [];
+export function yarnLockHardhatVersions(
+  lockfileContents: string,
+  directSpec: string,
+): string[] {
+  const versions: string[] = [];
   const entries = lockfileContents.matchAll(
     /^("?hardhat@[^\n]*):\r?\n((?:[ \t]+[^\n]*(?:\r?\n|$))*)/gm,
   );
@@ -89,20 +125,14 @@ function yarnLockHardhatVersions(lockfileContents, directSpec) {
 // directly (its install would have failed otherwise), so undefined signals a
 // broken clone and is reported as a warning by the caller. Throws if
 // package.json cannot be read or parsed.
-function readDirectHardhatSpec(scenarioDir) {
+function readDirectHardhatSpec(scenarioDir: string): string | undefined {
   const pkg = JSON.parse(
     fs.readFileSync(path.join(scenarioDir, "package.json"), "utf8"),
   );
   return pkg.dependencies?.hardhat ?? pkg.devDependencies?.hardhat;
 }
 
-// Resolve a scenario into one of:
-//   { version, stamp } — the installed hardhat's manifest fields
-//   { pnpLockedVersions } — yarn Plug'n'Play scenario (no node_modules to
-//                           resolve through); the versions its yarn.lock
-//                           locks for the scenario's own hardhat dependency
-//   { error }
-function resolveScenario(scenarioDir) {
+export function resolveScenario(scenarioDir: string): ScenarioResolution {
   try {
     return resolveInstalledHardhat(scenarioDir);
   } catch (e) {
@@ -111,7 +141,7 @@ function resolveScenario(scenarioDir) {
       fs.existsSync(path.join(scenarioDir, ".pnp.loader.mjs"));
     const lockfile = path.join(scenarioDir, "yarn.lock");
     if (isPnp && fs.existsSync(lockfile)) {
-      let directSpec;
+      let directSpec: string | undefined;
       try {
         directSpec = readDirectHardhatSpec(scenarioDir);
       } catch (readError) {
@@ -137,19 +167,20 @@ function resolveScenario(scenarioDir) {
   }
 }
 
-// Decide the outcome for one scenario. `expected` holds:
-//   version     the locally published hardhat version (post-benchmark)
-//   preVersion  the packages/hardhat version before the benchmark ran
-//   stamp       this run's unique stamp
-function classifyScenario(id, resolution, expected) {
-  if (resolution.error !== undefined) {
+// Decide the outcome for one scenario.
+export function classifyScenario(
+  id: string,
+  resolution: ScenarioResolution,
+  expected: ExpectedBuild,
+): Verdict {
+  if ("error" in resolution) {
     return {
       ok: false,
       message: `${id}: could not resolve the scenario's hardhat (${resolution.error})`,
     };
   }
 
-  if (resolution.pnpLockedVersions !== undefined) {
+  if ("pnpLockedVersions" in resolution) {
     return resolution.pnpLockedVersions.includes(expected.version)
       ? { ok: true, message: `OK (PnP lockfile, stamp unverifiable): ${id}` }
       : {
@@ -193,12 +224,12 @@ function classifyScenario(id, resolution, expected) {
   };
 }
 
-function warn(message) {
+function warn(message: string): void {
   // GitHub annotations render only the first line; collapse for readability.
   console.log(`::warning::${message.replace(/\r?\n/g, " ")}`);
 }
 
-function main() {
+function main(): void {
   const stamp = process.env.BENCH_RUN_STAMP;
   const preVersion = process.env.HH_PRE_VER;
   if (stamp === undefined || preVersion === undefined) {
@@ -212,11 +243,11 @@ function main() {
   // sinceReleasePublish bumps packages/hardhat/package.json in place, so
   // after the benchmark it holds the version that was published to Verdaccio.
   const hardhatPkgJson = path.resolve(
-    __dirname,
+    import.meta.dirname,
     "../../packages/hardhat/package.json",
   );
   const version = JSON.parse(fs.readFileSync(hardhatPkgJson, "utf8")).version;
-  const expected = { version, preVersion, stamp };
+  const expected: ExpectedBuild = { version, preVersion, stamp };
 
   const cloneDir = process.env.E2E_CLONE_DIR ?? DEFAULT_CLONE_DIR;
   console.log(
@@ -256,13 +287,9 @@ function main() {
   }
 }
 
-module.exports = {
-  classifyScenario,
-  resolveInstalledHardhat,
-  resolveScenario,
-  yarnLockHardhatVersions,
-};
-
-if (require.main === module) {
+if (
+  process.argv[1] !== undefined &&
+  path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)
+) {
   main();
 }

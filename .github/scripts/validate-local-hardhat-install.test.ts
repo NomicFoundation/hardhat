@@ -1,22 +1,29 @@
-// Unit tests for validate-local-hardhat-install.cjs.
+// Unit tests for validate-local-hardhat-install.ts.
 //
 // Run with Node's built-in test runner (no extra dependencies):
-//   node --test .github/scripts/validate-local-hardhat-install.test.cjs
+//   node --test .github/scripts/validate-local-hardhat-install.test.ts
 
-const test = require("node:test");
-const assert = require("node:assert/strict");
-const fs = require("node:fs");
-const os = require("node:os");
-const path = require("node:path");
+import assert from "node:assert/strict";
+import fs from "node:fs";
+import os from "node:os";
+import path from "node:path";
+import test, { type TestContext } from "node:test";
 
-const {
+import {
   classifyScenario,
   resolveInstalledHardhat,
   resolveScenario,
   yarnLockHardhatVersions,
-} = require("./validate-local-hardhat-install.cjs");
+  type ScenarioResolution,
+} from "./validate-local-hardhat-install.ts";
 
 const EXPECTED = { version: "3.9.2", preVersion: "3.9.1", stamp: "run-1" };
+
+// Narrow a resolution to its error variant, failing the test otherwise.
+function errorOf(resolution: ScenarioResolution): string {
+  assert.ok("error" in resolution, "expected an error resolution");
+  return resolution.error;
+}
 
 test("fresh install carrying this run's stamp is OK", () => {
   const verdict = classifyScenario(
@@ -151,7 +158,7 @@ test("yarnLockHardhatVersions only matches the scenario's own hardhat entry", ()
 
 // Build a fake installed scenario: node_modules/hardhat with a nested main
 // (like hardhat's real ./dist/src/index.js) to exercise the walk-up.
-function makeScenario(pkg) {
+function makeScenario(pkg: Record<string, unknown>): string {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), "validate-local-"));
   const hardhatDir = path.join(dir, "node_modules", "hardhat");
   fs.mkdirSync(path.join(hardhatDir, "dist", "src"), { recursive: true });
@@ -163,7 +170,7 @@ function makeScenario(pkg) {
   return dir;
 }
 
-test("resolveInstalledHardhat reads version and stamp from the installed manifest", (t) => {
+test("resolveInstalledHardhat reads version and stamp from the installed manifest", (t: TestContext) => {
   const dir = makeScenario({ version: "3.9.2", benchRunStamp: "run-1" });
   t.after(() => fs.rmSync(dir, { recursive: true, force: true }));
 
@@ -173,15 +180,14 @@ test("resolveInstalledHardhat reads version and stamp from the installed manifes
   });
 });
 
-test("resolveScenario reports an error for a dir without hardhat", (t) => {
+test("resolveScenario reports an error for a dir without hardhat", (t: TestContext) => {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), "validate-local-"));
   t.after(() => fs.rmSync(dir, { recursive: true, force: true }));
 
-  const resolution = resolveScenario(dir);
-  assert.match(resolution.error, /Cannot find module 'hardhat'/);
+  assert.match(errorOf(resolveScenario(dir)), /Cannot find module 'hardhat'/);
 });
 
-test("resolveScenario falls back to the yarn.lock for PnP scenarios", (t) => {
+test("resolveScenario falls back to the yarn.lock for PnP scenarios", (t: TestContext) => {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), "validate-local-"));
   t.after(() => fs.rmSync(dir, { recursive: true, force: true }));
   fs.writeFileSync(path.join(dir, ".pnp.cjs"), "");
@@ -205,7 +211,7 @@ test("resolveScenario falls back to the yarn.lock for PnP scenarios", (t) => {
   assert.deepEqual(resolveScenario(dir), { pnpLockedVersions: ["3.9.2"] });
 });
 
-test("resolveScenario errors for a PnP scenario without a direct hardhat dependency", (t) => {
+test("resolveScenario errors for a PnP scenario without a direct hardhat dependency", (t: TestContext) => {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), "validate-local-"));
   t.after(() => fs.rmSync(dir, { recursive: true, force: true }));
   fs.writeFileSync(path.join(dir, ".pnp.cjs"), "");
@@ -215,25 +221,21 @@ test("resolveScenario errors for a PnP scenario without a direct hardhat depende
     '"hardhat@npm:3.9.2":\n  version: 3.9.2\n',
   );
 
-  const resolution = resolveScenario(dir);
-  assert.match(resolution.error, /declares no hardhat dependency/);
+  assert.match(errorOf(resolveScenario(dir)), /declares no hardhat dependency/);
 });
 
-test("resolveScenario reports the underlying error for an unreadable PnP package.json", (t) => {
+test("resolveScenario reports the underlying error for an unreadable PnP package.json", (t: TestContext) => {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), "validate-local-"));
   t.after(() => fs.rmSync(dir, { recursive: true, force: true }));
   fs.writeFileSync(path.join(dir, ".pnp.cjs"), "");
   fs.writeFileSync(path.join(dir, "yarn.lock"), "");
 
-  const missing = resolveScenario(dir);
-  assert.match(missing.error, /could not read the PnP scenario's package.json/);
-  assert.match(missing.error, /ENOENT/);
+  const missing = errorOf(resolveScenario(dir));
+  assert.match(missing, /could not read the PnP scenario's package.json/);
+  assert.match(missing, /ENOENT/);
 
   fs.writeFileSync(path.join(dir, "package.json"), "{ not json");
-  const malformed = resolveScenario(dir);
-  assert.match(
-    malformed.error,
-    /could not read the PnP scenario's package.json/,
-  );
-  assert.match(malformed.error, /JSON/);
+  const malformed = errorOf(resolveScenario(dir));
+  assert.match(malformed, /could not read the PnP scenario's package.json/);
+  assert.match(malformed, /JSON/);
 });
