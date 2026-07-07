@@ -1313,7 +1313,7 @@ Double-check the paths you are providing to the \`test solidity\` task.`,
 - {firstSource}
 - {secondSource}
 
-EIP-712 cheatcodes resolve types by name, so each struct name must have a single canonical definition. Rename one of the structs, or scope your \`test.solidity.eip712Types.include\` / \`exclude\` globs in \`hardhat.config.ts\` to only one of them.`,
+EIP-712 cheatcodes resolve types by name, so each struct name must have a single canonical definition. {remediation}`,
         websiteTitle: "Duplicate EIP-712 struct name",
         websiteDescription: `Two struct definitions with the same name had different members. Type-name lookups via \`vm.eip712HashType\` and \`vm.eip712HashStruct\` would be ambiguous.`,
       },
@@ -1496,6 +1496,16 @@ Try re-running without these files, or without the flag.`,
         websiteDescription: `You are trying to build a list of files while using \`--no-contracts\` or \`--no-tests\`, but some of those files are incompatible with the flag you provided.
 
 For example, you may be trying to build a test file with \`--no-tests\`, which isn't a valid operation.`,
+      },
+      BUILD_INFO_COMPILER_TYPE_NOT_HANDLED: {
+        number: 918,
+        messageTemplate: `The build info you are trying to compile was produced by the "{compilerType}" compiler (version {version}), but no plugin registered a handler for that compiler type.
+
+Make sure the plugin that provides the "{compilerType}" compiler is installed and enabled in your Hardhat config.`,
+        websiteTitle: "No compiler registered for build info compiler type",
+        websiteDescription: `The build info you are trying to compile was produced by a non-\`solc\` compiler type, but no installed plugin registered a handler for that compiler type.
+
+Make sure the plugin that provides the compiler is installed and enabled in your Hardhat config.`,
       },
     },
     ARTIFACTS: {

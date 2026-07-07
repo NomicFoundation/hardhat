@@ -16,6 +16,19 @@ The entry-point of the plugins are meant to only export a description of the plu
 
 The only accepted imports in the `index.ts` file of plugins (both built-in and external) are their `type-extension`, types and `enums` from `hardhat`, `hardhat/config`, `hardhat/plugins` (for `definePlugin`), and potentially a simple file with constants. They can also import files that follow these same rules and restrictions. Everything else should be imported by a callback registered in the plugin object.
 
+Type extensions must be exported from the plugin entry-point as type-only exports, not imported for side effects:
+
+```ts
+export type * from "./type-extensions.js";
+```
+
+This keeps the declaration file reachable to TypeScript consumers without adding a runtime import to the compiled `index.js`. To make this safe and predictable:
+
+1. `type-extensions.ts` must contain only type-level module augmentation code and no runtime side effects.
+2. `type-extensions.ts` must not export named types. If it needs to be treated as a module, rely on `"moduleDetection": "force"` or use `export {};`.
+3. Type-extensions don't need to import the modules they are augmenting. This was an incorrect way to force the .ts file to be treated as a module. Use `export {};`, or better yet ["moduleDetection": "force"](https://www.typescriptlang.org/tsconfig/#moduleDetection).
+4. Avoid exporting arbitrary types from `index.ts`; otherwise downstream plugins may accidentally re-export them when they re-export your type extensions.
+
 ## A3: Always initialize the HRE using the `hre-initialization` module inside of `hardhat`
 
 If you are working on the `hardhat` package, and you need an instance of the HRE, use the `hre-initialization` module instead of using the package’s entry-point modules (e.g. `src/index.ts` and `src/hre.ts`), or the `HardhatRuntimeEnvironmentImplementation` directly.
