@@ -8,7 +8,7 @@ import type {
 
 import assert from "node:assert/strict";
 import { once } from "node:events";
-import { before, describe, it } from "node:test";
+import { afterEach, before, beforeEach, describe, it } from "node:test";
 
 import {
   assertHardhatInvariant,
@@ -33,6 +33,7 @@ import {
   InvalidArgumentsError,
   ProviderError,
 } from "../../../../../src/internal/builtin-plugins/network-manager/provider-errors.js";
+import { L1HardforkName } from "../../../../../src/internal/builtin-plugins/network-manager/edr/types/hardfork.js";
 import { EDR_NETWORK_REVERT_SNAPSHOT_EVENT } from "../../../../../src/internal/constants.js";
 import { FixedValueConfigurationVariable } from "../../../../../src/internal/core/configuration-variables.js";
 
@@ -776,6 +777,36 @@ describe("edr-provider", () => {
 
         assert.equal(providerConfig.transactionGasCap, false);
       });
+    });
+  });
+
+  describe("experimental hardfork warning", () => {
+    let originalWarn: typeof console.warn;
+    let warnings: string[];
+
+    beforeEach(() => {
+      originalWarn = console.warn;
+      warnings = [];
+      console.warn = (...args: unknown[]) => {
+        warnings.push(args.map(String).join(" "));
+      };
+    });
+
+    afterEach(() => {
+      console.warn = originalWarn;
+    });
+
+    it("warns exactly once when creating a provider with an experimental hardfork", async () => {
+      await hre.network.create({
+        override: {
+          hardfork: L1HardforkName.AMSTERDAM,
+        },
+      });
+
+      const experimentalWarnings = warnings.filter((w) =>
+        w.includes(L1HardforkName.AMSTERDAM),
+      );
+      assert.equal(experimentalWarnings.length, 1);
     });
   });
 });
