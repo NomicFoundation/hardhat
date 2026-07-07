@@ -101,7 +101,7 @@ jobs:
         # Clone scenarios into the runner's temp dir instead of the default
         # /tmp/end-to-end, which persists across runs on the self-hosted
         # runner. The "Clean up temp dir" step below removes it after the run.
-        run: echo "E2E_CLONE_DIR=$RUNNER_TEMP/hardhat-e2e-clones" >> "$GITHUB_ENV"
+        run: echo "E2E_CLONE_DIR=${RUNNER_TEMP:?}/hardhat-e2e-clones" >> "$GITHUB_ENV"
 
       - name: Install packages
         run: sfw pnpm install --frozen-lockfile --prefer-offline
@@ -129,7 +129,7 @@ jobs:
         # keyed by integrity hash, so with fresh metadata pnpm derives the correct
         # hash and any stale entry is simply never matched. Keeping it is safe and
         # preserves install speed.
-        run: rm -rf "$HOME/.cache/pnpm"
+        run: rm -rf "${HOME:?}/.cache/pnpm"
 
       - name: Run regression benchmark
         env:
