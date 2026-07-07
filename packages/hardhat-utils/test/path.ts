@@ -171,6 +171,15 @@ describe("path", () => {
       assert.equal(sanitizeFilename("com1.log"), "com1_.log");
     });
 
+    it("Should avoid Windows reserved device names with superscript digits", () => {
+      assert.equal(sanitizeFilename("COM¹"), "COM¹_");
+      assert.equal(sanitizeFilename("COM²"), "COM²_");
+      assert.equal(sanitizeFilename("COM³.log"), "COM³_.log");
+      assert.equal(sanitizeFilename("LPT¹"), "LPT¹_");
+      assert.equal(sanitizeFilename("LPT²"), "LPT²_");
+      assert.equal(sanitizeFilename("LPT³.txt"), "LPT³_.txt");
+    });
+
     it("Should preserve names that only contain Windows reserved device names as substrings", () => {
       assert.equal(sanitizeFilename("CONTRACT"), "CONTRACT");
       assert.equal(sanitizeFilename("XCOM1"), "XCOM1");

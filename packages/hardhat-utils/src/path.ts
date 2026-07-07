@@ -1,7 +1,7 @@
 import path from "node:path";
 
 const WINDOWS_RESERVED_FILENAME_PATTERN =
-  /^(con|prn|aux|nul|com[1-9]|lpt[1-9])(\..*)?$/i;
+  /^(con|prn|aux|nul|com[1-9¹²³]|lpt[1-9¹²³])(\..*)?$/i;
 
 /**
  * Resolves a user-provided path into an absolute path.
