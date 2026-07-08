@@ -1,20 +1,23 @@
 {
   "$schema": "../../scripts/end-to-end/schema/scenario.schema.json",
-  "description": "Aave v4 fork compiled at solc 0.8.34, tracking solx compile times (solc profiles available for manual runs).",
+  "description": "Aave v4 fork compiled at solc 0.8.34, tracking solx compile times (solc profiles available for manual runs). Compiles src only (--no-tests): the Foundry test contracts instantiate Hub/SpokeInstance, re-embedding them into legacy compilation jobs past the per-file via-IR overrides. EVM_DISABLE_MEMORY_SAFE_ASM_CHECK lets solx spill SpokeInstance's stack-too-deep despite the memory-unsafe assembly in the vendored OZ Arrays.sol (unannotated; upstream OZ marks those blocks memory-safe).",
   "tags": ["external-repo", "solx"],
   "repo": "anaPerezGhiglia/aave-v4",
   "commit": "f729aeff7cc61d576e8f89e818e05265ec9f65e9",
   "packageManager": "yarn",
   "submodules": true,
   "preinstall": "./preinstall.sh",
-  "defaultCommand": "npx hardhat compile --build-profile solx",
+  "env": {
+    "EVM_DISABLE_MEMORY_SAFE_ASM_CHECK": "1"
+  },
+  "defaultCommand": "npx hardhat compile --build-profile solx --no-tests",
   "benchmark": {
     "commands": {
       "prime compilers": {
         "runs": 1,
         "steps": {
           "download solx and warm caches": {
-            "command": "npx hardhat compile --build-profile solx && npx hardhat clean",
+            "command": "npx hardhat compile --build-profile solx --no-tests && npx hardhat clean",
             "measure": false
           }
         }
@@ -22,12 +25,12 @@
       "cold compile solx": {
         "runs": 2,
         "prepare": "npx hardhat clean",
-        "command": "npx hardhat compile --build-profile solx"
+        "command": "npx hardhat compile --build-profile solx --no-tests"
       },
       "cold compile solx via-ir": {
         "runs": 2,
         "prepare": "npx hardhat clean",
-        "command": "npx hardhat compile --build-profile solx-via-ir"
+        "command": "npx hardhat compile --build-profile solx-via-ir --no-tests"
       }
     }
   }
