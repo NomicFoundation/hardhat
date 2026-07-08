@@ -103,6 +103,15 @@ jobs:
       - name: Build
         run: pnpm build
 
+      - name: Stamp the hardhat package for validation
+        # Embed a unique per-run marker in the hardhat that gets published to
+        # Verdaccio. Also record the pre-run version so the validation step
+        # can tell whether hardhat was republished at all.
+        run: |
+          echo "BENCH_RUN_STAMP=${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}" >> "$GITHUB_ENV"
+          echo "HH_PRE_VER=$(node -p "require('./packages/hardhat/package.json').version")" >> "$GITHUB_ENV"
+          npm pkg set benchRunStamp="${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}" --prefix packages/hardhat
+
       # pnpm 11 skips creating bin symlinks whose target isn't built at install
       # time; relink workspace bins (e.g. hardhat) now that the build output
       # exists. See pnpm/pnpm#10524.
@@ -113,6 +122,23 @@ jobs:
         env:
           ALCHEMY_URL: ${{ secrets.ALCHEMY_URL }}
         run: pnpm bench:regression --use-local --force-checkout --output regression-report.json
+
+      - name: Validate scenarios used the local Hardhat build
+        # Diagnostic only: verifies each E2E scenario resolved the hardhat
+        # published to Verdaccio by THIS run — identified by the stamp embedded
+        # above — rather than a stale copy from a package-manager cache on the
+        # self-hosted runner or the public npm registry. Emits warnings instead
+        # of errors so it can never regress the benchmark runner.
+        run: node .github/scripts/validate-local-hardhat-install.ts
+
+      # Persist the (possibly partial) benchmark output in the job log so it
+      # survives cleanup and is available for debugging.
+      - name: Dump regression report on failure
+        if: failure()
+        run: |
+          echo "== regression-report.json =="
+          cat regression-report.json 2>/dev/null \
+            || echo "(no regression-report.json produced)"
 
       - name: Store benchmark result
         uses: benchmark-action/github-action-benchmark@4bdcce38c94cec68da58d012ac24b7b1155efe8b # v1.20.7
