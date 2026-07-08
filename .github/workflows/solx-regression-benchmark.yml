@@ -126,6 +126,30 @@ jobs:
             --tests "test/token/ERC20/ERC20.test.js test/token/ERC721/ERC721.test.js test/token/ERC1155/ERC1155.test.js test/access/AccessControl.test.js test/access/Ownable.test.js" \
             >> "$GITHUB_STEP_SUMMARY"
 
+      # Capture the exact standard-JSON solx receives, per scenario and solx
+      # profile (one subdirectory per scenario), so perf runs can replay
+      # `solx --standard-json < input.json` without the Hardhat fixture.
+      # Runs before the result is stored so the replay entries below make it
+      # into the report. Best-effort: never fails the run (solx is
+      # experimental).
+      - name: Dump solx standard JSON
+        continue-on-error: true
+        run: pnpm bench:dump-standard-json --tag solx --out solx-standard-json
+
+      # Raw solx over a dump subset — no Hardhat in the loop. The delta vs
+      # the same scenario's "cold compile solx" cell is Hardhat's overhead,
+      # tracked over time on this same runner. Deliberately a small subset
+      # (one small + one medium scenario, ~90 s total) so the job's runtime
+      # doesn't balloon.
+      - name: Replay standard JSON (raw solx)
+        continue-on-error: true
+        run: |
+          pnpm bench:replay-standard-json \
+            --dumps solx-standard-json \
+            --report solx-regression-report.json \
+            --dump ens-verifiable-factory-solx/solx-legacy-dwarf.json \
+            --dump uniswap-v4-core-solx/solx-legacy-dwarf.json
+
       - name: Store benchmark result
         uses: benchmark-action/github-action-benchmark@4bdcce38c94cec68da58d012ac24b7b1155efe8b # v1.20.7
         with:
@@ -144,15 +168,6 @@ jobs:
           # fail the build on them.
           fail-on-alert: false
           summary-always: true
-
-      # Capture the exact standard-JSON solx receives, per scenario and solx
-      # profile (one subdirectory per scenario), so perf runs can replay
-      # `solx --standard-json < input.json` without the Hardhat fixture.
-      # Best-effort: runs after the benchmark is stored and never fails the run
-      # (solx is experimental).
-      - name: Dump solx standard JSON
-        continue-on-error: true
-        run: pnpm bench:dump-standard-json --tag solx --out solx-standard-json
 
       - name: Upload solx standard JSON
         if: always()
