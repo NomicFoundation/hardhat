@@ -76,16 +76,25 @@ const NO_DWARF_VARIANTS: readonly Variant[] = [
  * A scenario opts into the no-DWARF dumps by benchmarking no-DWARF cells:
  * declaring them requires the noDwarfBenchmarkPlugin, which is also exactly
  * what makes the no-DWARF dumps meaningful. Derived from scenario.json, so
- * dump variants can never drift from the benchmarked cells.
+ * dump variants can never drift from the benchmarked cells. The same
+ * derivation applies to --no-tests: a scenario whose benchmarked cells skip
+ * test compilation must be dumped without tests too, or the dump captures a
+ * different (possibly uncompilable) build than the one being benchmarked.
  */
 function variantsFor(definition: ScenarioDefinition): readonly Variant[] {
-  const declaresNoDwarfCells = JSON.stringify(
-    definition.benchmark?.commands ?? {},
-  ).includes("HARDHAT_SOLX_DISABLE_DEBUG_INFO");
+  const commandsJson = JSON.stringify(definition.benchmark?.commands ?? {});
 
-  return declaresNoDwarfCells
+  const variants = commandsJson.includes("HARDHAT_SOLX_DISABLE_DEBUG_INFO")
     ? [...DWARF_VARIANTS, ...NO_DWARF_VARIANTS]
-    : DWARF_VARIANTS;
+    : [...DWARF_VARIANTS];
+
+  if (!commandsJson.includes("--no-tests")) {
+    return variants;
+  }
+  return variants.map((variant) => ({
+    ...variant,
+    flags: [...variant.flags, "--no-tests"],
+  }));
 }
 
 function getArg(flag: string): string | undefined {
@@ -130,10 +139,18 @@ function main(): void {
     for (const { file, flags, env } of variantsFor(definition)) {
       const dumpPath = path.join(scenarioOutDir, file);
       execSync("npx hardhat clean", { cwd: workingDir, stdio: "ignore" });
+      // definition.env carries scenario-level compile requirements (e.g.
+      // aave-v4-solx's EVM_DISABLE_MEMORY_SAFE_ASM_CHECK); without it the
+      // dump compile fails where the benchmarked cells succeed.
       execSync(["npx", "hardhat", "compile", ...flags].join(" "), {
         cwd: workingDir,
         stdio: "ignore",
-        env: { ...process.env, ...env, SOLX_STANDARD_JSON_DEBUG: dumpPath },
+        env: {
+          ...process.env,
+          ...definition.env,
+          ...env,
+          SOLX_STANDARD_JSON_DEBUG: dumpPath,
+        },
       });
 
       if (!existsSync(dumpPath)) {
