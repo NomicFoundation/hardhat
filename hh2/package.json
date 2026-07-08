@@ -1,0 +1,19 @@
+{
+  "name": "hh2-storage-verbosity-demo",
+  "private": true,
+  "version": "0.0.1",
+  "description": "Hardhat 2 side of the SLOAD/SSTORE verbosity demo: hardhat-tracer DOES show storage ops",
+  "scripts": {
+    "test": "hardhat test",
+    "trace": "hardhat test --trace",
+    "fulltrace": "hardhat test --fulltrace"
+  },
+  "devDependencies": {
+    "@nomicfoundation/hardhat-chai-matchers": "2.0.8",
+    "@nomicfoundation/hardhat-ethers": "3.0.9",
+    "chai": "^4.3.10",
+    "ethers": "^6.13.0",
+    "hardhat": "2.26.1",
+    "hardhat-tracer": "3.2.1"
+  }
+}

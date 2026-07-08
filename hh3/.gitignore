@@ -1,0 +1,10 @@
+# Node modules (symlinked to the workspace when run inside this monorepo)
+/node_modules
+
+# Compilation output
+/dist
+
+# Hardhat build artifacts / cache
+/artifacts
+/cache
+/types
