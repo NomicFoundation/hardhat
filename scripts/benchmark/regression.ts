@@ -483,6 +483,7 @@ function runStepsPhase(
 }
 
 const OUTPUT_TAIL_LINES = 50;
+const ERROR_LINE_LIMIT = 20;
 
 function formatOutputTails(streams: {
   stdout?: string;
@@ -499,7 +500,22 @@ function formatOutputTails(streams: {
         omitted > 0
           ? `  --- ${name} (last ${OUTPUT_TAIL_LINES} of ${lines.length} lines) ---`
           : `  --- ${name} ---`;
-      return `${header}\n${kept.join("\n")}`;
+      // A compiler error ("Error: ...", "Error HHE910: ...") can sit thousands
+      // of warning lines above the tail; surface those lines separately so the
+      // failure is diagnosable from the log alone.
+      const errorLines = lines
+        .slice(0, omitted)
+        .filter((line) => /^Error[ :]/.test(line));
+      const shown = errorLines.slice(0, ERROR_LINE_LIMIT);
+      const errorSection =
+        shown.length > 0
+          ? `  --- ${name} error lines (above the tail) ---\n${shown.join("\n")}` +
+            (errorLines.length > shown.length
+              ? `\n  ... ${errorLines.length - shown.length} more`
+              : "") +
+            "\n"
+          : "";
+      return `${errorSection}${header}\n${kept.join("\n")}`;
     })
     .join("\n");
 }
