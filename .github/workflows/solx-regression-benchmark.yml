@@ -67,6 +67,15 @@ jobs:
       - name: Build
         run: pnpm build
 
+      - name: Stamp the hardhat package for validation
+        # Embed a unique per-run marker in the hardhat that gets published to
+        # Verdaccio. Also record the pre-run version so the validation step
+        # can tell whether hardhat was republished at all.
+        run: |
+          echo "BENCH_RUN_STAMP=${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}" >> "$GITHUB_ENV"
+          echo "HH_PRE_VER=$(node -p "require('./packages/hardhat/package.json').version")" >> "$GITHUB_ENV"
+          npm pkg set benchRunStamp="${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}" --prefix packages/hardhat
+
       # pnpm 11 skips creating bin symlinks whose target isn't built at install
       # time; relink workspace bins (e.g. hardhat) now that the build output
       # exists. See pnpm/pnpm#10524.
@@ -78,6 +87,23 @@ jobs:
       # bench:regression, not under `sfw`, so no firewall allowlist is needed.
       - name: Run solx regression benchmark
         run: pnpm bench:regression --use-local --force-checkout --tag solx --output solx-regression-report.json
+
+      - name: Validate scenarios used the local Hardhat build
+        # Diagnostic only: verifies each E2E scenario resolved the hardhat
+        # published to Verdaccio by THIS run — identified by the stamp embedded
+        # above — rather than a stale copy from a package-manager cache on the
+        # self-hosted runner or the public npm registry. Emits warnings instead
+        # of errors so it can never regress the benchmark runner.
+        run: node .github/scripts/validate-local-hardhat-install.ts
+
+      # Persist the (possibly partial) benchmark output in the job log so it
+      # survives cleanup and is available for debugging.
+      - name: Dump regression report on failure
+        if: failure()
+        run: |
+          echo "== solx-regression-report.json =="
+          cat solx-regression-report.json 2>/dev/null \
+            || echo "(no solx-regression-report.json produced)"
 
       # Deterministic output-size metrics (no execution): compile each profile in
       # the already-cloned scenario and append bytecode-size entries to the report.
