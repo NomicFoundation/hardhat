@@ -215,6 +215,38 @@ jobs:
           cd "$RUNNER_TEMP"
           rm -rf "$CORPUS_REPO_DIR"
 
+      # PR preview of the corpus: one throwaway orphan commit, force-pushed
+      # over the solx-corpus-preview branch each run, so a PR's dumps are
+      # fetchable without waiting for a merge (CI artifacts expire and need
+      # auth to download). Single slot, last writer wins; main's history and
+      # baselines stay untouched. Same solx-corpus/ layout as the real
+      # publish, so consumers only switch the ref. The manifest's runUrl
+      # records which run produced the slot's content.
+      - name: Publish standard-JSON corpus preview (PR)
+        if: ${{ github.event_name == 'pull_request' }}
+        env:
+          BENCHMARK_TOKEN: ${{ secrets.BENCHMARK_GITHUB_TOKEN }}
+        run: |
+          if [ ! -f solx-standard-json/manifest.json ]; then
+            echo "::warning::No complete dump set (manifest.json missing) — skipping corpus preview"
+            exit 0
+          fi
+          PREVIEW_DIR="${RUNNER_TEMP}/solx-corpus-preview"
+          rm -rf "$PREVIEW_DIR"
+          mkdir -p "$PREVIEW_DIR/solx-corpus"
+          cp -r solx-standard-json/. "$PREVIEW_DIR/solx-corpus/"
+          cd "$PREVIEW_DIR"
+          git init -q -b solx-corpus-preview
+          git add -A
+          git -c user.name="github-actions[bot]" \
+              -c user.email="41898282+github-actions[bot]@users.noreply.github.com" \
+              commit -q -m "solx-corpus preview from ${GITHUB_REPOSITORY} run ${GITHUB_RUN_ID} (${GITHUB_SHA})"
+          git push --force \
+            "https://x-access-token:${BENCHMARK_TOKEN}@github.com/nomic-foundation-automation/hardhat-benchmark-results.git" \
+            HEAD:refs/heads/solx-corpus-preview
+          cd "$RUNNER_TEMP"
+          rm -rf "$PREVIEW_DIR"
+
       - name: Notify failures
         # Only ping Slack when a commit/merge to main fails
         if: ${{ failure() && github.event_name == 'push' && github.ref == 'refs/heads/main' }}
