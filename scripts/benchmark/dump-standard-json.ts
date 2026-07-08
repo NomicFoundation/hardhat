@@ -1,5 +1,12 @@
 import { execSync } from "node:child_process";
-import { existsSync, mkdirSync, statSync } from "node:fs";
+import { createHash } from "node:crypto";
+import {
+  existsSync,
+  mkdirSync,
+  readFileSync,
+  statSync,
+  writeFileSync,
+} from "node:fs";
 import path from "node:path";
 
 import { DEFAULT_CLONE_DIR } from "../end-to-end/helpers/args.ts";
@@ -22,6 +29,12 @@ DESCRIPTION
   and installed, so it runs after the timing benchmark. Dumps are written to a
   per-scenario subdirectory of --out, so multiple scenarios share one artifact
   without collision.
+
+  A manifest.json with provenance (hardhat commit, CI run URL, hardhat-solx
+  version, scenario pins, per-file sha256) is written to --out LAST, so its
+  presence marks a complete dump set — consumers (the corpus publish step,
+  downstream solx benchmarks) must treat a dump directory without it as
+  partial.
 
 OPTIONS
   --scenario <path>      Scenario folder/file (same as bench:regression)
@@ -104,6 +117,47 @@ function getArg(flag: string): string | undefined {
     : undefined;
 }
 
+const REPO_ROOT = path.resolve(import.meta.dirname, "..", "..");
+
+interface ManifestScenario {
+  repo: string;
+  commit: string;
+  files: Record<string, string>;
+}
+
+function sha256(filePath: string): string {
+  return createHash("sha256").update(readFileSync(filePath)).digest("hex");
+}
+
+// No timestamp on purpose: identical dumps must produce an identical manifest
+// (modulo runUrl), so the publish step can skip no-op corpus versions.
+function writeManifest(
+  outDir: string,
+  scenarios: Record<string, ManifestScenario>,
+): void {
+  const manifest = {
+    hardhatCommit: execSync("git rev-parse HEAD", {
+      cwd: REPO_ROOT,
+      encoding: "utf8",
+    }).trim(),
+    runUrl:
+      process.env.GITHUB_RUN_ID !== undefined
+        ? `${process.env.GITHUB_SERVER_URL}/${process.env.GITHUB_REPOSITORY}/actions/runs/${process.env.GITHUB_RUN_ID}`
+        : null,
+    hardhatSolxVersion: JSON.parse(
+      readFileSync(
+        path.join(REPO_ROOT, "packages", "hardhat-solx", "package.json"),
+        "utf8",
+      ),
+    ).version,
+    scenarios,
+  };
+  writeFileSync(
+    path.join(outDir, "manifest.json"),
+    `${JSON.stringify(manifest, null, 2)}\n`,
+  );
+}
+
 function main(): void {
   const scenarioPath = getArg("--scenario");
   const tag = getArg("--tag");
@@ -127,10 +181,17 @@ function main(): void {
     getArg("--e2e-clone-dir") ?? process.env.E2E_CLONE_DIR ?? DEFAULT_CLONE_DIR;
 
   let dumped = 0;
+  const manifestScenarios: Record<string, ManifestScenario> = {};
 
   for (const jsonPath of scenarioPaths) {
     const { id, workingDir, definition } = loadScenario(cloneDir, jsonPath);
     const scenarioOutDir = path.join(outDir, id);
+    const manifestScenario: ManifestScenario = {
+      repo: definition.repo,
+      commit: definition.commit,
+      files: {},
+    };
+    manifestScenarios[id] = manifestScenario;
 
     // solx writes the dump to the exact path in SOLX_STANDARD_JSON_DEBUG
     // without creating parent directories, so make sure the target dir exists.
@@ -159,9 +220,12 @@ function main(): void {
         );
       }
       console.log(`${id}/${file}: ${statSync(dumpPath).size} B`);
+      manifestScenario.files[file] = sha256(dumpPath);
       dumped++;
     }
   }
+
+  writeManifest(outDir, manifestScenarios);
 
   console.log(
     `Wrote ${dumped} standard-JSON dump(s) for ${scenarioPaths.length} scenario(s) to ${outDir}`,

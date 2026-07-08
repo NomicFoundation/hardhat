@@ -162,6 +162,44 @@ jobs:
           path: solx-standard-json/
           if-no-files-found: warn
 
+      # Corpus versions are commits in the benchmark-results repo; downstream
+      # solx benchmarks pin one and replay the dumps without the Hardhat
+      # fixture. Same gating as the baseline auto-push above: main only, PR
+      # runs must not touch the shared repo. manifest.json is written last by
+      # the dump script, so its absence means a partial dump set — skip rather
+      # than publish (or wipe the corpus with) an incomplete one. Skip no-op
+      # versions: only the manifest's runUrl changes when the dumps are
+      # byte-identical, and that alone isn't a new corpus.
+      - name: Publish standard-JSON corpus
+        if: ${{ github.ref == 'refs/heads/main' && github.event_name != 'pull_request' }}
+        env:
+          BENCHMARK_TOKEN: ${{ secrets.BENCHMARK_GITHUB_TOKEN }}
+        run: |
+          if [ ! -f solx-standard-json/manifest.json ]; then
+            echo "::warning::No complete dump set (manifest.json missing) — skipping corpus publish"
+            exit 0
+          fi
+          CORPUS_REPO_DIR="${RUNNER_TEMP}/hardhat-benchmark-results"
+          rm -rf "$CORPUS_REPO_DIR"
+          git clone --depth 1 \
+            "https://x-access-token:${BENCHMARK_TOKEN}@github.com/nomic-foundation-automation/hardhat-benchmark-results.git" \
+            "$CORPUS_REPO_DIR"
+          rm -rf "$CORPUS_REPO_DIR/solx-corpus"
+          mkdir -p "$CORPUS_REPO_DIR/solx-corpus"
+          cp -r solx-standard-json/. "$CORPUS_REPO_DIR/solx-corpus/"
+          cd "$CORPUS_REPO_DIR"
+          git add -A solx-corpus
+          if git diff --cached --quiet -- solx-corpus ':(exclude)solx-corpus/manifest.json'; then
+            echo "Corpus unchanged; skipping publish"
+          else
+            git -c user.name="github-actions[bot]" \
+                -c user.email="41898282+github-actions[bot]@users.noreply.github.com" \
+                commit -m "solx-corpus: update from ${GITHUB_REPOSITORY}@${GITHUB_SHA} (run ${GITHUB_RUN_ID})"
+            git push origin HEAD:main
+          fi
+          cd "$RUNNER_TEMP"
+          rm -rf "$CORPUS_REPO_DIR"
+
       - name: Notify failures
         # Only ping Slack when a commit/merge to main fails
         if: ${{ failure() && github.event_name == 'push' && github.ref == 'refs/heads/main' }}
