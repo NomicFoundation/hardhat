@@ -58,6 +58,26 @@ describe("Hardhat Node plugin", () => {
     );
   });
 
+  describe("grep filtering", () => {
+    it("runs only the tests whose name matches --grep", async () => {
+      // The fixture defines `keep_alpha` (passes) and `drop_beta` (throws if it
+      // runs). With `--grep keep_alpha`, only `keep_alpha` should run, so the
+      // CLI must exit 0. If the filter were ignored, `drop_beta` would also run
+      // and fail, and the CLI would exit non-zero.
+      const { exitCode, stdout, stderr } = await runHardhatTest(
+        path.join(FIXTURES_DIR, "grep-filtering"),
+        {},
+        ["--grep", "keep_alpha"],
+      );
+
+      assert.equal(
+        exitCode,
+        0,
+        `expected only 'keep_alpha' to run under '--grep keep_alpha', but the run failed (exit ${String(exitCode)}) — 'drop_beta' was likely not filtered out:\n--- stdout ---\n${stdout}\n--- stderr ---\n${stderr}`,
+      );
+    });
+  });
+
   describe("build invocation", () => {
     // These tests only check that the `build` task is called with the
     // right `noTests` argument. They don't need to actually run any tests.

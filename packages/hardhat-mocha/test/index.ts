@@ -1,7 +1,9 @@
 import type { HardhatRuntimeEnvironment, TaskArguments } from "hardhat/types";
 
 import assert from "node:assert/strict";
+import path from "node:path";
 import { describe, it } from "node:test";
+import { fileURLToPath } from "node:url";
 
 import { HardhatError } from "@nomicfoundation/hardhat-errors";
 import {
@@ -13,6 +15,12 @@ import { overrideTask } from "hardhat/config";
 import { createHardhatRuntimeEnvironment } from "hardhat/hre";
 
 import HardhatMochaPlugin from "../src/index.js";
+
+import { runHardhatTest } from "./helpers/run-hardhat.js";
+
+const FIXTURES_DIR = fileURLToPath(
+  new URL("./fixture-projects", import.meta.url),
+);
 
 describe("Hardhat Mocha plugin", () => {
   describe("Success", () => {
@@ -33,6 +41,26 @@ describe("Hardhat Mocha plugin", () => {
           summary: { failed: 0, passed: 2, skipped: 0, todo: 0 },
         },
       });
+    });
+  });
+
+  describe("grep filtering", () => {
+    it("runs only the tests whose name matches --grep", async () => {
+      // The fixture defines `keep_alpha` (passes) and `drop_beta` (throws if it
+      // runs). With `--grep keep_alpha`, only `keep_alpha` should run, so the
+      // CLI must exit 0. If the filter were ignored, `drop_beta` would also run
+      // and fail, and the CLI would exit non-zero.
+      const { exitCode, stdout, stderr } = await runHardhatTest(
+        path.join(FIXTURES_DIR, "grep-filtering"),
+        {},
+        ["--grep", "keep_alpha"],
+      );
+
+      assert.equal(
+        exitCode,
+        0,
+        `expected only 'keep_alpha' to run under '--grep keep_alpha', but the run failed (exit ${String(exitCode)}) — 'drop_beta' was likely not filtered out:\n--- stdout ---\n${stdout}\n--- stderr ---\n${stderr}`,
+      );
     });
   });
 

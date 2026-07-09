@@ -2,26 +2,24 @@ import { spawn } from "node:child_process";
 import { fileURLToPath } from "node:url";
 
 /**
- * Spawns the Hardhat CLI as a child process to run the `test nodejs` task in a
+ * Spawns the Hardhat CLI as a child process to run the `test mocha` task in a
  * given fixture project.
  *
  * Why a subprocess?
  *
- * The `hardhat-node-test-runner` plugin calls `node:test`'s `run()` with
- * `isolation: "none"`, which executes every test file inline in the current
- * process instead of spawning a subprocess per file. That is intentional for
- * performance and behavioral consistency between files.
+ * Because of how the ESM module cache works, the `hardhat-mocha` task can only
+ * complete one real test run per process: `mocha.loadFilesAsync()` does not
+ * work correctly if used twice within the same process, so the task guards
+ * against that and throws `TEST_TASK_ESM_TESTS_RUN_TWICE` on the second run.
  *
- * The side effect is that we cannot invoke the `test nodejs` task *in-process*
- * from tests that are themselves running under `node --test`: we would end up
- * nesting a `node:test` run inside another `node:test` run in the same
- * process, which either hangs (Node 24) or crashes with IPC/event-loop errors
- * (Node 22).
+ * `test/index.ts` already performs one in-process run (the "should work"
+ * scenario), so any additional scenario that needs a *real* run — such as
+ * exercising the `--grep` name filter — cannot call the task in-process
+ * without tripping that guard.
  *
- * By spawning a fresh Hardhat CLI process here, the inner `run()` gets its own
- * realm: no nesting, `isolation: "none"` is still exercised for real inside
- * that child process, and the outer `node --test` just observes the exit
- * code.
+ * By spawning a fresh Hardhat CLI process here, the grep run gets its own
+ * realm where the guard starts clean, the filtering is exercised for real, and
+ * the outer `node --test` run just observes the child's exit code.
  */
 
 /**
@@ -44,14 +42,14 @@ export interface RunHardhatTestResult {
 }
 
 /**
- * Runs `hardhat test nodejs --no-compile` in the given fixture directory.
+ * Runs `hardhat test mocha --no-compile` in the given fixture directory.
  *
  * @param cwd Absolute path to the fixture project (where its `hardhat.config`
  *   lives).
  * @param envOverrides Extra env vars merged onto the parent process env.
  *   Useful to seed values the fixture's assertions expect — e.g. setting
  *   `NODE_ENV=HELLO` so the inner test can assert it was preserved.
- * @param extraArgs Extra CLI arguments appended after `test nodejs
+ * @param extraArgs Extra CLI arguments appended after `test mocha
  *   --no-compile` — e.g. `["--grep", "keep"]` to exercise the name filter.
  */
 export async function runHardhatTest(
@@ -74,7 +72,7 @@ export async function runHardhatTest(
 
   const child = spawn(
     process.execPath,
-    [HARDHAT_CLI_PATH, "test", "nodejs", "--no-compile", ...extraArgs],
+    [HARDHAT_CLI_PATH, "test", "mocha", "--no-compile", ...extraArgs],
     {
       cwd,
       env,
