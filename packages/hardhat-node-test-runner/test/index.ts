@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import path from "node:path";
 import { describe, it } from "node:test";
 import { fileURLToPath } from "node:url";
+import { stripVTControlCharacters } from "node:util";
 
 import { overrideTask } from "hardhat/config";
 import { createHardhatRuntimeEnvironment } from "hardhat/hre";
@@ -74,6 +75,16 @@ describe("Hardhat Node plugin", () => {
         exitCode,
         0,
         `expected only 'keep_alpha' to run under '--grep keep_alpha', but the run failed (exit ${String(exitCode)}) — 'drop_beta' was likely not filtered out:\n--- stdout ---\n${stdout}\n--- stderr ---\n${stderr}`,
+      );
+
+      // Guard against the filter matching *nothing*: if `keep_alpha` were also
+      // filtered out, zero tests would run and the CLI would still exit 0,
+      // making the exit-code check above a false positive. Assert that at least
+      // one test actually ran and passed.
+      assert.match(
+        stripVTControlCharacters(stdout + stderr),
+        /\b[1-9]\d* passing\b/,
+        `expected at least one test ('keep_alpha') to run under '--grep keep_alpha', but the reporter showed none passing:\n--- stdout ---\n${stdout}\n--- stderr ---\n${stderr}`,
       );
     });
   });
