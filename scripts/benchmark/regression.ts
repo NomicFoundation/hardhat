@@ -61,8 +61,10 @@ DESCRIPTION
   empty one) fail pre-flight with a summary of every offending file.
 
   Writes a flat JSON array in benchmark-action/github-action-benchmark's
-  customSmallerIsBetter format. Per-run times are preserved in the "extra"
-  field as a JSON-stringified object.
+  customSmallerIsBetter format. Each hyperfine command emits its wall-clock
+  time plus a sibling "<name> (cpu)" entry with the total CPU time
+  (user+system). Each entry stringifies its detail (per-run wall-clock
+  samples; mean user/system) into the "extra" field.
 
 OPTIONS
   --output <path>       Required. Aggregated JSON destination
@@ -410,7 +412,9 @@ async function runScenario(
       }),
     );
 
-    entries.push(toEntry(scenario.id, name, readHyperfineResult(exportPath)));
+    const result = readHyperfineResult(exportPath);
+    entries.push(toEntry(scenario.id, name, result));
+    entries.push(toCpuEntry(scenario.id, name, result.user, result.system));
   }
 
   return entries;
@@ -573,9 +577,15 @@ function buildBenchArgs(
   };
 }
 
-function readHyperfineResult(exportPath: string): BenchmarkStats {
+// hyperfine's per-result object carries mean `user`/`system` CPU time.
+interface HyperfineResult extends BenchmarkStats {
+  user: number;
+  system: number;
+}
+
+function readHyperfineResult(exportPath: string): HyperfineResult {
   const raw = JSON.parse(readFileSync(exportPath, "utf-8")) as {
-    results: BenchmarkStats[];
+    results: HyperfineResult[];
   };
 
   if (!Array.isArray(raw.results) || raw.results.length === 0) {
@@ -602,6 +612,22 @@ function toEntry(
       median: result.median,
       mean: result.mean,
     }),
+  };
+}
+
+function toCpuEntry(
+  scenarioId: string,
+  phaseLabel: string,
+  user: number,
+  system: number,
+): BenchmarkEntry {
+  return {
+    name: `${scenarioId} / ${phaseLabel} (cpu)`,
+    unit: "s",
+    value: user + system,
+    // hyperfine reports only mean user/system (no per-run CPU samples).
+    range: "± 0",
+    extra: JSON.stringify({ user, system }),
   };
 }
 

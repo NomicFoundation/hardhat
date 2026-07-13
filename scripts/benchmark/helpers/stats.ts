@@ -1,7 +1,9 @@
 /**
- * Statistical summary of a series of benchmark timings, in seconds. Shaped to
- * match the per-result object hyperfine exports, so both the hyperfine path and
- * the in-process steps path in regression.ts can feed the same `toEntry`.
+ * Statistical summary of a series of benchmark timings, in seconds. The shared
+ * shape feeding `toEntry`, produced by both regression.ts paths: the hyperfine
+ * export and the in-process steps path. Hyperfine's export additionally carries
+ * mean CPU time (user/system) that this shared shape omits and the steps path
+ * cannot measure.
  */
 export interface BenchmarkStats {
   mean: number;
