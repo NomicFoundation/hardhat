@@ -72,5 +72,7 @@ export function resolveNodeConnectionParams(
     );
   }
 
+  connectionParams.override = networkConfigOverride;
+
   return connectionParams;
 }
