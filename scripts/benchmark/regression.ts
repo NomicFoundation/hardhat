@@ -448,7 +448,7 @@ function runStepsPhase(
         execSync(step.command, {
           cwd: workingDir,
           stdio: ["ignore", "pipe", "pipe"],
-          encoding: "utf8",
+          encoding: "utf-8",
           // The default 1 MiB maxBuffer would make chatty-but-successful
           // steps (e.g. a full hardhat compile) throw ENOBUFS.
           maxBuffer: 64 * 1024 * 1024,
