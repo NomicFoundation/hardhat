@@ -5,17 +5,17 @@ import { HardhatError } from "@nomicfoundation/hardhat-errors";
 
 import { isSupportedChainType } from "../../../edr/chain-type.js";
 
-export interface NodeConnectionParams {
-  network: string;
-  chainType?: ChainType;
-  override?: EdrNetworkConfigOverride;
-}
-
 export interface NodeConnectionArguments {
   chainType?: string;
   chainId: number;
   fork?: string;
   forkBlockNumber: number;
+}
+
+export interface ResolvedNodeConnectionParams {
+  network: string;
+  chainType?: ChainType;
+  override?: EdrNetworkConfigOverride;
 }
 
 /**
@@ -25,8 +25,8 @@ export interface NodeConnectionArguments {
 export function resolveNodeConnectionParams(
   network: string,
   args: NodeConnectionArguments,
-): NodeConnectionParams {
-  const connectionParams: NodeConnectionParams = {
+): ResolvedNodeConnectionParams {
+  const connectionParams: ResolvedNodeConnectionParams = {
     network,
   };
 
