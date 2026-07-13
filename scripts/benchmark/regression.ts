@@ -456,7 +456,7 @@ function runStepsPhase(
         });
       } catch (error) {
         // Only the first line: execSync embeds the child's full stderr in
-        // its message, which would bypass the tail limit below.
+        // its message, and the streams are appended whole below.
         const original = (
           error instanceof Error ? error.message : String(error)
         ).split("\n", 1)[0];
@@ -467,7 +467,7 @@ function runStepsPhase(
         throw new Error(
           `${scenarioId} / ${seqName}: step "${stepName}" failed on run ${run + 1}/${cfg.runs}: ${original}\n` +
             `  Reproduce with: cd ${shellQuote(workingDir)} && ${step.command}\n` +
-            formatOutputTails({ stdout, stderr }),
+            formatOutput({ stdout, stderr }),
           { cause: error },
         );
       }
@@ -482,41 +482,14 @@ function runStepsPhase(
   );
 }
 
-const OUTPUT_TAIL_LINES = 50;
-const ERROR_LINE_LIMIT = 20;
-
-function formatOutputTails(streams: {
-  stdout?: string;
-  stderr?: string;
-}): string {
+// Failures are rare and abort the scenario, so the whole output is shown
+// rather than a tail — a compiler error can sit thousands of warning lines
+// above the end.
+function formatOutput(streams: { stdout?: string; stderr?: string }): string {
   return Object.entries(streams)
     .map(([name, text]) => [name, (text ?? "").trimEnd()] as const)
     .filter(([, text]) => text !== "")
-    .map(([name, text]) => {
-      const lines = text.split("\n");
-      const kept = lines.slice(-OUTPUT_TAIL_LINES);
-      const omitted = lines.length - kept.length;
-      const header =
-        omitted > 0
-          ? `  --- ${name} (last ${OUTPUT_TAIL_LINES} of ${lines.length} lines) ---`
-          : `  --- ${name} ---`;
-      // A compiler error ("Error: ...", "Error HHE910: ...") can sit thousands
-      // of warning lines above the tail; surface those lines separately so the
-      // failure is diagnosable from the log alone.
-      const errorLines = lines
-        .slice(0, omitted)
-        .filter((line) => /^Error[ :]/.test(line));
-      const shown = errorLines.slice(0, ERROR_LINE_LIMIT);
-      const errorSection =
-        shown.length > 0
-          ? `  --- ${name} error lines (above the tail) ---\n${shown.join("\n")}` +
-            (errorLines.length > shown.length
-              ? `\n  ... ${errorLines.length - shown.length} more`
-              : "") +
-            "\n"
-          : "";
-      return `${errorSection}${header}\n${kept.join("\n")}`;
-    })
+    .map(([name, text]) => `  --- ${name} ---\n${text}`)
     .join("\n");
 }
 
