@@ -1,6 +1,8 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 
+import { expectTypeOf } from "expect-type";
+
 import {
   isBytes,
   setLengthLeft,
@@ -8,6 +10,7 @@ import {
   utf8StringToBytes,
   bytesToUtf8String,
   bytesIncludesUtf8String,
+  parseJsonBytes,
 } from "../src/bytes.js";
 
 describe("bytes", () => {
@@ -212,6 +215,47 @@ describe("bytes", () => {
         !bytesIncludesUtf8String(haystack, "さようなら"),
         "should not find a missing multi-byte needle",
       );
+    });
+  });
+
+  describe("parseJsonBytes", () => {
+    it("Should parse JSON bytes", async () => {
+      const expectedObject = { a: 1, b: 2 };
+      const bytes = new TextEncoder().encode(JSON.stringify(expectedObject));
+
+      assert.deepEqual(await parseJsonBytes(bytes), expectedObject);
+      expectTypeOf(await parseJsonBytes(bytes)).toBeUnknown();
+      expectTypeOf(
+        await parseJsonBytes<{ a: number; b: number }>(bytes),
+      ).toMatchTypeOf<{ a: number; b: number }>();
+    });
+
+    it("Should fall back to stream parsing when the payload is too large for a single string", async (t) => {
+      const expectedObject = { a: 1, b: 2 };
+      const bytes = new TextEncoder().encode(JSON.stringify(expectedObject));
+
+      // Simulate a payload too large to be decoded into a single string:
+      // `TextDecoder.decode` throws only in that case, so this exercises the
+      // stream-parsing fallback without allocating a multi-gigabyte buffer.
+      const originalDecode = TextDecoder.prototype.decode;
+      t.mock.method(
+        TextDecoder.prototype,
+        "decode",
+        function (
+          this: InstanceType<typeof TextDecoder>,
+          ...args: Parameters<typeof TextDecoder.prototype.decode>
+        ) {
+          if (args[0] === bytes) {
+            throw new RangeError(
+              "Cannot create a string longer than 0x1fffffe8 characters",
+            );
+          }
+
+          return originalDecode.call(this, args[0], args[1]);
+        },
+      );
+
+      assert.deepEqual(await parseJsonBytes(bytes), expectedObject);
     });
   });
 });
