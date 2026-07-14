@@ -193,7 +193,7 @@ describe("eip712 - collectEip712CanonicalTypes", () => {
     ]);
   });
 
-  it("does not decode the build info output as a single string", async (t) => {
+  it("falls back to stream parsing when the build info output is too large for a single string", async (t) => {
     const sources: FakeSource[] = [
       {
         inputSourceName: "project/test/Types.sol",
@@ -208,6 +208,9 @@ describe("eip712 - collectEip712CanonicalTypes", () => {
     ];
     const buildInfo = makeBuildInfo("solc-0_8_23-large-output", sources);
 
+    // Simulate an output too large to be decoded into a single string:
+    // `TextDecoder.decode` throws only in that case, so this exercises the
+    // stream-parsing fallback without allocating a multi-gigabyte buffer.
     const originalDecode = TextDecoder.prototype.decode;
     t.mock.method(
       TextDecoder.prototype,

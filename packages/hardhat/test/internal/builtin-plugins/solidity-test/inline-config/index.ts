@@ -147,7 +147,7 @@ describe("inline-config", () => {
       assert.deepEqual(overrides[0].config, { fuzz: { runs: 50 } });
     });
 
-    it("should not decode the build info output as a single string", async (t) => {
+    it("should fall back to stream parsing when the build info output is too large for a single string", async (t) => {
       const bi = makeBuildInfo(
         "test/MyTest.sol",
         "/// hardhat-config: fuzz.runs = 50",
@@ -164,6 +164,9 @@ describe("inline-config", () => {
         },
       );
 
+      // Simulate an output too large to be decoded into a single string:
+      // `TextDecoder.decode` throws only in that case, so this exercises the
+      // stream-parsing fallback without allocating a multi-gigabyte buffer.
       const originalDecode = TextDecoder.prototype.decode;
       t.mock.method(
         TextDecoder.prototype,

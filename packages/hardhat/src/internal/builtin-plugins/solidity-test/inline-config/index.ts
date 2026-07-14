@@ -10,7 +10,7 @@ import {
   HardhatError,
   assertHardhatInvariant,
 } from "@nomicfoundation/hardhat-errors";
-import { parseJsonBytesAsStream } from "@nomicfoundation/hardhat-utils/bytes";
+import { parseJsonBytes } from "@nomicfoundation/hardhat-utils/bytes";
 
 import { getFullyQualifiedName } from "../../../../utils/contract-names.js";
 
@@ -153,10 +153,9 @@ async function collectRawOverrides(
       continue;
     }
 
-    const buildInfoOutput =
-      await parseJsonBytesAsStream<SolidityBuildInfoOutput>(
-        buildInfoAndOutput.output,
-      );
+    const buildInfoOutput = await parseJsonBytes<SolidityBuildInfoOutput>(
+      buildInfoAndOutput.output,
+    );
 
     for (const [
       inputSourceName,

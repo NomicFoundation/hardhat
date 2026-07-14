@@ -4,7 +4,7 @@ import type { BuildInfoAndOutput } from "../edr-artifacts.js";
 
 import {
   bytesIncludesUtf8String,
-  parseJsonBytesAsStream,
+  parseJsonBytes,
 } from "@nomicfoundation/hardhat-utils/bytes";
 
 import { isPathSelected } from "../../../utils/glob.js";
@@ -56,8 +56,7 @@ export async function collectEip712CanonicalTypes(
       continue;
     }
 
-    const parsedOutput =
-      await parseJsonBytesAsStream<SolidityBuildInfoOutput>(output);
+    const parsedOutput = await parseJsonBytes<SolidityBuildInfoOutput>(output);
 
     const sources = parsedOutput.output.sources;
     if (sources === undefined) {

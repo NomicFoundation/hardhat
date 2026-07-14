@@ -108,14 +108,29 @@ export function bytesIncludesUtf8String(
 }
 
 /**
- * Parses JSON bytes as a stream. This function should be used when
- * parsing very large JSON payloads.
+ * Parses UTF-8 encoded JSON bytes into a value.
+ *
+ * Payloads that fit in a single string are decoded and parsed with
+ * `JSON.parse`, which is much faster. Payloads too large to be held in a
+ * single string are parsed as a stream instead, which decodes and parses
+ * incrementally rather than materializing the whole payload as one string.
  *
  * @param bytes The UTF-8 encoded JSON bytes.
  * @returns The parsed JSON object.
  */
-export async function parseJsonBytesAsStream<T>(bytes: Uint8Array): Promise<T> {
-  return await parseJsonStream<T>(Readable.from([bytes]));
+export async function parseJsonBytes<T>(bytes: Uint8Array): Promise<T> {
+  let json: string;
+  try {
+    json = bytesToUtf8String(bytes);
+  } catch {
+    // `bytesToUtf8String` decodes non-fatally, so it never throws on malformed
+    // bytes; its only failure mode is a payload larger than the maximum string
+    // length the runtime can hold. Stream parsing handles those, as it never
+    // materializes the whole payload as a single string.
+    return await parseJsonStream<T>(Readable.from([bytes]));
+  }
+
+  return JSON.parse(json);
 }
 
 export { bytesToBigInt, bytesToNumber, numberToBytes } from "./number.js";
