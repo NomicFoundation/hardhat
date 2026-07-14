@@ -3,4 +3,4 @@
 "hardhat": patch
 ---
 
-Stream parse Solidity test build outputs that exceed V8's maximum string length.
+Fixed Solidity tests failing to run in projects with very large compilation outputs.
