@@ -38,6 +38,7 @@ interface SolidityTestConfigParams {
   verbosity: number;
   observability?: ObservabilityConfig;
   testPattern?: string;
+  excludeTestPattern?: string;
   generateGasReport: boolean;
   testFunctionOverrides?: TestFunctionOverride[];
   eip712CanonicalTypes?: string[];
@@ -51,6 +52,7 @@ export async function solidityTestConfigToSolidityTestRunnerConfigArgs({
   verbosity,
   observability,
   testPattern,
+  excludeTestPattern,
   generateGasReport,
   testFunctionOverrides,
   eip712CanonicalTypes,
@@ -149,7 +151,14 @@ export async function solidityTestConfigToSolidityTestRunnerConfigArgs({
     txOrigin,
     blockCoinbase,
     observability,
-    testPattern,
+    // An explicit empty string (e.g. `--grep ""`) must be treated as "no
+    // filter", not forwarded verbatim: EDR's regex engine treats an empty
+    // pattern as a match against every test name, which for excludeTestPattern
+    // would silently exclude the entire suite. Normalize empty strings to
+    // undefined. (An omitted option already arrives as undefined.)
+    testPattern: testPattern === "" ? undefined : testPattern,
+    excludeTestPattern:
+      excludeTestPattern === "" ? undefined : excludeTestPattern,
     includeTraces,
     blockGasLimit,
     disableBlockGasLimit,
