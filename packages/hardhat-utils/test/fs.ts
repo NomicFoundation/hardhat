@@ -34,7 +34,6 @@ import {
   readBinaryFile,
   getAccessTime,
   getFileSize,
-  parseJsonBytesAsStream,
   readJsonFileAsStream,
   writeJsonFileAsStream,
   mkdtemp,
@@ -1047,19 +1046,6 @@ describe("File system utils", () => {
       await assert.rejects(writeJsonFile(filePath, {}), {
         name: "FileSystemAccessError",
       });
-    });
-  });
-
-  describe("parseJsonBytesAsStream", () => {
-    it("Should parse JSON bytes", async () => {
-      const expectedObject = { a: 1, b: 2 };
-      const bytes = new TextEncoder().encode(JSON.stringify(expectedObject));
-
-      assert.deepEqual(await parseJsonBytesAsStream(bytes), expectedObject);
-      expectTypeOf(await parseJsonBytesAsStream(bytes)).toBeUnknown();
-      expectTypeOf(
-        await parseJsonBytesAsStream<{ a: number; b: number }>(bytes),
-      ).toMatchTypeOf<{ a: number; b: number }>();
     });
   });
 

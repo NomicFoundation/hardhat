@@ -1,11 +1,9 @@
-import type * as StreamParserJson from "@streamparser/json-node";
 import type * as JsonStreamStringify from "json-stream-stringify";
 import type { FileHandle } from "node:fs/promises";
 
 import fsPromises from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";
-import { Readable } from "node:stream";
 import { pipeline } from "node:stream/promises";
 
 import { ensureError, ensureNodeErrnoExceptionError } from "./error.js";
@@ -19,14 +17,11 @@ import {
   IsDirectoryError,
   DirectoryNotEmptyError,
 } from "./errors/fs.js";
+import { parseJsonStream } from "./internal/bytes.js";
 import {
   collectAllDirectoriesMatching,
   collectAllFilesMatching,
 } from "./internal/fs.js";
-
-// We don't load @streamparser/json-node on startup because it's only
-// used for parsing very large JSON payloads.
-let streamParserJson: typeof StreamParserJson | undefined;
 
 // We don't load json-stream-stringify on startup because it's only
 // used by writeJsonFileAsStream for very large JSON objects.
@@ -406,52 +401,6 @@ export async function readJsonFile<T>(absolutePathToFile: string): Promise<T> {
     ensureError(e);
     throw new InvalidFileFormatError(absolutePathToFile, e);
   }
-}
-
-async function parseJsonStream<T>(stream: Readable): Promise<T> {
-  if (streamParserJson === undefined) {
-    streamParserJson = await import("@streamparser/json-node");
-  }
-
-  // NOTE: We set a separator to disable self-closing to be able to use the parser
-  // in the stream.pipeline context; see https://github.com/juanjoDiaz/streamparser-json/issues/47
-  const jsonParser = new streamParserJson.JSONParser({
-    separator: "",
-  });
-
-  const result: T | undefined = await pipeline(
-    stream,
-    jsonParser,
-    async (
-      elements: AsyncIterable<StreamParserJson.ParsedElementInfo.ParsedElementInfo>,
-    ): Promise<any | undefined> => {
-      let value:
-        | StreamParserJson.JsonTypes.JsonPrimitive
-        | StreamParserJson.JsonTypes.JsonStruct
-        | undefined;
-      for await (const element of elements) {
-        value = element.value;
-      }
-      return value;
-    },
-  );
-
-  if (result === undefined) {
-    throw new Error("No data");
-  }
-
-  return result;
-}
-
-/**
- * Parses JSON bytes as a stream. This function should be used when
- * parsing very large JSON payloads.
- *
- * @param bytes The UTF-8 encoded JSON bytes.
- * @returns The parsed JSON object.
- */
-export async function parseJsonBytesAsStream<T>(bytes: Uint8Array): Promise<T> {
-  return await parseJsonStream<T>(Readable.from([bytes]));
 }
 
 /**

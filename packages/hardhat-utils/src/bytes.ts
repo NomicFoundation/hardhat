@@ -1,4 +1,6 @@
-import { buildLpsTable } from "./internal/bytes.js";
+import { Readable } from "node:stream";
+
+import { buildLpsTable, parseJsonStream } from "./internal/bytes.js";
 
 /**
  * Checks if a value is an instance of Uint8Array.
@@ -103,6 +105,17 @@ export function bytesIncludesUtf8String(
   }
 
   return false;
+}
+
+/**
+ * Parses JSON bytes as a stream. This function should be used when
+ * parsing very large JSON payloads.
+ *
+ * @param bytes The UTF-8 encoded JSON bytes.
+ * @returns The parsed JSON object.
+ */
+export async function parseJsonBytesAsStream<T>(bytes: Uint8Array): Promise<T> {
+  return await parseJsonStream<T>(Readable.from([bytes]));
 }
 
 export { bytesToBigInt, bytesToNumber, numberToBytes } from "./number.js";

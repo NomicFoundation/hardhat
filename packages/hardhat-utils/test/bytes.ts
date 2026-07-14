@@ -1,6 +1,8 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 
+import { expectTypeOf } from "expect-type";
+
 import {
   isBytes,
   setLengthLeft,
@@ -8,6 +10,7 @@ import {
   utf8StringToBytes,
   bytesToUtf8String,
   bytesIncludesUtf8String,
+  parseJsonBytesAsStream,
 } from "../src/bytes.js";
 
 describe("bytes", () => {
@@ -212,6 +215,19 @@ describe("bytes", () => {
         !bytesIncludesUtf8String(haystack, "さようなら"),
         "should not find a missing multi-byte needle",
       );
+    });
+  });
+
+  describe("parseJsonBytesAsStream", () => {
+    it("Should parse JSON bytes", async () => {
+      const expectedObject = { a: 1, b: 2 };
+      const bytes = new TextEncoder().encode(JSON.stringify(expectedObject));
+
+      assert.deepEqual(await parseJsonBytesAsStream(bytes), expectedObject);
+      expectTypeOf(await parseJsonBytesAsStream(bytes)).toBeUnknown();
+      expectTypeOf(
+        await parseJsonBytesAsStream<{ a: number; b: number }>(bytes),
+      ).toMatchTypeOf<{ a: number; b: number }>();
     });
   });
 });

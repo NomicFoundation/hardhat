@@ -2,8 +2,10 @@ import type { CollectedStruct } from "./ast-walker.js";
 import type { SolidityBuildInfoOutput } from "../../../../types/solidity/solidity-artifacts.js";
 import type { BuildInfoAndOutput } from "../edr-artifacts.js";
 
-import { bytesIncludesUtf8String } from "@nomicfoundation/hardhat-utils/bytes";
-import { parseJsonBytesAsStream } from "@nomicfoundation/hardhat-utils/fs";
+import {
+  bytesIncludesUtf8String,
+  parseJsonBytesAsStream,
+} from "@nomicfoundation/hardhat-utils/bytes";
 
 import { isPathSelected } from "../../../utils/glob.js";
 import { toUserSourceName } from "../../solidity/source-names.js";

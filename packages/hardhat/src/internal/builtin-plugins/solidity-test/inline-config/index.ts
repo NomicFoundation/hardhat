@@ -10,7 +10,7 @@ import {
   HardhatError,
   assertHardhatInvariant,
 } from "@nomicfoundation/hardhat-errors";
-import { parseJsonBytesAsStream } from "@nomicfoundation/hardhat-utils/fs";
+import { parseJsonBytesAsStream } from "@nomicfoundation/hardhat-utils/bytes";
 
 import { getFullyQualifiedName } from "../../../../utils/contract-names.js";
 
