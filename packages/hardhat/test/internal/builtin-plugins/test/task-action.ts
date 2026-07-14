@@ -17,8 +17,12 @@ const solidityNoOp = overrideTask(["test", "solidity"])
   .setInlineAction(async () => undefined)
   .build();
 
-function mockRunner(name: string, action: (...args: any[]) => unknown) {
-  return task(["test", name])
+function mockRunner(
+  name: string,
+  action: (...args: any[]) => unknown,
+  options: { declareGrepExclude?: boolean } = {},
+) {
+  let builder = task(["test", name])
     .addVariadicArgument({
       name: "testFiles",
       description: "Test files",
@@ -30,9 +34,18 @@ function mockRunner(name: string, action: (...args: any[]) => unknown) {
       type: ArgumentType.STRING_WITHOUT_DEFAULT,
       defaultValue: undefined,
     })
-    .addFlag({ name: "noCompile" })
-    .setInlineAction(action)
-    .build();
+    .addFlag({ name: "noCompile" });
+
+  if (options.declareGrepExclude === true) {
+    builder = builder.addOption({
+      name: "grepExclude",
+      description: "Skip tests matching the given string or regexp",
+      type: ArgumentType.STRING_WITHOUT_DEFAULT,
+      defaultValue: undefined,
+    });
+  }
+
+  return builder.setInlineAction(action).build();
 }
 
 describe("test/task-action", function () {
@@ -419,6 +432,65 @@ describe("test/task-action", function () {
         !output.includes("staleFunctionFromRunnerB"),
         "Gas stats report should NOT include stale data from runner-b which was skipped",
       );
+    });
+  });
+
+  describe("--grep-exclude forwarding to subtasks", function () {
+    // A runner that records the args it receives. `declareGrepExclude` controls
+    // whether it opts into the grepExclude option.
+    function capturingRunner(
+      name: string,
+      received: Array<Record<string, unknown>>,
+      declareGrepExclude: boolean,
+    ) {
+      return mockRunner(
+        name,
+        async (args: Record<string, unknown>) => {
+          received.push(args);
+          return successfulResult({
+            summary: { passed: 1, failed: 0, skipped: 0, todo: 0 },
+          });
+        },
+        { declareGrepExclude },
+      );
+    }
+
+    it("forwards grep and grepExclude to a subtask that declares grepExclude", async () => {
+      const received: Array<Record<string, unknown>> = [];
+      const hre = await createHardhatRuntimeEnvironment({
+        tasks: [solidityNoOp, capturingRunner("runner-a", received, true)],
+      });
+
+      await hre.tasks.getTask("test").run({
+        noCompile: true,
+        grep: "unit_",
+        grepExclude: "sub",
+      });
+
+      assert.equal(received.length, 1);
+      assert.equal(received[0].grep, "unit_");
+      assert.equal(received[0].grepExclude, "sub");
+    });
+
+    it("skips grepExclude for a subtask that does not declare it, without throwing", async () => {
+      const received: Array<Record<string, unknown>> = [];
+      const hre = await createHardhatRuntimeEnvironment({
+        tasks: [solidityNoOp, capturingRunner("runner-a", received, false)],
+      });
+
+      // Passing --grep-exclude must not raise UNRECOGNIZED_TASK_OPTION for a
+      // runner that doesn't opt into it (e.g. the node runner); it is silently
+      // skipped by the conditional forwarding loop.
+      const result = await hre.tasks.getTask("test").run({
+        noCompile: true,
+        grep: "unit_",
+        grepExclude: "sub",
+      });
+
+      assert.equal(result.success, true);
+      assert.equal(received.length, 1);
+      assert.equal(received[0].grep, "unit_");
+      assert.equal(received[0].grepExclude, undefined);
     });
   });
 });

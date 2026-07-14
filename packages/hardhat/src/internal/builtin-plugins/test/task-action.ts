@@ -106,6 +106,11 @@ const runAllTests: NewTaskActionFunction<TestActionArguments> = async (
       args.chainType = chainType;
     }
 
+    // Forwards any parent-declared option (e.g. grepExclude) ONLY to runners
+    // that declare it. Unlike grep, grepExclude is not universal: the node
+    // runner doesn't declare it, and forwarding an undeclared option would
+    // throw UNRECOGNIZED_TASK_OPTION (see resolved-task.ts). A runner that
+    // adds the option later is picked up automatically, with no change here.
     for (const [key, value] of Object.entries(otherArgs)) {
       if (subtask.options.has(key)) {
         args[key] = value;

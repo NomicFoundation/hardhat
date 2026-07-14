@@ -61,6 +61,11 @@ const hardhatConfigAbstractAndInterfaceTests = {
   paths: { tests: { solidity: "test/contracts/abstract-and-interface" } },
 };
 
+const hardhatConfigGrepTests = {
+  ...hardhatConfig,
+  paths: { tests: { solidity: "test/contracts/grep" } },
+};
+
 const TX_GAS_CAP_TEST_PATH = {
   tests: { solidity: "test/contracts/transaction-gas-cap" },
 };
@@ -743,6 +748,55 @@ describe("solidity-test/task-action", function () {
       assert.ok(
         discoveredSuiteNames.includes("InterfaceImpl"),
         `InterfaceImpl should be discovered, got suites: ${discoveredSuiteNames.join(", ")}`,
+      );
+    });
+  });
+
+  describe("when filtering by --grep and --grep-exclude", () => {
+    before(async () => {
+      const buildHre = await createHardhatRuntimeEnvironment(
+        hardhatConfigGrepTests,
+      );
+
+      await buildHre.tasks.getTask(["build"]).run({});
+    });
+
+    it("excludes a test matching both --grep and --grep-exclude (exclude takes precedence)", async () => {
+      hre = await createHardhatRuntimeEnvironment(hardhatConfigGrepTests);
+
+      const result = await hre.tasks.getTask(["test", "solidity"]).run({
+        grep: "testAlpha|testBeta",
+        grepExclude: "Beta",
+        noCompile: true,
+      });
+
+      assert.equal(result.success, true);
+      const suite = result.value.suiteResults.find(
+        (s: SuiteResult) => s.id.name === "GrepTest",
+      );
+      assert.ok(suite !== undefined, "expected a GrepTest suite");
+      assert.deepEqual(
+        suite.testResults.map((t: TestResult) => t.name).sort(),
+        ["testAlpha()"],
+      );
+    });
+
+    it("treats an empty grepExclude as no filter, not as excluding the whole suite", async () => {
+      hre = await createHardhatRuntimeEnvironment(hardhatConfigGrepTests);
+
+      const result = await hre.tasks.getTask(["test", "solidity"]).run({
+        grepExclude: "",
+        noCompile: true,
+      });
+
+      assert.equal(result.success, true);
+      const suite = result.value.suiteResults.find(
+        (s: SuiteResult) => s.id.name === "GrepTest",
+      );
+      assert.ok(suite !== undefined, "expected a GrepTest suite");
+      assert.deepEqual(
+        suite.testResults.map((t: TestResult) => t.name).sort(),
+        ["testAlpha()", "testBeta()", "testGamma()"],
       );
     });
   });
