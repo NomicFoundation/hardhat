@@ -25,7 +25,7 @@ import {
 } from "./internal/fs.js";
 
 // We don't load @streamparser/json-node on startup because it's only
-// used by readJsonFileAsStream for very large JSON files.
+// used for parsing very large JSON payloads.
 let streamParserJson: typeof StreamParserJson | undefined;
 
 // We don't load json-stream-stringify on startup because it's only
@@ -408,15 +408,7 @@ export async function readJsonFile<T>(absolutePathToFile: string): Promise<T> {
   }
 }
 
-/**
- * Parses JSON bytes as a stream. This avoids materializing the full input as a
- * single string, which can exceed V8's maximum string size for very large JSON
- * payloads.
- *
- * @param bytes The UTF-8 encoded JSON bytes.
- * @returns The parsed JSON object.
- */
-export async function parseJsonBytesAsStream<T>(bytes: Uint8Array): Promise<T> {
+async function parseJsonStream<T>(stream: Readable): Promise<T> {
   if (streamParserJson === undefined) {
     streamParserJson = await import("@streamparser/json-node");
   }
@@ -428,7 +420,7 @@ export async function parseJsonBytesAsStream<T>(bytes: Uint8Array): Promise<T> {
   });
 
   const result: T | undefined = await pipeline(
-    Readable.from([bytes]),
+    stream,
     jsonParser,
     async (
       elements: AsyncIterable<StreamParserJson.ParsedElementInfo.ParsedElementInfo>,
@@ -452,6 +444,17 @@ export async function parseJsonBytesAsStream<T>(bytes: Uint8Array): Promise<T> {
 }
 
 /**
+ * Parses JSON bytes as a stream. This function should be used when
+ * parsing very large JSON payloads.
+ *
+ * @param bytes The UTF-8 encoded JSON bytes.
+ * @returns The parsed JSON object.
+ */
+export async function parseJsonBytesAsStream<T>(bytes: Uint8Array): Promise<T> {
+  return await parseJsonStream<T>(Readable.from([bytes]));
+}
+
+/**
  * Reads a JSON file as a stream and parses it. The encoding used is "utf8".
  * This function should be used when parsing very large JSON files.
  *
@@ -470,40 +473,7 @@ export async function readJsonFileAsStream<T>(
   try {
     fileHandle = await fsPromises.open(absolutePathToFile, "r");
 
-    const fileReadStream = fileHandle.createReadStream();
-
-    if (streamParserJson === undefined) {
-      streamParserJson = await import("@streamparser/json-node");
-    }
-
-    // NOTE: We set a separator to disable self-closing to be able to use the parser
-    // in the stream.pipeline context; see https://github.com/juanjoDiaz/streamparser-json/issues/47
-    const jsonParser = new streamParserJson.JSONParser({
-      separator: "",
-    });
-
-    const result: T | undefined = await pipeline(
-      fileReadStream,
-      jsonParser,
-      async (
-        elements: AsyncIterable<StreamParserJson.ParsedElementInfo.ParsedElementInfo>,
-      ): Promise<any | undefined> => {
-        let value:
-          | StreamParserJson.JsonTypes.JsonPrimitive
-          | StreamParserJson.JsonTypes.JsonStruct
-          | undefined;
-        for await (const element of elements) {
-          value = element.value;
-        }
-        return value;
-      },
-    );
-
-    if (result === undefined) {
-      throw new Error("No data");
-    }
-
-    return result;
+    return await parseJsonStream<T>(fileHandle.createReadStream());
   } catch (e) {
     ensureError(e);
 
