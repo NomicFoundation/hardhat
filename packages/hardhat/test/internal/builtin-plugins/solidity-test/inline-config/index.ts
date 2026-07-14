@@ -4,6 +4,7 @@ import { describe, it } from "node:test";
 
 import { HardhatError } from "@nomicfoundation/hardhat-errors";
 import { assertRejectsWithHardhatError } from "@nomicfoundation/hardhat-test-utils";
+import { utf8StringToBytes } from "@nomicfoundation/hardhat-utils/bytes";
 
 import {
   getFunctionFqn,
@@ -190,6 +191,37 @@ describe("inline-config", () => {
 
       assert.equal(overrides.length, 1);
       assert.deepEqual(overrides[0].config, { fuzz: { runs: 50 } });
+    });
+
+    it("should throw a HardhatError when the build info output cannot be parsed", async () => {
+      const bi = makeBuildInfo(
+        "test/MyTest.sol",
+        "/// hardhat-config: fuzz.runs = 50",
+        {
+          MyTest: {
+            methodIdentifiers: { "testFuzz()": "aabbccdd" },
+            functions: [
+              {
+                name: "testFuzz",
+                documentation: " hardhat-config: fuzz.runs = 50",
+              },
+            ],
+          },
+        },
+      );
+
+      const corrupted = {
+        ...bi,
+        output: utf8StringToBytes("{ not valid json"),
+      };
+
+      const artifacts = [makeTestSuiteArtifact("test/MyTest.sol", "MyTest")];
+
+      await assertRejectsWithHardhatError(
+        getTestFunctionOverrides(artifacts, [corrupted]),
+        HardhatError.ERRORS.CORE.SOLIDITY.BUILD_INFO_OUTPUT_PARSE_ERROR,
+        { buildInfoId: bi.buildInfoId },
+      );
     });
 
     it("should merge overrides from mixed hardhat-config: and forge-config: prefixes", async () => {

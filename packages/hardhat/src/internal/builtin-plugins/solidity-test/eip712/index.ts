@@ -2,10 +2,12 @@ import type { CollectedStruct } from "./ast-walker.js";
 import type { SolidityBuildInfoOutput } from "../../../../types/solidity/solidity-artifacts.js";
 import type { BuildInfoAndOutput } from "../edr-artifacts.js";
 
+import { HardhatError } from "@nomicfoundation/hardhat-errors";
 import {
   bytesIncludesUtf8String,
   parseJsonBytes,
 } from "@nomicfoundation/hardhat-utils/bytes";
+import { ensureError } from "@nomicfoundation/hardhat-utils/error";
 
 import { isPathSelected } from "../../../utils/glob.js";
 import { toUserSourceName } from "../../solidity/source-names.js";
@@ -49,14 +51,24 @@ export async function collectEip712CanonicalTypes(
   const collected: CollectedStruct[] = [];
   const selectedSources = new Set<string>();
 
-  for (const { buildInfo, output } of buildInfosAndOutputs) {
+  for (const { buildInfoId, buildInfo, output } of buildInfosAndOutputs) {
     // Byte-level fast path: a build info whose source bytes don't contain
     // `struct ` can't define any EIP-712 type, so skip JSON-parsing its output.
     if (!bytesIncludesUtf8String(buildInfo, "struct ")) {
       continue;
     }
 
-    const parsedOutput = await parseJsonBytes<SolidityBuildInfoOutput>(output);
+    let parsedOutput: SolidityBuildInfoOutput;
+    try {
+      parsedOutput = await parseJsonBytes<SolidityBuildInfoOutput>(output);
+    } catch (error) {
+      ensureError(error);
+      throw new HardhatError(
+        HardhatError.ERRORS.CORE.SOLIDITY.BUILD_INFO_OUTPUT_PARSE_ERROR,
+        { buildInfoId },
+        error,
+      );
+    }
 
     const sources = parsedOutput.output.sources;
     if (sources === undefined) {

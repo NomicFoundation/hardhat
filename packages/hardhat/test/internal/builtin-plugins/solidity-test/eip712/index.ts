@@ -238,6 +238,32 @@ describe("eip712 - collectEip712CanonicalTypes", () => {
     assert.deepEqual(result, ["Person(address wallet,string name)"]);
   });
 
+  it("throws a HardhatError when the build info output cannot be parsed", async () => {
+    const sources: FakeSource[] = [
+      {
+        inputSourceName: "project/test/Types.sol",
+        userSourceName: "test/Types.sol",
+        ast: sourceUnit([
+          structAst("Person", [{ type: "address", name: "x" }]),
+        ]),
+      },
+    ];
+    const buildInfo = makeBuildInfo("solc-0_8_23-cccccccc", sources);
+    const corrupted = {
+      ...buildInfo,
+      output: utf8StringToBytes("{ not valid json"),
+    };
+
+    await assertRejectsWithHardhatError(
+      collectEip712CanonicalTypes([corrupted], inputToUserSourceMap(sources), {
+        include: ["test/**"],
+        exclude: [],
+      }),
+      HardhatError.ERRORS.CORE.SOLIDITY.BUILD_INFO_OUTPUT_PARSE_ERROR,
+      { buildInfoId: buildInfo.buildInfoId },
+    );
+  });
+
   it("filters by include/exclude on the user source name", async () => {
     const sources: FakeSource[] = [
       {
