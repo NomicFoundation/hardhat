@@ -2378,6 +2378,27 @@ Please try again later.`,
         websiteDescription:
           'You have run your tests twice programmatically and your project is an ESM project (you have `"type": "module"` in your `package.json`, or some of your files have the `.mjs` extension). This is not supported by Mocha yet (https://github.com/mochajs/mocha/issues/2706).',
       },
+      GREP_EXCLUDE_INCOMPATIBLE_OPTION: {
+        number: 30001,
+        messageTemplate: `The --grep-exclude option cannot be combined with the Mocha "{option}" config option.`,
+        websiteTitle: "Incompatible --grep-exclude option",
+        websiteDescription:
+          "--grep-exclude is applied by merging it with --grep into Mocha's single name filter, so it cannot be combined with the `fgrep` or `invert` Mocha config options. Remove the conflicting option from your config, or express your filter using --grep and --grep-exclude only.",
+      },
+      INVALID_GREP_EXCLUDE_COMBINATION: {
+        number: 30002,
+        messageTemplate: `The {name} pattern "{grep}" and the --grep-exclude pattern "{grepExclude}" cannot be combined into a valid regular expression.`,
+        websiteTitle: "Invalid --grep-exclude combination",
+        websiteDescription:
+          "--grep and --grep-exclude are merged into a single regular expression. The combination was not valid, which usually happens when both patterns define a capture group with the same name. Rename or remove the duplicated group.",
+      },
+      GREP_EXCLUDE_UNSUPPORTED_PATTERN: {
+        number: 30003,
+        messageTemplate: `The {name} pattern "{pattern}" uses {feature}, which is not supported together with --grep-exclude.`,
+        websiteTitle: "Unsupported --grep-exclude pattern",
+        websiteDescription:
+          "--grep and --grep-exclude are merged into a single regular expression by embedding each pattern verbatim. Some constructs do not survive this merge and would silently change meaning, so they are rejected: a Mocha `/pattern/flags` regex literal (its flags and slashes would become literal text); a numbered backreference like `\\1` or a named backreference like `\\k<name>` (the group it points at shifts once the patterns are concatenated); an escaped group name like `(?<\\u0067>...)` (it cannot be compared as text); and a meaning-changing flag (such as `i` or `m`) on a RegExp `grep` set in your Mocha config (there is nowhere to carry it on the merged pattern). Rewrite the pattern without these constructs.",
+      },
     },
   },
   HARDHAT_VIEM: {
