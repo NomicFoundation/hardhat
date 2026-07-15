@@ -22,9 +22,6 @@ export enum L1HardforkName {
   CANCUN = "cancun",
   PRAGUE = "prague",
   OSAKA = "osaka",
-  // Selectable but NOT the default hardfork: EDR keeps `l1HardforkLatest()`
-  // pinned to Osaka, so Amsterdam is still experimental. See
-  // `L1_LATEST_STABLE_HARDFORK` and `warnIfExperimentalHardfork`.
   AMSTERDAM = "amsterdam",
 }
 
