@@ -1,3 +1,5 @@
+// cspell:ignore gimy gimyx -- regex flag sets, not words
+
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 
@@ -148,7 +150,7 @@ describe("resolveMochaGrepFilter", () => {
     );
   });
 
-  it("attributes an uncombinable pair to the config when --grep is absent", () => {
+  it("attributes a pair that can't be combined to the config when --grep is absent", () => {
     // The duplicated group name comes from the config's grep, not a --grep flag,
     // so the "cannot be combined" error must name the config too.
     assertThrowsHardhatError(
@@ -477,7 +479,7 @@ describe("resolveMochaGrepFilter", () => {
     );
   });
 
-  it("reports an invalid config grep string as invalid, not as an uncombinable pair", () => {
+  it("reports an invalid config grep string as invalid, not as a pair that can't be combined", () => {
     // A config grep of "(" is not a valid regex on its own; it should be flagged
     // as such rather than as an invalid --grep/--grep-exclude combination.
     assertThrowsHardhatError(
