@@ -48,6 +48,39 @@ describe("resolveMochaGrepFilter", () => {
     });
   });
 
+  it("rejects a CLI --grep combined with the config's fgrep, like Mocha's own CLI", () => {
+    // Mocha applies `fgrep` after `grep`, so the config would silently defeat
+    // the CLI option — the pair is rejected as mutually exclusive instead.
+    assertThrowsHardhatError(
+      () => resolveMochaGrepFilter("cli", undefined, { fgrep: "fix" }),
+      HardhatError.ERRORS.HARDHAT_MOCHA.GENERAL.GREP_INCOMPATIBLE_OPTION,
+      {},
+    );
+  });
+
+  it("keeps the config's invert when a CLI --grep replaces its grep", () => {
+    // `invert` is a modifier on whatever the name filter is, not a competing
+    // pattern source, so it isn't mutually exclusive with a CLI --grep.
+    assert.deepEqual(
+      resolveMochaGrepFilter("cli", undefined, { grep: "cfg", invert: true }),
+      { grep: "cli", invert: true },
+    );
+  });
+
+  it("keeps a config fgrep when there is no CLI --grep (Mocha's native behavior)", () => {
+    assert.deepEqual(
+      resolveMochaGrepFilter(undefined, undefined, { fgrep: "fix" }),
+      { fgrep: "fix" },
+    );
+  });
+
+  it("normalizes an empty config fgrep to unset in the no-exclude path", () => {
+    assert.deepEqual(
+      resolveMochaGrepFilter(undefined, undefined, { fgrep: "" }),
+      {},
+    );
+  });
+
   it("builds a merged pattern for --grep-exclude on its own", () => {
     assert.deepEqual(resolveMochaGrepFilter(undefined, "sub", {}), {
       grep: "^(?![\\s\\S]*(?:sub))",
@@ -107,6 +140,16 @@ describe("resolveMochaGrepFilter", () => {
       HardhatError.ERRORS.HARDHAT_MOCHA.GENERAL
         .GREP_EXCLUDE_INCOMPATIBLE_OPTION,
       { option: "fgrep" },
+    );
+  });
+
+  it("blames --grep, not --grep-exclude, when both are passed with a config fgrep", () => {
+    // With all three present the fundamental conflict is --grep vs fgrep, so
+    // the mutual-exclusion error fires rather than the --grep-exclude one.
+    assertThrowsHardhatError(
+      () => resolveMochaGrepFilter("cli", "sub", { fgrep: "fix" }),
+      HardhatError.ERRORS.HARDHAT_MOCHA.GENERAL.GREP_INCOMPATIBLE_OPTION,
+      {},
     );
   });
 

@@ -2399,6 +2399,13 @@ Please try again later.`,
         websiteDescription:
           "--grep and --grep-exclude are merged into a single regular expression by embedding each pattern verbatim. Some constructs do not survive this merge and would silently change meaning, so they are rejected: a Mocha `/pattern/flags` regex literal (its flags and slashes would become literal text); a numbered backreference like `\\1` or a named backreference like `\\k<name>` (the group it points at shifts once the patterns are concatenated); an escaped group name like `(?<\\u0067>...)` (it cannot be compared as text); and a meaning-changing flag (such as `i` or `m`) on a RegExp `grep` set in your Mocha config (there is nowhere to carry it on the merged pattern). Rewrite the pattern without these constructs.",
       },
+      GREP_INCOMPATIBLE_OPTION: {
+        number: 30004,
+        messageTemplate: `The --grep option cannot be combined with the Mocha "fgrep" config option.`,
+        websiteTitle: "Incompatible --grep option",
+        websiteDescription:
+          "--grep and the `fgrep` Mocha config option are competing name filters, and Mocha applies only one of them; its own CLI rejects the pair as mutually exclusive. Remove `fgrep` from your config, or run without --grep.",
+      },
     },
   },
   HARDHAT_VIEM: {

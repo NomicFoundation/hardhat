@@ -19,8 +19,12 @@ type MochaGrepFilter = Pick<MochaOptions, "grep" | "fgrep" | "invert">;
  * excluded tests in this process — is what makes exclusion also work in Mocha's
  * parallel mode, where each worker re-applies the filter on its own.
  *
- * With no `--grep-exclude` there's nothing to merge, so this is just Mocha's
- * native behavior: a `--grep` on the CLI overrides `grep` from the config.
+ * A CLI `--grep` cannot be combined with a config `fgrep`: Mocha applies
+ * `fgrep` after `grep`, so the config would silently defeat the CLI option.
+ * Mocha's own CLI rejects the pair as mutually exclusive, and so does this
+ * resolver. Beyond that, with no `--grep-exclude` there's nothing to merge:
+ * a CLI `--grep` overrides the config's `grep`, and otherwise the config's
+ * name filter is used as-is (Mocha's native behavior).
  */
 export function resolveMochaGrepFilter(
   grep: string | undefined,
@@ -29,12 +33,36 @@ export function resolveMochaGrepFilter(
 ): MochaGrepFilter {
   const include = emptyToUndefined(grep);
   const exclude = emptyToUndefined(grepExclude);
+  // An empty `fgrep` does nothing in Mocha, so treat it as unset — the same
+  // way empty grep/grep-exclude are normalized to undefined above.
+  const configFgrep = emptyToUndefined(config.fgrep);
 
   assertValidPattern("grep", include);
   assertValidPattern("grepExclude", exclude);
 
+  // A CLI `--grep` and a config `fgrep` are competing name filters, and Mocha
+  // applies `fgrep` last (it would silently win). Reject the pair as mutually
+  // exclusive, exactly like Mocha's own CLI does.
+  if (include !== undefined && configFgrep !== undefined) {
+    throw new HardhatError(
+      HardhatError.ERRORS.HARDHAT_MOCHA.GENERAL.GREP_INCOMPATIBLE_OPTION,
+    );
+  }
+
   if (exclude === undefined) {
-    return { ...config, grep: include ?? config.grep };
+    const resolved: MochaGrepFilter = { ...config };
+
+    if (include !== undefined) {
+      resolved.grep = include;
+    }
+    if (configFgrep === undefined) {
+      // Drop an absent-or-empty `fgrep` so it doesn't linger as "". A real
+      // config `fgrep` only gets here with no CLI `--grep` (see the guard
+      // above), and passes through untouched — Mocha's native behavior.
+      delete resolved.fgrep;
+    }
+
+    return resolved;
   }
 
   // The include pattern comes from the CLI's `--grep` or, when that's absent,
@@ -44,10 +72,8 @@ export function resolveMochaGrepFilter(
 
   // The merged pattern is about to take over Mocha's one filter slot, so a
   // config that ALSO sets `fgrep` (fixed-string filter) or `invert` (run the
-  // non-matches) can't be honored at the same time — reject it. An empty
-  // `fgrep` does nothing in Mocha, so treat it as unset, the same way empty
-  // grep/grep-exclude were normalized to undefined above.
-  if (typeof config.fgrep === "string" && config.fgrep !== "") {
+  // non-matches) can't be honored at the same time — reject it.
+  if (configFgrep !== undefined) {
     throw new HardhatError(
       HardhatError.ERRORS.HARDHAT_MOCHA.GENERAL.GREP_EXCLUDE_INCOMPATIBLE_OPTION,
       { option: "fgrep" },
