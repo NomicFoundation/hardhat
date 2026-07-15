@@ -62,7 +62,7 @@ export function warnIfExperimentalHardfork(
     styleText(["bold", "yellow"], "Warning:") +
       ` you have configured the "${hardfork}" hardfork, which is experimental ` +
       `and not yet finalized. Behavior may change or be incomplete. ` +
-      `The latest stable hardfork is "${latestStable}".`,
+      `The latest stable hardfork is "${latestStable}".\n`,
   );
 }
 
