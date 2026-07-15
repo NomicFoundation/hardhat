@@ -59,12 +59,10 @@ export function warnIfExperimentalHardfork(
   warnedHardforks.add(key);
 
   warn(
-    styleText(
-      ["yellow", "bold"],
-      `⚠️ You have configured the "${hardfork}" hardfork, which is experimental ` +
-        `and not yet finalized in Hardhat. Behavior may change or be incomplete. ` +
-        `The latest stable hardfork is "${latestStable}".`,
-    ),
+    styleText(["bold", "yellow"], "Warning:") +
+      ` you have configured the "${hardfork}" hardfork, which is experimental ` +
+      `and not yet finalized. Behavior may change or be incomplete. ` +
+      `The latest stable hardfork is "${latestStable}".`,
   );
 }
 
