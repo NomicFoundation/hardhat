@@ -38,7 +38,7 @@ const warnedHardforks = new Set<string>();
 export function warnIfExperimentalHardfork(
   hardfork: string,
   chainType: ChainType,
-  warn: (message: string) => void = (message) => console.warn(message),
+  warn: (message: string) => void = (message) => console.error(message),
 ): void {
   const latestStable = getCurrentHardfork(chainType);
 

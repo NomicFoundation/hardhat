@@ -784,19 +784,19 @@ describe("edr-provider", () => {
   });
 
   describe("experimental hardfork warning", () => {
-    let originalWarn: typeof console.warn;
+    let originalError: typeof console.error;
     let warnings: string[];
 
     beforeEach(() => {
-      originalWarn = console.warn;
+      originalError = console.error;
       warnings = [];
-      console.warn = (...args: unknown[]) => {
+      console.error = (...args: unknown[]) => {
         warnings.push(args.map(String).join(" "));
       };
     });
 
     afterEach(() => {
-      console.warn = originalWarn;
+      console.error = originalError;
     });
 
     it("warns exactly once when creating a provider with an experimental hardfork", async () => {
