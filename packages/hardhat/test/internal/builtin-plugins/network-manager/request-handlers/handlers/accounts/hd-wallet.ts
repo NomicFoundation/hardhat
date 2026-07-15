@@ -171,6 +171,18 @@ describe("HDWalletHandler", () => {
         HardhatError.ERRORS.CORE.NETWORK.INVALID_HD_PATH,
         { path: "ghj" },
       );
+
+      await assertRejectsWithHardhatError(
+        HDWalletHandler.create(mockedProvider, mnemonic, "m:/44'/60'/0'/0"),
+        HardhatError.ERRORS.CORE.NETWORK.INVALID_HD_PATH,
+        { path: "m:/44'/60'/0'/0" },
+      );
+
+      await assertRejectsWithHardhatError(
+        HDWalletHandler.create(mockedProvider, mnemonic, "m/44':/60'/0'/0"),
+        HardhatError.ERRORS.CORE.NETWORK.INVALID_HD_PATH,
+        { path: "m/44':/60'/0'/0" },
+      );
     });
   });
 });
