@@ -1,3 +1,5 @@
+// cspell:ignore imsuvy gimy -- regex flag sets, not words
+
 import type { MochaOptions } from "mocha";
 
 import { HardhatError } from "@nomicfoundation/hardhat-errors";
