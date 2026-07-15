@@ -145,6 +145,8 @@ Viem
 VIEM
 visualising
 WAAIT
+wkhtmltoimage
+wkhtmltox
 withargs
 wordz
 xcom
