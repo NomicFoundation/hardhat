@@ -34,14 +34,11 @@ const warnedHardforks = new Set<string>();
  * for the given chain type (i.e. an experimental fork that EDR supports but
  * hasn't promoted to latest yet). The warning is emitted at
  * most once per (chainType, hardfork) pair for the lifetime of the process.
- *
- * We use `console.warn` (rather than the EDR logger, which is gated behind
- * `loggingEnabled`) so the warning is always visible, including under
- * `hardhat test`.
  */
 export function warnIfExperimentalHardfork(
   hardfork: string,
   chainType: ChainType,
+  warn: (message: string) => void = (message) => console.warn(message),
 ): void {
   const latestStable = getCurrentHardfork(chainType);
 
@@ -54,12 +51,14 @@ export function warnIfExperimentalHardfork(
   }
 
   const key = `${chainType}:${hardfork}`;
+
   if (warnedHardforks.has(key)) {
     return;
   }
+
   warnedHardforks.add(key);
 
-  console.warn(
+  warn(
     styleText(
       ["yellow", "bold"],
       `⚠️ You have configured the "${hardfork}" hardfork, which is experimental ` +

@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { afterEach, beforeEach, describe, it } from "node:test";
+import { beforeEach, describe, it } from "node:test";
 
 import {
   getCurrentHardfork,
@@ -9,37 +9,36 @@ import { warnIfExperimentalHardfork } from "../../../../../../src/internal/built
 import { L1_CHAIN_TYPE } from "../../../../../../src/internal/constants.js";
 
 describe("warnIfExperimentalHardfork", () => {
-  let originalWarn: typeof console.warn;
   let warnings: string[];
 
-  beforeEach(() => {
-    originalWarn = console.warn;
-    warnings = [];
-    console.warn = (...args: unknown[]) => {
-      warnings.push(args.map(String).join(" "));
-    };
-  });
+  const warn = (message: string) => {
+    warnings.push(message);
+  };
 
-  afterEach(() => {
-    console.warn = originalWarn;
+  beforeEach(() => {
+    warnings = [];
   });
 
   it("does not warn for the latest stable hardfork", () => {
     warnIfExperimentalHardfork(
       getCurrentHardfork(L1_CHAIN_TYPE),
       L1_CHAIN_TYPE,
+      warn,
     );
+
     assert.equal(warnings.length, 0);
   });
 
   it("does not warn for hardforks earlier than the latest stable one", () => {
-    warnIfExperimentalHardfork(L1HardforkName.LONDON, L1_CHAIN_TYPE);
-    warnIfExperimentalHardfork(L1HardforkName.PRAGUE, L1_CHAIN_TYPE);
+    warnIfExperimentalHardfork(L1HardforkName.LONDON, L1_CHAIN_TYPE, warn);
+    warnIfExperimentalHardfork(L1HardforkName.PRAGUE, L1_CHAIN_TYPE, warn);
+
     assert.equal(warnings.length, 0);
   });
 
   it("warns exactly once for an experimental hardfork, then dedupes", () => {
-    warnIfExperimentalHardfork(L1HardforkName.AMSTERDAM, L1_CHAIN_TYPE);
+    warnIfExperimentalHardfork(L1HardforkName.AMSTERDAM, L1_CHAIN_TYPE, warn);
+
     assert.equal(warnings.length, 1);
     assert.ok(
       warnings[0].includes(L1HardforkName.AMSTERDAM),
@@ -51,7 +50,8 @@ describe("warnIfExperimentalHardfork", () => {
     );
 
     // Repeated calls for the same (chainType, hardfork) are deduped.
-    warnIfExperimentalHardfork(L1HardforkName.AMSTERDAM, L1_CHAIN_TYPE);
+    warnIfExperimentalHardfork(L1HardforkName.AMSTERDAM, L1_CHAIN_TYPE, warn);
+
     assert.equal(warnings.length, 1);
   });
 });
