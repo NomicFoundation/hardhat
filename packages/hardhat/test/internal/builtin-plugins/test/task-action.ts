@@ -4,7 +4,11 @@ import type { HardhatPlugin } from "../../../../src/types/plugins.js";
 import assert from "node:assert/strict";
 import { afterEach, describe, it } from "node:test";
 
-import { createTmpDir } from "@nomicfoundation/hardhat-test-utils";
+import { HardhatError } from "@nomicfoundation/hardhat-errors";
+import {
+  assertRejectsWithHardhatError,
+  createTmpDir,
+} from "@nomicfoundation/hardhat-test-utils";
 
 import { overrideTask, task } from "../../../../src/config.js";
 import { createHardhatRuntimeEnvironment } from "../../../../src/hre.js";
@@ -17,12 +21,8 @@ const solidityNoOp = overrideTask(["test", "solidity"])
   .setInlineAction(async () => undefined)
   .build();
 
-function mockRunner(
-  name: string,
-  action: (...args: any[]) => unknown,
-  options: { declareGrepExclude?: boolean } = {},
-) {
-  let builder = task(["test", name])
+function mockRunner(name: string, action: (...args: any[]) => unknown) {
+  return task(["test", name])
     .addVariadicArgument({
       name: "testFiles",
       description: "Test files",
@@ -34,18 +34,15 @@ function mockRunner(
       type: ArgumentType.STRING_WITHOUT_DEFAULT,
       defaultValue: undefined,
     })
-    .addFlag({ name: "noCompile" });
-
-  if (options.declareGrepExclude === true) {
-    builder = builder.addOption({
+    .addOption({
       name: "grepExclude",
       description: "Skip tests matching the given string or regexp",
       type: ArgumentType.STRING_WITHOUT_DEFAULT,
       defaultValue: undefined,
-    });
-  }
-
-  return builder.setInlineAction(action).build();
+    })
+    .addFlag({ name: "noCompile" })
+    .setInlineAction(action)
+    .build();
 }
 
 describe("test/task-action", function () {
@@ -436,29 +433,23 @@ describe("test/task-action", function () {
   });
 
   describe("--grep-exclude forwarding to subtasks", function () {
-    // A runner that records the args it receives. `declareGrepExclude` controls
-    // whether it opts into the grepExclude option.
+    // A runner that records the args it receives.
     function capturingRunner(
       name: string,
       received: Array<Record<string, unknown>>,
-      declareGrepExclude: boolean,
     ) {
-      return mockRunner(
-        name,
-        async (args: Record<string, unknown>) => {
-          received.push(args);
-          return successfulResult({
-            summary: { passed: 1, failed: 0, skipped: 0, todo: 0 },
-          });
-        },
-        { declareGrepExclude },
-      );
+      return mockRunner(name, async (args: Record<string, unknown>) => {
+        received.push(args);
+        return successfulResult({
+          summary: { passed: 1, failed: 0, skipped: 0, todo: 0 },
+        });
+      });
     }
 
     it("forwards grep and grepExclude to a subtask that declares grepExclude", async () => {
       const received: Array<Record<string, unknown>> = [];
       const hre = await createHardhatRuntimeEnvironment({
-        tasks: [solidityNoOp, capturingRunner("runner-a", received, true)],
+        tasks: [solidityNoOp, capturingRunner("runner-a", received)],
       });
 
       await hre.tasks.getTask("test").run({
@@ -472,25 +463,40 @@ describe("test/task-action", function () {
       assert.equal(received[0].grepExclude, "sub");
     });
 
-    it("skips grepExclude for a subtask that does not declare it, without throwing", async () => {
-      const received: Array<Record<string, unknown>> = [];
+    it("throws UNRECOGNIZED_TASK_OPTION for a subtask that does not declare grepExclude", async () => {
+      // A runner that declares grep but not grepExclude, modeling a plugin that
+      // has not adopted the option. grepExclude is forwarded to every runner
+      // (like grep), so passing it to a non-declaring runner must surface a
+      // clear error instead of quietly running the excluded tests.
+      const runnerWithoutGrepExclude = task(["test", "runner-a"])
+        .addVariadicArgument({
+          name: "testFiles",
+          description: "Test files",
+          defaultValue: [],
+        })
+        .addOption({
+          name: "grep",
+          description: "Only run tests matching the given string or regexp",
+          type: ArgumentType.STRING_WITHOUT_DEFAULT,
+          defaultValue: undefined,
+        })
+        .addFlag({ name: "noCompile" })
+        .setInlineAction(async () => undefined)
+        .build();
+
       const hre = await createHardhatRuntimeEnvironment({
-        tasks: [solidityNoOp, capturingRunner("runner-a", received, false)],
+        tasks: [solidityNoOp, runnerWithoutGrepExclude],
       });
 
-      // Passing --grep-exclude must not raise UNRECOGNIZED_TASK_OPTION for a
-      // runner that doesn't opt into it (e.g. the node runner); it is silently
-      // skipped by the conditional forwarding loop.
-      const result = await hre.tasks.getTask("test").run({
-        noCompile: true,
-        grep: "unit_",
-        grepExclude: "sub",
-      });
-
-      assert.equal(result.success, true);
-      assert.equal(received.length, 1);
-      assert.equal(received[0].grep, "unit_");
-      assert.equal(received[0].grepExclude, undefined);
+      await assertRejectsWithHardhatError(
+        hre.tasks.getTask("test").run({
+          noCompile: true,
+          grep: "unit_",
+          grepExclude: "sub",
+        }),
+        HardhatError.ERRORS.CORE.TASK_DEFINITIONS.UNRECOGNIZED_TASK_OPTION,
+        { option: "grepExclude", task: "test runner-a" },
+      );
     });
   });
 });

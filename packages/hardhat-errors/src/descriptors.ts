@@ -346,6 +346,19 @@ export const ERROR_CATEGORIES: {
       },
     },
   },
+  HARDHAT_NODE_TEST_RUNNER: {
+    min: 120000,
+    max: 129999,
+    pluginId: "hardhat-node-test-runner",
+    websiteTitle: "Hardhat Node Test Runner",
+    CATEGORIES: {
+      GENERAL: {
+        min: 120000,
+        max: 120099,
+        websiteSubTitle: "General errors",
+      },
+    },
+  },
 };
 
 export const ERRORS = {
@@ -3316,6 +3329,18 @@ Check your internet connection, ensure that the solx releases mirror (https://so
         websiteDescription: `The configured custom path for the solx binary does not exist.
 
 Verify that the path in your Hardhat config points to a valid solx binary.`,
+      },
+    },
+  },
+  HARDHAT_NODE_TEST_RUNNER: {
+    GENERAL: {
+      GREP_EXCLUDE_NOT_SUPPORTED: {
+        number: 120000,
+        messageTemplate: `The --grep-exclude option is not supported by the node:test runner.`,
+        websiteTitle: "Unsupported --grep-exclude option",
+        websiteDescription: `The node:test runner executes tests with isolation disabled, and in that mode Node.js currently ignores the test skip pattern used to implement --grep-exclude (see https://github.com/nodejs/node/issues/64359). Because the exclusion cannot be applied reliably, the option is rejected instead of being silently ignored.
+
+Remove --grep-exclude, or run the tests that need it through the Mocha or Solidity test runners, which support it.`,
       },
     },
   },
