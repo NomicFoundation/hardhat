@@ -61,8 +61,10 @@ export function warnIfExperimentalHardfork(
   warn(
     styleText(["bold", "yellow"], "Warning:") +
       ` you have configured the "${hardfork}" hardfork, which is experimental ` +
-      `and not yet finalized. Behavior may change or be incomplete. ` +
-      `The latest stable hardfork is "${latestStable}".\n`,
+      `and not yet finalized, so its behavior may change or be incomplete. ` +
+      `The latest stable hardfork is "${latestStable}". ` +
+      `Keep Hardhat up to date to track changes to "${hardfork}" and to pick up ` +
+      `its stable version once it activates on mainnet.\n`,
   );
 }
 
