@@ -21,6 +21,7 @@ export interface BenchArgs {
   warmup: number;
   runs: number | undefined;
   exportJson: string | undefined;
+  memFile: string | undefined;
   e2eCloneDirectory: string;
 }
 
@@ -95,6 +96,7 @@ export function resolveAndValidateArgs(args: string[]): BenchArgs | undefined {
     warmup,
     runs,
     exportJson,
+    memFile: undefined,
     e2eCloneDirectory,
   };
 }

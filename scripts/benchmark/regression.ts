@@ -25,6 +25,11 @@ import {
   parseGlobList,
   planCommands,
 } from "./helpers/plan.ts";
+import {
+  gnuTimeAvailable,
+  readPeakRssMb,
+  wrapWithTime,
+} from "./helpers/memory.ts";
 import { isVerdaccioRunning } from "../verdaccio/helpers/shell.ts";
 import {
   publish as verdaccioPublish,
@@ -69,6 +74,12 @@ DESCRIPTION
   Writes a flat JSON array in benchmark-action/github-action-benchmark's
   customSmallerIsBetter format. Per-run times are preserved in the "extra"
   field as a JSON-stringified object.
+
+  When GNU time (/usr/bin/time) is available, each benchmark is wrapped in it to
+  capture peak RSS (the largest resident set size any process in its subtree
+  reached, in MB). This is emitted as a separate "<scenarioId> / <name> (peak
+  RSS)" entry (unit MB) and also embedded as "peakRssMb" in the time entry's
+  extra. If GNU time is missing, memory is silently skipped.
 
 OPTIONS
   --output <path>       Required. Aggregated JSON destination
@@ -151,6 +162,13 @@ async function main(): Promise<void> {
   if (scenarios.length === 0) {
     logError("No scenarios matched the provided filters");
     process.exit(1);
+  }
+
+  if (!gnuTimeAvailable()) {
+    logWarning(
+      "GNU time (/usr/bin/time) not found — peak RSS will not be measured. " +
+        "Install the `time` package to enable memory measurements.",
+    );
   }
 
   const results: BenchmarkEntry[] = [];
@@ -439,6 +457,7 @@ async function runScenario(
           // runStepNames is always defined for step sequences.
           new Set(planned.runStepNames ?? Object.keys(planned.cfg.steps)),
           new Set(planned.emitSteps),
+          scenarioTmpDir,
         ),
       );
 
@@ -449,6 +468,10 @@ async function runScenario(
       scenarioTmpDir,
       `${slugify(planned.name)}.json`,
     );
+    // Only reported commands need a memory reading; prerequisites run unwrapped.
+    const memFile = planned.emit
+      ? path.join(scenarioTmpDir, `${slugify(planned.name)}.mem`)
+      : undefined;
 
     await runPhase(
       planned.name,
@@ -457,6 +480,7 @@ async function runScenario(
         prepare: planned.cfg.prepare,
         runs: planned.cfg.runs,
         exportJson: exportPath,
+        memFile,
       }),
     );
 
@@ -464,7 +488,12 @@ async function runScenario(
     // later selected command) but are not reported.
     if (planned.emit) {
       entries.push(
-        toEntry(scenario.id, planned.name, readHyperfineResult(exportPath)),
+        ...toEntries(
+          scenario.id,
+          planned.name,
+          readHyperfineResult(exportPath),
+          memFile !== undefined ? readPeakRssMb(memFile) : undefined,
+        ),
       );
     }
   }
@@ -480,6 +509,8 @@ async function runScenario(
  * `runSteps` is the set of step names to execute (selected steps plus their
  * prerequisites); other steps are skipped. `emit` is the subset of those to
  * time and report — steps that run but aren't in `emit` are prerequisites only.
+ * Emitted steps are wrapped in GNU time (into `tmpDir`) to capture peak RSS;
+ * the wrapper's fork+exec is negligible against multi-second compiles.
  */
 function runStepsPhase(
   scenarioId: string,
@@ -489,6 +520,7 @@ function runStepsPhase(
   cfg: StepsVariant,
   runSteps: Set<string>,
   emit: Set<string>,
+  tmpDir: string,
 ): BenchmarkEntry[] {
   const totalSteps = Object.keys(cfg.steps).length;
   const stepNames = Object.keys(cfg.steps).filter((n) => runSteps.has(n));
@@ -502,6 +534,9 @@ function runStepsPhase(
   );
 
   const samples = new Map<string, number[]>();
+  const peakRssMb = new Map<string, number>();
+  const memFile = (stepName: string) =>
+    path.join(tmpDir, `${slugify(seqName)}-${slugify(stepName)}.mem`);
 
   for (const stepName of stepNames) {
     if (emit.has(stepName)) {
@@ -512,10 +547,15 @@ function runStepsPhase(
   for (let run = 0; run < cfg.runs; run++) {
     for (const stepName of stepNames) {
       const step = cfg.steps[stepName];
+      // Measure memory only for reported steps; the step command has shell
+      // operators (&&, >>) so it must run under an inner shell to be covered.
+      const command = emit.has(stepName)
+        ? wrapWithTime(step.command, memFile(stepName), true)
+        : step.command;
       const start = performance.now();
 
       try {
-        execSync(step.command, {
+        execSync(command, {
           cwd: workingDir,
           stdio: ["ignore", "pipe", "pipe"],
           encoding: "utf-8",
@@ -544,11 +584,23 @@ function runStepsPhase(
 
       const elapsed = (performance.now() - start) / 1000;
       samples.get(stepName)?.push(elapsed);
+
+      if (emit.has(stepName)) {
+        const rss = readPeakRssMb(memFile(stepName));
+        if (rss !== undefined) {
+          peakRssMb.set(stepName, Math.max(peakRssMb.get(stepName) ?? 0, rss));
+        }
+      }
     }
   }
 
-  return [...samples].map(([stepName, times]) =>
-    toEntry(scenarioId, stepName, computeStats(times)),
+  return [...samples].flatMap(([stepName, times]) =>
+    toEntries(
+      scenarioId,
+      stepName,
+      computeStats(times),
+      peakRssMb.get(stepName),
+    ),
   );
 }
 
@@ -623,6 +675,7 @@ function buildBenchArgs(
     prepare: string | undefined;
     runs: number;
     exportJson: string;
+    memFile: string | undefined;
   },
 ): BenchArgs {
   return {
@@ -639,6 +692,7 @@ function buildBenchArgs(
     warmup: 0,
     runs: phase.runs,
     exportJson: phase.exportJson,
+    memFile: phase.memFile,
     e2eCloneDirectory: args.e2eCloneDirectory,
   };
 }
@@ -655,12 +709,16 @@ function readHyperfineResult(exportPath: string): BenchmarkStats {
   return raw.results[0];
 }
 
-function toEntry(
+// One benchmark produces a timing entry and, when peak RSS was captured, a
+// separate memory entry (its own MB series, independently charted + alerted).
+// The RSS is also embedded in the timing entry's `extra` for convenience.
+function toEntries(
   scenarioId: string,
   phaseLabel: string,
   result: BenchmarkStats,
-): BenchmarkEntry {
-  return {
+  peakRssMb: number | undefined,
+): BenchmarkEntry[] {
+  const timeEntry: BenchmarkEntry = {
     name: `${scenarioId} / ${phaseLabel}`,
     unit: "s",
     value: result.mean,
@@ -671,8 +729,23 @@ function toEntry(
       max: result.max,
       median: result.median,
       mean: result.mean,
+      ...(peakRssMb !== undefined ? { peakRssMb } : {}),
     }),
   };
+
+  if (peakRssMb === undefined) {
+    return [timeEntry];
+  }
+
+  const memEntry: BenchmarkEntry = {
+    name: `${scenarioId} / ${phaseLabel} (peak RSS)`,
+    unit: "MB",
+    value: peakRssMb,
+    range: "± 0",
+    extra: "",
+  };
+
+  return [timeEntry, memEntry];
 }
 
 function writeOutput(outputPath: string, entries: BenchmarkEntry[]): void {
