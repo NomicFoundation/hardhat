@@ -4,11 +4,7 @@ import type { HardhatPlugin } from "../../../../src/types/plugins.js";
 import assert from "node:assert/strict";
 import { afterEach, describe, it } from "node:test";
 
-import { HardhatError } from "@nomicfoundation/hardhat-errors";
-import {
-  assertRejectsWithHardhatError,
-  createTmpDir,
-} from "@nomicfoundation/hardhat-test-utils";
+import { createTmpDir } from "@nomicfoundation/hardhat-test-utils";
 
 import { overrideTask, task } from "../../../../src/config.js";
 import { createHardhatRuntimeEnvironment } from "../../../../src/hre.js";
