@@ -1,5 +1,29 @@
 # hardhat
 
+## 3.10.0
+
+### Minor Changes
+
+- [#8431](https://github.com/NomicFoundation/hardhat/pull/8431) [`39c93e4`](https://github.com/NomicFoundation/hardhat/commit/39c93e4cabbbdefc1184a426757318f370f93930) Thanks [@anaPerezGhiglia](https://github.com/anaPerezGhiglia)! - Add support for the new experimental `amsterdam` L1 hardfork, which currently implements EIP-7708 (ETH transfers emit logs).
+
+### Patch Changes
+
+- [#8421](https://github.com/NomicFoundation/hardhat/pull/8421) [`1ab0408`](https://github.com/NomicFoundation/hardhat/commit/1ab04089c2eca31e611bbb3170bfdee7ced27533) Thanks [@BROCCOLO1D](https://github.com/BROCCOLO1D)! - Fix `SolidityBuildSystem#compileBuildInfo` so build infos produced by non-solc compiler types are replayed through the Solidity compiler hooks.
+
+- [#8414](https://github.com/NomicFoundation/hardhat/pull/8414) [`6ba2bf3`](https://github.com/NomicFoundation/hardhat/commit/6ba2bf38b5d3b7cfd9f081b61dba50503694ce0e) Thanks [@goutamadwant](https://github.com/goutamadwant)! - Fixed Solidity tests failing to run in projects with very large compilation outputs.
+
+- [#8438](https://github.com/NomicFoundation/hardhat/pull/8438) [`d8d2eb7`](https://github.com/NomicFoundation/hardhat/commit/d8d2eb7088584d57eb607523e554702dfe6f1fc6) Thanks [@kanej](https://github.com/kanej)! - Fixed the `hardhat node` task so the `--chain-id`, `--fork`, and `--fork-block-number` CLI options are applied to the network again.
+
+- [#8417](https://github.com/NomicFoundation/hardhat/pull/8417) [`eb4826a`](https://github.com/NomicFoundation/hardhat/commit/eb4826af89d5eac02cafc2d3826f3888ea04a80b) Thanks [@ChristopherDedominici](https://github.com/ChristopherDedominici)! - Fix a bug where the EIP-712 collector throws for a struct of the same name in a source file the user didn't include.
+
+- [#8443](https://github.com/NomicFoundation/hardhat/pull/8443) [`b5674ea`](https://github.com/NomicFoundation/hardhat/commit/b5674ea544361ff221b123e3d2ca95bb8432c27f) Thanks [@Kropiunig](https://github.com/Kropiunig)! - Fixed the HD wallet derivation-path validator so malformed paths containing stray colons (e.g. `m:/44'/60'/0'/0`) are rejected with the `INVALID_HD_PATH` error.
+
+- [#8411](https://github.com/NomicFoundation/hardhat/pull/8411) [`5eb4f0e`](https://github.com/NomicFoundation/hardhat/commit/5eb4f0e1184e85c4e0d640f00a724bb525dfd139) Thanks [@BROCCOLO1D](https://github.com/BROCCOLO1D)! - Support Solidity test `memoryLimit` and fuzz/invariant `timeout` config options.
+
+- Updated dependencies:
+  - @nomicfoundation/hardhat-utils@4.1.5
+  - @nomicfoundation/hardhat-errors@3.0.17
+
 ## 3.9.1
 
 ### Patch Changes
