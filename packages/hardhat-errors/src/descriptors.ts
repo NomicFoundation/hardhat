@@ -1520,6 +1520,15 @@ Make sure the plugin that provides the "{compilerType}" compiler is installed an
 
 Make sure the plugin that provides the compiler is installed and enabled in your Hardhat config.`,
       },
+      BUILD_INFO_OUTPUT_PARSE_ERROR: {
+        number: 919,
+        messageTemplate: `Failed to parse the compilation output for build info "{buildInfoId}".
+
+This usually means the artifact is corrupted. Recompiling your project should fix it.`,
+        websiteTitle: "Failed to parse build info output",
+        websiteDescription:
+          "Hardhat could not parse the compilation output of a build info. The artifact is likely corrupted.",
+      },
     },
     ARTIFACTS: {
       NOT_FOUND: {

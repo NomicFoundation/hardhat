@@ -1,0 +1,5 @@
+---
+"@nomicfoundation/hardhat-ethers": patch
+---
+
+Fixed the HD wallet derivation-path validator so malformed paths containing stray colons (e.g. `m:/44'/60'/0'/0`) are rejected with the `INVALID_HD_PATH` error.

@@ -18,6 +18,20 @@ You can run each of the fixture test manually from the package root by building 
 
 ## Re-generating the expected results
 
+Re-generating the fixtures requires a few external tools. `aha` and `wkhtmltoimage` are **not** installed by `scripts/setup.sh`, as they are only needed for this task and not for running the tests:
+
+- [`jq`](https://jqlang.org) — used by `scripts/regenerate-fixtures.sh` to read `options.json`. Install with `sudo apt install jq` or an equivalent.
+- [`aha`](https://github.com/theZiz/aha) — converts the reporter's ANSI-colored output into HTML. Install with `sudo apt install aha` or an equivalent.
+- [`wkhtmltoimage`](https://wkhtmltopdf.org) (shipped in the `wkhtmltopdf` package) — renders that HTML into the `result.svg` snapshot. Install it from the [wkhtmltopdf releases](https://github.com/wkhtmltopdf/packaging/releases), e.g.:
+
+  ```bash
+  curl -sL https://github.com/wkhtmltopdf/packaging/releases/download/0.12.6.1-3/wkhtmltox_0.12.6.1-3.bookworm_amd64.deb -o /tmp/wkhtmltox.deb
+  sudo apt install -y /tmp/wkhtmltox.deb
+  rm /tmp/wkhtmltox.deb
+  ```
+
+The `result.svg` files are human-review snapshots of the colored output; the automated tests only compare `result.txt`.
+
 If you want to re-generate all the expected results, you can run the following script from the package root:
 
 ```bash

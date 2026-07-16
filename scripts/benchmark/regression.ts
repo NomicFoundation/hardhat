@@ -447,14 +447,27 @@ function runStepsPhase(
       try {
         execSync(step.command, {
           cwd: workingDir,
-          stdio: "ignore",
+          stdio: ["ignore", "pipe", "pipe"],
+          encoding: "utf-8",
+          // The default 1 MiB maxBuffer would make chatty-but-successful
+          // steps (e.g. a full hardhat compile) throw ENOBUFS.
+          maxBuffer: 64 * 1024 * 1024,
           env: { ...process.env, ...env },
         });
       } catch (error) {
-        const original = error instanceof Error ? error.message : String(error);
+        // Only the first line: execSync embeds the child's full stderr in
+        // its message, and the streams are appended whole below.
+        const original = (
+          error instanceof Error ? error.message : String(error)
+        ).split("\n", 1)[0];
+        const { stdout, stderr } = error as {
+          stdout?: string;
+          stderr?: string;
+        };
         throw new Error(
           `${scenarioId} / ${seqName}: step "${stepName}" failed on run ${run + 1}/${cfg.runs}: ${original}\n` +
-            `  Reproduce with: cd ${shellQuote(workingDir)} && ${step.command}`,
+            `  Reproduce with: cd ${shellQuote(workingDir)} && ${step.command}\n` +
+            formatOutput({ stdout, stderr }),
           { cause: error },
         );
       }
@@ -467,6 +480,17 @@ function runStepsPhase(
   return [...samples].map(([stepName, times]) =>
     toEntry(scenarioId, stepName, computeStats(times)),
   );
+}
+
+// Failures are rare and abort the scenario, so the whole output is shown
+// rather than a tail — a compiler error can sit thousands of warning lines
+// above the end.
+function formatOutput(streams: { stdout?: string; stderr?: string }): string {
+  return Object.entries(streams)
+    .map(([name, text]) => [name, (text ?? "").trimEnd()] as const)
+    .filter(([, text]) => text !== "")
+    .map(([name, text]) => `  --- ${name} ---\n${text}`)
+    .join("\n");
 }
 
 function slugify(name: string): string {

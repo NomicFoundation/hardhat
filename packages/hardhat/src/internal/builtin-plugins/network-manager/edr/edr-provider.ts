@@ -59,6 +59,7 @@ import {
   hardhatForkingConfigToEdrForkConfig,
   resolveDefaultTransactionGasLimit,
 } from "./utils/convert-to-edr.js";
+import { warnIfExperimentalHardfork } from "./utils/hardfork.js";
 import { printLine, replaceLastLine } from "./utils/logger.js";
 
 const log = createDebug("hardhat:core:network-manager:edr:provider");
@@ -108,6 +109,8 @@ export class EdrProvider extends BaseProvider {
   }: EdrProviderConfig): Promise<EdrProvider> {
     const printLineFn = loggerConfig.printLineFn ?? printLine;
     const replaceLastLineFn = loggerConfig.replaceLastLineFn ?? replaceLastLine;
+
+    warnIfExperimentalHardfork(networkConfig.hardfork, networkConfig.chainType);
 
     const providerConfig = await getProviderConfig(
       networkConfig,

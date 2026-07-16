@@ -1,5 +1,3 @@
-import type { EdrNetworkConfigOverride } from "../../../types/config.js";
-import type { ChainType } from "../../../types/network.js";
 import type { NewTaskActionFunction } from "../../../types/tasks.js";
 
 import path from "node:path";
@@ -12,7 +10,6 @@ import {
 import { createDebug } from "@nomicfoundation/hardhat-utils/debug";
 import { ensureDir, exists } from "@nomicfoundation/hardhat-utils/fs";
 
-import { isSupportedChainType } from "../../edr/chain-type.js";
 import { BUILD_INFO_DIR_NAME } from "../artifacts/artifact-manager.js";
 import { EdrProvider } from "../network-manager/edr/edr-provider.js";
 
@@ -22,6 +19,7 @@ import {
   formatEdrNetworkConfigAccounts,
 } from "./helpers.js";
 import { JsonRpcServerImplementation } from "./json-rpc/server.js";
+import { resolveNodeConnectionParams } from "./utils/resolve-node-connection-params.js";
 
 const log = createDebug("hardhat:core:tasks:node");
 
@@ -56,55 +54,7 @@ const nodeAction: NewTaskActionFunction<NodeActionArguments> = async (
     });
   }
 
-  const connectionParams: {
-    network: string;
-    chainType?: ChainType;
-    override?: EdrNetworkConfigOverride;
-  } = {
-    network,
-  };
-
-  // NOTE: We create an empty network config override here. We add to it based
-  // on the result of arguments parsing. We can expand the list of arguments
-  // as much as needed.
-  const networkConfigOverride: EdrNetworkConfigOverride = {};
-
-  if (args.chainType !== undefined) {
-    if (!isSupportedChainType(args.chainType)) {
-      throw new HardhatError(
-        HardhatError.ERRORS.CORE.ARGUMENTS.INVALID_VALUE_FOR_TYPE,
-        {
-          value: args.chainType,
-          type: "ChainType",
-          name: "chainType",
-        },
-      );
-    }
-    connectionParams.chainType = args.chainType;
-  }
-
-  if (args.chainId !== -1) {
-    networkConfigOverride.chainId = args.chainId;
-  }
-
-  // NOTE: --fork-block-number is only valid if --fork is specified
-  if (args.fork !== undefined) {
-    networkConfigOverride.forking = {
-      enabled: true,
-      url: args.fork,
-      ...(args.forkBlockNumber !== -1
-        ? { blockNumber: args.forkBlockNumber }
-        : undefined),
-    };
-  } else if (args.forkBlockNumber !== -1) {
-    // NOTE: We could make the error more specific here.
-    throw new HardhatError(
-      HardhatError.ERRORS.CORE.ARGUMENTS.MISSING_VALUE_FOR_ARGUMENT,
-      {
-        argument: "fork",
-      },
-    );
-  }
+  const connectionParams = resolveNodeConnectionParams(network, args);
 
   // NOTE: This is where we initialize the network; the create method returns
   // a fully resolved networkConfig object which might be useful for display

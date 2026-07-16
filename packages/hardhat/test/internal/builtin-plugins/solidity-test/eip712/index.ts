@@ -4,7 +4,7 @@ import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 
 import { HardhatError } from "@nomicfoundation/hardhat-errors";
-import { assertThrowsHardhatError } from "@nomicfoundation/hardhat-test-utils";
+import { assertRejectsWithHardhatError } from "@nomicfoundation/hardhat-test-utils";
 import { utf8StringToBytes } from "@nomicfoundation/hardhat-utils/bytes";
 
 import {
@@ -131,7 +131,7 @@ function contractAst(name: string, structs: unknown[]): unknown {
 }
 
 describe("eip712 - collectEip712CanonicalTypes", () => {
-  it("returns an empty list when no include is configured", () => {
+  it("returns an empty list when no include is configured", async () => {
     // The feature is opt-in: with an empty `include`, collection
     // short-circuits before any build info is parsed.
     const sources: FakeSource[] = [
@@ -145,7 +145,7 @@ describe("eip712 - collectEip712CanonicalTypes", () => {
     const inputToUserSource = inputToUserSourceMap(sources);
 
     assert.deepEqual(
-      collectEip712CanonicalTypes([buildInfo], inputToUserSource, {
+      await collectEip712CanonicalTypes([buildInfo], inputToUserSource, {
         include: [],
         exclude: [],
       }),
@@ -153,7 +153,7 @@ describe("eip712 - collectEip712CanonicalTypes", () => {
     );
     // Exclude alone is a no-op without an include to narrow.
     assert.deepEqual(
-      collectEip712CanonicalTypes([buildInfo], inputToUserSource, {
+      await collectEip712CanonicalTypes([buildInfo], inputToUserSource, {
         include: [],
         exclude: ["**"],
       }),
@@ -161,7 +161,7 @@ describe("eip712 - collectEip712CanonicalTypes", () => {
     );
   });
 
-  it("returns the flat canonical list for a Mail/Person fixture", () => {
+  it("returns the flat canonical list for a Mail/Person fixture", async () => {
     const sources: FakeSource[] = [
       {
         inputSourceName: "project/test/Types.sol",
@@ -181,7 +181,7 @@ describe("eip712 - collectEip712CanonicalTypes", () => {
     ];
     const buildInfo = makeBuildInfo("solc-0_8_23-aaaaaaaa", sources);
 
-    const result = collectEip712CanonicalTypes(
+    const result = await collectEip712CanonicalTypes(
       [buildInfo],
       inputToUserSourceMap(sources),
       { include: ["test/**"], exclude: [] },
@@ -193,7 +193,78 @@ describe("eip712 - collectEip712CanonicalTypes", () => {
     ]);
   });
 
-  it("filters by include/exclude on the user source name", () => {
+  it("falls back to stream parsing when the build info output is too large for a single string", async (t) => {
+    const sources: FakeSource[] = [
+      {
+        inputSourceName: "project/test/Types.sol",
+        userSourceName: "test/Types.sol",
+        ast: sourceUnit([
+          structAst("Person", [
+            { type: "address", name: "wallet" },
+            { type: "string", name: "name" },
+          ]),
+        ]),
+      },
+    ];
+    const buildInfo = makeBuildInfo("solc-0_8_23-large-output", sources);
+
+    // Simulate an output too large to be decoded into a single string:
+    // `TextDecoder.decode` throws only in that case, so this exercises the
+    // stream-parsing fallback without allocating a multi-gigabyte buffer.
+    const originalDecode = TextDecoder.prototype.decode;
+    t.mock.method(
+      TextDecoder.prototype,
+      "decode",
+      function (
+        this: InstanceType<typeof TextDecoder>,
+        ...args: Parameters<typeof TextDecoder.prototype.decode>
+      ) {
+        if (args[0] === buildInfo.output) {
+          throw new RangeError(
+            "Cannot create a string longer than 0x1fffffe8 characters",
+          );
+        }
+
+        return originalDecode.call(this, args[0], args[1]);
+      },
+    );
+
+    const result = await collectEip712CanonicalTypes(
+      [buildInfo],
+      inputToUserSourceMap(sources),
+      { include: ["test/**"], exclude: [] },
+    );
+
+    assert.deepEqual(result, ["Person(address wallet,string name)"]);
+  });
+
+  it("throws a HardhatError when the build info output cannot be parsed", async () => {
+    const sources: FakeSource[] = [
+      {
+        inputSourceName: "project/test/Types.sol",
+        userSourceName: "test/Types.sol",
+        ast: sourceUnit([
+          structAst("Person", [{ type: "address", name: "x" }]),
+        ]),
+      },
+    ];
+    const buildInfo = makeBuildInfo("solc-0_8_23-cccccccc", sources);
+    const corrupted = {
+      ...buildInfo,
+      output: utf8StringToBytes("{ not valid json"),
+    };
+
+    await assertRejectsWithHardhatError(
+      collectEip712CanonicalTypes([corrupted], inputToUserSourceMap(sources), {
+        include: ["test/**"],
+        exclude: [],
+      }),
+      HardhatError.ERRORS.CORE.SOLIDITY.BUILD_INFO_OUTPUT_PARSE_ERROR,
+      { buildInfoId: buildInfo.buildInfoId },
+    );
+  });
+
+  it("filters by include/exclude on the user source name", async () => {
     const sources: FakeSource[] = [
       {
         inputSourceName: "project/contracts/Foo.sol",
@@ -209,14 +280,14 @@ describe("eip712 - collectEip712CanonicalTypes", () => {
     const buildInfo = makeBuildInfo("solc-0_8_23-bbbbbbbb", sources);
     const inputToUserSource = inputToUserSourceMap(sources);
 
-    const onlyTests = collectEip712CanonicalTypes(
+    const onlyTests = await collectEip712CanonicalTypes(
       [buildInfo],
       inputToUserSource,
       { include: ["test/**"], exclude: [] },
     );
     assert.deepEqual(onlyTests, ["Bar(uint256 y)"]);
 
-    const excludeTests = collectEip712CanonicalTypes(
+    const excludeTests = await collectEip712CanonicalTypes(
       [buildInfo],
       inputToUserSource,
       { include: ["**"], exclude: ["test/**"] },
@@ -224,7 +295,7 @@ describe("eip712 - collectEip712CanonicalTypes", () => {
     assert.deepEqual(excludeTests, ["Foo(uint256 x)"]);
   });
 
-  it("dedupes the same struct seen across multiple build infos", () => {
+  it("dedupes the same struct seen across multiple build infos", async () => {
     const ast = sourceUnit([
       structAst("Person", [
         { type: "address", name: "wallet" },
@@ -248,7 +319,7 @@ describe("eip712 - collectEip712CanonicalTypes", () => {
     const a = makeBuildInfo("solc-0_8_23-cccccccc", sourcesA);
     const b = makeBuildInfo("solc-0_8_23-dddddddd", sourcesB);
 
-    const result = collectEip712CanonicalTypes(
+    const result = await collectEip712CanonicalTypes(
       [a, b],
       inputToUserSourceMap(sourcesA, sourcesB),
       { include: ["test/**"], exclude: [] },
@@ -257,7 +328,7 @@ describe("eip712 - collectEip712CanonicalTypes", () => {
     assert.deepEqual(result, ["Person(address wallet,string name)"]);
   });
 
-  it("uses the caller-provided inputToUserSource map for transitive sources", () => {
+  it("uses the caller-provided inputToUserSource map for transitive sources", async () => {
     // Mirrors `hardhat test solidity <one-test-file>`: the partial build info
     // explicitly compiles a single root, but its output also contains the
     // transitive source set. The user-facing name for those transitive
@@ -289,7 +360,7 @@ describe("eip712 - collectEip712CanonicalTypes", () => {
       partialBuildSources,
     );
 
-    const result = collectEip712CanonicalTypes(
+    const result = await collectEip712CanonicalTypes(
       [fullBuild, partialBuild],
       inputToUserSourceMap(fullBuildSources, partialBuildSources),
       { include: ["contracts/**"], exclude: [] },
@@ -298,7 +369,7 @@ describe("eip712 - collectEip712CanonicalTypes", () => {
     assert.deepEqual(result, ["Person(address wallet,string name)"]);
   });
 
-  it("falls back to inputSourceName when the map omits an entry", () => {
+  it("falls back to inputSourceName when the map omits an entry", async () => {
     // Imported sources (e.g. from npm packages) that don't produce artifacts
     // won't appear in the caller-supplied `inputToUserSource` map. The
     // collector should still surface their structs, keyed by the input
@@ -313,7 +384,7 @@ describe("eip712 - collectEip712CanonicalTypes", () => {
       },
     ]);
 
-    const result = collectEip712CanonicalTypes([buildInfo], new Map(), {
+    const result = await collectEip712CanonicalTypes([buildInfo], new Map(), {
       include: ["npm/**"],
       exclude: [],
     });
@@ -321,7 +392,7 @@ describe("eip712 - collectEip712CanonicalTypes", () => {
     assert.deepEqual(result, ["Imported(uint256 x)"]);
   });
 
-  it("strips the project/ prefix when a project file is missing from the map", () => {
+  it("strips the project/ prefix when a project file is missing from the map", async () => {
     // A project file outside the standard root directories (e.g. a shared
     // file in `lib/` that's only ever imported and produces no artifact) is
     // absent from the caller-supplied map. Its input source name is
@@ -338,7 +409,7 @@ describe("eip712 - collectEip712CanonicalTypes", () => {
       },
     ]);
 
-    const result = collectEip712CanonicalTypes([buildInfo], new Map(), {
+    const result = await collectEip712CanonicalTypes([buildInfo], new Map(), {
       include: ["lib/**"],
       exclude: [],
     });
@@ -346,7 +417,7 @@ describe("eip712 - collectEip712CanonicalTypes", () => {
     assert.deepEqual(result, ["Helper(uint256 n)"]);
   });
 
-  it("throws on conflicting same-named structs within a single source file", () => {
+  it("throws on conflicting same-named structs within a single source file", async () => {
     // A top-level `struct S` and a `contract C { struct S { ... } }` with
     // a different definition share a source path but produce different
     // EIP-712 heads. Since `vm.eip712HashType` resolves by bare name, this
@@ -364,7 +435,7 @@ describe("eip712 - collectEip712CanonicalTypes", () => {
     ];
     const buildInfo = makeBuildInfo("solc-0_8_23-11111111", sources);
 
-    assertThrowsHardhatError(
+    await assertRejectsWithHardhatError(
       () =>
         collectEip712CanonicalTypes(
           [buildInfo],
@@ -381,7 +452,7 @@ describe("eip712 - collectEip712CanonicalTypes", () => {
     );
   });
 
-  it("throws on conflicting same-named structs across two contracts in one file", () => {
+  it("throws on conflicting same-named structs across two contracts in one file", async () => {
     const sources: FakeSource[] = [
       {
         inputSourceName: "project/test/Types.sol",
@@ -394,7 +465,7 @@ describe("eip712 - collectEip712CanonicalTypes", () => {
     ];
     const buildInfo = makeBuildInfo("solc-0_8_23-22222222", sources);
 
-    assertThrowsHardhatError(
+    await assertRejectsWithHardhatError(
       () =>
         collectEip712CanonicalTypes(
           [buildInfo],
@@ -411,7 +482,7 @@ describe("eip712 - collectEip712CanonicalTypes", () => {
     );
   });
 
-  it("dedupes identical same-named structs within a single source file", () => {
+  it("dedupes identical same-named structs within a single source file", async () => {
     // A top-level `struct S` and a `contract C { struct S { ... } }` with
     // an identical definition produce the same EIP-712 head; that's not a
     // conflict and must be silently deduped.
@@ -427,7 +498,7 @@ describe("eip712 - collectEip712CanonicalTypes", () => {
     ];
     const buildInfo = makeBuildInfo("solc-0_8_23-33333333", sources);
 
-    const result = collectEip712CanonicalTypes(
+    const result = await collectEip712CanonicalTypes(
       [buildInfo],
       inputToUserSourceMap(sources),
       { include: ["test/**"], exclude: [] },
@@ -436,7 +507,7 @@ describe("eip712 - collectEip712CanonicalTypes", () => {
     assert.deepEqual(result, ["S(uint256 a)"]);
   });
 
-  it("scopes user-defined value type resolution per build info when node ids collide", () => {
+  it("scopes user-defined value type resolution per build info when node ids collide", async () => {
     // solc node ids are unique only within a single compilation. When two
     // build infos happen to assign the same numeric id to different
     // user-defined value types,
@@ -530,22 +601,26 @@ describe("eip712 - collectEip712CanonicalTypes", () => {
     const expected = ["AStruct(uint256 f)", "BStruct(bytes32 b)"];
 
     assert.deepEqual(
-      collectEip712CanonicalTypes([buildA, buildB], inputToUserSource, {
-        include: ["**"],
-        exclude: [],
-      }).sort(),
+      (
+        await collectEip712CanonicalTypes([buildA, buildB], inputToUserSource, {
+          include: ["**"],
+          exclude: [],
+        })
+      ).sort(),
       expected,
     );
     assert.deepEqual(
-      collectEip712CanonicalTypes([buildB, buildA], inputToUserSource, {
-        include: ["**"],
-        exclude: [],
-      }).sort(),
+      (
+        await collectEip712CanonicalTypes([buildB, buildA], inputToUserSource, {
+          include: ["**"],
+          exclude: [],
+        })
+      ).sort(),
       expected,
     );
   });
 
-  it("inline a dep defined in a non-included file", () => {
+  it("inline a dep defined in a non-included file", async () => {
     const sources: FakeSource[] = [
       {
         inputSourceName: "project/test/Mail.sol",
@@ -571,7 +646,7 @@ describe("eip712 - collectEip712CanonicalTypes", () => {
     ];
     const buildInfo = makeBuildInfo("solc-0_8_23-aabbccdd", sources);
 
-    const result = collectEip712CanonicalTypes(
+    const result = await collectEip712CanonicalTypes(
       [buildInfo],
       inputToUserSourceMap(sources),
       { include: ["test/**"], exclude: [] },
@@ -582,7 +657,7 @@ describe("eip712 - collectEip712CanonicalTypes", () => {
     ]);
   });
 
-  it("inline a dep defined in a different build info", () => {
+  it("inline a dep defined in a different build info", async () => {
     const testSources: FakeSource[] = [
       {
         inputSourceName: "project/test/Mail.sol",
@@ -610,7 +685,7 @@ describe("eip712 - collectEip712CanonicalTypes", () => {
     const testBuild = makeBuildInfo("solc-0_8_23-11112222", testSources);
     const libBuild = makeBuildInfo("solc-0_8_23-33334444", libSources);
 
-    const result = collectEip712CanonicalTypes(
+    const result = await collectEip712CanonicalTypes(
       [testBuild, libBuild],
       inputToUserSourceMap(testSources, libSources),
       { include: ["test/**"], exclude: [] },
@@ -621,7 +696,7 @@ describe("eip712 - collectEip712CanonicalTypes", () => {
     ]);
   });
 
-  it("walks transitive deps through non-included files", () => {
+  it("walks transitive deps through non-included files", async () => {
     const sources: FakeSource[] = [
       {
         inputSourceName: "project/test/Order.sol",
@@ -656,7 +731,7 @@ describe("eip712 - collectEip712CanonicalTypes", () => {
     ];
     const buildInfo = makeBuildInfo("solc-0_8_23-55556666", sources);
 
-    const result = collectEip712CanonicalTypes(
+    const result = await collectEip712CanonicalTypes(
       [buildInfo],
       inputToUserSourceMap(sources),
       { include: ["test/**"], exclude: [] },
@@ -669,7 +744,7 @@ describe("eip712 - collectEip712CanonicalTypes", () => {
     ]);
   });
 
-  it("does not throw on duplicate struct names confined to non-included files", () => {
+  it("does not throw on duplicate struct names confined to non-included files", async () => {
     const sources: FakeSource[] = [
       {
         inputSourceName: "project/test/Wanted.sol",
@@ -695,7 +770,7 @@ describe("eip712 - collectEip712CanonicalTypes", () => {
     ];
     const buildInfo = makeBuildInfo("solc-0_8_23-99990000", sources);
 
-    const result = collectEip712CanonicalTypes(
+    const result = await collectEip712CanonicalTypes(
       [buildInfo],
       inputToUserSourceMap(sources),
       { include: ["test/**"], exclude: [] },
@@ -704,7 +779,7 @@ describe("eip712 - collectEip712CanonicalTypes", () => {
     assert.deepEqual(result, ["Wanted(uint256 x)"]);
   });
 
-  it("does not throw when an included file and a non-included, unimported file define the same struct name", () => {
+  it("does not throw when an included file and a non-included, unimported file define the same struct name", async () => {
     // `include` scopes which sources contribute structs, so a same-named
     // struct in a non-included file that nothing in the included scope imports
     // must not abort the run — the included definition wins and is emitted.
@@ -732,7 +807,7 @@ describe("eip712 - collectEip712CanonicalTypes", () => {
     ];
     const buildInfo = makeBuildInfo("solc-0_8_23-aaaabbbb", sources);
 
-    const result = collectEip712CanonicalTypes(
+    const result = await collectEip712CanonicalTypes(
       [buildInfo],
       inputToUserSourceMap(sources),
       { include: ["contracts/A.sol"], exclude: [] },
@@ -741,7 +816,7 @@ describe("eip712 - collectEip712CanonicalTypes", () => {
     assert.deepEqual(result, ["Order(address user,uint256 amount)"]);
   });
 
-  it("throws HHE818 when a selected struct depends on a name two non-included files define differently", () => {
+  it("throws HHE818 when a selected struct depends on a name two non-included files define differently", async () => {
     // The conflict is real: included `Mail` depends on `Person`, which two
     // non-included files define differently, so it's reachable from the
     // selected set and genuinely ambiguous. HHE818 must steer to renaming,
@@ -778,7 +853,7 @@ describe("eip712 - collectEip712CanonicalTypes", () => {
     ];
     const buildInfo = makeBuildInfo("solc-0_8_23-aaaacccc", sources);
 
-    assertThrowsHardhatError(
+    await assertRejectsWithHardhatError(
       () =>
         collectEip712CanonicalTypes(
           [buildInfo],
@@ -795,7 +870,7 @@ describe("eip712 - collectEip712CanonicalTypes", () => {
     );
   });
 
-  it("dedupes an identical struct shared by an included and a non-included file", () => {
+  it("dedupes an identical struct shared by an included and a non-included file", async () => {
     // Same `Person` in an included and a non-included file isn't a conflict:
     // dedup and selection emit it once rather than reject the duplicate name.
     const sources: FakeSource[] = [
@@ -822,7 +897,7 @@ describe("eip712 - collectEip712CanonicalTypes", () => {
     ];
     const buildInfo = makeBuildInfo("solc-0_8_23-bbbbdddd", sources);
 
-    const result = collectEip712CanonicalTypes(
+    const result = await collectEip712CanonicalTypes(
       [buildInfo],
       inputToUserSourceMap(sources),
       { include: ["contracts/A.sol"], exclude: [] },
@@ -831,7 +906,7 @@ describe("eip712 - collectEip712CanonicalTypes", () => {
     assert.deepEqual(result, ["Person(address wallet,string name)"]);
   });
 
-  it("drops a selected struct when a transitive dep in a non-included file is non decodable", () => {
+  it("drops a selected struct when a transitive dep in a non-included file is non decodable", async () => {
     const sources: FakeSource[] = [
       {
         inputSourceName: "project/test/Order.sol",
@@ -871,7 +946,7 @@ describe("eip712 - collectEip712CanonicalTypes", () => {
     ];
     const buildInfo = makeBuildInfo("solc-0_8_23-aaaa9999", sources);
 
-    const result = collectEip712CanonicalTypes(
+    const result = await collectEip712CanonicalTypes(
       [buildInfo],
       inputToUserSourceMap(sources),
       { include: ["test/**"], exclude: [] },
@@ -880,7 +955,7 @@ describe("eip712 - collectEip712CanonicalTypes", () => {
     assert.deepEqual(result, []);
   });
 
-  it("skips build infos whose output has no sources", () => {
+  it("skips build infos whose output has no sources", async () => {
     // Defensive: a build info output without a `sources` key must be silently
     // skipped, and structs from sibling build infos must still be collected.
     // The empty build info still includes `struct ` in its bytes so it gets
@@ -917,7 +992,7 @@ describe("eip712 - collectEip712CanonicalTypes", () => {
     ];
     const goodBuildInfo = makeBuildInfo("solc-0_8_23-99999999", goodSources);
 
-    const result = collectEip712CanonicalTypes(
+    const result = await collectEip712CanonicalTypes(
       [
         {
           buildInfoId: emptyBuildInfoId,
@@ -933,7 +1008,7 @@ describe("eip712 - collectEip712CanonicalTypes", () => {
     assert.deepEqual(result, ["Person(address wallet,string name)"]);
   });
 
-  it("skips build infos whose bytes don't contain `struct `", () => {
+  it("skips build infos whose bytes don't contain `struct `", async () => {
     // Byte-level fast path: a build info that can't define EIP-712 types
     // must be skipped without parsing its output. We exercise it by handing
     // in a build info whose `output` bytes would crash JSON.parse — if the
@@ -965,7 +1040,7 @@ describe("eip712 - collectEip712CanonicalTypes", () => {
     ];
     const goodBuildInfo = makeBuildInfo("solc-0_8_23-66666666", goodSources);
 
-    const result = collectEip712CanonicalTypes(
+    const result = await collectEip712CanonicalTypes(
       [
         {
           buildInfoId: skippableBuildInfoId,

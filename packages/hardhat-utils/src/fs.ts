@@ -1,4 +1,3 @@
-import type * as StreamParserJson from "@streamparser/json-node";
 import type * as JsonStreamStringify from "json-stream-stringify";
 import type { FileHandle } from "node:fs/promises";
 
@@ -18,14 +17,11 @@ import {
   IsDirectoryError,
   DirectoryNotEmptyError,
 } from "./errors/fs.js";
+import { parseJsonStream } from "./internal/bytes.js";
 import {
   collectAllDirectoriesMatching,
   collectAllFilesMatching,
 } from "./internal/fs.js";
-
-// We don't load @streamparser/json-node on startup because it's only
-// used by readJsonFileAsStream for very large JSON files.
-let streamParserJson: typeof StreamParserJson | undefined;
 
 // We don't load json-stream-stringify on startup because it's only
 // used by writeJsonFileAsStream for very large JSON objects.
@@ -426,40 +422,7 @@ export async function readJsonFileAsStream<T>(
   try {
     fileHandle = await fsPromises.open(absolutePathToFile, "r");
 
-    const fileReadStream = fileHandle.createReadStream();
-
-    if (streamParserJson === undefined) {
-      streamParserJson = await import("@streamparser/json-node");
-    }
-
-    // NOTE: We set a separator to disable self-closing to be able to use the parser
-    // in the stream.pipeline context; see https://github.com/juanjoDiaz/streamparser-json/issues/47
-    const jsonParser = new streamParserJson.JSONParser({
-      separator: "",
-    });
-
-    const result: T | undefined = await pipeline(
-      fileReadStream,
-      jsonParser,
-      async (
-        elements: AsyncIterable<StreamParserJson.ParsedElementInfo.ParsedElementInfo>,
-      ): Promise<any | undefined> => {
-        let value:
-          | StreamParserJson.JsonTypes.JsonPrimitive
-          | StreamParserJson.JsonTypes.JsonStruct
-          | undefined;
-        for await (const element of elements) {
-          value = element.value;
-        }
-        return value;
-      },
-    );
-
-    if (result === undefined) {
-      throw new Error("No data");
-    }
-
-    return result;
+    return await parseJsonStream<T>(fileHandle.createReadStream());
   } catch (e) {
     ensureError(e);
 

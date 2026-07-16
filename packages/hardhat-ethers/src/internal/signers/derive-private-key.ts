@@ -14,7 +14,7 @@ let mnemonicToSeedSync: typeof Bip39T.mnemonicToSeedSync | undefined;
 // ethereum-cryptography/hdkey is known to be slow to load, so we lazy load it
 let HDKey: typeof HDKeyT | undefined;
 
-const HD_PATH_REGEX = /^m(:?\/\d+'?)+\/?$/;
+const HD_PATH_REGEX = /^m(?:\/\d+'?)+\/?$/;
 
 export async function derivePrivateKeys(
   accounts: EdrNetworkHDAccountsConfig | HttpNetworkHDAccountsConfig,
