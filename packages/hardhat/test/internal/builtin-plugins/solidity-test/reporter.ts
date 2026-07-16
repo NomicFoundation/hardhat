@@ -90,6 +90,9 @@ const mocker = {
                         mocker.trace(trace),
                       );
                     },
+                    reason: undefined,
+                    counterexample: undefined,
+                    valueSnapshotGroups: undefined,
                   }) satisfies TestResult,
               )
               .reverse(),

@@ -8,7 +8,7 @@ import type {
 
 import assert from "node:assert/strict";
 import { once } from "node:events";
-import { before, describe, it } from "node:test";
+import { afterEach, before, beforeEach, describe, it } from "node:test";
 
 import {
   assertHardhatInvariant,
@@ -29,6 +29,7 @@ import {
   EdrProvider,
   getProviderConfig,
 } from "../../../../../src/internal/builtin-plugins/network-manager/edr/edr-provider.js";
+import { L1HardforkName } from "../../../../../src/internal/builtin-plugins/network-manager/edr/types/hardfork.js";
 import {
   InvalidArgumentsError,
   ProviderError,
@@ -412,11 +413,14 @@ describe("edr-provider", () => {
       "should emit notification and message events for each result of the SubscriptionEvent",
       { timeout: 1000 },
       async () => {
+        // `SubscriptionEvent.result` is typed as `unknown`, so we keep the
+        // payload in a typed local to read its length and assert against it.
+        const eventResult = ["0x1", "0x2"];
         const event: SubscriptionEvent = {
           filterId: 1n,
-          result: ["0x1", "0x2"],
+          result: eventResult,
         };
-        const eventResultLength = event.result.length;
+        const eventResultLength = eventResult.length;
         const notificationEventResults: string[] = [];
         const messageEventResults: string[] = [];
 
@@ -453,8 +457,8 @@ describe("edr-provider", () => {
         notificationEventResults.sort();
         messageEventResults.sort();
 
-        assert.deepEqual(notificationEventResults, event.result);
-        assert.deepEqual(messageEventResults, event.result);
+        assert.deepEqual(notificationEventResults, eventResult);
+        assert.deepEqual(messageEventResults, eventResult);
       },
     );
   });
@@ -776,6 +780,36 @@ describe("edr-provider", () => {
 
         assert.equal(providerConfig.transactionGasCap, false);
       });
+    });
+  });
+
+  describe("experimental hardfork warning", () => {
+    let originalError: typeof console.error;
+    let warnings: string[];
+
+    beforeEach(() => {
+      originalError = console.error;
+      warnings = [];
+      console.error = (...args: unknown[]) => {
+        warnings.push(args.map(String).join(" "));
+      };
+    });
+
+    afterEach(() => {
+      console.error = originalError;
+    });
+
+    it("warns exactly once when creating a provider with an experimental hardfork", async () => {
+      await hre.network.create({
+        override: {
+          hardfork: L1HardforkName.AMSTERDAM,
+        },
+      });
+
+      const experimentalWarnings = warnings.filter((w) =>
+        w.includes(L1HardforkName.AMSTERDAM),
+      );
+      assert.equal(experimentalWarnings.length, 1);
     });
   });
 });
