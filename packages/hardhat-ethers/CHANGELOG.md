@@ -1,5 +1,15 @@
 # @nomicfoundation/hardhat-ethers
 
+## 4.0.15
+
+### Patch Changes
+
+- [#8443](https://github.com/NomicFoundation/hardhat/pull/8443) [`b7389c2`](https://github.com/NomicFoundation/hardhat/commit/b7389c2f3976f98f5f40223be10168580de02ea7) Thanks [@Kropiunig](https://github.com/Kropiunig)! - Fixed the HD wallet derivation-path validator so malformed paths containing stray colons (e.g. `m:/44'/60'/0'/0`) are rejected with the `INVALID_HD_PATH` error.
+
+- Updated dependencies:
+  - @nomicfoundation/hardhat-utils@4.1.5
+  - @nomicfoundation/hardhat-errors@3.0.17
+
 ## 4.0.14
 
 ### Patch Changes
