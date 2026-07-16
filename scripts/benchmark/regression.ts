@@ -19,6 +19,12 @@ import {
 } from "../end-to-end/subcommands/init.ts";
 import { isScenarioDefinition } from "../end-to-end/schema/scenario-schema.ts";
 import type { ScenarioDefinition, StepsVariant } from "../end-to-end/types.ts";
+import {
+  compilePatterns,
+  matchesAny,
+  parseGlobList,
+  planCommands,
+} from "./helpers/plan.ts";
 import { isVerdaccioRunning } from "../verdaccio/helpers/shell.ts";
 import {
   publish as verdaccioPublish,
@@ -66,8 +72,13 @@ DESCRIPTION
 
 OPTIONS
   --output <path>       Required. Aggregated JSON destination
-  --scenarios <csv>     Filter by scenario id (directory basename)
+  --scenarios <globs>   Select scenarios by id (directory basename), as
+                        comma-separated glob patterns (e.g. "1inch*"). Default: all.
   --tag <tag>           Filter by a tag present in scenario.json tags
+  --benchmarks <globs>  Select which measured entries to report, by name
+                        (comma-separated globs, e.g. "test solidity" or
+                        "*compile*"). A name is the report label's second segment
+                        (single command name or step name). Default: all.
   --use-local           Detect packages changed since their release tag, bump
                         versions, publish to Verdaccio, and pin scenario deps to
                         the published versions.
@@ -80,9 +91,22 @@ OPTIONS
   --e2e-clone-dir <p>   Override clone directory (default: same as pnpm e2e)
   --fail-fast           Abort on the first scenario failure
 
+  --benchmarks SELECTS which measured entries you want reported. Because entries
+  run as a stateful pipeline (later ones depend on earlier ones having run — e.g.
+  "test solidity" runs with --no-compile and needs a prior compile), selected
+  entries are not run in isolation. Each entry may declare "dependsOn" in
+  scenario.json listing the entries it needs; when you select an entry, its
+  declared prerequisites also run (unreported) and everything else is skipped. An
+  entry with no "dependsOn" conservatively runs every entry declared before it.
+  Entries run in declared order; only selected entries are reported. So
+  --benchmarks "test solidity" runs just (cold compile + test solidity), skipping
+  the edit&compile steps and warm compile it doesn't depend on.
+
 EXAMPLES
   pnpm bench:regression --output /tmp/regression.json
   pnpm bench:regression --scenarios uniswap-v4-core,aave-v4 --output /tmp/r.json
+  pnpm bench:regression --benchmarks "cold compile" --output /tmp/r.json
+  pnpm bench:regression --scenarios "1inch*" --benchmarks "test solidity" --output /tmp/r.json
 `;
 
 const REPO_ROOT = path.resolve(import.meta.dirname, "..", "..");
@@ -92,6 +116,7 @@ interface RegressionArgs {
   output: string;
   scenarios: string[] | undefined;
   tag: string | undefined;
+  benchmarks: string[] | undefined;
   useLocal: UseLocal;
   forceCheckout: ForceCheckout;
   forcePublish: ForcePublish;
@@ -209,6 +234,11 @@ async function main(): Promise<void> {
     process.exit(1);
   }
 
+  if (args.benchmarks !== undefined && results.length === 0) {
+    logError("No benchmarks matched the provided --benchmarks filter");
+    process.exit(1);
+  }
+
   log(
     fmt.success(
       `Regression benchmark complete — wrote ${results.length} entries to ${args.output}`,
@@ -234,6 +264,8 @@ function resolveArgs(argv: string[]): RegressionArgs | undefined {
 
   const tag = getArgValue(argv, "--tag");
 
+  const benchmarks = parseGlobList(getArgValue(argv, "--benchmarks"));
+
   const useLocal = argv.includes("--use-local") ? UseLocal.Yes : UseLocal.No;
 
   const forceCheckout = argv.includes("--force-checkout")
@@ -255,6 +287,7 @@ function resolveArgs(argv: string[]): RegressionArgs | undefined {
     output: path.resolve(output),
     scenarios,
     tag,
+    benchmarks,
     useLocal,
     forceCheckout,
     forcePublish,
@@ -266,6 +299,7 @@ function resolveArgs(argv: string[]): RegressionArgs | undefined {
 function collectScenarios(args: RegressionArgs): ScenarioEntry[] {
   const entries: ScenarioEntry[] = [];
   const invalid: string[] = [];
+  const scenarioRes = compilePatterns(args.scenarios);
 
   for (const entry of readdirSync(END_TO_END_DIR, { withFileTypes: true })) {
     if (!entry.isDirectory()) {
@@ -318,7 +352,7 @@ function collectScenarios(args: RegressionArgs): ScenarioEntry[] {
       continue;
     }
 
-    if (args.scenarios !== undefined && !args.scenarios.includes(entry.name)) {
+    if (!matchesAny(entry.name, scenarioRes)) {
       continue;
     }
 
@@ -360,6 +394,16 @@ async function runScenario(
     );
   }
 
+  const plan = planCommands(commands, args.benchmarks);
+
+  if (plan.length === 0) {
+    logWarning(
+      `Skipping "${scenario.id}" (no commands or steps matched the filters)`,
+    );
+
+    return [];
+  }
+
   const scenarioTmpDir = path.join(tmpdir(), "hardhat-regression", scenario.id);
   mkdirSync(scenarioTmpDir, { recursive: true });
 
@@ -383,34 +427,46 @@ async function runScenario(
 
   const entries: BenchmarkEntry[] = [];
 
-  for (const [name, cfg] of Object.entries(commands)) {
-    if ("steps" in cfg) {
+  for (const planned of plan) {
+    if ("steps" in planned.cfg) {
       entries.push(
         ...runStepsPhase(
           scenario.id,
           loaded.workingDir,
           loaded.definition.env,
-          name,
-          cfg,
+          planned.name,
+          planned.cfg,
+          // runStepNames is always defined for step sequences.
+          new Set(planned.runStepNames ?? Object.keys(planned.cfg.steps)),
+          new Set(planned.emitSteps),
         ),
       );
 
       continue;
     }
 
-    const exportPath = path.join(scenarioTmpDir, `${slugify(name)}.json`);
+    const exportPath = path.join(
+      scenarioTmpDir,
+      `${slugify(planned.name)}.json`,
+    );
 
     await runPhase(
-      name,
+      planned.name,
       buildBenchArgs(scenario.scenarioJsonPath, args, {
-        command: cfg.command,
-        prepare: cfg.prepare,
-        runs: cfg.runs,
+        command: planned.cfg.command,
+        prepare: planned.cfg.prepare,
+        runs: planned.cfg.runs,
         exportJson: exportPath,
       }),
     );
 
-    entries.push(toEntry(scenario.id, name, readHyperfineResult(exportPath)));
+    // Non-selected single commands still run above (state prerequisites for a
+    // later selected command) but are not reported.
+    if (planned.emit) {
+      entries.push(
+        toEntry(scenario.id, planned.name, readHyperfineResult(exportPath)),
+      );
+    }
   }
 
   return entries;
@@ -419,7 +475,11 @@ async function runScenario(
 /**
  * Run a step-sequence command: execute the ordered steps in-process, once per
  * run, timing each step with the high-resolution monotonic clock. Returns one
- * entry per measured step.
+ * entry per emitted step.
+ *
+ * `runSteps` is the set of step names to execute (selected steps plus their
+ * prerequisites); other steps are skipped. `emit` is the subset of those to
+ * time and report — steps that run but aren't in `emit` are prerequisites only.
  */
 function runStepsPhase(
   scenarioId: string,
@@ -427,14 +487,24 @@ function runStepsPhase(
   env: Record<string, string> | undefined,
   seqName: string,
   cfg: StepsVariant,
+  runSteps: Set<string>,
+  emit: Set<string>,
 ): BenchmarkEntry[] {
-  logStep(`${fmt.pkg(seqName)} (${cfg.runs} runs)`);
+  const totalSteps = Object.keys(cfg.steps).length;
+  const stepNames = Object.keys(cfg.steps).filter((n) => runSteps.has(n));
 
-  const stepNames = Object.keys(cfg.steps);
+  logStep(
+    `${fmt.pkg(seqName)} (${cfg.runs} runs${
+      stepNames.length < totalSteps
+        ? `, ${stepNames.length} of ${totalSteps} steps`
+        : ""
+    })`,
+  );
+
   const samples = new Map<string, number[]>();
 
   for (const stepName of stepNames) {
-    if (cfg.steps[stepName].measure !== false) {
+    if (emit.has(stepName)) {
       samples.set(stepName, []);
     }
   }

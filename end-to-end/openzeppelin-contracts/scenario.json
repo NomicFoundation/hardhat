@@ -18,11 +18,13 @@
       },
       "warm compile": {
         "runs": 19,
-        "command": "npx hardhat compile"
+        "command": "npx hardhat compile",
+        "dependsOn": ["cold compile"]
       },
       "mocha test": {
         "runs": 3,
-        "command": "npx hardhat test mocha --no-compile"
+        "command": "npx hardhat test mocha --no-compile",
+        "dependsOn": ["cold compile"]
       }
     }
   }

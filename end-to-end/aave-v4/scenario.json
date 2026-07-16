@@ -18,26 +18,32 @@
             "measure": false
           },
           "cold compile": {
-            "command": "npx hardhat compile"
+            "command": "npx hardhat compile",
+            "dependsOn": ["reset files & cache"]
           },
           "edit & compile Solidity test with min deps: tests/unit/WadRayMath.t.sol": {
-            "command": "printf \"\\n// hardhat benchmark edit\\n\" >> tests/unit/WadRayMath.t.sol && npx hardhat compile"
+            "command": "printf \"\\n// hardhat benchmark edit\\n\" >> tests/unit/WadRayMath.t.sol && npx hardhat compile",
+            "dependsOn": ["cold compile"]
           },
           "edit & compile Solidity test with max deps: tests/unit/Spoke/Liquidations/Spoke.LiquidationCall.t.sol": {
-            "command": "printf \"\\n// hardhat benchmark edit\\n\" >> tests/unit/Spoke/Liquidations/Spoke.LiquidationCall.t.sol && npx hardhat compile"
+            "command": "printf \"\\n// hardhat benchmark edit\\n\" >> tests/unit/Spoke/Liquidations/Spoke.LiquidationCall.t.sol && npx hardhat compile",
+            "dependsOn": ["cold compile"]
           },
           "edit & compile Solidity contract: src/libraries/math/MathUtils.sol": {
-            "command": "printf \"\\n// hardhat benchmark edit\\n\" >> src/libraries/math/MathUtils.sol && npx hardhat compile"
+            "command": "printf \"\\n// hardhat benchmark edit\\n\" >> src/libraries/math/MathUtils.sol && npx hardhat compile",
+            "dependsOn": ["cold compile"]
           }
         }
       },
       "warm compile": {
         "runs": 2,
-        "command": "npx hardhat compile"
+        "command": "npx hardhat compile",
+        "dependsOn": ["cold compile"]
       },
       "test solidity": {
         "runs": 24,
-        "command": "npx hardhat test solidity --no-compile"
+        "command": "npx hardhat test solidity --no-compile",
+        "dependsOn": ["cold compile"]
       }
     }
   }

@@ -52,6 +52,15 @@ export interface CommandVariant {
    * The command to benchmark in the regression harness.
    */
   command: string;
+  /**
+   * Names of other entries (command names or step names within this scenario)
+   * that must run before this one to make its measurement valid — e.g. a
+   * `--no-compile` command depends on a prior compile. Used by the regression
+   * harness's `--benchmarks` filter: when this entry is selected, its declared
+   * prerequisites run (but are not reported) and everything else is skipped.
+   * When omitted, filtering conservatively runs every preceding entry.
+   */
+  dependsOn?: string[];
 }
 
 export interface StepsVariant {
@@ -79,4 +88,10 @@ export interface StepConfig {
    * to `false` for setup/reset steps that should run but not be measured.
    */
   measure?: boolean;
+  /**
+   * Names of other entries (step names within the same sequence, or command
+   * names) that must run before this step for its measurement to be valid. See
+   * {@link CommandVariant.dependsOn}.
+   */
+  dependsOn?: string[];
 }
