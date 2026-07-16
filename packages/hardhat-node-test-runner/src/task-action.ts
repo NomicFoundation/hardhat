@@ -6,6 +6,7 @@ import type { LastParameter, Result } from "hardhat/types/utils";
 import { pipeline } from "node:stream/promises";
 import { run } from "node:test";
 
+import { HardhatError } from "@nomicfoundation/hardhat-errors";
 import { hardhatTestReporter } from "@nomicfoundation/hardhat-node-test-reporter";
 import { setGlobalOptionsAsEnvVariables } from "@nomicfoundation/hardhat-utils/env";
 import { getAllFilesMatching } from "@nomicfoundation/hardhat-utils/fs";
@@ -16,6 +17,7 @@ interface TestActionArguments {
   testFiles: string[];
   only: boolean;
   grep?: string;
+  grepExclude?: string;
   noCompile: boolean;
   testSummaryIndex: number;
 }
@@ -55,9 +57,19 @@ async function getTestFiles(
  * Note that we are testing this manually for now as you can't run a node:test within a node:test
  */
 const testWithHardhat: NewTaskActionFunction<TestActionArguments> = async (
-  { testFiles, only, grep, noCompile, testSummaryIndex },
+  { testFiles, only, grep, grepExclude, noCompile, testSummaryIndex },
   hre,
 ): Promise<Result<TestRunResult, TestRunResult>> => {
+  // The node:test runner runs with isolation disabled, where node:test ignores
+  // the skip pattern that would implement --grep-exclude (nodejs/node#64359).
+  // The option is declared so it can be rejected with a clear error instead of
+  // being silently dropped when forwarded by the aggregating `test` task.
+  if (grepExclude !== undefined && grepExclude !== "") {
+    throw new HardhatError(
+      HardhatError.ERRORS.HARDHAT_NODE_TEST_RUNNER.GENERAL.GREP_EXCLUDE_NOT_SUPPORTED,
+    );
+  }
+
   // Set an environment variable that plugins can use to detect when a process is running tests
   process.env.HH_TEST = "true";
 

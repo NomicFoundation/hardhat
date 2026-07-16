@@ -25,6 +25,13 @@ const hardhatPlugin: HardhatPlugin = definePlugin({
         type: ArgumentType.STRING_WITHOUT_DEFAULT,
         defaultValue: undefined,
       })
+      .addOption({
+        name: "grepExclude",
+        description:
+          "Not supported by the node:test runner; using it raises an error",
+        type: ArgumentType.STRING_WITHOUT_DEFAULT,
+        defaultValue: undefined,
+      })
       .addFlag({
         name: "noCompile",
         description: "Don't compile the project before running the tests",
