@@ -63,9 +63,9 @@ DESCRIPTION
   Writes a flat JSON array in benchmark-action/github-action-benchmark's
   customSmallerIsBetter format. Every timed name — hyperfine command or
   measured step — emits its wall-clock time plus a sibling "<name> (cpu)"
-  entry with the total CPU time (user+system). Each entry stringifies its
-  detail (per-run wall-clock samples; mean user/system) into the "extra"
-  field.
+  entry with the total CPU time (user+system). Wall-clock entries carry
+  their per-run samples in the "extra" field; "(cpu)" entries carry their
+  mean user/system there instead.
 
 OPTIONS
   --output <path>       Required. Aggregated JSON destination
