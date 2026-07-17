@@ -8,17 +8,12 @@ import { createHardhatRuntimeEnvironment } from "hardhat/hre";
 
 import HardhatNodeTestRunnerPlugin from "../src/index.js";
 
-// These scenarios can be exercised in-process (unlike the ones in index.ts)
-// because the `--grep-exclude` guard runs before `node:test`'s `run()` is ever
-// reached, and the empty-project fixture returns early once it finds no test
-// files. Neither path nests a `node:test` run inside this one.
-
 const BUILD_INVOCATION_PROJECT_ROOT = fileURLToPath(
   new URL("./fixture-projects/build-invocation", import.meta.url),
 );
 
 describe("test nodejs --grep-exclude", () => {
-  it("rejects with a HardhatError when a pattern is provided, because node:test ignores skip patterns under isolation: 'none' (nodejs/node#64359)", async () => {
+  it("rejects with a HardhatError when a pattern is provided, because node:test ignores skip patterns under isolation: 'none'", async () => {
     const hre = await createHardhatRuntimeEnvironment(
       { plugins: [HardhatNodeTestRunnerPlugin] },
       {},

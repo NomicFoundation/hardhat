@@ -154,7 +154,7 @@ export function resolveMochaGrepFilter(
     includeInfo.capturingGroups + excludeInfo.capturingGroups;
 
   // A capturing-group or backreference NAME that itself contains an escape
-  // (e.g. `(?<g>`, which is really the group named `g`) can't be compared
+  // (e.g. `(?<\u0067>`, which is really the group named `g`) can't be compared
   // as raw text, so the cross-binding guards below can't reliably tell whether
   // it collides once merged. Reject these outright rather than resolve escapes;
   // they are pathological in a test-name filter.
@@ -176,7 +176,7 @@ export function resolveMochaGrepFilter(
   // INCLUDE side: a number like \2 that is larger than INCLUDE's own group
   // count is just a literal (octal) escape on its own, but once EXCLUDE's
   // groups are appended that number can land on a real group — silently
-  // becoming a reference and breaking the include filter. A \n that already
+  // becoming a reference and weakening the include filter. A \n that already
   // matches one of INCLUDE's own groups is fine and left alone.
   if (
     includeInfo.numberedBackreferences.some(
@@ -192,7 +192,11 @@ export function resolveMochaGrepFilter(
 
   // EXCLUDE side: EXCLUDE's groups are renumbered by however many groups
   // INCLUDE added, so a \n inside EXCLUDE now points at a different group than
-  // it did alone — unless INCLUDE has no groups at all, when nothing shifts.
+  // it did alone; likewise a \n that was a bare literal escape (above EXCLUDE's
+  // own group count) can land on a real group once INCLUDE's groups precede it.
+  // Two cases stay inert and are left alone: INCLUDE has no groups at all
+  // (nothing renumbers), or \n is larger than the merged total group count
+  // (still just a literal escape) — hence the `n <= totalCapturingGroups` bound.
   if (
     includeInfo.capturingGroups > 0 &&
     excludeInfo.numberedBackreferences.some((n) => n <= totalCapturingGroups)
@@ -274,13 +278,17 @@ function emptyToUndefined(value: string | undefined): string | undefined {
 // don't affect a fresh `.test()`, so they can be dropped safely.
 const MEANING_CHANGING_REGEXP_FLAGS = /[imsuvy]/;
 
-// When a --grep value looks like `/pattern/flags`, Mocha treats it as a regex
-// literal: it strips the slashes and applies the flags. The merge instead
-// pastes the value in verbatim (slashes and all), so its meaning would differ
-// — so exactly the shapes Mocha treats this way are rejected. This mirrors
-// Mocha's own parser, `/^\/(.*)\/([gimy]{0,4})$|.*/`, including its flag set
-// (g, i, m, y): something like `/x/s` is NOT a literal to Mocha either, so it
-// stays plain text in both places and needs no guard.
+// When a --grep value looks like `/pattern/flags` with a non-empty pattern,
+// Mocha treats it as a regex literal: it strips the slashes and applies the
+// flags (`new RegExp(arg[1] || arg[0], arg[2])`). The merge instead pastes the
+// value in verbatim (slashes and all), so its meaning would differ — so those
+// shapes are rejected. This mirrors the regex-literal branch of Mocha's own
+// parser, `/^\/(.*)\/([gimy]{0,4})$|.*/`, including its flag set (g, i, m, y).
+// The guard is a touch broader: because it uses `.*` it also rejects
+// empty-pattern shapes like `//` or `//g`, which Mocha's `arg[1] || arg[0]`
+// fallback keeps verbatim — those would merge with the same meaning anyway, so
+// rejecting them is harmless. Something like `/x/s` is NOT a literal to Mocha
+// either, so it stays plain text in both places and needs no guard.
 const MOCHA_REGEX_LITERAL = /^\/(.*)\/([gimy]{0,4})$/;
 
 function assertMergeableGrepPattern(
