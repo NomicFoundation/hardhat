@@ -1,5 +1,11 @@
 # @nomicfoundation/hardhat-utils
 
+## 4.1.5
+
+### Patch Changes
+
+- [#8414](https://github.com/NomicFoundation/hardhat/pull/8414) [`6ba2bf3`](https://github.com/NomicFoundation/hardhat/commit/6ba2bf38b5d3b7cfd9f081b61dba50503694ce0e) Thanks [@goutamadwant](https://github.com/goutamadwant)! - Fixed Solidity tests failing to run in projects with very large compilation outputs.
+
 ## 4.1.4
 
 ### Patch Changes
