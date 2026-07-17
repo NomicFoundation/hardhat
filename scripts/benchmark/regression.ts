@@ -102,13 +102,13 @@ OPTIONS
   --e2e-clone-dir <p>   Override clone directory (default: same as pnpm e2e)
   --fail-fast           Abort on the first scenario failure
 
-  --benchmarks SELECTS which measured entries you want reported. Because entries
+  --benchmarks selects which measured entries you want reported. Because entries
   run as a stateful pipeline (later ones depend on earlier ones having run — e.g.
   "test solidity" runs with --no-compile and needs a prior compile), selected
   entries are not run in isolation. Each entry may declare "dependsOn" in
   scenario.json listing the entries it needs; when you select an entry, its
   declared prerequisites also run (unreported) and everything else is skipped. An
-  entry with no "dependsOn" conservatively runs every entry declared before it.
+  entry with no "dependsOn" has no prerequisites and runs in isolation.
   Entries run in declared order; only selected entries are reported. So
   --benchmarks "test solidity" runs just (cold compile + test solidity), skipping
   the edit&compile steps and warm compile it doesn't depend on.

@@ -115,17 +115,18 @@ function flattenEntries(commands: Record<string, CommandConfig>): Entry[] {
  * measured step's name. The step-sequence container name is not itself an entry.
  *
  * Prerequisites (what must also *run*, unreported): commands/steps are a
- * stateful pipeline. For each selected entry we add the entries it needs:
- *   - if it declares `dependsOn`, the transitive closure of those declared
- *     entries only (minimal — skips unrelated work);
- *   - otherwise, conservatively, every entry declared before it (so unannotated
- *     scenarios still measure correctly, just without skipping anything).
+ * stateful pipeline, so each selected entry pulls in the transitive closure of
+ * its declared `dependsOn` entries (they run but are only reported if also
+ * selected). There are no implicit prerequisites: an entry with no `dependsOn`
+ * runs in isolation. Declaring what an entry depends on is the scenario author's
+ * responsibility.
  *
  * Entries run in declared order; only entries in the resulting run set run, and
  * only selected entries are reported. Returns `[]` when nothing is selected
  * (the scenario is skipped before any expensive init).
  *
- * Throws if a `dependsOn` names an entry that doesn't exist in this scenario.
+ * Throws if a `dependsOn` names a nonexistent entry, or one declared after the
+ * dependent (dependencies must precede their dependents).
  */
 export function planCommands(
   commands: Record<string, CommandConfig>,
@@ -138,9 +139,15 @@ export function planCommands(
 
   for (const e of entries) {
     for (const dep of e.dependsOn ?? []) {
-      if (!byName.has(dep)) {
+      const depEntry = byName.get(dep);
+      if (depEntry === undefined) {
         throw new Error(
           `Entry "${e.name}" dependsOn "${dep}", which is not a command or step in this scenario`,
+        );
+      }
+      if (depEntry.index >= e.index) {
+        throw new Error(
+          `Entry "${e.name}" dependsOn "${dep}", but dependencies must be declared before the dependent entry`,
         );
       }
     }
@@ -157,8 +164,9 @@ export function planCommands(
     return [];
   }
 
-  // Grow the run set from the selection: declared deps (transitive) when an
-  // entry declares them, else every preceding entry.
+  // Grow the run set from the selection: each selected entry plus the
+  // transitive closure of its declared dependencies. There are no implicit
+  // prerequisites — an entry with no `dependsOn` runs in isolation.
   const runSet = new Set<string>();
 
   const addDeclared = (name: string): void => {
@@ -172,18 +180,8 @@ export function planCommands(
   };
 
   for (const e of entries) {
-    if (!selected.has(e.name)) {
-      continue;
-    }
-    if (e.dependsOn !== undefined) {
+    if (selected.has(e.name)) {
       addDeclared(e.name);
-    } else {
-      runSet.add(e.name);
-      for (const other of entries) {
-        if (other.index < e.index) {
-          runSet.add(other.name);
-        }
-      }
     }
   }
 

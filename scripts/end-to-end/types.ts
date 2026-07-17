@@ -58,7 +58,8 @@ export interface CommandVariant {
    * `--no-compile` command depends on a prior compile. Used by the regression
    * harness's `--benchmarks` filter: when this entry is selected, its declared
    * prerequisites run (but are not reported) and everything else is skipped.
-   * When omitted, filtering conservatively runs every preceding entry.
+   * Dependencies must be declared before the dependent entry. When omitted, the
+   * entry has no prerequisites and runs in isolation when selected.
    */
   dependsOn?: string[];
 }

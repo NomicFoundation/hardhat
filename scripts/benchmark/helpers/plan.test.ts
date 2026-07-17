@@ -208,7 +208,7 @@ describe("planCommands", () => {
     assert.deepEqual(planCommands(fixture(), ["reset files & cache"]), []);
   });
 
-  it("falls back to all-preceding entries when an entry declares no dependsOn", () => {
+  it("runs an entry with no dependsOn in isolation — no implicit prerequisites", () => {
     const commands: Record<string, CommandConfig> = {
       "compile sequence": {
         runs: 1,
@@ -217,17 +217,12 @@ describe("planCommands", () => {
           cold: { command: "compile" }, // no dependsOn
         },
       },
-      // No dependsOn → conservatively runs everything before it.
+      // No dependsOn → runs alone; the preceding sequence is NOT pulled in.
       "test solidity": { runs: 1, command: "test --no-compile" },
     };
     const plan = summarize(planCommands(commands, ["test solidity"]));
     assert.deepEqual(plan, [
-      {
-        name: "compile sequence",
-        runStepNames: ["reset", "cold"], // all preceding steps run
-        emit: false,
-        emitSteps: [],
-      },
+      // "compile sequence" is entirely skipped — nothing selected depends on it.
       {
         name: "test solidity",
         runStepNames: undefined,
@@ -243,5 +238,27 @@ describe("planCommands", () => {
       b: { runs: 1, command: "y", dependsOn: ["ghost"] },
     };
     assert.throws(() => planCommands(commands, ["b"]), /dependsOn "ghost"/);
+  });
+
+  it("throws when a dependency is declared after the dependent entry", () => {
+    const commands: Record<string, CommandConfig> = {
+      // "a" depends on "b", but "b" is declared later — invalid ordering.
+      a: { runs: 1, command: "x", dependsOn: ["b"] },
+      b: { runs: 1, command: "y" },
+    };
+    assert.throws(
+      () => planCommands(commands, ["a"]),
+      /must be declared before the dependent entry/,
+    );
+  });
+
+  it("throws on a self-dependency", () => {
+    const commands: Record<string, CommandConfig> = {
+      a: { runs: 1, command: "x", dependsOn: ["a"] },
+    };
+    assert.throws(
+      () => planCommands(commands, ["a"]),
+      /must be declared before the dependent entry/,
+    );
   });
 });
