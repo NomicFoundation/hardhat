@@ -741,7 +741,7 @@ function toEntries(
     name: `${scenarioId} / ${phaseLabel} (peak RSS)`,
     unit: "MB",
     value: peakRssMb,
-    range: "± 0",
+    range: "",
     extra: "",
   };
 
