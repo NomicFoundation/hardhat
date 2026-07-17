@@ -347,8 +347,9 @@ describe("resolveMochaGrepFilter", () => {
 
   it("rejects an include backref that overshoots into an exclude group", () => {
     // `(a)\2` has one group, so standalone `\2` is an octal escape; once merged,
-    // (b) becomes group 2 and `\2` silently rebinds to it (matching empty),
-    // disabling the include filter. Must be rejected on the --grep side.
+    // (b) becomes group 2 and `\2` silently rebinds to it (matching empty), so
+    // the include now only requires "a" instead of "a\x02". Must be rejected on
+    // the --grep side.
     assertThrowsHardhatError(
       () => resolveMochaGrepFilter("(a)\\2", "(b)", {}),
       HardhatError.ERRORS.HARDHAT_MOCHA.GENERAL
@@ -422,10 +423,10 @@ describe("resolveMochaGrepFilter", () => {
     // Neither pattern has a named group, so the exclude's `\k` is just the
     // literal "k" and the `()` inside `<...>` is a REAL capturing group — which
     // becomes group 2 in the merged regex. That silently turns the include's
-    // standalone octal `\2` into a forward reference (which matches empty),
-    // disabling the include filter, so it must be rejected. (Regression guard:
-    // misreading `\k` as a backreference here would hide that group and wrongly
-    // skip the rejection.)
+    // standalone octal `\2` into a forward reference (which matches empty), so
+    // the include only requires "a" instead of "a\x02", and it must be rejected.
+    // (Regression guard: misreading `\k` as a backreference here would hide that
+    // group and wrongly skip the rejection.)
     assertThrowsHardhatError(
       () => resolveMochaGrepFilter("(a)\\2", "\\k<()0>", {}),
       HardhatError.ERRORS.HARDHAT_MOCHA.GENERAL
@@ -533,8 +534,9 @@ describe("resolveMochaGrepFilter", () => {
   });
 
   it("rejects an escaped group name in --grep (can't be compared as text)", () => {
-    // `(?<g>a)` is really the group named `g`, but stored as raw text the
-    // cross-binding guards can't match it against a plain `g`, so reject it.
+    // `(?<\u0067>a)` is really the group named `g`, but because that name is
+    // stored as raw text (`\u0067`, not `g`), the cross-binding guards can't
+    // match it against a plain `g`, so reject it.
     assertThrowsHardhatError(
       () => resolveMochaGrepFilter("(?<\\u0067>a)", "sub", {}),
       HardhatError.ERRORS.HARDHAT_MOCHA.GENERAL
@@ -548,8 +550,10 @@ describe("resolveMochaGrepFilter", () => {
   });
 
   it("rejects an escaped named backreference in --grep-exclude", () => {
-    // The include defines a real named group `g`; the exclude's `\k<g>` is
-    // `\k<g>` in disguise and would bind to it, silently changing meaning.
+    // The include defines a real named group `g`; the exclude's `\k<\\u0067>` is
+    // `\k<g>` in disguise. Because that name is written with an escape it can't
+    // be compared as raw text, so it's rejected as an escaped group name rather
+    // than analyzed as a cross-binding named backreference.
     assertThrowsHardhatError(
       () => resolveMochaGrepFilter("(?<g>a)", "\\k<\\u0067>", {}),
       HardhatError.ERRORS.HARDHAT_MOCHA.GENERAL
