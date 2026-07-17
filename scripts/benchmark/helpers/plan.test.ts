@@ -189,7 +189,7 @@ describe("planCommands", () => {
     );
   });
 
-  it("'edit max' → pulls in its prereqs but skips the unrelated 'edit min'", () => {
+  it("'edit max' → pulls in its prerequisites but skips the unrelated 'edit min'", () => {
     const plan = summarize(planCommands(fixture(), ["edit max"]));
     assert.deepEqual(plan, [
       {

@@ -79,7 +79,7 @@ DESCRIPTION
   capture peak RSS (the largest resident set size any process in its subtree
   reached, in MB). This is emitted as a separate "<scenarioId> / <name> (peak
   RSS)" entry (unit MB) and also embedded as "peakRssMb" in the time entry's
-  extra. If GNU time is missing, memory is silently skipped.
+  extra. If GNU time is missing, memory is skipped and a warning is printed.
 
 OPTIONS
   --output <path>       Required. Aggregated JSON destination

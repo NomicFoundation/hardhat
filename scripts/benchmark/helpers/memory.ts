@@ -1,10 +1,8 @@
 import { existsSync, readFileSync } from "node:fs";
 
 // GNU time (the `time` apt package). We use it to capture peak RSS cheaply:
-// wait4() returns RUSAGE_BOTH (the process plus every child it reaped), so
-// wrapping a command records the peak RSS of its whole synchronous subtree —
-// the largest single process, not the concurrent sum. Negligible runtime
-// overhead (one fork+exec), unlike a sampling memory profiler.
+// it reports the maximum resident set size used by the wrapped command (in KB).
+// Negligible runtime overhead (one fork+exec), unlike a sampling memory profiler.
 const GNU_TIME = "/usr/bin/time";
 
 let cachedAvailable: boolean | undefined;

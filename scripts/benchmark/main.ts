@@ -119,8 +119,7 @@ export async function runBenchmark(benchArgs: BenchArgs): Promise<void> {
   log(`Warmup: ${warmup}, Runs: ${runs}`);
 
   // Wrap the whole hyperfine run in GNU time to capture peak RSS across all
-  // runs (hyperfine reaps each run, so wait4's RUSAGE_BOTH folds them up). This
-  // doesn't perturb hyperfine's own per-run timing.
+  // runs. This doesn't perturb hyperfine's own per-run timing.
   const commandToRun =
     memFile !== undefined
       ? wrapWithTime(hyperfineCommand, memFile, false)
