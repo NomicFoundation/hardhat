@@ -7,7 +7,7 @@ import path from "node:path";
 
 import { runBenchmark } from "./main.ts";
 import type { BenchArgs } from "./helpers/args.ts";
-import { computeStats, type BenchmarkStats } from "./helpers/stats.ts";
+import { computeStats, mean, type BenchmarkStats } from "./helpers/stats.ts";
 import { DEFAULT_CLONE_DIR } from "../end-to-end/helpers/args.ts";
 import { fmt, log, logError, logStep, logWarning } from "./helpers/log.ts";
 import { loadScenario } from "../end-to-end/helpers/directory.ts";
@@ -61,8 +61,11 @@ DESCRIPTION
   empty one) fail pre-flight with a summary of every offending file.
 
   Writes a flat JSON array in benchmark-action/github-action-benchmark's
-  customSmallerIsBetter format. Per-run times are preserved in the "extra"
-  field as a JSON-stringified object.
+  customSmallerIsBetter format. Every timed name — hyperfine command or
+  measured step — emits its wall-clock time plus a sibling "<name> (cpu)"
+  entry with the total CPU time (user+system). Wall-clock entries carry
+  their per-run samples in the "extra" field; "(cpu)" entries carry their
+  mean user/system there instead.
 
 OPTIONS
   --output <path>       Required. Aggregated JSON destination
@@ -388,6 +391,7 @@ async function runScenario(
       entries.push(
         ...runStepsPhase(
           scenario.id,
+          scenarioTmpDir,
           loaded.workingDir,
           loaded.definition.env,
           name,
@@ -410,7 +414,9 @@ async function runScenario(
       }),
     );
 
-    entries.push(toEntry(scenario.id, name, readHyperfineResult(exportPath)));
+    const result = readHyperfineResult(exportPath);
+    entries.push(toEntry(scenario.id, name, result));
+    entries.push(toCpuEntry(scenario.id, name, result));
   }
 
   return entries;
@@ -418,11 +424,13 @@ async function runScenario(
 
 /**
  * Run a step-sequence command: execute the ordered steps in-process, once per
- * run, timing each step with the high-resolution monotonic clock. Returns one
- * entry per measured step.
+ * run, timing each step's wall-clock with the high-resolution monotonic clock
+ * and its CPU time with bash's `time` builtin (Node exposes no child rusage).
+ * Returns a wall-clock entry plus a "(cpu)" entry per measured step.
  */
 function runStepsPhase(
   scenarioId: string,
+  scenarioTmpDir: string,
   workingDir: string,
   env: Record<string, string> | undefined,
   seqName: string,
@@ -431,13 +439,18 @@ function runStepsPhase(
   logStep(`${fmt.pkg(seqName)} (${cfg.runs} runs)`);
 
   const stepNames = Object.keys(cfg.steps);
-  const samples = new Map<string, number[]>();
+  const samples = new Map<
+    string,
+    { times: number[]; user: number[]; system: number[] }
+  >();
 
   for (const stepName of stepNames) {
     if (cfg.steps[stepName].measure !== false) {
-      samples.set(stepName, []);
+      samples.set(stepName, { times: [], user: [], system: [] });
     }
   }
+
+  const timingPath = path.join(scenarioTmpDir, `${slugify(seqName)}-cpu.txt`);
 
   for (let run = 0; run < cfg.runs; run++) {
     for (const stepName of stepNames) {
@@ -445,15 +458,23 @@ function runStepsPhase(
       const start = performance.now();
 
       try {
-        execSync(step.command, {
-          cwd: workingDir,
-          stdio: ["ignore", "pipe", "pipe"],
-          encoding: "utf-8",
-          // The default 1 MiB maxBuffer would make chatty-but-successful
-          // steps (e.g. a full hardhat compile) throw ENOBUFS.
-          maxBuffer: 64 * 1024 * 1024,
-          env: { ...process.env, ...env },
-        });
+        // The command's own stderr detours through fd 3 back to the piped
+        // stderr (so failures surface whole below); only `time`'s line
+        // reaches timingPath. LC_NUMERIC pins bash's locale-dependent
+        // decimal separator.
+        execSync(
+          `{ LC_NUMERIC=C; TIMEFORMAT='%U %S'; time { ${step.command}\n} 2>&3 ; } 3>&2 2>${shellQuote(timingPath)}`,
+          {
+            shell: "/bin/bash",
+            cwd: workingDir,
+            stdio: ["ignore", "pipe", "pipe"],
+            encoding: "utf-8",
+            // The default 1 MiB maxBuffer would make chatty-but-successful
+            // steps (e.g. a full hardhat compile) throw ENOBUFS.
+            maxBuffer: 64 * 1024 * 1024,
+            env: { ...process.env, ...env },
+          },
+        );
       } catch (error) {
         // Only the first line: execSync embeds the child's full stderr in
         // its message, and the streams are appended whole below.
@@ -473,13 +494,45 @@ function runStepsPhase(
       }
 
       const elapsed = (performance.now() - start) / 1000;
-      samples.get(stepName)?.push(elapsed);
+      const sample = samples.get(stepName);
+
+      if (sample !== undefined) {
+        const cpu = readCpuTiming(timingPath);
+        sample.times.push(elapsed);
+        sample.user.push(cpu.user);
+        sample.system.push(cpu.system);
+      }
     }
   }
 
-  return [...samples].map(([stepName, times]) =>
-    toEntry(scenarioId, stepName, computeStats(times)),
-  );
+  return [...samples].flatMap(([stepName, s]) => {
+    const stats: BenchmarkStats = {
+      ...computeStats(s.times),
+      user: mean(s.user),
+      system: mean(s.system),
+    };
+    const cpuStddev = computeStats(
+      s.user.map((u, i) => u + s.system[i]),
+    ).stddev;
+
+    return [
+      toEntry(scenarioId, stepName, stats),
+      toCpuEntry(scenarioId, stepName, stats, cpuStddev),
+    ];
+  });
+}
+
+function readCpuTiming(timingPath: string): { user: number; system: number } {
+  const raw = readFileSync(timingPath, "utf-8");
+  const [user, system] = raw.trim().split(/\s+/).map(Number);
+
+  if (!Number.isFinite(user) || !Number.isFinite(system)) {
+    throw new Error(
+      `Unparseable bash time output at ${timingPath}: ${JSON.stringify(raw)}`,
+    );
+  }
+
+  return { user, system };
 }
 
 // Failures are rare and abort the scenario, so the whole output is shown
@@ -573,6 +626,8 @@ function buildBenchArgs(
   };
 }
 
+// hyperfine's per-result object matches BenchmarkStats, including the mean
+// `user`/`system` CPU time.
 function readHyperfineResult(exportPath: string): BenchmarkStats {
   const raw = JSON.parse(readFileSync(exportPath, "utf-8")) as {
     results: BenchmarkStats[];
@@ -602,6 +657,23 @@ function toEntry(
       median: result.median,
       mean: result.mean,
     }),
+  };
+}
+
+function toCpuEntry(
+  scenarioId: string,
+  phaseLabel: string,
+  result: BenchmarkStats,
+  // hyperfine exports only mean user/system (no per-run CPU samples), so its
+  // entries carry no spread.
+  cpuStddev: number = 0,
+): BenchmarkEntry {
+  return {
+    name: `${scenarioId} / ${phaseLabel} (cpu)`,
+    unit: "s",
+    value: result.user + result.system,
+    range: `± ${cpuStddev}`,
+    extra: JSON.stringify({ user: result.user, system: result.system }),
   };
 }
 
