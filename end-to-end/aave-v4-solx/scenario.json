@@ -31,6 +31,16 @@
         "runs": 2,
         "prepare": "npx hardhat clean",
         "command": "npx hardhat compile --build-profile solx-via-ir --no-tests"
+      },
+      "cold compile solx-0.1.5": {
+        "runs": 2,
+        "prepare": "npx hardhat clean",
+        "command": "npx hardhat compile --build-profile solx-0.1.5 --no-tests"
+      },
+      "cold compile solx-0.1.5 via-ir": {
+        "runs": 2,
+        "prepare": "npx hardhat clean",
+        "command": "npx hardhat compile --build-profile solx-0.1.5-via-ir --no-tests"
       }
     }
   }
