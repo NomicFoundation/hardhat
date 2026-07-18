@@ -72,6 +72,11 @@ mv "$WORKDIR/.solx/"nomicfoundation-hardhat-solx-*.tgz "$WORKDIR/.solx/hardhat-s
 # under yarn too; the subsequent `yarn install` resolves the new file: entry.
 npm pkg set "devDependencies.@nomicfoundation/hardhat-solx=file:./.solx/hardhat-solx.tgz"
 
+# Pinned solx for the version-comparison cells: the wrapper config's
+# "solx-0.1.5" profiles point at this binary via the plugin's `path` option
+# (the plain "solx" profiles keep measuring the version the plugin ships).
+node "$MONOREPO_ROOT/scripts/benchmark/download-solx.ts" --version 0.1.5 --out "$WORKDIR/.solx/solx-v0.1.5"
+
 # Swap in the wrapper config that adds the solx build profile. The original is
 # kept as hardhat.config.base.ts, which the wrapper composes with — see
 # hardhat.config.solx.ts.

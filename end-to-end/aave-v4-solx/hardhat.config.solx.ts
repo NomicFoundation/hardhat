@@ -14,6 +14,8 @@
 // no user ships. The via-IR cells compile everything via-IR and need no
 // overrides. Everything else (plugins, paths, networks, test) is preserved
 // from the base.
+import path from "node:path";
+
 import hardhatSolx from "@nomicfoundation/hardhat-solx";
 
 import baseConfig from "./hardhat.config.base.ts";
@@ -43,11 +45,18 @@ const solxSettings = structuredClone(baseSettings);
 const solcViaIRSettings = { ...structuredClone(solcSettings), viaIR: true };
 const solxViaIRSettings = { ...structuredClone(solxSettings), viaIR: true };
 
+// The "solx" profiles always measure the version the plugin ships (its
+// Solidity→solx version map). The "solx-0.1.5" profiles pin a release under
+// comparison via the plugin's `path` compiler option; preinstall.sh downloads
+// the binary (see scripts/benchmark/download-solx.ts).
+const solx015Path = path.join(import.meta.dirname, ".solx", "solx-v0.1.5");
+
 // Upstream's per-file escape hatches, re-pinned to 0.8.34; optimizer runs
 // match the base config's overrides.
-function upstreamViaIROverrides(type?: "solx") {
+function upstreamViaIROverrides(type?: "solx", solxPath?: string) {
   const override = (runs: number) => ({
     ...(type === undefined ? {} : { type }),
+    ...(solxPath === undefined ? {} : { path: solxPath }),
     version: "0.8.34",
     settings: {
       ...structuredClone(baseSettings),
@@ -85,6 +94,23 @@ export default {
         type: "solx",
         version: "0.8.34",
         settings: solxViaIRSettings,
+      },
+      "solx-0.1.5": {
+        compilers: [
+          {
+            type: "solx",
+            version: "0.8.34",
+            path: solx015Path,
+            settings: structuredClone(solxSettings),
+          },
+        ],
+        overrides: upstreamViaIROverrides("solx", solx015Path),
+      },
+      "solx-0.1.5-via-ir": {
+        type: "solx",
+        version: "0.8.34",
+        path: solx015Path,
+        settings: structuredClone(solxViaIRSettings),
       },
     },
   },
