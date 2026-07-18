@@ -12,8 +12,10 @@
 import path from "node:path";
 
 import hardhatSolx from "@nomicfoundation/hardhat-solx";
+import { definePlugin } from "hardhat/plugins";
 
 import baseConfig from "./hardhat.config.base.ts";
+import { noDwarfBenchmarkPlugin } from "./no-dwarf-plugin.ts";
 
 const base = baseConfig as unknown as {
   plugins?: unknown[];
@@ -44,7 +46,15 @@ const solx015Path = path.join(import.meta.dirname, ".solx", "solx-v0.1.5");
 
 export default {
   ...base,
-  plugins: [...(base.plugins ?? []), hardhatSolx],
+  // noDwarfBenchmarkPlugin MUST come after hardhatSolx: Hardhat runs config
+  // hooks in reverse registration order, so the later plugin wraps the earlier
+  // one and can strip the DWARF selectors hardhat-solx injected (only when
+  // HARDHAT_SOLX_DISABLE_DEBUG_INFO=true; otherwise a no-op passthrough).
+  plugins: [
+    ...(base.plugins ?? []),
+    hardhatSolx,
+    definePlugin(noDwarfBenchmarkPlugin),
+  ],
   // The plugin only allows type: "solx" in the profile named "solx"; this
   // benchmark needs a second solx profile ("solx-via-ir") for the viaIR sweep,
   // so opt out of that guard. Throwaway benchmark scenario, not production.
