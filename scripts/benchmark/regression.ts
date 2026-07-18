@@ -7,7 +7,15 @@ import path from "node:path";
 
 import { runBenchmark } from "./main.ts";
 import type { BenchArgs } from "./helpers/args.ts";
-import { computeStats, mean, type BenchmarkStats } from "./helpers/stats.ts";
+import {
+  computeStats,
+  mean,
+  readHyperfineResult,
+  toCpuEntry,
+  toEntries,
+  type BenchmarkEntry,
+  type BenchmarkStats,
+} from "./helpers/stats.ts";
 import { DEFAULT_CLONE_DIR } from "../end-to-end/helpers/args.ts";
 import { fmt, log, logError, logStep, logWarning } from "./helpers/log.ts";
 import { loadScenario } from "../end-to-end/helpers/directory.ts";
@@ -164,14 +172,6 @@ interface ScenarioEntry {
   id: string;
   scenarioJsonPath: string;
   definition: ScenarioDefinition;
-}
-
-interface BenchmarkEntry {
-  name: string;
-  unit: string;
-  value: number;
-  range: string;
-  extra: string;
 }
 
 async function main(): Promise<void> {
@@ -776,94 +776,6 @@ function buildBenchArgs(
     exportJson: phase.exportJson,
     timeFile: phase.timeFile,
     e2eCloneDirectory: args.e2eCloneDirectory,
-  };
-}
-
-// hyperfine's per-result object matches BenchmarkStats, including the mean
-// `user`/`system` CPU time.
-function readHyperfineResult(exportPath: string): BenchmarkStats {
-  const raw = JSON.parse(readFileSync(exportPath, "utf-8")) as {
-    results: BenchmarkStats[];
-  };
-
-  if (!Array.isArray(raw.results) || raw.results.length === 0) {
-    throw new Error(`Hyperfine export at ${exportPath} has no results`);
-  }
-
-  return raw.results[0];
-}
-
-// One benchmark produces a timing entry and, when peak RSS was captured, a
-// separate memory entry (its own MB series, independently charted + alerted).
-// `peakRssMb` holds one peak per run (a single aggregate value for hyperfine
-// single commands, one per outer run for step sequences). The tracked value
-// is the highest peak; the full per-run distribution goes in the entry's
-// `extra`, and the peak is also embedded in the timing entry's `extra`
-// for convenience.
-function toEntries(
-  scenarioId: string,
-  phaseLabel: string,
-  result: BenchmarkStats,
-  peakRssMb: number[] | undefined,
-): BenchmarkEntry[] {
-  const rss =
-    peakRssMb !== undefined && peakRssMb.length > 0
-      ? computeStats(peakRssMb)
-      : undefined;
-
-  const timeEntry: BenchmarkEntry = {
-    name: `${scenarioId} / ${phaseLabel}`,
-    unit: "s",
-    value: result.mean,
-    range: `± ${result.stddev}`,
-    extra: JSON.stringify({
-      times: result.times,
-      min: result.min,
-      max: result.max,
-      median: result.median,
-      mean: result.mean,
-      ...(rss !== undefined ? { peakRssMb: rss.max } : {}),
-    }),
-  };
-
-  if (rss === undefined) {
-    return [timeEntry];
-  }
-
-  const memEntry: BenchmarkEntry = {
-    name: `${scenarioId} / ${phaseLabel} (peak RSS)`,
-    unit: "MB",
-    // Peak RSS is a max within each run; across runs we track the highest peak
-    // and expose the spread (mean/stddev/…) in `extra`.
-    value: rss.max,
-    range: "",
-    extra: JSON.stringify({
-      times: rss.times,
-      min: rss.min,
-      max: rss.max,
-      median: rss.median,
-      mean: rss.mean,
-      stddev: rss.stddev,
-    }),
-  };
-
-  return [timeEntry, memEntry];
-}
-
-function toCpuEntry(
-  scenarioId: string,
-  phaseLabel: string,
-  result: BenchmarkStats,
-  // hyperfine exports only mean user/system (no per-run CPU samples), so its
-  // entries carry no spread.
-  cpuStddev: number = 0,
-): BenchmarkEntry {
-  return {
-    name: `${scenarioId} / ${phaseLabel} (cpu)`,
-    unit: "s",
-    value: result.user + result.system,
-    range: `± ${cpuStddev}`,
-    extra: JSON.stringify({ user: result.user, system: result.system }),
   };
 }
 
