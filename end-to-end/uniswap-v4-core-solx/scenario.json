@@ -1,6 +1,6 @@
 {
   "$schema": "../../scripts/end-to-end/schema/scenario.schema.json",
-  "description": "Uniswap V4 core contracts fork compiled at solc 0.8.34, tracking solx compile times (solc profiles available for manual runs).",
+  "description": "Uniswap V4 core contracts fork compiled at solc 0.8.34, tracking solx and solc compile times.",
   "tags": ["external-repo", "solx"],
   "repo": "anaPerezGhiglia/uniswap-v4-core",
   "commit": "ab2b22eef19e0abe29d67420dde81b5d54455ae5",
@@ -17,8 +17,8 @@
       "prime compilers": {
         "runs": 1,
         "steps": {
-          "download solx and warm caches": {
-            "command": "npx hardhat compile --build-profile solx && npx hardhat clean",
+          "download solc + solx and warm caches": {
+            "command": "npx hardhat compile && npx hardhat compile --build-profile solx && npx hardhat clean",
             "measure": false
           }
         }
@@ -42,6 +42,16 @@
         "runs": 2,
         "prepare": "npx hardhat clean",
         "command": "npx hardhat compile --build-profile solx-0.1.5-via-ir"
+      },
+      "cold compile solc": {
+        "runs": 2,
+        "prepare": "npx hardhat clean",
+        "command": "npx hardhat compile"
+      },
+      "cold compile solc via-ir": {
+        "runs": 2,
+        "prepare": "npx hardhat clean",
+        "command": "npx hardhat compile --build-profile solc-via-ir"
       }
     }
   }
