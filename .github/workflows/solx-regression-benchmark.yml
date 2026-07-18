@@ -38,10 +38,11 @@ jobs:
       (github.ref == 'refs/heads/main' ||
         github.repository == github.event.pull_request.head.repo.full_name)
 
-    # Sized for the OZ anchor suite (10 timed cells x 3 hyperfine runs,
-    # ~43-150 s each) plus the other scenarios (6 timed cells each — solc,
-    # shipped solx, and pinned 0.1.5, both pipelines — ~45-60 min) and the
-    # post-bench size/gas/dump passes — ~2.5h worst case in total.
+    # Every scenario now runs the symmetrical 10-cell matrix — {solc, shipped
+    # solx, pinned 0.1.5} x {legacy, via-IR}, solx cells doubled by the DWARF
+    # on/off twin. OZ (~43-150 s per cell x 3 hyperfine runs) dominates,
+    # the other scenarios are smaller; plus the post-bench size/gas/dump
+    # passes — ~2.5h worst case in total.
     timeout-minutes: 180
     steps:
       - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5
