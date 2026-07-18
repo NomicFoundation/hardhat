@@ -7,6 +7,8 @@
 // profiles — {solc, solx} x {legacy, via-IR} — all sharing the base settings so
 // the only differences are the compiler and the viaIR flag. Everything else
 // (plugins, paths, networks, test, warnings, exposed) is preserved from the base.
+import path from "node:path";
+
 import hardhatSolx from "@nomicfoundation/hardhat-solx";
 import { definePlugin } from "hardhat/plugins";
 
@@ -33,6 +35,12 @@ const solxSettings = structuredClone(base.solidity.settings);
 const solcViaIRSettings = { ...structuredClone(solcSettings), viaIR: true };
 const solxViaIRSettings = { ...structuredClone(solxSettings), viaIR: true };
 
+// The "solx" profiles always measure the version the plugin ships (its
+// Solidity→solx version map). The "solx-0.1.5" profiles pin a release under
+// comparison via the plugin's `path` compiler option; preinstall.sh downloads
+// the binary (see scripts/benchmark/download-solx.ts).
+const solx015Path = path.join(import.meta.dirname, ".solx", "solx-v0.1.5");
+
 export default {
   ...base,
   // noDwarfBenchmarkPlugin MUST come after hardhatSolx: Hardhat runs config
@@ -53,6 +61,18 @@ export default {
         type: "solx",
         version: "0.8.34",
         settings: solxViaIRSettings,
+      },
+      "solx-0.1.5": {
+        type: "solx",
+        version: "0.8.34",
+        path: solx015Path,
+        settings: structuredClone(solxSettings),
+      },
+      "solx-0.1.5-via-ir": {
+        type: "solx",
+        version: "0.8.34",
+        path: solx015Path,
+        settings: structuredClone(solxViaIRSettings),
       },
     },
   },
