@@ -9,6 +9,8 @@
 // all sharing the base compiler's settings so the only differences are the
 // compiler and the viaIR flag. Everything else (paths) is preserved from the
 // base.
+import path from "node:path";
+
 import hardhatSolx from "@nomicfoundation/hardhat-solx";
 
 import baseConfig from "./hardhat.config.base.ts";
@@ -34,6 +36,12 @@ const solxSettings = structuredClone(baseSettings);
 const solcViaIRSettings = { ...structuredClone(solcSettings), viaIR: true };
 const solxViaIRSettings = { ...structuredClone(solxSettings), viaIR: true };
 
+// The "solx" profiles always measure the version the plugin ships (its
+// Solidity→solx version map). The "solx-0.1.5" profiles pin a release under
+// comparison via the plugin's `path` compiler option; preinstall.sh downloads
+// the binary (see scripts/benchmark/download-solx.ts).
+const solx015Path = path.join(import.meta.dirname, ".solx", "solx-v0.1.5");
+
 export default {
   ...base,
   plugins: [...(base.plugins ?? []), hardhatSolx],
@@ -50,6 +58,18 @@ export default {
         type: "solx",
         version: "0.8.34",
         settings: solxViaIRSettings,
+      },
+      "solx-0.1.5": {
+        type: "solx",
+        version: "0.8.34",
+        path: solx015Path,
+        settings: structuredClone(solxSettings),
+      },
+      "solx-0.1.5-via-ir": {
+        type: "solx",
+        version: "0.8.34",
+        path: solx015Path,
+        settings: structuredClone(solxViaIRSettings),
       },
     },
   },
