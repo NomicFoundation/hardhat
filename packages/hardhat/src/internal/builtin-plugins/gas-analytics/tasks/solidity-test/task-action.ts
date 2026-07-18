@@ -33,6 +33,7 @@ interface GasAnalyticsTestActionArguments {
   snapshotCheck: boolean;
   // Forwarded from the base `test solidity` task; used to detect scoped runs.
   grep?: string;
+  grepExclude?: string;
   testFiles?: string[];
 }
 
@@ -44,6 +45,32 @@ export interface SnapshotResult {
 export interface SnapshotCheckResult {
   functionGasSnapshotsCheck: FunctionGasSnapshotCheckResult;
   snapshotCheatcodesCheck: SnapshotCheatcodesCheckResult;
+}
+
+/**
+ * Whether a `test solidity` run is scoped to a subset of tests (via `--grep`,
+ * `--grep-exclude`, or explicit files). On a scoped run, added/missing
+ * snapshots are artifacts of the filter rather than real differences, so they
+ * aren't reported.
+ *
+ * An explicit empty pattern (e.g. `--grep ""`) is normalized to "no filter" by
+ * the base task before it runs EDR (see `solidity-test/helpers.ts`), so it runs
+ * the full suite; treat it as unfiltered here so real differences still
+ * surface. (An omitted option already arrives as `undefined`.)
+ */
+export function isFilteredRun(args: {
+  grep?: string;
+  grepExclude?: string;
+  testFiles?: string[];
+}): boolean {
+  const hasPattern = (pattern?: string): boolean =>
+    pattern !== undefined && pattern !== "";
+
+  return (
+    hasPattern(args.grep) ||
+    hasPattern(args.grepExclude) ||
+    (args.testFiles?.length ?? 0) > 0
+  );
 }
 
 const runSolidityTests: TaskOverrideActionFunction<
@@ -77,11 +104,11 @@ const runSolidityTests: TaskOverrideActionFunction<
       rootPath,
       suiteResults,
     );
-    // On a scoped run, added/missing snapshots are expected, so don't report
-    // them (they'd be noise from the filter, not real differences).
-    const isFiltered =
-      args.grep !== undefined || (args.testFiles?.length ?? 0) > 0;
-    logSnapshotCheckResult(snapshotCheckResult, console.log, isFiltered);
+    logSnapshotCheckResult(
+      snapshotCheckResult,
+      console.log,
+      isFilteredRun(args),
+    );
     snapshotCheckPassed =
       snapshotCheckResult.functionGasSnapshotsCheck.passed &&
       snapshotCheckResult.snapshotCheatcodesCheck.passed;
