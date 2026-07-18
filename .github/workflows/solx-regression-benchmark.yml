@@ -141,12 +141,17 @@ jobs:
       # tracked over time on this same runner. Deliberately a small subset
       # (one small + one medium scenario, ~90 s total) so the job's runtime
       # doesn't balloon.
+      # --solx-version pins the replay binary to the version the plugin ships
+      # (SOLIDITY_TO_SOLX_VERSION_MAP), so the entries stay paired with the
+      # "cold compile solx" cells even as other solx versions accumulate in
+      # this persistent runner's compiler cache. Bump it with the map.
       - name: Replay standard JSON (raw solx)
         continue-on-error: true
         run: |
           pnpm bench:replay-standard-json \
             --dumps solx-standard-json \
             --report solx-regression-report.json \
+            --solx-version 0.1.4 \
             --dump ens-verifiable-factory-solx/solx-legacy-dwarf.json \
             --dump uniswap-v4-core-solx/solx-legacy-dwarf.json
 

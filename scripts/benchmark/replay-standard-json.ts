@@ -3,6 +3,13 @@ import { readFileSync, readdirSync, writeFileSync } from "node:fs";
 import os from "node:os";
 import path from "node:path";
 
+import {
+  readHyperfineResult,
+  toCpuEntry,
+  toEntry,
+  type BenchmarkEntry,
+} from "./helpers/stats.ts";
+
 const USAGE = `
 scripts/benchmark/replay-standard-json.ts — Time raw solx over dumped inputs
 
@@ -28,6 +35,12 @@ OPTIONS
   --solx <path>        solx binary (default: newest solx-v* in the
                        hardhat-nodejs compiler cache, where the hardhat-solx
                        plugin downloads it)
+  --solx-version <v>   Resolve the binary for exactly this version from the
+                       compiler cache instead of the newest one. CI passes the
+                       plugin's shipped version (SOLIDITY_TO_SOLX_VERSION_MAP)
+                       so binaries accumulating in a persistent runner cache
+                       can't silently unpair the replays from their
+                       "cold compile solx" cells.
   --runs <n>           hyperfine runs (default: 2, matching the timed cells)
 
 EXAMPLE
@@ -44,14 +57,6 @@ const VARIANT_LABELS: Record<string, string> = {
   "solx-legacy-no-dwarf.json": "raw replay solx no-dwarf",
   "solx-via-ir-no-dwarf.json": "raw replay solx via-ir no-dwarf",
 };
-
-interface BenchmarkEntry {
-  name: string;
-  unit: string;
-  value: number;
-  range: string;
-  extra: string;
-}
 
 function getArg(flag: string): string | undefined {
   const i = process.argv.indexOf(flag);
@@ -71,25 +76,30 @@ function getArgOccurrences(flag: string): string[] {
 }
 
 /**
- * The newest solx the hardhat-solx plugin has downloaded. The dump step just
- * compiled every scenario through it, so it is the binary the dumps were
- * produced with.
+ * A solx the hardhat-solx plugin has downloaded — the exact `version` when
+ * given, the newest cached one otherwise (fine locally, where the cache holds
+ * whatever the plugin just used).
  */
-function findSolxBinary(): string {
+function findSolxBinary(version: string | undefined): string {
   const cacheDir = path.join(
     os.homedir(),
     ".cache",
     "hardhat-nodejs",
     "compilers-v3",
   );
-  const versions = readdirSync(cacheDir)
-    .filter((name) => name.startsWith("solx-v"))
-    .sort();
-  const newest = versions.at(-1);
-  if (newest === undefined) {
-    throw new Error(`No solx-v* directory under ${cacheDir}`);
+  let versionDir: string;
+  if (version !== undefined) {
+    versionDir = path.join(cacheDir, `solx-v${version}`);
+  } else {
+    const versions = readdirSync(cacheDir)
+      .filter((name) => name.startsWith("solx-v"))
+      .sort();
+    const newest = versions.at(-1);
+    if (newest === undefined) {
+      throw new Error(`No solx-v* directory under ${cacheDir}`);
+    }
+    versionDir = path.join(cacheDir, newest);
   }
-  const versionDir = path.join(cacheDir, newest);
   const binary = readdirSync(versionDir).find((name) =>
     name.startsWith("solx-"),
   );
@@ -135,7 +145,7 @@ function main(): void {
     process.exit(1);
   }
 
-  const solxPath = getArg("--solx") ?? findSolxBinary();
+  const solxPath = getArg("--solx") ?? findSolxBinary(getArg("--solx-version"));
   const runs = getArg("--runs") ?? "2";
   console.log(`Replaying with ${solxPath}`);
 
@@ -166,27 +176,9 @@ function main(): void {
       `${solxPath} --standard-json ${dumpPath} > /dev/null`,
     ]);
 
-    const result = JSON.parse(readFileSync(exportPath, "utf8")).results[0];
-    entries.push({
-      name: `${scenarioId} / ${label}`,
-      unit: "s",
-      value: result.mean,
-      range: `± ${result.stddev}`,
-      extra: JSON.stringify({
-        times: result.times,
-        min: result.min,
-        max: result.max,
-        median: result.median,
-        mean: result.mean,
-      }),
-    });
-    entries.push({
-      name: `${scenarioId} / ${label} (cpu)`,
-      unit: "s",
-      value: result.user + result.system,
-      range: "± 0",
-      extra: JSON.stringify({ user: result.user, system: result.system }),
-    });
+    const result = readHyperfineResult(exportPath);
+    entries.push(toEntry(scenarioId, label, result));
+    entries.push(toCpuEntry(scenarioId, label, result));
   }
 
   const report = JSON.parse(readFileSync(reportPath, "utf8"));
