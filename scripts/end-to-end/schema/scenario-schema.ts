@@ -105,7 +105,7 @@ export function isCommandConfig(value: unknown): value is CommandConfig {
 }
 
 function isCommandVariant(obj: Record<string, unknown>): boolean {
-  const allowedKeys = new Set(["runs", "prepare", "command"]);
+  const allowedKeys = new Set(["runs", "prepare", "command", "dependsOn"]);
 
   for (const key of Object.keys(obj)) {
     if (!allowedKeys.has(key)) {
@@ -118,7 +118,18 @@ function isCommandVariant(obj: Record<string, unknown>): boolean {
     typeof obj.command === "string" &&
     obj.command.length > 0 &&
     (obj.prepare === undefined ||
-      (typeof obj.prepare === "string" && obj.prepare.length > 0))
+      (typeof obj.prepare === "string" && obj.prepare.length > 0)) &&
+    isDependsOn(obj.dependsOn)
+  );
+}
+
+// `dependsOn`, when present, is a non-empty list of non-empty entry names.
+function isDependsOn(value: unknown): boolean {
+  return (
+    value === undefined ||
+    (Array.isArray(value) &&
+      value.length > 0 &&
+      value.every((v) => typeof v === "string" && v.length > 0))
   );
 }
 
@@ -160,7 +171,7 @@ export function isStepConfig(value: unknown): value is StepConfig {
   }
 
   const obj = value as Record<string, unknown>;
-  const allowedKeys = new Set(["command", "measure"]);
+  const allowedKeys = new Set(["command", "measure", "dependsOn"]);
 
   for (const key of Object.keys(obj)) {
     if (!allowedKeys.has(key)) {
@@ -171,7 +182,8 @@ export function isStepConfig(value: unknown): value is StepConfig {
   return (
     typeof obj.command === "string" &&
     obj.command.length > 0 &&
-    (obj.measure === undefined || typeof obj.measure === "boolean")
+    (obj.measure === undefined || typeof obj.measure === "boolean") &&
+    isDependsOn(obj.dependsOn)
   );
 }
 

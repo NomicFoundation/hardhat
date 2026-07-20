@@ -92,10 +92,12 @@ jobs:
 
       - uses: ./.github/actions/setup-env
 
-      - name: Install hyperfine
+      - name: Install system dependencies
+        # `time` is GNU /usr/bin/time — bench:regression wraps each benchmark in
+        # it to capture peak RSS (memory) alongside timing.
         run: |
           sudo apt-get update
-          sudo apt-get install -y hyperfine
+          sudo apt-get install -y hyperfine time
 
       - name: Configure E2E clone directory
         # Clone scenarios into the runner's temp dir instead of the default

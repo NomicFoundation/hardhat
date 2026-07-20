@@ -20,26 +20,32 @@
             "measure": false
           },
           "cold compile": {
-            "command": "npx hardhat compile"
+            "command": "npx hardhat compile",
+            "dependsOn": ["reset files & cache"]
           },
           "edit & compile Solidity test with min deps: test/lib/CosignerLib.t.sol": {
-            "command": "printf \"\\n// hardhat benchmark edit\\n\" >> test/lib/CosignerLib.t.sol && npx hardhat compile"
+            "command": "printf \"\\n// hardhat benchmark edit\\n\" >> test/lib/CosignerLib.t.sol && npx hardhat compile",
+            "dependsOn": ["cold compile"]
           },
           "edit & compile Solidity test with max deps: test/reactors/V3DutchOrderReactor.t.sol": {
-            "command": "printf \"\\n// hardhat benchmark edit\\n\" >> test/reactors/V3DutchOrderReactor.t.sol && npx hardhat compile"
+            "command": "printf \"\\n// hardhat benchmark edit\\n\" >> test/reactors/V3DutchOrderReactor.t.sol && npx hardhat compile",
+            "dependsOn": ["cold compile"]
           },
           "edit & compile Solidity contract: src/base/ReactorStructs.sol": {
-            "command": "printf \"\\n// hardhat benchmark edit\\n\" >> src/base/ReactorStructs.sol && npx hardhat compile"
+            "command": "printf \"\\n// hardhat benchmark edit\\n\" >> src/base/ReactorStructs.sol && npx hardhat compile",
+            "dependsOn": ["cold compile"]
           }
         }
       },
       "warm compile": {
         "runs": 2,
-        "command": "npx hardhat compile"
+        "command": "npx hardhat compile",
+        "dependsOn": ["cold compile"]
       },
       "test solidity": {
         "runs": 2,
-        "command": "npx hardhat test solidity --no-compile"
+        "command": "npx hardhat test solidity --no-compile",
+        "dependsOn": ["cold compile"]
       }
     }
   }

@@ -20,26 +20,32 @@
             "measure": false
           },
           "cold compile": {
-            "command": "npx hardhat compile"
+            "command": "npx hardhat compile",
+            "dependsOn": ["reset files & cache"]
           },
           "edit & compile Solidity test with min deps: test/unit/scripts/launch/TimeConstraints.t.sol": {
-            "command": "printf \"\\n// hardhat benchmark edit\\n\" >> test/unit/scripts/launch/TimeConstraints.t.sol && npx hardhat compile"
+            "command": "printf \"\\n// hardhat benchmark edit\\n\" >> test/unit/scripts/launch/TimeConstraints.t.sol && npx hardhat compile",
+            "dependsOn": ["cold compile"]
           },
           "edit & compile Solidity test with max deps: test/scenario/mainnet-launch.t.sol": {
-            "command": "printf \"\\n// hardhat benchmark edit\\n\" >> test/scenario/mainnet-launch.t.sol && npx hardhat compile"
+            "command": "printf \"\\n// hardhat benchmark edit\\n\" >> test/scenario/mainnet-launch.t.sol && npx hardhat compile",
+            "dependsOn": ["cold compile"]
           },
           "edit & compile Solidity contract: contracts/types/Timestamp.sol": {
-            "command": "printf \"\\n// hardhat benchmark edit\\n\" >> contracts/types/Timestamp.sol && npx hardhat compile"
+            "command": "printf \"\\n// hardhat benchmark edit\\n\" >> contracts/types/Timestamp.sol && npx hardhat compile",
+            "dependsOn": ["cold compile"]
           }
         }
       },
       "warm compile": {
         "runs": 2,
-        "command": "npx hardhat compile"
+        "command": "npx hardhat compile",
+        "dependsOn": ["cold compile"]
       },
       "test solidity": {
         "runs": 15,
-        "command": "npx hardhat test solidity --no-compile --grep=\"^(test_|testFuzz_)\""
+        "command": "npx hardhat test solidity --no-compile --grep=\"^(test_|testFuzz_)\"",
+        "dependsOn": ["cold compile"]
       }
     }
   }
