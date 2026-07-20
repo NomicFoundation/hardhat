@@ -1,5 +1,17 @@
 # hardhat
 
+## 3.11.0
+
+### Minor Changes
+
+- [#8447](https://github.com/NomicFoundation/hardhat/pull/8447) [`dff401d`](https://github.com/NomicFoundation/hardhat/commit/dff401dea894eeb7c6a59f1d2aaea7158c106ea8) Thanks [@kanej](https://github.com/kanej)! - Added experimental EIP-7778 support to the Amsterdam hardfork: a block's `gasUsed` excludes gas refunds; transaction receipts are unchanged.
+
+- [#8447](https://github.com/NomicFoundation/hardhat/pull/8447) [`dff401d`](https://github.com/NomicFoundation/hardhat/commit/dff401dea894eeb7c6a59f1d2aaea7158c106ea8) Thanks [@kanej](https://github.com/kanej)! - Added experimental EIP-7928 support to the Amsterdam hardfork: blocks on Amsterdam now include the `blockAccessListHash` header field. The value is simulated, not the real `keccak256(rlp(blockAccessList))`.
+
+### Patch Changes
+
+- [#8447](https://github.com/NomicFoundation/hardhat/pull/8447) [`dff401d`](https://github.com/NomicFoundation/hardhat/commit/dff401dea894eeb7c6a59f1d2aaea7158c106ea8) Thanks [@kanej](https://github.com/kanej)! - Fixed JSON-RPC provider call traces omitting event logs (https://github.com/NomicFoundation/edr/issues/1542)
+
 ## 3.10.0
 
 ### Minor Changes
