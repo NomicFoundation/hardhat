@@ -469,6 +469,44 @@ describe("execution - getNonceSyncMessages", () => {
           );
         });
 
+        it("should throw if the user replaced the transaction and the user transaction is mined exactly at the confirmation boundary (safe count equals the nonce)", async () => {
+          // set an arbitrary nonce
+          const nonce = 16;
+          // put the latest as bigger than the nonce being checked, so the
+          // replacement transaction is mined (Case 1 is entered)
+          const latest = nonce + 1;
+          // there are no pending
+          const pending = latest;
+          // The safe count is exactly equal to the nonce. A transaction count
+          // is a cardinality (the next nonce to use), so `safe === nonce` means
+          // only the transactions with nonces `0..nonce-1` are confirmed at the
+          // safe block: the replacement transaction with `nonce` itself is NOT
+          // yet safely confirmed and must not be treated as fully confirmed.
+          const safest = nonce;
+
+          await assertGetNonceSyncThrows(
+            {
+              ignitionModule: exampleModule,
+              deploymentState:
+                setupDeploymentStateBasedOnExampleModuleWithOneTranWith(nonce),
+              transactionCountEntries: {
+                [exampleAccounts[1]]: {
+                  pending,
+                  latest,
+                  number: () => safest,
+                },
+              },
+              latestBlockNumber,
+            },
+            HardhatError.ERRORS.IGNITION.EXECUTION.WAITING_FOR_NONCE,
+            {
+              sender: exampleAccounts[1],
+              nonce: 16,
+              requiredConfirmations: 5,
+            },
+          );
+        });
+
         it("should error if the user replaced the transaction and the user transaction is in the mempool but not mined (pending)", async () => {
           // Set latest to an arbitrary nonce
           const latestCount = 30;
