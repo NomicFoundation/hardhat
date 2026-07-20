@@ -75,11 +75,11 @@ describe("readPeakRssMb", () => {
     assert.equal(readPeakRssMb(p), 512);
   });
 
-  it("returns undefined for a missing file", () => {
-    assert.equal(readPeakRssMb(path.join(tmp, "does-not-exist")), undefined);
+  it("throws for a missing file", () => {
+    assert.throws(() => readPeakRssMb(path.join(tmp, "does-not-exist")));
   });
 
-  it("returns undefined for non-numeric content", () => {
-    assert.equal(readPeakRssMb(memFileWith("c", "no digits here")), undefined);
+  it("throws for non-numeric content", () => {
+    assert.throws(() => readPeakRssMb(memFileWith("c", "no digits here")));
   });
 });

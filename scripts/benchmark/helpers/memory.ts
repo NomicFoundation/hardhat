@@ -52,19 +52,26 @@ export function formatTimeCommand(
 
 /**
  * Read the peak RSS (rounded to MB) that {@link wrapWithTime} wrote to
- * `memFile`. Returns `undefined` when the file is missing or unparseable (e.g.
- * GNU time was unavailable so nothing ran, or the command crashed before time
- * could write). GNU time may append a "Command exited with non-zero status"
- * line, so we take the first integer — the `%M` value, in KB.
+ * `memFile` via GNU time's `%M` value (in KB). GNU time may append a "Command
+ * exited with non-zero status" line, so we take the first integer.
+ *
+ * Throws when the file is missing or holds no parseable number. Only call
+ * this for a file GNU time was actually asked to write: guard with
+ * {@link gnuTimeAvailable} first, since an unavailable GNU time runs the command
+ * unwrapped and writes nothing.
  */
-export function readPeakRssMb(memFile: string): number | undefined {
+export function readPeakRssMb(memFile: string): number {
   if (!existsSync(memFile)) {
-    return undefined;
+    throw new Error(`Peak RSS memory file not found: ${memFile}`);
   }
 
   const match = readFileSync(memFile, "utf-8").match(/\d+/);
 
-  return match === null ? undefined : Math.round(parseInt(match[0], 10) / 1024);
+  if (match === null) {
+    throw new Error(`No peak RSS value found in memory file: ${memFile}`);
+  }
+
+  return Math.round(parseInt(match[0], 10) / 1024);
 }
 
 function shellQuote(value: string): string {

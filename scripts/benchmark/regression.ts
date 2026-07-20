@@ -492,7 +492,9 @@ async function runScenario(
           scenario.id,
           planned.name,
           readHyperfineResult(exportPath),
-          memFile !== undefined ? readPeakRssMb(memFile) : undefined,
+          memFile !== undefined && gnuTimeAvailable()
+            ? readPeakRssMb(memFile)
+            : undefined,
         ),
       );
     }
@@ -585,11 +587,9 @@ function runStepsPhase(
       const elapsed = (performance.now() - start) / 1000;
       samples.get(stepName)?.push(elapsed);
 
-      if (emit.has(stepName)) {
+      if (emit.has(stepName) && gnuTimeAvailable()) {
         const rss = readPeakRssMb(memFile(stepName));
-        if (rss !== undefined) {
-          peakRssMb.set(stepName, Math.max(peakRssMb.get(stepName) ?? 0, rss));
-        }
+        peakRssMb.set(stepName, Math.max(peakRssMb.get(stepName) ?? 0, rss));
       }
     }
   }
