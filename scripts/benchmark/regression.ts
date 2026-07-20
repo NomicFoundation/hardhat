@@ -755,7 +755,7 @@ function toEntries(
     // Peak RSS is a max within each run; across runs we track the highest peak
     // and expose the spread (mean/stddev/…) in `extra`.
     value: rss.max,
-    range: `± ${rss.stddev}`,
+    range: "",
     extra: JSON.stringify({
       values: rss.times,
       min: rss.min,
