@@ -10,7 +10,8 @@ import {
   HardhatError,
   assertHardhatInvariant,
 } from "@nomicfoundation/hardhat-errors";
-import { bytesToUtf8String } from "@nomicfoundation/hardhat-utils/bytes";
+import { parseJsonBytes } from "@nomicfoundation/hardhat-utils/bytes";
+import { ensureError } from "@nomicfoundation/hardhat-utils/error";
 
 import { getFullyQualifiedName } from "../../../../utils/contract-names.js";
 
@@ -48,11 +49,11 @@ interface CollectedOverrides {
  * in the solc AST. It only extracts them from the build info where each
  * test artifact's file was compiled as a root file.
  */
-export function getTestFunctionOverrides(
+export async function getTestFunctionOverrides(
   testSuiteArtifacts: EdrArtifactWithMetadata[],
   buildInfosAndOutputs: BuildInfoAndOutput[],
-): TestFunctionOverride[] {
-  const allRawOverrides = collectRawOverrides(
+): Promise<TestFunctionOverride[]> {
+  const allRawOverrides = await collectRawOverrides(
     testSuiteArtifacts,
     buildInfosAndOutputs,
   );
@@ -62,10 +63,10 @@ export function getTestFunctionOverrides(
   return buildTestFunctionOverrides(allRawOverrides);
 }
 
-function collectRawOverrides(
+async function collectRawOverrides(
   testSuiteArtifacts: EdrArtifactWithMetadata[],
   buildInfosAndOutputs: BuildInfoAndOutput[],
-): CollectedOverrides {
+): Promise<CollectedOverrides> {
   const overrides: RawInlineOverride[] = [];
   const methodIdentifiersByContract = new Map<string, Record<string, string>>();
 
@@ -153,9 +154,19 @@ function collectRawOverrides(
       continue;
     }
 
-    const buildInfoOutput: SolidityBuildInfoOutput = JSON.parse(
-      bytesToUtf8String(buildInfoAndOutput.output),
-    );
+    let buildInfoOutput: SolidityBuildInfoOutput;
+    try {
+      buildInfoOutput = await parseJsonBytes<SolidityBuildInfoOutput>(
+        buildInfoAndOutput.output,
+      );
+    } catch (error) {
+      ensureError(error);
+      throw new HardhatError(
+        HardhatError.ERRORS.CORE.SOLIDITY.BUILD_INFO_OUTPUT_PARSE_ERROR,
+        { buildInfoId },
+        error,
+      );
+    }
 
     for (const [
       inputSourceName,

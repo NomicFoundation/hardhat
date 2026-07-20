@@ -40,6 +40,7 @@ import {
   CANCUN,
   PRAGUE,
   OSAKA,
+  AMSTERDAM,
   BEDROCK,
   REGOLITH,
   CANYON,
@@ -114,6 +115,8 @@ export function edrL1HardforkToHardhatL1HardforkName(
       return L1HardforkName.PRAGUE;
     case SpecId.Osaka:
       return L1HardforkName.OSAKA;
+    case SpecId.Amsterdam:
+      return L1HardforkName.AMSTERDAM;
     // eslint-disable-next-line @typescript-eslint/switch-exhaustiveness-check -- trust but verify
     default:
       const _exhaustiveCheck: never = hardfork;
@@ -235,6 +238,8 @@ function hardhatL1HardforkToEdrSpecId(hardfork: string): string {
       return PRAGUE;
     case L1HardforkName.OSAKA:
       return OSAKA;
+    case L1HardforkName.AMSTERDAM:
+      return AMSTERDAM;
 
     // eslint-disable-next-line @typescript-eslint/switch-exhaustiveness-check -- we want to print the fork
     default:

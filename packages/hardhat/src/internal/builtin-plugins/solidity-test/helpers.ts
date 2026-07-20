@@ -25,6 +25,7 @@ import { hexStringToBytes } from "@nomicfoundation/hardhat-utils/hex";
 import { DEFAULT_VERBOSITY, OPTIMISM_CHAIN_TYPE } from "../../constants.js";
 import { resolveHardfork } from "../network-manager/config-resolution.js";
 import { hardhatHardforkToEdrSpecId } from "../network-manager/edr/utils/convert-to-edr.js";
+import { warnIfExperimentalHardfork } from "../network-manager/edr/utils/hardfork.js";
 import { verbosityToIncludeTraces } from "../network-manager/edr/utils/trace-formatters.js";
 
 import { formatArtifactId } from "./formatters.js";
@@ -88,8 +89,11 @@ export async function solidityTestConfigToSolidityTestRunnerConfigArgs({
   const txOrigin = hexToBytes(config.txOrigin);
   const blockCoinbase = hexToBytes(config.coinbase);
 
+  const resolvedHardforkName = resolveHardfork(hardfork, chainType);
+  warnIfExperimentalHardfork(resolvedHardforkName, chainType);
+
   const resolvedHardfork = hardhatHardforkToEdrSpecId(
-    resolveHardfork(hardfork, chainType),
+    resolvedHardforkName,
     chainType,
   );
 

@@ -1,4 +1,6 @@
-import { buildLpsTable } from "./internal/bytes.js";
+import { Readable } from "node:stream";
+
+import { buildLpsTable, parseJsonStream } from "./internal/bytes.js";
 
 /**
  * Checks if a value is an instance of Uint8Array.
@@ -103,6 +105,32 @@ export function bytesIncludesUtf8String(
   }
 
   return false;
+}
+
+/**
+ * Parses UTF-8 encoded JSON bytes into a value.
+ *
+ * Payloads that fit in a single string are decoded and parsed with
+ * `JSON.parse`, which is much faster. Payloads too large to be held in a
+ * single string are parsed as a stream instead, which decodes and parses
+ * incrementally rather than materializing the whole payload as one string.
+ *
+ * @param bytes The UTF-8 encoded JSON bytes.
+ * @returns The parsed JSON object.
+ */
+export async function parseJsonBytes<T>(bytes: Uint8Array): Promise<T> {
+  let json: string;
+  try {
+    json = bytesToUtf8String(bytes);
+  } catch {
+    // `bytesToUtf8String` decodes non-fatally, so it never throws on malformed
+    // bytes; its only failure mode is a payload larger than the maximum string
+    // length the runtime can hold. Stream parsing handles those, as it never
+    // materializes the whole payload as a single string.
+    return await parseJsonStream<T>(Readable.from([bytes]));
+  }
+
+  return JSON.parse(json);
 }
 
 export { bytesToBigInt, bytesToNumber, numberToBytes } from "./number.js";

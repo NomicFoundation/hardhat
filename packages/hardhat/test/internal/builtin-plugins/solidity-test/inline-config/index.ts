@@ -3,7 +3,8 @@ import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 
 import { HardhatError } from "@nomicfoundation/hardhat-errors";
-import { assertThrowsHardhatError } from "@nomicfoundation/hardhat-test-utils";
+import { assertRejectsWithHardhatError } from "@nomicfoundation/hardhat-test-utils";
+import { utf8StringToBytes } from "@nomicfoundation/hardhat-utils/bytes";
 
 import {
   getFunctionFqn,
@@ -14,7 +15,7 @@ import { makeBuildInfo, makeTestSuiteArtifact } from "./mocks.js";
 
 describe("inline-config", () => {
   describe("getTestFunctionOverrides", () => {
-    it("should return empty array when no build infos contain inline config", () => {
+    it("should return empty array when no build infos contain inline config", async () => {
       const bi = makeBuildInfo(
         "test/MyTest.sol",
         "// just a comment\ncontract MyTest {}",
@@ -26,10 +27,10 @@ describe("inline-config", () => {
         },
       );
       const artifacts = [makeTestSuiteArtifact("test/MyTest.sol", "MyTest")];
-      assert.deepEqual(getTestFunctionOverrides(artifacts, [bi]), []);
+      assert.deepEqual(await getTestFunctionOverrides(artifacts, [bi]), []);
     });
 
-    it("should deduplicate when same source appears in multiple build infos", () => {
+    it("should deduplicate when same source appears in multiple build infos", async () => {
       const bi1 = makeBuildInfo(
         "test/MyTest.sol",
         "/// hardhat-config: fuzz.runs = 10",
@@ -61,11 +62,11 @@ describe("inline-config", () => {
         },
       );
       const artifacts = [makeTestSuiteArtifact("test/MyTest.sol", "MyTest")];
-      const overrides = getTestFunctionOverrides(artifacts, [bi1, bi2]);
+      const overrides = await getTestFunctionOverrides(artifacts, [bi1, bi2]);
       assert.equal(overrides.length, 1);
     });
 
-    it("should produce correct ArtifactId with solcVersion", () => {
+    it("should produce correct ArtifactId with solcVersion", async () => {
       const bi = makeBuildInfo(
         "test/MyTest.sol",
         "/// hardhat-config: fuzz.runs = 10",
@@ -85,7 +86,7 @@ describe("inline-config", () => {
       const artifacts = [
         makeTestSuiteArtifact("test/MyTest.sol", "MyTest", "0.8.20"),
       ];
-      const overrides = getTestFunctionOverrides(artifacts, [bi]);
+      const overrides = await getTestFunctionOverrides(artifacts, [bi]);
       assert.deepEqual(overrides[0].identifier.contractArtifact, {
         name: "MyTest",
         source: "test/MyTest.sol",
@@ -93,7 +94,7 @@ describe("inline-config", () => {
       });
     });
 
-    it("should throw UNRESOLVED_SELECTOR when function has no ABI entry", () => {
+    it("should throw UNRESOLVED_SELECTOR when function has no ABI entry", async () => {
       const bi = makeBuildInfo(
         "test/MyTest.sol",
         "/// hardhat-config: fuzz.runs = 10",
@@ -110,7 +111,7 @@ describe("inline-config", () => {
         },
       );
       const artifacts = [makeTestSuiteArtifact("test/MyTest.sol", "MyTest")];
-      assertThrowsHardhatError(
+      await assertRejectsWithHardhatError(
         () => getTestFunctionOverrides(artifacts, [bi]),
         HardhatError.ERRORS.CORE.SOLIDITY_TESTS
           .INLINE_CONFIG_UNRESOLVED_SELECTOR,
@@ -124,7 +125,7 @@ describe("inline-config", () => {
       );
     });
 
-    it("should process a basic end-to-end case", () => {
+    it("should process a basic end-to-end case", async () => {
       const bi = makeBuildInfo(
         "test/MyTest.sol",
         "/// hardhat-config: fuzz.runs = 50",
@@ -141,13 +142,89 @@ describe("inline-config", () => {
         },
       );
       const artifacts = [makeTestSuiteArtifact("test/MyTest.sol", "MyTest")];
-      const overrides = getTestFunctionOverrides(artifacts, [bi]);
+      const overrides = await getTestFunctionOverrides(artifacts, [bi]);
       assert.equal(overrides.length, 1);
       assert.equal(overrides[0].identifier.functionSelector, "0xaabbccdd");
       assert.deepEqual(overrides[0].config, { fuzz: { runs: 50 } });
     });
 
-    it("should merge overrides from mixed hardhat-config: and forge-config: prefixes", () => {
+    it("should fall back to stream parsing when the build info output is too large for a single string", async (t) => {
+      const bi = makeBuildInfo(
+        "test/MyTest.sol",
+        "/// hardhat-config: fuzz.runs = 50",
+        {
+          MyTest: {
+            methodIdentifiers: { "testFuzz()": "aabbccdd" },
+            functions: [
+              {
+                name: "testFuzz",
+                documentation: " hardhat-config: fuzz.runs = 50",
+              },
+            ],
+          },
+        },
+      );
+
+      // Simulate an output too large to be decoded into a single string:
+      // `TextDecoder.decode` throws only in that case, so this exercises the
+      // stream-parsing fallback without allocating a multi-gigabyte buffer.
+      const originalDecode = TextDecoder.prototype.decode;
+      t.mock.method(
+        TextDecoder.prototype,
+        "decode",
+        function (
+          this: InstanceType<typeof TextDecoder>,
+          ...args: Parameters<typeof TextDecoder.prototype.decode>
+        ) {
+          if (args[0] === bi.output) {
+            throw new RangeError(
+              "Cannot create a string longer than 0x1fffffe8 characters",
+            );
+          }
+
+          return originalDecode.call(this, args[0], args[1]);
+        },
+      );
+
+      const artifacts = [makeTestSuiteArtifact("test/MyTest.sol", "MyTest")];
+      const overrides = await getTestFunctionOverrides(artifacts, [bi]);
+
+      assert.equal(overrides.length, 1);
+      assert.deepEqual(overrides[0].config, { fuzz: { runs: 50 } });
+    });
+
+    it("should throw a HardhatError when the build info output cannot be parsed", async () => {
+      const bi = makeBuildInfo(
+        "test/MyTest.sol",
+        "/// hardhat-config: fuzz.runs = 50",
+        {
+          MyTest: {
+            methodIdentifiers: { "testFuzz()": "aabbccdd" },
+            functions: [
+              {
+                name: "testFuzz",
+                documentation: " hardhat-config: fuzz.runs = 50",
+              },
+            ],
+          },
+        },
+      );
+
+      const corrupted = {
+        ...bi,
+        output: utf8StringToBytes("{ not valid json"),
+      };
+
+      const artifacts = [makeTestSuiteArtifact("test/MyTest.sol", "MyTest")];
+
+      await assertRejectsWithHardhatError(
+        getTestFunctionOverrides(artifacts, [corrupted]),
+        HardhatError.ERRORS.CORE.SOLIDITY.BUILD_INFO_OUTPUT_PARSE_ERROR,
+        { buildInfoId: bi.buildInfoId },
+      );
+    });
+
+    it("should merge overrides from mixed hardhat-config: and forge-config: prefixes", async () => {
       const bi = makeBuildInfo(
         "test/MyTest.sol",
         "/// hardhat-config: fuzz.runs = 10\n/// forge-config: fuzz.max-test-rejects = 500",
@@ -165,14 +242,14 @@ describe("inline-config", () => {
         },
       );
       const artifacts = [makeTestSuiteArtifact("test/MyTest.sol", "MyTest")];
-      const overrides = getTestFunctionOverrides(artifacts, [bi]);
+      const overrides = await getTestFunctionOverrides(artifacts, [bi]);
       assert.equal(overrides.length, 1);
       assert.deepEqual(overrides[0].config, {
         fuzz: { runs: 10, maxTestRejects: 500 },
       });
     });
 
-    it("should throw BUILD_INFO_NOT_FOUND when artifact references missing build info", () => {
+    it("should throw BUILD_INFO_NOT_FOUND when artifact references missing build info", async () => {
       const bi = makeBuildInfo(
         "test/MyTest.sol",
         "/// hardhat-config: fuzz.runs = 10",
@@ -192,7 +269,7 @@ describe("inline-config", () => {
       );
 
       const artifacts = [makeTestSuiteArtifact("test/MyTest.sol", "MyTest")];
-      assertThrowsHardhatError(
+      await assertRejectsWithHardhatError(
         () => getTestFunctionOverrides(artifacts, [bi]),
         HardhatError.ERRORS.CORE.SOLIDITY_TESTS
           .BUILD_INFO_NOT_FOUND_FOR_CONTRACT,
@@ -202,7 +279,7 @@ describe("inline-config", () => {
       );
     });
 
-    it("should produce separate overrides for overloaded functions", () => {
+    it("should produce separate overrides for overloaded functions", async () => {
       const bi = makeBuildInfo(
         "test/MyTest.sol",
         "/// hardhat-config: fuzz.runs = 10\n/// hardhat-config: fuzz.runs = 20",
@@ -228,7 +305,7 @@ describe("inline-config", () => {
         },
       );
       const artifacts = [makeTestSuiteArtifact("test/MyTest.sol", "MyTest")];
-      const result = getTestFunctionOverrides(artifacts, [bi]);
+      const result = await getTestFunctionOverrides(artifacts, [bi]);
       assert.equal(result.length, 2);
 
       const selectors = result.map((r) => r.identifier.functionSelector).sort();
@@ -241,7 +318,7 @@ describe("inline-config", () => {
       assert.deepEqual(bySelector.get("0x11223344"), { fuzz: { runs: 20 } });
     });
 
-    it("should not duplicate overrides when same source is a root in multiple build infos", () => {
+    it("should not duplicate overrides when same source is a root in multiple build infos", async () => {
       const bi1 = makeBuildInfo(
         "test/MyTest.sol",
         "/// hardhat-config: fuzz.runs = 10",
@@ -280,12 +357,12 @@ describe("inline-config", () => {
       const artifacts = [
         makeTestSuiteArtifact("test/MyTest.sol", "MyTest", "0.8.23", "bi-1"),
       ];
-      const overrides = getTestFunctionOverrides(artifacts, [bi1, bi2]);
+      const overrides = await getTestFunctionOverrides(artifacts, [bi1, bi2]);
       assert.equal(overrides.length, 1);
       assert.deepEqual(overrides[0].config, { fuzz: { runs: 10 } });
     });
 
-    it("should handle multiple contracts in a single source file", () => {
+    it("should handle multiple contracts in a single source file", async () => {
       const bi = makeBuildInfo(
         "test/Multi.sol",
         "/// hardhat-config: fuzz.runs = 10\n/// hardhat-config: fuzz.runs = 20",
@@ -314,7 +391,7 @@ describe("inline-config", () => {
         makeTestSuiteArtifact("test/Multi.sol", "ContractA"),
         makeTestSuiteArtifact("test/Multi.sol", "ContractB"),
       ];
-      const result = getTestFunctionOverrides(artifacts, [bi]);
+      const result = await getTestFunctionOverrides(artifacts, [bi]);
       assert.equal(result.length, 2);
 
       const bySelector = new Map(

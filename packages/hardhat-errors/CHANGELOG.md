@@ -1,5 +1,14 @@
 # @nomicfoundation/hardhat-errors
 
+## 3.0.17
+
+### Patch Changes
+
+- [#8417](https://github.com/NomicFoundation/hardhat/pull/8417) [`eb4826a`](https://github.com/NomicFoundation/hardhat/commit/eb4826af89d5eac02cafc2d3826f3888ea04a80b) Thanks [@ChristopherDedominici](https://github.com/ChristopherDedominici)! - Fix a bug where the EIP-712 collector throws for a struct of the same name in a source file the user didn't include.
+
+- Updated dependencies:
+  - @nomicfoundation/hardhat-utils@4.1.5
+
 ## 3.0.16
 
 ### Patch Changes

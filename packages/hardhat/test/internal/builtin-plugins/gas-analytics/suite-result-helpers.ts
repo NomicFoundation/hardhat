@@ -22,6 +22,9 @@ export function createStandardTestResult(
     },
     stackTrace: () => null,
     callTraces: () => [],
+    reason: undefined,
+    counterexample: undefined,
+    valueSnapshotGroups: undefined,
   };
 }
 
@@ -43,6 +46,9 @@ export function createFuzzTestResult(
     },
     stackTrace: () => null,
     callTraces: () => [],
+    reason: undefined,
+    counterexample: undefined,
+    valueSnapshotGroups: undefined,
   };
 }
 
@@ -65,6 +71,9 @@ export function createInvariantTestResult(
     },
     stackTrace: () => null,
     callTraces: () => [],
+    reason: undefined,
+    counterexample: undefined,
+    valueSnapshotGroups: undefined,
   };
 }
 
@@ -87,6 +96,8 @@ export function createTestResultWithSnapshots(
     },
     stackTrace: () => null,
     callTraces: () => [],
+    reason: undefined,
+    counterexample: undefined,
     valueSnapshotGroups,
   };
 }
