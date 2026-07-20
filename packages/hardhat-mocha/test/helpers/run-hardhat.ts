@@ -47,8 +47,9 @@ export interface RunHardhatTestResult {
  * @param cwd Absolute path to the fixture project (where its `hardhat.config`
  *   lives).
  * @param envOverrides Extra env vars merged onto the parent process env.
- *   Useful to seed values the fixture's assertions expect — e.g. setting
- *   `NODE_ENV=HELLO` so the inner test can assert it was preserved.
+ *   Useful to seed values the fixture's config or assertions read — e.g.
+ *   setting `HH_MOCHA_PARALLEL=true` so the fixture runs Mocha in parallel
+ *   mode.
  * @param extraArgs Extra CLI arguments appended after `test mocha
  *   --no-compile` — e.g. `["--grep", "keep"]` to exercise the name filter.
  */
@@ -59,8 +60,8 @@ export async function runHardhatTest(
 ): Promise<RunHardhatTestResult> {
   // Build the child env by layering overrides on top of the parent env. Any
   // override key explicitly set to `undefined` is treated as "unset this var
-  // in the child" — important when the outer `node --test` run has NODE_ENV
-  // preset and we need the child to start without it (so `??=` kicks in).
+  // in the child", so a caller can start the child without a var the parent
+  // happens to have set.
   const env: NodeJS.ProcessEnv = { ...process.env };
   for (const [key, value] of Object.entries(envOverrides)) {
     if (value === undefined) {
