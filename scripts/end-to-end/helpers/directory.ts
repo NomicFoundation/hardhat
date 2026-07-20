@@ -1,6 +1,9 @@
 import path, { basename, dirname, resolve } from "node:path";
 import type { Scenario, ScenarioDefinition } from "../types.ts";
-import { isScenarioDefinition } from "../schema/scenario-schema.ts";
+import {
+  isScenarioDefinition,
+  validateScenarioSource,
+} from "../schema/scenario-schema.ts";
 import { readFileSync } from "node:fs";
 import { resolveEnv } from "./env.ts";
 
@@ -56,6 +59,10 @@ export function normalizeScenarioPath(scenarioPath: string): string {
 
 function _readScenarioJson(scenarioFilePath: string): ScenarioDefinition {
   const raw = JSON.parse(readFileSync(scenarioFilePath, "utf-8")) as unknown;
+
+  // Throws targeted errors for commit/branch misuse; anything else malformed
+  // falls through to the generic guard error below.
+  validateScenarioSource(raw, scenarioFilePath);
 
   if (!isScenarioDefinition(raw)) {
     throw new Error(`Invalid scenario.json at ${scenarioFilePath}`);

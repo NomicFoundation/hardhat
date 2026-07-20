@@ -5,10 +5,22 @@ export interface Scenario {
   definition: ScenarioDefinition;
 }
 
-export interface ScenarioDefinition {
+/**
+ * Exactly one of `commit` | `branch` selects what to checkout:
+ *
+ * - `commit`: pin to a full SHA or tag.
+ * - `branch`: track the branch's latest remote tip on every init. Only allowed
+ *   for repos in the NomicFoundation GitHub organisation (enforced by
+ *   `validateScenarioSource`), so that a security breach in an external
+ *   organisation or account cannot automatically affect our end-to-end
+ *   scenarios.
+ */
+export type ScenarioDefinition = ScenarioDefinitionBase &
+  ({ commit: string; branch?: never } | { branch: string; commit?: never });
+
+interface ScenarioDefinitionBase {
   description: string;
   repo: string;
-  commit: string;
   packageManager: "npm" | "bun" | "yarn" | "pnpm";
   defaultCommand: string;
   preinstall?: string;

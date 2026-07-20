@@ -5,15 +5,20 @@ import {
   isCommandConfig,
   isScenarioDefinition,
   isStepConfig,
+  validateScenarioSource,
 } from "./scenario-schema.ts";
 
 const baseScenario = {
   description: "test",
   repo: "org/repo",
-  commit: "abc123",
   packageManager: "npm" as const,
   defaultCommand: "npx hardhat compile",
   tags: ["test"],
+};
+
+const scenarioWithCommit = {
+  ...baseScenario,
+  commit: "abc123",
 };
 
 describe("isScenarioDefinition", () => {
@@ -203,7 +208,7 @@ describe("isScenarioDefinition", () => {
   it("accepts benchmark: { skip: true }", () => {
     assert.equal(
       isScenarioDefinition({
-        ...baseScenario,
+        ...scenarioWithCommit,
         benchmark: { skip: true },
       }),
       true,
@@ -213,7 +218,7 @@ describe("isScenarioDefinition", () => {
   it("accepts benchmark.commands with one entry", () => {
     assert.equal(
       isScenarioDefinition({
-        ...baseScenario,
+        ...scenarioWithCommit,
         benchmark: {
           commands: {
             "warm compile": { runs: 10, command: "npx hardhat compile" },
@@ -227,7 +232,7 @@ describe("isScenarioDefinition", () => {
   it("accepts benchmark.commands with multiple ordered entries", () => {
     assert.equal(
       isScenarioDefinition({
-        ...baseScenario,
+        ...scenarioWithCommit,
         benchmark: {
           commands: {
             "cold compile": {
@@ -247,7 +252,7 @@ describe("isScenarioDefinition", () => {
   it("rejects benchmark.commands that is not an object", () => {
     assert.equal(
       isScenarioDefinition({
-        ...baseScenario,
+        ...scenarioWithCommit,
         benchmark: { commands: [] },
       }),
       false,
@@ -257,7 +262,7 @@ describe("isScenarioDefinition", () => {
   it("rejects an integer-like command key (would break order)", () => {
     assert.equal(
       isScenarioDefinition({
-        ...baseScenario,
+        ...scenarioWithCommit,
         benchmark: {
           commands: { "1": { runs: 1, command: "npx hardhat compile" } },
         },
@@ -268,8 +273,120 @@ describe("isScenarioDefinition", () => {
 
   it("rejects benchmark.skip values other than true", () => {
     assert.equal(
-      isScenarioDefinition({ ...baseScenario, benchmark: { skip: false } }),
+      isScenarioDefinition({
+        ...scenarioWithCommit,
+        benchmark: { skip: false },
+      }),
       false,
+    );
+  });
+
+  it("accepts a branch instead of a commit", () => {
+    assert.equal(
+      isScenarioDefinition({
+        ...baseScenario,
+        repo: "NomicFoundation/hardhat",
+        branch: "main",
+      }),
+      true,
+    );
+  });
+
+  it("rejects when both commit and branch are present", () => {
+    assert.equal(
+      isScenarioDefinition({ ...scenarioWithCommit, branch: "main" }),
+      false,
+    );
+  });
+
+  it("rejects when neither commit nor branch is present", () => {
+    assert.equal(isScenarioDefinition(baseScenario), false);
+  });
+
+  it("rejects a non-string branch", () => {
+    assert.equal(isScenarioDefinition({ ...baseScenario, branch: 42 }), false);
+  });
+});
+
+describe("validateScenarioSource", () => {
+  const scenarioFilePath = "end-to-end/some-scenario/scenario.json";
+
+  it("does not throw for a commit-only scenario in an external org", () => {
+    assert.doesNotThrow(() =>
+      validateScenarioSource(scenarioWithCommit, scenarioFilePath),
+    );
+  });
+
+  it("does not throw for a branch in the NomicFoundation org", () => {
+    assert.doesNotThrow(() =>
+      validateScenarioSource(
+        {
+          ...baseScenario,
+          repo: "NomicFoundation/hardhat",
+          branch: "main",
+        },
+        scenarioFilePath,
+      ),
+    );
+  });
+
+  it("compares the org case-insensitively", () => {
+    assert.doesNotThrow(() =>
+      validateScenarioSource(
+        {
+          ...baseScenario,
+          repo: "nomicfoundation/hardhat",
+          branch: "main",
+        },
+        scenarioFilePath,
+      ),
+    );
+  });
+
+  it("throws when both commit and branch are present", () => {
+    assert.throws(
+      () =>
+        validateScenarioSource(
+          { ...scenarioWithCommit, branch: "main" },
+          scenarioFilePath,
+        ),
+      /exactly one of "commit" or "branch"/,
+    );
+  });
+
+  it("throws when neither commit nor branch is present", () => {
+    assert.throws(
+      () => validateScenarioSource(baseScenario, scenarioFilePath),
+      /exactly one of "commit" or "branch"/,
+    );
+  });
+
+  it("throws for a branch in an external org", () => {
+    assert.throws(
+      () =>
+        validateScenarioSource(
+          {
+            ...baseScenario,
+            repo: "OpenZeppelin/openzeppelin-contracts",
+            branch: "master",
+          },
+          scenarioFilePath,
+        ),
+      /only allowed for repos in the NomicFoundation/,
+    );
+  });
+
+  it("includes the scenario file path in the error message", () => {
+    assert.throws(
+      () => validateScenarioSource(baseScenario, scenarioFilePath),
+      new RegExp(scenarioFilePath),
+    );
+  });
+
+  it("does not throw for null or non-object input (the guard's job)", () => {
+    assert.doesNotThrow(() => validateScenarioSource(null, scenarioFilePath));
+    assert.doesNotThrow(() =>
+      validateScenarioSource("not an object", scenarioFilePath),
     );
   });
 });
