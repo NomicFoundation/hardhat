@@ -7,7 +7,15 @@ import path from "node:path";
 
 import { runBenchmark } from "./main.ts";
 import type { BenchArgs } from "./helpers/args.ts";
-import { computeStats, mean, type BenchmarkStats } from "./helpers/stats.ts";
+import {
+  computeStats,
+  mean,
+  readHyperfineResult,
+  toCpuEntry,
+  toEntry,
+  type BenchmarkEntry,
+  type BenchmarkStats,
+} from "./helpers/stats.ts";
 import { DEFAULT_CLONE_DIR } from "../end-to-end/helpers/args.ts";
 import { fmt, log, logError, logStep, logWarning } from "./helpers/log.ts";
 import { loadScenario } from "../end-to-end/helpers/directory.ts";
@@ -60,6 +68,9 @@ DESCRIPTION
   "<scenarioId> / <name>". Scenarios missing the "commands" map (or with an
   empty one) fail pre-flight with a summary of every offending file.
 
+  Scenarios tagged "solx" are excluded from the default run (they benchmark the
+  experimental solx compiler); select them with --tag solx or --scenarios <id>.
+
   Writes a flat JSON array in benchmark-action/github-action-benchmark's
   customSmallerIsBetter format. Every timed name — hyperfine command or
   measured step — emits its wall-clock time plus a sibling "<name> (cpu)"
@@ -91,6 +102,12 @@ EXAMPLES
 const REPO_ROOT = path.resolve(import.meta.dirname, "..", "..");
 const END_TO_END_DIR = path.join(REPO_ROOT, "end-to-end");
 
+// Scenarios carrying this tag are excluded from the default regression run:
+// they benchmark the experimental solx compiler, whose swings shouldn't trip
+// the solc baseline alerts. Select them explicitly with `--tag solx` or
+// `--scenarios <id>`.
+const SOLX_TAG = "solx";
+
 interface RegressionArgs {
   output: string;
   scenarios: string[] | undefined;
@@ -106,14 +123,6 @@ interface ScenarioEntry {
   id: string;
   scenarioJsonPath: string;
   definition: ScenarioDefinition;
-}
-
-interface BenchmarkEntry {
-  name: string;
-  unit: string;
-  value: number;
-  range: string;
-  extra: string;
 }
 
 async function main(): Promise<void> {
@@ -317,6 +326,23 @@ function collectScenarios(args: RegressionArgs): ScenarioEntry[] {
 
     if (definition.benchmark?.skip === true) {
       logWarning(`Skipping "${entry.name}" (benchmark.skip is set)`);
+
+      continue;
+    }
+
+    const explicitlySelected =
+      (args.scenarios !== undefined && args.scenarios.includes(entry.name)) ||
+      args.tag === SOLX_TAG;
+
+    if (definition.tags.includes(SOLX_TAG) && !explicitlySelected) {
+      // Only warn on the true default run (no filters), where silently
+      // excluding a scenario is surprising. When the user is filtering, the
+      // exclusion is expected — stay quiet.
+      if (args.scenarios === undefined && args.tag === undefined) {
+        logWarning(
+          `Skipping "${entry.name}" (tagged "${SOLX_TAG}"; select it with --tag ${SOLX_TAG} or --scenarios ${entry.name})`,
+        );
+      }
 
       continue;
     }
@@ -623,57 +649,6 @@ function buildBenchArgs(
     runs: phase.runs,
     exportJson: phase.exportJson,
     e2eCloneDirectory: args.e2eCloneDirectory,
-  };
-}
-
-// hyperfine's per-result object matches BenchmarkStats, including the mean
-// `user`/`system` CPU time.
-function readHyperfineResult(exportPath: string): BenchmarkStats {
-  const raw = JSON.parse(readFileSync(exportPath, "utf-8")) as {
-    results: BenchmarkStats[];
-  };
-
-  if (!Array.isArray(raw.results) || raw.results.length === 0) {
-    throw new Error(`Hyperfine export at ${exportPath} has no results`);
-  }
-
-  return raw.results[0];
-}
-
-function toEntry(
-  scenarioId: string,
-  phaseLabel: string,
-  result: BenchmarkStats,
-): BenchmarkEntry {
-  return {
-    name: `${scenarioId} / ${phaseLabel}`,
-    unit: "s",
-    value: result.mean,
-    range: `± ${result.stddev}`,
-    extra: JSON.stringify({
-      times: result.times,
-      min: result.min,
-      max: result.max,
-      median: result.median,
-      mean: result.mean,
-    }),
-  };
-}
-
-function toCpuEntry(
-  scenarioId: string,
-  phaseLabel: string,
-  result: BenchmarkStats,
-  // hyperfine exports only mean user/system (no per-run CPU samples), so its
-  // entries carry no spread.
-  cpuStddev: number = 0,
-): BenchmarkEntry {
-  return {
-    name: `${scenarioId} / ${phaseLabel} (cpu)`,
-    unit: "s",
-    value: result.user + result.system,
-    range: `± ${cpuStddev}`,
-    extra: JSON.stringify({ user: result.user, system: result.system }),
   };
 }
 

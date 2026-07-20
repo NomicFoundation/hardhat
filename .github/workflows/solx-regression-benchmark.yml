@@ -1,0 +1,268 @@
+name: Solx Regression Benchmark
+
+on:
+  # Manual trigger for ad-hoc perf runs.
+  workflow_dispatch:
+  # Deliberately do not run on merge_group
+  push:
+    branches:
+      - "main"
+  pull_request:
+    # Include `labeled` so the workflow fires when the `ci:perf-solx`
+    # label is added.
+    types: [opened, synchronize, reopened, labeled]
+    branches:
+      - "**"
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  # Don't cancel in-progress jobs on main so baselines aren't lost mid-run
+  cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
+
+jobs:
+  solx-regression-benchmark:
+    name: Solx regression benchmark
+    environment: github-action-benchmark
+    # Use a self-hosted runner for stable benchmark measurements; the shared
+    # GitHub runners produce noisy results that will generate false positives.
+    runs-on: hardhat-linux-amd64-self-hosted
+    # Only run for pushes to main, workflow_dispatch, or PRs that carry the
+    # `ci:perf-solx` label. Kept separate from `ci:perf` so the experimental
+    # solx compiler doesn't run on every solc perf PR.
+    #
+    # The fork-safety guard keeps untrusted forks off the self-hosted runner.
+    if: |
+      !cancelled() && !failure() &&
+      (github.event_name != 'pull_request' ||
+        contains(github.event.pull_request.labels.*.name, 'ci:perf-solx')) &&
+      (github.ref == 'refs/heads/main' ||
+        github.repository == github.event.pull_request.head.repo.full_name)
+
+    # Every scenario now runs the symmetrical 10-cell matrix — {solc, shipped
+    # solx, pinned 0.1.5} x {legacy, via-IR}, solx cells doubled by the DWARF
+    # on/off twin. OZ (~43-150 s per cell x 3 hyperfine runs) dominates,
+    # the other scenarios are smaller; plus the post-bench size/gas/dump
+    # passes — ~2.5h worst case in total.
+    timeout-minutes: 180
+    steps:
+      - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+          fetch-tags: true
+
+      # cspell:disable-next-line
+      - uses: socketdev/action@4337a545deecc20f19a909e52db7a2f6ba292f42 # v1
+        with:
+          mode: firewall
+
+      - uses: ./.github/actions/setup-env
+
+      - name: Install hyperfine
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y hyperfine
+
+      - name: Install packages
+        run: sfw pnpm install --frozen-lockfile --prefer-offline
+
+      - name: Build
+        run: pnpm build
+
+      - name: Stamp the hardhat package for validation
+        # Embed a unique per-run marker in the hardhat that gets published to
+        # Verdaccio. Also record the pre-run version so the validation step
+        # can tell whether hardhat was republished at all.
+        run: |
+          echo "BENCH_RUN_STAMP=${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}" >> "$GITHUB_ENV"
+          echo "HH_PRE_VER=$(node -p "require('./packages/hardhat/package.json').version")" >> "$GITHUB_ENV"
+          npm pkg set benchRunStamp="${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}" --prefix packages/hardhat
+
+      # pnpm 11 skips creating bin symlinks whose target isn't built at install
+      # time; relink workspace bins (e.g. hardhat) now that the build output
+      # exists. See pnpm/pnpm#10524.
+      - name: Recreate workspace bin links
+        run: pnpm rebuild -r
+
+      # The solx binary downloads from solx-releases-mirror.hardhat.org during
+      # the scenario's first compile (the "prime solx" step). This runs inside
+      # bench:regression, not under `sfw`, so no firewall allowlist is needed.
+      - name: Run solx regression benchmark
+        run: pnpm bench:regression --use-local --force-checkout --tag solx --output solx-regression-report.json
+
+      - name: Validate scenarios used the local Hardhat build
+        # Diagnostic only: verifies each E2E scenario resolved the hardhat
+        # published to Verdaccio by THIS run — identified by the stamp embedded
+        # above — rather than a stale copy from a package-manager cache on the
+        # self-hosted runner or the public npm registry. Emits warnings instead
+        # of errors so it can never regress the benchmark runner.
+        run: node .github/scripts/validate-local-hardhat-install.ts
+
+      # Persist the (possibly partial) benchmark output in the job log so it
+      # survives cleanup and is available for debugging.
+      - name: Dump regression report on failure
+        if: failure()
+        run: |
+          echo "== solx-regression-report.json =="
+          cat solx-regression-report.json 2>/dev/null \
+            || echo "(no solx-regression-report.json produced)"
+
+      # Deterministic output-size metrics (no execution): compile each profile in
+      # the already-cloned scenario and append bytecode-size entries to the report.
+      # Deliberately scoped to the OZ anchor scenario: the other solx scenarios
+      # only benchmark solx timing cells, so compiling their four profiles here
+      # would add untracked solc compile time to every run.
+      - name: Measure bytecode size
+        run: pnpm bench:bytecode-size --scenario ./end-to-end/openzeppelin-contracts-0.34 --report solx-regression-report.json
+
+      # Native gas reports (hardhat --gas-stats-json) under solc vs solx on a
+      # representative subset; appends aggregate gas to the report and prints a
+      # per-method diff to the run summary. Best-effort: solx is experimental, so
+      # a failed gas run must not drop the timing/size results.
+      - name: Compare gas (solx vs solc)
+        continue-on-error: true
+        run: |
+          pnpm --silent bench:gas-compare \
+            --scenario ./end-to-end/openzeppelin-contracts-0.34 \
+            --report solx-regression-report.json \
+            --tests "test/token/ERC20/ERC20.test.js test/token/ERC721/ERC721.test.js test/token/ERC1155/ERC1155.test.js test/access/AccessControl.test.js test/access/Ownable.test.js" \
+            >> "$GITHUB_STEP_SUMMARY"
+
+      # Capture the exact standard-JSON solx receives, per scenario and solx
+      # profile (one subdirectory per scenario), so perf runs can replay
+      # `solx --standard-json < input.json` without the Hardhat fixture.
+      # Runs before the result is stored so the replay entries below make it
+      # into the report. Best-effort: never fails the run (solx is
+      # experimental).
+      - name: Dump solx standard JSON
+        continue-on-error: true
+        run: pnpm bench:dump-standard-json --tag solx --out solx-standard-json
+
+      # Raw solx over a dump subset — no Hardhat in the loop. The delta vs
+      # the same scenario's "cold compile solx" cell is Hardhat's overhead,
+      # tracked over time on this same runner. Deliberately a small subset
+      # (one small + one medium scenario, ~90 s total) so the job's runtime
+      # doesn't balloon.
+      # --solx-version pins the replay binary to the version the plugin ships
+      # (SOLIDITY_TO_SOLX_VERSION_MAP), so the entries stay paired with the
+      # "cold compile solx" cells even as other solx versions accumulate in
+      # this persistent runner's compiler cache. Bump it with the map.
+      - name: Replay standard JSON (raw solx)
+        continue-on-error: true
+        run: |
+          pnpm bench:replay-standard-json \
+            --dumps solx-standard-json \
+            --report solx-regression-report.json \
+            --solx-version 0.1.4 \
+            --dump ens-verifiable-factory-solx/solx-legacy-dwarf.json \
+            --dump uniswap-v4-core-solx/solx-legacy-dwarf.json
+
+      - name: Store benchmark result
+        uses: benchmark-action/github-action-benchmark@4bdcce38c94cec68da58d012ac24b7b1155efe8b # v1.20.7
+        with:
+          tool: customSmallerIsBetter
+          output-file-path: solx-regression-report.json
+          gh-repository: github.com/nomic-foundation-automation/hardhat-benchmark-results
+          gh-pages-branch: main
+          # Own folder so solx baselines never mix with the solc `hardhat3`
+          # dataset in this repo. (BENCHMARK_GITHUB_TOKEN already writes here.)
+          benchmark-data-dir-path: solx
+          github-token: ${{ secrets.BENCHMARK_GITHUB_TOKEN }}
+          # Only push baseline on main-branch pushes; PRs only compare
+          auto-push: ${{ github.ref == 'refs/heads/main' && github.event_name != 'pull_request' }}
+          alert-threshold: "110%"
+          # solx is experimental — surface regressions in the summary but never
+          # fail the build on them.
+          fail-on-alert: false
+          summary-always: true
+
+      - name: Upload solx standard JSON
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: solx-standard-json
+          path: solx-standard-json/
+          if-no-files-found: warn
+
+      # Corpus versions are commits in the benchmark-results repo; downstream
+      # solx benchmarks pin one and replay the dumps without the Hardhat
+      # fixture. Same gating as the baseline auto-push above: main only, PR
+      # runs must not touch the shared repo. manifest.json is written last by
+      # the dump script, so its absence means a partial dump set — skip rather
+      # than publish (or wipe the corpus with) an incomplete one. Skip no-op
+      # versions: only the manifest's runUrl changes when the dumps are
+      # byte-identical, and that alone isn't a new corpus.
+      - name: Publish standard-JSON corpus
+        if: ${{ github.ref == 'refs/heads/main' && github.event_name != 'pull_request' }}
+        env:
+          BENCHMARK_TOKEN: ${{ secrets.BENCHMARK_GITHUB_TOKEN }}
+        run: |
+          if [ ! -f solx-standard-json/manifest.json ]; then
+            echo "::warning::No complete dump set (manifest.json missing) — skipping corpus publish"
+            exit 0
+          fi
+          CORPUS_REPO_DIR="${RUNNER_TEMP}/hardhat-benchmark-results"
+          rm -rf "$CORPUS_REPO_DIR"
+          git clone --depth 1 \
+            "https://x-access-token:${BENCHMARK_TOKEN}@github.com/nomic-foundation-automation/hardhat-benchmark-results.git" \
+            "$CORPUS_REPO_DIR"
+          rm -rf "$CORPUS_REPO_DIR/solx-corpus"
+          mkdir -p "$CORPUS_REPO_DIR/solx-corpus"
+          cp -r solx-standard-json/. "$CORPUS_REPO_DIR/solx-corpus/"
+          cd "$CORPUS_REPO_DIR"
+          git add -A solx-corpus
+          if git diff --cached --quiet -- solx-corpus ':(exclude)solx-corpus/manifest.json'; then
+            echo "Corpus unchanged; skipping publish"
+          else
+            git -c user.name="github-actions[bot]" \
+                -c user.email="41898282+github-actions[bot]@users.noreply.github.com" \
+                commit -m "solx-corpus: update from ${GITHUB_REPOSITORY}@${GITHUB_SHA} (run ${GITHUB_RUN_ID})"
+            git push origin HEAD:main
+          fi
+          cd "$RUNNER_TEMP"
+          rm -rf "$CORPUS_REPO_DIR"
+
+      # PR preview of the corpus: one throwaway orphan commit, force-pushed
+      # over the solx-corpus-preview branch each run, so a PR's dumps are
+      # fetchable without waiting for a merge (CI artifacts expire and need
+      # auth to download). Single slot, last writer wins; main's history and
+      # baselines stay untouched. Same solx-corpus/ layout as the real
+      # publish, so consumers only switch the ref. The manifest's runUrl
+      # records which run produced the slot's content.
+      - name: Publish standard-JSON corpus preview (PR)
+        if: ${{ github.event_name == 'pull_request' }}
+        env:
+          BENCHMARK_TOKEN: ${{ secrets.BENCHMARK_GITHUB_TOKEN }}
+        run: |
+          if [ ! -f solx-standard-json/manifest.json ]; then
+            echo "::warning::No complete dump set (manifest.json missing) — skipping corpus preview"
+            exit 0
+          fi
+          PREVIEW_DIR="${RUNNER_TEMP}/solx-corpus-preview"
+          rm -rf "$PREVIEW_DIR"
+          mkdir -p "$PREVIEW_DIR/solx-corpus"
+          cp -r solx-standard-json/. "$PREVIEW_DIR/solx-corpus/"
+          cd "$PREVIEW_DIR"
+          git init -q -b solx-corpus-preview
+          git add -A
+          git -c user.name="github-actions[bot]" \
+              -c user.email="41898282+github-actions[bot]@users.noreply.github.com" \
+              commit -q -m "solx-corpus preview from ${GITHUB_REPOSITORY} run ${GITHUB_RUN_ID} (${GITHUB_SHA})"
+          git push --force \
+            "https://x-access-token:${BENCHMARK_TOKEN}@github.com/nomic-foundation-automation/hardhat-benchmark-results.git" \
+            HEAD:refs/heads/solx-corpus-preview
+          cd "$RUNNER_TEMP"
+          rm -rf "$PREVIEW_DIR"
+
+      - name: Notify failures
+        # Only ping Slack when a commit/merge to main fails
+        if: ${{ failure() && github.event_name == 'push' && github.ref == 'refs/heads/main' }}
+        uses: slackapi/slack-github-action@70cd7be8e40a46e8b0eced40b0de447bdb42f68e # v1.26.0
+        with:
+          payload: |
+            {
+              "workflow_name": "${{ github.workflow }}",
+              "run_url": "${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+            }
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.GH_ACTION_NOTIFICATIONS_SLACK_WEBHOOK_URL }}

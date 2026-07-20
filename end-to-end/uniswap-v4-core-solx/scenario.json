@@ -1,0 +1,78 @@
+{
+  "$schema": "../../scripts/end-to-end/schema/scenario.schema.json",
+  "description": "Uniswap V4 core contracts fork compiled at solc 0.8.34, tracking solx and solc compile times.",
+  "tags": ["external-repo", "solx"],
+  "repo": "anaPerezGhiglia/uniswap-v4-core",
+  "commit": "ab2b22eef19e0abe29d67420dde81b5d54455ae5",
+  "packageManager": "pnpm",
+  "env": {
+    "pnpm_config_dangerously_allow_all_builds": "true",
+    "pnpm_config_frozen_lockfile": "false"
+  },
+  "submodules": true,
+  "preinstall": "./preinstall.sh",
+  "defaultCommand": "npx hardhat compile --build-profile solx",
+  "benchmark": {
+    "commands": {
+      "prime compilers": {
+        "runs": 1,
+        "steps": {
+          "download solc + solx and warm caches": {
+            "command": "npx hardhat compile && npx hardhat compile --build-profile solx && npx hardhat clean",
+            "measure": false
+          }
+        }
+      },
+      "cold compile solx": {
+        "runs": 2,
+        "prepare": "npx hardhat clean",
+        "command": "npx hardhat compile --build-profile solx"
+      },
+      "cold compile solx via-ir": {
+        "runs": 2,
+        "prepare": "npx hardhat clean",
+        "command": "npx hardhat compile --build-profile solx-via-ir"
+      },
+      "cold compile solx no-dwarf": {
+        "runs": 2,
+        "prepare": "npx hardhat clean",
+        "command": "HARDHAT_SOLX_DISABLE_DEBUG_INFO=true npx hardhat compile --build-profile solx"
+      },
+      "cold compile solx via-ir no-dwarf": {
+        "runs": 2,
+        "prepare": "npx hardhat clean",
+        "command": "HARDHAT_SOLX_DISABLE_DEBUG_INFO=true npx hardhat compile --build-profile solx-via-ir"
+      },
+      "cold compile solx-0.1.5": {
+        "runs": 2,
+        "prepare": "npx hardhat clean",
+        "command": "npx hardhat compile --build-profile solx-0.1.5"
+      },
+      "cold compile solx-0.1.5 via-ir": {
+        "runs": 2,
+        "prepare": "npx hardhat clean",
+        "command": "npx hardhat compile --build-profile solx-0.1.5-via-ir"
+      },
+      "cold compile solx-0.1.5 no-dwarf": {
+        "runs": 2,
+        "prepare": "npx hardhat clean",
+        "command": "HARDHAT_SOLX_DISABLE_DEBUG_INFO=true npx hardhat compile --build-profile solx-0.1.5"
+      },
+      "cold compile solx-0.1.5 via-ir no-dwarf": {
+        "runs": 2,
+        "prepare": "npx hardhat clean",
+        "command": "HARDHAT_SOLX_DISABLE_DEBUG_INFO=true npx hardhat compile --build-profile solx-0.1.5-via-ir"
+      },
+      "cold compile solc": {
+        "runs": 2,
+        "prepare": "npx hardhat clean",
+        "command": "npx hardhat compile"
+      },
+      "cold compile solc via-ir": {
+        "runs": 2,
+        "prepare": "npx hardhat clean",
+        "command": "npx hardhat compile --build-profile solc-via-ir"
+      }
+    }
+  }
+}
