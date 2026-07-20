@@ -806,7 +806,7 @@ function toEntries(
     value: rss.max,
     range: "",
     extra: JSON.stringify({
-      values: rss.times,
+      times: rss.times,
       min: rss.min,
       max: rss.max,
       median: rss.median,
