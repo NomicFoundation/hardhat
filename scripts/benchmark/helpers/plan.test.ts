@@ -163,7 +163,7 @@ describe("planCommands", () => {
     // "cold compile" (a step) and "warm compile" (a command) match; the
     // "edit min"/"edit max" steps and "test solidity" do not.
     assert.deepEqual(plan[0].emit, ["cold compile"]);
-    assert.equal(plan.find((p) => p.name === "warm compile")?.emit, true);
+    assert.equal(plan.find((p) => p.name === "warm compile")!.emit, true);
     assert.equal(
       plan.find((p) => p.name === "test solidity"),
       undefined,

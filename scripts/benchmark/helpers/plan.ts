@@ -144,6 +144,8 @@ function flattenEntries(commands: Record<string, CommandConfig>): Entry[] {
  *
  * Throws if a `dependsOn` names a nonexistent entry, or one declared after the
  * dependent (dependencies must precede their dependents).
+ *
+ * This also prevents cyclic dependencies.
  */
 export function planCommands(
   commands: Record<string, CommandConfig>,
