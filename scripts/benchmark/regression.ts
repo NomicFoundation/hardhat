@@ -78,8 +78,12 @@ DESCRIPTION
   When GNU time (/usr/bin/time) is available, each benchmark is wrapped in it to
   capture peak RSS (the largest resident set size any process in its subtree
   reached, in MB). This is emitted as a separate "<scenarioId> / <name> (peak
-  RSS)" entry (unit MB) and also embedded as "peakRssMb" in the time entry's
-  extra. If GNU time is missing, memory is skipped and a warning is printed.
+  RSS)" entry (unit MB): its value is the highest peak observed, with the per-run
+  peaks and their statistics (mean/stddev/min/max/median) in the entry's extra.
+  Step sequences record one peak per run; hyperfine single commands record a
+  single aggregate peak across all runs. The highest peak is also embedded as
+  "peakRssMb" in the time entry's extra. If GNU time is missing, memory is
+  skipped and a warning is printed.
 
 OPTIONS
   --output <path>       Required. Aggregated JSON destination
@@ -492,7 +496,7 @@ async function runScenario(
           planned.name,
           readHyperfineResult(exportPath),
           memFile !== undefined && gnuTimeAvailable()
-            ? readPeakRssMb(memFile)
+            ? [readPeakRssMb(memFile)]
             : undefined,
         ),
       );
@@ -535,13 +539,14 @@ function runStepsPhase(
   );
 
   const samples = new Map<string, number[]>();
-  const peakRssMb = new Map<string, number>();
+  const peakRssMb = new Map<string, number[]>();
   const memFile = (stepName: string) =>
     path.join(tmpDir, `${slugify(seqName)}-${slugify(stepName)}.mem`);
 
   for (const stepName of stepNames) {
     if (emit.has(stepName)) {
       samples.set(stepName, []);
+      peakRssMb.set(stepName, []);
     }
   }
 
@@ -587,8 +592,7 @@ function runStepsPhase(
       samples.get(stepName)?.push(elapsed);
 
       if (emit.has(stepName) && gnuTimeAvailable()) {
-        const rss = readPeakRssMb(memFile(stepName));
-        peakRssMb.set(stepName, Math.max(peakRssMb.get(stepName) ?? 0, rss));
+        peakRssMb.get(stepName)?.push(readPeakRssMb(memFile(stepName)));
       }
     }
   }
@@ -710,13 +714,22 @@ function readHyperfineResult(exportPath: string): BenchmarkStats {
 
 // One benchmark produces a timing entry and, when peak RSS was captured, a
 // separate memory entry (its own MB series, independently charted + alerted).
-// The RSS is also embedded in the timing entry's `extra` for convenience.
+// `peakRssMb` holds one peak per run (a single aggregate value for hyperfine
+// single commands, one per outer run for step sequences). The tracked value
+// is the highest peak; the full per-run distribution goes in the entry's
+// `extra`, and the peak is also embedded in the timing entry's `extra`
+// for convenience.
 function toEntries(
   scenarioId: string,
   phaseLabel: string,
   result: BenchmarkStats,
-  peakRssMb: number | undefined,
+  peakRssMb: number[] | undefined,
 ): BenchmarkEntry[] {
+  const rss =
+    peakRssMb !== undefined && peakRssMb.length > 0
+      ? computeStats(peakRssMb)
+      : undefined;
+
   const timeEntry: BenchmarkEntry = {
     name: `${scenarioId} / ${phaseLabel}`,
     unit: "s",
@@ -728,20 +741,29 @@ function toEntries(
       max: result.max,
       median: result.median,
       mean: result.mean,
-      ...(peakRssMb !== undefined ? { peakRssMb } : {}),
+      ...(rss !== undefined ? { peakRssMb: rss.max } : {}),
     }),
   };
 
-  if (peakRssMb === undefined) {
+  if (rss === undefined) {
     return [timeEntry];
   }
 
   const memEntry: BenchmarkEntry = {
     name: `${scenarioId} / ${phaseLabel} (peak RSS)`,
     unit: "MB",
-    value: peakRssMb,
-    range: "",
-    extra: "",
+    // Peak RSS is a max within each run; across runs we track the highest peak
+    // and expose the spread (mean/stddev/…) in `extra`.
+    value: rss.max,
+    range: `± ${rss.stddev}`,
+    extra: JSON.stringify({
+      values: rss.times,
+      min: rss.min,
+      max: rss.max,
+      median: rss.median,
+      mean: rss.mean,
+      stddev: rss.stddev,
+    }),
   };
 
   return [timeEntry, memEntry];
