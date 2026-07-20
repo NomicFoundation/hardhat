@@ -72,10 +72,10 @@ importers:
   packages/example-project:
     devDependencies:
       '@nomicfoundation/hardhat-errors':
-        specifier: workspace:^3.0.16
+        specifier: workspace:^3.0.17
         version: link:../hardhat-errors
       '@nomicfoundation/hardhat-ethers':
-        specifier: workspace:^4.0.14
+        specifier: workspace:^4.0.15
         version: link:../hardhat-ethers
       '@nomicfoundation/hardhat-ethers-chai-matchers':
         specifier: workspace:^3.0.11
@@ -141,7 +141,7 @@ importers:
         specifier: foundry-rs/forge-std#v1.9.4
         version: https://codeload.github.com/foundry-rs/forge-std/tar.gz/1eea5bae12ae557d589f9f0f0edae2faa47cb262
       hardhat:
-        specifier: workspace:^3.9.1
+        specifier: workspace:^3.11.0
         version: link:../hardhat
       mocha:
         specifier: ^11.0.0
@@ -165,13 +165,13 @@ importers:
   packages/hardhat:
     dependencies:
       '@nomicfoundation/edr':
-        specifier: 0.12.1
-        version: 0.12.1
+        specifier: 0.14.2
+        version: 0.14.2
       '@nomicfoundation/hardhat-errors':
-        specifier: workspace:^3.0.16
+        specifier: workspace:^3.0.17
         version: link:../hardhat-errors
       '@nomicfoundation/hardhat-utils':
-        specifier: workspace:^4.1.4
+        specifier: workspace:^4.1.5
         version: link:../hardhat-utils
       '@nomicfoundation/hardhat-vendored':
         specifier: workspace:^3.0.4
@@ -259,7 +259,7 @@ importers:
   packages/hardhat-errors:
     dependencies:
       '@nomicfoundation/hardhat-utils':
-        specifier: workspace:^4.1.4
+        specifier: workspace:^4.1.5
         version: link:../hardhat-utils
     devDependencies:
       '@nomicfoundation/hardhat-node-test-reporter':
@@ -293,10 +293,10 @@ importers:
   packages/hardhat-ethers:
     dependencies:
       '@nomicfoundation/hardhat-errors':
-        specifier: workspace:^3.0.16
+        specifier: workspace:^3.0.17
         version: link:../hardhat-errors
       '@nomicfoundation/hardhat-utils':
-        specifier: workspace:^4.1.4
+        specifier: workspace:^4.1.5
         version: link:../hardhat-utils
       '@nomicfoundation/hardhat-zod-utils':
         specifier: workspace:^3.0.5
@@ -983,10 +983,10 @@ importers:
   packages/hardhat-solx:
     dependencies:
       '@nomicfoundation/hardhat-errors':
-        specifier: workspace:^3.0.16
+        specifier: workspace:^3.0.17
         version: link:../hardhat-errors
       '@nomicfoundation/hardhat-utils':
-        specifier: workspace:^4.1.4
+        specifier: workspace:^4.1.5
         version: link:../hardhat-utils
       '@nomicfoundation/hardhat-zod-utils':
         specifier: workspace:^3.0.5
@@ -1592,7 +1592,7 @@ importers:
         specifier: foundry-rs/forge-std#v1.9.4
         version: https://codeload.github.com/foundry-rs/forge-std/tar.gz/1eea5bae12ae557d589f9f0f0edae2faa47cb262
       hardhat:
-        specifier: workspace:^3.9.1
+        specifier: workspace:^3.11.0
         version: link:../../..
       typescript:
         specifier: ~6.0.3
@@ -1629,7 +1629,7 @@ importers:
         version: link:../../../../ignition-core
     devDependencies:
       '@nomicfoundation/hardhat-ethers':
-        specifier: workspace:^4.0.14
+        specifier: workspace:^4.0.15
         version: link:../../../../hardhat-ethers
       '@nomicfoundation/hardhat-ignition':
         specifier: workspace:^3.1.8
@@ -1659,7 +1659,7 @@ importers:
         specifier: foundry-rs/forge-std#v1.9.4
         version: https://codeload.github.com/foundry-rs/forge-std/tar.gz/1eea5bae12ae557d589f9f0f0edae2faa47cb262
       hardhat:
-        specifier: workspace:^3.9.1
+        specifier: workspace:^3.11.0
         version: link:../../..
       mocha:
         specifier: ^11.0.0
@@ -1674,7 +1674,7 @@ importers:
         specifier: ^22.8.5
         version: 22.18.7
       hardhat:
-        specifier: workspace:^3.9.1
+        specifier: workspace:^3.11.0
         version: link:../../..
       typescript:
         specifier: ~6.0.3
@@ -2939,37 +2939,37 @@ packages:
     resolution: {integrity: sha512-oGB+UxlgWcgQkgwo8GcEGwemoTFt3FIO9ababBmaGwXIoBKZ+GTy0pP185beGg7Llih/NSHSV2XAs1lnznocSg==}
     engines: {node: '>= 8'}
 
-  '@nomicfoundation/edr-darwin-arm64@0.12.1':
-    resolution: {integrity: sha512-KRB7oRupR2CqGHTACDhdS/EJGLN2rft1+5UNeimbXYe9nS3usUNGjNJyIjvoxzFthqnFM3+vaDQwyIZfq/eRjw==}
-    engines: {node: '>= 20'}
+  '@nomicfoundation/edr-darwin-arm64@0.14.2':
+    resolution: {integrity: sha512-8f2rYJTXbbN/NdzhXNwUiR+467Vr4R7VFJ/+1aeek1WBcvvBgzCBtmACC9ihqt1NKPv6QZQTC51bhcSUA8FVmg==}
+    engines: {node: '>= 22'}
 
-  '@nomicfoundation/edr-darwin-x64@0.12.1':
-    resolution: {integrity: sha512-h6J3otsX5ib1md5V/M281ZS37FC6mAH8QlxVi3YMe9wOpEOpBRkqfhQAeFCekdx+5pqNHO/STi5OyKwCd4YAfw==}
-    engines: {node: '>= 20'}
+  '@nomicfoundation/edr-darwin-x64@0.14.2':
+    resolution: {integrity: sha512-qpoToApz1fFclWV7KVqFVwOJn020nCLBTbIRVVcaTcAVJr3N5DK5JInQe4Nch068zwl2sRbZ+NU9GE0mUhRJPA==}
+    engines: {node: '>= 22'}
 
-  '@nomicfoundation/edr-linux-arm64-gnu@0.12.1':
-    resolution: {integrity: sha512-yqJcBgusn+MQFCemVrm7VIYjqQLaFouo0DBAbApE0GHQ7MnVFmbW2d2WCEln3jZOZgY0FH0tfnQw/NfK2xo2zg==}
-    engines: {node: '>= 20'}
+  '@nomicfoundation/edr-linux-arm64-gnu@0.14.2':
+    resolution: {integrity: sha512-7oOWqMeZoOKwt9S3UZLGd8YeQVCLSsB+ysbe2uu1tIAThsYMmLvcPd79dF95ggs7mjNexvMEqE8ccM+i+S1/4A==}
+    engines: {node: '>= 22'}
 
-  '@nomicfoundation/edr-linux-arm64-musl@0.12.1':
-    resolution: {integrity: sha512-JPkUOazqotQMvU2wsOQymxusCKyWaWdqHyxQKqwrqz81O+jOEXvMHUp20a6cRbVGOoGHx334ORj+daSGKvt5og==}
-    engines: {node: '>= 20'}
+  '@nomicfoundation/edr-linux-arm64-musl@0.14.2':
+    resolution: {integrity: sha512-M+l+RiH4kwnYfdBBguLzlsKbPuOETjY1dJ/Qer3C6bdeNmP0nLDBkf0VM4m99HxzvEtSWg2JrT/YMV/6EZf1CQ==}
+    engines: {node: '>= 22'}
 
-  '@nomicfoundation/edr-linux-x64-gnu@0.12.1':
-    resolution: {integrity: sha512-pM3cP316WgSUUy6MW2FuWgjZuonCYULED8Mn1mIK6NfwzTKooves/KjBDzIzr7Mvht9SwF/tT0KRjHPf/9E8gg==}
-    engines: {node: '>= 20'}
+  '@nomicfoundation/edr-linux-x64-gnu@0.14.2':
+    resolution: {integrity: sha512-N2I1mj5kCTzTvlVYsNnox9dxaypP6MggO6eOOj4dmNuTkFTQAO1JAszhHP8QgzySLoh5ayBKjlX54CqT0/jHZg==}
+    engines: {node: '>= 22'}
 
-  '@nomicfoundation/edr-linux-x64-musl@0.12.1':
-    resolution: {integrity: sha512-Rw7hhyk8PdZy3bBYVJrQX1M1AIBhy4vFnWPfbdY50c+ZfX/c82PYVg+B92+XaC5avMon/KiIhfB2fNLcyJy4uw==}
-    engines: {node: '>= 20'}
+  '@nomicfoundation/edr-linux-x64-musl@0.14.2':
+    resolution: {integrity: sha512-qCbvhbIar68x8DOfxjmadOAVYIEMrJLMET2eMWw+2ReTn3aXkMOievtTZwvgZQf7OiyX6dMiSXTUZdIhL1sbGg==}
+    engines: {node: '>= 22'}
 
-  '@nomicfoundation/edr-win32-x64-msvc@0.12.1':
-    resolution: {integrity: sha512-z2ILUf8P/oqG8t2tkPCpmhzSpo+LMZylLFUPGMgugHwe8OX1GyU11g0bQU8SoIwHozy7MLzTMX0NZ/14LWSN7Q==}
-    engines: {node: '>= 20'}
+  '@nomicfoundation/edr-win32-x64-msvc@0.14.2':
+    resolution: {integrity: sha512-1v+NTmjT2AlnxPaBJ5GswPH2TZgHjSFWdnefzDzOJ3Yy3zT4Miyoq1/SKIJky1nP0tCFFtTogj2xZ7+GpOSAHg==}
+    engines: {node: '>= 22'}
 
-  '@nomicfoundation/edr@0.12.1':
-    resolution: {integrity: sha512-1U8C+kiVMIbVkOW+Sa7sUm9glSaB5cMe7UJ9wCOHFPpBBUQgStgrgAOWOahRL0vKRUjHUpuQpg47cRcUSdmW/A==}
-    engines: {node: '>= 20'}
+  '@nomicfoundation/edr@0.14.2':
+    resolution: {integrity: sha512-DoSdwCP/oCGOVqx6yxggGSsKPqansPS76qxBRJAp0wvfBCM1ZXBITi+OGdCaN8CG3uDDV/u6UEpbPIISTcsKng==}
+    engines: {node: '>= 22'}
 
   '@nomicfoundation/solidity-analyzer-darwin-arm64@0.1.2':
     resolution: {integrity: sha512-JaqcWPDZENCvm++lFFGjrDd8mxtf+CtLd2MiXvMNTBD33dContTZ9TWETwNFwg7JTJT5Q9HEecH7FA+HTSsIUw==}
@@ -8509,29 +8509,29 @@ snapshots:
       '@nodelib/fs.scandir': 2.1.5
       fastq: 1.19.1
 
-  '@nomicfoundation/edr-darwin-arm64@0.12.1': {}
+  '@nomicfoundation/edr-darwin-arm64@0.14.2': {}
 
-  '@nomicfoundation/edr-darwin-x64@0.12.1': {}
+  '@nomicfoundation/edr-darwin-x64@0.14.2': {}
 
-  '@nomicfoundation/edr-linux-arm64-gnu@0.12.1': {}
+  '@nomicfoundation/edr-linux-arm64-gnu@0.14.2': {}
 
-  '@nomicfoundation/edr-linux-arm64-musl@0.12.1': {}
+  '@nomicfoundation/edr-linux-arm64-musl@0.14.2': {}
 
-  '@nomicfoundation/edr-linux-x64-gnu@0.12.1': {}
+  '@nomicfoundation/edr-linux-x64-gnu@0.14.2': {}
 
-  '@nomicfoundation/edr-linux-x64-musl@0.12.1': {}
+  '@nomicfoundation/edr-linux-x64-musl@0.14.2': {}
 
-  '@nomicfoundation/edr-win32-x64-msvc@0.12.1': {}
+  '@nomicfoundation/edr-win32-x64-msvc@0.14.2': {}
 
-  '@nomicfoundation/edr@0.12.1':
+  '@nomicfoundation/edr@0.14.2':
     dependencies:
-      '@nomicfoundation/edr-darwin-arm64': 0.12.1
-      '@nomicfoundation/edr-darwin-x64': 0.12.1
-      '@nomicfoundation/edr-linux-arm64-gnu': 0.12.1
-      '@nomicfoundation/edr-linux-arm64-musl': 0.12.1
-      '@nomicfoundation/edr-linux-x64-gnu': 0.12.1
-      '@nomicfoundation/edr-linux-x64-musl': 0.12.1
-      '@nomicfoundation/edr-win32-x64-msvc': 0.12.1
+      '@nomicfoundation/edr-darwin-arm64': 0.14.2
+      '@nomicfoundation/edr-darwin-x64': 0.14.2
+      '@nomicfoundation/edr-linux-arm64-gnu': 0.14.2
+      '@nomicfoundation/edr-linux-arm64-musl': 0.14.2
+      '@nomicfoundation/edr-linux-x64-gnu': 0.14.2
+      '@nomicfoundation/edr-linux-x64-musl': 0.14.2
+      '@nomicfoundation/edr-win32-x64-msvc': 0.14.2
 
   '@nomicfoundation/solidity-analyzer-darwin-arm64@0.1.2':
     optional: true
