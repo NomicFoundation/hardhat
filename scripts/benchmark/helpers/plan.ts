@@ -1,19 +1,36 @@
-import type { CommandConfig } from "../../end-to-end/types.ts";
+import type {
+  CommandConfig,
+  CommandVariant,
+  StepsVariant,
+} from "../../end-to-end/types.ts";
 
 /**
- * One command to execute as part of a run plan (see {@link planCommands}).
- * For step sequences, `runStepNames` lists the steps to execute in order (a
- * subset — selected steps plus their prerequisites) and `emitSteps` the measured
- * steps to report; steps run but not in `emitSteps` are prerequisites only. For
- * single commands, `emit` says whether to report it (it may run purely as a
- * prerequisite of a later command).
+ * One command to execute as part of a run plan (see {@link planCommands}),
+ * either a single command ({@link CommandData}) or a step sequence
+ * ({@link StepData}).
  */
-export interface PlannedCommand {
+export type PlannedCommand = CommandData | StepData;
+
+/**
+ * A single command benchmarked with hyperfine. `emit` says whether to report it
+ * (it may run purely as a prerequisite of a later command).
+ */
+export interface CommandData {
   name: string;
-  cfg: CommandConfig;
-  runStepNames: string[] | undefined;
+  cfg: CommandVariant;
   emit: boolean;
-  emitSteps: string[];
+}
+
+/**
+ * A step sequence run in-process. `run` lists the steps to execute in order (a
+ * subset — selected steps plus their prerequisites); `emit` lists the measured
+ * steps to report. Steps in `run` but not in `emit` are prerequisites only.
+ */
+export interface StepData {
+  name: string;
+  cfg: StepsVariant;
+  run: string[];
+  emit: string[];
 }
 
 // Convert a glob (supporting `*` and `?`) to an anchored RegExp. Every other
@@ -190,29 +207,17 @@ export function planCommands(
   for (const [cmdName, cfg] of Object.entries(commands)) {
     if ("steps" in cfg) {
       const stepNames = Object.keys(cfg.steps);
-      const runStepNames = stepNames.filter((n) => runSet.has(n));
-      if (runStepNames.length === 0) {
+      const run = stepNames.filter((n) => runSet.has(n));
+      if (run.length === 0) {
         continue;
       }
-      const emitSteps = stepNames.filter((n) => selected.has(n));
-      plan.push({
-        name: cmdName,
-        cfg,
-        runStepNames,
-        emit: false,
-        emitSteps,
-      });
+      const emit = stepNames.filter((n) => selected.has(n));
+      plan.push({ name: cmdName, cfg, run, emit });
     } else {
       if (!runSet.has(cmdName)) {
         continue;
       }
-      plan.push({
-        name: cmdName,
-        cfg,
-        runStepNames: undefined,
-        emit: selected.has(cmdName),
-        emitSteps: [],
-      });
+      plan.push({ name: cmdName, cfg, emit: selected.has(cmdName) });
     }
   }
 

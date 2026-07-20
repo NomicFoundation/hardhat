@@ -43,14 +43,15 @@ function fixture(): Record<string, CommandConfig> {
   };
 }
 
-// Compact view: what each planned command runs and reports.
+// Compact view: what each planned command runs and reports. Step sequences
+// carry `run` (ordered steps to execute) and an `emit` list of reported steps;
+// single commands carry only a boolean `emit`.
 function summarize(plan: ReturnType<typeof planCommands>) {
-  return plan.map((p) => ({
-    name: p.name,
-    runStepNames: p.runStepNames,
-    emit: p.emit,
-    emitSteps: p.emitSteps,
-  }));
+  return plan.map((p) =>
+    "run" in p
+      ? { name: p.name, run: p.run, emit: p.emit }
+      : { name: p.name, emit: p.emit },
+  );
 }
 
 describe("globToRegExp", () => {
@@ -81,26 +82,16 @@ describe("planCommands", () => {
     assert.deepEqual(plan, [
       {
         name: "compile sequence",
-        runStepNames: [
-          "reset files & cache",
-          "cold compile",
-          "edit min",
-          "edit max",
-        ],
-        emit: false,
-        emitSteps: ["cold compile", "edit min", "edit max"],
+        run: ["reset files & cache", "cold compile", "edit min", "edit max"],
+        emit: ["cold compile", "edit min", "edit max"],
       },
       {
         name: "warm compile",
-        runStepNames: undefined,
         emit: true,
-        emitSteps: [],
       },
       {
         name: "test solidity",
-        runStepNames: undefined,
         emit: true,
-        emitSteps: [],
       },
     ]);
   });
@@ -111,15 +102,12 @@ describe("planCommands", () => {
       {
         name: "compile sequence",
         // reset + cold compile pulled in via dependsOn; edit steps skipped.
-        runStepNames: ["reset files & cache", "cold compile"],
-        emit: false,
-        emitSteps: [], // prerequisites only — not reported
+        run: ["reset files & cache", "cold compile"],
+        emit: [], // prerequisites only — not reported
       },
       {
         name: "test solidity",
-        runStepNames: undefined,
         emit: true,
-        emitSteps: [],
       },
     ]);
   });
@@ -129,15 +117,12 @@ describe("planCommands", () => {
     assert.deepEqual(plan, [
       {
         name: "compile sequence",
-        runStepNames: ["reset files & cache", "cold compile"],
-        emit: false,
-        emitSteps: [],
+        run: ["reset files & cache", "cold compile"],
+        emit: [],
       },
       {
         name: "warm compile",
-        runStepNames: undefined,
         emit: true,
-        emitSteps: [],
       },
       // "test solidity" is neither selected nor a prerequisite → dropped.
     ]);
@@ -148,9 +133,8 @@ describe("planCommands", () => {
     assert.deepEqual(plan, [
       {
         name: "compile sequence",
-        runStepNames: ["reset files & cache", "cold compile"],
-        emit: false,
-        emitSteps: ["cold compile"],
+        run: ["reset files & cache", "cold compile"],
+        emit: ["cold compile"],
       },
     ]);
   });
@@ -164,15 +148,12 @@ describe("planCommands", () => {
     assert.deepEqual(plan, [
       {
         name: "compile sequence",
-        runStepNames: ["reset files & cache", "cold compile"],
-        emit: false,
-        emitSteps: ["cold compile"],
+        run: ["reset files & cache", "cold compile"],
+        emit: ["cold compile"],
       },
       {
         name: "test solidity",
-        runStepNames: undefined,
         emit: true,
-        emitSteps: [],
       },
     ]);
   });
@@ -181,7 +162,7 @@ describe("planCommands", () => {
     const plan = summarize(planCommands(fixture(), ["*compile*"]));
     // "cold compile" (a step) and "warm compile" (a command) match; the
     // "edit min"/"edit max" steps and "test solidity" do not.
-    assert.deepEqual(plan[0].emitSteps, ["cold compile"]);
+    assert.deepEqual(plan[0].emit, ["cold compile"]);
     assert.equal(plan.find((p) => p.name === "warm compile")?.emit, true);
     assert.equal(
       plan.find((p) => p.name === "test solidity"),
@@ -195,9 +176,8 @@ describe("planCommands", () => {
       {
         name: "compile sequence",
         // edit max dependsOn cold compile (not edit min) → edit min is skipped.
-        runStepNames: ["reset files & cache", "cold compile", "edit max"],
-        emit: false,
-        emitSteps: ["edit max"],
+        run: ["reset files & cache", "cold compile", "edit max"],
+        emit: ["edit max"],
       },
     ]);
   });
@@ -225,9 +205,7 @@ describe("planCommands", () => {
       // "compile sequence" is entirely skipped — nothing selected depends on it.
       {
         name: "test solidity",
-        runStepNames: undefined,
         emit: true,
-        emitSteps: [],
       },
     ]);
   });

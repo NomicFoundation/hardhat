@@ -446,7 +446,7 @@ async function runScenario(
   const entries: BenchmarkEntry[] = [];
 
   for (const planned of plan) {
-    if ("steps" in planned.cfg) {
+    if ("run" in planned) {
       entries.push(
         ...runStepsPhase(
           scenario.id,
@@ -454,9 +454,8 @@ async function runScenario(
           loaded.definition.env,
           planned.name,
           planned.cfg,
-          // runStepNames is always defined for step sequences.
-          new Set(planned.runStepNames ?? Object.keys(planned.cfg.steps)),
-          new Set(planned.emitSteps),
+          new Set(planned.run),
+          new Set(planned.emit),
           scenarioTmpDir,
         ),
       );
