@@ -432,24 +432,6 @@ export async function validatePackageJson(
   // package managers support `<package manager> pkg set type=module`.
   const packageManagerToUse = packageManager === "pnpm" ? "pnpm" : "npm";
 
-  // We need to set the hardhat version in the package.json file
-  // to ensure that the template is compatible with the current Hardhat version.
-  // This is needed because we have hardhat-2 and hardhat-3 templates,
-  // and the user may install hardhat 3 first and then initialize a project
-  // with a hardhat-2 template.
-  const templateHardhatVersion = templatePkg.devDependencies?.hardhat ?? "";
-  if (templateHardhatVersion.startsWith("^2")) {
-    await spawn(
-      [packageManagerToUse, "pkg", "delete", "dependencies.hardhat"].join(" "),
-      [],
-      {
-        cwd: workspace,
-        shell: true,
-        stdio: "inherit",
-      },
-    );
-  }
-
   if (!shouldUseEsm) {
     return;
   }
