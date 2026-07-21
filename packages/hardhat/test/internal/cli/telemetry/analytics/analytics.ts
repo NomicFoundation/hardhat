@@ -143,10 +143,7 @@ describe("analytics", () => {
     });
 
     it("should create the correct payload for the init analytics", async () => {
-      const wasSent = await sendProjectTypeAnalytics(
-        "hardhat-3",
-        "mocha-ethers",
-      );
+      const wasSent = await sendProjectTypeAnalytics("mocha-ethers");
 
       await checkIfSubprocessWasExecuted(RESULT_FILE_PATH);
 
