@@ -1552,39 +1552,39 @@ importers:
         specifier: ^3.23.8
         version: 3.25.76
 
-  packages/hardhat/templates/hardhat-3/01-node-test-runner-viem:
+  packages/hardhat/templates/01-node-test-runner-viem:
     dependencies:
       '@nomicfoundation/hardhat-ignition-viem':
         specifier: workspace:^3.1.6
-        version: link:../../../../hardhat-ignition-viem
+        version: link:../../../hardhat-ignition-viem
       '@nomicfoundation/hardhat-keystore':
         specifier: workspace:^3.0.12
-        version: link:../../../../hardhat-keystore
+        version: link:../../../hardhat-keystore
       '@nomicfoundation/hardhat-network-helpers':
         specifier: workspace:^3.0.11
-        version: link:../../../../hardhat-network-helpers
+        version: link:../../../hardhat-network-helpers
       '@nomicfoundation/hardhat-node-test-runner':
         specifier: workspace:^3.0.17
-        version: link:../../../../hardhat-node-test-runner
+        version: link:../../../hardhat-node-test-runner
       '@nomicfoundation/hardhat-verify':
         specifier: workspace:^3.0.21
-        version: link:../../../../hardhat-verify
+        version: link:../../../hardhat-verify
       '@nomicfoundation/hardhat-viem':
         specifier: workspace:^3.0.9
-        version: link:../../../../hardhat-viem
+        version: link:../../../hardhat-viem
       '@nomicfoundation/hardhat-viem-assertions':
         specifier: workspace:^3.1.2
-        version: link:../../../../hardhat-viem-assertions
+        version: link:../../../hardhat-viem-assertions
       '@nomicfoundation/ignition-core':
         specifier: workspace:^3.1.8
-        version: link:../../../../ignition-core
+        version: link:../../../ignition-core
     devDependencies:
       '@nomicfoundation/hardhat-ignition':
         specifier: workspace:^3.1.8
-        version: link:../../../../hardhat-ignition
+        version: link:../../../hardhat-ignition
       '@nomicfoundation/hardhat-toolbox-viem':
         specifier: workspace:^5.0.7
-        version: link:../../../../hardhat-toolbox-viem
+        version: link:../../../hardhat-toolbox-viem
       '@types/node':
         specifier: ^22.8.5
         version: 22.18.7
@@ -1593,7 +1593,7 @@ importers:
         version: https://codeload.github.com/foundry-rs/forge-std/tar.gz/1eea5bae12ae557d589f9f0f0edae2faa47cb262
       hardhat:
         specifier: workspace:^3.11.0
-        version: link:../../..
+        version: link:../..
       typescript:
         specifier: ~6.0.3
         version: 6.0.3
@@ -1601,42 +1601,42 @@ importers:
         specifier: ^2.47.6
         version: 2.47.6(typescript@6.0.3)(zod@3.25.76)
 
-  packages/hardhat/templates/hardhat-3/02-mocha-ethers:
+  packages/hardhat/templates/02-mocha-ethers:
     dependencies:
       '@nomicfoundation/hardhat-ethers-chai-matchers':
         specifier: workspace:^3.0.11
-        version: link:../../../../hardhat-ethers-chai-matchers
+        version: link:../../../hardhat-ethers-chai-matchers
       '@nomicfoundation/hardhat-ignition-ethers':
         specifier: workspace:^3.1.6
-        version: link:../../../../hardhat-ignition-ethers
+        version: link:../../../hardhat-ignition-ethers
       '@nomicfoundation/hardhat-keystore':
         specifier: workspace:^3.0.12
-        version: link:../../../../hardhat-keystore
+        version: link:../../../hardhat-keystore
       '@nomicfoundation/hardhat-mocha':
         specifier: workspace:^3.0.21
-        version: link:../../../../hardhat-mocha
+        version: link:../../../hardhat-mocha
       '@nomicfoundation/hardhat-network-helpers':
         specifier: workspace:^3.0.11
-        version: link:../../../../hardhat-network-helpers
+        version: link:../../../hardhat-network-helpers
       '@nomicfoundation/hardhat-typechain':
         specifier: workspace:^3.1.1
-        version: link:../../../../hardhat-typechain
+        version: link:../../../hardhat-typechain
       '@nomicfoundation/hardhat-verify':
         specifier: workspace:^3.0.21
-        version: link:../../../../hardhat-verify
+        version: link:../../../hardhat-verify
       '@nomicfoundation/ignition-core':
         specifier: workspace:^3.1.8
-        version: link:../../../../ignition-core
+        version: link:../../../ignition-core
     devDependencies:
       '@nomicfoundation/hardhat-ethers':
         specifier: workspace:^4.0.15
-        version: link:../../../../hardhat-ethers
+        version: link:../../../hardhat-ethers
       '@nomicfoundation/hardhat-ignition':
         specifier: workspace:^3.1.8
-        version: link:../../../../hardhat-ignition
+        version: link:../../../hardhat-ignition
       '@nomicfoundation/hardhat-toolbox-mocha-ethers':
         specifier: workspace:^3.0.7
-        version: link:../../../../hardhat-toolbox-mocha-ethers
+        version: link:../../../hardhat-toolbox-mocha-ethers
       '@types/chai':
         specifier: ^5.2.3
         version: 5.2.3
@@ -1660,7 +1660,7 @@ importers:
         version: https://codeload.github.com/foundry-rs/forge-std/tar.gz/1eea5bae12ae557d589f9f0f0edae2faa47cb262
       hardhat:
         specifier: workspace:^3.11.0
-        version: link:../../..
+        version: link:../..
       mocha:
         specifier: ^11.0.0
         version: 11.7.3
@@ -1668,14 +1668,14 @@ importers:
         specifier: ~6.0.3
         version: 6.0.3
 
-  packages/hardhat/templates/hardhat-3/03-minimal:
+  packages/hardhat/templates/03-minimal:
     devDependencies:
       '@types/node':
         specifier: ^22.8.5
         version: 22.18.7
       hardhat:
         specifier: workspace:^3.11.0
-        version: link:../../..
+        version: link:../..
       typescript:
         specifier: ~6.0.3
         version: 6.0.3
@@ -2773,14 +2773,6 @@ packages:
     peerDependenciesMeta:
       '@types/node':
         optional: true
-
-  '@isaacs/balanced-match@4.0.1':
-    resolution: {integrity: sha512-yzMTt9lEb8Gv7zRioUilSglI0c0smZ9k5D65677DLWLtWJaXIS3CqcGyUFByYKlnUj6TkjLVs54fBl6+TiGQDQ==}
-    engines: {node: 20 || >=22}
-
-  '@isaacs/brace-expansion@5.0.0':
-    resolution: {integrity: sha512-ZT55BDLV0yv0RBm2czMiZ+SqCGO7AvmOM3G/w2xhVPH+te0aKgFjmBvGlL1dH+ql2tgGO3MVrbb3jCKyvpgnxA==}
-    engines: {node: 20 || >=22}
 
   '@isaacs/cliui@8.0.2':
     resolution: {integrity: sha512-O8jcjabXaleOG9DQ0+ARXWZBTfnP4WNAqzuiJK7ll44AmxGKv/J2M4TPjxjY3znBCfvBXFzucm1twdyFybFqEA==}
@@ -5820,10 +5812,6 @@ packages:
   minimalistic-crypto-utils@1.0.1:
     resolution: {integrity: sha512-JIYlbt6g8i5jKfJ3xz7rF0LXmv2TkDxBLUkiBeZ7bAx4GnnNMr8xFpGnOxn6GhTEHx3SjRrZEoU+j04prX1ktg==}
 
-  minimatch@10.1.1:
-    resolution: {integrity: sha512-enIvLvRAFZYXJzkCYG5RKmPfrFArdLv+R+lbQ53BmIMLIry74bjKzX6iHAm8WYamJkhSSEabrWN5D97XnKObjQ==}
-    engines: {node: 20 || >=22}
-
   minimatch@10.2.5:
     resolution: {integrity: sha512-MULkVLfKGYDFYejP07QOurDLLQpcjk7Fw+7jXS2R2czRQzR56yHRveU5NDJEOviH+hETZKSkIk5c+T23GjFUMg==}
     engines: {node: 18 || 20 || >=22}
@@ -8249,12 +8237,6 @@ snapshots:
       iconv-lite: 0.7.0
     optionalDependencies:
       '@types/node': 24.10.14
-
-  '@isaacs/balanced-match@4.0.1': {}
-
-  '@isaacs/brace-expansion@5.0.0':
-    dependencies:
-      '@isaacs/balanced-match': 4.0.1
 
   '@isaacs/cliui@8.0.2':
     dependencies:
@@ -10890,7 +10872,7 @@ snapshots:
 
   glob@13.0.0:
     dependencies:
-      minimatch: 10.1.1
+      minimatch: 10.2.5
       minipass: 7.1.2
       path-scurry: 2.0.1
 
@@ -11764,10 +11746,6 @@ snapshots:
   minimalistic-assert@1.0.1: {}
 
   minimalistic-crypto-utils@1.0.1: {}
-
-  minimatch@10.1.1:
-    dependencies:
-      '@isaacs/brace-expansion': 5.0.0
 
   minimatch@10.2.5:
     dependencies:
