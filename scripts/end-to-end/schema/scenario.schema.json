@@ -6,12 +6,12 @@
   "required": [
     "description",
     "repo",
-    "commit",
     "packageManager",
     "defaultCommand",
     "tags"
   ],
   "additionalProperties": false,
+  "oneOf": [{ "required": ["commit"] }, { "required": ["branch"] }],
   "properties": {
     "$schema": { "type": "string" },
     "description": {
@@ -24,7 +24,11 @@
     },
     "commit": {
       "type": "string",
-      "description": "Full SHA or tag to checkout"
+      "description": "Full SHA or tag to checkout. Exactly one of \"commit\" or \"branch\" must be specified."
+    },
+    "branch": {
+      "type": "string",
+      "description": "Branch to checkout; every init tracks its latest remote tip. Exactly one of \"commit\" or \"branch\" must be specified. Only allowed when the repo is in the NomicFoundation GitHub organization (enforced at runtime, case-insensitively), so that a security breach in an external organization or account cannot automatically affect our end-to-end scenarios."
     },
     "packageManager": {
       "type": "string",

@@ -20,10 +20,20 @@ export function isScenarioDefinition(
 
   const obj = value as Record<string, unknown>;
 
+  const hasCommit = "commit" in obj;
+  const hasBranch = "branch" in obj;
+
+  // Exactly one of `commit` | `branch` must be present.
+  if (hasCommit === hasBranch) {
+    return false;
+  }
+
   return (
     typeof obj.description === "string" &&
     typeof obj.repo === "string" &&
-    typeof obj.commit === "string" &&
+    (hasBranch
+      ? typeof obj.branch === "string"
+      : typeof obj.commit === "string") &&
     (obj.packageManager === "npm" ||
       obj.packageManager === "bun" ||
       obj.packageManager === "yarn" ||
@@ -38,6 +48,46 @@ export function isScenarioDefinition(
     (obj.disabled === undefined || obj.disabled === true) &&
     (obj.benchmark === undefined || isBenchmarkConfig(obj.benchmark))
   );
+}
+
+/**
+ * Throws a targeted error for commit/branch misuse in a scenario definition:
+ *
+ * - Exactly one of `commit` | `branch` must be specified.
+ * - `branch` is only allowed for repos in the NomicFoundation GitHub
+ *   organization (compared case-insensitively, as GitHub org names are
+ *   case-insensitively unique).
+ *
+ * Anything else malformed is left to `isScenarioDefinition`'s generic error.
+ */
+export function validateScenarioSource(
+  value: unknown,
+  scenarioFilePath: string,
+): void {
+  if (typeof value !== "object" || value === null || Array.isArray(value)) {
+    return;
+  }
+
+  const obj = value as Record<string, unknown>;
+
+  const hasCommit = "commit" in obj;
+  const hasBranch = "branch" in obj;
+
+  if (hasCommit === hasBranch) {
+    throw new Error(
+      `Invalid scenario.json at ${scenarioFilePath}: exactly one of "commit" or "branch" must be specified`,
+    );
+  }
+
+  if (hasBranch && typeof obj.repo === "string") {
+    const org = obj.repo.split("/")[0];
+
+    if (org.toLowerCase() !== "nomicfoundation") {
+      throw new Error(
+        `Invalid scenario.json at ${scenarioFilePath}: "branch" is only allowed for repos in the NomicFoundation GitHub organization, but "repo" is "${obj.repo}". A branch checkout automatically tracks the branch's latest tip, so restricting it to NomicFoundation ensures a security breach in an external organization or account cannot automatically affect our end-to-end scenarios. Pin external repos to a "commit" instead.`,
+      );
+    }
+  }
 }
 
 export function isBenchmarkConfig(value: unknown): value is {
