@@ -28,7 +28,7 @@
     },
     "branch": {
       "type": "string",
-      "description": "Branch to checkout; every init tracks its latest remote tip. Exactly one of \"commit\" or \"branch\" must be specified. Only allowed when the repo is in the NomicFoundation GitHub organisation (enforced at runtime, case-insensitively), so that a security breach in an external organisation or account cannot automatically affect our end-to-end scenarios."
+      "description": "Branch to checkout; every init tracks its latest remote tip. Exactly one of \"commit\" or \"branch\" must be specified. Only allowed when the repo is in the NomicFoundation GitHub organization (enforced at runtime, case-insensitively), so that a security breach in an external organization or account cannot automatically affect our end-to-end scenarios."
     },
     "packageManager": {
       "type": "string",

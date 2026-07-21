@@ -55,7 +55,7 @@ export function isScenarioDefinition(
  *
  * - Exactly one of `commit` | `branch` must be specified.
  * - `branch` is only allowed for repos in the NomicFoundation GitHub
- *   organisation (compared case-insensitively, as GitHub org names are
+ *   organization (compared case-insensitively, as GitHub org names are
  *   case-insensitively unique).
  *
  * Anything else malformed is left to `isScenarioDefinition`'s generic error.
@@ -84,7 +84,7 @@ export function validateScenarioSource(
 
     if (org.toLowerCase() !== "nomicfoundation") {
       throw new Error(
-        `Invalid scenario.json at ${scenarioFilePath}: "branch" is only allowed for repos in the NomicFoundation GitHub organisation, but "repo" is "${obj.repo}". A branch checkout automatically tracks the branch's latest tip, so restricting it to NomicFoundation ensures a security breach in an external organisation or account cannot automatically affect our end-to-end scenarios. Pin external repos to a "commit" instead.`,
+        `Invalid scenario.json at ${scenarioFilePath}: "branch" is only allowed for repos in the NomicFoundation GitHub organization, but "repo" is "${obj.repo}". A branch checkout automatically tracks the branch's latest tip, so restricting it to NomicFoundation ensures a security breach in an external organization or account cannot automatically affect our end-to-end scenarios. Pin external repos to a "commit" instead.`,
       );
     }
   }

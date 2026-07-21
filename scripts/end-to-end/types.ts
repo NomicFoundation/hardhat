@@ -10,9 +10,9 @@ export interface Scenario {
  *
  * - `commit`: pin to a full SHA or tag.
  * - `branch`: track the branch's latest remote tip on every init. Only allowed
- *   for repos in the NomicFoundation GitHub organisation (enforced by
+ *   for repos in the NomicFoundation GitHub organization (enforced by
  *   `validateScenarioSource`), so that a security breach in an external
- *   organisation or account cannot automatically affect our end-to-end
+ *   organization or account cannot automatically affect our end-to-end
  *   scenarios.
  */
 export type ScenarioDefinition = ScenarioDefinitionBase &
