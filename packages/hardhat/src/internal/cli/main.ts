@@ -146,7 +146,7 @@ export async function main(
       }
 
       if (listTemplates) {
-        return await printTemplatesList("hardhat-3", print);
+        return await printTemplatesList(print);
       }
 
       if (templateName !== undefined) {

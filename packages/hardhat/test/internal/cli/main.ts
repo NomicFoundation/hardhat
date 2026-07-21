@@ -612,7 +612,7 @@ GLOBAL OPTIONS:
     it("should throw an error when --template value is an unknown template name", async function () {
       const command = "npx hardhat --init --template unknown-template";
 
-      const templates = await getTemplates("hardhat-3");
+      const templates = await getTemplates();
       const availableTemplates = templates
         .map((t) => `  - ${t.name}`)
         .join("\n");
@@ -662,7 +662,7 @@ GLOBAL OPTIONS:
         "Output should start with 'Available templates:'",
       );
 
-      const templates = await getTemplates("hardhat-3");
+      const templates = await getTemplates();
       for (const t of templates) {
         assert.ok(
           output.includes(`  - ${t.name}`),
