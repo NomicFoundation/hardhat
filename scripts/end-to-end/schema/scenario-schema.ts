@@ -64,7 +64,7 @@ export function validateScenarioSource(
   value: unknown,
   scenarioFilePath: string,
 ): void {
-  if (typeof value !== "object" || value === null) {
+  if (typeof value !== "object" || value === null || Array.isArray(value)) {
     return;
   }
 

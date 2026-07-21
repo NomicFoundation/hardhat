@@ -205,6 +205,10 @@ describe("isScenarioDefinition", () => {
     assert.equal(isScenarioDefinition("not an object"), false);
   });
 
+  it("rejects arrays", () => {
+    assert.equal(isScenarioDefinition([]), false);
+  });
+
   it("accepts benchmark: { skip: true }", () => {
     assert.equal(
       isScenarioDefinition({
@@ -388,6 +392,10 @@ describe("validateScenarioSource", () => {
     assert.doesNotThrow(() =>
       validateScenarioSource("not an object", scenarioFilePath),
     );
+  });
+
+  it("does not throw for arrays (the guard's job)", () => {
+    assert.doesNotThrow(() => validateScenarioSource([], scenarioFilePath));
   });
 });
 
