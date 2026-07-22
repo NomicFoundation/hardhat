@@ -18,27 +18,61 @@ import { getGlobalEdrContext } from "../../edr/context.js";
 import { formatArtifactId } from "./formatters.js";
 
 /**
- * A single ill-formed inline-config directive reported by EDR, located so the
- * user can find and fix it.
+ * A single ill-formed inline-config entry reported by EDR, located so the
+ * user can find and fix it. A discriminated union over `kind`: a
+ * `source`-level entry carries no directive location, a `directive`-level
+ * entry carries contract/function/line.
  *
  * EDR rejects `runSolidityTests` with an error carrying these on its
  * `inlineConfigErrors` property. The npm-pinned `@nomicfoundation/edr` types
  * don't declare these types yet, so we mirror them locally until a release
  * carrying them is pinned.
  */
-interface InlineConfigError {
+type InlineConfigError = InlineConfigSourceError | InlineConfigDirectiveError;
+
+/**
+ * A source-level inline-config problem: one that could not be tied to a
+ * single directive (e.g. an unsupported solc version or an unreadable
+ * source).
+ */
+interface InlineConfigSourceError {
+  kind: "source";
   sourceName: string;
-  contract?: string;
-  function?: string;
-  line?: number;
-  problem: InlineConfigProblem;
+  problem: InlineConfigSourceProblem;
 }
+
+/**
+ * A directive-level inline-config problem, located at the offending
+ * directive.
+ */
+interface InlineConfigDirectiveError {
+  kind: "directive";
+  sourceName: string;
+  contract: string;
+  function: string;
+  line: number;
+  problem: InlineConfigDirectiveProblem;
+}
+
+/**
+ * A source-level problem, as a discriminated union over its `kind` tag. These
+ * cannot be pinned to a single directive line, so they carry no line.
+ */
+type InlineConfigSourceProblem =
+  | { kind: "InlineConfigInvalidSolcVersion" }
+  | { kind: "InlineConfigSourceFileNotFound"; path: string; reason: string }
+  | {
+      kind: "InlineConfigDirectiveLocation";
+      contract: string;
+      function: string;
+      reason: string;
+    };
 
 /**
  * The specific problem with an inline-config directive. Discriminated on its
  * `kind` tag.
  */
-type InlineConfigProblem =
+type InlineConfigDirectiveProblem =
   | { kind: "InlineConfigInvalidSyntax"; directive: string }
   | { kind: "InlineConfigUnsupportedProfile"; profile: string }
   | { kind: "InlineConfigInvalidKey"; key: string }
@@ -49,9 +83,7 @@ type InlineConfigProblem =
       value: string;
       expected: string;
     }
-  | { kind: "InlineConfigDuplicateKey"; key: string }
-  | { kind: "InlineConfigInvalidSolcVersion" }
-  | { kind: "InlineConfigSourceFileNotFound"; path: string; reason: string };
+  | { kind: "InlineConfigDuplicateKey"; key: string };
 
 /**
  * Run all the given solidity tests and returns the stream of results.
@@ -197,29 +229,43 @@ function formatInlineConfigErrors(
 ): string {
   return errors
     .map((error) => {
-      let location =
+      const source =
         sourceNameToUserSourceName.get(error.sourceName) ?? error.sourceName;
 
-      if (error.line !== undefined) {
-        location += `:${error.line}`;
+      switch (error.kind) {
+        case "source":
+          return `- ${source}: ${formatInlineConfigSourceProblem(error.problem)}`;
+        case "directive":
+          return `- ${source}:${error.line} (${error.contract}.${error.function}): ${formatInlineConfigDirectiveProblem(error.problem)}`;
       }
-
-      const qualifier = [error.contract, error.function]
-        .filter((part) => part !== undefined)
-        .join(".");
-      if (qualifier !== "") {
-        location += ` (${qualifier})`;
-      }
-
-      return `- ${location}: ${formatInlineConfigProblem(error.problem)}`;
     })
     .join("\n");
 }
 
 /**
- * Turns a structured inline-config problem into a human-readable message.
+ * Turns a structured source-level inline-config problem into a human-readable
+ * message.
  */
-function formatInlineConfigProblem(problem: InlineConfigProblem): string {
+function formatInlineConfigSourceProblem(
+  problem: InlineConfigSourceProblem,
+): string {
+  switch (problem.kind) {
+    case "InlineConfigInvalidSolcVersion":
+      return `The source's solc version has no supported grammar, so its inline configuration could not be parsed.`;
+    case "InlineConfigSourceFileNotFound":
+      return `Could not read source file at "${problem.path}": ${problem.reason}.`;
+    case "InlineConfigDirectiveLocation":
+      return `Could not locate a directive of ${problem.contract}.${problem.function} within the source: ${problem.reason}.`;
+  }
+}
+
+/**
+ * Turns a structured directive-level inline-config problem into a
+ * human-readable message.
+ */
+function formatInlineConfigDirectiveProblem(
+  problem: InlineConfigDirectiveProblem,
+): string {
   switch (problem.kind) {
     case "InlineConfigInvalidSyntax":
       return `Malformed directive "${problem.directive}". Expected "key = value".`;
@@ -233,9 +279,5 @@ function formatInlineConfigProblem(problem: InlineConfigProblem): string {
       return `Invalid value "${problem.value}" for config key "${problem.key}". Expected ${problem.expected}.`;
     case "InlineConfigDuplicateKey":
       return `Duplicate config key "${problem.key}".`;
-    case "InlineConfigInvalidSolcVersion":
-      return `The source's solc version has no supported grammar, so its inline configuration could not be parsed.`;
-    case "InlineConfigSourceFileNotFound":
-      return `Could not read source file at "${problem.path}": ${problem.reason}.`;
   }
 }
