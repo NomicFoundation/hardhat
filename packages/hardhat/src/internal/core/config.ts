@@ -23,18 +23,51 @@ import {
 
 /**
  * Creates a configuration variable, which will be fetched at runtime.
+ *
+ * The second argument is an options object with an optional `format` (a
+ * template that must include the `{variable}` marker) and an optional
+ * `default` value. The default is used as a fallback when the variable can't
+ * be resolved from any other source (see {@link ConfigurationVariable.default}).
  */
 export function configVariable(
   name: string,
-  format: string = CONFIGURATION_VARIABLE_MARKER,
+  options?: { format?: string; default?: string },
+): ConfigurationVariable;
+/**
+ * @deprecated Passing the `format` as a string is deprecated. Pass an options
+ * object instead: `configVariable(name, { format })`.
+ */
+export function configVariable(
+  name: string,
+  format: string,
+): ConfigurationVariable;
+export function configVariable(
+  name: string,
+  formatOrOptions: string | { format?: string; default?: string } = {},
 ): ConfigurationVariable {
+  const { format = CONFIGURATION_VARIABLE_MARKER, default: defaultValue } =
+    typeof formatOrOptions === "string"
+      ? { format: formatOrOptions }
+      : formatOrOptions;
+
   if (!format.includes(CONFIGURATION_VARIABLE_MARKER)) {
     throw new HardhatError(
       HardhatError.ERRORS.CORE.GENERAL.CONFIG_VARIABLE_FORMAT_MUST_INCLUDE_VARIABLE,
       { format, marker: CONFIGURATION_VARIABLE_MARKER },
     );
   }
-  return { _type: "ConfigurationVariable", name, format };
+
+  const configurationVariable: ConfigurationVariable = {
+    _type: "ConfigurationVariable",
+    name,
+    format,
+  };
+
+  if (defaultValue !== undefined) {
+    configurationVariable.default = defaultValue;
+  }
+
+  return configurationVariable;
 }
 
 /**

@@ -111,6 +111,24 @@ describe("config-resolution", () => {
       assert.equal(httpNetworkConfig.timeout, 300_000);
       assert.deepEqual(httpNetworkConfig.httpHeaders, {});
     });
+
+    it("should resolve a url configuration variable to its default value when it is not set", async () => {
+      const userConfig: HttpNetworkUserConfig = {
+        type: "http",
+        url: configVariable("CONFIG_RESOLUTION_RPC_URL", {
+          default: "http://localhost:8545",
+        }),
+      };
+      const httpNetworkConfig = resolveHttpNetwork(
+        userConfig,
+        configVarResolver,
+      );
+
+      assert.equal(
+        await httpNetworkConfig.url.getUrl(),
+        "http://localhost:8545",
+      );
+    });
   });
 
   describe("resolveEdrNetwork", () => {

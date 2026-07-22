@@ -69,6 +69,53 @@ describe("ResolvedConfigurationVariable", () => {
     );
   });
 
+  it("should return the default value when the environment variable is not set", async () => {
+    const variable = new LazyResolvedConfigurationVariable(
+      hre.hooks,
+      configVariable("DEFAULT_TEST_UNSET", { default: "the-default" }),
+    );
+
+    assert.equal(await variable.get(), "the-default");
+  });
+
+  it("should prefer the environment variable over the default value", async () => {
+    const variable = new LazyResolvedConfigurationVariable(
+      hre.hooks,
+      configVariable("DEFAULT_TEST_ENV", { default: "the-default" }),
+    );
+
+    process.env.DEFAULT_TEST_ENV = "from-env";
+
+    assert.equal(await variable.get(), "from-env");
+
+    delete process.env.DEFAULT_TEST_ENV;
+  });
+
+  it("should prefer an empty-string environment variable over the default value", async () => {
+    const variable = new LazyResolvedConfigurationVariable(
+      hre.hooks,
+      configVariable("DEFAULT_TEST_EMPTY", { default: "the-default" }),
+    );
+
+    process.env.DEFAULT_TEST_EMPTY = "";
+
+    assert.equal(await variable.get(), "");
+
+    delete process.env.DEFAULT_TEST_EMPTY;
+  });
+
+  it("should apply the format to the default value", async () => {
+    const variable = new LazyResolvedConfigurationVariable(
+      hre.hooks,
+      configVariable("DEFAULT_TEST_FORMAT", {
+        format: `variable: ${CONFIGURATION_VARIABLE_MARKER}`,
+        default: "the-default",
+      }),
+    );
+
+    assert.equal(await variable.get(), "variable: the-default");
+  });
+
   it("should return the cached value if called multiple times", async () => {
     const variable = new LazyResolvedConfigurationVariable(
       hre.hooks,
@@ -180,10 +227,47 @@ describe("configVariable", function () {
     assert.equal(variable.format, "var: {variable}");
   });
 
+  it("should not set a default value when none is provided", async () => {
+    assert.equal(configVariable("foo").default, undefined);
+    assert.equal(configVariable("foo", "var: {variable}").default, undefined);
+  });
+
+  it("should return a configuration variable with a default value", async () => {
+    const variable = configVariable("foo", { default: "bar" });
+
+    assert.equal(variable.name, "foo");
+    assert.equal(variable._type, "ConfigurationVariable");
+    assert.equal(variable.format, CONFIGURATION_VARIABLE_MARKER);
+    assert.equal(variable.default, "bar");
+  });
+
+  it("should return a configuration variable with a format and a default value", async () => {
+    const variable = configVariable("foo", {
+      format: "var: {variable}",
+      default: "bar",
+    });
+
+    assert.equal(variable.name, "foo");
+    assert.equal(variable._type, "ConfigurationVariable");
+    assert.equal(variable.format, "var: {variable}");
+    assert.equal(variable.default, "bar");
+  });
+
   it("throws an error when format doesn't include the variable marker", async () => {
     assertThrowsHardhatError(
       () => {
         configVariable("foo", "missing_marker");
+      },
+      HardhatError.ERRORS.CORE.GENERAL
+        .CONFIG_VARIABLE_FORMAT_MUST_INCLUDE_VARIABLE,
+      { format: "missing_marker", marker: "{variable}" },
+    );
+  });
+
+  it("throws an error when the format in the options object doesn't include the variable marker", async () => {
+    assertThrowsHardhatError(
+      () => {
+        configVariable("foo", { format: "missing_marker" });
       },
       HardhatError.ERRORS.CORE.GENERAL
         .CONFIG_VARIABLE_FORMAT_MUST_INCLUDE_VARIABLE,
