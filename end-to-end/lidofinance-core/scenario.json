@@ -1,13 +1,50 @@
 {
   "$schema": "../../scripts/end-to-end/schema/scenario.schema.json",
-  "description": "Lido finance core contracts fork to Hardhat 3",
+  "description": "Lido core contracts Hardhat 3 migration branch (NomicFoundation/lidofinance-core PR #1) including their Mocha test suite.",
   "tags": ["external-repo", "mocha"],
-  "repo": "ChristopherDedominici/core",
-  "commit": "ef5307d1b4c6a0373eb897511c8d2d7c3948159b",
+  "repo": "NomicFoundation/lidofinance-core",
+  "commit": "a24ac4010b2f255281bec270bf756d4b1044d4d0",
   "packageManager": "yarn",
   "submodules": false,
+  "preinstall": "./preinstall.sh",
   "defaultCommand": "yarn run test",
   "benchmark": {
-    "skip": true
+    "commands": {
+      "compile sequence": {
+        "runs": 2,
+        "steps": {
+          "reset files & cache": {
+            "command": "git checkout -- test/common/math256.t.sol test/common/lib/BLS.t.sol contracts/common/lib/Math256.sol && npx hardhat clean",
+            "measure": false
+          },
+          "cold compile": {
+            "command": "npx hardhat compile",
+            "dependsOn": ["reset files & cache"]
+          },
+          "edit & compile Solidity test with min deps: test/common/math256.t.sol": {
+            "command": "printf \"\\n// hardhat benchmark edit\\n\" >> test/common/math256.t.sol && npx hardhat compile",
+            "dependsOn": ["cold compile"]
+          },
+          "edit & compile Solidity test with max deps: test/common/lib/BLS.t.sol": {
+            "command": "printf \"\\n// hardhat benchmark edit\\n\" >> test/common/lib/BLS.t.sol && npx hardhat compile",
+            "dependsOn": ["cold compile"]
+          },
+          "edit & compile Solidity contract: contracts/common/lib/Math256.sol": {
+            "command": "printf \"\\n// hardhat benchmark edit\\n\" >> contracts/common/lib/Math256.sol && npx hardhat compile",
+            "dependsOn": ["cold compile"]
+          }
+        }
+      },
+      "warm compile": {
+        "runs": 2,
+        "command": "npx hardhat compile",
+        "dependsOn": ["cold compile"]
+      },
+      "test mocha": {
+        "runs": 2,
+        "command": "yarn run test --no-compile",
+        "dependsOn": ["cold compile"]
+      }
+    }
   }
 }
