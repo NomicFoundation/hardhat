@@ -1,28 +1,47 @@
 {
   "$schema": "../../scripts/end-to-end/schema/scenario.schema.json",
-  "description": "A fork of OpenZeppelin's Hardhat 3 branch including their Mocha test suite.",
+  "description": "OpenZeppelin's Hardhat 3 migration branch (PR #6542) including their Mocha test suite.",
   "tags": ["external-repo", "mocha"],
-  "repo": "nomicfoundation/openzeppelin-contracts",
-  "commit": "a2e6c4f30f5b3f7dfbf451235d16424b0f95abc4",
+  "repo": "OpenZeppelin/openzeppelin-contracts",
+  "commit": "b12a51e14e0dd8232d4a8d6756a70e90a7387fea",
   "packageManager": "npm",
   "submodules": true,
   "preinstall": "./preinstall.sh",
   "defaultCommand": "npx hardhat test mocha",
   "benchmark": {
-    "skip": true,
     "commands": {
-      "cold compile": {
-        "runs": 3,
-        "prepare": "npx hardhat clean",
-        "command": "npx hardhat compile"
+      "compile sequence": {
+        "runs": 2,
+        "steps": {
+          "reset files & cache": {
+            "command": "git checkout -- test/utils/Base58.t.sol test/governance/extensions/GovernorSuperQuorumGreaterThanQuorum.t.sol contracts/utils/math/Math.sol && npx hardhat clean",
+            "measure": false
+          },
+          "cold compile": {
+            "command": "npx hardhat compile",
+            "dependsOn": ["reset files & cache"]
+          },
+          "edit & compile Solidity test with min deps: test/utils/Base58.t.sol": {
+            "command": "printf \"\\n// hardhat benchmark edit\\n\" >> test/utils/Base58.t.sol && npx hardhat compile",
+            "dependsOn": ["cold compile"]
+          },
+          "edit & compile Solidity test with max deps: test/governance/extensions/GovernorSuperQuorumGreaterThanQuorum.t.sol": {
+            "command": "printf \"\\n// hardhat benchmark edit\\n\" >> test/governance/extensions/GovernorSuperQuorumGreaterThanQuorum.t.sol && npx hardhat compile",
+            "dependsOn": ["cold compile"]
+          },
+          "edit & compile Solidity contract: contracts/utils/math/Math.sol": {
+            "command": "printf \"\\n// hardhat benchmark edit\\n\" >> contracts/utils/math/Math.sol && npx hardhat compile",
+            "dependsOn": ["cold compile"]
+          }
+        }
       },
       "warm compile": {
-        "runs": 19,
+        "runs": 2,
         "command": "npx hardhat compile",
         "dependsOn": ["cold compile"]
       },
-      "mocha test": {
-        "runs": 3,
+      "test mocha": {
+        "runs": 2,
         "command": "npx hardhat test mocha --no-compile",
         "dependsOn": ["cold compile"]
       }
