@@ -44,12 +44,13 @@ function fixture(): Record<string, CommandConfig> {
 }
 
 // Compact view: what each planned command runs and reports. Step sequences
-// carry `run` (ordered steps to execute) and an `emit` list of reported steps;
-// single commands carry only a boolean `emit`.
+// carry `run` (ordered steps to execute), `once` (steps that execute on the
+// final run only) and an `emit` list of reported steps; single commands carry
+// only a boolean `emit`.
 function summarize(plan: ReturnType<typeof planCommands>) {
   return plan.map((p) =>
     "run" in p
-      ? { name: p.name, run: p.run, emit: p.emit }
+      ? { name: p.name, run: p.run, once: p.once, emit: p.emit }
       : { name: p.name, emit: p.emit },
   );
 }
@@ -83,6 +84,7 @@ describe("planCommands", () => {
       {
         name: "compile sequence",
         run: ["reset files & cache", "cold compile", "edit min", "edit max"],
+        once: [],
         emit: ["cold compile", "edit min", "edit max"],
       },
       {
@@ -103,6 +105,10 @@ describe("planCommands", () => {
         name: "compile sequence",
         // reset + cold compile pulled in via dependsOn; edit steps skipped.
         run: ["reset files & cache", "cold compile"],
+        // The sequence runs purely as a cross-command prerequisite — its
+        // dependent only needs to observe it having run once, so every step
+        // is once and the sequence collapses to a single run.
+        once: ["reset files & cache", "cold compile"],
         emit: [], // prerequisites only — not reported
       },
       {
@@ -118,6 +124,7 @@ describe("planCommands", () => {
       {
         name: "compile sequence",
         run: ["reset files & cache", "cold compile"],
+        once: ["reset files & cache", "cold compile"],
         emit: [],
       },
       {
@@ -134,6 +141,9 @@ describe("planCommands", () => {
       {
         name: "compile sequence",
         run: ["reset files & cache", "cold compile"],
+        // cold compile is measured, so it runs every iteration; reset is its
+        // in-sequence prerequisite and runs every iteration with it.
+        once: [],
         emit: ["cold compile"],
       },
     ]);
@@ -149,6 +159,7 @@ describe("planCommands", () => {
       {
         name: "compile sequence",
         run: ["reset files & cache", "cold compile"],
+        once: [],
         emit: ["cold compile"],
       },
       {
@@ -177,7 +188,67 @@ describe("planCommands", () => {
         name: "compile sequence",
         // edit max dependsOn cold compile (not edit min) → edit min is skipped.
         run: ["reset files & cache", "cold compile", "edit max"],
+        // In-sequence prerequisites of a measured step run every iteration —
+        // each edit max run expects reset + cold compile to have just run.
+        once: [],
         emit: ["edit max"],
+      },
+    ]);
+  });
+
+  it("a step that only external entries depend on runs once, alongside measured steps", () => {
+    const commands: Record<string, CommandConfig> = {
+      seq: {
+        runs: 3,
+        steps: {
+          reset: { command: "reset", measure: false },
+          cold: { command: "compile", dependsOn: ["reset"] },
+          warm: { command: "compile", dependsOn: ["cold"] },
+        },
+      },
+      "test solidity": {
+        runs: 5,
+        command: "test --no-compile",
+        dependsOn: ["warm"],
+      },
+    };
+    const plan = summarize(planCommands(commands, ["cold", "test solidity"]));
+    assert.deepEqual(plan, [
+      {
+        name: "seq",
+        run: ["reset", "cold", "warm"],
+        // cold is measured → every iteration, pulling reset along with it;
+        // warm is only a cross-command prerequisite → final run only.
+        once: ["warm"],
+        emit: ["cold"],
+      },
+      {
+        name: "test solidity",
+        emit: true,
+      },
+    ]);
+  });
+
+  it("a command that only another command depends on runs unreported", () => {
+    const commands: Record<string, CommandConfig> = {
+      compile: { runs: 4, command: "compile" },
+      "test solidity": {
+        runs: 2,
+        command: "test --no-compile",
+        dependsOn: ["compile"],
+      },
+    };
+    const plan = summarize(planCommands(commands, ["test solidity"]));
+    assert.deepEqual(plan, [
+      {
+        name: "compile",
+        // Prerequisite-only (emit: false) → the harness runs it a single time
+        // instead of its configured 4.
+        emit: false,
+      },
+      {
+        name: "test solidity",
+        emit: true,
       },
     ]);
   });

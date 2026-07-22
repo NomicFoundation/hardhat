@@ -116,9 +116,17 @@ OPTIONS
   scenario.json listing the entries it needs; when you select an entry, its
   declared prerequisites also run (unreported) and everything else is skipped. An
   entry with no "dependsOn" has no prerequisites and runs in isolation.
-  Entries run in declared order; only selected entries are reported. So
-  --benchmarks "test solidity" runs just (cold compile + test solidity), skipping
-  the edit&compile steps and warm compile it doesn't depend on.
+  Entries run in declared order; only selected entries are reported.
+
+  Unreported prerequisites run as few times as possible: a dependent only needs
+  to observe that a prerequisite in a different command ran once before it, so
+  cross-command prerequisites run a single time (a prerequisite command or
+  step sequence runs once instead of its configured "runs"). Within a step
+  sequence, prerequisites of a measured step still run on every iteration —
+  steps are sequential, so each iteration of the dependent expects them to have
+  just run. So --benchmarks "test solidity" runs (reset + cold compile) once,
+  then test solidity its configured number of times, skipping the edit&compile
+  steps and warm compile it doesn't depend on.
 
 EXAMPLES
   pnpm bench:regression --output /tmp/regression.json
@@ -463,6 +471,7 @@ async function runScenario(
           planned.name,
           planned.cfg,
           new Set(planned.run),
+          new Set(planned.once),
           new Set(planned.emit),
           scenarioTmpDir,
         ),
@@ -485,7 +494,9 @@ async function runScenario(
       buildBenchArgs(scenario.scenarioJsonPath, args, {
         command: planned.cfg.command,
         prepare: planned.cfg.prepare,
-        runs: planned.cfg.runs,
+        // A single run suffices when the command runs purely as a
+        // prerequisite of a later entry.
+        runs: planned.emit ? planned.cfg.runs : 1,
         exportJson: exportPath,
         memFile,
       }),
@@ -520,8 +531,12 @@ async function runScenario(
  * peak-RSS entry when GNU time is available.
  *
  * `runSteps` is the set of step names to execute (selected steps plus their
- * prerequisites); other steps are skipped. `emit` is the subset of those to
- * time and report — steps that run but aren't in `emit` are prerequisites only.
+ * prerequisites); other steps are skipped. `onceSteps` is the subset of those
+ * that run purely as cross-command prerequisites — they execute on the final
+ * run only, so the sequence's tail matches a full execution while their
+ * external dependents still observe them having run. `emit` is the subset to
+ * time and report — steps that run but aren't in `emit` are prerequisites only
+ * (emitted steps are never in `onceSteps`).
  * Emitted steps are additionally wrapped in GNU time (into `tmpDir`) to capture
  * peak RSS; the wrapper's fork+exec is negligible against multi-second compiles.
  */
@@ -533,14 +548,19 @@ function runStepsPhase(
   seqName: string,
   cfg: StepsVariant,
   runSteps: Set<string>,
+  onceSteps: Set<string>,
   emit: Set<string>,
   tmpDir: string,
 ): BenchmarkEntry[] {
   const totalSteps = Object.keys(cfg.steps).length;
   const stepNames = Object.keys(cfg.steps).filter((n) => runSteps.has(n));
 
+  // With no every-iteration step left, the whole (prerequisite-only)
+  // sequence collapses to a single run.
+  const runs = stepNames.some((n) => !onceSteps.has(n)) ? cfg.runs : 1;
+
   logStep(
-    `${fmt.pkg(seqName)} (${cfg.runs} runs${
+    `${fmt.pkg(seqName)} (${runs} runs${
       stepNames.length < totalSteps
         ? `, ${stepNames.length} of ${totalSteps} steps`
         : ""
@@ -564,8 +584,12 @@ function runStepsPhase(
 
   const timingPath = path.join(scenarioTmpDir, `${slugify(seqName)}-cpu.txt`);
 
-  for (let run = 0; run < cfg.runs; run++) {
+  for (let run = 0; run < runs; run++) {
     for (const stepName of stepNames) {
+      if (onceSteps.has(stepName) && run < runs - 1) {
+        continue;
+      }
+
       const step = cfg.steps[stepName];
       // Measured (emitted) steps are wrapped twice: GNU time captures peak RSS
       // into the step's mem file (an inner shell covers the whole command, which
@@ -601,7 +625,7 @@ function runStepsPhase(
           stderr?: string;
         };
         throw new Error(
-          `${scenarioId} / ${seqName}: step "${stepName}" failed on run ${run + 1}/${cfg.runs}: ${original}\n` +
+          `${scenarioId} / ${seqName}: step "${stepName}" failed on run ${run + 1}/${runs}: ${original}\n` +
             `  Reproduce with: cd ${shellQuote(workingDir)} && ${step.command}\n` +
             formatOutput({ stdout, stderr }),
           { cause: error },

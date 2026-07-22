@@ -13,7 +13,9 @@ export type PlannedCommand = CommandData | StepData;
 
 /**
  * A single command benchmarked with hyperfine. `emit` says whether to report it
- * (it may run purely as a prerequisite of a later command).
+ * (it may run purely as a prerequisite of a later command). When not emitted,
+ * the command runs once instead of its configured `runs` — its dependents only
+ * observe that it ran once before them.
  */
 export interface CommandData {
   name: string;
@@ -25,12 +27,19 @@ export interface CommandData {
  * A step sequence run in-process. `run` lists the steps to execute in order (a
  * subset — selected steps plus their prerequisites); `emit` lists the measured
  * steps to report. Steps in `run` but not in `emit` are prerequisites only.
+ *
+ * `once` is the subset of `run` that executes on the final iteration only:
+ * steps that run purely as cross-command prerequisites, whose external
+ * dependents only observe that they ran once. The other steps in `run` execute
+ * every iteration. When every step in `run` is in `once`, the whole sequence
+ * collapses to a single iteration instead of its configured `runs`.
  */
 export interface StepData {
   name: string;
   cfg: StepsVariant;
   run: string[];
   emit: string[];
+  once: string[];
 }
 
 // Convert a glob (supporting `*` and `?`) to an anchored RegExp. Every other
@@ -142,6 +151,17 @@ function flattenEntries(commands: Record<string, CommandConfig>): Entry[] {
  * only selected entries are reported. Returns `[]` when nothing is selected
  * (the scenario is skipped before any expensive init).
  *
+ * Run counts: a selected entry is measured, so it keeps its configured run
+ * count. A step also runs every sequence iteration when an every-run step in
+ * the same sequence depends on it (directly or transitively) — steps are a
+ * sequential pipeline, so each iteration of the dependent expects its
+ * in-sequence prerequisites to have run in that same iteration. Every other
+ * run-set entry runs purely as a cross-command prerequisite: its dependents
+ * only observe that it ran once before them, so it runs once — a prerequisite
+ * single command is planned with `emit: false` (run once by the harness), and
+ * a prerequisite-only step lands in its sequence's `once` list (executed on
+ * the final iteration only, so the sequence's tail matches a full execution).
+ *
  * Throws if a `dependsOn` names a nonexistent entry, or one declared after the
  * dependent (dependencies must precede their dependents).
  *
@@ -204,6 +224,36 @@ export function planCommands(
     }
   }
 
+  // Classify how often each run-set entry repeats (see the doc comment above).
+  // Entries are scanned in reverse declaration order — dependencies precede
+  // their dependents, so a step's every-run status is settled by its
+  // dependents before its own dependencies are classified.
+  const everyRun = new Set<string>();
+
+  for (let i = entries.length - 1; i >= 0; i--) {
+    const e = entries[i];
+
+    if (!runSet.has(e.name)) {
+      continue;
+    }
+
+    if (selected.has(e.name)) {
+      everyRun.add(e.name);
+    }
+
+    if (e.kind !== "step" || !everyRun.has(e.name)) {
+      continue;
+    }
+
+    for (const dep of e.dependsOn ?? []) {
+      const depEntry = byName.get(dep);
+
+      if (depEntry?.kind === "step" && depEntry.owner === e.owner) {
+        everyRun.add(dep);
+      }
+    }
+  }
+
   const plan: PlannedCommand[] = [];
 
   for (const [cmdName, cfg] of Object.entries(commands)) {
@@ -214,7 +264,8 @@ export function planCommands(
         continue;
       }
       const emit = stepNames.filter((n) => selected.has(n));
-      plan.push({ name: cmdName, cfg, run, emit });
+      const once = run.filter((n) => !everyRun.has(n));
+      plan.push({ name: cmdName, cfg, run, emit, once });
     } else {
       if (!runSet.has(cmdName)) {
         continue;
