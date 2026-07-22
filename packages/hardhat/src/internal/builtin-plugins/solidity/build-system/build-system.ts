@@ -153,19 +153,26 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
   }
 
   public async getScope(fsPath: string): Promise<BuildScope> {
+    const isUnderSources = this.#options.soliditySourcesPaths.some(
+      (sourcesPath) => fsPath.startsWith(sourcesPath + path.sep),
+    );
+
+    // A `.sol` file under the tests path is a test, unless it is
+    // also registered as under a Solidity sources path. Sources takes
+    // precedence (e.g. `test/` is listed in `paths.sources.solidity` to access
+    // `./test/mocks`)
     if (
+      !isUnderSources &&
       fsPath.startsWith(this.#options.solidityTestsPath + path.sep) &&
       fsPath.endsWith(".sol")
     ) {
       return "tests";
     }
 
-    if (fsPath.endsWith(".t.sol")) {
-      for (const sourcesPath of this.#options.soliditySourcesPaths) {
-        if (fsPath.startsWith(sourcesPath + path.sep)) {
-          return "tests";
-        }
-      }
+    // Foundry-style `.t.sol` files under a sources path are always tests, even
+    // when sources take precedence over the tests path.
+    if (fsPath.endsWith(".t.sol") && isUnderSources) {
+      return "tests";
     }
 
     return "contracts";

@@ -991,8 +991,7 @@ describe("solidity - hooks", () => {
       // default) `paths.tests.solidity`. Plain `.sol` files under `test/` are
       // source contracts and must reach the hook so their TypeChain factories
       // are generated; only Foundry-style `.t.sol` files stay filtered out.
-      // TODO: unskip in the getScope precedence fix (next commit).
-      it.skip("should treat sources-scope files under the tests path as contracts", async () => {
+      it("should treat sources-scope files under the tests path as contracts", async () => {
         let capturedArtifactPaths: readonly string[] | undefined;
 
         const plugin: HardhatPlugin = {
