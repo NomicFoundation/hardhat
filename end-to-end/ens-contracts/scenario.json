@@ -1,14 +1,49 @@
 {
   "$schema": "../../scripts/end-to-end/schema/scenario.schema.json",
-  "description": "ENS contracts main branch (vite test suite)",
+  "description": "ENS contracts v1.7.0 (vitest test suite)",
   "tags": ["external-repo"],
   "repo": "ensdomains/ens-contracts",
-  "commit": "25466afe2b358b2925e50728c57bce8db6cee10e",
+  "commit": "9b034936a42f462fc04bc0a929a419ede5e18d59",
   "packageManager": "bun",
   "preinstall": "./preinstall.sh",
-  "submodules": true,
   "defaultCommand": "bun run test",
   "benchmark": {
-    "skip": true
+    "commands": {
+      "compile sequence": {
+        "runs": 2,
+        "steps": {
+          "reset files & cache": {
+            "command": "git checkout -- contracts/dnssec-oracle/SHA1.sol contracts/resolvers/PublicResolver.sol contracts/utils/LibMem/LibMem.sol && npx hardhat clean",
+            "measure": false
+          },
+          "cold compile": {
+            "command": "npx hardhat compile",
+            "dependsOn": ["reset files & cache"]
+          },
+          "edit & compile Solidity contract with min deps: contracts/dnssec-oracle/SHA1.sol": {
+            "command": "printf \"\\n// hardhat benchmark edit\\n\" >> contracts/dnssec-oracle/SHA1.sol && npx hardhat compile",
+            "dependsOn": ["cold compile"]
+          },
+          "edit & compile Solidity contract with max deps: contracts/resolvers/PublicResolver.sol": {
+            "command": "printf \"\\n// hardhat benchmark edit\\n\" >> contracts/resolvers/PublicResolver.sol && npx hardhat compile",
+            "dependsOn": ["cold compile"]
+          },
+          "edit & compile Solidity contract with max dependents: contracts/utils/LibMem/LibMem.sol": {
+            "command": "printf \"\\n// hardhat benchmark edit\\n\" >> contracts/utils/LibMem/LibMem.sol && npx hardhat compile",
+            "dependsOn": ["cold compile"]
+          }
+        }
+      },
+      "warm compile": {
+        "runs": 2,
+        "command": "npx hardhat compile",
+        "dependsOn": ["cold compile"]
+      },
+      "test vitest": {
+        "runs": 2,
+        "command": "NODE_OPTIONS=\"--disable-warning=ExperimentalWarning\" bunx vitest run",
+        "dependsOn": ["cold compile"]
+      }
+    }
   }
 }
