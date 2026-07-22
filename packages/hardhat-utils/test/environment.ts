@@ -1,10 +1,10 @@
 import assert from "node:assert/strict";
-import { after, beforeEach, describe, it } from "node:test";
+import { afterEach, beforeEach, describe, it } from "node:test";
 
 import { detectAgentEnvironment, isInteractive } from "../src/environment.js";
 
-// Get the original ENV variables and TTY states so they can be restored at
-// the end of the tests
+// Get the original ENV variables and TTY states so they can be restored
+// after each test
 const ORIGINAL_ENV_VARS = process.env;
 const ORIGINAL_STDIN_IS_TTY = process.stdin.isTTY;
 const ORIGINAL_STDOUT_IS_TTY = process.stdout.isTTY;
@@ -15,7 +15,7 @@ describe("environment", () => {
       process.env = {};
     });
 
-    after(() => {
+    afterEach(() => {
       // Restore original ENV variables
       process.env = ORIGINAL_ENV_VARS;
     });
@@ -129,7 +129,7 @@ describe("environment", () => {
       process.stdout.isTTY = false;
     });
 
-    after(() => {
+    afterEach(() => {
       // Restore original TTY states
       process.stdin.isTTY = ORIGINAL_STDIN_IS_TTY;
       process.stdout.isTTY = ORIGINAL_STDOUT_IS_TTY;
