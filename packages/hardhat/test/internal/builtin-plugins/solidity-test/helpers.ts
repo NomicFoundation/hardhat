@@ -23,7 +23,7 @@ import {
   solidityTestConfigToSolidityTestRunnerConfigArgs,
 } from "../../../../src/internal/builtin-plugins/solidity-test/helpers.js";
 import {
-  DEFAULT_VERBOSITY,
+  ALWAYS_COLLECT_STACK_TRACES_VERBOSITY,
   GENERIC_CHAIN_TYPE,
   L1_CHAIN_TYPE,
   OPTIMISM_CHAIN_TYPE,
@@ -80,7 +80,7 @@ describe("solidityTestConfigToSolidityTestRunnerConfigArgs", () => {
     }
   });
 
-  it("should enable always tracing for verbosities above the default one", async () => {
+  it("should only always collect stack traces at verbosity 5 and above", async () => {
     for (const verbosity of [1, 2, 3, 4, 5, 6, 7]) {
       const args = await solidityTestConfigToSolidityTestRunnerConfigArgs({
         chainType: GENERIC_CHAIN_TYPE,
@@ -92,7 +92,7 @@ describe("solidityTestConfigToSolidityTestRunnerConfigArgs", () => {
 
       assert.equal(
         args.collectStackTraces,
-        verbosity > DEFAULT_VERBOSITY
+        verbosity >= ALWAYS_COLLECT_STACK_TRACES_VERBOSITY
           ? CollectStackTraces.Always
           : CollectStackTraces.OnFailure,
       );
