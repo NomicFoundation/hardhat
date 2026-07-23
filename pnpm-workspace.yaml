@@ -1,6 +1,6 @@
 packages:
   - "packages/*"
-  - "packages/hardhat/templates/hardhat-3/*"
+  - "packages/hardhat/templates/*"
 
 allowBuilds:
   node-hid: true

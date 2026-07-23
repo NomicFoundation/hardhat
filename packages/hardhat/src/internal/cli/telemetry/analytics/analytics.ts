@@ -68,13 +68,12 @@ export async function sendTaskAnalytics(
 }
 
 export async function sendProjectTypeAnalytics(
-  hardhatVersion: "hardhat-2" | "hardhat-3",
   template: string,
 ): Promise<boolean> {
   const initAnalyticsEvent: AnalyticsEvent = {
     name: "init",
     params: {
-      hardhatVersion,
+      hardhatVersion: "hardhat-3",
       template,
     },
   };
