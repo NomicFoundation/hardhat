@@ -1,0 +1,24 @@
+{
+  "name": "hh3-storage-verbosity-demo",
+  "private": true,
+  "version": "0.0.1",
+  "description": "Hardhat 3 side of the SLOAD/SSTORE verbosity demo: native `-v` call traces do NOT show storage ops",
+  "type": "module",
+  "scripts": {
+    "test": "hardhat test test/verbosity.test.ts",
+    "trace:3": "hardhat test test/verbosity.test.ts -vvv",
+    "trace:4": "hardhat test test/verbosity.test.ts -vvvv",
+    "trace:5": "hardhat test test/verbosity.test.ts -vvvvv"
+  },
+  "devDependencies": {
+    "hardhat": "^3.9.1",
+    "@nomicfoundation/hardhat-toolbox-mocha-ethers": "^3.0.7",
+    "@types/chai": "^5.2.3",
+    "@types/mocha": ">=10.0.10",
+    "@types/node": "^22.8.5",
+    "chai": "^6.2.2",
+    "ethers": "^6.14.0",
+    "mocha": "^11.0.0",
+    "typescript": "~6.0.3"
+  }
+}
