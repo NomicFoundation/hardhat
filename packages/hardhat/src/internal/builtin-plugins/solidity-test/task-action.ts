@@ -30,6 +30,8 @@ import { ArtifactManagerImplementation } from "../artifacts/artifact-manager.js"
 import { getCoverageManager } from "../coverage/helpers/accessors.js";
 import { getGasAnalyticsManager } from "../gas-analytics/helpers/accessors.js";
 import { edrGasReportToHardhatGasMeasurements } from "../network-manager/edr/utils/convert-to-edr.js";
+import { buildDependencyGraph } from "../solidity/build-system/dependency-graph-building.js";
+import { readSourceFileFactory } from "../solidity/build-system/read-source-file.js";
 
 import {
   buildEdrArtifactsWithMetadata,
@@ -41,7 +43,7 @@ import {
   warnDeprecatedTestFail,
   solidityTestConfigToSolidityTestRunnerConfigArgs,
 } from "./helpers.js";
-import { getTestFunctionOverrides } from "./inline-config/index.js";
+import { buildImportMappings } from "./import-mappings.js";
 import { testReporter } from "./reporter.js";
 import { run } from "./runner.js";
 import { DEFAULT_TEST_PROFILE } from "./test-profiles.js";
@@ -196,6 +198,32 @@ const runSolidityTests: NewTaskActionFunction<TestActionArguments> = async (
     ({ edrArtifact }) => edrArtifact.id,
   );
 
+  // Maps each test suite's solc source name to its absolute path on disk, so
+  // EDR can read and parse inline test configuration directly from the sources.
+  const testSourcePaths = Object.fromEntries(
+    testSuiteArtifacts.map(({ userSourceName, edrArtifact }) => [
+      edrArtifact.id.source,
+      resolveFromRoot(hre.config.paths.root, userSourceName),
+    ]),
+  );
+
+  // Maps non-relative Solidity imports (as written) to absolute paths, so EDR
+  // can follow the test sources' imports while parsing inline test
+  // configuration. Built from the test roots' dependency graph, which is the
+  // transitive closure of what those sources import.
+  //
+  // NOTE: This rebuilds the dependency graph that the preceding `build`
+  // already computed internally. It's the cost of the current build-system
+  // API not surfacing that graph; if that becomes a bottleneck, the graph
+  // should be threaded out of the build instead of rebuilt here.
+  const testDependencyGraph = await buildDependencyGraph(
+    testRootPathsToRun.toSorted(),
+    hre.config.paths.root,
+    readSourceFileFactory(hre.hooks),
+    hre.hooks,
+  );
+  const importMappings = buildImportMappings(testDependencyGraph);
+
   console.log("Running Solidity tests");
   console.log();
 
@@ -231,11 +259,6 @@ const runSolidityTests: NewTaskActionFunction<TestActionArguments> = async (
     }
   }
 
-  const testFunctionOverrides = await getTestFunctionOverrides(
-    testSuiteArtifacts,
-    allBuildInfosAndOutputs,
-  );
-
   const eip712CanonicalTypes = await collectEip712CanonicalTypes(
     allBuildInfosAndOutputs,
     sourceNameToUserSourceName,
@@ -254,8 +277,9 @@ const runSolidityTests: NewTaskActionFunction<TestActionArguments> = async (
       generateGasReport:
         hre.globalOptions.gasStats ||
         hre.globalOptions.gasStatsJson !== undefined,
-      testFunctionOverrides,
       eip712CanonicalTypes,
+      testSourcePaths,
+      importMappings,
     });
   const tracingConfig: TracingConfigWithBuffers = {
     buildInfos: allBuildInfosAndOutputs.map(({ buildInfo, output }) => ({

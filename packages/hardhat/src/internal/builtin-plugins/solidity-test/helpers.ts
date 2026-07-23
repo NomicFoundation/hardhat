@@ -6,7 +6,6 @@ import type {
   PathPermission,
   Artifact,
   ObservabilityConfig,
-  TestFunctionOverride,
 } from "@nomicfoundation/edr";
 
 import { styleText } from "node:util";
@@ -39,9 +38,19 @@ interface SolidityTestConfigParams {
   observability?: ObservabilityConfig;
   testPattern?: string;
   generateGasReport: boolean;
-  testFunctionOverrides?: TestFunctionOverride[];
   eip712CanonicalTypes?: string[];
+  testSourcePaths?: Record<string, string>;
+  importMappings?: Record<string, string>;
 }
+
+// EDR gained `testSourcePaths` and `importMappings` (used to parse inline test
+// configuration from the sources) on the branch this build targets, but the
+// npm-pinned `@nomicfoundation/edr` types don't declare them yet. Extend the
+// type locally until a release carrying the fields is pinned.
+type SolidityTestRunnerConfigArgsWithSources = SolidityTestRunnerConfigArgs & {
+  testSourcePaths?: Record<string, string>;
+  importMappings?: Record<string, string>;
+};
 
 export async function solidityTestConfigToSolidityTestRunnerConfigArgs({
   chainType,
@@ -52,9 +61,10 @@ export async function solidityTestConfigToSolidityTestRunnerConfigArgs({
   observability,
   testPattern,
   generateGasReport,
-  testFunctionOverrides,
   eip712CanonicalTypes,
-}: SolidityTestConfigParams): Promise<SolidityTestRunnerConfigArgs> {
+  testSourcePaths,
+  importMappings,
+}: SolidityTestConfigParams): Promise<SolidityTestRunnerConfigArgsWithSources> {
   const fsPermissions: PathPermission[] | undefined = [
     config.fsPermissions?.readWriteFile?.map((p) => ({
       access: FsAccessPermission.ReadWriteFile,
@@ -163,8 +173,9 @@ export async function solidityTestConfigToSolidityTestRunnerConfigArgs({
     collectStackTraces: shouldAlwaysCollectStackTraces
       ? CollectStackTraces.Always
       : CollectStackTraces.OnFailure,
-    testFunctionOverrides,
     eip712CanonicalTypes,
+    testSourcePaths,
+    importMappings,
   };
 }
 
