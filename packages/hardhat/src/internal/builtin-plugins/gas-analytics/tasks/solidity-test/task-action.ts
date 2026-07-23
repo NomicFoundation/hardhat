@@ -47,32 +47,6 @@ export interface SnapshotCheckResult {
   snapshotCheatcodesCheck: SnapshotCheatcodesCheckResult;
 }
 
-/**
- * Whether a `test solidity` run is scoped to a subset of tests (via `--grep`,
- * `--grep-exclude`, or explicit files). On a scoped run, added/missing
- * snapshots are artifacts of the filter rather than real differences, so they
- * aren't reported.
- *
- * An explicit empty pattern (e.g. `--grep ""`) is normalized to "no filter" by
- * the base task before it runs EDR (see `solidity-test/helpers.ts`), so it runs
- * the full suite; treat it as unfiltered here so real differences still
- * surface. (An omitted option already arrives as `undefined`.)
- */
-export function isFilteredRun(args: {
-  grep?: string;
-  grepExclude?: string;
-  testFiles?: string[];
-}): boolean {
-  const hasPattern = (pattern?: string): boolean =>
-    pattern !== undefined && pattern !== "";
-
-  return (
-    hasPattern(args.grep) ||
-    hasPattern(args.grepExclude) ||
-    (args.testFiles?.length ?? 0) > 0
-  );
-}
-
 const runSolidityTests: TaskOverrideActionFunction<
   GasAnalyticsTestActionArguments
 > = async (args, hre, runSuper) => {
@@ -120,6 +94,32 @@ const runSolidityTests: TaskOverrideActionFunction<
 
   return superResult;
 };
+
+/**
+ * Whether a `test solidity` run is scoped to a subset of tests (via `--grep`,
+ * `--grep-exclude`, or explicit files). On a scoped run, added/missing
+ * snapshots are artifacts of the filter rather than real differences, so they
+ * aren't reported.
+ *
+ * An explicit empty pattern (e.g. `--grep ""`) is normalized to "no filter" by
+ * the base task before it runs EDR (see `solidity-test/helpers.ts`), so it runs
+ * the full suite; treat it as unfiltered here so real differences still
+ * surface. (An omitted option already arrives as `undefined`.)
+ */
+export function isFilteredRun(args: {
+  grep?: string;
+  grepExclude?: string;
+  testFiles?: string[];
+}): boolean {
+  const hasPattern = (pattern?: string): boolean =>
+    pattern !== undefined && pattern !== "";
+
+  return (
+    hasPattern(args.grep) ||
+    hasPattern(args.grepExclude) ||
+    (args.testFiles?.length ?? 0) > 0
+  );
+}
 
 export async function handleSnapshot(
   basePath: string,
