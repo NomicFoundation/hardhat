@@ -154,12 +154,10 @@ const testWithHardhat: NewTaskActionFunction<TestActionArguments> = async (
 
   const mochaConfig: MochaOptions = { ...hre.config.test.mocha };
 
-  // Apply the resolved name-filter. Mocha selects tests by name through three
-  // interacting options: `grep` (regex), `fgrep` (fixed string) and `invert`
-  // (run the non-matches). `--grep-exclude` is implemented by merging into
-  // `grep`, which can't coexist with `fgrep`/`invert`, so resolveMochaGrepFilter
-  // owns all three; overwrite them together rather than leave a stale
-  // config value that would conflict with the merged pattern.
+  // Mocha selects by name through three config settings:
+  // grep, fgrep and invert. Our grep + grepExclude take full control
+  // so need to overwrite them together to control the merged
+  // selection pattern.
   mochaConfig.grep = grepFilter.grep;
   mochaConfig.fgrep = grepFilter.fgrep;
   mochaConfig.invert = grepFilter.invert;
