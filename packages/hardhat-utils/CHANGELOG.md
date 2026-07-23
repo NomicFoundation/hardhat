@@ -1,5 +1,11 @@
 # @nomicfoundation/hardhat-utils
 
+## 4.1.6
+
+### Patch Changes
+
+- [#8429](https://github.com/NomicFoundation/hardhat/pull/8429) [`448a980`](https://github.com/NomicFoundation/hardhat/commit/448a9807c962eb02ed81e7ddce2718a0399f2335) Thanks [@marianfe](https://github.com/marianfe)! - Add `detectAgentEnvironment` and `isInteractive` utils
+
 ## 4.1.5
 
 ### Patch Changes
