@@ -1,3 +1,4 @@
+import { spawnSync } from "node:child_process";
 import { existsSync, readFileSync } from "node:fs";
 
 // GNU time (the `time` apt package). One wrapper captures both CPU time
@@ -10,10 +11,20 @@ let cachedAvailable: boolean | undefined;
 
 // Whether GNU time is installed. It is required for benchmarking (CI
 // preinstalls the `time` package); callers should fail fast when it is
-// missing rather than fall back to unmeasured runs.
+// missing rather than fall back to unmeasured runs. Existence alone isn't
+// enough: on macOS /usr/bin/time is BSD time, which rejects the -o/-f flags
+// used by wrapWithTime, so verify via --version (BSD time has no --version).
 export function gnuTimeAvailable(): boolean {
   if (cachedAvailable === undefined) {
-    cachedAvailable = existsSync(GNU_TIME);
+    if (existsSync(GNU_TIME)) {
+      const result = spawnSync(GNU_TIME, ["--version"], { encoding: "utf-8" });
+      // 1.9 prints "time (GNU Time)", 1.7 prints "GNU time 1.7"
+      cachedAvailable =
+        result.status === 0 &&
+        /GNU time/i.test(`${result.stdout}${result.stderr}`);
+    } else {
+      cachedAvailable = false;
+    }
   }
 
   return cachedAvailable;
