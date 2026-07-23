@@ -306,7 +306,7 @@ export async function* testReporter(
               indenter.t`Stack Trace Warning: ${colorize("grey", "The test is not safe to replay because a fork url without a fork block number was provided.")}\n`,
             );
             yield* output(
-              indenter.t`Try rerunning your tests with -vvv or above.\n`,
+              indenter.t`Try rerunning your tests with -vvvvv or above.\n`,
             );
           }
           if (stackTrace.impureCheatcodes.length > 0) {
@@ -314,7 +314,7 @@ export async function* testReporter(
               indenter.t`Stack Trace Warning: ${colorize("grey", `The test is not safe to replay because it uses impure cheatcodes: ${stackTrace.impureCheatcodes.join(", ")}`)}\n`,
             );
             yield* output(
-              indenter.t`Try rerunning your tests with -vvv or above.\n`,
+              indenter.t`Try rerunning your tests with -vvvvv or above.\n`,
             );
           }
           break;
