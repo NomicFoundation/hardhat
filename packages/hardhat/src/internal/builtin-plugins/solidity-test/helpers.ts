@@ -151,11 +151,6 @@ export async function solidityTestConfigToSolidityTestRunnerConfigArgs({
     txOrigin,
     blockCoinbase,
     observability,
-    // An explicit empty string (e.g. `--grep ""`) must be treated as "no
-    // filter", not forwarded verbatim: EDR's regex engine treats an empty
-    // pattern as a match against every test name, which for excludeTestPattern
-    // would silently exclude the entire suite. Normalize empty strings to
-    // undefined. (An omitted option already arrives as undefined.)
     testPattern: testPattern === "" ? undefined : testPattern,
     excludeTestPattern:
       excludeTestPattern === "" ? undefined : excludeTestPattern,
