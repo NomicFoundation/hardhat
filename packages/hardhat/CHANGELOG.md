@@ -1,5 +1,16 @@
 # hardhat
 
+## 3.11.1
+
+### Patch Changes
+
+- [#8451](https://github.com/NomicFoundation/hardhat/pull/8451) [`5c9d4a4`](https://github.com/NomicFoundation/hardhat/commit/5c9d4a4e0fd6c53a4c39b3629d635888da467d72) Thanks [@kanej](https://github.com/kanej)! - Remove Hardhat 2 option from init process
+
+- [#8452](https://github.com/NomicFoundation/hardhat/pull/8452) [`724b7cd`](https://github.com/NomicFoundation/hardhat/commit/724b7cd281411b3d995cda754747c7f508e56e5b) Thanks [@kanej](https://github.com/kanej)! - Fixed Solidity source classification so that a directory listed in both `paths.sources.solidity` and `paths.tests.solidity` is treated as a source.
+
+- Updated dependencies:
+  - @nomicfoundation/hardhat-utils@4.1.6
+
 ## 3.11.0
 
 ### Minor Changes
