@@ -50,6 +50,7 @@ interface TestActionArguments {
   testFiles: string[];
   chainType: string;
   grep?: string;
+  grepExclude?: string;
   noCompile: boolean;
   testSummaryIndex: number;
 }
@@ -59,7 +60,7 @@ export interface SolidityTestRunResult extends TestRunResult {
 }
 
 const runSolidityTests: NewTaskActionFunction<TestActionArguments> = async (
-  { testFiles, chainType, grep, noCompile, testSummaryIndex },
+  { testFiles, chainType, grep, grepExclude, noCompile, testSummaryIndex },
   hre,
 ): Promise<Result<SolidityTestRunResult, SolidityTestRunResult>> => {
   // Set an environment variable that plugins can use to detect when a process is running tests
@@ -251,6 +252,7 @@ const runSolidityTests: NewTaskActionFunction<TestActionArguments> = async (
       verbosity,
       observability: observabilityConfig,
       testPattern: grep,
+      excludeTestPattern: grepExclude,
       generateGasReport:
         hre.globalOptions.gasStats ||
         hre.globalOptions.gasStatsJson !== undefined,

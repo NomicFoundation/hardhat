@@ -38,6 +38,7 @@ interface SolidityTestConfigParams {
   verbosity: number;
   observability?: ObservabilityConfig;
   testPattern?: string;
+  excludeTestPattern?: string;
   generateGasReport: boolean;
   testFunctionOverrides?: TestFunctionOverride[];
   eip712CanonicalTypes?: string[];
@@ -51,6 +52,7 @@ export async function solidityTestConfigToSolidityTestRunnerConfigArgs({
   verbosity,
   observability,
   testPattern,
+  excludeTestPattern,
   generateGasReport,
   testFunctionOverrides,
   eip712CanonicalTypes,
@@ -149,7 +151,9 @@ export async function solidityTestConfigToSolidityTestRunnerConfigArgs({
     txOrigin,
     blockCoinbase,
     observability,
-    testPattern,
+    testPattern: testPattern === "" ? undefined : testPattern,
+    excludeTestPattern:
+      excludeTestPattern === "" ? undefined : excludeTestPattern,
     includeTraces,
     blockGasLimit,
     disableBlockGasLimit,
