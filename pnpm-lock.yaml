@@ -117,8 +117,8 @@ importers:
         specifier: workspace:^3.1.8
         version: link:../ignition-core
       '@openzeppelin/contracts':
-        specifier: 5.1.0
-        version: 5.1.0
+        specifier: 5.6.1
+        version: 5.6.1
       '@types/chai':
         specifier: ^5.2.3
         version: 5.2.3
@@ -2997,8 +2997,8 @@ packages:
     resolution: {integrity: sha512-7OsC1gNORBEawOa5+j2pXN9vsicaIOH5cPXxoR6fJOmH6/EXpJB2CajXOu1fPRFun2m1lktEFX11+P89hqO/og==}
     engines: {node: ^20.17.0 || >=22.9.0}
 
-  '@openzeppelin/contracts@5.1.0':
-    resolution: {integrity: sha512-p1ULhl7BXzjjbha5aqst+QMLY+4/LCWADXOCsmLHRM77AqiPjnd9vvUN9sosUfhL9JGKpZ0TjEGxgvnizmWGSA==}
+  '@openzeppelin/contracts@5.6.1':
+    resolution: {integrity: sha512-Ly6SlsVJ3mj+b18W3R8gNufB7dTICT105fJhodGAGgyC2oqnBAhqSiNDJ8V8DLY05cCz81GLI0CU5vNYA1EC/w==}
 
   '@pinojs/redact@0.4.0':
     resolution: {integrity: sha512-k2ENnmBugE/rzQfEcdWHcCY+/FM3VLzH9cYEsbdsoqrvzAKRhUZeRNhAZvB8OitQJ1TBed3yqWtdjzS6wJKBwg==}
@@ -8652,7 +8652,7 @@ snapshots:
     dependencies:
       semver: 7.8.5
 
-  '@openzeppelin/contracts@5.1.0': {}
+  '@openzeppelin/contracts@5.6.1': {}
 
   '@pinojs/redact@0.4.0': {}
 

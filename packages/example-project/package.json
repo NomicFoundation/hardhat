@@ -37,7 +37,7 @@
     "@nomicfoundation/hardhat-viem": "workspace:^3.0.9",
     "@nomicfoundation/hardhat-viem-assertions": "workspace:^3.1.2",
     "@nomicfoundation/ignition-core": "workspace:^3.1.8",
-    "@openzeppelin/contracts": "5.1.0",
+    "@openzeppelin/contracts": "5.6.1",
     "@types/chai": "^5.2.3",
     "@types/mocha": ">=10.0.10",
     "@types/node": "^22.0.0",
