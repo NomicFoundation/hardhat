@@ -1,7 +1,10 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 
-import { getRequest } from "@nomicfoundation/hardhat-utils/request";
+import {
+  getRequest,
+  ResponseStatusCodeError,
+} from "@nomicfoundation/hardhat-utils/request";
 
 import {
   SOLIDITY_TO_SOLX_VERSION_MAP,
@@ -35,14 +38,22 @@ describe(
         for (const asset of assetNames(solxVersion)) {
           for (const file of [asset, `${asset}.sha256`]) {
             // 1-byte range request: availability check without downloading
-            // the ~60 MB binaries.
-            const response = await getRequest(
-              `${SOLX_RELEASES_BASE_URL}/${file}`,
-              { extraHeaders: { Range: "bytes=0-0" } },
-            );
-            await response.body.text();
-            if (response.statusCode !== 200 && response.statusCode !== 206) {
-              missing.push(`${file} (${response.statusCode})`);
+            // the ~60 MB binaries. getRequest throws on status >= 400.
+            try {
+              const response = await getRequest(
+                `${SOLX_RELEASES_BASE_URL}/${file}`,
+                { extraHeaders: { Range: "bytes=0-0" } },
+                { timeout: 30_000 },
+              );
+              if (response.statusCode !== 200 && response.statusCode !== 206) {
+                missing.push(`${file} (${response.statusCode})`);
+              }
+              await response.body.text();
+            } catch (error) {
+              if (!(error instanceof ResponseStatusCodeError)) {
+                throw error;
+              }
+              missing.push(`${file} (${error.statusCode})`);
             }
           }
         }
