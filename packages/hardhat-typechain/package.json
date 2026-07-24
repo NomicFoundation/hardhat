@@ -52,7 +52,7 @@
     "c8": "^9.1.0",
     "eslint": "9.25.1",
     "ethers": "^6.14.0",
-    "expect-type": "^1.2.1",
+    "expect-type": "^1.4.0",
     "hardhat": "workspace:^3.8.0",
     "prettier": "3.2.5",
     "rimraf": "^5.0.5",

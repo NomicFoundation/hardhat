@@ -58,7 +58,7 @@
     "chai": ">=5.1.2 <7",
     "eslint": "9.25.1",
     "ethers": "^6.14.0",
-    "expect-type": "^1.2.1",
+    "expect-type": "^1.4.0",
     "hardhat": "workspace:^3.8.0",
     "mocha": "^11.0.0",
     "prettier": "3.2.5",

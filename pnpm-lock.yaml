@@ -244,8 +244,8 @@ importers:
         specifier: 9.25.1
         version: 9.25.1
       expect-type:
-        specifier: ^1.2.1
-        version: 1.2.2
+        specifier: ^1.4.0
+        version: 1.4.0
       prettier:
         specifier: 3.2.5
         version: 3.2.5
@@ -275,8 +275,8 @@ importers:
         specifier: 9.25.1
         version: 9.25.1
       expect-type:
-        specifier: ^1.2.1
-        version: 1.2.2
+        specifier: ^1.4.0
+        version: 1.4.0
       prettier:
         specifier: 3.2.5
         version: 3.2.5
@@ -327,8 +327,8 @@ importers:
         specifier: 9.25.1
         version: 9.25.1
       expect-type:
-        specifier: ^1.2.1
-        version: 1.2.2
+        specifier: ^1.4.0
+        version: 1.4.0
       hardhat:
         specifier: workspace:^3.8.0
         version: link:../hardhat
@@ -397,8 +397,8 @@ importers:
         specifier: ^6.14.0
         version: 6.15.0
       expect-type:
-        specifier: ^1.2.1
-        version: 1.2.2
+        specifier: ^1.4.0
+        version: 1.4.0
       hardhat:
         specifier: workspace:^3.8.0
         version: link:../hardhat
@@ -708,8 +708,8 @@ importers:
         specifier: 9.25.1
         version: 9.25.1
       expect-type:
-        specifier: ^1.2.1
-        version: 1.2.2
+        specifier: ^1.4.0
+        version: 1.4.0
       hardhat:
         specifier: workspace:^3.8.0
         version: link:../hardhat
@@ -781,8 +781,8 @@ importers:
         specifier: 9.25.1
         version: 9.25.1
       expect-type:
-        specifier: ^1.2.1
-        version: 1.2.2
+        specifier: ^1.4.0
+        version: 1.4.0
       hardhat:
         specifier: workspace:^3.8.0
         version: link:../hardhat
@@ -836,8 +836,8 @@ importers:
         specifier: 9.25.1
         version: 9.25.1
       expect-type:
-        specifier: ^1.2.1
-        version: 1.2.2
+        specifier: ^1.4.0
+        version: 1.4.0
       hardhat:
         specifier: workspace:^3.8.0
         version: link:../hardhat
@@ -879,8 +879,8 @@ importers:
         specifier: 9.25.1
         version: 9.25.1
       expect-type:
-        specifier: ^1.2.1
-        version: 1.2.2
+        specifier: ^1.4.0
+        version: 1.4.0
       hardhat:
         specifier: workspace:^3.8.0
         version: link:../hardhat
@@ -916,8 +916,8 @@ importers:
         specifier: 9.25.1
         version: 9.25.1
       expect-type:
-        specifier: ^1.2.1
-        version: 1.2.2
+        specifier: ^1.4.0
+        version: 1.4.0
       prettier:
         specifier: 3.2.5
         version: 3.2.5
@@ -965,8 +965,8 @@ importers:
         specifier: 9.25.1
         version: 9.25.1
       expect-type:
-        specifier: ^1.2.1
-        version: 1.2.2
+        specifier: ^1.4.0
+        version: 1.4.0
       hardhat:
         specifier: workspace:^3.8.0
         version: link:../hardhat
@@ -1048,8 +1048,8 @@ importers:
         specifier: 9.25.1
         version: 9.25.1
       expect-type:
-        specifier: ^1.2.1
-        version: 1.2.2
+        specifier: ^1.4.0
+        version: 1.4.0
       prettier:
         specifier: 3.2.5
         version: 3.2.5
@@ -1123,8 +1123,8 @@ importers:
         specifier: ^6.14.0
         version: 6.15.0
       expect-type:
-        specifier: ^1.2.1
-        version: 1.2.2
+        specifier: ^1.4.0
+        version: 1.4.0
       hardhat:
         specifier: workspace:^3.8.0
         version: link:../hardhat
@@ -1189,8 +1189,8 @@ importers:
         specifier: 9.25.1
         version: 9.25.1
       expect-type:
-        specifier: ^1.2.1
-        version: 1.2.2
+        specifier: ^1.4.0
+        version: 1.4.0
       hardhat:
         specifier: workspace:^3.8.0
         version: link:../hardhat
@@ -1253,8 +1253,8 @@ importers:
         specifier: ^6.14.0
         version: 6.15.0
       expect-type:
-        specifier: ^1.2.1
-        version: 1.2.2
+        specifier: ^1.4.0
+        version: 1.4.0
       hardhat:
         specifier: workspace:^3.8.0
         version: link:../hardhat
@@ -1311,8 +1311,8 @@ importers:
         specifier: 9.25.1
         version: 9.25.1
       expect-type:
-        specifier: ^1.2.1
-        version: 1.2.2
+        specifier: ^1.4.0
+        version: 1.4.0
       prettier:
         specifier: 3.2.5
         version: 3.2.5
@@ -1344,8 +1344,8 @@ importers:
         specifier: 9.25.1
         version: 9.25.1
       expect-type:
-        specifier: ^1.2.1
-        version: 1.2.2
+        specifier: ^1.4.0
+        version: 1.4.0
       prettier:
         specifier: 3.2.5
         version: 3.2.5
@@ -1396,8 +1396,8 @@ importers:
         specifier: 9.25.1
         version: 9.25.1
       expect-type:
-        specifier: ^1.2.1
-        version: 1.2.2
+        specifier: ^1.4.0
+        version: 1.4.0
       hardhat:
         specifier: workspace:^3.8.0
         version: link:../hardhat
@@ -1439,8 +1439,8 @@ importers:
         specifier: 9.25.1
         version: 9.25.1
       expect-type:
-        specifier: ^1.2.1
-        version: 1.2.2
+        specifier: ^1.4.0
+        version: 1.4.0
       hardhat:
         specifier: workspace:^3.8.0
         version: link:../hardhat
@@ -1488,8 +1488,8 @@ importers:
         specifier: 9.25.1
         version: 9.25.1
       expect-type:
-        specifier: ^1.2.1
-        version: 1.2.2
+        specifier: ^1.4.0
+        version: 1.4.0
       hardhat:
         specifier: workspace:^3.8.0
         version: link:../hardhat
@@ -1534,8 +1534,8 @@ importers:
         specifier: 9.25.1
         version: 9.25.1
       expect-type:
-        specifier: ^1.2.1
-        version: 1.2.2
+        specifier: ^1.4.0
+        version: 1.4.0
       prettier:
         specifier: 3.2.5
         version: 3.2.5
@@ -1870,8 +1870,8 @@ importers:
         specifier: 9.25.1
         version: 9.25.1
       expect-type:
-        specifier: ^1.2.1
-        version: 1.2.2
+        specifier: ^1.4.0
+        version: 1.4.0
       prettier:
         specifier: 3.2.5
         version: 3.2.5
@@ -4835,8 +4835,8 @@ packages:
     resolution: {integrity: sha512-XYfuKMvj4O35f/pOXLObndIRvyQ+/+6AhODh+OKWj9S9498pHHn/IMszH+gt0fBCRWMNfk1ZSp5x3AifmnI2vg==}
     engines: {node: '>=6'}
 
-  expect-type@1.2.2:
-    resolution: {integrity: sha512-JhFGDVJ7tmDJItKhYgJCGLOWjuK9vPxiXoUFLwLDc99NlmklilbiQJwoctZtt13+xMw91MCk/REan6MWHqDjyA==}
+  expect-type@1.4.0:
+    resolution: {integrity: sha512-KfYbmpRm0VbLjEvVa9yGwCi9GI34xvi7A/HXYWQO65CSD2u3MczUJSuwXKFIxlGsgBQizV9q5J9NHj4VG0n+pA==}
     engines: {node: '>=12.0.0'}
 
   exponential-backoff@3.1.3:
@@ -10736,7 +10736,7 @@ snapshots:
 
   expand-template@2.0.3: {}
 
-  expect-type@1.2.2: {}
+  expect-type@1.4.0: {}
 
   exponential-backoff@3.1.3: {}
 
