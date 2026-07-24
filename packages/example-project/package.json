@@ -49,7 +49,7 @@
     "mocha": "^11.0.0",
     "permit2": "uniswap/permit2#cc56ad0f3439c502c246fc5cfcc3db92bb8b7219",
     "prettier": "3.2.5",
-    "rimraf": "^5.0.5",
+    "rimraf": "^6.1.3",
     "typescript": "~6.0.3",
     "viem": "^2.47.6"
   }
