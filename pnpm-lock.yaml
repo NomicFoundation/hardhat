@@ -207,8 +207,8 @@ importers:
         specifier: ^2.0.3
         version: 2.0.3
       semver:
-        specifier: ^7.6.3
-        version: 7.7.4
+        specifier: ^7.8.5
+        version: 7.8.5
       tsx:
         specifier: ^4.19.3
         version: 4.20.6
@@ -8449,7 +8449,7 @@ snapshots:
       '@ledgerhq/types-live': 6.85.0
       axios: 1.11.0
       bignumber.js: 9.3.0
-      semver: 7.7.4
+      semver: 7.8.5
     transitivePeerDependencies:
       - debug
 
@@ -8664,7 +8664,7 @@ snapshots:
 
   '@npmcli/fs@5.0.0':
     dependencies:
-      semver: 7.7.4
+      semver: 7.8.5
 
   '@openzeppelin/contracts@5.1.0': {}
 
@@ -11681,7 +11681,7 @@ snapshots:
 
   make-dir@4.0.0:
     dependencies:
-      semver: 7.7.4
+      semver: 7.8.5
 
   make-fetch-happen@15.0.3:
     dependencies:
@@ -12085,7 +12085,7 @@ snapshots:
       make-fetch-happen: 15.0.3
       nopt: 9.0.0
       proc-log: 6.1.0
-      semver: 7.7.4
+      semver: 7.8.5
       tar: 7.5.2
       tinyglobby: 0.2.15
       which: 6.0.0
