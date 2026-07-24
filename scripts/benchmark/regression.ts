@@ -585,6 +585,8 @@ function runStepsPhase(
 
   for (let run = 0; run < runs; run++) {
     for (const stepName of stepNames) {
+      // Run steps that only need to run once on the last run, so its result can be
+      // observed by consequent commands
       if (onceSteps.has(stepName) && run < runs - 1) {
         continue;
       }
