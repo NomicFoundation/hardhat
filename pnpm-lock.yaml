@@ -39,8 +39,8 @@ importers:
         specifier: 4.7.2
         version: 4.7.2(eslint@9.25.1)
       '@tsconfig/node22':
-        specifier: ^22.0.2
-        version: 22.0.2
+        specifier: ^22.0.5
+        version: 22.0.5
       '@types/eslint':
         specifier: 9.6.1
         version: 9.6.1
@@ -3231,8 +3231,8 @@ packages:
     resolution: {integrity: sha512-4BAffykYOgO+5nzBWYwE3W90sBgLJoUPRWWcL8wlyiM8IB8ipJz3UMJ9KXQd1RKQXpKp8Tutn80HZtWsu2u76w==}
     engines: {node: '>=10'}
 
-  '@tsconfig/node22@22.0.2':
-    resolution: {integrity: sha512-Kmwj4u8sDRDrMYRoN9FDEcXD8UpBSaPQQ24Gz+Gamqfm7xxn+GBR7ge/Z7pK8OXNGyUzbSwJj+TH6B+DS/epyA==}
+  '@tsconfig/node22@22.0.5':
+    resolution: {integrity: sha512-hLf2ld+sYN/BtOJjHUWOk568dvjFQkHnLNa6zce25GIH+vxKfvTgm3qpaH6ToF5tu/NN0IH66s+Bb5wElHrLcw==}
 
   '@tybys/wasm-util@0.10.3':
     resolution: {integrity: sha512-F3fo1MYrRJYL3zER0OUOmkutjr1Vp23m7OsSgp7nq4SP6OqX6C/56XFIPAl5bt3zaBRjmW7SGz3u/6LwFpYcOg==}
@@ -8840,7 +8840,7 @@ snapshots:
     dependencies:
       defer-to-connect: 2.0.1
 
-  '@tsconfig/node22@22.0.2': {}
+  '@tsconfig/node22@22.0.5': {}
 
   '@tybys/wasm-util@0.10.3':
     dependencies:
