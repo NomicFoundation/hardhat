@@ -27,9 +27,9 @@ import {
 } from "./helpers/plan.ts";
 import {
   gnuTimeAvailable,
-  readPeakRssMb,
+  readTimeOutput,
   wrapWithTime,
-} from "./helpers/memory.ts";
+} from "./helpers/gnu-time.ts";
 import { isVerdaccioRunning } from "../verdaccio/helpers/shell.ts";
 import {
   publish as verdaccioPublish,
@@ -78,15 +78,16 @@ DESCRIPTION
   their per-run samples in the "extra" field; "(cpu)" entries carry their
   mean user/system there instead.
 
-  When GNU time (/usr/bin/time) is available, each benchmark is wrapped in it to
-  capture peak RSS (the largest resident set size any process in its subtree
-  reached, in MB). This is emitted as a separate "<scenarioId> / <name> (peak
-  RSS)" entry (unit MB): its value is the highest peak observed, with the per-run
-  peaks and their statistics (mean/stddev/min/max/median) in the entry's extra.
-  Step sequences record one peak per run; hyperfine single commands record a
-  single aggregate peak across all runs. The highest peak is also embedded as
-  "peakRssMb" in the time entry's extra. If GNU time is missing, memory is
-  skipped and a warning is printed.
+  Each benchmark is wrapped in GNU time (/usr/bin/time, required — the script
+  aborts if it is missing) to capture peak RSS (the largest resident set size
+  any process in its subtree reached, in MB). This is emitted as a separate
+  "<scenarioId> / <name> (peak RSS)" entry (unit MB): its value is the highest
+  peak observed, with the per-run peaks and their statistics
+  (mean/stddev/min/max/median) in the entry's extra. Step sequences record one
+  peak per run and take their CPU times from the same GNU time output;
+  hyperfine single commands record a single aggregate peak across all runs
+  (their CPU comes from hyperfine). The highest peak is also embedded as
+  "peakRssMb" in the time entry's extra.
 
 OPTIONS
   --output <path>       Required. Aggregated JSON destination
@@ -116,9 +117,17 @@ OPTIONS
   scenario.json listing the entries it needs; when you select an entry, its
   declared prerequisites also run (unreported) and everything else is skipped. An
   entry with no "dependsOn" has no prerequisites and runs in isolation.
-  Entries run in declared order; only selected entries are reported. So
-  --benchmarks "test solidity" runs just (cold compile + test solidity), skipping
-  the edit&compile steps and warm compile it doesn't depend on.
+  Entries run in declared order; only selected entries are reported.
+
+  Unreported prerequisites run as few times as possible: a dependent only needs
+  to observe that a prerequisite in a different command ran once before it, so
+  cross-command prerequisites run a single time (a prerequisite command or
+  step sequence runs once instead of its configured "runs"). Within a step
+  sequence, prerequisites of a measured step still run on every iteration —
+  steps are sequential, so each iteration of the dependent expects them to have
+  just run. So --benchmarks "test solidity" runs (reset + cold compile) once,
+  then test solidity its configured number of times, skipping the edit&compile
+  steps and warm compile it doesn't depend on.
 
 EXAMPLES
   pnpm bench:regression --output /tmp/regression.json
@@ -172,10 +181,11 @@ async function main(): Promise<void> {
   }
 
   if (!gnuTimeAvailable()) {
-    logWarning(
-      "GNU time (/usr/bin/time) not found — peak RSS will not be measured. " +
-        "Install the `time` package to enable memory measurements.",
+    logError(
+      "GNU time (/usr/bin/time) is required to measure CPU time and peak RSS. " +
+        "Install the `time` package.",
     );
+    process.exit(1);
   }
 
   const results: BenchmarkEntry[] = [];
@@ -463,8 +473,8 @@ async function runScenario(
           planned.name,
           planned.cfg,
           new Set(planned.run),
+          new Set(planned.once),
           new Set(planned.emit),
-          scenarioTmpDir,
         ),
       );
 
@@ -476,8 +486,8 @@ async function runScenario(
       `${slugify(planned.name)}.json`,
     );
     // Only reported commands need a memory reading; prerequisites run unwrapped.
-    const memFile = planned.emit
-      ? path.join(scenarioTmpDir, `${slugify(planned.name)}.mem`)
+    const timeFile = planned.emit
+      ? path.join(scenarioTmpDir, `${slugify(planned.name)}.time`)
       : undefined;
 
     await runPhase(
@@ -485,9 +495,11 @@ async function runScenario(
       buildBenchArgs(scenario.scenarioJsonPath, args, {
         command: planned.cfg.command,
         prepare: planned.cfg.prepare,
-        runs: planned.cfg.runs,
+        // A single run suffices when the command runs purely as a
+        // prerequisite of a later entry.
+        runs: planned.emit ? planned.cfg.runs : 1,
         exportJson: exportPath,
-        memFile,
+        timeFile,
       }),
     );
 
@@ -500,8 +512,8 @@ async function runScenario(
           scenario.id,
           planned.name,
           result,
-          memFile !== undefined && gnuTimeAvailable()
-            ? [readPeakRssMb(memFile)]
+          timeFile !== undefined
+            ? [readTimeOutput(timeFile).peakRssMb]
             : undefined,
         ),
         toCpuEntry(scenario.id, planned.name, result),
@@ -514,16 +526,21 @@ async function runScenario(
 
 /**
  * Run a step-sequence command: execute the ordered steps in-process, once per
- * run, timing each step's wall-clock with the high-resolution monotonic clock
- * and its CPU time with bash's `time` builtin (Node exposes no child rusage).
- * Returns a wall-clock entry plus a "(cpu)" entry per emitted step, and a
- * peak-RSS entry when GNU time is available.
+ * run, timing each step's wall-clock with the high-resolution monotonic clock.
+ * CPU time (user/system) and peak RSS both come from a single GNU time wrapper
+ * around each emitted step (Node exposes no child rusage). Returns a
+ * wall-clock entry plus a "(cpu)" entry per emitted step, and a peak-RSS
+ * entry.
  *
  * `runSteps` is the set of step names to execute (selected steps plus their
- * prerequisites); other steps are skipped. `emit` is the subset of those to
- * time and report — steps that run but aren't in `emit` are prerequisites only.
- * Emitted steps are additionally wrapped in GNU time (into `tmpDir`) to capture
- * peak RSS; the wrapper's fork+exec is negligible against multi-second compiles.
+ * prerequisites); other steps are skipped. `onceSteps` is the subset of those
+ * that run purely as cross-command prerequisites — they execute on the final
+ * run only, so the sequence's tail matches a full execution while their
+ * external dependents still observe them having run. `emit` is the subset to
+ * time and report — steps that run but aren't in `emit` are prerequisites only
+ * (emitted steps are never in `onceSteps`).
+ * The GNU time wrapper's fork+exec is negligible against multi-second
+ * compiles.
  */
 function runStepsPhase(
   scenarioId: string,
@@ -533,14 +550,18 @@ function runStepsPhase(
   seqName: string,
   cfg: StepsVariant,
   runSteps: Set<string>,
+  onceSteps: Set<string>,
   emit: Set<string>,
-  tmpDir: string,
 ): BenchmarkEntry[] {
   const totalSteps = Object.keys(cfg.steps).length;
   const stepNames = Object.keys(cfg.steps).filter((n) => runSteps.has(n));
 
+  // With no every-iteration step left, the whole (prerequisite-only)
+  // sequence collapses to a single run.
+  const runs = stepNames.some((n) => !onceSteps.has(n)) ? cfg.runs : 1;
+
   logStep(
-    `${fmt.pkg(seqName)} (${cfg.runs} runs${
+    `${fmt.pkg(seqName)} (${runs} runs${
       stepNames.length < totalSteps
         ? `, ${stepNames.length} of ${totalSteps} steps`
         : ""
@@ -552,8 +573,8 @@ function runStepsPhase(
     { times: number[]; user: number[]; system: number[] }
   >();
   const peakRssMb = new Map<string, number[]>();
-  const memFile = (stepName: string) =>
-    path.join(tmpDir, `${slugify(seqName)}-${slugify(stepName)}.mem`);
+  const timeFile = (stepName: string) =>
+    path.join(scenarioTmpDir, `${slugify(seqName)}-${slugify(stepName)}.time`);
 
   for (const stepName of stepNames) {
     if (emit.has(stepName)) {
@@ -562,20 +583,19 @@ function runStepsPhase(
     }
   }
 
-  const timingPath = path.join(scenarioTmpDir, `${slugify(seqName)}-cpu.txt`);
-
-  for (let run = 0; run < cfg.runs; run++) {
+  for (let run = 0; run < runs; run++) {
     for (const stepName of stepNames) {
+      if (onceSteps.has(stepName) && run < runs - 1) {
+        continue;
+      }
+
       const step = cfg.steps[stepName];
-      // Measured (emitted) steps are wrapped twice: GNU time captures peak RSS
-      // into the step's mem file (an inner shell covers the whole command, which
-      // has shell operators like && and >>), and bash's `time` builtin captures
-      // CPU (user/system) into `timingPath`. The command's own stderr detours
-      // through fd 3 back to the piped stderr (so failures surface whole below);
-      // only `time`'s line reaches timingPath. LC_NUMERIC pins bash's
-      // locale-dependent decimal separator. Prerequisite steps run plain.
+      // Measured (emitted) steps are wrapped in GNU time, which writes their
+      // CPU time (user/system) and peak RSS to the step's time file (an inner
+      // shell covers the whole command, which has shell operators like && and
+      // >>). Prerequisite steps run plain.
       const command = emit.has(stepName)
-        ? `{ LC_NUMERIC=C; TIMEFORMAT='%U %S'; time { ${wrapWithTime(step.command, memFile(stepName), true)}\n} 2>&3 ; } 3>&2 2>${shellQuote(timingPath)}`
+        ? wrapWithTime(step.command, timeFile(stepName), true)
         : step.command;
       const start = performance.now();
 
@@ -601,7 +621,7 @@ function runStepsPhase(
           stderr?: string;
         };
         throw new Error(
-          `${scenarioId} / ${seqName}: step "${stepName}" failed on run ${run + 1}/${cfg.runs}: ${original}\n` +
+          `${scenarioId} / ${seqName}: step "${stepName}" failed on run ${run + 1}/${runs}: ${original}\n` +
             `  Reproduce with: cd ${shellQuote(workingDir)} && ${step.command}\n` +
             formatOutput({ stdout, stderr }),
           { cause: error },
@@ -612,14 +632,11 @@ function runStepsPhase(
       const sample = samples.get(stepName);
 
       if (sample !== undefined) {
-        const cpu = readCpuTiming(timingPath);
+        const measured = readTimeOutput(timeFile(stepName));
         sample.times.push(elapsed);
-        sample.user.push(cpu.user);
-        sample.system.push(cpu.system);
-
-        if (gnuTimeAvailable()) {
-          peakRssMb.get(stepName)?.push(readPeakRssMb(memFile(stepName)));
-        }
+        sample.user.push(measured.user);
+        sample.system.push(measured.system);
+        peakRssMb.get(stepName)?.push(measured.peakRssMb);
       }
     }
   }
@@ -639,19 +656,6 @@ function runStepsPhase(
       toCpuEntry(scenarioId, stepName, stats, cpuStddev),
     ];
   });
-}
-
-function readCpuTiming(timingPath: string): { user: number; system: number } {
-  const raw = readFileSync(timingPath, "utf-8");
-  const [user, system] = raw.trim().split(/\s+/).map(Number);
-
-  if (!Number.isFinite(user) || !Number.isFinite(system)) {
-    throw new Error(
-      `Unparseable bash time output at ${timingPath}: ${JSON.stringify(raw)}`,
-    );
-  }
-
-  return { user, system };
 }
 
 // Failures are rare and abort the scenario, so the whole output is shown
@@ -725,7 +729,7 @@ function buildBenchArgs(
     prepare: string | undefined;
     runs: number;
     exportJson: string;
-    memFile: string | undefined;
+    timeFile: string | undefined;
   },
 ): BenchArgs {
   return {
@@ -742,7 +746,7 @@ function buildBenchArgs(
     warmup: 0,
     runs: phase.runs,
     exportJson: phase.exportJson,
-    memFile: phase.memFile,
+    timeFile: phase.timeFile,
     e2eCloneDirectory: args.e2eCloneDirectory,
   };
 }
