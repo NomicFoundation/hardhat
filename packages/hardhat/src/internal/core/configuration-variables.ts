@@ -125,7 +125,9 @@ export class LazyResolvedConfigurationVariable extends BaseResolvedConfiguration
           "fetchValue",
           [this.#variable],
           async (_context, v) => {
-            const value = process.env[v.name];
+            // Fall back to the default only when the env var is unset. An empty
+            // string still takes precedence
+            const value = process.env[v.name] ?? v.default;
 
             if (typeof value !== "string") {
               throw new HardhatError(

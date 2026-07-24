@@ -47,6 +47,15 @@ export default async (): Promise<Partial<ConfigurationVariableHooks>> => {
       if (process.env.HH_TEST === "true") {
         // When `fetchValue` is called from a test, we only allow the use of the development keystore
         // to avoid prompting for the production keystore password.
+        //
+        // If the variable declares a default value, delegate to the next handler
+        // so the built-in resolver can fall back to it. We must return here to
+        // avoid consulting the production keystore below (which would prompt for
+        // the production keystore password during tests).
+        if (variable.default !== undefined) {
+          return await next(context, variable);
+        }
+
         throw new HardhatError(
           HardhatError.ERRORS.HARDHAT_KEYSTORE.GENERAL.KEY_NOT_FOUND_DURING_TESTS_WITH_DEV_KEYSTORE,
           {
@@ -90,6 +99,20 @@ export default async (): Promise<Partial<ConfigurationVariableHooks>> => {
     }
 
     const keystore = await keystoreLoader.loadKeystore();
+
+    // Unlocking the production keystore prompts for the password (the dev one
+    // reads it from a file). For a variable with a default, check the plaintext
+    // key names first: if the key isn't stored, skip the prompt and fall back
+    // to the default. Trade-off: this skips the HMAC integrity check on a miss,
+    // so a tampered (key removed) keystore falls back instead of erroring.
+    if (
+      !isDevKeystore &&
+      masterKey === undefined &&
+      variable.default !== undefined &&
+      !(await keystore.listUnverifiedKeys()).includes(variable.name)
+    ) {
+      return undefined;
+    }
 
     if (masterKey === undefined) {
       const { askPassword } = getPasswordHandlers(
