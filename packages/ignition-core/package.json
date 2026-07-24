@@ -60,7 +60,7 @@
   ],
   "devDependencies": {
     "@istanbuljs/nyc-config-typescript": "1.0.2",
-    "@microsoft/api-extractor": "7.49.1",
+    "@microsoft/api-extractor": "7.58.11",
     "@nomicfoundation/hardhat-test-utils": "workspace:^",
     "@types/chai": "^5.2.3",
     "@types/chai-as-promised": "^8.0.1",
