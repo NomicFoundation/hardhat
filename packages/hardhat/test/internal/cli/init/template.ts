@@ -58,9 +58,7 @@ describe("getTemplates", () => {
         if (
           typeof pathToRead !== "string" ||
           options?.withFileTypes !== true ||
-          !pathToRead.includes(
-            `${path.sep}templates${path.sep}hardhat-3${path.sep}`,
-          )
+          !pathToRead.includes(`${path.sep}templates${path.sep}`)
         ) {
           return dirents;
         }
@@ -76,6 +74,66 @@ describe("getTemplates", () => {
         nodeModulesDirent.isSocket = () => false;
 
         return [...dirents, nodeModulesDirent];
+      },
+    );
+
+    try {
+      await getTemplates();
+    } finally {
+      readdirMock.mock.restore();
+    }
+  });
+
+  it("Regression test: should not descend into build output directories when reading template files", async () => {
+    // Build/tooling output dirs (artifacts, cache, types, ...) are gitignored in
+    // the templates but may exist on disk (e.g. a concurrent `hardhat compile`
+    // in the shared template dir during CI). They must never be treated as
+    // template files, otherwise `copyProjectFiles` can race with their deletion.
+    const buildOutputDirs = ["artifacts", "cache", "types"];
+
+    const originalReaddir = fsPromises.readdir;
+    const readdirMock = mock.method(
+      fsPromises,
+      "readdir",
+      async (...args: Parameters<typeof originalReaddir>) => {
+        const [pathToRead, options] = args;
+
+        if (
+          typeof pathToRead === "string" &&
+          buildOutputDirs.some((dir) =>
+            pathToRead.endsWith(`${path.sep}${dir}`),
+          ) &&
+          options?.withFileTypes === true
+        ) {
+          throw new Error(
+            "getTemplates should not recurse into build output directories",
+          );
+        }
+
+        const dirents = await Reflect.apply(originalReaddir, fsPromises, args);
+
+        if (
+          typeof pathToRead !== "string" ||
+          options?.withFileTypes !== true ||
+          !pathToRead.includes(`${path.sep}templates${path.sep}`)
+        ) {
+          return dirents;
+        }
+
+        const fakeDirents = buildOutputDirs.map((dir) => {
+          const dirent: Dirent = Object.create(dirents[0] ?? {});
+          dirent.name = dir;
+          dirent.isDirectory = () => true;
+          dirent.isFile = () => false;
+          dirent.isSymbolicLink = () => false;
+          dirent.isBlockDevice = () => false;
+          dirent.isCharacterDevice = () => false;
+          dirent.isFIFO = () => false;
+          dirent.isSocket = () => false;
+          return dirent;
+        });
+
+        return [...dirents, ...fakeDirents];
       },
     );
 
