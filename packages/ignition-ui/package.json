@@ -52,7 +52,7 @@
     "rimraf": "^5.0.5",
     "styled-components": "5.3.10",
     "svg-pan-zoom": "^3.6.1",
-    "tsx": "^4.19.3",
+    "tsx": "^4.23.1",
     "typescript": "~6.0.3",
     "vite": "^5.0.0",
     "vite-plugin-singlefile": "^2.0.1"
