@@ -81,7 +81,7 @@
   "devDependencies": {
     "@nomicfoundation/hardhat-node-test-reporter": "workspace:^3.1.0",
     "@nomicfoundation/hardhat-test-utils": "workspace:^",
-    "@types/adm-zip": "^0.5.5",
+    "@types/adm-zip": "^0.5.8",
     "@types/node": "^22.0.0",
     "@types/semver": "^7.5.8",
     "@types/ws": "^8.5.13",
@@ -100,7 +100,7 @@
     "@nomicfoundation/hardhat-zod-utils": "workspace:^3.0.5",
     "@nomicfoundation/solidity-analyzer": "^0.1.1",
     "@sentry/core": "^9.4.0",
-    "adm-zip": "^0.4.16",
+    "adm-zip": "^0.6.0",
     "chokidar": "^4.0.3",
     "enquirer": "^2.3.0",
     "ethereum-cryptography": "^2.2.1",
