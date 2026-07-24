@@ -24,5 +24,5 @@ export const DEFAULT_SOLX_OPTIMIZER_MODE = "1";
 
 /** Maps Solidity versions to the solx version that embeds them. */
 export const SOLIDITY_TO_SOLX_VERSION_MAP: Record<string, string> = {
-  "0.8.34": "0.1.4",
+  "0.8.34": "0.1.6",
 };
