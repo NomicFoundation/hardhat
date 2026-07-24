@@ -81,7 +81,7 @@
     "typescript": "~6.0.3"
   },
   "dependencies": {
-    "@ethersproject/address": "5.6.1",
+    "@ethersproject/address": "5.8.0",
     "@nomicfoundation/hardhat-errors": "workspace:^3.0.16",
     "@nomicfoundation/hardhat-utils": "workspace:^4.1.4",
     "@nomicfoundation/solidity-analyzer": "^0.1.1",
