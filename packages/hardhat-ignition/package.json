@@ -60,9 +60,9 @@
   ],
   "devDependencies": {
     "@istanbuljs/nyc-config-typescript": "1.0.2",
-    "hardhat": "workspace:^3.8.0",
     "@nomicfoundation/hardhat-network-helpers": "workspace:^3.0.11",
     "@nomicfoundation/hardhat-test-utils": "workspace:^",
+    "@nomicfoundation/hardhat-verify": "workspace:^3.0.0",
     "@types/chai": "^5.2.3",
     "@types/chai-as-promised": "^8.0.1",
     "@types/mocha": ">=10.0.10",
@@ -73,26 +73,26 @@
     "chai-as-promised": "^8.0.0",
     "cross-env": "7.0.3",
     "eslint": "9.25.1",
+    "hardhat": "workspace:^3.8.0",
     "mocha": "^11.0.0",
     "nyc": "15.1.0",
     "prettier": "3.2.5",
     "rimraf": "^5.0.5",
     "sinon": "^14.0.0",
-    "tsx": "^4.19.3",
+    "tsx": "^4.23.1",
     "typescript": "~6.0.3",
-    "viem": "^2.47.6",
-    "@nomicfoundation/hardhat-verify": "workspace:^3.0.0"
+    "viem": "^2.47.6"
   },
   "dependencies": {
     "@nomicfoundation/hardhat-errors": "workspace:^3.0.16",
+    "@nomicfoundation/hardhat-utils": "workspace:^4.1.4",
     "@nomicfoundation/ignition-core": "workspace:^3.1.8",
     "@nomicfoundation/ignition-ui": "workspace:^3.1.2",
-    "@nomicfoundation/hardhat-utils": "workspace:^4.1.4",
-    "prompts": "^2.4.2",
-    "json5": "^2.2.3"
+    "json5": "^2.2.3",
+    "prompts": "^2.4.2"
   },
   "peerDependencies": {
-    "hardhat": "workspace:^3.8.0",
-    "@nomicfoundation/hardhat-verify": "workspace:^3.0.0"
+    "@nomicfoundation/hardhat-verify": "workspace:^3.0.0",
+    "hardhat": "workspace:^3.8.0"
   }
 }

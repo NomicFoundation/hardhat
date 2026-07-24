@@ -54,7 +54,7 @@
     "hardhat": "workspace:^3.8.0",
     "prettier": "3.2.5",
     "rimraf": "^5.0.5",
-    "tsx": "^4.19.3",
+    "tsx": "^4.23.1",
     "typescript": "~6.0.3"
   },
   "dependencies": {
@@ -63,12 +63,12 @@
     "@ledgerhq/hw-app-eth": "^6.45.19",
     "@ledgerhq/hw-transport": "^6.31.11",
     "@ledgerhq/hw-transport-node-hid": "^6.29.12",
-    "node-gyp": "^12.1.0",
     "@ledgerhq/types-live": "^6.85.0",
     "@nomicfoundation/hardhat-errors": "workspace:^3.0.15",
     "@nomicfoundation/hardhat-utils": "workspace:^4.1.2",
     "@nomicfoundation/hardhat-zod-utils": "workspace:^3.0.5",
     "micro-eth-signer": "^0.14.0",
+    "node-gyp": "^12.1.0",
     "zod": "^3.23.8"
   },
   "peerDependencies": {
