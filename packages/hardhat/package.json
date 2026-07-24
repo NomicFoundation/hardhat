@@ -105,7 +105,7 @@
     "enquirer": "^2.3.0",
     "ethereum-cryptography": "^2.2.1",
     "micro-eth-signer": "^0.14.0",
-    "p-map": "^7.0.2",
+    "p-map": "^7.0.5",
     "resolve.exports": "^2.0.3",
     "semver": "^7.8.5",
     "tsx": "^4.19.3",
