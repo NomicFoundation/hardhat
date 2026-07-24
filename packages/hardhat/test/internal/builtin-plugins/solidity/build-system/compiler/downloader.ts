@@ -465,13 +465,13 @@ describe(
 
         await downloader.downloadCompiler("0.5.0");
         assert.ok(
-          downloader.getCompiler("0.5.0") !== undefined,
+          (await downloader.getCompiler("0.5.0")) !== undefined,
           "Compiler should be defined",
         );
 
         await downloader.downloadCompiler("0.5.1");
         assert.ok(
-          downloader.getCompiler("0.5.1") !== undefined,
+          (await downloader.getCompiler("0.5.1")) !== undefined,
           "Compiler should be defined",
         );
       });
