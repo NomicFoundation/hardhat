@@ -43,7 +43,7 @@ describe(
               const response = await getRequest(
                 `${SOLX_RELEASES_BASE_URL}/${file}`,
                 { extraHeaders: { Range: "bytes=0-0" } },
-                { timeout: 30_000 },
+                { timeout: 30_000, isTestDispatcher: true },
               );
               if (response.statusCode !== 200 && response.statusCode !== 206) {
                 missing.push(`${file} (${response.statusCode})`);
