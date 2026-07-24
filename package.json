@@ -14,7 +14,7 @@
     "prettier": "3.2.5",
     "rimraf": "^5.0.5",
     "typescript": "~6.0.3",
-    "verdaccio": "^6.0.0"
+    "verdaccio": "^6.8.0"
   },
   "scripts": {
     "build": "pnpm run --recursive --if-present build",
