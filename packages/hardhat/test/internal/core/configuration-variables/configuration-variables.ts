@@ -1,4 +1,5 @@
 import type { HardhatRuntimeEnvironment } from "../../../../src/types/hre.js";
+import type { ConfigurationVariableHooks } from "../../../../src/types/hooks.js";
 
 import assert from "node:assert/strict";
 import { before, describe, it } from "node:test";
@@ -84,6 +85,70 @@ describe("ResolvedConfigurationVariable", () => {
     assert.equal(await variable.get(), "bar");
 
     delete process.env.foo;
+  });
+
+  it("should prefer the environment variable over configurationVariables hooks", async () => {
+    let hookCallCount = 0;
+
+    const handlers: Partial<ConfigurationVariableHooks> = {
+      fetchValue: async (_context, _variable, _next) => {
+        hookCallCount++;
+        return "value-from-hook";
+      },
+    };
+
+    hre.hooks.registerHandlers("configurationVariables", handlers);
+
+    try {
+      const variable = new LazyResolvedConfigurationVariable(
+        hre.hooks,
+        configVariable("foo"),
+      );
+
+      process.env.foo = "value-from-env";
+
+      assert.equal(await variable.get(), "value-from-env");
+      assert.equal(
+        hookCallCount,
+        0,
+        "configurationVariables hooks must not run when the env var is set",
+      );
+    } finally {
+      hre.hooks.unregisterHandlers("configurationVariables", handlers);
+      delete process.env.foo;
+    }
+  });
+
+  it("should prefer an empty environment variable over configurationVariables hooks", async () => {
+    let hookCallCount = 0;
+
+    const handlers: Partial<ConfigurationVariableHooks> = {
+      fetchValue: async (_context, _variable, _next) => {
+        hookCallCount++;
+        return "value-from-hook";
+      },
+    };
+
+    hre.hooks.registerHandlers("configurationVariables", handlers);
+
+    try {
+      const variable = new LazyResolvedConfigurationVariable(
+        hre.hooks,
+        configVariable("foo"),
+      );
+
+      process.env.foo = "";
+
+      assert.equal(await variable.get(), "");
+      assert.equal(
+        hookCallCount,
+        0,
+        "an empty env var must still short-circuit the hook chain",
+      );
+    } finally {
+      hre.hooks.unregisterHandlers("configurationVariables", handlers);
+      delete process.env.foo;
+    }
   });
 
   it("should return the value of a configuration variable as a URL", async () => {

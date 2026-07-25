@@ -115,6 +115,15 @@ export class LazyResolvedConfigurationVariable extends BaseResolvedConfiguration
   }
 
   protected async _getRawValue(): Promise<string> {
+    // Env vars take precedence over every configurationVariables plugin hook
+    // (e.g. keystore). Skip the hook chain entirely when the env var is set so
+    // plugins are not consulted and cannot override the env value.
+    // See https://github.com/NomicFoundation/hardhat/issues/7596
+    const envValue = process.env[this.#variable.name];
+    if (typeof envValue === "string") {
+      return envValue;
+    }
+
     const mutex = LazyResolvedConfigurationVariable.#mutexes.get(this.#hooks);
     assertHardhatInvariant(mutex !== undefined, "Mutex must be defined");
 
