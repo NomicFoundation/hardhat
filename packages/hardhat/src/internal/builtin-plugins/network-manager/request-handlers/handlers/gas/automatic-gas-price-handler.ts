@@ -12,7 +12,10 @@ import {
 } from "@nomicfoundation/hardhat-utils/hex";
 import { isObject } from "@nomicfoundation/hardhat-utils/lang";
 
-import { getRequestParams } from "../../../json-rpc.js";
+import {
+  getRequestParams,
+  replaceJsonRpcRequestTx,
+} from "../../../json-rpc.js";
 
 /**
  * This class automatically adjusts transaction requests to include appropriately estimated gas prices.
@@ -72,8 +75,10 @@ export class AutomaticGasPriceHandler implements RequestHandler {
       tx.maxPriorityFeePerGas === undefined &&
       suggestedEip1559Values === undefined
     ) {
-      tx.gasPrice = numberToHexString(await this.#getGasPrice());
-      return jsonRpcRequest;
+      return replaceJsonRpcRequestTx(jsonRpcRequest, {
+        ...tx,
+        gasPrice: numberToHexString(await this.#getGasPrice()),
+      });
     }
 
     // If eth_feeHistory failed, but the user still wants to send an EIP-1559 tx
@@ -101,10 +106,11 @@ export class AutomaticGasPriceHandler implements RequestHandler {
       maxFeePerGas += maxPriorityFeePerGas;
     }
 
-    tx.maxFeePerGas = numberToHexString(maxFeePerGas);
-    tx.maxPriorityFeePerGas = numberToHexString(maxPriorityFeePerGas);
-
-    return jsonRpcRequest;
+    return replaceJsonRpcRequestTx(jsonRpcRequest, {
+      ...tx,
+      maxFeePerGas: numberToHexString(maxFeePerGas),
+      maxPriorityFeePerGas: numberToHexString(maxPriorityFeePerGas),
+    });
   }
 
   async #getGasPrice(): Promise<bigint> {

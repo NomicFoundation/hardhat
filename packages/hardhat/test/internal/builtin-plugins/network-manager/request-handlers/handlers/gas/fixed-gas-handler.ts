@@ -28,8 +28,9 @@ describe("FixedGasHandler", () => {
       },
     ]);
 
-    await fixedGasHandler.handle(jsonRpcRequest);
-    const [tx] = getRequestParams(jsonRpcRequest);
+    const updatedRequest = await fixedGasHandler.handle(jsonRpcRequest);
+    assert.ok(!("result" in updatedRequest) && !("error" in updatedRequest), "expected a JSON-RPC request");
+    const [tx] = getRequestParams(updatedRequest);
 
     assert.ok(isObject(tx), "tx is not an object");
     assert.equal(tx.gas, numberToHexString(FIXED_GAS_LIMIT));
@@ -45,11 +46,33 @@ describe("FixedGasHandler", () => {
       },
     ]);
 
-    await fixedGasHandler.handle(jsonRpcRequest);
-    const [tx] = getRequestParams(jsonRpcRequest);
+    const updatedRequest = await fixedGasHandler.handle(jsonRpcRequest);
+    assert.ok(!("result" in updatedRequest) && !("error" in updatedRequest), "expected a JSON-RPC request");
+    const [tx] = getRequestParams(updatedRequest);
 
     assert.ok(isObject(tx), "tx is not an object");
     assert.equal(tx.gas, 1456);
+  });
+
+  
+  it("should not mutate the original request object", async () => {
+    const jsonRpcRequest = getJsonRpcRequest(1, "eth_sendTransaction", [
+      {
+        from: "0x0000000000000000000000000000000000000011",
+        to: "0x0000000000000000000000000000000000000011",
+        value: 1,
+      },
+    ]);
+
+    const originalParams = structuredClone(jsonRpcRequest.params);
+    const updatedRequest = await fixedGasHandler.handle(jsonRpcRequest);
+
+    assert.deepEqual(jsonRpcRequest.params, originalParams);
+    assert.notEqual(updatedRequest, jsonRpcRequest);
+    assert.ok(!("result" in updatedRequest) && !("error" in updatedRequest), "expected a JSON-RPC request");
+    const [tx] = getRequestParams(updatedRequest);
+    assert.ok(isObject(tx), "tx is not an object");
+    assert.equal(tx.gas, numberToHexString(FIXED_GAS_LIMIT));
   });
 
   it("should forward the other calls and not modify the gas", async () => {
@@ -61,8 +84,9 @@ describe("FixedGasHandler", () => {
       },
     ]);
 
-    await fixedGasHandler.handle(jsonRpcRequest);
-    const [tx] = getRequestParams(jsonRpcRequest);
+    const updatedRequest = await fixedGasHandler.handle(jsonRpcRequest);
+    assert.ok(!("result" in updatedRequest) && !("error" in updatedRequest), "expected a JSON-RPC request");
+    const [tx] = getRequestParams(updatedRequest);
 
     assert.ok(isObject(tx), "tx is not an object");
     assert.equal(tx.gas, undefined);

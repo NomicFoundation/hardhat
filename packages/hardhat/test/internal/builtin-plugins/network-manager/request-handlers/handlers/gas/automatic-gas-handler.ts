@@ -48,8 +48,9 @@ describe("AutomaticGasHandler", () => {
       },
     ]);
 
-    await automaticGasHandler.handle(jsonRpcRequest);
-    const [tx] = getRequestParams(jsonRpcRequest);
+    const updatedRequest = await automaticGasHandler.handle(jsonRpcRequest);
+    assert.ok(!("result" in updatedRequest) && !("error" in updatedRequest), "expected a JSON-RPC request");
+    const [tx] = getRequestParams(updatedRequest);
 
     assert.ok(isObject(tx), "tx is not an object");
     assert.equal(
@@ -74,8 +75,9 @@ describe("AutomaticGasHandler", () => {
       GAS_MULTIPLIER2,
     );
 
-    await automaticGasHandler.handle(jsonRpcRequest);
-    const [tx] = getRequestParams(jsonRpcRequest);
+    const updatedRequest = await automaticGasHandler.handle(jsonRpcRequest);
+    assert.ok(!("result" in updatedRequest) && !("error" in updatedRequest), "expected a JSON-RPC request");
+    const [tx] = getRequestParams(updatedRequest);
 
     assert.ok(isObject(tx), "tx is not an object");
     assert.equal(
@@ -95,8 +97,9 @@ describe("AutomaticGasHandler", () => {
 
     automaticGasHandler = new AutomaticGasHandler(mockedProvider);
 
-    await automaticGasHandler.handle(jsonRpcRequest);
-    const [tx] = getRequestParams(jsonRpcRequest);
+    const updatedRequest = await automaticGasHandler.handle(jsonRpcRequest);
+    assert.ok(!("result" in updatedRequest) && !("error" in updatedRequest), "expected a JSON-RPC request");
+    const [tx] = getRequestParams(updatedRequest);
 
     assert.ok(isObject(tx), "tx is not an object");
     assert.equal(
@@ -115,8 +118,9 @@ describe("AutomaticGasHandler", () => {
       },
     ]);
 
-    await automaticGasHandler.handle(jsonRpcRequest);
-    const [tx] = getRequestParams(jsonRpcRequest);
+    const updatedRequest = await automaticGasHandler.handle(jsonRpcRequest);
+    assert.ok(!("result" in updatedRequest) && !("error" in updatedRequest), "expected a JSON-RPC request");
+    const [tx] = getRequestParams(updatedRequest);
 
     assert.ok(isObject(tx), "tx is not an object");
     assert.equal(tx.gas, 567);
@@ -131,8 +135,9 @@ describe("AutomaticGasHandler", () => {
       },
     ]);
 
-    await automaticGasHandler.handle(jsonRpcRequest);
-    const [tx] = getRequestParams(jsonRpcRequest);
+    const updatedRequest = await automaticGasHandler.handle(jsonRpcRequest);
+    assert.ok(!("result" in updatedRequest) && !("error" in updatedRequest), "expected a JSON-RPC request");
+    const [tx] = getRequestParams(updatedRequest);
 
     assert.ok(isObject(tx), "tx is not an object");
     assert.equal(tx.gas, undefined);

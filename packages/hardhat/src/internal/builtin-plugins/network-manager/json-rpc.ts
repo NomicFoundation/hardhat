@@ -145,3 +145,20 @@ export function getRequestParams(
     HardhatError.ERRORS.CORE.NETWORK.INVALID_REQUEST_PARAMS,
   );
 }
+
+/**
+ * Returns a shallow copy of `jsonRpcRequest` whose first params entry is
+ * replaced with `tx`. Used by request handlers so they can update transaction
+ * fields without mutating the caller's request object.
+ */
+export function replaceJsonRpcRequestTx(
+  jsonRpcRequest: JsonRpcRequest,
+  tx: Record<PropertyKey, any>,
+): JsonRpcRequest {
+  const params = getRequestParams(jsonRpcRequest);
+
+  return {
+    ...jsonRpcRequest,
+    params: [tx, ...params.slice(1)],
+  };
+}

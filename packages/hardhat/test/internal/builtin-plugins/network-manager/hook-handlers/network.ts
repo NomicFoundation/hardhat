@@ -76,6 +76,33 @@ describe("network hook handler", () => {
     assert.equal(provider.getNumberOfCalls("eth_chainId"), 1);
   });
 
+  
+  it("should not mutate the original JSON-RPC request when handlers fill gas fields", async () => {
+    const handlers = await createHandlersFromFactory();
+    const { connection, context, next } = setupRequestMocks({
+      gas: 100n,
+      gasPrice: 200n,
+    });
+
+    const request = {
+      jsonrpc: "2.0" as const,
+      id: 1,
+      method: "eth_sendTransaction",
+      params: [
+        {
+          from: "0x0000000000000000000000000000000000000011",
+          to: "0x0000000000000000000000000000000000000011",
+          value: "0x1",
+        },
+      ],
+    };
+    const originalParams = structuredClone(request.params);
+
+    await handlers.onRequest(context, connection, request, next);
+
+    assert.deepEqual(request.params, originalParams);
+  });
+
   it("should create separate handlers for different connections", async () => {
     const handlers = await createHandlersFromFactory();
     const { context, next } = setupRequestMocks();

@@ -7,7 +7,10 @@ import type { RequestHandler } from "../../types.js";
 
 import { isObject } from "@nomicfoundation/hardhat-utils/lang";
 
-import { getRequestParams } from "../../../json-rpc.js";
+import {
+  getRequestParams,
+  replaceJsonRpcRequestTx,
+} from "../../../json-rpc.js";
 
 import { MultipliedGasEstimation } from "./multiplied-gas-estimation.js";
 
@@ -49,7 +52,10 @@ export class AutomaticGasHandler
     const [tx] = params;
 
     if (isObject(tx) && tx.gas === undefined) {
-      tx.gas = await this.getMultipliedGasEstimation(params);
+      return replaceJsonRpcRequestTx(jsonRpcRequest, {
+        ...tx,
+        gas: await this.getMultipliedGasEstimation(params),
+      });
     }
 
     return jsonRpcRequest;

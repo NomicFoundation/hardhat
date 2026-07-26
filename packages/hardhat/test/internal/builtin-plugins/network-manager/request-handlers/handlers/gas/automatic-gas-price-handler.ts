@@ -39,8 +39,9 @@ describe("AutomaticGasPriceHandler", () => {
         },
       ]);
 
-      await automaticGasPriceHandler.handle(jsonRpcRequest);
-      const [tx] = getRequestParams(jsonRpcRequest);
+      const updatedRequest = await automaticGasPriceHandler.handle(jsonRpcRequest);
+      assert.ok(!("result" in updatedRequest) && !("error" in updatedRequest), "expected a JSON-RPC request");
+      const [tx] = getRequestParams(updatedRequest);
 
       assert.ok(isObject(tx), "tx is not an object");
       assert.equal(tx.gasPrice, 456);
@@ -57,8 +58,9 @@ describe("AutomaticGasPriceHandler", () => {
         },
       ]);
 
-      await automaticGasPriceHandler.handle(jsonRpcRequest);
-      const [tx] = getRequestParams(jsonRpcRequest);
+      const updatedRequest = await automaticGasPriceHandler.handle(jsonRpcRequest);
+      assert.ok(!("result" in updatedRequest) && !("error" in updatedRequest), "expected a JSON-RPC request");
+      const [tx] = getRequestParams(updatedRequest);
 
       assert.ok(isObject(tx), "tx is not an object");
       assert.equal(tx.maxFeePerGas, 456);
@@ -96,8 +98,9 @@ describe("AutomaticGasPriceHandler", () => {
           },
         ]);
 
-        await automaticGasPriceHandler.handle(jsonRpcRequest);
-        const [tx] = getRequestParams(jsonRpcRequest);
+        const updatedRequest = await automaticGasPriceHandler.handle(jsonRpcRequest);
+        assert.ok(!("result" in updatedRequest) && !("error" in updatedRequest), "expected a JSON-RPC request");
+        const [tx] = getRequestParams(updatedRequest);
 
         assert.ok(isObject(tx), "tx is not an object");
         assert.equal(tx.maxPriorityFeePerGas, "0x4");
@@ -114,8 +117,9 @@ describe("AutomaticGasPriceHandler", () => {
           },
         ]);
 
-        await automaticGasPriceHandler.handle(jsonRpcRequest);
-        const [tx] = getRequestParams(jsonRpcRequest);
+        const updatedRequest = await automaticGasPriceHandler.handle(jsonRpcRequest);
+        assert.ok(!("result" in updatedRequest) && !("error" in updatedRequest), "expected a JSON-RPC request");
+        const [tx] = getRequestParams(updatedRequest);
 
         assert.ok(isObject(tx), "tx is not an object");
         assert.equal(tx.maxPriorityFeePerGas, "0x4");
@@ -140,8 +144,9 @@ describe("AutomaticGasPriceHandler", () => {
               ),
         );
 
-        await automaticGasPriceHandler.handle(jsonRpcRequest);
-        const [tx] = getRequestParams(jsonRpcRequest);
+        const updatedRequest = await automaticGasPriceHandler.handle(jsonRpcRequest);
+        assert.ok(!("result" in updatedRequest) && !("error" in updatedRequest), "expected a JSON-RPC request");
+        const [tx] = getRequestParams(updatedRequest);
 
         assert.ok(isObject(tx), "tx is not an object");
         assert.equal(tx.maxPriorityFeePerGas, "0x1");
@@ -185,8 +190,9 @@ describe("AutomaticGasPriceHandler", () => {
               ),
         );
 
-        await automaticGasPriceHandler.handle(jsonRpcRequest);
-        const [tx] = getRequestParams(jsonRpcRequest);
+        const updatedRequest = await automaticGasPriceHandler.handle(jsonRpcRequest);
+        assert.ok(!("result" in updatedRequest) && !("error" in updatedRequest), "expected a JSON-RPC request");
+        const [tx] = getRequestParams(updatedRequest);
 
         assert.ok(isObject(tx), "tx is not an object");
         assert.equal(tx.maxPriorityFeePerGas, "0x1");
@@ -232,8 +238,9 @@ describe("AutomaticGasPriceHandler", () => {
               ),
         );
 
-        await automaticGasPriceHandler.handle(jsonRpcRequest);
-        const [tx] = getRequestParams(jsonRpcRequest);
+        const updatedRequest = await automaticGasPriceHandler.handle(jsonRpcRequest);
+        assert.ok(!("result" in updatedRequest) && !("error" in updatedRequest), "expected a JSON-RPC request");
+        const [tx] = getRequestParams(updatedRequest);
 
         assert.ok(isObject(tx), "tx is not an object");
         assert.equal(tx.maxPriorityFeePerGas, "0x12");
@@ -282,8 +289,9 @@ describe("AutomaticGasPriceHandler", () => {
           },
         ]);
 
-        await automaticGasPriceHandler.handle(jsonRpcRequest);
-        const [tx] = getRequestParams(jsonRpcRequest);
+        const updatedRequest = await automaticGasPriceHandler.handle(jsonRpcRequest);
+        assert.ok(!("result" in updatedRequest) && !("error" in updatedRequest), "expected a JSON-RPC request");
+        const [tx] = getRequestParams(updatedRequest);
 
         assert.ok(isObject(tx), "tx is not an object");
         assert.equal(tx.gasPrice, numberToHexString(FIXED_GAS_PRICE));
@@ -299,8 +307,9 @@ describe("AutomaticGasPriceHandler", () => {
           },
         ]);
 
-        await automaticGasPriceHandler.handle(jsonRpcRequest);
-        const [tx] = getRequestParams(jsonRpcRequest);
+        const updatedRequest = await automaticGasPriceHandler.handle(jsonRpcRequest);
+        assert.ok(!("result" in updatedRequest) && !("error" in updatedRequest), "expected a JSON-RPC request");
+        const [tx] = getRequestParams(updatedRequest);
 
         assert.ok(isObject(tx), "tx is not an object");
         assert.equal(
@@ -320,8 +329,9 @@ describe("AutomaticGasPriceHandler", () => {
           },
         ]);
 
-        await automaticGasPriceHandler.handle(jsonRpcRequest);
-        const [tx] = getRequestParams(jsonRpcRequest);
+        const updatedRequest = await automaticGasPriceHandler.handle(jsonRpcRequest);
+        assert.ok(!("result" in updatedRequest) && !("error" in updatedRequest), "expected a JSON-RPC request");
+        const [tx] = getRequestParams(updatedRequest);
 
         assert.ok(isObject(tx), "tx is not an object");
         assert.equal(

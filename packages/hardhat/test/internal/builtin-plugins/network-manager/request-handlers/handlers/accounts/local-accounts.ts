@@ -478,14 +478,15 @@ describe("LocalAccountsHandler", () => {
             tx,
           ]);
 
-          await localAccountsHandler.handle(jsonRpcRequest);
+          const updatedRequest = await localAccountsHandler.handle(jsonRpcRequest);
 
+          assert.ok(!("result" in updatedRequest) && !("error" in updatedRequest), "expected a JSON-RPC request");
           assert.ok(
-            Array.isArray(jsonRpcRequest.params),
+            Array.isArray(updatedRequest.params),
             "params should be an array",
           );
 
-          const rawTransaction = hexStringToBytes(jsonRpcRequest.params[0]);
+          const rawTransaction = hexStringToBytes(updatedRequest.params[0]);
           // The tx type is encoded in the first byte, and it must be the EIP-1559 one
           assert.equal(rawTransaction[0], 2);
         });
@@ -529,7 +530,7 @@ describe("LocalAccountsHandler", () => {
         },
       ]);
 
-      await localAccountsHandler.handle(jsonRpcRequest);
+      const updatedRequest = await localAccountsHandler.handle(jsonRpcRequest);
 
       // This transaction was submitted to a blockchain and accepted, so the signature must be valid
       const expectedRaw =
@@ -538,7 +539,10 @@ describe("LocalAccountsHandler", () => {
         "adc1a53a3ebe8c4d1f0aa06aebf2fbbe82703e5075965c65c776a9caeeff4b637f203" +
         "d65383e1ed2e22654";
 
-      assert.deepEqual(jsonRpcRequest, {
+
+      assert.ok(!("result" in updatedRequest) && !("error" in updatedRequest), "expected a JSON-RPC request");
+
+      assert.deepEqual(updatedRequest, {
         jsonrpc: "2.0",
         id: 1,
         method: "eth_sendRawTransaction",
@@ -560,14 +564,15 @@ describe("LocalAccountsHandler", () => {
 
       const jsonRpcRequest = getJsonRpcRequest(1, "eth_sendTransaction", [tx]);
 
-      await localAccountsHandler.handle(jsonRpcRequest);
+      const updatedRequest = await localAccountsHandler.handle(jsonRpcRequest);
 
+      assert.ok(!("result" in updatedRequest) && !("error" in updatedRequest), "expected a JSON-RPC request");
       assert.ok(
-        Array.isArray(jsonRpcRequest.params),
+        Array.isArray(updatedRequest.params),
         "params should be an array",
       );
 
-      const rawTransaction = hexStringToBytes(jsonRpcRequest.params[0]);
+      const rawTransaction = hexStringToBytes(updatedRequest.params[0]);
 
       // The tx type is encoded in the first byte, and it must be the EIP-1559 one
       assert.equal(rawTransaction[0], 2);
@@ -596,14 +601,15 @@ describe("LocalAccountsHandler", () => {
 
       const jsonRpcRequest = getJsonRpcRequest(1, "eth_sendTransaction", [tx]);
 
-      await localAccountsHandler.handle(jsonRpcRequest);
+      const updatedRequest = await localAccountsHandler.handle(jsonRpcRequest);
 
+      assert.ok(!("result" in updatedRequest) && !("error" in updatedRequest), "expected a JSON-RPC request");
       assert.ok(
-        Array.isArray(jsonRpcRequest.params),
+        Array.isArray(updatedRequest.params),
         "params should be an array",
       );
 
-      const rawTransaction = jsonRpcRequest.params[0];
+      const rawTransaction = updatedRequest.params[0];
 
       const expectedRaw =
         "0x04f8ca7b80843b9aca008502540be400830186a094f39fd6e51aad88f6" +
@@ -631,14 +637,15 @@ describe("LocalAccountsHandler", () => {
 
       const jsonRpcRequest = getJsonRpcRequest(1, "eth_sendTransaction", [tx]);
 
-      await localAccountsHandler.handle(jsonRpcRequest);
+      const updatedRequest = await localAccountsHandler.handle(jsonRpcRequest);
 
+      assert.ok(!("result" in updatedRequest) && !("error" in updatedRequest), "expected a JSON-RPC request");
       assert.ok(
-        Array.isArray(jsonRpcRequest.params),
+        Array.isArray(updatedRequest.params),
         "params should be an array",
       );
 
-      const rawTransaction = jsonRpcRequest.params[0];
+      const rawTransaction = updatedRequest.params[0];
 
       const expectedRaw =
         "0x02f8517b80020c830186a08001821234c080a0299e6b620a0a42fa7d56" +
@@ -662,14 +669,15 @@ describe("LocalAccountsHandler", () => {
 
       const jsonRpcRequest = getJsonRpcRequest(1, "eth_sendTransaction", [tx]);
 
-      await localAccountsHandler.handle(jsonRpcRequest);
+      const updatedRequest = await localAccountsHandler.handle(jsonRpcRequest);
 
+      assert.ok(!("result" in updatedRequest) && !("error" in updatedRequest), "expected a JSON-RPC request");
       assert.ok(
-        Array.isArray(jsonRpcRequest.params),
+        Array.isArray(updatedRequest.params),
         "params should be an array",
       );
 
-      const rawTransaction = jsonRpcRequest.params[0];
+      const rawTransaction = updatedRequest.params[0];
 
       const expectedRaw =
         "0x02f8637b80020c830186a094b5bc06d4548a3ac17d72b372ae1e416bf6" +
@@ -751,14 +759,15 @@ describe("LocalAccountsHandler", () => {
 
       const jsonRpcRequest = getJsonRpcRequest(1, "eth_sendTransaction", [tx]);
 
-      await localAccountsHandler.handle(jsonRpcRequest);
+      const updatedRequest = await localAccountsHandler.handle(jsonRpcRequest);
 
+      assert.ok(!("result" in updatedRequest) && !("error" in updatedRequest), "expected a JSON-RPC request");
       assert.ok(
-        Array.isArray(jsonRpcRequest.params),
+        Array.isArray(updatedRequest.params),
         "params should be an array",
       );
 
-      const rawTransaction = jsonRpcRequest.params[0];
+      const rawTransaction = updatedRequest.params[0];
 
       assert.equal(rawTransaction, EXPECTED_RAW_TX);
 
@@ -785,14 +794,15 @@ describe("LocalAccountsHandler", () => {
 
       const jsonRpcRequest = getJsonRpcRequest(1, "eth_sendTransaction", [tx]);
 
-      await localAccountsHandler.handle(jsonRpcRequest);
+      const updatedRequest = await localAccountsHandler.handle(jsonRpcRequest);
 
+      assert.ok(!("result" in updatedRequest) && !("error" in updatedRequest), "expected a JSON-RPC request");
       assert.ok(
-        Array.isArray(jsonRpcRequest.params),
+        Array.isArray(updatedRequest.params),
         "params should be an array",
       );
 
-      const rawTransaction = jsonRpcRequest.params[0];
+      const rawTransaction = updatedRequest.params[0];
 
       assert.equal(rawTransaction, EXPECTED_RAW_TX);
 
@@ -812,14 +822,15 @@ describe("LocalAccountsHandler", () => {
       };
       const jsonRpcRequest = getJsonRpcRequest(1, "eth_sendTransaction", [tx]);
 
-      await localAccountsHandler.handle(jsonRpcRequest);
+      const updatedRequest = await localAccountsHandler.handle(jsonRpcRequest);
 
+      assert.ok(!("result" in updatedRequest) && !("error" in updatedRequest), "expected a JSON-RPC request");
       assert.ok(
-        Array.isArray(jsonRpcRequest.params),
+        Array.isArray(updatedRequest.params),
         "params should be an array",
       );
 
-      const rawTransaction = jsonRpcRequest.params[0];
+      const rawTransaction = updatedRequest.params[0];
 
       // BigInt(2 ** 32) is 0x + 100000000
       const expectedRaw =
@@ -979,9 +990,10 @@ describe("LocalAccountsHandler", () => {
 
       const jsonRpcRequest = { ...originalJsonRpcRequest };
 
-      await localAccountsHandler.handle(jsonRpcRequest);
+      const updatedRequest = await localAccountsHandler.handle(jsonRpcRequest);
 
-      assert.deepEqual(jsonRpcRequest, originalJsonRpcRequest);
+      assert.ok(!("result" in updatedRequest) && !("error" in updatedRequest), "expected a JSON-RPC request");
+      assert.deepEqual(updatedRequest, originalJsonRpcRequest);
     });
 
     it("should not modify the json rpc request if no address is given", async () => {
@@ -989,9 +1001,10 @@ describe("LocalAccountsHandler", () => {
 
       const jsonRpcRequest = { ...originalJsonRpcRequest };
 
-      await localAccountsHandler.handle(jsonRpcRequest);
+      const updatedRequest = await localAccountsHandler.handle(jsonRpcRequest);
 
-      assert.deepEqual(jsonRpcRequest, originalJsonRpcRequest);
+      assert.ok(!("result" in updatedRequest) && !("error" in updatedRequest), "expected a JSON-RPC request");
+      assert.deepEqual(updatedRequest, originalJsonRpcRequest);
     });
 
     it("should not modify the json rpc request if the address isn't one of the local ones", async () => {
@@ -1003,9 +1016,10 @@ describe("LocalAccountsHandler", () => {
 
       const jsonRpcRequest = { ...originalJsonRpcRequest };
 
-      await localAccountsHandler.handle(jsonRpcRequest);
+      const updatedRequest = await localAccountsHandler.handle(jsonRpcRequest);
 
-      assert.deepEqual(jsonRpcRequest, originalJsonRpcRequest);
+      assert.ok(!("result" in updatedRequest) && !("error" in updatedRequest), "expected a JSON-RPC request");
+      assert.deepEqual(updatedRequest, originalJsonRpcRequest);
     });
   });
 });

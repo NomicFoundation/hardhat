@@ -47,9 +47,9 @@ describe("AutomaticSenderHandler", function () {
   it("should set the from value into the transaction", async () => {
     const jsonRpcRequest = getJsonRpcRequest(1, "eth_sendTransaction", [tx]);
 
-    await automaticSenderHandler.handle(jsonRpcRequest);
-
-    const [requestTx] = getRequestParams(jsonRpcRequest);
+    const updatedRequest = await automaticSenderHandler.handle(jsonRpcRequest);
+    assert.ok(!("result" in updatedRequest) && !("error" in updatedRequest), "expected a JSON-RPC request");
+    const [requestTx] = getRequestParams(updatedRequest);
     assert.ok(isObject(requestTx), "tx is not an object");
     assert.equal(requestTx.from, "0x123006d4548a3ac17d72b372ae1e416bf65b8eaf");
   });
@@ -59,9 +59,9 @@ describe("AutomaticSenderHandler", function () {
 
     const jsonRpcRequest = getJsonRpcRequest(1, "eth_sendTransaction", [tx]);
 
-    await automaticSenderHandler.handle(jsonRpcRequest);
-
-    const [requestTx] = getRequestParams(jsonRpcRequest);
+    const updatedRequest = await automaticSenderHandler.handle(jsonRpcRequest);
+    assert.ok(!("result" in updatedRequest) && !("error" in updatedRequest), "expected a JSON-RPC request");
+    const [requestTx] = getRequestParams(updatedRequest);
     assert.ok(isObject(requestTx), "tx is not an object");
     assert.equal(requestTx.from, "0x000006d4548a3ac17d72b372ae1e416bf65b8ead");
   });
@@ -113,9 +113,9 @@ describe("AutomaticSenderHandler", function () {
 
     const jsonRpcRequest = getJsonRpcRequest(1, "eth_call", [tx]);
 
-    await automaticSenderHandler.handle(jsonRpcRequest);
-
-    const [requestTx] = getRequestParams(jsonRpcRequest);
+    const updatedRequest = await automaticSenderHandler.handle(jsonRpcRequest);
+    assert.ok(!("result" in updatedRequest) && !("error" in updatedRequest), "expected a JSON-RPC request");
+    const [requestTx] = getRequestParams(updatedRequest);
     assert.ok(isObject(requestTx), "tx is not an object");
     assert.equal(requestTx.value, "asd");
   });

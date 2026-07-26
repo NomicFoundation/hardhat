@@ -78,9 +78,7 @@ export class LocalAccountsHandler extends ChainId implements RequestHandler {
       return response;
     }
 
-    await this.#modifyRequest(jsonRpcRequest);
-
-    return jsonRpcRequest;
+    return await this.#modifyRequest(jsonRpcRequest);
   }
 
   async #getAddressesAndPrivateKeysMap(): Promise<{
@@ -219,11 +217,18 @@ export class LocalAccountsHandler extends ChainId implements RequestHandler {
     return null;
   }
 
-  async #modifyRequest(jsonRpcRequest: JsonRpcRequest): Promise<void> {
+  async #modifyRequest(
+    jsonRpcRequest: JsonRpcRequest,
+  ): Promise<JsonRpcRequest> {
     const params = getRequestParams(jsonRpcRequest);
 
     if (jsonRpcRequest.method === "eth_sendTransaction" && params.length > 0) {
-      const [txRequest] = validateParams(params, rpcTransactionRequest);
+      const [validatedTxRequest] = validateParams(
+        params,
+        rpcTransactionRequest,
+      );
+      // Copy so nonce backfill does not mutate the caller's transaction object.
+      const txRequest = { ...validatedTxRequest };
 
       if (txRequest.gas === undefined) {
         throw new HardhatError(
@@ -291,9 +296,14 @@ export class LocalAccountsHandler extends ChainId implements RequestHandler {
         privateKey,
       );
 
-      jsonRpcRequest.method = "eth_sendRawTransaction";
-      jsonRpcRequest.params = [bytesToHexString(rawTransaction)];
+      return {
+        ...jsonRpcRequest,
+        method: "eth_sendRawTransaction",
+        params: [bytesToHexString(rawTransaction)],
+      };
     }
+
+    return jsonRpcRequest;
   }
 
   async #initializeAddressesFromPrivateKeys(

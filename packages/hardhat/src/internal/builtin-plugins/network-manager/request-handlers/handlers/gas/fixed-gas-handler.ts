@@ -7,7 +7,10 @@ import type { PrefixedHexString } from "@nomicfoundation/hardhat-utils/hex";
 
 import { isObject } from "@nomicfoundation/hardhat-utils/lang";
 
-import { getRequestParams } from "../../../json-rpc.js";
+import {
+  getRequestParams,
+  replaceJsonRpcRequestTx,
+} from "../../../json-rpc.js";
 
 /**
  * This class ensures that a fixed gas is applied to transaction requests.
@@ -37,7 +40,10 @@ export class FixedGasHandler implements RequestHandler {
     const [tx] = params;
 
     if (isObject(tx) && tx.gas === undefined) {
-      tx.gas = this.#gas;
+      return replaceJsonRpcRequestTx(jsonRpcRequest, {
+        ...tx,
+        gas: this.#gas,
+      });
     }
 
     return jsonRpcRequest;
