@@ -13,6 +13,21 @@ import {
   type PackageJson,
 } from "@nomicfoundation/hardhat-utils/package";
 
+// Directories that may exist inside a template dir (build/tooling output,
+// dependencies) but are never part of the template itself. They are all
+// gitignored in the templates, but `getAllFilesMatching` does not honor
+// .gitignore, so we must exclude them explicitly.
+const IGNORED_TEMPLATE_DIRS = new Set([
+  "node_modules",
+  "artifacts",
+  "cache",
+  "types",
+  "dist",
+  "bundle",
+  "coverage",
+  "snapshots",
+]);
+
 /**
  * This type describes a hardhat project template. It consists of:
  * - name: The name of the template;
@@ -34,11 +49,9 @@ export interface Template {
  *
  * @returns The list of available templates.
  */
-export async function getTemplates(
-  templatesDir: "hardhat-2" | "hardhat-3",
-): Promise<Template[]> {
+export async function getTemplates(): Promise<Template[]> {
   const packageRoot = await findClosestPackageRoot(import.meta.url);
-  const pathToTemplates = path.join(packageRoot, "templates", templatesDir);
+  const pathToTemplates = path.join(packageRoot, "templates");
 
   const pathsToTemplates = await readdirOrEmpty(pathToTemplates);
   pathsToTemplates.sort();
@@ -77,7 +90,7 @@ export async function getTemplates(
           }
           return true;
         },
-        (dir) => path.basename(dir) !== "node_modules",
+        (dir) => !IGNORED_TEMPLATE_DIRS.has(path.basename(dir)),
       );
 
       const files = matchingFiles.map((f) => path.relative(pathToTemplate, f));

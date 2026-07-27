@@ -984,6 +984,85 @@ describe("solidity - hooks", () => {
       });
     });
 
+    describe("on unified-sources-tests-overlap-project", () => {
+      useFixtureProject("solidity/unified-sources-tests-overlap-project");
+
+      // This project lists `test` in both `paths.sources.solidity` and (by
+      // default) `paths.tests.solidity`. Plain `.sol` files under `test/` are
+      // source contracts and must reach the hook so their TypeChain factories
+      // are generated; only Foundry-style `.t.sol` files stay filtered out.
+      it("should treat sources-scope files under the tests path as contracts", async () => {
+        let capturedArtifactPaths: readonly string[] | undefined;
+
+        const plugin: HardhatPlugin = {
+          id: "test-sources-tests-overlap-plugin",
+          hookHandlers: {
+            solidity: async () => ({
+              default: async () => {
+                const handlers: Partial<SolidityHooks> = {
+                  processArtifactsAfterSuccessfulBuild: async (
+                    _context: HookContext,
+                    artifactPaths: readonly string[],
+                    _buildRootFilePaths: readonly string[],
+                    _buildOptions: Readonly<ResolvedBuildOptions>,
+                  ) => {
+                    capturedArtifactPaths = artifactPaths;
+                  },
+                };
+
+                return handlers;
+              },
+            }),
+          },
+        };
+
+        const hre = await createHardhatRuntimeEnvironment({
+          plugins: [plugin],
+          solidity: "0.8.23",
+          paths: { sources: { solidity: ["contracts", "test"] } },
+        });
+
+        const roots = await hre.solidity.getRootFilePaths();
+
+        await hre.solidity.build(roots, {
+          force: true,
+          quiet: true,
+          cleanupArtifacts: true,
+        });
+
+        assert.ok(
+          capturedArtifactPaths !== undefined,
+          "hook should have fired",
+        );
+        const paths = capturedArtifactPaths ?? [];
+
+        const containsCounter = paths.some((p) =>
+          p.endsWith(`${path.sep}Counter.json`),
+        );
+        assert.ok(
+          containsCounter,
+          `expected Counter.json to be present, got: ${paths.join(", ")}`,
+        );
+
+        const containsHelperTest = paths.some((p) =>
+          p.includes(`${path.sep}Helper.t.sol${path.sep}`),
+        );
+        assert.equal(
+          containsHelperTest,
+          false,
+          `expected .t.sol test artifacts to be filtered out, got: ${paths.join(", ")}`,
+        );
+
+        const containsMock = paths.some((p) =>
+          p.includes(`${path.sep}Mock.sol${path.sep}`),
+        );
+        assert.ok(
+          containsMock,
+          `expected the test/ mock artifact (Mock.sol) to be present, got: ${paths.join(", ")}`,
+        );
+      });
+    });
+
     describe("with splitTestsCompilation", () => {
       useFixtureProject("solidity/simple-project");
 

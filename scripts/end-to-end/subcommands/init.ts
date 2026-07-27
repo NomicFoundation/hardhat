@@ -129,18 +129,27 @@ function setupScenario(scenario: Scenario, forceCheckout: ForceCheckout): void {
   const { scenarioDir, workingDir, definition } = scenario;
   const submodules = definition.submodules ?? false;
 
+  // commit: pin exactly; branch: track the latest remote tip (detached).
+  const { fetchRef, checkoutRef } =
+    definition.branch !== undefined
+      ? {
+          fetchRef: definition.branch,
+          checkoutRef: `origin/${definition.branch}`,
+        }
+      : { fetchRef: definition.commit, checkoutRef: definition.commit };
+
   if (!existsSync(workingDir)) {
     // Fresh clone flow
     clone(workingDir, definition.repo);
-    checkout(workingDir, definition.commit, forceCheckout);
+    checkout(workingDir, checkoutRef, forceCheckout);
 
     if (submodules) {
       updateSubmodules(workingDir);
     }
   } else {
     // Re-init flow
-    fetch(workingDir, definition.repo, definition.commit);
-    checkout(workingDir, definition.commit, forceCheckout);
+    fetch(workingDir, definition.repo, fetchRef);
+    checkout(workingDir, checkoutRef, forceCheckout);
     clean(workingDir);
 
     if (submodules) {
@@ -318,14 +327,19 @@ function clone(scenarioWorkingDir: string, repo: string): void {
   );
 }
 
-function fetch(scenarioWorkingDir: string, repo: string, commit: string): void {
+function fetch(scenarioWorkingDir: string, repo: string, ref: string): void {
   logStep(`Fetching ${repo}`);
 
-  // Fetch the specific commit by SHA so that the checkout below succeeds even
-  // if the commit is no longer the tip of any branch (e.g. after a force-push
-  // that orphaned the previously-fetched commits, or when the SHA points at
-  // an intermediate commit on a long-lived branch).
-  git(["fetch", "origin", commit], scenarioWorkingDir);
+  // `ref` is either a commit SHA or a branch name:
+  //
+  // - SHA: fetching the specific commit makes the checkout below succeed even
+  //   if the commit is no longer the tip of any branch (e.g. after a
+  //   force-push that orphaned the previously-fetched commits, or when the
+  //   SHA points at an intermediate commit on a long-lived branch).
+  // - branch: the default clone refspec force-updates
+  //   `refs/remotes/origin/<branch>`, so the subsequent detached checkout of
+  //   `origin/<branch>` lands on the latest remote tip.
+  git(["fetch", "origin", ref], scenarioWorkingDir);
 }
 
 function updateSubmodules(scenarioWorkingDir: string): void {
@@ -336,12 +350,12 @@ function updateSubmodules(scenarioWorkingDir: string): void {
 
 function checkout(
   scenarioWorkingDir: string,
-  commit: string,
+  ref: string,
   force: ForceCheckout,
 ): void {
-  logStep(`Checking out ${commit}`);
+  logStep(`Checking out ${ref}`);
 
-  const args = ["checkout", commit];
+  const args = ["checkout", ref];
   if (force === ForceCheckout.Yes) {
     args.push("--force");
   }

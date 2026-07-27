@@ -1,6 +1,6 @@
 {
   "name": "@nomicfoundation/hardhat-utils",
-  "version": "4.1.5",
+  "version": "4.1.6",
   "description": "Utilities for Hardhat and its plugins",
   "homepage": "https://github.com/NomicFoundation/hardhat/tree/main/packages/hardhat-utils",
   "repository": {
@@ -21,6 +21,7 @@
     "./date": "./dist/src/date.js",
     "./debug": "./dist/src/debug.js",
     "./env": "./dist/src/env.js",
+    "./environment": "./dist/src/environment.js",
     "./error": "./dist/src/error.js",
     "./eth": "./dist/src/eth.js",
     "./fast-semver": "./dist/src/fast-semver.js",

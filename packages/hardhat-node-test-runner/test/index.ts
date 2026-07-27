@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import path from "node:path";
 import { describe, it } from "node:test";
 import { fileURLToPath } from "node:url";
+import { stripVTControlCharacters } from "node:util";
 
 import { overrideTask } from "hardhat/config";
 import { createHardhatRuntimeEnvironment } from "hardhat/hre";
@@ -56,6 +57,37 @@ describe("Hardhat Node plugin", () => {
       0,
       `hardhat test nodejs failed (exit ${String(exitCode)}):\n--- stdout ---\n${stdout}\n--- stderr ---\n${stderr}`,
     );
+  });
+
+  // TODO: enable as soon as the bug in node grep is fixed
+  describe.skip("grep filtering", () => {
+    it("runs only the tests whose name matches --grep", async () => {
+      // The fixture defines `keep_alpha` (passes) and `drop_beta` (throws if it
+      // runs). With `--grep keep_alpha`, only `keep_alpha` should run, so the
+      // CLI must exit 0. If the filter were ignored, `drop_beta` would also run
+      // and fail, and the CLI would exit non-zero.
+      const { exitCode, stdout, stderr } = await runHardhatTest(
+        path.join(FIXTURES_DIR, "grep-filtering"),
+        {},
+        ["--grep", "keep_alpha"],
+      );
+
+      assert.equal(
+        exitCode,
+        0,
+        `expected only 'keep_alpha' to run under '--grep keep_alpha', but the run failed (exit ${String(exitCode)}) — 'drop_beta' was likely not filtered out:\n--- stdout ---\n${stdout}\n--- stderr ---\n${stderr}`,
+      );
+
+      // Guard against the filter matching *nothing*: if `keep_alpha` were also
+      // filtered out, zero tests would run and the CLI would still exit 0,
+      // making the exit-code check above a false positive. Assert that at least
+      // one test actually ran and passed.
+      assert.match(
+        stripVTControlCharacters(stdout + stderr),
+        /\b[1-9]\d* passing\b/,
+        `expected at least one test ('keep_alpha') to run under '--grep keep_alpha', but the reporter showed none passing:\n--- stdout ---\n${stdout}\n--- stderr ---\n${stderr}`,
+      );
+    });
   });
 
   describe("build invocation", () => {

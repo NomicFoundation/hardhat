@@ -1,7 +1,9 @@
 import type { HardhatRuntimeEnvironment, TaskArguments } from "hardhat/types";
 
 import assert from "node:assert/strict";
+import path from "node:path";
 import { describe, it } from "node:test";
+import { fileURLToPath } from "node:url";
 
 import { HardhatError } from "@nomicfoundation/hardhat-errors";
 import {
@@ -13,6 +15,12 @@ import { overrideTask } from "hardhat/config";
 import { createHardhatRuntimeEnvironment } from "hardhat/hre";
 
 import HardhatMochaPlugin from "../src/index.js";
+
+import { runHardhatTest } from "./helpers/run-hardhat.js";
+
+const FIXTURES_DIR = fileURLToPath(
+  new URL("./fixture-projects", import.meta.url),
+);
 
 describe("Hardhat Mocha plugin", () => {
   describe("Success", () => {
@@ -33,6 +41,51 @@ describe("Hardhat Mocha plugin", () => {
           summary: { failed: 0, passed: 2, skipped: 0, todo: 0 },
         },
       });
+    });
+  });
+
+  describe("grep filtering", () => {
+    // The fixture defines `keep_alpha` (passes) and `drop_beta` (throws if it
+    // runs). With `--grep keep_alpha`, only `keep_alpha` should run, so the CLI
+    // must exit 0. If the filter were ignored, `drop_beta` would also run and
+    // fail, and the CLI would exit non-zero.
+    //
+    // The fixture reads `test.mocha.parallel` from the `HH_MOCHA_PARALLEL` env
+    // var (the task has no CLI flag for it), so the same fixture exercises grep
+    // in both execution paths: sequential (in-process) and parallel (Mocha
+    // worker processes).
+    async function assertGrepRunsOnlyKeepAlpha(
+      envOverrides: NodeJS.ProcessEnv,
+    ) {
+      const { exitCode, stdout, stderr } = await runHardhatTest(
+        path.join(FIXTURES_DIR, "grep-filtering"),
+        envOverrides,
+        ["--grep", "keep_alpha"],
+      );
+
+      assert.equal(
+        exitCode,
+        0,
+        `expected only 'keep_alpha' to run under '--grep keep_alpha', but the run failed (exit ${String(exitCode)}) — 'drop_beta' was likely not filtered out:\n--- stdout ---\n${stdout}\n--- stderr ---\n${stderr}`,
+      );
+
+      // Guard against the filter matching *nothing*: if `keep_alpha` were also
+      // filtered out, zero tests would run and the CLI would still exit 0,
+      // making the exit-code check above a false positive. Assert that at least
+      // one test actually ran and passed.
+      assert.match(
+        stdout + stderr,
+        /\b[1-9]\d* passing\b/,
+        `expected at least one test ('keep_alpha') to run under '--grep keep_alpha', but the reporter showed none passing:\n--- stdout ---\n${stdout}\n--- stderr ---\n${stderr}`,
+      );
+    }
+
+    it("runs only the tests whose name matches --grep (sequential)", async () => {
+      await assertGrepRunsOnlyKeepAlpha({ HH_MOCHA_PARALLEL: "false" });
+    });
+
+    it("runs only the tests whose name matches --grep (parallel)", async () => {
+      await assertGrepRunsOnlyKeepAlpha({ HH_MOCHA_PARALLEL: "true" });
     });
   });
 
