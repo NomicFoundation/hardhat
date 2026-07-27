@@ -2,9 +2,9 @@
   "$schema": "./scripts/peer-bumps.schema.json",
   "excludedFolders": [
     "archive",
+    "packages/config",
     "packages/example-project",
-    "packages/hardhat/templates",
-    "packages/config"
+    "packages/hardhat/templates"
   ],
   "bumps": []
 }
