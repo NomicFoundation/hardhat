@@ -209,13 +209,10 @@ const runSolidityTests: NewTaskActionFunction<TestActionArguments> = async (
 
   // Maps non-relative Solidity imports (as written) to absolute paths, so EDR
   // can follow the test sources' imports while parsing inline test
-  // configuration. Built from the test roots' dependency graph, which is the
-  // transitive closure of what those sources import.
+  // configuration.
   //
-  // NOTE: This rebuilds the dependency graph that the preceding `build`
-  // already computed internally. It's the cost of the current build-system
-  // API not surfacing that graph; if that becomes a bottleneck, the graph
-  // should be threaded out of the build instead of rebuilt here.
+  // NOTE: This rebuilds a dependency graph that the preceding `build` already
+  // computed internally, because the build-system API doesn't expose it.
   const testDependencyGraph = await buildDependencyGraph(
     testRootPathsToRun.toSorted(),
     hre.config.paths.root,

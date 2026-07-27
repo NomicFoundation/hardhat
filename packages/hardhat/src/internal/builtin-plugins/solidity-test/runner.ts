@@ -14,6 +14,7 @@ import { ensureError } from "@nomicfoundation/hardhat-utils/error";
 
 import { hardhatChainTypeToEdrChainType } from "../../edr/chain-type.js";
 import { getGlobalEdrContext } from "../../edr/context.js";
+import { HARDHAT_PROJECT_INPUT_SOURCE_NAME_ROOT } from "../solidity/constants.js";
 
 import { formatArtifactId } from "./formatters.js";
 
@@ -100,21 +101,15 @@ export function run(
     } catch (error) {
       ensureError(error);
 
-      // Inline-config parsing/validation failures are user errors. EDR marks
-      // them by attaching a structured `inlineConfigErrors` array to the
-      // rejection, and its message already renders every problem located by
-      // source, line, and function. Report that as a Hardhat error instead of
-      // as an unhandled EDR error, mapping solc source names back to the
-      // user's source names.
+      // Errors in the user's inline test config are marked by EDR with an
+      // `inlineConfigErrors` property. Report them as a dedicated Hardhat
+      // error instead of as an unhandled EDR error.
       if ("inlineConfigErrors" in error) {
         stream.destroy(
           new HardhatError(
             HardhatError.ERRORS.CORE.SOLIDITY_TESTS.INVALID_INLINE_CONFIG,
             {
-              errors: formatInlineConfigErrorMessage(
-                error.message,
-                sourceNameToUserSourceName,
-              ),
+              errors: formatInlineConfigErrorMessage(error.message),
             },
           ),
         );
@@ -136,21 +131,14 @@ export function run(
 }
 
 /**
- * Prepares EDR's inline-config error message for display: drops its summary
- * heading (the first line — the Hardhat error provides its own) and replaces
- * solc source names with the user's source names.
+ * Cleans up EDR's inline-config error message for display: removes its
+ * heading line and turns internal source names into user-facing paths.
  */
-function formatInlineConfigErrorMessage(
-  message: string,
-  sourceNameToUserSourceName: Map<string, string>,
-): string {
-  const newlineIndex = message.indexOf("\n");
-  let details =
-    newlineIndex === -1 ? message : message.substring(newlineIndex + 1);
-
-  for (const [sourceName, userSourceName] of sourceNameToUserSourceName) {
-    details = details.replaceAll(sourceName, userSourceName);
-  }
-
-  return details;
+function formatInlineConfigErrorMessage(message: string): string {
+  return message
+    .substring(message.indexOf("\n") + 1)
+    .replaceAll(
+      new RegExp(`^(\\s*)${HARDHAT_PROJECT_INPUT_SOURCE_NAME_ROOT}/`, "gm"),
+      "$1",
+    );
 }
