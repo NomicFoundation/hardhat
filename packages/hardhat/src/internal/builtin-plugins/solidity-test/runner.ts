@@ -201,10 +201,30 @@ export function run(
   return stream;
 }
 
+const INLINE_CONFIG_SOURCE_PROBLEM_KINDS = new Set([
+  "InlineConfigInvalidSolcVersion",
+  "InlineConfigSourceFileNotFound",
+  "InlineConfigDirectiveLocation",
+]);
+
+const INLINE_CONFIG_DIRECTIVE_PROBLEM_KINDS = new Set([
+  "InlineConfigInvalidSyntax",
+  "InlineConfigUnsupportedProfile",
+  "InlineConfigInvalidKey",
+  "InlineConfigInvalidKeyForTestType",
+  "InlineConfigInvalidValue",
+  "InlineConfigDuplicateKey",
+]);
+
 /**
  * Returns the structured inline-config problems EDR attaches to a rejected
  * `runSolidityTests` promise, or `undefined` if the error isn't an
  * inline-config failure.
+ *
+ * The entries are validated against the locally mirrored types: if the EDR in
+ * use reports a shape or problem kind we don't know about (e.g. a newer EDR
+ * paired with an older Hardhat), we return `undefined` so the caller falls
+ * back to the generic EDR error, which still carries the error's message.
  */
 function getInlineConfigErrors(error: Error): InlineConfigError[] | undefined {
   if (!("inlineConfigErrors" in error)) {
@@ -212,11 +232,44 @@ function getInlineConfigErrors(error: Error): InlineConfigError[] | undefined {
   }
 
   const { inlineConfigErrors } = error;
-  if (Array.isArray(inlineConfigErrors) && inlineConfigErrors.length > 0) {
+  if (
+    Array.isArray(inlineConfigErrors) &&
+    inlineConfigErrors.length > 0 &&
+    inlineConfigErrors.every(isInlineConfigError)
+  ) {
     return inlineConfigErrors;
   }
 
   return undefined;
+}
+
+function isInlineConfigError(value: unknown): value is InlineConfigError {
+  if (typeof value !== "object" || value === null) {
+    return false;
+  }
+
+  if (!("kind" in value) || !("problem" in value)) {
+    return false;
+  }
+
+  const { kind, problem } = value;
+  if (
+    typeof problem !== "object" ||
+    problem === null ||
+    !("kind" in problem) ||
+    typeof problem.kind !== "string"
+  ) {
+    return false;
+  }
+
+  switch (kind) {
+    case "source":
+      return INLINE_CONFIG_SOURCE_PROBLEM_KINDS.has(problem.kind);
+    case "directive":
+      return INLINE_CONFIG_DIRECTIVE_PROBLEM_KINDS.has(problem.kind);
+    default:
+      return false;
+  }
 }
 
 /**
