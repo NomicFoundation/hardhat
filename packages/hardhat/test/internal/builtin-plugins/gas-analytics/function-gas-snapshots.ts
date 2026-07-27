@@ -17,6 +17,7 @@ import {
 import {
   FileNotFoundError,
   readUtf8File,
+  writeUtf8File,
 } from "@nomicfoundation/hardhat-utils/fs";
 
 import {
@@ -292,6 +293,22 @@ MyContract#testTransfer (gas: 25000)`;
       const readSnapshots = await readFunctionGasSnapshots(tmp.path);
 
       assert.deepEqual(readSnapshots, snapshots);
+    });
+
+    it("should read Forge-format snapshots from file", async () => {
+      const forgeContent = "MyContract:testTransfer (gas: 25000)";
+      const snapshotPath = getFunctionGasSnapshotsPath(tmp.path);
+      await writeUtf8File(snapshotPath, forgeContent);
+
+      const readSnapshots = await readFunctionGasSnapshots(tmp.path);
+
+      assert.equal(readSnapshots.length, 1);
+      assert.equal(readSnapshots[0].contractNameOrFqn, "MyContract");
+      assert.equal(readSnapshots[0].functionSig, "testTransfer");
+      assert.equal(readSnapshots[0].gasUsage.kind, "standard");
+      if (readSnapshots[0].gasUsage.kind === "standard") {
+        assert.equal(readSnapshots[0].gasUsage.gas, 25000n);
+      }
     });
 
     it("should throw FileNotFoundError when file doesn't exist", async () => {
@@ -574,9 +591,67 @@ MyContract#testB (gas: 20000)`;
           file: FUNCTION_GAS_SNAPSHOTS_FILE,
           line: stringified,
           expectedFormat:
-            "'ContractName#functionName (gas: value)' for standard tests or 'ContractName#functionName (runs: value, μ: value, ~: value)' for fuzz tests",
+            "'ContractName#functionName (gas: value)' or 'ContractName:functionName (gas: value)' for standard tests, or the same with '(runs: value, μ: value, ~: value)' for fuzz tests",
         },
       );
+    });
+
+    it("should parse Forge-format standard test snapshots with colon separator", () => {
+      const stringified = "MyContract:testTransfer (gas: 25000)";
+
+      const snapshots = parseFunctionGasSnapshots(stringified);
+
+      assert.equal(snapshots.length, 1);
+      assert.equal(snapshots[0].contractNameOrFqn, "MyContract");
+      assert.equal(snapshots[0].functionSig, "testTransfer");
+      assert.equal(snapshots[0].gasUsage.kind, "standard");
+      if (snapshots[0].gasUsage.kind === "standard") {
+        assert.equal(snapshots[0].gasUsage.gas, 25000n);
+      }
+    });
+
+    it("should parse Forge-format fuzz test snapshots with colon separator", () => {
+      const stringified =
+        "FuzzContract:testFuzzTransfer (runs: 100, μ: 25000, ~: 24500)";
+
+      const snapshots = parseFunctionGasSnapshots(stringified);
+
+      assert.equal(snapshots.length, 1);
+      assert.equal(snapshots[0].contractNameOrFqn, "FuzzContract");
+      assert.equal(snapshots[0].functionSig, "testFuzzTransfer");
+      assert.equal(snapshots[0].gasUsage.kind, "fuzz");
+      if (snapshots[0].gasUsage.kind === "fuzz") {
+        assert.equal(snapshots[0].gasUsage.runs, 100n);
+        assert.equal(snapshots[0].gasUsage.meanGas, 25000n);
+        assert.equal(snapshots[0].gasUsage.medianGas, 24500n);
+      }
+    });
+
+    it("should parse Forge-format snapshots with FQN contract names", () => {
+      const stringified = `contracts/Token.sol:Token:testTransfer (gas: 25000)
+contracts/legacy/Token.sol:Token:testLegacyTransfer (gas: 30000)`;
+
+      const snapshots = parseFunctionGasSnapshots(stringified);
+
+      assert.equal(snapshots.length, 2);
+      assert.equal(snapshots[0].contractNameOrFqn, "contracts/Token.sol:Token");
+      assert.equal(snapshots[0].functionSig, "testTransfer");
+      assert.equal(
+        snapshots[1].contractNameOrFqn,
+        "contracts/legacy/Token.sol:Token",
+      );
+      assert.equal(snapshots[1].functionSig, "testLegacyTransfer");
+    });
+
+    it("should parse snapshots with mixed Hardhat and Forge separators", () => {
+      const stringified = `MyContract#testA (gas: 10000)
+MyContract:testB (gas: 20000)`;
+
+      const snapshots = parseFunctionGasSnapshots(stringified);
+
+      assert.equal(snapshots.length, 2);
+      assert.equal(snapshots[0].functionSig, "testA");
+      assert.equal(snapshots[1].functionSig, "testB");
     });
   });
 
@@ -810,6 +885,37 @@ MyContract#testB (gas: 20000)`;
           metadata: {
             source: "test/source/path.sol",
           },
+        },
+      ];
+
+      const result = compareFunctionGasSnapshots(previous, current);
+
+      assert.equal(result.added.length, 0);
+      assert.equal(result.removed.length, 0);
+      assert.equal(result.changed.length, 0);
+    });
+
+    it("should pass when Forge-format baseline matches Hardhat run with only separator difference", () => {
+      const previous = parseFunctionGasSnapshots(
+        "MyContract:testTransfer (gas: 25000)\nFuzzContract:testFuzz (runs: 100, μ: 25000, ~: 24500)",
+      );
+      const current: FunctionGasSnapshotWithMetadata[] = [
+        {
+          contractNameOrFqn: "MyContract",
+          functionSig: "testTransfer",
+          gasUsage: { kind: "standard", gas: 25000n },
+          metadata: { source: "contracts/MyContract.sol" },
+        },
+        {
+          contractNameOrFqn: "FuzzContract",
+          functionSig: "testFuzz",
+          gasUsage: {
+            kind: "fuzz",
+            runs: 100n,
+            meanGas: 25000n,
+            medianGas: 24500n,
+          },
+          metadata: { source: "contracts/FuzzContract.sol" },
         },
       ];
 

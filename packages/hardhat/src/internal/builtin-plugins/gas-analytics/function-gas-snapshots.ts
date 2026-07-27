@@ -189,8 +189,9 @@ export function parseFunctionGasSnapshots(
   const lines = stringifiedSnapshots.split("\n");
   const snapshots: FunctionGasSnapshot[] = [];
 
-  const standardTestRegex = /^(.+)#(.+) \(gas: (\d+)\)$/;
-  const fuzzTestRegex = /^(.+)#(.+) \(runs: (\d+), μ: (\d+), ~: (\d+)\)$/;
+  // Accept both Hardhat (`#`) and Forge (`:`) separators when reading snapshots.
+  const standardTestRegex = /^(.+)[#:](.+) \(gas: (\d+)\)$/;
+  const fuzzTestRegex = /^(.+)[#:](.+) \(runs: (\d+), μ: (\d+), ~: (\d+)\)$/;
 
   for (const line of lines) {
     if (line.trim() === "") {
@@ -231,7 +232,7 @@ export function parseFunctionGasSnapshots(
         file: FUNCTION_GAS_SNAPSHOTS_FILE,
         line,
         expectedFormat:
-          "'ContractName#functionName (gas: value)' for standard tests or 'ContractName#functionName (runs: value, μ: value, ~: value)' for fuzz tests",
+          "'ContractName#functionName (gas: value)' or 'ContractName:functionName (gas: value)' for standard tests, or the same with '(runs: value, μ: value, ~: value)' for fuzz tests",
       },
     );
   }
