@@ -43,15 +43,6 @@ interface SolidityTestConfigParams {
   importMappings?: Record<string, string>;
 }
 
-// EDR gained `testSourcePaths` and `importMappings` (used to parse inline test
-// configuration from the sources) on the branch this build targets, but the
-// npm-pinned `@nomicfoundation/edr` types don't declare them yet. Extend the
-// type locally until a release carrying the fields is pinned.
-type SolidityTestRunnerConfigArgsWithSources = SolidityTestRunnerConfigArgs & {
-  testSourcePaths?: Record<string, string>;
-  importMappings?: Record<string, string>;
-};
-
 export async function solidityTestConfigToSolidityTestRunnerConfigArgs({
   chainType,
   projectRoot,
@@ -64,7 +55,7 @@ export async function solidityTestConfigToSolidityTestRunnerConfigArgs({
   eip712CanonicalTypes,
   testSourcePaths,
   importMappings,
-}: SolidityTestConfigParams): Promise<SolidityTestRunnerConfigArgsWithSources> {
+}: SolidityTestConfigParams): Promise<SolidityTestRunnerConfigArgs> {
   const fsPermissions: PathPermission[] | undefined = [
     config.fsPermissions?.readWriteFile?.map((p) => ({
       access: FsAccessPermission.ReadWriteFile,
