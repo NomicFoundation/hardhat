@@ -39,6 +39,7 @@ import {
 } from "./edr-artifacts.js";
 import { collectEip712CanonicalTypes } from "./eip712/index.js";
 import {
+  buildInfoContainsInlineConfig,
   isTestSuiteArtifact,
   warnDeprecatedTestFail,
   solidityTestConfigToSolidityTestRunnerConfigArgs,
@@ -198,28 +199,45 @@ const runSolidityTests: NewTaskActionFunction<TestActionArguments> = async (
     ({ edrArtifact }) => edrArtifact.id,
   );
 
-  // Maps each test suite's solc source name to its absolute path on disk, so
-  // EDR can read and parse inline test configuration directly from the sources.
-  const testSourcePaths = Object.fromEntries(
-    testSuiteArtifacts.map(({ userSourceName, edrArtifact }) => [
-      edrArtifact.id.source,
-      resolveFromRoot(hre.config.paths.root, userSourceName),
-    ]),
-  );
+  // The inputs EDR needs to parse inline test configuration. When they are
+  // undefined, EDR doesn't collect any inline configuration.
+  let testSourcePaths: Record<string, string> | undefined;
+  let importMappings: Record<string, string> | undefined;
 
-  // Maps non-relative Solidity imports (as written) to absolute paths, so EDR
-  // can follow the test sources' imports while parsing inline test
-  // configuration.
-  //
-  // NOTE: This rebuilds a dependency graph that the preceding `build` already
-  // computed internally, because the build-system API doesn't expose it.
-  const testDependencyGraph = await buildDependencyGraph(
-    testRootPathsToRun.toSorted(),
-    hre.config.paths.root,
-    readSourceFileFactory(hre.hooks),
-    hre.hooks,
-  );
-  const importMappings = buildImportMappings(testDependencyGraph);
+  // Building the import mappings requires rebuilding the dependency graph,
+  // which is expensive, so we only do it if some compiled source contains an
+  // inline config directive prefix.
+  if (
+    testSuiteArtifacts.length > 0 &&
+    allBuildInfosAndOutputs.some(({ buildInfo }) =>
+      buildInfoContainsInlineConfig(buildInfo),
+    )
+  ) {
+    // Maps each test suite's solc source name to its absolute path on disk, so
+    // EDR can read and parse inline test configuration directly from the
+    // sources.
+    testSourcePaths = Object.fromEntries(
+      testSuiteArtifacts.map(({ userSourceName, edrArtifact }) => [
+        edrArtifact.id.source,
+        resolveFromRoot(hre.config.paths.root, userSourceName),
+      ]),
+    );
+
+    // Maps non-relative Solidity imports (as written) to absolute paths, so
+    // EDR can follow the test sources' imports while parsing inline test
+    // configuration.
+    //
+    // NOTE: This rebuilds a dependency graph that the preceding `build`
+    // already computed internally, because the build-system API doesn't
+    // expose it.
+    const testDependencyGraph = await buildDependencyGraph(
+      testRootPathsToRun.toSorted(),
+      hre.config.paths.root,
+      readSourceFileFactory(hre.hooks),
+      hre.hooks,
+    );
+    importMappings = buildImportMappings(testDependencyGraph);
+  }
 
   console.log("Running Solidity tests");
   console.log();
