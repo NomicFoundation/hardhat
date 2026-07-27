@@ -199,23 +199,22 @@ const runSolidityTests: NewTaskActionFunction<TestActionArguments> = async (
     ({ edrArtifact }) => edrArtifact.id,
   );
 
-  // The inputs EDR needs to parse inline test configuration. When they are
-  // undefined, EDR doesn't collect any inline configuration.
+  // The inputs EDR needs to parse inline test configuration. When undefined,
+  // EDR doesn't collect any inline configuration.
   let testSourcePaths: Record<string, string> | undefined;
   let importMappings: Record<string, string> | undefined;
 
   // Building the import mappings requires rebuilding the dependency graph,
-  // which is expensive, so we only do it if some compiled source contains an
-  // inline config directive prefix.
+  // which is expensive, so we skip it unless some compiled source may contain
+  // an inline config directive.
   if (
     testSuiteArtifacts.length > 0 &&
     allBuildInfosAndOutputs.some(({ buildInfo }) =>
       buildInfoContainsInlineConfig(buildInfo),
     )
   ) {
-    // Maps each test suite's solc source name to its absolute path on disk, so
-    // EDR can read and parse inline test configuration directly from the
-    // sources.
+    // Maps each test suite's solc source name to its absolute path on disk,
+    // so EDR can read the inline test configuration from the sources.
     testSourcePaths = Object.fromEntries(
       testSuiteArtifacts.map(({ userSourceName, edrArtifact }) => [
         edrArtifact.id.source,
@@ -223,13 +222,11 @@ const runSolidityTests: NewTaskActionFunction<TestActionArguments> = async (
       ]),
     );
 
-    // Maps non-relative Solidity imports (as written) to absolute paths, so
-    // EDR can follow the test sources' imports while parsing inline test
-    // configuration.
+    // Maps non-relative imports (as written) to absolute paths, so EDR can
+    // follow the test sources' imports while parsing inline configuration.
     //
-    // NOTE: This rebuilds a dependency graph that the preceding `build`
-    // already computed internally, because the build-system API doesn't
-    // expose it.
+    // NOTE: This rebuilds a dependency graph the preceding `build` already
+    // computed internally, because the build-system API doesn't expose it.
     const testDependencyGraph = await buildDependencyGraph(
       testRootPathsToRun.toSorted(),
       hre.config.paths.root,

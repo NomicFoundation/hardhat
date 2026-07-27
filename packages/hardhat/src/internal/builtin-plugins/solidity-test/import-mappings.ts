@@ -4,12 +4,12 @@ import type { Remapping } from "../solidity/build-system/resolver/types.js";
 import { parseRemappingString } from "../solidity/build-system/resolver/remappings.js";
 
 /**
- * Builds a map from import paths, as they are written in the Solidity sources
- * (e.g. `forge-std/src/Test.sol`), to the file paths on disk they point to.
+ * Builds a map from import paths as written in the Solidity sources
+ * (e.g. `forge-std/src/Test.sol`) to the file paths on disk they point to.
  *
- * EDR uses this map to resolve non-relative imports when parsing inline test
- * configuration, as it looks up import paths by exact string match and doesn't
- * apply remappings itself. Relative imports don't need an entry here.
+ * EDR uses it to resolve non-relative imports when parsing inline test
+ * configuration, as it looks paths up by exact string match and doesn't apply
+ * remappings itself. Relative imports don't need an entry.
  */
 export function buildImportMappings(
   dependencyGraph: DependencyGraph,

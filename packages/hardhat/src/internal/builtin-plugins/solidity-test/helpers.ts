@@ -171,23 +171,19 @@ export async function solidityTestConfigToSolidityTestRunnerConfigArgs({
   };
 }
 
-const INLINE_CONFIG_PREFIXES = ["hardhat-config:", "forge-config:"];
+// Shared suffix of the inline config directive prefixes (`hardhat-config:`
+// and `forge-config:`). Scanning for it once is cheaper than scanning per
+// prefix; false positives are rare and harmless.
+const INLINE_CONFIG_PREFIX_SUFFIX = "-config:";
 
 /**
- * Returns true if the build info bytes contain either of the inline config
- * directive prefixes.
- *
- * This is used as a fast bail-out: preparing the inline config inputs for EDR
- * (test source paths and import mappings) requires rebuilding the dependency
- * graph, which is expensive, so we skip it when no compiled source can
- * contain inline configuration.
+ * Returns true if the build info bytes may contain an inline config directive.
+ * False positives are possible; false negatives are not.
  */
 export function buildInfoContainsInlineConfig(
   buildInfoBytes: Uint8Array,
 ): boolean {
-  return INLINE_CONFIG_PREFIXES.some((prefix) =>
-    bytesIncludesUtf8String(buildInfoBytes, prefix),
-  );
+  return bytesIncludesUtf8String(buildInfoBytes, INLINE_CONFIG_PREFIX_SUFFIX);
 }
 
 export function isTestSuiteArtifact(artifact: Artifact): boolean {

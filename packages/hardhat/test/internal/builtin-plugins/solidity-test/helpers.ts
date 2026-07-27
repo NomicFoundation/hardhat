@@ -518,4 +518,13 @@ describe("buildInfoContainsInlineConfig", () => {
       false,
     );
   });
+
+  it("may return false positives for other text ending in -config:", () => {
+    assert.equal(
+      buildInfoContainsInlineConfig(
+        encode('{"sources":{"A.sol":"// see my-config: docs"}}'),
+      ),
+      true,
+    );
+  });
 });

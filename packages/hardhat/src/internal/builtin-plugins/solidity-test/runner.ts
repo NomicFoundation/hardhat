@@ -101,9 +101,9 @@ export function run(
     } catch (error) {
       ensureError(error);
 
-      // Errors in the user's inline test config are marked by EDR with an
+      // EDR marks errors in the user's inline test config with an
       // `inlineConfigErrors` property. Report them as a dedicated Hardhat
-      // error instead of as an unhandled EDR error.
+      // error instead of an unhandled EDR error.
       if ("inlineConfigErrors" in error) {
         stream.destroy(
           new HardhatError(
