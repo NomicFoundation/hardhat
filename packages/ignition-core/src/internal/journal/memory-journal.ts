@@ -14,8 +14,7 @@ export class MemoryJournal implements Journal {
 
   constructor(
     private readonly _executionEventListener?:
-      | ExecutionEventListener
-      | undefined,
+      ExecutionEventListener | undefined,
   ) {}
 
   public async record(message: JournalMessage): Promise<void> {

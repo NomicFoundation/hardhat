@@ -159,8 +159,7 @@ class IgnitionModuleBuilderImplementation<
   ModuleIdT extends string,
   ResultsContractNameT extends string,
   IgnitionModuleResultsT extends IgnitionModuleResult<ResultsContractNameT>,
-> implements IgnitionModuleBuilder
-{
+> implements IgnitionModuleBuilder {
   private readonly _futureIds: Set<string>;
 
   constructor(
@@ -712,18 +711,14 @@ class IgnitionModuleBuilderImplementation<
   public contractAt<ContractNameT extends string>(
     contractName: ContractNameT,
     address:
-      | string
-      | AddressResolvableFuture
-      | ModuleParameterRuntimeValue<string>,
+      string | AddressResolvableFuture | ModuleParameterRuntimeValue<string>,
     options?: ContractAtOptions,
   ): NamedArtifactContractAtFuture<ContractNameT>;
   public contractAt(
     contractName: string,
     artifact: Artifact,
     address:
-      | string
-      | AddressResolvableFuture
-      | ModuleParameterRuntimeValue<string>,
+      string | AddressResolvableFuture | ModuleParameterRuntimeValue<string>,
     options?: ContractAtOptions,
   ): ContractAtFuture;
   public contractAt<ContractNameT extends string>(
@@ -748,13 +743,11 @@ class IgnitionModuleBuilderImplementation<
     }
 
     if (isArtifactType(addressOrArtifact)) {
-      if (
-        !(
-          typeof optionsOrAddress === "string" ||
-          isFuture(optionsOrAddress) ||
-          isModuleParameterRuntimeValue(optionsOrAddress)
-        )
-      ) {
+      if (!(
+        typeof optionsOrAddress === "string" ||
+        isFuture(optionsOrAddress) ||
+        isModuleParameterRuntimeValue(optionsOrAddress)
+      )) {
         this._throwErrorWithStackTrace(
           `Invalid parameter "address" provided to contractAt "${contractName}" in module "${this._module.id}"`,
           this.contractAt,
@@ -779,9 +772,7 @@ class IgnitionModuleBuilderImplementation<
   private _namedArtifactContractAt<ContractNameT extends string>(
     contractName: ContractNameT,
     address:
-      | string
-      | AddressResolvableFuture
-      | ModuleParameterRuntimeValue<string>,
+      string | AddressResolvableFuture | ModuleParameterRuntimeValue<string>,
     options: ContractAtOptions = {},
   ): NamedArtifactContractAtFuture<ContractNameT> {
     const futureId = toContractFutureId(
@@ -826,9 +817,7 @@ class IgnitionModuleBuilderImplementation<
     contractName: string,
     artifact: Artifact,
     address:
-      | string
-      | AddressResolvableFuture
-      | ModuleParameterRuntimeValue<string>,
+      string | AddressResolvableFuture | ModuleParameterRuntimeValue<string>,
     options: ContractAtOptions = {},
   ): ContractAtFuture {
     const futureId = toContractFutureId(

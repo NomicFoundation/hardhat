@@ -75,7 +75,8 @@ describe("HardhatError helpers", () => {
         assert.throws(() => {
           assertIsHardhatError(
             new HardhatError(
-              HardhatError.ERRORS.CORE.TASK_DEFINITIONS.UNRECOGNIZED_TASK_OPTION,
+              HardhatError.ERRORS.CORE.TASK_DEFINITIONS
+                .UNRECOGNIZED_TASK_OPTION,
               { option: "foo", task: "bar" },
               new Error("cause"),
             ),
@@ -90,7 +91,8 @@ describe("HardhatError helpers", () => {
         assert.throws(() => {
           assertIsHardhatError(
             new HardhatError(
-              HardhatError.ERRORS.CORE.TASK_DEFINITIONS.UNRECOGNIZED_TASK_OPTION,
+              HardhatError.ERRORS.CORE.TASK_DEFINITIONS
+                .UNRECOGNIZED_TASK_OPTION,
               { option: "foo", task: "bar" },
             ),
             HardhatError.ERRORS.CORE.TASK_DEFINITIONS.UNRECOGNIZED_TASK_OPTION,
@@ -118,7 +120,8 @@ describe("HardhatError helpers", () => {
         assertThrowsHardhatError(
           () => {
             throw new HardhatError(
-              HardhatError.ERRORS.CORE.TASK_DEFINITIONS.UNRECOGNIZED_TASK_OPTION,
+              HardhatError.ERRORS.CORE.TASK_DEFINITIONS
+                .UNRECOGNIZED_TASK_OPTION,
               { option: "foo", task: "bar" },
             );
           },
@@ -144,7 +147,8 @@ describe("HardhatError helpers", () => {
         assertThrowsHardhatError(
           () => {
             throw new HardhatError(
-              HardhatError.ERRORS.CORE.TASK_DEFINITIONS.UNRECOGNIZED_TASK_OPTION,
+              HardhatError.ERRORS.CORE.TASK_DEFINITIONS
+                .UNRECOGNIZED_TASK_OPTION,
               { option: "foo", task: "bar" },
               new Error("cause"),
             );
@@ -186,7 +190,8 @@ describe("HardhatError helpers", () => {
         assertRejectsWithHardhatError(
           async () => {
             throw new HardhatError(
-              HardhatError.ERRORS.CORE.TASK_DEFINITIONS.UNRECOGNIZED_TASK_OPTION,
+              HardhatError.ERRORS.CORE.TASK_DEFINITIONS
+                .UNRECOGNIZED_TASK_OPTION,
               { option: "foo", task: "bar" },
             );
           },
@@ -199,7 +204,8 @@ describe("HardhatError helpers", () => {
         assertRejectsWithHardhatError(
           Promise.reject(
             new HardhatError(
-              HardhatError.ERRORS.CORE.TASK_DEFINITIONS.UNRECOGNIZED_TASK_OPTION,
+              HardhatError.ERRORS.CORE.TASK_DEFINITIONS
+                .UNRECOGNIZED_TASK_OPTION,
               { option: "foo", task: "bar" },
             ),
           ),
@@ -225,7 +231,8 @@ describe("HardhatError helpers", () => {
         await assertRejectsWithHardhatError(
           async () => {
             throw new HardhatError(
-              HardhatError.ERRORS.CORE.TASK_DEFINITIONS.UNRECOGNIZED_TASK_OPTION,
+              HardhatError.ERRORS.CORE.TASK_DEFINITIONS
+                .UNRECOGNIZED_TASK_OPTION,
               { option: "foo", task: "bar" },
               new Error("cause"),
             );

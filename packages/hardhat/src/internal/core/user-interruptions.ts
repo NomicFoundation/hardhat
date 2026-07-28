@@ -7,9 +7,7 @@ import { styleText } from "node:util";
 import { assertHardhatInvariant } from "@nomicfoundation/hardhat-errors";
 import { AsyncMutex } from "@nomicfoundation/hardhat-utils/synchronization";
 
-export class UserInterruptionManagerImplementation
-  implements UserInterruptionManager
-{
+export class UserInterruptionManagerImplementation implements UserInterruptionManager {
   readonly #hooks;
   readonly #mutex = new AsyncMutex();
 

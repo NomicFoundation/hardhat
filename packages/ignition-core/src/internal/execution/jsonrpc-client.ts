@@ -45,8 +45,10 @@ export interface TransactionParams {
 /**
  * The params to estimate the gas of a transaction.
  */
-export interface EstimateGasParams
-  extends Omit<TransactionParams, "gasLimit" | "fees"> {
+export interface EstimateGasParams extends Omit<
+  TransactionParams,
+  "gasLimit" | "fees"
+> {
   fees?: NetworkFees;
 }
 
@@ -219,7 +221,8 @@ export class EIP1193JsonRpcClient implements JsonRpcClient {
       maxFees > this._config.maxFeePerGasLimit
     ) {
       throw new HardhatError(
-        HardhatError.ERRORS.IGNITION.EXECUTION.MAX_FEE_PER_GAS_EXCEEDS_GAS_LIMIT,
+        HardhatError.ERRORS.IGNITION.EXECUTION
+          .MAX_FEE_PER_GAS_EXCEEDS_GAS_LIMIT,
       );
     }
 
@@ -627,7 +630,7 @@ export class EIP1193JsonRpcClient implements JsonRpcClient {
 
     const contractAddress =
       status === TransactionReceiptStatus.SUCCESS
-        ? response.contractAddress ?? undefined
+        ? (response.contractAddress ?? undefined)
         : undefined;
 
     return {

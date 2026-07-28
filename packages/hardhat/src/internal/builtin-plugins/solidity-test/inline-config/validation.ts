@@ -66,7 +66,8 @@ export function validateInlineOverrides(overrides: RawInlineOverride[]): void {
           .join(", ");
 
         throw new HardhatError(
-          HardhatError.ERRORS.CORE.SOLIDITY_TESTS.INLINE_CONFIG_INVALID_KEY_FOR_TEST_TYPE,
+          HardhatError.ERRORS.CORE.SOLIDITY_TESTS
+            .INLINE_CONFIG_INVALID_KEY_FOR_TEST_TYPE,
           {
             key: rawKey,
             functionFqn,

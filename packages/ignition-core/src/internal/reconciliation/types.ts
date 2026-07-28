@@ -23,8 +23,7 @@ export interface ReconciliationFutureResultFailure {
 }
 
 export type ReconciliationFutureResult =
-  | ReconciliationFutureResultSuccess
-  | ReconciliationFutureResultFailure;
+  ReconciliationFutureResultSuccess | ReconciliationFutureResultFailure;
 
 export interface ReconciliationResult {
   reconciliationFailures: ReconciliationFailure[];

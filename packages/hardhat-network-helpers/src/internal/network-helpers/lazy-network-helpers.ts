@@ -15,9 +15,9 @@ import { Duration } from "./duration/duration.js";
 
 let NetworkHelpersImpl: typeof NetworkHelpersModule.NetworkHelpers | undefined;
 
-export class LazyNetworkHelpers<ChainTypeT extends ChainType | string>
-  implements NetworkHelpersI<ChainTypeT>
-{
+export class LazyNetworkHelpers<
+  ChainTypeT extends ChainType | string,
+> implements NetworkHelpersI<ChainTypeT> {
   readonly #connection: NetworkConnection<ChainTypeT>;
   #impl: NetworkHelpersModule.NetworkHelpers<ChainTypeT> | undefined;
 
@@ -129,9 +129,8 @@ export class LazyNetworkHelpers<ChainTypeT extends ChainType | string>
 
   async #getImpl(): Promise<NetworkHelpersModule.NetworkHelpers<ChainTypeT>> {
     if (NetworkHelpersImpl === undefined) {
-      ({ NetworkHelpers: NetworkHelpersImpl } = await import(
-        "./network-helpers.js"
-      ));
+      ({ NetworkHelpers: NetworkHelpersImpl } =
+        await import("./network-helpers.js"));
     }
 
     if (this.#impl === undefined) {

@@ -39,8 +39,7 @@ describe("hardhat-solx optimizer mode reaches the solc input", () => {
     const solcInput = await job.getSolcInput();
 
     const optimizer = solcInput.settings.optimizer as
-      | { mode?: string }
-      | undefined;
+      { mode?: string } | undefined;
     assert.equal(
       optimizer?.mode,
       "1",

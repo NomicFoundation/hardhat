@@ -163,7 +163,8 @@ const runSolidityTests: NewTaskActionFunction<TestActionArguments> = async (
 
       if (notCompiledFiles.length > 0) {
         throw new HardhatError(
-          HardhatError.ERRORS.CORE.SOLIDITY_TESTS.SELECTED_TEST_FILES_NOT_COMPILED,
+          HardhatError.ERRORS.CORE.SOLIDITY_TESTS
+            .SELECTED_TEST_FILES_NOT_COMPILED,
           {
             files: notCompiledFiles.map((f) => `- ${f}`).join("\n"),
           },
@@ -416,7 +417,8 @@ async function validateThatProvidedFilesAreTests(
 
   if (nonTests.length > 0) {
     throw new HardhatError(
-      HardhatError.ERRORS.CORE.SOLIDITY_TESTS.SELECTED_FILES_ARE_NOT_SOLIDITY_TESTS,
+      HardhatError.ERRORS.CORE.SOLIDITY_TESTS
+        .SELECTED_FILES_ARE_NOT_SOLIDITY_TESTS,
       {
         files: nonTests.map((f) => `- ${f}`).join("\n"),
       },

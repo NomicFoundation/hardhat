@@ -205,8 +205,7 @@ export interface NetworkInteractionRequestMessage {
   type: JournalMessageType.NETWORK_INTERACTION_REQUEST;
   futureId: string;
   networkInteraction:
-    | OnchainInteractionRequest
-    | Omit<Required<StaticCallRequest>, "result">;
+    OnchainInteractionRequest | Omit<Required<StaticCallRequest>, "result">;
 }
 
 export interface TransactionPrepareSendMessage {

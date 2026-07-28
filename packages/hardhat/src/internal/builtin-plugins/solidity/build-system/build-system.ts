@@ -1364,7 +1364,8 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
       [partialCompilerConfig],
       async () => {
         throw new HardhatError(
-          HardhatError.ERRORS.CORE.SOLIDITY.BUILD_INFO_COMPILER_TYPE_NOT_HANDLED,
+          HardhatError.ERRORS.CORE.SOLIDITY
+            .BUILD_INFO_COMPILER_TYPE_NOT_HANDLED,
           {
             compilerType,
             version: buildInfo.solcVersion,

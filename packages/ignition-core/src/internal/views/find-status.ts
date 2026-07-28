@@ -79,9 +79,7 @@ export function findStatus(
 function canTimeout(
   exState: ExecutionState,
 ): exState is
-  | DeploymentExecutionState
-  | CallExecutionState
-  | SendDataExecutionState {
+  DeploymentExecutionState | CallExecutionState | SendDataExecutionState {
   return (
     exState.type === ExecutionSateType.DEPLOYMENT_EXECUTION_STATE ||
     exState.type === ExecutionSateType.CALL_EXECUTION_STATE ||

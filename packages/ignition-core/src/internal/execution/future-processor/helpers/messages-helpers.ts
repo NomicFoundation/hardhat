@@ -73,13 +73,9 @@ export function createExecutionStateCompleteMessage(
  */
 export function createExecutionStateCompleteMessageForExecutionsWithOnchainInteractions(
   exState:
-    | DeploymentExecutionState
-    | CallExecutionState
-    | SendDataExecutionState,
+    DeploymentExecutionState | CallExecutionState | SendDataExecutionState,
   result:
-    | DeploymentExecutionResult
-    | CallExecutionResult
-    | SendDataExecutionResult,
+    DeploymentExecutionResult | CallExecutionResult | SendDataExecutionResult,
 ):
   | DeploymentExecutionStateCompleteMessage
   | CallExecutionStateCompleteMessage

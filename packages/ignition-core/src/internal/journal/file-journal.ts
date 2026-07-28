@@ -20,8 +20,7 @@ export class FileJournal implements Journal {
   constructor(
     private readonly _filePath: string,
     private readonly _executionEventListener?:
-      | ExecutionEventListener
-      | undefined,
+      ExecutionEventListener | undefined,
   ) {}
 
   public async record(message: JournalMessage): Promise<void> {

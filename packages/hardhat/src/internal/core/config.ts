@@ -30,7 +30,8 @@ export function configVariable(
 ): ConfigurationVariable {
   if (!format.includes(CONFIGURATION_VARIABLE_MARKER)) {
     throw new HardhatError(
-      HardhatError.ERRORS.CORE.GENERAL.CONFIG_VARIABLE_FORMAT_MUST_INCLUDE_VARIABLE,
+      HardhatError.ERRORS.CORE.GENERAL
+        .CONFIG_VARIABLE_FORMAT_MUST_INCLUDE_VARIABLE,
       { format, marker: CONFIGURATION_VARIABLE_MARKER },
     );
   }

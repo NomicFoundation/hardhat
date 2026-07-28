@@ -31,9 +31,7 @@ import {
   validatePositionalArgument,
 } from "./validations.js";
 
-export class EmptyTaskDefinitionBuilderImplementation
-  implements EmptyTaskDefinitionBuilder
-{
+export class EmptyTaskDefinitionBuilderImplementation implements EmptyTaskDefinitionBuilder {
   readonly #id: string[];
 
   readonly #description: string;
@@ -56,12 +54,9 @@ export class EmptyTaskDefinitionBuilderImplementation
 
 export class NewTaskDefinitionBuilderImplementation<
   TaskArgumentsT extends TaskArguments = TaskArguments,
-  ActionTypeT extends
-    | "LAZY_ACTION"
-    | "INLINE_ACTION"
-    | "MISSING_ACTION" = "MISSING_ACTION",
-> implements NewTaskDefinitionBuilder<TaskArgumentsT, ActionTypeT>
-{
+  ActionTypeT extends "LAZY_ACTION" | "INLINE_ACTION" | "MISSING_ACTION" =
+    "MISSING_ACTION",
+> implements NewTaskDefinitionBuilder<TaskArgumentsT, ActionTypeT> {
   readonly #id: string[];
   readonly #usedNames: Set<string> = new Set();
 
@@ -280,8 +275,7 @@ export class NewTaskDefinitionBuilderImplementation<
     description?: string;
     type?: TypeT;
     defaultValue?:
-      | ArgumentTypeToValueType<TypeT>
-      | Array<ArgumentTypeToValueType<TypeT>>;
+      ArgumentTypeToValueType<TypeT> | Array<ArgumentTypeToValueType<TypeT>>;
     isVariadic: boolean;
   }): NewTaskDefinitionBuilder<
     ExtendTaskArguments<NameT, TypeT, TaskArgumentsT>,
@@ -330,12 +324,9 @@ export class NewTaskDefinitionBuilderImplementation<
 
 export class TaskOverrideDefinitionBuilderImplementation<
   TaskArgumentsT extends TaskArguments = TaskArguments,
-  ActionTypeT extends
-    | "LAZY_ACTION"
-    | "INLINE_ACTION"
-    | "MISSING_ACTION" = "MISSING_ACTION",
-> implements TaskOverrideDefinitionBuilder<TaskArgumentsT, ActionTypeT>
-{
+  ActionTypeT extends "LAZY_ACTION" | "INLINE_ACTION" | "MISSING_ACTION" =
+    "MISSING_ACTION",
+> implements TaskOverrideDefinitionBuilder<TaskArgumentsT, ActionTypeT> {
   readonly #id: string[];
 
   readonly #options: Record<string, OptionDefinition> = {};

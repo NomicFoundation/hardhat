@@ -48,9 +48,9 @@ import {
 } from "@nomicfoundation/ignition-core";
 import { getContract } from "viem";
 
-export class ViemIgnitionHelperImpl<ChainTypeT extends ChainType | string>
-  implements ViemIgnitionHelper
-{
+export class ViemIgnitionHelperImpl<
+  ChainTypeT extends ChainType | string,
+> implements ViemIgnitionHelper {
   public type: "viem" = "viem";
 
   readonly #hardhatConfig: HardhatConfig;
@@ -357,9 +357,7 @@ export class ViemIgnitionHelperImpl<ChainTypeT extends ChainType | string>
   async #convertArtifactToViemContract(
     connection: NetworkConnection<ChainTypeT>,
     future:
-      | ContractDeploymentFuture
-      | LibraryDeploymentFuture
-      | ContractAtFuture,
+      ContractDeploymentFuture | LibraryDeploymentFuture | ContractAtFuture,
     deployedContract: { address: string },
   ): Promise<GetContractReturnType> {
     const publicClient = await connection.viem.getPublicClient();

@@ -80,17 +80,15 @@ async function deriveKeyFromMnemonicAndPath(
   const trimmedMnemonic = mnemonic.trim();
 
   if (mnemonicToSeedSync === undefined) {
-    const { mnemonicToSeedSync: importedMnemonicToSeedSync } = await import(
-      "ethereum-cryptography/bip39"
-    );
+    const { mnemonicToSeedSync: importedMnemonicToSeedSync } =
+      await import("ethereum-cryptography/bip39");
 
     mnemonicToSeedSync = importedMnemonicToSeedSync;
   }
 
   if (HDKey === undefined) {
-    const { HDKey: ImportedHDKey } = await import(
-      "ethereum-cryptography/hdkey"
-    );
+    const { HDKey: ImportedHDKey } =
+      await import("ethereum-cryptography/hdkey");
 
     HDKey = ImportedHDKey;
   }

@@ -83,9 +83,7 @@ export function isResolvedUserRemapping(
   );
 }
 
-export class RemappedNpmPackagesGraphImplementation
-  implements RemappedNpmPackagesGraph
-{
+export class RemappedNpmPackagesGraphImplementation implements RemappedNpmPackagesGraph {
   /**
    * The Hardhat project itself.
    */

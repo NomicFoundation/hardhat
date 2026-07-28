@@ -24,9 +24,9 @@ import { HardhatError } from "@nomicfoundation/hardhat-errors";
 
 let ViemIgnitionHelperImpl: typeof ViemIgnitionHelperImplT | undefined;
 
-class LazyViemIgnitionHelper<ChainTypeT extends ChainType | string>
-  implements ViemIgnitionHelper
-{
+class LazyViemIgnitionHelper<
+  ChainTypeT extends ChainType | string,
+> implements ViemIgnitionHelper {
   public type: "viem" = "viem";
 
   readonly #hardhatConfig: HardhatConfig;
@@ -129,7 +129,8 @@ export default async (): Promise<Partial<NetworkHooks>> => {
 
       if (connection.ignition !== undefined) {
         throw new HardhatError(
-          HardhatError.ERRORS.IGNITION.INTERNAL.ONLY_ONE_IGNITION_EXTENSION_PLUGIN_ALLOWED,
+          HardhatError.ERRORS.IGNITION.INTERNAL
+            .ONLY_ONE_IGNITION_EXTENSION_PLUGIN_ALLOWED,
         );
       }
 

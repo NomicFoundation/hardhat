@@ -364,7 +364,8 @@ export class HardhatEthersProvider implements HardhatEthersProviderI {
 
     if (tx.hash !== hash) {
       throw new HardhatError(
-        HardhatError.ERRORS.HARDHAT_ETHERS.GENERAL.BROADCASTED_TX_DIFFERENT_HASH,
+        HardhatError.ERRORS.HARDHAT_ETHERS.GENERAL
+          .BROADCASTED_TX_DIFFERENT_HASH,
         {
           txHash: tx.hash,
           broadcastedTxHash: hash,

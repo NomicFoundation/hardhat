@@ -14,9 +14,8 @@ let sha256Impl: typeof Sha256 | undefined;
  */
 export async function keccak256(bytes: Uint8Array): Promise<Uint8Array> {
   if (keccak256Impl === undefined) {
-    ({ keccak256: keccak256Impl } = await import(
-      "ethereum-cryptography/keccak"
-    ));
+    ({ keccak256: keccak256Impl } =
+      await import("ethereum-cryptography/keccak"));
   }
   return keccak256Impl(bytes);
 }

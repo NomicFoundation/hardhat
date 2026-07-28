@@ -624,7 +624,7 @@ export class NetworkManagerImplementation implements NetworkManager {
     const networkName =
       typeof networkOrParams === "string"
         ? networkOrParams
-        : networkOrParams?.network ?? this.#defaultNetwork;
+        : (networkOrParams?.network ?? this.#defaultNetwork);
 
     const networkConfig = this.#networkConfigs[networkName];
 

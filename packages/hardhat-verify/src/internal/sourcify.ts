@@ -50,8 +50,7 @@ export class Sourcify implements VerificationProvider {
   public readonly url: string;
   public readonly apiUrl: string;
   public readonly dispatcherOrDispatcherOptions?:
-    | Dispatcher
-    | DispatcherOptions;
+    Dispatcher | DispatcherOptions;
   public readonly pollingIntervalMs: number;
 
   public static async resolveConfig({
@@ -141,7 +140,8 @@ export class Sourcify implements VerificationProvider {
         isSourcifyErrorResponse(error.body)
       ) {
         throw new HardhatError(
-          HardhatError.ERRORS.HARDHAT_VERIFY.GENERAL.EXPLORER_REQUEST_STATUS_CODE_ERROR,
+          HardhatError.ERRORS.HARDHAT_VERIFY.GENERAL
+            .EXPLORER_REQUEST_STATUS_CODE_ERROR,
           {
             name: this.name,
             url: this.apiUrl,
@@ -164,7 +164,8 @@ export class Sourcify implements VerificationProvider {
 
     if (!isSourcifyLookupResponse(responseBody)) {
       throw new HardhatError(
-        HardhatError.ERRORS.HARDHAT_VERIFY.GENERAL.CONTRACT_VERIFICATION_UNEXPECTED_RESPONSE,
+        HardhatError.ERRORS.HARDHAT_VERIFY.GENERAL
+          .CONTRACT_VERIFICATION_UNEXPECTED_RESPONSE,
         { message: JSON.stringify(responseBody) },
       );
     }
@@ -213,7 +214,8 @@ export class Sourcify implements VerificationProvider {
       ) {
         if (error.body.customCode === "already_verified") {
           throw new HardhatError(
-            HardhatError.ERRORS.HARDHAT_VERIFY.GENERAL.CONTRACT_ALREADY_VERIFIED,
+            HardhatError.ERRORS.HARDHAT_VERIFY.GENERAL
+              .CONTRACT_ALREADY_VERIFIED,
             {
               contract: contractName,
               address: contractAddress,
@@ -222,7 +224,8 @@ export class Sourcify implements VerificationProvider {
         }
 
         throw new HardhatError(
-          HardhatError.ERRORS.HARDHAT_VERIFY.GENERAL.CONTRACT_VERIFICATION_REQUEST_FAILED,
+          HardhatError.ERRORS.HARDHAT_VERIFY.GENERAL
+            .CONTRACT_VERIFICATION_REQUEST_FAILED,
           { message: error.body.message },
         );
       }
@@ -240,7 +243,8 @@ export class Sourcify implements VerificationProvider {
 
     if (!isSourcifyVerificationResponse(responseBody)) {
       throw new HardhatError(
-        HardhatError.ERRORS.HARDHAT_VERIFY.GENERAL.CONTRACT_VERIFICATION_UNEXPECTED_RESPONSE,
+        HardhatError.ERRORS.HARDHAT_VERIFY.GENERAL
+          .CONTRACT_VERIFICATION_UNEXPECTED_RESPONSE,
         { message: JSON.stringify(responseBody) },
       );
     }
@@ -259,8 +263,7 @@ export class Sourcify implements VerificationProvider {
   }> {
     let response: HttpResponse;
     let responseBody:
-      | SourcifyVerificationStatusResponse
-      | SourcifyErrorResponse;
+      SourcifyVerificationStatusResponse | SourcifyErrorResponse;
     try {
       response = await getRequest(
         `${this.apiUrl}/v2/verify/${guid}`,
@@ -276,7 +279,8 @@ export class Sourcify implements VerificationProvider {
         isSourcifyErrorResponse(error.body)
       ) {
         throw new HardhatError(
-          HardhatError.ERRORS.HARDHAT_VERIFY.GENERAL.CONTRACT_VERIFICATION_STATUS_POLLING_FAILED,
+          HardhatError.ERRORS.HARDHAT_VERIFY.GENERAL
+            .CONTRACT_VERIFICATION_STATUS_POLLING_FAILED,
           { message: error.body.message },
         );
       }
@@ -294,7 +298,8 @@ export class Sourcify implements VerificationProvider {
 
     if (!isSourcifyVerificationStatusResponse(responseBody)) {
       throw new HardhatError(
-        HardhatError.ERRORS.HARDHAT_VERIFY.GENERAL.CONTRACT_VERIFICATION_UNEXPECTED_RESPONSE,
+        HardhatError.ERRORS.HARDHAT_VERIFY.GENERAL
+          .CONTRACT_VERIFICATION_UNEXPECTED_RESPONSE,
         { message: JSON.stringify(responseBody) },
       );
     }
@@ -323,7 +328,8 @@ export class Sourcify implements VerificationProvider {
 
     if (verificationStatus.isBytecodeMissingInNetworkError()) {
       throw new HardhatError(
-        HardhatError.ERRORS.HARDHAT_VERIFY.GENERAL.CONTRACT_VERIFICATION_MISSING_BYTECODE,
+        HardhatError.ERRORS.HARDHAT_VERIFY.GENERAL
+          .CONTRACT_VERIFICATION_MISSING_BYTECODE,
         {
           url: this.apiUrl,
           address: contractAddress,
@@ -334,7 +340,8 @@ export class Sourcify implements VerificationProvider {
     if (!(verificationStatus.isFailure() || verificationStatus.isSuccess())) {
       // Reaching this point shouldn't be possible unless the API is behaving in a new way.
       throw new HardhatError(
-        HardhatError.ERRORS.HARDHAT_VERIFY.GENERAL.CONTRACT_VERIFICATION_UNEXPECTED_RESPONSE,
+        HardhatError.ERRORS.HARDHAT_VERIFY.GENERAL
+          .CONTRACT_VERIFICATION_UNEXPECTED_RESPONSE,
         { message: verificationStatus.message },
       );
     }

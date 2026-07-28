@@ -83,9 +83,8 @@ describe("parseSolxVersion", () => {
 describe("hardhat-solx solidity hook handler", () => {
   describe("downloadCompilers", () => {
     it("is defined on the hook handler", async () => {
-      const hookHandlerModule = await import(
-        "../../src/internal/hook-handlers/solidity.js"
-      );
+      const hookHandlerModule =
+        await import("../../src/internal/hook-handlers/solidity.js");
       const hooks = await hookHandlerModule.default();
 
       assert.ok(
@@ -95,9 +94,8 @@ describe("hardhat-solx solidity hook handler", () => {
     });
 
     it("does nothing when no solx-typed compilers present", async () => {
-      const hookHandlerModule = await import(
-        "../../src/internal/hook-handlers/solidity.js"
-      );
+      const hookHandlerModule =
+        await import("../../src/internal/hook-handlers/solidity.js");
       const hooks = await hookHandlerModule.default();
 
       const context = { config: {} } as any;
@@ -121,9 +119,8 @@ describe("hardhat-solx solidity hook handler", () => {
     });
 
     it("does not mutate compiler config paths", async () => {
-      const hookHandlerModule = await import(
-        "../../src/internal/hook-handlers/solidity.js"
-      );
+      const hookHandlerModule =
+        await import("../../src/internal/hook-handlers/solidity.js");
       const hooks = await hookHandlerModule.default();
 
       const context = { config: {} } as any;
@@ -154,9 +151,8 @@ describe("hardhat-solx solidity hook handler", () => {
 
   describe("getCompiler", () => {
     it("is defined on the hook handler", async () => {
-      const hookHandlerModule = await import(
-        "../../src/internal/hook-handlers/solidity.js"
-      );
+      const hookHandlerModule =
+        await import("../../src/internal/hook-handlers/solidity.js");
       const hooks = await hookHandlerModule.default();
 
       assert.ok(
@@ -166,9 +162,8 @@ describe("hardhat-solx solidity hook handler", () => {
     });
 
     it("passes through to next for non-solx compiler configs", async () => {
-      const hookHandlerModule = await import(
-        "../../src/internal/hook-handlers/solidity.js"
-      );
+      const hookHandlerModule =
+        await import("../../src/internal/hook-handlers/solidity.js");
       const hooks = await hookHandlerModule.default();
 
       const context = { config: {} } as any;
@@ -186,9 +181,8 @@ describe("hardhat-solx solidity hook handler", () => {
     });
 
     it("passes through to next for undefined type", async () => {
-      const hookHandlerModule = await import(
-        "../../src/internal/hook-handlers/solidity.js"
-      );
+      const hookHandlerModule =
+        await import("../../src/internal/hook-handlers/solidity.js");
       const hooks = await hookHandlerModule.default();
 
       const context = { config: {} } as any;
@@ -207,9 +201,8 @@ describe("hardhat-solx solidity hook handler", () => {
 
     it("throws invariant error for unsupported solx version", async () => {
       const { HardhatError } = await import("@nomicfoundation/hardhat-errors");
-      const hookHandlerModule = await import(
-        "../../src/internal/hook-handlers/solidity.js"
-      );
+      const hookHandlerModule =
+        await import("../../src/internal/hook-handlers/solidity.js");
       const hooks = await hookHandlerModule.default();
 
       const context = { config: {} } as any;
@@ -231,9 +224,8 @@ describe("hardhat-solx solidity hook handler", () => {
 
     it("throws HardhatError when path does not exist", async () => {
       const { HardhatError } = await import("@nomicfoundation/hardhat-errors");
-      const hookHandlerModule = await import(
-        "../../src/internal/hook-handlers/solidity.js"
-      );
+      const hookHandlerModule =
+        await import("../../src/internal/hook-handlers/solidity.js");
       const hooks = await hookHandlerModule.default();
 
       const context = { config: {} } as any;
@@ -254,9 +246,8 @@ describe("hardhat-solx solidity hook handler", () => {
     });
 
     it("returns SolxCompiler with version from binary when path is provided", async () => {
-      const { getSolxBinaryPath } = await import(
-        "../../src/internal/downloader.js"
-      );
+      const { getSolxBinaryPath } =
+        await import("../../src/internal/downloader.js");
       const { exists } = await import("@nomicfoundation/hardhat-utils/fs");
 
       // Use the cached solx binary if available, skip otherwise
@@ -265,9 +256,8 @@ describe("hardhat-solx solidity hook handler", () => {
         return;
       }
 
-      const hookHandlerModule = await import(
-        "../../src/internal/hook-handlers/solidity.js"
-      );
+      const hookHandlerModule =
+        await import("../../src/internal/hook-handlers/solidity.js");
       const hooks = await hookHandlerModule.default();
 
       const context = { config: {} } as any;
@@ -297,9 +287,8 @@ describe("hardhat-solx solidity hook handler", () => {
 
   describe("downloadCompilers with path override", () => {
     it("skips download when config has custom path", async () => {
-      const hookHandlerModule = await import(
-        "../../src/internal/hook-handlers/solidity.js"
-      );
+      const hookHandlerModule =
+        await import("../../src/internal/hook-handlers/solidity.js");
       const hooks = await hookHandlerModule.default();
 
       const context = { config: {} } as any;

@@ -30,7 +30,8 @@ const taskChangePassword: NewTaskActionFunction<
 > = async ({ dev }, hre: HardhatRuntimeEnvironment): Promise<void> => {
   if (dev === true) {
     throw new HardhatError(
-      HardhatError.ERRORS.HARDHAT_KEYSTORE.GENERAL.CANNOT_CHANGED_PASSWORD_FOR_DEV_KEYSTORE,
+      HardhatError.ERRORS.HARDHAT_KEYSTORE.GENERAL
+        .CANNOT_CHANGED_PASSWORD_FOR_DEV_KEYSTORE,
     );
   }
 

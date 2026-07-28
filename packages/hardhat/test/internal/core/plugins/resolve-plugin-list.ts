@@ -10,9 +10,8 @@ import { assertRejectsWithHardhatError } from "@nomicfoundation/hardhat-test-uti
 import { resolvePluginList } from "../../../../src/internal/core/plugins/resolve-plugin-list.js";
 
 describe("Plugins - resolve plugin list", () => {
-  const installedPackageFixture = import.meta.resolve(
-    "./fixture-projects/installed-package",
-  );
+  const installedPackageFixture = import.meta
+    .resolve("./fixture-projects/installed-package");
 
   it("should return empty on an empty plugin list", async () => {
     assert.deepEqual(await resolvePluginList(installedPackageFixture, []), []);
@@ -225,9 +224,8 @@ describe("Plugins - resolve plugin list", () => {
     });
 
     it("should throw a plugin installation validation error if there is a dependency load failure", async () => {
-      const notInstalledPackageFixture = import.meta.resolve(
-        "./fixture-projects/not-installed-package",
-      );
+      const notInstalledPackageFixture = import.meta
+        .resolve("./fixture-projects/not-installed-package");
 
       const plugin: HardhatPlugin = {
         id: "example",

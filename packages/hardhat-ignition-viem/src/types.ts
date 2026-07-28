@@ -59,8 +59,7 @@ type ToContractType<
   IgnitionModuleResultsT extends IgnitionModuleResult<string>,
   ResultKey extends keyof IgnitionModuleResultsT,
 > = IgnitionModuleResultsT[ResultKey] extends
-  | ContractDeploymentFuture
-  | ContractAtFuture
+  ContractDeploymentFuture | ContractAtFuture
   ? GetContractReturnType<AbiOf<IgnitionModuleResultsT[ResultKey]>>
   : LookupContractName<
         IgnitionModuleResultsT,

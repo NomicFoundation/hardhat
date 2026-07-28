@@ -55,8 +55,7 @@ export class Etherscan implements VerificationProvider {
   public readonly apiUrl: string;
   public readonly apiKey: string;
   public readonly dispatcherOrDispatcherOptions?:
-    | Dispatcher
-    | DispatcherOptions;
+    Dispatcher | DispatcherOptions;
   public readonly pollingIntervalMs: number;
 
   public static async resolveConfig({
@@ -91,7 +90,8 @@ export class Etherscan implements VerificationProvider {
       }
 
       throw new HardhatError(
-        HardhatError.ERRORS.HARDHAT_VERIFY.GENERAL.BLOCK_EXPLORER_NOT_CONFIGURED,
+        HardhatError.ERRORS.HARDHAT_VERIFY.GENERAL
+          .BLOCK_EXPLORER_NOT_CONFIGURED,
         {
           verificationProvider: "Etherscan",
           chainId,
@@ -249,7 +249,8 @@ export class Etherscan implements VerificationProvider {
     if (!isSuccessStatusCode) {
       // TODO: we should consider throwing EXPLORER_REQUEST_FAILED here too
       throw new HardhatError(
-        HardhatError.ERRORS.HARDHAT_VERIFY.GENERAL.EXPLORER_REQUEST_STATUS_CODE_ERROR,
+        HardhatError.ERRORS.HARDHAT_VERIFY.GENERAL
+          .EXPLORER_REQUEST_STATUS_CODE_ERROR,
         {
           name: this.name,
           url: this.apiUrl,
@@ -322,7 +323,8 @@ export class Etherscan implements VerificationProvider {
     if (!isSuccessStatusCode) {
       // TODO: we should consider throwing EXPLORER_REQUEST_FAILED here too
       throw new HardhatError(
-        HardhatError.ERRORS.HARDHAT_VERIFY.GENERAL.EXPLORER_REQUEST_STATUS_CODE_ERROR,
+        HardhatError.ERRORS.HARDHAT_VERIFY.GENERAL
+          .EXPLORER_REQUEST_STATUS_CODE_ERROR,
         {
           name: this.name,
           url: this.apiUrl,
@@ -336,7 +338,8 @@ export class Etherscan implements VerificationProvider {
 
     if (etherscanResponse.isBytecodeMissingInNetworkError()) {
       throw new HardhatError(
-        HardhatError.ERRORS.HARDHAT_VERIFY.GENERAL.CONTRACT_VERIFICATION_MISSING_BYTECODE,
+        HardhatError.ERRORS.HARDHAT_VERIFY.GENERAL
+          .CONTRACT_VERIFICATION_MISSING_BYTECODE,
         {
           url: this.apiUrl,
           address: contractAddress,
@@ -356,7 +359,8 @@ export class Etherscan implements VerificationProvider {
 
     if (!etherscanResponse.isOk()) {
       throw new HardhatError(
-        HardhatError.ERRORS.HARDHAT_VERIFY.GENERAL.CONTRACT_VERIFICATION_REQUEST_FAILED,
+        HardhatError.ERRORS.HARDHAT_VERIFY.GENERAL
+          .CONTRACT_VERIFICATION_REQUEST_FAILED,
         { message: etherscanResponse.message },
       );
     }
@@ -413,7 +417,8 @@ export class Etherscan implements VerificationProvider {
     if (!isSuccessStatusCode) {
       // TODO: we should consider throwing EXPLORER_REQUEST_FAILED here too
       throw new HardhatError(
-        HardhatError.ERRORS.HARDHAT_VERIFY.GENERAL.EXPLORER_REQUEST_STATUS_CODE_ERROR,
+        HardhatError.ERRORS.HARDHAT_VERIFY.GENERAL
+          .EXPLORER_REQUEST_STATUS_CODE_ERROR,
         {
           name: this.name,
           url: this.apiUrl,
@@ -457,14 +462,16 @@ export class Etherscan implements VerificationProvider {
 
     if (!etherscanResponse.isOk()) {
       throw new HardhatError(
-        HardhatError.ERRORS.HARDHAT_VERIFY.GENERAL.CONTRACT_VERIFICATION_STATUS_POLLING_FAILED,
+        HardhatError.ERRORS.HARDHAT_VERIFY.GENERAL
+          .CONTRACT_VERIFICATION_STATUS_POLLING_FAILED,
         { message: etherscanResponse.message },
       );
     }
 
     // Reaching this point shouldn't be possible unless the API is behaving in a new way.
     throw new HardhatError(
-      HardhatError.ERRORS.HARDHAT_VERIFY.GENERAL.CONTRACT_VERIFICATION_UNEXPECTED_RESPONSE,
+      HardhatError.ERRORS.HARDHAT_VERIFY.GENERAL
+        .CONTRACT_VERIFICATION_UNEXPECTED_RESPONSE,
       { message: etherscanResponse.message },
     );
   }
@@ -517,7 +524,8 @@ export class Etherscan implements VerificationProvider {
       response.statusCode >= 200 && response.statusCode <= 299;
     if (!isSuccessStatusCode) {
       throw new HardhatError(
-        HardhatError.ERRORS.HARDHAT_VERIFY.GENERAL.EXPLORER_REQUEST_STATUS_CODE_ERROR,
+        HardhatError.ERRORS.HARDHAT_VERIFY.GENERAL
+          .EXPLORER_REQUEST_STATUS_CODE_ERROR,
         {
           name: this.name,
           url: this.apiUrl,
@@ -578,9 +586,7 @@ class EtherscanVerificationResponse implements VerificationResponse {
 // See: https://docs.etherscan.io/contract-verification/common-verification-errors
 const NON_RETRYABLE_FAILURE_PATTERNS = ["correct constructor argument"];
 
-class EtherscanVerificationStatusResponse
-  implements VerificationStatusResponse
-{
+class EtherscanVerificationStatusResponse implements VerificationStatusResponse {
   public readonly status: number;
   public readonly message: string;
 
@@ -646,9 +652,8 @@ export class LazyEtherscanImpl implements LazyEtherscan {
    */
   async #getEtherscan(): Promise<Etherscan> {
     if (this.#etherscan === undefined) {
-      const { createVerificationProviderInstance } = await import(
-        "./verification.js"
-      );
+      const { createVerificationProviderInstance } =
+        await import("./verification.js");
 
       this.#etherscan =
         /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions
