@@ -161,7 +161,8 @@ export function parseInlineConfigLine(
       const profile = firstSegment;
       if (profile !== "default") {
         throw new HardhatError(
-          HardhatError.ERRORS.CORE.SOLIDITY_TESTS.INLINE_CONFIG_UNSUPPORTED_PROFILE,
+          HardhatError.ERRORS.CORE.SOLIDITY_TESTS
+            .INLINE_CONFIG_UNSUPPORTED_PROFILE,
           {
             profile,
             functionFqn,

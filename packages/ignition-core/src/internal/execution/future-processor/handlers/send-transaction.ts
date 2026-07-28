@@ -52,9 +52,7 @@ import { replayStrategy } from "../helpers/replay-strategy.js";
  */
 export async function sendTransaction(
   exState:
-    | DeploymentExecutionState
-    | CallExecutionState
-    | SendDataExecutionState,
+    DeploymentExecutionState | CallExecutionState | SendDataExecutionState,
   executionStrategy: ExecutionStrategy,
   jsonRpcClient: JsonRpcClient,
   nonceManager: NonceManager,
@@ -82,8 +80,7 @@ export async function sendTransaction(
 
   // This cast is safe because the execution state is of static call type.
   const strategyGenerator = generator as
-    | DeploymentStrategyGenerator
-    | CallStrategyGenerator;
+    DeploymentStrategyGenerator | CallStrategyGenerator;
 
   const result = await sendTransactionForOnchainInteraction(
     jsonRpcClient,

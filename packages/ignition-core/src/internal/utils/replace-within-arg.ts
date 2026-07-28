@@ -10,9 +10,7 @@ import { isFuture, isRuntimeValue } from "../../type-guards.js";
 import { RuntimeValueType } from "../../types/module.js";
 
 type Composable<T> =
-  | T
-  | Array<Composable<T>>
-  | { [field: string]: Composable<T> };
+  T | Array<Composable<T>> | { [field: string]: Composable<T> };
 
 interface Replacers<T> {
   accountRuntimeValue: (arg: AccountRuntimeValue) => Composable<T>;

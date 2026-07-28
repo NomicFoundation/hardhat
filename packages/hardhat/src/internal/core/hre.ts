@@ -44,9 +44,7 @@ import { LazyUserInterruptionManager } from "./lazy-user-interruptions.js";
 import { resolvePluginList } from "./plugins/resolve-plugin-list.js";
 import { TaskManagerImplementation } from "./tasks/task-manager.js";
 
-export class HardhatRuntimeEnvironmentImplementation
-  implements HardhatRuntimeEnvironment
-{
+export class HardhatRuntimeEnvironmentImplementation implements HardhatRuntimeEnvironment {
   // NOTE: This is a small architectural violation, as these shouldn't be needed
   // here, because they are added by plugins. But as those plugins are builtin,
   // their type extensions also affect this module.

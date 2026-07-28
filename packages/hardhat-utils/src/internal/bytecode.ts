@@ -80,7 +80,7 @@ export function checkAmbiguousOrUnnecessaryLinks(
     const matchingLibraries =
       matchingLibraryByFqn !== undefined
         ? [matchingLibraryByFqn]
-        : neededLibrariesIndex.byName.get(providedLibraryName) ?? [];
+        : (neededLibrariesIndex.byName.get(providedLibraryName) ?? []);
 
     if (matchingLibraries.length > 1) {
       ambiguousLibraries[providedLibraryName] = matchingLibraries;

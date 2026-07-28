@@ -55,7 +55,8 @@ export function assertLargerThan(a: number, b: number): void;
 export function assertLargerThan(a: number | bigint, b: number | bigint): void {
   if (a <= b) {
     throw new HardhatError(
-      HardhatError.ERRORS.NETWORK_HELPERS.GENERAL.BLOCK_NUMBER_SMALLER_THAN_CURRENT,
+      HardhatError.ERRORS.NETWORK_HELPERS.GENERAL
+        .BLOCK_NUMBER_SMALLER_THAN_CURRENT,
       {
         newValue: a,
         currentValue: b,

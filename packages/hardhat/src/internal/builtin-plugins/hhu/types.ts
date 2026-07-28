@@ -23,8 +23,7 @@ export interface UtilsHardhatRuntimeEnvironment {
  * ({@link UtilsHardhatRuntimeEnvironment}) plus the `config` that
  * `TaskManagerImplementation` needs to build the task map.
  */
-export interface FakeHhuHardhatRuntimeEnvironment
-  extends UtilsHardhatRuntimeEnvironment {
+export interface FakeHhuHardhatRuntimeEnvironment extends UtilsHardhatRuntimeEnvironment {
   config: Pick<HardhatRuntimeEnvironment["config"], "tasks" | "plugins">;
 }
 

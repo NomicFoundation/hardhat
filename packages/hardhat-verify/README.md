@@ -109,9 +109,7 @@ export async function myCustomVerificationTask(hre: HardhatRuntimeEnvironment) {
   // Submit a contract for verification
   const guid = await etherscan.verify({
     contractAddress: "0x1234...",
-    compilerInput: {
-      /* compiler input JSON */
-    },
+    compilerInput: {/* compiler input JSON */},
     contractName: "contracts/MyContract.sol:MyContract",
     compilerVersion: "v0.8.19+commit.7dd6d404",
     constructorArguments: "0x...",

@@ -18,9 +18,7 @@ describe("test runner not specified - partial tests", function () {
 
   before(async () => {
     const baseHhConfig = (
-      await import(
-        "../fixture-projects/test-task-not-specified/hardhat.config.js"
-      )
+      await import("../fixture-projects/test-task-not-specified/hardhat.config.js")
     ).default;
 
     hhConfig = {

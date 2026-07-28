@@ -71,7 +71,8 @@ export async function createTx(
 
   if (authorizationList !== undefined) {
     throw new HardhatError(
-      HardhatError.ERRORS.HARDHAT_LEDGER.GENERAL.EIP_7702_TX_CURRENTLY_NOT_SUPPORTED,
+      HardhatError.ERRORS.HARDHAT_LEDGER.GENERAL
+        .EIP_7702_TX_CURRENTLY_NOT_SUPPORTED,
     );
 
     // TODO: enable after migrating to the latest Ledger libraries that support EIP-7702

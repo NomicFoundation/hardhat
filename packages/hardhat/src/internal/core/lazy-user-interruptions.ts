@@ -3,8 +3,7 @@ import type { HookManager } from "../../types/hooks.js";
 import type { UserInterruptionManager } from "../../types/user-interruptions.js";
 
 let UserInterruptionManagerImplementation:
-  | typeof UserInterruptionManagerImplementationT
-  | undefined;
+  typeof UserInterruptionManagerImplementationT | undefined;
 
 export class LazyUserInterruptionManager implements UserInterruptionManager {
   readonly #hooks: HookManager;
@@ -59,9 +58,8 @@ export class LazyUserInterruptionManager implements UserInterruptionManager {
     // impl, so callers end up holding different impl instances and state,
     // which can cause concurrency issues.
     if (UserInterruptionManagerImplementation === undefined) {
-      ({ UserInterruptionManagerImplementation } = await import(
-        "./user-interruptions.js"
-      ));
+      ({ UserInterruptionManagerImplementation } =
+        await import("./user-interruptions.js"));
     }
 
     if (this.#userInterruptionManager === undefined) {

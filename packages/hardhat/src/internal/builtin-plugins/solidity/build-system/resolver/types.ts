@@ -77,8 +77,7 @@ export interface ResolvedNpmUserRemapping extends BaseUserRemapping, Remapping {
  * A resolved user remapping.
  */
 export type ResolvedUserRemapping =
-  | LocalUserRemapping
-  | ResolvedNpmUserRemapping;
+  LocalUserRemapping | ResolvedNpmUserRemapping;
 
 /**
  * Npm packages can be installed with different names than the one declared in

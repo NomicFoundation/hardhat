@@ -85,8 +85,7 @@ declare module "../../../types/test.js" {
   }
 
   export type SolidityTestUserConfig =
-    | SolidityTestProfileUserConfig
-    | SolidityTestProfilesUserConfig;
+    SolidityTestProfileUserConfig | SolidityTestProfilesUserConfig;
 
   export interface HardhatTestUserConfig {
     solidity?: SolidityTestUserConfig;

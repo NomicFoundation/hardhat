@@ -40,9 +40,7 @@ import { NetworkInteractionType } from "../../types/network-interaction.js";
  */
 async function replayExecutionStrategyWithOnchainInteractions(
   executionState:
-    | DeploymentExecutionState
-    | CallExecutionState
-    | SendDataExecutionState,
+    DeploymentExecutionState | CallExecutionState | SendDataExecutionState,
   strategy: ExecutionStrategy,
 ): Promise<
   | DeploymentStrategyGenerator

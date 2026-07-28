@@ -123,7 +123,8 @@ export async function main(
 
           if (listTemplates) {
             throw new HardhatError(
-              HardhatError.ERRORS.CORE.ARGUMENTS.CANNOT_COMBINE_TEMPLATE_AND_TEMPLATES,
+              HardhatError.ERRORS.CORE.ARGUMENTS
+                .CANNOT_COMBINE_TEMPLATE_AND_TEMPLATES,
             );
           }
 
@@ -306,9 +307,9 @@ export async function main(
 
     const deprecatedConnectWasCalled = Boolean(
       "wasConnectCalled" in hre.network &&
-        hre.network.wasConnectCalled !== undefined &&
-        typeof hre.network.wasConnectCalled === "function" &&
-        hre.network.wasConnectCalled(),
+      hre.network.wasConnectCalled !== undefined &&
+      typeof hre.network.wasConnectCalled === "function" &&
+      hre.network.wasConnectCalled(),
     );
 
     if (deprecatedConnectWasCalled) {

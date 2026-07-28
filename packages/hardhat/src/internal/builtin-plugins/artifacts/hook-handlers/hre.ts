@@ -7,8 +7,7 @@ import type { HardhatRuntimeEnvironmentHooks } from "../../../../types/hooks.js"
 import type { ArtifactManagerImplementation as ArtifactManagerImplementationT } from "../artifact-manager.js";
 
 let ArtifactManagerImplementation:
-  | typeof ArtifactManagerImplementationT
-  | undefined;
+  typeof ArtifactManagerImplementationT | undefined;
 
 class LazyArtifactManager implements ArtifactManager {
   readonly #artifactsPath: string;
@@ -91,9 +90,8 @@ class LazyArtifactManager implements ArtifactManager {
 
   async #getArtifactManager(): Promise<ArtifactManager> {
     if (ArtifactManagerImplementation === undefined) {
-      ({ ArtifactManagerImplementation } = await import(
-        "../artifact-manager.js"
-      ));
+      ({ ArtifactManagerImplementation } =
+        await import("../artifact-manager.js"));
     }
 
     if (this.#artifactManager === undefined) {

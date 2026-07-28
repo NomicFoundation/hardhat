@@ -16,8 +16,7 @@ declare module "hardhat/types/config" {
     solx: true;
   }
 
-  export interface SolxSolidityCompilerUserConfig
-    extends CommonSolidityCompilerUserConfig {
+  export interface SolxSolidityCompilerUserConfig extends CommonSolidityCompilerUserConfig {
     type: "solx";
   }
 
@@ -25,8 +24,7 @@ declare module "hardhat/types/config" {
     solx: SolxSolidityCompilerUserConfig;
   }
 
-  export interface SolxSolidityCompilerConfig
-    extends CommonSolidityCompilerConfig {
+  export interface SolxSolidityCompilerConfig extends CommonSolidityCompilerConfig {
     type: "solx";
   }
 
@@ -35,7 +33,8 @@ declare module "hardhat/types/config" {
   }
 
   export interface SolxSingleVersionSolidityUserConfig
-    extends SolxSolidityCompilerUserConfig,
+    extends
+      SolxSolidityCompilerUserConfig,
       CommonSingleVersionSolidityUserConfig {}
 
   export interface SingleVersionSolidityUserConfigPerType {

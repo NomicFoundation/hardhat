@@ -34,9 +34,8 @@ describe("hardhat-foundry integration", () => {
       );
 
       try {
-        const hardhatConfig = await import(
-          "../fixture-projects/forge-remappings-basic/hardhat.config.js"
-        );
+        const hardhatConfig =
+          await import("../fixture-projects/forge-remappings-basic/hardhat.config.js");
 
         const hre = await createHardhatRuntimeEnvironment(
           hardhatConfig.default,
@@ -65,9 +64,8 @@ describe("hardhat-foundry integration", () => {
       );
 
       try {
-        const hardhatConfig = await import(
-          "../fixture-projects/invalid-foundry-config/hardhat.config.js"
-        );
+        const hardhatConfig =
+          await import("../fixture-projects/invalid-foundry-config/hardhat.config.js");
 
         const hre = await createHardhatRuntimeEnvironment(
           hardhatConfig.default,
@@ -100,9 +98,8 @@ describe("hardhat-foundry integration", () => {
     useFixtureProject("no-foundry-config");
 
     it("should fail build due to missing import (no remappings provided)", async () => {
-      const hardhatConfig = await import(
-        "../fixture-projects/no-foundry-config/hardhat.config.js"
-      );
+      const hardhatConfig =
+        await import("../fixture-projects/no-foundry-config/hardhat.config.js");
 
       const hre = await createHardhatRuntimeEnvironment(hardhatConfig.default);
 
@@ -139,9 +136,8 @@ describe("hardhat-foundry integration", () => {
       );
 
       try {
-        const hardhatConfig = await import(
-          "../fixture-projects/forge-remappings-basic/hardhat.config.js"
-        );
+        const hardhatConfig =
+          await import("../fixture-projects/forge-remappings-basic/hardhat.config.js");
 
         const hre = await createHardhatRuntimeEnvironment(
           hardhatConfig.default,
@@ -184,9 +180,8 @@ describe("hardhat-foundry integration", () => {
       );
 
       try {
-        const hardhatConfig = await import(
-          "../fixture-projects/forge-remappings-override/hardhat.config.js"
-        );
+        const hardhatConfig =
+          await import("../fixture-projects/forge-remappings-override/hardhat.config.js");
 
         const hre = await createHardhatRuntimeEnvironment(
           hardhatConfig.default,
@@ -227,9 +222,8 @@ describe("hardhat-foundry integration", () => {
       );
 
       try {
-        const hardhatConfig = await import(
-          "../fixture-projects/forge-remappings-dedup/hardhat.config.js"
-        );
+        const hardhatConfig =
+          await import("../fixture-projects/forge-remappings-dedup/hardhat.config.js");
 
         const hre = await createHardhatRuntimeEnvironment(
           hardhatConfig.default,

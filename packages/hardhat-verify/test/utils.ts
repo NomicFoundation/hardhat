@@ -180,9 +180,7 @@ export async function deployContract(
   }
 }
 
-export class MockResolvedConfigurationVariable
-  implements ResolvedConfigurationVariable
-{
+export class MockResolvedConfigurationVariable implements ResolvedConfigurationVariable {
   public _type: "ResolvedConfigurationVariable" =
     "ResolvedConfigurationVariable";
   public format: string = "{variable}";

@@ -265,7 +265,8 @@ export class TaskManagerImplementation implements TaskManager {
         task.positionalArguments.some((p) => p.name === optionName);
       if (hasArgument) {
         throw new HardhatError(
-          HardhatError.ERRORS.CORE.TASK_DEFINITIONS.TASK_OVERRIDE_OPTION_ALREADY_DEFINED,
+          HardhatError.ERRORS.CORE.TASK_DEFINITIONS
+            .TASK_OVERRIDE_OPTION_ALREADY_DEFINED,
           {
             actorFragment: getActorFragment(pluginId),
             option: optionName,

@@ -151,42 +151,35 @@ export interface BaseCompilationJobCreationError {
   formattedReason: string;
 }
 
-export interface CompilationJobCreationErrorNoCompatibleSolcVersionWithRoot
-  extends BaseCompilationJobCreationError {
+export interface CompilationJobCreationErrorNoCompatibleSolcVersionWithRoot extends BaseCompilationJobCreationError {
   reason: CompilationJobCreationErrorReason.NO_COMPATIBLE_SOLC_VERSION_WITH_ROOT;
 }
 
-export interface CompilationJobCreationErrorNoCompatibleSolcVersionWithDependency
-  extends BaseCompilationJobCreationError {
+export interface CompilationJobCreationErrorNoCompatibleSolcVersionWithDependency extends BaseCompilationJobCreationError {
   reason: CompilationJobCreationErrorReason.NO_COMPATIBLE_SOLC_VERSION_WITH_DEPENDENCY;
   incompatibleImportPath: string[];
 }
 
-export interface CompilationJobCreationErrorImportOfIncompatibleFile
-  extends BaseCompilationJobCreationError {
+export interface CompilationJobCreationErrorImportOfIncompatibleFile extends BaseCompilationJobCreationError {
   reason: CompilationJobCreationErrorReason.IMPORT_OF_INCOMPATIBLE_FILE;
   incompatibleImportPath: string[];
 }
 
-export interface CompilationJobCreationErrorNoCompatibleSolcVersionForTransitiveImportPath
-  extends BaseCompilationJobCreationError {
+export interface CompilationJobCreationErrorNoCompatibleSolcVersionForTransitiveImportPath extends BaseCompilationJobCreationError {
   reason: CompilationJobCreationErrorReason.NO_COMPATIBLE_SOLC_VERSION_FOR_TRANSITIVE_IMPORT_PATH;
   incompatibleImportPath: string[];
 }
 
-export interface CompilationJobCreationErrorIncompatibleOverriddenSolcVersion
-  extends BaseCompilationJobCreationError {
+export interface CompilationJobCreationErrorIncompatibleOverriddenSolcVersion extends BaseCompilationJobCreationError {
   reason: CompilationJobCreationErrorReason.INCOMPATIBLE_OVERRIDDEN_SOLC_VERSION;
 }
 
-export interface CompilationJobCreationErrorOverriddenSolcVersionIncompatibleWithDependency
-  extends BaseCompilationJobCreationError {
+export interface CompilationJobCreationErrorOverriddenSolcVersionIncompatibleWithDependency extends BaseCompilationJobCreationError {
   reason: CompilationJobCreationErrorReason.OVERRIDDEN_SOLC_VERSION_INCOMPATIBLE_WITH_DEPENDENCY;
   incompatibleImportPath: string[];
 }
 
-export interface CompilationJobCreationErrorNoCompatibleSolcVersionFound
-  extends BaseCompilationJobCreationError {
+export interface CompilationJobCreationErrorNoCompatibleSolcVersionFound extends BaseCompilationJobCreationError {
   reason: CompilationJobCreationErrorReason.NO_COMPATIBLE_SOLC_VERSION_FOUND;
 }
 
@@ -209,9 +202,7 @@ export enum FileBuildResultType {
 }
 
 export type FileBuildResult =
-  | CacheHitFileBuildResult
-  | SuccessfulFileBuildResult
-  | FailedFileBuildResult;
+  CacheHitFileBuildResult | SuccessfulFileBuildResult | FailedFileBuildResult;
 
 export interface CacheHitFileBuildResult {
   type: FileBuildResultType.CACHE_HIT;

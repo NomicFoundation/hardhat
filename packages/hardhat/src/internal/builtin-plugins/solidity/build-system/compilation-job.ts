@@ -110,7 +110,8 @@ export class CompilationJobImplementation implements CompilationJob {
             ]) {
               if (expectedParamValue !== actualParamValue) {
                 throw new HardhatError(
-                  HardhatError.ERRORS.CORE.HOOKS.UNEXPECTED_HOOK_PARAM_MODIFICATION,
+                  HardhatError.ERRORS.CORE.HOOKS
+                    .UNEXPECTED_HOOK_PARAM_MODIFICATION,
                   {
                     hookCategoryName: "solidity",
                     hookName: "preprocessProjectFileBeforeBuilding",

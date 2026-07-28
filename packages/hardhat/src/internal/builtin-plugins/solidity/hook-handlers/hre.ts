@@ -27,8 +27,7 @@ import type {
 } from "../build-system/build-system.js";
 
 let SolidityBuildSystemImplementation:
-  | typeof SolidityBuildSystemImplementationT
-  | undefined;
+  typeof SolidityBuildSystemImplementationT | undefined;
 
 class LazySolidityBuildSystem implements SolidityBuildSystem {
   readonly #hooks: HookManager;

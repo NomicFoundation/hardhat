@@ -43,7 +43,8 @@ export class Keystore implements KeystoreI {
     } catch (error) {
       if (error instanceof HmacKeyDecryptionError) {
         throw new HardhatError(
-          HardhatError.ERRORS.HARDHAT_KEYSTORE.GENERAL.INVALID_PASSWORD_OR_CORRUPTED_KEYSTORE,
+          HardhatError.ERRORS.HARDHAT_KEYSTORE.GENERAL
+            .INVALID_PASSWORD_OR_CORRUPTED_KEYSTORE,
         );
       }
 
@@ -66,7 +67,8 @@ export class Keystore implements KeystoreI {
     } catch (error) {
       if (error instanceof HmacKeyDecryptionError) {
         throw new HardhatError(
-          HardhatError.ERRORS.HARDHAT_KEYSTORE.GENERAL.INVALID_PASSWORD_OR_CORRUPTED_KEYSTORE,
+          HardhatError.ERRORS.HARDHAT_KEYSTORE.GENERAL
+            .INVALID_PASSWORD_OR_CORRUPTED_KEYSTORE,
         );
       }
 
@@ -89,7 +91,8 @@ export class Keystore implements KeystoreI {
     } catch (error) {
       if (error instanceof HmacKeyDecryptionError) {
         throw new HardhatError(
-          HardhatError.ERRORS.HARDHAT_KEYSTORE.GENERAL.INVALID_PASSWORD_OR_CORRUPTED_KEYSTORE,
+          HardhatError.ERRORS.HARDHAT_KEYSTORE.GENERAL
+            .INVALID_PASSWORD_OR_CORRUPTED_KEYSTORE,
         );
       }
 
@@ -112,7 +115,8 @@ export class Keystore implements KeystoreI {
     } catch (error) {
       if (error instanceof HmacKeyDecryptionError) {
         throw new HardhatError(
-          HardhatError.ERRORS.HARDHAT_KEYSTORE.GENERAL.INVALID_PASSWORD_OR_CORRUPTED_KEYSTORE,
+          HardhatError.ERRORS.HARDHAT_KEYSTORE.GENERAL
+            .INVALID_PASSWORD_OR_CORRUPTED_KEYSTORE,
         );
       }
 
@@ -129,7 +133,8 @@ export class Keystore implements KeystoreI {
     } catch (error) {
       if (error instanceof HmacKeyDecryptionError) {
         throw new HardhatError(
-          HardhatError.ERRORS.HARDHAT_KEYSTORE.GENERAL.INVALID_PASSWORD_OR_CORRUPTED_KEYSTORE,
+          HardhatError.ERRORS.HARDHAT_KEYSTORE.GENERAL
+            .INVALID_PASSWORD_OR_CORRUPTED_KEYSTORE,
         );
       }
 

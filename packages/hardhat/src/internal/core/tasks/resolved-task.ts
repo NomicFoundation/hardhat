@@ -208,7 +208,8 @@ export class ResolvedTask implements Task {
       value === undefined
     ) {
       throw new HardhatError(
-        HardhatError.ERRORS.CORE.TASK_DEFINITIONS.MISSING_VALUE_FOR_TASK_ARGUMENT,
+        HardhatError.ERRORS.CORE.TASK_DEFINITIONS
+          .MISSING_VALUE_FOR_TASK_ARGUMENT,
         {
           argument: argument.name,
           task: formatTaskId(this.id),

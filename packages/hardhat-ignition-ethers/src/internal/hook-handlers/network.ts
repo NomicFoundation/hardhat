@@ -24,9 +24,9 @@ import { HardhatError } from "@nomicfoundation/hardhat-errors";
 
 let EthersIgnitionHelperImpl: typeof EthersIgnitionHelperImplT | undefined;
 
-class LazyEthersIgnitionHelper<ChainTypeT extends ChainType | string>
-  implements EthersIgnitionHelper
-{
+class LazyEthersIgnitionHelper<
+  ChainTypeT extends ChainType | string,
+> implements EthersIgnitionHelper {
   public type: "ethers" = "ethers";
 
   readonly #hardhatConfig: HardhatConfig;
@@ -104,9 +104,8 @@ class LazyEthersIgnitionHelper<ChainTypeT extends ChainType | string>
     // impl, so callers end up holding different impl instances and state,
     // which can cause concurrency issues.
     if (EthersIgnitionHelperImpl === undefined) {
-      ({ EthersIgnitionHelperImpl } = await import(
-        "../ethers-ignition-helper.js"
-      ));
+      ({ EthersIgnitionHelperImpl } =
+        await import("../ethers-ignition-helper.js"));
     }
 
     if (this.#ethersIgnitionHelper === undefined) {
@@ -136,7 +135,8 @@ export default async (): Promise<Partial<NetworkHooks>> => {
 
       if (connection.ignition !== undefined) {
         throw new HardhatError(
-          HardhatError.ERRORS.IGNITION.INTERNAL.ONLY_ONE_IGNITION_EXTENSION_PLUGIN_ALLOWED,
+          HardhatError.ERRORS.IGNITION.INTERNAL
+            .ONLY_ONE_IGNITION_EXTENSION_PLUGIN_ALLOWED,
         );
       }
 

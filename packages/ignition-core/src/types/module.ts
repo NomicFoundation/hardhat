@@ -23,9 +23,7 @@ export type BaseArgumentType =
  * @public
  */
 export type ArgumentType =
-  | BaseArgumentType
-  | ArgumentType[]
-  | { [field: string]: ArgumentType };
+  BaseArgumentType | ArgumentType[] | { [field: string]: ArgumentType };
 
 /**
  * The different future types supported by Ignition.
@@ -277,9 +275,7 @@ export interface NamedArtifactContractAtFuture<ContractNameT extends string> {
   dependencies: Set<Future | IgnitionModule>;
   contractName: ContractNameT;
   address:
-    | string
-    | AddressResolvableFuture
-    | ModuleParameterRuntimeValue<string>;
+    string | AddressResolvableFuture | ModuleParameterRuntimeValue<string>;
 }
 
 /**
@@ -295,9 +291,7 @@ export interface ContractAtFuture<AbiT extends Abi = Abi> {
   dependencies: Set<Future | IgnitionModule>;
   contractName: string;
   address:
-    | string
-    | AddressResolvableFuture
-    | ModuleParameterRuntimeValue<string>;
+    string | AddressResolvableFuture | ModuleParameterRuntimeValue<string>;
   artifact: Artifact<AbiT>;
 }
 
@@ -383,8 +377,7 @@ export enum RuntimeValueType {
  * @public
  */
 export type RuntimeValue =
-  | AccountRuntimeValue
-  | ModuleParameterRuntimeValue<ModuleParameterType>;
+  AccountRuntimeValue | ModuleParameterRuntimeValue<ModuleParameterType>;
 
 /**
  * A local account.
@@ -436,8 +429,8 @@ export interface IgnitionModuleResult<ContractNameT extends string> {
 export interface IgnitionModule<
   ModuleIdT extends string = string,
   ContractNameT extends string = string,
-  IgnitionModuleResultsT extends
-    IgnitionModuleResult<ContractNameT> = IgnitionModuleResult<ContractNameT>,
+  IgnitionModuleResultsT extends IgnitionModuleResult<ContractNameT> =
+    IgnitionModuleResult<ContractNameT>,
 > {
   id: ModuleIdT; // Unique id
   futures: Set<Future>; // Future created in this module — All of them have to be deployed before returning the results. Note that not all of them are in results

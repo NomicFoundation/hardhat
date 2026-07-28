@@ -103,8 +103,7 @@ export async function* executeOnchainInteractionRequest(
   );
 
   let onchainInteractionResponse:
-    | OnchainInteractionResponse
-    | StaticCallResponse;
+    OnchainInteractionResponse | StaticCallResponse;
 
   if (firstResponse.type === OnchainInteractionResponseType.SIMULATION_RESULT) {
     if (!firstResponse.result.success) {

@@ -149,9 +149,7 @@ export type TaskOverrideDefinition = BaseTaskOverrideDefinition &
  * actual `Task`s.
  */
 export type TaskDefinition =
-  | EmptyTaskDefinition
-  | NewTaskDefinition
-  | TaskOverrideDefinition;
+  EmptyTaskDefinition | NewTaskDefinition | TaskOverrideDefinition;
 
 /**
  * This helper type adds an argument to an existing TaskArgumentsT.
@@ -188,10 +186,8 @@ export interface EmptyTaskDefinitionBuilder {
  */
 export interface NewTaskDefinitionBuilder<
   TaskArgumentsT extends TaskArguments = TaskArguments,
-  ActionTypeT extends
-    | "LAZY_ACTION"
-    | "INLINE_ACTION"
-    | "MISSING_ACTION" = "MISSING_ACTION",
+  ActionTypeT extends "LAZY_ACTION" | "INLINE_ACTION" | "MISSING_ACTION" =
+    "MISSING_ACTION",
 > {
   /**
    * Sets the description of the task.
@@ -369,10 +365,8 @@ export interface NewTaskDefinitionBuilder<
  */
 export interface TaskOverrideDefinitionBuilder<
   TaskArgumentsT extends TaskArguments = TaskArguments,
-  ActionTypeT extends
-    | "LAZY_ACTION"
-    | "INLINE_ACTION"
-    | "MISSING_ACTION" = "MISSING_ACTION",
+  ActionTypeT extends "LAZY_ACTION" | "INLINE_ACTION" | "MISSING_ACTION" =
+    "MISSING_ACTION",
 > {
   /**
    * Sets a new description for the task.

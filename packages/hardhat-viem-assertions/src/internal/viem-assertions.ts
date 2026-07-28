@@ -22,8 +22,7 @@ import { revert } from "./assertions/revert/revert.js";
 
 export class HardhatViemAssertionsImpl<
   ChainTypeT extends ChainType | string = "generic",
-> implements HardhatViemAssertions
-{
+> implements HardhatViemAssertions {
   readonly #viem: HardhatViemHelpers<ChainTypeT>;
 
   constructor(viem: HardhatViemHelpers<ChainTypeT>) {

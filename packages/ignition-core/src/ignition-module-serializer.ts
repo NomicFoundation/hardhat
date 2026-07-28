@@ -716,8 +716,7 @@ export class IgnitionModuleDeserializer {
           ),
           this._isSerializedFutureToken(serializedFuture.value)
             ? (this._lookup(futuresLookup, serializedFuture.value.futureId) as
-                | StaticCallFuture<string, string>
-                | ReadEventArgumentFuture)
+                StaticCallFuture<string, string> | ReadEventArgumentFuture)
             : this._isSerializedModuleParameterRuntimeValue(
                   serializedFuture.value,
                 )
@@ -746,8 +745,7 @@ export class IgnitionModuleDeserializer {
           ),
           this._isSerializedFutureToken(serializedFuture.value)
             ? (this._lookup(futuresLookup, serializedFuture.value.futureId) as
-                | StaticCallFuture<string, string>
-                | ReadEventArgumentFuture)
+                StaticCallFuture<string, string> | ReadEventArgumentFuture)
             : this._isSerializedModuleParameterRuntimeValue(
                   serializedFuture.value,
                 )
@@ -804,8 +802,7 @@ export class IgnitionModuleDeserializer {
           ),
           this._isSerializedFutureToken(serializedFuture.value)
             ? (this._lookup(futuresLookup, serializedFuture.value.futureId) as
-                | StaticCallFuture<string, string>
-                | ReadEventArgumentFuture)
+                StaticCallFuture<string, string> | ReadEventArgumentFuture)
             : this._isSerializedModuleParameterRuntimeValue(
                   serializedFuture.value,
                 )
@@ -925,7 +922,7 @@ export class IgnitionModuleDeserializer {
               ) as ModuleParameterRuntimeValue<bigint>) // This is unsafe, but we only serialize valid values
             : this._deserializedBigint(serializedFuture.value),
           serializedFuture.data === undefined ||
-          typeof serializedFuture.data === "string"
+            typeof serializedFuture.data === "string"
             ? serializedFuture.data
             : (this._lookup(
                 futuresLookup,

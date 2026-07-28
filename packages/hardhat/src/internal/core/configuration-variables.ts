@@ -24,9 +24,7 @@ export function resolveConfigurationVariable(
   return new LazyResolvedConfigurationVariable(hooks, variable);
 }
 
-abstract class BaseResolvedConfigurationVariable
-  implements ResolvedConfigurationVariable
-{
+abstract class BaseResolvedConfigurationVariable implements ResolvedConfigurationVariable {
   public _type: "ResolvedConfigurationVariable" =
     "ResolvedConfigurationVariable";
 
