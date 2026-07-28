@@ -17,6 +17,7 @@ import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 
 import { numberToHexString } from "@nomicfoundation/hardhat-utils/hex";
+import { deepClone } from "@nomicfoundation/hardhat-utils/lang";
 
 import factory from "../../../../../src/internal/builtin-plugins/network-manager/hook-handlers/network.js";
 import { EthereumMockedProvider } from "../request-handlers/ethereum-mocked-provider.js";
@@ -96,7 +97,7 @@ describe("network hook handler", () => {
         },
       ],
     };
-    const originalParams = structuredClone(request.params);
+    const originalParams = await deepClone(request.params);
 
     await handlers.onRequest(context, connection, request, next);
 

@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { beforeEach, describe, it } from "node:test";
 
 import { numberToHexString } from "@nomicfoundation/hardhat-utils/hex";
-import { isObject } from "@nomicfoundation/hardhat-utils/lang";
+import { deepClone, isObject } from "@nomicfoundation/hardhat-utils/lang";
 
 import {
   getJsonRpcRequest,
@@ -64,7 +64,7 @@ describe("FixedGasHandler", () => {
       },
     ]);
 
-    const originalParams = structuredClone(jsonRpcRequest.params);
+    const originalParams = await deepClone(jsonRpcRequest.params);
     const updatedRequest = await fixedGasHandler.handle(jsonRpcRequest);
 
     assert.deepEqual(jsonRpcRequest.params, originalParams);
