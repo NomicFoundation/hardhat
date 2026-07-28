@@ -49,6 +49,7 @@ jobs:
               - '.github/actions/**'
             solx_mirror:
               - 'packages/hardhat-solx/src/internal/constants.ts'
+              - 'packages/hardhat-solx/src/internal/platform.ts'
               - 'packages/hardhat-solx/test/mirror-availability.ts'
 
   check_dependencies:
