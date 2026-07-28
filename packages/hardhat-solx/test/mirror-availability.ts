@@ -23,7 +23,9 @@ function assetNames(version: string): string[] {
 
 describe(
   "solx releases mirror availability",
-  { skip: process.env.HARDHAT_DISABLE_SLOW_TESTS === "true" },
+  // Opt-in: run by the path-filtered solx-mirror-availability job in ci.yml,
+  // not on every PR that rebuilds this package.
+  { skip: process.env.HARDHAT_RUN_MIRROR_TESTS !== "true" },
   () => {
     for (const [solidityVersion, solxVersion] of Object.entries(
       SOLIDITY_TO_SOLX_VERSION_MAP,
