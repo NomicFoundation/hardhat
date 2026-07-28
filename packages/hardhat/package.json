@@ -101,7 +101,7 @@
     "@nomicfoundation/solidity-analyzer": "^0.1.1",
     "@sentry/core": "^9.4.0",
     "adm-zip": "^0.6.0",
-    "chokidar": "^4.0.3",
+    "chokidar": "^5.0.0",
     "enquirer": "^2.3.0",
     "ethereum-cryptography": "^2.2.1",
     "micro-eth-signer": "^0.14.0",
