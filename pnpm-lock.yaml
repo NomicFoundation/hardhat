@@ -1374,8 +1374,8 @@ importers:
         specifier: workspace:^3.0.5
         version: link:../hardhat-zod-utils
       cbor2:
-        specifier: ^1.9.0
-        version: 1.12.0
+        specifier: ^2.0.0
+        version: 2.3.0
       zod:
         specifier: ^3.23.8
         version: 3.25.76
@@ -1695,8 +1695,8 @@ importers:
         specifier: ^0.1.1
         version: 0.1.2
       cbor2:
-        specifier: ^1.9.0
-        version: 1.12.0
+        specifier: ^2.0.0
+        version: 2.3.0
       ethers:
         specifier: ^6.14.0
         version: 6.15.0
@@ -2370,6 +2370,10 @@ packages:
   '@cspell/url@10.0.1':
     resolution: {integrity: sha512-abYYgI29wJhWIfWTYrYuzRYDcHQUQ1N5ylnhxYn1NJnIQMqUWGLbDmt12JABtZ+R6h6UNatQrS7rhP86etvJyQ==}
     engines: {node: '>=22.18.0'}
+
+  '@cto.af/wtf8@0.0.5':
+    resolution: {integrity: sha512-LfUFi+Vv4eDzj+XAtR89e3wwjXA/NZjUSwU5NhwbBrLecxPaBYFy3exCuc1j+D4UZeOVdqlsl8G7LmOt18V0tg==}
+    engines: {node: '>=20'}
 
   '@cypress/request@3.0.10':
     resolution: {integrity: sha512-hauBrOdvu08vOsagkZ/Aju5XuiZx6ldsLfByg1htFeldhex+PeMrYauANzFsMJeAA0+dyPLbDoX2OYuvVoLDkQ==}
@@ -4103,9 +4107,9 @@ packages:
   caseless@0.12.0:
     resolution: {integrity: sha512-4tYFyifaFfGacoiObjJegolkwSU4xQNGbVgUiNYVUxbQ2x2lUsFvY4hVgVzGiIe6WLOPqycWXA40l+PWsxthUw==}
 
-  cbor2@1.12.0:
-    resolution: {integrity: sha512-3Cco8XQhi27DogSp9Ri6LYNZLi/TBY/JVnDe+mj06NkBjW/ZYOtekaEU4wZ4xcRMNrFkDv8KNtOAqHyDfz3lYg==}
-    engines: {node: '>=18.7'}
+  cbor2@2.3.0:
+    resolution: {integrity: sha512-76WB3hq8BoaGkMkBVJ27fW5LJU+qqDLEpgRNCG/SYKhODWXpVPOTD4UcUto3IEzYLA52nsvbhb0wabhHDn3qXg==}
+    engines: {node: '>=20'}
 
   chai-as-promised@8.0.2:
     resolution: {integrity: sha512-1GadL+sEJVLzDjcawPM4kjfnL+p/9vrxiEUonowKOAzvVg0PixJUdtuDzdkDeQhK3zfOE76GqGkZIQ7/Adcrqw==}
@@ -8124,6 +8128,8 @@ snapshots:
 
   '@cspell/url@10.0.1': {}
 
+  '@cto.af/wtf8@0.0.5': {}
+
   '@cypress/request@3.0.10':
     dependencies:
       aws-sign2: 0.7.0
@@ -9943,7 +9949,9 @@ snapshots:
 
   caseless@0.12.0: {}
 
-  cbor2@1.12.0: {}
+  cbor2@2.3.0:
+    dependencies:
+      '@cto.af/wtf8': 0.0.5
 
   chai-as-promised@8.0.2(chai@6.2.2):
     dependencies:
