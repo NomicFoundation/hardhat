@@ -1701,8 +1701,8 @@ importers:
         specifier: ^6.14.0
         version: 6.15.0
       immer:
-        specifier: 10.0.2
-        version: 10.0.2
+        specifier: 11.1.15
+        version: 11.1.15
       lodash-es:
         specifier: 4.18.1
         version: 4.18.1
@@ -5333,8 +5333,8 @@ packages:
     resolution: {integrity: sha512-BAg6QkE8W+TuQLrrw0Ugr7HegXduRuuj8/ti2kSOc+jz1dmx8/WNcjr6XGnq5YpDWxFwwaavqD0+jIUOKelTsw==}
     engines: {node: '>= 4'}
 
-  immer@10.0.2:
-    resolution: {integrity: sha512-Rx3CqeqQ19sxUtYV9CU911Vhy8/721wRFnJv3REVGWUmoAcIwzifTsdmJte/MV+0/XpM35LZdQMBGkRIoLPwQA==}
+  immer@11.1.15:
+    resolution: {integrity: sha512-VrNANlmnWQnh5COXIIOQXM9oOJw7naGKlBT74ZOOR6lpVXc3gFEu9FJLDFcpCJ2j+NWr8TIwtWD//T6ZX6TKiQ==}
 
   import-fresh@3.3.1:
     resolution: {integrity: sha512-TR3KfrTZTYLPB6jUjfx6MF9WcWrHL9su5TObK4ZkYgBdWKPOFoSoQIdEuTuR82pmtxH2spWG9h6etwfr1pLBqQ==}
@@ -11444,7 +11444,7 @@ snapshots:
 
   ignore@7.0.6: {}
 
-  immer@10.0.2: {}
+  immer@11.1.15: {}
 
   import-fresh@3.3.1:
     dependencies:
