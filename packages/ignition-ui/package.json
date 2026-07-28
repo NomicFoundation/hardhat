@@ -30,14 +30,14 @@
     "README.md"
   ],
   "devDependencies": {
-    "@fontsource/roboto": "^5.0.8",
+    "@fontsource/roboto": "^5.3.0",
     "@nomicfoundation/ignition-core": "workspace:^3.1.2",
     "@types/chai": "^5.2.3",
     "@types/chai-as-promised": "^8.0.1",
     "@types/mocha": ">=10.0.10",
     "@types/react": "^18.0.28",
     "@types/react-dom": "^18.0.11",
-    "@types/styled-components": "5.1.26",
+    "@types/styled-components": "5.1.36",
     "@vitejs/plugin-react": "^4.0.0",
     "chai": "^6.2.2",
     "chai-as-promised": "^8.0.0",
@@ -55,6 +55,6 @@
     "tsx": "^4.23.1",
     "typescript": "~6.0.3",
     "vite": "^5.0.0",
-    "vite-plugin-singlefile": "^2.0.1"
+    "vite-plugin-singlefile": "^2.3.3"
   }
 }
