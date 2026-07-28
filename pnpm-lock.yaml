@@ -1714,8 +1714,8 @@ importers:
         specifier: 1.0.2
         version: 1.0.2(nyc@18.0.0)
       '@microsoft/api-extractor':
-        specifier: 7.58.11
-        version: 7.58.11(@types/node@22.18.7)
+        specifier: 7.58.12
+        version: 7.58.12(@types/node@22.18.7)
       '@nomicfoundation/hardhat-test-utils':
         specifier: workspace:^
         version: link:../hardhat-test-utils
@@ -2934,8 +2934,8 @@ packages:
   '@microsoft/api-extractor-model@7.33.10':
     resolution: {integrity: sha512-uPUK17xGxeQ3av6TN7awp+dTTSTvx8fZC0XFL1gyt7hFapYuxND3XLXH8vkmI7UjfW92oogzFAFqHSifmJROaw==}
 
-  '@microsoft/api-extractor@7.58.11':
-    resolution: {integrity: sha512-ngeL7gd6HYwmq9VRWBh4mUBSM6mXlIK5hwyVXxJ9go5Xf70ohx9M57t+8LIgZTARmsyN5sk/q+RUBkD9Bgq5yA==}
+  '@microsoft/api-extractor@7.58.12':
+    resolution: {integrity: sha512-VNpgC/1LaroLbn+UKmwDYspq+9r3EHyj4vJ3qUy/g8vB0rKt+1Wgs7WFj/JGpgxhG8SNyXs1XwYwe7nqkk8IDg==}
     hasBin: true
 
   '@microsoft/tsdoc-config@0.18.1':
@@ -8703,7 +8703,7 @@ snapshots:
     transitivePeerDependencies:
       - '@types/node'
 
-  '@microsoft/api-extractor@7.58.11(@types/node@22.18.7)':
+  '@microsoft/api-extractor@7.58.12(@types/node@22.18.7)':
     dependencies:
       '@microsoft/api-extractor-model': 7.33.10(@types/node@22.18.7)
       '@microsoft/tsdoc': 0.16.0
