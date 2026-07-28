@@ -1,5 +1,5 @@
-import type { HardhatRuntimeEnvironment } from "../../../../src/types/hre.js";
 import type { ConfigurationVariableHooks } from "../../../../src/types/hooks.js";
+import type { HardhatRuntimeEnvironment } from "../../../../src/types/hre.js";
 
 import assert from "node:assert/strict";
 import { before, describe, it } from "node:test";
