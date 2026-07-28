@@ -11,12 +11,7 @@ import {
   SOLX_RELEASES_BASE_URL,
 } from "../src/internal/constants.js";
 
-// Every release asset the mirror must serve for a solx version (the
-// platform-specific names from platform.ts). A user on any supported
-// platform downloads exactly one of these, so a missing asset means a
-// broken compile for that platform. The `.sha256` sidecars are included
-// because the downloader treats a missing sidecar as a soft warning and
-// skips verification — this test is the only hard check that they exist.
+// Mirrors the per-platform asset names built in src/internal/platform.ts.
 function assetNames(version: string): string[] {
   return [
     `solx-linux-amd64-gnu-v${version}`,
@@ -36,13 +31,15 @@ describe(
       it(`serves every solx ${solxVersion} asset and checksum (mapped from Solidity ${solidityVersion})`, async () => {
         const missing: string[] = [];
         for (const asset of assetNames(solxVersion)) {
+          // Sidecars too: a missing one only soft-warns in the downloader.
           for (const file of [asset, `${asset}.sha256`]) {
-            // 1-byte range request: availability check without downloading
-            // the ~60 MB binaries. getRequest throws on status >= 400.
             try {
               const response = await getRequest(
                 `${SOLX_RELEASES_BASE_URL}/${file}`,
+                // 1-byte range: don't pull the ~60 MB binaries.
                 { extraHeaders: { Range: "bytes=0-0" } },
+                // isTestDispatcher drops keep-alive to 10ms; these dispatchers
+                // are never closed and would otherwise hang the suite.
                 { timeout: 30_000, isTestDispatcher: true },
               );
               if (response.statusCode !== 200 && response.statusCode !== 206) {
@@ -50,6 +47,7 @@ describe(
               }
               await response.body.text();
             } catch (error) {
+              // getRequest throws on >= 400 instead of returning the status.
               if (!(error instanceof ResponseStatusCodeError)) {
                 throw error;
               }
