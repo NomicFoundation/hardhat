@@ -1277,8 +1277,8 @@ importers:
         specifier: ^0.0.22
         version: 0.0.22
       env-paths:
-        specifier: ^2.2.0
-        version: 2.2.1
+        specifier: ^4.0.0
+        version: 4.0.0
       ethereum-cryptography:
         specifier: ^2.2.1
         version: 2.2.1
