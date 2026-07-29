@@ -738,7 +738,7 @@ function buildBenchArgs(
     precompile: false,
     prepare: phase.prepare,
     ignoreFailure: false,
-    showOutput: false,
+    showOutput: true,
     warmup: 0,
     runs: phase.runs,
     exportJson: phase.exportJson,
