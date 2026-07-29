@@ -32,6 +32,7 @@ import { exists, readBinaryFile } from "@nomicfoundation/hardhat-utils/fs";
 import { deepMerge } from "@nomicfoundation/hardhat-utils/lang";
 import { AsyncMutex } from "@nomicfoundation/hardhat-utils/synchronization";
 
+import { sendNetworkAnalytics } from "../../cli/telemetry/analytics/analytics.js";
 import { resolveUserConfigToHardhatConfig } from "../../core/hre.js";
 import { isSupportedChainType } from "../../edr/chain-type.js";
 import { JsonRpcServerImplementation } from "../node/json-rpc/server.js";
@@ -72,6 +73,8 @@ export class NetworkManagerImplementation implements NetworkManager {
     string,
     Map<string, NetworkConnection<ChainType | string>>
   >();
+
+  readonly #chainTypesWithSentAnalytics = new Set<string>();
 
   constructor(
     defaultNetwork: string,
@@ -123,6 +126,13 @@ export class NetworkManagerImplementation implements NetworkManager {
           override,
         ),
     );
+
+    if (!this.#chainTypesWithSentAnalytics.has(networkConnection.chainType)) {
+      this.#chainTypesWithSentAnalytics.add(networkConnection.chainType);
+      // Fire-and-forget: analytics must never delay or break connection
+      // creation
+      void sendNetworkAnalytics(networkConnection.chainType).catch(() => {});
+    }
 
     /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions
     -- Cast to NetworkConnection<ChainTypeT> because we know it's valid */

@@ -81,6 +81,19 @@ export async function sendProjectTypeAnalytics(
   return await sendAnalytics(initAnalyticsEvent);
 }
 
+export async function sendNetworkAnalytics(
+  chainType: string,
+): Promise<boolean> {
+  const networkAnalyticsEvent: AnalyticsEvent = {
+    name: "network",
+    params: {
+      chainType,
+    },
+  };
+
+  return await sendAnalytics(networkAnalyticsEvent);
+}
+
 // Return a boolean for testing purposes to confirm whether analytics were sent based on the consent value and not in CI environments
 async function sendAnalytics(analyticsEvent: AnalyticsEvent): Promise<boolean> {
   if (!(await isTelemetryAllowed())) {
