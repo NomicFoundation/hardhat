@@ -49,7 +49,6 @@ OPTIONS
   --runs <n>            Number of benchmark runs (default: 10)
   --ignore-failure      Ignore non-zero exit codes of the benchmarked command
   --show-output         Print stdout and stderr of the benchmarked command
-                        instead of capturing it
   --export-json <path>  Write a hyperfine-compatible JSON report to PATH,
                         extended with each run's memory series
   --e2e-clone-dir <p>   Override clone directory (default: same as pnpm e2e)
