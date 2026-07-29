@@ -470,6 +470,13 @@ describe("execution - getNonceSyncMessages", () => {
         });
 
         it("should throw if the user replaced the transaction and the user transaction is mined exactly at the confirmation boundary (safe count equals the nonce)", async () => {
+          // This test requires a safe confirmations count, so we skip if
+          // the latest block number won't allow for that, and so no
+          // boundary to check.
+          if (latestBlockNumber < requiredConfirmations - 1) {
+            return;
+          }
+
           // set an arbitrary nonce
           const nonce = 16;
           // put the latest as bigger than the nonce being checked, so the
