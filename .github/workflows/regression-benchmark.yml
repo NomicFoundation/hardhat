@@ -105,6 +105,10 @@ jobs:
         # runner. The "Clean up temp dir" step below removes it after the run.
         run: echo "E2E_CLONE_DIR=${RUNNER_TEMP:?}/hardhat-e2e-clones" >> "$GITHUB_ENV"
 
+      - name: Configure per-run bun cache
+        # Set the bun cache directory to a temp dir that is cleaned up at the end of the job.
+        run: echo "BUN_INSTALL_CACHE_DIR=${RUNNER_TEMP:?}/bun-install-cache" >> "$GITHUB_ENV"
+
       - name: Install packages
         run: sfw pnpm install --frozen-lockfile --prefer-offline
 
@@ -194,8 +198,8 @@ jobs:
           SLACK_WEBHOOK_URL: ${{ secrets.GH_ACTION_NOTIFICATIONS_SLACK_WEBHOOK_URL }}
 
       - name: Clean up temp dir
-        # Self-hosted runners don't automatically wipe the E2E_CLONE_DIR written
-        # to RUNNER_TEMP between jobs, so we do this manually to avoid polluting
-        # future runs.
+        # Self-hosted runners don't automatically wipe the E2E_CLONE_DIR and
+        # BUN_INSTALL_CACHE_DIR written to RUNNER_TEMP between jobs, so we do
+        # this manually to avoid polluting future runs.
         if: always()
-        run: rm -rf "$E2E_CLONE_DIR"
+        run: rm -rf "$E2E_CLONE_DIR" "$BUN_INSTALL_CACHE_DIR"
