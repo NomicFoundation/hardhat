@@ -99,10 +99,16 @@ const runAllTests: NewTaskActionFunction<TestActionArguments> = async (
 
     const args: TaskArguments = {
       testFiles: files,
-      grep,
-      grepExclude,
       noCompile: subtask.options.has("noCompile"),
     };
+
+    if (subtask.options.has("grep")) {
+      args.grep = grep;
+    }
+
+    if (subtask.options.has("grepExclude")) {
+      args.grepExclude = grepExclude;
+    }
 
     if (subtask.options.has("chainType")) {
       args.chainType = chainType;
