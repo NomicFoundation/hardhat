@@ -8,9 +8,8 @@ describe("Mocha --grep-exclude in parallel mode", () => {
   useFixtureProject("grep-exclude-parallel");
 
   it("filters across parallel workers", async () => {
-    const hardhatConfig = await import(
-      "./fixture-projects/grep-exclude-parallel/hardhat.config.js"
-    );
+    const hardhatConfig =
+      await import("./fixture-projects/grep-exclude-parallel/hardhat.config.js");
     const hre = await createHardhatRuntimeEnvironment(hardhatConfig.default);
 
     // Across both files: --grep keeps unit_add, unit_sub, unit_mul;

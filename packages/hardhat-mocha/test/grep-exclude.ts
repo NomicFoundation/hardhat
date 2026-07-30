@@ -8,9 +8,8 @@ describe("Mocha --grep-exclude", () => {
   useFixtureProject("grep-exclude");
 
   it("keeps --grep matches minus --grep-exclude matches", async () => {
-    const hardhatConfig = await import(
-      "./fixture-projects/grep-exclude/hardhat.config.js"
-    );
+    const hardhatConfig =
+      await import("./fixture-projects/grep-exclude/hardhat.config.js");
     const hre = await createHardhatRuntimeEnvironment(hardhatConfig.default);
 
     // Of unit_add, unit_sub, integration_flow, testFork_deposit: --grep keeps

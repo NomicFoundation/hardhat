@@ -75,13 +75,15 @@ export function resolveMochaGrepFilter(
   // non-matches) can't be honored at the same time — reject it.
   if (configFgrep !== undefined) {
     throw new HardhatError(
-      HardhatError.ERRORS.HARDHAT_MOCHA.GENERAL.GREP_EXCLUDE_INCOMPATIBLE_OPTION,
+      HardhatError.ERRORS.HARDHAT_MOCHA.GENERAL
+        .GREP_EXCLUDE_INCOMPATIBLE_OPTION,
       { option: "fgrep" },
     );
   }
   if (config.invert === true) {
     throw new HardhatError(
-      HardhatError.ERRORS.HARDHAT_MOCHA.GENERAL.GREP_EXCLUDE_INCOMPATIBLE_OPTION,
+      HardhatError.ERRORS.HARDHAT_MOCHA.GENERAL
+        .GREP_EXCLUDE_INCOMPATIBLE_OPTION,
       { option: "invert" },
     );
   }
@@ -247,7 +249,8 @@ export function resolveMochaGrepFilter(
     new RegExp(merged);
   } catch {
     throw new HardhatError(
-      HardhatError.ERRORS.HARDHAT_MOCHA.GENERAL.INVALID_GREP_EXCLUDE_COMBINATION,
+      HardhatError.ERRORS.HARDHAT_MOCHA.GENERAL
+        .INVALID_GREP_EXCLUDE_COMBINATION,
       { name: includeName, grep: effectiveInclude ?? "", grepExclude: exclude },
     );
   }

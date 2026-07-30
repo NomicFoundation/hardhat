@@ -66,7 +66,8 @@ const testWithHardhat: NewTaskActionFunction<TestActionArguments> = async (
   // being silently dropped when forwarded by the aggregating `test` task.
   if (grepExclude !== undefined && grepExclude !== "") {
     throw new HardhatError(
-      HardhatError.ERRORS.HARDHAT_NODE_TEST_RUNNER.GENERAL.GREP_EXCLUDE_NOT_SUPPORTED,
+      HardhatError.ERRORS.HARDHAT_NODE_TEST_RUNNER.GENERAL
+        .GREP_EXCLUDE_NOT_SUPPORTED,
     );
   }
 
