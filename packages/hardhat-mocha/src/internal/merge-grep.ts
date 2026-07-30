@@ -55,6 +55,7 @@ export function resolveMochaGrepFilter(
     if (include !== undefined) {
       resolved.grep = include;
     }
+
     if (configFgrep === undefined) {
       // Drop an absent-or-empty `fgrep` so it doesn't linger as "". A real
       // config `fgrep` only gets here with no CLI `--grep` (see the guard
@@ -80,6 +81,7 @@ export function resolveMochaGrepFilter(
       { option: "fgrep" },
     );
   }
+
   if (config.invert === true) {
     throw new HardhatError(
       HardhatError.ERRORS.HARDHAT_MOCHA.GENERAL
@@ -112,6 +114,7 @@ export function resolveMochaGrepFilter(
   // A CLI --grep takes precedence over the config's grep when present.
   const configGrep =
     typeof config.grep === "string" ? config.grep : config.grep?.source;
+
   const effectiveInclude = include ?? emptyToUndefined(configGrep);
 
   // The CLI options are validated up top, but a config `grep` given as a string
@@ -147,11 +150,14 @@ export function resolveMochaGrepFilter(
   const mergedHasNamedGroup =
     analyzePattern(effectiveInclude ?? "", false).hasNamedGroup ||
     analyzePattern(exclude, false).hasNamedGroup;
+
   const includeInfo = analyzePattern(
     effectiveInclude ?? "",
     mergedHasNamedGroup,
   );
+
   const excludeInfo = analyzePattern(exclude, mergedHasNamedGroup);
+
   const totalCapturingGroups =
     includeInfo.capturingGroups + excludeInfo.capturingGroups;
 
@@ -167,6 +173,7 @@ export function resolveMochaGrepFilter(
       "an escaped group name (e.g. \\u0067)",
     );
   }
+
   if (excludeInfo.hasEscapedName) {
     rejectUnsupportedPattern(
       "--grep-exclude",
@@ -230,6 +237,7 @@ export function resolveMochaGrepFilter(
       "a named backreference (e.g. \\k<name>)",
     );
   }
+
   if (
     excludeInfo.namedBackreferences.some(
       (name) =>
@@ -267,6 +275,7 @@ export function resolveMochaGrepFilter(
 function buildMergedGrep(include: string | undefined, exclude: string): string {
   const includeAssertion =
     include === undefined ? "" : `(?=[\\s\\S]*(?:${include}))`;
+
   return `^${includeAssertion}(?![\\s\\S]*(?:${exclude}))`;
 }
 
@@ -359,39 +368,52 @@ function analyzePattern(
 
     if (char === "\\") {
       const next = pattern[i + 1];
+
       if (next === undefined) {
         break;
       }
+
       // Backreferences only exist outside a character class; inside one, `\1` is
       // an octal escape and `\k` is a literal "k".
       if (!inCharacterClass) {
         if (next >= "1" && next <= "9") {
           let digits = "";
           let j = i + 1;
+
           while (j < pattern.length && pattern[j] >= "0" && pattern[j] <= "9") {
             digits += pattern[j];
             j++;
           }
+
           info.numberedBackreferences.push(Number(digits));
+
           i = j - 1;
+
           continue;
         }
+
         // `\k<name>` is a named backreference only when a named group exists in
         // the (merged) pattern; otherwise `\k` is a literal "k" and the loop
         // must keep scanning `<...>` so any capturing group inside it is counted.
         if (namedGroupsPresent && next === "k" && pattern[i + 2] === "<") {
           const end = pattern.indexOf(">", i + 3);
+
           if (end !== -1) {
             const backrefName = pattern.slice(i + 3, end);
+
             if (backrefName.includes("\\")) {
               info.hasEscapedName = true;
             }
+
             info.namedBackreferences.push(backrefName);
+
             i = end;
+
             continue;
           }
         }
       }
+
       // Skip the escaped character (whatever it is).
       i++;
       continue;
@@ -401,11 +423,13 @@ function analyzePattern(
       if (char === "]") {
         inCharacterClass = false;
       }
+
       continue;
     }
 
     if (char === "[") {
       inCharacterClass = true;
+
       continue;
     }
 
@@ -415,6 +439,7 @@ function analyzePattern(
         info.capturingGroups++;
         continue;
       }
+
       // "(?<name>" is a named capturing group; "(?<=" / "(?<!" are lookbehind
       // assertions (not groups); "(?:", "(?=", "(?!" are non-capturing.
       if (
@@ -424,12 +449,15 @@ function analyzePattern(
       ) {
         info.hasNamedGroup = true;
         info.capturingGroups++;
+
         const end = pattern.indexOf(">", i + 3);
+
         if (end !== -1) {
           const groupName = pattern.slice(i + 3, end);
           if (groupName.includes("\\")) {
             info.hasEscapedName = true;
           }
+
           info.groupNames.add(groupName);
           i = end;
         }
