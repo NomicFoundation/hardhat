@@ -1,5 +1,11 @@
 # @nomicfoundation/hardhat-verify
 
+## 3.0.22
+
+### Patch Changes
+
+- [#8470](https://github.com/NomicFoundation/hardhat/pull/8470) [`6e1818e`](https://github.com/NomicFoundation/hardhat/commit/6e1818e2380be9b87b24e5b0575e9a56b9f73d96) Thanks [@kanej](https://github.com/kanej)! - Update the `cbor2` runtime dependency to its latest major version.
+
 ## 3.0.21
 
 ### Patch Changes

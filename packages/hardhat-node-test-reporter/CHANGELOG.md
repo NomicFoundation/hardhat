@@ -1,5 +1,11 @@
 # @nomicfoundation/hardhat-node-test-reporter
 
+## 3.1.1
+
+### Patch Changes
+
+- [#8470](https://github.com/NomicFoundation/hardhat/pull/8470) [`9c54c73`](https://github.com/NomicFoundation/hardhat/commit/9c54c73f690bff6753f9d0f97460a47a33117c2b) Thanks [@kanej](https://github.com/kanej)! - Update `@actions/core` and `jest-diff` to their latest major versions.
+
 ## 3.1.0
 
 ### Minor Changes
