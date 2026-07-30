@@ -9,11 +9,11 @@ const GNU_TIME = "/usr/bin/time";
 
 let cachedAvailable: boolean | undefined;
 
-// Whether GNU time is installed. It is required for benchmarking (CI
-// preinstalls the `time` package); callers should fail fast when it is
-// missing rather than fall back to unmeasured runs. Existence alone isn't
+// Whether GNU time is installed. It is required by the regression benchmark
+// harness (CI preinstalls the `time` package); callers that request GNU-time
+// measurements should fail fast when it is missing rather than fall back to
+// unmeasured runs. Existence alone isn't
 // enough: on macOS /usr/bin/time is BSD time, which rejects the -o/-f flags
-// used by wrapWithTime, so verify via --version (BSD time has no --version).
 export function gnuTimeAvailable(): boolean {
   if (cachedAvailable === undefined) {
     if (existsSync(GNU_TIME)) {
