@@ -16,6 +16,10 @@ This repository is a monorepo handled with [pnpm](https://pnpm.io/) and [pnpm wo
 
 There's a folder for each subproject in `packages/`. All of them are plugins, except for `/packages/hardhat` which is the main project (i.e. the one that's published as [hardhat](https://npmjs.com/package/hardhat) in npm).
 
+### Nested plugin tasks (Hardhat 3)
+
+Hardhat 3 does not use Hardhat 2's `subtask()` API. For nested CLI tasks in a plugin, declare a parent with `emptyTask("name")` and children with `task(["name", "child"])` (see built-in plugins such as `hardhat-keystore` for examples).
+
 ## Installing
 
 To install the project's dependencies, run `pnpm i` in the root directory of the repository.
