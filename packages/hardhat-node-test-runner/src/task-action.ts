@@ -60,17 +60,6 @@ const testWithHardhat: NewTaskActionFunction<TestActionArguments> = async (
   { testFiles, only, grep, grepExclude, noCompile, testSummaryIndex },
   hre,
 ): Promise<Result<TestRunResult, TestRunResult>> => {
-  // The node:test runner runs with isolation disabled, where node:test ignores
-  // the skip pattern that would implement --grep-exclude (nodejs/node#64359).
-  // The option is declared so it can be rejected with a clear error instead of
-  // being silently dropped when forwarded by the aggregating `test` task.
-  if (grepExclude !== undefined && grepExclude !== "") {
-    throw new HardhatError(
-      HardhatError.ERRORS.HARDHAT_NODE_TEST_RUNNER.GENERAL
-        .GREP_EXCLUDE_NOT_SUPPORTED,
-    );
-  }
-
   // Set an environment variable that plugins can use to detect when a process is running tests
   process.env.HH_TEST = "true";
 
@@ -97,6 +86,15 @@ const testWithHardhat: NewTaskActionFunction<TestActionArguments> = async (
         todo: 0,
       },
     });
+  }
+
+  // TODO: drop the warning when we implement grepExclude for node:test,
+  // currently blocked behind a node bug.
+  if (grepExclude !== undefined && grepExclude !== "") {
+    throw new HardhatError(
+      HardhatError.ERRORS.HARDHAT_NODE_TEST_RUNNER.GENERAL
+        .GREP_EXCLUDE_NOT_SUPPORTED,
+    );
   }
 
   async function runTests(): Promise<TestSummary> {
