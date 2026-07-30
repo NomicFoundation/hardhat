@@ -3,7 +3,7 @@ import { exec as e2eExec } from "../end-to-end/subcommands/exec.ts";
 import { loadScenario } from "../end-to-end/helpers/directory.ts";
 import { resolveAndValidateArgs, type BenchArgs } from "./helpers/args.ts";
 import { fmt, log, logStep, logError, logWarning } from "./helpers/log.ts";
-import { wrapWithTime } from "./helpers/memory.ts";
+import { wrapWithTime } from "./helpers/gnu-time.ts";
 
 const USAGE = `
 scripts/benchmark/main.ts — Benchmark Hardhat scenarios with hyperfine
@@ -67,7 +67,7 @@ export async function runBenchmark(benchArgs: BenchArgs): Promise<void> {
     showOutput,
     warmup,
     exportJson,
-    memFile,
+    timeFile,
     e2eCloneDirectory,
   } = benchArgs;
 
@@ -119,10 +119,11 @@ export async function runBenchmark(benchArgs: BenchArgs): Promise<void> {
   log(`Warmup: ${warmup}, Runs: ${runs}`);
 
   // Wrap the whole hyperfine run in GNU time to capture peak RSS across all
-  // runs. This doesn't perturb hyperfine's own per-run timing.
+  // runs (the CPU fields in its output are unused here — hyperfine reports
+  // per-run CPU itself). This doesn't perturb hyperfine's own per-run timing.
   const commandToRun =
-    memFile !== undefined
-      ? wrapWithTime(hyperfineCommand, memFile, false)
+    timeFile !== undefined
+      ? wrapWithTime(hyperfineCommand, timeFile, false)
       : hyperfineCommand;
 
   await e2eExec(
