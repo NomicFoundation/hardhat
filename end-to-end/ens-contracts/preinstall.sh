@@ -10,6 +10,8 @@ const pkg = JSON.parse(fs.readFileSync('package.json', 'utf8'));
 pkg.devDependencies.hardhat = '^3.1.4';
 if (pkg.resolutions !== undefined) {
   delete pkg.resolutions.hardhat;
+} else {
+  pkg.resolutions = {};
 }
 
 // Since 3.4.0 hardhat requires viem ^2.47.6 (peer dependency): its revert
