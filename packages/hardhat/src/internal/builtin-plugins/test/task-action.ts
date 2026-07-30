@@ -24,6 +24,7 @@ interface TestActionArguments {
   testFiles: string[];
   chainType: string;
   grep: string | undefined;
+  grepExclude: string | undefined;
   noCompile: boolean;
 }
 
@@ -51,7 +52,7 @@ function isTestRunResult(
 }
 
 const runAllTests: NewTaskActionFunction<TestActionArguments> = async (
-  { testFiles, chainType, grep, noCompile, ...otherArgs },
+  { testFiles, chainType, grep, grepExclude, noCompile, ...otherArgs },
   hre,
 ): Promise<Result<void, void>> => {
   // If this code is executed, it means the user has not specified a test runner.
@@ -99,6 +100,7 @@ const runAllTests: NewTaskActionFunction<TestActionArguments> = async (
     const args: TaskArguments = {
       testFiles: files,
       grep,
+      grepExclude,
       noCompile: subtask.options.has("noCompile"),
     };
 

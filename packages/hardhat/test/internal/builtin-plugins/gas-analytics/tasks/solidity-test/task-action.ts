@@ -13,6 +13,7 @@ import { getSnapshotCheatcodesPath } from "../../../../../../src/internal/builti
 import {
   handleSnapshot,
   handleSnapshotCheck,
+  isFilteredRun,
   logSnapshotResult,
   logSnapshotCheckResult,
 } from "../../../../../../src/internal/builtin-plugins/gas-analytics/tasks/solidity-test/task-action.js";
@@ -23,6 +24,43 @@ import {
 } from "../../suite-result-helpers.js";
 
 describe("solidity-test/task-action (override in gas-analytics/index)", () => {
+  describe("isFilteredRun", () => {
+    it("should be false for an unscoped run (no patterns, no files)", () => {
+      assert.equal(isFilteredRun({}), false);
+      assert.equal(isFilteredRun({ testFiles: [] }), false);
+    });
+
+    it("should be true when --grep is a non-empty pattern", () => {
+      assert.equal(isFilteredRun({ grep: "MyTest" }), true);
+    });
+
+    it("should be true when --grep-exclude is a non-empty pattern", () => {
+      assert.equal(isFilteredRun({ grepExclude: "MyTest" }), true);
+    });
+
+    it("should be true when specific test files are given", () => {
+      assert.equal(isFilteredRun({ testFiles: ["test/Foo.t.sol"] }), true);
+    });
+
+    // The base task normalizes an explicit empty pattern to "no filter" before
+    // running EDR, so the full suite runs and added/removed snapshots are real.
+    it("should be false for an empty --grep pattern", () => {
+      assert.equal(isFilteredRun({ grep: "" }), false);
+    });
+
+    it("should be false for an empty --grep-exclude pattern", () => {
+      assert.equal(isFilteredRun({ grepExclude: "" }), false);
+    });
+
+    it("should be false when both patterns are empty and no files are given", () => {
+      assert.equal(isFilteredRun({ grep: "", grepExclude: "" }), false);
+    });
+
+    it("should be true when a non-empty pattern accompanies an empty one", () => {
+      assert.equal(isFilteredRun({ grep: "", grepExclude: "MyTest" }), true);
+    });
+  });
+
   describe("handleSnapshot", () => {
     const tmp = createTmpDir("snapshots-handler-test", "test");
 
@@ -1971,7 +2009,7 @@ To update snapshots, run your tests with --snapshot
       });
     });
 
-    describe("filtered runs (--grep or specific files)", () => {
+    describe("filtered runs (--grep, --grep-exclude, or specific files)", () => {
       it("should not report added/removed function gas snapshots", () => {
         const result = {
           functionGasSnapshotsCheck: {

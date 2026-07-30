@@ -13,12 +13,14 @@ import { getAllFilesMatching } from "@nomicfoundation/hardhat-utils/fs";
 import { errorResult, successfulResult } from "hardhat/utils/result";
 import Mocha from "mocha";
 
+import { resolveMochaGrepFilter } from "./internal/merge-grep.js";
 import { createPerformanceTracker } from "./performance.js";
 
 interface TestActionArguments {
   testFiles: string[];
   bail: boolean;
   grep?: string;
+  grepExclude?: string;
   noCompile: boolean;
 }
 
@@ -65,7 +67,7 @@ async function getTestFiles(
 
 let testsAlreadyRun = false;
 const testWithHardhat: NewTaskActionFunction<TestActionArguments> = async (
-  { testFiles, bail, grep, noCompile },
+  { testFiles, bail, grep, grepExclude, noCompile },
   hre,
 ): Promise<Result<TestRunResult, TestRunResult>> => {
   // Set an environment variable that plugins can use to detect when a process is running tests
@@ -74,6 +76,13 @@ const testWithHardhat: NewTaskActionFunction<TestActionArguments> = async (
   // Sets the NODE_ENV environment variable to "test" so the code can detect that tests are running
   // This is done by other JS/TS test frameworks like vitest
   process.env.NODE_ENV ??= "test";
+
+  // Resolve the name filter up front so an invalid pattern fails before compiling.
+  const grepFilter = resolveMochaGrepFilter(
+    grep,
+    grepExclude,
+    hre.config.test.mocha,
+  );
 
   perf.start();
 
@@ -145,9 +154,13 @@ const testWithHardhat: NewTaskActionFunction<TestActionArguments> = async (
 
   const mochaConfig: MochaOptions = { ...hre.config.test.mocha };
 
-  if (grep !== undefined && grep !== "") {
-    mochaConfig.grep = grep;
-  }
+  // Mocha selects by name through three config settings:
+  // grep, fgrep and invert. Our grep + grepExclude take full control
+  // so need to overwrite them together to control the merged
+  // selection pattern.
+  mochaConfig.grep = grepFilter.grep;
+  mochaConfig.fgrep = grepFilter.fgrep;
+  mochaConfig.invert = grepFilter.invert;
 
   if (bail) {
     mochaConfig.bail = true;

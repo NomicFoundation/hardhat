@@ -402,9 +402,9 @@ export function logSnapshotCheatcodesSection(
   const { comparison, noBaseline } = result;
   const changedLength = comparison.changed.length;
   const hasChanges = changedLength > 0;
-  // On a filtered run (--grep or specific files), added and missing snapshots
-  // are mostly artifacts of the filter rather than real differences, so we
-  // don't report them.
+  // On a filtered run (--grep, --grep-exclude, or specific files), added and
+  // missing snapshots are mostly artifacts of the filter rather than real
+  // differences, so they aren't reported.
   const addedLength = isFiltered ? 0 : comparison.added.length;
   const removedLength = isFiltered ? 0 : comparison.removed.length;
   const hasAdded = addedLength > 0;
