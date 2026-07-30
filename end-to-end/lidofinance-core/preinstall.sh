@@ -6,6 +6,7 @@ const fs = require('fs');
 
 // Allow Verdaccio-published hardhat to satisfy the dependency
 const pkg = JSON.parse(fs.readFileSync('package.json', 'utf8'));
+pkg.devDependencies ??= {};
 pkg.devDependencies.hardhat = '^3.9.0';
 
 // Pin ethers tree-wide to the repo's exact version. The lockfile removal below
