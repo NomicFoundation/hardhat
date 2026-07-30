@@ -6,26 +6,5 @@
     "packages/hardhat/templates",
     "packages/config"
   ],
-  "bumps": [
-    {
-      "package": "@nomicfoundation/hardhat-mocha",
-      "peer": "hardhat",
-      "reason": "#8442 added the --grep-exclude option, which is only forwarded to the test runner subtasks by the `test` task of the version of hardhat being released"
-    },
-    {
-      "package": "@nomicfoundation/hardhat-node-test-runner",
-      "peer": "hardhat",
-      "reason": "#8442 added the --grep-exclude option, which is only forwarded to the test runner subtasks by the `test` task of the version of hardhat being released"
-    },
-    {
-      "package": "@nomicfoundation/hardhat-solx",
-      "peer": "hardhat",
-      "reason": "It is ignored by changesets, so it never gets a changeset, but changesets still rewrites its hardhat devDependency range when hardhat has a minor bump. The peer range is bumped to keep it consistent with the devDependency"
-    },
-    {
-      "package": "@nomicfoundation/hardhat-verify",
-      "peer": "hardhat",
-      "reason": "It is released in the same cycle as a minor bump of hardhat, so changesets rewrites its hardhat devDependency range. The peer range is bumped to keep it consistent with the devDependency"
-    }
-  ]
+  "bumps": []
 }

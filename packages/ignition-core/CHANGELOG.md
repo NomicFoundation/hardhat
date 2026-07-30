@@ -1,5 +1,17 @@
 # Changelog
 
+## 3.1.9
+
+### Patch Changes
+
+- [#8449](https://github.com/NomicFoundation/hardhat/pull/8449) [`84d9b39`](https://github.com/NomicFoundation/hardhat/commit/84d9b39f3fadcf43d6a0b8f1f89281b71889e2fb) Thanks [@Kropiunig](https://github.com/Kropiunig)! - Fixed an off-by-one in Ignition's nonce sync that could let a deployment continue when a user's replacement transaction had one fewer than the required number of confirmations.
+
+- [#8470](https://github.com/NomicFoundation/hardhat/pull/8470) [`6e1818e`](https://github.com/NomicFoundation/hardhat/commit/6e1818e2380be9b87b24e5b0575e9a56b9f73d96) Thanks [@kanej](https://github.com/kanej)! - Update the `cbor2` runtime dependency to its latest major version.
+
+- [#8470](https://github.com/NomicFoundation/hardhat/pull/8470) [`5878afd`](https://github.com/NomicFoundation/hardhat/commit/5878afd071b0d33204094e5e00e700e4eb5c04df) Thanks [@kanej](https://github.com/kanej)! - Update the `immer` runtime dependency to its latest major version.
+
+- [#8461](https://github.com/NomicFoundation/hardhat/pull/8461) [`841423a`](https://github.com/NomicFoundation/hardhat/commit/841423a913e25591a83458b39738e3e8aa5b81bc) Thanks [@kanej](https://github.com/kanej)! - Reduce installation warnings with updated dependencies.
+
 ## 3.1.8
 
 ### Patch Changes
