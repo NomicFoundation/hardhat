@@ -67,6 +67,11 @@
         "prepare": "npx hardhat clean",
         "command": "npx hardhat compile --no-tests"
       },
+      "cold compile solc no-opt": {
+        "runs": 2,
+        "prepare": "npx hardhat clean",
+        "command": "npx hardhat compile --build-profile solc-no-opt --no-tests"
+      },
       "cold compile solc via-ir": {
         "runs": 2,
         "prepare": "npx hardhat clean",
