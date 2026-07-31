@@ -43,11 +43,19 @@ const solxSettings = { ...structuredClone(baseSettings), viaIR: false };
 const solcViaIRSettings = { ...structuredClone(baseSettings), viaIR: true };
 const solxViaIRSettings = { ...structuredClone(baseSettings), viaIR: true };
 
+// Optimizer-off legacy solc — the Foundry test-run default and solc at its
+// fastest, so it's the real-world compile-time bar for a test-only compiler.
+// Inherits the legacy cells' explicit `viaIR: false` (the base default is IR).
+const solcNoOptSettings = {
+  ...structuredClone(solcSettings),
+  optimizer: { enabled: false },
+};
+
 // The "solx" profiles always measure the version the plugin ships (its
-// Solidity→solx version map). The "solx-0.1.5" profiles pin a release under
+// Solidity→solx version map). The "solx-0.1.7" profiles pin a release under
 // comparison via the plugin's `path` compiler option; preinstall.sh downloads
 // the binary (see scripts/benchmark/download-solx.ts).
-const solx015Path = path.join(import.meta.dirname, ".solx", "solx-v0.1.5");
+const solx017Path = path.join(import.meta.dirname, ".solx", "solx-v0.1.7");
 
 export default {
   ...base,
@@ -67,6 +75,7 @@ export default {
   solidity: {
     profiles: {
       default: { version: "0.8.34", settings: solcSettings },
+      "solc-no-opt": { version: "0.8.34", settings: solcNoOptSettings },
       "solc-via-ir": { version: "0.8.34", settings: solcViaIRSettings },
       solx: { type: "solx", version: "0.8.34", settings: solxSettings },
       "solx-via-ir": {
