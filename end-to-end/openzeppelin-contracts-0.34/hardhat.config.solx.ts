@@ -36,7 +36,13 @@ const solcViaIRSettings = { ...structuredClone(solcSettings), viaIR: true };
 const solxViaIRSettings = { ...structuredClone(solxSettings), viaIR: true };
 
 // Optimizer-off legacy solc — the Foundry test-run default and solc at its
-// fastest, so it's the real-world compile-time bar for a test-only compiler.
+// fastest. This repo DOES NOT COMPILE that way: legacy codegen hits
+// stack-too-deep in 12 P256/WebAuthn-family files (the two ERC7913 verifiers,
+// 8 exposed wrappers, 2 .t.sol) — that failure is the benchmark datum, so no
+// scenario cell times this profile. It stays here so the FAIL is reproducible
+// with `--build-profile solc-no-opt`. We deliberately don't rescue it with
+// per-file via-IR overrides: upstream ships none (unlike aave-v4), and a
+// benchmark-authored override set would be a config no user runs.
 const solcNoOptSettings = {
   ...structuredClone(solcSettings),
   optimizer: { enabled: false },
