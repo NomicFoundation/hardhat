@@ -1,7 +1,7 @@
 import { existsSync, readFileSync, readdirSync } from "node:fs";
 import { performance } from "node:perf_hooks";
 import path from "node:path";
-import { gzipSync } from "node:zlib";
+import { gunzipSync, gzipSync } from "node:zlib";
 
 /**
  * Memory-over-time sampling via Linux /proc.
@@ -218,6 +218,37 @@ export function encodeSeriesTable(
   ).toString("base64");
 
   return seriesGz.length < raw.length ? { seriesGz } : { series: table };
+}
+
+/**
+ * Invert {@link encodeSeriesTable}: accept either encoding and return the raw
+ * table.
+ */
+export function decodeSeriesTable(encoded: {
+  seriesGz?: string;
+  series?: SeriesTable;
+}): SeriesTable {
+  if (encoded.series !== undefined) {
+    return encoded.series;
+  }
+
+  if (encoded.seriesGz === undefined) {
+    throw new Error("Series payload has neither `series` nor `seriesGz`");
+  }
+
+  const deltas = JSON.parse(
+    gunzipSync(Buffer.from(encoded.seriesGz, "base64")).toString("utf-8"),
+  ) as SeriesTable;
+
+  return {
+    tMs: deltaDecode(deltas.tMs),
+    byProcess: Object.fromEntries(
+      Object.entries(deltas.byProcess).map(([label, values]) => [
+        label,
+        deltaDecode(values),
+      ]),
+    ),
+  };
 }
 
 /** Sum a sample's per-label MB values — the process tree's total RSS. */

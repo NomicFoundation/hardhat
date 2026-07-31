@@ -2,6 +2,7 @@ import { describe, it } from "node:test";
 import assert from "node:assert/strict";
 import { gunzipSync } from "node:zlib";
 import {
+  decodeSeriesTable,
   deltaDecode,
   deltaEncode,
   encodeSeriesTable,
@@ -211,6 +212,31 @@ describe("encodeSeriesTable", () => {
   it("keeps a tiny series raw when compression would not help", () => {
     const table = { tMs: [0, 100], byProcess: { hardhat: [10, 11] } };
     assert.deepEqual(encodeSeriesTable(table), { series: table });
+  });
+});
+
+describe("decodeSeriesTable", () => {
+  it("round-trips a compressed table through encodeSeriesTable", () => {
+    const table = {
+      tMs: Array.from({ length: 500 }, (_, i) => i * 100 + (i % 3)),
+      byProcess: {
+        hardhat: Array.from({ length: 500 }, (_, i) => 300 + (i % 40)),
+        solc: Array.from({ length: 500 }, (_, i) => (i > 100 ? 512 : 0)),
+      },
+    };
+
+    const encoded = encodeSeriesTable(table);
+    assert.ok("seriesGz" in encoded);
+    assert.deepEqual(decodeSeriesTable(encoded), table);
+  });
+
+  it("passes a raw table through unchanged", () => {
+    const table = { tMs: [0, 100], byProcess: { hardhat: [10, 11] } };
+    assert.deepEqual(decodeSeriesTable({ series: table }), table);
+  });
+
+  it("throws when neither encoding is present", () => {
+    assert.throws(() => decodeSeriesTable({}), /neither/);
   });
 });
 
