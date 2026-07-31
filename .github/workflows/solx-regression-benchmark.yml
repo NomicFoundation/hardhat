@@ -153,7 +153,7 @@ jobs:
           pnpm bench:replay-standard-json \
             --dumps solx-standard-json \
             --report solx-regression-report.json \
-            --solx-version 0.1.4 \
+            --solx-version 0.1.6 \
             --dump ens-verifiable-factory-solx/solx-legacy-dwarf.json \
             --dump uniswap-v4-core-solx/solx-legacy-dwarf.json
 
