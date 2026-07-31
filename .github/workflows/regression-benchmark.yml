@@ -105,9 +105,31 @@ jobs:
         # runner. The "Clean up temp dir" step below removes it after the run.
         run: echo "E2E_CLONE_DIR=${RUNNER_TEMP:?}/hardhat-e2e-clones" >> "$GITHUB_ENV"
 
-      - name: Configure per-run bun cache
-        # Set the bun cache directory to a temp dir that is cleaned up at the end of the job.
-        run: echo "BUN_INSTALL_CACHE_DIR=${RUNNER_TEMP:?}/bun-install-cache" >> "$GITHUB_ENV"
+      - name: Configure per-run package-manager caches
+        # The benchmark republishes deterministic versions (e.g. hardhat@3.9.1)
+        # whose content changes each run (new @nomicfoundation/edr pin), so any
+        # package-manager cache that persists on the self-hosted runner can
+        # resolve a prior run's stale republish. Point these caches at temp dirs
+        # that are cleaned up at the end of the job (see "Clean up temp dir").
+        #
+        # Yarn berry: the global folder holds both the zip cache and the npm
+        # packument metadata cache. YARN_* env vars override any .yarnrc.yml.
+        #
+        # Yarn classic: no override is needed. It doesn't have a persistent
+        # metadata cache, and its tarball cache slug includes the tarball's
+        # sha1.
+        #
+        # All caches live under PACKAGE_MANAGER_CACHES so the cleanup step can
+        # remove that single directory without being updated for every cache
+        # added here.
+        run: |
+          set -euo pipefail
+          PACKAGE_MANAGER_CACHES="${RUNNER_TEMP:?}/package-manager-caches"
+          {
+            echo "PACKAGE_MANAGER_CACHES=$PACKAGE_MANAGER_CACHES"
+            echo "BUN_INSTALL_CACHE_DIR=$PACKAGE_MANAGER_CACHES/bun-install"
+            echo "YARN_GLOBAL_FOLDER=$PACKAGE_MANAGER_CACHES/yarn-global"
+          } >> "$GITHUB_ENV"
 
       - name: Install packages
         run: sfw pnpm install --frozen-lockfile --prefer-offline
@@ -199,7 +221,7 @@ jobs:
 
       - name: Clean up temp dir
         # Self-hosted runners don't automatically wipe the E2E_CLONE_DIR and
-        # BUN_INSTALL_CACHE_DIR written to RUNNER_TEMP between jobs, so we do
+        # PACKAGE_MANAGER_CACHES written to RUNNER_TEMP between jobs, so we do
         # this manually to avoid polluting future runs.
         if: always()
-        run: rm -rf "$E2E_CLONE_DIR" "$BUN_INSTALL_CACHE_DIR"
+        run: rm -rf "$E2E_CLONE_DIR" "$PACKAGE_MANAGER_CACHES"
