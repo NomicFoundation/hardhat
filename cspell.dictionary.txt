@@ -46,6 +46,7 @@ fqns
 Fqns
 FQNs
 gcda
+Ghiglia
 hdkey
 hdpath
 heco
@@ -125,12 +126,14 @@ txts
 ufixed
 Uints
 Uncontended
+uncompilable
 uncompiled
 undownloadable
 unidici
 unmined
 unpad
 unpadded
+unpair
 unparseable
 Unpayable
 unpublishing
