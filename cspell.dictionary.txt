@@ -52,6 +52,7 @@ FQNs
 gcda
 gcmsiv
 gnueabihf
+Ghiglia
 hdkey
 hdpath
 heco
@@ -146,6 +147,7 @@ unidici
 unmined
 unpad
 unpadded
+unpair
 unparseable
 Unpayable
 unpublishing
