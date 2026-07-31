@@ -54,6 +54,8 @@ const GENERIC_SCRIPT_NAMES = new Set([
   "index.js",
   "main.js",
   "bin.js",
+  // mocha's parallel mode runs test files in workerpool child processes
+  "worker.js",
 ]);
 
 /**

@@ -81,6 +81,16 @@ describe("processLabel", () => {
     );
   });
 
+  it("labels mocha's parallel workers by their npm package", () => {
+    assert.equal(
+      processLabel(
+        ["node", "/repo/node_modules/workerpool/dist/worker.js"],
+        "node",
+      ),
+      "workerpool",
+    );
+  });
+
   it("keeps a generic script basename outside node_modules", () => {
     assert.equal(
       processLabel(["node", "/repo/tools/cli.js"], "node"),
