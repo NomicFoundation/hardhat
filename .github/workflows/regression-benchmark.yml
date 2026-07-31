@@ -76,8 +76,6 @@ jobs:
           sparse-checkout: .github/scripts
           persist-credentials: false
 
-      # github-script v9 runs on node24, whose type stripping lets it
-      # `require()` the TypeScript resolver directly.
       - id: resolve
         uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
         with:
