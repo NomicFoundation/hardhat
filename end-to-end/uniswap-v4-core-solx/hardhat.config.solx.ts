@@ -74,16 +74,16 @@ export default {
         version: "0.8.34",
         settings: solxViaIRSettings,
       },
-      "solx-0.1.5": {
+      "solx-0.1.7": {
         type: "solx",
         version: "0.8.34",
-        path: solx015Path,
+        path: solx017Path,
         settings: structuredClone(solxSettings),
       },
-      "solx-0.1.5-via-ir": {
+      "solx-0.1.7-via-ir": {
         type: "solx",
         version: "0.8.34",
-        path: solx015Path,
+        path: solx017Path,
         settings: structuredClone(solxViaIRSettings),
       },
     },

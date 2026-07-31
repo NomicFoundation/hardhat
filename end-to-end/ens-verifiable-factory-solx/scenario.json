@@ -43,25 +43,25 @@
         "prepare": "npx hardhat clean",
         "command": "HARDHAT_SOLX_DISABLE_DEBUG_INFO=true npx hardhat compile --build-profile solx-via-ir"
       },
-      "cold compile solx-0.1.5": {
+      "cold compile solx-0.1.7": {
         "runs": 3,
         "prepare": "npx hardhat clean",
-        "command": "npx hardhat compile --build-profile solx-0.1.5"
+        "command": "npx hardhat compile --build-profile solx-0.1.7"
       },
-      "cold compile solx-0.1.5 via-ir": {
+      "cold compile solx-0.1.7 via-ir": {
         "runs": 3,
         "prepare": "npx hardhat clean",
-        "command": "npx hardhat compile --build-profile solx-0.1.5-via-ir"
+        "command": "npx hardhat compile --build-profile solx-0.1.7-via-ir"
       },
-      "cold compile solx-0.1.5 no-dwarf": {
+      "cold compile solx-0.1.7 no-dwarf": {
         "runs": 3,
         "prepare": "npx hardhat clean",
-        "command": "HARDHAT_SOLX_DISABLE_DEBUG_INFO=true npx hardhat compile --build-profile solx-0.1.5"
+        "command": "HARDHAT_SOLX_DISABLE_DEBUG_INFO=true npx hardhat compile --build-profile solx-0.1.7"
       },
-      "cold compile solx-0.1.5 via-ir no-dwarf": {
+      "cold compile solx-0.1.7 via-ir no-dwarf": {
         "runs": 3,
         "prepare": "npx hardhat clean",
-        "command": "HARDHAT_SOLX_DISABLE_DEBUG_INFO=true npx hardhat compile --build-profile solx-0.1.5-via-ir"
+        "command": "HARDHAT_SOLX_DISABLE_DEBUG_INFO=true npx hardhat compile --build-profile solx-0.1.7-via-ir"
       },
       "cold compile solc": {
         "runs": 3,
