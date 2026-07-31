@@ -28,7 +28,7 @@ const DEFAULT_BENCHMARK_FILTER = "*";
 
 // Minimal structural types for the slice of the `actions/github-script`
 // injected globals this module uses.
-interface Core {
+interface GithubScriptCore {
   setOutput: (name: string, value: string) => void;
   info: (message: string) => void;
   warning: (message: string) => void;
@@ -109,7 +109,7 @@ export async function resolveRegressionTrigger({
 }: {
   github: GitHub;
   context: Context;
-  core: Core;
+  core: GithubScriptCore;
 }): Promise<void> {
   const { owner, repo } = context.repo;
   const fullName = `${owner}/${repo}`;
