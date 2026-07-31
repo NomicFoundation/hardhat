@@ -47,11 +47,20 @@ const solxSettings = structuredClone(baseSettings);
 const solcViaIRSettings = { ...structuredClone(solcSettings), viaIR: true };
 const solxViaIRSettings = { ...structuredClone(solxSettings), viaIR: true };
 
+// Optimizer-off legacy solc — the Foundry test-run default and solc at its
+// fastest, so it's the real-world compile-time bar for a test-only compiler.
+// Keeps the same per-file via-IR escape hatches as the default profile: those
+// two files don't compile through plain legacy solc at any optimizer setting.
+const solcNoOptSettings = {
+  ...structuredClone(solcSettings),
+  optimizer: { enabled: false },
+};
+
 // The "solx" profiles always measure the version the plugin ships (its
-// Solidity→solx version map). The "solx-0.1.5" profiles pin a release under
+// Solidity→solx version map). The "solx-0.1.7" profiles pin a release under
 // comparison via the plugin's `path` compiler option; preinstall.sh downloads
 // the binary (see scripts/benchmark/download-solx.ts).
-const solx015Path = path.join(import.meta.dirname, ".solx", "solx-v0.1.5");
+const solx017Path = path.join(import.meta.dirname, ".solx", "solx-v0.1.7");
 
 // Upstream's per-file escape hatches, re-pinned to 0.8.34; optimizer runs
 // match the base config's overrides.
@@ -87,6 +96,10 @@ export default {
     profiles: {
       default: {
         compilers: [{ version: "0.8.34", settings: solcSettings }],
+        overrides: upstreamViaIROverrides(),
+      },
+      "solc-no-opt": {
+        compilers: [{ version: "0.8.34", settings: solcNoOptSettings }],
         overrides: upstreamViaIROverrides(),
       },
       "solc-via-ir": { version: "0.8.34", settings: solcViaIRSettings },
