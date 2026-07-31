@@ -6,7 +6,7 @@ import path from "node:path";
 import {
   readHyperfineResult,
   toCpuEntry,
-  toEntry,
+  toEntries,
   type BenchmarkEntry,
 } from "./helpers/stats.ts";
 
@@ -177,7 +177,8 @@ function main(): void {
     ]);
 
     const result = readHyperfineResult(exportPath);
-    entries.push(toEntry(scenarioId, label, result));
+    // raw solx replay — no peak-RSS capture, so this yields only the time entry
+    entries.push(...toEntries(scenarioId, label, result, undefined));
     entries.push(toCpuEntry(scenarioId, label, result));
   }
 
