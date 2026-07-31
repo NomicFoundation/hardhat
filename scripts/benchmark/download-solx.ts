@@ -25,11 +25,11 @@ DESCRIPTION
   every use), so the per-scenario preinstalls don't re-fetch the same binary.
 
 OPTIONS
-  --version <v>   Required. solx release version (e.g. 0.1.5)
+  --version <v>   Required. solx release version (e.g. 0.1.7)
   --out <path>    Required. Where to install the binary
 
 EXAMPLE
-  node scripts/benchmark/download-solx.ts --version 0.1.5 --out ./.solx/solx-v0.1.5
+  node scripts/benchmark/download-solx.ts --version 0.1.7 --out ./.solx/solx-v0.1.7
 `;
 
 const RELEASES_BASE_URL = "https://github.com/matter-labs/solx/releases";
