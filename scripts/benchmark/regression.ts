@@ -101,23 +101,22 @@ DESCRIPTION
   the "(cpu)" entry additionally carries its mean user/system split.
 
   On Linux, the process tree of every measured run is additionally sampled
-  every 100 ms via /proc, yielding two memory entries per name:
-  - "<scenarioId> / <name> (peak RSS)" (unit MB): the largest resident set
-    size any single process in the subtree reached, read exactly from the
-    kernel's VmHWM high-water mark (the same counter GNU time's %M reports).
-    Its value is the highest peak across runs, with the per-run peaks and
-    their statistics (mean/stddev/min/max/median) in the entry's extra; the
-    highest peak is also embedded as "peakRssMb" in the time entry's extra.
-  - "<scenarioId> / <name> (mem over time)" (unit MB): memory consumption
-    over the course of a run. Its value is the median across runs of the
-    run's median tree-total RSS. The extra field carries the raw per-process
-    series of one representative run (the run with the median peak) as a
-    shared "tMs" axis plus one MB array per process label — losslessly
-    compressed into "seriesGz" (base64 of gzip of the delta-encoded table)
-    unless the raw "series" object is smaller — and, per run, its duration,
-    exact peak, and [p0,p25,p50,p75,p100] summary of the tree-total RSS.
-  When /proc is unavailable (e.g. macOS), memory entries are skipped and a
-  warning is printed.
+  every 100 ms via /proc, yielding one "<scenarioId> / <name> (memory)" entry
+  (unit MB) tracking the tree-total RSS: the per-sample sum across every
+  process in the tree (hardhat, solc, test workers, ...). The entry's value is
+  the mean over the pooled samples of all runs, with min/max/median/mean of
+  that pool in the extra field ("max" is the sampled tree peak — being a sum,
+  it can far exceed any single process on parallel workloads, and shared pages
+  are counted once per process, a small stable overcount). The extra field
+  also carries the raw per-process series of one representative run (the run
+  with the median tree peak) as a shared "tMs" axis plus one MB array per
+  process label — losslessly compressed into "seriesGz" (base64 of gzip of
+  the delta-encoded table) unless the raw "series" object is smaller — and,
+  per run, its duration, [p0,p25,p50,p75,p100]+mean tree-total summary, and
+  "maxProcessRssMb": the exact peak of its largest single process (kernel
+  VmHWM, the counter behind GNU time's %M — the number to compare against
+  per-process limits). When /proc is unavailable (e.g. macOS), memory entries
+  are skipped and a warning is printed.
 
 OPTIONS
   --output <path>       Required. Aggregated JSON destination
@@ -212,7 +211,7 @@ async function main(): Promise<void> {
 
   if (!procSamplingAvailable()) {
     logWarning(
-      "/proc is not available — peak RSS and memory-over-time will not be " +
+      "/proc is not available — memory will not be " +
         "measured. Memory measurements require Linux.",
     );
   }
@@ -689,7 +688,7 @@ function benchmarkError(
 }
 
 // Aggregate the measured runs of one benchmark name into its report entries:
-// wall-clock (+ embedded peak), "(cpu)", "(peak RSS)" and "(mem over time)".
+// wall-clock, "(cpu)" and "(memory)".
 function measuredRunsToEntries(
   scenarioId: string,
   label: string,
@@ -702,18 +701,10 @@ function measuredRunsToEntries(
   };
   const cpuStats = computeStats(runs.map((r) => r.user + r.system));
 
-  const memories = runs
-    .map((r) => r.memory)
-    .filter((memory) => memory !== undefined);
-  const peakRssMb =
-    memories.length === runs.length
-      ? memories.map((memory) => memory.peakRssMb)
-      : undefined;
-
   return [
-    ...toEntries(scenarioId, label, stats, peakRssMb),
+    toTimeEntry(scenarioId, label, stats),
     toCpuEntry(scenarioId, label, stats, cpuStats),
-    ...toMemOverTimeEntries(scenarioId, label, runs),
+    ...toMemoryEntries(scenarioId, label, runs),
   ];
 }
 
@@ -721,24 +712,13 @@ function slugify(name: string): string {
   return name.replace(/[^a-zA-Z0-9._-]+/g, "-").replace(/^-+|-+$/g, "");
 }
 
-// One benchmark produces a timing entry and, when peak RSS was captured, a
-// separate memory entry (its own MB series, independently charted + alerted).
-// `peakRssMb` holds one exact peak (max single-process VmHWM) per run. The
-// tracked value is the highest peak; the full per-run distribution goes in
-// the entry's `extra`, and the peak is also embedded in the timing entry's
-// `extra` for convenience.
-function toEntries(
+// The wall-clock entry: per-run times and their statistics in `extra`.
+function toTimeEntry(
   scenarioId: string,
   phaseLabel: string,
   result: BenchmarkStats,
-  peakRssMb: number[] | undefined,
-): BenchmarkEntry[] {
-  const rss =
-    peakRssMb !== undefined && peakRssMb.length > 0
-      ? computeStats(peakRssMb)
-      : undefined;
-
-  const timeEntry: BenchmarkEntry = {
+): BenchmarkEntry {
+  return {
     name: `${scenarioId} / ${phaseLabel}`,
     unit: "s",
     value: result.mean,
@@ -749,32 +729,8 @@ function toEntries(
       max: result.max,
       median: result.median,
       mean: result.mean,
-      ...(rss !== undefined ? { peakRssMb: rss.max } : {}),
     }),
   };
-
-  if (rss === undefined) {
-    return [timeEntry];
-  }
-
-  const memEntry: BenchmarkEntry = {
-    name: `${scenarioId} / ${phaseLabel} (peak RSS)`,
-    unit: "MB",
-    // Peak RSS is a max within each run; across runs we track the highest peak
-    // and expose the spread (mean/stddev/…) in `extra`.
-    value: rss.max,
-    range: "",
-    extra: JSON.stringify({
-      times: rss.times,
-      min: rss.min,
-      max: rss.max,
-      median: rss.median,
-      mean: rss.mean,
-      stddev: rss.stddev,
-    }),
-  };
-
-  return [timeEntry, memEntry];
 }
 
 // The CPU entry: its tracked value is the mean total CPU time (user+system).
@@ -803,15 +759,20 @@ function toCpuEntry(
   };
 }
 
-// The memory-over-time entry: its charted value is the median across runs of
-// the run's median tree-total RSS (a stable scalar for drift alerting), while
-// `extra` carries the raw sampled series of the representative run — one MB
-// array per process label on a shared `tMs` axis, encoded by
-// encodeSeriesTable (usually delta+gzip+base64 in `seriesGz`, raw under
-// `series` when tiny) — plus each run's duration, exact peak and
-// [p0,p25,p50,p75,p100] tree-total summary. Skipped (empty) when /proc
-// sampling is unavailable or a run yielded no samples.
-function toMemOverTimeEntries(
+// The memory entry: tree-total RSS (per-sample sum across all processes; a
+// sampled quantity, and shared pages are counted once per process — a small,
+// stable overcount). Its charted value is the mean over the pooled samples of
+// all runs, with min/max/median/mean of that pool in `extra` (the same stats
+// shape as the other charts; `max` is the sampled tree peak). `extra` also
+// carries the raw sampled series of the representative run — one MB array per
+// process label on a shared `tMs` axis, encoded by encodeSeriesTable (usually
+// delta+gzip+base64 in `seriesGz`, raw under `series` when tiny) — plus each
+// run's duration, [p0,p25,p50,p75,p100]+mean tree-total summary, and
+// `maxProcessRssMb`: the exact peak of its largest single process (kernel
+// VmHWM, a max never a sum — the number to compare against per-process
+// limits). Skipped (empty) when /proc sampling is unavailable or a run
+// yielded no samples.
+function toMemoryEntries(
   scenarioId: string,
   phaseLabel: string,
   runs: MeasuredRun[],
@@ -827,26 +788,31 @@ function toMemOverTimeEntries(
   }
 
   const defined = memories as Array<NonNullable<(typeof memories)[number]>>;
-  const summaries = defined.map((memory) =>
-    fiveNumberSummary(memory.samples.map(treeTotalMb)).map(Math.round),
-  );
+  const totals = defined.map((memory) => memory.samples.map(treeTotalMb));
+  const summaries = totals.map((t) => fiveNumberSummary(t).map(Math.round));
   const representative = pickRepresentativeRun(summaries.map((s) => s[4]));
-  const p50Stats = computeStats(summaries.map((s) => s[2]));
+  const pooled = computeStats(totals.flat());
+  const runMeans = totals.map(mean);
   const table = toSeriesTable(defined[representative].samples);
 
   return [
     {
-      name: `${scenarioId} / ${phaseLabel} (mem over time)`,
+      name: `${scenarioId} / ${phaseLabel} (memory)`,
       unit: "MB",
-      value: p50Stats.median,
-      range: `± ${p50Stats.stddev}`,
+      value: Math.round(pooled.mean),
+      range: `± ${computeStats(runMeans).stddev}`,
       extra: JSON.stringify({
+        min: Math.round(pooled.min),
+        max: Math.round(pooled.max),
+        median: Math.round(pooled.median),
+        mean: Math.round(pooled.mean),
         representativeRun: representative,
         ...encodeSeriesTable(table),
         runs: runs.map((run, i) => ({
           durationMs: Math.round(run.wallSeconds * 1000),
-          peakRssMb: defined[i].peakRssMb,
+          maxProcessRssMb: defined[i].maxProcessRssMb,
           total: summaries[i],
+          mean: Math.round(runMeans[i]),
         })),
       }),
     },

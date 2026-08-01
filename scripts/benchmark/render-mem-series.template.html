@@ -217,7 +217,7 @@ function buildRunsTable(table) {
   }
 
   const header = document.createElement("tr");
-  for (const name of ["run", "duration", "peak RSS", "p0", "p25", "p50", "p75", "p100"]) {
+  for (const name of ["run", "duration", "max process RSS", "mean", "p0", "p25", "p50", "p75", "p100"]) {
     const th = document.createElement("th");
     th.textContent = name;
     header.append(th);
@@ -226,13 +226,13 @@ function buildRunsTable(table) {
 
   table.runs.forEach((run, i) => {
     const tr = document.createElement("tr");
+    const mb = (v) => (v !== undefined ? Math.round(v) + " MB" : "—");
     const cells = [
       String(i + 1),
       (run.durationMs / 1000).toFixed(1) + " s",
-      run.peakRssMb !== undefined ? run.peakRssMb + " MB" : "—",
-      ...(run.total ?? Array(5).fill(undefined)).map((v) =>
-        v !== undefined ? Math.round(v) + " MB" : "—",
-      ),
+      mb(run.maxProcessRssMb),
+      mb(run.mean),
+      ...(run.total ?? Array(5).fill(undefined)).map(mb),
     ];
     for (const text of cells) {
       const td = document.createElement("td");

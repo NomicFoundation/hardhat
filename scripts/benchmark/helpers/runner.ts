@@ -19,7 +19,7 @@ import {
  * - CPU time via bash's `time` builtin (a reserved word, not a process: it
  *   reads the exact child rusage the kernel reports at wait(), with zero
  *   startup overhead; Node exposes no child rusage of its own),
- * - the memory-over-time series and exact peak RSS via {@link MemorySampler}.
+ * - the memory series and exact largest-single-process peak via {@link MemorySampler}.
  */
 
 // The default 1 MiB pipe buffer of execSync would make chatty-but-successful

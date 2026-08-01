@@ -19,7 +19,7 @@ DESCRIPTION
   (with the shell-spawn overhead measured up-front and subtracted, like
   hyperfine's calibration), CPU time via bash's time builtin, and — on
   Linux — a memory-over-time series sampled from /proc every 100 ms with
-  the exact peak RSS (VmHWM).
+  the exact peak of the largest single process (VmHWM).
   Use --use-local to detect changed packages, publish them to Verdaccio,
   and pin the scenario to those versions before benchmarking.
 
@@ -111,7 +111,7 @@ export async function runBenchmark(benchArgs: BenchArgs): Promise<void> {
 
   if (!procSamplingAvailable()) {
     logWarning(
-      "/proc is not available — peak RSS and memory-over-time will not be " +
+      "/proc is not available — memory will not be " +
         "measured. Memory measurements require Linux.",
     );
   }
@@ -158,11 +158,11 @@ function report(measured: MeasuredRun[]): void {
   );
 
   const peaks = measured
-    .map((r) => r.memory?.peakRssMb)
+    .map((r) => r.memory?.maxProcessRssMb)
     .filter((peak) => peak !== undefined);
 
   if (peaks.length === measured.length) {
-    log(`  Peak RSS:          ${Math.max(...peaks)} MB`);
+    log(`  Max process RSS:   ${Math.max(...peaks)} MB`);
   }
 }
 
@@ -170,7 +170,8 @@ function report(measured: MeasuredRun[]): void {
  * Render the report in hyperfine's --export-json shape ({ results: [{ times,
  * mean, stddev, min, max, median, user, system }] }) so downstream consumers
  * keep working, extended with each run's memory series (`memory[i]` holds the
- * i-th run's exact peak and its per-process series over a shared time axis).
+ * i-th run's exact largest-single-process peak and its per-process series
+ * over a shared time axis).
  */
 function buildExport(command: string, measured: MeasuredRun[]): string {
   const stats = computeStats(measured.map((r) => r.wallSeconds));
@@ -191,7 +192,7 @@ function buildExport(command: string, measured: MeasuredRun[]): string {
           memory: measured.map((r) =>
             r.memory !== undefined
               ? {
-                  peakRssMb: r.memory.peakRssMb,
+                  maxProcessRssMb: r.memory.maxProcessRssMb,
                   ...toSeriesTable(r.memory.samples),
                 }
               : null,

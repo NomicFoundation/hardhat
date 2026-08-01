@@ -41,10 +41,13 @@ export interface MemorySample {
   byLabel: Map<string, number>;
 }
 
-/** The memory series of one run plus its exact peak (max single process). */
+/**
+ * The memory series of one run plus the exact peak of its largest single
+ * process (max over any process's VmHWM — a max, never a sum).
+ */
 export interface MemorySeries {
   samples: MemorySample[];
-  peakRssMb: number;
+  maxProcessRssMb: number;
 }
 
 // Script basenames too generic to identify a process; label these by their
@@ -290,7 +293,7 @@ export class MemorySampler {
 
     return {
       samples: this.samples,
-      peakRssMb: Math.round(this.peakRssKb / 1024),
+      maxProcessRssMb: Math.round(this.peakRssKb / 1024),
     };
   }
 

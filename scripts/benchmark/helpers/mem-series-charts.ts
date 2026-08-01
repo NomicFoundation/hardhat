@@ -11,7 +11,7 @@ import {
  * shape:
  *
  * - a regression report (`pnpm bench:regression --output`): a flat array of
- *   entries, of which the "<scenario> / <name> (mem over time)" ones carry a
+ *   entries, of which the "<scenario> / <name> (memory)" ones carry a
  *   memory series in their `extra`;
  * - a bench export (`pnpm bench --export-json`): hyperfine's `{ results }`
  *   shape where each result holds one raw series per run in `memory`.
@@ -23,7 +23,7 @@ import {
  * readability — graph a single file for the breakdown).
  */
 
-const MEM_ENTRY_SUFFIX = " (mem over time)";
+const MEM_ENTRY_SUFFIX = " (memory)";
 
 // Joins the scenario id and the command/step name in a regression entry's
 // name, e.g. "ens-verifiable-factory / cold compile".
@@ -32,9 +32,12 @@ const SCENARIO_SEPARATOR = " / ";
 /** Summary statistics of one run, shown in the table under a chart. */
 export interface RunStats {
   durationMs: number;
-  peakRssMb?: number;
+  /** Exact peak of the run's largest single process (kernel VmHWM). */
+  maxProcessRssMb?: number;
   /** [p0, p25, p50, p75, p100] of the run's tree-total RSS. */
   total?: number[];
+  /** Mean of the run's tree-total RSS samples. */
+  mean?: number;
 }
 
 /** One drawable line: a time axis (ms) and MB values. */
@@ -71,12 +74,17 @@ interface MemEntryExtra {
   representativeRun: number;
   seriesGz?: string;
   series?: SeriesTable;
-  runs: Array<{ durationMs: number; peakRssMb: number; total: number[] }>;
+  runs: Array<{
+    durationMs: number;
+    maxProcessRssMb: number;
+    total: number[];
+    mean: number;
+  }>;
 }
 
 interface BenchExportResult {
   command: string;
-  memory?: Array<({ peakRssMb: number } & SeriesTable) | null>;
+  memory?: Array<({ maxProcessRssMb: number } & SeriesTable) | null>;
 }
 
 /** A report file's detected format. */
@@ -182,7 +190,9 @@ function collectBenchExportCharts(results: BenchExportResult[]): ReportChart[] {
       continue;
     }
 
-    const representative = pickRepresentativeRun(runs.map((r) => r.peakRssMb));
+    const representative = pickRepresentativeRun(
+      runs.map((r) => r.maxProcessRssMb),
+    );
 
     // Only the representative run is drawn; the other runs' statistics are
     // already shown in the per-run table under the chart.
@@ -190,12 +200,21 @@ function collectBenchExportCharts(results: BenchExportResult[]): ReportChart[] {
       scenario: undefined,
       benchmark: result.command,
       lines: tableToLines(runs[representative]),
-      runs: runs.map((run) => ({
-        durationMs: run.tMs[run.tMs.length - 1] ?? 0,
-        peakRssMb: run.peakRssMb,
-        total:
-          run.tMs.length > 0 ? fiveNumberSummary(sumByProcess(run)) : undefined,
-      })),
+      runs: runs.map((run) => {
+        const totals = sumByProcess(run);
+
+        return {
+          durationMs: run.tMs[run.tMs.length - 1] ?? 0,
+          maxProcessRssMb: run.maxProcessRssMb,
+          total: totals.length > 0 ? fiveNumberSummary(totals) : undefined,
+          mean:
+            totals.length > 0
+              ? Math.round(
+                  totals.reduce((sum, v) => sum + v, 0) / totals.length,
+                )
+              : undefined,
+        };
+      }),
     });
   }
 

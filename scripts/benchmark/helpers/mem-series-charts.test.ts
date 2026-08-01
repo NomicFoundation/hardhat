@@ -12,20 +12,29 @@ function regressionReport(scenario: string): unknown[] {
   return [
     { name: `${scenario} / cold compile`, unit: "s", value: 1, extra: "{}" },
     {
-      name: `${scenario} / cold compile (peak RSS)`,
-      unit: "MB",
-      value: 170,
+      name: `${scenario} / cold compile (cpu)`,
+      unit: "s",
+      value: 1,
       extra: "{}",
     },
     {
-      name: `${scenario} / cold compile (mem over time)`,
+      name: `${scenario} / cold compile (memory)`,
       unit: "MB",
-      value: 160,
+      value: 140,
       extra: JSON.stringify({
+        min: 100,
+        max: 170,
+        median: 150,
+        mean: 140,
         representativeRun: 0,
         ...encodeSeriesTable(TABLE),
         runs: [
-          { durationMs: 210, peakRssMb: 170, total: [100, 135, 160, 165, 170] },
+          {
+            durationMs: 210,
+            maxProcessRssMb: 170,
+            total: [100, 135, 160, 165, 170],
+            mean: 140,
+          },
         ],
       }),
     },
@@ -37,9 +46,9 @@ const BENCH_EXPORT = {
     {
       command: "npx hardhat compile",
       memory: [
-        { peakRssMb: 170, ...TABLE },
+        { maxProcessRssMb: 170, ...TABLE },
         {
-          peakRssMb: 180,
+          maxProcessRssMb: 180,
           tMs: [0, 100],
           byProcess: { hardhat: [100, 130], solc: [0, 60] },
         },
@@ -70,7 +79,7 @@ describe("collectCharts", () => {
       charts[0].lines.find((l) => l.kind === "total")?.mb,
       [100, 170, 150],
     );
-    assert.equal(charts[0].runs[0].peakRssMb, 170);
+    assert.equal(charts[0].runs[0].maxProcessRssMb, 170);
   });
 
   it("extracts per-run series from a bench export", () => {
@@ -112,7 +121,7 @@ describe("collectCharts", () => {
     const { charts } = collectCharts(
       [
         {
-          name: "s / cold compile (mem over time)",
+          name: "s / cold compile (memory)",
           // An older format revision: series stored inline, no seriesGz.
           extra: JSON.stringify({ tMs: [0], byProcess: {}, runs: [] }),
         },
@@ -124,7 +133,7 @@ describe("collectCharts", () => {
     assert.equal(charts.length, 1);
     assert.equal(charts[0].benchmark, "cold compile");
     assert.equal(warnings.length, 1);
-    assert.match(warnings[0], /Skipping "s \/ cold compile \(mem over time\)"/);
+    assert.match(warnings[0], /Skipping "s \/ cold compile \(memory\)"/);
   });
 
   it("throws on an unrecognized report shape", () => {

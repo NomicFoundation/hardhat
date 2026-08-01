@@ -20,7 +20,7 @@ DESCRIPTION
   Accepted formats, auto-detected per file:
 
   - a regression report ("pnpm bench:regression --output <file>"), using its
-    "<scenario> / <name> (mem over time)" entries;
+    "<scenario> / <name> (memory)" entries;
   - a benchmark export ("pnpm bench --export-json <file>"), using each
     result's per-run memory series.
 
