@@ -130,7 +130,8 @@ jobs:
         with:
           repository: NomicFoundation/edr
           ref: ${{ needs.inputs.outputs.edr-ref }}
-      - id: target
+      - name: Resolve Rust target for runner
+        id: target
         env:
           RUNNER: ${{ matrix.runner }}
         run: |
@@ -491,7 +492,8 @@ jobs:
             }
             details = details.replaceAll(`\${∑}`, sum);
             fs.writeFileSync('run.details', details);
-      - id: upload
+      - name: Prepare regression result artifact metadata
+        id: upload
         env:
           REPOSITORY: ${{ matrix.repository }}
           CONTEXT: |
