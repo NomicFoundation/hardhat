@@ -47,6 +47,7 @@
     "bench:bytecode-size": "node ./scripts/benchmark/bytecode-size.ts",
     "bench:gas-compare": "node ./scripts/benchmark/gas-compare.ts",
     "bench:dump-standard-json": "node ./scripts/benchmark/dump-standard-json.ts",
-    "bench:replay-standard-json": "node ./scripts/benchmark/replay-standard-json.ts"
+    "bench:replay-standard-json": "node ./scripts/benchmark/replay-standard-json.ts",
+    "bench:render-solx-tables": "node ./scripts/benchmark/render-solx-tables.ts"
   }
 }
