@@ -23,6 +23,12 @@ jobs:
   solx-regression-benchmark:
     name: Solx regression benchmark
     environment: github-action-benchmark
+    permissions:
+      contents: read
+      # Updates the sticky benchmark-tables comment on labeled PR runs. Fork
+      # PRs never reach this job (fork-safety guard below), so the write
+      # token is only ever used for same-repo PRs.
+      pull-requests: write
     # Use a self-hosted runner for stable benchmark measurements; the shared
     # GitHub runners produce noisy results that will generate false positives.
     runs-on: hardhat-linux-amd64-self-hosted
@@ -178,6 +184,58 @@ jobs:
           # fail the build on them.
           fail-on-alert: false
           summary-always: true
+
+      # The report is the single source for the tables comment below and for
+      # re-rendering offline (bench:render-solx-tables) — upload it even when
+      # the bench step failed; partial results are still worth keeping.
+      - name: Upload benchmark report
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: solx-regression-report
+          path: solx-regression-report.json
+          if-no-files-found: warn
+
+      # Sticky PR comment with the full table set, regenerated from the
+      # report on every labeled run — numbers are never hand-transcribed.
+      - name: Render benchmark tables
+        id: render
+        if: ${{ !cancelled() && github.event_name == 'pull_request' }}
+        env:
+          JOB_STATUS: ${{ job.status }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: |
+          if [ ! -f solx-regression-report.json ]; then
+            echo "::warning::No report produced — skipping the tables comment"
+            exit 0
+          fi
+          node scripts/benchmark/render-solx-tables.ts \
+            --report solx-regression-report.json \
+            --run-url "${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}" \
+            --head-sha "$HEAD_SHA" \
+            --status "$JOB_STATUS" > solx-bench-comment.md
+          echo "rendered=true" >> "$GITHUB_OUTPUT"
+
+      - name: Upsert benchmark tables comment
+        if: ${{ !cancelled() && steps.render.outputs.rendered == 'true' }}
+        uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea # v7.0.1
+        with:
+          script: |
+            const fs = require("fs");
+            const body = fs.readFileSync("solx-bench-comment.md", "utf8");
+            const marker = "<!-- solx-bench-tables -->";
+            const params = {
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+            };
+            const comments = await github.paginate(github.rest.issues.listComments, params);
+            const existing = comments.find((c) => c.body?.includes(marker));
+            if (existing !== undefined) {
+              await github.rest.issues.updateComment({ ...params, comment_id: existing.id, body });
+            } else {
+              await github.rest.issues.createComment({ ...params, body });
+            }
 
       - name: Upload solx standard JSON
         if: always()

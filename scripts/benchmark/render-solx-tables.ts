@@ -1,0 +1,381 @@
+import { readFileSync } from "node:fs";
+import path from "node:path";
+
+import type { BenchmarkEntry } from "./helpers/stats.ts";
+
+const USAGE = `
+scripts/benchmark/render-solx-tables.ts — Render the solx benchmark report as markdown
+
+DESCRIPTION
+  Reads a bench:regression report (customSmallerIsBetter JSON array, the file
+  solx-regression-benchmark.yml produces) and prints markdown tables to
+  stdout: one cold-compile pivot per scenario ({solc, shipped solx, pinned
+  solx} x {no-opt, legacy, via-IR}, wall / total CPU), plus a details section
+  with the DWARF cost, peak RSS and raw-replay numbers. Every entry in the
+  report is rendered — anything the pivot doesn't recognize lands in an
+  "other entries" table rather than being dropped.
+
+  The output embeds the ${"<!-- solx-bench-tables -->"} marker so CI can
+  upsert it as a single sticky PR comment.
+
+OPTIONS
+  --report <path>    Required. Report JSON to render
+  --run-url <url>    Link to the producing workflow run
+  --head-sha <sha>   Commit the run measured
+  --status <status>  Producing job status; anything but "success" adds a
+                     partial-results warning
+
+EXAMPLE
+  node scripts/benchmark/render-solx-tables.ts --report solx-regression-report.json
+`;
+
+export const COMMENT_MARKER = "<!-- solx-bench-tables -->";
+
+// The pinned-comparison cells are named "solx-<version>"; the plain "solx"
+// cells measure whatever the plugin ships. Read the shipped version from the
+// plugin's map (regex, not an import: constants.ts pulls in hardhat types
+// that scripts/tsconfig.json doesn't know about).
+export function readShippedSolxVersion(repoRoot: string): string | undefined {
+  const constants = readFileSync(
+    path.join(repoRoot, "packages/hardhat-solx/src/internal/constants.ts"),
+    "utf8",
+  );
+  return /"0\.8\.34":\s*"(\d+\.\d+\.\d+)"/.exec(constants)?.[1];
+}
+
+interface Cell {
+  compiler: string; // "solc" | "solx" | "solx-x.y.z"
+  viaIR: boolean;
+  noOpt: boolean;
+  dwarf: boolean;
+}
+
+interface CellData {
+  wallMean?: number;
+  cpuTotal?: number;
+  peakRssMb?: number;
+  runs?: number;
+}
+
+interface Scenario {
+  cold: Map<string, CellData>; // key: canonical cell key
+  replay: Map<string, CellData>;
+}
+
+// "solc no-opt" / "solx-0.1.7 via-ir no-dwarf" -> Cell; undefined if it
+// doesn't look like a matrix cell.
+export function parseCell(raw: string): Cell | undefined {
+  const tokens = raw.split(" ");
+  const compiler = tokens.shift();
+  if (
+    compiler === undefined ||
+    !/^(solc|solx(-\d+\.\d+\.\d+)?)$/.test(compiler)
+  ) {
+    return undefined;
+  }
+  const flags = new Set(tokens);
+  const known = new Set(["via-ir", "no-opt", "no-dwarf"]);
+  if ([...flags].some((f) => !known.has(f))) {
+    return undefined;
+  }
+  return {
+    compiler,
+    viaIR: flags.has("via-ir"),
+    noOpt: flags.has("no-opt"),
+    dwarf: !flags.has("no-dwarf"),
+  };
+}
+
+// Canonical cell string; feeding it back through parseCell yields the same Cell.
+function cellKey(c: Cell): string {
+  return [
+    c.compiler,
+    c.viaIR ? "via-ir" : "",
+    c.noOpt ? "no-opt" : "",
+    c.dwarf ? "" : "no-dwarf",
+  ]
+    .filter(Boolean)
+    .join(" ");
+}
+
+function fmt(n: number | undefined, digits = 1): string {
+  return n === undefined ? "—" : n.toFixed(digits);
+}
+
+function wallCpu(d: CellData | undefined): string {
+  if (
+    d === undefined ||
+    (d.wallMean === undefined && d.cpuTotal === undefined)
+  ) {
+    return "—";
+  }
+  return `${fmt(d.wallMean)} / ${fmt(d.cpuTotal)}`;
+}
+
+// Scenario cells that legitimately have no number: the FAIL is the datum.
+// Keep in sync with the scenario's wrapper config, which documents why.
+const CELL_NOTES: Record<string, string> = {
+  "openzeppelin-contracts-0.34|solc no-opt": "✗ does not compile¹",
+};
+
+const FOOTNOTES = [
+  "¹ solc legacy/no-opt hits stack-too-deep in OZ's P256/WebAuthn-family " +
+    "files; reproduce with `--build-profile solc-no-opt` in the scenario. " +
+    "The failure, not a time, is the datum — see the scenario's wrapper config.",
+];
+
+export function renderSolxTables(
+  entries: BenchmarkEntry[],
+  opts: {
+    shippedVersion?: string;
+    runUrl?: string;
+    headSha?: string;
+    status?: string;
+  } = {},
+): string {
+  const scenarios = new Map<string, Scenario>();
+  const other: BenchmarkEntry[] = [];
+
+  for (const entry of entries) {
+    const m =
+      /^(?<scenario>.+?) \/ (?<label>.+?)(?<kind> \((cpu|peak RSS)\))?$/.exec(
+        entry.name,
+      );
+    const [, prefix, cellRaw] =
+      m === null
+        ? [undefined, undefined, undefined]
+        : (/^(cold compile|raw replay) (.*)$/.exec(m.groups!.label) ?? [
+            undefined,
+            undefined,
+            undefined,
+          ]);
+    const cell = cellRaw === undefined ? undefined : parseCell(cellRaw);
+    if (m === null || cell === undefined) {
+      other.push(entry);
+      continue;
+    }
+
+    const { scenario: scenarioId } = m.groups!;
+    const scenario = scenarios.get(scenarioId) ?? {
+      cold: new Map(),
+      replay: new Map(),
+    };
+    scenarios.set(scenarioId, scenario);
+    const bucket = prefix === "cold compile" ? scenario.cold : scenario.replay;
+    const key = cellKey(cell);
+    const data = bucket.get(key) ?? {};
+    bucket.set(key, data);
+
+    const extra = JSON.parse(entry.extra) as Record<string, unknown>;
+    if (m.groups!.kind === undefined) {
+      data.wallMean = entry.value;
+      if (Array.isArray(extra.times)) {
+        data.runs = extra.times.length;
+      }
+    } else if (m.groups!.kind === " (cpu)") {
+      data.cpuTotal = entry.value;
+    } else {
+      data.peakRssMb = entry.value;
+    }
+  }
+
+  const scenarioIds = [...scenarios.keys()].sort();
+  const compilers = (scenario: Scenario) => {
+    const found = new Set<string>();
+    for (const key of scenario.cold.keys()) {
+      found.add(key.split(" ")[0]);
+    }
+    // solc first, shipped solx second, pinned versions ascending
+    return [
+      "solc",
+      "solx",
+      ...[...found].filter((c) => c.startsWith("solx-")).sort(),
+    ].filter((c) => found.has(c));
+  };
+  const compilerHeading = (c: string) =>
+    c === "solc"
+      ? "solc 0.8.34"
+      : c === "solx"
+        ? `solx${opts.shippedVersion === undefined ? "" : ` ${opts.shippedVersion}`} (shipped)`
+        : c.replace("solx-", "solx ");
+
+  const lines: string[] = [COMMENT_MARKER, "## solx compile benchmarks", ""];
+  if (opts.status !== undefined && opts.status !== "success") {
+    lines.push(
+      `> [!WARNING]`,
+      `> Benchmark job status: ${opts.status} — results may be partial.`,
+      "",
+    );
+  }
+  const provenance = [
+    opts.runUrl === undefined
+      ? undefined
+      : `generated from [this run](${opts.runUrl})`,
+    opts.headSha === undefined ? undefined : `at ${opts.headSha.slice(0, 9)}`,
+  ]
+    .filter(Boolean)
+    .join(" ");
+  lines.push(
+    `Cold compile, mean wall / total CPU (user+sys) in seconds, DWARF on (the shipped config)${
+      provenance === "" ? "" : `; ${provenance}`
+    }.`,
+    "",
+  );
+
+  const rows: Array<{ title: string; match: (c: Cell) => boolean }> = [
+    { title: "legacy, no optimizer", match: (c) => c.noOpt && !c.viaIR },
+    { title: "legacy", match: (c) => !c.noOpt && !c.viaIR },
+    { title: "via-IR", match: (c) => !c.noOpt && c.viaIR },
+  ];
+
+  for (const id of scenarioIds) {
+    const scenario = scenarios.get(id)!;
+    const cols = compilers(scenario);
+    const runs = [...scenario.cold.values()]
+      .map((d) => d.runs)
+      .find((r) => r !== undefined);
+    lines.push(
+      `### ${id}${runs === undefined ? "" : ` <sub>(${runs} runs/cell)</sub>`}`,
+      "",
+    );
+    lines.push(`| cold compile | ${cols.map(compilerHeading).join(" | ")} |`);
+    lines.push(`|---|${cols.map(() => "---").join("|")}|`);
+    for (const row of rows) {
+      const cells = cols.map((compiler) => {
+        const key = [...scenario.cold.keys()].find((k) => {
+          const c = parseCell(k)!;
+          return c.compiler === compiler && c.dwarf && row.match(c);
+        });
+        const note =
+          CELL_NOTES[
+            `${id}|${compiler}${row.title === "legacy, no optimizer" ? " no-opt" : ""}`
+          ];
+        return key === undefined
+          ? (note ?? "—")
+          : wallCpu(scenario.cold.get(key));
+      });
+      if (cells.some((c) => c !== "—")) {
+        lines.push(`| ${row.title} | ${cells.join(" | ")} |`);
+      }
+    }
+    lines.push("");
+  }
+
+  // Secondary numbers: everything is still generated, just folded away.
+  lines.push(
+    "<details>",
+    "<summary>DWARF cost, peak RSS, raw replay</summary>",
+    "",
+  );
+
+  const dwarfRows: string[] = [];
+  for (const id of scenarioIds) {
+    const scenario = scenarios.get(id)!;
+    for (const [key, data] of scenario.cold) {
+      const cell = parseCell(key)!;
+      if (cell.dwarf) {
+        continue;
+      }
+      const onKey = cellKey({ ...cell, dwarf: true });
+      const on = scenario.cold.get(onKey);
+      if (on?.cpuTotal !== undefined && data.cpuTotal !== undefined) {
+        const delta = on.cpuTotal - data.cpuTotal;
+        dwarfRows.push(
+          `| ${id} | ${onKey} | ${delta >= 0 ? "+" : ""}${fmt(delta)} | ${fmt(data.cpuTotal)} → ${fmt(on.cpuTotal)} |`,
+        );
+      }
+    }
+  }
+  if (dwarfRows.length > 0) {
+    lines.push(
+      "DWARF cost = DWARF-on CPU − DWARF-off CPU, within this run:",
+      "",
+      "| scenario | cell | DWARF cost (CPU s) | off → on |",
+      "|---|---|---|---|",
+      ...dwarfRows,
+      "",
+    );
+  }
+
+  const rssRows: string[] = [];
+  for (const id of scenarioIds) {
+    for (const [key, data] of scenarios.get(id)!.cold) {
+      if (data.peakRssMb !== undefined) {
+        rssRows.push(`| ${id} | ${key} | ${fmt(data.peakRssMb, 0)} |`);
+      }
+    }
+  }
+  if (rssRows.length > 0) {
+    lines.push(
+      "Peak RSS (highest peak across runs):",
+      "",
+      "| scenario | cell | MB |",
+      "|---|---|---|",
+      ...rssRows,
+      "",
+    );
+  }
+
+  const replayRows: string[] = [];
+  for (const id of scenarioIds) {
+    for (const [key, data] of scenarios.get(id)!.replay) {
+      replayRows.push(`| ${id} | ${key} | ${wallCpu(data)} |`);
+    }
+  }
+  if (replayRows.length > 0) {
+    lines.push(
+      "Raw solx replay over dumped standard JSON (no Hardhat in the loop; the delta vs the matching cold-compile cell is Hardhat's overhead):",
+      "",
+      "| scenario | cell | wall / CPU (s) |",
+      "|---|---|---|",
+      ...replayRows,
+      "",
+    );
+  }
+
+  if (other.length > 0) {
+    lines.push(
+      "Other entries (not part of the cold-compile matrix):",
+      "",
+      "| entry | value | unit |",
+      "|---|---|---|",
+      ...other.map((e) => `| ${e.name} | ${fmt(e.value, 2)} | ${e.unit} |`),
+      "",
+    );
+  }
+
+  lines.push("</details>", "", ...FOOTNOTES);
+  return `${lines.join("\n")}\n`;
+}
+
+function getArg(flag: string): string | undefined {
+  const i = process.argv.indexOf(flag);
+  return i !== -1 && i + 1 < process.argv.length
+    ? process.argv[i + 1]
+    : undefined;
+}
+
+function main(): void {
+  const reportPath = getArg("--report");
+  if (reportPath === undefined) {
+    console.log(USAGE);
+    process.exitCode = 1;
+    return;
+  }
+  const entries = JSON.parse(
+    readFileSync(reportPath, "utf8"),
+  ) as BenchmarkEntry[];
+  const repoRoot = path.resolve(import.meta.dirname, "..", "..");
+  process.stdout.write(
+    renderSolxTables(entries, {
+      shippedVersion: readShippedSolxVersion(repoRoot),
+      runUrl: getArg("--run-url"),
+      headSha: getArg("--head-sha"),
+      status: getArg("--status"),
+    }),
+  );
+}
+
+if (process.argv[1] === import.meta.filename) {
+  main();
+}
