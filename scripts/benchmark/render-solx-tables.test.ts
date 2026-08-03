@@ -152,6 +152,13 @@ describe("renderSolxTables", () => {
       user: 62,
       system: 0.5,
     }),
+    entry("solady-solx / cold compile solc", 55.2, {
+      times: [55.0, 55.4],
+    }),
+    entry("solady-solx / cold compile solc (cpu)", 42.4, {
+      user: 39,
+      system: 3.4,
+    }),
     entry("something / unrecognized entry", 1.23),
   ];
   const md = renderSolxTables(report, {
@@ -173,6 +180,13 @@ describe("renderSolxTables", () => {
   it("annotates OZ's no-opt FAIL instead of leaving a hole", () => {
     assert.match(md, /\| legacy, no optimizer \| ✗ does not compile¹ \|/);
     assert.match(md, /stack-too-deep/);
+  });
+
+  it("annotates solady's no-opt FAIL the same way", () => {
+    assert.match(
+      md,
+      /### solady-solx[\s\S]*?\| legacy, no optimizer \| ✗ does not compile¹ \|/,
+    );
   });
 
   it("renders DWARF cost, RSS, replay and leftovers", () => {
