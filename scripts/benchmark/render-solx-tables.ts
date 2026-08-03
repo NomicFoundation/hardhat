@@ -121,12 +121,14 @@ function wallCpu(d: CellData | undefined): string {
 // Keep in sync with the scenario's wrapper config, which documents why.
 const CELL_NOTES: Record<string, string> = {
   "openzeppelin-contracts-0.34|solc no-opt": "✗ does not compile¹",
+  "solady-solx|solc no-opt": "✗ does not compile¹",
 };
 
 const FOOTNOTES = [
-  "¹ solc legacy/no-opt hits stack-too-deep in OZ's P256/WebAuthn-family " +
-    "files; reproduce with `--build-profile solc-no-opt` in the scenario. " +
-    "The failure, not a time, is the datum — see the scenario's wrapper config.",
+  "¹ solc legacy/no-opt hits stack-too-deep (OZ: the P256/WebAuthn-family " +
+    "files; solady: test/RedBlackTree.t.sol); reproduce with " +
+    "`--build-profile solc-no-opt` in the scenario. The failure, not a " +
+    "time, is the datum — see the scenario's wrapper config.",
 ];
 
 export function renderSolxTables(

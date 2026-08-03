@@ -84,6 +84,7 @@ mylib
 mylock
 misparses
 napi
+nebasuke
 niño
 NFKC
 Nomic
@@ -107,6 +108,8 @@ reserialized
 sarasa
 schaable
 sokol
+solady
+Solady
 solcjs
 SOLCJS
 solx
