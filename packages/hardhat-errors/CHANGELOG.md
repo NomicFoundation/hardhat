@@ -1,5 +1,11 @@
 # @nomicfoundation/hardhat-errors
 
+## 3.0.18
+
+### Patch Changes
+
+- [#8442](https://github.com/NomicFoundation/hardhat/pull/8442) [`4904c72`](https://github.com/NomicFoundation/hardhat/commit/4904c726c3356e904911f8615d8f0b0bf0a76942) Thanks [@ChristopherDedominici](https://github.com/ChristopherDedominici)! - Support test name filter negation (--grep-exclude) for Solidity and Mocha tests.
+
 ## 3.0.17
 
 ### Patch Changes

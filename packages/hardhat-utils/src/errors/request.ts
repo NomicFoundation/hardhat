@@ -37,9 +37,7 @@ export class ConnectionRefusedError extends CustomError {
 export class ResponseStatusCodeError extends CustomError {
   public readonly statusCode: number;
   public readonly headers:
-    | string[]
-    | Record<string, string | string[] | undefined>
-    | null;
+    string[] | Record<string, string | string[] | undefined> | null;
   public readonly body: null | Record<string, any> | string;
 
   constructor(url: string, cause: Error) {

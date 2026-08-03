@@ -386,8 +386,7 @@ export class HookManagerImplementation implements HookManager {
     hookCategoryName: HookCategoryNameT,
   ): Promise<Array<Partial<HardhatHooks[HookCategoryNameT]>>> {
     const cached = this.#resolvedStaticCategories.get(hookCategoryName) as
-      | Array<Partial<HardhatHooks[HookCategoryNameT]>>
-      | undefined;
+      Array<Partial<HardhatHooks[HookCategoryNameT]>> | undefined;
 
     if (cached !== undefined) {
       return cached;
@@ -405,8 +404,7 @@ export class HookManagerImplementation implements HookManager {
     return await this.#mutex.exclusiveRun(async () => {
       // Re-check under the mutex in case another caller just populated it.
       const recheck = this.#resolvedStaticCategories.get(hookCategoryName) as
-        | Array<Partial<HardhatHooks[HookCategoryNameT]>>
-        | undefined;
+        Array<Partial<HardhatHooks[HookCategoryNameT]>> | undefined;
 
       if (recheck !== undefined) {
         return recheck;

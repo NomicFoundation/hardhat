@@ -14,7 +14,8 @@ export async function loadFixture<T, ChainTypeT extends ChainType | string>(
 }> {
   if (fixture.name === "") {
     throw new HardhatError(
-      HardhatError.ERRORS.NETWORK_HELPERS.GENERAL.FIXTURE_ANONYMOUS_FUNCTION_ERROR,
+      HardhatError.ERRORS.NETWORK_HELPERS.GENERAL
+        .FIXTURE_ANONYMOUS_FUNCTION_ERROR,
     );
   }
 

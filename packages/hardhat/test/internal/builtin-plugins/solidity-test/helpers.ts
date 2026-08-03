@@ -355,6 +355,49 @@ describe("solidityTestConfigToSolidityTestRunnerConfigArgs", () => {
     assert.equal(args.generateGasReport, false);
   });
 
+  it("forwards testPattern and excludeTestPattern to the runner config", async () => {
+    const args = await solidityTestConfigToSolidityTestRunnerConfigArgs({
+      chainType: GENERIC_CHAIN_TYPE,
+      projectRoot: process.cwd(),
+      config: { fuzz: { seed: "0x1234" }, rpcCachePath: "" },
+      verbosity: 0,
+      generateGasReport: false,
+      testPattern: "unit_",
+      excludeTestPattern: "^testFork_",
+    });
+
+    assert.equal(args.testPattern, "unit_");
+    assert.equal(args.excludeTestPattern, "^testFork_");
+  });
+
+  it("leaves testPattern and excludeTestPattern undefined when not provided", async () => {
+    const args = await solidityTestConfigToSolidityTestRunnerConfigArgs({
+      chainType: GENERIC_CHAIN_TYPE,
+      projectRoot: process.cwd(),
+      config: { fuzz: { seed: "0x1234" }, rpcCachePath: "" },
+      verbosity: 0,
+      generateGasReport: false,
+    });
+
+    assert.equal(args.testPattern, undefined);
+    assert.equal(args.excludeTestPattern, undefined);
+  });
+
+  it("normalizes empty-string testPattern and excludeTestPattern to undefined", async () => {
+    const args = await solidityTestConfigToSolidityTestRunnerConfigArgs({
+      chainType: GENERIC_CHAIN_TYPE,
+      projectRoot: process.cwd(),
+      config: { fuzz: { seed: "0x1234" }, rpcCachePath: "" },
+      verbosity: 0,
+      generateGasReport: false,
+      testPattern: "",
+      excludeTestPattern: "",
+    });
+
+    assert.equal(args.testPattern, undefined);
+    assert.equal(args.excludeTestPattern, undefined);
+  });
+
   describe("hardfork parameter", () => {
     it("should use provided hardfork for EDR", async () => {
       const args = await solidityTestConfigToSolidityTestRunnerConfigArgs({

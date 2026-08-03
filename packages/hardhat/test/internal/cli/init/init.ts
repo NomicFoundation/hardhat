@@ -130,7 +130,7 @@ describe("getWorkspace", () => {
 describe("getTemplate", () => {
   it("should throw if the provided template does not exist", async () => {
     await assertRejectsWithHardhatError(
-      async () => await getTemplate("hardhat-3", "non-existent-template"),
+      async () => await getTemplate("non-existent-template"),
       HardhatError.ERRORS.CORE.GENERAL.TEMPLATE_NOT_FOUND,
       {
         template: "non-existent-template",
@@ -138,7 +138,7 @@ describe("getTemplate", () => {
     );
   });
   it("should return the provided template", async () => {
-    const [template] = await getTemplate("hardhat-3", "mocha-ethers");
+    const [template] = await getTemplate("mocha-ethers");
     assert.equal(template.name, "mocha-ethers");
   });
 });
@@ -323,7 +323,7 @@ describe("copyProjectFiles", () => {
 
   describe("when force is true", () => {
     it("should copy the template files to the workspace and overwrite existing files", async () => {
-      const [template] = await getTemplate("hardhat-3", "mocha-ethers");
+      const [template] = await getTemplate("mocha-ethers");
       // Create template files with "some content" in the workspace
       const workspaceFiles = template.files.map(
         relativeTemplateToWorkspacePath,
@@ -342,7 +342,7 @@ describe("copyProjectFiles", () => {
       }
     });
     it("should copy the .gitignore file correctly", async () => {
-      const [template] = await getTemplate("hardhat-3", "mocha-ethers");
+      const [template] = await getTemplate("mocha-ethers");
       // Copy the template files to the workspace
       await copyProjectFiles(tmp.path, template, true);
       // Check that the .gitignore exists but gitignore does not
@@ -358,7 +358,7 @@ describe("copyProjectFiles", () => {
   });
   describe("when force is false", () => {
     it("should copy the template files to the workspace and NOT overwrite existing files", async () => {
-      const [template] = await getTemplate("hardhat-3", "mocha-ethers");
+      const [template] = await getTemplate("mocha-ethers");
       // Create template files with "some content" in the workspace
       const workspaceFiles = template.files.map(
         relativeTemplateToWorkspacePath,
@@ -377,7 +377,7 @@ describe("copyProjectFiles", () => {
       }
     });
     it("should copy the .gitignore file correctly", async () => {
-      const [template] = await getTemplate("hardhat-3", "mocha-ethers");
+      const [template] = await getTemplate("mocha-ethers");
       // Copy the template files to the workspace
       await copyProjectFiles(tmp.path, template, false);
       // Check that the .gitignore exists but gitignore does not
@@ -392,7 +392,7 @@ describe("copyProjectFiles", () => {
     });
 
     it("Regression test: should not scan unrelated workspace files to detect overwrites", async () => {
-      const [template] = await getTemplate("hardhat-3", "mocha-ethers");
+      const [template] = await getTemplate("mocha-ethers");
       const unrelatedDirPath = path.join(tmp.path, "unrelated");
       const unrelatedFilePath = path.join(unrelatedDirPath, "ignored.txt");
       await ensureDir(unrelatedDirPath);
@@ -430,7 +430,7 @@ describe("copyProjectFiles", () => {
     });
 
     it("Regression test: should still throw if a directory clashes with a destination file", async () => {
-      const [template] = await getTemplate("hardhat-3", "mocha-ethers");
+      const [template] = await getTemplate("mocha-ethers");
       const pathWithDirectoryClash = path.join(tmp.path, "hardhat.config.ts");
 
       await ensureDir(pathWithDirectoryClash);
@@ -444,7 +444,7 @@ describe("copyProjectFiles", () => {
   });
 
   it("should install skills and create CLAUDE.md and .claude for the mocha-ethers template", async () => {
-    const [template] = await getTemplate("hardhat-3", "mocha-ethers");
+    const [template] = await getTemplate("mocha-ethers");
     await copyProjectFiles(tmp.path, template, true);
 
     assert.ok(
@@ -497,7 +497,7 @@ describe("copyProjectFiles", () => {
   });
 
   it("should install skills and create CLAUDE.md and .claude for the node-test-runner-viem template", async () => {
-    const [template] = await getTemplate("hardhat-3", "node-test-runner-viem");
+    const [template] = await getTemplate("node-test-runner-viem");
     await copyProjectFiles(tmp.path, template, true);
 
     assert.ok(
@@ -550,7 +550,7 @@ describe("copyProjectFiles", () => {
   });
 
   it("should not touch CLAUDE.md if it exists and force is false", async () => {
-    const [template] = await getTemplate("hardhat-3", "mocha-ethers");
+    const [template] = await getTemplate("mocha-ethers");
     const claudeMdPath = path.join(tmp.path, "CLAUDE.md");
     await writeUtf8File(claudeMdPath, "original");
 
@@ -560,7 +560,7 @@ describe("copyProjectFiles", () => {
   });
 
   it("should overwrite CLAUDE.md if force is true", async () => {
-    const [template] = await getTemplate("hardhat-3", "mocha-ethers");
+    const [template] = await getTemplate("mocha-ethers");
     const claudeMdPath = path.join(tmp.path, "CLAUDE.md");
     await writeUtf8File(claudeMdPath, "original");
 
@@ -575,7 +575,7 @@ describe("copyProjectFiles", () => {
   });
 
   it("should not touch .claude if it exists and force is false", async () => {
-    const [template] = await getTemplate("hardhat-3", "mocha-ethers");
+    const [template] = await getTemplate("mocha-ethers");
     const markerPath = path.join(tmp.path, ".claude", "marker.txt");
     await ensureDir(path.join(tmp.path, ".claude"));
     await writeUtf8File(markerPath, "original");
@@ -586,7 +586,7 @@ describe("copyProjectFiles", () => {
   });
 
   it("should not touch .claude if it exists even when force is true", async () => {
-    const [template] = await getTemplate("hardhat-3", "mocha-ethers");
+    const [template] = await getTemplate("mocha-ethers");
     const markerPath = path.join(tmp.path, ".claude", "marker.txt");
     await ensureDir(path.join(tmp.path, ".claude"));
     await writeUtf8File(markerPath, "original");
@@ -602,7 +602,7 @@ describe("installProjectDependencies", async () => {
 
   disableConsole();
 
-  const templates = await getTemplates("hardhat-3");
+  const templates = await getTemplates();
 
   for (const template of templates) {
     // NOTE: This test is slow because it installs dependencies over the network.
@@ -648,7 +648,7 @@ describe("installProjectDependencies", async () => {
   }
 
   it("should not install any template dependencies if the user opts-out of the installation", async () => {
-    const [template] = await getTemplate("hardhat-3", "mocha-ethers");
+    const [template] = await getTemplate("mocha-ethers");
     await writeUtf8File(
       path.join(tmp.path, "package.json"),
       JSON.stringify({ type: "module" }),
@@ -671,7 +671,7 @@ describe("installProjectDependencies", async () => {
       skip: skipNetworkSlowTests,
     },
     async () => {
-      const [template] = await getTemplate("hardhat-3", "mocha-ethers");
+      const [template] = await getTemplate("mocha-ethers");
       await writeUtf8File(
         path.join(tmp.path, "package.json"),
         JSON.stringify({
@@ -832,7 +832,7 @@ describe("installProjectDependencies", async () => {
       });
 
       it("should wrap installation failures in a HardhatError", async () => {
-        const [template] = await getTemplate("hardhat-3", "mocha-ethers");
+        const [template] = await getTemplate("mocha-ethers");
         await writeUtf8File(
           path.join(tmp.path, "package.json"),
           JSON.stringify({ type: "module" }),
@@ -851,7 +851,7 @@ describe("installProjectDependencies", async () => {
       });
 
       it("should wrap update failures in a HardhatError", async () => {
-        const [template] = await getTemplate("hardhat-3", "mocha-ethers");
+        const [template] = await getTemplate("mocha-ethers");
         await writeUtf8File(
           path.join(tmp.path, "package.json"),
           JSON.stringify({
@@ -881,7 +881,7 @@ describe("initHardhat", async () => {
 
     disableConsole();
 
-    const templates = await getTemplates("hardhat-3");
+    const templates = await getTemplates();
 
     for (const template of templates) {
       // NOTE: This test uses network to access the npm registry
@@ -892,7 +892,6 @@ describe("initHardhat", async () => {
         },
         async () => {
           await initHardhat({
-            hardhatVersion: "hardhat-3",
             template: template.name,
             workspace: tmp.path,
             migrateToEsm: false,
@@ -920,7 +919,7 @@ describe("initHardhat", async () => {
 
     disableConsole();
 
-    const template = (await getTemplates("hardhat-3"))[0];
+    const template = (await getTemplates())[0];
 
     // Verifies that non-existent folders are created during initialization instead of throwing an error
     for (const folderPath of [
@@ -937,7 +936,6 @@ describe("initHardhat", async () => {
           const workspacePath = path.join(tmp.path, folderPath);
 
           await initHardhat({
-            hardhatVersion: "hardhat-3",
             template: template.name,
             workspace: workspacePath,
             migrateToEsm: false,
@@ -1130,7 +1128,7 @@ describe("initHardhat3NonInteractive", async () => {
 
     disableConsole();
 
-    const templates = await getTemplates("hardhat-3");
+    const templates = await getTemplates();
 
     for (const template of templates) {
       // NOTE: This test uses network to access the npm registry
@@ -1167,7 +1165,7 @@ describe("initHardhat3NonInteractive", async () => {
     useTmpDirAsCwd("initHardhat3NonInteractiveUnknownTemplate");
 
     it("should throw with the list of available templates", async () => {
-      const templates = await getTemplates("hardhat-3");
+      const templates = await getTemplates();
       const availableTemplates = templates
         .map((t) => `  - ${t.name}`)
         .join("\n");
@@ -1279,7 +1277,7 @@ describe("initHardhat3NonInteractive", async () => {
         await writeUtf8File("README.md", "user readme");
         await setUpPnpmTmpDir(tmp.path);
 
-        const [template] = await getTemplate("hardhat-3", "mocha-ethers");
+        const [template] = await getTemplate("mocha-ethers");
         const templateReadme = await readUtf8File(
           path.join(template.path, "README.md"),
         );
@@ -1469,7 +1467,7 @@ describe("assertNoNonInteractiveClashes / copyProjectFilesNonInteractive", () =>
   });
 
   it("should install skills and create CLAUDE.md and .claude for the mocha-ethers template", async () => {
-    const [template] = await getTemplate("hardhat-3", "mocha-ethers");
+    const [template] = await getTemplate("mocha-ethers");
     const workspace = path.join(tmp.path, "workspace-mocha-ethers");
     await ensureDir(workspace);
 
@@ -1525,7 +1523,7 @@ describe("assertNoNonInteractiveClashes / copyProjectFilesNonInteractive", () =>
   });
 
   it("should install skills and create CLAUDE.md and .claude for the node-test-runner-viem template", async () => {
-    const [template] = await getTemplate("hardhat-3", "node-test-runner-viem");
+    const [template] = await getTemplate("node-test-runner-viem");
     const workspace = path.join(tmp.path, "workspace-viem");
     await ensureDir(workspace);
 

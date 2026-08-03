@@ -1,5 +1,42 @@
 # hardhat
 
+## 3.12.0
+
+### Minor Changes
+
+- [#8442](https://github.com/NomicFoundation/hardhat/pull/8442) [`4904c72`](https://github.com/NomicFoundation/hardhat/commit/4904c726c3356e904911f8615d8f0b0bf0a76942) Thanks [@ChristopherDedominici](https://github.com/ChristopherDedominici)! - Support test name filter negation (--grep-exclude) for Solidity and Mocha tests.
+
+- [#8472](https://github.com/NomicFoundation/hardhat/pull/8472) [`2a66c2e`](https://github.com/NomicFoundation/hardhat/commit/2a66c2e9f436dbef2e5cae4d25f0fe8756f45062) Thanks [@kanej](https://github.com/kanej)! - Added experimental EIP-7843 support to the Amsterdam hardfork: blocks now include the `slotNumber` header field, and the `SLOTNUM` (`0x4b`) opcode returns it. EDR has no consensus layer, so the value is simulated: it increments by one per mined block, starting at 0 on a new chain, or from the forked block's slot number when forking.
+
+### Patch Changes
+
+- [#8464](https://github.com/NomicFoundation/hardhat/pull/8464) [`b2b69f7`](https://github.com/NomicFoundation/hardhat/commit/b2b69f75651af9bcee3de492e760bb5a15058f09) Thanks [@nishant-uxs](https://github.com/nishant-uxs)! - Prefer environment variables over configurationVariables hooks when resolving config vars.
+
+- [#8474](https://github.com/NomicFoundation/hardhat/pull/8474) [`49cc2f0`](https://github.com/NomicFoundation/hardhat/commit/49cc2f085aeb402c3bfe10a1c7fadf5325535128) Thanks [@Wodann](https://github.com/Wodann)! - Report chain type to Google Analytics
+
+- [#8458](https://github.com/NomicFoundation/hardhat/pull/8458) [`0c60e08`](https://github.com/NomicFoundation/hardhat/commit/0c60e08bec545460ced3aac1ce702a23c5e18a31) Thanks [@schaable](https://github.com/schaable)! - Fixed project initialization so that compilation and build output directories are never copied from a template into a new project.
+
+- [#8472](https://github.com/NomicFoundation/hardhat/pull/8472) [`2a66c2e`](https://github.com/NomicFoundation/hardhat/commit/2a66c2e9f436dbef2e5cae4d25f0fe8756f45062) Thanks [@kanej](https://github.com/kanej)! - Fixed empty stack traces on Solidity test failures when running with `-vvv` or above.
+
+- [#8472](https://github.com/NomicFoundation/hardhat/pull/8472) [`2a66c2e`](https://github.com/NomicFoundation/hardhat/commit/2a66c2e9f436dbef2e5cae4d25f0fe8756f45062) Thanks [@kanej](https://github.com/kanej)! - Fixed missing stack traces when an invariant already fails on its initial check, when running with `-vvv` or above.
+
+- [#8470](https://github.com/NomicFoundation/hardhat/pull/8470) [`341807c`](https://github.com/NomicFoundation/hardhat/commit/341807ca0d5cb480abf360f264829c43aad053c2) Thanks [@kanej](https://github.com/kanej)! - Update the `chokidar` runtime dependency to its latest major version.
+
+- [#8470](https://github.com/NomicFoundation/hardhat/pull/8470) [`4a71543`](https://github.com/NomicFoundation/hardhat/commit/4a715439373bc3fe5ebe3f62d4b16366432a6e8e) Thanks [@kanej](https://github.com/kanej)! - Update the `p-map` dependency.
+
+- [#8461](https://github.com/NomicFoundation/hardhat/pull/8461) [`841423a`](https://github.com/NomicFoundation/hardhat/commit/841423a913e25591a83458b39738e3e8aa5b81bc) Thanks [@kanej](https://github.com/kanej)! - Reduce installation warnings with updated dependencies.
+
+## 3.11.1
+
+### Patch Changes
+
+- [#8451](https://github.com/NomicFoundation/hardhat/pull/8451) [`5c9d4a4`](https://github.com/NomicFoundation/hardhat/commit/5c9d4a4e0fd6c53a4c39b3629d635888da467d72) Thanks [@kanej](https://github.com/kanej)! - Remove Hardhat 2 option from init process
+
+- [#8452](https://github.com/NomicFoundation/hardhat/pull/8452) [`724b7cd`](https://github.com/NomicFoundation/hardhat/commit/724b7cd281411b3d995cda754747c7f508e56e5b) Thanks [@kanej](https://github.com/kanej)! - Fixed Solidity source classification so that a directory listed in both `paths.sources.solidity` and `paths.tests.solidity` is treated as a source.
+
+- Updated dependencies:
+  - @nomicfoundation/hardhat-utils@4.1.6
+
 ## 3.11.0
 
 ### Minor Changes
@@ -514,11 +551,9 @@
 - 3575a52: Bumped EDR version to [`0.12.0-next.21`](https://github.com/NomicFoundation/edr/releases/tag/%40nomicfoundation%2Fedr%400.12.0-next.21).
 
   ### Minor Changes
-
   - NomicFoundation/edr@44e779c: Added function-level configuration overrides for Solidity tests
 
   ### Patch Changes
-
   - NomicFoundation/edr@b5ad15c: Added support for instrumentation of Solidity `0.8.32` and `0.8.33`
 
 - fd70728: Bumped EDR version to [`0.12.0-next.20`](https://www.npmjs.com/package/@nomicfoundation/edr/v/0.12.0-next.20).

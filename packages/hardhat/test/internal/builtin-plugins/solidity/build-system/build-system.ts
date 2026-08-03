@@ -816,6 +816,69 @@ describe("SolidityBuildSystemImplementation.getScope", () => {
   });
 });
 
+describe("SolidityBuildSystemImplementation.getScope with overlapping sources and tests paths", () => {
+  const projectRoot = path.join(path.sep, "project");
+  const solidityTestsPath = path.join(projectRoot, "test");
+  const soliditySourcesPaths = [
+    path.join(projectRoot, "contracts"),
+    solidityTestsPath,
+  ];
+
+  function makeBuildSystem(): SolidityBuildSystemImplementation {
+    const hooks = new HookManagerImplementation(projectRoot, []);
+
+    // eslint-disable-next-line @typescript-eslint/consistent-type-assertions -- hooks context is irrelevant for getScope
+    hooks.setContext({} as HookContext);
+
+    const solidityConfig: SolidityConfig = {
+      profiles: {
+        default: {
+          compilers: [],
+          overrides: {},
+          isolated: false,
+          preferWasm: false,
+        },
+      },
+      npmFilesToBuild: [],
+      registeredCompilerTypes: ["solc"],
+      splitTestsCompilation: false,
+    };
+
+    return new SolidityBuildSystemImplementation(hooks, {
+      solidityConfig,
+      projectRoot,
+      soliditySourcesPaths,
+      artifactsPath: path.join(projectRoot, "artifacts"),
+      cachePath: path.join(projectRoot, "cache"),
+      solidityTestsPath,
+      coverage: false,
+    });
+  }
+
+  const solidity = makeBuildSystem();
+
+  it("returns 'contracts' for a plain .sol file under a dir that is both the tests path and a sources path", async () => {
+    assert.equal(
+      await solidity.getScope(path.join(solidityTestsPath, "Mock.sol")),
+      "contracts",
+    );
+  });
+
+  it("returns 'contracts' for a nested plain .sol file under the overlapping dir", async () => {
+    assert.equal(
+      await solidity.getScope(path.join(solidityTestsPath, "sub", "Mock.sol")),
+      "contracts",
+    );
+  });
+
+  it("returns 'tests' for a .t.sol file under the overlapping dir", async () => {
+    assert.equal(
+      await solidity.getScope(path.join(solidityTestsPath, "Helper.t.sol")),
+      "tests",
+    );
+  });
+});
+
 describe("SolidityBuildSystemImplementation.getRootFilePaths", () => {
   const tmp = createTmpDir("solidity-build-system-root-files", "test");
 

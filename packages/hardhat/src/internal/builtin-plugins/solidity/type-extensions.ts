@@ -71,8 +71,7 @@ declare module "../../../types/config.js" {
    * NOTE: All the variants of SingleVersionSolidityUserConfig must extend this
    * interface.
    */
-  export interface CommonSingleVersionSolidityUserConfig
-    extends CommonSolidityUserConfig {
+  export interface CommonSingleVersionSolidityUserConfig extends CommonSolidityUserConfig {
     toolVersionsInBuildInfo?: boolean;
   }
 
@@ -122,7 +121,9 @@ declare module "../../../types/config.js" {
    */
   export type SolidityCompilerUserConfig =
     | {
-        [type in keyof SolidityCompilerUserConfigPerType]: SolidityCompilerUserConfigPerType[type];
+        [
+          type in keyof SolidityCompilerUserConfigPerType
+        ]: SolidityCompilerUserConfigPerType[type];
       }[keyof SolidityCompilerUserConfigPerType]
     // SolcSolidityCompilerUserConfig when the type isn't present
     | (Omit<SolcSolidityCompilerUserConfig, "type"> &
@@ -133,7 +134,8 @@ declare module "../../../types/config.js" {
    * @deprecated
    */
   export interface SingleVersionSolcUserConfig
-    extends SolcSolidityCompilerUserConfig,
+    extends
+      SolcSolidityCompilerUserConfig,
       CommonSingleVersionSolidityUserConfig {}
 
   /**
@@ -141,8 +143,7 @@ declare module "../../../types/config.js" {
    */
   /* eslint-disable-next-line @typescript-eslint/no-empty-interface -- Defined
     in SingleVersionSolcUserConfig for backwards compatibility */
-  export interface SolcSingleVersionSolidityUserConfig
-    extends SingleVersionSolcUserConfig {}
+  export interface SolcSingleVersionSolidityUserConfig extends SingleVersionSolcUserConfig {}
 
   /**
    * A map from compiler type to its SingleVersionSolidityUserConfig type.
@@ -158,7 +159,9 @@ declare module "../../../types/config.js" {
    */
   export type SingleVersionSolidityUserConfig =
     | {
-        [type in keyof SingleVersionSolidityUserConfigPerType]: SingleVersionSolidityUserConfigPerType[type];
+        [
+          type in keyof SingleVersionSolidityUserConfigPerType
+        ]: SingleVersionSolidityUserConfigPerType[type];
       }[keyof SingleVersionSolidityUserConfigPerType]
     // SolcSingleVersionSolidityUserConfig when the type isn't present
     | (Omit<SolcSingleVersionSolidityUserConfig, "type"> &
@@ -188,8 +191,7 @@ declare module "../../../types/config.js" {
    * compatibility.
    */
   export interface MultiVersionSolidityUserConfig
-    extends MultiVersionSolcUserConfig,
-      CommonSolidityUserConfig {
+    extends MultiVersionSolcUserConfig, CommonSolidityUserConfig {
     toolVersionsInBuildInfo?: boolean;
   }
 
@@ -206,16 +208,14 @@ declare module "../../../types/config.js" {
    * The type of a multi-version build profile user config.
    * Mostly defined in `MultiVersionSolcUserConfig` for backwards compatibility
    */
-  export interface MultiVersionBuildProfileUserConfig
-    extends MultiVersionSolcUserConfig {
+  export interface MultiVersionBuildProfileUserConfig extends MultiVersionSolcUserConfig {
     toolVersionsInBuildInfo?: boolean;
   }
 
   /**
    * The type of the build profile version of the SolidityUserConfig.
    */
-  export interface BuildProfilesSolidityUserConfig
-    extends CommonSolidityUserConfig {
+  export interface BuildProfilesSolidityUserConfig extends CommonSolidityUserConfig {
     profiles: Record<
       string,
       SingleVersionBuildProfileUserConfig | MultiVersionBuildProfileUserConfig
@@ -274,7 +274,9 @@ declare module "../../../types/config.js" {
    */
   export type SolidityCompilerConfig =
     | {
-        [type in keyof SolidityCompilerConfigPerType]: SolidityCompilerConfigPerType[type] & {
+        [
+          type in keyof SolidityCompilerConfigPerType
+        ]: SolidityCompilerConfigPerType[type] & {
           type: type;
         };
       }[keyof SolidityCompilerConfigPerType]

@@ -420,7 +420,8 @@ export class LedgerHandler {
     await this.#displayMessage("Derivation failure");
 
     throw new HardhatError(
-      HardhatError.ERRORS.HARDHAT_LEDGER.GENERAL.CANNOT_FIND_VALID_DERIVATION_PATH,
+      HardhatError.ERRORS.HARDHAT_LEDGER.GENERAL
+        .CANNOT_FIND_VALID_DERIVATION_PATH,
       {
         address: addressToFind,
         pathStart: this.#getDerivationPath(0),
@@ -620,7 +621,8 @@ export class LedgerHandler {
       if (data !== undefined) {
         if (address === undefined) {
           throw new HardhatError(
-            HardhatError.ERRORS.HARDHAT_LEDGER.GENERAL.PERSONAL_SIGN_MISSING_ADDRESS_PARAM,
+            HardhatError.ERRORS.HARDHAT_LEDGER.GENERAL
+              .PERSONAL_SIGN_MISSING_ADDRESS_PARAM,
           );
         }
 
@@ -660,12 +662,14 @@ export class LedgerHandler {
 
       if (!isEIP712Message(typedMessage)) {
         throw new HardhatError(
-          HardhatError.ERRORS.HARDHAT_LEDGER.GENERAL.ETH_SIGN_TYPED_DATA_V4_INVALID_DATA_PARAM,
+          HardhatError.ERRORS.HARDHAT_LEDGER.GENERAL
+            .ETH_SIGN_TYPED_DATA_V4_INVALID_DATA_PARAM,
         );
       }
     } catch {
       throw new HardhatError(
-        HardhatError.ERRORS.HARDHAT_LEDGER.GENERAL.ETH_SIGN_TYPED_DATA_V4_INVALID_DATA_PARAM,
+        HardhatError.ERRORS.HARDHAT_LEDGER.GENERAL
+          .ETH_SIGN_TYPED_DATA_V4_INVALID_DATA_PARAM,
       );
     }
 

@@ -48,8 +48,7 @@ export type ArtifactContractNames = keyof ArtifactMap extends never
  * @see {@link ArtifactContractNames}
  */
 export type StringWithArtifactContractNamesAutocompletion =
-  | ArtifactContractNames
-  | (string & {});
+  ArtifactContractNames | (string & {});
 
 /**
  * The ArtifactManager is responsible for reading and writing artifacts from

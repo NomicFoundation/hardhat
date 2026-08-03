@@ -1,5 +1,19 @@
 # @nomicfoundation/hardhat-utils
 
+## 4.1.7
+
+### Patch Changes
+
+- [#8470](https://github.com/NomicFoundation/hardhat/pull/8470) [`ca29a30`](https://github.com/NomicFoundation/hardhat/commit/ca29a307c7d4b8f7539ea49268a751dfe63a6c72) Thanks [@kanej](https://github.com/kanej)! - Update the `env-paths` runtime dependency to its latest major version.
+
+- [#8461](https://github.com/NomicFoundation/hardhat/pull/8461) [`841423a`](https://github.com/NomicFoundation/hardhat/commit/841423a913e25591a83458b39738e3e8aa5b81bc) Thanks [@kanej](https://github.com/kanej)! - Reduce installation warnings with updated dependencies.
+
+## 4.1.6
+
+### Patch Changes
+
+- [#8429](https://github.com/NomicFoundation/hardhat/pull/8429) [`448a980`](https://github.com/NomicFoundation/hardhat/commit/448a9807c962eb02ed81e7ddce2718a0399f2335) Thanks [@marianfe](https://github.com/marianfe)! - Add `detectAgentEnvironment` and `isInteractive` utils
+
 ## 4.1.5
 
 ### Patch Changes

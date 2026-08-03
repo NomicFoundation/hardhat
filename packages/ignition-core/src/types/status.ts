@@ -20,8 +20,10 @@ export interface GenericContractInfo extends DeployedContract {
  *
  * @public
  */
-export interface StatusResult
-  extends Omit<ExecutionErrorDeploymentResult, "type"> {
+export interface StatusResult extends Omit<
+  ExecutionErrorDeploymentResult,
+  "type"
+> {
   chainId: number;
   contracts: {
     [key: string]: GenericContractInfo;

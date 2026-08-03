@@ -335,7 +335,7 @@ window.PR_SHOULD_USE_CONTINUATION = true;
         var Y = ad[ab];
         var ac = Y[3];
         if (ac) {
-          for (var ae = ac.length; --ae >= 0; ) {
+          for (var ae = ac.length; --ae >= 0;) {
             S[ac.charAt(ae)] = Y;
           }
         }
@@ -593,7 +593,7 @@ window.PR_SHOULD_USE_CONTINUATION = true;
         return aq;
       }
       var ah = ai(ak.nextSibling, 0);
-      for (var aj; (aj = ah.parentNode) && aj.nodeType === 1; ) {
+      for (var aj; (aj = ah.parentNode) && aj.nodeType === 1;) {
         ah = aj;
       }
       W.push(ah);
@@ -631,7 +631,7 @@ window.PR_SHOULD_USE_CONTINUATION = true;
     var Z = 0;
     X[Y] = an;
     var ar, aq;
-    for (aq = ar = 0; aq < Y; ) {
+    for (aq = ar = 0; aq < Y;) {
       if (X[aq] !== X[aq + 2]) {
         X[ar++] = X[aq++];
         X[ar++] = X[aq++];
@@ -640,7 +640,7 @@ window.PR_SHOULD_USE_CONTINUATION = true;
       }
     }
     Y = ar;
-    for (aq = ar = 0; aq < Y; ) {
+    for (aq = ar = 0; aq < Y;) {
       var at = X[aq];
       var ab = X[aq + 1];
       var W = aq + 2;
@@ -688,7 +688,7 @@ window.PR_SHOULD_USE_CONTINUATION = true;
   }
   var t = {};
   function c(U, V) {
-    for (var S = V.length; --S >= 0; ) {
+    for (var S = V.length; --S >= 0;) {
       var T = V[S];
       if (!t.hasOwnProperty(T)) {
         t[T] = U;

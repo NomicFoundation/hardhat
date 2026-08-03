@@ -7,8 +7,7 @@ export interface EtherscanResponseBody {
 }
 
 export type EtherscanGetSourceCodeResponse =
-  | EtherscanNotOkResponse
-  | EtherscanGetSourceCodeOkResponse;
+  EtherscanNotOkResponse | EtherscanGetSourceCodeOkResponse;
 
 interface EtherscanGetSourceCodeOkResponse extends EtherscanResponseBody {
   status: "1";

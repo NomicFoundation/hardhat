@@ -28,7 +28,8 @@ export function getPasswordHandlers(
       askPassword: () => askPasswordForDevKeystore(devPasswordFilePath),
       setNewPassword: () => {
         throw new HardhatError(
-          HardhatError.ERRORS.HARDHAT_KEYSTORE.GENERAL.CANNOT_CHANGED_PASSWORD_FOR_DEV_KEYSTORE,
+          HardhatError.ERRORS.HARDHAT_KEYSTORE.GENERAL
+            .CANNOT_CHANGED_PASSWORD_FOR_DEV_KEYSTORE,
         );
       },
     };

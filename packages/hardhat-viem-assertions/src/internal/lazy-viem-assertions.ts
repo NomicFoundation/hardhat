@@ -16,8 +16,7 @@ import type {
 import { bindAllMethods } from "@nomicfoundation/hardhat-utils/lang";
 
 let HardhatViemAssertionsImpl:
-  | typeof ViemAssertionsModule.HardhatViemAssertionsImpl
-  | undefined;
+  typeof ViemAssertionsModule.HardhatViemAssertionsImpl | undefined;
 
 /**
  * The assertion implementation is loaded with a dynamic import, so a promise
@@ -38,8 +37,7 @@ async function settleBeforeLazyImport(value: unknown): Promise<void> {
 
 export class LazyHardhatViemAssertions<
   ChainTypeT extends ChainType | string = "generic",
-> implements HardhatViemAssertions
-{
+> implements HardhatViemAssertions {
   readonly #viem: HardhatViemHelpers<ChainTypeT>;
   #impl: ViemAssertionsModule.HardhatViemAssertionsImpl<ChainTypeT> | undefined;
 

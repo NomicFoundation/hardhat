@@ -20,8 +20,7 @@ declare module "../../../../types/config.js" {
 
   export interface HardforkHistoryUserConfig {
     [hardforkName: string]:
-      | ActivationBlockNumberUserConfig
-      | ActivationTimestampUserConfig;
+      ActivationBlockNumberUserConfig | ActivationTimestampUserConfig;
   }
 
   export interface ActivationBlockNumberUserConfig {
@@ -64,8 +63,7 @@ declare module "../../../../types/config.js" {
   // Ideally we use Partial<Omit<NetworkUserConfig, "type">> but omit breaks
   // discriminated unions. See https://github.com/microsoft/TypeScript/issues/31501
   export type NetworkConfigOverride =
-    | HttpNetworkConfigOverride
-    | EdrNetworkConfigOverride;
+    HttpNetworkConfigOverride | EdrNetworkConfigOverride;
 
   export interface HttpNetworkUserConfig {
     type: "http";
@@ -84,9 +82,7 @@ declare module "../../../../types/config.js" {
   }
 
   export type HttpNetworkAccountsUserConfig =
-    | "remote"
-    | SensitiveString[]
-    | HttpNetworkHDAccountsUserConfig;
+    "remote" | SensitiveString[] | HttpNetworkHDAccountsUserConfig;
 
   export interface HttpNetworkHDAccountsUserConfig {
     mnemonic: SensitiveString;
@@ -127,8 +123,7 @@ declare module "../../../../types/config.js" {
   }
 
   export type EdrNetworkAccountsUserConfig =
-    | EdrNetworkAccountUserConfig[]
-    | EdrNetworkHDAccountsUserConfig;
+    EdrNetworkAccountUserConfig[] | EdrNetworkHDAccountsUserConfig;
 
   export interface EdrNetworkAccountUserConfig {
     balance: string | bigint;
@@ -230,9 +225,7 @@ declare module "../../../../types/config.js" {
   }
 
   export type HttpNetworkAccountsConfig =
-    | "remote"
-    | ResolvedConfigurationVariable[]
-    | HttpNetworkHDAccountsConfig;
+    "remote" | ResolvedConfigurationVariable[] | HttpNetworkHDAccountsConfig;
 
   export interface HttpNetworkHDAccountsConfig {
     mnemonic: ResolvedConfigurationVariable;
@@ -273,8 +266,7 @@ declare module "../../../../types/config.js" {
   }
 
   export type EdrNetworkAccountsConfig =
-    | EdrNetworkAccountConfig[]
-    | EdrNetworkHDAccountsConfig;
+    EdrNetworkAccountConfig[] | EdrNetworkHDAccountsConfig;
 
   export interface EdrNetworkAccountConfig {
     balance: bigint;

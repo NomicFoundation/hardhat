@@ -15,7 +15,8 @@ export async function resolveConstructorArgs(
   // both args and path are provided
   if (hasArgs && hasPath) {
     throw new HardhatError(
-      HardhatError.ERRORS.HARDHAT_VERIFY.VALIDATION.MUTUALLY_EXCLUSIVE_CONSTRUCTOR_ARGS,
+      HardhatError.ERRORS.HARDHAT_VERIFY.VALIDATION
+        .MUTUALLY_EXCLUSIVE_CONSTRUCTOR_ARGS,
     );
   }
 
@@ -42,7 +43,8 @@ export async function resolveConstructorArgs(
     !Array.isArray(importedConstructorArgs.default)
   ) {
     throw new HardhatError(
-      HardhatError.ERRORS.HARDHAT_VERIFY.VALIDATION.INVALID_CONSTRUCTOR_ARGS_MODULE_EXPORT,
+      HardhatError.ERRORS.HARDHAT_VERIFY.VALIDATION
+        .INVALID_CONSTRUCTOR_ARGS_MODULE_EXPORT,
       {
         constructorArgsPath,
       },
@@ -70,7 +72,8 @@ export async function resolveLibraries(
     !isObject(importedLibraries.default)
   ) {
     throw new HardhatError(
-      HardhatError.ERRORS.HARDHAT_VERIFY.VALIDATION.INVALID_LIBRARIES_MODULE_EXPORT,
+      HardhatError.ERRORS.HARDHAT_VERIFY.VALIDATION
+        .INVALID_LIBRARIES_MODULE_EXPORT,
       {
         librariesPath,
       },

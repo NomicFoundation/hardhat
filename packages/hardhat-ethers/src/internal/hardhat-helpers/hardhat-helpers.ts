@@ -102,8 +102,7 @@ export class HardhatHelpers {
   >(
     nameOrAbi: StringWithArtifactContractNamesAutocompletion | any[] | Abi,
     bytecodeOrFactoryOptions?:
-      | (EthersT.Signer | FactoryOptions)
-      | EthersT.BytesLike,
+      (EthersT.Signer | FactoryOptions) | EthersT.BytesLike,
     signer?: EthersT.Signer,
   ): Promise<EthersT.ContractFactory<A, I>> {
     if (typeof nameOrAbi === "string") {
@@ -154,7 +153,8 @@ export class HardhatHelpers {
 
     if (artifact.bytecode === "0x") {
       throw new HardhatError(
-        HardhatError.ERRORS.HARDHAT_ETHERS.GENERAL.INVALID_ABSTRACT_CONTRACT_FOR_FACTORY,
+        HardhatError.ERRORS.HARDHAT_ETHERS.GENERAL
+          .INVALID_ABSTRACT_CONTRACT_FOR_FACTORY,
         { contractName: artifact.contractName },
       );
     }
@@ -350,7 +350,8 @@ export class HardhatHelpers {
 
       if (!isAddress(resolvedAddress)) {
         throw new HardhatError(
-          HardhatError.ERRORS.HARDHAT_ETHERS.GENERAL.INVALID_ADDRESS_TO_LINK_CONTRACT_TO_LIBRARY,
+          HardhatError.ERRORS.HARDHAT_ETHERS.GENERAL
+            .INVALID_ADDRESS_TO_LINK_CONTRACT_TO_LIBRARY,
           {
             contractName: artifact.contractName,
             linkedLibraryName,
@@ -364,7 +365,7 @@ export class HardhatHelpers {
       const matchingNeededLibraries =
         matchingNeededLibraryByFqn !== undefined
           ? [matchingNeededLibraryByFqn]
-          : neededLibrariesByName.get(linkedLibraryName) ?? [];
+          : (neededLibrariesByName.get(linkedLibraryName) ?? []);
 
       if (matchingNeededLibraries.length === 0) {
         let detailedMessage: string;
@@ -380,7 +381,8 @@ export class HardhatHelpers {
         }
 
         throw new HardhatError(
-          HardhatError.ERRORS.HARDHAT_ETHERS.GENERAL.LIBRARY_NOT_AMONG_CONTRACT_LIBRARIES,
+          HardhatError.ERRORS.HARDHAT_ETHERS.GENERAL
+            .LIBRARY_NOT_AMONG_CONTRACT_LIBRARIES,
           {
             contractName: artifact.contractName,
             linkedLibraryName,

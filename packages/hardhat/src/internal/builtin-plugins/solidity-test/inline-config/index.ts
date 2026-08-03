@@ -143,7 +143,8 @@ async function collectRawOverrides(
       );
 
       throw new HardhatError(
-        HardhatError.ERRORS.CORE.SOLIDITY_TESTS.BUILD_INFO_NOT_FOUND_FOR_CONTRACT,
+        HardhatError.ERRORS.CORE.SOLIDITY_TESTS
+          .BUILD_INFO_NOT_FOUND_FOR_CONTRACT,
         {
           fqn,
         },
@@ -265,7 +266,8 @@ function buildTestFunctionOverrides(
 
     if (selector === undefined) {
       throw new HardhatError(
-        HardhatError.ERRORS.CORE.SOLIDITY_TESTS.INLINE_CONFIG_UNRESOLVED_SELECTOR,
+        HardhatError.ERRORS.CORE.SOLIDITY_TESTS
+          .INLINE_CONFIG_UNRESOLVED_SELECTOR,
         { functionFqn },
       );
     }

@@ -12,8 +12,7 @@ let hre: HardhatRuntimeEnvironment | undefined;
  * are always using the same HRE instance.
  */
 export function getGlobalHardhatRuntimeEnvironment():
-  | HardhatRuntimeEnvironment
-  | undefined {
+  HardhatRuntimeEnvironment | undefined {
   return hre;
 }
 

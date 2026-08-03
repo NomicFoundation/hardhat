@@ -311,7 +311,8 @@ ${libraryInformation.undetectableLibraries.map((x) => `  * ${x}`).join("\n")}`
 export function validateVerificationProviderName(provider: unknown): void {
   if (Object.keys(VERIFICATION_PROVIDERS).indexOf(String(provider)) === -1) {
     throw new HardhatError(
-      HardhatError.ERRORS.HARDHAT_VERIFY.VALIDATION.INVALID_VERIFICATION_PROVIDER,
+      HardhatError.ERRORS.HARDHAT_VERIFY.VALIDATION
+        .INVALID_VERIFICATION_PROVIDER,
       {
         verificationProvider: String(provider),
         supportedVerificationProviders: Object.keys(

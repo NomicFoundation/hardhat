@@ -4,8 +4,7 @@ import type { CoverageManagerImplementation as CoverageManagerImplementationT } 
 import { getCoveragePath, setCoverageManager } from "../helpers/accessors.js";
 
 let CoverageManagerImplementation:
-  | typeof CoverageManagerImplementationT
-  | undefined;
+  typeof CoverageManagerImplementationT | undefined;
 
 export default async (): Promise<Partial<HardhatRuntimeEnvironmentHooks>> => ({
   created: async (context, hre) => {
@@ -14,9 +13,8 @@ export default async (): Promise<Partial<HardhatRuntimeEnvironmentHooks>> => ({
     }
 
     if (CoverageManagerImplementation === undefined) {
-      ({ CoverageManagerImplementation } = await import(
-        "../coverage-manager.js"
-      ));
+      ({ CoverageManagerImplementation } =
+        await import("../coverage-manager.js"));
     }
 
     const coveragePath = getCoveragePath(hre.config.paths.root);

@@ -50,6 +50,7 @@ interface TestActionArguments {
   testFiles: string[];
   chainType: string;
   grep?: string;
+  grepExclude?: string;
   noCompile: boolean;
   testSummaryIndex: number;
 }
@@ -59,7 +60,7 @@ export interface SolidityTestRunResult extends TestRunResult {
 }
 
 const runSolidityTests: NewTaskActionFunction<TestActionArguments> = async (
-  { testFiles, chainType, grep, noCompile, testSummaryIndex },
+  { testFiles, chainType, grep, grepExclude, noCompile, testSummaryIndex },
   hre,
 ): Promise<Result<SolidityTestRunResult, SolidityTestRunResult>> => {
   // Set an environment variable that plugins can use to detect when a process is running tests
@@ -163,7 +164,8 @@ const runSolidityTests: NewTaskActionFunction<TestActionArguments> = async (
 
       if (notCompiledFiles.length > 0) {
         throw new HardhatError(
-          HardhatError.ERRORS.CORE.SOLIDITY_TESTS.SELECTED_TEST_FILES_NOT_COMPILED,
+          HardhatError.ERRORS.CORE.SOLIDITY_TESTS
+            .SELECTED_TEST_FILES_NOT_COMPILED,
           {
             files: notCompiledFiles.map((f) => `- ${f}`).join("\n"),
           },
@@ -251,6 +253,7 @@ const runSolidityTests: NewTaskActionFunction<TestActionArguments> = async (
       verbosity,
       observability: observabilityConfig,
       testPattern: grep,
+      excludeTestPattern: grepExclude,
       generateGasReport:
         hre.globalOptions.gasStats ||
         hre.globalOptions.gasStatsJson !== undefined,
@@ -416,7 +419,8 @@ async function validateThatProvidedFilesAreTests(
 
   if (nonTests.length > 0) {
     throw new HardhatError(
-      HardhatError.ERRORS.CORE.SOLIDITY_TESTS.SELECTED_FILES_ARE_NOT_SOLIDITY_TESTS,
+      HardhatError.ERRORS.CORE.SOLIDITY_TESTS
+        .SELECTED_FILES_ARE_NOT_SOLIDITY_TESTS,
       {
         files: nonTests.map((f) => `- ${f}`).join("\n"),
       },

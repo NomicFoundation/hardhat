@@ -45,8 +45,14 @@ export type AnalyticsEvent =
   | {
       name: "init";
       params: {
-        hardhatVersion: "hardhat-2" | "hardhat-3";
+        hardhatVersion: "hardhat-3";
         template: string;
+      };
+    }
+  | {
+      name: "network";
+      params: {
+        chainType: string;
       };
     };
 

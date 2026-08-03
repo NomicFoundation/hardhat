@@ -38,7 +38,8 @@ export async function encodeConstructorArgs(
         const expectedArg = expectedConstructorArgs[i];
         if (expectedArg.type === "string" && typeof arg !== "string") {
           throw new HardhatError(
-            HardhatError.ERRORS.HARDHAT_VERIFY.GENERAL.INVALID_CONSTRUCTOR_ARGUMENT_TYPE,
+            HardhatError.ERRORS.HARDHAT_VERIFY.GENERAL
+              .INVALID_CONSTRUCTOR_ARGUMENT_TYPE,
             {
               value: String(arg),
               reason: "invalid string value",
@@ -56,7 +57,8 @@ export async function encodeConstructorArgs(
 
     if (isInvalidConstructorArgsLengthError(error)) {
       throw new HardhatError(
-        HardhatError.ERRORS.HARDHAT_VERIFY.GENERAL.INVALID_CONSTRUCTOR_ARGUMENTS_LENGTH,
+        HardhatError.ERRORS.HARDHAT_VERIFY.GENERAL
+          .INVALID_CONSTRUCTOR_ARGUMENTS_LENGTH,
         {
           contract,
           requiredArgs: error.count.types,
@@ -67,7 +69,8 @@ export async function encodeConstructorArgs(
 
     if (isInvalidConstructorArgTypeError(error)) {
       throw new HardhatError(
-        HardhatError.ERRORS.HARDHAT_VERIFY.GENERAL.INVALID_CONSTRUCTOR_ARGUMENT_TYPE,
+        HardhatError.ERRORS.HARDHAT_VERIFY.GENERAL
+          .INVALID_CONSTRUCTOR_ARGUMENT_TYPE,
         {
           value: String(error.value),
           reason: error.reason,
@@ -77,7 +80,8 @@ export async function encodeConstructorArgs(
 
     if (isConstructorArgOverflowError(error)) {
       throw new HardhatError(
-        HardhatError.ERRORS.HARDHAT_VERIFY.GENERAL.CONSTRUCTOR_ARGUMENT_OVERFLOW,
+        HardhatError.ERRORS.HARDHAT_VERIFY.GENERAL
+          .CONSTRUCTOR_ARGUMENT_OVERFLOW,
         {
           value: String(error.value),
         },
@@ -91,9 +95,10 @@ export async function encodeConstructorArgs(
     const reason =
       "reason" in error && typeof error.reason === "string"
         ? error.reason
-        : error.message ?? "Unknown error";
+        : (error.message ?? "Unknown error");
     throw new HardhatError(
-      HardhatError.ERRORS.HARDHAT_VERIFY.GENERAL.CONSTRUCTOR_ARGUMENTS_ENCODING_FAILED,
+      HardhatError.ERRORS.HARDHAT_VERIFY.GENERAL
+        .CONSTRUCTOR_ARGUMENTS_ENCODING_FAILED,
       {
         contract,
         reason,

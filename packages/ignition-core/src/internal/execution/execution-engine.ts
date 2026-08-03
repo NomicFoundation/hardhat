@@ -41,8 +41,7 @@ export class ExecutionEngine {
     private readonly _executionStrategy: ExecutionStrategy,
     private readonly _jsonRpcClient: JsonRpcClient,
     private readonly _executionEventListener:
-      | ExecutionEventListener
-      | undefined,
+      ExecutionEventListener | undefined,
     private readonly _requiredConfirmations: number,
     private readonly _millisecondBeforeBumpingFees: number,
     private readonly _maxFeeBumps: number,

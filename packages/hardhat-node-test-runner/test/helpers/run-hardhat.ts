@@ -51,10 +51,13 @@ export interface RunHardhatTestResult {
  * @param envOverrides Extra env vars merged onto the parent process env.
  *   Useful to seed values the fixture's assertions expect — e.g. setting
  *   `NODE_ENV=HELLO` so the inner test can assert it was preserved.
+ * @param extraArgs Extra CLI arguments appended after `test nodejs
+ *   --no-compile` — e.g. `["--grep", "keep"]` to exercise the name filter.
  */
 export async function runHardhatTest(
   cwd: string,
   envOverrides: NodeJS.ProcessEnv = {},
+  extraArgs: string[] = [],
 ): Promise<RunHardhatTestResult> {
   // Build the child env by layering overrides on top of the parent env. Any
   // override key explicitly set to `undefined` is treated as "unset this var
@@ -71,7 +74,7 @@ export async function runHardhatTest(
 
   const child = spawn(
     process.execPath,
-    [HARDHAT_CLI_PATH, "test", "nodejs", "--no-compile"],
+    [HARDHAT_CLI_PATH, "test", "nodejs", "--no-compile", ...extraArgs],
     {
       cwd,
       env,

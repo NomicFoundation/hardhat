@@ -231,9 +231,8 @@ describe("HRE initialization", () => {
 
       it("should load the plugins from the config file", async () => {
         const hre = await getOrCreateGlobalHardhatRuntimeEnvironment();
-        const { testPlugin } = await import(
-          "../fixture-projects/loaded-config/hardhat.config.js"
-        );
+        const { testPlugin } =
+          await import("../fixture-projects/loaded-config/hardhat.config.js");
 
         assert.deepEqual(hre.config.plugins, [...builtinPlugins, testPlugin]);
       });

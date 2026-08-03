@@ -51,8 +51,7 @@ export class Blockscout implements VerificationProvider {
   public readonly url: string;
   public readonly apiUrl: string;
   public readonly dispatcherOrDispatcherOptions?:
-    | Dispatcher
-    | DispatcherOptions;
+    Dispatcher | DispatcherOptions;
   public readonly pollingIntervalMs: number;
 
   public static async resolveConfig({
@@ -86,7 +85,8 @@ export class Blockscout implements VerificationProvider {
       }
 
       throw new HardhatError(
-        HardhatError.ERRORS.HARDHAT_VERIFY.GENERAL.BLOCK_EXPLORER_NOT_CONFIGURED,
+        HardhatError.ERRORS.HARDHAT_VERIFY.GENERAL
+          .BLOCK_EXPLORER_NOT_CONFIGURED,
         {
           verificationProvider: "Blockscout",
           chainId,
@@ -229,7 +229,8 @@ export class Blockscout implements VerificationProvider {
     if (!isSuccessStatusCode) {
       // TODO: we should consider throwing EXPLORER_REQUEST_FAILED here too
       throw new HardhatError(
-        HardhatError.ERRORS.HARDHAT_VERIFY.GENERAL.EXPLORER_REQUEST_STATUS_CODE_ERROR,
+        HardhatError.ERRORS.HARDHAT_VERIFY.GENERAL
+          .EXPLORER_REQUEST_STATUS_CODE_ERROR,
         {
           name: this.name,
           url: this.apiUrl,
@@ -300,7 +301,8 @@ export class Blockscout implements VerificationProvider {
     if (!isSuccessStatusCode) {
       // TODO: we should consider throwing EXPLORER_REQUEST_FAILED here too
       throw new HardhatError(
-        HardhatError.ERRORS.HARDHAT_VERIFY.GENERAL.EXPLORER_REQUEST_STATUS_CODE_ERROR,
+        HardhatError.ERRORS.HARDHAT_VERIFY.GENERAL
+          .EXPLORER_REQUEST_STATUS_CODE_ERROR,
         {
           name: this.name,
           url: this.apiUrl,
@@ -314,7 +316,8 @@ export class Blockscout implements VerificationProvider {
 
     if (blockscoutResponse.isBytecodeMissingInNetworkError()) {
       throw new HardhatError(
-        HardhatError.ERRORS.HARDHAT_VERIFY.GENERAL.CONTRACT_VERIFICATION_MISSING_BYTECODE,
+        HardhatError.ERRORS.HARDHAT_VERIFY.GENERAL
+          .CONTRACT_VERIFICATION_MISSING_BYTECODE,
         {
           url: this.apiUrl,
           address: contractAddress,
@@ -344,7 +347,8 @@ export class Blockscout implements VerificationProvider {
 
     if (!blockscoutResponse.isOk()) {
       throw new HardhatError(
-        HardhatError.ERRORS.HARDHAT_VERIFY.GENERAL.CONTRACT_VERIFICATION_REQUEST_FAILED,
+        HardhatError.ERRORS.HARDHAT_VERIFY.GENERAL
+          .CONTRACT_VERIFICATION_REQUEST_FAILED,
         { message: blockscoutResponse.message },
       );
     }
@@ -399,7 +403,8 @@ export class Blockscout implements VerificationProvider {
     if (!isSuccessStatusCode) {
       // TODO: we should consider throwing EXPLORER_REQUEST_FAILED here too
       throw new HardhatError(
-        HardhatError.ERRORS.HARDHAT_VERIFY.GENERAL.EXPLORER_REQUEST_STATUS_CODE_ERROR,
+        HardhatError.ERRORS.HARDHAT_VERIFY.GENERAL
+          .EXPLORER_REQUEST_STATUS_CODE_ERROR,
         {
           name: this.name,
           url: this.apiUrl,
@@ -435,7 +440,8 @@ export class Blockscout implements VerificationProvider {
 
     if (!blockscoutResponse.isOk()) {
       throw new HardhatError(
-        HardhatError.ERRORS.HARDHAT_VERIFY.GENERAL.CONTRACT_VERIFICATION_STATUS_POLLING_FAILED,
+        HardhatError.ERRORS.HARDHAT_VERIFY.GENERAL
+          .CONTRACT_VERIFICATION_STATUS_POLLING_FAILED,
         { message: blockscoutResponse.message },
       );
     }
@@ -443,7 +449,8 @@ export class Blockscout implements VerificationProvider {
     if (!(blockscoutResponse.isFailure() || blockscoutResponse.isSuccess())) {
       // Reaching this point shouldn't be possible unless the API is behaving in a new way.
       throw new HardhatError(
-        HardhatError.ERRORS.HARDHAT_VERIFY.GENERAL.CONTRACT_VERIFICATION_UNEXPECTED_RESPONSE,
+        HardhatError.ERRORS.HARDHAT_VERIFY.GENERAL
+          .CONTRACT_VERIFICATION_UNEXPECTED_RESPONSE,
         { message: blockscoutResponse.message },
       );
     }
@@ -482,9 +489,7 @@ class BlockscoutVerificationResponse implements VerificationResponse {
   }
 }
 
-class BlockscoutVerificationStatusResponse
-  implements VerificationStatusResponse
-{
+class BlockscoutVerificationStatusResponse implements VerificationStatusResponse {
   public readonly status: number;
   public readonly message: string;
 

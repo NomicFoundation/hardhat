@@ -68,18 +68,30 @@ export async function sendTaskAnalytics(
 }
 
 export async function sendProjectTypeAnalytics(
-  hardhatVersion: "hardhat-2" | "hardhat-3",
   template: string,
 ): Promise<boolean> {
   const initAnalyticsEvent: AnalyticsEvent = {
     name: "init",
     params: {
-      hardhatVersion,
+      hardhatVersion: "hardhat-3",
       template,
     },
   };
 
   return await sendAnalytics(initAnalyticsEvent);
+}
+
+export async function sendNetworkAnalytics(
+  chainType: string,
+): Promise<boolean> {
+  const networkAnalyticsEvent: AnalyticsEvent = {
+    name: "network",
+    params: {
+      chainType,
+    },
+  };
+
+  return await sendAnalytics(networkAnalyticsEvent);
 }
 
 // Return a boolean for testing purposes to confirm whether analytics were sent based on the consent value and not in CI environments

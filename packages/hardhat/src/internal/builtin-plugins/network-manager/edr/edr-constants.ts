@@ -10,8 +10,7 @@ export const EDR_NETWORK_DEFAULT_COINBASE =
 
 export const DEFAULT_EDR_NETWORK_BLOCK_GAS_LIMIT = 60_000_000n;
 
-interface EdrNetworkDefaultHDAccountsConfigParams
-  extends DefaultHDAccountsConfigParams {
+interface EdrNetworkDefaultHDAccountsConfigParams extends DefaultHDAccountsConfigParams {
   mnemonic: string;
   accountsBalance: bigint;
 }

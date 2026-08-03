@@ -18,9 +18,9 @@ export type ErrorMessageTemplateValue =
 export type MessageTemplateArguments<MessageTemplateT extends string> =
   MessageTemplateT extends `${string}{${infer Tag}}${infer Rest}`
     ? {
-        [K in
-          | Tag
-          | keyof MessageTemplateArguments<Rest>]: ErrorMessageTemplateValue;
+        [
+          K in Tag | keyof MessageTemplateArguments<Rest>
+        ]: ErrorMessageTemplateValue;
       }
     : {};
 

@@ -132,7 +132,7 @@ export async function deploy<
     ...defaultConfig,
     requiredConfirmations: isAutominedNetwork
       ? DEFAULT_AUTOMINE_REQUIRED_CONFIRMATIONS
-      : config.requiredConfirmations ?? defaultConfig.requiredConfirmations,
+      : (config.requiredConfirmations ?? defaultConfig.requiredConfirmations),
     disableFeeBumping: disableFeeBumping ?? defaultConfig.disableFeeBumping,
     maxRetries: config.maxRetries ?? defaultConfig.maxRetries,
     retryInterval: config.retryInterval ?? defaultConfig.retryInterval,

@@ -346,6 +346,19 @@ export const ERROR_CATEGORIES: {
       },
     },
   },
+  HARDHAT_NODE_TEST_RUNNER: {
+    min: 120000,
+    max: 129999,
+    pluginId: "hardhat-node-test-runner",
+    websiteTitle: "Hardhat Node Test Runner",
+    CATEGORIES: {
+      GENERAL: {
+        min: 120000,
+        max: 120099,
+        websiteSubTitle: "General errors",
+      },
+    },
+  },
 };
 
 export const ERRORS = {
@@ -2387,6 +2400,34 @@ Please try again later.`,
         websiteDescription:
           'You have run your tests twice programmatically and your project is an ESM project (you have `"type": "module"` in your `package.json`, or some of your files have the `.mjs` extension). This is not supported by Mocha yet (https://github.com/mochajs/mocha/issues/2706).',
       },
+      GREP_EXCLUDE_INCOMPATIBLE_OPTION: {
+        number: 30001,
+        messageTemplate: `The --grep-exclude option cannot be combined with the Mocha "{option}" config option.`,
+        websiteTitle: "Incompatible --grep-exclude option",
+        websiteDescription:
+          "--grep-exclude is applied by merging it with --grep into Mocha's single name filter, so it cannot be combined with the `fgrep` or `invert` Mocha config options. Remove the conflicting option from your config, or express your filter using --grep and --grep-exclude only.",
+      },
+      INVALID_GREP_EXCLUDE_COMBINATION: {
+        number: 30002,
+        messageTemplate: `The {name} pattern "{grep}" and the --grep-exclude pattern "{grepExclude}" cannot be combined into a valid regular expression.`,
+        websiteTitle: "Invalid --grep-exclude combination",
+        websiteDescription:
+          "--grep and --grep-exclude are merged into a single regular expression. The combination was not valid, which usually happens when both patterns define a capture group with the same name. Rename or remove the duplicated group.",
+      },
+      GREP_EXCLUDE_UNSUPPORTED_PATTERN: {
+        number: 30003,
+        messageTemplate: `The {name} pattern "{pattern}" uses {feature}, which is not supported together with --grep-exclude.`,
+        websiteTitle: "Unsupported --grep-exclude pattern",
+        websiteDescription:
+          "--grep and --grep-exclude are merged into a single regular expression by embedding each pattern verbatim. Some constructs do not survive this merge and would silently change meaning, so they are rejected: a Mocha `/pattern/flags` regex literal (its flags and slashes would become literal text); a numbered backreference like `\\1` or a named backreference like `\\k<name>` (the group it points at shifts once the patterns are concatenated); an escaped group name like `(?<\\u0067>...)` (it cannot be compared as text); and a meaning-changing flag (such as `i` or `m`) on a RegExp `grep` set in your Mocha config (there is nowhere to carry it on the merged pattern). Rewrite the pattern without these constructs.",
+      },
+      GREP_INCOMPATIBLE_OPTION: {
+        number: 30004,
+        messageTemplate: `The --grep option cannot be combined with the Mocha "fgrep" config option.`,
+        websiteTitle: "Incompatible --grep option",
+        websiteDescription:
+          "--grep and the `fgrep` Mocha config option are competing name filters, and Mocha applies only one of them; its own CLI rejects the pair as mutually exclusive. Remove `fgrep` from your config, or run without --grep.",
+      },
     },
   },
   HARDHAT_VIEM: {
@@ -3297,6 +3338,18 @@ Check your internet connection, ensure that the solx releases mirror (https://so
         websiteDescription: `The configured custom path for the solx binary does not exist.
 
 Verify that the path in your Hardhat config points to a valid solx binary.`,
+      },
+    },
+  },
+  HARDHAT_NODE_TEST_RUNNER: {
+    GENERAL: {
+      GREP_EXCLUDE_NOT_SUPPORTED: {
+        number: 120000,
+        messageTemplate: `The --grep-exclude option is not supported by the node:test runner.`,
+        websiteTitle: "Unsupported --grep-exclude option",
+        websiteDescription: `The node:test runner executes tests with isolation disabled, and in that mode Node.js currently ignores the test skip pattern used to implement --grep-exclude (see https://github.com/nodejs/node/issues/64359). Because the exclusion cannot be applied reliably, the option is rejected instead of being silently ignored.
+
+Remove --grep-exclude, or run the tests that need it through the Mocha or Solidity test runners, which support it.`,
       },
     },
   },

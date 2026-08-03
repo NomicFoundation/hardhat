@@ -4,8 +4,7 @@ import type { GasAnalyticsManagerImplementation as GasAnalyticsManagerImplementa
 import { setGasAnalyticsManager } from "../helpers/accessors.js";
 
 let GasAnalyticsManagerImplementation:
-  | typeof GasAnalyticsManagerImplementationT
-  | undefined;
+  typeof GasAnalyticsManagerImplementationT | undefined;
 
 export default async (): Promise<Partial<HardhatRuntimeEnvironmentHooks>> => ({
   created: async (context, hre) => {
@@ -17,9 +16,8 @@ export default async (): Promise<Partial<HardhatRuntimeEnvironmentHooks>> => ({
     }
 
     if (GasAnalyticsManagerImplementation === undefined) {
-      ({ GasAnalyticsManagerImplementation } = await import(
-        "../gas-analytics-manager.js"
-      ));
+      ({ GasAnalyticsManagerImplementation } =
+        await import("../gas-analytics-manager.js"));
     }
 
     const gasAnalyticsManager = new GasAnalyticsManagerImplementation(

@@ -48,7 +48,9 @@ export type IgnitionModuleResultsTToEthersContracts<
   ContractNameT extends string,
   IgnitionModuleResultsT extends IgnitionModuleResult<ContractNameT>,
 > = {
-  [contract in keyof IgnitionModuleResultsT]: IgnitionModuleResultsT[contract] extends
+  [
+    contract in keyof IgnitionModuleResultsT
+  ]: IgnitionModuleResultsT[contract] extends
     | NamedArtifactContractDeploymentFuture<ContractNameT>
     | NamedArtifactContractAtFuture<ContractNameT>
     ? TypeChainEthersContractByName<ContractNameT>

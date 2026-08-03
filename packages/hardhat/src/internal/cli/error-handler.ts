@@ -166,9 +166,8 @@ async function getErrorWithCategory(error: Error): Promise<ErrorWithCategory> {
   }
 
   if (classifierModule === undefined) {
-    classifierModule = await import(
-      "./telemetry/error-classification/classifier.js"
-    );
+    classifierModule =
+      await import("./telemetry/error-classification/classifier.js");
   }
 
   // Pass `ignoreDevelopmentTimeFilter=true` so the migration footer also shows

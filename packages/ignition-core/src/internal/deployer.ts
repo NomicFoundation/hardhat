@@ -53,8 +53,7 @@ export class Deployer {
     private readonly _artifactResolver: ArtifactResolver,
     private readonly _deploymentLoader: DeploymentLoader,
     private readonly _executionEventListener?:
-      | ExecutionEventListener
-      | undefined,
+      ExecutionEventListener | undefined,
   ) {
     assertIgnitionInvariant(
       this._config.requiredConfirmations >= 1,

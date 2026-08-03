@@ -137,7 +137,7 @@ solx: {
 
 ### Supported Solidity versions
 
-solx maps each Solidity version to a specific solx binary version internally. Currently supported: `0.8.34` (solx 0.1.4). Earlier solx releases did not emit the DWARF debug info that EDR relies on for Solidity stack traces, so they are not supported by this plugin.
+solx maps each Solidity version to a specific solx binary version internally. Currently supported: `0.8.34` (solx 0.1.6). Earlier solx releases did not emit the DWARF debug info that EDR relies on for Solidity stack traces, so they are not supported by this plugin.
 
 ### EVM version support
 

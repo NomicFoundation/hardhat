@@ -433,9 +433,7 @@ export enum ExecutionEventResultType {
  * @public
  */
 export type ExecutionEventResult =
-  | ExecutionEventSuccess
-  | ExecutionEventError
-  | ExecutionEventHeld;
+  ExecutionEventSuccess | ExecutionEventError | ExecutionEventHeld;
 
 /**
  * A successful result of a future's execution.

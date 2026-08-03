@@ -57,8 +57,8 @@ abstract class BaseFutureImplementation<FutureTypeT extends FutureType> {
 }
 
 export class NamedContractDeploymentFutureImplementation<
-    ContractNameT extends string,
-  >
+  ContractNameT extends string,
+>
   extends BaseFutureImplementation<FutureType.NAMED_ARTIFACT_CONTRACT_DEPLOYMENT>
   implements NamedArtifactContractDeploymentFuture<ContractNameT>
 {
@@ -80,8 +80,8 @@ export class NamedContractDeploymentFutureImplementation<
 }
 
 export class ArtifactContractDeploymentFutureImplementation<
-    ContractNameT extends string,
-  >
+  ContractNameT extends string,
+>
   extends BaseFutureImplementation<FutureType.CONTRACT_DEPLOYMENT>
   implements ContractDeploymentFuture
 {
@@ -104,8 +104,8 @@ export class ArtifactContractDeploymentFutureImplementation<
 }
 
 export class NamedLibraryDeploymentFutureImplementation<
-    LibraryNameT extends string,
-  >
+  LibraryNameT extends string,
+>
   extends BaseFutureImplementation<FutureType.NAMED_ARTIFACT_LIBRARY_DEPLOYMENT>
   implements NamedArtifactLibraryDeploymentFuture<LibraryNameT>
 {
@@ -121,8 +121,8 @@ export class NamedLibraryDeploymentFutureImplementation<
 }
 
 export class ArtifactLibraryDeploymentFutureImplementation<
-    LibraryNameT extends string,
-  >
+  LibraryNameT extends string,
+>
   extends BaseFutureImplementation<FutureType.LIBRARY_DEPLOYMENT>
   implements LibraryDeploymentFuture
 {
@@ -139,9 +139,9 @@ export class ArtifactLibraryDeploymentFutureImplementation<
 }
 
 export class NamedContractCallFutureImplementation<
-    ContractNameT extends string,
-    FunctionNameT extends string,
-  >
+  ContractNameT extends string,
+  FunctionNameT extends string,
+>
   extends BaseFutureImplementation<FutureType.CONTRACT_CALL>
   implements ContractCallFuture<ContractNameT, FunctionNameT>
 {
@@ -163,9 +163,9 @@ export class NamedContractCallFutureImplementation<
 }
 
 export class NamedStaticCallFutureImplementation<
-    ContractNameT extends string,
-    FunctionNameT extends string,
-  >
+  ContractNameT extends string,
+  FunctionNameT extends string,
+>
   extends BaseFutureImplementation<FutureType.STATIC_CALL>
   implements StaticCallFuture<ContractNameT, FunctionNameT>
 {
@@ -183,9 +183,9 @@ export class NamedStaticCallFutureImplementation<
 }
 
 export class NamedEncodeFunctionCallFutureImplementation<
-    ContractNameT extends string,
-    FunctionNameT extends string,
-  >
+  ContractNameT extends string,
+  FunctionNameT extends string,
+>
   extends BaseFutureImplementation<FutureType.ENCODE_FUNCTION_CALL>
   implements EncodeFunctionCallFuture<ContractNameT, FunctionNameT>
 {
@@ -209,9 +209,7 @@ export class NamedContractAtFutureImplementation<ContractNameT extends string>
     public override readonly module: IgnitionModuleImplementation,
     public readonly contractName: ContractNameT,
     public readonly address:
-      | string
-      | AddressResolvableFuture
-      | ModuleParameterRuntimeValue<string>,
+      string | AddressResolvableFuture | ModuleParameterRuntimeValue<string>,
   ) {
     super(id, FutureType.NAMED_ARTIFACT_CONTRACT_AT, module);
   }
@@ -226,9 +224,7 @@ export class ArtifactContractAtFutureImplementation
     public override readonly module: IgnitionModuleImplementation,
     public readonly contractName: string,
     public readonly address:
-      | string
-      | AddressResolvableFuture
-      | ModuleParameterRuntimeValue<string>,
+      string | AddressResolvableFuture | ModuleParameterRuntimeValue<string>,
     public readonly artifact: Artifact,
   ) {
     super(id, FutureType.CONTRACT_AT, module);
@@ -270,9 +266,7 @@ export class SendDataFutureImplementation
       | AccountRuntimeValue,
     public readonly value: bigint | ModuleParameterRuntimeValue<bigint>,
     public readonly data:
-      | string
-      | EncodeFunctionCallFuture<string, string>
-      | undefined,
+      string | EncodeFunctionCallFuture<string, string> | undefined,
     public readonly from: string | AccountRuntimeValue | undefined,
   ) {
     super(id, FutureType.SEND_DATA, module);
@@ -282,10 +276,9 @@ export class SendDataFutureImplementation
 export class IgnitionModuleImplementation<
   ModuleIdT extends string = string,
   ContractNameT extends string = string,
-  IgnitionModuleResultsT extends
-    IgnitionModuleResult<ContractNameT> = IgnitionModuleResult<ContractNameT>,
-> implements IgnitionModule<ModuleIdT, ContractNameT, IgnitionModuleResultsT>
-{
+  IgnitionModuleResultsT extends IgnitionModuleResult<ContractNameT> =
+    IgnitionModuleResult<ContractNameT>,
+> implements IgnitionModule<ModuleIdT, ContractNameT, IgnitionModuleResultsT> {
   public readonly futures: Set<Future> = new Set();
   public readonly submodules: Set<IgnitionModule> = new Set();
 
@@ -337,8 +330,7 @@ export class AccountRuntimeValueImplementation implements AccountRuntimeValue {
 
 export class ModuleParameterRuntimeValueImplementation<
   ParamTypeT extends ModuleParameterType,
-> implements ModuleParameterRuntimeValue<ParamTypeT>
-{
+> implements ModuleParameterRuntimeValue<ParamTypeT> {
   public readonly type: RuntimeValueType.MODULE_PARAMETER =
     RuntimeValueType.MODULE_PARAMETER;
 

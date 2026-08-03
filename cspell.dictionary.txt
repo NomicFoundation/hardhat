@@ -90,6 +90,7 @@ normalise
 NOTOK
 Numberish
 onuncaughtexception
+packument
 perché
 perché
 popd
@@ -153,6 +154,7 @@ xcom
 xdai
 yalc
 Yalc
+yarnrc
 zkevm
 zksync
 zoey

@@ -21,6 +21,7 @@ jobs:
       is_v3: ${{ steps.check.outputs.version_starts_with_3 }}
       scripts_changed: ${{ steps.scripts-filter.outputs.scripts }}
       workflows_changed: ${{ steps.scripts-filter.outputs.workflows }}
+      solx_mirror_changed: ${{ steps.scripts-filter.outputs.solx_mirror }}
 
     steps:
       - name: Checkout code
@@ -46,6 +47,10 @@ jobs:
               - '.github/scripts/**'
               - '.github/workflows/**'
               - '.github/actions/**'
+            solx_mirror:
+              - 'packages/hardhat-solx/src/internal/constants.ts'
+              - 'packages/hardhat-solx/src/internal/platform.ts'
+              - 'packages/hardhat-solx/test/mirror-availability.ts'
 
   check_dependencies:
     name: Check dependency versions
@@ -96,6 +101,31 @@ jobs:
         run: pnpm lint:workflows
       - name: Run workflow script tests
         run: pnpm test:workflows
+
+  solx-mirror-availability:
+    name: Check solx releases mirror availability
+    needs: is-v3
+    # Network check against an external service: only run when the version map
+    # or the check itself changes, not on every PR that rebuilds hardhat-solx.
+    if: ${{ needs.is-v3.outputs.is_v3 == 'true' && needs.is-v3.outputs.solx_mirror_changed == 'true' }}
+    timeout-minutes: 15
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: packages/hardhat-solx
+    steps:
+      - uses: actions/checkout@v5
+      - uses: ./.github/actions/setup-env
+        with:
+          node-version: 24
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile --prefer-offline
+      - name: Build
+        run: pnpm build
+      - name: Check mirror availability
+        env:
+          HARDHAT_RUN_MIRROR_TESTS: true
+        run: node --import tsx/esm --test --test-reporter=@nomicfoundation/hardhat-node-test-reporter test/mirror-availability.ts
 
   list-packages:
     name: List packages

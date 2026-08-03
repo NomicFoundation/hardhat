@@ -31,10 +31,7 @@ export interface TableRow {
 }
 
 export type TableItem =
-  | TableTitle
-  | TableSectionHeader
-  | TableHeader
-  | TableRow;
+  TableTitle | TableSectionHeader | TableHeader | TableRow;
 
 /**
  * Formats an array of titles, section headers, headers, and rows into a table

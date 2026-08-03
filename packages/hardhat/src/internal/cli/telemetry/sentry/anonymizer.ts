@@ -30,12 +30,10 @@ interface WordMatch {
 }
 
 export type AnonymizeEnvelopeResult =
-  | { success: true; envelope: Envelope }
-  | { success: false; error: string };
+  { success: true; envelope: Envelope } | { success: false; error: string };
 
 export type AnonymizeEventResult =
-  | { success: true; event: Event }
-  | { success: false; error: string };
+  { success: true; event: Event } | { success: false; error: string };
 
 const ANONYMIZED_MNEMONIC = "<mnemonic>";
 const MNEMONIC_PHRASE_LENGTH_THRESHOLD = 7;

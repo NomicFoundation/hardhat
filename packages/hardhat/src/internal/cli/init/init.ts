@@ -50,7 +50,6 @@ import {
   promptForTemplate,
   promptForUpdate,
   promptForWorkspace,
-  promptForHardhatVersion,
 } from "./prompt.js";
 import { spawn } from "./subprocess.js";
 import { getTemplates } from "./template.js";
@@ -60,7 +59,6 @@ export interface NonInteractiveInitHardhat3Options {
 }
 
 export interface InitHardhatOptions {
-  hardhatVersion?: "hardhat-2" | "hardhat-3";
   workspace?: string;
   migrateToEsm?: boolean;
   template?: string;
@@ -74,7 +72,6 @@ export async function initHardhat3NonInteractive(
   options: NonInteractiveInitHardhat3Options,
 ): Promise<void> {
   const [template, projectTypeAnalyticsPromise] = await getTemplate(
-    "hardhat-3",
     options.template,
     true,
   );
@@ -161,9 +158,6 @@ export async function initHardhat(options?: InitHardhatOptions): Promise<void> {
 
     await printWelcomeMessage();
 
-    const hardhatVersion =
-      options?.hardhatVersion ?? (await promptForHardhatVersion());
-
     // Ask the user for the workspace to initialize the project in
     // if it was not provided, and validate that it is not already initialized
     const workspace = await getWorkspace(options?.workspace);
@@ -171,7 +165,6 @@ export async function initHardhat(options?: InitHardhatOptions): Promise<void> {
     // Ask the user for the template to use for the project initialization
     // if it was not provided, and validate that it exists
     const [template, projectTypeAnalyticsPromise] = await getTemplate(
-      hardhatVersion,
       options?.template,
     );
 
@@ -339,7 +332,6 @@ export async function getWorkspace(workspace?: string): Promise<string> {
  *
  * NOTE: This function is exported for testing purposes
  *
- * @param hardhatVersion The version of Hardhat whose templates should be considered.
  * @param template The name of the template to use for the project initialization.
  * @param includeAvailableTemplatesInErrors When true, a missing template throws
  *   `TEMPLATE_NOT_FOUND_WITH_LIST_OF_OPTIONS` (which lists the available
@@ -347,21 +339,17 @@ export async function getWorkspace(workspace?: string): Promise<string> {
  * @returns A tuple with two elements: the template and a promise with the analytics hit.
  */
 export async function getTemplate(
-  hardhatVersion: "hardhat-2" | "hardhat-3",
   template?: string,
   includeAvailableTemplatesInErrors = false,
 ): Promise<[Template, Promise<boolean>]> {
-  const templates = await getTemplates(hardhatVersion);
+  const templates = await getTemplates();
 
   // Ask the user for the template to use for the project initialization if it was not provided
   if (template === undefined) {
     template = await promptForTemplate(templates);
   }
 
-  const projectTypeAnalyticsPromise = sendProjectTypeAnalytics(
-    hardhatVersion,
-    template,
-  );
+  const projectTypeAnalyticsPromise = sendProjectTypeAnalytics(template);
 
   // Validate that the template exists
   for (const t of templates) {
@@ -393,16 +381,12 @@ export async function getTemplate(
 }
 
 /**
- * Prints the list of available templates for the specified Hardhat version.
- *
- * @param hardhatVersion The version of Hardhat whose templates should be
- *  printed.
+ * Prints the list of available templates.
  */
 export async function printTemplatesList(
-  hardhatVersion: "hardhat-2" | "hardhat-3",
   print: (message: string) => void = console.log,
 ): Promise<void> {
-  const templates = await getTemplates(hardhatVersion);
+  const templates = await getTemplates();
   const lines = templates.map((t) => `  - ${t.name}`).join("\n");
   print(`Available templates:\n${lines}`);
 }
@@ -447,24 +431,6 @@ export async function validatePackageJson(
   // answer it by checking if the most popular versions of yarn and other
   // package managers support `<package manager> pkg set type=module`.
   const packageManagerToUse = packageManager === "pnpm" ? "pnpm" : "npm";
-
-  // We need to set the hardhat version in the package.json file
-  // to ensure that the template is compatible with the current Hardhat version.
-  // This is needed because we have hardhat-2 and hardhat-3 templates,
-  // and the user may install hardhat 3 first and then initialize a project
-  // with a hardhat-2 template.
-  const templateHardhatVersion = templatePkg.devDependencies?.hardhat ?? "";
-  if (templateHardhatVersion.startsWith("^2")) {
-    await spawn(
-      [packageManagerToUse, "pkg", "delete", "dependencies.hardhat"].join(" "),
-      [],
-      {
-        cwd: workspace,
-        shell: true,
-        stdio: "inherit",
-      },
-    );
-  }
 
   if (!shouldUseEsm) {
     return;
