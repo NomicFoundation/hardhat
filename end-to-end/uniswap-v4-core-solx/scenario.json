@@ -26,7 +26,7 @@
             "measure": false
           },
           "warm forge solc cache": {
-            "command": "FOUNDRY_SOLC_VERSION=0.8.34 FOUNDRY_OPTIMIZER=true ./.foundry/forge build && ./.foundry/forge clean",
+            "command": "FOUNDRY_SOLC=0.8.34 FOUNDRY_OPTIMIZER=true ./.foundry/forge build && ./.foundry/forge clean",
             "measure": false
           }
         }
@@ -134,7 +134,7 @@
         "runs": 2,
         "dependsOn": ["warm forge solc cache"],
         "prepare": "./.foundry/forge clean",
-        "command": "FOUNDRY_SOLC_VERSION=0.8.34 FOUNDRY_OPTIMIZER=true ./.foundry/forge build --offline"
+        "command": "FOUNDRY_SOLC=0.8.34 FOUNDRY_OPTIMIZER=true ./.foundry/forge build --offline"
       }
     }
   }
