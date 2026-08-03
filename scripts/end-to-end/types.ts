@@ -70,6 +70,10 @@ export interface CommandVariant {
    * `--no-compile` command depends on a prior compile. Used by the regression
    * harness's `--benchmarks` filter: when this entry is selected, its declared
    * prerequisites run (but are not reported) and everything else is skipped.
+   * An unreported cross-command prerequisite runs a single time regardless of
+   * its configured `runs` — its dependents only observe that it ran once
+   * before them. Within a step sequence, prerequisites of a measured step
+   * still run on every iteration.
    * Dependencies must be declared before the dependent entry. When omitted, the
    * entry has no prerequisites and runs in isolation when selected.
    */

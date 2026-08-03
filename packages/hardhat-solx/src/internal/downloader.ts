@@ -63,9 +63,8 @@ async function verifyChecksum(
     const expectedHash = text.split(/\s+/)[0].toLowerCase();
 
     const { sha256 } = await import("@nomicfoundation/hardhat-utils/crypto");
-    const { bytesToHexString } = await import(
-      "@nomicfoundation/hardhat-utils/hex"
-    );
+    const { bytesToHexString } =
+      await import("@nomicfoundation/hardhat-utils/hex");
 
     const binaryContents = await readBinaryFile(binaryPath);
     const actualHash = bytesToHexString(await sha256(binaryContents))

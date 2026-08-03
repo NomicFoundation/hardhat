@@ -27,9 +27,8 @@ describe("Hardhat Mocha plugin", () => {
     useFixtureProject("test-project");
 
     it("should work", async () => {
-      const hardhatConfig = await import(
-        "./fixture-projects/test-project/hardhat.config.js"
-      );
+      const hardhatConfig =
+        await import("./fixture-projects/test-project/hardhat.config.js");
 
       const hre = await createHardhatRuntimeEnvironment(hardhatConfig.default);
 
@@ -96,9 +95,8 @@ describe("Hardhat Mocha plugin", () => {
       const errors =
         "\t* Config error in config.test.mocha.delay: Expected boolean, received number";
 
-      const hardhatConfig = await import(
-        "./fixture-projects/invalid-mocha-config/hardhat.config.js"
-      );
+      const hardhatConfig =
+        await import("./fixture-projects/invalid-mocha-config/hardhat.config.js");
 
       await assertRejectsWithHardhatError(
         createHardhatRuntimeEnvironment(hardhatConfig.default),

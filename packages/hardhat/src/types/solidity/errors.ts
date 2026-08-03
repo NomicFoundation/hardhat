@@ -104,14 +104,12 @@ export interface NpmRootResolutionWithRemappingErrors {
   remappingErrors: UserRemappingError[];
 }
 
-export interface NpmRootFileDoesNotExistWithinPackageError
-  extends ResolvedFileReference {
+export interface NpmRootFileDoesNotExistWithinPackageError extends ResolvedFileReference {
   type: RootResolutionErrorType.NPM_ROOT_FILE_DOES_NOT_EXIST_WITHIN_ITS_PACKAGE;
   npmModule: string;
 }
 
-export interface NpmRootFileWithIncorrectCasingError
-  extends ResolvedFileReference {
+export interface NpmRootFileWithIncorrectCasingError extends ResolvedFileReference {
   type: RootResolutionErrorType.NPM_ROOT_FILE_WITH_INCORRECT_CASING;
   npmModule: string;
   /**
@@ -141,8 +139,7 @@ export type NpmRootResolutionError =
   | NpmRootFileNonExportedFileError;
 
 export type RootResolutionError =
-  | ProjectRootResolutionError
-  | NpmRootResolutionError;
+  ProjectRootResolutionError | NpmRootResolutionError;
 
 /**
  * The different types of errors that can happen when resolving an import.

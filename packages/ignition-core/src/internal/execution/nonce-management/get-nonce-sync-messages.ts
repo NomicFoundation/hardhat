@@ -161,7 +161,7 @@ export async function getNonceSyncMessages(
       if (latestCount > nonce) {
         const hasEnoughConfirmations =
           safeConfirmationsCount !== undefined &&
-          safeConfirmationsCount >= nonce;
+          safeConfirmationsCount > nonce;
 
         // We know the ignition transaction was replaced, and the replacement
         // transaction has at least one confirmation.

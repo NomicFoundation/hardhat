@@ -35,9 +35,9 @@ import { Time } from "./time/time.js";
 
 const SUPPORTED_TEST_NETWORKS = ["hardhat", "zksync", "anvil"];
 
-export class NetworkHelpers<ChainTypeT extends ChainType | string>
-  implements NetworkHelpersI<ChainTypeT>
-{
+export class NetworkHelpers<
+  ChainTypeT extends ChainType | string,
+> implements NetworkHelpersI<ChainTypeT> {
   readonly #connection: NetworkConnection<ChainTypeT>;
   readonly #provider: EthereumProvider;
   readonly #networkName: string;
@@ -186,7 +186,8 @@ export class NetworkHelpers<ChainTypeT extends ChainType | string>
     if (!this.#isDevelopmentNetwork) {
       if (this.#version !== undefined) {
         throw new HardhatError(
-          HardhatError.ERRORS.NETWORK_HELPERS.GENERAL.CAN_ONLY_BE_USED_WITH_HARDHAT_NETWORK_VERSIONED,
+          HardhatError.ERRORS.NETWORK_HELPERS.GENERAL
+            .CAN_ONLY_BE_USED_WITH_HARDHAT_NETWORK_VERSIONED,
           {
             networkName: this.#networkName,
             version: this.#version,
@@ -195,7 +196,8 @@ export class NetworkHelpers<ChainTypeT extends ChainType | string>
       }
 
       throw new HardhatError(
-        HardhatError.ERRORS.NETWORK_HELPERS.GENERAL.CAN_ONLY_BE_USED_WITH_HARDHAT_NETWORK,
+        HardhatError.ERRORS.NETWORK_HELPERS.GENERAL
+          .CAN_ONLY_BE_USED_WITH_HARDHAT_NETWORK,
         {
           networkName: this.#networkName,
         },

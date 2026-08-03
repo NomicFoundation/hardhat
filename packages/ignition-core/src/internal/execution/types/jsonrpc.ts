@@ -125,5 +125,4 @@ type EIP1559NetworkTransaction = BaseNetworkTransaction & {
  * This type represents a transaction that was retrieved from the network.
  */
 export type NetworkTransaction =
-  | LegacyNetworkTransaction
-  | EIP1559NetworkTransaction;
+  LegacyNetworkTransaction | EIP1559NetworkTransaction;

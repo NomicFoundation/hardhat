@@ -148,9 +148,7 @@ export function applyNonceToOnchainInteraction<
  */
 export function confirmTransaction<
   ExState extends
-    | DeploymentExecutionState
-    | CallExecutionState
-    | SendDataExecutionState,
+    DeploymentExecutionState | CallExecutionState | SendDataExecutionState,
 >(state: ExState, action: TransactionConfirmMessage): ExState {
   return produce(state, (draft: ExState): void => {
     const onchainInteraction = findOnchainInteractionBy(
@@ -204,9 +202,7 @@ export function completeStaticCall<
  */
 export function bumpOnchainInteractionFees<
   ExState extends
-    | DeploymentExecutionState
-    | CallExecutionState
-    | SendDataExecutionState,
+    DeploymentExecutionState | CallExecutionState | SendDataExecutionState,
 >(state: ExState, action: OnchainInteractionBumpFeesMessage): ExState {
   return produce(state, (draft: ExState): void => {
     const onchainInteraction = findOnchainInteractionBy(
@@ -228,9 +224,7 @@ export function bumpOnchainInteractionFees<
  */
 export function resendDroppedOnchainInteraction<
   ExState extends
-    | DeploymentExecutionState
-    | CallExecutionState
-    | SendDataExecutionState,
+    DeploymentExecutionState | CallExecutionState | SendDataExecutionState,
 >(state: ExState, action: OnchainInteractionDroppedMessage): ExState {
   return produce(state, (draft: ExState): void => {
     const onchainInteraction = findOnchainInteractionBy(
@@ -252,9 +246,7 @@ export function resendDroppedOnchainInteraction<
  */
 export function resetOnchainInteractionReplacedByUser<
   ExState extends
-    | DeploymentExecutionState
-    | CallExecutionState
-    | SendDataExecutionState,
+    DeploymentExecutionState | CallExecutionState | SendDataExecutionState,
 >(state: ExState, action: OnchainInteractionReplacedByUserMessage): ExState {
   return produce(state, (draft: ExState): void => {
     const onchainInteraction = findOnchainInteractionBy(
@@ -274,9 +266,7 @@ export function resetOnchainInteractionReplacedByUser<
  */
 export function onchainInteractionTimedOut<
   ExState extends
-    | DeploymentExecutionState
-    | CallExecutionState
-    | SendDataExecutionState,
+    DeploymentExecutionState | CallExecutionState | SendDataExecutionState,
 >(state: ExState, _action: OnchainInteractionTimeoutMessage): ExState {
   return produce(state, (draft: ExState): void => {
     draft.status = ExecutionStatus.TIMEOUT;

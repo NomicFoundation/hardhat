@@ -160,7 +160,8 @@ describe("HardhatError", () => {
     it("Should return the plugin id if its descriptor is in a category that uses one", () => {
       assert.equal(
         new HardhatError(
-          HardhatError.ERRORS.HARDHAT_KEYSTORE.GENERAL.INVALID_PASSWORD_OR_CORRUPTED_KEYSTORE,
+          HardhatError.ERRORS.HARDHAT_KEYSTORE.GENERAL
+            .INVALID_PASSWORD_OR_CORRUPTED_KEYSTORE,
         ).pluginId,
         ERROR_CATEGORIES.HARDHAT_KEYSTORE.pluginId,
       );
@@ -525,7 +526,9 @@ describe("Type tests", () => {
     it("should have the right type", () => {
       const _descriptors: {
         [packageName in keyof typeof ERROR_CATEGORIES]: {
-          [categoryName in keyof (typeof ERROR_CATEGORIES)[packageName]["CATEGORIES"]]: {
+          [
+            categoryName in keyof (typeof ERROR_CATEGORIES)[packageName]["CATEGORIES"]
+          ]: {
             [name: string]: ErrorDescriptor;
           };
         };

@@ -48,7 +48,8 @@ export default async (): Promise<Partial<ConfigurationVariableHooks>> => {
         // When `fetchValue` is called from a test, we only allow the use of the development keystore
         // to avoid prompting for the production keystore password.
         throw new HardhatError(
-          HardhatError.ERRORS.HARDHAT_KEYSTORE.GENERAL.KEY_NOT_FOUND_DURING_TESTS_WITH_DEV_KEYSTORE,
+          HardhatError.ERRORS.HARDHAT_KEYSTORE.GENERAL
+            .KEY_NOT_FOUND_DURING_TESTS_WITH_DEV_KEYSTORE,
           {
             key: variable.name,
           },

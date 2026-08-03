@@ -61,9 +61,7 @@ const debug = createDebug(
 export async function monitorOnchainInteraction(
   params: {
     exState:
-      | DeploymentExecutionState
-      | CallExecutionState
-      | SendDataExecutionState;
+      DeploymentExecutionState | CallExecutionState | SendDataExecutionState;
     jsonRpcClient: JsonRpcClient;
     transactionTrackingTimer: TransactionTrackingTimer;
     requiredConfirmations: number;

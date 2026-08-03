@@ -130,9 +130,8 @@ export class LocalAccountsHandler extends ChainId implements RequestHandler {
           }
 
           if (microEthSignerTypedData === undefined) {
-            microEthSignerTypedData = await import(
-              "micro-eth-signer/typed-data"
-            );
+            microEthSignerTypedData =
+              await import("micro-eth-signer/typed-data");
           }
 
           const privateKey = await this.#getPrivateKeyForAddress(address);
@@ -155,14 +154,14 @@ export class LocalAccountsHandler extends ChainId implements RequestHandler {
         if (data !== undefined) {
           if (address === undefined) {
             throw new HardhatError(
-              HardhatError.ERRORS.CORE.NETWORK.PERSONALSIGN_MISSING_ADDRESS_PARAM,
+              HardhatError.ERRORS.CORE.NETWORK
+                .PERSONALSIGN_MISSING_ADDRESS_PARAM,
             );
           }
 
           if (microEthSignerTypedData === undefined) {
-            microEthSignerTypedData = await import(
-              "micro-eth-signer/typed-data"
-            );
+            microEthSignerTypedData =
+              await import("micro-eth-signer/typed-data");
           }
 
           const privateKey = await this.#getPrivateKeyForAddress(address);
@@ -193,7 +192,8 @@ export class LocalAccountsHandler extends ChainId implements RequestHandler {
           typedMessage = JSON.parse(data);
         } catch {
           throw new HardhatError(
-            HardhatError.ERRORS.CORE.NETWORK.ETHSIGN_TYPED_DATA_V4_INVALID_DATA_PARAM,
+            HardhatError.ERRORS.CORE.NETWORK
+              .ETHSIGN_TYPED_DATA_V4_INVALID_DATA_PARAM,
           );
         }
       }
@@ -403,7 +403,8 @@ export class LocalAccountsHandler extends ChainId implements RequestHandler {
       txData.data === undefined
     ) {
       throw new HardhatError(
-        HardhatError.ERRORS.CORE.NETWORK.DATA_FIELD_CANNOT_BE_NULL_WITH_NULL_ADDRESS,
+        HardhatError.ERRORS.CORE.NETWORK
+          .DATA_FIELD_CANNOT_BE_NULL_WITH_NULL_ADDRESS,
       );
     }
 

@@ -39,9 +39,9 @@ import {
   isContractFuture,
 } from "@nomicfoundation/ignition-core";
 
-export class EthersIgnitionHelperImpl<ChainTypeT extends ChainType | string>
-  implements EthersIgnitionHelper
-{
+export class EthersIgnitionHelperImpl<
+  ChainTypeT extends ChainType | string,
+> implements EthersIgnitionHelper {
   public type: "ethers" = "ethers";
 
   readonly #hardhatConfig: HardhatConfig;

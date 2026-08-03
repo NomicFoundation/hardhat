@@ -10,8 +10,7 @@ import { HardhatError } from "@nomicfoundation/hardhat-errors";
 import { FileBuildResultType } from "../../../types/solidity.js";
 
 type SolidityBuildResults =
-  | Map<string, FileBuildResult>
-  | CompilationJobCreationError;
+  Map<string, FileBuildResult> | CompilationJobCreationError;
 type SuccessfulSolidityBuildResults = Map<
   string,
   Exclude<FileBuildResult, FailedFileBuildResult>

@@ -33,8 +33,7 @@ export type EvmValue = BaseEvmValue | EvmValue[] | EvmTuple;
  * The result of executing a contract function/constructor.
  */
 export type EvmExecutionResult =
-  | SuccessfulEvmExecutionResult
-  | FailedEvmExecutionResult;
+  SuccessfulEvmExecutionResult | FailedEvmExecutionResult;
 
 /**
  * The result of executing a contract function/constructor that failed.

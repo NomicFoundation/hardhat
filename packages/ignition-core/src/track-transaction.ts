@@ -256,7 +256,8 @@ async function checkConfirmations(
 If this is not the expected behavior, please edit your Hardhat Ignition module accordingly before re-running your deployment.`;
   } else {
     throw new HardhatError(
-      HardhatError.ERRORS.IGNITION.TRACK_TRANSACTIONS.INSUFFICIENT_CONFIRMATIONS,
+      HardhatError.ERRORS.IGNITION.TRACK_TRANSACTIONS
+        .INSUFFICIENT_CONFIRMATIONS,
     );
   }
 }

@@ -1,3 +1,4 @@
+import type { Payload } from "../../../../src/internal/cli/telemetry/analytics/types.js";
 import type {
   ChainDescriptorsConfig,
   EdrNetworkConfigOverride,
@@ -20,13 +21,20 @@ import type { HardhatPlugin } from "../../../../src/types/plugins.js";
 import type { ExpectedValidationError } from "@nomicfoundation/hardhat-test-utils";
 
 import assert from "node:assert/strict";
-import { beforeEach, describe, it } from "node:test";
+import path from "node:path";
+import { after, afterEach, before, beforeEach, describe, it } from "node:test";
 
 import { HardhatError } from "@nomicfoundation/hardhat-errors";
 import {
   assertRejectsWithHardhatError,
   assertValidationErrors,
 } from "@nomicfoundation/hardhat-test-utils";
+import {
+  exists,
+  readJsonFile,
+  remove,
+} from "@nomicfoundation/hardhat-utils/fs";
+import { sleep } from "@nomicfoundation/hardhat-utils/lang";
 import { expectTypeOf } from "expect-type";
 
 import { createHardhatRuntimeEnvironment } from "../../../../src/hre.js";
@@ -53,6 +61,10 @@ import {
   FixedValueConfigurationVariable,
   resolveConfigurationVariable,
 } from "../../../../src/internal/core/configuration-variables.js";
+import {
+  checkIfSubprocessWasExecuted,
+  ROOT_PATH_TO_FIXTURE,
+} from "../../cli/telemetry/helpers.js";
 
 describe("NetworkManagerImplementation", () => {
   let hre: HardhatRuntimeEnvironment;
@@ -148,6 +160,73 @@ describe("NetworkManagerImplementation", () => {
       hre.config.paths.root,
       hre.globalOptions.verbosity,
     );
+  });
+
+  describe("chain type analytics", () => {
+    const RESULT_FILE_PATH = path.join(
+      ROOT_PATH_TO_FIXTURE,
+      "analytics",
+      "network-manager-analytics-result.json",
+    );
+
+    before(() => {
+      process.env.HARDHAT_TEST_INTERACTIVE_ENV = "true";
+      process.env.HARDHAT_TEST_TELEMETRY_ENABLED = "true";
+      process.env.HARDHAT_TEST_SUBPROCESS_RESULT_PATH = RESULT_FILE_PATH;
+    });
+
+    after(() => {
+      delete process.env.HARDHAT_TEST_INTERACTIVE_ENV;
+      delete process.env.HARDHAT_TEST_TELEMETRY_ENABLED;
+      delete process.env.HARDHAT_TEST_SUBPROCESS_RESULT_PATH;
+    });
+
+    beforeEach(async () => {
+      await remove(RESULT_FILE_PATH);
+    });
+
+    afterEach(async () => {
+      await remove(RESULT_FILE_PATH);
+    });
+
+    it("should send network analytics only once per chain type", async () => {
+      await networkManager.create();
+
+      await checkIfSubprocessWasExecuted(RESULT_FILE_PATH);
+
+      let result: Payload = await readJsonFile(RESULT_FILE_PATH);
+
+      assert.equal(result.events[0].name, "network");
+      assert(
+        "chainType" in result.events[0].params,
+        "params should have a chainType field",
+      );
+      assert.equal(result.events[0].params.chainType, GENERIC_CHAIN_TYPE);
+
+      await remove(RESULT_FILE_PATH);
+
+      // A second connection with the same chain type shouldn't send analytics
+      // again. No subprocess is spawned in that case, so after a short wait
+      // the result file should still be missing.
+      await networkManager.create();
+      await sleep(0.5);
+
+      assert.equal(await exists(RESULT_FILE_PATH), false);
+
+      // A connection with a new chain type should send analytics again
+      await networkManager.create({ network: "myNetwork" });
+
+      await checkIfSubprocessWasExecuted(RESULT_FILE_PATH);
+
+      result = await readJsonFile(RESULT_FILE_PATH);
+
+      assert.equal(result.events[0].name, "network");
+      assert(
+        "chainType" in result.events[0].params,
+        "params should have a chainType field",
+      );
+      assert.equal(result.events[0].params.chainType, OPTIMISM_CHAIN_TYPE);
+    });
   });
 
   describe("create", () => {

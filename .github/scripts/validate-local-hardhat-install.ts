@@ -40,9 +40,7 @@ interface ResolutionError {
 }
 
 export type ScenarioResolution =
-  | InstalledHardhat
-  | PnpLockedHardhat
-  | ResolutionError;
+  InstalledHardhat | PnpLockedHardhat | ResolutionError;
 
 // What this run published: the locally published hardhat version
 // (post-benchmark), the packages/hardhat version before the benchmark ran,

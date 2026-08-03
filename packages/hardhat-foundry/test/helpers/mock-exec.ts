@@ -79,8 +79,8 @@ export function createCommandAwareMockExec(scenarios: {
 }): ExecAsyncFn {
   return async (command: string, _options: any) => {
     const scenario = command.includes("forge --version")
-      ? scenarios.forgeVersion ?? MOCK_SCENARIOS.FORGE_VERSION_SUCCESS
-      : scenarios.forgeRemappings ?? MOCK_SCENARIOS.SUCCESS;
+      ? (scenarios.forgeVersion ?? MOCK_SCENARIOS.FORGE_VERSION_SUCCESS)
+      : (scenarios.forgeRemappings ?? MOCK_SCENARIOS.SUCCESS);
 
     if (scenario.code !== 0) {
       const error: any = new Error(scenario.stderr);

@@ -118,7 +118,8 @@ export function run(
 
       stream.destroy(
         new HardhatError(
-          HardhatError.ERRORS.CORE.SOLIDITY_TESTS.UNHANDLED_EDR_ERROR_SOLIDITY_TESTS,
+          HardhatError.ERRORS.CORE.SOLIDITY_TESTS
+            .UNHANDLED_EDR_ERROR_SOLIDITY_TESTS,
           {
             error: error.message,
           },

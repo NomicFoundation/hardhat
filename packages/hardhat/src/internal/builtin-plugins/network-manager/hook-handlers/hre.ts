@@ -63,9 +63,8 @@ async function createNetworkManager(
   hre: HardhatRuntimeEnvironment,
   context: HookContext,
 ): Promise<NetworkManager> {
-  const { NetworkManagerImplementation } = await import(
-    "../network-manager.js"
-  );
+  const { NetworkManagerImplementation } =
+    await import("../network-manager.js");
 
   return new NetworkManagerImplementation(
     hre.globalOptions.network !== undefined

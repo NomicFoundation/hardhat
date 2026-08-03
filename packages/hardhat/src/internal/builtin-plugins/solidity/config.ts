@@ -501,8 +501,7 @@ function resolveSolidityConfig(
 
 function resolveBuildProfileConfig(
   solidityConfig:
-    | SingleVersionSolidityUserConfig
-    | MultiVersionSolidityUserConfig,
+    SingleVersionSolidityUserConfig | MultiVersionSolidityUserConfig,
   production: boolean = false,
   toolVersionsInBuildInfo?: boolean,
 ): SolidityBuildProfileConfig {
@@ -606,8 +605,7 @@ export function isSolcSolidityCompilerUserConfig(
 
 function copyFromDefault(
   defaultSolidityConfig:
-    | SingleVersionSolidityUserConfig
-    | MultiVersionSolidityUserConfig,
+    SingleVersionSolidityUserConfig | MultiVersionSolidityUserConfig,
 ): SingleVersionSolidityUserConfig | MultiVersionSolidityUserConfig {
   if ("version" in defaultSolidityConfig) {
     return {

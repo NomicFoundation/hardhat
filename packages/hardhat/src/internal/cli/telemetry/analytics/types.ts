@@ -48,6 +48,12 @@ export type AnalyticsEvent =
         hardhatVersion: "hardhat-3";
         template: string;
       };
+    }
+  | {
+      name: "network";
+      params: {
+        chainType: string;
+      };
     };
 
 export interface Payload extends BasePayload {

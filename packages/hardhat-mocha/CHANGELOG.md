@@ -1,5 +1,15 @@
 # @nomicfoundation/hardhat-mocha
 
+## 3.1.0
+
+### Minor Changes
+
+- [#8442](https://github.com/NomicFoundation/hardhat/pull/8442) [`4904c72`](https://github.com/NomicFoundation/hardhat/commit/4904c726c3356e904911f8615d8f0b0bf0a76942) Thanks [@ChristopherDedominici](https://github.com/ChristopherDedominici)! - Support test name filter negation (--grep-exclude) for Solidity and Mocha tests.
+
+### Patch Changes
+
+- [#8461](https://github.com/NomicFoundation/hardhat/pull/8461) [`841423a`](https://github.com/NomicFoundation/hardhat/commit/841423a913e25591a83458b39738e3e8aa5b81bc) Thanks [@kanej](https://github.com/kanej)! - Reduce installation warnings with updated dependencies.
+
 ## 3.0.21
 
 ### Patch Changes

@@ -122,7 +122,8 @@ export class ContractInformationResolver {
         : `the Solidity version ${formattedSolcVersion}`;
 
       throw new HardhatError(
-        HardhatError.ERRORS.HARDHAT_VERIFY.GENERAL.BUILD_INFO_SOLC_VERSION_MISMATCH,
+        HardhatError.ERRORS.HARDHAT_VERIFY.GENERAL
+          .BUILD_INFO_SOLC_VERSION_MISMATCH,
         {
           contract,
           buildInfoSolcVersion: buildInfoAndOutput.buildInfo.solcVersion,
@@ -202,7 +203,8 @@ export class ContractInformationResolver {
       const fqnList = matches.map((c) => `  * ${c.userFqn}`).join("\n");
 
       throw new HardhatError(
-        HardhatError.ERRORS.HARDHAT_VERIFY.GENERAL.DEPLOYED_BYTECODE_MULTIPLE_MATCHES,
+        HardhatError.ERRORS.HARDHAT_VERIFY.GENERAL
+          .DEPLOYED_BYTECODE_MULTIPLE_MATCHES,
         { fqnList },
       );
     }

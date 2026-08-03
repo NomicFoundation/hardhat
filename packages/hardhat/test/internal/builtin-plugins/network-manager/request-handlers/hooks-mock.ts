@@ -57,9 +57,8 @@ export async function createMockedNetworkHre(
 
   // We set the default network hook handlers again, to take precedence over the
   // mocked one.
-  const { default: networkHookHandlerHandlersFactory } = await import(
-    "../../../../../src/internal/builtin-plugins/network-manager/hook-handlers/network.js"
-  );
+  const { default: networkHookHandlerHandlersFactory } =
+    await import("../../../../../src/internal/builtin-plugins/network-manager/hook-handlers/network.js");
 
   hre.hooks.registerHandlers(
     "network",

@@ -75,9 +75,7 @@ export interface VerificationProviderFactory {
 
   create(
     options:
-      | CreateEtherscanOptions
-      | CreateBlockscoutOptions
-      | CreateSourcifyOptions,
+      CreateEtherscanOptions | CreateBlockscoutOptions | CreateSourcifyOptions,
   ): Promise<VerificationProvider>;
 
   getSupportedChains(

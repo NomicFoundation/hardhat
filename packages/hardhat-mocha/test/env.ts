@@ -8,9 +8,8 @@ describe("Hardhat Mocha env variables", () => {
 
   it("should set the NODE_ENV variable if undefined and HH_TEST always", async () => {
     const { createHardhatRuntimeEnvironment } = await import("hardhat/hre");
-    const hardhatConfig = await import(
-      "./fixture-projects/test-project/hardhat.config.js"
-    );
+    const hardhatConfig =
+      await import("./fixture-projects/test-project/hardhat.config.js");
     const hre = await createHardhatRuntimeEnvironment(hardhatConfig.default);
 
     const nodeEnv = process.env.NODE_ENV;

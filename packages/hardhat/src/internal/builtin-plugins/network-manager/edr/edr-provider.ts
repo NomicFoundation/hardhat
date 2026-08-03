@@ -167,9 +167,8 @@ export class EdrProvider extends BaseProvider {
 
       let traceOutput: TraceOutputManager | undefined;
       if (tracesEnabled) {
-        const { TraceOutputManager: TraceOutputManagerImpl } = await import(
-          "./utils/trace-output.js"
-        );
+        const { TraceOutputManager: TraceOutputManagerImpl } =
+          await import("./utils/trace-output.js");
         traceOutput = new TraceOutputManagerImpl(
           printLineFn,
           connectionId,

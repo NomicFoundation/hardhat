@@ -24,9 +24,7 @@ export function resolveConfigurationVariable(
   return new LazyResolvedConfigurationVariable(hooks, variable);
 }
 
-abstract class BaseResolvedConfigurationVariable
-  implements ResolvedConfigurationVariable
-{
+abstract class BaseResolvedConfigurationVariable implements ResolvedConfigurationVariable {
   public _type: "ResolvedConfigurationVariable" =
     "ResolvedConfigurationVariable";
 
@@ -115,6 +113,14 @@ export class LazyResolvedConfigurationVariable extends BaseResolvedConfiguration
   }
 
   protected async _getRawValue(): Promise<string> {
+    // Env vars take precedence over every configurationVariables plugin hook
+    // (e.g. keystore). Skip the hook chain entirely when the env var is set so
+    // plugins are not consulted and cannot override the env value.
+    const envValue = process.env[this.#variable.name];
+    if (typeof envValue === "string") {
+      return envValue;
+    }
+
     const mutex = LazyResolvedConfigurationVariable.#mutexes.get(this.#hooks);
     assertHardhatInvariant(mutex !== undefined, "Mutex must be defined");
 

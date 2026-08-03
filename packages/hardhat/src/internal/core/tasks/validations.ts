@@ -43,7 +43,8 @@ export function validateAction(
 ): void {
   if (isPlugin && inlineAction !== undefined) {
     throw new HardhatError(
-      HardhatError.ERRORS.CORE.TASK_DEFINITIONS.INLINE_ACTION_CANNOT_BE_USED_IN_PLUGINS,
+      HardhatError.ERRORS.CORE.TASK_DEFINITIONS
+        .INLINE_ACTION_CANNOT_BE_USED_IN_PLUGINS,
       { task: formatTaskId(taskId) },
     );
   }

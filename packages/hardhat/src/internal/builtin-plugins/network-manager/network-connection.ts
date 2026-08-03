@@ -8,8 +8,7 @@ export type CloseConnectionFunction<ChainTypeT extends ChainType | string> = (
 
 export class NetworkConnectionImplementation<
   ChainTypeT extends ChainType | string,
-> implements NetworkConnection<ChainTypeT>
-{
+> implements NetworkConnection<ChainTypeT> {
   public readonly id: number;
   public readonly networkName: string;
   public readonly networkConfig: Readonly<NetworkConfig>;

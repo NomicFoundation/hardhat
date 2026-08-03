@@ -52,12 +52,10 @@ interface LockMetadata {
 }
 
 type StalenessResult =
-  | { isStale: true; metadata: LockMetadata | undefined }
-  | { isStale: false };
+  { isStale: true; metadata: LockMetadata | undefined } | { isStale: false };
 
 type AcquireResult =
-  | { acquired: true }
-  | { acquired: false; reclaimedStaleLock: boolean };
+  { acquired: true } | { acquired: false; reclaimedStaleLock: boolean };
 
 /**
  * A class that implements an inter-process mutex.

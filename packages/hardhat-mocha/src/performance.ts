@@ -111,9 +111,9 @@ export function createPerformanceTracker<PhaseT extends string>(
   return new PerformanceTrackerImpl<PhaseT>(scope, trackerName);
 }
 
-class PerformanceTrackerImpl<PhaseT extends string>
-  implements PerformanceTracker<PhaseT>
-{
+class PerformanceTrackerImpl<
+  PhaseT extends string,
+> implements PerformanceTracker<PhaseT> {
   readonly #scope: string;
   readonly #trackerName: string;
   #seenPhases: string[] = [];

@@ -1,6 +1,5 @@
 export type BlockscoutGetSourceCodeResponse =
-  | BlockscoutNotOkResponse
-  | BlockscoutGetSourceCodeOkResponse;
+  BlockscoutNotOkResponse | BlockscoutGetSourceCodeOkResponse;
 
 interface BlockscoutGetSourceCodeOkResponse {
   status: "1";

@@ -23,9 +23,7 @@ import {
 export function decodeSimulationResult(
   strategyGenerator: DeploymentStrategyGenerator | CallStrategyGenerator,
   exState:
-    | DeploymentExecutionState
-    | CallExecutionState
-    | SendDataExecutionState,
+    DeploymentExecutionState | CallExecutionState | SendDataExecutionState,
 ) {
   return async (
     simulationResult: RawStaticCallResult,

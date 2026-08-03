@@ -9,9 +9,7 @@ declare global {
   a namespace because @types/chai uses it. */
   namespace Chai {
     interface Assertion
-      extends LanguageChains,
-        NumericComparison,
-        TypeComparison {
+      extends LanguageChains, NumericComparison, TypeComparison {
       /**
        * Assert that a transaction emits a specific event.
        * @param contract The contract that emits the event.

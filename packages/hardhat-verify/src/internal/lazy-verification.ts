@@ -41,9 +41,8 @@ export class LazyVerification implements VerificationHelpers {
 
   async #getImpl(): Promise<VerificationHelpersModule.Verification> {
     if (VerificationImpl === undefined) {
-      ({ Verification: VerificationImpl } = await import(
-        "./verification-helpers.js"
-      ));
+      ({ Verification: VerificationImpl } =
+        await import("./verification-helpers.js"));
     }
 
     if (this.#impl === undefined) {
