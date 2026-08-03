@@ -16,6 +16,10 @@
       "prime compilers": {
         "runs": 1,
         "steps": {
+          "assert fresh hardhat-solx": {
+            "command": "diff -rq .solx/expected-dist-src node_modules/@nomicfoundation/hardhat-solx/dist/src",
+            "measure": false
+          },
           "download solc + solx and warm caches": {
             "command": "npx hardhat compile --no-tests && npx hardhat compile --build-profile solx --no-tests && npx hardhat clean",
             "measure": false
