@@ -82,6 +82,10 @@ mv "$TARBALL" "$WORKDIR/.solx/hardhat-solx-$TARBALL_HASH.tgz"
 # under yarn too; the subsequent `yarn install` resolves the new file: entry.
 npm pkg set "devDependencies.@nomicfoundation/hardhat-solx=file:./.solx/hardhat-solx-$TARBALL_HASH.tgz"
 
+# Freshness oracle for the "assert fresh hardhat-solx" prime step: the
+# installed plugin must match this monorepo build byte-for-byte.
+cp -R "$SOLX_PKG/dist/src" "$WORKDIR/.solx/expected-dist-src"
+
 # Pinned solx for the version-comparison cells: the wrapper config's
 # "solx-0.1.7" profiles point at this binary via the plugin's `path` option
 # (the plain "solx" profiles keep measuring the version the plugin ships).
