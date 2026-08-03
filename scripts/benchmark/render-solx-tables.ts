@@ -44,10 +44,13 @@ export function readShippedSolxVersion(repoRoot: string): string | undefined {
 }
 
 interface Cell {
-  compiler: string; // "solc" | "solx" | "solx-x.y.z"
+  compiler: string; // "solc" | "solx" | "solx-x.y.z" | "forge-x.y.z"
   viaIR: boolean;
   noOpt: boolean;
   dwarf: boolean;
+  // parity cells compile the same source set as forge (no exposed wrappers
+  // etc.); they feed the cross-tool table, not the per-scenario pivot
+  parity: boolean;
 }
 
 interface CellData {
@@ -69,12 +72,12 @@ export function parseCell(raw: string): Cell | undefined {
   const compiler = tokens.shift();
   if (
     compiler === undefined ||
-    !/^(solc|solx(-\d+\.\d+\.\d+)?)$/.test(compiler)
+    !/^(solc|solx(-\d+\.\d+\.\d+)?|forge-\d+\.\d+\.\d+)$/.test(compiler)
   ) {
     return undefined;
   }
   const flags = new Set(tokens);
-  const known = new Set(["via-ir", "no-opt", "no-dwarf"]);
+  const known = new Set(["via-ir", "no-opt", "no-dwarf", "parity"]);
   if ([...flags].some((f) => !known.has(f))) {
     return undefined;
   }
@@ -83,6 +86,7 @@ export function parseCell(raw: string): Cell | undefined {
     viaIR: flags.has("via-ir"),
     noOpt: flags.has("no-opt"),
     dwarf: !flags.has("no-dwarf"),
+    parity: flags.has("parity"),
   };
 }
 
@@ -92,6 +96,7 @@ function cellKey(c: Cell): string {
     c.compiler,
     c.viaIR ? "via-ir" : "",
     c.noOpt ? "no-opt" : "",
+    c.parity ? "parity" : "",
     c.dwarf ? "" : "no-dwarf",
   ]
     .filter(Boolean)
@@ -183,7 +188,12 @@ export function renderSolxTables(
   const compilers = (scenario: Scenario) => {
     const found = new Set<string>();
     for (const key of scenario.cold.keys()) {
-      found.add(key.split(" ")[0]);
+      const c = parseCell(key)!;
+      // forge and parity cells feed the cross-tool table below instead
+      if (c.parity || c.compiler.startsWith("forge-")) {
+        continue;
+      }
+      found.add(c.compiler);
     }
     // solc first, shipped solx second, pinned versions ascending
     return [
@@ -244,7 +254,9 @@ export function renderSolxTables(
       const cells = cols.map((compiler) => {
         const key = [...scenario.cold.keys()].find((k) => {
           const c = parseCell(k)!;
-          return c.compiler === compiler && c.dwarf && row.match(c);
+          return (
+            c.compiler === compiler && c.dwarf && !c.parity && row.match(c)
+          );
         });
         const note =
           CELL_NOTES[
@@ -259,6 +271,61 @@ export function renderSolxTables(
       }
     }
     lines.push("");
+  }
+
+  // Cross-tool parity: one row per forge cell. Hardhat values come from
+  // parity-flagged cells when the scenario has them (OZ: its matrix cells
+  // include the exposed wrappers forge never compiles) and fall back to the
+  // matrix cells otherwise (uniswap: matrix cells are already parity-scoped).
+  const parityRows: string[] = [];
+  const forgeVersions = new Set<string>();
+  let parityUsedFallback = false;
+  for (const id of scenarioIds) {
+    const scenario = scenarios.get(id)!;
+    for (const [key, forgeData] of scenario.cold) {
+      const fc = parseCell(key)!;
+      if (!fc.compiler.startsWith("forge-")) {
+        continue;
+      }
+      forgeVersions.add(fc.compiler.replace("forge-", ""));
+      const pick = (compiler: string): string => {
+        const find = (parity: boolean) =>
+          [...scenario.cold.keys()].find((k) => {
+            const c = parseCell(k)!;
+            return (
+              c.compiler === compiler &&
+              c.parity === parity &&
+              c.viaIR === fc.viaIR &&
+              c.dwarf &&
+              !c.noOpt
+            );
+          });
+        const exact = find(true);
+        if (exact !== undefined) {
+          return wallCpu(scenario.cold.get(exact));
+        }
+        const fallback = find(false);
+        if (fallback === undefined) {
+          return "—";
+        }
+        parityUsedFallback = true;
+        return `${wallCpu(scenario.cold.get(fallback))}²`;
+      };
+      parityRows.push(
+        `| ${id} | ${fc.viaIR ? "via-IR" : "legacy"} | ${pick("solc")} | ${pick("solx")} | ${wallCpu(forgeData)} |`,
+      );
+    }
+  }
+  if (parityRows.length > 0) {
+    const forgeLabel = [...forgeVersions].sort().join("/");
+    lines.push(
+      "### Cross-tool parity <sub>(same sources, same settings, wall / CPU s)</sub>",
+      "",
+      `| scenario | pipeline | hardhat + solc 0.8.34 | hardhat + solx (shipped) | forge ${forgeLabel} + solc 0.8.34 |`,
+      "|---|---|---|---|---|",
+      ...parityRows,
+      "",
+    );
   }
 
   // Secondary numbers: everything is still generated, just folded away.
@@ -345,6 +412,12 @@ export function renderSolxTables(
   }
 
   lines.push("</details>", "", ...FOOTNOTES);
+  if (parityUsedFallback) {
+    lines.push(
+      "² same-scope matrix cell: this scenario's hardhat cells already " +
+        "compile the parity source set, so no separate parity cell exists.",
+    );
+  }
   return `${lines.join("\n")}\n`;
 }
 
