@@ -24,12 +24,22 @@ fi
 rm -rf "$WORKDIR/.solx"
 mkdir -p "$WORKDIR/.solx"
 (cd "$SOLX_PKG" && pnpm pack --pack-destination "$WORKDIR/.solx")
-mv "$WORKDIR/.solx/"nomicfoundation-hardhat-solx-*.tgz "$WORKDIR/.solx/hardhat-solx.tgz"
+# Name the tarball by content hash: npm never re-reads a changed `file:`
+# tarball when the spec and the packed version are unchanged (this froze
+# aave's shipped plugin at a stale version map on the persistent runner), so
+# a content change must change the spec. Hash via node for BSD/GNU portability.
+TARBALL="$(echo "$WORKDIR/.solx/"nomicfoundation-hardhat-solx-*.tgz)"
+TARBALL_HASH="$(node -e "
+const { createHash } = require('crypto');
+const { readFileSync } = require('fs');
+console.log(createHash('sha256').update(readFileSync(process.argv[1])).digest('hex').slice(0, 12));
+" "$TARBALL")"
+mv "$TARBALL" "$WORKDIR/.solx/hardhat-solx-$TARBALL_HASH.tgz"
 
 # `npm pkg set` only edits package.json (no lockfile involved). The scenario's
 # env sets pnpm_config_frozen_lockfile=false so CI's `pnpm install` (frozen by
 # default under CI=true) may resolve this new entry into the lockfile.
-npm pkg set "devDependencies.@nomicfoundation/hardhat-solx=file:./.solx/hardhat-solx.tgz"
+npm pkg set "devDependencies.@nomicfoundation/hardhat-solx=file:./.solx/hardhat-solx-$TARBALL_HASH.tgz"
 
 # Pinned solx for the version-comparison cells: the wrapper config's
 # "solx-0.1.7" profiles point at this binary via the plugin's `path` option
