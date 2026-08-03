@@ -48,11 +48,20 @@ export default async (): Promise<Partial<ConfigurationVariableHooks>> => {
         // When `fetchValue` is called from a test, we only allow the use of the development keystore
         // to avoid prompting for the production keystore password.
         //
-        // If the variable declares a default value, delegate to the next handler
-        // so the built-in resolver can fall back to it. We must return here to
-        // avoid consulting the production keystore below (which would prompt for
-        // the production keystore password during tests).
-        if (variable.default !== undefined) {
+        // If the variable declares a default value and the key isn't stored in
+        // the production keystore either, delegate to the next handler so the
+        // built-in resolver can fall back to the default. We must return here
+        // to avoid consulting the production keystore below (which would
+        // prompt for the production keystore password during tests).
+        //
+        // If the key IS stored in the production keystore, we keep throwing:
+        // the user explicitly stored a value for it, and silently replacing it
+        // with the default during tests would be misleading. Checking the
+        // plaintext key names doesn't prompt for the password.
+        if (
+          variable.default !== undefined &&
+          !(await prodKeystoreContainsUnverifiedKey(context, variable))
+        ) {
           return await next(context, variable);
         }
 
@@ -75,6 +84,27 @@ export default async (): Promise<Partial<ConfigurationVariableHooks>> => {
       return await next(context, variable);
     },
   };
+
+  // Checks the plaintext key names of the production keystore, without
+  // unlocking it (so no password prompt). Trade-off: the key names' HMAC
+  // integrity isn't verified, so a tampered keystore (key removed) reads as
+  // a miss instead of erroring.
+  async function prodKeystoreContainsUnverifiedKey(
+    context: HookContext,
+    variable: ConfigurationVariable,
+  ): Promise<boolean> {
+    if (keystoreLoaderProd === undefined) {
+      keystoreLoaderProd = setupKeystoreLoaderFrom(context, false);
+    }
+
+    if (!(await keystoreLoaderProd.isKeystoreInitialized())) {
+      return false;
+    }
+
+    const keystore = await keystoreLoaderProd.loadKeystore();
+
+    return (await keystore.listUnverifiedKeys()).includes(variable.name);
+  }
 
   async function getValue(
     context: HookContext,
