@@ -24,18 +24,33 @@ describe("parseCell", () => {
       viaIR: false,
       noOpt: false,
       dwarf: true,
+      parity: false,
     });
     assert.deepEqual(parseCell("solc no-opt"), {
       compiler: "solc",
       viaIR: false,
       noOpt: true,
       dwarf: true,
+      parity: false,
     });
     assert.deepEqual(parseCell("solx-0.1.7 via-ir no-dwarf"), {
       compiler: "solx-0.1.7",
       viaIR: true,
       noOpt: false,
       dwarf: false,
+      parity: false,
+    });
+  });
+
+  it("parses parity and forge cells", () => {
+    assert.equal(parseCell("solc parity")!.parity, true);
+    // forge cells are parity-scoped by construction, not by token
+    assert.deepEqual(parseCell("forge-1.7.1 via-ir"), {
+      compiler: "forge-1.7.1",
+      viaIR: true,
+      noOpt: false,
+      dwarf: true,
+      parity: false,
     });
   });
 
@@ -90,6 +105,46 @@ describe("renderSolxTables", () => {
       user: 30,
       system: 0.1,
     }),
+    entry("uniswap-v4-core-solx / cold compile solc via-ir", 77.4, {
+      times: [77.0, 77.8],
+    }),
+    entry("uniswap-v4-core-solx / cold compile solc via-ir (cpu)", 78.5, {
+      user: 78,
+      system: 0.5,
+    }),
+    entry("uniswap-v4-core-solx / cold compile forge-1.7.1 via-ir", 10.4, {
+      times: [10.3, 10.5],
+    }),
+    entry(
+      "uniswap-v4-core-solx / cold compile forge-1.7.1 via-ir (cpu)",
+      30.2,
+      {
+        user: 30,
+        system: 0.2,
+      },
+    ),
+    entry("openzeppelin-contracts-0.34 / cold compile solc parity", 40.0, {
+      times: [39.8, 40.1, 40.1],
+    }),
+    entry(
+      "openzeppelin-contracts-0.34 / cold compile solc parity (cpu)",
+      42.0,
+      {
+        user: 41,
+        system: 1,
+      },
+    ),
+    entry("openzeppelin-contracts-0.34 / cold compile forge-1.7.1", 14.6, {
+      times: [14.5, 14.7, 14.6],
+    }),
+    entry(
+      "openzeppelin-contracts-0.34 / cold compile forge-1.7.1 (cpu)",
+      16.3,
+      {
+        user: 15.6,
+        system: 0.7,
+      },
+    ),
     entry("openzeppelin-contracts-0.34 / cold compile solc", 59.4, {
       times: [59, 59.8, 59.4],
     }),
@@ -107,7 +162,7 @@ describe("renderSolxTables", () => {
 
   it("pivots wall / cpu per compiler column", () => {
     assert.match(md, /\| legacy \| 19\.6 \/ 20\.6 \| 16\.1 \/ 44\.0 \| — \|/);
-    assert.match(md, /\| via-IR \| — \| — \| 12\.9 \/ 36\.8 \|/);
+    assert.match(md, /\| via-IR \| 77\.4 \/ 78\.5 \| — \| 12\.9 \/ 36\.8 \|/);
     assert.match(md, /\| legacy, no optimizer \| 9\.1 \/ 9\.9 \| — \| — \|/);
     assert.match(
       md,
@@ -139,6 +194,24 @@ describe("renderSolxTables", () => {
       /solx 0\.1\.6 \(shipped\)/,
       "shipped column heading uses the map version",
     );
+  });
+
+  it("renders the cross-tool parity table, forge out of the pivot", () => {
+    assert.match(
+      md,
+      /\| scenario \| pipeline \| hardhat \+ solc 0\.8\.34 \| hardhat \+ solx \(shipped\) \| forge 1\.7\.1 \+ solc 0\.8\.34 \|/,
+    );
+    assert.match(
+      md,
+      /\| openzeppelin-contracts-0\.34 \| legacy \| 40\.0 \/ 42\.0 \| — \| 14\.6 \/ 16\.3 \|/,
+    );
+    assert.match(
+      md,
+      /\| uniswap-v4-core-solx \| via-IR \| 77\.4 \/ 78\.5² \| — \| 10\.4 \/ 30\.2 \|/,
+    );
+    assert.match(md, /² same-scope matrix cell/);
+    assert.doesNotMatch(md, /\| cold compile \|[^\n]*forge/);
+    assert.doesNotMatch(md, /\| cold compile \|[^\n]*parity/);
   });
 
   it("warns on non-success status", () => {
