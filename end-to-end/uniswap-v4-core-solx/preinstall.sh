@@ -94,7 +94,9 @@ node "$MONOREPO_ROOT/scripts/benchmark/download-solx.ts" --version 0.1.7 --out "
 
 # Pinned forge (latest stable at pin time) for the cross-tool parity cells.
 # At 1.7.1 forge's codegen is solc (solar is lint-only), so with
-# FOUNDRY_SOLC_VERSION=0.8.34 the compiler matches the hardhat cells.
+# FOUNDRY_SOLC=0.8.34 the compiler matches the hardhat cells. (FOUNDRY_SOLC,
+# not FOUNDRY_SOLC_VERSION, which forge misparses when an [etherscan] table
+# is present — see the aave-v4-solx scenario.)
 rm -rf "$WORKDIR/.foundry"
 node "$MONOREPO_ROOT/scripts/benchmark/download-forge.ts" --version 1.7.1 --out "$WORKDIR/.foundry/forge"
 

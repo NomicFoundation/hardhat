@@ -82,6 +82,7 @@ myfun
 mykey
 mylib
 mylock
+misparses
 napi
 niño
 NFKC
