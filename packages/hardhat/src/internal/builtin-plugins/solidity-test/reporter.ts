@@ -10,12 +10,15 @@ import { styleText } from "node:util";
 import { bytesToHexString } from "@nomicfoundation/hardhat-utils/hex";
 
 import { sendErrorTelemetry } from "../../cli/telemetry/error-reporter/reporter.js";
+import { ALWAYS_COLLECT_STACK_TRACES_VERBOSITY } from "../../constants.js";
 import { SolidityTestStackTraceGenerationError } from "../network-manager/edr/stack-traces/stack-trace-generation-errors.js";
 import { encodeStackTraceEntry } from "../network-manager/edr/stack-traces/stack-trace-solidity-errors.js";
 import { formatTraces } from "../network-manager/edr/utils/trace-formatters.js";
 
 import { formatArtifactId } from "./formatters.js";
 import { getMessageFromLastStackTraceEntry } from "./stack-trace-solidity-errors.js";
+
+const RERUN_VERBOSITY_HINT = `Try rerunning your tests with -${"v".repeat(ALWAYS_COLLECT_STACK_TRACES_VERBOSITY)} or above.`;
 
 class Indenter {
   #indentation: number;
@@ -305,17 +308,13 @@ export async function* testReporter(
             yield* output(
               indenter.t`Stack Trace Warning: ${colorize("grey", "The test is not safe to replay because a fork url without a fork block number was provided.")}\n`,
             );
-            yield* output(
-              indenter.t`Try rerunning your tests with -vvvvv or above.\n`,
-            );
+            yield* output(indenter.t`${RERUN_VERBOSITY_HINT}\n`);
           }
           if (stackTrace.impureCheatcodes.length > 0) {
             yield* output(
               indenter.t`Stack Trace Warning: ${colorize("grey", `The test is not safe to replay because it uses impure cheatcodes: ${stackTrace.impureCheatcodes.join(", ")}`)}\n`,
             );
-            yield* output(
-              indenter.t`Try rerunning your tests with -vvvvv or above.\n`,
-            );
+            yield* output(indenter.t`${RERUN_VERBOSITY_HINT}\n`);
           }
           break;
         case "HeuristicFailed":
