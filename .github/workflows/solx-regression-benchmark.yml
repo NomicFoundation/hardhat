@@ -93,6 +93,21 @@ jobs:
       - name: Recreate workspace bin links
         run: pnpm rebuild -r
 
+      # Persistent-runner hygiene: state that is mutable under a fixed name
+      # must not survive between runs. A Verdaccio orphaned by a hard-killed
+      # job keeps squatting the port while checkout's clean erases its PID
+      # file, so `verdaccio stop` alone can't see it — kill by process
+      # pattern too. The scenarios' node_modules go as well so installs can't
+      # serve stale content (npm kept a months-old hardhat-solx tarball
+      # there). Compiler binaries and package-manager caches stay: those are
+      # version/content-addressed.
+      - name: Clean stale runner state
+        run: |
+          pnpm verdaccio stop || true
+          pkill -f 'verdaccio/server.ts' || true
+          # bench:regression's default --e2e-clone-dir
+          rm -rf /tmp/end-to-end/*/node_modules
+
       # The solx binary downloads from solx-releases-mirror.hardhat.org during
       # the scenario's first compile (the "prime solx" step). This runs inside
       # bench:regression, not under `sfw`, so no firewall allowlist is needed.
