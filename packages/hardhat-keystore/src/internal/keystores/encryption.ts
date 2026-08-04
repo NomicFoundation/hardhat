@@ -1,8 +1,8 @@
 import { siv } from "@noble/ciphers/aes";
-import { hmac } from "@noble/hashes/hmac";
-import { scrypt } from "@noble/hashes/scrypt";
-import { sha256 } from "@noble/hashes/sha2";
-import { randomBytes, bytesToHex, hexToBytes } from "@noble/hashes/utils";
+import { hmac } from "@noble/hashes/hmac.js";
+import { scrypt } from "@noble/hashes/scrypt.js";
+import { sha256 } from "@noble/hashes/sha2.js";
+import { randomBytes, bytesToHex, hexToBytes } from "@noble/hashes/utils.js";
 
 /// ////////////////////////////////////////////////////////////////////////////
 // Constants
