@@ -135,7 +135,7 @@ const HighlightedFutures = styled.div<{
   ${({ $deploys }) =>
     $deploys.map(
       (id: string) => css`
-        g[id^="flowchart-${id}-"] rect {
+        g[id*="flowchart-${id}-"] rect {
           fill: #fbf8d8 !important;
         }
       `,
@@ -144,7 +144,7 @@ const HighlightedFutures = styled.div<{
   ${({ $others }) =>
     $others.map(
       (id: string) => css`
-        g[id^="flowchart-${id}-"] rect {
+        g[id*="flowchart-${id}-"] rect {
           fill: #f8f2ff !important;
         }
       `,
@@ -153,11 +153,11 @@ const HighlightedFutures = styled.div<{
   ${({ $futures }) =>
     $futures.map(
       (id: string) => css`
-        g[id^="flowchart-${id}-"] rect {
+        g[id*="flowchart-${id}-"] rect {
           fill: #16181d !important;
         }
 
-        g[id^="flowchart-${id}-"] span {
+        g[id*="flowchart-${id}-"] span {
           color: #fbf8d8 !important;
         }
       `,
