@@ -17,7 +17,7 @@ export const FutureBatch: React.FC<{
   setToggled: (id: string, newToggleState: boolean) => void;
   setCurrentlyHovered: (id: string) => void;
   setHoveredFuture: (id: string) => void;
-  scrollRefMap: Record<string, React.RefObject<HTMLDivElement>>;
+  scrollRefMap: Record<string, React.RefObject<HTMLDivElement | null>>;
 }> = ({
   batch,
   index,
@@ -95,7 +95,7 @@ const FutureBlock: React.FC<{
   setCurrentlyHovered: (id: string) => void;
   setHoveredFuture: (id: string) => void;
   classKey: string;
-  scrollRef: React.RefObject<HTMLDivElement>;
+  scrollRef: React.RefObject<HTMLDivElement | null>;
 }> = ({
   future,
   toggleState,
