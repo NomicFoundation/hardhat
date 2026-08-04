@@ -42,8 +42,9 @@
       "groupName": null
     },
     {
-      "description": "github-actions: group everything, including majors",
+      "description": "github-actions: group everything, including majors.",
       "matchManagers": ["github-actions"],
+      "separateMajorMinor": false,
       "groupName": "github-actions"
     },
     {
@@ -73,8 +74,7 @@
         "ethers",
         "viem",
         "eslint",
-        "mocha",
-        "zod"
+        "mocha"
       ],
       "matchUpdateTypes": ["major"],
       "enabled": false
@@ -93,6 +93,37 @@
       "description": "Group @ledgerhq/* — they version in lockstep upstream and have inter-package deps.",
       "matchPackageNames": ["/^@ledgerhq\\//"],
       "groupName": "ledgerhq"
+    },
+    {
+      "description": "Zod stays on 3.x indefinitely. We are unlikely to take Zod 4, which changes the design direction of the library.",
+      "matchPackageNames": ["zod"],
+      "allowedVersions": "<4"
+    },
+    {
+      "description": "@sentry/* majors require a design process. Consider deleting this task when the analytics system is enhanced.",
+      "matchPackageNames": ["/^@sentry\\//"],
+      "matchUpdateTypes": ["major"],
+      "enabled": false
+    },
+    {
+      "description": "Group the noble crypto cluster. The repository's cryptography primitives have interdependencies, so we co-ordinate them.",
+      "matchPackageNames": [
+        "/^@noble\\//",
+        "ethereum-cryptography",
+        "micro-eth-signer"
+      ],
+      "groupName": "noble-crypto"
+    },
+    {
+      "description": "forge-std is its own update rather than inside the npm minor/patch group.",
+      "matchDepNames": ["forge-std"],
+      "groupName": null
+    },
+    {
+      "description": "hardhat-ledger holds micro-eth-signer at 0.14 while the rest of the monorepo is on 0.19. 0.19 dropped the typed-data subpath and does not re-export encoder, which #signTypedData needs to derive the EIP-712 domain and struct hashes for signEIP712HashedMessage — the fallback for devices that cannot take a whole typed message. Scoped to this file: the hardhat package must stay free to move.",
+      "matchFileNames": ["packages/hardhat-ledger/package.json"],
+      "matchPackageNames": ["micro-eth-signer"],
+      "enabled": false
     },
     {
       "description": "Group the eslint ecosystem so the plugins, resolvers, typescript-eslint, and globals land together rather than spread across the npm minor/patch group.",
