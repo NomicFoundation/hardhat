@@ -103,7 +103,7 @@
     "adm-zip": "^0.6.0",
     "chokidar": "^5.0.0",
     "enquirer": "^2.3.0",
-    "ethereum-cryptography": "^2.2.1",
+    "ethereum-cryptography": "^3.0.0",
     "micro-eth-signer": "^0.14.0",
     "p-map": "^7.0.6",
     "resolve.exports": "^2.0.3",
