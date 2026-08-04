@@ -161,7 +161,7 @@ jobs:
         if: runner.os == 'MacOS'
         run: strip -x *.node
       - name: Upload artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: edr-${{ matrix.runner }}
           path: crates/edr_napi/edr.*.node
@@ -209,7 +209,7 @@ jobs:
       - name: Create the package
         run: pnpm pack --config.node-linker=hoisted
       - name: Upload the package
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: edr
           path: crates/edr_napi/*.tgz
@@ -274,7 +274,7 @@ jobs:
       - name: Pack
         run: npm pack
         working-directory: bundle
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: hardhat
           path: bundle/hardhat-*.tgz
@@ -504,7 +504,7 @@ jobs:
           echo "repository=${REPOSITORY//\//_}" | tee -a $GITHUB_OUTPUT
           echo "$CONTEXT" > run.context
       - name: Upload the result
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: repository-${{ steps.upload.outputs.repository }};command-${{ matrix.command }};runner-${{ matrix.runner }}
           path: |

@@ -200,7 +200,7 @@ jobs:
       - name: Deploy
         run: |
           pnpm deploy --config.shamefully-hoist=true --config.hoist=true --config.node-linker=true --config.shared-workspace-lockfile=false --filter="$(jq -r .name package.json)" --prod --no-optional bundle
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: ${{ matrix.package }}
           path: |

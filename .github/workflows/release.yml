@@ -173,7 +173,7 @@ jobs:
         run: pnpm publish --filter "./packages/**" -r --no-git-checks --access public --dry-run --report-summary
 
       - name: Store the package list to be published
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: pnpm-publish-summary.json
           path: pnpm-publish-summary.json
@@ -201,7 +201,7 @@ jobs:
           done
 
       - name: Upload packed tarballs
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         if: steps.detect.outputs.hasPackages == 'true'
         with:
           name: tarballs
