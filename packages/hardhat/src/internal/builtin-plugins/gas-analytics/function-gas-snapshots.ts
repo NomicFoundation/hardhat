@@ -53,8 +53,9 @@ export interface FunctionGasSnapshotComparison {
   added: FunctionGasSnapshot[];
   removed: FunctionGasSnapshot[];
   changed: FunctionGasSnapshotChange[];
-  // Diffs within the allowed tolerance: they don't fail the check, but are
-  // surfaced so a passing check doesn't silently hide drift.
+  // Diffs within the allowed tolerance: they don't fail the check. They are
+  // included in the result for programmatic inspection, but are not shown in
+  // the default console output.
   tolerated: FunctionGasSnapshotChange[];
 }
 
