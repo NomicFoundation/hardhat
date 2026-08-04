@@ -1,4 +1,4 @@
-import { siv } from "@noble/ciphers/aes";
+import { gcmsiv } from "@noble/ciphers/aes.js";
 import { hmac } from "@noble/hashes/hmac.js";
 import { scrypt } from "@noble/hashes/scrypt.js";
 import { sha256 } from "@noble/hashes/sha2.js";
@@ -249,7 +249,7 @@ export function encryptUtf8String({
   value: string;
 }): EncryptedData {
   const iv = randomBytes(DATA_ENCRYPTION_IV_LENGTH_BYTES);
-  const cypherText = siv(encryptionKey, iv).encrypt(
+  const cypherText = gcmsiv(encryptionKey, iv).encrypt(
     new TextEncoder().encode(value),
   );
 
@@ -274,7 +274,7 @@ export function decryptUtf8String({
 }): string {
   let decryptedBuffer: Uint8Array;
   try {
-    decryptedBuffer = siv(encryptionKey, data.iv).decrypt(data.cypherText);
+    decryptedBuffer = gcmsiv(encryptionKey, data.iv).decrypt(data.cypherText);
   } catch (error) {
     if (!(error instanceof Error)) {
       throw error;
