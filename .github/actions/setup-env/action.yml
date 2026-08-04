@@ -36,7 +36,7 @@ runs:
       if: inputs.cache-save == 'false'
       run: pnpm store path --silent | xargs -I {} -0 echo "path={}" | tee -a $GITHUB_OUTPUT
       shell: bash
-    - uses: actions/cache/restore@v4
+    - uses: actions/cache/restore@v6
       id: cache-restore
       if: inputs.cache-save == 'false'
       with:

@@ -77,7 +77,7 @@ jobs:
           persist-credentials: false
 
       - id: resolve
-        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
+        uses: actions/github-script@d746ffe35508b1917358783b479e04febd2b8f71 # v9.0.0
         with:
           script: |
             const { resolveRegressionTrigger } = require(`${process.env.GITHUB_WORKSPACE}/.github/scripts/resolve-regression-trigger.ts`);
@@ -280,7 +280,7 @@ jobs:
       issues: write # post the result comment on the PR
       pull-requests: write # post status comments/reactions on the PR
     steps:
-      - uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
+      - uses: actions/github-script@d746ffe35508b1917358783b479e04febd2b8f71 # v9.0.0
         env:
           RESULT: ${{ needs.regression-benchmark.result }}
           BENCH_REF: ${{ needs.setup.outputs.bench_ref }}

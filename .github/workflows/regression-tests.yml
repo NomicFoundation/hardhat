@@ -98,7 +98,7 @@ jobs:
         env:
           PRESET: ${{ inputs.preset }}
           CONFIG: ${{ toJSON(fromJSON(steps.workflow.outputs.config)) }}
-        uses: actions/github-script@v7
+        uses: actions/github-script@v9
         with:
           script: |
             const fs = require('fs');
@@ -312,7 +312,7 @@ jobs:
           RUNNER: ${{ matrix.runner }}
           COMMAND: ${{ matrix.command }}
           CONFIG: ${{ toJSON(fromJSON(steps.workflow.outputs.config)) }}
-        uses: actions/github-script@v7
+        uses: actions/github-script@v9
         with:
           script: |
             const fs = require('fs');
@@ -464,7 +464,7 @@ jobs:
           set -e
           echo '{"status": '"$status"', "time": '"$((after - before))"'}' > run.result
       - name: Run the command post-hook
-        uses: actions/github-script@v7
+        uses: actions/github-script@v9
         env:
           PATTERN: ${{ fromJSON(steps.config.outputs.command).pattern }}
           TEMPLATE: ${{ fromJSON(steps.config.outputs.command).template }}
@@ -529,7 +529,7 @@ jobs:
         env:
           HARDHAT_REF: ${{ needs.inputs.outputs.hardhat-ref }}
           EDR_REF: ${{ needs.inputs.outputs.edr-ref }}
-        uses: actions/github-script@v7
+        uses: actions/github-script@v9
         with:
           script: |
             const fs = require('fs');

@@ -62,7 +62,7 @@ jobs:
 
       - name: Find package versions PR
         if: steps.pr.outputs.hasChangesets == 'true'
-        uses: actions/github-script@v7
+        uses: actions/github-script@v9
         id: find
         with:
           script: |
@@ -76,7 +76,7 @@ jobs:
 
       - name: Convert to draft
         if: steps.pr.outputs.hasChangesets == 'true'
-        uses: actions/github-script@v7
+        uses: actions/github-script@v9
         with:
           script: |
             const { number } = ${{ steps.find.outputs.result }};
@@ -103,7 +103,7 @@ jobs:
 
       - name: Sync docs comment on release PR
         if: steps.pr.outputs.hasChangesets == 'true'
-        uses: actions/github-script@v7
+        uses: actions/github-script@v9
         env:
           HAS_DOCS: ${{ steps.docs.outputs.has_docs }}
           COMMENT_BODY: ${{ steps.docs.outputs.comment_body }}
