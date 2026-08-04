@@ -22,7 +22,7 @@ outputs:
 runs:
   using: composite
   steps:
-    - uses: pnpm/action-setup@v4
+    - uses: pnpm/action-setup@ff378ebe6b225b0680b81c1ad4498ae0d1d3a5e3 # v6.0.10
       with:
         version: ${{ inputs.pnpm-version }}
     - id: setup-node
