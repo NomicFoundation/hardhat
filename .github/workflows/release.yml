@@ -23,7 +23,7 @@ jobs:
       issues: write # Needed for posting/updating docs comments on release PRs
     steps:
       - name: Checkout Repo
-        uses: actions/checkout@v5
+        uses: actions/checkout@v7
         with:
           # This makes Actions fetch all Git history so that Changesets can generate changelogs with the correct commits
           fetch-depth: 0
@@ -158,7 +158,7 @@ jobs:
       hasPackages: ${{ steps.detect.outputs.hasPackages }}
     steps:
       - name: Checkout Repo
-        uses: actions/checkout@v5
+        uses: actions/checkout@v7
 
       - name: Set up the environment
         uses: ./.github/actions/setup-env
@@ -424,7 +424,7 @@ jobs:
       contents: write # needed to create releases (no dedicated releases scope exists)
     steps:
       - name: Checkout Repo
-        uses: actions/checkout@v5
+        uses: actions/checkout@v7
         with:
           fetch-depth: 0
 

@@ -25,7 +25,7 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v5
+        uses: actions/checkout@v7
 
       - name: Check if we are in v3
         id: check
@@ -59,7 +59,7 @@ jobs:
     timeout-minutes: 60
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
       - uses: actions/setup-node@v7
         with:
           node-version: 24
@@ -73,7 +73,7 @@ jobs:
     timeout-minutes: 60
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
       - uses: actions/setup-node@v7
         with:
           node-version: 24
@@ -87,7 +87,7 @@ jobs:
     timeout-minutes: 60
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
       - uses: ./.github/actions/setup-env
         with:
           node-version: 24
@@ -114,7 +114,7 @@ jobs:
       run:
         working-directory: packages/hardhat-slang-solx
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
       - uses: ./.github/actions/setup-env
         with:
           node-version: 24
@@ -137,7 +137,7 @@ jobs:
       packages: ${{ steps.filter.outputs.changes }}
       should_bundle: ${{ contains(steps.filter.outputs.hardhat_files, '.github/workflows/ci.yml') || contains(steps.filter.outputs.hardhat_files, 'pnpm-lock.yaml') }}
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
       - uses: actions/setup-node@v7
         with:
           node-version: 24
@@ -189,7 +189,7 @@ jobs:
       run:
         working-directory: packages/${{ matrix.package }}
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
       - uses: ./.github/actions/setup-env
         with:
           node-version: 24
@@ -276,7 +276,7 @@ jobs:
         working-directory: packages/${{ matrix.package }}
 
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
       - uses: ./.github/actions/setup-env
         with:
           node-version: 24
@@ -339,7 +339,7 @@ jobs:
         working-directory: packages/${{ matrix.package }}
 
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
       - uses: ./.github/actions/setup-env
         with:
           node-version: ${{ matrix.node }}
@@ -417,7 +417,7 @@ jobs:
       run:
         working-directory: packages/hardhat-node-test-reporter
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
       - uses: ./.github/actions/setup-env
         with:
           node-version: ${{ matrix.node }}
@@ -468,7 +468,7 @@ jobs:
       run:
         working-directory: packages/hardhat-ethers-chai-matchers
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
       - uses: ./.github/actions/setup-env
         with:
           node-version: ${{ matrix.node }}
