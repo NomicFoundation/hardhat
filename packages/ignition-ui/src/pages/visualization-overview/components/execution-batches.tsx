@@ -34,7 +34,7 @@ export const ExecutionBatches: React.FC<{
       (acc, id) => {
         return { ...acc, [id]: createRef<HTMLDivElement>() };
       },
-      {} as Record<string, React.RefObject<HTMLDivElement>>,
+      {} as Record<string, React.RefObject<HTMLDivElement | null>>,
     ),
   );
 
