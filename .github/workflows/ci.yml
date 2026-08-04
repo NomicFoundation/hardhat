@@ -60,7 +60,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v7
         with:
           node-version: 24
       - name: Run check
@@ -74,7 +74,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v7
         with:
           node-version: 24
       - name: Run check
@@ -138,7 +138,7 @@ jobs:
       should_bundle: ${{ contains(steps.filter.outputs.hardhat_files, '.github/workflows/ci.yml') || contains(steps.filter.outputs.hardhat_files, 'pnpm-lock.yaml') }}
     steps:
       - uses: actions/checkout@v5
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v7
         with:
           node-version: 24
       - run: yq -p yaml -o json pnpm-lock.yaml | tee pnpm-lock.json

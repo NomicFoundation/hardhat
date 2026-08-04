@@ -391,7 +391,7 @@ jobs:
           path: tarballs
 
       - name: Setup node to be able to update npm
-        uses: actions/setup-node@v5
+        uses: actions/setup-node@v7
         with:
           node-version: 24
 

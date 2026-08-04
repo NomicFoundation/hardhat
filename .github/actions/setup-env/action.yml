@@ -26,7 +26,7 @@ runs:
       with:
         version: ${{ inputs.pnpm-version }}
     - id: setup-node
-      uses: actions/setup-node@v4
+      uses: actions/setup-node@v7
       with:
         node-version: ${{ inputs.node-version }}
         cache: ${{ inputs.cache-save == 'true' && 'pnpm' || '' }}
