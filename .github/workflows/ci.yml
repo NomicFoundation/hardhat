@@ -38,7 +38,7 @@ jobs:
 
       - name: Check if scripts or workflows have changed
         id: scripts-filter
-        uses: dorny/paths-filter@de90cc6fb38fc0963ad72b210f1f284cd68cea36 # v3.0.2
+        uses: dorny/paths-filter@7b450fff21473bca461d4b92ce414b9d0420d706 # v4.0.2
         with:
           filters: |
             scripts:
@@ -163,7 +163,7 @@ jobs:
             tee -a $GITHUB_OUTPUT
           echo "EOF" >> $GITHUB_OUTPUT
       - id: filter
-        uses: dorny/paths-filter@de90cc6fb38fc0963ad72b210f1f284cd68cea36 # v3.0.2
+        uses: dorny/paths-filter@7b450fff21473bca461d4b92ce414b9d0420d706 # v4.0.2
         with:
           list-files: json
           filters: ${{ steps.generate.outputs.filters }}
@@ -253,7 +253,7 @@ jobs:
           done
           echo 'EOF' >> $GITHUB_OUTPUT
       - if: github.event_name == 'pull_request' && github.repository == github.event.pull_request.head.repo.full_name && steps.download.outputs.count != '0'
-        uses: marocchino/sticky-pull-request-comment@331f8f5b4215f0445d3c07b4967662a32a2d3e31 # v2.9.0
+        uses: marocchino/sticky-pull-request-comment@5770ad5eb8f42dd2c4f34da00c94c5381e49af88 # v3.0.5
         with:
           header: bundle
           message: ${{ steps.comment.outputs.body }}
