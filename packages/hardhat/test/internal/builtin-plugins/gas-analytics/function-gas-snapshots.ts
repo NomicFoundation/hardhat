@@ -588,6 +588,7 @@ MyContract#testB (gas: 20000)`;
         added: [],
         removed: [],
         changed: [],
+        tolerated: [],
       });
     });
 
@@ -818,6 +819,189 @@ MyContract#testB (gas: 20000)`;
       assert.equal(result.added.length, 0);
       assert.equal(result.removed.length, 0);
       assert.equal(result.changed.length, 0);
+    });
+
+    describe("with tolerance", () => {
+      const previousStandard = (gas: bigint): FunctionGasSnapshot => ({
+        contractNameOrFqn: "MyContract",
+        functionSig: "testA",
+        gasUsage: { kind: "standard", gas },
+      });
+
+      const currentStandard = (
+        gas: bigint,
+      ): FunctionGasSnapshotWithMetadata => ({
+        contractNameOrFqn: "MyContract",
+        functionSig: "testA",
+        gasUsage: { kind: "standard", gas },
+        metadata: {
+          source: "test/source/path.sol",
+        },
+      });
+
+      it("should flag as changed a diff just over the tolerance", () => {
+        const result = compareFunctionGasSnapshots(
+          [previousStandard(1000n)],
+          [currentStandard(1006n)],
+          0.5,
+        );
+
+        assert.equal(result.changed.length, 1);
+        assert.equal(result.tolerated.length, 0);
+      });
+
+      it("should tolerate a diff exactly at the tolerance boundary, in both directions", () => {
+        for (const gas of [995n, 1005n]) {
+          const result = compareFunctionGasSnapshots(
+            [previousStandard(1000n)],
+            [currentStandard(gas)],
+            0.5,
+          );
+
+          assert.equal(result.changed.length, 0);
+          assert.equal(result.tolerated.length, 1);
+        }
+      });
+
+      it("should keep tolerated entries with the same shape as changed entries", () => {
+        const result = compareFunctionGasSnapshots(
+          [previousStandard(1000n)],
+          [currentStandard(1005n)],
+          0.5,
+        );
+
+        assert.deepEqual(result.tolerated[0], {
+          contractNameOrFqn: "MyContract",
+          functionSig: "testA",
+          kind: "standard",
+          expected: 1000,
+          actual: 1005,
+          runs: undefined,
+          source: "test/source/path.sol",
+        });
+      });
+
+      it("should apply the tolerance to the median gas of fuzz tests", () => {
+        const previous: FunctionGasSnapshot[] = [
+          {
+            contractNameOrFqn: "FuzzContract",
+            functionSig: "testFuzz",
+            gasUsage: {
+              kind: "fuzz",
+              runs: 100n,
+              meanGas: 25000n,
+              medianGas: 24000n,
+            },
+          },
+        ];
+        const current: FunctionGasSnapshotWithMetadata[] = [
+          {
+            contractNameOrFqn: "FuzzContract",
+            functionSig: "testFuzz",
+            gasUsage: {
+              kind: "fuzz",
+              runs: 100n,
+              meanGas: 26000n,
+              medianGas: 24120n,
+            },
+            metadata: {
+              source: "test/source/path.sol",
+            },
+          },
+        ];
+
+        const result = compareFunctionGasSnapshots(previous, current, 0.5);
+
+        assert.equal(result.changed.length, 0);
+        assert.equal(result.tolerated.length, 1);
+        assert.equal(result.tolerated[0].kind, "fuzz");
+        assert.equal(result.tolerated[0].expected, 24000);
+        assert.equal(result.tolerated[0].actual, 24120);
+        assert.equal(result.tolerated[0].runs, 100);
+      });
+
+      it("should flag as changed a fuzz median drift over the tolerance", () => {
+        const previous: FunctionGasSnapshot[] = [
+          {
+            contractNameOrFqn: "FuzzContract",
+            functionSig: "testFuzz",
+            gasUsage: {
+              kind: "fuzz",
+              runs: 100n,
+              meanGas: 25000n,
+              medianGas: 24000n,
+            },
+          },
+        ];
+        const current: FunctionGasSnapshotWithMetadata[] = [
+          {
+            contractNameOrFqn: "FuzzContract",
+            functionSig: "testFuzz",
+            gasUsage: {
+              kind: "fuzz",
+              runs: 100n,
+              meanGas: 26000n,
+              medianGas: 25000n,
+            },
+            metadata: {
+              source: "test/source/path.sol",
+            },
+          },
+        ];
+
+        const result = compareFunctionGasSnapshots(previous, current, 0.5);
+
+        assert.equal(result.changed.length, 1);
+        assert.equal(result.tolerated.length, 0);
+      });
+
+      it("should still ignore mean-gas-only changes of fuzz tests", () => {
+        const previous: FunctionGasSnapshot[] = [
+          {
+            contractNameOrFqn: "FuzzContract",
+            functionSig: "testFuzz",
+            gasUsage: {
+              kind: "fuzz",
+              runs: 100n,
+              meanGas: 25000n,
+              medianGas: 24000n,
+            },
+          },
+        ];
+        const current: FunctionGasSnapshotWithMetadata[] = [
+          {
+            contractNameOrFqn: "FuzzContract",
+            functionSig: "testFuzz",
+            gasUsage: {
+              kind: "fuzz",
+              runs: 100n,
+              meanGas: 30000n,
+              medianGas: 24000n,
+            },
+            metadata: {
+              source: "test/source/path.sol",
+            },
+          },
+        ];
+
+        const result = compareFunctionGasSnapshots(previous, current, 0.5);
+
+        assert.equal(result.changed.length, 0);
+        assert.equal(result.tolerated.length, 0);
+      });
+
+      it("should behave exactly like today when the tolerance is 0 or omitted", () => {
+        for (const args of [[0], []] as const) {
+          const result = compareFunctionGasSnapshots(
+            [previousStandard(1000n)],
+            [currentStandard(1001n)],
+            ...args,
+          );
+
+          assert.equal(result.changed.length, 1);
+          assert.equal(result.tolerated.length, 0);
+        }
+      });
     });
   });
 

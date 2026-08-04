@@ -31,6 +31,7 @@ import {
 interface GasAnalyticsTestActionArguments {
   snapshot: boolean;
   snapshotCheck: boolean;
+  tolerance: number;
   // Forwarded from the base `test solidity` task; used to detect scoped runs.
   grep?: string;
   grepExclude?: string;
@@ -50,6 +51,30 @@ export interface SnapshotCheckResult {
 const runSolidityTests: TaskOverrideActionFunction<
   GasAnalyticsTestActionArguments
 > = async (args, hre, runSuper) => {
+  // Validate the flags before runSuper: it runs the entire test suite, and a
+  // usage error should fail immediately, not after a potentially long run.
+  if (args.snapshot && args.snapshotCheck) {
+    throw new HardhatError(
+      HardhatError.ERRORS.CORE.SOLIDITY_TESTS.MUTUALLY_EXCLUSIVE_SNAPSHOT_FLAGS,
+    );
+  }
+
+  // Unreachable from the CLI (the FLOAT parser rejects negative/non-numeric
+  // values), but programmatic `task.run({ tolerance })` only validates
+  // `typeof === "number"`.
+  if (args.tolerance < 0 || !Number.isFinite(args.tolerance)) {
+    throw new HardhatError(
+      HardhatError.ERRORS.CORE.SOLIDITY_TESTS.INVALID_SNAPSHOT_TOLERANCE,
+      { value: args.tolerance },
+    );
+  }
+
+  if (args.tolerance !== 0 && !args.snapshotCheck) {
+    throw new HardhatError(
+      HardhatError.ERRORS.CORE.SOLIDITY_TESTS.SNAPSHOT_TOLERANCE_REQUIRES_CHECK,
+    );
+  }
+
   const superResult: Result<SolidityTestRunResult, SolidityTestRunResult> =
     await runSuper(args);
   const testsPassed = superResult.success;
@@ -58,12 +83,6 @@ const runSolidityTests: TaskOverrideActionFunction<
     : superResult.error;
   const suiteResults = solidityTestRunResult.suiteResults;
   const rootPath = hre.config.paths.root;
-
-  if (args.snapshot && args.snapshotCheck) {
-    throw new HardhatError(
-      HardhatError.ERRORS.CORE.SOLIDITY_TESTS.MUTUALLY_EXCLUSIVE_SNAPSHOT_FLAGS,
-    );
-  }
 
   let snapshotCheckPassed = true;
   if (args.snapshot) {
@@ -77,6 +96,7 @@ const runSolidityTests: TaskOverrideActionFunction<
     const snapshotCheckResult = await handleSnapshotCheck(
       rootPath,
       suiteResults,
+      args.tolerance,
     );
     logSnapshotCheckResult(
       snapshotCheckResult,
@@ -156,14 +176,17 @@ export function logSnapshotResult(
 export async function handleSnapshotCheck(
   basePath: string,
   suiteResults: SuiteResult[],
+  tolerance: number = 0,
 ): Promise<SnapshotCheckResult> {
   const functionGasSnapshotsCheck = await checkFunctionGasSnapshots(
     basePath,
     suiteResults,
+    tolerance,
   );
   const snapshotCheatcodesCheck = await checkSnapshotCheatcodes(
     basePath,
     suiteResults,
+    tolerance,
   );
 
   return {

@@ -20,7 +20,11 @@ import {
   parseFullyQualifiedName,
 } from "../../../utils/contract-names.js";
 
-import { formatSectionHeader, getUserFqn } from "./helpers/utils.js";
+import {
+  formatSectionHeader,
+  getUserFqn,
+  isWithinTolerance,
+} from "./helpers/utils.js";
 
 export const SNAPSHOT_CHEATCODES_DIR = "snapshots";
 
@@ -73,6 +77,9 @@ export interface SnapshotCheatcodesComparison {
   added: SnapshotCheatcode[];
   removed: SnapshotCheatcode[];
   changed: SnapshotCheatcodeChange[];
+  // Diffs within the allowed tolerance: they don't fail the check, but are
+  // surfaced so a passing check doesn't silently hide drift.
+  tolerated: SnapshotCheatcodeChange[];
 }
 
 export interface SnapshotCheatcodesCheckResult {
@@ -295,10 +302,12 @@ export function stringifySnapshotCheatcodes(
 export function compareSnapshotCheatcodes(
   previousSnapshotsMap: SnapshotCheatcodesMap,
   currentSnapshotsMap: SnapshotCheatcodesWithMetadataMap,
+  tolerance: number = 0,
 ): SnapshotCheatcodesComparison {
   const added: SnapshotCheatcode[] = [];
   const removed: SnapshotCheatcode[] = [];
   const changed: SnapshotCheatcodeChange[] = [];
+  const tolerated: SnapshotCheatcodeChange[] = [];
   const seenPreviousEntries = new Set<string>();
 
   for (const [group, currentSnapshots] of currentSnapshotsMap) {
@@ -316,13 +325,27 @@ export function compareSnapshotCheatcodes(
         seenPreviousEntries.add(key);
         const previousValue = previousSnapshots[name];
         if (previousValue !== currentEntry.value) {
-          changed.push({
+          const change: SnapshotCheatcodeChange = {
             group,
             name,
             expected: Number(previousValue),
             actual: Number(currentEntry.value),
             source: currentEntry.metadata.source,
-          });
+          };
+
+          // The tolerance only applies when both values are strictly numeric;
+          // otherwise the exact string comparison stands. Snapshot cheatcode
+          // values can be arbitrary strings, unlike function gas snapshots.
+          if (
+            tolerance > 0 &&
+            isStrictlyNumeric(previousValue) &&
+            isStrictlyNumeric(currentEntry.value) &&
+            isWithinTolerance(change.expected, change.actual, tolerance)
+          ) {
+            tolerated.push(change);
+          } else {
+            changed.push(change);
+          }
         }
       }
     }
@@ -347,12 +370,21 @@ export function compareSnapshotCheatcodes(
     added: added.sort(sortByKey),
     removed: removed.sort(sortByKey),
     changed: changed.sort(sortByKey),
+    tolerated: tolerated.sort(sortByKey),
   };
+}
+
+// The emptiness check is needed because `Number("")` is `0`, so a bare
+// `Number.isFinite(Number(value))` would treat empty/whitespace values as
+// numeric.
+function isStrictlyNumeric(value: string): boolean {
+  return value.trim() !== "" && Number.isFinite(Number(value));
 }
 
 export async function checkSnapshotCheatcodes(
   basePath: string,
   suiteResults: SuiteResult[],
+  tolerance: number = 0,
 ): Promise<SnapshotCheatcodesCheckResult> {
   const { snapshotCheatcodes, renamedGroups } = sanitizeSnapshotCheatcodes(
     extractSnapshotCheatcodes(suiteResults),
@@ -372,6 +404,7 @@ export async function checkSnapshotCheatcodes(
           added: [],
           removed: [],
           changed: [],
+          tolerated: [],
         },
         noBaseline,
         renamedGroups,
@@ -384,6 +417,7 @@ export async function checkSnapshotCheatcodes(
   const comparison = compareSnapshotCheatcodes(
     previousSnapshotCheatcodes,
     snapshotCheatcodes,
+    tolerance,
   );
 
   return {

@@ -1,7 +1,13 @@
+import type { HardhatRuntimeEnvironment } from "../../../../../../src/types/hre.js";
+
 import assert from "node:assert/strict";
 import { afterEach, describe, it } from "node:test";
 
-import { createTmpDir } from "@nomicfoundation/hardhat-test-utils";
+import { HardhatError } from "@nomicfoundation/hardhat-errors";
+import {
+  assertRejectsWithHardhatError,
+  createTmpDir,
+} from "@nomicfoundation/hardhat-test-utils";
 import {
   exists,
   readJsonFile,
@@ -10,7 +16,7 @@ import {
 
 import { getFunctionGasSnapshotsPath } from "../../../../../../src/internal/builtin-plugins/gas-analytics/function-gas-snapshots.js";
 import { getSnapshotCheatcodesPath } from "../../../../../../src/internal/builtin-plugins/gas-analytics/snapshot-cheatcodes.js";
-import {
+import runSolidityTests, {
   handleSnapshot,
   handleSnapshotCheck,
   isFilteredRun,
@@ -24,6 +30,75 @@ import {
 } from "../../suite-result-helpers.js";
 
 describe("solidity-test/task-action (override in gas-analytics/index)", () => {
+  describe("argument validation", () => {
+    // Validation happens before runSuper, so neither the HRE nor the base
+    // task are ever reached.
+    /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions
+    -- the HRE is only needed for type compatibility in these tests */
+    const fakeHre = {} as HardhatRuntimeEnvironment;
+
+    let runSuperCalled = false;
+    const runSuper = async () => {
+      runSuperCalled = true;
+      return { success: true, value: { suiteResults: [] } };
+    };
+
+    afterEach(() => {
+      runSuperCalled = false;
+    });
+
+    it("should throw when --snapshot and --snapshot-check are combined, without running the tests", async () => {
+      await assertRejectsWithHardhatError(
+        runSolidityTests(
+          { snapshot: true, snapshotCheck: true, tolerance: 0 },
+          fakeHre,
+          runSuper,
+        ),
+        HardhatError.ERRORS.CORE.SOLIDITY_TESTS
+          .MUTUALLY_EXCLUSIVE_SNAPSHOT_FLAGS,
+        {},
+      );
+
+      assert.equal(runSuperCalled, false);
+    });
+
+    // Unreachable from the CLI (the FLOAT parser rejects these), but
+    // programmatic `task.run({ tolerance })` only validates the value is a
+    // number.
+    it("should throw on a negative, NaN, or Infinity tolerance, without running the tests", async () => {
+      for (const value of [-1, Number.NaN, Number.POSITIVE_INFINITY]) {
+        await assertRejectsWithHardhatError(
+          runSolidityTests(
+            { snapshot: false, snapshotCheck: true, tolerance: value },
+            fakeHre,
+            runSuper,
+          ),
+          HardhatError.ERRORS.CORE.SOLIDITY_TESTS.INVALID_SNAPSHOT_TOLERANCE,
+          { value },
+        );
+      }
+
+      assert.equal(runSuperCalled, false);
+    });
+
+    it("should throw when --tolerance is used without --snapshot-check, without running the tests", async () => {
+      for (const snapshot of [false, true]) {
+        await assertRejectsWithHardhatError(
+          runSolidityTests(
+            { snapshot, snapshotCheck: false, tolerance: 0.5 },
+            fakeHre,
+            runSuper,
+          ),
+          HardhatError.ERRORS.CORE.SOLIDITY_TESTS
+            .SNAPSHOT_TOLERANCE_REQUIRES_CHECK,
+          {},
+        );
+      }
+
+      assert.equal(runSuperCalled, false);
+    });
+  });
+
   describe("isFilteredRun", () => {
     it("should be false for an unscoped run (no patterns, no files)", () => {
       assert.equal(isFilteredRun({}), false);
@@ -647,6 +722,147 @@ describe("solidity-test/task-action (override in gas-analytics/index)", () => {
         assert.deepEqual(await readJsonFile(pathB), beforeB);
       });
     });
+
+    describe("with tolerance", () => {
+      it("should pass and not modify the baseline when function gas drift is within tolerance", async () => {
+        const initialResults = [
+          createSuiteResult("MyContract", [
+            createStandardTestResult("testA", 10000n),
+          ]),
+        ];
+        const driftedResults = [
+          createSuiteResult("MyContract", [
+            createStandardTestResult("testA", 10050n),
+          ]),
+        ];
+
+        await handleSnapshot(tmp.path, initialResults, true);
+
+        const snapshotPath = getFunctionGasSnapshotsPath(tmp.path);
+        const before = await readUtf8File(snapshotPath);
+
+        const { functionGasSnapshotsCheck } = await handleSnapshotCheck(
+          tmp.path,
+          driftedResults,
+          0.5,
+        );
+
+        assert.equal(functionGasSnapshotsCheck.passed, true);
+        assert.equal(functionGasSnapshotsCheck.comparison.changed.length, 0);
+        assert.equal(functionGasSnapshotsCheck.comparison.tolerated.length, 1);
+
+        // A tolerated pass is still read-only: the drifted value must not be
+        // written to the baseline.
+        const after = await readUtf8File(snapshotPath);
+        assert.equal(after, before);
+      });
+
+      it("should fail when function gas drift is over the tolerance", async () => {
+        const initialResults = [
+          createSuiteResult("MyContract", [
+            createStandardTestResult("testA", 10000n),
+          ]),
+        ];
+        const driftedResults = [
+          createSuiteResult("MyContract", [
+            createStandardTestResult("testA", 10051n),
+          ]),
+        ];
+
+        await handleSnapshot(tmp.path, initialResults, true);
+
+        const { functionGasSnapshotsCheck } = await handleSnapshotCheck(
+          tmp.path,
+          driftedResults,
+          0.5,
+        );
+
+        assert.equal(functionGasSnapshotsCheck.passed, false);
+        assert.equal(functionGasSnapshotsCheck.comparison.changed.length, 1);
+        assert.equal(functionGasSnapshotsCheck.comparison.tolerated.length, 0);
+      });
+
+      it("should pass and not modify the baseline when cheatcode drift is within tolerance", async () => {
+        const initialResults = [
+          createSuiteResult("MyContract", [
+            createTestResultWithSnapshots([
+              {
+                name: "TestGroup",
+                entries: [{ name: "test-entry", value: "10000" }],
+              },
+            ]),
+          ]),
+        ];
+        const driftedResults = [
+          createSuiteResult("MyContract", [
+            createTestResultWithSnapshots([
+              {
+                name: "TestGroup",
+                entries: [{ name: "test-entry", value: "10050" }],
+              },
+            ]),
+          ]),
+        ];
+
+        await handleSnapshot(tmp.path, initialResults, true);
+
+        const cheatcodePath = getSnapshotCheatcodesPath(
+          tmp.path,
+          "TestGroup.json",
+        );
+        const before = await readJsonFile(cheatcodePath);
+
+        const { snapshotCheatcodesCheck } = await handleSnapshotCheck(
+          tmp.path,
+          driftedResults,
+          0.5,
+        );
+
+        assert.equal(snapshotCheatcodesCheck.passed, true);
+        assert.equal(snapshotCheatcodesCheck.comparison.changed.length, 0);
+        assert.equal(snapshotCheatcodesCheck.comparison.tolerated.length, 1);
+
+        // A tolerated pass is still read-only: the drifted value must not be
+        // written to the baseline.
+        const after = await readJsonFile(cheatcodePath);
+        assert.deepEqual(after, before);
+      });
+
+      it("should fail when cheatcode drift is over the tolerance", async () => {
+        const initialResults = [
+          createSuiteResult("MyContract", [
+            createTestResultWithSnapshots([
+              {
+                name: "TestGroup",
+                entries: [{ name: "test-entry", value: "10000" }],
+              },
+            ]),
+          ]),
+        ];
+        const driftedResults = [
+          createSuiteResult("MyContract", [
+            createTestResultWithSnapshots([
+              {
+                name: "TestGroup",
+                entries: [{ name: "test-entry", value: "10051" }],
+              },
+            ]),
+          ]),
+        ];
+
+        await handleSnapshot(tmp.path, initialResults, true);
+
+        const { snapshotCheatcodesCheck } = await handleSnapshotCheck(
+          tmp.path,
+          driftedResults,
+          0.5,
+        );
+
+        assert.equal(snapshotCheatcodesCheck.passed, false);
+        assert.equal(snapshotCheatcodesCheck.comparison.changed.length, 1);
+        assert.equal(snapshotCheatcodesCheck.comparison.tolerated.length, 0);
+      });
+    });
   });
 
   describe("logSnapshotCheckResult", () => {
@@ -677,12 +893,13 @@ describe("solidity-test/task-action (override in gas-analytics/index)", () => {
                 source: "test/source/path.sol",
               },
             ],
+            tolerated: [],
           },
           noBaseline: false,
         },
         snapshotCheatcodesCheck: {
           passed: true,
-          comparison: { added: [], removed: [], changed: [] },
+          comparison: { added: [], removed: [], changed: [], tolerated: [] },
           noBaseline: false,
           renamedGroups: [],
         },
@@ -700,7 +917,7 @@ describe("solidity-test/task-action (override in gas-analytics/index)", () => {
       const result = {
         functionGasSnapshotsCheck: {
           passed: true,
-          comparison: { added: [], removed: [], changed: [] },
+          comparison: { added: [], removed: [], changed: [], tolerated: [] },
           noBaseline: false,
         },
         snapshotCheatcodesCheck: {
@@ -717,6 +934,7 @@ describe("solidity-test/task-action (override in gas-analytics/index)", () => {
                 source: "test/source/path.sol",
               },
             ],
+            tolerated: [],
           },
           noBaseline: false,
           renamedGroups: [],
@@ -739,12 +957,13 @@ describe("solidity-test/task-action (override in gas-analytics/index)", () => {
             added: [],
             removed: [],
             changed: [],
+            tolerated: [],
           },
           noBaseline: true,
         },
         snapshotCheatcodesCheck: {
           passed: true,
-          comparison: { added: [], removed: [], changed: [] },
+          comparison: { added: [], removed: [], changed: [], tolerated: [] },
           noBaseline: false,
           renamedGroups: [],
         },
@@ -764,7 +983,7 @@ describe("solidity-test/task-action (override in gas-analytics/index)", () => {
       const result = {
         functionGasSnapshotsCheck: {
           passed: true,
-          comparison: { added: [], removed: [], changed: [] },
+          comparison: { added: [], removed: [], changed: [], tolerated: [] },
           noBaseline: false,
         },
         snapshotCheatcodesCheck: {
@@ -773,6 +992,7 @@ describe("solidity-test/task-action (override in gas-analytics/index)", () => {
             added: [],
             removed: [],
             changed: [],
+            tolerated: [],
           },
           noBaseline: true,
           renamedGroups: [],
@@ -797,12 +1017,13 @@ describe("solidity-test/task-action (override in gas-analytics/index)", () => {
             added: [],
             removed: [],
             changed: [],
+            tolerated: [],
           },
           noBaseline: false,
         },
         snapshotCheatcodesCheck: {
           passed: true,
-          comparison: { added: [], removed: [], changed: [] },
+          comparison: { added: [], removed: [], changed: [], tolerated: [] },
           noBaseline: false,
           renamedGroups: [],
         },
@@ -831,12 +1052,13 @@ describe("solidity-test/task-action (override in gas-analytics/index)", () => {
             ],
             removed: [],
             changed: [],
+            tolerated: [],
           },
           noBaseline: false,
         },
         snapshotCheatcodesCheck: {
           passed: true,
-          comparison: { added: [], removed: [], changed: [] },
+          comparison: { added: [], removed: [], changed: [], tolerated: [] },
           noBaseline: false,
           renamedGroups: [],
         },
@@ -858,7 +1080,7 @@ describe("solidity-test/task-action (override in gas-analytics/index)", () => {
       const result = {
         functionGasSnapshotsCheck: {
           passed: true,
-          comparison: { added: [], removed: [], changed: [] },
+          comparison: { added: [], removed: [], changed: [], tolerated: [] },
           noBaseline: false,
         },
         snapshotCheatcodesCheck: {
@@ -873,6 +1095,7 @@ describe("solidity-test/task-action (override in gas-analytics/index)", () => {
             ],
             removed: [],
             changed: [],
+            tolerated: [],
           },
           noBaseline: false,
           renamedGroups: [],
@@ -908,12 +1131,13 @@ describe("solidity-test/task-action (override in gas-analytics/index)", () => {
               },
             ],
             changed: [],
+            tolerated: [],
           },
           noBaseline: false,
         },
         snapshotCheatcodesCheck: {
           passed: true,
-          comparison: { added: [], removed: [], changed: [] },
+          comparison: { added: [], removed: [], changed: [], tolerated: [] },
           noBaseline: false,
           renamedGroups: [],
         },
@@ -935,7 +1159,7 @@ describe("solidity-test/task-action (override in gas-analytics/index)", () => {
       const result = {
         functionGasSnapshotsCheck: {
           passed: true,
-          comparison: { added: [], removed: [], changed: [] },
+          comparison: { added: [], removed: [], changed: [], tolerated: [] },
           noBaseline: false,
         },
         snapshotCheatcodesCheck: {
@@ -950,6 +1174,7 @@ describe("solidity-test/task-action (override in gas-analytics/index)", () => {
               },
             ],
             changed: [],
+            tolerated: [],
           },
           noBaseline: false,
           renamedGroups: [],
@@ -974,12 +1199,64 @@ describe("solidity-test/task-action (override in gas-analytics/index)", () => {
           const result = {
             functionGasSnapshotsCheck: {
               passed: true,
-              comparison: { added: [], removed: [], changed: [] },
+              comparison: {
+                added: [],
+                removed: [],
+                changed: [],
+                tolerated: [],
+              },
               noBaseline: false,
             },
             snapshotCheatcodesCheck: {
               passed: true,
-              comparison: { added: [], removed: [], changed: [] },
+              comparison: {
+                added: [],
+                removed: [],
+                changed: [],
+                tolerated: [],
+              },
+              noBaseline: false,
+              renamedGroups: [],
+            },
+          };
+
+          logSnapshotCheckResult(result, logger);
+
+          const text = getLoggerOutput();
+          const expected = `Snapshot check passed`;
+
+          assert.equal(text, expected);
+        });
+
+        it("only tolerated drift", () => {
+          const result = {
+            functionGasSnapshotsCheck: {
+              passed: true,
+              comparison: {
+                added: [],
+                removed: [],
+                changed: [],
+                tolerated: [
+                  {
+                    contractNameOrFqn: "MyContract",
+                    functionSig: "testA()",
+                    kind: "standard" as const,
+                    expected: 10000,
+                    actual: 10050,
+                    source: "test/source/path.sol",
+                  },
+                ],
+              },
+              noBaseline: false,
+            },
+            snapshotCheatcodesCheck: {
+              passed: true,
+              comparison: {
+                added: [],
+                removed: [],
+                changed: [],
+                tolerated: [],
+              },
               noBaseline: false,
               renamedGroups: [],
             },
@@ -1007,12 +1284,18 @@ describe("solidity-test/task-action (override in gas-analytics/index)", () => {
                 ],
                 removed: [],
                 changed: [],
+                tolerated: [],
               },
               noBaseline: false,
             },
             snapshotCheatcodesCheck: {
               passed: true,
-              comparison: { added: [], removed: [], changed: [] },
+              comparison: {
+                added: [],
+                removed: [],
+                changed: [],
+                tolerated: [],
+              },
               noBaseline: false,
               renamedGroups: [],
             },
@@ -1046,12 +1329,18 @@ Function gas snapshots: 1 added
                   },
                 ],
                 changed: [],
+                tolerated: [],
               },
               noBaseline: false,
             },
             snapshotCheatcodesCheck: {
               passed: true,
-              comparison: { added: [], removed: [], changed: [] },
+              comparison: {
+                added: [],
+                removed: [],
+                changed: [],
+                tolerated: [],
+              },
               noBaseline: false,
               renamedGroups: [],
             },
@@ -1101,12 +1390,18 @@ Function gas snapshots: 1 removed
                   },
                 ],
                 changed: [],
+                tolerated: [],
               },
               noBaseline: false,
             },
             snapshotCheatcodesCheck: {
               passed: true,
-              comparison: { added: [], removed: [], changed: [] },
+              comparison: {
+                added: [],
+                removed: [],
+                changed: [],
+                tolerated: [],
+              },
               noBaseline: false,
               renamedGroups: [],
             },
@@ -1138,6 +1433,7 @@ Function gas snapshots: 2 added, 1 removed
                 added: [],
                 removed: [],
                 changed: [],
+                tolerated: [],
               },
               noBaseline: false,
             },
@@ -1153,6 +1449,7 @@ Function gas snapshots: 2 added, 1 removed
                 ],
                 removed: [],
                 changed: [],
+                tolerated: [],
               },
               noBaseline: false,
               renamedGroups: [],
@@ -1181,6 +1478,7 @@ Snapshot cheatcodes: 1 added
                 added: [],
                 removed: [],
                 changed: [],
+                tolerated: [],
               },
               noBaseline: false,
             },
@@ -1196,6 +1494,7 @@ Snapshot cheatcodes: 1 added
                   },
                 ],
                 changed: [],
+                tolerated: [],
               },
               noBaseline: false,
               renamedGroups: [],
@@ -1224,6 +1523,7 @@ Snapshot cheatcodes: 1 removed
                 added: [],
                 removed: [],
                 changed: [],
+                tolerated: [],
               },
               noBaseline: false,
             },
@@ -1250,6 +1550,7 @@ Snapshot cheatcodes: 1 removed
                   },
                 ],
                 changed: [],
+                tolerated: [],
               },
               noBaseline: false,
               renamedGroups: [],
@@ -1280,12 +1581,22 @@ Snapshot cheatcodes: 1 added, 2 removed
           const result = {
             functionGasSnapshotsCheck: {
               passed: false,
-              comparison: { added: [], removed: [], changed: [] },
+              comparison: {
+                added: [],
+                removed: [],
+                changed: [],
+                tolerated: [],
+              },
               noBaseline: true,
             },
             snapshotCheatcodesCheck: {
               passed: true,
-              comparison: { added: [], removed: [], changed: [] },
+              comparison: {
+                added: [],
+                removed: [],
+                changed: [],
+                tolerated: [],
+              },
               noBaseline: false,
               renamedGroups: [],
             },
@@ -1308,12 +1619,22 @@ To update snapshots, run your tests with --snapshot
           const result = {
             functionGasSnapshotsCheck: {
               passed: true,
-              comparison: { added: [], removed: [], changed: [] },
+              comparison: {
+                added: [],
+                removed: [],
+                changed: [],
+                tolerated: [],
+              },
               noBaseline: false,
             },
             snapshotCheatcodesCheck: {
               passed: false,
-              comparison: { added: [], removed: [], changed: [] },
+              comparison: {
+                added: [],
+                removed: [],
+                changed: [],
+                tolerated: [],
+              },
               noBaseline: true,
               renamedGroups: [],
             },
@@ -1336,12 +1657,22 @@ To update snapshots, run your tests with --snapshot
           const result = {
             functionGasSnapshotsCheck: {
               passed: false,
-              comparison: { added: [], removed: [], changed: [] },
+              comparison: {
+                added: [],
+                removed: [],
+                changed: [],
+                tolerated: [],
+              },
               noBaseline: true,
             },
             snapshotCheatcodesCheck: {
               passed: false,
-              comparison: { added: [], removed: [], changed: [] },
+              comparison: {
+                added: [],
+                removed: [],
+                changed: [],
+                tolerated: [],
+              },
               noBaseline: true,
               renamedGroups: [],
             },
@@ -1379,12 +1710,28 @@ To update snapshots, run your tests with --snapshot
                 ],
                 added: [],
                 removed: [],
+                // Tolerated drift must not appear in the output
+                tolerated: [
+                  {
+                    contractNameOrFqn: "MyContract",
+                    functionSig: "testTolerated()",
+                    kind: "standard" as const,
+                    expected: 5000,
+                    actual: 5010,
+                    source: "contracts/MyContract.sol",
+                  },
+                ],
               },
               noBaseline: false,
             },
             snapshotCheatcodesCheck: {
               passed: true,
-              comparison: { added: [], removed: [], changed: [] },
+              comparison: {
+                added: [],
+                removed: [],
+                changed: [],
+                tolerated: [],
+              },
               noBaseline: false,
               renamedGroups: [],
             },
@@ -1412,7 +1759,12 @@ To update snapshots, run your tests with --snapshot
           const result = {
             functionGasSnapshotsCheck: {
               passed: true,
-              comparison: { added: [], removed: [], changed: [] },
+              comparison: {
+                added: [],
+                removed: [],
+                changed: [],
+                tolerated: [],
+              },
               noBaseline: false,
             },
             snapshotCheatcodesCheck: {
@@ -1429,6 +1781,7 @@ To update snapshots, run your tests with --snapshot
                     source: "test/source/path.sol",
                   },
                 ],
+                tolerated: [],
               },
               noBaseline: false,
               renamedGroups: [],
@@ -1470,6 +1823,7 @@ To update snapshots, run your tests with --snapshot
                     source: "contracts/MyContract.sol",
                   },
                 ],
+                tolerated: [],
               },
               noBaseline: false,
             },
@@ -1487,6 +1841,7 @@ To update snapshots, run your tests with --snapshot
                     source: "test/source/path.sol",
                   },
                 ],
+                tolerated: [],
               },
               noBaseline: false,
               renamedGroups: [],
@@ -1556,12 +1911,18 @@ To update snapshots, run your tests with --snapshot
                     gasUsage: { kind: "standard" as const, gas: 9000n },
                   },
                 ],
+                tolerated: [],
               },
               noBaseline: false,
             },
             snapshotCheatcodesCheck: {
               passed: true,
-              comparison: { added: [], removed: [], changed: [] },
+              comparison: {
+                added: [],
+                removed: [],
+                changed: [],
+                tolerated: [],
+              },
               noBaseline: false,
               renamedGroups: [],
             },
@@ -1605,6 +1966,7 @@ To update snapshots, run your tests with --snapshot
                 added: [],
                 removed: [],
                 changed: [],
+                tolerated: [],
               },
               noBaseline: false,
             },
@@ -1634,6 +1996,7 @@ To update snapshots, run your tests with --snapshot
                     source: "test/source/path.sol",
                   },
                 ],
+                tolerated: [],
               },
               noBaseline: false,
               renamedGroups: [],
@@ -1693,6 +2056,7 @@ To update snapshots, run your tests with --snapshot
                     source: "contracts/MyContract.sol",
                   },
                 ],
+                tolerated: [],
               },
               noBaseline: false,
             },
@@ -1722,6 +2086,7 @@ To update snapshots, run your tests with --snapshot
                     source: "test/source/path.sol",
                   },
                 ],
+                tolerated: [],
               },
               noBaseline: false,
               renamedGroups: [],
@@ -1785,6 +2150,7 @@ To update snapshots, run your tests with --snapshot
                   },
                 ],
                 changed: [],
+                tolerated: [],
               },
               noBaseline: false,
             },
@@ -1802,6 +2168,7 @@ To update snapshots, run your tests with --snapshot
                     source: "test/source/path.sol",
                   },
                 ],
+                tolerated: [],
               },
               noBaseline: false,
               renamedGroups: [],
@@ -1851,6 +2218,7 @@ To update snapshots, run your tests with --snapshot
                     source: "contracts/MyContract.sol",
                   },
                 ],
+                tolerated: [],
               },
               noBaseline: false,
             },
@@ -1872,6 +2240,7 @@ To update snapshots, run your tests with --snapshot
                   },
                 ],
                 changed: [],
+                tolerated: [],
               },
               noBaseline: false,
               renamedGroups: [],
@@ -1912,6 +2281,7 @@ To update snapshots, run your tests with --snapshot
                 added: [],
                 removed: [],
                 changed: [],
+                tolerated: [],
               },
               noBaseline: true,
             },
@@ -1929,6 +2299,7 @@ To update snapshots, run your tests with --snapshot
                     source: "test/source/path.sol",
                   },
                 ],
+                tolerated: [],
               },
               noBaseline: false,
               renamedGroups: [],
@@ -1972,6 +2343,7 @@ To update snapshots, run your tests with --snapshot
                     source: "contracts/MyContract.sol",
                   },
                 ],
+                tolerated: [],
               },
               noBaseline: false,
             },
@@ -1981,6 +2353,7 @@ To update snapshots, run your tests with --snapshot
                 added: [],
                 removed: [],
                 changed: [],
+                tolerated: [],
               },
               noBaseline: true,
               renamedGroups: [],
@@ -2030,12 +2403,13 @@ To update snapshots, run your tests with --snapshot
                 },
               ],
               changed: [],
+              tolerated: [],
             },
             noBaseline: false,
           },
           snapshotCheatcodesCheck: {
             passed: true,
-            comparison: { added: [], removed: [], changed: [] },
+            comparison: { added: [], removed: [], changed: [], tolerated: [] },
             noBaseline: false,
             renamedGroups: [],
           },
@@ -2052,7 +2426,7 @@ To update snapshots, run your tests with --snapshot
         const result = {
           functionGasSnapshotsCheck: {
             passed: true,
-            comparison: { added: [], removed: [], changed: [] },
+            comparison: { added: [], removed: [], changed: [], tolerated: [] },
             noBaseline: false,
           },
           snapshotCheatcodesCheck: {
@@ -2061,6 +2435,7 @@ To update snapshots, run your tests with --snapshot
               added: [{ group: "GroupA", name: "new-entry", value: "256" }],
               removed: [{ group: "GroupB", name: "old-entry", value: "128" }],
               changed: [],
+              tolerated: [],
             },
             noBaseline: false,
             renamedGroups: [],
@@ -2102,12 +2477,13 @@ To update snapshots, run your tests with --snapshot
                   source: "contracts/MyContract.sol",
                 },
               ],
+              tolerated: [],
             },
             noBaseline: false,
           },
           snapshotCheatcodesCheck: {
             passed: true,
-            comparison: { added: [], removed: [], changed: [] },
+            comparison: { added: [], removed: [], changed: [], tolerated: [] },
             noBaseline: false,
             renamedGroups: [],
           },

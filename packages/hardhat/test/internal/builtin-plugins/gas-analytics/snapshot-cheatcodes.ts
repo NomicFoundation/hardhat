@@ -626,6 +626,7 @@ ZGroup#entry-z: 300`;
         added: [],
         removed: [],
         changed: [],
+        tolerated: [],
       });
     });
 
@@ -869,6 +870,98 @@ ZGroup#entry-z: 300`;
         `${result.changed[0].group}#${result.changed[0].name}`,
         "ZGroup#entry-z",
       );
+    });
+
+    describe("with tolerance", () => {
+      const previousWith = (value: string): SnapshotCheatcodesMap =>
+        new Map([["GroupA", { "entry-a": value }]]);
+
+      const currentWith = (value: string): SnapshotCheatcodesWithMetadataMap =>
+        new Map([
+          [
+            "GroupA",
+            {
+              "entry-a": {
+                value,
+                metadata: { source: "contracts/GroupA.t.sol" },
+              },
+            },
+          ],
+        ]);
+
+      it("should tolerate a numeric diff within the tolerance", () => {
+        const result = compareSnapshotCheatcodes(
+          previousWith("1000"),
+          currentWith("1005"),
+          0.5,
+        );
+
+        assert.equal(result.changed.length, 0);
+        assert.equal(result.tolerated.length, 1);
+        assert.deepEqual(result.tolerated[0], {
+          group: "GroupA",
+          name: "entry-a",
+          expected: 1000,
+          actual: 1005,
+          source: "contracts/GroupA.t.sol",
+        });
+      });
+
+      it("should flag as changed a numeric diff over the tolerance", () => {
+        const result = compareSnapshotCheatcodes(
+          previousWith("1000"),
+          currentWith("1006"),
+          0.5,
+        );
+
+        assert.equal(result.changed.length, 1);
+        assert.equal(result.tolerated.length, 0);
+      });
+
+      it("should keep the exact comparison for non-numeric values even with a large tolerance", () => {
+        const result = compareSnapshotCheatcodes(
+          previousWith("abc"),
+          currentWith("abd"),
+          1_000_000,
+        );
+
+        assert.equal(result.changed.length, 1);
+        assert.equal(result.tolerated.length, 0);
+      });
+
+      it("should keep the exact comparison for empty-string values even with a large tolerance", () => {
+        // `Number("")` is `0`, so a naive numeric check would treat "" vs "0"
+        // as a zero diff.
+        const result = compareSnapshotCheatcodes(
+          previousWith(""),
+          currentWith("0"),
+          1_000_000,
+        );
+
+        assert.equal(result.changed.length, 1);
+        assert.equal(result.tolerated.length, 0);
+      });
+
+      it("should keep string-different but numerically-equal values as changed at tolerance 0", () => {
+        const result = compareSnapshotCheatcodes(
+          previousWith("100"),
+          currentWith("1e2"),
+        );
+
+        assert.equal(result.changed.length, 1);
+        assert.equal(result.tolerated.length, 0);
+      });
+
+      it("should tolerate string-different but numerically-equal values at tolerance > 0", () => {
+        const result = compareSnapshotCheatcodes(
+          previousWith("100"),
+          currentWith("1e2"),
+          0.5,
+        );
+
+        assert.equal(result.changed.length, 0);
+        assert.equal(result.tolerated.length, 1);
+      });
     });
   });
 
@@ -1137,7 +1230,12 @@ ZGroup#entry-z: 300`;
         snapshotCheatcodes,
       );
 
-      assert.deepEqual(comparison, { added: [], removed: [], changed: [] });
+      assert.deepEqual(comparison, {
+        added: [],
+        removed: [],
+        changed: [],
+        tolerated: [],
+      });
     });
   });
 

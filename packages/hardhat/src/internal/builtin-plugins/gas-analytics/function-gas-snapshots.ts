@@ -17,7 +17,11 @@ import {
   parseFullyQualifiedName,
 } from "../../../utils/contract-names.js";
 
-import { formatSectionHeader, getUserFqn } from "./helpers/utils.js";
+import {
+  formatSectionHeader,
+  getUserFqn,
+  isWithinTolerance,
+} from "./helpers/utils.js";
 
 export const FUNCTION_GAS_SNAPSHOTS_FILE = ".gas-snapshot";
 
@@ -49,6 +53,9 @@ export interface FunctionGasSnapshotComparison {
   added: FunctionGasSnapshot[];
   removed: FunctionGasSnapshot[];
   changed: FunctionGasSnapshotChange[];
+  // Diffs within the allowed tolerance: they don't fail the check, but are
+  // surfaced so a passing check doesn't silently hide drift.
+  tolerated: FunctionGasSnapshotChange[];
 }
 
 export interface FunctionGasSnapshotChange {
@@ -242,6 +249,7 @@ export function parseFunctionGasSnapshots(
 export function compareFunctionGasSnapshots(
   previousSnapshots: FunctionGasSnapshot[],
   currentSnapshots: FunctionGasSnapshotWithMetadata[],
+  tolerance: number = 0,
 ): FunctionGasSnapshotComparison {
   const previousSnapshotsMap = new Map(
     previousSnapshots.map((s) => [
@@ -252,6 +260,7 @@ export function compareFunctionGasSnapshots(
 
   const added: FunctionGasSnapshot[] = [];
   const changed: FunctionGasSnapshotChange[] = [];
+  const tolerated: FunctionGasSnapshotChange[] = [];
 
   for (const current of currentSnapshots) {
     const key = `${current.contractNameOrFqn}#${current.functionSig}`;
@@ -278,7 +287,7 @@ export function compareFunctionGasSnapshots(
           ? current.gasUsage.gas
           : current.gasUsage.medianGas;
 
-      changed.push({
+      const change: FunctionGasSnapshotChange = {
         contractNameOrFqn: current.contractNameOrFqn,
         functionSig: current.functionSig,
         kind: currentKind,
@@ -287,14 +296,23 @@ export function compareFunctionGasSnapshots(
         runs:
           currentKind === "fuzz" ? Number(current.gasUsage.runs) : undefined,
         source: current.metadata.source,
-      });
+      };
+
+      if (
+        tolerance > 0 &&
+        isWithinTolerance(change.expected, change.actual, tolerance)
+      ) {
+        tolerated.push(change);
+      } else {
+        changed.push(change);
+      }
     }
     previousSnapshotsMap.delete(key);
   }
 
   const removed = Array.from(previousSnapshotsMap.values());
 
-  return { added, removed, changed };
+  return { added, removed, changed, tolerated };
 }
 
 export function hasGasUsageChanged(
@@ -315,6 +333,7 @@ export function hasGasUsageChanged(
 export async function checkFunctionGasSnapshots(
   basePath: string,
   suiteResults: SuiteResult[],
+  tolerance: number = 0,
 ): Promise<FunctionGasSnapshotCheckResult> {
   const functionGasSnapshots = extractFunctionGasSnapshots(suiteResults);
 
@@ -332,6 +351,7 @@ export async function checkFunctionGasSnapshots(
           added: [],
           removed: [],
           changed: [],
+          tolerated: [],
         },
         noBaseline,
       };
@@ -343,6 +363,7 @@ export async function checkFunctionGasSnapshots(
   const comparison = compareFunctionGasSnapshots(
     previousFunctionGasSnapshots,
     functionGasSnapshots,
+    tolerance,
   );
 
   return {
