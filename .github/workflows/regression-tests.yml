@@ -185,7 +185,7 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile --prefer-offline
       - name: Download all artifacts
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           path: crates/edr_napi/artifacts
       - name: Install sponge
@@ -236,7 +236,7 @@ jobs:
           pnpm install --frozen-lockfile --prefer-offline
       - name: Download EDR
         if: needs.inputs.outputs.edr-ref != ''
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: edr
           path: packages/hardhat
@@ -357,7 +357,7 @@ jobs:
           node-version: 22
       - name: Download Hardhat
         if: (startsWith(matrix.command, 'hardhat ') && needs.inputs.outputs.hardhat-ref != 'next' && !startsWith(needs.inputs.outputs.hardhat-ref, '3'))
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: hardhat
       - name: Fix Hardhat on Windows
@@ -521,7 +521,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Download the results
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           pattern: "repository-*;command-*;runner-*"
       - name: Summarize the results

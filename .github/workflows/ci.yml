@@ -226,7 +226,7 @@ jobs:
             exit 1
           fi
         shell: bash
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v8
       - id: download
         run: ls -1 | wc -l | xargs -I {} -0 echo "count={}" | tee -a $GITHUB_OUTPUT
         shell: bash

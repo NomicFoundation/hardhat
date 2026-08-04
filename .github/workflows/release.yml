@@ -219,13 +219,13 @@ jobs:
       actions: read # To download the tarballs to review
     steps:
       - name: Download pnpm list json
-        uses: actions/download-artifact@v5
+        uses: actions/download-artifact@v8
         with:
           name: pnpm-publish-summary.json
           path: .
 
       - name: Download tarballs
-        uses: actions/download-artifact@v5
+        uses: actions/download-artifact@v8
         with:
           name: tarballs
           path: tarballs
@@ -379,13 +379,13 @@ jobs:
             }
 
       - name: Download pnpm list json
-        uses: actions/download-artifact@v5
+        uses: actions/download-artifact@v8
         with:
           name: pnpm-publish-summary.json
           path: .
 
       - name: Download tarballs
-        uses: actions/download-artifact@v5
+        uses: actions/download-artifact@v8
         with:
           name: tarballs
           path: tarballs
@@ -446,7 +446,7 @@ jobs:
         run: git push --follow-tags
 
       - name: Download pnpm publish summary
-        uses: actions/download-artifact@v5
+        uses: actions/download-artifact@v8
         with:
           name: pnpm-publish-summary.json
           path: .
