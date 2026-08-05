@@ -189,11 +189,16 @@ describe("renderSolxTables", () => {
     );
   });
 
-  it("renders DWARF cost, RSS, replay and leftovers", () => {
-    assert.match(md, /solx-0\.1\.7 via-ir \| \+3\.4 \| 33\.4 → 36\.8/);
+  it("renders RSS, replay and leftovers", () => {
     assert.match(md, /solx-0\.1\.7 via-ir \| 812 \|/);
     assert.match(md, /raw replay/i);
     assert.match(md, /something \/ unrecognized entry \| 1\.23 \| s \|/);
+  });
+
+  it("ignores retired no-dwarf entries from old reports", () => {
+    // The fixture still carries one no-dwarf entry; it must neither crash
+    // parsing nor surface anywhere (the DWARF-cost table is retired).
+    assert.doesNotMatch(md, /no-dwarf/);
   });
 
   it("embeds the sticky marker, provenance and run counts", () => {

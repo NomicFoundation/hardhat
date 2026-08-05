@@ -80,8 +80,3 @@ node "$MONOREPO_ROOT/scripts/benchmark/download-forge.ts" --version 1.7.1 --out 
 # hardhat.config.solx.ts.
 mv hardhat.config.ts hardhat.config.base.ts
 cp "$E2E_TEST_DIR/hardhat.config.solx.ts" hardhat.config.ts
-
-# Benchmark-only plugin (imported by the wrapper config) that strips DWARF back
-# out under HARDHAT_SOLX_DISABLE_DEBUG_INFO, so the no-dwarf cells can measure
-# DWARF's compile-time cost without patching the production plugin.
-cp "$MONOREPO_ROOT/scripts/benchmark/no-dwarf-plugin.ts" "$WORKDIR/no-dwarf-plugin.ts"
