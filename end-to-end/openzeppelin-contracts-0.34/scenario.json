@@ -45,24 +45,6 @@
         "prepare": "npx hardhat clean",
         "command": "npx hardhat compile --build-profile solc-via-ir"
       },
-      "cold compile solx": {
-        "runs": 3,
-        "dependsOn": [
-          "assert fresh hardhat-solx",
-          "download solc + solx and warm caches"
-        ],
-        "prepare": "npx hardhat clean",
-        "command": "npx hardhat compile --build-profile solx"
-      },
-      "cold compile solx via-ir": {
-        "runs": 3,
-        "dependsOn": [
-          "assert fresh hardhat-solx",
-          "download solc + solx and warm caches"
-        ],
-        "prepare": "npx hardhat clean",
-        "command": "npx hardhat compile --build-profile solx-via-ir"
-      },
       "cold compile solx-0.1.7": {
         "runs": 3,
         "dependsOn": [
@@ -90,20 +72,20 @@
         "prepare": "npx hardhat clean",
         "command": "npx hardhat build --no-expose"
       },
-      "cold compile solx parity": {
+      "cold compile forge-1.7.1": {
+        "runs": 3,
+        "dependsOn": ["warm forge solc cache"],
+        "prepare": "./.foundry/forge clean",
+        "command": "FOUNDRY_SOLC=0.8.34 ./.foundry/forge build --offline"
+      },
+      "cold compile solx-0.1.7 parity": {
         "runs": 3,
         "dependsOn": [
           "assert fresh hardhat-solx",
           "download solc + solx and warm caches"
         ],
         "prepare": "npx hardhat clean",
-        "command": "npx hardhat build --build-profile solx --no-expose"
-      },
-      "cold compile forge-1.7.1": {
-        "runs": 3,
-        "dependsOn": ["warm forge solc cache"],
-        "prepare": "./.foundry/forge clean",
-        "command": "FOUNDRY_SOLC=0.8.34 ./.foundry/forge build --offline"
+        "command": "npx hardhat build --build-profile solx-0.1.7 --no-expose"
       }
     }
   }
