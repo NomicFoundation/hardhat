@@ -331,40 +331,9 @@ export function renderSolxTables(
   }
 
   // Secondary numbers: everything is still generated, just folded away.
-  lines.push(
-    "<details>",
-    "<summary>DWARF cost, peak RSS, raw replay</summary>",
-    "",
-  );
-
-  const dwarfRows: string[] = [];
-  for (const id of scenarioIds) {
-    const scenario = scenarios.get(id)!;
-    for (const [key, data] of scenario.cold) {
-      const cell = parseCell(key)!;
-      if (cell.dwarf) {
-        continue;
-      }
-      const onKey = cellKey({ ...cell, dwarf: true });
-      const on = scenario.cold.get(onKey);
-      if (on?.cpuTotal !== undefined && data.cpuTotal !== undefined) {
-        const delta = on.cpuTotal - data.cpuTotal;
-        dwarfRows.push(
-          `| ${id} | ${onKey} | ${delta >= 0 ? "+" : ""}${fmt(delta)} | ${fmt(data.cpuTotal)} → ${fmt(on.cpuTotal)} |`,
-        );
-      }
-    }
-  }
-  if (dwarfRows.length > 0) {
-    lines.push(
-      "DWARF cost = DWARF-on CPU − DWARF-off CPU, within this run:",
-      "",
-      "| scenario | cell | DWARF cost (CPU s) | off → on |",
-      "|---|---|---|---|",
-      ...dwarfRows,
-      "",
-    );
-  }
+  // (The DWARF-cost table retired with the no-dwarf cells — final numbers
+  // are recorded in PR #8415's description.)
+  lines.push("<details>", "<summary>Peak RSS, raw replay</summary>", "");
 
   const rssRows: string[] = [];
   for (const id of scenarioIds) {
