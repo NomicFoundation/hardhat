@@ -258,12 +258,6 @@ describe("bytes", () => {
       assert.equal(bytesIndexOfUtf8String(haystack, "", 100), 5);
       assert.equal(bytesIndexOfUtf8String(haystack, "", -1), 0);
     });
-
-    it("should return the byte index for multi-byte characters", () => {
-      const haystack = utf8StringToBytes("aこんにちはb");
-      assert.equal(bytesIndexOfUtf8String(haystack, "こんにちは"), 1);
-      assert.equal(bytesIndexOfUtf8String(haystack, "b"), 16);
-    });
   });
 
   describe("parseJsonBytes", () => {

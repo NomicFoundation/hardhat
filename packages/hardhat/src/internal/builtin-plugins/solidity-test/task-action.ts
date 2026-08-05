@@ -235,6 +235,7 @@ const runSolidityTests: NewTaskActionFunction<TestActionArguments> = async (
       readSourceFileFactory(hre.hooks),
       hre.hooks,
     );
+
     importMappings = buildImportMappings(testDependencyGraph);
   }
 

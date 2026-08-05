@@ -26,6 +26,7 @@ export function buildImportMappings(
     )) {
       for (const remappingString of remappings) {
         const remapping = parseRemappingString(remappingString);
+
         if (remapping === undefined) {
           continue;
         }

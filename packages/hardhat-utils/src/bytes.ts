@@ -98,6 +98,7 @@ export function bytesIndexOfUtf8String(
 ): number {
   const haystackLen = haystack.length;
   const start = Math.min(Math.max(fromIndex, 0), haystackLen);
+
   if (needle.length === 0) {
     return start;
   }
