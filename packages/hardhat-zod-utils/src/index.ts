@@ -150,6 +150,8 @@ export const incompatibleFieldType = (errorMessage = "Unexpected field") =>
 export const configurationVariableSchema = z.object({
   _type: z.literal("ConfigurationVariable"),
   name: z.string(),
+  format: z.string().optional(),
+  default: z.string().optional(),
 });
 
 /**

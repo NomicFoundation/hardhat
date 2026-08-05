@@ -8,6 +8,18 @@ export interface ConfigurationVariable {
   _type: "ConfigurationVariable";
   name: string;
   format?: string;
+
+  /**
+   * An optional fallback value, used only when the variable can't be resolved
+   * from any other source (e.g. an environment variable or the keystore).
+   *
+   * By default, the value is resolved from the environment variable first, then
+   * any plugin source (like hardhat-keystore), and finally this default. Plugins
+   * can customize this, but the built-in resolver and bundled plugins follow this
+   * order. If none of them provide a value and no default is set, resolving the
+   * variable throws.
+   */
+  default?: string;
 }
 
 /**
