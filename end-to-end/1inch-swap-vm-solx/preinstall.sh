@@ -84,10 +84,10 @@ npm pkg set "devDependencies.@nomicfoundation/hardhat-solx=file:./.solx/hardhat-
 cp -R "$SOLX_PKG/dist/src" "$WORKDIR/.solx/expected-dist-src"
 
 # Pinned solx for the version cells: the wrapper config's "solx-0.1.7"
-# profiles point at this binary via the plugin's `path` option. This scenario
-# has no shipped-solx cells yet — the shipped map (0.1.4) fails via-IR on this
-# repo with a YulException that 0.1.7 fixes; they arrive with the plugin's
-# 0.1.7 map bump.
+# profiles point at this binary via the plugin's `path` option. The pinned
+# cells are the shipped measurement (the plugin maps 0.8.34 to 0.1.7);
+# 0.1.4, the map when this scenario was written, fails via-IR on this repo
+# with a YulException that 0.1.7 fixes.
 node "$MONOREPO_ROOT/scripts/benchmark/download-solx.ts" --version 0.1.7 --out "$WORKDIR/.solx/solx-v0.1.7"
 
 # Pinned forge (latest stable at pin time) for the cross-tool parity cells.
