@@ -562,10 +562,25 @@ describe("buildInfoContainsInlineConfig", () => {
     );
   });
 
-  it("may return false positives for other text ending in -config:", () => {
+  it("returns false for other text ending in -config:", () => {
     assert.equal(
       buildInfoContainsInlineConfig(
         encode('{"sources":{"A.sol":"// see my-config: docs"}}'),
+      ),
+      false,
+    );
+  });
+
+  it("returns false when -config: appears at the very start of the bytes", () => {
+    assert.equal(buildInfoContainsInlineConfig(encode("-config: foo")), false);
+  });
+
+  it("returns true when a real prefix follows an unrelated -config: hit", () => {
+    assert.equal(
+      buildInfoContainsInlineConfig(
+        encode(
+          '{"sources":{"A.sol":"// my-config: docs\\n/// forge-config: default.fuzz.runs = 10"}}',
+        ),
       ),
       true,
     );
