@@ -18,6 +18,7 @@ import {
 } from "./helpers/stats.ts";
 import { DEFAULT_CLONE_DIR } from "../end-to-end/helpers/args.ts";
 import { fmt, log, logError, logStep, logWarning } from "./helpers/log.ts";
+import { shellQuote } from "./helpers/shell.ts";
 import { loadScenario } from "../end-to-end/helpers/directory.ts";
 import {
   ForceCheckout,
@@ -739,14 +740,6 @@ function buildReproCommand(benchArgs: BenchArgs): string {
   );
 
   return parts.join(" ");
-}
-
-function shellQuote(value: string): string {
-  if (/^[\w@./:=-]+$/.test(value)) {
-    return value;
-  }
-
-  return `'${value.replace(/'/g, `'\\''`)}'`;
 }
 
 function buildBenchArgs(
