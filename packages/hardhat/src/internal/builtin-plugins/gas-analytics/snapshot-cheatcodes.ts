@@ -68,8 +68,10 @@ export interface SnapshotCheatcode {
 export interface SnapshotCheatcodeChange {
   group: string;
   name: string;
-  expected: number;
-  actual: number;
+  // Raw snapshot values: cheatcode snapshots can be arbitrary strings, not
+  // just numbers, so they are preserved as-is.
+  expected: string;
+  actual: string;
   source: string;
 }
 
@@ -270,9 +272,9 @@ export async function readSnapshotCheatcodes(
       const snapshotGroup = entry.slice(0, -5); // remove .json extension
       const snapshotCheatcodesPath = getSnapshotCheatcodesPath(basePath, entry);
 
-      let snapshot: Record<string, string>;
+      let parsedSnapshot: Record<string, unknown>;
       try {
-        snapshot = await readJsonFile(snapshotCheatcodesPath);
+        parsedSnapshot = await readJsonFile(snapshotCheatcodesPath);
       } catch (error) {
         ensureError(error);
         throw new HardhatError(
@@ -280,6 +282,14 @@ export async function readSnapshotCheatcodes(
           { snapshotsPath: snapshotCheatcodesPath, error: error.message },
           error,
         );
+      }
+
+      // The file is user-editable, so values may not be strings (e.g. a
+      // hand-written JSON number). Normalize them, as the rest of the
+      // snapshot cheatcode logic assumes string values.
+      const snapshot: Record<string, string> = {};
+      for (const [name, value] of Object.entries(parsedSnapshot)) {
+        snapshot[name] = typeof value === "string" ? value : String(value);
       }
 
       snapshots.set(snapshotGroup, snapshot);
@@ -329,8 +339,8 @@ export function compareSnapshotCheatcodes(
           const change: SnapshotCheatcodeChange = {
             group,
             name,
-            expected: Number(previousValue),
-            actual: Number(currentEntry.value),
+            expected: previousValue,
+            actual: currentEntry.value,
             source: currentEntry.metadata.source,
           };
 
@@ -341,7 +351,11 @@ export function compareSnapshotCheatcodes(
             tolerance > 0 &&
             isStrictlyNumeric(previousValue) &&
             isStrictlyNumeric(currentEntry.value) &&
-            isWithinTolerance(change.expected, change.actual, tolerance)
+            isWithinTolerance(
+              Number(previousValue),
+              Number(currentEntry.value),
+              tolerance,
+            )
           ) {
             tolerated.push(change);
           } else {
@@ -381,6 +395,8 @@ export function compareSnapshotCheatcodes(
 function isStrictlyNumeric(value: string): boolean {
   return value.trim() !== "" && Number.isFinite(Number(value));
 }
+
+const INTEGER_REGEX = /^-?\d+$/;
 
 export async function checkSnapshotCheatcodes(
   basePath: string,
@@ -515,12 +531,39 @@ export function printSnapshotCheatcodeChanges(
     logger(`  ${change.group}#${change.name}`);
     logger(styleText("grey", `    (in ${change.source})`));
 
-    const diff = change.actual - change.expected;
+    logger(styleText("grey", `    Expected: ${change.expected}`));
+
+    // The diff and percentage only make sense when both values are numeric;
+    // snapshot cheatcode values can be arbitrary strings.
+    if (
+      !isStrictlyNumeric(change.expected) ||
+      !isStrictlyNumeric(change.actual)
+    ) {
+      logger(styleText("grey", `    Actual:   ${change.actual}`));
+
+      if (!isLast) {
+        logger();
+      }
+
+      continue;
+    }
+
+    // Gas values are integer strings that can exceed 2^53, so the exact diff
+    // needs BigInt. Non-integer numeric values (e.g. "1.5") use float math.
+    const bothIntegers =
+      INTEGER_REGEX.test(change.expected) && INTEGER_REGEX.test(change.actual);
+
+    const diff = bothIntegers
+      ? BigInt(change.actual) - BigInt(change.expected)
+      : Number(change.actual) - Number(change.expected);
+
     const formattedDiff = diff > 0 ? `Δ+${diff}` : `Δ${diff}`;
 
     let gasChange = `${formattedDiff}`;
-    if (change.expected > 0) {
-      const percent = (diff / change.expected) * 100;
+
+    const expected = Number(change.expected);
+    if (expected > 0) {
+      const percent = (Number(diff) / expected) * 100;
       const formattedPercent =
         percent >= 0 ? `+${percent.toFixed(2)}%` : `${percent.toFixed(2)}%`;
       gasChange = `${formattedPercent}, ${formattedDiff}`;
@@ -530,7 +573,6 @@ export function printSnapshotCheatcodeChanges(
     const formattedGasChange =
       diff < 0 ? styleText("green", gasChange) : styleText("red", gasChange);
 
-    logger(styleText("grey", `    Expected: ${change.expected}`));
     logger(
       styleText("grey", `    Actual:   ${change.actual} (`) +
         formattedGasChange +
