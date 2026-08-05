@@ -49,24 +49,6 @@
         "prepare": "npx hardhat clean",
         "command": "npx hardhat compile --build-profile solx-via-ir"
       },
-      "cold compile solx no-dwarf": {
-        "runs": 3,
-        "dependsOn": [
-          "assert fresh hardhat-solx",
-          "download solc + solx and warm caches"
-        ],
-        "prepare": "npx hardhat clean",
-        "command": "HARDHAT_SOLX_DISABLE_DEBUG_INFO=true npx hardhat compile --build-profile solx"
-      },
-      "cold compile solx via-ir no-dwarf": {
-        "runs": 3,
-        "dependsOn": [
-          "assert fresh hardhat-solx",
-          "download solc + solx and warm caches"
-        ],
-        "prepare": "npx hardhat clean",
-        "command": "HARDHAT_SOLX_DISABLE_DEBUG_INFO=true npx hardhat compile --build-profile solx-via-ir"
-      },
       "cold compile solx-0.1.7": {
         "runs": 3,
         "dependsOn": [
@@ -84,24 +66,6 @@
         ],
         "prepare": "npx hardhat clean",
         "command": "npx hardhat compile --build-profile solx-0.1.7-via-ir"
-      },
-      "cold compile solx-0.1.7 no-dwarf": {
-        "runs": 3,
-        "dependsOn": [
-          "assert fresh hardhat-solx",
-          "download solc + solx and warm caches"
-        ],
-        "prepare": "npx hardhat clean",
-        "command": "HARDHAT_SOLX_DISABLE_DEBUG_INFO=true npx hardhat compile --build-profile solx-0.1.7"
-      },
-      "cold compile solx-0.1.7 via-ir no-dwarf": {
-        "runs": 3,
-        "dependsOn": [
-          "assert fresh hardhat-solx",
-          "download solc + solx and warm caches"
-        ],
-        "prepare": "npx hardhat clean",
-        "command": "HARDHAT_SOLX_DISABLE_DEBUG_INFO=true npx hardhat compile --build-profile solx-0.1.7-via-ir"
       },
       "cold compile solc": {
         "runs": 3,
