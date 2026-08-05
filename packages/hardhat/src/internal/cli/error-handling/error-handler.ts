@@ -1,4 +1,4 @@
-import type * as ClassifierT from "./telemetry/error-classification/classifier.js";
+import type * as ClassifierT from "../telemetry/error-classification/classifier.js";
 
 import { styleText } from "node:util";
 
@@ -7,7 +7,7 @@ import {
   HardhatPluginError,
 } from "@nomicfoundation/hardhat-errors";
 
-import { HARDHAT_NAME, HARDHAT_WEBSITE_URL } from "../constants.js";
+import { HARDHAT_NAME, HARDHAT_WEBSITE_URL } from "../../constants.js";
 
 // The classifier may import many unrelated things top-level to do its job, so
 // we load it lazily.
@@ -167,7 +167,7 @@ async function getErrorWithCategory(error: Error): Promise<ErrorWithCategory> {
 
   if (classifierModule === undefined) {
     classifierModule =
-      await import("./telemetry/error-classification/classifier.js");
+      await import("../telemetry/error-classification/classifier.js");
   }
 
   // Pass `ignoreDevelopmentTimeFilter=true` so the migration footer also shows

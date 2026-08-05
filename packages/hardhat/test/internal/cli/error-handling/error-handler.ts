@@ -7,12 +7,12 @@ import {
   HardhatPluginError,
 } from "@nomicfoundation/hardhat-errors";
 
-import { printErrorMessages } from "../../../src/internal/cli/error-handler.js";
+import { printErrorMessages } from "../../../../src/internal/cli/error-handling/error-handler.js";
 import {
   HARDHAT_NAME,
   HARDHAT_WEBSITE_URL,
-} from "../../../src/internal/constants.js";
-import { UsingHardhat2PluginError } from "../../../src/internal/using-hardhat2-plugin-errors.js";
+} from "../../../../src/internal/constants.js";
+import { UsingHardhat2PluginError } from "../../../../src/internal/using-hardhat2-plugin-errors.js";
 
 const mockCoreErrorDescriptor = {
   number: 123,
