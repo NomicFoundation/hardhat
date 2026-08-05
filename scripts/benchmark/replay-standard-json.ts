@@ -54,8 +54,6 @@ EXAMPLE
 const VARIANT_LABELS: Record<string, string> = {
   "solx-legacy-dwarf.json": "raw replay solx",
   "solx-via-ir-dwarf.json": "raw replay solx via-ir",
-  "solx-legacy-no-dwarf.json": "raw replay solx no-dwarf",
-  "solx-via-ir-no-dwarf.json": "raw replay solx via-ir no-dwarf",
 };
 
 function getArg(flag: string): string | undefined {

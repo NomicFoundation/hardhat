@@ -54,7 +54,9 @@ interface Variant {
 }
 
 // Every solx scenario exercises the {legacy, viaIR} pair. viaIR flips
-// `settings.viaIR`, so each is a different standard-JSON.
+// `settings.viaIR`, so each is a different standard-JSON. DWARF is always on
+// (the shipped config); the no-DWARF twin dumps retired with the no-dwarf
+// benchmark cells (numbers recorded on PR #8415).
 const DWARF_VARIANTS: readonly Variant[] = [
   {
     file: "solx-legacy-dwarf.json",
@@ -68,43 +70,19 @@ const DWARF_VARIANTS: readonly Variant[] = [
   },
 ];
 
-// The no-DWARF pair strips the debugInfo outputSelection selectors via
-// HARDHAT_SOLX_DISABLE_DEBUG_INFO, which only scenarios that install the
-// noDwarfBenchmarkPlugin honor — elsewhere the env var is silently ignored
-// and would produce misleading duplicates of the DWARF dumps.
-const NO_DWARF_VARIANTS: readonly Variant[] = [
-  {
-    file: "solx-legacy-no-dwarf.json",
-    flags: ["--build-profile", "solx"],
-    env: { HARDHAT_SOLX_DISABLE_DEBUG_INFO: "true" },
-  },
-  {
-    file: "solx-via-ir-no-dwarf.json",
-    flags: ["--build-profile", "solx-via-ir"],
-    env: { HARDHAT_SOLX_DISABLE_DEBUG_INFO: "true" },
-  },
-];
-
 /**
- * A scenario opts into the no-DWARF dumps by benchmarking no-DWARF cells:
- * declaring them requires the noDwarfBenchmarkPlugin, which is also exactly
- * what makes the no-DWARF dumps meaningful. Derived from scenario.json, so
- * dump variants can never drift from the benchmarked cells. The same
- * derivation applies to --no-tests: a scenario whose benchmarked cells skip
- * test compilation must be dumped without tests too, or the dump captures a
+ * Derived from scenario.json so dump variants can never drift from the
+ * benchmarked cells: a scenario whose benchmarked cells skip test compilation
+ * (--no-tests) must be dumped without tests too, or the dump captures a
  * different (possibly uncompilable) build than the one being benchmarked.
  */
 function variantsFor(definition: ScenarioDefinition): readonly Variant[] {
   const commandsJson = JSON.stringify(definition.benchmark?.commands ?? {});
 
-  const variants = commandsJson.includes("HARDHAT_SOLX_DISABLE_DEBUG_INFO")
-    ? [...DWARF_VARIANTS, ...NO_DWARF_VARIANTS]
-    : [...DWARF_VARIANTS];
-
   if (!commandsJson.includes("--no-tests")) {
-    return variants;
+    return [...DWARF_VARIANTS];
   }
-  return variants.map((variant) => ({
+  return DWARF_VARIANTS.map((variant) => ({
     ...variant,
     flags: [...variant.flags, "--no-tests"],
   }));
