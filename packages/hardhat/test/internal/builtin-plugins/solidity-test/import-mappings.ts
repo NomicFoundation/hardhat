@@ -5,11 +5,18 @@ import type {
 } from "../../../../src/types/solidity.js";
 
 import assert from "node:assert/strict";
+import path from "node:path";
 import { describe, it } from "node:test";
 
+import { useFixtureProject } from "@nomicfoundation/hardhat-test-utils";
+
+import { buildDependencyGraph } from "../../../../src/internal/builtin-plugins/solidity/build-system/dependency-graph-building.js";
 import { DependencyGraphImplementation } from "../../../../src/internal/builtin-plugins/solidity/build-system/dependency-graph.js";
+import { readSourceFileFactory } from "../../../../src/internal/builtin-plugins/solidity/build-system/read-source-file.js";
 import { buildImportMappings } from "../../../../src/internal/builtin-plugins/solidity-test/import-mappings.js";
+import { createHardhatRuntimeEnvironment } from "../../../../src/internal/hre-initialization.js";
 import { ResolvedFileType } from "../../../../src/types/solidity.js";
+import hardhatConfig from "../../../fixture-projects/solidity-test-inline-config/hardhat.config.js";
 
 const projectPackage: ResolvedNpmPackage = {
   name: "hardhat-project",
@@ -136,5 +143,33 @@ describe("buildImportMappings", () => {
       importMappings["forge-std/src/Test.sol"],
       "/project/node_modules/forge-std/src/Test.sol",
     );
+  });
+
+  // Unlike the tests above, this one uses the real resolver, so it catches
+  // changes to the remapping format that the hand-built graphs would miss.
+  describe("with a dependency graph built from a real project", () => {
+    useFixtureProject("solidity-test-inline-config");
+
+    it("should map a non-relative npm import as written to its fs path", async () => {
+      const hre = await createHardhatRuntimeEnvironment(hardhatConfig);
+      const rootFilePath = path.join(
+        process.cwd(),
+        "test/valid/InlineConfig.t.sol",
+      );
+
+      const dependencyGraph = await buildDependencyGraph(
+        [rootFilePath],
+        process.cwd(),
+        readSourceFileFactory(hre.hooks),
+        hre.hooks,
+      );
+
+      const importMappings = buildImportMappings(dependencyGraph);
+
+      assert.equal(
+        importMappings["dependency/src/BaseTest.sol"],
+        path.join(process.cwd(), "node_modules/dependency/src/BaseTest.sol"),
+      );
+    });
   });
 });

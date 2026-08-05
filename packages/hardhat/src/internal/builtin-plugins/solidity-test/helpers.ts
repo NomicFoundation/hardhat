@@ -21,6 +21,7 @@ import {
 import { toBigInt } from "@nomicfoundation/hardhat-utils/bigint";
 import {
   bytesIndexOfUtf8String,
+  equalsBytes,
   utf8StringToBytes,
 } from "@nomicfoundation/hardhat-utils/bytes";
 import { hexStringToBytes } from "@nomicfoundation/hardhat-utils/hex";
@@ -178,10 +179,9 @@ export async function solidityTestConfigToSolidityTestRunnerConfigArgs({
   };
 }
 
-// The inline config directive prefixes are `hardhat-config:` and
-// `forge-config:`. We scan for their shared suffix in a single pass, which is
-// cheaper than one scan per prefix, and on each hit check that one of the
-// prefix heads precedes it.
+// The directive prefixes are `hardhat-config:` and `forge-config:`. Scanning
+// once for their shared suffix and checking each hit for a preceding head is
+// cheaper than one full scan per prefix.
 const INLINE_CONFIG_PREFIX_SUFFIX = "-config:";
 const INLINE_CONFIG_PREFIX_HEADS = ["hardhat", "forge"].map(utf8StringToBytes);
 
@@ -218,8 +218,8 @@ export function buildInfoContainsInlineConfig(
 }
 
 /**
- * Returns true if the haystack bytes ending right before index `end` are
- * exactly the needle bytes.
+ * Returns true if the needle's bytes end exactly at (exclusive) index `end`
+ * of the haystack.
  */
 function bytesEndWithAt(
   haystack: Uint8Array,
@@ -227,17 +227,7 @@ function bytesEndWithAt(
   end: number,
 ): boolean {
   const start = end - needle.length;
-  if (start < 0) {
-    return false;
-  }
-
-  for (let i = 0; i < needle.length; i++) {
-    if (haystack[start + i] !== needle[i]) {
-      return false;
-    }
-  }
-
-  return true;
+  return start >= 0 && equalsBytes(haystack.subarray(start, end), needle);
 }
 
 export function isTestSuiteArtifact(artifact: Artifact): boolean {

@@ -223,11 +223,7 @@ describe("bytes", () => {
     it("should return the index of the first occurrence", () => {
       const haystack = utf8StringToBytes("foo hello bar hello");
       assert.equal(bytesIndexOfUtf8String(haystack, "hello"), 4);
-    });
-
-    it("should return 0 when the needle is at the start", () => {
-      const haystack = utf8StringToBytes("hello world");
-      assert.equal(bytesIndexOfUtf8String(haystack, "hello"), 0);
+      assert.equal(bytesIndexOfUtf8String(haystack, "foo"), 0);
     });
 
     it("should return -1 when the needle is not present", () => {
@@ -242,9 +238,11 @@ describe("bytes", () => {
       assert.equal(bytesIndexOfUtf8String(haystack, "hello", 15), -1);
     });
 
-    it("should return -1 when fromIndex leaves too few bytes for the needle", () => {
-      const haystack = utf8StringToBytes("hello");
-      assert.equal(bytesIndexOfUtf8String(haystack, "hello", 1), -1);
+    it("should return the match index after a partial-match fallback", () => {
+      // "aab" partially matches at 0 ("aa"), then the KMP fallback must
+      // resume and find the real match at 1.
+      const haystack = utf8StringToBytes("aaab");
+      assert.equal(bytesIndexOfUtf8String(haystack, "aab"), 1);
     });
 
     it("should clamp fromIndex to the haystack's bounds", () => {

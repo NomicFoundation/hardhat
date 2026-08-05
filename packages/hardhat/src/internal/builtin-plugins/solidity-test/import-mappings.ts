@@ -1,5 +1,4 @@
 import type { DependencyGraph } from "../../../types/solidity.js";
-import type { Remapping } from "../solidity/build-system/resolver/types.js";
 
 import { parseRemappingString } from "../solidity/build-system/resolver/remappings.js";
 
@@ -16,12 +15,8 @@ export function buildImportMappings(
 ): Record<string, string> {
   const importMappings: Record<string, string> = {};
 
-  // The same remapping strings repeat across many dependency edges, so we
-  // parse each distinct one only once.
-  const parsedRemappings = new Map<string, Remapping | undefined>();
-
   for (const file of dependencyGraph.getAllFiles()) {
-    // Baseline: a file imported by its exact input source name.
+    // Every file can always be imported by its exact input source name.
     importMappings[file.inputSourceName] = file.fsPath;
   }
 
@@ -30,11 +25,7 @@ export function buildImportMappings(
       from,
     )) {
       for (const remappingString of remappings) {
-        let remapping = parsedRemappings.get(remappingString);
-        if (remapping === undefined && !parsedRemappings.has(remappingString)) {
-          remapping = parseRemappingString(remappingString);
-          parsedRemappings.set(remappingString, remapping);
-        }
+        const remapping = parseRemappingString(remappingString);
         if (remapping === undefined) {
           continue;
         }

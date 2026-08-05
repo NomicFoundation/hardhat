@@ -98,6 +98,17 @@ describe("solidity-test/inline-config", () => {
       error.number,
       HardhatError.ERRORS.CORE.SOLIDITY_TESTS.INVALID_INLINE_CONFIG.number,
     );
+    // Both invalid directives should be reported in the single error.
+    assert.match(
+      error.message,
+      /testFuzzWithInvalidInlineConfig.*not-a-number/,
+      "The error should report the invalid value directive",
+    );
+    assert.match(
+      error.message,
+      /testFuzzWithInvalidInlineConfigKey.*not-a-key/,
+      "The error should report the invalid key directive",
+    );
     assert.match(
       error.message,
       /test\/invalid\/InvalidInlineConfig\.t\.sol/,
@@ -107,6 +118,11 @@ describe("solidity-test/inline-config", () => {
       error.message,
       /project\/test\/invalid/,
       "Internal source names should be replaced with user-facing paths",
+    );
+    assert.doesNotMatch(
+      error.message,
+      /Found invalid inline configuration/,
+      "EDR's heading line should be stripped from the message",
     );
   });
 });

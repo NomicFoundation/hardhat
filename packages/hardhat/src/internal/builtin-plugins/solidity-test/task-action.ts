@@ -225,7 +225,7 @@ const runSolidityTests: NewTaskActionFunction<TestActionArguments> = async (
     );
 
     // Maps non-relative imports (as written) to absolute paths, so EDR can
-    // follow the test sources' imports while parsing inline configuration.
+    // follow the test sources' imports.
     //
     // NOTE: This rebuilds a dependency graph the preceding `build` already
     // computed internally, because the build-system API doesn't expose it.

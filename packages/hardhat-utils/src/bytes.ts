@@ -80,9 +80,9 @@ export function bytesIncludesUtf8String(
 
 /**
  * Returns the index of the first occurrence of the UTF-8 byte sequence of a
- * given string within a Uint8Array, starting the search at `fromIndex`.
- * Searches the raw bytes without allocating a full string for the haystack.
- * Uses the Knuth-Morris-Pratt (KMP) algorithm for efficient searching.
+ * given string within a Uint8Array. Searches the raw bytes without allocating
+ * a full string for the haystack, using the Knuth-Morris-Pratt (KMP)
+ * algorithm.
  *
  * @param haystack The Uint8Array to search in.
  * @param needle The string whose UTF-8 encoding to search for.
