@@ -129,6 +129,7 @@ Solx
 sourcify
 Sourcify
 SOURCIFY
+stackification
 ssfi
 Ssfi
 stringifying
