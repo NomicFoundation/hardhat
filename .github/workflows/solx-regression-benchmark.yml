@@ -136,8 +136,10 @@ jobs:
       # Deliberately scoped to the OZ anchor scenario: the other solx scenarios
       # only benchmark solx timing cells, so compiling their four profiles here
       # would add untracked solc compile time to every run.
-      - name: Measure bytecode size
-        run: pnpm bench:bytecode-size --scenario ./end-to-end/openzeppelin-contracts-0.34 --report solx-regression-report.json
+      # Disabled 2026-08-05: the size numbers aren't feeding any current
+      # decision; re-enable by uncommenting if they become relevant again.
+      # - name: Measure bytecode size
+      #   run: pnpm bench:bytecode-size --scenario ./end-to-end/openzeppelin-contracts-0.34 --report solx-regression-report.json
 
       # Native gas reports (hardhat --gas-stats-json) under solc vs solx on a
       # representative subset; appends aggregate gas to the report and prints a
