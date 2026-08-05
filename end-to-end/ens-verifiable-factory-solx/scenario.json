@@ -31,24 +31,6 @@
           }
         }
       },
-      "cold compile solx": {
-        "runs": 3,
-        "dependsOn": [
-          "assert fresh hardhat-solx",
-          "download solc + solx and warm caches"
-        ],
-        "prepare": "npx hardhat clean",
-        "command": "npx hardhat compile --build-profile solx"
-      },
-      "cold compile solx via-ir": {
-        "runs": 3,
-        "dependsOn": [
-          "assert fresh hardhat-solx",
-          "download solc + solx and warm caches"
-        ],
-        "prepare": "npx hardhat clean",
-        "command": "npx hardhat compile --build-profile solx-via-ir"
-      },
       "cold compile solx-0.1.7": {
         "runs": 3,
         "dependsOn": [

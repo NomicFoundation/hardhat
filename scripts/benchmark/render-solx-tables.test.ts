@@ -218,19 +218,46 @@ describe("renderSolxTables", () => {
   it("renders the cross-tool parity table, forge out of the pivot", () => {
     assert.match(
       md,
-      /\| scenario \| pipeline \| hardhat \+ solc 0\.8\.34 \| hardhat \+ solx \(shipped\) \| forge 1\.7\.1 \+ solc 0\.8\.34 \|/,
+      /\| scenario \| pipeline \| hardhat \+ solc 0\.8\.34 \| hardhat \+ solx 0\.1\.7 \| forge 1\.7\.1 \+ solc 0\.8\.34 \|/,
     );
     assert.match(
       md,
       /\| openzeppelin-contracts-0\.34 \| legacy \| 40\.0 \/ 42\.0 \| — \| 14\.6 \/ 16\.3 \|/,
     );
+    // The version-pinned cell fills the solx column (shipped cells retired).
     assert.match(
       md,
-      /\| uniswap-v4-core-solx \| via-IR \| 77\.4 \/ 78\.5² \| — \| 10\.4 \/ 30\.2 \|/,
+      /\| uniswap-v4-core-solx \| via-IR \| 77\.4 \/ 78\.5² \| 12\.9 \/ 36\.8² \| 10\.4 \/ 30\.2 \|/,
     );
     assert.match(md, /² same-scope matrix cell/);
     assert.doesNotMatch(md, /\| cold compile \|[^\n]*forge/);
     assert.doesNotMatch(md, /\| cold compile \|[^\n]*parity/);
+  });
+
+  it("prefers exact shipped-solx parity cells from old reports", () => {
+    const old = renderSolxTables(
+      [
+        entry("legacy-scenario / cold compile solx via-ir", 20.0, {
+          times: [19.9, 20.1],
+        }),
+        entry("legacy-scenario / cold compile solx via-ir (cpu)", 50.0, {
+          user: 49,
+          system: 1,
+        }),
+        entry("legacy-scenario / cold compile solx-0.1.7 via-ir", 12.0, {
+          times: [11.9, 12.1],
+        }),
+        entry("legacy-scenario / cold compile forge-1.7.1 via-ir", 10.0, {
+          times: [9.9, 10.1],
+        }),
+      ],
+      {},
+    );
+    assert.match(old, /hardhat \+ solx \(shipped\)/);
+    assert.match(
+      old,
+      /\| legacy-scenario \| via-IR \| — \| 20\.0 \/ 50\.0² \|/,
+    );
   });
 
   it("warns on non-success status", () => {

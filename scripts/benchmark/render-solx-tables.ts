@@ -281,6 +281,7 @@ export function renderSolxTables(
   // matrix cells otherwise (uniswap: matrix cells are already parity-scoped).
   const parityRows: string[] = [];
   const forgeVersions = new Set<string>();
+  const solxVersions = new Set<string>();
   let parityUsedFallback = false;
   for (const id of scenarioIds) {
     const scenario = scenarios.get(id)!;
@@ -290,40 +291,72 @@ export function renderSolxTables(
         continue;
       }
       forgeVersions.add(fc.compiler.replace("forge-", ""));
-      const pick = (compiler: string): string => {
-        const find = (parity: boolean) =>
-          [...scenario.cold.keys()].find((k) => {
-            const c = parseCell(k)!;
-            return (
-              c.compiler === compiler &&
-              c.parity === parity &&
-              c.viaIR === fc.viaIR &&
-              c.dwarf &&
-              !c.noOpt
-            );
-          });
+      const pick = (compilers: string[]): string => {
+        // Compilers are tried in order, so an exact "solx" cell (old reports)
+        // wins over a version-pinned one.
+        const find = (parity: boolean) => {
+          for (const compiler of compilers) {
+            const key = [...scenario.cold.keys()].find((k) => {
+              const c = parseCell(k)!;
+              return (
+                c.compiler === compiler &&
+                c.parity === parity &&
+                c.viaIR === fc.viaIR &&
+                c.dwarf &&
+                !c.noOpt
+              );
+            });
+            if (key !== undefined) {
+              return key;
+            }
+          }
+          return undefined;
+        };
+        const record = (key: string) => {
+          const c = parseCell(key)!.compiler;
+          if (c.startsWith("solx-")) {
+            solxVersions.add(c.replace("solx-", ""));
+          }
+        };
         const exact = find(true);
         if (exact !== undefined) {
+          record(exact);
           return wallCpu(scenario.cold.get(exact));
         }
         const fallback = find(false);
         if (fallback === undefined) {
           return "—";
         }
+        record(fallback);
         parityUsedFallback = true;
         return `${wallCpu(scenario.cold.get(fallback))}²`;
       };
+      // The solx column matches any solx cell: the version-pinned cells are
+      // the shipped measurement since the plugin's map reached 0.1.7 (the
+      // redundant shipped cells were retired; old reports still have them).
+      const solxCompilers = [
+        "solx",
+        ...[...scenario.cold.keys()]
+          .map((k) => parseCell(k)!.compiler)
+          .filter((c) => c.startsWith("solx-"))
+          .sort()
+          .reverse(),
+      ];
       parityRows.push(
-        `| ${id} | ${fc.viaIR ? "via-IR" : "legacy"} | ${pick("solc")} | ${pick("solx")} | ${wallCpu(forgeData)} |`,
+        `| ${id} | ${fc.viaIR ? "via-IR" : "legacy"} | ${pick(["solc"])} | ${pick(solxCompilers)} | ${wallCpu(forgeData)} |`,
       );
     }
   }
   if (parityRows.length > 0) {
     const forgeLabel = [...forgeVersions].sort().join("/");
+    const solxLabel =
+      solxVersions.size > 0
+        ? ` ${[...solxVersions].sort().join("/")}`
+        : " (shipped)";
     lines.push(
       "### Cross-tool parity <sub>(same sources, same settings, wall / CPU s)</sub>",
       "",
-      `| scenario | pipeline | hardhat + solc 0.8.34 | hardhat + solx (shipped) | forge ${forgeLabel} + solc 0.8.34 |`,
+      `| scenario | pipeline | hardhat + solc 0.8.34 | hardhat + solx${solxLabel} | forge ${forgeLabel} + solc 0.8.34 |`,
       "|---|---|---|---|---|",
       ...parityRows,
       "",
