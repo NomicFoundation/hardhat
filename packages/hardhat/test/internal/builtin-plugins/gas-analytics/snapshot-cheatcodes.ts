@@ -19,6 +19,7 @@ import {
   exists,
   FileNotFoundError,
   readJsonFile,
+  writeJsonFile,
 } from "@nomicfoundation/hardhat-utils/fs";
 
 import {
@@ -498,6 +499,26 @@ describe("snapshot-cheatcodes", () => {
       assert.equal(calculatorTest["calculator-subtract"], "47891");
     });
 
+    it("should normalize non-string values in a hand-edited JSON file", async () => {
+      // The snapshot files are user-editable, so a value may be e.g. a JSON
+      // number instead of a string
+      const snapshotPath = getSnapshotCheatcodesPath(
+        tmp.path,
+        "HandEdited.json",
+      );
+      await writeJsonFile(snapshotPath, {
+        "numeric-entry": 100,
+        "string-entry": "200",
+      });
+
+      const readSnapshots = await readSnapshotCheatcodes(tmp.path);
+
+      const handEdited = readSnapshots.get("HandEdited");
+      assert.ok(handEdited !== undefined, "HandEdited should be defined");
+      assert.equal(handEdited["numeric-entry"], "100");
+      assert.equal(handEdited["string-entry"], "200");
+    });
+
     it("should read multiple snapshot groups from separate JSON files", async () => {
       const snapshots: SnapshotCheatcodesWithMetadataMap = new Map<
         string,
@@ -698,8 +719,8 @@ ZGroup#entry-z: 300`;
       assert.deepEqual(result.changed[0], {
         group: "GroupA",
         name: "entry-a",
-        expected: 100,
-        actual: 200,
+        expected: "100",
+        actual: "200",
         source: "contracts/GroupA.t.sol",
       });
     });
@@ -901,8 +922,8 @@ ZGroup#entry-z: 300`;
         assert.deepEqual(result.tolerated[0], {
           group: "GroupA",
           name: "entry-a",
-          expected: 1000,
-          actual: 1005,
+          expected: "1000",
+          actual: "1005",
           source: "contracts/GroupA.t.sol",
         });
       });
@@ -981,8 +1002,8 @@ ZGroup#entry-z: 300`;
         {
           group: "GroupA",
           name: "entry-a",
-          expected: 10000,
-          actual: 15000,
+          expected: "10000",
+          actual: "15000",
           source: "contracts/GroupA.t.sol",
         },
       ];
@@ -1003,8 +1024,8 @@ ZGroup#entry-z: 300`;
         {
           group: "GroupA",
           name: "entry-a",
-          expected: 15000,
-          actual: 10000,
+          expected: "15000",
+          actual: "10000",
           source: "contracts/GroupA.t.sol",
         },
       ];
@@ -1023,8 +1044,8 @@ ZGroup#entry-z: 300`;
         {
           group: "GroupA",
           name: "entry-a",
-          expected: 0,
-          actual: 5000,
+          expected: "0",
+          actual: "5000",
           source: "contracts/GroupA.t.sol",
         },
       ];
@@ -1038,20 +1059,60 @@ ZGroup#entry-z: 300`;
       assert.doesNotMatch(text, /%/);
     });
 
+    it("should print values above 2^53 exactly, with an exact diff", () => {
+      const changes: SnapshotCheatcodeChange[] = [
+        {
+          group: "GroupA",
+          name: "entry-a",
+          expected: "100000000000000000000001",
+          actual: "100000000000000000000999",
+          source: "contracts/GroupA.t.sol",
+        },
+      ];
+
+      printSnapshotCheatcodeChanges(changes, logger);
+
+      const text = getLoggerOutput();
+      assert.match(text, /Expected: 100000000000000000000001/);
+      assert.match(text, /Actual:\s+100000000000000000000999/);
+      assert.match(text, /Δ\+998/);
+    });
+
+    it("should print non-numeric values as-is, without a diff", () => {
+      const changes: SnapshotCheatcodeChange[] = [
+        {
+          group: "GroupA",
+          name: "entry-a",
+          expected: "some string",
+          actual: "another string",
+          source: "contracts/GroupA.t.sol",
+        },
+      ];
+
+      printSnapshotCheatcodeChanges(changes, logger);
+
+      const text = getLoggerOutput();
+      assert.match(text, /Expected: some string/);
+      assert.match(text, /Actual:\s+another string/);
+      assert.doesNotMatch(text, /NaN/);
+      assert.doesNotMatch(text, /Δ/);
+      assert.doesNotMatch(text, /%/);
+    });
+
     it("should print multiple changes", () => {
       const changes: SnapshotCheatcodeChange[] = [
         {
           group: "GroupA",
           name: "entry-a",
-          expected: 10000,
-          actual: 15000,
+          expected: "10000",
+          actual: "15000",
           source: "contracts/GroupA.t.sol",
         },
         {
           group: "GroupB",
           name: "entry-b",
-          expected: 20000,
-          actual: 18000,
+          expected: "20000",
+          actual: "18000",
           source: "contracts/GroupB.t.sol",
         },
       ];
