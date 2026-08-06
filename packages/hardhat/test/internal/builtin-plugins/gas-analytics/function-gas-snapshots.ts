@@ -863,6 +863,19 @@ MyContract#testB (gas: 20000)`;
         }
       });
 
+      it("should flag as changed a diff from a zero baseline even with a large tolerance", () => {
+        // The percentage change from 0 is undefined, so no tolerance can
+        // absorb it.
+        const result = compareFunctionGasSnapshots(
+          [previousStandard(0n)],
+          [currentStandard(1n)],
+          1_000_000,
+        );
+
+        assert.equal(result.changed.length, 1);
+        assert.equal(result.tolerated.length, 0);
+      });
+
       it("should keep tolerated entries with the same shape as changed entries", () => {
         const result = compareFunctionGasSnapshots(
           [previousStandard(1000n)],

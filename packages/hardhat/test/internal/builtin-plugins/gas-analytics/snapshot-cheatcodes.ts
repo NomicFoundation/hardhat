@@ -918,6 +918,19 @@ ZGroup#entry-z: 300`;
         assert.equal(result.tolerated.length, 0);
       });
 
+      it("should flag as changed a diff from a zero baseline even with a large tolerance", () => {
+        // The percentage change from 0 is undefined, so no tolerance can
+        // absorb it.
+        const result = compareSnapshotCheatcodes(
+          previousWith("0"),
+          currentWith("1"),
+          1_000_000,
+        );
+
+        assert.equal(result.changed.length, 1);
+        assert.equal(result.tolerated.length, 0);
+      });
+
       it("should keep the exact comparison for non-numeric values even with a large tolerance", () => {
         const result = compareSnapshotCheatcodes(
           previousWith("abc"),
