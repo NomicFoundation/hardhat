@@ -8,7 +8,7 @@
     "@changesets/cli": "^2.16.0",
     "@open-rpc/typings": "^1.12.1",
     "hardhat": "workspace:*",
-    "prettier": "2.4.1",
+    "prettier": "3.9.6",
     "shelljs": "^0.8.5",
     "typescript": "^5.9.3"
   },
