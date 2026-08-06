@@ -2,7 +2,9 @@ import type {
   EthereumProvider,
   HardhatRuntimeEnvironment,
 } from "hardhat/types";
-import type { Abi, Address, Hex } from "viem";
+import type { Abi, Address, Hex } from "viem" with {
+  "resolution-mode": "import",
+};
 import type {
   DeployContractConfig,
   GetContractAtConfig,
@@ -191,7 +193,9 @@ async function innerSendDeploymentTransaction(
     hash: deploymentTxHash,
   });
 
-  const { getContractAddress } = require("viem") as typeof import("viem");
+  const { getContractAddress } = require("viem") as typeof import("viem", {
+    with: { "resolution-mode": "import" },
+  });
   const contractAddress = getContractAddress({
     from: walletClient.account.address,
     nonce: BigInt(deploymentTx.nonce),
@@ -234,7 +238,9 @@ async function innerGetContractAt(
   contractAbi: Abi,
   address: Address
 ): Promise<GetContractReturnType> {
-  const viem = require("viem") as typeof import("viem");
+  const viem = require("viem") as typeof import("viem", {
+    with: { "resolution-mode": "import" },
+  });
   const contract = viem.getContract({
     address,
     client: {

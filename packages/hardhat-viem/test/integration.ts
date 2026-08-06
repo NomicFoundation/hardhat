@@ -1,15 +1,20 @@
-import type { Hex, TransactionReceipt } from "viem";
+import type { Hex, TransactionReceipt } from "viem" with {
+  "resolution-mode": "import",
+};
 import type { EthereumProvider } from "hardhat/types";
 
 import path from "path";
 import { assert, expect } from "chai";
 import sinon from "sinon";
-import { getAddress, parseEther } from "viem";
 
 import { TASK_CLEAN, TASK_COMPILE } from "hardhat/builtin-tasks/task-names";
 import { deployContract, innerDeployContract } from "../src/internal/contracts";
 import { EthereumMockedProvider } from "./mocks/provider";
 import { assertSnapshotMatch, sleep, useEnvironment } from "./helpers";
+
+const { getAddress, parseEther } = require("viem") as typeof import("viem", {
+  with: { "resolution-mode": "import" },
+});
 
 describe("Integration tests", function () {
   afterEach(function () {
