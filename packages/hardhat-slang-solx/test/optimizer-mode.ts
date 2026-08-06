@@ -16,7 +16,7 @@ import {
 describe("hardhat-slang-solx optimizer mode reaches the solc input", () => {
   useEphemeralFixtureProject("simple");
 
-  it("defaults optimizer.mode to -O1 in the solx profile's solcInput", async () => {
+  it("defaults optimizer.mode to -O1 in the slang-solx profile's solcInput", async () => {
     const configPath = await resolveHardhatConfigPath();
     const userConfig = await importUserConfig(configPath);
     const hre = await createHardhatRuntimeEnvironment(userConfig);
@@ -28,11 +28,11 @@ describe("hardhat-slang-solx optimizer mode reaches the solc input", () => {
     const jobsResult = await hre.solidity.getCompilationJobs(rootFilePaths, {
       force: true,
       quiet: true,
-      buildProfile: "solx",
+      buildProfile: "slang-solx",
     });
     assert.ok(
       jobsResult.success,
-      "getCompilationJobs should succeed for the solx profile",
+      "getCompilationJobs should succeed for the slang-solx profile",
     );
 
     const job = [...jobsResult.compilationJobsPerFile.values()][0];

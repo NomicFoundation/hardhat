@@ -13,23 +13,26 @@ declare module "hardhat/types/solidity" {
 
 declare module "hardhat/types/config" {
   export interface SolidityCompilerTypeDefinitions {
-    solx: true;
+    // eslint-disable-next-line @typescript-eslint/naming-convention -- the compiler type discriminator is kebab-case to match the plugin name
+    "slang-solx": true;
   }
 
   export interface SlangSolxSolidityCompilerUserConfig extends CommonSolidityCompilerUserConfig {
-    type: "solx";
+    type: "slang-solx";
   }
 
   export interface SolidityCompilerUserConfigPerType {
-    solx: SlangSolxSolidityCompilerUserConfig;
+    // eslint-disable-next-line @typescript-eslint/naming-convention -- the compiler type discriminator is kebab-case to match the plugin name
+    "slang-solx": SlangSolxSolidityCompilerUserConfig;
   }
 
   export interface SlangSolxSolidityCompilerConfig extends CommonSolidityCompilerConfig {
-    type: "solx";
+    type: "slang-solx";
   }
 
   export interface SolidityCompilerConfigPerType {
-    solx: SlangSolxSolidityCompilerConfig;
+    // eslint-disable-next-line @typescript-eslint/naming-convention -- the compiler type discriminator is kebab-case to match the plugin name
+    "slang-solx": SlangSolxSolidityCompilerConfig;
   }
 
   export interface SlangSolxSingleVersionSolidityUserConfig
@@ -38,26 +41,27 @@ declare module "hardhat/types/config" {
       CommonSingleVersionSolidityUserConfig {}
 
   export interface SingleVersionSolidityUserConfigPerType {
-    solx: SlangSolxSingleVersionSolidityUserConfig;
+    // eslint-disable-next-line @typescript-eslint/naming-convention -- the compiler type discriminator is kebab-case to match the plugin name
+    "slang-solx": SlangSolxSingleVersionSolidityUserConfig;
   }
 
   export interface SlangSolxUserConfig {
     /**
-     * Allow compiler type `"solx"` in the production build profile.
-     * By default, solx in production is rejected as a safeguard.
+     * Allow compiler type `"slang-solx"` in the production build profile.
+     * By default, `"slang-solx"` in production is rejected as a safeguard.
      */
-    dangerouslyAllowSolxInProduction?: boolean;
+    dangerouslyAllowSlangSolxInProduction?: boolean;
   }
 
   export interface SlangSolxConfig {
-    dangerouslyAllowSolxInProduction: boolean;
+    dangerouslyAllowSlangSolxInProduction: boolean;
   }
 
   export interface HardhatUserConfig {
-    solx?: SlangSolxUserConfig;
+    slangSolx?: SlangSolxUserConfig;
   }
 
   export interface HardhatConfig {
-    solx: SlangSolxConfig;
+    slangSolx: SlangSolxConfig;
   }
 }

@@ -1615,7 +1615,7 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
         `Check solc ${solcVersion}'s doc for its default evm version`;
 
       // Group by compiler type + Solidity version to produce separate log
-      // lines for e.g. "solc 0.8.33" vs "solx 0.1.3 (Solidity 0.8.33)".
+      // lines for e.g. "solc 0.8.33" vs "slang-solx 0.1.3 (Solidity 0.8.33)".
       const groupKey = `${compilerType}#${solcVersion}`;
 
       let jobsPerVersion = jobsPerVersionAndEvmVersion.get(groupKey);
