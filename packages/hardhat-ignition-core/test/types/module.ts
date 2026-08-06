@@ -63,7 +63,7 @@ function _testThatEveryRuntimeValueTypeIsUsed(
 }
 
 function _testThatTheValuesOfRuntimeValueTypeMatchTheKeys<
-  ValueT extends RuntimeValueType
+  ValueT extends RuntimeValueType,
 >(type: ValueT): RuntimeValueType {
   return RuntimeValueType[type];
 }

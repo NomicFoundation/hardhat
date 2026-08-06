@@ -564,9 +564,8 @@ describe("INTEGRATION: changeTokenBalance and changeTokenBalances matchers", fun
         });
 
         it("contract is not a token", async function () {
-          const NotAToken = await this.hre.ethers.getContractFactory(
-            "NotAToken"
-          );
+          const NotAToken =
+            await this.hre.ethers.getContractFactory("NotAToken");
           const notAToken = await NotAToken.deploy();
 
           expect(() =>
@@ -623,9 +622,8 @@ describe("INTEGRATION: changeTokenBalance and changeTokenBalances matchers", fun
         });
 
         it("contract is not a token", async function () {
-          const NotAToken = await this.hre.ethers.getContractFactory(
-            "NotAToken"
-          );
+          const NotAToken =
+            await this.hre.ethers.getContractFactory("NotAToken");
           const notAToken = await NotAToken.deploy();
 
           expect(() =>

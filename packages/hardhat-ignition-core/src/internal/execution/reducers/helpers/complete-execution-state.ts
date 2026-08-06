@@ -37,7 +37,7 @@ export function completeExecutionState<
     | StaticCallExecutionState
     | SendDataExecutionState
     | CallExecutionState
-    | DeploymentExecutionState
+    | DeploymentExecutionState,
 >(
   state: ExState,
   message:

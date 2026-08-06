@@ -58,9 +58,7 @@ const debug = setupDebug("hardhat-ignition:onchain-interaction-monitor");
 export async function monitorOnchainInteraction(
   params: {
     exState:
-      | DeploymentExecutionState
-      | CallExecutionState
-      | SendDataExecutionState;
+      DeploymentExecutionState | CallExecutionState | SendDataExecutionState;
     jsonRpcClient: JsonRpcClient;
     transactionTrackingTimer: TransactionTrackingTimer;
     requiredConfirmations: number;

@@ -26,7 +26,7 @@ import { errorDeploymentResultToExceptionMessage } from "../../src/utils/error-d
 
 export type IgnitionModuleResultsTToViemContracts<
   ContractNameT extends string,
-  IgnitionModuleResultsT extends IgnitionModuleResult<ContractNameT>
+  IgnitionModuleResultsT extends IgnitionModuleResult<ContractNameT>,
 > = {
   [contract in keyof IgnitionModuleResultsT]: TypeChainViemContractByName;
 };
@@ -64,7 +64,7 @@ export class TestIgnitionHelper {
     ModuleIdT extends string,
     ContractNameT extends string,
     IgnitionModuleResultsT extends IgnitionModuleResult<ContractNameT>,
-    StrategyT extends keyof StrategyConfig = "basic"
+    StrategyT extends keyof StrategyConfig = "basic",
   >(
     ignitionModule: IgnitionModule<
       ModuleIdT,
@@ -136,7 +136,7 @@ export class TestIgnitionHelper {
   private async _toViemContracts<
     ModuleIdT extends string,
     ContractNameT extends string,
-    IgnitionModuleResultsT extends IgnitionModuleResult<ContractNameT>
+    IgnitionModuleResultsT extends IgnitionModuleResult<ContractNameT>,
   >(
     hre: HardhatRuntimeEnvironment,
     ignitionModule: IgnitionModule<

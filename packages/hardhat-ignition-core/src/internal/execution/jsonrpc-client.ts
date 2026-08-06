@@ -45,8 +45,10 @@ export interface TransactionParams {
 /**
  * The params to estimate the gas of a transaction.
  */
-export interface EstimateGasParams
-  extends Omit<TransactionParams, "gasLimit" | "fees"> {
+export interface EstimateGasParams extends Omit<
+  TransactionParams,
+  "gasLimit" | "fees"
+> {
   fees?: NetworkFees;
 }
 
@@ -625,7 +627,7 @@ export class EIP1193JsonRpcClient implements JsonRpcClient {
 
     const contractAddress =
       status === TransactionReceiptStatus.SUCCESS
-        ? response.contractAddress ?? undefined
+        ? (response.contractAddress ?? undefined)
         : undefined;
 
     return {

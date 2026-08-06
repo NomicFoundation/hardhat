@@ -27,9 +27,11 @@ import path from "path";
 
 export type IgnitionModuleResultsTToEthersContracts<
   ContractNameT extends string,
-  IgnitionModuleResultsT extends IgnitionModuleResult<ContractNameT>
+  IgnitionModuleResultsT extends IgnitionModuleResult<ContractNameT>,
 > = {
-  [contract in keyof IgnitionModuleResultsT]: IgnitionModuleResultsT[contract] extends
+  [
+    contract in keyof IgnitionModuleResultsT
+  ]: IgnitionModuleResultsT[contract] extends
     | NamedArtifactContractDeploymentFuture<ContractNameT>
     | NamedArtifactContractAtFuture<ContractNameT>
     ? TypeChainEthersContractByName<ContractNameT>
@@ -66,7 +68,7 @@ export class EthersIgnitionHelper {
     ModuleIdT extends string,
     ContractNameT extends string,
     IgnitionModuleResultsT extends IgnitionModuleResult<ContractNameT>,
-    StrategyT extends keyof StrategyConfig = "basic"
+    StrategyT extends keyof StrategyConfig = "basic",
   >(
     ignitionModule: IgnitionModule<
       ModuleIdT,
@@ -191,7 +193,7 @@ export class EthersIgnitionHelper {
   private static async _toEthersContracts<
     ModuleIdT extends string,
     ContractNameT extends string,
-    IgnitionModuleResultsT extends IgnitionModuleResult<ContractNameT>
+    IgnitionModuleResultsT extends IgnitionModuleResult<ContractNameT>,
   >(
     hre: HardhatRuntimeEnvironment,
     ignitionModule: IgnitionModule<

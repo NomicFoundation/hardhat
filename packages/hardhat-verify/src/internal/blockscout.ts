@@ -23,7 +23,10 @@ export class Blockscout {
    * @param apiUrl - The Blockscout API URL, e.g. https://eth.blockscout.com/api.
    * @param browserUrl - The Blockscout browser URL, e.g. https://eth.blockscout.com.
    */
-  constructor(public apiUrl: string, public browserUrl: string) {
+  constructor(
+    public apiUrl: string,
+    public browserUrl: string
+  ) {
     this._etherscan = new Etherscan("api_key", apiUrl, browserUrl, undefined);
   }
 

@@ -63,7 +63,7 @@ export class Deployer {
   public async deploy<
     ModuleIdT extends string,
     ContractNameT extends string,
-    IgnitionModuleResultsT extends IgnitionModuleResult<ContractNameT>
+    IgnitionModuleResultsT extends IgnitionModuleResult<ContractNameT>,
   >(
     ignitionModule: IgnitionModule<
       ModuleIdT,
@@ -218,7 +218,7 @@ export class Deployer {
   private async _getDeploymentResult<
     ModuleIdT extends string,
     ContractNameT extends string,
-    IgnitionModuleResultsT extends IgnitionModuleResult<ContractNameT>
+    IgnitionModuleResultsT extends IgnitionModuleResult<ContractNameT>,
   >(
     deploymentState: DeploymentState,
     _module: IgnitionModule<ModuleIdT, ContractNameT, IgnitionModuleResultsT>

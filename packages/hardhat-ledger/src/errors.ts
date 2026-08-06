@@ -20,7 +20,10 @@ export class HardhatLedgerNotControlledAddressError extends HardhatLedgerError {
 
   private readonly _isNotControlledAddressError = true;
 
-  constructor(message: string, public address: string) {
+  constructor(
+    message: string,
+    public address: string
+  ) {
     super(message);
   }
 }
@@ -65,7 +68,10 @@ export class HardhatLedgerDerivationPathError extends HardhatLedgerError {
 
   private readonly _isDerivationPathError = true;
 
-  constructor(message: string, public path: string) {
+  constructor(
+    message: string,
+    public path: string
+  ) {
     super(message);
   }
 }

@@ -593,9 +593,8 @@ async function doesNpmAutoInstallPeerDependencies() {
 async function installRecommendedDependencies(dependencies: Dependencies) {
   console.log("");
 
-  const installCmd = await getRecommendedDependenciesInstallationCommand(
-    dependencies
-  );
+  const installCmd =
+    await getRecommendedDependenciesInstallationCommand(dependencies);
   return installDependencies(installCmd[0], installCmd.slice(1));
 }
 

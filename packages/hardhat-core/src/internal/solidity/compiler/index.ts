@@ -39,7 +39,10 @@ export class Compiler implements ICompiler {
 }
 
 export class NativeCompiler implements ICompiler {
-  constructor(private _pathToSolc: string, private _solcVersion?: string) {}
+  constructor(
+    private _pathToSolc: string,
+    private _solcVersion?: string
+  ) {}
 
   public async compile(input: CompilerInput) {
     const args = ["--standard-json"];

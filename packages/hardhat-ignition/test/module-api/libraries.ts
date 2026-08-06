@@ -33,9 +33,8 @@ describe("libraries", () => {
   it("should be able to deploy a contract that depends on an artifact library", async function () {
     await this.hre.run("compile", { quiet: true });
 
-    const libraryArtifact = await this.hre.artifacts.readArtifact(
-      "RubbishMath"
-    );
+    const libraryArtifact =
+      await this.hre.artifacts.readArtifact("RubbishMath");
 
     const moduleDefinition = buildModule("ArtifactLibraryModule", (m) => {
       const rubbishMath = m.library("RubbishMath", libraryArtifact);

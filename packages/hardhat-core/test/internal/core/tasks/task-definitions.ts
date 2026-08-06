@@ -812,9 +812,11 @@ describe("SimpleTaskDefinition", () => {
 
         expectHardhatError(
           () =>
-            taskDefinition.addOptionalVariadicPositionalParam("p", "desc", [
-              123,
-            ]),
+            taskDefinition.addOptionalVariadicPositionalParam(
+              "p",
+              "desc",
+              [123]
+            ),
           ERRORS.TASK_DEFINITIONS.DEFAULT_VALUE_WRONG_TYPE
         );
       });

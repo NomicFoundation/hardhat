@@ -154,9 +154,7 @@ export async function listTransactions(
 function doesSendTransactions(
   exState: ExecutionState
 ): exState is
-  | DeploymentExecutionState
-  | CallExecutionState
-  | SendDataExecutionState {
+  DeploymentExecutionState | CallExecutionState | SendDataExecutionState {
   return (
     exState.type === ExecutionStateType.DEPLOYMENT_EXECUTION_STATE ||
     exState.type === ExecutionStateType.CALL_EXECUTION_STATE ||

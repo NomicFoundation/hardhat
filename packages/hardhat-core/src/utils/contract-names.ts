@@ -80,8 +80,8 @@ export function findDistance(a: string, b: string): number {
         ? _d2 + 1
         : _d0 + 1
       : _bx === _ay
-      ? _d1
-      : _d1 + 1;
+        ? _d1
+        : _d1 + 1;
   }
 
   if (a === b) {
@@ -136,7 +136,7 @@ export function findDistance(a: string, b: string): number {
 
   const len = vector.length - 1;
 
-  for (; x < lb - 3; ) {
+  for (; x < lb - 3;) {
     bx0 = b.charCodeAt(offset + (d0 = x));
     bx1 = b.charCodeAt(offset + (d1 = x + 1));
     bx2 = b.charCodeAt(offset + (d2 = x + 2));
@@ -157,7 +157,7 @@ export function findDistance(a: string, b: string): number {
     }
   }
 
-  for (; x < lb; ) {
+  for (; x < lb;) {
     bx0 = b.charCodeAt(offset + (d0 = x));
     dd = ++x;
     for (y = 0; y < len; y += 2) {

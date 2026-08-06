@@ -18,7 +18,7 @@ import { IgnitionModuleBuilder } from "./types/module-builder";
 export function buildModule<
   ModuleIdT extends string,
   ContractNameT extends string,
-  IgnitionModuleResultsT extends IgnitionModuleResult<ContractNameT>
+  IgnitionModuleResultsT extends IgnitionModuleResult<ContractNameT>,
 >(
   moduleId: ModuleIdT,
   moduleDefinitionFunction: (m: IgnitionModuleBuilder) => IgnitionModuleResultsT

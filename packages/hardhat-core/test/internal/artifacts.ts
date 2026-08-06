@@ -972,7 +972,7 @@ describe("Artifacts class", function () {
       const artifacts = new Artifacts(this.tmpDir);
 
       async function assertBuildInfoIsCorrectylSavedAndHasTheRightOutput<
-        OutputT extends CompilerOutput
+        OutputT extends CompilerOutput,
       >(solcOutput: OutputT) {
         const solcInput: CompilerInput = {
           language: "solidity",

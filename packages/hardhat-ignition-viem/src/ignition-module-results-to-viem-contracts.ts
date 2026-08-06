@@ -9,7 +9,7 @@ import { ArtifactsMap } from "hardhat/types";
 
 export type IgnitionModuleResultsToViemContracts<
   ContractNameT extends string,
-  IgnitionModuleResultsT extends IgnitionModuleResult<ContractNameT>
+  IgnitionModuleResultsT extends IgnitionModuleResult<ContractNameT>,
 > = {
   [resultKey in keyof IgnitionModuleResultsT]: ToContractType<
     IgnitionModuleResultsT,
@@ -19,27 +19,26 @@ export type IgnitionModuleResultsToViemContracts<
 
 type ToContractType<
   IgnitionModuleResultsT extends IgnitionModuleResult<string>,
-  ResultKey extends keyof IgnitionModuleResultsT
+  ResultKey extends keyof IgnitionModuleResultsT,
 > = IgnitionModuleResultsT[ResultKey] extends
-  | ContractDeploymentFuture
-  | ContractAtFuture
+  ContractDeploymentFuture | ContractAtFuture
   ? GetContractReturnType<AbiOf<IgnitionModuleResultsT[ResultKey]>>
   : LookupContractName<
-      IgnitionModuleResultsT,
-      ResultKey
-    > extends keyof ArtifactsMap
-  ? LookupContractReturnTypeForContractName<
-      LookupContractName<IgnitionModuleResultsT, ResultKey>
-    >
-  : never;
+        IgnitionModuleResultsT,
+        ResultKey
+      > extends keyof ArtifactsMap
+    ? LookupContractReturnTypeForContractName<
+        LookupContractName<IgnitionModuleResultsT, ResultKey>
+      >
+    : never;
 
 type LookupContractReturnTypeForContractName<
-  ContractName extends keyof ArtifactsMap
+  ContractName extends keyof ArtifactsMap,
 > = GetContractReturnType<ArtifactsMap[ContractName]["abi"]>;
 
 type LookupContractName<
   IgnitionModuleResultsT extends IgnitionModuleResult<string>,
-  ResultsContractKey extends keyof IgnitionModuleResultsT
+  ResultsContractKey extends keyof IgnitionModuleResultsT,
 > = ContractNameOfContractFuture<IgnitionModuleResultsT[ResultsContractKey]>;
 
 type ContractNameOfContractFuture<ContractFutureT> =
@@ -53,5 +52,5 @@ export type AbiOf<ContractDeploymentFutureT> =
   >
     ? ContractDeploymentAbi
     : ContractDeploymentFutureT extends ContractAtFuture<infer ContractAbiT>
-    ? ContractAbiT
-    : never;
+      ? ContractAbiT
+      : never;

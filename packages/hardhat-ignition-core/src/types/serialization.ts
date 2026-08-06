@@ -73,8 +73,7 @@ export interface BaseSerializedFuture {
  *
  * @beta
  */
-export interface SerializedNamedContractDeploymentFuture
-  extends BaseSerializedFuture {
+export interface SerializedNamedContractDeploymentFuture extends BaseSerializedFuture {
   type: FutureType.NAMED_ARTIFACT_CONTRACT_DEPLOYMENT;
   contractName: string;
   constructorArgs: SerializedArgumentType[];
@@ -88,8 +87,7 @@ export interface SerializedNamedContractDeploymentFuture
  *
  * @beta
  */
-export interface SerializedArtifactContractDeploymentFuture
-  extends BaseSerializedFuture {
+export interface SerializedArtifactContractDeploymentFuture extends BaseSerializedFuture {
   type: FutureType.CONTRACT_DEPLOYMENT;
   contractName: string;
   constructorArgs: SerializedArgumentType[];
@@ -104,8 +102,7 @@ export interface SerializedArtifactContractDeploymentFuture
  *
  * @beta
  */
-export interface SerializedNamedLibraryDeploymentFuture
-  extends BaseSerializedFuture {
+export interface SerializedNamedLibraryDeploymentFuture extends BaseSerializedFuture {
   type: FutureType.NAMED_ARTIFACT_LIBRARY_DEPLOYMENT;
   contractName: string;
   libraries: SerializedLibraries;
@@ -117,8 +114,7 @@ export interface SerializedNamedLibraryDeploymentFuture
  *
  * @beta
  */
-export interface SerializedArtifactLibraryDeploymentFuture
-  extends BaseSerializedFuture {
+export interface SerializedArtifactLibraryDeploymentFuture extends BaseSerializedFuture {
   type: FutureType.LIBRARY_DEPLOYMENT;
   contractName: string;
   artifact: Artifact;
@@ -131,8 +127,7 @@ export interface SerializedArtifactLibraryDeploymentFuture
  *
  * @beta
  */
-export interface SerializedNamedContractCallFuture
-  extends BaseSerializedFuture {
+export interface SerializedNamedContractCallFuture extends BaseSerializedFuture {
   type: FutureType.CONTRACT_CALL;
   functionName: string;
   contract: FutureToken;
@@ -160,8 +155,7 @@ export interface SerializedNamedStaticCallFuture extends BaseSerializedFuture {
  *
  * @beta
  */
-export interface SerializedNamedEncodeFunctionCallFuture
-  extends BaseSerializedFuture {
+export interface SerializedNamedEncodeFunctionCallFuture extends BaseSerializedFuture {
   type: FutureType.ENCODE_FUNCTION_CALL;
   functionName: string;
   contract: FutureToken;
@@ -184,8 +178,7 @@ export interface SerializedNamedContractAtFuture extends BaseSerializedFuture {
  *
  * @beta
  */
-export interface SerializedArtifactContractAtFuture
-  extends BaseSerializedFuture {
+export interface SerializedArtifactContractAtFuture extends BaseSerializedFuture {
   type: FutureType.CONTRACT_AT;
   contractName: string;
   address: string | FutureToken | SerializedModuleParameterRuntimeValue;
@@ -197,8 +190,7 @@ export interface SerializedArtifactContractAtFuture
  *
  * @beta
  */
-export interface SerializedReadEventArgumentFuture
-  extends BaseSerializedFuture {
+export interface SerializedReadEventArgumentFuture extends BaseSerializedFuture {
   type: FutureType.READ_EVENT_ARGUMENT;
   futureToReadFrom: FutureToken;
   eventName: string;
@@ -230,8 +222,7 @@ export interface SerializedSendDataFuture extends BaseSerializedFuture {
  * @beta
  */
 export type SerializedRuntimeValue =
-  | SerializedAccountRuntimeValue
-  | SerializedModuleParameterRuntimeValue;
+  SerializedAccountRuntimeValue | SerializedModuleParameterRuntimeValue;
 
 /**
  * The serialized version of AccountRuntimeValue.

@@ -480,7 +480,7 @@ export function getValidationErrors(config: any): string[] {
         Object.entries(hardhatNetwork.chains).forEach((chainEntry) => {
           const [chainId, chainConfig] = chainEntry as [
             string,
-            HardhatNetworkChainUserConfig
+            HardhatNetworkChainUserConfig,
           ];
           const { hardforkHistory } = chainConfig;
           if (hardforkHistory !== undefined) {

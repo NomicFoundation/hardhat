@@ -229,9 +229,8 @@ describe("hardhat ethers signer", function () {
         this.skip();
       }
 
-      const signerConnectedToHardhat = await this.env.ethers.provider.getSigner(
-        0
-      );
+      const signerConnectedToHardhat =
+        await this.env.ethers.provider.getSigner(0);
 
       const nonceInHardhat = await signerConnectedToHardhat.getNonce();
 
@@ -349,18 +348,16 @@ describe("hardhat ethers signer", function () {
         const sender = await this.env.ethers.provider.getSigner(0);
         const receiver = await this.env.ethers.provider.getSigner(1);
 
-        const balanceBefore = await this.env.ethers.provider.getBalance(
-          receiver
-        );
+        const balanceBefore =
+          await this.env.ethers.provider.getBalance(receiver);
 
         await sender.sendTransaction({
           to: receiver,
           value: this.env.ethers.parseEther("1"),
         });
 
-        const balanceAfter = await this.env.ethers.provider.getBalance(
-          receiver
-        );
+        const balanceAfter =
+          await this.env.ethers.provider.getBalance(receiver);
 
         const balanceDifference = balanceAfter - balanceBefore;
 

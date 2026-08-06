@@ -70,8 +70,7 @@ export type RpcAuthorizationListOutput = Array<{
   s: string;
 }>;
 
-export interface AccessListEIP2930RpcTransactionOutput
-  extends BaseRpcTransactionOutput {
+export interface AccessListEIP2930RpcTransactionOutput extends BaseRpcTransactionOutput {
   gasPrice: string;
   accessList?: RpcAccessListOutput;
   chainId: string;
@@ -85,8 +84,7 @@ export interface EIP1559RpcTransactionOutput extends BaseRpcTransactionOutput {
   chainId: string;
 }
 
-export interface EOACodeEIP7702TransactionOutput
-  extends EIP1559RpcTransactionOutput {
+export interface EOACodeEIP7702TransactionOutput extends EIP1559RpcTransactionOutput {
   authorizationList?: RpcAuthorizationListOutput;
 }
 

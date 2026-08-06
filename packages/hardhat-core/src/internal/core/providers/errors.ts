@@ -37,7 +37,11 @@ export class ProviderError extends CustomError implements ProviderRpcError {
 
   private readonly _isProviderError;
 
-  constructor(message: string, code: number, public readonly parent?: Error) {
+  constructor(
+    message: string,
+    code: number,
+    public readonly parent?: Error
+  ) {
     super(message, parent);
     this.code = code;
 

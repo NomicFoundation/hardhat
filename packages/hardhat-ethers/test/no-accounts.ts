@@ -67,9 +67,8 @@ describe("hardhat-ethers plugin", function () {
           const signers = await this.env.ethers.getSigners();
           assert.isEmpty(signers);
 
-          const greeterArtifact = await this.env.artifacts.readArtifact(
-            "Greeter"
-          );
+          const greeterArtifact =
+            await this.env.artifacts.readArtifact("Greeter");
 
           const contract = await this.env.ethers.getContractAt(
             greeterArtifact.abi,

@@ -182,9 +182,8 @@ describe("Integration tests", function () {
       });
 
       it("should be able to deploy a contract with normal library linked", async function () {
-        const normalLibContract = await this.hre.viem.deployContract(
-          "NormalLib"
-        );
+        const normalLibContract =
+          await this.hre.viem.deployContract("NormalLib");
 
         const contract = await this.hre.viem.deployContract(
           "OnlyNormalLib",
@@ -355,9 +354,8 @@ describe("Integration tests", function () {
           `The library name "ConstructorLib" was linked but it's not referenced by the "NormalLib" contract.`
         );
 
-        const numberLibContract = await this.hre.viem.deployContract(
-          "NormalLib"
-        );
+        const numberLibContract =
+          await this.hre.viem.deployContract("NormalLib");
 
         await expect(
           this.hre.viem.deployContract("OnlyConstructorLib", [], {

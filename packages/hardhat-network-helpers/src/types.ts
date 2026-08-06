@@ -8,10 +8,6 @@ interface BNLike {
 }
 
 export type NumberLike =
-  | number
-  | bigint
-  | string
-  | EthersBigNumberLike
-  | BNLike;
+  number | bigint | string | EthersBigNumberLike | BNLike;
 
 export type BlockTag = "latest" | "earliest" | "pending";

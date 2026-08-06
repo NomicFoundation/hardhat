@@ -373,9 +373,8 @@ async function main() {
       // we notify of new versions only if the tests failed
       if (process.exitCode !== 0) {
         try {
-          const { showNewVersionNotification } = await import(
-            "./version-notifier"
-          );
+          const { showNewVersionNotification } =
+            await import("./version-notifier");
           await showNewVersionNotification();
         } catch {
           // ignore possible version notifier errors

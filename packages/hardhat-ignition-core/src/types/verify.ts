@@ -46,5 +46,4 @@ export interface VerifyInfo {
  * @beta
  */
 export type VerifyResult =
-  | [ChainConfig, VerifyInfo]
-  | [_null: null, name: string];
+  [ChainConfig, VerifyInfo] | [_null: null, name: string];
