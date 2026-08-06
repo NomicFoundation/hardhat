@@ -620,7 +620,7 @@ ZGroup#entry-z: 300`;
 
   describe("compareSnapshotCheatcodes", () => {
     it("should return empty comparison when both snapshots are empty", () => {
-      const result = compareSnapshotCheatcodes(new Map(), new Map());
+      const result = compareSnapshotCheatcodes(new Map(), new Map(), 0);
 
       assert.deepEqual(result, {
         added: [],
@@ -644,7 +644,7 @@ ZGroup#entry-z: 300`;
         ],
       ]);
 
-      const result = compareSnapshotCheatcodes(previous, current);
+      const result = compareSnapshotCheatcodes(previous, current, 0);
 
       assert.equal(result.added.length, 1);
       assert.equal(result.removed.length, 0);
@@ -662,7 +662,7 @@ ZGroup#entry-z: 300`;
       ]);
       const current: SnapshotCheatcodesWithMetadataMap = new Map();
 
-      const result = compareSnapshotCheatcodes(previous, current);
+      const result = compareSnapshotCheatcodes(previous, current, 0);
 
       assert.equal(result.added.length, 0);
       assert.equal(result.removed.length, 1);
@@ -690,7 +690,7 @@ ZGroup#entry-z: 300`;
         ],
       ]);
 
-      const result = compareSnapshotCheatcodes(previous, current);
+      const result = compareSnapshotCheatcodes(previous, current, 0);
 
       assert.equal(result.added.length, 0);
       assert.equal(result.removed.length, 0);
@@ -746,7 +746,7 @@ ZGroup#entry-z: 300`;
         ],
       ]);
 
-      const result = compareSnapshotCheatcodes(previous, current);
+      const result = compareSnapshotCheatcodes(previous, current, 0);
 
       assert.equal(result.added.length, 1);
       assert.equal(result.removed.length, 1);
@@ -775,7 +775,7 @@ ZGroup#entry-z: 300`;
         ],
       ]);
 
-      const result = compareSnapshotCheatcodes(previous, current);
+      const result = compareSnapshotCheatcodes(previous, current, 0);
 
       assert.equal(result.added.length, 0);
       assert.equal(result.removed.length, 0);
@@ -831,7 +831,7 @@ ZGroup#entry-z: 300`;
         ],
       ]);
 
-      const result = compareSnapshotCheatcodes(previous, current);
+      const result = compareSnapshotCheatcodes(previous, current, 0);
 
       assert.equal(result.added.length, 4);
       assert.equal(
@@ -946,6 +946,7 @@ ZGroup#entry-z: 300`;
         const result = compareSnapshotCheatcodes(
           previousWith("100"),
           currentWith("1e2"),
+          0,
         );
 
         assert.equal(result.changed.length, 1);
@@ -1228,6 +1229,7 @@ ZGroup#entry-z: 300`;
       const comparison = compareSnapshotCheatcodes(
         previous,
         snapshotCheatcodes,
+        0,
       );
 
       assert.deepEqual(comparison, {

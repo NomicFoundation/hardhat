@@ -176,7 +176,7 @@ export function logSnapshotResult(
 export async function handleSnapshotCheck(
   basePath: string,
   suiteResults: SuiteResult[],
-  tolerance: number = 0,
+  tolerance: number,
 ): Promise<SnapshotCheckResult> {
   const functionGasSnapshotsCheck = await checkFunctionGasSnapshots(
     basePath,

@@ -286,6 +286,7 @@ describe("solidity-test/task-action (override in gas-analytics/index)", () => {
         const { functionGasSnapshotsCheck } = await handleSnapshotCheck(
           tmp.path,
           suiteResults,
+          0,
         );
 
         // Checking with no stored snapshot is a mistake: it must fail.
@@ -312,6 +313,7 @@ describe("solidity-test/task-action (override in gas-analytics/index)", () => {
         const { functionGasSnapshotsCheck } = await handleSnapshotCheck(
           tmp.path,
           suiteResults,
+          0,
         );
 
         assert.equal(functionGasSnapshotsCheck.passed, true);
@@ -341,6 +343,7 @@ describe("solidity-test/task-action (override in gas-analytics/index)", () => {
         const { functionGasSnapshotsCheck } = await handleSnapshotCheck(
           tmp.path,
           changedResults,
+          0,
         );
 
         assert.equal(functionGasSnapshotsCheck.passed, false);
@@ -375,6 +378,7 @@ describe("solidity-test/task-action (override in gas-analytics/index)", () => {
         const { functionGasSnapshotsCheck } = await handleSnapshotCheck(
           tmp.path,
           withAddedResults,
+          0,
         );
 
         assert.equal(functionGasSnapshotsCheck.passed, true);
@@ -410,6 +414,7 @@ describe("solidity-test/task-action (override in gas-analytics/index)", () => {
         const { functionGasSnapshotsCheck } = await handleSnapshotCheck(
           tmp.path,
           withRemovedResults,
+          0,
         );
 
         assert.equal(functionGasSnapshotsCheck.passed, true);
@@ -432,6 +437,7 @@ describe("solidity-test/task-action (override in gas-analytics/index)", () => {
         const { functionGasSnapshotsCheck } = await handleSnapshotCheck(
           tmp.path,
           suiteResults,
+          0,
         );
 
         assert.equal(functionGasSnapshotsCheck.passed, true);
@@ -459,6 +465,7 @@ describe("solidity-test/task-action (override in gas-analytics/index)", () => {
         const { snapshotCheatcodesCheck } = await handleSnapshotCheck(
           tmp.path,
           suiteResults,
+          0,
         );
 
         // Checking with no stored snapshots is a mistake: it must fail.
@@ -486,6 +493,7 @@ describe("solidity-test/task-action (override in gas-analytics/index)", () => {
         const { snapshotCheatcodesCheck } = await handleSnapshotCheck(
           tmp.path,
           suiteResults,
+          0,
         );
 
         assert.equal(snapshotCheatcodesCheck.passed, true);
@@ -513,6 +521,7 @@ describe("solidity-test/task-action (override in gas-analytics/index)", () => {
         const { snapshotCheatcodesCheck } = await handleSnapshotCheck(
           tmp.path,
           suiteResults,
+          0,
         );
 
         assert.equal(snapshotCheatcodesCheck.passed, true);
@@ -555,6 +564,7 @@ describe("solidity-test/task-action (override in gas-analytics/index)", () => {
         const { snapshotCheatcodesCheck } = await handleSnapshotCheck(
           tmp.path,
           changedResults,
+          0,
         );
 
         assert.equal(snapshotCheatcodesCheck.passed, false);
@@ -604,6 +614,7 @@ describe("solidity-test/task-action (override in gas-analytics/index)", () => {
         const { snapshotCheatcodesCheck } = await handleSnapshotCheck(
           tmp.path,
           withAddedResults,
+          0,
         );
 
         assert.equal(snapshotCheatcodesCheck.passed, true);
@@ -653,6 +664,7 @@ describe("solidity-test/task-action (override in gas-analytics/index)", () => {
         const { snapshotCheatcodesCheck } = await handleSnapshotCheck(
           tmp.path,
           withRemovedResults,
+          0,
         );
 
         assert.equal(snapshotCheatcodesCheck.passed, true);
@@ -710,6 +722,7 @@ describe("solidity-test/task-action (override in gas-analytics/index)", () => {
         const { snapshotCheatcodesCheck } = await handleSnapshotCheck(
           tmp.path,
           scopedResults,
+          0,
         );
 
         assert.equal(snapshotCheatcodesCheck.passed, true);
