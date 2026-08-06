@@ -80,7 +80,7 @@ describe("solidityTestConfigToSolidityTestRunnerConfigArgs", () => {
     }
   });
 
-  it("should only always collect stack traces at verbosity 5 and above", async () => {
+  it("should only collect stack traces at verbosity 5 and above", async () => {
     for (const verbosity of [1, 2, 3, 4, 5, 6, 7]) {
       const args = await solidityTestConfigToSolidityTestRunnerConfigArgs({
         chainType: GENERIC_CHAIN_TYPE,
