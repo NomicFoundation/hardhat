@@ -28,6 +28,10 @@ import {
 
 export const SNAPSHOT_CHEATCODES_DIR = "snapshots";
 
+// Snapshot cheatcode values are uint256 decimal strings, so a stored value
+// that doesn't match this can only come from a hand-edited or corrupted file.
+const SNAPSHOT_VALUE_REGEX = /^\d+$/;
+
 export interface RenamedSnapshotGroup {
   original: string;
   sanitized: string;
@@ -68,8 +72,9 @@ export interface SnapshotCheatcode {
 export interface SnapshotCheatcodeChange {
   group: string;
   name: string;
-  // Raw snapshot values: cheatcode snapshots can be arbitrary strings, not
-  // just numbers, so they are preserved as-is.
+  // Raw snapshot values: uint256 decimal strings, kept as strings because
+  // they can exceed Number.MAX_SAFE_INTEGER and coercing them to `number`
+  // would round them.
   expected: string;
   actual: string;
   source: string;
@@ -284,12 +289,23 @@ export async function readSnapshotCheatcodes(
         );
       }
 
-      // The file is user-editable, so values may not be strings (e.g. a
-      // hand-written JSON number). Normalize them, as the rest of the
-      // snapshot cheatcode logic assumes string values.
+      // Snapshot cheatcode values are always machine-generated uint256
+      // decimal strings (vm.snapshotValue/vm.snapshotGas*), so anything else
+      // can only come from a hand-edited or corrupted file. This also rejects
+      // hand-written unquoted JSON numbers (`100` instead of `"100"`).
       const snapshot: Record<string, string> = {};
       for (const [name, value] of Object.entries(parsedSnapshot)) {
-        snapshot[name] = typeof value === "string" ? value : String(value);
+        if (typeof value !== "string" || !SNAPSHOT_VALUE_REGEX.test(value)) {
+          throw new HardhatError(
+            HardhatError.ERRORS.CORE.SOLIDITY_TESTS.SNAPSHOT_READ_ERROR,
+            {
+              snapshotsPath: snapshotCheatcodesPath,
+              error: `Invalid value ${JSON.stringify(value)} for "${name}". Snapshot values must be decimal integer strings`,
+            },
+          );
+        }
+
+        snapshot[name] = value;
       }
 
       snapshots.set(snapshotGroup, snapshot);
@@ -344,13 +360,11 @@ export function compareSnapshotCheatcodes(
             source: currentEntry.metadata.source,
           };
 
-          // The tolerance only applies when both values are strictly numeric;
-          // otherwise the exact string comparison stands. Snapshot cheatcode
-          // values can be arbitrary strings, unlike function gas snapshots.
+          // Values above 2^53 lose precision when coerced to `number`, but
+          // the resulting relative error (~1e-14%) is far below any usable
+          // tolerance, so it can't change the outcome of this check.
           if (
             tolerance > 0 &&
-            isStrictlyNumeric(previousValue) &&
-            isStrictlyNumeric(currentEntry.value) &&
             isWithinTolerance(
               Number(previousValue),
               Number(currentEntry.value),
@@ -388,15 +402,6 @@ export function compareSnapshotCheatcodes(
     tolerated: tolerated.sort(sortByKey),
   };
 }
-
-// The emptiness check is needed because `Number("")` is `0`, so a bare
-// `Number.isFinite(Number(value))` would treat empty/whitespace values as
-// numeric.
-function isStrictlyNumeric(value: string): boolean {
-  return value.trim() !== "" && Number.isFinite(Number(value));
-}
-
-const INTEGER_REGEX = /^-?\d+$/;
 
 export async function checkSnapshotCheatcodes(
   basePath: string,
@@ -533,29 +538,9 @@ export function printSnapshotCheatcodeChanges(
 
     logger(styleText("grey", `    Expected: ${change.expected}`));
 
-    // The diff and percentage only make sense when both values are numeric;
-    // snapshot cheatcode values can be arbitrary strings.
-    if (
-      !isStrictlyNumeric(change.expected) ||
-      !isStrictlyNumeric(change.actual)
-    ) {
-      logger(styleText("grey", `    Actual:   ${change.actual}`));
-
-      if (!isLast) {
-        logger();
-      }
-
-      continue;
-    }
-
-    // Gas values are integer strings that can exceed 2^53, so the exact diff
-    // needs BigInt. Non-integer numeric values (e.g. "1.5") use float math.
-    const bothIntegers =
-      INTEGER_REGEX.test(change.expected) && INTEGER_REGEX.test(change.actual);
-
-    const diff = bothIntegers
-      ? BigInt(change.actual) - BigInt(change.expected)
-      : Number(change.actual) - Number(change.expected);
+    // Snapshot values are uint256 decimal strings that can exceed 2^53, so
+    // the exact diff needs BigInt.
+    const diff = BigInt(change.actual) - BigInt(change.expected);
 
     const formattedDiff = diff > 0 ? `Δ+${diff}` : `Δ${diff}`;
 
