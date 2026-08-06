@@ -51,7 +51,7 @@ export interface GetContractAtConfig {
 }
 
 export type GetContractReturnType<
-  TAbi extends viemT.Abi | readonly unknown[] = viemT.Abi
+  TAbi extends viemT.Abi | readonly unknown[] = viemT.Abi,
 > = viemT.GetContractReturnType<TAbi, Required<KeyedClient>, viemT.Address>;
 
 export type GetTransactionReturnType = viemT.GetTransactionReturnType<

@@ -90,9 +90,8 @@ describe("hardhat ethers provider", function () {
         randomAddress,
       ]);
 
-      const impersonatedSigner = await this.env.ethers.provider.getSigner(
-        randomAddress
-      );
+      const impersonatedSigner =
+        await this.env.ethers.provider.getSigner(randomAddress);
 
       // shouldn't revert
       await impersonatedSigner.sendTransaction({
@@ -297,9 +296,8 @@ describe("hardhat ethers provider", function () {
 
     it("should return the transaction count of a signer", async function () {
       const signer = await this.env.ethers.provider.getSigner(0);
-      const balance = await this.env.ethers.provider.getTransactionCount(
-        signer
-      );
+      const balance =
+        await this.env.ethers.provider.getTransactionCount(signer);
 
       assert.strictEqual(balance, 0);
     });

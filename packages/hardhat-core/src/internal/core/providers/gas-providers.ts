@@ -11,7 +11,10 @@ import { ProviderWrapper } from "./wrapper";
 const DEFAULT_GAS_MULTIPLIER = 1;
 
 export class FixedGasProvider extends ProviderWrapper {
-  constructor(provider: EIP1193Provider, private readonly _gasLimit: number) {
+  constructor(
+    provider: EIP1193Provider,
+    private readonly _gasLimit: number
+  ) {
     super(provider);
   }
 
@@ -31,7 +34,10 @@ export class FixedGasProvider extends ProviderWrapper {
 }
 
 export class FixedGasPriceProvider extends ProviderWrapper {
-  constructor(provider: EIP1193Provider, private readonly _gasPrice: number) {
+  constructor(
+    provider: EIP1193Provider,
+    private readonly _gasPrice: number
+  ) {
     super(provider);
   }
 

@@ -197,9 +197,8 @@ export async function sendTransactionForOnchainInteraction(
   // And to get the return data, which we will need to decode the error if the
   // simulation fails.
   const simulationResult = await client.call(transactionParams, "pending");
-  const decodedSimulationResult = await decodeSimulationResult(
-    simulationResult
-  );
+  const decodedSimulationResult =
+    await decodeSimulationResult(simulationResult);
 
   if (decodedSimulationResult !== undefined) {
     return decodedSimulationResult;

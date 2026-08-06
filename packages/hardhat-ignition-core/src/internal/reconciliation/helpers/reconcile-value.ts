@@ -24,9 +24,7 @@ export function reconcileValue(
     | ContractCallFuture<string, string>
     | SendDataFuture,
   exState:
-    | DeploymentExecutionState
-    | CallExecutionState
-    | SendDataExecutionState,
+    DeploymentExecutionState | CallExecutionState | SendDataExecutionState,
   context: ReconciliationContext
 ): ReconciliationFutureResultFailure | undefined {
   const resolvedValue = resolveValue(

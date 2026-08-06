@@ -66,9 +66,8 @@ export async function getSigner(
   hre: HardhatRuntimeEnvironment,
   address: string
 ): Promise<HardhatEthersSigner> {
-  const { HardhatEthersSigner: SignerWithAddressImpl } = await import(
-    "../signers"
-  );
+  const { HardhatEthersSigner: SignerWithAddressImpl } =
+    await import("../signers");
 
   const signerWithAddress = await SignerWithAddressImpl.create(
     hre.ethers.provider,
@@ -88,7 +87,7 @@ export async function getImpersonatedSigner(
 
 export function getContractFactory<
   A extends any[] = any[],
-  I = EthersT.Contract
+  I = EthersT.Contract,
 >(
   hre: HardhatRuntimeEnvironment,
   name: string,
@@ -97,7 +96,7 @@ export function getContractFactory<
 
 export function getContractFactory<
   A extends any[] = any[],
-  I = EthersT.Contract
+  I = EthersT.Contract,
 >(
   hre: HardhatRuntimeEnvironment,
   abi: any[],
@@ -107,13 +106,12 @@ export function getContractFactory<
 
 export async function getContractFactory<
   A extends any[] = any[],
-  I = EthersT.Contract
+  I = EthersT.Contract,
 >(
   hre: HardhatRuntimeEnvironment,
   nameOrAbi: string | any[],
   bytecodeOrFactoryOptions?:
-    | (EthersT.Signer | FactoryOptions)
-    | EthersT.BytesLike,
+    (EthersT.Signer | FactoryOptions) | EthersT.BytesLike,
   signer?: EthersT.Signer
 ): Promise<EthersT.ContractFactory<A, I>> {
   if (typeof nameOrAbi === "string") {
@@ -146,7 +144,7 @@ function isFactoryOptions(
 
 export async function getContractFactoryFromArtifact<
   A extends any[] = any[],
-  I = EthersT.Contract
+  I = EthersT.Contract,
 >(
   hre: HardhatRuntimeEnvironment,
   artifact: Artifact,
@@ -305,7 +303,7 @@ Learn more about linking contracts at https://v2.hardhat.org/hardhat-runner/plug
 
 async function getContractFactoryByAbiAndBytecode<
   A extends any[] = any[],
-  I = EthersT.Contract
+  I = EthersT.Contract,
 >(
   hre: HardhatRuntimeEnvironment,
   abi: any[],

@@ -159,7 +159,7 @@ describe("BigNumber matchers", function () {
       "greaterThanOrEqual",
       "lessThanOrEqual",
     ] as const;
-    type Operator = typeof operators[number];
+    type Operator = (typeof operators)[number];
 
     interface SuccessCaseWithOperator extends SuccessCase {
       operator: Operator;
@@ -611,7 +611,7 @@ describe("BigNumber matchers", function () {
       "greaterThanOrEqual",
       "lessThanOrEqual",
     ] as const;
-    type Operator = typeof operators[number];
+    type Operator = (typeof operators)[number];
 
     interface SuccessCase {
       operator: Operator;
@@ -965,7 +965,7 @@ describe("BigNumber matchers", function () {
     }
 
     const operators = ["within", "closeTo", "approximately"] as const;
-    type Operator = typeof operators[number];
+    type Operator = (typeof operators)[number];
 
     interface SuccessCase {
       operator: Operator;

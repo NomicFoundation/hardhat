@@ -162,8 +162,8 @@ export async function complete({
     taskName === undefined
       ? undefined
       : scopeDefinition === undefined
-      ? tasks[taskName]
-      : scopeDefinition.tasks[taskName];
+        ? tasks[taskName]
+        : scopeDefinition.tasks[taskName];
 
   // if the previous word is a param, then a value is expected
   // we don't complete anything here

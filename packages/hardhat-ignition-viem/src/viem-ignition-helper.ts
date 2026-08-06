@@ -59,7 +59,7 @@ export class ViemIgnitionHelper {
     ModuleIdT extends string,
     ContractNameT extends string,
     IgnitionModuleResultsT extends IgnitionModuleResult<ContractNameT>,
-    StrategyT extends keyof StrategyConfig = "basic"
+    StrategyT extends keyof StrategyConfig = "basic",
   >(
     ignitionModule: IgnitionModule<
       ModuleIdT,
@@ -181,7 +181,7 @@ export class ViemIgnitionHelper {
   private static async _toViemContracts<
     ModuleIdT extends string,
     ContractNameT extends string,
-    IgnitionModuleResultsT extends IgnitionModuleResult<ContractNameT>
+    IgnitionModuleResultsT extends IgnitionModuleResult<ContractNameT>,
   >(
     hre: HardhatRuntimeEnvironment,
     ignitionModule: IgnitionModule<
@@ -270,9 +270,7 @@ export class ViemIgnitionHelper {
   private static async _convertArtifactToViemContract(
     hre: HardhatRuntimeEnvironment,
     future:
-      | ContractDeploymentFuture
-      | LibraryDeploymentFuture
-      | ContractAtFuture,
+      ContractDeploymentFuture | LibraryDeploymentFuture | ContractAtFuture,
     deployedContract: { address: string }
   ): Promise<GetContractReturnType> {
     const publicClient = await hre.viem.getPublicClient();

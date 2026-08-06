@@ -37,9 +37,7 @@ import {
  */
 async function replayExecutionStrategyWithOnchainInteractions(
   executionState:
-    | DeploymentExecutionState
-    | CallExecutionState
-    | SendDataExecutionState,
+    DeploymentExecutionState | CallExecutionState | SendDataExecutionState,
   strategy: ExecutionStrategy
 ): Promise<
   | DeploymentStrategyGenerator

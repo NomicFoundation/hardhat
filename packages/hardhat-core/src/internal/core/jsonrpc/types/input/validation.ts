@@ -13,7 +13,7 @@ import { InvalidArgumentsError } from "../../../providers/errors";
  * TODO: The type can probably be improved, removing the anys
  */
 export function validateParams<
-  TypesT extends ReadonlyArray<t.Type<any, any, any>>
+  TypesT extends ReadonlyArray<t.Type<any, any, any>>,
 >(
   params: any[],
   ...types: TypesT

@@ -10,7 +10,10 @@ export class LazyTruffleContractProvisioner {
     [contractName: string]: string;
   } = {};
 
-  constructor(web3: any, private readonly _networkConfig: NetworkConfig) {
+  constructor(
+    web3: any,
+    private readonly _networkConfig: NetworkConfig
+  ) {
     this._web3 = web3;
   }
 

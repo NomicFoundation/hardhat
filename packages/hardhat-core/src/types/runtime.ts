@@ -128,8 +128,9 @@ export interface OptionalParamDefinition<T> extends ParamDefinition<T> {
   isOptional: true;
 }
 
-export interface CLIOptionalParamDefinition<T>
-  extends OptionalParamDefinition<T> {
+export interface CLIOptionalParamDefinition<
+  T,
+> extends OptionalParamDefinition<T> {
   type: CLIArgumentType<T>;
 }
 

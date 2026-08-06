@@ -72,9 +72,8 @@ subtask(TASK_COMPILE_VYPER_GET_SOURCE_NAMES)
       { sourcePaths }: { sourcePaths: string[] },
       { config }
     ): Promise<string[]> => {
-      const { localPathToSourceName } = await import(
-        "hardhat/utils/source-names"
-      );
+      const { localPathToSourceName } =
+        await import("hardhat/utils/source-names");
       const sourceNames = await Promise.all(
         sourcePaths.map((p) => localPathToSourceName(config.paths.root, p))
       );
@@ -103,9 +102,8 @@ subtask(TASK_COMPILE_VYPER_GET_BUILD)
       { quiet, vyperVersion }: { quiet: boolean; vyperVersion: string },
       { run }
     ): Promise<VyperBuild> => {
-      const { getCompilersDir } = await import(
-        "hardhat/internal/util/global-dir"
-      );
+      const { getCompilersDir } =
+        await import("hardhat/internal/util/global-dir");
       const compilersCache = await getCompilersDir();
       const downloader = new CompilerDownloader(compilersCache);
 
@@ -218,9 +216,8 @@ subtask(TASK_COMPILE_VYPER)
   .addParam("quiet", undefined, undefined, types.boolean)
   .setAction(
     async ({ quiet }: { quiet: boolean }, { artifacts, config, run }) => {
-      const { VyperFilesCache, getVyperFilesCachePath } = await import(
-        "./cache"
-      );
+      const { VyperFilesCache, getVyperFilesCachePath } =
+        await import("./cache");
       const { Parser } = await import("./parser");
       const { Resolver } = await import("./resolver");
 
@@ -234,9 +231,8 @@ subtask(TASK_COMPILE_VYPER)
       );
 
       const vyperFilesCachePath = getVyperFilesCachePath(config.paths);
-      let vyperFilesCache = await VyperFilesCache.readFromFile(
-        vyperFilesCachePath
-      );
+      let vyperFilesCache =
+        await VyperFilesCache.readFromFile(vyperFilesCachePath);
 
       const parser = new Parser(vyperFilesCache);
       const resolver = new Resolver(
@@ -347,9 +343,8 @@ ${list}`
           }
         );
 
-        const { localPathToSourceName } = await import(
-          "hardhat/utils/source-names"
-        );
+        const { localPathToSourceName } =
+          await import("hardhat/utils/source-names");
 
         for (const [contractSourceIdentifier, output] of Object.entries(
           contracts

@@ -9,7 +9,7 @@ export function getApiKeyAndUrls(
   apiKey: string,
   apiUrl: string,
   webUrl: string,
-  chainId: number | undefined
+  chainId: number | undefined,
 ] {
   const apiKey: string =
     typeof etherscanApiKey === "string"

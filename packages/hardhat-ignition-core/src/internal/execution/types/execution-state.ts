@@ -57,7 +57,7 @@ export type ConcreteExecutionConfig = Record<string, number | string>;
  */
 interface BaseExecutionState<
   ExecutionStateT extends ExecutionStateType,
-  FutureTypeT extends FutureType
+  FutureTypeT extends FutureType,
 > {
   id: string;
   type: ExecutionStateT;
@@ -79,11 +79,10 @@ export type DeploymentExecutionStateFutureTypes =
  * The execution state used for the different kinds of futures
  * that deploy contracts.
  */
-export interface DeploymentExecutionState
-  extends BaseExecutionState<
-    ExecutionStateType.DEPLOYMENT_EXECUTION_STATE,
-    DeploymentExecutionStateFutureTypes
-  > {
+export interface DeploymentExecutionState extends BaseExecutionState<
+  ExecutionStateType.DEPLOYMENT_EXECUTION_STATE,
+  DeploymentExecutionStateFutureTypes
+> {
   artifactId: string;
   contractName: string;
   constructorArgs: SolidityParameterType[];
@@ -97,11 +96,10 @@ export interface DeploymentExecutionState
 /**
  * An execution state used for the future that performs on-chain calls to contracts.
  */
-export interface CallExecutionState
-  extends BaseExecutionState<
-    ExecutionStateType.CALL_EXECUTION_STATE,
-    FutureType.CONTRACT_CALL
-  > {
+export interface CallExecutionState extends BaseExecutionState<
+  ExecutionStateType.CALL_EXECUTION_STATE,
+  FutureType.CONTRACT_CALL
+> {
   artifactId: string;
   contractAddress: string;
   functionName: string;
@@ -118,11 +116,10 @@ export interface CallExecutionState
  * Static calls' network interactions are limited to `StaticCall`. They cannot
  * perform any on-chain interaction.
  */
-export interface StaticCallExecutionState
-  extends BaseExecutionState<
-    ExecutionStateType.STATIC_CALL_EXECUTION_STATE,
-    FutureType.STATIC_CALL
-  > {
+export interface StaticCallExecutionState extends BaseExecutionState<
+  ExecutionStateType.STATIC_CALL_EXECUTION_STATE,
+  FutureType.STATIC_CALL
+> {
   artifactId: string;
   contractAddress: string;
   functionName: string;
@@ -141,11 +138,10 @@ export interface StaticCallExecutionState
  *
  * Their execution is immediately completed.
  */
-export interface EncodeFunctionCallExecutionState
-  extends BaseExecutionState<
-    ExecutionStateType.ENCODE_FUNCTION_CALL_EXECUTION_STATE,
-    FutureType.ENCODE_FUNCTION_CALL
-  > {
+export interface EncodeFunctionCallExecutionState extends BaseExecutionState<
+  ExecutionStateType.ENCODE_FUNCTION_CALL_EXECUTION_STATE,
+  FutureType.ENCODE_FUNCTION_CALL
+> {
   artifactId: string;
   functionName: string;
   args: SolidityParameterType[];
@@ -155,11 +151,10 @@ export interface EncodeFunctionCallExecutionState
 /**
  * An execution state that tracks the execution of an arbitrary send data future.
  */
-export interface SendDataExecutionState
-  extends BaseExecutionState<
-    ExecutionStateType.SEND_DATA_EXECUTION_STATE,
-    FutureType.SEND_DATA
-  > {
+export interface SendDataExecutionState extends BaseExecutionState<
+  ExecutionStateType.SEND_DATA_EXECUTION_STATE,
+  FutureType.SEND_DATA
+> {
   to: string;
   data: string;
   value: bigint;
@@ -176,11 +171,10 @@ export interface SendDataExecutionState
  *
  * Their execution is immediately completed.
  */
-export interface ContractAtExecutionState
-  extends BaseExecutionState<
-    ExecutionStateType.CONTRACT_AT_EXECUTION_STATE,
-    FutureType.NAMED_ARTIFACT_CONTRACT_AT | FutureType.CONTRACT_AT
-  > {
+export interface ContractAtExecutionState extends BaseExecutionState<
+  ExecutionStateType.CONTRACT_AT_EXECUTION_STATE,
+  FutureType.NAMED_ARTIFACT_CONTRACT_AT | FutureType.CONTRACT_AT
+> {
   artifactId: string;
   contractName: string;
   contractAddress: string;
@@ -192,11 +186,10 @@ export interface ContractAtExecutionState
  * Read event argument execution states are only stored for reconciliation
  * purposes and don't actually lead to any network interaction.
  */
-export interface ReadEventArgumentExecutionState
-  extends BaseExecutionState<
-    ExecutionStateType.READ_EVENT_ARGUMENT_EXECUTION_STATE,
-    FutureType.READ_EVENT_ARGUMENT
-  > {
+export interface ReadEventArgumentExecutionState extends BaseExecutionState<
+  ExecutionStateType.READ_EVENT_ARGUMENT_EXECUTION_STATE,
+  FutureType.READ_EVENT_ARGUMENT
+> {
   artifactId: string;
   eventName: string;
   nameOrIndex: string | number;

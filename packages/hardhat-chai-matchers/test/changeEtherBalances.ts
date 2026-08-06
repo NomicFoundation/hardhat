@@ -288,9 +288,8 @@ describe("INTEGRATION: changeEtherBalances matcher", function () {
       });
 
       it("shouldn't run the transaction twice", async function () {
-        const receiverBalanceBefore = await this.hre.ethers.provider.getBalance(
-          receiver
-        );
+        const receiverBalanceBefore =
+          await this.hre.ethers.provider.getBalance(receiver);
 
         await expect(() =>
           sender.sendTransaction({
@@ -300,9 +299,8 @@ describe("INTEGRATION: changeEtherBalances matcher", function () {
           })
         ).to.changeEtherBalances([sender, receiver], [-200, 200]);
 
-        const receiverBalanceAfter = await this.hre.ethers.provider.getBalance(
-          receiver
-        );
+        const receiverBalanceAfter =
+          await this.hre.ethers.provider.getBalance(receiver);
         const receiverBalanceChange =
           receiverBalanceAfter - receiverBalanceBefore;
 

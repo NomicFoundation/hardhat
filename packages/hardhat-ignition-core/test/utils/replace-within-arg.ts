@@ -33,11 +33,11 @@ describe("Arg resolution", () => {
             mprv.defaultValue === undefined
               ? "na"
               : isAccountRuntimeValue(mprv.defaultValue)
-              ? {
-                  _kind: "AccountRuntimeValue",
-                  accountIndex: mprv.defaultValue.accountIndex,
-                }
-              : mprv.defaultValue,
+                ? {
+                    _kind: "AccountRuntimeValue",
+                    accountIndex: mprv.defaultValue.accountIndex,
+                  }
+                : mprv.defaultValue,
         }),
         bigint: (bi) => `${bi.toString()}n`,
         future: (f) => ({ _kind: "FutureToken", futureId: f.id }),

@@ -143,14 +143,14 @@ function resolveHardhatNetworkConfig(
     hardhatNetworkConfig.accounts === undefined
       ? defaultHardhatNetworkHdAccountsConfigParams
       : Array.isArray(hardhatNetworkConfig.accounts)
-      ? hardhatNetworkConfig.accounts.map(({ privateKey, balance }) => ({
-          privateKey: normalizeHexString(privateKey),
-          balance,
-        }))
-      : {
-          ...defaultHardhatNetworkHdAccountsConfigParams,
-          ...hardhatNetworkConfig.accounts,
-        };
+        ? hardhatNetworkConfig.accounts.map(({ privateKey, balance }) => ({
+            privateKey: normalizeHexString(privateKey),
+            balance,
+          }))
+        : {
+            ...defaultHardhatNetworkHdAccountsConfigParams,
+            ...hardhatNetworkConfig.accounts,
+          };
 
   const forking: HardhatNetworkForkingConfig | undefined =
     hardhatNetworkConfig.forking !== undefined
@@ -260,13 +260,13 @@ function resolveHttpNetworkConfig(
     networkConfig.accounts === undefined
       ? defaultHttpNetworkParams.accounts
       : isHdAccountsConfig(networkConfig.accounts)
-      ? {
-          ...defaultHdAccountsConfigParams,
-          ...networkConfig.accounts,
-        }
-      : Array.isArray(networkConfig.accounts)
-      ? networkConfig.accounts.map(normalizeHexString)
-      : "remote";
+        ? {
+            ...defaultHdAccountsConfigParams,
+            ...networkConfig.accounts,
+          }
+        : Array.isArray(networkConfig.accounts)
+          ? networkConfig.accounts.map(normalizeHexString)
+          : "remote";
 
   const url = networkConfig.url;
 

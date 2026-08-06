@@ -13,9 +13,8 @@ extendConfig((config, userConfig) => {
 });
 
 extendProvider(async (provider, config, network) => {
-  const { createLedgerProvider } = await import(
-    "./internal/create-ledger-provider"
-  );
+  const { createLedgerProvider } =
+    await import("./internal/create-ledger-provider");
 
   const networkConfig = config.networks[network];
   return createLedgerProvider(provider, networkConfig);

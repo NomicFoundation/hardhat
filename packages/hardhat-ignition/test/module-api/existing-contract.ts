@@ -11,9 +11,8 @@ describe("existing contract", () => {
     await this.hre.run("compile", { quiet: true });
 
     const barArtifact = await this.hre.artifacts.readArtifact("Bar");
-    const usesContractArtifact = await this.hre.artifacts.readArtifact(
-      "UsesContract"
-    );
+    const usesContractArtifact =
+      await this.hre.artifacts.readArtifact("UsesContract");
 
     const firstModuleDefinition = buildModule("FirstModule", (m) => {
       const bar = m.contract("Bar");

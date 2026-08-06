@@ -9,12 +9,7 @@ import { ERRORS } from "../internal/core/errors-list";
 
 export function normalizeToBigInt(
   source:
-    | number
-    | bigint
-    | BNType
-    | EthersBigNumberType
-    | BigNumberJsType
-    | string
+    number | bigint | BNType | EthersBigNumberType | BigNumberJsType | string
 ): bigint {
   switch (typeof source) {
     case "object":

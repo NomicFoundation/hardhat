@@ -37,7 +37,7 @@ export function supportChangeEtherBalance(
 
       const checkBalanceChange = ([actualChange, address]: [
         bigint,
-        string
+        string,
       ]) => {
         const assert = buildAssert(negated, checkBalanceChange);
 

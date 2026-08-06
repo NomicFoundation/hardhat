@@ -110,9 +110,8 @@ describe("gas config behavior", function () {
 
       it("contract deployment, explicit gas limit", async function () {
         await this.env.run("compile", { quiet: true });
-        const Example: any = await this.env.ethers.getContractFactory(
-          "Example"
-        );
+        const Example: any =
+          await this.env.ethers.getContractFactory("Example");
         const example = await Example.deploy({
           gasLimit: 500_000,
         });

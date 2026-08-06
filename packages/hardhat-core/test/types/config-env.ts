@@ -5,11 +5,10 @@ import {
 } from "../../src/internal/core/config/config-env";
 
 // type helper
-export type Equals<X, Y> = (<T>() => T extends X ? 1 : 2) extends <
-  T
->() => T extends Y ? 1 : 2
-  ? true
-  : false;
+export type Equals<X, Y> =
+  (<T>() => T extends X ? 1 : 2) extends <T>() => T extends Y ? 1 : 2
+    ? true
+    : false;
 
 type Scope = ReturnType<typeof scope>;
 

@@ -10,9 +10,8 @@ describe("mine", function () {
   useEnvironment("simple");
 
   const getBlockNumber = async () => {
-    const blockNumber = await this.ctx.hre.network.provider.send(
-      "eth_blockNumber"
-    );
+    const blockNumber =
+      await this.ctx.hre.network.provider.send("eth_blockNumber");
 
     return rpcQuantityToNumber(blockNumber);
   };

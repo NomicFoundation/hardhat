@@ -238,9 +238,8 @@ describe("Ethers plugin", function () {
         describe("By name", function () {
           it("should return a contract factory", async function () {
             // It's already compiled in artifacts/
-            const contract = await this.env.ethers.getContractFactory(
-              "Greeter"
-            );
+            const contract =
+              await this.env.ethers.getContractFactory("Greeter");
 
             assert.isNotNull(contract.interface.getFunction("greet"));
             assert.isNotNull(contract.interface.getFunction("setGreeting"));
@@ -278,9 +277,8 @@ describe("Ethers plugin", function () {
           });
 
           it("should link a library", async function () {
-            const libraryFactory = await this.env.ethers.getContractFactory(
-              "TestLibrary"
-            );
+            const libraryFactory =
+              await this.env.ethers.getContractFactory("TestLibrary");
             const library = await libraryFactory.deploy();
 
             const contractFactory = await this.env.ethers.getContractFactory<
@@ -464,9 +462,8 @@ describe("Ethers plugin", function () {
           });
 
           it("should contract instances as libraries", async function () {
-            const libraryFactory = await this.env.ethers.getContractFactory(
-              "TestLibrary"
-            );
+            const libraryFactory =
+              await this.env.ethers.getContractFactory("TestLibrary");
             const library = await libraryFactory.deploy();
 
             await this.env.ethers.getContractFactory("TestContractLib", {
@@ -575,9 +572,10 @@ describe("Ethers plugin", function () {
 
       describe("getContractFactoryFromArtifact", function () {
         it("should return a contract factory", async function () {
-          const contract = await this.env.ethers.getContractFactoryFromArtifact(
-            greeterArtifact
-          );
+          const contract =
+            await this.env.ethers.getContractFactoryFromArtifact(
+              greeterArtifact
+            );
 
           assert.isNotNull(contract.interface.getFunction("greet"));
           assert.isNotNull(contract.interface.getFunction("setGreeting"));
@@ -590,14 +588,12 @@ describe("Ethers plugin", function () {
         });
 
         it("should link a library", async function () {
-          const libraryFactory = await this.env.ethers.getContractFactory(
-            "TestLibrary"
-          );
+          const libraryFactory =
+            await this.env.ethers.getContractFactory("TestLibrary");
           const library = await libraryFactory.deploy();
 
-          const testContractLibArtifact = await this.env.artifacts.readArtifact(
-            "TestContractLib"
-          );
+          const testContractLibArtifact =
+            await this.env.artifacts.readArtifact("TestContractLib");
 
           const contractFactory =
             await this.env.ethers.getContractFactoryFromArtifact<
@@ -816,9 +812,8 @@ describe("Ethers plugin", function () {
           });
 
           it("should work with linked contracts", async function () {
-            const libraryFactory = await this.env.ethers.getContractFactory(
-              "TestLibrary"
-            );
+            const libraryFactory =
+              await this.env.ethers.getContractFactory("TestLibrary");
             const library = await libraryFactory.deploy();
 
             const contractFactory = await this.env.ethers.getContractFactory<

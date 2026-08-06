@@ -58,9 +58,8 @@ export async function createProvider(
   if (networkName === HARDHAT_NETWORK_NAME) {
     const hardhatNetConfig = networkConfig as HardhatNetworkConfig;
 
-    const { createHardhatNetworkProvider } = await import(
-      "../../hardhat-network/provider/provider"
-    );
+    const { createHardhatNetworkProvider } =
+      await import("../../hardhat-network/provider/provider");
 
     let forkConfig: ForkConfig | undefined;
 
