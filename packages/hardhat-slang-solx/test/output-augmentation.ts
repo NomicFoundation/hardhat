@@ -58,11 +58,11 @@ describe(
       const jobsResult = await hre.solidity.getCompilationJobs(fixturePaths, {
         force: true,
         quiet: true,
-        buildProfile: "solx",
+        buildProfile: "slang-solx",
       });
       assert.ok(
         jobsResult.success,
-        "getCompilationJobs should succeed for the solx profile",
+        "getCompilationJobs should succeed for the slang-solx profile",
       );
 
       // The fixtures are independent (no shared imports) so they can land in
@@ -78,7 +78,7 @@ describe(
         seenJobs.add(job);
         const { output } = await hre.solidity.runCompilationJob(job, {
           quiet: true,
-          buildProfile: "solx",
+          buildProfile: "slang-solx",
         });
         for (const e of output.errors ?? []) {
           mergedErrors.push(e);
