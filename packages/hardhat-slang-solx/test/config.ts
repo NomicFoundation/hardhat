@@ -9,7 +9,7 @@ import {
 } from "../src/internal/hook-handlers/config.js";
 import { SOLX_DEBUG_INFO_SELECTORS } from "../src/internal/solx-compiler.js";
 
-describe("hardhat-solx plugin config validation", () => {
+describe("hardhat-slang-solx plugin config validation", () => {
   it("accepts valid config with dangerouslyAllowSolxInProduction", async () => {
     const errors = await validateUserConfig({
       solx: {
@@ -48,7 +48,7 @@ describe("hardhat-solx plugin config validation", () => {
   });
 });
 
-describe("hardhat-solx plugin config resolution", () => {
+describe("hardhat-slang-solx plugin config resolution", () => {
   function makeNext(profiles: Record<string, any>) {
     return async (config: any, _resolve: any) => ({
       ...config,
@@ -384,7 +384,7 @@ describe("hardhat-solx plugin config resolution", () => {
   });
 });
 
-describe("hardhat-solx EVM version validation", () => {
+describe("hardhat-slang-solx EVM version validation", () => {
   it("rejects type: 'solx' with pre-cancun evmVersion", async () => {
     const errors = await validateUserConfig({
       solidity: {
@@ -541,7 +541,7 @@ describe("hardhat-solx EVM version validation", () => {
   });
 });
 
-describe("hardhat-solx Solidity version validation", () => {
+describe("hardhat-slang-solx Solidity version validation", () => {
   it("rejects type: 'solx' with unsupported Solidity version", async () => {
     const errors = await validateUserConfig({
       solidity: {
@@ -630,7 +630,7 @@ describe("hardhat-solx Solidity version validation", () => {
   });
 });
 
-describe("hardhat-solx resolved config validation", () => {
+describe("hardhat-slang-solx resolved config validation", () => {
   function makeResolvedConfig(
     profiles: Record<string, any>,
     opts?: { dangerouslyAllowSolxInProduction?: boolean },

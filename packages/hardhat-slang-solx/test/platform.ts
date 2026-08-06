@@ -6,7 +6,7 @@ import {
   getSolxBinaryBaseName,
 } from "../src/internal/platform.js";
 
-describe("hardhat-solx platform detection", () => {
+describe("hardhat-slang-solx platform detection", () => {
   it("returns a valid base name for the current platform", () => {
     const baseName = getSolxBinaryBaseName();
     assert.ok(typeof baseName === "string", "base name should be a string");

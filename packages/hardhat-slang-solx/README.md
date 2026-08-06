@@ -1,4 +1,4 @@
-# Hardhat Solx plugin
+# Hardhat Slang Solx plugin
 
 This plugin enables the [solx](https://github.com/NomicFoundation/solx) Solidity compiler in Hardhat 3.
 
@@ -7,17 +7,17 @@ The `solx` compiler is currently experimental and is not ready for production us
 ## Installation
 
 ```bash
-npm install --save-dev @nomicfoundation/hardhat-solx
+npm install --save-dev @nomicfoundation/hardhat-slang-solx
 ```
 
 Then add the plugin to your `hardhat.config.ts` and create a `solx` build profile. You must use the build profiles config format, which requires both a `default` and a `solx` profile:
 
 ```typescript
 import { defineConfig } from "hardhat/config";
-import hardhatSolx from "@nomicfoundation/hardhat-solx";
+import hardhatSlangSolx from "@nomicfoundation/hardhat-slang-solx";
 
 export default defineConfig({
-  plugins: [hardhatSolx],
+  plugins: [hardhatSlangSolx],
   solidity: {
     profiles: {
       default: {
@@ -32,7 +32,7 @@ export default defineConfig({
 });
 ```
 
-The `default` profile uses solc as usual. The `solx` profile uses the solx compiler, identified by `type: "solx"`. Your `.sol` files should have compatible pragmas, for example `pragma solidity ^0.8.29;`. Strict pragmas for unsupported Solidity versions, for example `pragma solidity 0.8.28;`, will currently not compile with this hardhat-solx plugin. See more details below for the currently supported Solidity versions and EVM versions.
+The `default` profile uses solc as usual. The `solx` profile uses the solx compiler, identified by `type: "solx"`. Your `.sol` files should have compatible pragmas, for example `pragma solidity ^0.8.29;`. Strict pragmas for unsupported Solidity versions, for example `pragma solidity 0.8.28;`, will currently not compile with this hardhat-slang-solx plugin. See more details below for the currently supported Solidity versions and EVM versions.
 
 ## Usage
 
@@ -57,7 +57,7 @@ You can configure the `solx` profile with multiple compilers. Compilers without 
 
 ```typescript
 export default defineConfig({
-  plugins: [hardhatSolx],
+  plugins: [hardhatSlangSolx],
   solidity: {
     profiles: {
       default: {
@@ -80,7 +80,7 @@ export default defineConfig({
 
 ```typescript
 export default defineConfig({
-  plugins: [hardhatSolx],
+  plugins: [hardhatSlangSolx],
   solidity: {
     profiles: {
       default: {
@@ -108,10 +108,10 @@ For example, optimizing for size instead of performance:
 
 ```typescript
 import { defineConfig } from "hardhat/config";
-import hardhatSolx from "@nomicfoundation/hardhat-solx";
+import hardhatSlangSolx from "@nomicfoundation/hardhat-slang-solx";
 
 export default defineConfig({
-  plugins: [hardhatSolx],
+  plugins: [hardhatSlangSolx],
   solidity: {
     profiles: {
       default: { version: "0.8.34" },

@@ -26,7 +26,7 @@ import {
 } from "../constants.js";
 import { addSolxDebugInfoSelectors } from "../solx-compiler.js";
 
-const log = createDebug("hardhat:solx:hook-handlers:config");
+const log = createDebug("hardhat:slang-solx:hook-handlers:config");
 
 // These zod types need to be aligned in shape with the ones of the solidity
 // builtin plugin, but don't need to revalidate everything.
@@ -269,7 +269,7 @@ export async function validateResolvedConfig(
     errors.push({
       path: ["solidity"],
       message:
-        'The hardhat-solx plugin has been installed, but no "solx" build profile was found in the Solidity configuration. Please read the plugin documentation for information on how to create a "solx" build profile.',
+        'The hardhat-slang-solx plugin has been installed, but no "solx" build profile was found in the Solidity configuration. Please read the plugin documentation for information on how to create a "solx" build profile.',
     });
   }
 
