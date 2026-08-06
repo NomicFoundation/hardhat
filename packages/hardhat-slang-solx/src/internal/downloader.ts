@@ -172,7 +172,7 @@ export async function downloadSolx(
   }
 
   throw new HardhatError(
-    HardhatError.ERRORS.HARDHAT_SOLX.GENERAL.DOWNLOAD_FAILED,
+    HardhatError.ERRORS.HARDHAT_SLANG_SOLX.GENERAL.DOWNLOAD_FAILED,
     {
       version: solxVersion,
       attempts: DOWNLOAD_RETRY_COUNT.toString(),
