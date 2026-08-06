@@ -14,6 +14,7 @@ import { ensureError } from "@nomicfoundation/hardhat-utils/error";
 
 import { hardhatChainTypeToEdrChainType } from "../../edr/chain-type.js";
 import { getGlobalEdrContext } from "../../edr/context.js";
+import { HARDHAT_PROJECT_INPUT_SOURCE_NAME_ROOT } from "../solidity/constants.js";
 
 import { formatArtifactId } from "./formatters.js";
 
@@ -100,6 +101,21 @@ export function run(
     } catch (error) {
       ensureError(error);
 
+      // EDR marks errors in the user's inline test config with an
+      // `inlineConfigErrors` property. Report them as a dedicated Hardhat
+      // error instead of an unhandled EDR error.
+      if ("inlineConfigErrors" in error) {
+        stream.destroy(
+          new HardhatError(
+            HardhatError.ERRORS.CORE.SOLIDITY_TESTS.INVALID_INLINE_CONFIG,
+            {
+              errors: formatInlineConfigErrorMessage(error.message),
+            },
+          ),
+        );
+        return;
+      }
+
       stream.destroy(
         new HardhatError(
           HardhatError.ERRORS.CORE.SOLIDITY_TESTS
@@ -113,4 +129,17 @@ export function run(
   })();
 
   return stream;
+}
+
+/**
+ * Cleans up EDR's inline-config error message for display: removes its
+ * heading line and turns internal source names into user-facing paths.
+ */
+function formatInlineConfigErrorMessage(message: string): string {
+  return message
+    .substring(message.indexOf("\n") + 1)
+    .replaceAll(
+      new RegExp(`^(\\s*)${HARDHAT_PROJECT_INPUT_SOURCE_NAME_ROOT}/`, "gm"),
+      "$1",
+    );
 }

@@ -1235,6 +1235,7 @@ Remaining test suites: {suites}`,
           "The flags --snapshot and --snapshot-check are mutually exclusive. Please provide only one of them.",
       },
       INLINE_CONFIG_INVALID_KEY: {
+        // [DEPRECATED]
         number: 807,
         messageTemplate: `Invalid inline config key "{key}" in {functionFqn}. Valid keys are: {validKeys}`,
         websiteTitle: "Invalid inline config key",
@@ -1242,6 +1243,7 @@ Remaining test suites: {suites}`,
           "An unrecognized key was used in an inline config comment.",
       },
       INLINE_CONFIG_DUPLICATE_KEY: {
+        // [DEPRECATED]
         number: 808,
         messageTemplate: `Duplicate inline config key "{key}" in {functionFqn}`,
         websiteTitle: "Duplicate inline config key",
@@ -1249,6 +1251,7 @@ Remaining test suites: {suites}`,
           "The same configuration key was specified more than once for the same test function.",
       },
       INLINE_CONFIG_INVALID_VALUE: {
+        // [DEPRECATED]
         number: 809,
         messageTemplate: `Invalid value "{value}" for inline config key "{key}" in {functionFqn}. Expected a {expectedType}.`,
         websiteTitle: "Invalid inline config value",
@@ -1256,6 +1259,7 @@ Remaining test suites: {suites}`,
           "The value provided for an inline config key could not be parsed as the expected type.",
       },
       INLINE_CONFIG_UNSUPPORTED_PROFILE: {
+        // [DEPRECATED]
         number: 810,
         messageTemplate: `Unsupported profile "{profile}" in {functionFqn}. Only the "default" profile (or no profile) is supported.`,
         websiteTitle: "Unsupported profile",
@@ -1263,6 +1267,7 @@ Remaining test suites: {suites}`,
           "An inline config comment used a non-default profile, which is not supported by Hardhat.",
       },
       INLINE_CONFIG_INVALID_SYNTAX: {
+        // [DEPRECATED]
         number: 811,
         messageTemplate: `Malformed inline config in {functionFqn}. Expected "key = value" but found "{line}".`,
         websiteTitle: "Invalid inline config syntax",
@@ -1270,6 +1275,7 @@ Remaining test suites: {suites}`,
           "An inline config comment was found but its syntax could not be parsed.",
       },
       INLINE_CONFIG_UNRESOLVED_SELECTOR: {
+        // [DEPRECATED]
         number: 812,
         messageTemplate: `Inline config found in {functionFqn}, but no matching function selector was found. Only public or external functions can have inline configuration.`,
         websiteTitle: "Unresolved function selector for inline config",
@@ -1277,6 +1283,7 @@ Remaining test suites: {suites}`,
           "An inline config comment was found on a function that does not have a function selector. This usually means the function is internal or private, and therefore cannot be run as a test.",
       },
       INLINE_CONFIG_INVALID_KEY_FOR_TEST_TYPE: {
+        // [DEPRECATED]
         number: 813,
         messageTemplate: `The inline config key "{key}" in {functionFqn} is not valid for {testType} tests. Valid keys for {testType} tests are: {validKeys}`,
         websiteTitle: "Inline config key not valid for test type",
@@ -1329,6 +1336,15 @@ Double-check the paths you are providing to the \`test solidity\` task.`,
 EIP-712 cheatcodes resolve types by name, so each struct name must have a single canonical definition. {remediation}`,
         websiteTitle: "Duplicate EIP-712 struct name",
         websiteDescription: `Two struct definitions with the same name had different members. Type-name lookups via \`vm.eip712HashType\` and \`vm.eip712HashStruct\` would be ambiguous.`,
+      },
+      INVALID_INLINE_CONFIG: {
+        number: 819,
+        messageTemplate: `Invalid inline test configuration:
+
+{errors}`,
+        websiteTitle: "Invalid inline test configuration",
+        websiteDescription:
+          "One or more inline test configuration directives (`forge-config:` / `hardhat-config:` NatSpec comments) in your Solidity test sources are invalid. Fix the reported directives and run the tests again.",
       },
     },
     SOLIDITY: {

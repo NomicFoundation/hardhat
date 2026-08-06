@@ -10,6 +10,7 @@ import {
   utf8StringToBytes,
   bytesToUtf8String,
   bytesIncludesUtf8String,
+  bytesIndexOfUtf8String,
   parseJsonBytes,
 } from "../src/bytes.js";
 
@@ -215,6 +216,47 @@ describe("bytes", () => {
         !bytesIncludesUtf8String(haystack, "さようなら"),
         "should not find a missing multi-byte needle",
       );
+    });
+  });
+
+  describe("bytesIndexOfUtf8String", () => {
+    it("should return the index of the first occurrence", () => {
+      const haystack = utf8StringToBytes("foo hello bar hello");
+      assert.equal(bytesIndexOfUtf8String(haystack, "hello"), 4);
+      assert.equal(bytesIndexOfUtf8String(haystack, "foo"), 0);
+    });
+
+    it("should return -1 when the needle is not present", () => {
+      const haystack = utf8StringToBytes("foo bar baz");
+      assert.equal(bytesIndexOfUtf8String(haystack, "hello"), -1);
+    });
+
+    it("should start the search at fromIndex", () => {
+      const haystack = utf8StringToBytes("foo hello bar hello");
+      assert.equal(bytesIndexOfUtf8String(haystack, "hello", 5), 14);
+      assert.equal(bytesIndexOfUtf8String(haystack, "hello", 4), 4);
+      assert.equal(bytesIndexOfUtf8String(haystack, "hello", 15), -1);
+    });
+
+    it("should return the match index after a partial-match fallback", () => {
+      // "aab" partially matches at 0 ("aa"), then the KMP fallback must
+      // resume and find the real match at 1.
+      const haystack = utf8StringToBytes("aaab");
+      assert.equal(bytesIndexOfUtf8String(haystack, "aab"), 1);
+    });
+
+    it("should clamp fromIndex to the haystack's bounds", () => {
+      const haystack = utf8StringToBytes("hello");
+      assert.equal(bytesIndexOfUtf8String(haystack, "hello", -3), 0);
+      assert.equal(bytesIndexOfUtf8String(haystack, "hello", 100), -1);
+    });
+
+    it("should return the clamped fromIndex for an empty needle", () => {
+      const haystack = utf8StringToBytes("hello");
+      assert.equal(bytesIndexOfUtf8String(haystack, ""), 0);
+      assert.equal(bytesIndexOfUtf8String(haystack, "", 3), 3);
+      assert.equal(bytesIndexOfUtf8String(haystack, "", 100), 5);
+      assert.equal(bytesIndexOfUtf8String(haystack, "", -1), 0);
     });
   });
 

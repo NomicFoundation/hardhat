@@ -19,6 +19,7 @@ import {
 import { createHardhatRuntimeEnvironment } from "../../../../src/hre.js";
 import { resolveSolidityTestForkingConfig } from "../../../../src/internal/builtin-plugins/solidity-test/config.js";
 import {
+  buildInfoContainsInlineConfig,
   isTestSuiteArtifact,
   solidityTestConfigToSolidityTestRunnerConfigArgs,
 } from "../../../../src/internal/builtin-plugins/solidity-test/helpers.js";
@@ -526,5 +527,62 @@ describe("isTestSuiteArtifact", () => {
     });
 
     assert.equal(isTestSuiteArtifact(artifact), false);
+  });
+});
+
+describe("buildInfoContainsInlineConfig", () => {
+  const encode = (text: string) => new TextEncoder().encode(text);
+
+  it("returns true when the bytes contain the hardhat-config prefix", () => {
+    assert.equal(
+      buildInfoContainsInlineConfig(
+        encode('{"sources":{"A.sol":"/// hardhat-config: fuzz.runs = 10"}}'),
+      ),
+      true,
+    );
+  });
+
+  it("returns true when the bytes contain the forge-config prefix", () => {
+    assert.equal(
+      buildInfoContainsInlineConfig(
+        encode(
+          '{"sources":{"A.sol":"/// forge-config: default.fuzz.runs = 10"}}',
+        ),
+      ),
+      true,
+    );
+  });
+
+  it("returns false when the bytes contain no inline config prefix", () => {
+    assert.equal(
+      buildInfoContainsInlineConfig(
+        encode('{"sources":{"A.sol":"contract A {}"}}'),
+      ),
+      false,
+    );
+  });
+
+  it("returns false for other text ending in -config:", () => {
+    assert.equal(
+      buildInfoContainsInlineConfig(
+        encode('{"sources":{"A.sol":"// see my-config: docs"}}'),
+      ),
+      false,
+    );
+  });
+
+  it("returns false when -config: appears at the very start of the bytes", () => {
+    assert.equal(buildInfoContainsInlineConfig(encode("-config: foo")), false);
+  });
+
+  it("returns true when a real prefix follows an unrelated -config: hit", () => {
+    assert.equal(
+      buildInfoContainsInlineConfig(
+        encode(
+          '{"sources":{"A.sol":"// my-config: docs\\n/// forge-config: default.fuzz.runs = 10"}}',
+        ),
+      ),
+      true,
+    );
   });
 });
