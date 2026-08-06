@@ -129,9 +129,8 @@ ignitionScope
       const { default: Prompt } = await import("prompts");
       const { deploy } = await import("@nomicfoundation/ignition-core");
 
-      const { HardhatArtifactResolver } = await import(
-        "./hardhat-artifact-resolver"
-      );
+      const { HardhatArtifactResolver } =
+        await import("./hardhat-artifact-resolver");
       const { loadModule } = await import("./utils/load-module");
       const { PrettyEventHandler } = await import("./ui/pretty-event-handler");
 
@@ -418,9 +417,8 @@ ignitionScope
       { txHash, deploymentId }: { txHash: string; deploymentId: string },
       hre
     ) => {
-      const { trackTransaction } = await import(
-        "@nomicfoundation/ignition-core"
-      );
+      const { trackTransaction } =
+        await import("@nomicfoundation/ignition-core");
 
       const deploymentDir = path.join(
         hre.config.paths.ignition,
@@ -467,16 +465,14 @@ ignitionScope
       { noOpen = false, modulePath }: { noOpen: boolean; modulePath: string },
       hre
     ) => {
-      const { IgnitionModuleSerializer, batches } = await import(
-        "@nomicfoundation/ignition-core"
-      );
+      const { IgnitionModuleSerializer, batches } =
+        await import("@nomicfoundation/ignition-core");
 
       const { loadModule } = await import("./utils/load-module");
       const { open } = await import("./utils/open");
 
-      const { writeVisualization } = await import(
-        "./visualization/write-visualization"
-      );
+      const { writeVisualization } =
+        await import("./visualization/write-visualization");
 
       await hre.run("compile", { quiet: true });
 
@@ -534,9 +530,8 @@ ignitionScope
   .setAction(async ({ deploymentId }: { deploymentId: string }, hre) => {
     const { status } = await import("@nomicfoundation/ignition-core");
 
-    const { HardhatArtifactResolver } = await import(
-      "./hardhat-artifact-resolver"
-    );
+    const { HardhatArtifactResolver } =
+      await import("./hardhat-artifact-resolver");
 
     const deploymentDir = path.join(
       hre.config.paths.ignition,
@@ -598,9 +593,8 @@ ignitionScope
     ) => {
       const { wipe } = await import("@nomicfoundation/ignition-core");
 
-      const { HardhatArtifactResolver } = await import(
-        "./hardhat-artifact-resolver"
-      );
+      const { HardhatArtifactResolver } =
+        await import("./hardhat-artifact-resolver");
 
       const deploymentDir = path.join(
         hre.config.paths.ignition,
@@ -644,9 +638,8 @@ ignitionScope
       }: { deploymentId: string; includeUnrelatedContracts: boolean },
       hre
     ) => {
-      const { getVerificationInformation } = await import(
-        "@nomicfoundation/ignition-core"
-      );
+      const { getVerificationInformation } =
+        await import("@nomicfoundation/ignition-core");
 
       const deploymentDir = path.join(
         hre.config.paths.ignition,
@@ -747,12 +740,10 @@ ignitionScope
   .setAction(async ({ deploymentId }: { deploymentId: string }, hre) => {
     const { listTransactions } = await import("@nomicfoundation/ignition-core");
 
-    const { HardhatArtifactResolver } = await import(
-      "./hardhat-artifact-resolver"
-    );
-    const { calculateListTransactionsDisplay } = await import(
-      "./ui/helpers/calculate-list-transactions-display"
-    );
+    const { HardhatArtifactResolver } =
+      await import("./hardhat-artifact-resolver");
+    const { calculateListTransactionsDisplay } =
+      await import("./ui/helpers/calculate-list-transactions-display");
 
     const deploymentDir = path.join(
       hre.config.paths.ignition,

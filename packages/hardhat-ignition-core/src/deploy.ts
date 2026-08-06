@@ -38,7 +38,7 @@ export async function deploy<
   ModuleIdT extends string,
   ContractNameT extends string,
   IgnitionModuleResultsT extends IgnitionModuleResult<ContractNameT>,
-  StrategyT extends keyof StrategyConfig = "basic"
+  StrategyT extends keyof StrategyConfig = "basic",
 >({
   config = {},
   artifactResolver,
@@ -137,7 +137,7 @@ export async function deploy<
     ...defaultConfig,
     requiredConfirmations: isAutominedNetwork
       ? DEFAULT_AUTOMINE_REQUIRED_CONFIRMATIONS
-      : config.requiredConfirmations ?? defaultConfig.requiredConfirmations,
+      : (config.requiredConfirmations ?? defaultConfig.requiredConfirmations),
     disableFeeBumping: disableFeeBumping ?? defaultConfig.disableFeeBumping,
     maxRetries: maxRetries ?? defaultConfig.maxRetries,
     retryInterval: retryInterval ?? defaultConfig.retryInterval,

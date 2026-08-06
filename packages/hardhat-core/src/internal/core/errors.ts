@@ -8,7 +8,10 @@ const inspect = Symbol.for("nodejs.util.inspect.custom");
 export class CustomError extends Error {
   private _stack: string;
 
-  constructor(message: string, public readonly parent?: Error) {
+  constructor(
+    message: string,
+    public readonly parent?: Error
+  ) {
     // WARNING: Using super when extending a builtin class doesn't work well
     // with TS if you are compiling to a version of JavaScript that doesn't have
     // native classes. We don't do that in Hardhat.

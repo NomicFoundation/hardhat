@@ -62,7 +62,7 @@ export function supportChangeTokenBalance(
       const checkBalanceChange = ([actualChange, address, tokenDescription]: [
         bigint,
         string,
-        string
+        string,
       ]) => {
         const assert = buildAssert(negated, checkBalanceChange);
 

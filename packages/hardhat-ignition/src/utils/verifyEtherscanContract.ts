@@ -16,9 +16,8 @@ export async function verifyEtherscanContract(
       args
     );
 
-    const verificationStatus = await etherscanInstance.getVerificationStatus(
-      guid
-    );
+    const verificationStatus =
+      await etherscanInstance.getVerificationStatus(guid);
 
     if (verificationStatus.isSuccess()) {
       const contractURL = etherscanInstance.getContractUrl(address);

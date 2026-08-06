@@ -376,9 +376,8 @@ export class EdrProviderWrapper
       params,
     });
 
-    const responseObject: Response = await this._provider.handleRequest(
-      stringifiedArgs
-    );
+    const responseObject: Response =
+      await this._provider.handleRequest(stringifiedArgs);
 
     let response;
     if (typeof responseObject.data === "string") {

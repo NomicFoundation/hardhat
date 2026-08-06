@@ -142,9 +142,7 @@ export class Sourcify {
 class SourcifyResponse implements ValidationResponse {
   public readonly error: string | undefined;
   public readonly status:
-    | ContractStatus.PERFECT
-    | ContractStatus.PARTIAL
-    | undefined;
+    ContractStatus.PERFECT | ContractStatus.PARTIAL | undefined;
 
   constructor(response: SourcifyVerifyResponse) {
     if ("error" in response) {

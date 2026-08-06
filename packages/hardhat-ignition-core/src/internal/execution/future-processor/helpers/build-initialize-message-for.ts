@@ -265,7 +265,7 @@ export async function buildInitializeMessageFor(
 function _extendBaseInitWith<
   FutureT extends Future,
   MessageT extends JournalMessageType,
-  ExtensionT extends object
+  ExtensionT extends object,
 >(
   messageType: MessageT,
   future: FutureT,

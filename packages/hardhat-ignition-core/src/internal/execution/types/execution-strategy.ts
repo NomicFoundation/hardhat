@@ -42,8 +42,7 @@ export type OnchainInteractionRequest = Omit<
  * perform an onchain interaction.
  */
 export type OnchainInteractionResponse =
-  | SuccessfulTransaction
-  | SimulationResult;
+  SuccessfulTransaction | SimulationResult;
 
 /**
  * The different types of response that the execution engine can give when

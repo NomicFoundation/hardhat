@@ -5,9 +5,8 @@ export async function getFilesWithExtension(
   extension: string
 ): Promise<string[]> {
   try {
-    const { getAllFilesMatching } = await import(
-      "hardhat/internal/util/fs-utils"
-    );
+    const { getAllFilesMatching } =
+      await import("hardhat/internal/util/fs-utils");
 
     if (getAllFilesMatching === undefined) {
       // we don't want to catch errors from this function

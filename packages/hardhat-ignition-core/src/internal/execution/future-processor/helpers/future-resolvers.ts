@@ -218,9 +218,7 @@ export function resolveSendToAddress(
  */
 export function resolveAddressLike(
   addressLike:
-    | string
-    | AddressResolvableFuture
-    | ModuleParameterRuntimeValue<string>,
+    string | AddressResolvableFuture | ModuleParameterRuntimeValue<string>,
   deploymentState: DeploymentState,
   deploymentParameters: DeploymentParameters,
   accounts: string[]

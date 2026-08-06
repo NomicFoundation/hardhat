@@ -21,8 +21,7 @@ export interface NetworksUserConfig {
 }
 
 export type NetworkUserConfig =
-  | HardhatNetworkUserConfig
-  | HttpNetworkUserConfig;
+  HardhatNetworkUserConfig | HttpNetworkUserConfig;
 
 export interface HardforkHistoryUserConfig {
   [hardforkName: string]: number /* block number */;
@@ -62,8 +61,7 @@ export interface HardhatNetworkUserConfig {
 }
 
 export type HardhatNetworkAccountsUserConfig =
-  | HardhatNetworkAccountUserConfig[]
-  | HardhatNetworkHDAccountsUserConfig;
+  HardhatNetworkAccountUserConfig[] | HardhatNetworkHDAccountsUserConfig;
 
 export interface HardhatNetworkAccountUserConfig {
   privateKey: string;
@@ -95,9 +93,7 @@ export interface HardhatNetworkForkingUserConfig {
 }
 
 export type HttpNetworkAccountsUserConfig =
-  | "remote"
-  | string[]
-  | HDAccountsUserConfig;
+  "remote" | string[] | HDAccountsUserConfig;
 
 export interface HttpNetworkUserConfig {
   chainId?: number;
@@ -160,8 +156,7 @@ export interface HardhatNetworkConfig {
 }
 
 export type HardhatNetworkAccountsConfig =
-  | HardhatNetworkHDAccountsConfig
-  | HardhatNetworkAccountConfig[];
+  HardhatNetworkHDAccountsConfig | HardhatNetworkAccountConfig[];
 
 export interface HardhatNetworkAccountConfig {
   privateKey: string;
@@ -197,9 +192,7 @@ export interface HttpNetworkConfig {
 }
 
 export type HttpNetworkAccountsConfig =
-  | "remote"
-  | string[]
-  | HttpNetworkHDAccountsConfig;
+  "remote" | string[] | HttpNetworkHDAccountsConfig;
 
 export interface HttpNetworkHDAccountsConfig {
   mnemonic: string;

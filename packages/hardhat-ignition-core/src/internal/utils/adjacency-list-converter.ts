@@ -42,8 +42,7 @@ export class AdjacencyListConverter {
     dependencyGraph: AdjacencyList,
     future: Future,
     dependency:
-      | Future
-      | IgnitionModule<string, string, IgnitionModuleResult<string>>
+      Future | IgnitionModule<string, string, IgnitionModuleResult<string>>
   ): void {
     // we only need to worry about this case if the dependency is a future
     if (isFuture(dependency) && future.module === dependency.module) {

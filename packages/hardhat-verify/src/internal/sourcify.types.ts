@@ -18,8 +18,7 @@ interface SourcifyIsVerifiedOkResponse {
 }
 
 export type SourcifyIsVerifiedResponse =
-  | SourcifyIsVerifiedNotOkResponse
-  | SourcifyIsVerifiedOkResponse;
+  SourcifyIsVerifiedNotOkResponse | SourcifyIsVerifiedOkResponse;
 
 interface SourcifyVerifyNotOkResponse {
   error: string;
@@ -36,5 +35,4 @@ interface SourcifyVerifyOkResponse {
 }
 
 export type SourcifyVerifyResponse =
-  | SourcifyVerifyNotOkResponse
-  | SourcifyVerifyOkResponse;
+  SourcifyVerifyNotOkResponse | SourcifyVerifyOkResponse;

@@ -33,8 +33,7 @@ import { FUSAKA_TRANSACTION_GAS_LIMIT } from "./internal/constants";
 
 export class HardhatEthersSigner implements ethers.Signer {
   private readonly _accounts:
-    | HttpNetworkAccountsConfig
-    | HardhatNetworkAccountsConfig;
+    HttpNetworkAccountsConfig | HardhatNetworkAccountsConfig;
   private _cachedPrivateKey: string | undefined;
 
   public readonly address: string;

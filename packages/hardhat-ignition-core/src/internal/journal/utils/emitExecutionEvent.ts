@@ -197,9 +197,7 @@ export function emitExecutionEvent(
 
 function convertExecutionResultToEventResult(
   result:
-    | DeploymentExecutionResult
-    | CallExecutionResult
-    | SendDataExecutionResult
+    DeploymentExecutionResult | CallExecutionResult | SendDataExecutionResult
 ): ExecutionEventResult {
   switch (result.type) {
     case ExecutionResultType.SUCCESS: {

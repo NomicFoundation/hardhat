@@ -253,9 +253,8 @@ export class LocalAccountsProvider extends ProviderWrapperWithChainId {
     chainId: number,
     privateKey: Buffer
   ): Promise<Uint8Array> {
-    const { bytesToHex, bytesToInt, bytesToBigInt } = await import(
-      "@ethereumjs/util"
-    );
+    const { bytesToHex, bytesToInt, bytesToBigInt } =
+      await import("@ethereumjs/util");
     const { addr, Transaction } = await import("micro-eth-signer");
 
     const txData = {
@@ -435,7 +434,10 @@ export class AutomaticSenderProvider extends SenderProvider {
 }
 
 export class FixedSenderProvider extends SenderProvider {
-  constructor(provider: EIP1193Provider, private readonly _sender: string) {
+  constructor(
+    provider: EIP1193Provider,
+    private readonly _sender: string
+  ) {
     super(provider);
   }
 

@@ -3,7 +3,7 @@ import { ReconciliationFutureResultFailure } from "../types";
 import { fail } from "../utils";
 
 export function compare<
-  ValueT extends bigint | number | boolean | string | undefined
+  ValueT extends bigint | number | boolean | string | undefined,
 >(
   future: Future,
   fieldName: string,

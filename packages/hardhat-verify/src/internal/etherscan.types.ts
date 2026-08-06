@@ -27,8 +27,7 @@ interface EtherscanContract {
 }
 
 export type EtherscanGetSourceCodeResponse =
-  | EtherscanGetSourceCodeNotOkResponse
-  | EtherscanGetSourceCodeOkResponse;
+  EtherscanGetSourceCodeNotOkResponse | EtherscanGetSourceCodeOkResponse;
 
 interface EtherscanVerifyNotOkResponse {
   status: "0";
@@ -43,5 +42,4 @@ interface EtherscanVerifyOkResponse {
 }
 
 export type EtherscanVerifyResponse =
-  | EtherscanVerifyNotOkResponse
-  | EtherscanVerifyOkResponse;
+  EtherscanVerifyNotOkResponse | EtherscanVerifyOkResponse;

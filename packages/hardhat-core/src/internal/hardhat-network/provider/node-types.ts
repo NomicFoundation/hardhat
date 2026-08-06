@@ -8,7 +8,7 @@ export interface ForkConfig {
 
 export type IntervalMiningConfig = number | [number, number];
 
-export type MempoolOrder = typeof HARDHAT_MEMPOOL_SUPPORTED_ORDERS[number];
+export type MempoolOrder = (typeof HARDHAT_MEMPOOL_SUPPORTED_ORDERS)[number];
 
 export interface GenesisAccount {
   privateKey: string;

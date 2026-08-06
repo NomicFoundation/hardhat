@@ -213,7 +213,7 @@ export function executionStateReducer(
  */
 function _ensureStateThen<
   ExStateT extends ExecutionStateType,
-  Message extends JournalMessage
+  Message extends JournalMessage,
 >(
   state: ExecutionState | undefined,
   action: Message,

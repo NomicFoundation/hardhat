@@ -105,10 +105,13 @@ export async function resolveProperties<T>(value: {
   const results = await Promise.all(
     keys.map((k) => Promise.resolve(value[k as keyof T]))
   );
-  return results.reduce((accum: any, v, index) => {
-    accum[keys[index]] = v;
-    return accum;
-  }, {} as { [P in keyof T]: T[P] });
+  return results.reduce(
+    (accum: any, v, index) => {
+      accum[keys[index]] = v;
+      return accum;
+    },
+    {} as { [P in keyof T]: T[P] }
+  );
 }
 
 export function formatBlock(value: any): BlockParams {
