@@ -13,7 +13,7 @@ import {
 // Proves the plugin's default optimizer.mode reaches the resolved solcInput
 // (which hardhat persists as build-info) through the real pipeline — asserting
 // the compiler *input*, not compiled output, and without spawning solx.
-describe("hardhat-solx optimizer mode reaches the solc input", () => {
+describe("hardhat-slang-solx optimizer mode reaches the solc input", () => {
   useEphemeralFixtureProject("simple");
 
   it("defaults optimizer.mode to -O1 in the solx profile's solcInput", async () => {

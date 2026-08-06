@@ -21,7 +21,7 @@ import "../src/type-extensions.js";
 const ELF_MAGIC_HEX = "7f454c46";
 
 describe(
-  "hardhat-solx output augmentation",
+  "hardhat-slang-solx output augmentation",
   { skip: process.env.HARDHAT_DISABLE_SLOW_TESTS === "true" },
   () => {
     useFixtureProject("with-debug-info");

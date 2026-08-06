@@ -17,7 +17,7 @@ import {
 import { downloadSolx, getSolxBinaryPath } from "../downloader.js";
 import { SolxCompiler } from "../solx-compiler.js";
 
-const log = createDebug("hardhat:solx:hook-handlers:solidity");
+const log = createDebug("hardhat:slang-solx:hook-handlers:solidity");
 
 const execFileAsync = promisify(execFile);
 

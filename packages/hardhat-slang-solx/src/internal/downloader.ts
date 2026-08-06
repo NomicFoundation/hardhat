@@ -16,7 +16,7 @@ import { MultiProcessMutex } from "@nomicfoundation/hardhat-utils/synchronizatio
 import { SOLX_RELEASES_BASE_URL } from "./constants.js";
 import { getSolxAssetName } from "./platform.js";
 
-const log = createDebug("hardhat:solx:downloader");
+const log = createDebug("hardhat:slang-solx:downloader");
 
 const DOWNLOAD_RETRY_COUNT = 3;
 const DOWNLOAD_RETRY_DELAY_MS = 2000;

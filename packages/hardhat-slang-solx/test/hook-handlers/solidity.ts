@@ -80,7 +80,7 @@ describe("parseSolxVersion", () => {
   });
 });
 
-describe("hardhat-solx solidity hook handler", () => {
+describe("hardhat-slang-solx solidity hook handler", () => {
   describe("downloadCompilers", () => {
     it("is defined on the hook handler", async () => {
       const hookHandlerModule =

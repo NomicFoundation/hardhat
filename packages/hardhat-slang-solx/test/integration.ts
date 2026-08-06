@@ -8,7 +8,7 @@ import {
   resolveHardhatConfigPath,
 } from "hardhat/hre";
 
-describe("hardhat-solx integration", () => {
+describe("hardhat-slang-solx integration", () => {
   useFixtureProject("simple");
 
   async function createHre() {
