@@ -1,7 +1,6 @@
 import type { EthereumProvider } from "hardhat/types";
 
 import { assert, expect } from "chai";
-import * as chains from "viem/chains";
 
 import {
   innerGetPublicClient,
@@ -9,6 +8,10 @@ import {
   innerGetTestClient,
 } from "../src/internal/clients";
 import { EthereumMockedProvider } from "./mocks/provider";
+
+const chains = require("viem/chains") as typeof import("viem/chains", {
+  with: { "resolution-mode": "import" },
+});
 
 describe("clients", () => {
   describe("innerGetPublicClient", () => {

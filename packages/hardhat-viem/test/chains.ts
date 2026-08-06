@@ -2,7 +2,6 @@ import type { EthereumProvider } from "hardhat/types";
 
 import { expect, assert } from "chai";
 import sinon from "sinon";
-import * as chains from "viem/chains";
 
 import {
   getChain,
@@ -10,6 +9,10 @@ import {
   isDevelopmentNetwork,
 } from "../src/internal/chains";
 import { EthereumMockedProvider } from "./mocks/provider";
+
+const chains = require("viem/chains") as typeof import("viem/chains", {
+  with: { "resolution-mode": "import" },
+});
 
 describe("chains", () => {
   describe("getChain", () => {

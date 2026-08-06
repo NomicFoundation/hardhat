@@ -1,4 +1,4 @@
-import type * as viemT from "viem";
+import type * as viemT from "viem" with { "resolution-mode": "import" };
 import type { ArtifactsMap } from "hardhat/types/artifacts";
 import type { Libraries } from "./internal/bytecode";
 

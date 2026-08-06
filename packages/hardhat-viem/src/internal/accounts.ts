@@ -1,5 +1,5 @@
 import type { EthereumProvider } from "hardhat/types";
-import type { Address } from "viem";
+import type { Address } from "viem" with { "resolution-mode": "import" };
 
 import memoize from "lodash.memoize";
 

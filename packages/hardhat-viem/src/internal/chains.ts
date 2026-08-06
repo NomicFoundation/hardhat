@@ -1,5 +1,5 @@
 import type { EthereumProvider } from "hardhat/types";
-import type { Chain } from "viem";
+import type { Chain } from "viem" with { "resolution-mode": "import" };
 import type { TestClientMode } from "../types";
 
 import memoize from "lodash.memoize";
@@ -7,8 +7,12 @@ import memoize from "lodash.memoize";
 import { UnknownDevelopmentNetworkError, NetworkNotFoundError } from "./errors";
 
 export async function getChain(provider: EthereumProvider): Promise<Chain> {
-  const { extractChain } = require("viem") as typeof import("viem");
-  const chainsModule = require("viem/chains") as typeof import("viem/chains");
+  const { extractChain } = require("viem") as typeof import("viem", {
+    with: { "resolution-mode": "import" },
+  });
+  const chainsModule = require("viem/chains") as typeof import("viem/chains", {
+    with: { "resolution-mode": "import" },
+  });
   const chains = Object.values(chainsModule) as Chain[];
   const chainId = await getChainId(provider);
 
