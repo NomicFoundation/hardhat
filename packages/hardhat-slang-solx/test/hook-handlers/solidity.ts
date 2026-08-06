@@ -245,7 +245,7 @@ describe("hardhat-slang-solx solidity hook handler", () => {
       );
     });
 
-    it("returns SolxCompiler with version from binary when path is provided", async () => {
+    it("returns SlangSolxCompiler with version from binary when path is provided", async () => {
       const { getSolxBinaryPath } =
         await import("../../src/internal/downloader.js");
       const { exists } = await import("@nomicfoundation/hardhat-utils/fs");
