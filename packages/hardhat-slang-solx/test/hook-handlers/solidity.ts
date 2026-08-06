@@ -238,7 +238,7 @@ describe("hardhat-slang-solx solidity hook handler", () => {
 
       await assertRejectsWithHardhatError(
         hooks.getCompiler!(context, compilerConfig, mockNext.next),
-        HardhatError.ERRORS.HARDHAT_SOLX.GENERAL.BINARY_NOT_FOUND,
+        HardhatError.ERRORS.HARDHAT_SLANG_SOLX.GENERAL.BINARY_NOT_FOUND,
         {
           path: "/nonexistent/path/to/solx",
         },

@@ -91,7 +91,7 @@ export default async (): Promise<Partial<SolidityHooks>> => ({
     if (compilerConfig.path !== undefined) {
       if (!(await exists(compilerConfig.path))) {
         throw new HardhatError(
-          HardhatError.ERRORS.HARDHAT_SOLX.GENERAL.BINARY_NOT_FOUND,
+          HardhatError.ERRORS.HARDHAT_SLANG_SOLX.GENERAL.BINARY_NOT_FOUND,
           { path: compilerConfig.path },
         );
       }
