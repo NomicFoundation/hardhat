@@ -13,7 +13,7 @@ export const SOLX_DEBUG_INFO_SELECTORS: readonly string[] = [
   "evm.deployedBytecode.debugInfo",
 ] as const;
 
-export class SolxCompiler implements Compiler {
+export class SlangSolxCompiler implements Compiler {
   public readonly version: string;
   public readonly longVersion: string;
   public readonly compilerPath: string;
@@ -44,7 +44,7 @@ export class SolxCompiler implements Compiler {
  * `["*"]["*"]`. Existing user selectors are preserved; downstream
  * `#dedupeAndSortOutputSelection` removes duplicates.
  */
-export async function addSolxDebugInfoSelectors(
+export async function addSlangSolxDebugInfoSelectors(
   outputSelection: unknown,
 ): Promise<NonNullable<CompilerInput["settings"]>["outputSelection"]> {
   const seed: Record<

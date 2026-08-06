@@ -16,32 +16,32 @@ declare module "hardhat/types/config" {
     solx: true;
   }
 
-  export interface SolxSolidityCompilerUserConfig extends CommonSolidityCompilerUserConfig {
+  export interface SlangSolxSolidityCompilerUserConfig extends CommonSolidityCompilerUserConfig {
     type: "solx";
   }
 
   export interface SolidityCompilerUserConfigPerType {
-    solx: SolxSolidityCompilerUserConfig;
+    solx: SlangSolxSolidityCompilerUserConfig;
   }
 
-  export interface SolxSolidityCompilerConfig extends CommonSolidityCompilerConfig {
+  export interface SlangSolxSolidityCompilerConfig extends CommonSolidityCompilerConfig {
     type: "solx";
   }
 
   export interface SolidityCompilerConfigPerType {
-    solx: SolxSolidityCompilerConfig;
+    solx: SlangSolxSolidityCompilerConfig;
   }
 
-  export interface SolxSingleVersionSolidityUserConfig
+  export interface SlangSolxSingleVersionSolidityUserConfig
     extends
-      SolxSolidityCompilerUserConfig,
+      SlangSolxSolidityCompilerUserConfig,
       CommonSingleVersionSolidityUserConfig {}
 
   export interface SingleVersionSolidityUserConfigPerType {
-    solx: SolxSingleVersionSolidityUserConfig;
+    solx: SlangSolxSingleVersionSolidityUserConfig;
   }
 
-  export interface SolxUserConfig {
+  export interface SlangSolxUserConfig {
     /**
      * Allow compiler type `"solx"` in the production build profile.
      * By default, solx in production is rejected as a safeguard.
@@ -49,15 +49,15 @@ declare module "hardhat/types/config" {
     dangerouslyAllowSolxInProduction?: boolean;
   }
 
-  export interface SolxConfig {
+  export interface SlangSolxConfig {
     dangerouslyAllowSolxInProduction: boolean;
   }
 
   export interface HardhatUserConfig {
-    solx?: SolxUserConfig;
+    solx?: SlangSolxUserConfig;
   }
 
   export interface HardhatConfig {
-    solx: SolxConfig;
+    solx: SlangSolxConfig;
   }
 }

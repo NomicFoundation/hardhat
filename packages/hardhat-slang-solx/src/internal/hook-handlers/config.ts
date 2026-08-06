@@ -2,7 +2,7 @@ import type {
   ConfigurationVariableResolver,
   HardhatConfig,
   HardhatUserConfig,
-  SolxConfig,
+  SlangSolxConfig,
 } from "hardhat/types/config";
 import type {
   ConfigHooks,
@@ -21,10 +21,10 @@ import { z } from "zod";
 import {
   DEFAULT_SOLX_OPTIMIZER_MODE,
   SOLIDITY_TO_SOLX_VERSION_MAP,
-  SOLX_COMPILER_TYPE,
+  SLANG_SOLX_COMPILER_TYPE,
   SUPPORTED_SOLX_EVM_VERSIONS,
 } from "../constants.js";
-import { addSolxDebugInfoSelectors } from "../solx-compiler.js";
+import { addSlangSolxDebugInfoSelectors } from "../slang-solx-compiler.js";
 
 const log = createDebug("hardhat:slang-solx:hook-handlers:config");
 
@@ -187,12 +187,12 @@ export async function resolveUserConfig(
       profiles,
       registeredCompilerTypes:
         resolvedConfig.solidity.registeredCompilerTypes.includes(
-          SOLX_COMPILER_TYPE,
+          SLANG_SOLX_COMPILER_TYPE,
         )
           ? resolvedConfig.solidity.registeredCompilerTypes
           : [
               ...resolvedConfig.solidity.registeredCompilerTypes,
-              SOLX_COMPILER_TYPE,
+              SLANG_SOLX_COMPILER_TYPE,
             ],
     },
     solx: resolveSolxConfig(userConfig.solx),
@@ -234,7 +234,7 @@ async function augmentSolxOutputSelectionInProfiles(
 async function augmentIfSolx<
   T extends { type?: string; settings?: Record<string, unknown> },
 >(entry: T): Promise<T> {
-  if (entry.type !== SOLX_COMPILER_TYPE) {
+  if (entry.type !== SLANG_SOLX_COMPILER_TYPE) {
     return entry;
   }
   const settings = isObject(entry.settings) ? entry.settings : {};
@@ -245,14 +245,14 @@ async function augmentIfSolx<
     ...entry,
     settings: {
       ...settings,
-      // Defaults added here instead of in SolxCompiler.compile so this reaches
+      // Defaults added here instead of in SlangSolxCompiler.compile so this reaches
       // the solcInput and hence the build-id hash.
       viaIR: settings.viaIR ?? false,
       optimizer: {
         ...optimizer,
         mode: optimizer.mode ?? DEFAULT_SOLX_OPTIMIZER_MODE,
       },
-      outputSelection: await addSolxDebugInfoSelectors(
+      outputSelection: await addSlangSolxDebugInfoSelectors(
         entry.settings?.outputSelection,
       ),
     },
@@ -291,7 +291,7 @@ export async function validateResolvedConfig(
     const solxInOtherProfileMessage = `Compiler type "solx" is only supported in the "solx" build profile. Remove type: "solx" from the "${profileName}" profile compilers, or set solx.dangerouslyAllowSolxInProduction in the plugin config.`;
 
     for (const [i, compiler] of profile.compilers.entries()) {
-      if (compiler.type === SOLX_COMPILER_TYPE) {
+      if (compiler.type === SLANG_SOLX_COMPILER_TYPE) {
         errors.push({
           path: ["solidity", "profiles", profileName, "compilers", i, "type"],
           message: solxInOtherProfileMessage,
@@ -300,7 +300,7 @@ export async function validateResolvedConfig(
     }
 
     for (const [key, override] of Object.entries(profile.overrides)) {
-      if (override.type === SOLX_COMPILER_TYPE) {
+      if (override.type === SLANG_SOLX_COMPILER_TYPE) {
         errors.push({
           path: ["solidity", "profiles", profileName, "overrides", key, "type"],
           message: solxInOtherProfileMessage,
@@ -314,7 +314,7 @@ export async function validateResolvedConfig(
 
 function resolveSolxConfig(userConfig?: {
   dangerouslyAllowSolxInProduction?: boolean;
-}): SolxConfig {
+}): SlangSolxConfig {
   return {
     dangerouslyAllowSolxInProduction:
       userConfig?.dangerouslyAllowSolxInProduction ?? false,

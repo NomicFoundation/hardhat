@@ -5,9 +5,9 @@ import { beforeEach, describe, it } from "node:test";
 
 import {
   SOLX_DEBUG_INFO_SELECTORS,
-  SolxCompiler,
-  addSolxDebugInfoSelectors,
-} from "../src/internal/solx-compiler.js";
+  SlangSolxCompiler,
+  addSlangSolxDebugInfoSelectors,
+} from "../src/internal/slang-solx-compiler.js";
 
 // Track calls to the fake spawnCompile
 let spawnCompileCalls: Array<{
@@ -26,13 +26,13 @@ async function fakeSpawnCompile(
   return fakeOutput;
 }
 
-describe("SolxCompiler", () => {
+describe("SlangSolxCompiler", () => {
   beforeEach(() => {
     spawnCompileCalls = [];
   });
 
   it("implements the Compiler interface", async () => {
-    const compiler = new SolxCompiler("0.1.4", "/path/to/solx");
+    const compiler = new SlangSolxCompiler("0.1.4", "/path/to/solx");
 
     assert.equal(compiler.version, "0.1.4");
     assert.equal(compiler.longVersion, "0.1.4+solx");
@@ -41,7 +41,7 @@ describe("SolxCompiler", () => {
   });
 
   it("forwards binary path, args, and the input unchanged to spawnCompile", async () => {
-    const compiler = new SolxCompiler(
+    const compiler = new SlangSolxCompiler(
       "0.1.4",
       "/path/to/solx",
       fakeSpawnCompile,
@@ -65,7 +65,7 @@ describe("SolxCompiler", () => {
   });
 
   it("returns the output from spawnCompile", async () => {
-    const compiler = new SolxCompiler(
+    const compiler = new SlangSolxCompiler(
       "0.1.4",
       "/path/to/solx",
       fakeSpawnCompile,
@@ -81,16 +81,16 @@ describe("SolxCompiler", () => {
   });
 });
 
-describe("addSolxDebugInfoSelectors", () => {
+describe("addSlangSolxDebugInfoSelectors", () => {
   it("populates the wildcard slot when the input is empty", async () => {
-    const result = await addSolxDebugInfoSelectors({});
+    const result = await addSlangSolxDebugInfoSelectors({});
     assert.deepEqual(result, {
       "*": { "*": [...SOLX_DEBUG_INFO_SELECTORS] },
     });
   });
 
   it("appends to an existing wildcard selector list without removing user entries", async () => {
-    const result = await addSolxDebugInfoSelectors({
+    const result = await addSlangSolxDebugInfoSelectors({
       "*": { "*": ["abi", "metadata"] },
     });
     assert.deepEqual(result, {
@@ -99,7 +99,7 @@ describe("addSolxDebugInfoSelectors", () => {
   });
 
   it('preserves the file-level `[*][""]` slot for outputs like ast', async () => {
-    const result = await addSolxDebugInfoSelectors({
+    const result = await addSlangSolxDebugInfoSelectors({
       "*": { "": ["ast"] },
     });
     // The file-level slot must round-trip unchanged. Selectors are added at
@@ -111,12 +111,12 @@ describe("addSolxDebugInfoSelectors", () => {
   it("does not mutate the input object", async () => {
     const input = { "*": { "*": ["abi"] } };
     const before = JSON.stringify(input);
-    await addSolxDebugInfoSelectors(input);
+    await addSlangSolxDebugInfoSelectors(input);
     assert.equal(JSON.stringify(input), before);
   });
 
   it("accepts undefined input (sets up the wildcard slot)", async () => {
-    const result = await addSolxDebugInfoSelectors(undefined);
+    const result = await addSlangSolxDebugInfoSelectors(undefined);
     assert.deepEqual(result, {
       "*": { "*": [...SOLX_DEBUG_INFO_SELECTORS] },
     });

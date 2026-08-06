@@ -7,7 +7,7 @@ import {
   validateResolvedConfig,
   validateUserConfig,
 } from "../src/internal/hook-handlers/config.js";
-import { SOLX_DEBUG_INFO_SELECTORS } from "../src/internal/solx-compiler.js";
+import { SOLX_DEBUG_INFO_SELECTORS } from "../src/internal/slang-solx-compiler.js";
 
 describe("hardhat-slang-solx plugin config validation", () => {
   it("accepts valid config with dangerouslyAllowSolxInProduction", async () => {
@@ -152,8 +152,9 @@ describe("hardhat-slang-solx plugin config resolution", () => {
       }),
     );
 
-    const solxCompiler = resolvedConfig.solidity.profiles.solx.compilers[0];
-    const wildcardSelectors = solxCompiler.settings.outputSelection["*"][
+    const slangSolxCompiler =
+      resolvedConfig.solidity.profiles.solx.compilers[0];
+    const wildcardSelectors = slangSolxCompiler.settings.outputSelection["*"][
       "*"
     ] as string[];
     for (const selector of SOLX_DEBUG_INFO_SELECTORS) {
@@ -246,8 +247,9 @@ describe("hardhat-slang-solx plugin config resolution", () => {
       }),
     );
 
-    const solxCompiler = resolvedConfig.solidity.profiles.solx.compilers[0];
-    assert.equal(solxCompiler.settings.optimizer.mode, "1");
+    const slangSolxCompiler =
+      resolvedConfig.solidity.profiles.solx.compilers[0];
+    assert.equal(slangSolxCompiler.settings.optimizer.mode, "1");
   });
 
   it("lets a user-set optimizer mode win over the solx default", async () => {
@@ -270,8 +272,9 @@ describe("hardhat-slang-solx plugin config resolution", () => {
       }),
     );
 
-    const solxCompiler = resolvedConfig.solidity.profiles.solx.compilers[0];
-    assert.deepEqual(solxCompiler.settings.optimizer, {
+    const slangSolxCompiler =
+      resolvedConfig.solidity.profiles.solx.compilers[0];
+    assert.deepEqual(slangSolxCompiler.settings.optimizer, {
       enabled: true,
       mode: "z",
     });
@@ -297,8 +300,9 @@ describe("hardhat-slang-solx plugin config resolution", () => {
       }),
     );
 
-    const solxCompiler = resolvedConfig.solidity.profiles.solx.compilers[0];
-    assert.deepEqual(solxCompiler.settings.optimizer, {
+    const slangSolxCompiler =
+      resolvedConfig.solidity.profiles.solx.compilers[0];
+    assert.deepEqual(slangSolxCompiler.settings.optimizer, {
       enabled: true,
       mode: "1",
     });
@@ -324,8 +328,9 @@ describe("hardhat-slang-solx plugin config resolution", () => {
       }),
     );
 
-    const solxCompiler = resolvedConfig.solidity.profiles.solx.compilers[0];
-    assert.equal(solxCompiler.settings.optimizer.mode, "1");
+    const slangSolxCompiler =
+      resolvedConfig.solidity.profiles.solx.compilers[0];
+    assert.equal(slangSolxCompiler.settings.optimizer.mode, "1");
   });
 
   it("defaults viaIR to false on solx-typed compilers, letting a user value win", async () => {
@@ -348,8 +353,9 @@ describe("hardhat-slang-solx plugin config resolution", () => {
       }),
     );
 
-    const solxCompiler = resolvedConfig.solidity.profiles.solx.compilers[0];
-    assert.equal(solxCompiler.settings.viaIR, false);
+    const slangSolxCompiler =
+      resolvedConfig.solidity.profiles.solx.compilers[0];
+    assert.equal(slangSolxCompiler.settings.viaIR, false);
     const override =
       resolvedConfig.solidity.profiles.solx.overrides["contracts/ViaIR.sol"];
     assert.equal(override.settings.viaIR, true);
@@ -376,11 +382,12 @@ describe("hardhat-slang-solx plugin config resolution", () => {
       }),
     );
 
-    const solxCompiler = resolvedConfig.solidity.profiles.solx.compilers[0];
+    const slangSolxCompiler =
+      resolvedConfig.solidity.profiles.solx.compilers[0];
     // An arbitrary user solc setting survives config resolution untouched...
-    assert.equal(solxCompiler.settings.evmVersion, "prague");
+    assert.equal(slangSolxCompiler.settings.evmVersion, "prague");
     // ...alongside a default the plugin fills in (the mode default has its own test).
-    assert.equal(solxCompiler.settings.viaIR, false);
+    assert.equal(slangSolxCompiler.settings.viaIR, false);
   });
 });
 

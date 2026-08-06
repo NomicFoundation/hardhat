@@ -12,10 +12,10 @@ import { exists } from "@nomicfoundation/hardhat-utils/fs";
 
 import {
   SOLIDITY_TO_SOLX_VERSION_MAP,
-  SOLX_COMPILER_TYPE,
+  SLANG_SOLX_COMPILER_TYPE,
 } from "../constants.js";
 import { downloadSolx, getSolxBinaryPath } from "../downloader.js";
-import { SolxCompiler } from "../solx-compiler.js";
+import { SlangSolxCompiler } from "../slang-solx-compiler.js";
 
 const log = createDebug("hardhat:slang-solx:hook-handlers:solidity");
 
@@ -42,7 +42,7 @@ async function getSolxVersionFromBinary(binaryPath: string): Promise<string> {
 export default async (): Promise<Partial<SolidityHooks>> => ({
   downloadCompilers: async (_context, compilerConfigs, quiet) => {
     const solxConfigs = compilerConfigs.filter(
-      (c) => c.type === SOLX_COMPILER_TYPE,
+      (c) => c.type === SLANG_SOLX_COMPILER_TYPE,
     );
 
     if (solxConfigs.length === 0) {
@@ -83,7 +83,7 @@ export default async (): Promise<Partial<SolidityHooks>> => ({
   },
 
   getCompiler: async (context, compilerConfig, next) => {
-    if (compilerConfig.type !== SOLX_COMPILER_TYPE) {
+    if (compilerConfig.type !== SLANG_SOLX_COMPILER_TYPE) {
       return await next(context, compilerConfig);
     }
 
@@ -101,10 +101,10 @@ export default async (): Promise<Partial<SolidityHooks>> => ({
       );
 
       log(
-        `Creating SolxCompiler with custom path for Solidity ${compilerConfig.version} (solx ${customSolxVersion}) at ${compilerConfig.path}`,
+        `Creating SlangSolxCompiler with custom path for Solidity ${compilerConfig.version} (solx ${customSolxVersion}) at ${compilerConfig.path}`,
       );
 
-      return new SolxCompiler(customSolxVersion, compilerConfig.path);
+      return new SlangSolxCompiler(customSolxVersion, compilerConfig.path);
     }
 
     const solxVersion = SOLIDITY_TO_SOLX_VERSION_MAP[compilerConfig.version];
@@ -121,9 +121,9 @@ export default async (): Promise<Partial<SolidityHooks>> => ({
     );
 
     log(
-      `Creating SolxCompiler for Solidity ${compilerConfig.version} (solx ${solxVersion}) at ${binaryPath}`,
+      `Creating SlangSolxCompiler for Solidity ${compilerConfig.version} (solx ${solxVersion}) at ${binaryPath}`,
     );
 
-    return new SolxCompiler(solxVersion, binaryPath);
+    return new SlangSolxCompiler(solxVersion, binaryPath);
   },
 });
