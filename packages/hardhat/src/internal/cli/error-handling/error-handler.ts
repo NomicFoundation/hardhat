@@ -9,6 +9,8 @@ import {
 
 import { HARDHAT_NAME, HARDHAT_WEBSITE_URL } from "../../constants.js";
 
+import { detectNativeBindingFailure } from "./native-binding-error.js";
+
 // The classifier may import many unrelated things top-level to do its job, so
 // we load it lazily.
 let classifierModule: typeof ClassifierT | undefined;
@@ -162,6 +164,21 @@ async function getErrorWithCategory(error: Error): Promise<ErrorWithCategory> {
     return {
       category: ErrorCategory.COMMUNITY_PLUGIN,
       categorizedError: error,
+    };
+  }
+
+  const nativeBindingFailure = detectNativeBindingFailure(error);
+  if (nativeBindingFailure !== undefined) {
+    return {
+      category: ErrorCategory.HARDHAT,
+      categorizedError: new HardhatError(
+        HardhatError.ERRORS.CORE.GENERAL.NATIVE_BINDING_LOAD_FAILED,
+        {
+          parentPackage: nativeBindingFailure.parentPackage,
+          missingPackage: nativeBindingFailure.missingPackage,
+        },
+        error,
+      ),
     };
   }
 
