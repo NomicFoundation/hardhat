@@ -1,6 +1,6 @@
 import type { HardhatUserConfig } from "hardhat/config";
 
-import HardhatSolxPlugin from "../../../src/index.js";
+import HardhatSlangSolxPlugin from "../../../src/index.js";
 
 const config: HardhatUserConfig = {
   solidity: {
@@ -8,13 +8,13 @@ const config: HardhatUserConfig = {
       default: {
         version: "0.8.34",
       },
-      solx: {
-        type: "solx",
+      "slang-solx": {
+        type: "slang-solx",
         version: "0.8.34",
       },
     },
   },
-  plugins: [HardhatSolxPlugin],
+  plugins: [HardhatSlangSolxPlugin],
 };
 
 export default config;

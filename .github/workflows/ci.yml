@@ -48,9 +48,9 @@ jobs:
               - '.github/workflows/**'
               - '.github/actions/**'
             solx_mirror:
-              - 'packages/hardhat-solx/src/internal/constants.ts'
-              - 'packages/hardhat-solx/src/internal/platform.ts'
-              - 'packages/hardhat-solx/test/mirror-availability.ts'
+              - 'packages/hardhat-slang-solx/src/internal/constants.ts'
+              - 'packages/hardhat-slang-solx/src/internal/platform.ts'
+              - 'packages/hardhat-slang-solx/test/mirror-availability.ts'
 
   check_dependencies:
     name: Check dependency versions
@@ -106,13 +106,13 @@ jobs:
     name: Check solx releases mirror availability
     needs: is-v3
     # Network check against an external service: only run when the version map
-    # or the check itself changes, not on every PR that rebuilds hardhat-solx.
+    # or the check itself changes, not on every PR that rebuilds hardhat-slang-solx.
     if: ${{ needs.is-v3.outputs.is_v3 == 'true' && needs.is-v3.outputs.solx_mirror_changed == 'true' }}
     timeout-minutes: 15
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: packages/hardhat-solx
+        working-directory: packages/hardhat-slang-solx
     steps:
       - uses: actions/checkout@v5
       - uses: ./.github/actions/setup-env
