@@ -1,5 +1,11 @@
 # @nomicfoundation/hardhat-zod-utils
 
+## 3.0.6
+
+### Patch Changes
+
+- [#8453](https://github.com/NomicFoundation/hardhat/pull/8453) [`38b9f2d`](https://github.com/NomicFoundation/hardhat/commit/38b9f2d909563d7f37d0eb528e995bf7d1c577f5) Thanks [@ChristopherDedominici](https://github.com/ChristopherDedominici)! - Add a fallback value for `configVariable`.
+
 ## 3.0.5
 
 ### Patch Changes
