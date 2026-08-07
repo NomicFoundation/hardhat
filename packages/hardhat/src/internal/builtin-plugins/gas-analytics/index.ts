@@ -19,6 +19,13 @@ const hardhatPlugin: HardhatPlugin = definePlugin({
         description:
           "Check the snapshots match the stored values (Solidity tests only)",
       })
+      .addOption({
+        name: "tolerance",
+        description:
+          "Allowed drift percentage for --snapshot-check (Solidity tests only)",
+        type: ArgumentType.FLOAT,
+        defaultValue: 0,
+      })
       .setAction(async () => ({
         default: async (args, _hre, runSuper) => {
           // We don't need to do anything here, as the test task will forward
@@ -35,6 +42,12 @@ const hardhatPlugin: HardhatPlugin = definePlugin({
       .addFlag({
         name: "snapshotCheck",
         description: "Check the snapshots match the stored values",
+      })
+      .addOption({
+        name: "tolerance",
+        description: "Allowed drift percentage for --snapshot-check",
+        type: ArgumentType.FLOAT,
+        defaultValue: 0,
       })
       .setAction(
         async () => await import("./tasks/solidity-test/task-action.js"),
