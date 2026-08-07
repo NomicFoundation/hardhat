@@ -1,0 +1,87 @@
+{
+  "$schema": "../../scripts/end-to-end/schema/scenario.schema.json",
+  "description": "Uniswap V4 core contracts fork compiled at solc 0.8.34, tracking solx and solc compile times.",
+  "tags": ["external-repo", "solx"],
+  "repo": "anaPerezGhiglia/uniswap-v4-core",
+  "commit": "ab2b22eef19e0abe29d67420dde81b5d54455ae5",
+  "packageManager": "pnpm",
+  "env": {
+    "pnpm_config_dangerously_allow_all_builds": "true",
+    "pnpm_config_frozen_lockfile": "false"
+  },
+  "submodules": true,
+  "preinstall": "./preinstall.sh",
+  "defaultCommand": "npx hardhat compile --build-profile solx",
+  "benchmark": {
+    "commands": {
+      "prime compilers": {
+        "runs": 1,
+        "steps": {
+          "assert fresh hardhat-solx": {
+            "command": "diff -rq .solx/expected-dist-src node_modules/@nomicfoundation/hardhat-solx/dist/src",
+            "measure": false
+          },
+          "download solc + solx and warm caches": {
+            "command": "npx hardhat compile && npx hardhat compile --build-profile solx && npx hardhat clean",
+            "measure": false
+          },
+          "warm forge solc cache": {
+            "command": "FOUNDRY_SOLC=0.8.34 FOUNDRY_OPTIMIZER=true ./.foundry/forge build && ./.foundry/forge clean",
+            "measure": false
+          }
+        }
+      },
+      "cold compile solx-0.1.7": {
+        "runs": 2,
+        "dependsOn": [
+          "assert fresh hardhat-solx",
+          "download solc + solx and warm caches"
+        ],
+        "prepare": "npx hardhat clean",
+        "command": "npx hardhat compile --build-profile solx-0.1.7"
+      },
+      "cold compile solx-0.1.7 via-ir": {
+        "runs": 2,
+        "dependsOn": [
+          "assert fresh hardhat-solx",
+          "download solc + solx and warm caches"
+        ],
+        "prepare": "npx hardhat clean",
+        "command": "npx hardhat compile --build-profile solx-0.1.7-via-ir"
+      },
+      "cold compile solc": {
+        "runs": 2,
+        "dependsOn": [
+          "assert fresh hardhat-solx",
+          "download solc + solx and warm caches"
+        ],
+        "prepare": "npx hardhat clean",
+        "command": "npx hardhat compile"
+      },
+      "cold compile solc no-opt": {
+        "runs": 2,
+        "dependsOn": [
+          "assert fresh hardhat-solx",
+          "download solc + solx and warm caches"
+        ],
+        "prepare": "npx hardhat clean",
+        "command": "npx hardhat compile --build-profile solc-no-opt"
+      },
+      "cold compile solc via-ir": {
+        "runs": 2,
+        "dependsOn": [
+          "assert fresh hardhat-solx",
+          "download solc + solx and warm caches"
+        ],
+        "prepare": "npx hardhat clean",
+        "command": "npx hardhat compile --build-profile solc-via-ir"
+      },
+      "cold compile forge-1.7.1 via-ir": {
+        "runs": 2,
+        "dependsOn": ["warm forge solc cache"],
+        "prepare": "./.foundry/forge clean",
+        "command": "FOUNDRY_SOLC=0.8.34 FOUNDRY_OPTIMIZER=true ./.foundry/forge build --offline"
+      }
+    }
+  }
+}
