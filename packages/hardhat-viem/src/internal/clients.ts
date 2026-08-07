@@ -5,7 +5,7 @@ import type {
   PublicClientConfig,
   WalletClientConfig,
   TestClientConfig,
-} from "viem";
+} from "viem" with { "resolution-mode": "import" };
 import type {
   PublicClient,
   TestClient,
@@ -56,7 +56,9 @@ export async function innerGetPublicClient(
   chain: Chain,
   publicClientConfig?: Partial<PublicClientConfig>
 ): Promise<PublicClient> {
-  const viem = require("viem") as typeof import("viem");
+  const viem = require("viem") as typeof import("viem", {
+    with: { "resolution-mode": "import" },
+  });
   const { clientParameters, transportParameters } = await getParameters(
     chain,
     publicClientConfig
@@ -97,7 +99,9 @@ export async function innerGetWalletClients(
   accounts: Address[],
   walletClientConfig?: Partial<WalletClientConfig>
 ): Promise<WalletClient[]> {
-  const viem = require("viem") as typeof import("viem");
+  const viem = require("viem") as typeof import("viem", {
+    with: { "resolution-mode": "import" },
+  });
   const { clientParameters, transportParameters } = await getParameters(
     chain,
     walletClientConfig
@@ -161,7 +165,9 @@ export async function innerGetTestClient(
   mode: TestClientMode,
   testClientConfig?: Partial<TestClientConfig>
 ): Promise<TestClient> {
-  const viem = require("viem") as typeof import("viem");
+  const viem = require("viem") as typeof import("viem", {
+    with: { "resolution-mode": "import" },
+  });
   const { clientParameters, transportParameters } = await getParameters(
     chain,
     testClientConfig

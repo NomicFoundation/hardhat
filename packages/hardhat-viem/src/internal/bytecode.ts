@@ -1,4 +1,4 @@
-import type * as viemT from "viem";
+import type * as viemT from "viem" with { "resolution-mode": "import" };
 import type { Artifact } from "hardhat/types/artifacts";
 
 import {
@@ -22,7 +22,9 @@ export async function linkBytecode(
   artifact: Artifact,
   libraries: Link[]
 ): Promise<viemT.Hex> {
-  const { isHex } = require("viem") as typeof import("viem");
+  const { isHex } = require("viem") as typeof import("viem", {
+    with: { "resolution-mode": "import" },
+  });
   let bytecode = artifact.bytecode;
 
   // TODO: measure performance impact
