@@ -426,7 +426,15 @@ function refineEdrNetworkUserConfig(
       }
 
       const interval = network.mining?.interval;
-      if (typeof interval === "number" || Array.isArray(interval)) {
+      // A scalar `interval: 0` disables interval mining entirely, so no blocks
+      // are mined on a timer and their timestamps can't diverge from clock
+      // time. It's also the resolved default, and setting it explicitly is how
+      // interval mining is opted out of. An interval range always enables
+      // interval mining, so it is still checked even if its minimum is 0.
+      if (
+        (typeof interval === "number" && interval !== 0) ||
+        Array.isArray(interval)
+      ) {
         const minInterval =
           typeof interval === "number" ? interval : Math.min(...interval);
         if (
