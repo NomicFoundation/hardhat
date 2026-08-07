@@ -14,6 +14,9 @@ import {
 } from "../../../../src/internal/constants.js";
 import { UsingHardhat2PluginError } from "../../../../src/internal/using-hardhat2-plugin-errors.js";
 
+const nativeBindingErrorDescriptor =
+  HardhatError.ERRORS.CORE.GENERAL.NATIVE_BINDING_LOAD_FAILED;
+
 const mockCoreErrorDescriptor = {
   number: 123,
   messageTemplate: "error message",
@@ -288,6 +291,55 @@ describe("error-handler", () => {
           lines[4],
           `It looks like you are migrating from Hardhat 2 to Hardhat 3. The following error often shows up during this kind of migration.\nPlease read https://hardhat.org/migrate-from-hardhat2 to learn how to migrate your project to Hardhat 3.`,
         );
+      });
+    });
+
+    describe("with a native binding load failure", () => {
+      it("is categorized as HHE27, with the original error preserved for the stack trace", async () => {
+        const cause = new Error(
+          "Cannot find module '@nomicfoundation/edr-linux-arm64-gnu'",
+        );
+        const error = new Error(
+          "Cannot find native binding. npm has a bug related to optional dependencies (https://github.com/npm/cli/issues/4828).",
+          { cause },
+        );
+        const expected = new HardhatError(nativeBindingErrorDescriptor, {
+          parentPackage: "@nomicfoundation/edr",
+          missingPackage: "@nomicfoundation/edr-linux-arm64-gnu",
+        });
+
+        const lines: Array<string | Error> = [];
+        await printErrorMessages(error, false, (msg: string | Error) => {
+          lines.push(msg);
+        });
+
+        assert.equal(lines.length, 3);
+        assert.equal(
+          lines[0],
+          `${styleText(["red", "bold"], `Error ${expected.errorCode}:`)} ${expected.formattedMessage}`,
+        );
+        assert.equal(lines[1], "");
+        assert.equal(
+          lines[2],
+          `For more info go to ${HARDHAT_WEBSITE_URL}${expected.errorCode} or run ${HARDHAT_NAME} with --show-stack-traces`,
+        );
+      });
+
+      it("still prints the original (uncategorized) error for the stack trace", async () => {
+        const cause = new Error(
+          "Cannot find module '@nomicfoundation/edr-linux-arm64-gnu'",
+        );
+        const error = new Error(
+          "Cannot find native binding. npm has a bug related to optional dependencies (https://github.com/npm/cli/issues/4828).",
+          { cause },
+        );
+
+        const lines: Array<string | Error> = [];
+        await printErrorMessages(error, true, (msg: string | Error) => {
+          lines.push(msg);
+        });
+
+        assert.equal(lines[2], error);
       });
     });
   });
