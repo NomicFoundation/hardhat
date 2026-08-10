@@ -45,6 +45,14 @@ describe("isWithinTolerance", () => {
     assert.equal(isWithinTolerance(1000, 1006, 0.5), false);
   });
 
+  it("should not reject boundary values due to floating-point division errors", () => {
+    // (49 / 700) * 100 === 7.000000000000001, so a division-based
+    // implementation would wrongly return false for these
+    assert.equal(isWithinTolerance(700, 749, 7), true);
+    assert.equal(isWithinTolerance(700, 651, 7), true);
+    assert.equal(isWithinTolerance(7000, 7049, 0.7), true);
+  });
+
   it("should support tolerances of 100 or more", () => {
     assert.equal(isWithinTolerance(100, 200, 100), true);
     assert.equal(isWithinTolerance(100, 0, 100), true);

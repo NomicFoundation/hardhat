@@ -22,7 +22,7 @@ const hardhatPlugin: HardhatPlugin = definePlugin({
       .addOption({
         name: "tolerance",
         description:
-          "Allowed gas drift percentage for --snapshot-check (Solidity tests only)",
+          "Allowed drift percentage for --snapshot-check (Solidity tests only)",
         type: ArgumentType.FLOAT,
         defaultValue: 0,
       })
@@ -45,7 +45,7 @@ const hardhatPlugin: HardhatPlugin = definePlugin({
       })
       .addOption({
         name: "tolerance",
-        description: "Allowed gas drift percentage for --snapshot-check",
+        description: "Allowed drift percentage for --snapshot-check",
         type: ArgumentType.FLOAT,
         defaultValue: 0,
       })

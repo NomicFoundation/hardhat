@@ -4,4 +4,4 @@
 "hardhat": patch
 ---
 
-Added a `--tolerance` flag to Solidity test gas snapshots.
+Added a `--tolerance` option to `--snapshot-check` in Solidity tests, allowing snapshot values to drift by a given percentage before the check fails.

@@ -313,7 +313,7 @@ export function stringifySnapshotCheatcodes(
 export function compareSnapshotCheatcodes(
   previousSnapshotsMap: SnapshotCheatcodesMap,
   currentSnapshotsMap: SnapshotCheatcodesWithMetadataMap,
-  tolerance: number = 0,
+  tolerance: number,
 ): SnapshotCheatcodesComparison {
   const added: SnapshotCheatcode[] = [];
   const removed: SnapshotCheatcode[] = [];
@@ -401,7 +401,7 @@ const INTEGER_REGEX = /^-?\d+$/;
 export async function checkSnapshotCheatcodes(
   basePath: string,
   suiteResults: SuiteResult[],
-  tolerance: number = 0,
+  tolerance: number,
 ): Promise<SnapshotCheatcodesCheckResult> {
   const { snapshotCheatcodes, renamedGroups } = sanitizeSnapshotCheatcodes(
     extractSnapshotCheatcodes(suiteResults),

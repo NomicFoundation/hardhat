@@ -86,8 +86,9 @@ export function median(values: number[]): number {
 
 /**
  * Whether `actual` drifted from `expected` by at most `tolerance` percent.
- * The division form matches how percentages are computed when reporting
- * snapshot changes.
+ * Cross-multiplied instead of `(diff / expected) * 100 <= tolerance` to
+ * avoid floating-point errors from the division (e.g. `(49 / 700) * 100`
+ * is `7.000000000000001`, which would fail a tolerance of exactly 7).
  */
 export function isWithinTolerance(
   expected: number,
@@ -95,7 +96,7 @@ export function isWithinTolerance(
   tolerance: number,
 ): boolean {
   const diff = Math.abs(actual - expected);
-  return diff === 0 || (expected > 0 && (diff / expected) * 100 <= tolerance);
+  return diff * 100 <= tolerance * Math.abs(expected);
 }
 
 export function formatSectionHeader(

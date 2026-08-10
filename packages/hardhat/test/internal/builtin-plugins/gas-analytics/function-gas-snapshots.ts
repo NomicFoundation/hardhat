@@ -582,7 +582,7 @@ MyContract#testB (gas: 20000)`;
 
   describe("compareFunctionGasSnapshots", () => {
     it("should return empty comparison when both snapshots are empty", () => {
-      const result = compareFunctionGasSnapshots([], []);
+      const result = compareFunctionGasSnapshots([], [], 0);
 
       assert.deepEqual(result, {
         added: [],
@@ -605,7 +605,7 @@ MyContract#testB (gas: 20000)`;
         },
       ];
 
-      const result = compareFunctionGasSnapshots(previous, current);
+      const result = compareFunctionGasSnapshots(previous, current, 0);
 
       assert.equal(result.added.length, 1);
       assert.equal(result.removed.length, 0);
@@ -623,7 +623,7 @@ MyContract#testB (gas: 20000)`;
       ];
       const current: FunctionGasSnapshotWithMetadata[] = [];
 
-      const result = compareFunctionGasSnapshots(previous, current);
+      const result = compareFunctionGasSnapshots(previous, current, 0);
 
       assert.equal(result.added.length, 0);
       assert.equal(result.removed.length, 1);
@@ -650,7 +650,7 @@ MyContract#testB (gas: 20000)`;
         },
       ];
 
-      const result = compareFunctionGasSnapshots(previous, current);
+      const result = compareFunctionGasSnapshots(previous, current, 0);
 
       assert.equal(result.added.length, 0);
       assert.equal(result.removed.length, 0);
@@ -693,7 +693,7 @@ MyContract#testB (gas: 20000)`;
         },
       ];
 
-      const result = compareFunctionGasSnapshots(previous, current);
+      const result = compareFunctionGasSnapshots(previous, current, 0);
 
       assert.equal(result.added.length, 0);
       assert.equal(result.removed.length, 0);
@@ -731,7 +731,7 @@ MyContract#testB (gas: 20000)`;
         },
       ];
 
-      const result = compareFunctionGasSnapshots(previous, current);
+      const result = compareFunctionGasSnapshots(previous, current, 0);
 
       assert.equal(result.added.length, 1);
       assert.equal(result.removed.length, 1);
@@ -785,7 +785,7 @@ MyContract#testB (gas: 20000)`;
         },
       ];
 
-      const result = compareFunctionGasSnapshots(previous, current);
+      const result = compareFunctionGasSnapshots(previous, current, 0);
 
       assert.equal(result.added.length, 1);
       assert.equal(result.removed.length, 1);
@@ -814,7 +814,7 @@ MyContract#testB (gas: 20000)`;
         },
       ];
 
-      const result = compareFunctionGasSnapshots(previous, current);
+      const result = compareFunctionGasSnapshots(previous, current, 0);
 
       assert.equal(result.added.length, 0);
       assert.equal(result.removed.length, 0);
@@ -861,6 +861,19 @@ MyContract#testB (gas: 20000)`;
           assert.equal(result.changed.length, 0);
           assert.equal(result.tolerated.length, 1);
         }
+      });
+
+      it("should flag as changed a diff from a zero baseline even with a large tolerance", () => {
+        // The percentage change from 0 is undefined, so no tolerance can
+        // absorb it.
+        const result = compareFunctionGasSnapshots(
+          [previousStandard(0n)],
+          [currentStandard(1n)],
+          1_000_000,
+        );
+
+        assert.equal(result.changed.length, 1);
+        assert.equal(result.tolerated.length, 0);
       });
 
       it("should keep tolerated entries with the same shape as changed entries", () => {
@@ -990,17 +1003,15 @@ MyContract#testB (gas: 20000)`;
         assert.equal(result.tolerated.length, 0);
       });
 
-      it("should behave exactly like today when the tolerance is 0 or omitted", () => {
-        for (const args of [[0], []] as const) {
-          const result = compareFunctionGasSnapshots(
-            [previousStandard(1000n)],
-            [currentStandard(1001n)],
-            ...args,
-          );
+      it("should behave exactly like today when the tolerance is 0", () => {
+        const result = compareFunctionGasSnapshots(
+          [previousStandard(1000n)],
+          [currentStandard(1001n)],
+          0,
+        );
 
-          assert.equal(result.changed.length, 1);
-          assert.equal(result.tolerated.length, 0);
-        }
+        assert.equal(result.changed.length, 1);
+        assert.equal(result.tolerated.length, 0);
       });
     });
   });

@@ -250,7 +250,7 @@ export function parseFunctionGasSnapshots(
 export function compareFunctionGasSnapshots(
   previousSnapshots: FunctionGasSnapshot[],
   currentSnapshots: FunctionGasSnapshotWithMetadata[],
-  tolerance: number = 0,
+  tolerance: number,
 ): FunctionGasSnapshotComparison {
   const previousSnapshotsMap = new Map(
     previousSnapshots.map((s) => [
@@ -334,7 +334,7 @@ export function hasGasUsageChanged(
 export async function checkFunctionGasSnapshots(
   basePath: string,
   suiteResults: SuiteResult[],
-  tolerance: number = 0,
+  tolerance: number,
 ): Promise<FunctionGasSnapshotCheckResult> {
   const functionGasSnapshots = extractFunctionGasSnapshots(suiteResults);
 
