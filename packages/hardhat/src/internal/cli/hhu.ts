@@ -19,7 +19,7 @@ import { globalFlag } from "../core/config.js";
 import { TaskManagerImplementation } from "../core/tasks/task-manager.js";
 import { getHardhatVersion } from "../utils/package.js";
 
-import { printErrorMessages } from "./error-handler.js";
+import { printErrorMessages } from "./error-handling/error-handler.js";
 import { getGlobalHelpString } from "./help/get-global-help-string.js";
 import { getHelpString } from "./help/get-help-string.js";
 import {
