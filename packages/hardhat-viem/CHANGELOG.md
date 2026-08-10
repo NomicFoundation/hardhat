@@ -1,5 +1,11 @@
 # @nomicfoundation/hardhat-viem
 
+## 2.1.5
+
+### Patch Changes
+
+- 5ef73ac: Added a `resolution-mode` import attribute to `viem`'s type-only imports, fixing a build failure against newer `viem` releases.
+
 ## 2.1.4
 
 ### Patch Changes
