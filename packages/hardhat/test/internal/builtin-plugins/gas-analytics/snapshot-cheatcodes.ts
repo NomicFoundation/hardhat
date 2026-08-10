@@ -12,6 +12,7 @@ import { afterEach, describe, it } from "node:test";
 
 import { HardhatError } from "@nomicfoundation/hardhat-errors";
 import {
+  assertRejectsWithHardhatError,
   assertThrowsHardhatError,
   createTmpDir,
 } from "@nomicfoundation/hardhat-test-utils";
@@ -499,24 +500,72 @@ describe("snapshot-cheatcodes", () => {
       assert.equal(calculatorTest["calculator-subtract"], "47891");
     });
 
-    it("should normalize non-string values in a hand-edited JSON file", async () => {
-      // The snapshot files are user-editable, so a value may be e.g. a JSON
-      // number instead of a string
-      const snapshotPath = getSnapshotCheatcodesPath(
-        tmp.path,
-        "HandEdited.json",
-      );
+    it("should read values above 2^53 as exact strings", async () => {
+      const snapshotPath = getSnapshotCheatcodesPath(tmp.path, "BigGroup.json");
       await writeJsonFile(snapshotPath, {
-        "numeric-entry": 100,
-        "string-entry": "200",
+        "big-entry": "100000000000000000000001",
       });
 
       const readSnapshots = await readSnapshotCheatcodes(tmp.path);
 
-      const handEdited = readSnapshots.get("HandEdited");
-      assert.ok(handEdited !== undefined, "HandEdited should be defined");
-      assert.equal(handEdited["numeric-entry"], "100");
-      assert.equal(handEdited["string-entry"], "200");
+      const bigGroup = readSnapshots.get("BigGroup");
+      assert.ok(bigGroup !== undefined, "BigGroup should be defined");
+      assert.equal(bigGroup["big-entry"], "100000000000000000000001");
+    });
+
+    it("should throw SNAPSHOT_READ_ERROR on a hand-edited non-numeric value", async () => {
+      // Snapshot values are always machine-generated uint256 decimal strings,
+      // so a non-numeric value can only mean a hand-edited or corrupted file
+      const snapshotPath = getSnapshotCheatcodesPath(
+        tmp.path,
+        "HandEdited.json",
+      );
+      await writeJsonFile(snapshotPath, { "bad-entry": "abc" });
+
+      await assertRejectsWithHardhatError(
+        readSnapshotCheatcodes(tmp.path),
+        HardhatError.ERRORS.CORE.SOLIDITY_TESTS.SNAPSHOT_READ_ERROR,
+        {
+          snapshotsPath: snapshotPath,
+          error: `Invalid value "abc" for "bad-entry". Snapshot values must be decimal integer strings`,
+        },
+      );
+    });
+
+    it("should throw SNAPSHOT_READ_ERROR on a hand-written unquoted JSON number", async () => {
+      const snapshotPath = getSnapshotCheatcodesPath(
+        tmp.path,
+        "HandEdited.json",
+      );
+      await writeJsonFile(snapshotPath, { "unquoted-entry": 100 });
+
+      await assertRejectsWithHardhatError(
+        readSnapshotCheatcodes(tmp.path),
+        HardhatError.ERRORS.CORE.SOLIDITY_TESTS.SNAPSHOT_READ_ERROR,
+        {
+          snapshotsPath: snapshotPath,
+          error: `Invalid value 100 for "unquoted-entry". Snapshot values must be decimal integer strings`,
+        },
+      );
+    });
+
+    it("should throw SNAPSHOT_READ_ERROR on non-decimal numeric string forms", async () => {
+      for (const value of ["", " 100", "1e2", "-5", "1.5", "0x64"]) {
+        const snapshotPath = getSnapshotCheatcodesPath(
+          tmp.path,
+          "HandEdited.json",
+        );
+        await writeJsonFile(snapshotPath, { "bad-entry": value });
+
+        await assertRejectsWithHardhatError(
+          readSnapshotCheatcodes(tmp.path),
+          HardhatError.ERRORS.CORE.SOLIDITY_TESTS.SNAPSHOT_READ_ERROR,
+          {
+            snapshotsPath: snapshotPath,
+            error: `Invalid value ${JSON.stringify(value)} for "bad-entry". Snapshot values must be decimal integer strings`,
+          },
+        );
+      }
     });
 
     it("should read multiple snapshot groups from separate JSON files", async () => {
@@ -952,50 +1001,26 @@ ZGroup#entry-z: 300`;
         assert.equal(result.tolerated.length, 0);
       });
 
-      it("should keep the exact comparison for non-numeric values even with a large tolerance", () => {
+      it("should tolerate a diff within the tolerance for values above 2^53", () => {
         const result = compareSnapshotCheatcodes(
-          previousWith("abc"),
-          currentWith("abd"),
-          1_000_000,
-        );
-
-        assert.equal(result.changed.length, 1);
-        assert.equal(result.tolerated.length, 0);
-      });
-
-      it("should keep the exact comparison for empty-string values even with a large tolerance", () => {
-        // `Number("")` is `0`, so a naive numeric check would treat "" vs "0"
-        // as a zero diff.
-        const result = compareSnapshotCheatcodes(
-          previousWith(""),
-          currentWith("0"),
-          1_000_000,
-        );
-
-        assert.equal(result.changed.length, 1);
-        assert.equal(result.tolerated.length, 0);
-      });
-
-      it("should keep string-different but numerically-equal values as changed at tolerance 0", () => {
-        const result = compareSnapshotCheatcodes(
-          previousWith("100"),
-          currentWith("1e2"),
-          0,
-        );
-
-        assert.equal(result.changed.length, 1);
-        assert.equal(result.tolerated.length, 0);
-      });
-
-      it("should tolerate string-different but numerically-equal values at tolerance > 0", () => {
-        const result = compareSnapshotCheatcodes(
-          previousWith("100"),
-          currentWith("1e2"),
-          0.5,
+          previousWith("100000000000000000000000"),
+          currentWith("100500000000000000000000"),
+          1,
         );
 
         assert.equal(result.changed.length, 0);
         assert.equal(result.tolerated.length, 1);
+      });
+
+      it("should flag as changed a diff over the tolerance for values above 2^53", () => {
+        const result = compareSnapshotCheatcodes(
+          previousWith("100000000000000000000000"),
+          currentWith("102000000000000000000000"),
+          1,
+        );
+
+        assert.equal(result.changed.length, 1);
+        assert.equal(result.tolerated.length, 0);
       });
     });
   });
@@ -1092,13 +1117,15 @@ ZGroup#entry-z: 300`;
       assert.match(text, /Δ\+998/);
     });
 
-    it("should print non-numeric values as-is, without a diff", () => {
+    it("should print a non-zero diff for values that only differ beyond 2^53 precision", () => {
+      // Both values round to the same `number`, so a float-based diff would
+      // print them as identical with Δ0
       const changes: SnapshotCheatcodeChange[] = [
         {
           group: "GroupA",
           name: "entry-a",
-          expected: "some string",
-          actual: "another string",
+          expected: "9007199254740993",
+          actual: "9007199254740992",
           source: "contracts/GroupA.t.sol",
         },
       ];
@@ -1106,11 +1133,9 @@ ZGroup#entry-z: 300`;
       printSnapshotCheatcodeChanges(changes, logger);
 
       const text = getLoggerOutput();
-      assert.match(text, /Expected: some string/);
-      assert.match(text, /Actual:\s+another string/);
-      assert.doesNotMatch(text, /NaN/);
-      assert.doesNotMatch(text, /Δ/);
-      assert.doesNotMatch(text, /%/);
+      assert.match(text, /Expected: 9007199254740993/);
+      assert.match(text, /Actual:\s+9007199254740992/);
+      assert.match(text, /Δ-1/);
     });
 
     it("should print multiple changes", () => {
