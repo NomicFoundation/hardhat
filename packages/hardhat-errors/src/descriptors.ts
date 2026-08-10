@@ -1352,6 +1352,22 @@ EIP-712 cheatcodes resolve types by name, so each struct name must have a single
         websiteTitle: "Duplicate EIP-712 struct name",
         websiteDescription: `Two struct definitions with the same name had different members. Type-name lookups via \`vm.eip712HashType\` and \`vm.eip712HashStruct\` would be ambiguous.`,
       },
+      SNAPSHOT_TOLERANCE_REQUIRES_CHECK: {
+        number: 819,
+        messageTemplate:
+          "The --tolerance option can only be used with --snapshot-check.",
+        websiteTitle: "Snapshot tolerance requires snapshot check",
+        websiteDescription:
+          "The `--tolerance` option only affects snapshot checks, so it can only be used together with `--snapshot-check`.",
+      },
+      INVALID_SNAPSHOT_TOLERANCE: {
+        number: 820,
+        messageTemplate:
+          "Invalid --tolerance value {value}. Expected a non-negative finite number.",
+        websiteTitle: "Invalid snapshot tolerance",
+        websiteDescription:
+          "The `--tolerance` option expects a non-negative finite number representing the allowed gas drift percentage.",
+      },
     },
     SOLIDITY: {
       PROJECT_ROOT_RESOLUTION_ERROR: {
