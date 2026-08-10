@@ -54,6 +54,18 @@ describe("resolveDefaultTransactionGasLimit", () => {
         );
       });
 
+      it("caps the EIP-7825 default to the block gas limit on Osaka when it is lower", () => {
+        assert.equal(
+          resolveDefaultTransactionGasLimit({
+            chainType: L1_CHAIN_TYPE,
+            hardfork: L1HardforkName.OSAKA,
+            blockGasLimit: 5_000_000n,
+            transactionGasCap: undefined,
+          }),
+          5_000_000n,
+        );
+      });
+
       it("returns the EIP-7825 cap on the latest L1 hardfork", () => {
         assert.equal(
           resolveDefaultTransactionGasLimit({
@@ -211,6 +223,18 @@ describe("resolveEdrDefaultTransactionGasLimit", () => {
         }),
       ),
       16_777_216n,
+    );
+  });
+
+  it("caps the hardfork-specific default to the block gas limit on Osaka when it is lower", () => {
+    assert.equal(
+      resolveEdrDefaultTransactionGasLimit(
+        makeNetworkConfigStub({
+          blockGasLimit: 5_000_000n,
+          hardfork: L1HardforkName.OSAKA,
+        }),
+      ),
+      5_000_000n,
     );
   });
 

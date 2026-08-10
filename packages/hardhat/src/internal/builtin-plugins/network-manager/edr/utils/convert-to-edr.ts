@@ -414,7 +414,8 @@ export async function hardhatForkingConfigToEdrForkConfig(
  * `false`, the per-transaction cap is disabled and the block gas limit is
  * used. When it is undefined, the hardfork-specific default applies:
  * from L1's Osaka hardfork onwards, the EIP-7825 transaction gas cap of
- * 16,777,216; otherwise the block gas limit.
+ * 16,777,216, capped to the block gas limit; otherwise the block gas
+ * limit.
  */
 export function resolveDefaultTransactionGasLimit(params: {
   chainType: ChainType;
@@ -438,7 +439,10 @@ export function resolveDefaultTransactionGasLimit(params: {
   }
 
   if (hardforkGte(hardfork, L1HardforkName.OSAKA, chainType)) {
-    return 16_777_216n; // EIP-7825 transaction gas cap
+    // EIP-7825 transaction gas cap; a transaction with a gas limit above the
+    // block gas limit can never be mined, so the block gas limit wins when
+    // it is lower
+    return blockGasLimit < 16_777_216n ? blockGasLimit : 16_777_216n;
   }
 
   return blockGasLimit;
