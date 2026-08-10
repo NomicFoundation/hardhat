@@ -3,11 +3,13 @@ import type {
   EdrNetworkAccountConfig,
   EdrNetworkAccountsConfig,
   ChainDescriptorsConfig,
+  EdrNetworkConfig,
   EdrNetworkForkingConfig,
   EdrNetworkMempoolConfig,
   EdrNetworkMiningConfig,
 } from "../../../../../types/config.js";
 import type { ChainType } from "../../../../../types/network.js";
+import type { RequireField } from "../../../../../types/utils.js";
 import type { GasMeasurement } from "../../../gas-analytics/types.js";
 import type {
   IntervalRange,
@@ -17,6 +19,7 @@ import type {
 } from "@nomicfoundation/edr";
 
 import {
+  GasEstimationMode,
   GasReportExecutionStatus,
   MineOrdering,
   OpHardfork,
@@ -60,6 +63,7 @@ import { FixedValueConfigurationVariable } from "../../../../core/configuration-
 import { derivePrivateKeys } from "../../accounts/derive-private-keys.js";
 import {
   DEFAULT_EDR_NETWORK_BALANCE,
+  DEFAULT_EDR_NETWORK_BLOCK_GAS_LIMIT,
   EDR_NETWORK_DEFAULT_PRIVATE_KEYS,
   isDefaultEdrNetworkHDAccountsConfig,
 } from "../edr-constants.js";
@@ -280,6 +284,17 @@ export function hardhatMempoolOrderToEdrMineOrdering(
   }
 }
 
+export function hardhatGasEstimationModeToEdrGasEstimationMode(
+  gasEstimationMode: EdrNetworkConfig["gasEstimationMode"],
+): GasEstimationMode {
+  switch (gasEstimationMode) {
+    case "topLevelSuccess":
+      return GasEstimationMode.TopLevelSuccess;
+    case "noInternalOutOfGas":
+      return GasEstimationMode.NoInternalOutOfGas;
+  }
+}
+
 export async function hardhatAccountsToEdrOwnedAccounts(
   accounts: EdrNetworkAccountsConfig,
 ): Promise<Array<{ secretKey: string; balance: bigint }>> {
@@ -427,6 +442,27 @@ export function resolveDefaultTransactionGasLimit(params: {
   }
 
   return blockGasLimit;
+}
+
+/**
+ * Resolves the default transaction gas limit for a resolved EDR network
+ * config, applying the same genesis block gas limit fallback that the EDR
+ * provider itself is configured with.
+ */
+export function resolveEdrDefaultTransactionGasLimit(
+  networkConfig: RequireField<EdrNetworkConfig, "chainType">,
+): bigint {
+  const blockGasLimit =
+    typeof networkConfig.blockGasLimit === "bigint"
+      ? networkConfig.blockGasLimit
+      : DEFAULT_EDR_NETWORK_BLOCK_GAS_LIMIT;
+
+  return resolveDefaultTransactionGasLimit({
+    chainType: networkConfig.chainType,
+    hardfork: networkConfig.hardfork,
+    blockGasLimit,
+    transactionGasCap: networkConfig.transactionGasCap,
+  });
 }
 
 /**

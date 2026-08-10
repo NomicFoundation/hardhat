@@ -1553,6 +1553,7 @@ describe("network-manager/hook-handlers/config", () => {
       assert.equal(localhost.allowBlocksWithSameTimestamp, false);
       assert.equal(localhost.allowUnlimitedContractSize, undefined);
       assert.equal(localhost.blockGasLimit, undefined);
+      assert.equal(localhost.gasEstimationMode, "topLevelSuccess");
       assert.deepEqual(localhost.mining, {
         auto: true,
         interval: 0,

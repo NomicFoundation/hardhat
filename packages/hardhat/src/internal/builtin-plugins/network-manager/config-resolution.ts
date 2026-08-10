@@ -96,6 +96,7 @@ export function resolveEdrNetwork(
       cachePath,
       resolveConfigurationVariable,
     ),
+    gasEstimationMode: networkConfig.gasEstimationMode ?? "topLevelSuccess",
     hardfork: resolveHardfork(
       networkConfig.hardfork,
       networkConfig.chainType ?? defaultChainType,

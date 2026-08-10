@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import { beforeEach, describe, it } from "node:test";
 
+import { assertRejects } from "@nomicfoundation/hardhat-test-utils";
 import { numberToHexString } from "@nomicfoundation/hardhat-utils/hex";
 import { isObject } from "@nomicfoundation/hardhat-utils/lang";
 
@@ -8,6 +9,7 @@ import {
   getJsonRpcRequest,
   getRequestParams,
 } from "../../../../../../../src/internal/builtin-plugins/network-manager/json-rpc.js";
+import { InternalCallOutOfGasError } from "../../../../../../../src/internal/builtin-plugins/network-manager/provider-errors.js";
 import {
   AutomaticGasHandler,
   DEFAULT_GAS_MULTIPLIER,
@@ -136,5 +138,82 @@ describe("AutomaticGasHandler", () => {
 
     assert.ok(isObject(tx), "tx is not an object");
     assert.equal(tx.gas, undefined);
+  });
+
+  describe("when the estimation fails with an internal out-of-gas error", () => {
+    const FALLBACK_GAS = 16_777_216n;
+
+    beforeEach(() => {
+      mockedProvider.setReturnValue("eth_estimateGas", () => {
+        throw new InternalCallOutOfGasError();
+      });
+    });
+
+    it("should use the fallback gas, without applying the multiplier", async () => {
+      const jsonRpcRequest = getJsonRpcRequest(1, "eth_sendTransaction", [
+        {
+          from: "0x0000000000000000000000000000000000000011",
+          to: "0x0000000000000000000000000000000000000011",
+          value: 1,
+        },
+      ]);
+
+      automaticGasHandler = new AutomaticGasHandler(
+        mockedProvider,
+        GAS_MULTIPLIER,
+        FALLBACK_GAS,
+      );
+
+      await automaticGasHandler.handle(jsonRpcRequest);
+      const [tx] = getRequestParams(jsonRpcRequest);
+
+      assert.ok(isObject(tx), "tx is not an object");
+      assert.equal(tx.gas, numberToHexString(FALLBACK_GAS));
+    });
+
+    it("should rethrow the error if no fallback gas was provided", async () => {
+      const jsonRpcRequest = getJsonRpcRequest(1, "eth_sendTransaction", [
+        {
+          from: "0x0000000000000000000000000000000000000011",
+          to: "0x0000000000000000000000000000000000000011",
+          value: 1,
+        },
+      ]);
+
+      await assertRejects(
+        automaticGasHandler.handle(jsonRpcRequest),
+        (error) => error instanceof InternalCallOutOfGasError,
+        "Expected the InternalCallOutOfGasError to be rethrown",
+      );
+    });
+  });
+
+  it("should still use the block gas limit for other execution errors", async () => {
+    mockedProvider.setReturnValue("eth_estimateGas", () => {
+      throw new Error("there was an execution error");
+    });
+
+    const jsonRpcRequest = getJsonRpcRequest(1, "eth_sendTransaction", [
+      {
+        from: "0x0000000000000000000000000000000000000011",
+        to: "0x0000000000000000000000000000000000000011",
+        value: 1,
+      },
+    ]);
+
+    automaticGasHandler = new AutomaticGasHandler(
+      mockedProvider,
+      GAS_MULTIPLIER,
+      16_777_216n,
+    );
+
+    await automaticGasHandler.handle(jsonRpcRequest);
+    const [tx] = getRequestParams(jsonRpcRequest);
+
+    assert.ok(isObject(tx), "tx is not an object");
+    assert.equal(
+      tx.gas,
+      numberToHexString(Math.floor(FIXED_GAS_LIMIT * 1000 * 0.95)),
+    );
   });
 });

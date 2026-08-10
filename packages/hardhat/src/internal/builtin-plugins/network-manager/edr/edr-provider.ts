@@ -40,6 +40,7 @@ import { getGlobalEdrContext } from "../../../edr/context.js";
 import { BaseProvider } from "../base-provider.js";
 import { getJsonRpcRequest, isFailedJsonRpcResponse } from "../json-rpc.js";
 import {
+  InternalCallOutOfGasError,
   InvalidArgumentsError,
   ProviderError,
   UnknownError,
@@ -49,7 +50,10 @@ import { DEFAULT_EDR_NETWORK_BLOCK_GAS_LIMIT } from "./edr-constants.js";
 import { getGenesisStateAndOwnedAccounts } from "./genesis-state.js";
 import { EdrProviderStackTraceGenerationError } from "./stack-traces/stack-trace-generation-errors.js";
 import { createSolidityErrorWithStackTrace } from "./stack-traces/stack-trace-solidity-errors.js";
-import { isEdrProviderErrorData } from "./type-validation.js";
+import {
+  isEdrProviderErrorData,
+  isInternalCallOutOfGasErrorData,
+} from "./type-validation.js";
 import { clientVersion } from "./utils/client-version.js";
 import { ConsoleLogger } from "./utils/console-logger.js";
 import {
@@ -57,7 +61,8 @@ import {
   hardhatMempoolOrderToEdrMineOrdering,
   hardhatHardforkToEdrSpecId,
   hardhatForkingConfigToEdrForkConfig,
-  resolveDefaultTransactionGasLimit,
+  hardhatGasEstimationModeToEdrGasEstimationMode,
+  resolveEdrDefaultTransactionGasLimit,
 } from "./utils/convert-to-edr.js";
 import { warnIfExperimentalHardfork } from "./utils/hardfork.js";
 import { printLine, replaceLastLine } from "./utils/logger.js";
@@ -356,10 +361,14 @@ export class EdrProvider extends BaseProvider {
           }
         }
 
-        error =
-          responseError.code === InvalidArgumentsError.CODE
-            ? new InvalidArgumentsError(responseError.message)
-            : new ProviderError(responseError.message, responseError.code);
+        if (isInternalCallOutOfGasErrorData(errorData)) {
+          error = new InternalCallOutOfGasError();
+        } else {
+          error =
+            responseError.code === InvalidArgumentsError.CODE
+              ? new InvalidArgumentsError(responseError.message)
+              : new ProviderError(responseError.message, responseError.code);
+        }
         error.data = responseError.data;
       }
 
@@ -491,12 +500,8 @@ export async function getProviderConfig(
           genesisBlockTime: BigInt(toSeconds(networkConfig.initialDate)),
         };
 
-  const defaultTransactionGasLimit = resolveDefaultTransactionGasLimit({
-    chainType: networkConfig.chainType,
-    hardfork: networkConfig.hardfork,
-    blockGasLimit: genesisBlockGasLimit,
-    transactionGasCap: networkConfig.transactionGasCap,
-  });
+  const defaultTransactionGasLimit =
+    resolveEdrDefaultTransactionGasLimit(networkConfig);
 
   return {
     allowBlocksWithSameTimestamp: networkConfig.allowBlocksWithSameTimestamp,
@@ -507,6 +512,9 @@ export async function getProviderConfig(
     chainId: BigInt(networkConfig.chainId),
     coinbase: networkConfig.coinbase,
     defaultTransactionGasLimit,
+    gasEstimationMode: hardhatGasEstimationModeToEdrGasEstimationMode(
+      networkConfig.gasEstimationMode,
+    ),
     genesisState: Array.from(genesisState.values()),
     hardfork: specId,
     initialBaseFeePerGas: networkConfig.initialBaseFeePerGas,

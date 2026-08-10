@@ -6,6 +6,7 @@ import type {
 
 import { numberToHexString } from "@nomicfoundation/hardhat-utils/hex";
 
+import { resolveEdrDefaultTransactionGasLimit } from "../edr/utils/convert-to-edr.js";
 import { isHttpNetworkHdAccountsConfig } from "../type-validation.js";
 
 import { AutomaticSenderHandler } from "./handlers/accounts/automatic-sender-handler.js";
@@ -63,10 +64,26 @@ export async function createHandlersArray<
   }
 
   if (networkConfig.gas === undefined || networkConfig.gas === "auto") {
+    // On EDR networks, if the gas estimation fails because an internal call
+    // runs out of gas regardless of the gas limit, we fall back to the same
+    // default transaction gas limit that the network uses for requests
+    // without a gas field.
+    const fallbackGas =
+      networkConfig.type === "edr-simulated"
+        ? resolveEdrDefaultTransactionGasLimit({
+            ...networkConfig,
+            /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions --
+            EDR network connections always have a valid ChainType: the resolved
+            one that the EDR provider itself is configured with */
+            chainType: networkConnection.chainType as ChainType,
+          })
+        : undefined;
+
     requestHandlers.push(
       new AutomaticGasHandler(
         networkConnection.provider,
         networkConfig.gasMultiplier,
+        fallbackGas,
       ),
     );
   } else {

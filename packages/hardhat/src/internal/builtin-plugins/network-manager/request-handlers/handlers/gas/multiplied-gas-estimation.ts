@@ -7,21 +7,30 @@ import {
   numberToHexString,
 } from "@nomicfoundation/hardhat-utils/hex";
 
+import { InternalCallOutOfGasError } from "../../../provider-errors.js";
+
 /**
  * This class handles gas estimation for transactions by applying a multiplier to the estimated gas value.
  * It requests a gas estimation from the provider and multiplies it by a predefined gas multiplier, ensuring the gas does not exceed the block's gas limit.
- * If an execution error occurs, the method returns the block's gas limit instead.
+ * If the estimation fails because an internal call runs out of gas regardless of the gas limit, the method returns the fallback gas limit, if one was provided.
+ * If any other execution error occurs, the method returns the block's gas limit instead.
  * The block gas limit is cached after the first retrieval to optimize performance.
  */
 export abstract class MultipliedGasEstimation {
   readonly #provider: EthereumProvider;
   readonly #gasMultiplier: number;
+  readonly #fallbackGas: bigint | undefined;
 
   #blockGasLimit: number | undefined;
 
-  constructor(provider: EthereumProvider, gasMultiplier: number) {
+  constructor(
+    provider: EthereumProvider,
+    gasMultiplier: number,
+    fallbackGas?: bigint,
+  ) {
     this.#provider = provider;
     this.#gasMultiplier = gasMultiplier;
+    this.#fallbackGas = fallbackGas;
   }
 
   protected async getMultipliedGasEstimation(params: any[]): Promise<string> {
@@ -51,6 +60,16 @@ export abstract class MultipliedGasEstimation {
       return numberToHexString(gas);
     } catch (error) {
       ensureError(error);
+
+      // The user didn't request the estimation, so instead of failing the
+      // transaction we fall back to the default transaction gas limit that
+      // the network would use for requests without a gas field.
+      if (
+        error instanceof InternalCallOutOfGasError &&
+        this.#fallbackGas !== undefined
+      ) {
+        return numberToHexString(this.#fallbackGas);
+      }
 
       if (error.message.toLowerCase().includes("execution error")) {
         const blockGasLimitTmp = await this.#getBlockGasLimit();

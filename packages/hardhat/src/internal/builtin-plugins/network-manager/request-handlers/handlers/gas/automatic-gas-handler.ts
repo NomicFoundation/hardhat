@@ -30,8 +30,9 @@ export class AutomaticGasHandler
   constructor(
     provider: EthereumProvider,
     gasMultiplier: number = DEFAULT_GAS_MULTIPLIER,
+    fallbackGas?: bigint,
   ) {
-    super(provider, gasMultiplier);
+    super(provider, gasMultiplier, fallbackGas);
   }
 
   public isSupportedMethod(jsonRpcRequest: JsonRpcRequest): boolean {
