@@ -72,11 +72,13 @@ export default async (): Promise<Partial<SolidityHooks>> => ({
           return;
         }
 
-        if (!quiet) {
-          console.log(`Downloading solx ${solxVersion}`);
-        }
+        const solxPath = await downloadSolx(solxVersion, () => {
+          if (quiet) {
+            return;
+          }
 
-        const solxPath = await downloadSolx(solxVersion);
+          console.log(`Downloading solx ${solxVersion}`);
+        });
         log(`Downloaded solx ${solxVersion} to ${solxPath}`);
       }),
     );
