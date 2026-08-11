@@ -38,59 +38,6 @@ export async function getSolxBinaryPath(solxVersion: string): Promise<string> {
 }
 
 /**
- * Verifies the SHA-256 checksum of a downloaded binary against a `.sha256`
- * sidecar file on the mirror. If the sidecar file is not available (e.g. for
- * stable releases), verification is skipped. If it is available and the
- * checksum doesn't match, the downloaded file is deleted and false is returned.
- */
-async function verifyChecksum(
-  binaryPath: string,
-  checksumUrl: string,
-): Promise<boolean> {
-  try {
-    const response = await getRequest(checksumUrl);
-
-    if (response.statusCode < 200 || response.statusCode >= 300) {
-      log(
-        `No .sha256 sidecar file at ${checksumUrl} (status ${response.statusCode}), skipping verification`,
-      );
-      return true;
-    }
-
-    // The sidecar file contains the hex-encoded SHA-256 hash, possibly with
-    // a filename suffix (like sha256sum output). We only need the hash part.
-    const text = (await response.body.text()).trim();
-    const expectedHash = text.split(/\s+/)[0].toLowerCase();
-
-    const { sha256 } = await import("@nomicfoundation/hardhat-utils/crypto");
-    const { bytesToHexString } =
-      await import("@nomicfoundation/hardhat-utils/hex");
-
-    const binaryContents = await readBinaryFile(binaryPath);
-    const actualHash = bytesToHexString(await sha256(binaryContents))
-      .slice(2) // remove 0x prefix
-      .toLowerCase();
-
-    if (expectedHash !== actualHash) {
-      log(
-        `SHA-256 mismatch for ${binaryPath}: expected ${expectedHash}, got ${actualHash}`,
-      );
-      await remove(binaryPath);
-      return false;
-    }
-
-    log(`SHA-256 checksum verified for ${binaryPath}`);
-    return true;
-  } catch (error) {
-    ensureError(error);
-    log(
-      `Could not verify checksum from ${checksumUrl}: ${error.message}, skipping verification`,
-    );
-    return true;
-  }
-}
-
-/**
  * Downloads the solx binary for the given version if not already cached.
  * Returns the path to the binary on disk.
  *
@@ -180,4 +127,57 @@ export async function downloadSolx(
     },
     lastError,
   );
+}
+
+/**
+ * Verifies the SHA-256 checksum of a downloaded binary against a `.sha256`
+ * sidecar file on the mirror. If the sidecar file is not available (e.g. for
+ * stable releases), verification is skipped. If it is available and the
+ * checksum doesn't match, the downloaded file is deleted and false is returned.
+ */
+async function verifyChecksum(
+  binaryPath: string,
+  checksumUrl: string,
+): Promise<boolean> {
+  try {
+    const response = await getRequest(checksumUrl);
+
+    if (response.statusCode < 200 || response.statusCode >= 300) {
+      log(
+        `No .sha256 sidecar file at ${checksumUrl} (status ${response.statusCode}), skipping verification`,
+      );
+      return true;
+    }
+
+    // The sidecar file contains the hex-encoded SHA-256 hash, possibly with
+    // a filename suffix (like sha256sum output). We only need the hash part.
+    const text = (await response.body.text()).trim();
+    const expectedHash = text.split(/\s+/)[0].toLowerCase();
+
+    const { sha256 } = await import("@nomicfoundation/hardhat-utils/crypto");
+    const { bytesToHexString } =
+      await import("@nomicfoundation/hardhat-utils/hex");
+
+    const binaryContents = await readBinaryFile(binaryPath);
+    const actualHash = bytesToHexString(await sha256(binaryContents))
+      .slice(2) // remove 0x prefix
+      .toLowerCase();
+
+    if (expectedHash !== actualHash) {
+      log(
+        `SHA-256 mismatch for ${binaryPath}: expected ${expectedHash}, got ${actualHash}`,
+      );
+      await remove(binaryPath);
+      return false;
+    }
+
+    log(`SHA-256 checksum verified for ${binaryPath}`);
+    return true;
+  } catch (error) {
+    ensureError(error);
+    log(
+      `Could not verify checksum from ${checksumUrl}: ${error.message}, skipping verification`,
+    );
+    return true;
+  }
 }
