@@ -330,7 +330,13 @@ export class EdrProvider extends BaseProvider {
 
       const stackTrace = edrResponse.stackTrace();
 
-      if (stackTrace?.kind === "StackTrace") {
+      // The InternalCallOutOfGas estimation failure must win over a solidity
+      // stack trace: the automatic gas fallback in MultipliedGasEstimation
+      // relies on receiving an InternalCallOutOfGasError.
+      if (isInternalCallOutOfGasErrorData(errorData)) {
+        error = new InternalCallOutOfGasError();
+        error.data = responseError.data;
+      } else if (stackTrace?.kind === "StackTrace") {
         // If we have a stack trace, we know that the json rpc response data
         // is an object with the data and transactionHash fields
         assertHardhatInvariant(
@@ -361,14 +367,10 @@ export class EdrProvider extends BaseProvider {
           }
         }
 
-        if (isInternalCallOutOfGasErrorData(errorData)) {
-          error = new InternalCallOutOfGasError();
-        } else {
-          error =
-            responseError.code === InvalidArgumentsError.CODE
-              ? new InvalidArgumentsError(responseError.message)
-              : new ProviderError(responseError.message, responseError.code);
-        }
+        error =
+          responseError.code === InvalidArgumentsError.CODE
+            ? new InvalidArgumentsError(responseError.message)
+            : new ProviderError(responseError.message, responseError.code);
         error.data = responseError.data;
       }
 
