@@ -24,6 +24,7 @@ import {
   SOLIDITY_TO_SOLX_VERSION_MAP,
   SLANG_SOLX_COMPILER_TYPE,
   SUPPORTED_SOLX_EVM_VERSIONS,
+  SUPPORTED_SOLX_OPTIMIZER_MODES,
 } from "../constants.js";
 import { addSlangSolxDebugInfoSelectors } from "../slang-solx-compiler.js";
 
@@ -42,12 +43,24 @@ const supportedEvmVersionsType = z
     message: `Solx only supports EVM versions: ${SUPPORTED_SOLX_EVM_VERSIONS.join(", ")}`,
   });
 
+const supportedOptimizerModesType = z
+  .string()
+  .refine((val) => SUPPORTED_SOLX_OPTIMIZER_MODES.includes(val), {
+    message: `Solx only supports optimizer modes: ${SUPPORTED_SOLX_OPTIMIZER_MODES.join(", ")}`,
+  });
+
 const solxSolidityCompilerUserConfigType = z
   .object({
     version: z.string(),
     settings: z
       .object({
         evmVersion: supportedEvmVersionsType.optional(),
+        optimizer: z
+          .object({
+            mode: supportedOptimizerModesType.optional(),
+          })
+          .passthrough()
+          .optional(),
       })
       .passthrough()
       .optional(),
