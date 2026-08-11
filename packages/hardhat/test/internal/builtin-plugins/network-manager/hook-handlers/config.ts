@@ -640,8 +640,6 @@ describe("network-manager/hook-handlers/config", () => {
     });
 
     it("should not throw when the mining interval is 0, as it disables interval mining", async () => {
-      // `mining: { auto: false, interval: 0 }` is how automatic mining is
-      // turned off completely, and `interval: 0` is also the resolved default.
       const config: HardhatUserConfig = {
         networks: {
           test: {
