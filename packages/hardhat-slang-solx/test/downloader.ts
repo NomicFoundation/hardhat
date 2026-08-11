@@ -176,6 +176,27 @@ describe("hardhat-slang-solx downloader", () => {
     );
   });
 
+  it("fails when the sidecar isn't a digest, without downloading the binary", async () => {
+    // A proxy serving its own error page with a 200 is the realistic case.
+    interceptChecksum(mockedDispatcher, "<html><body>Not Found</body></html>");
+
+    await assertRejectsWithHardhatError(
+      downloadSolx(TEST_SOLX_VERSION, noop, { dispatcher: mockedDispatcher }),
+      HardhatError.ERRORS.HARDHAT_SLANG_SOLX.GENERAL.CHECKSUM_DOWNLOAD_FAILED,
+      {
+        version: TEST_SOLX_VERSION,
+        url: `${SOLX_RELEASES_BASE_URL}/${assetName}.sha256`,
+        reason: "the response didn't contain a SHA-256 digest",
+      },
+    );
+
+    assert.equal(
+      await exists(await getSolxBinaryPath(TEST_SOLX_VERSION)),
+      false,
+      "no binary should be left behind",
+    );
+  });
+
   it("deletes the binary and fails when the digest doesn't match", async () => {
     interceptChecksum(mockedDispatcher, expectedDigest, RETRY_COUNT);
     interceptBinary(

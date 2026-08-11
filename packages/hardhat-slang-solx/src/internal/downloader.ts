@@ -20,6 +20,8 @@ import { getCacheDir } from "@nomicfoundation/hardhat-utils/global-dir";
 import {
   bytesToHexString,
   getPrefixedHexString,
+  getUnprefixedHexString,
+  isHexString,
 } from "@nomicfoundation/hardhat-utils/hex";
 import {
   download,
@@ -34,6 +36,7 @@ import { getSolxAssetName } from "./platform.js";
 const log = createDebug("hardhat:slang-solx:downloader");
 
 const DOWNLOAD_RETRY_COUNT = 3;
+const SHA256_HEX_DIGEST_LENGTH = 64;
 const DOWNLOAD_RETRY_DELAY_MS = 2000;
 
 /**
@@ -209,15 +212,12 @@ async function downloadExpectedChecksum(
   checksumUrl: string,
   dispatcher?: Dispatcher,
 ): Promise<PrefixedHexString> {
+  let body: string;
+
   try {
     const response = await getRequest(checksumUrl, {}, dispatcher);
 
-    // The sidecar file contains the hex-encoded SHA-256 hash, possibly with
-    // a filename suffix (like sha256sum output). We only need the hash part.
-    const text = (await response.body.text()).trim();
-    const expectedChecksum = text.split(/\s+/)[0].toLowerCase();
-
-    return getPrefixedHexString(expectedChecksum);
+    body = (await response.body.text()).trim();
   } catch (error) {
     ensureError(error);
 
@@ -231,6 +231,28 @@ async function downloadExpectedChecksum(
       error,
     );
   }
+
+  // The sidecar file contains the hex-encoded SHA-256 digest, possibly with a
+  // filename suffix, the way sha256sum writes it. We only need the digest.
+  const expectedChecksum = body.split(/\s+/)[0].toLowerCase();
+
+  // This is a guard against a failed HTTP lookup returning an HTML error rather
+  // than the expected digest.
+  if (
+    !isHexString(expectedChecksum) ||
+    getUnprefixedHexString(expectedChecksum).length !== SHA256_HEX_DIGEST_LENGTH
+  ) {
+    throw new HardhatError(
+      HardhatError.ERRORS.HARDHAT_SLANG_SOLX.GENERAL.CHECKSUM_DOWNLOAD_FAILED,
+      {
+        version: solxVersion,
+        url: checksumUrl,
+        reason: "the response didn't contain a SHA-256 digest",
+      },
+    );
+  }
+
+  return getPrefixedHexString(expectedChecksum);
 }
 
 function describeChecksumRequestFailure(error: Error): string {
