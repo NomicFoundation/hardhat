@@ -426,7 +426,7 @@ function refineEdrNetworkUserConfig(
       }
 
       const interval = network.mining?.interval;
-      // A scalar `interval: 0` disables interval mining entirely, so this validate is not appropriate
+      // A scalar `interval: 0` disables interval mining entirely, so this validation is not appropriate
       if (
         (typeof interval === "number" && interval !== 0) ||
         Array.isArray(interval)
