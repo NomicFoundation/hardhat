@@ -5,6 +5,7 @@ import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 
 import {
+  type BaseCounterExample,
   CallKind,
   TestStatus,
   type CallTrace,
@@ -58,6 +59,7 @@ interface MockSuite {
     consoleLogs?: string[];
     duration?: bigint;
     traces?: MockTrace[];
+    counterexample?: BaseCounterExample;
   }>;
 }
 
@@ -91,7 +93,7 @@ const mocker = {
                       );
                     },
                     reason: undefined,
-                    counterexample: undefined,
+                    counterexample: result.counterexample,
                     valueSnapshotGroups: undefined,
                   }) satisfies TestResult,
               )
@@ -188,6 +190,47 @@ debug log
 
   1) TestSuite#failing test
     Error: Unknown error
+`.replace("\n", ""); // the first newline is only here to make the expected output more readable
+
+      assert.deepEqual(result.join(""), expectedOutput);
+    });
+
+    it("single suite, 1 failure with counterexample calldata printed as hex", async () => {
+      const calldata = new Uint8Array([
+        62, 32, 51, 179, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+        0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+      ]);
+
+      const result = await arrayifiedTestReporter(
+        mocker.tests([
+          {
+            source: "TestSuite.sol",
+            name: "TestSuite",
+            results: [
+              {
+                name: "failing test",
+                status: TestStatus.Failure,
+                counterexample: { calldata, args: "0" },
+              },
+            ],
+          },
+        ]),
+        3,
+      );
+
+      const expectedOutput = `
+  TestSuite.sol:TestSuite
+    1) failing test
+
+
+  0 passing
+  1 failing
+
+  1) TestSuite#failing test
+    Error: Unknown error
+    Counterexample:
+      calldata: 0x3e2033b300000000000000000000000000000000000000000000000000000000
+      args: 0
 `.replace("\n", ""); // the first newline is only here to make the expected output more readable
 
       assert.deepEqual(result.join(""), expectedOutput);

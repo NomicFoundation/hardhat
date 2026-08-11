@@ -333,7 +333,7 @@ export async function* testReporter(
           yield* output(indenter.t`Counterexample:\n`);
           indenter.inc();
           for (const [key, value] of Object.entries(counterexample)) {
-            const counterExampleDetails = `${key}: ${Buffer.isBuffer(value) ? bytesToHexString(value) : value}`;
+            const counterExampleDetails = `${key}: ${value instanceof Uint8Array ? bytesToHexString(value) : value}`;
             yield* output(
               indenter.t`${colorize("grey", counterExampleDetails)}\n`,
             );
