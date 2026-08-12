@@ -6,5 +6,11 @@
     "packages/hardhat/templates",
     "packages/config"
   ],
-  "bumps": []
+  "bumps": [
+    {
+      "package": "@nomicfoundation/hardhat-keystore",
+      "peer": "hardhat",
+      "reason": "#8453 added the optional `default` field to `ConfigurationVariable`, which hardhat-keystore's `fetchValue` hook handler now reads to decide whether it can skip the production keystore password prompt and fall back. The field only exists from the next version of Hardhat, so on older ones the fallback silently never triggers."
+    }
+  ]
 }
