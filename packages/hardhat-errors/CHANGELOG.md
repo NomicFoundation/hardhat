@@ -1,5 +1,13 @@
 # @nomicfoundation/hardhat-errors
 
+## 3.0.19
+
+### Patch Changes
+
+- [#8490](https://github.com/NomicFoundation/hardhat/pull/8490) [`22667f6`](https://github.com/NomicFoundation/hardhat/commit/22667f6c961f5ab030f2e1c447e1b2e4a6714ee0) Thanks [@kanej](https://github.com/kanej)! - Added detection and custom error for failed native binding loads (`HHE27`) of `@nomicfoundation/edr` or `@nomicfoundation/solidity-analyzer`.
+
+- [#8487](https://github.com/NomicFoundation/hardhat/pull/8487) [`7b7af19`](https://github.com/NomicFoundation/hardhat/commit/7b7af198a19220d3ac4b99f79cdfa9f3e525e59b) Thanks [@ChristopherDedominici](https://github.com/ChristopherDedominici)! - Added a `--tolerance` option to `--snapshot-check` in Solidity tests, allowing snapshot values to drift by a given percentage before the check fails.
+
 ## 3.0.18
 
 ### Patch Changes
