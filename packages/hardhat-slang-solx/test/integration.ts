@@ -75,8 +75,8 @@ describe("hardhat-slang-solx integration", () => {
     const slangSolxProfile = hre.config.solidity.profiles["slang-solx"];
     assert.equal(
       slangSolxProfile.compilers[0].type,
-      "slang-solx",
-      "slang-solx profile compiler should have type: 'slang-solx'",
+      "solx",
+      "the resolved compiler carries the name EDR reads from the build info, not the one the user wrote",
     );
   });
 

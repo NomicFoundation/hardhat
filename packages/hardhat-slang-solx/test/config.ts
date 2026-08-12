@@ -703,7 +703,7 @@ describe("hardhat-slang-solx resolved config validation", () => {
         "slang-solx": {
           isolated: false,
           preferWasm: false,
-          compilers: [{ version: "0.8.34", type: "slang-solx", settings: {} }],
+          compilers: [{ version: "0.8.34", type: "solx", settings: {} }],
           overrides: {},
         },
       }),
@@ -717,13 +717,13 @@ describe("hardhat-slang-solx resolved config validation", () => {
         default: {
           isolated: false,
           preferWasm: false,
-          compilers: [{ version: "0.8.34", type: "slang-solx", settings: {} }],
+          compilers: [{ version: "0.8.34", type: "solx", settings: {} }],
           overrides: {},
         },
         "slang-solx": {
           isolated: false,
           preferWasm: false,
-          compilers: [{ version: "0.8.34", type: "slang-solx", settings: {} }],
+          compilers: [{ version: "0.8.34", type: "solx", settings: {} }],
           overrides: {},
         },
       }),
@@ -750,7 +750,7 @@ describe("hardhat-slang-solx resolved config validation", () => {
           overrides: {
             "MyContract.sol": {
               version: "0.8.34",
-              type: "slang-solx",
+              type: "solx",
               settings: {},
             },
           },
@@ -758,7 +758,7 @@ describe("hardhat-slang-solx resolved config validation", () => {
         "slang-solx": {
           isolated: false,
           preferWasm: false,
-          compilers: [{ version: "0.8.34", type: "slang-solx", settings: {} }],
+          compilers: [{ version: "0.8.34", type: "solx", settings: {} }],
           overrides: {},
         },
       }),
@@ -782,17 +782,13 @@ describe("hardhat-slang-solx resolved config validation", () => {
           default: {
             isolated: false,
             preferWasm: false,
-            compilers: [
-              { version: "0.8.34", type: "slang-solx", settings: {} },
-            ],
+            compilers: [{ version: "0.8.34", type: "solx", settings: {} }],
             overrides: {},
           },
           "slang-solx": {
             isolated: false,
             preferWasm: false,
-            compilers: [
-              { version: "0.8.34", type: "slang-solx", settings: {} },
-            ],
+            compilers: [{ version: "0.8.34", type: "solx", settings: {} }],
             overrides: {},
           },
         },
@@ -814,7 +810,7 @@ describe("hardhat-slang-solx resolved config validation", () => {
         "slang-solx": {
           isolated: false,
           preferWasm: false,
-          compilers: [{ version: "0.8.34", type: "slang-solx", settings: {} }],
+          compilers: [{ version: "0.8.34", type: "solx", settings: {} }],
           overrides: {},
         },
       }),
@@ -829,9 +825,7 @@ describe("hardhat-slang-solx resolved config validation", () => {
           default: {
             isolated: false,
             preferWasm: false,
-            compilers: [
-              { version: "0.8.34", type: "slang-solx", settings: {} },
-            ],
+            compilers: [{ version: "0.8.34", type: "solx", settings: {} }],
             overrides: {},
           },
         },
