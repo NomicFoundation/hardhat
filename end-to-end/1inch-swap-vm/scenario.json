@@ -14,7 +14,7 @@
   "benchmark": {
     "commands": {
       "compile sequence": {
-        "runs": 2,
+        "runs": 3,
         "steps": {
           "reset files & cache": {
             "command": "git checkout -- test/ProtocolFeeProviderMock.t.sol test/TransferModesCombinations.t.sol src/SwapVM.sol && npx hardhat clean",
@@ -39,12 +39,12 @@
         }
       },
       "warm compile": {
-        "runs": 2,
+        "runs": 5,
         "command": "npx hardhat compile",
         "dependsOn": ["cold compile"]
       },
       "test solidity": {
-        "runs": 4,
+        "runs": 15,
         "command": "npx hardhat test solidity --no-compile",
         "dependsOn": ["cold compile"]
       }

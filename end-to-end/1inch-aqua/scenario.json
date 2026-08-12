@@ -10,7 +10,7 @@
   "benchmark": {
     "commands": {
       "compile sequence": {
-        "runs": 2,
+        "runs": 3,
         "steps": {
           "reset files & cache": {
             "command": "git checkout -- test/AquaLifecycle.t.sol test/AquaStorageTest.t.sol src/Aqua.sol && npx hardhat clean",
@@ -35,12 +35,12 @@
         }
       },
       "warm compile": {
-        "runs": 2,
+        "runs": 9,
         "command": "npx hardhat compile",
         "dependsOn": ["cold compile"]
       },
       "test solidity": {
-        "runs": 2,
+        "runs": 11,
         "command": "npx hardhat test solidity --no-compile",
         "dependsOn": ["cold compile"]
       }
