@@ -13,7 +13,7 @@
   "benchmark": {
     "commands": {
       "compile sequence": {
-        "runs": 2,
+        "runs": 3,
         "steps": {
           "reset files & cache": {
             "command": "git checkout -- test/unit/scripts/launch/TimeConstraints.t.sol test/scenario/mainnet-launch.t.sol contracts/types/Timestamp.sol && npx hardhat clean",
@@ -38,7 +38,7 @@
         }
       },
       "warm compile": {
-        "runs": 2,
+        "runs": 9,
         "command": "npx hardhat compile",
         "dependsOn": ["cold compile"]
       },

@@ -13,7 +13,7 @@
   "benchmark": {
     "commands": {
       "compile sequence": {
-        "runs": 2,
+        "runs": 3,
         "steps": {
           "reset files & cache": {
             "command": "git checkout -- test/libraries/FeeCalcLib.t.sol test/integration/ResolverMock.t.sol contracts/BaseEscrow.sol && npx hardhat clean",
@@ -38,7 +38,7 @@
         }
       },
       "warm compile": {
-        "runs": 2,
+        "runs": 11,
         "command": "npx hardhat compile",
         "dependsOn": ["cold compile"]
       },

@@ -11,7 +11,7 @@
   "benchmark": {
     "commands": {
       "compile sequence": {
-        "runs": 2,
+        "runs": 3,
         "steps": {
           "reset files & cache": {
             "command": "git checkout -- tests/unit/WadRayMath.t.sol tests/unit/Spoke/Liquidations/Spoke.LiquidationCall.t.sol src/libraries/math/MathUtils.sol && npx hardhat clean",
@@ -36,7 +36,7 @@
         }
       },
       "warm compile": {
-        "runs": 2,
+        "runs": 17,
         "command": "npx hardhat compile",
         "dependsOn": ["cold compile"]
       },
