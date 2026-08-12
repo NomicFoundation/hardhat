@@ -1,5 +1,5 @@
 ---
-"@nomicfoundation/hardhat-errors": minor
+"@nomicfoundation/hardhat-errors": patch
 "hardhat": patch
 ---
 
