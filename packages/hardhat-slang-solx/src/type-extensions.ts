@@ -13,26 +13,23 @@ declare module "hardhat/types/solidity" {
 
 declare module "hardhat/types/config" {
   export interface SolidityCompilerTypeDefinitions {
-    // eslint-disable-next-line @typescript-eslint/naming-convention -- the compiler type discriminator is kebab-case to match the plugin name
-    "slang-solx": true;
+    slangSolx: true;
   }
 
   export interface SlangSolxSolidityCompilerUserConfig extends CommonSolidityCompilerUserConfig {
-    type: "slang-solx";
+    type: "slangSolx";
   }
 
   export interface SolidityCompilerUserConfigPerType {
-    // eslint-disable-next-line @typescript-eslint/naming-convention -- the compiler type discriminator is kebab-case to match the plugin name
-    "slang-solx": SlangSolxSolidityCompilerUserConfig;
+    slangSolx: SlangSolxSolidityCompilerUserConfig;
   }
 
   export interface SlangSolxSolidityCompilerConfig extends CommonSolidityCompilerConfig {
-    type: "slang-solx";
+    type: "slangSolx";
   }
 
   export interface SolidityCompilerConfigPerType {
-    // eslint-disable-next-line @typescript-eslint/naming-convention -- the compiler type discriminator is kebab-case to match the plugin name
-    "slang-solx": SlangSolxSolidityCompilerConfig;
+    slangSolx: SlangSolxSolidityCompilerConfig;
   }
 
   export interface SlangSolxSingleVersionSolidityUserConfig
@@ -41,14 +38,13 @@ declare module "hardhat/types/config" {
       CommonSingleVersionSolidityUserConfig {}
 
   export interface SingleVersionSolidityUserConfigPerType {
-    // eslint-disable-next-line @typescript-eslint/naming-convention -- the compiler type discriminator is kebab-case to match the plugin name
-    "slang-solx": SlangSolxSingleVersionSolidityUserConfig;
+    slangSolx: SlangSolxSingleVersionSolidityUserConfig;
   }
 
   export interface SlangSolxUserConfig {
     /**
-     * Allow compiler type `"slang-solx"` in the production build profile.
-     * By default, `"slang-solx"` in production is rejected as a safeguard.
+     * Allow compiler type `"slangSolx"` in the production build profile.
+     * By default, `"slangSolx"` in production is rejected as a safeguard.
      */
     dangerouslyAllowSlangSolxInProduction?: boolean;
   }

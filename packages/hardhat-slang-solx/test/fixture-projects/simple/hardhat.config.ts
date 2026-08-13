@@ -8,8 +8,8 @@ const config: HardhatUserConfig = {
       default: {
         version: "0.8.34",
       },
-      "slang-solx": {
-        type: "slang-solx",
+      slangSolx: {
+        type: "slangSolx",
         version: "0.8.34",
       },
     },

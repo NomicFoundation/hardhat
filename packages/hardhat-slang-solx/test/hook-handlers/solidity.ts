@@ -94,7 +94,7 @@ describe("hardhat-slang-solx solidity hook handler", () => {
       );
     });
 
-    it("does nothing when no slang-solx-typed compilers present", async () => {
+    it("does nothing when no slangSolx-typed compilers present", async () => {
       const hookHandlerModule =
         await import("../../src/internal/hook-handlers/solidity.js");
       const hooks = await hookHandlerModule.default();
@@ -165,7 +165,7 @@ describe("hardhat-slang-solx solidity hook handler", () => {
       );
     });
 
-    it("passes through to next for non-slang-solx compiler configs", async () => {
+    it("passes through to next for non-slangSolx compiler configs", async () => {
       const hookHandlerModule =
         await import("../../src/internal/hook-handlers/solidity.js");
       const hooks = await hookHandlerModule.default();
@@ -280,7 +280,7 @@ describe("hardhat-slang-solx solidity hook handler", () => {
 
       assert.ok(
         !mockNext.wasCalled(),
-        "next should NOT have been called for slang-solx type",
+        "next should NOT have been called for slangSolx type",
       );
       assert.equal(compiler.compilerPath, cachedPath);
       // Version should be parsed from the binary, not from config

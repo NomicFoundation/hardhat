@@ -20,7 +20,7 @@ declare module "../../../types/config.js" {
    * The types of the values don't matter; we use `true` as a convention.
    *
    * By default, only "solc" is provided. Plugins can extend this via
-   * declaration merging to add new compiler types (e.g. "slang-solx").
+   * declaration merging to add new compiler types (e.g. "slangSolx").
    */
   export interface SolidityCompilerTypeDefinitions {
     solc: true;
@@ -358,7 +358,7 @@ declare module "../../../types/hooks.js" {
     /**
      * Hook to obtain a Compiler instance for a given compiler configuration.
      * The default handler returns a solc compiler. Plugins can intercept to
-     * return their own compiler (e.g. SlangSolxCompiler for type: "slang-solx").
+     * return their own compiler (e.g. SlangSolxCompiler for type: "slangSolx").
      *
      * @param context The hook context.
      * @param compilerConfig The compiler configuration to get a compiler for.

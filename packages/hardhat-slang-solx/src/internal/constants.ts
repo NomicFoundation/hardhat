@@ -5,7 +5,7 @@ import type { SolidityCompilerType } from "hardhat/types/config";
  * write in their config.
  * Typed as SolidityCompilerType for type-safe comparisons.
  */
-export const SLANG_SOLX_COMPILER_TYPE: SolidityCompilerType = "slang-solx";
+export const SLANG_SOLX_COMPILER_TYPE: SolidityCompilerType = "slangSolx";
 
 /**
  * The compiler type the resolved config carries, which is the name of the
@@ -14,11 +14,11 @@ export const SLANG_SOLX_COMPILER_TYPE: SolidityCompilerType = "slang-solx";
  * EDR decides how to read a build info from its `compilerType` field, and only
  * recognizes `"solc"` and `"solx"`. An unrecognized value falls back to
  * `"solc"`, where EDR looks for the `sourceMap` that solx does not emit, and
- * Solidity stack traces are silently lost. So the plugin resolves its
- * compilers to the compiler's own name, while users keep writing
- * {@link SLANG_SOLX_COMPILER_TYPE}.
+ * Solidity stack traces are silently lost. So the plugin rewrites
+ * `"slangSolx"` to `"solx"` as it resolves each compiler entry, while users
+ * keep writing {@link SLANG_SOLX_COMPILER_TYPE}.
  *
- * Remove this translation once EDR recognizes `"slang-solx"`.
+ * Remove this translation once EDR recognizes `"slangSolx"`.
  */
 /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions --
 this is EDR's name for the compiler, not a type this plugin registers, so it
