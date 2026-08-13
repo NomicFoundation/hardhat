@@ -131,8 +131,26 @@ cp -R "$SOLX_PKG/dist/src" "$WORKDIR/.solx/expected-dist-src"
 # "solx-0.1.7" profiles point at this binary via the plugin's `path` option.
 node "$MONOREPO_ROOT/scripts/benchmark/download-solx.ts" --version 0.1.7 --out "$WORKDIR/.solx/solx-v0.1.7"
 
-# No pinned forge: the repo ships no foundry.toml, so there is no upstream
-# forge configuration to reproduce and the scenario has no forge cells.
+# The Hardhat 3 migration removed the repo's foundry.toml; reinstate the
+# pre-migration one (vendored from NomicFoundation/lido-core@242beb163) so
+# the forge cells compile with upstream's own per-tree settings — its
+# compilation_restrictions mirror hardhat.config.ts, including the 0.8.25
+# tree's via-IR/cancun. remappings.txt survives at the pin and resolves
+# forge-std from npm, so the removed foundry/lib submodule isn't needed for
+# builds. Fail loudly if the pin ships its own foundry.toml again.
+if [ -e foundry.toml ]; then
+  echo "lidofinance-core-solx preinstall: the pinned commit ships a foundry.toml — the pin may have changed; refusing to overwrite it." >&2
+  exit 1
+fi
+cp "$E2E_TEST_DIR/foundry.toml" foundry.toml
+
+# Pinned forge (latest stable at pin time) for the cross-tool parity cells.
+# At 1.7.1 forge's codegen is solc (solar is lint-only), so with
+# FOUNDRY_SOLC=0.8.34 the compiler matches the hardhat cells. (FOUNDRY_SOLC,
+# not FOUNDRY_SOLC_VERSION, which forge misparses when an [etherscan] table
+# is present — see the aave-v4-solx scenario.)
+rm -rf "$WORKDIR/.foundry"
+node "$MONOREPO_ROOT/scripts/benchmark/download-forge.ts" --version 1.7.1 --out "$WORKDIR/.foundry/forge"
 
 # Swap in the wrapper config that adds the solx build profile. The original is
 # kept as hardhat.config.base.ts, which the wrapper composes with — see

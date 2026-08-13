@@ -10,8 +10,9 @@
 // base's 0.8.25 compiler settings. Its transitive imports (contracts/common,
 // vendored + npm OpenZeppelin) carry range pragmas and compile at 0.8.34
 // unpatched. Upstream ships this tree via-IR only, and it cannot compile any
-// other way: RefSlotCache copies a struct array to storage, which solc's
-// legacy codegen rejects with an UnimplementedFeatureError (IR-only feature).
+// other way: SRLib hits stack-too-deep, and RefSlotCache copies a struct
+// array to storage, which solc's legacy codegen rejects with an
+// UnimplementedFeatureError (IR-only feature).
 // So only the via-IR cells are benchmarked; the legacy/no-opt profiles below
 // exist for the plugin's mandatory "solx" profile and for reproducing the
 // failure (`--build-profile solc-no-opt`), and their FAIL is the datum,

@@ -130,11 +130,12 @@ const CELL_NOTES: Record<string, string> = {
 const FOOTNOTES = [
   "¹ the legacy pipeline rejects these sources: solc no-opt hits " +
     "stack-too-deep (OZ: the P256/WebAuthn-family files; solady: " +
-    "test/RedBlackTree.t.sol), and lido's vaults tree copies a struct array " +
-    "to storage — an UnimplementedFeatureError outside via-IR, for solx " +
-    "too. Reproduce with `--build-profile solc-no-opt` (or lido's plain " +
-    "`solx`) in the scenario. The failure, not a time, is the datum — see " +
-    "the scenario's wrapper config.",
+    "test/RedBlackTree.t.sol), and lido's vaults tree is IR-only — " +
+    "stack-too-deep in SRLib plus a struct-array copy to storage that is " +
+    "an UnimplementedFeatureError outside via-IR, for solx too. Reproduce " +
+    "with `--build-profile solc-no-opt` (or lido's plain `solx`) in the " +
+    "scenario. The failure, not a time, is the datum — see the scenario's " +
+    "wrapper config.",
 ];
 
 export function renderSolxTables(
