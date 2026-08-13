@@ -4,6 +4,7 @@ import {
   existsSync,
   mkdirSync,
   readFileSync,
+  rmSync,
   statSync,
   writeFileSync,
 } from "node:fs";
@@ -163,6 +164,9 @@ function main(): void {
 
   for (const jsonPath of scenarioPaths) {
     const { id, workingDir, definition } = loadScenario(cloneDir, jsonPath);
+    // Monorepo scenarios keep their Hardhat project in a subdirectory; the
+    // scenario's `workdir` points the direct hardhat invocations below there.
+    const compileCwd = path.join(workingDir, definition.workdir ?? ".");
     const scenarioOutDir = path.join(outDir, id);
     const manifestScenario: ManifestScenario = {
       repo: definition.repo,
@@ -177,20 +181,36 @@ function main(): void {
 
     for (const { file, flags, env } of variantsFor(definition)) {
       const dumpPath = path.join(scenarioOutDir, file);
-      execSync("npx hardhat clean", { cwd: workingDir, stdio: "ignore" });
+      execSync("npx hardhat clean", { cwd: compileCwd, stdio: "ignore" });
       // definition.env carries scenario-level compile requirements (e.g.
       // aave-v4-solx's EVM_DISABLE_MEMORY_SAFE_ASM_CHECK); without it the
       // dump compile fails where the benchmarked cells succeed.
-      execSync(["npx", "hardhat", "compile", ...flags].join(" "), {
-        cwd: workingDir,
-        stdio: "ignore",
-        env: {
-          ...process.env,
-          ...definition.env,
-          ...env,
-          SOLX_STANDARD_JSON_DEBUG: dumpPath,
-        },
-      });
+      try {
+        execSync(["npx", "hardhat", "compile", ...flags].join(" "), {
+          cwd: compileCwd,
+          stdio: "ignore",
+          env: {
+            ...process.env,
+            ...definition.env,
+            ...env,
+            SOLX_STANDARD_JSON_DEBUG: dumpPath,
+          },
+        });
+      } catch {
+        // A variant may be legitimately uncompilable (lidofinance-core-solx's
+        // vaults tree is IR-only, so its plugin-mandated legacy "solx" profile
+        // can't build). Skip the variant — leaving it out of the manifest —
+        // instead of aborting the run, which would lose every other
+        // scenario's dumps and block the corpus publish. solx dumps the
+        // standard JSON before compiling, so a failed compile can still leave
+        // a file behind; remove it or the corpus copy would pick up an
+        // unmanifested dump.
+        rmSync(dumpPath, { force: true });
+        console.warn(
+          `${id}/${file}: compile failed — skipping this dump variant`,
+        );
+        continue;
+      }
 
       if (!existsSync(dumpPath)) {
         throw new Error(

@@ -62,6 +62,10 @@
       "type": "boolean",
       "description": "Initialize git submodules recursively (default: false)"
     },
+    "workdir": {
+      "type": "string",
+      "description": "Directory, relative to the repo root, containing the Hardhat project (monorepo scenarios). Used by tools that invoke hardhat directly in the initialized checkout (e.g. bench:dump-standard-json). Benchmark commands and defaultCommand still run at the repo root and must cd themselves."
+    },
     "disabled": {
       "type": "boolean",
       "const": true,
