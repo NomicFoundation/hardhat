@@ -8,6 +8,7 @@ import assert from "node:assert/strict";
 import { before, describe, it } from "node:test";
 
 import { assertValidationErrors } from "@nomicfoundation/hardhat-test-utils";
+import { configVariable } from "hardhat/config";
 
 import {
   resolveUserConfig,
@@ -67,6 +68,54 @@ describe("hook-handlers/config", () => {
         const validationErrors = await validateUserConfig(config as any);
 
         assertValidationErrors(validationErrors, []);
+      });
+
+      it("should pass if the apiKey is provided", async () => {
+        let config: HardhatUserConfig = {
+          verify: {
+            blockscout: {
+              apiKey: "some-api-key",
+              enabled: true,
+            },
+          },
+        };
+
+        let validationErrors = await validateUserConfig(config);
+
+        assertValidationErrors(validationErrors, []);
+
+        config = {
+          verify: {
+            blockscout: {
+              apiKey: configVariable("BLOCKSCOUT_API_KEY"),
+            },
+          },
+        };
+
+        validationErrors = await validateUserConfig(config);
+
+        assertValidationErrors(validationErrors, []);
+      });
+
+      it("should throw if apiKey is not a string", async () => {
+        const config = {
+          verify: {
+            blockscout: {
+              apiKey: 1,
+            },
+          },
+        };
+
+        /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions
+      -- testing invalid network type for js users */
+        const validationErrors = await validateUserConfig(config as any);
+
+        assertValidationErrors(validationErrors, [
+          {
+            path: ["verify", "blockscout", "apiKey"],
+            message: "Expected a string or a Configuration Variable",
+          },
+        ]);
       });
 
       it("should throw if blockscout is not an object", async () => {
@@ -296,6 +345,7 @@ describe("hook-handlers/config", () => {
 
       assert.deepEqual(resolvedConfig.verify, {
         blockscout: {
+          apiKey: undefined,
           enabled: true,
         },
         etherscan: {
@@ -313,6 +363,7 @@ describe("hook-handlers/config", () => {
       const userConfig: HardhatUserConfig = {
         verify: {
           blockscout: {
+            apiKey: "some-blockscout-api-key",
             enabled: false,
           },
           etherscan: {
@@ -336,6 +387,9 @@ describe("hook-handlers/config", () => {
 
       assert.deepEqual(resolvedConfig.verify, {
         blockscout: {
+          apiKey: new MockResolvedConfigurationVariable(
+            "some-blockscout-api-key",
+          ),
           enabled: false,
         },
         etherscan: {
@@ -346,6 +400,29 @@ describe("hook-handlers/config", () => {
           apiUrl: "https://sourcify.custom.url",
           enabled: false,
         },
+      });
+    });
+
+    it("should leave the blockscout apiKey undefined if it is not provided", async () => {
+      const userConfig: HardhatUserConfig = {
+        verify: {
+          blockscout: {
+            enabled: false,
+          },
+        },
+      };
+
+      const resolvedConfig = await resolveUserConfig(
+        userConfig,
+        /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions
+        -- Cast for simplicity as we won't test this */
+        (variable) => configurationVariableResolver(variable as string),
+        next,
+      );
+
+      assert.deepEqual(resolvedConfig.verify.blockscout, {
+        apiKey: undefined,
+        enabled: false,
       });
     });
 
@@ -372,6 +449,7 @@ describe("hook-handlers/config", () => {
 
       assert.deepEqual(resolvedConfig.verify, {
         blockscout: {
+          apiKey: undefined,
           enabled: true,
         },
         etherscan: {

@@ -65,6 +65,32 @@ Run the `verify` task passing the network where it's deployed, the address of th
 npx hardhat verify --network mainnet DEPLOYED_CONTRACT_ADDRESS "Constructor argument 1"
 ```
 
+### Verifying on Blockscout
+
+Most Blockscout instances don't require an API key, so no extra config is needed to verify on them:
+
+```bash
+npx hardhat verify blockscout --network mainnet DEPLOYED_CONTRACT_ADDRESS "Constructor argument 1"
+```
+
+Some instances do require one, like the [Pro API](https://docs.blockscout.com/devs/pro-api). In that case, add the key to the Blockscout config in your `hardhat.config.ts` file:
+
+```typescript
+import { configVariable, defineConfig } from "hardhat/config";
+
+export default defineConfig({
+  verify: {
+    blockscout: {
+      // Your API key for Blockscout
+      // Obtain one at https://blockscout.com/
+      apiKey: configVariable("BLOCKSCOUT_API_KEY"),
+    },
+  },
+});
+```
+
+The key is sent as the `apikey` query param of the verification requests. Unlike Etherscan, the chain id isn't sent as a query param: the Blockscout instance is addressed by the `apiUrl` of its chain descriptor, which already encodes the chain id when the API requires it (e.g. `https://api.blockscout.com/{chainId}/api`).
+
 ### Programmatic verification
 
 You can also verify contracts programmatically by using the `verifyContract` function from the plugin:
