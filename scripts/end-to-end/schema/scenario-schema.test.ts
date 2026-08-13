@@ -47,10 +47,25 @@ describe("isScenarioDefinition", () => {
       tags: ["solidity-compile"],
       env: { FOO: "bar" },
       submodules: true,
+      workdir: "packages/horizon",
       disabled: true,
     };
 
     assert.equal(isScenarioDefinition(value), true);
+  });
+
+  it("rejects a non-string workdir", () => {
+    const value = {
+      description: "Compile a monorepo package",
+      repo: "NomicFoundation/graphprotocol-contracts",
+      commit: "abc123",
+      packageManager: "pnpm",
+      defaultCommand: "cd packages/horizon && npx hardhat compile",
+      tags: ["solx"],
+      workdir: 42,
+    };
+
+    assert.equal(isScenarioDefinition(value), false);
   });
 
   it("accepts bun as a package manager", () => {

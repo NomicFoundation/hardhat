@@ -45,6 +45,7 @@ export function isScenarioDefinition(
     (obj.preinstall === undefined || typeof obj.preinstall === "string") &&
     (obj.install === undefined || typeof obj.install === "string") &&
     (obj.submodules === undefined || typeof obj.submodules === "boolean") &&
+    (obj.workdir === undefined || typeof obj.workdir === "string") &&
     (obj.disabled === undefined || obj.disabled === true) &&
     (obj.benchmark === undefined || isBenchmarkConfig(obj.benchmark))
   );
