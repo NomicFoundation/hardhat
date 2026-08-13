@@ -28,6 +28,13 @@ interface ScenarioDefinitionBase {
   tags: string[];
   env?: Record<string, string>;
   submodules?: boolean;
+  /**
+   * Directory, relative to the repo root, containing the Hardhat project
+   * (monorepo scenarios). Used by tools that invoke hardhat directly in the
+   * initialized checkout (e.g. bench:dump-standard-json). Benchmark commands
+   * and defaultCommand still run at the repo root and must cd themselves.
+   */
+  workdir?: string;
   disabled?: true;
   benchmark?: {
     /**
