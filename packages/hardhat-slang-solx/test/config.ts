@@ -840,3 +840,68 @@ describe("hardhat-slang-solx resolved config validation", () => {
     );
   });
 });
+
+describe("hardhat-slang-solx optimizer mode validation", () => {
+  async function validateMode(mode: string) {
+    return await validateUserConfig({
+      solidity: {
+        profiles: {
+          slangSolx: {
+            compilers: [
+              {
+                version: "0.8.34",
+                type: "slangSolx",
+                settings: { optimizer: { mode } },
+              },
+            ],
+          },
+        },
+      },
+    });
+  }
+
+  for (const mode of ["1", "2", "3", "s", "z"]) {
+    it(`accepts the optimizer mode "${mode}"`, async () => {
+      assert.deepEqual(await validateMode(mode), []);
+    });
+  }
+
+  // The likeliest mistake: there is no mode that turns optimization off.
+  it('rejects the optimizer mode "0"', async () => {
+    const errors = await validateMode("0");
+
+    assert.ok(
+      errors.some((e) => e.message.includes("optimizer modes")),
+      `Expected an optimizer mode error, got: ${errors.map((e) => e.message).join(", ")}`,
+    );
+  });
+
+  it("rejects an uppercase size mode, which solx does not accept", async () => {
+    const errors = await validateMode("Z");
+
+    assert.ok(
+      errors.some((e) => e.message.includes("optimizer modes")),
+      `Expected an optimizer mode error, got: ${errors.map((e) => e.message).join(", ")}`,
+    );
+  });
+
+  it("leaves the other optimizer settings alone", async () => {
+    const errors = await validateUserConfig({
+      solidity: {
+        profiles: {
+          slangSolx: {
+            compilers: [
+              {
+                version: "0.8.34",
+                type: "slangSolx",
+                settings: { optimizer: { enabled: true, runs: 200 } },
+              },
+            ],
+          },
+        },
+      },
+    });
+
+    assert.deepEqual(errors, []);
+  });
+});
