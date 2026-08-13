@@ -35,7 +35,7 @@ A finding that genuinely *requires* config control is therefore **not an escalat
 Can do almost anything; the general fact of that access is not a Hardhat vulnerability. Two things this rung does **not** cover:
 
 - **A different, less-privileged user on the same machine** (co-tenant on a shared CI runner or dev box). They are closer to Baseline 1. Predictable temp paths, world-writable output dirs, and symlink races in the artifacts/cache pipeline are genuine findings against them.
-- **Boundaries designed to hold even against a same-user attacker** — the encrypted keystore above all. Defeating such a boundary is valid regardless of assumed access (rule 3).
+- **Boundaries designed to hold even against a same-user attacker** — the encrypted keystore above all. Defeating such a boundary is valid regardless of assumed access (see Rule 3 in 'Rules for judging findings' below).
 
 ## What escalates past config execution
 
