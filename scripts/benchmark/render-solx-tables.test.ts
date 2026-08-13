@@ -123,6 +123,24 @@ describe("renderSolxTables", () => {
         system: 0.2,
       },
     ),
+    entry("lidofinance-core-solx / cold compile solc via-ir", 21.3, {
+      times: [21.2, 21.4],
+    }),
+    entry("lidofinance-core-solx / cold compile solc via-ir (cpu)", 22.0, {
+      user: 21.5,
+      system: 0.5,
+    }),
+    entry("lidofinance-core-solx / cold compile solx-0.1.7 via-ir", 9.4, {
+      times: [9.3, 9.5],
+    }),
+    entry(
+      "lidofinance-core-solx / cold compile solx-0.1.7 via-ir (cpu)",
+      25.1,
+      {
+        user: 24.6,
+        system: 0.5,
+      },
+    ),
     entry("openzeppelin-contracts-0.34 / cold compile solc parity", 40.0, {
       times: [39.8, 40.1, 40.1],
     }),
@@ -186,6 +204,23 @@ describe("renderSolxTables", () => {
     assert.match(
       md,
       /### solady-solx[\s\S]*?\| legacy, no optimizer \| ✗ does not compile¹ \|/,
+    );
+  });
+
+  it("annotates lido's IR-only legacy rows for both compilers", () => {
+    // The scenario benchmarks via-IR cells only; the legacy and no-opt rows
+    // exist purely as annotated FAILs (the vaults tree is IR-only).
+    assert.match(
+      md,
+      /### lidofinance-core-solx[\s\S]*?\| legacy \| ✗ does not compile¹ \| ✗ does not compile¹ \|/,
+    );
+    assert.match(
+      md,
+      /### lidofinance-core-solx[\s\S]*?\| legacy, no optimizer \| ✗ does not compile¹ \| — \|/,
+    );
+    assert.match(
+      md,
+      /### lidofinance-core-solx[\s\S]*?\| via-IR \| 21\.3 \/ 22\.0 \| 9\.4 \/ 25\.1 \|/,
     );
   });
 
