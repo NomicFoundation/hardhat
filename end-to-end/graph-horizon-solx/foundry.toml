@@ -1,0 +1,41 @@
+# Vendored by the graph-horizon-solx benchmark scenario: the pre-migration
+# foundry.toml from PR #1 (8d148f39), whose [profile.prod] matches the
+# hardhat cells' production-derived settings, plus the remappings block the
+# pinned commit's lint-only foundry.toml carries (forge doesn't auto-generate
+# either entry, and remappings.txt only maps contracts/).
+[profile.default]
+src = 'contracts'
+out = 'build'
+libs = ["node_modules"]
+remappings = [
+    "@graphprotocol/=node_modules/@graphprotocol/",
+    "forge-std/=node_modules/forge-std/src/",
+]
+test = 'test'
+cache_path = 'cache_forge'
+fs_permissions = [{ access = "read", path = "./" }]
+solc_version = '0.8.35'
+evm_version = 'cancun'
+# Suppress solc warnings emitted from third-party code we don't control
+# (e.g. @openzeppelin/foundry-upgrades' state-mutability suggestions).
+ignored_warnings_from = ["node_modules"]
+
+# Exclude test files from coverage reports
+no_match_coverage = "(^test/|/mocks/)"
+
+# Opt-in profile for production-matching bytecode (viaIR + optimizer).
+# Use FOUNDRY_PROFILE=prod for CI / pre-merge runs that should mirror what hardhat
+# compiles for deploy. Default profile stays optimizer-off / viaIR-off for fast iteration.
+[profile.prod]
+optimizer = true
+optimizer_runs = 100
+via_ir = true
+
+# Lint configuration
+[lint]
+# Disable lint-on-build: forge build's auto-lint scans test/ files which use bytes32("...")
+# literal IDs that trigger spurious unsafe-typecast warnings. `pnpm lint:forge` (scoped to
+# contracts/) remains the canonical lint path for production code.
+lint_on_build = false
+ignore = ["contracts/mocks/imports.sol"]
+exclude_lints = ["mixed-case-function", "mixed-case-variable", "block-timestamp"]
