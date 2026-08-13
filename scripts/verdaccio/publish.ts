@@ -212,7 +212,6 @@ const EXCLUDED_PACKAGES = [
   "example-project",
   "template-package",
   "hardhat-test-utils",
-  "hardhat-slang-solx",
 ];
 
 /**
