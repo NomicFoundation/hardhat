@@ -39,6 +39,7 @@ elif
 enero
 esac
 esbuild
+exfiltration
 EXLOCK
 fgrep
 fqns
