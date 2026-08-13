@@ -1,0 +1,51 @@
+{
+  "$schema": "../../scripts/end-to-end/schema/scenario.schema.json",
+  "description": "Lido core's modern vaults tree (contracts/0.8.25 only) compiled at solc 0.8.34, tracking solx and solc compile times. The repo's older trees (0.4.24-0.8.9) predate the 0.8.x language era and can never compile under the 0.8.34 the solx cells require, so the wrapper config scopes sources to the one tree solx could realistically adopt. Via-IR cells only: the tree is IR-native (RefSlotCache copies a struct array to storage, an UnimplementedFeatureError in solc's legacy codegen), so no compiler has legacy or no-opt cells — that FAIL is the datum, annotated in CELL_NOTES. Every hardhat cell passes --no-tests: paths.tests.solidity defaults to test/, whose fixtures span 0.4.24-0.8.9. No forge cells: the repo ships no foundry.toml, so there is no upstream forge configuration to reproduce (the cross-tool parity table simply has no lido row). SKIP_LINT_SOLIDITY/SKIP_INTERFACES_CHECK are upstream's own escape hatches for its build-task override, which otherwise adds solhint + ABI checks to every timed compile (and the solhint lido/fixed-compiler-version rule rejects the caret pragmas preinstall introduces). EVM_DISABLE_MEMORY_SAFE_ASM_CHECK lets solx spill stack-too-deep despite the deprecated natspec memory-safe annotations in contracts/common's assembly (GIndex/SSZ/BLS; upstream OZ-style block annotations would lift the restriction — see the aave-v4-solx scenario).",
+  "tags": ["external-repo", "solx"],
+  "repo": "NomicFoundation/lidofinance-core",
+  "commit": "3d690c270cde8f0509e2a20d6ae659ef76e094e0",
+  "packageManager": "yarn",
+  "submodules": false,
+  "preinstall": "./preinstall.sh",
+  "env": {
+    "SKIP_LINT_SOLIDITY": "1",
+    "SKIP_INTERFACES_CHECK": "1",
+    "EVM_DISABLE_MEMORY_SAFE_ASM_CHECK": "1"
+  },
+  "defaultCommand": "npx hardhat compile --build-profile solx-via-ir --no-tests",
+  "benchmark": {
+    "commands": {
+      "prime compilers": {
+        "runs": 1,
+        "steps": {
+          "assert fresh hardhat-solx": {
+            "command": "diff -rq .solx/expected-dist-src node_modules/@nomicfoundation/hardhat-solx/dist/src",
+            "measure": false
+          },
+          "download solc + solx and warm caches": {
+            "command": "npx hardhat compile --build-profile solc-via-ir --no-tests && npx hardhat compile --build-profile solx-via-ir --no-tests && npx hardhat clean",
+            "measure": false
+          }
+        }
+      },
+      "cold compile solx-0.1.7 via-ir": {
+        "runs": 2,
+        "dependsOn": [
+          "assert fresh hardhat-solx",
+          "download solc + solx and warm caches"
+        ],
+        "prepare": "npx hardhat clean",
+        "command": "npx hardhat compile --build-profile solx-0.1.7-via-ir --no-tests"
+      },
+      "cold compile solc via-ir": {
+        "runs": 2,
+        "dependsOn": [
+          "assert fresh hardhat-solx",
+          "download solc + solx and warm caches"
+        ],
+        "prepare": "npx hardhat clean",
+        "command": "npx hardhat compile --build-profile solc-via-ir --no-tests"
+      }
+    }
+  }
+}
